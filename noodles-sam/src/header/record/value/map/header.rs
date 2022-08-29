@@ -80,14 +80,8 @@ impl Map<Header> {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::record::value::{
-    ///     map::{self, header::Version},
-    ///     Map,
-    /// };
-    ///
-    /// let mut header = Map::<map::Header>::new(Version::new(1, 6));
-    /// assert_eq!(header.version(), Version::new(1, 6));
-    ///
+    /// use noodles_sam::header::record::value::{map::{self, header::Version}, Map};
+    /// let mut header = Map::<map::Header>::default();
     /// *header.version_mut() = Version::new(1, 5);
     /// assert_eq!(header.version(), Version::new(1, 5));
     /// ```
@@ -108,6 +102,20 @@ impl Map<Header> {
         self.inner.sort_order
     }
 
+    /// Returns a mutable reference to the sort order.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::record::value::{map::{self, header::SortOrder}, Map};
+    /// let mut header = Map::<map::Header>::default();
+    /// *header.sort_order_mut() = Some(SortOrder::Coordinate);
+    /// assert_eq!(header.sort_order(), Some(SortOrder::Coordinate));
+    /// ```
+    pub fn sort_order_mut(&mut self) -> &mut Option<SortOrder> {
+        &mut self.inner.sort_order
+    }
+
     /// Returns the group order.
     ///
     /// # Examples
@@ -121,6 +129,20 @@ impl Map<Header> {
         self.inner.group_order
     }
 
+    /// Returns a mutable reference to the group order.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::record::value::{map::{self, header::GroupOrder}, Map};
+    /// let mut header = Map::<map::Header>::default();
+    /// *header.group_order_mut() = Some(GroupOrder::None);
+    /// assert_eq!(header.group_order(), Some(GroupOrder::None));
+    /// ```
+    pub fn group_order_mut(&mut self) -> &mut Option<GroupOrder> {
+        &mut self.inner.group_order
+    }
+
     /// Returns the subsort order.
     ///
     /// # Examples
@@ -132,6 +154,22 @@ impl Map<Header> {
     /// ```
     pub fn subsort_order(&self) -> Option<&SubsortOrder> {
         self.inner.subsort_order.as_ref()
+    }
+
+    /// Returns a mutable reference to the subsort order.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::record::value::{map::{self, header::SubsortOrder}, Map};
+    /// let subsort_order: SubsortOrder = "coordinate:queryname".parse()?;
+    /// let mut header = Map::<map::Header>::default();
+    /// *header.subsort_order_mut() = Some(subsort_order.clone());
+    /// assert_eq!(header.subsort_order(), Some(&subsort_order));
+    /// # Ok::<_, noodles_sam::header::record::value::map::header::subsort_order::ParseError>(())
+    /// ```
+    pub fn subsort_order_mut(&mut self) -> &mut Option<SubsortOrder> {
+        &mut self.inner.subsort_order
     }
 }
 
