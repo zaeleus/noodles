@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added
+
+  * sam/header/record/value/map/read_group/platform: Add Element Biosciences
+    (`ELEMENT`; [samtools/hts-specs@4b884a4]).
+
+[samtools/hts-specs@4b884a4]: https://github.com/samtools/hts-specs/commit/4b884a4bbef181a73c7a3e7d03c91b3fd6371c4d
+
 ### Changed
 
   * sam/header: SAM header records parsed from maps are now map values
