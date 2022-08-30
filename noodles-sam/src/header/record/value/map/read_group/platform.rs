@@ -25,6 +25,8 @@ pub enum Platform {
     Ont,
     /// Pacific Biosciences (PacBio) sequencing (`PACBIO`).
     PacBio,
+    /// Ultima Genomics (`ULTIMA`).
+    Ultima,
 }
 
 impl AsRef<str> for Platform {
@@ -40,6 +42,7 @@ impl AsRef<str> for Platform {
             Self::IonTorrent => "IONTORRENT",
             Self::Ont => "ONT",
             Self::PacBio => "PACBIO",
+            Self::Ultima => "ULTIMA",
         }
     }
 }
@@ -86,6 +89,7 @@ impl FromStr for Platform {
             "IONTORRENT" => Ok(Self::IonTorrent),
             "ONT" => Ok(Self::Ont),
             "PACBIO" => Ok(Self::PacBio),
+            "ULTIMA" => Ok(Self::Ultima),
             _ => Err(ParseError::Invalid),
         }
     }
@@ -107,6 +111,7 @@ mod tests {
         assert_eq!(Platform::IonTorrent.to_string(), "IONTORRENT");
         assert_eq!(Platform::Ont.to_string(), "ONT");
         assert_eq!(Platform::PacBio.to_string(), "PACBIO");
+        assert_eq!(Platform::Ultima.to_string(), "ULTIMA");
     }
 
     #[test]
@@ -121,6 +126,7 @@ mod tests {
         assert_eq!("IONTORRENT".parse(), Ok(Platform::IonTorrent));
         assert_eq!("ONT".parse(), Ok(Platform::Ont));
         assert_eq!("PACBIO".parse(), Ok(Platform::PacBio));
+        assert_eq!("ULTIMA".parse(), Ok(Platform::Ultima));
 
         assert_eq!("".parse::<Platform>(), Err(ParseError::Empty));
         assert_eq!("NOODLES".parse::<Platform>(), Err(ParseError::Invalid));
