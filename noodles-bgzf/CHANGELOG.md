@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bgzf/gzi: Add convenience `read` function.
+
 ## 0.14.0 - 2022-08-16
 
 ### Added
