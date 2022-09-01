@@ -44,9 +44,12 @@ impl<S> fmt::Display for Other<S> {
     }
 }
 
+/// A SAM header record map value field tag.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Tag<S> {
+    /// A standard tag.
     Standard(S),
+    /// A nonstandard tag.
     Other(Other<S>),
 }
 

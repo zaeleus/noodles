@@ -9,7 +9,7 @@ mod tag;
 
 pub use self::{
     builder::Builder, header::Header, program::Program, read_group::ReadGroup,
-    reference_sequence::ReferenceSequence,
+    reference_sequence::ReferenceSequence, tag::Tag,
 };
 
 use std::{error, fmt};
