@@ -2,6 +2,13 @@
 
 use crate::header::record::value::map::tag::{self, LENGTH};
 
+const ID: [u8; LENGTH] = [b'I', b'D'];
+const PN: [u8; LENGTH] = [b'P', b'N'];
+const CL: [u8; LENGTH] = [b'C', b'L'];
+const PP: [u8; LENGTH] = [b'P', b'P'];
+const DS: [u8; LENGTH] = [b'D', b'S'];
+const VN: [u8; LENGTH] = [b'V', b'N'];
+
 /// A SAM header program tag.
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 pub enum Standard {
@@ -25,14 +32,27 @@ impl TryFrom<[u8; LENGTH]> for Standard {
     type Error = ();
 
     fn try_from(b: [u8; LENGTH]) -> Result<Self, Self::Error> {
-        match &b {
-            b"ID" => Ok(Self::Id),
-            b"PN" => Ok(Self::Name),
-            b"CL" => Ok(Self::CommandLine),
-            b"PP" => Ok(Self::PreviousId),
-            b"DS" => Ok(Self::Description),
-            b"VN" => Ok(Self::Version),
+        match b {
+            ID => Ok(Self::Id),
+            PN => Ok(Self::Name),
+            CL => Ok(Self::CommandLine),
+            PP => Ok(Self::PreviousId),
+            DS => Ok(Self::Description),
+            VN => Ok(Self::Version),
             _ => Err(()),
+        }
+    }
+}
+
+impl From<Standard> for [u8; LENGTH] {
+    fn from(tag: Standard) -> Self {
+        match tag {
+            Standard::Id => ID,
+            Standard::Name => PN,
+            Standard::CommandLine => CL,
+            Standard::PreviousId => PP,
+            Standard::Description => DS,
+            Standard::Version => VN,
         }
     }
 }
@@ -51,5 +71,15 @@ mod tests {
         assert_eq!(Standard::try_from([b'V', b'N']), Ok(Standard::Version));
 
         assert_eq!(Standard::try_from([b'N', b'D']), Err(()));
+    }
+
+    #[test]
+    fn test_from_standard_for_u8_2_array() {
+        assert_eq!(<[u8; LENGTH]>::from(Standard::Id), [b'I', b'D']);
+        assert_eq!(<[u8; LENGTH]>::from(Standard::Name), [b'P', b'N']);
+        assert_eq!(<[u8; LENGTH]>::from(Standard::CommandLine), [b'C', b'L']);
+        assert_eq!(<[u8; LENGTH]>::from(Standard::PreviousId), [b'P', b'P']);
+        assert_eq!(<[u8; LENGTH]>::from(Standard::Description), [b'D', b'S']);
+        assert_eq!(<[u8; LENGTH]>::from(Standard::Version), [b'V', b'N']);
     }
 }
