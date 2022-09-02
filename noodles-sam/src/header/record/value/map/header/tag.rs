@@ -2,6 +2,11 @@
 
 use crate::header::record::value::map::tag::{self, LENGTH};
 
+const VN: [u8; LENGTH] = [b'V', b'N'];
+const SO: [u8; LENGTH] = [b'S', b'O'];
+const GO: [u8; LENGTH] = [b'G', b'O'];
+const SS: [u8; LENGTH] = [b'S', b'S'];
+
 /// A SAM header header tag.
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 pub enum Standard {
@@ -21,12 +26,23 @@ impl TryFrom<[u8; LENGTH]> for Standard {
     type Error = ();
 
     fn try_from(b: [u8; LENGTH]) -> Result<Self, Self::Error> {
-        match &b {
-            b"VN" => Ok(Self::Version),
-            b"SO" => Ok(Self::SortOrder),
-            b"GO" => Ok(Self::GroupOrder),
-            b"SS" => Ok(Self::SubsortOrder),
+        match b {
+            VN => Ok(Self::Version),
+            SO => Ok(Self::SortOrder),
+            GO => Ok(Self::GroupOrder),
+            SS => Ok(Self::SubsortOrder),
             _ => Err(()),
+        }
+    }
+}
+
+impl From<Standard> for [u8; LENGTH] {
+    fn from(tag: Standard) -> Self {
+        match tag {
+            Standard::Version => VN,
+            Standard::SortOrder => SO,
+            Standard::GroupOrder => GO,
+            Standard::SubsortOrder => SS,
         }
     }
 }
@@ -43,5 +59,13 @@ mod tests {
         assert_eq!(Standard::try_from([b'S', b'S']), Ok(Standard::SubsortOrder));
 
         assert_eq!(Standard::try_from([b'N', b'D']), Err(()));
+    }
+
+    #[test]
+    fn test_from_standard_for_u8_2_array() {
+        assert_eq!(<[u8; LENGTH]>::from(Standard::Version), [b'V', b'N']);
+        assert_eq!(<[u8; LENGTH]>::from(Standard::SortOrder), [b'S', b'O']);
+        assert_eq!(<[u8; LENGTH]>::from(Standard::GroupOrder), [b'G', b'O']);
+        assert_eq!(<[u8; LENGTH]>::from(Standard::SubsortOrder), [b'S', b'S']);
     }
 }
