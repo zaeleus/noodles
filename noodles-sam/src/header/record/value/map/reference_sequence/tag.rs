@@ -2,6 +2,17 @@
 
 use crate::header::record::value::map::tag::{self, LENGTH};
 
+const SN: [u8; LENGTH] = [b'S', b'N'];
+const LN: [u8; LENGTH] = [b'L', b'N'];
+const AH: [u8; LENGTH] = [b'A', b'H'];
+const AN: [u8; LENGTH] = [b'A', b'N'];
+const AS: [u8; LENGTH] = [b'A', b'S'];
+const DS: [u8; LENGTH] = [b'D', b'S'];
+const M5: [u8; LENGTH] = [b'M', b'5'];
+const SP: [u8; LENGTH] = [b'S', b'P'];
+const TP: [u8; LENGTH] = [b'T', b'P'];
+const UR: [u8; LENGTH] = [b'U', b'R'];
+
 /// A SAM header reference sequence tag.
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 pub enum Standard {
@@ -33,18 +44,35 @@ impl TryFrom<[u8; LENGTH]> for Standard {
     type Error = ();
 
     fn try_from(b: [u8; LENGTH]) -> Result<Self, Self::Error> {
-        match &b {
-            b"SN" => Ok(Self::Name),
-            b"LN" => Ok(Self::Length),
-            b"AH" => Ok(Self::AlternativeLocus),
-            b"AN" => Ok(Self::AlternativeNames),
-            b"AS" => Ok(Self::AssemblyId),
-            b"DS" => Ok(Self::Description),
-            b"M5" => Ok(Self::Md5Checksum),
-            b"SP" => Ok(Self::Species),
-            b"TP" => Ok(Self::MoleculeTopology),
-            b"UR" => Ok(Self::Uri),
+        match b {
+            SN => Ok(Self::Name),
+            LN => Ok(Self::Length),
+            AH => Ok(Self::AlternativeLocus),
+            AN => Ok(Self::AlternativeNames),
+            AS => Ok(Self::AssemblyId),
+            DS => Ok(Self::Description),
+            M5 => Ok(Self::Md5Checksum),
+            SP => Ok(Self::Species),
+            TP => Ok(Self::MoleculeTopology),
+            UR => Ok(Self::Uri),
             _ => Err(()),
+        }
+    }
+}
+
+impl From<Standard> for [u8; LENGTH] {
+    fn from(tag: Standard) -> Self {
+        match tag {
+            Standard::Name => SN,
+            Standard::Length => LN,
+            Standard::AlternativeLocus => AH,
+            Standard::AlternativeNames => AN,
+            Standard::AssemblyId => AS,
+            Standard::Description => DS,
+            Standard::Md5Checksum => M5,
+            Standard::Species => SP,
+            Standard::MoleculeTopology => TP,
+            Standard::Uri => UR,
         }
     }
 }
@@ -76,5 +104,28 @@ mod tests {
         assert_eq!(Standard::try_from([b'U', b'R']), Ok(Standard::Uri));
 
         assert_eq!(Standard::try_from([b'N', b'D']), Err(()));
+    }
+
+    #[test]
+    fn test_from_standard_for_u8_2_array() {
+        assert_eq!(<[u8; LENGTH]>::from(Standard::Name), [b'S', b'N']);
+        assert_eq!(<[u8; LENGTH]>::from(Standard::Length), [b'L', b'N']);
+        assert_eq!(
+            <[u8; LENGTH]>::from(Standard::AlternativeLocus),
+            [b'A', b'H']
+        );
+        assert_eq!(
+            <[u8; LENGTH]>::from(Standard::AlternativeNames),
+            [b'A', b'N']
+        );
+        assert_eq!(<[u8; LENGTH]>::from(Standard::AssemblyId), [b'A', b'S']);
+        assert_eq!(<[u8; LENGTH]>::from(Standard::Description), [b'D', b'S']);
+        assert_eq!(<[u8; LENGTH]>::from(Standard::Md5Checksum), [b'M', b'5']);
+        assert_eq!(<[u8; LENGTH]>::from(Standard::Species), [b'S', b'P']);
+        assert_eq!(
+            <[u8; LENGTH]>::from(Standard::MoleculeTopology),
+            [b'T', b'P']
+        );
+        assert_eq!(<[u8; LENGTH]>::from(Standard::Uri), [b'U', b'R']);
     }
 }
