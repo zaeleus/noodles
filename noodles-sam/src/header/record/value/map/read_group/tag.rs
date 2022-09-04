@@ -2,6 +2,21 @@
 
 use crate::header::record::value::map::tag::{self, LENGTH};
 
+const ID: [u8; LENGTH] = [b'I', b'D'];
+const BC: [u8; LENGTH] = [b'B', b'C'];
+const CN: [u8; LENGTH] = [b'C', b'N'];
+const DS: [u8; LENGTH] = [b'D', b'S'];
+const DT: [u8; LENGTH] = [b'D', b'T'];
+const FO: [u8; LENGTH] = [b'F', b'O'];
+const KS: [u8; LENGTH] = [b'K', b'S'];
+const LB: [u8; LENGTH] = [b'L', b'B'];
+const PG: [u8; LENGTH] = [b'P', b'G'];
+const PI: [u8; LENGTH] = [b'P', b'I'];
+const PL: [u8; LENGTH] = [b'P', b'L'];
+const PM: [u8; LENGTH] = [b'P', b'M'];
+const PU: [u8; LENGTH] = [b'P', b'U'];
+const SM: [u8; LENGTH] = [b'S', b'M'];
+
 /// A SAM header read group tag.
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 pub enum Standard {
@@ -41,22 +56,43 @@ impl TryFrom<[u8; LENGTH]> for Standard {
     type Error = ();
 
     fn try_from(b: [u8; LENGTH]) -> Result<Self, Self::Error> {
-        match &b {
-            b"ID" => Ok(Self::Id),
-            b"BC" => Ok(Self::Barcode),
-            b"CN" => Ok(Self::SequencingCenter),
-            b"DS" => Ok(Self::Description),
-            b"DT" => Ok(Self::ProducedAt),
-            b"FO" => Ok(Self::FlowOrder),
-            b"KS" => Ok(Self::KeySequence),
-            b"LB" => Ok(Self::Library),
-            b"PG" => Ok(Self::Program),
-            b"PI" => Ok(Self::PredictedMedianInsertSize),
-            b"PL" => Ok(Self::Platform),
-            b"PM" => Ok(Self::PlatformModel),
-            b"PU" => Ok(Self::PlatformUnit),
-            b"SM" => Ok(Self::Sample),
+        match b {
+            ID => Ok(Self::Id),
+            BC => Ok(Self::Barcode),
+            CN => Ok(Self::SequencingCenter),
+            DS => Ok(Self::Description),
+            DT => Ok(Self::ProducedAt),
+            FO => Ok(Self::FlowOrder),
+            KS => Ok(Self::KeySequence),
+            LB => Ok(Self::Library),
+            PG => Ok(Self::Program),
+            PI => Ok(Self::PredictedMedianInsertSize),
+            PL => Ok(Self::Platform),
+            PM => Ok(Self::PlatformModel),
+            PU => Ok(Self::PlatformUnit),
+            SM => Ok(Self::Sample),
             _ => Err(()),
+        }
+    }
+}
+
+impl From<Standard> for [u8; LENGTH] {
+    fn from(tag: Standard) -> Self {
+        match tag {
+            Standard::Id => ID,
+            Standard::Barcode => BC,
+            Standard::SequencingCenter => CN,
+            Standard::Description => DS,
+            Standard::ProducedAt => DT,
+            Standard::FlowOrder => FO,
+            Standard::KeySequence => KS,
+            Standard::Library => LB,
+            Standard::Program => PG,
+            Standard::PredictedMedianInsertSize => PI,
+            Standard::Platform => PL,
+            Standard::PlatformModel => PM,
+            Standard::PlatformUnit => PU,
+            Standard::Sample => SM,
         }
     }
 }
@@ -92,5 +128,29 @@ mod tests {
         assert_eq!(Standard::try_from([b'S', b'M']), Ok(Standard::Sample));
 
         assert_eq!(Standard::try_from([b'N', b'D']), Err(()));
+    }
+
+    #[test]
+    fn test_from_standard_for_u8_2_array() {
+        assert_eq!(<[u8; LENGTH]>::from(Standard::Id), [b'I', b'D']);
+        assert_eq!(<[u8; LENGTH]>::from(Standard::Barcode), [b'B', b'C']);
+        assert_eq!(
+            <[u8; LENGTH]>::from(Standard::SequencingCenter),
+            [b'C', b'N']
+        );
+        assert_eq!(<[u8; LENGTH]>::from(Standard::Description), [b'D', b'S']);
+        assert_eq!(<[u8; LENGTH]>::from(Standard::ProducedAt), [b'D', b'T']);
+        assert_eq!(<[u8; LENGTH]>::from(Standard::FlowOrder), [b'F', b'O']);
+        assert_eq!(<[u8; LENGTH]>::from(Standard::KeySequence), [b'K', b'S']);
+        assert_eq!(<[u8; LENGTH]>::from(Standard::Library), [b'L', b'B']);
+        assert_eq!(<[u8; LENGTH]>::from(Standard::Program), [b'P', b'G']);
+        assert_eq!(
+            <[u8; LENGTH]>::from(Standard::PredictedMedianInsertSize),
+            [b'P', b'I']
+        );
+        assert_eq!(<[u8; LENGTH]>::from(Standard::Platform), [b'P', b'L']);
+        assert_eq!(<[u8; LENGTH]>::from(Standard::PlatformModel), [b'P', b'M']);
+        assert_eq!(<[u8; LENGTH]>::from(Standard::PlatformUnit), [b'P', b'U']);
+        assert_eq!(<[u8; LENGTH]>::from(Standard::Sample), [b'S', b'M']);
     }
 }
