@@ -64,6 +64,7 @@ where
     }
 
     pub fn get_mut(&mut self) -> &mut R {
+        self.queue.clear();
         self.is_eof = false;
         self.inner.as_mut().unwrap()
     }
@@ -132,4 +133,30 @@ fn spawn_inflaters(worker_count: usize, inflater_rx: InflaterRx) -> Vec<JoinHand
     }
 
     handles
+}
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    #[test]
+    fn test_get_mut() -> Result<(), Box<dyn std::error::Error>> {
+        use crate::writer::BGZF_EOF;
+
+        let worker_count = NonZeroUsize::try_from(2)?;
+        let mut reader = Reader::with_worker_count(worker_count, BGZF_EOF);
+
+        reader.fill_queue()?;
+
+        assert!(!reader.queue.is_empty());
+        assert!(reader.is_eof);
+
+        let _ = reader.get_mut();
+
+        assert!(reader.queue.is_empty());
+        assert!(!reader.is_eof);
+
+        Ok(())
+    }
 }

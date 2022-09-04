@@ -6,6 +6,13 @@
 
   * bgzf/gzi: Add convenience `read` function.
 
+### Fixed
+
+  * bgzf/reader/block/multi: Reset block queue after possible inner reader
+    mutation ([#112]).
+
+[#112]: https://github.com/zaeleus/noodles/issues/112
+
 ## 0.14.0 - 2022-08-16
 
 ### Added
