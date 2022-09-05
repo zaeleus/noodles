@@ -19,7 +19,7 @@ use super::{Fields, Inner, Map, OtherFields, TryFromFieldsError};
 type StandardTag = tag::Standard;
 type Tag = super::tag::Tag<StandardTag>;
 
-/// A SAM header recodr header map value.
+/// A SAM header record header map value.
 ///
 /// The header describes file-level metadata. The format version is guaranteed to be set.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
