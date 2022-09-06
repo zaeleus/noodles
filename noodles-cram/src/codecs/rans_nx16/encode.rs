@@ -10,6 +10,7 @@ use crate::writer::num::write_uint7;
 
 #[allow(dead_code)]
 pub fn rans_encode_nx16(flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
+    let mut src = src.to_vec();
     let mut dst = Vec::new();
 
     dst.write_u8(u8::from(flags))?;
@@ -26,24 +27,32 @@ pub fn rans_encode_nx16(flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
         todo!("rans_encode_stripe");
     }
 
+    let mut pack_header = None;
+
     if flags.contains(Flags::PACK) {
-        todo!("encode_pack_meta");
+        let (header, buf) = encode_pack(&src)?;
+        pack_header = Some(header);
+        src = buf;
     }
 
     if flags.contains(Flags::RLE) {
         todo!("encode_rle_meta");
     }
 
+    if let Some(header) = pack_header {
+        dst.write_all(&header)?;
+    }
+
     if flags.contains(Flags::CAT) {
-        dst.write_all(src)?;
+        dst.write_all(&src)?;
     } else if flags.contains(Flags::ORDER) {
-        let (normalized_contexts, compressed_data) = order_1::encode(src, n)?;
+        let (normalized_contexts, compressed_data) = order_1::encode(&src, n)?;
         // bits = 12, no compression (0)
         dst.write_u8(12 << 4)?;
         order_1::write_contexts(&mut dst, &normalized_contexts)?;
         dst.write_all(&compressed_data)?;
     } else {
-        let (normalized_frequencies, compressed_data) = order_0::encode(src, n)?;
+        let (normalized_frequencies, compressed_data) = order_0::encode(&src, n)?;
         order_0::write_frequencies(&mut dst, &normalized_frequencies)?;
         dst.write_all(&compressed_data)?;
     }
@@ -157,6 +166,88 @@ where
     Ok(r)
 }
 
+fn encode_pack(src: &[u8]) -> io::Result<(Vec<u8>, Vec<u8>)> {
+    let mut frequencies = [0; 256];
+
+    for &b in src {
+        let sym = usize::from(b);
+        frequencies[sym] += 1;
+    }
+
+    let mut lut = [0; 256];
+    let mut n = 0;
+
+    for (sym, &f) in frequencies.iter().enumerate() {
+        if f > 0 {
+            lut[sym] = n;
+            n += 1;
+        }
+    }
+
+    let buf = if n <= 1 {
+        Vec::new()
+    } else if n <= 2 {
+        let len = (src.len() / 8) + 1;
+        let mut dst = vec![0; len];
+
+        for (d, chunk) in dst.iter_mut().zip(src.chunks(8)) {
+            for (shift, &s) in chunk.iter().enumerate() {
+                let sym = usize::from(s);
+                let value = lut[sym];
+                *d |= value << shift;
+            }
+        }
+
+        dst
+    } else if n <= 4 {
+        let len = (src.len() / 4) + 1;
+        let mut dst = vec![0; len];
+
+        for (d, chunk) in dst.iter_mut().zip(src.chunks(4)) {
+            for (shift, &s) in chunk.iter().enumerate() {
+                let sym = usize::from(s);
+                let value = lut[sym];
+                *d |= value << (shift * 2);
+            }
+        }
+
+        dst
+    } else if n <= 16 {
+        let len = (src.len() / 2) + 1;
+        let mut dst = vec![0; len];
+
+        for (d, chunk) in dst.iter_mut().zip(src.chunks(2)) {
+            for (shift, &s) in chunk.iter().enumerate() {
+                let sym = usize::from(s);
+                let value = lut[sym];
+                *d |= value << (shift * 4);
+            }
+        }
+
+        dst
+    } else {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "unique symbols > 16",
+        ));
+    };
+
+    let mut header = Vec::new();
+    header.write_u8(n as u8)?;
+
+    for (sym, &f) in frequencies.iter().enumerate() {
+        if f > 0 {
+            let b = sym as u8;
+            header.write_u8(b)?;
+        }
+    }
+
+    let len = buf.len() as u32;
+    write_uint7(&mut header, len)?;
+
+    Ok((header, buf))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -204,6 +295,23 @@ mod tests {
             0x20, // flags = CAT
             0x07, // uncompressed len = 7
             0x6e, 0x6f, 0x6f, 0x64, 0x6c, 0x65, 0x73,
+        ];
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_rans_encode_nx16_pack() -> io::Result<()> {
+        let actual = rans_encode_nx16(Flags::PACK, b"noodles")?;
+
+        let expected = [
+            0x80, // flags = PACK
+            0x07, // uncompressed len = 7
+            0x06, 0x64, 0x65, 0x6c, 0x6e, 0x6f, 0x73, 0x04, 0x04, 0x05, 0x00, 0x12, 0x43, 0x00,
+            0x88, 0x00, 0x88, 0x00, 0x88, 0x00, 0x88, 0x00, 0x00, 0x0c, 0x02, 0x00, 0x00, 0x00,
+            0x02, 0x00, 0x00, 0x08, 0x02, 0x00, 0x00, 0x04, 0x02, 0x00,
         ];
 
         assert_eq!(actual, expected);
