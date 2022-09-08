@@ -1,3 +1,5 @@
+mod order_0;
+
 use std::io::{self, Cursor, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
@@ -52,7 +54,7 @@ where
     } else if flags.contains(Flags::ORDER) {
         rans_decode_nx16_1(reader, &mut data, n)?;
     } else {
-        rans_decode_nx16_0(reader, &mut data, n)?;
+        order_0::decode(reader, &mut data, n)?;
     };
 
     if flags.contains(Flags::RLE) {
@@ -104,52 +106,6 @@ where
     Ok(alphabet)
 }
 
-fn normalize_frequencies_nx16_0(freqs: &mut [u32], bits: u32) {
-    let mut total: u32 = freqs.iter().sum();
-
-    if total == 0 || total == (1 << bits) {
-        return;
-    }
-
-    let mut shift = 0;
-
-    while total < (1 << bits) {
-        total *= 2;
-        shift += 1;
-    }
-
-    for freq in freqs {
-        *freq <<= shift;
-    }
-}
-
-fn read_frequencies_nx16_0<R>(
-    reader: &mut R,
-    freqs: &mut [u32],
-    cumulative_freqs: &mut [u32],
-) -> io::Result<()>
-where
-    R: Read,
-{
-    let alphabet = read_alphabet(reader)?;
-
-    for i in 0..alphabet.len() {
-        if alphabet[i] {
-            freqs[i] = read_uint7(reader)?;
-        }
-    }
-
-    normalize_frequencies_nx16_0(freqs, 12);
-
-    cumulative_freqs[0] = 0;
-
-    for i in 0..255 {
-        cumulative_freqs[i + 1] = cumulative_freqs[i] + freqs[i];
-    }
-
-    Ok(())
-}
-
 fn rans_get_cumulative_freq_nx16(r: u32, bits: u32) -> u32 {
     r & ((1 << bits) - 1)
 }
@@ -179,42 +135,6 @@ where
     Ok(r)
 }
 
-fn rans_decode_nx16_0<R>(reader: &mut R, output: &mut [u8], n: u32) -> io::Result<()>
-where
-    R: Read,
-{
-    let mut freqs = [0; 256];
-    let mut cumulative_freqs = [0; 256];
-
-    read_frequencies_nx16_0(reader, &mut freqs, &mut cumulative_freqs)?;
-
-    let mut state = vec![0; n as usize];
-
-    for s in &mut state {
-        *s = reader.read_u32::<LittleEndian>()?;
-    }
-
-    for (i, b) in output.iter_mut().enumerate() {
-        let j = i % (n as usize);
-
-        let f = rans_get_cumulative_freq_nx16(state[j], 12);
-        let s = rans_get_symbol_from_freq(&cumulative_freqs, f);
-
-        *b = s;
-
-        state[j] = rans_advance_step_nx16(
-            state[j],
-            cumulative_freqs[s as usize],
-            freqs[s as usize],
-            12,
-        );
-
-        state[j] = rans_renorm_nx16(reader, state[j])?;
-    }
-
-    Ok(())
-}
-
 fn read_frequencies_nx16_1<R>(
     reader: &mut R,
     freqs: &mut [Vec<u32>],
@@ -240,7 +160,7 @@ where
 
         let mut c_data_reader = &c_data[..];
         let mut u_data = vec![0; u_size];
-        rans_decode_nx16_0(&mut c_data_reader, &mut u_data, 4)?;
+        order_0::decode(&mut c_data_reader, &mut u_data, 4)?;
 
         let mut u_data_reader = &u_data[..];
         read_frequencies_nx16_1_inner(&mut u_data_reader, freqs, cumulative_freqs, bits)?;
@@ -287,7 +207,7 @@ where
             }
         }
 
-        normalize_frequencies_nx16_0(&mut freqs[i], bits);
+        order_0::normalize_frequencies(&mut freqs[i], bits);
 
         cumulative_freqs[i][0] = 0;
 
@@ -433,7 +353,7 @@ where
 
         let mut buf_reader = &buf[..];
         let mut dst = vec![0; rle_meta_len / 2];
-        rans_decode_nx16_0(&mut buf_reader, &mut dst, n)?;
+        order_0::decode(&mut buf_reader, &mut dst, n)?;
 
         dst
     };
