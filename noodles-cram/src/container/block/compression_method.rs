@@ -1,7 +1,5 @@
 //! CRAM container block compression method.
 
-use std::{error, fmt};
-
 /// A CRAM container block compression method.
 ///
 /// The compression method is associated with a block to identify how its data is compressed.
@@ -34,40 +32,6 @@ impl Default for CompressionMethod {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct TryFromByteError(u8);
-
-impl error::Error for TryFromByteError {}
-
-impl fmt::Display for TryFromByteError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "invalid compression method: expected 0..=8, got {}",
-            self.0
-        )
-    }
-}
-
-impl TryFrom<u8> for CompressionMethod {
-    type Error = TryFromByteError;
-
-    fn try_from(b: u8) -> Result<Self, Self::Error> {
-        match b {
-            0 => Ok(Self::None),
-            1 => Ok(Self::Gzip),
-            2 => Ok(Self::Bzip2),
-            3 => Ok(Self::Lzma),
-            4 => Ok(Self::Rans4x8),
-            5 => Ok(Self::RansNx16),
-            6 => Ok(Self::AdaptiveArithmeticCoding),
-            7 => Ok(Self::Fqzcomp),
-            8 => Ok(Self::NameTokenizer),
-            _ => Err(TryFromByteError(b)),
-        }
-    }
-}
-
 impl From<CompressionMethod> for u8 {
     fn from(compression_method: CompressionMethod) -> Self {
         match compression_method {
@@ -91,35 +55,6 @@ mod tests {
     #[test]
     fn test_default() {
         assert_eq!(CompressionMethod::default(), CompressionMethod::None);
-    }
-
-    #[test]
-    fn test_try_from_u8_for_compression_method() {
-        assert_eq!(CompressionMethod::try_from(0), Ok(CompressionMethod::None));
-        assert_eq!(CompressionMethod::try_from(1), Ok(CompressionMethod::Gzip));
-        assert_eq!(CompressionMethod::try_from(2), Ok(CompressionMethod::Bzip2));
-        assert_eq!(CompressionMethod::try_from(3), Ok(CompressionMethod::Lzma));
-        assert_eq!(
-            CompressionMethod::try_from(4),
-            Ok(CompressionMethod::Rans4x8)
-        );
-        assert_eq!(
-            CompressionMethod::try_from(5),
-            Ok(CompressionMethod::RansNx16)
-        );
-        assert_eq!(
-            CompressionMethod::try_from(6),
-            Ok(CompressionMethod::AdaptiveArithmeticCoding)
-        );
-        assert_eq!(
-            CompressionMethod::try_from(7),
-            Ok(CompressionMethod::Fqzcomp)
-        );
-        assert_eq!(
-            CompressionMethod::try_from(8),
-            Ok(CompressionMethod::NameTokenizer)
-        );
-        assert_eq!(CompressionMethod::try_from(9), Err(TryFromByteError(9)));
     }
 
     #[test]
