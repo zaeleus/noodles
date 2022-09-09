@@ -1,4 +1,5 @@
 pub mod aac;
+pub mod bzip2;
 pub mod fqzcomp;
 pub mod gzip;
 pub mod name_tokenizer;

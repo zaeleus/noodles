@@ -3,7 +3,6 @@ use std::io::{self, Write};
 use super::{Block, CompressionMethod, ContentType};
 
 use bytes::Bytes;
-use bzip2::write::BzEncoder;
 use xz2::write::XzEncoder;
 
 const DEFAULT_LZMA_COMPRESSION_LEVEL: u32 = 6;
@@ -52,7 +51,7 @@ impl Builder {
         data: Vec<u8>,
         compression_method: CompressionMethod,
     ) -> io::Result<Self> {
-        use crate::codecs::gzip;
+        use crate::codecs::{bzip2, gzip};
 
         self.compression_method = compression_method;
         self.uncompressed_len = data.len();
@@ -60,11 +59,7 @@ impl Builder {
         let data = match compression_method {
             CompressionMethod::None => data,
             CompressionMethod::Gzip => gzip::encode(&data)?,
-            CompressionMethod::Bzip2 => {
-                let mut encoder = BzEncoder::new(Vec::new(), bzip2::Compression::default());
-                encoder.write_all(&data)?;
-                encoder.finish()?
-            }
+            CompressionMethod::Bzip2 => bzip2::encode(&data)?,
             CompressionMethod::Lzma => {
                 let mut encoder = XzEncoder::new(Vec::new(), DEFAULT_LZMA_COMPRESSION_LEVEL);
                 encoder.write_all(&data)?;

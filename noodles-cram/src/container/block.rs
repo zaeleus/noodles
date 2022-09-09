@@ -12,7 +12,6 @@ use std::{
 };
 
 use bytes::Bytes;
-use bzip2::read::BzDecoder;
 use xz2::read::XzDecoder;
 
 use crate::{
@@ -59,7 +58,7 @@ impl Block {
     }
 
     pub fn decompressed_data(&self) -> io::Result<Bytes> {
-        use crate::codecs::gzip;
+        use crate::codecs::{bzip2, gzip};
 
         match self.compression_method {
             CompressionMethod::None => Ok(self.data.clone()),
@@ -69,10 +68,9 @@ impl Block {
                 Ok(Bytes::from(dst))
             }
             CompressionMethod::Bzip2 => {
-                let mut reader = BzDecoder::new(self.data());
-                let mut buf = Vec::with_capacity(self.uncompressed_len);
-                reader.read_to_end(&mut buf)?;
-                Ok(Bytes::from(buf))
+                let mut dst = vec![0; self.uncompressed_len];
+                bzip2::decode(self.data(), &mut dst)?;
+                Ok(Bytes::from(dst))
             }
             CompressionMethod::Lzma => {
                 let mut reader = XzDecoder::new(self.data());
