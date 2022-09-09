@@ -2,6 +2,37 @@ use std::{error, fmt};
 
 use crate::container::block;
 
+pub static STANDARD_DATA_SERIES: &[DataSeries; 28] = &[
+    DataSeries::BamBitFlags,
+    DataSeries::CramBitFlags,
+    DataSeries::ReferenceId,
+    DataSeries::ReadLengths,
+    DataSeries::InSeqPositions,
+    DataSeries::ReadGroups,
+    DataSeries::ReadNames,
+    DataSeries::NextMateBitFlags,
+    DataSeries::NextFragmentReferenceSequenceId,
+    DataSeries::NextMateAlignmentStart,
+    DataSeries::TemplateSize,
+    DataSeries::DistanceToNextFragment,
+    DataSeries::TagIds,
+    DataSeries::NumberOfReadFeatures,
+    DataSeries::ReadFeaturesCodes,
+    DataSeries::InReadPositions,
+    DataSeries::DeletionLengths,
+    DataSeries::StretchesOfBases,
+    DataSeries::StretchesOfQualityScores,
+    DataSeries::BaseSubstitutionCodes,
+    DataSeries::Insertion,
+    DataSeries::ReferenceSkipLength,
+    DataSeries::Padding,
+    DataSeries::HardClip,
+    DataSeries::SoftClip,
+    DataSeries::MappingQualities,
+    DataSeries::Bases,
+    DataSeries::QualityScores,
+];
+
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum DataSeries {
     /// BAM bit flags (`BF`).
@@ -68,11 +99,6 @@ pub enum DataSeries {
     ///
     /// This is a legacy CRAM 1.0 data series.
     ReservedTn,
-}
-
-impl DataSeries {
-    /// The number of data series variants.
-    pub(crate) const LEN: usize = 28;
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

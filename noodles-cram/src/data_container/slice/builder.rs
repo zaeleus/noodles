@@ -10,8 +10,8 @@ use crate::{
         Block,
     },
     data_container::{
-        compression_header::data_series_encoding_map::DataSeries, CompressionHeader,
-        ReferenceSequenceContext,
+        compression_header::data_series_encoding_map::data_series::STANDARD_DATA_SERIES,
+        CompressionHeader, ReferenceSequenceContext,
     },
     record::Flags,
     writer, BitWriter, Record,
@@ -138,8 +138,8 @@ fn write_records(
 
     let mut external_data_writers = HashMap::new();
 
-    for i in 0..DataSeries::LEN {
-        let block_content_id = block::ContentId::from((i + 1) as i32);
+    for &data_series in STANDARD_DATA_SERIES {
+        let block_content_id = block::ContentId::from(data_series);
         external_data_writers.insert(block_content_id, Vec::new());
     }
 
