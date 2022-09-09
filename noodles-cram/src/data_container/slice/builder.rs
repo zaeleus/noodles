@@ -5,10 +5,8 @@ use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 use crate::{
-    container::{
-        block::{self, CompressionMethod},
-        Block,
-    },
+    codecs::Encoder,
+    container::{block, Block},
     data_container::{
         compression_header::data_series_encoding_map::data_series::STANDARD_DATA_SERIES,
         CompressionHeader, ReferenceSequenceContext,
@@ -164,7 +162,7 @@ fn write_records(
         Block::builder()
             .set_content_type(block::ContentType::CoreData)
             .set_content_id(block::ContentId::from(CORE_DATA_BLOCK_CONTENT_ID))
-            .compress_and_set_data(buf, CompressionMethod::Gzip)
+            .compress_and_set_data(buf, Encoder::Gzip)
             .map(|builder| builder.build())
     })?;
 
@@ -175,7 +173,7 @@ fn write_records(
             Block::builder()
                 .set_content_type(block::ContentType::ExternalData)
                 .set_content_id(block_content_id)
-                .compress_and_set_data(buf, CompressionMethod::Gzip)
+                .compress_and_set_data(buf, Encoder::Gzip)
                 .map(|builder| builder.build())
         })
         .collect::<Result<_, _>>()?;

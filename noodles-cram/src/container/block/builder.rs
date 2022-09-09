@@ -1,8 +1,9 @@
 use std::io;
 
-use super::{Block, CompressionMethod, ContentId, ContentType};
-
 use bytes::Bytes;
+
+use super::{Block, CompressionMethod, ContentId, ContentType};
+use crate::codecs::Encoder;
 
 #[derive(Debug, Default)]
 pub struct Builder {
@@ -43,27 +44,30 @@ impl Builder {
     ///
     /// This sets the compression method, the uncompressed size to the length of the given data,
     /// and the data to the compressed output of the given data.
-    pub fn compress_and_set_data(
-        mut self,
-        data: Vec<u8>,
-        compression_method: CompressionMethod,
-    ) -> io::Result<Self> {
-        use crate::codecs::{bzip2, gzip, lzma};
+    pub fn compress_and_set_data(mut self, data: Vec<u8>, encoder: Encoder) -> io::Result<Self> {
+        use crate::codecs::{
+            bzip2, gzip, lzma,
+            rans::{self, rans_encode},
+            rans_nx16::{self, rans_encode_nx16},
+        };
 
-        self.compression_method = compression_method;
         self.uncompressed_len = data.len();
 
-        let data = match compression_method {
-            CompressionMethod::None => data,
-            CompressionMethod::Gzip => gzip::encode(&data)?,
-            CompressionMethod::Bzip2 => bzip2::encode(&data)?,
-            CompressionMethod::Lzma => lzma::encode(&data)?,
-            _ => unimplemented!(
-                "compress_and_set_data: unhandled compression method: {:?}",
-                compression_method
+        let (compression_method, data) = match encoder {
+            Encoder::Gzip => (CompressionMethod::Gzip, gzip::encode(&data)?),
+            Encoder::Bzip2 => (CompressionMethod::Bzip2, bzip2::encode(&data)?),
+            Encoder::Lzma => (CompressionMethod::Lzma, lzma::encode(&data)?),
+            Encoder::Rans4x8 => (
+                CompressionMethod::Rans4x8,
+                rans_encode(rans::Order::Zero, &data)?,
+            ),
+            Encoder::RansNx16 => (
+                CompressionMethod::RansNx16,
+                rans_encode_nx16(rans_nx16::Flags::empty(), &data)?,
             ),
         };
 
+        self.compression_method = compression_method;
         self.data = Bytes::from(data);
 
         Ok(self)

@@ -8,7 +8,6 @@ use byteorder::WriteBytesExt;
 use super::Flags;
 use crate::writer::num::write_uint7;
 
-#[allow(dead_code)]
 pub fn rans_encode_nx16(flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     let mut src = src.to_vec();
     let mut dst = Vec::new();
