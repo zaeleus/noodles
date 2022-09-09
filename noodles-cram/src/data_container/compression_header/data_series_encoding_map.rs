@@ -261,76 +261,96 @@ impl DataSeriesEncodingMap {
 impl Default for DataSeriesEncodingMap {
     fn default() -> Self {
         Self {
-            bam_bit_flags_encoding: Encoding::new(Integer::External(block::ContentId::from(1))),
-            cram_bit_flags_encoding: Encoding::new(Integer::External(block::ContentId::from(2))),
+            bam_bit_flags_encoding: Encoding::new(Integer::External(block::ContentId::from(
+                DataSeries::BamBitFlags,
+            ))),
+            cram_bit_flags_encoding: Encoding::new(Integer::External(block::ContentId::from(
+                DataSeries::CramBitFlags,
+            ))),
             reference_id_encoding: Some(Encoding::new(Integer::External(block::ContentId::from(
-                3,
+                DataSeries::ReferenceId,
             )))),
-            read_lengths_encoding: Encoding::new(Integer::External(block::ContentId::from(4))),
-            in_seq_positions_encoding: Encoding::new(Integer::External(block::ContentId::from(5))),
-            read_groups_encoding: Encoding::new(Integer::External(block::ContentId::from(6))),
+            read_lengths_encoding: Encoding::new(Integer::External(block::ContentId::from(
+                DataSeries::ReadLengths,
+            ))),
+            in_seq_positions_encoding: Encoding::new(Integer::External(block::ContentId::from(
+                DataSeries::InSeqPositions,
+            ))),
+            read_groups_encoding: Encoding::new(Integer::External(block::ContentId::from(
+                DataSeries::ReadGroups,
+            ))),
             read_names_encoding: Some(Encoding::new(ByteArray::ByteArrayStop(
                 0x00,
-                block::ContentId::from(7),
+                block::ContentId::from(DataSeries::ReadNames),
             ))),
             next_mate_bit_flags_encoding: Some(Encoding::new(Integer::External(
-                block::ContentId::from(8),
+                block::ContentId::from(DataSeries::NextMateBitFlags),
             ))),
             next_fragment_reference_sequence_id_encoding: Some(Encoding::new(Integer::External(
-                block::ContentId::from(9),
+                block::ContentId::from(DataSeries::NextFragmentReferenceSequenceId),
             ))),
             next_mate_alignment_start_encoding: Some(Encoding::new(Integer::External(
-                block::ContentId::from(10),
+                block::ContentId::from(DataSeries::NextMateAlignmentStart),
             ))),
             template_size_encoding: Some(Encoding::new(Integer::External(block::ContentId::from(
-                11,
+                DataSeries::TemplateSize,
             )))),
             distance_to_next_fragment_encoding: Some(Encoding::new(Integer::External(
-                block::ContentId::from(12),
+                block::ContentId::from(DataSeries::DistanceToNextFragment),
             ))),
             tag_ids_encoding: Encoding::new(Integer::External(block::ContentId::from(13))),
             number_of_read_features_encoding: Some(Encoding::new(Integer::External(
-                block::ContentId::from(14),
+                block::ContentId::from(DataSeries::NumberOfReadFeatures),
             ))),
             read_features_codes_encoding: Some(Encoding::new(Byte::External(
-                block::ContentId::from(15),
+                block::ContentId::from(DataSeries::ReadFeaturesCodes),
             ))),
             in_read_positions_encoding: Some(Encoding::new(Integer::External(
-                block::ContentId::from(16),
+                block::ContentId::from(DataSeries::InReadPositions),
             ))),
             deletion_lengths_encoding: Some(Encoding::new(Integer::External(
-                block::ContentId::from(17),
+                block::ContentId::from(DataSeries::DeletionLengths),
             ))),
             stretches_of_bases_encoding: Some(Encoding::new(ByteArray::ByteArrayStop(
                 0x00,
-                block::ContentId::from(18),
+                block::ContentId::from(DataSeries::StretchesOfBases),
             ))),
             stretches_of_quality_scores_encoding: Some(Encoding::new(ByteArray::ByteArrayLen(
-                Encoding::new(Integer::External(block::ContentId::from(19))),
-                Encoding::new(Byte::External(block::ContentId::from(19))),
+                Encoding::new(Integer::External(block::ContentId::from(
+                    DataSeries::StretchesOfQualityScores,
+                ))),
+                Encoding::new(Byte::External(block::ContentId::from(
+                    DataSeries::StretchesOfQualityScores,
+                ))),
             ))),
             base_substitution_codes_encoding: Some(Encoding::new(Byte::External(
-                block::ContentId::from(20),
+                block::ContentId::from(DataSeries::BaseSubstitutionCodes),
             ))),
             insertion_encoding: Some(Encoding::new(ByteArray::ByteArrayStop(
                 0x00,
-                block::ContentId::from(21),
+                block::ContentId::from(DataSeries::Insertion),
             ))),
             reference_skip_length_encoding: Some(Encoding::new(Integer::External(
-                block::ContentId::from(22),
+                block::ContentId::from(DataSeries::ReferenceSkipLength),
             ))),
-            padding_encoding: Some(Encoding::new(Integer::External(block::ContentId::from(23)))),
-            hard_clip_encoding: Some(Encoding::new(Integer::External(block::ContentId::from(24)))),
+            padding_encoding: Some(Encoding::new(Integer::External(block::ContentId::from(
+                DataSeries::Padding,
+            )))),
+            hard_clip_encoding: Some(Encoding::new(Integer::External(block::ContentId::from(
+                DataSeries::HardClip,
+            )))),
             soft_clip_encoding: Some(Encoding::new(ByteArray::ByteArrayStop(
                 0x00,
-                block::ContentId::from(25),
+                block::ContentId::from(DataSeries::SoftClip),
             ))),
             mapping_qualities_encoding: Some(Encoding::new(Integer::External(
-                block::ContentId::from(26),
+                block::ContentId::from(DataSeries::MappingQualities),
             ))),
-            bases_encoding: Some(Encoding::new(Byte::External(block::ContentId::from(27)))),
+            bases_encoding: Some(Encoding::new(Byte::External(block::ContentId::from(
+                DataSeries::Bases,
+            )))),
             quality_scores_encoding: Some(Encoding::new(Byte::External(block::ContentId::from(
-                28,
+                DataSeries::QualityScores,
             )))),
         }
     }
