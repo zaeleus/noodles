@@ -3,7 +3,9 @@ use std::{collections::HashMap, io};
 use bytes::{Buf, Bytes};
 
 use super::get_encoding_for_byte_array_codec;
-use crate::{data_container::compression_header::TagEncodingMap, reader::num::get_itf8};
+use crate::{
+    container::block, data_container::compression_header::TagEncodingMap, reader::num::get_itf8,
+};
 
 pub fn get_tag_encoding_map(src: &mut Bytes) -> io::Result<TagEncodingMap> {
     let data_len = get_itf8(src).and_then(|n| {
@@ -23,7 +25,7 @@ pub fn get_tag_encoding_map(src: &mut Bytes) -> io::Result<TagEncodingMap> {
     let mut map = HashMap::with_capacity(map_len);
 
     for _ in 0..map_len {
-        let key = get_itf8(&mut buf)?;
+        let key = get_itf8(&mut buf).map(block::ContentId::from)?;
         let encoding = get_encoding_for_byte_array_codec(&mut buf)?;
         map.insert(key, encoding);
     }

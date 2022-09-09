@@ -17,7 +17,7 @@ where
     write_itf8(&mut buf, map_len)?;
 
     for (&key, encoding) in tag_encoding_map.iter() {
-        write_itf8(&mut buf, key)?;
+        write_itf8(&mut buf, i32::from(key))?;
         write_encoding_for_byte_array_codec(&mut buf, encoding)?;
     }
 

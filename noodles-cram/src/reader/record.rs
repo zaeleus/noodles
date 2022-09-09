@@ -14,6 +14,7 @@ use noodles_sam::{
 
 use super::num::get_itf8;
 use crate::{
+    container::block,
     data_container::{
         compression_header::{
             data_series_encoding_map::DataSeries,
@@ -38,7 +39,7 @@ use crate::{
 pub enum ReadRecordError {
     MissingDataSeriesEncoding(DataSeries),
     MissingTagEncoding(tag_ids_dictionary::Key),
-    MissingExternalBlock(i32),
+    MissingExternalBlock(block::ContentId),
 }
 
 impl error::Error for ReadRecordError {}
@@ -470,7 +471,7 @@ where
         let mut fields = Vec::with_capacity(tag_keys.len());
 
         for key in tag_keys {
-            let id = key.id();
+            let id = block::ContentId::from(key.id());
             let encoding = tag_encoding_map.get(&id).ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -1084,7 +1085,7 @@ mod tests {
 
             let external_data = [0x0d];
             let mut external_data_readers = ExternalDataReaders::new();
-            external_data_readers.insert(1, &external_data[..]);
+            external_data_readers.insert(block::ContentId::from(1), &external_data[..]);
 
             let actual = decode_byte(encoding, &mut core_data_reader, &mut external_data_readers)?;
 
@@ -1093,7 +1094,10 @@ mod tests {
             Ok(())
         }
 
-        t(&Encoding::new(Byte::External(1)), 0x0d)?;
+        t(
+            &Encoding::new(Byte::External(block::ContentId::from(1))),
+            0x0d,
+        )?;
         t(&Encoding::new(Byte::Huffman(vec![0x4e], vec![0])), 0x4e)?;
 
         Ok(())
@@ -1107,7 +1111,7 @@ mod tests {
 
             let external_data = [0x0d];
             let mut external_data_readers = ExternalDataReaders::new();
-            external_data_readers.insert(1, &external_data[..]);
+            external_data_readers.insert(block::ContentId::from(1), &external_data[..]);
 
             let actual = decode_itf8(encoding, &mut core_data_reader, &mut external_data_readers)?;
 
@@ -1116,7 +1120,10 @@ mod tests {
             Ok(())
         }
 
-        t(&Encoding::new(Integer::External(1)), 13)?;
+        t(
+            &Encoding::new(Integer::External(block::ContentId::from(1))),
+            13,
+        )?;
         t(&Encoding::new(Integer::Huffman(vec![0x4e], vec![0])), 0x4e)?;
         t(&Encoding::new(Integer::Beta(1, 3)), 3)?;
 
@@ -1134,7 +1141,7 @@ mod tests {
             let mut core_data_reader = BitReader::new(&core_data[..]);
 
             let mut external_data_readers = ExternalDataReaders::new();
-            external_data_readers.insert(1, external_data);
+            external_data_readers.insert(block::ContentId::from(1), external_data);
 
             let actual =
                 decode_byte_array(encoding, &mut core_data_reader, &mut external_data_readers)?;
@@ -1144,8 +1151,8 @@ mod tests {
             Ok(())
         }
 
-        let len_encoding = Encoding::new(Integer::External(1));
-        let value_encoding = Encoding::new(Byte::External(1));
+        let len_encoding = Encoding::new(Integer::External(block::ContentId::from(1)));
+        let value_encoding = Encoding::new(Byte::External(block::ContentId::from(1)));
         t(
             &[0x04, 0x6e, 0x64, 0x6c, 0x73],
             &Encoding::new(ByteArray::ByteArrayLen(len_encoding, value_encoding)),
@@ -1154,12 +1161,16 @@ mod tests {
 
         t(
             &[0x6e, 0x64, 0x6c, 0x73, 0x00],
-            &Encoding::new(ByteArray::ByteArrayStop(0x00, 1)),
+            &Encoding::new(ByteArray::ByteArrayStop(0x00, block::ContentId::from(1))),
             b"ndls",
         )?;
 
         assert!(matches!(
-            t(&[0x6e, 0x64, 0x6c, 0x73], &Encoding::new(ByteArray::ByteArrayStop(0x00, 1)), b""),
+            t(
+                &[0x6e, 0x64, 0x6c, 0x73],
+                &Encoding::new(ByteArray::ByteArrayStop(0x00, block::ContentId::from(1))),
+                b""
+            ),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 

@@ -1,6 +1,7 @@
 use std::io::{self, Write};
 
 use crate::{
+    container::block,
     data_container::{slice, ReferenceSequenceContext},
     writer::num::{write_itf8, write_ltf8},
 };
@@ -75,7 +76,10 @@ where
     Ok(())
 }
 
-fn write_block_content_ids<W>(writer: &mut W, block_content_ids: &[i32]) -> io::Result<()>
+fn write_block_content_ids<W>(
+    writer: &mut W,
+    block_content_ids: &[block::ContentId],
+) -> io::Result<()>
 where
     W: Write,
 {
@@ -84,7 +88,8 @@ where
     write_itf8(writer, len)?;
 
     for &block_content_id in block_content_ids {
-        write_itf8(writer, block_content_id)?;
+        let id = i32::from(block_content_id);
+        write_itf8(writer, id)?;
     }
 
     Ok(())
@@ -92,7 +97,7 @@ where
 
 fn write_embedded_reference_bases_block_content_id<W>(
     writer: &mut W,
-    id: Option<i32>,
+    id: Option<block::ContentId>,
 ) -> io::Result<()>
 where
     W: Write,

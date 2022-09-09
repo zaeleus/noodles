@@ -4,6 +4,7 @@ use bytes::Buf;
 use noodles_core::Position;
 
 use crate::{
+    container::block,
     data_container::{slice, ReferenceSequenceContext},
     reader::num::{get_itf8, get_ltf8},
 };
@@ -99,7 +100,7 @@ where
     }
 }
 
-fn get_block_content_ids<B>(src: &mut B) -> io::Result<Vec<i32>>
+fn get_block_content_ids<B>(src: &mut B) -> io::Result<Vec<block::ContentId>>
 where
     B: Buf,
 {
@@ -110,20 +111,22 @@ where
     let mut buf = Vec::with_capacity(len);
 
     for _ in 0..len {
-        let value = get_itf8(src)?;
+        let value = get_itf8(src).map(block::ContentId::from)?;
         buf.push(value);
     }
 
     Ok(buf)
 }
 
-fn get_embedded_reference_bases_block_content_id<B>(src: &mut B) -> io::Result<Option<i32>>
+fn get_embedded_reference_bases_block_content_id<B>(
+    src: &mut B,
+) -> io::Result<Option<block::ContentId>>
 where
     B: Buf,
 {
     get_itf8(src).map(|n| match n {
         -1 => None,
-        _ => Some(n),
+        _ => Some(block::ContentId::from(n)),
     })
 }
 
@@ -182,7 +185,7 @@ mod tests {
             .set_record_count(8)
             .set_record_counter(13)
             .set_block_count(1)
-            .set_block_content_ids(vec![21])
+            .set_block_content_ids(vec![block::ContentId::from(21)])
             .set_reference_md5([
                 0x57, 0xb2, 0x96, 0xa3, 0x16, 0x0a, 0x2c, 0xac, 0x9c, 0x83, 0x33, 0x12, 0x6f, 0xf2,
                 0x7e, 0xf7,

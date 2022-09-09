@@ -1,7 +1,9 @@
+use crate::container::block;
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Integer {
     // block_content_id
-    External(i32),
+    External(block::ContentId),
     // offset, m
     Golomb(i32, i32),
     // alphabet, bit_lens

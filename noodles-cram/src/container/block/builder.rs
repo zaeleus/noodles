@@ -1,6 +1,6 @@
 use std::io;
 
-use super::{Block, CompressionMethod, ContentType};
+use super::{Block, CompressionMethod, ContentId, ContentType};
 
 use bytes::Bytes;
 
@@ -8,7 +8,7 @@ use bytes::Bytes;
 pub struct Builder {
     compression_method: CompressionMethod,
     content_type: Option<ContentType>,
-    content_id: i32,
+    content_id: ContentId,
     uncompressed_len: usize,
     data: Bytes,
 }
@@ -24,7 +24,7 @@ impl Builder {
         self
     }
 
-    pub fn set_content_id(mut self, content_id: i32) -> Self {
+    pub fn set_content_id(mut self, content_id: ContentId) -> Self {
         self.content_id = content_id;
         self
     }

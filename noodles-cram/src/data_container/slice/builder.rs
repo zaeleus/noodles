@@ -139,7 +139,7 @@ fn write_records(
     let mut external_data_writers = HashMap::new();
 
     for i in 0..DataSeries::LEN {
-        let block_content_id = (i + 1) as i32;
+        let block_content_id = block::ContentId::from((i + 1) as i32);
         external_data_writers.insert(block_content_id, Vec::new());
     }
 
@@ -163,7 +163,7 @@ fn write_records(
     let core_data_block = core_data_writer.finish().and_then(|buf| {
         Block::builder()
             .set_content_type(block::ContentType::CoreData)
-            .set_content_id(CORE_DATA_BLOCK_CONTENT_ID)
+            .set_content_id(block::ContentId::from(CORE_DATA_BLOCK_CONTENT_ID))
             .compress_and_set_data(buf, CompressionMethod::Gzip)
             .map(|builder| builder.build())
     })?;

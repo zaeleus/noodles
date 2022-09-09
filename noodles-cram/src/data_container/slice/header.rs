@@ -2,7 +2,7 @@ mod builder;
 
 pub use builder::Builder;
 
-use crate::data_container::ReferenceSequenceContext;
+use crate::{container::block, data_container::ReferenceSequenceContext};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Header {
@@ -10,8 +10,8 @@ pub struct Header {
     record_count: usize,
     record_counter: u64,
     block_count: usize,
-    block_content_ids: Vec<i32>,
-    embedded_reference_bases_block_content_id: Option<i32>,
+    block_content_ids: Vec<block::ContentId>,
+    embedded_reference_bases_block_content_id: Option<block::ContentId>,
     reference_md5: [u8; 16],
     optional_tags: Vec<u8>,
 }
@@ -37,11 +37,11 @@ impl Header {
         self.block_count
     }
 
-    pub fn block_content_ids(&self) -> &[i32] {
+    pub fn block_content_ids(&self) -> &[block::ContentId] {
         &self.block_content_ids
     }
 
-    pub fn embedded_reference_bases_block_content_id(&self) -> Option<i32> {
+    pub fn embedded_reference_bases_block_content_id(&self) -> Option<block::ContentId> {
         self.embedded_reference_bases_block_content_id
     }
 

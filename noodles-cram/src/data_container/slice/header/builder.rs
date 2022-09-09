@@ -1,5 +1,5 @@
 use super::Header;
-use crate::data_container::ReferenceSequenceContext;
+use crate::{container::block, data_container::ReferenceSequenceContext};
 
 #[derive(Default)]
 pub struct Builder {
@@ -7,8 +7,8 @@ pub struct Builder {
     record_count: usize,
     record_counter: u64,
     block_count: usize,
-    block_content_ids: Vec<i32>,
-    embedded_reference_bases_block_content_id: Option<i32>,
+    block_content_ids: Vec<block::ContentId>,
+    embedded_reference_bases_block_content_id: Option<block::ContentId>,
     reference_md5: [u8; 16],
     optional_tags: Vec<u8>,
 }
@@ -37,12 +37,12 @@ impl Builder {
         self
     }
 
-    pub fn set_block_content_ids(mut self, block_content_ids: Vec<i32>) -> Self {
+    pub fn set_block_content_ids(mut self, block_content_ids: Vec<block::ContentId>) -> Self {
         self.block_content_ids = block_content_ids;
         self
     }
 
-    pub fn set_embedded_reference_bases_block_content_id(mut self, id: i32) -> Self {
+    pub fn set_embedded_reference_bases_block_content_id(mut self, id: block::ContentId) -> Self {
         self.embedded_reference_bases_block_content_id = Some(id);
         self
     }

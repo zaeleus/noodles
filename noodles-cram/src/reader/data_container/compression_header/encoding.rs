@@ -3,6 +3,7 @@ use std::io;
 use bytes::{Buf, Bytes};
 
 use crate::{
+    container::block,
     data_container::compression_header::{
         encoding::{
             codec::{Byte, ByteArray, Integer},
@@ -123,9 +124,9 @@ fn get_args(src: &mut Bytes) -> io::Result<Bytes> {
     Ok(src.split_to(len))
 }
 
-fn get_external_codec(src: &mut Bytes) -> io::Result<i32> {
+fn get_external_codec(src: &mut Bytes) -> io::Result<block::ContentId> {
     let mut args = get_args(src)?;
-    let block_content_id = get_itf8(&mut args)?;
+    let block_content_id = get_itf8(&mut args).map(block::ContentId::from)?;
     Ok(block_content_id)
 }
 
@@ -147,7 +148,7 @@ fn get_byte_array_len_codec(src: &mut Bytes) -> io::Result<(Encoding<Integer>, E
     Ok((len_encoding, value_encoding))
 }
 
-fn get_byte_array_stop_codec(src: &mut Bytes) -> io::Result<(u8, i32)> {
+fn get_byte_array_stop_codec(src: &mut Bytes) -> io::Result<(u8, block::ContentId)> {
     let mut args = get_args(src)?;
 
     if !args.has_remaining() {
@@ -155,7 +156,7 @@ fn get_byte_array_stop_codec(src: &mut Bytes) -> io::Result<(u8, i32)> {
     }
 
     let stop_byte = args.get_u8();
-    let block_content_id = get_itf8(&mut args)?;
+    let block_content_id = get_itf8(&mut args).map(block::ContentId::from)?;
 
     Ok((stop_byte, block_content_id))
 }
@@ -267,7 +268,7 @@ mod tests {
         ]);
 
         let block_content_id = get_external_codec(&mut data)?;
-        assert_eq!(block_content_id, 5);
+        assert_eq!(block_content_id, block::ContentId::from(5));
 
         Ok(())
     }
@@ -318,8 +319,14 @@ mod tests {
 
         let (len_encoding, value_encoding) = get_byte_array_len_codec(&mut data)?;
 
-        assert_eq!(len_encoding, Encoding::new(Integer::External(13)));
-        assert_eq!(value_encoding, Encoding::new(Byte::External(21)));
+        assert_eq!(
+            len_encoding,
+            Encoding::new(Integer::External(block::ContentId::from(13)))
+        );
+        assert_eq!(
+            value_encoding,
+            Encoding::new(Byte::External(block::ContentId::from(21)))
+        );
 
         Ok(())
     }
@@ -334,7 +341,7 @@ mod tests {
 
         let (stop_byte, block_content_id) = get_byte_array_stop_codec(&mut data)?;
         assert_eq!(stop_byte, 0);
-        assert_eq!(block_content_id, 8);
+        assert_eq!(block_content_id, block::ContentId::from(8));
 
         Ok(())
     }

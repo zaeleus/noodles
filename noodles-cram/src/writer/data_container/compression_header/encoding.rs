@@ -3,6 +3,7 @@ use std::io::{self, Write};
 use byteorder::WriteBytesExt;
 
 use crate::{
+    container::block,
     data_container::compression_header::{
         encoding::{
             codec::{Byte, ByteArray, Integer},
@@ -88,12 +89,14 @@ where
     writer.write_all(buf)
 }
 
-fn write_external_codec<W>(writer: &mut W, block_content_id: i32) -> io::Result<()>
+fn write_external_codec<W>(writer: &mut W, block_content_id: block::ContentId) -> io::Result<()>
 where
     W: Write,
 {
     let mut args = Vec::new();
-    write_itf8(&mut args, block_content_id)?;
+
+    let id = i32::from(block_content_id);
+    write_itf8(&mut args, id)?;
 
     write_kind(writer, Kind::External)?;
     write_args(writer, &args)?;
@@ -166,14 +169,16 @@ where
 fn write_byte_array_stop_codec<W>(
     writer: &mut W,
     stop_byte: u8,
-    block_content_id: i32,
+    block_content_id: block::ContentId,
 ) -> io::Result<()>
 where
     W: Write,
 {
     let mut args = Vec::new();
     args.write_u8(stop_byte)?;
-    write_itf8(&mut args, block_content_id)?;
+
+    let id = i32::from(block_content_id);
+    write_itf8(&mut args, id)?;
 
     write_kind(writer, Kind::ByteArrayStop)?;
     write_args(writer, &args)?;
@@ -245,7 +250,7 @@ mod tests {
     #[test]
     fn test_write_external_codec() -> io::Result<()> {
         let mut buf = Vec::new();
-        write_external_codec(&mut buf, 5)?;
+        write_external_codec(&mut buf, block::ContentId::from(5))?;
 
         let expected = [
             1, // external encoding ID
@@ -298,8 +303,8 @@ mod tests {
     fn test_write_byte_array_len_codec() -> io::Result<()> {
         let mut buf = Vec::new();
 
-        let len_encoding = Encoding::new(Integer::External(13));
-        let value_encoding = Encoding::new(Byte::External(21));
+        let len_encoding = Encoding::new(Integer::External(block::ContentId::from(13)));
+        let value_encoding = Encoding::new(Byte::External(block::ContentId::from(21)));
 
         write_byte_array_len_codec(&mut buf, &len_encoding, &value_encoding)?;
 
@@ -322,7 +327,7 @@ mod tests {
     #[test]
     fn test_write_byte_array_stop_codec() -> io::Result<()> {
         let mut buf = Vec::new();
-        write_byte_array_stop_codec(&mut buf, 0x00, 8)?;
+        write_byte_array_stop_codec(&mut buf, 0x00, block::ContentId::from(8))?;
 
         let expected = [
             5, // byte array stop encoding ID

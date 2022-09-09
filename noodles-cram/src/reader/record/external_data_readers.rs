@@ -2,9 +2,11 @@ use std::collections::HashMap;
 
 use bytes::Buf;
 
+use crate::container::block;
+
 pub struct ExternalDataReaders<B> {
     low_readers: [Option<B>; 64],
-    high_readers: HashMap<i32, B>,
+    high_readers: HashMap<block::ContentId, B>,
 }
 
 impl<B> ExternalDataReaders<B>
@@ -18,10 +20,10 @@ where
         }
     }
 
-    pub fn insert(&mut self, id: i32, reader: B) {
-        match id {
-            0..=63 => {
-                self.low_readers[id as usize] = Some(reader);
+    pub fn insert(&mut self, id: block::ContentId, reader: B) {
+        match i32::from(id) {
+            i @ 0..=63 => {
+                self.low_readers[i as usize] = Some(reader);
             }
             _ => {
                 self.high_readers.insert(id, reader);
@@ -29,9 +31,9 @@ where
         }
     }
 
-    pub fn get_mut(&mut self, id: &i32) -> Option<&mut B> {
-        match *id {
-            0..=63 => self.low_readers[*id as usize].as_mut(),
+    pub fn get_mut(&mut self, id: &block::ContentId) -> Option<&mut B> {
+        match i32::from(*id) {
+            i @ 0..=63 => self.low_readers[i as usize].as_mut(),
             _ => self.high_readers.get_mut(id),
         }
     }

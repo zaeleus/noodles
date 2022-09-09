@@ -3,6 +3,7 @@ use std::collections::{HashMap, HashSet};
 use super::TagEncodingMap;
 
 use crate::{
+    container::block,
     data_container::compression_header::{
         encoding::codec::{Byte, ByteArray, Integer},
         preservation_map::tag_ids_dictionary::Key,
@@ -27,7 +28,7 @@ impl Builder {
         let mut map = HashMap::new();
 
         for key in self.keys {
-            let id = key.id();
+            let id = block::ContentId::from(key.id());
 
             let len_encoding = Encoding::new(Integer::External(id));
             let value_encoding = Encoding::new(Byte::External(id));
@@ -79,17 +80,17 @@ mod tests {
 
         let expected = [
             (
-                nh.id(),
+                block::ContentId::from(nh.id()),
                 Encoding::new(ByteArray::ByteArrayLen(
-                    Encoding::new(Integer::External(nh.id())),
-                    Encoding::new(Byte::External(nh.id())),
+                    Encoding::new(Integer::External(block::ContentId::from(nh.id()))),
+                    Encoding::new(Byte::External(block::ContentId::from(nh.id()))),
                 )),
             ),
             (
-                co.id(),
+                block::ContentId::from(co.id()),
                 Encoding::new(ByteArray::ByteArrayLen(
-                    Encoding::new(Integer::External(co.id())),
-                    Encoding::new(Byte::External(co.id())),
+                    Encoding::new(Integer::External(block::ContentId::from(co.id()))),
+                    Encoding::new(Byte::External(block::ContentId::from(co.id()))),
                 )),
             ),
         ]

@@ -1,5 +1,7 @@
 use std::{error, fmt};
 
+use crate::container::block;
+
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum DataSeries {
     /// BAM bit flags (`BF`).
@@ -158,6 +160,45 @@ impl From<DataSeries> for [u8; 2] {
             DataSeries::ReservedTc => [b'T', b'C'],
             DataSeries::ReservedTn => [b'T', b'N'],
         }
+    }
+}
+
+impl From<DataSeries> for block::ContentId {
+    fn from(data_series: DataSeries) -> Self {
+        let id = match data_series {
+            DataSeries::BamBitFlags => 1,
+            DataSeries::CramBitFlags => 2,
+            DataSeries::ReferenceId => 3,
+            DataSeries::ReadLengths => 4,
+            DataSeries::InSeqPositions => 5,
+            DataSeries::ReadGroups => 6,
+            DataSeries::ReadNames => 7,
+            DataSeries::NextMateBitFlags => 8,
+            DataSeries::NextFragmentReferenceSequenceId => 9,
+            DataSeries::NextMateAlignmentStart => 10,
+            DataSeries::TemplateSize => 11,
+            DataSeries::DistanceToNextFragment => 12,
+            DataSeries::TagIds => 13,
+            DataSeries::NumberOfReadFeatures => 14,
+            DataSeries::ReadFeaturesCodes => 15,
+            DataSeries::InReadPositions => 16,
+            DataSeries::DeletionLengths => 17,
+            DataSeries::StretchesOfBases => 18,
+            DataSeries::StretchesOfQualityScores => 19,
+            DataSeries::BaseSubstitutionCodes => 20,
+            DataSeries::Insertion => 21,
+            DataSeries::ReferenceSkipLength => 22,
+            DataSeries::Padding => 23,
+            DataSeries::HardClip => 24,
+            DataSeries::SoftClip => 25,
+            DataSeries::MappingQualities => 26,
+            DataSeries::Bases => 27,
+            DataSeries::QualityScores => 28,
+            DataSeries::ReservedTc => 29,
+            DataSeries::ReservedTn => 30,
+        };
+
+        block::ContentId::from(id)
     }
 }
 

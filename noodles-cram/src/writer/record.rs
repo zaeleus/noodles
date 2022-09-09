@@ -15,6 +15,7 @@ use noodles_sam::{
 
 use super::num::write_itf8;
 use crate::{
+    container::block,
     data_container::{
         compression_header::{
             data_series_encoding_map::DataSeries,
@@ -36,7 +37,7 @@ use crate::{
 pub enum WriteRecordError {
     MissingDataSeriesEncoding(DataSeries),
     MissingTagEncoding(tag_ids_dictionary::Key),
-    MissingExternalBlock(i32),
+    MissingExternalBlock(block::ContentId),
 }
 
 impl error::Error for WriteRecordError {}
@@ -58,7 +59,7 @@ impl fmt::Display for WriteRecordError {
 pub struct Writer<'a, W, X> {
     compression_header: &'a CompressionHeader,
     core_data_writer: &'a mut BitWriter<W>,
-    external_data_writers: &'a mut HashMap<i32, X>,
+    external_data_writers: &'a mut HashMap<block::ContentId, X>,
     reference_sequence_context: ReferenceSequenceContext,
     prev_alignment_start: Option<Position>,
 }
@@ -71,7 +72,7 @@ where
     pub fn new(
         compression_header: &'a CompressionHeader,
         core_data_writer: &'a mut BitWriter<W>,
-        external_data_writers: &'a mut HashMap<i32, X>,
+        external_data_writers: &'a mut HashMap<block::ContentId, X>,
         reference_sequence_context: ReferenceSequenceContext,
     ) -> Self {
         let initial_alignment_start = match reference_sequence_context {
@@ -477,7 +478,8 @@ where
 
         for field in record.tags().values() {
             let key: tag_ids_dictionary::Key = field.into();
-            let encoding = tag_encoding_map.get(&key.id()).ok_or_else(|| {
+            let id = block::ContentId::from(key.id());
+            let encoding = tag_encoding_map.get(&id).ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidInput,
                     WriteRecordError::MissingTagEncoding(key),
@@ -958,7 +960,7 @@ where
 fn encode_byte<W, X>(
     encoding: &Encoding<Byte>,
     _core_data_writer: &mut BitWriter<W>,
-    external_data_writers: &mut HashMap<i32, X>,
+    external_data_writers: &mut HashMap<block::ContentId, X>,
     value: u8,
 ) -> io::Result<()>
 where
@@ -985,7 +987,7 @@ where
 fn encode_itf8<W, X>(
     encoding: &Encoding<Integer>,
     _core_data_writer: &mut BitWriter<W>,
-    external_data_writers: &mut HashMap<i32, X>,
+    external_data_writers: &mut HashMap<block::ContentId, X>,
     value: i32,
 ) -> io::Result<()>
 where
@@ -1012,7 +1014,7 @@ where
 fn encode_byte_array<W, X>(
     encoding: &Encoding<ByteArray>,
     core_data_writer: &mut BitWriter<W>,
-    external_data_writers: &mut HashMap<i32, X>,
+    external_data_writers: &mut HashMap<block::ContentId, X>,
     data: &[u8],
 ) -> io::Result<()>
 where

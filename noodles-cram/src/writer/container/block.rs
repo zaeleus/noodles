@@ -19,7 +19,7 @@ where
     let content_type = u8::from(block.content_type());
     crc_writer.write_u8(content_type)?;
 
-    let block_content_id = block.content_id();
+    let block_content_id = i32::from(block.content_id());
     write_itf8(&mut crc_writer, block_content_id)?;
 
     let size_in_bytes = i32::try_from(block.data().len())
