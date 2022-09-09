@@ -4,7 +4,6 @@ use super::{Block, CompressionMethod, ContentType};
 
 use bytes::Bytes;
 use bzip2::write::BzEncoder;
-use flate2::write::GzEncoder;
 use xz2::write::XzEncoder;
 
 const DEFAULT_LZMA_COMPRESSION_LEVEL: u32 = 6;
@@ -53,16 +52,14 @@ impl Builder {
         data: Vec<u8>,
         compression_method: CompressionMethod,
     ) -> io::Result<Self> {
+        use crate::codecs::gzip;
+
         self.compression_method = compression_method;
         self.uncompressed_len = data.len();
 
         let data = match compression_method {
             CompressionMethod::None => data,
-            CompressionMethod::Gzip => {
-                let mut encoder = GzEncoder::new(Vec::new(), flate2::Compression::default());
-                encoder.write_all(&data)?;
-                encoder.finish()?
-            }
+            CompressionMethod::Gzip => gzip::encode(&data)?,
             CompressionMethod::Bzip2 => {
                 let mut encoder = BzEncoder::new(Vec::new(), bzip2::Compression::default());
                 encoder.write_all(&data)?;
