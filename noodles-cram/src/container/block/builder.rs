@@ -1,11 +1,8 @@
-use std::io::{self, Write};
+use std::io;
 
 use super::{Block, CompressionMethod, ContentType};
 
 use bytes::Bytes;
-use xz2::write::XzEncoder;
-
-const DEFAULT_LZMA_COMPRESSION_LEVEL: u32 = 6;
 
 #[derive(Debug, Default)]
 pub struct Builder {
@@ -51,7 +48,7 @@ impl Builder {
         data: Vec<u8>,
         compression_method: CompressionMethod,
     ) -> io::Result<Self> {
-        use crate::codecs::{bzip2, gzip};
+        use crate::codecs::{bzip2, gzip, lzma};
 
         self.compression_method = compression_method;
         self.uncompressed_len = data.len();
@@ -60,11 +57,7 @@ impl Builder {
             CompressionMethod::None => data,
             CompressionMethod::Gzip => gzip::encode(&data)?,
             CompressionMethod::Bzip2 => bzip2::encode(&data)?,
-            CompressionMethod::Lzma => {
-                let mut encoder = XzEncoder::new(Vec::new(), DEFAULT_LZMA_COMPRESSION_LEVEL);
-                encoder.write_all(&data)?;
-                encoder.finish()?
-            }
+            CompressionMethod::Lzma => lzma::encode(&data)?,
             _ => unimplemented!(
                 "compress_and_set_data: unhandled compression method: {:?}",
                 compression_method

@@ -6,13 +6,9 @@ pub use self::{
     builder::Builder, compression_method::CompressionMethod, content_type::ContentType,
 };
 
-use std::{
-    io::{self, Read},
-    mem,
-};
+use std::{io, mem};
 
 use bytes::Bytes;
-use xz2::read::XzDecoder;
 
 use crate::{
     codecs::{
@@ -58,7 +54,7 @@ impl Block {
     }
 
     pub fn decompressed_data(&self) -> io::Result<Bytes> {
-        use crate::codecs::{bzip2, gzip};
+        use crate::codecs::{bzip2, gzip, lzma};
 
         match self.compression_method {
             CompressionMethod::None => Ok(self.data.clone()),
@@ -73,10 +69,9 @@ impl Block {
                 Ok(Bytes::from(dst))
             }
             CompressionMethod::Lzma => {
-                let mut reader = XzDecoder::new(self.data());
-                let mut buf = Vec::with_capacity(self.uncompressed_len);
-                reader.read_to_end(&mut buf)?;
-                Ok(Bytes::from(buf))
+                let mut dst = vec![0; self.uncompressed_len];
+                lzma::decode(self.data(), &mut dst)?;
+                Ok(Bytes::from(dst))
             }
             CompressionMethod::Rans4x8 => {
                 let mut buf = self.data();
