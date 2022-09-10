@@ -1,3 +1,7 @@
+mod builder;
+
+pub use self::builder::Builder;
+
 use std::collections::HashMap;
 
 use crate::{codecs::Encoder, container::block};
@@ -10,6 +14,10 @@ pub struct BlockContentEncoderMap {
 }
 
 impl BlockContentEncoderMap {
+    pub fn builder() -> Builder {
+        Builder::default()
+    }
+
     pub fn core_data_encoder(&self) -> Option<&Encoder> {
         self.core_data_encoder.as_ref()
     }
@@ -34,12 +42,6 @@ impl BlockContentEncoderMap {
 
 impl Default for BlockContentEncoderMap {
     fn default() -> Self {
-        use super::compression_header::data_series_encoding_map::data_series::STANDARD_DATA_SERIES;
-
-        Self {
-            core_data_encoder: Some(Encoder::Gzip),
-            data_series_encoders: vec![Some(Encoder::Gzip); STANDARD_DATA_SERIES.len()],
-            tag_values_encoders: HashMap::new(),
-        }
+        Self::builder().build()
     }
 }
