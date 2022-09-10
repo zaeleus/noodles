@@ -1,5 +1,6 @@
 use std::{collections::HashMap, io};
 
+use bytes::Bytes;
 use md5::{Digest, Md5};
 use noodles_fasta as fasta;
 use noodles_sam as sam;
@@ -9,7 +10,7 @@ use crate::{
     container::{block, Block},
     data_container::{
         compression_header::data_series_encoding_map::data_series::STANDARD_DATA_SERIES,
-        CompressionHeader, ReferenceSequenceContext,
+        BlockContentEncoderMap, CompressionHeader, ReferenceSequenceContext,
     },
     record::Flags,
     writer, BitWriter, Record,
@@ -132,6 +133,19 @@ fn write_records(
     reference_sequence_context: ReferenceSequenceContext,
     records: &mut [Record],
 ) -> io::Result<(Block, Vec<Block>)> {
+    fn set_block_data(
+        builder: block::Builder,
+        buf: Vec<u8>,
+        encoder: Option<&Encoder>,
+    ) -> io::Result<block::Builder> {
+        match encoder {
+            Some(encoder) => builder.compress_and_set_data(buf, encoder.clone()),
+            None => Ok(builder
+                .set_uncompressed_len(buf.len())
+                .set_data(Bytes::from(buf))),
+        }
+    }
+
     let mut core_data_writer = BitWriter::new(Vec::new());
 
     let mut external_data_writers = HashMap::new();
@@ -158,25 +172,41 @@ fn write_records(
         record_writer.write_record(record)?;
     }
 
+    let block_content_encoder_map = BlockContentEncoderMap::default();
+
     let core_data_block = core_data_writer.finish().and_then(|buf| {
-        Block::builder()
+        let mut builder = Block::builder()
             .set_content_type(block::ContentType::CoreData)
-            .set_content_id(block::ContentId::from(CORE_DATA_BLOCK_CONTENT_ID))
-            .compress_and_set_data(buf, Encoder::Gzip)
-            .map(|builder| builder.build())
+            .set_content_id(block::ContentId::from(CORE_DATA_BLOCK_CONTENT_ID));
+
+        builder = set_block_data(builder, buf, block_content_encoder_map.core_data_encoder())?;
+
+        Ok(builder.build())
     })?;
 
     let external_blocks: Vec<_> = external_data_writers
         .into_iter()
         .filter(|(_, buf)| !buf.is_empty())
         .map(|(block_content_id, buf)| {
-            Block::builder()
+            let mut builder = Block::builder()
                 .set_content_type(block::ContentType::ExternalData)
-                .set_content_id(block_content_id)
-                .compress_and_set_data(buf, Encoder::Gzip)
-                .map(|builder| builder.build())
+                .set_content_id(block_content_id);
+
+            builder = if let Some(encoder) =
+                block_content_encoder_map.get_data_series_encoder(block_content_id)
+            {
+                set_block_data(builder, buf, encoder)?
+            } else if let Some(encoder) =
+                block_content_encoder_map.get_tag_values_encoders(block_content_id)
+            {
+                set_block_data(builder, buf, encoder)?
+            } else {
+                set_block_data(builder, buf, Some(&Encoder::Gzip))?
+            };
+
+            Ok(builder.build())
         })
-        .collect::<Result<_, _>>()?;
+        .collect::<Result<_, io::Error>>()?;
 
     Ok((core_data_block, external_blocks))
 }
