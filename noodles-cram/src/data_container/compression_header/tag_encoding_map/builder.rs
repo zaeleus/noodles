@@ -28,7 +28,7 @@ impl Builder {
         let mut map = HashMap::new();
 
         for key in self.keys {
-            let id = block::ContentId::from(key.id());
+            let id = block::ContentId::from(key);
 
             let len_encoding = Encoding::new(Integer::External(id));
             let value_encoding = Encoding::new(Byte::External(id));
@@ -75,22 +75,22 @@ mod tests {
 
         let actual = builder.build();
 
-        let nh = Key::new(Tag::AlignmentHitCount, Type::Int8);
-        let co = Key::new(Tag::Comment, Type::String);
+        let nh = block::ContentId::from(Key::new(Tag::AlignmentHitCount, Type::Int8));
+        let co = block::ContentId::from(Key::new(Tag::Comment, Type::String));
 
         let expected = [
             (
-                block::ContentId::from(nh.id()),
+                nh,
                 Encoding::new(ByteArray::ByteArrayLen(
-                    Encoding::new(Integer::External(block::ContentId::from(nh.id()))),
-                    Encoding::new(Byte::External(block::ContentId::from(nh.id()))),
+                    Encoding::new(Integer::External(nh)),
+                    Encoding::new(Byte::External(nh)),
                 )),
             ),
             (
-                block::ContentId::from(co.id()),
+                co,
                 Encoding::new(ByteArray::ByteArrayLen(
-                    Encoding::new(Integer::External(block::ContentId::from(co.id()))),
-                    Encoding::new(Byte::External(block::ContentId::from(co.id()))),
+                    Encoding::new(Integer::External(co)),
+                    Encoding::new(Byte::External(co)),
                 )),
             ),
         ]

@@ -3,6 +3,8 @@ use noodles_sam::{
     record::data::field::{value::Type, Tag},
 };
 
+use crate::container::block;
+
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct Key {
     tag: Tag,
@@ -21,11 +23,14 @@ impl Key {
     pub fn ty(self) -> Type {
         self.ty
     }
+}
 
-    pub fn id(self) -> i32 {
-        let [l, r] = self.tag.as_ref();
-        let ty = u8::from(self.ty);
-        i32::from(*l) << 16 | i32::from(*r) << 8 | i32::from(ty)
+impl From<Key> for block::ContentId {
+    fn from(key: Key) -> Self {
+        let [l, r] = key.tag.as_ref();
+        let ty = u8::from(key.ty);
+        let id = i32::from(*l) << 16 | i32::from(*r) << 8 | i32::from(ty);
+        Self::from(id)
     }
 }
 
@@ -40,11 +45,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_id() {
+    fn test_from_key_for_block_content_id() {
         let key = Key::new(Tag::Comment, Type::String);
-        assert_eq!(key.id(), 4411226);
+        assert_eq!(block::ContentId::from(key), block::ContentId::from(4411226));
 
         let key = Key::new(Tag::AlignmentHitCount, Type::Int32);
-        assert_eq!(key.id(), 5130345);
+        assert_eq!(block::ContentId::from(key), block::ContentId::from(5130345));
     }
 }

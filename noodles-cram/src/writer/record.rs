@@ -478,7 +478,7 @@ where
 
         for field in record.tags().values() {
             let key: tag_ids_dictionary::Key = field.into();
-            let id = block::ContentId::from(key.id());
+            let id = block::ContentId::from(key);
             let encoding = tag_encoding_map.get(&id).ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidInput,

@@ -470,12 +470,12 @@ where
 
         let mut fields = Vec::with_capacity(tag_keys.len());
 
-        for key in tag_keys {
-            let id = block::ContentId::from(key.id());
+        for &key in tag_keys {
+            let id = block::ContentId::from(key);
             let encoding = tag_encoding_map.get(&id).ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingTagEncoding(*key),
+                    ReadRecordError::MissingTagEncoding(key),
                 )
             })?;
 
