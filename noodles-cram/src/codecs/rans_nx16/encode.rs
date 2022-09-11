@@ -228,7 +228,7 @@ fn rans_encode_stripe(src: &[u8], n: usize) -> io::Result<Vec<u8>> {
     Ok(dst)
 }
 
-fn encode_pack(src: &[u8]) -> io::Result<(Vec<u8>, Vec<u8>)> {
+pub fn encode_pack(src: &[u8]) -> io::Result<(Vec<u8>, Vec<u8>)> {
     let mut frequencies = [0; 256];
 
     for &b in src {

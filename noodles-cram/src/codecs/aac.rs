@@ -1,8 +1,9 @@
+mod encode;
 mod flags;
 mod model;
 mod range_coder;
 
-pub use self::{model::Model, range_coder::RangeCoder};
+pub use self::{encode::encode, model::Model, range_coder::RangeCoder};
 
 use std::io::{self, Read};
 
