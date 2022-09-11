@@ -13,7 +13,6 @@ const BASE: usize = 256;
 // Lower bound `L`.
 const LOWER_BOUND: u32 = 0x800000;
 
-#[allow(dead_code)]
 pub fn rans_encode(order: Order, data: &[u8]) -> io::Result<Vec<u8>> {
     let compressed_blob = match order {
         Order::Zero => {
