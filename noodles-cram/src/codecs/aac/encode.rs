@@ -39,7 +39,7 @@ pub fn encode(flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     if flags.contains(Flags::CAT) {
         dst.write_all(&src)?;
     } else if flags.contains(Flags::EXT) {
-        todo!("encode_ext");
+        encode_ext(&src, &mut dst)?;
     } else if flags.contains(Flags::RLE) {
         if flags.contains(Flags::ORDER) {
             todo!("encode_rle_1");
@@ -53,6 +53,16 @@ pub fn encode(flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     }
 
     Ok(dst)
+}
+
+fn encode_ext(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
+    use bzip2::write::BzEncoder;
+
+    let mut encoder = BzEncoder::new(dst, Default::default());
+    encoder.write_all(src)?;
+    encoder.finish()?;
+
+    Ok(())
 }
 
 fn encode_order_0(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
@@ -74,6 +84,21 @@ fn encode_order_0(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_encode_ext() -> io::Result<()> {
+        use crate::codecs::bzip2;
+
+        let actual = encode(Flags::EXT, b"noodles")?;
+
+        let mut expected = vec![0x04, 0x07];
+        let data = bzip2::encode(b"noodles")?;
+        expected.extend(data);
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
 
     #[test]
     fn test_encode_order_0() -> io::Result<()> {
