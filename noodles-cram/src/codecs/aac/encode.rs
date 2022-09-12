@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use byteorder::WriteBytesExt;
 
-use super::Flags;
+use super::{Flags, Model, RangeCoder};
 use crate::writer::num::write_uint7;
 
 #[allow(dead_code)]
@@ -49,15 +49,44 @@ pub fn encode(flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     } else if flags.contains(Flags::ORDER) {
         todo!("encode_order_1");
     } else {
-        todo!("encode_order_0");
+        encode_order_0(&src, &mut dst)?;
     }
 
     Ok(dst)
 }
 
+fn encode_order_0(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
+    let max_sym = src.iter().max().copied().unwrap_or(0);
+    dst.write_u8(max_sym + 1)?;
+
+    let mut model = Model::new(max_sym);
+    let mut range_coder = RangeCoder::default();
+
+    for &sym in src {
+        model.encode(dst, &mut range_coder, sym)?;
+    }
+
+    range_coder.range_encode_end(dst)?;
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_encode_order_0() -> io::Result<()> {
+        let actual = encode(Flags::empty(), b"noodles")?;
+
+        let expected = [
+            0x00, 0x07, 0x74, 0x00, 0xf4, 0xe5, 0xb7, 0x4e, 0x50, 0x0f, 0x2e, 0x97, 0x00,
+        ];
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
 
     #[test]
     fn test_encode_cat() -> io::Result<()> {

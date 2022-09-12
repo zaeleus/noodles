@@ -49,7 +49,6 @@ impl RangeCoder {
         Ok(())
     }
 
-    #[allow(dead_code)]
     pub fn range_encode<W>(
         &mut self,
         writer: &mut W,
@@ -63,7 +62,7 @@ impl RangeCoder {
         let old_low = self.low;
 
         self.range /= tot_freq;
-        self.low += sym_low * self.range;
+        self.low = self.low.overflowing_add(sym_low * self.range).0;
         self.range *= sym_freq;
 
         if self.low < old_low {
@@ -112,7 +111,6 @@ impl RangeCoder {
         Ok(())
     }
 
-    #[allow(dead_code)]
     pub fn range_encode_end<W>(&mut self, writer: &mut W) -> io::Result<()>
     where
         W: Write,

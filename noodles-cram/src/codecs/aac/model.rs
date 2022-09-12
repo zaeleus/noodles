@@ -1,4 +1,4 @@
-use std::io::{self, Read};
+use std::io::{self, Read, Write};
 
 use super::RangeCoder;
 
@@ -59,6 +59,41 @@ impl Model {
         }
 
         Ok(sym)
+    }
+
+    pub fn encode<W>(
+        &mut self,
+        writer: &mut W,
+        range_coder: &mut RangeCoder,
+        sym: u8,
+    ) -> io::Result<()>
+    where
+        W: Write,
+    {
+        let mut acc = 0;
+        let mut x = 0;
+
+        while self.symbols[x] != sym {
+            acc += self.frequencies[x];
+            x += 1;
+        }
+
+        let sym_freq = self.frequencies[x];
+        range_coder.range_encode(writer, acc, sym_freq, self.total_freq)?;
+
+        self.frequencies[x] += 16;
+        self.total_freq += 16;
+
+        if self.total_freq > (1 << 16) - 17 {
+            self.renormalize();
+        }
+
+        if x > 0 && self.frequencies[x] > self.frequencies[x - 1] {
+            self.frequencies.swap(x, x - 1);
+            self.symbols.swap(x, x - 1);
+        }
+
+        Ok(())
     }
 
     fn renormalize(&mut self) {
