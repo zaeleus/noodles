@@ -47,7 +47,7 @@ pub fn encode(flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
             todo!("encode_rle_0");
         }
     } else if flags.contains(Flags::ORDER) {
-        todo!("encode_order_1");
+        encode_order_1(&src, &mut dst)?;
     } else {
         encode_order_0(&src, &mut dst)?;
     }
@@ -81,6 +81,28 @@ fn encode_order_0(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
     Ok(())
 }
 
+fn encode_order_1(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
+    let max_sym = src.iter().max().copied().unwrap_or(0);
+    dst.write_u8(max_sym + 1)?;
+
+    let model_count = usize::from(max_sym) + 1;
+    let mut models = vec![Model::new(max_sym); model_count];
+
+    let mut range_coder = RangeCoder::default();
+
+    models[0].encode(dst, &mut range_coder, src[0])?;
+
+    for window in src.windows(2) {
+        let sym_0 = usize::from(window[0]);
+        let sym_1 = window[1];
+        models[sym_0].encode(dst, &mut range_coder, sym_1)?;
+    }
+
+    range_coder.range_encode_end(dst)?;
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -106,6 +128,19 @@ mod tests {
 
         let expected = [
             0x00, 0x07, 0x74, 0x00, 0xf4, 0xe5, 0xb7, 0x4e, 0x50, 0x0f, 0x2e, 0x97, 0x00,
+        ];
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_encode_order_1() -> io::Result<()> {
+        let actual = encode(Flags::ORDER, b"noodles")?;
+
+        let expected = [
+            0x01, 0x07, 0x74, 0x00, 0xf4, 0xe3, 0x83, 0x41, 0xe2, 0x9a, 0xef, 0x53, 0x50, 0x00,
         ];
 
         assert_eq!(actual, expected);
