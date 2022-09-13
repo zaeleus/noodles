@@ -21,7 +21,9 @@ pub fn encode(flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     }
 
     if flags.contains(Flags::STRIPE) {
-        todo!("encode_stripe");
+        let buf = encode_stripe(&src)?;
+        dst.extend(buf);
+        return Ok(dst);
     }
 
     let mut pack_header = None;
@@ -50,6 +52,61 @@ pub fn encode(flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
         encode_order_1(&src, &mut dst)?;
     } else {
         encode_order_0(&src, &mut dst)?;
+    }
+
+    Ok(dst)
+}
+
+fn encode_stripe(src: &[u8]) -> io::Result<Vec<u8>> {
+    const N: usize = 4;
+
+    let mut ulens = Vec::with_capacity(N);
+    let mut t = Vec::with_capacity(N);
+
+    for j in 0..N {
+        let mut ulen = src.len() / N;
+
+        if src.len() % N > j {
+            ulen += 1;
+        }
+
+        let chunk = vec![0; ulen];
+
+        ulens.push(ulen);
+        t.push(chunk);
+    }
+
+    let mut x = 0;
+    let mut i = 0;
+
+    while i < src.len() {
+        for j in 0..N {
+            if x < ulens[j] {
+                t[j][x] = src[i + j];
+            }
+        }
+
+        x += 1;
+        i += N;
+    }
+
+    let mut chunks = vec![Vec::new(); N];
+
+    for (chunk, s) in chunks.iter_mut().zip(t.iter()) {
+        *chunk = encode(Flags::empty(), s)?;
+    }
+
+    let mut dst = Vec::new();
+
+    dst.write_u8(N as u8)?;
+
+    for chunk in &chunks {
+        let clen = chunk.len() as u32;
+        write_uint7(&mut dst, clen)?;
+    }
+
+    for chunk in &chunks {
+        dst.write_all(chunk)?;
     }
 
     Ok(dst)
@@ -195,6 +252,21 @@ mod tests {
         let mut expected = vec![0x04, 0x07];
         let data = bzip2::encode(b"noodles")?;
         expected.extend(data);
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_encode_stripe() -> io::Result<()> {
+        let actual = encode(Flags::STRIPE, b"noodles")?;
+
+        let expected = [
+            0x08, 0x07, 0x04, 0x09, 0x09, 0x09, 0x08, 0x00, 0x02, 0x6f, 0x00, 0xff, 0xa7, 0xab,
+            0x62, 0x00, 0x00, 0x02, 0x70, 0x00, 0xff, 0x84, 0x92, 0x1b, 0x00, 0x00, 0x02, 0x74,
+            0x00, 0xf7, 0x27, 0xdb, 0x24, 0x00, 0x00, 0x01, 0x65, 0x00, 0xfd, 0x77, 0x20, 0xb0,
+        ];
 
         assert_eq!(actual, expected);
 
