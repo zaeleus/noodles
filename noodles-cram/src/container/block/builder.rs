@@ -45,7 +45,9 @@ impl Builder {
     /// This sets the compression method, the uncompressed size to the length of the given data,
     /// and the data to the compressed output of the given data.
     pub fn compress_and_set_data(mut self, data: Vec<u8>, encoder: Encoder) -> io::Result<Self> {
-        use crate::codecs::{bzip2, gzip, lzma, rans::rans_encode, rans_nx16::rans_encode_nx16};
+        use crate::codecs::{
+            aac, bzip2, gzip, lzma, rans::rans_encode, rans_nx16::rans_encode_nx16,
+        };
 
         self.uncompressed_len = data.len();
 
@@ -66,6 +68,10 @@ impl Builder {
             Encoder::RansNx16(flags) => {
                 (CompressionMethod::RansNx16, rans_encode_nx16(flags, &data)?)
             }
+            Encoder::AdaptiveArithmeticCoding(flags) => (
+                CompressionMethod::AdaptiveArithmeticCoding,
+                aac::encode(flags, &data)?,
+            ),
         };
 
         self.compression_method = compression_method;

@@ -15,4 +15,5 @@ pub enum Encoder {
     Lzma(u32),
     Rans4x8(rans::Order),
     RansNx16(rans_nx16::Flags),
+    AdaptiveArithmeticCoding(aac::Flags),
 }

@@ -3,13 +3,12 @@ mod flags;
 mod model;
 mod range_coder;
 
-pub use self::{encode::encode, model::Model, range_coder::RangeCoder};
+pub use self::{encode::encode, flags::Flags, model::Model, range_coder::RangeCoder};
 
 use std::io::{self, Read};
 
 use byteorder::ReadBytesExt;
 
-use self::flags::Flags;
 use super::rans_nx16::decode::{decode_pack, decode_pack_meta};
 use crate::reader::num::read_uint7;
 
