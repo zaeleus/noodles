@@ -201,7 +201,7 @@ fn write_records(
             {
                 set_block_data(builder, buf, encoder)?
             } else {
-                set_block_data(builder, buf, Some(&Encoder::Gzip))?
+                set_block_data(builder, buf, Some(&Encoder::Gzip(Default::default())))?
             };
 
             Ok(builder.build())

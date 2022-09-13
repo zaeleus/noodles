@@ -7,8 +7,8 @@ pub fn decode(src: &[u8], dst: &mut [u8]) -> io::Result<()> {
     decoder.read_exact(dst)
 }
 
-pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
-    let mut encoder = BzEncoder::new(Vec::new(), Compression::default());
+pub fn encode(compression_level: Compression, src: &[u8]) -> io::Result<Vec<u8>> {
+    let mut encoder = BzEncoder::new(Vec::new(), compression_level);
     encoder.write_all(src)?;
     encoder.finish()
 }

@@ -250,7 +250,9 @@ mod tests {
         let actual = encode(Flags::EXT, b"noodles")?;
 
         let mut expected = vec![0x04, 0x07];
-        let data = bzip2::encode(b"noodles")?;
+
+        let compression_level = ::bzip2::Compression::default();
+        let data = bzip2::encode(compression_level, b"noodles")?;
         expected.extend(data);
 
         assert_eq!(actual, expected);

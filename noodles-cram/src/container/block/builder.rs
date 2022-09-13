@@ -45,26 +45,27 @@ impl Builder {
     /// This sets the compression method, the uncompressed size to the length of the given data,
     /// and the data to the compressed output of the given data.
     pub fn compress_and_set_data(mut self, data: Vec<u8>, encoder: Encoder) -> io::Result<Self> {
-        use crate::codecs::{
-            bzip2, gzip, lzma,
-            rans::{self, rans_encode},
-            rans_nx16::{self, rans_encode_nx16},
-        };
+        use crate::codecs::{bzip2, gzip, lzma, rans::rans_encode, rans_nx16::rans_encode_nx16};
 
         self.uncompressed_len = data.len();
 
         let (compression_method, data) = match encoder {
-            Encoder::Gzip => (CompressionMethod::Gzip, gzip::encode(&data)?),
-            Encoder::Bzip2 => (CompressionMethod::Bzip2, bzip2::encode(&data)?),
-            Encoder::Lzma => (CompressionMethod::Lzma, lzma::encode(&data)?),
-            Encoder::Rans4x8 => (
-                CompressionMethod::Rans4x8,
-                rans_encode(rans::Order::Zero, &data)?,
+            Encoder::Gzip(compression_level) => (
+                CompressionMethod::Gzip,
+                gzip::encode(compression_level, &data)?,
             ),
-            Encoder::RansNx16 => (
-                CompressionMethod::RansNx16,
-                rans_encode_nx16(rans_nx16::Flags::empty(), &data)?,
+            Encoder::Bzip2(compression_level) => (
+                CompressionMethod::Bzip2,
+                bzip2::encode(compression_level, &data)?,
             ),
+            Encoder::Lzma(compression_level) => (
+                CompressionMethod::Lzma,
+                lzma::encode(compression_level, &data)?,
+            ),
+            Encoder::Rans4x8(order) => (CompressionMethod::Rans4x8, rans_encode(order, &data)?),
+            Encoder::RansNx16(flags) => {
+                (CompressionMethod::RansNx16, rans_encode_nx16(flags, &data)?)
+            }
         };
 
         self.compression_method = compression_method;

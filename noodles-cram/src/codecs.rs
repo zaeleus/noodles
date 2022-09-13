@@ -10,9 +10,9 @@ pub mod rans_nx16;
 #[derive(Clone, Debug)]
 #[allow(dead_code)]
 pub enum Encoder {
-    Gzip,
-    Bzip2,
-    Lzma,
-    Rans4x8,
-    RansNx16,
+    Gzip(flate2::Compression),
+    Bzip2(::bzip2::Compression),
+    Lzma(u32),
+    Rans4x8(rans::Order),
+    RansNx16(rans_nx16::Flags),
 }

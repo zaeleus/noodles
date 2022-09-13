@@ -54,11 +54,18 @@ impl Builder {
 
 impl Default for Builder {
     fn default() -> Self {
+        use flate2::Compression;
+
         use crate::data_container::compression_header::data_series_encoding_map::data_series::STANDARD_DATA_SERIES;
 
+        let compression_level = Compression::default();
+
         Self {
-            core_data_encoder: Some(Encoder::Gzip),
-            data_series_encoders: vec![Some(Encoder::Gzip); STANDARD_DATA_SERIES.len()],
+            core_data_encoder: Some(Encoder::Gzip(compression_level)),
+            data_series_encoders: vec![
+                Some(Encoder::Gzip(compression_level));
+                STANDARD_DATA_SERIES.len()
+            ],
             tag_values_encoders: HashMap::new(),
         }
     }
