@@ -42,7 +42,7 @@ pub fn encode(flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
         encode_ext(&src, &mut dst)?;
     } else if flags.contains(Flags::RLE) {
         if flags.contains(Flags::ORDER) {
-            todo!("encode_rle_1");
+            encode_rle_1(&src, &mut dst)?;
         } else {
             encode_rle_0(&src, &mut dst)?;
         }
@@ -84,6 +84,47 @@ fn encode_rle_0(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
         i += run + 1;
 
         let mut rctx = usize::from(sym);
+
+        let mut part = run.min(3);
+        model_run[rctx].encode(dst, &mut range_coder, part as u8)?;
+        rctx = 256;
+        run -= part;
+
+        while part == 3 {
+            part = run.min(3);
+            model_run[rctx].encode(dst, &mut range_coder, part as u8)?;
+            rctx = 257;
+            run -= part;
+        }
+    }
+
+    range_coder.range_encode_end(dst)?;
+
+    Ok(())
+}
+
+fn encode_rle_1(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
+    let max_sym = src.iter().max().copied().unwrap_or(0);
+    dst.write_u8(max_sym + 1)?;
+
+    let model_lit_count = usize::from(max_sym) + 1;
+    let mut model_lit = vec![Model::new(max_sym); model_lit_count];
+    let mut model_run = vec![Model::new(3); 258];
+
+    let mut range_coder = RangeCoder::default();
+
+    let mut i = 0;
+    let mut last = 0;
+
+    while i < src.len() {
+        let sym = src[i];
+        model_lit[last].encode(dst, &mut range_coder, sym)?;
+
+        let mut run = src[i + 1..].iter().position(|&s| s != sym).unwrap_or(0);
+        i += run + 1;
+
+        let mut rctx = usize::from(sym);
+        last = usize::from(sym);
 
         let mut part = run.min(3);
         model_run[rctx].encode(dst, &mut range_coder, part as u8)?;
@@ -200,6 +241,20 @@ mod tests {
 
         let expected = [
             0x40, 0x0d, 0x74, 0x00, 0xf3, 0x4b, 0x21, 0x10, 0xa8, 0xe3, 0x84, 0xfe, 0x6b, 0x22,
+            0x00,
+        ];
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_encode_rle_with_order_1() -> io::Result<()> {
+        let actual = encode(Flags::ORDER | Flags::RLE, b"noooooooodles")?;
+
+        let expected = [
+            0x41, 0x0d, 0x74, 0x00, 0xf3, 0x4a, 0x89, 0x79, 0xc1, 0xe8, 0xc3, 0xc5, 0x62, 0x31,
             0x00,
         ];
 
