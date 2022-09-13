@@ -44,7 +44,7 @@ pub fn encode(flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
         if flags.contains(Flags::ORDER) {
             todo!("encode_rle_1");
         } else {
-            todo!("encode_rle_0");
+            encode_rle_0(&src, &mut dst)?;
         }
     } else if flags.contains(Flags::ORDER) {
         encode_order_1(&src, &mut dst)?;
@@ -61,6 +61,44 @@ fn encode_ext(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
     let mut encoder = BzEncoder::new(dst, Default::default());
     encoder.write_all(src)?;
     encoder.finish()?;
+
+    Ok(())
+}
+
+fn encode_rle_0(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
+    let max_sym = src.iter().max().copied().unwrap_or(0);
+    dst.write_u8(max_sym + 1)?;
+
+    let mut model_lit = Model::new(max_sym);
+    let mut model_run = vec![Model::new(3); 258];
+
+    let mut range_coder = RangeCoder::default();
+
+    let mut i = 0;
+
+    while i < src.len() {
+        let sym = src[i];
+        model_lit.encode(dst, &mut range_coder, sym)?;
+
+        let mut run = src[i + 1..].iter().position(|&s| s != sym).unwrap_or(0);
+        i += run + 1;
+
+        let mut rctx = usize::from(sym);
+
+        let mut part = run.min(3);
+        model_run[rctx].encode(dst, &mut range_coder, part as u8)?;
+        rctx = 256;
+        run -= part;
+
+        while part == 3 {
+            part = run.min(3);
+            model_run[rctx].encode(dst, &mut range_coder, part as u8)?;
+            rctx = 257;
+            run -= part;
+        }
+    }
+
+    range_coder.range_encode_end(dst)?;
 
     Ok(())
 }
@@ -153,6 +191,20 @@ mod tests {
         let actual = encode(Flags::CAT, b"noodles")?;
         let expected = [0x20, 0x07, 0x6e, 0x6f, 0x6f, 0x64, 0x6c, 0x65, 0x73];
         assert_eq!(actual, expected);
+        Ok(())
+    }
+
+    #[test]
+    fn test_encode_rle_with_order_0() -> io::Result<()> {
+        let actual = encode(Flags::RLE, b"noooooooodles")?;
+
+        let expected = [
+            0x40, 0x0d, 0x74, 0x00, 0xf3, 0x4b, 0x21, 0x10, 0xa8, 0xe3, 0x84, 0xfe, 0x6b, 0x22,
+            0x00,
+        ];
+
+        assert_eq!(actual, expected);
+
         Ok(())
     }
 }
