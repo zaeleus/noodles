@@ -334,4 +334,17 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_encode_pack() -> io::Result<()> {
+        let actual = encode(Flags::CAT | Flags::PACK, b"noodles")?;
+
+        let expected = [
+            0xa0, 0x07, 0x06, 0x64, 0x65, 0x6c, 0x6e, 0x6f, 0x73, 0x04, 0x43, 0x04, 0x12, 0x05,
+        ];
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
 }
