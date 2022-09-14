@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bam/lazy/record: Implement `AsRef<[u8]>` (#113).
+
+[#113]: https://github.com/zaeleus/noodles/issues/113
+
 ## 0.21.0 - 2022-08-16
 
 ### Changed

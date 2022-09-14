@@ -284,6 +284,12 @@ impl fmt::Debug for Record {
     }
 }
 
+impl AsRef<[u8]> for Record {
+    fn as_ref(&self) -> &[u8] {
+        &self.buf
+    }
+}
+
 impl Default for Record {
     fn default() -> Self {
         let buf = vec![
