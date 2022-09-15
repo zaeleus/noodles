@@ -7,7 +7,7 @@ pub use self::builder::Builder;
 
 use std::io::{self, BufRead, Read, Seek, SeekFrom};
 
-use super::{Block, VirtualPosition};
+use super::{gzi, Block, VirtualPosition};
 
 /// A BGZF reader.
 ///
@@ -161,6 +161,42 @@ where
 
         Ok(pos)
     }
+
+    /// Seeks the stream to the given uncompressed position.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::io;
+    /// use noodles_bgzf as bgzf;
+    /// let mut reader = bgzf::Reader::new(io::empty());
+    /// let index = vec![(0, 0)];
+    /// reader.seek_by_uncompressed_position(&index, 0)?;
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn seek_by_uncompressed_position(
+        &mut self,
+        index: &gzi::Index,
+        pos: u64,
+    ) -> io::Result<u64> {
+        assert!(!index.is_empty());
+
+        let i = index.iter().position(|r| r.1 > pos).unwrap_or(index.len());
+        // SAFETY: `i` is > 0.
+        let record = index[i - 1];
+
+        let cpos = record.0;
+        self.inner.get_mut().seek(SeekFrom::Start(cpos))?;
+        self.position = cpos;
+
+        self.read_block()?;
+
+        let upos = usize::try_from(pos - record.1)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        self.block.data_mut().set_position(upos);
+
+        Ok(pos)
+    }
 }
 
 impl<R> Read for Reader<R>
@@ -222,7 +258,7 @@ mod tests {
     fn test_seek() -> Result<(), Box<dyn std::error::Error>> {
         #[rustfmt::skip]
         let data = [
-            // block 0
+            // block 0 (b"noodles")
             0x1f, 0x8b, 0x08, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x06, 0x00, 0x42, 0x43,
             0x02, 0x00, 0x22, 0x00, 0xcb, 0xcb, 0xcf, 0x4f, 0xc9, 0x49, 0x2d, 0x06, 0x00, 0xa1,
             0x58, 0x2a, 0x80, 0x07, 0x00, 0x00, 0x00,
@@ -247,6 +283,40 @@ mod tests {
 
         assert_eq!(buf, b"dles");
         assert_eq!(reader.virtual_position(), eof);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_seek_by_uncompressed_position() -> io::Result<()> {
+        #[rustfmt::skip]
+        let data = [
+            // block 0 (b"noodles")
+            0x1f, 0x8b, 0x08, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x06, 0x00, 0x42, 0x43,
+            0x02, 0x00, 0x22, 0x00, 0xcb, 0xcb, 0xcf, 0x4f, 0xc9, 0x49, 0x2d, 0x06, 0x00, 0xa1,
+            0x58, 0x2a, 0x80, 0x07, 0x00, 0x00, 0x00,
+            // block 1 (b"bgzf")
+            0x1f, 0x8b, 0x08, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x06, 0x00, 0x42, 0x43,
+            0x02, 0x00, 0x1f, 0x00, 0x4b, 0x4a, 0xaf, 0x4a, 0x03, 0x00, 0x20, 0x68, 0xf2, 0x8c,
+            0x04, 0x00, 0x00, 0x00,
+            // EOF block
+            0x1f, 0x8b, 0x08, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x06, 0x00, 0x42, 0x43,
+            0x02, 0x00, 0x1b, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        ];
+
+        let index = vec![(0, 0), (35, 7)];
+
+        let mut reader = Reader::new(Cursor::new(&data));
+
+        reader.seek_by_uncompressed_position(&index, 3)?;
+        let mut buf = [0; 4];
+        reader.read_exact(&mut buf)?;
+        assert_eq!(&buf, b"dles");
+
+        reader.seek_by_uncompressed_position(&index, 8)?;
+        let mut buf = [0; 2];
+        reader.read_exact(&mut buf)?;
+        assert_eq!(&buf, b"gz");
 
         Ok(())
     }

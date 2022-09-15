@@ -6,6 +6,9 @@
 
   * bgzf/gzi: Add convenience `read` function.
 
+  * bgzf/reader: Add seeking to an uncompressed position
+    (`Reader::seek_by_uncompressed_position`).
+
 ### Changed
 
   * bgzf/gzi: Start index with the initial block.
