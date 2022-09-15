@@ -6,6 +6,12 @@
 
   * bgzf/gzi: Add convenience `read` function.
 
+### Changed
+
+  * bgzf/gzi: Start index with the initial block.
+
+    The first block, i.e., (0, 0), is now included in the index.
+
 ### Fixed
 
   * bgzf/reader/block/multi: Reset block queue after possible inner reader
