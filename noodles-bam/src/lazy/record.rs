@@ -290,6 +290,23 @@ impl AsRef<[u8]> for Record {
     }
 }
 
+impl TryFrom<Vec<u8>> for Record {
+    type Error = io::Error;
+
+    fn try_from(buf: Vec<u8>) -> Result<Self, Self::Error> {
+        let mut bounds = Bounds {
+            read_name_end: 0,
+            cigar_end: 0,
+            sequence_end: 0,
+            quality_scores_end: 0,
+        };
+
+        index(&buf, &mut bounds)?;
+
+        Ok(Record { buf, bounds })
+    }
+}
+
 impl Default for Record {
     fn default() -> Self {
         let buf = vec![
@@ -363,30 +380,47 @@ fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
 mod tests {
     use super::*;
 
+    static DATA: &[u8] = &[
+        0xff, 0xff, 0xff, 0xff, // ref_id = -1
+        0xff, 0xff, 0xff, 0xff, // pos = -1
+        0x02, // l_read_name = 2
+        0xff, // mapq = 255
+        0x48, 0x12, // bin = 4680
+        0x01, 0x00, // n_cigar_op = 1
+        0x04, 0x00, // flag = 4
+        0x04, 0x00, 0x00, 0x00, // l_seq = 0
+        0xff, 0xff, 0xff, 0xff, // next_ref_id = -1
+        0xff, 0xff, 0xff, 0xff, // next_pos = -1
+        0x00, 0x00, 0x00, 0x00, // tlen = 0
+        b'*', 0x00, // read_name = "*\x00"
+        0x40, 0x00, 0x00, 0x00, // cigar = 4M
+        0x12, 0x48, // sequence = ACGT
+        b'N', b'D', b'L', b'S', // quality scores
+    ];
+
     #[test]
     fn test_index() -> io::Result<()> {
         let mut record = Record::default();
 
         record.buf.clear();
-        record.buf.extend_from_slice(&[
-            0xff, 0xff, 0xff, 0xff, // ref_id = -1
-            0xff, 0xff, 0xff, 0xff, // pos = -1
-            0x02, // l_read_name = 2
-            0xff, // mapq = 255
-            0x48, 0x12, // bin = 4680
-            0x01, 0x00, // n_cigar_op = 1
-            0x04, 0x00, // flag = 4
-            0x04, 0x00, 0x00, 0x00, // l_seq = 0
-            0xff, 0xff, 0xff, 0xff, // next_ref_id = -1
-            0xff, 0xff, 0xff, 0xff, // next_pos = -1
-            0x00, 0x00, 0x00, 0x00, // tlen = 0
-            b'*', 0x00, // read_name = "*\x00"
-            0x40, 0x00, 0x00, 0x00, // cigar = 4M
-            0x12, 0x48, // sequence = ACGT
-            b'N', b'D', b'L', b'S', // quality scores
-        ]);
+        record.buf.extend(DATA);
 
         record.index()?;
+
+        assert_eq!(record.bounds.read_name_range(), 32..34);
+        assert_eq!(record.bounds.cigar_range(), 34..38);
+        assert_eq!(record.bounds.sequence_range(), 38..40);
+        assert_eq!(record.bounds.quality_scores_range(), 40..44);
+        assert_eq!(record.bounds.data_range(), 44..);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_try_from_vec_u8_for_record() -> io::Result<()> {
+        let record = Record::try_from(DATA.to_vec())?;
+
+        assert_eq!(record.buf, DATA);
 
         assert_eq!(record.bounds.read_name_range(), 32..34);
         assert_eq!(record.bounds.cigar_range(), 34..38);
