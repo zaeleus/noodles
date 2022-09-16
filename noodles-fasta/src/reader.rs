@@ -245,7 +245,7 @@ where
         let index_record = &index[i];
 
         let pos = index_record.offset();
-        self.seek(SeekFrom::Start(pos))?;
+        self.inner.seek(SeekFrom::Start(pos))?;
 
         let definition = Definition::new(region.to_string(), None);
 
@@ -256,65 +256,6 @@ where
         let sequence = Sequence::from(raw_sequence[range].to_vec());
 
         Ok(Record::new(definition, sequence))
-    }
-}
-
-impl<R> Reader<bgzf::Reader<R>>
-where
-    R: Read + Seek,
-{
-    /// Seeks the underlying BGZF stream to the given virtual position.
-    ///
-    /// Virtual positions typically come from an associated index.
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// # use std::{fs::File, io};
-    /// use noodles_bgzf as bgzf;
-    /// use noodles_fasta as fasta;
-    ///
-    /// let mut reader = File::open("sample.fa.gz")
-    ///     .map(bgzf::Reader::new)
-    ///     .map(fasta::Reader::new)?;
-    ///
-    /// let virtual_position = bgzf::VirtualPosition::from(102334155);
-    /// reader.seek(virtual_position)?;
-    /// # Ok::<(), io::Error>(())
-    /// ```
-    pub fn seek(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
-        self.inner.seek(pos)
-    }
-}
-
-impl<R> Seek for Reader<R>
-where
-    R: Read + Seek,
-{
-    /// Seeks the underlying stream to the given position.
-    ///
-    /// These positions typically come from an associated index, which start at the sequence and
-    /// _not_ the definition.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io::{self, Cursor, Seek, SeekFrom};
-    /// use noodles_fasta as fasta;
-    ///
-    /// let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
-    /// let cursor = Cursor::new(&data[..]);
-    /// let mut reader = fasta::Reader::new(cursor);
-    /// reader.seek(SeekFrom::Start(14));
-    ///
-    /// let mut buf = Vec::new();
-    /// reader.read_sequence(&mut buf)?;
-    ///
-    /// assert_eq!(buf, b"NNNNNNNNNN");
-    /// # Ok::<(), io::Error>(())
-    /// ```
-    fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
-        self.inner.seek(pos)
     }
 }
 
@@ -478,7 +419,7 @@ mod tests {
         let cursor = Cursor::new(&data[..]);
         let mut reader = Reader::new(cursor);
 
-        reader.seek(SeekFrom::Start(14)).unwrap();
+        reader.inner.seek(SeekFrom::Start(14)).unwrap();
 
         let mut buf = Vec::new();
         reader.read_sequence(&mut buf).unwrap();

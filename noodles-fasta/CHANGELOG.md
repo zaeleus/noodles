@@ -7,6 +7,12 @@
   * fasta/reader: Add common methods to access the underlying reader
     (`Reader::get_ref`, `Reader::get_mut`, and `Reader::into_inner`).
 
+### Removed
+
+  * fasta/reader: Remove `seek` delegates.
+
+    Use the inner reader instead.
+
 ## 0.13.0 - 2022-08-16
 
 ### Changed
