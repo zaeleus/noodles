@@ -101,13 +101,7 @@ impl FromStr for Record {
         let line_bases = parse_u64(&mut fields, Field::LineBases)?;
         let line_width = parse_u64(&mut fields, Field::LineWidth)?;
 
-        Ok(Self {
-            name,
-            len,
-            offset,
-            line_bases,
-            line_width,
-        })
+        Ok(Self::new(name, len, offset, line_bases, line_width))
     }
 }
 
