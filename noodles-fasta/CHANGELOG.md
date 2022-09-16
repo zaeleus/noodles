@@ -9,7 +9,7 @@
 
 ### Removed
 
-  * fasta/reader: Remove `seek` delegates.
+  * fasta/reader: Remove `seek` and `virtual_position` delegates.
 
     Use the inner reader instead.
 

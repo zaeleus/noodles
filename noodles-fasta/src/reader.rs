@@ -5,12 +5,11 @@ mod records;
 pub use self::records::Records;
 
 use std::{
-    io::{self, BufRead, Read, Seek, SeekFrom},
+    io::{self, BufRead, Seek, SeekFrom},
     ops::Range,
 };
 
 use memchr::memchr;
-use noodles_bgzf as bgzf;
 use noodles_core::{region::Interval, Region};
 
 use super::{fai, Record};
@@ -172,32 +171,6 @@ where
     /// ```
     pub fn records(&mut self) -> Records<'_, R> {
         Records::new(self)
-    }
-}
-
-impl<R> Reader<bgzf::Reader<R>>
-where
-    R: Read,
-{
-    /// Returns the current virtual position of the underlying BGZF reader.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io;
-    /// use noodles_bgzf as bgzf;
-    /// use noodles_fasta as fasta;
-    ///
-    /// let data = Vec::new();
-    /// let reader = fasta::Reader::new(bgzf::Reader::new(&data[..]));
-    /// let virtual_position = reader.virtual_position();
-    ///
-    /// assert_eq!(virtual_position.compressed(), 0);
-    /// assert_eq!(virtual_position.uncompressed(), 0);
-    /// # Ok::<(), io::Error>(())
-    /// ```
-    pub fn virtual_position(&self) -> bgzf::VirtualPosition {
-        self.inner.virtual_position()
     }
 }
 
