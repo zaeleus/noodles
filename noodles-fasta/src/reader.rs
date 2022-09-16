@@ -43,6 +43,45 @@ where
         Self { inner }
     }
 
+    /// Returns a reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fasta as fasta;
+    /// let reader = fasta::Reader::new(&[][..]);
+    /// assert!(reader.get_ref().is_empty());
+    /// ```
+    pub fn get_ref(&self) -> &R {
+        &self.inner
+    }
+
+    /// Returns a mutable reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fasta as fasta;
+    /// let mut reader = fasta::Reader::new(&[][..]);
+    /// assert!(reader.get_mut().is_empty());
+    /// ```
+    pub fn get_mut(&mut self) -> &mut R {
+        &mut self.inner
+    }
+
+    /// Returns the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fasta as fasta;
+    /// let reader = fasta::Reader::new(&[][..]);
+    /// assert!(reader.into_inner().is_empty());
+    /// ```
+    pub fn into_inner(self) -> R {
+        self.inner
+    }
+
     /// Reads a raw definition line.
     ///
     /// The given buffer will not include the trailing newline. It can subsequently be parsed as a

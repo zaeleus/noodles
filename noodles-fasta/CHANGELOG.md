@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * fasta/reader: Add common methods to access the underlying reader
+    (`Reader::get_ref`, `Reader::get_mut`, and `Reader::into_inner`).
+
 ## 0.13.0 - 2022-08-16
 
 ### Changed
