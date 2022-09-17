@@ -1,11 +1,12 @@
 //! FASTA reader and iterators.
 
+mod inner;
 mod records;
 
 pub use self::records::Records;
 
 use std::{
-    io::{self, BufRead, Seek, SeekFrom},
+    io::{self, BufRead, Seek},
     ops::Range,
 };
 
@@ -22,7 +23,7 @@ const CARRIAGE_RETURN: char = '\r';
 
 /// A FASTA reader.
 pub struct Reader<R> {
-    inner: R,
+    inner: inner::RawReader<R>,
 }
 
 impl<R> Reader<R>
@@ -39,7 +40,9 @@ where
     /// let mut reader = fasta::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
-        Self { inner }
+        Self {
+            inner: inner::RawReader::new(inner),
+        }
     }
 
     /// Returns a reference to the underlying reader.
@@ -52,7 +55,7 @@ where
     /// assert!(reader.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &R {
-        &self.inner
+        self.inner.get_ref()
     }
 
     /// Returns a mutable reference to the underlying reader.
@@ -65,7 +68,7 @@ where
     /// assert!(reader.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
-        &mut self.inner
+        self.inner.get_mut()
     }
 
     /// Returns the underlying reader.
@@ -78,7 +81,7 @@ where
     /// assert!(reader.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> R {
-        self.inner
+        self.inner.into_inner()
     }
 
     /// Reads a raw definition line.
@@ -108,7 +111,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_definition(&mut self, buf: &mut String) -> io::Result<usize> {
-        read_line(&mut self.inner, buf)
+        self.inner.read_definition(buf)
     }
 
     /// Reads a sequence.
@@ -139,7 +142,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_sequence(&mut self, buf: &mut Vec<u8>) -> io::Result<usize> {
-        read_sequence(&mut self.inner, buf)
+        self.inner.read_sequence(buf)
     }
 
     /// Returns an iterator over records starting from the current stream position.
@@ -212,23 +215,7 @@ where
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn query(&mut self, index: &[fai::Record], region: &Region) -> io::Result<Record> {
-        use crate::record::{Definition, Sequence};
-
-        let i = resolve_region(index, region)?;
-        let index_record = &index[i];
-
-        let pos = index_record.offset();
-        self.inner.seek(SeekFrom::Start(pos))?;
-
-        let definition = Definition::new(region.to_string(), None);
-
-        let mut raw_sequence = Vec::new();
-        self.read_sequence(&mut raw_sequence)?;
-
-        let range = interval_to_slice_range(region.interval(), raw_sequence.len());
-        let sequence = Sequence::from(raw_sequence[range].to_vec());
-
-        Ok(Record::new(definition, sequence))
+        self.inner.query(index, region)
     }
 }
 
@@ -296,18 +283,6 @@ where
     Ok(bytes_read)
 }
 
-fn resolve_region(index: &[fai::Record], region: &Region) -> io::Result<usize> {
-    index
-        .iter()
-        .position(|record| record.name() == region.name())
-        .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidInput,
-                format!("invalid reference sequence name: {}", region.name()),
-            )
-        })
-}
-
 // Shifts a 1-based interval to a 0-based range for slicing.
 fn interval_to_slice_range<I>(interval: I, len: usize) -> Range<usize>
 where
@@ -327,8 +302,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::io::Cursor;
-
     use super::*;
 
     #[test]
@@ -384,20 +357,6 @@ mod tests {
         assert_eq!(sequence_buf, b"NNNNNNNNNN");
 
         Ok(())
-    }
-
-    #[test]
-    fn test_read_sequence_after_seek() {
-        let data = b">sq0\nACGT\n>sq1\nNNNN\n";
-        let cursor = Cursor::new(&data[..]);
-        let mut reader = Reader::new(cursor);
-
-        reader.inner.seek(SeekFrom::Start(14)).unwrap();
-
-        let mut buf = Vec::new();
-        reader.read_sequence(&mut buf).unwrap();
-
-        assert_eq!(buf, b"NNNN");
     }
 
     #[test]
