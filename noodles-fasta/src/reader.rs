@@ -14,6 +14,7 @@ use memchr::memchr;
 use noodles_core::{region::Interval, Region};
 
 use super::{fai, Record};
+use inner::Inner;
 
 pub(crate) const DEFINITION_PREFIX: u8 = b'>';
 pub(crate) const NEWLINE: u8 = b'\n';
@@ -23,7 +24,7 @@ const CARRIAGE_RETURN: char = '\r';
 
 /// A FASTA reader.
 pub struct Reader<R> {
-    inner: inner::RawReader<R>,
+    inner: Inner<R>,
 }
 
 impl<R> Reader<R>
@@ -41,7 +42,7 @@ where
     /// ```
     pub fn new(inner: R) -> Self {
         Self {
-            inner: inner::RawReader::new(inner),
+            inner: Inner::Raw(inner::RawReader::new(inner)),
         }
     }
 
@@ -55,7 +56,10 @@ where
     /// assert!(reader.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &R {
-        self.inner.get_ref()
+        match &self.inner {
+            Inner::Raw(inner) => inner.get_ref(),
+            Inner::IndexedRaw(inner) => inner.get_ref(),
+        }
     }
 
     /// Returns a mutable reference to the underlying reader.
@@ -68,7 +72,10 @@ where
     /// assert!(reader.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
-        self.inner.get_mut()
+        match &mut self.inner {
+            Inner::Raw(inner) => inner.get_mut(),
+            Inner::IndexedRaw(inner) => inner.get_mut(),
+        }
     }
 
     /// Returns the underlying reader.
@@ -81,7 +88,10 @@ where
     /// assert!(reader.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> R {
-        self.inner.into_inner()
+        match self.inner {
+            Inner::Raw(inner) => inner.into_inner(),
+            Inner::IndexedRaw(inner) => inner.into_inner(),
+        }
     }
 
     /// Reads a raw definition line.
@@ -111,7 +121,10 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_definition(&mut self, buf: &mut String) -> io::Result<usize> {
-        self.inner.read_definition(buf)
+        match &mut self.inner {
+            Inner::Raw(inner) => inner.read_definition(buf),
+            Inner::IndexedRaw(inner) => inner.read_definition(buf),
+        }
     }
 
     /// Reads a sequence.
@@ -142,7 +155,10 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_sequence(&mut self, buf: &mut Vec<u8>) -> io::Result<usize> {
-        self.inner.read_sequence(buf)
+        match &mut self.inner {
+            Inner::Raw(inner) => inner.read_sequence(buf),
+            Inner::IndexedRaw(inner) => inner.read_sequence(buf),
+        }
     }
 
     /// Returns an iterator over records starting from the current stream position.
@@ -215,7 +231,10 @@ where
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn query(&mut self, index: &[fai::Record], region: &Region) -> io::Result<Record> {
-        self.inner.query(index, region)
+        match &mut self.inner {
+            Inner::Raw(inner) => inner.query(index, region),
+            Inner::IndexedRaw(inner) => inner.query(region),
+        }
     }
 }
 
