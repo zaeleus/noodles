@@ -29,7 +29,7 @@ impl Builder {
     {
         let index_src = build_index_src(&src);
 
-        if index_src.exists() {
+        if index_src.try_exists()? {
             let index = fai::read(index_src)?;
             self = self.set_index(index);
         }
