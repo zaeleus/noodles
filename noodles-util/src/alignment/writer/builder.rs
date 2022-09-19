@@ -17,23 +17,13 @@ pub struct Builder {
 }
 
 impl Builder {
-    /// Creates an alignment writer builder.
-    #[allow(clippy::new_without_default)]
-    pub fn new() -> Self {
-        Self {
-            format: Format::Sam,
-            reference_sequence_repository: fasta::Repository::default(),
-        }
-    }
-
     /// Sets the format of the output.
     ///
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
     /// use noodles_util::alignment::{self, Format};
-    /// let builder = alignment::Writer::builder(io::sink()).set_format(Format::Sam);
+    /// let builder = alignment::writer::Builder::default().set_format(Format::Sam);
     /// ```
     pub fn set_format(mut self, format: Format) -> Self {
         self.format = format;
@@ -45,13 +35,12 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
     /// use noodles_fasta as fasta;
     /// use noodles_util::alignment::{self, Format};
     ///
     /// let repository = fasta::Repository::default();
     ///
-    /// let builder = alignment::Writer::builder(io::sink())
+    /// let builder = alignment::writer::Builder::default()
     ///     .set_reference_sequence_repository(repository);
     /// ```
     pub fn set_reference_sequence_repository(
@@ -70,9 +59,9 @@ impl Builder {
     /// # use std::io;
     /// use noodles_util::alignment::{self, Format};
     ///
-    /// let writer = alignment::Writer::builder(io::sink())
+    /// let writer = alignment::writer::Builder::default()
     ///     .set_format(Format::Sam)
-    ///     .build();
+    ///     .build_from_writer(io::sink());
     /// ```
     pub fn build_from_writer<W>(self, writer: W) -> Writer
     where
@@ -89,5 +78,14 @@ impl Builder {
         };
 
         Writer { inner }
+    }
+}
+
+impl Default for Builder {
+    fn default() -> Self {
+        Self {
+            format: Format::Sam,
+            reference_sequence_repository: fasta::Repository::default(),
+        }
     }
 }

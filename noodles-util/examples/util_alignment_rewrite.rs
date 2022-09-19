@@ -46,7 +46,7 @@ fn main() -> io::Result<()> {
     let output_format = detect_format_from_extension(&dst).expect("invalid dst extension");
 
     let mut writer = File::create(dst).map(|f| {
-        alignment::writer::Builder::new()
+        alignment::writer::Builder::default()
             .set_format(output_format)
             .set_reference_sequence_repository(repository)
             .build_from_writer(BufWriter::new(f))
