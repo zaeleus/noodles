@@ -5,7 +5,9 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crate::{fai, Reader};
+use noodles_bgzf as bgzf;
+
+use crate::{fai, reader::Source, Reader};
 
 /// A FASTA reader builder.
 #[derive(Debug, Default)]
@@ -23,7 +25,7 @@ impl Builder {
     /// Builds a FASTA reader from a path.
     ///
     /// If an associated FASTA index exists, it will be read.
-    pub fn build_from_path<P>(mut self, src: P) -> io::Result<Reader<BufReader<File>>>
+    pub fn build_from_path<P>(mut self, src: P) -> io::Result<Reader<BufReader<Source<File>>>>
     where
         P: AsRef<Path>,
     {
@@ -34,8 +36,15 @@ impl Builder {
             self = self.set_index(index);
         }
 
-        let file = File::open(src).map(BufReader::new)?;
-        self.build_from_reader(file)
+        let inner = match src.as_ref().extension().and_then(|ext| ext.to_str()) {
+            Some("gz") => File::open(src)
+                .map(bgzf::Reader::new)
+                .map(Source::from)
+                .map(BufReader::new)?,
+            _ => File::open(src).map(Source::from).map(BufReader::new)?,
+        };
+
+        self.build_from_reader(inner)
     }
 
     /// Builds a FASTA reader from a reader.

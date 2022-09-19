@@ -3,7 +3,9 @@
 mod builder;
 mod inner;
 mod records;
+mod source;
 
+pub(crate) use self::source::Source;
 pub use self::{builder::Builder, records::Records};
 
 use std::{
