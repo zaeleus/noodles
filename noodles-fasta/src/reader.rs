@@ -18,10 +18,6 @@ use super::{fai, Record};
 use inner::Inner;
 
 pub(crate) const DEFINITION_PREFIX: u8 = b'>';
-pub(crate) const NEWLINE: u8 = b'\n';
-
-const LINE_FEED: char = '\n';
-const CARRIAGE_RETURN: char = '\r';
 
 /// A FASTA reader.
 pub struct Reader<R> {
@@ -228,6 +224,9 @@ pub(crate) fn read_line<R>(reader: &mut R, buf: &mut String) -> io::Result<usize
 where
     R: BufRead,
 {
+    const LINE_FEED: char = '\n';
+    const CARRIAGE_RETURN: char = '\r';
+
     match reader.read_line(buf) {
         Ok(0) => Ok(0),
         Ok(n) => {
@@ -249,6 +248,9 @@ fn read_sequence<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
 where
     R: BufRead,
 {
+    const LINE_FEED: u8 = b'\n';
+    const CARRIAGE_RETURN: u8 = b'\r';
+
     let mut bytes_read = 0;
 
     loop {
@@ -258,11 +260,11 @@ where
             break;
         }
 
-        let len = match memchr(NEWLINE, reader_buf) {
+        let len = match memchr(LINE_FEED, reader_buf) {
             Some(i) => {
                 let line = &reader_buf[..i];
 
-                if line.ends_with(&[CARRIAGE_RETURN as u8]) {
+                if line.ends_with(&[CARRIAGE_RETURN]) {
                     let end = line.len() - 1;
                     buf.extend(&line[..end]);
                 } else {
