@@ -7,6 +7,8 @@
   * fasta/reader: Add common methods to access the underlying reader
     (`Reader::get_ref`, `Reader::get_mut`, and `Reader::into_inner`).
 
+  * fasta/reader: Add builder (`fasta::reader::Builder`).
+
 ### Removed
 
   * fasta/reader: Remove `seek` and `virtual_position` delegates.

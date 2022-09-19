@@ -1,9 +1,10 @@
 //! FASTA reader and iterators.
 
+mod builder;
 mod inner;
 mod records;
 
-pub use self::records::Records;
+pub use self::{builder::Builder, records::Records};
 
 use std::{
     io::{self, BufRead, Seek},
