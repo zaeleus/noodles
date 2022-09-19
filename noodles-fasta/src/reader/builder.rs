@@ -25,7 +25,7 @@ impl Builder {
     /// Builds a FASTA reader from a path.
     ///
     /// If an associated FASTA index exists, it will be read.
-    pub fn build_from_path<P>(mut self, src: P) -> io::Result<Reader<BufReader<Source<File>>>>
+    pub fn build_from_path<P>(mut self, src: P) -> io::Result<Reader<Source<File>>>
     where
         P: AsRef<Path>,
     {
@@ -36,15 +36,14 @@ impl Builder {
             self = self.set_index(index);
         }
 
-        let inner = match src.as_ref().extension().and_then(|ext| ext.to_str()) {
-            Some("gz") => File::open(src)
-                .map(bgzf::Reader::new)
-                .map(Source::from)
-                .map(BufReader::new)?,
-            _ => File::open(src).map(Source::from).map(BufReader::new)?,
-        };
+        let source = File::open(&src).map(|file| {
+            match src.as_ref().extension().and_then(|ext| ext.to_str()) {
+                Some("gz") => Source::from(bgzf::Reader::new(file)),
+                _ => Source::from(BufReader::new(file)),
+            }
+        })?;
 
-        self.build_from_reader(inner)
+        self.build_from_reader(source)
     }
 
     /// Builds a FASTA reader from a reader.

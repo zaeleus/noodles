@@ -1,12 +1,12 @@
 use std::{
     fs::File,
-    io::{self, Read},
+    io::{self, BufRead, BufReader, Read},
 };
 
 use noodles_bgzf as bgzf;
 
 pub enum Source<R> {
-    File(R),
+    File(BufReader<R>),
     Bgzip(bgzf::Reader<R>),
 }
 
@@ -22,9 +22,28 @@ where
     }
 }
 
-impl From<File> for Source<File> {
-    fn from(file: File) -> Self {
-        Self::File(file)
+impl<R> BufRead for Source<R>
+where
+    R: Read,
+{
+    fn fill_buf(&mut self) -> io::Result<&[u8]> {
+        match self {
+            Self::File(inner) => inner.fill_buf(),
+            Self::Bgzip(inner) => inner.fill_buf(),
+        }
+    }
+
+    fn consume(&mut self, amt: usize) {
+        match self {
+            Self::File(inner) => inner.consume(amt),
+            Self::Bgzip(inner) => inner.consume(amt),
+        }
+    }
+}
+
+impl From<BufReader<File>> for Source<File> {
+    fn from(reader: BufReader<File>) -> Self {
+        Self::File(reader)
     }
 }
 
