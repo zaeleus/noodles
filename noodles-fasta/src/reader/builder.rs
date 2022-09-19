@@ -5,20 +5,27 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use noodles_bgzf as bgzf;
+use noodles_bgzf::{self as bgzf, gzi};
 
 use crate::{fai, reader::Source, Reader};
 
 /// A FASTA reader builder.
 #[derive(Debug, Default)]
 pub struct Builder {
-    index: Option<fai::Index>,
+    fasta_index: Option<fai::Index>,
+    gz_index: Option<gzi::Index>,
 }
 
 impl Builder {
     /// Set the FASTA index.
-    pub fn set_index(mut self, index: fai::Index) -> Self {
-        self.index = Some(index);
+    pub fn set_fasta_index(mut self, index: fai::Index) -> Self {
+        self.fasta_index = Some(index);
+        self
+    }
+
+    /// Sets the FASTA bgzip index.
+    pub fn set_gz_index(mut self, index: gzi::Index) -> Self {
+        self.gz_index = Some(index);
         self
     }
 
@@ -29,19 +36,32 @@ impl Builder {
     where
         P: AsRef<Path>,
     {
-        let index_src = build_index_src(&src);
+        let fasta_index_src = build_fasta_index_src(&src);
 
-        if index_src.try_exists()? {
-            let index = fai::read(index_src)?;
-            self = self.set_index(index);
+        if fasta_index_src.try_exists()? {
+            let index = fai::read(fasta_index_src)?;
+            self = self.set_fasta_index(index);
         }
 
-        let source = File::open(&src).map(|file| {
-            match src.as_ref().extension().and_then(|ext| ext.to_str()) {
-                Some("gz") => Source::from(bgzf::Reader::new(file)),
-                _ => Source::from(BufReader::new(file)),
+        let file = File::open(&src)?;
+        let source = match src.as_ref().extension().and_then(|ext| ext.to_str()) {
+            Some("gz") => {
+                let gz_index_src = build_gz_index_src(src);
+
+                if gz_index_src.try_exists()? {
+                    let index = gzi::read(gz_index_src)?;
+                    self = self.set_gz_index(index);
+                }
+
+                let reader = bgzf::Reader::new(file);
+
+                match self.gz_index.take() {
+                    Some(index) => Source::IndexedBgzip(reader, index),
+                    _ => Source::from(reader),
+                }
             }
-        })?;
+            _ => Source::from(BufReader::new(file)),
+        };
 
         self.build_from_reader(source)
     }
@@ -53,7 +73,7 @@ impl Builder {
     {
         use super::inner::{IndexedRawReader, Inner, RawReader};
 
-        let inner = if let Some(index) = self.index {
+        let inner = if let Some(index) = self.fasta_index {
             Inner::IndexedRaw(IndexedRawReader::new(reader, index))
         } else {
             Inner::Raw(RawReader::new(reader))
@@ -63,11 +83,19 @@ impl Builder {
     }
 }
 
-fn build_index_src<P>(src: P) -> PathBuf
+fn build_fasta_index_src<P>(src: P) -> PathBuf
 where
     P: AsRef<Path>,
 {
     const EXT: &str = "fai";
+    push_ext(src.as_ref().into(), EXT)
+}
+
+fn build_gz_index_src<P>(src: P) -> PathBuf
+where
+    P: AsRef<Path>,
+{
+    const EXT: &str = "gzi";
     push_ext(src.as_ref().into(), EXT)
 }
 
@@ -86,7 +114,15 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_build_index_src() {
-        assert_eq!(build_index_src("ref.fa"), PathBuf::from("ref.fa.fai"));
+    fn test_build_fasta_index_src() {
+        assert_eq!(build_fasta_index_src("ref.fa"), PathBuf::from("ref.fa.fai"));
+    }
+
+    #[test]
+    fn test_build_gz_index_src() {
+        assert_eq!(
+            build_gz_index_src("ref.fa.gz"),
+            PathBuf::from("ref.fa.gz.gzi")
+        );
     }
 }
