@@ -57,10 +57,7 @@ where
     /// assert!(reader.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &R {
-        match &self.inner {
-            Inner::Raw(inner) => inner.get_ref(),
-            Inner::IndexedRaw(inner) => inner.get_ref(),
-        }
+        self.inner.get_ref()
     }
 
     /// Returns a mutable reference to the underlying reader.
@@ -73,10 +70,7 @@ where
     /// assert!(reader.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
-        match &mut self.inner {
-            Inner::Raw(inner) => inner.get_mut(),
-            Inner::IndexedRaw(inner) => inner.get_mut(),
-        }
+        self.inner.get_mut()
     }
 
     /// Returns the underlying reader.
@@ -89,10 +83,7 @@ where
     /// assert!(reader.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> R {
-        match self.inner {
-            Inner::Raw(inner) => inner.into_inner(),
-            Inner::IndexedRaw(inner) => inner.into_inner(),
-        }
+        self.inner.into_inner()
     }
 
     /// Reads a raw definition line.
@@ -122,10 +113,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_definition(&mut self, buf: &mut String) -> io::Result<usize> {
-        match &mut self.inner {
-            Inner::Raw(inner) => inner.read_definition(buf),
-            Inner::IndexedRaw(inner) => inner.read_definition(buf),
-        }
+        self.inner.read_definition(buf)
     }
 
     /// Reads a sequence.
@@ -156,10 +144,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_sequence(&mut self, buf: &mut Vec<u8>) -> io::Result<usize> {
-        match &mut self.inner {
-            Inner::Raw(inner) => inner.read_sequence(buf),
-            Inner::IndexedRaw(inner) => inner.read_sequence(buf),
-        }
+        self.inner.read_sequence(buf)
     }
 
     /// Returns an iterator over records starting from the current stream position.
@@ -232,10 +217,7 @@ where
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn query(&mut self, index: &[fai::Record], region: &Region) -> io::Result<Record> {
-        match &mut self.inner {
-            Inner::Raw(inner) => inner.query(index, region),
-            Inner::IndexedRaw(inner) => inner.query(region),
-        }
+        self.inner.query(index, region)
     }
 }
 
