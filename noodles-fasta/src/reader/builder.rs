@@ -27,7 +27,7 @@ impl Builder {
     where
         P: AsRef<Path>,
     {
-        let index_src = push_ext(src.as_ref().into(), "fai");
+        let index_src = build_index_src(&src);
 
         if index_src.exists() {
             let index = fai::read(index_src)?;
@@ -55,6 +55,14 @@ impl Builder {
     }
 }
 
+fn build_index_src<P>(src: P) -> PathBuf
+where
+    P: AsRef<Path>,
+{
+    const EXT: &str = "fai";
+    push_ext(src.as_ref().into(), EXT)
+}
+
 fn push_ext<S>(path: PathBuf, ext: S) -> PathBuf
 where
     S: AsRef<OsStr>,
@@ -63,4 +71,14 @@ where
     s.push(".");
     s.push(ext);
     PathBuf::from(s)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_build_index_src() {
+        assert_eq!(build_index_src("ref.fa"), PathBuf::from("ref.fa.fai"));
+    }
 }
