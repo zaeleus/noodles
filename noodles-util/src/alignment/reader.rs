@@ -48,7 +48,7 @@ impl Reader<()> {
 
 impl<R> Reader<R>
 where
-    R: Read + Seek,
+    R: Read,
 {
     /// Reads and parses an alignment header.
     ///
@@ -122,7 +122,12 @@ where
             }
         }
     }
+}
 
+impl<R> Reader<R>
+where
+    R: Read + Seek,
+{
     /// Returns an iterator over records that intersect the given region.
     pub fn query<'a>(
         &'a mut self,
