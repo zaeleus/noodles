@@ -1,3 +1,5 @@
+//! Alignment writer builder.
+
 use std::io::Write;
 
 use noodles_bam as bam;
@@ -9,19 +11,16 @@ use super::Writer;
 use crate::alignment::Format;
 
 /// An alignment writer builder.
-pub struct Builder<W> {
-    inner: W,
+pub struct Builder {
     format: Format,
     reference_sequence_repository: fasta::Repository,
 }
 
-impl<W> Builder<W>
-where
-    W: Write + 'static,
-{
-    pub(super) fn new(inner: W) -> Self {
+impl Builder {
+    /// Creates an alignment writer builder.
+    #[allow(clippy::new_without_default)]
+    pub fn new() -> Self {
         Self {
-            inner,
             format: Format::Sam,
             reference_sequence_repository: fasta::Repository::default(),
         }
@@ -75,12 +74,15 @@ where
     ///     .set_format(Format::Sam)
     ///     .build();
     /// ```
-    pub fn build(self) -> Writer {
+    pub fn build_from_writer<W>(self, writer: W) -> Writer
+    where
+        W: Write + 'static,
+    {
         let inner: Box<dyn sam::AlignmentWriter> = match self.format {
-            Format::Sam => Box::new(sam::Writer::new(self.inner)),
-            Format::Bam => Box::new(bam::Writer::new(self.inner)),
+            Format::Sam => Box::new(sam::Writer::new(writer)),
+            Format::Bam => Box::new(bam::Writer::new(writer)),
             Format::Cram => Box::new(
-                cram::Writer::builder(self.inner)
+                cram::Writer::builder(writer)
                     .set_reference_sequence_repository(self.reference_sequence_repository)
                     .build(),
             ),

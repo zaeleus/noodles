@@ -1,8 +1,10 @@
-mod builder;
+//! Alignment writer.
+
+pub mod builder;
 
 pub use self::builder::Builder;
 
-use std::io::{self, Write};
+use std::io;
 
 use noodles_sam::{self as sam, alignment::Record};
 
@@ -12,22 +14,6 @@ pub struct Writer {
 }
 
 impl Writer {
-    /// Creates an alignment writer builder.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io;
-    /// use noodles_util::alignment;
-    /// let builder = alignment::Writer::builder(io::sink());
-    /// ```
-    pub fn builder<W>(inner: W) -> Builder<W>
-    where
-        W: Write + 'static,
-    {
-        Builder::new(inner)
-    }
-
     /// Writes a SAM header.
     ///
     /// # Examples

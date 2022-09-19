@@ -46,10 +46,10 @@ fn main() -> io::Result<()> {
     let output_format = detect_format_from_extension(&dst).expect("invalid dst extension");
 
     let mut writer = File::create(dst).map(|f| {
-        alignment::Writer::builder(BufWriter::new(f))
+        alignment::writer::Builder::new()
             .set_format(output_format)
             .set_reference_sequence_repository(repository)
-            .build()
+            .build_from_writer(BufWriter::new(f))
     })?;
 
     writer.write_header(&header)?;

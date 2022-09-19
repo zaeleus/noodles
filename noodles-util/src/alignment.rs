@@ -2,6 +2,6 @@
 
 mod format;
 mod reader;
-mod writer;
+pub mod writer;
 
 pub use self::{format::Format, reader::Reader, writer::Writer};
