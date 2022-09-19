@@ -1,12 +1,12 @@
 use std::{
     ffi::{OsStr, OsString},
     fs::File,
-    io::{self, BufReader},
+    io,
     path::{Path, PathBuf},
 };
 
 use super::IndexedReader;
-use crate::{fai, Reader};
+use crate::{fai, reader::Source};
 
 /// An indexed reader adapter builder.
 ///
@@ -52,20 +52,22 @@ impl Builder {
     /// let adapter = IndexedReader::builder().open("reference.fa")?;
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn open<P>(self, src: P) -> io::Result<IndexedReader<BufReader<File>>>
+    pub fn open<P>(self, src: P) -> io::Result<IndexedReader<Source<File>>>
     where
         P: AsRef<Path>,
     {
-        let src = src.as_ref();
-
-        let reader = File::open(src).map(BufReader::new).map(Reader::new)?;
+        use crate::reader::Builder;
 
         let index_src = self
             .index_src
-            .unwrap_or_else(|| push_ext(src.to_path_buf(), "fai"));
+            .unwrap_or_else(|| push_ext(src.as_ref().to_path_buf(), "fai"));
         let index = fai::read(index_src)?;
 
-        Ok(IndexedReader::new(reader, index))
+        let reader = Builder::default()
+            .set_fasta_index(index)
+            .build_from_path(src)?;
+
+        Ok(IndexedReader::new(reader, Default::default()))
     }
 }
 

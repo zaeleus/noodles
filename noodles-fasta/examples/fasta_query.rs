@@ -5,29 +5,20 @@
 //! The result is similar to the output of `samtools faidx --length 80 <src>
 //! <reference-sequence-name>`.
 
-use std::{
-    env,
-    fs::File,
-    io::{self, BufReader},
-    path::PathBuf,
-};
+use std::{env, io};
 
-use noodles_fasta::{self as fasta, fai};
+use noodles_fasta as fasta;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut args = env::args();
+    let mut args = env::args().skip(1);
 
-    let src = args.nth(1).map(PathBuf::from).expect("missing src");
+    let src = args.next().expect("missing src");
     let raw_region = args.next().expect("missing region");
 
-    let mut reader = File::open(&src)
-        .map(BufReader::new)
-        .map(fasta::Reader::new)?;
+    let mut reader = fasta::reader::Builder::default().build_from_path(src)?;
 
-    let index = fai::read(src.with_extension("fa.fai"))?;
     let region = raw_region.parse()?;
-
-    let record = reader.query(&index, &region)?;
+    let record = reader.query(&region)?;
 
     let stdout = io::stdout();
     let handle = stdout.lock();

@@ -9,6 +9,13 @@
 
   * fasta/reader: Add builder (`fasta::reader::Builder`).
 
+### Changed
+
+  * fasta/reader: `Reader::query` no longer takes a `fai::Index` as input.
+
+    Use an indexed reader via `reader::Builder` to load or set an associated
+    index instead.
+
 ### Removed
 
   * fasta/reader: Remove `seek` and `virtual_position` delegates.

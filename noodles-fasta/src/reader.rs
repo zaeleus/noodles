@@ -16,7 +16,7 @@ use std::{
 use memchr::memchr;
 use noodles_core::{region::Interval, Region};
 
-use super::{fai, Record};
+use super::Record;
 use inner::Inner;
 
 pub(crate) const DEFINITION_PREFIX: u8 = b'>';
@@ -197,25 +197,27 @@ where
     ///     fai::Record::new(String::from("sq2"), 4, 25, 4, 5),
     /// ];
     ///
-    /// let mut reader = fasta::Reader::new(Cursor::new(data));
+    /// let mut reader = fasta::reader::Builder::default()
+    ///     .set_fasta_index(index)
+    ///     .build_from_reader(Cursor::new(data))?;
     ///
     /// let region = Region::new("sq1", ..);
-    /// let record = reader.query(&index, &region)?;
+    /// let record = reader.query(&region)?;
     /// assert_eq!(record, fasta::Record::new(
     ///     Definition::new("sq1", None),
     ///     Sequence::from(b"ACGT".to_vec()),
     /// ));
     ///
     /// let region = "sq1:2-3".parse()?;
-    /// let record = reader.query(&index, &region)?;
+    /// let record = reader.query(&region)?;
     /// assert_eq!(record, fasta::Record::new(
     ///     Definition::new("sq1:2-3", None),
     ///     Sequence::from(b"CG".to_vec()),
     /// ));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn query(&mut self, index: &[fai::Record], region: &Region) -> io::Result<Record> {
-        self.inner.query(index, region)
+    pub fn query(&mut self, region: &Region) -> io::Result<Record> {
+        self.inner.query(region)
     }
 }
 

@@ -7,7 +7,7 @@ use std::io::{self, BufRead, Seek};
 
 use noodles_core::Region;
 
-use crate::{fai, Record};
+use crate::Record;
 
 pub use self::{indexed_raw_reader::IndexedRawReader, raw_reader::RawReader};
 
@@ -62,9 +62,9 @@ impl<R> Inner<R>
 where
     R: BufRead + Seek,
 {
-    pub fn query(&mut self, index: &[fai::Record], region: &Region) -> io::Result<Record> {
+    pub fn query(&mut self, region: &Region) -> io::Result<Record> {
         match self {
-            Self::Raw(inner) => inner.query(index, region),
+            Self::Raw(_) => Err(io::Error::from(io::ErrorKind::Unsupported)),
             Self::IndexedRaw(inner) => inner.query(region),
         }
     }

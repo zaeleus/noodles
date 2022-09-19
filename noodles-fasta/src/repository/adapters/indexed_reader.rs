@@ -14,7 +14,7 @@ use crate::{fai, repository::Adapter, Reader, Record};
 /// An indexed reader adapter.
 pub struct IndexedReader<R> {
     reader: Reader<R>,
-    index: fai::Index,
+    _index: fai::Index,
 }
 
 impl IndexedReader<BufReader<File>> {
@@ -46,8 +46,8 @@ where
     /// let index = fai::Index::default();
     /// let adapter = IndexedReader::new(reader, index);
     /// ```
-    pub fn new(reader: Reader<R>, index: fai::Index) -> Self {
-        Self { reader, index }
+    pub fn new(reader: Reader<R>, _index: fai::Index) -> Self {
+        Self { reader, _index }
     }
 }
 
@@ -57,6 +57,6 @@ where
 {
     fn get(&mut self, name: &str) -> Option<io::Result<Record>> {
         let region = Region::new(name, ..);
-        Some(self.reader.query(&self.index, &region))
+        Some(self.reader.query(&region))
     }
 }
