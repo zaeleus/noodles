@@ -36,21 +36,25 @@ impl Builder {
     where
         P: AsRef<Path>,
     {
-        let fasta_index_src = build_fasta_index_src(&src);
+        if self.fasta_index.is_none() {
+            let fasta_index_src = build_fasta_index_src(&src);
 
-        if fasta_index_src.try_exists()? {
-            let index = fai::read(fasta_index_src)?;
-            self = self.set_fasta_index(index);
+            if fasta_index_src.try_exists()? {
+                let index = fai::read(fasta_index_src)?;
+                self = self.set_fasta_index(index);
+            }
         }
 
         let file = File::open(&src)?;
         let source = match src.as_ref().extension().and_then(|ext| ext.to_str()) {
             Some("gz") => {
-                let gz_index_src = build_gz_index_src(src);
+                if self.gz_index.is_none() {
+                    let gz_index_src = build_gz_index_src(src);
 
-                if gz_index_src.try_exists()? {
-                    let index = gzi::read(gz_index_src)?;
-                    self = self.set_gz_index(index);
+                    if gz_index_src.try_exists()? {
+                        let index = gzi::read(gz_index_src)?;
+                        self = self.set_gz_index(index);
+                    }
                 }
 
                 let reader = bgzf::Reader::new(file);
