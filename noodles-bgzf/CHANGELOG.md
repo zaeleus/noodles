@@ -11,6 +11,8 @@
 
 ### Changed
 
+  * bgzf: Raise minimum supported Rust version (MSRV) to 1.57.0.
+
   * bgzf/gzi: Start index with the initial block.
 
     The first block, i.e., (0, 0), is now included in the index.
