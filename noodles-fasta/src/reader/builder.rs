@@ -39,7 +39,7 @@ impl Builder {
         if self.fasta_index.is_none() {
             let fasta_index_src = build_fasta_index_src(&src);
 
-            if fasta_index_src.try_exists()? {
+            if fasta_index_src.exists() {
                 let index = fai::read(fasta_index_src)?;
                 self = self.set_fasta_index(index);
             }
@@ -51,7 +51,7 @@ impl Builder {
                 if self.gz_index.is_none() {
                     let gz_index_src = build_gz_index_src(src);
 
-                    if gz_index_src.try_exists()? {
+                    if gz_index_src.exists() {
                         let index = gzi::read(gz_index_src)?;
                         self = self.set_gz_index(index);
                     }
