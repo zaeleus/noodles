@@ -22,6 +22,11 @@
 
     Use the inner reader instead.
 
+  * fasta/repository/adapters/indexed_reader: Remove `Builder`.
+
+    Use `fasta::reader::Builder` and construct `IndexedReader` with a
+    `fasta::Reader` instead.
+
 ## 0.13.0 - 2022-08-16
 
 ### Changed

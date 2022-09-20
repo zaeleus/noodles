@@ -23,8 +23,9 @@ fn main() -> io::Result<()> {
     let mut builder = alignment::Reader::builder();
 
     if let Some(fasta_src) = fasta_src {
-        let repository = IndexedReader::builder()
-            .open(fasta_src)
+        let repository = fasta::reader::Builder::default()
+            .build_from_path(fasta_src)
+            .map(IndexedReader::new)
             .map(fasta::Repository::new)?;
 
         builder = builder.set_reference_sequence_repository(repository);

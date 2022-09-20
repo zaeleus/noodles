@@ -32,8 +32,9 @@ fn main() -> io::Result<()> {
     let fasta_src = args.next();
 
     let repository = fasta_src
-        .map(|src| IndexedReader::builder().open(src))
+        .map(|src| fasta::reader::Builder::default().build_from_path(src))
         .transpose()?
+        .map(IndexedReader::new)
         .map(fasta::Repository::new)
         .unwrap_or_default();
 
