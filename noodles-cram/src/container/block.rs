@@ -13,9 +13,7 @@ use std::{io, mem};
 use bytes::Bytes;
 
 use crate::{
-    codecs::{
-        aac, fqzcomp::fqz_decode, name_tokenizer::decode_names, rans::rans_decode, rans_nx16,
-    },
+    codecs::{aac, fqzcomp::fqz_decode, name_tokenizer::decode_names, rans_4x8, rans_nx16},
     num::itf8,
 };
 
@@ -76,7 +74,7 @@ impl Block {
             }
             CompressionMethod::Rans4x8 => {
                 let mut buf = self.data();
-                rans_decode(&mut buf).map(Bytes::from)
+                rans_4x8::rans_decode(&mut buf).map(Bytes::from)
             }
             CompressionMethod::RansNx16 => {
                 let mut reader = self.data();

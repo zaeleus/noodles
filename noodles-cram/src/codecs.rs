@@ -4,7 +4,7 @@ pub mod fqzcomp;
 pub mod gzip;
 pub mod lzma;
 pub mod name_tokenizer;
-pub mod rans;
+pub mod rans_4x8;
 pub mod rans_nx16;
 
 #[derive(Clone, Debug)]
@@ -13,7 +13,7 @@ pub enum Encoder {
     Gzip(flate2::Compression),
     Bzip2(::bzip2::Compression),
     Lzma(u32),
-    Rans4x8(rans::Order),
+    Rans4x8(rans_4x8::Order),
     RansNx16(rans_nx16::Flags),
     AdaptiveArithmeticCoding(aac::Flags),
 }
