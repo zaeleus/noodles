@@ -1,0 +1,297 @@
+use std::{
+    collections::HashMap,
+    io::{self, Write},
+};
+
+use byteorder::{LittleEndian, WriteBytesExt};
+
+use super::Type;
+use crate::writer::num::write_uint7;
+
+#[allow(dead_code)]
+pub fn encode(names: &[String]) -> io::Result<Vec<u8>> {
+    let mut dst = Vec::new();
+
+    write_header(&mut dst, names)?;
+
+    let mut names_indices = HashMap::new();
+    let mut diffs = Vec::with_capacity(names.len());
+    let mut max_token_count = 0;
+
+    for (i, name) in names.iter().enumerate() {
+        let diff = build_diff(&names_indices, i, name);
+        names_indices.entry(name.as_str()).or_insert(i);
+        max_token_count = max_token_count.max(diff.tokens.len());
+        diffs.push(diff);
+    }
+
+    let mut token_writer = TokenWriter::default();
+
+    for diff in &diffs {
+        let token = match diff.mode {
+            Mode::Dup(delta) => Token::Dup(delta),
+            Mode::Diff(delta) => Token::Diff(delta),
+        };
+
+        token_writer.write_token(&token)?;
+    }
+
+    encode_token_byte_streams(&mut dst, &token_writer)?;
+
+    for i in 0..max_token_count {
+        let mut token_writer = TokenWriter::default();
+
+        for diff in &diffs {
+            if diff.is_dup() {
+                continue;
+            }
+
+            if let Some(token) = diff.tokens.get(i) {
+                token_writer.write_token(token)?;
+            }
+        }
+
+        encode_token_byte_streams(&mut dst, &token_writer)?;
+    }
+
+    Ok(dst)
+}
+
+fn write_header<W>(writer: &mut W, names: &[String]) -> io::Result<()>
+where
+    W: Write,
+{
+    let src_len: usize = names.iter().map(|name| name.len()).sum();
+    let ulen =
+        u32::try_from(src_len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_u32::<LittleEndian>(ulen)?;
+
+    let n_names =
+        u32::try_from(names.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_u32::<LittleEndian>(n_names)?;
+
+    // TODO: use_arith
+    writer.write_u8(0)?;
+
+    Ok(())
+}
+
+#[derive(Debug)]
+enum Token {
+    String(String),
+    Char(u8),
+    // ...
+    Dup(usize),
+    Diff(usize),
+    // ...
+    End,
+}
+
+impl Token {
+    fn ty(&self) -> Type {
+        match self {
+            Self::String(_) => Type::String,
+            Self::Char(_) => Type::Char,
+            // ...
+            Self::Dup(_) => Type::Dup,
+            Self::Diff(_) => Type::Diff,
+            // ...
+            Self::End => Type::End,
+        }
+    }
+}
+
+enum Mode {
+    Diff(usize),
+    Dup(usize),
+}
+
+struct Diff {
+    mode: Mode,
+    tokens: Vec<Token>,
+}
+
+impl Diff {
+    fn new(mode: Mode) -> Self {
+        Self {
+            mode,
+            tokens: Vec::new(),
+        }
+    }
+
+    fn is_dup(&self) -> bool {
+        matches!(self.mode, Mode::Dup(_))
+    }
+}
+
+fn tokenize(s: &str) -> impl Iterator<Item = &str> {
+    use std::iter;
+
+    let b = s.as_bytes();
+    let mut start = 0;
+    let mut end = 0;
+
+    iter::from_fn(move || {
+        while end < s.len() && b[end].is_ascii_alphanumeric() {
+            end += 1;
+        }
+
+        if start != end {
+            let beg = start;
+            start = end;
+            return Some(&s[beg..end]);
+        }
+
+        while end < s.len() && !b[end].is_ascii_alphanumeric() {
+            end += 1;
+        }
+
+        if start == end {
+            None
+        } else {
+            let beg = start;
+            start = end;
+            Some(&s[beg..end])
+        }
+    })
+}
+
+fn build_diff(names_indices: &HashMap<&str, usize>, i: usize, name: &str) -> Diff {
+    let mut diff = if let Some(j) = names_indices.get(name) {
+        let delta = i - j;
+        Diff::new(Mode::Dup(delta))
+    } else {
+        let delta = if i == 0 { 0 } else { 1 };
+        Diff::new(Mode::Diff(delta))
+    };
+
+    let raw_tokens = tokenize(name);
+
+    for raw_token in raw_tokens {
+        let token = if raw_token.len() == 1 {
+            let b = raw_token.as_bytes()[0];
+            Token::Char(b)
+        } else {
+            Token::String(raw_token.into())
+        };
+
+        diff.tokens.push(token);
+    }
+
+    diff.tokens.push(Token::End);
+
+    diff
+}
+
+#[derive(Default)]
+struct TokenWriter {
+    type_writer: Vec<u8>,
+    string_writer: Vec<u8>,
+    char_writer: Vec<u8>,
+    digits0_writer: Vec<u8>,
+    dz_len_writer: Vec<u8>,
+    dup_writer: Vec<u8>,
+    diff_writer: Vec<u8>,
+    digits_writer: Vec<u8>,
+    delta_writer: Vec<u8>,
+    delta0_writer: Vec<u8>,
+}
+
+impl TokenWriter {
+    fn write_token(&mut self, token: &Token) -> io::Result<()> {
+        const NUL: u8 = 0x00;
+
+        write_type(&mut self.type_writer, token.ty())?;
+
+        match token {
+            Token::String(s) => {
+                self.string_writer.write_all(s.as_bytes())?;
+                self.string_writer.write_all(&[NUL])?;
+            }
+            Token::Char(b) => self.char_writer.write_u8(*b)?,
+            // ...
+            Token::Dup(delta) => {
+                let n = u32::try_from(*delta)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+                self.dup_writer.write_u32::<LittleEndian>(n)?;
+            }
+            Token::Diff(delta) => {
+                let n = u32::try_from(*delta)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+                self.diff_writer.write_u32::<LittleEndian>(n)?;
+            }
+            // ...
+            Token::End => {}
+        }
+
+        Ok(())
+    }
+}
+
+fn write_type<W>(writer: &mut W, ty: Type) -> io::Result<()>
+where
+    W: Write,
+{
+    let n = match ty {
+        Type::Type => 0,
+        Type::String => 1,
+        Type::Char => 2,
+        Type::Digits0 => 3,
+        Type::DZLen => 4,
+        Type::Dup => 5,
+        Type::Diff => 6,
+        Type::Digits => 7,
+        Type::Delta => 8,
+        Type::Delta0 => 9,
+        Type::Match => 10,
+        Type::Nop => 11,
+        Type::End => 12,
+    };
+
+    writer.write_u8(n)
+}
+
+fn encode_token_byte_streams<W>(writer: &mut W, token_writer: &TokenWriter) -> io::Result<()>
+where
+    W: Write,
+{
+    encode_token_byte_stream(writer, Type::Type, &token_writer.type_writer)?;
+    encode_token_byte_stream(writer, Type::String, &token_writer.string_writer)?;
+    encode_token_byte_stream(writer, Type::Char, &token_writer.char_writer)?;
+    encode_token_byte_stream(writer, Type::Digits0, &token_writer.digits0_writer)?;
+    encode_token_byte_stream(writer, Type::DZLen, &token_writer.dz_len_writer)?;
+    encode_token_byte_stream(writer, Type::Dup, &token_writer.dup_writer)?;
+    encode_token_byte_stream(writer, Type::Diff, &token_writer.diff_writer)?;
+    encode_token_byte_stream(writer, Type::Digits, &token_writer.digits_writer)?;
+    encode_token_byte_stream(writer, Type::Delta, &token_writer.delta_writer)?;
+    encode_token_byte_stream(writer, Type::Delta0, &token_writer.delta0_writer)?;
+
+    Ok(())
+}
+
+fn encode_token_byte_stream<W>(writer: &mut W, ty: Type, buf: &[u8]) -> io::Result<()>
+where
+    W: Write,
+{
+    use crate::codecs::rans_nx16::{self, Flags};
+
+    if buf.is_empty() {
+        return Ok(());
+    }
+
+    if ty == Type::Type {
+        writer.write_u8(0x80)?;
+    } else {
+        write_type(writer, ty)?;
+    }
+
+    let cdata = rans_nx16::encode(Flags::empty(), buf)?;
+
+    let clen =
+        u32::try_from(cdata.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    write_uint7(writer, clen)?;
+
+    writer.write_all(&cdata)?;
+
+    Ok(())
+}

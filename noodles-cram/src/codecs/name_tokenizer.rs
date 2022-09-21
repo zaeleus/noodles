@@ -1,3 +1,7 @@
+mod encode;
+
+pub use self::encode::encode;
+
 use std::io::{self, BufRead, Cursor, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
