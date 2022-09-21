@@ -74,7 +74,7 @@ impl Block {
             }
             CompressionMethod::Rans4x8 => {
                 let mut buf = self.data();
-                rans_4x8::rans_decode(&mut buf).map(Bytes::from)
+                rans_4x8::decode(&mut buf).map(Bytes::from)
             }
             CompressionMethod::RansNx16 => {
                 let mut reader = self.data();

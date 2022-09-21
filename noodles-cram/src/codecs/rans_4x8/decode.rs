@@ -7,7 +7,7 @@ use byteorder::{LittleEndian, ReadBytesExt};
 
 use super::Order;
 
-pub fn rans_decode<R>(reader: &mut R) -> io::Result<Vec<u8>>
+pub fn decode<R>(reader: &mut R) -> io::Result<Vec<u8>>
 where
     R: Read,
 {
@@ -80,7 +80,7 @@ mod tests {
     }
 
     #[test]
-    fn test_rans_decode_with_order_0() -> io::Result<()> {
+    fn test_decode_with_order_0() -> io::Result<()> {
         let expected = b"noodles";
 
         let data = vec![
@@ -91,7 +91,7 @@ mod tests {
         ];
 
         let mut reader = &data[..];
-        let actual = rans_decode(&mut reader)?;
+        let actual = decode(&mut reader)?;
 
         assert_eq!(actual, expected);
 
@@ -99,7 +99,7 @@ mod tests {
     }
 
     #[test]
-    fn test_rans_decode_with_order_1() -> io::Result<()> {
+    fn test_decode_with_order_1() -> io::Result<()> {
         let expected = b"noodles";
 
         let data = vec![
@@ -111,7 +111,7 @@ mod tests {
         ];
 
         let mut reader = &data[..];
-        let actual = rans_decode(&mut reader)?;
+        let actual = decode(&mut reader)?;
 
         assert_eq!(actual, expected);
 

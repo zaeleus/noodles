@@ -2,7 +2,7 @@ mod decode;
 mod encode;
 mod order;
 
-pub use self::{decode::rans_decode, encode::rans_encode, order::Order};
+pub use self::{decode::decode, encode::rans_encode, order::Order};
 
 #[cfg(test)]
 mod tests {
@@ -17,7 +17,7 @@ mod tests {
         let compressed_data = rans_encode(Order::Zero, data)?;
 
         let mut reader = &compressed_data[..];
-        let decompressed_data = rans_decode(&mut reader)?;
+        let decompressed_data = decode(&mut reader)?;
 
         assert_eq!(decompressed_data, data);
 
@@ -31,7 +31,7 @@ mod tests {
         let compressed_data = rans_encode(Order::One, data)?;
 
         let mut reader = &compressed_data[..];
-        let decompressed_data = rans_decode(&mut reader)?;
+        let decompressed_data = decode(&mut reader)?;
 
         assert_eq!(decompressed_data, data);
 
