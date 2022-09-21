@@ -62,10 +62,9 @@ impl Builder {
                 CompressionMethod::Lzma,
                 lzma::encode(compression_level, &data)?,
             ),
-            Encoder::Rans4x8(order) => (
-                CompressionMethod::Rans4x8,
-                rans_4x8::rans_encode(order, &data)?,
-            ),
+            Encoder::Rans4x8(order) => {
+                (CompressionMethod::Rans4x8, rans_4x8::encode(order, &data)?)
+            }
             Encoder::RansNx16(flags) => (
                 CompressionMethod::RansNx16,
                 rans_nx16::encode(flags, &data)?,

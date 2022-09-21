@@ -2,7 +2,7 @@ mod decode;
 mod encode;
 mod order;
 
-pub use self::{decode::decode, encode::rans_encode, order::Order};
+pub use self::{decode::decode, encode::encode, order::Order};
 
 #[cfg(test)]
 mod tests {
@@ -14,7 +14,7 @@ mod tests {
     fn test_self_0() -> io::Result<()> {
         let data = b"noodles";
 
-        let compressed_data = rans_encode(Order::Zero, data)?;
+        let compressed_data = encode(Order::Zero, data)?;
 
         let mut reader = &compressed_data[..];
         let decompressed_data = decode(&mut reader)?;
@@ -28,7 +28,7 @@ mod tests {
     fn test_self_1() -> io::Result<()> {
         let data = b"noodles";
 
-        let compressed_data = rans_encode(Order::One, data)?;
+        let compressed_data = encode(Order::One, data)?;
 
         let mut reader = &compressed_data[..];
         let decompressed_data = decode(&mut reader)?;

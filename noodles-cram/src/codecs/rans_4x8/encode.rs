@@ -13,7 +13,7 @@ const BASE: usize = 256;
 // Lower bound `L`.
 const LOWER_BOUND: u32 = 0x800000;
 
-pub fn rans_encode(order: Order, data: &[u8]) -> io::Result<Vec<u8>> {
+pub fn encode(order: Order, data: &[u8]) -> io::Result<Vec<u8>> {
     let compressed_blob = match order {
         Order::Zero => {
             let (normalized_frequencies, compressed_data) = order_0::encode(data)?;
@@ -135,9 +135,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_rans_encode_with_order_0() -> io::Result<()> {
+    fn test_encode_with_order_0() -> io::Result<()> {
         let data = b"noodles";
-        let actual = rans_encode(Order::Zero, data)?;
+        let actual = encode(Order::Zero, data)?;
 
         let expected = [
             0x00, 0x25, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x64, 0x82, 0x49, 0x65, 0x00,
@@ -152,9 +152,9 @@ mod tests {
     }
 
     #[test]
-    fn test_rans_encode_with_order_1() -> io::Result<()> {
+    fn test_encode_with_order_1() -> io::Result<()> {
         let data = b"noodles";
-        let actual = rans_encode(Order::One, data)?;
+        let actual = encode(Order::One, data)?;
 
         let expected = [
             0x01, 0x3b, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x64, 0x83, 0xff, 0x6e,
