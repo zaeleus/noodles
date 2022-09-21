@@ -13,7 +13,7 @@ use std::{io, mem};
 use bytes::Bytes;
 
 use crate::{
-    codecs::{aac, fqzcomp::fqz_decode, name_tokenizer::decode_names, rans_4x8, rans_nx16},
+    codecs::{aac, fqzcomp::fqz_decode, name_tokenizer, rans_4x8, rans_nx16},
     num::itf8,
 };
 
@@ -90,7 +90,7 @@ impl Block {
             }
             CompressionMethod::NameTokenizer => {
                 let mut reader = self.data();
-                let names = decode_names(&mut reader)?;
+                let names = name_tokenizer::decode(&mut reader)?;
                 let data: Vec<_> = names.into_iter().flat_map(|s| s.into_bytes()).collect();
                 Ok(Bytes::from(data))
             }

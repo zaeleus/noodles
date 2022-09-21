@@ -8,7 +8,7 @@ use crate::{
     reader::num::read_uint7,
 };
 
-pub fn decode_names<R>(reader: &mut R) -> io::Result<Vec<String>>
+pub fn decode<R>(reader: &mut R) -> io::Result<Vec<String>>
 where
     R: Read,
 {
@@ -292,7 +292,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_decode_names() -> io::Result<()> {
+    fn test_decode() -> io::Result<()> {
         let data = [
             0x58, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x80, 0x15, 0x00, 0x03, 0x06,
             0x00, 0x04, 0x00, 0x80, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00,
@@ -356,7 +356,7 @@ mod tests {
         ];
 
         let mut reader = &data[..];
-        let actual = decode_names(&mut reader)?;
+        let actual = decode(&mut reader)?;
 
         let expected = vec![
             String::from("I17_08765:2:123:61541:01763#9"),
@@ -370,7 +370,7 @@ mod tests {
     }
 
     #[test]
-    fn test_decode_names_with_arithmetic_coder() -> io::Result<()> {
+    fn test_decode_with_arithmetic_coder() -> io::Result<()> {
         let data = [
             0x58, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x01, 0x80, 0x08, 0x00, 0x03, 0x07,
             0x00, 0xe6, 0x26, 0xbb, 0x6f, 0x06, 0x09, 0x00, 0x0c, 0x02, 0x00, 0x72, 0x16, 0xb3,
@@ -402,7 +402,7 @@ mod tests {
         ];
 
         let mut reader = &data[..];
-        let actual = decode_names(&mut reader)?;
+        let actual = decode(&mut reader)?;
 
         let expected = vec![
             String::from("I17_08765:2:123:61541:01763#9"),

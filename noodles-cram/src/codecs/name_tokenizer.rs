@@ -1,7 +1,7 @@
 mod decode;
 mod encode;
 
-pub use self::{decode::decode_names, encode::encode};
+pub use self::{decode::decode, encode::encode};
 
 #[allow(clippy::enum_variant_names)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
