@@ -2,7 +2,7 @@ use std::io::{self, BufRead, Cursor, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use super::{aac, rans_nx16::rans_decode_nx16};
+use super::{aac, rans_nx16};
 use crate::reader::num::read_uint7;
 
 pub fn decode_names<R>(reader: &mut R) -> io::Result<Vec<String>>
@@ -296,7 +296,7 @@ where
             let buf = if use_arith {
                 aac::decode(&mut data_reader, 0)?
             } else {
-                rans_decode_nx16(&mut data_reader, 0)?
+                rans_nx16::decode(&mut data_reader, 0)?
             };
 
             b[t as usize].set(ty, buf);

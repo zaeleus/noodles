@@ -8,7 +8,7 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use super::Flags;
 use crate::reader::num::read_uint7;
 
-pub fn rans_decode_nx16<R>(reader: &mut R, mut len: usize) -> io::Result<Vec<u8>>
+pub fn decode<R>(reader: &mut R, mut len: usize) -> io::Result<Vec<u8>>
 where
     R: Read,
 {
@@ -161,7 +161,7 @@ where
             ulen += 1;
         }
 
-        let chunk = rans_decode_nx16(reader, ulen)?;
+        let chunk = decode(reader, ulen)?;
 
         ulens.push(ulen);
         t.push(chunk);
@@ -334,7 +334,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_rans_decode_nx16_order_0() -> io::Result<()> {
+    fn test_decode_order_0() -> io::Result<()> {
         let data = [
             0x00, // flags = {empty}
             0x07, // uncompressed len = 7
@@ -344,13 +344,13 @@ mod tests {
         ];
         let mut reader = &data[..];
 
-        assert_eq!(rans_decode_nx16(&mut reader, 0)?, b"noodles");
+        assert_eq!(decode(&mut reader, 0)?, b"noodles");
 
         Ok(())
     }
 
     #[test]
-    fn test_rans_decode_nx16_order_1() -> io::Result<()> {
+    fn test_decode_order_1() -> io::Result<()> {
         let data = [
             0x01, // flags = ORDER
             0x07, // uncompressed len = 7
@@ -362,13 +362,13 @@ mod tests {
         ];
 
         let mut reader = &data[..];
-        assert_eq!(rans_decode_nx16(&mut reader, 0)?, b"noodles");
+        assert_eq!(decode(&mut reader, 0)?, b"noodles");
 
         Ok(())
     }
 
     #[test]
-    fn test_rans_decode_nx16_stripe() -> io::Result<()> {
+    fn test_decode_stripe() -> io::Result<()> {
         let data = [
             0x08, // flags = STRIPE
             0x07, // uncompressed len = 7
@@ -383,13 +383,13 @@ mod tests {
         ];
 
         let mut reader = &data[..];
-        assert_eq!(rans_decode_nx16(&mut reader, 0)?, b"noodles");
+        assert_eq!(decode(&mut reader, 0)?, b"noodles");
 
         Ok(())
     }
 
     #[test]
-    fn test_rans_decode_nx16_uncompressed() -> io::Result<()> {
+    fn test_decode_uncompressed() -> io::Result<()> {
         let data = [
             0x20, // flags = CAT
             0x07, // uncompressed len = 7
@@ -397,13 +397,13 @@ mod tests {
         ];
 
         let mut reader = &data[..];
-        assert_eq!(rans_decode_nx16(&mut reader, 0)?, b"noodles");
+        assert_eq!(decode(&mut reader, 0)?, b"noodles");
 
         Ok(())
     }
 
     #[test]
-    fn test_rans_decode_nx16_rle() -> io::Result<()> {
+    fn test_decode_rle() -> io::Result<()> {
         let data = [
             0x40, // flags = RLE
             0x0d, // uncompressed len = 13
@@ -415,13 +415,13 @@ mod tests {
         ];
 
         let mut reader = &data[..];
-        assert_eq!(rans_decode_nx16(&mut reader, 0)?, b"noooooooodles");
+        assert_eq!(decode(&mut reader, 0)?, b"noooooooodles");
 
         Ok(())
     }
 
     #[test]
-    fn test_rans_decode_nx16_bit_packing_with_6_symbols() -> io::Result<()> {
+    fn test_decode_bit_packing_with_6_symbols() -> io::Result<()> {
         let data = [
             0x80, // flags = PACK
             0x07, // uncompressed len = 7
@@ -431,7 +431,7 @@ mod tests {
         ];
 
         let mut reader = &data[..];
-        assert_eq!(rans_decode_nx16(&mut reader, 0)?, b"noodles");
+        assert_eq!(decode(&mut reader, 0)?, b"noodles");
 
         Ok(())
     }

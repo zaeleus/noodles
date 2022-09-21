@@ -14,8 +14,7 @@ use bytes::Bytes;
 
 use crate::{
     codecs::{
-        aac, fqzcomp::fqz_decode, name_tokenizer::decode_names, rans::rans_decode,
-        rans_nx16::rans_decode_nx16,
+        aac, fqzcomp::fqz_decode, name_tokenizer::decode_names, rans::rans_decode, rans_nx16,
     },
     num::itf8,
 };
@@ -81,7 +80,7 @@ impl Block {
             }
             CompressionMethod::RansNx16 => {
                 let mut reader = self.data();
-                rans_decode_nx16(&mut reader, self.uncompressed_len()).map(Bytes::from)
+                rans_nx16::decode(&mut reader, self.uncompressed_len()).map(Bytes::from)
             }
             CompressionMethod::AdaptiveArithmeticCoding => {
                 let mut reader = self.data();
