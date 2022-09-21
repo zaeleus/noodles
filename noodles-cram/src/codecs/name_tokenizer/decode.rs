@@ -1,6 +1,6 @@
-use std::io::{self, BufRead, Cursor, Read};
+use std::io::{self, BufRead, Cursor, Read, Write};
 
-use byteorder::{LittleEndian, ReadBytesExt};
+use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 
 use super::Type;
 use crate::{
@@ -8,11 +8,13 @@ use crate::{
     reader::num::read_uint7,
 };
 
-pub fn decode<R>(reader: &mut R) -> io::Result<Vec<String>>
+pub fn decode<R>(reader: &mut R) -> io::Result<Vec<u8>>
 where
     R: Read,
 {
-    let _ulen = reader.read_u32::<LittleEndian>().and_then(|n| {
+    const NUL: u8 = 0x00;
+
+    let ulen = reader.read_u32::<LittleEndian>().and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
@@ -27,11 +29,15 @@ where
     let mut names = vec![String::new(); n_names];
     let mut tokens = vec![vec![None; 128]; n_names];
 
+    let mut dst = Vec::with_capacity(ulen);
+
     for i in 0..n_names {
-        decode_single_name(&mut b, &mut names, &mut tokens, i)?;
+        let name = decode_single_name(&mut b, &mut names, &mut tokens, i)?;
+        dst.write_all(name.as_bytes())?;
+        dst.write_u8(NUL)?;
     }
 
-    Ok(names)
+    Ok(dst)
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -358,11 +364,11 @@ mod tests {
         let mut reader = &data[..];
         let actual = decode(&mut reader)?;
 
-        let expected = vec![
-            String::from("I17_08765:2:123:61541:01763#9"),
-            String::from("I17_08765:2:123:1636:08611#9"),
-            String::from("I17_08765:2:124:45613:16161#9"),
-        ];
+        let expected = b"\
+I17_08765:2:123:61541:01763#9\0\
+I17_08765:2:123:1636:08611#9\0\
+I17_08765:2:124:45613:16161#9\0\
+";
 
         assert_eq!(actual, expected);
 
@@ -404,11 +410,11 @@ mod tests {
         let mut reader = &data[..];
         let actual = decode(&mut reader)?;
 
-        let expected = vec![
-            String::from("I17_08765:2:123:61541:01763#9"),
-            String::from("I17_08765:2:123:1636:08611#9"),
-            String::from("I17_08765:2:124:45613:16161#9"),
-        ];
+        let expected = b"\
+I17_08765:2:123:61541:01763#9\0\
+I17_08765:2:123:1636:08611#9\0\
+I17_08765:2:124:45613:16161#9\0\
+";
 
         assert_eq!(actual, expected);
 

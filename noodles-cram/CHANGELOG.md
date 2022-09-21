@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * cram/container/block: Add terminators (`NUL`) to decoded names.
+
 ## 0.18.0 - 2022-08-16
 
 ### Changed

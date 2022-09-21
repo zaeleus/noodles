@@ -90,9 +90,7 @@ impl Block {
             }
             CompressionMethod::NameTokenizer => {
                 let mut reader = self.data();
-                let names = name_tokenizer::decode(&mut reader)?;
-                let data: Vec<_> = names.into_iter().flat_map(|s| s.into_bytes()).collect();
-                Ok(Bytes::from(data))
+                name_tokenizer::decode(&mut reader).map(Bytes::from)
             }
         }
     }
