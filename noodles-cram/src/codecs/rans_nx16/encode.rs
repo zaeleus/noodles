@@ -8,7 +8,7 @@ use byteorder::WriteBytesExt;
 use super::Flags;
 use crate::writer::num::write_uint7;
 
-pub fn rans_encode_nx16(flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
+pub fn encode(flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     let mut src = src.to_vec();
     let mut dst = Vec::new();
 
@@ -209,7 +209,7 @@ fn rans_encode_stripe(src: &[u8], n: usize) -> io::Result<Vec<u8>> {
     let mut chunks = vec![Vec::new(); n];
 
     for (chunk, s) in chunks.iter_mut().zip(t.iter()) {
-        *chunk = rans_encode_nx16(Flags::empty(), s)?;
+        *chunk = encode(Flags::empty(), s)?;
     }
 
     let mut dst = Vec::new();
@@ -381,8 +381,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_rans_encode_nx16_order_0() -> io::Result<()> {
-        let actual = rans_encode_nx16(Flags::empty(), b"noodles")?;
+    fn test_encode_order_0() -> io::Result<()> {
+        let actual = encode(Flags::empty(), b"noodles")?;
 
         let expected = [
             0x00, // flags = {empty}
@@ -398,8 +398,8 @@ mod tests {
     }
 
     #[test]
-    fn test_rans_encode_nx16_order_1() -> io::Result<()> {
-        let actual = rans_encode_nx16(Flags::ORDER, b"noodles")?;
+    fn test_encode_order_1() -> io::Result<()> {
+        let actual = encode(Flags::ORDER, b"noodles")?;
 
         let expected = [
             0x01, 0x07, 0xc0, 0x00, 0x64, 0x65, 0x00, 0x6c, 0x6e, 0x6f, 0x00, 0x73, 0x00, 0x00,
@@ -416,8 +416,8 @@ mod tests {
     }
 
     #[test]
-    fn test_rans_encode_nx16_stripe() -> io::Result<()> {
-        let actual = rans_encode_nx16(Flags::STRIPE, b"noodles")?;
+    fn test_encode_stripe() -> io::Result<()> {
+        let actual = encode(Flags::STRIPE, b"noodles")?;
 
         let expected = [
             0x08, 0x07, 0x04, 0x19, 0x19, 0x19, 0x16, 0x00, 0x02, 0x6c, 0x6e, 0x00, 0x90, 0x00,
@@ -436,8 +436,8 @@ mod tests {
     }
 
     #[test]
-    fn test_rans_encode_nx16_uncompressed() -> io::Result<()> {
-        let actual = rans_encode_nx16(Flags::CAT, b"noodles")?;
+    fn test_encode_uncompressed() -> io::Result<()> {
+        let actual = encode(Flags::CAT, b"noodles")?;
 
         let expected = [
             0x20, // flags = CAT
@@ -451,8 +451,8 @@ mod tests {
     }
 
     #[test]
-    fn test_rans_encode_nx16_rle() -> io::Result<()> {
-        let actual = rans_encode_nx16(Flags::CAT | Flags::RLE, b"noooooooodles")?;
+    fn test_encode_rle() -> io::Result<()> {
+        let actual = encode(Flags::CAT | Flags::RLE, b"noooooooodles")?;
 
         let expected = [
             0x60, // flags = CAT | RLE
@@ -466,8 +466,8 @@ mod tests {
     }
 
     #[test]
-    fn test_rans_encode_nx16_pack() -> io::Result<()> {
-        let actual = rans_encode_nx16(Flags::PACK, b"noodles")?;
+    fn test_encode_pack() -> io::Result<()> {
+        let actual = encode(Flags::PACK, b"noodles")?;
 
         let expected = [
             0x80, // flags = PACK
