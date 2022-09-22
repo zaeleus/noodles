@@ -1,6 +1,7 @@
 use std::{
     collections::HashMap,
     io::{self, Write},
+    str,
 };
 
 use byteorder::{LittleEndian, WriteBytesExt};
@@ -8,11 +9,21 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use super::Type;
 use crate::writer::num::write_uint7;
 
+const NUL: u8 = 0x00;
+
 #[allow(dead_code)]
-pub fn encode(names: &[String]) -> io::Result<Vec<u8>> {
+pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
     let mut dst = Vec::new();
 
-    write_header(&mut dst, names)?;
+    let mut names: Vec<_> = src
+        .split(|&b| b == NUL)
+        .map(str::from_utf8)
+        .collect::<Result<_, _>>()
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+    names.pop();
+
+    write_header(&mut dst, src.len(), names.len())?;
 
     let mut names_indices = HashMap::new();
     let mut diffs = Vec::with_capacity(names.len());
@@ -20,7 +31,7 @@ pub fn encode(names: &[String]) -> io::Result<Vec<u8>> {
 
     for (i, name) in names.iter().enumerate() {
         let diff = build_diff(&names_indices, i, name);
-        names_indices.entry(name.as_str()).or_insert(i);
+        names_indices.entry(name).or_insert(i);
         max_token_count = max_token_count.max(diff.tokens.len());
         diffs.push(diff);
     }
@@ -57,17 +68,16 @@ pub fn encode(names: &[String]) -> io::Result<Vec<u8>> {
     Ok(dst)
 }
 
-fn write_header<W>(writer: &mut W, names: &[String]) -> io::Result<()>
+fn write_header<W>(writer: &mut W, src_len: usize, names_count: usize) -> io::Result<()>
 where
     W: Write,
 {
-    let src_len: usize = names.iter().map(|name| name.len()).sum();
     let ulen =
         u32::try_from(src_len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32::<LittleEndian>(ulen)?;
 
     let n_names =
-        u32::try_from(names.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        u32::try_from(names_count).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32::<LittleEndian>(n_names)?;
 
     // TODO: use_arith
@@ -199,8 +209,6 @@ struct TokenWriter {
 
 impl TokenWriter {
     fn write_token(&mut self, token: &Token) -> io::Result<()> {
-        const NUL: u8 = 0x00;
-
         write_type(&mut self.type_writer, token.ty())?;
 
         match token {
