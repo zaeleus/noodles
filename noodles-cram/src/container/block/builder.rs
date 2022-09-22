@@ -45,7 +45,7 @@ impl Builder {
     /// This sets the compression method, the uncompressed size to the length of the given data,
     /// and the data to the compressed output of the given data.
     pub fn compress_and_set_data(mut self, data: Vec<u8>, encoder: Encoder) -> io::Result<Self> {
-        use crate::codecs::{aac, bzip2, gzip, lzma, rans_4x8, rans_nx16};
+        use crate::codecs::{aac, bzip2, gzip, lzma, name_tokenizer, rans_4x8, rans_nx16};
 
         self.uncompressed_len = data.len();
 
@@ -72,6 +72,10 @@ impl Builder {
             Encoder::AdaptiveArithmeticCoding(flags) => (
                 CompressionMethod::AdaptiveArithmeticCoding,
                 aac::encode(flags, &data)?,
+            ),
+            Encoder::NameTokenizer => (
+                CompressionMethod::NameTokenizer,
+                name_tokenizer::encode(&data)?,
             ),
         };
 

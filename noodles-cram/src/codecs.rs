@@ -16,4 +16,5 @@ pub enum Encoder {
     Rans4x8(rans_4x8::Order),
     RansNx16(rans_nx16::Flags),
     AdaptiveArithmeticCoding(aac::Flags),
+    NameTokenizer,
 }
