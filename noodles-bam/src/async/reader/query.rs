@@ -30,8 +30,8 @@ where
     state: State,
 }
 
-pub fn query<'a, R>(
-    reader: &'a mut Reader<bgzf::AsyncReader<R>>,
+pub fn query<R>(
+    reader: &mut Reader<bgzf::AsyncReader<R>>,
     chunks: Vec<Chunk>,
     reference_sequence_id: usize,
     interval: Interval,
