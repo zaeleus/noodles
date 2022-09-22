@@ -69,3 +69,28 @@ impl From<Type> for usize {
         Self::from(u8::from(ty))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::io;
+
+    use super::*;
+
+    #[test]
+    fn test_self() -> io::Result<()> {
+        let data = b"\
+I17_08765:2:123:61541:01763#9\0\
+I17_08765:2:123:1636:08611#9\0\
+I17_08765:2:124:45613:16161#9\0\
+";
+
+        let input = encode(data)?;
+
+        let mut reader = &input[..];
+        let output = decode(&mut reader)?;
+
+        assert_eq!(output, data);
+
+        Ok(())
+    }
+}
