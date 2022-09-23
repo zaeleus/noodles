@@ -9,6 +9,11 @@
 
   * fasta/reader: Add builder (`fasta::reader::Builder`).
 
+    The builder is able to construct a reader from a path
+    (`Builder::build_from_path`), which can open raw FASTA files (`*.fa`) and
+    bgzipped FASTA (`*.fa.gz`) files. If an associated index (`*.fai`) exists,
+    it is loaded to allow querying.
+
 ### Changed
 
   * fasta/reader: `Reader::query` no longer takes a `fai::Index` as input.
