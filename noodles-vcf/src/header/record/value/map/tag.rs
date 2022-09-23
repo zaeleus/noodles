@@ -142,6 +142,15 @@ impl FromStr for DescribedIndexed {
 #[derive(Clone, Debug)]
 pub struct Other<S>(String, PhantomData<S>);
 
+impl<S> AsRef<str> for Other<S>
+where
+    S: Standard,
+{
+    fn as_ref(&self) -> &str {
+        &self.0
+    }
+}
+
 impl<S> Borrow<str> for Other<S> {
     fn borrow(&self) -> &str {
         &self.0
