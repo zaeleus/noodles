@@ -302,8 +302,7 @@ impl Header {
     /// use noodles_sam as sam;
     /// let header = sam::Header::builder().add_comment("noodles-sam").build();
     /// let comments = header.comments();
-    /// assert_eq!(comments.len(), 1);
-    /// assert_eq!(&comments[0], "noodles-sam");
+    /// assert_eq!(header.comments(), [String::from("noodles-sam")]);
     /// ```
     pub fn comments(&self) -> &[String] {
         &self.comments
@@ -317,13 +316,9 @@ impl Header {
     ///
     /// ```
     /// use noodles_sam as sam;
-    ///
     /// let mut header = sam::Header::default();
     /// header.comments_mut().push(String::from("noodles-sam"));
-    ///
-    /// let comments = header.comments();
-    /// assert_eq!(comments.len(), 1);
-    /// assert_eq!(&comments[0], "noodles-sam");
+    /// assert_eq!(header.comments(), [String::from("noodles-sam")]);
     /// ```
     pub fn comments_mut(&mut self) -> &mut Vec<String> {
         &mut self.comments
@@ -335,13 +330,9 @@ impl Header {
     ///
     /// ```
     /// use noodles_sam as sam;
-    ///
     /// let mut header = sam::Header::default();
     /// header.add_comment("noodles-sam");
-    ///
-    /// let comments = header.comments();
-    /// assert_eq!(comments.len(), 1);
-    /// assert_eq!(&comments[0], "noodles-sam");
+    /// assert_eq!(header.comments(), [String::from("noodles-sam")]);
     /// ```
     pub fn add_comment<S>(&mut self, comment: S)
     where
