@@ -90,6 +90,7 @@ impl Builder {
             .into_iter()
             .map(|builder| {
                 builder.build(
+                    &options.block_content_encoder_map,
                     reference_sequence_repository,
                     header,
                     &compression_header,

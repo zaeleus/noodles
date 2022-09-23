@@ -76,12 +76,14 @@ impl Builder {
 
     pub fn build(
         mut self,
+        block_content_encoder_map: &BlockContentEncoderMap,
         reference_sequence_repostitory: &fasta::repository::Repository,
         header: &sam::Header,
         compression_header: &CompressionHeader,
         record_counter: u64,
     ) -> io::Result<Slice> {
         let (core_data_block, external_blocks) = write_records(
+            block_content_encoder_map,
             compression_header,
             self.reference_sequence_context,
             &mut self.records,
@@ -129,6 +131,7 @@ impl Builder {
 }
 
 fn write_records(
+    block_content_encoder_map: &BlockContentEncoderMap,
     compression_header: &CompressionHeader,
     reference_sequence_context: ReferenceSequenceContext,
     records: &mut [Record],
@@ -171,8 +174,6 @@ fn write_records(
     for record in records {
         record_writer.write_record(record)?;
     }
-
-    let block_content_encoder_map = BlockContentEncoderMap::default();
 
     let core_data_block = core_data_writer.finish().and_then(|buf| {
         let mut builder = Block::builder()
