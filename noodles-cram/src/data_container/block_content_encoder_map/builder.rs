@@ -5,7 +5,7 @@ use crate::{
     codecs::Encoder,
     container::block,
     data_container::compression_header::{
-        data_series_encoding_map::data_series::DataSeries, preservation_map::tag_ids_dictionary,
+        data_series_encoding_map::DataSeries, preservation_map::tag_ids_dictionary,
     },
 };
 
