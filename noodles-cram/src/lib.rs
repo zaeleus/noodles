@@ -17,7 +17,7 @@ mod indexer;
 mod num;
 pub mod reader;
 pub mod record;
-pub(crate) mod writer;
+pub mod writer;
 
 pub use self::{
     data_container::DataContainer, file_definition::FileDefinition, indexer::index, reader::Reader,

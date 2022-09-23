@@ -6,24 +6,13 @@ use super::{Options, Writer};
 use crate::DataContainer;
 
 /// A CRAM writer builder.
-pub struct Builder<W> {
-    inner: W,
+#[derive(Default)]
+pub struct Builder {
     reference_sequence_repository: fasta::Repository,
     options: Options,
 }
 
-impl<W> Builder<W>
-where
-    W: Write,
-{
-    pub(crate) fn new(inner: W) -> Self {
-        Self {
-            inner,
-            reference_sequence_repository: fasta::Repository::default(),
-            options: Options::default(),
-        }
-    }
-
+impl Builder {
     /// Sets the reference sequence repository.
     pub fn set_reference_sequence_repository(
         mut self,
@@ -59,11 +48,14 @@ where
     ///
     /// ```
     /// use noodles_cram as cram;
-    /// let writer = cram::Writer::builder(Vec::new()).build();
+    /// let writer = cram::writer::Builder::default().build_with_writer(Vec::new());
     /// ```
-    pub fn build(self) -> Writer<W> {
+    pub fn build_with_writer<W>(self, writer: W) -> Writer<W>
+    where
+        W: Write,
+    {
         Writer {
-            inner: self.inner,
+            inner: writer,
             reference_sequence_repository: self.reference_sequence_repository,
             options: self.options,
             data_container_builder: DataContainer::builder(0),

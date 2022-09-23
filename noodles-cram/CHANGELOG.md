@@ -2,9 +2,23 @@
 
 ## Unreleased
 
+### Changed
+
+  * cram/writer: Increased visibility of module.
+
+  * cram/writer/builder: Change `build` to `build_with_writer`.
+
+    `writer::Builder` no longer holds the inner reader.
+
 ### Fixed
 
   * cram/container/block: Add terminators (`NUL`) to decoded names.
+
+### Removed
+
+  * cram/writer: Remove `Writer::builder`.
+
+    Use `cram::writer::Builder` directly instead.
 
 ## 0.18.0 - 2022-08-16
 

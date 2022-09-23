@@ -1,3 +1,5 @@
+//! CRAM writer.
+
 mod builder;
 mod container;
 pub(crate) mod data_container;
@@ -30,7 +32,7 @@ use super::{file_definition::Version, DataContainer, FileDefinition, Record, MAG
 /// use noodles_cram as cram;
 /// use noodles_sam as sam;
 ///
-/// let mut writer = cram::Writer::builder(Vec::new()).build();
+/// let mut writer = cram::Writer::new(Vec::new());
 /// writer.write_file_definition()?;
 ///
 /// let header = sam::Header::default();
@@ -58,19 +60,6 @@ impl<W> Writer<W>
 where
     W: Write,
 {
-    /// Creates a CRAM writer builder.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_cram as cram;
-    /// let builder = cram::Writer::builder(Vec::new());
-    /// let writer = builder.build();
-    /// ```
-    pub fn builder(inner: W) -> Builder<W> {
-        Builder::new(inner)
-    }
-
     /// Creates a new CRAM writer with default options.
     ///
     /// # Examples
@@ -80,7 +69,7 @@ where
     /// let writer = cram::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
-        Builder::new(inner).build()
+        Builder::default().build_with_writer(inner)
     }
 
     /// Returns a reference to the underlying writer.

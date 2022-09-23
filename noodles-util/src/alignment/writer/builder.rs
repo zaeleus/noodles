@@ -71,9 +71,9 @@ impl Builder {
             Format::Sam => Box::new(sam::Writer::new(writer)),
             Format::Bam => Box::new(bam::Writer::new(writer)),
             Format::Cram => Box::new(
-                cram::Writer::builder(writer)
+                cram::writer::Builder::default()
                     .set_reference_sequence_repository(self.reference_sequence_repository)
-                    .build(),
+                    .build_with_writer(writer),
             ),
         };
 
