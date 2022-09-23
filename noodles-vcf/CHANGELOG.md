@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * vcf/header/record/value/map/tag: Implement `AsRef<str>` for `Tag`.
+
 ## 0.18.0 - 2022-08-16
 
 ### Added

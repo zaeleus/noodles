@@ -186,6 +186,18 @@ pub enum Tag<S> {
     Other(Other<S>),
 }
 
+impl<S> AsRef<str> for Tag<S>
+where
+    S: Standard,
+{
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Standard(tag) => tag.as_ref(),
+            Self::Other(tag) => tag.as_ref(),
+        }
+    }
+}
+
 impl<S> From<String> for Tag<S>
 where
     S: Standard,
