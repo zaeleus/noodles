@@ -6,7 +6,13 @@ use std::{
     str::FromStr,
 };
 
-pub trait Standard: FromStr {}
+pub(super) const ID: &str = "ID";
+pub(super) const NUMBER: &str = "Number";
+pub(super) const TYPE: &str = "Type";
+const DESCRIPTION: &str = "Description";
+pub(super) const IDX: &str = "IDX";
+
+pub trait Standard: AsRef<str> + FromStr {}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Identity {
@@ -15,12 +21,20 @@ pub enum Identity {
 
 impl Standard for Identity {}
 
+impl AsRef<str> for Identity {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Id => ID,
+        }
+    }
+}
+
 impl FromStr for Identity {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "ID" => Ok(Self::Id),
+            ID => Ok(Self::Id),
             _ => Err(()),
         }
     }
@@ -37,16 +51,28 @@ pub enum TypedDescribedIndexed {
 
 impl Standard for TypedDescribedIndexed {}
 
+impl AsRef<str> for TypedDescribedIndexed {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Id => ID,
+            Self::Number => NUMBER,
+            Self::Type => TYPE,
+            Self::Description => DESCRIPTION,
+            Self::Idx => IDX,
+        }
+    }
+}
+
 impl FromStr for TypedDescribedIndexed {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "ID" => Ok(Self::Id),
-            "Number" => Ok(Self::Number),
-            "Type" => Ok(Self::Type),
-            "Description" => Ok(Self::Description),
-            "IDX" => Ok(Self::Idx),
+            ID => Ok(Self::Id),
+            NUMBER => Ok(Self::Number),
+            TYPE => Ok(Self::Type),
+            DESCRIPTION => Ok(Self::Description),
+            IDX => Ok(Self::Idx),
             _ => Err(()),
         }
     }
@@ -60,13 +86,22 @@ pub enum Described {
 
 impl Standard for Described {}
 
+impl AsRef<str> for Described {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Id => ID,
+            Self::Description => DESCRIPTION,
+        }
+    }
+}
+
 impl FromStr for Described {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "ID" => Ok(Self::Id),
-            "Description" => Ok(Self::Description),
+            ID => Ok(Self::Id),
+            DESCRIPTION => Ok(Self::Description),
             _ => Err(()),
         }
     }
@@ -81,14 +116,24 @@ pub enum DescribedIndexed {
 
 impl Standard for DescribedIndexed {}
 
+impl AsRef<str> for DescribedIndexed {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Id => ID,
+            Self::Description => DESCRIPTION,
+            Self::Idx => IDX,
+        }
+    }
+}
+
 impl FromStr for DescribedIndexed {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "ID" => Ok(Self::Id),
-            "Description" => Ok(Self::Description),
-            "IDX" => Ok(Self::Idx),
+            ID => Ok(Self::Id),
+            DESCRIPTION => Ok(Self::Description),
+            IDX => Ok(Self::Idx),
             _ => Err(()),
         }
     }
