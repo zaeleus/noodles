@@ -1,3 +1,5 @@
+//! CRAM data container block content-encoder map.
+
 mod builder;
 
 pub use self::builder::Builder;
@@ -6,6 +8,7 @@ use std::collections::HashMap;
 
 use crate::{codecs::Encoder, container::block};
 
+/// A CRAM data container block content-encoder map.
 #[derive(Clone, Debug)]
 pub struct BlockContentEncoderMap {
     core_data_encoder: Option<Encoder>,
@@ -14,15 +17,23 @@ pub struct BlockContentEncoderMap {
 }
 
 impl BlockContentEncoderMap {
+    /// Creates a block content-encoder map builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram::data_container::BlockContentEncoderMap;
+    /// let builder = BlockContentEncoderMap::builder();
+    /// ````
     pub fn builder() -> Builder {
         Builder::default()
     }
 
-    pub fn core_data_encoder(&self) -> Option<&Encoder> {
+    pub(crate) fn core_data_encoder(&self) -> Option<&Encoder> {
         self.core_data_encoder.as_ref()
     }
 
-    pub fn get_data_series_encoder(
+    pub(crate) fn get_data_series_encoder(
         &self,
         block_content_id: block::ContentId,
     ) -> Option<Option<&Encoder>> {
@@ -30,7 +41,7 @@ impl BlockContentEncoderMap {
         self.data_series_encoders.get(i).map(|e| e.as_ref())
     }
 
-    pub fn get_tag_values_encoders(
+    pub(crate) fn get_tag_values_encoders(
         &self,
         block_content_id: block::ContentId,
     ) -> Option<Option<&Encoder>> {

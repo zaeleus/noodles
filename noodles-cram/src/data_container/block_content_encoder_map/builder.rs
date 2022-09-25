@@ -9,6 +9,7 @@ use crate::{
     },
 };
 
+/// A CRAM data container block content-encoder map builder.
 #[derive(Debug)]
 pub struct Builder {
     core_data_encoder: Option<Encoder>,
@@ -18,11 +19,32 @@ pub struct Builder {
 
 #[allow(dead_code)]
 impl Builder {
+    /// Sets the core data encoder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram::data_container::BlockContentEncoderMap;
+    /// let builder = BlockContentEncoderMap::builder().set_core_data_encoder(None);
+    /// ```
     pub fn set_core_data_encoder(mut self, encoder: Option<Encoder>) -> Self {
         self.core_data_encoder = encoder;
         self
     }
 
+    /// Sets a data series encoder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram::data_container::{
+    ///     compression_header::data_series_encoding_map::DataSeries,
+    ///     BlockContentEncoderMap,
+    /// };
+    ///
+    /// let builder = BlockContentEncoderMap::builder()
+    ///     .set_data_series_encoder(DataSeries::BamBitFlags, None);
+    /// ```
     pub fn set_data_series_encoder(
         mut self,
         data_series: DataSeries,
@@ -33,6 +55,21 @@ impl Builder {
         self
     }
 
+    /// Sets a tag values encoder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram::data_container::{
+    ///     compression_header::preservation_map::tag_ids_dictionary::Key,
+    ///     BlockContentEncoderMap,
+    /// };
+    /// use noodles_sam::record::data::field::{value::Type, Tag};
+    ///
+    /// let key = Key::new(Tag::AlignmentHitCount, Type::UInt8);
+    /// let builder = BlockContentEncoderMap::builder()
+    ///     .set_tag_values_encoder(key, None);
+    /// ```
     pub fn set_tag_values_encoder(
         mut self,
         key: tag_ids_dictionary::Key,
@@ -43,6 +80,14 @@ impl Builder {
         self
     }
 
+    /// Builds a block content-encoder map.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram::data_container::BlockContentEncoderMap;
+    /// let map = BlockContentEncoderMap::builder().build();
+    /// ```
     pub fn build(self) -> BlockContentEncoderMap {
         BlockContentEncoderMap {
             core_data_encoder: self.core_data_encoder,

@@ -1,17 +1,19 @@
 //! CRAM data container and fields.
 
-mod block_content_encoder_map;
+pub mod block_content_encoder_map;
 pub(crate) mod builder;
 pub mod compression_header;
 mod header;
 mod reference_sequence_context;
 pub(crate) mod slice;
 
-pub(crate) use self::{
-    block_content_encoder_map::BlockContentEncoderMap, builder::Builder, header::Header,
-    reference_sequence_context::ReferenceSequenceContext,
+pub use self::{
+    block_content_encoder_map::BlockContentEncoderMap, compression_header::CompressionHeader,
+    slice::Slice,
 };
-pub use self::{compression_header::CompressionHeader, slice::Slice};
+pub(crate) use self::{
+    builder::Builder, header::Header, reference_sequence_context::ReferenceSequenceContext,
+};
 
 /// A CRAM data container.
 pub struct DataContainer {
