@@ -7,7 +7,7 @@ mod r#async;
 
 mod bit_reader;
 mod bit_writer;
-mod codecs;
+pub mod codecs;
 pub(crate) mod container;
 pub mod crai;
 pub mod data_container;
