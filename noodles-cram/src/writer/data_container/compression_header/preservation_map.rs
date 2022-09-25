@@ -17,7 +17,7 @@ const TRUE: u8 = 0x01;
 
 const NUL: u8 = 0x00;
 
-pub fn write_preservation_map<W>(
+pub(super) fn write_preservation_map<W>(
     writer: &mut W,
     preservation_map: &PreservationMap,
 ) -> io::Result<()>

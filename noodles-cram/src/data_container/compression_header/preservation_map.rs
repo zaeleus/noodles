@@ -1,15 +1,17 @@
+//! CRAM data container preservation map.
+
 mod builder;
-pub mod key;
-pub mod substitution_matrix;
+pub(crate) mod key;
+pub(crate) mod substitution_matrix;
 pub mod tag_ids_dictionary;
 
-pub use {
+pub(crate) use {
     builder::Builder, key::Key, substitution_matrix::SubstitutionMatrix,
     tag_ids_dictionary::TagIdsDictionary,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct PreservationMap {
+pub(crate) struct PreservationMap {
     read_names_included: bool,
     ap_data_series_delta: bool,
     is_reference_required: bool,

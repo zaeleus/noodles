@@ -21,7 +21,7 @@ impl Builder {
         self.tag_ids_dictionary_builder.update(record);
     }
 
-    pub fn build(self) -> PreservationMap {
+    pub(crate) fn build(self) -> PreservationMap {
         let substitution_matrix = self.substitution_matrix_builder.build();
         let tag_ids_dictionary = self.tag_ids_dictionary_builder.build();
 

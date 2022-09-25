@@ -5,6 +5,7 @@ use noodles_sam::{
 
 use crate::container::block;
 
+/// A CRAM data container compression header preservation map tag IDs dictionary key.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct Key {
     tag: Tag,
@@ -12,14 +13,43 @@ pub struct Key {
 }
 
 impl Key {
+    /// Creates a tag IDs dictionary key.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram::data_container::compression_header::preservation_map::tag_ids_dictionary::Key;
+    /// use noodles_sam::record::data::field::{value::Type, Tag};
+    /// let key = Key::new(Tag::AlignmentHitCount, Type::UInt8);
+    /// ```
     pub fn new(tag: Tag, ty: Type) -> Self {
         Self { tag, ty }
     }
 
+    /// Returns the tag.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram::data_container::compression_header::preservation_map::tag_ids_dictionary::Key;
+    /// use noodles_sam::record::data::field::{value::Type, Tag};
+    /// let key = Key::new(Tag::AlignmentHitCount, Type::UInt8);
+    /// assert_eq!(key.tag(), Tag::AlignmentHitCount);
+    /// ```
     pub fn tag(self) -> Tag {
         self.tag
     }
 
+    /// Returns the type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram::data_container::compression_header::preservation_map::tag_ids_dictionary::Key;
+    /// use noodles_sam::record::data::field::{value::Type, Tag};
+    /// let key = Key::new(Tag::AlignmentHitCount, Type::UInt8);
+    /// assert_eq!(key.ty(), Type::UInt8);
+    /// ```
     pub fn ty(self) -> Type {
         self.ty
     }

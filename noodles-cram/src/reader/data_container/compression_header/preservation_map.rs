@@ -11,7 +11,7 @@ use crate::{
     reader::num::get_itf8,
 };
 
-pub fn get_preservation_map(src: &mut Bytes) -> io::Result<PreservationMap> {
+pub(super) fn get_preservation_map(src: &mut Bytes) -> io::Result<PreservationMap> {
     let data_len = get_itf8(src).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;

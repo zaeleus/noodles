@@ -4,10 +4,8 @@
 
 ### Changed
 
-  * cram/data_container/compression_header/data_series_encoding_map/data_series:
-    Increase visibility of `DataSeries`.
-
-  * cram/writer: Increased visibility of module.
+  * cram: Increased visibilities of `cram::writer`,
+    `data_series_encoding_map::DataSeries`, and `tag_ids_dictionary::Key`.
 
   * cram/writer/builder: Change `build` to `build_with_writer`.
 

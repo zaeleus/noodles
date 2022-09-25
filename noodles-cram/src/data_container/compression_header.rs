@@ -3,7 +3,7 @@
 mod builder;
 pub mod data_series_encoding_map;
 pub(crate) mod encoding;
-pub(crate) mod preservation_map;
+pub mod preservation_map;
 mod tag_encoding_map;
 
 pub(crate) use self::{
