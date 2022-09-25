@@ -12,7 +12,7 @@ use crate::{
     reader::num::get_itf8,
 };
 
-pub fn get_data_series_encoding_map(src: &mut Bytes) -> io::Result<DataSeriesEncodingMap> {
+pub(super) fn get_data_series_encoding_map(src: &mut Bytes) -> io::Result<DataSeriesEncodingMap> {
     let data_len = get_itf8(src).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;

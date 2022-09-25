@@ -1,5 +1,7 @@
+//! CRAM data container compress header.
+
 mod builder;
-pub(crate) mod data_series_encoding_map;
+pub mod data_series_encoding_map;
 pub(crate) mod encoding;
 pub(crate) mod preservation_map;
 mod tag_encoding_map;

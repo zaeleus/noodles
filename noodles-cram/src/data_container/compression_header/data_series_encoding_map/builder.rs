@@ -186,7 +186,7 @@ impl Builder {
         self
     }
 
-    pub fn build(self) -> Result<DataSeriesEncodingMap, BuildError> {
+    pub(crate) fn build(self) -> Result<DataSeriesEncodingMap, BuildError> {
         Ok(DataSeriesEncodingMap {
             bam_bit_flags_encoding: self
                 .bam_bit_flags_encoding

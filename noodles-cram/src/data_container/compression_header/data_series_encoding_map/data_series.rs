@@ -33,6 +33,7 @@ pub static STANDARD_DATA_SERIES: &[DataSeries; 28] = &[
     DataSeries::QualityScores,
 ];
 
+/// A CRAM data container compression header data series.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum DataSeries {
     /// BAM bit flags (`BF`).

@@ -11,7 +11,7 @@ use crate::{
     writer::num::write_itf8,
 };
 
-pub fn write_data_series_encoding_map<W>(
+pub(crate) fn write_data_series_encoding_map<W>(
     writer: &mut W,
     data_series_encoding_map: &DataSeriesEncodingMap,
 ) -> io::Result<()>

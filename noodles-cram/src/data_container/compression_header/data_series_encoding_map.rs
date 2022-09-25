@@ -1,7 +1,10 @@
-mod builder;
-pub mod data_series;
+//! CRAM data container compress header data series-encoding map.
 
-pub use self::{builder::Builder, data_series::DataSeries};
+mod builder;
+pub(crate) mod data_series;
+
+pub(crate) use self::builder::Builder;
+pub use self::data_series::DataSeries;
 
 use super::{
     encoding::codec::{Byte, ByteArray, Integer},
@@ -11,7 +14,7 @@ use crate::container::block;
 
 /// A container compression header data series encoding map.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct DataSeriesEncodingMap {
+pub(crate) struct DataSeriesEncodingMap {
     bam_bit_flags_encoding: Encoding<Integer>,
     cram_bit_flags_encoding: Encoding<Integer>,
     reference_id_encoding: Option<Encoding<Integer>>,
@@ -43,7 +46,7 @@ pub struct DataSeriesEncodingMap {
 }
 
 impl DataSeriesEncodingMap {
-    pub fn builder() -> Builder {
+    pub(crate) fn builder() -> Builder {
         Builder::default()
     }
 

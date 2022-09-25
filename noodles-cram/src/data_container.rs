@@ -2,7 +2,7 @@
 
 mod block_content_encoder_map;
 pub(crate) mod builder;
-pub(crate) mod compression_header;
+pub mod compression_header;
 mod header;
 mod reference_sequence_context;
 pub(crate) mod slice;
