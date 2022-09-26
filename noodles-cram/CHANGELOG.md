@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added
+
+  * cram/data_container: Add block content-encoder map
+    (`BlockContentEncoderMap`) to assign encoders to block contents (core, data
+    series, and tag values).
+
+  * cram/writer/builder: Add setter for block content-encoder map.
+
 ### Changed
 
   * cram: Increased visibilities of `cram::writer`,

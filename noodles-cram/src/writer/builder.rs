@@ -3,7 +3,7 @@ use std::io::Write;
 use noodles_fasta as fasta;
 
 use super::{Options, Writer};
-use crate::DataContainer;
+use crate::{data_container::BlockContentEncoderMap, DataContainer};
 
 /// A CRAM writer builder.
 #[derive(Default)]
@@ -39,6 +39,12 @@ impl Builder {
     /// The default is `true`.
     pub fn encode_alignment_start_positions_as_deltas(mut self, value: bool) -> Self {
         self.options.encode_alignment_start_positions_as_deltas = value;
+        self
+    }
+
+    /// Sets the block content-encoder map.
+    pub fn set_block_content_encoder_map(mut self, map: BlockContentEncoderMap) -> Self {
+        self.options.block_content_encoder_map = map;
         self
     }
 
