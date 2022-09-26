@@ -32,31 +32,3 @@ pub enum ContentType {
     /// encoding.
     CoreData,
 }
-
-impl From<ContentType> for u8 {
-    fn from(content_type: ContentType) -> Self {
-        match content_type {
-            ContentType::FileHeader => 0,
-            ContentType::CompressionHeader => 1,
-            ContentType::SliceHeader => 2,
-            ContentType::Reserved => 3,
-            ContentType::ExternalData => 4,
-            ContentType::CoreData => 5,
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_from_content_type_for_u8() {
-        assert_eq!(u8::from(ContentType::FileHeader), 0);
-        assert_eq!(u8::from(ContentType::CompressionHeader), 1);
-        assert_eq!(u8::from(ContentType::SliceHeader), 2);
-        assert_eq!(u8::from(ContentType::Reserved), 3);
-        assert_eq!(u8::from(ContentType::ExternalData), 4);
-        assert_eq!(u8::from(ContentType::CoreData), 5);
-    }
-}

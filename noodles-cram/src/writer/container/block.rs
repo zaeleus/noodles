@@ -4,7 +4,10 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use flate2::CrcWriter;
 
 use crate::{
-    container::{block::CompressionMethod, Block},
+    container::{
+        block::{CompressionMethod, ContentType},
+        Block,
+    },
     writer::num::write_itf8,
 };
 
@@ -15,9 +18,7 @@ where
     let mut crc_writer = CrcWriter::new(writer);
 
     write_compression_method(&mut crc_writer, block.compression_method())?;
-
-    let content_type = u8::from(block.content_type());
-    crc_writer.write_u8(content_type)?;
+    write_content_type(&mut crc_writer, block.content_type())?;
 
     let block_content_id = i32::from(block.content_id());
     write_itf8(&mut crc_writer, block_content_id)?;
@@ -61,6 +62,22 @@ where
     writer.write_u8(n)
 }
 
+fn write_content_type<W>(writer: &mut W, content_type: ContentType) -> io::Result<()>
+where
+    W: Write,
+{
+    let n = match content_type {
+        ContentType::FileHeader => 0,
+        ContentType::CompressionHeader => 1,
+        ContentType::SliceHeader => 2,
+        ContentType::Reserved => 3,
+        ContentType::ExternalData => 4,
+        ContentType::CoreData => 5,
+    };
+
+    writer.write_u8(n)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -93,6 +110,27 @@ mod tests {
         )?;
         t(&mut buf, CompressionMethod::Fqzcomp, &[0x07])?;
         t(&mut buf, CompressionMethod::NameTokenizer, &[0x08])?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_content_type() -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, content_type: ContentType, expected: &[u8]) -> io::Result<()> {
+            buf.clear();
+            write_content_type(buf, content_type)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
+        let mut buf = Vec::new();
+
+        t(&mut buf, ContentType::FileHeader, &[0x00])?;
+        t(&mut buf, ContentType::CompressionHeader, &[0x01])?;
+        t(&mut buf, ContentType::SliceHeader, &[0x02])?;
+        t(&mut buf, ContentType::Reserved, &[0x03])?;
+        t(&mut buf, ContentType::ExternalData, &[0x04])?;
+        t(&mut buf, ContentType::CoreData, &[0x05])?;
 
         Ok(())
     }
