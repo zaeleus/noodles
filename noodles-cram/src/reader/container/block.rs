@@ -14,14 +14,7 @@ pub fn read_block(src: &mut Bytes) -> io::Result<Block> {
     let original_src = src.clone();
 
     let method = get_compression_method(src)?;
-
-    if !src.has_remaining() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
-
-    let block_content_type_id = ContentType::try_from(src.get_u8())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
+    let block_content_type = get_content_type(src)?;
     let block_content_id = get_itf8(src).map(ContentId::from)?;
 
     let size_in_bytes = get_itf8(src).and_then(|n| {
@@ -59,7 +52,7 @@ pub fn read_block(src: &mut Bytes) -> io::Result<Block> {
 
     Ok(Block::builder()
         .set_compression_method(method)
-        .set_content_type(block_content_type_id)
+        .set_content_type(block_content_type)
         .set_content_id(block_content_id)
         .set_uncompressed_len(raw_size_in_bytes)
         .set_data(data)
@@ -87,6 +80,28 @@ where
         _ => Err(io::Error::new(
             io::ErrorKind::InvalidData,
             "invalid compression method",
+        )),
+    }
+}
+
+fn get_content_type<B>(src: &mut B) -> io::Result<ContentType>
+where
+    B: Buf,
+{
+    if !src.has_remaining() {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
+
+    match src.get_u8() {
+        0 => Ok(ContentType::FileHeader),
+        1 => Ok(ContentType::CompressionHeader),
+        2 => Ok(ContentType::SliceHeader),
+        3 => Ok(ContentType::Reserved),
+        4 => Ok(ContentType::ExternalData),
+        5 => Ok(ContentType::CoreData),
+        _ => Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid content type",
         )),
     }
 }
@@ -158,6 +173,36 @@ mod tests {
         let mut src = &[0x09][..];
         assert!(matches!(
             get_compression_method(&mut src),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_get_content_type() -> io::Result<()> {
+        fn t(mut src: &[u8], expected: ContentType) -> io::Result<()> {
+            let actual = get_content_type(&mut src)?;
+            assert_eq!(actual, expected);
+            Ok(())
+        }
+
+        t(&[0x00], ContentType::FileHeader)?;
+        t(&[0x01], ContentType::CompressionHeader)?;
+        t(&[0x02], ContentType::SliceHeader)?;
+        t(&[0x03], ContentType::Reserved)?;
+        t(&[0x04], ContentType::ExternalData)?;
+        t(&[0x05], ContentType::CoreData)?;
+
+        let mut src = &[][..];
+        assert!(matches!(
+            get_content_type(&mut src),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
+
+        let mut src = &[0x06][..];
+        assert!(matches!(
+            get_content_type(&mut src),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 
