@@ -101,7 +101,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_fmt() {}
+    fn test_fmt() {
+        assert_eq!(Color::new(0, 0, 0).to_string(), "0,0,0");
+        assert_eq!(Color::new(8, 16, 128).to_string(), "8,16,128");
+        assert_eq!(Color::new(255, 255, 255).to_string(), "255,255,255");
+    }
 
     #[test]
     fn test_from_str() {
