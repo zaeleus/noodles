@@ -134,7 +134,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_file_definition(&mut self) -> io::Result<()> {
-        let file_definition = FileDefinition::default();
+        let file_definition = FileDefinition::new(self.options.version, Default::default());
         write_file_definition(&mut self.inner, &file_definition)
     }
 

@@ -33,12 +33,20 @@ impl BlockContentEncoderMap {
         self.core_data_encoder.as_ref()
     }
 
+    pub(crate) fn data_series_encoders(&self) -> &[Option<Encoder>] {
+        &self.data_series_encoders
+    }
+
     pub(crate) fn get_data_series_encoder(
         &self,
         block_content_id: block::ContentId,
     ) -> Option<Option<&Encoder>> {
         let i = (i32::from(block_content_id) as usize) - 1;
         self.data_series_encoders.get(i).map(|e| e.as_ref())
+    }
+
+    pub(crate) fn tag_values_encoders(&self) -> &HashMap<block::ContentId, Option<Encoder>> {
+        &self.tag_values_encoders
     }
 
     pub(crate) fn get_tag_values_encoders(
