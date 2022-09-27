@@ -8,8 +8,7 @@ use std::{
 const START_CHAR: char = '!';
 const END_CHAR: char = '~';
 
-const MIN: u8 = b'!';
-const MAX: u8 = b'~' - MIN;
+const OFFSET: u8 = b'!';
 
 /// A SAM record quality scores score.
 ///
@@ -67,7 +66,7 @@ impl TryFrom<char> for Score {
 
     fn try_from(c: char) -> Result<Self, Self::Error> {
         match c {
-            START_CHAR..=END_CHAR => Ok(Self((c as u8) - MIN)),
+            START_CHAR..=END_CHAR => Ok(Self((c as u8) - OFFSET)),
             _ => Err(TryFromCharError(c)),
         }
     }
@@ -81,7 +80,13 @@ impl error::Error for TryFromUByteError {}
 
 impl fmt::Display for TryFromUByteError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid score: expected {{0..={}}}, got {}", MAX, self.0)
+        write!(
+            f,
+            "invalid score: expected {{{}..={}}}, got {}",
+            Score::MIN,
+            Score::MAX,
+            self.0
+        )
     }
 }
 
@@ -89,7 +94,7 @@ impl TryFrom<u8> for Score {
     type Error = TryFromUByteError;
 
     fn try_from(n: u8) -> Result<Self, Self::Error> {
-        if n <= MAX {
+        if n <= Self::MAX.get() {
             Ok(Self(n))
         } else {
             Err(TryFromUByteError(n))
@@ -105,7 +110,7 @@ impl From<Score> for u8 {
 
 impl From<Score> for char {
     fn from(score: Score) -> Self {
-        let value = u8::from(score) + MIN;
+        let value = u8::from(score) + OFFSET;
         Self::from(value)
     }
 }
