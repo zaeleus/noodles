@@ -23,6 +23,9 @@ pub struct Score(pub(super) u8);
 impl Score {
     /// The minimum score (0).
     pub const MIN: Self = Self(0);
+
+    /// The maximum score (93).
+    pub const MAX: Self = Self(93);
 }
 
 impl fmt::Display for Score {
