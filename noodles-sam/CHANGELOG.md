@@ -10,6 +10,8 @@
 
    * sam/record/quality_scores/score: Add `MIN` and `MAX` associated constants.
 
+   * sam/record/quality_scores/score: Add const getter (`Score::get`).
+
 [samtools/hts-specs@4b884a4]: https://github.com/samtools/hts-specs/commit/4b884a4bbef181a73c7a3e7d03c91b3fd6371c4d
 [samtools/hts-specs@44b4167]: https://github.com/samtools/hts-specs/commit/44b4167209aa0d9a89881dacfab8545f204e4f82
 

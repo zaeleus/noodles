@@ -26,6 +26,18 @@ impl Score {
 
     /// The maximum score (93).
     pub const MAX: Self = Self(93);
+
+    /// Returns the inner value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::quality_scores::Score;
+    /// assert_eq!(Score::MIN.get(), 0);
+    /// ```
+    pub const fn get(&self) -> u8 {
+        self.0
+    }
 }
 
 impl fmt::Display for Score {
