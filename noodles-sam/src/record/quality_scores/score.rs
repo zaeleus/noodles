@@ -9,7 +9,7 @@ const START_CHAR: char = '!';
 const END_CHAR: char = '~';
 
 const MIN: u8 = b'!';
-pub(super) const MAX: u8 = b'~' - MIN;
+const MAX: u8 = b'~' - MIN;
 
 /// A SAM record quality scores score.
 ///

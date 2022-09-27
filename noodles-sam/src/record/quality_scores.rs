@@ -203,7 +203,7 @@ impl TryFrom<Vec<u8>> for QualityScores {
 
     fn try_from(buf: Vec<u8>) -> Result<Self, Self::Error> {
         fn is_valid_score(n: u8) -> bool {
-            n <= score::MAX
+            n <= Score::MAX.get()
         }
 
         if buf.is_empty() {
