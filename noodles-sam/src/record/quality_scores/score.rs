@@ -20,6 +20,11 @@ pub(super) const MAX: u8 = b'~' - MIN;
 #[derive(Clone, Copy, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Score(pub(super) u8);
 
+impl Score {
+    /// The minimum score (0).
+    pub const MIN: Self = Self(0);
+}
+
 impl fmt::Display for Score {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_char(char::from(*self))
