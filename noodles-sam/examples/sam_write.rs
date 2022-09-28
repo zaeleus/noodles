@@ -1,6 +1,6 @@
 //! Creates a new SAM file.
 //!
-//! This writes a SAM header and three unmapped records to stdout.
+//! This writes a SAM header and one unmapped record to stdout.
 //!
 //! Verify the output by piping to `samtools view --no-PG --with-header`.
 
@@ -31,10 +31,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     writer.write_header(&header)?;
 
-    for _ in 0..3 {
-        let record = Record::default();
-        writer.write_record(&header, &record)?;
-    }
+    let record = Record::default();
+    writer.write_record(&header, &record)?;
 
     Ok(())
 }
