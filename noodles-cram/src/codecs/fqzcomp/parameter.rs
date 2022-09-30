@@ -22,7 +22,7 @@ pub struct Parameter {
     pub d_loc: u8,
     pub q_map: Vec<u8>,
     pub q_tab: Vec<u8>,
-    pub p_tab: Vec<u8>,
+    pub p_tab: Option<Vec<u8>>,
     pub d_tab: Vec<u8>,
 }
 
@@ -66,9 +66,9 @@ where
     };
 
     let p_tab = if flags.contains(Flags::HAVE_PTAB) {
-        read_array(reader, 1024)?
+        read_array(reader, 1024).map(Some)?
     } else {
-        vec![0; 1024]
+        None
     };
 
     let d_tab = if flags.contains(Flags::HAVE_DTAB) {
