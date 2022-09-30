@@ -1,5 +1,8 @@
+mod encode;
 mod parameter;
 mod parameters;
+
+pub use self::encode::encode;
 
 use std::{
     cmp,
