@@ -189,9 +189,9 @@ fn fqz_update_context(param: &mut Parameter, q: u8, record: &mut Record) -> u16 
         ctx += u32::from(p_tab[p]) << param.p_loc;
     }
 
-    if param.flags.contains(Flags::HAVE_DTAB) {
+    if let Some(d_tab) = param.d_tab.as_deref() {
         let d = cmp::min(record.delta, 255) as usize;
-        ctx += u32::from(param.d_tab[d]) << param.d_loc;
+        ctx += u32::from(d_tab[d]) << param.d_loc;
 
         if record.prevq != q {
             record.delta += 1;

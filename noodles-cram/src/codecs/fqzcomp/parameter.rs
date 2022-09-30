@@ -23,7 +23,7 @@ pub struct Parameter {
     pub q_map: Vec<u8>,
     pub q_tab: Vec<u8>,
     pub p_tab: Option<Vec<u8>>,
-    pub d_tab: Vec<u8>,
+    pub d_tab: Option<Vec<u8>>,
 }
 
 pub fn fqz_decode_single_param<R>(reader: &mut R) -> io::Result<Parameter>
@@ -72,9 +72,9 @@ where
     };
 
     let d_tab = if flags.contains(Flags::HAVE_DTAB) {
-        read_array(reader, 256)?
+        read_array(reader, 256).map(Some)?
     } else {
-        vec![0; 256]
+        None
     };
 
     Ok(Parameter {
