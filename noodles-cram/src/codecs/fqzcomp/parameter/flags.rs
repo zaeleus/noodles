@@ -16,3 +16,9 @@ impl From<u8> for Flags {
         Self::from_bits_truncate(n)
     }
 }
+
+impl From<Flags> for u8 {
+    fn from(flags: Flags) -> Self {
+        flags.bits()
+    }
+}
