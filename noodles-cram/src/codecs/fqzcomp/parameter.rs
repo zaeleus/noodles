@@ -35,17 +35,14 @@ where
     let max_sym = reader.read_u8()?;
     let first_len = 1;
 
-    let x = reader.read_u8()?;
-    let q_bits = x / 16;
-    let q_shift = x % 16;
+    let n = reader.read_u8()?;
+    let (q_bits, q_shift) = (n >> 4, n & 0x0f);
 
-    let x = reader.read_u8()?;
-    let q_loc = x / 16;
-    let s_loc = x % 16;
+    let n = reader.read_u8()?;
+    let (q_loc, s_loc) = (n >> 4, n & 0x0f);
 
-    let x = reader.read_u8()?;
-    let p_loc = x / 16;
-    let d_loc = x % 16;
+    let n = reader.read_u8()?;
+    let (p_loc, d_loc) = (n >> 4, n & 0x0f);
 
     let mut q_map = vec![0; usize::from(max_sym)];
 
