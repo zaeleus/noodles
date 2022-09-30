@@ -20,7 +20,7 @@ pub struct Parameter {
     pub s_loc: u8,
     pub p_loc: u8,
     pub d_loc: u8,
-    pub q_map: Vec<u8>,
+    pub q_map: Option<Vec<u8>>,
     pub q_tab: Vec<u8>,
     pub p_tab: Option<Vec<u8>>,
     pub d_tab: Option<Vec<u8>>,
@@ -44,11 +44,13 @@ where
     let n = reader.read_u8()?;
     let (p_loc, d_loc) = (n >> 4, n & 0x0f);
 
-    let mut q_map = vec![0; usize::from(max_sym)];
-
-    if flags.contains(Flags::HAVE_QMAP) {
-        reader.read_exact(&mut q_map)?;
-    }
+    let q_map = if flags.contains(Flags::HAVE_QMAP) {
+        let mut map = vec![0; usize::from(max_sym)];
+        reader.read_exact(&mut map)?;
+        Some(map)
+    } else {
+        None
+    };
 
     let q_tab = if flags.contains(Flags::HAVE_QTAB) {
         read_array(reader, 256)?

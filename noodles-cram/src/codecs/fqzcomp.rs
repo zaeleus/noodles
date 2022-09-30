@@ -66,8 +66,8 @@ where
         let param = &mut params.params[x];
         let q = models.qual[usize::from(ctx)].decode(reader, &mut range_coder)?;
 
-        dst[i] = if param.flags.contains(parameter::Flags::HAVE_QMAP) {
-            param.q_map[usize::from(q)]
+        dst[i] = if let Some(q_map) = param.q_map.as_deref() {
+            q_map[usize::from(q)]
         } else {
             q
         };
