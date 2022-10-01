@@ -10,6 +10,9 @@
 
 ### Added
 
+  * cram/codecs: Add rANS Nx16, adaptive arithmetic coder, and name tokenizer
+    encoders.
+
   * cram/data_container: Add block content-encoder map
     (`BlockContentEncoderMap`) to assign encoders to block contents (core, data
     series, and tag values).
