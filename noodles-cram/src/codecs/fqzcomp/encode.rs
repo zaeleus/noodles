@@ -47,16 +47,23 @@ pub fn encode(lens: &[usize], src: &[u8]) -> io::Result<Vec<u8>> {
             // TODO: models.sel
             x = parameters.s_tab[0];
 
-            // TODO: fixed_len
+            let is_fixed_len = parameters.params[usize::from(x)]
+                .flags
+                .contains(parameter::Flags::DO_LEN);
+
             let len = lens[rec_num];
-            rec_num += 1;
-            encode_length(&mut dst, &mut range_coder, &mut models, len)?;
+
+            if !is_fixed_len || rec_num == 0 {
+                encode_length(&mut dst, &mut range_coder, &mut models, len)?;
+            }
 
             // TODO: dedup
 
             p = len;
             last = parameters.params[usize::from(x)].context;
             qlast = 0;
+
+            rec_num += 1;
         }
 
         let qq = q_hist[usize::from(x)][usize::from(q)];
@@ -148,9 +155,15 @@ fn build_parameters(lens: &[usize], src: &[u8]) -> Parameters {
         *p = ((1 << p_bits) - 1).min(i >> p_shift) as u8;
     }
 
+    let mut flags = parameter::Flags::HAVE_PTAB;
+
+    if lens.windows(2).all(|w| w[0] == w[1]) {
+        flags |= parameter::Flags::DO_LEN;
+    }
+
     let params = vec![Parameter {
         context: 0,
-        flags: parameter::Flags::HAVE_PTAB,
+        flags,
         max_sym: max_symbol,
         q_bits,
         q_shift,
@@ -345,6 +358,30 @@ mod tests {
             0x19, 0x05, 0x00, 0x00, 0x00, 0x20, 0x03, 0x82, 0x7f, 0x0f, 0x01, 0x01, 0x7d, 0xff,
             0xff, 0x01, 0x84, 0x00, 0x09, 0xff, 0xff, 0xf6, 0x01, 0x65, 0x00, 0x86, 0x2e, 0x98,
             0xea, 0xca, 0x71, 0x6f, 0x22, 0xcd, 0xd8, 0x40,
+        ];
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_encode_with_do_len() -> io::Result<()> {
+        let data = [
+            vec![0, 0, 0, 1, 1, 2, 1, 1, 0, 0],
+            vec![0, 1, 2, 3, 3, 3, 3, 3, 3, 3],
+            vec![2, 1, 1, 0, 0, 0, 0, 0, 1, 1],
+        ];
+
+        let lens: Vec<_> = data.iter().map(|scores| scores.len()).collect();
+        let src: Vec<_> = data.into_iter().flatten().collect();
+
+        let actual = encode(&lens, &src)?;
+
+        let expected = [
+            0x1e, 0x05, 0x00, 0x00, 0x00, 0x24, 0x03, 0x82, 0x7f, 0x0f, 0x01, 0x01, 0x7d, 0xff,
+            0xff, 0x01, 0x84, 0x00, 0x09, 0xff, 0xff, 0xf6, 0x01, 0x65, 0x0c, 0x10, 0x86, 0x6d,
+            0x57, 0x10, 0x38, 0x60, 0xac,
         ];
 
         assert_eq!(actual, expected);
