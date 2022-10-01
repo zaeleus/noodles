@@ -11,7 +11,7 @@ use super::{
 };
 use crate::{codecs::aac::RangeCoder, reader::num::read_uint7};
 
-pub fn fqz_decode<R>(reader: &mut R) -> io::Result<Vec<u8>>
+pub fn decode<R>(reader: &mut R) -> io::Result<Vec<u8>>
 where
     R: Read,
 {
@@ -227,7 +227,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_fqz_decode() -> io::Result<()> {
+    fn test_decode() -> io::Result<()> {
         let data = [
             0x07, 0x05, 0x02, 0x01, 0xff, 0x01, 0x00, 0x00, 0x7c, 0x06, 0x83, 0x7e, 0x0f, 0x43,
             0x44, 0x4b, 0x4d, 0x4e, 0x52, 0x01, 0x01, 0x7d, 0xff, 0xff, 0x01, 0x84, 0x08, 0xf8,
@@ -235,7 +235,7 @@ mod tests {
         ];
 
         let mut reader = &data[..];
-        let actual = fqz_decode(&mut reader)?;
+        let actual = decode(&mut reader)?;
 
         let expected = b"noodles".map(|b| b - b'!');
 

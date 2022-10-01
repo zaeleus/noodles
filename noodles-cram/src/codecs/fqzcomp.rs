@@ -3,7 +3,7 @@ mod encode;
 mod parameter;
 mod parameters;
 
-pub use self::{decode::fqz_decode, encode::encode};
+pub use self::{decode::decode, encode::encode};
 
 use self::parameters::Parameters;
 use super::aac::{Model, RangeCoder};
