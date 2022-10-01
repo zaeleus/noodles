@@ -3,10 +3,7 @@ use std::io::{self, Write};
 use byteorder::{LittleEndian, WriteBytesExt};
 
 use super::{parameter, parameters, Models};
-use crate::{
-    codecs::aac::{Model, RangeCoder},
-    writer::num::write_uint7,
-};
+use crate::{codecs::aac::RangeCoder, writer::num::write_uint7};
 
 #[allow(dead_code)]
 pub fn encode(lens: &[usize], src: &[u8]) -> io::Result<Vec<u8>> {
@@ -25,15 +22,8 @@ pub fn encode(lens: &[usize], src: &[u8]) -> io::Result<Vec<u8>> {
     let parameters = build_parameters(lens, src);
     fqz_encode_params(&mut dst, &parameters)?;
 
-    let mut models = Models {
-        len: vec![Model::new(u8::MAX); 4],
-        qual: vec![Model::new(parameters.max_sym); 1 << 16],
-        dup: Model::new(1),
-        rev: Model::new(1),
-        sel: Model::new(1), // FIXME
-    };
-
     let mut range_coder = RangeCoder::default();
+    let mut models = Models::new(parameters.max_sym, 1); // FIXME: max_sel
 
     let mut p = 0;
     let mut rec_num = 0;

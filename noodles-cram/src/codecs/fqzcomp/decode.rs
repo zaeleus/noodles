@@ -4,7 +4,6 @@ use std::{
 };
 
 use super::{
-    fqz_create_models,
     parameter::{self, Parameter},
     parameters::{self, fqz_decode_params, Parameters},
     Models,
@@ -21,8 +20,10 @@ where
 
     let mut params = fqz_decode_params(reader)?;
 
-    let (mut range_coder, mut models) = fqz_create_models(&params);
+    let mut range_coder = RangeCoder::default();
     range_coder.range_decode_create(reader)?;
+
+    let mut models = Models::new(params.max_sym, params.max_sel);
 
     let mut i = 0;
 
