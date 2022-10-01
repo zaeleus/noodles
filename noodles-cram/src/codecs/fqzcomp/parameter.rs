@@ -6,7 +6,7 @@ use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use super::read_array;
+use super::parameters::read_array;
 
 pub struct Parameter {
     pub context: u16,
