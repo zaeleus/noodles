@@ -33,6 +33,7 @@ where
     let mut x = 0;
     let mut ctx = 0;
 
+    let mut last_len = 0;
     let mut rev_len = Vec::new();
 
     while i < buf_len {
@@ -43,8 +44,11 @@ where
                 &mut range_coder,
                 &mut models,
                 &mut record,
+                last_len,
                 &mut rev_len,
             )?;
+
+            last_len = record.rec_len;
 
             if record.is_dup {
                 for j in 0..record.rec_len {
@@ -100,6 +104,7 @@ fn fqz_new_record<R>(
     range_coder: &mut RangeCoder,
     models: &mut Models,
     record: &mut Record,
+    mut last_len: usize,
     rev_len: &mut Vec<(bool, usize)>,
 ) -> io::Result<usize>
 where
@@ -120,16 +125,13 @@ where
 
     let param = &mut parameters.params[x];
 
-    if param.flags.contains(parameter::Flags::DO_LEN) || param.first_len > 0 {
-        let len = decode_length(reader, range_coder, models)?;
-        param.last_len = len as usize;
+    let is_fixed_len = param.flags.contains(parameter::Flags::DO_LEN);
 
-        if !param.flags.contains(parameter::Flags::DO_LEN) {
-            param.first_len = 0;
-        }
+    if !is_fixed_len || record.rec == 0 {
+        last_len = decode_length(reader, range_coder, models)? as usize;
     }
 
-    record.rec_len = param.last_len;
+    record.rec_len = last_len;
     record.pos = record.rec_len;
 
     if parameters.gflags.contains(parameters::Flags::DO_REV) {
@@ -230,15 +232,19 @@ mod tests {
     #[test]
     fn test_decode() -> io::Result<()> {
         let data = [
-            0x07, 0x05, 0x02, 0x01, 0xff, 0x01, 0x00, 0x00, 0x7c, 0x06, 0x83, 0x7e, 0x0f, 0x43,
-            0x44, 0x4b, 0x4d, 0x4e, 0x52, 0x01, 0x01, 0x7d, 0xff, 0xff, 0x01, 0x84, 0x08, 0xf8,
-            0x00, 0x03, 0x7f, 0xff, 0xf9, 0x42, 0xd0, 0xe0, 0x48, 0xa9, 0x21,
+            0x19, 0x05, 0x00, 0x00, 0x00, 0x20, 0x03, 0x82, 0x7f, 0x0f, 0x01, 0x01, 0x7d, 0xff,
+            0xff, 0x01, 0x84, 0x00, 0x09, 0xff, 0xff, 0xf6, 0x01, 0x65, 0x00, 0x86, 0x2e, 0x98,
+            0xea, 0xca, 0x71, 0x6f, 0x22, 0xcd, 0xd8, 0x40,
         ];
 
         let mut reader = &data[..];
         let actual = decode(&mut reader)?;
 
-        let expected = b"noodles".map(|b| b - b'!');
+        let expected = [
+            0, 0, 0, 1, 1, 2, 1, 1, 0, 0, // 1
+            0, 1, 2, 3, 3, 3, 3, 3, 3, 3, // 2
+            2, 1, 1, 0, 0, // 3
+        ];
 
         assert_eq!(actual, expected);
 

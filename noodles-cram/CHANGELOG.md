@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * cram/codecs/fqzcomp/decode: Fix reading records with varying lengths.
+
 ## 0.19.0 - 2022-09-29
 
 ### Added

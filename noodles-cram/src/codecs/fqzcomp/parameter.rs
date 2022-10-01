@@ -12,8 +12,6 @@ pub struct Parameter {
     pub context: u16,
     pub flags: Flags,
     pub max_sym: u8,
-    pub first_len: usize,
-    pub last_len: usize,
     pub q_bits: u8,
     pub q_shift: u8,
     pub q_loc: u8,
@@ -33,7 +31,6 @@ where
     let context = reader.read_u16::<LittleEndian>()?;
     let flags = reader.read_u8().map(Flags::from)?;
     let max_sym = reader.read_u8()?;
-    let first_len = 1;
 
     let n = reader.read_u8()?;
     let (q_bits, q_shift) = (n >> 4, n & 0x0f);
@@ -80,8 +77,6 @@ where
         context,
         flags,
         max_sym,
-        first_len,
-        last_len: 0,
         q_bits,
         q_shift,
         q_loc,
