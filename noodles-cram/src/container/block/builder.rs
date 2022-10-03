@@ -77,6 +77,7 @@ impl Builder {
                 CompressionMethod::NameTokenizer,
                 name_tokenizer::encode(&data)?,
             ),
+            Encoder::Fqzcomp => unimplemented!(),
         };
 
         self.compression_method = compression_method;

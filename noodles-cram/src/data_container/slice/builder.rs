@@ -136,6 +136,8 @@ fn write_records(
     reference_sequence_context: ReferenceSequenceContext,
     records: &mut [Record],
 ) -> io::Result<(Block, Vec<Block>)> {
+    use crate::codecs::fqzcomp;
+
     fn set_block_data(
         builder: block::Builder,
         buf: Vec<u8>,
@@ -171,7 +173,7 @@ fn write_records(
 
     set_mates(records);
 
-    for record in records {
+    for record in records.iter() {
         record_writer.write_record(record)?;
     }
 
@@ -196,7 +198,18 @@ fn write_records(
             builder = if let Some(encoder) =
                 block_content_encoder_map.get_data_series_encoder(block_content_id)
             {
-                set_block_data(builder, buf, encoder)?
+                match encoder {
+                    Some(Encoder::Fqzcomp) => {
+                        let lens: Vec<_> = records.iter().map(|r| r.read_length()).collect();
+                        let data = fqzcomp::encode(&lens, &buf)?;
+
+                        builder
+                            .set_uncompressed_len(buf.len())
+                            .set_compression_method(block::CompressionMethod::Fqzcomp)
+                            .set_data(Bytes::from(data))
+                    }
+                    _ => set_block_data(builder, buf, encoder)?,
+                }
             } else if let Some(encoder) =
                 block_content_encoder_map.get_tag_values_encoders(block_content_id)
             {

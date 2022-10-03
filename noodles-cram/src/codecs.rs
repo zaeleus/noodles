@@ -26,4 +26,6 @@ pub enum Encoder {
     AdaptiveArithmeticCoding(aac::Flags),
     /// name tokenizer
     NameTokenizer,
+    /// fqzcomp
+    Fqzcomp,
 }
