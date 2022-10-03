@@ -104,7 +104,7 @@ where
             writer.write_u8(sym as u8)?;
 
             if sym > 0 && sums[sym - 1] > 0 {
-                rle = sums[sym + 1..].iter().position(|&s| s == 0).unwrap_or(255);
+                rle = sums[sym + 1..].iter().position(|&s| s == 0).unwrap_or(0);
                 writer.write_u8(rle as u8)?;
             }
         }

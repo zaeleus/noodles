@@ -6,6 +6,9 @@
 
   * cram/codecs/fqzcomp/decode: Fix reading records with varying lengths.
 
+  * cram/codecs/rans_4x8/encode: Fix run-length calculation when
+    writing frequencies.
+
 ## 0.19.0 - 2022-09-29
 
 ### Added
