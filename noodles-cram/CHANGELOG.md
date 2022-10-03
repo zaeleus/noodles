@@ -9,6 +9,9 @@
   * cram/codecs/rans_4x8/encode: Fix run-length calculation when
     writing frequencies.
 
+  * cram/codecs/rans_4x8/encode: Avoid scaling frequencies to 0 during
+    normalization.
+
 ## 0.19.0 - 2022-09-29
 
 ### Added
