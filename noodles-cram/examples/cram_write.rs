@@ -54,9 +54,8 @@ fn build_header(
         let name = record.name().parse()?;
         let len = sequence.len();
 
-        let mut hasher = Md5::new();
-        hasher.update(&sequence);
-        let md5_checksum = Md5Checksum::from(<[u8; 16]>::from(hasher.finalize()));
+        let digest = Md5::digest(sequence);
+        let md5_checksum = Md5Checksum::from(<[u8; 16]>::from(digest));
 
         let reference_sequence = Map::<ReferenceSequence>::builder()
             .set_name(name)
