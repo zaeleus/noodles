@@ -9,7 +9,7 @@ use std::{
 pub(super) const ID: &str = "ID";
 pub(super) const NUMBER: &str = "Number";
 pub(super) const TYPE: &str = "Type";
-const DESCRIPTION: &str = "Description";
+pub(super) const DESCRIPTION: &str = "Description";
 pub(super) const IDX: &str = "IDX";
 
 pub trait Standard: AsRef<str> + FromStr {}

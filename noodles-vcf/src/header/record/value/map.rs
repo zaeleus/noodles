@@ -200,22 +200,22 @@ fn fmt_display_prefix<I>(f: &mut fmt::Formatter<'_>, id: I) -> fmt::Result
 where
     I: Display,
 {
-    write!(f, "<ID={}", id)
+    write!(f, "<{}={}", tag::ID, id)
 }
 
 fn fmt_display_type_fields<T>(f: &mut fmt::Formatter<'_>, number: Number, ty: T) -> fmt::Result
 where
     T: Display,
 {
-    write!(f, ",Number={}", number)?;
-    write!(f, ",Type={}", ty)?;
+    write!(f, ",{}={}", tag::NUMBER, number)?;
+    write!(f, ",{}={}", tag::TYPE, ty)?;
     Ok(())
 }
 
 fn fmt_display_description_field(f: &mut fmt::Formatter<'_>, description: &str) -> fmt::Result {
     use crate::header::fmt::write_escaped_string;
 
-    ",Description=".fmt(f)?;
+    write!(f, ",{}=", tag::DESCRIPTION)?;
     write_escaped_string(f, description)?;
 
     Ok(())
@@ -236,7 +236,7 @@ fn fmt_display_other_fields<S>(
 }
 
 fn fmt_display_idx_field(f: &mut fmt::Formatter<'_>, idx: usize) -> fmt::Result {
-    write!(f, ",IDX={}", idx)
+    write!(f, ",{}={}", tag::IDX, idx)
 }
 
 fn fmt_display_suffix(f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -253,7 +253,7 @@ where
     I: FromStr,
 {
     s.parse()
-        .map_err(|_| TryFromFieldsError::InvalidValue("ID"))
+        .map_err(|_| TryFromFieldsError::InvalidValue(tag::ID))
         .and_then(|value| {
             if id.replace(value).is_none() {
                 Ok(())
@@ -265,7 +265,7 @@ where
 
 fn parse_number(s: &str, number: &mut Option<Number>) -> Result<(), TryFromFieldsError> {
     s.parse()
-        .map_err(|_| TryFromFieldsError::InvalidValue("Number"))
+        .map_err(|_| TryFromFieldsError::InvalidValue(tag::NUMBER))
         .and_then(|value| {
             if number.replace(value).is_none() {
                 Ok(())
@@ -280,7 +280,7 @@ where
     T: FromStr,
 {
     s.parse()
-        .map_err(|_| TryFromFieldsError::InvalidValue("Type"))
+        .map_err(|_| TryFromFieldsError::InvalidValue(tag::TYPE))
         .and_then(|value| {
             if ty.replace(value).is_none() {
                 Ok(())
@@ -303,7 +303,7 @@ fn parse_description(
 
 fn parse_idx(s: &str, idx: &mut Option<usize>) -> Result<(), TryFromFieldsError> {
     s.parse()
-        .map_err(|_| TryFromFieldsError::InvalidValue("IDX"))
+        .map_err(|_| TryFromFieldsError::InvalidValue(tag::IDX))
         .and_then(|n| {
             if idx.replace(n).is_none() {
                 Ok(())
