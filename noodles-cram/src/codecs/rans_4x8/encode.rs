@@ -37,13 +37,7 @@ pub fn encode(order: Order, data: &[u8]) -> io::Result<Vec<u8>> {
 
     let mut writer = Vec::new();
 
-    write_header(
-        &mut writer,
-        order,
-        compressed_blob.len() as u32,
-        data.len() as u32,
-    )?;
-
+    write_header(&mut writer, order, compressed_blob.len(), data.len())?;
     writer.write_all(&compressed_blob)?;
 
     Ok(writer)
@@ -52,15 +46,22 @@ pub fn encode(order: Order, data: &[u8]) -> io::Result<Vec<u8>> {
 fn write_header<W>(
     writer: &mut W,
     order: Order,
-    compressed_len: u32,
-    data_len: u32,
+    compressed_len: usize,
+    uncompressed_len: usize,
 ) -> io::Result<()>
 where
     W: Write,
 {
     writer.write_u8(u8::from(order))?;
-    writer.write_u32::<LittleEndian>(compressed_len)?;
-    writer.write_u32::<LittleEndian>(data_len)?;
+
+    let compressed_size = u32::try_from(compressed_len)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_u32::<LittleEndian>(compressed_size)?;
+
+    let data_size = u32::try_from(uncompressed_len)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_u32::<LittleEndian>(data_size)?;
+
     Ok(())
 }
 
