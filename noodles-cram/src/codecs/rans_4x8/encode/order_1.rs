@@ -45,21 +45,26 @@ pub fn encode(data: &[u8]) -> io::Result<(Vec<Vec<u32>>, Vec<u8>)> {
         }
     }
 
-    for (((windows_0, windows_1), windows_2), windows_3) in chunks[0]
-        .windows(2)
-        .rev()
-        .zip(chunks[1].windows(2).rev())
-        .zip(chunks[2].windows(2).rev())
-        .zip(chunks[3].windows(2).rev())
-    {
-        let windows = [windows_0, windows_1, windows_2, windows_3];
+    let mut windows = [
+        chunks[0].windows(2).rev(),
+        chunks[1].windows(2).rev(),
+        chunks[2].windows(2).rev(),
+        chunks[3].windows(2).rev(),
+    ];
 
-        for (state, syms) in states.iter_mut().rev().zip(windows.iter().rev()) {
+    let mut n = 0;
+    let window_count = windows[0].size_hint().0;
+
+    while n < window_count {
+        for (state, ws) in states.iter_mut().rev().zip(windows.iter_mut().rev()) {
+            let syms = ws.next().unwrap();
             let freq_i = freq[usize::from(syms[0])][usize::from(syms[1])];
             let cfreq_i = cfreq[usize::from(syms[0])][usize::from(syms[1])];
             let x = normalize(&mut buf, *state, freq_i)?;
             *state = update(x, freq_i, cfreq_i);
         }
+
+        n += 1;
     }
 
     // The last state updates are for the starting contexts, i.e., `(0, chunks[i][0])`.
