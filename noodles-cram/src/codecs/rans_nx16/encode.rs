@@ -150,7 +150,7 @@ where
                 rle = frequencies[sym + 1..]
                     .iter()
                     .position(|&f| f == 0)
-                    .unwrap_or(255);
+                    .unwrap_or(0);
 
                 writer.write_u8(rle as u8)?;
             }

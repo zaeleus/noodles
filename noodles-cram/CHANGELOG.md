@@ -19,6 +19,9 @@
   * cram/codecs/rans_4x8/encode/order_1: Fix order of rANS state
     renormalizations.
 
+  * cram/codecs/rans_nx16/encode: Fix run-length calculation when writing
+    frequencies.
+
 ## 0.19.0 - 2022-09-29
 
 ### Added
