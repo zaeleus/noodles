@@ -104,7 +104,16 @@ fn normalize_frequencies(frequencies: &[u32]) -> Vec<u32> {
     let mut normalized_sum = 0;
 
     for (&f, g) in frequencies.iter().zip(normalize_frequencies.iter_mut()) {
-        let normalized_frequency = f * SCALE / sum;
+        if f == 0 {
+            continue;
+        }
+
+        let mut normalized_frequency = f * SCALE / sum;
+
+        if normalized_frequency == 0 {
+            normalized_frequency = 1;
+        }
+
         *g = normalized_frequency;
         normalized_sum += normalized_frequency;
     }

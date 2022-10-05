@@ -22,6 +22,9 @@
   * cram/codecs/rans_nx16/encode: Fix run-length calculation when writing
     frequencies.
 
+  * cram/codecs/rans_nx16/encode: Avoid scaling frequencies to 0 during
+    normalization.
+
 ## 0.19.0 - 2022-09-29
 
 ### Added
