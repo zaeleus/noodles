@@ -54,7 +54,7 @@ pub fn encode(data: &[u8]) -> io::Result<(Vec<Vec<u32>>, Vec<u8>)> {
     {
         let windows = [windows_0, windows_1, windows_2, windows_3];
 
-        for (state, syms) in states.iter_mut().zip(windows.iter()) {
+        for (state, syms) in states.iter_mut().rev().zip(windows.iter().rev()) {
             let freq_i = freq[usize::from(syms[0])][usize::from(syms[1])];
             let cfreq_i = cfreq[usize::from(syms[0])][usize::from(syms[1])];
             let x = normalize(&mut buf, *state, freq_i)?;
@@ -63,7 +63,7 @@ pub fn encode(data: &[u8]) -> io::Result<(Vec<Vec<u32>>, Vec<u8>)> {
     }
 
     // The last state updates are for the starting contexts, i.e., `(0, chunks[i][0])`.
-    for (state, chunk) in states.iter_mut().zip(chunks.iter()) {
+    for (state, chunk) in states.iter_mut().rev().zip(chunks.iter().rev()) {
         let sym = usize::from(chunk[0]);
         let freq_i = freq[0][sym];
         let cfreq_i = cfreq[0][sym];
