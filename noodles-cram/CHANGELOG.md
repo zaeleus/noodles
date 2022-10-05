@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * cram/codecs: Add fqzcomp encoder.
+
 ### Fixed
 
   * cram/codecs/fqzcomp/decode: Fix reading records with varying lengths.
