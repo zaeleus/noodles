@@ -37,19 +37,25 @@ pub fn encode(src: &[u8], n: usize) -> io::Result<(Vec<Vec<u32>>, Vec<u8>)> {
         .map(|i| &src[i * fraction..(i + 1) * fraction])
         .collect();
 
-    let windows: Vec<_> = chunks.iter().map(|chunk| chunk.windows(2).rev()).collect();
+    let mut windows: Vec<_> = chunks.iter().map(|chunk| chunk.windows(2).rev()).collect();
 
-    for ws in windows {
-        for (state, syms) in states.iter_mut().zip(ws) {
+    let mut n = 0;
+    let window_count = windows[0].size_hint().0;
+
+    while n < window_count {
+        for (state, ws) in states.iter_mut().rev().zip(windows.iter_mut().rev()) {
+            let syms = ws.next().unwrap();
             let (sym_0, sym_1) = (usize::from(syms[0]), usize::from(syms[1]));
             let freq_i = freq[sym_0][sym_1];
             let cfreq_i = cfreq[sym_0][sym_1];
             let x = normalize(&mut buf, *state, freq_i, 12)?;
             *state = update(x, cfreq_i, freq_i, 12);
         }
+
+        n += 1;
     }
 
-    for (state, chunk) in states.iter_mut().zip(chunks.iter()) {
+    for (state, chunk) in states.iter_mut().rev().zip(chunks.iter().rev()) {
         let sym = usize::from(chunk[0]);
         let freq_i = freq[0][sym];
         let cfreq_i = cfreq[0][sym];

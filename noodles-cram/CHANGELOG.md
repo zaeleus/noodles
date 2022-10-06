@@ -25,6 +25,9 @@
   * cram/codecs/rans_nx16/encode: Avoid scaling frequencies to 0 during
     normalization.
 
+  * cram/codecs/rans_nx16/encode/order_1: Fix order of rANS state
+    renormalizations.
+
 ## 0.19.0 - 2022-09-29
 
 ### Added
