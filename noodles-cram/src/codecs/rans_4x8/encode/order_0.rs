@@ -11,8 +11,8 @@ use super::{
     build_cumulative_frequencies, normalize, normalize_frequencies, update, BASE, LOWER_BOUND,
 };
 
-pub fn encode(data: &[u8]) -> io::Result<(Vec<u32>, Vec<u8>)> {
-    let frequencies = build_frequencies(data, BASE);
+pub fn encode(src: &[u8]) -> io::Result<(Vec<u32>, Vec<u8>)> {
+    let frequencies = build_frequencies(src, BASE);
 
     let freq = normalize_frequencies(&frequencies);
     let cfreq = build_cumulative_frequencies(&freq);
@@ -20,7 +20,7 @@ pub fn encode(data: &[u8]) -> io::Result<(Vec<u32>, Vec<u8>)> {
     let mut buf = Vec::new();
     let mut states = [LOWER_BOUND; 4];
 
-    for (i, &sym) in data.iter().enumerate().rev() {
+    for (i, &sym) in src.iter().enumerate().rev() {
         let j = i % states.len();
 
         let mut x = states[j];
@@ -76,10 +76,10 @@ where
     Ok(())
 }
 
-fn build_frequencies(data: &[u8], bin_count: usize) -> Vec<u32> {
+fn build_frequencies(src: &[u8], bin_count: usize) -> Vec<u32> {
     let mut frequencies = vec![0; bin_count];
 
-    for &b in data {
+    for &b in src {
         let i = usize::from(b);
         frequencies[i] += 1;
     }

@@ -6,7 +6,7 @@ use crate::reader::num::read_itf8;
 
 use super::{rans_advance_step, rans_get_cumulative_freq, rans_renorm};
 
-pub fn decode<R>(reader: &mut R, output: &mut [u8]) -> io::Result<()>
+pub fn decode<R>(reader: &mut R, dst: &mut [u8]) -> io::Result<()>
 where
     R: Read,
 {
@@ -22,16 +22,16 @@ where
 
     let mut i = 0;
 
-    while i < output.len() {
+    while i < dst.len() {
         for j in 0..4 {
-            if i + j >= output.len() {
+            if i + j >= dst.len() {
                 return Ok(());
             }
 
             let f = rans_get_cumulative_freq(state[j]);
             let s = cumulative_freqs_symbols_table[f as usize];
 
-            output[i + j] = s;
+            dst[i + j] = s;
 
             state[j] = rans_advance_step(
                 state[j],

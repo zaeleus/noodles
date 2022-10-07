@@ -13,14 +13,14 @@ where
 {
     let (order, _, data_len) = read_header(reader)?;
 
-    let mut buf = vec![0; data_len];
+    let mut dst = vec![0; data_len];
 
     match order {
-        Order::Zero => order_0::decode(reader, &mut buf)?,
-        Order::One => order_1::decode(reader, &mut buf)?,
+        Order::Zero => order_0::decode(reader, &mut dst)?,
+        Order::One => order_1::decode(reader, &mut dst)?,
     }
 
-    Ok(buf)
+    Ok(dst)
 }
 
 fn read_header<R>(reader: &mut R) -> io::Result<(Order, usize, usize)>

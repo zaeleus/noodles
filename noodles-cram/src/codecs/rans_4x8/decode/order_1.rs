@@ -4,7 +4,7 @@ use byteorder::{LittleEndian, ReadBytesExt};
 
 use super::{order_0, rans_advance_step, rans_get_cumulative_freq, rans_renorm};
 
-pub fn decode<R>(reader: &mut R, output: &mut [u8]) -> io::Result<()>
+pub fn decode<R>(reader: &mut R, dst: &mut [u8]) -> io::Result<()>
 where
     R: Read,
 {
@@ -21,12 +21,12 @@ where
     let mut i = 0;
     let mut last_syms = [0; 4];
 
-    while i < output.len() / 4 {
+    while i < dst.len() / 4 {
         for j in 0..4 {
             let f = rans_get_cumulative_freq(state[j]);
             let s = cumulative_freqs_symbols_tables[usize::from(last_syms[j])][f as usize];
 
-            output[i + j * (output.len() / 4)] = s;
+            dst[i + j * (dst.len() / 4)] = s;
 
             state[j] = rans_advance_step(
                 state[j],
@@ -43,11 +43,11 @@ where
 
     i *= 4;
 
-    while i < output.len() {
+    while i < dst.len() {
         let f = rans_get_cumulative_freq(state[3]);
         let s = cumulative_freqs_symbols_tables[usize::from(last_syms[3])][f as usize];
 
-        output[i] = s;
+        dst[i] = s;
 
         state[3] = rans_advance_step(
             state[3],

@@ -10,11 +10,11 @@ use super::{
     LOWER_BOUND,
 };
 
-pub fn encode(data: &[u8]) -> io::Result<(Vec<Vec<u32>>, Vec<u8>)> {
+pub fn encode(src: &[u8]) -> io::Result<(Vec<Vec<u32>>, Vec<u8>)> {
     // Order-1 encoding does not support input smaller than 4 bytes.
-    assert!(data.len() >= 4);
+    assert!(src.len() >= 4);
 
-    let contexts = build_contexts(data, BASE);
+    let contexts = build_contexts(src, BASE);
     let freq = normalize_contexts(&contexts);
     let cfreq = build_cumulative_contexts(&freq);
 
@@ -22,20 +22,20 @@ pub fn encode(data: &[u8]) -> io::Result<(Vec<Vec<u32>>, Vec<u8>)> {
     let mut states = [LOWER_BOUND; 4];
 
     // The input data is split into 4 equally sized chunks.
-    let quarter = data.len() / states.len();
+    let quarter = src.len() / states.len();
 
     let chunks = [
-        &data[0..quarter],
-        &data[quarter..2 * quarter],
-        &data[2 * quarter..3 * quarter],
-        &data[3 * quarter..4 * quarter],
+        &src[0..quarter],
+        &src[quarter..2 * quarter],
+        &src[2 * quarter..3 * quarter],
+        &src[3 * quarter..4 * quarter],
     ];
 
     // The remainder of the input buffer is processed by the last state.
-    if data.len() > 4 * quarter {
+    if src.len() > 4 * quarter {
         // The last chunk includes the last symbol of the fourth chunk (the subtraction by 1). This
         // is safe because chunks are guaranteed to be nonempty.
-        let remainder = &data[4 * quarter - 1..];
+        let remainder = &src[4 * quarter - 1..];
 
         for syms in remainder.windows(2).rev() {
             let freq_i = freq[usize::from(syms[0])][usize::from(syms[1])];
@@ -122,16 +122,16 @@ where
     Ok(())
 }
 
-fn build_contexts(data: &[u8], bin_count: usize) -> Vec<Vec<u32>> {
+fn build_contexts(src: &[u8], bin_count: usize) -> Vec<Vec<u32>> {
     let mut frequencies = vec![vec![0; bin_count]; bin_count];
 
-    let quarter = data.len() / 4;
+    let quarter = src.len() / 4;
 
     for i in 0..4 {
-        frequencies[0][usize::from(data[i * quarter])] += 1;
+        frequencies[0][usize::from(src[i * quarter])] += 1;
     }
 
-    for window in data.windows(2) {
+    for window in src.windows(2) {
         let sym_0 = usize::from(window[0]);
         let sym_1 = usize::from(window[1]);
         frequencies[sym_0][sym_1] += 1;
