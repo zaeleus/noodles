@@ -333,9 +333,13 @@ fn encode_rle(src: &[u8]) -> io::Result<(Vec<u8>, Vec<u8>)> {
         }
     }
 
-    let n = scores.iter().filter(|&&s| s > 0).count();
+    let mut n = scores.iter().filter(|&&s| s > 0).count();
 
-    assert!(0 < n && n < 256);
+    if n == 0 {
+        n = 1;
+        scores[0] = 1;
+    }
+
     let mut meta = vec![n as u8];
 
     for (i, &score) in scores.iter().enumerate() {
