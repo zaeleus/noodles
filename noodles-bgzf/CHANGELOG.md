@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bgzf: Update to libdeflater 0.11.0 (libdeflate 1.14).
+
 ## 0.15.0 - 2022-09-29
 
 ### Added
