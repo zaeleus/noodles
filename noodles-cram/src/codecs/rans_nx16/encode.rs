@@ -31,9 +31,17 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     let mut pack_header = None;
 
     if flags.contains(Flags::PACK) {
-        let (header, buf) = encode_pack(&src)?;
-        pack_header = Some(header);
-        src = buf;
+        match encode_pack(&src) {
+            Ok((header, buf)) => {
+                pack_header = Some(header);
+                src = buf;
+            }
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput => {
+                flags.remove(Flags::PACK);
+                dst[0] = u8::from(flags);
+            }
+            Err(e) => return Err(e),
+        }
     }
 
     let mut rle_header = None;
