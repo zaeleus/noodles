@@ -59,6 +59,31 @@ impl Position {
     pub fn checked_add(self, other: usize) -> Option<Self> {
         usize::from(self).checked_add(other).and_then(Self::new)
     }
+
+    /// Subtracts an unsigned integer from a 1-based position.
+    ///
+    /// This returns `None` if the operation underflowed.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_core::Position;
+    /// let position = Position::try_from(8)?;
+    /// assert_eq!(position.checked_sub(5), Position::new(3));
+    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
+    /// ```
+    ///
+    /// If the operation underflows, a `None` is returned.
+    ///
+    /// ```
+    /// use noodles_core::Position;
+    /// let position = Position::try_from(8)?;
+    /// assert_eq!(position.checked_sub(9), None);
+    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
+    /// ```
+    pub fn checked_sub(self, other: usize) -> Option<Self> {
+        usize::from(self).checked_sub(other).and_then(Self::new)
+    }
 }
 
 impl fmt::Display for Position {
