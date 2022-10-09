@@ -8,7 +8,7 @@ use byteorder::WriteBytesExt;
 use super::Flags;
 use crate::writer::num::write_uint7;
 
-pub fn encode(flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
+pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     let mut src = src.to_vec();
     let mut dst = Vec::new();
 
@@ -50,6 +50,12 @@ pub fn encode(flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
 
     if let Some(header) = rle_header {
         dst.write_all(&header)?;
+    }
+
+    if src.is_empty() {
+        flags.remove(Flags::ORDER);
+        flags.insert(Flags::CAT);
+        dst[0] = u8::from(flags);
     }
 
     if flags.contains(Flags::CAT) {

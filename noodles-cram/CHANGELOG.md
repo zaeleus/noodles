@@ -27,6 +27,9 @@
 
   * cram/codecs/rans_nx16/encode: Handle 0 RLE symbols.
 
+  * cram/codecs/rans_nx16/encode: Disable rANS encoding when the input is
+    empty.
+
   * cram/codecs/rans_nx16/encode/order_1: Fix order of rANS state
     renormalizations.
 
