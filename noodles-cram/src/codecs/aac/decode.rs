@@ -199,9 +199,7 @@ fn decode_order_0<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<()>
 where
     R: Read,
 {
-    let max_sym = reader
-        .read_u8()
-        .map(|n| if n == 0 { u8::MAX } else { n - 1 })?;
+    let max_sym = reader.read_u8().map(|n| n.overflowing_sub(1).0)?;
 
     let mut model = Model::new(max_sym);
 
@@ -219,9 +217,7 @@ fn decode_order_1<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<()>
 where
     R: Read,
 {
-    let max_sym = reader
-        .read_u8()
-        .map(|n| if n == 0 { u8::MAX } else { n - 1 })?;
+    let max_sym = reader.read_u8().map(|n| n.overflowing_sub(1).0)?;
 
     let mut models = vec![Model::new(max_sym); usize::from(max_sym) + 1];
 
