@@ -114,10 +114,10 @@ fn normalize_frequencies(frequencies: &[u32]) -> Vec<u32> {
         return vec![0; frequencies.len()];
     }
 
-    let mut normalize_frequencies = vec![0; frequencies.len()];
+    let mut normalized_frequencies = vec![0; frequencies.len()];
     let mut normalized_sum = 0;
 
-    for (&f, g) in frequencies.iter().zip(normalize_frequencies.iter_mut()) {
+    for (&f, g) in frequencies.iter().zip(normalized_frequencies.iter_mut()) {
         if f == 0 {
             continue;
         }
@@ -133,10 +133,10 @@ fn normalize_frequencies(frequencies: &[u32]) -> Vec<u32> {
     }
 
     if normalized_sum < SCALE {
-        normalize_frequencies[max_index] += SCALE - normalized_sum;
+        normalized_frequencies[max_index] += SCALE - normalized_sum;
     }
 
-    normalize_frequencies
+    normalized_frequencies
 }
 
 fn build_cumulative_frequencies(frequencies: &[u32]) -> Vec<u32> {
