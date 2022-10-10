@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * sam/record/mapping_quality: Add `const` getter (`MappingQuality::get`).
+
 ## 0.19.0 - 2022-09-29
 
 ### Added

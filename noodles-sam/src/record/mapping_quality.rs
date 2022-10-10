@@ -30,6 +30,19 @@ impl MappingQuality {
             Some(Self(n))
         }
     }
+
+    /// Returns the inner value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::MappingQuality;
+    /// let mapping_quality = MappingQuality::new(8).unwrap();
+    /// assert_eq!(mapping_quality.get(), 8);
+    /// ```
+    pub const fn get(&self) -> u8 {
+        self.0
+    }
 }
 
 /// An error returned when a raw SAM record mapping quality fails to parse.
