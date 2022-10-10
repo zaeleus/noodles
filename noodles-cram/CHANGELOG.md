@@ -8,6 +8,9 @@
 
 ### Fixed
 
+  * cram/codecs/aac/encode: Fix serialization of the max symbol for
+    order-0 and 1 encoders.
+
   * cram/codecs/fqzcomp/decode: Fix reading records with varying lengths.
 
   * cram/codecs/rans_4x8/encode: Fix run-length calculation when
