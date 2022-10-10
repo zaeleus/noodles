@@ -6,7 +6,7 @@ use super::{Flags, Model, RangeCoder};
 use crate::writer::num::write_uint7;
 
 #[allow(dead_code)]
-pub fn encode(flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
+pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     use crate::codecs::rans_nx16::encode::encode_pack;
 
     let mut src = src.to_vec();
@@ -29,9 +29,17 @@ pub fn encode(flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     let mut pack_header = None;
 
     if flags.contains(Flags::PACK) {
-        let (header, buf) = encode_pack(&src)?;
-        pack_header = Some(header);
-        src = buf;
+        match encode_pack(&src) {
+            Ok((header, buf)) => {
+                pack_header = Some(header);
+                src = buf;
+            }
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput => {
+                flags.remove(Flags::PACK);
+                dst[0] = u8::from(flags);
+            }
+            Err(e) => return Err(e),
+        }
     }
 
     if let Some(header) = pack_header {

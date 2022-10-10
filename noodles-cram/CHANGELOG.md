@@ -11,6 +11,9 @@
   * cram/codecs/aac/encode: Fix serialization of the max symbol for
     order-0 and 1 encoders.
 
+  * cram/codecs/aac/encode: Disable bit packing if the input has more than 16
+    symbols.
+
   * cram/codecs/fqzcomp/decode: Fix reading records with varying lengths.
 
   * cram/codecs/rans_4x8/encode: Fix run-length calculation when
