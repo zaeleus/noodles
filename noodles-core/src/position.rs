@@ -44,6 +44,18 @@ impl Position {
         }
     }
 
+    /// Returns the inner value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_core::Position;
+    /// assert_eq!(Position::MIN.get(), 1);
+    /// ```
+    pub const fn get(&self) -> usize {
+        self.0.get()
+    }
+
     /// Adds an unsigned integer to a 1-based position.
     ///
     /// This returns `None` if the operation overflowed.

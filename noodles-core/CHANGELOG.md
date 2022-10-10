@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * core/position: Add `const` getter (`Position::get`).
+
 ## 0.8.0 - 2022-08-16
 
 ### Changed
