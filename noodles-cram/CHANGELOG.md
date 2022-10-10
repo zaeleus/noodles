@@ -30,8 +30,8 @@
 
   * cram/codecs/rans_nx16/encode: Handle 0 RLE symbols.
 
-  * cram/codecs/rans_nx16/encode: Disable rANS encoding when the input is
-    empty.
+  * cram/codecs/rans_nx16/encode: Disable rANS encoding when the input is too
+    small.
 
   * cram/codecs/rans_nx16/encode: Disable bit packing if the input has more
     than 16 symbols.

@@ -60,9 +60,13 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
         dst.write_all(&header)?;
     }
 
-    if src.is_empty() {
+    if src.len() < n {
         flags.remove(Flags::ORDER);
-        flags.insert(Flags::CAT);
+
+        if src.is_empty() {
+            flags.insert(Flags::CAT);
+        }
+
         dst[0] = u8::from(flags);
     }
 
