@@ -95,6 +95,8 @@ fn build_frequencies(src: &[u8]) -> Vec<u32> {
 }
 
 fn normalize_frequencies(frequencies: &[u32]) -> Vec<u32> {
+    use std::cmp::Ordering;
+
     const SCALE: u32 = 4096;
 
     let mut sum = 0;
@@ -132,8 +134,10 @@ fn normalize_frequencies(frequencies: &[u32]) -> Vec<u32> {
         normalized_sum += normalized_frequency;
     }
 
-    if normalized_sum < SCALE {
-        normalized_frequencies[max_index] += SCALE - normalized_sum;
+    match normalized_sum.cmp(&SCALE) {
+        Ordering::Less => normalized_frequencies[max_index] += SCALE - normalized_sum,
+        Ordering::Equal => {}
+        Ordering::Greater => normalized_frequencies[max_index] -= normalized_sum - SCALE,
     }
 
     normalized_frequencies

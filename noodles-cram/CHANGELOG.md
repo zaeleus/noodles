@@ -33,6 +33,9 @@
   * cram/codecs/rans_nx16/encode: Disable bit packing if the input has more
     than 16 symbols.
 
+  * cram/codecs/rans_nx16/encode: Ensure the sum of the normalized frequencies
+    equals the scaling factor.
+
   * cram/codecs/rans_nx16/encode/order_1: Fix order of rANS state
     renormalizations.
 
