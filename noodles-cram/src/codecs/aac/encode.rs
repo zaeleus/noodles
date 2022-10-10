@@ -124,7 +124,7 @@ fn encode_ext(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
 
 fn encode_rle_0(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
     let max_sym = src.iter().max().copied().unwrap_or(0);
-    dst.write_u8(max_sym + 1)?;
+    dst.write_u8(max_sym.overflowing_add(1).0)?;
 
     let mut model_lit = Model::new(max_sym);
     let mut model_run = vec![Model::new(3); 258];
@@ -162,7 +162,7 @@ fn encode_rle_0(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
 
 fn encode_rle_1(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
     let max_sym = src.iter().max().copied().unwrap_or(0);
-    dst.write_u8(max_sym + 1)?;
+    dst.write_u8(max_sym.overflowing_add(1).0)?;
 
     let model_lit_count = usize::from(max_sym) + 1;
     let mut model_lit = vec![Model::new(max_sym); model_lit_count];
