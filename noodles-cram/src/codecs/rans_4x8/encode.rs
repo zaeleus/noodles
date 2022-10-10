@@ -66,6 +66,8 @@ where
 }
 
 fn normalize_frequencies(frequencies: &[u32]) -> Vec<u32> {
+    use std::cmp::Ordering;
+
     const SCALE: u32 = 4095;
 
     let mut sum = 0;
@@ -103,11 +105,10 @@ fn normalize_frequencies(frequencies: &[u32]) -> Vec<u32> {
         normalized_sum += normalized_frequency;
     }
 
-    // Because the calculation of `normalized_frequency` uses integer division (truncation), it's
-    // possible that the sum of all the normalized frequencies is smaller than the scale value. In
-    // this case, the difference is added to the last max value.
-    if normalized_sum < SCALE {
-        normalized_frequencies[max_index] += SCALE - normalized_sum;
+    match normalized_sum.cmp(&SCALE) {
+        Ordering::Less => normalized_frequencies[max_index] += SCALE - normalized_sum,
+        Ordering::Equal => {}
+        Ordering::Greater => normalized_frequencies[max_index] -= normalized_sum - SCALE,
     }
 
     normalized_frequencies
