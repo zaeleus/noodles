@@ -29,7 +29,7 @@ pub fn encode(lens: &[usize], src: &[u8]) -> io::Result<Vec<u8>> {
 
     let mut x = 0;
     let mut last = 0;
-    let mut qlast: u16 = 0;
+    let mut qlast = 0;
 
     for &q in src {
         if p == 0 {
@@ -56,23 +56,23 @@ pub fn encode(lens: &[usize], src: &[u8]) -> io::Result<Vec<u8>> {
             }
 
             p = len;
-            last = param.context;
+            last = u32::from(param.context);
             qlast = 0;
 
             rec_num += 1;
         }
 
         let qq = q_hist[usize::from(x)][usize::from(q)];
-        models.qual[usize::from(last)].encode(&mut dst, &mut range_coder, qq)?;
+        models.qual[usize::from(last as u16)].encode(&mut dst, &mut range_coder, qq)?;
 
         let param = &parameters.params[usize::from(x)];
 
-        qlast = (qlast << param.q_shift) + u16::from(param.q_tab[usize::from(qq)]);
-        last = param.context;
+        qlast = (qlast << param.q_shift) + u32::from(param.q_tab[usize::from(qq)]);
+        last = u32::from(param.context);
         last += (qlast & ((1 << param.q_bits) - 1)) << param.q_loc;
 
         if param.flags.contains(parameter::Flags::HAVE_PTAB) {
-            last += u16::from(param.p_tab[p.min(1023)] << param.p_loc);
+            last += u32::from(param.p_tab[p.min(1023)] << param.p_loc);
         }
 
         if param.flags.contains(parameter::Flags::HAVE_DTAB) {
