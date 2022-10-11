@@ -11,7 +11,6 @@ use crate::writer::num::write_uint7;
 
 const NUL: u8 = 0x00;
 
-#[allow(dead_code)]
 pub fn encode(mut src: &[u8]) -> io::Result<Vec<u8>> {
     let mut dst = Vec::new();
 

@@ -5,7 +5,6 @@ use byteorder::WriteBytesExt;
 use super::{Flags, Model, RangeCoder};
 use crate::writer::num::write_uint7;
 
-#[allow(dead_code)]
 pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     use crate::codecs::rans_nx16::encode::encode_pack;
 

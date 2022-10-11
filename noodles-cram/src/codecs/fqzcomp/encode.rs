@@ -5,7 +5,6 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use super::{parameter, parameters, Models};
 use crate::{codecs::aac::RangeCoder, writer::num::write_uint7};
 
-#[allow(dead_code)]
 pub fn encode(lens: &[usize], src: &[u8]) -> io::Result<Vec<u8>> {
     let mut dst = Vec::new();
 
