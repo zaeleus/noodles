@@ -222,7 +222,7 @@ where
             if ty != Type::Type {
                 let mut buf = vec![u8::from(Type::Match); n_names];
                 buf[0] = u8::from(ty);
-                b[t as usize].set(ty, buf);
+                b[t as usize].set(Type::Type, buf);
             }
         }
 

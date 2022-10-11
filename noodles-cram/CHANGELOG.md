@@ -18,6 +18,9 @@
 
   * cram/codecs/name_tokenizer/decode: Add missing mutable `DUP` reader.
 
+  * cram/codecs/name_tokenizer/decode: Fix setting `TYPE` reader when reading
+    token byte streams.
+
   * cram/codecs/name_tokenizer/encode: Strip final separator before splitting
     names.
 
