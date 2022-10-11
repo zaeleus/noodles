@@ -15,8 +15,8 @@ pub fn encode(lens: &[usize], src: &[u8]) -> io::Result<Vec<u8>> {
 
     let mut q_hist = [[0; 256]];
 
-    for i in 0..src.len() {
-        q_hist[0][i] = i as u8;
+    for (i, f) in q_hist[0].iter_mut().enumerate() {
+        *f = i as u8;
     }
 
     let parameters = build_parameters(lens, src);
