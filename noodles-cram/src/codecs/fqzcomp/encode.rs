@@ -34,7 +34,10 @@ pub fn encode(lens: &[usize], src: &[u8]) -> io::Result<Vec<u8>> {
 
     for &q in src {
         if p == 0 {
-            // TODO: models.sel
+            if parameters.gflags.contains(parameters::Flags::HAVE_S_TAB) {
+                todo!("have_s_tab");
+            }
+
             x = parameters.s_tab[0];
 
             let is_fixed_len = parameters.params[usize::from(x)]
@@ -47,10 +50,14 @@ pub fn encode(lens: &[usize], src: &[u8]) -> io::Result<Vec<u8>> {
                 encode_length(&mut dst, &mut range_coder, &mut models, len)?;
             }
 
-            // TODO: dedup
+            let param = &parameters.params[usize::from(x)];
+
+            if param.flags.contains(parameter::Flags::DO_DEDUP) {
+                todo!("do_dedup");
+            }
 
             p = len;
-            last = parameters.params[usize::from(x)].context;
+            last = param.context;
             qlast = 0;
 
             rec_num += 1;
@@ -69,8 +76,13 @@ pub fn encode(lens: &[usize], src: &[u8]) -> io::Result<Vec<u8>> {
             last += u16::from(param.p_tab[p.min(1023)] << param.p_loc);
         }
 
-        // TODO: d_bits
-        // TODO: do_sel
+        if param.flags.contains(parameter::Flags::HAVE_DTAB) {
+            todo!("have_dtab");
+        }
+
+        if param.flags.contains(parameter::Flags::DO_SEL) {
+            todo!("do_sel");
+        }
 
         last &= 0xffff;
         p -= 1;
