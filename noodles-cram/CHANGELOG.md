@@ -16,6 +16,9 @@
 
   * cram/codecs/fqzcomp/decode: Fix reading records with varying lengths.
 
+  * cram/codecs/name_tokenizer/encode: Strip final separator before splitting
+    names.
+
   * cram/codecs/rans_4x8/encode: Fix run-length calculation when writing
     frequencies.
 

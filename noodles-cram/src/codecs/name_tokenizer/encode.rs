@@ -12,16 +12,18 @@ use crate::writer::num::write_uint7;
 const NUL: u8 = 0x00;
 
 #[allow(dead_code)]
-pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
+pub fn encode(mut src: &[u8]) -> io::Result<Vec<u8>> {
     let mut dst = Vec::new();
 
-    let mut names: Vec<_> = src
+    if let Some(buf) = src.strip_suffix(&[NUL]) {
+        src = buf;
+    }
+
+    let names: Vec<_> = src
         .split(|&b| b == NUL)
         .map(str::from_utf8)
         .collect::<Result<_, _>>()
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-    names.pop();
 
     write_header(&mut dst, src.len(), names.len())?;
 
