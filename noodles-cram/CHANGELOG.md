@@ -16,6 +16,8 @@
 
   * cram/codecs/fqzcomp/decode: Fix reading records with varying lengths.
 
+  * cram/codecs/name_tokenizer/decode: Add missing mutable `DUP` reader.
+
   * cram/codecs/name_tokenizer/encode: Strip final separator before splitting
     names.
 

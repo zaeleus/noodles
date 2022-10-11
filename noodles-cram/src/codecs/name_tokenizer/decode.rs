@@ -85,6 +85,7 @@ impl TokenReader {
             Type::String => &mut self.string_reader,
             Type::Char => &mut self.char_reader,
             Type::Digits0 => &mut self.digits0_reader,
+            Type::Dup => &mut self.dup_reader,
             Type::Diff => &mut self.diff_reader,
             Type::DZLen => &mut self.dz_len_reader,
             Type::Digits => &mut self.digits_reader,
