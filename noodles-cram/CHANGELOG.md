@@ -30,7 +30,7 @@
   * cram/codecs/rans_4x8/encode: Avoid scaling frequencies to 0 during
     normalization.
 
-  * cram/codecs/rans_4x8/encode: Enusre the sum of the normalized frequencies
+  * cram/codecs/rans_4x8/encode: Ensure the sum of the normalized frequencies
     equals the scaling factor.
 
   * cram/codecs/rans_4x8/encode/order_1: Fix order of rANS state
