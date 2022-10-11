@@ -14,15 +14,7 @@ where
 {
     const NUL: u8 = 0x00;
 
-    let ulen = reader.read_u32::<LittleEndian>().and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let n_names = reader.read_u32::<LittleEndian>().and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let use_arith = reader.read_u8()? == 1;
+    let (ulen, n_names, use_arith) = read_header(reader)?;
 
     let mut b = decode_token_byte_streams(reader, use_arith, n_names)?;
 
@@ -38,6 +30,23 @@ where
     }
 
     Ok(dst)
+}
+
+fn read_header<R>(reader: &mut R) -> io::Result<(usize, usize, bool)>
+where
+    R: Read,
+{
+    let ulen = reader.read_u32::<LittleEndian>().and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
+    let n_names = reader.read_u32::<LittleEndian>().and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
+    let use_arith = reader.read_u8()? == 1;
+
+    Ok((ulen, n_names, use_arith))
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
