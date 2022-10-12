@@ -29,7 +29,7 @@ pub fn encode(lens: &[usize], src: &[u8]) -> io::Result<Vec<u8>> {
 
     let mut x = 0;
     let mut last = 0;
-    let mut qlast = 0;
+    let mut qlast: u32 = 0;
 
     for &q in src {
         if p == 0 {
@@ -67,7 +67,9 @@ pub fn encode(lens: &[usize], src: &[u8]) -> io::Result<Vec<u8>> {
 
         let param = &parameters.params[usize::from(x)];
 
-        qlast = (qlast << param.q_shift) + u32::from(param.q_tab[usize::from(qq)]);
+        qlast = (qlast << param.q_shift)
+            .overflowing_add(u32::from(param.q_tab[usize::from(qq)]))
+            .0;
         last = u32::from(param.context);
         last += (qlast & ((1 << param.q_bits) - 1)) << param.q_loc;
 

@@ -158,8 +158,9 @@ fn fqz_update_context(param: &mut Parameter, q: u8, record: &mut Record) -> u16 
 
     let mut ctx = u32::from(param.context);
 
-    record.qctx =
-        (record.qctx << u32::from(param.q_shift)) + u32::from(param.q_tab[usize::from(q)]);
+    record.qctx = (record.qctx << u32::from(param.q_shift))
+        .overflowing_add(u32::from(param.q_tab[usize::from(q)]))
+        .0;
 
     ctx += (record.qctx & ((1 << param.q_bits) - 1)) << param.q_loc;
 
