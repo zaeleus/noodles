@@ -16,20 +16,7 @@ const LOWER_BOUND: u32 = 0x800000;
 pub fn encode(order: Order, src: &[u8]) -> io::Result<Vec<u8>> {
     match order {
         Order::Zero => order_0::encode(src),
-        Order::One => {
-            let (normalized_contexts, compressed_data) = order_1::encode(src)?;
-
-            let mut compressed_blob = Vec::new();
-            order_1::write_contexts(&mut compressed_blob, &normalized_contexts)?;
-            compressed_blob.extend(&compressed_data);
-
-            let mut dst = Vec::new();
-
-            write_header(&mut dst, order, compressed_blob.len(), src.len())?;
-            dst.write_all(&compressed_blob)?;
-
-            Ok(dst)
-        }
+        Order::One => order_1::encode(src),
     }
 }
 

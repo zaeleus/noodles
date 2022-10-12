@@ -1,16 +1,14 @@
-use std::{
-    io::{self, Write},
-    mem,
-};
+use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 
 use super::{
-    build_cumulative_frequencies, normalize, normalize_frequencies, order_0, update, BASE,
-    LOWER_BOUND,
+    build_cumulative_frequencies, normalize, normalize_frequencies, update, BASE, LOWER_BOUND,
 };
 
-pub fn encode(src: &[u8]) -> io::Result<(Vec<Vec<u32>>, Vec<u8>)> {
+pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
+    use super::{write_header, Order};
+
     // Order-1 encoding does not support input smaller than 4 bytes.
     assert!(src.len() >= 4);
 
@@ -76,21 +74,29 @@ pub fn encode(src: &[u8]) -> io::Result<(Vec<Vec<u32>>, Vec<u8>)> {
         *state = update(x, freq_i, cfreq_i);
     }
 
-    let mut writer = Vec::with_capacity(4 * mem::size_of::<u32>() + buf.len());
+    let mut dst = vec![0; 9];
+
+    write_contexts(&mut dst, &freq)?;
 
     for &state in &states {
-        writer.write_u32::<LittleEndian>(state)?;
+        dst.write_u32::<LittleEndian>(state)?;
     }
 
-    writer.extend(buf.iter().rev());
+    dst.extend(buf.iter().rev());
 
-    Ok((freq, writer))
+    let compressed_len = dst[9..].len();
+    let mut writer = &mut dst[..9];
+    write_header(&mut writer, Order::One, compressed_len, src.len())?;
+
+    Ok(dst)
 }
 
-pub fn write_contexts<W>(writer: &mut W, contexts: &[Vec<u32>]) -> io::Result<()>
+fn write_contexts<W>(writer: &mut W, contexts: &[Vec<u32>]) -> io::Result<()>
 where
     W: Write,
 {
+    use super::order_0;
+
     let sums: Vec<u32> = contexts
         .iter()
         .map(|frequencies| frequencies.iter().sum())
@@ -162,43 +168,14 @@ mod tests {
     fn test_encode() -> io::Result<()> {
         // § 14.4.2 Frequency table, Order-1 encoding (2020-07-22)
         let data = b"abracadabraabracadabraabracadabraabracadabra";
-        let (actual_normalized_contexts, actual_compressed_data) = encode(data)?;
-
-        let mut expected_normalized_contexts = [[0; BASE]; BASE];
-        expected_normalized_contexts[0][usize::from(b'a')] = 4095;
-        expected_normalized_contexts[usize::from(b'a')][usize::from(b'a')] = 646;
-        expected_normalized_contexts[usize::from(b'a')][usize::from(b'b')] = 1725;
-        expected_normalized_contexts[usize::from(b'a')][usize::from(b'c')] = 862;
-        expected_normalized_contexts[usize::from(b'a')][usize::from(b'd')] = 862;
-        expected_normalized_contexts[usize::from(b'b')][usize::from(b'r')] = 4095;
-        expected_normalized_contexts[usize::from(b'c')][usize::from(b'a')] = 4095;
-        expected_normalized_contexts[usize::from(b'd')][usize::from(b'a')] = 4095;
-        expected_normalized_contexts[usize::from(b'r')][usize::from(b'a')] = 4095;
-
-        assert_eq!(actual_normalized_contexts, expected_normalized_contexts);
-
-        let expected_compressed_data = [
-            0x75, 0x51, 0xc3, 0x3f, // states[0]
-            0x75, 0x51, 0xc3, 0x3f, // states[1]
-            0x75, 0x51, 0xc3, 0x3f, // states[2]
-            0x75, 0x51, 0xc3, 0x3f, // states[3]
-        ];
-
-        assert_eq!(actual_compressed_data, expected_compressed_data);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_write_contexts() -> io::Result<()> {
-        let data = b"abracadabraabracadabraabracadabraabracadabra";
-        let contexts = build_contexts(data, BASE);
-        let normalized_contexts = normalize_contexts(&contexts);
-
-        let mut writer = Vec::new();
-        write_contexts(&mut writer, &normalized_contexts)?;
+        let actual = encode(data)?;
 
         let expected = [
+            // header
+            0x01, // order = 1
+            0x36, 0x00, 0x00, 0x00, // compressed_len = 54
+            0x2c, 0x00, 0x00, 0x00, // uncompressed_len = 44
+            // frequency table
             0x00, // syms[0] = '\0' {
             0x61, // syms[1] = 'a'
             0x8f, 0xff, // f[0]['a'] = 4095
@@ -230,9 +207,14 @@ mod tests {
             0x8f, 0xff, // f['r']['a'] = 4095
             0x00, // }
             0x00, // end
+            // compressed blob
+            0x75, 0x51, 0xc3, 0x3f, // states[0]
+            0x75, 0x51, 0xc3, 0x3f, // states[1]
+            0x75, 0x51, 0xc3, 0x3f, // states[2]
+            0x75, 0x51, 0xc3, 0x3f, // states[3]
         ];
 
-        assert_eq!(writer, expected);
+        assert_eq!(actual, expected);
 
         Ok(())
     }
