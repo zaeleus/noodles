@@ -1,7 +1,4 @@
-use std::{
-    io::{self, Write},
-    mem,
-};
+use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 
@@ -11,7 +8,9 @@ use super::{
     build_cumulative_frequencies, normalize, normalize_frequencies, update, BASE, LOWER_BOUND,
 };
 
-pub fn encode(src: &[u8]) -> io::Result<(Vec<u32>, Vec<u8>)> {
+pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
+    use super::{write_header, Order};
+
     let frequencies = build_frequencies(src, BASE);
 
     let freq = normalize_frequencies(&frequencies);
@@ -31,15 +30,21 @@ pub fn encode(src: &[u8]) -> io::Result<(Vec<u32>, Vec<u8>)> {
         states[j] = update(x, freq_i, cfreq_i);
     }
 
-    let mut writer = Vec::with_capacity(states.len() * mem::size_of::<u32>() + buf.len());
+    let mut dst = vec![0; 9];
+
+    write_frequencies(&mut dst, &freq)?;
 
     for &state in &states {
-        writer.write_u32::<LittleEndian>(state)?;
+        dst.write_u32::<LittleEndian>(state)?;
     }
 
-    writer.extend(buf.iter().rev());
+    dst.extend(buf.iter().rev());
 
-    Ok((freq, writer))
+    let compressed_len = dst[9..].len();
+    let mut writer = &mut dst[..9];
+    write_header(&mut writer, Order::Zero, compressed_len, src.len())?;
+
+    Ok(dst)
 }
 
 pub fn write_frequencies<W>(writer: &mut W, frequencies: &[u32]) -> io::Result<()>
@@ -95,42 +100,14 @@ mod tests {
     fn test_encode() -> io::Result<()> {
         // § 14.4.2 Frequency table, Order-0 encoding (2020-07-22)
         let data = b"abracadabra";
-        let (actual_normalized_frequencies, actual_compressed_data) = encode(data)?;
-
-        let mut expected_normalized_frequencies = [0; BASE];
-        expected_normalized_frequencies[usize::from(b'a')] = 1863;
-        expected_normalized_frequencies[usize::from(b'b')] = 744;
-        expected_normalized_frequencies[usize::from(b'c')] = 372;
-        expected_normalized_frequencies[usize::from(b'd')] = 372;
-        expected_normalized_frequencies[usize::from(b'r')] = 744;
-
-        assert_eq!(
-            actual_normalized_frequencies,
-            expected_normalized_frequencies
-        );
-
-        let expected_compressed_data = [
-            0xd2, 0x02, 0xa4, 0x42, // states[0]
-            0x0d, 0x3a, 0x52, 0x21, // states[1]
-            0xd0, 0xfe, 0xa1, 0x42, // states[2]
-            0x40, 0xa6, 0x6a, 0x02, // states[3]
-        ];
-
-        assert_eq!(actual_compressed_data, expected_compressed_data);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_write_frequencies() -> io::Result<()> {
-        let data = b"abracadabra";
-        let frequencies = build_frequencies(data, BASE);
-        let normalized_frequencies = normalize_frequencies(&frequencies);
-
-        let mut writer = Vec::new();
-        write_frequencies(&mut writer, &normalized_frequencies)?;
+        let actual = encode(data)?;
 
         let expected = [
+            // header
+            0x00, // order = 0
+            0x1f, 0x00, 0x00, 0x00, // compressed_len = 31
+            0x0b, 0x00, 0x00, 0x00, // uncompressed_len = 11
+            // frequency table
             0x61, // sym = 'a'
             0x87, 0x47, // f['a'] = 1863
             0x62, // sym = 'b'
@@ -141,9 +118,14 @@ mod tests {
             0x72, // 'r'
             0x82, 0xe8, // f['r'] = 744
             0x00, // end
+            // compressed blob
+            0xd2, 0x02, 0xa4, 0x42, // states[0]
+            0x0d, 0x3a, 0x52, 0x21, // states[1]
+            0xd0, 0xfe, 0xa1, 0x42, // states[2]
+            0x40, 0xa6, 0x6a, 0x02, // states[3]
         ];
 
-        assert_eq!(writer, expected);
+        assert_eq!(actual, expected);
 
         Ok(())
     }
