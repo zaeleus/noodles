@@ -20,12 +20,12 @@ use super::{gz, VirtualPosition, BGZF_HEADER_SIZE, BGZF_MAX_ISIZE};
 // For zlib (and derivatives) and libdeflate, this is 10 bytes; and for miniz_oxide, 15 bytes.
 const COMPRESSION_LEVEL_0_OVERHEAD: usize = 15;
 
-// The size of the write buffer.
+// The max size of the write buffer.
 //
 // The buffer that uses this size is the uncompressed data that is staged to be written as a BGZF
 // block. It is slightly smaller than the max allowed ISIZE to compensate for the gzip format and
 // DEFLATE overheads.
-pub(crate) const DEFAULT_BUF_SIZE: usize =
+pub(crate) const MAX_BUF_SIZE: usize =
     BGZF_MAX_ISIZE - BGZF_HEADER_SIZE - gz::TRAILER_SIZE - COMPRESSION_LEVEL_0_OVERHEAD;
 
 const BGZF_FLG: u8 = 0x04; // FEXTRA
@@ -255,11 +255,11 @@ where
     W: Write,
 {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        let max_write_len = cmp::min(DEFAULT_BUF_SIZE - self.buf.len(), buf.len());
+        let max_write_len = cmp::min(MAX_BUF_SIZE - self.buf.len(), buf.len());
 
         self.buf.extend_from_slice(&buf[..max_write_len]);
 
-        if self.buf.len() >= DEFAULT_BUF_SIZE {
+        if self.buf.len() >= MAX_BUF_SIZE {
             self.flush()?;
         }
 

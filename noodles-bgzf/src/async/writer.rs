@@ -15,8 +15,6 @@ use futures::{ready, sink::Buffer, Sink};
 use pin_project_lite::pin_project;
 use tokio::io::{self, AsyncWrite};
 
-use crate::writer::DEFAULT_BUF_SIZE;
-
 use self::{deflate::Deflate, deflater::Deflater};
 
 #[cfg(feature = "libdeflate")]
@@ -88,13 +86,15 @@ where
         cx: &mut Context<'_>,
         buf: &[u8],
     ) -> Poll<Result<usize, io::Error>> {
-        if self.buf.len() >= DEFAULT_BUF_SIZE {
+        use crate::writer::MAX_BUF_SIZE;
+
+        if self.buf.len() >= MAX_BUF_SIZE {
             if let Err(e) = ready!(self.as_mut().poll_flush(cx)) {
                 return Poll::Ready(Err(e));
             }
         }
 
-        let n = cmp::min(DEFAULT_BUF_SIZE - self.buf.len(), buf.len());
+        let n = cmp::min(MAX_BUF_SIZE - self.buf.len(), buf.len());
 
         self.as_mut().buf.extend_from_slice(&buf[..n]);
 
