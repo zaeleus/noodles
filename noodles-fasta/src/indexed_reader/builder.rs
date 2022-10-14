@@ -22,21 +22,20 @@ impl Builder {
     }
 
     /// Builds an indexed FASTA reader from a path.
-    pub fn build_from_path<P>(mut self, src: P) -> io::Result<IndexedReader<BufReader<File>>>
+    pub fn build_from_path<P>(self, src: P) -> io::Result<IndexedReader<BufReader<File>>>
     where
         P: AsRef<Path>,
     {
-        if self.index.is_none() {
-            let index_src = build_index_src(&src);
-
-            if index_src.exists() {
-                let index = fai::read(index_src)?;
-                self = self.set_index(index);
+        let index = match self.index {
+            Some(index) => index,
+            None => {
+                let index_src = build_index_src(&src);
+                fai::read(index_src)?
             }
-        }
+        };
 
         let reader = File::open(&src).map(BufReader::new)?;
-        self.build_from_reader(reader)
+        Ok(IndexedReader::new(reader, index))
     }
 
     /// Builds an indexed FASTA reader from a reader.
