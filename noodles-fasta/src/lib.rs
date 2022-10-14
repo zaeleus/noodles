@@ -56,13 +56,17 @@
 pub(crate) mod r#async;
 
 pub mod fai;
+pub mod indexed_reader;
 mod indexer;
 pub mod reader;
 pub mod record;
 pub mod repository;
 pub mod writer;
 
-pub use self::{reader::Reader, record::Record, repository::Repository, writer::Writer};
+pub use self::{
+    indexed_reader::IndexedReader, reader::Reader, record::Record, repository::Repository,
+    writer::Writer,
+};
 
 #[cfg(feature = "async")]
 pub use self::r#async::Reader as AsyncReader;

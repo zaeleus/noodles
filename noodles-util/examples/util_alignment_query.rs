@@ -26,7 +26,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut builder = alignment::Reader::builder();
 
     if let Some(fasta_src) = fasta_src {
-        let repository = fasta::reader::Builder::default()
+        let repository = fasta::indexed_reader::Builder::default()
             .build_from_path(fasta_src)
             .map(IndexedReader::new)
             .map(fasta::Repository::new)?;

@@ -2,11 +2,11 @@ use std::io::{self, BufRead, Seek};
 
 use noodles_core::Region;
 
-use crate::{repository::Adapter, Reader, Record};
+use crate::{repository::Adapter, Record};
 
 /// An indexed reader adapter.
 pub struct IndexedReader<R> {
-    reader: Reader<R>,
+    reader: crate::IndexedReader<R>,
 }
 
 impl<R> IndexedReader<R>
@@ -20,10 +20,11 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_fasta::{self as fasta, repository::adapters::IndexedReader};
-    /// let reader = fasta::Reader::new(io::empty());
+    /// let index = Vec::new();
+    /// let reader = fasta::IndexedReader::new(io::empty(), index);
     /// let adapter = IndexedReader::new(reader);
     /// ```
-    pub fn new(reader: Reader<R>) -> Self {
+    pub fn new(reader: crate::IndexedReader<R>) -> Self {
         Self { reader }
     }
 }

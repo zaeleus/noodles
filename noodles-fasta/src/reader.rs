@@ -1,29 +1,25 @@
 //! FASTA reader and iterators.
 
 mod builder;
-mod inner;
 mod records;
-mod source;
 
-pub(crate) use self::source::Source;
 pub use self::{builder::Builder, records::Records};
 
 use std::{
-    io::{self, BufRead, Seek},
+    io::{self, BufRead, Seek, SeekFrom},
     ops::Range,
 };
 
 use memchr::memchr;
 use noodles_core::{region::Interval, Region};
 
-use super::Record;
-use inner::Inner;
+use super::{fai, Record};
 
 pub(crate) const DEFINITION_PREFIX: u8 = b'>';
 
 /// A FASTA reader.
 pub struct Reader<R> {
-    inner: Inner<R>,
+    inner: R,
 }
 
 impl<R> Reader<R>
@@ -40,9 +36,7 @@ where
     /// let mut reader = fasta::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
-        Self {
-            inner: Inner::Raw(inner::RawReader::new(inner)),
-        }
+        Self { inner }
     }
 
     /// Returns a reference to the underlying reader.
@@ -55,7 +49,7 @@ where
     /// assert!(reader.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &R {
-        self.inner.get_ref()
+        &self.inner
     }
 
     /// Returns a mutable reference to the underlying reader.
@@ -68,7 +62,7 @@ where
     /// assert!(reader.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
-        self.inner.get_mut()
+        &mut self.inner
     }
 
     /// Returns the underlying reader.
@@ -81,7 +75,7 @@ where
     /// assert!(reader.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> R {
-        self.inner.into_inner()
+        self.inner
     }
 
     /// Reads a raw definition line.
@@ -111,7 +105,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_definition(&mut self, buf: &mut String) -> io::Result<usize> {
-        self.inner.read_definition(buf)
+        read_line(&mut self.inner, buf)
     }
 
     /// Reads a sequence.
@@ -142,7 +136,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_sequence(&mut self, buf: &mut Vec<u8>) -> io::Result<usize> {
-        self.inner.read_sequence(buf)
+        read_sequence(&mut self.inner, buf)
     }
 
     /// Returns an iterator over records starting from the current stream position.
@@ -197,27 +191,48 @@ where
     ///     fai::Record::new(String::from("sq2"), 4, 25, 4, 5),
     /// ];
     ///
-    /// let mut reader = fasta::reader::Builder::default()
-    ///     .set_fasta_index(index)
-    ///     .build_from_reader(Cursor::new(data))?;
+    /// let mut reader = fasta::Reader::new(Cursor::new(data));
     ///
     /// let region = Region::new("sq1", ..);
-    /// let record = reader.query(&region)?;
+    /// let record = reader.query(&index, &region)?;
     /// assert_eq!(record, fasta::Record::new(
     ///     Definition::new("sq1", None),
     ///     Sequence::from(b"ACGT".to_vec()),
     /// ));
     ///
     /// let region = "sq1:2-3".parse()?;
-    /// let record = reader.query(&region)?;
+    /// let record = reader.query(&index, &region)?;
     /// assert_eq!(record, fasta::Record::new(
     ///     Definition::new("sq1:2-3", None),
     ///     Sequence::from(b"CG".to_vec()),
     /// ));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn query(&mut self, region: &Region) -> io::Result<Record> {
-        self.inner.query(region)
+    pub fn query(&mut self, index: &fai::Index, region: &Region) -> io::Result<Record> {
+        use super::record::{Definition, Sequence};
+
+        let index_record = index
+            .iter()
+            .find(|record| record.name() == region.name())
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("invalid reference sequence name: {}", region.name()),
+                )
+            })?;
+
+        let pos = index_record.offset();
+        self.get_mut().seek(SeekFrom::Start(pos))?;
+
+        let definition = Definition::new(region.to_string(), None);
+
+        let mut raw_sequence = Vec::new();
+        self.read_sequence(&mut raw_sequence)?;
+
+        let range = interval_to_slice_range(region.interval(), raw_sequence.len());
+        let sequence = Sequence::from(raw_sequence[range].to_vec());
+
+        Ok(Record::new(definition, sequence))
     }
 }
 
