@@ -7,11 +7,10 @@
 
 use std::{
     env,
-    fs::File,
-    io::{self, Read, Write},
+    io::{self, Read, Seek, SeekFrom, Write},
 };
 
-use noodles_bgzf::{self as bgzf, gzi};
+use noodles_bgzf as bgzf;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = env::args().skip(1);
@@ -23,10 +22,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let pos = raw_position.parse()?;
     let len = raw_length.parse()?;
 
-    let mut reader = File::open(&src).map(bgzf::Reader::new)?;
-    let index = gzi::read(format!("{}.gzi", src))?;
-
-    reader.seek_by_uncompressed_position(&index, pos)?;
+    let mut reader = bgzf::indexed_reader::Builder::default().build_from_path(src)?;
+    reader.seek(SeekFrom::Start(pos))?;
 
     let mut buf = vec![0; len];
     reader.read_exact(&mut buf)?;
