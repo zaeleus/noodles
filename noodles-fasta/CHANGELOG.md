@@ -1,5 +1,18 @@
 # Changelog
 
+### Unreleased
+
+## Changed
+
+  * fasta: Split indexed reader from reader.
+
+    `reader::Builder` no longer attempts to load associated indices. This
+    functionality is separated into `IndexedReader`, which now guarantees
+    associated indices are loaded for querying.
+
+    Changes usages of `fasta::reader::Builder` to
+    `fasta::indexed_reader::Builder` if it is known querying is necessary.
+
 ## 0.14.0 - 2022-09-29
 
 ### Added
