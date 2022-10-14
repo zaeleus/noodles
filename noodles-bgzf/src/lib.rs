@@ -40,7 +40,7 @@ mod r#async;
 mod block;
 mod gz;
 pub mod gzi;
-mod indexed_reader;
+pub mod indexed_reader;
 pub mod reader;
 pub mod virtual_position;
 pub mod writer;

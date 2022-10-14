@@ -1,3 +1,9 @@
+//! Indexed BGZF reader.
+
+mod builder;
+
+pub use self::builder::Builder;
+
 use std::io::{self, Read, Seek, SeekFrom};
 
 use super::{gzi, Reader};
