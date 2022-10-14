@@ -4,7 +4,7 @@ mod builder;
 
 pub use self::builder::Builder;
 
-use std::io::{self, Read, Seek, SeekFrom};
+use std::io::{self, BufRead, Read, Seek, SeekFrom};
 
 use super::{gzi, Reader};
 
@@ -33,6 +33,19 @@ where
 {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         self.inner.read(buf)
+    }
+}
+
+impl<R> BufRead for IndexedReader<R>
+where
+    R: Read,
+{
+    fn fill_buf(&mut self) -> io::Result<&[u8]> {
+        self.inner.fill_buf()
+    }
+
+    fn consume(&mut self, amt: usize) {
+        self.inner.consume(amt)
     }
 }
 
