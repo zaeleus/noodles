@@ -58,6 +58,7 @@ pub(crate) mod r#async;
 pub mod fai;
 pub mod indexed_reader;
 mod indexer;
+pub mod io;
 pub mod reader;
 pub mod record;
 pub mod repository;
@@ -71,11 +72,7 @@ pub use self::{
 #[cfg(feature = "async")]
 pub use self::r#async::Reader as AsyncReader;
 
-use std::{
-    fs::File,
-    io::{self, BufReader},
-    path::Path,
-};
+use std::{fs::File, io::BufReader, path::Path};
 
 use self::indexer::Indexer;
 
@@ -89,7 +86,7 @@ use self::indexer::Indexer;
 /// let index = fasta::index("reference.fa")?;
 /// # Ok::<(), io::Error>(())
 /// ```
-pub fn index<P>(src: P) -> io::Result<fai::Index>
+pub fn index<P>(src: P) -> std::io::Result<fai::Index>
 where
     P: AsRef<Path>,
 {

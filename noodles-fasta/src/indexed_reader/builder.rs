@@ -5,8 +5,10 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use noodles_bgzf as bgzf;
+
 use super::IndexedReader;
-use crate::fai;
+use crate::{fai, io::BufReadSeek};
 
 /// An indexed FASTA reader builder.
 #[derive(Default)]
@@ -22,19 +24,27 @@ impl Builder {
     }
 
     /// Builds an indexed FASTA reader from a path.
-    pub fn build_from_path<P>(self, src: P) -> io::Result<IndexedReader<BufReader<File>>>
+    pub fn build_from_path<P>(self, src: P) -> io::Result<IndexedReader<Box<dyn BufReadSeek>>>
     where
         P: AsRef<Path>,
     {
+        let src = src.as_ref();
+
         let index = match self.index {
             Some(index) => index,
             None => {
-                let index_src = build_index_src(&src);
+                let index_src = build_index_src(src);
                 fai::read(index_src)?
             }
         };
 
-        let reader = File::open(&src).map(BufReader::new)?;
+        let reader: Box<dyn BufReadSeek> = match src.extension().and_then(|ext| ext.to_str()) {
+            Some("gz") => bgzf::indexed_reader::Builder::default()
+                .build_from_path(src)
+                .map(Box::new)?,
+            _ => File::open(src).map(BufReader::new).map(Box::new)?,
+        };
+
         Ok(IndexedReader::new(reader, index))
     }
 
