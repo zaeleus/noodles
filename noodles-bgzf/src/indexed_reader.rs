@@ -6,7 +6,7 @@ pub use self::builder::Builder;
 
 use std::io::{self, BufRead, Read, Seek, SeekFrom};
 
-use super::{gzi, Reader};
+use super::{gzi, Reader, VirtualPosition};
 
 /// An indexed BGZF reader.
 pub struct IndexedReader<R> {
@@ -24,6 +24,31 @@ where
             inner: Reader::new(inner),
             index,
         }
+    }
+
+    /// Returns a reference to the underlying reader.
+    pub fn get_ref(&self) -> &R {
+        self.inner.get_ref()
+    }
+
+    /// Returns a mutable reference to the underlying reader.
+    pub fn get_mut(&mut self) -> &mut R {
+        self.inner.get_mut()
+    }
+
+    /// Unwraps and returns the underlying writer.
+    pub fn into_inner(self) -> R {
+        self.inner.into_inner()
+    }
+
+    /// Returns the current position of the stream.
+    pub fn position(&self) -> u64 {
+        self.inner.position()
+    }
+
+    /// Returns the current virtual position of the stream.
+    pub fn virtual_position(&self) -> VirtualPosition {
+        self.inner.virtual_position()
     }
 }
 
