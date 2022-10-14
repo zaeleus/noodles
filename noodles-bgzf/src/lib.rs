@@ -40,11 +40,15 @@ mod r#async;
 mod block;
 mod gz;
 pub mod gzi;
+mod indexed_reader;
 pub mod reader;
 pub mod virtual_position;
 pub mod writer;
 
-pub use self::{reader::Reader, virtual_position::VirtualPosition, writer::Writer};
+pub use self::{
+    indexed_reader::IndexedReader, reader::Reader, virtual_position::VirtualPosition,
+    writer::Writer,
+};
 
 #[cfg(feature = "async")]
 pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};

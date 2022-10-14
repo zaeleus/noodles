@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * bgzf: Add an indexed reader (`IndexedReader`).
+
 ### Changed
 
   * bgzf: Update to libdeflater 0.11.0 (libdeflate 1.14).
