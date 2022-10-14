@@ -2,6 +2,7 @@
 
 use std::io::Write;
 
+use cram::data_container::BlockContentEncoderMap;
 use noodles_bam as bam;
 use noodles_cram as cram;
 use noodles_fasta as fasta;
@@ -14,6 +15,7 @@ use crate::alignment::Format;
 pub struct Builder {
     format: Format,
     reference_sequence_repository: fasta::Repository,
+    block_content_encoder_map: BlockContentEncoderMap,
 }
 
 impl Builder {
@@ -51,6 +53,29 @@ impl Builder {
         self
     }
 
+    /// Sets the block content-encoder map.
+    ///
+    /// This is only used when the output format is CRAM.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_cram::data_container::BlockContentEncoderMap;
+    /// use noodles_util::alignment::{self, Format};
+    ///
+    /// let builder = alignment::writer::Builder::default()
+    ///     .set_format(Format::Cram)
+    ///     .set_block_content_encoder_map(BlockContentEncoderMap::default());
+    /// ```
+    pub fn set_block_content_encoder_map(
+        mut self,
+        block_content_encoder_map: BlockContentEncoderMap,
+    ) -> Self {
+        self.block_content_encoder_map = block_content_encoder_map;
+        self
+    }
+
     /// Builds an alignment writer.
     ///
     /// # Examples
@@ -73,6 +98,7 @@ impl Builder {
             Format::Cram => Box::new(
                 cram::writer::Builder::default()
                     .set_reference_sequence_repository(self.reference_sequence_repository)
+                    .set_block_content_encoder_map(self.block_content_encoder_map)
                     .build_with_writer(writer),
             ),
         };
@@ -86,6 +112,7 @@ impl Default for Builder {
         Self {
             format: Format::Sam,
             reference_sequence_repository: fasta::Repository::default(),
+            block_content_encoder_map: BlockContentEncoderMap::default(),
         }
     }
 }
