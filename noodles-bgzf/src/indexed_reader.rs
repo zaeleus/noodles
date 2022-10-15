@@ -19,6 +19,14 @@ where
     R: Read,
 {
     /// Creates an indexed BGZF reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bgzf::{self as bgzf, gzi};
+    /// let reader = bgzf::IndexedReader::new(io::empty(), gzi::Index::default());
+    /// ```
     pub fn new(inner: R, index: gzi::Index) -> Self {
         Self {
             inner: Reader::new(inner),
@@ -27,26 +35,71 @@ where
     }
 
     /// Returns a reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bgzf::{self as bgzf, gzi};
+    /// let reader = bgzf::IndexedReader::new(io::empty(), gzi::Index::default());
+    /// let inner = reader.get_ref();
+    /// ```
     pub fn get_ref(&self) -> &R {
         self.inner.get_ref()
     }
 
     /// Returns a mutable reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bgzf::{self as bgzf, gzi};
+    /// let mut reader = bgzf::IndexedReader::new(io::empty(), gzi::Index::default());
+    /// let inner = reader.get_mut();
+    /// ```
     pub fn get_mut(&mut self) -> &mut R {
         self.inner.get_mut()
     }
 
     /// Unwraps and returns the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bgzf::{self as bgzf, gzi};
+    /// let reader = bgzf::IndexedReader::new(io::empty(), gzi::Index::default());
+    /// let inner = reader.into_inner();
+    /// ```
     pub fn into_inner(self) -> R {
         self.inner.into_inner()
     }
 
     /// Returns the current position of the stream.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bgzf::{self as bgzf, gzi};
+    /// let reader = bgzf::IndexedReader::new(io::empty(), gzi::Index::default());
+    /// assert_eq!(reader.position(), 0);
+    /// ```
     pub fn position(&self) -> u64 {
         self.inner.position()
     }
 
     /// Returns the current virtual position of the stream.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bgzf::{self as bgzf, gzi};
+    /// let reader = bgzf::IndexedReader::new(io::empty(), gzi::Index::default());
+    /// assert_eq!(reader.virtual_position(), bgzf::VirtualPosition::from(0));
+    /// ```
     pub fn virtual_position(&self) -> VirtualPosition {
         self.inner.virtual_position()
     }
