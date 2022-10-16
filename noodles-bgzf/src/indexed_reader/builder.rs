@@ -1,7 +1,7 @@
 use std::{
     ffi::{OsStr, OsString},
     fs::File,
-    io,
+    io::{self, Read},
     num::NonZeroUsize,
     path::{Path, PathBuf},
 };
@@ -45,6 +45,20 @@ impl Builder {
         };
 
         let inner = self.reader_builder.build_from_path(src)?;
+
+        Ok(IndexedReader { inner, index })
+    }
+
+    /// Builds a indexed BGZF reader from a reader.
+    pub fn build_from_reader<R>(self, reader: R) -> io::Result<IndexedReader<R>>
+    where
+        R: Read,
+    {
+        let index = self
+            .index
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing index"))?;
+
+        let inner = self.reader_builder.build_from_reader(reader);
 
         Ok(IndexedReader { inner, index })
     }
