@@ -6,6 +6,8 @@
 
   * bgzf: Add an indexed reader (`IndexedReader`).
 
+  * bgzf/reader/builder: Add build from path (`Builder::build_from_path`).
+
 ### Changed
 
   * bgzf: Update to libdeflater 0.11.0 (libdeflate 1.14).

@@ -44,8 +44,7 @@ impl Builder {
             }
         };
 
-        let file = File::open(src)?;
-        let inner = self.reader_builder.build_from_reader(file);
+        let inner = self.reader_builder.build_from_path(src)?;
 
         Ok(IndexedReader { inner, index })
     }

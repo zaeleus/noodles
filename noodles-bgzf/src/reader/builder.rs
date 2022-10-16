@@ -1,4 +1,9 @@
-use std::{io::Read, num::NonZeroUsize};
+use std::{
+    fs::File,
+    io::{self, Read},
+    num::NonZeroUsize,
+    path::Path,
+};
 
 use super::{block, Reader};
 use crate::Block;
@@ -33,6 +38,24 @@ impl Builder {
     pub fn set_worker_count(mut self, worker_count: NonZeroUsize) -> Self {
         self.worker_count = worker_count;
         self
+    }
+
+    /// Builds a BGZF reader from a path.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::io;
+    /// use noodles_bgzf as bgzf;
+    /// let reader = bgzf::reader::Builder::default().build_from_path("example.gz")?;
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn build_from_path<P>(self, src: P) -> io::Result<Reader<File>>
+    where
+        P: AsRef<Path>,
+    {
+        let file = File::open(src)?;
+        Ok(self.build_from_reader(file))
     }
 
     /// Builds a BGZF reader from a reader.
