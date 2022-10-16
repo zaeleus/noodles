@@ -69,14 +69,7 @@ impl Features {
 
             merge_or_insert_op(&mut ops, kind, len);
 
-            if matches!(
-                kind,
-                Kind::Match
-                    | Kind::Insertion
-                    | Kind::SoftClip
-                    | Kind::SequenceMatch
-                    | Kind::SequenceMismatch
-            ) {
+            if kind.consumes_read() {
                 read_position = read_position
                     .checked_add(len)
                     .expect("attempt to add with overflow");

@@ -4,6 +4,8 @@
 
 ### Added
 
+  * sam/record/cigar/op/kind: Add whether an operation kind consumes the read (`Kind::consumes_read`).
+
   * sam/record/mapping_quality: Add `const` getter (`MappingQuality::get`).
 
 ## 0.19.0 - 2022-09-29

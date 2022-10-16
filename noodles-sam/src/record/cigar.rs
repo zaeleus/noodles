@@ -100,14 +100,7 @@ impl Cigar {
     /// ```
     pub fn read_length(&self) -> usize {
         self.iter()
-            .filter_map(|op| match op.kind() {
-                Kind::Match
-                | Kind::Insertion
-                | Kind::SoftClip
-                | Kind::SequenceMatch
-                | Kind::SequenceMismatch => Some(op.len()),
-                _ => None,
-            })
+            .filter_map(|op| op.kind().consumes_read().then_some(op.len()))
             .sum()
     }
 }

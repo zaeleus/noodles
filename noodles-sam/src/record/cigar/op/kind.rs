@@ -29,6 +29,29 @@ pub enum Kind {
     SequenceMismatch,
 }
 
+impl Kind {
+    /// Returns whether the operation kind causes the alignment to consume the read.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::cigar::op::Kind;
+    /// assert!(Kind::Match.consumes_read());
+    /// assert!(Kind::Insertion.consumes_read());
+    /// assert!(!Kind::Deletion.consumes_read());
+    /// ```
+    pub fn consumes_read(&self) -> bool {
+        matches!(
+            self,
+            Self::Match
+                | Self::Insertion
+                | Self::SoftClip
+                | Self::SequenceMatch
+                | Self::SequenceMismatch
+        )
+    }
+}
+
 impl fmt::Display for Kind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_char(char::from(*self))
@@ -85,6 +108,19 @@ impl From<Kind> for char {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_consumes_read() {
+        assert!(Kind::Match.consumes_read());
+        assert!(Kind::Insertion.consumes_read());
+        assert!(!Kind::Deletion.consumes_read());
+        assert!(!Kind::Skip.consumes_read());
+        assert!(Kind::SoftClip.consumes_read());
+        assert!(!Kind::HardClip.consumes_read());
+        assert!(!Kind::Pad.consumes_read());
+        assert!(Kind::SequenceMatch.consumes_read());
+        assert!(Kind::SequenceMismatch.consumes_read());
+    }
 
     #[test]
     fn test_fmt() {
