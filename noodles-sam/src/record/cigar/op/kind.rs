@@ -50,6 +50,27 @@ impl Kind {
                 | Self::SequenceMismatch
         )
     }
+
+    /// Returns whether the operation kind causes the alignment to consume the reference.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::cigar::op::Kind;
+    /// assert!(Kind::Match.consumes_reference());
+    /// assert!(!Kind::Insertion.consumes_reference());
+    /// assert!(Kind::Deletion.consumes_reference());
+    /// ```
+    pub fn consumes_reference(&self) -> bool {
+        matches!(
+            self,
+            Self::Match
+                | Self::Deletion
+                | Self::Skip
+                | Self::SequenceMatch
+                | Self::SequenceMismatch
+        )
+    }
 }
 
 impl fmt::Display for Kind {
@@ -120,6 +141,19 @@ mod tests {
         assert!(!Kind::Pad.consumes_read());
         assert!(Kind::SequenceMatch.consumes_read());
         assert!(Kind::SequenceMismatch.consumes_read());
+    }
+
+    #[test]
+    fn test_consumes_reference() {
+        assert!(Kind::Match.consumes_reference());
+        assert!(!Kind::Insertion.consumes_reference());
+        assert!(Kind::Deletion.consumes_reference());
+        assert!(Kind::Skip.consumes_reference());
+        assert!(!Kind::SoftClip.consumes_reference());
+        assert!(!Kind::HardClip.consumes_reference());
+        assert!(!Kind::Pad.consumes_reference());
+        assert!(Kind::SequenceMatch.consumes_reference());
+        assert!(Kind::SequenceMismatch.consumes_reference());
     }
 
     #[test]

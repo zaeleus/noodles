@@ -6,8 +6,6 @@ use std::{error, fmt, ops::Deref, str::FromStr};
 
 pub use self::op::Op;
 
-use self::op::Kind;
-
 /// A SAM record CIGAR.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Cigar(Vec<Op>);
@@ -61,14 +59,7 @@ impl Cigar {
     /// ```
     pub fn alignment_span(&self) -> usize {
         self.iter()
-            .filter_map(|op| match op.kind() {
-                Kind::Match
-                | Kind::Deletion
-                | Kind::Skip
-                | Kind::SequenceMatch
-                | Kind::SequenceMismatch => Some(op.len()),
-                _ => None,
-            })
+            .filter_map(|op| op.kind().consumes_reference().then_some(op.len()))
             .sum()
     }
 
@@ -189,7 +180,7 @@ impl FromStr for Cigar {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::{op::Kind, *};
 
     #[test]
     fn test_is_empty() -> Result<(), ParseError> {
