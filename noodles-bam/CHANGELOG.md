@@ -4,6 +4,8 @@
 
 ### Added
 
+  * bam: Add an indexed reader (`IndexedReader`).
+
   * bam/lazy/record: Add conversion to `sam::alignment::Record`.
 
 ## 0.22.0 - 2022-09-29

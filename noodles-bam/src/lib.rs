@@ -53,12 +53,13 @@
 mod r#async;
 
 pub mod bai;
+pub mod indexed_reader;
 pub mod lazy;
 pub mod reader;
 pub mod record;
 pub mod writer;
 
-pub use self::{reader::Reader, writer::Writer};
+pub use self::{indexed_reader::IndexedReader, reader::Reader, writer::Writer};
 
 #[cfg(feature = "async")]
 pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};
