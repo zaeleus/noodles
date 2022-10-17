@@ -4,9 +4,9 @@
 //!
 //! The result matches the output of `samtools view <src> <region>`.
 
-use std::{env, fs::File, io, path::PathBuf};
+use std::{env, io, path::PathBuf};
 
-use noodles_bam::{self as bam, bai};
+use noodles_bam as bam;
 use noodles_sam as sam;
 use sam::AlignmentWriter;
 
@@ -16,11 +16,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = args.nth(1).map(PathBuf::from).expect("missing src");
     let region = args.next().expect("missing region").parse()?;
 
-    let mut reader = File::open(&src).map(bam::Reader::new)?;
-
+    let mut reader = bam::indexed_reader::Builder::default().build_from_path(src)?;
     let header: sam::Header = reader.read_header()?.parse()?;
-    let index = bai::read(src.with_extension("bam.bai"))?;
-    let query = reader.query(header.reference_sequences(), &index, &region)?;
+
+    let query = reader.query(header.reference_sequences(), &region)?;
 
     let stdout = io::stdout();
     let handle = stdout.lock();

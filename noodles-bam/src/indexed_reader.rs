@@ -1,3 +1,9 @@
+//! Indexed BAM reader.
+
+mod builder;
+
+pub use self::builder::Builder;
+
 use std::io::{self, Read, Seek};
 
 use noodles_bgzf as bgzf;
