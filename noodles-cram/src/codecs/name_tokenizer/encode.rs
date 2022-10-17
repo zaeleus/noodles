@@ -30,7 +30,13 @@ pub fn encode(mut src: &[u8]) -> io::Result<Vec<u8>> {
     let mut diffs = Vec::with_capacity(names.len());
     let mut max_token_count = 0;
 
-    for (i, name) in names.iter().enumerate() {
+    if let Some(name) = names.first() {
+        let diff = build_first_diff(name);
+        max_token_count = max_token_count.max(diff.tokens.len());
+        diffs.push(diff);
+    }
+
+    for (i, name) in names.iter().enumerate().skip(1) {
         let diff = build_diff(&names_indices, i, name);
         names_indices.entry(name).or_insert(i);
         max_token_count = max_token_count.max(diff.tokens.len());
@@ -167,13 +173,33 @@ fn tokenize(s: &str) -> impl Iterator<Item = &str> {
     })
 }
 
+fn build_first_diff(name: &str) -> Diff {
+    let mut diff = Diff::new(Mode::Diff(0));
+
+    let raw_tokens = tokenize(name);
+
+    for raw_token in raw_tokens {
+        let token = if raw_token.len() == 1 {
+            let b = raw_token.as_bytes()[0];
+            Token::Char(b)
+        } else {
+            Token::String(raw_token.into())
+        };
+
+        diff.tokens.push(token);
+    }
+
+    diff.tokens.push(Token::End);
+
+    diff
+}
+
 fn build_diff(names_indices: &HashMap<&str, usize>, i: usize, name: &str) -> Diff {
     let mut diff = if let Some(j) = names_indices.get(name) {
         let delta = i - j;
         Diff::new(Mode::Dup(delta))
     } else {
-        let delta = if i == 0 { 0 } else { 1 };
-        Diff::new(Mode::Diff(delta))
+        Diff::new(Mode::Diff(1))
     };
 
     let raw_tokens = tokenize(name);
