@@ -2,7 +2,10 @@ mod order_0;
 mod order_1;
 pub mod pack;
 
-use std::io::{self, Cursor, Read};
+use std::{
+    io::{self, Cursor, Read},
+    num::NonZeroUsize,
+};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
@@ -262,20 +265,24 @@ where
     Ok(dst)
 }
 
-pub fn decode_pack_meta<R>(reader: &mut R) -> io::Result<(Vec<u8>, u8, usize)>
+pub fn decode_pack_meta<R>(reader: &mut R) -> io::Result<(Vec<u8>, NonZeroUsize, usize)>
 where
     R: Read,
 {
-    let n_sym = reader.read_u8()?;
+    // n_sym
+    let symbol_count = reader.read_u8().and_then(|n| {
+        NonZeroUsize::try_from(usize::from(n))
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
 
-    let mut p = vec![0; usize::from(n_sym)];
+    let mut p = vec![0; symbol_count.get()];
     reader.read_exact(&mut p)?;
 
     let len = read_uint7(reader).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    Ok((p, n_sym, len))
+    Ok((p, symbol_count, len))
 }
 
 #[cfg(test)]

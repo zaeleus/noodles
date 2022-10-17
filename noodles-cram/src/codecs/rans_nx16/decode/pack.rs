@@ -1,12 +1,12 @@
-use std::io;
+use std::{io, num::NonZeroUsize};
 
-pub fn decode(src: &[u8], p: &[u8], n_sym: u8, len: usize) -> io::Result<Vec<u8>> {
+pub fn decode(src: &[u8], p: &[u8], n_sym: NonZeroUsize, len: usize) -> io::Result<Vec<u8>> {
     let mut dst = vec![0; len];
     let mut j = 0;
 
-    if n_sym <= 1 {
+    if n_sym.get() <= 1 {
         dst.fill(p[0]);
-    } else if n_sym <= 2 {
+    } else if n_sym.get() <= 2 {
         let mut v = 0;
 
         for (i, b) in dst.iter_mut().enumerate() {
@@ -18,7 +18,7 @@ pub fn decode(src: &[u8], p: &[u8], n_sym: u8, len: usize) -> io::Result<Vec<u8>
             *b = p[usize::from(v & 0x01)];
             v >>= 1;
         }
-    } else if n_sym <= 4 {
+    } else if n_sym.get() <= 4 {
         let mut v = 0;
 
         for (i, b) in dst.iter_mut().enumerate() {
@@ -30,7 +30,7 @@ pub fn decode(src: &[u8], p: &[u8], n_sym: u8, len: usize) -> io::Result<Vec<u8>
             *b = p[usize::from(v & 0x03)];
             v >>= 2;
         }
-    } else if n_sym <= 16 {
+    } else if n_sym.get() <= 16 {
         let mut v = 0;
 
         for (i, b) in dst.iter_mut().enumerate() {
