@@ -103,7 +103,7 @@ enum Token {
     Diff(usize),
     Digits(u32),
     Delta(u32, u8),
-    // ...
+    Delta0(u32, u8),
     Match,
     // ...
     End,
@@ -120,7 +120,7 @@ impl Token {
             Self::Diff(_) => Type::Diff,
             Self::Digits(_) => Type::Digits,
             Self::Delta(..) => Type::Delta,
-            // ...
+            Self::Delta0(..) => Type::Delta0,
             Self::Match => Type::Match,
             // ...
             Self::End => Type::End,
@@ -242,6 +242,8 @@ fn build_diff(diffs: &[Diff], names_indices: &HashMap<&str, usize>, i: usize, na
             if let Some(prev_token) = prev_diff.tokens.get(j) {
                 if let Some((n, delta)) = parse_delta(prev_token, raw_token) {
                     token = Some(Token::Delta(n, delta));
+                } else if let Some((n, delta)) = parse_delta0(prev_token, raw_token) {
+                    token = Some(Token::Delta0(n, delta));
                 }
             }
         }
@@ -298,6 +300,24 @@ fn parse_delta(prev_token: &Token, s: &str) -> Option<(u32, u8)> {
     None
 }
 
+fn parse_delta0(prev_token: &Token, s: &str) -> Option<(u32, u8)> {
+    if let Token::PaddedDigits(n, width) = prev_token {
+        if s.len() == *width {
+            let m = s.parse().ok()?;
+
+            if m >= *n {
+                let delta = m - n;
+
+                if delta <= u32::from(u8::MAX) {
+                    return Some((m, delta as u8));
+                }
+            }
+        }
+    }
+
+    None
+}
+
 #[derive(Default)]
 struct TokenWriter {
     type_writer: Vec<u8>,
@@ -347,7 +367,9 @@ impl TokenWriter {
             Token::Delta(_, delta) => {
                 self.delta_writer.write_u8(*delta)?;
             }
-            // ...
+            Token::Delta0(_, delta) => {
+                self.delta0_writer.write_u8(*delta)?;
+            }
             Token::Match => {}
             // ...
             Token::End => {}
