@@ -232,19 +232,15 @@ fn build_diff(diffs: &[Diff], names_indices: &HashMap<&str, usize>, i: usize, na
     for (j, raw_token) in raw_tokens.enumerate() {
         let mut token = None;
 
-        if let Some(prev_raw_token) = prev_diff.raw_tokens.get(j) {
+        if let (Some(prev_raw_token), Some(prev_token)) =
+            (prev_diff.raw_tokens.get(j), prev_diff.tokens.get(j))
+        {
             if raw_token == prev_raw_token {
                 token = Some(Token::Match);
-            }
-        }
-
-        if token.is_none() {
-            if let Some(prev_token) = prev_diff.tokens.get(j) {
-                if let Some((n, delta)) = parse_delta(prev_token, raw_token) {
-                    token = Some(Token::Delta(n, delta));
-                } else if let Some((n, delta)) = parse_delta0(prev_token, raw_token) {
-                    token = Some(Token::Delta0(n, delta));
-                }
+            } else if let Some((n, delta)) = parse_delta(prev_token, raw_token) {
+                token = Some(Token::Delta(n, delta));
+            } else if let Some((n, delta)) = parse_delta0(prev_raw_token, prev_token, raw_token) {
+                token = Some(Token::Delta0(n, delta));
             }
         }
 
@@ -300,9 +296,9 @@ fn parse_delta(prev_token: &Token, s: &str) -> Option<(u32, u8)> {
     None
 }
 
-fn parse_delta0(prev_token: &Token, s: &str) -> Option<(u32, u8)> {
-    if let Token::PaddedDigits(n, width) = prev_token {
-        if s.len() == *width {
+fn parse_delta0(prev_s: &str, prev_token: &Token, s: &str) -> Option<(u32, u8)> {
+    if let Token::PaddedDigits(n, _) | Token::Delta0(n, _) = prev_token {
+        if s.len() == prev_s.len() {
             let m = s.parse().ok()?;
 
             if m >= *n {
