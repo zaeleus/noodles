@@ -102,6 +102,7 @@ enum Token {
     Dup(usize),
     Diff(usize),
     Digits(u32),
+    Delta(u32, u8),
     // ...
     Match,
     // ...
@@ -118,6 +119,7 @@ impl Token {
             Self::Dup(_) => Type::Dup,
             Self::Diff(_) => Type::Diff,
             Self::Digits(_) => Type::Digits,
+            Self::Delta(..) => Type::Delta,
             // ...
             Self::Match => Type::Match,
             // ...
@@ -228,18 +230,36 @@ fn build_diff(diffs: &[Diff], names_indices: &HashMap<&str, usize>, i: usize, na
     let raw_tokens = tokenize(name);
 
     for (j, raw_token) in raw_tokens.enumerate() {
-        let token = if raw_token == prev_diff.raw_tokens[j] {
-            Token::Match
-        } else if let Some(n) = parse_digits0(raw_token) {
-            Token::PaddedDigits(n, raw_token.len())
-        } else if let Some(n) = parse_digits(raw_token) {
-            Token::Digits(n)
-        } else if raw_token.len() == 1 {
-            let b = raw_token.as_bytes()[0];
-            Token::Char(b)
-        } else {
-            Token::String(raw_token.into())
-        };
+        let mut token = None;
+
+        if let Some(prev_raw_token) = prev_diff.raw_tokens.get(j) {
+            if raw_token == prev_raw_token {
+                token = Some(Token::Match);
+            }
+        }
+
+        if token.is_none() {
+            if let Some(prev_token) = prev_diff.tokens.get(j) {
+                if let Some((n, delta)) = parse_delta(prev_token, raw_token) {
+                    token = Some(Token::Delta(n, delta));
+                }
+            }
+        }
+
+        if token.is_none() {
+            token = if let Some(n) = parse_digits0(raw_token) {
+                Some(Token::PaddedDigits(n, raw_token.len()))
+            } else if let Some(n) = parse_digits(raw_token) {
+                Some(Token::Digits(n))
+            } else if raw_token.len() == 1 {
+                let b = raw_token.as_bytes()[0];
+                Some(Token::Char(b))
+            } else {
+                Some(Token::String(raw_token.into()))
+            }
+        }
+
+        let token = token.unwrap();
 
         diff.raw_tokens.push(raw_token.into());
         diff.tokens.push(token);
@@ -260,6 +280,22 @@ fn parse_digits0(s: &str) -> Option<u32> {
 
 fn parse_digits(s: &str) -> Option<u32> {
     s.parse().ok()
+}
+
+fn parse_delta(prev_token: &Token, s: &str) -> Option<(u32, u8)> {
+    if let Token::Digits(n) = prev_token {
+        let m = s.parse().ok()?;
+
+        if m >= *n {
+            let delta = m - n;
+
+            if delta <= u32::from(u8::MAX) {
+                return Some((m, delta as u8));
+            }
+        }
+    }
+
+    None
 }
 
 #[derive(Default)]
@@ -307,6 +343,9 @@ impl TokenWriter {
             }
             Token::Digits(n) => {
                 self.digits_writer.write_u32::<LittleEndian>(*n)?;
+            }
+            Token::Delta(_, delta) => {
+                self.delta_writer.write_u8(*delta)?;
             }
             // ...
             Token::Match => {}
