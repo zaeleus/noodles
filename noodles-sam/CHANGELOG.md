@@ -9,6 +9,8 @@
 
   * sam/record/mapping_quality: Add `const` getter (`MappingQuality::get`).
 
+  * sam/reader: Implement `From<R> for Reader<R>`.
+
 ## 0.19.0 - 2022-09-29
 
 ### Added

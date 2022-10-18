@@ -64,7 +64,7 @@ where
     /// let reader = sam::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
-        Self { inner }
+        Self::from(inner)
     }
 
     /// Returns a reference to the underlying reader.
@@ -306,6 +306,15 @@ where
             reference_sequence_id,
             region.interval(),
         ))
+    }
+}
+
+impl<R> From<R> for Reader<R>
+where
+    R: BufRead,
+{
+    fn from(inner: R) -> Self {
+        Self { inner }
     }
 }
 
