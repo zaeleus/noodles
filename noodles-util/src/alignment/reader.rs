@@ -4,23 +4,14 @@ mod builder;
 
 pub use self::builder::Builder;
 
-use std::io::{self, BufReader, Read};
+use std::io::{self, Read};
 
-use noodles_bam as bam;
-use noodles_bgzf as bgzf;
-use noodles_cram as cram;
 use noodles_fasta as fasta;
 use noodles_sam::{self as sam, alignment::Record, AlignmentReader};
 
-enum Inner<R> {
-    Sam(sam::Reader<BufReader<R>>),
-    Bam(bam::Reader<bgzf::Reader<R>>),
-    Cram(cram::Reader<R>),
-}
-
 /// An alignment reader.
 pub struct Reader<R> {
-    inner: Inner<R>,
+    inner: Box<dyn AlignmentReader<R>>,
     reference_sequence_repository: fasta::Repository,
 }
 
@@ -55,11 +46,7 @@ where
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn read_header(&mut self) -> io::Result<sam::Header> {
-        match &mut self.inner {
-            Inner::Sam(inner) => inner.read_alignment_header(),
-            Inner::Bam(inner) => inner.read_alignment_header(),
-            Inner::Cram(inner) => inner.read_alignment_header(),
-        }
+        self.inner.read_alignment_header()
     }
 
     /// Returns an iterator over records starting from the current stream position.
@@ -88,16 +75,7 @@ where
         &'a mut self,
         header: &'a sam::Header,
     ) -> impl Iterator<Item = io::Result<Record>> + 'a {
-        match &mut self.inner {
-            Inner::Sam(inner) => {
-                inner.alignment_records(&self.reference_sequence_repository, header)
-            }
-            Inner::Bam(inner) => {
-                inner.alignment_records(&self.reference_sequence_repository, header)
-            }
-            Inner::Cram(inner) => {
-                inner.alignment_records(&self.reference_sequence_repository, header)
-            }
-        }
+        self.inner
+            .alignment_records(&self.reference_sequence_repository, header)
     }
 }

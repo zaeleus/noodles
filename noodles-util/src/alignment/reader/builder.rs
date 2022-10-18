@@ -1,6 +1,6 @@
 use std::{
     fs::File,
-    io::{self, BufReader, Read, Seek},
+    io::{self, BufRead, BufReader, Read, Seek},
     path::Path,
 };
 
@@ -9,6 +9,7 @@ use noodles_bgzf as bgzf;
 use noodles_cram as cram;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
+use sam::AlignmentReader;
 
 use super::Reader;
 use crate::alignment::Format;
@@ -70,7 +71,7 @@ impl Builder {
     /// let reader = alignment::reader::Builder::default().build_from_path("sample.bam")?;
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn build_from_path<P>(self, path: P) -> io::Result<Reader<File>>
+    pub fn build_from_path<P>(self, path: P) -> io::Result<Reader<Box<dyn BufRead>>>
     where
         P: AsRef<Path>,
     {
@@ -91,21 +92,28 @@ impl Builder {
     /// let reader = alignment::reader::Builder::default().build_from_reader(io::empty())?;
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn build_from_reader<R>(self, mut reader: R) -> io::Result<Reader<R>>
+    pub fn build_from_reader<R>(self, mut reader: R) -> io::Result<Reader<Box<dyn BufRead>>>
     where
-        R: Read + Seek,
+        R: Read + Seek + 'static,
     {
-        use super::Inner;
-
         let format = self
             .format
             .map(Ok)
             .unwrap_or_else(|| detect_format(&mut reader))?;
 
-        let inner = match format {
-            Format::Sam => Inner::Sam(sam::Reader::new(BufReader::new(reader))),
-            Format::Bam => Inner::Bam(bam::Reader::new(reader)),
-            Format::Cram => Inner::Cram(cram::Reader::new(reader)),
+        let inner: Box<dyn AlignmentReader<_>> = match format {
+            Format::Sam => {
+                let inner: Box<dyn BufRead> = Box::new(BufReader::new(reader));
+                Box::new(sam::Reader::from(inner))
+            }
+            Format::Bam => {
+                let inner: Box<dyn BufRead> = Box::new(bgzf::Reader::new(reader));
+                Box::new(bam::Reader::from(inner))
+            }
+            Format::Cram => {
+                let inner: Box<dyn BufRead> = Box::new(BufReader::new(reader));
+                Box::new(cram::Reader::new(inner))
+            }
         };
 
         Ok(Reader {
