@@ -285,7 +285,7 @@ fn parse_digits(s: &str) -> Option<u32> {
 }
 
 fn parse_delta(prev_token: &Token, s: &str) -> Option<(u32, u8)> {
-    if let Token::Digits(n) = prev_token {
+    if let Token::Digits(n) | Token::Delta(n, _) = prev_token {
         let m = s.parse().ok()?;
 
         if m >= *n {
