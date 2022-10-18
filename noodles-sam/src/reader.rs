@@ -4,10 +4,6 @@ mod query;
 pub(crate) mod record;
 mod records;
 
-use crate::header::ReferenceSequences;
-
-pub use self::records::Records;
-
 use std::io::{self, BufRead, Read, Seek};
 
 use noodles_bgzf as bgzf;
@@ -15,7 +11,8 @@ use noodles_core::Region;
 use noodles_csi::BinningIndex;
 use noodles_fasta as fasta;
 
-use super::{alignment::Record, lazy, AlignmentReader, Header};
+pub use self::records::Records;
+use super::{alignment::Record, header::ReferenceSequences, lazy, AlignmentReader, Header};
 
 /// A SAM reader.
 ///
