@@ -2,12 +2,7 @@
 //!
 //! The output format is determined from the extension of the destination.
 
-use std::{
-    env,
-    fs::File,
-    io::{self, BufWriter},
-    path::Path,
-};
+use std::{env, io, path::Path};
 
 use noodles_fasta::{self as fasta, repository::adapters::IndexedReader};
 use noodles_util::alignment::{self, Format};
@@ -46,12 +41,10 @@ fn main() -> io::Result<()> {
 
     let output_format = detect_format_from_extension(&dst).expect("invalid dst extension");
 
-    let mut writer = File::create(dst).map(|f| {
-        alignment::writer::Builder::default()
-            .set_format(output_format)
-            .set_reference_sequence_repository(repository)
-            .build_from_writer(BufWriter::new(f))
-    })?;
+    let mut writer = alignment::writer::Builder::default()
+        .set_format(output_format)
+        .set_reference_sequence_repository(repository)
+        .build_from_path(dst)?;
 
     writer.write_header(&header)?;
 

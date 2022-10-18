@@ -1,6 +1,10 @@
 //! Alignment writer builder.
 
-use std::io::Write;
+use std::{
+    fs::File,
+    io::{self, Write},
+    path::Path,
+};
 
 use cram::data_container::BlockContentEncoderMap;
 use noodles_bam as bam;
@@ -76,7 +80,28 @@ impl Builder {
         self
     }
 
-    /// Builds an alignment writer.
+    /// Builds an alignment writer from a path.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::io;
+    /// use noodles_util::alignment::{self, Format};
+    ///
+    /// let writer = alignment::writer::Builder::default()
+    ///     .set_format(Format::Sam)
+    ///     .build_from_path("out.sam")?;
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn build_from_path<P>(self, src: P) -> io::Result<Writer>
+    where
+        P: AsRef<Path>,
+    {
+        let file = File::create(src)?;
+        Ok(self.build_from_writer(file))
+    }
+
+    /// Builds an alignment writer from a writer.
     ///
     /// # Examples
     ///
