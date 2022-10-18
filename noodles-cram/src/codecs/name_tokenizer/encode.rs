@@ -101,6 +101,7 @@ enum Token {
     // ...
     Dup(usize),
     Diff(usize),
+    Digits(u32),
     // ...
     Match,
     // ...
@@ -116,6 +117,7 @@ impl Token {
             // ...
             Self::Dup(_) => Type::Dup,
             Self::Diff(_) => Type::Diff,
+            Self::Digits(_) => Type::Digits,
             // ...
             Self::Match => Type::Match,
             // ...
@@ -226,6 +228,8 @@ fn build_diff(diffs: &[Diff], names_indices: &HashMap<&str, usize>, i: usize, na
             Token::Match
         } else if let Some(n) = parse_digits0(raw_token) {
             Token::PaddedDigits(n, raw_token.len())
+        } else if let Some(n) = parse_digits(raw_token) {
+            Token::Digits(n)
         } else if raw_token.len() == 1 {
             let b = raw_token.as_bytes()[0];
             Token::Char(b)
@@ -248,6 +252,10 @@ fn parse_digits0(s: &str) -> Option<u32> {
     } else {
         None
     }
+}
+
+fn parse_digits(s: &str) -> Option<u32> {
+    s.parse().ok()
 }
 
 #[derive(Default)]
@@ -292,6 +300,9 @@ impl TokenWriter {
                 let n = u32::try_from(*delta)
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
                 self.diff_writer.write_u32::<LittleEndian>(n)?;
+            }
+            Token::Digits(n) => {
+                self.digits_writer.write_u32::<LittleEndian>(*n)?;
             }
             // ...
             Token::Match => {}

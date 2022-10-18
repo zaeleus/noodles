@@ -6,8 +6,8 @@
 
   * cram/codecs: Add fqzcomp encoder.
 
-  * cram/codecs/name_tokenizer/encode: Add `DIGITS0` and `MATCH`
-    tokens.
+  * cram/codecs/name_tokenizer/encode: Add `DIGITS0`, `DIGITS`,
+    `MATCH` tokens.
 
 ### Fixed
 
