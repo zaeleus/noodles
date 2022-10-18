@@ -4,6 +4,8 @@
 
 ### Added
 
+  * sam/alignment_reader: Add reader as a type parameter.
+
   * sam/record/cigar/op/kind: Add whether an operation kind consumes the read
     (`Kind::consumes_read`) and/or reference (`Kind::consumes_reference`).
 

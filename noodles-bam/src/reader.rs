@@ -443,7 +443,7 @@ impl<R> From<R> for Reader<R> {
     }
 }
 
-impl<R> sam::AlignmentReader for Reader<R>
+impl<R> sam::AlignmentReader<R> for Reader<R>
 where
     R: Read,
 {

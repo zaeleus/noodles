@@ -318,7 +318,7 @@ where
     }
 }
 
-impl<R> AlignmentReader for Reader<R>
+impl<R> AlignmentReader<R> for Reader<R>
 where
     R: BufRead,
 {

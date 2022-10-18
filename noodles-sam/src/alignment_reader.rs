@@ -5,7 +5,7 @@ use noodles_fasta as fasta;
 use super::{alignment::Record, Header};
 
 /// An alignment format reader.
-pub trait AlignmentReader {
+pub trait AlignmentReader<R> {
     /// Reads a SAM header.
     fn read_alignment_header(&mut self) -> io::Result<Header>;
 
