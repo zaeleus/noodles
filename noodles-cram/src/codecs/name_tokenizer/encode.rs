@@ -196,7 +196,11 @@ fn build_first_diff(name: &str) -> Diff {
     let raw_tokens = tokenize(name);
 
     for raw_token in raw_tokens {
-        let token = if raw_token.len() == 1 {
+        let token = if let Some(n) = parse_digits0(raw_token) {
+            Token::PaddedDigits(n, raw_token.len())
+        } else if let Some(n) = parse_digits(raw_token) {
+            Token::Digits(n)
+        } else if raw_token.len() == 1 {
             let b = raw_token.as_bytes()[0];
             Token::Char(b)
         } else {
