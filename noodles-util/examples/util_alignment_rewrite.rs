@@ -2,22 +2,10 @@
 //!
 //! The output format is determined from the extension of the destination.
 
-use std::{env, io, path::Path};
+use std::{env, io};
 
 use noodles_fasta::{self as fasta, repository::adapters::IndexedReader};
-use noodles_util::alignment::{self, Format};
-
-fn detect_format_from_extension<P>(path: P) -> Option<Format>
-where
-    P: AsRef<Path>,
-{
-    match path.as_ref().extension().and_then(|ext| ext.to_str()) {
-        Some("sam") => Some(Format::Sam),
-        Some("bam") => Some(Format::Bam),
-        Some("cram") => Some(Format::Cram),
-        _ => None,
-    }
-}
+use noodles_util::alignment;
 
 fn main() -> io::Result<()> {
     let mut args = env::args().skip(1);
@@ -39,10 +27,7 @@ fn main() -> io::Result<()> {
 
     let header = reader.read_header()?;
 
-    let output_format = detect_format_from_extension(&dst).expect("invalid dst extension");
-
     let mut writer = alignment::writer::Builder::default()
-        .set_format(output_format)
         .set_reference_sequence_repository(repository)
         .build_from_path(dst)?;
 

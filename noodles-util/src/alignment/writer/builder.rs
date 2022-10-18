@@ -16,8 +16,9 @@ use super::Writer;
 use crate::alignment::Format;
 
 /// An alignment writer builder.
+#[derive(Default)]
 pub struct Builder {
-    format: Format,
+    format: Option<Format>,
     reference_sequence_repository: fasta::Repository,
     block_content_encoder_map: BlockContentEncoderMap,
 }
@@ -32,7 +33,7 @@ impl Builder {
     /// let builder = alignment::writer::Builder::default().set_format(Format::Sam);
     /// ```
     pub fn set_format(mut self, format: Format) -> Self {
-        self.format = format;
+        self.format = Some(format);
         self
     }
 
@@ -82,6 +83,8 @@ impl Builder {
 
     /// Builds an alignment writer from a path.
     ///
+    /// If the format is not set, it is detected from the path extension.
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -93,10 +96,16 @@ impl Builder {
     ///     .build_from_path("out.sam")?;
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn build_from_path<P>(self, src: P) -> io::Result<Writer>
+    pub fn build_from_path<P>(mut self, src: P) -> io::Result<Writer>
     where
         P: AsRef<Path>,
     {
+        let src = src.as_ref();
+
+        if self.format.is_none() {
+            self.format = detect_format_from_path_extension(src);
+        }
+
         let file = File::create(src)?;
         Ok(self.build_from_writer(file))
     }
@@ -117,7 +126,9 @@ impl Builder {
     where
         W: Write + 'static,
     {
-        let inner: Box<dyn sam::AlignmentWriter> = match self.format {
+        let format = self.format.unwrap_or(Format::Sam);
+
+        let inner: Box<dyn sam::AlignmentWriter> = match format {
             Format::Sam => Box::new(sam::Writer::new(writer)),
             Format::Bam => Box::new(bam::Writer::new(writer)),
             Format::Cram => Box::new(
@@ -132,12 +143,37 @@ impl Builder {
     }
 }
 
-impl Default for Builder {
-    fn default() -> Self {
-        Self {
-            format: Format::Sam,
-            reference_sequence_repository: fasta::Repository::default(),
-            block_content_encoder_map: BlockContentEncoderMap::default(),
-        }
+fn detect_format_from_path_extension<P>(path: P) -> Option<Format>
+where
+    P: AsRef<Path>,
+{
+    match path.as_ref().extension().and_then(|ext| ext.to_str()) {
+        Some("sam") => Some(Format::Sam),
+        Some("bam") => Some(Format::Bam),
+        Some("cram") => Some(Format::Cram),
+        _ => None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_detect_format_from_path_extension() {
+        assert_eq!(
+            detect_format_from_path_extension("out.sam"),
+            Some(Format::Sam)
+        );
+        assert_eq!(
+            detect_format_from_path_extension("out.bam"),
+            Some(Format::Bam)
+        );
+        assert_eq!(
+            detect_format_from_path_extension("out.cram"),
+            Some(Format::Cram)
+        );
+
+        assert!(detect_format_from_path_extension("out.fa").is_none());
     }
 }
