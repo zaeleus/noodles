@@ -97,6 +97,7 @@ where
 enum Token {
     String(String),
     Char(u8),
+    PaddedDigits(u32, usize),
     // ...
     Dup(usize),
     Diff(usize),
@@ -111,6 +112,7 @@ impl Token {
         match self {
             Self::String(_) => Type::String,
             Self::Char(_) => Type::Char,
+            Self::PaddedDigits(..) => Type::Digits0,
             // ...
             Self::Dup(_) => Type::Dup,
             Self::Diff(_) => Type::Diff,
@@ -222,6 +224,8 @@ fn build_diff(diffs: &[Diff], names_indices: &HashMap<&str, usize>, i: usize, na
     for (j, raw_token) in raw_tokens.enumerate() {
         let token = if raw_token == prev_diff.raw_tokens[j] {
             Token::Match
+        } else if let Some(n) = parse_digits0(raw_token) {
+            Token::PaddedDigits(n, raw_token.len())
         } else if raw_token.len() == 1 {
             let b = raw_token.as_bytes()[0];
             Token::Char(b)
@@ -236,6 +240,14 @@ fn build_diff(diffs: &[Diff], names_indices: &HashMap<&str, usize>, i: usize, na
     diff.tokens.push(Token::End);
 
     diff
+}
+
+fn parse_digits0(s: &str) -> Option<u32> {
+    if s.starts_with('0') {
+        s.parse().ok()
+    } else {
+        None
+    }
 }
 
 #[derive(Default)]
@@ -262,6 +274,14 @@ impl TokenWriter {
                 self.string_writer.write_all(&[NUL])?;
             }
             Token::Char(b) => self.char_writer.write_u8(*b)?,
+            Token::PaddedDigits(n, width) => {
+                // d
+                self.digits0_writer.write_u32::<LittleEndian>(*n)?;
+
+                let l = u8::try_from(*width)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+                self.dz_len_writer.write_u8(l)?;
+            }
             // ...
             Token::Dup(delta) => {
                 let n = u32::try_from(*delta)
