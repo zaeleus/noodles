@@ -6,6 +6,8 @@
 
   * cram/codecs: Add fqzcomp encoder.
 
+  * cram/codecs/name_tokenizer/encode: Add match tokens.
+
 ### Fixed
 
   * cram/codecs/aac/encode: Fix serialization of the max symbol for order-0 and

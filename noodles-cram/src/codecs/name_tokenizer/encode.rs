@@ -37,7 +37,7 @@ pub fn encode(mut src: &[u8]) -> io::Result<Vec<u8>> {
     }
 
     for (i, name) in names.iter().enumerate().skip(1) {
-        let diff = build_diff(&names_indices, i, name);
+        let diff = build_diff(&diffs, &names_indices, i, name);
         names_indices.entry(name).or_insert(i);
         max_token_count = max_token_count.max(diff.tokens.len());
         diffs.push(diff);
@@ -101,6 +101,8 @@ enum Token {
     Dup(usize),
     Diff(usize),
     // ...
+    Match,
+    // ...
     End,
 }
 
@@ -112,6 +114,8 @@ impl Token {
             // ...
             Self::Dup(_) => Type::Dup,
             Self::Diff(_) => Type::Diff,
+            // ...
+            Self::Match => Type::Match,
             // ...
             Self::End => Type::End,
         }
@@ -125,6 +129,7 @@ enum Mode {
 
 struct Diff {
     mode: Mode,
+    raw_tokens: Vec<String>,
     tokens: Vec<Token>,
 }
 
@@ -132,7 +137,15 @@ impl Diff {
     fn new(mode: Mode) -> Self {
         Self {
             mode,
+            raw_tokens: Vec::new(),
             tokens: Vec::new(),
+        }
+    }
+
+    fn delta(&self) -> usize {
+        match self.mode {
+            Mode::Diff(delta) => delta,
+            Mode::Dup(delta) => delta,
         }
     }
 
@@ -186,6 +199,7 @@ fn build_first_diff(name: &str) -> Diff {
             Token::String(raw_token.into())
         };
 
+        diff.raw_tokens.push(raw_token.into());
         diff.tokens.push(token);
     }
 
@@ -194,7 +208,7 @@ fn build_first_diff(name: &str) -> Diff {
     diff
 }
 
-fn build_diff(names_indices: &HashMap<&str, usize>, i: usize, name: &str) -> Diff {
+fn build_diff(diffs: &[Diff], names_indices: &HashMap<&str, usize>, i: usize, name: &str) -> Diff {
     let mut diff = if let Some(j) = names_indices.get(name) {
         let delta = i - j;
         Diff::new(Mode::Dup(delta))
@@ -202,16 +216,20 @@ fn build_diff(names_indices: &HashMap<&str, usize>, i: usize, name: &str) -> Dif
         Diff::new(Mode::Diff(1))
     };
 
+    let prev_diff = &diffs[i - diff.delta()];
     let raw_tokens = tokenize(name);
 
-    for raw_token in raw_tokens {
-        let token = if raw_token.len() == 1 {
+    for (j, raw_token) in raw_tokens.enumerate() {
+        let token = if raw_token == prev_diff.raw_tokens[j] {
+            Token::Match
+        } else if raw_token.len() == 1 {
             let b = raw_token.as_bytes()[0];
             Token::Char(b)
         } else {
             Token::String(raw_token.into())
         };
 
+        diff.raw_tokens.push(raw_token.into());
         diff.tokens.push(token);
     }
 
@@ -255,6 +273,8 @@ impl TokenWriter {
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
                 self.diff_writer.write_u32::<LittleEndian>(n)?;
             }
+            // ...
+            Token::Match => {}
             // ...
             Token::End => {}
         }
