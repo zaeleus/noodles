@@ -1,3 +1,5 @@
+//! Alignment reader.
+
 mod builder;
 
 pub use self::builder::Builder;
@@ -31,21 +33,6 @@ pub struct Reader<R> {
     index: Option<Index>,
 }
 
-impl Reader<()> {
-    /// Creates an alignment reader builder.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io;
-    /// use noodles_util::alignment;
-    /// let builder = alignment::Reader::builder();
-    /// ```
-    pub fn builder() -> Builder {
-        Builder::new()
-    }
-}
-
 impl<R> Reader<R>
 where
     R: Read,
@@ -66,7 +53,7 @@ where
     /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
     /// ");
     ///
-    /// let mut reader = alignment::Reader::builder().build_from_reader(data)?;
+    /// let mut reader = alignment::reader::Builder::default().build_from_reader(data)?;
     /// let actual = reader.read_header()?;
     ///
     /// let expected = sam::Header::builder()
@@ -97,7 +84,7 @@ where
     /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
     /// ");
     ///
-    /// let mut reader = alignment::Reader::builder().build_from_reader(data)?;
+    /// let mut reader = alignment::reader::Builder::default().build_from_reader(data)?;
     /// let header = reader.read_header()?;
     ///
     /// let mut records = reader.records(&header);

@@ -23,7 +23,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let region = args.next().expect("missing region").parse()?;
     let fasta_src = args.next();
 
-    let mut builder = alignment::Reader::builder();
+    let mut builder = alignment::reader::Builder::default();
 
     if let Some(fasta_src) = fasta_src {
         let repository = fasta::indexed_reader::Builder::default()

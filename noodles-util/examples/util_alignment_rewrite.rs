@@ -38,7 +38,7 @@ fn main() -> io::Result<()> {
         .map(fasta::Repository::new)
         .unwrap_or_default();
 
-    let mut reader = alignment::Reader::builder()
+    let mut reader = alignment::reader::Builder::default()
         .set_reference_sequence_repository(repository.clone())
         .build_from_path(src)?;
 

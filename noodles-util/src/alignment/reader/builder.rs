@@ -16,6 +16,7 @@ use super::Reader;
 use crate::alignment::Format;
 
 /// An alignment reader builder.
+#[derive(Default)]
 pub struct Builder {
     format: Option<Format>,
     reference_sequence_repository: fasta::Repository,
@@ -23,14 +24,6 @@ pub struct Builder {
 }
 
 impl Builder {
-    pub(super) fn new() -> Self {
-        Self {
-            reference_sequence_repository: fasta::Repository::default(),
-            format: None,
-            index_src: None,
-        }
-    }
-
     /// Sets the format of the input.
     ///
     /// By default, the format is autodetected on [`build`]. This can be used to override it.
@@ -39,7 +32,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_util::alignment::{self, Format};
-    /// let builder = alignment::Reader::builder().set_format(Format::Sam);
+    /// let builder = alignment::reader::Builder::default().set_format(Format::Sam);
     /// ```
     pub fn set_format(mut self, format: Format) -> Self {
         self.format = Some(format);
@@ -56,7 +49,7 @@ impl Builder {
     ///
     /// let repository = fasta::Repository::default();
     ///
-    /// let builder = alignment::Reader::builder()
+    /// let builder = alignment::reader::Builder::default()
     ///     .set_reference_sequence_repository(repository);
     /// ```
     pub fn set_reference_sequence_repository(
@@ -77,7 +70,7 @@ impl Builder {
     /// ```no_run
     /// # use std::io;
     /// use noodles_util::alignment;
-    /// let reader = alignment::Reader::builder().build_from_path("sample.bam")?;
+    /// let reader = alignment::reader::Builder::default().build_from_path("sample.bam")?;
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn build_from_path<P>(mut self, path: P) -> io::Result<Reader<File>>
@@ -99,7 +92,7 @@ impl Builder {
     /// ```
     /// # use std::io;
     /// use noodles_util::alignment;
-    /// let reader = alignment::Reader::builder().build_from_reader(io::empty())?;
+    /// let reader = alignment::reader::Builder::default().build_from_reader(io::empty())?;
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn build_from_reader<R>(self, mut reader: R) -> io::Result<Reader<R>>
