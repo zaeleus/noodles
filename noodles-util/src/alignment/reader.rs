@@ -4,13 +4,11 @@ mod builder;
 
 pub use self::builder::Builder;
 
-use std::io::{self, BufReader, Read, Seek};
+use std::io::{self, BufReader, Read};
 
-use noodles_bam::{self as bam, bai};
+use noodles_bam as bam;
 use noodles_bgzf as bgzf;
-use noodles_core::Region;
-use noodles_cram::{self as cram, crai};
-use noodles_csi as csi;
+use noodles_cram as cram;
 use noodles_fasta as fasta;
 use noodles_sam::{self as sam, alignment::Record, AlignmentReader};
 
@@ -20,17 +18,10 @@ enum Inner<R> {
     Cram(cram::Reader<R>),
 }
 
-enum Index {
-    Bai(bai::Index),
-    Crai(crai::Index),
-    Csi(csi::Index),
-}
-
 /// An alignment reader.
 pub struct Reader<R> {
     inner: Inner<R>,
     reference_sequence_repository: fasta::Repository,
-    index: Option<Index>,
 }
 
 impl<R> Reader<R>
@@ -108,43 +99,5 @@ where
                 inner.alignment_records(&self.reference_sequence_repository, header)
             }
         }
-    }
-}
-
-impl<R> Reader<R>
-where
-    R: Read + Seek,
-{
-    /// Returns an iterator over records that intersect the given region.
-    pub fn query<'a>(
-        &'a mut self,
-        header: &'a sam::Header,
-        region: &'a Region,
-    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'a> {
-        let index = self.index.as_ref().ok_or_else(|| {
-            io::Error::new(io::ErrorKind::InvalidInput, "cannot query without an index")
-        })?;
-
-        let iter: Box<dyn Iterator<Item = _>> = match &mut self.inner {
-            Inner::Bam(inner) => match index {
-                Index::Bai(bai) => {
-                    Box::new(inner.query(header.reference_sequences(), bai, region)?)
-                }
-                _ => todo!(),
-            },
-            Inner::Cram(inner) => match index {
-                Index::Crai(crai) => Box::new(
-                    inner
-                        .query(&self.reference_sequence_repository, header, crai, region)?
-                        .map(|result| {
-                            result.and_then(|record| record.try_into_alignment_record(header))
-                        }),
-                ),
-                _ => todo!(),
-            },
-            _ => todo!(),
-        };
-
-        Ok(iter)
     }
 }
