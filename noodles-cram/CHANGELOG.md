@@ -18,6 +18,11 @@
   * cram/codecs/name_tokenizer/encode: Add `DIGITS0`, `DIGITS`, `DELTA`,
     `DELTA0`, and `MATCH` tokens.
 
+### Changed
+
+  * cram/writer: Calculate and write missing MD5 checksums (`M5`) in the
+    reference sequence dictionary.
+
 ### Fixed
 
   * cram/codecs/aac/encode: Fix serialization of the max symbol for order-0 and

@@ -272,7 +272,7 @@ fn set_detached(record: &mut Record) {
 }
 
 // _Sequence Alignment/Map Format Specification_ (2021-06-03) § 1.3.2 "Reference MD5 calculation"
-pub(super) fn calculate_normalized_sequence_digest(sequence: &[u8]) -> [u8; 16] {
+pub(crate) fn calculate_normalized_sequence_digest(sequence: &[u8]) -> [u8; 16] {
     let mut hasher = Md5::new();
 
     for &b in sequence {
