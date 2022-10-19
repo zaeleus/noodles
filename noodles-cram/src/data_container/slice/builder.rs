@@ -173,7 +173,12 @@ fn write_records(
 
     set_mates(records);
 
+    let mut all_quality_scores_stored_as_arrays = true;
+
     for record in records.iter() {
+        all_quality_scores_stored_as_arrays = all_quality_scores_stored_as_arrays
+            && record.cram_flags().are_quality_scores_stored_as_array();
+
         record_writer.write_record(record)?;
     }
 
@@ -200,13 +205,17 @@ fn write_records(
             {
                 match encoder {
                     Some(Encoder::Fqzcomp) => {
-                        let lens: Vec<_> = records.iter().map(|r| r.read_length()).collect();
-                        let data = fqzcomp::encode(&lens, &buf)?;
+                        if all_quality_scores_stored_as_arrays {
+                            let lens: Vec<_> = records.iter().map(|r| r.read_length()).collect();
+                            let data = fqzcomp::encode(&lens, &buf)?;
 
-                        builder
-                            .set_uncompressed_len(buf.len())
-                            .set_compression_method(block::CompressionMethod::Fqzcomp)
-                            .set_data(Bytes::from(data))
+                            builder
+                                .set_uncompressed_len(buf.len())
+                                .set_compression_method(block::CompressionMethod::Fqzcomp)
+                                .set_data(Bytes::from(data))
+                        } else {
+                            set_block_data(builder, buf, Some(&Encoder::Gzip(Default::default())))?
+                        }
                     }
                     _ => set_block_data(builder, buf, encoder)?,
                 }
