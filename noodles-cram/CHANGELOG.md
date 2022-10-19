@@ -12,7 +12,8 @@
 
   * cram/codecs: Add fqzcomp encoder.
 
-  * cram/codecs: Increase visibility of `rans_4x8::Order`.
+  * cram/codecs: Increase visibilities of `rans_4x8::Order`,
+    `rans_nx16::Flags`.
 
   * cram/codecs/name_tokenizer/encode: Add `DIGITS0`, `DIGITS`, `DELTA`,
     `DELTA0`, and `MATCH` tokens.

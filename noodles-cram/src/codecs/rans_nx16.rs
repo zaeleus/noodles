@@ -1,5 +1,8 @@
-pub mod decode;
-pub mod encode;
+//! rANS 4x8 codec.
+
+pub(crate) mod decode;
+pub(crate) mod encode;
 mod flags;
 
-pub use self::{decode::decode, encode::encode, flags::Flags};
+pub use self::flags::Flags;
+pub(crate) use self::{decode::decode, encode::encode};
