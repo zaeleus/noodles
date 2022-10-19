@@ -4,7 +4,7 @@ version = "0.27.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license = "MIT"
 edition = "2021"
-rust-version = "1.59.0"
+rust-version = "1.60.0"
 description = "Bioinformatics I/O libraries"
 homepage = "https://github.com/zaeleus/noodles"
 repository = "https://github.com/zaeleus/noodles"
@@ -44,6 +44,19 @@ gtf = ["noodles-gtf"]
 sam = ["noodles-sam"]
 tabix = ["noodles-tabix"]
 vcf = ["noodles-vcf"]
+
+async = [
+  "noodles-bam?/async",
+  "noodles-bcf?/async",
+  "noodles-bgzf?/async",
+  "noodles-cram?/async",
+  "noodles-csi?/async",
+  "noodles-fasta?/async",
+  "noodles-fastq?/async",
+  "noodles-sam?/async",
+  "noodles-tabix?/async",
+  "noodles-vcf?/async",
+]
 
 [package.metadata.docs.rs]
 all-features = true
