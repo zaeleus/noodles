@@ -6,7 +6,7 @@ pub(crate) mod fqzcomp;
 pub(crate) mod gzip;
 pub(crate) mod lzma;
 pub(crate) mod name_tokenizer;
-pub(crate) mod rans_4x8;
+pub mod rans_4x8;
 pub(crate) mod rans_nx16;
 
 /// A CRAM block content encoder.

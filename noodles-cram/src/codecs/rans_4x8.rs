@@ -1,8 +1,11 @@
+//! rANS 4x8 codec.
+
 mod decode;
 mod encode;
 mod order;
 
-pub use self::{decode::decode, encode::encode, order::Order};
+pub use self::order::Order;
+pub(crate) use self::{decode::decode, encode::encode};
 
 #[cfg(test)]
 mod tests {
