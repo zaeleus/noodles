@@ -61,9 +61,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let index = builder.build(header.reference_sequences().len());
 
-    let stdout = io::stdout();
-    let handle = stdout.lock();
-    let mut writer = bai::Writer::new(handle);
+    let stdout = io::stdout().lock();
+    let mut writer = bai::Writer::new(stdout);
 
     writer.write_header()?;
     writer.write_index(&index)?;

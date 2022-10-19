@@ -27,9 +27,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let header: sam::Header = reader.read_header()?.parse()?;
     reader.read_reference_sequences()?;
 
-    let stdout = io::stdout();
-    let handle = stdout.lock();
-    let mut writer = bam::Writer::new(handle);
+    let stdout = io::stdout().lock();
+    let mut writer = bam::Writer::new(stdout);
 
     writer.write_header(&header)?;
     writer.write_reference_sequences(header.reference_sequences())?;

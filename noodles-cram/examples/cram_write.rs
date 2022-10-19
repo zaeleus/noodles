@@ -72,15 +72,14 @@ fn build_header(
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let reference_sequences = build_reference_sequences();
 
-    let stdout = io::stdout();
-    let handle = stdout.lock();
+    let stdout = io::stdout().lock();
 
     let header = build_header(&reference_sequences)?;
 
     let repository = fasta::Repository::new(reference_sequences);
     let mut writer = cram::writer::Builder::default()
         .set_reference_sequence_repository(repository)
-        .build_with_writer(handle);
+        .build_with_writer(stdout);
 
     writer.write_file_definition()?;
     writer.write_file_header(&header)?;

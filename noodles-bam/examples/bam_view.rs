@@ -14,9 +14,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let header: sam::Header = reader.read_header()?.parse()?;
     reader.read_reference_sequences()?;
 
-    let stdout = io::stdout();
-    let handle = stdout.lock();
-    let mut writer = sam::Writer::new(handle);
+    let stdout = io::stdout().lock();
+    let mut writer = sam::Writer::new(stdout);
 
     for result in reader.records() {
         let record = result?;

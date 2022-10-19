@@ -21,9 +21,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let query = reader.query(header.reference_sequences(), &region)?;
 
-    let stdout = io::stdout();
-    let handle = stdout.lock();
-    let mut writer = sam::Writer::new(handle);
+    let stdout = io::stdout().lock();
+    let mut writer = sam::Writer::new(stdout);
 
     for result in query {
         let record = result?;

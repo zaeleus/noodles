@@ -36,9 +36,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let index = crai::read(src.with_extension("cram.crai"))?;
 
-    let stdout = io::stdout();
-    let handle = stdout.lock();
-    let mut writer = sam::Writer::new(BufWriter::new(handle));
+    let stdout = io::stdout().lock();
+    let mut writer = sam::Writer::new(BufWriter::new(stdout));
 
     let query = reader.query(&repository, &header, &index, &region)?;
 

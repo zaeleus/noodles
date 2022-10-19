@@ -13,9 +13,8 @@ fn main() -> io::Result<()> {
 
     let index = cram::index(src)?;
 
-    let stdout = io::stdout();
-    let handle = stdout.lock();
-    let mut writer = crai::Writer::new(handle);
+    let stdout = io::stdout().lock();
+    let mut writer = crai::Writer::new(stdout);
 
     writer.write_index(&index)?;
 

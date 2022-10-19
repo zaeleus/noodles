@@ -32,9 +32,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let header: sam::Header = reader.read_file_header()?.parse()?;
 
-    let stdout = io::stdout();
-    let handle = stdout.lock();
-    let mut writer = sam::Writer::new(BufWriter::new(handle));
+    let stdout = io::stdout().lock();
+    let mut writer = sam::Writer::new(BufWriter::new(stdout));
 
     for result in reader.records(&repository, &header) {
         let record = result.and_then(|record| record.try_into_alignment_record(&header))?;

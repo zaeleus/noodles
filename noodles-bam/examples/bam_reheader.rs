@@ -18,9 +18,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     header.add_comment("a comment added by noodles-bam");
 
-    let stdout = io::stdout();
-    let handle = stdout.lock();
-    let mut writer = bam::Writer::new(handle);
+    let stdout = io::stdout().lock();
+    let mut writer = bam::Writer::new(stdout);
 
     writer.write_header(&header)?;
     writer.write_reference_sequences(header.reference_sequences())?;

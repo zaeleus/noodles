@@ -34,9 +34,8 @@ fn main() -> io::Result<()> {
     let mut reader = builder.build_from_path(src)?;
     let header = reader.read_header()?;
 
-    let stdout = io::stdout();
-    let handle = stdout.lock();
-    let mut writer = sam::Writer::new(BufWriter::new(handle));
+    let stdout = io::stdout().lock();
+    let mut writer = sam::Writer::new(BufWriter::new(stdout));
 
     writer.write_header(&header)?;
 

@@ -26,9 +26,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let index = csi::read(src.with_extension("gz.csi"))?;
     let query = reader.query(&header, &index, &region)?;
 
-    let stdout = io::stdout();
-    let handle = stdout.lock();
-    let mut writer = sam::Writer::new(handle);
+    let stdout = io::stdout().lock();
+    let mut writer = sam::Writer::new(stdout);
 
     for result in query {
         let record = result?;

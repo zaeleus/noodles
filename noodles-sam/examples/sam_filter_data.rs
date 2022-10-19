@@ -29,9 +29,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut reader = File::open(src).map(BufReader::new).map(sam::Reader::new)?;
     let header = reader.read_header()?.parse()?;
 
-    let stdout = io::stdout();
-    let handle = stdout.lock();
-    let mut writer = sam::Writer::new(handle);
+    let stdout = io::stdout().lock();
+    let mut writer = sam::Writer::new(stdout);
 
     writer.write_header(&header)?;
 
