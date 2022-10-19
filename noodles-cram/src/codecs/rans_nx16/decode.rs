@@ -1,6 +1,7 @@
 mod order_0;
 mod order_1;
 pub mod pack;
+mod rle;
 
 use std::{
     io::{self, Cursor, Read},
@@ -65,7 +66,7 @@ where
     if flags.contains(Flags::RLE) {
         let l = l.unwrap();
         let mut rle_meta = rle_meta.unwrap();
-        data = decode_rle(&data, &l, &mut rle_meta, rle_len)?;
+        data = rle::decode(&data, &l, &mut rle_meta, rle_len)?;
     }
 
     if flags.contains(Flags::PACK) {
@@ -229,40 +230,6 @@ where
     }
 
     Ok((l, rle_meta_reader, len))
-}
-
-fn decode_rle<R>(
-    mut src: &[u8],
-    l: &[bool; 256],
-    rle_meta: &mut R,
-    len: usize,
-) -> io::Result<Vec<u8>>
-where
-    R: Read,
-{
-    let mut dst = vec![0; len];
-    let mut j = 0;
-
-    while j < dst.len() {
-        let sym = src.read_u8()?;
-
-        if l[usize::from(sym)] {
-            let run = read_uint7(rle_meta).and_then(|n| {
-                usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            })?;
-
-            for k in 0..=run {
-                dst[j + k] = sym;
-            }
-
-            j += run + 1;
-        } else {
-            dst[j] = sym;
-            j += 1;
-        }
-    }
-
-    Ok(dst)
 }
 
 pub fn decode_pack_meta<R>(reader: &mut R) -> io::Result<(Vec<u8>, NonZeroUsize, usize)>
