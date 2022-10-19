@@ -1,6 +1,6 @@
 //! CRAM block content codecs.
 
-pub(crate) mod aac;
+pub mod aac;
 pub(crate) mod bzip2;
 pub(crate) mod fqzcomp;
 pub(crate) mod gzip;
