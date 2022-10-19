@@ -8,6 +8,10 @@
 
   * bam/lazy/record: Add conversion to `sam::alignment::Record`.
 
+### Changed
+
+  * bam: Raise minimum supported Rust version (MSRV) to 1.62.0.
+
 ## 0.22.0 - 2022-09-29
 
 ### Added

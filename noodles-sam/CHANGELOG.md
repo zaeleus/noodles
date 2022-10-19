@@ -13,6 +13,10 @@
 
   * sam/reader: Implement `From<R> for Reader<R>`.
 
+### Changed
+
+  * sam: Raise minimum supported Rust version (MSRV) to 1.62.0.
+
 ## 0.19.0 - 2022-09-29
 
 ### Added

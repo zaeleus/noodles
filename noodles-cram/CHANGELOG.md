@@ -20,6 +20,8 @@
 
 ### Changed
 
+  * cram: Raise minimum supported Rust version (MSRV) to 1.62.0.
+
   * cram/writer: Calculate and write missing MD5 checksums (`M5`) in the
     reference sequence dictionary.
 
