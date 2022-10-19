@@ -4,6 +4,12 @@
 
 ### Added
 
+  * cram: Add CRAM 3.1 write support ([#107]).
+
+    The format of CRAM 3.1 is structurally the same as 3.0, but 3.1 includes
+    additional block content compression methods: rANS Nx16, adaptive
+    arithmetic coder, fqzcomp, and name tokenizer.
+
   * cram/codecs: Add fqzcomp encoder.
 
   * cram/codecs/name_tokenizer/encode: Add `DIGITS0`, `DIGITS`, `DELTA`,
@@ -58,6 +64,8 @@
 
   * cram/codecs/rans_nx16/encode/order_1: Fix order of rANS state
     renormalizations.
+
+[#107]: https://github.com/zaeleus/noodles/issues/107
 
 ## 0.19.0 - 2022-09-29
 
