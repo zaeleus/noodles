@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.20.0 - 2022-10-20
+
+### Changed
+
+  * vcf: Sync dependencies.
+
 ## 0.19.0 - 2022-09-29
 
 ### Added

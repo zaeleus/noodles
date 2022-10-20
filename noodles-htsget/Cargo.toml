@@ -14,7 +14,7 @@ documentation = "https://docs.rs/noodles-htsget"
 base64 = "0.13.0"
 bytes = "1.0.1"
 futures = { version = "0.3.15", default-features = false, features = ["std"] }
-noodles-core = { path = "../noodles-core", version = "0.8.0" }
+noodles-core = { path = "../noodles-core", version = "0.9.0" }
 reqwest = { version = "0.11.9", default-features = false, features = ["json", "rustls-tls", "stream"] }
 serde = { version = "1.0.136", features = ["derive"] }
 url = { version = "2.2.2", features = ["serde"] }

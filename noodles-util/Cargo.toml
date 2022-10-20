@@ -20,11 +20,11 @@ alignment = [
 ]
 
 [dependencies]
-noodles-bam = { path = "../noodles-bam", version = "0.22.0", optional = true }
-noodles-bgzf = { path = "../noodles-bgzf", version = "0.15.0", optional = true }
-noodles-cram = { path = "../noodles-cram", version = "0.19.0", optional = true }
-noodles-fasta = { path = "../noodles-fasta", version = "0.14.0", optional = true }
-noodles-sam = { path = "../noodles-sam", version = "0.19.0", optional = true }
+noodles-bam = { path = "../noodles-bam", version = "0.23.0", optional = true }
+noodles-bgzf = { path = "../noodles-bgzf", version = "0.16.0", optional = true }
+noodles-cram = { path = "../noodles-cram", version = "0.20.0", optional = true }
+noodles-fasta = { path = "../noodles-fasta", version = "0.15.0", optional = true }
+noodles-sam = { path = "../noodles-sam", version = "0.20.0", optional = true }
 
 [package.metadata.docs.rs]
 all-features = true

@@ -1,6 +1,6 @@
 [package]
 name = "noodles-bgzf"
-version = "0.15.0"
+version = "0.16.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license = "MIT"
 edition = "2021"
