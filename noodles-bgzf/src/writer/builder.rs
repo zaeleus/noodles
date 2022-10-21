@@ -3,23 +3,12 @@ use std::io::Write;
 use super::{CompressionLevel, Writer, MAX_BUF_SIZE};
 
 /// A BGZF writer builder.
-#[derive(Debug)]
-pub struct Builder<W> {
-    inner: W,
-    compression_level: Option<CompressionLevel>,
+#[derive(Debug, Default)]
+pub struct Builder {
+    compression_level: CompressionLevel,
 }
 
-impl<W> Builder<W>
-where
-    W: Write,
-{
-    pub(crate) fn new(inner: W) -> Self {
-        Self {
-            inner,
-            compression_level: None,
-        }
-    }
-
+impl Builder {
     /// Sets a compression level.
     ///
     /// By default, the compression level is set to level 6.
@@ -29,30 +18,32 @@ where
     /// ```
     /// use noodles_bgzf::{self as bgzf, writer::CompressionLevel};
     ///
-    /// let builder = bgzf::Writer::builder(Vec::new())
+    /// let builder = bgzf::writer::Builder::default()
     ///     .set_compression_level(CompressionLevel::best());
     /// ```
     pub fn set_compression_level(mut self, compression_level: CompressionLevel) -> Self {
-        self.compression_level = Some(compression_level);
+        self.compression_level = compression_level;
         self
     }
 
-    /// Builds an async BGZF writer.
+    /// Builds a BGZF writer from a writer..
     ///
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let writer = bgzf::Writer::builder(Vec::new()).build();
+    /// let writer = bgzf::writer::Builder::default().build_with_writer(io::sink());
     /// ```
-    pub fn build(self) -> Writer<W> {
-        let compression_level = self.compression_level.unwrap_or_default();
-
+    pub fn build_with_writer<W>(self, writer: W) -> Writer<W>
+    where
+        W: Write,
+    {
         Writer {
-            inner: Some(self.inner),
+            inner: Some(writer),
             position: 0,
             buf: Vec::with_capacity(MAX_BUF_SIZE),
-            compression_level: compression_level.into(),
+            compression_level: self.compression_level.into(),
         }
     }
 }

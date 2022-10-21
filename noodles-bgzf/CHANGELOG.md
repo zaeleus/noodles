@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bgzf/writer/builder: Implement `Default`.
+
+### Changed
+
+  * bgzf/writer/builder: `Builder` no longer holds a writer.
+
+### Removed
+
+  * bgzf/writer: Remove `Writer::builder`.
+
+    Use `writer::Builder::default` instead.
+
+  * bgzf/writer/builder: Remove `Builder::build`.
+
+    Use `Builder::build_with_writer` instead.
+
 ## 0.16.0 - 2022-10-20
 
 ### Added
