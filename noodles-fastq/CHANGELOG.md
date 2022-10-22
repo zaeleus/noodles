@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * fastq/reader: Increase the visibility of the module (`reader`) ([#118]).
+
+    This allows access to the `reader::Records` iterator.
+
+[#118]: https://github.com/zaeleus/noodles/issues/118
+
 ## 0.5.0 - 2022-02-17
 
 ### Added

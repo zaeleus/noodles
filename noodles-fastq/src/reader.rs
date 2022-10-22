@@ -1,3 +1,5 @@
+//! FASTQ reader.
+
 mod records;
 
 pub use self::records::Records;

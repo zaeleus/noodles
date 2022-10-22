@@ -33,7 +33,7 @@ mod r#async;
 
 pub mod fai;
 mod indexer;
-mod reader;
+pub mod reader;
 mod record;
 mod writer;
 
