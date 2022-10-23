@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/alignment_reader: Changes `read_alignment_header` to return `String`.
+
+    Use `parse()` to construct a `sam::Header` from the `String`. 
+
 ## 0.20.0 - 2022-10-20
 
 ### Added

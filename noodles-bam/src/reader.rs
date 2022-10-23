@@ -447,7 +447,7 @@ impl<R> sam::AlignmentReader<R> for Reader<R>
 where
     R: Read,
 {
-    fn read_alignment_header(&mut self) -> io::Result<sam::Header> {
+    fn read_alignment_header(&mut self) -> io::Result<String> {
         read_alignment_header(&mut self.inner)
     }
 
@@ -538,20 +538,15 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
-fn read_alignment_header<R>(reader: &mut R) -> io::Result<sam::Header>
+fn read_alignment_header<R>(reader: &mut R) -> io::Result<String>
 where
     R: Read,
 {
     read_magic(reader)?;
-
-    let header = read_header(reader).and_then(|s| {
-        s.parse()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
+    let header = read_header(reader);
     read_reference_sequences(reader)?;
 
-    Ok(header)
+    header
 }
 
 pub(crate) fn bytes_with_nul_to_string(buf: &[u8]) -> io::Result<String> {
@@ -672,7 +667,8 @@ mod tests {
         data.put_u32_le(8); // ref[0].l_ref
 
         let mut reader = &data[..];
-        let actual = read_alignment_header(&mut reader)?;
+        let header = read_alignment_header(&mut reader)?;
+        let actual: sam::Header = header.parse()?;
 
         let expected = sam::Header::builder()
             .set_header(Map::<map::Header>::new(Version::new(1, 6)))

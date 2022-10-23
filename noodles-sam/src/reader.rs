@@ -322,11 +322,8 @@ impl<R> AlignmentReader<R> for Reader<R>
 where
     R: BufRead,
 {
-    fn read_alignment_header(&mut self) -> io::Result<Header> {
-        read_header(&mut self.inner).and_then(|s| {
-            s.parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })
+    fn read_alignment_header(&mut self) -> io::Result<String> {
+        read_header(&mut self.inner)
     }
 
     fn alignment_records<'a>(

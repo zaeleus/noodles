@@ -36,16 +36,17 @@ where
     /// ");
     ///
     /// let mut reader = alignment::reader::Builder::default().build_from_reader(data)?;
-    /// let actual = reader.read_header()?;
+    /// let header = reader.read_header()?;
+    /// let actual: sam::Header = header.parse()?;
     ///
     /// let expected = sam::Header::builder()
     ///     .set_header(Map::<map::Header>::new(Version::new(1, 6)))
     ///     .build();
     ///
     /// assert_eq!(actual, expected);
-    /// # Ok::<_, io::Error>(())
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn read_header(&mut self) -> io::Result<sam::Header> {
+    pub fn read_header(&mut self) -> io::Result<String> {
         self.inner.read_alignment_header()
     }
 
@@ -63,13 +64,13 @@ where
     /// ");
     ///
     /// let mut reader = alignment::reader::Builder::default().build_from_reader(data)?;
-    /// let header = reader.read_header()?;
+    /// let header: sam::Header = reader.read_header()?.parse()?;
     ///
     /// let mut records = reader.records(&header);
     ///
     /// assert!(records.next().transpose()?.is_some());
     /// assert!(records.next().is_none());
-    /// # Ok::<_, io::Error>(())
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn records<'a>(
         &'a mut self,

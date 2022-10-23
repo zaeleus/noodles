@@ -7,7 +7,7 @@ use super::{alignment::Record, Header};
 /// An alignment format reader.
 pub trait AlignmentReader<R> {
     /// Reads a SAM header.
-    fn read_alignment_header(&mut self) -> io::Result<Header>;
+    fn read_alignment_header(&mut self) -> io::Result<String>;
 
     /// Returns an iterator over records.
     fn alignment_records<'a>(

@@ -14,7 +14,7 @@ use noodles_fasta::{self as fasta, repository::adapters::IndexedReader};
 use noodles_sam::{self as sam, AlignmentWriter};
 use noodles_util::alignment;
 
-fn main() -> io::Result<()> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = env::args().skip(1);
 
     let src = args.next().expect("missing src");
@@ -32,7 +32,7 @@ fn main() -> io::Result<()> {
     }
 
     let mut reader = builder.build_from_path(src)?;
-    let header = reader.read_header()?;
+    let header: sam::Header = reader.read_header()?.parse()?;
 
     let stdout = io::stdout().lock();
     let mut writer = sam::Writer::new(BufWriter::new(stdout));

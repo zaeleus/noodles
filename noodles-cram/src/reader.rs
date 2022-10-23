@@ -326,13 +326,9 @@ impl<R> sam::AlignmentReader<R> for Reader<R>
 where
     R: Read,
 {
-    fn read_alignment_header(&mut self) -> io::Result<sam::Header> {
+    fn read_alignment_header(&mut self) -> io::Result<String> {
         self.read_file_definition()?;
-
-        self.read_file_header().and_then(|s| {
-            s.parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })
+        self.read_file_header()
     }
 
     fn alignment_records<'a>(

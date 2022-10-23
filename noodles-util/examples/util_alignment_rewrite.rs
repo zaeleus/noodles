@@ -2,12 +2,13 @@
 //!
 //! The output format is determined from the extension of the destination.
 
-use std::{env, io};
+use std::env;
 
 use noodles_fasta::{self as fasta, repository::adapters::IndexedReader};
+use noodles_sam as sam;
 use noodles_util::alignment;
 
-fn main() -> io::Result<()> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = env::args().skip(1);
 
     let src = args.next().expect("missing src");
@@ -25,7 +26,7 @@ fn main() -> io::Result<()> {
         .set_reference_sequence_repository(repository.clone())
         .build_from_path(src)?;
 
-    let header = reader.read_header()?;
+    let header: sam::Header = reader.read_header()?.parse()?;
 
     let mut writer = alignment::writer::Builder::default()
         .set_reference_sequence_repository(repository)
