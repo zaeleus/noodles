@@ -42,7 +42,11 @@ pub fn read_raw_sam_header_from_block(src: &mut Bytes) -> io::Result<String> {
     }
 
     let mut data = block.decompressed_data()?;
-    let _header_len = data.get_i32_le();
+
+    let len = usize::try_from(data.get_i32_le())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+    data.truncate(len);
 
     str::from_utf8(&data[..])
         .map(|s| s.into())

@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * cram/reader/header_container: Truncate data by header length.
+
+    This is required if the header text is padded rather than using a new block
+    for padding.
+
 ## 0.20.0 - 2022-10-20
 
 ### Added
