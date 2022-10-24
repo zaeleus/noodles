@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * fasta/writer/builder: Implement `Default`.
+
+### Changed
+
+  * fasta/writer/builder: `Builder` no longer holds a writer.
+
+# Removed
+
+  * fasta/writer: Remove `Writer::builder`.
+
+    Use `writer::Builder::default` instead.
+
+  * fasta/writer/builder: Remove `Builder::build`.
+
+    Use `Builder::build_with_writer` instead.
+
 ## 0.15.0 - 2022-10-20
 
 ### Changed

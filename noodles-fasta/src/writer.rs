@@ -18,18 +18,6 @@ impl<W> Writer<W>
 where
     W: Write,
 {
-    /// Creates a FASTA writer builder.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_fasta as fasta;
-    /// let writer = fasta::Writer::builder(Vec::new()).build();
-    /// ```
-    pub fn builder(inner: W) -> Builder<W> {
-        Builder::new(inner)
-    }
-
     /// Creates a FASTA writer.
     ///
     /// # Examples
@@ -39,7 +27,7 @@ where
     /// let writer = fasta::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
-        Self::builder(inner).build()
+        Builder::default().build_with_writer(inner)
     }
 
     /// Returns a reference to the underlying writer.
