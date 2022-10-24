@@ -45,7 +45,8 @@ where
 
     /// Writes a FASTA record.
     ///
-    /// Sequence lines are hard wrapped at 80 bases.
+    /// By default, sequence lines are hard wrapped at 80 bases. This can be changed by using
+    /// [`Builder::set_line_base_count`] when creating the writer.
     ///
     /// # Examples
     ///
