@@ -1,10 +1,7 @@
 use std::{collections::HashSet, error, fmt};
 
 use super::{
-    record::{
-        self,
-        value::map::{self, reference_sequence},
-    },
+    record::{self, value::map::reference_sequence},
     Header, Record,
 };
 
@@ -15,18 +12,10 @@ pub enum ParseError {
     UnexpectedHeader,
     /// The record is invalid.
     InvalidRecord(record::ParseError),
-    /// A header record is invalid.
-    InvalidHeader(map::TryFromFieldsError),
-    /// A reference sequence record is invalid.
-    InvalidReferenceSequence(map::TryFromFieldsError),
     /// A reference sequence name is duplicated.
     DuplicateReferenceSequenceName(reference_sequence::Name),
-    /// A read group record is invalid.
-    InvalidReadGroup(map::TryFromFieldsError),
     /// A read group ID is duplicated.
     DuplicateReadGroupId(String),
-    /// A program record is invalid.
-    InvalidProgram(map::TryFromFieldsError),
     /// A program ID is duplicated.
     DuplicateProgramId(String),
     /// A comment record is invalid.
@@ -40,14 +29,10 @@ impl fmt::Display for ParseError {
         match self {
             Self::UnexpectedHeader => f.write_str("unexpected @HD"),
             Self::InvalidRecord(e) => write!(f, "invalid record: {}", e),
-            Self::InvalidHeader(e) => write!(f, "invalid header: {}", e),
-            Self::InvalidReferenceSequence(e) => write!(f, "invalid reference sequence: {}", e),
             Self::DuplicateReferenceSequenceName(name) => {
                 write!(f, "duplicate reference sequence name: {}", name)
             }
-            Self::InvalidReadGroup(e) => write!(f, "invalid read group: {}", e),
             Self::DuplicateReadGroupId(id) => write!(f, "duplicate read group ID: {}", id),
-            Self::InvalidProgram(e) => write!(f, "invalid program: {}", e),
             Self::DuplicateProgramId(id) => write!(f, "duplicate program ID: {}", id),
             Self::InvalidComment => f.write_str("invalid comment record"),
         }

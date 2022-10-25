@@ -40,6 +40,14 @@ pub enum ParseError {
     InvalidField,
     /// A value is invalid.
     InvalidValue,
+    /// A header record is invalid.
+    InvalidHeader(map::TryFromFieldsError),
+    /// A reference sequence record is invalid.
+    InvalidReferenceSequence(map::TryFromFieldsError),
+    /// A read group record is invalid.
+    InvalidReadGroup(map::TryFromFieldsError),
+    /// A program record is invalid.
+    InvalidProgram(map::TryFromFieldsError),
 }
 
 impl error::Error for ParseError {}
@@ -51,6 +59,10 @@ impl fmt::Display for ParseError {
             Self::InvalidKind(e) => write!(f, "invalid kind: {}", e),
             Self::InvalidField => write!(f, "invalid field"),
             Self::InvalidValue => write!(f, "invalid value"),
+            Self::InvalidHeader(e) => write!(f, "invalid header: {}", e),
+            Self::InvalidReferenceSequence(e) => write!(f, "invalid reference sequence: {}", e),
+            Self::InvalidReadGroup(e) => write!(f, "invalid read group: {}", e),
+            Self::InvalidProgram(e) => write!(f, "invalid program: {}", e),
         }
     }
 }
@@ -66,24 +78,25 @@ impl FromStr for Record {
             Kind::Header => {
                 let fields = split_fields(v)?;
                 let header =
-                    Map::<map::Header>::try_from(fields).map_err(|_| ParseError::Invalid)?;
+                    Map::<map::Header>::try_from(fields).map_err(ParseError::InvalidHeader)?;
                 Ok(Self::Header(header))
             }
             Kind::ReferenceSequence => {
                 let fields = split_fields(v)?;
-                let reference_sequence =
-                    Map::<ReferenceSequence>::try_from(fields).map_err(|_| ParseError::Invalid)?;
+                let reference_sequence = Map::<ReferenceSequence>::try_from(fields)
+                    .map_err(ParseError::InvalidReferenceSequence)?;
                 Ok(Self::ReferenceSequence(reference_sequence))
             }
             Kind::ReadGroup => {
                 let fields = split_fields(v)?;
                 let read_group =
-                    Map::<ReadGroup>::try_from(fields).map_err(|_| ParseError::Invalid)?;
+                    Map::<ReadGroup>::try_from(fields).map_err(ParseError::InvalidReadGroup)?;
                 Ok(Self::ReadGroup(read_group))
             }
             Kind::Program => {
                 let fields = split_fields(v)?;
-                let program = Map::<Program>::try_from(fields).map_err(|_| ParseError::Invalid)?;
+                let program =
+                    Map::<Program>::try_from(fields).map_err(ParseError::InvalidProgram)?;
                 Ok(Self::Program(program))
             }
             Kind::Comment => Ok(Self::Comment(v.into())),

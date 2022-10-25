@@ -7,6 +7,16 @@
   * sam/header/record/value/map/tag: Add `AsRef<[u8; LENGTH]>` as a supertrait
     of `Standard`.
 
+### Changed
+
+  * sam/header/parser: Move record parser errors to `record::ParseError`.
+
+    This moves `header::parser::ParseError::InvalidHeader`,
+    `header::parser::ParseError::InvalidReferenceSequence`,
+    `header::parser::ParseError::InvalidReadGroup`, and
+    `header::parser::ParseError::InvalidProgram` to
+    `header::record::ParseError`.
+
 ### Fixed
 
   * sam/header/record/value/map/header: Fix serialization when group order
