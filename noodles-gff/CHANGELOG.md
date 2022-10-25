@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * gff/writer: Adds `write_line` method to writer.
+
 ## 0.8.0 - 2022-10-20
 
 ### Changed

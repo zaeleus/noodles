@@ -13,9 +13,13 @@ fn main() -> io::Result<()> {
 
     let mut reader = File::open(src).map(BufReader::new).map(gff::Reader::new)?;
 
-    for result in reader.records() {
-        let record = result?;
-        println!("{}", record);
+    let stdout = io::stdout();
+    let handle = stdout.lock();
+    let mut writer = gff::Writer::new(handle);
+
+    for result in reader.lines() {
+        let line = result?;
+        writer.write_line(&line)?;
     }
 
     Ok(())

@@ -35,6 +35,16 @@ impl fmt::Display for ParseError {
     }
 }
 
+impl fmt::Display for Line {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Line::Directive(directive) => write!(f, "{}", directive),
+            Line::Comment(comment) => write!(f, "#{}", comment),
+            Line::Record(record) => write!(f, "{}", record),
+        }
+    }
+}
+
 impl FromStr for Line {
     type Err = ParseError;
 
