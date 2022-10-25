@@ -64,49 +64,46 @@ mod tests {
 
     #[test]
     fn test_write_ltf8() -> io::Result<()> {
-        let mut buf = Vec::new();
-        write_ltf8(&mut buf, 0)?;
-        assert_eq!(buf, [0x00]);
+        fn t(buf: &mut Vec<u8>, value: i64, expected: &[u8]) -> io::Result<()> {
+            buf.clear();
+            write_ltf8(buf, value)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
 
         let mut buf = Vec::new();
-        write_ltf8(&mut buf, 85)?;
-        assert_eq!(buf, [0x55]);
 
-        let mut buf = Vec::new();
-        write_ltf8(&mut buf, 170)?;
-        assert_eq!(buf, [0x80, 0xaa]);
-
-        let mut buf = Vec::new();
-        write_ltf8(&mut buf, 21930)?;
-        assert_eq!(buf, [0xc0, 0x55, 0xaa]);
-
-        let mut buf = Vec::new();
-        write_ltf8(&mut buf, 5614284)?;
-        assert_eq!(buf, [0xe0, 0x55, 0xaa, 0xcc]);
-
-        let mut buf = Vec::new();
-        write_ltf8(&mut buf, 1437256755)?;
-        assert_eq!(buf, [0xf0, 0x55, 0xaa, 0xcc, 0x33]);
-
-        let mut buf = Vec::new();
-        write_ltf8(&mut buf, 367937729507)?;
-        assert_eq!(buf, [0xf8, 0x55, 0xaa, 0xcc, 0x33, 0xe3]);
-
-        let mut buf = Vec::new();
-        write_ltf8(&mut buf, 94192058753820)?;
-        assert_eq!(buf, [0xfc, 0x55, 0xaa, 0xcc, 0x33, 0xe3, 0x1c]);
-
-        let mut buf = Vec::new();
-        write_ltf8(&mut buf, 24113167040978160)?;
-        assert_eq!(buf, [0xfe, 0x55, 0xaa, 0xcc, 0x33, 0xe3, 0x1c, 0xf0]);
-
-        let mut buf = Vec::new();
-        write_ltf8(&mut buf, 6172970762490408975)?;
-        assert_eq!(buf, [0xff, 0x55, 0xaa, 0xcc, 0x33, 0xe3, 0x1c, 0xf0, 0x0f]);
-
-        let mut buf = Vec::new();
-        write_ltf8(&mut buf, -170)?;
-        assert_eq!(buf, [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x56]);
+        t(&mut buf, 0, &[0x00])?;
+        t(&mut buf, 85, &[0x55])?;
+        t(&mut buf, 170, &[0x80, 0xaa])?;
+        t(&mut buf, 21930, &[0xc0, 0x55, 0xaa])?;
+        t(&mut buf, 5614284, &[0xe0, 0x55, 0xaa, 0xcc])?;
+        t(&mut buf, 1437256755, &[0xf0, 0x55, 0xaa, 0xcc, 0x33])?;
+        t(
+            &mut buf,
+            367937729507,
+            &[0xf8, 0x55, 0xaa, 0xcc, 0x33, 0xe3],
+        )?;
+        t(
+            &mut buf,
+            94192058753820,
+            &[0xfc, 0x55, 0xaa, 0xcc, 0x33, 0xe3, 0x1c],
+        )?;
+        t(
+            &mut buf,
+            24113167040978160,
+            &[0xfe, 0x55, 0xaa, 0xcc, 0x33, 0xe3, 0x1c, 0xf0],
+        )?;
+        t(
+            &mut buf,
+            6172970762490408975,
+            &[0xff, 0x55, 0xaa, 0xcc, 0x33, 0xe3, 0x1c, 0xf0, 0x0f],
+        )?;
+        t(
+            &mut buf,
+            -170,
+            &[0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x56],
+        )?;
 
         Ok(())
     }
