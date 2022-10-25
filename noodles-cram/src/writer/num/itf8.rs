@@ -39,29 +39,21 @@ mod tests {
 
     #[test]
     fn test_write_itf8() -> io::Result<()> {
-        let mut buf = Vec::new();
-        write_itf8(&mut buf, 0)?;
-        assert_eq!(buf, [0x00]);
+        fn t(buf: &mut Vec<u8>, value: i32, expected: &[u8]) -> io::Result<()> {
+            buf.clear();
+            write_itf8(buf, value)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
 
         let mut buf = Vec::new();
-        write_itf8(&mut buf, 1877)?;
-        assert_eq!(buf, [0x87, 0x55]);
 
-        let mut buf = Vec::new();
-        write_itf8(&mut buf, 480665)?;
-        assert_eq!(buf, [0xc7, 0x55, 0x99]);
-
-        let mut buf = Vec::new();
-        write_itf8(&mut buf, 123050342)?;
-        assert_eq!(buf, [0xe7, 0x55, 0x99, 0x66]);
-
-        let mut buf = Vec::new();
-        write_itf8(&mut buf, 1968805474)?;
-        assert_eq!(buf, [0xf7, 0x55, 0x99, 0x66, 0x02]);
-
-        let mut buf = Vec::new();
-        write_itf8(&mut buf, -1)?;
-        assert_eq!(buf, [0xff, 0xff, 0xff, 0xff, 0x0f]);
+        t(&mut buf, 0, &[0x00])?;
+        t(&mut buf, 1877, &[0x87, 0x55])?;
+        t(&mut buf, 480665, &[0xc7, 0x55, 0x99])?;
+        t(&mut buf, 123050342, &[0xe7, 0x55, 0x99, 0x66])?;
+        t(&mut buf, 1968805474, &[0xf7, 0x55, 0x99, 0x66, 0x02])?;
+        t(&mut buf, -1, &[0xff, 0xff, 0xff, 0xff, 0x0f])?;
 
         Ok(())
     }
