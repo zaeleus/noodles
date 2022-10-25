@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * sam/header/record/value/map/header: Fix serialization when group order
+    (`GO`) is set ([#122]).
+
+    This would previously duplicate the group order as the subsort order
+    (`SO`).
+
+[#122]: https://github.com/zaeleus/noodles/issues/122
+
 ## 0.20.0 - 2022-10-20
 
 ### Added

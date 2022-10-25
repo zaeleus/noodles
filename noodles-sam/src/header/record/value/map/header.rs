@@ -185,7 +185,7 @@ impl fmt::Display for Map<Header> {
             write!(f, "\tGO:{}", group_order)?;
         }
 
-        if let Some(subsort_order) = self.group_order() {
+        if let Some(subsort_order) = self.subsort_order() {
             write!(f, "\tSS:{}", subsort_order)?;
         }
 
@@ -271,10 +271,11 @@ mod tests {
     fn test_fmt() -> Result<(), BuildError> {
         let header = Map::<Header>::builder()
             .set_version(Version::new(1, 6))
-            .set_sort_order(SortOrder::Unknown)
+            .set_sort_order(SortOrder::Unsorted)
+            .set_group_order(GroupOrder::Query)
             .build()?;
 
-        assert_eq!(header.to_string(), "VN:1.6\tSO:unknown");
+        assert_eq!(header.to_string(), "VN:1.6\tSO:unsorted\tGO:query");
 
         Ok(())
     }
