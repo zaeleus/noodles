@@ -22,6 +22,17 @@ pub enum Standard {
 
 impl tag::Standard for Standard {}
 
+impl AsRef<[u8; LENGTH]> for Standard {
+    fn as_ref(&self) -> &[u8; LENGTH] {
+        match self {
+            Self::Version => &VN,
+            Self::SortOrder => &SO,
+            Self::GroupOrder => &GO,
+            Self::SubsortOrder => &SS,
+        }
+    }
+}
+
 impl TryFrom<[u8; LENGTH]> for Standard {
     type Error = ();
 
@@ -50,6 +61,14 @@ impl From<Standard> for [u8; LENGTH] {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_as_ref_u8_2_array_for_standard() {
+        assert_eq!(Standard::Version.as_ref(), &[b'V', b'N']);
+        assert_eq!(Standard::SortOrder.as_ref(), &[b'S', b'O']);
+        assert_eq!(Standard::GroupOrder.as_ref(), &[b'G', b'O']);
+        assert_eq!(Standard::SubsortOrder.as_ref(), &[b'S', b'S']);
+    }
 
     #[test]
     fn test_try_from_u8_array_for_standard() {

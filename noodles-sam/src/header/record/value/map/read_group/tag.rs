@@ -52,6 +52,27 @@ pub enum Standard {
 
 impl tag::Standard for Standard {}
 
+impl AsRef<[u8; LENGTH]> for Standard {
+    fn as_ref(&self) -> &[u8; LENGTH] {
+        match self {
+            Standard::Id => &ID,
+            Standard::Barcode => &BC,
+            Standard::SequencingCenter => &CN,
+            Standard::Description => &DS,
+            Standard::ProducedAt => &DT,
+            Standard::FlowOrder => &FO,
+            Standard::KeySequence => &KS,
+            Standard::Library => &LB,
+            Standard::Program => &PG,
+            Standard::PredictedMedianInsertSize => &PI,
+            Standard::Platform => &PL,
+            Standard::PlatformModel => &PM,
+            Standard::PlatformUnit => &PU,
+            Standard::Sample => &SM,
+        }
+    }
+}
+
 impl TryFrom<[u8; LENGTH]> for Standard {
     type Error = ();
 
@@ -100,6 +121,24 @@ impl From<Standard> for [u8; LENGTH] {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_as_ref_u8_2_array_for_standard() {
+        assert_eq!(Standard::Id.as_ref(), &[b'I', b'D']);
+        assert_eq!(Standard::Barcode.as_ref(), &[b'B', b'C']);
+        assert_eq!(Standard::SequencingCenter.as_ref(), &[b'C', b'N']);
+        assert_eq!(Standard::Description.as_ref(), &[b'D', b'S']);
+        assert_eq!(Standard::ProducedAt.as_ref(), &[b'D', b'T']);
+        assert_eq!(Standard::FlowOrder.as_ref(), &[b'F', b'O']);
+        assert_eq!(Standard::KeySequence.as_ref(), &[b'K', b'S']);
+        assert_eq!(Standard::Library.as_ref(), &[b'L', b'B']);
+        assert_eq!(Standard::Program.as_ref(), &[b'P', b'G']);
+        assert_eq!(Standard::PredictedMedianInsertSize.as_ref(), &[b'P', b'I']);
+        assert_eq!(Standard::Platform.as_ref(), &[b'P', b'L']);
+        assert_eq!(Standard::PlatformModel.as_ref(), &[b'P', b'M']);
+        assert_eq!(Standard::PlatformUnit.as_ref(), &[b'P', b'U']);
+        assert_eq!(Standard::Sample.as_ref(), &[b'S', b'M']);
+    }
 
     #[test]
     fn test_try_from_u8_array_for_standard() {

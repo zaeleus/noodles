@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+  * sam/header/record/value/map/tag: Add `AsRef<[u8; LENGTH]>` as a supertrait
+    of `Standard`.
+
 ### Fixed
 
   * sam/header/record/value/map/header: Fix serialization when group order

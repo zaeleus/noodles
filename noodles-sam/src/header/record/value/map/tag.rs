@@ -8,7 +8,7 @@ use std::{
 
 pub(crate) const LENGTH: usize = 2;
 
-pub trait Standard: TryFrom<[u8; LENGTH]> {}
+pub trait Standard: AsRef<[u8; LENGTH]> + TryFrom<[u8; LENGTH]> {}
 
 #[derive(Clone, Debug)]
 pub struct Other<S>([u8; LENGTH], PhantomData<S>);
@@ -92,18 +92,26 @@ mod tests {
 
     #[test]
     fn test_from_str_for_tag() {
+        const ID: [u8; LENGTH] = [b'I', b'D'];
+
         enum TestTag {
             Id,
         }
 
         impl Standard for TestTag {}
 
+        impl AsRef<[u8; LENGTH]> for TestTag {
+            fn as_ref(&self) -> &[u8; LENGTH] {
+                &ID
+            }
+        }
+
         impl TryFrom<[u8; LENGTH]> for TestTag {
             type Error = ();
 
             fn try_from(b: [u8; LENGTH]) -> Result<Self, Self::Error> {
-                match &b {
-                    b"ID" => Ok(Self::Id),
+                match b {
+                    ID => Ok(Self::Id),
                     _ => Err(()),
                 }
             }

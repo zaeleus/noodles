@@ -28,6 +28,19 @@ pub enum Standard {
 
 impl tag::Standard for Standard {}
 
+impl AsRef<[u8; LENGTH]> for Standard {
+    fn as_ref(&self) -> &[u8; LENGTH] {
+        match self {
+            Standard::Id => &ID,
+            Standard::Name => &PN,
+            Standard::CommandLine => &CL,
+            Standard::PreviousId => &PP,
+            Standard::Description => &DS,
+            Standard::Version => &VN,
+        }
+    }
+}
+
 impl TryFrom<[u8; LENGTH]> for Standard {
     type Error = ();
 
@@ -60,6 +73,16 @@ impl From<Standard> for [u8; LENGTH] {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_as_ref_u8_2_array_for_standard() {
+        assert_eq!(Standard::Id.as_ref(), &[b'I', b'D']);
+        assert_eq!(Standard::Name.as_ref(), &[b'P', b'N']);
+        assert_eq!(Standard::CommandLine.as_ref(), &[b'C', b'L']);
+        assert_eq!(Standard::PreviousId.as_ref(), &[b'P', b'P']);
+        assert_eq!(Standard::Description.as_ref(), &[b'D', b'S']);
+        assert_eq!(Standard::Version.as_ref(), &[b'V', b'N']);
+    }
 
     #[test]
     fn test_try_from_u8_array_for_standard() {

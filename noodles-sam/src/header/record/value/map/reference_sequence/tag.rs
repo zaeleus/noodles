@@ -40,6 +40,23 @@ pub enum Standard {
 
 impl tag::Standard for Standard {}
 
+impl AsRef<[u8; LENGTH]> for Standard {
+    fn as_ref(&self) -> &[u8; LENGTH] {
+        match self {
+            Standard::Name => &SN,
+            Standard::Length => &LN,
+            Standard::AlternativeLocus => &AH,
+            Standard::AlternativeNames => &AN,
+            Standard::AssemblyId => &AS,
+            Standard::Description => &DS,
+            Standard::Md5Checksum => &M5,
+            Standard::Species => &SP,
+            Standard::MoleculeTopology => &TP,
+            Standard::Uri => &UR,
+        }
+    }
+}
+
 impl TryFrom<[u8; LENGTH]> for Standard {
     type Error = ();
 
@@ -80,6 +97,20 @@ impl From<Standard> for [u8; LENGTH] {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_as_ref_u8_2_array_for_standard() {
+        assert_eq!(Standard::Name.as_ref(), &[b'S', b'N']);
+        assert_eq!(Standard::Length.as_ref(), &[b'L', b'N']);
+        assert_eq!(Standard::AlternativeLocus.as_ref(), &[b'A', b'H']);
+        assert_eq!(Standard::AlternativeNames.as_ref(), &[b'A', b'N']);
+        assert_eq!(Standard::AssemblyId.as_ref(), &[b'A', b'S']);
+        assert_eq!(Standard::Description.as_ref(), &[b'D', b'S']);
+        assert_eq!(Standard::Md5Checksum.as_ref(), &[b'M', b'5']);
+        assert_eq!(Standard::Species.as_ref(), &[b'S', b'P']);
+        assert_eq!(Standard::MoleculeTopology.as_ref(), &[b'T', b'P']);
+        assert_eq!(Standard::Uri.as_ref(), &[b'U', b'R']);
+    }
 
     #[test]
     fn test_from_str() {
