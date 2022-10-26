@@ -183,7 +183,6 @@ where
     /// use noodles_cram as cram;
     /// use noodles_sam as sam;
     ///
-    ///
     /// let mut writer = cram::Writer::new(Vec::new());
     ///
     /// writer.write_file_definition()?;
