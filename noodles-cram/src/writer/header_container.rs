@@ -5,7 +5,7 @@ use std::io::{self, Write};
 use bytes::BufMut;
 use noodles_sam as sam;
 
-use self::header::write_header;
+pub use self::header::write_header;
 use super::container::write_block;
 use crate::container::{block::ContentType, Block};
 

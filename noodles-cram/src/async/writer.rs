@@ -1,8 +1,15 @@
+mod container;
+mod header_container;
+
+use noodles_fasta as fasta;
+use noodles_sam as sam;
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 use crate::{file_definition::Version, FileDefinition, MAGIC_NUMBER};
 
 /// An async CRAM writer.
+///
+/// A call to [`Self::shutdown`] must be made before the writer is dropped.
 pub struct Writer<W> {
     inner: W,
 }
@@ -38,6 +45,25 @@ where
         &self.inner
     }
 
+    /// Attempts to shutdown the output stream by writing any pending containers and a final EOF
+    /// container.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[tokio::main]
+    /// # async fn main() -> std::io::Result<()> {
+    /// use noodles_cram as cram;
+    /// use tokio::io;
+    /// let mut writer = cram::AsyncWriter::new(io::sink());
+    /// writer.shutdown().await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn shutdown(&mut self) -> io::Result<()> {
+        container::write_eof_container(&mut self.inner).await
+    }
+
     /// Writes a CRAM file definition.
     ///
     /// The file ID is set as a blank value (`[0x00; 20]`).
@@ -67,6 +93,52 @@ where
     pub async fn write_file_definition(&mut self) -> io::Result<()> {
         let file_definition = FileDefinition::default();
         write_file_definition(&mut self.inner, &file_definition).await
+    }
+
+    /// Writes a CRAM file header container.
+    ///
+    /// The position of the stream is expected to be directly after the file definition.
+    ///
+    /// Entries in the reference sequence dictionary that are missing MD5 checksums (`M5`) will
+    /// automatically be calculated and added to the written record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[tokio::main]
+    /// # async fn main() -> std::io::Result<()> {
+    /// use noodles_cram as cram;
+    /// use noodles_fasta as fasta;
+    /// use noodles_sam as sam;
+    /// use tokio::io;
+    ///
+    /// let mut writer = cram::AsyncWriter::new(io::sink());
+    /// writer.write_file_definition().await?;
+    ///
+    /// let repository = fasta::Repository::default();
+    /// let header = sam::Header::default();
+    /// writer.write_file_header(&repository, &header).await?;
+    ///
+    /// writer.shutdown().await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn write_file_header(
+        &mut self,
+        reference_sequence_repository: &fasta::Repository,
+        header: &sam::Header,
+    ) -> io::Result<()> {
+        use self::header_container::write_header_container;
+        use crate::writer::add_missing_reference_sequence_checksums;
+
+        let mut header = header.clone();
+
+        add_missing_reference_sequence_checksums(
+            reference_sequence_repository,
+            header.reference_sequences_mut(),
+        )?;
+
+        write_header_container(&mut self.inner, &header).await
     }
 }
 

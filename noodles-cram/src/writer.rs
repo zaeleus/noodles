@@ -1,9 +1,9 @@
 //! CRAM writer.
 
 mod builder;
-mod container;
+pub(crate) mod container;
 pub(crate) mod data_container;
-mod header_container;
+pub(crate) mod header_container;
 pub(crate) mod num;
 mod options;
 pub(crate) mod record;
@@ -286,7 +286,7 @@ where
     writer.write_all(&format)
 }
 
-fn add_missing_reference_sequence_checksums(
+pub(crate) fn add_missing_reference_sequence_checksums(
     reference_sequence_repository: &fasta::Repository,
     reference_sequences: &mut ReferenceSequences,
 ) -> io::Result<()> {

@@ -5,7 +5,7 @@ use flate2::CrcWriter;
 
 use crate::writer::num::{write_itf8, write_ltf8};
 
-pub(super) fn write_header<W>(writer: &mut W, len: usize) -> io::Result<()>
+pub fn write_header<W>(writer: &mut W, len: usize) -> io::Result<()>
 where
     W: Write,
 {
