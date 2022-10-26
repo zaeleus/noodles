@@ -67,14 +67,18 @@ where
     /// # #[tokio::main]
     /// # async fn main() -> std::io::Result<()> {
     /// use noodles_cram as cram;
+    /// use noodles_sam as sam;
     /// use tokio::io;
     /// let mut writer = cram::AsyncWriter::new(io::sink());
-    /// writer.shutdown().await?;
+    /// let header = sam::Header::default();
+    /// writer.shutdown(&header).await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn shutdown(&mut self) -> io::Result<()> {
-        container::write_eof_container(&mut self.inner).await
+    pub async fn shutdown(&mut self, header: &sam::Header) -> io::Result<()> {
+        use self::container::write_eof_container;
+        self.flush(header).await?;
+        write_eof_container(&mut self.inner).await
     }
 
     /// Writes a CRAM file definition.
@@ -130,7 +134,7 @@ where
     /// let header = sam::Header::default();
     /// writer.write_file_header(&header).await?;
     ///
-    /// writer.shutdown().await?;
+    /// writer.shutdown(&header).await?;
     /// # Ok(())
     /// # }
     /// ```
@@ -169,7 +173,7 @@ where
     /// let record = cram::Record::default();
     /// writer.write_record(&header, record).await?;
     ///
-    /// writer.shutdown().await?;
+    /// writer.shutdown(&header).await?;
     /// # Ok(())
     /// # }
     /// ```

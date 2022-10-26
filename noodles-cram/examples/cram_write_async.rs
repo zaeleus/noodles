@@ -82,7 +82,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cram_record = cram::Record::try_from_alignment_record(&header, &record)?;
     writer.write_record(&header, cram_record).await?;
 
-    writer.shutdown().await?;
+    writer.shutdown(&header).await?;
 
     Ok(())
 }
