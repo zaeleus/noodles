@@ -7,15 +7,13 @@
 
 use std::io;
 
-use md5::{Digest, Md5};
-
 use noodles_core::Position;
 use noodles_cram as cram;
 use noodles_fasta as fasta;
 use noodles_sam::{
     self as sam,
     header::record::value::{
-        map::{reference_sequence::Md5Checksum, Program, ReferenceSequence},
+        map::{Program, ReferenceSequence},
         Map,
     },
 };
@@ -49,20 +47,8 @@ fn build_header(
         .add_comment("an example CRAM written by noodles-cram");
 
     for record in reference_sequence_records {
-        let sequence = record.sequence();
-
-        let name = record.name().parse()?;
-        let len = sequence.len();
-
-        let digest = Md5::digest(sequence);
-        let md5_checksum = Md5Checksum::from(<[u8; 16]>::from(digest));
-
-        let reference_sequence = Map::<ReferenceSequence>::builder()
-            .set_name(name)
-            .set_length(len)
-            .set_md5_checksum(md5_checksum)
-            .build()?;
-
+        let reference_sequence =
+            Map::<ReferenceSequence>::new(record.name().parse()?, record.sequence().len())?;
         builder = builder.add_reference_sequence(reference_sequence);
     }
 
