@@ -1,14 +1,13 @@
-use std::io::Write;
-
 use noodles_fasta as fasta;
+use tokio::io::AsyncWrite;
 
-use super::{Options, Writer};
+use super::Writer;
 use crate::{
-    codecs::Encoder, data_container::BlockContentEncoderMap, file_definition::Version,
+    data_container::BlockContentEncoderMap, file_definition::Version, writer::Options,
     DataContainer,
 };
 
-/// A CRAM writer builder.
+/// An async CRAM writer builder.
 #[derive(Default)]
 pub struct Builder {
     reference_sequence_repository: fasta::Repository,
@@ -51,18 +50,21 @@ impl Builder {
         self
     }
 
-    /// Builds a CRAM writer.
+    /// Builds an async CRAM writer from a writer.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_cram as cram;
-    /// let writer = cram::writer::Builder::default().build_with_writer(Vec::new());
+    /// use tokio::io;
+    /// let writer = cram::r#async::writer::Builder::default().build_with_writer(io::sink());
     /// ```
     pub fn build_with_writer<W>(mut self, writer: W) -> Writer<W>
     where
-        W: Write,
+        W: AsyncWrite + Unpin,
     {
+        use crate::writer::builder::uses_cram_3_1_codecs;
+
         if uses_cram_3_1_codecs(&self.options.block_content_encoder_map) {
             self.options.version = Version::new(3, 1);
         }
@@ -74,45 +76,5 @@ impl Builder {
             data_container_builder: DataContainer::builder(0),
             record_counter: 0,
         }
-    }
-}
-
-pub fn uses_cram_3_1_codecs(block_content_encoder_map: &BlockContentEncoderMap) -> bool {
-    fn is_cram_3_1_codec(encoder: &Encoder) -> bool {
-        matches!(
-            encoder,
-            Encoder::RansNx16(_) | Encoder::AdaptiveArithmeticCoding(_) | Encoder::NameTokenizer
-        )
-    }
-
-    if let Some(encoder) = block_content_encoder_map.core_data_encoder() {
-        if is_cram_3_1_codec(encoder) {
-            return true;
-        }
-    }
-
-    block_content_encoder_map
-        .data_series_encoders()
-        .iter()
-        .chain(block_content_encoder_map.tag_values_encoders().values())
-        .flatten()
-        .any(is_cram_3_1_codec)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_uses_cram_3_1_codecs() {
-        use crate::codecs::rans_nx16::Flags;
-
-        let block_content_encoder_map = BlockContentEncoderMap::default();
-        assert!(!uses_cram_3_1_codecs(&block_content_encoder_map));
-
-        let block_content_encoder_map = BlockContentEncoderMap::builder()
-            .set_core_data_encoder(Some(Encoder::RansNx16(Flags::empty())))
-            .build();
-        assert!(uses_cram_3_1_codecs(&block_content_encoder_map));
     }
 }

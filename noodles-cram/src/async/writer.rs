@@ -1,3 +1,6 @@
+//! Async CRAM writer.
+
+mod builder;
 mod container;
 mod data_container;
 mod header_container;
@@ -8,6 +11,7 @@ use noodles_fasta as fasta;
 use noodles_sam as sam;
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
+pub use self::builder::Builder;
 use crate::{
     file_definition::Version, writer::Options, DataContainer, FileDefinition, Record, MAGIC_NUMBER,
 };
@@ -37,13 +41,7 @@ where
     /// let writer = cram::AsyncWriter::new(io::sink());
     /// ```
     pub fn new(inner: W) -> Self {
-        Self {
-            inner,
-            reference_sequence_repository: fasta::Repository::default(),
-            options: Options::default(),
-            data_container_builder: DataContainer::builder(0),
-            record_counter: 0,
-        }
+        Builder::default().build_with_writer(inner)
     }
 
     /// Returns a reference to the underlying writer.

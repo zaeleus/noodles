@@ -1,6 +1,6 @@
 //! CRAM writer.
 
-mod builder;
+pub(crate) mod builder;
 pub(crate) mod container;
 pub(crate) mod data_container;
 pub(crate) mod header_container;
