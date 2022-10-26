@@ -68,17 +68,34 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
     let mut reference_sequence_names: HashSet<reference_sequence::Name> = HashSet::new();
     let mut program_ids: HashSet<String> = HashSet::new();
 
-    for (i, line) in s.lines().enumerate() {
+    let mut lines = s.lines();
+
+    if let Some(line) = lines.next() {
         let record: Record = line.parse().map_err(ParseError::InvalidRecord)?;
 
         builder = match record {
-            Record::Header(header) => {
-                if i == 0 {
-                    builder.set_header(header)
-                } else {
-                    return Err(ParseError::UnexpectedHeader);
-                }
+            Record::Header(header) => builder.set_header(header),
+            Record::ReferenceSequence(reference_sequence) => {
+                reference_sequence_names.insert(reference_sequence.name().clone());
+                builder.add_reference_sequence(reference_sequence)
             }
+            Record::ReadGroup(read_group) => {
+                read_group_ids.insert(read_group.id().into());
+                builder.add_read_group(read_group)
+            }
+            Record::Program(program) => {
+                program_ids.insert(program.id().into());
+                builder.add_program(program)
+            }
+            Record::Comment(comment) => builder.add_comment(comment),
+        };
+    }
+
+    for line in lines {
+        let record: Record = line.parse().map_err(ParseError::InvalidRecord)?;
+
+        builder = match record {
+            Record::Header(_) => return Err(ParseError::UnexpectedHeader),
             Record::ReferenceSequence(reference_sequence) => {
                 if !reference_sequence_names.insert(reference_sequence.name().clone()) {
                     return Err(ParseError::DuplicateReferenceSequenceName(
