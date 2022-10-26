@@ -1,17 +1,26 @@
 mod container;
+mod data_container;
 mod header_container;
+
+use std::mem;
 
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
-use crate::{file_definition::Version, FileDefinition, MAGIC_NUMBER};
+use crate::{
+    file_definition::Version, writer::Options, DataContainer, FileDefinition, Record, MAGIC_NUMBER,
+};
 
 /// An async CRAM writer.
 ///
 /// A call to [`Self::shutdown`] must be made before the writer is dropped.
 pub struct Writer<W> {
     inner: W,
+    reference_sequence_repository: fasta::Repository,
+    options: Options,
+    data_container_builder: crate::data_container::Builder,
+    record_counter: u64,
 }
 
 impl<W> Writer<W>
@@ -28,7 +37,13 @@ where
     /// let writer = cram::AsyncWriter::new(io::sink());
     /// ```
     pub fn new(inner: W) -> Self {
-        Self { inner }
+        Self {
+            inner,
+            reference_sequence_repository: fasta::Repository::default(),
+            options: Options::default(),
+            data_container_builder: DataContainer::builder(0),
+            record_counter: 0,
+        }
     }
 
     /// Returns a reference to the underlying writer.
@@ -108,6 +123,41 @@ where
     /// # #[tokio::main]
     /// # async fn main() -> std::io::Result<()> {
     /// use noodles_cram as cram;
+    /// use noodles_sam as sam;
+    /// use tokio::io;
+    ///
+    /// let mut writer = cram::AsyncWriter::new(io::sink());
+    /// writer.write_file_definition().await?;
+    ///
+    /// let header = sam::Header::default();
+    /// writer.write_file_header(&header).await?;
+    ///
+    /// writer.shutdown().await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn write_file_header(&mut self, header: &sam::Header) -> io::Result<()> {
+        use self::header_container::write_header_container;
+        use crate::writer::add_missing_reference_sequence_checksums;
+
+        let mut header = header.clone();
+
+        add_missing_reference_sequence_checksums(
+            &self.reference_sequence_repository,
+            header.reference_sequences_mut(),
+        )?;
+
+        write_header_container(&mut self.inner, &header).await
+    }
+
+    /// Writes a CRAM record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[tokio::main]
+    /// # async fn main() -> std::io::Result<()> {
+    /// use noodles_cram as cram;
     /// use noodles_fasta as fasta;
     /// use noodles_sam as sam;
     /// use tokio::io;
@@ -115,30 +165,64 @@ where
     /// let mut writer = cram::AsyncWriter::new(io::sink());
     /// writer.write_file_definition().await?;
     ///
-    /// let repository = fasta::Repository::default();
     /// let header = sam::Header::default();
-    /// writer.write_file_header(&repository, &header).await?;
+    /// writer.write_file_header(&header).await?;
+    ///
+    /// let record = cram::Record::default();
+    /// writer.write_record(&header, record).await?;
     ///
     /// writer.shutdown().await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn write_file_header(
+    pub async fn write_record(
         &mut self,
-        reference_sequence_repository: &fasta::Repository,
         header: &sam::Header,
+        mut record: Record,
     ) -> io::Result<()> {
-        use self::header_container::write_header_container;
-        use crate::writer::add_missing_reference_sequence_checksums;
+        use crate::data_container::builder::AddRecordError;
 
-        let mut header = header.clone();
+        loop {
+            match self.data_container_builder.add_record(record) {
+                Ok(_) => {
+                    self.record_counter += 1;
+                    return Ok(());
+                }
+                Err(e) => match e {
+                    AddRecordError::ContainerFull(r) => {
+                        record = r;
+                        self.flush(header).await?;
+                    }
+                    AddRecordError::SliceFull(r) => {
+                        record = r;
+                    }
+                    _ => return Err(io::Error::from(io::ErrorKind::InvalidInput)),
+                },
+            }
+        }
+    }
 
-        add_missing_reference_sequence_checksums(
-            reference_sequence_repository,
-            header.reference_sequences_mut(),
+    async fn flush(&mut self, header: &sam::Header) -> io::Result<()> {
+        use self::data_container::write_data_container;
+
+        if self.data_container_builder.is_empty() {
+            return Ok(());
+        }
+
+        let data_container_builder = mem::replace(
+            &mut self.data_container_builder,
+            DataContainer::builder(self.record_counter),
+        );
+
+        let base_count = data_container_builder.base_count();
+
+        let data_container = data_container_builder.build(
+            &self.options,
+            &self.reference_sequence_repository,
+            header,
         )?;
 
-        write_header_container(&mut self.inner, &header).await
+        write_data_container(&mut self.inner, &data_container, base_count).await
     }
 }
 
