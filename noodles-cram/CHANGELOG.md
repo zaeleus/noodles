@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * cram/async: Add async writer (`cram::AsyncWriter`).
+
 ### Fixed
 
   * cram/reader/header_container: Truncate data by header length.
