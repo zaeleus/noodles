@@ -2,9 +2,9 @@
 
 ## Unreleased
 
-### Changed
+### Added
 
-  * gff/writer: Adds `write_line` method to writer.
+  * gff/writer: Add line writer (`Writer::write_line`).
 
 ## 0.8.0 - 2022-10-20
 
