@@ -49,3 +49,7 @@ required-features = ["async"]
 [[example]]
 name = "cram_view_async"
 required-features = ["async"]
+
+[[example]]
+name = "cram_write_async"
+required-features = ["async"]
