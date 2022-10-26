@@ -25,7 +25,7 @@ pub use self::{
 };
 
 #[cfg(feature = "async")]
-pub use self::r#async::Reader as AsyncReader;
+pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};
 
 pub(crate) use self::{bit_reader::BitReader, bit_writer::BitWriter};
 
