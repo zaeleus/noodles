@@ -2,7 +2,7 @@
 
 mod block_codec;
 pub mod reader;
-mod writer;
+pub mod writer;
 
 pub use self::{reader::Reader, writer::Writer};
 

@@ -1,3 +1,5 @@
+//! Async BGZF writer.
+
 mod builder;
 pub(crate) mod deflate;
 mod deflater;
@@ -38,19 +40,6 @@ impl<W> Writer<W>
 where
     W: AsyncWrite + Unpin,
 {
-    /// Creates an async BGZF writer builder.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bgzf as bgzf;
-    /// let builder = bgzf::AsyncWriter::builder(Vec::new());
-    /// let writer = builder.build();
-    /// ```
-    pub fn builder(inner: W) -> Builder<W> {
-        Builder::new(inner)
-    }
-
     /// Creates an async BGZF writer with a default compression level.
     ///
     /// # Examples
@@ -60,7 +49,7 @@ where
     /// let writer = bgzf::AsyncWriter::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
-        Self::builder(inner).build()
+        Builder::default().build_with_writer(inner)
     }
 
     /// Returns the underlying writer.

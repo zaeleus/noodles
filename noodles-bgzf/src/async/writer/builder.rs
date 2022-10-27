@@ -12,25 +12,13 @@ use crate::{
 };
 
 /// An async BGZF writer builder.
-#[derive(Debug)]
-pub struct Builder<W> {
-    inner: W,
+#[derive(Debug, Default)]
+pub struct Builder {
     compression_level: Option<CompressionLevel>,
     worker_count: Option<NonZeroUsize>,
 }
 
-impl<W> Builder<W>
-where
-    W: AsyncWrite,
-{
-    pub(crate) fn new(inner: W) -> Self {
-        Self {
-            inner,
-            compression_level: None,
-            worker_count: None,
-        }
-    }
-
+impl Builder {
     /// Sets a compression level.
     ///
     /// By default, the compression level is set to level 6.
@@ -40,7 +28,7 @@ where
     /// ```
     /// use noodles_bgzf::{self as bgzf, writer::CompressionLevel};
     ///
-    /// let builder = bgzf::AsyncWriter::builder(Vec::new())
+    /// let builder = bgzf::r#async::writer::Builder::default()
     ///     .set_compression_level(CompressionLevel::best());
     /// ```
     pub fn set_compression_level(mut self, compression_level: CompressionLevel) -> Self {
@@ -60,7 +48,8 @@ where
     /// use noodles_bgzf as bgzf;
     ///
     /// let worker_count = NonZeroUsize::try_from(1)?;
-    /// let builder = bgzf::AsyncWriter::builder(Vec::new()).set_worker_count(worker_count);
+    /// let builder = bgzf::r#async::writer::Builder::default()
+    ///     .set_worker_count(worker_count);
     /// # Ok::<_, std::num::TryFromIntError>(())
     /// ```
     pub fn set_worker_count(mut self, worker_count: NonZeroUsize) -> Self {
@@ -73,10 +62,15 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use tokio::io;
     /// use noodles_bgzf as bgzf;
-    /// let writer = bgzf::AsyncWriter::builder(Vec::new()).build();
+    /// let writer = bgzf::r#async::writer::Builder::default()
+    ///     .build_with_writer(io::sink());
     /// ```
-    pub fn build(self) -> Writer<W> {
+    pub fn build_with_writer<W>(self, writer: W) -> Writer<W>
+    where
+        W: AsyncWrite,
+    {
         let compression_level = self.compression_level.unwrap_or_default();
 
         let worker_count = self.worker_count.unwrap_or_else(|| {
@@ -85,23 +79,10 @@ where
         });
 
         Writer {
-            sink: Deflater::new(FramedWrite::new(self.inner, BlockCodec))
-                .buffer(worker_count.get()),
+            sink: Deflater::new(FramedWrite::new(writer, BlockCodec)).buffer(worker_count.get()),
             buf: BytesMut::with_capacity(MAX_BUF_SIZE),
             eof_buf: Bytes::from_static(BGZF_EOF),
             compression_level: compression_level.into(),
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_new() {
-        let builder = Builder::new(Vec::new());
-        assert!(builder.compression_level.is_none());
-        assert!(builder.worker_count.is_none());
     }
 }
