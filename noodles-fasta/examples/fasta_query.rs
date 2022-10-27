@@ -1,9 +1,8 @@
-//! Queries a FASTA with a given reference sequence name.
+//! Queries a FASTA with a given region.
 //!
 //! The input FASTA must have an index in the same directory.
 //!
-//! The result is similar to the output of `samtools faidx --length 80 <src>
-//! <reference-sequence-name>`.
+//! The result is similar to the output of `samtools faidx --length 80 <src> <region>`.
 
 use std::{env, io};
 
