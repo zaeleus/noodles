@@ -8,6 +8,10 @@
 
 ### Changed
 
+  * bgzf/async/writer/builder: Change worker count to a `NonZeroUsize`.
+
+    The worker count can never be 0.
+
   * bgzf/writer/builder: `Builder` no longer holds a writer.
 
 ### Removed

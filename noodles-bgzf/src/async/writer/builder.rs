@@ -1,3 +1,5 @@
+use std::num::NonZeroUsize;
+
 use bytes::{Bytes, BytesMut};
 use futures::SinkExt;
 use tokio::io::AsyncWrite;
@@ -14,7 +16,7 @@ use crate::{
 pub struct Builder<W> {
     inner: W,
     compression_level: Option<CompressionLevel>,
-    worker_count: Option<usize>,
+    worker_count: Option<NonZeroUsize>,
 }
 
 impl<W> Builder<W>
@@ -53,10 +55,15 @@ where
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
+    ///
     /// use noodles_bgzf as bgzf;
-    /// let builder = bgzf::AsyncWriter::builder(Vec::new()).set_worker_count(8);
+    ///
+    /// let worker_count = NonZeroUsize::try_from(1)?;
+    /// let builder = bgzf::AsyncWriter::builder(Vec::new()).set_worker_count(worker_count);
+    /// # Ok::<_, std::num::TryFromIntError>(())
     /// ```
-    pub fn set_worker_count(mut self, worker_count: usize) -> Self {
+    pub fn set_worker_count(mut self, worker_count: NonZeroUsize) -> Self {
         self.worker_count = Some(worker_count);
         self
     }
@@ -71,10 +78,15 @@ where
     /// ```
     pub fn build(self) -> Writer<W> {
         let compression_level = self.compression_level.unwrap_or_default();
-        let worker_count = self.worker_count.unwrap_or_else(num_cpus::get);
+
+        let worker_count = self.worker_count.unwrap_or_else(|| {
+            // SAFETY: `num_cpus::get` is guaranteed to be non-zero.
+            NonZeroUsize::new(num_cpus::get()).unwrap()
+        });
 
         Writer {
-            sink: Deflater::new(FramedWrite::new(self.inner, BlockCodec)).buffer(worker_count),
+            sink: Deflater::new(FramedWrite::new(self.inner, BlockCodec))
+                .buffer(worker_count.get()),
             buf: BytesMut::with_capacity(MAX_BUF_SIZE),
             eof_buf: Bytes::from_static(BGZF_EOF),
             compression_level: compression_level.into(),
