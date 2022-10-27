@@ -12,6 +12,11 @@
 
   * bam: Raise minimum supported Rust version (MSRV) to 1.62.0.
 
+### Fixed
+
+  * bam/bai/index/builder: Ensure reference sequence IDs are increasing when
+    adding records.
+
 ## 0.22.0 - 2022-09-29
 
 ### Added

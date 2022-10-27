@@ -1,4 +1,4 @@
-use std::{io, mem};
+use std::{cmp::Ordering, io, mem};
 
 use noodles_csi::index::reference_sequence::bin::Chunk;
 use noodles_sam::alignment::Record;
@@ -53,8 +53,18 @@ impl Builder {
             }
         };
 
-        if reference_sequence_id != self.current_reference_sequence_id {
-            self.add_reference_sequences_builders_until(reference_sequence_id);
+        match reference_sequence_id.cmp(&self.current_reference_sequence_id) {
+            Ordering::Less => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!(
+                    "reference sequence ID ({}) appears after current reference sequence ID ({})",
+                    reference_sequence_id, self.current_reference_sequence_id
+                ),
+                ))
+            }
+            Ordering::Equal => {}
+            Ordering::Greater => self.add_reference_sequences_builders_until(reference_sequence_id),
         }
 
         self.reference_sequence_builder
@@ -113,6 +123,44 @@ mod tests {
     use noodles_sam::record::Flags;
 
     use super::*;
+
+    #[test]
+    fn test_add_record_with_out_of_order_records() -> Result<(), Box<dyn std::error::Error>> {
+        let mut builder = Builder::default();
+
+        let record = Record::builder()
+            .set_flags(Flags::empty())
+            .set_reference_sequence_id(1)
+            .set_alignment_start(Position::MIN)
+            .set_cigar("4M".parse()?)
+            .build();
+
+        let chunk = Chunk::new(
+            bgzf::VirtualPosition::from(55),
+            bgzf::VirtualPosition::from(89),
+        );
+
+        builder.add_record(&record, chunk)?;
+
+        let record = Record::builder()
+            .set_flags(Flags::empty())
+            .set_reference_sequence_id(0)
+            .set_alignment_start(Position::MIN)
+            .set_cigar("4M".parse()?)
+            .build();
+
+        let chunk = Chunk::new(
+            bgzf::VirtualPosition::from(89),
+            bgzf::VirtualPosition::from(144),
+        );
+
+        assert!(matches!(
+            builder.add_record(&record, chunk),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput,
+        ));
+
+        Ok(())
+    }
 
     #[test]
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
