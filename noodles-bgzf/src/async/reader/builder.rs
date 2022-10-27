@@ -7,22 +7,12 @@ use super::{Inflater, Reader};
 use crate::Block;
 
 /// An async BGZF reader builder.
-pub struct Builder<R> {
-    inner: R,
+#[derive(Default)]
+pub struct Builder {
     worker_count: Option<NonZeroUsize>,
 }
 
-impl<R> Builder<R>
-where
-    R: AsyncRead,
-{
-    pub(crate) fn new(inner: R) -> Self {
-        Self {
-            inner,
-            worker_count: None,
-        }
-    }
-
+impl Builder {
     /// Sets a worker count.
     ///
     /// By default, the worker count is set to the number of available logical CPUs.
@@ -34,9 +24,9 @@ where
     ///
     /// use noodles_bgzf as bgzf;
     ///
-    /// let data = [];
     /// let worker_count = NonZeroUsize::try_from(1)?;
-    /// let builder = bgzf::AsyncReader::builder(&data[..]).set_worker_count(worker_count);
+    /// let builder = bgzf::r#async::reader::Builder::default()
+    ///     .set_worker_count(worker_count);
     /// # Ok::<_, std::num::TryFromIntError>(())
     /// ```
     pub fn set_worker_count(mut self, worker_count: NonZeroUsize) -> Self {
@@ -44,23 +34,27 @@ where
         self
     }
 
-    /// Builds an async BGZF reader.
+    /// Builds an async BGZF reader with an async reader.
     ///
     /// # Examples
     ///
     /// ```
+    /// # use tokio::io;
     /// use noodles_bgzf as bgzf;
-    /// let data = [];
-    /// let reader = bgzf::AsyncReader::builder(&data[..]).build();
+    /// let reader = bgzf::r#async::reader::Builder::default()
+    ///     .build_with_reader(io::empty());
     /// ```
-    pub fn build(self) -> Reader<R> {
+    pub fn build_with_reader<R>(self, reader: R) -> Reader<R>
+    where
+        R: AsyncRead,
+    {
         let worker_count = self.worker_count.unwrap_or_else(|| {
             // SAFETY: `num_cpus::get` is guaranteed to be non-zero.
             NonZeroUsize::new(num_cpus::get()).unwrap()
         });
 
         Reader {
-            stream: Some(Inflater::new(self.inner).try_buffered(worker_count.get())),
+            stream: Some(Inflater::new(reader).try_buffered(worker_count.get())),
             block: Block::default(),
             position: 0,
             worker_count,

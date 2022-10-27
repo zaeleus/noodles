@@ -4,9 +4,13 @@
 
 ### Added
 
+  * bgzf/async/reader/builder: Implement `Default`.
+
   * bgzf/writer/builder: Implement `Default`.
 
 ### Changed
+
+  * bgzf/async/reader/builder: `Builder` no longer holds a reader.
 
   * bgzf/async/writer/builder: Change worker count to a `NonZeroUsize`.
 
@@ -15,6 +19,14 @@
   * bgzf/writer/builder: `Builder` no longer holds a writer.
 
 ### Removed
+
+  * bgzf/async/reader: Remove `AsyncReader::builder`.
+
+    Use `r#async::reader::Builder::default` instead.
+
+  * bgzf/async/reader/builder: Remove `Builder::build`.
+
+    Use `Builder::build_with_reader` instead.
 
   * bgzf/writer: Remove `Writer::builder`.
 

@@ -1,3 +1,5 @@
+//! Async BGZF reader.
+
 mod builder;
 mod inflate;
 mod inflater;
@@ -37,20 +39,6 @@ impl<R> Reader<R>
 where
     R: AsyncRead,
 {
-    /// Creates an async BGZF reader builder.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bgzf as bgzf;
-    /// let data = [];
-    /// let builder = bgzf::AsyncReader::builder(&data[..]);
-    /// let reader = builder.build();
-    /// ```
-    pub fn builder(inner: R) -> Builder<R> {
-        Builder::new(inner)
-    }
-
     /// Creates an async BGZF reader.
     ///
     /// # Examples
@@ -61,7 +49,7 @@ where
     /// let reader = bgzf::AsyncReader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
-        Self::builder(inner).build()
+        Builder::default().build_with_reader(inner)
     }
 
     /// Returns the current virtual position of the stream.

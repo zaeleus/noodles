@@ -1,5 +1,7 @@
+//! Async BGZF I/O.
+
 mod block_codec;
-mod reader;
+pub mod reader;
 mod writer;
 
 pub use self::{reader::Reader, writer::Writer};
