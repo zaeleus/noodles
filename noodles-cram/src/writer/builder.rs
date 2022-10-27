@@ -17,6 +17,17 @@ pub struct Builder {
 
 impl Builder {
     /// Sets the reference sequence repository.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram as cram;
+    /// use noodles_fasta as fasta;
+    ///
+    /// let repository = fasta::Repository::default();
+    /// let builder = cram::writer::Builder::default()
+    ///     .set_reference_sequence_repository(repository);
+    /// ```
     pub fn set_reference_sequence_repository(
         mut self,
         reference_sequence_repository: fasta::Repository,
@@ -30,6 +41,13 @@ impl Builder {
     /// If `false`, read names are discarded.
     ///
     /// The default is `true`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram as cram;
+    /// let builder = cram::writer::Builder::default().preserve_read_names(false);
+    /// ```
     pub fn preserve_read_names(mut self, value: bool) -> Self {
         self.options.preserve_read_names = value;
         self
@@ -40,12 +58,30 @@ impl Builder {
     /// If `false`, record alignment start positions are written with their actual values.
     ///
     /// The default is `true`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram as cram;
+    /// let builder = cram::writer::Builder::default()
+    ///     .encode_alignment_start_positions_as_deltas(false);
+    /// ```
     pub fn encode_alignment_start_positions_as_deltas(mut self, value: bool) -> Self {
         self.options.encode_alignment_start_positions_as_deltas = value;
         self
     }
 
     /// Sets the block content-encoder map.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram::{self as cram, data_container::BlockContentEncoderMap};
+    ///
+    /// let block_content_encoder_map = BlockContentEncoderMap::default();
+    /// let builder = cram::writer::Builder::default()
+    ///     .set_block_content_encoder_map(block_content_encoder_map);
+    /// ```
     pub fn set_block_content_encoder_map(mut self, map: BlockContentEncoderMap) -> Self {
         self.options.block_content_encoder_map = map;
         self
