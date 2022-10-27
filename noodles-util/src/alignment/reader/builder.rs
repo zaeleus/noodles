@@ -24,7 +24,7 @@ pub struct Builder {
 impl Builder {
     /// Sets the format of the input.
     ///
-    /// By default, the format is autodetected on [`build`]. This can be used to override it.
+    /// By default, the format is autodetected on build. This can be used to override it.
     ///
     /// # Examples
     ///
@@ -61,7 +61,7 @@ impl Builder {
     /// Builds an alignment reader from a path.
     ///
     /// By default, the format will be autodetected. This can be overridden by using
-    /// [`set_format`]. An associated index will also attempt to be loaded.
+    /// [`Self::set_format`]. An associated index will also attempt to be loaded.
     ///
     /// # Examples
     ///
@@ -82,7 +82,7 @@ impl Builder {
     /// Builds an alignment reader from a reader.
     ///
     /// By default, the format will be autodetected. This can be overridden by using
-    /// [`set_format`].
+    /// [`Self::set_format`].
     ///
     /// # Examples
     ///
