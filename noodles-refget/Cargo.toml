@@ -9,6 +9,7 @@ description = "A refget client"
 homepage = "https://github.com/zaeleus/noodles"
 repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-refget"
+publish = false
 
 [dependencies]
 bytes = "1.0.1"
