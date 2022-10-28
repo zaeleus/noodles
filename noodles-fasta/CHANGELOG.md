@@ -10,7 +10,7 @@
 
   * fasta/writer/builder: `Builder` no longer holds a writer.
 
-# Removed
+### Removed
 
   * fasta/writer: Remove `Writer::builder`.
 
