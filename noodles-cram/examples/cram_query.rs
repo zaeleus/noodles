@@ -2,7 +2,7 @@
 //!
 //! The input CRAM must have an associated CRAI in the same directory.
 //!
-//! The result matches the output of `samtools view [--reference <fasta-src>] <src> <region`.
+//! The result matches the output of `samtools view [--reference <fasta-src>] <src> <region>`.
 
 use std::{
     env,
