@@ -1,4 +1,6 @@
-//! Prints all records in a GFF file.
+//! Prints all lines in a GFF file.
+//!
+//! Lines are parsed as either a directive, comment, or record.
 
 use std::{
     env,
