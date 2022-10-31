@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * gtf/writer: Add line writer (`Writer::write_line`).
+
 ## 0.5.0 - 2022-10-20
 
 ### Changed

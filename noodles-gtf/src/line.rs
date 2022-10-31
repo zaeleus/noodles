@@ -13,6 +13,15 @@ pub enum Line {
     Record(Record),
 }
 
+impl fmt::Display for Line {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Line::Comment(comment) => write!(f, "#{}", comment),
+            Line::Record(record) => write!(f, "{}", record),
+        }
+    }
+}
+
 /// An error returns when a raw GFF line fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {

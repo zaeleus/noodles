@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use super::Record;
+use super::{Line, Record};
 
 /// A GTF writer.
 pub struct Writer<W> {
@@ -63,6 +63,37 @@ where
     /// ```
     pub fn into_inner(self) -> W {
         self.inner
+    }
+
+    /// Writes a [`Line`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_gtf as gtf;
+    /// use gtf::line::Line;
+    ///
+    /// let mut writer = gtf::Writer::new(Vec::new());
+    ///
+    /// let version = Line::Comment(String::from("#format: gtf"));
+    /// writer.write_line(&version)?;
+    ///
+    /// let comment = Line::Comment(String::from("noodles"));
+    /// writer.write_line(&comment)?;
+    ///
+    /// let record = Line::Record(gtf::Record::default());
+    /// writer.write_line(&record)?;
+    ///
+    /// let expected = b"##format: gtf
+    /// #noodles
+    /// .\t.\t.\t1\t1\t.\t.\t.\t
+    /// ";
+    ///
+    /// assert_eq!(&writer.get_ref()[..], &expected[..]);
+    /// # Ok::<(), io::Error>(())
+    pub fn write_line(&mut self, line: &Line) -> io::Result<()> {
+        writeln!(self.inner, "{}", line)
     }
 
     /// Writes a GTF record.
