@@ -4,7 +4,7 @@ use super::{alignment::Record, Header};
 
 /// An alignment format writer.
 ///
-/// A call to [`finish`] must be made before the writer is dropped.
+/// A call to [`Self::finish`] must be made before the writer is dropped.
 pub trait AlignmentWriter {
     /// Writes a SAM header.
     fn write_alignment_header(&mut self, header: &Header) -> io::Result<()>;
