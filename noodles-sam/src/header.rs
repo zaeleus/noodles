@@ -71,9 +71,7 @@ use std::{fmt, str::FromStr};
 
 use indexmap::IndexMap;
 
-pub use self::{builder::Builder, parser::ParseError};
-
-pub use self::record::Record;
+pub use self::{builder::Builder, parser::ParseError, record::Record};
 
 use self::record::value::{
     map::{self, Program, ReadGroup, ReferenceSequence},
