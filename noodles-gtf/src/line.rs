@@ -58,6 +58,15 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_fmt() {
+        let line = Line::Comment(String::from("format: gtf"));
+        assert_eq!(line.to_string(), "#format: gtf");
+
+        let line = Line::Record(Record::default());
+        assert_eq!(line.to_string(), ".\t.\t.\t1\t1\t.\t.\t.\t");
+    }
+
+    #[test]
     fn test_from_str() {
         assert_eq!(
             "##format: gtf".parse(),
