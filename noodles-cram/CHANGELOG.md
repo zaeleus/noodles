@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * cram/async/reader: Add query stream (`Writer::query`).
+
 ## 0.21.0 - 2022-10-28
 
 ### Added

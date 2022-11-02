@@ -2,17 +2,19 @@ mod crc_reader;
 mod data_container;
 mod header_container;
 mod num;
+mod query;
 mod records;
 
 pub use self::crc_reader::CrcReader;
 
 use bytes::BytesMut;
 use futures::Stream;
+use noodles_core::Region;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt, SeekFrom};
 
-use crate::{file_definition::Version, DataContainer, FileDefinition, Record};
+use crate::{crai, file_definition::Version, DataContainer, FileDefinition, Record};
 
 /// An async CRAM reader.
 pub struct Reader<R> {
@@ -212,6 +214,63 @@ where
     /// ```
     pub async fn position(&mut self) -> io::Result<u64> {
         self.inner.seek(SeekFrom::Current(0)).await
+    }
+
+    /// Returns a stream over records that intersects the given region.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use futures::TryStreamExt;
+    /// use noodles_core::Region;
+    /// use noodles_cram::{self as cram, crai};
+    /// use noodles_fasta as fasta;
+    /// use tokio::fs::File;
+    ///
+    /// let mut reader = File::open("sample.cram").await.map(cram::AsyncReader::new)?;
+    /// reader.read_file_definition().await?;
+    ///
+    /// let repository = fasta::Repository::default();
+    /// let header = reader.read_file_header().await?.parse()?;
+    /// let index = crai::r#async::read("sample.cram.crai").await?;
+    /// let region = "sq0:8-13".parse()?;
+    /// let mut query = reader.query(&repository, &header, &index, &region)?;
+    ///
+    /// while let Some(record) = query.try_next().await? {
+    ///     // ...
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn query<'a>(
+        &'a mut self,
+        reference_sequence_repository: &'a fasta::Repository,
+        header: &'a sam::Header,
+        index: &'a crai::Index,
+        region: &Region,
+    ) -> io::Result<impl Stream<Item = io::Result<Record>> + '_> {
+        use self::query::query;
+
+        let reference_sequence_id = header
+            .reference_sequences()
+            .get_index_of(region.name())
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "invalid reference sequence name",
+                )
+            })?;
+
+        Ok(query(
+            self,
+            reference_sequence_repository,
+            header,
+            index,
+            reference_sequence_id,
+            region.interval(),
+        ))
     }
 }
 
