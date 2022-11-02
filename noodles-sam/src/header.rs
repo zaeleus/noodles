@@ -13,7 +13,7 @@
 //! type. Reference sequences must be ordered; whereas read groups, programs, and comments can be
 //! unordered. (`sam::Header` defines them to be ordered.)
 //!
-//! [header]: `header::Header`
+//! [header]: `record::value::map::Header`
 //! [reference sequence]: `ReferenceSequence`
 //! [read group]: `ReadGroup`
 //! [program]: `Program`
