@@ -2,6 +2,7 @@
 
 mod builder;
 mod compression_level;
+mod frame;
 
 pub use self::{builder::Builder, compression_level::CompressionLevel};
 
@@ -10,7 +11,6 @@ use std::{
     io::{self, Write},
 };
 
-use byteorder::{LittleEndian, WriteBytesExt};
 use flate2::Crc;
 
 use super::{gz, VirtualPosition, BGZF_HEADER_SIZE, BGZF_MAX_ISIZE};
@@ -27,14 +27,6 @@ const COMPRESSION_LEVEL_0_OVERHEAD: usize = 15;
 // DEFLATE overheads.
 pub(crate) const MAX_BUF_SIZE: usize =
     BGZF_MAX_ISIZE - BGZF_HEADER_SIZE - gz::TRAILER_SIZE - COMPRESSION_LEVEL_0_OVERHEAD;
-
-const BGZF_FLG: u8 = 0x04; // FEXTRA
-const BGZF_XFL: u8 = 0x00; // none
-const BGZF_XLEN: u16 = 6;
-
-const BGZF_SI1: u8 = 0x42;
-const BGZF_SI2: u8 = 0x43;
-const BGZF_SLEN: u16 = 2;
 
 // § 4.1.2 End-of-file marker (2020-12-03)
 pub(crate) static BGZF_EOF: &[u8] = &[
@@ -160,6 +152,8 @@ where
     }
 
     fn flush_block(&mut self) -> io::Result<()> {
+        use self::frame::{write_header, write_trailer};
+
         let (cdata, crc32, r#isize) = deflate_data(&self.buf, self.compression_level)?;
 
         let inner = self.inner.as_mut().unwrap();
@@ -262,38 +256,6 @@ where
     }
 }
 
-fn write_header<W>(writer: &mut W, block_size: usize) -> io::Result<()>
-where
-    W: Write,
-{
-    writer.write_all(&gz::MAGIC_NUMBER)?;
-    writer.write_u8(gz::CompressionMethod::Deflate as u8)?;
-    writer.write_u8(BGZF_FLG)?;
-    writer.write_u32::<LittleEndian>(gz::MTIME_NONE)?;
-    writer.write_u8(BGZF_XFL)?;
-    writer.write_u8(gz::OperatingSystem::Unknown as u8)?;
-    writer.write_u16::<LittleEndian>(BGZF_XLEN)?;
-
-    writer.write_u8(BGZF_SI1)?;
-    writer.write_u8(BGZF_SI2)?;
-    writer.write_u16::<LittleEndian>(BGZF_SLEN)?;
-
-    let bsize = u16::try_from(block_size - 1)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_u16::<LittleEndian>(bsize)?;
-
-    Ok(())
-}
-
-fn write_trailer<W>(writer: &mut W, checksum: u32, uncompressed_size: u32) -> io::Result<()>
-where
-    W: Write,
-{
-    writer.write_u32::<LittleEndian>(checksum)?;
-    writer.write_u32::<LittleEndian>(uncompressed_size)?;
-    Ok(())
-}
-
 #[cfg(feature = "libdeflate")]
 pub(crate) fn deflate_data(
     data: &[u8],
@@ -375,17 +337,5 @@ mod tests {
         assert_eq!(&data[eof_start..], BGZF_EOF);
 
         Ok(())
-    }
-
-    #[test]
-    fn test_write_header() {
-        let mut writer = io::sink();
-
-        assert!(write_header(&mut writer, 8).is_ok());
-
-        assert!(matches!(
-            write_header(&mut writer, (1 << 16) + 1),
-            Err(e) if e.kind() == io::ErrorKind::InvalidInput
-        ));
     }
 }
