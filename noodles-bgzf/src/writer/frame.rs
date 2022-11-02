@@ -59,4 +59,20 @@ mod tests {
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
     }
+
+    #[test]
+    fn test_write_trailer() -> io::Result<()> {
+        let mut buf = Vec::new();
+
+        write_trailer(&mut buf, 0x05080d15, 34)?;
+
+        let expected = [
+            0x15, 0x0d, 0x08, 0x05, // CRC32 = 0x05080d15
+            0x22, 0x00, 0x00, 0x00, // ISIZE = 34
+        ];
+
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
 }
