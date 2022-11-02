@@ -11,7 +11,7 @@ use std::{error, fmt, num, str::FromStr};
 
 use noodles_core::Position;
 
-pub(crate) const NULL_FIELD: &str = ".";
+pub(crate) const MISSING_FIELD: &str = ".";
 
 /// A GTF record.
 #[derive(Clone, Debug, PartialEq)]
@@ -189,19 +189,19 @@ impl fmt::Display for Record {
         if let Some(score) = self.score() {
             write!(f, "{}\t", score)?;
         } else {
-            write!(f, "{}\t", NULL_FIELD)?;
+            write!(f, "{}\t", MISSING_FIELD)?;
         }
 
         if let Some(strand) = self.strand() {
             write!(f, "{}\t", strand)?;
         } else {
-            write!(f, "{}\t", NULL_FIELD)?;
+            write!(f, "{}\t", MISSING_FIELD)?;
         }
 
         if let Some(frame) = self.frame() {
             write!(f, "{}\t", frame)?;
         } else {
-            write!(f, "{}\t", NULL_FIELD)?;
+            write!(f, "{}\t", MISSING_FIELD)?;
         }
 
         write!(f, "{}", self.attributes())?;
@@ -341,7 +341,7 @@ impl FromStr for Record {
 }
 
 fn parse_score(s: &str) -> Result<Option<f32>, ParseError> {
-    if s == NULL_FIELD {
+    if s == MISSING_FIELD {
         Ok(None)
     } else {
         s.parse().map(Some).map_err(ParseError::InvalidScore)
@@ -349,7 +349,7 @@ fn parse_score(s: &str) -> Result<Option<f32>, ParseError> {
 }
 
 fn parse_strand(s: &str) -> Result<Option<Strand>, ParseError> {
-    if s == NULL_FIELD {
+    if s == MISSING_FIELD {
         Ok(None)
     } else {
         s.parse().map(Some).map_err(ParseError::InvalidStrand)
@@ -357,7 +357,7 @@ fn parse_strand(s: &str) -> Result<Option<Strand>, ParseError> {
 }
 
 fn parse_frame(s: &str) -> Result<Option<Frame>, ParseError> {
-    if s == NULL_FIELD {
+    if s == MISSING_FIELD {
         Ok(None)
     } else {
         s.parse().map(Some).map_err(ParseError::InvalidFrame)
