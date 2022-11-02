@@ -68,6 +68,18 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_fmt() {
+        let line = Line::Directive(Directive::GffVersion(Default::default()));
+        assert_eq!(line.to_string(), "##gff-version 3");
+
+        let line = Line::Comment(String::from("format: gff3"));
+        assert_eq!(line.to_string(), "#format: gff3");
+
+        let line = Line::Record(Record::default());
+        assert_eq!(line.to_string(), ".\t.\t.\t1\t1\t.\t.\t.\t.")
+    }
+
+    #[test]
     fn test_from_str() {
         assert_eq!(
             "##gff-version 3".parse(),
