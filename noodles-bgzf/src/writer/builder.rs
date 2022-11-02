@@ -26,7 +26,7 @@ impl Builder {
         self
     }
 
-    /// Builds a BGZF writer from a writer..
+    /// Builds a BGZF writer from a writer.
     ///
     /// # Examples
     ///
