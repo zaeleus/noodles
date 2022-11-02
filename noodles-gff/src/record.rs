@@ -14,7 +14,7 @@ use std::{error, fmt, num, str::FromStr};
 
 use noodles_core::Position;
 
-pub(crate) const NULL_FIELD: &str = ".";
+pub(crate) const MISSING_FIELD: &str = ".";
 const FIELD_DELIMITER: char = '\t';
 const MAX_FIELDS: usize = 9;
 
@@ -195,7 +195,7 @@ impl fmt::Display for Record {
         if let Some(score) = self.score() {
             write!(f, "\t{}", score)?;
         } else {
-            write!(f, "\t{}", NULL_FIELD)?;
+            write!(f, "\t{}", MISSING_FIELD)?;
         }
 
         write!(f, "\t{}", self.strand())?;
@@ -203,11 +203,11 @@ impl fmt::Display for Record {
         if let Some(phase) = self.phase() {
             write!(f, "\t{}", phase)?;
         } else {
-            write!(f, "\t{}", NULL_FIELD)?;
+            write!(f, "\t{}", MISSING_FIELD)?;
         }
 
         if self.attributes().is_empty() {
-            write!(f, "\t{}", NULL_FIELD)?;
+            write!(f, "\t{}", MISSING_FIELD)?;
         } else {
             write!(f, "\t{}", self.attributes())?;
         }
@@ -284,7 +284,7 @@ impl FromStr for Record {
             .and_then(|s| s.parse().map_err(ParseError::InvalidEnd))?;
 
         let score = parse_string(&mut fields, Field::Score).and_then(|s| {
-            if s == NULL_FIELD {
+            if s == MISSING_FIELD {
                 Ok(None)
             } else {
                 s.parse().map(Some).map_err(ParseError::InvalidScore)
@@ -295,7 +295,7 @@ impl FromStr for Record {
             .and_then(|s| s.parse().map_err(ParseError::InvalidStrand))?;
 
         let phase = parse_string(&mut fields, Field::Phase).and_then(|s| {
-            if s == NULL_FIELD {
+            if s == MISSING_FIELD {
                 if ty == "CDS" {
                     Err(ParseError::MissingPhase)
                 } else {
