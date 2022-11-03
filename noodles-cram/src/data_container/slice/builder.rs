@@ -45,6 +45,7 @@ impl Builder {
         self.reference_sequence_context
     }
 
+    #[allow(clippy::result_large_err)]
     pub fn add_record(&mut self, record: Record) -> Result<&Record, AddRecordError> {
         if self.records.len() >= MAX_RECORD_COUNT {
             return Err(AddRecordError::SliceFull(record));
@@ -288,7 +289,7 @@ pub(crate) fn calculate_normalized_sequence_digest(sequence: &[u8]) -> [u8; 16] 
         // "All characters outside of the inclusive range 33 ('!') to 126 ('~') are stripped out."
         if b.is_ascii_graphic() {
             // "All lowercase characters are converted to uppercase."
-            hasher.update(&[b.to_ascii_uppercase()]);
+            hasher.update([b.to_ascii_uppercase()]);
         }
     }
 

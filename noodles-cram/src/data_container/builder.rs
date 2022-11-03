@@ -41,6 +41,7 @@ impl Builder {
         self.base_count
     }
 
+    #[allow(clippy::result_large_err)]
     pub fn add_record(&mut self, record: Record) -> Result<(), AddRecordError> {
         if self.slice_builders.len() >= MAX_SLICE_COUNT {
             return Err(AddRecordError::ContainerFull(record));

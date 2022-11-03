@@ -135,7 +135,7 @@ fn build_parameters(lens: &[usize], src: &[u8]) -> Parameters {
     let q_shift = 5;
     let q_bits = if q_shift > 4 { 9 } else { 8 };
     let p_bits = 7;
-    let p_shift = if lens[0] > 128 { 1 } else { 0 };
+    let p_shift = i32::from(lens[0] > 128);
 
     let q_tab: Vec<_> = (0..=u8::MAX).collect();
 
