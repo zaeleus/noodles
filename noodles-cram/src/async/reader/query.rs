@@ -30,7 +30,7 @@ pub(super) fn query<'a, R>(
     index: &'a crai::Index,
     reference_sequence_id: usize,
     interval: Interval,
-) -> impl Stream<Item = io::Result<Record>> + '_
+) -> impl Stream<Item = io::Result<Record>> + 'a
 where
     R: AsyncRead + AsyncSeek + Unpin,
 {
