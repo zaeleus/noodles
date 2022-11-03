@@ -19,7 +19,7 @@ impl<'a, R> Records<'a, R>
 where
     R: Read,
 {
-    pub(crate) fn new(reader: &'a mut Reader<R>) -> Records<'_, R> {
+    pub(super) fn new(reader: &'a mut Reader<R>) -> Records<'_, R> {
         Self {
             reader,
             record: Record::default(),
