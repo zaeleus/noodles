@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * vcf/header/parser: Parse record using file format ([#128]).
+
+[#128]: https://github.com/zaeleus/noodles/issues/128
+
 ## 0.21.0 - 2022-10-28
 
 ### Changed

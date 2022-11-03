@@ -105,11 +105,11 @@ fn parse_file_format(s: &str) -> Result<FileFormat, ParseError> {
 }
 
 fn parse_record(
-    _file_format: FileFormat,
+    file_format: FileFormat,
     mut builder: Builder,
     line: &str,
 ) -> Result<Builder, ParseError> {
-    let record: Record = line.parse().map_err(ParseError::InvalidRecord)?;
+    let record = Record::try_from((file_format, line)).map_err(ParseError::InvalidRecord)?;
 
     builder = match record {
         Record::FileFormat(_) => return Err(ParseError::UnexpectedFileFormat),
