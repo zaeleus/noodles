@@ -205,13 +205,19 @@ fn validate_type_fields(
     let expected_number = key::number(id).unwrap();
 
     if actual_number != expected_number {
-        return Err(TryFromFieldsError::NumberMismatch);
+        return Err(TryFromFieldsError::NumberMismatch(
+            actual_number.to_string(),
+            expected_number.to_string(),
+        ));
     }
 
     let expected_type = key::ty(id).unwrap();
 
     if actual_type != expected_type {
-        return Err(TryFromFieldsError::TypeMismatch);
+        return Err(TryFromFieldsError::TypeMismatch(
+            actual_type.to_string(),
+            expected_type.to_string(),
+        ));
     }
 
     Ok(())

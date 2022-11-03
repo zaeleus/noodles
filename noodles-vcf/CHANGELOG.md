@@ -6,6 +6,11 @@
 
   * vcf/header/parser: Add map value parse errors.
 
+### Changed
+
+  * vcf/header/record/value/map: Add actual and expected values for
+    `ParseError::NumberMismatch` and `ParseError::TypeMismatch`.
+
 ### Fixed
 
   * vcf/header/parser: Parse record using file format ([#128]).

@@ -177,9 +177,9 @@ pub enum TryFromFieldsError {
     /// A value is invalid.
     InvalidValue(&'static str),
     /// The actual number does not match the expected number in the reserved definition.
-    NumberMismatch,
+    NumberMismatch(String, String),
     /// The actual type does not match the expected type in the reserved definition.
-    TypeMismatch,
+    TypeMismatch(String, String),
 }
 
 impl error::Error for TryFromFieldsError {}
@@ -190,8 +190,12 @@ impl Display for TryFromFieldsError {
             Self::MissingField(tag) => write!(f, "missing field: {}", tag),
             Self::DuplicateTag => "duplicate tag".fmt(f),
             Self::InvalidValue(tag) => write!(f, "invalid value for {}", tag),
-            Self::NumberMismatch => "number mismatch".fmt(f),
-            Self::TypeMismatch => "type mismatch".fmt(f),
+            Self::NumberMismatch(actual, expected) => {
+                write!(f, "number mismatch: expected {}, got {}", expected, actual)
+            }
+            Self::TypeMismatch(actual, expected) => {
+                write!(f, "type mismatch: expected {}, got {}", expected, actual)
+            }
         }
     }
 }
