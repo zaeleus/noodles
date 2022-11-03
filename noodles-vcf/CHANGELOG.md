@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * vcf/header/parser: Add map value parse errors.
+
 ### Fixed
 
   * vcf/header/parser: Parse record using file format ([#128]).

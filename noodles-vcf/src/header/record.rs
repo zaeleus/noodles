@@ -9,10 +9,10 @@ pub use self::key::Key;
 use std::{error, fmt, str::FromStr};
 
 use self::value::{
-    map::{AlternativeAllele, Contig, Filter, Format, Info, Meta, Other},
+    map::{self, AlternativeAllele, Contig, Filter, Format, Info, Meta, Other},
     Map,
 };
-use super::FileFormat;
+use super::{file_format, FileFormat};
 
 pub(crate) const PREFIX: &str = "##";
 
@@ -46,6 +46,20 @@ pub enum Record {
 pub enum ParseError {
     /// The input is invalid.
     Invalid,
+    /// The file format record is invalid.
+    InvalidFileFormat(file_format::ParseError),
+    /// An INFO record is invalid.
+    InvalidInfo(map::TryFromFieldsError),
+    /// A FILTER record is invalid.
+    InvalidFilter(map::TryFromFieldsError),
+    /// A FORMAT record is invalid.
+    InvalidFormat(map::TryFromFieldsError),
+    /// An ALT record is invalid.
+    InvalidAlternativeAllele(map::TryFromFieldsError),
+    /// A contig record is invalid.
+    InvalidContig(map::TryFromFieldsError),
+    /// A META record is invalid.
+    InvalidMeta(map::TryFromFieldsError),
 }
 
 impl error::Error for ParseError {}
@@ -54,6 +68,13 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Invalid => f.write_str("invalid input"),
+            Self::InvalidFileFormat(e) => write!(f, "invalid file format: {}", e),
+            Self::InvalidInfo(e) => write!(f, "invalid INFO: {}", e),
+            Self::InvalidFilter(e) => write!(f, "invalid FILTER: {}", e),
+            Self::InvalidFormat(e) => write!(f, "invalid FORMAT: {}", e),
+            Self::InvalidAlternativeAllele(e) => write!(f, "invalid ALT: {}", e),
+            Self::InvalidContig(e) => write!(f, "invalid contig: {}", e),
+            Self::InvalidMeta(e) => write!(f, "invalid META: {}", e),
         }
     }
 }
@@ -77,7 +98,7 @@ impl TryFrom<(FileFormat, &str)> for Record {
         match Key::from(raw_key) {
             key::FILE_FORMAT => match value {
                 Value::String(s) => {
-                    let file_format = s.parse().map_err(|_| ParseError::Invalid)?;
+                    let file_format = s.parse().map_err(ParseError::InvalidFileFormat)?;
                     Ok(Self::FileFormat(file_format))
                 }
                 _ => Err(ParseError::Invalid),
@@ -85,7 +106,7 @@ impl TryFrom<(FileFormat, &str)> for Record {
             key::INFO => match value {
                 Value::Struct(fields) => {
                     let info = Map::<Info>::try_from((file_format, fields))
-                        .map_err(|_| ParseError::Invalid)?;
+                        .map_err(ParseError::InvalidInfo)?;
                     Ok(Self::Info(info))
                 }
                 _ => Err(ParseError::Invalid),
