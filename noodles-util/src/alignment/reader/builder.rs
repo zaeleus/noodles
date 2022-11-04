@@ -1,6 +1,6 @@
 use std::{
     fs::File,
-    io::{self, BufRead, BufReader, Read, Seek},
+    io::{self, BufRead, BufReader, Read},
     path::Path,
 };
 
@@ -92,10 +92,12 @@ impl Builder {
     /// let reader = alignment::reader::Builder::default().build_from_reader(io::empty())?;
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn build_from_reader<R>(self, mut reader: R) -> io::Result<Reader<Box<dyn BufRead>>>
+    pub fn build_from_reader<R>(self, reader: R) -> io::Result<Reader<Box<dyn BufRead>>>
     where
-        R: Read + Seek + 'static,
+        R: Read + 'static,
     {
+        let mut reader: Box<dyn BufRead> = Box::new(BufReader::new(reader));
+
         let format = self
             .format
             .map(Ok)
@@ -125,27 +127,27 @@ impl Builder {
 
 fn detect_format<R>(reader: &mut R) -> io::Result<Format>
 where
-    R: Read + Seek,
+    R: BufRead,
 {
     const CRAM_MAGIC_NUMBER: [u8; 4] = [b'C', b'R', b'A', b'M'];
     const GZIP_MAGIC_NUMBER: [u8; 2] = [0x1f, 0x8b];
     const BAM_MAGIC_NUMBER: [u8; 4] = [b'B', b'A', b'M', 0x01];
 
-    let mut buf = [0; 4];
-    reader.read_exact(&mut buf).ok();
-    reader.rewind()?;
+    let src = reader.fill_buf()?;
 
-    if buf == CRAM_MAGIC_NUMBER {
-        return Ok(Format::Cram);
-    }
+    if let Some(buf) = src.get(..4) {
+        if buf == CRAM_MAGIC_NUMBER {
+            return Ok(Format::Cram);
+        }
 
-    if buf[..2] == GZIP_MAGIC_NUMBER {
-        let mut reader = bgzf::Reader::new(reader);
-        reader.read_exact(&mut buf).ok();
-        reader.get_mut().rewind()?;
+        if buf[..2] == GZIP_MAGIC_NUMBER {
+            let mut reader = bgzf::Reader::new(src);
+            let mut buf = [0; 4];
+            reader.read_exact(&mut buf).ok();
 
-        if buf == BAM_MAGIC_NUMBER {
-            return Ok(Format::Bam);
+            if buf == BAM_MAGIC_NUMBER {
+                return Ok(Format::Bam);
+            }
         }
     }
 
