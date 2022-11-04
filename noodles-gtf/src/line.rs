@@ -4,6 +4,8 @@ use std::{error, fmt, str::FromStr};
 
 use super::{record, Record};
 
+const COMMENT_PREFIX: char = '#';
+
 /// A GTF line.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Line {
@@ -16,7 +18,7 @@ pub enum Line {
 impl fmt::Display for Line {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Line::Comment(comment) => write!(f, "#{}", comment),
+            Line::Comment(comment) => write!(f, "{}{}", COMMENT_PREFIX, comment),
             Line::Record(record) => write!(f, "{}", record),
         }
     }
@@ -43,7 +45,7 @@ impl FromStr for Line {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if let Some(t) = s.strip_prefix('#') {
+        if let Some(t) = s.strip_prefix(COMMENT_PREFIX) {
             Ok(Self::Comment(t.into()))
         } else {
             s.parse()
