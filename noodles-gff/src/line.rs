@@ -4,6 +4,8 @@ use std::{error, fmt, str::FromStr};
 
 use super::{directive, record, Directive, Record};
 
+const COMMENT_PREFIX: char = '#';
+
 /// A GFF line.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Line {
@@ -19,7 +21,7 @@ impl fmt::Display for Line {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Line::Directive(directive) => write!(f, "{}", directive),
-            Line::Comment(comment) => write!(f, "#{}", comment),
+            Line::Comment(comment) => write!(f, "{}{}", COMMENT_PREFIX, comment),
             Line::Record(record) => write!(f, "{}", record),
         }
     }
@@ -53,7 +55,7 @@ impl FromStr for Line {
             s.parse()
                 .map(Self::Directive)
                 .map_err(ParseError::InvalidDirective)
-        } else if let Some(t) = s.strip_prefix('#') {
+        } else if let Some(t) = s.strip_prefix(COMMENT_PREFIX) {
             Ok(Self::Comment(t.into()))
         } else {
             s.parse()
