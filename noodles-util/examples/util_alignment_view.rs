@@ -31,7 +31,13 @@ fn main() -> io::Result<()> {
         builder = builder.set_reference_sequence_repository(repository);
     }
 
-    let mut reader = builder.build_from_path(src)?;
+    let mut reader = if src == "-" {
+        let stdin = io::stdin().lock();
+        builder.build_from_reader(stdin)?
+    } else {
+        builder.build_from_path(src)?
+    };
+
     let header = reader.read_header()?;
 
     let stdout = io::stdout().lock();
