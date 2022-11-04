@@ -181,7 +181,7 @@ where
     ) -> io::Result<u64> {
         assert!(!index.is_empty());
 
-        let i = index.iter().position(|r| r.1 > pos).unwrap_or(index.len());
+        let i = index.partition_point(|r| r.1 <= pos);
         // SAFETY: `i` is > 0.
         let record = index[i - 1];
 
