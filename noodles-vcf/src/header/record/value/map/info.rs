@@ -206,8 +206,8 @@ fn validate_type_fields(
 
     if actual_number != expected_number {
         return Err(TryFromFieldsError::NumberMismatch(
-            actual_number.to_string(),
-            expected_number.to_string(),
+            actual_number,
+            expected_number,
         ));
     }
 

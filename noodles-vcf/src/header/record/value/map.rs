@@ -177,7 +177,7 @@ pub enum TryFromFieldsError {
     /// A value is invalid.
     InvalidValue(&'static str),
     /// The actual number does not match the expected number in the reserved definition.
-    NumberMismatch(String, String),
+    NumberMismatch(Number, Number),
     /// The actual type does not match the expected type in the reserved definition.
     TypeMismatch(String, String),
 }
