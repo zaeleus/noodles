@@ -401,7 +401,7 @@ where
     ///
     /// ```no_run
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>>{
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures::TryStreamExt;
     /// use noodles_bam::{self as bam, bai};
     /// use noodles_core::Region;
