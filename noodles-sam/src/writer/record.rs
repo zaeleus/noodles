@@ -82,7 +82,7 @@ where
     num::write_i32(writer, record.template_length())?;
 
     writer.write_all(DELIMITER)?;
-    write_sequence(writer, record.sequence())?;
+    write_sequence(writer, record.cigar().read_length(), record.sequence())?;
 
     writer.write_all(DELIMITER)?;
     write_quality_scores(writer, record.quality_scores())?;

@@ -6,6 +6,8 @@
 
   * sam/record/mapping_quality: Add `MIN` and `MAX` associated constants.
 
+  * sam/writer/record/sequence: Add read length validation.
+
 ## 0.21.0 - 2022-10-28
 
 ### Added
