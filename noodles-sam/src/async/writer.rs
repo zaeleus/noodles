@@ -1,6 +1,6 @@
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
-use crate::{alignment::Record, AlignmentWriter, Header};
+use crate::{alignment::Record, Header};
 
 /// An async SAM writer.
 pub struct Writer<W>
@@ -141,9 +141,10 @@ where
         header: &Header,
         record: &Record,
     ) -> io::Result<()> {
-        let buf = Vec::new();
-        let mut writer = crate::Writer::new(buf);
-        writer.write_alignment_record(header, record)?;
-        self.inner.write_all(writer.get_ref()).await
+        use crate::writer::write_record;
+
+        let mut buf = Vec::new();
+        write_record(&mut buf, header, record)?;
+        self.inner.write_all(&buf).await
     }
 }

@@ -3,7 +3,7 @@ mod record;
 
 use std::io::{self, Write};
 
-use self::record::{write_cigar, write_data, write_position, write_quality_scores, write_sequence};
+pub(crate) use self::record::write_record;
 use super::{alignment::Record, AlignmentWriter, Header};
 
 /// A SAM writer.
@@ -136,7 +136,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_record(&mut self, header: &Header, record: &Record) -> io::Result<()> {
-        self.write_alignment_record(header, record)
+        write_record(&mut self.inner, header, record)
     }
 }
 
@@ -149,113 +149,10 @@ where
     }
 
     fn write_alignment_record(&mut self, header: &Header, record: &Record) -> io::Result<()> {
-        const DELIMITER: &[u8] = b"\t";
-        const EQ: &[u8] = b"=";
-        const MISSING: &[u8] = b"*";
-
-        let qname = record
-            .read_name()
-            .map(|name| name.as_ref())
-            .unwrap_or(MISSING);
-
-        let reference_sequence = record.reference_sequence(header).transpose()?;
-
-        let rname = reference_sequence
-            .map(|rs| rs.name().as_bytes())
-            .unwrap_or(MISSING);
-
-        let mapq = record
-            .mapping_quality()
-            .map(u8::from)
-            .unwrap_or(crate::record::mapping_quality::MISSING);
-
-        let rnext = record
-            .mate_reference_sequence(header)
-            .transpose()?
-            .map(|mate_reference_sequence| {
-                if let Some(rs) = reference_sequence {
-                    if mate_reference_sequence.name() == rs.name() {
-                        return EQ;
-                    }
-                }
-
-                mate_reference_sequence.name().as_ref()
-            })
-            .unwrap_or(MISSING);
-
-        self.inner.write_all(qname)?;
-
-        self.inner.write_all(DELIMITER)?;
-        num::write_u16(&mut self.inner, u16::from(record.flags()))?;
-
-        self.inner.write_all(DELIMITER)?;
-        self.inner.write_all(rname)?;
-
-        self.inner.write_all(DELIMITER)?;
-        write_position(&mut self.inner, record.alignment_start())?;
-
-        self.inner.write_all(DELIMITER)?;
-        num::write_u8(&mut self.inner, mapq)?;
-
-        self.inner.write_all(DELIMITER)?;
-        write_cigar(&mut self.inner, record.cigar())?;
-
-        self.inner.write_all(DELIMITER)?;
-        self.inner.write_all(rnext)?;
-
-        self.inner.write_all(DELIMITER)?;
-        write_position(&mut self.inner, record.mate_alignment_start())?;
-
-        self.inner.write_all(DELIMITER)?;
-        num::write_i32(&mut self.inner, record.template_length())?;
-
-        self.inner.write_all(DELIMITER)?;
-        write_sequence(&mut self.inner, record.sequence())?;
-
-        self.inner.write_all(DELIMITER)?;
-        write_quality_scores(&mut self.inner, record.quality_scores())?;
-
-        write_data(&mut self.inner, record.data())?;
-
-        writeln!(self.inner)?;
-
-        Ok(())
+        write_record(&mut self.inner, header, record)
     }
 
     fn finish(&mut self, _: &Header) -> io::Result<()> {
-        Ok(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_write_record_with_data() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::record::{
-            data::{
-                field::{Tag, Value},
-                Field,
-            },
-            Data,
-        };
-
-        let mut writer = Writer::new(vec![]);
-
-        let data = Data::try_from(vec![Field::new(
-            Tag::ReadGroup,
-            Value::String(String::from("rg0")),
-        )])?;
-
-        let header = Header::default();
-        let record = Record::builder().set_data(data).build();
-
-        writer.write_record(&header, &record)?;
-
-        let expected = b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\tRG:Z:rg0\n";
-        assert_eq!(&writer.get_ref()[..], &expected[..]);
-
         Ok(())
     }
 }
