@@ -14,6 +14,9 @@ pub const MISSING: u8 = 255;
 pub struct MappingQuality(u8);
 
 impl MappingQuality {
+    /// The minimum mapping quality (0).
+    pub const MIN: Self = Self(0);
+
     /// Creates a mapping quality if the given value is not missing.
     ///
     /// # Examples

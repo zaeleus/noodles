@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * sam/record/mapping_quality: Add `MIN` associated constant.
+
 ## 0.21.0 - 2022-10-28
 
 ### Added
