@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bam/writer/record/sequence: Add read length validation.
+
 ## 0.24.0 - 2022-10-28
 
 ### Changed

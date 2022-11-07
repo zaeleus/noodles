@@ -71,7 +71,7 @@ where
     let quality_scores = record.quality_scores();
 
     // seq
-    put_sequence(dst, sequence);
+    put_sequence(dst, record.cigar().read_length(), sequence)?;
 
     if sequence.len() == quality_scores.len() {
         put_quality_scores(dst, quality_scores);
@@ -274,7 +274,7 @@ mod tests {
             .set_reference_sequence_id(1)
             .set_alignment_start(Position::try_from(9)?)
             .set_mapping_quality(MappingQuality::try_from(13)?)
-            .set_cigar("36M8S".parse()?)
+            .set_cigar("3M1S".parse()?)
             .set_mate_reference_sequence_id(1)
             .set_mate_alignment_start(Position::try_from(22)?)
             .set_template_length(144)
@@ -298,8 +298,8 @@ mod tests {
             0x15, 0x00, 0x00, 0x00, // next_pos = 21
             0x90, 0x00, 0x00, 0x00, // tlen = 144
             b'r', b'0', 0x00, // read_name = "r0\x00"
-            0x40, 0x02, 0x00, 0x00, // cigar[0] = 36M
-            0x84, 0x00, 0x00, 0x00, // cigar[1] = 8S
+            0x30, 0x00, 0x00, 0x00, // cigar[0] = 3M
+            0x14, 0x00, 0x00, 0x00, // cigar[1] = 1S
             0x12, 0x48, // seq = ACGT
             0x2d, 0x23, 0x2b, 0x32, // qual = NDLS
             b'N', b'H', b'C', 0x01, // data[0] = NH:i:1

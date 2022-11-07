@@ -1,10 +1,21 @@
+use std::io;
+
 use bytes::BufMut;
 use noodles_sam::record::{sequence::Base, Sequence};
 
-pub fn put_sequence<B>(dst: &mut B, sequence: &Sequence)
+pub fn put_sequence<B>(dst: &mut B, read_length: usize, sequence: &Sequence) -> io::Result<()>
 where
     B: BufMut,
 {
+    // § 1.4.10 "`SEQ`" (2022-08-22): "If not a '*', the length of the sequence must equal the sum
+    // of lengths of `M`/`I`/`S`/`=`/`X` operations in `CIGAR`."
+    if read_length > 0 && sequence.len() != read_length {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "read length-sequence length mismatch",
+        ));
+    }
+
     let mut bases = sequence.as_ref().iter().copied();
 
     while let Some(l) = bases.next() {
@@ -14,6 +25,8 @@ where
         let b = encode_base(l) << 4 | encode_base(r);
         dst.put_u8(b);
     }
+
+    Ok(())
 }
 
 fn encode_base(base: Base) -> u8 {
@@ -46,20 +59,28 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_put_sequence() -> Result<(), sam::record::sequence::ParseError> {
+    fn test_put_sequence() -> Result<(), Box<dyn std::error::Error>> {
         use sam::record::Sequence;
 
-        fn t(buf: &mut Vec<u8>, sequence: &Sequence, expected: &[u8]) {
+        fn t(buf: &mut Vec<u8>, sequence: &Sequence, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            put_sequence(buf, sequence);
+            put_sequence(buf, sequence.len(), sequence)?;
             assert_eq!(buf, expected);
+            Ok(())
         }
 
         let mut buf = Vec::new();
 
-        t(&mut buf, &Sequence::default(), &[]);
-        t(&mut buf, &"ACG".parse()?, &[0x12, 0x40]);
-        t(&mut buf, &"ACGT".parse()?, &[0x12, 0x48]);
+        t(&mut buf, &Sequence::default(), &[])?;
+        t(&mut buf, &"ACG".parse()?, &[0x12, 0x40])?;
+        t(&mut buf, &"ACGT".parse()?, &[0x12, 0x48])?;
+
+        buf.clear();
+        let sequence = "A".parse()?;
+        assert!(matches!(
+            put_sequence(&mut buf, 2, &sequence),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput,
+        ));
 
         Ok(())
     }
