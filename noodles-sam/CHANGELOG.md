@@ -4,7 +4,7 @@
 
 ### Added
 
-  * sam/record/mapping_quality: Add `MIN` associated constant.
+  * sam/record/mapping_quality: Add `MIN` and `MAX` associated constants.
 
 ## 0.21.0 - 2022-10-28
 

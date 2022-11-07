@@ -17,6 +17,9 @@ impl MappingQuality {
     /// The minimum mapping quality (0).
     pub const MIN: Self = Self(0);
 
+    /// The maximum mapping quality (254).
+    pub const MAX: Self = Self(254);
+
     /// Creates a mapping quality if the given value is not missing.
     ///
     /// # Examples
