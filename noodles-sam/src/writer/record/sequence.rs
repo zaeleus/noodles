@@ -25,7 +25,7 @@ mod tests {
 
     #[test]
     fn test_write_sequence() -> io::Result<()> {
-        use crate::record::{sequence::Base, Sequence};
+        use crate::record::sequence::Base;
 
         let mut buf = Vec::new();
         write_sequence(&mut buf, &Sequence::default())?;
