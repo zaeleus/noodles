@@ -13,8 +13,7 @@ use std::{
 
 use noodles_cram::{self as cram, crai};
 use noodles_fasta::{self as fasta, repository::adapters::IndexedReader};
-use noodles_sam as sam;
-use sam::AlignmentWriter;
+use noodles_sam::{self as sam, AlignmentWriter};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = env::args().skip(1);
