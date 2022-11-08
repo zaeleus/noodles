@@ -265,16 +265,14 @@ pub(crate) fn deflate_data(
 
     let mut encoder = Compressor::new(compression_level);
 
-    let mut dst = Vec::new();
-
     let max_len = encoder.deflate_compress_bound(src.len());
-    dst.resize(max_len, Default::default());
+    let mut dst = vec![0; max_len];
 
     let len = encoder
         .deflate_compress(src, &mut dst)
         .map_err(|_| io::Error::from(io::ErrorKind::InvalidInput))?;
 
-    dst.resize(len, Default::default());
+    dst.resize(len, 0);
 
     let mut crc = Crc::new();
     crc.update(src);
