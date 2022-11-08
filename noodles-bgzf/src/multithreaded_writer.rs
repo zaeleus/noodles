@@ -6,7 +6,6 @@ use std::{
 
 use bytes::{BufMut, Bytes, BytesMut};
 use crossbeam_channel::{Receiver, Sender};
-use flate2::Crc;
 
 use super::gz;
 
@@ -152,31 +151,18 @@ fn spawn_deflaters(worker_count: NonZeroUsize, deflate_rx: DeflateRx) -> Vec<Joi
 }
 
 fn compress(src: &[u8]) -> io::Result<Vec<u8>> {
-    use super::BGZF_HEADER_SIZE;
+    use super::{writer::deflate_data, BGZF_HEADER_SIZE};
 
     let mut dst = Vec::new();
 
-    let cdata = deflate(src)?;
+    let (cdata, crc32, _) = deflate_data(src, Default::default())?;
 
     let block_size = BGZF_HEADER_SIZE + cdata.len() + gz::TRAILER_SIZE;
     put_header(&mut dst, block_size)?;
 
     dst.extend(cdata);
 
-    let mut crc = Crc::new();
-    crc.update(src);
-    let crc32 = crc.sum();
     put_trailer(&mut dst, crc32, src.len())?;
-
-    Ok(dst)
-}
-
-fn deflate(src: &[u8]) -> io::Result<Vec<u8>> {
-    use flate2::write::DeflateEncoder;
-
-    let mut encoder = DeflateEncoder::new(Vec::new(), Default::default());
-    encoder.write_all(src)?;
-    let dst = encoder.finish()?;
 
     Ok(dst)
 }
