@@ -8,6 +8,7 @@ use std::{
 use bytes::{Buf, Bytes, BytesMut};
 
 use self::header::read_header;
+use crate::container::Block;
 
 pub fn read_header_container<R>(reader: &mut R, buf: &mut BytesMut) -> io::Result<String>
 where
@@ -24,11 +25,15 @@ where
 
 pub fn read_raw_sam_header_from_block(src: &mut Bytes) -> io::Result<String> {
     use super::container::read_block;
+
+    let block = read_block(src)?;
+    read_raw_sam_header(&block)
+}
+
+fn read_raw_sam_header(block: &Block) -> io::Result<String> {
     use crate::container::block::{CompressionMethod, ContentType};
 
     const EXPECTED_CONTENT_TYPE: ContentType = ContentType::FileHeader;
-
-    let block = read_block(src)?;
 
     if !matches!(
         block.compression_method(),
