@@ -8,7 +8,10 @@ use std::{
 use bytes::{Buf, Bytes, BytesMut};
 
 use self::header::read_header;
-use crate::container::Block;
+use crate::container::{
+    block::{CompressionMethod, ContentType},
+    Block,
+};
 
 pub fn read_header_container<R>(reader: &mut R, buf: &mut BytesMut) -> io::Result<String>
 where
@@ -31,8 +34,6 @@ pub fn read_raw_sam_header_from_block(src: &mut Bytes) -> io::Result<String> {
 }
 
 fn read_raw_sam_header(block: &Block) -> io::Result<String> {
-    use crate::container::block::{CompressionMethod, ContentType};
-
     const EXPECTED_CONTENT_TYPE: ContentType = ContentType::FileHeader;
 
     if !matches!(
@@ -71,4 +72,61 @@ fn read_raw_sam_header(block: &Block) -> io::Result<String> {
     str::from_utf8(&data[..])
         .map(|s| s.into())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+}
+
+#[cfg(test)]
+mod tests {
+    use bytes::BufMut;
+
+    use super::*;
+
+    #[test]
+    fn test_read_raw_sam_header() -> io::Result<()> {
+        let raw_header = "@HD\tVN:1.6\n";
+
+        let header_data = raw_header.to_string().into_bytes();
+        let header_data_len = i32::try_from(header_data.len())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+        let mut data = Vec::new();
+        data.put_i32_le(header_data_len);
+        data.extend(&header_data);
+
+        let block = Block::builder()
+            .set_content_type(ContentType::FileHeader)
+            .set_uncompressed_len(data.len())
+            .set_data(data.into())
+            .build();
+
+        let actual = read_raw_sam_header(&block)?;
+
+        assert_eq!(actual, raw_header);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_raw_sam_header_with_invalid_compression_method() {
+        let block = Block::builder()
+            .set_compression_method(CompressionMethod::Lzma)
+            .set_content_type(ContentType::FileHeader)
+            .build();
+
+        assert!(matches!(
+            read_raw_sam_header(&block),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+    }
+
+    #[test]
+    fn test_read_raw_sam_header_with_invalid_content_type() {
+        let block = Block::builder()
+            .set_content_type(ContentType::ExternalData)
+            .build();
+
+        assert!(matches!(
+            read_raw_sam_header(&block),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+    }
 }
