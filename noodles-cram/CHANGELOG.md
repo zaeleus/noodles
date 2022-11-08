@@ -6,6 +6,15 @@
 
   * cram/async/reader: Add query stream (`Writer::query`).
 
+### Changed
+
+  * cram/reader/header_container: Require blocks to be either uncompressed or
+    gzipped.
+
+    This was clarified in [samtools/hts-specs@4b61c4d].
+
+[samtools/hts-specs@4b61c4d]: https://github.com/samtools/hts-specs/commit/4b61c4d7e40748b274478fd481bbfe60592a969b
+
 ## 0.21.0 - 2022-10-28
 
 ### Added

@@ -24,11 +24,26 @@ where
 
 pub fn read_raw_sam_header_from_block(src: &mut Bytes) -> io::Result<String> {
     use super::container::read_block;
-    use crate::container::block::ContentType;
+    use crate::container::block::{CompressionMethod, ContentType};
 
     const EXPECTED_CONTENT_TYPE: ContentType = ContentType::FileHeader;
 
     let block = read_block(src)?;
+
+    if !matches!(
+        block.compression_method(),
+        CompressionMethod::None | CompressionMethod::Gzip
+    ) {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!(
+                "invalid block compression method: expected {:?} or {:?}, got {:?}",
+                CompressionMethod::None,
+                CompressionMethod::Gzip,
+                block.compression_method()
+            ),
+        ));
+    }
 
     if block.content_type() != EXPECTED_CONTENT_TYPE {
         return Err(io::Error::new(
