@@ -56,9 +56,13 @@ mod tests {
 
     #[test]
     fn test_write_header_container() -> io::Result<()> {
-        let header = sam::Header::builder()
-            .set_header(Default::default())
-            .build();
+        use sam::header::record::value::{
+            map::{self, header::Version},
+            Map,
+        };
+
+        let header_header = Map::<map::Header>::new(Version::new(1, 6));
+        let header = sam::Header::builder().set_header(header_header).build();
 
         let mut buf = Vec::new();
         write_header_container(&mut buf, &header)?;
