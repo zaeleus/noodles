@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bgzf: Add multithreaded writer (`bgzf::MultithreadedWriter`).
+
+    This is an alternative writer that uses a thread pool to compress block
+    data. It currently cannot be used as a drop-in replacement for
+    `bgzf::Writer`; however, it does implement `std::io::Write`.
+
 ## 0.17.0 - 2022-10-28
 
 ### Added

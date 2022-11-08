@@ -41,13 +41,14 @@ mod block;
 mod gz;
 pub mod gzi;
 pub mod indexed_reader;
+mod multithreaded_writer;
 pub mod reader;
 pub mod virtual_position;
 pub mod writer;
 
 pub use self::{
-    indexed_reader::IndexedReader, reader::Reader, virtual_position::VirtualPosition,
-    writer::Writer,
+    indexed_reader::IndexedReader, multithreaded_writer::MultithreadedWriter, reader::Reader,
+    virtual_position::VirtualPosition, writer::Writer,
 };
 
 #[cfg(feature = "async")]
