@@ -229,23 +229,23 @@ where
 }
 
 #[cfg(feature = "libdeflate")]
-pub(crate) fn inflate_data(reader: &[u8], writer: &mut [u8]) -> io::Result<()> {
+pub(crate) fn inflate_data(src: &[u8], dst: &mut [u8]) -> io::Result<()> {
     use libdeflater::Decompressor;
 
     let mut decoder = Decompressor::new();
 
     decoder
-        .deflate_decompress(reader, writer)
+        .deflate_decompress(src, dst)
         .map(|_| ())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 #[cfg(not(feature = "libdeflate"))]
-pub(crate) fn inflate_data(reader: &[u8], writer: &mut [u8]) -> io::Result<()> {
+pub(crate) fn inflate_data(src: &[u8], dst: &mut [u8]) -> io::Result<()> {
     use flate2::bufread::DeflateDecoder;
 
-    let mut decoder = DeflateDecoder::new(reader);
-    decoder.read_exact(writer)
+    let mut decoder = DeflateDecoder::new(src);
+    decoder.read_exact(dst)
 }
 
 #[cfg(test)]
