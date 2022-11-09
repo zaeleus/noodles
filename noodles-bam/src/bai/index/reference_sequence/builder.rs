@@ -110,7 +110,7 @@ impl Default for Builder {
         Self {
             bin_builders: HashMap::new(),
             intervals: Vec::with_capacity(MAX_INTERVAL_COUNT),
-            start_position: bgzf::VirtualPosition::max(),
+            start_position: bgzf::VirtualPosition::MAX,
             end_position: bgzf::VirtualPosition::default(),
             mapped_record_count: 0,
             unmapped_record_count: 0,
@@ -185,7 +185,7 @@ mod tests {
         assert!(builder.bin_builders.is_empty());
         assert!(builder.intervals.is_empty());
 
-        assert_eq!(builder.start_position, bgzf::VirtualPosition::max());
+        assert_eq!(builder.start_position, bgzf::VirtualPosition::MAX);
         assert_eq!(builder.end_position, bgzf::VirtualPosition::default());
         assert_eq!(builder.mapped_record_count, 0);
         assert_eq!(builder.unmapped_record_count, 0);

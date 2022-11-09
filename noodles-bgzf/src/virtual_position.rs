@@ -37,6 +37,9 @@ const MAX_VIRTUAL_POSITION: u64 = u64::MAX;
 pub struct VirtualPosition(u64);
 
 impl VirtualPosition {
+    /// The maximum value of a virtual position.
+    pub const MAX: Self = Self(MAX_VIRTUAL_POSITION);
+
     /// Creates the largest value that can be represented as a virtual position.
     ///
     /// # Examples
@@ -46,6 +49,7 @@ impl VirtualPosition {
     /// let virtual_position = bgzf::VirtualPosition::max();
     /// assert_eq!(u64::from(virtual_position), u64::MAX);
     /// ```
+    #[deprecated(since = "0.18.0", note = "Use `VirtualPosition::MAX` instead.")]
     pub fn max() -> Self {
         Self(MAX_VIRTUAL_POSITION)
     }
