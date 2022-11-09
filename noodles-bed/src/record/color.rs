@@ -44,6 +44,45 @@ impl Color {
     pub const fn new(r: u8, g: u8, b: u8) -> Self {
         Self { r, g, b }
     }
+
+    /// Returns the value of the red component.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed::record::Color;
+    /// let color = Color::new(250, 128, 114);
+    /// assert_eq!(color.red(), 250);
+    /// ```
+    pub const fn red(&self) -> u8 {
+        self.r
+    }
+
+    /// Returns the value of the red component.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed::record::Color;
+    /// let color = Color::new(250, 128, 114);
+    /// assert_eq!(color.green(), 128);
+    /// ```
+    pub const fn green(&self) -> u8 {
+        self.g
+    }
+
+    /// Returns the value of the red component.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed::record::Color;
+    /// let color = Color::new(250, 128, 114);
+    /// assert_eq!(color.blue(), 114);
+    /// ```
+    pub const fn blue(&self) -> u8 {
+        self.b
+    }
 }
 
 impl fmt::Display for Color {

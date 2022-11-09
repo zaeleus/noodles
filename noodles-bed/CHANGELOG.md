@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bed/record/color: Add getters for color components (`Color::red`,
+    `Color::green`, and `Color::blue`).
+
 ## 0.5.0 - 2022-10-20
 
 ### Changed
