@@ -251,13 +251,14 @@ impl Data {
         i.map(|j| {
             let removed_field = self.fields.swap_remove(j);
 
-            let swapped_field = &self.fields[j];
-            set_index(
-                &mut self.standard_field_indices,
-                &mut self.other_field_indices,
-                swapped_field.tag(),
-                j,
-            );
+            if let Some(swapped_field) = self.fields.get(j) {
+                set_index(
+                    &mut self.standard_field_indices,
+                    &mut self.other_field_indices,
+                    swapped_field.tag(),
+                    j,
+                );
+            }
 
             removed_field
         })
@@ -450,6 +451,25 @@ mod tests {
     use super::field::{Tag, Value};
 
     use super::*;
+
+    #[test]
+    fn test_remove_with_multiple_removes() -> Result<(), Box<dyn std::error::Error>> {
+        let zz = "zz".parse()?;
+
+        let mut data = Data::try_from(vec![
+            Field::new(Tag::AlignmentHitCount, Value::UInt8(2)),
+            Field::new(Tag::EditDistance, Value::UInt8(1)),
+            Field::new(zz, Value::UInt8(0)),
+        ])?;
+
+        data.remove(Tag::EditDistance);
+        data.remove(zz);
+        data.remove(Tag::AlignmentHitCount);
+
+        assert!(data.is_empty());
+
+        Ok(())
+    }
 
     #[test]
     fn test_fmt() -> Result<(), ParseError> {

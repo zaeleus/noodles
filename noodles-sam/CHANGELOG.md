@@ -8,6 +8,12 @@
 
   * sam/writer/record/sequence: Add read length validation.
 
+### Fixed
+
+  * sam/record/data: Fix updating field index after a remove-swap ([#132]).
+
+[#132]: https://github.com/zaeleus/noodles/issues/132
+
 ## 0.21.0 - 2022-10-28
 
 ### Added
