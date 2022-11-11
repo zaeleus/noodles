@@ -29,7 +29,7 @@ const MAX_VIRTUAL_POSITION: u64 = u64::MAX;
 ///                                  uncompressed position
 /// ```
 ///
-/// The compressed position is at 156453154188165 (`8e 4b 16 ad eb 85`), and the uncompressed
+/// The compressed position is at 156453154188165 (`8e 4b 16 ad eb 85`); and the uncompressed
 /// position, 35047 (`88 e7`).
 ///
 /// This is also called a virtual file offset; or, simply, a virtual offset.
