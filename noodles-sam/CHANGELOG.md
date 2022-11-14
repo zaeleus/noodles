@@ -8,6 +8,10 @@
 
   * sam/writer/record/sequence: Add read length validation.
 
+### Changed
+
+  * sam/header/record/value/map/read_group/platform: Parse as case-insensitive.
+
 ### Fixed
 
   * sam/record/data: Fix updating field index after a remove-swap ([#132]).

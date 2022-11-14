@@ -77,7 +77,7 @@ impl FromStr for Platform {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
+        match s.to_uppercase().as_str() {
             "" => Err(ParseError::Empty),
             "CAPILLARY" => Ok(Self::Capillary),
             "DNBSEQ" => Ok(Self::DnbSeq),
@@ -128,9 +128,10 @@ mod tests {
         assert_eq!("PACBIO".parse(), Ok(Platform::PacBio));
         assert_eq!("ULTIMA".parse(), Ok(Platform::Ultima));
 
+        assert_eq!("Illumina".parse(), Ok(Platform::Illumina));
+        assert_eq!("illumina".parse(), Ok(Platform::Illumina));
+
         assert_eq!("".parse::<Platform>(), Err(ParseError::Empty));
         assert_eq!("NOODLES".parse::<Platform>(), Err(ParseError::Invalid));
-        assert_eq!("Illumina".parse::<Platform>(), Err(ParseError::Invalid));
-        assert_eq!("illumina".parse::<Platform>(), Err(ParseError::Invalid));
     }
 }
