@@ -4,7 +4,7 @@
 
 ### Added
 
-  * cram/async/reader: Add query stream (`Writer::query`).
+  * cram/async/reader: Add query stream (`Reader::query`).
 
 ### Changed
 
