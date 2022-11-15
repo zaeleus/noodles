@@ -50,13 +50,18 @@ pub fn read_block(src: &mut Bytes) -> io::Result<Block> {
         ));
     }
 
-    Ok(Block::builder()
-        .set_compression_method(method)
+    let mut builder = Block::builder()
         .set_content_type(block_content_type)
-        .set_content_id(block_content_id)
-        .set_uncompressed_len(raw_size_in_bytes)
-        .set_data(data)
-        .build())
+        .set_content_id(block_content_id);
+
+    if raw_size_in_bytes > 0 {
+        builder = builder
+            .set_compression_method(method)
+            .set_uncompressed_len(raw_size_in_bytes)
+            .set_data(data);
+    }
+
+    Ok(builder.build())
 }
 
 fn get_compression_method<B>(src: &mut B) -> io::Result<CompressionMethod>
@@ -139,6 +144,29 @@ mod tests {
             .set_content_id(ContentId::from(1))
             .set_uncompressed_len(4)
             .set_data(Bytes::from_static(b"ndls"))
+            .build();
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_block_with_empty_block() -> io::Result<()> {
+        let mut data = Bytes::from_static(&[
+            0x04, // compression method = rANS 4x8 (4)
+            0x04, // content type = external data (4)
+            0x01, // block content ID = 1
+            0x00, // size in bytes = 0 bytes
+            0x00, // raw size in bytes = 0 bytes
+            // data = b"",
+            0xbd, 0xac, 0x02, 0xbd, // CRC32 = bd02acbd
+        ]);
+        let actual = read_block(&mut data)?;
+
+        let expected = Block::builder()
+            .set_content_type(ContentType::ExternalData)
+            .set_content_id(ContentId::from(1))
             .build();
 
         assert_eq!(actual, expected);
