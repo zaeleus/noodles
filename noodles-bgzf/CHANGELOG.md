@@ -12,6 +12,12 @@
 
   * bgzf/virtual_position: Add `MAX` associated constant.
 
+### Fixed
+
+  * bgzf/reader: Skip empty blocks ([#133]).
+
+[#133]: https://github.com/zaeleus/noodles/issues/133
+
 ### Deprecated
 
   * bgzf/virtual_position: Deprecate `VirtualPosition::max`.
