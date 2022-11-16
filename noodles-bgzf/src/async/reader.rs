@@ -126,12 +126,12 @@ where
         cx: &mut Context<'_>,
         buf: &mut ReadBuf<'_>,
     ) -> Poll<io::Result<()>> {
-        let block_buf = ready!(self.as_mut().poll_fill_buf(cx))?;
+        let src = ready!(self.as_mut().poll_fill_buf(cx))?;
 
-        let len = cmp::min(block_buf.len(), buf.remaining());
-        buf.put_slice(&block_buf[..len]);
+        let amt = cmp::min(src.len(), buf.remaining());
+        buf.put_slice(&src[..amt]);
 
-        self.consume(len);
+        self.consume(amt);
 
         Poll::Ready(Ok(()))
     }
