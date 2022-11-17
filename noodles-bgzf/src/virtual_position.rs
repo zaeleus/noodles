@@ -37,6 +37,9 @@ const MAX_VIRTUAL_POSITION: u64 = u64::MAX;
 pub struct VirtualPosition(u64);
 
 impl VirtualPosition {
+    /// The minimum value of a virtual position.
+    pub const MIN: Self = Self(u64::MIN);
+
     /// The maximum value of a virtual position.
     pub const MAX: Self = Self(MAX_VIRTUAL_POSITION);
 

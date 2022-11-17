@@ -10,7 +10,7 @@
     data. It currently cannot be used as a drop-in replacement for
     `bgzf::Writer`; however, it does implement `std::io::Write`.
 
-  * bgzf/virtual_position: Add `MAX` associated constant.
+  * bgzf/virtual_position: Add `MIN` and `MAX` associated constants.
 
 ### Fixed
 
