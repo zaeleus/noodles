@@ -8,9 +8,6 @@ pub(crate) const MAX_UNCOMPRESSED_POSITION: u16 = u16::MAX;
 const COMPRESSED_POSITION_SHIFT: u64 = 16;
 const UNCOMPRESSED_POSITION_MASK: u64 = 0xffff;
 
-// MAX_COMPRESSED_POSITION << COMPRESSED_POSITION_SHIFT | MAX_UNCOMPRESSED_POSITION
-const MAX_VIRTUAL_POSITION: u64 = u64::MAX;
-
 /// A BGZF virtual position.
 ///
 /// A virtual position is a 64-bit unsigned integer representing both the position in the
@@ -41,7 +38,7 @@ impl VirtualPosition {
     pub const MIN: Self = Self(u64::MIN);
 
     /// The maximum value of a virtual position.
-    pub const MAX: Self = Self(MAX_VIRTUAL_POSITION);
+    pub const MAX: Self = Self(u64::MAX);
 
     /// Creates the largest value that can be represented as a virtual position.
     ///
@@ -54,7 +51,7 @@ impl VirtualPosition {
     /// ```
     #[deprecated(since = "0.18.0", note = "Use `VirtualPosition::MAX` instead.")]
     pub fn max() -> Self {
-        Self(MAX_VIRTUAL_POSITION)
+        Self::MAX
     }
 
     /// The position in the compressed BGZF stream.
