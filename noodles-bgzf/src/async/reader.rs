@@ -145,16 +145,23 @@ where
         let this = self.project();
 
         if !this.block.data().has_remaining() {
-            let stream = this.stream.as_pin_mut().expect("missing stream");
+            let mut stream = this.stream.as_pin_mut().expect("missing stream");
 
-            match ready!(stream.poll_next(cx)) {
-                Some(Ok(mut block)) => {
-                    block.set_position(*this.position);
-                    *this.position += block.size();
-                    *this.block = block;
+            loop {
+                match ready!(stream.as_mut().poll_next(cx)) {
+                    Some(Ok(mut block)) => {
+                        block.set_position(*this.position);
+                        *this.position += block.size();
+                        let data_len = block.data().len();
+                        *this.block = block;
+
+                        if data_len > 0 {
+                            break;
+                        }
+                    }
+                    Some(Err(e)) => return Poll::Ready(Err(e)),
+                    None => return Poll::Ready(Ok(&[])),
                 }
-                Some(Err(e)) => return Poll::Ready(Err(e)),
-                None => return Poll::Ready(Ok(&[])),
             }
         }
 
@@ -174,6 +181,35 @@ mod tests {
     use tokio::io::AsyncReadExt;
 
     use super::*;
+
+    #[tokio::test]
+    async fn test_read_with_empty_block() -> io::Result<()> {
+        #[rustfmt::skip]
+        let data = [
+            // block 0 (b"noodles")
+            0x1f, 0x8b, 0x08, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x06, 0x00, 0x42, 0x43,
+            0x02, 0x00, 0x22, 0x00, 0xcb, 0xcb, 0xcf, 0x4f, 0xc9, 0x49, 0x2d, 0x06, 0x00, 0xa1,
+            0x58, 0x2a, 0x80, 0x07, 0x00, 0x00, 0x00,
+            // block 1 (b"")
+            0x1f, 0x8b, 0x08, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x06, 0x00, 0x42, 0x43,
+            0x02, 0x00, 0x1b, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            // block 2 (b"bgzf")
+            0x1f, 0x8b, 0x08, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x06, 0x00, 0x42, 0x43,
+            0x02, 0x00, 0x1f, 0x00, 0x4b, 0x4a, 0xaf, 0x4a, 0x03, 0x00, 0x20, 0x68, 0xf2, 0x8c,
+            0x04, 0x00, 0x00, 0x00,
+            // EOF block
+            0x1f, 0x8b, 0x08, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x06, 0x00, 0x42, 0x43,
+            0x02, 0x00, 0x1b, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        ];
+
+        let mut reader = Reader::new(&data[..]);
+        let mut buf = Vec::new();
+        reader.read_to_end(&mut buf).await?;
+
+        assert_eq!(buf, b"noodlesbgzf");
+
+        Ok(())
+    }
 
     #[tokio::test]
     async fn test_seek() -> Result<(), Box<dyn std::error::Error>> {

@@ -14,6 +14,8 @@
 
 ### Fixed
 
+  * bgzf/async/reader: Skip empty blocks.
+
   * bgzf/reader: Skip empty blocks ([#133]).
 
 [#133]: https://github.com/zaeleus/noodles/issues/133
