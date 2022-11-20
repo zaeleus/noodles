@@ -18,12 +18,28 @@ pub struct Builder {
 
 impl Builder {
     /// Sets an index.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::{bai, indexed_reader::Builder};
+    /// let index = bai::Index::default();
+    /// let builder = Builder::default().set_index(index);
+    /// ```
     pub fn set_index(mut self, index: bai::Index) -> Self {
         self.index = Some(index);
         self
     }
 
     /// Builds an indexed BAM reader from a path.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use noodles_bam::indexed_reader::Builder;
+    /// let reader = Builder::default().build_from_path("sample.bam")?;
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
     pub fn build_from_path<P>(self, src: P) -> io::Result<IndexedReader<bgzf::Reader<File>>>
     where
         P: AsRef<Path>,
