@@ -55,10 +55,8 @@ fn main() -> io::Result<()> {
     loop {
         buf.clear();
 
-        match reader.read_line(&mut buf) {
-            Ok(0) => break,
-            Ok(_) => {}
-            Err(e) => return Err(e),
+        if reader.read_line(&mut buf)? == 0 {
+            break;
         }
 
         let end_position = reader.virtual_position();
