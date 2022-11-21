@@ -18,12 +18,28 @@ pub struct Builder {
 
 impl Builder {
     /// Sets an index.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fasta::{fai, indexed_reader::Builder};
+    /// let index = fai::Index::default();
+    /// let builder = Builder::default().set_index(index);
+    /// ```
     pub fn set_index(mut self, index: fai::Index) -> Self {
         self.index = Some(index);
         self
     }
 
     /// Builds an indexed FASTA reader from a path.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use noodles_fasta::indexed_reader::Builder;
+    /// let reader = Builder::default().build_from_path("reference.fa")?;
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
     pub fn build_from_path<P>(self, src: P) -> io::Result<IndexedReader<Box<dyn BufReadSeek>>>
     where
         P: AsRef<Path>,
@@ -49,6 +65,20 @@ impl Builder {
     }
 
     /// Builds an indexed FASTA reader from a reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fasta::{fai, indexed_reader::Builder};
+    ///
+    /// let index = fai::Index::default();
+    /// let data = [];
+    /// let builder = Builder::default()
+    ///     .set_index(index)
+    ///     .build_from_reader(&data[..])?;
+    ///
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
     pub fn build_from_reader<R>(self, reader: R) -> io::Result<IndexedReader<R>>
     where
         R: BufRead,
