@@ -686,6 +686,44 @@ where
     Ok(())
 }
 
+#[allow(dead_code)]
+fn encode_genotype_genotype_field_values(genotype: &str) -> io::Result<Vec<i8>> {
+    fn is_phasing(c: char) -> bool {
+        matches!(c, '|' | '/')
+    }
+
+    fn encode(s: &str, phasing: &str) -> io::Result<i8> {
+        let j: i8 = s
+            .parse()
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        let is_phased = phasing == "|";
+
+        let mut i = (j + 1) << 1;
+
+        if is_phased {
+            i |= 0x01;
+        }
+
+        Ok(i)
+    }
+
+    let mut values = Vec::new();
+    let mut start = 0;
+    let mut last_phasing = "/";
+
+    for (end, phasing) in genotype.match_indices(is_phasing) {
+        let i = encode(&genotype[start..end], last_phasing)?;
+        values.push(i);
+        start = end + 1;
+        last_phasing = phasing;
+    }
+
+    let i = encode(&genotype[start..], last_phasing)?;
+    values.push(i);
+
+    Ok(values)
+}
+
 #[cfg(test)]
 mod tests {
     use noodles_vcf::header::{format, Number};
@@ -1229,6 +1267,24 @@ mod tests {
         ];
 
         assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_encode_genotype_genotype_field_values() -> io::Result<()> {
+        assert_eq!(encode_genotype_genotype_field_values("0/1")?, [0x02, 0x04]);
+        assert_eq!(encode_genotype_genotype_field_values("0|1")?, [0x02, 0x05]);
+        assert_eq!(encode_genotype_genotype_field_values("0")?, [0x02]);
+        assert_eq!(encode_genotype_genotype_field_values("1")?, [0x04]);
+        assert_eq!(
+            encode_genotype_genotype_field_values("0/1/2")?,
+            [0x02, 0x04, 0x06]
+        );
+        assert_eq!(
+            encode_genotype_genotype_field_values("0/1|2")?,
+            [0x02, 0x04, 0x07]
+        );
 
         Ok(())
     }
