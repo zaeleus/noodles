@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * vcf/header/record/key: Implement `Borrow<str>` for `Other`.
+
 ## 0.22.0 - 2022-11-18
 
 ### Added

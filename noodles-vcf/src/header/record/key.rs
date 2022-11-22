@@ -1,6 +1,6 @@
 //! VCF header record key.
 
-use std::fmt;
+use std::{borrow::Borrow, fmt};
 
 /// VCF header record file format key.
 pub const FILE_FORMAT: Key = Key::Standard(Standard::FileFormat);
@@ -97,6 +97,12 @@ pub struct Other(String);
 
 impl AsRef<str> for Other {
     fn as_ref(&self) -> &str {
+        &self.0
+    }
+}
+
+impl Borrow<str> for Other {
+    fn borrow(&self) -> &str {
         &self.0
     }
 }
