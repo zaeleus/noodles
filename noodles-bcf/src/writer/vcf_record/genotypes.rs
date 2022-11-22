@@ -53,7 +53,11 @@ where
             io::Error::new(io::ErrorKind::InvalidData, "missing FORMAT header record")
         })?;
 
-        write_genotype_field_values(writer, format, &values)?;
+        if key == &Key::Genotype {
+            todo!("unhandled key: {:?}", Key::Genotype);
+        } else {
+            write_genotype_field_values(writer, format, &values)?;
+        }
     }
 
     Ok(())
