@@ -529,12 +529,7 @@ where
         record.mapping_quality = self.read_mapping_quality()?;
 
         if flags.are_quality_scores_stored_as_array() {
-            record.quality_scores.as_mut().reserve(read_length);
-
-            for _ in 0..read_length {
-                let score = self.read_quality_score()?;
-                record.quality_scores.push(score);
-            }
+            record.quality_scores = self.read_quality_scores_stored_as_array(read_length)?;
         }
 
         Ok(())
@@ -937,15 +932,24 @@ where
         }
 
         if flags.are_quality_scores_stored_as_array() {
-            record.quality_scores.as_mut().reserve(read_length);
-
-            for _ in 0..read_length {
-                let score = self.read_quality_score()?;
-                record.quality_scores.push(score);
-            }
+            record.quality_scores = self.read_quality_scores_stored_as_array(read_length)?;
         }
 
         Ok(())
+    }
+
+    fn read_quality_scores_stored_as_array(
+        &mut self,
+        read_length: usize,
+    ) -> io::Result<sam::record::QualityScores> {
+        let mut quality_scores = sam::record::QualityScores::from(Vec::with_capacity(read_length));
+
+        for _ in 0..read_length {
+            let score = self.read_quality_score()?;
+            quality_scores.push(score);
+        }
+
+        Ok(quality_scores)
     }
 }
 
