@@ -121,14 +121,15 @@ impl FromStr for StringMaps {
         let mut string_maps = Self::default();
 
         let mut lines = s.lines();
-        let _file_format = parse_file_format(&mut lines)?;
+        let file_format = parse_file_format(&mut lines)?;
 
         for line in &mut lines {
             if line.starts_with("#CHROM") {
                 break;
             }
 
-            let record = line.parse().map_err(ParseError::InvalidRecord)?;
+            let record =
+                Record::try_from((file_format, line)).map_err(ParseError::InvalidRecord)?;
 
             match record {
                 Record::Contig(contig) => {

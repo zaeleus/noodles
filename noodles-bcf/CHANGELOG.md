@@ -4,9 +4,13 @@
 
 ### Fixed
 
+  * bcf/header/string_maps: Use file format as context when parsing records
+    (#137).
+
   * bcf/writer/vcf_writer/genotypes: Add FORMAT GT encoder ([#135]).
 
 [#135]: https://github.com/zaeleus/noodles/issues/135
+[#137]: https://github.com/zaeleus/noodles/issues/137
 
 ## 0.19.0 - 2022-11-18
 
