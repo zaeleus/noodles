@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * bcf/writer/vcf_writer/genotypes: Add FORMAT GT encoder ([#135]).
+
+[#135]: https://github.com/zaeleus/noodles/issues/135
+
 ## 0.19.0 - 2022-11-18
 
 ### Changed

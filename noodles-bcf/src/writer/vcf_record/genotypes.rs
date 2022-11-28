@@ -54,7 +54,7 @@ where
         })?;
 
         if key == &Key::Genotype {
-            todo!("unhandled key: {:?}", Key::Genotype);
+            write_genotype_genotype_field_values(writer, &values)?;
         } else {
             write_genotype_field_values(writer, format, &values)?;
         }
@@ -686,7 +686,42 @@ where
     Ok(())
 }
 
-#[allow(dead_code)]
+fn write_genotype_genotype_field_values<W>(
+    writer: &mut W,
+    values: &[Option<&Value>],
+) -> io::Result<()>
+where
+    W: Write,
+{
+    let genotypes: Vec<_> = values
+        .iter()
+        .map(|v| match v {
+            Some(Value::String(s)) => Ok(s),
+            _ => Err(io::Error::from(io::ErrorKind::InvalidInput)),
+        })
+        .collect::<Result<_, _>>()?;
+
+    let mut raw_values = Vec::with_capacity(genotypes.len());
+    let mut max_len = 0;
+
+    for genotype in genotypes {
+        let raw_value = encode_genotype_genotype_field_values(genotype)?;
+        max_len = cmp::max(max_len, raw_value.len());
+        raw_values.push(raw_value);
+    }
+
+    write_type(writer, Some(Type::Int8(max_len)))?;
+
+    for raw_value in raw_values {
+        for n in raw_value {
+            let m = u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+            writer.write_all(&[m])?;
+        }
+    }
+
+    Ok(())
+}
+
 fn encode_genotype_genotype_field_values(genotype: &str) -> io::Result<Vec<i8>> {
     fn is_phasing(c: char) -> bool {
         matches!(c, '|' | '/')
