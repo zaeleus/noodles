@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * sam/writer/record/sequence: Only validate read length to sequence
+    length when the CIGAR is present.
+
 ## 0.22.0 - 2022-11-18
 
 ### Added

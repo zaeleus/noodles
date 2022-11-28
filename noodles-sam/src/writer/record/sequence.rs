@@ -15,7 +15,7 @@ where
 
     // § 1.4.10 "`SEQ`" (2022-08-22): "If not a '*', the length of the sequence must equal the sum
     // of lengths of `M`/`I`/`S`/`=`/`X` operations in `CIGAR`."
-    if sequence.len() != read_length {
+    if read_length > 0 && sequence.len() != read_length {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,
             "read length-sequence length mismatch",
@@ -50,8 +50,13 @@ mod tests {
         assert_eq!(buf, b"ACGT");
 
         buf.clear();
+        let sequence = Sequence::from(vec![Base::A, Base::C, Base::G, Base::T]);
+        write_sequence(&mut buf, 0, &sequence)?;
+        assert_eq!(buf, b"ACGT");
+
+        buf.clear();
         assert!(matches!(
-            write_sequence(&mut buf, 0, &sequence),
+            write_sequence(&mut buf, 1, &sequence),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput,
         ));
 
