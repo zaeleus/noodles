@@ -19,6 +19,13 @@
 [#131]: https://github.com/zaeleus/noodles/issues/131
 [samtools/hts-specs@4b61c4d]: https://github.com/samtools/hts-specs/commit/4b61c4d7e40748b274478fd481bbfe60592a969b
 
+### Fixed
+
+  * cram/reader/record: Read quality scores filled with `0xff` as missing
+    ([#136]).
+
+[#136]: https://github.com/zaeleus/noodles/issues/136
+
 ## 0.21.0 - 2022-10-28
 
 ### Added

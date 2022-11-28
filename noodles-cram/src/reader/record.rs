@@ -575,7 +575,9 @@ where
             }
             Code::ReadBase => {
                 let base = self.read_base()?;
-                let quality_score = self.read_quality_score()?;
+                let quality_score = self.read_quality_score().and_then(|n| {
+                    Score::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                })?;
                 Ok(Feature::ReadBase(position, base, quality_score))
             }
             Code::Substitution => {
@@ -595,7 +597,9 @@ where
                 Ok(Feature::InsertBase(position, base))
             }
             Code::QualityScore => {
-                let score = self.read_quality_score()?;
+                let score = self.read_quality_score().and_then(|n| {
+                    Score::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                })?;
                 Ok(Feature::QualityScore(position, score))
             }
             Code::ReferenceSkip => {
@@ -729,7 +733,7 @@ where
         .and_then(|n| Base::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
     }
 
-    fn read_quality_score(&mut self) -> io::Result<Score> {
+    fn read_quality_score(&mut self) -> io::Result<u8> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -746,7 +750,6 @@ where
             &mut self.core_data_reader,
             &mut self.external_data_readers,
         )
-        .and_then(|n| Score::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
     }
 
     fn read_base_substitution_code(&mut self) -> io::Result<substitution::Value> {
@@ -942,14 +945,27 @@ where
         &mut self,
         read_length: usize,
     ) -> io::Result<sam::record::QualityScores> {
-        let mut quality_scores = sam::record::QualityScores::from(Vec::with_capacity(read_length));
+        const MISSING_QUALITY_SCORE: u8 = 0xff;
+
+        let mut raw_quality_scores = Vec::with_capacity(read_length);
+        let mut is_missing = true;
 
         for _ in 0..read_length {
-            let score = self.read_quality_score()?;
-            quality_scores.push(score);
+            let raw_score = self.read_quality_score()?;
+            raw_quality_scores.push(raw_score);
+            is_missing &= raw_score == MISSING_QUALITY_SCORE;
         }
 
-        Ok(quality_scores)
+        if is_missing {
+            raw_quality_scores.clear();
+        }
+
+        let scores = raw_quality_scores
+            .into_iter()
+            .map(|n| Score::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(sam::record::QualityScores::from(scores))
     }
 }
 
