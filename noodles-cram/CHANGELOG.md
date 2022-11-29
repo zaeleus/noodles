@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.22.1 - 2022-11-29
+
+### Changed
+
+  * cram: Sync dependencies.
+
 ## 0.22.0 - 2022-11-18
 
 ### Added
