@@ -1313,6 +1313,28 @@ mod tests {
     }
 
     #[test]
+    fn test_write_genotype_genotype_field_values() -> io::Result<()> {
+        let value_0 = Value::String(String::from("0/1"));
+        let value_1 = Value::String(String::from("1/1"));
+        let value_2 = Value::String(String::from("0/0"));
+        let values = [Some(&value_0), Some(&value_1), Some(&value_2)];
+
+        let mut buf = Vec::new();
+        write_genotype_genotype_field_values(&mut buf, &values)?;
+
+        let expected = [
+            0x21, // Some(Type::Int8(2))
+            0x02, 0x04, // "0/1"
+            0x04, 0x04, // "1/1"
+            0x02, 0x02, // "0/0"
+        ];
+
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[test]
     fn test_encode_genotype_genotype_field_values() -> io::Result<()> {
         assert_eq!(encode_genotype_genotype_field_values("0/1")?, [0x02, 0x04]);
         assert_eq!(encode_genotype_genotype_field_values("0|1")?, [0x02, 0x05]);
