@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * bcf/writer/vcf_writer/genotypes: Add FORMAT GT encoder for missing alleles
+    (i.e., `.`).
+
 ## 0.19.1 - 2022-11-29
 
 ### Fixed

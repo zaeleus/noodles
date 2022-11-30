@@ -723,11 +723,17 @@ where
 }
 
 fn encode_genotype_genotype_field_values(genotype: &str) -> io::Result<Vec<i8>> {
+    const MISSING_ALLELE: &str = ".";
+
     fn is_phasing(c: char) -> bool {
         matches!(c, '|' | '/')
     }
 
     fn encode(s: &str, phasing: &str) -> io::Result<i8> {
+        if s == MISSING_ALLELE {
+            return Ok(0);
+        }
+
         let j: i8 = s
             .parse()
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -1310,6 +1316,7 @@ mod tests {
     fn test_encode_genotype_genotype_field_values() -> io::Result<()> {
         assert_eq!(encode_genotype_genotype_field_values("0/1")?, [0x02, 0x04]);
         assert_eq!(encode_genotype_genotype_field_values("0|1")?, [0x02, 0x05]);
+        assert_eq!(encode_genotype_genotype_field_values("./.")?, [0x00, 0x00]);
         assert_eq!(encode_genotype_genotype_field_values("0")?, [0x02]);
         assert_eq!(encode_genotype_genotype_field_values("1")?, [0x04]);
         assert_eq!(
