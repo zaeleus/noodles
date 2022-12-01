@@ -713,9 +713,16 @@ where
     write_type(writer, Some(Type::Int8(max_len)))?;
 
     for raw_value in raw_values {
+        let len = raw_value.len();
+        let pad = max_len - len;
+
         for n in raw_value {
             let m = u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
             writer.write_all(&[m])?;
+
+            for _ in 0..pad {
+                writer.write_all(&[i8::from(Int8::EndOfVector) as u8])?;
+            }
         }
     }
 
@@ -1327,6 +1334,26 @@ mod tests {
             0x02, 0x04, // "0/1"
             0x04, 0x04, // "1/1"
             0x02, 0x02, // "0/0"
+        ];
+
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_genotype_genotype_field_values_with_padding() -> io::Result<()> {
+        let value_0 = Value::String(String::from("0"));
+        let value_1 = Value::String(String::from("0/1"));
+        let values = [Some(&value_0), Some(&value_1)];
+
+        let mut buf = Vec::new();
+        write_genotype_genotype_field_values(&mut buf, &values)?;
+
+        let expected = [
+            0x21, // Some(Type::Int8(2))
+            0x02, 0x81, // "0"
+            0x02, 0x04, // "0/1"
         ];
 
         assert_eq!(buf, expected);
