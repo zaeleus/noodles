@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.31.1 - 2022-12-02
+
+  * [noodles-bcf 0.19.2](https://github.com/zaeleus/noodles/blob/noodles-bcf-0.19.2/noodles-bcf/CHANGELOG.md)
+
 ## 0.31.0 - 2022-11-29
 
   * [noodles-bam 0.25.1](https://github.com/zaeleus/noodles/blob/noodles-bam-0.25.1/noodles-bam/CHANGELOG.md)

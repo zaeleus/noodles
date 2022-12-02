@@ -1,6 +1,6 @@
 [package]
 name = "noodles-bcf"
-version = "0.19.1"
+version = "0.19.2"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license = "MIT"
 edition = "2021"
