@@ -20,6 +20,13 @@ pub struct Record {
 #[allow(clippy::len_without_is_empty)]
 impl Record {
     /// Creates a FASTA index record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fasta::fai;
+    /// let record = fai::Record::new(String::from("sq0"), 8, 4, 80, 81);
+    /// ```
     pub fn new(name: String, len: u64, offset: u64, line_bases: u64, line_width: u64) -> Self {
         Self {
             name,
@@ -37,26 +44,66 @@ impl Record {
     }
 
     /// Returns the record name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fasta::fai;
+    /// let record = fai::Record::new(String::from("sq0"), 8, 4, 80, 81);
+    /// assert_eq!(record.name(), "sq0");
+    /// ```
     pub fn name(&self) -> &str {
         &self.name
     }
 
     /// Returns the length of the sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fasta::fai;
+    /// let record = fai::Record::new(String::from("sq0"), 8, 4, 80, 81);
+    /// assert_eq!(record.len(), 8);
+    /// ```
     pub fn len(&self) -> u64 {
         self.len
     }
 
     /// Returns the offset from the start.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fasta::fai;
+    /// let record = fai::Record::new(String::from("sq0"), 10946, 4, 80, 81);
+    /// assert_eq!(record.offset(), 4);
+    /// ```
     pub fn offset(&self) -> u64 {
         self.offset
     }
 
     /// Returns the number of bases in a line.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fasta::fai;
+    /// let record = fai::Record::new(String::from("sq0"), 10946, 4, 80, 81);
+    /// assert_eq!(record.line_bases(), 80);
+    /// ```
     pub fn line_bases(&self) -> u64 {
         self.line_bases
     }
 
     /// Returns the number of characters in a line.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fasta::fai;
+    /// let record = fai::Record::new(String::from("sq0"), 10946, 4, 80, 81);
+    /// assert_eq!(record.line_width(), 81);
+    /// ```
     pub fn line_width(&self) -> u64 {
         self.line_width
     }
