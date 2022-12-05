@@ -300,6 +300,28 @@ mod tests {
     }
 
     #[test]
+    fn test_from_str_with_file_format() {
+        // FORMAT MQ is an `Integer` in VCF 4.2 and `Float` in VCF 4.3.
+        let s = r#"##fileformat=VCFv4.2
+##FORMAT=<ID=MQ,Number=1,Type=Integer,Description="RMS mapping quality">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0
+"#;
+
+        let mut string_string_map = StringMap::default();
+        string_string_map.insert(String::from("PASS"));
+        string_string_map.insert(String::from("MQ"));
+
+        let contig_string_map = StringMap::default();
+
+        let expected = StringMaps {
+            string_string_map,
+            contig_string_map,
+        };
+
+        assert_eq!(s.parse(), Ok(expected));
+    }
+
+    #[test]
     fn test_from_str_with_mixed_positions() {
         let s = r#"##fileformat=VCFv4.3
 ##fileDate=20210412
