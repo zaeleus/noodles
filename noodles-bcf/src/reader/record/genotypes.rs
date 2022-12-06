@@ -421,8 +421,9 @@ where
                 }
             }
             _ => {
+                let mut buf = vec![0; len];
+
                 for _ in 0..sample_count {
-                    let mut buf = vec![0; len];
                     reader.read_i8_into(&mut buf)?;
                     let value = Value::String(parse_genotype_genotype_field_values(&buf));
                     values.push(Some(value));
