@@ -8,14 +8,8 @@ use std::{
     error,
     fmt::{self, Write},
     mem,
-    num::NonZeroU16,
     str::FromStr,
 };
-
-use rustc_hash::FxHashMap;
-
-type StandardFieldIndices = [Option<NonZeroU16>; 55];
-type OtherFieldIndices = FxHashMap<field::Tag, u16>;
 
 const DELIMITER: char = '\t';
 
@@ -24,8 +18,6 @@ const DELIMITER: char = '\t';
 /// This is also called optional fields.
 #[derive(Clone, PartialEq)]
 pub struct Data {
-    standard_field_indices: StandardFieldIndices,
-    other_field_indices: OtherFieldIndices,
     fields: Vec<Field>,
 }
 
@@ -53,7 +45,7 @@ impl Data {
     /// assert!(data.is_empty());
     /// ```
     pub fn is_empty(&self) -> bool {
-        self.len() == 0
+        self.fields.is_empty()
     }
 
     /// Removes all data fields from the data map.
@@ -77,8 +69,6 @@ impl Data {
     /// # Ok::<_, noodles_sam::record::data::ParseError>(())
     /// ```
     pub fn clear(&mut self) {
-        self.standard_field_indices.fill(None);
-        self.other_field_indices.clear();
         self.fields.clear();
     }
 
@@ -97,7 +87,7 @@ impl Data {
     /// # Ok::<_, noodles_sam::record::data::ParseError>(())
     /// ```
     pub fn get(&self, tag: field::Tag) -> Option<&Field> {
-        self.get_index_of(tag).and_then(|j| self.fields.get(j))
+        self.fields.iter().find(|f| f.tag() == tag)
     }
 
     /// Returns the index of the field of the given tag.
@@ -115,10 +105,7 @@ impl Data {
     /// # Ok::<_, noodles_sam::record::data::ParseError>(())
     /// ```
     pub fn get_index_of(&self, tag: field::Tag) -> Option<usize> {
-        match tag_to_index(tag) {
-            Some(i) => self.get_normalized_standard_field_index(i),
-            None => self.get_normalized_other_field_index(tag),
-        }
+        self.fields.iter().position(|f| f.tag() == tag)
     }
 
     /// Returns an iterator over all tags.
@@ -178,7 +165,7 @@ impl Data {
         match self.get_index_of(field.tag()) {
             Some(i) => Some(mem::replace(&mut self.fields[i], field)),
             None => {
-                self.push(field);
+                self.fields.push(field);
                 None
             }
         }
@@ -212,71 +199,14 @@ impl Data {
         self.swap_remove(tag)
     }
 
-    fn get_normalized_standard_field_index(&self, i: usize) -> Option<usize> {
-        self.standard_field_indices[i].map(|j| {
-            // SAFETY: `j` is guaranteed > 0.
-            usize::from(u16::from(j) - 1)
-        })
-    }
-
-    fn get_normalized_other_field_index(&self, tag: field::Tag) -> Option<usize> {
-        self.other_field_indices.get(&tag).copied().map(usize::from)
-    }
-
-    fn push(&mut self, field: Field) {
-        set_index(
-            &mut self.standard_field_indices,
-            &mut self.other_field_indices,
-            field.tag(),
-            self.fields.len(),
-        );
-
-        self.fields.push(field);
-    }
-
     fn swap_remove(&mut self, tag: field::Tag) -> Option<Field> {
-        let i = match tag_to_index(tag) {
-            Some(i) => {
-                let j = self.get_normalized_standard_field_index(i);
-                self.standard_field_indices[i].take();
-                j
-            }
-            None => {
-                let j = self.get_normalized_other_field_index(tag);
-                self.other_field_indices.remove(&tag);
-                j
-            }
-        };
-
-        i.map(|j| {
-            let removed_field = self.fields.swap_remove(j);
-
-            if let Some(swapped_field) = self.fields.get(j) {
-                set_index(
-                    &mut self.standard_field_indices,
-                    &mut self.other_field_indices,
-                    swapped_field.tag(),
-                    j,
-                );
-            }
-
-            removed_field
-        })
+        self.get_index_of(tag).map(|i| self.fields.swap_remove(i))
     }
 }
 
 impl Default for Data {
     fn default() -> Self {
-        let standard_field_indices = [
-            None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-            None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-            None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-            None, None, None, None, None, None, None, None, None, None, None, None, None,
-        ];
-
         Self {
-            standard_field_indices,
-            other_field_indices: FxHashMap::default(),
             fields: Vec::with_capacity(16),
         }
     }
@@ -360,89 +290,6 @@ impl TryFrom<Vec<Field>> for Data {
         }
 
         Ok(data)
-    }
-}
-
-fn set_index(
-    standard_field_indices: &mut StandardFieldIndices,
-    other_field_indices: &mut OtherFieldIndices,
-    tag: field::Tag,
-    i: usize,
-) {
-    // SAFETY: `i` is guaranteed to be < 3224.
-    let j = i as u16;
-
-    match tag_to_index(tag) {
-        Some(i) => {
-            let j = NonZeroU16::new(j + 1);
-            standard_field_indices[i] = j;
-        }
-        None => {
-            other_field_indices.insert(tag, j);
-        }
-    }
-}
-
-fn tag_to_index(tag: field::Tag) -> Option<usize> {
-    use field::Tag;
-
-    match tag {
-        Tag::MinMappingQuality => Some(0),
-        Tag::AlignmentScore => Some(1),
-        Tag::SampleBarcodeSequence => Some(2),
-        Tag::BaseAlignmentQualityOffsets => Some(3),
-        Tag::OriginalUmiQualityScores => Some(4),
-        Tag::CellBarcodeId => Some(5),
-        Tag::NextHitReferenceSequenceName => Some(6),
-        Tag::Cigar => Some(7),
-        Tag::ColorEditDistance => Some(8),
-        Tag::Comment => Some(9),
-        Tag::NextHitPosition => Some(10),
-        Tag::ColarQualityScores => Some(11),
-        Tag::CellBarcodeSequence => Some(12),
-        Tag::ColorSequence => Some(13),
-        Tag::CompleteReadAnnotations => Some(14),
-        Tag::CellBarcodeQualityScores => Some(15),
-        Tag::NextHitSequence => Some(16),
-        Tag::SegmentIndex => Some(17),
-        Tag::SegmentSuffix => Some(18),
-        Tag::AlternativeSequence => Some(19),
-        Tag::PerfectHitCount => Some(20),
-        Tag::OneDifferenceHitCount => Some(21),
-        Tag::TwoDifferenceHitCount => Some(22),
-        Tag::HitIndex => Some(23),
-        Tag::TotalHitCount => Some(24),
-        Tag::Library => Some(25),
-        Tag::MateCigar => Some(26),
-        Tag::MismatchedPositions => Some(27),
-        Tag::UmiId => Some(28),
-        Tag::BaseModificationProbabilities => Some(29),
-        Tag::BaseModifications => Some(30),
-        Tag::MateMappingQuality => Some(31),
-        Tag::AlignmentHitCount => Some(32),
-        Tag::EditDistance => Some(33),
-        Tag::OriginalAlignment => Some(34),
-        Tag::OriginalCigar => Some(35),
-        Tag::OriginalPosition => Some(36),
-        Tag::OriginalQualityScores => Some(37),
-        Tag::OriginalUmiBarcodeSequence => Some(38),
-        Tag::Program => Some(39),
-        Tag::TemplateLikelihood => Some(40),
-        Tag::PaddedReadAnnotations => Some(41),
-        Tag::PlatformUnit => Some(42),
-        Tag::MateQualityScores => Some(43),
-        Tag::SampleBarcodeQualityScores => Some(44),
-        Tag::UmiQualityScores => Some(45),
-        Tag::MateSequence => Some(46),
-        Tag::ReadGroup => Some(47),
-        Tag::UmiSequence => Some(48),
-        Tag::OtherAlignments => Some(49),
-        Tag::TemplateMappingQuality => Some(50),
-        Tag::SegmentCount => Some(51),
-        Tag::TranscriptStrand => Some(52),
-        Tag::NextHitQualityScores => Some(53),
-        Tag::SegmentLikelihood => Some(54),
-        _ => None,
     }
 }
 
