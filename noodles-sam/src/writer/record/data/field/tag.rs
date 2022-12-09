@@ -6,7 +6,7 @@ pub fn write_tag<W>(writer: &mut W, tag: Tag) -> io::Result<()>
 where
     W: Write,
 {
-    writer.write_all(&tag.as_ref()[..])
+    writer.write_all(tag.as_ref())
 }
 
 #[cfg(test)]
