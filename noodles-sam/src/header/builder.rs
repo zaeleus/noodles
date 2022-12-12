@@ -174,7 +174,7 @@ impl Builder {
 
     /// Builds a SAM header.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// use noodles_sam as sam;
