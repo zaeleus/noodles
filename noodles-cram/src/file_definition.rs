@@ -22,7 +22,6 @@ impl FileDefinition {
     /// ```
     /// use noodles_cram::{file_definition::Version, FileDefinition};
     /// let file_definition = FileDefinition::new(Version::new(3, 0), [0; 20]);
-    /// assert_eq!(file_definition.version(), Version::new(3, 0));
     /// ```
     pub fn new(version: Version, file_id: [u8; 20]) -> Self {
         Self { version, file_id }
