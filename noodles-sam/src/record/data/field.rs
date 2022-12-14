@@ -49,7 +49,7 @@ impl Field {
     /// ```
     /// use noodles_sam::record::data::{field::{Tag, Value}, Field};
     /// let field = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
-    /// assert!(matches!(field.value(), Value::Int32(n) if *n == 1));
+    /// assert_eq!(field.value(), &Value::Int32(1));
     /// ```
     pub fn value(&self) -> &Value {
         &self.value
