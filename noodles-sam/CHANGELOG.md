@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * sam/record/data/field: Add mutable getter for value (`Field::value_mut`).
+
 ## 0.22.1 - 2022-11-29
 
 ### Fixed

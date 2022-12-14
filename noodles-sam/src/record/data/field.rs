@@ -54,6 +54,19 @@ impl Field {
     pub fn value(&self) -> &Value {
         &self.value
     }
+
+    /// Returns a mutable reference to the data field value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::data::{field::{Tag, Value}, Field};
+    /// let mut field = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
+    /// *field.value_mut() = Value::Int32(2);
+    /// assert_eq!(field.value(), &Value::Int32(2));
+    pub fn value_mut(&mut self) -> &mut Value {
+        &mut self.value
+    }
 }
 
 impl fmt::Display for Field {
