@@ -28,11 +28,7 @@ impl Builder {
             return ReferenceSequence::default();
         }
 
-        let bins = self
-            .bin_builders
-            .into_iter()
-            .map(|(_, b)| b.build())
-            .collect();
+        let bins = self.bin_builders.into_values().map(|b| b.build()).collect();
 
         let intervals = self
             .intervals

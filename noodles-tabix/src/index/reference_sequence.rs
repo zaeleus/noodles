@@ -105,11 +105,7 @@ impl ReferenceSequence {
         let (start, end) = resolve_interval(interval)?;
         let region_bins = region_to_bins(start, end);
 
-        let query_bins = self
-            .bins()
-            .iter()
-            .filter(|b| region_bins[b.id() as usize])
-            .collect();
+        let query_bins = self.bins().iter().filter(|b| region_bins[b.id()]).collect();
 
         Ok(query_bins)
     }
