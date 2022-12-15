@@ -165,7 +165,7 @@ fn fqz_update_context(param: &mut Parameter, q: u8, record: &mut Record) -> u16 
     ctx += (record.qctx & ((1 << param.q_bits) - 1)) << param.q_loc;
 
     if let Some(p_tab) = param.p_tab.as_deref() {
-        let p = cmp::min(record.pos, 1023) as usize;
+        let p = cmp::min(record.pos, 1023);
         ctx += u32::from(p_tab[p]) << param.p_loc;
     }
 

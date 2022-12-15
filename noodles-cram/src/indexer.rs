@@ -155,8 +155,8 @@ fn push_index_records_for_multi_reference_slice(
             alignment_start,
             alignment_span,
             container_position,
-            landmark as u64,
-            slice_length as u64,
+            landmark,
+            slice_length,
         );
 
         index.push(record);

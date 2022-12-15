@@ -71,7 +71,7 @@ pub fn encode(src: &[u8]) -> io::Result<(Vec<u8>, Vec<u8>)> {
     };
 
     let mut header = Vec::new();
-    header.write_u8(n as u8)?;
+    header.write_u8(n)?;
 
     for (sym, &f) in frequencies.iter().enumerate() {
         if f > 0 {
