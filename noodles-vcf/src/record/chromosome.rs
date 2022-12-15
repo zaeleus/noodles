@@ -1,7 +1,5 @@
 //! VCF record chromosome.
 
-mod parser;
-
 use std::{error, fmt, str::FromStr};
 
 use super::MISSING_FIELD;
@@ -51,23 +49,24 @@ impl FromStr for Chromosome {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "" => Err(ParseError::Empty),
-            MISSING_FIELD => Err(ParseError::Missing),
-            _ => {
-                parser::parse(s)
-                    .map_err(|_| ParseError::Invalid)
-                    .and_then(|(_, value)| match value {
-                        parser::Value::Name(t) => {
-                            if is_valid_name(t) {
-                                Ok(Self::Name(t.into()))
-                            } else {
-                                Err(ParseError::Invalid)
-                            }
-                        }
-                        parser::Value::Symbol(t) => Ok(Self::Symbol(t.into())),
-                    })
+        if s.is_empty() {
+            return Err(ParseError::Empty);
+        } else if s == MISSING_FIELD {
+            return Err(ParseError::Missing);
+        }
+
+        // symbol
+        if let Some(t) = s.strip_prefix('<') {
+            if let Some(t) = t.strip_suffix('>') {
+                return Ok(Self::Symbol(t.into()));
             }
+        }
+
+        // name
+        if is_valid_name(s) {
+            Ok(Self::Name(s.into()))
+        } else {
+            Err(ParseError::Invalid)
         }
     }
 }
