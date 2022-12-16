@@ -60,12 +60,19 @@ pub enum ParseError {
     Missing,
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Parse(e) => Some(e),
+            Self::Missing => None,
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Parse(e) => write!(f, "parse error: {}", e),
+            Self::Parse(_) => f.write_str("parse error"),
             Self::Missing => write!(f, "missing value: {}", MISSING),
         }
     }

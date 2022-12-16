@@ -50,19 +50,30 @@ pub enum ParseError {
     InvalidProgram(map::TryFromFieldsError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidKind(e) => Some(e),
+            Self::InvalidHeader(e)
+            | Self::InvalidReferenceSequence(e)
+            | Self::InvalidReadGroup(e)
+            | Self::InvalidProgram(e) => Some(e),
+            _ => None,
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Invalid => write!(f, "invalid input"),
-            Self::InvalidKind(e) => write!(f, "invalid kind: {}", e),
+            Self::InvalidKind(_) => f.write_str("invalid kind"),
             Self::InvalidField => write!(f, "invalid field"),
             Self::InvalidValue => write!(f, "invalid value"),
-            Self::InvalidHeader(e) => write!(f, "invalid header: {}", e),
-            Self::InvalidReferenceSequence(e) => write!(f, "invalid reference sequence: {}", e),
-            Self::InvalidReadGroup(e) => write!(f, "invalid read group: {}", e),
-            Self::InvalidProgram(e) => write!(f, "invalid program: {}", e),
+            Self::InvalidHeader(_) => f.write_str("invalid header"),
+            Self::InvalidReferenceSequence(_) => f.write_str("invalid reference sequence"),
+            Self::InvalidReadGroup(_) => f.write_str("invalid read group"),
+            Self::InvalidProgram(_) => f.write_str("invalid program"),
         }
     }
 }

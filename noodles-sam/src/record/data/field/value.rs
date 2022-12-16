@@ -797,7 +797,16 @@ pub enum ParseError {
     InvalidSubtype(subtype::ParseError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidIntValue(e) => Some(e),
+            Self::InvalidFloatValue(e) => Some(e),
+            Self::InvalidSubtype(e) => Some(e),
+            _ => None,
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -805,12 +814,12 @@ impl fmt::Display for ParseError {
             Self::Invalid => f.write_str("invalid input"),
             Self::UnsupportedType(ty) => write!(f, "unsupported type: {}", ty),
             Self::InvalidCharacterValue => f.write_str("invalid character value"),
-            Self::InvalidIntValue(e) => write!(f, "invalid int value: {}", e),
-            Self::InvalidFloatValue(e) => write!(f, "invalid float value: {}", e),
+            Self::InvalidIntValue(_) => f.write_str("invalid int value"),
+            Self::InvalidFloatValue(_) => f.write_str("invalid float value"),
             Self::InvalidStringValue => write!(f, "invalid string value"),
             Self::InvalidHexValue => write!(f, "invalid hex value"),
             Self::MissingSubtype => f.write_str("missing subtype"),
-            Self::InvalidSubtype(e) => write!(f, "invalid subtype: {}", e),
+            Self::InvalidSubtype(_) => f.write_str("invalid subtype"),
         }
     }
 }

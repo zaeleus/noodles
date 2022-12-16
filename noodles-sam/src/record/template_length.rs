@@ -88,12 +88,18 @@ pub enum TryFromIntError {
     Invalid(num::TryFromIntError),
 }
 
-impl error::Error for TryFromIntError {}
+impl error::Error for TryFromIntError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Invalid(e) => Some(e),
+        }
+    }
+}
 
 impl fmt::Display for TryFromIntError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Invalid(e) => write!(f, "invalid input: {}", e),
+            Self::Invalid(_) => f.write_str("invalid input"),
         }
     }
 }

@@ -139,14 +139,21 @@ pub enum ParseError {
     InvalidOp(op::ParseError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidOp(e) => Some(e),
+            _ => None,
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
             Self::Invalid => f.write_str("invalid input"),
-            Self::InvalidOp(e) => write!(f, "invalid op: {}", e),
+            Self::InvalidOp(_) => f.write_str("invalid op"),
         }
     }
 }

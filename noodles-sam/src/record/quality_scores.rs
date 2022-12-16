@@ -170,14 +170,21 @@ pub enum ParseError {
     InvalidScore(score::TryFromCharError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidScore(e) => Some(e),
+            _ => None,
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
             Self::Invalid => f.write_str("invalid input"),
-            Self::InvalidScore(e) => write!(f, "invalid score: {}", e),
+            Self::InvalidScore(_) => f.write_str("invalid score"),
         }
     }
 }

@@ -244,12 +244,19 @@ pub enum ParseError {
     DuplicateTag(field::Tag),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidField(e) => Some(e),
+            Self::DuplicateTag(_) => None,
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidField(e) => write!(f, "invalid field: {}", e),
+            Self::InvalidField(_) => f.write_str("invalid field"),
             Self::DuplicateTag(tag) => write!(f, "duplicate tag: {}", tag),
         }
     }

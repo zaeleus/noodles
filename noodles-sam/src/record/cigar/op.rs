@@ -93,14 +93,22 @@ pub enum ParseError {
     InvalidKind(kind::ParseError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Empty => None,
+            Self::InvalidLength(e) => Some(e),
+            Self::InvalidKind(e) => Some(e),
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => write!(f, "empty input"),
-            Self::InvalidLength(e) => write!(f, "invalid length: {}", e),
-            Self::InvalidKind(e) => write!(f, "invalid kind: {}", e),
+            Self::InvalidLength(_) => f.write_str("invalid length"),
+            Self::InvalidKind(_) => f.write_str("invalid kind"),
         }
     }
 }

@@ -100,14 +100,22 @@ pub enum ParseError {
     InvalidValue,
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidTag(e) => Some(e),
+            Self::InvalidType(e) => Some(e),
+            _ => None,
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Invalid => f.write_str("invalid input"),
-            Self::InvalidTag(e) => write!(f, "invalid tag: {}", e),
-            Self::InvalidType(e) => write!(f, "invalid type: {}", e),
+            Self::InvalidTag(_) => f.write_str("invalid tag"),
+            Self::InvalidType(_) => f.write_str("invalid type"),
             Self::InvalidValue => f.write_str("invalid value"),
         }
     }
