@@ -74,7 +74,7 @@ impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match &self.context {
             Context::Simple(_) => None,
-            Context::Custom(_, e) => Some(&**e),
+            Context::Custom(_, e) => e.source(),
         }
     }
 }
