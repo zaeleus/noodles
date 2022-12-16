@@ -21,13 +21,20 @@ pub enum ParseError {
     Invalid(TryFromIntError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Parse(e) => Some(e),
+            Self::Invalid(e) => Some(e),
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Parse(e) => write!(f, "parse error: {}", e),
-            Self::Invalid(e) => write!(f, "invalid input: {}", e),
+            Self::Parse(_) => f.write_str("parse error"),
+            Self::Invalid(_) => f.write_str("invalid input"),
         }
     }
 }

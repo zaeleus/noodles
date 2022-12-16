@@ -715,7 +715,21 @@ pub enum ParseError {
     InvalidBlockStart(num::ParseIntError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidEndPosition(e) | Self::InvalidThickEnd(e) | Self::InvalidBlockStart(e) => {
+                Some(e)
+            }
+            Self::InvalidName(e) => Some(e),
+            Self::InvalidScore(e) => Some(e),
+            Self::InvalidStrand(e) => Some(e),
+            Self::InvalidColor(e) => Some(e),
+            Self::InvalidBlockCount(e) | Self::InvalidBlockSize(e) => Some(e),
+            _ => None,
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -724,25 +738,25 @@ impl fmt::Display for ParseError {
             Self::MissingStartPosition => f.write_str("missing start position"),
             Self::InvalidStartPosition => f.write_str("invalid start position"),
             Self::MissingEndPosition => f.write_str("missing end position"),
-            Self::InvalidEndPosition(e) => write!(f, "invalid end position: {}", e),
+            Self::InvalidEndPosition(_) => f.write_str("invalid end position"),
             Self::MissingName => f.write_str("missing name"),
-            Self::InvalidName(e) => write!(f, "invalid name: {}", e),
+            Self::InvalidName(_) => f.write_str("invalid name"),
             Self::MissingScore => f.write_str("missing score"),
-            Self::InvalidScore(e) => write!(f, "invalid score: {}", e),
+            Self::InvalidScore(_) => f.write_str("invalid score"),
             Self::MissingStrand => f.write_str("missing strand"),
-            Self::InvalidStrand(e) => write!(f, "invalid strand: {}", e),
+            Self::InvalidStrand(_) => f.write_str("invalid strand"),
             Self::MissingThickStart => f.write_str("missing thick start"),
             Self::InvalidThickStart => f.write_str("invalid thick start"),
             Self::MissingThickEnd => f.write_str("missing thick end"),
-            Self::InvalidThickEnd(e) => write!(f, "invalid thick end: {}", e),
+            Self::InvalidThickEnd(_) => f.write_str("invalid thick end"),
             Self::MissingColor => f.write_str("missing color"),
-            Self::InvalidColor(e) => write!(f, "invalid color: {}", e),
+            Self::InvalidColor(_) => f.write_str("invalid color"),
             Self::MissingBlockCount => f.write_str("missing block count"),
-            Self::InvalidBlockCount(e) => write!(f, "invalid block count: {}", e),
+            Self::InvalidBlockCount(_) => f.write_str("invalid block count"),
             Self::MissingBlockSizes => f.write_str("missing block sizes"),
-            Self::InvalidBlockSize(e) => write!(f, "invalid block size: {}", e),
+            Self::InvalidBlockSize(_) => f.write_str("invalid block size"),
             Self::MissingBlockStarts => f.write_str("missing block starts"),
-            Self::InvalidBlockStart(e) => write!(f, "invalid block start: {}", e),
+            Self::InvalidBlockStart(_) => f.write_str("invalid block start"),
         }
     }
 }
