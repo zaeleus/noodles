@@ -125,13 +125,19 @@ pub enum ParseError {
     InvalidEndPosition(position::ParseError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidStartPosition(e) | Self::InvalidEndPosition(e) => Some(e),
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidStartPosition(e) => write!(f, "invalid start position: {}", e),
-            Self::InvalidEndPosition(e) => write!(f, "invalid end position: {}", e),
+            Self::InvalidStartPosition(_) => f.write_str("invalid start position"),
+            Self::InvalidEndPosition(_) => f.write_str("invalid end position"),
         }
     }
 }

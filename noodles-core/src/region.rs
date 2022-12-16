@@ -145,7 +145,14 @@ pub enum ParseError {
     InvalidInterval(interval::ParseError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidInterval(e) => Some(e),
+            _ => None,
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -153,7 +160,7 @@ impl fmt::Display for ParseError {
             Self::Empty => f.write_str("empty input"),
             Self::Ambiguous => f.write_str("ambiguous input"),
             Self::Invalid => f.write_str("invalid input"),
-            Self::InvalidInterval(e) => write!(f, "invalid interval: {}", e),
+            Self::InvalidInterval(_) => f.write_str("invalid interval"),
         }
     }
 }

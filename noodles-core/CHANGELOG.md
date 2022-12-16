@@ -6,6 +6,8 @@
 
   * core: Add a generalized error type (`Error`).
 
+  * core/region: Implement `std::error::Error::source` for errors.
+
 ## 0.9.0 - 2022-10-20
 
 ### Added
