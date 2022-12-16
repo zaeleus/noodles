@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * core: Add a generalized error type (`Error`).
+
 ## 0.9.0 - 2022-10-20
 
 ### Added
