@@ -30,6 +30,14 @@ pub struct Error {
 
 impl Error {
     /// Creates an error.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_core as core;
+    /// let error = core::Error::new(core::error::Kind::Other, "errno 1");
+    /// assert_eq!(error.kind(), core::error::Kind::Other);
+    /// ```
     pub fn new<E>(kind: Kind, error: E) -> Self
     where
         E: Into<Box<dyn std::error::Error + Send + Sync>>,
@@ -40,6 +48,14 @@ impl Error {
     }
 
     /// Returns the error kind.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_core as core;
+    /// let error = core::Error::new(core::error::Kind::Other, "errno 1");
+    /// assert_eq!(error.kind(), core::error::Kind::Other);
+    /// ```
     pub fn kind(&self) -> Kind {
         match &self.context {
             Context::Simple(kind) | Context::Custom(kind, _) => *kind,
