@@ -4,7 +4,7 @@
 
 ### Added
 
-  * sam/record: Implement `std::error::Error::source` for errors.
+  * sam: Implement `std::error::Error::source` for errors.
 
   * sam/record/data/field: Add mutable getter for value (`Field::value_mut`).
 
