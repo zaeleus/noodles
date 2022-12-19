@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * tabix/index/header/format: Implement `std::error::Error::source` for
+    `TryFromIntError`.
+
 ## 0.15.0 - 2022-11-18
 
 ### Changed

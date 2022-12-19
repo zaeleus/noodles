@@ -51,12 +51,19 @@ pub enum TryFromIntError {
     InvalidKind(u16),
 }
 
-impl error::Error for TryFromIntError {}
+impl error::Error for TryFromIntError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidCoordinateSystem(e) => Some(e),
+            Self::InvalidKind(_) => None,
+        }
+    }
+}
 
 impl fmt::Display for TryFromIntError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidCoordinateSystem(e) => write!(f, "invalid coordinate system: {}", e),
+            Self::InvalidCoordinateSystem(_) => f.write_str("invalid coordinate system"),
             Self::InvalidKind(n) => write!(f, "invalid kind: expected 0..=2, got {}", n),
         }
     }
