@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * vcf: Implement `std::error::Error::source` for errors.
+
 ## 0.23.0 - 2022-11-29
 
 ### Added

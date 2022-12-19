@@ -69,14 +69,22 @@ pub enum ParseError {
     InvalidFormat(TryFromKeyVectorError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Empty => None,
+            Self::InvalidKey(e) => Some(e),
+            Self::InvalidFormat(e) => Some(e),
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
-            Self::InvalidKey(e) => write!(f, "{}", e),
-            Self::InvalidFormat(e) => write!(f, "{}", e),
+            Self::InvalidKey(_) => f.write_str("invalid key"),
+            Self::InvalidFormat(_) => f.write_str("invalid format"),
         }
     }
 }

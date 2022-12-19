@@ -173,15 +173,23 @@ pub enum ParseError {
     InvalidGenotype(genotype::ParseError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidKeys(e) => Some(e),
+            Self::InvalidGenotype(e) => Some(e),
+            _ => None,
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
             Self::Invalid => f.write_str("invalid input"),
-            Self::InvalidKeys(e) => write!(f, "invalid keys: {}", e),
-            Self::InvalidGenotype(e) => write!(f, "invalid genotype: {}", e),
+            Self::InvalidKeys(_) => f.write_str("invalid keys"),
+            Self::InvalidGenotype(_) => f.write_str("invalid genotype"),
         }
     }
 }

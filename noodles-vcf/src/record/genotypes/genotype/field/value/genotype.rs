@@ -37,13 +37,20 @@ pub enum ParseError {
     InvalidAllele(allele::ParseError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Empty => None,
+            Self::InvalidAllele(e) => Some(e),
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
-            Self::InvalidAllele(e) => write!(f, "invalid allele: {}", e),
+            Self::InvalidAllele(_) => f.write_str("invalid allele"),
         }
     }
 }

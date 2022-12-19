@@ -94,14 +94,22 @@ pub enum ParseError {
     InvalidPhasing(phasing::ParseError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Empty => None,
+            Self::InvalidPosition(e) => Some(e),
+            Self::InvalidPhasing(e) => Some(e),
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
-            Self::InvalidPosition(e) => write!(f, "invalid position: {}", e),
-            Self::InvalidPhasing(e) => write!(f, "invalid phasing: {}", e),
+            Self::InvalidPosition(_) => f.write_str("invalid position"),
+            Self::InvalidPhasing(_) => f.write_str("invalid phasing"),
         }
     }
 }

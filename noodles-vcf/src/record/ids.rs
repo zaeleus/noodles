@@ -59,14 +59,21 @@ pub enum ParseError {
     InvalidId(id::ParseError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidId(e) => Some(e),
+            _ => None,
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
             Self::DuplicateId(id) => write!(f, "duplicate ID: {}", id),
-            Self::InvalidId(e) => write!(f, "invalid ID: {}", e),
+            Self::InvalidId(_) => f.write_str("invalid ID"),
         }
     }
 }

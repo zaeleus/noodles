@@ -101,17 +101,24 @@ pub enum ParseError {
     InvalidType(ty::ParseError),
 }
 
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidType(e) => Some(e),
+            _ => None,
+        }
+    }
+}
+
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
             Self::MissingType => f.write_str("missing type"),
-            Self::InvalidType(e) => write!(f, "invalid type: {}", e),
+            Self::InvalidType(_) => f.write_str("invalid type"),
         }
     }
 }
-
-impl error::Error for ParseError {}
 
 impl FromStr for StructuralVariant {
     type Err = ParseError;

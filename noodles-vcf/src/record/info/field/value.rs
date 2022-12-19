@@ -126,7 +126,16 @@ pub enum ParseError {
     InvalidString(str::Utf8Error),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidInteger(e) => Some(e),
+            Self::InvalidFloat(e) => Some(e),
+            Self::InvalidString(e) => Some(e),
+            _ => None,
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -134,11 +143,11 @@ impl fmt::Display for ParseError {
             Self::InvalidNumberForType(number, ty) => {
                 write!(f, "invalid number {:?} for type {:?}", number, ty)
             }
-            Self::InvalidInteger(e) => write!(f, "invalid integer: {}", e),
-            Self::InvalidFloat(e) => write!(f, "invalid float: {}", e),
+            Self::InvalidInteger(_) => f.write_str("invalid integer"),
+            Self::InvalidFloat(_) => f.write_str("invalid float"),
             Self::InvalidFlag => f.write_str("invalid flag"),
             Self::InvalidCharacter => f.write_str("invalid character"),
-            Self::InvalidString(e) => write!(f, "invalid string: {}", e),
+            Self::InvalidString(_) => f.write_str("invalid string"),
         }
     }
 }

@@ -36,15 +36,23 @@ pub enum ParseError {
     StringMapPositionMismatch((usize, String), (usize, String)),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidFileFormat(e) => Some(e),
+            Self::InvalidRecord(e) => Some(e),
+            _ => None,
+        }
+    }
+}
 
 impl std::fmt::Display for ParseError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::MissingFileFormat => f.write_str("missing fileformat"),
             Self::UnexpectedFileFormat => f.write_str("unexpected file format"),
-            Self::InvalidFileFormat(e) => write!(f, "invalid file format: {}", e),
-            Self::InvalidRecord(e) => write!(f, "invalid record: {}", e),
+            Self::InvalidFileFormat(_) => f.write_str("invalid file format"),
+            Self::InvalidRecord(_) => f.write_str("invalid record"),
             Self::InvalidRecordValue => f.write_str("invalid record value"),
             Self::MissingHeader => f.write_str("missing header"),
             Self::InvalidHeader(actual, expected) => {

@@ -629,18 +629,23 @@ pub enum EndError {
     PositionOverflow(usize, usize),
 }
 
-impl error::Error for EndError {}
+impl error::Error for EndError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidPosition(e) | Self::InvalidReferenceBasesLength(e) => Some(e),
+            _ => None,
+        }
+    }
+}
 
 impl fmt::Display for EndError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidPosition(e) => write!(f, "invalid position: {}", e),
+            Self::InvalidPosition(_) => f.write_str("invalid position"),
             Self::InvalidInfoEndPositionFieldValue => {
                 write!(f, "invalid INFO end position (`END`) field value type")
             }
-            Self::InvalidReferenceBasesLength(e) => {
-                write!(f, "invalid reference base length: {}", e)
-            }
+            Self::InvalidReferenceBasesLength(_) => f.write_str("invalid reference base length"),
             Self::PositionOverflow(start, len) => write!(
                 f,
                 "calculation of the end position overflowed: {} + {}",

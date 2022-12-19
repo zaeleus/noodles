@@ -62,19 +62,32 @@ pub enum ParseError {
     InvalidMeta(map::TryFromFieldsError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Invalid => None,
+            Self::InvalidFileFormat(e) => Some(e),
+            Self::InvalidInfo(e)
+            | Self::InvalidFilter(e)
+            | Self::InvalidFormat(e)
+            | Self::InvalidAlternativeAllele(e)
+            | Self::InvalidContig(e)
+            | Self::InvalidMeta(e) => Some(e),
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Invalid => f.write_str("invalid input"),
-            Self::InvalidFileFormat(e) => write!(f, "invalid file format: {}", e),
-            Self::InvalidInfo(e) => write!(f, "invalid INFO: {}", e),
-            Self::InvalidFilter(e) => write!(f, "invalid FILTER: {}", e),
-            Self::InvalidFormat(e) => write!(f, "invalid FORMAT: {}", e),
-            Self::InvalidAlternativeAllele(e) => write!(f, "invalid ALT: {}", e),
-            Self::InvalidContig(e) => write!(f, "invalid contig: {}", e),
-            Self::InvalidMeta(e) => write!(f, "invalid META: {}", e),
+            Self::InvalidFileFormat(_) => f.write_str("invalid file format"),
+            Self::InvalidInfo(_) => f.write_str("invalid INFO"),
+            Self::InvalidFilter(_) => f.write_str("invalid FILTER"),
+            Self::InvalidFormat(_) => f.write_str("invalid FORMAT"),
+            Self::InvalidAlternativeAllele(_) => f.write_str("invalid ALT"),
+            Self::InvalidContig(_) => f.write_str("invalid contig"),
+            Self::InvalidMeta(_) => f.write_str("invalid META"),
         }
     }
 }

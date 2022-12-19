@@ -53,14 +53,22 @@ pub enum ParseError {
     InvalidBase(base::TryFromCharError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Empty => None,
+            Self::InvalidSymbol(e) => Some(e),
+            Self::InvalidBase(e) => Some(e),
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
-            Self::InvalidSymbol(e) => write!(f, "invalid symbol: {}", e),
-            Self::InvalidBase(e) => write!(f, "invalid base: {}", e),
+            Self::InvalidSymbol(_) => f.write_str("invalid symbol"),
+            Self::InvalidBase(_) => f.write_str("invalid base"),
         }
     }
 }

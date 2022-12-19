@@ -38,14 +38,22 @@ pub enum ParseError {
     InvalidField(field::ParseError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Empty => None,
+            Self::Invalid(e) => Some(e),
+            Self::InvalidField(e) => Some(e),
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
-            Self::Invalid(e) => write!(f, "invalid input: {}", e),
-            Self::InvalidField(e) => write!(f, "invalid field: {}", e),
+            Self::Invalid(_) => f.write_str("invalid input"),
+            Self::InvalidField(_) => f.write_str("invalid field"),
         }
     }
 }
@@ -61,12 +69,19 @@ pub enum GenotypeError {
     InvalidValueType(field::Value),
 }
 
-impl error::Error for GenotypeError {}
+impl error::Error for GenotypeError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidValue(e) => Some(e),
+            Self::InvalidValueType(_) => None,
+        }
+    }
+}
 
 impl fmt::Display for GenotypeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidValue(e) => write!(f, "invalid value: {}", e),
+            Self::InvalidValue(_) => f.write_str("invalid value"),
             Self::InvalidValueType(value) => write!(f, "invalid String, got {:?}", value),
         }
     }

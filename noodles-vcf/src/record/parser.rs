@@ -32,21 +32,36 @@ pub enum ParseError {
     InvalidGenotypes(genotypes::ParseError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::MissingField(_) => None,
+            Self::InvalidChromosome(e) => Some(e),
+            Self::InvalidPosition(e) => Some(e),
+            Self::InvalidIds(e) => Some(e),
+            Self::InvalidReferenceBases(e) => Some(e),
+            Self::InvalidAlternateBases(e) => Some(e),
+            Self::InvalidQualityScore(e) => Some(e),
+            Self::InvalidFilters(e) => Some(e),
+            Self::InvalidInfo(e) => Some(e),
+            Self::InvalidGenotypes(e) => Some(e),
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::MissingField(field) => write!(f, "missing field: {}", field),
-            Self::InvalidChromosome(e) => write!(f, "invalid chromosome: {}", e),
-            Self::InvalidPosition(e) => write!(f, "invalid position: {}", e),
-            Self::InvalidIds(e) => write!(f, "invalid IDs: {}", e),
-            Self::InvalidReferenceBases(e) => write!(f, "invalid reference bases: {}", e),
-            Self::InvalidAlternateBases(e) => write!(f, "invalid alternate bases: {}", e),
-            Self::InvalidQualityScore(e) => write!(f, "invalid quality score: {}", e),
-            Self::InvalidFilters(e) => write!(f, "invalid filters: {}", e),
-            Self::InvalidInfo(e) => write!(f, "invalid info: {}", e),
-            Self::InvalidGenotypes(e) => write!(f, "invalid genotypes: {}", e),
+            Self::InvalidChromosome(_) => f.write_str("invalid chromosome"),
+            Self::InvalidPosition(_) => f.write_str("invalid position"),
+            Self::InvalidIds(_) => f.write_str("invalid IDs"),
+            Self::InvalidReferenceBases(_) => f.write_str("invalid reference bases"),
+            Self::InvalidAlternateBases(_) => f.write_str("invalid alternate bases"),
+            Self::InvalidQualityScore(_) => f.write_str("invalid quality score"),
+            Self::InvalidFilters(_) => f.write_str("invalid filters"),
+            Self::InvalidInfo(_) => f.write_str("invalid info"),
+            Self::InvalidGenotypes(_) => f.write_str("invalid genotypes"),
         }
     }
 }
