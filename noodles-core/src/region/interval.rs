@@ -306,7 +306,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse() -> Result<(), crate::position::TryFromIntError> {
+    fn test_from_str() -> Result<(), crate::position::TryFromIntError> {
         let start = Position::try_from(8)?;
         let end = Position::try_from(13)?;
 
