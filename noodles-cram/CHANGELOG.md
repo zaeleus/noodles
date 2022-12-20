@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * cram/crai/record: Implement `std::error::Error::source` for errors.
+
 ## 0.22.1 - 2022-11-29
 
 ### Changed

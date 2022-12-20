@@ -228,16 +228,22 @@ pub enum ParseError {
     InvalidReferenceSequenceId(num::TryFromIntError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Missing(_) => None,
+            Self::Invalid(_, e) => Some(e),
+            Self::InvalidReferenceSequenceId(e) => Some(e),
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Missing(field) => write!(f, "missing field: {:?}", field),
-            Self::Invalid(field, message) => write!(f, "invalid {:?} field: {}", field, message),
-            Self::InvalidReferenceSequenceId(e) => {
-                write!(f, "invalid reference sequence ID: {}", e)
-            }
+            Self::Invalid(field, _) => write!(f, "invalid field: {:?}", field),
+            Self::InvalidReferenceSequenceId(_) => f.write_str("invalid reference sequence ID"),
         }
     }
 }
