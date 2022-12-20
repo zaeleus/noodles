@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * fasta/fai/record: Implement `std::error::Error::source` for `ParseError`.
+
 ## 0.17.0 - 2022-11-18
 
 ### Changed
