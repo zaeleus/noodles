@@ -136,14 +136,21 @@ pub enum ParseError {
     Invalid(Field, std::num::ParseIntError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Invalid(_, e) => Some(e),
+            _ => None,
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
             Self::Missing(field) => write!(f, "missing field: {:?}", field),
-            Self::Invalid(field, e) => write!(f, "invalid {:?} field: {}", field, e),
+            Self::Invalid(field, _) => write!(f, "invalid field: {:?}", field),
         }
     }
 }

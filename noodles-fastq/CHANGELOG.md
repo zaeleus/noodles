@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * fastq/fai/record: Implement `std::error::Error::source` for `ParseError`.
+
 ## 0.5.1 - 2022-10-28
 
 ### Fixed
