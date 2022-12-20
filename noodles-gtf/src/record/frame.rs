@@ -26,13 +26,20 @@ pub enum ParseError {
     InvalidValue(u8),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Invalid(e) => Some(e),
+            _ => None,
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
-            Self::Invalid(e) => write!(f, "invalid input: {}", e),
+            Self::Invalid(_) => f.write_str("invalid input"),
             Self::InvalidValue(n) => {
                 write!(f, "invalid value: expected {}..={}, got {}", MIN, MAX, n)
             }

@@ -247,7 +247,18 @@ pub enum ParseError {
     InvalidAttributes(attributes::ParseError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidStart(e) | Self::InvalidEnd(e) => Some(e),
+            Self::InvalidScore(e) => Some(e),
+            Self::InvalidStrand(e) => Some(e),
+            Self::InvalidFrame(e) => Some(e),
+            Self::InvalidAttributes(e) => Some(e),
+            _ => None,
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -257,17 +268,17 @@ impl fmt::Display for ParseError {
             Self::MissingSource => write!(f, "missing source"),
             Self::MissingType => write!(f, "missing type"),
             Self::MissingStart => write!(f, "missing start"),
-            Self::InvalidStart(e) => write!(f, "invalid start: {}", e),
+            Self::InvalidStart(_) => write!(f, "invalid start"),
             Self::MissingEnd => write!(f, "missing end"),
-            Self::InvalidEnd(e) => write!(f, "invalid end: {}", e),
+            Self::InvalidEnd(_) => write!(f, "invalid end"),
             Self::MissingScore => write!(f, "missing score"),
-            Self::InvalidScore(e) => write!(f, "invalid score: {}", e),
+            Self::InvalidScore(_) => write!(f, "invalid score"),
             Self::MissingStrand => write!(f, "missing strand"),
-            Self::InvalidStrand(e) => write!(f, "invalid strand: {}", e),
+            Self::InvalidStrand(_) => write!(f, "invalid strand"),
             Self::MissingFrame => write!(f, "missing frame"),
-            Self::InvalidFrame(e) => write!(f, "invalid frame: {}", e),
+            Self::InvalidFrame(_) => write!(f, "invalid frame"),
             Self::MissingAttributes => write!(f, "missing attributes"),
-            Self::InvalidAttributes(e) => write!(f, "invalid attributes: {}", e),
+            Self::InvalidAttributes(_) => write!(f, "invalid attributes"),
         }
     }
 }

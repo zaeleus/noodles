@@ -31,12 +31,18 @@ pub enum ParseError {
     InvalidRecord(record::ParseError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidRecord(e) => Some(e),
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidRecord(e) => write!(f, "invalid record: {}", e),
+            Self::InvalidRecord(_) => f.write_str("invalid record"),
         }
     }
 }
