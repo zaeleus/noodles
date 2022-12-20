@@ -100,19 +100,24 @@ pub enum ParseError {
     InvalidEnd(num::ParseIntError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidStart(e) | Self::InvalidEnd(e) => Some(e),
+            _ => None,
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("invalid sequence region directive: ")?;
-
         match self {
             Self::Empty => f.write_str("empty input"),
             Self::MissingReferenceSequenceName => f.write_str("missing reference sequence name"),
             Self::MissingStart => f.write_str("missing start"),
-            Self::InvalidStart(e) => write!(f, "invalid start: {}", e),
+            Self::InvalidStart(_) => f.write_str("invalid start"),
             Self::MissingEnd => f.write_str("missing end"),
-            Self::InvalidEnd(e) => write!(f, "invalid end: {}", e),
+            Self::InvalidEnd(_) => f.write_str("invalid end"),
         }
     }
 }

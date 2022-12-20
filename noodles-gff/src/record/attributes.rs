@@ -41,12 +41,18 @@ pub enum ParseError {
     InvalidEntry(entry::ParseError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidEntry(e) => Some(e),
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidEntry(e) => write!(f, "invalid entry: {}", e),
+            Self::InvalidEntry(_) => f.write_str("invalid entry"),
         }
     }
 }

@@ -245,7 +245,18 @@ pub enum ParseError {
     InvalidAttributes(attributes::ParseError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidStart(e) | Self::InvalidEnd(e) => Some(e),
+            Self::InvalidScore(e) => Some(e),
+            Self::InvalidStrand(e) => Some(e),
+            Self::InvalidPhase(e) => Some(e),
+            Self::InvalidAttributes(e) => Some(e),
+            _ => None,
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -254,13 +265,13 @@ impl fmt::Display for ParseError {
             Self::MissingField(field) => write!(f, "missing field: {:?}", field),
             Self::EmptyField(field) => write!(f, "empty field: {:?}", field),
             Self::InvalidReferenceSequenceName => write!(f, "invalid reference sequence name"),
-            Self::InvalidStart(e) => write!(f, "invalid start: {}", e),
-            Self::InvalidEnd(e) => write!(f, "invalid end: {}", e),
-            Self::InvalidScore(e) => write!(f, "invalid score: {}", e),
-            Self::InvalidStrand(e) => write!(f, "invalid strand: {}", e),
-            Self::InvalidPhase(e) => write!(f, "invalid phase: {}", e),
+            Self::InvalidStart(_) => f.write_str("invalid start"),
+            Self::InvalidEnd(_) => f.write_str("invalid end"),
+            Self::InvalidScore(_) => f.write_str("invalid score"),
+            Self::InvalidStrand(_) => f.write_str("invalid strand"),
+            Self::InvalidPhase(_) => f.write_str("invalid phase"),
             Self::MissingPhase => write!(f, "missing phase"),
-            Self::InvalidAttributes(e) => write!(f, "invalid attributes: {}", e),
+            Self::InvalidAttributes(_) => f.write_str("invalid attributes"),
         }
     }
 }

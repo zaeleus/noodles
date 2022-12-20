@@ -103,16 +103,25 @@ pub enum ParseError {
     InvalidPatchVersion(num::ParseIntError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidMajorVersion(e)
+            | Self::InvalidMinorVersion(e)
+            | Self::InvalidPatchVersion(e) => Some(e),
+            _ => None,
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
             Self::MissingMajorVersion => f.write_str("major version is missing"),
-            Self::InvalidMajorVersion(e) => write!(f, "major version is invalid: {}", e),
-            Self::InvalidMinorVersion(e) => write!(f, "minor version is invalid: {}", e),
-            Self::InvalidPatchVersion(e) => write!(f, "patch version is invalid: {}", e),
+            Self::InvalidMajorVersion(_) => f.write_str("major version is invalid"),
+            Self::InvalidMinorVersion(_) => f.write_str("minor version is invalid"),
+            Self::InvalidPatchVersion(_) => f.write_str("patch version is invalid"),
         }
     }
 }

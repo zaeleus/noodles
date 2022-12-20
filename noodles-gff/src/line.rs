@@ -36,13 +36,20 @@ pub enum ParseError {
     InvalidRecord(record::ParseError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidDirective(e) => Some(e),
+            Self::InvalidRecord(e) => Some(e),
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidDirective(e) => write!(f, "{}", e),
-            Self::InvalidRecord(e) => write!(f, "{}", e),
+            Self::InvalidDirective(_) => f.write_str("invalid directive"),
+            Self::InvalidRecord(_) => f.write_str("invalid record"),
         }
     }
 }

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * gff: Implement `std::error::Error::source` for errors.
+
 ## 0.9.0 - 2022-10-28
 
 ### Added

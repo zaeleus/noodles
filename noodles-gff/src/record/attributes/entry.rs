@@ -103,7 +103,14 @@ pub enum ParseError {
     InvalidValue(str::Utf8Error),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidKey(e) | Self::InvalidValue(e) => Some(e),
+            _ => None,
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -111,9 +118,9 @@ impl fmt::Display for ParseError {
             Self::Empty => f.write_str("empty input"),
             Self::Invalid => f.write_str("invalid input"),
             Self::MissingKey => f.write_str("missing key"),
-            Self::InvalidKey(e) => write!(f, "invalid key: {}", e),
+            Self::InvalidKey(_) => f.write_str("invalid key"),
             Self::MissingValue => f.write_str("missing value"),
-            Self::InvalidValue(e) => write!(f, "invalid value: {}", e),
+            Self::InvalidValue(_) => f.write_str("invalid value"),
         }
     }
 }

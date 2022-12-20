@@ -73,7 +73,16 @@ pub enum ParseError {
     InvalidGenomeBuild(genome_build::ParseError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidGffVersion(e) => Some(e),
+            Self::InvalidSequenceRegion(e) => Some(e),
+            Self::InvalidGenomeBuild(e) => Some(e),
+            _ => None,
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -82,9 +91,9 @@ impl fmt::Display for ParseError {
             Self::MissingName => f.write_str("directive name is missing"),
             Self::InvalidName(s) => write!(f, "invalid directive name: {}", s),
             Self::MissingValue => f.write_str("directive value is missing"),
-            Self::InvalidGffVersion(e) => write!(f, "{}", e),
-            Self::InvalidSequenceRegion(e) => write!(f, "{}", e),
-            Self::InvalidGenomeBuild(e) => write!(f, "{}", e),
+            Self::InvalidGffVersion(_) => f.write_str("invalid GFF version"),
+            Self::InvalidSequenceRegion(_) => f.write_str("invalid sequence region"),
+            Self::InvalidGenomeBuild(_) => f.write_str("invalid genome build"),
         }
     }
 }
