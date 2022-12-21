@@ -22,14 +22,22 @@ pub enum Error {
     Request(reqwest::Error),
 }
 
-impl error::Error for Error {}
+impl error::Error for Error {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Input => None,
+            Self::Url(e) => Some(e),
+            Self::Request(e) => Some(e),
+        }
+    }
+}
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Input => f.write_str("invalid input"),
-            Self::Url(e) => write!(f, "URL error: {}", e),
-            Self::Request(e) => write!(f, "request error: {}", e),
+            Self::Url(_) => f.write_str("URL error"),
+            Self::Request(_) => f.write_str("request error"),
         }
     }
 }
