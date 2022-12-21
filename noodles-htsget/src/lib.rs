@@ -33,16 +33,26 @@ pub enum Error {
     InvalidDataUrl,
 }
 
-impl error::Error for Error {}
+impl error::Error for Error {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Url(e) => Some(e),
+            Self::Request(e) => Some(e),
+            Self::Response(e) => Some(e),
+            Self::Decode(e) => Some(e),
+            _ => None,
+        }
+    }
+}
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Input => f.write_str("invalid input"),
-            Self::Url(e) => write!(f, "URL error: {}", e),
-            Self::Request(e) => write!(f, "request error: {}", e),
-            Self::Response(e) => e.fmt(f),
-            Self::Decode(e) => write!(f, "decode error: {}", e),
+            Self::Url(_) => f.write_str("URL error"),
+            Self::Request(_) => f.write_str("request error"),
+            Self::Response(_) => f.write_str("response error"),
+            Self::Decode(_) => f.write_str("decode error"),
             Self::InvalidDataUrl => f.write_str("invalid data URL"),
         }
     }
