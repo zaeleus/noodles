@@ -81,13 +81,13 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Invalid => f.write_str("invalid input"),
-            Self::InvalidFileFormat(_) => f.write_str("invalid file format"),
-            Self::InvalidInfo(_) => f.write_str("invalid INFO"),
-            Self::InvalidFilter(_) => f.write_str("invalid FILTER"),
-            Self::InvalidFormat(_) => f.write_str("invalid FORMAT"),
-            Self::InvalidAlternativeAllele(_) => f.write_str("invalid ALT"),
-            Self::InvalidContig(_) => f.write_str("invalid contig"),
-            Self::InvalidMeta(_) => f.write_str("invalid META"),
+            Self::InvalidFileFormat(_) => write!(f, "invalid {}", key::FILE_FORMAT),
+            Self::InvalidInfo(_) => write!(f, "invalid {}", key::INFO),
+            Self::InvalidFilter(_) => write!(f, "invalid {}", key::FILTER),
+            Self::InvalidFormat(_) => write!(f, "invalid {}", key::FORMAT),
+            Self::InvalidAlternativeAllele(_) => write!(f, "invalid {}", key::ALTERNATIVE_ALLELE),
+            Self::InvalidContig(_) => write!(f, "invalid {}", key::CONTIG),
+            Self::InvalidMeta(_) => write!(f, "invalid {}", key::META),
         }
     }
 }
