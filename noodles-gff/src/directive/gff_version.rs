@@ -118,10 +118,10 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
-            Self::MissingMajorVersion => f.write_str("major version is missing"),
-            Self::InvalidMajorVersion(_) => f.write_str("major version is invalid"),
-            Self::InvalidMinorVersion(_) => f.write_str("minor version is invalid"),
-            Self::InvalidPatchVersion(_) => f.write_str("patch version is invalid"),
+            Self::MissingMajorVersion => f.write_str("missing major version"),
+            Self::InvalidMajorVersion(_) => f.write_str("invalid major version"),
+            Self::InvalidMinorVersion(_) => f.write_str("invalid minor version"),
+            Self::InvalidPatchVersion(_) => f.write_str("invalid patch version"),
         }
     }
 }
