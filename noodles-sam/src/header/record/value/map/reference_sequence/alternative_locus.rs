@@ -85,18 +85,9 @@ impl FromStr for AlternativeLocus {
 }
 
 fn parse_interval(s: &str) -> Result<(Position, Position), ParseError> {
-    let mut components = s.splitn(2, '-');
-
-    let start = components
-        .next()
-        .ok_or(ParseError::InvalidInterval)
-        .and_then(|t| t.parse().map_err(|_| ParseError::InvalidInterval))?;
-
-    let end = components
-        .next()
-        .ok_or(ParseError::InvalidInterval)
-        .and_then(|t| t.parse().map_err(|_| ParseError::InvalidInterval))?;
-
+    let (raw_start, raw_end) = s.split_once('-').ok_or(ParseError::InvalidInterval)?;
+    let start = raw_start.parse().map_err(|_| ParseError::InvalidInterval)?;
+    let end = raw_end.parse().map_err(|_| ParseError::InvalidInterval)?;
     Ok((start, end))
 }
 
