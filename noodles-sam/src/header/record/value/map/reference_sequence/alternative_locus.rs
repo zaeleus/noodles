@@ -2,13 +2,15 @@
 
 use std::{error, fmt, str::FromStr};
 
+use noodles_core::Position;
+
 const UNKNOWN: &str = "*";
 
 /// A SAM header reference sequence alternative locus (`AH`).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum AlternativeLocus {
     /// A region in the primary assembly.
-    Region(String, Option<(i32, i32)>),
+    Region(String, Option<(Position, Position)>),
     /// The region is unknown.
     Unknown,
 }
@@ -82,7 +84,7 @@ impl FromStr for AlternativeLocus {
     }
 }
 
-fn parse_interval(s: &str) -> Result<(i32, i32), ParseError> {
+fn parse_interval(s: &str) -> Result<(Position, Position), ParseError> {
     let mut components = s.splitn(2, '-');
 
     let start = components
@@ -103,7 +105,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_fmt() {
+    fn test_fmt() -> Result<(), noodles_core::position::TryFromIntError> {
         assert_eq!(AlternativeLocus::Unknown.to_string(), "*");
 
         assert_eq!(
@@ -111,14 +113,17 @@ mod tests {
             "sq0"
         );
 
+        let interval = (Position::try_from(8)?, Position::try_from(13)?);
         assert_eq!(
-            AlternativeLocus::Region(String::from("sq0"), Some((8, 13))).to_string(),
+            AlternativeLocus::Region(String::from("sq0"), Some(interval)).to_string(),
             "sq0:8-13"
         );
+
+        Ok(())
     }
 
     #[test]
-    fn test_from_str() {
+    fn test_from_str() -> Result<(), noodles_core::position::TryFromIntError> {
         assert_eq!("*".parse(), Ok(AlternativeLocus::Unknown));
 
         assert_eq!(
@@ -126,9 +131,13 @@ mod tests {
             Ok(AlternativeLocus::Region(String::from("sq0"), None))
         );
 
+        let interval = (Position::try_from(8)?, Position::try_from(13)?);
         assert_eq!(
             "sq0:8-13".parse(),
-            Ok(AlternativeLocus::Region(String::from("sq0"), Some((8, 13))))
+            Ok(AlternativeLocus::Region(
+                String::from("sq0"),
+                Some(interval)
+            ))
         );
 
         assert_eq!("".parse::<AlternativeLocus>(), Err(ParseError::Empty));
@@ -137,5 +146,7 @@ mod tests {
             "=".parse::<AlternativeLocus>(),
             Err(ParseError::InvalidReferenceSequenceName)
         );
+
+        Ok(())
     }
 }

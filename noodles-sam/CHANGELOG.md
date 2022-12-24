@@ -8,6 +8,11 @@
 
   * sam/record/data/field: Add mutable getter for value (`Field::value_mut`).
 
+### Changed
+
+  * sam/header/record/value/map/reference_sequence/alternative_locus:
+    Parse interval as a pair of `Position`s.
+
 ## 0.22.1 - 2022-11-29
 
 ### Fixed
