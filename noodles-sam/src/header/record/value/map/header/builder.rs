@@ -28,7 +28,7 @@ impl map::Builder<Header> {
     ///     .build()?;
     ///
     /// assert_eq!(header.version(), version);
-    /// Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
+    /// # Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
     /// ```
     pub fn set_version(mut self, version: Version) -> Self {
         self.inner.version = Some(version);
@@ -50,7 +50,7 @@ impl map::Builder<Header> {
     ///     .build()?;
     ///
     /// assert_eq!(header.sort_order(), Some(SortOrder::Coordinate));
-    /// Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
+    /// # Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
     /// ```
     pub fn set_sort_order(mut self, sort_order: SortOrder) -> Self {
         self.inner.sort_order = Some(sort_order);
@@ -72,7 +72,7 @@ impl map::Builder<Header> {
     ///     .build()?;
     ///
     /// assert_eq!(header.group_order(), Some(GroupOrder::Reference));
-    /// Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
+    /// # Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
     /// ```
     pub fn set_group_order(mut self, group_order: GroupOrder) -> Self {
         self.inner.group_order = Some(group_order);
@@ -96,7 +96,7 @@ impl map::Builder<Header> {
     ///     .build()?;
     ///
     /// assert_eq!(header.subsort_order(), Some(&subsort_order));
-    /// Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
+    /// # Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
     /// ```
     pub fn set_subsort_order(mut self, subsort_order: SubsortOrder) -> Self {
         self.inner.subsort_order = Some(subsort_order);
