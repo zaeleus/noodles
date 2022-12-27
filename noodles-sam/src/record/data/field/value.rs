@@ -816,8 +816,8 @@ impl fmt::Display for ParseError {
             Self::InvalidCharacterValue => f.write_str("invalid character value"),
             Self::InvalidIntValue(_) => f.write_str("invalid int value"),
             Self::InvalidFloatValue(_) => f.write_str("invalid float value"),
-            Self::InvalidStringValue => write!(f, "invalid string value"),
-            Self::InvalidHexValue => write!(f, "invalid hex value"),
+            Self::InvalidStringValue => f.write_str("invalid string value"),
+            Self::InvalidHexValue => f.write_str("invalid hex value"),
             Self::MissingSubtype => f.write_str("missing subtype"),
             Self::InvalidSubtype(_) => f.write_str("invalid subtype"),
         }
