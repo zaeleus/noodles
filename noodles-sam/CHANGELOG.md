@@ -13,6 +13,8 @@
   * sam/header/record/value/map/reference_sequence/alternative_locus:
     Parse interval as a pair of `Position`s.
 
+  * sam/record/data: `Data` no longer allocates on construction (`Data::new`).
+
 ## 0.22.1 - 2022-11-29
 
 ### Fixed

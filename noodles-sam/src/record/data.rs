@@ -16,7 +16,7 @@ const DELIMITER: char = '\t';
 /// SAM record data.
 ///
 /// This is also called optional fields.
-#[derive(Clone, PartialEq)]
+#[derive(Default, Clone, PartialEq)]
 pub struct Data {
     fields: Vec<Field>,
 }
@@ -201,14 +201,6 @@ impl Data {
 
     fn swap_remove(&mut self, tag: field::Tag) -> Option<Field> {
         self.get_index_of(tag).map(|i| self.fields.swap_remove(i))
-    }
-}
-
-impl Default for Data {
-    fn default() -> Self {
-        Self {
-            fields: Vec::with_capacity(16),
-        }
     }
 }
 
