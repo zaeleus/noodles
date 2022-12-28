@@ -53,16 +53,12 @@ fn find_read_group(data: &sam::record::Data) -> io::Result<Option<String>> {
     use sam::record::data::field::{value::Type, Tag};
 
     match data.get(Tag::ReadGroup) {
-        Some(field) => field
-            .value()
-            .as_str()
-            .map(|s| Some(s.into()))
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    format!("expected {:?}, got {:?}", Type::String, field.value()),
-                )
-            }),
+        Some(value) => value.as_str().map(|s| Some(s.into())).ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("expected {:?}, got {:?}", Type::String, value),
+            )
+        }),
         None => Ok(None),
     }
 }

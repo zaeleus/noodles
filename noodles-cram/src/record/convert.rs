@@ -174,12 +174,12 @@ fn get_read_group_id(
 ) -> io::Result<Option<usize>> {
     use sam::record::data::field::Tag;
 
-    let rg = match data.get(Tag::ReadGroup) {
-        Some(field) => field,
+    let rg_value = match data.get(Tag::ReadGroup) {
+        Some(value) => value,
         None => return Ok(None),
     };
 
-    let read_group_name = rg.value().as_str().ok_or_else(|| {
+    let read_group_name = rg_value.as_str().ok_or_else(|| {
         io::Error::new(
             io::ErrorKind::InvalidInput,
             "invalid read group field value",

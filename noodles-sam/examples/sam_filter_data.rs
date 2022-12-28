@@ -12,10 +12,10 @@ use noodles_sam::{self as sam, alignment::Record, record::data::field::Tag};
 
 fn is_unique_record(record: &Record) -> io::Result<bool> {
     match record.data().get(Tag::AlignmentHitCount) {
-        Some(field) => field.value().as_int().map(|hits| hits == 1).ok_or_else(|| {
+        Some(value) => value.as_int().map(|hits| hits == 1).ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidData,
-                format!("expected integer, got {:?}", field.value()),
+                format!("expected integer, got {:?}", value),
             )
         }),
         None => Ok(false),

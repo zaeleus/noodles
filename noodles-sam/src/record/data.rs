@@ -72,7 +72,7 @@ impl Data {
         self.fields.clear();
     }
 
-    /// Returns a reference to the field of the given tag.
+    /// Returns a reference to the value of the given tag.
     ///
     /// # Examples
     ///
@@ -82,12 +82,15 @@ impl Data {
     /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
     /// let data = Data::try_from(vec![nh.clone()])?;
     ///
-    /// assert_eq!(data.get(Tag::AlignmentHitCount), Some(&nh));
+    /// assert_eq!(data.get(Tag::AlignmentHitCount), Some(nh.value()));
     /// assert!(data.get(Tag::ReadGroup).is_none());
     /// # Ok::<_, noodles_sam::record::data::ParseError>(())
     /// ```
-    pub fn get(&self, tag: field::Tag) -> Option<&Field> {
-        self.fields.iter().find(|f| f.tag() == tag)
+    pub fn get(&self, tag: field::Tag) -> Option<&field::Value> {
+        self.fields
+            .iter()
+            .find(|f| f.tag() == tag)
+            .map(|f| f.value())
     }
 
     /// Returns the index of the field of the given tag.

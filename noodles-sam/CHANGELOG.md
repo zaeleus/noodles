@@ -15,6 +15,9 @@
 
   * sam/record/data: `Data` no longer allocates on construction (`Data::new`).
 
+  * sam/record/data: `Data::get` returns the `Value` of a given `Tag` instead
+    of a `Field`.
+
 ## 0.22.1 - 2022-11-29
 
 ### Fixed
