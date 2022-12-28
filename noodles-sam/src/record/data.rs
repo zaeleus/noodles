@@ -111,6 +111,25 @@ impl Data {
         self.fields.iter().position(|f| f.tag() == tag)
     }
 
+    /// Returns an iterator over all tag-value pairs.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
+    ///
+    /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
+    /// let data = Data::try_from(vec![nh.clone()])?;
+    ///
+    /// let mut fields = data.iter();
+    /// assert_eq!(fields.next(), Some((nh.tag(), nh.value())));
+    /// assert!(fields.next().is_none());
+    /// # Ok::<_, noodles_sam::record::data::ParseError>(())
+    /// ```
+    pub fn iter(&self) -> impl Iterator<Item = (field::Tag, &field::Value)> {
+        self.fields.iter().map(|f| (f.tag(), f.value()))
+    }
+
     /// Returns an iterator over all tags.
     ///
     /// # Examples
