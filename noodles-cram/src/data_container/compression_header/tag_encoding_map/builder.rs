@@ -19,8 +19,9 @@ pub struct Builder {
 
 impl Builder {
     pub fn update(&mut self, record: &Record) {
-        for field in record.tags().values() {
-            self.keys.insert(field.into());
+        for (tag, value) in record.tags().iter() {
+            let key = Key::new(tag, value.ty());
+            self.keys.insert(key);
         }
     }
 

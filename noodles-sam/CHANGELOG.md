@@ -20,6 +20,9 @@
   * sam/record/data: `Data::get` returns the `Value` of a given `Tag` instead
     of a `Field`.
 
+  * sam/record/data: `Data::values` returns an iterator over `Value`s instead
+    of `Field`s.
+
 ## 0.22.1 - 2022-11-29
 
 ### Fixed

@@ -6,18 +6,18 @@ mod value;
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::record::data::Field;
+use noodles_sam::record::data::field::{Tag, Value};
 
 use self::tag::put_tag;
 pub use self::value::put_value;
 
-pub(super) fn put_field<B>(dst: &mut B, field: &Field) -> io::Result<()>
+pub(super) fn put_field<B>(dst: &mut B, tag: Tag, value: &Value) -> io::Result<()>
 where
     B: BufMut,
 {
-    put_tag(dst, field.tag());
-    value::put_type(dst, field.value().ty());
-    put_value(dst, field.value())?;
+    put_tag(dst, tag);
+    value::put_type(dst, value.ty());
+    put_value(dst, value)?;
     Ok(())
 }
 
@@ -27,13 +27,10 @@ mod tests {
 
     #[test]
     fn test_put_field() -> io::Result<()> {
-        use noodles_sam::record::data::field::{Tag, Value};
-
         let mut buf = Vec::new();
-        let field = Field::new(Tag::AlignmentHitCount, Value::from(1));
-        put_field(&mut buf, &field)?;
+        let (tag, value) = (Tag::AlignmentHitCount, Value::from(1));
+        put_field(&mut buf, tag, &value)?;
         assert_eq!(buf, [b'N', b'H', b'C', 0x01]);
-
         Ok(())
     }
 }

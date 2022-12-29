@@ -458,7 +458,12 @@ where
         let preservation_map = self.compression_header.preservation_map();
         let tag_ids_dictionary = preservation_map.tag_ids_dictionary();
 
-        let keys: Vec<_> = record.tags().values().map(|field| field.into()).collect();
+        let keys: Vec<_> = record
+            .tags()
+            .iter()
+            .map(|(tag, value)| tag_ids_dictionary::Key::new(tag, value.ty()))
+            .collect();
+
         let tag_line = tag_ids_dictionary
             .iter()
             .enumerate()
@@ -476,8 +481,8 @@ where
         let tag_encoding_map = self.compression_header.tag_encoding_map();
         let mut buf = Vec::new();
 
-        for field in record.tags().values() {
-            let key: tag_ids_dictionary::Key = field.into();
+        for (tag, value) in record.tags().iter() {
+            let key = tag_ids_dictionary::Key::new(tag, value.ty());
             let id = block::ContentId::from(key);
             let encoding = tag_encoding_map.get(&id).ok_or_else(|| {
                 io::Error::new(
@@ -487,7 +492,7 @@ where
             })?;
 
             buf.clear();
-            put_value(&mut buf, field.value())?;
+            put_value(&mut buf, value)?;
 
             encode_byte_array(
                 encoding,

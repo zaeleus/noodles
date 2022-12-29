@@ -11,9 +11,9 @@ where
 {
     const DELIMITER: u8 = b'\t';
 
-    for field in data.values() {
+    for (tag, value) in data.iter() {
         writer.write_all(&[DELIMITER])?;
-        write_field(writer, field)?;
+        write_field(writer, tag, value)?;
     }
 
     Ok(())

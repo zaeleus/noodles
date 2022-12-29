@@ -13,8 +13,8 @@ pub(crate) fn put_data<B>(dst: &mut B, data: &Data) -> io::Result<()>
 where
     B: BufMut,
 {
-    for field in data.values() {
-        put_field(dst, field)?;
+    for (tag, value) in data.iter() {
+        put_field(dst, tag, value)?;
     }
 
     Ok(())

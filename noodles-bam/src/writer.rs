@@ -502,19 +502,16 @@ mod tests {
         reader.read_record(&mut record)?;
 
         let bam_data = record.data();
-        let mut fields = bam_data.values();
+        let mut fields = bam_data.iter();
 
         assert_eq!(
             fields.next(),
-            Some(&Field::new(
-                Tag::ReadGroup,
-                Value::String(String::from("rg0"))
-            ))
+            Some((Tag::ReadGroup, &Value::String(String::from("rg0"))))
         );
 
         assert_eq!(
             fields.next(),
-            Some(&Field::new(Tag::AlignmentHitCount, Value::UInt8(1)))
+            Some((Tag::AlignmentHitCount, &Value::UInt8(1)))
         );
 
         assert!(fields.next().is_none());

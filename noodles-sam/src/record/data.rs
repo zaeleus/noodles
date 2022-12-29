@@ -149,7 +149,7 @@ impl Data {
         self.fields.iter().map(|field| field.tag())
     }
 
-    /// Returns an iterator over all fields.
+    /// Returns an iterator over all values.
     ///
     /// # Examples
     ///
@@ -160,12 +160,12 @@ impl Data {
     /// let data = Data::try_from(vec![nh.clone()])?;
     ///
     /// let mut values = data.values();
-    /// assert_eq!(values.next(), Some(&nh));
+    /// assert_eq!(values.next(), Some(nh.value()));
     /// assert!(values.next().is_none());
     /// # Ok::<_, noodles_sam::record::data::ParseError>(())
     /// ```
-    pub fn values(&self) -> impl Iterator<Item = &Field> {
-        self.fields.iter()
+    pub fn values(&self) -> impl Iterator<Item = &field::Value> {
+        self.fields.iter().map(|field| field.value())
     }
 
     /// Inserts a field into the data map.
@@ -234,12 +234,20 @@ impl fmt::Debug for Data {
 
 impl fmt::Display for Data {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for (i, field) in self.values().enumerate() {
+        use field::value::Type;
+
+        for (i, (tag, value)) in self.iter().enumerate() {
             if i > 0 {
                 f.write_char(DELIMITER)?;
             }
 
-            write!(f, "{}", field)?;
+            let ty = if value.is_int() {
+                Type::Int32
+            } else {
+                value.ty()
+            };
+
+            write!(f, "{}:{}:{}", tag, ty, value)?;
         }
 
         Ok(())
@@ -343,7 +351,7 @@ mod tests {
     fn test_fmt() -> Result<(), ParseError> {
         let data = Data::try_from(vec![
             Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
-            Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
+            Field::new(Tag::AlignmentHitCount, Value::UInt8(1)),
         ])?;
 
         let expected = "RG:Z:rg0\tNH:i:1";
