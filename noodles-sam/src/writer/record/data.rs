@@ -25,17 +25,16 @@ mod tests {
 
     #[test]
     fn test_write_data() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::record::data::{
-            field::{Tag, Value},
-            Field,
-        };
+        use crate::record::data::field::{Tag, Value};
 
         let mut buf = Vec::new();
 
-        let data = Data::try_from(vec![
-            Field::new(Tag::AlignmentHitCount, Value::from(1)),
-            Field::new(Tag::Comment, Value::try_from(String::from("noodles"))?),
-        ])?;
+        let data = [
+            (Tag::AlignmentHitCount, Value::from(1)),
+            (Tag::Comment, Value::try_from(String::from("noodles"))?),
+        ]
+        .into_iter()
+        .collect();
 
         write_data(&mut buf, &data)?;
 

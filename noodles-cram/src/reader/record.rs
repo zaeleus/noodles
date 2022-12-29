@@ -455,7 +455,6 @@ where
 
     fn read_tag_data(&mut self) -> io::Result<sam::record::Data> {
         use bam::reader::record::data::field::get_value;
-        use sam::record::data::Field;
 
         let tag_line = self.read_tag_line()?;
 
@@ -488,12 +487,11 @@ where
             let mut data_reader = &data[..];
             let value = get_value(&mut data_reader, key.ty())?;
 
-            let field = Field::new(key.tag(), value);
+            let field = (key.tag(), value);
             fields.push(field);
         }
 
-        sam::record::Data::try_from(fields)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        Ok(fields.into_iter().collect())
     }
 
     fn read_tag_line(&mut self) -> io::Result<usize> {

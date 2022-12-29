@@ -21,22 +21,19 @@ mod tests {
 
     #[test]
     fn test_parse_data() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::record::data::{
-            field::{Tag, Value},
-            Field,
-        };
+        use crate::record::data::field::{Tag, Value};
 
         assert!(parse_data(b"")?.is_empty());
 
-        let nh = Field::new(Tag::AlignmentHitCount, Value::from(1u8));
-        let co = Field::new(Tag::Comment, Value::String(String::from("ndls")));
+        let nh = (Tag::AlignmentHitCount, Value::from(1u8));
+        let co = (Tag::Comment, Value::String(String::from("ndls")));
 
         let actual = parse_data(b"NH:i:1")?;
-        let expected = Data::try_from(vec![nh.clone()])?;
+        let expected = [nh.clone()].into_iter().collect();
         assert_eq!(actual, expected);
 
         let actual = parse_data(b"NH:i:1\tCO:Z:ndls")?;
-        let expected = Data::try_from(vec![nh, co])?;
+        let expected = [nh, co].into_iter().collect();
         assert_eq!(actual, expected);
 
         Ok(())

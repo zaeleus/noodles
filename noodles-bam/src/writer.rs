@@ -294,7 +294,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::{record::Data, AlignmentWriter};
+    use sam::AlignmentWriter;
 
     use super::*;
     use crate::Reader;
@@ -477,20 +477,21 @@ mod tests {
     }
 
     #[test]
-    fn test_write_alignment_record_with_data() -> Result<(), Box<dyn std::error::Error>> {
-        use noodles_sam::record::data::{
-            field::{Tag, Value},
-            Field,
-        };
+    fn test_write_alignment_record_with_data() -> io::Result<()> {
+        use sam::record::data::field::{Tag, Value};
 
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();
         let sam_record = Record::builder()
-            .set_data(Data::try_from(vec![
-                Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
-                Field::new(Tag::AlignmentHitCount, Value::UInt8(1)),
-            ])?)
+            .set_data(
+                [
+                    (Tag::ReadGroup, Value::String(String::from("rg0"))),
+                    (Tag::AlignmentHitCount, Value::UInt8(1)),
+                ]
+                .into_iter()
+                .collect(),
+            )
             .build();
 
         writer.write_alignment_record(&header, &sam_record)?;

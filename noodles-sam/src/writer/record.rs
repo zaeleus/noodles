@@ -99,23 +99,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_record_with_data() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::record::{
-            data::{
-                field::{Tag, Value},
-                Field,
-            },
-            Data,
-        };
+    fn test_write_record_with_data() -> io::Result<()> {
+        use crate::record::data::field::{Tag, Value};
 
         let mut buf = Vec::new();
 
-        let data = Data::try_from(vec![Field::new(
-            Tag::ReadGroup,
-            Value::String(String::from("rg0")),
-        )])?;
-
         let header = Header::default();
+
+        let data = [(Tag::ReadGroup, Value::String(String::from("rg0")))]
+            .into_iter()
+            .collect();
         let record = Record::builder().set_data(data).build();
 
         write_record(&mut buf, &header, &record)?;

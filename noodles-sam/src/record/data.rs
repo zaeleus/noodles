@@ -55,18 +55,17 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
+    /// use noodles_sam::record::{data::field::{Tag, Value}, Data};
     ///
-    /// let mut data = Data::try_from(vec![
-    ///     Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
-    /// ])?;
+    /// let mut data: Data = [(Tag::AlignmentHitCount, Value::Int32(1))]
+    ///     .into_iter()
+    ///     .collect();
     ///
     /// assert_eq!(data.len(), 1);
     ///
     /// data.clear();
     ///
     /// assert!(data.is_empty());
-    /// # Ok::<_, noodles_sam::record::data::ParseError>(())
     /// ```
     pub fn clear(&mut self) {
         self.fields.clear();
@@ -77,14 +76,13 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
+    /// use noodles_sam::record::{data::field::{Tag, Value}, Data};
     ///
-    /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
-    /// let data = Data::try_from(vec![nh.clone()])?;
+    /// let (tag, value) = (Tag::AlignmentHitCount, Value::Int32(1));
+    /// let data: Data = [(tag, value.clone())].into_iter().collect();
     ///
-    /// assert_eq!(data.get(Tag::AlignmentHitCount), Some(nh.value()));
+    /// assert_eq!(data.get(tag), Some(&value));
     /// assert!(data.get(Tag::ReadGroup).is_none());
-    /// # Ok::<_, noodles_sam::record::data::ParseError>(())
     /// ```
     pub fn get(&self, tag: field::Tag) -> Option<&field::Value> {
         self.fields
@@ -98,14 +96,13 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
+    /// use noodles_sam::record::{data::field::{Tag, Value}, Data};
     ///
-    /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
-    /// let data = Data::try_from(vec![nh])?;
+    /// let nh = (Tag::AlignmentHitCount, Value::Int32(1));
+    /// let data: Data = [nh].into_iter().collect();
     ///
     /// assert_eq!(data.get_index_of(Tag::AlignmentHitCount), Some(0));
     /// assert!(data.get_index_of(Tag::ReadGroup).is_none());
-    /// # Ok::<_, noodles_sam::record::data::ParseError>(())
     /// ```
     pub fn get_index_of(&self, tag: field::Tag) -> Option<usize> {
         self.fields.iter().position(|f| f.tag() == tag)
@@ -116,15 +113,14 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
+    /// use noodles_sam::record::{data::field::{Tag, Value}, Data};
     ///
-    /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
-    /// let data = Data::try_from(vec![nh.clone()])?;
+    /// let (tag, value) = (Tag::AlignmentHitCount, Value::Int32(1));
+    /// let data: Data = [(tag, value.clone())].into_iter().collect();
     ///
     /// let mut fields = data.iter();
-    /// assert_eq!(fields.next(), Some((nh.tag(), nh.value())));
+    /// assert_eq!(fields.next(), Some((tag, &value)));
     /// assert!(fields.next().is_none());
-    /// # Ok::<_, noodles_sam::record::data::ParseError>(())
     /// ```
     pub fn iter(&self) -> impl Iterator<Item = (field::Tag, &field::Value)> {
         self.fields.iter().map(|f| (f.tag(), f.value()))
@@ -135,15 +131,14 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
+    /// use noodles_sam::record::{data::field::{Tag, Value}, Data};
     ///
-    /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
-    /// let data = Data::try_from(vec![nh])?;
+    /// let nh = (Tag::AlignmentHitCount, Value::Int32(1));
+    /// let data: Data = [nh].into_iter().collect();
     ///
     /// let mut keys = data.keys();
     /// assert_eq!(keys.next(), Some(Tag::AlignmentHitCount));
     /// assert!(keys.next().is_none());
-    /// # Ok::<_, noodles_sam::record::data::ParseError>(())
     /// ```
     pub fn keys(&self) -> impl Iterator<Item = field::Tag> + '_ {
         self.fields.iter().map(|field| field.tag())
@@ -154,15 +149,14 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
+    /// use noodles_sam::record::{data::field::{Tag, Value}, Data};
     ///
-    /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
-    /// let data = Data::try_from(vec![nh.clone()])?;
+    /// let (tag, value) = (Tag::AlignmentHitCount, Value::Int32(1));
+    /// let data: Data = [(tag, value.clone())].into_iter().collect();
     ///
     /// let mut values = data.values();
-    /// assert_eq!(values.next(), Some(nh.value()));
+    /// assert_eq!(values.next(), Some(&value));
     /// assert!(values.next().is_none());
-    /// # Ok::<_, noodles_sam::record::data::ParseError>(())
     /// ```
     pub fn values(&self) -> impl Iterator<Item = &field::Value> {
         self.fields.iter().map(|field| field.value())
@@ -284,6 +278,19 @@ impl fmt::Display for ParseError {
     }
 }
 
+impl FromIterator<(field::Tag, field::Value)> for Data {
+    fn from_iter<T: IntoIterator<Item = (field::Tag, field::Value)>>(iter: T) -> Self {
+        let mut data = Self::default();
+
+        for (tag, value) in iter {
+            let field = Field::new(tag, value);
+            data.fields.push(field);
+        }
+
+        data
+    }
+}
+
 impl FromStr for Data {
     type Err = ParseError;
 
@@ -369,6 +376,25 @@ mod tests {
         let expected = "RG:Z:rg0\tNH:i:1";
 
         assert_eq!(data.to_string(), expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_from_iterator() -> Result<(), ParseError> {
+        let actual: Data = [
+            (Tag::ReadGroup, Value::String(String::from("rg0"))),
+            (Tag::AlignmentHitCount, Value::UInt8(1)),
+        ]
+        .into_iter()
+        .collect();
+
+        let expected = Data::try_from(vec![
+            Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
+            Field::new(Tag::AlignmentHitCount, Value::UInt8(1)),
+        ])?;
+
+        assert_eq!(expected, actual);
 
         Ok(())
     }
