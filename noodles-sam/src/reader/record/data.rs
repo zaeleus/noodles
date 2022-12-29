@@ -3,12 +3,13 @@ pub(crate) mod field;
 use std::io;
 
 use self::field::parse_field;
-use crate::record::Data;
+use crate::record::{data::Field, Data};
 
 pub(crate) fn parse_data(mut src: &[u8]) -> io::Result<Data> {
     let mut data = Data::default();
 
-    while let Some(field) = parse_field(&mut src)? {
+    while let Some((tag, value)) = parse_field(&mut src)? {
+        let field = Field::new(tag, value);
         data.insert(field);
     }
 
