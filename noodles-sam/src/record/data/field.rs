@@ -125,13 +125,9 @@ impl FromStr for Field {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (raw_tag, rest) = s.split_once(DELIMITER).ok_or(ParseError::Invalid)?;
-        let tag = raw_tag.parse().map_err(ParseError::InvalidTag)?;
+        use super::parse_field;
 
-        let (raw_ty, raw_value) = rest.split_once(DELIMITER).ok_or(ParseError::Invalid)?;
-        let ty = raw_ty.parse().map_err(ParseError::InvalidType)?;
-        let value = Value::from_str_type(raw_value, ty).map_err(|_| ParseError::InvalidValue)?;
-
+        let (tag, value) = parse_field(s)?;
         Ok(Self::new(tag, value))
     }
 }

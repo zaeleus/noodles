@@ -306,6 +306,18 @@ impl FromStr for Data {
     }
 }
 
+fn parse_field(s: &str) -> Result<(field::Tag, field::Value), field::ParseError> {
+    let (raw_tag, rest) = s.split_once(':').ok_or(field::ParseError::Invalid)?;
+    let tag = raw_tag.parse().map_err(field::ParseError::InvalidTag)?;
+
+    let (raw_ty, raw_value) = rest.split_once(':').ok_or(field::ParseError::Invalid)?;
+    let ty = raw_ty.parse().map_err(field::ParseError::InvalidType)?;
+    let value =
+        field::Value::from_str_type(raw_value, ty).map_err(|_| field::ParseError::InvalidValue)?;
+
+    Ok((tag, value))
+}
+
 impl TryFrom<Vec<Field>> for Data {
     type Error = ParseError;
 
