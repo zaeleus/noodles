@@ -197,10 +197,7 @@ fn maybe_insert_read_group(
     read_groups: &sam::header::ReadGroups,
     read_group_id: Option<usize>,
 ) -> io::Result<()> {
-    use sam::record::data::{
-        field::{Tag, Value},
-        Field,
-    };
+    use sam::record::data::field::{Tag, Value};
 
     if let Some(id) = read_group_id {
         let name = read_groups
@@ -208,8 +205,7 @@ fn maybe_insert_read_group(
             .map(|(_, rg)| rg.id())
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid read group ID"))?;
 
-        let rg = Field::new(Tag::ReadGroup, Value::String(name.into()));
-        data.insert(rg);
+        data.insert(Tag::ReadGroup, Value::String(name.into()));
     }
 
     Ok(())

@@ -122,10 +122,7 @@ impl Builder {
         tag: sam::record::data::field::Tag,
         value: sam::record::data::field::Value,
     ) -> Self {
-        use sam::record::data::Field;
-
-        let field = Field::new(tag, value);
-        self.tags.insert(field);
+        self.tags.insert(tag, value);
         self
     }
 

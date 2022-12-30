@@ -31,10 +31,7 @@ impl Builder {
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::record::data::{
-        field::{value::Type, Tag, Value},
-        Field,
-    };
+    use noodles_sam::record::data::field::{value::Type, Tag, Value};
 
     use super::*;
 
@@ -43,25 +40,18 @@ mod tests {
         let mut builder = Builder::default();
 
         let mut record = Record::default();
-        record
-            .tags
-            .insert(Field::new(Tag::AlignmentHitCount, Value::Int8(1)));
+        record.tags.insert(Tag::AlignmentHitCount, Value::Int8(1));
         builder.update(&record);
 
         let mut record = Record::default();
-        record
-            .tags
-            .insert(Field::new(Tag::AlignmentHitCount, Value::Int8(2)));
+        record.tags.insert(Tag::AlignmentHitCount, Value::Int8(2));
         builder.update(&record);
 
         let mut record = Record::default();
+        record.tags.insert(Tag::AlignmentHitCount, Value::Int8(1));
         record
             .tags
-            .insert(Field::new(Tag::AlignmentHitCount, Value::Int8(1)));
-        record.tags.insert(Field::new(
-            Tag::Comment,
-            Value::String(String::from("noodles")),
-        ));
+            .insert(Tag::Comment, Value::String(String::from("noodles")));
         builder.update(&record);
 
         let dictionary = builder.build();

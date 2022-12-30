@@ -18,7 +18,7 @@ const DELIMITER: char = '\t';
 /// This is also called optional fields.
 #[derive(Default, Clone, PartialEq)]
 pub struct Data {
-    fields: Vec<Field>,
+    fields: Vec<(field::Tag, field::Value)>,
 }
 
 impl Data {
@@ -85,10 +85,7 @@ impl Data {
     /// assert!(data.get(Tag::ReadGroup).is_none());
     /// ```
     pub fn get(&self, tag: field::Tag) -> Option<&field::Value> {
-        self.fields
-            .iter()
-            .find(|f| f.tag() == tag)
-            .map(|f| f.value())
+        self.fields.iter().find(|(t, _)| *t == tag).map(|(_, v)| v)
     }
 
     /// Returns the index of the field of the given tag.
@@ -105,7 +102,7 @@ impl Data {
     /// assert!(data.get_index_of(Tag::ReadGroup).is_none());
     /// ```
     pub fn get_index_of(&self, tag: field::Tag) -> Option<usize> {
-        self.fields.iter().position(|f| f.tag() == tag)
+        self.fields.iter().position(|(t, _)| *t == tag)
     }
 
     /// Returns an iterator over all tag-value pairs.
@@ -123,7 +120,7 @@ impl Data {
     /// assert!(fields.next().is_none());
     /// ```
     pub fn iter(&self) -> impl Iterator<Item = (field::Tag, &field::Value)> {
-        self.fields.iter().map(|f| (f.tag(), f.value()))
+        self.fields.iter().map(|(tag, value)| (*tag, value))
     }
 
     /// Returns an iterator over all tags.
@@ -141,7 +138,7 @@ impl Data {
     /// assert!(keys.next().is_none());
     /// ```
     pub fn keys(&self) -> impl Iterator<Item = field::Tag> + '_ {
-        self.fields.iter().map(|field| field.tag())
+        self.fields.iter().map(|(tag, _)| *tag)
     }
 
     /// Returns an iterator over all values.
@@ -159,7 +156,7 @@ impl Data {
     /// assert!(values.next().is_none());
     /// ```
     pub fn values(&self) -> impl Iterator<Item = &field::Value> {
-        self.fields.iter().map(|field| field.value())
+        self.fields.iter().map(|(_, value)| value)
     }
 
     /// Inserts a field into the data map.
@@ -172,13 +169,18 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
+    /// use noodles_sam::record::{data::field::{Tag, Value}, Data};
     /// let mut data = Data::default();
-    /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
-    /// data.insert(nh);
+    /// data.insert(Tag::AlignmentHitCount, Value::Int32(1));
     /// ```
-    pub fn insert(&mut self, field: Field) -> Option<Field> {
-        match self.get_index_of(field.tag()) {
+    pub fn insert(
+        &mut self,
+        tag: field::Tag,
+        value: field::Value,
+    ) -> Option<(field::Tag, field::Value)> {
+        let field = (tag, value);
+
+        match self.get_index_of(tag) {
             Some(i) => Some(mem::replace(&mut self.fields[i], field)),
             None => {
                 self.fields.push(field);
@@ -197,25 +199,25 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
+    /// use noodles_sam::record::{data::field::{Tag, Value}, Data};
     ///
-    /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
-    /// let rg = Field::new(Tag::ReadGroup, Value::String(String::from("rg0")));
-    /// let md = Field::new(Tag::AlignmentScore, Value::Int32(98));
-    /// let mut data = Data::try_from(vec![nh.clone(), rg.clone(), md.clone()])?;
+    /// let nh = (Tag::AlignmentHitCount, Value::Int32(1));
+    /// let rg = (Tag::ReadGroup, Value::String(String::from("rg0")));
+    /// let md = (Tag::AlignmentScore, Value::Int32(98));
+    /// let mut data: Data = [nh.clone(), rg.clone(), md.clone()].into_iter().collect();
     ///
     /// assert_eq!(data.remove(Tag::AlignmentHitCount), Some(nh));
     /// assert!(data.remove(Tag::Comment).is_none());
     ///
-    /// let expected = Data::try_from(vec![md, rg])?;
+    /// let expected = [md, rg].into_iter().collect();
     /// assert_eq!(data, expected);
     /// # Ok::<_, noodles_sam::record::data::ParseError>(())
     /// ```
-    pub fn remove(&mut self, tag: field::Tag) -> Option<Field> {
+    pub fn remove(&mut self, tag: field::Tag) -> Option<(field::Tag, field::Value)> {
         self.swap_remove(tag)
     }
 
-    fn swap_remove(&mut self, tag: field::Tag) -> Option<Field> {
+    fn swap_remove(&mut self, tag: field::Tag) -> Option<(field::Tag, field::Value)> {
         self.get_index_of(tag).map(|i| self.fields.swap_remove(i))
     }
 }
@@ -283,8 +285,7 @@ impl FromIterator<(field::Tag, field::Value)> for Data {
         let mut data = Self::default();
 
         for (tag, value) in iter {
-            let field = Field::new(tag, value);
-            data.fields.push(field);
+            data.insert(tag, value);
         }
 
         data
@@ -302,10 +303,10 @@ impl FromStr for Data {
         let mut data = Self::default();
 
         for s in s.split(DELIMITER) {
-            let field = s.parse().map_err(ParseError::InvalidField)?;
+            let (tag, value) = parse_field(s).map_err(ParseError::InvalidField)?;
 
-            if let Some(f) = data.insert(field) {
-                return Err(ParseError::DuplicateTag(f.tag()));
+            if data.insert(tag, value).is_some() {
+                return Err(ParseError::DuplicateTag(tag));
             }
         }
 
@@ -332,8 +333,10 @@ impl TryFrom<Vec<Field>> for Data {
         let mut data = Self::default();
 
         for field in fields {
-            if let Some(f) = data.insert(field) {
-                return Err(ParseError::DuplicateTag(f.tag()));
+            let (tag, value) = (field.tag(), field.value().clone());
+
+            if data.insert(tag, value).is_some() {
+                return Err(ParseError::DuplicateTag(tag));
             }
         }
 
