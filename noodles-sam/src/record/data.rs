@@ -16,7 +16,7 @@ const DELIMITER: char = '\t';
 /// SAM record data.
 ///
 /// This is also called optional fields.
-#[derive(Default, Clone, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct Data {
     fields: Vec<(field::Tag, field::Value)>,
 }
@@ -219,12 +219,6 @@ impl Data {
 
     fn swap_remove(&mut self, tag: field::Tag) -> Option<(field::Tag, field::Value)> {
         self.get_index_of(tag).map(|i| self.fields.swap_remove(i))
-    }
-}
-
-impl fmt::Debug for Data {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_list().entries(self.fields.iter()).finish()
     }
 }
 
