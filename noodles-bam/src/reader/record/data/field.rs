@@ -8,9 +8,9 @@ pub use self::value::get_value;
 use std::io;
 
 use bytes::Buf;
-use noodles_sam::record::data::Field;
+use noodles_sam::record::data::field::{Tag, Value};
 
-pub(crate) fn get_field<B>(src: &mut B) -> io::Result<Option<Field>>
+pub(crate) fn get_field<B>(src: &mut B) -> io::Result<Option<(Tag, Value)>>
 where
     B: Buf,
 {
@@ -25,7 +25,7 @@ where
     let ty = value::get_type(src)?;
     let value = get_value(src, ty)?;
 
-    Ok(Some(Field::new(tag, value)))
+    Ok(Some((tag, value)))
 }
 
 #[cfg(test)]
@@ -43,7 +43,7 @@ mod tests {
         let data = [b'N', b'H', b'C', 0x01];
         let mut reader = &data[..];
         let actual = get_field(&mut reader)?;
-        let expected = Field::new(Tag::AlignmentHitCount, Value::from(1));
+        let expected = (Tag::AlignmentHitCount, Value::from(1));
         assert_eq!(actual, Some(expected));
 
         Ok(())

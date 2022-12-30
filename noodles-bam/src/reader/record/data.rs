@@ -7,7 +7,7 @@ pub(crate) use self::field::get_field;
 use std::io;
 
 use bytes::Buf;
-use noodles_sam::record::Data;
+use noodles_sam::record::{data::Field, Data};
 
 pub(crate) fn get_data<B>(src: &mut B, data: &mut Data) -> io::Result<()>
 where
@@ -15,7 +15,8 @@ where
 {
     data.clear();
 
-    while let Some(field) = get_field(src)? {
+    while let Some((tag, value)) = get_field(src)? {
+        let field = Field::new(tag, value);
         data.insert(field);
     }
 
