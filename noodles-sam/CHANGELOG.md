@@ -8,6 +8,8 @@
 
   * sam/record/data: Add iterator over all tag-value pairs (`Data::iter`).
 
+  * sam/record/data: Implement `FromIterator<(Tag, Value)>`.
+
   * sam/record/data/field: Add mutable getter for value (`Field::value_mut`).
 
 ### Changed
