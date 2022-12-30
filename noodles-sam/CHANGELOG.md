@@ -10,6 +10,8 @@
 
   * sam/record/data: Implement `FromIterator<(Tag, Value)>`.
 
+  * sam/record/data: Implement `Extend<(Tag, Value)>`.
+
   * sam/record/data/field: Add mutable getter for value (`Field::value_mut`).
 
 ### Changed

@@ -244,6 +244,14 @@ impl fmt::Display for Data {
     }
 }
 
+impl Extend<(field::Tag, field::Value)> for Data {
+    fn extend<T: IntoIterator<Item = (field::Tag, field::Value)>>(&mut self, iter: T) {
+        for (tag, value) in iter {
+            self.insert(tag, value);
+        }
+    }
+}
+
 /// An error returned when raw SAM record data fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -277,11 +285,7 @@ impl fmt::Display for ParseError {
 impl FromIterator<(field::Tag, field::Value)> for Data {
     fn from_iter<T: IntoIterator<Item = (field::Tag, field::Value)>>(iter: T) -> Self {
         let mut data = Self::default();
-
-        for (tag, value) in iter {
-            data.insert(tag, value);
-        }
-
+        data.extend(iter);
         data
     }
 }
