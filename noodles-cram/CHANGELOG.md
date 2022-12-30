@@ -6,6 +6,11 @@
 
   * cram/crai/record: Implement `std::error::Error::source` for errors.
 
+### Changed
+
+  * cram/record/builder: Change `Builder::add_tag` to receive a `Tag`-`Value`
+    pair.
+
 ## 0.22.1 - 2022-11-29
 
 ### Changed

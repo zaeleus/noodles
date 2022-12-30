@@ -117,8 +117,15 @@ impl Builder {
     }
 
     /// Adds a tag to the tag dictionary.
-    pub fn add_tag(mut self, tag: sam::record::data::Field) -> Self {
-        self.tags.insert(tag);
+    pub fn add_tag(
+        mut self,
+        tag: sam::record::data::field::Tag,
+        value: sam::record::data::field::Value,
+    ) -> Self {
+        use sam::record::data::Field;
+
+        let field = Field::new(tag, value);
+        self.tags.insert(field);
         self
     }
 
