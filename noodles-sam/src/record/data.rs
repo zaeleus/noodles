@@ -349,14 +349,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_remove_with_multiple_removes() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_remove_with_multiple_removes() -> Result<(), field::tag::ParseError> {
         let zz = "zz".parse()?;
 
-        let mut data = Data::try_from(vec![
-            Field::new(Tag::AlignmentHitCount, Value::from(2)),
-            Field::new(Tag::EditDistance, Value::from(1)),
-            Field::new(zz, Value::from(0)),
-        ])?;
+        let mut data: Data = [
+            (Tag::AlignmentHitCount, Value::from(2)),
+            (Tag::EditDistance, Value::from(1)),
+            (zz, Value::from(0)),
+        ]
+        .into_iter()
+        .collect();
 
         data.remove(Tag::EditDistance);
         data.remove(zz);
@@ -368,21 +370,21 @@ mod tests {
     }
 
     #[test]
-    fn test_fmt() -> Result<(), ParseError> {
-        let data = Data::try_from(vec![
-            Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
-            Field::new(Tag::AlignmentHitCount, Value::from(1)),
-        ])?;
+    fn test_fmt() {
+        let data: Data = [
+            (Tag::ReadGroup, Value::String(String::from("rg0"))),
+            (Tag::AlignmentHitCount, Value::from(1)),
+        ]
+        .into_iter()
+        .collect();
 
         let expected = "RG:Z:rg0\tNH:i:1";
 
         assert_eq!(data.to_string(), expected);
-
-        Ok(())
     }
 
     #[test]
-    fn test_from_iterator() -> Result<(), ParseError> {
+    fn test_from_iterator() {
         let actual: Data = [
             (Tag::ReadGroup, Value::String(String::from("rg0"))),
             (Tag::AlignmentHitCount, Value::from(1)),
@@ -390,33 +392,33 @@ mod tests {
         .into_iter()
         .collect();
 
-        let expected = Data::try_from(vec![
-            Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
-            Field::new(Tag::AlignmentHitCount, Value::from(1)),
-        ])?;
+        let expected: Data = [
+            (Tag::ReadGroup, Value::String(String::from("rg0"))),
+            (Tag::AlignmentHitCount, Value::from(1)),
+        ]
+        .into_iter()
+        .collect();
 
         assert_eq!(expected, actual);
-
-        Ok(())
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
+    fn test_from_str() {
         assert_eq!("".parse(), Ok(Data::default()));
 
         assert_eq!(
-            "RG:Z:rg0\tNH:i:1".parse(),
-            Ok(Data::try_from(vec![
-                Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
-                Field::new(Tag::AlignmentHitCount, Value::from(1)),
-            ])?)
+            "RG:Z:rg0\tNH:i:1".parse::<Data>(),
+            Ok([
+                (Tag::ReadGroup, Value::String(String::from("rg0"))),
+                (Tag::AlignmentHitCount, Value::from(1)),
+            ]
+            .into_iter()
+            .collect())
         );
 
         assert_eq!(
             "NH:i:1\tNH:i:1".parse::<Data>(),
             Err(ParseError::DuplicateTag(Tag::AlignmentHitCount))
         );
-
-        Ok(())
     }
 }
