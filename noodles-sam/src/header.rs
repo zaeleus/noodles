@@ -403,7 +403,7 @@ impl fmt::Display for Header {
         }
 
         for comment in &self.comments {
-            writeln!(f, "{}\t{}", record::Kind::Comment, comment)?;
+            writeln!(f, "{}\t{}", Kind::Comment, comment)?;
         }
 
         Ok(())
