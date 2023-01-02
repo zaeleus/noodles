@@ -22,6 +22,9 @@
 
     `Map<I>` no longer holds the record ID. Use the collection key instead.
 
+  * sam/header: The key for `ReferenceSequences` is now a
+    `reference_sequence::Name`.
+
   * sam/header/record/value/map/reference_sequence/alternative_locus:
     Parse interval as a pair of `Position`s.
 

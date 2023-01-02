@@ -331,8 +331,7 @@ mod tests {
         let reference_sequences = [("sq0".parse()?, 8)]
             .into_iter()
             .map(|(name, len): (Name, usize)| {
-                let sn = name.to_string();
-                Map::<ReferenceSequence>::new(name, len).map(|rs| (sn, rs))
+                Map::<ReferenceSequence>::new(name.clone(), len).map(|rs| (name, rs))
             })
             .collect::<Result<_, _>>()?;
 

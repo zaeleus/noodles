@@ -79,7 +79,7 @@ use self::record::value::{
 };
 
 /// A reference seqeuence dictionary.
-pub type ReferenceSequences = IndexMap<String, Map<ReferenceSequence>>;
+pub type ReferenceSequences = IndexMap<map::reference_sequence::Name, Map<ReferenceSequence>>;
 
 /// An ordered map of read groups.
 pub type ReadGroups = IndexMap<String, Map<ReadGroup>>;
@@ -195,7 +195,7 @@ impl Header {
     ///
     /// let reference_sequence = Map::<ReferenceSequence>::new("sq0".parse()?, 13)?;
     /// header.reference_sequences_mut().insert(
-    ///     reference_sequence.name().to_string(),
+    ///     reference_sequence.name().clone(),
     ///     reference_sequence,
     /// );
     ///

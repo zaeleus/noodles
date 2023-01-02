@@ -66,8 +66,7 @@ impl Builder {
     /// let reference_sequences = [("sq0".parse()?, 13)]
     ///     .into_iter()
     ///     .map(|(name, len): (Name, usize)| {
-    ///         let sn = name.to_string();
-    ///         Map::<ReferenceSequence>::new(name, len).map(|rs| (sn, rs))
+    ///         Map::<ReferenceSequence>::new(name.clone(), len).map(|rs| (name, rs))
     ///     })
     ///     .collect::<Result<_, _>>()?;
     ///
@@ -105,8 +104,8 @@ impl Builder {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn add_reference_sequence(mut self, reference_sequence: Map<ReferenceSequence>) -> Self {
-        let name = reference_sequence.name().to_string();
-        self.reference_sequences.insert(name, reference_sequence);
+        self.reference_sequences
+            .insert(reference_sequence.name().clone(), reference_sequence);
         self
     }
 

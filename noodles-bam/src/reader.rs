@@ -507,8 +507,7 @@ where
 
     for _ in 0..n_ref {
         let reference_sequence = read_reference_sequence(reader)?;
-        let name = reference_sequence.name().to_string();
-        reference_sequences.insert(name, reference_sequence);
+        reference_sequences.insert(reference_sequence.name().clone(), reference_sequence);
     }
 
     Ok(reference_sequences)
@@ -644,8 +643,7 @@ mod tests {
         let expected: ReferenceSequences = [("sq0".parse()?, 8)]
             .into_iter()
             .map(|(name, len): (Name, usize)| {
-                let sn = name.to_string();
-                Map::<ReferenceSequence>::new(name, len).map(|rs| (sn, rs))
+                Map::<ReferenceSequence>::new(name.clone(), len).map(|rs| (name, rs))
             })
             .collect::<Result<_, _>>()?;
 
