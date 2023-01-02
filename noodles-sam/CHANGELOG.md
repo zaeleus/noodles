@@ -16,6 +16,10 @@
 
 ### Changed
 
+  * sam/header: Moved record IDs from record to map key.
+
+    `Map<I>` no longer holds the record ID. Use the collection key instead.
+
   * sam/header/record/value/map/reference_sequence/alternative_locus:
     Parse interval as a pair of `Position`s.
 

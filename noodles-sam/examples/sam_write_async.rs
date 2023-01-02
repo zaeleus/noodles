@@ -23,7 +23,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .add_reference_sequence(Map::<ReferenceSequence>::new("sq0".parse()?, 8)?)
         .add_reference_sequence(Map::<ReferenceSequence>::new("sq1".parse()?, 13)?)
         .add_reference_sequence(Map::<ReferenceSequence>::new("sq2".parse()?, 21)?)
-        .add_program(Map::<Program>::new("noodles-sam"))
+        .add_program("noodles-sam", Map::<Program>::default())
         .add_comment("an example SAM written by noodles-sam")
         .build();
 

@@ -141,15 +141,18 @@ impl Builder {
     /// use noodles_sam::{self as sam, header::record::value::{map::Program, Map}};
     ///
     /// let header = sam::Header::builder()
-    ///     .add_program(Map::<Program>::new("noodles-sam"))
+    ///     .add_program("noodles-sam", Map::<Program>::default())
     ///     .build();
     ///
     /// let programs = header.programs();
     /// assert_eq!(programs.len(), 1);
     /// assert!(programs.contains_key("noodles-sam"));
     /// ```
-    pub fn add_program(mut self, program: Map<Program>) -> Self {
-        self.programs.insert(program.id().into(), program);
+    pub fn add_program<I>(mut self, id: I, map: Map<Program>) -> Self
+    where
+        I: Into<String>,
+    {
+        self.programs.insert(id.into(), map);
         self
     }
 
@@ -215,7 +218,7 @@ mod tests {
             .add_reference_sequence(Map::<ReferenceSequence>::new("sq2".parse()?, 21)?)
             .add_read_group(Map::<ReadGroup>::new("rg0"))
             .add_read_group(Map::<ReadGroup>::new("rg1"))
-            .add_program(Map::<Program>::new("noodles-sam"))
+            .add_program("pg0", Map::<Program>::default())
             .add_comment("written by noodles-sam")
             .build();
 

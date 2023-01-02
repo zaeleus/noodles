@@ -19,7 +19,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let header = sam::Header::builder()
         .set_header(Default::default())
-        .add_program(Map::<Program>::new("noodles-bam"))
+        .add_program("noodles-bam", Map::<Program>::default())
         .add_comment("an example BAM written by noodles-bam")
         .build();
 

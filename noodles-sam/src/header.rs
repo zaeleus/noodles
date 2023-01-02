@@ -261,8 +261,8 @@ impl Header {
     /// ```
     /// use noodles_sam::{self as sam, header::record::value::{map::Program, Map}};
     ///
-    /// let program = Map::<Program>::new("noodles-sam");
-    /// let header = sam::Header::builder().add_program(program).build();
+    /// let program = Map::<Program>::default();
+    /// let header = sam::Header::builder().add_program("noodles-sam", program).build();
     ///
     /// let programs = header.programs();
     /// assert_eq!(programs.len(), 1);
@@ -281,8 +281,8 @@ impl Header {
     ///
     /// let mut header = sam::Header::default();
     ///
-    /// let program = Map::<Program>::new("noodles-sam");
-    /// header.programs_mut().insert(program.id().into(), program);
+    /// let program = Map::<Program>::default();
+    /// header.programs_mut().insert(String::from("noodles-sam"), program);
     ///
     /// let programs = header.programs();
     /// assert_eq!(programs.len(), 1);
@@ -398,8 +398,8 @@ impl fmt::Display for Header {
             writeln!(f, "{}\t{}", Kind::ReadGroup, read_group)?;
         }
 
-        for program in self.programs.values() {
-            writeln!(f, "{}\t{}", Kind::Program, program)?;
+        for (id, program) in &self.programs {
+            writeln!(f, "{}\tID:{}{}", Kind::Program, id, program)?;
         }
 
         for comment in &self.comments {
@@ -454,8 +454,8 @@ mod tests {
             .add_reference_sequence(Map::<ReferenceSequence>::new("sq1".parse()?, 13)?)
             .add_read_group(Map::<ReadGroup>::new("rg0"))
             .add_read_group(Map::<ReadGroup>::new("rg1"))
-            .add_program(Map::<Program>::new("pg0"))
-            .add_program(Map::<Program>::new("pg1"))
+            .add_program("pg0", Map::<Program>::default())
+            .add_program("pg1", Map::<Program>::default())
             .add_comment("noodles")
             .add_comment("sam")
             .build();

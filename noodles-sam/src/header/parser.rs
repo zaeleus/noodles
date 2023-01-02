@@ -83,9 +83,9 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
                 read_group_ids.insert(read_group.id().into());
                 builder.add_read_group(read_group)
             }
-            Record::Program(program) => {
-                program_ids.insert(program.id().into());
-                builder.add_program(program)
+            Record::Program(id, program) => {
+                program_ids.insert(id.clone());
+                builder.add_program(id, program)
             }
             Record::Comment(comment) => builder.add_comment(comment),
         };
@@ -112,12 +112,12 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
 
                 builder.add_read_group(read_group)
             }
-            Record::Program(program) => {
-                if !program_ids.insert(program.id().into()) {
-                    return Err(ParseError::DuplicateProgramId(program.id().into()));
+            Record::Program(id, program) => {
+                if !program_ids.insert(id.clone()) {
+                    return Err(ParseError::DuplicateProgramId(id));
                 }
 
-                builder.add_program(program)
+                builder.add_program(id, program)
             }
             Record::Comment(comment) => builder.add_comment(comment),
         };

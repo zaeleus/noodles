@@ -41,7 +41,7 @@ fn build_header(
 ) -> Result<sam::Header, Box<dyn std::error::Error>> {
     let mut builder = sam::Header::builder()
         .set_header(Default::default())
-        .add_program(Map::<Program>::new("noodles-cram"))
+        .add_program("noodles-cram", Map::<Program>::default())
         .add_comment("an example CRAM written by noodles-cram");
 
     for record in reference_sequence_records {

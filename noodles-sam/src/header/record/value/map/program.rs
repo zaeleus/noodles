@@ -6,7 +6,7 @@ mod tag;
 use std::fmt;
 
 use self::builder::Builder;
-use super::{Fields, Inner, Map, OtherFields, TryFromFieldsError};
+use super::{Fields, Inner, Map, TryFromFieldsError};
 
 type StandardTag = tag::Standard;
 type Tag = super::tag::Tag<StandardTag>;
@@ -15,9 +15,8 @@ type Tag = super::tag::Tag<StandardTag>;
 ///
 /// A program describes any program that created, viewed, or mutated a SAM file. The program ID is
 /// guaranteed to be set.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Program {
-    id: String,
     name: Option<String>,
     command_line: Option<String>,
     previous_id: Option<String>,
@@ -31,65 +30,13 @@ impl Inner for Program {
 }
 
 impl Map<Program> {
-    /// Creates a SAM header record program map value with an ID.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::header::record::value::{map::Program, Map};
-    /// let program = Map::<Program>::new("pg0");
-    /// ```
-    pub fn new<I>(id: I) -> Self
-    where
-        I: Into<String>,
-    {
-        Self {
-            inner: Program {
-                id: id.into(),
-                name: None,
-                command_line: None,
-                previous_id: None,
-                description: None,
-                version: None,
-            },
-            other_fields: OtherFields::new(),
-        }
-    }
-
-    /// Returns the program ID.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::header::record::value::{map::Program, Map};
-    /// let program = Map::<Program>::new("pg0");
-    /// assert_eq!(program.id(), "pg0");
-    /// ```
-    pub fn id(&self) -> &str {
-        &self.inner.id
-    }
-
-    /// Returns a mutable reference to the program ID.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::header::record::value::{map::Program, Map};
-    /// let mut program = Map::<Program>::new("pg0");
-    /// *program.id_mut() = String::from("pg1");
-    /// assert_eq!(program.id(), "pg1");
-    /// ```
-    pub fn id_mut(&mut self) -> &mut String {
-        &mut self.inner.id
-    }
-
     /// Returns the program name.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::Program, Map};
-    /// let mut program = Map::<Program>::new("pg0");
+    /// let program = Map::<Program>::default();
     /// assert!(program.name().is_none());
     /// ```
     pub fn name(&self) -> Option<&str> {
@@ -102,7 +49,7 @@ impl Map<Program> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::Program, Map};
-    /// let mut program = Map::<Program>::new("pg0");
+    /// let program = Map::<Program>::default();
     /// assert!(program.command_line().is_none());
     /// ```
     pub fn command_line(&self) -> Option<&str> {
@@ -115,7 +62,7 @@ impl Map<Program> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::Program, Map};
-    /// let mut program = Map::<Program>::new("pg0");
+    /// let program = Map::<Program>::default();
     /// assert!(program.previous_id().is_none());
     /// ```
     pub fn previous_id(&self) -> Option<&str> {
@@ -128,7 +75,7 @@ impl Map<Program> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::Program, Map};
-    /// let mut program = Map::<Program>::new("pg0");
+    /// let program = Map::<Program>::default();
     /// assert!(program.description().is_none());
     /// ```
     pub fn description(&self) -> Option<&str> {
@@ -141,7 +88,7 @@ impl Map<Program> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::Program, Map};
-    /// let mut program = Map::<Program>::new("pg0");
+    /// let program = Map::<Program>::default();
     /// assert!(program.version().is_none());
     /// ```
     pub fn version(&self) -> Option<&str> {
@@ -151,8 +98,6 @@ impl Map<Program> {
 
 impl fmt::Display for Map<Program> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "ID:{}", self.id())?;
-
         if let Some(name) = self.name() {
             write!(f, "\tPN:{}", name)?;
         }
@@ -185,7 +130,6 @@ impl TryFrom<Fields> for Map<Program> {
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
         let mut other_fields = super::init_other_fields(fields.len());
 
-        let mut id = None;
         let mut name = None;
         let mut command_line = None;
         let mut previous_id = None;
@@ -196,7 +140,7 @@ impl TryFrom<Fields> for Map<Program> {
             let tag = key.parse().map_err(|_| TryFromFieldsError::InvalidTag)?;
 
             match tag {
-                Tag::Standard(StandardTag::Id) => id = Some(value),
+                Tag::Standard(StandardTag::Id) => {}
                 Tag::Standard(StandardTag::Name) => name = Some(value),
                 Tag::Standard(StandardTag::CommandLine) => command_line = Some(value),
                 Tag::Standard(StandardTag::PreviousId) => previous_id = Some(value),
@@ -206,11 +150,8 @@ impl TryFrom<Fields> for Map<Program> {
             }
         }
 
-        let id = id.ok_or(TryFromFieldsError::MissingField("ID"))?;
-
         Ok(Self {
             inner: Program {
-                id,
                 name,
                 command_line,
                 previous_id,
@@ -230,23 +171,11 @@ mod tests {
     #[test]
     fn test_fmt() -> Result<(), BuildError> {
         let program = Map::<Program>::builder()
-            .set_id("pg0")
-            .set_name("noodles")
+            .set_name("noodles-sam")
+            .set_version("0.23.0")
             .build()?;
 
-        assert_eq!(program.to_string(), "ID:pg0\tPN:noodles");
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_try_from_fields_for_map_program_with_missing_id() -> Result<(), TryFromFieldsError> {
-        let fields = vec![(String::from("PN"), String::from("noodles"))];
-
-        assert_eq!(
-            Map::<Program>::try_from(fields),
-            Err(TryFromFieldsError::MissingField("ID"))
-        );
+        assert_eq!(program.to_string(), "\tPN:noodles-sam\tVN:0.23.0");
 
         Ok(())
     }

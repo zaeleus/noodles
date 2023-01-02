@@ -24,7 +24,7 @@ pub enum Record {
     /// A read group (`RG`) record.
     ReadGroup(Map<ReadGroup>),
     /// A program (`PG`) record.
-    Program(Map<Program>),
+    Program(String, Map<Program>),
     /// A comment (`CO`) record.
     Comment(String),
 }
@@ -105,10 +105,18 @@ impl FromStr for Record {
                 Ok(Self::ReadGroup(read_group))
             }
             Kind::Program => {
-                let fields = split_fields(v)?;
+                let mut fields = split_fields(v)?;
+
+                let i = fields
+                    .iter()
+                    .position(|(tag, _)| tag == "ID")
+                    .ok_or(ParseError::Invalid)?;
+                let (_, id) = fields.remove(i);
+
                 let program =
                     Map::<Program>::try_from(fields).map_err(ParseError::InvalidProgram)?;
-                Ok(Self::Program(program))
+
+                Ok(Self::Program(id, program))
             }
             Kind::Comment => Ok(Self::Comment(v.into())),
         }
@@ -152,7 +160,10 @@ mod tests {
         ));
 
         assert!(matches!("@RG\tID:rg0".parse(), Ok(Record::ReadGroup(_))));
-        assert!(matches!("@PG\tID:pg0".parse(), Ok(Record::Program(_))));
+        assert!(matches!(
+            "@PG\tID:pg0".parse(),
+            Ok(Record::Program(id, _)) if id == "pg0"
+        ));
 
         assert_eq!(
             "@CO\tnoodles".parse(),

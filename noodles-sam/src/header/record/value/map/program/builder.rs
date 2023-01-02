@@ -4,7 +4,6 @@ use crate::header::record::value::map::{self, builder::BuildError};
 /// A SAM header program builder.
 #[derive(Debug, Default)]
 pub struct Builder {
-    id: Option<String>,
     name: Option<String>,
     command_line: Option<String>,
     previous_id: Option<String>,
@@ -13,24 +12,6 @@ pub struct Builder {
 }
 
 impl map::Builder<Program> {
-    /// Sets a program ID.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::{self as sam, header::record::value::{map::Program, Map}};
-    /// let program = Map::<Program>::builder().set_id("pg0").build()?;
-    /// assert_eq!(program.id(), "pg0");
-    /// Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
-    /// ```
-    pub fn set_id<I>(mut self, id: I) -> Self
-    where
-        I: Into<String>,
-    {
-        self.inner.id = Some(id.into());
-        self
-    }
-
     /// Sets a program name.
     ///
     /// # Examples
@@ -39,7 +20,6 @@ impl map::Builder<Program> {
     /// use noodles_sam::{self as sam, header::record::value::{map::Program, Map}};
     ///
     /// let program = Map::<Program>::builder()
-    ///     .set_id("pg0")
     ///     .set_name("noodles")
     ///     .build()?;
     ///
@@ -62,7 +42,6 @@ impl map::Builder<Program> {
     /// use noodles_sam::{self as sam, header::record::value::{map::Program, Map}};
     ///
     /// let program = Map::<Program>::builder()
-    ///     .set_id("pg0")
     ///     .set_command_line("cargo run")
     ///     .build()?;
     ///
@@ -85,7 +64,6 @@ impl map::Builder<Program> {
     /// use noodles_sam::{self as sam, header::record::value::{map::Program, Map}};
     ///
     /// let program = Map::<Program>::builder()
-    ///     .set_id("pg1")
     ///     .set_previous_id("pg0")
     ///     .build()?;
     ///
@@ -108,7 +86,6 @@ impl map::Builder<Program> {
     /// use noodles_sam::{self as sam, header::record::value::{map::Program, Map}};
     ///
     /// let program = Map::<Program>::builder()
-    ///     .set_id("pg0")
     ///     .set_description("noodles")
     ///     .build()?;
     ///
@@ -131,7 +108,6 @@ impl map::Builder<Program> {
     /// use noodles_sam::{self as sam, header::record::value::{map::Program, Map}};
     ///
     /// let program = Map::<Program>::builder()
-    ///     .set_id("pg0")
     ///     .set_version("0.1.0")
     ///     .build()?;
     ///
@@ -149,10 +125,7 @@ impl map::Builder<Program> {
 
 impl map::builder::Inner<Program> for Builder {
     fn build(self) -> Result<Program, BuildError> {
-        let id = self.id.ok_or(BuildError::MissingField("ID"))?;
-
         Ok(Program {
-            id,
             name: self.name,
             command_line: self.command_line,
             previous_id: self.previous_id,
@@ -170,7 +143,6 @@ mod tests {
     fn test_default() {
         let builder = Builder::default();
 
-        assert!(builder.id.is_none());
         assert!(builder.name.is_none());
         assert!(builder.command_line.is_none());
         assert!(builder.previous_id.is_none());
