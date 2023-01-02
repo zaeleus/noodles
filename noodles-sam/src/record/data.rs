@@ -56,15 +56,10 @@ impl Data {
     ///
     /// ```
     /// use noodles_sam::record::{data::field::{Tag, Value}, Data};
-    ///
-    /// let mut data: Data = [(Tag::AlignmentHitCount, Value::from(1))]
-    ///     .into_iter()
-    ///     .collect();
-    ///
+    /// let nh = (Tag::AlignmentHitCount, Value::from(1));
+    /// let mut data: Data = [nh].into_iter().collect();
     /// assert_eq!(data.len(), 1);
-    ///
     /// data.clear();
-    ///
     /// assert!(data.is_empty());
     /// ```
     pub fn clear(&mut self) {
