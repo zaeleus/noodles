@@ -2,8 +2,6 @@
 
 use std::{error, fmt, ops::Deref, str::FromStr};
 
-const MIN_LENGTH: usize = 1;
-
 /// A SAM record reference sequence name.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct ReferenceSequenceName(String);
@@ -66,19 +64,17 @@ fn is_valid_name_char(c: char) -> bool {
 }
 
 pub(crate) fn is_valid_name(s: &str) -> bool {
-    if s.len() < MIN_LENGTH {
-        return false;
-    }
-
     let mut chars = s.chars();
 
     if let Some(c) = chars.next() {
         if c == '*' || c == '=' || !is_valid_name_char(c) {
             return false;
         }
-    }
 
-    chars.all(is_valid_name_char)
+        chars.all(is_valid_name_char)
+    } else {
+        false
+    }
 }
 
 #[cfg(test)]
