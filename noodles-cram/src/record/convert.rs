@@ -202,7 +202,7 @@ fn maybe_insert_read_group(
     if let Some(id) = read_group_id {
         let name = read_groups
             .get_index(id)
-            .map(|(_, rg)| rg.id())
+            .map(|(name, _)| name)
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid read group ID"))?;
 
         data.insert(Tag::ReadGroup, Value::String(name.into()));

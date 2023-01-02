@@ -16,19 +16,17 @@ type Writers = HashMap<String, bam::Writer<bgzf::Writer<File>>>;
 
 fn build_writers(read_groups: &sam::header::ReadGroups) -> io::Result<Writers> {
     read_groups
-        .values()
+        .keys()
         .enumerate()
-        .map(|(i, rg)| {
+        .map(|(i, id)| {
             let dst = format!("out_{}.bam", i);
-            File::create(dst).map(|f| (rg.id().into(), bam::Writer::new(f)))
+            File::create(dst).map(|f| (id.clone(), bam::Writer::new(f)))
         })
         .collect::<Result<_, _>>()
 }
 
 fn write_headers(writers: &mut Writers, header: &sam::Header) -> io::Result<()> {
-    for read_group in header.read_groups().values() {
-        let id = read_group.id();
-
+    for (id, read_group) in header.read_groups() {
         let writer = writers.get_mut(id).ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidData,

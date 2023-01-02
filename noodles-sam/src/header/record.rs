@@ -22,7 +22,7 @@ pub enum Record {
     /// A reference sequence (`SQ`) record.
     ReferenceSequence(Map<ReferenceSequence>),
     /// A read group (`RG`) record.
-    ReadGroup(Map<ReadGroup>),
+    ReadGroup(String, Map<ReadGroup>),
     /// A program (`PG`) record.
     Program(String, Map<Program>),
     /// A comment (`CO`) record.
@@ -99,10 +99,18 @@ impl FromStr for Record {
                 Ok(Self::ReferenceSequence(reference_sequence))
             }
             Kind::ReadGroup => {
-                let fields = split_fields(v)?;
+                let mut fields = split_fields(v)?;
+
+                let i = fields
+                    .iter()
+                    .position(|(tag, _)| tag == "ID")
+                    .ok_or(ParseError::Invalid)?;
+                let (_, id) = fields.remove(i);
+
                 let read_group =
                     Map::<ReadGroup>::try_from(fields).map_err(ParseError::InvalidReadGroup)?;
-                Ok(Self::ReadGroup(read_group))
+
+                Ok(Self::ReadGroup(id, read_group))
             }
             Kind::Program => {
                 let mut fields = split_fields(v)?;
@@ -159,7 +167,11 @@ mod tests {
             Ok(Record::ReferenceSequence(_))
         ));
 
-        assert!(matches!("@RG\tID:rg0".parse(), Ok(Record::ReadGroup(_))));
+        assert!(matches!(
+            "@RG\tID:rg0".parse(),
+            Ok(Record::ReadGroup(id, _)) if id == "rg0"
+        ));
+
         assert!(matches!(
             "@PG\tID:pg0".parse(),
             Ok(Record::Program(id, _)) if id == "pg0"

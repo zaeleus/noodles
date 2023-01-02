@@ -4,7 +4,6 @@ use crate::header::record::value::map::{self, builder::BuildError};
 /// A SAM header reference read group.
 #[derive(Debug, Default)]
 pub struct Builder {
-    id: Option<String>,
     barcode: Option<String>,
     sequencing_center: Option<String>,
     description: Option<String>,
@@ -21,24 +20,6 @@ pub struct Builder {
 }
 
 impl map::Builder<ReadGroup> {
-    /// Sets a read group ID.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
-    /// let read_group = Map::<ReadGroup>::builder().set_id("rg0").build()?;
-    /// assert_eq!(read_group.id(), "rg0");
-    /// # Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
-    /// ```
-    pub fn set_id<I>(mut self, id: I) -> Self
-    where
-        I: Into<String>,
-    {
-        self.inner.id = Some(id.into());
-        self
-    }
-
     /// Sets a barcode sequence.
     ///
     /// # Examples
@@ -47,7 +28,6 @@ impl map::Builder<ReadGroup> {
     /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
     ///
     /// let read_group = Map::<ReadGroup>::builder()
-    ///     .set_id("rg0")
     ///     .set_barcode("ACGT")
     ///     .build()?;
     ///
@@ -70,7 +50,6 @@ impl map::Builder<ReadGroup> {
     /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
     ///
     /// let read_group = Map::<ReadGroup>::builder()
-    ///     .set_id("rg0")
     ///     .set_sequencing_center("sc0")
     ///     .build()?;
     ///
@@ -93,7 +72,6 @@ impl map::Builder<ReadGroup> {
     /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
     ///
     /// let read_group = Map::<ReadGroup>::builder()
-    ///     .set_id("rg0")
     ///     .set_description("noodles")
     ///     .build()?;
     ///
@@ -116,7 +94,6 @@ impl map::Builder<ReadGroup> {
     /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
     ///
     /// let read_group = Map::<ReadGroup>::builder()
-    ///     .set_id("rg0")
     ///     .set_produced_at("2020-08-19T20:00:00Z")
     ///     .build()?;
     ///
@@ -139,7 +116,6 @@ impl map::Builder<ReadGroup> {
     /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
     ///
     /// let read_group = Map::<ReadGroup>::builder()
-    ///     .set_id("rg0")
     ///     .set_flow_order("*")
     ///     .build()?;
     ///
@@ -162,7 +138,6 @@ impl map::Builder<ReadGroup> {
     /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
     ///
     /// let read_group = Map::<ReadGroup>::builder()
-    ///     .set_id("rg0")
     ///     .set_key_sequence("ACGT")
     ///     .build()?;
     ///
@@ -185,7 +160,6 @@ impl map::Builder<ReadGroup> {
     /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
     ///
     /// let read_group = Map::<ReadGroup>::builder()
-    ///     .set_id("rg0")
     ///     .set_library("sample0")
     ///     .build()?;
     ///
@@ -208,7 +182,6 @@ impl map::Builder<ReadGroup> {
     /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
     ///
     /// let read_group = Map::<ReadGroup>::builder()
-    ///     .set_id("rg0")
     ///     .set_program("noodles")
     ///     .build()?;
     ///
@@ -231,7 +204,6 @@ impl map::Builder<ReadGroup> {
     /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
     ///
     /// let read_group = Map::<ReadGroup>::builder()
-    ///     .set_id("rg0")
     ///     .set_predicted_median_insert_size(101)
     ///     .build()?;
     ///
@@ -254,7 +226,6 @@ impl map::Builder<ReadGroup> {
     /// };
     ///
     /// let read_group = Map::<ReadGroup>::builder()
-    ///     .set_id("rg0")
     ///     .set_platform(Platform::Illumina)
     ///     .build()?;
     ///
@@ -274,7 +245,6 @@ impl map::Builder<ReadGroup> {
     /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
     ///
     /// let read_group = Map::<ReadGroup>::builder()
-    ///     .set_id("rg0")
     ///     .set_platform_model("noodles")
     ///     .build()?;
     ///
@@ -297,7 +267,6 @@ impl map::Builder<ReadGroup> {
     /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
     ///
     /// let read_group = Map::<ReadGroup>::builder()
-    ///     .set_id("rg0")
     ///     .set_platform_unit("NDLS000.1")
     ///     .build()?;
     ///
@@ -320,7 +289,6 @@ impl map::Builder<ReadGroup> {
     /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
     ///
     /// let read_group = Map::<ReadGroup>::builder()
-    ///     .set_id("rg0")
     ///     .set_sample("sample0")
     ///     .build()?;
     ///
@@ -338,10 +306,7 @@ impl map::Builder<ReadGroup> {
 
 impl map::builder::Inner<ReadGroup> for Builder {
     fn build(self) -> Result<ReadGroup, BuildError> {
-        let id = self.id.ok_or(BuildError::MissingField("ID"))?;
-
         Ok(ReadGroup {
-            id,
             barcode: self.barcode,
             sequencing_center: self.sequencing_center,
             description: self.description,
@@ -367,7 +332,6 @@ mod tests {
     fn test_default() {
         let builder = Builder::default();
 
-        assert!(builder.id.is_none());
         assert!(builder.barcode.is_none());
         assert!(builder.sequencing_center.is_none());
         assert!(builder.description.is_none());

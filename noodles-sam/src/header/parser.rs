@@ -79,9 +79,9 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
                 reference_sequence_names.insert(reference_sequence.name().clone());
                 builder.add_reference_sequence(reference_sequence)
             }
-            Record::ReadGroup(read_group) => {
-                read_group_ids.insert(read_group.id().into());
-                builder.add_read_group(read_group)
+            Record::ReadGroup(id, read_group) => {
+                read_group_ids.insert(id.clone());
+                builder.add_read_group(id, read_group)
             }
             Record::Program(id, program) => {
                 program_ids.insert(id.clone());
@@ -105,12 +105,12 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
 
                 builder.add_reference_sequence(reference_sequence)
             }
-            Record::ReadGroup(read_group) => {
-                if !read_group_ids.insert(read_group.id().into()) {
-                    return Err(ParseError::DuplicateReadGroupId(read_group.id().into()));
+            Record::ReadGroup(id, read_group) => {
+                if !read_group_ids.insert(id.clone()) {
+                    return Err(ParseError::DuplicateReadGroupId(id));
                 }
 
-                builder.add_read_group(read_group)
+                builder.add_read_group(id, read_group)
             }
             Record::Program(id, program) => {
                 if !program_ids.insert(id.clone()) {

@@ -121,15 +121,18 @@ impl Builder {
     /// };
     ///
     /// let header = sam::Header::builder()
-    ///     .add_read_group(Map::<ReadGroup>::new("rg0"))
+    ///     .add_read_group("rg0", Map::<ReadGroup>::default())
     ///     .build();
     ///
     /// let read_groups = header.read_groups();
     /// assert_eq!(read_groups.len(), 1);
     /// assert!(read_groups.contains_key("rg0"));
     /// ```
-    pub fn add_read_group(mut self, read_group: Map<ReadGroup>) -> Self {
-        self.read_groups.insert(read_group.id().into(), read_group);
+    pub fn add_read_group<I>(mut self, id: I, map: Map<ReadGroup>) -> Self
+    where
+        I: Into<String>,
+    {
+        self.read_groups.insert(id.into(), map);
         self
     }
 
@@ -216,8 +219,8 @@ mod tests {
             .add_reference_sequence(Map::<ReferenceSequence>::new("sq0".parse()?, 8)?)
             .add_reference_sequence(Map::<ReferenceSequence>::new("sq1".parse()?, 13)?)
             .add_reference_sequence(Map::<ReferenceSequence>::new("sq2".parse()?, 21)?)
-            .add_read_group(Map::<ReadGroup>::new("rg0"))
-            .add_read_group(Map::<ReadGroup>::new("rg1"))
+            .add_read_group("rg0", Map::<ReadGroup>::default())
+            .add_read_group("rg1", Map::<ReadGroup>::default())
             .add_program("pg0", Map::<Program>::default())
             .add_comment("written by noodles-sam")
             .build();

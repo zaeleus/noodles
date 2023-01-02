@@ -219,7 +219,7 @@ impl Header {
     /// };
     ///
     /// let header = sam::Header::builder()
-    ///     .add_read_group(Map::<ReadGroup>::new("rg0"))
+    ///     .add_read_group("rg0", Map::<ReadGroup>::default())
     ///     .build();
     ///
     /// let read_groups = header.read_groups();
@@ -243,8 +243,8 @@ impl Header {
     /// let mut header = sam::Header::default();
     /// assert!(header.read_groups().is_empty());
     ///
-    /// let read_group = Map::<ReadGroup>::new("rg0");
-    /// header.read_groups_mut().insert(read_group.id().into(), read_group);
+    /// let read_group = Map::<ReadGroup>::default();
+    /// header.read_groups_mut().insert(String::from("rg0"), read_group);
     ///
     /// let read_groups = header.read_groups();
     /// assert_eq!(read_groups.len(), 1);
@@ -394,8 +394,8 @@ impl fmt::Display for Header {
             writeln!(f, "{}\t{}", Kind::ReferenceSequence, reference_sequence)?;
         }
 
-        for read_group in self.read_groups.values() {
-            writeln!(f, "{}\t{}", Kind::ReadGroup, read_group)?;
+        for (id, read_group) in &self.read_groups {
+            writeln!(f, "{}\tID:{}{}", Kind::ReadGroup, id, read_group)?;
         }
 
         for (id, program) in &self.programs {
@@ -452,8 +452,8 @@ mod tests {
             .set_header(Map::<map::Header>::new(Version::new(1, 6)))
             .add_reference_sequence(Map::<ReferenceSequence>::new("sq0".parse()?, 8)?)
             .add_reference_sequence(Map::<ReferenceSequence>::new("sq1".parse()?, 13)?)
-            .add_read_group(Map::<ReadGroup>::new("rg0"))
-            .add_read_group(Map::<ReadGroup>::new("rg1"))
+            .add_read_group("rg0", Map::<ReadGroup>::default())
+            .add_read_group("rg1", Map::<ReadGroup>::default())
             .add_program("pg0", Map::<Program>::default())
             .add_program("pg1", Map::<Program>::default())
             .add_comment("noodles")

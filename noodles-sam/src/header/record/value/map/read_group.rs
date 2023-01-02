@@ -9,7 +9,7 @@ pub use self::platform::Platform;
 use std::fmt;
 
 use self::builder::Builder;
-use super::{Fields, Inner, Map, OtherFields, TryFromFieldsError};
+use super::{Fields, Inner, Map, TryFromFieldsError};
 
 type StandardTag = tag::Standard;
 type Tag = super::tag::Tag<StandardTag>;
@@ -18,9 +18,8 @@ type Tag = super::tag::Tag<StandardTag>;
 ///
 /// A read group typically defines the set of reads that came from the same run on a sequencing
 /// instrument. The read group ID is guaranteed to be set.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct ReadGroup {
-    id: String,
     barcode: Option<String>,
     sequencing_center: Option<String>,
     description: Option<String>,
@@ -42,73 +41,13 @@ impl Inner for ReadGroup {
 }
 
 impl Map<ReadGroup> {
-    /// Creates a SAM header record read group map value with an ID.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
-    /// let read_group = Map::<ReadGroup>::new("rg0");
-    /// ```
-    pub fn new<I>(id: I) -> Self
-    where
-        I: Into<String>,
-    {
-        Self {
-            inner: ReadGroup {
-                id: id.into(),
-                barcode: None,
-                sequencing_center: None,
-                description: None,
-                produced_at: None,
-                flow_order: None,
-                key_sequence: None,
-                library: None,
-                program: None,
-                predicted_median_insert_size: None,
-                platform: None,
-                platform_model: None,
-                platform_unit: None,
-                sample: None,
-            },
-            other_fields: OtherFields::new(),
-        }
-    }
-
-    /// Returns the read group ID.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
-    /// let read_group = Map::<ReadGroup>::new("rg0");
-    /// assert_eq!(read_group.id(), "rg0");
-    /// ```
-    pub fn id(&self) -> &str {
-        &self.inner.id
-    }
-
-    /// Returns a mutable reference to the read group ID.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
-    /// let mut read_group = Map::<ReadGroup>::new("rg0");
-    /// *read_group.id_mut() = String::from("rg1");
-    /// assert_eq!(read_group.id(), "rg1");
-    /// ```
-    pub fn id_mut(&mut self) -> &mut String {
-        &mut self.inner.id
-    }
-
     /// Returns the barcode sequence.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
-    /// let read_group = Map::<ReadGroup>::new("rg0");
+    /// let read_group = Map::<ReadGroup>::default();
     /// assert!(read_group.barcode().is_none());
     /// ```
     pub fn barcode(&self) -> Option<&str> {
@@ -121,7 +60,7 @@ impl Map<ReadGroup> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
-    /// let read_group = Map::<ReadGroup>::new("rg0");
+    /// let read_group = Map::<ReadGroup>::default();
     /// assert!(read_group.sequencing_center().is_none());
     /// ```
     pub fn sequencing_center(&self) -> Option<&str> {
@@ -134,7 +73,7 @@ impl Map<ReadGroup> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
-    /// let read_group = Map::<ReadGroup>::new("rg0");
+    /// let read_group = Map::<ReadGroup>::default();
     /// assert!(read_group.description().is_none());
     /// ```
     pub fn description(&self) -> Option<&str> {
@@ -147,7 +86,7 @@ impl Map<ReadGroup> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
-    /// let read_group = Map::<ReadGroup>::new("rg0");
+    /// let read_group = Map::<ReadGroup>::default();
     /// assert!(read_group.produced_at().is_none());
     /// ```
     pub fn produced_at(&self) -> Option<&str> {
@@ -160,7 +99,7 @@ impl Map<ReadGroup> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
-    /// let read_group = Map::<ReadGroup>::new("rg0");
+    /// let read_group = Map::<ReadGroup>::default();
     /// assert!(read_group.flow_order().is_none());
     /// ```
     pub fn flow_order(&self) -> Option<&str> {
@@ -173,7 +112,7 @@ impl Map<ReadGroup> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
-    /// let read_group = Map::<ReadGroup>::new("rg0");
+    /// let read_group = Map::<ReadGroup>::default();
     /// assert!(read_group.key_sequence().is_none());
     /// ```
     pub fn key_sequence(&self) -> Option<&str> {
@@ -186,7 +125,7 @@ impl Map<ReadGroup> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
-    /// let read_group = Map::<ReadGroup>::new("rg0");
+    /// let read_group = Map::<ReadGroup>::default();
     /// assert!(read_group.library().is_none());
     /// ```
     pub fn library(&self) -> Option<&str> {
@@ -199,7 +138,7 @@ impl Map<ReadGroup> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
-    /// let read_group = Map::<ReadGroup>::new("rg0");
+    /// let read_group = Map::<ReadGroup>::default();
     /// assert!(read_group.program().is_none());
     /// ```
     pub fn program(&self) -> Option<&str> {
@@ -212,7 +151,7 @@ impl Map<ReadGroup> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
-    /// let read_group = Map::<ReadGroup>::new("rg0");
+    /// let read_group = Map::<ReadGroup>::default();
     /// assert!(read_group.predicted_median_insert_size().is_none());
     /// ```
     pub fn predicted_median_insert_size(&self) -> Option<i32> {
@@ -225,7 +164,7 @@ impl Map<ReadGroup> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
-    /// let read_group = Map::<ReadGroup>::new("rg0");
+    /// let read_group = Map::<ReadGroup>::default();
     /// assert!(read_group.platform().is_none());
     /// ```
     pub fn platform(&self) -> Option<Platform> {
@@ -238,7 +177,7 @@ impl Map<ReadGroup> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
-    /// let read_group = Map::<ReadGroup>::new("rg0");
+    /// let read_group = Map::<ReadGroup>::default();
     /// assert!(read_group.platform_model().is_none());
     /// ```
     pub fn platform_model(&self) -> Option<&str> {
@@ -251,7 +190,7 @@ impl Map<ReadGroup> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
-    /// let read_group = Map::<ReadGroup>::new("rg0");
+    /// let read_group = Map::<ReadGroup>::default();
     /// assert!(read_group.platform_unit().is_none());
     /// ```
     pub fn platform_unit(&self) -> Option<&str> {
@@ -264,7 +203,7 @@ impl Map<ReadGroup> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReadGroup, Map};
-    /// let read_group = Map::<ReadGroup>::new("rg0");
+    /// let read_group = Map::<ReadGroup>::default();
     /// assert!(read_group.sample().is_none());
     /// ```
     pub fn sample(&self) -> Option<&str> {
@@ -274,8 +213,6 @@ impl Map<ReadGroup> {
 
 impl fmt::Display for Map<ReadGroup> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "ID:{}", self.id())?;
-
         if let Some(barcode) = self.barcode() {
             write!(f, "\tBC:{}", barcode)?;
         }
@@ -340,7 +277,6 @@ impl TryFrom<Fields> for Map<ReadGroup> {
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
         let mut other_fields = super::init_other_fields(fields.len());
 
-        let mut id = None;
         let mut barcode = None;
         let mut sequencing_center = None;
         let mut description = None;
@@ -359,7 +295,7 @@ impl TryFrom<Fields> for Map<ReadGroup> {
             let tag = key.parse().map_err(|_| TryFromFieldsError::InvalidTag)?;
 
             match tag {
-                Tag::Standard(StandardTag::Id) => id = Some(value),
+                Tag::Standard(StandardTag::Id) => {}
                 Tag::Standard(StandardTag::Barcode) => barcode = Some(value),
                 Tag::Standard(StandardTag::SequencingCenter) => sequencing_center = Some(value),
                 Tag::Standard(StandardTag::Description) => description = Some(value),
@@ -387,11 +323,8 @@ impl TryFrom<Fields> for Map<ReadGroup> {
             }
         }
 
-        let id = id.ok_or(TryFromFieldsError::MissingField("ID"))?;
-
         Ok(Self {
             inner: ReadGroup {
-                id,
                 barcode,
                 sequencing_center,
                 description,
@@ -419,23 +352,11 @@ mod tests {
     #[test]
     fn test_fmt() -> Result<(), BuildError> {
         let read_group = Map::<ReadGroup>::builder()
-            .set_id("rg0")
             .set_program("noodles")
+            .set_platform(Platform::Illumina)
             .build()?;
 
-        assert_eq!(read_group.to_string(), "ID:rg0\tPG:noodles");
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_try_from_fields_for_map_read_group_with_missing_id() -> Result<(), BuildError> {
-        let fields = vec![(String::from("PG"), String::from("noodles"))];
-
-        assert_eq!(
-            Map::<ReadGroup>::try_from(fields),
-            Err(TryFromFieldsError::MissingField("ID"))
-        );
+        assert_eq!(read_group.to_string(), "\tPG:noodles\tPL:ILLUMINA");
 
         Ok(())
     }
