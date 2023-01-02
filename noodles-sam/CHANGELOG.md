@@ -14,6 +14,8 @@
 
   * sam/record/data/field: Add mutable getter for value (`Field::value_mut`).
 
+  * sam/record/reference_sequence_name: Implement `Borrow<str>`.
+
 ### Changed
 
   * sam/header: Moved record IDs from record to map key.

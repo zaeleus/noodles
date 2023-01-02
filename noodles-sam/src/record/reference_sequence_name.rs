@@ -1,10 +1,16 @@
 //! SAM record reference sequence name.
 
-use std::{error, fmt, ops::Deref, str::FromStr};
+use std::{borrow::Borrow, error, fmt, ops::Deref, str::FromStr};
 
 /// A SAM record reference sequence name.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct ReferenceSequenceName(String);
+
+impl Borrow<str> for ReferenceSequenceName {
+    fn borrow(&self) -> &str {
+        &self.0
+    }
+}
 
 impl Deref for ReferenceSequenceName {
     type Target = String;
