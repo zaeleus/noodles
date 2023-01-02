@@ -10,9 +10,7 @@ pub(crate) fn parse_quality_scores(src: &[u8]) -> io::Result<QualityScores> {
         return Ok(QualityScores::default());
     }
 
-    let mut scores = Vec::new();
-    scores.extend(src.iter().map(|n| n.wrapping_sub(OFFSET)));
-
+    let scores: Vec<u8> = src.iter().map(|n| n.wrapping_sub(OFFSET)).collect();
     QualityScores::try_from(scores).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
