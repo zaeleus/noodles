@@ -97,7 +97,7 @@ impl Map<ReferenceSequence> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let mut reference_sequence = Map::<ReferenceSequence>::new(13)?;
+    /// let reference_sequence = Map::<ReferenceSequence>::new(13)?;
     /// assert_eq!(usize::from(reference_sequence.length()), 13);
     /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
     /// ```
@@ -131,7 +131,7 @@ impl Map<ReferenceSequence> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let mut reference_sequence = Map::<ReferenceSequence>::new(13)?;
+    /// let reference_sequence = Map::<ReferenceSequence>::new(13)?;
     /// assert!(reference_sequence.alternative_locus().is_none());
     /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
     /// ```
@@ -145,7 +145,7 @@ impl Map<ReferenceSequence> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let mut reference_sequence = Map::<ReferenceSequence>::new(13)?;
+    /// let reference_sequence = Map::<ReferenceSequence>::new(13)?;
     /// assert!(reference_sequence.alternative_names().is_none());
     /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
     /// ```
@@ -159,7 +159,7 @@ impl Map<ReferenceSequence> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let mut reference_sequence = Map::<ReferenceSequence>::new(13)?;
+    /// let reference_sequence = Map::<ReferenceSequence>::new(13)?;
     /// assert!(reference_sequence.assembly_id().is_none());
     /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
     /// ```
@@ -173,7 +173,7 @@ impl Map<ReferenceSequence> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let mut reference_sequence = Map::<ReferenceSequence>::new(13)?;
+    /// let reference_sequence = Map::<ReferenceSequence>::new(13)?;
     /// assert!(reference_sequence.description().is_none());
     /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
     /// ```
@@ -187,7 +187,7 @@ impl Map<ReferenceSequence> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let mut reference_sequence = Map::<ReferenceSequence>::new(13)?;
+    /// let reference_sequence = Map::<ReferenceSequence>::new(13)?;
     /// assert!(reference_sequence.md5_checksum().is_none());
     /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
     /// ```
@@ -223,7 +223,7 @@ impl Map<ReferenceSequence> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let mut reference_sequence = Map::<ReferenceSequence>::new(13)?;
+    /// let reference_sequence = Map::<ReferenceSequence>::new(13)?;
     /// assert!(reference_sequence.species().is_none());
     /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
     /// ```
@@ -237,7 +237,7 @@ impl Map<ReferenceSequence> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let mut reference_sequence = Map::<ReferenceSequence>::new(13)?;
+    /// let reference_sequence = Map::<ReferenceSequence>::new(13)?;
     /// assert!(reference_sequence.molecule_topology().is_none());
     /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
     /// ```
@@ -251,7 +251,7 @@ impl Map<ReferenceSequence> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let mut reference_sequence = Map::<ReferenceSequence>::new(13)?;
+    /// let reference_sequence = Map::<ReferenceSequence>::new(13)?;
     /// assert!(reference_sequence.uri().is_none());
     /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
     /// ```
