@@ -2,15 +2,12 @@
 
 use std::num::NonZeroUsize;
 
-use super::{
-    AlternativeLocus, AlternativeNames, Md5Checksum, MoleculeTopology, Name, ReferenceSequence,
-};
+use super::{AlternativeLocus, AlternativeNames, Md5Checksum, MoleculeTopology, ReferenceSequence};
 use crate::header::record::value::map::{self, builder::BuildError};
 
 /// A SAM header reference sequence builder.
 #[derive(Debug, Default)]
 pub struct Builder {
-    name: Option<Name>,
     length: Option<usize>,
     alternative_locus: Option<AlternativeLocus>,
     alternative_names: Option<AlternativeNames>,
@@ -23,26 +20,6 @@ pub struct Builder {
 }
 
 impl map::Builder<ReferenceSequence> {
-    /// Sets a reference sequence name.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    ///
-    /// let reference_sequence = Map::<ReferenceSequence>::builder()
-    ///     .set_name("sq0".parse()?)
-    ///     .set_length(13)
-    ///     .build()?;
-    ///
-    /// assert_eq!(**reference_sequence.name(), "sq0");
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
-    /// ```
-    pub fn set_name(mut self, name: Name) -> Self {
-        self.inner.name = Some(name);
-        self
-    }
-
     /// Sets a reference sequence length.
     ///
     /// # Examples
@@ -51,7 +28,6 @@ impl map::Builder<ReferenceSequence> {
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
     ///
     /// let reference_sequence = Map::<ReferenceSequence>::builder()
-    ///     .set_name("sq0".parse()?)
     ///     .set_length(13)
     ///     .build()?;
     ///
@@ -74,7 +50,6 @@ impl map::Builder<ReferenceSequence> {
     /// };
     ///
     /// let reference_sequence = Map::<ReferenceSequence>::builder()
-    ///     .set_name("sq0".parse()?)
     ///     .set_length(13)
     ///     .set_alternative_locus(AlternativeLocus::Unknown)
     ///     .build()?;
@@ -103,7 +78,6 @@ impl map::Builder<ReferenceSequence> {
     /// let alternative_names: AlternativeNames = "0,SQ.0".parse()?;
     ///
     /// let reference_sequence = Map::<ReferenceSequence>::builder()
-    ///     .set_name("sq0".parse()?)
     ///     .set_length(13)
     ///     .set_alternative_names(alternative_names.clone())
     ///     .build()?;
@@ -124,7 +98,6 @@ impl map::Builder<ReferenceSequence> {
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
     ///
     /// let reference_sequence = Map::<ReferenceSequence>::builder()
-    ///     .set_name("sq0".parse()?)
     ///     .set_length(13)
     ///     .set_assembly_id("ref")
     ///     .build()?;
@@ -148,7 +121,6 @@ impl map::Builder<ReferenceSequence> {
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
     ///
     /// let reference_sequence = Map::<ReferenceSequence>::builder()
-    ///     .set_name("sq0".parse()?)
     ///     .set_length(13)
     ///     .set_description("noodles")
     ///     .build()?;
@@ -175,7 +147,6 @@ impl map::Builder<ReferenceSequence> {
     /// };
     ///
     /// let reference_sequence = Map::<ReferenceSequence>::builder()
-    ///     .set_name("sq0".parse()?)
     ///     .set_length(13)
     ///     .set_md5_checksum(Md5Checksum::from([
     ///         0xd7, 0xeb, 0xa3, 0x11, 0x42, 0x1b, 0xbc, 0x9d,
@@ -202,7 +173,6 @@ impl map::Builder<ReferenceSequence> {
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
     ///
     /// let reference_sequence = Map::<ReferenceSequence>::builder()
-    ///     .set_name("sq0".parse()?)
     ///     .set_length(13)
     ///     .set_species("human")
     ///     .build()?;
@@ -229,7 +199,6 @@ impl map::Builder<ReferenceSequence> {
     /// };
     ///
     /// let reference_sequence = Map::<ReferenceSequence>::builder()
-    ///     .set_name("sq0".parse()?)
     ///     .set_length(13)
     ///     .set_molecule_topology(MoleculeTopology::Linear)
     ///     .build()?;
@@ -250,7 +219,6 @@ impl map::Builder<ReferenceSequence> {
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
     ///
     /// let reference_sequence = Map::<ReferenceSequence>::builder()
-    ///     .set_name("sq0".parse()?)
     ///     .set_length(13)
     ///     .set_uri("file:///tmp/ref.fasta")
     ///     .build()?;
@@ -269,15 +237,12 @@ impl map::Builder<ReferenceSequence> {
 
 impl map::builder::Inner<ReferenceSequence> for Builder {
     fn build(self) -> Result<ReferenceSequence, BuildError> {
-        let name = self.name.ok_or(BuildError::MissingField("SN"))?;
-
         let length = self
             .length
             .ok_or(BuildError::MissingField("LN"))
             .and_then(|n| NonZeroUsize::new(n).ok_or(BuildError::InvalidValue("LN")))?;
 
         Ok(ReferenceSequence {
-            name,
             length,
             alternative_locus: self.alternative_locus,
             alternative_names: self.alternative_names,
@@ -299,7 +264,6 @@ mod tests {
     fn test_default() {
         let builder = Builder::default();
 
-        assert!(builder.name.is_none());
         assert!(builder.length.is_none());
         assert!(builder.alternative_locus.is_none());
         assert!(builder.alternative_names.is_none());

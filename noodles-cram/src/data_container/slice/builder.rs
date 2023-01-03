@@ -102,7 +102,7 @@ impl Builder {
                 let reference_sequence_name = header
                     .reference_sequences()
                     .get_index(context.reference_sequence_id())
-                    .map(|(_, rs)| rs.name())
+                    .map(|(name, _)| name)
                     .expect("invalid reference sequence ID");
 
                 let reference_sequence = reference_sequence_repostitory

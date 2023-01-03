@@ -293,10 +293,10 @@ pub(crate) fn add_missing_reference_sequence_checksums(
 
     use crate::data_container::slice::builder::calculate_normalized_sequence_digest;
 
-    for reference_sequence in reference_sequences.values_mut() {
+    for (name, reference_sequence) in reference_sequences {
         if reference_sequence.md5_checksum().is_none() {
             let sequence = reference_sequence_repository
-                .get(reference_sequence.name().as_str())
+                .get(name)
                 .transpose()?
                 .expect("missing reference sequence");
 
@@ -335,10 +335,10 @@ mod tests {
         let repository = fasta::Repository::new(reference_sequences);
 
         let mut header = sam::Header::builder()
-            .add_reference_sequence(Map::<ReferenceSequence>::new("sq0".parse()?, 8)?)
+            .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(8)?)
             .add_reference_sequence(
+                "sq1".parse()?,
                 Map::<ReferenceSequence>::builder()
-                    .set_name("sq1".parse()?)
                     .set_length(13)
                     .set_md5_checksum(sq1_md5_checksum)
                     .build()?,

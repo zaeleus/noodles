@@ -24,7 +24,10 @@ use noodles_sam::{
     self as sam,
     alignment::Record,
     header::{
-        record::value::{map::ReferenceSequence, Map},
+        record::value::{
+            map::{self, ReferenceSequence},
+            Map,
+        },
         ReferenceSequences,
     },
 };
@@ -506,14 +509,16 @@ where
     let mut reference_sequences = ReferenceSequences::with_capacity(n_ref);
 
     for _ in 0..n_ref {
-        let reference_sequence = read_reference_sequence(reader)?;
-        reference_sequences.insert(reference_sequence.name().clone(), reference_sequence);
+        let (name, reference_sequence) = read_reference_sequence(reader)?;
+        reference_sequences.insert(name, reference_sequence);
     }
 
     Ok(reference_sequences)
 }
 
-fn read_reference_sequence<R>(reader: &mut R) -> io::Result<Map<ReferenceSequence>>
+fn read_reference_sequence<R>(
+    reader: &mut R,
+) -> io::Result<(map::reference_sequence::Name, Map<ReferenceSequence>)>
 where
     R: Read,
 {
@@ -533,8 +538,10 @@ where
         usize::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    Map::<ReferenceSequence>::new(name, l_ref)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    let reference_sequence = Map::<ReferenceSequence>::new(l_ref)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+    Ok((name, reference_sequence))
 }
 
 fn read_alignment_header<R>(reader: &mut R) -> io::Result<sam::Header>
@@ -643,7 +650,7 @@ mod tests {
         let expected: ReferenceSequences = [("sq0".parse()?, 8)]
             .into_iter()
             .map(|(name, len): (Name, usize)| {
-                Map::<ReferenceSequence>::new(name.clone(), len).map(|rs| (name, rs))
+                Map::<ReferenceSequence>::new(len).map(|rs| (name, rs))
             })
             .collect::<Result<_, _>>()?;
 

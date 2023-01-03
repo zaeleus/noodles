@@ -66,7 +66,7 @@ impl Builder {
     /// let reference_sequences = [("sq0".parse()?, 13)]
     ///     .into_iter()
     ///     .map(|(name, len): (Name, usize)| {
-    ///         Map::<ReferenceSequence>::new(name.clone(), len).map(|rs| (name, rs))
+    ///         Map::<ReferenceSequence>::new(len).map(|rs| (name, rs))
     ///     })
     ///     .collect::<Result<_, _>>()?;
     ///
@@ -95,7 +95,7 @@ impl Builder {
     /// };
     ///
     /// let header = sam::Header::builder()
-    ///     .add_reference_sequence(Map::<ReferenceSequence>::new("sq0".parse()?, 13)?)
+    ///     .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(13)?)
     ///     .build();
     ///
     /// let reference_sequences = header.reference_sequences();
@@ -103,9 +103,12 @@ impl Builder {
     /// assert!(reference_sequences.contains_key("sq0"));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn add_reference_sequence(mut self, reference_sequence: Map<ReferenceSequence>) -> Self {
-        self.reference_sequences
-            .insert(reference_sequence.name().clone(), reference_sequence);
+    pub fn add_reference_sequence(
+        mut self,
+        name: map::reference_sequence::Name,
+        reference_sequence: Map<ReferenceSequence>,
+    ) -> Self {
+        self.reference_sequences.insert(name, reference_sequence);
         self
     }
 
@@ -215,9 +218,9 @@ mod tests {
     #[test]
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
         let header = Builder::default()
-            .add_reference_sequence(Map::<ReferenceSequence>::new("sq0".parse()?, 8)?)
-            .add_reference_sequence(Map::<ReferenceSequence>::new("sq1".parse()?, 13)?)
-            .add_reference_sequence(Map::<ReferenceSequence>::new("sq2".parse()?, 21)?)
+            .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(8)?)
+            .add_reference_sequence("sq1".parse()?, Map::<ReferenceSequence>::new(13)?)
+            .add_reference_sequence("sq2".parse()?, Map::<ReferenceSequence>::new(21)?)
             .add_read_group("rg0", Map::<ReadGroup>::default())
             .add_read_group("rg1", Map::<ReadGroup>::default())
             .add_program("pg0", Map::<Program>::default())

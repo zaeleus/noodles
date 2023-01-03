@@ -45,9 +45,9 @@ fn build_header(
         .add_comment("an example CRAM written by noodles-cram");
 
     for record in reference_sequence_records {
-        let reference_sequence =
-            Map::<ReferenceSequence>::new(record.name().parse()?, record.sequence().len())?;
-        builder = builder.add_reference_sequence(reference_sequence);
+        let name = record.name().parse()?;
+        let reference_sequence = Map::<ReferenceSequence>::new(record.sequence().len())?;
+        builder = builder.add_reference_sequence(name, reference_sequence);
     }
 
     Ok(builder.build())

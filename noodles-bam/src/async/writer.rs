@@ -1,11 +1,7 @@
-use std::ffi::CString;
+use std::{ffi::CString, num::NonZeroUsize};
 
 use noodles_bgzf as bgzf;
-use noodles_sam::{
-    self as sam,
-    alignment::Record,
-    header::record::value::{map::ReferenceSequence, Map},
-};
+use noodles_sam::{self as sam, alignment::Record, header::record::value::map};
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 use crate::writer::record::encode_record;
@@ -117,7 +113,7 @@ where
     /// let mut writer = bam::AsyncWriter::new(Vec::new());
     ///
     /// let header = sam::Header::builder()
-    ///     .add_reference_sequence(Map::<ReferenceSequence>::new("sq0".parse()?, 8)?)
+    ///     .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(8)?)
     ///     .add_comment("noodles-bam")
     ///     .build();
     ///
@@ -250,8 +246,8 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32_le(n_ref).await?;
 
-    for reference_sequence in reference_sequences.values() {
-        write_reference_sequence(writer, reference_sequence).await?;
+    for (name, reference_sequence) in reference_sequences {
+        write_reference_sequence(writer, name, reference_sequence.length()).await?;
     }
 
     Ok(())
@@ -259,12 +255,13 @@ where
 
 async fn write_reference_sequence<W>(
     writer: &mut W,
-    reference_sequence: &Map<ReferenceSequence>,
+    reference_sequence_name: &map::reference_sequence::Name,
+    length: NonZeroUsize,
 ) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
-    let c_name = CString::new(reference_sequence.name().as_bytes())
+    let c_name = CString::new(reference_sequence_name.as_bytes())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     let name = c_name.as_bytes_with_nul();
 
@@ -273,7 +270,7 @@ where
     writer.write_u32_le(l_name).await?;
     writer.write_all(name).await?;
 
-    let l_ref = u32::try_from(usize::from(reference_sequence.length()))
+    let l_ref = u32::try_from(usize::from(length))
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32_le(l_ref).await?;
 
@@ -287,8 +284,9 @@ mod tests {
     #[tokio::test]
     async fn test_write_reference_sequence() -> Result<(), Box<dyn std::error::Error>> {
         let mut buf = Vec::new();
-        let reference_sequence = Map::<ReferenceSequence>::new("sq0".parse()?, 8)?;
-        write_reference_sequence(&mut buf, &reference_sequence).await?;
+        let reference_sequence_name = "sq0".parse()?;
+        let length = NonZeroUsize::try_from(8)?;
+        write_reference_sequence(&mut buf, &reference_sequence_name, length).await?;
 
         let expected = [
             0x04, 0x00, 0x00, 0x00, // l_name = 4

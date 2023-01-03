@@ -51,8 +51,8 @@
 //!
 //! let header = sam::Header::builder()
 //!     .set_header(Default::default())
-//!     .add_reference_sequence(Map::<ReferenceSequence>::new("sq0".parse()?, 8)?)
-//!     .add_reference_sequence(Map::<ReferenceSequence>::new("sq1".parse()?, 13)?)
+//!     .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(8)?)
+//!     .add_reference_sequence("sq1".parse()?, Map::<ReferenceSequence>::new(13)?)
 //!     .build();
 //!
 //! assert!(header.header().is_some());
@@ -167,7 +167,7 @@ impl Header {
     /// };
     ///
     /// let header = sam::Header::builder()
-    ///     .add_reference_sequence(Map::<ReferenceSequence>::new("sq0".parse()?, 13)?)
+    ///     .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(13)?)
     ///     .build();
     ///
     /// let reference_sequences = header.reference_sequences();
@@ -193,11 +193,8 @@ impl Header {
     ///
     /// let mut header = sam::Header::default();
     ///
-    /// let reference_sequence = Map::<ReferenceSequence>::new("sq0".parse()?, 13)?;
-    /// header.reference_sequences_mut().insert(
-    ///     reference_sequence.name().clone(),
-    ///     reference_sequence,
-    /// );
+    /// let reference_sequence = Map::<ReferenceSequence>::new(13)?;
+    /// header.reference_sequences_mut().insert("sq0".parse()?, reference_sequence);
     ///
     /// let reference_sequences = header.reference_sequences();
     /// assert_eq!(reference_sequences.len(), 1);
@@ -390,8 +387,14 @@ impl fmt::Display for Header {
             writeln!(f, "{}\t{}", Kind::Header, header)?;
         }
 
-        for reference_sequence in self.reference_sequences.values() {
-            writeln!(f, "{}\t{}", Kind::ReferenceSequence, reference_sequence)?;
+        for (name, reference_sequence) in &self.reference_sequences {
+            writeln!(
+                f,
+                "{}\tSN:{}{}",
+                Kind::ReferenceSequence,
+                name,
+                reference_sequence
+            )?;
         }
 
         for (id, read_group) in &self.read_groups {
@@ -450,8 +453,8 @@ mod tests {
 
         let header = Header::builder()
             .set_header(Map::<map::Header>::new(Version::new(1, 6)))
-            .add_reference_sequence(Map::<ReferenceSequence>::new("sq0".parse()?, 8)?)
-            .add_reference_sequence(Map::<ReferenceSequence>::new("sq1".parse()?, 13)?)
+            .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(8)?)
+            .add_reference_sequence("sq1".parse()?, Map::<ReferenceSequence>::new(13)?)
             .add_read_group("rg0", Map::<ReadGroup>::default())
             .add_read_group("rg1", Map::<ReadGroup>::default())
             .add_program("pg0", Map::<Program>::default())

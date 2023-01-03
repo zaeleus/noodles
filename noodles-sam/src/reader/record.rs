@@ -173,8 +173,8 @@ mod tests {
     #[test]
     fn test_parse_mate_reference_sequence_id() -> Result<(), Box<dyn std::error::Error>> {
         let header = Header::builder()
-            .add_reference_sequence(Map::<ReferenceSequence>::new("sq0".parse()?, 8)?)
-            .add_reference_sequence(Map::<ReferenceSequence>::new("sq1".parse()?, 13)?)
+            .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(8)?)
+            .add_reference_sequence("sq1".parse()?, Map::<ReferenceSequence>::new(13)?)
             .build();
 
         let reference_sequence_id = Some(0);

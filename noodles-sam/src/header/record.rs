@@ -20,7 +20,7 @@ pub enum Record {
     /// A header (`HD`) record.
     Header(Map<map::Header>),
     /// A reference sequence (`SQ`) record.
-    ReferenceSequence(Map<ReferenceSequence>),
+    ReferenceSequence(map::reference_sequence::Name, Map<ReferenceSequence>),
     /// A read group (`RG`) record.
     ReadGroup(String, Map<ReadGroup>),
     /// A program (`PG`) record.
@@ -93,10 +93,19 @@ impl FromStr for Record {
                 Ok(Self::Header(header))
             }
             Kind::ReferenceSequence => {
-                let fields = split_fields(v)?;
+                let mut fields = split_fields(v)?;
+
+                let i = fields
+                    .iter()
+                    .position(|(tag, _)| tag == "SN")
+                    .ok_or(ParseError::Invalid)?;
+                let (_, raw_name) = fields.remove(i);
+                let name = raw_name.parse().map_err(|_| ParseError::Invalid)?;
+
                 let reference_sequence = Map::<ReferenceSequence>::try_from(fields)
                     .map_err(ParseError::InvalidReferenceSequence)?;
-                Ok(Self::ReferenceSequence(reference_sequence))
+
+                Ok(Self::ReferenceSequence(name, reference_sequence))
             }
             Kind::ReadGroup => {
                 let mut fields = split_fields(v)?;
@@ -164,7 +173,7 @@ mod tests {
 
         assert!(matches!(
             "@SQ\tSN:sq0\tLN:8".parse(),
-            Ok(Record::ReferenceSequence(_))
+            Ok(Record::ReferenceSequence(..))
         ));
 
         assert!(matches!(

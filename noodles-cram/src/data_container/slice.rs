@@ -171,7 +171,7 @@ impl Slice {
                 let reference_sequence_name = header
                     .reference_sequences()
                     .get_index(context.reference_sequence_id())
-                    .map(|(_, rs)| rs.name())
+                    .map(|(name, _)| name)
                     .expect("invalid slice reference sequence ID");
 
                 let sequence = reference_sequence_repository

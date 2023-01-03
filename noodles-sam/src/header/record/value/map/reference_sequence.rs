@@ -23,13 +23,12 @@ type Tag = super::tag::Tag<StandardTag>;
 
 /// A SAM header record reference sequence map value.
 ///
-/// The reference sequence describes a sequence a read possibly mapped to. Both the reference
-/// sequence name and length are guaranteed to be set.
+/// The reference sequence describes a sequence a read possibly mapped to. The length is guaranteed
+/// to be set.
 ///
 /// A list of reference sequences creates a reference sequence dictionary.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReferenceSequence {
-    name: Name,
     length: NonZeroUsize,
     alternative_locus: Option<AlternativeLocus>,
     alternative_names: Option<AlternativeNames>,
@@ -64,21 +63,20 @@ impl fmt::Display for NewError {
 }
 
 impl Map<ReferenceSequence> {
-    /// Creates a reference sequence with a name and length.
+    /// Creates a reference sequence with a length.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let reference_sequence = Map::<ReferenceSequence>::new("sq0".parse()?, 13)?;
-    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// let reference_sequence = Map::<ReferenceSequence>::new(13)?;
+    /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
     /// ```
-    pub fn new(name: Name, length: usize) -> Result<Self, NewError> {
+    pub fn new(length: usize) -> Result<Self, NewError> {
         let length = NonZeroUsize::new(length).ok_or(NewError::InvalidLength(length))?;
 
         Ok(Self {
             inner: ReferenceSequence {
-                name,
                 length,
                 alternative_locus: None,
                 alternative_names: None,
@@ -93,47 +91,15 @@ impl Map<ReferenceSequence> {
         })
     }
 
-    /// Returns the reference sequence name.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let mut reference_sequence = Map::<ReferenceSequence>::new("sq0".parse()?, 13)?;
-    /// assert_eq!(**reference_sequence.name(), "sq0");
-    /// # Ok::<_, Box<dyn std::error::Error>>(())
-    /// ```
-    pub fn name(&self) -> &Name {
-        &self.inner.name
-    }
-
-    /// Returns a mutable reference to the reference sequence name.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    ///
-    /// let mut reference_sequence = Map::<ReferenceSequence>::new("sq0".parse()?, 13)?;
-    /// assert_eq!(**reference_sequence.name(), "sq0");
-    ///
-    /// *reference_sequence.name_mut() = "sq1".parse()?;
-    /// assert_eq!(**reference_sequence.name(), "sq1");
-    /// # Ok::<_, Box<dyn std::error::Error>>(())
-    /// ```
-    pub fn name_mut(&mut self) -> &mut Name {
-        &mut self.inner.name
-    }
-
     /// Returns the reference sequence length.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let mut reference_sequence = Map::<ReferenceSequence>::new("sq0".parse()?, 13)?;
+    /// let mut reference_sequence = Map::<ReferenceSequence>::new(13)?;
     /// assert_eq!(usize::from(reference_sequence.length()), 13);
-    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
     /// ```
     pub fn length(&self) -> NonZeroUsize {
         self.inner.length
@@ -148,7 +114,7 @@ impl Map<ReferenceSequence> {
     ///
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
     ///
-    /// let mut reference_sequence = Map::<ReferenceSequence>::new("sq0".parse()?, 13)?;
+    /// let mut reference_sequence = Map::<ReferenceSequence>::new(13)?;
     /// assert_eq!(usize::from(reference_sequence.length()), 13);
     ///
     /// *reference_sequence.length_mut() = NonZeroUsize::try_from(8)?;
@@ -165,9 +131,9 @@ impl Map<ReferenceSequence> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let mut reference_sequence = Map::<ReferenceSequence>::new("sq0".parse()?, 13)?;
+    /// let mut reference_sequence = Map::<ReferenceSequence>::new(13)?;
     /// assert!(reference_sequence.alternative_locus().is_none());
-    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
     /// ```
     pub fn alternative_locus(&self) -> Option<&AlternativeLocus> {
         self.inner.alternative_locus.as_ref()
@@ -179,9 +145,9 @@ impl Map<ReferenceSequence> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let mut reference_sequence = Map::<ReferenceSequence>::new("sq0".parse()?, 13)?;
+    /// let mut reference_sequence = Map::<ReferenceSequence>::new(13)?;
     /// assert!(reference_sequence.alternative_names().is_none());
-    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
     /// ```
     pub fn alternative_names(&self) -> Option<&AlternativeNames> {
         self.inner.alternative_names.as_ref()
@@ -193,9 +159,9 @@ impl Map<ReferenceSequence> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let mut reference_sequence = Map::<ReferenceSequence>::new("sq0".parse()?, 13)?;
+    /// let mut reference_sequence = Map::<ReferenceSequence>::new(13)?;
     /// assert!(reference_sequence.assembly_id().is_none());
-    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
     /// ```
     pub fn assembly_id(&self) -> Option<&str> {
         self.inner.assembly_id.as_deref()
@@ -207,9 +173,9 @@ impl Map<ReferenceSequence> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let mut reference_sequence = Map::<ReferenceSequence>::new("sq0".parse()?, 13)?;
+    /// let mut reference_sequence = Map::<ReferenceSequence>::new(13)?;
     /// assert!(reference_sequence.description().is_none());
-    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
     /// ```
     pub fn description(&self) -> Option<&str> {
         self.inner.description.as_deref()
@@ -221,9 +187,9 @@ impl Map<ReferenceSequence> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let mut reference_sequence = Map::<ReferenceSequence>::new("sq0".parse()?, 13)?;
+    /// let mut reference_sequence = Map::<ReferenceSequence>::new(13)?;
     /// assert!(reference_sequence.md5_checksum().is_none());
-    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
     /// ```
     pub fn md5_checksum(&self) -> Option<Md5Checksum> {
         self.inner.md5_checksum
@@ -239,7 +205,7 @@ impl Map<ReferenceSequence> {
     ///     Map,
     /// };
     ///
-    /// let mut reference_sequence = Map::<ReferenceSequence>::new("sq0".parse()?, 13)?;
+    /// let mut reference_sequence = Map::<ReferenceSequence>::new(13)?;
     /// assert!(reference_sequence.md5_checksum().is_none());
     ///
     /// let checksum: Md5Checksum = "d7eba311421bbc9d3ada44709dd61534".parse()?;
@@ -257,9 +223,9 @@ impl Map<ReferenceSequence> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let mut reference_sequence = Map::<ReferenceSequence>::new("sq0".parse()?, 13)?;
+    /// let mut reference_sequence = Map::<ReferenceSequence>::new(13)?;
     /// assert!(reference_sequence.species().is_none());
-    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
     /// ```
     pub fn species(&self) -> Option<&str> {
         self.inner.species.as_deref()
@@ -271,9 +237,9 @@ impl Map<ReferenceSequence> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let mut reference_sequence = Map::<ReferenceSequence>::new("sq0".parse()?, 13)?;
+    /// let mut reference_sequence = Map::<ReferenceSequence>::new(13)?;
     /// assert!(reference_sequence.molecule_topology().is_none());
-    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
     /// ```
     pub fn molecule_topology(&self) -> Option<MoleculeTopology> {
         self.inner.molecule_topology
@@ -285,9 +251,9 @@ impl Map<ReferenceSequence> {
     ///
     /// ```
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let mut reference_sequence = Map::<ReferenceSequence>::new("sq0".parse()?, 13)?;
+    /// let mut reference_sequence = Map::<ReferenceSequence>::new(13)?;
     /// assert!(reference_sequence.uri().is_none());
-    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
     /// ```
     pub fn uri(&self) -> Option<&str> {
         self.inner.uri.as_deref()
@@ -296,7 +262,6 @@ impl Map<ReferenceSequence> {
 
 impl fmt::Display for Map<ReferenceSequence> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "SN:{}", self.name())?;
         write!(f, "\tLN:{}", self.length())?;
 
         if let Some(alternative_locus) = self.alternative_locus() {
@@ -343,7 +308,6 @@ impl TryFrom<Fields> for Map<ReferenceSequence> {
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
         let mut other_fields = super::init_other_fields(fields.len());
 
-        let mut name = None;
         let mut length = None;
         let mut alternative_locus = None;
         let mut alternative_names = None;
@@ -358,12 +322,7 @@ impl TryFrom<Fields> for Map<ReferenceSequence> {
             let tag = key.parse().map_err(|_| TryFromFieldsError::InvalidTag)?;
 
             match tag {
-                Tag::Standard(StandardTag::Name) => {
-                    name = value
-                        .parse()
-                        .map(Some)
-                        .map_err(|_| TryFromFieldsError::InvalidValue("SN"))?;
-                }
+                Tag::Standard(StandardTag::Name) => {}
                 Tag::Standard(StandardTag::Length) => {
                     length = value
                         .parse()
@@ -402,12 +361,10 @@ impl TryFrom<Fields> for Map<ReferenceSequence> {
             }
         }
 
-        let name = name.ok_or(TryFromFieldsError::MissingField("SN"))?;
         let length = length.ok_or(TryFromFieldsError::MissingField("LN"))?;
 
         Ok(Self {
             inner: ReferenceSequence {
-                name,
                 length,
                 alternative_locus,
                 alternative_names,
@@ -428,19 +385,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_new() -> Result<(), name::ParseError> {
+    fn test_new() {
         assert_eq!(
-            Map::<ReferenceSequence>::new("sq0".parse()?, 0),
+            Map::<ReferenceSequence>::new(0),
             Err(NewError::InvalidLength(0))
         );
-
-        Ok(())
     }
 
     #[test]
     fn test_fmt() -> Result<(), Box<dyn std::error::Error>> {
         let reference_sequence = Map::<ReferenceSequence>::builder()
-            .set_name("sq0".parse()?)
             .set_length(13)
             .set_md5_checksum(Md5Checksum::from([
                 0xd7, 0xeb, 0xa3, 0x11, 0x42, 0x1b, 0xbc, 0x9d, 0x3a, 0xda, 0x44, 0x70, 0x9d, 0xd6,
@@ -450,20 +404,7 @@ mod tests {
 
         assert_eq!(
             reference_sequence.to_string(),
-            "SN:sq0\tLN:13\tM5:d7eba311421bbc9d3ada44709dd61534"
-        );
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_try_from_fields_for_map_reference_sequence_with_missing_name(
-    ) -> Result<(), TryFromFieldsError> {
-        let fields = vec![(String::from("LN"), String::from("8"))];
-
-        assert_eq!(
-            Map::<ReferenceSequence>::try_from(fields),
-            Err(TryFromFieldsError::MissingField("SN"))
+            "\tLN:13\tM5:d7eba311421bbc9d3ada44709dd61534"
         );
 
         Ok(())
@@ -477,19 +418,6 @@ mod tests {
         assert_eq!(
             Map::<ReferenceSequence>::try_from(fields),
             Err(TryFromFieldsError::MissingField("LN"))
-        );
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_try_from_fields_for_map_reference_sequence_with_invalid_name(
-    ) -> Result<(), TryFromFieldsError> {
-        let fields = vec![(String::from("SN"), String::from("*"))];
-
-        assert_eq!(
-            Map::<ReferenceSequence>::try_from(fields),
-            Err(TryFromFieldsError::InvalidValue("SN"))
         );
 
         Ok(())

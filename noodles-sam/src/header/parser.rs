@@ -75,9 +75,9 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
 
         builder = match record {
             Record::Header(header) => builder.set_header(header),
-            Record::ReferenceSequence(reference_sequence) => {
-                reference_sequence_names.insert(reference_sequence.name().clone());
-                builder.add_reference_sequence(reference_sequence)
+            Record::ReferenceSequence(name, reference_sequence) => {
+                reference_sequence_names.insert(name.clone());
+                builder.add_reference_sequence(name, reference_sequence)
             }
             Record::ReadGroup(id, read_group) => {
                 read_group_ids.insert(id.clone());
@@ -96,14 +96,12 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
 
         builder = match record {
             Record::Header(_) => return Err(ParseError::UnexpectedHeader),
-            Record::ReferenceSequence(reference_sequence) => {
-                if !reference_sequence_names.insert(reference_sequence.name().clone()) {
-                    return Err(ParseError::DuplicateReferenceSequenceName(
-                        reference_sequence.name().clone(),
-                    ));
+            Record::ReferenceSequence(name, reference_sequence) => {
+                if !reference_sequence_names.insert(name.clone()) {
+                    return Err(ParseError::DuplicateReferenceSequenceName(name));
                 }
 
-                builder.add_reference_sequence(reference_sequence)
+                builder.add_reference_sequence(name, reference_sequence)
             }
             Record::ReadGroup(id, read_group) => {
                 if !read_group_ids.insert(id.clone()) {

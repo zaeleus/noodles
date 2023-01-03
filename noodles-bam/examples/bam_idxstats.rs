@@ -20,9 +20,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let index = bai::read(src.with_extension("bam.bai"))?;
 
-    for (reference_sequence, index_reference_sequence) in header
+    for ((reference_sequence_name, reference_sequence), index_reference_sequence) in header
         .reference_sequences()
-        .values()
+        .iter()
         .zip(index.reference_sequences())
     {
         let (mapped_record_count, unmapped_record_count) = index_reference_sequence
@@ -32,7 +32,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         println!(
             "{}\t{}\t{}\t{}",
-            reference_sequence.name(),
+            reference_sequence_name,
             reference_sequence.length(),
             mapped_record_count,
             unmapped_record_count

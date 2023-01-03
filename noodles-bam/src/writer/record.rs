@@ -264,8 +264,8 @@ mod tests {
         let mut buf = Vec::new();
 
         let header = sam::Header::builder()
-            .add_reference_sequence(Map::<ReferenceSequence>::new("sq0".parse()?, 8)?)
-            .add_reference_sequence(Map::<ReferenceSequence>::new("sq1".parse()?, 13)?)
+            .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(8)?)
+            .add_reference_sequence("sq1".parse()?, Map::<ReferenceSequence>::new(13)?)
             .build();
 
         let record = Record::builder()

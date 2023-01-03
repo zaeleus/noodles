@@ -5,6 +5,7 @@ pub mod record;
 use std::{
     ffi::CString,
     io::{self, Write},
+    num::NonZeroUsize,
 };
 
 use byteorder::{LittleEndian, WriteBytesExt};
@@ -12,10 +13,7 @@ use noodles_bgzf as bgzf;
 use noodles_sam::{
     self as sam,
     alignment::Record,
-    header::{
-        record::value::{map::ReferenceSequence, Map},
-        ReferenceSequences,
-    },
+    header::{record::value::map, ReferenceSequences},
 };
 
 use self::record::encode_record;
@@ -123,7 +121,7 @@ where
     /// let mut writer = bam::Writer::new(Vec::new());
     ///
     /// let header = sam::Header::builder()
-    ///     .add_reference_sequence(Map::<ReferenceSequence>::new("sq0".parse()?, 8)?)
+    ///     .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(8)?)
     ///     .add_comment("noodles-bam")
     ///     .build();
     ///
@@ -262,8 +260,8 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_i32::<LittleEndian>(n_ref)?;
 
-    for reference_sequence in reference_sequences.values() {
-        write_reference_sequence(writer, reference_sequence)?;
+    for (name, reference_sequence) in reference_sequences {
+        write_reference_sequence(writer, name, reference_sequence.length())?;
     }
 
     Ok(())
@@ -271,12 +269,13 @@ where
 
 fn write_reference_sequence<W>(
     writer: &mut W,
-    reference_sequence: &Map<ReferenceSequence>,
+    reference_sequence_name: &map::reference_sequence::Name,
+    length: NonZeroUsize,
 ) -> io::Result<()>
 where
     W: Write,
 {
-    let c_name = CString::new(reference_sequence.name().as_bytes())
+    let c_name = CString::new(reference_sequence_name.as_bytes())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     let name = c_name.as_bytes_with_nul();
 
@@ -285,7 +284,7 @@ where
     writer.write_u32::<LittleEndian>(l_name)?;
     writer.write_all(name)?;
 
-    let l_ref = i32::try_from(usize::from(reference_sequence.length()))
+    let l_ref = i32::try_from(usize::from(length))
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_i32::<LittleEndian>(l_ref)?;
 
@@ -326,12 +325,15 @@ mod tests {
 
     #[test]
     fn test_write_reference_sequences() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::header::record::value::map::reference_sequence::Name;
+        use sam::header::record::value::{
+            map::{reference_sequence::Name, ReferenceSequence},
+            Map,
+        };
 
         let reference_sequences = [("sq0".parse()?, 8)]
             .into_iter()
             .map(|(name, len): (Name, usize)| {
-                Map::<ReferenceSequence>::new(name.clone(), len).map(|rs| (name, rs))
+                Map::<ReferenceSequence>::new(len).map(|rs| (name, rs))
             })
             .collect::<Result<_, _>>()?;
 
@@ -522,8 +524,9 @@ mod tests {
     #[test]
     fn test_write_reference_sequence() -> Result<(), Box<dyn std::error::Error>> {
         let mut buf = Vec::new();
-        let reference_sequence = Map::<ReferenceSequence>::new("sq0".parse()?, 8)?;
-        write_reference_sequence(&mut buf, &reference_sequence)?;
+        let reference_sequence_name = "sq0".parse()?;
+        let length = NonZeroUsize::try_from(8)?;
+        write_reference_sequence(&mut buf, &reference_sequence_name, length)?;
 
         let expected = [
             0x04, 0x00, 0x00, 0x00, // l_name = 4

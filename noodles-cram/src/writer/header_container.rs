@@ -111,8 +111,8 @@ mod tests {
 
         let header = sam::Header::builder()
             .add_reference_sequence(
+                "sq0".parse()?,
                 Map::<ReferenceSequence>::builder()
-                    .set_name("sq0".parse()?)
                     .set_length(8)
                     .set_md5_checksum(Md5Checksum::from([
                         0xd7, 0xeb, 0xa3, 0x11, 0x42, 0x1b, 0xbc, 0x9d, 0x3a, 0xda, 0x44, 0x70,
@@ -124,7 +124,7 @@ mod tests {
         assert!(validate_reference_sequences(header.reference_sequences()).is_ok());
 
         let header = sam::Header::builder()
-            .add_reference_sequence(Map::<ReferenceSequence>::new("sq0".parse()?, 8)?)
+            .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(8)?)
             .build();
         assert!(validate_reference_sequences(header.reference_sequences()).is_err());
 
