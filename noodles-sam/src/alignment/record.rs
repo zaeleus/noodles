@@ -10,7 +10,10 @@ use noodles_core::Position;
 
 use crate::{
     header::{
-        record::value::{map::ReferenceSequence, Map},
+        record::value::{
+            map::{self, ReferenceSequence},
+            Map,
+        },
         ReferenceSequences,
     },
     record::{Cigar, Data, Flags, MappingQuality, QualityScores, ReadName, Sequence},
@@ -411,7 +414,12 @@ impl Record {
     pub fn reference_sequence<'a>(
         &self,
         header: &'a Header,
-    ) -> Option<io::Result<&'a Map<ReferenceSequence>>> {
+    ) -> Option<
+        io::Result<(
+            &'a map::reference_sequence::Name,
+            &'a Map<ReferenceSequence>,
+        )>,
+    > {
         get_reference_sequence(header.reference_sequences(), self.reference_sequence_id())
     }
 
@@ -428,7 +436,12 @@ impl Record {
     pub fn mate_reference_sequence<'a>(
         &self,
         header: &'a Header,
-    ) -> Option<io::Result<&'a Map<ReferenceSequence>>> {
+    ) -> Option<
+        io::Result<(
+            &'a map::reference_sequence::Name,
+            &'a Map<ReferenceSequence>,
+        )>,
+    > {
         get_reference_sequence(
             header.reference_sequences(),
             self.mate_reference_sequence_id(),
@@ -481,13 +494,10 @@ impl Default for Record {
 fn get_reference_sequence(
     reference_sequences: &ReferenceSequences,
     reference_sequence_id: Option<usize>,
-) -> Option<io::Result<&Map<ReferenceSequence>>> {
+) -> Option<io::Result<(&map::reference_sequence::Name, &Map<ReferenceSequence>)>> {
     reference_sequence_id.map(|id| {
-        reference_sequences
-            .get_index(id)
-            .map(|(_, rs)| rs)
-            .ok_or_else(|| {
-                io::Error::new(io::ErrorKind::InvalidData, "invalid reference sequence ID")
-            })
+        reference_sequences.get_index(id).ok_or_else(|| {
+            io::Error::new(io::ErrorKind::InvalidData, "invalid reference sequence ID")
+        })
     })
 }

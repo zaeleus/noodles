@@ -33,7 +33,7 @@ where
     let reference_sequence = record.reference_sequence(header).transpose()?;
 
     let rname = reference_sequence
-        .map(|rs| rs.name().as_bytes())
+        .map(|(name, _)| name.as_bytes())
         .unwrap_or(MISSING);
 
     let mapq = record
@@ -44,14 +44,14 @@ where
     let rnext = record
         .mate_reference_sequence(header)
         .transpose()?
-        .map(|mate_reference_sequence| {
-            if let Some(rs) = reference_sequence {
-                if mate_reference_sequence.name() == rs.name() {
+        .map(|(mate_reference_sequence_name, _)| {
+            if let Some((reference_sequence_name, _)) = reference_sequence {
+                if mate_reference_sequence_name == reference_sequence_name {
                     return EQ;
                 }
             }
 
-            mate_reference_sequence.name().as_ref()
+            mate_reference_sequence_name.as_ref()
         })
         .unwrap_or(MISSING);
 

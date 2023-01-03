@@ -18,6 +18,9 @@
 
 ### Changed
 
+  * sam/alignment/record: Return `Name`-`Map<ReferenceSequence>` pair from
+    `Record::reference_sequence` and `Record::mate_reference_sequence`.
+
   * sam/header: Moved record IDs from record to map key.
 
     `Map<I>` no longer holds the record ID. Use the collection key instead.

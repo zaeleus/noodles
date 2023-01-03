@@ -2,10 +2,7 @@ use std::io;
 
 use noodles_sam::{
     self as sam,
-    header::{
-        record::value::{map::ReferenceSequence, Map},
-        ReferenceSequences,
-    },
+    header::{record::value::map, ReferenceSequences},
 };
 
 use super::{Features, Flags, Record};
@@ -23,9 +20,9 @@ impl Record {
 
         let mut flags = Flags::default();
 
-        if let Some(reference_sequence) = record.reference_sequence(header).transpose()? {
+        if let Some((reference_sequence_name, _)) = record.reference_sequence(header).transpose()? {
             let reference_sequence_id =
-                get_reference_sequence_id(header.reference_sequences(), reference_sequence)?;
+                get_reference_sequence_id(header.reference_sequences(), reference_sequence_name)?;
             builder = builder.set_reference_sequence_id(reference_sequence_id);
         }
 
@@ -45,9 +42,11 @@ impl Record {
 
         // next mate bit flags
 
-        if let Some(reference_sequence) = record.mate_reference_sequence(header).transpose()? {
+        if let Some((reference_sequence_name, _)) =
+            record.mate_reference_sequence(header).transpose()?
+        {
             let reference_sequence_id =
-                get_reference_sequence_id(header.reference_sequences(), reference_sequence)?;
+                get_reference_sequence_id(header.reference_sequences(), reference_sequence_name)?;
             builder = builder.set_next_fragment_reference_sequence_id(reference_sequence_id);
         }
 
@@ -156,10 +155,10 @@ impl Record {
 
 fn get_reference_sequence_id(
     reference_sequences: &ReferenceSequences,
-    reference_sequence: &Map<ReferenceSequence>,
+    reference_sequence_name: &map::reference_sequence::Name,
 ) -> io::Result<usize> {
     reference_sequences
-        .get_index_of(reference_sequence.name().as_str())
+        .get_index_of(reference_sequence_name)
         .ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,
