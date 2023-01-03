@@ -8,6 +8,9 @@
 
 ### Changed
 
+  * cram/record: Return `Name`-`Map<ReferenceSequence>` pair from
+    `Record::reference_sequence` and `Record::mate_reference_sequence`.
+
   * cram/record/builder: Change `Builder::add_tag` to receive a `Tag`-`Value`
     pair.
 

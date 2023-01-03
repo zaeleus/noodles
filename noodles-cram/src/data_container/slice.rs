@@ -210,13 +210,14 @@ impl Slice {
                 .preservation_map()
                 .is_reference_required()
             {
-                let rs = record
+                let reference_sequence_name = record
                     .reference_sequence(header.reference_sequences())
                     .transpose()?
+                    .map(|(name, _)| name)
                     .expect("invalid reference sequence ID");
 
                 let sequence = reference_sequence_repository
-                    .get(rs.name())
+                    .get(reference_sequence_name)
                     .transpose()?
                     .expect("invalid reference sequence name");
 

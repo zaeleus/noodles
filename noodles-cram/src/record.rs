@@ -18,7 +18,10 @@ use std::io;
 use noodles_core::Position;
 use noodles_sam::{
     self as sam,
-    header::record::value::{map::ReferenceSequence, Map},
+    header::record::value::{
+        map::{self, ReferenceSequence},
+        Map,
+    },
 };
 
 /// A CRAM record.
@@ -85,7 +88,12 @@ impl Record {
     pub fn reference_sequence<'rs>(
         &self,
         reference_sequences: &'rs sam::header::ReferenceSequences,
-    ) -> Option<io::Result<&'rs Map<ReferenceSequence>>> {
+    ) -> Option<
+        io::Result<(
+            &'rs map::reference_sequence::Name,
+            &'rs Map<ReferenceSequence>,
+        )>,
+    > {
         get_reference_sequence(reference_sequences, self.reference_sequence_id())
     }
 
@@ -143,7 +151,12 @@ impl Record {
     pub fn mate_reference_sequence<'rs>(
         &self,
         reference_sequences: &'rs sam::header::ReferenceSequences,
-    ) -> Option<io::Result<&'rs Map<ReferenceSequence>>> {
+    ) -> Option<
+        io::Result<(
+            &'rs map::reference_sequence::Name,
+            &'rs Map<ReferenceSequence>,
+        )>,
+    > {
         get_reference_sequence(
             reference_sequences,
             self.next_fragment_reference_sequence_id(),
@@ -241,14 +254,11 @@ fn calculate_alignment_span(read_length: usize, features: &Features) -> usize {
 fn get_reference_sequence(
     reference_sequences: &sam::header::ReferenceSequences,
     reference_sequence_id: Option<usize>,
-) -> Option<io::Result<&Map<ReferenceSequence>>> {
+) -> Option<io::Result<(&map::reference_sequence::Name, &Map<ReferenceSequence>)>> {
     reference_sequence_id.map(|id| {
-        reference_sequences
-            .get_index(id)
-            .map(|(_, rs)| rs)
-            .ok_or_else(|| {
-                io::Error::new(io::ErrorKind::InvalidData, "invalid reference sequence ID")
-            })
+        reference_sequences.get_index(id).ok_or_else(|| {
+            io::Error::new(io::ErrorKind::InvalidData, "invalid reference sequence ID")
+        })
     })
 }
 
