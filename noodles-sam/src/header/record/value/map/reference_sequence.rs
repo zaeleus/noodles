@@ -49,8 +49,6 @@ impl Inner for ReferenceSequence {
 /// An error returned when a SAM header reference sequence fails to construct.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum NewError {
-    /// The name is invalid.
-    InvalidName,
     /// The length is invalid.
     InvalidLength(usize),
 }
@@ -60,7 +58,6 @@ impl error::Error for NewError {}
 impl fmt::Display for NewError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidName => f.write_str("invalid name"),
             Self::InvalidLength(length) => write!(f, "invalid length: {}", length),
         }
     }

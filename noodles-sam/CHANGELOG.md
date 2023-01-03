@@ -45,6 +45,13 @@
   * sam/record/data: `Data::remove` returns a `Tag`-`Value` pair instead of a
     `Field`.
 
+### Removed
+
+  * sam/header/record/value/map/reference_sequence: Remove
+    `NewError::InvalidName`.
+
+    This was unused.
+
 ## 0.22.1 - 2022-11-29
 
 ### Fixed
