@@ -256,6 +256,8 @@ mod tests {
 
     #[test]
     fn test_write_record_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
+        use std::num::NonZeroUsize;
+
         use sam::{
             header::record::value::{map::ReferenceSequence, Map},
             record::{Flags, MappingQuality},
@@ -264,8 +266,14 @@ mod tests {
         let mut buf = Vec::new();
 
         let header = sam::Header::builder()
-            .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(8)?)
-            .add_reference_sequence("sq1".parse()?, Map::<ReferenceSequence>::new(13)?)
+            .add_reference_sequence(
+                "sq0".parse()?,
+                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
+            )
+            .add_reference_sequence(
+                "sq1".parse()?,
+                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?),
+            )
             .build();
 
         let record = Record::builder()

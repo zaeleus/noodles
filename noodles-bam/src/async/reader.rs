@@ -535,16 +535,13 @@ where
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let reference_sequence = Map::<ReferenceSequence>::new(usize::from(l_ref))
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let reference_sequence = Map::<ReferenceSequence>::new(l_ref);
 
     Ok((name, reference_sequence))
 }
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam as sam;
-
     use super::*;
 
     #[tokio::test]
@@ -586,8 +583,6 @@ mod tests {
 
     #[tokio::test]
     async fn test_read_reference_sequences() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::header::record::value::map::reference_sequence::Name;
-
         let data = [
             0x01, 0x00, 0x00, 0x00, // n_ref = 1
             0x04, 0x00, 0x00, 0x00, // ref[0].l_name = 4
@@ -598,12 +593,12 @@ mod tests {
         let mut reader = &data[..];
         let actual = read_reference_sequences(&mut reader).await?;
 
-        let expected: ReferenceSequences = [("sq0".parse()?, 8)]
-            .into_iter()
-            .map(|(name, len): (Name, usize)| {
-                Map::<ReferenceSequence>::new(len).map(|rs| (name, rs))
-            })
-            .collect::<Result<_, _>>()?;
+        let expected: ReferenceSequences = [(
+            "sq0".parse()?,
+            Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
+        )]
+        .into_iter()
+        .collect();
 
         assert_eq!(actual, expected);
 

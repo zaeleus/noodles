@@ -166,15 +166,22 @@ pub(crate) fn parse_template_length(src: &[u8]) -> io::Result<i32> {
 
 #[cfg(test)]
 mod tests {
-    use crate::header::record::value::{map::ReferenceSequence, Map};
-
     use super::*;
+    use crate::header::record::value::{map::ReferenceSequence, Map};
 
     #[test]
     fn test_parse_mate_reference_sequence_id() -> Result<(), Box<dyn std::error::Error>> {
+        use std::num::NonZeroUsize;
+
         let header = Header::builder()
-            .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(8)?)
-            .add_reference_sequence("sq1".parse()?, Map::<ReferenceSequence>::new(13)?)
+            .add_reference_sequence(
+                "sq0".parse()?,
+                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
+            )
+            .add_reference_sequence(
+                "sq1".parse()?,
+                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?),
+            )
             .build();
 
         let reference_sequence_id = Some(0);

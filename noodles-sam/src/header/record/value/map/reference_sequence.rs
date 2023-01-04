@@ -8,7 +8,7 @@ pub mod molecule_topology;
 pub mod name;
 mod tag;
 
-use std::{error, fmt, num::NonZeroUsize};
+use std::{fmt, num::NonZeroUsize};
 
 pub use self::{
     alternative_locus::AlternativeLocus, alternative_names::AlternativeNames,
@@ -45,37 +45,19 @@ impl Inner for ReferenceSequence {
     type Builder = Builder;
 }
 
-/// An error returned when a SAM header reference sequence fails to construct.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum NewError {
-    /// The length is invalid.
-    InvalidLength(usize),
-}
-
-impl error::Error for NewError {}
-
-impl fmt::Display for NewError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::InvalidLength(length) => write!(f, "invalid length: {}", length),
-        }
-    }
-}
-
 impl Map<ReferenceSequence> {
     /// Creates a reference sequence with a length.
     ///
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let reference_sequence = Map::<ReferenceSequence>::new(13)?;
-    /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
+    /// let reference_sequence = Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?);
+    /// # Ok::<_, std::num::TryFromIntError>(())
     /// ```
-    pub fn new(length: usize) -> Result<Self, NewError> {
-        let length = NonZeroUsize::new(length).ok_or(NewError::InvalidLength(length))?;
-
-        Ok(Self {
+    pub fn new(length: NonZeroUsize) -> Self {
+        Self {
             inner: ReferenceSequence {
                 length,
                 alternative_locus: None,
@@ -88,7 +70,7 @@ impl Map<ReferenceSequence> {
                 uri: None,
             },
             other_fields: OtherFields::new(),
-        })
+        }
     }
 
     /// Returns the reference sequence length.
@@ -96,10 +78,11 @@ impl Map<ReferenceSequence> {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let reference_sequence = Map::<ReferenceSequence>::new(13)?;
+    /// let reference_sequence = Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?);
     /// assert_eq!(usize::from(reference_sequence.length()), 13);
-    /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
+    /// # Ok::<_, std::num::TryFromIntError>(())
     /// ```
     pub fn length(&self) -> NonZeroUsize {
         self.inner.length
@@ -114,12 +97,14 @@ impl Map<ReferenceSequence> {
     ///
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
     ///
-    /// let mut reference_sequence = Map::<ReferenceSequence>::new(13)?;
-    /// assert_eq!(usize::from(reference_sequence.length()), 13);
+    /// let length = NonZeroUsize::try_from(13)?;
+    /// let mut reference_sequence = Map::<ReferenceSequence>::new(length);
+    /// assert_eq!(reference_sequence.length(), length);
     ///
-    /// *reference_sequence.length_mut() = NonZeroUsize::try_from(8)?;
-    /// assert_eq!(usize::from(reference_sequence.length()), 8);
-    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// let length = NonZeroUsize::try_from(8)?;
+    /// *reference_sequence.length_mut() = length;
+    /// assert_eq!(reference_sequence.length(), length);
+    /// # Ok::<_, std::num::TryFromIntError>(())
     /// ```
     pub fn length_mut(&mut self) -> &mut NonZeroUsize {
         &mut self.inner.length
@@ -130,10 +115,11 @@ impl Map<ReferenceSequence> {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let reference_sequence = Map::<ReferenceSequence>::new(13)?;
+    /// let reference_sequence = Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?);
     /// assert!(reference_sequence.alternative_locus().is_none());
-    /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
+    /// # Ok::<_, std::num::TryFromIntError>(())
     /// ```
     pub fn alternative_locus(&self) -> Option<&AlternativeLocus> {
         self.inner.alternative_locus.as_ref()
@@ -144,10 +130,11 @@ impl Map<ReferenceSequence> {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let reference_sequence = Map::<ReferenceSequence>::new(13)?;
+    /// let reference_sequence = Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?);
     /// assert!(reference_sequence.alternative_names().is_none());
-    /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
+    /// # Ok::<_, std::num::TryFromIntError>(())
     /// ```
     pub fn alternative_names(&self) -> Option<&AlternativeNames> {
         self.inner.alternative_names.as_ref()
@@ -158,10 +145,11 @@ impl Map<ReferenceSequence> {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let reference_sequence = Map::<ReferenceSequence>::new(13)?;
+    /// let reference_sequence = Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?);
     /// assert!(reference_sequence.assembly_id().is_none());
-    /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
+    /// # Ok::<_, std::num::TryFromIntError>(())
     /// ```
     pub fn assembly_id(&self) -> Option<&str> {
         self.inner.assembly_id.as_deref()
@@ -172,10 +160,11 @@ impl Map<ReferenceSequence> {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let reference_sequence = Map::<ReferenceSequence>::new(13)?;
+    /// let reference_sequence = Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?);
     /// assert!(reference_sequence.description().is_none());
-    /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
+    /// # Ok::<_, std::num::TryFromIntError>(())
     /// ```
     pub fn description(&self) -> Option<&str> {
         self.inner.description.as_deref()
@@ -186,10 +175,11 @@ impl Map<ReferenceSequence> {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let reference_sequence = Map::<ReferenceSequence>::new(13)?;
+    /// let reference_sequence = Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?);
     /// assert!(reference_sequence.md5_checksum().is_none());
-    /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
+    /// # Ok::<_, std::num::TryFromIntError>(())
     /// ```
     pub fn md5_checksum(&self) -> Option<Md5Checksum> {
         self.inner.md5_checksum
@@ -200,12 +190,14 @@ impl Map<ReferenceSequence> {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
+    ///
     /// use noodles_sam::header::record::value::{
     ///     map::{reference_sequence::Md5Checksum, ReferenceSequence},
     ///     Map,
     /// };
     ///
-    /// let mut reference_sequence = Map::<ReferenceSequence>::new(13)?;
+    /// let mut reference_sequence = Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?);
     /// assert!(reference_sequence.md5_checksum().is_none());
     ///
     /// let checksum: Md5Checksum = "d7eba311421bbc9d3ada44709dd61534".parse()?;
@@ -222,10 +214,11 @@ impl Map<ReferenceSequence> {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let reference_sequence = Map::<ReferenceSequence>::new(13)?;
+    /// let reference_sequence = Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?);
     /// assert!(reference_sequence.species().is_none());
-    /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
+    /// # Ok::<_, std::num::TryFromIntError>(())
     /// ```
     pub fn species(&self) -> Option<&str> {
         self.inner.species.as_deref()
@@ -236,10 +229,11 @@ impl Map<ReferenceSequence> {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let reference_sequence = Map::<ReferenceSequence>::new(13)?;
+    /// let reference_sequence = Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?);
     /// assert!(reference_sequence.molecule_topology().is_none());
-    /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
+    /// # Ok::<_, std::num::TryFromIntError>(())
     /// ```
     pub fn molecule_topology(&self) -> Option<MoleculeTopology> {
         self.inner.molecule_topology
@@ -250,10 +244,11 @@ impl Map<ReferenceSequence> {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
-    /// let reference_sequence = Map::<ReferenceSequence>::new(13)?;
+    /// let reference_sequence = Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?);
     /// assert!(reference_sequence.uri().is_none());
-    /// # Ok::<_, noodles_sam::header::record::value::map::reference_sequence::NewError>(())
+    /// # Ok::<_, std::num::TryFromIntError>(())
     /// ```
     pub fn uri(&self) -> Option<&str> {
         self.inner.uri.as_deref()
@@ -383,14 +378,6 @@ impl TryFrom<Fields> for Map<ReferenceSequence> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_new() {
-        assert_eq!(
-            Map::<ReferenceSequence>::new(0),
-            Err(NewError::InvalidLength(0))
-        );
-    }
 
     #[test]
     fn test_fmt() -> Result<(), Box<dyn std::error::Error>> {

@@ -315,6 +315,8 @@ mod tests {
 
     #[test]
     fn test_add_missing_reference_sequence_checksums() -> Result<(), Box<dyn std::error::Error>> {
+        use std::num::NonZeroUsize;
+
         use fasta::record::{Definition, Sequence};
         use sam::header::record::value::{map::ReferenceSequence, Map};
 
@@ -335,7 +337,10 @@ mod tests {
         let repository = fasta::Repository::new(reference_sequences);
 
         let mut header = sam::Header::builder()
-            .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(8)?)
+            .add_reference_sequence(
+                "sq0".parse()?,
+                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
+            )
             .add_reference_sequence(
                 "sq1".parse()?,
                 Map::<ReferenceSequence>::builder()

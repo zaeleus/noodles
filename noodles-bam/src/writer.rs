@@ -112,6 +112,8 @@ where
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
+    ///
     /// use noodles_bam as bam;
     /// use noodles_sam::{
     ///     self as sam,
@@ -121,7 +123,10 @@ where
     /// let mut writer = bam::Writer::new(Vec::new());
     ///
     /// let header = sam::Header::builder()
-    ///     .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(8)?)
+    ///     .add_reference_sequence(
+    ///         "sq0".parse()?,
+    ///         Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?)
+    ///     )
     ///     .add_comment("noodles-bam")
     ///     .build();
     ///
@@ -325,17 +330,14 @@ mod tests {
 
     #[test]
     fn test_write_reference_sequences() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::header::record::value::{
-            map::{reference_sequence::Name, ReferenceSequence},
-            Map,
-        };
+        use sam::header::record::value::{map::ReferenceSequence, Map};
 
-        let reference_sequences = [("sq0".parse()?, 8)]
-            .into_iter()
-            .map(|(name, len): (Name, usize)| {
-                Map::<ReferenceSequence>::new(len).map(|rs| (name, rs))
-            })
-            .collect::<Result<_, _>>()?;
+        let reference_sequences = [(
+            "sq0".parse()?,
+            Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
+        )]
+        .into_iter()
+        .collect();
 
         let mut buf = Vec::new();
         write_reference_sequences(&mut buf, &reference_sequences)?;

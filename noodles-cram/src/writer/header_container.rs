@@ -104,6 +104,8 @@ mod tests {
 
     #[test]
     fn test_validate_reference_sequences() -> Result<(), Box<dyn std::error::Error>> {
+        use std::num::NonZeroUsize;
+
         use sam::header::record::value::{
             map::{reference_sequence::Md5Checksum, ReferenceSequence},
             Map,
@@ -124,7 +126,10 @@ mod tests {
         assert!(validate_reference_sequences(header.reference_sequences()).is_ok());
 
         let header = sam::Header::builder()
-            .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(8)?)
+            .add_reference_sequence(
+                "sq0".parse()?,
+                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
+            )
             .build();
         assert!(validate_reference_sequences(header.reference_sequences()).is_err());
 

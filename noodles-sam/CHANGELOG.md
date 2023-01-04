@@ -28,6 +28,9 @@
   * sam/header: The key for `ReferenceSequences` is now a
     `reference_sequence::Name`.
 
+  * sam/header/record/value/map/reference_sequence: `ReferenceSequence::new`
+    requires a nonzero length.
+
   * sam/header/record/value/map/reference_sequence/alternative_locus:
     Parse interval as a pair of `Position`s.
 
@@ -47,10 +50,9 @@
 
 ### Removed
 
-  * sam/header/record/value/map/reference_sequence: Remove
-    `NewError::InvalidName`.
+  * sam/header/record/value/map/reference_sequence: Remove `NewError`.
 
-    This was unused.
+    `ReferenceSequence::new` is now infallible.
 
 ## 0.22.1 - 2022-11-29
 

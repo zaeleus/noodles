@@ -4,6 +4,8 @@
 //!
 //! Verify the output by piping to `samtools view --no-PG --with-header`.
 
+use std::num::NonZeroUsize;
+
 use noodles_bam as bam;
 use noodles_sam::{
     self as sam,
@@ -21,7 +23,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let header = sam::Header::builder()
         .set_header(Default::default())
-        .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(8)?)
+        .add_reference_sequence(
+            "sq0".parse()?,
+            Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
+        )
         .add_program("noodles-bam", Map::<Program>::default())
         .add_comment("an example BAM written by noodles-bam")
         .build();

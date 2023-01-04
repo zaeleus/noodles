@@ -44,6 +44,8 @@
 //! ## Create a SAM header
 //!
 //! ```
+//! use std::num::NonZeroUsize;
+//!
 //! use noodles_sam::{
 //!     self as sam,
 //!     header::record::value::{map::ReferenceSequence, Map},
@@ -51,8 +53,14 @@
 //!
 //! let header = sam::Header::builder()
 //!     .set_header(Default::default())
-//!     .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(8)?)
-//!     .add_reference_sequence("sq1".parse()?, Map::<ReferenceSequence>::new(13)?)
+//!     .add_reference_sequence(
+//!         "sq0".parse()?,
+//!         Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
+//!     )
+//!     .add_reference_sequence(
+//!         "sq1".parse()?,
+//!         Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?),
+//!     )
 //!     .build();
 //!
 //! assert!(header.header().is_some());
@@ -161,13 +169,18 @@ impl Header {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
+    ///
     /// use noodles_sam::{
     ///     self as sam,
     ///     header::record::value::{map::ReferenceSequence, Map},
     /// };
     ///
     /// let header = sam::Header::builder()
-    ///     .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(13)?)
+    ///     .add_reference_sequence(
+    ///         "sq0".parse()?,
+    ///         Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?)
+    ///     )
     ///     .build();
     ///
     /// let reference_sequences = header.reference_sequences();
@@ -186,6 +199,8 @@ impl Header {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
+    ///
     /// use noodles_sam::{
     ///     self as sam,
     ///     header::record::value::{map::ReferenceSequence, Map},
@@ -193,8 +208,10 @@ impl Header {
     ///
     /// let mut header = sam::Header::default();
     ///
-    /// let reference_sequence = Map::<ReferenceSequence>::new(13)?;
-    /// header.reference_sequences_mut().insert("sq0".parse()?, reference_sequence);
+    /// header.reference_sequences_mut().insert(
+    ///     "sq0".parse()?,
+    ///     Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?),
+    /// );
     ///
     /// let reference_sequences = header.reference_sequences();
     /// assert_eq!(reference_sequences.len(), 1);
@@ -449,12 +466,20 @@ mod tests {
 
     #[test]
     fn test_fmt() -> Result<(), Box<dyn std::error::Error>> {
+        use std::num::NonZeroUsize;
+
         use super::record::value::map::header::Version;
 
         let header = Header::builder()
             .set_header(Map::<map::Header>::new(Version::new(1, 6)))
-            .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(8)?)
-            .add_reference_sequence("sq1".parse()?, Map::<ReferenceSequence>::new(13)?)
+            .add_reference_sequence(
+                "sq0".parse()?,
+                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
+            )
+            .add_reference_sequence(
+                "sq1".parse()?,
+                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?),
+            )
             .add_read_group("rg0", Map::<ReadGroup>::default())
             .add_read_group("rg1", Map::<ReadGroup>::default())
             .add_program("pg0", Map::<Program>::default())

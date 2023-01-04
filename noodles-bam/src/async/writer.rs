@@ -104,6 +104,8 @@ where
     /// ```
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use std::num::NonZeroUsize;
+    ///
     /// use noodles_bam as bam;
     /// use noodles_sam::{
     ///     self as sam,
@@ -113,7 +115,10 @@ where
     /// let mut writer = bam::AsyncWriter::new(Vec::new());
     ///
     /// let header = sam::Header::builder()
-    ///     .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(8)?)
+    ///     .add_reference_sequence(
+    ///         "sq0".parse()?,
+    ///         Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?)
+    ///     )
     ///     .add_comment("noodles-bam")
     ///     .build();
     ///

@@ -55,6 +55,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
+    ///
     /// use noodles_sam::{
     ///     self as sam,
     ///     header::record::value::{
@@ -63,12 +65,12 @@ impl Builder {
     ///     }
     /// };
     ///
-    /// let reference_sequences = [("sq0".parse()?, 13)]
-    ///     .into_iter()
-    ///     .map(|(name, len): (Name, usize)| {
-    ///         Map::<ReferenceSequence>::new(len).map(|rs| (name, rs))
-    ///     })
-    ///     .collect::<Result<_, _>>()?;
+    /// let reference_sequences = [(
+    ///     "sq0".parse()?,
+    ///     Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?),
+    /// )]
+    /// .into_iter()
+    /// .collect();
     ///
     /// let header = sam::Header::builder()
     ///     .set_reference_sequences(reference_sequences)
@@ -89,13 +91,18 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
+    ///
     /// use noodles_sam::{
     ///     self as sam,
     ///     header::record::value::{map::ReferenceSequence, Map},
     /// };
     ///
     /// let header = sam::Header::builder()
-    ///     .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(13)?)
+    ///     .add_reference_sequence(
+    ///         "sq0".parse()?,
+    ///         Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?),
+    ///     )
     ///     .build();
     ///
     /// let reference_sequences = header.reference_sequences();
@@ -217,10 +224,21 @@ mod tests {
 
     #[test]
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
+        use std::num::NonZeroUsize;
+
         let header = Builder::default()
-            .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(8)?)
-            .add_reference_sequence("sq1".parse()?, Map::<ReferenceSequence>::new(13)?)
-            .add_reference_sequence("sq2".parse()?, Map::<ReferenceSequence>::new(21)?)
+            .add_reference_sequence(
+                "sq0".parse()?,
+                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
+            )
+            .add_reference_sequence(
+                "sq1".parse()?,
+                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?),
+            )
+            .add_reference_sequence(
+                "sq2".parse()?,
+                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(21)?),
+            )
             .add_read_group("rg0", Map::<ReadGroup>::default())
             .add_read_group("rg1", Map::<ReadGroup>::default())
             .add_program("pg0", Map::<Program>::default())
