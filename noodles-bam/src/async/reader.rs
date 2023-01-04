@@ -1,6 +1,8 @@
 mod query;
 mod record;
 
+use std::num::NonZeroUsize;
+
 use bytes::BytesMut;
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
@@ -528,10 +530,12 @@ where
     })?;
 
     let l_ref = reader.read_u32_le().await.and_then(|len| {
-        usize::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        usize::try_from(len)
+            .and_then(NonZeroUsize::try_from)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let reference_sequence = Map::<ReferenceSequence>::new(l_ref)
+    let reference_sequence = Map::<ReferenceSequence>::new(usize::from(l_ref))
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     Ok((name, reference_sequence))
