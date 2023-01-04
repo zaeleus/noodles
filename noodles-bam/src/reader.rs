@@ -13,6 +13,7 @@ pub use self::{
 use std::{
     ffi::CStr,
     io::{self, Read, Seek},
+    num::NonZeroUsize,
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
@@ -535,10 +536,12 @@ where
     })?;
 
     let l_ref = reader.read_u32::<LittleEndian>().and_then(|len| {
-        usize::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        usize::try_from(len)
+            .and_then(NonZeroUsize::try_from)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let reference_sequence = Map::<ReferenceSequence>::new(l_ref)
+    let reference_sequence = Map::<ReferenceSequence>::new(usize::from(l_ref))
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     Ok((name, reference_sequence))
