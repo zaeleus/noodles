@@ -22,13 +22,20 @@ pub enum ParseError {
     InvalidComment,
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidRecord(e) => Some(e),
+            _ => None,
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnexpectedHeader => f.write_str("unexpected @HD"),
-            Self::InvalidRecord(e) => write!(f, "invalid record: {}", e),
+            Self::InvalidRecord(_) => f.write_str("invalid record"),
             Self::DuplicateReferenceSequenceName(name) => {
                 write!(f, "duplicate reference sequence name: {}", name)
             }
