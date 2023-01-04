@@ -344,7 +344,7 @@ mod tests {
             .add_reference_sequence(
                 "sq1".parse()?,
                 Map::<ReferenceSequence>::builder()
-                    .set_length(13)
+                    .set_length(NonZeroUsize::try_from(13)?)
                     .set_md5_checksum(sq1_md5_checksum)
                     .build()?,
             )

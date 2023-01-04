@@ -31,6 +31,9 @@
   * sam/header/record/value/map/reference_sequence: `ReferenceSequence::new`
     requires a nonzero length.
 
+  * sam/header/record/value/map/reference_sequence/builder:
+    `Builder::set_length` is required to be nonzero.
+
   * sam/header/record/value/map/reference_sequence/alternative_locus:
     Parse interval as a pair of `Position`s.
 

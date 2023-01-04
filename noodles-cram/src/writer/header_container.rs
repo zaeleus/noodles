@@ -115,7 +115,7 @@ mod tests {
             .add_reference_sequence(
                 "sq0".parse()?,
                 Map::<ReferenceSequence>::builder()
-                    .set_length(8)
+                    .set_length(NonZeroUsize::try_from(8)?)
                     .set_md5_checksum(Md5Checksum::from([
                         0xd7, 0xeb, 0xa3, 0x11, 0x42, 0x1b, 0xbc, 0x9d, 0x3a, 0xda, 0x44, 0x70,
                         0x9d, 0xd6, 0x15, 0x34,

@@ -8,7 +8,7 @@ use crate::header::record::value::map::{self, builder::BuildError};
 /// A SAM header reference sequence builder.
 #[derive(Debug, Default)]
 pub struct Builder {
-    length: Option<usize>,
+    length: Option<NonZeroUsize>,
     alternative_locus: Option<AlternativeLocus>,
     alternative_names: Option<AlternativeNames>,
     assembly_id: Option<String>,
@@ -25,16 +25,20 @@ impl map::Builder<ReferenceSequence> {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
+    ///
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
     ///
+    /// let length = NonZeroUsize::try_from(13)?;
+    ///
     /// let reference_sequence = Map::<ReferenceSequence>::builder()
-    ///     .set_length(13)
+    ///     .set_length(length)
     ///     .build()?;
     ///
-    /// assert_eq!(usize::from(reference_sequence.length()), 13);
+    /// assert_eq!(reference_sequence.length(), length);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_length(mut self, length: usize) -> Self {
+    pub fn set_length(mut self, length: NonZeroUsize) -> Self {
         self.inner.length = Some(length);
         self
     }
@@ -44,13 +48,15 @@ impl map::Builder<ReferenceSequence> {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
+    ///
     /// use noodles_sam::header::record::value::{
     ///     map::{reference_sequence::AlternativeLocus, ReferenceSequence},
     ///     Map,
     /// };
     ///
     /// let reference_sequence = Map::<ReferenceSequence>::builder()
-    ///     .set_length(13)
+    ///     .set_length(NonZeroUsize::try_from(13)?)
     ///     .set_alternative_locus(AlternativeLocus::Unknown)
     ///     .build()?;
     ///
@@ -70,6 +76,8 @@ impl map::Builder<ReferenceSequence> {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
+    ///
     /// use noodles_sam::header::record::value::{
     ///     map::{reference_sequence::AlternativeNames, ReferenceSequence},
     ///     Map,
@@ -78,7 +86,7 @@ impl map::Builder<ReferenceSequence> {
     /// let alternative_names: AlternativeNames = "0,SQ.0".parse()?;
     ///
     /// let reference_sequence = Map::<ReferenceSequence>::builder()
-    ///     .set_length(13)
+    ///     .set_length(NonZeroUsize::try_from(13)?)
     ///     .set_alternative_names(alternative_names.clone())
     ///     .build()?;
     ///
@@ -95,10 +103,12 @@ impl map::Builder<ReferenceSequence> {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
+    ///
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
     ///
     /// let reference_sequence = Map::<ReferenceSequence>::builder()
-    ///     .set_length(13)
+    ///     .set_length(NonZeroUsize::try_from(13)?)
     ///     .set_assembly_id("ref")
     ///     .build()?;
     ///
@@ -118,10 +128,12 @@ impl map::Builder<ReferenceSequence> {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
+    ///
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
     ///
     /// let reference_sequence = Map::<ReferenceSequence>::builder()
-    ///     .set_length(13)
+    ///     .set_length(NonZeroUsize::try_from(13)?)
     ///     .set_description("noodles")
     ///     .build()?;
     ///
@@ -141,13 +153,15 @@ impl map::Builder<ReferenceSequence> {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
+    ///
     /// use noodles_sam::header::record::value::{
     ///     map::{reference_sequence::Md5Checksum, ReferenceSequence},
     ///     Map,
     /// };
     ///
     /// let reference_sequence = Map::<ReferenceSequence>::builder()
-    ///     .set_length(13)
+    ///     .set_length(NonZeroUsize::try_from(13)?)
     ///     .set_md5_checksum(Md5Checksum::from([
     ///         0xd7, 0xeb, 0xa3, 0x11, 0x42, 0x1b, 0xbc, 0x9d,
     ///         0x3a, 0xda, 0x44, 0x70, 0x9d, 0xd6, 0x15, 0x34,
@@ -170,10 +184,12 @@ impl map::Builder<ReferenceSequence> {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
+    ///
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
     ///
     /// let reference_sequence = Map::<ReferenceSequence>::builder()
-    ///     .set_length(13)
+    ///     .set_length(NonZeroUsize::try_from(13)?)
     ///     .set_species("human")
     ///     .build()?;
     ///
@@ -193,13 +209,15 @@ impl map::Builder<ReferenceSequence> {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
+    ///
     /// use noodles_sam::header::record::value::{
     ///     map::{reference_sequence::MoleculeTopology, ReferenceSequence},
     ///     Map,
     /// };
     ///
     /// let reference_sequence = Map::<ReferenceSequence>::builder()
-    ///     .set_length(13)
+    ///     .set_length(NonZeroUsize::try_from(13)?)
     ///     .set_molecule_topology(MoleculeTopology::Linear)
     ///     .build()?;
     ///
@@ -216,10 +234,12 @@ impl map::Builder<ReferenceSequence> {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
+    ///
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
     ///
     /// let reference_sequence = Map::<ReferenceSequence>::builder()
-    ///     .set_length(13)
+    ///     .set_length(NonZeroUsize::try_from(13)?)
     ///     .set_uri("file:///tmp/ref.fasta")
     ///     .build()?;
     ///
@@ -237,10 +257,7 @@ impl map::Builder<ReferenceSequence> {
 
 impl map::builder::Inner<ReferenceSequence> for Builder {
     fn build(self) -> Result<ReferenceSequence, BuildError> {
-        let length = self
-            .length
-            .ok_or(BuildError::MissingField("LN"))
-            .and_then(|n| NonZeroUsize::new(n).ok_or(BuildError::InvalidValue("LN")))?;
+        let length = self.length.ok_or(BuildError::MissingField("LN"))?;
 
         Ok(ReferenceSequence {
             length,
