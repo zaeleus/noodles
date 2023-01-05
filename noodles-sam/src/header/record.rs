@@ -43,7 +43,7 @@ pub enum ParseError {
     /// A header record is invalid.
     InvalidHeader(map::TryFromFieldsError),
     /// A reference sequence record is invalid.
-    InvalidReferenceSequence(map::TryFromFieldsError),
+    InvalidReferenceSequence(map::reference_sequence::Name, map::TryFromFieldsError),
     /// A read group record is invalid.
     InvalidReadGroup(String, map::TryFromFieldsError),
     /// A program record is invalid.
@@ -55,7 +55,7 @@ impl error::Error for ParseError {
         match self {
             Self::InvalidKind(e) => Some(e),
             Self::InvalidHeader(e)
-            | Self::InvalidReferenceSequence(e)
+            | Self::InvalidReferenceSequence(_, e)
             | Self::InvalidReadGroup(_, e)
             | Self::InvalidProgram(e) => Some(e),
             _ => None,
@@ -71,7 +71,9 @@ impl fmt::Display for ParseError {
             Self::InvalidField => write!(f, "invalid field"),
             Self::InvalidValue => write!(f, "invalid value"),
             Self::InvalidHeader(_) => f.write_str("invalid header"),
-            Self::InvalidReferenceSequence(_) => f.write_str("invalid reference sequence"),
+            Self::InvalidReferenceSequence(name, _) => {
+                write!(f, "invalid reference sequence: SN:{}", name)
+            }
             Self::InvalidReadGroup(id, _) => write!(f, "invalid read group: ID:{}", id),
             Self::InvalidProgram(_) => f.write_str("invalid program"),
         }
@@ -95,12 +97,12 @@ impl FromStr for Record {
             Kind::ReferenceSequence => {
                 let mut fields = split_fields(v)?;
 
-                let name = remove_field(&mut fields, "SN")
+                let name: map::reference_sequence::Name = remove_field(&mut fields, "SN")
                     .ok_or(ParseError::Invalid)
                     .and_then(|t| t.parse().map_err(|_| ParseError::Invalid))?;
 
                 let reference_sequence = Map::<ReferenceSequence>::try_from(fields)
-                    .map_err(ParseError::InvalidReferenceSequence)?;
+                    .map_err(|e| ParseError::InvalidReferenceSequence(name.clone(), e))?;
 
                 Ok(Self::ReferenceSequence(name, reference_sequence))
             }
