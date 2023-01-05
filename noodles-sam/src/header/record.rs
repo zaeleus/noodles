@@ -95,12 +95,9 @@ impl FromStr for Record {
             Kind::ReferenceSequence => {
                 let mut fields = split_fields(v)?;
 
-                let i = fields
-                    .iter()
-                    .position(|(tag, _)| tag == "SN")
-                    .ok_or(ParseError::Invalid)?;
-                let (_, raw_name) = fields.remove(i);
-                let name = raw_name.parse().map_err(|_| ParseError::Invalid)?;
+                let name = remove_field(&mut fields, "SN")
+                    .ok_or(ParseError::Invalid)
+                    .and_then(|t| t.parse().map_err(|_| ParseError::Invalid))?;
 
                 let reference_sequence = Map::<ReferenceSequence>::try_from(fields)
                     .map_err(ParseError::InvalidReferenceSequence)?;
@@ -110,12 +107,7 @@ impl FromStr for Record {
             Kind::ReadGroup => {
                 let mut fields = split_fields(v)?;
 
-                let i = fields
-                    .iter()
-                    .position(|(tag, _)| tag == "ID")
-                    .ok_or(ParseError::Invalid)?;
-                let (_, id) = fields.remove(i);
-
+                let id = remove_field(&mut fields, "ID").ok_or(ParseError::Invalid)?;
                 let read_group =
                     Map::<ReadGroup>::try_from(fields).map_err(ParseError::InvalidReadGroup)?;
 
@@ -124,12 +116,7 @@ impl FromStr for Record {
             Kind::Program => {
                 let mut fields = split_fields(v)?;
 
-                let i = fields
-                    .iter()
-                    .position(|(tag, _)| tag == "ID")
-                    .ok_or(ParseError::Invalid)?;
-                let (_, id) = fields.remove(i);
-
+                let id = remove_field(&mut fields, "ID").ok_or(ParseError::Invalid)?;
                 let program =
                     Map::<Program>::try_from(fields).map_err(ParseError::InvalidProgram)?;
 
@@ -161,6 +148,12 @@ fn split_field(s: &str) -> Result<(String, String), ParseError> {
 
 fn is_valid_value(s: &str) -> bool {
     !s.is_empty() && s.chars().all(|c| matches!(c, ' '..='~'))
+}
+
+fn remove_field(fields: &mut Vec<(String, String)>, tag: &str) -> Option<String> {
+    let i = fields.iter().position(|(t, _)| t == tag)?;
+    let (_, value) = fields.remove(i);
+    Some(value)
 }
 
 #[cfg(test)]
