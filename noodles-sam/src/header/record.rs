@@ -45,7 +45,7 @@ pub enum ParseError {
     /// A reference sequence record is invalid.
     InvalidReferenceSequence(map::TryFromFieldsError),
     /// A read group record is invalid.
-    InvalidReadGroup(map::TryFromFieldsError),
+    InvalidReadGroup(String, map::TryFromFieldsError),
     /// A program record is invalid.
     InvalidProgram(map::TryFromFieldsError),
 }
@@ -56,7 +56,7 @@ impl error::Error for ParseError {
             Self::InvalidKind(e) => Some(e),
             Self::InvalidHeader(e)
             | Self::InvalidReferenceSequence(e)
-            | Self::InvalidReadGroup(e)
+            | Self::InvalidReadGroup(_, e)
             | Self::InvalidProgram(e) => Some(e),
             _ => None,
         }
@@ -72,7 +72,7 @@ impl fmt::Display for ParseError {
             Self::InvalidValue => write!(f, "invalid value"),
             Self::InvalidHeader(_) => f.write_str("invalid header"),
             Self::InvalidReferenceSequence(_) => f.write_str("invalid reference sequence"),
-            Self::InvalidReadGroup(_) => f.write_str("invalid read group"),
+            Self::InvalidReadGroup(id, _) => write!(f, "invalid read group: ID:{}", id),
             Self::InvalidProgram(_) => f.write_str("invalid program"),
         }
     }
@@ -108,8 +108,8 @@ impl FromStr for Record {
                 let mut fields = split_fields(v)?;
 
                 let id = remove_field(&mut fields, "ID").ok_or(ParseError::Invalid)?;
-                let read_group =
-                    Map::<ReadGroup>::try_from(fields).map_err(ParseError::InvalidReadGroup)?;
+                let read_group = Map::<ReadGroup>::try_from(fields)
+                    .map_err(|e| ParseError::InvalidReadGroup(id.clone(), e))?;
 
                 Ok(Self::ReadGroup(id, read_group))
             }
