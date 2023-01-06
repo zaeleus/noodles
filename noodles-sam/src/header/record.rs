@@ -42,6 +42,8 @@ pub enum ParseError {
     InvalidValue,
     /// A header record is invalid.
     InvalidHeader(map::TryFromFieldsError),
+    /// A reference sequence name is invalid.
+    InvalidReferenceSequenceName(map::reference_sequence::name::ParseError),
     /// A reference sequence record is invalid.
     InvalidReferenceSequence(map::reference_sequence::Name, map::TryFromFieldsError),
     /// A read group record is invalid.
@@ -58,6 +60,7 @@ impl error::Error for ParseError {
             | Self::InvalidReferenceSequence(_, e)
             | Self::InvalidReadGroup(_, e)
             | Self::InvalidProgram(e) => Some(e),
+            Self::InvalidReferenceSequenceName(e) => Some(e),
             _ => None,
         }
     }
@@ -71,6 +74,7 @@ impl fmt::Display for ParseError {
             Self::InvalidField => write!(f, "invalid field"),
             Self::InvalidValue => write!(f, "invalid value"),
             Self::InvalidHeader(_) => f.write_str("invalid header"),
+            Self::InvalidReferenceSequenceName(_) => f.write_str("invalid reference sequence name"),
             Self::InvalidReferenceSequence(name, _) => {
                 write!(f, "invalid reference sequence: SN:{}", name)
             }
@@ -99,7 +103,7 @@ impl FromStr for Record {
 
                 let name: map::reference_sequence::Name = remove_field(&mut fields, "SN")
                     .ok_or(ParseError::Invalid)
-                    .and_then(|t| t.parse().map_err(|_| ParseError::Invalid))?;
+                    .and_then(|t| t.parse().map_err(ParseError::InvalidReferenceSequenceName))?;
 
                 let reference_sequence = Map::<ReferenceSequence>::try_from(fields)
                     .map_err(|e| ParseError::InvalidReferenceSequence(name.clone(), e))?;

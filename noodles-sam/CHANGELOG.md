@@ -6,6 +6,8 @@
 
   * sam: Implement `std::error::Error::source` for errors.
 
+  * sam/header/record: Add `ParseError::InvalidReferenceSequenceName`.
+
   * sam/record/data: Add iterator over all tag-value pairs (`Data::iter`).
 
   * sam/record/data: Implement `FromIterator<(Tag, Value)>`.
