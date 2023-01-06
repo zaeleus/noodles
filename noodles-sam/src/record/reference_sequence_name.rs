@@ -32,7 +32,7 @@ pub enum ParseError {
     /// The input is empty.
     Empty,
     /// The input is invalid.
-    Invalid,
+    Invalid(String),
 }
 
 impl error::Error for ParseError {}
@@ -41,7 +41,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
-            Self::Invalid => f.write_str("invalid input"),
+            Self::Invalid(s) => write!(f, "invalid input: {}", s),
         }
     }
 }
@@ -53,7 +53,7 @@ impl FromStr for ReferenceSequenceName {
         if s.is_empty() {
             Err(ParseError::Empty)
         } else if !is_valid_name(s) {
-            Err(ParseError::Invalid)
+            Err(ParseError::Invalid(s.into()))
         } else {
             Ok(Self(s.into()))
         }
@@ -116,27 +116,27 @@ mod tests {
 
         assert_eq!(
             "sq 0".parse::<ReferenceSequenceName>(),
-            Err(ParseError::Invalid)
+            Err(ParseError::Invalid(String::from("sq 0")))
         );
 
         assert_eq!(
             "sq[0]".parse::<ReferenceSequenceName>(),
-            Err(ParseError::Invalid)
+            Err(ParseError::Invalid(String::from("sq[0]")))
         );
 
         assert_eq!(
             ">sq0".parse::<ReferenceSequenceName>(),
-            Err(ParseError::Invalid)
+            Err(ParseError::Invalid(String::from(">sq0")))
         );
 
         assert_eq!(
             "*sq0".parse::<ReferenceSequenceName>(),
-            Err(ParseError::Invalid)
+            Err(ParseError::Invalid(String::from("*sq0")))
         );
 
         assert_eq!(
             "=sq0".parse::<ReferenceSequenceName>(),
-            Err(ParseError::Invalid)
+            Err(ParseError::Invalid(String::from("=sq0")))
         );
     }
 }

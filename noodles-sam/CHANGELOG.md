@@ -56,6 +56,8 @@
   * sam/record/data: `Data::remove` returns a `Tag`-`Value` pair instead of a
     `Field`.
 
+  * sam/record/reference_sequence_name: Save input in `ParseError::Invalid`.
+
 ### Removed
 
   * sam/header/record/value/map/reference_sequence: Remove `NewError`.
