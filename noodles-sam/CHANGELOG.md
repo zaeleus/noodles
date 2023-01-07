@@ -50,7 +50,7 @@
   * sam/record/data: `Data::values` returns an iterator over `Value`s instead
     of `Field`s.
 
-  * sam/record/data: `Data::insert` recieves a `Tag`-`Value` pair instead of a
+  * sam/record/data: `Data::insert` receives a `Tag`-`Value` pair instead of a
     `Field`.
 
   * sam/record/data: `Data::remove` returns a `Tag`-`Value` pair instead of a
