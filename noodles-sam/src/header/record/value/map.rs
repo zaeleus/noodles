@@ -104,9 +104,8 @@ fn fmt_display_other_fields<S>(
     Ok(())
 }
 
-fn init_other_fields<S>(len: usize) -> OtherFields<S> {
-    let len = len.checked_sub(1).unwrap_or_default();
-    IndexMap::with_capacity(len)
+fn init_other_fields<S>() -> OtherFields<S> {
+    IndexMap::new()
 }
 
 fn insert_other_field<S>(

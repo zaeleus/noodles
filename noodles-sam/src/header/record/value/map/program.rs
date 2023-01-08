@@ -128,13 +128,13 @@ impl TryFrom<Fields> for Map<Program> {
     type Error = TryFromFieldsError;
 
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
-        let mut other_fields = super::init_other_fields(fields.len());
-
         let mut name = None;
         let mut command_line = None;
         let mut previous_id = None;
         let mut description = None;
         let mut version = None;
+
+        let mut other_fields = super::init_other_fields();
 
         for (key, value) in fields {
             let tag = key.parse().map_err(|_| TryFromFieldsError::InvalidTag)?;

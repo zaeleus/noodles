@@ -199,12 +199,12 @@ impl TryFrom<Fields> for Map<Header> {
     type Error = TryFromFieldsError;
 
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
-        let mut other_fields = super::init_other_fields(fields.len());
-
         let mut version = None;
         let mut sort_order = None;
         let mut group_order = None;
         let mut subsort_order = None;
+
+        let mut other_fields = super::init_other_fields();
 
         for (key, value) in fields {
             let tag = key.parse().map_err(|_| TryFromFieldsError::InvalidTag)?;

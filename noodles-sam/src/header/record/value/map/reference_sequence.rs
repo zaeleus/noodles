@@ -301,8 +301,6 @@ impl TryFrom<Fields> for Map<ReferenceSequence> {
     type Error = TryFromFieldsError;
 
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
-        let mut other_fields = super::init_other_fields(fields.len());
-
         let mut length = None;
         let mut alternative_locus = None;
         let mut alternative_names = None;
@@ -312,6 +310,8 @@ impl TryFrom<Fields> for Map<ReferenceSequence> {
         let mut species = None;
         let mut molecule_topology = None;
         let mut uri = None;
+
+        let mut other_fields = super::init_other_fields();
 
         for (key, value) in fields {
             let tag = key.parse().map_err(|_| TryFromFieldsError::InvalidTag)?;

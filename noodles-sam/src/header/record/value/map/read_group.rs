@@ -275,8 +275,6 @@ impl TryFrom<Fields> for Map<ReadGroup> {
     type Error = TryFromFieldsError;
 
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
-        let mut other_fields = super::init_other_fields(fields.len());
-
         let mut barcode = None;
         let mut sequencing_center = None;
         let mut description = None;
@@ -290,6 +288,8 @@ impl TryFrom<Fields> for Map<ReadGroup> {
         let mut platform_model = None;
         let mut platform_unit = None;
         let mut sample = None;
+
+        let mut other_fields = super::init_other_fields();
 
         for (key, value) in fields {
             let tag = key.parse().map_err(|_| TryFromFieldsError::InvalidTag)?;
