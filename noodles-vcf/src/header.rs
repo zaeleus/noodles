@@ -352,7 +352,7 @@ impl Header {
     /// let contig = Map::<Contig>::new("sq0".parse()?);
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_contig(contig.clone())
+    ///     .add_contig(contig.id().clone(), contig.clone())
     ///     .build();
     ///
     /// let contigs = header.contigs();

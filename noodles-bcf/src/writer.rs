@@ -130,7 +130,7 @@ where
     /// let mut writer = bcf::Writer::new(Vec::new());
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_contig(Map::<Contig>::new("sq0".parse()?))
+    ///     .add_contig("sq0".parse()?, Map::<Contig>::new("sq0".parse()?))
     ///     .build();
     ///
     /// writer.write_header(&header)?;

@@ -44,7 +44,7 @@ impl StringMaps {
     ///     .add_info(info::Key::TotalDepth, Map::<Info>::from(info::Key::TotalDepth))
     ///     .add_filter("q10", Map::<Filter>::new("q10", "Quality below 10"))
     ///     .add_format(format::Key::ReadDepth, Map::<Format>::from(format::Key::ReadDepth))
-    ///     .add_contig(Map::<Contig>::new("sq0".parse()?))
+    ///     .add_contig("sq0".parse()?, Map::<Contig>::new("sq0".parse()?))
     ///     .build();
     ///
     /// let string_maps = StringMaps::from(&header);
@@ -79,7 +79,7 @@ impl StringMaps {
     ///     .add_info(info::Key::TotalDepth, Map::<Info>::from(info::Key::TotalDepth))
     ///     .add_filter("q10", Map::<Filter>::new("q10", "Quality below 10"))
     ///     .add_format(format::Key::ReadDepth, Map::<Format>::from(format::Key::ReadDepth))
-    ///     .add_contig(Map::<Contig>::new("sq0".parse()?))
+    ///     .add_contig("sq0".parse()?, Map::<Contig>::new("sq0".parse()?))
     ///     .build();
     ///
     /// let string_maps = StringMaps::from(&header);
@@ -414,9 +414,9 @@ mod tests {
         let del_symbol = Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion));
 
         let header = vcf::Header::builder()
-            .add_contig(Map::<Contig>::new("sq0".parse()?))
-            .add_contig(Map::<Contig>::new("sq1".parse()?))
-            .add_contig(Map::<Contig>::new("sq2".parse()?))
+            .add_contig("sq0".parse()?, Map::<Contig>::new("sq0".parse()?))
+            .add_contig("sq1".parse()?, Map::<Contig>::new("sq1".parse()?))
+            .add_contig("sq2".parse()?, Map::<Contig>::new("sq2".parse()?))
             .add_info(
                 info::Key::SamplesWithDataCount,
                 Map::<Info>::from(info::Key::SamplesWithDataCount),

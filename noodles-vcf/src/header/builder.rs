@@ -189,7 +189,7 @@ impl Builder {
     /// let contig = Map::<Contig>::new("sq0".parse()?);
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_contig(contig.clone())
+    ///     .add_contig(contig.id().clone(), contig.clone())
     ///     .build();
     ///
     /// let contigs = header.contigs();
@@ -197,8 +197,12 @@ impl Builder {
     /// assert_eq!(&contigs[0], &contig);
     /// # Ok::<_, vcf::header::record::value::map::contig::name::ParseError>(())
     /// ```
-    pub fn add_contig(mut self, contig: Map<Contig>) -> Self {
-        self.contigs.insert(contig.id().clone(), contig);
+    pub fn add_contig(
+        mut self,
+        id: super::record::value::map::contig::Name,
+        contig: Map<Contig>,
+    ) -> Self {
+        self.contigs.insert(id, contig);
         self
     }
 
@@ -400,8 +404,8 @@ mod tests {
                 Map::<AlternativeAllele>::new(del_symbol, "Deletion"),
             )
             .set_assembly("file:///assemblies.fasta")
-            .add_contig(Map::<Contig>::new("sq0".parse()?))
-            .add_contig(Map::<Contig>::new("sq1".parse()?))
+            .add_contig("sq0".parse()?, Map::<Contig>::new("sq0".parse()?))
+            .add_contig("sq1".parse()?, Map::<Contig>::new("sq1".parse()?))
             .add_meta(Map::<Meta>::new(
                 String::from("Assay"),
                 vec![String::from("WholeGenome"), String::from("Exome")],
