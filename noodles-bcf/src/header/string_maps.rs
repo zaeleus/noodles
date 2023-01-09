@@ -132,25 +132,17 @@ impl FromStr for StringMaps {
                 Record::try_from((file_format, line)).map_err(ParseError::InvalidRecord)?;
 
             match record {
-                Record::Contig(contig) => {
-                    insert(
-                        string_maps.contigs_mut(),
-                        contig.id().as_ref(),
-                        contig.idx(),
-                    )?;
+                Record::Contig(id, contig) => {
+                    insert(string_maps.contigs_mut(), id.as_ref(), contig.idx())?;
                 }
-                Record::Filter(filter) => {
-                    insert(string_maps.strings_mut(), filter.id(), filter.idx())?;
+                Record::Filter(id, filter) => {
+                    insert(string_maps.strings_mut(), &id, filter.idx())?;
                 }
-                Record::Format(format) => {
-                    insert(
-                        string_maps.strings_mut(),
-                        format.id().as_ref(),
-                        format.idx(),
-                    )?;
+                Record::Format(id, format) => {
+                    insert(string_maps.strings_mut(), id.as_ref(), format.idx())?;
                 }
-                Record::Info(info) => {
-                    insert(string_maps.strings_mut(), info.id().as_ref(), info.idx())?;
+                Record::Info(id, info) => {
+                    insert(string_maps.strings_mut(), id.as_ref(), info.idx())?;
                 }
                 _ => {}
             }

@@ -121,15 +121,15 @@ fn parse_record(
 
     builder = match record {
         Record::FileFormat(_) => return Err(ParseError::UnexpectedFileFormat),
-        Record::Info(info) => builder.add_info(info.id().clone(), info),
-        Record::Filter(filter) => builder.add_filter(filter.id().clone(), filter),
-        Record::Format(format) => builder.add_format(format.id().clone(), format),
-        Record::AlternativeAllele(alternative_allele) => {
-            builder.add_alternative_allele(alternative_allele.id().clone(), alternative_allele)
+        Record::Info(id, info) => builder.add_info(id, info),
+        Record::Filter(id, filter) => builder.add_filter(id, filter),
+        Record::Format(id, format) => builder.add_format(id, format),
+        Record::AlternativeAllele(id, alternative_allele) => {
+            builder.add_alternative_allele(id, alternative_allele)
         }
         Record::Assembly(assembly) => builder.set_assembly(assembly),
-        Record::Contig(contig) => builder.add_contig(contig.id().clone(), contig),
-        Record::Meta(meta) => builder.add_meta(meta.id().clone(), meta),
+        Record::Contig(id, contig) => builder.add_contig(id, contig),
+        Record::Meta(id, meta) => builder.add_meta(id, meta),
         Record::PedigreeDb(pedigree_db) => builder.set_pedigree_db(pedigree_db),
         Record::Other(key, value) => builder.insert(key, value),
     };

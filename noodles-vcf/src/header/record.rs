@@ -20,21 +20,24 @@ pub(crate) const PREFIX: &str = "##";
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Record {
     /// An `ALT` record.
-    AlternativeAllele(Map<AlternativeAllele>),
+    AlternativeAllele(
+        crate::record::alternate_bases::allele::Symbol,
+        Map<AlternativeAllele>,
+    ),
     /// An `assembly` record.
     Assembly(String),
     /// A `contig` record.
-    Contig(Map<Contig>),
+    Contig(map::contig::Name, Map<Contig>),
     /// A `fileformat` record.
     FileFormat(FileFormat),
     /// A `FILTER` record.
-    Filter(Map<Filter>),
+    Filter(String, Map<Filter>),
     /// A `FORMAT` record.
-    Format(Map<Format>),
+    Format(crate::header::format::Key, Map<Format>),
     /// An `INFO` record.
-    Info(Map<Info>),
+    Info(crate::header::info::Key, Map<Info>),
     /// A `META` record.
-    Meta(Map<Meta>),
+    Meta(String, Map<Meta>),
     /// A `pedigreeDB` record.
     PedigreeDb(String),
     /// A nonstadard record.
@@ -118,33 +121,53 @@ impl TryFrom<(FileFormat, &str)> for Record {
             },
             key::INFO => match value {
                 Value::Struct(fields) => {
+                    let id = get_field(&fields, "ID")
+                        .ok_or(ParseError::Invalid)
+                        .and_then(|id| id.parse().map_err(|_| ParseError::Invalid))?;
+
                     let info = Map::<Info>::try_from((file_format, fields))
                         .map_err(ParseError::InvalidInfo)?;
-                    Ok(Self::Info(info))
+
+                    Ok(Self::Info(id, info))
                 }
                 _ => Err(ParseError::Invalid),
             },
             key::FILTER => match value {
                 Value::Struct(fields) => {
+                    let id = get_field(&fields, "ID")
+                        .map(|v| v.into())
+                        .ok_or(ParseError::Invalid)?;
+
                     let filter =
                         Map::<Filter>::try_from(fields).map_err(|_| ParseError::Invalid)?;
-                    Ok(Self::Filter(filter))
+
+                    Ok(Self::Filter(id, filter))
                 }
                 _ => Err(ParseError::Invalid),
             },
             key::FORMAT => match value {
                 Value::Struct(fields) => {
+                    let id = get_field(&fields, "ID")
+                        .ok_or(ParseError::Invalid)
+                        .and_then(|id| id.parse().map_err(|_| ParseError::Invalid))?;
+
                     let format = Map::<Format>::try_from((file_format, fields))
                         .map_err(|_| ParseError::Invalid)?;
-                    Ok(Self::Format(format))
+
+                    Ok(Self::Format(id, format))
                 }
                 _ => Err(ParseError::Invalid),
             },
             key::ALTERNATIVE_ALLELE => match value {
                 Value::Struct(fields) => {
+                    let id = get_field(&fields, "ID")
+                        .ok_or(ParseError::Invalid)
+                        .and_then(|id| id.parse().map_err(|_| ParseError::Invalid))?;
+
                     let alternative_allele = Map::<AlternativeAllele>::try_from(fields)
                         .map_err(|_| ParseError::Invalid)?;
-                    Ok(Self::AlternativeAllele(alternative_allele))
+
+                    Ok(Self::AlternativeAllele(id, alternative_allele))
                 }
                 _ => Err(ParseError::Invalid),
             },
@@ -154,16 +177,26 @@ impl TryFrom<(FileFormat, &str)> for Record {
             },
             key::CONTIG => match value {
                 Value::Struct(fields) => {
+                    let id = get_field(&fields, "ID")
+                        .ok_or(ParseError::Invalid)
+                        .and_then(|id| id.parse().map_err(|_| ParseError::Invalid))?;
+
                     let contig =
                         Map::<Contig>::try_from(fields).map_err(|_| ParseError::Invalid)?;
-                    Ok(Self::Contig(contig))
+
+                    Ok(Self::Contig(id, contig))
                 }
                 _ => Err(ParseError::Invalid),
             },
             key::META => match value {
                 Value::Struct(fields) => {
+                    let id = get_field(&fields, "ID")
+                        .map(|v| v.into())
+                        .ok_or(ParseError::Invalid)?;
+
                     let meta = Map::<Meta>::try_from(fields).map_err(|_| ParseError::Invalid)?;
-                    Ok(Self::Meta(meta))
+
+                    Ok(Self::Meta(id, meta))
                 }
                 _ => Err(ParseError::Invalid),
             },
@@ -187,6 +220,13 @@ impl TryFrom<(FileFormat, &str)> for Record {
     }
 }
 
+fn get_field<'a>(fields: &'a [(String, String)], key: &str) -> Option<&'a str> {
+    fields
+        .iter()
+        .find(|(k, _)| k == key)
+        .map(|(_, v)| v.as_str())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -198,7 +238,7 @@ mod tests {
 
         let line =
             r#"##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of samples with data">"#;
-        assert!(matches!(line.parse(), Ok(Record::Info(_))));
+        assert!(matches!(line.parse(), Ok(Record::Info(..))));
 
         assert!("".parse::<Record>().is_err());
 
