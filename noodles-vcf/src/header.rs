@@ -173,7 +173,7 @@ impl Header {
     /// let filter = Map::<Filter>::new("q10", "Quality below 10");
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_filter(filter.clone())
+    ///     .add_filter("q10", filter.clone())
     ///     .build();
     ///
     /// let filters = header.filters();
@@ -810,7 +810,7 @@ mod tests {
     fn test_fmt() {
         let header = Header::builder()
             .set_file_format(FileFormat::new(4, 3))
-            .add_filter(Map::<Filter>::pass())
+            .add_filter("PASS", Map::<Filter>::pass())
             .set_assembly("file:///assemblies.fasta")
             .add_meta(Map::<Meta>::new(
                 "Assay",

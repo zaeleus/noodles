@@ -8,7 +8,8 @@
 
 ### Changed
 
-  * vcf/header/builder: Change inserting `INFO` records as an ID-map pair.
+  * vcf/header/builder: Change inserting FILTER and INFO records as an ID-map
+    pair.
 
 ## 0.23.0 - 2022-11-29
 

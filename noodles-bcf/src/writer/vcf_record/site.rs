@@ -527,12 +527,12 @@ mod tests {
         }
 
         let header = vcf::Header::builder()
-            .add_filter(Map::<Filter>::pass())
-            .add_filter(Map::<Filter>::new(
+            .add_filter("PASS", Map::<Filter>::pass())
+            .add_filter(
                 "s50",
-                "Less than 50% of samples have data",
-            ))
-            .add_filter(Map::<Filter>::new("q10", "Quality below 10"))
+                Map::<Filter>::new("s50", "Less than 50% of samples have data"),
+            )
+            .add_filter("q10", Map::<Filter>::new("q10", "Quality below 10"))
             .build();
 
         let string_maps = StringMaps::from(&header);

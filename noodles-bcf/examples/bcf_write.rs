@@ -24,7 +24,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     writer.write_file_format()?;
 
     let header = vcf::Header::builder()
-        .add_filter(Map::<Filter>::pass())
+        .add_filter("PASS", Map::<Filter>::pass())
         .add_contig(Map::<Contig>::new("sq0".parse()?))
         .build();
 

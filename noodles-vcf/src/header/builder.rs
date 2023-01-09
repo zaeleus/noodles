@@ -82,15 +82,18 @@ impl Builder {
     /// let filter = Map::<Filter>::new("q10", "Quality below 10");
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_filter(filter.clone())
+    ///     .add_filter("q10", filter.clone())
     ///     .build();
     ///
     /// let filters = header.filters();
     /// assert_eq!(filters.len(), 1);
     /// assert_eq!(&filters[0], &filter);
     /// ```
-    pub fn add_filter(mut self, filter: Map<Filter>) -> Self {
-        self.filters.insert(filter.id().into(), filter);
+    pub fn add_filter<I>(mut self, id: I, filter: Map<Filter>) -> Self
+    where
+        I: Into<String>,
+    {
+        self.filters.insert(id.into(), filter);
         self
     }
 
@@ -379,7 +382,7 @@ mod tests {
                 InfoKey::SamplesWithDataCount,
                 Map::<Info>::from(InfoKey::SamplesWithDataCount),
             )
-            .add_filter(Map::<Filter>::new("q10", "Quality below 10"))
+            .add_filter("q10", Map::<Filter>::new("q10", "Quality below 10"))
             .add_format(Map::<Format>::from(FormatKey::Genotype))
             .add_alternative_allele(Map::<AlternativeAllele>::new(
                 allele::Symbol::StructuralVariant(allele::symbol::StructuralVariant::from(
