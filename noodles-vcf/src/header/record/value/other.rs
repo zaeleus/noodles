@@ -8,14 +8,14 @@ pub enum Other {
     /// A string.
     String(String),
     /// A map.
-    Map(Map<map::Other>),
+    Map(String, Map<map::Other>),
 }
 
 impl fmt::Display for Other {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::String(s) => s.fmt(f),
-            Self::Map(map) => map.fmt(f),
+            Self::Map(id, map) => write!(f, "<ID={}{}>", id, map),
         }
     }
 }
@@ -32,9 +32,9 @@ impl From<String> for Other {
     }
 }
 
-impl From<Map<map::Other>> for Other {
-    fn from(map: Map<map::Other>) -> Self {
-        Self::Map(map)
+impl From<(String, Map<map::Other>)> for Other {
+    fn from((id, map): (String, Map<map::Other>)) -> Self {
+        Self::Map(id, map)
     }
 }
 
@@ -46,7 +46,7 @@ mod tests {
     fn test_fmt() {
         assert_eq!(Other::from("VCFv4.3").to_string(), "VCFv4.3");
         assert_eq!(
-            Other::Map(Map::<map::Other>::new("0")).to_string(),
+            Other::Map(String::from("0"), Map::<map::Other>::new("0")).to_string(),
             "<ID=0>"
         );
     }
@@ -65,7 +65,8 @@ mod tests {
 
     #[test]
     fn test_from_map_other_for_value() {
-        let map = Map::<map::Other>::new("0");
-        assert_eq!(Other::try_from(map.clone()), Ok(Other::Map(map)));
+        let id = String::from("0");
+        let map = Map::<map::Other>::new(&id);
+        assert_eq!(Other::from((id.clone(), map.clone())), Other::Map(id, map));
     }
 }

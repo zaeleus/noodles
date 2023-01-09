@@ -200,13 +200,6 @@ impl Display for TryFromFieldsError {
     }
 }
 
-fn fmt_display_prefix<I>(f: &mut fmt::Formatter<'_>, id: I) -> fmt::Result
-where
-    I: Display,
-{
-    write!(f, "<{}={}", tag::ID, id)
-}
-
 fn fmt_display_type_fields<T>(f: &mut fmt::Formatter<'_>, number: Number, ty: T) -> fmt::Result
 where
     T: Display,
@@ -241,10 +234,6 @@ fn fmt_display_other_fields<S>(
 
 fn fmt_display_idx_field(f: &mut fmt::Formatter<'_>, idx: usize) -> fmt::Result {
     write!(f, ",{}={}", tag::IDX, idx)
-}
-
-fn fmt_display_suffix(f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    '>'.fmt(f)
 }
 
 fn init_other_fields<S>(len: usize) -> OtherFields<S> {

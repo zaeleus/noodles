@@ -44,10 +44,7 @@ impl Map<Other> {
 
 impl fmt::Display for Map<Other> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        super::fmt_display_prefix(f, self.id())?;
-        super::fmt_display_other_fields(f, self.other_fields())?;
-        super::fmt_display_suffix(f)?;
-        Ok(())
+        super::fmt_display_other_fields(f, self.other_fields())
     }
 }
 
@@ -83,8 +80,7 @@ mod tests {
     #[test]
     fn test_fmt() {
         let map = Map::<Other>::new("noodles");
-        let expected = r#"<ID=noodles>"#;
-        assert_eq!(map.to_string(), expected);
+        assert!(map.to_string().is_empty());
     }
 
     #[test]

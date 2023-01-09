@@ -208,9 +208,14 @@ impl TryFrom<(FileFormat, &str)> for Record {
                 let v = match value {
                     Value::String(s) => value::Other::from(s),
                     Value::Struct(fields) => {
+                        let id = get_field(&fields, "ID")
+                            .map(|v| v.into())
+                            .ok_or(ParseError::Invalid)?;
+
                         let map =
                             Map::<Other>::try_from(fields).map_err(|_| ParseError::Invalid)?;
-                        value::Other::from(map)
+
+                        value::Other::from((id, map))
                     }
                 };
 
