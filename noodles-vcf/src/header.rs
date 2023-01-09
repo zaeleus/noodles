@@ -398,7 +398,7 @@ impl Header {
     /// );
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_meta(meta.clone())
+    ///     .add_meta(meta.id().clone(), meta.clone())
     ///     .build();
     ///
     /// let records = header.meta();
@@ -810,10 +810,13 @@ mod tests {
             .set_file_format(FileFormat::new(4, 3))
             .add_filter("PASS", Map::<Filter>::pass())
             .set_assembly("file:///assemblies.fasta")
-            .add_meta(Map::<Meta>::new(
+            .add_meta(
                 "Assay",
-                vec![String::from("WholeGenome"), String::from("Exome")],
-            ))
+                Map::<Meta>::new(
+                    "Assay",
+                    vec![String::from("WholeGenome"), String::from("Exome")],
+                ),
+            )
             .insert(
                 record::Key::from("fileDate"),
                 record::value::Other::String(String::from("20200514")),

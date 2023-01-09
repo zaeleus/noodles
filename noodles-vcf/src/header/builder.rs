@@ -219,15 +219,18 @@ impl Builder {
     /// );
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_meta(meta.clone())
+    ///     .add_meta("Assay", meta.clone())
     ///     .build();
     ///
     /// let records = header.meta();
     /// assert_eq!(records.len(), 1);
     /// assert_eq!(&records[0], &meta);
     /// ```
-    pub fn add_meta(mut self, meta: Map<Meta>) -> Self {
-        self.meta.insert(meta.id().into(), meta);
+    pub fn add_meta<I>(mut self, id: I, meta: Map<Meta>) -> Self
+    where
+        I: Into<String>,
+    {
+        self.meta.insert(id.into(), meta);
         self
     }
 
@@ -406,10 +409,13 @@ mod tests {
             .set_assembly("file:///assemblies.fasta")
             .add_contig("sq0".parse()?, Map::<Contig>::new("sq0".parse()?))
             .add_contig("sq1".parse()?, Map::<Contig>::new("sq1".parse()?))
-            .add_meta(Map::<Meta>::new(
-                String::from("Assay"),
-                vec![String::from("WholeGenome"), String::from("Exome")],
-            ))
+            .add_meta(
+                "Assay",
+                Map::<Meta>::new(
+                    String::from("Assay"),
+                    vec![String::from("WholeGenome"), String::from("Exome")],
+                ),
+            )
             .add_sample_name("sample0")
             .insert(key.clone(), value.clone())
             .insert(key.clone(), value.clone())

@@ -129,7 +129,7 @@ fn parse_record(
         }
         Record::Assembly(assembly) => builder.set_assembly(assembly),
         Record::Contig(contig) => builder.add_contig(contig.id().clone(), contig),
-        Record::Meta(meta) => builder.add_meta(meta),
+        Record::Meta(meta) => builder.add_meta(meta.id().clone(), meta),
         Record::PedigreeDb(pedigree_db) => builder.set_pedigree_db(pedigree_db),
         Record::Other(key, value) => builder.insert(key, value),
     };
