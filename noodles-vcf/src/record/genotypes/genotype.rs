@@ -100,8 +100,11 @@ impl Genotype {
     /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_format(Map::<Format>::from(Key::Genotype))
-    ///     .add_format(Map::<Format>::from(Key::ConditionalGenotypeQuality))
+    ///     .add_format(Key::Genotype, Map::<Format>::from(Key::Genotype))
+    ///     .add_format(
+    ///         Key::ConditionalGenotypeQuality,
+    ///         Map::<Format>::from(Key::ConditionalGenotypeQuality),
+    ///     )
     ///     .build();
     ///
     /// let keys = "GT:GQ".parse()?;
@@ -153,8 +156,11 @@ impl Genotype {
     /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_format(Map::<Format>::from(Key::Genotype))
-    ///     .add_format(Map::<Format>::from(Key::ConditionalGenotypeQuality))
+    ///     .add_format(Key::Genotype, Map::<Format>::from(Key::Genotype))
+    ///     .add_format(
+    ///         Key::ConditionalGenotypeQuality,
+    ///         Map::<Format>::from(Key::ConditionalGenotypeQuality),
+    ///     )
     ///     .build();
     ///
     /// let keys = "GT:GQ".parse()?;
@@ -262,8 +268,11 @@ mod tests {
     #[test]
     fn test_parse() -> Result<(), Box<dyn std::error::Error>> {
         let header = crate::Header::builder()
-            .add_format(Map::<Format>::from(Key::Genotype))
-            .add_format(Map::<Format>::from(Key::ConditionalGenotypeQuality))
+            .add_format(Key::Genotype, Map::<Format>::from(Key::Genotype))
+            .add_format(
+                Key::ConditionalGenotypeQuality,
+                Map::<Format>::from(Key::ConditionalGenotypeQuality),
+            )
             .build();
 
         let keys = "GT".parse()?;

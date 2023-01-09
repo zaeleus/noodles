@@ -110,15 +110,15 @@ impl Builder {
     /// let format = Map::<Format>::from(Key::Genotype);
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_format(format.clone())
+    ///     .add_format(Key::Genotype, format.clone())
     ///     .build();
     ///
     /// let formats = header.formats();
     /// assert_eq!(formats.len(), 1);
     /// assert_eq!(&formats[0], &format);
     /// ```
-    pub fn add_format(mut self, format: Map<Format>) -> Self {
-        self.formats.insert(format.id().clone(), format);
+    pub fn add_format(mut self, id: super::format::Key, format: Map<Format>) -> Self {
+        self.formats.insert(id, format);
         self
     }
 
@@ -383,7 +383,10 @@ mod tests {
                 Map::<Info>::from(InfoKey::SamplesWithDataCount),
             )
             .add_filter("q10", Map::<Filter>::new("q10", "Quality below 10"))
-            .add_format(Map::<Format>::from(FormatKey::Genotype))
+            .add_format(
+                FormatKey::Genotype,
+                Map::<Format>::from(FormatKey::Genotype),
+            )
             .add_alternative_allele(Map::<AlternativeAllele>::new(
                 allele::Symbol::StructuralVariant(allele::symbol::StructuralVariant::from(
                     allele::symbol::structural_variant::Type::Deletion,

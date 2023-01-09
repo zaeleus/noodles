@@ -515,8 +515,8 @@ impl Record {
     /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_format(Map::<Format>::from(Key::Genotype))
-    ///     .add_format(Map::<Format>::from(Key::ConditionalGenotypeQuality))
+    ///     .add_format(Key::Genotype, Map::<Format>::from(Key::Genotype))
+    ///     .add_format(Key::ConditionalGenotypeQuality, Map::<Format>::from(Key::ConditionalGenotypeQuality))
     ///     .build();
     ///
     /// let keys = "GT:GQ".parse()?;
@@ -832,8 +832,11 @@ mod tests {
         };
 
         let header = Header::builder()
-            .add_format(Map::<Format>::from(Key::Genotype))
-            .add_format(Map::<Format>::from(Key::ConditionalGenotypeQuality))
+            .add_format(Key::Genotype, Map::<Format>::from(Key::Genotype))
+            .add_format(
+                Key::ConditionalGenotypeQuality,
+                Map::<Format>::from(Key::ConditionalGenotypeQuality),
+            )
             .build();
 
         let keys: genotypes::Keys = "GT:GQ".parse()?;

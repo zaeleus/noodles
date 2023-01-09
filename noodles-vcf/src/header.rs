@@ -217,7 +217,7 @@ impl Header {
     /// let format = Map::<Format>::from(Key::Genotype);
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_format(format.clone())
+    ///     .add_format(Key::Genotype, format.clone())
     ///     .build();
     ///
     /// let formats = header.formats();

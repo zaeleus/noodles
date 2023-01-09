@@ -43,7 +43,7 @@ impl StringMaps {
     /// let header = vcf::Header::builder()
     ///     .add_info(info::Key::TotalDepth, Map::<Info>::from(info::Key::TotalDepth))
     ///     .add_filter("q10", Map::<Filter>::new("q10", "Quality below 10"))
-    ///     .add_format(Map::<Format>::from(format::Key::ReadDepth))
+    ///     .add_format(format::Key::ReadDepth, Map::<Format>::from(format::Key::ReadDepth))
     ///     .add_contig(Map::<Contig>::new("sq0".parse()?))
     ///     .build();
     ///
@@ -78,7 +78,7 @@ impl StringMaps {
     /// let header = vcf::Header::builder()
     ///     .add_info(info::Key::TotalDepth, Map::<Info>::from(info::Key::TotalDepth))
     ///     .add_filter("q10", Map::<Filter>::new("q10", "Quality below 10"))
-    ///     .add_format(Map::<Format>::from(format::Key::ReadDepth))
+    ///     .add_format(format::Key::ReadDepth, Map::<Format>::from(format::Key::ReadDepth))
     ///     .add_contig(Map::<Contig>::new("sq0".parse()?))
     ///     .build();
     ///
@@ -425,8 +425,14 @@ mod tests {
             )
             .add_filter("PASS", Map::<Filter>::pass())
             .add_filter("q10", Map::<Filter>::new("q10", "Quality below 10"))
-            .add_format(Map::<Format>::from(format::Key::Genotype))
-            .add_format(Map::<Format>::from(format::Key::ReadDepth))
+            .add_format(
+                format::Key::Genotype,
+                Map::<Format>::from(format::Key::Genotype),
+            )
+            .add_format(
+                format::Key::ReadDepth,
+                Map::<Format>::from(format::Key::ReadDepth),
+            )
             .add_alternative_allele(Map::<AlternativeAllele>::new(
                 Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion)),
                 "Deletion",

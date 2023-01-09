@@ -39,7 +39,7 @@ impl Genotypes {
     /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_format(Map::<Format>::from(Key::Genotype))
+    ///     .add_format(Key::Genotype, Map::<Format>::from(Key::Genotype))
     ///     .build();
     ///
     /// let actual = Genotypes::parse("GT:GQ\t0|0:13", &header)?;
@@ -232,8 +232,11 @@ mod tests {
         };
 
         let header = crate::Header::builder()
-            .add_format(Map::<Format>::from(Key::Genotype))
-            .add_format(Map::<Format>::from(Key::ConditionalGenotypeQuality))
+            .add_format(Key::Genotype, Map::<Format>::from(Key::Genotype))
+            .add_format(
+                Key::ConditionalGenotypeQuality,
+                Map::<Format>::from(Key::ConditionalGenotypeQuality),
+            )
             .build();
 
         let keys = "GT:GQ".parse()?;
