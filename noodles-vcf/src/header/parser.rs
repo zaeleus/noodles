@@ -125,7 +125,7 @@ fn parse_record(
         Record::Filter(filter) => builder.add_filter(filter.id().clone(), filter),
         Record::Format(format) => builder.add_format(format.id().clone(), format),
         Record::AlternativeAllele(alternative_allele) => {
-            builder.add_alternative_allele(alternative_allele)
+            builder.add_alternative_allele(alternative_allele.id().clone(), alternative_allele)
         }
         Record::Assembly(assembly) => builder.set_assembly(assembly),
         Record::Contig(contig) => builder.add_contig(contig),

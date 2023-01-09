@@ -411,6 +411,8 @@ mod tests {
             },
         };
 
+        let del_symbol = Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion));
+
         let header = vcf::Header::builder()
             .add_contig(Map::<Contig>::new("sq0".parse()?))
             .add_contig(Map::<Contig>::new("sq1".parse()?))
@@ -433,10 +435,10 @@ mod tests {
                 format::Key::ReadDepth,
                 Map::<Format>::from(format::Key::ReadDepth),
             )
-            .add_alternative_allele(Map::<AlternativeAllele>::new(
-                Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion)),
-                "Deletion",
-            ))
+            .add_alternative_allele(
+                del_symbol.clone(),
+                Map::<AlternativeAllele>::new(del_symbol, "Deletion"),
+            )
             .build();
 
         let actual = StringMaps::from(&header);

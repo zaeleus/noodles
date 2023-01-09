@@ -142,16 +142,19 @@ impl Builder {
     /// );
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_alternative_allele(alt.clone())
+    ///     .add_alternative_allele(alt.id().clone(), alt.clone())
     ///     .build();
     ///
     /// let alternative_alleles = header.alternative_alleles();
     /// assert_eq!(alternative_alleles.len(), 1);
     /// assert_eq!(&alternative_alleles[0], &alt);
     /// ```
-    pub fn add_alternative_allele(mut self, alternative_allele: Map<AlternativeAllele>) -> Self {
-        self.alternative_alleles
-            .insert(alternative_allele.id().clone(), alternative_allele);
+    pub fn add_alternative_allele(
+        mut self,
+        id: crate::record::alternate_bases::allele::Symbol,
+        alternative_allele: Map<AlternativeAllele>,
+    ) -> Self {
+        self.alternative_alleles.insert(id, alternative_allele);
         self
     }
 
@@ -371,6 +374,11 @@ mod tests {
             record::alternate_bases::allele,
         };
 
+        let del_symbol =
+            allele::Symbol::StructuralVariant(allele::symbol::StructuralVariant::from(
+                allele::symbol::structural_variant::Type::Deletion,
+            ));
+
         let (key, value) = (
             header::record::Key::from("fileDate"),
             header::record::value::Other::from("20200709"),
@@ -387,12 +395,10 @@ mod tests {
                 FormatKey::Genotype,
                 Map::<Format>::from(FormatKey::Genotype),
             )
-            .add_alternative_allele(Map::<AlternativeAllele>::new(
-                allele::Symbol::StructuralVariant(allele::symbol::StructuralVariant::from(
-                    allele::symbol::structural_variant::Type::Deletion,
-                )),
-                "Deletion",
-            ))
+            .add_alternative_allele(
+                del_symbol.clone(),
+                Map::<AlternativeAllele>::new(del_symbol, "Deletion"),
+            )
             .set_assembly("file:///assemblies.fasta")
             .add_contig(Map::<Contig>::new("sq0".parse()?))
             .add_contig(Map::<Contig>::new("sq1".parse()?))

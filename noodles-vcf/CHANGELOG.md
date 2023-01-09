@@ -8,8 +8,8 @@
 
 ### Changed
 
-  * vcf/header/builder: Change inserting FILTER, FORMAT, and INFO records as an
-    ID-map pair.
+  * vcf/header/builder: Change inserting ALT, FILTER, FORMAT, and INFO records
+    as an ID-map pair.
 
 ## 0.23.0 - 2022-11-29
 

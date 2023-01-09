@@ -265,13 +265,11 @@ impl Header {
     ///     },
     /// };
     ///
-    /// let alt = Map::<AlternativeAllele>::new(
-    ///     Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion)),
-    ///     "Deletion",
-    /// );
+    /// let symbol = Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion));
+    /// let alt = Map::<AlternativeAllele>::new(symbol.clone(), "Deletion");
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_alternative_allele(alt.clone())
+    ///     .add_alternative_allele(symbol, alt.clone())
     ///     .build();
     ///
     /// let alternative_alleles = header.alternative_alleles();
