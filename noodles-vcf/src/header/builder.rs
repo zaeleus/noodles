@@ -60,15 +60,15 @@ impl Builder {
     /// let info = Map::<Info>::from(Key::SamplesWithDataCount);
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_info(info.clone())
+    ///     .add_info(info.id().clone(), info.clone())
     ///     .build();
     ///
     /// let infos = header.infos();
     /// assert_eq!(infos.len(), 1);
     /// assert_eq!(&infos[0], &info);
     /// ```
-    pub fn add_info(mut self, info: Map<Info>) -> Self {
-        self.infos.insert(info.id().clone(), info);
+    pub fn add_info(mut self, id: super::info::Key, info: Map<Info>) -> Self {
+        self.infos.insert(id, info);
         self
     }
 
@@ -375,7 +375,10 @@ mod tests {
 
         let header = Builder::default()
             .set_file_format(FileFormat::new(4, 3))
-            .add_info(Map::<Info>::from(InfoKey::SamplesWithDataCount))
+            .add_info(
+                InfoKey::SamplesWithDataCount,
+                Map::<Info>::from(InfoKey::SamplesWithDataCount),
+            )
             .add_filter(Map::<Filter>::new("q10", "Quality below 10"))
             .add_format(Map::<Format>::from(FormatKey::Genotype))
             .add_alternative_allele(Map::<AlternativeAllele>::new(

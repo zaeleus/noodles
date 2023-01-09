@@ -129,7 +129,7 @@ impl Header {
     /// let info = Map::<Info>::from(Key::SamplesWithDataCount);
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_info(info.clone())
+    ///     .add_info(Key::SamplesWithDataCount, info.clone())
     ///     .build();
     ///
     /// let infos = header.infos();

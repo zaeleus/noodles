@@ -114,8 +114,8 @@ impl Info {
     /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_info(Map::<map::Info>::from(Key::AlleleCount))
-    ///     .add_info(Map::<map::Info>::from(Key::TotalDepth))
+    ///     .add_info(Key::AlleleCount, Map::<map::Info>::from(Key::AlleleCount))
+    ///     .add_info(Key::TotalDepth, Map::<map::Info>::from(Key::TotalDepth))
     ///     .build();
     ///
     /// let string_maps = StringMaps::from(&header);
@@ -169,8 +169,8 @@ impl Info {
     /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_info(Map::<map::Info>::from(Key::AlleleCount))
-    ///     .add_info(Map::<map::Info>::from(Key::TotalDepth))
+    ///     .add_info(Key::AlleleCount, Map::<map::Info>::from(Key::AlleleCount))
+    ///     .add_info(Key::TotalDepth, Map::<map::Info>::from(Key::TotalDepth))
     ///     .build();
     ///
     /// let string_maps = StringMaps::from(&header);

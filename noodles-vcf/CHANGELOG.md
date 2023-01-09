@@ -6,6 +6,10 @@
 
   * vcf: Implement `std::error::Error::source` for errors.
 
+### Changed
+
+  * vcf/header/builder: Change inserting `INFO` records as an ID-map pair.
+
 ## 0.23.0 - 2022-11-29
 
 ### Added

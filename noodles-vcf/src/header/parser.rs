@@ -121,7 +121,7 @@ fn parse_record(
 
     builder = match record {
         Record::FileFormat(_) => return Err(ParseError::UnexpectedFileFormat),
-        Record::Info(info) => builder.add_info(info),
+        Record::Info(info) => builder.add_info(info.id().clone(), info),
         Record::Filter(filter) => builder.add_filter(filter),
         Record::Format(format) => builder.add_format(format),
         Record::AlternativeAllele(alternative_allele) => {

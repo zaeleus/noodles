@@ -236,10 +236,19 @@ mod tests {
     #[test]
     fn test_parse() -> Result<(), crate::header::info::key::ParseError> {
         let header = crate::Header::builder()
-            .add_info(Map::<Info>::from(Key::AlleleCount))
-            .add_info(Map::<Info>::from(Key::SamplesWithDataCount))
-            .add_info(Map::<Info>::from(Key::IsSomaticMutation))
-            .add_info(Map::<Info>::from(Key::BreakendEventId))
+            .add_info(Key::AlleleCount, Map::<Info>::from(Key::AlleleCount))
+            .add_info(
+                Key::SamplesWithDataCount,
+                Map::<Info>::from(Key::SamplesWithDataCount),
+            )
+            .add_info(
+                Key::IsSomaticMutation,
+                Map::<Info>::from(Key::IsSomaticMutation),
+            )
+            .add_info(
+                Key::BreakendEventId,
+                Map::<Info>::from(Key::BreakendEventId),
+            )
             .build();
 
         assert_eq!(
