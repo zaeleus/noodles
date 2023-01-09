@@ -99,7 +99,6 @@ impl Map<Format> {
 
 impl fmt::Display for Map<Format> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        super::fmt_display_prefix(f, self.id())?;
         super::fmt_display_type_fields(f, self.number(), self.ty())?;
         super::fmt_display_description_field(f, self.description())?;
         super::fmt_display_other_fields(f, self.other_fields())?;
@@ -107,8 +106,6 @@ impl fmt::Display for Map<Format> {
         if let Some(idx) = self.idx() {
             super::fmt_display_idx_field(f, idx)?;
         }
-
-        super::fmt_display_suffix(f)?;
 
         Ok(())
     }
@@ -246,7 +243,7 @@ mod tests {
     #[test]
     fn test_fmt() {
         let map = Map::<Format>::from(Key::Genotype);
-        let expected = r#"<ID=GT,Number=1,Type=String,Description="Genotype">"#;
+        let expected = r#",Number=1,Type=String,Description="Genotype""#;
         assert_eq!(map.to_string(), expected);
     }
 

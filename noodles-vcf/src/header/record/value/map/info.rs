@@ -104,7 +104,6 @@ impl Map<Info> {
 
 impl fmt::Display for Map<Info> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        super::fmt_display_prefix(f, self.id())?;
         super::fmt_display_type_fields(f, self.number(), self.ty())?;
         super::fmt_display_description_field(f, self.description())?;
         super::fmt_display_other_fields(f, self.other_fields())?;
@@ -112,8 +111,6 @@ impl fmt::Display for Map<Info> {
         if let Some(idx) = self.idx() {
             super::fmt_display_idx_field(f, idx)?;
         }
-
-        super::fmt_display_suffix(f)?;
 
         Ok(())
     }
@@ -251,7 +248,7 @@ mod tests {
     #[test]
     fn test_fmt() {
         let map = Map::<Info>::from(Key::SamplesWithDataCount);
-        let expected = r#"<ID=NS,Number=1,Type=Integer,Description="Number of samples with data">"#;
+        let expected = r#",Number=1,Type=Integer,Description="Number of samples with data""#;
         assert_eq!(map.to_string(), expected);
     }
 

@@ -94,8 +94,6 @@ impl Map<Contig> {
 
 impl fmt::Display for Map<Contig> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        super::fmt_display_prefix(f, self.id())?;
-
         if let Some(length) = self.length() {
             write!(f, ",length={}", length)?;
         }
@@ -105,8 +103,6 @@ impl fmt::Display for Map<Contig> {
         if let Some(idx) = self.idx() {
             super::fmt_display_idx_field(f, idx)?;
         }
-
-        super::fmt_display_suffix(f)?;
 
         Ok(())
     }
@@ -168,7 +164,7 @@ mod tests {
             ),
         ])?;
 
-        let expected = r#"<ID=sq0,length=8,md5="d7eba311421bbc9d3ada44709dd61534">"#;
+        let expected = r#",length=8,md5="d7eba311421bbc9d3ada44709dd61534""#;
         assert_eq!(map.to_string(), expected);
 
         Ok(())

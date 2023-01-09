@@ -64,8 +64,6 @@ impl Map<Meta> {
 
 impl Display for Map<Meta> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        super::fmt_display_prefix(f, self.id())?;
-
         ",Type=String".fmt(f)?;
         write!(f, ",Number={}", Number::Unknown)?;
 
@@ -83,7 +81,6 @@ impl Display for Map<Meta> {
         ']'.fmt(f)?;
 
         super::fmt_display_other_fields(f, self.other_fields())?;
-        super::fmt_display_suffix(f)?;
 
         Ok(())
     }
@@ -152,7 +149,7 @@ mod tests {
             vec![String::from("WholeGenome"), String::from("Exome")],
         );
 
-        let expected = r#"<ID=Assay,Type=String,Number=.,Values=[WholeGenome, Exome]>"#;
+        let expected = r#",Type=String,Number=.,Values=[WholeGenome, Exome]"#;
 
         assert_eq!(map.to_string(), expected);
     }

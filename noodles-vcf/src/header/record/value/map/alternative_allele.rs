@@ -67,10 +67,8 @@ impl Map<AlternativeAllele> {
 
 impl fmt::Display for Map<AlternativeAllele> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        super::fmt_display_prefix(f, self.id())?;
         super::fmt_display_description_field(f, self.description())?;
         super::fmt_display_other_fields(f, self.other_fields())?;
-        super::fmt_display_suffix(f)?;
         Ok(())
     }
 }
@@ -120,7 +118,7 @@ mod tests {
     #[test]
     fn test_fmt() {
         let map = Map::<AlternativeAllele>::new(del(), "Deletion");
-        let expected = r#"<ID=DEL,Description="Deletion">"#;
+        let expected = r#",Description="Deletion""#;
         assert_eq!(map.to_string(), expected);
     }
 

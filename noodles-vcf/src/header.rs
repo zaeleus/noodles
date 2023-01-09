@@ -680,24 +680,46 @@ impl std::fmt::Display for Header {
             self.file_format()
         )?;
 
-        for info in self.infos().values() {
-            writeln!(f, "{}{}={}", record::PREFIX, record::key::INFO, info)?;
-        }
-
-        for filter in self.filters().values() {
-            writeln!(f, "{}{}={}", record::PREFIX, record::key::FILTER, filter)?;
-        }
-
-        for format in self.formats().values() {
-            writeln!(f, "{}{}={}", record::PREFIX, record::key::FORMAT, format)?;
-        }
-
-        for alternative_allele in self.alternative_alleles().values() {
+        for (id, info) in self.infos() {
             writeln!(
                 f,
-                "{}{}={}",
+                "{}{}=<ID={}{}>",
+                record::PREFIX,
+                record::key::INFO,
+                id,
+                info
+            )?;
+        }
+
+        for (id, filter) in self.filters() {
+            writeln!(
+                f,
+                "{}{}=<ID={}{}>",
+                record::PREFIX,
+                record::key::FILTER,
+                id,
+                filter
+            )?;
+        }
+
+        for (id, format) in self.formats() {
+            writeln!(
+                f,
+                "{}{}=<ID={}{}>",
+                record::PREFIX,
+                record::key::FORMAT,
+                id,
+                format
+            )?;
+        }
+
+        for (id, alternative_allele) in self.alternative_alleles() {
+            writeln!(
+                f,
+                "{}{}=<ID={}{}>",
                 record::PREFIX,
                 record::key::ALTERNATIVE_ALLELE,
+                id,
                 alternative_allele
             )?;
         }
@@ -712,12 +734,26 @@ impl std::fmt::Display for Header {
             )?;
         }
 
-        for contig in self.contigs().values() {
-            writeln!(f, "{}{}={}", record::PREFIX, record::key::CONTIG, contig)?;
+        for (id, contig) in self.contigs() {
+            writeln!(
+                f,
+                "{}{}=<ID={}{}>",
+                record::PREFIX,
+                record::key::CONTIG,
+                id,
+                contig
+            )?;
         }
 
-        for meta in self.meta().values() {
-            writeln!(f, "{}{}={}", record::PREFIX, record::key::META, meta)?;
+        for (id, meta) in self.meta() {
+            writeln!(
+                f,
+                "{}{}=<ID={}{}>",
+                record::PREFIX,
+                record::key::META,
+                id,
+                meta
+            )?;
         }
 
         if let Some(pedigree_db) = self.pedigree_db() {
