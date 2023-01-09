@@ -9,7 +9,9 @@ type Tag = tag::Tag<StandardTag>;
 
 /// An inner VCF header other map value.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub struct Other;
+pub struct Other {
+    id: String,
+}
 
 impl Inner for Other {
     type Id = String;
@@ -30,9 +32,11 @@ impl Map<Other> {
     where
         I: Into<String>,
     {
+        let id = id.into();
+
         Self {
-            id: id.into(),
-            inner: Other,
+            id: id.clone(),
+            inner: Other { id },
             other_fields: IndexMap::new(),
         }
     }
@@ -62,11 +66,11 @@ impl TryFrom<Fields> for Map<Other> {
             }
         }
 
-        let id = id.ok_or(TryFromFieldsError::MissingField("ID"))?;
+        let id: String = id.ok_or(TryFromFieldsError::MissingField("ID"))?;
 
         Ok(Self {
-            id,
-            inner: Other,
+            id: id.clone(),
+            inner: Other { id },
             other_fields,
         })
     }
