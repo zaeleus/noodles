@@ -54,15 +54,16 @@ impl Field {
     ///     record::genotypes::genotype::{field::Value, Field}
     /// };
     ///
-    /// let format = Map::<Format>::from(Key::ConditionalGenotypeQuality);
+    /// let key = Key::ConditionalGenotypeQuality;
+    /// let format = Map::<Format>::from(key.clone());
     ///
     /// assert_eq!(
-    ///     Field::from_str_format("13", &format),
-    ///     Ok(Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))))
+    ///     Field::from_str_format("13", &key, &format),
+    ///     Ok(Field::new(key, Some(Value::Integer(13))))
     /// );
     /// ```
-    pub fn from_str_format(s: &str, format: &Map<Format>) -> Result<Self, ParseError> {
-        let key = format.id().clone();
+    pub fn from_str_format(s: &str, key: &Key, format: &Map<Format>) -> Result<Self, ParseError> {
+        let key = key.clone();
 
         if s == MISSING_VALUE {
             Ok(Self::new(key, None))
@@ -174,24 +175,28 @@ mod tests {
 
     #[test]
     fn test_from_str_format() -> Result<(), ParseError> {
-        let format = Map::<Format>::from(Key::MappingQuality);
-        let actual = Field::from_str_format(".", &format)?;
-        assert_eq!(actual.key(), format.id());
+        let key = Key::MappingQuality;
+        let format = Map::<Format>::from(key.clone());
+        let actual = Field::from_str_format(".", &key, &format)?;
+        assert_eq!(actual.key(), &key);
         assert_eq!(actual.value(), None);
 
-        let format = Map::<Format>::from(Key::ConditionalGenotypeQuality);
-        let actual = Field::from_str_format("13", &format)?;
-        assert_eq!(actual.key(), format.id());
+        let key = Key::ConditionalGenotypeQuality;
+        let format = Map::<Format>::from(key.clone());
+        let actual = Field::from_str_format("13", &key, &format)?;
+        assert_eq!(actual.key(), &key);
         assert_eq!(actual.value(), Some(&Value::Integer(13)));
 
-        let format = Map::<Format>::from(Key::GenotypeCopyNumberQuality);
-        let actual = Field::from_str_format("8.333", &format)?;
-        assert_eq!(actual.key(), format.id());
+        let key = Key::GenotypeCopyNumberQuality;
+        let format = Map::<Format>::from(key.clone());
+        let actual = Field::from_str_format("8.333", &key, &format)?;
+        assert_eq!(actual.key(), &key);
         assert_eq!(actual.value(), Some(&Value::Float(8.333)));
 
-        let format = Map::<Format>::from(Key::Genotype);
-        let actual = Field::from_str_format("0|0", &format)?;
-        assert_eq!(actual.key(), format.id());
+        let key = Key::Genotype;
+        let format = Map::<Format>::from(key.clone());
+        let actual = Field::from_str_format("0|0", &key, &format)?;
+        assert_eq!(actual.key(), &key);
         assert_eq!(actual.value(), Some(&Value::String(String::from("0|0"))));
 
         Ok(())

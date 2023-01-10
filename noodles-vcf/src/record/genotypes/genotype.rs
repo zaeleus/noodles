@@ -129,10 +129,10 @@ impl Genotype {
 
         for (raw_field, key) in s.split(DELIMITER).zip(keys.iter()) {
             let field = if let Some(format) = formats.get(key) {
-                Field::from_str_format(raw_field, format).map_err(ParseError::InvalidField)?
+                Field::from_str_format(raw_field, key, format).map_err(ParseError::InvalidField)?
             } else {
                 let format = Map::<Format>::from(key.clone());
-                Field::from_str_format(raw_field, &format).map_err(ParseError::InvalidField)?
+                Field::from_str_format(raw_field, key, &format).map_err(ParseError::InvalidField)?
             };
 
             fields.push(field);
