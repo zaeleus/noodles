@@ -187,24 +187,20 @@ impl From<&vcf::Header> for StringMaps {
     fn from(header: &vcf::Header) -> Self {
         let mut string_maps = StringMaps::default();
 
-        for contig in header.contigs().values() {
-            string_maps
-                .contigs_mut()
-                .insert(contig.id().as_ref().into());
+        for id in header.contigs().keys() {
+            string_maps.contigs_mut().insert(id.as_ref().into());
         }
 
-        for info in header.infos().values() {
-            string_maps.strings_mut().insert(info.id().as_ref().into());
+        for id in header.infos().keys() {
+            string_maps.strings_mut().insert(id.as_ref().into());
         }
 
-        for filter in header.filters().values() {
-            string_maps.strings_mut().insert(filter.id().into());
+        for id in header.filters().keys() {
+            string_maps.strings_mut().insert(id.clone());
         }
 
-        for format in header.formats().values() {
-            string_maps
-                .strings_mut()
-                .insert(format.id().as_ref().into());
+        for id in header.formats().keys() {
+            string_maps.strings_mut().insert(id.as_ref().into());
         }
 
         string_maps
