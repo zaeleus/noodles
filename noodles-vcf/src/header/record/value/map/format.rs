@@ -170,10 +170,6 @@ impl TryFrom<(FileFormat, Fields)> for Map<Format> {
         let ty = ty.ok_or(TryFromFieldsError::MissingField("Type"))?;
         let description = description.ok_or(TryFromFieldsError::MissingField("Description"))?;
 
-        if file_format >= FileFormat::new(4, 3) && !matches!(id, Key::Other(_)) {
-            validate_type_fields(&id, number, ty)?;
-        }
-
         Ok(Self {
             id,
             inner: Format {
@@ -185,34 +181,6 @@ impl TryFrom<(FileFormat, Fields)> for Map<Format> {
             other_fields,
         })
     }
-}
-
-fn validate_type_fields(
-    id: &Key,
-    actual_number: Number,
-    actual_type: Type,
-) -> Result<(), TryFromFieldsError> {
-    use crate::header::format::key;
-
-    let expected_number = key::number(id).unwrap();
-
-    if actual_number != expected_number {
-        return Err(TryFromFieldsError::NumberMismatch(
-            actual_number,
-            expected_number,
-        ));
-    }
-
-    let expected_type = key::ty(id).unwrap();
-
-    if actual_type != expected_type {
-        return Err(TryFromFieldsError::TypeMismatch(
-            actual_type.to_string(),
-            expected_type.to_string(),
-        ));
-    }
-
-    Ok(())
 }
 
 impl builder::Inner<Format> for builder::TypedDescribedIndexed<Format> {
