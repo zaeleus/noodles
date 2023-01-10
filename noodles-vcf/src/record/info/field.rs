@@ -161,16 +161,20 @@ fn parse(s: &str, infos: &Infos) -> Result<Field, ParseError> {
         .and_then(|t| t.parse().map_err(ParseError::InvalidKey))?;
 
     let value = if let Some(info) = infos.get(&key) {
-        parse_value(&mut components, info)?
+        parse_value(&mut components, &key, info)?
     } else {
         let info = Map::<Info>::from(key.clone());
-        parse_value(&mut components, &info)?
+        parse_value(&mut components, &key, &info)?
     };
 
     Ok(Field::new(key, value))
 }
 
-fn parse_value<'a, I>(iter: &mut I, info: &Map<Info>) -> Result<Option<Value>, ParseError>
+fn parse_value<'a, I>(
+    iter: &mut I,
+    key: &Key,
+    info: &Map<Info>,
+) -> Result<Option<Value>, ParseError>
 where
     I: Iterator<Item = &'a str>,
 {
@@ -184,7 +188,7 @@ where
                 .map(Some)
                 .map_err(ParseError::InvalidValue)
         }
-    } else if let Key::Other(..) = info.id() {
+    } else if matches!(key, Key::Other(..)) {
         if let Some(t) = iter.next() {
             if t == MISSING_VALUE {
                 Ok(None)
