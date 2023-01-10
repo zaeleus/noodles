@@ -160,6 +160,12 @@ impl TryFrom<(FileFormat, &str)> for Record {
                     let format = Map::<Format>::try_from((file_format, fields))
                         .map_err(|_| ParseError::Invalid)?;
 
+                    if file_format >= FileFormat::new(4, 3)
+                        && !matches!(id, super::format::Key::Other(_))
+                    {
+                        validate_format_type_fields(&id, format.number(), format.ty())?;
+                    }
+
                     Ok(Self::Format(id, format))
                 }
                 _ => Err(ParseError::Invalid),
@@ -236,6 +242,28 @@ fn get_field<'a>(fields: &'a [(String, String)], key: &str) -> Option<&'a str> {
         .iter()
         .find(|(k, _)| k == key)
         .map(|(_, v)| v.as_str())
+}
+
+fn validate_format_type_fields(
+    id: &super::format::Key,
+    actual_number: super::Number,
+    actual_type: super::format::Type,
+) -> Result<(), ParseError> {
+    use crate::header::format::key;
+
+    let expected_number = key::number(id).unwrap();
+
+    if actual_number != expected_number {
+        return Err(ParseError::Invalid);
+    }
+
+    let expected_type = key::ty(id).unwrap();
+
+    if actual_type != expected_type {
+        return Err(ParseError::Invalid);
+    }
+
+    Ok(())
 }
 
 fn validate_info_type_fields(
