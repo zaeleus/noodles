@@ -57,10 +57,11 @@ impl Builder {
     ///     header::{info::Key, record::value::{map::Info, Map}},
     /// };
     ///
-    /// let info = Map::<Info>::from(Key::SamplesWithDataCount);
+    /// let id = Key::SamplesWithDataCount;
+    /// let info = Map::<Info>::from(id.clone());
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_info(info.id().clone(), info.clone())
+    ///     .add_info(id, info.clone())
     ///     .build();
     ///
     /// let infos = header.infos();
@@ -79,7 +80,7 @@ impl Builder {
     /// ```
     /// use noodles_vcf::{self as vcf, header::record::value::{map::Filter, Map}};
     ///
-    /// let filter = Map::<Filter>::new("q10", "Quality below 10");
+    /// let filter = Map::<Filter>::new("Quality below 10");
     ///
     /// let header = vcf::Header::builder()
     ///     .add_filter("q10", filter.clone())
@@ -107,10 +108,11 @@ impl Builder {
     ///     header::{format::Key, record::value::{map::Format, Map}},
     /// };
     ///
-    /// let format = Map::<Format>::from(Key::Genotype);
+    /// let id = Key::Genotype;
+    /// let format = Map::<Format>::from(id.clone());
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_format(Key::Genotype, format.clone())
+    ///     .add_format(id, format.clone())
     ///     .build();
     ///
     /// let formats = header.formats();
@@ -136,13 +138,11 @@ impl Builder {
     ///     },
     /// };
     ///
-    /// let alt = Map::<AlternativeAllele>::new(
-    ///     Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion)),
-    ///     "Deletion",
-    /// );
+    /// let id = Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion));
+    /// let alt = Map::<AlternativeAllele>::new("Deletion");
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_alternative_allele(alt.id().clone(), alt.clone())
+    ///     .add_alternative_allele(id, alt.clone())
     ///     .build();
     ///
     /// let alternative_alleles = header.alternative_alleles();
@@ -186,10 +186,11 @@ impl Builder {
     /// ```
     /// use noodles_vcf::{self as vcf, header::record::value::{map::Contig, Map}};
     ///
-    /// let contig = Map::<Contig>::new("sq0".parse()?);
+    /// let id = "sq0".parse()?;
+    /// let contig = Map::<Contig>::new();
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_contig(contig.id().clone(), contig.clone())
+    ///     .add_contig(id, contig.clone())
     ///     .build();
     ///
     /// let contigs = header.contigs();
@@ -214,7 +215,6 @@ impl Builder {
     /// use noodles_vcf::{self as vcf, header::record::value::{map::Meta, Map}};
     ///
     /// let meta = Map::<Meta>::new(
-    ///     "Assay",
     ///     vec![String::from("WholeGenome"), String::from("Exome")],
     /// );
     ///
@@ -381,10 +381,9 @@ mod tests {
             record::alternate_bases::allele,
         };
 
-        let del_symbol =
-            allele::Symbol::StructuralVariant(allele::symbol::StructuralVariant::from(
-                allele::symbol::structural_variant::Type::Deletion,
-            ));
+        let del = allele::Symbol::StructuralVariant(allele::symbol::StructuralVariant::from(
+            allele::symbol::structural_variant::Type::Deletion,
+        ));
 
         let (key, value) = (
             header::record::Key::from("fileDate"),
@@ -397,24 +396,18 @@ mod tests {
                 InfoKey::SamplesWithDataCount,
                 Map::<Info>::from(InfoKey::SamplesWithDataCount),
             )
-            .add_filter("q10", Map::<Filter>::new("q10", "Quality below 10"))
+            .add_filter("q10", Map::<Filter>::new("Quality below 10"))
             .add_format(
                 FormatKey::Genotype,
                 Map::<Format>::from(FormatKey::Genotype),
             )
-            .add_alternative_allele(
-                del_symbol.clone(),
-                Map::<AlternativeAllele>::new(del_symbol, "Deletion"),
-            )
+            .add_alternative_allele(del, Map::<AlternativeAllele>::new("Deletion"))
             .set_assembly("file:///assemblies.fasta")
-            .add_contig("sq0".parse()?, Map::<Contig>::new("sq0".parse()?))
-            .add_contig("sq1".parse()?, Map::<Contig>::new("sq1".parse()?))
+            .add_contig("sq0".parse()?, Map::<Contig>::new())
+            .add_contig("sq1".parse()?, Map::<Contig>::new())
             .add_meta(
                 "Assay",
-                Map::<Meta>::new(
-                    String::from("Assay"),
-                    vec![String::from("WholeGenome"), String::from("Exome")],
-                ),
+                Map::<Meta>::new(vec![String::from("WholeGenome"), String::from("Exome")]),
             )
             .add_sample_name("sample0")
             .insert(key.clone(), value.clone())

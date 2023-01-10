@@ -275,12 +275,7 @@ mod tests {
             Ok(())
         }
 
-        let info = Map::<map::Info>::new(
-            "I32".parse()?,
-            Number::Count(1),
-            Type::Integer,
-            String::new(),
-        );
+        let info = Map::<map::Info>::new(Number::Count(1), Type::Integer, String::new());
 
         // None
         t(&[0x00], &info, None)?;
@@ -323,12 +318,7 @@ mod tests {
             Ok(())
         }
 
-        let info = Map::<map::Info>::new(
-            "I32".parse()?,
-            Number::Count(2),
-            Type::Integer,
-            String::new(),
-        );
+        let info = Map::<map::Info>::new(Number::Count(2), Type::Integer, String::new());
 
         // Some(Value::IntegerArray([Some(8), Some(13)]))
         t(&[0x21, 0x08, 0x0d], &info, Some(vec![Some(8), Some(13)]))?;
@@ -373,8 +363,7 @@ mod tests {
             Ok(())
         }
 
-        let info =
-            Map::<map::Info>::new("BOOL".parse()?, Number::Count(1), Type::Flag, String::new());
+        let info = Map::<map::Info>::new(Number::Count(1), Type::Flag, String::new());
 
         // None
         t(&[0x00], &info)?;
@@ -397,8 +386,7 @@ mod tests {
             Ok(())
         }
 
-        let info =
-            Map::<map::Info>::new("F32".parse()?, Number::Count(1), Type::Float, String::new());
+        let info = Map::<map::Info>::new(Number::Count(1), Type::Float, String::new());
 
         // None
         t(&[0x00], &info, None)?;
@@ -427,8 +415,7 @@ mod tests {
             Ok(())
         }
 
-        let info =
-            Map::<map::Info>::new("F32".parse()?, Number::Count(2), Type::Float, String::new());
+        let info = Map::<map::Info>::new(Number::Count(2), Type::Float, String::new());
 
         // Some(Value::FloatArray([0.0, 1.0]))
         t(
@@ -459,12 +446,7 @@ mod tests {
             Ok(())
         }
 
-        let info = Map::<map::Info>::new(
-            "CHAR".parse()?,
-            Number::Count(1),
-            Type::Character,
-            String::new(),
-        );
+        let info = Map::<map::Info>::new(Number::Count(1), Type::Character, String::new());
 
         // None
         t(&[0x00], &info, None)?;
@@ -491,12 +473,7 @@ mod tests {
             Ok(())
         }
 
-        let info = Map::<map::Info>::new(
-            "CHAR".parse()?,
-            Number::Count(2),
-            Type::Character,
-            String::new(),
-        );
+        let info = Map::<map::Info>::new(Number::Count(2), Type::Character, String::new());
 
         // None
         t(&[0x00], &info, None)?;
@@ -531,12 +508,7 @@ mod tests {
             Ok(())
         }
 
-        let info = Map::<map::Info>::new(
-            "STRING".parse()?,
-            Number::Count(1),
-            Type::String,
-            String::new(),
-        );
+        let info = Map::<map::Info>::new(Number::Count(1), Type::String, String::new());
 
         // None
         t(&[0x00], &info, None)?;

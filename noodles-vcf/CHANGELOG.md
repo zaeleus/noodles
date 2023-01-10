@@ -11,6 +11,10 @@
   * vcf/header/builder: Change inserting ALT, contig, FILTER, FORMAT, INFO, and
     META records as an ID-map pair.
 
+  * vcf/header/record/value/map: Move records IDs from record to map key.
+
+    `Map<I>` no longer holds the record ID. Use the collection key instead.
+
 ## 0.23.0 - 2022-11-29
 
 ### Added

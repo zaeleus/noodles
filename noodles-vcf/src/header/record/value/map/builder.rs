@@ -54,7 +54,6 @@ pub struct Builder<I>
 where
     I: super::Inner,
 {
-    id: Option<I::Id>,
     pub(super) inner: I::Builder,
     other_fields: OtherFields<I::StandardTag>,
 }
@@ -63,15 +62,6 @@ impl<I> Builder<I>
 where
     I: super::Inner,
 {
-    /// Sets the ID.
-    pub fn set_id<J>(mut self, id: J) -> Self
-    where
-        J: Into<I::Id>,
-    {
-        self.id = Some(id.into());
-        self
-    }
-
     /// Inserts a key-value pair into the other fields.
     pub fn insert(mut self, key: tag::Other<I::StandardTag>, value: String) -> Self {
         self.other_fields.insert(key, value);
@@ -80,11 +70,9 @@ where
 
     /// Builds a VCF header record map value.
     pub fn build(self) -> Result<Map<I>, BuildError> {
-        let id = self.id.ok_or(BuildError::MissingField("ID"))?;
         let inner = self.inner.build()?;
 
         Ok(Map {
-            id,
             inner,
             other_fields: self.other_fields,
         })
@@ -142,7 +130,6 @@ where
 {
     fn default() -> Self {
         Self {
-            id: None,
             inner: I::Builder::default(),
             other_fields: OtherFields::new(),
         }

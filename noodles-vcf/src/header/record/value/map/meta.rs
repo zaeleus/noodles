@@ -18,7 +18,6 @@ pub struct Meta {
 }
 
 impl Inner for Meta {
-    type Id = String;
     type StandardTag = StandardTag;
     type Builder = builder::Builder;
 }
@@ -31,17 +30,13 @@ impl Map<Meta> {
     /// ```
     /// use noodles_vcf::header::record::value::{map::Meta, Map};
     ///
+    /// let id = "Assay";
     /// let map = Map::<Meta>::new(
-    ///     "Assay",
     ///     vec![String::from("WholeGenome"), String::from("Exome")],
     /// );
     /// ```
-    pub fn new<I>(id: I, values: Vec<String>) -> Self
-    where
-        I: Into<String>,
-    {
+    pub fn new(values: Vec<String>) -> Self {
         Self {
-            id: id.into(),
             inner: Meta { values },
             other_fields: IndexMap::new(),
         }
@@ -54,7 +49,7 @@ impl Map<Meta> {
     /// ```
     /// use noodles_vcf::header::record::value::{map::Meta, Map};
     /// let values = vec![String::from("WholeGenome"), String::from("Exome")];
-    /// let map = Map::<Meta>::new("Assay", values.clone());
+    /// let map = Map::<Meta>::new(values.clone());
     /// assert_eq!(map.values(), &values);
     /// ```
     pub fn values(&self) -> &[String] {
@@ -92,14 +87,13 @@ impl TryFrom<Fields> for Map<Meta> {
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
         let mut other_fields = super::init_other_fields(fields.len());
 
-        let mut id = None;
         let mut ty = None;
         let mut number = None;
         let mut values = None;
 
         for (key, value) in fields {
             match Tag::from(key) {
-                Tag::Standard(StandardTag::Id) => super::parse_id(&value, &mut id)?,
+                Tag::Standard(StandardTag::Id) => return Err(TryFromFieldsError::DuplicateTag),
                 Tag::Standard(StandardTag::Type) => parse_type(value, &mut ty)?,
                 Tag::Standard(StandardTag::Number) => super::parse_number(&value, &mut number)?,
                 Tag::Standard(StandardTag::Values) => parse_values(&value, &mut values)?,
@@ -107,13 +101,11 @@ impl TryFrom<Fields> for Map<Meta> {
             }
         }
 
-        let id = id.ok_or(TryFromFieldsError::MissingField("ID"))?;
         let _ = ty.ok_or(TryFromFieldsError::MissingField("Type"))?;
         let _ = number.ok_or(TryFromFieldsError::MissingField("Number"))?;
         let values = values.ok_or(TryFromFieldsError::MissingField("Values"))?;
 
         Ok(Self {
-            id,
             inner: Meta { values },
             other_fields,
         })
@@ -144,29 +136,20 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let map = Map::<Meta>::new(
-            "Assay",
-            vec![String::from("WholeGenome"), String::from("Exome")],
-        );
-
+        let map = Map::<Meta>::new(vec![String::from("WholeGenome"), String::from("Exome")]);
         let expected = r#",Type=String,Number=.,Values=[WholeGenome, Exome]"#;
-
         assert_eq!(map.to_string(), expected);
     }
 
     #[test]
     fn test_try_from_fields_for_map_meta() -> Result<(), TryFromFieldsError> {
         let actual = Map::<Meta>::try_from(vec![
-            (String::from("ID"), String::from("Assay")),
             (String::from("Type"), String::from("String")),
             (String::from("Number"), String::from(".")),
             (String::from("Values"), String::from("WholeGenome, Exome")),
         ])?;
 
-        let expected = Map::<Meta>::new(
-            "Assay",
-            vec![String::from("WholeGenome"), String::from("Exome")],
-        );
+        let expected = Map::<Meta>::new(vec![String::from("WholeGenome"), String::from("Exome")]);
 
         assert_eq!(actual, expected);
 
@@ -177,16 +160,6 @@ mod tests {
     fn test_try_from_fields_for_map_meta_with_missing_fields() {
         assert_eq!(
             Map::<Meta>::try_from(vec![
-                (String::from("Type"), String::from("String")),
-                (String::from("Number"), String::from(".")),
-                (String::from("Values"), String::from("WholeGenome, Exome")),
-            ]),
-            Err(TryFromFieldsError::MissingField("ID"))
-        );
-
-        assert_eq!(
-            Map::<Meta>::try_from(vec![
-                (String::from("ID"), String::from("Assay")),
                 (String::from("Number"), String::from(".")),
                 (String::from("Values"), String::from("WholeGenome, Exome")),
             ]),
@@ -195,7 +168,6 @@ mod tests {
 
         assert_eq!(
             Map::<Meta>::try_from(vec![
-                (String::from("ID"), String::from("Assay")),
                 (String::from("Type"), String::from("String")),
                 (String::from("Values"), String::from("WholeGenome, Exome")),
             ]),
@@ -204,7 +176,6 @@ mod tests {
 
         assert_eq!(
             Map::<Meta>::try_from(vec![
-                (String::from("ID"), String::from("Assay")),
                 (String::from("Type"), String::from("String")),
                 (String::from("Number"), String::from(".")),
             ]),

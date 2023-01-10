@@ -17,7 +17,7 @@ use super::{Header, Record};
 /// let mut writer = vcf::Writer::new(Vec::new());
 ///
 /// let header = vcf::Header::builder()
-///     .add_contig("sq0".parse()?, Map::<Contig>::new("sq0".parse()?))
+///     .add_contig("sq0".parse()?, Map::<Contig>::new())
 ///     .build();
 ///
 /// writer.write_header(&header)?;

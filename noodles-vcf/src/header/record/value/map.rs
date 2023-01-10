@@ -30,9 +30,6 @@ type OtherFields<S> = IndexMap<tag::Other<S>, String>;
 
 /// An inner VCF header map value.
 pub trait Inner: Sized {
-    /// The ID type.
-    type Id: Display;
-
     /// The standard tag type.
     type StandardTag: tag::Standard;
 
@@ -82,7 +79,6 @@ pub struct Map<I>
 where
     I: Inner,
 {
-    id: I::Id,
     inner: I,
     other_fields: OtherFields<I::StandardTag>,
 }
@@ -94,16 +90,6 @@ where
     /// Creates a VCF header map value builder.
     pub fn builder() -> Builder<I> {
         Builder::default()
-    }
-
-    /// Returns the ID.
-    pub fn id(&self) -> &I::Id {
-        &self.id
-    }
-
-    /// Returns a mutable reference to the ID.
-    pub fn id_mut(&mut self) -> &mut I::Id {
-        &mut self.id
     }
 
     /// Returns the nonstandard fields in the map.

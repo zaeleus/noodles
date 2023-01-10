@@ -58,7 +58,7 @@ mod tests {
         use vcf::header::record::value::{map::Contig, Map};
 
         let header = vcf::Header::builder()
-            .add_contig("sq0".parse()?, Map::<Contig>::new("sq0".parse()?))
+            .add_contig("sq0".parse()?, Map::<Contig>::new())
             .build();
 
         let string_maps = StringMaps::from(&header);

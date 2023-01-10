@@ -15,7 +15,6 @@ pub struct Filter {
 }
 
 impl Inner for Filter {
-    type Id = String;
     type StandardTag = StandardTag;
     type Builder = builder::DescribedIndexed;
 }
@@ -48,12 +47,11 @@ impl Map<Filter> {
     /// ```
     /// use noodles_vcf::header::record::value::{map::Filter, Map};
     /// let actual = Map::<Filter>::pass();
-    /// let expected = Map::<Filter>::new("PASS", "All filters passed");
+    /// let expected = Map::<Filter>::new("All filters passed");
     /// assert_eq!(actual, expected);
     /// ```
     pub fn pass() -> Self {
         Self {
-            id: String::from("PASS"),
             inner: Filter {
                 description: String::from("All filters passed"),
                 idx: None,
@@ -68,15 +66,13 @@ impl Map<Filter> {
     ///
     /// ```
     /// use noodles_vcf::header::record::value::{map::Filter, Map};
-    /// let map = Map::<Filter>::new("q10", "Quality below 10");
+    /// let map = Map::<Filter>::new("Quality below 10");
     /// ```
-    pub fn new<S, T>(id: S, description: T) -> Self
+    pub fn new<D>(description: D) -> Self
     where
-        S: Into<String>,
-        T: Into<String>,
+        D: Into<String>,
     {
         Self {
-            id: id.into(),
             inner: Filter {
                 description: description.into(),
                 idx: None,
@@ -105,13 +101,12 @@ impl TryFrom<Fields> for Map<Filter> {
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
         let mut other_fields = super::init_other_fields(fields.len());
 
-        let mut id = None;
         let mut description = None;
         let mut idx = None;
 
         for (key, value) in fields {
             match Tag::from(key) {
-                Tag::Standard(StandardTag::Id) => super::parse_id(&value, &mut id)?,
+                Tag::Standard(StandardTag::Id) => return Err(TryFromFieldsError::DuplicateTag),
                 Tag::Standard(StandardTag::Description) => {
                     super::parse_description(value, &mut description)?
                 }
@@ -120,11 +115,9 @@ impl TryFrom<Fields> for Map<Filter> {
             }
         }
 
-        let id = id.ok_or(TryFromFieldsError::MissingField("ID"))?;
         let description = description.ok_or(TryFromFieldsError::MissingField("Description"))?;
 
         Ok(Self {
-            id,
             inner: Filter { description, idx },
             other_fields,
         })
@@ -157,13 +150,10 @@ mod tests {
 
     #[test]
     fn test_try_from_fields_for_map_filter() -> Result<(), TryFromFieldsError> {
-        let actual = Map::<Filter>::try_from(vec![
-            (String::from("ID"), String::from("PASS")),
-            (
-                String::from("Description"),
-                String::from("All filters passed"),
-            ),
-        ])?;
+        let actual = Map::<Filter>::try_from(vec![(
+            String::from("Description"),
+            String::from("All filters passed"),
+        )])?;
 
         let expected = Map::<Filter>::pass();
 
@@ -175,15 +165,7 @@ mod tests {
     #[test]
     fn test_try_from_fields_for_map_filter_with_missing_fields() {
         assert_eq!(
-            Map::<Filter>::try_from(vec![(
-                String::from("Description"),
-                String::from("All filters passed")
-            )]),
-            Err(TryFromFieldsError::MissingField("ID")),
-        );
-
-        assert_eq!(
-            Map::<Filter>::try_from(vec![(String::from("ID"), String::from("PASS")),]),
+            Map::<Filter>::try_from(vec![(String::from("Other"), String::from("noodles")),]),
             Err(TryFromFieldsError::MissingField("Description")),
         );
     }

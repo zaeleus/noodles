@@ -126,10 +126,11 @@ impl Header {
     ///     header::{info::Key, record::value::{map::Info, Map}},
     /// };
     ///
-    /// let info = Map::<Info>::from(Key::SamplesWithDataCount);
+    /// let id = Key::SamplesWithDataCount;
+    /// let info = Map::<Info>::from(id.clone());
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_info(Key::SamplesWithDataCount, info.clone())
+    ///     .add_info(id, info.clone())
     ///     .build();
     ///
     /// let infos = header.infos();
@@ -152,12 +153,13 @@ impl Header {
     ///
     /// let mut header = vcf::Header::default();
     ///
-    /// let info = Map::<Info>::from(Key::SamplesWithDataCount);
-    /// header.infos_mut().insert(info.id().clone(), info);
+    /// let id = Key::SamplesWithDataCount;
+    /// let info = Map::<Info>::from(id.clone());
+    /// header.infos_mut().insert(id, info.clone());
     ///
     /// let infos = header.infos();
     /// assert_eq!(infos.len(), 1);
-    /// assert_eq!(infos[0].id(), &Key::SamplesWithDataCount);
+    /// assert_eq!(&infos[0], &info);
     /// ```
     pub fn infos_mut(&mut self) -> &mut Infos {
         &mut self.infos
@@ -170,7 +172,7 @@ impl Header {
     /// ```
     /// use noodles_vcf::{self as vcf, header::record::value::{map::Filter, Map}};
     ///
-    /// let filter = Map::<Filter>::new("q10", "Quality below 10");
+    /// let filter = Map::<Filter>::new("Quality below 10");
     ///
     /// let header = vcf::Header::builder()
     ///     .add_filter("q10", filter.clone())
@@ -193,8 +195,8 @@ impl Header {
     ///
     /// let mut header = vcf::Header::default();
     ///
-    /// let filter = Map::<Filter>::new("q10", "Quality below 10");
-    /// header.filters_mut().insert(filter.id().into(), filter.clone());
+    /// let filter = Map::<Filter>::new("Quality below 10");
+    /// header.filters_mut().insert(String::from("q10"), filter.clone());
     ///
     /// let filters = header.filters();
     /// assert_eq!(filters.len(), 1);
@@ -214,10 +216,11 @@ impl Header {
     ///     header::{format::Key, record::value::{map::Format, Map}},
     /// };
     ///
-    /// let format = Map::<Format>::from(Key::Genotype);
+    /// let id = Key::Genotype;
+    /// let format = Map::<Format>::from(id.clone());
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_format(Key::Genotype, format.clone())
+    ///     .add_format(id, format.clone())
     ///     .build();
     ///
     /// let formats = header.formats();
@@ -240,8 +243,9 @@ impl Header {
     ///
     /// let mut header = vcf::Header::default();
     ///
-    /// let format = Map::<Format>::from(Key::Genotype);
-    /// header.formats_mut().insert(format.id().clone(), format.clone());
+    /// let id = Key::Genotype;
+    /// let format = Map::<Format>::from(id.clone());
+    /// header.formats_mut().insert(id, format.clone());
     ///
     /// let formats = header.formats();
     /// assert_eq!(formats.len(), 1);
@@ -265,11 +269,11 @@ impl Header {
     ///     },
     /// };
     ///
-    /// let symbol = Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion));
-    /// let alt = Map::<AlternativeAllele>::new(symbol.clone(), "Deletion");
+    /// let id = Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion));
+    /// let alt = Map::<AlternativeAllele>::new("Deletion");
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_alternative_allele(symbol, alt.clone())
+    ///     .add_alternative_allele(id, alt.clone())
     ///     .build();
     ///
     /// let alternative_alleles = header.alternative_alleles();
@@ -296,11 +300,9 @@ impl Header {
     ///
     /// let mut header = vcf::Header::default();
     ///
-    /// let alt = Map::<AlternativeAllele>::new(
-    ///     Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion)),
-    ///     "Deletion",
-    /// );
-    /// header.alternative_alleles_mut().insert(alt.id().clone(), alt.clone());
+    /// let id = Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion));
+    /// let alt = Map::<AlternativeAllele>::new("Deletion");
+    /// header.alternative_alleles_mut().insert(id, alt.clone());
     ///
     /// let alternative_alleles = header.alternative_alleles();
     /// assert_eq!(alternative_alleles.len(), 1);
@@ -349,10 +351,11 @@ impl Header {
     /// ```
     /// use noodles_vcf::{self as vcf, header::record::value::{map::Contig, Map}};
     ///
-    /// let contig = Map::<Contig>::new("sq0".parse()?);
+    /// let id = "sq0".parse()?;
+    /// let contig = Map::<Contig>::new();
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_contig(contig.id().clone(), contig.clone())
+    ///     .add_contig(id, contig.clone())
     ///     .build();
     ///
     /// let contigs = header.contigs();
@@ -373,8 +376,9 @@ impl Header {
     ///
     /// let mut header = vcf::Header::default();
     ///
-    /// let contig = Map::<Contig>::new("sq0".parse()?);
-    /// header.contigs_mut().insert(contig.id().clone(), contig.clone());
+    /// let id = "sq0".parse()?;
+    /// let contig = Map::<Contig>::new();
+    /// header.contigs_mut().insert(id, contig.clone());
     ///
     /// let contigs = header.contigs();
     /// assert_eq!(contigs.len(), 1);
@@ -393,12 +397,11 @@ impl Header {
     /// use noodles_vcf::{self as vcf, header::record::value::{map::Meta, Map}};
     ///
     /// let meta = Map::<Meta>::new(
-    ///     "Assay",
     ///     vec![String::from("WholeGenome"), String::from("Exome")],
     /// );
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_meta(meta.id().clone(), meta.clone())
+    ///     .add_meta("Assay", meta.clone())
     ///     .build();
     ///
     /// let records = header.meta();
@@ -419,10 +422,9 @@ impl Header {
     /// let mut header = vcf::Header::default();
     ///
     /// let meta = Map::<Meta>::new(
-    ///     "Assay",
     ///     vec![String::from("WholeGenome"), String::from("Exome")],
     /// );
-    /// header.meta_mut().insert(meta.id().into(), meta.clone());
+    /// header.meta_mut().insert(String::from("Assay"), meta.clone());
     ///
     /// let records = header.meta();
     /// assert_eq!(records.len(), 1);
@@ -812,10 +814,7 @@ mod tests {
             .set_assembly("file:///assemblies.fasta")
             .add_meta(
                 "Assay",
-                Map::<Meta>::new(
-                    "Assay",
-                    vec![String::from("WholeGenome"), String::from("Exome")],
-                ),
+                Map::<Meta>::new(vec![String::from("WholeGenome"), String::from("Exome")]),
             )
             .insert(
                 record::Key::from("fileDate"),

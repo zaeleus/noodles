@@ -530,9 +530,9 @@ mod tests {
             .add_filter("PASS", Map::<Filter>::pass())
             .add_filter(
                 "s50",
-                Map::<Filter>::new("s50", "Less than 50% of samples have data"),
+                Map::<Filter>::new("Less than 50% of samples have data"),
             )
-            .add_filter("q10", Map::<Filter>::new("q10", "Quality below 10"))
+            .add_filter("q10", Map::<Filter>::new("Quality below 10"))
             .build();
 
         let string_maps = StringMaps::from(&header);

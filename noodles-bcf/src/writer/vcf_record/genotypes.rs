@@ -793,12 +793,7 @@ mod tests {
             Ok(())
         }
 
-        let key = Map::<Format>::new(
-            "I32".parse()?,
-            Number::Count(1),
-            format::Type::Integer,
-            String::new(),
-        );
+        let key = Map::<Format>::new(Number::Count(1), format::Type::Integer, String::new());
 
         let mut buf = Vec::new();
 
@@ -968,12 +963,7 @@ mod tests {
             Ok(())
         }
 
-        let format = Map::<Format>::new(
-            "I32".parse()?,
-            Number::Count(2),
-            format::Type::Integer,
-            String::new(),
-        );
+        let format = Map::<Format>::new(Number::Count(2), format::Type::Integer, String::new());
 
         let mut buf = Vec::new();
 
@@ -1140,12 +1130,7 @@ mod tests {
     #[test]
     fn test_write_genotype_field_values_with_float_values() -> Result<(), Box<dyn std::error::Error>>
     {
-        let format = Map::<Format>::new(
-            "F32".parse()?,
-            Number::Count(1),
-            format::Type::Float,
-            String::new(),
-        );
+        let format = Map::<Format>::new(Number::Count(1), format::Type::Float, String::new());
 
         let values = [Some(&Value::Float(0.0)), Some(&Value::Float(1.0)), None];
 
@@ -1167,12 +1152,7 @@ mod tests {
     #[test]
     fn test_write_genotype_field_values_with_float_array_values(
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let format = Map::<Format>::new(
-            "F32".parse()?,
-            Number::Count(2),
-            format::Type::Float,
-            String::new(),
-        );
+        let format = Map::<Format>::new(Number::Count(2), format::Type::Float, String::new());
 
         let value_0 = Value::FloatArray(vec![Some(0.0), Some(1.0)]);
         let value_1 = Value::FloatArray(vec![Some(0.0), None]);
@@ -1198,12 +1178,7 @@ mod tests {
     #[test]
     fn test_write_genotype_field_values_with_character_values(
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let format = Map::<Format>::new(
-            "CHAR".parse()?,
-            Number::Count(1),
-            format::Type::Character,
-            String::new(),
-        );
+        let format = Map::<Format>::new(Number::Count(1), format::Type::Character, String::new());
 
         let values = [
             Some(&Value::Character('n')),
@@ -1229,12 +1204,7 @@ mod tests {
     #[test]
     fn test_write_genotype_field_values_with_character_array_values(
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let format = Map::<Format>::new(
-            "CHAR".parse()?,
-            Number::Count(2),
-            format::Type::Character,
-            String::new(),
-        );
+        let format = Map::<Format>::new(Number::Count(2), format::Type::Character, String::new());
 
         let value_0 = Value::CharacterArray(vec![Some('n'), Some('d')]);
         let value_1 = Value::CharacterArray(vec![Some('l'), None]);
@@ -1260,12 +1230,7 @@ mod tests {
     #[test]
     fn test_write_genotype_field_values_with_string_values(
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let format = Map::<Format>::new(
-            "STRING".parse()?,
-            Number::Count(1),
-            format::Type::String,
-            String::new(),
-        );
+        let format = Map::<Format>::new(Number::Count(1), format::Type::String, String::new());
 
         let value_0 = Value::String(String::from("n"));
         let value_1 = Value::String(String::from("ndl"));
@@ -1291,12 +1256,7 @@ mod tests {
     #[test]
     fn test_write_genotype_field_values_with_string_array_values(
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let format = Map::<Format>::new(
-            "STRING".parse()?,
-            Number::Count(2),
-            format::Type::String,
-            String::new(),
-        );
+        let format = Map::<Format>::new(Number::Count(2), format::Type::String, String::new());
 
         let value_0 = Value::StringArray(vec![Some(String::from("n")), Some(String::from("nd"))]);
         let value_1 = Value::StringArray(vec![Some(String::from("ndls")), None]);

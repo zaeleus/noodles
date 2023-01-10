@@ -21,7 +21,6 @@ pub struct Info {
 }
 
 impl Inner for Info {
-    type Id = Key;
     type StandardTag = StandardTag;
     type Builder = builder::TypedDescribedIndexed<Self>;
 }
@@ -78,19 +77,18 @@ impl Map<Info> {
     ///     Number,
     /// };
     ///
+    /// let id = Key::SamplesWithDataCount;
     /// let map = Map::<Info>::new(
-    ///     Key::SamplesWithDataCount,
     ///     Number::Count(1),
     ///     Type::Integer,
     ///     "Number of samples with data",
     /// );
     /// ```
-    pub fn new<D>(id: Key, number: Number, ty: Type, description: D) -> Self
+    pub fn new<D>(number: Number, ty: Type, description: D) -> Self
     where
         D: Into<String>,
     {
         Self {
-            id,
             inner: Info {
                 number,
                 ty,
@@ -125,7 +123,6 @@ impl From<Key> for Map<Info> {
         let description = key::description(&key).map(|s| s.into()).unwrap_or_default();
 
         Self {
-            id: key,
             inner: Info {
                 number,
                 ty,
@@ -151,7 +148,6 @@ impl TryFrom<(FileFormat, Fields)> for Map<Info> {
     fn try_from((_, fields): (FileFormat, Fields)) -> Result<Self, Self::Error> {
         let mut other_fields = super::init_other_fields(fields.len());
 
-        let mut id = None;
         let mut number = None;
         let mut ty = None;
         let mut description = None;
@@ -159,7 +155,7 @@ impl TryFrom<(FileFormat, Fields)> for Map<Info> {
 
         for (key, value) in fields {
             match Tag::from(key) {
-                Tag::Standard(StandardTag::Id) => super::parse_id(&value, &mut id)?,
+                Tag::Standard(StandardTag::Id) => return Err(TryFromFieldsError::DuplicateTag),
                 Tag::Standard(StandardTag::Number) => super::parse_number(&value, &mut number)?,
                 Tag::Standard(StandardTag::Type) => super::parse_type(&value, &mut ty)?,
                 Tag::Standard(StandardTag::Description) => {
@@ -170,13 +166,11 @@ impl TryFrom<(FileFormat, Fields)> for Map<Info> {
             }
         }
 
-        let id = id.ok_or(TryFromFieldsError::MissingField("ID"))?;
         let number = number.ok_or(TryFromFieldsError::MissingField("Number"))?;
         let ty = ty.ok_or(TryFromFieldsError::MissingField("Type"))?;
         let description = description.ok_or(TryFromFieldsError::MissingField("Description"))?;
 
         Ok(Self {
-            id,
             inner: Info {
                 number,
                 ty,
@@ -223,7 +217,6 @@ mod tests {
     #[test]
     fn test_try_from_fields_for_map_info() -> Result<(), TryFromFieldsError> {
         let actual = Map::<Info>::try_from(vec![
-            (String::from("ID"), String::from("NS")),
             (String::from("Number"), String::from("1")),
             (String::from("Type"), String::from("Integer")),
             (
@@ -243,19 +236,6 @@ mod tests {
     fn test_try_from_fields_for_map_info_with_missing_fields() {
         assert_eq!(
             Map::<Info>::try_from(vec![
-                (String::from("Number"), String::from("1")),
-                (String::from("Type"), String::from("Integer")),
-                (
-                    String::from("Description"),
-                    String::from("Number of samples with data")
-                ),
-            ]),
-            Err(TryFromFieldsError::MissingField("ID"))
-        );
-
-        assert_eq!(
-            Map::<Info>::try_from(vec![
-                (String::from("ID"), String::from("NS")),
                 (String::from("Type"), String::from("Integer")),
                 (
                     String::from("Description"),
@@ -267,7 +247,6 @@ mod tests {
 
         assert_eq!(
             Map::<Info>::try_from(vec![
-                (String::from("ID"), String::from("NS")),
                 (String::from("Number"), String::from("1")),
                 (
                     String::from("Description"),
@@ -279,7 +258,6 @@ mod tests {
 
         assert_eq!(
             Map::<Info>::try_from(vec![
-                (String::from("ID"), String::from("NS")),
                 (String::from("Number"), String::from("1")),
                 (String::from("Type"), String::from("Integer")),
             ]),

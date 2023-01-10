@@ -5,7 +5,6 @@ use std::fmt;
 use indexmap::IndexMap;
 
 use super::{tag, Described, Fields, Inner, Map, TryFromFieldsError};
-use crate::record::alternate_bases::allele::Symbol;
 
 type StandardTag = tag::Described;
 type Tag = tag::Tag<StandardTag>;
@@ -17,7 +16,6 @@ pub struct AlternativeAllele {
 }
 
 impl Inner for AlternativeAllele {
-    type Id = Symbol;
     type StandardTag = StandardTag;
     type Builder = builder::Builder;
 }
@@ -46,17 +44,14 @@ impl Map<AlternativeAllele> {
     ///     },
     /// };
     ///
-    /// let map = Map::<AlternativeAllele>::new(
-    ///     Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion)),
-    ///     "Deletion",
-    /// );
+    /// let id = Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion));
+    /// let map = Map::<AlternativeAllele>::new("Deletion");
     /// ```
-    pub fn new<D>(id: Symbol, description: D) -> Self
+    pub fn new<D>(description: D) -> Self
     where
         D: Into<String>,
     {
         Self {
-            id,
             inner: AlternativeAllele {
                 description: description.into(),
             },
@@ -79,12 +74,11 @@ impl TryFrom<Fields> for Map<AlternativeAllele> {
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
         let mut other_fields = super::init_other_fields(fields.len());
 
-        let mut id = None;
         let mut description = None;
 
         for (key, value) in fields {
             match Tag::from(key) {
-                Tag::Standard(StandardTag::Id) => super::parse_id(&value, &mut id)?,
+                Tag::Standard(StandardTag::Id) => return Err(TryFromFieldsError::DuplicateTag),
                 Tag::Standard(StandardTag::Description) => {
                     super::parse_description(value, &mut description)?
                 }
@@ -92,11 +86,9 @@ impl TryFrom<Fields> for Map<AlternativeAllele> {
             }
         }
 
-        let id = id.ok_or(TryFromFieldsError::MissingField("ID"))?;
         let description = description.ok_or(TryFromFieldsError::MissingField("Description"))?;
 
         Ok(Self {
-            id,
             inner: AlternativeAllele { description },
             other_fields,
         })
@@ -107,29 +99,21 @@ impl TryFrom<Fields> for Map<AlternativeAllele> {
 mod tests {
     use super::*;
 
-    fn del() -> Symbol {
-        use crate::record::alternate_bases::allele::symbol::{
-            structural_variant::Type, StructuralVariant,
-        };
-
-        Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion))
-    }
-
     #[test]
     fn test_fmt() {
-        let map = Map::<AlternativeAllele>::new(del(), "Deletion");
+        let map = Map::<AlternativeAllele>::new("Deletion");
         let expected = r#",Description="Deletion""#;
         assert_eq!(map.to_string(), expected);
     }
 
     #[test]
     fn test_try_from_fields_for_map_alternative_allele() -> Result<(), TryFromFieldsError> {
-        let actual = Map::<AlternativeAllele>::try_from(vec![
-            (String::from("ID"), String::from("DEL")),
-            (String::from("Description"), String::from("Deletion")),
-        ])?;
+        let actual = Map::<AlternativeAllele>::try_from(vec![(
+            String::from("Description"),
+            String::from("Deletion"),
+        )])?;
 
-        let expected = Map::<AlternativeAllele>::new(del(), "Deletion");
+        let expected = Map::<AlternativeAllele>::new("Deletion");
 
         assert_eq!(actual, expected);
 
@@ -140,14 +124,9 @@ mod tests {
     fn test_try_from_fields_for_map_alternative_allele_with_missing_fields() {
         assert_eq!(
             Map::<AlternativeAllele>::try_from(vec![(
-                String::from("Description"),
-                String::from("Deletion")
+                String::from("Other"),
+                String::from("noodles")
             ),]),
-            Err(TryFromFieldsError::MissingField("ID")),
-        );
-
-        assert_eq!(
-            Map::<AlternativeAllele>::try_from(vec![(String::from("ID"), String::from("DEL")),]),
             Err(TryFromFieldsError::MissingField("Description")),
         );
     }

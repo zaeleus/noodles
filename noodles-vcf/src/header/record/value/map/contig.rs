@@ -23,7 +23,6 @@ pub struct Contig {
 }
 
 impl Inner for Contig {
-    type Id = Name;
     type StandardTag = StandardTag;
     type Builder = builder::Builder;
 }
@@ -45,12 +44,12 @@ impl Map<Contig> {
     ///
     /// ```
     /// use noodles_vcf::header::record::value::{map::Contig, Map};
-    /// let map = Map::<Contig>::new("sq0".parse()?);
+    /// let map = Map::<Contig>::new();
     /// # Ok::<_, noodles_vcf::header::record::value::map::contig::name::ParseError>(())
     /// ```
-    pub fn new(id: Name) -> Self {
+    #[allow(clippy::new_without_default)]
+    pub fn new() -> Self {
         Self {
-            id,
             inner: Contig {
                 length: None,
                 idx: None,
@@ -65,9 +64,8 @@ impl Map<Contig> {
     ///
     /// ```
     /// use noodles_vcf::header::record::value::{map::Contig, Map};
-    /// let map = Map::<Contig>::new("sq0".parse()?);
+    /// let map = Map::<Contig>::new();
     /// assert!(map.length().is_none());
-    /// # Ok::<_, noodles_vcf::header::record::value::map::contig::name::ParseError>(())
     /// ```
     pub fn length(&self) -> Option<usize> {
         self.inner.length
@@ -80,12 +78,11 @@ impl Map<Contig> {
     /// ```
     /// use noodles_vcf::header::record::value::{map::Contig, Map};
     ///
-    /// let mut map = Map::<Contig>::new("sq0".parse()?);
+    /// let mut map = Map::<Contig>::new();
     /// assert!(map.length().is_none());
     ///
     /// *map.length_mut() = Some(8);
     /// assert_eq!(map.length(), Some(8));
-    /// # Ok::<_, noodles_vcf::header::record::value::map::contig::name::ParseError>(())
     /// ```
     pub fn length_mut(&mut self) -> &mut Option<usize> {
         &mut self.inner.length
@@ -114,23 +111,19 @@ impl TryFrom<Fields> for Map<Contig> {
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
         let mut other_fields = super::init_other_fields(fields.len());
 
-        let mut id = None;
         let mut length = None;
         let mut idx = None;
 
         for (key, value) in fields {
             match Tag::from(key) {
-                Tag::Standard(StandardTag::Id) => super::parse_id(&value, &mut id)?,
+                Tag::Standard(StandardTag::Id) => return Err(TryFromFieldsError::DuplicateTag),
                 Tag::Standard(StandardTag::Length) => parse_length(&value, &mut length)?,
                 Tag::Standard(StandardTag::Idx) => super::parse_idx(&value, &mut idx)?,
                 Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
             }
         }
 
-        let id = id.ok_or(TryFromFieldsError::MissingField("ID"))?;
-
         Ok(Self {
-            id,
             inner: Contig { length, idx },
             other_fields,
         })
@@ -156,7 +149,6 @@ mod tests {
     #[test]
     fn test_fmt() -> Result<(), TryFromFieldsError> {
         let map = Map::<Contig>::try_from(vec![
-            (String::from("ID"), String::from("sq0")),
             (String::from("length"), String::from("8")),
             (
                 String::from("md5"),
@@ -172,18 +164,10 @@ mod tests {
 
     #[test]
     fn test_try_from_fields_for_map_contig() -> Result<(), Box<dyn std::error::Error>> {
-        let actual = Map::<Contig>::try_from(vec![(String::from("ID"), String::from("sq0"))])?;
-        let expected = Map::<Contig>::new("sq0".parse()?);
+        let actual = Map::<Contig>::try_from(Vec::new())?;
+        let expected = Map::<Contig>::new();
         assert_eq!(actual, expected);
         Ok(())
-    }
-
-    #[test]
-    fn test_try_from_fields_for_map_contig_with_missing_fields() {
-        assert_eq!(
-            Map::<Contig>::try_from(Vec::new()),
-            Err(TryFromFieldsError::MissingField("ID")),
-        );
     }
 
     #[test]

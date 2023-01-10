@@ -344,12 +344,7 @@ mod tests {
 
     #[test]
     fn test_from_str_info_with_integer() -> Result<(), crate::header::info::key::ParseError> {
-        let info = Map::<Info>::new(
-            "I32".parse()?,
-            Number::Count(0),
-            Type::Integer,
-            String::default(),
-        );
+        let info = Map::<Info>::new(Number::Count(0), Type::Integer, String::default());
         assert_eq!(
             Value::from_str_info("8", &info),
             Err(ParseError::InvalidNumberForType(
@@ -358,20 +353,10 @@ mod tests {
             ))
         );
 
-        let info = Map::<Info>::new(
-            "I32".parse()?,
-            Number::Count(1),
-            Type::Integer,
-            String::default(),
-        );
+        let info = Map::<Info>::new(Number::Count(1), Type::Integer, String::default());
         assert_eq!(Value::from_str_info("8", &info), Ok(Value::Integer(8)));
 
-        let info = Map::<Info>::new(
-            "I32".parse()?,
-            Number::Count(2),
-            Type::Integer,
-            String::default(),
-        );
+        let info = Map::<Info>::new(Number::Count(2), Type::Integer, String::default());
         assert_eq!(
             Value::from_str_info("8,13", &info),
             Ok(Value::IntegerArray(vec![Some(8), Some(13)])),
@@ -386,12 +371,7 @@ mod tests {
 
     #[test]
     fn test_from_str_info_with_float() -> Result<(), crate::header::info::key::ParseError> {
-        let info = Map::<Info>::new(
-            "F32".parse()?,
-            Number::Count(0),
-            Type::Float,
-            String::default(),
-        );
+        let info = Map::<Info>::new(Number::Count(0), Type::Float, String::default());
         assert_eq!(
             Value::from_str_info("0.333", &info),
             Err(ParseError::InvalidNumberForType(
@@ -400,23 +380,13 @@ mod tests {
             ))
         );
 
-        let info = Map::<Info>::new(
-            "F32".parse()?,
-            Number::Count(1),
-            Type::Float,
-            String::default(),
-        );
+        let info = Map::<Info>::new(Number::Count(1), Type::Float, String::default());
         assert_eq!(
             Value::from_str_info("0.333", &info),
             Ok(Value::Float(0.333))
         );
 
-        let info = Map::<Info>::new(
-            "F32".parse()?,
-            Number::Count(2),
-            Type::Float,
-            String::default(),
-        );
+        let info = Map::<Info>::new(Number::Count(2), Type::Float, String::default());
         assert_eq!(
             Value::from_str_info("0.333,0.667", &info),
             Ok(Value::FloatArray(vec![Some(0.333), Some(0.667)]))
@@ -431,31 +401,16 @@ mod tests {
 
     #[test]
     fn test_from_str_info_with_flag() -> Result<(), crate::header::info::key::ParseError> {
-        let info = Map::<Info>::new(
-            "BOOL".parse()?,
-            Number::Count(0),
-            Type::Flag,
-            String::default(),
-        );
+        let info = Map::<Info>::new(Number::Count(0), Type::Flag, String::default());
         assert_eq!(Value::from_str_info("", &info), Ok(Value::Flag));
 
-        let info = Map::<Info>::new(
-            "BOOL".parse()?,
-            Number::Count(0),
-            Type::Flag,
-            String::default(),
-        );
+        let info = Map::<Info>::new(Number::Count(0), Type::Flag, String::default());
         assert_eq!(
             Value::from_str_info("true", &info),
             Err(ParseError::InvalidFlag)
         );
 
-        let info = Map::<Info>::new(
-            "BOOL".parse()?,
-            Number::Count(1),
-            Type::Flag,
-            String::default(),
-        );
+        let info = Map::<Info>::new(Number::Count(1), Type::Flag, String::default());
         assert_eq!(
             Value::from_str_info("", &info),
             Err(ParseError::InvalidNumberForType(
@@ -469,12 +424,7 @@ mod tests {
 
     #[test]
     fn test_from_str_info_with_character() -> Result<(), crate::header::info::key::ParseError> {
-        let info = Map::<Info>::new(
-            "CHAR".parse()?,
-            Number::Count(0),
-            Type::Character,
-            String::default(),
-        );
+        let info = Map::<Info>::new(Number::Count(0), Type::Character, String::default());
         assert_eq!(
             Value::from_str_info("n", &info),
             Err(ParseError::InvalidNumberForType(
@@ -483,20 +433,10 @@ mod tests {
             ))
         );
 
-        let info = Map::<Info>::new(
-            "CHAR".parse()?,
-            Number::Count(1),
-            Type::Character,
-            String::default(),
-        );
+        let info = Map::<Info>::new(Number::Count(1), Type::Character, String::default());
         assert_eq!(Value::from_str_info("n", &info), Ok(Value::Character('n')));
 
-        let info = Map::<Info>::new(
-            "CHAR".parse()?,
-            Number::Count(2),
-            Type::Character,
-            String::default(),
-        );
+        let info = Map::<Info>::new(Number::Count(2), Type::Character, String::default());
         assert_eq!(
             Value::from_str_info("n,d,l,s", &info),
             Ok(Value::CharacterArray(vec![
@@ -521,12 +461,7 @@ mod tests {
 
     #[test]
     fn test_from_str_info_with_string() -> Result<(), crate::header::info::key::ParseError> {
-        let info = Map::<Info>::new(
-            "STRING".parse()?,
-            Number::Count(0),
-            Type::String,
-            String::new(),
-        );
+        let info = Map::<Info>::new(Number::Count(0), Type::String, String::new());
         assert_eq!(
             Value::from_str_info("noodles", &info),
             Err(ParseError::InvalidNumberForType(
@@ -535,12 +470,7 @@ mod tests {
             ))
         );
 
-        let info = Map::<Info>::new(
-            "STRING".parse()?,
-            Number::Count(1),
-            Type::String,
-            String::new(),
-        );
+        let info = Map::<Info>::new(Number::Count(1), Type::String, String::new());
         assert_eq!(
             Value::from_str_info("noodles", &info),
             Ok(Value::String(String::from("noodles")))
@@ -550,12 +480,7 @@ mod tests {
             Ok(Value::String(String::from("8%")))
         );
 
-        let info = Map::<Info>::new(
-            "STRING".parse()?,
-            Number::Count(2),
-            Type::String,
-            String::new(),
-        );
+        let info = Map::<Info>::new(Number::Count(2), Type::String, String::new());
         assert_eq!(
             Value::from_str_info("noodles,vcf", &info),
             Ok(Value::StringArray(vec![

@@ -14,7 +14,6 @@ pub struct Other {
 }
 
 impl Inner for Other {
-    type Id = String;
     type StandardTag = StandardTag;
     type Builder = builder::Identity;
 }
@@ -32,11 +31,8 @@ impl Map<Other> {
     where
         I: Into<String>,
     {
-        let id = id.into();
-
         Self {
-            id: id.clone(),
-            inner: Other { id },
+            inner: Other { id: id.into() },
             other_fields: IndexMap::new(),
         }
     }
@@ -66,7 +62,6 @@ impl TryFrom<Fields> for Map<Other> {
         let id: String = id.ok_or(TryFromFieldsError::MissingField("ID"))?;
 
         Ok(Self {
-            id: id.clone(),
             inner: Other { id },
             other_fields,
         })

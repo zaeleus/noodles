@@ -21,7 +21,6 @@ pub struct Format {
 }
 
 impl Inner for Format {
-    type Id = Key;
     type StandardTag = StandardTag;
     type Builder = builder::TypedDescribedIndexed<Self>;
 }
@@ -78,14 +77,14 @@ impl Map<Format> {
     ///     Number,
     /// };
     ///
-    /// let map = Map::<Format>::new(Key::Genotype, Number::Count(1), Type::String, "Genotype");
+    /// let id = Key::Genotype;
+    /// let map = Map::<Format>::new(Number::Count(1), Type::String, "Genotype");
     /// ```
-    pub fn new<D>(id: Key, number: Number, ty: Type, description: D) -> Self
+    pub fn new<D>(number: Number, ty: Type, description: D) -> Self
     where
         D: Into<String>,
     {
         Self {
-            id,
             inner: Format {
                 number,
                 ty,
@@ -120,7 +119,6 @@ impl From<Key> for Map<Format> {
         let description = key::description(&key).map(|s| s.into()).unwrap_or_default();
 
         Self {
-            id: key,
             inner: Format {
                 number,
                 ty,
@@ -143,10 +141,9 @@ impl TryFrom<Fields> for Map<Format> {
 impl TryFrom<(FileFormat, Fields)> for Map<Format> {
     type Error = TryFromFieldsError;
 
-    fn try_from((file_format, fields): (FileFormat, Fields)) -> Result<Self, Self::Error> {
+    fn try_from((_, fields): (FileFormat, Fields)) -> Result<Self, Self::Error> {
         let mut other_fields = super::init_other_fields(fields.len());
 
-        let mut id = None;
         let mut number = None;
         let mut ty = None;
         let mut description = None;
@@ -154,7 +151,7 @@ impl TryFrom<(FileFormat, Fields)> for Map<Format> {
 
         for (key, value) in fields {
             match Tag::from(key) {
-                Tag::Standard(StandardTag::Id) => super::parse_id(&value, &mut id)?,
+                Tag::Standard(StandardTag::Id) => return Err(TryFromFieldsError::DuplicateTag),
                 Tag::Standard(StandardTag::Number) => super::parse_number(&value, &mut number)?,
                 Tag::Standard(StandardTag::Type) => super::parse_type(&value, &mut ty)?,
                 Tag::Standard(StandardTag::Description) => {
@@ -165,13 +162,11 @@ impl TryFrom<(FileFormat, Fields)> for Map<Format> {
             }
         }
 
-        let id = id.ok_or(TryFromFieldsError::MissingField("ID"))?;
         let number = number.ok_or(TryFromFieldsError::MissingField("Number"))?;
         let ty = ty.ok_or(TryFromFieldsError::MissingField("Type"))?;
         let description = description.ok_or(TryFromFieldsError::MissingField("Description"))?;
 
         Ok(Self {
-            id,
             inner: Format {
                 number,
                 ty,
@@ -218,7 +213,6 @@ mod tests {
     #[test]
     fn test_try_from_fields_for_map_format() -> Result<(), TryFromFieldsError> {
         let actual = Map::<Format>::try_from(vec![
-            (String::from("ID"), String::from("GT")),
             (String::from("Number"), String::from("1")),
             (String::from("Type"), String::from("String")),
             (String::from("Description"), String::from("Genotype")),
@@ -235,16 +229,6 @@ mod tests {
     fn test_try_from_fields_for_map_format_with_missing_fields() {
         assert_eq!(
             Map::<Format>::try_from(vec![
-                (String::from("Number"), String::from("1")),
-                (String::from("Type"), String::from("String")),
-                (String::from("Description"), String::from("Genotype")),
-            ]),
-            Err(TryFromFieldsError::MissingField("ID"))
-        );
-
-        assert_eq!(
-            Map::<Format>::try_from(vec![
-                (String::from("ID"), String::from("GT")),
                 (String::from("Type"), String::from("String")),
                 (String::from("Description"), String::from("Genotype")),
             ]),
@@ -253,7 +237,6 @@ mod tests {
 
         assert_eq!(
             Map::<Format>::try_from(vec![
-                (String::from("ID"), String::from("GT")),
                 (String::from("Number"), String::from("1")),
                 (String::from("Description"), String::from("Genotype")),
             ]),
@@ -262,7 +245,6 @@ mod tests {
 
         assert_eq!(
             Map::<Format>::try_from(vec![
-                (String::from("ID"), String::from("GT")),
                 (String::from("Number"), String::from("1")),
                 (String::from("Type"), String::from("String")),
             ]),
