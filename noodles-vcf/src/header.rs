@@ -127,7 +127,7 @@ impl Header {
     /// };
     ///
     /// let id = Key::SamplesWithDataCount;
-    /// let info = Map::<Info>::from(id.clone());
+    /// let info = Map::<Info>::from(&id);
     ///
     /// let header = vcf::Header::builder()
     ///     .add_info(id, info.clone())
@@ -154,7 +154,7 @@ impl Header {
     /// let mut header = vcf::Header::default();
     ///
     /// let id = Key::SamplesWithDataCount;
-    /// let info = Map::<Info>::from(id.clone());
+    /// let info = Map::<Info>::from(&id);
     /// header.infos_mut().insert(id, info.clone());
     ///
     /// let infos = header.infos();

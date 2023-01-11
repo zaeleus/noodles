@@ -58,7 +58,7 @@ impl Builder {
     /// };
     ///
     /// let id = Key::SamplesWithDataCount;
-    /// let info = Map::<Info>::from(id.clone());
+    /// let info = Map::<Info>::from(&id);
     ///
     /// let header = vcf::Header::builder()
     ///     .add_info(id, info.clone())
@@ -394,7 +394,7 @@ mod tests {
             .set_file_format(FileFormat::new(4, 3))
             .add_info(
                 InfoKey::SamplesWithDataCount,
-                Map::<Info>::from(InfoKey::SamplesWithDataCount),
+                Map::<Info>::from(&InfoKey::SamplesWithDataCount),
             )
             .add_filter("q10", Map::<Filter>::new("Quality below 10"))
             .add_format(

@@ -114,13 +114,13 @@ impl fmt::Display for Map<Info> {
     }
 }
 
-impl From<Key> for Map<Info> {
-    fn from(key: Key) -> Self {
+impl From<&Key> for Map<Info> {
+    fn from(key: &Key) -> Self {
         use crate::header::info::key;
 
-        let number = key::number(&key).unwrap_or(Number::Count(1));
-        let ty = key::ty(&key).unwrap_or(Type::String);
-        let description = key::description(&key).map(|s| s.into()).unwrap_or_default();
+        let number = key::number(key).unwrap_or(Number::Count(1));
+        let ty = key::ty(key).unwrap_or(Type::String);
+        let description = key::description(key).map(|s| s.into()).unwrap_or_default();
 
         Self {
             inner: Info {
@@ -209,7 +209,7 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let map = Map::<Info>::from(Key::SamplesWithDataCount);
+        let map = Map::<Info>::from(&Key::SamplesWithDataCount);
         let expected = r#",Number=1,Type=Integer,Description="Number of samples with data""#;
         assert_eq!(map.to_string(), expected);
     }
@@ -225,7 +225,7 @@ mod tests {
             ),
         ])?;
 
-        let expected = Map::<Info>::from(Key::SamplesWithDataCount);
+        let expected = Map::<Info>::from(&Key::SamplesWithDataCount);
 
         assert_eq!(actual, expected);
 

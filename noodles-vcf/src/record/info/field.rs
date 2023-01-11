@@ -163,7 +163,7 @@ fn parse(s: &str, infos: &Infos) -> Result<Field, ParseError> {
     let value = if let Some(info) = infos.get(&key) {
         parse_value(&mut components, &key, info)?
     } else {
-        let info = Map::<Info>::from(key.clone());
+        let info = Map::<Info>::from(&key);
         parse_value(&mut components, &key, &info)?
     };
 
@@ -240,18 +240,18 @@ mod tests {
     #[test]
     fn test_parse() -> Result<(), crate::header::info::key::ParseError> {
         let header = crate::Header::builder()
-            .add_info(Key::AlleleCount, Map::<Info>::from(Key::AlleleCount))
+            .add_info(Key::AlleleCount, Map::<Info>::from(&Key::AlleleCount))
             .add_info(
                 Key::SamplesWithDataCount,
-                Map::<Info>::from(Key::SamplesWithDataCount),
+                Map::<Info>::from(&Key::SamplesWithDataCount),
             )
             .add_info(
                 Key::IsSomaticMutation,
-                Map::<Info>::from(Key::IsSomaticMutation),
+                Map::<Info>::from(&Key::IsSomaticMutation),
             )
             .add_info(
                 Key::BreakendEventId,
-                Map::<Info>::from(Key::BreakendEventId),
+                Map::<Info>::from(&Key::BreakendEventId),
             )
             .build();
 

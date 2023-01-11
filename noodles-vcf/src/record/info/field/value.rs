@@ -163,7 +163,7 @@ impl Value {
     ///     record::info::field::Value,
     /// };
     ///
-    /// let info = Map::<Info>::from(Key::SamplesWithDataCount);
+    /// let info = Map::<Info>::from(&Key::SamplesWithDataCount);
     /// assert_eq!(Value::from_str_info("1", &info), Ok(Value::Integer(1)));
     /// ```
     pub fn from_str_info(s: &str, info: &Map<Info>) -> Result<Self, ParseError> {
