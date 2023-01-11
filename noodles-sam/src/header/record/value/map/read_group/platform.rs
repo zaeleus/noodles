@@ -1,6 +1,6 @@
 //! SAM header read group platform.
 
-use std::{error, fmt, str::FromStr};
+use std::{borrow::Cow, error, fmt, str::FromStr};
 
 /// A SAM header read group platform (`PL`).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -77,8 +77,27 @@ impl FromStr for Platform {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.to_uppercase().as_str() {
-            "" => Err(ParseError::Empty),
+        if s.is_empty() {
+            return Err(ParseError::Empty);
+        }
+
+        let (is_lowercase, is_uppercase) = s
+            .chars()
+            .filter(char::is_ascii_alphabetic)
+            .map(|c| c.is_ascii_uppercase())
+            .fold((true, true), |(l, u), is_ascii_uppercase| {
+                (l & !is_ascii_uppercase, u & is_ascii_uppercase)
+            });
+
+        let t = if is_uppercase {
+            Cow::from(s)
+        } else if is_lowercase {
+            Cow::from(s.to_uppercase())
+        } else {
+            return Err(ParseError::Invalid);
+        };
+
+        match t.as_ref() {
             "CAPILLARY" => Ok(Self::Capillary),
             "DNBSEQ" => Ok(Self::DnbSeq),
             "ELEMENT" => Ok(Self::Element),
@@ -128,10 +147,10 @@ mod tests {
         assert_eq!("PACBIO".parse(), Ok(Platform::PacBio));
         assert_eq!("ULTIMA".parse(), Ok(Platform::Ultima));
 
-        assert_eq!("Illumina".parse(), Ok(Platform::Illumina));
         assert_eq!("illumina".parse(), Ok(Platform::Illumina));
 
         assert_eq!("".parse::<Platform>(), Err(ParseError::Empty));
+        assert_eq!("Illumina".parse::<Platform>(), Err(ParseError::Invalid));
         assert_eq!("NOODLES".parse::<Platform>(), Err(ParseError::Invalid));
     }
 }

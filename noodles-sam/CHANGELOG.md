@@ -33,6 +33,9 @@
   * sam/header/record: Add record IDs to `ParseError::InvalidReferenceSequence`
     and `ParseError::InvalidReadGroup`.
 
+  * sam/header/record/value/map/read_group/platform: Disallow inputs with
+    mixed-case.
+
   * sam/header/record/value/map/reference_sequence: `ReferenceSequence::new`
     requires a nonzero length.
 
