@@ -161,7 +161,7 @@ impl Value {
     ///     record::genotypes::genotype::field::Value,
     /// };
     ///
-    /// let format = Map::<Format>::from(Key::ConditionalGenotypeQuality);
+    /// let format = Map::<Format>::from(&Key::ConditionalGenotypeQuality);
     /// assert_eq!(Value::from_str_format("13", &format), Ok(Value::Integer(13)));
     /// ```
     pub fn from_str_format(s: &str, format: &Map<Format>) -> Result<Self, ParseError> {

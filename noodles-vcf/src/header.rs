@@ -217,7 +217,7 @@ impl Header {
     /// };
     ///
     /// let id = Key::Genotype;
-    /// let format = Map::<Format>::from(id.clone());
+    /// let format = Map::<Format>::from(&id);
     ///
     /// let header = vcf::Header::builder()
     ///     .add_format(id, format.clone())
@@ -244,7 +244,7 @@ impl Header {
     /// let mut header = vcf::Header::default();
     ///
     /// let id = Key::Genotype;
-    /// let format = Map::<Format>::from(id.clone());
+    /// let format = Map::<Format>::from(&id);
     /// header.formats_mut().insert(id, format.clone());
     ///
     /// let formats = header.formats();

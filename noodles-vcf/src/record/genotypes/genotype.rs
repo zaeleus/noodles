@@ -100,10 +100,10 @@ impl Genotype {
     /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_format(Key::Genotype, Map::<Format>::from(Key::Genotype))
+    ///     .add_format(Key::Genotype, Map::<Format>::from(&Key::Genotype))
     ///     .add_format(
     ///         Key::ConditionalGenotypeQuality,
-    ///         Map::<Format>::from(Key::ConditionalGenotypeQuality),
+    ///         Map::<Format>::from(&Key::ConditionalGenotypeQuality),
     ///     )
     ///     .build();
     ///
@@ -131,7 +131,7 @@ impl Genotype {
             let field = if let Some(format) = formats.get(key) {
                 Field::from_str_format(raw_field, key, format).map_err(ParseError::InvalidField)?
             } else {
-                let format = Map::<Format>::from(key.clone());
+                let format = Map::<Format>::from(key);
                 Field::from_str_format(raw_field, key, &format).map_err(ParseError::InvalidField)?
             };
 
@@ -156,10 +156,10 @@ impl Genotype {
     /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_format(Key::Genotype, Map::<Format>::from(Key::Genotype))
+    ///     .add_format(Key::Genotype, Map::<Format>::from(&Key::Genotype))
     ///     .add_format(
     ///         Key::ConditionalGenotypeQuality,
-    ///         Map::<Format>::from(Key::ConditionalGenotypeQuality),
+    ///         Map::<Format>::from(&Key::ConditionalGenotypeQuality),
     ///     )
     ///     .build();
     ///
@@ -268,10 +268,10 @@ mod tests {
     #[test]
     fn test_parse() -> Result<(), Box<dyn std::error::Error>> {
         let header = crate::Header::builder()
-            .add_format(Key::Genotype, Map::<Format>::from(Key::Genotype))
+            .add_format(Key::Genotype, Map::<Format>::from(&Key::Genotype))
             .add_format(
                 Key::ConditionalGenotypeQuality,
-                Map::<Format>::from(Key::ConditionalGenotypeQuality),
+                Map::<Format>::from(&Key::ConditionalGenotypeQuality),
             )
             .build();
 

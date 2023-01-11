@@ -15,6 +15,9 @@
 
     `Map<I>` no longer holds the record ID. Use the collection key instead.
 
+  * vcf/header/record/value/map/format: Change conversion from key value to a
+    reference (`&format::Key`).
+
   * vcf/header/record/value/map/info: Change conversion from key value to a
     reference (`&info::Key`).
 

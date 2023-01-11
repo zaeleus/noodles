@@ -110,13 +110,13 @@ impl fmt::Display for Map<Format> {
     }
 }
 
-impl From<Key> for Map<Format> {
-    fn from(key: Key) -> Self {
+impl From<&Key> for Map<Format> {
+    fn from(key: &Key) -> Self {
         use crate::header::format::key;
 
-        let number = key::number(&key).unwrap_or(Number::Count(1));
-        let ty = key::ty(&key).unwrap_or(Type::String);
-        let description = key::description(&key).map(|s| s.into()).unwrap_or_default();
+        let number = key::number(key).unwrap_or(Number::Count(1));
+        let ty = key::ty(key).unwrap_or(Type::String);
+        let description = key::description(key).map(|s| s.into()).unwrap_or_default();
 
         Self {
             inner: Format {
@@ -205,7 +205,7 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let map = Map::<Format>::from(Key::Genotype);
+        let map = Map::<Format>::from(&Key::Genotype);
         let expected = r#",Number=1,Type=String,Description="Genotype""#;
         assert_eq!(map.to_string(), expected);
     }
@@ -218,7 +218,7 @@ mod tests {
             (String::from("Description"), String::from("Genotype")),
         ])?;
 
-        let expected = Map::<Format>::from(Key::Genotype);
+        let expected = Map::<Format>::from(&Key::Genotype);
 
         assert_eq!(actual, expected);
 

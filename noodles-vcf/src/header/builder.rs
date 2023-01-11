@@ -109,7 +109,7 @@ impl Builder {
     /// };
     ///
     /// let id = Key::Genotype;
-    /// let format = Map::<Format>::from(id.clone());
+    /// let format = Map::<Format>::from(&id);
     ///
     /// let header = vcf::Header::builder()
     ///     .add_format(id, format.clone())
@@ -399,7 +399,7 @@ mod tests {
             .add_filter("q10", Map::<Filter>::new("Quality below 10"))
             .add_format(
                 FormatKey::Genotype,
-                Map::<Format>::from(FormatKey::Genotype),
+                Map::<Format>::from(&FormatKey::Genotype),
             )
             .add_alternative_allele(del, Map::<AlternativeAllele>::new("Deletion"))
             .set_assembly("file:///assemblies.fasta")
