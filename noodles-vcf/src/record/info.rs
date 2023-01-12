@@ -316,6 +316,15 @@ impl fmt::Display for ParseError {
     }
 }
 
+impl Extend<(Key, Option<field::Value>)> for Info {
+    fn extend<T: IntoIterator<Item = (Key, Option<field::Value>)>>(&mut self, iter: T) {
+        for (key, value) in iter {
+            let field = Field::new(key, value);
+            self.insert(field);
+        }
+    }
+}
+
 impl FromStr for Info {
     type Err = ParseError;
 
@@ -404,6 +413,23 @@ mod tests {
             ),
         ])?;
         assert_eq!(info.to_string(), "NS=2;AF=0.333,0.667");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_extend() -> Result<(), TryFromFieldsError> {
+        let mut info = Info::default();
+
+        let fields = [(Key::SamplesWithDataCount, Some(field::Value::Integer(2)))];
+        info.extend(fields);
+
+        let expected = Info::try_from(vec![Field::new(
+            Key::SamplesWithDataCount,
+            Some(field::Value::Integer(2)),
+        )])?;
+
+        assert_eq!(info, expected);
 
         Ok(())
     }
