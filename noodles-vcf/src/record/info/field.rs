@@ -26,7 +26,7 @@ pub struct Field {
 impl Field {
     /// Parses a raw VCF record info field.
     pub fn try_from_str(s: &str, infos: &Infos) -> Result<Self, ParseError> {
-        parse(s, infos)
+        parse(s, infos).map(|(key, value)| Self::new(key, value))
     }
 
     /// Creates a VCF record info field.
@@ -150,7 +150,7 @@ impl FromStr for Field {
     }
 }
 
-fn parse(s: &str, infos: &Infos) -> Result<Field, ParseError> {
+fn parse(s: &str, infos: &Infos) -> Result<(Key, Option<Value>), ParseError> {
     const MAX_COMPONENTS: usize = 2;
 
     let mut components = s.splitn(MAX_COMPONENTS, SEPARATOR);
@@ -167,7 +167,7 @@ fn parse(s: &str, infos: &Infos) -> Result<Field, ParseError> {
         parse_value(&mut components, &key, &info)?
     };
 
-    Ok(Field::new(key, value))
+    Ok((key, value))
 }
 
 fn parse_value<'a, I>(
@@ -255,32 +255,26 @@ mod tests {
             )
             .build();
 
-        assert_eq!(
-            parse("AC=.", header.infos()),
-            Ok(Field::new(Key::AlleleCount, None))
-        );
+        assert_eq!(parse("AC=.", header.infos()), Ok((Key::AlleleCount, None)));
 
         assert_eq!(
             parse("NS=2", header.infos()),
-            Ok(Field::new(
-                Key::SamplesWithDataCount,
-                Some(Value::Integer(2))
-            ))
+            Ok((Key::SamplesWithDataCount, Some(Value::Integer(2))))
         );
 
         assert_eq!(
             parse("BQ=1.333", header.infos()),
-            Ok(Field::new(Key::BaseQuality, Some(Value::Float(1.333))))
+            Ok((Key::BaseQuality, Some(Value::Float(1.333))))
         );
 
         assert_eq!(
             parse("SOMATIC", header.infos()),
-            Ok(Field::new(Key::IsSomaticMutation, Some(Value::Flag)))
+            Ok((Key::IsSomaticMutation, Some(Value::Flag)))
         );
 
         assert_eq!(
             parse("EVENT=INV0", header.infos()),
-            Ok(Field::new(
+            Ok((
                 Key::BreakendEventId,
                 Some(Value::String(String::from("INV0")))
             ))
@@ -289,14 +283,11 @@ mod tests {
         let key = "NDLS".parse()?;
         assert_eq!(
             parse("NDLS=VCF", header.infos()),
-            Ok(Field::new(key, Some(Value::String(String::from("VCF")))))
+            Ok((key, Some(Value::String(String::from("VCF")))))
         );
 
         let key = "FLG".parse()?;
-        assert_eq!(
-            parse("FLG", header.infos()),
-            Ok(Field::new(key, Some(Value::Flag)))
-        );
+        assert_eq!(parse("FLG", header.infos()), Ok((key, Some(Value::Flag))));
 
         Ok(())
     }
