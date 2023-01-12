@@ -276,8 +276,8 @@ pub(crate) mod tests {
                     genotype::{field::Value as GenotypeFieldValue, Field as GenotypeField},
                     Genotype, Keys,
                 },
-                info::{field::Value as InfoFieldValue, Field as InfoField},
-                Filters as VcfFilters, Genotypes as VcfGenotypes, Ids, Info as VcfInfo, Position,
+                info::field::Value as InfoFieldValue,
+                Filters as VcfFilters, Genotypes as VcfGenotypes, Ids, Position,
             },
         };
 
@@ -315,18 +315,20 @@ pub(crate) mod tests {
             .info()
             .try_into_vcf_record_info(&header, string_maps.strings())?;
 
-        let expected = VcfInfo::try_from(vec![
-            InfoField::new("HM3".parse()?, Some(InfoFieldValue::Flag)),
-            InfoField::new(InfoFieldKey::AlleleCount, Some(InfoFieldValue::Integer(3))),
-            InfoField::new(
+        let expected = [
+            ("HM3".parse()?, Some(InfoFieldValue::Flag)),
+            (InfoFieldKey::AlleleCount, Some(InfoFieldValue::Integer(3))),
+            (
                 InfoFieldKey::TotalAlleleCount,
                 Some(InfoFieldValue::Integer(6)),
             ),
-            InfoField::new(
+            (
                 InfoFieldKey::AncestralAllele,
                 Some(InfoFieldValue::String(String::from("C"))),
             ),
-        ])?;
+        ]
+        .into_iter()
+        .collect();
 
         assert_eq!(actual, expected);
 

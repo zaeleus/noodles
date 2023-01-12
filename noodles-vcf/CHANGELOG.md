@@ -8,6 +8,8 @@
 
   * vcf/record/info: Implement `Extend<(Key, Option<Value>)>`.
 
+  * vcf/record/info: Implement `FromIterator<(Key, Option<Value>)>`.
+
 ### Changed
 
   * vcf/header/builder: Change inserting ALT, contig, FILTER, FORMAT, INFO, and

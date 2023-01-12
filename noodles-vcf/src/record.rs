@@ -445,7 +445,7 @@ impl Record {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::info::Key,
-    ///     record::{info::{field::Value, Field}, Info, Position},
+    ///     record::{info::field::Value, Info, Position},
     /// };
     ///
     /// let record = vcf::Record::builder()
@@ -456,10 +456,10 @@ impl Record {
     ///     .set_info("NS=3;AF=0.5".parse()?)
     ///     .build()?;
     ///
-    /// let expected = Info::try_from(vec![
-    ///     Field::new(Key::SamplesWithDataCount, Some(Value::Integer(3))),
-    ///     Field::new(Key::AlleleFrequencies, Some(Value::FloatArray(vec![Some(0.5)]))),
-    /// ])?;
+    /// let expected = [
+    ///     (Key::SamplesWithDataCount, Some(Value::Integer(3))),
+    ///     (Key::AlleleFrequencies, Some(Value::FloatArray(vec![Some(0.5)]))),
+    /// ].into_iter().collect();
     ///
     /// assert_eq!(record.info(), &expected);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
@@ -476,7 +476,7 @@ impl Record {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::info::Key,
-    ///     record::{info::{field::Value, Field}, Info, Position},
+    ///     record::{info::field::Value, Info, Position},
     /// };
     ///
     /// let mut record = vcf::Record::builder()
@@ -489,11 +489,11 @@ impl Record {
     ///
     /// record.info_mut().insert(Key::TotalDepth, Some(Value::Integer(13)));
     ///
-    /// let expected = Info::try_from(vec![
-    ///     Field::new(Key::SamplesWithDataCount, Some(Value::Integer(3))),
-    ///     Field::new(Key::AlleleFrequencies, Some(Value::FloatArray(vec![Some(0.5)]))),
-    ///     Field::new(Key::TotalDepth, Some(Value::Integer(13))),
-    /// ])?;
+    /// let expected = [
+    ///     (Key::SamplesWithDataCount, Some(Value::Integer(3))),
+    ///     (Key::AlleleFrequencies, Some(Value::FloatArray(vec![Some(0.5)]))),
+    ///     (Key::TotalDepth, Some(Value::Integer(13))),
+    /// ].into_iter().collect();
     ///
     /// assert_eq!(record.info(), &expected);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
@@ -772,10 +772,7 @@ mod tests {
             .set_chromosome("sq0".parse()?)
             .set_position(Position::from(1))
             .set_reference_bases("A".parse()?)
-            .set_info(Info::try_from(vec![info::Field::new(
-                InfoKey::EndPosition,
-                None,
-            )])?)
+            .set_info([(InfoKey::EndPosition, None)].into_iter().collect())
             .build()?;
 
         assert_eq!(record.end(), Ok(Position::from(1)));
@@ -784,10 +781,11 @@ mod tests {
             .set_chromosome("sq0".parse()?)
             .set_position(Position::from(1))
             .set_reference_bases("A".parse()?)
-            .set_info(Info::try_from(vec![info::Field::new(
-                InfoKey::EndPosition,
-                Some(info::field::Value::Flag),
-            )])?)
+            .set_info(
+                [(InfoKey::EndPosition, Some(info::field::Value::Flag))]
+                    .into_iter()
+                    .collect(),
+            )
             .build()?;
 
         assert_eq!(

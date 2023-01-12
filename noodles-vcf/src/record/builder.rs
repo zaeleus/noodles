@@ -244,7 +244,7 @@ impl Builder {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::info::Key,
-    ///     record::{info::{field::Value, Field}, Info, Position},
+    ///     record::{info::field::Value, Info, Position},
     /// };
     ///
     /// let record = vcf::Record::builder()
@@ -255,10 +255,10 @@ impl Builder {
     ///     .set_info("NS=3;AF=0.5".parse()?)
     ///     .build()?;
     ///
-    /// let expected = Info::try_from(vec![
-    ///     Field::new(Key::SamplesWithDataCount, Some(Value::Integer(3))),
-    ///     Field::new(Key::AlleleFrequencies, Some(Value::FloatArray(vec![Some(0.5)]))),
-    /// ])?;
+    /// let expected = [
+    ///     (Key::SamplesWithDataCount, Some(Value::Integer(3))),
+    ///     (Key::AlleleFrequencies, Some(Value::FloatArray(vec![Some(0.5)]))),
+    /// ].into_iter().collect();
     ///
     /// assert_eq!(record.info(), &expected);
     /// # Ok::<(), Box<dyn std::error::Error>>(())

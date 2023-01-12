@@ -58,17 +58,16 @@ impl Info {
     /// ```
     /// use noodles_vcf::{
     ///     header::info::Key,
-    ///     record::{info::{field::Value, Field}, Info},
+    ///     record::{info::field::Value, Info},
     /// };
     ///
-    /// let ns = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(2)));
-    /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
-    /// let mut info = Info::try_from(vec![ns, dp])?;
+    /// let ns = (Key::SamplesWithDataCount, Some(Value::Integer(2)));
+    /// let dp = (Key::TotalDepth, Some(Value::Integer(13)));
+    /// let mut info: Info = [ns, dp].into_iter().collect();
     /// assert!(!info.is_empty());
     ///
     /// info.clear();
     /// assert!(info.is_empty());
-    /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
     /// ```
     pub fn clear(&mut self) {
         self.0.clear();
@@ -81,16 +80,15 @@ impl Info {
     /// ```
     /// use noodles_vcf::{
     ///     header::info::Key,
-    ///     record::{info::{field::Value, Field}, Info},
+    ///     record::{info::field::Value, Info},
     /// };
     ///
-    /// let ns = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(2)));
-    /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
-    /// let info = Info::try_from(vec![ns, dp.clone()])?;
+    /// let ns = (Key::SamplesWithDataCount, Some(Value::Integer(2)));
+    /// let dp = (Key::TotalDepth, Some(Value::Integer(13)));
+    /// let info: Info = [ns, dp.clone()].into_iter().collect();
     ///
-    /// assert_eq!(info.get(&Key::TotalDepth), Some(dp.value()));
+    /// assert_eq!(info.get(&Key::TotalDepth), Some(Some(&Value::Integer(13))));
     /// assert!(info.get(&Key::AlleleFrequencies).is_none());
-    /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
     /// ```
     pub fn get(&self, key: &Key) -> Option<Option<&field::Value>> {
         self.0.get(key).map(|value| value.as_ref())
@@ -103,19 +101,18 @@ impl Info {
     /// ```
     /// use noodles_vcf::{
     ///     header::info::Key,
-    ///     record::{info::{field::Value, Field}, Info},
+    ///     record::{info::field::Value, Info},
     /// };
     ///
-    /// let ns = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(2)));
-    /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
-    /// let mut info = Info::try_from(vec![ns, dp])?;
+    /// let ns = (Key::SamplesWithDataCount, Some(Value::Integer(2)));
+    /// let dp = (Key::TotalDepth, Some(Value::Integer(13)));
+    /// let mut info: Info = [ns, dp].into_iter().collect();
     ///
     /// if let Some(value) = info.get_mut(&Key::TotalDepth) {
     ///     *value = Some(Value::Integer(8));
     /// }
     ///
     /// assert_eq!(info.get(&Key::TotalDepth), Some(Some(&Value::Integer(8))));
-    /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
     /// ```
     pub fn get_mut(&mut self, key: &Key) -> Option<&mut Option<field::Value>> {
         self.0.get_mut(key)
@@ -128,16 +125,19 @@ impl Info {
     /// ```
     /// use noodles_vcf::{
     ///     header::info::Key,
-    ///     record::{info::{field::Value, Field}, Info},
+    ///     record::{info::field::Value, Info},
     /// };
     ///
-    /// let ns = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(2)));
-    /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
-    /// let info = Info::try_from(vec![ns, dp.clone()])?;
+    /// let ns = (Key::SamplesWithDataCount, Some(Value::Integer(2)));
+    /// let dp = (Key::TotalDepth, Some(Value::Integer(13)));
+    /// let info: Info = [ns, dp].into_iter().collect();
     ///
-    /// assert_eq!(info.get_index(1), Some((dp.key(), dp.value())));
+    /// assert_eq!(
+    ///     info.get_index(1),
+    ///     Some((&Key::TotalDepth, Some(&Value::Integer(13))))
+    /// );
+    ///
     /// assert!(info.get_index(5).is_none());
-    /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
     /// ```
     pub fn get_index(&self, i: usize) -> Option<(&Key, Option<&field::Value>)> {
         self.0
@@ -152,12 +152,12 @@ impl Info {
     /// ```
     /// use noodles_vcf::{
     ///     header::info::Key,
-    ///     record::{info::{field::Value, Field}, Info},
+    ///     record::{info::field::Value, Info},
     /// };
     ///
-    /// let ns = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(2)));
-    /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
-    /// let mut info = Info::try_from(vec![ns, dp])?;
+    /// let ns = (Key::SamplesWithDataCount, Some(Value::Integer(2)));
+    /// let dp = (Key::TotalDepth, Some(Value::Integer(13)));
+    /// let mut info: Info = [ns, dp].into_iter().collect();
     ///
     /// if let Some((_, value)) = info.get_index_mut(1) {
     ///     *value = Some(Value::Integer(8));
@@ -167,7 +167,6 @@ impl Info {
     ///     info.get_index(1),
     ///     Some((&Key::TotalDepth, Some(&Value::Integer(8))))
     /// );
-    /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
     /// ```
     pub fn get_index_mut(&mut self, i: usize) -> Option<(&mut Key, &mut Option<field::Value>)> {
         self.0.get_index_mut(i)
@@ -183,18 +182,17 @@ impl Info {
     /// ```
     /// use noodles_vcf::{
     ///     header::info::Key,
-    ///     record::{info::{field::Value, Field}, Info},
+    ///     record::{info::field::Value, Info},
     /// };
     ///
-    /// let ns = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(2)));
-    /// let mut info = Info::try_from(vec![ns])?;
+    /// let ns = (Key::SamplesWithDataCount, Some(Value::Integer(2)));
+    /// let mut info: Info = [ns].into_iter().collect();
     /// assert_eq!(info.len(), 1);
     ///
     /// info.insert(Key::TotalDepth, Some(Value::Integer(13)));
     ///
     /// assert_eq!(info.len(), 2);
     /// assert_eq!(info.get(&Key::TotalDepth), Some(Some(&Value::Integer(13))));
-    /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
     /// ```
     pub fn insert(
         &mut self,
@@ -211,19 +209,18 @@ impl Info {
     /// ```
     /// use noodles_vcf::{
     ///     header::info::Key,
-    ///     record::{info::{field::Value, Field}, Info},
+    ///     record::{info::field::Value, Info},
     /// };
     ///
-    /// let ns = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(2)));
-    /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
-    /// let info = Info::try_from(vec![ns, dp.clone()])?;
+    /// let ns = (Key::SamplesWithDataCount, Some(Value::Integer(2)));
+    /// let dp = (Key::TotalDepth, Some(Value::Integer(13)));
+    /// let info: Info = [ns, dp].into_iter().collect();
     ///
     /// let mut keys = info.keys();
     ///
     /// assert_eq!(keys.next(), Some(&Key::SamplesWithDataCount));
     /// assert_eq!(keys.next(), Some(&Key::TotalDepth));
     /// assert!(keys.next().is_none());
-    /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
     /// ```
     pub fn keys(&self) -> impl Iterator<Item = &Key> {
         self.0.keys()
@@ -236,19 +233,18 @@ impl Info {
     /// ```
     /// use noodles_vcf::{
     ///     header::info::Key,
-    ///     record::{info::{field::Value, Field}, Info},
+    ///     record::{info::field::Value, Info},
     /// };
     ///
-    /// let ns = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(2)));
-    /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
-    /// let info = Info::try_from(vec![ns.clone(), dp.clone()])?;
+    /// let ns = (Key::SamplesWithDataCount, Some(Value::Integer(2)));
+    /// let dp = (Key::TotalDepth, Some(Value::Integer(13)));
+    /// let info: Info = [ns, dp].into_iter().collect();
     ///
     /// let mut values = info.values();
     ///
-    /// assert_eq!(values.next(), Some(ns.value()));
-    /// assert_eq!(values.next(), Some(dp.value()));
+    /// assert_eq!(values.next(), Some(Some(&Value::Integer(2))));
+    /// assert_eq!(values.next(), Some(Some(&Value::Integer(13))));
     /// assert!(values.next().is_none());
-    /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
     /// ```
     pub fn values(&self) -> impl Iterator<Item = Option<&field::Value>> {
         self.0.values().map(|value| value.as_ref())
@@ -330,6 +326,14 @@ impl Extend<(Key, Option<field::Value>)> for Info {
     }
 }
 
+impl FromIterator<(Key, Option<field::Value>)> for Info {
+    fn from_iter<T: IntoIterator<Item = (Key, Option<field::Value>)>>(iter: T) -> Self {
+        let mut info = Self::default();
+        info.extend(iter);
+        info
+    }
+}
+
 impl FromStr for Info {
     type Err = ParseError;
 
@@ -400,26 +404,25 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_fmt() -> Result<(), TryFromFieldsError> {
+    fn test_fmt() {
         let info = Info::default();
         assert_eq!(info.to_string(), ".");
 
-        let info = Info::try_from(vec![Field::new(
-            Key::SamplesWithDataCount,
-            Some(field::Value::Integer(2)),
-        )])?;
+        let info: Info = [(Key::SamplesWithDataCount, Some(field::Value::Integer(2)))]
+            .into_iter()
+            .collect();
         assert_eq!(info.to_string(), "NS=2");
 
-        let info = Info::try_from(vec![
-            Field::new(Key::SamplesWithDataCount, Some(field::Value::Integer(2))),
-            Field::new(
+        let info: Info = [
+            (Key::SamplesWithDataCount, Some(field::Value::Integer(2))),
+            (
                 Key::AlleleFrequencies,
                 Some(field::Value::FloatArray(vec![Some(0.333), Some(0.667)])),
             ),
-        ])?;
+        ]
+        .into_iter()
+        .collect();
         assert_eq!(info.to_string(), "NS=2;AF=0.333,0.667");
-
-        Ok(())
     }
 
     #[test]
@@ -429,10 +432,9 @@ mod tests {
         let fields = [(Key::SamplesWithDataCount, Some(field::Value::Integer(2)))];
         info.extend(fields);
 
-        let expected = Info::try_from(vec![Field::new(
-            Key::SamplesWithDataCount,
-            Some(field::Value::Integer(2)),
-        )])?;
+        let expected = [(Key::SamplesWithDataCount, Some(field::Value::Integer(2)))]
+            .into_iter()
+            .collect();
 
         assert_eq!(info, expected);
 
