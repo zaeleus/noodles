@@ -74,7 +74,7 @@ impl Info {
         self.0.clear();
     }
 
-    /// Returns a reference to the field with the given key.
+    /// Returns a reference to the field value with the given key.
     ///
     /// # Examples
     ///
@@ -88,15 +88,15 @@ impl Info {
     /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
     /// let info = Info::try_from(vec![ns, dp.clone()])?;
     ///
-    /// assert_eq!(info.get(&Key::TotalDepth), Some(&dp));
+    /// assert_eq!(info.get(&Key::TotalDepth), Some(dp.value()));
     /// assert!(info.get(&Key::AlleleFrequencies).is_none());
     /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
     /// ```
-    pub fn get(&self, key: &Key) -> Option<&Field> {
-        self.0.get(key)
+    pub fn get(&self, key: &Key) -> Option<Option<&field::Value>> {
+        self.0.get(key).map(|field| field.value())
     }
 
-    /// Returns a mutable reference to the field with the given key.
+    /// Returns a mutable reference to the field value with the given key.
     ///
     /// # Examples
     ///
@@ -110,18 +110,15 @@ impl Info {
     /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
     /// let mut info = Info::try_from(vec![ns, dp])?;
     ///
-    /// if let Some(dp) = info.get_mut(&Key::TotalDepth) {
-    ///     *dp.value_mut() = Some(Value::Integer(8));
+    /// if let Some(value) = info.get_mut(&Key::TotalDepth) {
+    ///     *value = Some(Value::Integer(8));
     /// }
     ///
-    /// assert_eq!(
-    ///     info.get(&Key::TotalDepth).map(|field| field.value()),
-    ///     Some(Some(&Value::Integer(8)))
-    /// );
+    /// assert_eq!(info.get(&Key::TotalDepth), Some(Some(&Value::Integer(8))));
     /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
     /// ```
-    pub fn get_mut(&mut self, key: &Key) -> Option<&mut Field> {
-        self.0.get_mut(key)
+    pub fn get_mut(&mut self, key: &Key) -> Option<&mut Option<field::Value>> {
+        self.0.get_mut(key).map(|field| field.value_mut())
     }
 
     /// Returns a reference to the field at the given index.
@@ -138,12 +135,14 @@ impl Info {
     /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
     /// let info = Info::try_from(vec![ns, dp.clone()])?;
     ///
-    /// assert_eq!(info.get_index(1), Some(&dp));
+    /// assert_eq!(info.get_index(1), Some((dp.key(), dp.value())));
     /// assert!(info.get_index(5).is_none());
     /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
     /// ```
-    pub fn get_index(&self, i: usize) -> Option<&Field> {
-        self.0.get_index(i).map(|(_, field)| field)
+    pub fn get_index(&self, i: usize) -> Option<(&Key, Option<&field::Value>)> {
+        self.0
+            .get_index(i)
+            .map(|(_, field)| (field.key(), field.value()))
     }
 
     /// Returns a mutable reference to the field at the given index.
@@ -160,18 +159,20 @@ impl Info {
     /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
     /// let mut info = Info::try_from(vec![ns, dp])?;
     ///
-    /// if let Some(dp) = info.get_index_mut(1) {
-    ///     *dp.value_mut() = Some(Value::Integer(8));
+    /// if let Some((_, value)) = info.get_index_mut(1) {
+    ///     *value = Some(Value::Integer(8));
     /// }
     ///
     /// assert_eq!(
-    ///     info.get_index(1).map(|field| field.value()),
-    ///     Some(Some(&Value::Integer(8)))
+    ///     info.get_index(1),
+    ///     Some((&Key::TotalDepth, Some(&Value::Integer(8))))
     /// );
     /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
     /// ```
-    pub fn get_index_mut(&mut self, i: usize) -> Option<&mut Field> {
-        self.0.get_index_mut(i).map(|(_, field)| field)
+    pub fn get_index_mut(&mut self, i: usize) -> Option<(&mut Key, &mut Option<field::Value>)> {
+        self.0
+            .get_index_mut(i)
+            .map(|(key, field)| (key, field.value_mut()))
     }
 
     /// Inserts a field into the info.
@@ -197,7 +198,7 @@ impl Info {
     /// info.insert(dp.clone());
     ///
     /// assert_eq!(info.len(), 2);
-    /// assert_eq!(info.get(&Key::TotalDepth), Some(&dp));
+    /// assert_eq!(info.get(&Key::TotalDepth), Some(dp.value()));
     /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
     /// ```
     pub fn insert(&mut self, field: Field) -> Option<Field> {
@@ -226,7 +227,7 @@ impl Info {
     /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
     /// ```
     pub fn keys(&self) -> impl Iterator<Item = &Key> {
-        self.values().map(|field| field.key())
+        self.0.values().map(|field| field.key())
     }
 
     /// Returns an iterator over all fields.
@@ -245,13 +246,13 @@ impl Info {
     ///
     /// let mut values = info.values();
     ///
-    /// assert_eq!(values.next(), Some(&ns));
-    /// assert_eq!(values.next(), Some(&dp));
+    /// assert_eq!(values.next(), Some(ns.value()));
+    /// assert_eq!(values.next(), Some(dp.value()));
     /// assert!(values.next().is_none());
     /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
     /// ```
-    pub fn values(&self) -> impl Iterator<Item = &Field> {
-        self.0.values()
+    pub fn values(&self) -> impl Iterator<Item = Option<&field::Value>> {
+        self.0.values().map(|field| field.value())
     }
 }
 
@@ -272,7 +273,7 @@ impl fmt::Display for Info {
         if self.is_empty() {
             f.write_str(MISSING_FIELD)
         } else {
-            for (i, field) in self.values().enumerate() {
+            for (i, field) in self.0.values().enumerate() {
                 if i > 0 {
                     write!(f, "{}", DELIMITER)?;
                 }

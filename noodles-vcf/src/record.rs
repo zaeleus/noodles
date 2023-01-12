@@ -699,7 +699,7 @@ impl Record {
         use self::info::field::Value;
         use super::header::info::Key;
 
-        let end = if let Some(value) = self.info().get(&Key::EndPosition).and_then(|f| f.value()) {
+        let end = if let Some(Some(value)) = self.info().get(&Key::EndPosition) {
             match value {
                 Value::Integer(n) => usize::try_from(*n).map_err(EndError::InvalidPosition)?,
                 _ => return Err(EndError::InvalidInfoEndPositionFieldValue),

@@ -22,7 +22,7 @@ pub fn write_info<W>(
 where
     W: Write,
 {
-    for field in info.values() {
+    for field in info.as_ref().values() {
         write_info_field(writer, string_string_map, field.key(), field.value())?;
     }
 
