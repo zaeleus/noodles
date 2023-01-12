@@ -15,7 +15,7 @@ const DELIMITER: char = ';';
 
 /// VCF record information fields (`INFO`).
 #[derive(Clone, Debug, Default, PartialEq)]
-pub struct Info(IndexMap<Key, Field>);
+pub struct Info(IndexMap<Key, Option<field::Value>>);
 
 impl Info {
     /// Parses raw VCF record info.
@@ -93,7 +93,7 @@ impl Info {
     /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
     /// ```
     pub fn get(&self, key: &Key) -> Option<Option<&field::Value>> {
-        self.0.get(key).map(|field| field.value())
+        self.0.get(key).map(|value| value.as_ref())
     }
 
     /// Returns a mutable reference to the field value with the given key.
@@ -118,7 +118,7 @@ impl Info {
     /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
     /// ```
     pub fn get_mut(&mut self, key: &Key) -> Option<&mut Option<field::Value>> {
-        self.0.get_mut(key).map(|field| field.value_mut())
+        self.0.get_mut(key)
     }
 
     /// Returns a reference to the field at the given index.
@@ -142,7 +142,7 @@ impl Info {
     pub fn get_index(&self, i: usize) -> Option<(&Key, Option<&field::Value>)> {
         self.0
             .get_index(i)
-            .map(|(_, field)| (field.key(), field.value()))
+            .map(|(key, value)| (key, value.as_ref()))
     }
 
     /// Returns a mutable reference to the field at the given index.
@@ -170,17 +170,13 @@ impl Info {
     /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
     /// ```
     pub fn get_index_mut(&mut self, i: usize) -> Option<(&mut Key, &mut Option<field::Value>)> {
-        self.0
-            .get_index_mut(i)
-            .map(|(key, field)| (key, field.value_mut()))
+        self.0.get_index_mut(i)
     }
 
-    /// Inserts a field into the info.
+    /// Inserts a field into the info map.
     ///
-    /// This uses the field key as the key and field as the value.
-    ///
-    /// If the key already exists in the map, the existing field is replaced by the new one, and
-    /// the existing field is returned.
+    /// If the key already exists in the map, the existing value is replaced by the new one, and
+    /// the existing value is returned.
     ///
     /// # Examples
     ///
@@ -194,15 +190,18 @@ impl Info {
     /// let mut info = Info::try_from(vec![ns])?;
     /// assert_eq!(info.len(), 1);
     ///
-    /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
-    /// info.insert(dp.clone());
+    /// info.insert(Key::TotalDepth, Some(Value::Integer(13)));
     ///
     /// assert_eq!(info.len(), 2);
-    /// assert_eq!(info.get(&Key::TotalDepth), Some(dp.value()));
+    /// assert_eq!(info.get(&Key::TotalDepth), Some(Some(&Value::Integer(13))));
     /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
     /// ```
-    pub fn insert(&mut self, field: Field) -> Option<Field> {
-        self.0.insert(field.key().clone(), field)
+    pub fn insert(
+        &mut self,
+        key: Key,
+        value: Option<field::Value>,
+    ) -> Option<Option<field::Value>> {
+        self.0.insert(key, value)
     }
 
     /// Returns an iterator over all keys.
@@ -227,7 +226,7 @@ impl Info {
     /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
     /// ```
     pub fn keys(&self) -> impl Iterator<Item = &Key> {
-        self.0.values().map(|field| field.key())
+        self.0.keys()
     }
 
     /// Returns an iterator over all fields.
@@ -252,18 +251,18 @@ impl Info {
     /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
     /// ```
     pub fn values(&self) -> impl Iterator<Item = Option<&field::Value>> {
-        self.0.values().map(|field| field.value())
+        self.0.values().map(|value| value.as_ref())
     }
 }
 
-impl AsRef<IndexMap<Key, Field>> for Info {
-    fn as_ref(&self) -> &IndexMap<Key, Field> {
+impl AsRef<IndexMap<Key, Option<field::Value>>> for Info {
+    fn as_ref(&self) -> &IndexMap<Key, Option<field::Value>> {
         &self.0
     }
 }
 
-impl AsMut<IndexMap<Key, Field>> for Info {
-    fn as_mut(&mut self) -> &mut IndexMap<Key, Field> {
+impl AsMut<IndexMap<Key, Option<field::Value>>> for Info {
+    fn as_mut(&mut self) -> &mut IndexMap<Key, Option<field::Value>> {
         &mut self.0
     }
 }
@@ -273,12 +272,18 @@ impl fmt::Display for Info {
         if self.is_empty() {
             f.write_str(MISSING_FIELD)
         } else {
-            for (i, field) in self.0.values().enumerate() {
+            for (i, (key, value)) in self.0.iter().enumerate() {
                 if i > 0 {
                     write!(f, "{}", DELIMITER)?;
                 }
 
-                write!(f, "{}", field)?;
+                key.fmt(f)?;
+
+                match value {
+                    None => f.write_str("=.")?,
+                    Some(field::Value::Flag) => {}
+                    Some(v) => write!(f, "={}", v)?,
+                }
             }
 
             Ok(())
@@ -320,8 +325,7 @@ impl fmt::Display for ParseError {
 impl Extend<(Key, Option<field::Value>)> for Info {
     fn extend<T: IntoIterator<Item = (Key, Option<field::Value>)>>(&mut self, iter: T) {
         for (key, value) in iter {
-            let field = Field::new(key, value);
-            self.insert(field);
+            self.insert(key, value);
         }
     }
 }
@@ -380,10 +384,10 @@ impl TryFrom<Vec<Field>> for Info {
         let mut map = IndexMap::with_capacity(fields.len());
 
         for field in fields {
-            if let Some(duplicate_field) = map.insert(field.key().clone(), field) {
-                return Err(TryFromFieldsError::DuplicateKey(
-                    duplicate_field.key().clone(),
-                ));
+            let (key, value) = (field.key().clone(), field.value().cloned());
+
+            if map.insert(key.clone(), value).is_some() {
+                return Err(TryFromFieldsError::DuplicateKey(key));
             }
         }
 

@@ -487,13 +487,12 @@ impl Record {
     ///     .set_info("NS=3;AF=0.5".parse()?)
     ///     .build()?;
     ///
-    /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
-    /// record.info_mut().insert(dp.clone());
+    /// record.info_mut().insert(Key::TotalDepth, Some(Value::Integer(13)));
     ///
     /// let expected = Info::try_from(vec![
     ///     Field::new(Key::SamplesWithDataCount, Some(Value::Integer(3))),
     ///     Field::new(Key::AlleleFrequencies, Some(Value::FloatArray(vec![Some(0.5)]))),
-    ///     dp,
+    ///     Field::new(Key::TotalDepth, Some(Value::Integer(13))),
     /// ])?;
     ///
     /// assert_eq!(record.info(), &expected);
