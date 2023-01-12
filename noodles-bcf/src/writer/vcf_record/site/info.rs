@@ -23,7 +23,7 @@ where
     W: Write,
 {
     for field in info.values() {
-        write_info_field(writer, string_string_map, field)?;
+        write_info_field(writer, string_string_map, field.key(), field.value())?;
     }
 
     Ok(())
@@ -32,13 +32,14 @@ where
 fn write_info_field<W>(
     writer: &mut W,
     string_string_map: &StringStringMap,
-    field: &vcf::record::info::Field,
+    key: &vcf::header::info::Key,
+    value: Option<&vcf::record::info::field::Value>,
 ) -> io::Result<()>
 where
     W: Write,
 {
-    write_info_field_key(writer, string_string_map, field.key())?;
-    write_info_field_value(writer, field.value())?;
+    write_info_field_key(writer, string_string_map, key)?;
+    write_info_field_value(writer, value)?;
     Ok(())
 }
 
