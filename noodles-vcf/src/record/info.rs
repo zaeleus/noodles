@@ -226,7 +226,7 @@ impl Info {
         self.0.keys()
     }
 
-    /// Returns an iterator over all fields.
+    /// Returns an iterator over all values.
     ///
     /// # Examples
     ///
