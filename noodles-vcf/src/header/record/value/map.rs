@@ -222,9 +222,8 @@ fn fmt_display_idx_field(f: &mut fmt::Formatter<'_>, idx: usize) -> fmt::Result 
     write!(f, ",{}={}", tag::IDX, idx)
 }
 
-fn init_other_fields<S>(len: usize) -> OtherFields<S> {
-    let len = len.checked_sub(1).unwrap_or_default();
-    IndexMap::with_capacity(len)
+fn init_other_fields<S>() -> OtherFields<S> {
+    IndexMap::new()
 }
 
 fn parse_id<I>(s: &str, id: &mut Option<I>) -> Result<(), TryFromFieldsError>

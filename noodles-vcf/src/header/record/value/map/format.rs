@@ -142,7 +142,7 @@ impl TryFrom<(FileFormat, Fields)> for Map<Format> {
     type Error = TryFromFieldsError;
 
     fn try_from((_, fields): (FileFormat, Fields)) -> Result<Self, Self::Error> {
-        let mut other_fields = super::init_other_fields(fields.len());
+        let mut other_fields = super::init_other_fields();
 
         let mut number = None;
         let mut ty = None;

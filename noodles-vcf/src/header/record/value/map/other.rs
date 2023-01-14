@@ -48,7 +48,7 @@ impl TryFrom<Fields> for Map<Other> {
     type Error = TryFromFieldsError;
 
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
-        let mut other_fields = super::init_other_fields(fields.len());
+        let mut other_fields = super::init_other_fields();
 
         let mut id = None;
 
