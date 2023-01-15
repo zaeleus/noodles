@@ -49,7 +49,7 @@ impl Info {
         self.0.is_empty()
     }
 
-    /// Removes all field from the info map.
+    /// Removes all fields from the info map.
     ///
     /// This does not affect the capacity of the map.
     ///
