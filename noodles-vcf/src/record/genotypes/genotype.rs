@@ -211,6 +211,15 @@ impl fmt::Display for Genotype {
     }
 }
 
+impl Extend<(Key, Option<field::Value>)> for Genotype {
+    fn extend<T: IntoIterator<Item = (Key, Option<field::Value>)>>(&mut self, iter: T) {
+        for (key, value) in iter {
+            let field = Field::new(key.clone(), value);
+            self.insert(key, field);
+        }
+    }
+}
+
 /// An error returned when VCF genotype fields fail to convert.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum TryFromFieldsError {
@@ -322,6 +331,26 @@ mod tests {
         ])?;
 
         assert_eq!(genotype.to_string(), "0|0:13");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_extend() -> Result<(), TryFromFieldsError> {
+        let mut genotype = Genotype::default();
+
+        let fields = [(
+            Key::Genotype,
+            Some(field::Value::String(String::from("0|0"))),
+        )];
+        genotype.extend(fields);
+
+        let expected = Genotype::try_from(vec![Field::new(
+            Key::Genotype,
+            Some(field::Value::String(String::from("0|0"))),
+        )])?;
+
+        assert_eq!(genotype, expected);
 
         Ok(())
     }

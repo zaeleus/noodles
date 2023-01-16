@@ -6,6 +6,8 @@
 
   * vcf: Implement `std::error::Error::source` for errors.
 
+  * vcf/record/genotypes/genotype: Implement `Extend<(Key, Option<Value>)>`.
+
   * vcf/record/info: Implement `Extend<(Key, Option<Value>)>`.
 
   * vcf/record/info: Implement `FromIterator<(Key, Option<Value>)>`.
