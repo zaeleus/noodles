@@ -426,7 +426,7 @@ mod tests {
     }
 
     #[test]
-    fn test_extend() -> Result<(), TryFromFieldsError> {
+    fn test_extend() {
         let mut info = Info::default();
 
         let fields = [(Key::SamplesWithDataCount, Some(field::Value::Integer(2)))];
@@ -437,8 +437,6 @@ mod tests {
             .collect();
 
         assert_eq!(info, expected);
-
-        Ok(())
     }
 
     #[test]
