@@ -320,9 +320,7 @@ impl fmt::Display for ParseError {
 
 impl Extend<(Key, Option<field::Value>)> for Info {
     fn extend<T: IntoIterator<Item = (Key, Option<field::Value>)>>(&mut self, iter: T) {
-        for (key, value) in iter {
-            self.insert(key, value);
-        }
+        self.0.extend(iter);
     }
 }
 
