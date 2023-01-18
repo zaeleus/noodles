@@ -176,20 +176,19 @@ mod tests {
 
     #[test]
     fn test_from_str_with_genotype_info() -> Result<(), Box<dyn std::error::Error>> {
-        use self::genotypes::{
-            genotype::{field::Value, Field},
-            Genotype,
-        };
+        use self::genotypes::genotype::field::Value;
         use crate::header::format::Key;
 
         let s = "chr1\t13\tnd0\tATCG\tA\t5.8\tPASS\tSVTYPE=DEL\tGT:GQ\t0|1:13";
         let record: Record = s.parse()?;
 
         let keys = genotypes::Keys::try_from(vec![Key::Genotype, Key::ConditionalGenotypeQuality])?;
-        let genotypes = vec![Genotype::try_from(vec![
-            Field::new(Key::Genotype, Some(Value::String(String::from("0|1")))),
-            Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
-        ])?];
+        let genotypes = vec![[
+            (Key::Genotype, Some(Value::String(String::from("0|1")))),
+            (Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
+        ]
+        .into_iter()
+        .collect()];
 
         let actual = record.genotypes();
         let expected = Genotypes::new(keys, genotypes);

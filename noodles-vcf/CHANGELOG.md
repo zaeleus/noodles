@@ -8,6 +8,9 @@
 
   * vcf/record/genotypes/genotype: Implement `Extend<(Key, Option<Value>)>`.
 
+  * vcf/record/genotypes/genotype: Implement `FromIterator<(Key,
+    Option<Value>)>`.
+
   * vcf/record/info: Implement `Extend<(Key, Option<Value>)>`.
 
   * vcf/record/info: Implement `FromIterator<(Key, Option<Value>)>`.

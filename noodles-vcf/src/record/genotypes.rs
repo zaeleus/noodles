@@ -33,7 +33,7 @@ impl Genotypes {
     ///     self as vcf,
     ///     header::{format::Key, record::value::{map::Format, Map}},
     ///     record::{
-    ///         genotypes::{genotype::{field::Value, Field}, Genotype, Keys},
+    ///         genotypes::{genotype::field::Value, Keys},
     ///         Genotypes,
     ///     },
     /// };
@@ -46,10 +46,10 @@ impl Genotypes {
     ///
     /// let expected = Genotypes::new(
     ///     Keys::try_from(vec![Key::Genotype, Key::ConditionalGenotypeQuality])?,
-    ///     vec![Genotype::try_from(vec![
-    ///         Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
-    ///         Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
-    ///     ])?],
+    ///     vec![[
+    ///         (Key::Genotype, Some(Value::String(String::from("0|0")))),
+    ///         (Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
+    ///     ].into_iter().collect()],
     /// );
     ///
     /// assert_eq!(actual, expected);
@@ -263,15 +263,17 @@ mod tests {
 
     #[test]
     fn test_fmt() -> Result<(), Box<dyn std::error::Error>> {
-        use self::genotype::{field::Value, Field};
+        use self::genotype::field::Value;
         use crate::header::format::Key;
 
         let genotypes = Genotypes::new(
             Keys::try_from(vec![Key::Genotype, Key::ConditionalGenotypeQuality])?,
-            vec![Genotype::try_from(vec![
-                Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
-                Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
-            ])?],
+            vec![[
+                (Key::Genotype, Some(Value::String(String::from("0|0")))),
+                (Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
+            ]
+            .into_iter()
+            .collect()],
         );
 
         assert_eq!(genotypes.to_string(), "GT:GQ\t0|0:13");
@@ -281,15 +283,17 @@ mod tests {
 
     #[test]
     fn test_from_str() -> Result<(), Box<dyn std::error::Error>> {
-        use super::genotype::{field::Value, Field};
+        use super::genotype::field::Value;
         use crate::header::format::Key;
 
         let expected = Genotypes::new(
             Keys::try_from(vec![Key::Genotype, Key::ConditionalGenotypeQuality])?,
-            vec![Genotype::try_from(vec![
-                Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
-                Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
-            ])?],
+            vec![[
+                (Key::Genotype, Some(Value::String(String::from("0|0")))),
+                (Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
+            ]
+            .into_iter()
+            .collect()],
         );
         assert_eq!("GT:GQ\t0|0:13".parse(), Ok(expected));
 

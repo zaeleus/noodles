@@ -547,7 +547,7 @@ impl Record {
     ///     self as vcf,
     ///     header::format::Key,
     ///     record::{
-    ///         genotypes::{genotype::{field::Value, Field}, Genotype, Genotypes},
+    ///         genotypes::{genotype::field::Value, Genotypes},
     ///         Position,
     ///     },
     /// };
@@ -555,10 +555,10 @@ impl Record {
     /// let keys = "GT:GQ".parse()?;
     /// let genotypes = Genotypes::new(
     ///     keys,
-    ///     vec![Genotype::try_from(vec![
-    ///         Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
-    ///         Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
-    ///     ])?],
+    ///     vec![[
+    ///         (Key::Genotype, Some(Value::String(String::from("0|0")))),
+    ///         (Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
+    ///     ].into_iter().collect()],
     /// );
     ///
     /// let record = vcf::Record::builder()
@@ -585,7 +585,7 @@ impl Record {
     ///     self as vcf,
     ///     header::format::Key,
     ///     record::{
-    ///         genotypes::{genotype::{field::Value, Field}, Genotype, Genotypes},
+    ///         genotypes::{genotype::field::Value, Genotypes},
     ///         Position,
     ///     },
     /// };
@@ -599,10 +599,10 @@ impl Record {
     /// let keys = "GT:GQ".parse()?;
     /// let genotypes = Genotypes::new(
     ///     keys,
-    ///     vec![Genotype::try_from(vec![
-    ///         Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
-    ///         Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
-    ///     ])?],
+    ///     vec![[
+    ///         (Key::Genotype, Some(Value::String(String::from("0|0")))),
+    ///         (Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
+    ///     ].into_iter().collect()],
     /// );
     ///
     /// *record.genotypes_mut() = genotypes.clone();

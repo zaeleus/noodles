@@ -96,7 +96,7 @@ impl Genotype {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::{format::Key, record::value::{map::Format, Map}},
-    ///     record::genotypes::{genotype::{field::Value, Field}, Genotype},
+    ///     record::genotypes::{genotype::field::Value, Genotype},
     /// };
     ///
     /// let header = vcf::Header::builder()
@@ -111,10 +111,10 @@ impl Genotype {
     ///
     /// assert_eq!(
     ///     Genotype::parse("0|0:13", header.formats(), &keys),
-    ///     Ok(Genotype::try_from(vec![
-    ///         Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
-    ///         Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
-    ///     ])?)
+    ///     Ok([
+    ///         (Key::Genotype, Some(Value::String(String::from("0|0")))),
+    ///         (Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
+    ///     ].into_iter().collect())
     /// );
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
@@ -220,6 +220,14 @@ impl Extend<(Key, Option<field::Value>)> for Genotype {
     }
 }
 
+impl FromIterator<(Key, Option<field::Value>)> for Genotype {
+    fn from_iter<T: IntoIterator<Item = (Key, Option<field::Value>)>>(iter: T) -> Self {
+        let mut genotype = Self::default();
+        genotype.extend(iter);
+        genotype
+    }
+}
+
 /// An error returned when VCF genotype fields fail to convert.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum TryFromFieldsError {
@@ -308,35 +316,37 @@ mod tests {
     }
 
     #[test]
-    fn test_fmt() -> Result<(), TryFromFieldsError> {
+    fn test_fmt() {
         let genotype = Genotype::default();
         assert_eq!(genotype.to_string(), ".");
 
-        let genotype = Genotype::try_from(vec![Field::new(
+        let genotype: Genotype = [(
             Key::Genotype,
             Some(field::Value::String(String::from("0|0"))),
-        )])?;
+        )]
+        .into_iter()
+        .collect();
 
         assert_eq!(genotype.to_string(), "0|0");
 
-        let genotype = Genotype::try_from(vec![
-            Field::new(
+        let genotype: Genotype = [
+            (
                 Key::Genotype,
                 Some(field::Value::String(String::from("0|0"))),
             ),
-            Field::new(
+            (
                 Key::ConditionalGenotypeQuality,
                 Some(field::Value::Integer(13)),
             ),
-        ])?;
+        ]
+        .into_iter()
+        .collect();
 
         assert_eq!(genotype.to_string(), "0|0:13");
-
-        Ok(())
     }
 
     #[test]
-    fn test_extend() -> Result<(), TryFromFieldsError> {
+    fn test_extend() {
         let mut genotype = Genotype::default();
 
         let fields = [(
@@ -345,14 +355,14 @@ mod tests {
         )];
         genotype.extend(fields);
 
-        let expected = Genotype::try_from(vec![Field::new(
+        let expected = [(
             Key::Genotype,
             Some(field::Value::String(String::from("0|0"))),
-        )])?;
+        )]
+        .into_iter()
+        .collect();
 
         assert_eq!(genotype, expected);
-
-        Ok(())
     }
 
     #[test]
@@ -403,27 +413,26 @@ mod tests {
     }
 
     #[test]
-    fn test_genotype() -> Result<(), TryFromFieldsError> {
-        let genotype = Genotype::try_from(vec![Field::new(
+    fn test_genotype() {
+        let genotype: Genotype = [(
             Key::Genotype,
             Some(field::Value::String(String::from("ndls"))),
-        )])?;
+        )]
+        .into_iter()
+        .collect();
 
         assert!(matches!(
             genotype.genotype(),
             Some(Err(GenotypeError::InvalidValue(_)))
         ));
 
-        let genotype = Genotype::try_from(vec![Field::new(
-            Key::Genotype,
-            Some(field::Value::Integer(0)),
-        )])?;
+        let genotype: Genotype = [(Key::Genotype, Some(field::Value::Integer(0)))]
+            .into_iter()
+            .collect();
 
         assert!(matches!(
             genotype.genotype(),
             Some(Err(GenotypeError::InvalidValueType(_)))
         ));
-
-        Ok(())
     }
 }
