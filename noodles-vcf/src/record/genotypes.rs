@@ -262,7 +262,7 @@ mod tests {
     }
 
     #[test]
-    fn test_fmt() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_fmt() -> Result<(), super::keys::TryFromKeyVectorError> {
         use self::genotype::field::Value;
         use crate::header::format::Key;
 
@@ -282,7 +282,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_from_str() -> Result<(), super::keys::TryFromKeyVectorError> {
         use super::genotype::field::Value;
         use crate::header::format::Key;
 
