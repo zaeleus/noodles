@@ -66,9 +66,10 @@ impl FromStr for Genotype {
         let mut alleles = Vec::new();
 
         while let Some(i) = s.chars().skip(1).position(|c| matches!(c, '/' | '|')) {
-            let allele = s[..i + 1].parse().map_err(ParseError::InvalidAllele)?;
+            let (t, rest) = s.split_at(i + 1);
+            let allele = t.parse().map_err(ParseError::InvalidAllele)?;
             alleles.push(allele);
-            s = &s[i + 1..];
+            s = rest;
         }
 
         let allele = s.parse().map_err(ParseError::InvalidAllele)?;
