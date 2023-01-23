@@ -6,6 +6,10 @@
 
   * gtf: Implement `std::error::Error::source` for errors.
 
+### Changed
+
+  * gtf: Raise minimum supported Rust version (MSRV) to 1.64.0.
+
 ## 0.6.0 - 2022-11-18
 
 ### Added

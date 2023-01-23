@@ -7,6 +7,10 @@
   * tabix/index/header/format: Implement `std::error::Error::source` for
     `TryFromIntError`.
 
+### Changed
+
+  * tabix: Raise minimum supported Rust version (MSRV) to 1.64.0.
+
 ## 0.15.0 - 2022-11-18
 
 ### Changed

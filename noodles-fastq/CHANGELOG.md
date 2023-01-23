@@ -6,6 +6,10 @@
 
   * fastq/fai/record: Implement `std::error::Error::source` for `ParseError`.
 
+### Changed
+
+  * fastq: Raise minimum supported Rust version (MSRV) to 1.64.0.
+
 ## 0.5.1 - 2022-10-28
 
 ### Fixed

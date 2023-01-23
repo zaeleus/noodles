@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bcf: Raise minimum supported Rust version (MSRV) to 1.64.0.
+
 ## 0.19.2 - 2022-12-02
 
 ### Fixed

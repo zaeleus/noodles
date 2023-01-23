@@ -6,6 +6,10 @@
 
   * fasta/fai/record: Implement `std::error::Error::source` for `ParseError`.
 
+### Changed
+
+  * fasta: Raise minimum supported Rust version (MSRV) to 1.64.0.
+
 ## 0.17.0 - 2022-11-18
 
 ### Changed

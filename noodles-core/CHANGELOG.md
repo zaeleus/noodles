@@ -8,6 +8,10 @@
 
   * core/region: Implement `std::error::Error::source` for errors.
 
+### Changed
+
+  * core: Raise minimum supported Rust version (MSRV) to 1.64.0.
+
 ## 0.9.0 - 2022-10-20
 
 ### Added

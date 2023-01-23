@@ -6,6 +6,10 @@
 
   * gff: Implement `std::error::Error::source` for errors.
 
+### Changed
+
+  * gff: Raise minimum supported Rust version (MSRV) to 1.64.0.
+
 ## 0.9.0 - 2022-10-28
 
 ### Added

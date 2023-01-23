@@ -20,6 +20,8 @@
 
 ### Changed
 
+  * sam: Raise minimum supported Rust version (MSRV) to 1.64.0.
+
   * sam/alignment/record: Return `Name`-`Map<ReferenceSequence>` pair from
     `Record::reference_sequence` and `Record::mate_reference_sequence`.
 

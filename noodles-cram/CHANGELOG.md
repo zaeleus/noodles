@@ -8,6 +8,8 @@
 
 ### Changed
 
+  * cram: Raise minimum supported Rust version (MSRV) to 1.64.0.
+
   * cram/record: Return `Name`-`Map<ReferenceSequence>` pair from
     `Record::reference_sequence` and `Record::mate_reference_sequence`.
 
