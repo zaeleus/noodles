@@ -28,9 +28,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let sequence = request.send().await?;
 
-    let stdout = io::stdout();
-    let mut writer = stdout.lock();
-
+    let mut writer = io::stdout().lock();
     writer.write_all(&sequence.sequence())?;
     writeln!(writer)?;
 

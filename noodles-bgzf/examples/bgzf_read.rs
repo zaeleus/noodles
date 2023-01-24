@@ -10,10 +10,7 @@ fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
     let mut reader = bgzf::reader::Builder::default().build_from_path(src)?;
-
-    let stdout = io::stdout();
-    let mut writer = stdout.lock();
-
+    let mut writer = io::stdout().lock();
     io::copy(&mut reader, &mut writer)?;
 
     Ok(())

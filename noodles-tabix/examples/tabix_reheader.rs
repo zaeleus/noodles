@@ -21,9 +21,8 @@ fn main() -> io::Result<()> {
     let tabix_src = format!("{}.tbi", src);
     let index = tabix::read(tabix_src)?;
 
-    let stdout = io::stdout();
-    let handle = stdout.lock();
-    let mut writer = bgzf::Writer::new(handle);
+    let stdout = io::stdout().lock();
+    let mut writer = bgzf::Writer::new(stdout);
 
     let mut header_reader = File::open(header_src).map(BufReader::new)?;
     io::copy(&mut header_reader, &mut writer)?;

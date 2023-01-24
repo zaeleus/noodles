@@ -8,9 +8,8 @@ use noodles_bed as bed;
 use noodles_core::Position;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let stdout = io::stdout();
-    let handle = stdout.lock();
-    let mut writer = bed::Writer::new(handle);
+    let stdout = io::stdout().lock();
+    let mut writer = bed::Writer::new(stdout);
 
     let record = bed::Record::<3>::builder()
         .set_reference_sequence_name("sq0")

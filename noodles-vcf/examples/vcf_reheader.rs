@@ -29,9 +29,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut header = reader.read_header()?.parse()?;
     add_comment(&mut header);
 
-    let stdout = io::stdout();
-    let handle = stdout.lock();
-    let mut writer = vcf::Writer::new(handle);
+    let stdout = io::stdout().lock();
+    let mut writer = vcf::Writer::new(stdout);
 
     writer.write_header(&header)?;
 

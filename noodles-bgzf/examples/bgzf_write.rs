@@ -15,9 +15,8 @@ fn main() -> io::Result<()> {
 
     let mut reader = File::open(src)?;
 
-    let stdout = io::stdout();
-    let handle = stdout.lock();
-    let mut writer = bgzf::Writer::new(handle);
+    let stdout = io::stdout().lock();
+    let mut writer = bgzf::Writer::new(stdout);
 
     io::copy(&mut reader, &mut writer)?;
 

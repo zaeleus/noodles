@@ -7,9 +7,8 @@ use std::io;
 use noodles_gtf as gtf;
 
 fn main() -> io::Result<()> {
-    let stdout = io::stdout();
-    let handle = stdout.lock();
-    let mut writer = gtf::Writer::new(handle);
+    let stdout = io::stdout().lock();
+    let mut writer = gtf::Writer::new(stdout);
 
     let record = gtf::Record::default();
     writer.write_record(&record)?;

@@ -13,9 +13,8 @@ fn main() -> io::Result<()> {
 
     let index = fastq::index(src)?;
 
-    let stdout = io::stdout();
-    let handle = stdout.lock();
-    let mut writer = fai::Writer::new(handle);
+    let stdout = io::stdout().lock();
+    let mut writer = fai::Writer::new(stdout);
 
     for record in &index {
         writer.write_record(record)?;

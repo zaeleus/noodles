@@ -13,9 +13,8 @@ use noodles_vcf::{
 };
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let stdout = io::stdout();
-    let handle = stdout.lock();
-    let mut writer = vcf::Writer::new(handle);
+    let stdout = io::stdout().lock();
+    let mut writer = vcf::Writer::new(stdout);
 
     let header = vcf::Header::builder()
         .add_contig("sq0".parse()?, Map::<Contig>::new())

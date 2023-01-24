@@ -28,9 +28,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut buf = vec![0; len];
     reader.read_exact(&mut buf)?;
 
-    let stdout = io::stdout();
-    let mut handle = stdout.lock();
-    handle.write_all(&buf)?;
+    let mut writer = io::stdout().lock();
+    writer.write_all(&buf)?;
 
     Ok(())
 }

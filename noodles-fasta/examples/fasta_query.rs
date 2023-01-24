@@ -19,9 +19,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let region = raw_region.parse()?;
     let record = reader.query(&region)?;
 
-    let stdout = io::stdout();
-    let handle = stdout.lock();
-    let mut writer = fasta::Writer::new(handle);
+    let stdout = io::stdout().lock();
+    let mut writer = fasta::Writer::new(stdout);
 
     writer.write_record(&record)?;
 

@@ -7,9 +7,8 @@ use std::io;
 use noodles_gff::{self as gff, Line};
 
 fn main() -> io::Result<()> {
-    let stdout = io::stdout();
-    let handle = stdout.lock();
-    let mut writer = gff::Writer::new(handle);
+    let stdout = io::stdout().lock();
+    let mut writer = gff::Writer::new(stdout);
 
     let version = gff::Directive::GffVersion(Default::default());
     writer.write_directive(&version)?;

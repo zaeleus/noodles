@@ -70,9 +70,8 @@ fn main() -> io::Result<()> {
 
     let index = indexer.build();
 
-    let stdout = io::stdout();
-    let handle = stdout.lock();
-    let mut writer = tabix::Writer::new(handle);
+    let stdout = io::stdout().lock();
+    let mut writer = tabix::Writer::new(stdout);
 
     writer.write_index(&index)?;
 

@@ -17,9 +17,8 @@ fn main() -> io::Result<()> {
         .transpose()?
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid name"))?;
 
-    let stdout = io::stdout();
-    let handle = stdout.lock();
-    let mut writer = fasta::Writer::new(handle);
+    let stdout = io::stdout().lock();
+    let mut writer = fasta::Writer::new(stdout);
 
     let record = fasta::Record::new(Definition::new(name, None), sequence);
     writer.write_record(&record)?;
