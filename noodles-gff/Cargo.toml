@@ -12,4 +12,4 @@ documentation = "https://docs.rs/noodles-gff"
 
 [dependencies]
 noodles-core = { path = "../noodles-core", version = "0.9.0" }
-percent-encoding = "2.1.0"
+percent-encoding.workspace = true

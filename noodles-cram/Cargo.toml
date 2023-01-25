@@ -14,11 +14,11 @@ documentation = "https://docs.rs/noodles-cram"
 async = ["async-compression", "futures", "pin-project-lite", "tokio"]
 
 [dependencies]
-bitflags = "1.2.1"
-byteorder = "1.2.3"
-bytes = "1.0.1"
+bitflags.workspace = true
+byteorder.workspace = true
+bytes.workspace = true
 bzip2 = "0.4.1"
-flate2 = "1.0.1"
+flate2.workspace = true
 md-5 = "0.10.0"
 noodles-bam = { path = "../noodles-bam", version = "0.25.1" }
 noodles-core = { path = "../noodles-core", version = "0.9.0" }
@@ -27,13 +27,13 @@ noodles-sam = { path = "../noodles-sam", version = "0.22.1" }
 xz2 = "0.1.6"
 
 async-compression = { version = "0.3.8", optional = true, features = ["gzip", "tokio"] }
-futures = { version = "0.3.15", optional = true, default-features = false, features = ["std"] }
+futures = { workspace = true, optional = true, features = ["std"] }
 pin-project-lite = { version = "0.2.6", optional = true }
-tokio = { version = "1.10.0", optional = true, features = ["fs", "io-util"] }
+tokio = { workspace = true, optional = true, features = ["fs", "io-util"] }
 
 [dev-dependencies]
 noodles-sam = { path = "../noodles-sam", version = "0.22.1", features = ["async"] }
-tokio = { version = "1.10.0", features = ["io-std", "macros", "rt-multi-thread"] }
+tokio = { workspace = true, features = ["io-std", "macros", "rt-multi-thread"] }
 
 [package.metadata.docs.rs]
 features = ["async"]
