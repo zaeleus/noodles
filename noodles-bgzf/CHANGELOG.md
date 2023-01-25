@@ -4,7 +4,7 @@
 
 ### Changed
 
-  * bed: Raise minimum supported Rust version (MSRV) to 1.64.0.
+  * bgzf: Raise minimum supported Rust version (MSRV) to 1.64.0.
 
 ## 0.18.0 - 2022-11-18
 
