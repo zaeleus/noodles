@@ -1,4 +1,4 @@
-use std::num::NonZeroUsize;
+use std::{num::NonZeroUsize, thread};
 
 use futures::TryStreamExt;
 use tokio::io::AsyncRead;
@@ -49,8 +49,7 @@ impl Builder {
         R: AsyncRead,
     {
         let worker_count = self.worker_count.unwrap_or_else(|| {
-            // SAFETY: `num_cpus::get` is guaranteed to be non-zero.
-            NonZeroUsize::new(num_cpus::get()).unwrap()
+            thread::available_parallelism().unwrap_or_else(|_| NonZeroUsize::new(1).unwrap())
         });
 
         Reader {
