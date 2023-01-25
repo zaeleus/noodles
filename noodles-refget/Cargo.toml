@@ -2,8 +2,8 @@
 name = "noodles-refget"
 version = "0.1.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
-license = "MIT"
-edition = "2021"
+license.workspace = true
+edition.workspace = true
 rust-version = "1.64.0"
 description = "A refget client"
 homepage = "https://github.com/zaeleus/noodles"

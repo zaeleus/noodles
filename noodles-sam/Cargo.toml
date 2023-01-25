@@ -2,8 +2,8 @@
 name = "noodles-sam"
 version = "0.22.1"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
-license = "MIT"
-edition = "2021"
+license.workspace = true
+edition.workspace = true
 rust-version = "1.64.0"
 description = "Sequence Alignment/Map (SAM) format reader and writer"
 homepage = "https://github.com/zaeleus/noodles"

@@ -2,8 +2,8 @@
 name = "noodles-cram"
 version = "0.22.1"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
-license = "MIT"
-edition = "2021"
+license.workspace = true
+edition.workspace = true
 rust-version = "1.64.0"
 description = "CRAM format reader and writer"
 homepage = "https://github.com/zaeleus/noodles"

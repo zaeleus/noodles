@@ -2,8 +2,8 @@
 name = "noodles-util"
 version = "0.3.1"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
-license = "MIT"
-edition = "2021"
+license.workspace = true
+edition.workspace = true
 rust-version = "1.64.0"
 description = "noodles support utilities"
 homepage = "https://github.com/zaeleus/noodles"

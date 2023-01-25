@@ -2,8 +2,8 @@
 name = "noodles-vcf"
 version = "0.23.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
-license = "MIT"
-edition = "2021"
+license.workspace = true
+edition.workspace = true
 rust-version = "1.64.0"
 description = "Variant Call Format (VCF) reader and writer"
 homepage = "https://github.com/zaeleus/noodles"
