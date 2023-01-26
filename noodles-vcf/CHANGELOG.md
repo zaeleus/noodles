@@ -32,8 +32,8 @@
   * vcf/header/record/value/map/info: Change conversion from key value to a
     reference (`&info::Key`).
 
-  * vcf/record/info: Change underlying map to `Key`-`Value` rather
-    than `Key`-`Field`.
+  * vcf/record/info: Change underlying map to `Key`-`Option<Value>` rather than
+    `Key`-`Field`.
 
   * vcf/record/genotypes/genotype: Change underlying map to
     `Key`-`Option<Value>` rather than `Key`-`Field`.
