@@ -266,7 +266,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn position(&mut self) -> io::Result<u64> {
-        self.inner.seek(SeekFrom::Current(0))
+        self.inner.stream_position()
     }
 
     /// Returns an iterator over records that intersects the given region.
