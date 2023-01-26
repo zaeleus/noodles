@@ -18,12 +18,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(vcf::AsyncReader::new)?;
 
     let header = reader.read_header().await?.parse()?;
-    print!("{}", header);
+    print!("{header}");
 
     let mut records = reader.records(&header);
 
     while let Some(record) = records.try_next().await? {
-        println!("{}", record);
+        println!("{record}");
     }
 
     Ok(())

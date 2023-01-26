@@ -66,7 +66,7 @@ impl error::Error for TryFromU8Error {}
 impl fmt::Display for TryFromU8Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Invalid(n) => write!(f, "invalid input: {}", n),
+            Self::Invalid(n) => write!(f, "invalid input: {n}"),
         }
     }
 }

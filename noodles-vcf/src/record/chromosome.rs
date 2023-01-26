@@ -17,7 +17,7 @@ impl fmt::Display for Chromosome {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Name(name) => f.write_str(name),
-            Self::Symbol(symbol) => write!(f, "<{}>", symbol),
+            Self::Symbol(symbol) => write!(f, "<{symbol}>"),
         }
     }
 }

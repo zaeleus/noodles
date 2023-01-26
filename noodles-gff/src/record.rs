@@ -193,21 +193,21 @@ impl fmt::Display for Record {
         )?;
 
         if let Some(score) = self.score() {
-            write!(f, "\t{}", score)?;
+            write!(f, "\t{score}")?;
         } else {
-            write!(f, "\t{}", MISSING_FIELD)?;
+            write!(f, "\t{MISSING_FIELD}")?;
         }
 
         write!(f, "\t{}", self.strand())?;
 
         if let Some(phase) = self.phase() {
-            write!(f, "\t{}", phase)?;
+            write!(f, "\t{phase}")?;
         } else {
-            write!(f, "\t{}", MISSING_FIELD)?;
+            write!(f, "\t{MISSING_FIELD}")?;
         }
 
         if self.attributes().is_empty() {
-            write!(f, "\t{}", MISSING_FIELD)?;
+            write!(f, "\t{MISSING_FIELD}")?;
         } else {
             write!(f, "\t{}", self.attributes())?;
         }
@@ -262,8 +262,8 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => write!(f, "empty input"),
-            Self::MissingField(field) => write!(f, "missing field: {:?}", field),
-            Self::EmptyField(field) => write!(f, "empty field: {:?}", field),
+            Self::MissingField(field) => write!(f, "missing field: {field:?}"),
+            Self::EmptyField(field) => write!(f, "empty field: {field:?}"),
             Self::InvalidReferenceSequenceName => write!(f, "invalid reference sequence name"),
             Self::InvalidStart(_) => f.write_str("invalid start"),
             Self::InvalidEnd(_) => f.write_str("invalid end"),

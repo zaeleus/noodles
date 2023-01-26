@@ -238,9 +238,9 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidLength(len) => {
-                write!(f, "invalid length: expected {}, got {}", LENGTH, len)
+                write!(f, "invalid length: expected {LENGTH}, got {len}")
             }
-            Self::InvalidCharacter(c) => write!(f, "invalid character: {}", c),
+            Self::InvalidCharacter(c) => write!(f, "invalid character: {c}"),
         }
     }
 }

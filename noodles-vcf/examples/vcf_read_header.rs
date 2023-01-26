@@ -18,7 +18,7 @@ fn main() -> io::Result<()> {
     let mut reader = File::open(src).map(BufReader::new).map(vcf::Reader::new)?;
 
     let header = reader.read_header()?;
-    print!("{}", header);
+    print!("{header}");
 
     Ok(())
 }

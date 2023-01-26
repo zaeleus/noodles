@@ -29,7 +29,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for result in query {
         let record = result?;
-        println!("{}", record);
+        println!("{record}");
     }
 
     Ok(())

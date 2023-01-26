@@ -82,7 +82,7 @@ impl fmt::Display for GenotypeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidValue(_) => f.write_str("invalid value"),
-            Self::InvalidValueType(value) => write!(f, "invalid String, got {:?}", value),
+            Self::InvalidValueType(value) => write!(f, "invalid String, got {value:?}"),
         }
     }
 }
@@ -200,10 +200,10 @@ impl fmt::Display for Genotype {
         } else {
             for (i, field) in self.values().enumerate() {
                 if i > 0 {
-                    write!(f, "{}", DELIMITER)?;
+                    write!(f, "{DELIMITER}")?;
                 }
 
-                write!(f, "{}", field)?;
+                write!(f, "{field}")?;
             }
 
             Ok(())
@@ -247,7 +247,7 @@ impl fmt::Display for TryFromFieldsError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidGenotypeFieldPosition => f.write_str("invalid genotype field position"),
-            Self::DuplicateKey(key) => write!(f, "duplicate key: {}", key),
+            Self::DuplicateKey(key) => write!(f, "duplicate key: {key}"),
         }
     }
 }

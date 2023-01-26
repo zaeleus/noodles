@@ -153,7 +153,7 @@ impl fmt::Display for Genotypes {
                 f.write_char(FIELD_DELIMITER)?;
             }
 
-            write!(f, "{}", genotype)?;
+            write!(f, "{genotype}")?;
         }
 
         Ok(())

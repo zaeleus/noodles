@@ -58,8 +58,7 @@ where
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
             format!(
-                "container header checksum mismatch: expected {:08x}, got {:08x}",
-                expected_crc32, actual_crc32
+                "container header checksum mismatch: expected {expected_crc32:08x}, got {actual_crc32:08x}"
             ),
         ));
     }

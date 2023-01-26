@@ -23,7 +23,7 @@ where
     } else {
         Err(io::Error::new(
             io::ErrorKind::InvalidInput,
-            format!("invalid index: {}", i),
+            format!("invalid index: {i}"),
         ))
     }
 }

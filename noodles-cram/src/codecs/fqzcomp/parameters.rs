@@ -27,7 +27,7 @@ where
     if vers != VERSION {
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
-            format!("invalid vers: expected {}, got {}", VERSION, vers),
+            format!("invalid vers: expected {VERSION}, got {vers}"),
         ));
     }
 

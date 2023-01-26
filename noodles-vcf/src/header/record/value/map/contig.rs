@@ -92,7 +92,7 @@ impl Map<Contig> {
 impl fmt::Display for Map<Contig> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(length) = self.length() {
-            write!(f, ",length={}", length)?;
+            write!(f, ",length={length}")?;
         }
 
         super::fmt_display_other_fields(f, self.other_fields())?;

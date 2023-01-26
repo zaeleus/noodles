@@ -49,7 +49,7 @@ where
     let info = infos.get(&key).ok_or_else(|| {
         io::Error::new(
             io::ErrorKind::InvalidData,
-            format!("missing header INFO record for {}", key),
+            format!("missing header INFO record for {key}"),
         )
     })?;
 
@@ -71,7 +71,7 @@ where
             string_string_map.get_index(j).ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    format!("invalid string map index: {}", j),
+                    format!("invalid string map index: {j}"),
                 )
             })
         })
@@ -83,7 +83,7 @@ where
                 .ok_or_else(|| {
                     io::Error::new(
                         io::ErrorKind::InvalidData,
-                        format!("missing header INFO record for {}", raw_key),
+                        format!("missing header INFO record for {raw_key}"),
                     )
                 })
         })
@@ -252,7 +252,7 @@ where
 fn type_mismatch_error(actual: Option<Value>, expected: Type) -> io::Error {
     io::Error::new(
         io::ErrorKind::InvalidData,
-        format!("type mismatch: expected {}, got {:?}", expected, actual),
+        format!("type mismatch: expected {expected}, got {actual:?}"),
     )
 }
 

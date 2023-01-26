@@ -26,7 +26,7 @@ pub fn get_encoding_for_byte_codec(src: &mut Bytes) -> io::Result<Encoding<Byte>
         }
         kind => Err(io::Error::new(
             io::ErrorKind::InvalidData,
-            format!("invalid codec for encoding<byte>: {:?}", kind),
+            format!("invalid codec for encoding<byte>: {kind:?}"),
         )),
     }
 }
@@ -63,7 +63,7 @@ pub fn get_encoding_for_integer_codec(src: &mut Bytes) -> io::Result<Encoding<In
         }
         kind => Err(io::Error::new(
             io::ErrorKind::InvalidData,
-            format!("invalid codec for encoding<int>: {:?}", kind),
+            format!("invalid codec for encoding<int>: {kind:?}"),
         )),
     }
 }
@@ -88,7 +88,7 @@ pub fn get_encoding_for_byte_array_codec(src: &mut Bytes) -> io::Result<Encoding
         }
         kind => Err(io::Error::new(
             io::ErrorKind::InvalidData,
-            format!("invalid codec for encoding<byte[]>: {:?}", kind),
+            format!("invalid codec for encoding<byte[]>: {kind:?}"),
         )),
     }
 }

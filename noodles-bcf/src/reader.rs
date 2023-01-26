@@ -348,7 +348,7 @@ pub(crate) fn resolve_region(
         .ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,
-                format!("region does not exist in contigs: {:?}", region),
+                format!("region does not exist in contigs: {region:?}"),
             )
         })
 }

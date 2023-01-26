@@ -85,10 +85,10 @@ impl error::Error for TryFromFieldsError {}
 impl fmt::Display for TryFromFieldsError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::MissingField(tag) => write!(f, "missing field: {}", tag),
+            Self::MissingField(tag) => write!(f, "missing field: {tag}"),
             Self::InvalidTag => "invalid tag".fmt(f),
             Self::DuplicateTag => "duplicate tag".fmt(f),
-            Self::InvalidValue(tag) => write!(f, "invalid value for {}", tag),
+            Self::InvalidValue(tag) => write!(f, "invalid value for {tag}"),
         }
     }
 }
@@ -98,7 +98,7 @@ fn fmt_display_other_fields<S>(
     other_fields: &OtherFields<S>,
 ) -> fmt::Result {
     for (key, value) in other_fields {
-        write!(f, "\t{}:{}", key, value)?;
+        write!(f, "\t{key}:{value}")?;
     }
 
     Ok(())

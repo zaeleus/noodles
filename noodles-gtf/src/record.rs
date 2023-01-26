@@ -187,21 +187,21 @@ impl fmt::Display for Record {
         )?;
 
         if let Some(score) = self.score() {
-            write!(f, "{}\t", score)?;
+            write!(f, "{score}\t")?;
         } else {
-            write!(f, "{}\t", MISSING_FIELD)?;
+            write!(f, "{MISSING_FIELD}\t")?;
         }
 
         if let Some(strand) = self.strand() {
-            write!(f, "{}\t", strand)?;
+            write!(f, "{strand}\t")?;
         } else {
-            write!(f, "{}\t", MISSING_FIELD)?;
+            write!(f, "{MISSING_FIELD}\t")?;
         }
 
         if let Some(frame) = self.frame() {
-            write!(f, "{}\t", frame)?;
+            write!(f, "{frame}\t")?;
         } else {
-            write!(f, "{}\t", MISSING_FIELD)?;
+            write!(f, "{MISSING_FIELD}\t")?;
         }
 
         write!(f, "{}", self.attributes())?;

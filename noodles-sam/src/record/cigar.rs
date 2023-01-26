@@ -113,7 +113,7 @@ impl AsMut<Vec<Op>> for Cigar {
 impl fmt::Display for Cigar {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for op in self.iter() {
-            write!(f, "{}", op)?;
+            write!(f, "{op}")?;
         }
 
         Ok(())

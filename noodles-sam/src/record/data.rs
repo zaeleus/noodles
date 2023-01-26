@@ -232,7 +232,7 @@ impl fmt::Display for Data {
                 value.ty()
             };
 
-            write!(f, "{}:{}:{}", tag, ty, value)?;
+            write!(f, "{tag}:{ty}:{value}")?;
         }
 
         Ok(())
@@ -272,7 +272,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidField(_) => f.write_str("invalid field"),
-            Self::DuplicateTag(tag) => write!(f, "duplicate tag: {}", tag),
+            Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
         }
     }
 }

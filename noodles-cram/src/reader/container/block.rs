@@ -44,8 +44,7 @@ pub fn read_block(src: &mut Bytes) -> io::Result<Block> {
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
             format!(
-                "container block checksum mismatch: expected {:08x}, got {:08x}",
-                expected_crc32, actual_crc32
+                "container block checksum mismatch: expected {expected_crc32:08x}, got {actual_crc32:08x}"
             ),
         ));
     }

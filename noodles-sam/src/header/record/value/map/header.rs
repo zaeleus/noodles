@@ -178,15 +178,15 @@ impl fmt::Display for Map<Header> {
         write!(f, "VN:{}", self.version())?;
 
         if let Some(sort_order) = self.sort_order() {
-            write!(f, "\tSO:{}", sort_order)?;
+            write!(f, "\tSO:{sort_order}")?;
         }
 
         if let Some(group_order) = self.group_order() {
-            write!(f, "\tGO:{}", group_order)?;
+            write!(f, "\tGO:{group_order}")?;
         }
 
         if let Some(subsort_order) = self.subsort_order() {
-            write!(f, "\tSS:{}", subsort_order)?;
+            write!(f, "\tSS:{subsort_order}")?;
         }
 
         super::fmt_display_other_fields(f, self.other_fields())?;

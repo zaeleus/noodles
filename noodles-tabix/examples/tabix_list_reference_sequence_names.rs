@@ -9,11 +9,11 @@ use noodles_tabix as tabix;
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let tabix_src = format!("{}.tbi", src);
+    let tabix_src = format!("{src}.tbi");
     let index = tabix::read(tabix_src)?;
 
     for reference_sequence_name in index.header().reference_sequence_names() {
-        println!("{}", reference_sequence_name);
+        println!("{reference_sequence_name}");
     }
 
     Ok(())

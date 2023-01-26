@@ -15,7 +15,7 @@ impl fmt::Display for Other {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::String(s) => s.fmt(f),
-            Self::Map(id, map) => write!(f, "<ID={}{}>", id, map),
+            Self::Map(id, map) => write!(f, "<ID={id}{map}>"),
         }
     }
 }

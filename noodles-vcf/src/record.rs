@@ -647,8 +647,7 @@ impl fmt::Display for EndError {
             Self::InvalidReferenceBasesLength(_) => f.write_str("invalid reference base length"),
             Self::PositionOverflow(start, len) => write!(
                 f,
-                "calculation of the end position overflowed: {} + {}",
-                start, len,
+                "calculation of the end position overflowed: {start} + {len}",
             ),
         }
     }
@@ -731,15 +730,15 @@ impl fmt::Display for Record {
         )?;
 
         if let Some(quality_score) = self.quality_score() {
-            write!(f, "\t{}", quality_score)?;
+            write!(f, "\t{quality_score}")?;
         } else {
-            write!(f, "\t{}", MISSING_FIELD)?;
+            write!(f, "\t{MISSING_FIELD}")?;
         }
 
         if let Some(filters) = self.filters() {
-            write!(f, "\t{}", filters)?;
+            write!(f, "\t{filters}")?;
         } else {
-            write!(f, "\t{}", MISSING_FIELD)?;
+            write!(f, "\t{MISSING_FIELD}")?;
         }
 
         write!(f, "\t{}", self.info())?;

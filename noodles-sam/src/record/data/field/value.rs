@@ -698,20 +698,20 @@ impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Character(c) => f.write_char(char::from(*c)),
-            Self::Int8(n) => write!(f, "{}", n),
-            Self::UInt8(n) => write!(f, "{}", n),
-            Self::Int16(n) => write!(f, "{}", n),
-            Self::UInt16(n) => write!(f, "{}", n),
-            Self::Int32(n) => write!(f, "{}", n),
-            Self::UInt32(n) => write!(f, "{}", n),
-            Self::Float(n) => write!(f, "{}", n),
+            Self::Int8(n) => write!(f, "{n}"),
+            Self::UInt8(n) => write!(f, "{n}"),
+            Self::Int16(n) => write!(f, "{n}"),
+            Self::UInt16(n) => write!(f, "{n}"),
+            Self::Int32(n) => write!(f, "{n}"),
+            Self::UInt32(n) => write!(f, "{n}"),
+            Self::Float(n) => write!(f, "{n}"),
             Self::String(s) => f.write_str(s),
             Self::Hex(s) => f.write_str(s),
             Self::Int8Array(values) => {
                 f.write_char(char::from(Subtype::Int8))?;
 
                 for value in values {
-                    write!(f, ",{}", value)?;
+                    write!(f, ",{value}")?;
                 }
 
                 Ok(())
@@ -720,7 +720,7 @@ impl fmt::Display for Value {
                 f.write_char(char::from(Subtype::UInt8))?;
 
                 for value in values {
-                    write!(f, ",{}", value)?;
+                    write!(f, ",{value}")?;
                 }
 
                 Ok(())
@@ -729,7 +729,7 @@ impl fmt::Display for Value {
                 f.write_char(char::from(Subtype::Int16))?;
 
                 for value in values {
-                    write!(f, ",{}", value)?;
+                    write!(f, ",{value}")?;
                 }
 
                 Ok(())
@@ -738,7 +738,7 @@ impl fmt::Display for Value {
                 f.write_char(char::from(Subtype::UInt16))?;
 
                 for value in values {
-                    write!(f, ",{}", value)?;
+                    write!(f, ",{value}")?;
                 }
 
                 Ok(())
@@ -747,7 +747,7 @@ impl fmt::Display for Value {
                 f.write_char(char::from(Subtype::Int32))?;
 
                 for value in values {
-                    write!(f, ",{}", value)?;
+                    write!(f, ",{value}")?;
                 }
 
                 Ok(())
@@ -756,7 +756,7 @@ impl fmt::Display for Value {
                 f.write_char(char::from(Subtype::UInt32))?;
 
                 for value in values {
-                    write!(f, ",{}", value)?;
+                    write!(f, ",{value}")?;
                 }
 
                 Ok(())
@@ -765,7 +765,7 @@ impl fmt::Display for Value {
                 f.write_char(char::from(Subtype::Float))?;
 
                 for value in values {
-                    write!(f, ",{}", value)?;
+                    write!(f, ",{value}")?;
                 }
 
                 Ok(())
@@ -812,7 +812,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Invalid => f.write_str("invalid input"),
-            Self::UnsupportedType(ty) => write!(f, "unsupported type: {}", ty),
+            Self::UnsupportedType(ty) => write!(f, "unsupported type: {ty}"),
             Self::InvalidCharacterValue => f.write_str("invalid character value"),
             Self::InvalidIntValue(_) => f.write_str("invalid int value"),
             Self::InvalidFloatValue(_) => f.write_str("invalid float value"),

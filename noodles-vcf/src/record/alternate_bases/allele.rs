@@ -35,7 +35,7 @@ impl fmt::Display for Allele {
 
                 Ok(())
             }
-            Self::Symbol(symbol) => write!(f, "<{}>", symbol),
+            Self::Symbol(symbol) => write!(f, "<{symbol}>"),
             Self::Breakend(breakend) => f.write_str(breakend),
             Self::OverlappingDeletion => f.write_str("*"),
         }

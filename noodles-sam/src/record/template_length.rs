@@ -65,7 +65,7 @@ impl fmt::Display for TemplateLength {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Left(len) => len.fmt(f),
-            Self::Right(len) => write!(f, "-{}", len),
+            Self::Right(len) => write!(f, "-{len}"),
         }
     }
 }

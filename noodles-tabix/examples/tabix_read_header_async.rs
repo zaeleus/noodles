@@ -15,7 +15,7 @@ use tokio::{
 async fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let tabix_src = format!("{}.tbi", src);
+    let tabix_src = format!("{src}.tbi");
     let index = tabix::r#async::read(tabix_src).await?;
 
     let reader = File::open(src).await.map(bgzf::AsyncReader::new)?;
@@ -28,7 +28,7 @@ async fn main() -> io::Result<()> {
             break;
         }
 
-        println!("{}", line);
+        println!("{line}");
     }
 
     Ok(())

@@ -92,7 +92,7 @@ impl Interval {
 impl fmt::Display for Interval {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match (self.start, self.end) {
-            (Some(s), Some(e)) => write!(f, "{}-{}", s, e),
+            (Some(s), Some(e)) => write!(f, "{s}-{e}"),
             (Some(s), None) => s.fmt(f),
             (None, Some(e)) => write!(f, "{}-{}", Position::MIN, e),
             (None, None) => Ok(()),

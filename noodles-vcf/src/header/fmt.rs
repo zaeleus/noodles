@@ -12,7 +12,7 @@ pub(crate) fn write_escaped_string(f: &mut fmt::Formatter<'_>, s: &str) -> fmt::
             f.write_str("\\")?;
         }
 
-        write!(f, "{}", c)?;
+        write!(f, "{c}")?;
     }
 
     f.write_str("\"")?;

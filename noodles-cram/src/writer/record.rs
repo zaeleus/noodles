@@ -46,11 +46,11 @@ impl fmt::Display for WriteRecordError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::MissingDataSeriesEncoding(data_series) => {
-                write!(f, "missing data series encoding: {:?}", data_series)
+                write!(f, "missing data series encoding: {data_series:?}")
             }
-            Self::MissingTagEncoding(key) => write!(f, "missing tag encoding: {:?}", key),
+            Self::MissingTagEncoding(key) => write!(f, "missing tag encoding: {key:?}"),
             Self::MissingExternalBlock(block_content_id) => {
-                write!(f, "missing external block: {}", block_content_id)
+                write!(f, "missing external block: {block_content_id}")
             }
         }
     }

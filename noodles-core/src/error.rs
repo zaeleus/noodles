@@ -80,7 +80,7 @@ impl From<std::io::Error> for Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self.context {
-            Context::Simple(kind) => write!(f, "{:?}", kind),
+            Context::Simple(kind) => write!(f, "{kind:?}"),
             Context::Custom(_, e) => write!(f, "{e}"),
         }
     }

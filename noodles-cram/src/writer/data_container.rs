@@ -153,8 +153,7 @@ fn build_container_reference_sequence_context(
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
                     format!(
-                        "invalid slice reference sequence context: expected {:?}, got {:?}",
-                        container_reference_sequence_context, slice_reference_sequence_context
+                        "invalid slice reference sequence context: expected {container_reference_sequence_context:?}, got {slice_reference_sequence_context:?}"
                     ),
                 ));
             }

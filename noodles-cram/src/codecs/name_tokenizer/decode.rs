@@ -166,7 +166,7 @@ impl TokenReader {
                     Some(Token::Digits(n)) => Ok(Some(Token::Digits(n + delta))),
                     _ => Err(io::Error::new(
                         io::ErrorKind::InvalidData,
-                        format!("invalid previous token: {:?}", prev_token),
+                        format!("invalid previous token: {prev_token:?}"),
                     )),
                 }
             }
@@ -179,7 +179,7 @@ impl TokenReader {
                     }
                     _ => Err(io::Error::new(
                         io::ErrorKind::InvalidData,
-                        format!("invalid previous token: {:?}", prev_token),
+                        format!("invalid previous token: {prev_token:?}"),
                     )),
                 }
             }

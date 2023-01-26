@@ -52,7 +52,7 @@ impl error::Error for ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::MissingField(field) => write!(f, "missing field: {}", field),
+            Self::MissingField(field) => write!(f, "missing field: {field}"),
             Self::InvalidChromosome(_) => f.write_str("invalid chromosome"),
             Self::InvalidPosition(_) => f.write_str("invalid position"),
             Self::InvalidIds(_) => f.write_str("invalid IDs"),

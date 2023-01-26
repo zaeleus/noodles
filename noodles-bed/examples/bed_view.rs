@@ -11,7 +11,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for result in reader.records::<3>() {
         let record = result?;
-        println!("{}", record);
+        println!("{record}");
     }
 
     Ok(())

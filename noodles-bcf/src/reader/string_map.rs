@@ -18,7 +18,7 @@ where
         v => {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
-                format!("expected {{Int8, Int16, Int32}}, got {:?}", v),
+                format!("expected {{Int8, Int16, Int32}}, got {v:?}"),
             ))
         }
     };
@@ -42,8 +42,7 @@ where
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 format!(
-                    "expected {{Int8, Int8Array, Int16, Int16Array, Int32, Int32Array}}, got {:?}",
-                    v
+                    "expected {{Int8, Int8Array, Int16, Int16Array, Int32, Int32Array}}, got {v:?}"
                 ),
             ))
         }

@@ -41,15 +41,15 @@ pub enum Directive {
 impl fmt::Display for Directive {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::GffVersion(version) => write!(f, "{}gff-version {}", PREFIX, version),
-            Self::SequenceRegion(sequence_region) => write!(f, "{}", sequence_region),
-            Self::FeatureOntology(uri) => write!(f, "{}feature-ontology {}", PREFIX, uri),
-            Self::AttributeOntology(uri) => write!(f, "{}attribute-ontology {}", PREFIX, uri),
-            Self::SourceOntology(uri) => write!(f, "{}source-ontology {}", PREFIX, uri),
-            Self::Species(uri) => write!(f, "{}species {}", PREFIX, uri),
-            Self::GenomeBuild(genome_build) => write!(f, "{}", genome_build),
-            Self::ForwardReferencesAreResolved => write!(f, "{}#", PREFIX),
-            Self::StartOfFasta => write!(f, "{}FASTA", PREFIX),
+            Self::GffVersion(version) => write!(f, "{PREFIX}gff-version {version}"),
+            Self::SequenceRegion(sequence_region) => write!(f, "{sequence_region}"),
+            Self::FeatureOntology(uri) => write!(f, "{PREFIX}feature-ontology {uri}"),
+            Self::AttributeOntology(uri) => write!(f, "{PREFIX}attribute-ontology {uri}"),
+            Self::SourceOntology(uri) => write!(f, "{PREFIX}source-ontology {uri}"),
+            Self::Species(uri) => write!(f, "{PREFIX}species {uri}"),
+            Self::GenomeBuild(genome_build) => write!(f, "{genome_build}"),
+            Self::ForwardReferencesAreResolved => write!(f, "{PREFIX}#"),
+            Self::StartOfFasta => write!(f, "{PREFIX}FASTA"),
         }
     }
 }
@@ -89,7 +89,7 @@ impl fmt::Display for ParseError {
         match self {
             Self::MissingPrefix => f.write_str("directive prefix is missing"),
             Self::MissingName => f.write_str("directive name is missing"),
-            Self::InvalidName(s) => write!(f, "invalid directive name: {}", s),
+            Self::InvalidName(s) => write!(f, "invalid directive name: {s}"),
             Self::MissingValue => f.write_str("directive value is missing"),
             Self::InvalidGffVersion(_) => f.write_str("invalid GFF version"),
             Self::InvalidSequenceRegion(_) => f.write_str("invalid sequence region"),

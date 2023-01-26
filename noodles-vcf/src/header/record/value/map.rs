@@ -173,14 +173,14 @@ impl error::Error for TryFromFieldsError {}
 impl Display for TryFromFieldsError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::MissingField(tag) => write!(f, "missing field: {}", tag),
+            Self::MissingField(tag) => write!(f, "missing field: {tag}"),
             Self::DuplicateTag => "duplicate tag".fmt(f),
-            Self::InvalidValue(tag) => write!(f, "invalid value for {}", tag),
+            Self::InvalidValue(tag) => write!(f, "invalid value for {tag}"),
             Self::NumberMismatch(actual, expected) => {
-                write!(f, "number mismatch: expected {}, got {}", expected, actual)
+                write!(f, "number mismatch: expected {expected}, got {actual}")
             }
             Self::TypeMismatch(actual, expected) => {
-                write!(f, "type mismatch: expected {}, got {}", expected, actual)
+                write!(f, "type mismatch: expected {expected}, got {actual}")
             }
         }
     }
@@ -211,7 +211,7 @@ fn fmt_display_other_fields<S>(
     use crate::header::fmt::write_escaped_string;
 
     for (key, value) in other_fields {
-        write!(f, ",{}=", key)?;
+        write!(f, ",{key}=")?;
         write_escaped_string(f, value)?;
     }
 

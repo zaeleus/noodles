@@ -17,7 +17,7 @@ fn main() -> io::Result<()> {
 
     for result in reader.records() {
         let record = result?;
-        println!("{}", record);
+        println!("{record}");
     }
 
     Ok(())

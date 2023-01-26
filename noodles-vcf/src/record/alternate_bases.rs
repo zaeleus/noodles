@@ -42,7 +42,7 @@ impl fmt::Display for AlternateBases {
                     f.write_str(",")?;
                 }
 
-                write!(f, "{}", allele)?;
+                write!(f, "{allele}")?;
             }
 
             Ok(())

@@ -162,7 +162,7 @@ impl Field {
 impl fmt::Display for Field {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(value) = self.value() {
-            write!(f, "{}", value)
+            write!(f, "{value}")
         } else {
             f.write_str(MISSING_VALUE)
         }

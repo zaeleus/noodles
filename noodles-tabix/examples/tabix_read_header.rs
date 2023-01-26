@@ -14,7 +14,7 @@ use noodles_tabix as tabix;
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let tabix_src = format!("{}.tbi", src);
+    let tabix_src = format!("{src}.tbi");
     let index = tabix::read(tabix_src)?;
 
     let reader = File::open(src).map(bgzf::Reader::new)?;
@@ -27,7 +27,7 @@ fn main() -> io::Result<()> {
             break;
         }
 
-        println!("{}", line);
+        println!("{line}");
     }
 
     Ok(())

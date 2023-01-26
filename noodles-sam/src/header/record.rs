@@ -76,9 +76,9 @@ impl fmt::Display for ParseError {
             Self::InvalidHeader(_) => f.write_str("invalid header"),
             Self::InvalidReferenceSequenceName(_) => f.write_str("invalid reference sequence name"),
             Self::InvalidReferenceSequence(name, _) => {
-                write!(f, "invalid reference sequence: SN:{}", name)
+                write!(f, "invalid reference sequence: SN:{name}")
             }
-            Self::InvalidReadGroup(id, _) => write!(f, "invalid read group: ID:{}", id),
+            Self::InvalidReadGroup(id, _) => write!(f, "invalid read group: ID:{id}"),
             Self::InvalidProgram(_) => f.write_str("invalid program"),
         }
     }

@@ -33,11 +33,11 @@ impl DerefMut for Ids {
 impl fmt::Display for Ids {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.is_empty() {
-            write!(f, "{}", MISSING_FIELD)
+            write!(f, "{MISSING_FIELD}")
         } else {
             for (i, id) in self.iter().enumerate() {
                 if i > 0 {
-                    write!(f, "{}", DELIMITER)?;
+                    write!(f, "{DELIMITER}")?;
                 }
 
                 f.write_str(id)?;
@@ -72,7 +72,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
-            Self::DuplicateId(id) => write!(f, "duplicate ID: {}", id),
+            Self::DuplicateId(id) => write!(f, "duplicate ID: {id}"),
             Self::InvalidId(_) => f.write_str("invalid ID"),
         }
     }

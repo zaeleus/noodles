@@ -778,7 +778,7 @@ impl std::fmt::Display for Header {
             f.write_str("\tFORMAT")?;
 
             for sample_name in self.sample_names() {
-                write!(f, "\t{}", sample_name)?;
+                write!(f, "\t{sample_name}")?;
             }
         }
 

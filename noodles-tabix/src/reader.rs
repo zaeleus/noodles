@@ -172,7 +172,7 @@ pub(crate) fn parse_names(mut buf: &[u8]) -> io::Result<ReferenceSequenceNames> 
         if !names.insert(name.into()) {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
-                format!("duplicate reference sequence name: {}", name),
+                format!("duplicate reference sequence name: {name}"),
             ));
         }
 
@@ -294,8 +294,7 @@ where
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
             format!(
-                "invalid metadata pseudo-bin chunk count: expected {}, got {}",
-                METADATA_CHUNK_COUNT, n_chunk
+                "invalid metadata pseudo-bin chunk count: expected {METADATA_CHUNK_COUNT}, got {n_chunk}"
             ),
         ));
     }

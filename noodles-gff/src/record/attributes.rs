@@ -24,10 +24,10 @@ impl fmt::Display for Attributes {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for (i, entry) in self.iter().enumerate() {
             if i > 0 {
-                write!(f, "{}", DELIMITER)?;
+                write!(f, "{DELIMITER}")?;
             }
 
-            write!(f, "{}", entry)?;
+            write!(f, "{entry}")?;
         }
 
         Ok(())

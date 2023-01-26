@@ -18,7 +18,7 @@ fn main() -> io::Result<()> {
     let header_src = args.next().expect("missing header-src");
     let src = args.next().expect("missing src");
 
-    let tabix_src = format!("{}.tbi", src);
+    let tabix_src = format!("{src}.tbi");
     let index = tabix::read(tabix_src)?;
 
     let stdout = io::stdout().lock();

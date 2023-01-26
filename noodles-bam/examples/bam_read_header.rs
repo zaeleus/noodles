@@ -22,9 +22,9 @@ fn main() -> io::Result<()> {
             .set_reference_sequences(reference_sequences)
             .build();
 
-        print!("{}", header);
+        print!("{header}");
     } else {
-        print!("{}", raw_header);
+        print!("{raw_header}");
     }
 
     Ok(())

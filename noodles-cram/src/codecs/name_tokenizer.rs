@@ -39,7 +39,7 @@ impl TryFrom<u8> for Type {
             10 => Ok(Self::Match),
             11 => Ok(Self::Nop),
             12 => Ok(Self::End),
-            _ => Err(format!("invalid type: expected <= 12, got {}", n)),
+            _ => Err(format!("invalid type: expected <= 12, got {n}")),
         }
     }
 }

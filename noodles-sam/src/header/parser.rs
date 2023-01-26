@@ -37,10 +37,10 @@ impl fmt::Display for ParseError {
             Self::UnexpectedHeader => f.write_str("unexpected @HD"),
             Self::InvalidRecord(_) => f.write_str("invalid record"),
             Self::DuplicateReferenceSequenceName(name) => {
-                write!(f, "duplicate reference sequence name: {}", name)
+                write!(f, "duplicate reference sequence name: {name}")
             }
-            Self::DuplicateReadGroupId(id) => write!(f, "duplicate read group ID: {}", id),
-            Self::DuplicateProgramId(id) => write!(f, "duplicate program ID: {}", id),
+            Self::DuplicateReadGroupId(id) => write!(f, "duplicate read group ID: {id}"),
+            Self::DuplicateProgramId(id) => write!(f, "duplicate program ID: {id}"),
             Self::InvalidComment => f.write_str("invalid comment record"),
         }
     }

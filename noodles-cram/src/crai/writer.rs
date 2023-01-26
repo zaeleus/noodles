@@ -104,7 +104,7 @@ fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
 where
     W: Write,
 {
-    writeln!(writer, "{}", record)
+    writeln!(writer, "{record}")
 }
 
 #[cfg(test)]

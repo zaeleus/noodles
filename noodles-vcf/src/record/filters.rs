@@ -33,8 +33,8 @@ impl fmt::Display for TryFromIteratorError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
-            Self::DuplicateFilter(filter) => write!(f, "duplicate filter: {}", filter),
-            Self::InvalidFilter(s) => write!(f, "invalid filter: {}", s),
+            Self::DuplicateFilter(filter) => write!(f, "duplicate filter: {filter}"),
+            Self::InvalidFilter(s) => write!(f, "invalid filter: {s}"),
         }
     }
 }
@@ -92,7 +92,7 @@ impl fmt::Display for Filters {
             Self::Fail(ids) => {
                 for (i, id) in ids.iter().enumerate() {
                     if i > 0 {
-                        write!(f, "{}", DELIMITER)?;
+                        write!(f, "{DELIMITER}")?;
                     }
 
                     f.write_str(id)?;
@@ -119,7 +119,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
-            Self::InvalidFilters(e) => write!(f, "invalid filters: {}", e),
+            Self::InvalidFilters(e) => write!(f, "invalid filters: {e}"),
         }
     }
 }

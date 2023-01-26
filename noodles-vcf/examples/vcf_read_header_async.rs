@@ -23,7 +23,7 @@ async fn main() -> io::Result<()> {
         .map(vcf::AsyncReader::new)?;
 
     let header = reader.read_header().await?;
-    print!("{}", header);
+    print!("{header}");
 
     Ok(())
 }

@@ -73,7 +73,7 @@ where
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidInput,
-                    format!("chromosome not in string map: {}", name),
+                    format!("chromosome not in string map: {name}"),
                 )
             })
             .and_then(|i| {
@@ -107,7 +107,7 @@ where
     if start > end {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,
-            format!("record start position ({}) > end position ({})", start, end),
+            format!("record start position ({start}) > end position ({end})"),
         ));
     }
 
@@ -163,7 +163,7 @@ where
     if n_sample > MAX_SAMPLE_NAME_COUNT {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,
-            format!("invalid sample name count: {}", n_sample),
+            format!("invalid sample name count: {n_sample}"),
         ));
     }
 
@@ -232,7 +232,7 @@ where
                 string_string_map.get_index_of(id).ok_or_else(|| {
                     io::Error::new(
                         io::ErrorKind::InvalidInput,
-                        format!("filter missing from string map: {}", id),
+                        format!("filter missing from string map: {id}"),
                     )
                 })
             })

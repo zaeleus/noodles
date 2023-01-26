@@ -553,7 +553,7 @@ where
     f.write_char(DELIMITER)?;
 
     if let Some(name) = record.name() {
-        write!(f, "{}", name)
+        write!(f, "{name}")
     } else {
         f.write_str(MISSING_STRING)
     }
@@ -568,7 +568,7 @@ where
     f.write_char(DELIMITER)?;
 
     if let Some(score) = record.score() {
-        write!(f, "{}", score)
+        write!(f, "{score}")
     } else {
         f.write_str(MISSING_NUMBER)
     }
@@ -583,7 +583,7 @@ where
     f.write_char(DELIMITER)?;
 
     if let Some(strand) = record.strand() {
-        write!(f, "{}", strand)
+        write!(f, "{strand}")
     } else {
         f.write_str(MISSING_STRING)
     }
@@ -616,7 +616,7 @@ where
     f.write_char(DELIMITER)?;
 
     if let Some(color) = record.color() {
-        write!(f, "{}", color)
+        write!(f, "{color}")
     } else {
         f.write_str(MISSING_NUMBER)
     }
@@ -636,7 +636,7 @@ fn format_bed_12_fields(f: &mut fmt::Formatter<'_>, record: &Record<12>) -> fmt:
             f.write_char(',')?;
         }
 
-        write!(f, "{}", size)?;
+        write!(f, "{size}")?;
     }
 
     f.write_char(DELIMITER)?;
@@ -646,7 +646,7 @@ fn format_bed_12_fields(f: &mut fmt::Formatter<'_>, record: &Record<12>) -> fmt:
             f.write_char(',')?;
         }
 
-        write!(f, "{}", start)?;
+        write!(f, "{start}")?;
     }
 
     Ok(())
@@ -658,7 +658,7 @@ fn format_optional_fields(
 ) -> fmt::Result {
     if !optional_fields.is_empty() {
         f.write_char(DELIMITER)?;
-        write!(f, "{}", optional_fields)?;
+        write!(f, "{optional_fields}")?;
     }
 
     Ok(())

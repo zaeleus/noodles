@@ -41,7 +41,7 @@ impl fmt::Display for ParseError {
             Self::Empty => f.write_str("empty input"),
             Self::Invalid(_) => f.write_str("invalid input"),
             Self::InvalidValue(n) => {
-                write!(f, "invalid value: expected {}..={}, got {}", MIN, MAX, n)
+                write!(f, "invalid value: expected {MIN}..={MAX}, got {n}")
             }
         }
     }

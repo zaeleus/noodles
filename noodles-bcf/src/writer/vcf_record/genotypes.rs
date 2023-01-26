@@ -76,7 +76,7 @@ where
         .ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,
-                format!("genotype key not in string map: {:?}", key),
+                format!("genotype key not in string map: {key:?}"),
             )
         })
         .and_then(|i| write_string_map_index(writer, i))
@@ -150,7 +150,7 @@ where
     } else {
         Err(io::Error::new(
             io::ErrorKind::InvalidInput,
-            format!("invalid genotype field integer value: {}", min),
+            format!("invalid genotype field integer value: {min}"),
         ))
     }
 }
@@ -171,7 +171,7 @@ where
             Some(v) => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
-                    format!("type mismatch: expected Integer, got {:?}", v),
+                    format!("type mismatch: expected Integer, got {v:?}"),
                 ));
             }
             None => writer.write_i8(i8::from(Int8::Missing))?,
@@ -197,7 +197,7 @@ where
             Some(v) => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
-                    format!("type mismatch: expected Integer, got {:?}", v),
+                    format!("type mismatch: expected Integer, got {v:?}"),
                 ));
             }
             None => writer.write_i16::<LittleEndian>(i16::from(Int16::Missing))?,
@@ -221,7 +221,7 @@ where
             Some(v) => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
-                    format!("type mismatch: expected Integer, got {:?}", v),
+                    format!("type mismatch: expected Integer, got {v:?}"),
                 ));
             }
             None => writer.write_i32::<LittleEndian>(i32::from(Int32::Missing))?,
@@ -255,7 +255,7 @@ where
             Some(v) => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
-                    format!("type mismatch: expected IntegerArray, got {:?}", v),
+                    format!("type mismatch: expected IntegerArray, got {v:?}"),
                 ));
             }
             None => {}
@@ -281,7 +281,7 @@ where
     } else {
         Err(io::Error::new(
             io::ErrorKind::InvalidInput,
-            format!("invalid genotype field integer array value: {}", min),
+            format!("invalid genotype field integer array value: {min}"),
         ))
     }
 }
@@ -314,7 +314,7 @@ where
             Some(v) => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
-                    format!("type mismatch: expected IntegerArray, got {:?}", v),
+                    format!("type mismatch: expected IntegerArray, got {v:?}"),
                 ))
             }
             None => {
@@ -361,7 +361,7 @@ where
             Some(v) => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
-                    format!("type mismatch: expected IntegerArray, got {:?}", v),
+                    format!("type mismatch: expected IntegerArray, got {v:?}"),
                 ))
             }
             None => {
@@ -407,7 +407,7 @@ where
             Some(v) => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
-                    format!("type mismatch: expected IntegerArray, got {:?}", v),
+                    format!("type mismatch: expected IntegerArray, got {v:?}"),
                 ))
             }
             None => {
@@ -440,7 +440,7 @@ where
             Some(v) => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
-                    format!("type mismatch: expected Float, got {:?}", v),
+                    format!("type mismatch: expected Float, got {v:?}"),
                 ))
             }
             None => writer.write_f32::<LittleEndian>(f32::from(Float::Missing))?,
@@ -481,7 +481,7 @@ where
             Some(v) => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
-                    format!("type mismatch: expected FloatArray, got {:?}", v),
+                    format!("type mismatch: expected FloatArray, got {v:?}"),
                 ))
             }
             None => {
@@ -519,7 +519,7 @@ where
             v => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
-                    format!("type mismatch: expected Character, got {:?}", v),
+                    format!("type mismatch: expected Character, got {v:?}"),
                 ))
             }
         }
@@ -562,7 +562,7 @@ where
             v => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
-                    format!("type mismatch: expected Character, got {:?}", v),
+                    format!("type mismatch: expected Character, got {v:?}"),
                 ))
             }
         }
@@ -610,7 +610,7 @@ where
             v => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
-                    format!("type mismatch: expected String, got {:?}", v),
+                    format!("type mismatch: expected String, got {v:?}"),
                 ))
             }
         }
@@ -653,7 +653,7 @@ where
             v => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
-                    format!("type mismatch: expected String, got {:?}", v),
+                    format!("type mismatch: expected String, got {v:?}"),
                 ))
             }
         }

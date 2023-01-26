@@ -18,10 +18,7 @@ where
     } else {
         Err(io::Error::new(
             io::ErrorKind::InvalidInput,
-            format!(
-                "invalid position: expected position to be <= {}, got {}",
-                MAX_POSITION_VALUE, pos
-            ),
+            format!("invalid position: expected position to be <= {MAX_POSITION_VALUE}, got {pos}"),
         ))
     }
 }

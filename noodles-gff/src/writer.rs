@@ -64,7 +64,7 @@ where
     /// assert_eq!(&writer.get_ref()[..], &expected[..]);
     /// # Ok::<(), io::Error>(())
     pub fn write_line(&mut self, line: &Line) -> io::Result<()> {
-        writeln!(self.inner, "{}", line)
+        writeln!(self.inner, "{line}")
     }
 
     /// Writes a GFF directive.
@@ -84,7 +84,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_directive(&mut self, directive: &Directive) -> io::Result<()> {
-        writeln!(self.inner, "{}", directive)
+        writeln!(self.inner, "{directive}")
     }
 
     /// Writes a GFF record.
@@ -111,6 +111,6 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        writeln!(self.inner, "{}", record)
+        writeln!(self.inner, "{record}")
     }
 }

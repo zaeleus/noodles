@@ -20,10 +20,10 @@ impl fmt::Display for AlternativeNames {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for (i, name) in self.iter().enumerate() {
             if i > 0 {
-                write!(f, "{}", DELIMITER)?;
+                write!(f, "{DELIMITER}")?;
             }
 
-            write!(f, "{}", name)?;
+            write!(f, "{name}")?;
         }
 
         Ok(())
@@ -45,7 +45,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
-            Self::InvalidName(s) => write!(f, "invalid name: {}", s),
+            Self::InvalidName(s) => write!(f, "invalid name: {s}"),
         }
     }
 }

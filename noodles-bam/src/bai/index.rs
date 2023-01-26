@@ -128,7 +128,7 @@ impl BinningIndex for Index {
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidInput,
-                    format!("invalid reference sequence ID: {}", reference_sequence_id),
+                    format!("invalid reference sequence ID: {reference_sequence_id}"),
                 )
             })?;
 

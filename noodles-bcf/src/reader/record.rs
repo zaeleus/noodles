@@ -119,7 +119,7 @@ where
         Float::Missing => Ok(None),
         qual => Err(io::Error::new(
             io::ErrorKind::InvalidInput,
-            format!("invalid qual: {:?}", qual),
+            format!("invalid qual: {qual:?}"),
         )),
     }
 }
@@ -135,7 +135,7 @@ where
         Some(Value::String(None)) => Ok(Ids::default()),
         v => Err(io::Error::new(
             io::ErrorKind::InvalidData,
-            format!("invalid id: expected string, got {:?}", v),
+            format!("invalid id: expected string, got {v:?}"),
         )),
     }
 }
@@ -153,7 +153,7 @@ where
             v => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
-                    format!("invalid ref_alt: expected string, got {:?}", v),
+                    format!("invalid ref_alt: expected string, got {v:?}"),
                 ))
             }
         }

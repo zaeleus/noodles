@@ -20,7 +20,7 @@ pub enum Symbol {
 impl fmt::Display for Symbol {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::StructuralVariant(sv) => write!(f, "{}", sv),
+            Self::StructuralVariant(sv) => write!(f, "{sv}"),
             Self::NonstructuralVariant(nsv) => f.write_str(nsv),
             Self::Unspecified => f.write_str("*"),
         }

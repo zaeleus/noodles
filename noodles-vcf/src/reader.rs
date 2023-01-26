@@ -376,8 +376,7 @@ pub(crate) fn resolve_region(index: &tabix::Index, region: &Region) -> io::Resul
             io::Error::new(
                 io::ErrorKind::InvalidInput,
                 format!(
-                    "region reference sequence does not exist in reference sequences: {:?}",
-                    region
+                    "region reference sequence does not exist in reference sequences: {region:?}"
                 ),
             )
         })?;

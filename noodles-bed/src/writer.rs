@@ -99,7 +99,7 @@ where
     W: Write,
     Record<N>: fmt::Display,
 {
-    writeln!(writer, "{}", record)
+    writeln!(writer, "{record}")
 }
 
 #[cfg(test)]

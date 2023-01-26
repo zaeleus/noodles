@@ -28,10 +28,10 @@ impl fmt::Display for SubsortOrder {
 }
 
 fn write_orders(f: &mut fmt::Formatter<'_>, sort: SortOrder, subsorts: &[String]) -> fmt::Result {
-    write!(f, "{}", sort)?;
+    write!(f, "{sort}")?;
 
     for subsort in subsorts {
-        write!(f, "{}{}", DELIMITER, subsort)?;
+        write!(f, "{DELIMITER}{subsort}")?;
     }
 
     Ok(())

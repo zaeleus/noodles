@@ -56,10 +56,10 @@ impl std::fmt::Display for ParseError {
             Self::InvalidRecordValue => f.write_str("invalid record value"),
             Self::MissingHeader => f.write_str("missing header"),
             Self::InvalidHeader(actual, expected) => {
-                write!(f, "invalid header: expected {}, got {}", expected, actual)
+                write!(f, "invalid header: expected {expected}, got {actual}")
             }
             Self::DuplicateSampleName(sample_name) => {
-                write!(f, "duplicate sample name: {}", sample_name)
+                write!(f, "duplicate sample name: {sample_name}")
             }
             Self::ExpectedEof => f.write_str("expected EOF"),
             Self::StringMapPositionMismatch(actual, expected) => write!(

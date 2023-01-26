@@ -133,8 +133,8 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
-            Self::MissingField(field) => write!(f, "missing field: {:?}", field),
-            Self::InvalidField(field, _) => write!(f, "invalid field: {:?}", field),
+            Self::MissingField(field) => write!(f, "missing field: {field:?}"),
+            Self::InvalidField(field, _) => write!(f, "invalid field: {field:?}"),
         }
     }
 }

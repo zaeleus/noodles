@@ -82,5 +82,5 @@ fn build_endpoint(base_url: &Url, kind: Kind, id: &str) -> crate::Result<Url> {
         Kind::Variants => "variants",
     };
 
-    base_url.join(&format!("{}/{}", k, id)).map_err(Error::Url)
+    base_url.join(&format!("{k}/{id}")).map_err(Error::Url)
 }

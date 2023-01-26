@@ -12,11 +12,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut reader = File::open(src).map(BufReader::new).map(vcf::Reader::new)?;
     let header = reader.read_header()?.parse()?;
 
-    print!("{}", header);
+    print!("{header}");
 
     for result in reader.records(&header) {
         let record = result?;
-        println!("{}", record);
+        println!("{record}");
     }
 
     Ok(())

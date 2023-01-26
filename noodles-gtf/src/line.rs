@@ -18,8 +18,8 @@ pub enum Line {
 impl fmt::Display for Line {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Line::Comment(comment) => write!(f, "{}{}", COMMENT_PREFIX, comment),
-            Line::Record(record) => write!(f, "{}", record),
+            Line::Comment(comment) => write!(f, "{COMMENT_PREFIX}{comment}"),
+            Line::Record(record) => write!(f, "{record}"),
         }
     }
 }

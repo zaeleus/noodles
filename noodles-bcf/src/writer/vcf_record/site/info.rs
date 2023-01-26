@@ -56,7 +56,7 @@ where
         .ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,
-                format!("info key missing from string map: {:?}", key),
+                format!("info key missing from string map: {key:?}"),
             )
         })
         .and_then(|i| write_string_map_index(writer, i))
@@ -114,7 +114,7 @@ where
     } else {
         Err(io::Error::new(
             io::ErrorKind::InvalidInput,
-            format!("invalid info field integer value: {}", n),
+            format!("invalid info field integer value: {n}"),
         ))
     }
 }
@@ -185,7 +185,7 @@ where
     } else {
         Err(io::Error::new(
             io::ErrorKind::InvalidInput,
-            format!("invalid info field integer array value: {}", min),
+            format!("invalid info field integer array value: {min}"),
         ))
     }
 }

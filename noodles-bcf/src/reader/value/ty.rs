@@ -26,7 +26,7 @@ where
             _ => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
-                    format!("invalid length value: #{:?}", value),
+                    format!("invalid length value: #{value:?}"),
                 ))
             }
         };
@@ -46,7 +46,7 @@ where
         7 => Ok(Some(Type::String(len))),
         _ => Err(io::Error::new(
             io::ErrorKind::InvalidData,
-            format!("invalid type: {}", ty),
+            format!("invalid type: {ty}"),
         )),
     }
 }

@@ -181,18 +181,14 @@ impl Error for IndexError {
 impl fmt::Display for IndexError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::EmptySequence(offset) => write!(f, "empty sequence at offset {}", offset),
+            Self::EmptySequence(offset) => write!(f, "empty sequence at offset {offset}"),
             Self::InvalidDefinition(e) => e.fmt(f),
-            Self::InvalidLineBases(expected, actual) => write!(
-                f,
-                "invalid line bases: expected {}, got {}",
-                expected, actual
-            ),
-            Self::InvalidLineWidth(expected, actual) => write!(
-                f,
-                "invalid line width: expected {}, got {}",
-                expected, actual
-            ),
+            Self::InvalidLineBases(expected, actual) => {
+                write!(f, "invalid line bases: expected {expected}, got {actual}")
+            }
+            Self::InvalidLineWidth(expected, actual) => {
+                write!(f, "invalid line width: expected {expected}, got {actual}")
+            }
             Self::IoError(e) => e.fmt(f),
         }
     }

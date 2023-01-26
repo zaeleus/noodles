@@ -35,10 +35,7 @@ where
         if terminator != NUL {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
-                format!(
-                    "invalid read name terminator: expected {:#04x}, got {:#04x}",
-                    NUL, terminator
-                ),
+                format!("invalid read name terminator: expected {NUL:#04x}, got {terminator:#04x}"),
             ));
         }
 

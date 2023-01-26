@@ -15,7 +15,7 @@ fn main() -> io::Result<()> {
     reader.read_file_definition()?;
 
     let header = reader.read_file_header()?;
-    print!("{}", header);
+    print!("{header}");
 
     Ok(())
 }

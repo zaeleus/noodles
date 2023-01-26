@@ -15,7 +15,7 @@ async fn main() -> io::Result<()> {
     reader.read_file_format().await?;
 
     let header = reader.read_header().await?;
-    print!("{}", header);
+    print!("{header}");
 
     Ok(())
 }

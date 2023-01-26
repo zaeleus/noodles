@@ -20,9 +20,9 @@ pub enum Line {
 impl fmt::Display for Line {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Line::Directive(directive) => write!(f, "{}", directive),
-            Line::Comment(comment) => write!(f, "{}{}", COMMENT_PREFIX, comment),
-            Line::Record(record) => write!(f, "{}", record),
+            Line::Directive(directive) => write!(f, "{directive}"),
+            Line::Comment(comment) => write!(f, "{COMMENT_PREFIX}{comment}"),
+            Line::Record(record) => write!(f, "{record}"),
         }
     }
 }

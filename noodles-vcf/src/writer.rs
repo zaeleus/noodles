@@ -114,7 +114,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_header(&mut self, header: &Header) -> io::Result<()> {
-        write!(self.inner, "{}", header)
+        write!(self.inner, "{header}")
     }
 
     /// Writes a VCF record.
@@ -135,7 +135,7 @@ where
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        writeln!(self.inner, "{}", record)
+        writeln!(self.inner, "{record}")
     }
 }
 

@@ -47,7 +47,7 @@ impl fmt::Display for Keys {
         } else {
             for (i, key) in self.iter().enumerate() {
                 if i > 0 {
-                    write!(f, "{}", DELIMITER)?;
+                    write!(f, "{DELIMITER}")?;
                 }
 
                 f.write_str(key.as_ref())?;
@@ -133,7 +133,7 @@ impl fmt::Display for TryFromKeyVectorError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidGenotypeKeyPosition => f.write_str("invalid genotype key position"),
-            Self::DuplicateKey(key) => write!(f, "duplicate key: {}", key),
+            Self::DuplicateKey(key) => write!(f, "duplicate key: {key}"),
         }
     }
 }

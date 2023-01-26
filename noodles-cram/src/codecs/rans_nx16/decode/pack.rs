@@ -45,7 +45,7 @@ pub fn decode(src: &[u8], p: &[u8], n_sym: NonZeroUsize, len: usize) -> io::Resu
     } else {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,
-            format!("expected n_sym to be <= 16, got {}", n_sym),
+            format!("expected n_sym to be <= 16, got {n_sym}"),
         ));
     }
 

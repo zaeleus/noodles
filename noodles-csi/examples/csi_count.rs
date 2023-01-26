@@ -9,7 +9,7 @@ use noodles_csi::{self as csi, binning_index::ReferenceSequenceExt, BinningIndex
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let csi_src = format!("{}.csi", src);
+    let csi_src = format!("{src}.csi");
     let index = csi::read(csi_src)?;
 
     let mut n = 0;
@@ -20,7 +20,7 @@ fn main() -> io::Result<()> {
         }
     }
 
-    println!("{}", n);
+    println!("{n}");
 
     Ok(())
 }

@@ -270,7 +270,7 @@ impl fmt::Display for Info {
         } else {
             for (i, (key, value)) in self.0.iter().enumerate() {
                 if i > 0 {
-                    write!(f, "{}", DELIMITER)?;
+                    write!(f, "{DELIMITER}")?;
                 }
 
                 key.fmt(f)?;
@@ -278,7 +278,7 @@ impl fmt::Display for Info {
                 match value {
                     None => f.write_str("=.")?,
                     Some(field::Value::Flag) => {}
-                    Some(v) => write!(f, "={}", v)?,
+                    Some(v) => write!(f, "={v}")?,
                 }
             }
 
@@ -370,7 +370,7 @@ impl error::Error for TryFromFieldsError {}
 impl fmt::Display for TryFromFieldsError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::DuplicateKey(key) => write!(f, "duplicate key: {}", key),
+            Self::DuplicateKey(key) => write!(f, "duplicate key: {key}"),
         }
     }
 }

@@ -260,35 +260,35 @@ impl fmt::Display for Map<ReferenceSequence> {
         write!(f, "\tLN:{}", self.length())?;
 
         if let Some(alternative_locus) = self.alternative_locus() {
-            write!(f, "\tAH:{}", alternative_locus)?;
+            write!(f, "\tAH:{alternative_locus}")?;
         }
 
         if let Some(alternative_names) = self.alternative_names() {
-            write!(f, "\tAN:{}", alternative_names)?;
+            write!(f, "\tAN:{alternative_names}")?;
         }
 
         if let Some(assembly_id) = self.assembly_id() {
-            write!(f, "\tAS:{}", assembly_id)?;
+            write!(f, "\tAS:{assembly_id}")?;
         }
 
         if let Some(description) = self.description() {
-            write!(f, "\tDS:{}", description)?;
+            write!(f, "\tDS:{description}")?;
         }
 
         if let Some(md5_checksum) = self.md5_checksum() {
-            write!(f, "\tM5:{}", md5_checksum)?;
+            write!(f, "\tM5:{md5_checksum}")?;
         }
 
         if let Some(species) = self.species() {
-            write!(f, "\tSP:{}", species)?;
+            write!(f, "\tSP:{species}")?;
         }
 
         if let Some(molecule_topology) = self.molecule_topology() {
-            write!(f, "\tTP:{}", molecule_topology)?;
+            write!(f, "\tTP:{molecule_topology}")?;
         }
 
         if let Some(uri) = self.uri() {
-            write!(f, "\tUR:{}", uri)?;
+            write!(f, "\tUR:{uri}")?;
         }
 
         super::fmt_display_other_fields(f, self.other_fields())?;

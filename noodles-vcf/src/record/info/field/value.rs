@@ -40,19 +40,19 @@ pub enum Value {
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Integer(n) => write!(f, "{}", n),
-            Self::Float(n) => write!(f, "{}", n),
+            Self::Integer(n) => write!(f, "{n}"),
+            Self::Float(n) => write!(f, "{n}"),
             Self::Flag => Ok(()),
-            Self::Character(c) => write!(f, "{}", c),
-            Self::String(s) => write!(f, "{}", s),
+            Self::Character(c) => write!(f, "{c}"),
+            Self::String(s) => write!(f, "{s}"),
             Self::IntegerArray(values) => {
                 for (i, value) in values.iter().enumerate() {
                     if i > 0 {
-                        write!(f, "{}", DELIMITER)?;
+                        write!(f, "{DELIMITER}")?;
                     }
 
                     if let Some(v) = value {
-                        write!(f, "{}", v)?;
+                        write!(f, "{v}")?;
                     } else {
                         f.write_str(MISSING_VALUE)?;
                     }
@@ -63,11 +63,11 @@ impl fmt::Display for Value {
             Self::FloatArray(values) => {
                 for (i, value) in values.iter().enumerate() {
                     if i > 0 {
-                        write!(f, "{}", DELIMITER)?;
+                        write!(f, "{DELIMITER}")?;
                     }
 
                     if let Some(v) = value {
-                        write!(f, "{}", v)?;
+                        write!(f, "{v}")?;
                     } else {
                         f.write_str(MISSING_VALUE)?;
                     }
@@ -78,11 +78,11 @@ impl fmt::Display for Value {
             Self::CharacterArray(values) => {
                 for (i, value) in values.iter().enumerate() {
                     if i > 0 {
-                        write!(f, "{}", DELIMITER)?;
+                        write!(f, "{DELIMITER}")?;
                     }
 
                     if let Some(v) = value {
-                        write!(f, "{}", v)?;
+                        write!(f, "{v}")?;
                     } else {
                         f.write_str(MISSING_VALUE)?;
                     }
@@ -93,11 +93,11 @@ impl fmt::Display for Value {
             Self::StringArray(values) => {
                 for (i, value) in values.iter().enumerate() {
                     if i > 0 {
-                        write!(f, "{}", DELIMITER)?;
+                        write!(f, "{DELIMITER}")?;
                     }
 
                     if let Some(v) = value {
-                        write!(f, "{}", v)?;
+                        write!(f, "{v}")?;
                     } else {
                         f.write_str(MISSING_VALUE)?;
                     }
@@ -141,7 +141,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidNumberForType(number, ty) => {
-                write!(f, "invalid number {:?} for type {:?}", number, ty)
+                write!(f, "invalid number {number:?} for type {ty:?}")
             }
             Self::InvalidInteger(_) => f.write_str("invalid integer"),
             Self::InvalidFloat(_) => f.write_str("invalid float"),

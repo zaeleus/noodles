@@ -35,7 +35,7 @@ impl Filters {
                 string_string_map.get_index(i).ok_or_else(|| {
                     io::Error::new(
                         io::ErrorKind::InvalidInput,
-                        format!("invalid string map index: {}", i),
+                        format!("invalid string map index: {i}"),
                     )
                 })
             })

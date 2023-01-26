@@ -117,7 +117,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Invalid => f.write_str("invalid input"),
-            Self::InvalidComponent(e) => write!(f, "invalid component: {}", e),
+            Self::InvalidComponent(e) => write!(f, "invalid component: {e}"),
         }
     }
 }

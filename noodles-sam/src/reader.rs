@@ -485,8 +485,7 @@ fn resolve_region(reference_sequences: &ReferenceSequences, region: &Region) -> 
             io::Error::new(
                 io::ErrorKind::InvalidInput,
                 format!(
-                    "region reference sequence does not exist in reference sequences: {:?}",
-                    region
+                    "region reference sequence does not exist in reference sequences: {region:?}"
                 ),
             )
         })

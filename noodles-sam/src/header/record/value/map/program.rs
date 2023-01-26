@@ -99,23 +99,23 @@ impl Map<Program> {
 impl fmt::Display for Map<Program> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(name) = self.name() {
-            write!(f, "\tPN:{}", name)?;
+            write!(f, "\tPN:{name}")?;
         }
 
         if let Some(command_line) = self.command_line() {
-            write!(f, "\tCL:{}", command_line)?;
+            write!(f, "\tCL:{command_line}")?;
         }
 
         if let Some(previous_id) = self.previous_id() {
-            write!(f, "\tPP:{}", previous_id)?;
+            write!(f, "\tPP:{previous_id}")?;
         }
 
         if let Some(description) = self.description() {
-            write!(f, "\tDS:{}", description)?;
+            write!(f, "\tDS:{description}")?;
         }
 
         if let Some(version) = self.version() {
-            write!(f, "\tVN:{}", version)?;
+            write!(f, "\tVN:{version}")?;
         }
 
         super::fmt_display_other_fields(f, self.other_fields())?;

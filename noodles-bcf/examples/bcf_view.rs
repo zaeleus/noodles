@@ -16,12 +16,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let header = raw_header.parse()?;
     let string_maps = raw_header.parse()?;
 
-    print!("{}", raw_header);
+    print!("{raw_header}");
 
     for result in reader.records() {
         let record = result?;
         let vcf_record = record.try_into_vcf_record(&header, &string_maps)?;
-        println!("{}", vcf_record);
+        println!("{vcf_record}");
     }
 
     Ok(())

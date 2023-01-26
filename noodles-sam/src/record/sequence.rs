@@ -151,7 +151,7 @@ impl From<Vec<Base>> for Sequence {
 impl fmt::Display for Sequence {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for base in self.as_ref() {
-            write!(f, "{}", base)?;
+            write!(f, "{base}")?;
         }
 
         Ok(())

@@ -30,7 +30,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut query = reader.query(&header, &index, &region)?;
 
     while let Some(record) = query.try_next().await? {
-        println!("{}", record);
+        println!("{record}");
     }
 
     Ok(())

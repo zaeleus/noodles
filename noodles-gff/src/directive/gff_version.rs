@@ -77,10 +77,10 @@ impl fmt::Display for GffVersion {
         write!(f, "{}", self.major())?;
 
         if let Some(minor) = self.minor() {
-            write!(f, "{}{}", DELIMITER, minor)?;
+            write!(f, "{DELIMITER}{minor}")?;
 
             if let Some(patch) = self.patch() {
-                write!(f, "{}{}", DELIMITER, patch)?;
+                write!(f, "{DELIMITER}{patch}")?;
             }
         }
 

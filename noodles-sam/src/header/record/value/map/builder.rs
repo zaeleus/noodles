@@ -18,8 +18,8 @@ impl error::Error for BuildError {}
 impl fmt::Display for BuildError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::MissingField(tag) => write!(f, "missing field: {}", tag),
-            Self::InvalidValue(tag) => write!(f, "invalid value: {}", tag),
+            Self::MissingField(tag) => write!(f, "missing field: {tag}"),
+            Self::InvalidValue(tag) => write!(f, "invalid value: {tag}"),
         }
     }
 }

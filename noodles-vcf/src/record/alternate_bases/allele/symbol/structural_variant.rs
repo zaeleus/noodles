@@ -76,7 +76,7 @@ impl fmt::Display for StructuralVariant {
         f.write_str(self.ty.as_ref())?;
 
         for subtype in self.subtypes() {
-            write!(f, "{}{}", DELIMITER, subtype)?;
+            write!(f, "{DELIMITER}{subtype}")?;
         }
 
         Ok(())

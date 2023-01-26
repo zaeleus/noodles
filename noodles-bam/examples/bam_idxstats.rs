@@ -40,7 +40,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let unmapped_record_count = index.unplaced_unmapped_record_count().unwrap_or_default();
-    println!("*\t0\t0\t{}", unmapped_record_count);
+    println!("*\t0\t0\t{unmapped_record_count}");
 
     Ok(())
 }

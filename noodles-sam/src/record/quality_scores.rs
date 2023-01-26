@@ -146,7 +146,7 @@ impl AsMut<Vec<Score>> for QualityScores {
 impl fmt::Display for QualityScores {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for score in self.as_ref() {
-            write!(f, "{}", score)?;
+            write!(f, "{score}")?;
         }
 
         Ok(())

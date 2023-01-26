@@ -17,7 +17,7 @@ async fn main() -> io::Result<()> {
     reader.read_file_definition().await?;
 
     let header = reader.read_file_header().await?;
-    print!("{}", header);
+    print!("{header}");
 
     Ok(())
 }

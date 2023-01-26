@@ -19,7 +19,7 @@ impl fmt::Display for AlternativeLocus {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Region(reference_sequence_name, Some((start, end))) => {
-                write!(f, "{}:{}-{}", reference_sequence_name, start, end)
+                write!(f, "{reference_sequence_name}:{start}-{end}")
             }
             Self::Region(reference_sequence_name, None) => f.write_str(reference_sequence_name),
             Self::Unknown => f.write_str(UNKNOWN),

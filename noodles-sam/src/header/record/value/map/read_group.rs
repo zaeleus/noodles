@@ -214,55 +214,55 @@ impl Map<ReadGroup> {
 impl fmt::Display for Map<ReadGroup> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(barcode) = self.barcode() {
-            write!(f, "\tBC:{}", barcode)?;
+            write!(f, "\tBC:{barcode}")?;
         }
 
         if let Some(sequencing_center) = self.sequencing_center() {
-            write!(f, "\tCN:{}", sequencing_center)?;
+            write!(f, "\tCN:{sequencing_center}")?;
         }
 
         if let Some(description) = self.description() {
-            write!(f, "\tDS:{}", description)?;
+            write!(f, "\tDS:{description}")?;
         }
 
         if let Some(produced_at) = self.produced_at() {
-            write!(f, "\tDT:{}", produced_at)?;
+            write!(f, "\tDT:{produced_at}")?;
         }
 
         if let Some(flow_order) = self.flow_order() {
-            write!(f, "\tFO:{}", flow_order)?;
+            write!(f, "\tFO:{flow_order}")?;
         }
 
         if let Some(key_sequence) = self.key_sequence() {
-            write!(f, "\tKS:{}", key_sequence)?;
+            write!(f, "\tKS:{key_sequence}")?;
         }
 
         if let Some(library) = self.library() {
-            write!(f, "\tLB:{}", library)?;
+            write!(f, "\tLB:{library}")?;
         }
 
         if let Some(program) = self.program() {
-            write!(f, "\tPG:{}", program)?;
+            write!(f, "\tPG:{program}")?;
         }
 
         if let Some(predicted_median_insert_size) = self.predicted_median_insert_size() {
-            write!(f, "\tPI:{}", predicted_median_insert_size)?;
+            write!(f, "\tPI:{predicted_median_insert_size}")?;
         }
 
         if let Some(platform) = self.platform() {
-            write!(f, "\tPL:{}", platform)?;
+            write!(f, "\tPL:{platform}")?;
         }
 
         if let Some(platform_model) = self.platform_model() {
-            write!(f, "\tPM:{}", platform_model)?;
+            write!(f, "\tPM:{platform_model}")?;
         }
 
         if let Some(platform_unit) = self.platform_unit() {
-            write!(f, "\tPU:{}", platform_unit)?;
+            write!(f, "\tPU:{platform_unit}")?;
         }
 
         if let Some(sample) = self.sample() {
-            write!(f, "\tSM:{}", sample)?;
+            write!(f, "\tSM:{sample}")?;
         }
 
         super::fmt_display_other_fields(f, self.other_fields())?;

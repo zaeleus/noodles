@@ -190,8 +190,7 @@ impl Slice {
                     return Err(io::Error::new(
                         io::ErrorKind::InvalidData,
                         format!(
-                            "reference sequence checksum mismatch: expected {:?}, got {:?}",
-                            expected_md5, actual_md5
+                            "reference sequence checksum mismatch: expected {expected_md5:?}, got {actual_md5:?}"
                         ),
                     ));
                 }

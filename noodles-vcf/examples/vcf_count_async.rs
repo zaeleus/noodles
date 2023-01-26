@@ -26,7 +26,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         n += 1;
     }
 
-    println!("{}", n);
+    println!("{n}");
 
     Ok(())
 }

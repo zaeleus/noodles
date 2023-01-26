@@ -17,7 +17,7 @@ impl Deref for Md5Checksum {
 impl fmt::Display for Md5Checksum {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for byte in self.iter() {
-            write!(f, "{:02x}", byte)?;
+            write!(f, "{byte:02x}")?;
         }
 
         Ok(())
@@ -44,8 +44,8 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidLength(len) => write!(f, "expected length to be 32, got {}", len),
-            Self::InvalidHexDigit(c) => write!(f, "invalid hex digit: {}", c),
+            Self::InvalidLength(len) => write!(f, "expected length to be 32, got {len}"),
+            Self::InvalidHexDigit(c) => write!(f, "invalid hex digit: {c}"),
         }
     }
 }

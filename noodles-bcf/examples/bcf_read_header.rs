@@ -13,7 +13,7 @@ fn main() -> io::Result<()> {
     reader.read_file_format()?;
 
     let header = reader.read_header()?;
-    print!("{}", header);
+    print!("{header}");
 
     Ok(())
 }

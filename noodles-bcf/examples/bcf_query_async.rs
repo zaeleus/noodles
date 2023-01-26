@@ -33,7 +33,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     while let Some(record) = query.try_next().await? {
         let vcf_record = record.try_into_vcf_record(&header, &string_maps)?;
-        println!("{}", vcf_record);
+        println!("{vcf_record}");
     }
 
     Ok(())

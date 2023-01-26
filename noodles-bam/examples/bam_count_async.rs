@@ -23,7 +23,7 @@ async fn main() -> io::Result<()> {
         n += 1;
     }
 
-    println!("{}", n);
+    println!("{n}");
 
     Ok(())
 }

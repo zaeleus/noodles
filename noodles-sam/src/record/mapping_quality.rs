@@ -73,7 +73,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Parse(_) => f.write_str("parse error"),
-            Self::Missing => write!(f, "missing value: {}", MISSING),
+            Self::Missing => write!(f, "missing value: {MISSING}"),
         }
     }
 }

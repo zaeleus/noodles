@@ -83,7 +83,7 @@ impl fmt::Display for Definition {
         write!(f, "{}{}", PREFIX, self.name())?;
 
         if let Some(description) = self.description() {
-            write!(f, " {}", description)?;
+            write!(f, " {description}")?;
         }
 
         Ok(())
@@ -110,7 +110,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
-            Self::MissingPrefix => write!(f, "missing prefix ('{}')", PREFIX),
+            Self::MissingPrefix => write!(f, "missing prefix ('{PREFIX}')"),
             Self::MissingName => f.write_str("missing name"),
             #[allow(deprecated)]
             Self::MissingReferenceSequenceName => f.write_str("missing name"),

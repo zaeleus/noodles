@@ -27,7 +27,7 @@ async fn main() -> io::Result<()> {
         }
     }
 
-    println!("{}", n);
+    println!("{n}");
 
     Ok(())
 }

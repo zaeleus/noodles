@@ -76,7 +76,7 @@ where
             string_map.get_index(j).ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    format!("invalid string map index: {}", j),
+                    format!("invalid string map index: {j}"),
                 )
             })
         })
@@ -88,7 +88,7 @@ where
                 .ok_or_else(|| {
                     io::Error::new(
                         io::ErrorKind::InvalidData,
-                        format!("missing header FORMAT record for {}", raw_key),
+                        format!("missing header FORMAT record for {raw_key}"),
                     )
                 })
         })
@@ -105,7 +105,7 @@ where
         Some(Type::Int8(len)) => match len {
             0 => Err(io::Error::new(
                 io::ErrorKind::InvalidData,
-                format!("invalid number: {}", len),
+                format!("invalid number: {len}"),
             )),
             1 => read_genotype_field_int8_values(reader, sample_count),
             _ => read_genotype_field_int8_array_values(reader, sample_count, len),
@@ -113,7 +113,7 @@ where
         Some(Type::Int16(len)) => match len {
             0 => Err(io::Error::new(
                 io::ErrorKind::InvalidData,
-                format!("invalid number: {}", len),
+                format!("invalid number: {len}"),
             )),
             1 => read_genotype_field_int16_values(reader, sample_count),
             _ => read_genotype_field_int16_array_values(reader, sample_count, len),
@@ -121,7 +121,7 @@ where
         Some(Type::Int32(len)) => match len {
             0 => Err(io::Error::new(
                 io::ErrorKind::InvalidData,
-                format!("invalid number: {}", len),
+                format!("invalid number: {len}"),
             )),
             1 => read_genotype_field_int32_values(reader, sample_count),
             _ => read_genotype_field_int32_array_values(reader, sample_count, len),
@@ -129,7 +129,7 @@ where
         Some(Type::Float(len)) => match len {
             0 => Err(io::Error::new(
                 io::ErrorKind::InvalidData,
-                format!("invalid number: {}", len),
+                format!("invalid number: {len}"),
             )),
             1 => read_genotype_field_float_values(reader, sample_count),
             _ => read_genotype_field_float_array_values(reader, sample_count, len),
@@ -137,7 +137,7 @@ where
         Some(Type::String(len)) => read_genotype_field_string_values(reader, sample_count, len),
         ty => Err(io::Error::new(
             io::ErrorKind::InvalidData,
-            format!("unhandled type: {:?}", ty),
+            format!("unhandled type: {ty:?}"),
         )),
     }
 }
@@ -460,7 +460,7 @@ fn parse_genotype_genotype_field_values(values: &[i8]) -> String {
         if j == -1 {
             genotype.push('.');
         } else {
-            let _ = write!(genotype, "{}", j);
+            let _ = write!(genotype, "{j}");
         }
     }
 

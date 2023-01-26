@@ -19,7 +19,7 @@ fn build_writers(read_groups: &sam::header::ReadGroups) -> io::Result<Writers> {
         .keys()
         .enumerate()
         .map(|(i, id)| {
-            let dst = format!("out_{}.bam", i);
+            let dst = format!("out_{i}.bam");
             File::create(dst).map(|f| (id.clone(), bam::Writer::new(f)))
         })
         .collect::<Result<_, _>>()
@@ -30,7 +30,7 @@ fn write_headers(writers: &mut Writers, header: &sam::Header) -> io::Result<()> 
         let writer = writers.get_mut(id).ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidData,
-                format!("invalid read group: {}", id),
+                format!("invalid read group: {id}"),
             )
         })?;
 
@@ -79,7 +79,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let writer = writers.get_mut(&rg).ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    format!("invalid read group: {}", rg),
+                    format!("invalid read group: {rg}"),
                 )
             })?;
 

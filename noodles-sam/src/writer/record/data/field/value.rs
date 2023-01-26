@@ -91,7 +91,7 @@ where
             write_subtype(writer, Subtype::Float)?;
 
             for &n in values {
-                write!(writer, ",{}", n)?;
+                write!(writer, ",{n}")?;
             }
 
             Ok(())

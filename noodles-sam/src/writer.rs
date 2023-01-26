@@ -115,7 +115,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_header(&mut self, header: &Header) -> io::Result<()> {
-        write!(self.inner, "{}", header)
+        write!(self.inner, "{header}")
     }
 
     /// Writes a SAM record.

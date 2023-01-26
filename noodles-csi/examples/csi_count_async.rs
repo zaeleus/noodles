@@ -11,7 +11,7 @@ use tokio::io;
 async fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let csi_src = format!("{}.csi", src);
+    let csi_src = format!("{src}.csi");
     let index = csi::r#async::read(csi_src).await?;
 
     let mut n = 0;
@@ -22,7 +22,7 @@ async fn main() -> io::Result<()> {
         }
     }
 
-    println!("{}", n);
+    println!("{n}");
 
     Ok(())
 }

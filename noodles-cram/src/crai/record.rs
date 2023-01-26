@@ -202,9 +202,9 @@ impl fmt::Display for Record {
         const UNMAPPED: i32 = -1;
 
         if let Some(id) = self.reference_sequence_id() {
-            write!(f, "{}\t", id)?;
+            write!(f, "{id}\t")?;
         } else {
-            write!(f, "{}\t", UNMAPPED)?;
+            write!(f, "{UNMAPPED}\t")?;
         };
 
         let alignment_start = self.alignment_start().map(usize::from).unwrap_or_default();
@@ -241,8 +241,8 @@ impl error::Error for ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Missing(field) => write!(f, "missing field: {:?}", field),
-            Self::Invalid(field, _) => write!(f, "invalid field: {:?}", field),
+            Self::Missing(field) => write!(f, "missing field: {field:?}"),
+            Self::Invalid(field, _) => write!(f, "invalid field: {field:?}"),
             Self::InvalidReferenceSequenceId(_) => f.write_str("invalid reference sequence ID"),
         }
     }

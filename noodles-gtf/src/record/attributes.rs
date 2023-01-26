@@ -34,7 +34,7 @@ impl From<Vec<Entry>> for Attributes {
 impl fmt::Display for Attributes {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for (i, entry) in self.0.iter().enumerate() {
-            write!(f, "{}", entry)?;
+            write!(f, "{entry}")?;
 
             if i < self.0.len() - 1 {
                 f.write_char(DELIMITER)?;
