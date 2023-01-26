@@ -203,7 +203,11 @@ impl fmt::Display for Genotype {
                     write!(f, "{DELIMITER}")?;
                 }
 
-                write!(f, "{field}")?;
+                if let Some(value) = field.value() {
+                    write!(f, "{value}")?;
+                } else {
+                    f.write_str(".")?;
+                }
             }
 
             Ok(())
