@@ -282,6 +282,16 @@ impl TryFrom<Vec<Field>> for Genotype {
     }
 }
 
+fn parse_value(format: &Map<Format>, s: &str) -> Result<Option<field::Value>, field::ParseError> {
+    if s == "." {
+        Ok(None)
+    } else {
+        field::Value::from_str_format(s, format)
+            .map(Some)
+            .map_err(field::ParseError::InvalidValue)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

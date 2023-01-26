@@ -68,9 +68,7 @@ impl Field {
         if s == MISSING_VALUE {
             Ok(Self::new(key, None))
         } else {
-            Value::from_str_format(s, format)
-                .map(|v| Self::new(key, Some(v)))
-                .map_err(ParseError::InvalidValue)
+            super::parse_value(format, s).map(|value| Self::new(key, value))
         }
     }
 
