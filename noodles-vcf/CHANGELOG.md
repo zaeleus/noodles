@@ -35,6 +35,9 @@
   * vcf/record/info: Change underlying map to `Key`-`Value` rather
     than `Key`-`Field`.
 
+  * vcf/record/genotypes/genotype: Change underlying map to
+    `Key`-`Option<Value>` rather than `Key`-`Field`.
+
 ## 0.23.0 - 2022-11-29
 
 ### Added

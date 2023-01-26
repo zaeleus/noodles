@@ -25,7 +25,7 @@ const DELIMITER: char = ':';
 
 /// A VCF record genotype.
 #[derive(Clone, Debug, Default, PartialEq)]
-pub struct Genotype(IndexMap<Key, Field>);
+pub struct Genotype(IndexMap<Key, Option<field::Value>>);
 
 /// An error returned when a raw VCF genotype fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -66,7 +66,7 @@ pub enum GenotypeError {
     /// The genotype field value type is invalid.
     ///
     /// The `GT` field value must be a `String`.
-    InvalidValueType(field::Value),
+    InvalidValueType(Option<field::Value>),
 }
 
 impl error::Error for GenotypeError {
@@ -170,17 +170,15 @@ impl Genotype {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn genotype(&self) -> Option<Result<field::value::Genotype, GenotypeError>> {
-        self.get(&Key::Genotype)
-            .and_then(|f| f.value())
-            .map(|value| match value {
-                field::Value::String(s) => s.parse().map_err(GenotypeError::InvalidValue),
-                _ => Err(GenotypeError::InvalidValueType(value.clone())),
-            })
+        self.get(&Key::Genotype).map(|value| match value {
+            Some(field::Value::String(s)) => s.parse().map_err(GenotypeError::InvalidValue),
+            _ => Err(GenotypeError::InvalidValueType(value.clone())),
+        })
     }
 }
 
 impl Deref for Genotype {
-    type Target = IndexMap<Key, Field>;
+    type Target = IndexMap<Key, Option<field::Value>>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -198,13 +196,13 @@ impl fmt::Display for Genotype {
         if self.is_empty() {
             f.write_str(MISSING_FIELD)
         } else {
-            for (i, field) in self.values().enumerate() {
+            for (i, value) in self.values().enumerate() {
                 if i > 0 {
                     write!(f, "{DELIMITER}")?;
                 }
 
-                if let Some(value) = field.value() {
-                    write!(f, "{value}")?;
+                if let Some(v) = value {
+                    write!(f, "{v}")?;
                 } else {
                     f.write_str(".")?;
                 }
@@ -218,8 +216,7 @@ impl fmt::Display for Genotype {
 impl Extend<(Key, Option<field::Value>)> for Genotype {
     fn extend<T: IntoIterator<Item = (Key, Option<field::Value>)>>(&mut self, iter: T) {
         for (key, value) in iter {
-            let field = Field::new(key.clone(), value);
-            self.insert(key, field);
+            self.insert(key, value);
         }
     }
 }
@@ -271,10 +268,10 @@ impl TryFrom<Vec<Field>> for Genotype {
         let mut map = IndexMap::with_capacity(fields.len());
 
         for field in fields {
-            if let Some(duplicate_field) = map.insert(field.key().clone(), field) {
-                return Err(TryFromFieldsError::DuplicateKey(
-                    duplicate_field.key().clone(),
-                ));
+            let (key, value) = (field.key().clone(), field.value().cloned());
+
+            if map.insert(key.clone(), value).is_some() {
+                return Err(TryFromFieldsError::DuplicateKey(key));
             }
         }
 

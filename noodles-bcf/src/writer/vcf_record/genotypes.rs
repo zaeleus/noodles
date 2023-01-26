@@ -41,7 +41,7 @@ where
         for genotype in genotypes {
             let value = genotype
                 .get_index(i)
-                .map(|(_, field)| field.value())
+                .map(|(_, value)| value.as_ref())
                 .ok_or_else(|| {
                     io::Error::new(io::ErrorKind::InvalidData, "missing genotype field")
                 })?;
