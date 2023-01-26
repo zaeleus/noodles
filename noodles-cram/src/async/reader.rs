@@ -213,7 +213,7 @@ where
     /// # }
     /// ```
     pub async fn position(&mut self) -> io::Result<u64> {
-        self.inner.seek(SeekFrom::Current(0)).await
+        self.inner.stream_position().await
     }
 
     /// Returns a stream over records that intersects the given region.
