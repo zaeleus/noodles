@@ -6,6 +6,8 @@
 
   * bgzf: Raise minimum supported Rust version (MSRV) to 1.64.0.
 
+  * bgzf: Update to libdeflater 0.12.0 (libdeflate 1.17).
+
 ## 0.18.0 - 2022-11-18
 
 ### Added
