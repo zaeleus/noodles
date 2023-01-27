@@ -345,13 +345,18 @@ fn parse(s: &str, infos: &header::Infos) -> Result<Info, ParseError> {
         "" => Err(ParseError::Empty),
         MISSING_FIELD => Ok(Info::default()),
         _ => {
-            let fields = s
-                .split(DELIMITER)
-                .map(|s| Field::try_from_str(s, infos))
-                .collect::<Result<Vec<_>, _>>()
-                .map_err(ParseError::InvalidField)?;
+            let mut info = Info::default();
 
-            Info::try_from(fields).map_err(ParseError::Invalid)
+            for raw_field in s.split(DELIMITER) {
+                let (key, value) =
+                    field::parse(raw_field, infos).map_err(ParseError::InvalidField)?;
+
+                if info.insert(key.clone(), value).is_some() {
+                    return Err(ParseError::Invalid(TryFromFieldsError::DuplicateKey(key)));
+                }
+            }
+
+            Ok(info)
         }
     }
 }
