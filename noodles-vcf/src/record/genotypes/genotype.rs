@@ -215,9 +215,7 @@ impl fmt::Display for Genotype {
 
 impl Extend<(Key, Option<field::Value>)> for Genotype {
     fn extend<T: IntoIterator<Item = (Key, Option<field::Value>)>>(&mut self, iter: T) {
-        for (key, value) in iter {
-            self.insert(key, value);
-        }
+        self.0.extend(iter);
     }
 }
 
