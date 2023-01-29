@@ -16,7 +16,7 @@ type StandardTag = tag::Standard;
 type Tag = super::tag::Tag<StandardTag>;
 
 /// An inner VCF header contig map value.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Contig {
     length: Option<usize>,
     idx: Option<usize>,
