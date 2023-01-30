@@ -38,6 +38,12 @@
   * vcf/record/genotypes/genotype: Change underlying map to
     `Key`-`Option<Value>` rather than `Key`-`Field`.
 
+### Removed
+
+  * vcf/record/info: Remove `TryFrom<Vec<Field>>` for `Info`.
+
+    Insert fields into the map using `Info::insert` instead.
+
 ## 0.23.0 - 2022-11-29
 
 ### Added

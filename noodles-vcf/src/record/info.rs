@@ -380,28 +380,6 @@ impl fmt::Display for TryFromFieldsError {
     }
 }
 
-impl TryFrom<Vec<Field>> for Info {
-    type Error = TryFromFieldsError;
-
-    fn try_from(fields: Vec<Field>) -> Result<Self, Self::Error> {
-        if fields.is_empty() {
-            return Ok(Self::default());
-        }
-
-        let mut map = IndexMap::with_capacity(fields.len());
-
-        for field in fields {
-            let (key, value) = (field.key().clone(), field.value().cloned());
-
-            if map.insert(key.clone(), value).is_some() {
-                return Err(TryFromFieldsError::DuplicateKey(key));
-            }
-        }
-
-        Ok(Self(map))
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -460,25 +438,5 @@ mod tests {
         ));
 
         Ok(())
-    }
-
-    #[test]
-    fn test_try_from_fields_for_info() {
-        assert_eq!(Info::try_from(Vec::new()), Ok(Info::default()));
-
-        let fields = vec![Field::new(
-            Key::SamplesWithDataCount,
-            Some(field::Value::Integer(2)),
-        )];
-        assert!(Info::try_from(fields).is_ok());
-
-        let fields = vec![
-            Field::new(Key::SamplesWithDataCount, Some(field::Value::Integer(2))),
-            Field::new(Key::SamplesWithDataCount, Some(field::Value::Integer(2))),
-        ];
-        assert_eq!(
-            Info::try_from(fields),
-            Err(TryFromFieldsError::DuplicateKey(Key::SamplesWithDataCount))
-        );
     }
 }
