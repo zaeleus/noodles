@@ -1,7 +1,4 @@
-use noodles_sam::{
-    self as sam,
-    record::data::field::{value::Type, Tag},
-};
+use noodles_sam::record::data::field::{value::Type, Tag};
 
 use crate::container::block;
 
@@ -61,12 +58,6 @@ impl From<Key> for block::ContentId {
         let ty = u8::from(key.ty);
         let id = i32::from(*l) << 16 | i32::from(*r) << 8 | i32::from(ty);
         Self::from(id)
-    }
-}
-
-impl From<&sam::record::data::Field> for Key {
-    fn from(field: &sam::record::data::Field) -> Self {
-        Self::new(field.tag(), field.value().ty())
     }
 }
 

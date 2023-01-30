@@ -16,6 +16,13 @@
   * cram/record/builder: Change `Builder::add_tag` to receive a `Tag`-`Value`
     pair.
 
+### Removed
+
+  * cram/data_container/compression_header/preservation_map/tag_ids_dictionary/key:
+    Remove `From<&sam::record::data::Field>`.
+
+    Use `Key::new` instead.
+
 ## 0.22.1 - 2022-11-29
 
 ### Changed
