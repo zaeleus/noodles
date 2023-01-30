@@ -26,15 +26,20 @@ pub fn read_info<R>(
 where
     R: Read,
 {
-    let mut fields = Vec::with_capacity(len);
+    let mut info = vcf::record::Info::default();
 
     for _ in 0..len {
         let (key, value) = read_info_field(reader, infos, string_string_map)?;
-        let field = vcf::record::info::Field::new(key, value);
-        fields.push(field);
+
+        if info.insert(key.clone(), value).is_some() {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                vcf::record::info::TryFromFieldsError::DuplicateKey(key),
+            ));
+        }
     }
 
-    vcf::record::Info::try_from(fields).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    Ok(info)
 }
 
 pub fn read_info_field<R>(
