@@ -202,9 +202,15 @@ impl Info {
         string_string_map: &'a StringStringMap,
     ) -> impl Iterator<Item = io::Result<vcf::record::info::Field>> + 'a {
         use crate::reader::record::info::read_info_field;
+
         let mut reader = &self.buf[..];
-        (0..self.len())
-            .map(move |_| read_info_field(&mut reader, header.infos(), string_string_map))
+
+        (0..self.len()).map(move |_| {
+            match read_info_field(&mut reader, header.infos(), string_string_map) {
+                Ok((key, value)) => Ok(vcf::record::info::Field::new(key, value)),
+                Err(e) => Err(e),
+            }
+        })
     }
 
     pub(crate) fn set_field_count(&mut self, field_count: usize) {

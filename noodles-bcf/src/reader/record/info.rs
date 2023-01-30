@@ -29,7 +29,8 @@ where
     let mut fields = Vec::with_capacity(len);
 
     for _ in 0..len {
-        let field = read_info_field(reader, infos, string_string_map)?;
+        let (key, value) = read_info_field(reader, infos, string_string_map)?;
+        let field = vcf::record::info::Field::new(key, value);
         fields.push(field);
     }
 
@@ -40,7 +41,10 @@ pub fn read_info_field<R>(
     reader: &mut R,
     infos: &vcf::header::Infos,
     string_string_map: &StringStringMap,
-) -> io::Result<vcf::record::info::Field>
+) -> io::Result<(
+    vcf::header::info::Key,
+    Option<vcf::record::info::field::Value>,
+)>
 where
     R: Read,
 {
@@ -55,7 +59,7 @@ where
 
     let value = read_info_field_value(reader, info)?;
 
-    Ok(vcf::record::info::Field::new(key, value))
+    Ok((key, value))
 }
 
 fn read_info_field_key<R>(
