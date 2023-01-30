@@ -4,7 +4,7 @@ pub mod value;
 
 pub use self::value::Value;
 
-use std::{error, fmt, str::FromStr};
+use std::{error, fmt};
 
 use crate::header::{
     self,
@@ -15,98 +15,6 @@ use crate::header::{
 
 const MISSING_VALUE: &str = ".";
 const SEPARATOR: char = '=';
-
-/// A VCF record info field.
-#[derive(Clone, Debug, PartialEq)]
-pub struct Field {
-    key: Key,
-    value: Option<Value>,
-}
-
-impl Field {
-    /// Parses a raw VCF record info field.
-    pub fn try_from_str(s: &str, infos: &Infos) -> Result<Self, ParseError> {
-        parse(s, infos).map(|(key, value)| Self::new(key, value))
-    }
-
-    /// Creates a VCF record info field.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::{
-    ///     header::info::Key,
-    ///     record::info::{field::Value, Field},
-    /// };
-    ///
-    /// let field = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(1)));
-    /// ```
-    pub fn new(key: Key, value: Option<Value>) -> Self {
-        Self { key, value }
-    }
-
-    /// Returns the field key.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::{
-    ///     header::info::Key,
-    ///     record::info::{field::Value, Field},
-    /// };
-    ///
-    /// let field = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(1)));
-    /// assert_eq!(field.key(), &Key::SamplesWithDataCount);
-    /// ```
-    pub fn key(&self) -> &Key {
-        &self.key
-    }
-
-    /// Returns the field value.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::{
-    ///     header::info::Key,
-    ///     record::info::{field::Value, Field},
-    /// };
-    ///
-    /// let field = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(1)));
-    /// assert_eq!(field.value(), Some(&Value::Integer(1)));
-    /// ```
-    pub fn value(&self) -> Option<&Value> {
-        self.value.as_ref()
-    }
-
-    /// Returns a mutable reference to the value.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::{
-    ///     header::info::Key,
-    ///     record::info::{field::Value, Field},
-    /// };
-    ///
-    /// let mut field = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(1)));
-    /// *field.value_mut() = Some(Value::Integer(2));
-    /// assert_eq!(field.value(), Some(&Value::Integer(2)));
-    /// ```
-    pub fn value_mut(&mut self) -> &mut Option<Value> {
-        &mut self.value
-    }
-}
-
-impl fmt::Display for Field {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.value() {
-            None => write!(f, "{}{}{}", self.key, SEPARATOR, MISSING_VALUE),
-            Some(Value::Flag) => write!(f, "{}", self.key),
-            Some(value) => write!(f, "{}{}{}", self.key, SEPARATOR, value),
-        }
-    }
-}
 
 /// An error returned when a raw VCF record info field fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -139,14 +47,6 @@ impl fmt::Display for ParseError {
             Self::MissingValue => f.write_str("missing value"),
             Self::InvalidValue(_) => f.write_str("invalid value"),
         }
-    }
-}
-
-impl FromStr for Field {
-    type Err = ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Self::try_from_str(s, &Infos::default())
     }
 }
 
@@ -216,26 +116,6 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_fmt() -> Result<(), crate::header::info::key::ParseError> {
-        let field = Field::new(Key::AlleleCount, None);
-        assert_eq!(field.to_string(), "AC=.");
-
-        let field = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(2)));
-        assert_eq!(field.to_string(), "NS=2");
-
-        let field = Field::new(Key::BaseQuality, Some(Value::Float(1.333)));
-        assert_eq!(field.to_string(), "BQ=1.333");
-
-        let field = Field::new(Key::IsSomaticMutation, Some(Value::Flag));
-        assert_eq!(field.to_string(), "SOMATIC");
-
-        let field = Field::new("NOODLES".parse()?, Some(Value::String(String::from("VCF"))));
-        assert_eq!(field.to_string(), "NOODLES=VCF");
-
-        Ok(())
-    }
 
     #[test]
     fn test_parse() -> Result<(), crate::header::info::key::ParseError> {

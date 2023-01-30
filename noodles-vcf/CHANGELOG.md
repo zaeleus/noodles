@@ -44,6 +44,10 @@
 
     Insert fields into the map using `Info::insert` instead.
 
+  * vcf/record/info/field: Remove `Field`.
+
+    Use `(Key, Option<Value>)` instead.
+
 ## 0.23.0 - 2022-11-29
 
 ### Added
