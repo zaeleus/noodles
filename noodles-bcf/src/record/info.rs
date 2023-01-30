@@ -141,10 +141,11 @@ impl Info {
         string_string_map: &StringStringMap,
         key: &vcf::header::info::Key,
     ) -> Option<io::Result<vcf::record::info::Field>> {
-        for result in self.values(header, string_string_map) {
+        for result in self.iter(header, string_string_map) {
             match result {
-                Ok(field) => {
-                    if field.key() == key {
+                Ok((k, v)) => {
+                    if &k == key {
+                        let field = vcf::record::info::Field::new(k, v);
                         return Some(Ok(field));
                     }
                 }
@@ -165,7 +166,7 @@ impl Info {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::{info::Key, record::value::{map, Map}},
-    ///     record::info::{field::Value, Field},
+    ///     record::info::field::Value,
     /// };
     ///
     /// let header = vcf::Header::builder()
@@ -181,18 +182,69 @@ impl Info {
     /// ];
     ///
     /// let info = Info::new(data, 2);
+    /// let mut fields = info.iter(&header, string_maps.strings());
+    ///
+    /// assert_eq!(
+    ///     fields.next().transpose()?,
+    ///     Some((Key::AlleleCount, Some(Value::Integer(5))))
+    /// );
+    ///
+    /// assert_eq!(
+    ///     fields.next().transpose()?,
+    ///     Some((Key::TotalDepth, Some(Value::Integer(8))))
+    /// );
+    ///
+    /// assert!(fields.next().is_none());
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn iter<'a>(
+        &'a self,
+        header: &'a vcf::Header,
+        string_string_map: &'a StringStringMap,
+    ) -> impl Iterator<
+        Item = io::Result<(
+            vcf::header::info::Key,
+            Option<vcf::record::info::field::Value>,
+        )>,
+    > + 'a {
+        use crate::reader::record::info::read_info_field;
+
+        let mut reader = &self.buf[..];
+
+        (0..self.len())
+            .map(move |_| read_info_field(&mut reader, header.infos(), string_string_map))
+    }
+
+    /// Returns an iterator over all info values.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bcf::{header::StringMaps, record::Info};
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     header::{info::Key, record::value::{map, Map}},
+    ///     record::info::field::Value,
+    /// };
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_info(Key::AlleleCount, Map::<map::Info>::from(&Key::AlleleCount))
+    ///     .add_info(Key::TotalDepth, Map::<map::Info>::from(&Key::TotalDepth))
+    ///     .build();
+    ///
+    /// let string_maps = StringMaps::from(&header);
+    ///
+    /// let data = vec![
+    ///     0x11, 0x01, 0x11, 0x05, // AC=5
+    ///     0x11, 0x02, 0x11, 0x08, // DP=8
+    /// ];
+    ///
+    /// let info = Info::new(data, 2);
+    ///
     /// let mut fields = info.values(&header, string_maps.strings());
-    ///
-    /// assert_eq!(
-    ///     fields.next().transpose()?,
-    ///     Some(Field::new(Key::AlleleCount, Some(Value::Integer(5))))
-    /// );
-    ///
-    /// assert_eq!(
-    ///     fields.next().transpose()?,
-    ///     Some(Field::new(Key::TotalDepth, Some(Value::Integer(8))))
-    /// );
-    ///
+    /// assert_eq!(fields.next().transpose()?, Some(Some(Value::Integer(5))));
+    /// assert_eq!(fields.next().transpose()?, Some(Some(Value::Integer(8))));
     /// assert!(fields.next().is_none());
     /// # Ok::<_, io::Error>(())
     /// ```
@@ -200,17 +252,9 @@ impl Info {
         &'a self,
         header: &'a vcf::Header,
         string_string_map: &'a StringStringMap,
-    ) -> impl Iterator<Item = io::Result<vcf::record::info::Field>> + 'a {
-        use crate::reader::record::info::read_info_field;
-
-        let mut reader = &self.buf[..];
-
-        (0..self.len()).map(move |_| {
-            match read_info_field(&mut reader, header.infos(), string_string_map) {
-                Ok((key, value)) => Ok(vcf::record::info::Field::new(key, value)),
-                Err(e) => Err(e),
-            }
-        })
+    ) -> impl Iterator<Item = io::Result<Option<vcf::record::info::field::Value>>> + 'a {
+        self.iter(header, string_string_map)
+            .map(|result| result.map(|(_, value)| value))
     }
 
     pub(crate) fn set_field_count(&mut self, field_count: usize) {

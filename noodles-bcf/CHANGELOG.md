@@ -6,6 +6,14 @@
 
   * bcf: Raise minimum supported Rust version (MSRV) to 1.64.0.
 
+  * bcf/record/info: Add `Info::iter` for an interator over
+    `Key`-`Option<Value>` pairs.
+
+  * bcf/record/info: Change `Info::values` to return an iterator over
+    `Option<Value>` values.
+
+    Use `Info::iter` for fields.
+
 ## 0.19.2 - 2022-12-02
 
 ### Fixed
