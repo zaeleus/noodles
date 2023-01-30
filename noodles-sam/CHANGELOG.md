@@ -73,6 +73,10 @@
 
     Insert fields into the map using `Data::insert` instead.
 
+  * sam/record/data/field: Remove `Field`.
+
+    Use `(Tag, Value)` instead.
+
 ## 0.22.1 - 2022-11-29
 
 ### Fixed

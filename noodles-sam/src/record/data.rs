@@ -2,8 +2,6 @@
 
 pub mod field;
 
-pub use self::field::Field;
-
 use std::{
     error,
     fmt::{self, Write},
