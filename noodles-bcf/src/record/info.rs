@@ -100,7 +100,7 @@ impl Info {
         self.set_field_count(0);
     }
 
-    /// Returns the field with the given key.
+    /// Returns the value with the given key.
     ///
     /// # Examples
     ///
@@ -110,7 +110,7 @@ impl Info {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::{info::Key, record::value::{map, Map}},
-    ///     record::info::{field::Value, Field},
+    ///     record::info::field::Value,
     /// };
     ///
     /// let header = vcf::Header::builder()
@@ -129,7 +129,7 @@ impl Info {
     ///
     /// assert_eq!(
     ///     info.get(&header, string_maps.strings(), &Key::AlleleCount).transpose()?,
-    ///     Some(Field::new(Key::AlleleCount, Some(Value::Integer(5))))
+    ///     Some(Some(Value::Integer(5)))
     /// );
     ///
     /// assert!(info.get(&header, string_maps.strings(), &Key::AncestralAllele).is_none());
@@ -140,13 +140,12 @@ impl Info {
         header: &vcf::Header,
         string_string_map: &StringStringMap,
         key: &vcf::header::info::Key,
-    ) -> Option<io::Result<vcf::record::info::Field>> {
+    ) -> Option<io::Result<Option<vcf::record::info::field::Value>>> {
         for result in self.iter(header, string_string_map) {
             match result {
                 Ok((k, v)) => {
                     if &k == key {
-                        let field = vcf::record::info::Field::new(k, v);
-                        return Some(Ok(field));
+                        return Some(Ok(v));
                     }
                 }
                 Err(e) => return Some(Err(e)),
