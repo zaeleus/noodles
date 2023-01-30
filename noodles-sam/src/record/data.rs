@@ -319,24 +319,6 @@ fn parse_field(s: &str) -> Result<(field::Tag, field::Value), field::ParseError>
     Ok((tag, value))
 }
 
-impl TryFrom<Vec<Field>> for Data {
-    type Error = ParseError;
-
-    fn try_from(fields: Vec<Field>) -> Result<Self, Self::Error> {
-        let mut data = Self::default();
-
-        for field in fields {
-            let (tag, value) = (field.tag(), field.value().clone());
-
-            if data.insert(tag, value).is_some() {
-                return Err(ParseError::DuplicateTag(tag));
-            }
-        }
-
-        Ok(data)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::field::{Tag, Value};

@@ -69,6 +69,10 @@
 
     `ReferenceSequence::new` is now infallible.
 
+  * sam/record/data: Remove `TryFrom<Vec<Field>>` for `Data`.
+
+    Insert fields into the map using `Data::insert` instead.
+
 ## 0.22.1 - 2022-11-29
 
 ### Fixed
