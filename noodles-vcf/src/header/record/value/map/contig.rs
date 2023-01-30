@@ -8,8 +8,6 @@ pub use self::name::Name;
 
 use std::fmt;
 
-use indexmap::IndexMap;
-
 use super::{Fields, Indexed, Inner, Map, TryFromFieldsError};
 
 type StandardTag = tag::Standard;
@@ -47,15 +45,8 @@ impl Map<Contig> {
     /// let map = Map::<Contig>::new();
     /// # Ok::<_, noodles_vcf::header::record::value::map::contig::name::ParseError>(())
     /// ```
-    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
-        Self {
-            inner: Contig {
-                length: None,
-                idx: None,
-            },
-            other_fields: IndexMap::new(),
-        }
+        Self::default()
     }
 
     /// Returns the length.
