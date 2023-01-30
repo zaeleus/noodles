@@ -98,6 +98,18 @@ where
     }
 }
 
+impl<I> Default for Map<I>
+where
+    I: Inner + Default,
+{
+    fn default() -> Self {
+        Self {
+            inner: I::default(),
+            other_fields: OtherFields::new(),
+        }
+    }
+}
+
 impl<I> Map<I>
 where
     I: Typed,
