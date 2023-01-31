@@ -31,8 +31,6 @@ pub fn read_genotypes<R>(
 where
     R: Read,
 {
-    use vcf::record::genotypes::genotype::Field;
-
     let mut keys = Vec::with_capacity(format_count);
     let mut genotypes = vec![Vec::new(); sample_count];
 
@@ -47,8 +45,7 @@ where
         };
 
         for (fields, value) in genotypes.iter_mut().zip(values) {
-            let field = Field::new(key.clone(), value);
-            fields.push(field);
+            fields.push((key.clone(), value));
         }
     }
 
@@ -56,7 +53,18 @@ where
     let genotypes = genotypes
         .into_iter()
         .map(|fields| {
-            Genotype::try_from(fields).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            let mut genotype = Genotype::default();
+
+            for (key, value) in fields {
+                if genotype.insert(key.clone(), value).is_some() {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        vcf::record::genotypes::genotype::TryFromFieldsError::DuplicateKey(key),
+                    ));
+                }
+            }
+
+            Ok(genotype)
         })
         .collect::<Result<Vec<_>, _>>()?;
 
