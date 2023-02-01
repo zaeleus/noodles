@@ -2,8 +2,6 @@
 
 pub mod field;
 
-pub use self::field::Field;
-
 use std::{
     error, fmt,
     ops::{Deref, DerefMut},
@@ -154,7 +152,7 @@ impl Genotype {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::{format::Key, record::value::{map::Format, Map}},
-    ///     record::genotypes::{genotype::{field::Value, Field}, Genotype},
+    ///     record::genotypes::{genotype::field::Value, Genotype},
     /// };
     ///
     /// let header = vcf::Header::builder()

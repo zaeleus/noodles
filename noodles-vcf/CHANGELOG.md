@@ -51,6 +51,11 @@
 
     Use `(Key, Option<Value>)` instead.
 
+  * vcf/record/genotypes/genotype/field: Remove `Field`.
+
+    Use `(Key, Option<Value>)` instead.
+
+
 ## 0.23.0 - 2022-11-29
 
 ### Added
