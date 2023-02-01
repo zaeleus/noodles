@@ -127,12 +127,14 @@ impl Genotype {
 
         let mut fields = Vec::with_capacity(keys.len());
 
-        for (raw_field, key) in s.split(DELIMITER).zip(keys.iter()) {
+        for (raw_value, key) in s.split(DELIMITER).zip(keys.iter()) {
             let field = if let Some(format) = formats.get(key) {
-                Field::from_str_format(raw_field, key, format).map_err(ParseError::InvalidField)?
+                let value = parse_value(format, raw_value).map_err(ParseError::InvalidField)?;
+                (key.clone(), value)
             } else {
                 let format = Map::<Format>::from(key);
-                Field::from_str_format(raw_field, key, &format).map_err(ParseError::InvalidField)?
+                let value = parse_value(&format, raw_value).map_err(ParseError::InvalidField)?;
+                (key.clone(), value)
             };
 
             fields.push(field);
@@ -251,13 +253,13 @@ impl fmt::Display for TryFromFieldsError {
     }
 }
 
-impl TryFrom<Vec<Field>> for Genotype {
+impl TryFrom<Vec<(Key, Option<field::Value>)>> for Genotype {
     type Error = TryFromFieldsError;
 
-    fn try_from(fields: Vec<Field>) -> Result<Self, Self::Error> {
+    fn try_from(fields: Vec<(Key, Option<field::Value>)>) -> Result<Self, Self::Error> {
         if fields.is_empty() {
             return Ok(Self::default());
-        } else if let Some(i) = fields.iter().position(|f| f.key() == &Key::Genotype) {
+        } else if let Some(i) = fields.iter().position(|(key, _)| key == &Key::Genotype) {
             if i != 0 {
                 return Err(TryFromFieldsError::InvalidGenotypeFieldPosition);
             }
@@ -265,9 +267,7 @@ impl TryFrom<Vec<Field>> for Genotype {
 
         let mut map = IndexMap::with_capacity(fields.len());
 
-        for field in fields {
-            let (key, value) = (field.key().clone(), field.value().cloned());
-
+        for (key, value) in fields {
             if map.insert(key.clone(), value).is_some() {
                 return Err(TryFromFieldsError::DuplicateKey(key));
             }
@@ -378,24 +378,24 @@ mod tests {
     fn test_try_from_fields_for_genotype() {
         assert!(Genotype::try_from(Vec::new()).is_ok());
 
-        let fields = vec![Field::new(
+        let fields = vec![(
             Key::Genotype,
             Some(field::Value::String(String::from("0|0"))),
         )];
         assert!(Genotype::try_from(fields).is_ok());
 
-        let fields = vec![Field::new(
+        let fields = vec![(
             Key::ConditionalGenotypeQuality,
             Some(field::Value::Integer(13)),
         )];
         assert!(Genotype::try_from(fields).is_ok());
 
         let fields = vec![
-            Field::new(
+            (
                 Key::ConditionalGenotypeQuality,
                 Some(field::Value::Integer(13)),
             ),
-            Field::new(
+            (
                 Key::Genotype,
                 Some(field::Value::String(String::from("0|0"))),
             ),
@@ -406,11 +406,11 @@ mod tests {
         );
 
         let fields = vec![
-            Field::new(
+            (
                 Key::Genotype,
                 Some(field::Value::String(String::from("0|0"))),
             ),
-            Field::new(
+            (
                 Key::Genotype,
                 Some(field::Value::String(String::from("0|0"))),
             ),

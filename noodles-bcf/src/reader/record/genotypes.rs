@@ -53,18 +53,7 @@ where
     let genotypes = genotypes
         .into_iter()
         .map(|fields| {
-            let mut genotype = Genotype::default();
-
-            for (key, value) in fields {
-                if genotype.insert(key.clone(), value).is_some() {
-                    return Err(io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        vcf::record::genotypes::genotype::TryFromFieldsError::DuplicateKey(key),
-                    ));
-                }
-            }
-
-            Ok(genotype)
+            Genotype::try_from(fields).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })
         .collect::<Result<Vec<_>, _>>()?;
 

@@ -38,6 +38,9 @@
   * vcf/record/genotypes/genotype: Change underlying map to
     `Key`-`Option<Value>` rather than `Key`-`Field`.
 
+  * vcf/record/genotypes/genotype: Change `TryFrom<Vec<Field>>` to
+    `TryFrom<Vec<(Key, Option<Value>)>>`.
+
 ### Removed
 
   * vcf/record/info: Remove `TryFrom<Vec<Field>>` for `Info`.
