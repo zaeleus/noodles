@@ -19,6 +19,9 @@
 
   * vcf: Raise minimum supported Rust version (MSRV) to 1.64.0.
 
+  * vcf/header: Change inserting `OtherRecords` as an `Key::Other`-`Value`
+    pair.
+
   * vcf/header/builder: Change inserting ALT, contig, FILTER, FORMAT, INFO, and
     META records as an ID-map pair.
 

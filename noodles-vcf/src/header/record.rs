@@ -41,7 +41,7 @@ pub enum Record {
     /// A `pedigreeDB` record.
     PedigreeDb(String),
     /// A nonstadard record.
-    Other(Key, value::Other),
+    Other(key::Other, value::Other),
 }
 
 /// An error returned when a raw VCF header record fails to parse.
@@ -210,7 +210,7 @@ impl TryFrom<(FileFormat, &str)> for Record {
                 Value::String(s) => Ok(Self::PedigreeDb(s)),
                 _ => Err(ParseError::Invalid),
             },
-            k => {
+            Key::Other(k) => {
                 let v = match value {
                     Value::String(s) => value::Other::from(s),
                     Value::Struct(fields) => {

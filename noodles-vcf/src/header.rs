@@ -42,7 +42,7 @@ pub type Contigs = IndexMap<contig::Name, Map<Contig>>;
 pub type SampleNames = IndexSet<String>;
 
 /// VCF header generic records.
-pub type OtherRecords = IndexMap<record::Key, Vec<record::value::Other>>;
+pub type OtherRecords = IndexMap<record::key::Other, Vec<record::value::Other>>;
 
 /// VCF header generic records.
 #[deprecated(since = "0.18.0", note = "Use `OtherRecords` instead.")]
@@ -520,7 +520,7 @@ impl Header {
     /// ```
     /// use noodles_vcf::{self as vcf, header::{record::{self, Key}}};
     ///
-    /// let key = Key::from("fileDate");
+    /// let key = record::Key::other("fileDate").unwrap();
     /// let value = record::value::Other::from("20200709");
     ///
     /// let header = vcf::Header::builder()
@@ -547,7 +547,7 @@ impl Header {
     /// ```
     /// use noodles_vcf::{self as vcf, header::{record::{self, Key}}};
     ///
-    /// let key = Key::from("fileDate");
+    /// let key = record::Key::other("fileDate").unwrap();
     /// let value = record::value::Other::from("20200709");
     ///
     /// let header = vcf::Header::builder()
@@ -575,7 +575,7 @@ impl Header {
     /// ```
     /// use noodles_vcf::{self as vcf, header::{record::{self, Key}}};
     ///
-    /// let key = Key::from("fileDate");
+    /// let key = record::Key::other("fileDate").unwrap();
     /// let value = record::value::Other::from("20200709");
     ///
     /// let mut header = vcf::Header::default();
@@ -603,7 +603,7 @@ impl Header {
     /// ```
     /// use noodles_vcf::{self as vcf, header::{record::{self, Key}}};
     ///
-    /// let key = Key::from("fileDate");
+    /// let key = record::Key::other("fileDate").unwrap();
     /// let value = record::value::Other::from("20200709");
     ///
     /// let mut header = vcf::Header::default();
@@ -628,7 +628,7 @@ impl Header {
     /// ```
     /// use noodles_vcf::{self as vcf, header::{record::{self, Key}}};
     ///
-    /// let key = Key::from("fileDate");
+    /// let key = record::Key::other("fileDate").unwrap();
     /// let value = record::value::Other::from("20200709");
     ///
     /// let header = vcf::Header::builder()
@@ -636,9 +636,9 @@ impl Header {
     ///     .build();
     ///
     /// assert_eq!(header.get(&key), Some(&[value][..]));
-    /// assert!(header.get(&Key::from("reference")).is_none());
+    /// assert!(header.get(&Key::other("reference").unwrap()).is_none());
     /// ```
-    pub fn get(&self, key: &record::Key) -> Option<&[record::value::Other]> {
+    pub fn get(&self, key: &record::key::Other) -> Option<&[record::value::Other]> {
         self.other_records.get(key).map(|r| &**r)
     }
 
@@ -649,7 +649,7 @@ impl Header {
     /// ```
     /// use noodles_vcf::{self as vcf, header::{record::{self, Key}}};
     ///
-    /// let key = Key::from("fileDate");
+    /// let key = record::Key::other("fileDate").unwrap();
     /// let value = record::value::Other::from("20200709");
     ///
     /// let mut header = vcf::Header::default();
@@ -658,7 +658,7 @@ impl Header {
     /// header.insert(key.clone(), value.clone());
     /// assert_eq!(header.get(&key), Some(&[value][..]));
     /// ```
-    pub fn insert(&mut self, key: record::Key, value: record::value::Other) {
+    pub fn insert(&mut self, key: record::key::Other, value: record::value::Other) {
         let records = self.other_records.entry(key).or_default();
         records.push(value);
     }
@@ -817,7 +817,7 @@ mod tests {
                 Map::<Meta>::new(vec![String::from("WholeGenome"), String::from("Exome")]),
             )
             .insert(
-                record::Key::from("fileDate"),
+                record::Key::other("fileDate").unwrap(),
                 record::value::Other::String(String::from("20200514")),
             )
             .build();
@@ -857,7 +857,7 @@ mod tests {
 
     #[test]
     fn test_insert_with_duplicate_keys() {
-        let key = record::Key::from("noodles");
+        let key = record::Key::other("noodles").unwrap();
         let values = [
             record::value::Other::from("0"),
             record::value::Other::from("1"),

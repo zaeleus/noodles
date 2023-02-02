@@ -17,7 +17,7 @@ fn add_comment(header: &mut vcf::Header) {
     use vcf::header::record::{value, Key};
 
     header.insert(
-        Key::from("comment"),
+        Key::other("comment").unwrap(),
         value::Other::from("a comment added by noodles-vcf"),
     );
 }
