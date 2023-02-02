@@ -139,7 +139,7 @@ impl TryFrom<Fields> for Map<Program> {
             let tag = key.parse().map_err(|_| TryFromFieldsError::InvalidTag)?;
 
             match tag {
-                Tag::Standard(StandardTag::Id) => {}
+                Tag::Standard(StandardTag::Id) => return Err(TryFromFieldsError::DuplicateTag),
                 Tag::Standard(StandardTag::Name) => name = Some(value),
                 Tag::Standard(StandardTag::CommandLine) => command_line = Some(value),
                 Tag::Standard(StandardTag::PreviousId) => previous_id = Some(value),
@@ -177,5 +177,15 @@ mod tests {
         assert_eq!(program.to_string(), "\tPN:noodles-sam\tVN:0.23.0");
 
         Ok(())
+    }
+
+    #[test]
+    fn test_try_from_fields_for_map_program_with_duplicate_id() {
+        let fields = vec![(String::from("ID"), String::from("pg0"))];
+
+        assert_eq!(
+            Map::<Program>::try_from(fields),
+            Err(TryFromFieldsError::DuplicateTag)
+        );
     }
 }
