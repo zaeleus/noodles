@@ -13,7 +13,7 @@ pub use self::{
     builder::Builder, file_format::FileFormat, number::Number, parser::ParseError, record::Record,
 };
 
-use std::str::FromStr;
+use std::{hash::Hash, str::FromStr};
 
 use indexmap::{IndexMap, IndexSet};
 
@@ -636,9 +636,12 @@ impl Header {
     ///     .build();
     ///
     /// assert_eq!(header.get(&key), Some(&[value][..]));
-    /// assert!(header.get(&Key::other("reference").unwrap()).is_none());
+    /// assert!(header.get("reference").is_none());
     /// ```
-    pub fn get(&self, key: &record::key::Other) -> Option<&[record::value::Other]> {
+    pub fn get<Q>(&self, key: &Q) -> Option<&[record::value::Other]>
+    where
+        Q: ?Sized + Hash + indexmap::Equivalent<record::key::Other>,
+    {
         self.other_records.get(key).map(|r| &**r)
     }
 

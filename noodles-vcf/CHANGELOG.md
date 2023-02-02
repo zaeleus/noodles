@@ -22,6 +22,9 @@
   * vcf/header: Change inserting `OtherRecords` as an `Key::Other`-`Value`
     pair.
 
+  * vcf/header: Change `Header::get` to accept keys that implement
+    `Equivalent<Other>`.
+
   * vcf/header/builder: Change inserting ALT, contig, FILTER, FORMAT, INFO, and
     META records as an ID-map pair.
 

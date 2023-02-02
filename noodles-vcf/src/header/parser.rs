@@ -213,12 +213,12 @@ mod tests {
         assert_eq!(header.sample_names().len(), 1);
 
         assert_eq!(
-            header.get(&record::Key::other("fileDate").unwrap()),
+            header.get("fileDate"),
             Some(&[record::value::Other::from("20200506")][..])
         );
 
         assert_eq!(
-            header.get(&record::Key::other("source").unwrap()),
+            header.get("source"),
             Some(&[record::value::Other::from("noodles-vcf")][..])
         );
 
