@@ -317,7 +317,7 @@ impl TryFrom<Fields> for Map<ReferenceSequence> {
             let tag = key.parse().map_err(|_| TryFromFieldsError::InvalidTag)?;
 
             match tag {
-                Tag::Standard(StandardTag::Name) => {}
+                Tag::Standard(StandardTag::Name) => return Err(TryFromFieldsError::DuplicateTag),
                 Tag::Standard(StandardTag::Length) => {
                     length = value
                         .parse()
@@ -395,6 +395,16 @@ mod tests {
         );
 
         Ok(())
+    }
+
+    #[test]
+    fn test_try_from_fields_for_map_reference_sequence_with_duplicate_name() {
+        let fields = vec![(String::from("SN"), String::from("sq0"))];
+
+        assert_eq!(
+            Map::<ReferenceSequence>::try_from(fields),
+            Err(TryFromFieldsError::DuplicateTag)
+        );
     }
 
     #[test]
