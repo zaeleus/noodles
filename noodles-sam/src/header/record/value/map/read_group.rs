@@ -17,7 +17,7 @@ type Tag = super::tag::Tag<StandardTag>;
 /// A SAM header record read group map value.
 ///
 /// A read group typically defines the set of reads that came from the same run on a sequencing
-/// instrument. The read group ID is guaranteed to be set.
+/// instrument.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct ReadGroup {
     barcode: Option<String>,

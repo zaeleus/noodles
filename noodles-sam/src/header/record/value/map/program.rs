@@ -13,8 +13,7 @@ type Tag = super::tag::Tag<StandardTag>;
 
 // A SAM header record program map value.
 ///
-/// A program describes any program that created, viewed, or mutated a SAM file. The program ID is
-/// guaranteed to be set.
+/// A program describes any program that created, viewed, or mutated a SAM file.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Program {
     name: Option<String>,
