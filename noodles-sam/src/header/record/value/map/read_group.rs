@@ -295,7 +295,7 @@ impl TryFrom<Fields> for Map<ReadGroup> {
             let tag = key.parse().map_err(|_| TryFromFieldsError::InvalidTag)?;
 
             match tag {
-                Tag::Standard(StandardTag::Id) => {}
+                Tag::Standard(StandardTag::Id) => return Err(TryFromFieldsError::DuplicateTag),
                 Tag::Standard(StandardTag::Barcode) => barcode = Some(value),
                 Tag::Standard(StandardTag::SequencingCenter) => sequencing_center = Some(value),
                 Tag::Standard(StandardTag::Description) => description = Some(value),
@@ -359,6 +359,16 @@ mod tests {
         assert_eq!(read_group.to_string(), "\tPG:noodles\tPL:ILLUMINA");
 
         Ok(())
+    }
+
+    #[test]
+    fn test_try_from_fields_for_map_read_group_with_duplicate_id() {
+        let fields = vec![(String::from("ID"), String::from("rg0"))];
+
+        assert_eq!(
+            Map::<ReadGroup>::try_from(fields),
+            Err(TryFromFieldsError::DuplicateTag)
+        );
     }
 
     #[test]
