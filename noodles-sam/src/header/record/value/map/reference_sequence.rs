@@ -398,21 +398,15 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_fields_for_map_reference_sequence_with_missing_length(
-    ) -> Result<(), TryFromFieldsError> {
-        let fields = vec![(String::from("SN"), String::from("sq0"))];
-
+    fn test_try_from_fields_for_map_reference_sequence_with_missing_length() {
         assert_eq!(
-            Map::<ReferenceSequence>::try_from(fields),
+            Map::<ReferenceSequence>::try_from(vec![]),
             Err(TryFromFieldsError::MissingField("LN"))
         );
-
-        Ok(())
     }
 
     #[test]
-    fn test_try_from_fields_for_map_reference_sequence_with_invalid_length(
-    ) -> Result<(), TryFromFieldsError> {
+    fn test_try_from_fields_for_map_reference_sequence_with_invalid_length() {
         let fields = vec![(String::from("LN"), String::from("NA"))];
 
         assert_eq!(
@@ -426,7 +420,5 @@ mod tests {
             Map::<ReferenceSequence>::try_from(fields),
             Err(TryFromFieldsError::InvalidValue("LN"))
         );
-
-        Ok(())
     }
 }
