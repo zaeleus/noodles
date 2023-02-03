@@ -1,7 +1,7 @@
 use noodles_core::Position;
 use noodles_csi::index::reference_sequence::bin::Chunk;
 
-use super::{reference_sequence, Header, Index, ReferenceSequence, ReferenceSequenceNames};
+use super::{header::ReferenceSequenceNames, reference_sequence, Header, Index, ReferenceSequence};
 
 /// A tabix indexer.
 #[derive(Debug, Default)]

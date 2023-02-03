@@ -1,6 +1,6 @@
 //! Tabix index builder.
 
-use super::{Header, Index, ReferenceSequence, ReferenceSequenceNames};
+use super::{header::ReferenceSequenceNames, Header, Index, ReferenceSequence};
 
 /// A tabix index builder.
 pub struct Builder {
@@ -30,7 +30,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_tabix::{self as tabix, index::ReferenceSequenceNames};
+    /// use noodles_tabix::{self as tabix, index::header::ReferenceSequenceNames};
     ///
     /// let reference_sequence_names: ReferenceSequenceNames = [String::from("sq0")]
     ///     .into_iter()
@@ -40,7 +40,7 @@ impl Builder {
     ///     .set_reference_sequence_names(reference_sequence_names.clone())
     ///     .build();
     ///
-    /// assert_eq!(index.reference_sequence_names(), &reference_sequence_names);
+    /// assert_eq!(index.header().reference_sequence_names(), &reference_sequence_names);
     /// ```
     pub fn set_reference_sequence_names(
         mut self,
@@ -69,27 +69,6 @@ impl Builder {
     pub fn set_reference_sequences(mut self, reference_sequences: Vec<ReferenceSequence>) -> Self {
         self.reference_sequences = reference_sequences;
         self
-    }
-
-    /// Sets an unmapped read count.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_tabix as tabix;
-    ///
-    /// let index = tabix::Index::builder()
-    ///     .set_unmapped_read_count(21)
-    ///     .build();
-    ///
-    /// assert_eq!(index.unmapped_read_count(), Some(21));
-    /// ```
-    #[deprecated(
-        since = "0.3.0",
-        note = "Use `set_unplaced_unmapped_record_count` instead."
-    )]
-    pub fn set_unmapped_read_count(self, unmapped_read_count: u64) -> Self {
-        self.set_unplaced_unmapped_record_count(unmapped_read_count)
     }
 
     /// Sets an unplaced, unmapped record count.

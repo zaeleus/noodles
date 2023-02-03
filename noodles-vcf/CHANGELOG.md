@@ -49,6 +49,23 @@
 
 ### Removed
 
+  * vcf/header: Remove `Records`.
+
+    This was deprecated in noodles-vcf 0.18.0. Use `OtherRecords`
+    instead.
+
+  * vcf/header: Remove `Header::records` and `Header::records_mut`.
+
+    These were deprecated in noodles-vcf 0.18.0. Use
+    `Header::other_records` and `Header::other_records_mut`,
+    respectively, instead.
+
+  * vcf/record: Remove re-exports of `record::genotypes::genotype`,
+    `record::genotypes::Genotype`, and `record::genotypes::Keys as
+    Format`.
+
+    These were deprecated in 0.11.0.
+
   * vcf/record/info: Remove `TryFrom<Vec<Field>>` for `Info`.
 
     Insert fields into the map using `Info::insert` instead.

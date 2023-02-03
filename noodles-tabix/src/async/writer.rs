@@ -7,7 +7,7 @@ use noodles_csi::{
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 use crate::{
-    index::{reference_sequence::Bin, Header, ReferenceSequence, ReferenceSequenceNames},
+    index::{header::ReferenceSequenceNames, reference_sequence::Bin, Header, ReferenceSequence},
     Index,
 };
 

@@ -23,6 +23,21 @@
 
     Use `Key::new` instead.
 
+  * cram/record/feature/code: Remove `TryFrom<char>` and `TryFromCharError`.
+
+    These were deprecated in noodles-cram 0.13.0. Use `TryFrom<u8>` and
+    `TryFromByteError`, respectively, instead.
+
+  * cram/record/feature/code: Remove `From<Code>` for `char`.
+
+    This was deprecated in noodles-cram 0.13.0. Convert to a `u8`
+    instead.
+
+  * cram/record/resolve: Remove `resolve_features`.
+
+    This was deprecated in noodles-cram 0.16.0. Use
+    `Features::try_into_cigar` instead.
+
 ## 0.22.1 - 2022-11-29
 
 ### Changed

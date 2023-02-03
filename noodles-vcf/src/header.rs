@@ -44,10 +44,6 @@ pub type SampleNames = IndexSet<String>;
 /// VCF header generic records.
 pub type OtherRecords = IndexMap<record::key::Other, Vec<record::value::Other>>;
 
-/// VCF header generic records.
-#[deprecated(since = "0.18.0", note = "Use `OtherRecords` instead.")]
-pub type Records = OtherRecords;
-
 /// A VCF header.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Header {
@@ -528,67 +524,12 @@ impl Header {
     ///     .build();
     ///
     /// assert_eq!(
-    ///     header.records().first(),
-    ///     Some((&key, &vec![value])),
-    /// );
-    /// ```
-    #[deprecated(since = "0.18.0", note = "Use `Header::other_records` instead.")]
-    pub fn records(&self) -> &OtherRecords {
-        self.other_records()
-    }
-
-    /// Returns a map of records with nonstandard keys.
-    ///
-    /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`,
-    /// `assembly`, `contig`, `META`, `SAMPLE`, and `pedigreeDB`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::{self as vcf, header::{record::{self, Key}}};
-    ///
-    /// let key = record::Key::other("fileDate").unwrap();
-    /// let value = record::value::Other::from("20200709");
-    ///
-    /// let header = vcf::Header::builder()
-    ///     .insert(key.clone(), value.clone())
-    ///     .build();
-    ///
-    /// assert_eq!(
     ///     header.other_records().first(),
     ///     Some((&key, &vec![value])),
     /// );
     /// ```
     pub fn other_records(&self) -> &OtherRecords {
         &self.other_records
-    }
-
-    /// Returns a mutable reference to a map of records with nonstandard keys.
-    ///
-    /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`,
-    /// `assembly`, `contig`, `META`, `SAMPLE`, and `pedigreeDB`.
-    ///
-    /// To simply add an unstructured record, consider using [`Self::insert`] instead.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::{self as vcf, header::{record::{self, Key}}};
-    ///
-    /// let key = record::Key::other("fileDate").unwrap();
-    /// let value = record::value::Other::from("20200709");
-    ///
-    /// let mut header = vcf::Header::default();
-    /// header.records_mut().insert(key.clone(), vec![value.clone()]);
-    ///
-    /// assert_eq!(
-    ///     header.records().first(),
-    ///     Some((&key, &vec![value])),
-    /// );
-    /// ```
-    #[deprecated(since = "0.18.0", note = "Use `Header::other_records_mut` instead.")]
-    pub fn records_mut(&mut self) -> &mut OtherRecords {
-        self.other_records_mut()
     }
 
     /// Returns a mutable reference to a map of records with nonstandard keys.

@@ -17,21 +17,6 @@ pub struct Builder {
 }
 
 impl Builder {
-    /// Creates a new SAM header builder.
-    ///
-    /// Typically, [`Header::builder`] is used instead of calling this.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam as sam;
-    /// let builder = sam::Header::builder();
-    /// ```
-    #[deprecated(since = "0.12.0", note = "Use `sam::Header::builder` instead.")]
-    pub fn new() -> Self {
-        Self::default()
-    }
-
     /// Sets a SAM header header.
     ///
     /// # Examples

@@ -10,6 +10,13 @@
 
   * fastq: Raise minimum supported Rust version (MSRV) to 1.64.0.
 
+### Removed
+
+  * fastq: Remove `Record::name`.
+
+    This was deprecated in noodles-fastq 0.2.0. Use `Record::name`
+    instead.
+
 ## 0.5.1 - 2022-10-28
 
 ### Fixed

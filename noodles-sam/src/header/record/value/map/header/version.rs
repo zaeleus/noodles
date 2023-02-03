@@ -73,14 +73,8 @@ pub enum ParseError {
     Empty,
     /// The input is invalid.
     Invalid,
-    /// The major version is missing.
-    #[deprecated(since = "0.12.0", note = "Use `ParseError::Invalid` instead.")]
-    MissingMajorVersion,
     /// The major version is invalid.
     InvalidMajorVersion(num::ParseIntError),
-    /// The minor version is missing.
-    #[deprecated(since = "0.12.0", note = "Use `ParseError::Invalid` instead.")]
-    MissingMinorVersion,
     /// The minor version is invalid.
     InvalidMinorVersion(num::ParseIntError),
 }
@@ -100,9 +94,7 @@ impl fmt::Display for ParseError {
         match self {
             Self::Empty => f.write_str("empty input"),
             Self::Invalid => f.write_str("invalid input"),
-            Self::MissingMajorVersion => f.write_str("missing major version"),
             Self::InvalidMajorVersion(_) => f.write_str("invalid major version"),
-            Self::MissingMinorVersion => f.write_str("missing minor version"),
             Self::InvalidMinorVersion(_) => f.write_str("invalid minor version"),
         }
     }

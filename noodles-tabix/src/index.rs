@@ -9,12 +9,6 @@ pub use self::{
     builder::Builder, header::Header, indexer::Indexer, reference_sequence::ReferenceSequence,
 };
 
-#[deprecated(
-    since = "0.11.0",
-    note = "Use `header::ReferenceSequenceNames` instead."
-)]
-pub use self::header::ReferenceSequenceNames;
-
 use std::io;
 
 use noodles_core::{region::Interval, Position};
@@ -68,52 +62,6 @@ impl Index {
     /// ```
     pub fn header(&self) -> &Header {
         &self.header
-    }
-
-    /// Returns the reference sequence names.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_tabix::{self as tabix, index::ReferenceSequenceNames};
-    ///
-    /// let reference_sequence_names: ReferenceSequenceNames = [String::from("sq0")]
-    ///     .into_iter()
-    ///     .collect();
-    ///
-    /// let index = tabix::Index::builder()
-    ///     .set_reference_sequence_names(reference_sequence_names.clone())
-    ///     .build();
-    ///
-    /// assert_eq!(index.reference_sequence_names(), &reference_sequence_names);
-    /// ```
-    #[deprecated(
-        since = "0.11.0",
-        note = "Use `Header::reference_sequence_names` instead."
-    )]
-    pub fn reference_sequence_names(&self) -> &ReferenceSequenceNames {
-        self.header.reference_sequence_names()
-    }
-
-    /// Returns the number of unmapped records in the associated file.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_tabix as tabix;
-    ///
-    /// let index = tabix::Index::builder()
-    ///     .set_unmapped_read_count(21)
-    ///     .build();
-    ///
-    /// assert_eq!(index.unmapped_read_count(), Some(21));
-    /// ```
-    #[deprecated(
-        since = "0.2.0",
-        note = "Use `unplaced_unmapped_record_count` instead."
-    )]
-    pub fn unmapped_read_count(&self) -> Option<u64> {
-        self.unplaced_unmapped_record_count
     }
 }
 

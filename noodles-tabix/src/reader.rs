@@ -10,8 +10,9 @@ use noodles_csi::index::reference_sequence::{bin::Chunk, Metadata};
 use crate::index::{
     self,
     header::Format,
+    header::ReferenceSequenceNames,
     reference_sequence::{self, Bin},
-    ReferenceSequence, ReferenceSequenceNames,
+    ReferenceSequence,
 };
 
 use super::{Index, MAGIC_NUMBER};

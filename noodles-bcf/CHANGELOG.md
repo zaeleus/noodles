@@ -17,6 +17,13 @@
   * bcf/record/info: Change `Info::get` to return an `Option<Value>` value
     instead of a field.
 
+### Removed
+
+  * bcf/header: Remove `StringMap`.
+
+    This was deprecated in noodles-bcf 0.11.0. Use
+    `noodles_bcf::header::string_maps::StringMap` instead.
+
 ## 0.19.2 - 2022-12-02
 
 ### Fixed

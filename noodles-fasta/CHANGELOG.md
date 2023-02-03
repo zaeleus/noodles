@@ -10,6 +10,31 @@
 
   * fasta: Raise minimum supported Rust version (MSRV) to 1.64.0.
 
+### Removed
+
+  * fasta/fai/record: Remove `Record::reference_sequence_name`.
+
+    This was deprecated in noodles-fasta 0.3.0. Use `Record::name`
+    instead.
+
+  * fasta/record: Remove `Record::reference_sequence_name`.
+
+    This was deprecated in noodles-fasta 0.2.0. Use `Record::name`
+    instead.
+
+  * fasta/record/definition: Remove
+    `Definition::reference_sequence_name`.
+
+    This was deprecated in noodles-fasta 0.3.0. Use `Definition::name`
+    instead.
+
+  * fasta/record/definition: Remove
+    `ParseError::MissingReferenceSequenceName`.
+
+    This was deprecated in noodles-fasta 0.6.0. Use
+    `ParseError::MissingName` instead.
+
+
 ## 0.17.0 - 2022-11-18
 
 ### Changed

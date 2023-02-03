@@ -39,20 +39,6 @@ impl Record {
     /// ```
     /// use noodles_fastq::Record;
     /// let record = Record::new("r0", "AGCT", "NDLS");
-    /// assert_eq!(record.read_name(), b"r0");
-    /// ```
-    #[deprecated(since = "0.2.0", note = "Use `Record::name` instead.")]
-    pub fn read_name(&self) -> &[u8] {
-        self.name()
-    }
-
-    /// Returns the name of the record.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_fastq::Record;
-    /// let record = Record::new("r0", "AGCT", "NDLS");
     /// assert_eq!(record.name(), b"r0");
     /// ```
     pub fn name(&self) -> &[u8] {

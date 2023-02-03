@@ -32,12 +32,6 @@ impl Cigar {
     }
 
     /// Calculates the alignment span over the reference sequence.
-    #[deprecated(since = "0.16.0", note = "Use `Cigar::alignment_span` instead.")]
-    pub fn reference_len(&self) -> usize {
-        self.alignment_span()
-    }
-
-    /// Calculates the alignment span over the reference sequence.
     ///
     /// This sums the lengths of the CIGAR operations that consume the reference sequence, i.e.,
     /// alignment matches (`M`), deletions from the reference (`D`), skipped reference regions
@@ -61,12 +55,6 @@ impl Cigar {
         self.iter()
             .filter_map(|op| op.kind().consumes_reference().then_some(op.len()))
             .sum()
-    }
-
-    /// Calculates the read length.
-    #[deprecated(since = "0.16.0", note = "Use `Cigar::read_length` instead.")]
-    pub fn read_len(&self) -> usize {
-        self.read_length()
     }
 
     /// Calculates the read length.

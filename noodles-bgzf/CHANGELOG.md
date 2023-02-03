@@ -8,6 +8,13 @@
 
   * bgzf: Update to libdeflater 0.12.0 (libdeflate 1.17).
 
+### Removed
+
+  * bgzf/virtual_position: Remove `VirtualPosition::max`.
+
+    This was deprecated in noodles-bgzf 0.18.0. Use
+    `VirtualPosition::MAX` instead.
+
 ## 0.18.0 - 2022-11-18
 
 ### Added

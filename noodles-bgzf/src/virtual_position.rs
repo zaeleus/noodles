@@ -40,20 +40,6 @@ impl VirtualPosition {
     /// The maximum value of a virtual position.
     pub const MAX: Self = Self(u64::MAX);
 
-    /// Creates the largest value that can be represented as a virtual position.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bgzf as bgzf;
-    /// let virtual_position = bgzf::VirtualPosition::max();
-    /// assert_eq!(u64::from(virtual_position), u64::MAX);
-    /// ```
-    #[deprecated(since = "0.18.0", note = "Use `VirtualPosition::MAX` instead.")]
-    pub fn max() -> Self {
-        Self::MAX
-    }
-
     /// The position in the compressed BGZF stream.
     ///
     /// This is typically at the start of a block.

@@ -131,25 +131,6 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::{value::Character, Value};
     /// let c = Character::try_from('a')?;
-    /// assert_eq!(Value::Character(c).as_char(), Some('a'));
-    /// assert_eq!(Value::Int32(0).as_char(), None);
-    /// # Ok::<_, noodles_sam::record::data::field::value::character::ParseError>(())
-    /// ```
-    #[deprecated(since = "0.16.0", note = "Use `Value::as_character` instead.")]
-    pub fn as_char(&self) -> Option<char> {
-        match *self {
-            Self::Character(c) => Some(char::from(c)),
-            _ => None,
-        }
-    }
-
-    /// Returns the value as a character if it is a character.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::data::field::{value::Character, Value};
-    /// let c = Character::try_from('a')?;
     /// assert_eq!(Value::Character(c).as_character(), Some(c));
     /// assert_eq!(Value::Int32(0).as_character(), None);
     /// # Ok::<_, noodles_sam::record::data::field::value::character::ParseError>(())
@@ -159,21 +140,6 @@ impl Value {
             Self::Character(c) => Some(c),
             _ => None,
         }
-    }
-
-    /// Returns whether the value is a character.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::data::field::{value::Character, Value};
-    /// assert!(Value::Character(Character::try_from('a')?).is_char());
-    /// assert!(!Value::Int32(0).is_char());
-    /// # Ok::<_, noodles_sam::record::data::field::value::character::ParseError>(())
-    /// ```
-    #[deprecated(since = "0.16.0", note = "Use `Value::is_character` instead.")]
-    pub fn is_char(&self) -> bool {
-        self.is_character()
     }
 
     /// Returns whether the value is a character.

@@ -54,30 +54,6 @@ impl Index {
             n_no_coor,
         }
     }
-
-    /// Returns the number of unplaced unmapped reads in the associated BAM file.
-    ///
-    /// An unplaced unmapped read is a read that is has neither a reference sequence ID nor
-    /// position set.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bam::bai;
-    ///
-    /// let index = bai::Index::default();
-    /// assert_eq!(index.unplaced_unmapped_read_count(), None);
-    ///
-    /// let index = bai::Index::new(Vec::new(), Some(13));
-    /// assert_eq!(index.unplaced_unmapped_read_count(), Some(13));
-    /// ```
-    #[deprecated(
-        since = "0.2.0",
-        note = "Use `unplaced_unmapped_record_count` instead."
-    )]
-    pub fn unplaced_unmapped_read_count(&self) -> Option<u64> {
-        self.n_no_coor
-    }
 }
 
 impl BinningIndex for Index {

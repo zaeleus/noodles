@@ -6,6 +6,23 @@
 
   * csi: Raise minimum supported Rust version (MSRV) to 1.64.0.
 
+### Removed
+
+  * csi: Remove `BinningIndexReferenceSequence`.
+
+    This was deprecated in noodles-csi 0.4.0. Use
+    `noodles_csi::binning_index::ReferenceSequenceExt` instead.
+
+  * csi/index: Remove `Index::unmapped_read_count`.
+
+    This was deprecated in noodles-csi 0.2.0. Use
+    `Index::unplaced_unmapped_record_count` instead.
+
+  * csi/index/builder: Remove `Index::set_n_no_coor`.
+
+    This was deprecated in noodles-csi 0.2.0. Use
+    `Builder::set_unplaced_unmapped_record_count` instead.
+
 ## 0.12.0 - 2022-11-18
 
 ### Changed

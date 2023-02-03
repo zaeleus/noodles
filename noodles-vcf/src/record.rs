@@ -20,18 +20,6 @@ pub use self::{
     position::Position, quality_score::QualityScore, reference_bases::ReferenceBases,
 };
 
-#[deprecated(
-    since = "0.8.0",
-    note = "Use `noodles_vcf::record::genotypes::{genotype, Genotype}` instead."
-)]
-pub use self::genotypes::{genotype, Genotype};
-
-#[deprecated(
-    since = "0.11.0",
-    note = "Use `noodles_vcf::record::genotypes::Keys` instead."
-)]
-pub use self::genotypes::Keys as Format;
-
 use std::{error, fmt, num, str::FromStr};
 
 use super::Header;

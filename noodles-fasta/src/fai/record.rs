@@ -37,12 +37,6 @@ impl Record {
         }
     }
 
-    /// Returns the reference sequence name.
-    #[deprecated(since = "0.3.0", note = "Use `name` instead.")]
-    pub fn reference_sequence_name(&self) -> &str {
-        self.name()
-    }
-
     /// Returns the record name.
     ///
     /// # Examples

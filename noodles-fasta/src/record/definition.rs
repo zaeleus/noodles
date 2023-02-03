@@ -33,20 +33,6 @@ impl Definition {
         }
     }
 
-    /// Returns the reference sequence name.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_fasta::record::Definition;
-    /// let definition = Definition::new("sq0", None);
-    /// assert_eq!(definition.reference_sequence_name(), "sq0");
-    /// ```
-    #[deprecated(since = "0.3.0", note = "Use `name` instead.")]
-    pub fn reference_sequence_name(&self) -> &str {
-        &self.name
-    }
-
     /// Returns the record name.
     ///
     /// # Examples
@@ -99,9 +85,6 @@ pub enum ParseError {
     MissingPrefix,
     /// The sequence name is missing.
     MissingName,
-    /// The sequence name is missing.
-    #[deprecated(since = "0.6.0", note = "Use `ParseError::MissingName` instead.")]
-    MissingReferenceSequenceName,
 }
 
 impl error::Error for ParseError {}
@@ -112,8 +95,6 @@ impl fmt::Display for ParseError {
             Self::Empty => f.write_str("empty input"),
             Self::MissingPrefix => write!(f, "missing prefix ('{PREFIX}')"),
             Self::MissingName => f.write_str("missing name"),
-            #[allow(deprecated)]
-            Self::MissingReferenceSequenceName => f.write_str("missing name"),
         }
     }
 }

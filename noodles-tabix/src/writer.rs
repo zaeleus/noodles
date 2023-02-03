@@ -9,7 +9,7 @@ use noodles_csi::{
 };
 
 use super::{
-    index::{self, reference_sequence::Bin, ReferenceSequence, ReferenceSequenceNames},
+    index::{self, header::ReferenceSequenceNames, reference_sequence::Bin, ReferenceSequence},
     Index, MAGIC_NUMBER,
 };
 

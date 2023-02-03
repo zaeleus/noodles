@@ -65,9 +65,27 @@
 
 ### Removed
 
+  * sam/header/builder: Remove `Header::new`.
+
+    This was deprecated in noodles-sam 0.12.0. Use `Header::builder`
+    instead.
+
   * sam/header/record/value/map/reference_sequence: Remove `NewError`.
 
     `ReferenceSequence::new` is now infallible.
+
+  * sam/header/record/value/map/version: Remove
+    `ParseError::MissingMajorVersion` and
+    `ParseError::MissingMinorVersion`.
+
+    These were deprecated in noodles-sam 0.12.0. Use
+    `ParseError::Invalid` instead.
+
+  * sam/record/cigar: Remove `Cigar::reference_len` and `Cigar::read_len`.
+
+    These were deprecated in noodles-sam 0.16.0. Use
+    `Cigar::alignment_span` and `Cigar::read_length`, respectively,
+    instead.
 
   * sam/record/data: Remove `TryFrom<Vec<Field>>` for `Data`.
 
@@ -76,6 +94,26 @@
   * sam/record/data/field: Remove `Field`.
 
     Use `(Tag, Value)` instead.
+
+  * sam/record/data/field/value: Remove `Value::as_char` and `Value::is_char`.
+
+    These were deprecated in noodles-sam 0.16.0. Use
+    `Value::as_character` and `Value::is_character`, respectively,
+    instead.
+
+  * sam/record/flags: Remove "pair" aliases in favor of "segmented".
+
+    These were deprecated in noodles-sam 0.9.0. Use the following
+    instead:
+
+      * `Flags::PAIRED` => `Flags::SEGMENTED`
+      * `Flags::is_paired` => `Flags::is_segmented`
+      * `Flags::PROPER_PAIR` => `Flags::PROPERLY_ALIGNED`
+      * `Flags::is_proper_pair` => `Flags::is_properly_aligned`
+      * `Flags::READ_1` => `Flags::FIRST_SEGMENT`
+      * `Flags::is_read_1` => `Flags::is_first_segment`
+      * `Flags::READ_2` => `Flags::LAST_SEGMENT`
+      * `Flags::is_read_2` => `Flags::is_last_segment`
 
 ## 0.22.1 - 2022-11-29
 

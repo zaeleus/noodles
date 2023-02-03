@@ -111,14 +111,6 @@ fn copy_from_raw_bases(dst: &mut [Base], src: &[u8]) -> io::Result<()> {
     Ok(())
 }
 
-/// Resolves the read features as CIGAR operations.
-#[deprecated(since = "0.16.0", note = "Use `Features::try_into_cigar` instead.")]
-pub fn resolve_features(features: &Features, read_length: usize) -> io::Result<sam::record::Cigar> {
-    features
-        .try_into_cigar(read_length)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-}
-
 /// Resolves the quality scores.
 pub fn resolve_quality_scores(features: &[Feature], read_len: usize) -> sam::record::QualityScores {
     use sam::record::quality_scores::Score;

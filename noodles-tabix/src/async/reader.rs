@@ -3,7 +3,7 @@ use noodles_csi::index::reference_sequence::{bin::Chunk, Metadata};
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::{
-    index::{reference_sequence::Bin, Header, ReferenceSequence, ReferenceSequenceNames},
+    index::{header::ReferenceSequenceNames, reference_sequence::Bin, Header, ReferenceSequence},
     Index,
 };
 

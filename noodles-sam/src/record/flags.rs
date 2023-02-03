@@ -2,15 +2,8 @@ bitflags::bitflags! {
     /// SAM record flags.
     #[derive(Default)]
     pub struct Flags: u16 {
-        /// Read is paired (`0x01`).
-        #[deprecated(since = "0.9.0", note = "Use `Flags::SEGMENTED` instead.")]
-        const PAIRED = 0x01;
         /// Read is segmented (0x01).
         const SEGMENTED = 0x01;
-
-        /// Both reads are properly aligned (`0x02`).
-        #[deprecated(since = "0.9.0", note = "Use `Flags::PROPERLY_ALIGNED` instead.")]
-        const PROPER_PAIR = 0x02;
         /// Each segment in the read is properly aligned (`0x02`).
         const PROPERLY_ALIGNED = 0x02;
 
@@ -23,15 +16,8 @@ bitflags::bitflags! {
         /// The sequence of the mate is reverse complemented (`0x20`).
         const MATE_REVERSE_COMPLEMENTED = 0x20;
 
-        /// First in pair (`0x40`).
-        #[deprecated(since = "0.9.0", note = "Use `Flags::FIRST_SEGMENT` instead.")]
-        const READ_1 = 0x40;
         /// First segment in the read (`0x40`).
         const FIRST_SEGMENT = 0x40;
-
-        /// Second in pair (`0x80`).
-        #[deprecated(since = "0.9.0", note = "Use `Flags::LAST_SEGMENT` instead.")]
-        const READ_2 = 0x80;
         /// Last segment in the read (`0x80`).
         const LAST_SEGMENT = 0x80;
 
@@ -47,20 +33,6 @@ bitflags::bitflags! {
 }
 
 impl Flags {
-    /// Returns whether the `PAIRED` flag is set.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::Flags;
-    /// assert!(Flags::PAIRED.is_paired());
-    /// assert!(!Flags::UNMAPPED.is_paired());
-    /// ```
-    #[deprecated(since = "0.9.0", note = "Use `Flags::is_segmented` instead.")]
-    pub fn is_paired(self) -> bool {
-        self.is_segmented()
-    }
-
     /// Returns whether the `SEGMENTED` flag is set.
     ///
     /// # Examples
@@ -72,20 +44,6 @@ impl Flags {
     /// ```
     pub fn is_segmented(self) -> bool {
         self.contains(Self::SEGMENTED)
-    }
-
-    /// Returns whether the `PROPER_PAIR` flag is set.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::Flags;
-    /// assert!(Flags::PROPER_PAIR.is_proper_pair());
-    /// assert!(!Flags::UNMAPPED.is_proper_pair());
-    /// ```
-    #[deprecated(since = "0.9.0", note = "Use `Flags::is_properly_aligned` instead.")]
-    pub fn is_proper_pair(self) -> bool {
-        self.is_properly_aligned()
     }
 
     /// Returns whether the `PROPERLY_ALIGNED` flag is set.
@@ -108,7 +66,7 @@ impl Flags {
     /// ```
     /// use noodles_sam::record::Flags;
     /// assert!(Flags::UNMAPPED.is_unmapped());
-    /// assert!(!Flags::PAIRED.is_unmapped());
+    /// assert!(!Flags::SEGMENTED.is_unmapped());
     /// ```
     pub fn is_unmapped(self) -> bool {
         self.contains(Self::UNMAPPED)
@@ -152,20 +110,6 @@ impl Flags {
         self.contains(Self::MATE_REVERSE_COMPLEMENTED)
     }
 
-    /// Returns whether the `READ_1` flag is set.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::Flags;
-    /// assert!(Flags::READ_1.is_read_1());
-    /// assert!(!Flags::UNMAPPED.is_read_1());
-    /// ```
-    #[deprecated(since = "0.9.0", note = "Use `Flags::is_first_segment` instead.")]
-    pub fn is_read_1(self) -> bool {
-        self.is_first_segment()
-    }
-
     /// Returns whether the `FIRST_SEGMENT` flag is set.
     ///
     /// # Examples
@@ -179,28 +123,14 @@ impl Flags {
         self.contains(Self::FIRST_SEGMENT)
     }
 
-    /// Returns whether the `READ_2` flag is set.
+    /// Returns whether the `LAST_SEGMENT` flag is set.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_sam::record::Flags;
-    /// assert!(Flags::READ_2.is_read_2());
-    /// assert!(!Flags::UNMAPPED.is_read_2());
-    /// ```
-    #[deprecated(since = "0.9.0", note = "Use `Flags::is_last_segment` instead.")]
-    pub fn is_read_2(self) -> bool {
-        self.is_last_segment()
-    }
-
-    /// Returns whether the `READ_2` flag is set.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::Flags;
-    /// assert!(Flags::READ_2.is_read_2());
-    /// assert!(!Flags::UNMAPPED.is_read_2());
+    /// assert!(Flags::LAST_SEGMENT.is_last_segment());
+    /// assert!(!Flags::UNMAPPED.is_last_segment());
     /// ```
     pub fn is_last_segment(self) -> bool {
         self.contains(Self::LAST_SEGMENT)

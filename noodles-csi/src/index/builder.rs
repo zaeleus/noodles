@@ -73,23 +73,6 @@ impl Builder {
         self
     }
 
-    /// Sets an unmapped read count.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_csi::{self as csi, BinningIndex};
-    /// let index = csi::Index::builder().set_n_no_coor(21).build();
-    /// assert_eq!(index.unplaced_unmapped_record_count(), Some(21));
-    /// ```
-    #[deprecated(
-        since = "0.2.0",
-        note = "Use `set_unplaced_unmapped_record_count` instead."
-    )]
-    pub fn set_n_no_coor(self, n_no_coor: u64) -> Self {
-        self.set_unplaced_unmapped_record_count(n_no_coor)
-    }
-
     /// Sets an unplaced, unmapped record count.
     ///
     /// # Examples

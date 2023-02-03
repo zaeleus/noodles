@@ -12,12 +12,6 @@ mod writer;
 
 pub use self::{binning_index::BinningIndex, index::Index, reader::Reader, writer::Writer};
 
-#[deprecated(
-    since = "0.4.0",
-    note = "Use `csi::binning_index::ReferenceSequenceExt` instead."
-)]
-pub use binning_index::ReferenceSequenceExt as BinningIndexReferenceSequence;
-
 #[cfg(feature = "async")]
 pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};
 

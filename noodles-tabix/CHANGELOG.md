@@ -11,6 +11,28 @@
 
   * tabix: Raise minimum supported Rust version (MSRV) to 1.64.0.
 
+### Removed
+
+  * tabix/index: Remove `ReferenceSequenceNames`.
+
+    This was deprecated in noodles-tabix 0.11.0. Use
+    `noodles_tabix::index::header::ReferenceSequenceNames` instead.
+
+  * tabix/index: Remove `Index::reference_sequence_names`.
+
+    This was deprecated in noodles-tabix 0.11.0. Use
+    `Header::reference_sequence_names` instead.
+
+  * tabix/index: Remove `Index::unmapped_read_count`.
+
+    This was deprecated in noodles-tabix 0.2.0. Use
+    `Index::unplaced_unmapped_record_count` instead.
+
+  * tabix/index/builder: Remove `Builder::set_unmapped_read_count`.
+
+    This was deprecated in noodles-tabix 0.3.0. Use
+    `Builder::set_unplaced_unmapped_record_count` instead.
+
 ## 0.15.0 - 2022-11-18
 
 ### Changed

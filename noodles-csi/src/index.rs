@@ -72,23 +72,6 @@ impl Index {
     pub fn aux(&self) -> &[u8] {
         &self.aux
     }
-
-    /// Returns the number of unmapped records in the associated file.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_csi as csi;
-    /// let index = csi::Index::default();
-    /// assert!(index.unmapped_read_count().is_none());
-    /// ```
-    #[deprecated(
-        since = "0.2.0",
-        note = "Use `unplaced_unmapped_record_count` instead."
-    )]
-    pub fn unmapped_read_count(&self) -> Option<u64> {
-        self.n_no_coor
-    }
 }
 
 impl BinningIndex for Index {

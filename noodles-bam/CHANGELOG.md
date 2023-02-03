@@ -6,6 +6,18 @@
 
   * bam: Raise minimum supported Rust version (MSRV) to 1.64.0.
 
+### Removed
+
+  * bam/bai/index: Remove `Index::unplaced_unmapped_read_count`.
+
+    This was deprecated in noodles-bam 0.2.0. Use
+    `Index::unplaced_unmapped_record_count` instead.
+
+  * bam/record: Remove `reference_sequence_id`.
+
+    This was deprecated in noodles-bam 0.19.0. Use `-1` instead of
+    `reference_sequence_id::UNAMPPED`.
+
 ## 0.25.1 - 2022-11-29
 
 ### Changed
