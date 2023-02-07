@@ -7,8 +7,7 @@ use std::{io, mem};
 
 use bytes::Buf;
 use noodles_sam::record::data::field::{
-    value::Character,
-    value::{Subtype, Type},
+    value::{Character, Subtype, Type},
     Value,
 };
 
@@ -43,7 +42,12 @@ where
         Type::UInt32 => get_u32_value(src),
         Type::Float => get_f32_value(src),
         Type::String => get_string(src).map(Value::String),
-        Type::Hex => get_string(src).map(Value::Hex),
+        Type::Hex => get_string(src)
+            .and_then(|s| {
+                s.parse()
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })
+            .map(Value::Hex),
         Type::Array => get_array_value(src),
     }
 }
@@ -266,7 +270,7 @@ mod tests {
         t(
             &[b'C', b'A', b'F', b'E', 0x00],
             Type::Hex,
-            Value::Hex(String::from("CAFE")),
+            Value::Hex("CAFE".parse()?),
         )?;
 
         t(

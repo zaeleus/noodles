@@ -26,7 +26,8 @@ where
         Value::Int32(n) => num::write_i32(writer, *n),
         Value::UInt32(n) => num::write_u32(writer, *n),
         Value::Float(n) => num::write_f32(writer, *n),
-        Value::String(s) | Value::Hex(s) => writer.write_all(s.as_bytes()),
+        Value::String(s) => writer.write_all(s.as_bytes()),
+        Value::Hex(s) => writer.write_all(s.as_ref().as_bytes()),
         Value::Int8Array(values) => {
             write_subtype(writer, Subtype::Int8)?;
 
@@ -135,7 +136,7 @@ mod tests {
         t(&mut buf, &Value::UInt32(13), b"13")?;
         t(&mut buf, &Value::Float(8.0), b"8")?;
         t(&mut buf, &Value::String(String::from("ndls")), b"ndls")?;
-        t(&mut buf, &Value::Hex(String::from("CAFE")), b"CAFE")?;
+        t(&mut buf, &Value::Hex("CAFE".parse()?), b"CAFE")?;
         t(&mut buf, &Value::Int8Array(vec![1, -2]), b"c,1,-2")?;
         t(&mut buf, &Value::UInt8Array(vec![3, 5]), b"C,3,5")?;
         t(&mut buf, &Value::Int16Array(vec![8, -13]), b"s,8,-13")?;

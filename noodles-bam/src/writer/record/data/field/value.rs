@@ -35,7 +35,8 @@ where
         Value::Int32(n) => dst.put_i32_le(*n),
         Value::UInt32(n) => dst.put_u32_le(*n),
         Value::Float(n) => dst.put_f32_le(*n),
-        Value::String(s) | Value::Hex(s) => put_string(dst, s)?,
+        Value::String(s) => put_string(dst, s)?,
+        Value::Hex(s) => put_string(dst, s.as_ref())?,
         Value::Int8Array(values) => {
             put_array_header(dst, Subtype::Int8, values.len())?;
 
@@ -149,7 +150,7 @@ mod tests {
 
         t(
             &mut buf,
-            &Value::Hex(String::from("CAFE")),
+            &Value::Hex("CAFE".parse()?),
             &[b'C', b'A', b'F', b'E', 0x00],
         )?;
 

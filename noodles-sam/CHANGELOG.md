@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * sam/record/data/field/value: Add hex value wrapper (`Hex`).
+
 ## 0.23.0 - 2023-02-03
 
 ### Added

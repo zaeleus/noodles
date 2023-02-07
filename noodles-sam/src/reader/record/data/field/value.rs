@@ -7,7 +7,7 @@ use std::{io, str};
 
 use self::subtype::parse_subtype;
 use crate::record::data::field::{
-    value::{Character, Subtype, Type},
+    value::{Character, Hex, Subtype, Type},
     Value,
 };
 
@@ -60,17 +60,9 @@ fn parse_string_value(src: &[u8]) -> io::Result<Value> {
 }
 
 fn parse_hex_value(src: &[u8]) -> io::Result<Value> {
-    fn is_upper_ascii_hexdigit(n: u8) -> bool {
-        matches!(n, b'0'..=b'9' | b'A'..=b'F')
-    }
-
-    if src.len() % 2 == 0 && src.iter().copied().all(is_upper_ascii_hexdigit) {
-        str::from_utf8(src)
-            .map(|s| Value::Hex(s.into()))
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    } else {
-        Err(io::Error::from(io::ErrorKind::InvalidData))
-    }
+    Hex::try_from(src)
+        .map(Value::Hex)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 fn parse_array_value(src: &mut &[u8]) -> io::Result<Value> {
@@ -241,7 +233,7 @@ mod tests {
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 
-        t(b"CAFE", Type::Hex, Value::Hex(String::from("CAFE")))?;
+        t(b"CAFE", Type::Hex, Value::Hex("CAFE".parse()?))?;
         assert!(matches!(
             parse_value(&mut &b"cafe"[..], Type::Hex),
             Err(e) if e.kind() == io::ErrorKind::InvalidData

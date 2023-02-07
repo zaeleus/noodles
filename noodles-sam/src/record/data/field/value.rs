@@ -1,10 +1,11 @@
 //! SAM record data field value and types.
 
 pub mod character;
+pub mod hex;
 pub mod subtype;
 pub mod ty;
 
-pub use self::{character::Character, subtype::Subtype, ty::Type};
+pub use self::{character::Character, hex::Hex, subtype::Subtype, ty::Type};
 
 use std::{
     error,
@@ -34,7 +35,7 @@ pub enum Value {
     /// A string (`Z`).
     String(String),
     /// A hex string (`H`).
-    Hex(String),
+    Hex(Hex),
     /// An 8-bit integer array (`Bc`).
     Int8Array(Vec<i8>),
     /// An 8-bit unsigned integer array (`BC`).
@@ -294,11 +295,13 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
-    /// assert_eq!(Value::Hex(String::from("CAFE")).as_hex(), Some("CAFE"));
+    /// use noodles_sam::record::data::field::{value::Hex, Value};
+    /// let hex: Hex = "CAFE".parse()?;
+    /// assert_eq!(Value::Hex(hex.clone()).as_hex(), Some(&hex));
     /// assert_eq!(Value::Int32(0).as_hex(), None);
+    /// # Ok::<_, noodles_sam::record::data::field::value::hex::ParseError>(())
     /// ```
-    pub fn as_hex(&self) -> Option<&str> {
+    pub fn as_hex(&self) -> Option<&Hex> {
         match *self {
             Self::Hex(ref h) => Some(h),
             _ => None,
@@ -311,8 +314,9 @@ impl Value {
     ///
     /// ```
     /// use noodles_sam::record::data::field::Value;
-    /// assert!(Value::Hex(String::from("CAFE")).is_hex());
+    /// assert!(Value::Hex("CAFE".parse()?).is_hex());
     /// assert!(!Value::Int32(0).is_hex());
+    /// # Ok::<_, noodles_sam::record::data::field::value::hex::ParseError>(())
     /// ```
     pub fn is_hex(&self) -> bool {
         matches!(self, Self::Hex(_))
@@ -672,7 +676,7 @@ impl fmt::Display for Value {
             Self::UInt32(n) => write!(f, "{n}"),
             Self::Float(n) => write!(f, "{n}"),
             Self::String(s) => f.write_str(s),
-            Self::Hex(s) => f.write_str(s),
+            Self::Hex(s) => write!(f, "{s}"),
             Self::Int8Array(values) => {
                 f.write_char(char::from(Subtype::Int8))?;
 
@@ -804,7 +808,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_ty() -> Result<(), character::ParseError> {
+    fn test_ty() -> Result<(), Box<dyn std::error::Error>> {
         assert_eq!(
             Value::Character(Character::try_from('n')?).ty(),
             Type::Character
@@ -812,7 +816,7 @@ mod tests {
         assert_eq!(Value::Int32(0).ty(), Type::Int32);
         assert_eq!(Value::Float(0.0).ty(), Type::Float);
         assert_eq!(Value::String(String::from("noodles")).ty(), Type::String);
-        assert_eq!(Value::Hex(String::from("CAFE")).ty(), Type::Hex);
+        assert_eq!(Value::Hex("CAFE".parse()?).ty(), Type::Hex);
         assert_eq!(Value::Int8Array(vec![0]).ty(), Type::Array);
         assert_eq!(Value::UInt8Array(vec![0]).ty(), Type::Array);
         assert_eq!(Value::Int16Array(vec![0]).ty(), Type::Array);
@@ -825,12 +829,12 @@ mod tests {
     }
 
     #[test]
-    fn test_subtype() -> Result<(), character::ParseError> {
+    fn test_subtype() -> Result<(), Box<dyn std::error::Error>> {
         assert_eq!(Value::Character(Character::try_from('n')?).subtype(), None);
         assert_eq!(Value::Int32(0).subtype(), None);
         assert_eq!(Value::Float(0.0).subtype(), None);
         assert_eq!(Value::String(String::from("noodles")).subtype(), None);
-        assert_eq!(Value::Hex(String::from("CAFE")).subtype(), None);
+        assert_eq!(Value::Hex("CAFE".parse()?).subtype(), None);
         assert_eq!(Value::Int8Array(vec![0]).subtype(), Some(Subtype::Int8));
         assert_eq!(Value::UInt8Array(vec![0]).subtype(), Some(Subtype::UInt8));
         assert_eq!(Value::Int16Array(vec![0]).subtype(), Some(Subtype::Int16));
@@ -981,7 +985,7 @@ mod tests {
     }
 
     #[test]
-    fn test_fmt() -> Result<(), character::ParseError> {
+    fn test_fmt() -> Result<(), Box<dyn std::error::Error>> {
         assert_eq!(Value::Character(Character::try_from('n')?).to_string(), "n");
         assert_eq!(Value::Int32(13).to_string(), "13");
         assert_eq!(Value::Float(0.0).to_string(), "0");
@@ -992,8 +996,8 @@ mod tests {
             "noodles"
         );
 
-        assert_eq!(Value::Hex(String::new()).to_string(), "");
-        assert_eq!(Value::Hex(String::from("CAFE")).to_string(), "CAFE");
+        assert_eq!(Value::Hex(Hex::default()).to_string(), "");
+        assert_eq!(Value::Hex("CAFE".parse()?).to_string(), "CAFE");
 
         assert_eq!(Value::Int8Array(Vec::new()).to_string(), "c");
         assert_eq!(Value::Int8Array(vec![1, -2]).to_string(), "c,1,-2");
