@@ -27,7 +27,7 @@ impl fmt::Display for Chromosome {
 pub enum ParseError {
     /// The input is empty.
     Empty,
-    /// The input is missing (`.`).
+    /// The input is missing.
     Missing,
     /// The input is invalid.
     Invalid,
@@ -39,7 +39,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
-            Self::Missing => f.write_str("missing input (`.`)"),
+            Self::Missing => f.write_str("missing input"),
             Self::Invalid => f.write_str("invalid input"),
         }
     }
