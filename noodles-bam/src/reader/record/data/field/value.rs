@@ -42,12 +42,7 @@ where
         Type::UInt32 => get_u32_value(src),
         Type::Float => get_f32_value(src),
         Type::String => get_string(src).map(Value::String),
-        Type::Hex => get_string(src)
-            .and_then(|s| {
-                s.parse()
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            })
-            .map(Value::Hex),
+        Type::Hex => get_hex_value(src),
         Type::Array => get_array_value(src),
     }
 }
@@ -160,6 +155,18 @@ where
     src.advance(1); // Discard the NUL terminator.
 
     String::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+}
+
+fn get_hex_value<B>(src: &mut B) -> io::Result<Value>
+where
+    B: Buf,
+{
+    get_string(src)
+        .and_then(|s| {
+            s.parse()
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })
+        .map(Value::Hex)
 }
 
 fn get_array_value<B>(src: &mut B) -> io::Result<Value>
