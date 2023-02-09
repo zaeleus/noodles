@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * vcf/header/record/parser: Disallow empty values for unstructured lines.
+
 ## 0.24.0 - 2023-02-03
 
 ### Added

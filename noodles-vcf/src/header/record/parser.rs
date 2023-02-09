@@ -266,7 +266,16 @@ fn generic_structure(input: &str) -> IResult<&str, Value> {
 }
 
 fn generic_value(input: &str) -> IResult<&str, Value> {
-    map(alt((string, value)), Value::String)(input)
+    let (value, input) = input.split_at(input.len());
+
+    if value.is_empty() {
+        Err(nom::Err::Error(nom::error_position!(
+            input,
+            nom::error::ErrorKind::Eof
+        )))
+    } else {
+        Ok((input, Value::String(value.into())))
+    }
 }
 
 fn record_key(input: &str) -> IResult<&str, &str> {
@@ -320,6 +329,8 @@ mod tests {
         let (_, (key, value)) = parse("##reference=file:///tmp/ref.fasta")?;
         assert_eq!(key, "reference");
         assert_eq!(value, Value::String(String::from("file:///tmp/ref.fasta")));
+
+        assert!(parse("##reference=").is_err());
 
         Ok(())
     }
