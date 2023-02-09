@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+  * cram: Add `libdeflate` feature to enable using libdeflate for gzip streams.
+
 ## 0.23.0 - 2023-02-03
 
 ### Added

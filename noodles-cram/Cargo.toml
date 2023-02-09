@@ -12,6 +12,7 @@ documentation = "https://docs.rs/noodles-cram"
 
 [features]
 async = ["async-compression", "futures", "pin-project-lite", "tokio"]
+libdeflate = ["libdeflater"]
 
 [dependencies]
 bitflags.workspace = true
@@ -30,6 +31,8 @@ async-compression = { version = "0.3.8", optional = true, features = ["gzip", "t
 futures = { workspace = true, optional = true, features = ["std"] }
 pin-project-lite = { version = "0.2.6", optional = true }
 tokio = { workspace = true, optional = true, features = ["fs", "io-util"] }
+
+libdeflater = { workspace = true, optional = true }
 
 [dev-dependencies]
 noodles-sam = { path = "../noodles-sam", version = "0.23.0", features = ["async"] }
