@@ -5,7 +5,7 @@ mod builder;
 pub mod contig;
 mod filter;
 pub mod format;
-mod info;
+pub mod info;
 mod meta;
 mod other;
 mod tag;

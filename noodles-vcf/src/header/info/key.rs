@@ -1,7 +1,6 @@
 //! VCF header info key.
 
-use super::Type;
-use crate::header::Number;
+use crate::header::{record::value::map::info::Type, Number};
 
 use std::{error, fmt, str::FromStr};
 

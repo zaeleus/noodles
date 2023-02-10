@@ -5,8 +5,10 @@ use std::{error, fmt, num, str};
 use super::MISSING_VALUE;
 use crate::{
     header::{
-        info::Type,
-        record::value::{map::Info, Map},
+        record::value::{
+            map::{info::Type, Info},
+            Map,
+        },
         Number,
     },
     record::value::{self, percent_decode},

@@ -2,9 +2,9 @@ use std::io::{self, Read};
 
 use noodles_vcf::{
     self as vcf,
-    header::{
-        info::Type,
-        record::value::{map, Map},
+    header::record::value::{
+        map::{self, info::Type},
+        Map,
     },
 };
 

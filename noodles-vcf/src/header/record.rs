@@ -269,7 +269,7 @@ fn validate_format_type_fields(
 fn validate_info_type_fields(
     id: &super::info::Key,
     actual_number: super::Number,
-    actual_type: super::info::Type,
+    actual_type: super::record::value::map::info::Type,
 ) -> Result<(), ParseError> {
     use super::info::key;
 

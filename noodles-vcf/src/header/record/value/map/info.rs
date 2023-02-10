@@ -1,12 +1,15 @@
+//! Inner VCF header INFO map value.
+
+mod ty;
+
+pub use self::ty::Type;
+
 use std::fmt;
 
 use indexmap::IndexMap;
 
 use super::{builder, tag, Described, Fields, Indexed, Inner, Map, TryFromFieldsError, Typed};
-use crate::header::{
-    info::{Key, Type},
-    FileFormat, Number,
-};
+use crate::header::{info::Key, FileFormat, Number};
 
 type StandardTag = tag::TypedDescribedIndexed;
 type Tag = tag::Tag<StandardTag>;
@@ -72,8 +75,11 @@ impl Map<Info> {
     ///
     /// ```
     /// use noodles_vcf::header::{
-    ///     info::{Key, Type},
-    ///     record::value::{map::Info, Map},
+    ///     info::Key,
+    ///     record::value::{
+    ///         map::{info::Type, Info},
+    ///         Map,
+    ///     },
     ///     Number,
     /// };
     ///

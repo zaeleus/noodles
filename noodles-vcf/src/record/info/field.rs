@@ -8,8 +8,11 @@ use std::{error, fmt};
 
 use crate::header::{
     self,
-    info::{Key, Type},
-    record::value::{map::Info, Map},
+    info::Key,
+    record::value::{
+        map::{info::Type, Info},
+        Map,
+    },
     Infos,
 };
 
