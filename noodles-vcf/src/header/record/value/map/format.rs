@@ -1,12 +1,15 @@
+//! Inner VCF header FORMAT map value.
+
+mod ty;
+
+pub use self::ty::Type;
+
 use core::fmt;
 
 use indexmap::IndexMap;
 
 use super::{builder, tag, Described, Fields, Indexed, Inner, Map, TryFromFieldsError, Typed};
-use crate::header::{
-    format::{Key, Type},
-    FileFormat, Number,
-};
+use crate::header::{format::Key, FileFormat, Number};
 
 type StandardTag = tag::TypedDescribedIndexed;
 type Tag = tag::Tag<StandardTag>;
@@ -72,8 +75,11 @@ impl Map<Format> {
     ///
     /// ```
     /// use noodles_vcf::header::{
-    ///     format::{Key, Type},
-    ///     record::value::{map::Format, Map},
+    ///     format::Key,
+    ///     record::value::{
+    ///         map::{format::Type, Format},
+    ///         Map,
+    ///     },
     ///     Number,
     /// };
     ///

@@ -4,7 +4,7 @@ mod alternative_allele;
 mod builder;
 pub mod contig;
 mod filter;
-mod format;
+pub mod format;
 mod info;
 mod meta;
 mod other;

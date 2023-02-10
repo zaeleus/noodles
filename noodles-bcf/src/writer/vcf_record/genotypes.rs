@@ -90,7 +90,7 @@ pub fn write_genotype_field_values<W>(
 where
     W: Write,
 {
-    use vcf::header::{format, Number};
+    use vcf::header::{record::value::map::format, Number};
 
     match format.ty() {
         format::Type::Integer => match format.number() {
@@ -774,7 +774,7 @@ fn encode_genotype_genotype_field_values(genotype: &str) -> io::Result<Vec<i8>> 
 
 #[cfg(test)]
 mod tests {
-    use noodles_vcf::header::{format, Number};
+    use noodles_vcf::header::{record::value::map::format, Number};
 
     use super::*;
 

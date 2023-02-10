@@ -6,6 +6,10 @@
 
   * vcf/header/record/parser: Disallow empty values for unstructured lines.
 
+  * vcf/header: Move `header::format::Type` to record map value.
+
+    Use `header::record::value::map::format::Type` instead.
+
 ## 0.24.0 - 2023-02-03
 
 ### Added

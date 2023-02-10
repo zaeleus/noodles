@@ -2,7 +2,7 @@
 
 use std::{error, fmt, str::FromStr};
 
-use crate::header::{format::Type, Number};
+use crate::header::{record::value::map::format::Type, Number};
 
 /// A VCF header format key.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]

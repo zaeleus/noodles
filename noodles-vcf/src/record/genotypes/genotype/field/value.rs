@@ -8,8 +8,10 @@ use std::{error, fmt, num, str};
 
 use crate::{
     header::{
-        format::Type,
-        record::value::{map::Format, Map},
+        record::value::{
+            map::{format::Type, Format},
+            Map,
+        },
         Number,
     },
     record::value::{self, percent_decode},

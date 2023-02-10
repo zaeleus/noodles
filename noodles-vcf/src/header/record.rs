@@ -247,7 +247,7 @@ fn remove_field(fields: &mut Vec<(String, String)>, key: &str) -> Option<String>
 fn validate_format_type_fields(
     id: &super::format::Key,
     actual_number: super::Number,
-    actual_type: super::format::Type,
+    actual_type: super::record::value::map::format::Type,
 ) -> Result<(), ParseError> {
     use crate::header::format::key;
 
