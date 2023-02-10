@@ -5,9 +5,9 @@ use std::{error, fmt, str::FromStr};
 /// A VCF record genotype value allele phasing.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Phasing {
-    /// The genotype is phased.
+    /// The allele is phased.
     Phased,
-    /// The genotype is unphased.
+    /// The allele is unphased.
     Unphased,
 }
 
