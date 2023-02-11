@@ -34,14 +34,18 @@ pub enum ParseError {
     Invalid(TryFromFieldsError),
     /// A field is invalid.
     InvalidField(field::ParseError),
+    /// The genotype field value is unexpected.
+    ///
+    /// There are fewer keys than values.
+    UnexpectedValue,
 }
 
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
-            Self::Empty => None,
             Self::Invalid(e) => Some(e),
             Self::InvalidField(e) => Some(e),
+            _ => None,
         }
     }
 }
@@ -52,6 +56,7 @@ impl fmt::Display for ParseError {
             Self::Empty => f.write_str("empty input"),
             Self::Invalid(_) => f.write_str("invalid input"),
             Self::InvalidField(_) => f.write_str("invalid field"),
+            Self::UnexpectedValue => f.write_str("unexpected value"),
         }
     }
 }
@@ -124,8 +129,9 @@ impl Genotype {
         }
 
         let mut fields = Vec::with_capacity(keys.len());
+        let mut raw_values = s.split(DELIMITER);
 
-        for (raw_value, key) in s.split(DELIMITER).zip(keys.iter()) {
+        for (key, raw_value) in keys.iter().zip(&mut raw_values) {
             let field = if let Some(format) = formats.get(key) {
                 let value = parse_value(format, raw_value).map_err(ParseError::InvalidField)?;
                 (key.clone(), value)
@@ -138,7 +144,11 @@ impl Genotype {
             fields.push(field);
         }
 
-        Self::try_from(fields).map_err(ParseError::Invalid)
+        if raw_values.next().is_some() {
+            Err(ParseError::UnexpectedValue)
+        } else {
+            Self::try_from(fields).map_err(ParseError::Invalid)
+        }
     }
 
     /// Returns the VCF record genotypes genotype value.
@@ -317,6 +327,12 @@ mod tests {
         assert_eq!(
             Genotype::parse("", header.formats(), &keys),
             Err(ParseError::Empty)
+        );
+
+        let keys = "GT".parse()?;
+        assert_eq!(
+            Genotype::parse("0|0:13", header.formats(), &keys),
+            Err(ParseError::UnexpectedValue)
         );
 
         Ok(())

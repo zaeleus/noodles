@@ -21,6 +21,11 @@
 
     This makes the header line reader consistent with the record line reader.
 
+  * vcf/record/genotypes/genotype: Fail parsing when there are more values than
+    keys.
+
+    This previously would silently drop values after the last key.
+
 ## 0.24.0 - 2023-02-03
 
 ### Added
