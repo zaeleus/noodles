@@ -322,7 +322,10 @@ where
     loop {
         let buf = reader.fill_buf()?;
 
-        if (is_first_line || is_eol) && buf.first().map(|&b| b != HEADER_PREFIX).unwrap_or(true) {
+        let is_eof = buf.is_empty();
+        let is_end_of_header = || (is_first_line || is_eol) && buf[0] != HEADER_PREFIX;
+
+        if is_eof || is_end_of_header() {
             break;
         }
 
@@ -453,6 +456,15 @@ sq0\t13
         let actual = read_header(&mut reader)?;
         assert!(actual.is_empty());
 
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_header_with_missing_end_of_line() -> io::Result<()> {
+        let expected = "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
+        let mut reader = expected.as_bytes();
+        let actual = read_header(&mut reader)?;
+        assert_eq!(actual, expected);
         Ok(())
     }
 

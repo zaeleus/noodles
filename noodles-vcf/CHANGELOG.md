@@ -14,6 +14,13 @@
 
     Use `header::record::value::map::info::Type` instead.
 
+### Fixed
+
+  * vcf/reader: Fix infinite loop when an input is only a header with no final
+    newline.
+
+    This makes the header line reader consistent with the record line reader.
+
 ## 0.24.0 - 2023-02-03
 
 ### Added
