@@ -315,12 +315,14 @@ where
     const LINE_FEED: u8 = b'\n';
 
     let mut header_buf = Vec::new();
+
+    let mut is_first_line = true;
     let mut is_eol = false;
 
-    for i in 0.. {
+    loop {
         let buf = reader.fill_buf()?;
 
-        if (i == 0 || is_eol) && buf.first().map(|&b| b != HEADER_PREFIX).unwrap_or(true) {
+        if (is_first_line || is_eol) && buf.first().map(|&b| b != HEADER_PREFIX).unwrap_or(true) {
             break;
         }
 
@@ -332,6 +334,7 @@ where
             (false, buf.len())
         };
 
+        is_first_line = false;
         is_eol = read_eol;
 
         reader.consume(len);
