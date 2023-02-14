@@ -8,8 +8,8 @@ fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
     let index = gzi::read(src)?;
 
-    for record in &index {
-        println!("{}\t{}", record.0, record.1);
+    for (compressed_position, uncompressed_position) in &index {
+        println!("{compressed_position}\t{uncompressed_position}");
     }
 
     Ok(())
