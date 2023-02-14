@@ -1,7 +1,9 @@
-#![allow(dead_code)]
+//! VCF header paser.
 
 mod builder;
 mod file_format_option;
+
+pub use self::builder::Builder;
 
 use std::error;
 
@@ -10,7 +12,7 @@ use indexmap::IndexSet;
 use super::{
     file_format::{self, FileFormat},
     record::{self, Record},
-    Builder, Header,
+    Header,
 };
 
 use self::file_format_option::FileFormatOption;
@@ -140,9 +142,9 @@ fn parse_file_format(s: &str) -> Result<FileFormat, ParseError> {
 
 fn parse_record(
     file_format: FileFormat,
-    mut builder: Builder,
+    mut builder: super::Builder,
     line: &str,
-) -> Result<Builder, ParseError> {
+) -> Result<super::Builder, ParseError> {
     let record = Record::try_from((file_format, line)).map_err(ParseError::InvalidRecord)?;
 
     builder = match record {
@@ -163,7 +165,7 @@ fn parse_record(
     Ok(builder)
 }
 
-fn parse_header(mut builder: Builder, line: &str) -> Result<Builder, ParseError> {
+fn parse_header(mut builder: super::Builder, line: &str) -> Result<super::Builder, ParseError> {
     static HEADERS: &[&str] = &[
         "#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO",
     ];

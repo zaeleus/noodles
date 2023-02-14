@@ -6,7 +6,7 @@ mod fmt;
 pub mod format;
 pub mod info;
 mod number;
-mod parser;
+pub mod parser;
 pub mod record;
 
 pub use self::{
