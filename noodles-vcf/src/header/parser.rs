@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+
+mod builder;
 mod file_format_option;
 
 use std::error;
@@ -19,6 +22,11 @@ pub struct Parser {
 }
 
 impl Parser {
+    /// Creates a VCF header parser builder.
+    pub fn builder() -> Builder {
+        Builder::default()
+    }
+
     /// Parses a raw VCF header.
     pub fn parse(&self, s: &str) -> Result<Header, ParseError> {
         let mut builder = Header::builder();
