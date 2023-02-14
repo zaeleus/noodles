@@ -8,6 +8,17 @@ use super::{
     Builder, Header,
 };
 
+/// A VCF header parser.
+#[derive(Debug, Default, Eq, PartialEq)]
+pub struct Parser;
+
+impl Parser {
+    /// Parses a raw VCF header.
+    pub fn parse(&self, s: &str) -> Result<Header, ParseError> {
+        parse(s)
+    }
+}
+
 /// An error returned when a raw VCF header fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {

@@ -736,7 +736,8 @@ impl FromStr for Header {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        parser::parse(s)
+        use self::parser::Parser;
+        Parser::default().parse(s)
     }
 }
 
