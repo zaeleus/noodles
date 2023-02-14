@@ -1,3 +1,5 @@
+mod file_format_option;
+
 use std::error;
 
 use indexmap::IndexSet;
@@ -8,14 +10,51 @@ use super::{
     Builder, Header,
 };
 
+use self::file_format_option::FileFormatOption;
+
 /// A VCF header parser.
 #[derive(Debug, Default, Eq, PartialEq)]
-pub struct Parser;
+pub struct Parser {
+    file_format_option: FileFormatOption,
+}
 
 impl Parser {
     /// Parses a raw VCF header.
     pub fn parse(&self, s: &str) -> Result<Header, ParseError> {
-        parse(s)
+        let mut builder = Header::builder();
+        let mut lines = s.lines();
+
+        let line = lines.next().ok_or(ParseError::MissingFileFormat)?;
+        let file_format = match parse_file_format(line) {
+            Ok(f) => match self.file_format_option {
+                FileFormatOption::Auto => f,
+            },
+            Err(e) => return Err(e),
+        };
+
+        builder = builder.set_file_format(file_format);
+
+        let mut has_header = false;
+
+        for line in &mut lines {
+            if line.starts_with("#CHROM") {
+                builder = parse_header(builder, line)?;
+                has_header = true;
+                break;
+            }
+
+            builder = parse_record(file_format, builder, line)?;
+        }
+
+        if !has_header {
+            return Err(ParseError::MissingHeader);
+        }
+
+        if lines.next().is_some() {
+            return Err(ParseError::ExpectedEof);
+        }
+
+        Ok(builder.build())
     }
 }
 
@@ -80,38 +119,6 @@ impl std::fmt::Display for ParseError {
             ),
         }
     }
-}
-
-pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
-    let mut builder = Header::builder();
-    let mut lines = s.lines();
-
-    let line = lines.next().ok_or(ParseError::MissingFileFormat)?;
-    let file_format = parse_file_format(line)?;
-
-    builder = builder.set_file_format(file_format);
-
-    let mut has_header = false;
-
-    for line in &mut lines {
-        if line.starts_with("#CHROM") {
-            builder = parse_header(builder, line)?;
-            has_header = true;
-            break;
-        }
-
-        builder = parse_record(file_format, builder, line)?;
-    }
-
-    if !has_header {
-        return Err(ParseError::MissingHeader);
-    }
-
-    if lines.next().is_some() {
-        return Err(ParseError::ExpectedEof);
-    }
-
-    Ok(builder.build())
 }
 
 fn parse_file_format(s: &str) -> Result<FileFormat, ParseError> {
@@ -211,7 +218,7 @@ mod tests {
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0
 "#;
 
-        let header = parse(s)?;
+        let header = Parser::default().parse(s)?;
 
         assert_eq!(header.file_format(), FileFormat::new(4, 3));
         assert_eq!(header.infos().len(), 1);
@@ -241,7 +248,10 @@ mod tests {
         let s = r#"##ALT=<ID=DEL,Description="Deletion">
 "#;
 
-        assert_eq!(parse(s), Err(ParseError::MissingFileFormat));
+        assert_eq!(
+            Parser::default().parse(s),
+            Err(ParseError::MissingFileFormat)
+        );
     }
 
     #[test]
@@ -249,7 +259,7 @@ mod tests {
         let s = r#"##fileformat=VCFv4.3
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
 "#;
-        let header = parse(s)?;
+        let header = Parser::default().parse(s)?;
         assert!(header.assembly().is_none());
         Ok(())
     }
@@ -261,7 +271,7 @@ mod tests {
 ##contig=<ID=sq0,length=8>
 "#;
 
-        assert_eq!(parse(s), Err(ParseError::ExpectedEof));
+        assert_eq!(Parser::default().parse(s), Err(ParseError::ExpectedEof));
     }
 
     #[test]
@@ -271,14 +281,17 @@ mod tests {
 ##fileformat=VCFv4.3
 ";
 
-        assert_eq!(parse(s), Err(ParseError::UnexpectedFileFormat));
+        assert_eq!(
+            Parser::default().parse(s),
+            Err(ParseError::UnexpectedFileFormat)
+        );
     }
 
     #[test]
     fn test_from_str_with_missing_headers() {
         let s = "##fileformat=VCFv4.3
 ";
-        assert_eq!(parse(s), Err(ParseError::MissingHeader));
+        assert_eq!(Parser::default().parse(s), Err(ParseError::MissingHeader));
     }
 
     #[test]
@@ -288,7 +301,7 @@ mod tests {
 ";
 
         assert_eq!(
-            parse(s),
+            Parser::default().parse(s),
             Err(ParseError::InvalidHeader(
                 String::from("QUALITY"),
                 String::from("QUAL")
@@ -300,7 +313,7 @@ mod tests {
 ";
 
         assert_eq!(
-            parse(s),
+            Parser::default().parse(s),
             Err(ParseError::InvalidHeader(
                 String::from(""),
                 String::from("REF")
@@ -312,7 +325,7 @@ mod tests {
 ";
 
         assert_eq!(
-            parse(s),
+            Parser::default().parse(s),
             Err(ParseError::InvalidHeader(
                 String::from("sample0"),
                 String::from("FORMAT")
@@ -327,7 +340,7 @@ mod tests {
 ";
 
         assert_eq!(
-            parse(s),
+            Parser::default().parse(s),
             Err(ParseError::DuplicateSampleName(String::from("sample0")))
         );
     }
