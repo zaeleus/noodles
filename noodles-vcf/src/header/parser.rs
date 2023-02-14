@@ -38,6 +38,7 @@ impl Parser {
         let file_format = match parse_file_format(line) {
             Ok(f) => match self.file_format_option {
                 FileFormatOption::Auto => f,
+                FileFormatOption::FileFormat(g) => g,
             },
             Err(e) => return Err(e),
         };
