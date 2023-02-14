@@ -10,7 +10,8 @@ pub mod parser;
 pub mod record;
 
 pub use self::{
-    builder::Builder, file_format::FileFormat, number::Number, parser::ParseError, record::Record,
+    builder::Builder, file_format::FileFormat, number::Number, parser::ParseError, parser::Parser,
+    record::Record,
 };
 
 use std::{hash::Hash, str::FromStr};

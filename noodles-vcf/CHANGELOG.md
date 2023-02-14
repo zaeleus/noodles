@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added
+
+  * vcf/header: Add header parser (`header::Parser`).
+
+    This can be used to customize how to parse the header.
+
 ### Changed
 
   * vcf/header/record/parser: Disallow empty values for unstructured lines.
