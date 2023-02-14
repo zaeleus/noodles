@@ -3,7 +3,7 @@
 mod builder;
 mod file_format_option;
 
-pub use self::builder::Builder;
+pub use self::{builder::Builder, file_format_option::FileFormatOption};
 
 use std::error;
 
@@ -14,8 +14,6 @@ use super::{
     record::{self, Record},
     Header,
 };
-
-use self::file_format_option::FileFormatOption;
 
 /// A VCF header parser.
 #[derive(Debug, Default, Eq, PartialEq)]
