@@ -8,6 +8,8 @@
 
     This can be used to customize how to parse the header.
 
+  * vcf/header/format/key: Implement `Borrow<str>`.
+
   * vcf/header/info/key: Implement `Borrow<str>`.
 
 ### Changed

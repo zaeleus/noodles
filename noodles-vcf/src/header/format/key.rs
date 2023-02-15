@@ -1,6 +1,6 @@
 //! VCF header format key.
 
-use std::{error, fmt, str::FromStr};
+use std::{borrow::Borrow, error, fmt, str::FromStr};
 
 use crate::header::{record::value::map::format::Type, Number};
 
@@ -194,6 +194,12 @@ impl AsRef<str> for Key {
 
             Key::Other(s) => s,
         }
+    }
+}
+
+impl Borrow<str> for Key {
+    fn borrow(&self) -> &str {
+        self.as_ref()
     }
 }
 
