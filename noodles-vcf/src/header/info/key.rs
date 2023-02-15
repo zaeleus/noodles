@@ -2,7 +2,7 @@
 
 use crate::header::{record::value::map::info::Type, Number};
 
-use std::{error, fmt, str::FromStr};
+use std::{borrow::Borrow, error, fmt, str::FromStr};
 
 /// A VCF header info key.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -160,6 +160,12 @@ impl AsRef<str> for Key {
 
             Self::Other(s) => s,
         }
+    }
+}
+
+impl Borrow<str> for Key {
+    fn borrow(&self) -> &str {
+        self.as_ref()
     }
 }
 

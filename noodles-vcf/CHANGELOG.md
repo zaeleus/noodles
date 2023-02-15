@@ -8,6 +8,8 @@
 
     This can be used to customize how to parse the header.
 
+  * vcf/header/info/key: Implement `Borrow<str>`.
+
 ### Changed
 
   * vcf/header/record/parser: Disallow empty values for unstructured lines.
