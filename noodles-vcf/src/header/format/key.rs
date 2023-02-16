@@ -1,5 +1,7 @@
 //! VCF header format key.
 
+mod v4_3;
+
 use std::{borrow::Borrow, error, fmt, str::FromStr};
 
 use crate::header::{record::value::map::format::Type, Number};
@@ -308,102 +310,22 @@ impl FromStr for Key {
 }
 
 pub(crate) fn number(key: &Key) -> Option<Number> {
-    match *key {
-        READ_DEPTHS => Some(Number::R),
-        FORWARD_STRAND_READ_DEPTHS => Some(Number::R),
-        REVERSE_STRAND_READ_DEPTHS => Some(Number::R),
-        READ_DEPTH => Some(Number::Count(1)),
-        EXPECTED_ALTERNATE_ALLELE_COUNTS => Some(Number::A),
-        FILTER => Some(Number::Count(1)),
-        GENOTYPE_LIKELIHOODS => Some(Number::G),
-        GENOTYPE_POSTERIOR_PROBABILITIES => Some(Number::G),
-        CONDITIONAL_GENOTYPE_QUALITY => Some(Number::Count(1)),
-        GENOTYPE => Some(Number::Count(1)),
-        HAPLOTYPE_QUALITY => Some(Number::Count(2)),
-        MAPPING_QUALITY => Some(Number::Count(1)),
-        ROUNDED_GENOTYPE_LIKELIHOODS => Some(Number::G),
-        ROUNDED_GENOTYPE_POSTERIOR_PROBABILITIES => Some(Number::G),
-        PHASING_QUALITY => Some(Number::Count(1)),
-        PHASE_SET => Some(Number::Count(1)),
-
-        GENOTYPE_COPY_NUMBER => Some(Number::Count(1)),
-        GENOTYPE_COPY_NUMBER_QUALITY => Some(Number::Count(1)),
-        GENOTYPE_COPY_NUMBER_LIKELIHOODS => Some(Number::G),
-        GENOTYPE_COPY_NUMBER_POSTERIOR_PROBABILITIES => Some(Number::G),
-        NOVEL_VARIANT_QUALITY_SCORE => Some(Number::Count(1)),
-        HAPLOTYPE_ID => Some(Number::Count(1)),
-        ANCESTRAL_HAPLOTYPE_ID => Some(Number::Count(1)),
-
+    match key {
+        Key::Standard(k) => v4_3::definition(*k).map(|(number, _, _)| number),
         Key::Other(_) => None,
     }
 }
 
 pub(crate) fn ty(key: &Key) -> Option<Type> {
-    match *key {
-        READ_DEPTHS => Some(Type::Integer),
-        FORWARD_STRAND_READ_DEPTHS => Some(Type::Integer),
-        REVERSE_STRAND_READ_DEPTHS => Some(Type::Integer),
-        READ_DEPTH => Some(Type::Integer),
-        EXPECTED_ALTERNATE_ALLELE_COUNTS => Some(Type::Integer),
-        FILTER => Some(Type::String),
-        GENOTYPE_LIKELIHOODS => Some(Type::Float),
-        GENOTYPE_POSTERIOR_PROBABILITIES => Some(Type::Float),
-        CONDITIONAL_GENOTYPE_QUALITY => Some(Type::Integer),
-        GENOTYPE => Some(Type::String),
-        HAPLOTYPE_QUALITY => Some(Type::Integer),
-        MAPPING_QUALITY => Some(Type::Integer),
-        ROUNDED_GENOTYPE_LIKELIHOODS => Some(Type::Integer),
-        ROUNDED_GENOTYPE_POSTERIOR_PROBABILITIES => Some(Type::Integer),
-        PHASING_QUALITY => Some(Type::Integer),
-        PHASE_SET => Some(Type::Integer),
-
-        GENOTYPE_COPY_NUMBER => Some(Type::Integer),
-        GENOTYPE_COPY_NUMBER_QUALITY => Some(Type::Float),
-        GENOTYPE_COPY_NUMBER_LIKELIHOODS => Some(Type::Float),
-        GENOTYPE_COPY_NUMBER_POSTERIOR_PROBABILITIES => Some(Type::Float),
-        NOVEL_VARIANT_QUALITY_SCORE => Some(Type::Integer),
-        HAPLOTYPE_ID => Some(Type::Integer),
-        ANCESTRAL_HAPLOTYPE_ID => Some(Type::Integer),
-
+    match key {
+        Key::Standard(k) => v4_3::definition(*k).map(|(_, ty, _)| ty),
         Key::Other(_) => None,
     }
 }
 
 pub(crate) fn description(key: &Key) -> Option<&str> {
-    match *key {
-        READ_DEPTHS => Some("Read depth for each allele"),
-        FORWARD_STRAND_READ_DEPTHS => Some("Read depth for each allele on the forward strand"),
-        REVERSE_STRAND_READ_DEPTHS => Some("Read depth for each allele on the reverse strand"),
-        READ_DEPTH => Some("Read depth"),
-        EXPECTED_ALTERNATE_ALLELE_COUNTS => Some("Expected alternate allele counts"),
-        FILTER => Some(r#"Filter indicating if this genotype was "called""#),
-        GENOTYPE_LIKELIHOODS => Some("Genotype likelihoods"),
-        GENOTYPE_POSTERIOR_PROBABILITIES => Some("Genotype posterior probabilities"),
-        CONDITIONAL_GENOTYPE_QUALITY => Some("Conditional genotype quality"),
-        GENOTYPE => Some("Genotype"),
-        HAPLOTYPE_QUALITY => Some("Haplotype quality"),
-        MAPPING_QUALITY => Some("RMS mapping quality"),
-        ROUNDED_GENOTYPE_LIKELIHOODS => {
-            Some("Phred-scaled genotype likelihoods rounded to the closest integer")
-        }
-        ROUNDED_GENOTYPE_POSTERIOR_PROBABILITIES => {
-            Some("Phred-scaled genotype posterior probabilities rounded to the closest integer")
-        }
-        PHASING_QUALITY => Some("Phasing quality"),
-        PHASE_SET => Some("Phase set"),
-
-        GENOTYPE_COPY_NUMBER => Some("Copy number genotype for imprecise events"),
-        GENOTYPE_COPY_NUMBER_QUALITY => Some("Copy number genotype quality for imprecise events"),
-        GENOTYPE_COPY_NUMBER_LIKELIHOODS => {
-            Some("Copy number genotype likelihood for imprecise events")
-        }
-        GENOTYPE_COPY_NUMBER_POSTERIOR_PROBABILITIES => Some("Copy number posterior probabilities"),
-        NOVEL_VARIANT_QUALITY_SCORE => {
-            Some("Phred style probability score that the variant is novel")
-        }
-        HAPLOTYPE_ID => Some("Unique haplotype identifier"),
-        ANCESTRAL_HAPLOTYPE_ID => Some("Unique identifier of ancestral haplotype"),
-
+    match key {
+        Key::Standard(k) => v4_3::definition(*k).map(|(_, _, description)| description),
         Key::Other(_) => None,
     }
 }
