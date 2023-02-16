@@ -24,6 +24,11 @@
 
     Use `header::record::value::map::info::Type` instead.
 
+  * vcf/header/format/key: Split standard (reserved) and other (non-reserved)
+    keys.
+
+    Change usages of, e.g, `Key::Genotype` to `key::GENOTYPE`.
+
 ### Fixed
 
   * vcf/reader: Fix infinite loop when an input is only a header with no final

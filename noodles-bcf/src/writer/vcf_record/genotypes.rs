@@ -7,7 +7,7 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_vcf::{
     self as vcf,
     header::{
-        format::Key,
+        format::{key, Key},
         record::value::{map::Format, Map},
     },
     record::genotypes::genotype::field::Value,
@@ -53,7 +53,7 @@ where
             io::Error::new(io::ErrorKind::InvalidData, "missing FORMAT header record")
         })?;
 
-        if key == &Key::Genotype {
+        if key == &key::GENOTYPE {
             write_genotype_genotype_field_values(writer, &values)?;
         } else {
             write_genotype_field_values(writer, format, &values)?;

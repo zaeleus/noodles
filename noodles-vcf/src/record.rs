@@ -497,13 +497,13 @@ impl Record {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{format::Key, record::value::{map::Format, Map}},
+    ///     header::{format::key, record::value::{map::Format, Map}},
     ///     record::{genotypes::{Genotype, Keys}, Genotypes, Position},
     /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_format(Key::Genotype, Map::<Format>::from(&Key::Genotype))
-    ///     .add_format(Key::ConditionalGenotypeQuality, Map::<Format>::from(&Key::ConditionalGenotypeQuality))
+    ///     .add_format(key::GENOTYPE, Map::<Format>::from(&key::GENOTYPE))
+    ///     .add_format(key::CONDITIONAL_GENOTYPE_QUALITY, Map::<Format>::from(&key::CONDITIONAL_GENOTYPE_QUALITY))
     ///     .build();
     ///
     /// let keys = "GT:GQ".parse()?;
@@ -517,8 +517,8 @@ impl Record {
     ///     .build()?;
     ///
     /// assert_eq!(record.format(), &Keys::try_from(vec![
-    ///     Key::Genotype,
-    ///     Key::ConditionalGenotypeQuality,
+    ///     key::GENOTYPE,
+    ///     key::CONDITIONAL_GENOTYPE_QUALITY,
     /// ])?);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
@@ -533,7 +533,7 @@ impl Record {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::format::Key,
+    ///     header::format::key,
     ///     record::{
     ///         genotypes::{genotype::field::Value, Genotypes},
     ///         Position,
@@ -544,8 +544,8 @@ impl Record {
     /// let genotypes = Genotypes::new(
     ///     keys,
     ///     vec![[
-    ///         (Key::Genotype, Some(Value::String(String::from("0|0")))),
-    ///         (Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
+    ///         (key::GENOTYPE, Some(Value::String(String::from("0|0")))),
+    ///         (key::CONDITIONAL_GENOTYPE_QUALITY, Some(Value::Integer(13))),
     ///     ].into_iter().collect()],
     /// );
     ///
@@ -571,7 +571,7 @@ impl Record {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::format::Key,
+    ///     header::format::key,
     ///     record::{
     ///         genotypes::{genotype::field::Value, Genotypes},
     ///         Position,
@@ -588,8 +588,8 @@ impl Record {
     /// let genotypes = Genotypes::new(
     ///     keys,
     ///     vec![[
-    ///         (Key::Genotype, Some(Value::String(String::from("0|0")))),
-    ///         (Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
+    ///         (key::GENOTYPE, Some(Value::String(String::from("0|0")))),
+    ///         (key::CONDITIONAL_GENOTYPE_QUALITY, Some(Value::Integer(13))),
     ///     ].into_iter().collect()],
     /// );
     ///
@@ -809,17 +809,17 @@ mod tests {
         use super::genotypes::Genotype;
         use crate::{
             header::{
-                format::Key,
+                format::key,
                 record::value::{map::Format, Map},
             },
             Header,
         };
 
         let header = Header::builder()
-            .add_format(Key::Genotype, Map::<Format>::from(&Key::Genotype))
+            .add_format(key::GENOTYPE, Map::<Format>::from(&key::GENOTYPE))
             .add_format(
-                Key::ConditionalGenotypeQuality,
-                Map::<Format>::from(&Key::ConditionalGenotypeQuality),
+                key::CONDITIONAL_GENOTYPE_QUALITY,
+                Map::<Format>::from(&key::CONDITIONAL_GENOTYPE_QUALITY),
             )
             .build();
 

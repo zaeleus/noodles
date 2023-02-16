@@ -210,10 +210,10 @@ impl Header {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{format::Key, record::value::{map::Format, Map}},
+    ///     header::{format::key, record::value::{map::Format, Map}},
     /// };
     ///
-    /// let id = Key::Genotype;
+    /// let id = key::GENOTYPE;
     /// let format = Map::<Format>::from(&id);
     ///
     /// let header = vcf::Header::builder()
@@ -235,12 +235,12 @@ impl Header {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{format::Key, record::value::{map::Format, Map}},
+    ///     header::{format::key, record::value::{map::Format, Map}},
     /// };
     ///
     /// let mut header = vcf::Header::default();
     ///
-    /// let id = Key::Genotype;
+    /// let id = key::GENOTYPE;
     /// let format = Map::<Format>::from(&id);
     /// header.formats_mut().insert(id, format.clone());
     ///

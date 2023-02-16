@@ -275,7 +275,7 @@ impl Builder {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::format::Key,
+    ///     header::format::key,
     ///     record::{genotypes::genotype::field::Value, Genotypes, Position},
     /// };
     ///
@@ -283,8 +283,8 @@ impl Builder {
     /// let genotypes = Genotypes::new(
     ///     keys,
     ///     vec![[
-    ///         (Key::Genotype, Some(Value::String(String::from("0|0")))),
-    ///         (Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
+    ///         (key::GENOTYPE, Some(Value::String(String::from("0|0")))),
+    ///         (key::CONDITIONAL_GENOTYPE_QUALITY, Some(Value::Integer(13))),
     ///     ].into_iter().collect()],
     /// );
     ///

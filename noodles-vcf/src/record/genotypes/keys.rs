@@ -9,7 +9,10 @@ use std::{
 use indexmap::IndexSet;
 
 use crate::{
-    header::{self, format::Key},
+    header::{
+        self,
+        format::{key, Key},
+    },
     record::MISSING_FIELD,
 };
 
@@ -144,7 +147,7 @@ impl TryFrom<Vec<Key>> for Keys {
     fn try_from(keys: Vec<Key>) -> Result<Self, Self::Error> {
         if keys.is_empty() {
             return Ok(Keys::default());
-        } else if let Some(i) = keys.iter().position(|k| k == &Key::Genotype) {
+        } else if let Some(i) = keys.iter().position(|k| k == &key::GENOTYPE) {
             if i != 0 {
                 return Err(TryFromKeyVectorError::InvalidGenotypeKeyPosition);
             }
@@ -171,15 +174,15 @@ mod tests {
         let keys = Keys::default();
         assert_eq!(keys.to_string(), ".");
 
-        let keys = Keys([Key::Genotype].into_iter().collect());
+        let keys = Keys([key::GENOTYPE].into_iter().collect());
         assert_eq!(keys.to_string(), "GT");
 
         let keys = Keys(
             [
-                Key::Genotype,
-                Key::ConditionalGenotypeQuality,
-                Key::ReadDepth,
-                Key::HaplotypeQuality,
+                key::GENOTYPE,
+                key::CONDITIONAL_GENOTYPE_QUALITY,
+                key::READ_DEPTH,
+                key::HAPLOTYPE_QUALITY,
             ]
             .into_iter()
             .collect(),
@@ -191,12 +194,12 @@ mod tests {
     fn test_from_str() {
         assert_eq!(
             "GT".parse(),
-            Ok(Keys([Key::Genotype].into_iter().collect()))
+            Ok(Keys([key::GENOTYPE].into_iter().collect()))
         );
         assert_eq!(
             "GT:GQ".parse(),
             Ok(Keys(
-                [Key::Genotype, Key::ConditionalGenotypeQuality]
+                [key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY]
                     .into_iter()
                     .collect()
             ))
@@ -214,34 +217,34 @@ mod tests {
         assert_eq!(Keys::try_from(Vec::new()), Ok(Keys::default()));
 
         assert_eq!(
-            Keys::try_from(vec![Key::Genotype]),
-            Ok(Keys([Key::Genotype].into_iter().collect()))
+            Keys::try_from(vec![key::GENOTYPE]),
+            Ok(Keys([key::GENOTYPE].into_iter().collect()))
         );
 
         assert_eq!(
-            Keys::try_from(vec![Key::Genotype, Key::ConditionalGenotypeQuality]),
+            Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY]),
             Ok(Keys(
-                [Key::Genotype, Key::ConditionalGenotypeQuality]
+                [key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY]
                     .into_iter()
                     .collect()
             ))
         );
 
         assert_eq!(
-            Keys::try_from(vec![Key::ConditionalGenotypeQuality]),
+            Keys::try_from(vec![key::CONDITIONAL_GENOTYPE_QUALITY]),
             Ok(Keys(
-                [Key::ConditionalGenotypeQuality].into_iter().collect()
+                [key::CONDITIONAL_GENOTYPE_QUALITY].into_iter().collect()
             ))
         );
 
         assert_eq!(
-            Keys::try_from(vec![Key::ConditionalGenotypeQuality, Key::Genotype]),
+            Keys::try_from(vec![key::CONDITIONAL_GENOTYPE_QUALITY, key::GENOTYPE]),
             Err(TryFromKeyVectorError::InvalidGenotypeKeyPosition)
         );
 
         assert_eq!(
-            Keys::try_from(vec![Key::Genotype, Key::Genotype]),
-            Err(TryFromKeyVectorError::DuplicateKey(Key::Genotype))
+            Keys::try_from(vec![key::GENOTYPE, key::GENOTYPE]),
+            Err(TryFromKeyVectorError::DuplicateKey(key::GENOTYPE))
         );
     }
 }

@@ -270,7 +270,7 @@ pub(crate) mod tests {
     #[test]
     fn test_read_record() -> Result<(), Box<dyn std::error::Error>> {
         use noodles_vcf::{
-            header::{format::Key as GenotypeFieldKey, info::Key as InfoFieldKey},
+            header::{format, info::Key as InfoFieldKey},
             record::{
                 genotypes::{genotype::field::Value as GenotypeFieldValue, Keys},
                 info::field::Value as InfoFieldValue,
@@ -336,11 +336,11 @@ pub(crate) mod tests {
             .try_into_vcf_record_genotypes(&header, string_maps.strings())?;
 
         let keys = Keys::try_from(vec![
-            GenotypeFieldKey::Genotype,
-            GenotypeFieldKey::ConditionalGenotypeQuality,
-            GenotypeFieldKey::ReadDepth,
-            GenotypeFieldKey::ReadDepths,
-            GenotypeFieldKey::RoundedGenotypeLikelihoods,
+            format::key::GENOTYPE,
+            format::key::CONDITIONAL_GENOTYPE_QUALITY,
+            format::key::READ_DEPTH,
+            format::key::READ_DEPTHS,
+            format::key::ROUNDED_GENOTYPE_LIKELIHOODS,
         ])?;
 
         let expected = VcfGenotypes::new(
@@ -348,23 +348,23 @@ pub(crate) mod tests {
             vec![
                 [
                     (
-                        GenotypeFieldKey::Genotype,
+                        format::key::GENOTYPE,
                         Some(GenotypeFieldValue::String(String::from("0/0"))),
                     ),
                     (
-                        GenotypeFieldKey::ConditionalGenotypeQuality,
+                        format::key::CONDITIONAL_GENOTYPE_QUALITY,
                         Some(GenotypeFieldValue::Integer(10)),
                     ),
                     (
-                        GenotypeFieldKey::ReadDepth,
+                        format::key::READ_DEPTH,
                         Some(GenotypeFieldValue::Integer(32)),
                     ),
                     (
-                        GenotypeFieldKey::ReadDepths,
+                        format::key::READ_DEPTHS,
                         Some(GenotypeFieldValue::IntegerArray(vec![Some(32), Some(0)])),
                     ),
                     (
-                        GenotypeFieldKey::RoundedGenotypeLikelihoods,
+                        format::key::ROUNDED_GENOTYPE_LIKELIHOODS,
                         Some(GenotypeFieldValue::IntegerArray(vec![
                             Some(0),
                             Some(10),
@@ -376,23 +376,23 @@ pub(crate) mod tests {
                 .collect(),
                 [
                     (
-                        GenotypeFieldKey::Genotype,
+                        format::key::GENOTYPE,
                         Some(GenotypeFieldValue::String(String::from("0/1"))),
                     ),
                     (
-                        GenotypeFieldKey::ConditionalGenotypeQuality,
+                        format::key::CONDITIONAL_GENOTYPE_QUALITY,
                         Some(GenotypeFieldValue::Integer(10)),
                     ),
                     (
-                        GenotypeFieldKey::ReadDepth,
+                        format::key::READ_DEPTH,
                         Some(GenotypeFieldValue::Integer(48)),
                     ),
                     (
-                        GenotypeFieldKey::ReadDepths,
+                        format::key::READ_DEPTHS,
                         Some(GenotypeFieldValue::IntegerArray(vec![Some(32), Some(16)])),
                     ),
                     (
-                        GenotypeFieldKey::RoundedGenotypeLikelihoods,
+                        format::key::ROUNDED_GENOTYPE_LIKELIHOODS,
                         Some(GenotypeFieldValue::IntegerArray(vec![
                             Some(10),
                             Some(0),
@@ -404,23 +404,23 @@ pub(crate) mod tests {
                 .collect(),
                 [
                     (
-                        GenotypeFieldKey::Genotype,
+                        format::key::GENOTYPE,
                         Some(GenotypeFieldValue::String(String::from("1/1"))),
                     ),
                     (
-                        GenotypeFieldKey::ConditionalGenotypeQuality,
+                        format::key::CONDITIONAL_GENOTYPE_QUALITY,
                         Some(GenotypeFieldValue::Integer(10)),
                     ),
                     (
-                        GenotypeFieldKey::ReadDepth,
+                        format::key::READ_DEPTH,
                         Some(GenotypeFieldValue::Integer(64)),
                     ),
                     (
-                        GenotypeFieldKey::ReadDepths,
+                        format::key::READ_DEPTHS,
                         Some(GenotypeFieldValue::IntegerArray(vec![Some(0), Some(64)])),
                     ),
                     (
-                        GenotypeFieldKey::RoundedGenotypeLikelihoods,
+                        format::key::ROUNDED_GENOTYPE_LIKELIHOODS,
                         Some(GenotypeFieldValue::IntegerArray(vec![
                             Some(100),
                             Some(10),

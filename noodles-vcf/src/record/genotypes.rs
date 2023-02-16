@@ -31,7 +31,7 @@ impl Genotypes {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{format::Key, record::value::{map::Format, Map}},
+    ///     header::{format::key, record::value::{map::Format, Map}},
     ///     record::{
     ///         genotypes::{genotype::field::Value, Keys},
     ///         Genotypes,
@@ -39,16 +39,16 @@ impl Genotypes {
     /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_format(Key::Genotype, Map::<Format>::from(&Key::Genotype))
+    ///     .add_format(key::GENOTYPE, Map::<Format>::from(&key::GENOTYPE))
     ///     .build();
     ///
     /// let actual = Genotypes::parse("GT:GQ\t0|0:13", &header)?;
     ///
     /// let expected = Genotypes::new(
-    ///     Keys::try_from(vec![Key::Genotype, Key::ConditionalGenotypeQuality])?,
+    ///     Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?,
     ///     vec![[
-    ///         (Key::Genotype, Some(Value::String(String::from("0|0")))),
-    ///         (Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
+    ///         (key::GENOTYPE, Some(Value::String(String::from("0|0")))),
+    ///         (key::CONDITIONAL_GENOTYPE_QUALITY, Some(Value::Integer(13))),
     ///     ].into_iter().collect()],
     /// );
     ///
@@ -89,12 +89,12 @@ impl Genotypes {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{header::format::Key, record::{genotypes::Keys, Genotypes}};
+    /// use noodles_vcf::{header::format::key, record::{genotypes::Keys, Genotypes}};
     ///
     /// let genotypes = Genotypes::default();
     /// assert!(genotypes.keys().is_empty());
     ///
-    /// let keys = Keys::try_from(vec![Key::Genotype])?;
+    /// let keys = Keys::try_from(vec![key::GENOTYPE])?;
     /// let genotypes = Genotypes::new(keys.clone(), Vec::new());
     /// assert_eq!(genotypes.keys(), &keys);
     /// # Ok::<_, noodles_vcf::record::genotypes::keys::TryFromKeyVectorError>(())
@@ -108,9 +108,9 @@ impl Genotypes {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{header::format::Key, record::{genotypes::Keys, Genotypes}};
+    /// use noodles_vcf::{header::format::key, record::{genotypes::Keys, Genotypes}};
     ///
-    /// let keys = Keys::try_from(vec![Key::Genotype])?;
+    /// let keys = Keys::try_from(vec![key::GENOTYPE])?;
     ///
     /// let mut genotypes = Genotypes::default();
     /// *genotypes.keys_mut() = keys.clone();
@@ -227,15 +227,15 @@ mod tests {
     #[test]
     fn test_genotypes() -> Result<(), Box<dyn std::error::Error>> {
         use crate::header::{
-            format::Key,
+            format::key,
             record::value::{map::Format, Map},
         };
 
         let header = crate::Header::builder()
-            .add_format(Key::Genotype, Map::<Format>::from(&Key::Genotype))
+            .add_format(key::GENOTYPE, Map::<Format>::from(&key::GENOTYPE))
             .add_format(
-                Key::ConditionalGenotypeQuality,
-                Map::<Format>::from(&Key::ConditionalGenotypeQuality),
+                key::CONDITIONAL_GENOTYPE_QUALITY,
+                Map::<Format>::from(&key::CONDITIONAL_GENOTYPE_QUALITY),
             )
             .build();
 
@@ -264,13 +264,13 @@ mod tests {
     #[test]
     fn test_fmt() -> Result<(), super::keys::TryFromKeyVectorError> {
         use self::genotype::field::Value;
-        use crate::header::format::Key;
+        use crate::header::format::key;
 
         let genotypes = Genotypes::new(
-            Keys::try_from(vec![Key::Genotype, Key::ConditionalGenotypeQuality])?,
+            Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?,
             vec![[
-                (Key::Genotype, Some(Value::String(String::from("0|0")))),
-                (Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
+                (key::GENOTYPE, Some(Value::String(String::from("0|0")))),
+                (key::CONDITIONAL_GENOTYPE_QUALITY, Some(Value::Integer(13))),
             ]
             .into_iter()
             .collect()],
@@ -284,13 +284,13 @@ mod tests {
     #[test]
     fn test_from_str() -> Result<(), super::keys::TryFromKeyVectorError> {
         use super::genotype::field::Value;
-        use crate::header::format::Key;
+        use crate::header::format::key;
 
         let expected = Genotypes::new(
-            Keys::try_from(vec![Key::Genotype, Key::ConditionalGenotypeQuality])?,
+            Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?,
             vec![[
-                (Key::Genotype, Some(Value::String(String::from("0|0")))),
-                (Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
+                (key::GENOTYPE, Some(Value::String(String::from("0|0")))),
+                (key::CONDITIONAL_GENOTYPE_QUALITY, Some(Value::Integer(13))),
             ]
             .into_iter()
             .collect()],

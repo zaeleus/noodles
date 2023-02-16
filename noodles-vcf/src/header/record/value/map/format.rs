@@ -9,7 +9,10 @@ use core::fmt;
 use indexmap::IndexMap;
 
 use super::{builder, tag, Described, Fields, Indexed, Inner, Map, TryFromFieldsError, Typed};
-use crate::header::{format::Key, FileFormat, Number};
+use crate::header::{
+    format::{key, Key},
+    FileFormat, Number,
+};
 
 type StandardTag = tag::TypedDescribedIndexed;
 type Tag = tag::Tag<StandardTag>;
@@ -75,7 +78,7 @@ impl Map<Format> {
     ///
     /// ```
     /// use noodles_vcf::header::{
-    ///     format::Key,
+    ///     format::key,
     ///     record::value::{
     ///         map::{format::Type, Format},
     ///         Map,
@@ -83,7 +86,7 @@ impl Map<Format> {
     ///     Number,
     /// };
     ///
-    /// let id = Key::Genotype;
+    /// let id = key::GENOTYPE;
     /// let map = Map::<Format>::new(Number::Count(1), Type::String, "Genotype");
     /// ```
     pub fn new<D>(number: Number, ty: Type, description: D) -> Self
@@ -118,8 +121,6 @@ impl fmt::Display for Map<Format> {
 
 impl From<&Key> for Map<Format> {
     fn from(key: &Key) -> Self {
-        use crate::header::format::key;
-
         let number = key::number(key).unwrap_or(Number::Count(1));
         let ty = key::ty(key).unwrap_or(Type::String);
         let description = key::description(key).map(|s| s.into()).unwrap_or_default();
@@ -211,7 +212,7 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let map = Map::<Format>::from(&Key::Genotype);
+        let map = Map::<Format>::from(&key::GENOTYPE);
         let expected = r#",Number=1,Type=String,Description="Genotype""#;
         assert_eq!(map.to_string(), expected);
     }
@@ -224,7 +225,7 @@ mod tests {
             (String::from("Description"), String::from("Genotype")),
         ])?;
 
-        let expected = Map::<Format>::from(&Key::Genotype);
+        let expected = Map::<Format>::from(&key::GENOTYPE);
 
         assert_eq!(actual, expected);
 

@@ -182,7 +182,7 @@ mod tests {
     #[test]
     fn test_write_record_with_format() -> Result<(), Box<dyn std::error::Error>> {
         use crate::{
-            header::format::Key,
+            header::format::key,
             record::{
                 genotypes::{genotype::field::Value, Keys},
                 Genotypes,
@@ -192,10 +192,10 @@ mod tests {
         let mut writer = Writer::new(Vec::new());
 
         let genotypes = Genotypes::new(
-            Keys::try_from(vec![Key::Genotype, Key::ConditionalGenotypeQuality])?,
+            Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?,
             vec![[
-                (Key::Genotype, Some(Value::String(String::from("0|0")))),
-                (Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
+                (key::GENOTYPE, Some(Value::String(String::from("0|0")))),
+                (key::CONDITIONAL_GENOTYPE_QUALITY, Some(Value::Integer(13))),
             ]
             .into_iter()
             .collect()],

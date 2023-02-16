@@ -6,7 +6,7 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_vcf::{
     self as vcf,
-    header::format::Key,
+    header::format::{key, Key},
     record::{
         genotypes::{genotype::field::Value, Genotype, Keys},
         Genotypes,
@@ -38,7 +38,7 @@ where
         let key = read_genotype_field_key(reader, formats, string_map)?;
         keys.push(key.clone());
 
-        let values = if key == Key::Genotype {
+        let values = if key == key::GENOTYPE {
             read_genotype_genotype_field_values(reader, sample_count)?
         } else {
             read_genotype_field_values(reader, sample_count)?

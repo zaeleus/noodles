@@ -105,10 +105,10 @@ impl Builder {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{format::Key, record::value::{map::Format, Map}},
+    ///     header::{format::key, record::value::{map::Format, Map}},
     /// };
     ///
-    /// let id = Key::Genotype;
+    /// let id = key::GENOTYPE;
     /// let format = Map::<Format>::from(&id);
     ///
     /// let header = vcf::Header::builder()
@@ -377,7 +377,7 @@ mod tests {
     #[test]
     fn test_build() -> Result<(), crate::header::record::value::map::contig::name::ParseError> {
         use crate::{
-            header::{self, format::Key as FormatKey, info::Key as InfoKey},
+            header::{self, format::key as format_key, info::Key as InfoKey},
             record::alternate_bases::allele,
         };
 
@@ -398,8 +398,8 @@ mod tests {
             )
             .add_filter("q10", Map::<Filter>::new("Quality below 10"))
             .add_format(
-                FormatKey::Genotype,
-                Map::<Format>::from(&FormatKey::Genotype),
+                format_key::GENOTYPE,
+                Map::<Format>::from(&format_key::GENOTYPE),
             )
             .add_alternative_allele(del, Map::<AlternativeAllele>::new("Deletion"))
             .set_assembly("file:///assemblies.fasta")
