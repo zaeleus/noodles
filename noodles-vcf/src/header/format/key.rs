@@ -1,6 +1,7 @@
 //! VCF header format key.
 
 mod v4_3;
+mod v4_4;
 
 use std::{borrow::Borrow, error, fmt, str::FromStr};
 
