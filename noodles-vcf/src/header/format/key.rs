@@ -79,7 +79,7 @@ pub const HAPLOTYPE_ID: Key = Key::Standard(Standard::HaplotypeId);
 pub const ANCESTRAL_HAPLOTYPE_ID: Key = Key::Standard(Standard::AncestralHaplotypeId);
 
 /// A reserved VCF header format key.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Standard {
     // § 1.6.2 Genotype fields (2021-01-13)
     /// Read depth for each allele (`AD`).
