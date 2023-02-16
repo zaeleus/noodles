@@ -5,7 +5,7 @@ mod v4_4;
 
 use std::{borrow::Borrow, error, fmt, str::FromStr};
 
-use crate::header::{record::value::map::format::Type, Number};
+use crate::header::{record::value::map::format::Type, FileFormat, Number};
 
 /// Read depth for each allele (`AD`).
 pub const READ_DEPTHS: Key = Key::Standard(Standard::ReadDepths);
@@ -307,6 +307,20 @@ impl FromStr for Key {
         s.parse()
             .map(Self::Standard)
             .or_else(|_| s.parse().map(Self::Other))
+    }
+}
+
+pub(crate) fn definition(
+    file_format: FileFormat,
+    key: &Key,
+) -> Option<(Number, Type, &'static str)> {
+    match key {
+        Key::Standard(k) => match (file_format.major(), file_format.minor()) {
+            (4, 4) => v4_4::definition(*k),
+            (4, 3) => v4_3::definition(*k),
+            _ => None,
+        },
+        Key::Other(_) => None,
     }
 }
 

@@ -1,7 +1,6 @@
 use super::Standard;
 use crate::header::{record::value::map::format::Type, Number};
 
-#[allow(dead_code)]
 pub(super) fn definition(key: Standard) -> Option<(Number, Type, &'static str)> {
     match key {
         Standard::ReadDepths => Some((Number::R, Type::Integer, "Read depth for each allele")),
