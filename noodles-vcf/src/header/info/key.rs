@@ -1,5 +1,7 @@
 //! VCF header info key.
 
+mod v4_3;
+
 use crate::header::{record::value::map::info::Type, Number};
 
 use std::{borrow::Borrow, error, fmt, str::FromStr};
@@ -461,183 +463,22 @@ impl FromStr for Key {
 }
 
 pub(crate) fn number(key: &Key) -> Option<Number> {
-    match *key {
-        ANCESTRAL_ALLELE => Some(Number::Count(1)),
-        ALLELE_COUNT => Some(Number::A),
-        TOTAL_READ_DEPTHS => Some(Number::R),
-        FORWARD_STRAND_READ_DEPTHS => Some(Number::R),
-        REVERSE_STRAND_READ_DEPTHS => Some(Number::R),
-        ALLELE_FREQUENCIES => Some(Number::A),
-        TOTAL_ALLELE_COUNT => Some(Number::Count(1)),
-        BASE_QUALITY => Some(Number::Count(1)),
-        CIGAR => Some(Number::A),
-        IS_IN_DB_SNP => Some(Number::Count(0)),
-        TOTAL_DEPTH => Some(Number::Count(1)),
-        // END_POSITION => Some(Number::Count(1)),
-        IS_IN_HAP_MAP_2 => Some(Number::Count(0)),
-        IS_IN_HAP_MAP_3 => Some(Number::Count(0)),
-        MAPPING_QUALITY => Some(Number::Count(1)),
-        ZERO_MAPPING_QUALITY_COUNT => Some(Number::Count(1)),
-        SAMPLES_WITH_DATA_COUNT => Some(Number::Count(1)),
-        STRAND_BIAS => Some(Number::Count(4)),
-        IS_SOMATIC_MUTATION => Some(Number::Count(0)),
-        IS_VALIDATED => Some(Number::Count(0)),
-        IS_IN_1000_GENOMES => Some(Number::Count(0)),
-
-        IS_IMPRECISE => Some(Number::Count(0)),
-        IS_NOVEL => Some(Number::Count(0)),
-        END_POSITION => Some(Number::Count(1)),
-        SV_TYPE => Some(Number::Count(1)),
-        SV_LENGTHS => Some(Number::Unknown),
-        POSITION_CONFIDENCE_INTERVALS => Some(Number::Count(2)),
-        END_CONFIDENCE_INTERVALS => Some(Number::Count(2)),
-        MICROHOMOLOGY_LENGTHS => Some(Number::Unknown),
-        MICROHOMOLOGY_SEQUENCES => Some(Number::Unknown),
-        BREAKPOINT_IDS => Some(Number::Unknown),
-        MOBILE_ELEMENT_INFO => Some(Number::Count(4)),
-        MOBILE_ELEMENT_TRANSDUCTION_INFO => Some(Number::Count(4)),
-        DBV_ID => Some(Number::Count(1)),
-        DB_VAR_ID => Some(Number::Count(1)),
-        DB_RIP_ID => Some(Number::Count(1)),
-        MATE_BREAKEND_IDS => Some(Number::Unknown),
-        PARTNER_BREAKEND_ID => Some(Number::Count(1)),
-        BREAKEND_EVENT_ID => Some(Number::Count(1)),
-        BREAKEND_CONFIDENCE_INTERVALS => Some(Number::Count(2)),
-        // Key::BreakendReadDepth => Some(Number::Count(1)),
-        ADJACENT_READ_DEPTHS => Some(Number::Unknown),
-        BREAKEND_COPY_NUMBER => Some(Number::Count(1)),
-        ADJACENT_COPY_NUMBER => Some(Number::Unknown),
-        COPY_NUMBER_CONFIDENCE_INTERVALS => Some(Number::Count(2)),
-        ADJACENT_COPY_NUMBER_CONFIDENCE_INTERVALS => Some(Number::Unknown),
-
+    match key {
+        Key::Standard(k) => v4_3::definition(*k).map(|(number, _, _)| number),
         Key::Other(_) => None,
     }
 }
 
 pub(crate) fn ty(key: &Key) -> Option<Type> {
-    match *key {
-        ANCESTRAL_ALLELE => Some(Type::String),
-        ALLELE_COUNT => Some(Type::Integer),
-        TOTAL_READ_DEPTHS => Some(Type::Integer),
-        FORWARD_STRAND_READ_DEPTHS => Some(Type::Integer),
-        REVERSE_STRAND_READ_DEPTHS => Some(Type::Integer),
-        ALLELE_FREQUENCIES => Some(Type::Float),
-        TOTAL_ALLELE_COUNT => Some(Type::Integer),
-        BASE_QUALITY => Some(Type::Float),
-        CIGAR => Some(Type::String),
-        IS_IN_DB_SNP => Some(Type::Flag),
-        TOTAL_DEPTH => Some(Type::Integer),
-        // END_POSITION => Some(Type::Integer),
-        IS_IN_HAP_MAP_2 => Some(Type::Flag),
-        IS_IN_HAP_MAP_3 => Some(Type::Flag),
-        MAPPING_QUALITY => Some(Type::Float),
-        ZERO_MAPPING_QUALITY_COUNT => Some(Type::Integer),
-        SAMPLES_WITH_DATA_COUNT => Some(Type::Integer),
-        STRAND_BIAS => Some(Type::Integer),
-        IS_SOMATIC_MUTATION => Some(Type::Flag),
-        IS_VALIDATED => Some(Type::Flag),
-        IS_IN_1000_GENOMES => Some(Type::Flag),
-
-        IS_IMPRECISE => Some(Type::Flag),
-        IS_NOVEL => Some(Type::Flag),
-        END_POSITION => Some(Type::Integer),
-        SV_TYPE => Some(Type::String),
-        SV_LENGTHS => Some(Type::Integer),
-        POSITION_CONFIDENCE_INTERVALS => Some(Type::Integer),
-        END_CONFIDENCE_INTERVALS => Some(Type::Integer),
-        MICROHOMOLOGY_LENGTHS => Some(Type::Integer),
-        MICROHOMOLOGY_SEQUENCES => Some(Type::String),
-        BREAKPOINT_IDS => Some(Type::String),
-        MOBILE_ELEMENT_INFO => Some(Type::String),
-        MOBILE_ELEMENT_TRANSDUCTION_INFO => Some(Type::String),
-        DBV_ID => Some(Type::String),
-        DB_VAR_ID => Some(Type::String),
-        DB_RIP_ID => Some(Type::String),
-        MATE_BREAKEND_IDS => Some(Type::String),
-        PARTNER_BREAKEND_ID => Some(Type::String),
-        BREAKEND_EVENT_ID => Some(Type::String),
-        BREAKEND_CONFIDENCE_INTERVALS => Some(Type::Integer),
-        // Key::BreakendReadDepth => Some(Type::Integer),
-        ADJACENT_READ_DEPTHS => Some(Type::Integer),
-        BREAKEND_COPY_NUMBER => Some(Type::Integer),
-        ADJACENT_COPY_NUMBER => Some(Type::Integer),
-        COPY_NUMBER_CONFIDENCE_INTERVALS => Some(Type::Integer),
-        ADJACENT_COPY_NUMBER_CONFIDENCE_INTERVALS => Some(Type::Integer),
-
+    match key {
+        Key::Standard(k) => v4_3::definition(*k).map(|(_, ty, _)| ty),
         Key::Other(_) => None,
     }
 }
 
 pub(crate) fn description(key: &Key) -> Option<&str> {
-    match *key {
-        ANCESTRAL_ALLELE => Some("Ancestral allele"),
-        ALLELE_COUNT => {
-            Some("Allele count in genotypes, for each ALT allele, in the same order as listed")
-        }
-        TOTAL_READ_DEPTHS => Some("Total read depth for each allele"),
-        FORWARD_STRAND_READ_DEPTHS => Some("Read depth for each allele on the forward strand"),
-        REVERSE_STRAND_READ_DEPTHS => Some("Read depth for each allele on the reverse strand"),
-        ALLELE_FREQUENCIES => {
-            Some("Allele frequency for each ALT allele in the same order as listed")
-        }
-        TOTAL_ALLELE_COUNT => Some("Total number of alleles in called genotypes"),
-        BASE_QUALITY => Some("RMS base quality"),
-        CIGAR => {
-            Some("Cigar string describing how to align an alternate allele to the reference allele")
-        }
-        IS_IN_DB_SNP => Some("dbSNP membership"),
-        TOTAL_DEPTH => Some("Combined depth across samples"),
-        // END_POSITION => Some("End position on CHROM"),
-        IS_IN_HAP_MAP_2 => Some("HapMap2 membership"),
-        IS_IN_HAP_MAP_3 => Some("HapMap3 membership"),
-        MAPPING_QUALITY => Some("RMS mapping quality"),
-        ZERO_MAPPING_QUALITY_COUNT => Some("Number of MAPQ == 0 reads"),
-        SAMPLES_WITH_DATA_COUNT => Some("Number of samples with data"),
-        STRAND_BIAS => Some("Strand bias"),
-        IS_SOMATIC_MUTATION => Some("Somatic mutation"),
-        IS_VALIDATED => Some("Validated by follow-up experiment"),
-        IS_IN_1000_GENOMES => Some("1000 Genomes membership"),
-
-        IS_IMPRECISE => Some("Imprecise structural variation"),
-        IS_NOVEL => Some("Indicates a novel structural variation"),
-        END_POSITION => Some("End position of the variant described in this record"),
-        SV_TYPE => Some("Type of structural variant"),
-        SV_LENGTHS => Some("Difference in length between REF and ALT alleles"),
-        POSITION_CONFIDENCE_INTERVALS => {
-            Some("Confidence interval around POS for imprecise variants")
-        }
-        END_CONFIDENCE_INTERVALS => Some("Confidence interval around END for imprecise variants"),
-        MICROHOMOLOGY_LENGTHS => {
-            Some("Length of base pair identical micro-homology at event breakpoints")
-        }
-        MICROHOMOLOGY_SEQUENCES => {
-            Some("Sequence of base pair identical micro-homology at event breakpoints")
-        }
-        BREAKPOINT_IDS => Some("ID of the assembled alternate allele in the assembly file"),
-        MOBILE_ELEMENT_INFO => Some("Mobile element info of the form NAME,START,END,POLARITY"),
-        MOBILE_ELEMENT_TRANSDUCTION_INFO => {
-            Some("Mobile element transduction info of the form CHR,START,END,POLARITY")
-        }
-        DBV_ID => Some("ID of this element in Database of Genomic Variation"),
-        DB_VAR_ID => Some("ID of this element in DBVAR"),
-        DB_RIP_ID => Some("ID of this element in DBRIP"),
-        MATE_BREAKEND_IDS => Some("ID of mate breakends"),
-        PARTNER_BREAKEND_ID => Some("ID of partner breakend"),
-        BREAKEND_EVENT_ID => Some("ID of event associated to breakend"),
-        BREAKEND_CONFIDENCE_INTERVALS => {
-            Some("Confidence interval around the inserted material between breakends")
-        }
-        // Key::BreakendReadDepth => Some("Read Depth of segment containing breakend"),
-        ADJACENT_READ_DEPTHS => Some("Read Depth of adjacency"),
-        BREAKEND_COPY_NUMBER => Some("Copy number of segment containing breakend"),
-        ADJACENT_COPY_NUMBER => Some("Copy number of adjacency"),
-        COPY_NUMBER_CONFIDENCE_INTERVALS => {
-            Some("Confidence interval around copy number for the segment")
-        }
-        ADJACENT_COPY_NUMBER_CONFIDENCE_INTERVALS => {
-            Some("Confidence interval around copy number for the adjacency")
-        }
-
+    match key {
+        Key::Standard(k) => v4_3::definition(*k).map(|(_, _, description)| description),
         Key::Other(_) => None,
     }
 }
