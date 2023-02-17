@@ -140,7 +140,7 @@ pub const ADJACENT_COPY_NUMBER_CONFIDENCE_INTERVALS: Key =
     Key::Standard(Standard::AdjacentCopyNumberConfidenceIntervals);
 
 /// A VCF header info key.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Standard {
     // § 1.6.1 Fixed Fields (2021-01-13)
     /// Ancestral allele (`AA`).
