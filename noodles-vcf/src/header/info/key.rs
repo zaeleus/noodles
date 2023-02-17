@@ -1,6 +1,7 @@
 //! VCF header info key.
 
 mod v4_3;
+mod v4_4;
 
 use crate::header::{record::value::map::info::Type, Number};
 
