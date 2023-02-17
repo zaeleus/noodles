@@ -119,46 +119,47 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::header::info::key;
 
     #[test]
     fn test_parse() -> Result<(), crate::header::info::key::ParseError> {
         let header = crate::Header::builder()
-            .add_info(Key::AlleleCount, Map::<Info>::from(&Key::AlleleCount))
+            .add_info(key::ALLELE_COUNT, Map::<Info>::from(&key::ALLELE_COUNT))
             .add_info(
-                Key::SamplesWithDataCount,
-                Map::<Info>::from(&Key::SamplesWithDataCount),
+                key::SAMPLES_WITH_DATA_COUNT,
+                Map::<Info>::from(&key::SAMPLES_WITH_DATA_COUNT),
             )
             .add_info(
-                Key::IsSomaticMutation,
-                Map::<Info>::from(&Key::IsSomaticMutation),
+                key::IS_SOMATIC_MUTATION,
+                Map::<Info>::from(&key::IS_SOMATIC_MUTATION),
             )
             .add_info(
-                Key::BreakendEventId,
-                Map::<Info>::from(&Key::BreakendEventId),
+                key::BREAKEND_EVENT_ID,
+                Map::<Info>::from(&key::BREAKEND_EVENT_ID),
             )
             .build();
 
-        assert_eq!(parse("AC=.", header.infos()), Ok((Key::AlleleCount, None)));
+        assert_eq!(parse("AC=.", header.infos()), Ok((key::ALLELE_COUNT, None)));
 
         assert_eq!(
             parse("NS=2", header.infos()),
-            Ok((Key::SamplesWithDataCount, Some(Value::Integer(2))))
+            Ok((key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(2))))
         );
 
         assert_eq!(
             parse("BQ=1.333", header.infos()),
-            Ok((Key::BaseQuality, Some(Value::Float(1.333))))
+            Ok((key::BASE_QUALITY, Some(Value::Float(1.333))))
         );
 
         assert_eq!(
             parse("SOMATIC", header.infos()),
-            Ok((Key::IsSomaticMutation, Some(Value::Flag)))
+            Ok((key::IS_SOMATIC_MUTATION, Some(Value::Flag)))
         );
 
         assert_eq!(
             parse("EVENT=INV0", header.infos()),
             Ok((
-                Key::BreakendEventId,
+                key::BREAKEND_EVENT_ID,
                 Some(Value::String(String::from("INV0")))
             ))
         );

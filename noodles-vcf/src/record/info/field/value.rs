@@ -161,11 +161,11 @@ impl Value {
     ///
     /// ```
     /// use noodles_vcf::{
-    ///     header::{info::Key, record::value::{map::Info, Map}},
+    ///     header::{info::key, record::value::{map::Info, Map}},
     ///     record::info::field::Value,
     /// };
     ///
-    /// let info = Map::<Info>::from(&Key::SamplesWithDataCount);
+    /// let info = Map::<Info>::from(&key::SAMPLES_WITH_DATA_COUNT);
     /// assert_eq!(Value::from_str_info("1", &info), Ok(Value::Integer(1)));
     /// ```
     pub fn from_str_info(s: &str, info: &Map<Info>) -> Result<Self, ParseError> {

@@ -75,7 +75,7 @@ impl Map<Info> {
     ///
     /// ```
     /// use noodles_vcf::header::{
-    ///     info::Key,
+    ///     info::key,
     ///     record::value::{
     ///         map::{info::Type, Info},
     ///         Map,
@@ -83,7 +83,7 @@ impl Map<Info> {
     ///     Number,
     /// };
     ///
-    /// let id = Key::SamplesWithDataCount;
+    /// let id = key::SAMPLES_WITH_DATA_COUNT;
     /// let map = Map::<Info>::new(
     ///     Number::Count(1),
     ///     Type::Integer,
@@ -212,10 +212,11 @@ impl builder::Inner<Info> for builder::TypedDescribedIndexed<Info> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::header::info::key;
 
     #[test]
     fn test_fmt() {
-        let map = Map::<Info>::from(&Key::SamplesWithDataCount);
+        let map = Map::<Info>::from(&key::SAMPLES_WITH_DATA_COUNT);
         let expected = r#",Number=1,Type=Integer,Description="Number of samples with data""#;
         assert_eq!(map.to_string(), expected);
     }
@@ -231,7 +232,7 @@ mod tests {
             ),
         ])?;
 
-        let expected = Map::<Info>::from(&Key::SamplesWithDataCount);
+        let expected = Map::<Info>::from(&key::SAMPLES_WITH_DATA_COUNT);
 
         assert_eq!(actual, expected);
 

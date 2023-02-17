@@ -243,7 +243,7 @@ impl Builder {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::info::Key,
+    ///     header::info::key,
     ///     record::{info::field::Value, Info, Position},
     /// };
     ///
@@ -256,8 +256,8 @@ impl Builder {
     ///     .build()?;
     ///
     /// let expected = [
-    ///     (Key::SamplesWithDataCount, Some(Value::Integer(3))),
-    ///     (Key::AlleleFrequencies, Some(Value::FloatArray(vec![Some(0.5)]))),
+    ///     (key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(3))),
+    ///     (key::ALLELE_FREQUENCIES, Some(Value::FloatArray(vec![Some(0.5)]))),
     /// ].into_iter().collect();
     ///
     /// assert_eq!(record.info(), &expected);

@@ -41,7 +41,7 @@ impl StringMaps {
     /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_info(info::Key::TotalDepth, Map::<Info>::from(&info::Key::TotalDepth))
+    ///     .add_info(info::key::TOTAL_DEPTH, Map::<Info>::from(&info::key::TOTAL_DEPTH))
     ///     .add_filter("q10", Map::<Filter>::new("Quality below 10"))
     ///     .add_format(format::key::READ_DEPTH, Map::<Format>::from(&format::key::READ_DEPTH))
     ///     .add_contig("sq0".parse()?, Map::<Contig>::new())
@@ -76,7 +76,7 @@ impl StringMaps {
     /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_info(info::Key::TotalDepth, Map::<Info>::from(&info::Key::TotalDepth))
+    ///     .add_info(info::key::TOTAL_DEPTH, Map::<Info>::from(&info::key::TOTAL_DEPTH))
     ///     .add_filter("q10", Map::<Filter>::new("Quality below 10"))
     ///     .add_format(format::key::READ_DEPTH, Map::<Format>::from(&format::key::READ_DEPTH))
     ///     .add_contig("sq0".parse()?, Map::<Contig>::new())
@@ -406,12 +406,12 @@ mod tests {
             .add_contig("sq1".parse()?, Map::<Contig>::new())
             .add_contig("sq2".parse()?, Map::<Contig>::new())
             .add_info(
-                info::Key::SamplesWithDataCount,
-                Map::<Info>::from(&info::Key::SamplesWithDataCount),
+                info::key::SAMPLES_WITH_DATA_COUNT,
+                Map::<Info>::from(&info::key::SAMPLES_WITH_DATA_COUNT),
             )
             .add_info(
-                info::Key::TotalDepth,
-                Map::<Info>::from(&info::Key::TotalDepth),
+                info::key::TOTAL_DEPTH,
+                Map::<Info>::from(&info::key::TOTAL_DEPTH),
             )
             .add_filter("PASS", Map::<Filter>::pass())
             .add_filter("q10", Map::<Filter>::new("Quality below 10"))

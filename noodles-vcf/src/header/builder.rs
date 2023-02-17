@@ -54,10 +54,10 @@ impl Builder {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{info::Key, record::value::{map::Info, Map}},
+    ///     header::{info::key, record::value::{map::Info, Map}},
     /// };
     ///
-    /// let id = Key::SamplesWithDataCount;
+    /// let id = key::SAMPLES_WITH_DATA_COUNT;
     /// let info = Map::<Info>::from(&id);
     ///
     /// let header = vcf::Header::builder()
@@ -377,7 +377,7 @@ mod tests {
     #[test]
     fn test_build() -> Result<(), crate::header::record::value::map::contig::name::ParseError> {
         use crate::{
-            header::{self, format::key as format_key, info::Key as InfoKey},
+            header::{self, format::key as format_key, info::key as info_key},
             record::alternate_bases::allele,
         };
 
@@ -393,8 +393,8 @@ mod tests {
         let header = Builder::default()
             .set_file_format(FileFormat::new(4, 3))
             .add_info(
-                InfoKey::SamplesWithDataCount,
-                Map::<Info>::from(&InfoKey::SamplesWithDataCount),
+                info_key::SAMPLES_WITH_DATA_COUNT,
+                Map::<Info>::from(&info_key::SAMPLES_WITH_DATA_COUNT),
             )
             .add_filter("q10", Map::<Filter>::new("Quality below 10"))
             .add_format(

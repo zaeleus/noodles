@@ -109,13 +109,13 @@ impl Info {
     /// use noodles_bcf::{header::StringMaps, record::Info};
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{info::Key, record::value::{map, Map}},
+    ///     header::{info::key, record::value::{map, Map}},
     ///     record::info::field::Value,
     /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_info(Key::AlleleCount, Map::<map::Info>::from(&Key::AlleleCount))
-    ///     .add_info(Key::TotalDepth, Map::<map::Info>::from(&Key::TotalDepth))
+    ///     .add_info(key::ALLELE_COUNT, Map::<map::Info>::from(&key::ALLELE_COUNT))
+    ///     .add_info(key::TOTAL_DEPTH, Map::<map::Info>::from(&key::TOTAL_DEPTH))
     ///     .build();
     ///
     /// let string_maps = StringMaps::from(&header);
@@ -128,11 +128,11 @@ impl Info {
     /// let info = Info::new(data, 2);
     ///
     /// assert_eq!(
-    ///     info.get(&header, string_maps.strings(), &Key::AlleleCount).transpose()?,
+    ///     info.get(&header, string_maps.strings(), &key::ALLELE_COUNT).transpose()?,
     ///     Some(Some(Value::Integer(5)))
     /// );
     ///
-    /// assert!(info.get(&header, string_maps.strings(), &Key::AncestralAllele).is_none());
+    /// assert!(info.get(&header, string_maps.strings(), &key::ANCESTRAL_ALLELE).is_none());
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn get(
@@ -164,13 +164,13 @@ impl Info {
     /// use noodles_bcf::{header::StringMaps, record::Info};
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{info::Key, record::value::{map, Map}},
+    ///     header::{info::key, record::value::{map, Map}},
     ///     record::info::field::Value,
     /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_info(Key::AlleleCount, Map::<map::Info>::from(&Key::AlleleCount))
-    ///     .add_info(Key::TotalDepth, Map::<map::Info>::from(&Key::TotalDepth))
+    ///     .add_info(key::ALLELE_COUNT, Map::<map::Info>::from(&key::ALLELE_COUNT))
+    ///     .add_info(key::TOTAL_DEPTH, Map::<map::Info>::from(&key::TOTAL_DEPTH))
     ///     .build();
     ///
     /// let string_maps = StringMaps::from(&header);
@@ -185,12 +185,12 @@ impl Info {
     ///
     /// assert_eq!(
     ///     fields.next().transpose()?,
-    ///     Some((Key::AlleleCount, Some(Value::Integer(5))))
+    ///     Some((key::ALLELE_COUNT, Some(Value::Integer(5))))
     /// );
     ///
     /// assert_eq!(
     ///     fields.next().transpose()?,
-    ///     Some((Key::TotalDepth, Some(Value::Integer(8))))
+    ///     Some((key::TOTAL_DEPTH, Some(Value::Integer(8))))
     /// );
     ///
     /// assert!(fields.next().is_none());
@@ -223,13 +223,13 @@ impl Info {
     /// use noodles_bcf::{header::StringMaps, record::Info};
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{info::Key, record::value::{map, Map}},
+    ///     header::{info::key, record::value::{map, Map}},
     ///     record::info::field::Value,
     /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_info(Key::AlleleCount, Map::<map::Info>::from(&Key::AlleleCount))
-    ///     .add_info(Key::TotalDepth, Map::<map::Info>::from(&Key::TotalDepth))
+    ///     .add_info(key::ALLELE_COUNT, Map::<map::Info>::from(&key::ALLELE_COUNT))
+    ///     .add_info(key::TOTAL_DEPTH, Map::<map::Info>::from(&key::TOTAL_DEPTH))
     ///     .build();
     ///
     /// let string_maps = StringMaps::from(&header);

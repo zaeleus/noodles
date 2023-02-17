@@ -432,7 +432,7 @@ impl Record {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::info::Key,
+    ///     header::info::key,
     ///     record::{info::field::Value, Info, Position},
     /// };
     ///
@@ -445,8 +445,8 @@ impl Record {
     ///     .build()?;
     ///
     /// let expected = [
-    ///     (Key::SamplesWithDataCount, Some(Value::Integer(3))),
-    ///     (Key::AlleleFrequencies, Some(Value::FloatArray(vec![Some(0.5)]))),
+    ///     (key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(3))),
+    ///     (key::ALLELE_FREQUENCIES, Some(Value::FloatArray(vec![Some(0.5)]))),
     /// ].into_iter().collect();
     ///
     /// assert_eq!(record.info(), &expected);
@@ -463,7 +463,7 @@ impl Record {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::info::Key,
+    ///     header::info::key,
     ///     record::{info::field::Value, Info, Position},
     /// };
     ///
@@ -475,12 +475,12 @@ impl Record {
     ///     .set_info("NS=3;AF=0.5".parse()?)
     ///     .build()?;
     ///
-    /// record.info_mut().insert(Key::TotalDepth, Some(Value::Integer(13)));
+    /// record.info_mut().insert(key::TOTAL_DEPTH, Some(Value::Integer(13)));
     ///
     /// let expected = [
-    ///     (Key::SamplesWithDataCount, Some(Value::Integer(3))),
-    ///     (Key::AlleleFrequencies, Some(Value::FloatArray(vec![Some(0.5)]))),
-    ///     (Key::TotalDepth, Some(Value::Integer(13))),
+    ///     (key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(3))),
+    ///     (key::ALLELE_FREQUENCIES, Some(Value::FloatArray(vec![Some(0.5)]))),
+    ///     (key::TOTAL_DEPTH, Some(Value::Integer(13))),
     /// ].into_iter().collect();
     ///
     /// assert_eq!(record.info(), &expected);
@@ -683,9 +683,9 @@ impl Record {
     /// ```
     pub fn end(&self) -> Result<Position, EndError> {
         use self::info::field::Value;
-        use super::header::info::Key;
+        use super::header::info::key;
 
-        let end = if let Some(Some(value)) = self.info().get(&Key::EndPosition) {
+        let end = if let Some(Some(value)) = self.info().get(&key::END_POSITION) {
             match value {
                 Value::Integer(n) => usize::try_from(*n).map_err(EndError::InvalidPosition)?,
                 _ => return Err(EndError::InvalidInfoEndPositionFieldValue),
@@ -753,13 +753,13 @@ mod tests {
 
     #[test]
     fn test_end() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::header::info::Key as InfoKey;
+        use crate::header::info::key;
 
         let record = Record::builder()
             .set_chromosome("sq0".parse()?)
             .set_position(Position::from(1))
             .set_reference_bases("A".parse()?)
-            .set_info([(InfoKey::EndPosition, None)].into_iter().collect())
+            .set_info([(key::END_POSITION, None)].into_iter().collect())
             .build()?;
 
         assert_eq!(record.end(), Ok(Position::from(1)));
@@ -769,7 +769,7 @@ mod tests {
             .set_position(Position::from(1))
             .set_reference_bases("A".parse()?)
             .set_info(
-                [(InfoKey::EndPosition, Some(info::field::Value::Flag))]
+                [(key::END_POSITION, Some(info::field::Value::Flag))]
                     .into_iter()
                     .collect(),
             )

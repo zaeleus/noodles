@@ -4,9 +4,144 @@ use crate::header::{record::value::map::info::Type, Number};
 
 use std::{borrow::Borrow, error, fmt, str::FromStr};
 
+/// Ancestral allele (`AA`).
+pub const ANCESTRAL_ALLELE: Key = Key::Standard(Standard::AncestralAllele);
+
+/// Allele count in genotypes, for each ALT allele, in the same order as listed (`AC`).
+pub const ALLELE_COUNT: Key = Key::Standard(Standard::AlleleCount);
+
+/// Total read depth for each allele (`AD`).
+pub const TOTAL_READ_DEPTHS: Key = Key::Standard(Standard::TotalReadDepths);
+
+/// Read depth for each allele on the forward strand (`ADF`).
+pub const FORWARD_STRAND_READ_DEPTHS: Key = Key::Standard(Standard::ForwardStrandReadDepths);
+
+/// Read depth for each allele on the reverse strand (`ADR`).
+pub const REVERSE_STRAND_READ_DEPTHS: Key = Key::Standard(Standard::ReverseStrandReadDepths);
+
+/// Allele frequency for each ALT allele in the same order as listed (`AF`).
+pub const ALLELE_FREQUENCIES: Key = Key::Standard(Standard::AlleleFrequencies);
+
+/// Total number of alleles in called genotypes (`AN`).
+pub const TOTAL_ALLELE_COUNT: Key = Key::Standard(Standard::TotalAlleleCount);
+
+/// RMS base quality (`BQ`).
+pub const BASE_QUALITY: Key = Key::Standard(Standard::BaseQuality);
+
+/// Cigar string describing how to align an alternate allele to the reference allele (`CIGAR`).
+pub const CIGAR: Key = Key::Standard(Standard::Cigar);
+
+/// dbSNP membership (`DB`).
+pub const IS_IN_DB_SNP: Key = Key::Standard(Standard::IsInDbSnp);
+
+/// Combined depth across samples (`DP`).
+pub const TOTAL_DEPTH: Key = Key::Standard(Standard::TotalDepth);
+
+/// HapMap2 membership (`H2`).
+pub const IS_IN_HAP_MAP_2: Key = Key::Standard(Standard::IsInHapMap2);
+
+/// HapMap3 membership (`H3`).
+pub const IS_IN_HAP_MAP_3: Key = Key::Standard(Standard::IsInHapMap3);
+
+/// RMS mapping quality (`MQ`).
+pub const MAPPING_QUALITY: Key = Key::Standard(Standard::MappingQuality);
+
+/// Number of MAPQ == 0 reads (`MQ0`).
+pub const ZERO_MAPPING_QUALITY_COUNT: Key = Key::Standard(Standard::ZeroMappingQualityCount);
+
+/// Number of samples with data (`NS`).
+pub const SAMPLES_WITH_DATA_COUNT: Key = Key::Standard(Standard::SamplesWithDataCount);
+
+/// Strand bias (`SB`).
+pub const STRAND_BIAS: Key = Key::Standard(Standard::StrandBias);
+
+/// Somatic mutation (`SOMATIC`).
+pub const IS_SOMATIC_MUTATION: Key = Key::Standard(Standard::IsSomaticMutation);
+
+/// Validated by follow-up experiment (`VALIDATED`).
+pub const IS_VALIDATED: Key = Key::Standard(Standard::IsValidated);
+
+/// 1000 Genomes membership (`1000G`).
+pub const IS_IN_1000_GENOMES: Key = Key::Standard(Standard::IsIn1000Genomes);
+
+/// Imprecise structural variation (`IMPRECISE`).
+pub const IS_IMPRECISE: Key = Key::Standard(Standard::IsImprecise);
+
+/// Indicates a novel structural variation (`NOVEL`).
+pub const IS_NOVEL: Key = Key::Standard(Standard::IsNovel);
+
+/// End position of the variant described in this record (`END`).
+pub const END_POSITION: Key = Key::Standard(Standard::EndPosition);
+
+/// Type of structural variant (`SVTYPE`).
+pub const SV_TYPE: Key = Key::Standard(Standard::SvType);
+
+/// Difference in length between REF and ALT alleles (`SVLEN`).
+pub const SV_LENGTHS: Key = Key::Standard(Standard::SvLengths);
+
+/// Confidence interval around POS for imprecise variants (`CIPOS`).
+pub const POSITION_CONFIDENCE_INTERVALS: Key = Key::Standard(Standard::PositionConfidenceIntervals);
+
+/// Confidence interval around END for imprecise variants (`CIEND`).
+pub const END_CONFIDENCE_INTERVALS: Key = Key::Standard(Standard::EndConfidenceIntervals);
+
+/// Length of base pair identical micro-homology at event breakpoints (`HOMLEN`).
+pub const MICROHOMOLOGY_LENGTHS: Key = Key::Standard(Standard::MicrohomologyLengths);
+
+/// Sequence of base pair identical micro-homology at event breakpoints (`HOMSEQ`).
+pub const MICROHOMOLOGY_SEQUENCES: Key = Key::Standard(Standard::MicrohomologySequences);
+
+/// ID of the assembled alternate allele in the assembly file (`BKPTID`).
+pub const BREAKPOINT_IDS: Key = Key::Standard(Standard::BreakpointIds);
+
+/// Mobile element info of the form NAME,START,END,POLARITY (`MEINFO`).
+pub const MOBILE_ELEMENT_INFO: Key = Key::Standard(Standard::MobileElementInfo);
+
+/// Mobile element transduction info of the form CHR,START,END,POLARITY (`METRANS`).
+pub const MOBILE_ELEMENT_TRANSDUCTION_INFO: Key =
+    Key::Standard(Standard::MobileElementTransductionInfo);
+
+/// ID of this element in Database of Genomic Variation (`DBVID`).
+pub const DBV_ID: Key = Key::Standard(Standard::DbvId);
+
+/// ID of this element in DBVAR (`DBVARID`).
+pub const DB_VAR_ID: Key = Key::Standard(Standard::DbVarId);
+
+/// ID of this element in DBRIP (`DBRIPID`).
+pub const DB_RIP_ID: Key = Key::Standard(Standard::DbRipId);
+
+/// ID of mate breakends (`MATEID`).
+pub const MATE_BREAKEND_IDS: Key = Key::Standard(Standard::MateBreakendIds);
+
+/// ID of partner breakend (`PARID`).
+pub const PARTNER_BREAKEND_ID: Key = Key::Standard(Standard::PartnerBreakendId);
+
+/// ID of event associated to breakend (`EVENT`).
+pub const BREAKEND_EVENT_ID: Key = Key::Standard(Standard::BreakendEventId);
+
+/// Confidence interval around the inserted material between breakends (`CILEN`).
+pub const BREAKEND_CONFIDENCE_INTERVALS: Key = Key::Standard(Standard::BreakendConfidenceIntervals);
+
+/// Read Depth of adjacency (`DPADJ`).
+pub const ADJACENT_READ_DEPTHS: Key = Key::Standard(Standard::AdjacentReadDepths);
+
+/// Copy number of segment containing breakend (`CN`).
+pub const BREAKEND_COPY_NUMBER: Key = Key::Standard(Standard::BreakendCopyNumber);
+
+/// Copy number of adjacency (`CNADJ`).
+pub const ADJACENT_COPY_NUMBER: Key = Key::Standard(Standard::AdjacentCopyNumber);
+
+/// Confidence interval around copy number for the segment (`CICN`).
+pub const COPY_NUMBER_CONFIDENCE_INTERVALS: Key =
+    Key::Standard(Standard::CopyNumberConfidenceIntervals);
+
+/// Confidence interval around copy number for the adjacency (`CICNADJ`).
+pub const ADJACENT_COPY_NUMBER_CONFIDENCE_INTERVALS: Key =
+    Key::Standard(Standard::AdjacentCopyNumberConfidenceIntervals);
+
 /// A VCF header info key.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub enum Key {
+pub enum Standard {
     // § 1.6.1 Fixed Fields (2021-01-13)
     /// Ancestral allele (`AA`).
     AncestralAllele,
@@ -102,12 +237,9 @@ pub enum Key {
     CopyNumberConfidenceIntervals,
     /// Confidence interval around copy number for the adjacency (`CICNADJ`).
     AdjacentCopyNumberConfidenceIntervals,
-
-    /// Any other non-reserved key.
-    Other(String),
 }
 
-impl AsRef<str> for Key {
+impl AsRef<str> for Standard {
     fn as_ref(&self) -> &str {
         match self {
             Self::AncestralAllele => "AA",
@@ -157,21 +289,7 @@ impl AsRef<str> for Key {
             Self::AdjacentCopyNumber => "CNADJ",
             Self::CopyNumberConfidenceIntervals => "CICN",
             Self::AdjacentCopyNumberConfidenceIntervals => "CICNADJ",
-
-            Self::Other(s) => s,
         }
-    }
-}
-
-impl Borrow<str> for Key {
-    fn borrow(&self) -> &str {
-        self.as_ref()
-    }
-}
-
-impl fmt::Display for Key {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(self.as_ref())
     }
 }
 
@@ -195,14 +313,10 @@ impl fmt::Display for ParseError {
     }
 }
 
-impl FromStr for Key {
+impl FromStr for Standard {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.is_empty() {
-            return Err(ParseError::Empty);
-        }
-
         match s {
             "AA" => Ok(Self::AncestralAllele),
             "AC" => Ok(Self::AlleleCount),
@@ -252,13 +366,35 @@ impl FromStr for Key {
             "CICN" => Ok(Self::CopyNumberConfidenceIntervals),
             "CICNADJ" => Ok(Self::AdjacentCopyNumberConfidenceIntervals),
 
-            _ => {
-                if is_valid_name(s) {
-                    Ok(Self::Other(s.into()))
-                } else {
-                    Err(ParseError::Invalid)
-                }
-            }
+            _ => Err(ParseError::Invalid),
+        }
+    }
+}
+
+/// A non-reserved VCF header info key.
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct Other(String);
+
+impl AsRef<str> for Other {
+    fn as_ref(&self) -> &str {
+        &self.0
+    }
+}
+
+impl fmt::Display for Other {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.as_ref().fmt(f)
+    }
+}
+
+impl FromStr for Other {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if is_valid_name(s) {
+            Ok(Self(s.into()))
+        } else {
+            Err(ParseError::Invalid)
         }
     }
 }
@@ -280,183 +416,225 @@ fn is_valid_name(s: &str) -> bool {
     chars.all(is_valid_name_char)
 }
 
-pub(crate) fn number(key: &Key) -> Option<Number> {
-    match key {
-        Key::AncestralAllele => Some(Number::Count(1)),
-        Key::AlleleCount => Some(Number::A),
-        Key::TotalReadDepths => Some(Number::R),
-        Key::ForwardStrandReadDepths => Some(Number::R),
-        Key::ReverseStrandReadDepths => Some(Number::R),
-        Key::AlleleFrequencies => Some(Number::A),
-        Key::TotalAlleleCount => Some(Number::Count(1)),
-        Key::BaseQuality => Some(Number::Count(1)),
-        Key::Cigar => Some(Number::A),
-        Key::IsInDbSnp => Some(Number::Count(0)),
-        Key::TotalDepth => Some(Number::Count(1)),
-        // Key::EndPosition => Some(Number::Count(1)),
-        Key::IsInHapMap2 => Some(Number::Count(0)),
-        Key::IsInHapMap3 => Some(Number::Count(0)),
-        Key::MappingQuality => Some(Number::Count(1)),
-        Key::ZeroMappingQualityCount => Some(Number::Count(1)),
-        Key::SamplesWithDataCount => Some(Number::Count(1)),
-        Key::StrandBias => Some(Number::Count(4)),
-        Key::IsSomaticMutation => Some(Number::Count(0)),
-        Key::IsValidated => Some(Number::Count(0)),
-        Key::IsIn1000Genomes => Some(Number::Count(0)),
+/// A VCF header info key.
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub enum Key {
+    /// A reserved key.
+    Standard(Standard),
+    /// Any other non-reserved key.
+    Other(Other),
+}
 
-        Key::IsImprecise => Some(Number::Count(0)),
-        Key::IsNovel => Some(Number::Count(0)),
-        Key::EndPosition => Some(Number::Count(1)),
-        Key::SvType => Some(Number::Count(1)),
-        Key::SvLengths => Some(Number::Unknown),
-        Key::PositionConfidenceIntervals => Some(Number::Count(2)),
-        Key::EndConfidenceIntervals => Some(Number::Count(2)),
-        Key::MicrohomologyLengths => Some(Number::Unknown),
-        Key::MicrohomologySequences => Some(Number::Unknown),
-        Key::BreakpointIds => Some(Number::Unknown),
-        Key::MobileElementInfo => Some(Number::Count(4)),
-        Key::MobileElementTransductionInfo => Some(Number::Count(4)),
-        Key::DbvId => Some(Number::Count(1)),
-        Key::DbVarId => Some(Number::Count(1)),
-        Key::DbRipId => Some(Number::Count(1)),
-        Key::MateBreakendIds => Some(Number::Unknown),
-        Key::PartnerBreakendId => Some(Number::Count(1)),
-        Key::BreakendEventId => Some(Number::Count(1)),
-        Key::BreakendConfidenceIntervals => Some(Number::Count(2)),
+impl AsRef<str> for Key {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Standard(k) => k.as_ref(),
+            Self::Other(k) => k.as_ref(),
+        }
+    }
+}
+
+impl Borrow<str> for Key {
+    fn borrow(&self) -> &str {
+        self.as_ref()
+    }
+}
+
+impl fmt::Display for Key {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_ref())
+    }
+}
+
+impl FromStr for Key {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.is_empty() {
+            return Err(ParseError::Empty);
+        }
+
+        s.parse()
+            .map(Self::Standard)
+            .or_else(|_| s.parse().map(Self::Other))
+    }
+}
+
+pub(crate) fn number(key: &Key) -> Option<Number> {
+    match *key {
+        ANCESTRAL_ALLELE => Some(Number::Count(1)),
+        ALLELE_COUNT => Some(Number::A),
+        TOTAL_READ_DEPTHS => Some(Number::R),
+        FORWARD_STRAND_READ_DEPTHS => Some(Number::R),
+        REVERSE_STRAND_READ_DEPTHS => Some(Number::R),
+        ALLELE_FREQUENCIES => Some(Number::A),
+        TOTAL_ALLELE_COUNT => Some(Number::Count(1)),
+        BASE_QUALITY => Some(Number::Count(1)),
+        CIGAR => Some(Number::A),
+        IS_IN_DB_SNP => Some(Number::Count(0)),
+        TOTAL_DEPTH => Some(Number::Count(1)),
+        // END_POSITION => Some(Number::Count(1)),
+        IS_IN_HAP_MAP_2 => Some(Number::Count(0)),
+        IS_IN_HAP_MAP_3 => Some(Number::Count(0)),
+        MAPPING_QUALITY => Some(Number::Count(1)),
+        ZERO_MAPPING_QUALITY_COUNT => Some(Number::Count(1)),
+        SAMPLES_WITH_DATA_COUNT => Some(Number::Count(1)),
+        STRAND_BIAS => Some(Number::Count(4)),
+        IS_SOMATIC_MUTATION => Some(Number::Count(0)),
+        IS_VALIDATED => Some(Number::Count(0)),
+        IS_IN_1000_GENOMES => Some(Number::Count(0)),
+
+        IS_IMPRECISE => Some(Number::Count(0)),
+        IS_NOVEL => Some(Number::Count(0)),
+        END_POSITION => Some(Number::Count(1)),
+        SV_TYPE => Some(Number::Count(1)),
+        SV_LENGTHS => Some(Number::Unknown),
+        POSITION_CONFIDENCE_INTERVALS => Some(Number::Count(2)),
+        END_CONFIDENCE_INTERVALS => Some(Number::Count(2)),
+        MICROHOMOLOGY_LENGTHS => Some(Number::Unknown),
+        MICROHOMOLOGY_SEQUENCES => Some(Number::Unknown),
+        BREAKPOINT_IDS => Some(Number::Unknown),
+        MOBILE_ELEMENT_INFO => Some(Number::Count(4)),
+        MOBILE_ELEMENT_TRANSDUCTION_INFO => Some(Number::Count(4)),
+        DBV_ID => Some(Number::Count(1)),
+        DB_VAR_ID => Some(Number::Count(1)),
+        DB_RIP_ID => Some(Number::Count(1)),
+        MATE_BREAKEND_IDS => Some(Number::Unknown),
+        PARTNER_BREAKEND_ID => Some(Number::Count(1)),
+        BREAKEND_EVENT_ID => Some(Number::Count(1)),
+        BREAKEND_CONFIDENCE_INTERVALS => Some(Number::Count(2)),
         // Key::BreakendReadDepth => Some(Number::Count(1)),
-        Key::AdjacentReadDepths => Some(Number::Unknown),
-        Key::BreakendCopyNumber => Some(Number::Count(1)),
-        Key::AdjacentCopyNumber => Some(Number::Unknown),
-        Key::CopyNumberConfidenceIntervals => Some(Number::Count(2)),
-        Key::AdjacentCopyNumberConfidenceIntervals => Some(Number::Unknown),
+        ADJACENT_READ_DEPTHS => Some(Number::Unknown),
+        BREAKEND_COPY_NUMBER => Some(Number::Count(1)),
+        ADJACENT_COPY_NUMBER => Some(Number::Unknown),
+        COPY_NUMBER_CONFIDENCE_INTERVALS => Some(Number::Count(2)),
+        ADJACENT_COPY_NUMBER_CONFIDENCE_INTERVALS => Some(Number::Unknown),
 
         Key::Other(_) => None,
     }
 }
 
 pub(crate) fn ty(key: &Key) -> Option<Type> {
-    match key {
-        Key::AncestralAllele => Some(Type::String),
-        Key::AlleleCount => Some(Type::Integer),
-        Key::TotalReadDepths => Some(Type::Integer),
-        Key::ForwardStrandReadDepths => Some(Type::Integer),
-        Key::ReverseStrandReadDepths => Some(Type::Integer),
-        Key::AlleleFrequencies => Some(Type::Float),
-        Key::TotalAlleleCount => Some(Type::Integer),
-        Key::BaseQuality => Some(Type::Float),
-        Key::Cigar => Some(Type::String),
-        Key::IsInDbSnp => Some(Type::Flag),
-        Key::TotalDepth => Some(Type::Integer),
-        // Key::EndPosition => Some(Type::Integer),
-        Key::IsInHapMap2 => Some(Type::Flag),
-        Key::IsInHapMap3 => Some(Type::Flag),
-        Key::MappingQuality => Some(Type::Float),
-        Key::ZeroMappingQualityCount => Some(Type::Integer),
-        Key::SamplesWithDataCount => Some(Type::Integer),
-        Key::StrandBias => Some(Type::Integer),
-        Key::IsSomaticMutation => Some(Type::Flag),
-        Key::IsValidated => Some(Type::Flag),
-        Key::IsIn1000Genomes => Some(Type::Flag),
+    match *key {
+        ANCESTRAL_ALLELE => Some(Type::String),
+        ALLELE_COUNT => Some(Type::Integer),
+        TOTAL_READ_DEPTHS => Some(Type::Integer),
+        FORWARD_STRAND_READ_DEPTHS => Some(Type::Integer),
+        REVERSE_STRAND_READ_DEPTHS => Some(Type::Integer),
+        ALLELE_FREQUENCIES => Some(Type::Float),
+        TOTAL_ALLELE_COUNT => Some(Type::Integer),
+        BASE_QUALITY => Some(Type::Float),
+        CIGAR => Some(Type::String),
+        IS_IN_DB_SNP => Some(Type::Flag),
+        TOTAL_DEPTH => Some(Type::Integer),
+        // END_POSITION => Some(Type::Integer),
+        IS_IN_HAP_MAP_2 => Some(Type::Flag),
+        IS_IN_HAP_MAP_3 => Some(Type::Flag),
+        MAPPING_QUALITY => Some(Type::Float),
+        ZERO_MAPPING_QUALITY_COUNT => Some(Type::Integer),
+        SAMPLES_WITH_DATA_COUNT => Some(Type::Integer),
+        STRAND_BIAS => Some(Type::Integer),
+        IS_SOMATIC_MUTATION => Some(Type::Flag),
+        IS_VALIDATED => Some(Type::Flag),
+        IS_IN_1000_GENOMES => Some(Type::Flag),
 
-        Key::IsImprecise => Some(Type::Flag),
-        Key::IsNovel => Some(Type::Flag),
-        Key::EndPosition => Some(Type::Integer),
-        Key::SvType => Some(Type::String),
-        Key::SvLengths => Some(Type::Integer),
-        Key::PositionConfidenceIntervals => Some(Type::Integer),
-        Key::EndConfidenceIntervals => Some(Type::Integer),
-        Key::MicrohomologyLengths => Some(Type::Integer),
-        Key::MicrohomologySequences => Some(Type::String),
-        Key::BreakpointIds => Some(Type::String),
-        Key::MobileElementInfo => Some(Type::String),
-        Key::MobileElementTransductionInfo => Some(Type::String),
-        Key::DbvId => Some(Type::String),
-        Key::DbVarId => Some(Type::String),
-        Key::DbRipId => Some(Type::String),
-        Key::MateBreakendIds => Some(Type::String),
-        Key::PartnerBreakendId => Some(Type::String),
-        Key::BreakendEventId => Some(Type::String),
-        Key::BreakendConfidenceIntervals => Some(Type::Integer),
+        IS_IMPRECISE => Some(Type::Flag),
+        IS_NOVEL => Some(Type::Flag),
+        END_POSITION => Some(Type::Integer),
+        SV_TYPE => Some(Type::String),
+        SV_LENGTHS => Some(Type::Integer),
+        POSITION_CONFIDENCE_INTERVALS => Some(Type::Integer),
+        END_CONFIDENCE_INTERVALS => Some(Type::Integer),
+        MICROHOMOLOGY_LENGTHS => Some(Type::Integer),
+        MICROHOMOLOGY_SEQUENCES => Some(Type::String),
+        BREAKPOINT_IDS => Some(Type::String),
+        MOBILE_ELEMENT_INFO => Some(Type::String),
+        MOBILE_ELEMENT_TRANSDUCTION_INFO => Some(Type::String),
+        DBV_ID => Some(Type::String),
+        DB_VAR_ID => Some(Type::String),
+        DB_RIP_ID => Some(Type::String),
+        MATE_BREAKEND_IDS => Some(Type::String),
+        PARTNER_BREAKEND_ID => Some(Type::String),
+        BREAKEND_EVENT_ID => Some(Type::String),
+        BREAKEND_CONFIDENCE_INTERVALS => Some(Type::Integer),
         // Key::BreakendReadDepth => Some(Type::Integer),
-        Key::AdjacentReadDepths => Some(Type::Integer),
-        Key::BreakendCopyNumber => Some(Type::Integer),
-        Key::AdjacentCopyNumber => Some(Type::Integer),
-        Key::CopyNumberConfidenceIntervals => Some(Type::Integer),
-        Key::AdjacentCopyNumberConfidenceIntervals => Some(Type::Integer),
+        ADJACENT_READ_DEPTHS => Some(Type::Integer),
+        BREAKEND_COPY_NUMBER => Some(Type::Integer),
+        ADJACENT_COPY_NUMBER => Some(Type::Integer),
+        COPY_NUMBER_CONFIDENCE_INTERVALS => Some(Type::Integer),
+        ADJACENT_COPY_NUMBER_CONFIDENCE_INTERVALS => Some(Type::Integer),
 
         Key::Other(_) => None,
     }
 }
 
 pub(crate) fn description(key: &Key) -> Option<&str> {
-    match key {
-        Key::AncestralAllele => Some("Ancestral allele"),
-        Key::AlleleCount => {
+    match *key {
+        ANCESTRAL_ALLELE => Some("Ancestral allele"),
+        ALLELE_COUNT => {
             Some("Allele count in genotypes, for each ALT allele, in the same order as listed")
         }
-        Key::TotalReadDepths => Some("Total read depth for each allele"),
-        Key::ForwardStrandReadDepths => Some("Read depth for each allele on the forward strand"),
-        Key::ReverseStrandReadDepths => Some("Read depth for each allele on the reverse strand"),
-        Key::AlleleFrequencies => {
+        TOTAL_READ_DEPTHS => Some("Total read depth for each allele"),
+        FORWARD_STRAND_READ_DEPTHS => Some("Read depth for each allele on the forward strand"),
+        REVERSE_STRAND_READ_DEPTHS => Some("Read depth for each allele on the reverse strand"),
+        ALLELE_FREQUENCIES => {
             Some("Allele frequency for each ALT allele in the same order as listed")
         }
-        Key::TotalAlleleCount => Some("Total number of alleles in called genotypes"),
-        Key::BaseQuality => Some("RMS base quality"),
-        Key::Cigar => {
+        TOTAL_ALLELE_COUNT => Some("Total number of alleles in called genotypes"),
+        BASE_QUALITY => Some("RMS base quality"),
+        CIGAR => {
             Some("Cigar string describing how to align an alternate allele to the reference allele")
         }
-        Key::IsInDbSnp => Some("dbSNP membership"),
-        Key::TotalDepth => Some("Combined depth across samples"),
-        // Key::EndPosition => Some("End position on CHROM"),
-        Key::IsInHapMap2 => Some("HapMap2 membership"),
-        Key::IsInHapMap3 => Some("HapMap3 membership"),
-        Key::MappingQuality => Some("RMS mapping quality"),
-        Key::ZeroMappingQualityCount => Some("Number of MAPQ == 0 reads"),
-        Key::SamplesWithDataCount => Some("Number of samples with data"),
-        Key::StrandBias => Some("Strand bias"),
-        Key::IsSomaticMutation => Some("Somatic mutation"),
-        Key::IsValidated => Some("Validated by follow-up experiment"),
-        Key::IsIn1000Genomes => Some("1000 Genomes membership"),
+        IS_IN_DB_SNP => Some("dbSNP membership"),
+        TOTAL_DEPTH => Some("Combined depth across samples"),
+        // END_POSITION => Some("End position on CHROM"),
+        IS_IN_HAP_MAP_2 => Some("HapMap2 membership"),
+        IS_IN_HAP_MAP_3 => Some("HapMap3 membership"),
+        MAPPING_QUALITY => Some("RMS mapping quality"),
+        ZERO_MAPPING_QUALITY_COUNT => Some("Number of MAPQ == 0 reads"),
+        SAMPLES_WITH_DATA_COUNT => Some("Number of samples with data"),
+        STRAND_BIAS => Some("Strand bias"),
+        IS_SOMATIC_MUTATION => Some("Somatic mutation"),
+        IS_VALIDATED => Some("Validated by follow-up experiment"),
+        IS_IN_1000_GENOMES => Some("1000 Genomes membership"),
 
-        Key::IsImprecise => Some("Imprecise structural variation"),
-        Key::IsNovel => Some("Indicates a novel structural variation"),
-        Key::EndPosition => Some("End position of the variant described in this record"),
-        Key::SvType => Some("Type of structural variant"),
-        Key::SvLengths => Some("Difference in length between REF and ALT alleles"),
-        Key::PositionConfidenceIntervals => {
+        IS_IMPRECISE => Some("Imprecise structural variation"),
+        IS_NOVEL => Some("Indicates a novel structural variation"),
+        END_POSITION => Some("End position of the variant described in this record"),
+        SV_TYPE => Some("Type of structural variant"),
+        SV_LENGTHS => Some("Difference in length between REF and ALT alleles"),
+        POSITION_CONFIDENCE_INTERVALS => {
             Some("Confidence interval around POS for imprecise variants")
         }
-        Key::EndConfidenceIntervals => {
-            Some("Confidence interval around END for imprecise variants")
-        }
-        Key::MicrohomologyLengths => {
+        END_CONFIDENCE_INTERVALS => Some("Confidence interval around END for imprecise variants"),
+        MICROHOMOLOGY_LENGTHS => {
             Some("Length of base pair identical micro-homology at event breakpoints")
         }
-        Key::MicrohomologySequences => {
+        MICROHOMOLOGY_SEQUENCES => {
             Some("Sequence of base pair identical micro-homology at event breakpoints")
         }
-        Key::BreakpointIds => Some("ID of the assembled alternate allele in the assembly file"),
-        Key::MobileElementInfo => Some("Mobile element info of the form NAME,START,END,POLARITY"),
-        Key::MobileElementTransductionInfo => {
+        BREAKPOINT_IDS => Some("ID of the assembled alternate allele in the assembly file"),
+        MOBILE_ELEMENT_INFO => Some("Mobile element info of the form NAME,START,END,POLARITY"),
+        MOBILE_ELEMENT_TRANSDUCTION_INFO => {
             Some("Mobile element transduction info of the form CHR,START,END,POLARITY")
         }
-        Key::DbvId => Some("ID of this element in Database of Genomic Variation"),
-        Key::DbVarId => Some("ID of this element in DBVAR"),
-        Key::DbRipId => Some("ID of this element in DBRIP"),
-        Key::MateBreakendIds => Some("ID of mate breakends"),
-        Key::PartnerBreakendId => Some("ID of partner breakend"),
-        Key::BreakendEventId => Some("ID of event associated to breakend"),
-        Key::BreakendConfidenceIntervals => {
+        DBV_ID => Some("ID of this element in Database of Genomic Variation"),
+        DB_VAR_ID => Some("ID of this element in DBVAR"),
+        DB_RIP_ID => Some("ID of this element in DBRIP"),
+        MATE_BREAKEND_IDS => Some("ID of mate breakends"),
+        PARTNER_BREAKEND_ID => Some("ID of partner breakend"),
+        BREAKEND_EVENT_ID => Some("ID of event associated to breakend"),
+        BREAKEND_CONFIDENCE_INTERVALS => {
             Some("Confidence interval around the inserted material between breakends")
         }
         // Key::BreakendReadDepth => Some("Read Depth of segment containing breakend"),
-        Key::AdjacentReadDepths => Some("Read Depth of adjacency"),
-        Key::BreakendCopyNumber => Some("Copy number of segment containing breakend"),
-        Key::AdjacentCopyNumber => Some("Copy number of adjacency"),
-        Key::CopyNumberConfidenceIntervals => {
+        ADJACENT_READ_DEPTHS => Some("Read Depth of adjacency"),
+        BREAKEND_COPY_NUMBER => Some("Copy number of segment containing breakend"),
+        ADJACENT_COPY_NUMBER => Some("Copy number of adjacency"),
+        COPY_NUMBER_CONFIDENCE_INTERVALS => {
             Some("Confidence interval around copy number for the segment")
         }
-        Key::AdjacentCopyNumberConfidenceIntervals => {
+        ADJACENT_COPY_NUMBER_CONFIDENCE_INTERVALS => {
             Some("Confidence interval around copy number for the adjacency")
         }
 
@@ -470,114 +648,114 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        assert_eq!(Key::AncestralAllele.to_string(), "AA");
-        assert_eq!(Key::AlleleCount.to_string(), "AC");
-        assert_eq!(Key::TotalReadDepths.to_string(), "AD");
-        assert_eq!(Key::ForwardStrandReadDepths.to_string(), "ADF");
-        assert_eq!(Key::ReverseStrandReadDepths.to_string(), "ADR");
-        assert_eq!(Key::AlleleFrequencies.to_string(), "AF");
-        assert_eq!(Key::TotalAlleleCount.to_string(), "AN");
-        assert_eq!(Key::BaseQuality.to_string(), "BQ");
-        assert_eq!(Key::Cigar.to_string(), "CIGAR");
-        assert_eq!(Key::IsInDbSnp.to_string(), "DB");
-        assert_eq!(Key::TotalDepth.to_string(), "DP");
-        // assert_eq!(Key::EndPosition.to_string(), "END");
-        assert_eq!(Key::IsInHapMap2.to_string(), "H2");
-        assert_eq!(Key::IsInHapMap3.to_string(), "H3");
-        assert_eq!(Key::MappingQuality.to_string(), "MQ");
-        assert_eq!(Key::ZeroMappingQualityCount.to_string(), "MQ0");
-        assert_eq!(Key::SamplesWithDataCount.to_string(), "NS");
-        assert_eq!(Key::StrandBias.to_string(), "SB");
-        assert_eq!(Key::IsSomaticMutation.to_string(), "SOMATIC");
-        assert_eq!(Key::IsValidated.to_string(), "VALIDATED");
-        assert_eq!(Key::IsIn1000Genomes.to_string(), "1000G");
+        assert_eq!(ANCESTRAL_ALLELE.to_string(), "AA");
+        assert_eq!(ALLELE_COUNT.to_string(), "AC");
+        assert_eq!(TOTAL_READ_DEPTHS.to_string(), "AD");
+        assert_eq!(FORWARD_STRAND_READ_DEPTHS.to_string(), "ADF");
+        assert_eq!(REVERSE_STRAND_READ_DEPTHS.to_string(), "ADR");
+        assert_eq!(ALLELE_FREQUENCIES.to_string(), "AF");
+        assert_eq!(TOTAL_ALLELE_COUNT.to_string(), "AN");
+        assert_eq!(BASE_QUALITY.to_string(), "BQ");
+        assert_eq!(CIGAR.to_string(), "CIGAR");
+        assert_eq!(IS_IN_DB_SNP.to_string(), "DB");
+        assert_eq!(TOTAL_DEPTH.to_string(), "DP");
+        // assert_eq!(END_POSITION.to_string(), "END");
+        assert_eq!(IS_IN_HAP_MAP_2.to_string(), "H2");
+        assert_eq!(IS_IN_HAP_MAP_3.to_string(), "H3");
+        assert_eq!(MAPPING_QUALITY.to_string(), "MQ");
+        assert_eq!(ZERO_MAPPING_QUALITY_COUNT.to_string(), "MQ0");
+        assert_eq!(SAMPLES_WITH_DATA_COUNT.to_string(), "NS");
+        assert_eq!(STRAND_BIAS.to_string(), "SB");
+        assert_eq!(IS_SOMATIC_MUTATION.to_string(), "SOMATIC");
+        assert_eq!(IS_VALIDATED.to_string(), "VALIDATED");
+        assert_eq!(IS_IN_1000_GENOMES.to_string(), "1000G");
 
-        assert_eq!(Key::IsImprecise.to_string(), "IMPRECISE");
-        assert_eq!(Key::IsNovel.to_string(), "NOVEL");
-        assert_eq!(Key::EndPosition.to_string(), "END");
-        assert_eq!(Key::SvType.to_string(), "SVTYPE");
-        assert_eq!(Key::SvLengths.to_string(), "SVLEN");
-        assert_eq!(Key::PositionConfidenceIntervals.to_string(), "CIPOS");
-        assert_eq!(Key::EndConfidenceIntervals.to_string(), "CIEND");
-        assert_eq!(Key::MicrohomologyLengths.to_string(), "HOMLEN");
-        assert_eq!(Key::MicrohomologySequences.to_string(), "HOMSEQ");
-        assert_eq!(Key::BreakpointIds.to_string(), "BKPTID");
-        assert_eq!(Key::MobileElementInfo.to_string(), "MEINFO");
-        assert_eq!(Key::MobileElementTransductionInfo.to_string(), "METRANS");
-        assert_eq!(Key::DbvId.to_string(), "DGVID");
-        assert_eq!(Key::DbVarId.to_string(), "DBVARID");
-        assert_eq!(Key::DbRipId.to_string(), "DBRIPID");
-        assert_eq!(Key::MateBreakendIds.to_string(), "MATEID");
-        assert_eq!(Key::PartnerBreakendId.to_string(), "PARID");
-        assert_eq!(Key::BreakendEventId.to_string(), "EVENT");
-        assert_eq!(Key::BreakendConfidenceIntervals.to_string(), "CILEN");
+        assert_eq!(IS_IMPRECISE.to_string(), "IMPRECISE");
+        assert_eq!(IS_NOVEL.to_string(), "NOVEL");
+        assert_eq!(END_POSITION.to_string(), "END");
+        assert_eq!(SV_TYPE.to_string(), "SVTYPE");
+        assert_eq!(SV_LENGTHS.to_string(), "SVLEN");
+        assert_eq!(POSITION_CONFIDENCE_INTERVALS.to_string(), "CIPOS");
+        assert_eq!(END_CONFIDENCE_INTERVALS.to_string(), "CIEND");
+        assert_eq!(MICROHOMOLOGY_LENGTHS.to_string(), "HOMLEN");
+        assert_eq!(MICROHOMOLOGY_SEQUENCES.to_string(), "HOMSEQ");
+        assert_eq!(BREAKPOINT_IDS.to_string(), "BKPTID");
+        assert_eq!(MOBILE_ELEMENT_INFO.to_string(), "MEINFO");
+        assert_eq!(MOBILE_ELEMENT_TRANSDUCTION_INFO.to_string(), "METRANS");
+        assert_eq!(DBV_ID.to_string(), "DGVID");
+        assert_eq!(DB_VAR_ID.to_string(), "DBVARID");
+        assert_eq!(DB_RIP_ID.to_string(), "DBRIPID");
+        assert_eq!(MATE_BREAKEND_IDS.to_string(), "MATEID");
+        assert_eq!(PARTNER_BREAKEND_ID.to_string(), "PARID");
+        assert_eq!(BREAKEND_EVENT_ID.to_string(), "EVENT");
+        assert_eq!(BREAKEND_CONFIDENCE_INTERVALS.to_string(), "CILEN");
         // assert_eq!(Key::BreakendReadDepth.to_string(), "DP");
-        assert_eq!(Key::AdjacentReadDepths.to_string(), "DPADJ");
-        assert_eq!(Key::BreakendCopyNumber.to_string(), "CN");
-        assert_eq!(Key::AdjacentCopyNumber.to_string(), "CNADJ");
-        assert_eq!(Key::CopyNumberConfidenceIntervals.to_string(), "CICN");
+        assert_eq!(ADJACENT_READ_DEPTHS.to_string(), "DPADJ");
+        assert_eq!(BREAKEND_COPY_NUMBER.to_string(), "CN");
+        assert_eq!(ADJACENT_COPY_NUMBER.to_string(), "CNADJ");
+        assert_eq!(COPY_NUMBER_CONFIDENCE_INTERVALS.to_string(), "CICN");
         assert_eq!(
-            Key::AdjacentCopyNumberConfidenceIntervals.to_string(),
+            ADJACENT_COPY_NUMBER_CONFIDENCE_INTERVALS.to_string(),
             "CICNADJ"
         );
 
-        assert_eq!(Key::Other(String::from("NDLS")).to_string(), "NDLS");
+        assert_eq!(Key::Other(Other(String::from("NDLS"))).to_string(), "NDLS");
     }
 
     #[test]
     fn test_from_str() {
-        assert_eq!("AA".parse(), Ok(Key::AncestralAllele));
-        assert_eq!("AC".parse(), Ok(Key::AlleleCount));
-        assert_eq!("AD".parse(), Ok(Key::TotalReadDepths));
-        assert_eq!("ADF".parse(), Ok(Key::ForwardStrandReadDepths));
-        assert_eq!("ADR".parse(), Ok(Key::ReverseStrandReadDepths));
-        assert_eq!("AF".parse(), Ok(Key::AlleleFrequencies));
-        assert_eq!("AN".parse(), Ok(Key::TotalAlleleCount));
-        assert_eq!("BQ".parse(), Ok(Key::BaseQuality));
-        assert_eq!("CIGAR".parse(), Ok(Key::Cigar));
-        assert_eq!("DB".parse(), Ok(Key::IsInDbSnp));
-        assert_eq!("DP".parse(), Ok(Key::TotalDepth));
-        // assert_eq!("END".parse(), Ok(Key::EndPosition));
-        assert_eq!("H2".parse(), Ok(Key::IsInHapMap2));
-        assert_eq!("H3".parse(), Ok(Key::IsInHapMap3));
-        assert_eq!("MQ".parse(), Ok(Key::MappingQuality));
-        assert_eq!("MQ0".parse(), Ok(Key::ZeroMappingQualityCount));
-        assert_eq!("NS".parse(), Ok(Key::SamplesWithDataCount));
-        assert_eq!("SB".parse(), Ok(Key::StrandBias));
-        assert_eq!("SOMATIC".parse(), Ok(Key::IsSomaticMutation));
-        assert_eq!("VALIDATED".parse(), Ok(Key::IsValidated));
-        assert_eq!("1000G".parse(), Ok(Key::IsIn1000Genomes));
+        assert_eq!("AA".parse(), Ok(ANCESTRAL_ALLELE));
+        assert_eq!("AC".parse(), Ok(ALLELE_COUNT));
+        assert_eq!("AD".parse(), Ok(TOTAL_READ_DEPTHS));
+        assert_eq!("ADF".parse(), Ok(FORWARD_STRAND_READ_DEPTHS));
+        assert_eq!("ADR".parse(), Ok(REVERSE_STRAND_READ_DEPTHS));
+        assert_eq!("AF".parse(), Ok(ALLELE_FREQUENCIES));
+        assert_eq!("AN".parse(), Ok(TOTAL_ALLELE_COUNT));
+        assert_eq!("BQ".parse(), Ok(BASE_QUALITY));
+        assert_eq!("CIGAR".parse(), Ok(CIGAR));
+        assert_eq!("DB".parse(), Ok(IS_IN_DB_SNP));
+        assert_eq!("DP".parse(), Ok(TOTAL_DEPTH));
+        // assert_eq!("END".parse(), Ok(END_POSITION));
+        assert_eq!("H2".parse(), Ok(IS_IN_HAP_MAP_2));
+        assert_eq!("H3".parse(), Ok(IS_IN_HAP_MAP_3));
+        assert_eq!("MQ".parse(), Ok(MAPPING_QUALITY));
+        assert_eq!("MQ0".parse(), Ok(ZERO_MAPPING_QUALITY_COUNT));
+        assert_eq!("NS".parse(), Ok(SAMPLES_WITH_DATA_COUNT));
+        assert_eq!("SB".parse(), Ok(STRAND_BIAS));
+        assert_eq!("SOMATIC".parse(), Ok(IS_SOMATIC_MUTATION));
+        assert_eq!("VALIDATED".parse(), Ok(IS_VALIDATED));
+        assert_eq!("1000G".parse(), Ok(IS_IN_1000_GENOMES));
 
-        assert_eq!("IMPRECISE".parse(), Ok(Key::IsImprecise));
-        assert_eq!("NOVEL".parse(), Ok(Key::IsNovel));
-        assert_eq!("END".parse(), Ok(Key::EndPosition));
-        assert_eq!("SVTYPE".parse(), Ok(Key::SvType));
-        assert_eq!("SVLEN".parse(), Ok(Key::SvLengths));
-        assert_eq!("CIPOS".parse(), Ok(Key::PositionConfidenceIntervals));
-        assert_eq!("CIEND".parse(), Ok(Key::EndConfidenceIntervals));
-        assert_eq!("HOMLEN".parse(), Ok(Key::MicrohomologyLengths));
-        assert_eq!("HOMSEQ".parse(), Ok(Key::MicrohomologySequences));
-        assert_eq!("BKPTID".parse(), Ok(Key::BreakpointIds));
-        assert_eq!("MEINFO".parse(), Ok(Key::MobileElementInfo));
-        assert_eq!("METRANS".parse(), Ok(Key::MobileElementTransductionInfo));
-        assert_eq!("DGVID".parse(), Ok(Key::DbvId));
-        assert_eq!("DBVARID".parse(), Ok(Key::DbVarId));
-        assert_eq!("DBRIPID".parse(), Ok(Key::DbRipId));
-        assert_eq!("MATEID".parse(), Ok(Key::MateBreakendIds));
-        assert_eq!("PARID".parse(), Ok(Key::PartnerBreakendId));
-        assert_eq!("EVENT".parse(), Ok(Key::BreakendEventId));
-        assert_eq!("CILEN".parse(), Ok(Key::BreakendConfidenceIntervals));
+        assert_eq!("IMPRECISE".parse(), Ok(IS_IMPRECISE));
+        assert_eq!("NOVEL".parse(), Ok(IS_NOVEL));
+        assert_eq!("END".parse(), Ok(END_POSITION));
+        assert_eq!("SVTYPE".parse(), Ok(SV_TYPE));
+        assert_eq!("SVLEN".parse(), Ok(SV_LENGTHS));
+        assert_eq!("CIPOS".parse(), Ok(POSITION_CONFIDENCE_INTERVALS));
+        assert_eq!("CIEND".parse(), Ok(END_CONFIDENCE_INTERVALS));
+        assert_eq!("HOMLEN".parse(), Ok(MICROHOMOLOGY_LENGTHS));
+        assert_eq!("HOMSEQ".parse(), Ok(MICROHOMOLOGY_SEQUENCES));
+        assert_eq!("BKPTID".parse(), Ok(BREAKPOINT_IDS));
+        assert_eq!("MEINFO".parse(), Ok(MOBILE_ELEMENT_INFO));
+        assert_eq!("METRANS".parse(), Ok(MOBILE_ELEMENT_TRANSDUCTION_INFO));
+        assert_eq!("DGVID".parse(), Ok(DBV_ID));
+        assert_eq!("DBVARID".parse(), Ok(DB_VAR_ID));
+        assert_eq!("DBRIPID".parse(), Ok(DB_RIP_ID));
+        assert_eq!("MATEID".parse(), Ok(MATE_BREAKEND_IDS));
+        assert_eq!("PARID".parse(), Ok(PARTNER_BREAKEND_ID));
+        assert_eq!("EVENT".parse(), Ok(BREAKEND_EVENT_ID));
+        assert_eq!("CILEN".parse(), Ok(BREAKEND_CONFIDENCE_INTERVALS));
         // assert_eq!("DP".parse(), Ok(Key::BreakendReadDepth));
-        assert_eq!("DPADJ".parse(), Ok(Key::AdjacentReadDepths));
-        assert_eq!("CN".parse(), Ok(Key::BreakendCopyNumber));
-        assert_eq!("CNADJ".parse(), Ok(Key::AdjacentCopyNumber));
-        assert_eq!("CICN".parse(), Ok(Key::CopyNumberConfidenceIntervals));
+        assert_eq!("DPADJ".parse(), Ok(ADJACENT_READ_DEPTHS));
+        assert_eq!("CN".parse(), Ok(BREAKEND_COPY_NUMBER));
+        assert_eq!("CNADJ".parse(), Ok(ADJACENT_COPY_NUMBER));
+        assert_eq!("CICN".parse(), Ok(COPY_NUMBER_CONFIDENCE_INTERVALS));
         assert_eq!(
             "CICNADJ".parse(),
-            Ok(Key::AdjacentCopyNumberConfidenceIntervals)
+            Ok(ADJACENT_COPY_NUMBER_CONFIDENCE_INTERVALS)
         );
 
-        assert_eq!("NDLS".parse(), Ok(Key::Other(String::from("NDLS"))));
+        assert_eq!("NDLS".parse(), Ok(Key::Other(Other(String::from("NDLS")))));
 
         assert_eq!("".parse::<Key>(), Err(ParseError::Empty));
         assert_eq!("8D".parse::<Key>(), Err(ParseError::Invalid));
@@ -587,297 +765,279 @@ mod tests {
 
     #[test]
     fn test_number() {
-        assert_eq!(number(&Key::AncestralAllele), Some(Number::Count(1)));
-        assert_eq!(number(&Key::AlleleCount), Some(Number::A));
-        assert_eq!(number(&Key::TotalReadDepths), Some(Number::R));
-        assert_eq!(number(&Key::ForwardStrandReadDepths), Some(Number::R));
-        assert_eq!(number(&Key::ReverseStrandReadDepths), Some(Number::R));
-        assert_eq!(number(&Key::AlleleFrequencies), Some(Number::A));
-        assert_eq!(number(&Key::TotalAlleleCount), Some(Number::Count(1)));
-        assert_eq!(number(&Key::BaseQuality), Some(Number::Count(1)));
-        assert_eq!(number(&Key::Cigar), Some(Number::A));
-        assert_eq!(number(&Key::IsInDbSnp), Some(Number::Count(0)));
-        assert_eq!(number(&Key::TotalDepth), Some(Number::Count(1)));
-        // assert_eq!(number(&Key::EndPosition), Some(Number::Count(1)));
-        assert_eq!(number(&Key::IsInHapMap2), Some(Number::Count(0)));
-        assert_eq!(number(&Key::IsInHapMap3), Some(Number::Count(0)));
-        assert_eq!(number(&Key::MappingQuality), Some(Number::Count(1)));
-        assert_eq!(
-            number(&Key::ZeroMappingQualityCount),
-            Some(Number::Count(1))
-        );
-        assert_eq!(number(&Key::SamplesWithDataCount), Some(Number::Count(1)));
-        assert_eq!(number(&Key::StrandBias), Some(Number::Count(4)));
-        assert_eq!(number(&Key::IsSomaticMutation), Some(Number::Count(0)));
-        assert_eq!(number(&Key::IsValidated), Some(Number::Count(0)));
-        assert_eq!(number(&Key::IsIn1000Genomes), Some(Number::Count(0)));
+        assert_eq!(number(&ANCESTRAL_ALLELE), Some(Number::Count(1)));
+        assert_eq!(number(&ALLELE_COUNT), Some(Number::A));
+        assert_eq!(number(&TOTAL_READ_DEPTHS), Some(Number::R));
+        assert_eq!(number(&FORWARD_STRAND_READ_DEPTHS), Some(Number::R));
+        assert_eq!(number(&REVERSE_STRAND_READ_DEPTHS), Some(Number::R));
+        assert_eq!(number(&ALLELE_FREQUENCIES), Some(Number::A));
+        assert_eq!(number(&TOTAL_ALLELE_COUNT), Some(Number::Count(1)));
+        assert_eq!(number(&BASE_QUALITY), Some(Number::Count(1)));
+        assert_eq!(number(&CIGAR), Some(Number::A));
+        assert_eq!(number(&IS_IN_DB_SNP), Some(Number::Count(0)));
+        assert_eq!(number(&TOTAL_DEPTH), Some(Number::Count(1)));
+        // assert_eq!(number(&END_POSITION), Some(Number::Count(1)));
+        assert_eq!(number(&IS_IN_HAP_MAP_2), Some(Number::Count(0)));
+        assert_eq!(number(&IS_IN_HAP_MAP_3), Some(Number::Count(0)));
+        assert_eq!(number(&MAPPING_QUALITY), Some(Number::Count(1)));
+        assert_eq!(number(&ZERO_MAPPING_QUALITY_COUNT), Some(Number::Count(1)));
+        assert_eq!(number(&SAMPLES_WITH_DATA_COUNT), Some(Number::Count(1)));
+        assert_eq!(number(&STRAND_BIAS), Some(Number::Count(4)));
+        assert_eq!(number(&IS_SOMATIC_MUTATION), Some(Number::Count(0)));
+        assert_eq!(number(&IS_VALIDATED), Some(Number::Count(0)));
+        assert_eq!(number(&IS_IN_1000_GENOMES), Some(Number::Count(0)));
 
-        assert_eq!(number(&Key::IsImprecise), Some(Number::Count(0)));
-        assert_eq!(number(&Key::IsNovel), Some(Number::Count(0)));
-        assert_eq!(number(&Key::EndPosition), Some(Number::Count(1)));
-        assert_eq!(number(&Key::SvType), Some(Number::Count(1)));
-        assert_eq!(number(&Key::SvLengths), Some(Number::Unknown));
+        assert_eq!(number(&IS_IMPRECISE), Some(Number::Count(0)));
+        assert_eq!(number(&IS_NOVEL), Some(Number::Count(0)));
+        assert_eq!(number(&END_POSITION), Some(Number::Count(1)));
+        assert_eq!(number(&SV_TYPE), Some(Number::Count(1)));
+        assert_eq!(number(&SV_LENGTHS), Some(Number::Unknown));
         assert_eq!(
-            number(&Key::PositionConfidenceIntervals),
+            number(&POSITION_CONFIDENCE_INTERVALS),
             Some(Number::Count(2))
         );
-        assert_eq!(number(&Key::EndConfidenceIntervals), Some(Number::Count(2)));
-        assert_eq!(number(&Key::MicrohomologyLengths), Some(Number::Unknown));
-        assert_eq!(number(&Key::MicrohomologySequences), Some(Number::Unknown));
-        assert_eq!(number(&Key::BreakpointIds), Some(Number::Unknown));
-        assert_eq!(number(&Key::MobileElementInfo), Some(Number::Count(4)));
+        assert_eq!(number(&END_CONFIDENCE_INTERVALS), Some(Number::Count(2)));
+        assert_eq!(number(&MICROHOMOLOGY_LENGTHS), Some(Number::Unknown));
+        assert_eq!(number(&MICROHOMOLOGY_SEQUENCES), Some(Number::Unknown));
+        assert_eq!(number(&BREAKPOINT_IDS), Some(Number::Unknown));
+        assert_eq!(number(&MOBILE_ELEMENT_INFO), Some(Number::Count(4)));
         assert_eq!(
-            number(&Key::MobileElementTransductionInfo),
+            number(&MOBILE_ELEMENT_TRANSDUCTION_INFO),
             Some(Number::Count(4))
         );
-        assert_eq!(number(&Key::DbvId), Some(Number::Count(1)));
-        assert_eq!(number(&Key::DbVarId), Some(Number::Count(1)));
-        assert_eq!(number(&Key::DbRipId), Some(Number::Count(1)));
-        assert_eq!(number(&Key::MateBreakendIds), Some(Number::Unknown));
-        assert_eq!(number(&Key::PartnerBreakendId), Some(Number::Count(1)));
-        assert_eq!(number(&Key::BreakendEventId), Some(Number::Count(1)));
+        assert_eq!(number(&DBV_ID), Some(Number::Count(1)));
+        assert_eq!(number(&DB_VAR_ID), Some(Number::Count(1)));
+        assert_eq!(number(&DB_RIP_ID), Some(Number::Count(1)));
+        assert_eq!(number(&MATE_BREAKEND_IDS), Some(Number::Unknown));
+        assert_eq!(number(&PARTNER_BREAKEND_ID), Some(Number::Count(1)));
+        assert_eq!(number(&BREAKEND_EVENT_ID), Some(Number::Count(1)));
         assert_eq!(
-            number(&Key::BreakendConfidenceIntervals),
+            number(&BREAKEND_CONFIDENCE_INTERVALS),
             Some(Number::Count(2))
         );
         // assert_eq!(number(&Key::BreakendReadDepth), Some(Number::Count(1)));
-        assert_eq!(number(&Key::AdjacentReadDepths), Some(Number::Unknown));
-        assert_eq!(number(&Key::BreakendCopyNumber), Some(Number::Count(1)));
-        assert_eq!(number(&Key::AdjacentCopyNumber), Some(Number::Unknown));
+        assert_eq!(number(&ADJACENT_READ_DEPTHS), Some(Number::Unknown));
+        assert_eq!(number(&BREAKEND_COPY_NUMBER), Some(Number::Count(1)));
+        assert_eq!(number(&ADJACENT_COPY_NUMBER), Some(Number::Unknown));
         assert_eq!(
-            number(&Key::CopyNumberConfidenceIntervals),
+            number(&COPY_NUMBER_CONFIDENCE_INTERVALS),
             Some(Number::Count(2))
         );
         assert_eq!(
-            number(&Key::AdjacentCopyNumberConfidenceIntervals),
+            number(&ADJACENT_COPY_NUMBER_CONFIDENCE_INTERVALS),
             Some(Number::Unknown)
         );
 
-        assert!(number(&Key::Other(String::from("NDLS"))).is_none());
+        assert!(number(&Key::Other(Other(String::from("NDLS")))).is_none());
     }
 
     #[test]
     fn test_ty() {
-        assert_eq!(ty(&Key::AncestralAllele), Some(Type::String));
-        assert_eq!(ty(&Key::AlleleCount), Some(Type::Integer));
-        assert_eq!(ty(&Key::TotalReadDepths), Some(Type::Integer));
-        assert_eq!(ty(&Key::ForwardStrandReadDepths), Some(Type::Integer));
-        assert_eq!(ty(&Key::ReverseStrandReadDepths), Some(Type::Integer));
-        assert_eq!(ty(&Key::AlleleFrequencies), Some(Type::Float));
-        assert_eq!(ty(&Key::TotalAlleleCount), Some(Type::Integer));
-        assert_eq!(ty(&Key::BaseQuality), Some(Type::Float));
-        assert_eq!(ty(&Key::Cigar), Some(Type::String));
-        assert_eq!(ty(&Key::IsInDbSnp), Some(Type::Flag));
-        assert_eq!(ty(&Key::TotalDepth), Some(Type::Integer));
-        // assert_eq!(ty(&Key::EndPosition), Some(Type::Integer));
-        assert_eq!(ty(&Key::IsInHapMap2), Some(Type::Flag));
-        assert_eq!(ty(&Key::IsInHapMap3), Some(Type::Flag));
-        assert_eq!(ty(&Key::MappingQuality), Some(Type::Float));
-        assert_eq!(ty(&Key::ZeroMappingQualityCount), Some(Type::Integer));
-        assert_eq!(ty(&Key::SamplesWithDataCount), Some(Type::Integer));
-        assert_eq!(ty(&Key::StrandBias), Some(Type::Integer));
-        assert_eq!(ty(&Key::IsSomaticMutation), Some(Type::Flag));
-        assert_eq!(ty(&Key::IsValidated), Some(Type::Flag));
-        assert_eq!(ty(&Key::IsIn1000Genomes), Some(Type::Flag));
+        assert_eq!(ty(&ANCESTRAL_ALLELE), Some(Type::String));
+        assert_eq!(ty(&ALLELE_COUNT), Some(Type::Integer));
+        assert_eq!(ty(&TOTAL_READ_DEPTHS), Some(Type::Integer));
+        assert_eq!(ty(&FORWARD_STRAND_READ_DEPTHS), Some(Type::Integer));
+        assert_eq!(ty(&REVERSE_STRAND_READ_DEPTHS), Some(Type::Integer));
+        assert_eq!(ty(&ALLELE_FREQUENCIES), Some(Type::Float));
+        assert_eq!(ty(&TOTAL_ALLELE_COUNT), Some(Type::Integer));
+        assert_eq!(ty(&BASE_QUALITY), Some(Type::Float));
+        assert_eq!(ty(&CIGAR), Some(Type::String));
+        assert_eq!(ty(&IS_IN_DB_SNP), Some(Type::Flag));
+        assert_eq!(ty(&TOTAL_DEPTH), Some(Type::Integer));
+        // assert_eq!(ty(&END_POSITION), Some(Type::Integer));
+        assert_eq!(ty(&IS_IN_HAP_MAP_2), Some(Type::Flag));
+        assert_eq!(ty(&IS_IN_HAP_MAP_3), Some(Type::Flag));
+        assert_eq!(ty(&MAPPING_QUALITY), Some(Type::Float));
+        assert_eq!(ty(&ZERO_MAPPING_QUALITY_COUNT), Some(Type::Integer));
+        assert_eq!(ty(&SAMPLES_WITH_DATA_COUNT), Some(Type::Integer));
+        assert_eq!(ty(&STRAND_BIAS), Some(Type::Integer));
+        assert_eq!(ty(&IS_SOMATIC_MUTATION), Some(Type::Flag));
+        assert_eq!(ty(&IS_VALIDATED), Some(Type::Flag));
+        assert_eq!(ty(&IS_IN_1000_GENOMES), Some(Type::Flag));
 
-        assert_eq!(ty(&Key::IsImprecise), Some(Type::Flag));
-        assert_eq!(ty(&Key::IsNovel), Some(Type::Flag));
-        assert_eq!(ty(&Key::EndPosition), Some(Type::Integer));
-        assert_eq!(ty(&Key::SvType), Some(Type::String));
-        assert_eq!(ty(&Key::SvLengths), Some(Type::Integer));
-        assert_eq!(ty(&Key::PositionConfidenceIntervals), Some(Type::Integer));
-        assert_eq!(ty(&Key::EndConfidenceIntervals), Some(Type::Integer));
-        assert_eq!(ty(&Key::MicrohomologyLengths), Some(Type::Integer));
-        assert_eq!(ty(&Key::MicrohomologySequences), Some(Type::String));
-        assert_eq!(ty(&Key::BreakpointIds), Some(Type::String));
-        assert_eq!(ty(&Key::MobileElementInfo), Some(Type::String));
-        assert_eq!(ty(&Key::MobileElementTransductionInfo), Some(Type::String));
-        assert_eq!(ty(&Key::DbvId), Some(Type::String));
-        assert_eq!(ty(&Key::DbVarId), Some(Type::String));
-        assert_eq!(ty(&Key::DbRipId), Some(Type::String));
-        assert_eq!(ty(&Key::MateBreakendIds), Some(Type::String));
-        assert_eq!(ty(&Key::PartnerBreakendId), Some(Type::String));
-        assert_eq!(ty(&Key::BreakendEventId), Some(Type::String));
-        assert_eq!(ty(&Key::BreakendConfidenceIntervals), Some(Type::Integer));
+        assert_eq!(ty(&IS_IMPRECISE), Some(Type::Flag));
+        assert_eq!(ty(&IS_NOVEL), Some(Type::Flag));
+        assert_eq!(ty(&END_POSITION), Some(Type::Integer));
+        assert_eq!(ty(&SV_TYPE), Some(Type::String));
+        assert_eq!(ty(&SV_LENGTHS), Some(Type::Integer));
+        assert_eq!(ty(&POSITION_CONFIDENCE_INTERVALS), Some(Type::Integer));
+        assert_eq!(ty(&END_CONFIDENCE_INTERVALS), Some(Type::Integer));
+        assert_eq!(ty(&MICROHOMOLOGY_LENGTHS), Some(Type::Integer));
+        assert_eq!(ty(&MICROHOMOLOGY_SEQUENCES), Some(Type::String));
+        assert_eq!(ty(&BREAKPOINT_IDS), Some(Type::String));
+        assert_eq!(ty(&MOBILE_ELEMENT_INFO), Some(Type::String));
+        assert_eq!(ty(&MOBILE_ELEMENT_TRANSDUCTION_INFO), Some(Type::String));
+        assert_eq!(ty(&DBV_ID), Some(Type::String));
+        assert_eq!(ty(&DB_VAR_ID), Some(Type::String));
+        assert_eq!(ty(&DB_RIP_ID), Some(Type::String));
+        assert_eq!(ty(&MATE_BREAKEND_IDS), Some(Type::String));
+        assert_eq!(ty(&PARTNER_BREAKEND_ID), Some(Type::String));
+        assert_eq!(ty(&BREAKEND_EVENT_ID), Some(Type::String));
+        assert_eq!(ty(&BREAKEND_CONFIDENCE_INTERVALS), Some(Type::Integer));
         // assert_eq!(ty(&Key::BreakendReadDepth), Some(Type::Integer));
-        assert_eq!(ty(&Key::AdjacentReadDepths), Some(Type::Integer));
-        assert_eq!(ty(&Key::BreakendCopyNumber), Some(Type::Integer));
-        assert_eq!(ty(&Key::AdjacentCopyNumber), Some(Type::Integer));
-        assert_eq!(ty(&Key::CopyNumberConfidenceIntervals), Some(Type::Integer));
+        assert_eq!(ty(&ADJACENT_READ_DEPTHS), Some(Type::Integer));
+        assert_eq!(ty(&BREAKEND_COPY_NUMBER), Some(Type::Integer));
+        assert_eq!(ty(&ADJACENT_COPY_NUMBER), Some(Type::Integer));
+        assert_eq!(ty(&COPY_NUMBER_CONFIDENCE_INTERVALS), Some(Type::Integer));
         assert_eq!(
-            ty(&Key::AdjacentCopyNumberConfidenceIntervals),
+            ty(&ADJACENT_COPY_NUMBER_CONFIDENCE_INTERVALS),
             Some(Type::Integer)
         );
 
-        assert!(ty(&Key::Other(String::from("NDLS"))).is_none());
+        assert!(ty(&Key::Other(Other(String::from("NDLS")))).is_none());
     }
 
     #[test]
     fn test_description() {
-        assert_eq!(description(&Key::AncestralAllele), Some("Ancestral allele"));
+        assert_eq!(description(&ANCESTRAL_ALLELE), Some("Ancestral allele"));
         assert_eq!(
-            description(&Key::AlleleCount),
+            description(&ALLELE_COUNT),
             Some("Allele count in genotypes, for each ALT allele, in the same order as listed")
         );
         assert_eq!(
-            description(&Key::TotalReadDepths),
+            description(&TOTAL_READ_DEPTHS),
             Some("Total read depth for each allele")
         );
         assert_eq!(
-            description(&Key::ForwardStrandReadDepths),
+            description(&FORWARD_STRAND_READ_DEPTHS),
             Some("Read depth for each allele on the forward strand")
         );
         assert_eq!(
-            description(&Key::ReverseStrandReadDepths),
+            description(&REVERSE_STRAND_READ_DEPTHS),
             Some("Read depth for each allele on the reverse strand")
         );
         assert_eq!(
-            description(&Key::AlleleFrequencies),
+            description(&ALLELE_FREQUENCIES),
             Some("Allele frequency for each ALT allele in the same order as listed")
         );
         assert_eq!(
-            description(&Key::TotalAlleleCount),
+            description(&TOTAL_ALLELE_COUNT),
             Some("Total number of alleles in called genotypes")
         );
-        assert_eq!(description(&Key::BaseQuality), Some("RMS base quality"));
+        assert_eq!(description(&BASE_QUALITY), Some("RMS base quality"));
         assert_eq!(
-            description(&Key::Cigar),
+            description(&CIGAR),
             Some(
                 "Cigar string describing how to align an alternate allele to the reference allele"
             )
         );
-        assert_eq!(description(&Key::IsInDbSnp), Some("dbSNP membership"));
+        assert_eq!(description(&IS_IN_DB_SNP), Some("dbSNP membership"));
         assert_eq!(
-            description(&Key::TotalDepth),
+            description(&TOTAL_DEPTH),
             Some("Combined depth across samples")
         );
         // Self::EndPosition.description(), Some("End position on CHROM"));
-        assert_eq!(description(&Key::IsInHapMap2), Some("HapMap2 membership"));
-        assert_eq!(description(&Key::IsInHapMap3), Some("HapMap3 membership"));
+        assert_eq!(description(&IS_IN_HAP_MAP_2), Some("HapMap2 membership"));
+        assert_eq!(description(&IS_IN_HAP_MAP_3), Some("HapMap3 membership"));
+        assert_eq!(description(&MAPPING_QUALITY), Some("RMS mapping quality"));
         assert_eq!(
-            description(&Key::MappingQuality),
-            Some("RMS mapping quality")
-        );
-        assert_eq!(
-            description(&Key::ZeroMappingQualityCount),
+            description(&ZERO_MAPPING_QUALITY_COUNT),
             Some("Number of MAPQ == 0 reads")
         );
         assert_eq!(
-            description(&Key::SamplesWithDataCount),
+            description(&SAMPLES_WITH_DATA_COUNT),
             Some("Number of samples with data")
         );
-        assert_eq!(description(&Key::StrandBias), Some("Strand bias"));
+        assert_eq!(description(&STRAND_BIAS), Some("Strand bias"));
+        assert_eq!(description(&IS_SOMATIC_MUTATION), Some("Somatic mutation"));
         assert_eq!(
-            description(&Key::IsSomaticMutation),
-            Some("Somatic mutation")
-        );
-        assert_eq!(
-            description(&Key::IsValidated),
+            description(&IS_VALIDATED),
             Some("Validated by follow-up experiment")
         );
         assert_eq!(
-            description(&Key::IsIn1000Genomes),
+            description(&IS_IN_1000_GENOMES),
             Some("1000 Genomes membership")
         );
 
         assert_eq!(
-            description(&Key::IsImprecise),
+            description(&IS_IMPRECISE),
             Some("Imprecise structural variation")
         );
         assert_eq!(
-            description(&Key::IsNovel),
+            description(&IS_NOVEL),
             Some("Indicates a novel structural variation")
         );
         assert_eq!(
-            description(&Key::EndPosition),
+            description(&END_POSITION),
             Some("End position of the variant described in this record")
         );
+        assert_eq!(description(&SV_TYPE), Some("Type of structural variant"));
         assert_eq!(
-            description(&Key::SvType),
-            Some("Type of structural variant")
-        );
-        assert_eq!(
-            description(&Key::SvLengths),
+            description(&SV_LENGTHS),
             Some("Difference in length between REF and ALT alleles")
         );
         assert_eq!(
-            description(&Key::PositionConfidenceIntervals),
+            description(&POSITION_CONFIDENCE_INTERVALS),
             Some("Confidence interval around POS for imprecise variants")
         );
         assert_eq!(
-            description(&Key::EndConfidenceIntervals),
+            description(&END_CONFIDENCE_INTERVALS),
             Some("Confidence interval around END for imprecise variants")
         );
         assert_eq!(
-            description(&Key::MicrohomologyLengths),
+            description(&MICROHOMOLOGY_LENGTHS),
             Some("Length of base pair identical micro-homology at event breakpoints")
         );
         assert_eq!(
-            description(&Key::MicrohomologySequences),
+            description(&MICROHOMOLOGY_SEQUENCES),
             Some("Sequence of base pair identical micro-homology at event breakpoints")
         );
         assert_eq!(
-            description(&Key::BreakpointIds),
+            description(&BREAKPOINT_IDS),
             Some("ID of the assembled alternate allele in the assembly file")
         );
         assert_eq!(
-            description(&Key::MobileElementInfo),
+            description(&MOBILE_ELEMENT_INFO),
             Some("Mobile element info of the form NAME,START,END,POLARITY")
         );
         assert_eq!(
-            description(&Key::MobileElementTransductionInfo),
+            description(&MOBILE_ELEMENT_TRANSDUCTION_INFO),
             Some("Mobile element transduction info of the form CHR,START,END,POLARITY")
         );
         assert_eq!(
-            description(&Key::DbvId),
+            description(&DBV_ID),
             Some("ID of this element in Database of Genomic Variation")
         );
+        assert_eq!(description(&DB_VAR_ID), Some("ID of this element in DBVAR"));
+        assert_eq!(description(&DB_RIP_ID), Some("ID of this element in DBRIP"));
         assert_eq!(
-            description(&Key::DbVarId),
-            Some("ID of this element in DBVAR")
-        );
-        assert_eq!(
-            description(&Key::DbRipId),
-            Some("ID of this element in DBRIP")
-        );
-        assert_eq!(
-            description(&Key::MateBreakendIds),
+            description(&MATE_BREAKEND_IDS),
             Some("ID of mate breakends")
         );
         assert_eq!(
-            description(&Key::PartnerBreakendId),
+            description(&PARTNER_BREAKEND_ID),
             Some("ID of partner breakend")
         );
         assert_eq!(
-            description(&Key::BreakendEventId),
+            description(&BREAKEND_EVENT_ID),
             Some("ID of event associated to breakend")
         );
         assert_eq!(
-            description(&Key::BreakendConfidenceIntervals),
+            description(&BREAKEND_CONFIDENCE_INTERVALS),
             Some("Confidence interval around the inserted material between breakends")
         );
         // Self::BreakendReadDepth.description(), Some("Read Depth of segment containing breakend"));
         assert_eq!(
-            description(&Key::AdjacentReadDepths),
+            description(&ADJACENT_READ_DEPTHS),
             Some("Read Depth of adjacency")
         );
         assert_eq!(
-            description(&Key::BreakendCopyNumber),
+            description(&BREAKEND_COPY_NUMBER),
             Some("Copy number of segment containing breakend")
         );
         assert_eq!(
-            description(&Key::AdjacentCopyNumber),
+            description(&ADJACENT_COPY_NUMBER),
             Some("Copy number of adjacency")
         );
         assert_eq!(
-            description(&Key::CopyNumberConfidenceIntervals),
+            description(&COPY_NUMBER_CONFIDENCE_INTERVALS),
             Some("Confidence interval around copy number for the segment")
         );
         assert_eq!(
-            description(&Key::AdjacentCopyNumberConfidenceIntervals),
+            description(&ADJACENT_COPY_NUMBER_CONFIDENCE_INTERVALS),
             Some("Confidence interval around copy number for the adjacency")
         );
 
-        assert!(description(&Key::Other(String::from("NDLS"))).is_none());
+        assert!(description(&Key::Other(Other(String::from("NDLS")))).is_none());
     }
 }

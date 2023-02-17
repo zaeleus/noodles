@@ -120,10 +120,10 @@ impl Header {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{info::Key, record::value::{map::Info, Map}},
+    ///     header::{info::key, record::value::{map::Info, Map}},
     /// };
     ///
-    /// let id = Key::SamplesWithDataCount;
+    /// let id = key::SAMPLES_WITH_DATA_COUNT;
     /// let info = Map::<Info>::from(&id);
     ///
     /// let header = vcf::Header::builder()
@@ -145,12 +145,12 @@ impl Header {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{info::Key, record::value::{map::Info, Map}},
+    ///     header::{info::key, record::value::{map::Info, Map}},
     /// };
     ///
     /// let mut header = vcf::Header::default();
     ///
-    /// let id = Key::SamplesWithDataCount;
+    /// let id = key::SAMPLES_WITH_DATA_COUNT;
     /// let info = Map::<Info>::from(&id);
     /// header.infos_mut().insert(id, info.clone());
     ///
