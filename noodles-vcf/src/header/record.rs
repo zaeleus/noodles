@@ -128,11 +128,7 @@ impl TryFrom<(FileFormat, &str)> for Record {
                     let info = Map::<Info>::try_from((file_format, fields))
                         .map_err(ParseError::InvalidInfo)?;
 
-                    if file_format >= FileFormat::new(4, 3)
-                        && !matches!(id, super::info::Key::Other(_))
-                    {
-                        validate_info_type_fields(&id, info.number(), info.ty())?;
-                    }
+                    validate_info_definition(file_format, &id, info.number(), info.ty())?;
 
                     Ok(Self::Info(id, info))
                 }
@@ -257,23 +253,18 @@ fn validate_format_definition(
     Ok(())
 }
 
-fn validate_info_type_fields(
+fn validate_info_definition(
+    file_format: FileFormat,
     id: &super::info::Key,
     actual_number: super::Number,
     actual_type: super::record::value::map::info::Type,
 ) -> Result<(), ParseError> {
     use super::info::key;
 
-    let expected_number = key::number(id).unwrap();
-
-    if actual_number != expected_number {
-        return Err(ParseError::Invalid);
-    }
-
-    let expected_type = key::ty(id).unwrap();
-
-    if actual_type != expected_type {
-        return Err(ParseError::Invalid);
+    if let Some((expected_number, expected_type, _)) = key::definition(file_format, id) {
+        if actual_number != expected_number || actual_type != expected_type {
+            return Err(ParseError::Invalid);
+        }
     }
 
     Ok(())

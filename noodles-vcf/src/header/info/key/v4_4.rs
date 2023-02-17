@@ -1,7 +1,6 @@
 use super::Standard;
 use crate::header::{record::value::map::info::Type, Number};
 
-#[allow(dead_code)]
 pub(super) fn definition(key: Standard) -> Option<(Number, Type, &'static str)> {
     match key {
         Standard::AncestralAllele => Some((Number::Count(1), Type::String, "Ancestral allele")),
