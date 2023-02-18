@@ -556,7 +556,6 @@ impl Record {
     ///     .set_genotypes(genotypes.clone())
     ///     .build()?;
     ///
-    ///
     /// assert_eq!(record.genotypes(), &genotypes);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
