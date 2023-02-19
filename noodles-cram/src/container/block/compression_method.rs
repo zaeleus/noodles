@@ -3,10 +3,11 @@
 /// A CRAM container block compression method.
 ///
 /// The compression method is associated with a block to identify how its data is compressed.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum CompressionMethod {
     /// Uncompressed.
+    #[default]
     None,
     /// gzip.
     Gzip,
@@ -24,12 +25,6 @@ pub enum CompressionMethod {
     Fqzcomp,
     /// Name tokenization codec.
     NameTokenizer,
-}
-
-impl Default for CompressionMethod {
-    fn default() -> Self {
-        Self::None
-    }
 }
 
 #[cfg(test)]
