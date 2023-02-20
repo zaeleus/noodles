@@ -172,5 +172,7 @@ pub(super) fn definition(key: Standard) -> Option<(Number, Type, &'static str)> 
             Type::Integer,
             "Confidence interval around copy number for the adjacency",
         )),
+
+        _ => None,
     }
 }

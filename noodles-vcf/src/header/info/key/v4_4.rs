@@ -128,7 +128,7 @@ pub(super) fn definition(key: Standard) -> Option<(Number, Type, &'static str)> 
         Standard::MateBreakendIds => Some((Number::A, Type::String, "ID of mate breakend")),
         Standard::PartnerBreakendId => Some((Number::A, Type::String, "ID of partner breakend")),
         Standard::BreakendEventId => Some((Number::A, Type::String, "ID of associated event")),
-        // TODO: Standard::EventType
+        Standard::EventType => Some((Number::A, Type::String, "Type of associated event")),
         Standard::BreakendConfidenceIntervals => Some((
             Number::Unknown,
             Type::Integer,
@@ -142,15 +142,52 @@ pub(super) fn definition(key: Standard) -> Option<(Number, Type, &'static str)> 
             Type::Float,
             "Confidence interval around copy number",
         )),
-        // TODO: Standard::SVClaim
-        // TODO: Standard::TotalRepeatSequenceCounts
-        // TODO: Standard::RepeatUnitSequences
-        // TODO: Standard::RepeatUnitLengths
-        // TODO: Standard::RepeatUnitCounts
-        // TODO: Standard::TotalRepeatSequenceBaseCounts
-        // TODO: Standard::RepeatUnitCountConfidenceIntervals
-        // TODO: Standard::TotalRepeatSequenceBaseCountConfidenceIntervals
-        // TODO: Standard::RepeatUnitBaseCounts
+        Standard::SvClaim => Some((
+            Number::A,
+            Type::String,
+            "Claim made by the structural variant call. Valid values are D, J, DJ for abundance, adjacency and both respectively",
+        )),
+        Standard::TotalRepeatSequenceCounts => Some((
+            Number::A,
+            Type::Integer,
+            "Total number of repeat sequences in this allele",
+        )),
+        Standard::RepeatUnitSequences => Some((
+            Number::Unknown,
+            Type::String,
+            "Repeat unit sequence of the corresponding repeat sequence",
+        )),
+        Standard::RepeatUnitLengths => Some((
+            Number::Unknown,
+            Type::Integer,
+            "Repeat unit length of the corresponding repeat sequence",
+        )),
+        Standard::RepeatUnitCounts => Some((
+            Number::Unknown,
+            Type::Float,
+            "Repeat unit count of corresponding repeat sequence",
+        )),
+        Standard::TotalRepeatSequenceBaseCounts => Some((
+            Number::Unknown,
+            Type::Integer,
+            "Total number of bases in the corresponding repeat sequence",
+        )),
+        Standard::RepeatUnitCountConfidenceIntervals => Some((
+            Number::Unknown,
+            Type::Float,
+            "Confidence interval around RUC",
+        )),
+        Standard::TotalRepeatSequenceBaseCountConfidenceIntervals => Some((
+            Number::Unknown,
+            Type::Integer,
+            "Confidence interval around RB",
+        )),
+        Standard::RepeatUnitBaseCounts => Some((
+            Number::Unknown,
+            Type::Integer,
+            "Number of bases in each individual repeat unit",
+        )),
+
         _ => None,
     }
 }

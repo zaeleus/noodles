@@ -12,6 +12,8 @@
 
   * vcf/header/info/key: Implement `Borrow<str>`.
 
+  * vcf/header/info/key: Add VCF 4.4 reserved keys.
+
 ### Changed
 
   * vcf/header/record/parser: Disallow empty values for unstructured lines.

@@ -122,16 +122,25 @@ pub const PARTNER_BREAKEND_ID: Key = Key::Standard(Standard::PartnerBreakendId);
 /// ID of event associated to breakend (`EVENT`).
 pub const BREAKEND_EVENT_ID: Key = Key::Standard(Standard::BreakendEventId);
 
+/// Type of associated event (`EVENTTYPE`).
+///
+/// Added in VCF 4.4.
+pub const EVENT_TYPE: Key = Key::Standard(Standard::EventType);
+
 /// Confidence interval around the inserted material between breakends (`CILEN`).
 pub const BREAKEND_CONFIDENCE_INTERVALS: Key = Key::Standard(Standard::BreakendConfidenceIntervals);
 
 /// Read Depth of adjacency (`DPADJ`).
+///
+/// Deprecated in VCF 4.4.
 pub const ADJACENT_READ_DEPTHS: Key = Key::Standard(Standard::AdjacentReadDepths);
 
 /// Copy number of segment containing breakend (`CN`).
 pub const BREAKEND_COPY_NUMBER: Key = Key::Standard(Standard::BreakendCopyNumber);
 
 /// Copy number of adjacency (`CNADJ`).
+///
+/// Deprecated in VCF 4.4.
 pub const ADJACENT_COPY_NUMBER: Key = Key::Standard(Standard::AdjacentCopyNumber);
 
 /// Confidence interval around copy number for the segment (`CICN`).
@@ -139,13 +148,62 @@ pub const COPY_NUMBER_CONFIDENCE_INTERVALS: Key =
     Key::Standard(Standard::CopyNumberConfidenceIntervals);
 
 /// Confidence interval around copy number for the adjacency (`CICNADJ`).
+///
+/// Deprecated in VCF 4.4.
 pub const ADJACENT_COPY_NUMBER_CONFIDENCE_INTERVALS: Key =
     Key::Standard(Standard::AdjacentCopyNumberConfidenceIntervals);
+
+/// Copy number of adjacency (`CNADJ`).
+///
+/// Added in VCF 4.4.
+pub const SV_CLAIM: Key = Key::Standard(Standard::SvClaim);
+
+/// Total number of repeat sequences in this allele (`RN`).
+///
+/// Added in VCF 4.4.
+pub const TOTAL_REPEAT_SEQUENCE_COUNTS: Key = Key::Standard(Standard::TotalRepeatSequenceCounts);
+
+/// Repeat unit sequence of the corresponding repeat sequence (`RUS`).
+///
+/// Added in VCF 4.4.
+pub const REPEAT_UNIT_SEQUENCES: Key = Key::Standard(Standard::RepeatUnitSequences);
+
+/// Repeat unit length of the corresponding repeat sequence (`RUL`).
+///
+/// Added in VCF 4.4.
+pub const REPEAT_UNIT_LENGTHS: Key = Key::Standard(Standard::RepeatUnitLengths);
+
+/// Repeat unit count of corresponding repeat sequence (`RUC`).
+///
+/// Added in VCF 4.4.
+pub const REPEAT_UNIT_COUNTS: Key = Key::Standard(Standard::RepeatUnitCounts);
+
+/// Total number of bases in the corresponding repeat sequence (`RB`).
+///
+/// Added in VCF 4.4.
+pub const TOTAL_REPEAT_SEQUENCE_BASE_COUNTS: Key =
+    Key::Standard(Standard::TotalRepeatSequenceBaseCounts);
+
+/// Confidence interval around RUC (`CIRUC`).
+///
+/// Added in VCF 4.4.
+pub const REPEAT_UNIT_COUNT_CONFIDENCE_INTERVALS: Key =
+    Key::Standard(Standard::RepeatUnitCountConfidenceIntervals);
+
+/// Confidence interval around RB (`CIRB`).
+///
+/// Added in VCF 4.4.
+pub const TOTAL_REPEAT_SEQUENCE_BASE_COUNT_CONFIDENCE_INTERVALS: Key =
+    Key::Standard(Standard::TotalRepeatSequenceBaseCountConfidenceIntervals);
+
+/// Number of bases in each individual repeat unit (`RUB`).
+///
+/// Added in VCF 4.4.
+pub const REPEAT_UNIT_BASE_COUNTS: Key = Key::Standard(Standard::RepeatUnitBaseCounts);
 
 /// A VCF header info key.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Standard {
-    // § 1.6.1 Fixed Fields (2021-01-13)
     /// Ancestral allele (`AA`).
     AncestralAllele,
     /// Allele count in genotypes, for each ALT allele, in the same order as listed (`AC`).
@@ -189,7 +247,6 @@ pub enum Standard {
     /// 1000 Genomes membership (`1000G`).
     IsIn1000Genomes,
 
-    // § 3 INFO keys used for structural variants (2021-01-13)
     /// Imprecise structural variation (`IMPRECISE`).
     IsImprecise,
     /// Indicates a novel structural variation (`NOVEL`).
@@ -197,6 +254,8 @@ pub enum Standard {
     /// End position of the variant described in this record (`END`).
     EndPosition,
     /// Type of structural variant (`SVTYPE`).
+    ///
+    /// Deprecated in VCF 4.4.
     SvType,
     /// Difference in length between REF and ALT alleles (`SVLEN`).
     SvLengths,
@@ -226,20 +285,67 @@ pub enum Standard {
     PartnerBreakendId,
     /// ID of event associated to breakend (`EVENT`).
     BreakendEventId,
+    /// ID of associated event (`EVENTTYPE`).
+    ///
+    /// Added in VCF 4.4.
+    EventType,
     /// Confidence interval around the inserted material between breakends (`CILEN`).
     BreakendConfidenceIntervals,
     // /// Read Depth of segment containing breakend (`DP`).
     // BreakendReadDepth,
     /// Read Depth of adjacency (`DPADJ`).
+    ///
+    /// Deprecated in VCF 4.4.
     AdjacentReadDepths,
     /// Copy number of segment containing breakend (`CN`).
     BreakendCopyNumber,
     /// Copy number of adjacency (`CNADJ`).
+    ///
+    /// Deprecated in VCF 4.4.
     AdjacentCopyNumber,
     /// Confidence interval around copy number for the segment (`CICN`).
     CopyNumberConfidenceIntervals,
     /// Confidence interval around copy number for the adjacency (`CICNADJ`).
+    ///
+    /// Deprecated in VCF 4.4.
     AdjacentCopyNumberConfidenceIntervals,
+    /// Claim made by the structural variant call. Valid values are D, J, DJ for abundance,
+    /// adjacency and both respectively.
+    ///
+    /// Added in VCF 4.4.
+    SvClaim,
+    /// Total number of repeat sequences in this allele (`RN`).
+    ///
+    /// Added in VCF 4.4.
+    TotalRepeatSequenceCounts,
+    /// Repeat unit sequence of the corresponding repeat sequence (`RUS`).
+    ///
+    /// Added in VCF 4.4.
+    RepeatUnitSequences,
+    /// Repeat unit length of the corresponding repeat sequence (`RUL`).
+    ///
+    /// Added in VCF 4.4.
+    RepeatUnitLengths,
+    /// Repeat unit count of corresponding repeat sequence (`RUC`).
+    ///
+    /// Added in VCF 4.4.
+    RepeatUnitCounts,
+    /// Total number of bases in the corresponding repeat sequence (`RB`).
+    ///
+    /// Added in VCF 4.4.
+    TotalRepeatSequenceBaseCounts,
+    /// Confidence interval around RUC (`CIRUC`).
+    ///
+    /// Added in VCF 4.4.
+    RepeatUnitCountConfidenceIntervals,
+    /// Confidence interval around RB (`CIRB`).
+    ///
+    /// Added in VCF 4.4.
+    TotalRepeatSequenceBaseCountConfidenceIntervals,
+    /// Number of bases in each individual repeat unit (`RUB`).
+    ///
+    /// Added in VCF 4.4.
+    RepeatUnitBaseCounts,
 }
 
 impl AsRef<str> for Standard {
@@ -285,6 +391,7 @@ impl AsRef<str> for Standard {
             Self::MateBreakendIds => "MATEID",
             Self::PartnerBreakendId => "PARID",
             Self::BreakendEventId => "EVENT",
+            Self::EventType => "EVENTTYPE",
             Self::BreakendConfidenceIntervals => "CILEN",
             // Self::BreakendReadDepth => "DP",
             Self::AdjacentReadDepths => "DPADJ",
@@ -292,6 +399,15 @@ impl AsRef<str> for Standard {
             Self::AdjacentCopyNumber => "CNADJ",
             Self::CopyNumberConfidenceIntervals => "CICN",
             Self::AdjacentCopyNumberConfidenceIntervals => "CICNADJ",
+            Self::SvClaim => "SVCLAIM",
+            Self::TotalRepeatSequenceCounts => "RN",
+            Self::RepeatUnitSequences => "RUS",
+            Self::RepeatUnitLengths => "RUL",
+            Self::RepeatUnitCounts => "RUC",
+            Self::TotalRepeatSequenceBaseCounts => "RB",
+            Self::RepeatUnitCountConfidenceIntervals => "CIRUC",
+            Self::TotalRepeatSequenceBaseCountConfidenceIntervals => "CIRB",
+            Self::RepeatUnitBaseCounts => "RUB",
         }
     }
 }
@@ -361,6 +477,7 @@ impl FromStr for Standard {
             "MATEID" => Ok(Self::MateBreakendIds),
             "PARID" => Ok(Self::PartnerBreakendId),
             "EVENT" => Ok(Self::BreakendEventId),
+            "EVENTTYPE" => Ok(Self::EventType),
             "CILEN" => Ok(Self::BreakendConfidenceIntervals),
             // "DP" => Ok(Self::BreakendReadDepth),
             "DPADJ" => Ok(Self::AdjacentReadDepths),
@@ -368,6 +485,15 @@ impl FromStr for Standard {
             "CNADJ" => Ok(Self::AdjacentCopyNumber),
             "CICN" => Ok(Self::CopyNumberConfidenceIntervals),
             "CICNADJ" => Ok(Self::AdjacentCopyNumberConfidenceIntervals),
+            "SVCLAIM" => Ok(Self::SvClaim),
+            "RN" => Ok(Self::TotalRepeatSequenceCounts),
+            "RUS" => Ok(Self::RepeatUnitSequences),
+            "RUL" => Ok(Self::RepeatUnitLengths),
+            "RUC" => Ok(Self::RepeatUnitCounts),
+            "RB" => Ok(Self::TotalRepeatSequenceBaseCounts),
+            "CIRUC" => Ok(Self::RepeatUnitCountConfidenceIntervals),
+            "CIRB" => Ok(Self::TotalRepeatSequenceBaseCountConfidenceIntervals),
+            "RUB" => Ok(Self::RepeatUnitBaseCounts),
 
             _ => Err(ParseError::Invalid),
         }
@@ -554,6 +680,18 @@ mod tests {
             ADJACENT_COPY_NUMBER_CONFIDENCE_INTERVALS.to_string(),
             "CICNADJ"
         );
+        assert_eq!(SV_CLAIM.to_string(), "SVCLAIM");
+        assert_eq!(TOTAL_REPEAT_SEQUENCE_COUNTS.to_string(), "RN");
+        assert_eq!(REPEAT_UNIT_SEQUENCES.to_string(), "RUS");
+        assert_eq!(REPEAT_UNIT_LENGTHS.to_string(), "RUL");
+        assert_eq!(REPEAT_UNIT_COUNTS.to_string(), "RUC");
+        assert_eq!(TOTAL_REPEAT_SEQUENCE_BASE_COUNTS.to_string(), "RB");
+        assert_eq!(REPEAT_UNIT_COUNT_CONFIDENCE_INTERVALS.to_string(), "CIRUC");
+        assert_eq!(
+            TOTAL_REPEAT_SEQUENCE_BASE_COUNT_CONFIDENCE_INTERVALS.to_string(),
+            "CIRB"
+        );
+        assert_eq!(REPEAT_UNIT_BASE_COUNTS.to_string(), "RUB");
 
         assert_eq!(Key::Other(Other(String::from("NDLS"))).to_string(), "NDLS");
     }
@@ -600,6 +738,7 @@ mod tests {
         assert_eq!("MATEID".parse(), Ok(MATE_BREAKEND_IDS));
         assert_eq!("PARID".parse(), Ok(PARTNER_BREAKEND_ID));
         assert_eq!("EVENT".parse(), Ok(BREAKEND_EVENT_ID));
+        assert_eq!("EVENTTYPE".parse(), Ok(EVENT_TYPE));
         assert_eq!("CILEN".parse(), Ok(BREAKEND_CONFIDENCE_INTERVALS));
         // assert_eq!("DP".parse(), Ok(Key::BreakendReadDepth));
         assert_eq!("DPADJ".parse(), Ok(ADJACENT_READ_DEPTHS));
@@ -610,6 +749,18 @@ mod tests {
             "CICNADJ".parse(),
             Ok(ADJACENT_COPY_NUMBER_CONFIDENCE_INTERVALS)
         );
+        assert_eq!("SVCLAIM".parse(), Ok(SV_CLAIM));
+        assert_eq!("RN".parse(), Ok(TOTAL_REPEAT_SEQUENCE_COUNTS));
+        assert_eq!("RUS".parse(), Ok(REPEAT_UNIT_SEQUENCES));
+        assert_eq!("RUL".parse(), Ok(REPEAT_UNIT_LENGTHS));
+        assert_eq!("RUC".parse(), Ok(REPEAT_UNIT_COUNTS));
+        assert_eq!("RB".parse(), Ok(TOTAL_REPEAT_SEQUENCE_BASE_COUNTS));
+        assert_eq!("CIRUC".parse(), Ok(REPEAT_UNIT_COUNT_CONFIDENCE_INTERVALS));
+        assert_eq!(
+            "CIRB".parse(),
+            Ok(TOTAL_REPEAT_SEQUENCE_BASE_COUNT_CONFIDENCE_INTERVALS)
+        );
+        assert_eq!("RUB".parse(), Ok(REPEAT_UNIT_BASE_COUNTS));
 
         assert_eq!("NDLS".parse(), Ok(Key::Other(Other(String::from("NDLS")))));
 
