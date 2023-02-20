@@ -58,8 +58,29 @@ pub const PHASING_QUALITY: Key = Key::Standard(Standard::PhasingQuality);
 /// Phase set (`PS`).
 pub const PHASE_SET: Key = Key::Standard(Standard::PhaseSet);
 
+/// Phase set list (`PSL`).
+///
+/// Added in VCF 4.4.
+pub const PHASE_SET_LIST: Key = Key::Standard(Standard::PhaseSetList);
+
+/// Phase set list ordinal (`PSO`).
+///
+/// Added in VCF 4.4.
+pub const PHASE_SET_LIST_ORDINALS: Key = Key::Standard(Standard::PhaseSetListOrdinals);
+
+/// Phase set list quality (`PSQ`).
+///
+/// Added in VCF 4.4.
+pub const PHASE_SET_LIST_QUALITIES: Key = Key::Standard(Standard::PhaseSetListQualities);
+
 /// Copy number genotype for imprecise events (`CN`).
 pub const GENOTYPE_COPY_NUMBER: Key = Key::Standard(Standard::GenotypeCopyNumber);
+
+/// Confidence interval around copy number (`CICN`).
+///
+/// Added in VCF 4.4.
+pub const COPY_NUMBER_CONFIDENCE_INTERVAL: Key =
+    Key::Standard(Standard::CopyNumberConfidenceInterval);
 
 /// Copy number genotype quality for imprecise events (`CNQ`).
 pub const GENOTYPE_COPY_NUMBER_QUALITY: Key = Key::Standard(Standard::GenotypeCopyNumberQuality);
@@ -84,7 +105,6 @@ pub const ANCESTRAL_HAPLOTYPE_ID: Key = Key::Standard(Standard::AncestralHaploty
 /// A reserved VCF header format key.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Standard {
-    // § 1.6.2 Genotype fields (2021-01-13)
     /// Read depth for each allele (`AD`).
     ReadDepths,
     /// Read depth for each allele on the forward strand (`ADF`).
@@ -117,10 +137,25 @@ pub enum Standard {
     PhasingQuality,
     /// Phase set (`PS`).
     PhaseSet,
+    /// Phase set list (`PSL`).
+    ///
+    /// Added in VCF 4.4.
+    PhaseSetList,
+    /// Phase set list ordinal (`PSO`).
+    ///
+    /// Added in VCF 4.4.
+    PhaseSetListOrdinals,
+    /// Phase set list quality (`PSQ`).
+    ///
+    /// Added in VCF 4.4.
+    PhaseSetListQualities,
 
-    // § 4 FORMAT keys used for structural variants (2021-01-13)
     /// Copy number genotype for imprecise events (`CN`).
     GenotypeCopyNumber,
+    /// Confidence interval around copy number (`CICN`).
+    ///
+    /// Added in VCF 4.4.
+    CopyNumberConfidenceInterval,
     /// Copy number genotype quality for imprecise events (`CNQ`).
     GenotypeCopyNumberQuality,
     /// Copy number genotype likelihood for imprecise events (`CNL`).
@@ -154,8 +189,12 @@ impl AsRef<str> for Standard {
             Self::RoundedGenotypePosteriorProbabilities => "PP",
             Self::PhasingQuality => "PQ",
             Self::PhaseSet => "PS",
+            Self::PhaseSetList => "PSL",
+            Self::PhaseSetListOrdinals => "PSO",
+            Self::PhaseSetListQualities => "PSQ",
 
             Self::GenotypeCopyNumber => "CN",
+            Self::CopyNumberConfidenceInterval => "CICN",
             Self::GenotypeCopyNumberQuality => "CNQ",
             Self::GenotypeCopyNumberLikelihoods => "CNL",
             Self::GenotypeCopyNumberPosteriorProbabilities => "CNP",
@@ -207,8 +246,12 @@ impl FromStr for Standard {
             "PP" => Ok(Self::RoundedGenotypePosteriorProbabilities),
             "PQ" => Ok(Self::PhasingQuality),
             "PS" => Ok(Self::PhaseSet),
+            "PSL" => Ok(Self::PhaseSetList),
+            "PSO" => Ok(Self::PhaseSetListOrdinals),
+            "PSQ" => Ok(Self::PhaseSetListQualities),
 
             "CN" => Ok(Self::GenotypeCopyNumber),
+            "CICN" => Ok(Self::CopyNumberConfidenceInterval),
             "CNQ" => Ok(Self::GenotypeCopyNumberQuality),
             "CNL" => Ok(Self::GenotypeCopyNumberLikelihoods),
             "CNP" => Ok(Self::GenotypeCopyNumberPosteriorProbabilities),
@@ -367,8 +410,12 @@ mod tests {
         assert_eq!(ROUNDED_GENOTYPE_POSTERIOR_PROBABILITIES.to_string(), "PP");
         assert_eq!(PHASING_QUALITY.to_string(), "PQ");
         assert_eq!(PHASE_SET.to_string(), "PS");
+        assert_eq!(PHASE_SET_LIST.to_string(), "PSL");
+        assert_eq!(PHASE_SET_LIST_ORDINALS.to_string(), "PSO");
+        assert_eq!(PHASE_SET_LIST_QUALITIES.to_string(), "PSQ");
 
         assert_eq!(GENOTYPE_COPY_NUMBER.to_string(), "CN");
+        assert_eq!(COPY_NUMBER_CONFIDENCE_INTERVAL.to_string(), "CICN");
         assert_eq!(GENOTYPE_COPY_NUMBER_QUALITY.to_string(), "CNQ");
         assert_eq!(GENOTYPE_COPY_NUMBER_LIKELIHOODS.to_string(), "CNL");
         assert_eq!(
@@ -400,8 +447,12 @@ mod tests {
         assert_eq!("PP".parse(), Ok(ROUNDED_GENOTYPE_POSTERIOR_PROBABILITIES));
         assert_eq!("PQ".parse(), Ok(PHASING_QUALITY));
         assert_eq!("PS".parse(), Ok(PHASE_SET));
+        assert_eq!("PSL".parse(), Ok(PHASE_SET_LIST));
+        assert_eq!("PSO".parse(), Ok(PHASE_SET_LIST_ORDINALS));
+        assert_eq!("PSQ".parse(), Ok(PHASE_SET_LIST_QUALITIES));
 
         assert_eq!("CN".parse(), Ok(GENOTYPE_COPY_NUMBER));
+        assert_eq!("CICN".parse(), Ok(COPY_NUMBER_CONFIDENCE_INTERVAL));
         assert_eq!("CNQ".parse(), Ok(GENOTYPE_COPY_NUMBER_QUALITY));
         assert_eq!("CNL".parse(), Ok(GENOTYPE_COPY_NUMBER_LIKELIHOODS));
         assert_eq!(

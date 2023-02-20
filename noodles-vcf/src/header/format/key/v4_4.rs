@@ -47,12 +47,25 @@ pub(super) fn definition(key: Standard) -> Option<(Number, Type, &'static str)> 
         )),
         Standard::PhasingQuality => Some((Number::Count(1), Type::Integer, "Phasing quality")),
         Standard::PhaseSet => Some((Number::Count(1), Type::Integer, "Phase set")),
-        // TODO: Standard::PhaseSetList
-        // TODO: Standard::PhaseSetListOrdinal
-        // TODO: Standard::PhaseSetListQuality
-        //
+        // FIXME: Number::P
+        Standard::PhaseSetList => Some((Number::Unknown, Type::String, "Phase set list")),
+        Standard::PhaseSetListOrdinals => Some((
+            Number::Unknown, // FIXME: Number::P
+            Type::Integer,
+            "Phase set list ordinal",
+        )),
+        Standard::PhaseSetListQualities => Some((
+            Number::Unknown, // FIX: Number::P
+            Type::Integer,
+            "Phase set list quality",
+        )),
+
         Standard::GenotypeCopyNumber => Some((Number::Count(1), Type::Float, "Copy number")),
-        // TODO: Standard::CopyNumberConfidenceInterval
+        Standard::CopyNumberConfidenceInterval => Some((
+            Number::Count(2),
+            Type::Float,
+            "Confidence interval around copy number",
+        )),
         Standard::GenotypeCopyNumberQuality => Some((
             Number::Count(1),
             Type::Float,

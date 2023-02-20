@@ -83,5 +83,7 @@ pub(super) fn definition(key: Standard) -> Option<(Number, Type, &'static str)> 
             Type::Integer,
             "Unique identifier of ancestral haplotype",
         )),
+
+        _ => None,
     }
 }
