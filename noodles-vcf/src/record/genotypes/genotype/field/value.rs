@@ -167,40 +167,40 @@ impl Value {
     /// assert_eq!(Value::from_str_format("13", &format), Ok(Value::Integer(13)));
     /// ```
     pub fn from_str_format(s: &str, format: &Map<Format>) -> Result<Self, ParseError> {
-        match format.ty() {
-            Type::Integer => match format.number() {
-                Number::Count(0) => Err(ParseError::InvalidNumberForType(
-                    format.number(),
-                    format.ty(),
-                )),
-                Number::Count(1) => parse_i32(s),
-                _ => parse_i32_array(s),
-            },
-            Type::Float => match format.number() {
-                Number::Count(0) => Err(ParseError::InvalidNumberForType(
-                    format.number(),
-                    format.ty(),
-                )),
-                Number::Count(1) => parse_f32(s),
-                _ => parse_f32_array(s),
-            },
-            Type::Character => match format.number() {
-                Number::Count(0) => Err(ParseError::InvalidNumberForType(
-                    format.number(),
-                    format.ty(),
-                )),
-                Number::Count(1) => parse_char(s),
-                _ => parse_char_array(s),
-            },
-            Type::String => match format.number() {
-                Number::Count(0) => Err(ParseError::InvalidNumberForType(
-                    format.number(),
-                    format.ty(),
-                )),
-                Number::Count(1) => parse_string(s),
-                _ => parse_string_array(s),
-            },
-        }
+        parse(format.number(), format.ty(), s)
+    }
+}
+
+impl TryFrom<(Number, Type, &str)> for Value {
+    type Error = ParseError;
+
+    fn try_from((number, ty, s): (Number, Type, &str)) -> Result<Self, Self::Error> {
+        parse(number, ty, s)
+    }
+}
+
+fn parse(number: Number, ty: Type, s: &str) -> Result<Value, ParseError> {
+    match ty {
+        Type::Integer => match number {
+            Number::Count(0) => Err(ParseError::InvalidNumberForType(number, ty)),
+            Number::Count(1) => parse_i32(s),
+            _ => parse_i32_array(s),
+        },
+        Type::Float => match number {
+            Number::Count(0) => Err(ParseError::InvalidNumberForType(number, ty)),
+            Number::Count(1) => parse_f32(s),
+            _ => parse_f32_array(s),
+        },
+        Type::Character => match number {
+            Number::Count(0) => Err(ParseError::InvalidNumberForType(number, ty)),
+            Number::Count(1) => parse_char(s),
+            _ => parse_char_array(s),
+        },
+        Type::String => match number {
+            Number::Count(0) => Err(ParseError::InvalidNumberForType(number, ty)),
+            Number::Count(1) => parse_string(s),
+            _ => parse_string_array(s),
+        },
     }
 }
 
@@ -353,86 +353,74 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str_format_with_integer() -> Result<(), crate::header::format::key::ParseError> {
-        let format = Map::<Format>::new(Number::Count(0), Type::Integer, String::new());
+    fn test_parse_with_integer() {
         assert_eq!(
-            Value::from_str_format("8", &format),
+            parse(Number::Count(0), Type::Integer, "8"),
             Err(ParseError::InvalidNumberForType(
                 Number::Count(0),
                 Type::Integer
             ))
         );
 
-        let format = Map::<Format>::new(Number::Count(1), Type::Integer, String::new());
-        assert_eq!(Value::from_str_format("8", &format), Ok(Value::Integer(8)));
-
-        let format = Map::<Format>::new(Number::Count(2), Type::Integer, String::new());
         assert_eq!(
-            Value::from_str_format("8,13", &format),
+            parse(Number::Count(1), Type::Integer, "8"),
+            Ok(Value::Integer(8))
+        );
+
+        assert_eq!(
+            parse(Number::Count(2), Type::Integer, "8,13"),
             Ok(Value::IntegerArray(vec![Some(8), Some(13)]))
         );
 
-        let format = Map::<Format>::new(Number::Count(2), Type::Integer, String::new());
         assert_eq!(
-            Value::from_str_format("8,.", &format),
+            parse(Number::Count(2), Type::Integer, "8,."),
             Ok(Value::IntegerArray(vec![Some(8), None]))
         );
-
-        Ok(())
     }
 
     #[test]
-    fn test_from_str_format_with_float() -> Result<(), crate::header::format::key::ParseError> {
-        let format = Map::<Format>::new(Number::Count(0), Type::Float, String::new());
+    fn test_parse_with_float() {
         assert_eq!(
-            Value::from_str_format("0.333", &format),
+            parse(Number::Count(0), Type::Float, "0.333"),
             Err(ParseError::InvalidNumberForType(
                 Number::Count(0),
                 Type::Float
             ))
         );
 
-        let format = Map::<Format>::new(Number::Count(1), Type::Float, String::new());
         assert_eq!(
-            Value::from_str_format("0.333", &format),
+            parse(Number::Count(1), Type::Float, "0.333"),
             Ok(Value::Float(0.333))
         );
 
-        let format = Map::<Format>::new(Number::Count(2), Type::Float, String::new());
         assert_eq!(
-            Value::from_str_format("0.333,0.667", &format),
+            parse(Number::Count(2), Type::Float, "0.333,0.667"),
             Ok(Value::FloatArray(vec![Some(0.333), Some(0.667)]))
         );
 
-        let format = Map::<Format>::new(Number::Count(2), Type::Float, String::new());
         assert_eq!(
-            Value::from_str_format("0.333,.", &format),
+            parse(Number::Count(2), Type::Float, "0.333,."),
             Ok(Value::FloatArray(vec![Some(0.333), None]))
         );
-
-        Ok(())
     }
 
     #[test]
-    fn test_from_str_format_with_character() -> Result<(), crate::header::format::key::ParseError> {
-        let format = Map::<Format>::new(Number::Count(0), Type::Character, String::new());
+    fn test_parse_with_character() {
         assert_eq!(
-            Value::from_str_format("n", &format),
+            parse(Number::Count(0), Type::Character, "n"),
             Err(ParseError::InvalidNumberForType(
                 Number::Count(0),
                 Type::Character
             ))
         );
 
-        let format = Map::<Format>::new(Number::Count(1), Type::Character, String::new());
         assert_eq!(
-            Value::from_str_format("n", &format),
+            parse(Number::Count(1), Type::Character, "n"),
             Ok(Value::Character('n'))
         );
 
-        let format = Map::<Format>::new(Number::Count(2), Type::Character, String::new());
         assert_eq!(
-            Value::from_str_format("n,d,l,s", &format),
+            parse(Number::Count(2), Type::Character, "n,d,l,s"),
             Ok(Value::CharacterArray(vec![
                 Some('n'),
                 Some('d'),
@@ -441,9 +429,8 @@ mod tests {
             ]))
         );
 
-        let format = Map::<Format>::new(Number::Count(2), Type::Character, String::new());
         assert_eq!(
-            Value::from_str_format("n,d,l,.", &format),
+            parse(Number::Count(2), Type::Character, "n,d,l,."),
             Ok(Value::CharacterArray(vec![
                 Some('n'),
                 Some('d'),
@@ -451,54 +438,47 @@ mod tests {
                 None
             ]))
         );
-
-        Ok(())
     }
 
     #[test]
-    fn test_from_str_format_with_string() -> Result<(), crate::header::format::key::ParseError> {
-        let format = Map::<Format>::new(Number::Count(0), Type::String, String::new());
+    fn test_parse_with_string() {
         assert_eq!(
-            Value::from_str_format("noodles", &format),
+            parse(Number::Count(0), Type::String, "noodles"),
             Err(ParseError::InvalidNumberForType(
                 Number::Count(0),
                 Type::String
             ))
         );
 
-        let format = Map::<Format>::new(Number::Count(1), Type::String, String::new());
         assert_eq!(
-            Value::from_str_format("noodles", &format),
+            parse(Number::Count(1), Type::String, "noodles"),
             Ok(Value::String(String::from("noodles")))
         );
         assert_eq!(
-            Value::from_str_format("8%25", &format),
+            parse(Number::Count(1), Type::String, "8%25"),
             Ok(Value::String(String::from("8%")))
         );
 
-        let format = Map::<Format>::new(Number::Count(2), Type::String, String::new());
         assert_eq!(
-            Value::from_str_format("noodles,vcf", &format),
+            parse(Number::Count(2), Type::String, "noodles,vcf"),
             Ok(Value::StringArray(vec![
                 Some(String::from("noodles")),
                 Some(String::from("vcf"))
             ]))
         );
         assert_eq!(
-            Value::from_str_format("8%25,13%25", &format),
+            parse(Number::Count(2), Type::String, "8%25,13%25"),
             Ok(Value::StringArray(vec![
                 Some(String::from("8%")),
                 Some(String::from("13%")),
             ]))
         );
         assert_eq!(
-            Value::from_str_format("noodles,.", &format),
+            parse(Number::Count(2), Type::String, "noodles,."),
             Ok(Value::StringArray(vec![
                 Some(String::from("noodles")),
                 None,
             ]))
         );
-
-        Ok(())
     }
 }

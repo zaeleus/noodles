@@ -16,6 +16,9 @@
 
   * vcf/header/info/key: Add VCF 4.4 reserved keys.
 
+  * vcf/record/genotypes/genotype/field/value: Implement `TryFrom<(Number,
+    Type, &str)>`.
+
 ### Changed
 
   * vcf/header/record/parser: Disallow empty values for unstructured lines.
