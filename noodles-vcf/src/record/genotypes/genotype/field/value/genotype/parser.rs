@@ -36,15 +36,26 @@ pub(super) fn parse(mut s: &str) -> Result<Genotype, ParseError> {
 
     let mut alleles = Vec::new();
 
-    while let Some(i) = s.chars().skip(1).position(|c| matches!(c, '/' | '|')) {
-        let (t, rest) = s.split_at(i + 1);
-        let allele = t.parse().map_err(ParseError::InvalidAllele)?;
+    while !s.is_empty() {
+        let raw_allele = next_allele(&mut s);
+        let allele = raw_allele.parse().map_err(ParseError::InvalidAllele)?;
         alleles.push(allele);
-        s = rest;
     }
 
-    let allele = s.parse().map_err(ParseError::InvalidAllele)?;
-    alleles.push(allele);
-
     Ok(Genotype(alleles))
+}
+
+fn next_allele<'a>(s: &mut &'a str) -> &'a str {
+    let (t, rest) = match s.chars().skip(1).position(is_phasing_indicator) {
+        Some(i) => s.split_at(i + 1),
+        None => s.split_at(s.len()),
+    };
+
+    *s = rest;
+
+    t
+}
+
+fn is_phasing_indicator(c: char) -> bool {
+    matches!(c, '/' | '|')
 }
