@@ -1,8 +1,9 @@
 //! VCF record genotype value.
 
 pub mod allele;
+mod parser;
 
-pub use self::allele::Allele;
+pub use self::{allele::Allele, parser::ParseError};
 
 use std::{
     error, fmt,
@@ -28,54 +29,11 @@ impl DerefMut for Genotype {
     }
 }
 
-/// An error returned when a raw VCF record genotype value fails to parse.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
-    /// The input is empty.
-    Empty,
-    /// An allele is invalid.
-    InvalidAllele(allele::ParseError),
-}
-
-impl error::Error for ParseError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match self {
-            Self::Empty => None,
-            Self::InvalidAllele(e) => Some(e),
-        }
-    }
-}
-
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Empty => f.write_str("empty input"),
-            Self::InvalidAllele(_) => f.write_str("invalid allele"),
-        }
-    }
-}
-
 impl FromStr for Genotype {
     type Err = ParseError;
 
-    fn from_str(mut s: &str) -> Result<Self, Self::Err> {
-        if s.is_empty() {
-            return Err(ParseError::Empty);
-        }
-
-        let mut alleles = Vec::new();
-
-        while let Some(i) = s.chars().skip(1).position(|c| matches!(c, '/' | '|')) {
-            let (t, rest) = s.split_at(i + 1);
-            let allele = t.parse().map_err(ParseError::InvalidAllele)?;
-            alleles.push(allele);
-            s = rest;
-        }
-
-        let allele = s.parse().map_err(ParseError::InvalidAllele)?;
-        alleles.push(allele);
-
-        Ok(Self(alleles))
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        parser::parse(s)
     }
 }
 
