@@ -138,7 +138,7 @@ impl FromStr for Allele {
     }
 }
 
-fn parse_position(s: &str) -> Result<Option<usize>, ParseError> {
+pub(super) fn parse_position(s: &str) -> Result<Option<usize>, ParseError> {
     if s == MISSING_POSITION {
         Ok(None)
     } else {

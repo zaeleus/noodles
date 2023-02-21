@@ -82,7 +82,7 @@ mod tests {
         assert_eq!(
             "0/1".parse(),
             Ok(Genotype(vec![
-                Allele::new(Some(0), None),
+                Allele::new(Some(0), Some(Phasing::Unphased)),
                 Allele::new(Some(1), Some(Phasing::Unphased)),
             ]))
         );
@@ -90,7 +90,7 @@ mod tests {
         assert_eq!(
             "0|1".parse(),
             Ok(Genotype(vec![
-                Allele::new(Some(0), None),
+                Allele::new(Some(0), Some(Phasing::Phased)),
                 Allele::new(Some(1), Some(Phasing::Phased)),
             ]))
         );
@@ -98,17 +98,20 @@ mod tests {
         assert_eq!(
             "./.".parse(),
             Ok(Genotype(vec![
-                Allele::new(None, None),
+                Allele::new(None, Some(Phasing::Unphased)),
                 Allele::new(None, Some(Phasing::Unphased)),
             ]))
         );
 
-        assert_eq!("0".parse(), Ok(Genotype(vec![Allele::new(Some(0), None)])));
+        assert_eq!(
+            "0".parse(),
+            Ok(Genotype(vec![Allele::new(Some(0), Some(Phasing::Phased))]))
+        );
 
         assert_eq!(
             "0/1/2".parse(),
             Ok(Genotype(vec![
-                Allele::new(Some(0), None),
+                Allele::new(Some(0), Some(Phasing::Unphased)),
                 Allele::new(Some(1), Some(Phasing::Unphased)),
                 Allele::new(Some(2), Some(Phasing::Unphased)),
             ]))
@@ -117,9 +120,18 @@ mod tests {
         assert_eq!(
             "0/1|2".parse(),
             Ok(Genotype(vec![
-                Allele::new(Some(0), None),
+                Allele::new(Some(0), Some(Phasing::Unphased)),
                 Allele::new(Some(1), Some(Phasing::Unphased)),
                 Allele::new(Some(2), Some(Phasing::Phased)),
+            ]))
+        );
+
+        assert_eq!(
+            "|0/1/2".parse(),
+            Ok(Genotype(vec![
+                Allele::new(Some(0), Some(Phasing::Phased)),
+                Allele::new(Some(1), Some(Phasing::Unphased)),
+                Allele::new(Some(2), Some(Phasing::Unphased)),
             ]))
         );
 

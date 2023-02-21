@@ -1,6 +1,9 @@
 use std::{error, fmt};
 
-use super::{allele, Genotype};
+use super::{
+    allele::{self, Phasing},
+    Allele, Genotype,
+};
 
 /// An error returned when a raw VCF record genotype value fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -29,18 +32,49 @@ impl fmt::Display for ParseError {
     }
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum FirstPhasing {
+    Explicit(Phasing),
+    Implicit(Phasing),
+}
+
+impl FirstPhasing {
+    fn phasing(&self) -> Phasing {
+        match self {
+            FirstPhasing::Explicit(phasing) => *phasing,
+            FirstPhasing::Implicit(phasing) => *phasing,
+        }
+    }
+}
+
 pub(super) fn parse(mut s: &str) -> Result<Genotype, ParseError> {
     if s.is_empty() {
         return Err(ParseError::Empty);
     }
 
-    let mut alleles = Vec::new();
+    let raw_allele = next_allele(&mut s);
+    let first_allele = parse_first_allele(raw_allele).map_err(ParseError::InvalidAllele)?;
+    let (first_position, mut first_phasing) = match first_allele {
+        (position, Some(phasing)) => (position, FirstPhasing::Explicit(phasing)),
+        (position, None) => (position, FirstPhasing::Implicit(Phasing::Phased)),
+    };
+
+    let mut alleles = vec![Allele::new(first_position, Some(first_phasing.phasing()))];
 
     while !s.is_empty() {
         let raw_allele = next_allele(&mut s);
-        let allele = raw_allele.parse().map_err(ParseError::InvalidAllele)?;
+        let allele: Allele = raw_allele.parse().map_err(ParseError::InvalidAllele)?;
+
+        if first_phasing == FirstPhasing::Implicit(Phasing::Phased)
+            && allele.phasing() == Some(Phasing::Unphased)
+        {
+            first_phasing = FirstPhasing::Implicit(Phasing::Unphased);
+        }
+
         alleles.push(allele);
     }
+
+    *alleles[0].phasing_mut() = Some(first_phasing.phasing());
 
     Ok(Genotype(alleles))
 }
@@ -58,4 +92,22 @@ fn next_allele<'a>(s: &mut &'a str) -> &'a str {
 
 fn is_phasing_indicator(c: char) -> bool {
     matches!(c, '/' | '|')
+}
+
+fn parse_first_allele(s: &str) -> Result<(Option<usize>, Option<Phasing>), allele::ParseError> {
+    use super::allele::parse_position;
+
+    match s[..1].parse() {
+        Ok(phasing) => {
+            let position = parse_position(&s[1..])?;
+            Ok((position, Some(phasing)))
+        }
+        Err(e) => {
+            if let Ok(position) = parse_position(s) {
+                Ok((position, None))
+            } else {
+                Err(allele::ParseError::InvalidPhasing(e))
+            }
+        }
+    }
 }

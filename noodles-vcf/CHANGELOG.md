@@ -43,6 +43,9 @@
 
     Change usages of, e.g, `Key::TotalDepth` to `key::TOTAL_DEPTH`.
 
+  * vcf/record/genotypes/genotype/field/value/genotype: Infer phasing of first
+    allele.
+
 ### Fixed
 
   * vcf/reader: Fix infinite loop when an input is only a header with no final
