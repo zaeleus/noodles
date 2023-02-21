@@ -19,6 +19,8 @@
   * vcf/record/genotypes/genotype/field/value: Implement `TryFrom<(Number,
     Type, &str)>`.
 
+  * vcf/record/info/field/value: Implement `TryFrom<(Number, Type, &str)>`.
+
 ### Changed
 
   * vcf/header/record/parser: Disallow empty values for unstructured lines.
