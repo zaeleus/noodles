@@ -55,7 +55,9 @@ impl FromStr for Id {
 }
 
 fn is_valid_id(s: &str) -> bool {
-    !s.is_empty() && s.chars().all(|c| !c.is_ascii_whitespace())
+    const MISSING: &str = ".";
+
+    !s.is_empty() && s != MISSING && s.chars().all(|c| !c.is_ascii_whitespace())
 }
 
 #[cfg(test)]
@@ -67,6 +69,7 @@ mod tests {
         assert_eq!("nd0".parse(), Ok(Id(String::from("nd0"))));
 
         assert_eq!("".parse::<Id>(), Err(ParseError::Empty));
+        assert_eq!(".".parse::<Id>(), Err(ParseError::Invalid));
         assert_eq!("nd 0".parse::<Id>(), Err(ParseError::Invalid));
     }
 }

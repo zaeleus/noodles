@@ -47,6 +47,8 @@
 
     `Ids` no longer handles "." as missing.
 
+  * vcf/record/ids/id: Disallow `.` as a valid identifier.
+
   * vcf/record/genotypes/genotype/field/value/genotype: Infer phasing of first
     allele.
 

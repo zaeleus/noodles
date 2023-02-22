@@ -115,7 +115,6 @@ mod tests {
         let id0: Id = "nd0".parse()?;
         let id1: Id = "nd1".parse()?;
 
-        assert_eq!(".".parse(), Ok(Ids([".".parse()?].into_iter().collect())));
         assert_eq!("nd0".parse(), Ok(Ids([id0.clone()].into_iter().collect())));
         assert_eq!("nd0;nd1".parse(), Ok(Ids([id0, id1].into_iter().collect())));
 
@@ -124,6 +123,7 @@ mod tests {
             "nd0;nd0".parse::<Ids>(),
             Err(ParseError::DuplicateId(String::from("nd0")))
         );
+        assert!(matches!(".".parse::<Ids>(), Err(ParseError::InvalidId(_))));
         assert!(matches!(
             "nd 0".parse::<Ids>(),
             Err(ParseError::InvalidId(_))
