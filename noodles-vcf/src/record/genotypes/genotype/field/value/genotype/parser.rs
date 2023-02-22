@@ -59,14 +59,14 @@ pub(super) fn parse(mut s: &str) -> Result<Genotype, ParseError> {
         (position, None) => (position, FirstPhasing::Implicit(Phasing::Phased)),
     };
 
-    let mut alleles = vec![Allele::new(first_position, Some(first_phasing.phasing()))];
+    let mut alleles = vec![Allele::new(first_position, first_phasing.phasing())];
 
     while !s.is_empty() {
         let raw_allele = next_allele(&mut s);
         let allele: Allele = raw_allele.parse().map_err(ParseError::InvalidAllele)?;
 
         if first_phasing == FirstPhasing::Implicit(Phasing::Phased)
-            && allele.phasing() == Some(Phasing::Unphased)
+            && allele.phasing() == Phasing::Unphased
         {
             first_phasing = FirstPhasing::Implicit(Phasing::Unphased);
         }
@@ -74,7 +74,7 @@ pub(super) fn parse(mut s: &str) -> Result<Genotype, ParseError> {
         alleles.push(allele);
     }
 
-    *alleles[0].phasing_mut() = Some(first_phasing.phasing());
+    *alleles[0].phasing_mut() = first_phasing.phasing();
 
     Ok(Genotype(alleles))
 }

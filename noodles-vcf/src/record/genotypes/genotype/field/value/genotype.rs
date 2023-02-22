@@ -41,10 +41,10 @@ impl TryFrom<Vec<Allele>> for Genotype {
     type Error = TryFromAllelesError;
 
     fn try_from(alleles: Vec<Allele>) -> Result<Self, Self::Error> {
-        match alleles.first().map(|a| a.phasing()) {
-            None => Err(TryFromAllelesError::Empty),
-            Some(Some(_)) => Err(TryFromAllelesError::InvalidFirstAllelePhasing),
-            Some(None) => Ok(Self(alleles)),
+        if alleles.is_empty() {
+            Err(TryFromAllelesError::Empty)
+        } else {
+            Ok(Self(alleles))
         }
     }
 }
@@ -82,56 +82,56 @@ mod tests {
         assert_eq!(
             "0/1".parse(),
             Ok(Genotype(vec![
-                Allele::new(Some(0), Some(Phasing::Unphased)),
-                Allele::new(Some(1), Some(Phasing::Unphased)),
+                Allele::new(Some(0), Phasing::Unphased),
+                Allele::new(Some(1), Phasing::Unphased),
             ]))
         );
 
         assert_eq!(
             "0|1".parse(),
             Ok(Genotype(vec![
-                Allele::new(Some(0), Some(Phasing::Phased)),
-                Allele::new(Some(1), Some(Phasing::Phased)),
+                Allele::new(Some(0), Phasing::Phased),
+                Allele::new(Some(1), Phasing::Phased),
             ]))
         );
 
         assert_eq!(
             "./.".parse(),
             Ok(Genotype(vec![
-                Allele::new(None, Some(Phasing::Unphased)),
-                Allele::new(None, Some(Phasing::Unphased)),
+                Allele::new(None, Phasing::Unphased),
+                Allele::new(None, Phasing::Unphased),
             ]))
         );
 
         assert_eq!(
             "0".parse(),
-            Ok(Genotype(vec![Allele::new(Some(0), Some(Phasing::Phased))]))
+            Ok(Genotype(vec![Allele::new(Some(0), Phasing::Phased)]))
         );
 
         assert_eq!(
             "0/1/2".parse(),
             Ok(Genotype(vec![
-                Allele::new(Some(0), Some(Phasing::Unphased)),
-                Allele::new(Some(1), Some(Phasing::Unphased)),
-                Allele::new(Some(2), Some(Phasing::Unphased)),
+                Allele::new(Some(0), Phasing::Unphased),
+                Allele::new(Some(1), Phasing::Unphased),
+                Allele::new(Some(2), Phasing::Unphased),
             ]))
         );
 
         assert_eq!(
             "0/1|2".parse(),
             Ok(Genotype(vec![
-                Allele::new(Some(0), Some(Phasing::Unphased)),
-                Allele::new(Some(1), Some(Phasing::Unphased)),
-                Allele::new(Some(2), Some(Phasing::Phased)),
+                Allele::new(Some(0), Phasing::Unphased),
+                Allele::new(Some(1), Phasing::Unphased),
+                Allele::new(Some(2), Phasing::Phased),
             ]))
         );
 
         assert_eq!(
             "|0/1/2".parse(),
             Ok(Genotype(vec![
-                Allele::new(Some(0), Some(Phasing::Phased)),
-                Allele::new(Some(1), Some(Phasing::Unphased)),
-                Allele::new(Some(2), Some(Phasing::Unphased)),
+                Allele::new(Some(0), Phasing::Phased),
+                Allele::new(Some(1), Phasing::Unphased),
+                Allele::new(Some(2), Phasing::Unphased),
             ]))
         );
 
@@ -146,15 +146,10 @@ mod tests {
         use allele::Phasing;
 
         let expected = Genotype(vec![
-            Allele::new(Some(0), None),
-            Allele::new(Some(1), Some(Phasing::Unphased)),
+            Allele::new(Some(0), Phasing::Unphased),
+            Allele::new(Some(1), Phasing::Unphased),
         ]);
         assert_eq!(Genotype::try_from(expected.0.clone()), Ok(expected));
-
-        assert_eq!(
-            Genotype::try_from(vec![Allele::new(Some(0), Some(Phasing::Unphased))]),
-            Err(TryFromAllelesError::InvalidFirstAllelePhasing),
-        );
 
         assert_eq!(
             Genotype::try_from(Vec::new()),

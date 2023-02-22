@@ -46,6 +46,9 @@
   * vcf/record/genotypes/genotype/field/value/genotype: Infer phasing of first
     allele.
 
+  * vcf/record/genotypes/genotype/field/value/genotype/allele: The phasing is
+    now required.
+
 ### Fixed
 
   * vcf/reader: Fix infinite loop when an input is only a header with no final
