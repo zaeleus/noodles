@@ -43,6 +43,10 @@
 
     Change usages of, e.g, `Key::TotalDepth` to `key::TOTAL_DEPTH`.
 
+  * vcf/record/ids: Move missing field value parsing to record parser.
+
+    `Ids` no longer handles "." as missing.
+
   * vcf/record/genotypes/genotype/field/value/genotype: Infer phasing of first
     allele.
 

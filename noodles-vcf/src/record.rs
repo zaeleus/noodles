@@ -708,12 +708,22 @@ impl fmt::Display for Record {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "{chrom}\t{pos}\t{id}\t{ref}\t{alt}",
+            "{chrom}\t{pos}",
             chrom = self.chromosome(),
-            pos = self.position(),
-            id = self.ids(),
+            pos = self.position()
+        )?;
+
+        if self.ids().is_empty() {
+            write!(f, "\t{MISSING_FIELD}")?;
+        } else {
+            write!(f, "\t{}", self.ids())?;
+        }
+
+        write!(
+            f,
+            "\t{ref}\t{alt}",
             r#ref = self.reference_bases(),
-            alt = self.alternate_bases(),
+            alt = self.alternate_bases()
         )?;
 
         if let Some(quality_score) = self.quality_score() {

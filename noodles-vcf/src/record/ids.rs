@@ -8,8 +8,6 @@ use std::{error, fmt, ops::Deref, ops::DerefMut, str::FromStr};
 
 use indexmap::IndexSet;
 
-use super::MISSING_FIELD;
-
 const DELIMITER: char = ';';
 
 /// VCF record IDs (`ID`).
@@ -32,19 +30,15 @@ impl DerefMut for Ids {
 
 impl fmt::Display for Ids {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.is_empty() {
-            write!(f, "{MISSING_FIELD}")
-        } else {
-            for (i, id) in self.iter().enumerate() {
-                if i > 0 {
-                    write!(f, "{DELIMITER}")?;
-                }
-
-                f.write_str(id)?;
+        for (i, id) in self.iter().enumerate() {
+            if i > 0 {
+                write!(f, "{DELIMITER}")?;
             }
 
-            Ok(())
+            f.write_str(id)?;
         }
+
+        Ok(())
     }
 }
 
@@ -82,23 +76,21 @@ impl FromStr for Ids {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "" => Err(ParseError::Empty),
-            MISSING_FIELD => Ok(Self::default()),
-            _ => {
-                let mut ids = IndexSet::new();
+        if s.is_empty() {
+            return Err(ParseError::Empty);
+        }
 
-                for raw_id in s.split(DELIMITER) {
-                    let id: Id = raw_id.parse().map_err(ParseError::InvalidId)?;
+        let mut ids = IndexSet::new();
 
-                    if !ids.insert(id) {
-                        return Err(ParseError::DuplicateId(raw_id.into()));
-                    }
-                }
+        for raw_id in s.split(DELIMITER) {
+            let id = raw_id.parse().map_err(ParseError::InvalidId)?;
 
-                Ok(Self(ids))
+            if !ids.insert(id) {
+                return Err(ParseError::DuplicateId(raw_id.into()));
             }
         }
+
+        Ok(Self(ids))
     }
 }
 
@@ -108,7 +100,7 @@ mod tests {
 
     #[test]
     fn test_fmt() -> Result<(), id::ParseError> {
-        assert_eq!(Ids::default().to_string(), ".");
+        assert!(Ids::default().to_string().is_empty());
 
         let id0: Id = "nd0".parse()?;
         let id1: Id = "nd1".parse()?;
@@ -123,7 +115,7 @@ mod tests {
         let id0: Id = "nd0".parse()?;
         let id1: Id = "nd1".parse()?;
 
-        assert_eq!(".".parse(), Ok(Ids::default()));
+        assert_eq!(".".parse(), Ok(Ids([".".parse()?].into_iter().collect())));
         assert_eq!("nd0".parse(), Ok(Ids([id0.clone()].into_iter().collect())));
         assert_eq!("nd0;nd1".parse(), Ok(Ids([id0, id1].into_iter().collect())));
 
