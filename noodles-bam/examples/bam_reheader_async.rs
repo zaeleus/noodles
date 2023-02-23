@@ -27,7 +27,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .write_reference_sequences(header.reference_sequences())
         .await?;
 
-    let mut records = reader.records();
+    let mut records = reader.records(&header);
 
     while let Some(record) = records.try_next().await? {
         writer.write_record(&header, &record).await?;

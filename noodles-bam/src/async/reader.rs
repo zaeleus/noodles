@@ -9,6 +9,7 @@ use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
 use noodles_sam::{
+    self as sam,
     alignment::Record,
     header::{
         record::value::{
@@ -32,19 +33,17 @@ use crate::{
 /// # Examples
 ///
 /// ```no_run
-/// # use std::io;
-/// #
 /// # #[tokio::main]
-/// # async fn main() -> io::Result<()> {
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use futures::TryStreamExt;
 /// use noodles_bam as bam;
 /// use tokio::fs::File;
 ///
 /// let mut reader = File::open("sample.bam").await.map(bam::AsyncReader::new)?;
-/// reader.read_header().await?;
+/// let header = reader.read_header().await?.parse()?;
 /// reader.read_reference_sequences().await?;
 ///
-/// let mut records = reader.records();
+/// let mut records = reader.records(&header);
 ///
 /// while let Some(record) = records.try_next().await? {
 ///     // ...
@@ -259,19 +258,17 @@ where
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures::TryStreamExt;
     /// use noodles_bam as bam;
     /// use tokio::fs::File;
     ///
     /// let mut reader = File::open("sample.bam").await.map(bam::AsyncReader::new)?;
-    /// reader.read_header().await?;
+    /// let header = reader.read_header().await?.parse()?;
     /// reader.read_reference_sequences().await?;
     ///
-    /// let mut records = reader.records();
+    /// let mut records = reader.records(&header);
     ///
     /// while let Some(record) = records.try_next().await? {
     ///     // ...
@@ -279,7 +276,7 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn records(&mut self) -> impl Stream<Item = io::Result<Record>> + '_ {
+    pub fn records(&mut self, _: &sam::Header) -> impl Stream<Item = io::Result<Record>> + '_ {
         Box::pin(stream::try_unfold(
             (&mut self.inner, &mut self.buf, Record::default()),
             move |(reader, buf, mut record)| async move {

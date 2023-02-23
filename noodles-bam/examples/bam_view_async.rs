@@ -14,10 +14,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");
 
     let mut reader = File::open(src).await.map(bam::AsyncReader::new)?;
-    let header: sam::Header = reader.read_header().await?.parse()?;
+    let header = reader.read_header().await?.parse()?;
     reader.read_reference_sequences().await?;
 
-    let mut records = reader.records();
+    let mut records = reader.records(&header);
 
     let mut writer = sam::AsyncWriter::new(io::stdout());
 
