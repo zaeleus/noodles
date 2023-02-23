@@ -16,14 +16,12 @@
 
   * vcf/header/info/key: Add VCF 4.4 reserved keys.
 
+  * vcf/record/info/field/value: Implement `TryFrom<(Number, Type, &str)>`.
+
   * vcf/record/genotypes/genotype/field/value: Implement `TryFrom<(Number,
     Type, &str)>`.
 
-  * vcf/record/info/field/value: Implement `TryFrom<(Number, Type, &str)>`.
-
 ### Changed
-
-  * vcf/header/record/parser: Disallow empty values for unstructured lines.
 
   * vcf/header: Move `header::format::Type` to record map value.
 
@@ -43,17 +41,19 @@
 
     Change usages of, e.g, `Key::TotalDepth` to `key::TOTAL_DEPTH`.
 
-  * vcf/record/ids: Move missing field value parsing to record parser.
-
-    `Ids` no longer handles "." as missing.
-
-  * vcf/record/ids/id: Disallow `.` as a valid identifier.
+  * vcf/header/record/parser: Disallow empty values for unstructured lines.
 
   * vcf/record/genotypes/genotype/field/value/genotype: Infer phasing of first
     allele.
 
   * vcf/record/genotypes/genotype/field/value/genotype/allele: The phasing is
     now required.
+
+  * vcf/record/ids: Move missing field value parsing to record parser.
+
+    `Ids` no longer handles "." as missing.
+
+  * vcf/record/ids/id: Disallow `.` as a valid identifier.
 
 ### Fixed
 
