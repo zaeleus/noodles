@@ -186,15 +186,15 @@ where
     /// use noodles_sam::alignment::Record;
     ///
     /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
-    /// reader.read_header()?;
+    /// let header = reader.read_header()?.parse()?;
     /// reader.read_reference_sequences()?;
     ///
     /// let mut record = Record::default();
-    /// reader.read_record(&mut record)?;
+    /// reader.read_record(&header, &mut record)?;
     ///
-    /// # Ok::<(), io::Error>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+    pub fn read_record(&mut self, _: &sam::Header, record: &mut Record) -> io::Result<usize> {
         use self::record::read_record;
         read_record(&mut self.inner, &mut self.buf, record)
     }
@@ -262,8 +262,8 @@ where
     /// }
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn records(&mut self, _: &sam::Header) -> Records<'_, R> {
-        Records::new(self)
+    pub fn records<'a>(&'a mut self, header: &'a sam::Header) -> Records<'_, R> {
+        Records::new(self, header)
     }
 
     /// Returns an iterator over lazy records.
@@ -387,9 +387,9 @@ where
     /// }
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn query<I>(
-        &mut self,
-        header: &sam::Header,
+    pub fn query<'a, I>(
+        &'a mut self,
+        header: &'a sam::Header,
         index: &I,
         region: &Region,
     ) -> io::Result<Query<'_, R>>
@@ -401,6 +401,7 @@ where
 
         Ok(Query::new(
             self,
+            header,
             chunks,
             reference_sequence_id,
             region.interval(),

@@ -6,7 +6,7 @@ use std::{
 use noodles_bgzf::{self as bgzf, VirtualPosition};
 use noodles_core::region::Interval;
 use noodles_csi::index::reference_sequence::bin::Chunk;
-use noodles_sam::alignment::Record;
+use noodles_sam::{self as sam, alignment::Record};
 
 use super::Reader;
 
@@ -25,6 +25,7 @@ where
 {
     reader: &'a mut Reader<bgzf::Reader<R>>,
 
+    header: &'a sam::Header,
     chunks: vec::IntoIter<Chunk>,
 
     reference_sequence_id: usize,
@@ -40,6 +41,7 @@ where
 {
     pub(super) fn new(
         reader: &'a mut Reader<bgzf::Reader<R>>,
+        header: &'a sam::Header,
         chunks: Vec<Chunk>,
         reference_sequence_id: usize,
         interval: Interval,
@@ -47,6 +49,7 @@ where
         Self {
             reader,
 
+            header,
             chunks: chunks.into_iter(),
 
             reference_sequence_id,
@@ -58,10 +61,12 @@ where
     }
 
     fn next_record(&mut self) -> io::Result<Option<Record>> {
-        self.reader.read_record(&mut self.record).map(|n| match n {
-            0 => None,
-            _ => Some(self.record.clone()),
-        })
+        self.reader
+            .read_record(self.header, &mut self.record)
+            .map(|n| match n {
+                0 => None,
+                _ => Some(self.record.clone()),
+            })
     }
 }
 

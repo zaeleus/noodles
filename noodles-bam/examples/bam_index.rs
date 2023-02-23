@@ -28,7 +28,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");
 
     let mut reader = File::open(src).map(bam::Reader::new)?;
-    let header: sam::Header = reader.read_header()?.parse()?;
+    let header = reader.read_header()?.parse()?;
     reader.read_reference_sequences()?;
 
     if !is_coordinate_sorted(&header) {
@@ -45,7 +45,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut start_position = reader.virtual_position();
 
     loop {
-        match reader.read_record(&mut record) {
+        match reader.read_record(&header, &mut record) {
             Ok(0) => break,
             Ok(_) => {}
             Err(e) => return Err(e.into()),

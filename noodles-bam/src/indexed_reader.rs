@@ -54,8 +54,8 @@ where
     }
 
     /// Reads a single record.
-    pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        self.inner.read_record(record)
+    pub fn read_record(&mut self, header: &sam::Header, record: &mut Record) -> io::Result<usize> {
+        self.inner.read_record(header, record)
     }
 
     /// Reads a single record without eagerly decoding its fields.
@@ -64,7 +64,7 @@ where
     }
 
     /// Returns an iterator over records starting from the current stream position.
-    pub fn records(&mut self, header: &sam::Header) -> Records<'_, R> {
+    pub fn records<'a>(&'a mut self, header: &'a sam::Header) -> Records<'_, R> {
         self.inner.records(header)
     }
 
@@ -92,7 +92,11 @@ where
     R: Read + Seek,
 {
     /// Returns an iterator over records that intersect the given region.
-    pub fn query(&mut self, header: &sam::Header, region: &Region) -> io::Result<Query<'_, R>> {
+    pub fn query<'a>(
+        &'a mut self,
+        header: &'a sam::Header,
+        region: &Region,
+    ) -> io::Result<Query<'_, R>> {
         self.inner.query(header, &self.index, region)
     }
 

@@ -366,7 +366,7 @@ mod tests {
         let mut reader = Reader::new(writer.get_ref().get_ref().as_slice());
 
         let mut record = Record::default();
-        reader.read_record(&mut record)?;
+        reader.read_record(&header, &mut record)?;
 
         assert!(record.read_name().is_none());
         assert_eq!(record.flags(), sam::record::Flags::UNMAPPED);
@@ -442,7 +442,7 @@ mod tests {
         let mut reader = Reader::new(writer.get_ref().get_ref().as_slice());
 
         let mut record = Record::default();
-        reader.read_record(&mut record)?;
+        reader.read_record(&header, &mut record)?;
 
         let expected = "ATCG".parse()?;
         assert_eq!(record.sequence(), &expected);
@@ -469,7 +469,7 @@ mod tests {
         let mut reader = Reader::new(writer.get_ref().get_ref().as_slice());
 
         let mut record = Record::default();
-        reader.read_record(&mut record)?;
+        reader.read_record(&header, &mut record)?;
 
         let expected = "ATCG".parse()?;
         assert_eq!(record.sequence(), &expected);
@@ -503,7 +503,7 @@ mod tests {
         let mut reader = Reader::new(writer.get_ref().get_ref().as_slice());
 
         let mut record = Record::default();
-        reader.read_record(&mut record)?;
+        reader.read_record(&header, &mut record)?;
 
         let bam_data = record.data();
         let mut fields = bam_data.iter();
