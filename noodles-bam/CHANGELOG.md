@@ -4,6 +4,10 @@
 
 ### Changed
 
+  * bam/async/reader: Change `Reader::query` to receive a header
+    (`sam::Header`) rather than a reference sequence dictionary
+    (`sam::header::ReferenceSequences`).
+
   * bam/async/reader: Require `Reader::records` to receive a header
     (`sam::Header`).
 

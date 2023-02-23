@@ -411,12 +411,11 @@ where
     /// use tokio::fs::File;
     ///
     /// let mut reader = File::open("sample.bam").await.map(bam::AsyncReader::new)?;
-    /// let header: sam::Header = reader.read_header().await?.parse()?;
+    /// let header = reader.read_header().await?.parse()?;
     ///
-    /// let reference_sequences = header.reference_sequences();
     /// let index = bai::r#async::read("sample.bam.bai").await?;
     /// let region = "sq0:8-13".parse()?;
-    /// let mut query = reader.query(reference_sequences, &index, &region)?;
+    /// let mut query = reader.query(&header, &index, &region)?;
     ///
     /// while let Some(record) = query.try_next().await? {
     ///     // ...
@@ -426,15 +425,14 @@ where
     /// ```
     pub fn query<I>(
         &mut self,
-        reference_sequences: &ReferenceSequences,
+        header: &sam::Header,
         index: &I,
         region: &Region,
     ) -> io::Result<impl Stream<Item = io::Result<Record>> + '_>
     where
         I: BinningIndex,
     {
-        let reference_sequence_id = resolve_region(reference_sequences, region)?;
-
+        let reference_sequence_id = resolve_region(header.reference_sequences(), region)?;
         let chunks = index.query(reference_sequence_id, region.interval())?;
 
         Ok(query(
