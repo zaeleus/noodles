@@ -35,12 +35,11 @@
 //! use noodles_sam as sam;
 //!
 //! let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
-//! let header: sam::Header = reader.read_header()?.parse()?;
+//! let header = reader.read_header()?.parse()?;
 //!
-//! let reference_sequences = header.reference_sequences();
 //! let index = bai::read("sample.bam.bai")?;
 //! let region = "sq0:5-8".parse()?;
-//! let query = reader.query(&reference_sequences, &index, &region)?;
+//! let query = reader.query(&header, &index, &region)?;
 //!
 //! for result in query {
 //!     let record = result?;

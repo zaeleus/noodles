@@ -375,12 +375,11 @@ where
     /// use noodles_sam as sam;
     ///
     /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
-    /// let header: sam::Header = reader.read_header()?.parse()?;
+    /// let header = reader.read_header()?.parse()?;
     ///
-    /// let reference_sequences = header.reference_sequences();
     /// let index = bai::read("sample.bam.bai")?;
     /// let region = "sq0:8-13".parse()?;
-    /// let query = reader.query(reference_sequences, &index, &region)?;
+    /// let query = reader.query(&header, &index, &region)?;
     ///
     /// for result in query {
     ///     let record = result?;
@@ -390,15 +389,14 @@ where
     /// ```
     pub fn query<I>(
         &mut self,
-        reference_sequences: &ReferenceSequences,
+        header: &sam::Header,
         index: &I,
         region: &Region,
     ) -> io::Result<Query<'_, R>>
     where
         I: BinningIndex,
     {
-        let reference_sequence_id = resolve_region(reference_sequences, region)?;
-
+        let reference_sequence_id = resolve_region(header.reference_sequences(), region)?;
         let chunks = index.query(reference_sequence_id, region.interval())?;
 
         Ok(Query::new(

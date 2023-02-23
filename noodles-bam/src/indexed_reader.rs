@@ -8,7 +8,7 @@ use std::io::{self, Read, Seek};
 
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
-use noodles_sam::{alignment::Record, header::ReferenceSequences};
+use noodles_sam::{self as sam, alignment::Record, header::ReferenceSequences};
 
 use crate::reader::UnmappedRecords;
 
@@ -92,12 +92,8 @@ where
     R: Read + Seek,
 {
     /// Returns an iterator over records that intersect the given region.
-    pub fn query(
-        &mut self,
-        reference_sequences: &ReferenceSequences,
-        region: &Region,
-    ) -> io::Result<Query<'_, R>> {
-        self.inner.query(reference_sequences, &self.index, region)
+    pub fn query(&mut self, header: &sam::Header, region: &Region) -> io::Result<Query<'_, R>> {
+        self.inner.query(header, &self.index, region)
     }
 
     /// Returns an iterator of unmapped records after querying for the unmapped region.

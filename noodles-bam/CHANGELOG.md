@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bam/reader: Change `Reader::query` to receive a header (`sam::Header`)
+    rather than a reference sequence dictionary
+    (`sam::header::ReferenceSequences`).
+
 ## 0.26.0 - 2023-02-03
 
 ### Changed
