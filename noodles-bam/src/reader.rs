@@ -194,9 +194,9 @@ where
     ///
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn read_record(&mut self, _: &sam::Header, record: &mut Record) -> io::Result<usize> {
+    pub fn read_record(&mut self, header: &sam::Header, record: &mut Record) -> io::Result<usize> {
         use self::record::read_record;
-        read_record(&mut self.inner, &mut self.buf, record)
+        read_record(&mut self.inner, header, &mut self.buf, record)
     }
 
     /// Reads a single record without eagerly decoding its fields.

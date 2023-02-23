@@ -195,8 +195,12 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_record(&mut self, _: &sam::Header, record: &mut Record) -> io::Result<usize> {
-        read_record(&mut self.inner, &mut self.buf, record).await
+    pub async fn read_record(
+        &mut self,
+        header: &sam::Header,
+        record: &mut Record,
+    ) -> io::Result<usize> {
+        read_record(&mut self.inner, header, &mut self.buf, record).await
     }
 
     /// Reads a single record without eagerly decoding its fields.
@@ -274,11 +278,14 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn records(&mut self, _: &sam::Header) -> impl Stream<Item = io::Result<Record>> + '_ {
+    pub fn records<'a>(
+        &'a mut self,
+        header: &'a sam::Header,
+    ) -> impl Stream<Item = io::Result<Record>> + '_ {
         Box::pin(stream::try_unfold(
             (&mut self.inner, &mut self.buf, Record::default()),
             move |(reader, buf, mut record)| async move {
-                read_record(reader, buf, &mut record)
+                read_record(reader, header, buf, &mut record)
                     .await
                     .map(|n| match n {
                         0 => None,

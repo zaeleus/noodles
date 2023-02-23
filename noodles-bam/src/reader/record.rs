@@ -25,6 +25,7 @@ use noodles_sam::{self as sam, alignment::Record};
 
 pub(crate) fn read_record<R>(
     reader: &mut R,
+    header: &sam::Header,
     buf: &mut Vec<u8>,
     record: &mut Record,
 ) -> io::Result<usize>
@@ -40,7 +41,7 @@ where
     reader.read_exact(buf)?;
 
     let mut src = &buf[..];
-    decode_record(&mut src, record)?;
+    decode_record(&mut src, header, record)?;
 
     Ok(block_size)
 }
@@ -56,7 +57,7 @@ where
     }
 }
 
-pub(crate) fn decode_record<B>(src: &mut B, record: &mut Record) -> io::Result<()>
+pub(crate) fn decode_record<B>(src: &mut B, _: &sam::Header, record: &mut Record) -> io::Result<()>
 where
     B: Buf,
 {
@@ -186,9 +187,10 @@ mod tests {
         ];
 
         let mut reader = &data[..];
+        let header = sam::Header::default();
         let mut buf = Vec::new();
         let mut record = Record::default();
-        let block_size = read_record(&mut reader, &mut buf, &mut record)?;
+        let block_size = read_record(&mut reader, &header, &mut buf, &mut record)?;
 
         assert_eq!(block_size, 34);
         assert_eq!(record, Record::default());
@@ -205,10 +207,11 @@ mod tests {
         ];
         let mut src = &data[..];
 
+        let header = sam::Header::default();
         let mut record = Record::default();
 
         assert!(matches!(
-            decode_record(&mut src, &mut record),
+            decode_record(&mut src, &header, &mut record),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
     }
