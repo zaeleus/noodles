@@ -57,11 +57,17 @@ where
     }
 }
 
-pub(crate) fn decode_record<B>(src: &mut B, _: &sam::Header, record: &mut Record) -> io::Result<()>
+pub(crate) fn decode_record<B>(
+    src: &mut B,
+    header: &sam::Header,
+    record: &mut Record,
+) -> io::Result<()>
 where
     B: Buf,
 {
-    *record.reference_sequence_id_mut() = get_reference_sequence_id(src)?;
+    let n_ref = header.reference_sequences().len();
+
+    *record.reference_sequence_id_mut() = get_reference_sequence_id(src, n_ref)?;
     *record.alignment_start_mut() = get_position(src)?;
 
     let l_read_name = NonZeroUsize::new(usize::from(src.get_u8()))
@@ -79,7 +85,7 @@ where
     let l_seq = usize::try_from(src.get_u32_le())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    *record.mate_reference_sequence_id_mut() = get_reference_sequence_id(src)?;
+    *record.mate_reference_sequence_id_mut() = get_reference_sequence_id(src, n_ref)?;
     *record.mate_alignment_start_mut() = get_position(src)?;
     *record.template_length_mut() = get_template_length(src)?;
 
@@ -93,7 +99,7 @@ where
     Ok(())
 }
 
-fn get_reference_sequence_id<B>(src: &mut B) -> io::Result<Option<usize>>
+fn get_reference_sequence_id<B>(src: &mut B, n_ref: usize) -> io::Result<Option<usize>>
 where
     B: Buf,
 {
@@ -106,8 +112,20 @@ where
     match src.get_i32_le() {
         UNMAPPED => Ok(None),
         n => usize::try_from(n)
-            .map(Some)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            .and_then(|m| {
+                if m < n_ref {
+                    Ok(Some(m))
+                } else {
+                    Err(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        format!(
+                            "invalid reference sequence ID: expected < {}, got {}",
+                            n_ref, m
+                        ),
+                    ))
+                }
+            }),
     }
 }
 
@@ -214,5 +232,39 @@ mod tests {
             decode_record(&mut src, &header, &mut record),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
+    }
+
+    #[test]
+    fn test_get_reference_sequence_id() -> io::Result<()> {
+        let data = (-1i32).to_le_bytes();
+        let mut src = &data[..];
+        assert!(get_reference_sequence_id(&mut src, 1)?.is_none());
+
+        let data = 0i32.to_le_bytes();
+        let mut src = &data[..];
+        assert_eq!(get_reference_sequence_id(&mut src, 1)?, Some(0));
+
+        let data = [];
+        let mut src = &data[..];
+        assert!(matches!(
+            get_reference_sequence_id(&mut src, 1),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
+
+        let data = (-2i32).to_le_bytes();
+        let mut src = &data[..];
+        assert!(matches!(
+            get_reference_sequence_id(&mut src, 1),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        let data = 0i32.to_le_bytes();
+        let mut src = &data[..];
+        assert!(matches!(
+            get_reference_sequence_id(&mut src, 0),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        Ok(())
     }
 }

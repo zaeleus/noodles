@@ -18,6 +18,13 @@
   * bam/reader: Require `Reader::read_record` and `Reader::records` to receive
     a header (`sam::Header`).
 
+  * bam/reader/record: Validate reference sequence IDs.
+
+    This includes both the reference sequence ID (`ref_id`) and mate reference
+    sequence ID (`next_ref_id`) fields. Reference sequence IDs must be either
+    missing (`-1`) or less than the number of reference sequence dictionary
+    entries (`n_ref`). See § 4.2 "The BAM format" (2022-08-22).
+
 ## 0.26.0 - 2023-02-03
 
 ### Changed
