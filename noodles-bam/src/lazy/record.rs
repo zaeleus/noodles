@@ -75,7 +75,6 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn reference_sequence_id(&self) -> io::Result<Option<usize>> {
-        use crate::reader::record::get_reference_sequence_id;
         let mut src = &self.buf[REFERENCE_SEQUENCE_ID_RANGE];
         get_reference_sequence_id(&mut src)
     }
@@ -141,7 +140,6 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn mate_reference_sequence_id(&self) -> io::Result<Option<usize>> {
-        use crate::reader::record::get_reference_sequence_id;
         let mut src = &self.buf[MATE_REFERENCE_SEQUENCE_ID_RANGE];
         get_reference_sequence_id(&mut src)
     }
@@ -259,6 +257,24 @@ impl Record {
 
     pub(crate) fn index(&mut self) -> io::Result<()> {
         index(&self.buf[..], &mut self.bounds)
+    }
+}
+
+fn get_reference_sequence_id<B>(src: &mut B) -> io::Result<Option<usize>>
+where
+    B: Buf,
+{
+    const UNMAPPED: i32 = -1;
+
+    if src.remaining() < mem::size_of::<i32>() {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
+
+    match src.get_i32_le() {
+        UNMAPPED => Ok(None),
+        n => usize::try_from(n)
+            .map(Some)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
     }
 }
 

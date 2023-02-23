@@ -92,7 +92,7 @@ where
     Ok(())
 }
 
-pub(crate) fn get_reference_sequence_id<B>(src: &mut B) -> io::Result<Option<usize>>
+fn get_reference_sequence_id<B>(src: &mut B) -> io::Result<Option<usize>>
 where
     B: Buf,
 {
