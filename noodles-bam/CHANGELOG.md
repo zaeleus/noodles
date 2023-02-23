@@ -8,6 +8,8 @@
     rather than a reference sequence dictionary
     (`sam::header::ReferenceSequences`).
 
+  * bam/reader: Change `Reader::query` to require a header (`sam::Header`).
+
 ## 0.26.0 - 2023-02-03
 
 ### Changed

@@ -54,15 +54,15 @@ use super::{bai, lazy, MAGIC_NUMBER};
 /// use noodles_bam as bam;
 ///
 /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
-/// reader.read_header()?;
+/// let header = reader.read_header()?.parse()?;
 /// reader.read_reference_sequences()?;
 ///
-/// for result in reader.records() {
+/// for result in reader.records(&header) {
 ///     let record = result?;
 ///     println!("{:?}", record);
 /// }
 ///
-/// # Ok::<(), io::Error>(())
+/// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 pub struct Reader<R> {
     inner: R,
@@ -253,16 +253,16 @@ where
     /// use noodles_bam as bam;
     ///
     /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
-    /// reader.read_header()?;
+    /// let header = reader.read_header()?.parse()?;
     /// reader.read_reference_sequences()?;
     ///
-    /// for result in reader.records() {
+    /// for result in reader.records(&header) {
     ///     let record = result?;
     ///     println!("{:?}", record);
     /// }
-    /// # Ok::<(), io::Error>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn records(&mut self) -> Records<'_, R> {
+    pub fn records(&mut self, _: &sam::Header) -> Records<'_, R> {
         Records::new(self)
     }
 
@@ -456,9 +456,9 @@ where
     fn alignment_records<'a>(
         &'a mut self,
         _: &'a fasta::Repository,
-        _: &'a sam::Header,
+        header: &'a sam::Header,
     ) -> Box<dyn Iterator<Item = io::Result<Record>> + 'a> {
-        Box::new(self.records())
+        Box::new(self.records(header))
     }
 }
 

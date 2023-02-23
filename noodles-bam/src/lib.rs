@@ -14,14 +14,14 @@
 //! use noodles_bam as bam;
 //!
 //! let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
-//! reader.read_header()?;
+//! let header = reader.read_header()?.parse()?;
 //! reader.read_reference_sequences()?;
 //!
-//! for result in reader.records() {
+//! for result in reader.records(&header) {
 //!     let record = result?;
 //!     println!("{:?}", record);
 //! }
-//! # Ok::<(), io::Error>(())
+//! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
 //!
 //! ## Query records

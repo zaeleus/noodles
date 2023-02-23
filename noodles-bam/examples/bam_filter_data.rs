@@ -5,7 +5,7 @@
 use std::{env, fs::File, io};
 
 use noodles_bam as bam;
-use noodles_sam::{self as sam, alignment::Record, record::data::field::Tag};
+use noodles_sam::{alignment::Record, record::data::field::Tag};
 
 fn is_unique_record(record: &Record) -> io::Result<bool> {
     match record.data().get(Tag::AlignmentHitCount) {
@@ -24,7 +24,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = args.next().expect("missing src");
 
     let mut reader = File::open(src).map(bam::Reader::new)?;
-    let header: sam::Header = reader.read_header()?.parse()?;
+    let header = reader.read_header()?.parse()?;
     reader.read_reference_sequences()?;
 
     let stdout = io::stdout().lock();
@@ -33,7 +33,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     writer.write_header(&header)?;
     writer.write_reference_sequences(header.reference_sequences())?;
 
-    for result in reader.records() {
+    for result in reader.records(&header) {
         let record = result?;
 
         if is_unique_record(&record)? {

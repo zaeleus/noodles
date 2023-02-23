@@ -64,8 +64,8 @@ where
     }
 
     /// Returns an iterator over records starting from the current stream position.
-    pub fn records(&mut self) -> Records<'_, R> {
-        self.inner.records()
+    pub fn records(&mut self, header: &sam::Header) -> Records<'_, R> {
+        self.inner.records(header)
     }
 
     /// Returns an iterator over lazy records.

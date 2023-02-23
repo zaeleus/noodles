@@ -25,7 +25,7 @@ use std::{
 };
 
 use noodles_bam as bam;
-use noodles_sam::{self as sam, record::ReadName};
+use noodles_sam::record::ReadName;
 
 fn read_read_names<P>(src: P) -> io::Result<HashSet<ReadName>>
 where
@@ -54,7 +54,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let read_names = read_read_names(read_names_src)?;
 
     let mut reader = File::open(src).map(bam::Reader::new)?;
-    let header: sam::Header = reader.read_header()?.parse()?;
+    let header = reader.read_header()?.parse()?;
     reader.read_reference_sequences()?;
 
     let stdout = io::stdout().lock();
@@ -63,7 +63,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     writer.write_header(&header)?;
     writer.write_reference_sequences(header.reference_sequences())?;
 
-    for result in reader.records() {
+    for result in reader.records(&header) {
         let record = result?;
 
         if let Some(read_name) = record.read_name() {

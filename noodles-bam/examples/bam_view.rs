@@ -11,13 +11,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");
 
     let mut reader = File::open(src).map(bam::Reader::new)?;
-    let header: sam::Header = reader.read_header()?.parse()?;
+    let header = reader.read_header()?.parse()?;
     reader.read_reference_sequences()?;
 
     let stdout = io::stdout().lock();
     let mut writer = sam::Writer::new(stdout);
 
-    for result in reader.records() {
+    for result in reader.records(&header) {
         let record = result?;
         writer.write_alignment_record(&header, &record)?;
     }
