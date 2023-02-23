@@ -180,24 +180,22 @@ where
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use noodles_bam as bam;
     /// use noodles_sam::alignment::Record;
     /// use tokio::fs::File;
     ///
     /// let mut reader = File::open("sample.bam").await.map(bam::AsyncReader::new)?;
-    /// reader.read_header().await?;
+    /// let header = reader.read_header().await?.parse()?;
     /// reader.read_reference_sequences().await?;
     ///
     /// let mut record = Record::default();
-    /// reader.read_record(&mut record).await?;
+    /// reader.read_record(&header, &mut record).await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+    pub async fn read_record(&mut self, _: &sam::Header, record: &mut Record) -> io::Result<usize> {
         read_record(&mut self.inner, &mut self.buf, record).await
     }
 
@@ -423,9 +421,9 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn query<I>(
-        &mut self,
-        header: &sam::Header,
+    pub fn query<'a, I>(
+        &'a mut self,
+        header: &'a sam::Header,
         index: &I,
         region: &Region,
     ) -> io::Result<impl Stream<Item = io::Result<Record>> + '_>
@@ -437,6 +435,7 @@ where
 
         Ok(query(
             self,
+            header,
             chunks,
             reference_sequence_id,
             region.interval(),

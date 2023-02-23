@@ -8,8 +8,8 @@
     (`sam::Header`) rather than a reference sequence dictionary
     (`sam::header::ReferenceSequences`).
 
-  * bam/async/reader: Require `Reader::records` to receive a header
-    (`sam::Header`).
+  * bam/async/reader: Require `Reader::read_record` and `Reader::records` to
+    receive a header (`sam::Header`).
 
   * bam/reader: Change `Reader::query` to receive a header (`sam::Header`)
     rather than a reference sequence dictionary
