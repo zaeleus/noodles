@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * fasta/reader/builder: Add `bgz` as a known BGZF extension ([#144]).
+
+[#144]: https://github.com/zaeleus/noodles/pull/144
+
 ## 0.18.0 - 2023-02-03
 
 ### Added
