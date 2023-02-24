@@ -100,19 +100,15 @@ where
     let mut n = 0;
 
     loop {
-        let reader_buf = reader.fill_buf().await?;
+        let src = reader.fill_buf().await?;
 
-        if reader_buf
-            .first()
-            .map(|&b| b == DEFINITION_PREFIX)
-            .unwrap_or(true)
-        {
+        if src.first().map(|&b| b == DEFINITION_PREFIX).unwrap_or(true) {
             break;
         }
 
-        let len = match memchr(LINE_FEED, reader_buf) {
+        let len = match memchr(LINE_FEED, src) {
             Some(i) => {
-                let line = &reader_buf[..i];
+                let line = &src[..i];
 
                 if line.ends_with(&[CARRIAGE_RETURN]) {
                     let end = line.len() - 1;
@@ -124,8 +120,8 @@ where
                 i + 1
             }
             None => {
-                buf.extend(reader_buf);
-                reader_buf.len()
+                buf.extend(src);
+                src.len()
             }
         };
 
