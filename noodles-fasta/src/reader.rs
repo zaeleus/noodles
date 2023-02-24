@@ -225,8 +225,8 @@ where
         let range = interval_to_slice_range(region.interval(), seq_len);
 
         let pos = index_record.offset()
-            + range.start as u64 / index_record.line_width() * index_record.line_bases()
-            + range.start as u64 % index_record.line_width();
+            + range.start as u64 / index_record.line_bases() * index_record.line_width()
+            + range.start as u64 % index_record.line_bases();
         self.get_mut().seek(SeekFrom::Start(pos))?;
 
         let definition = Definition::new(region.to_string(), None);
