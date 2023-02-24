@@ -221,16 +221,20 @@ where
                 )
             })?;
 
-        let pos = index_record.offset();
+        let seq_len = index_record.len() as usize;
+        let range = interval_to_slice_range(region.interval(), seq_len);
+
+        let pos = index_record.offset()
+            + range.start as u64 / index_record.line_width() * index_record.line_bases()
+            + range.start as u64 % index_record.line_width();
         self.get_mut().seek(SeekFrom::Start(pos))?;
 
         let definition = Definition::new(region.to_string(), None);
 
         let mut raw_sequence = Vec::new();
-        self.read_sequence(&mut raw_sequence)?;
+        read_segment(&mut self.inner, &mut raw_sequence, range.len())?;
 
-        let range = interval_to_slice_range(region.interval(), raw_sequence.len());
-        let sequence = Sequence::from(raw_sequence[range].to_vec());
+        let sequence = Sequence::from(raw_sequence.to_vec());
 
         Ok(Record::new(definition, sequence))
     }
@@ -295,6 +299,57 @@ where
             None => {
                 buf.extend(reader_buf);
                 reader_buf.len()
+            }
+        };
+
+        reader.consume(len);
+
+        bytes_read += len;
+    }
+
+    Ok(bytes_read)
+}
+
+fn read_segment<R>(reader: &mut R, buf: &mut Vec<u8>, max_bases: usize) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    const LINE_FEED: u8 = b'\n';
+    const CARRIAGE_RETURN: u8 = b'\r';
+
+    let mut bases_left = max_bases;
+    let mut bytes_read = 0;
+
+    loop {
+        if bases_left == 0 {
+            break;
+        }
+        let reader_buf = reader.fill_buf()?;
+
+        if reader_buf.is_empty() || reader_buf[0] == DEFINITION_PREFIX {
+            break;
+        }
+
+        let len = match memchr(LINE_FEED, reader_buf) {
+            Some(i) => {
+                let i = std::cmp::min(i, bases_left);
+                bases_left -= i;
+                let line = &reader_buf[..i];
+
+                if line.ends_with(&[CARRIAGE_RETURN]) {
+                    let end = line.len() - 1;
+                    buf.extend(&line[..end]);
+                } else {
+                    buf.extend(line);
+                }
+
+                i + 1
+            }
+            None => {
+                let i = std::cmp::min(bases_left, reader_buf.len());
+                bases_left -= i;
+                buf.extend(&reader_buf[..i]);
+                i
             }
         };
 
