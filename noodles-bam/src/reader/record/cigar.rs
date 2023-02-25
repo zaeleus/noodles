@@ -24,7 +24,7 @@ where
     Ok(())
 }
 
-fn decode_op(n: u32) -> io::Result<Op> {
+pub(super) fn decode_op(n: u32) -> io::Result<Op> {
     let kind = decode_kind(n)?;
     let len = usize::try_from(n >> 4).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     Ok(Op::new(kind, len))

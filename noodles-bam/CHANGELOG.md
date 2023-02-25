@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Added
+
+  * bam/reader/record: Resolve CIGAR with `CG` data field value when `CIGAR` is
+    a flag.
+
+    When `CIGAR` is `kSmN` (`k` = `l_seq`, `m` = associated reference sequence
+    length), the decoder will attempt to resolve the actual CIGAR from the `CG`
+    data value. See § 4.2.2 "`N_CIGAR_OP` field" (2022-08-22).
+
 ### Changed
 
   * bam/async/reader: Change `Reader::query` to receive a header
