@@ -14,8 +14,8 @@ pub use self::reader::Reader;
 #[cfg(feature = "async")]
 pub use self::r#async::Reader as AsyncReader;
 
-use std::{fs::File, io, path::Path};
 pub use std::io::BufReader;
+use std::{fs::File, io, path::Path};
 
 /// A gzip index.
 pub type Index = Vec<(u64, u64)>;
@@ -37,8 +37,6 @@ pub fn read<P>(src: P) -> io::Result<Index>
 where
     P: AsRef<Path>,
 {
-    let mut reader = File::open(src).map(BufReader::new)
-                                    .map(Reader::new)?;
-
+    let mut reader = File::open(src).map(BufReader::new).map(Reader::new)?;
     reader.read_index()
 }
