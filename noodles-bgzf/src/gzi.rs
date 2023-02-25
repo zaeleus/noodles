@@ -14,8 +14,11 @@ pub use self::reader::Reader;
 #[cfg(feature = "async")]
 pub use self::r#async::Reader as AsyncReader;
 
-pub use std::io::BufReader;
-use std::{fs::File, io, path::Path};
+use std::{
+    fs::File,
+    io::{self, BufReader},
+    path::Path,
+};
 
 /// A gzip index.
 pub type Index = Vec<(u64, u64)>;
