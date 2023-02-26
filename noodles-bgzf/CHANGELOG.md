@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bgzf/gzi: Improve performance of reading entire GZ index ([#143]).
+
+[#143]: https://github.com/zaeleus/noodles/issues/143
+
 ## 0.19.0 - 2023-02-03
 
 ### Changed
