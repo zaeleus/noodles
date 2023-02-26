@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * bgzf/gzi/async: Add convenience `read` function.
+
 ### Changed
 
   * bgzf/gzi: Improve performance of reading entire GZ index ([#143]).
