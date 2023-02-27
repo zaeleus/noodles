@@ -16,7 +16,7 @@ use std::io;
 
 use bytes::BufMut;
 use noodles_core::Position;
-use noodles_sam::{self as sam, alignment::Record};
+use noodles_sam::{self as sam, alignment::Record, record::Cigar};
 
 // § 4.2.1 "BIN field calculation" (2021-06-03): "Note unmapped reads with `POS` 0 (which
 // becomes -1 in BAM) therefore use `reg2bin(-1, 0)` which is computed as 4680."
@@ -29,11 +29,6 @@ pub(crate) fn encode_record<B>(dst: &mut B, header: &sam::Header, record: &Recor
 where
     B: BufMut,
 {
-    use sam::record::{
-        cigar::{op, Op},
-        Cigar,
-    };
-
     // ref_id
     put_reference_sequence_id(dst, header, record.reference_sequence_id())?;
 
@@ -48,27 +43,8 @@ where
     // bin
     put_bin(dst, record.alignment_start(), record.alignment_end())?;
 
-    let cigar = if let Ok(n_cigar_op) = u16::try_from(record.cigar().len()) {
-        dst.put_u16_le(n_cigar_op);
-        None
-    } else {
-        dst.put_u16_le(2);
-
-        let k = record.sequence().len();
-        let m = record
-            .reference_sequence(header)
-            .ok_or_else(|| {
-                io::Error::new(io::ErrorKind::InvalidInput, "missing reference sequence")
-            })?
-            .map(|(_, rs)| rs.length().get())?;
-
-        Cigar::try_from(vec![
-            Op::new(op::Kind::SoftClip, k),
-            Op::new(op::Kind::Skip, m),
-        ])
-        .map(Some)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
-    };
+    // n_cigar_op
+    let cigar = overflowing_put_cigar_op_count(dst, header, record)?;
 
     // flag
     put_flags(dst, record.flags());
@@ -214,6 +190,39 @@ where
     dst.put_u16_le(bin);
 
     Ok(())
+}
+
+fn overflowing_put_cigar_op_count<B>(
+    dst: &mut B,
+    header: &sam::Header,
+    record: &Record,
+) -> io::Result<Option<Cigar>>
+where
+    B: BufMut,
+{
+    use sam::record::cigar::{op, Op};
+
+    if let Ok(n_cigar_op) = u16::try_from(record.cigar().len()) {
+        dst.put_u16_le(n_cigar_op);
+        Ok(None)
+    } else {
+        dst.put_u16_le(2);
+
+        let k = record.sequence().len();
+        let m = record
+            .reference_sequence(header)
+            .ok_or_else(|| {
+                io::Error::new(io::ErrorKind::InvalidInput, "missing reference sequence")
+            })?
+            .map(|(_, rs)| rs.length().get())?;
+
+        Cigar::try_from(vec![
+            Op::new(op::Kind::SoftClip, k),
+            Op::new(op::Kind::Skip, m),
+        ])
+        .map(Some)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+    }
 }
 
 pub(super) fn put_flags<B>(dst: &mut B, flags: sam::record::Flags)
