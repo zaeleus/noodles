@@ -132,7 +132,7 @@ where
     Ok(())
 }
 
-pub(super) fn put_position<B>(dst: &mut B, position: Option<Position>) -> io::Result<()>
+fn put_position<B>(dst: &mut B, position: Option<Position>) -> io::Result<()>
 where
     B: BufMut,
 {
@@ -150,10 +150,7 @@ where
     Ok(())
 }
 
-pub(super) fn put_l_read_name<B>(
-    dst: &mut B,
-    read_name: Option<&sam::record::ReadName>,
-) -> io::Result<()>
+fn put_l_read_name<B>(dst: &mut B, read_name: Option<&sam::record::ReadName>) -> io::Result<()>
 where
     B: BufMut,
 {
@@ -174,7 +171,7 @@ where
     Ok(())
 }
 
-pub(super) fn put_bin<B>(
+fn put_bin<B>(
     dst: &mut B,
     alignment_start: Option<Position>,
     alignment_end: Option<Position>,
@@ -225,7 +222,7 @@ where
     }
 }
 
-pub(super) fn put_flags<B>(dst: &mut B, flags: sam::record::Flags)
+fn put_flags<B>(dst: &mut B, flags: sam::record::Flags)
 where
     B: BufMut,
 {
@@ -233,7 +230,7 @@ where
     dst.put_u16_le(flag);
 }
 
-pub(super) fn put_template_length<B>(dst: &mut B, template_length: i32)
+fn put_template_length<B>(dst: &mut B, template_length: i32)
 where
     B: BufMut,
 {
