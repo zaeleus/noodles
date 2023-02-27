@@ -221,16 +221,20 @@ where
                 )
             })?;
 
-        let pos = index_record.offset();
+        let seq_len = index_record.len() as usize;
+        let range = interval_to_slice_range(region.interval(), seq_len);
+
+        let pos = index_record.offset()
+            + range.start as u64 / index_record.line_bases() * index_record.line_width()
+            + range.start as u64 % index_record.line_bases();
         self.get_mut().seek(SeekFrom::Start(pos))?;
 
         let definition = Definition::new(region.to_string(), None);
 
         let mut raw_sequence = Vec::new();
-        self.read_sequence(&mut raw_sequence)?;
+        read_segment(&mut self.inner, &mut raw_sequence, range.len())?;
 
-        let range = interval_to_slice_range(region.interval(), raw_sequence.len());
-        let sequence = Sequence::from(raw_sequence[range].to_vec());
+        let sequence = Sequence::from(raw_sequence.to_vec());
 
         Ok(Record::new(definition, sequence))
     }
@@ -295,6 +299,58 @@ where
             None => {
                 buf.extend(reader_buf);
                 reader_buf.len()
+            }
+        };
+
+        reader.consume(len);
+
+        bytes_read += len;
+    }
+
+    Ok(bytes_read)
+}
+
+fn read_segment<R>(reader: &mut R, buf: &mut Vec<u8>, max_bases: usize) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    const LINE_FEED: u8 = b'\n';
+    const CARRIAGE_RETURN: u8 = b'\r';
+
+    let mut bases_left = max_bases;
+    let mut bytes_read = 0;
+
+    loop {
+        if bases_left == 0 {
+            break;
+        }
+        let reader_buf = reader.fill_buf()?;
+
+        if reader_buf.is_empty() || reader_buf[0] == DEFINITION_PREFIX {
+            break;
+        }
+
+        let len = match memchr(LINE_FEED, reader_buf) {
+            Some(i) => {
+                let i = std::cmp::min(i, bases_left);
+                let line = &reader_buf[..i];
+
+                if line.ends_with(&[CARRIAGE_RETURN]) {
+                    let end = line.len() - 1;
+                    buf.extend(&line[..end]);
+                    bases_left -= end;
+                } else {
+                    buf.extend(line);
+                    bases_left -= i;
+                }
+
+                i + 1
+            }
+            None => {
+                let i = std::cmp::min(bases_left, reader_buf.len());
+                bases_left -= i;
+                buf.extend(&reader_buf[..i]);
+                i
             }
         };
 
@@ -378,6 +434,36 @@ mod tests {
         sequence_buf.clear();
         reader.read_sequence(&mut sequence_buf)?;
         assert_eq!(sequence_buf, b"NNNNNNNNNN");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_segment() -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, mut reader: &[u8], len: usize, expected: &[u8]) -> io::Result<()> {
+            buf.clear();
+            read_segment(&mut reader, buf, len)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
+        let mut buf = Vec::new();
+
+        t(&mut buf, b"ACGT\n", 4, b"ACGT")?;
+        t(&mut buf, b"ACGT\n>sq0\n", 4, b"ACGT")?;
+        t(&mut buf, b"ACGT\nACGT\nAC\n", 10, b"ACGTACGTAC")?;
+
+        t(&mut buf, b"ACGT\n", 2, b"AC")?;
+        t(&mut buf, b"ACGT\n>sq0\n", 2, b"AC")?;
+        t(&mut buf, b"ACGT\nACGT\nAC", 2, b"AC")?;
+
+        t(&mut buf, b"ACGT\n", 5, b"ACGT")?;
+        t(&mut buf, b"ACGT\n>sq0\n", 5, b"ACGT")?;
+        t(&mut buf, b"ACGT\nACGT\nAC", 5, b"ACGTA")?;
+
+        t(&mut buf, b"ACGT\n", 5, b"ACGT")?;
+        t(&mut buf, b"ACGT\r\n>sq0\r\n", 5, b"ACGT")?;
+        t(&mut buf, b"ACGT\r\nACGT\r\nAC\r\n", 5, b"ACGTA")?;
 
         Ok(())
     }
