@@ -333,14 +333,15 @@ where
         let len = match memchr(LINE_FEED, reader_buf) {
             Some(i) => {
                 let i = std::cmp::min(i, bases_left);
-                bases_left -= i;
                 let line = &reader_buf[..i];
 
                 if line.ends_with(&[CARRIAGE_RETURN]) {
                     let end = line.len() - 1;
                     buf.extend(&line[..end]);
+                    bases_left -= end;
                 } else {
                     buf.extend(line);
+                    bases_left -= i;
                 }
 
                 i + 1
