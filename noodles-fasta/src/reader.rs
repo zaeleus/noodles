@@ -439,6 +439,36 @@ mod tests {
     }
 
     #[test]
+    fn test_read_segment() -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, mut reader: &[u8], len: usize, expected: &[u8]) -> io::Result<()> {
+            buf.clear();
+            read_segment(&mut reader, buf, len)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
+        let mut buf = Vec::new();
+
+        t(&mut buf, b"ACGT\n", 4, b"ACGT")?;
+        t(&mut buf, b"ACGT\n>sq0\n", 4, b"ACGT")?;
+        t(&mut buf, b"ACGT\nACGT\nAC\n", 10, b"ACGTACGTAC")?;
+
+        t(&mut buf, b"ACGT\n", 2, b"AC")?;
+        t(&mut buf, b"ACGT\n>sq0\n", 2, b"AC")?;
+        t(&mut buf, b"ACGT\nACGT\nAC", 2, b"AC")?;
+
+        t(&mut buf, b"ACGT\n", 5, b"ACGT")?;
+        t(&mut buf, b"ACGT\n>sq0\n", 5, b"ACGT")?;
+        t(&mut buf, b"ACGT\nACGT\nAC", 5, b"ACGTA")?;
+
+        t(&mut buf, b"ACGT\n", 5, b"ACGT")?;
+        t(&mut buf, b"ACGT\r\n>sq0\r\n", 5, b"ACGT")?;
+        t(&mut buf, b"ACGT\r\nACGT\r\nAC\r\n", 5, b"ACGTA")?;
+
+        Ok(())
+    }
+
+    #[test]
     fn test_read_line() -> io::Result<()> {
         let mut buf = String::new();
 
