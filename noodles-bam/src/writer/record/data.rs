@@ -5,7 +5,7 @@ pub mod field;
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::record::Data;
+use noodles_sam::record::{data::field::Tag, Data};
 
 use self::field::put_field;
 
@@ -14,6 +14,10 @@ where
     B: BufMut,
 {
     for (tag, value) in data.iter() {
+        if tag == Tag::Cigar {
+            continue;
+        }
+
         put_field(dst, tag, value)?;
     }
 

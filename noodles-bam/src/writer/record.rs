@@ -29,6 +29,11 @@ pub(crate) fn encode_record<B>(dst: &mut B, header: &sam::Header, record: &Recor
 where
     B: BufMut,
 {
+    use sam::record::{
+        cigar::{op, Op},
+        Cigar,
+    };
+
     // ref_id
     put_reference_sequence_id(dst, header, record.reference_sequence_id())?;
 
@@ -43,9 +48,27 @@ where
     // bin
     put_bin(dst, record.alignment_start(), record.alignment_end())?;
 
-    let n_cigar_op = u16::try_from(record.cigar().len())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    dst.put_u16_le(n_cigar_op);
+    let cigar = if let Ok(n_cigar_op) = u16::try_from(record.cigar().len()) {
+        dst.put_u16_le(n_cigar_op);
+        None
+    } else {
+        dst.put_u16_le(2);
+
+        let k = record.sequence().len();
+        let m = record
+            .reference_sequence(header)
+            .ok_or_else(|| {
+                io::Error::new(io::ErrorKind::InvalidInput, "missing reference sequence")
+            })?
+            .map(|(_, rs)| rs.length().get())?;
+
+        Cigar::try_from(vec![
+            Op::new(op::Kind::SoftClip, k),
+            Op::new(op::Kind::Skip, m),
+        ])
+        .map(Some)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
+    };
 
     // flag
     put_flags(dst, record.flags());
@@ -65,7 +88,11 @@ where
 
     put_read_name(dst, record.read_name());
 
-    put_cigar(dst, record.cigar())?;
+    if let Some(cigar) = &cigar {
+        put_cigar(dst, cigar)?;
+    } else {
+        put_cigar(dst, record.cigar())?;
+    }
 
     let sequence = record.sequence();
     let quality_scores = record.quality_scores();
@@ -89,6 +116,10 @@ where
     }
 
     put_data(dst, record.data())?;
+
+    if cigar.is_some() {
+        data::field::put_cigar(dst, record.cigar())?;
+    }
 
     Ok(())
 }
@@ -225,6 +256,13 @@ pub(crate) fn region_to_bin(alignment_start: Position, alignment_end: Position) 
 
 #[cfg(test)]
 mod tests {
+    use std::num::NonZeroUsize;
+
+    use sam::{
+        header::record::value::{map::ReferenceSequence, Map},
+        record::Flags,
+    };
+
     use super::*;
 
     #[test]
@@ -256,12 +294,7 @@ mod tests {
 
     #[test]
     fn test_write_record_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
-        use std::num::NonZeroUsize;
-
-        use sam::{
-            header::record::value::{map::ReferenceSequence, Map},
-            record::{Flags, MappingQuality},
-        };
+        use sam::record::MappingQuality;
 
         let mut buf = Vec::new();
 
@@ -312,6 +345,72 @@ mod tests {
             0x2d, 0x23, 0x2b, 0x32, // qual = NDLS
             b'N', b'H', b'C', 0x01, // data[0] = NH:i:1
         ];
+
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_record_with_oversized_cigar() -> Result<(), Box<dyn std::error::Error>> {
+        use sam::record::{
+            cigar::{op::Kind, Op},
+            sequence::Base,
+            Cigar, Sequence,
+        };
+
+        let mut buf = Vec::new();
+
+        let header = sam::Header::builder()
+            .add_reference_sequence(
+                "sq0".parse()?,
+                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(131072)?),
+            )
+            .build();
+
+        let base_count = 65536;
+        let cigar = Cigar::try_from(vec![Op::new(Kind::Match, 1); base_count])?;
+        let sequence = Sequence::try_from(vec![Base::A; base_count])?;
+
+        let record = Record::builder()
+            .set_flags(Flags::empty())
+            .set_reference_sequence_id(0)
+            .set_alignment_start(Position::MIN)
+            .set_cigar(cigar)
+            .set_sequence(sequence)
+            .set_data("NH:i:1".parse()?)
+            .build();
+
+        encode_record(&mut buf, &header, &record)?;
+
+        let mut expected = vec![
+            0x00, 0x00, 0x00, 0x00, // ref_id = 0
+            0x00, 0x00, 0x00, 0x00, // pos = 1
+            0x02, // l_read_name = 2
+            0xff, // mapq = 255
+            0x49, 0x02, // bin = 585
+            0x02, 0x00, // n_cigar_op = 2
+            0x00, 0x00, // flag = <empty>
+            0x00, 0x00, 0x01, 0x00, // l_seq = 65536
+            0xff, 0xff, 0xff, 0xff, // next_ref_id = -1
+            0xff, 0xff, 0xff, 0xff, // next_pos = -1
+            0x00, 0x00, 0x00, 0x00, // tlen = 0
+            b'*', 0x00, // read_name = "*\x00"
+            0x04, 0x00, 0x10, 0x00, // cigar[0] = 65536S
+            0x03, 0x00, 0x20, 0x00, // cigar[1] = 131072N
+        ];
+
+        expected.resize(expected.len() + (base_count + 1) / 2, 0x11); // seq = [A, ...]
+        expected.resize(expected.len() + base_count, 0xff); // qual = [0xff, ...]
+        expected.extend([b'N', b'H', b'C', 0x01]); // data[0] = NH:i:1
+
+        // data[1] = CG:B,I:...
+        expected.extend([b'C', b'G', b'B', b'I', 0x00, 0x00, 0x01, 0x00]);
+        expected.extend((0..base_count).flat_map(|_| {
+            [
+                0x10, 0x00, 0x00, 0x00, // 1M
+            ]
+        }));
 
         assert_eq!(buf, expected);
 

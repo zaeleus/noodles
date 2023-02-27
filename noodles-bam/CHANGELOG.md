@@ -11,6 +11,13 @@
     length), the decoder will attempt to resolve the actual CIGAR from the `CG`
     data value. See § 4.2.2 "`N_CIGAR_OP` field" (2022-08-22).
 
+  * bam/writer/record: Write CIGAR to `CG` data field when it has more than
+    65535 operations.
+
+    This sets the CIGAR field as a flag for a decoder to read the actual CIGAR
+    from the `CG` data field instead. See § 4.2.2 "`N_CIGAR_OP` field"
+    (2022-08-22).
+
 ### Changed
 
   * bam/async/reader: Change `Reader::query` to receive a header

@@ -100,7 +100,7 @@ where
     Ok(())
 }
 
-fn put_array_header<B>(dst: &mut B, subtype: Subtype, len: usize) -> io::Result<()>
+pub fn put_array_header<B>(dst: &mut B, subtype: Subtype, len: usize) -> io::Result<()>
 where
     B: BufMut,
 {
