@@ -55,7 +55,6 @@ pub mod bai;
 pub mod indexed_reader;
 pub mod lazy;
 pub mod reader;
-pub mod record;
 pub mod writer;
 
 pub use self::{indexed_reader::IndexedReader, reader::Reader, writer::Writer};

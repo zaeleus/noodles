@@ -136,13 +136,13 @@ fn put_position<B>(dst: &mut B, position: Option<Position>) -> io::Result<()>
 where
     B: BufMut,
 {
-    use crate::record::UNMAPPED_POSITION;
+    const MISSING: i32 = -1;
 
     let pos = if let Some(position) = position {
         i32::try_from(usize::from(position) - 1)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
     } else {
-        UNMAPPED_POSITION
+        MISSING
     };
 
     dst.put_i32_le(pos);

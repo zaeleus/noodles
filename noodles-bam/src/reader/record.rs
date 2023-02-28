@@ -135,14 +135,14 @@ pub(crate) fn get_position<B>(src: &mut B) -> io::Result<Option<Position>>
 where
     B: Buf,
 {
-    use crate::record::UNMAPPED_POSITION;
+    const MISSING: i32 = -1;
 
     if src.remaining() < mem::size_of::<i32>() {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
     match src.get_i32_le() {
-        UNMAPPED_POSITION => Ok(None),
+        MISSING => Ok(None),
         n => usize::try_from(n + 1)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             .map(Position::new),
