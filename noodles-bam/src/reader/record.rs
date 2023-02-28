@@ -77,7 +77,7 @@ where
     // Discard bin.
     src.advance(mem::size_of::<u16>());
 
-    let n_cigar_op = usize::from(src.get_u16_le());
+    let n_cigar_op = get_cigar_op_count(src)?;
 
     *record.flags_mut() = get_flags(src)?;
 
@@ -158,6 +158,17 @@ where
 
     NonZeroUsize::new(usize::from(src.get_u8()))
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid l_read_name"))
+}
+
+pub(crate) fn get_cigar_op_count<B>(src: &mut B) -> io::Result<usize>
+where
+    B: Buf,
+{
+    if src.remaining() < mem::size_of::<u16>() {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
+
+    Ok(usize::from(src.get_u16_le()))
 }
 
 pub(crate) fn get_flags<B>(src: &mut B) -> io::Result<sam::record::Flags>
