@@ -4,9 +4,14 @@
 
 ### Changed
 
+  * fasta/reader: Improve performance of querying small regions ([#146]).
+
+    The reader no longer needs to read the entire sequence when querying.
+
   * fasta/reader/builder: Add `bgz` as a known BGZF extension ([#144]).
 
 [#144]: https://github.com/zaeleus/noodles/pull/144
+[#146]: https://github.com/zaeleus/noodles/issues/146
 
 ## 0.18.0 - 2023-02-03
 
