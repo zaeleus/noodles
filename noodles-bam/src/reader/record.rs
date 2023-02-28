@@ -81,8 +81,7 @@ where
 
     *record.flags_mut() = get_flags(src)?;
 
-    let l_seq = usize::try_from(src.get_u32_le())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let l_seq = get_sequence_len(src)?;
 
     *record.mate_reference_sequence_id_mut() = get_reference_sequence_id(src, n_ref)?;
     *record.mate_alignment_start_mut() = get_position(src)?;
@@ -180,6 +179,17 @@ where
     }
 
     Ok(sam::record::Flags::from(src.get_u16_le()))
+}
+
+pub(crate) fn get_sequence_len<B>(src: &mut B) -> io::Result<usize>
+where
+    B: Buf,
+{
+    if src.remaining() < mem::size_of::<u32>() {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
+
+    usize::try_from(src.get_u32_le()).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 fn get_template_length<B>(src: &mut B) -> io::Result<i32>
