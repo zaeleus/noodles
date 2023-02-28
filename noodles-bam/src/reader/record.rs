@@ -70,8 +70,7 @@ where
     *record.reference_sequence_id_mut() = get_reference_sequence_id(src, n_ref)?;
     *record.alignment_start_mut() = get_position(src)?;
 
-    let l_read_name = NonZeroUsize::new(usize::from(src.get_u8()))
-        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid l_read_name"))?;
+    let l_read_name = get_read_name_len(src)?;
 
     *record.mapping_quality_mut() = get_mapping_quality(src)?;
 
@@ -147,6 +146,18 @@ where
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             .map(Position::new),
     }
+}
+
+pub(crate) fn get_read_name_len<B>(src: &mut B) -> io::Result<NonZeroUsize>
+where
+    B: Buf,
+{
+    if src.remaining() < mem::size_of::<u8>() {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
+
+    NonZeroUsize::new(usize::from(src.get_u8()))
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid l_read_name"))
 }
 
 pub(crate) fn get_flags<B>(src: &mut B) -> io::Result<sam::record::Flags>
