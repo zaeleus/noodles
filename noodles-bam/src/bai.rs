@@ -37,7 +37,7 @@ pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};
 
 use std::{
     fs::File,
-    io::{self, BufReader},
+    io::{self, BufReader, BufWriter},
     path::Path,
 };
 
@@ -85,7 +85,7 @@ pub fn write<P>(dst: P, index: &Index) -> io::Result<()>
 where
     P: AsRef<Path>,
 {
-    let mut writer = File::create(dst).map(Writer::new)?;
+    let mut writer = File::create(dst).map(BufWriter::new).map(Writer::new)?;
     writer.write_header()?;
     writer.write_index(index)
 }
