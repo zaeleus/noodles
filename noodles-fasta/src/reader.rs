@@ -411,29 +411,9 @@ mod tests {
         t(&mut buf, b"ACGT\n>sq1\n", b"ACGT")?;
         t(&mut buf, b"NNNN\nNNNN\nNN\n", b"NNNNNNNNNN")?;
 
-        Ok(())
-    }
-
-    #[test]
-    fn test_read_sequence_with_crlf() -> io::Result<()> {
-        let mut sequence_buf = Vec::new();
-
-        let data = b"ACGT\r\n";
-        let mut reader = Reader::new(&data[..]);
-        reader.read_sequence(&mut sequence_buf)?;
-        assert_eq!(sequence_buf, b"ACGT");
-
-        let data = b"ACGT\r\n>sq1\r\n";
-        let mut reader = Reader::new(&data[..]);
-        sequence_buf.clear();
-        reader.read_sequence(&mut sequence_buf)?;
-        assert_eq!(sequence_buf, b"ACGT");
-
-        let data = b"NNNN\r\nNNNN\r\nNN\r\n";
-        let mut reader = Reader::new(&data[..]);
-        sequence_buf.clear();
-        reader.read_sequence(&mut sequence_buf)?;
-        assert_eq!(sequence_buf, b"NNNNNNNNNN");
+        t(&mut buf, b"ACGT\r\n", b"ACGT")?;
+        t(&mut buf, b"ACGT\r\n>sq1\r\n", b"ACGT")?;
+        t(&mut buf, b"NNNN\r\nNNNN\r\nNN\r\n", b"NNNNNNNNNN")?;
 
         Ok(())
     }
