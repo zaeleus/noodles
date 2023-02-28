@@ -35,7 +35,11 @@ pub use self::{index::Index, reader::Reader, writer::Writer};
 #[cfg(feature = "async")]
 pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};
 
-use std::{fs::File, io, path::Path};
+use std::{
+    fs::File,
+    io::{self, BufReader},
+    path::Path,
+};
 
 use self::index::reference_sequence::Bin;
 
@@ -58,7 +62,7 @@ pub fn read<P>(src: P) -> io::Result<Index>
 where
     P: AsRef<Path>,
 {
-    let mut reader = File::open(src).map(Reader::new)?;
+    let mut reader = File::open(src).map(BufReader::new).map(Reader::new)?;
     reader.read_header()?;
     reader.read_index()
 }
