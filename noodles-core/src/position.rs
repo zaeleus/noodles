@@ -68,8 +68,12 @@ impl Position {
     /// assert_eq!(position.checked_add(5), Position::new(13));
     /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
-    pub fn checked_add(self, other: usize) -> Option<Self> {
-        usize::from(self).checked_add(other).and_then(Self::new)
+    pub const fn checked_add(self, other: usize) -> Option<Self> {
+        if let Some(n) = self.0.checked_add(other) {
+            Some(Self(n))
+        } else {
+            None
+        }
     }
 }
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * core/position: Make `Position::checked_add` `const`.
+
 ## 0.10.0 - 2023-02-03
 
 ### Added
