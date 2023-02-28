@@ -173,37 +173,31 @@ where
 
 // § 4.2.2 "`N_CIGAR_OP` field" (2022-08-22)
 fn resolve_cigar(header: &sam::Header, record: &mut Record) -> io::Result<()> {
-    use sam::record::{cigar::op, data::field::Tag};
+    use sam::record::{
+        cigar::{op::Kind, Op},
+        data::field::Tag,
+    };
 
-    if let Some(id) = record.reference_sequence_id() {
+    if let Some((_, reference_sequence)) = record.reference_sequence(header).transpose()? {
         if let [op_0, op_1] = record.cigar().as_ref() {
-            if op_0.kind() == op::Kind::SoftClip && op_1.kind() == op::Kind::Skip {
-                let k = record.sequence().len();
+            let k = record.sequence().len();
+            let m = reference_sequence.length().get();
 
-                let m = header
-                    .reference_sequences()
-                    .get_index(id)
-                    .map(|(_, rs)| rs.length().get())
-                    .ok_or_else(|| {
-                        io::Error::new(io::ErrorKind::InvalidData, "invalid reference sequence id")
+            if *op_0 == Op::new(Kind::SoftClip, k) && *op_1 == Op::new(Kind::Skip, m) {
+                if let Some((_, value)) = record.data_mut().remove(Tag::Cigar) {
+                    let data = value.as_uint32_array().ok_or_else(|| {
+                        io::Error::new(
+                            io::ErrorKind::InvalidData,
+                            "invalid CG data field value type",
+                        )
                     })?;
 
-                if op_0.len() == k && op_1.len() == m {
-                    if let Some((_, value)) = record.data_mut().remove(Tag::Cigar) {
-                        let data = value.as_uint32_array().ok_or_else(|| {
-                            io::Error::new(
-                                io::ErrorKind::InvalidData,
-                                "invalid CG data field value type",
-                            )
-                        })?;
+                    let cigar = record.cigar_mut();
+                    cigar.clear();
 
-                        let cigar = record.cigar_mut();
-                        cigar.clear();
-
-                        for &n in data {
-                            let op = cigar::decode_op(n)?;
-                            cigar.as_mut().push(op);
-                        }
+                    for &n in data {
+                        let op = cigar::decode_op(n)?;
+                        cigar.as_mut().push(op);
                     }
                 }
             }
