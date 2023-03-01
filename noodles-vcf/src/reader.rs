@@ -13,7 +13,7 @@ use noodles_core::Region;
 use noodles_csi::BinningIndex;
 use noodles_tabix as tabix;
 
-use super::Header;
+use super::{Header, VariantReader};
 
 /// A VCF reader.
 ///
@@ -304,6 +304,25 @@ where
             region.interval(),
             header,
         ))
+    }
+}
+
+impl<R> VariantReader<R> for Reader<R>
+where
+    R: io::BufRead,
+{
+    fn read_variant_header(&mut self) -> io::Result<Header> {
+        read_header(&mut self.inner).and_then(|s| {
+            s.parse()
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })
+    }
+
+    fn variant_records<'a>(
+        &'a mut self,
+        header: &'a Header,
+    ) -> Box<dyn Iterator<Item = io::Result<crate::Record>> + 'a> {
+        Box::new(self.records(header))
     }
 }
 
