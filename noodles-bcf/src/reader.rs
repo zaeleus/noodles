@@ -17,9 +17,10 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
+use noodles_vcf as vcf;
 
 use super::Record;
-use crate::header::string_maps::ContigStringMap;
+use crate::header::string_maps::{ContigStringMap, StringMaps};
 
 /// A BCF reader.
 ///
@@ -286,6 +287,32 @@ impl<R> From<R> for Reader<R> {
             inner,
             buf: Vec::new(),
         }
+    }
+}
+
+impl<R> vcf::VariantReader<R> for Reader<R>
+where
+    R: io::BufRead,
+{
+    fn read_variant_header(&mut self) -> io::Result<vcf::Header> {
+        read_magic(&mut self.inner)?;
+        read_format_version(&mut self.inner)?;
+
+        read_header(&mut self.inner).and_then(|s| {
+            s.parse()
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })
+    }
+
+    fn variant_records<'a>(
+        &'a mut self,
+        header: &'a vcf::Header,
+    ) -> Box<dyn Iterator<Item = io::Result<vcf::Record>> + 'a> {
+        let string_maps = StringMaps::from(header);
+
+        Box::new(self.records().map(move |result| {
+            result.and_then(|record| record.try_into_vcf_record(header, &string_maps))
+        }))
     }
 }
 
