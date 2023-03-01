@@ -2,7 +2,7 @@ use std::io;
 
 use super::{Header, Record};
 
-/// An variant format reader.
+/// A variant format reader.
 pub trait VariantReader<R> {
     /// Reads a VCF header.
     fn read_variant_header(&mut self) -> io::Result<Header>;
