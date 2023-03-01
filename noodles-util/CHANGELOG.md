@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * util: Add variant reader (`variant::Reader`).
+
+    This is a high-level reader that abstracts reading both VCF and BCF. It can
+    autodetect the input format and compression type at runtime.
+
 ## 0.4.0 - 2023-02-03
 
 ### Changed
