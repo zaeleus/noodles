@@ -7,7 +7,10 @@ pub use self::{reader::Reader, writer::Writer};
 
 use std::path::Path;
 
-use tokio::{fs::File, io};
+use tokio::{
+    fs::File,
+    io::{self, BufReader},
+};
 
 use super::Index;
 
@@ -32,7 +35,7 @@ pub async fn read<P>(src: P) -> io::Result<Index>
 where
     P: AsRef<Path>,
 {
-    let mut reader = File::open(src).await.map(Reader::new)?;
+    let mut reader = File::open(src).await.map(BufReader::new).map(Reader::new)?;
     reader.read_header().await?;
     reader.read_index().await
 }
