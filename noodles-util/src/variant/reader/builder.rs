@@ -15,7 +15,8 @@ use super::Reader;
 /// A variant reader builder.
 #[derive(Default)]
 pub struct Builder {
-    compression: Option<Compression>,
+    // None means infer on build; Some(None) means no compression explicitly set.
+    compression: Option<Option<Compression>>,
     format: Option<Format>,
 }
 
@@ -28,9 +29,9 @@ impl Builder {
     ///
     /// ```
     /// use noodles_util::variant::{self, Compression};
-    /// let builder = variant::reader::Builder::default().set_compression(Compression::Bgzf);
+    /// let builder = variant::reader::Builder::default().set_compression(Some(Compression::Bgzf));
     /// ```
-    pub fn set_compression(mut self, compression: Compression) -> Self {
+    pub fn set_compression(mut self, compression: Option<Compression>) -> Self {
         self.compression = Some(compression);
         self
     }
@@ -101,19 +102,19 @@ impl Builder {
             .unwrap_or_else(|| detect_format(&mut reader, compression))?;
 
         let inner: Box<dyn VariantReader<_>> = match (format, compression) {
-            (Format::Vcf, Compression::Uncompressed) => {
+            (Format::Vcf, None) => {
                 let inner: Box<dyn BufRead> = Box::new(BufReader::new(reader));
                 Box::new(vcf::Reader::new(inner))
             }
-            (Format::Vcf, Compression::Bgzf) => {
+            (Format::Vcf, Some(Compression::Bgzf)) => {
                 let inner: Box<dyn BufRead> = Box::new(bgzf::Reader::new(reader));
                 Box::new(vcf::Reader::new(inner))
             }
-            (Format::Bcf, Compression::Uncompressed) => {
+            (Format::Bcf, None) => {
                 let inner: Box<dyn BufRead> = Box::new(BufReader::new(reader));
                 Box::new(bcf::Reader::from(inner))
             }
-            (Format::Bcf, Compression::Bgzf) => {
+            (Format::Bcf, Some(Compression::Bgzf)) => {
                 let inner: Box<dyn BufRead> = Box::new(bgzf::Reader::new(reader));
                 Box::new(bcf::Reader::from(inner))
             }
@@ -123,7 +124,7 @@ impl Builder {
     }
 }
 
-fn detect_compression<R>(reader: &mut R) -> io::Result<Compression>
+fn detect_compression<R>(reader: &mut R) -> io::Result<Option<Compression>>
 where
     R: BufRead,
 {
@@ -131,13 +132,13 @@ where
 
     let src = reader.fill_buf()?;
     if src.get(..2) == Some(&GZIP_MAGIC_NUMBER) {
-        Ok(Compression::Bgzf)
+        Ok(Some(Compression::Bgzf))
     } else {
-        Ok(Compression::Uncompressed)
+        Ok(None)
     }
 }
 
-fn detect_format<R>(reader: &mut R, compression: Compression) -> io::Result<Format>
+fn detect_format<R>(reader: &mut R, compression: Option<Compression>) -> io::Result<Format>
 where
     R: BufRead,
 {
@@ -145,7 +146,7 @@ where
 
     let src = reader.fill_buf()?;
 
-    if compression == Compression::Bgzf {
+    if compression == Some(Compression::Bgzf) {
         let mut reader = bgzf::Reader::new(src);
         let mut buf = [0; 3];
         reader.read_exact(&mut buf).ok();

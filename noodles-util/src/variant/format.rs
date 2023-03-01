@@ -12,6 +12,4 @@ pub enum Format {
 pub enum Compression {
     /// BGZF compression.
     Bgzf,
-    /// No compression.
-    Uncompressed,
 }
