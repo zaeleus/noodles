@@ -4,3 +4,6 @@
 
 #[cfg(feature = "alignment")]
 pub mod alignment;
+
+#[cfg(feature = "variant")]
+pub mod variant;
