@@ -9,7 +9,7 @@ use std::path::Path;
 
 use tokio::{
     fs::File,
-    io::{self, BufReader},
+    io::{self, BufReader, BufWriter},
 };
 
 use super::Index;
@@ -62,9 +62,15 @@ pub async fn write<P>(dst: P, index: &Index) -> io::Result<()>
 where
     P: AsRef<Path>,
 {
-    let mut writer = File::create(dst).await.map(Writer::new)?;
+    let mut writer = File::create(dst)
+        .await
+        .map(BufWriter::new)
+        .map(Writer::new)?;
+
     writer.write_header().await?;
     writer.write_index(index).await?;
+
     writer.shutdown().await?;
+
     Ok(())
 }
