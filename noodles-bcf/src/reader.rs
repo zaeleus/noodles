@@ -10,7 +10,7 @@ pub use self::{query::Query, records::Records};
 
 use std::{
     ffi::CStr,
-    io::{self, Read, Seek},
+    io::{self, BufRead, Read, Seek},
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
@@ -292,7 +292,7 @@ impl<R> From<R> for Reader<R> {
 
 impl<R> vcf::VariantReader<R> for Reader<R>
 where
-    R: io::BufRead,
+    R: BufRead,
 {
     fn read_variant_header(&mut self) -> io::Result<vcf::Header> {
         read_magic(&mut self.inner)?;
