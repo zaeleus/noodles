@@ -4,7 +4,7 @@ mod builder;
 
 pub use self::builder::Builder;
 
-use std::io;
+use std::io::{self, BufRead};
 
 use noodles_vcf::{self as vcf, Record, VariantReader};
 
@@ -15,7 +15,7 @@ pub struct Reader<R> {
 
 impl<R> Reader<R>
 where
-    R: io::BufRead,
+    R: BufRead,
 {
     /// Reads and parses a variant header.
     ///
