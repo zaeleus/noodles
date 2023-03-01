@@ -26,9 +26,12 @@ mod r#async;
 pub mod header;
 pub mod reader;
 pub mod record;
+mod variant_reader;
 mod writer;
 
-pub use self::{header::Header, reader::Reader, record::Record, writer::Writer};
+pub use self::{
+    header::Header, reader::Reader, record::Record, variant_reader::VariantReader, writer::Writer,
+};
 
 #[cfg(feature = "async")]
 pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};
