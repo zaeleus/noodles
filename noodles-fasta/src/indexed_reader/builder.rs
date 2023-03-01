@@ -55,7 +55,7 @@ impl Builder {
         };
 
         let reader: Box<dyn BufReadSeek> = match src.extension().and_then(|ext| ext.to_str()) {
-            Some("gz") | Some("bgz") => bgzf::indexed_reader::Builder::default()
+            Some("gz" | "bgz") => bgzf::indexed_reader::Builder::default()
                 .build_from_path(src)
                 .map(Box::new)?,
             _ => File::open(src).map(BufReader::new).map(Box::new)?,
