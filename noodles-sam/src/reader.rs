@@ -146,7 +146,7 @@ where
     /// The stream is expected to be directly after the header or at the start of another record.
     ///
     /// It is more ergonomic to read records using an iterator (see [`Self::records`]), but using
-    /// this method allows control of the line buffer and whether the raw record should be parsed.
+    /// this method allows control of the record buffer.
     ///
     /// If successful, the number of bytes read is returned. If the number of bytes read is 0, the
     /// stream reached EOF.
