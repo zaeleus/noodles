@@ -419,8 +419,7 @@ mod tests {
 ##fileformat=VCFv4.3
 ##fileDate=20200501
 #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
-sq0\t8
-sq0\t13
+sq0\t1\t.\tA\t.\t.\tPASS\t.
 ";
 
     #[test]
@@ -494,13 +493,8 @@ sq0\t13
 
         let mut buf = String::new();
         let bytes_read = reader.read_record(&mut buf)?;
-        assert_eq!(bytes_read, 6);
-        assert_eq!(buf, "sq0\t8");
-
-        buf.clear();
-        let bytes_read = reader.read_record(&mut buf)?;
-        assert_eq!(bytes_read, 7);
-        assert_eq!(buf, "sq0\t13");
+        assert_eq!(bytes_read, 21);
+        assert_eq!(buf, "sq0\t1\t.\tA\t.\t.\tPASS\t.");
 
         buf.clear();
         let bytes_read = reader.read_record(&mut buf)?;
