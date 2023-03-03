@@ -4,10 +4,12 @@
 
 ### Added
 
-  * util: Add variant reader (`variant::Reader`).
+  * util: Add variant reader (`variant::Reader`) ([#149]).
 
     This is a high-level reader that abstracts reading both VCF and BCF. It can
     autodetect the input format and compression type at runtime.
+
+[#149]: https://github.com/zaeleus/noodles/pull/149
 
 ## 0.4.0 - 2023-02-03
 
