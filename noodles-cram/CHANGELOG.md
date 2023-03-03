@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.24.0 - 2023-03-03
+
+### Changed
+
+  * cram: Sync dependencies.
+
 ## Unreleased
 
   * cram: Add `libdeflate` feature to enable using libdeflate for gzip streams.

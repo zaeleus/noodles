@@ -1,6 +1,6 @@
 [package]
 name = "noodles-gff"
-version = "0.10.0"
+version = "0.11.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
@@ -11,5 +11,5 @@ repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-gff"
 
 [dependencies]
-noodles-core = { path = "../noodles-core", version = "0.10.0" }
+noodles-core = { path = "../noodles-core", version = "0.11.0" }
 percent-encoding.workspace = true
