@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bcf/reader: Implement `vcf::VariantReader` ([#149]).
+
+[#149]: https://github.com/zaeleus/noodles/pull/149
+
 ## 0.20.0 - 2023-02-03
 
 ### Changed
