@@ -4,6 +4,10 @@
 
 ### Added
 
+  * vcf: Add a variant reader trait (`VariantReader`) ([#149]).
+
+    This is a generalization for reading VCF-like variant formats.
+
   * vcf/header: Add header parser (`header::Parser`).
 
     This can be used to customize how to parse the header.
@@ -16,10 +20,14 @@
 
   * vcf/header/info/key: Add VCF 4.4 reserved keys.
 
+  * vcf/reader: Implement `VariantReader` ([#149]).
+
   * vcf/record/info/field/value: Implement `TryFrom<(Number, Type, &str)>`.
 
   * vcf/record/genotypes/genotype/field/value: Implement `TryFrom<(Number,
     Type, &str)>`.
+
+[#149]: https://github.com/zaeleus/noodles/pull/149
 
 ### Changed
 
