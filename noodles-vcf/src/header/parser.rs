@@ -1,4 +1,4 @@
-//! VCF header paser.
+//! VCF header parser.
 
 mod builder;
 mod file_format_option;
