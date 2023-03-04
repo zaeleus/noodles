@@ -47,3 +47,7 @@ required-features = ["alignment"]
 [[example]]
 name = "util_variant_view"
 required-features = ["variant"]
+
+[[example]]
+name = "util_variant_rewrite"
+required-features = ["variant"]
