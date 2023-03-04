@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * util: Add variant writer (`variant::Writer`) ([#150]).
+
+    This is a high-level writer that abstracts writing both VCF and BCF. It can
+    autodetect the input format and compression type at runtime.
+
+[#150]: https://github.com/zaeleus/noodles/issues/150
+
 ## 0.5.0 - 2023-03-03
 
 ### Added
