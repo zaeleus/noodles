@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * bcf/writer/vcf_record/genotypes: Fix writing dropped values ([#151]).
+
+    Trailing field values are allowed to be missing.
+
+[#151]: https://github.com/zaeleus/noodles/issues/151
+
 ## 0.21.0 - 2023-03-03
 
 ### Added

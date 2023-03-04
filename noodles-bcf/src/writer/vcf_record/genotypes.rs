@@ -42,9 +42,7 @@ where
             let value = genotype
                 .get_index(i)
                 .map(|(_, value)| value.as_ref())
-                .ok_or_else(|| {
-                    io::Error::new(io::ErrorKind::InvalidData, "missing genotype field")
-                })?;
+                .unwrap_or_default();
 
             values.push(value);
         }
@@ -777,6 +775,64 @@ mod tests {
     use noodles_vcf::header::{record::value::map::format, Number};
 
     use super::*;
+    use crate::header::StringMaps;
+
+    #[test]
+    fn test_write_genotypes() -> Result<(), Box<dyn std::error::Error>> {
+        use vcf::{
+            header::{format::key, record::value::Map},
+            record::genotypes::genotype::field::Value,
+        };
+
+        let header = vcf::Header::builder()
+            .add_format(
+                key::CONDITIONAL_GENOTYPE_QUALITY,
+                Map::from(&key::CONDITIONAL_GENOTYPE_QUALITY),
+            )
+            .add_format(key::READ_DEPTH, Map::from(&key::READ_DEPTH))
+            .add_sample_name("sample0")
+            .add_sample_name("sample1")
+            .build();
+
+        let string_maps = StringMaps::from(&header);
+
+        let keys = vcf::record::genotypes::Keys::try_from(vec![
+            key::CONDITIONAL_GENOTYPE_QUALITY,
+            key::READ_DEPTH,
+        ])?;
+
+        let genotypes = vec![
+            [
+                (key::CONDITIONAL_GENOTYPE_QUALITY, Some(Value::Integer(13))),
+                (key::READ_DEPTH, Some(Value::Integer(5))),
+            ]
+            .into_iter()
+            .collect(),
+            [(key::CONDITIONAL_GENOTYPE_QUALITY, Some(Value::Integer(8)))]
+                .into_iter()
+                .collect(),
+        ];
+
+        let mut buf = Vec::new();
+        write_genotypes(&mut buf, &header, string_maps.strings(), &keys, &genotypes)?;
+
+        let expected = [
+            0x11, // string string map index type = Some(Type::Int(1))
+            0x01, // string string map index = Some(1) (GQ)
+            0x11, // GQ value type = Some(Type::Int8(1))
+            0x0d, // GQ[0] = Some(13)
+            0x08, // GQ[1] = Some(8)
+            0x11, // string stirng map index type = Some(Type::Int(1))
+            0x02, // string string map index = Some(2) (DP)
+            0x11, // DP value type = Some(Type::Int8(1))
+            0x05, // DP[0] = Some(5)
+            0x80, // DP[1] = None
+        ];
+
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
 
     #[test]
     fn test_write_genotype_field_values_with_integer_values(
