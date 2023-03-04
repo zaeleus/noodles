@@ -3,7 +3,7 @@ mod record;
 use std::io::{self, Write};
 
 use self::record::write_record;
-use super::{Header, Record};
+use super::{Header, Record, VariantWriter};
 
 /// A VCF writer.
 ///
@@ -139,6 +139,19 @@ where
     /// ```
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
         write_record(&mut self.inner, record)
+    }
+}
+
+impl<W> VariantWriter for Writer<W>
+where
+    W: Write,
+{
+    fn write_variant_header(&mut self, header: &Header) -> io::Result<()> {
+        self.write_header(header)
+    }
+
+    fn write_variant_record(&mut self, _: &Header, record: &Record) -> io::Result<()> {
+        self.write_record(record)
     }
 }
 
