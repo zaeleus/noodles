@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added
+
+  * bcf/writer: Implement `VariantWriter` ([#150]).
+
+[#150]: https://github.com/zaeleus/noodles/issues/150
+
 ### Fixed
 
   * bcf/writer/vcf_record/genotypes: Fix writing dropped values ([#151]).
