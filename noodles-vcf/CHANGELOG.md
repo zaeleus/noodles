@@ -16,6 +16,8 @@
 
     This is a generalization for writing VCF-like variant formats.
 
+  * vcf/writer: Implement `VariantWriter` ([#150]).
+
 [#150]: https://github.com/zaeleus/noodles/issues/150
 
 ### Changed
