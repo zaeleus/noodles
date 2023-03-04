@@ -199,6 +199,26 @@ impl<W> From<W> for Writer<W> {
     }
 }
 
+impl<W> vcf::VariantWriter for Writer<W>
+where
+    W: Write,
+{
+    fn write_variant_header(&mut self, header: &vcf::Header) -> io::Result<()> {
+        write_file_format(&mut self.inner)?;
+        write_header(&mut self.inner, header)
+    }
+
+    fn write_variant_record(
+        &mut self,
+        header: &vcf::Header,
+        record: &vcf::Record,
+    ) -> io::Result<()> {
+        let string_maps = StringMaps::from(header);
+
+        vcf_record::write_vcf_record(&mut self.inner, header, &string_maps, record)
+    }
+}
+
 fn write_file_format<W>(writer: &mut W) -> io::Result<()>
 where
     W: Write,
