@@ -12,6 +12,12 @@
     (`Builder::build_from_path`), which can open raw VCF files (`*.vcf`)
     and bgzipped VCF (`*.vcf.gz`) files.
 
+  * vcf: Add a variant writer trait (`VariantWriter`) ([#150]).
+
+    This is a generalization for writing VCF-like variant formats.
+
+[#150]: https://github.com/zaeleus/noodles/issues/150
+
 ### Changed
 
   * vcf/record/alternate_bases: Move missing field value parsing to record

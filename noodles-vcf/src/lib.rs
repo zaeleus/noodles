@@ -28,11 +28,12 @@ pub mod indexed_reader;
 pub mod reader;
 pub mod record;
 mod variant_reader;
+mod variant_writer;
 mod writer;
 
 pub use self::{
     header::Header, indexed_reader::IndexedReader, reader::Reader, record::Record,
-    variant_reader::VariantReader, writer::Writer,
+    variant_reader::VariantReader, variant_writer::VariantWriter, writer::Writer,
 };
 
 #[cfg(feature = "async")]
