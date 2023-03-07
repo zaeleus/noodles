@@ -95,7 +95,7 @@ impl Builder {
     where
         R: Read + 'static,
     {
-        let mut reader: Box<dyn BufRead> = Box::new(BufReader::new(reader));
+        let mut reader = BufReader::new(reader);
 
         let format = self
             .format
@@ -104,7 +104,7 @@ impl Builder {
 
         let inner: Box<dyn sam::AlignmentReader<_>> = match format {
             Format::Sam => {
-                let inner: Box<dyn BufRead> = Box::new(BufReader::new(reader));
+                let inner: Box<dyn BufRead> = Box::new(reader);
                 Box::new(sam::Reader::from(inner))
             }
             Format::Bam => {
@@ -112,7 +112,7 @@ impl Builder {
                 Box::new(bam::Reader::from(inner))
             }
             Format::Cram => {
-                let inner: Box<dyn BufRead> = Box::new(BufReader::new(reader));
+                let inner: Box<dyn BufRead> = Box::new(reader);
                 Box::new(cram::Reader::new(inner))
             }
         };
