@@ -1,5 +1,8 @@
+mod record;
+
 use std::io::{self, Write};
 
+use self::record::write_record;
 use super::{Header, Record};
 
 /// A VCF writer.
@@ -135,7 +138,7 @@ where
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        writeln!(self.inner, "{record}")
+        write_record(&mut self.inner, record)
     }
 }
 
