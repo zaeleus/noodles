@@ -2,7 +2,11 @@
 //!
 //! The result matches the output of `bcftools view <src>`.
 
-use std::{env, fs::File, io::BufReader};
+use std::{
+    env,
+    fs::File,
+    io::{self, BufReader},
+};
 
 use noodles_vcf as vcf;
 
@@ -12,11 +16,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut reader = File::open(src).map(BufReader::new).map(vcf::Reader::new)?;
     let header = reader.read_header()?.parse()?;
 
-    print!("{header}");
+    let stdout = io::stdout().lock();
+    let mut writer = vcf::Writer::new(stdout);
+
+    writer.write_header(&header)?;
 
     for result in reader.records(&header) {
         let record = result?;
-        println!("{record}");
+        writer.write_record(&record)?;
     }
 
     Ok(())
