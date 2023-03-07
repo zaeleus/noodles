@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * vcf/record/alternate_bases/allele: Ensure breakend has more than one
+    character.
+
 ## 0.25.0 - 2023-03-03
 
 ### Added

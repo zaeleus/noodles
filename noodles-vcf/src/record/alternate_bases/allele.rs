@@ -102,7 +102,7 @@ impl FromStr for Allele {
 }
 
 fn is_breakend(s: &str) -> bool {
-    s.contains(|c| c == '[' || c == ']') || s.starts_with('.') || s.ends_with('.')
+    s.len() > 1 && (s.contains(|c| c == '[' || c == ']') || s.starts_with('.') || s.ends_with('.'))
 }
 
 #[cfg(test)]
@@ -214,6 +214,10 @@ mod tests {
         ));
         assert!(matches!(
             "Z".parse::<Allele>(),
+            Err(ParseError::InvalidBase(_))
+        ));
+        assert!(matches!(
+            ".".parse::<Allele>(),
             Err(ParseError::InvalidBase(_))
         ));
     }
