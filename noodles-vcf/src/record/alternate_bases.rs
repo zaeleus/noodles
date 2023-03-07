@@ -10,8 +10,6 @@ use std::{
     str::FromStr,
 };
 
-use super::MISSING_FIELD;
-
 const DELIMITER: char = ',';
 
 /// VCF record alternate bases (`ALT`).
@@ -34,19 +32,15 @@ impl DerefMut for AlternateBases {
 
 impl fmt::Display for AlternateBases {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.is_empty() {
-            f.write_str(MISSING_FIELD)
-        } else {
-            for (i, allele) in self.iter().enumerate() {
-                if i > 0 {
-                    f.write_str(",")?;
-                }
-
-                write!(f, "{allele}")?;
+        for (i, allele) in self.iter().enumerate() {
+            if i > 0 {
+                f.write_str(",")?;
             }
 
-            Ok(())
+            write!(f, "{allele}")?;
         }
+
+        Ok(())
     }
 }
 
@@ -87,15 +81,14 @@ impl FromStr for AlternateBases {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "" => Err(ParseError::Empty),
-            MISSING_FIELD => Ok(Self::default()),
-            _ => s
-                .split(DELIMITER)
-                .map(|s| s.parse().map_err(ParseError::InvalidAllele))
-                .collect::<Result<_, _>>()
-                .map(Self),
+        if s.is_empty() {
+            return Err(ParseError::Empty);
         }
+
+        s.split(DELIMITER)
+            .map(|s| s.parse().map_err(ParseError::InvalidAllele))
+            .collect::<Result<_, _>>()
+            .map(Self)
     }
 }
 
@@ -116,14 +109,12 @@ mod tests {
         ]);
         assert_eq!(alternate_bases.to_string(), "G,T");
 
-        let alternate_bases = AlternateBases(vec![]);
-        assert_eq!(alternate_bases.to_string(), ".");
+        let alternate_bases = AlternateBases::default();
+        assert_eq!(alternate_bases.to_string(), "");
     }
 
     #[test]
     fn test_from_str() {
-        assert_eq!(".".parse(), Ok(AlternateBases::default()));
-
         assert_eq!(
             "G".parse(),
             Ok(AlternateBases::from(vec![Allele::Bases(vec![Base::G])]))
@@ -138,5 +129,10 @@ mod tests {
         );
 
         assert_eq!("".parse::<AlternateBases>(), Err(ParseError::Empty));
+
+        assert!(matches!(
+            dbg!(".".parse::<AlternateBases>()),
+            Err(ParseError::InvalidAllele(_))
+        ));
     }
 }

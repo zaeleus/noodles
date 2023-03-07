@@ -719,12 +719,13 @@ impl fmt::Display for Record {
             write!(f, "\t{}", self.ids())?;
         }
 
-        write!(
-            f,
-            "\t{ref}\t{alt}",
-            r#ref = self.reference_bases(),
-            alt = self.alternate_bases()
-        )?;
+        write!(f, "\t{ref}", r#ref = self.reference_bases())?;
+
+        if self.alternate_bases().is_empty() {
+            write!(f, "\t{MISSING_FIELD}")?;
+        } else {
+            write!(f, "\t{alt}", alt = self.alternate_bases())?;
+        }
 
         if let Some(quality_score) = self.quality_score() {
             write!(f, "\t{quality_score}")?;

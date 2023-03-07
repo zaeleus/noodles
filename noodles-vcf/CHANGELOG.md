@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Changed
+
+  * vcf/record/alternate_bases: Move missing field value parsing to record
+    parser.
+
+    `AlternateBases` no longer handles "." as missing.
+
 ### Fixed
 
   * vcf/record/alternate_bases/allele: Ensure breakend has more than one

@@ -26,7 +26,12 @@ where
     write!(writer, "{}", record.reference_bases())?;
 
     writer.write_all(DELIMITER)?;
-    write!(writer, "{}", record.alternate_bases())?;
+
+    if record.alternate_bases().is_empty() {
+        writer.write_all(MISSING)?;
+    } else {
+        write!(writer, "{}", record.alternate_bases())?;
+    }
 
     writer.write_all(DELIMITER)?;
 
