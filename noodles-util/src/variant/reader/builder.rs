@@ -89,7 +89,7 @@ impl Builder {
     where
         R: Read + 'static,
     {
-        let mut reader: Box<dyn BufRead> = Box::new(BufReader::new(reader));
+        let mut reader = BufReader::new(reader);
 
         let compression = self
             .compression
@@ -103,7 +103,7 @@ impl Builder {
 
         let inner: Box<dyn VariantReader<_>> = match (format, compression) {
             (Format::Vcf, None) => {
-                let inner: Box<dyn BufRead> = Box::new(BufReader::new(reader));
+                let inner: Box<dyn BufRead> = Box::new(reader);
                 Box::new(vcf::Reader::new(inner))
             }
             (Format::Vcf, Some(Compression::Bgzf)) => {
@@ -111,7 +111,7 @@ impl Builder {
                 Box::new(vcf::Reader::new(inner))
             }
             (Format::Bcf, None) => {
-                let inner: Box<dyn BufRead> = Box::new(BufReader::new(reader));
+                let inner: Box<dyn BufRead> = Box::new(reader);
                 Box::new(bcf::Reader::from(inner))
             }
             (Format::Bcf, Some(Compression::Bgzf)) => {
