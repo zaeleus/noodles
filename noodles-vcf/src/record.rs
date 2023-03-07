@@ -716,7 +716,7 @@ impl fmt::Display for Record {
         if self.ids().is_empty() {
             write!(f, "\t{MISSING_FIELD}")?;
         } else {
-            write!(f, "\t{}", self.ids())?;
+            write!(f, "\t{id}", id = self.ids())?;
         }
 
         write!(f, "\t{ref}", r#ref = self.reference_bases())?;
@@ -727,19 +727,19 @@ impl fmt::Display for Record {
             write!(f, "\t{alt}", alt = self.alternate_bases())?;
         }
 
-        if let Some(quality_score) = self.quality_score() {
-            write!(f, "\t{quality_score}")?;
+        if let Some(qual) = self.quality_score() {
+            write!(f, "\t{qual}")?;
         } else {
             write!(f, "\t{MISSING_FIELD}")?;
         }
 
-        if let Some(filters) = self.filters() {
-            write!(f, "\t{filters}")?;
+        if let Some(filter) = self.filters() {
+            write!(f, "\t{filter}")?;
         } else {
             write!(f, "\t{MISSING_FIELD}")?;
         }
 
-        write!(f, "\t{}", self.info())?;
+        write!(f, "\t{info}", info = self.info())?;
 
         if !self.genotypes().is_empty() {
             write!(f, "\t{}", self.genotypes())?;
