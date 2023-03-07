@@ -6,7 +6,10 @@ use std::env;
 
 use futures::TryStreamExt;
 use noodles_vcf as vcf;
-use tokio::{fs::File, io::BufReader};
+use tokio::{
+    fs::File,
+    io::{self, BufReader},
+};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -18,12 +21,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(vcf::AsyncReader::new)?;
 
     let header = reader.read_header().await?.parse()?;
-    print!("{header}");
+
+    let mut writer = vcf::AsyncWriter::new(io::stdout());
+    writer.write_header(&header).await?;
 
     let mut records = reader.records(&header);
 
     while let Some(record) = records.try_next().await? {
-        println!("{record}");
+        writer.write_record(&record).await?;
     }
 
     Ok(())
