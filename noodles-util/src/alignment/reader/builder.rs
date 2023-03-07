@@ -9,7 +9,6 @@ use noodles_bgzf as bgzf;
 use noodles_cram as cram;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
-use sam::AlignmentReader;
 
 use super::Reader;
 use crate::alignment::Format;
@@ -103,7 +102,7 @@ impl Builder {
             .map(Ok)
             .unwrap_or_else(|| detect_format(&mut reader))?;
 
-        let inner: Box<dyn AlignmentReader<_>> = match format {
+        let inner: Box<dyn sam::AlignmentReader<_>> = match format {
             Format::Sam => {
                 let inner: Box<dyn BufRead> = Box::new(BufReader::new(reader));
                 Box::new(sam::Reader::from(inner))
