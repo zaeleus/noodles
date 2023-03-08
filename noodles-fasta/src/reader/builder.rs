@@ -6,7 +6,7 @@ use std::{
 
 use noodles_bgzf as bgzf;
 
-use crate::Reader;
+use super::Reader;
 
 /// A FASTA reader builder.
 #[derive(Debug, Default)]
