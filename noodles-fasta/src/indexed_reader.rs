@@ -52,6 +52,11 @@ where
     pub fn read_sequence(&mut self, buf: &mut Vec<u8>) -> io::Result<usize> {
         self.inner.read_sequence(buf)
     }
+
+    /// Returns the associated index.
+    pub fn index(&self) -> &fai::Index {
+        &self.index
+    }
 }
 
 impl<R> IndexedReader<R>
