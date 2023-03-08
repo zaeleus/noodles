@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * sam/reader: Add builder (`sam::reader::Builder`).
+
+    The builder is able to construct a reader from a path
+    (`Builder::build_from_path`), which can open raw SAM files (`*.sam`) and
+    bgzipped SAM (`*.sam.gz`) files.
+
 ## 0.24.0 - 2023-03-03
 
 ### Added

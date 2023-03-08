@@ -1,8 +1,11 @@
 //! SAM reader and iterators.
 
+mod builder;
 mod query;
 pub(crate) mod record;
 mod records;
+
+pub use self::{builder::Builder, records::Records};
 
 use std::io::{self, BufRead, Read, Seek};
 
@@ -11,7 +14,6 @@ use noodles_core::Region;
 use noodles_csi::BinningIndex;
 use noodles_fasta as fasta;
 
-pub use self::records::Records;
 use super::{alignment::Record, header::ReferenceSequences, lazy, AlignmentReader, Header};
 
 /// A SAM reader.

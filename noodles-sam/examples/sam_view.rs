@@ -4,8 +4,7 @@
 
 use std::{
     env,
-    fs::File,
-    io::{self, BufReader, BufWriter},
+    io::{self, BufWriter},
 };
 
 use noodles_sam as sam;
@@ -13,7 +12,7 @@ use noodles_sam as sam;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = File::open(src).map(BufReader::new).map(sam::Reader::new)?;
+    let mut reader = sam::reader::Builder::default().build_from_path(src)?;
     let header = reader.read_header()?.parse()?;
 
     let stdout = io::stdout().lock();
