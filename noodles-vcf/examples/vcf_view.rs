@@ -2,18 +2,14 @@
 //!
 //! The result matches the output of `bcftools view <src>`.
 
-use std::{
-    env,
-    fs::File,
-    io::{self, BufReader},
-};
+use std::{env, io};
 
 use noodles_vcf as vcf;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = File::open(src).map(BufReader::new).map(vcf::Reader::new)?;
+    let mut reader = vcf::reader::Builder::default().build_from_path(src)?;
     let header = reader.read_header()?.parse()?;
 
     let stdout = io::stdout().lock();

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added
+
+  * vcf/reader: Add builder (`vcf::reader::Builder`).
+
+    The builder is able to construct a reader from a path
+    (`Builder::build_from_path`), which can open raw VCF files (`*.vcf`)
+    and bgzipped VCF (`*.vcf.gz`) files.
+
 ### Changed
 
   * vcf/record/alternate_bases: Move missing field value parsing to record
