@@ -4,6 +4,8 @@
 
 ### Added
 
+  * vcf: Add an indexed reader (`vcf::IndexedReader`).
+
   * vcf/reader: Add builder (`vcf::reader::Builder`).
 
     The builder is able to construct a reader from a path
