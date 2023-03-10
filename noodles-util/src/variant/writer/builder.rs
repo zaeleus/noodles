@@ -102,18 +102,17 @@ impl Builder {
         W: Write + 'static,
     {
         let format = self.format.unwrap_or(Format::Vcf);
-        let compression = self.compression.unwrap_or(None);
+        let compression = self.compression.unwrap_or(match format {
+            Format::Vcf => None,
+            Format::Bcf => Some(Compression::Bgzf),
+        });
 
         let inner: Box<dyn vcf::VariantWriter> = match (format, compression) {
             (Format::Vcf, None) => Box::new(vcf::Writer::new(writer)),
             (Format::Vcf, Some(Compression::Bgzf)) => {
                 Box::new(vcf::Writer::new(bgzf::Writer::new(writer)))
             }
-            (Format::Bcf, None) => Box::new(bcf::Writer::from(
-                bgzf::writer::Builder::default()
-                    .set_compression_level(bgzf::writer::CompressionLevel::none())
-                    .build_with_writer(writer),
-            )),
+            (Format::Bcf, None) => Box::new(bcf::Writer::from(writer)),
             (Format::Bcf, Some(Compression::Bgzf)) => Box::new(bcf::Writer::new(writer)),
         };
 
@@ -126,13 +125,20 @@ where
     P: AsRef<Path>,
 {
     let path = path.as_ref();
+    let ext = path.extension().and_then(|ext| ext.to_str());
 
-    match (compression, path.extension().and_then(|ext| ext.to_str())) {
+    match (compression, ext) {
         (None, Some("vcf")) => Some(Format::Vcf),
-        (None, Some("bcf")) => Some(Format::Bcf),
         (Some(Compression::Bgzf), Some("gz") | Some("bgz")) => {
-            detect_format_from_path_extension(path.file_stem()?, None)
+            let path: &Path = path.file_stem()?.as_ref();
+            let ext = path.extension().and_then(|ext| ext.to_str());
+
+            match ext {
+                Some("vcf") => Some(Format::Vcf),
+                _ => None,
+            }
         }
+        (None | Some(Compression::Bgzf), Some("bcf")) => Some(Format::Bcf),
         _ => None,
     }
 }
@@ -142,7 +148,7 @@ where
     P: AsRef<Path>,
 {
     match path.as_ref().extension().and_then(|ext| ext.to_str()) {
-        Some("gz") | Some("bgz") => Some(Compression::Bgzf),
+        Some("bcf") | Some("gz") | Some("bgz") => Some(Compression::Bgzf),
         _ => None,
     }
 }
@@ -157,6 +163,10 @@ mod tests {
         assert_eq!(
             detect_compression_from_path_extension("out.vcf.gz"),
             Some(Compression::Bgzf),
+        );
+        assert_eq!(
+            detect_compression_from_path_extension("out.bcf"),
+            Some(Compression::Bgzf)
         );
     }
 
@@ -174,11 +184,11 @@ mod tests {
             detect_format_from_path_extension("out.bcf", None),
             Some(Format::Bcf)
         );
-        assert_eq!(
-            detect_format_from_path_extension("out.bcf.bgz", Some(Compression::Bgzf)),
-            Some(Format::Bcf)
-        );
 
+        assert_eq!(
+            detect_format_from_path_extension("out.bcf.gz", Some(Compression::Bgzf)),
+            None
+        );
         assert_eq!(detect_format_from_path_extension("out.vcf.gz", None), None);
 
         assert!(detect_format_from_path_extension("out.fa", None).is_none());
