@@ -3,7 +3,7 @@ use std::{error, fmt};
 use super::{
     alternate_bases, chromosome, filters, genotypes, ids, info, position, quality_score,
     reference_bases, AlternateBases, Field, Filters, Genotypes, Ids, Info, QualityScore, Record,
-    FIELD_DELIMITER, MISSING_FIELD,
+    ReferenceBases, FIELD_DELIMITER, MISSING_FIELD,
 };
 use crate::Header;
 
@@ -78,10 +78,7 @@ pub fn parse(s: &str, header: &Header) -> Result<Record, ParseError> {
         .and_then(|s| s.parse().map_err(ParseError::InvalidPosition))?;
 
     let ids = parse_ids(&mut fields)?;
-
-    let r#ref = parse_string(&mut fields, Field::ReferenceBases)
-        .and_then(|s| s.parse().map_err(ParseError::InvalidReferenceBases))?;
-
+    let r#ref = parse_reference_bases(&mut fields)?;
     let alt = parse_alternate_bases(&mut fields)?;
     let qual = parse_quality_score(&mut fields)?;
     let filter = parse_filters(&mut fields)?;
@@ -122,6 +119,16 @@ where
     parse_string(fields, Field::Ids).and_then(|s| match s {
         MISSING_FIELD => Ok(Ids::default()),
         _ => s.parse().map_err(ParseError::InvalidIds),
+    })
+}
+
+fn parse_reference_bases<'a, I>(fields: &mut I) -> Result<ReferenceBases, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    parse_string(fields, Field::ReferenceBases).and_then(|s| match s {
+        MISSING_FIELD => Err(ParseError::MissingField(Field::ReferenceBases)),
+        _ => s.parse().map_err(ParseError::InvalidReferenceBases),
     })
 }
 

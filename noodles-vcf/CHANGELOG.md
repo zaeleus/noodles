@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * vcf/record/reference_bases: Move missing field value parsing to record
+    parser.
+
+    `ReferenceBases` no longer handles "." as missing.
+
 ## 0.26.0 - 2023-03-14
 
 ### Added

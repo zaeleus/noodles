@@ -11,8 +11,6 @@ use std::{
     str::FromStr,
 };
 
-use super::MISSING_FIELD;
-
 /// VCF record reference bases.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ReferenceBases(Vec<Base>);
@@ -46,8 +44,6 @@ impl fmt::Display for ReferenceBases {
 pub enum ParseError {
     /// The input is empty.
     Empty,
-    /// The input is missing (`.`).
-    Missing,
     /// The input has an invalid base.
     InvalidBase(base::TryFromCharError),
 }
@@ -65,7 +61,6 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
-            Self::Missing => f.write_str("missing input"),
             Self::InvalidBase(_) => f.write_str("invalid base"),
         }
     }
@@ -75,17 +70,16 @@ impl FromStr for ReferenceBases {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "" => Err(ParseError::Empty),
-            MISSING_FIELD => Err(ParseError::Missing),
-            _ => s
-                .chars()
-                .map(|c| c.to_ascii_uppercase())
-                .map(Base::try_from)
-                .collect::<Result<_, _>>()
-                .map(Self)
-                .map_err(ParseError::InvalidBase),
+        if s.is_empty() {
+            return Err(ParseError::Empty);
         }
+
+        s.chars()
+            .map(|c| c.to_ascii_uppercase())
+            .map(Base::try_from)
+            .collect::<Result<_, _>>()
+            .map(Self)
+            .map_err(ParseError::InvalidBase)
     }
 }
 
@@ -142,7 +136,12 @@ mod tests {
         assert_eq!(&bases[..], &expected[..]);
 
         assert_eq!("".parse::<ReferenceBases>(), Err(ParseError::Empty));
-        assert_eq!(".".parse::<ReferenceBases>(), Err(ParseError::Missing));
+
+        assert!(matches!(
+            ".".parse::<ReferenceBases>(),
+            Err(ParseError::InvalidBase(_))
+        ));
+
         assert!(matches!(
             "Z".parse::<ReferenceBases>(),
             Err(ParseError::InvalidBase(_))
