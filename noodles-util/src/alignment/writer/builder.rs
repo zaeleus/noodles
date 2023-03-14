@@ -2,7 +2,7 @@
 
 use std::{
     fs::File,
-    io::{self, Write},
+    io::{self, BufWriter, Write},
     path::Path,
 };
 
@@ -106,7 +106,7 @@ impl Builder {
             self.format = detect_format_from_path_extension(src);
         }
 
-        let file = File::create(src)?;
+        let file = File::create(src).map(BufWriter::new)?;
         Ok(self.build_from_writer(file))
     }
 
