@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * vcf/header/record/value/map/contig: Add `md5` as a standard tag.
+
 ### Changed
 
   * vcf/record/reference_bases: Move missing field value parsing to record

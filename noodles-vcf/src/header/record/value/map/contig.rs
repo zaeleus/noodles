@@ -17,6 +17,7 @@ type Tag = super::tag::Tag<StandardTag>;
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Contig {
     length: Option<usize>,
+    md5: Option<String>,
     idx: Option<usize>,
 }
 
@@ -78,12 +79,42 @@ impl Map<Contig> {
     pub fn length_mut(&mut self) -> &mut Option<usize> {
         &mut self.inner.length
     }
+
+    /// Returns the MD5 hexdigest.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::header::record::value::{map::Contig, Map};
+    /// let map = Map::<Contig>::new();
+    /// assert!(map.md5().is_none());
+    /// ```
+    pub fn md5(&self) -> Option<&str> {
+        self.inner.md5.as_deref()
+    }
+
+    /// Returns a mutable reference to the MD5 hexdigest.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::header::record::value::{map::Contig, Map};
+    /// let map = Map::<Contig>::new();
+    /// assert!(map.md5().is_none());
+    /// ```
+    pub fn md5_mut(&mut self) -> &mut Option<String> {
+        &mut self.inner.md5
+    }
 }
 
 impl fmt::Display for Map<Contig> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(length) = self.length() {
             write!(f, ",length={length}")?;
+        }
+
+        if let Some(md5) = self.md5() {
+            write!(f, ",md5={md5}")?;
         }
 
         super::fmt_display_other_fields(f, self.other_fields())?;
@@ -103,19 +134,21 @@ impl TryFrom<Fields> for Map<Contig> {
         let mut other_fields = super::init_other_fields();
 
         let mut length = None;
+        let mut md5 = None;
         let mut idx = None;
 
         for (key, value) in fields {
             match Tag::from(key) {
                 Tag::Standard(StandardTag::Id) => return Err(TryFromFieldsError::DuplicateTag),
                 Tag::Standard(StandardTag::Length) => parse_length(&value, &mut length)?,
+                Tag::Standard(StandardTag::Md5) => parse_md5(&value, &mut md5)?,
                 Tag::Standard(StandardTag::Idx) => super::parse_idx(&value, &mut idx)?,
                 Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
             }
         }
 
         Ok(Self {
-            inner: Contig { length, idx },
+            inner: Contig { length, md5, idx },
             other_fields,
         })
     }
@@ -127,6 +160,14 @@ fn parse_length(s: &str, value: &mut Option<usize>) -> Result<(), TryFromFieldsE
         .map_err(|_| TryFromFieldsError::InvalidValue("length"))?;
 
     if value.replace(n).is_none() {
+        Ok(())
+    } else {
+        Err(TryFromFieldsError::DuplicateTag)
+    }
+}
+
+fn parse_md5(s: &str, value: &mut Option<String>) -> Result<(), TryFromFieldsError> {
+    if value.replace(s.into()).is_none() {
         Ok(())
     } else {
         Err(TryFromFieldsError::DuplicateTag)
@@ -147,7 +188,7 @@ mod tests {
             ),
         ])?;
 
-        let expected = r#",length=8,md5="d7eba311421bbc9d3ada44709dd61534""#;
+        let expected = r#",length=8,md5=d7eba311421bbc9d3ada44709dd61534"#;
         assert_eq!(map.to_string(), expected);
 
         Ok(())
