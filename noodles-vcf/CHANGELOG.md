@@ -8,6 +8,10 @@
 
 ### Changed
 
+  * vcf/record/info: Move missing field value parsing to record parser.
+
+    `Info` no longer handles "." as missing.
+
   * vcf/record/reference_bases: Move missing field value parsing to record
     parser.
 

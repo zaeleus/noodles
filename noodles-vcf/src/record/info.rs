@@ -6,7 +6,6 @@ use std::{error, fmt, str::FromStr};
 
 use indexmap::IndexMap;
 
-use super::MISSING_FIELD;
 use crate::header::{self, info::Key};
 
 const DELIMITER: char = ';';
@@ -263,25 +262,21 @@ impl AsMut<IndexMap<Key, Option<field::Value>>> for Info {
 
 impl fmt::Display for Info {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.is_empty() {
-            f.write_str(MISSING_FIELD)
-        } else {
-            for (i, (key, value)) in self.0.iter().enumerate() {
-                if i > 0 {
-                    write!(f, "{DELIMITER}")?;
-                }
-
-                key.fmt(f)?;
-
-                match value {
-                    None => f.write_str("=.")?,
-                    Some(field::Value::Flag) => {}
-                    Some(v) => write!(f, "={v}")?,
-                }
+        for (i, (key, value)) in self.0.iter().enumerate() {
+            if i > 0 {
+                write!(f, "{DELIMITER}")?;
             }
 
-            Ok(())
+            key.fmt(f)?;
+
+            match value {
+                None => f.write_str("=.")?,
+                Some(field::Value::Flag) => {}
+                Some(v) => write!(f, "={v}")?,
+            }
         }
+
+        Ok(())
     }
 }
 
@@ -341,7 +336,6 @@ impl FromStr for Info {
 fn parse(s: &str, infos: &header::Infos) -> Result<Info, ParseError> {
     match s {
         "" => Err(ParseError::Empty),
-        MISSING_FIELD => Ok(Info::default()),
         _ => {
             let mut info = Info::default();
 
@@ -386,7 +380,7 @@ mod tests {
     #[test]
     fn test_fmt() {
         let info = Info::default();
-        assert_eq!(info.to_string(), ".");
+        assert!(info.to_string().is_empty());
 
         let info: Info = [(key::SAMPLES_WITH_DATA_COUNT, Some(field::Value::Integer(2)))]
             .into_iter()
@@ -421,9 +415,6 @@ mod tests {
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
-        let actual: Info = ".".parse()?;
-        assert!(actual.is_empty());
-
         let actual: Info = "NS=2".parse()?;
         assert_eq!(actual.len(), 1);
 
@@ -431,6 +422,10 @@ mod tests {
         assert_eq!(actual.len(), 2);
 
         assert_eq!("".parse::<Info>(), Err(ParseError::Empty));
+        assert!(matches!(
+            ".".parse::<Info>(),
+            Err(ParseError::InvalidField(_))
+        ));
         assert!(matches!(
             "NS=ndls".parse::<Info>(),
             Err(ParseError::InvalidField(_))

@@ -82,9 +82,7 @@ pub fn parse(s: &str, header: &Header) -> Result<Record, ParseError> {
     let alt = parse_alternate_bases(&mut fields)?;
     let qual = parse_quality_score(&mut fields)?;
     let filter = parse_filters(&mut fields)?;
-
-    let info = parse_string(&mut fields, Field::Info)
-        .and_then(|s| Info::try_from_str(s, header.infos()).map_err(ParseError::InvalidInfo))?;
+    let info = parse_info(&mut fields, header)?;
 
     let genotypes = if let Some(s) = fields.next() {
         Genotypes::parse(s, header).map_err(ParseError::InvalidGenotypes)?
@@ -159,6 +157,16 @@ where
     parse_string(fields, Field::Filters).and_then(|s| match s {
         MISSING_FIELD => Ok(None),
         _ => s.parse().map(Some).map_err(ParseError::InvalidFilters),
+    })
+}
+
+fn parse_info<'a, I>(fields: &mut I, header: &Header) -> Result<Info, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    parse_string(fields, Field::Info).and_then(|s| match s {
+        MISSING_FIELD => Ok(Info::default()),
+        _ => Info::try_from_str(s, header.infos()).map_err(ParseError::InvalidInfo),
     })
 }
 

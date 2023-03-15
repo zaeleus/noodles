@@ -739,7 +739,11 @@ impl fmt::Display for Record {
             write!(f, "\t{MISSING_FIELD}")?;
         }
 
-        write!(f, "\t{info}", info = self.info())?;
+        if self.info().is_empty() {
+            write!(f, "\t{MISSING_FIELD}")?;
+        } else {
+            write!(f, "\t{info}", info = self.info())?;
+        }
 
         if !self.genotypes().is_empty() {
             write!(f, "\t{}", self.genotypes())?;
