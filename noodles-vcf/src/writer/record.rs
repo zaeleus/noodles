@@ -1,13 +1,17 @@
+mod info;
+
 use std::io::{self, Write};
 
+use self::info::write_info;
 use crate::Record;
+
+const MISSING: &[u8] = b".";
 
 pub(super) fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
 where
     W: Write,
 {
     const DELIMITER: &[u8] = b"\t";
-    const MISSING: &[u8] = b".";
 
     write!(writer, "{}", record.chromosome())?;
 
@@ -50,7 +54,7 @@ where
     }
 
     writer.write_all(DELIMITER)?;
-    write!(writer, "{}", record.info())?;
+    write_info(writer, record.info())?;
 
     if !record.genotypes().is_empty() {
         writer.write_all(DELIMITER)?;
