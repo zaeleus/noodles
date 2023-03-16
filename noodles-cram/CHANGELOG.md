@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * cram: Add an indexed reader (`cram::IndexedReader`).
+
 ## 0.25.0 - 2023-03-14
 
 ### Changed

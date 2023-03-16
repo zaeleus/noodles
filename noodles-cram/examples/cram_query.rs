@@ -29,16 +29,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(fasta::Repository::new)
         .unwrap_or_default();
 
-    let mut reader = File::open(&src).map(cram::Reader::new)?;
+    let index = crai::read(src.with_extension("cram.crai"))?;
+
+    let mut reader = File::open(src).map(|f| cram::IndexedReader::new(f, index))?;
     reader.read_file_definition()?;
     let header = reader.read_file_header()?.parse()?;
-
-    let index = crai::read(src.with_extension("cram.crai"))?;
 
     let stdout = io::stdout().lock();
     let mut writer = sam::Writer::new(BufWriter::new(stdout));
 
-    let query = reader.query(&repository, &header, &index, &region)?;
+    let query = reader.query(&repository, &header, &region)?;
 
     for result in query {
         let record = result.and_then(|record| record.try_into_alignment_record(&header))?;
