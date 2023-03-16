@@ -12,8 +12,9 @@ use noodles_sam as sam;
 use super::{CompressionHeader, ReferenceSequenceContext};
 use crate::{
     container::Block,
+    io::BitReader,
     record::resolve::{resolve_bases, resolve_quality_scores},
-    BitReader, Record,
+    Record,
 };
 
 /// A CRAM data container slice.

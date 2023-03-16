@@ -27,11 +27,12 @@ use crate::{
         CompressionHeader, ReferenceSequenceContext,
     },
     huffman::CanonicalHuffmanDecoder,
+    io::BitReader,
     record::{
         feature::{self, substitution},
         Feature, Flags, NextMateFlags,
     },
-    BitReader, Record,
+    Record,
 };
 
 #[allow(clippy::enum_variant_names)]

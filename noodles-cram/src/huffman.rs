@@ -2,7 +2,7 @@ use std::{collections::HashMap, io};
 
 use bytes::Buf;
 
-use crate::BitReader;
+use crate::io::BitReader;
 
 type CodeBook = HashMap<i32, (i32, u32)>;
 
