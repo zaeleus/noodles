@@ -5,7 +5,6 @@
 #[cfg(feature = "async")]
 pub mod r#async;
 
-mod bit_writer;
 pub mod codecs;
 pub(crate) mod container;
 pub mod crai;
@@ -26,7 +25,5 @@ pub use self::{
 
 #[cfg(feature = "async")]
 pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};
-
-pub(crate) use self::bit_writer::BitWriter;
 
 static MAGIC_NUMBER: &[u8] = b"CRAM";

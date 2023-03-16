@@ -12,8 +12,9 @@ use crate::{
         compression_header::data_series_encoding_map::data_series::STANDARD_DATA_SERIES,
         BlockContentEncoderMap, CompressionHeader, ReferenceSequenceContext,
     },
+    io::BitWriter,
     record::Flags,
-    writer, BitWriter, Record,
+    writer, Record,
 };
 
 use super::{Header, Slice};

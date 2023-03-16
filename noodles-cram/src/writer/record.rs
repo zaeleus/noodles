@@ -25,11 +25,12 @@ use crate::{
         },
         CompressionHeader, ReferenceSequenceContext,
     },
+    io::BitWriter,
     record::{
         feature::{self, substitution},
         Feature, Flags, NextMateFlags,
     },
-    BitWriter, Record,
+    Record,
 };
 
 #[allow(clippy::enum_variant_names)]
