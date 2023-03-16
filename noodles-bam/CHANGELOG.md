@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bam/indexed_reader/builder: Add `Builder::build_from_reader`.
+
 ## 0.28.0 - 2023-03-14
 
 ### Changed

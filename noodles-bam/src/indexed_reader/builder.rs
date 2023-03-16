@@ -1,7 +1,7 @@
 use std::{
     ffi::{OsStr, OsString},
     fs::File,
-    io,
+    io::{self, Read},
     path::{Path, PathBuf},
 };
 
@@ -40,23 +40,44 @@ impl Builder {
     /// let reader = Builder::default().build_from_path("sample.bam")?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn build_from_path<P>(self, src: P) -> io::Result<IndexedReader<bgzf::Reader<File>>>
+    pub fn build_from_path<P>(mut self, src: P) -> io::Result<IndexedReader<bgzf::Reader<File>>>
     where
         P: AsRef<Path>,
     {
         let src = src.as_ref();
 
-        let index = match self.index {
-            Some(index) => index,
-            None => {
-                let index_src = build_index_src(src);
-                bai::read(index_src)?
-            }
-        };
+        if self.index.is_none() {
+            let index_src = build_index_src(src);
+            self.index = bai::read(index_src).map(Some)?;
+        }
 
         let file = File::open(src)?;
+        self.build_from_reader(file)
+    }
 
-        Ok(IndexedReader::new(file, index))
+    /// Builds an indexed BAM reader from a reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::{bai, indexed_reader::Builder};
+    ///
+    /// let index = bai::Index::default();
+    /// let data = [];
+    /// let builder = Builder::default()
+    ///     .set_index(index)
+    ///     .build_from_reader(&data[..])?;
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
+    pub fn build_from_reader<R>(self, reader: R) -> io::Result<IndexedReader<bgzf::Reader<R>>>
+    where
+        R: Read,
+    {
+        let index = self
+            .index
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing index"))?;
+
+        Ok(IndexedReader::new(reader, index))
     }
 }
 
