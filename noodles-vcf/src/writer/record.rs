@@ -1,8 +1,9 @@
+mod ids;
 mod info;
 
 use std::io::{self, Write};
 
-use self::info::write_info;
+use self::{ids::write_ids, info::write_info};
 use crate::Record;
 
 const MISSING: &[u8] = b".";
@@ -19,12 +20,7 @@ where
     write!(writer, "{}", record.position())?;
 
     writer.write_all(DELIMITER)?;
-
-    if record.ids().is_empty() {
-        writer.write_all(MISSING)?;
-    } else {
-        write!(writer, "{}", record.ids())?;
-    }
+    write_ids(writer, record.ids())?;
 
     writer.write_all(DELIMITER)?;
     write!(writer, "{}", record.reference_bases())?;
