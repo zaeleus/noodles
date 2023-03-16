@@ -11,7 +11,7 @@ pub mod crai;
 pub mod data_container;
 pub mod file_definition;
 mod huffman;
-mod indexed_reader;
+pub mod indexed_reader;
 mod indexer;
 pub(crate) mod io;
 mod num;

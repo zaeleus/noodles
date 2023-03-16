@@ -6,12 +6,11 @@
 
 use std::{
     env,
-    fs::File,
     io::{self, BufWriter, Write},
     path::PathBuf,
 };
 
-use noodles_cram::{self as cram, crai};
+use noodles_cram as cram;
 use noodles_fasta::{self as fasta, repository::adapters::IndexedReader};
 use noodles_sam::{self as sam, AlignmentWriter};
 
@@ -29,9 +28,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(fasta::Repository::new)
         .unwrap_or_default();
 
-    let index = crai::read(src.with_extension("cram.crai"))?;
-
-    let mut reader = File::open(src).map(|f| cram::IndexedReader::new(f, index))?;
+    let mut reader = cram::indexed_reader::Builder::default().build_from_path(src)?;
     reader.read_file_definition()?;
     let header = reader.read_file_header()?.parse()?;
 
