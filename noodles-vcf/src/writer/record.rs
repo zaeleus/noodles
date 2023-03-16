@@ -1,9 +1,10 @@
 mod ids;
 mod info;
+mod quality_score;
 
 use std::io::{self, Write};
 
-use self::{ids::write_ids, info::write_info};
+use self::{ids::write_ids, info::write_info, quality_score::write_quality_score};
 use crate::Record;
 
 const MISSING: &[u8] = b".";
@@ -34,12 +35,7 @@ where
     }
 
     writer.write_all(DELIMITER)?;
-
-    if let Some(quality_score) = record.quality_score() {
-        write!(writer, "{quality_score}")?;
-    } else {
-        writer.write_all(MISSING)?;
-    }
+    write_quality_score(writer, record.quality_score())?;
 
     writer.write_all(DELIMITER)?;
 
