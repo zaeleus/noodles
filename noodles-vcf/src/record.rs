@@ -498,7 +498,7 @@ impl Record {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::{format::key, record::value::{map::Format, Map}},
-    ///     record::{genotypes::{Genotype, Keys}, Genotypes, Position},
+    ///     record::{genotypes::{Values, Keys}, Genotypes, Position},
     /// };
     ///
     /// let header = vcf::Header::builder()
@@ -507,13 +507,13 @@ impl Record {
     ///     .build();
     ///
     /// let keys = "GT:GQ".parse()?;
-    /// let genotypes = vec![Genotype::parse("0|0:13", header.formats(), &keys)?];
+    /// let values = vec![Values::parse("0|0:13", header.formats(), &keys)?];
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
-    ///     .set_genotypes(Genotypes::new(keys, genotypes))
+    ///     .set_genotypes(Genotypes::new(keys, values))
     ///     .build()?;
     ///
     /// assert_eq!(record.format(), &Keys::try_from(vec![
@@ -535,7 +535,7 @@ impl Record {
     ///     self as vcf,
     ///     header::format::key,
     ///     record::{
-    ///         genotypes::{genotype::field::Value, Genotypes},
+    ///         genotypes::{values::field::Value, Genotypes},
     ///         Position,
     ///     },
     /// };
@@ -572,7 +572,7 @@ impl Record {
     ///     self as vcf,
     ///     header::format::key,
     ///     record::{
-    ///         genotypes::{genotype::field::Value, Genotypes},
+    ///         genotypes::{values::field::Value, Genotypes},
     ///         Position,
     ///     },
     /// };
@@ -820,7 +820,7 @@ mod tests {
 
     #[test]
     fn test_fmt_with_format() -> Result<(), Box<dyn std::error::Error>> {
-        use super::genotypes::Genotype;
+        use super::genotypes::Values;
         use crate::{
             header::{
                 format::key,
@@ -838,7 +838,7 @@ mod tests {
             .build();
 
         let keys: genotypes::Keys = "GT:GQ".parse()?;
-        let genotypes = vec![Genotype::parse("0|0:13", header.formats(), &keys)?];
+        let genotypes = vec![Values::parse("0|0:13", header.formats(), &keys)?];
 
         let record = Record::builder()
             .set_chromosome("sq0".parse()?)

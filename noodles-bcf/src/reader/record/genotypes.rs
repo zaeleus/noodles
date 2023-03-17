@@ -8,7 +8,7 @@ use noodles_vcf::{
     self as vcf,
     header::format::{key, Key},
     record::{
-        genotypes::{genotype::field::Value, Genotype, Keys},
+        genotypes::{values::field::Value, Keys, Values},
         Genotypes,
     },
 };
@@ -53,7 +53,7 @@ where
     let genotypes = genotypes
         .into_iter()
         .map(|fields| {
-            Genotype::try_from(fields).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            Values::try_from(fields).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })
         .collect::<Result<Vec<_>, _>>()?;
 

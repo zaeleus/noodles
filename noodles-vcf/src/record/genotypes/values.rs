@@ -1,4 +1,4 @@
-//! VCF record genotype and field.
+//! VCF record genotype values.
 
 pub mod field;
 
@@ -23,7 +23,7 @@ const DELIMITER: char = ':';
 
 /// A VCF record genotype.
 #[derive(Clone, Debug, Default, PartialEq)]
-pub struct Genotype(IndexMap<Key, Option<field::Value>>);
+pub struct Values(IndexMap<Key, Option<field::Value>>);
 
 /// An error returned when a raw VCF genotype fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -90,7 +90,7 @@ impl fmt::Display for GenotypeError {
     }
 }
 
-impl Genotype {
+impl Values {
     /// Parses a raw genotype for the given genotype keys.
     ///
     /// # Examples
@@ -99,7 +99,7 @@ impl Genotype {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::{format::key, record::value::{map::Format, Map}},
-    ///     record::genotypes::{genotype::field::Value, Genotype},
+    ///     record::genotypes::{values::field::Value, Values},
     /// };
     ///
     /// let header = vcf::Header::builder()
@@ -113,7 +113,7 @@ impl Genotype {
     /// let keys = "GT:GQ".parse()?;
     ///
     /// assert_eq!(
-    ///     Genotype::parse("0|0:13", header.formats(), &keys),
+    ///     Values::parse("0|0:13", header.formats(), &keys),
     ///     Ok([
     ///         (key::GENOTYPE, Some(Value::String(String::from("0|0")))),
     ///         (key::CONDITIONAL_GENOTYPE_QUALITY, Some(Value::Integer(13))),
@@ -162,7 +162,7 @@ impl Genotype {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::{format::key, record::value::{map::Format, Map}},
-    ///     record::genotypes::{genotype::field::Value, Genotype},
+    ///     record::genotypes::{values::field::Value, Values},
     /// };
     ///
     /// let header = vcf::Header::builder()
@@ -175,8 +175,8 @@ impl Genotype {
     ///
     /// let keys = "GT:GQ".parse()?;
     ///
-    /// let genotype = Genotype::parse("0|0:13", header.formats(), &keys)?;
-    /// assert_eq!(genotype.genotype(), Some(Ok("0|0".parse()?)));
+    /// let values = Values::parse("0|0:13", header.formats(), &keys)?;
+    /// assert_eq!(values.genotype(), Some(Ok("0|0".parse()?)));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn genotype(&self) -> Option<Result<field::value::Genotype, GenotypeError>> {
@@ -187,7 +187,7 @@ impl Genotype {
     }
 }
 
-impl Deref for Genotype {
+impl Deref for Values {
     type Target = IndexMap<Key, Option<field::Value>>;
 
     fn deref(&self) -> &Self::Target {
@@ -195,13 +195,13 @@ impl Deref for Genotype {
     }
 }
 
-impl DerefMut for Genotype {
+impl DerefMut for Values {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
 }
 
-impl fmt::Display for Genotype {
+impl fmt::Display for Values {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.is_empty() {
             f.write_str(MISSING_FIELD)
@@ -223,13 +223,13 @@ impl fmt::Display for Genotype {
     }
 }
 
-impl Extend<(Key, Option<field::Value>)> for Genotype {
+impl Extend<(Key, Option<field::Value>)> for Values {
     fn extend<T: IntoIterator<Item = (Key, Option<field::Value>)>>(&mut self, iter: T) {
         self.0.extend(iter);
     }
 }
 
-impl FromIterator<(Key, Option<field::Value>)> for Genotype {
+impl FromIterator<(Key, Option<field::Value>)> for Values {
     fn from_iter<T: IntoIterator<Item = (Key, Option<field::Value>)>>(iter: T) -> Self {
         let mut genotype = Self::default();
         genotype.extend(iter);
@@ -261,7 +261,7 @@ impl fmt::Display for TryFromFieldsError {
     }
 }
 
-impl TryFrom<Vec<(Key, Option<field::Value>)>> for Genotype {
+impl TryFrom<Vec<(Key, Option<field::Value>)>> for Values {
     type Error = TryFromFieldsError;
 
     fn try_from(fields: Vec<(Key, Option<field::Value>)>) -> Result<Self, Self::Error> {
@@ -311,27 +311,27 @@ mod tests {
 
         let keys = "GT".parse()?;
         assert_eq!(
-            Genotype::parse(".", header.formats(), &keys),
-            Ok(Genotype::default())
+            Values::parse(".", header.formats(), &keys),
+            Ok(Values::default())
         );
 
         let keys = "GT".parse()?;
-        let actual = Genotype::parse("0|0", header.formats(), &keys)?;
+        let actual = Values::parse("0|0", header.formats(), &keys)?;
         assert_eq!(actual.len(), 1);
 
         let keys = "GT:GQ".parse()?;
-        let actual = Genotype::parse("0|0:13", header.formats(), &keys)?;
+        let actual = Values::parse("0|0:13", header.formats(), &keys)?;
         assert_eq!(actual.len(), 2);
 
         let keys = "GT".parse()?;
         assert_eq!(
-            Genotype::parse("", header.formats(), &keys),
+            Values::parse("", header.formats(), &keys),
             Err(ParseError::Empty)
         );
 
         let keys = "GT".parse()?;
         assert_eq!(
-            Genotype::parse("0|0:13", header.formats(), &keys),
+            Values::parse("0|0:13", header.formats(), &keys),
             Err(ParseError::UnexpectedValue)
         );
 
@@ -340,19 +340,19 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let genotype = Genotype::default();
-        assert_eq!(genotype.to_string(), ".");
+        let values = Values::default();
+        assert_eq!(values.to_string(), ".");
 
-        let genotype: Genotype = [(
+        let values: Values = [(
             key::GENOTYPE,
             Some(field::Value::String(String::from("0|0"))),
         )]
         .into_iter()
         .collect();
 
-        assert_eq!(genotype.to_string(), "0|0");
+        assert_eq!(values.to_string(), "0|0");
 
-        let genotype: Genotype = [
+        let values: Values = [
             (
                 key::GENOTYPE,
                 Some(field::Value::String(String::from("0|0"))),
@@ -365,18 +365,18 @@ mod tests {
         .into_iter()
         .collect();
 
-        assert_eq!(genotype.to_string(), "0|0:13");
+        assert_eq!(values.to_string(), "0|0:13");
     }
 
     #[test]
     fn test_extend() {
-        let mut genotype = Genotype::default();
+        let mut values = Values::default();
 
         let fields = [(
             key::GENOTYPE,
             Some(field::Value::String(String::from("0|0"))),
         )];
-        genotype.extend(fields);
+        values.extend(fields);
 
         let expected = [(
             key::GENOTYPE,
@@ -385,24 +385,24 @@ mod tests {
         .into_iter()
         .collect();
 
-        assert_eq!(genotype, expected);
+        assert_eq!(values, expected);
     }
 
     #[test]
-    fn test_try_from_fields_for_genotype() {
-        assert!(Genotype::try_from(Vec::new()).is_ok());
+    fn test_try_from_fields_for_values() {
+        assert!(Values::try_from(Vec::new()).is_ok());
 
         let fields = vec![(
             key::GENOTYPE,
             Some(field::Value::String(String::from("0|0"))),
         )];
-        assert!(Genotype::try_from(fields).is_ok());
+        assert!(Values::try_from(fields).is_ok());
 
         let fields = vec![(
             key::CONDITIONAL_GENOTYPE_QUALITY,
             Some(field::Value::Integer(13)),
         )];
-        assert!(Genotype::try_from(fields).is_ok());
+        assert!(Values::try_from(fields).is_ok());
 
         let fields = vec![
             (
@@ -415,7 +415,7 @@ mod tests {
             ),
         ];
         assert_eq!(
-            Genotype::try_from(fields),
+            Values::try_from(fields),
             Err(TryFromFieldsError::InvalidGenotypeFieldPosition)
         );
 
@@ -430,14 +430,14 @@ mod tests {
             ),
         ];
         assert_eq!(
-            Genotype::try_from(fields),
+            Values::try_from(fields),
             Err(TryFromFieldsError::DuplicateKey(key::GENOTYPE))
         );
     }
 
     #[test]
     fn test_genotype() {
-        let genotype: Genotype = [(
+        let values: Values = [(
             key::GENOTYPE,
             Some(field::Value::String(String::from("ndls"))),
         )]
@@ -445,16 +445,16 @@ mod tests {
         .collect();
 
         assert!(matches!(
-            genotype.genotype(),
+            values.genotype(),
             Some(Err(GenotypeError::InvalidValue(_)))
         ));
 
-        let genotype: Genotype = [(key::GENOTYPE, Some(field::Value::Integer(0)))]
+        let values: Values = [(key::GENOTYPE, Some(field::Value::Integer(0)))]
             .into_iter()
             .collect();
 
         assert!(matches!(
-            genotype.genotype(),
+            values.genotype(),
             Some(Err(GenotypeError::InvalidValueType(_)))
         ));
     }

@@ -21,7 +21,7 @@ impl Allele {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::genotypes::genotype::field::value::genotype::{allele::Phasing, Allele};
+    /// use noodles_vcf::record::genotypes::values::field::value::genotype::{allele::Phasing, Allele};
     /// let allele = Allele::new(Some(0), Phasing::Phased);
     /// ```
     pub fn new(position: Option<usize>, phasing: Phasing) -> Self {
@@ -33,7 +33,7 @@ impl Allele {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::genotypes::genotype::field::value::genotype::{allele::Phasing, Allele};
+    /// use noodles_vcf::record::genotypes::values::field::value::genotype::{allele::Phasing, Allele};
     /// let allele = Allele::new(Some(0), Phasing::Phased);
     /// assert_eq!(allele.position(), Some(0));
     /// ```
@@ -46,7 +46,7 @@ impl Allele {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::genotypes::genotype::field::value::genotype::{allele::Phasing, Allele};
+    /// use noodles_vcf::record::genotypes::values::field::value::genotype::{allele::Phasing, Allele};
     /// let mut allele = Allele::new(Some(0), Phasing::Phased);
     /// *allele.position_mut() = Some(1);
     /// assert_eq!(allele.position(), Some(1));
@@ -60,7 +60,7 @@ impl Allele {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::genotypes::genotype::field::value::genotype::{allele::Phasing, Allele};
+    /// use noodles_vcf::record::genotypes::values::field::value::genotype::{allele::Phasing, Allele};
     /// let allele = Allele::new(Some(0), Phasing::Phased);
     /// assert_eq!(allele.phasing(), Phasing::Phased);
     /// ```
@@ -73,7 +73,7 @@ impl Allele {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::genotypes::genotype::field::value::genotype::{allele::Phasing, Allele};
+    /// use noodles_vcf::record::genotypes::values::field::value::genotype::{allele::Phasing, Allele};
     /// let mut allele = Allele::new(Some(0), Phasing::Phased);
     /// *allele.phasing_mut() = Phasing::Unphased;
     /// assert_eq!(allele.phasing(), Phasing::Unphased);

@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use super::MISSING;
 use crate::record::{
-    genotypes::{genotype::field::Value, Genotype, Keys},
+    genotypes::{values::field::Value, Keys, Values},
     Genotypes,
 };
 
@@ -39,7 +39,7 @@ where
     Ok(())
 }
 
-fn write_values<W>(writer: &mut W, values: &Genotype) -> io::Result<()>
+fn write_values<W>(writer: &mut W, values: &Values) -> io::Result<()>
 where
     W: Write,
 {

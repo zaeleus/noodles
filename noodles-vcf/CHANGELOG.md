@@ -8,6 +8,8 @@
 
 ### Changed
 
+  * vcf/record/genotypes: Rename `Genotype` to `Values`.
+
   * vcf/record/info: Move missing field value parsing to record parser.
 
     `Info` no longer handles "." as missing.

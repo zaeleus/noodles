@@ -200,7 +200,7 @@ mod tests {
         use crate::{
             header::format::key,
             record::{
-                genotypes::{genotype::field::Value, Keys},
+                genotypes::{values::field::Value, Keys},
                 Genotypes,
             },
         };

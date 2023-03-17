@@ -1,9 +1,9 @@
 //! VCF record genotypes and fields.
 
-pub mod genotype;
 pub mod keys;
+pub mod values;
 
-pub use self::{genotype::Genotype, keys::Keys};
+pub use self::{keys::Keys, values::Values};
 
 use std::{
     error,
@@ -12,7 +12,7 @@ use std::{
     str::FromStr,
 };
 
-use self::genotype::field;
+use self::values::field;
 use super::FIELD_DELIMITER;
 use crate::Header;
 
@@ -20,7 +20,7 @@ use crate::Header;
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Genotypes {
     keys: Keys,
-    genotypes: Vec<Genotype>,
+    values: Vec<Values>,
 }
 
 impl Genotypes {
@@ -33,7 +33,7 @@ impl Genotypes {
     ///     self as vcf,
     ///     header::{format::key, record::value::{map::Format, Map}},
     ///     record::{
-    ///         genotypes::{genotype::field::Value, Keys},
+    ///         genotypes::{values::field::Value, Keys},
     ///         Genotypes,
     ///     },
     /// };
@@ -67,8 +67,8 @@ impl Genotypes {
     /// use noodles_vcf::record::{genotypes::Keys, Genotypes};
     /// let genotypes = Genotypes::new(Keys::default(), Vec::new());
     /// ```
-    pub fn new(keys: Keys, genotypes: Vec<Genotype>) -> Self {
-        Self { keys, genotypes }
+    pub fn new(keys: Keys, values: Vec<Values>) -> Self {
+        Self { keys, values }
     }
 
     /// Returns whether there are any samples.
@@ -81,7 +81,7 @@ impl Genotypes {
     /// assert!(genotypes.is_empty());
     /// ```
     pub fn is_empty(&self) -> bool {
-        self.genotypes.is_empty()
+        self.values.is_empty()
     }
 
     /// Returns the genotypes keys.
@@ -123,24 +123,22 @@ impl Genotypes {
     }
 
     /// Returns the VCF record genotype value.
-    pub fn genotypes(
-        &self,
-    ) -> Result<Vec<Option<field::value::Genotype>>, genotype::GenotypeError> {
+    pub fn genotypes(&self) -> Result<Vec<Option<field::value::Genotype>>, values::GenotypeError> {
         self.iter().map(|g| g.genotype().transpose()).collect()
     }
 }
 
 impl Deref for Genotypes {
-    type Target = Vec<Genotype>;
+    type Target = Vec<Values>;
 
     fn deref(&self) -> &Self::Target {
-        &self.genotypes
+        &self.values
     }
 }
 
 impl DerefMut for Genotypes {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.genotypes
+        &mut self.values
     }
 }
 
@@ -148,7 +146,7 @@ impl fmt::Display for Genotypes {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}{}", self.keys(), FIELD_DELIMITER)?;
 
-        for (i, genotype) in self.genotypes.iter().enumerate() {
+        for (i, genotype) in self.values.iter().enumerate() {
             if i > 0 {
                 f.write_char(FIELD_DELIMITER)?;
             }
@@ -169,15 +167,15 @@ pub enum ParseError {
     Invalid,
     /// A key is invalid.
     InvalidKeys(keys::ParseError),
-    /// A genotype is invalid.
-    InvalidGenotype(genotype::ParseError),
+    /// A value is invalid.
+    InvalidValues(values::ParseError),
 }
 
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::InvalidKeys(e) => Some(e),
-            Self::InvalidGenotype(e) => Some(e),
+            Self::InvalidValues(e) => Some(e),
             _ => None,
         }
     }
@@ -189,7 +187,7 @@ impl fmt::Display for ParseError {
             Self::Empty => f.write_str("empty input"),
             Self::Invalid => f.write_str("invalid input"),
             Self::InvalidKeys(_) => f.write_str("invalid keys"),
-            Self::InvalidGenotype(_) => f.write_str("invalid genotype"),
+            Self::InvalidValues(_) => f.write_str("invalid values"),
         }
     }
 }
@@ -211,13 +209,13 @@ fn parse(s: &str, header: &Header) -> Result<Genotypes, ParseError> {
 
     let keys = format.parse().map_err(ParseError::InvalidKeys)?;
 
-    let genotypes = t
+    let values = t
         .split(FIELD_DELIMITER)
-        .map(|t| Genotype::parse(t, header.formats(), &keys))
+        .map(|t| Values::parse(t, header.formats(), &keys))
         .collect::<Result<_, _>>()
-        .map_err(ParseError::InvalidGenotype)?;
+        .map_err(ParseError::InvalidValues)?;
 
-    Ok(Genotypes::new(keys, genotypes))
+    Ok(Genotypes::new(keys, values))
 }
 
 #[cfg(test)]
@@ -240,13 +238,13 @@ mod tests {
             .build();
 
         let keys = "GT:GQ".parse()?;
-        let genotypes = vec![
-            Genotype::parse("0|0:7", header.formats(), &keys)?,
-            Genotype::parse("./.:20", header.formats(), &keys)?,
-            Genotype::parse("1/1:1", header.formats(), &keys)?,
-            Genotype::parse(".", header.formats(), &keys)?,
+        let values = vec![
+            Values::parse("0|0:7", header.formats(), &keys)?,
+            Values::parse("./.:20", header.formats(), &keys)?,
+            Values::parse("1/1:1", header.formats(), &keys)?,
+            Values::parse(".", header.formats(), &keys)?,
         ];
-        let genotypes = Genotypes::new(keys, genotypes);
+        let genotypes = Genotypes::new(keys, values);
 
         let actual = genotypes.genotypes();
         let expected = Ok(vec![
@@ -263,7 +261,7 @@ mod tests {
 
     #[test]
     fn test_fmt() -> Result<(), super::keys::TryFromKeyVectorError> {
-        use self::genotype::field::Value;
+        use self::values::field::Value;
         use crate::header::format::key;
 
         let genotypes = Genotypes::new(
@@ -283,7 +281,7 @@ mod tests {
 
     #[test]
     fn test_from_str() -> Result<(), super::keys::TryFromKeyVectorError> {
-        use super::genotype::field::Value;
+        use super::values::field::Value;
         use crate::header::format::key;
 
         let expected = Genotypes::new(
@@ -305,7 +303,7 @@ mod tests {
         ));
         assert!(matches!(
             "GQ\tndls".parse::<Genotypes>(),
-            Err(ParseError::InvalidGenotype(_))
+            Err(ParseError::InvalidValues(_))
         ));
 
         Ok(())

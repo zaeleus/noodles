@@ -10,7 +10,7 @@ use noodles_vcf::{
         format::{key, Key},
         record::value::{map::Format, Map},
     },
-    record::genotypes::genotype::field::Value,
+    record::genotypes::values::field::Value,
 };
 
 use crate::{
@@ -28,7 +28,7 @@ pub fn write_genotypes<W>(
     header: &vcf::Header,
     string_string_map: &StringStringMap,
     keys: &vcf::record::genotypes::Keys,
-    genotypes: &[vcf::record::genotypes::Genotype],
+    genotypes: &[vcf::record::genotypes::Values],
 ) -> io::Result<()>
 where
     W: Write,
@@ -781,7 +781,7 @@ mod tests {
     fn test_write_genotypes() -> Result<(), Box<dyn std::error::Error>> {
         use vcf::{
             header::{format::key, record::value::Map},
-            record::genotypes::genotype::field::Value,
+            record::genotypes::values::field::Value,
         };
 
         let header = vcf::Header::builder()

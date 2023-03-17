@@ -208,7 +208,7 @@ mod tests {
 
     #[test]
     fn test_from_str_with_genotype_info() -> Result<(), Box<dyn std::error::Error>> {
-        use self::genotypes::genotype::field::Value;
+        use self::genotypes::values::field::Value;
         use crate::header::format::key;
 
         let s = "chr1\t13\tnd0\tATCG\tA\t5.8\tPASS\tSVTYPE=DEL\tGT:GQ\t0|1:13";

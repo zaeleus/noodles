@@ -276,7 +276,7 @@ impl Builder {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::format::key,
-    ///     record::{genotypes::genotype::field::Value, Genotypes, Position},
+    ///     record::{genotypes::values::field::Value, Genotypes, Position},
     /// };
     ///
     /// let keys = "GT:GQ".parse()?;
