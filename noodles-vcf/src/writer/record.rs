@@ -1,10 +1,14 @@
+mod genotypes;
 mod ids;
 mod info;
 mod quality_score;
 
 use std::io::{self, Write};
 
-use self::{ids::write_ids, info::write_info, quality_score::write_quality_score};
+use self::{
+    genotypes::write_genotypes, ids::write_ids, info::write_info,
+    quality_score::write_quality_score,
+};
 use crate::Record;
 
 const MISSING: &[u8] = b".";
@@ -50,7 +54,7 @@ where
 
     if !record.genotypes().is_empty() {
         writer.write_all(DELIMITER)?;
-        write!(writer, "{}", record.genotypes())?;
+        write_genotypes(writer, record.genotypes())?;
     }
 
     writer.write_all(b"\n")?;
