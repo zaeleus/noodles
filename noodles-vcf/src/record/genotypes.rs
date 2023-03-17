@@ -12,7 +12,6 @@ use std::{
     str::FromStr,
 };
 
-use self::values::field;
 use super::FIELD_DELIMITER;
 use crate::Header;
 
@@ -33,7 +32,7 @@ impl Genotypes {
     ///     self as vcf,
     ///     header::{format::key, record::value::{map::Format, Map}},
     ///     record::{
-    ///         genotypes::{values::field::Value, Keys},
+    ///         genotypes::{values::Value, Keys},
     ///         Genotypes,
     ///     },
     /// };
@@ -123,7 +122,7 @@ impl Genotypes {
     }
 
     /// Returns the VCF record genotype value.
-    pub fn genotypes(&self) -> Result<Vec<Option<field::value::Genotype>>, values::GenotypeError> {
+    pub fn genotypes(&self) -> Result<Vec<Option<values::value::Genotype>>, values::GenotypeError> {
         self.iter().map(|g| g.genotype().transpose()).collect()
     }
 }
@@ -261,7 +260,7 @@ mod tests {
 
     #[test]
     fn test_fmt() -> Result<(), super::keys::TryFromKeyVectorError> {
-        use self::values::field::Value;
+        use self::values::Value;
         use crate::header::format::key;
 
         let genotypes = Genotypes::new(
@@ -281,7 +280,7 @@ mod tests {
 
     #[test]
     fn test_from_str() -> Result<(), super::keys::TryFromKeyVectorError> {
-        use super::values::field::Value;
+        use super::values::Value;
         use crate::header::format::key;
 
         let expected = Genotypes::new(

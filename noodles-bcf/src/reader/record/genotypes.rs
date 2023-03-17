@@ -8,7 +8,7 @@ use noodles_vcf::{
     self as vcf,
     header::format::{key, Key},
     record::{
-        genotypes::{values::field::Value, Keys, Values},
+        genotypes::{values::Value, Keys, Values},
         Genotypes,
     },
 };

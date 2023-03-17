@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use super::MISSING;
 use crate::record::{
-    genotypes::{values::field::Value, Keys, Values},
+    genotypes::{values::Value, Keys, Values},
     Genotypes,
 };
 

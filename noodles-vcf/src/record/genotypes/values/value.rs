@@ -160,7 +160,7 @@ impl Value {
     /// ```
     /// use noodles_vcf::{
     ///     header::{format::key, record::value::{map::Format, Map}},
-    ///     record::genotypes::values::field::Value,
+    ///     record::genotypes::values::Value,
     /// };
     ///
     /// let format = Map::<Format>::from(&key::CONDITIONAL_GENOTYPE_QUALITY);

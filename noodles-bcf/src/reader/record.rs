@@ -272,7 +272,7 @@ pub(crate) mod tests {
         use noodles_vcf::{
             header::{format, info},
             record::{
-                genotypes::{values::field::Value as GenotypeFieldValue, Keys},
+                genotypes::{values::Value as GenotypeFieldValue, Keys},
                 info::field::Value as InfoFieldValue,
                 Filters as VcfFilters, Genotypes as VcfGenotypes, Ids, Position,
             },
