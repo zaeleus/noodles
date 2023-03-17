@@ -498,7 +498,7 @@ impl Record {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::{format::key, record::value::{map::Format, Map}},
-    ///     record::{genotypes::{Values, Keys}, Genotypes, Position},
+    ///     record::{genotypes::Keys, Genotypes, Position},
     /// };
     ///
     /// let header = vcf::Header::builder()
@@ -506,14 +506,11 @@ impl Record {
     ///     .add_format(key::CONDITIONAL_GENOTYPE_QUALITY, Map::<Format>::from(&key::CONDITIONAL_GENOTYPE_QUALITY))
     ///     .build();
     ///
-    /// let keys = "GT:GQ".parse()?;
-    /// let values = vec![Values::parse("0|0:13", header.formats(), &keys)?];
-    ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
-    ///     .set_genotypes(Genotypes::new(keys, values))
+    ///     .set_genotypes(Genotypes::parse("GT:GQ\t0|0:13", &header)?)
     ///     .build()?;
     ///
     /// assert_eq!(record.format(), &Keys::try_from(vec![
@@ -543,10 +540,10 @@ impl Record {
     /// let keys = "GT:GQ".parse()?;
     /// let genotypes = Genotypes::new(
     ///     keys,
-    ///     vec![[
-    ///         (key::GENOTYPE, Some(Value::String(String::from("0|0")))),
-    ///         (key::CONDITIONAL_GENOTYPE_QUALITY, Some(Value::Integer(13))),
-    ///     ].into_iter().collect()],
+    ///     vec![vec![
+    ///         Some(Value::String(String::from("0|0"))),
+    ///         Some(Value::Integer(13)),
+    ///     ]],
     /// );
     ///
     /// let record = vcf::Record::builder()
@@ -586,10 +583,10 @@ impl Record {
     /// let keys = "GT:GQ".parse()?;
     /// let genotypes = Genotypes::new(
     ///     keys,
-    ///     vec![[
-    ///         (key::GENOTYPE, Some(Value::String(String::from("0|0")))),
-    ///         (key::CONDITIONAL_GENOTYPE_QUALITY, Some(Value::Integer(13))),
-    ///     ].into_iter().collect()],
+    ///     vec![vec![
+    ///         Some(Value::String(String::from("0|0"))),
+    ///         Some(Value::Integer(13)),
+    ///     ]],
     /// );
     ///
     /// *record.genotypes_mut() = genotypes.clone();
@@ -820,31 +817,11 @@ mod tests {
 
     #[test]
     fn test_fmt_with_format() -> Result<(), Box<dyn std::error::Error>> {
-        use super::genotypes::Values;
-        use crate::{
-            header::{
-                format::key,
-                record::value::{map::Format, Map},
-            },
-            Header,
-        };
-
-        let header = Header::builder()
-            .add_format(key::GENOTYPE, Map::<Format>::from(&key::GENOTYPE))
-            .add_format(
-                key::CONDITIONAL_GENOTYPE_QUALITY,
-                Map::<Format>::from(&key::CONDITIONAL_GENOTYPE_QUALITY),
-            )
-            .build();
-
-        let keys: genotypes::Keys = "GT:GQ".parse()?;
-        let genotypes = vec![Values::parse("0|0:13", header.formats(), &keys)?];
-
         let record = Record::builder()
             .set_chromosome("sq0".parse()?)
             .set_position(Position::from(1))
             .set_reference_bases("A".parse()?)
-            .set_genotypes(Genotypes::new(keys, genotypes))
+            .set_genotypes("GT:GQ\t0|0:13".parse()?)
             .build()?;
 
         assert_eq!(

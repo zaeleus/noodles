@@ -282,10 +282,10 @@ impl Builder {
     /// let keys = "GT:GQ".parse()?;
     /// let genotypes = Genotypes::new(
     ///     keys,
-    ///     vec![[
-    ///         (key::GENOTYPE, Some(Value::String(String::from("0|0")))),
-    ///         (key::CONDITIONAL_GENOTYPE_QUALITY, Some(Value::Integer(13))),
-    ///     ].into_iter().collect()],
+    ///     vec![vec![
+    ///         Some(Value::String(String::from("0|0"))),
+    ///         Some(Value::Integer(13)),
+    ///     ]],
     /// );
     ///
     /// let record = vcf::Record::builder()

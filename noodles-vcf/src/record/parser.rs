@@ -216,15 +216,13 @@ mod tests {
 
         let keys =
             genotypes::Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?;
-        let genotypes = vec![[
-            (key::GENOTYPE, Some(Value::String(String::from("0|1")))),
-            (key::CONDITIONAL_GENOTYPE_QUALITY, Some(Value::Integer(13))),
-        ]
-        .into_iter()
-        .collect()];
+        let values = vec![vec![
+            Some(Value::String(String::from("0|1"))),
+            Some(Value::Integer(13)),
+        ]];
 
         let actual = record.genotypes();
-        let expected = Genotypes::new(keys, genotypes);
+        let expected = Genotypes::new(keys, values);
 
         assert_eq!(actual, &expected);
 

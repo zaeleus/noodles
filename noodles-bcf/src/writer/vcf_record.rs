@@ -29,13 +29,7 @@ where
     let genotypes = record.genotypes();
 
     if !genotypes.is_empty() {
-        write_genotypes(
-            &mut genotypes_buf,
-            header,
-            string_maps.strings(),
-            genotypes.keys(),
-            genotypes,
-        )?;
+        write_genotypes(&mut genotypes_buf, header, string_maps.strings(), genotypes)?;
     };
 
     let l_indiv = u32::try_from(genotypes_buf.len())

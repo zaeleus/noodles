@@ -209,12 +209,10 @@ mod tests {
 
         let genotypes = Genotypes::new(
             Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?,
-            vec![[
-                (key::GENOTYPE, Some(Value::String(String::from("0|0")))),
-                (key::CONDITIONAL_GENOTYPE_QUALITY, Some(Value::Integer(13))),
-            ]
-            .into_iter()
-            .collect()],
+            vec![vec![
+                Some(Value::String(String::from("0|0"))),
+                Some(Value::Integer(13)),
+            ]],
         );
 
         let record = Record::builder()

@@ -27,21 +27,23 @@ pub fn write_genotypes<W>(
     writer: &mut W,
     header: &vcf::Header,
     string_string_map: &StringStringMap,
-    keys: &vcf::record::genotypes::Keys,
-    genotypes: &[vcf::record::genotypes::Values],
+    genotypes: &vcf::record::Genotypes,
 ) -> io::Result<()>
 where
     W: Write,
 {
+    let keys = genotypes.keys();
+
     for (i, key) in keys.iter().enumerate() {
         write_genotype_field_key(writer, string_string_map, key)?;
 
         let mut values = Vec::with_capacity(keys.len());
 
-        for genotype in genotypes {
-            let value = genotype
-                .get_index(i)
-                .map(|(_, value)| value.as_ref())
+        for sample in genotypes.values() {
+            let value = sample
+                .values()
+                .get(i)
+                .map(|v| v.as_ref())
                 .unwrap_or_default();
 
             values.push(value);
@@ -796,25 +798,19 @@ mod tests {
 
         let string_maps = StringMaps::from(&header);
 
-        let keys = vcf::record::genotypes::Keys::try_from(vec![
-            key::CONDITIONAL_GENOTYPE_QUALITY,
-            key::READ_DEPTH,
-        ])?;
-
-        let genotypes = vec![
-            [
-                (key::CONDITIONAL_GENOTYPE_QUALITY, Some(Value::Integer(13))),
-                (key::READ_DEPTH, Some(Value::Integer(5))),
-            ]
-            .into_iter()
-            .collect(),
-            [(key::CONDITIONAL_GENOTYPE_QUALITY, Some(Value::Integer(8)))]
-                .into_iter()
-                .collect(),
-        ];
+        let genotypes = vcf::record::Genotypes::new(
+            vcf::record::genotypes::Keys::try_from(vec![
+                key::CONDITIONAL_GENOTYPE_QUALITY,
+                key::READ_DEPTH,
+            ])?,
+            vec![
+                vec![Some(Value::Integer(13)), Some(Value::Integer(5))],
+                vec![Some(Value::Integer(8))],
+            ],
+        );
 
         let mut buf = Vec::new();
-        write_genotypes(&mut buf, &header, string_maps.strings(), &keys, &genotypes)?;
+        write_genotypes(&mut buf, &header, string_maps.strings(), &genotypes)?;
 
         let expected = [
             0x11, // string string map index type = Some(Type::Int(1))

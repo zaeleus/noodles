@@ -8,7 +8,13 @@
 
 ### Changed
 
-  * vcf/record/genotypes: Rename `Genotype` to `Values`.
+  * vcf/record/genotypes: Own all sample values.
+
+    `Genotypes` now owns all sample values, rather than `Sample`. Genotype
+    values changed to a list of a list of optional values
+    (`Vec<Vec<Option<Value>>>`).
+
+  * vcf/record/genotypes: Rename `Genotype` to `Sample`.
 
   * vcf/record/info: Move missing field value parsing to record parser.
 
@@ -20,6 +26,12 @@
     `ReferenceBases` no longer handles "." as missing.
 
 ### Removed
+
+  * vcf/record/genotypes: Remove `Deref` and `DerefMut` for `Genotypes`.
+
+  * vcf/record/genotypes: Remove `Values`.
+
+    Use `Sample` instead.
 
   * vcf/record/genotypes/values: Remove `field` module.
 

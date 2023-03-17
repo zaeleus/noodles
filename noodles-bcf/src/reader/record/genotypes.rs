@@ -8,7 +8,7 @@ use noodles_vcf::{
     self as vcf,
     header::format::{key, Key},
     record::{
-        genotypes::{values::Value, Keys, Values},
+        genotypes::{values::Value, Keys},
         Genotypes,
     },
 };
@@ -32,32 +32,27 @@ where
     R: Read,
 {
     let mut keys = Vec::with_capacity(format_count);
-    let mut genotypes = vec![Vec::new(); sample_count];
+    let mut values = vec![Vec::new(); sample_count];
 
     for _ in 0..format_count {
         let key = read_genotype_field_key(reader, formats, string_map)?;
-        keys.push(key.clone());
 
-        let values = if key == key::GENOTYPE {
+        let vs = if key == key::GENOTYPE {
             read_genotype_genotype_field_values(reader, sample_count)?
         } else {
             read_genotype_field_values(reader, sample_count)?
         };
 
-        for (fields, value) in genotypes.iter_mut().zip(values) {
-            fields.push((key.clone(), value));
+        keys.push(key);
+
+        for (sample, value) in values.iter_mut().zip(vs) {
+            sample.push(value);
         }
     }
 
     let keys = Keys::try_from(keys).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-    let genotypes = genotypes
-        .into_iter()
-        .map(|fields| {
-            Values::try_from(fields).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })
-        .collect::<Result<Vec<_>, _>>()?;
 
-    Ok(Genotypes::new(keys, genotypes))
+    Ok(Genotypes::new(keys, values))
 }
 
 fn read_genotype_field_key<R>(

@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use super::MISSING;
 use crate::record::{
-    genotypes::{values::Value, Keys, Values},
+    genotypes::{values::Value, Keys, Sample},
     Genotypes,
 };
 
@@ -14,9 +14,9 @@ where
 
     write_keys(writer, genotypes.keys())?;
 
-    for values in genotypes.iter() {
+    for sample in genotypes.values() {
         writer.write_all(DELIMITER)?;
-        write_values(writer, values)?;
+        write_sample(writer, sample)?;
     }
 
     Ok(())
@@ -39,13 +39,13 @@ where
     Ok(())
 }
 
-fn write_values<W>(writer: &mut W, values: &Values) -> io::Result<()>
+fn write_sample<W>(writer: &mut W, sample: Sample<'_>) -> io::Result<()>
 where
     W: Write,
 {
     const DELIMITER: &[u8] = b":";
 
-    for (i, (_, value)) in values.iter().enumerate() {
+    for (i, value) in sample.values().iter().enumerate() {
         if i > 0 {
             writer.write_all(DELIMITER)?;
         }
@@ -152,27 +152,21 @@ mod tests {
 
         let genotypes = Genotypes::new(
             Keys::try_from(vec![key::GENOTYPE])?,
-            vec![[(key::GENOTYPE, Some(Value::String(String::from("0|0"))))]
-                .into_iter()
-                .collect()],
+            vec![vec![Some(Value::String(String::from("0|0")))]],
         );
         t(&mut buf, &genotypes, b"GT\t0|0")?;
 
         let genotypes = Genotypes::new(
             Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?,
             vec![
-                [
-                    (key::GENOTYPE, Some(Value::String(String::from("0|0")))),
-                    (key::CONDITIONAL_GENOTYPE_QUALITY, Some(Value::Integer(13))),
-                ]
-                .into_iter()
-                .collect(),
-                [
-                    (key::GENOTYPE, Some(Value::String(String::from("0/1")))),
-                    (key::CONDITIONAL_GENOTYPE_QUALITY, Some(Value::Integer(8))),
-                ]
-                .into_iter()
-                .collect(),
+                vec![
+                    Some(Value::String(String::from("0|0"))),
+                    Some(Value::Integer(13)),
+                ],
+                vec![
+                    Some(Value::String(String::from("0/1"))),
+                    Some(Value::Integer(8)),
+                ],
             ],
         );
         t(&mut buf, &genotypes, b"GT:GQ\t0|0:13\t0/1:8")?;

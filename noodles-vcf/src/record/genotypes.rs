@@ -3,12 +3,14 @@
 pub mod keys;
 pub mod values;
 
-pub use self::{keys::Keys, values::Values};
+pub use self::{
+    keys::Keys,
+    values::{Sample, Value},
+};
 
 use std::{
     error,
     fmt::{self, Write},
-    ops::{Deref, DerefMut},
     str::FromStr,
 };
 
@@ -25,7 +27,7 @@ use crate::{
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Genotypes {
     keys: Keys,
-    values: Vec<Values>,
+    values: Vec<Vec<Option<Value>>>,
 }
 
 impl Genotypes {
@@ -51,10 +53,10 @@ impl Genotypes {
     ///
     /// let expected = Genotypes::new(
     ///     Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?,
-    ///     vec![[
-    ///         (key::GENOTYPE, Some(Value::String(String::from("0|0")))),
-    ///         (key::CONDITIONAL_GENOTYPE_QUALITY, Some(Value::Integer(13))),
-    ///     ].into_iter().collect()],
+    ///     vec![vec![
+    ///         Some(Value::String(String::from("0|0"))),
+    ///         Some(Value::Integer(13)),
+    ///     ]],
     /// );
     ///
     /// assert_eq!(actual, expected);
@@ -72,7 +74,7 @@ impl Genotypes {
     /// use noodles_vcf::record::{genotypes::Keys, Genotypes};
     /// let genotypes = Genotypes::new(Keys::default(), Vec::new());
     /// ```
-    pub fn new(keys: Keys, values: Vec<Values>) -> Self {
+    pub fn new(keys: Keys, values: Vec<Vec<Option<Value>>>) -> Self {
         Self { keys, values }
     }
 
@@ -127,23 +129,18 @@ impl Genotypes {
         &mut self.keys
     }
 
+    /// Returns genotypes samples.
+    pub fn values(&self) -> impl Iterator<Item = Sample<'_>> {
+        self.values
+            .iter()
+            .map(|values| Sample::new(&self.keys, values))
+    }
+
     /// Returns the VCF record genotype value.
     pub fn genotypes(&self) -> Result<Vec<Option<values::value::Genotype>>, values::GenotypeError> {
-        self.iter().map(|g| g.genotype().transpose()).collect()
-    }
-}
-
-impl Deref for Genotypes {
-    type Target = Vec<Values>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.values
-    }
-}
-
-impl DerefMut for Genotypes {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.values
+        self.values()
+            .map(|sample| sample.genotype().transpose())
+            .collect()
     }
 }
 
@@ -151,12 +148,22 @@ impl fmt::Display for Genotypes {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}{}", self.keys(), FIELD_DELIMITER)?;
 
-        for (i, genotype) in self.values.iter().enumerate() {
+        for (i, sample) in self.values().enumerate() {
             if i > 0 {
                 f.write_char(FIELD_DELIMITER)?;
             }
 
-            write!(f, "{genotype}")?;
+            for (j, value) in sample.values().iter().enumerate() {
+                if j > 0 {
+                    ':'.fmt(f)?;
+                }
+
+                if let Some(v) = value {
+                    write!(f, "{v}")?;
+                } else {
+                    '.'.fmt(f)?;
+                }
+            }
         }
 
         Ok(())
@@ -223,34 +230,35 @@ fn parse(s: &str, header: &Header) -> Result<Genotypes, ParseError> {
     Ok(Genotypes::new(keys, values))
 }
 
-fn parse_values(s: &str, formats: &Formats, keys: &Keys) -> Result<Values, values::ParseError> {
+fn parse_values(
+    s: &str,
+    formats: &Formats,
+    keys: &Keys,
+) -> Result<Vec<Option<Value>>, values::ParseError> {
     if s.is_empty() {
         return Err(values::ParseError::Empty);
     } else if s == "." {
-        return Ok(Values::default());
+        return Ok(Vec::new());
     }
 
-    let mut fields = Vec::with_capacity(keys.len());
+    let mut values = Vec::with_capacity(keys.len());
     let mut raw_values = s.split(':');
 
     for (key, raw_value) in keys.iter().zip(&mut raw_values) {
-        let field = if let Some(format) = formats.get(key) {
-            let value = parse_value(format, raw_value).map_err(values::ParseError::InvalidValue)?;
-            (key.clone(), value)
+        let value = if let Some(format) = formats.get(key) {
+            parse_value(format, raw_value).map_err(values::ParseError::InvalidValue)?
         } else {
             let format = Map::<Format>::from(key);
-            let value =
-                parse_value(&format, raw_value).map_err(values::ParseError::InvalidValue)?;
-            (key.clone(), value)
+            parse_value(&format, raw_value).map_err(values::ParseError::InvalidValue)?
         };
 
-        fields.push(field);
+        values.push(value);
     }
 
     if raw_values.next().is_some() {
         Err(values::ParseError::UnexpectedValue)
     } else {
-        Values::try_from(fields).map_err(values::ParseError::Invalid)
+        Ok(values)
     }
 }
 
@@ -283,14 +291,7 @@ mod tests {
             )
             .build();
 
-        let keys = "GT:GQ".parse()?;
-        let values = vec![
-            Values::parse("0|0:7", header.formats(), &keys)?,
-            Values::parse("./.:20", header.formats(), &keys)?,
-            Values::parse("1/1:1", header.formats(), &keys)?,
-            Values::parse(".", header.formats(), &keys)?,
-        ];
-        let genotypes = Genotypes::new(keys, values);
+        let genotypes = Genotypes::parse("GT:GQ\t0|0:7\t./.:20\t1/1:1\t.", &header)?;
 
         let actual = genotypes.genotypes();
         let expected = Ok(vec![
@@ -312,12 +313,10 @@ mod tests {
 
         let genotypes = Genotypes::new(
             Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?,
-            vec![[
-                (key::GENOTYPE, Some(Value::String(String::from("0|0")))),
-                (key::CONDITIONAL_GENOTYPE_QUALITY, Some(Value::Integer(13))),
-            ]
-            .into_iter()
-            .collect()],
+            vec![vec![
+                Some(Value::String(String::from("0|0"))),
+                Some(Value::Integer(13)),
+            ]],
         );
 
         assert_eq!(genotypes.to_string(), "GT:GQ\t0|0:13");
@@ -332,12 +331,10 @@ mod tests {
 
         let expected = Genotypes::new(
             Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?,
-            vec![[
-                (key::GENOTYPE, Some(Value::String(String::from("0|0")))),
-                (key::CONDITIONAL_GENOTYPE_QUALITY, Some(Value::Integer(13))),
-            ]
-            .into_iter()
-            .collect()],
+            vec![vec![
+                Some(Value::String(String::from("0|0"))),
+                Some(Value::Integer(13)),
+            ]],
         );
         assert_eq!("GT:GQ\t0|0:13".parse(), Ok(expected));
 

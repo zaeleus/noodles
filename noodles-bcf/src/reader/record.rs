@@ -335,101 +335,48 @@ pub(crate) mod tests {
             .genotypes()
             .try_into_vcf_record_genotypes(&header, string_maps.strings())?;
 
-        let keys = Keys::try_from(vec![
-            format::key::GENOTYPE,
-            format::key::CONDITIONAL_GENOTYPE_QUALITY,
-            format::key::READ_DEPTH,
-            format::key::READ_DEPTHS,
-            format::key::ROUNDED_GENOTYPE_LIKELIHOODS,
-        ])?;
-
         let expected = VcfGenotypes::new(
-            keys,
+            Keys::try_from(vec![
+                format::key::GENOTYPE,
+                format::key::CONDITIONAL_GENOTYPE_QUALITY,
+                format::key::READ_DEPTH,
+                format::key::READ_DEPTHS,
+                format::key::ROUNDED_GENOTYPE_LIKELIHOODS,
+            ])?,
             vec![
-                [
-                    (
-                        format::key::GENOTYPE,
-                        Some(GenotypeFieldValue::String(String::from("0/0"))),
-                    ),
-                    (
-                        format::key::CONDITIONAL_GENOTYPE_QUALITY,
-                        Some(GenotypeFieldValue::Integer(10)),
-                    ),
-                    (
-                        format::key::READ_DEPTH,
-                        Some(GenotypeFieldValue::Integer(32)),
-                    ),
-                    (
-                        format::key::READ_DEPTHS,
-                        Some(GenotypeFieldValue::IntegerArray(vec![Some(32), Some(0)])),
-                    ),
-                    (
-                        format::key::ROUNDED_GENOTYPE_LIKELIHOODS,
-                        Some(GenotypeFieldValue::IntegerArray(vec![
-                            Some(0),
-                            Some(10),
-                            Some(100),
-                        ])),
-                    ),
-                ]
-                .into_iter()
-                .collect(),
-                [
-                    (
-                        format::key::GENOTYPE,
-                        Some(GenotypeFieldValue::String(String::from("0/1"))),
-                    ),
-                    (
-                        format::key::CONDITIONAL_GENOTYPE_QUALITY,
-                        Some(GenotypeFieldValue::Integer(10)),
-                    ),
-                    (
-                        format::key::READ_DEPTH,
-                        Some(GenotypeFieldValue::Integer(48)),
-                    ),
-                    (
-                        format::key::READ_DEPTHS,
-                        Some(GenotypeFieldValue::IntegerArray(vec![Some(32), Some(16)])),
-                    ),
-                    (
-                        format::key::ROUNDED_GENOTYPE_LIKELIHOODS,
-                        Some(GenotypeFieldValue::IntegerArray(vec![
-                            Some(10),
-                            Some(0),
-                            Some(100),
-                        ])),
-                    ),
-                ]
-                .into_iter()
-                .collect(),
-                [
-                    (
-                        format::key::GENOTYPE,
-                        Some(GenotypeFieldValue::String(String::from("1/1"))),
-                    ),
-                    (
-                        format::key::CONDITIONAL_GENOTYPE_QUALITY,
-                        Some(GenotypeFieldValue::Integer(10)),
-                    ),
-                    (
-                        format::key::READ_DEPTH,
-                        Some(GenotypeFieldValue::Integer(64)),
-                    ),
-                    (
-                        format::key::READ_DEPTHS,
-                        Some(GenotypeFieldValue::IntegerArray(vec![Some(0), Some(64)])),
-                    ),
-                    (
-                        format::key::ROUNDED_GENOTYPE_LIKELIHOODS,
-                        Some(GenotypeFieldValue::IntegerArray(vec![
-                            Some(100),
-                            Some(10),
-                            Some(0),
-                        ])),
-                    ),
-                ]
-                .into_iter()
-                .collect(),
+                vec![
+                    Some(GenotypeFieldValue::String(String::from("0/0"))),
+                    Some(GenotypeFieldValue::Integer(10)),
+                    Some(GenotypeFieldValue::Integer(32)),
+                    Some(GenotypeFieldValue::IntegerArray(vec![Some(32), Some(0)])),
+                    Some(GenotypeFieldValue::IntegerArray(vec![
+                        Some(0),
+                        Some(10),
+                        Some(100),
+                    ])),
+                ],
+                vec![
+                    Some(GenotypeFieldValue::String(String::from("0/1"))),
+                    Some(GenotypeFieldValue::Integer(10)),
+                    Some(GenotypeFieldValue::Integer(48)),
+                    Some(GenotypeFieldValue::IntegerArray(vec![Some(32), Some(16)])),
+                    Some(GenotypeFieldValue::IntegerArray(vec![
+                        Some(10),
+                        Some(0),
+                        Some(100),
+                    ])),
+                ],
+                vec![
+                    Some(GenotypeFieldValue::String(String::from("1/1"))),
+                    Some(GenotypeFieldValue::Integer(10)),
+                    Some(GenotypeFieldValue::Integer(64)),
+                    Some(GenotypeFieldValue::IntegerArray(vec![Some(0), Some(64)])),
+                    Some(GenotypeFieldValue::IntegerArray(vec![
+                        Some(100),
+                        Some(10),
+                        Some(0),
+                    ])),
+                ],
             ],
         );
 
