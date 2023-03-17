@@ -4,10 +4,10 @@ pub mod value;
 
 pub use self::value::Value;
 
-use std::{error, fmt};
+use std::{error, fmt, hash::Hash};
 
 use super::Keys;
-use crate::header::format::key;
+use crate::header::format::{key, Key};
 
 /// A VCF record genotype sample.
 pub struct Sample<'g> {
@@ -31,21 +31,24 @@ impl<'g> Sample<'g> {
         self.values
     }
 
+    /// Returns a reference to the value with the given key.
+    pub fn get<K>(&self, key: &K) -> Option<Option<&'g Value>>
+    where
+        K: Hash + indexmap::Equivalent<Key>,
+    {
+        self.keys
+            .get_index_of(key)
+            .and_then(|i| self.values.get(i).map(|value| value.as_ref()))
+    }
+
     /// Returns the VCF record genotypes genotype value.
     ///
     /// This is a convenience method to return a parsed version of the genotype (`GT`) field value.
     pub fn genotype(&self) -> Option<Result<value::Genotype, GenotypeError>> {
-        let value = self
-            .keys
-            .get_index_of(&key::GENOTYPE)
-            .and_then(|i| self.values.get(i))?;
-
-        let result = match value {
+        self.get(&key::GENOTYPE).map(|value| match value {
             Some(Value::String(s)) => s.parse().map_err(GenotypeError::InvalidValue),
-            _ => Err(GenotypeError::InvalidValueType(value.clone())),
-        };
-
-        Some(result)
+            _ => Err(GenotypeError::InvalidValueType(value.cloned())),
+        })
     }
 }
 
