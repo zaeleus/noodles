@@ -15,7 +15,6 @@ use super::Keys;
 use crate::{
     header::{
         format::{key, Key},
-        record::value::{map::Format, Map},
         Formats,
     },
     record::MISSING_FIELD,
@@ -124,33 +123,7 @@ impl Values {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn parse(s: &str, formats: &Formats, keys: &Keys) -> Result<Self, ParseError> {
-        if s.is_empty() {
-            return Err(ParseError::Empty);
-        } else if s == MISSING_FIELD {
-            return Ok(Self::default());
-        }
-
-        let mut fields = Vec::with_capacity(keys.len());
-        let mut raw_values = s.split(DELIMITER);
-
-        for (key, raw_value) in keys.iter().zip(&mut raw_values) {
-            let field = if let Some(format) = formats.get(key) {
-                let value = parse_value(format, raw_value).map_err(ParseError::InvalidValue)?;
-                (key.clone(), value)
-            } else {
-                let format = Map::<Format>::from(key);
-                let value = parse_value(&format, raw_value).map_err(ParseError::InvalidValue)?;
-                (key.clone(), value)
-            };
-
-            fields.push(field);
-        }
-
-        if raw_values.next().is_some() {
-            Err(ParseError::UnexpectedValue)
-        } else {
-            Self::try_from(fields).map_err(ParseError::Invalid)
-        }
+        super::parse_values(s, formats, keys)
     }
 
     /// Returns the VCF record genotypes genotype value.
@@ -287,20 +260,14 @@ impl TryFrom<Vec<(Key, Option<Value>)>> for Values {
     }
 }
 
-fn parse_value(format: &Map<Format>, s: &str) -> Result<Option<Value>, value::ParseError> {
-    if s == "." {
-        Ok(None)
-    } else {
-        Value::from_str_format(s, format).map(Some)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_parse() -> Result<(), Box<dyn std::error::Error>> {
+        use crate::header::record::value::{map::Format, Map};
+
         let header = crate::Header::builder()
             .add_format(key::GENOTYPE, Map::<Format>::from(&key::GENOTYPE))
             .add_format(

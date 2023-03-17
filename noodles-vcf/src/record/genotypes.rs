@@ -13,7 +13,13 @@ use std::{
 };
 
 use super::FIELD_DELIMITER;
-use crate::Header;
+use crate::{
+    header::{
+        record::value::{map::Format, Map},
+        Formats,
+    },
+    Header,
+};
 
 /// VCF record genotypes.
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -204,17 +210,58 @@ fn parse(s: &str, header: &Header) -> Result<Genotypes, ParseError> {
         return Err(ParseError::Empty);
     }
 
-    let (format, t) = s.split_once(FIELD_DELIMITER).ok_or(ParseError::Invalid)?;
+    let (format, rest) = s.split_once(FIELD_DELIMITER).ok_or(ParseError::Invalid)?;
 
     let keys = format.parse().map_err(ParseError::InvalidKeys)?;
 
-    let values = t
+    let values = rest
         .split(FIELD_DELIMITER)
-        .map(|t| Values::parse(t, header.formats(), &keys))
+        .map(|t| parse_values(t, header.formats(), &keys))
         .collect::<Result<_, _>>()
         .map_err(ParseError::InvalidValues)?;
 
     Ok(Genotypes::new(keys, values))
+}
+
+fn parse_values(s: &str, formats: &Formats, keys: &Keys) -> Result<Values, values::ParseError> {
+    if s.is_empty() {
+        return Err(values::ParseError::Empty);
+    } else if s == "." {
+        return Ok(Values::default());
+    }
+
+    let mut fields = Vec::with_capacity(keys.len());
+    let mut raw_values = s.split(':');
+
+    for (key, raw_value) in keys.iter().zip(&mut raw_values) {
+        let field = if let Some(format) = formats.get(key) {
+            let value = parse_value(format, raw_value).map_err(values::ParseError::InvalidValue)?;
+            (key.clone(), value)
+        } else {
+            let format = Map::<Format>::from(key);
+            let value =
+                parse_value(&format, raw_value).map_err(values::ParseError::InvalidValue)?;
+            (key.clone(), value)
+        };
+
+        fields.push(field);
+    }
+
+    if raw_values.next().is_some() {
+        Err(values::ParseError::UnexpectedValue)
+    } else {
+        Values::try_from(fields).map_err(values::ParseError::Invalid)
+    }
+}
+
+fn parse_value(
+    format: &Map<Format>,
+    s: &str,
+) -> Result<Option<values::Value>, values::value::ParseError> {
+    match s {
+        "." => Ok(None),
+        _ => values::Value::from_str_format(s, format).map(Some),
+    }
 }
 
 #[cfg(test)]
