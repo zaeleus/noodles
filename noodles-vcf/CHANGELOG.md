@@ -36,7 +36,7 @@
   * vcf/record/genotypes/values: Remove `field` module.
 
     This removes the unused `Field` struct. The `values::field::value` module
-    is moved up as `values::value`.
+    is moved to `sample::value`.
 
 ## 0.26.0 - 2023-03-14
 

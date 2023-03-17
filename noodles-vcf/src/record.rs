@@ -532,7 +532,7 @@ impl Record {
     ///     self as vcf,
     ///     header::format::key,
     ///     record::{
-    ///         genotypes::{values::Value, Genotypes},
+    ///         genotypes::{sample::Value, Genotypes},
     ///         Position,
     ///     },
     /// };
@@ -569,7 +569,7 @@ impl Record {
     ///     self as vcf,
     ///     header::format::key,
     ///     record::{
-    ///         genotypes::{values::Value, Genotypes},
+    ///         genotypes::{sample::Value, Genotypes},
     ///         Position,
     ///     },
     /// };

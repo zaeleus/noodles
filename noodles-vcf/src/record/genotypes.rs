@@ -1,12 +1,9 @@
 //! VCF record genotypes and fields.
 
 pub mod keys;
-pub mod values;
+pub mod sample;
 
-pub use self::{
-    keys::Keys,
-    values::{Sample, Value},
-};
+pub use self::{keys::Keys, sample::Sample};
 
 use std::{
     error,
@@ -14,6 +11,7 @@ use std::{
     str::FromStr,
 };
 
+use self::sample::Value;
 use super::FIELD_DELIMITER;
 use crate::{
     header::{
@@ -40,7 +38,7 @@ impl Genotypes {
     ///     self as vcf,
     ///     header::{format::key, record::value::{map::Format, Map}},
     ///     record::{
-    ///         genotypes::{values::Value, Keys},
+    ///         genotypes::{sample::Value, Keys},
     ///         Genotypes,
     ///     },
     /// };
@@ -137,7 +135,7 @@ impl Genotypes {
     }
 
     /// Returns the VCF record genotype value.
-    pub fn genotypes(&self) -> Result<Vec<Option<values::value::Genotype>>, values::GenotypeError> {
+    pub fn genotypes(&self) -> Result<Vec<Option<sample::value::Genotype>>, sample::GenotypeError> {
         self.values()
             .map(|sample| sample.genotype().transpose())
             .collect()
@@ -180,7 +178,7 @@ pub enum ParseError {
     /// A key is invalid.
     InvalidKeys(keys::ParseError),
     /// A value is invalid.
-    InvalidValues(values::ParseError),
+    InvalidValues(sample::ParseError),
 }
 
 impl error::Error for ParseError {
@@ -234,9 +232,9 @@ fn parse_values(
     s: &str,
     formats: &Formats,
     keys: &Keys,
-) -> Result<Vec<Option<Value>>, values::ParseError> {
+) -> Result<Vec<Option<Value>>, sample::ParseError> {
     if s.is_empty() {
-        return Err(values::ParseError::Empty);
+        return Err(sample::ParseError::Empty);
     } else if s == "." {
         return Ok(Vec::new());
     }
@@ -246,29 +244,26 @@ fn parse_values(
 
     for (key, raw_value) in keys.iter().zip(&mut raw_values) {
         let value = if let Some(format) = formats.get(key) {
-            parse_value(format, raw_value).map_err(values::ParseError::InvalidValue)?
+            parse_value(format, raw_value).map_err(sample::ParseError::InvalidValue)?
         } else {
             let format = Map::<Format>::from(key);
-            parse_value(&format, raw_value).map_err(values::ParseError::InvalidValue)?
+            parse_value(&format, raw_value).map_err(sample::ParseError::InvalidValue)?
         };
 
         values.push(value);
     }
 
     if raw_values.next().is_some() {
-        Err(values::ParseError::UnexpectedValue)
+        Err(sample::ParseError::UnexpectedValue)
     } else {
         Ok(values)
     }
 }
 
-fn parse_value(
-    format: &Map<Format>,
-    s: &str,
-) -> Result<Option<values::Value>, values::value::ParseError> {
+fn parse_value(format: &Map<Format>, s: &str) -> Result<Option<Value>, sample::value::ParseError> {
     match s {
         "." => Ok(None),
-        _ => values::Value::from_str_format(s, format).map(Some),
+        _ => sample::Value::from_str_format(s, format).map(Some),
     }
 }
 
@@ -308,7 +303,6 @@ mod tests {
 
     #[test]
     fn test_fmt() -> Result<(), super::keys::TryFromKeyVectorError> {
-        use self::values::Value;
         use crate::header::format::key;
 
         let genotypes = Genotypes::new(
@@ -326,7 +320,6 @@ mod tests {
 
     #[test]
     fn test_from_str() -> Result<(), super::keys::TryFromKeyVectorError> {
-        use super::values::Value;
         use crate::header::format::key;
 
         let expected = Genotypes::new(

@@ -1,4 +1,4 @@
-//! VCF record genotype values.
+//! VCF record genotype sample.
 
 pub mod value;
 
