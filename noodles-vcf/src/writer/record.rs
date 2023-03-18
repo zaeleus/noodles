@@ -1,3 +1,4 @@
+mod filters;
 mod genotypes;
 mod ids;
 mod info;
@@ -6,7 +7,7 @@ mod quality_score;
 use std::io::{self, Write};
 
 use self::{
-    genotypes::write_genotypes, ids::write_ids, info::write_info,
+    filters::write_filters, genotypes::write_genotypes, ids::write_ids, info::write_info,
     quality_score::write_quality_score,
 };
 use crate::Record;
@@ -42,12 +43,7 @@ where
     write_quality_score(writer, record.quality_score())?;
 
     writer.write_all(DELIMITER)?;
-
-    if let Some(filters) = record.filters() {
-        write!(writer, "{filters}")?;
-    } else {
-        writer.write_all(MISSING)?;
-    }
+    write_filters(writer, record.filters())?;
 
     writer.write_all(DELIMITER)?;
     write_info(writer, record.info())?;
