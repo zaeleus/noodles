@@ -134,6 +134,13 @@ impl Genotypes {
             .map(|values| Sample::new(&self.keys, values))
     }
 
+    /// Returns the genotype values for the sample at the given index.
+    pub fn get_index(&self, i: usize) -> Option<Sample<'_>> {
+        self.values
+            .get(i)
+            .map(|values| Sample::new(&self.keys, values))
+    }
+
     /// Returns the VCF record genotype value.
     pub fn genotypes(&self) -> Result<Vec<Option<sample::value::Genotype>>, sample::GenotypeError> {
         self.values()
