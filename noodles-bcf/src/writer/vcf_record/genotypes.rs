@@ -818,7 +818,7 @@ mod tests {
             0x11, // GQ value type = Some(Type::Int8(1))
             0x0d, // GQ[0] = Some(13)
             0x08, // GQ[1] = Some(8)
-            0x11, // string stirng map index type = Some(Type::Int(1))
+            0x11, // string string map index type = Some(Type::Int(1))
             0x02, // string string map index = Some(2) (DP)
             0x11, // DP value type = Some(Type::Int8(1))
             0x05, // DP[0] = Some(5)
