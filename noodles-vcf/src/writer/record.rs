@@ -1,3 +1,4 @@
+mod chromosome;
 mod filters;
 mod genotypes;
 mod ids;
@@ -7,8 +8,8 @@ mod quality_score;
 use std::io::{self, Write};
 
 use self::{
-    filters::write_filters, genotypes::write_genotypes, ids::write_ids, info::write_info,
-    quality_score::write_quality_score,
+    chromosome::write_chromosome, filters::write_filters, genotypes::write_genotypes,
+    ids::write_ids, info::write_info, quality_score::write_quality_score,
 };
 use crate::Record;
 
@@ -20,7 +21,7 @@ where
 {
     const DELIMITER: &[u8] = b"\t";
 
-    write!(writer, "{}", record.chromosome())?;
+    write_chromosome(writer, record.chromosome())?;
 
     writer.write_all(DELIMITER)?;
     write!(writer, "{}", record.position())?;
