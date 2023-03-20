@@ -46,6 +46,7 @@ use super::{Header, Record, VariantReader};
 #[derive(Debug)]
 pub struct Reader<R> {
     inner: R,
+    buf: String,
 }
 
 impl<R> Reader<R>
@@ -67,7 +68,10 @@ where
     /// let reader = vcf::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
-        Self { inner }
+        Self {
+            inner,
+            buf: String::new(),
+        }
     }
 
     /// Returns a reference to the underlying reader.
@@ -174,12 +178,12 @@ where
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn read_record(&mut self, header: &Header, record: &mut Record) -> io::Result<usize> {
-        let mut buf = String::new();
+        self.buf.clear();
 
-        match read_line(&mut self.inner, &mut buf)? {
+        match read_line(&mut self.inner, &mut self.buf)? {
             0 => Ok(0),
             n => {
-                *record = Record::try_from_str(&buf, header)
+                *record = Record::try_from_str(&self.buf, header)
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
                 Ok(n)
