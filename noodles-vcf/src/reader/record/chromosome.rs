@@ -33,19 +33,14 @@ fn is_valid_name_char(c: char) -> bool {
 }
 
 fn is_valid_name(s: &str) -> bool {
-    if s.is_empty() {
-        return false;
-    }
-
     let mut chars = s.chars();
 
-    if let Some(c) = chars.next() {
-        if c == '*' || c == '=' || !is_valid_name_char(c) {
-            return false;
-        }
-    }
+    let is_valid_first_char = chars
+        .next()
+        .map(|c| c != '*' && c != '=' && is_valid_name_char(c))
+        .unwrap_or_default();
 
-    chars.all(is_valid_name_char)
+    is_valid_first_char && chars.all(is_valid_name_char)
 }
 
 #[cfg(test)]
