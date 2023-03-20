@@ -1,8 +1,9 @@
 mod chromosome;
+mod position;
 
 use std::io;
 
-use self::chromosome::parse_chromosome;
+use self::{chromosome::parse_chromosome, position::parse_position};
 use crate::{
     record::{AlternateBases, Filters, Genotypes, Ids, Info, QualityScore, ReferenceBases},
     Header, Record,
@@ -15,9 +16,7 @@ pub(super) fn parse_record(mut s: &str, header: &Header, record: &mut Record) ->
     parse_chromosome(field, record.chromosome_mut())?;
 
     let field = next_field(&mut s);
-    *record.position_mut() = field
-        .parse()
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    *record.position_mut() = parse_position(field)?;
 
     let field = next_field(&mut s);
     *record.ids_mut() = parse_ids(field)?;
