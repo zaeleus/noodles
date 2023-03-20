@@ -6,21 +6,27 @@ pub(super) fn parse_chromosome(s: &str, chromosome: &mut Chromosome) -> io::Resu
     // symbol
     if let Some(t) = s.strip_prefix('<') {
         if let Some(t) = t.strip_suffix('>') {
-            *chromosome = Chromosome::Symbol(t.into());
+            if !matches!(chromosome, Chromosome::Symbol(symbol) if symbol == t) {
+                *chromosome = Chromosome::Symbol(t.into());
+            }
+
             return Ok(());
         }
     }
 
     // name
-    if is_valid_name(s) {
-        *chromosome = Chromosome::Name(s.into());
-        Ok(())
-    } else {
-        Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "invalid chromosome",
-        ))
+    if !matches!(chromosome, Chromosome::Name(name) if name == s) {
+        if is_valid_name(s) {
+            *chromosome = Chromosome::Name(s.into());
+        } else {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "invalid chromosome",
+            ));
+        }
     }
+
+    Ok(())
 }
 
 // § 1.4.7 "Contig field format"
