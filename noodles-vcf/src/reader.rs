@@ -2,6 +2,7 @@
 
 mod builder;
 pub(crate) mod query;
+mod record;
 mod records;
 
 pub use self::{builder::Builder, query::Query, records::Records};
@@ -14,6 +15,7 @@ use noodles_core::Region;
 use noodles_csi::BinningIndex;
 use noodles_tabix as tabix;
 
+use self::record::parse_record;
 use super::{Header, Record, VariantReader};
 
 /// A VCF reader.
@@ -183,9 +185,7 @@ where
         match read_line(&mut self.inner, &mut self.buf)? {
             0 => Ok(0),
             n => {
-                *record = Record::try_from_str(&self.buf, header)
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
+                parse_record(&self.buf, header, record)?;
                 Ok(n)
             }
         }
