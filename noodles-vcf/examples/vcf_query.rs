@@ -4,7 +4,10 @@
 //!
 //! The result matches the output `bcftools view --no-header <src> <region>`.
 
-use std::env;
+use std::{
+    env,
+    io::{self, BufWriter},
+};
 
 use noodles_vcf as vcf;
 
@@ -20,9 +23,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let region = raw_region.parse()?;
     let query = reader.query(&header, &region)?;
 
+    let stdout = io::stdout().lock();
+    let mut writer = vcf::Writer::new(BufWriter::new(stdout));
+
     for result in query {
         let record = result?;
-        println!("{record}");
+        writer.write_record(&record)?;
     }
 
     Ok(())
