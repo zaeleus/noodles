@@ -1,11 +1,14 @@
 mod chromosome;
 mod position;
+mod reference_bases;
 
 use std::io;
 
-use self::{chromosome::parse_chromosome, position::parse_position};
+use self::{
+    chromosome::parse_chromosome, position::parse_position, reference_bases::parse_reference_bases,
+};
 use crate::{
-    record::{AlternateBases, Filters, Genotypes, Ids, Info, QualityScore, ReferenceBases},
+    record::{AlternateBases, Filters, Genotypes, Ids, Info, QualityScore},
     Header, Record,
 };
 
@@ -22,7 +25,7 @@ pub(super) fn parse_record(mut s: &str, header: &Header, record: &mut Record) ->
     *record.ids_mut() = parse_ids(field)?;
 
     let field = next_field(&mut s);
-    *record.reference_bases_mut() = parse_reference_bases(field)?;
+    parse_reference_bases(field, record.reference_bases_mut())?;
 
     let field = next_field(&mut s);
     *record.alternate_bases_mut() = parse_alternate_bases(field)?;
@@ -56,18 +59,6 @@ fn next_field<'a>(s: &mut &'a str) -> &'a str {
 fn parse_ids(s: &str) -> io::Result<Ids> {
     match s {
         MISSING => Ok(Ids::default()),
-        _ => s
-            .parse()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-    }
-}
-
-fn parse_reference_bases(s: &str) -> io::Result<ReferenceBases> {
-    match s {
-        MISSING => Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "missing reference bases",
-        )),
         _ => s
             .parse()
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),

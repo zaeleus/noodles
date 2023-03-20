@@ -13,7 +13,7 @@ use std::{
 
 /// VCF record reference bases.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct ReferenceBases(Vec<Base>);
+pub struct ReferenceBases(pub(crate) Vec<Base>);
 
 impl Deref for ReferenceBases {
     type Target = [Base];
