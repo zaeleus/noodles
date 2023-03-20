@@ -2,8 +2,6 @@
 
 use std::{error, fmt, str::FromStr};
 
-use super::MISSING_FIELD;
-
 /// A VCF record chromosome (`CHROM`).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Chromosome {
@@ -27,8 +25,6 @@ impl fmt::Display for Chromosome {
 pub enum ParseError {
     /// The input is empty.
     Empty,
-    /// The input is missing.
-    Missing,
     /// The input is invalid.
     Invalid,
 }
@@ -39,7 +35,6 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
-            Self::Missing => f.write_str("missing input"),
             Self::Invalid => f.write_str("invalid input"),
         }
     }
@@ -51,8 +46,6 @@ impl FromStr for Chromosome {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.is_empty() {
             return Err(ParseError::Empty);
-        } else if s == MISSING_FIELD {
-            return Err(ParseError::Missing);
         }
 
         // symbol
@@ -108,7 +101,6 @@ mod tests {
         assert_eq!("<sq0>".parse(), Ok(Chromosome::Symbol(String::from("sq0"))));
 
         assert_eq!("".parse::<Chromosome>(), Err(ParseError::Empty));
-        assert_eq!(".".parse::<Chromosome>(), Err(ParseError::Missing));
         assert_eq!("sq 0".parse::<Chromosome>(), Err(ParseError::Invalid));
         assert_eq!("sq[0]".parse::<Chromosome>(), Err(ParseError::Invalid));
         assert_eq!(">sq0".parse::<Chromosome>(), Err(ParseError::Invalid));

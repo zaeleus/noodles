@@ -8,6 +8,8 @@
 
 ### Changed
 
+  * vcf/record/chromosome: Allow "." as a valid name.
+
   * vcf/record/genotypes: Own all sample values.
 
     `Genotypes` now owns all sample values, rather than `Sample`. Genotype
