@@ -24,8 +24,8 @@ use crate::{
 /// VCF record genotypes.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Genotypes {
-    keys: Keys,
-    values: Vec<Vec<Option<Value>>>,
+    pub(crate) keys: Keys,
+    pub(crate) values: Vec<Vec<Option<Value>>>,
 }
 
 impl Genotypes {

@@ -1,14 +1,16 @@
 mod chromosome;
+mod genotypes;
 mod position;
 mod reference_bases;
 
 use std::io;
 
 use self::{
-    chromosome::parse_chromosome, position::parse_position, reference_bases::parse_reference_bases,
+    chromosome::parse_chromosome, genotypes::parse_genotypes, position::parse_position,
+    reference_bases::parse_reference_bases,
 };
 use crate::{
-    record::{AlternateBases, Filters, Genotypes, Ids, Info, QualityScore},
+    record::{AlternateBases, Filters, Ids, Info, QualityScore},
     Header, Record,
 };
 
@@ -39,7 +41,7 @@ pub(super) fn parse_record(mut s: &str, header: &Header, record: &mut Record) ->
     let field = next_field(&mut s);
     *record.info_mut() = parse_info(header, field)?;
 
-    *record.genotypes_mut() = parse_genotypes(header, s)?;
+    parse_genotypes(header, s, record.genotypes_mut())?;
 
     Ok(())
 }
@@ -99,13 +101,5 @@ fn parse_info(header: &Header, s: &str) -> io::Result<Info> {
         MISSING => Ok(Info::default()),
         _ => Info::try_from_str(s, header.infos())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-    }
-}
-
-fn parse_genotypes(header: &Header, s: &str) -> io::Result<Genotypes> {
-    if s.is_empty() {
-        Ok(Genotypes::default())
-    } else {
-        Genotypes::parse(s, header).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 }
