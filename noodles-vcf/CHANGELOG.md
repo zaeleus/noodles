@@ -12,6 +12,10 @@
 
 ### Changed
 
+  * vcf/reader: Change `Reader::read_record` to read into a `Record` buffer.
+
+    This no longer returns a raw string.
+
   * vcf/record/chromosome: Allow "." as a valid name.
 
   * vcf/record/genotypes: Own all sample values.

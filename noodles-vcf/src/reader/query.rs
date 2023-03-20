@@ -31,8 +31,10 @@ where
     interval: Interval,
 
     state: State,
+    #[allow(dead_code)]
     header: &'h Header,
-    line_buf: String,
+
+    record: Record,
 }
 
 impl<'r, 'h, R> Query<'r, 'h, R>
@@ -56,21 +58,16 @@ where
 
             state: State::Seek,
             header,
-            line_buf: String::new(),
+
+            record: Record::default(),
         }
     }
 
     fn read_record(&mut self) -> io::Result<Option<Record>> {
-        self.line_buf.clear();
-
-        self.reader
-            .read_record(&mut self.line_buf)
-            .and_then(|n| match n {
-                0 => Ok(None),
-                _ => Record::try_from_str(&self.line_buf, self.header)
-                    .map(Some)
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-            })
+        self.reader.read_record(&mut self.record).map(|n| match n {
+            0 => None,
+            _ => Some(self.record.clone()),
+        })
     }
 }
 

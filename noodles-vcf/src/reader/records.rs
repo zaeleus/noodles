@@ -8,8 +8,9 @@ use crate::{Header, Record};
 /// This is created by calling [`Reader::records`].
 pub struct Records<'r, 'h, R> {
     inner: &'r mut Reader<R>,
+    #[allow(dead_code)]
     header: &'h Header,
-    line_buf: String,
+    record: Record,
 }
 
 impl<'r, 'h, R> Records<'r, 'h, R>
@@ -20,7 +21,7 @@ where
         Self {
             inner,
             header,
-            line_buf: String::new(),
+            record: Record::default(),
         }
     }
 }
@@ -32,14 +33,9 @@ where
     type Item = io::Result<Record>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.line_buf.clear();
-
-        match self.inner.read_record(&mut self.line_buf) {
+        match self.inner.read_record(&mut self.record) {
             Ok(0) => None,
-            Ok(_) => Some(
-                Record::try_from_str(&self.line_buf, self.header)
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-            ),
+            Ok(_) => Some(Ok(self.record.clone())),
             Err(e) => Some(Err(e)),
         }
     }

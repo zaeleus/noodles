@@ -14,7 +14,7 @@ use noodles_core::Region;
 use noodles_csi::BinningIndex;
 use noodles_tabix as tabix;
 
-use super::{Header, VariantReader};
+use super::{Header, Record, VariantReader};
 
 /// A VCF reader.
 ///
@@ -143,16 +143,15 @@ where
         read_header(&mut self.inner)
     }
 
-    /// Reads a single raw VCF record.
+    /// Reads a single VCF record.
     ///
-    /// This reads from the underlying stream until a newline is reached and appends it to the
-    /// given buffer, sans the final newline character. The buffer can subsequently be parsed as a
-    /// [`crate::Record`].
+    /// This reads a line from the underlying stream until a newline is reached and parses that
+    /// line into the given record.
     ///
     /// The stream is expected to be directly after the header or at the start of another record.
     ///
     /// It is more ergonomic to read records using an iterator (see [`Self::records`]), but using
-    /// this method allows control of the line buffer and whether the raw record should be parsed.
+    /// this method allows control of the record buffer.
     ///
     /// If successful, the number of bytes read is returned. If the number of bytes read is 0, the
     /// stream reached EOF.
@@ -171,21 +170,28 @@ where
     /// let mut reader = vcf::Reader::new(&data[..]);
     /// reader.read_header()?;
     ///
-    /// let mut buf = String::new();
-    /// reader.read_record(&mut buf)?;
-    ///
-    /// assert_eq!(buf, "sq0\t1\t.\tA\t.\t.\tPASS\t.");
+    /// let mut record = vcf::Record::default();
+    /// reader.read_record(&mut record)?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn read_record(&mut self, buf: &mut String) -> io::Result<usize> {
-        read_line(&mut self.inner, buf)
+    pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+        let mut buf = String::new();
+
+        match read_line(&mut self.inner, &mut buf)? {
+            0 => Ok(0),
+            n => {
+                *record = buf
+                    .parse()
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+                Ok(n)
+            }
+        }
     }
 
     /// Returns an iterator over records starting from the current stream position.
     ///
     /// The stream is expected to be directly after the header or at the start of another record.
-    ///
-    /// Unlike [`Self::read_record`], each record is parsed as a [`crate::Record`].
     ///
     /// # Examples
     ///
@@ -492,15 +498,13 @@ sq0\t1\t.\tA\t.\t.\tPASS\t.
         let mut reader = Reader::new(DATA);
         reader.read_header()?;
 
-        let mut buf = String::new();
-        let bytes_read = reader.read_record(&mut buf)?;
-        assert_eq!(bytes_read, 21);
-        assert_eq!(buf, "sq0\t1\t.\tA\t.\t.\tPASS\t.");
+        let mut record = Record::default();
 
-        buf.clear();
-        let bytes_read = reader.read_record(&mut buf)?;
+        let bytes_read = reader.read_record(&mut record)?;
+        assert_eq!(bytes_read, 21);
+
+        let bytes_read = reader.read_record(&mut record)?;
         assert_eq!(bytes_read, 0);
-        assert!(buf.is_empty());
 
         Ok(())
     }

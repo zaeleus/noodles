@@ -12,7 +12,7 @@ use noodles_tabix as tabix;
 
 use super::{
     reader::{Query, Records},
-    Header, Reader,
+    Header, Reader, Record,
 };
 
 /// An indexed VCF reader.
@@ -54,8 +54,8 @@ where
     }
 
     /// Reads a single raw VCF record.
-    pub fn read_record(&mut self, buf: &mut String) -> io::Result<usize> {
-        self.inner.read_record(buf)
+    pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+        self.inner.read_record(record)
     }
 
     /// Returns an iterator over records starting from the current stream position.
