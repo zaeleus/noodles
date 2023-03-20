@@ -14,7 +14,8 @@
 
   * vcf/reader: Change `Reader::read_record` to read into a `Record` buffer.
 
-    This no longer returns a raw string.
+    This now requires a `Header` and `Record` buffer. It no longer returns the
+    raw string.
 
   * vcf/record/chromosome: Allow "." as a valid name.
 

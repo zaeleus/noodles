@@ -159,7 +159,6 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
     /// use noodles_vcf as vcf;
     ///
     /// let data = b"##fileformat=VCFv4.3
@@ -168,20 +167,19 @@ where
     /// ";
     ///
     /// let mut reader = vcf::Reader::new(&data[..]);
-    /// reader.read_header()?;
+    /// let header = reader.read_header()?.parse()?;
     ///
     /// let mut record = vcf::Record::default();
-    /// reader.read_record(&mut record)?;
-    /// # Ok::<(), io::Error>(())
+    /// reader.read_record(&header, &mut record)?;
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+    pub fn read_record(&mut self, header: &Header, record: &mut Record) -> io::Result<usize> {
         let mut buf = String::new();
 
         match read_line(&mut self.inner, &mut buf)? {
             0 => Ok(0),
             n => {
-                *record = buf
-                    .parse()
+                *record = Record::try_from_str(&buf, header)
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
                 Ok(n)
@@ -494,16 +492,16 @@ sq0\t1\t.\tA\t.\t.\tPASS\t.
     }
 
     #[test]
-    fn test_read_record() -> io::Result<()> {
+    fn test_read_record() -> Result<(), Box<dyn std::error::Error>> {
         let mut reader = Reader::new(DATA);
-        reader.read_header()?;
+        let header = reader.read_header()?.parse()?;
 
         let mut record = Record::default();
 
-        let bytes_read = reader.read_record(&mut record)?;
+        let bytes_read = reader.read_record(&header, &mut record)?;
         assert_eq!(bytes_read, 21);
 
-        let bytes_read = reader.read_record(&mut record)?;
+        let bytes_read = reader.read_record(&header, &mut record)?;
         assert_eq!(bytes_read, 0);
 
         Ok(())

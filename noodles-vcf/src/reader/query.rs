@@ -31,7 +31,6 @@ where
     interval: Interval,
 
     state: State,
-    #[allow(dead_code)]
     header: &'h Header,
 
     record: Record,
@@ -64,10 +63,12 @@ where
     }
 
     fn read_record(&mut self) -> io::Result<Option<Record>> {
-        self.reader.read_record(&mut self.record).map(|n| match n {
-            0 => None,
-            _ => Some(self.record.clone()),
-        })
+        self.reader
+            .read_record(self.header, &mut self.record)
+            .map(|n| match n {
+                0 => None,
+                _ => Some(self.record.clone()),
+            })
     }
 }
 

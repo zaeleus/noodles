@@ -8,7 +8,6 @@ use crate::{Header, Record};
 /// This is created by calling [`Reader::records`].
 pub struct Records<'r, 'h, R> {
     inner: &'r mut Reader<R>,
-    #[allow(dead_code)]
     header: &'h Header,
     record: Record,
 }
@@ -33,7 +32,7 @@ where
     type Item = io::Result<Record>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.inner.read_record(&mut self.record) {
+        match self.inner.read_record(self.header, &mut self.record) {
             Ok(0) => None,
             Ok(_) => Some(Ok(self.record.clone())),
             Err(e) => Some(Err(e)),

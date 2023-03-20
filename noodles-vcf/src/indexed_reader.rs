@@ -54,8 +54,8 @@ where
     }
 
     /// Reads a single raw VCF record.
-    pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        self.inner.read_record(record)
+    pub fn read_record(&mut self, header: &Header, record: &mut Record) -> io::Result<usize> {
+        self.inner.read_record(header, record)
     }
 
     /// Returns an iterator over records starting from the current stream position.
