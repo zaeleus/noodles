@@ -2,7 +2,10 @@
 //!
 //! The result matches the output of `bcftools view <src>`.
 
-use std::{env, io};
+use std::{
+    env,
+    io::{self, BufWriter},
+};
 
 use noodles_vcf as vcf;
 
@@ -13,7 +16,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let header = reader.read_header()?.parse()?;
 
     let stdout = io::stdout().lock();
-    let mut writer = vcf::Writer::new(stdout);
+    let mut writer = vcf::Writer::new(BufWriter::new(stdout));
 
     writer.write_header(&header)?;
 
