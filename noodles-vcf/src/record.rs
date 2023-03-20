@@ -599,6 +599,25 @@ impl Record {
     }
 }
 
+impl Default for Record {
+    fn default() -> Self {
+        use self::reference_bases::Base;
+
+        Self {
+            chromosome: Chromosome::Name(String::from(".")),
+            position: Position::from(1),
+            ids: Ids::default(),
+            // SAFETY: `[N]` is a valid list of reference bases.
+            reference_bases: ReferenceBases::try_from(vec![Base::N]).unwrap(),
+            alternate_bases: AlternateBases::default(),
+            quality_score: None,
+            filters: None,
+            info: Info::default(),
+            genotypes: Genotypes::default(),
+        }
+    }
+}
+
 /// An error returned when the end position is invalid.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum EndError {
@@ -761,6 +780,21 @@ impl FromStr for Record {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_default() -> Result<(), Box<dyn std::error::Error>> {
+        let actual = Record::default();
+
+        let expected = Record::builder()
+            .set_chromosome(".".parse()?)
+            .set_position(Position::from(1))
+            .set_reference_bases("N".parse()?)
+            .build()?;
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
 
     #[test]
     fn test_end() -> Result<(), Box<dyn std::error::Error>> {

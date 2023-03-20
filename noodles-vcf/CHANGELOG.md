@@ -6,6 +6,10 @@
 
   * vcf/header/record/value/map/contig: Add `md5` as a standard tag.
 
+  * vcf/record: Implement `Default`.
+
+    This is meant as a convenience to more easily create a mutable buffer.
+
 ### Changed
 
   * vcf/record/chromosome: Allow "." as a valid name.
