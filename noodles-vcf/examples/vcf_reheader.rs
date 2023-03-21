@@ -4,7 +4,10 @@
 //!
 //! Verify the output by piping to `bcftools view --no-version --header`.
 
-use std::{env, io};
+use std::{
+    env,
+    io::{self, BufWriter},
+};
 
 use noodles_vcf as vcf;
 
@@ -26,7 +29,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     add_comment(&mut header);
 
     let stdout = io::stdout().lock();
-    let mut writer = vcf::Writer::new(stdout);
+    let mut writer = vcf::Writer::new(BufWriter::new(stdout));
 
     writer.write_header(&header)?;
 
