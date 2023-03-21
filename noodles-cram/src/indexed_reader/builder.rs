@@ -1,7 +1,7 @@
 use std::{
     ffi::{OsStr, OsString},
     fs::File,
-    io,
+    io::{self, Read},
     path::{Path, PathBuf},
 };
 
@@ -22,23 +22,31 @@ impl Builder {
     }
 
     /// Builds an indexed CRAM reader from a path.
-    pub fn build_from_path<P>(self, src: P) -> io::Result<IndexedReader<File>>
+    pub fn build_from_path<P>(mut self, src: P) -> io::Result<IndexedReader<File>>
     where
         P: AsRef<Path>,
     {
         let src = src.as_ref();
 
-        let index = match self.index {
-            Some(index) => index,
-            None => {
-                let index_src = build_index_src(src);
-                crai::read(index_src)?
-            }
-        };
+        if self.index.is_none() {
+            let index_src = build_index_src(src);
+            self.index = crai::read(index_src).map(Some)?
+        }
 
         let file = File::open(src)?;
+        self.build_from_reader(file)
+    }
 
-        Ok(IndexedReader::new(file, index))
+    /// Builds an indexed CRAM reader from a reader.
+    pub fn build_from_reader<R>(self, reader: R) -> io::Result<IndexedReader<R>>
+    where
+        R: Read,
+    {
+        let index = self
+            .index
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing index"))?;
+
+        Ok(IndexedReader::new(reader, index))
     }
 }
 
