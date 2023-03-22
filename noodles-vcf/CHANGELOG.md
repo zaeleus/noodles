@@ -10,7 +10,7 @@
 
     This is meant as a convenience to more easily create a mutable buffer.
 
-  * vcf/record/ids: Implement `Extend<Id>`.
+  * vcf/record/ids: Implement `Extend<Id>` and `FromIterator<Id>`.
 
 ### Changed
 

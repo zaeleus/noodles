@@ -100,6 +100,14 @@ impl Extend<Id> for Ids {
     }
 }
 
+impl FromIterator<Id> for Ids {
+    fn from_iter<T: IntoIterator<Item = Id>>(iter: T) -> Self {
+        let mut ids = Self::default();
+        ids.extend(iter);
+        ids
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -110,8 +118,12 @@ mod tests {
 
         let id0: Id = "nd0".parse()?;
         let id1: Id = "nd1".parse()?;
-        assert_eq!(Ids([id0.clone()].into_iter().collect()).to_string(), "nd0");
-        assert_eq!(Ids([id0, id1].into_iter().collect()).to_string(), "nd0;nd1");
+
+        let ids: Ids = [id0.clone()].into_iter().collect();
+        assert_eq!(ids.to_string(), "nd0");
+
+        let ids: Ids = [id0, id1].into_iter().collect();
+        assert_eq!(ids.to_string(), "nd0;nd1");
 
         Ok(())
     }
@@ -121,8 +133,11 @@ mod tests {
         let id0: Id = "nd0".parse()?;
         let id1: Id = "nd1".parse()?;
 
-        assert_eq!("nd0".parse(), Ok(Ids([id0.clone()].into_iter().collect())));
-        assert_eq!("nd0;nd1".parse(), Ok(Ids([id0, id1].into_iter().collect())));
+        let expected: Ids = [id0.clone()].into_iter().collect();
+        assert_eq!("nd0".parse(), Ok(expected));
+
+        let expected: Ids = [id0, id1].into_iter().collect();
+        assert_eq!("nd0;nd1".parse(), Ok(expected));
 
         assert_eq!("".parse::<Ids>(), Err(ParseError::Empty));
         assert_eq!(
