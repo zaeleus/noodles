@@ -28,7 +28,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for result in query {
         let record = result?;
-        writer.write_record(&record)?;
+        writer.write_record(&header, &record)?;
     }
 
     Ok(())

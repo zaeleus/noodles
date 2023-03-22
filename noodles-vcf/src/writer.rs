@@ -31,7 +31,7 @@ use super::{Header, Record, VariantWriter};
 ///     .set_reference_bases("A".parse()?)
 ///     .build()?;
 ///
-/// writer.write_record(&record);
+/// writer.write_record(&header, &record);
 ///
 /// let expected = b"##fileformat=VCFv4.3
 /// ###contig=<ID=sq0>
@@ -127,6 +127,8 @@ where
     /// ```
     /// use noodles_vcf::{self as vcf, record::Position};
     ///
+    /// let header = vcf::Header::default();
+    ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
     ///     .set_position(Position::try_from(1)?)
@@ -134,10 +136,10 @@ where
     ///     .build()?;
     ///
     /// let mut writer = vcf::Writer::new(Vec::new());
-    /// writer.write_record(&record)?;
+    /// writer.write_record(&header, &record)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
+    pub fn write_record(&mut self, _: &Header, record: &Record) -> io::Result<()> {
         write_record(&mut self.inner, record)
     }
 }
@@ -150,8 +152,8 @@ where
         self.write_header(header)
     }
 
-    fn write_variant_record(&mut self, _: &Header, record: &Record) -> io::Result<()> {
-        self.write_record(record)
+    fn write_variant_record(&mut self, header: &Header, record: &Record) -> io::Result<()> {
+        self.write_record(header, record)
     }
 }
 
@@ -178,7 +180,7 @@ mod tests {
 
     #[test]
     fn test_write_record() -> Result<(), Box<dyn std::error::Error>> {
-        let mut writer = Writer::new(Vec::new());
+        let header = Header::default();
 
         let record = Record::builder()
             .set_chromosome("sq0".parse()?)
@@ -186,10 +188,10 @@ mod tests {
             .set_reference_bases("A".parse()?)
             .build()?;
 
-        writer.write_record(&record)?;
+        let mut writer = Writer::new(Vec::new());
+        writer.write_record(&header, &record)?;
 
         let expected = b"sq0\t1\t.\tA\t.\t.\t.\t.\n";
-
         assert_eq!(writer.get_ref(), expected);
 
         Ok(())
@@ -205,7 +207,7 @@ mod tests {
             },
         };
 
-        let mut writer = Writer::new(Vec::new());
+        let header = Header::default();
 
         let genotypes = Genotypes::new(
             Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?,
@@ -222,10 +224,10 @@ mod tests {
             .set_genotypes(genotypes)
             .build()?;
 
-        writer.write_record(&record)?;
+        let mut writer = Writer::new(Vec::new());
+        writer.write_record(&header, &record)?;
 
         let expected = b"sq0\t1\t.\tA\t.\t.\t.\t.\tGT:GQ\t0|0:13\n";
-
         assert_eq!(writer.get_ref(), expected);
 
         Ok(())

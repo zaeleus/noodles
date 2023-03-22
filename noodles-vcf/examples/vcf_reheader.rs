@@ -35,7 +35,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for result in reader.records(&header) {
         let record = result?;
-        writer.write_record(&record)?;
+        writer.write_record(&header, &record)?;
     }
 
     Ok(())

@@ -36,6 +36,8 @@
 
     `ReferenceBases` no longer handles "." as missing.
 
+  * vcf/writer: Require header when writing a record (`Writer::write_record`).
+
 ### Removed
 
   * vcf/record/genotypes: Remove `Deref` and `DerefMut` for `Genotypes`.

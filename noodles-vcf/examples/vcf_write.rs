@@ -28,7 +28,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .set_reference_bases("A".parse()?)
         .build()?;
 
-    writer.write_record(&record)?;
+    writer.write_record(&header, &record)?;
 
     Ok(())
 }
