@@ -30,13 +30,9 @@ use super::{Header, Record, VariantReader};
 /// # Examples
 ///
 /// ```no_run
-/// # use std::{fs::File, io::BufReader};
 /// use noodles_vcf as vcf;
 ///
-/// let mut reader = File::open("sample.vcf")
-///     .map(BufReader::new)
-///     .map(vcf::Reader::new)?;
-///
+/// let mut reader = vcf::reader::Builder::default().build_from_path("sample.vcf")?;
 /// let header = reader.read_header()?.parse()?;
 ///
 /// for result in reader.records(&header) {
