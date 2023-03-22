@@ -10,6 +10,8 @@
 
     This is meant as a convenience to more easily create a mutable buffer.
 
+  * vcf/record/ids: Implement `Extend<Id>`.
+
 ### Changed
 
   * vcf/reader: Change `Reader::read_record` to read into a `Record` buffer.
