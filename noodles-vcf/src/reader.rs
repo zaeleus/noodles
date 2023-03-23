@@ -1,6 +1,7 @@
 //! VCF reader and iterators.
 
 mod builder;
+mod header;
 pub(crate) mod query;
 mod record;
 mod records;
@@ -9,13 +10,12 @@ pub use self::{builder::Builder, query::Query, records::Records};
 
 use std::io::{self, BufRead, Read, Seek};
 
-use memchr::memchr;
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
 use noodles_tabix as tabix;
 
-use self::record::parse_record;
+use self::{header::read_header, record::parse_record};
 use super::{Header, Record, VariantReader};
 
 /// A VCF reader.
@@ -317,7 +317,7 @@ where
     R: io::BufRead,
 {
     fn read_variant_header(&mut self) -> io::Result<Header> {
-        read_header(&mut self.inner).and_then(|s| {
+        self.read_header().and_then(|s| {
             s.parse()
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })
@@ -329,45 +329,6 @@ where
     ) -> Box<dyn Iterator<Item = io::Result<crate::Record>> + 'a> {
         Box::new(self.records(header))
     }
-}
-
-fn read_header<R>(reader: &mut R) -> io::Result<String>
-where
-    R: BufRead,
-{
-    const HEADER_PREFIX: u8 = b'#';
-    const LINE_FEED: u8 = b'\n';
-
-    let mut header_buf = Vec::new();
-
-    let mut is_first_line = true;
-    let mut is_eol = false;
-
-    loop {
-        let buf = reader.fill_buf()?;
-
-        let is_eof = buf.is_empty();
-        let is_end_of_header = || (is_first_line || is_eol) && buf[0] != HEADER_PREFIX;
-
-        if is_eof || is_end_of_header() {
-            break;
-        }
-
-        let (read_eol, len) = if let Some(i) = memchr(LINE_FEED, buf) {
-            header_buf.extend(&buf[..=i]);
-            (true, i + 1)
-        } else {
-            header_buf.extend(buf);
-            (false, buf.len())
-        };
-
-        is_first_line = false;
-        is_eol = read_eol;
-
-        reader.consume(len);
-    }
-
-    String::from_utf8(header_buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 // Reads all bytes until a line feed ('\n') or EOF is reached.
@@ -416,83 +377,17 @@ pub(crate) fn resolve_region(index: &tabix::Index, region: &Region) -> io::Resul
 
 #[cfg(test)]
 mod tests {
-    use std::io::BufReader;
-
     use super::*;
 
-    static DATA: &[u8] = b"\
+    #[test]
+    fn test_read_record() -> Result<(), Box<dyn std::error::Error>> {
+        static DATA: &[u8] = b"\
 ##fileformat=VCFv4.3
 ##fileDate=20200501
 #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
 sq0\t1\t.\tA\t.\t.\tPASS\t.
 ";
 
-    #[test]
-    fn test_read_header() -> io::Result<()> {
-        let mut reader = DATA;
-
-        let actual = read_header(&mut reader)?;
-        let expected = "\
-##fileformat=VCFv4.3
-##fileDate=20200501
-#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
-";
-
-        assert_eq!(actual, expected);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_read_header_with_no_records() -> io::Result<()> {
-        let expected = "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
-
-        let mut reader = expected.as_bytes();
-        let actual = read_header(&mut reader)?;
-
-        assert_eq!(actual, expected);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_read_header_with_multiple_buffer_fills() -> io::Result<()> {
-        let expected = "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
-
-        let mut reader = BufReader::with_capacity(16, expected.as_bytes());
-        let actual = read_header(&mut reader)?;
-
-        assert_eq!(actual, expected);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_read_header_with_no_header() -> io::Result<()> {
-        let data = [];
-        let mut reader = &data[..];
-        let actual = read_header(&mut reader)?;
-        assert!(actual.is_empty());
-
-        let data = b"sq0\t1\t.\tA\t.\t.\tPASS\t.\n";
-        let mut reader = &data[..];
-        let actual = read_header(&mut reader)?;
-        assert!(actual.is_empty());
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_read_header_with_missing_end_of_line() -> io::Result<()> {
-        let expected = "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
-        let mut reader = expected.as_bytes();
-        let actual = read_header(&mut reader)?;
-        assert_eq!(actual, expected);
-        Ok(())
-    }
-
-    #[test]
-    fn test_read_record() -> Result<(), Box<dyn std::error::Error>> {
         let mut reader = Reader::new(DATA);
         let header = reader.read_header()?.parse()?;
 
