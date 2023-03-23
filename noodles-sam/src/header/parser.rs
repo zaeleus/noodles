@@ -136,26 +136,50 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse() -> Result<(), ParseError> {
+    fn test_parse() -> Result<(), Box<dyn std::error::Error>> {
+        use std::num::NonZeroUsize;
+
+        use crate::header::record::value::map::{
+            self,
+            header::{SortOrder, Version},
+            Map, Program, ReadGroup, ReferenceSequence,
+        };
+
         let s = "\
 @HD\tVN:1.6\tSO:coordinate
-@SQ\tSN:sq0\tLN:1
-@SQ\tSN:sq1\tLN:2
+@SQ\tSN:sq0\tLN:8
+@SQ\tSN:sq1\tLN:13
 @RG\tID:rg0
 @PG\tID:pg0\tPN:noodles
-@CO\tnoodles_sam::header::parser::tests::test_parse
+@CO\tndls
 ";
 
-        let header = parse(s)?;
+        let actual = parse(s)?;
 
-        assert_eq!(header.reference_sequences().len(), 2);
-        assert_eq!(header.read_groups().len(), 1);
-        assert_eq!(header.programs().len(), 1);
-        assert_eq!(header.comments.len(), 1);
-        assert_eq!(
-            &header.comments[0],
-            "noodles_sam::header::parser::tests::test_parse"
-        );
+        let expected = Header::builder()
+            .set_header(
+                Map::<map::Header>::builder()
+                    .set_version(Version::new(1, 6))
+                    .set_sort_order(SortOrder::Coordinate)
+                    .build()?,
+            )
+            .add_reference_sequence(
+                "sq0".parse()?,
+                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
+            )
+            .add_reference_sequence(
+                "sq1".parse()?,
+                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?),
+            )
+            .add_read_group("rg0", Map::<ReadGroup>::default())
+            .add_program(
+                "pg0",
+                Map::<Program>::builder().set_name("noodles").build()?,
+            )
+            .add_comment("ndls")
+            .build();
+
+        assert_eq!(actual, expected);
 
         Ok(())
     }
