@@ -30,20 +30,17 @@
 //!
 //! ```no_run
 //! # use std::fs::File;
-//! use noodles_bam::{self as bam, bai};
-//! use noodles_core::Region;
-//! use noodles_sam as sam;
+//! use noodles_bam as bam;
 //!
-//! let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
+//! let mut reader = bam::indexed_reader::Builder::default().build_from_path("sample.bam")?;
 //! let header = reader.read_header()?;
 //!
-//! let index = bai::read("sample.bam.bai")?;
 //! let region = "sq0:5-8".parse()?;
-//! let query = reader.query(&header, &index, &region)?;
+//! let query = reader.query(&header, &region)?;
 //!
 //! for result in query {
 //!     let record = result?;
-//!     println!("{:?}", record);
+//!     // ...
 //! }
 //! # Ok::<_, Box<dyn std::error::Error>>(())
 //! ```
