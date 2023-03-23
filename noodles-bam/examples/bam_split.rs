@@ -67,7 +67,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut reader = File::open(src).map(bam::Reader::new)?;
     let header = reader.read_header()?;
-    reader.read_reference_sequences()?;
 
     let mut writers = build_writers(header.read_groups())?;
     write_headers(&mut writers, &header)?;

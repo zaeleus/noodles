@@ -24,7 +24,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for src in srcs {
         let mut reader = bam::reader::Builder::default().build_from_path(src)?;
         reader.read_header()?;
-        reader.read_reference_sequences()?;
 
         io::copy(reader.get_mut(), writer.get_mut())?;
     }

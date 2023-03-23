@@ -24,10 +24,18 @@ where
 {
     read_magic(reader)?;
 
-    read_raw_header(reader).and_then(|s| {
+    let mut header: sam::Header = read_raw_header(reader).and_then(|s| {
         s.parse()
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })
+    })?;
+
+    let reference_sequences = read_reference_sequences(reader)?;
+
+    if header.reference_sequences().is_empty() {
+        *header.reference_sequences_mut() = reference_sequences;
+    }
+
+    Ok(header)
 }
 
 fn read_magic<R>(reader: &mut R) -> io::Result<()>
@@ -65,7 +73,7 @@ where
     })
 }
 
-pub(super) fn read_reference_sequences<R>(reader: &mut R) -> io::Result<ReferenceSequences>
+fn read_reference_sequences<R>(reader: &mut R) -> io::Result<ReferenceSequences>
 where
     R: Read,
 {
@@ -112,15 +120,6 @@ where
     Ok((name, reference_sequence))
 }
 
-pub(super) fn read_alignment_header<R>(reader: &mut R) -> io::Result<sam::Header>
-where
-    R: Read,
-{
-    let header = read_header(reader)?;
-    read_reference_sequences(reader)?;
-    Ok(header)
-}
-
 #[cfg(test)]
 mod tests {
     use noodles_sam as sam;
@@ -146,6 +145,39 @@ mod tests {
             read_magic(&mut reader),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidData
         ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_header() -> Result<(), Box<dyn std::error::Error>> {
+        use bytes::BufMut;
+        use sam::header::record::value::{
+            map::{self, header::Version},
+            Map,
+        };
+
+        let mut data = Vec::new();
+        data.put_slice(MAGIC_NUMBER); // magic
+        data.put_u32_le(11); // l_text
+        data.put_slice(b"@HD\tVN:1.6\n"); // text
+        data.put_u32_le(1); // n_ref
+        data.put_u32_le(4); // ref[0].l_name
+        data.put_slice(b"sq0\x00"); // ref[0].name
+        data.put_u32_le(8); // ref[0].l_ref
+
+        let mut reader = &data[..];
+        let actual = read_header(&mut reader)?;
+
+        let expected = sam::Header::builder()
+            .set_header(Map::<map::Header>::new(Version::new(1, 6)))
+            .add_reference_sequence(
+                "sq0".parse()?,
+                Map::<map::ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
+            )
+            .build();
+
+        assert_eq!(actual, expected);
 
         Ok(())
     }
@@ -184,35 +216,6 @@ mod tests {
         )]
         .into_iter()
         .collect();
-
-        assert_eq!(actual, expected);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_read_alignment_header() -> Result<(), Box<dyn std::error::Error>> {
-        use bytes::BufMut;
-        use sam::header::record::value::{
-            map::{self, header::Version},
-            Map,
-        };
-
-        let mut data = Vec::new();
-        data.put_slice(MAGIC_NUMBER); // magic
-        data.put_u32_le(11); // l_text
-        data.put_slice(b"@HD\tVN:1.6\n"); // text
-        data.put_u32_le(1); // n_ref
-        data.put_u32_le(4); // ref[0].l_name
-        data.put_slice(b"sq0\x00"); // ref[0].name
-        data.put_u32_le(8); // ref[0].l_ref
-
-        let mut reader = &data[..];
-        let actual = read_alignment_header(&mut reader)?;
-
-        let expected = sam::Header::builder()
-            .set_header(Map::<map::Header>::new(Version::new(1, 6)))
-            .build();
 
         assert_eq!(actual, expected);
 

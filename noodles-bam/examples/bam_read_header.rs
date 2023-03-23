@@ -7,25 +7,13 @@
 use std::{env, io};
 
 use noodles_bam as bam;
-use noodles_sam as sam;
 
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
     let mut reader = bam::reader::Builder::default().build_from_path(src)?;
-    let raw_header = reader.read_header()?;
-
-    if raw_header.is_empty() {
-        let reference_sequences = reader.read_reference_sequences()?;
-
-        let header = sam::Header::builder()
-            .set_reference_sequences(reference_sequences)
-            .build();
-
-        print!("{header}");
-    } else {
-        print!("{raw_header}");
-    }
+    let header = reader.read_header()?;
+    print!("{header}");
 
     Ok(())
 }

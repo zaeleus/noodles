@@ -46,7 +46,6 @@ use super::{bai, lazy};
 ///
 /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
 /// let header = reader.read_header()?;
-/// reader.read_reference_sequences()?;
 ///
 /// for result in reader.records(&header) {
 ///     let record = result?;
@@ -108,7 +107,9 @@ where
 
     /// Reads the SAM header.
     ///
-    /// The BAM magic number is also checked.
+    /// This verifies the BAM magic number, reads and parses the raw SAM header, and reads the
+    /// binary reference sequences. If the SAM header has a reference sequence dictionary, the
+    /// binary reference sequences are discarded; otherwise, they are added to the SAM header.
     ///
     /// The position of the stream is expected to be at the start.
     ///
@@ -124,32 +125,6 @@ where
     pub fn read_header(&mut self) -> io::Result<sam::Header> {
         use self::header::read_header;
         read_header(&mut self.inner)
-    }
-
-    /// Reads the binary reference sequences after the SAM header.
-    ///
-    /// This is not the same as the `@SQ` records in the SAM header. A BAM has a list of reference
-    /// sequences containing name and length tuples after the SAM header and before the list of
-    /// records.
-    ///
-    /// The position of the stream is expected to be directly after the header.
-    ///
-    /// This returns a reference sequence dictionary ([`noodles_sam::header::ReferenceSequences`]),
-    /// which can be used to build a minimal [`noodles_sam::Header`] if the SAM header is empty.
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// # use std::{fs::File, io};
-    /// use noodles_bam as bam;
-    /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
-    /// reader.read_header()?;
-    /// let reference_sequences = reader.read_reference_sequences()?;
-    /// # Ok::<(), io::Error>(())
-    /// ```
-    pub fn read_reference_sequences(&mut self) -> io::Result<ReferenceSequences> {
-        use self::header::read_reference_sequences;
-        read_reference_sequences(&mut self.inner)
     }
 
     /// Reads a single record.
@@ -176,7 +151,6 @@ where
     ///
     /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
     /// let header = reader.read_header()?;
-    /// reader.read_reference_sequences()?;
     ///
     /// let mut record = Record::default();
     /// reader.read_record(&header, &mut record)?;
@@ -208,7 +182,6 @@ where
     ///
     /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
     /// reader.read_header()?;
-    /// reader.read_reference_sequences()?;
     ///
     /// let mut record = bam::lazy::Record::default();
     /// reader.read_lazy_record(&mut record)?;
@@ -243,7 +216,6 @@ where
     ///
     /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
     /// let header = reader.read_header()?;
-    /// reader.read_reference_sequences()?;
     ///
     /// for result in reader.records(&header) {
     ///     let record = result?;
@@ -268,7 +240,6 @@ where
     ///
     /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
     /// reader.read_header()?;
-    /// reader.read_reference_sequences()?;
     ///
     /// for result in reader.lazy_records() {
     ///     let record = result?;
@@ -345,11 +316,10 @@ where
     }
 
     // Seeks to the first record by setting the cursor to the beginning of the stream and
-    // (re)reading the header and binary reference sequences.
+    // (re)reading the header.
     fn seek_to_first_record(&mut self) -> io::Result<bgzf::VirtualPosition> {
         self.seek(bgzf::VirtualPosition::default())?;
         self.read_header()?;
-        self.read_reference_sequences()?;
         Ok(self.virtual_position())
     }
 
@@ -438,8 +408,7 @@ where
     R: Read,
 {
     fn read_alignment_header(&mut self) -> io::Result<sam::Header> {
-        use self::header::read_alignment_header;
-        read_alignment_header(&mut self.inner)
+        self.read_header()
     }
 
     fn alignment_records<'a>(

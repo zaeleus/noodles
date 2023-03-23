@@ -12,9 +12,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");
 
     let mut reader = bam::reader::Builder::default().build_from_path(src)?;
-    let mut header = reader.read_header()?;
-    reader.read_reference_sequences()?;
 
+    let mut header = reader.read_header()?;
     header.add_comment("a comment added by noodles-bam");
 
     let stdout = io::stdout().lock();

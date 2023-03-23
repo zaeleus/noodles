@@ -15,7 +15,6 @@
 //!
 //! let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
 //! let header = reader.read_header()?;
-//! reader.read_reference_sequences()?;
 //!
 //! for result in reader.records(&header) {
 //!     let record = result?;

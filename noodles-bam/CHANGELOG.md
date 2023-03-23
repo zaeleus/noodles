@@ -17,6 +17,18 @@
 
     This no longer returns a raw string.
 
+  * bam/reader: Consider binary reference sequences as part of the header.
+
+    If the SAM header has a reference sequence dictionary, the binary reference
+    sequences are discarded; otherwise, they are added to the SAM header.
+
+### Removed
+
+  * bam/reader: Remove `Reader::read_reference_sequences`.
+
+    This is now considered as part of the header when calling
+    `Reader::read_header`.
+
 ## 0.28.0 - 2023-03-14
 
 ### Changed

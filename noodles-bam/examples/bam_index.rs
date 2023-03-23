@@ -29,7 +29,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut reader = bam::reader::Builder::default().build_from_path(src)?;
     let header = reader.read_header()?;
-    reader.read_reference_sequences()?;
 
     if !is_coordinate_sorted(&header) {
         return Err(io::Error::new(

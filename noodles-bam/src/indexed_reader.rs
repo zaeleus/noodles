@@ -8,7 +8,7 @@ use std::io::{self, Read, Seek};
 
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
-use noodles_sam::{self as sam, alignment::Record, header::ReferenceSequences};
+use noodles_sam::{self as sam, alignment::Record};
 
 use crate::reader::UnmappedRecords;
 
@@ -46,11 +46,6 @@ where
     /// Reads the raw SAM header.
     pub fn read_header(&mut self) -> io::Result<sam::Header> {
         self.inner.read_header()
-    }
-
-    /// Reads the binary reference sequences after the SAM header.
-    pub fn read_reference_sequences(&mut self) -> io::Result<ReferenceSequences> {
-        self.inner.read_reference_sequences()
     }
 
     /// Reads a single record.
