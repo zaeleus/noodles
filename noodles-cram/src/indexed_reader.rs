@@ -72,6 +72,11 @@ where
     ) -> Records<'a, R> {
         self.inner.records(reference_sequence_repository, header)
     }
+
+    /// Returns the associated index.
+    pub fn index(&self) -> &crai::Index {
+        &self.index
+    }
 }
 
 impl<R> IndexedReader<R>
