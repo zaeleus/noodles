@@ -4,6 +4,8 @@
 
 ### Added
 
+  * bam/indexed_reader/builder: Add getter for index (`IndexedReader::index`).
+
   * bam/indexed_reader/builder: Add `Builder::build_from_reader`.
 
   * bam/reader: Add builder (`bam::reader::Builder`).

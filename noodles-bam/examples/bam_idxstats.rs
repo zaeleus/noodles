@@ -6,19 +6,19 @@
 //!
 //! The result matches the output of `samtools idxstats <src>`.
 
-use std::{env, fs::File, path::PathBuf};
+use std::{env, path::PathBuf};
 
-use noodles_bam::{self as bam, bai};
+use noodles_bam as bam;
 use noodles_csi::{binning_index::ReferenceSequenceExt, BinningIndex};
 use noodles_sam as sam;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).map(PathBuf::from).expect("missing src");
 
-    let mut reader = File::open(&src).map(bam::Reader::new)?;
+    let mut reader = bam::indexed_reader::Builder::default().build_from_path(src)?;
     let header: sam::Header = reader.read_header()?.parse()?;
 
-    let index = bai::read(src.with_extension("bam.bai"))?;
+    let index = reader.index();
 
     for ((reference_sequence_name, reference_sequence), index_reference_sequence) in header
         .reference_sequences()

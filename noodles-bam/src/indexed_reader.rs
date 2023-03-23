@@ -72,6 +72,11 @@ where
     pub fn lazy_records(&mut self) -> LazyRecords<'_, R> {
         self.inner.lazy_records()
     }
+
+    /// Returns the associated index.
+    pub fn index(&self) -> &bai::Index {
+        &self.index
+    }
 }
 
 impl<R> IndexedReader<bgzf::Reader<R>>
