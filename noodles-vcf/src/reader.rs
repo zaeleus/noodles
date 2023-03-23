@@ -33,13 +33,13 @@ use super::{Header, Record, VariantReader};
 /// use noodles_vcf as vcf;
 ///
 /// let mut reader = vcf::reader::Builder::default().build_from_path("sample.vcf")?;
-/// let header = reader.read_header()?.parse()?;
+/// let header = reader.read_header()?;
 ///
 /// for result in reader.records(&header) {
 ///     let record = result?;
 ///     println!("{:?}", record);
 /// }
-/// # Ok::<_, Box<dyn std::error::Error>>(())
+/// # Ok::<_, std::io::Error>(())
 /// ```
 #[derive(Debug)]
 pub struct Reader<R> {
@@ -114,15 +114,12 @@ where
         self.inner
     }
 
-    /// Reads the raw VCF header.
+    /// Reads the VCF header.
     ///
     /// This reads all header lines prefixed with a `#` (number sign), which includes the header
-    /// header (`#CHROM`...).
+    /// header (`#CHROM`...), and parses it as a [`crate::Header`].
     ///
     /// The position of the stream is expected to be at the start.
-    ///
-    /// This returns the raw VCF header as a [`String`], and as such, it is not necessarily valid.
-    /// The raw header can subsequently be parsed as a [`crate::Header`].
     ///
     /// # Examples
     ///
@@ -137,11 +134,9 @@ where
     ///
     /// let mut reader = vcf::Reader::new(&data[..]);
     /// let header = reader.read_header()?;
-    ///
-    /// assert_eq!(header, "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n");
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn read_header(&mut self) -> io::Result<String> {
+    pub fn read_header(&mut self) -> io::Result<Header> {
         read_header(&mut self.inner)
     }
 
@@ -169,11 +164,11 @@ where
     /// ";
     ///
     /// let mut reader = vcf::Reader::new(&data[..]);
-    /// let header = reader.read_header()?.parse()?;
+    /// let header = reader.read_header()?;
     ///
     /// let mut record = vcf::Record::default();
     /// reader.read_record(&header, &mut record)?;
-    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn read_record(&mut self, header: &Header, record: &mut Record) -> io::Result<usize> {
         self.buf.clear();
@@ -202,12 +197,12 @@ where
     /// ";
     ///
     /// let mut reader = vcf::Reader::new(&data[..]);
-    /// let header = reader.read_header()?.parse()?;
+    /// let header = reader.read_header()?;
     ///
     /// let mut records = reader.records(&header);
     /// assert!(records.next().is_some());
     /// assert!(records.next().is_none());
-    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn records<'r, 'h>(&'r mut self, header: &'h Header) -> Records<'r, 'h, R> {
         Records::new(self, header)
@@ -281,7 +276,7 @@ where
     ///     .map(bgzf::Reader::new)
     ///     .map(vcf::Reader::new)?;
     ///
-    /// let header = reader.read_header()?.parse()?;
+    /// let header = reader.read_header()?;
     ///
     /// let index = tabix::read("sample.vcf.gz.tbi")?;
     /// let region = "sq0:8-13".parse()?;
@@ -317,10 +312,7 @@ where
     R: io::BufRead,
 {
     fn read_variant_header(&mut self) -> io::Result<Header> {
-        self.read_header().and_then(|s| {
-            s.parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })
+        self.read_header()
     }
 
     fn variant_records<'a>(
@@ -380,7 +372,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_record() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_read_record() -> io::Result<()> {
         static DATA: &[u8] = b"\
 ##fileformat=VCFv4.3
 ##fileDate=20200501
@@ -389,7 +381,7 @@ sq0\t1\t.\tA\t.\t.\tPASS\t.
 ";
 
         let mut reader = Reader::new(DATA);
-        let header = reader.read_header()?.parse()?;
+        let header = reader.read_header()?;
 
         let mut record = Record::default();
 

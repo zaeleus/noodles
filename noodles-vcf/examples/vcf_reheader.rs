@@ -25,7 +25,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut reader = vcf::reader::Builder::default().build_from_path(src)?;
 
-    let mut header = reader.read_header()?.parse()?;
+    let mut header = reader.read_header()?;
     add_comment(&mut header);
 
     let stdout = io::stdout().lock();

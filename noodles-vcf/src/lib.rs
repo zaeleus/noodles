@@ -10,13 +10,13 @@
 //! use noodles_vcf as vcf;
 //!
 //! let mut reader = vcf::reader::Builder::default().build_from_path("sample.vcf")?;
-//! let header = reader.read_header()?.parse()?;
+//! let header = reader.read_header()?;
 //!
 //! for result in reader.records(&header) {
 //!     let record = result?;
 //!     println!("{:?}", record);
 //! }
-//! # Ok::<_, Box<dyn std::error::Error>>(())
+//! # Ok::<_, std::io::Error>(())
 //! ```
 
 #[cfg(feature = "async")]

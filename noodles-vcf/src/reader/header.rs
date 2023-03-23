@@ -1,6 +1,18 @@
 use std::io::{self, BufRead};
 
-pub(super) fn read_header<R>(reader: &mut R) -> io::Result<String>
+use crate::Header;
+
+pub(super) fn read_header<R>(reader: &mut R) -> io::Result<Header>
+where
+    R: BufRead,
+{
+    read_raw_header(reader).and_then(|s| {
+        s.parse()
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+    })
+}
+
+fn read_raw_header<R>(reader: &mut R) -> io::Result<String>
 where
     R: BufRead,
 {
@@ -46,7 +58,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_header() -> io::Result<()> {
+    fn test_read_raw_header() -> io::Result<()> {
         static DATA: &[u8] = b"\
 ##fileformat=VCFv4.3
 ##fileDate=20200501
@@ -56,7 +68,7 @@ sq0\t1\t.\tA\t.\t.\tPASS\t.
 
         let mut reader = DATA;
 
-        let actual = read_header(&mut reader)?;
+        let actual = read_raw_header(&mut reader)?;
         let expected = "\
 ##fileformat=VCFv4.3
 ##fileDate=20200501
@@ -69,11 +81,11 @@ sq0\t1\t.\tA\t.\t.\tPASS\t.
     }
 
     #[test]
-    fn test_read_header_with_no_records() -> io::Result<()> {
+    fn test_read_raw_header_with_no_records() -> io::Result<()> {
         let expected = "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
 
         let mut reader = expected.as_bytes();
-        let actual = read_header(&mut reader)?;
+        let actual = read_raw_header(&mut reader)?;
 
         assert_eq!(actual, expected);
 
@@ -81,13 +93,13 @@ sq0\t1\t.\tA\t.\t.\tPASS\t.
     }
 
     #[test]
-    fn test_read_header_with_multiple_buffer_fills() -> io::Result<()> {
+    fn test_read_raw_header_with_multiple_buffer_fills() -> io::Result<()> {
         use std::io::BufReader;
 
         let expected = "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
 
         let mut reader = BufReader::with_capacity(16, expected.as_bytes());
-        let actual = read_header(&mut reader)?;
+        let actual = read_raw_header(&mut reader)?;
 
         assert_eq!(actual, expected);
 
@@ -95,25 +107,25 @@ sq0\t1\t.\tA\t.\t.\tPASS\t.
     }
 
     #[test]
-    fn test_read_header_with_no_header() -> io::Result<()> {
+    fn test_read_raw_header_with_no_header() -> io::Result<()> {
         let data = [];
         let mut reader = &data[..];
-        let actual = read_header(&mut reader)?;
+        let actual = read_raw_header(&mut reader)?;
         assert!(actual.is_empty());
 
         let data = b"sq0\t1\t.\tA\t.\t.\tPASS\t.\n";
         let mut reader = &data[..];
-        let actual = read_header(&mut reader)?;
+        let actual = read_raw_header(&mut reader)?;
         assert!(actual.is_empty());
 
         Ok(())
     }
 
     #[test]
-    fn test_read_header_with_missing_end_of_line() -> io::Result<()> {
+    fn test_read_raw_header_with_missing_end_of_line() -> io::Result<()> {
         let expected = "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
         let mut reader = expected.as_bytes();
-        let actual = read_header(&mut reader)?;
+        let actual = read_raw_header(&mut reader)?;
         assert_eq!(actual, expected);
         Ok(())
     }

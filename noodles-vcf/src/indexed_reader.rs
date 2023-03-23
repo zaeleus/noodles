@@ -48,8 +48,8 @@ where
         self.inner.into_inner()
     }
 
-    /// Reads the raw VCF header.
-    pub fn read_header(&mut self) -> io::Result<String> {
+    /// Reads the VCF header.
+    pub fn read_header(&mut self) -> io::Result<Header> {
         self.inner.read_header()
     }
 
