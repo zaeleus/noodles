@@ -4,7 +4,7 @@
 //!
 //! The result matches the output of `samtools head <src>`.
 
-use std::{env, fs::File, io};
+use std::{env, io};
 
 use noodles_bam as bam;
 use noodles_sam as sam;
@@ -12,7 +12,7 @@ use noodles_sam as sam;
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = File::open(src).map(bam::Reader::new)?;
+    let mut reader = bam::reader::Builder::default().build_from_path(src)?;
     let raw_header = reader.read_header()?;
 
     if raw_header.is_empty() {

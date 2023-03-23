@@ -1,5 +1,6 @@
 //! BAM reader and iterators.
 
+mod builder;
 mod lazy_records;
 pub(crate) mod query;
 pub mod record;
@@ -7,7 +8,8 @@ mod records;
 mod unmapped_records;
 
 pub use self::{
-    lazy_records::LazyRecords, query::Query, records::Records, unmapped_records::UnmappedRecords,
+    builder::Builder, lazy_records::LazyRecords, query::Query, records::Records,
+    unmapped_records::UnmappedRecords,
 };
 
 use std::{

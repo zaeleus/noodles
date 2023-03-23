@@ -2,7 +2,7 @@
 //!
 //! The results match the output of `samtools flagstat <src>`.
 
-use std::{env, fmt, fs::File};
+use std::{env, fmt};
 
 use noodles_bam as bam;
 use noodles_sam::{self as sam, alignment::Record};
@@ -191,7 +191,7 @@ fn print_stats(qc_pass_counts: &Counts, qc_fail_counts: &Counts) {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = File::open(src).map(bam::Reader::new)?;
+    let mut reader = bam::reader::Builder::default().build_from_path(src)?;
     let header = reader.read_header()?.parse()?;
     reader.read_reference_sequences()?;
 

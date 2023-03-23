@@ -53,7 +53,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let read_names = read_read_names(read_names_src)?;
 
-    let mut reader = File::open(src).map(bam::Reader::new)?;
+    let mut reader = bam::reader::Builder::default().build_from_path(src)?;
     let header = reader.read_header()?.parse()?;
     reader.read_reference_sequences()?;
 

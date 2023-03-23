@@ -6,6 +6,8 @@
 
   * bam/indexed_reader/builder: Add `Builder::build_from_reader`.
 
+  * bam/reader: Add builder (`bam::reader::Builder`).
+
 ## 0.28.0 - 2023-03-14
 
 ### Changed

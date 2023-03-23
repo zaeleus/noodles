@@ -2,7 +2,7 @@
 //!
 //! The result is similar to the output `samtools cat --no-PG <srcs...>`.
 
-use std::{env, fs::File, io};
+use std::{env, io};
 
 use noodles_bam as bam;
 use noodles_sam::AlignmentReader;
@@ -11,8 +11,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let srcs: Vec<_> = env::args().skip(1).collect();
 
     let first_src = srcs.first().expect("missing srcs[0]");
-    let header = File::open(first_src)
-        .map(bam::Reader::new)
+    let header = bam::reader::Builder::default()
+        .build_from_path(first_src)
         .and_then(|mut reader| reader.read_alignment_header())?;
 
     let stdout = io::stdout().lock();
@@ -22,7 +22,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     writer.write_reference_sequences(header.reference_sequences())?;
 
     for src in srcs {
-        let mut reader = File::open(src).map(bam::Reader::new)?;
+        let mut reader = bam::reader::Builder::default().build_from_path(src)?;
         reader.read_header()?;
         reader.read_reference_sequences()?;
 

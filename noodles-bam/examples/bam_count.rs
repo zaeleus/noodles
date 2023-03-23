@@ -2,14 +2,14 @@
 //!
 //! The result matches the output of `samtools view --count <src>`.
 
-use std::{env, fs::File};
+use std::env;
 
 use noodles_bam as bam;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = File::open(src).map(bam::Reader::new)?;
+    let mut reader = bam::reader::Builder::default().build_from_path(src)?;
     let header = reader.read_header()?.parse()?;
     reader.read_reference_sequences()?;
 

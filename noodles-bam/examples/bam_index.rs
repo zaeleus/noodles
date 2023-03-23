@@ -6,7 +6,7 @@
 //!
 //! The output is similar to the output of `samtools index <src>`.
 
-use std::{env, fs::File, io};
+use std::{env, io};
 
 use noodles_bam::{self as bam, bai};
 use noodles_csi::index::reference_sequence::bin::Chunk;
@@ -27,7 +27,7 @@ fn is_coordinate_sorted(header: &sam::Header) -> bool {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = File::open(src).map(bam::Reader::new)?;
+    let mut reader = bam::reader::Builder::default().build_from_path(src)?;
     let header = reader.read_header()?.parse()?;
     reader.read_reference_sequences()?;
 
