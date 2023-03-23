@@ -44,7 +44,7 @@ where
     }
 
     /// Reads the raw SAM header.
-    pub fn read_header(&mut self) -> io::Result<String> {
+    pub fn read_header(&mut self) -> io::Result<sam::Header> {
         self.inner.read_header()
     }
 

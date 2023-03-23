@@ -18,12 +18,16 @@ use noodles_sam::{
 use super::bytes_with_nul_to_string;
 use crate::MAGIC_NUMBER;
 
-pub(super) fn read_header<R>(reader: &mut R) -> io::Result<String>
+pub(super) fn read_header<R>(reader: &mut R) -> io::Result<sam::Header>
 where
     R: Read,
 {
     read_magic(reader)?;
-    read_raw_header(reader)
+
+    read_raw_header(reader).and_then(|s| {
+        s.parse()
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })
 }
 
 fn read_magic<R>(reader: &mut R) -> io::Result<()>
@@ -112,13 +116,8 @@ pub(super) fn read_alignment_header<R>(reader: &mut R) -> io::Result<sam::Header
 where
     R: Read,
 {
-    let header = read_header(reader).and_then(|s| {
-        s.parse()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
+    let header = read_header(reader)?;
     read_reference_sequences(reader)?;
-
     Ok(header)
 }
 

@@ -10,13 +10,12 @@ use std::{env, path::PathBuf};
 
 use noodles_bam as bam;
 use noodles_csi::{binning_index::ReferenceSequenceExt, BinningIndex};
-use noodles_sam as sam;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).map(PathBuf::from).expect("missing src");
 
     let mut reader = bam::indexed_reader::Builder::default().build_from_path(src)?;
-    let header: sam::Header = reader.read_header()?.parse()?;
+    let header = reader.read_header()?;
 
     let index = reader.index();
 

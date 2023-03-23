@@ -10,6 +10,13 @@
 
   * bam/reader: Add builder (`bam::reader::Builder`).
 
+### Changed
+
+  * bam/reader: Change `Reader::read_header` to return a parsed header
+    (`sam::Header`).
+
+    This no longer returns a raw string.
+
 ## 0.28.0 - 2023-03-14
 
 ### Changed

@@ -66,7 +66,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = args.next().expect("missing src");
 
     let mut reader = File::open(src).map(bam::Reader::new)?;
-    let header: sam::Header = reader.read_header()?.parse()?;
+    let header = reader.read_header()?;
     reader.read_reference_sequences()?;
 
     let mut writers = build_writers(header.read_groups())?;

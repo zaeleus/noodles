@@ -45,7 +45,7 @@ use super::{bai, lazy};
 /// use noodles_bam as bam;
 ///
 /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
-/// let header = reader.read_header()?.parse()?;
+/// let header = reader.read_header()?;
 /// reader.read_reference_sequences()?;
 ///
 /// for result in reader.records(&header) {
@@ -53,7 +53,7 @@ use super::{bai, lazy};
 ///     println!("{:?}", record);
 /// }
 ///
-/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// # Ok::<_, io::Error>(())
 /// ```
 pub struct Reader<R> {
     inner: R,
@@ -106,14 +106,11 @@ where
         self.inner
     }
 
-    /// Reads the raw SAM header.
+    /// Reads the SAM header.
     ///
     /// The BAM magic number is also checked.
     ///
     /// The position of the stream is expected to be at the start.
-    ///
-    /// This returns the raw SAM header as a [`String`]. It can subsequently be parsed as a
-    /// [`noodles_sam::Header`].
     ///
     /// # Examples
     ///
@@ -124,7 +121,7 @@ where
     /// let header = reader.read_header()?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn read_header(&mut self) -> io::Result<String> {
+    pub fn read_header(&mut self) -> io::Result<sam::Header> {
         use self::header::read_header;
         read_header(&mut self.inner)
     }
@@ -178,13 +175,13 @@ where
     /// use noodles_sam::alignment::Record;
     ///
     /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
-    /// let header = reader.read_header()?.parse()?;
+    /// let header = reader.read_header()?;
     /// reader.read_reference_sequences()?;
     ///
     /// let mut record = Record::default();
     /// reader.read_record(&header, &mut record)?;
     ///
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// # Ok::<_, io::Error>(())
     /// ```
     pub fn read_record(&mut self, header: &sam::Header, record: &mut Record) -> io::Result<usize> {
         use self::record::read_record;
@@ -245,14 +242,14 @@ where
     /// use noodles_bam as bam;
     ///
     /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
-    /// let header = reader.read_header()?.parse()?;
+    /// let header = reader.read_header()?;
     /// reader.read_reference_sequences()?;
     ///
     /// for result in reader.records(&header) {
     ///     let record = result?;
     ///     println!("{:?}", record);
     /// }
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// # Ok::<_, io::Error>(())
     /// ```
     pub fn records<'a>(&'a mut self, header: &'a sam::Header) -> Records<'_, R> {
         Records::new(self, header)
@@ -367,7 +364,7 @@ where
     /// use noodles_sam as sam;
     ///
     /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
-    /// let header = reader.read_header()?.parse()?;
+    /// let header = reader.read_header()?;
     ///
     /// let index = bai::read("sample.bam.bai")?;
     /// let region = "sq0:8-13".parse()?;
@@ -377,7 +374,7 @@ where
     ///     let record = result?;
     ///     println!("{:?}", record);
     /// }
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn query<'a, I>(
         &'a mut self,

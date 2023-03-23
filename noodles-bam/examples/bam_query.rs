@@ -17,7 +17,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let region = args.next().expect("missing region").parse()?;
 
     let mut reader = bam::indexed_reader::Builder::default().build_from_path(src)?;
-    let header = reader.read_header()?.parse()?;
+    let header = reader.read_header()?;
 
     let query = reader.query(&header, &region)?;
 

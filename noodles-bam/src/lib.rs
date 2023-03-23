@@ -14,14 +14,14 @@
 //! use noodles_bam as bam;
 //!
 //! let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
-//! let header = reader.read_header()?.parse()?;
+//! let header = reader.read_header()?;
 //! reader.read_reference_sequences()?;
 //!
 //! for result in reader.records(&header) {
 //!     let record = result?;
 //!     println!("{:?}", record);
 //! }
-//! # Ok::<(), Box<dyn std::error::Error>>(())
+//! # Ok::<_, io::Error>(())
 //! ```
 //!
 //! ## Query records
@@ -35,7 +35,7 @@
 //! use noodles_sam as sam;
 //!
 //! let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
-//! let header = reader.read_header()?.parse()?;
+//! let header = reader.read_header()?;
 //!
 //! let index = bai::read("sample.bam.bai")?;
 //! let region = "sq0:5-8".parse()?;
@@ -45,7 +45,7 @@
 //!     let record = result?;
 //!     println!("{:?}", record);
 //! }
-//! # Ok::<(), Box<dyn std::error::Error>>(())
+//! # Ok::<_, Box<dyn std::error::Error>>(())
 //! ```
 
 #[cfg(feature = "async")]

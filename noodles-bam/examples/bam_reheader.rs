@@ -7,13 +7,12 @@
 use std::{env, io};
 
 use noodles_bam as bam;
-use noodles_sam as sam;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");
 
     let mut reader = bam::reader::Builder::default().build_from_path(src)?;
-    let mut header: sam::Header = reader.read_header()?.parse()?;
+    let mut header = reader.read_header()?;
     reader.read_reference_sequences()?;
 
     header.add_comment("a comment added by noodles-bam");
