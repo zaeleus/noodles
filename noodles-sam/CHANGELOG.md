@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * sam: Add an indexed reader (`IndexedReader`).
+
 ### Changed
 
   * sam/reader: Change `Reader::read_header` to return a parsed header

@@ -41,6 +41,7 @@ pub mod alignment;
 mod alignment_reader;
 mod alignment_writer;
 pub mod header;
+mod indexed_reader;
 pub mod lazy;
 pub mod reader;
 pub mod record;
@@ -48,7 +49,7 @@ mod writer;
 
 pub use self::{
     alignment_reader::AlignmentReader, alignment_writer::AlignmentWriter, header::Header,
-    reader::Reader, writer::Writer,
+    indexed_reader::IndexedReader, reader::Reader, writer::Writer,
 };
 
 #[cfg(feature = "async")]

@@ -7,7 +7,6 @@
 
 use std::{env, fs::File, io, path::PathBuf};
 
-use noodles_bgzf as bgzf;
 use noodles_csi as csi;
 use noodles_sam as sam;
 
@@ -17,14 +16,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = args.nth(1).map(PathBuf::from).expect("missing src");
     let region = args.next().expect("missing region").parse()?;
 
-    let mut reader = File::open(&src)
-        .map(bgzf::Reader::new)
-        .map(sam::Reader::new)?;
+    let index = csi::read(src.with_extension("gz.csi"))?;
+    let mut reader = File::open(src).map(|file| sam::IndexedReader::new(file, index))?;
 
     let header = reader.read_header()?;
 
-    let index = csi::read(src.with_extension("gz.csi"))?;
-    let query = reader.query(&header, &index, &region)?;
+    let query = reader.query(&header, &region)?;
 
     let stdout = io::stdout().lock();
     let mut writer = sam::Writer::new(stdout);
