@@ -109,9 +109,11 @@ where
     /// use noodles_bam as bam;
     /// use noodles_sam::{self as sam, alignment::Record};
     ///
-    /// let mut writer = bam::Writer::new(Vec::new());
-    ///
     /// let header = sam::Header::default();
+    ///
+    /// let mut writer = bam::Writer::new(Vec::new());
+    /// writer.write_header(&header)?;
+    ///
     /// let record = Record::default();
     /// writer.write_record(&header, &record)?;
     /// # Ok::<(), io::Error>(())
