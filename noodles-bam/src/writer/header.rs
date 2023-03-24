@@ -14,6 +14,15 @@ pub(super) fn write_header<W>(writer: &mut W, header: &sam::Header) -> io::Resul
 where
     W: Write,
 {
+    write_raw_header(writer, header)?;
+    write_reference_sequences(writer, header.reference_sequences())?;
+    Ok(())
+}
+
+fn write_raw_header<W>(writer: &mut W, header: &sam::Header) -> io::Result<()>
+where
+    W: Write,
+{
     use crate::MAGIC_NUMBER;
 
     writer.write_all(MAGIC_NUMBER)?;
@@ -28,7 +37,7 @@ where
     Ok(())
 }
 
-pub(super) fn write_reference_sequences<W>(
+pub fn write_reference_sequences<W>(
     writer: &mut W,
     reference_sequences: &ReferenceSequences,
 ) -> io::Result<()>
@@ -75,7 +84,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_header() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_write_raw_header() -> Result<(), Box<dyn std::error::Error>> {
         use sam::header::record::value::{
             map::{self, header::Version},
             Map,
@@ -86,7 +95,7 @@ mod tests {
             .build();
 
         let mut buf = Vec::new();
-        write_header(&mut buf, &header)?;
+        write_raw_header(&mut buf, &header)?;
 
         let mut expected = vec![
             b'B', b'A', b'M', 0x01, // magic

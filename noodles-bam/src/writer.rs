@@ -7,7 +7,7 @@ use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf as bgzf;
-use noodles_sam::{self as sam, alignment::Record, header::ReferenceSequences};
+use noodles_sam::{self as sam, alignment::Record};
 
 use self::record::encode_record;
 
@@ -24,7 +24,6 @@ use self::record::encode_record;
 ///
 /// let header = sam::Header::default();
 /// writer.write_header(&header)?;
-/// writer.write_reference_sequences(header.reference_sequences())?;
 ///
 /// let record = Record::default();
 /// writer.write_record(&header, &record)?;
@@ -80,6 +79,9 @@ where
 
     /// Writes a SAM header.
     ///
+    /// This writes the BAM magic number, the raw SAM header, and a copy of the reference sequence
+    /// dictionary as binary reference sequences.
+    ///
     /// # Examples
     ///
     /// ```
@@ -96,44 +98,6 @@ where
     pub fn write_header(&mut self, header: &sam::Header) -> io::Result<()> {
         use self::header::write_header;
         write_header(&mut self.inner, header)
-    }
-
-    /// Writes SAM reference sequences.
-    ///
-    /// The reference sequences here are typically the same as the reference sequences in the SAM
-    /// header.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use std::num::NonZeroUsize;
-    ///
-    /// use noodles_bam as bam;
-    /// use noodles_sam::{
-    ///     self as sam,
-    ///     header::record::value::{map::ReferenceSequence, Map},
-    /// };
-    ///
-    /// let mut writer = bam::Writer::new(Vec::new());
-    ///
-    /// let header = sam::Header::builder()
-    ///     .add_reference_sequence(
-    ///         "sq0".parse()?,
-    ///         Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?)
-    ///     )
-    ///     .add_comment("noodles-bam")
-    ///     .build();
-    ///
-    /// writer.write_header(&header)?;
-    /// writer.write_reference_sequences(header.reference_sequences())?;
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
-    /// ```
-    pub fn write_reference_sequences(
-        &mut self,
-        reference_sequences: &ReferenceSequences,
-    ) -> io::Result<()> {
-        use self::header::write_reference_sequences;
-        write_reference_sequences(&mut self.inner, reference_sequences)
     }
 
     /// Writes a BAM record.
@@ -217,9 +181,7 @@ where
     W: Write,
 {
     fn write_alignment_header(&mut self, header: &sam::Header) -> io::Result<()> {
-        self.write_header(header)?;
-        self.write_reference_sequences(header.reference_sequences())?;
-        Ok(())
+        self.write_header(header)
     }
 
     fn write_alignment_record(&mut self, header: &sam::Header, record: &Record) -> io::Result<()> {

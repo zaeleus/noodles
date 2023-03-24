@@ -22,12 +22,22 @@
     If the SAM header has a reference sequence dictionary, the binary reference
     sequences are discarded; otherwise, they are added to the SAM header.
 
+  * bam/writer: Consider binary reference sequences as part of the header.
+
+    The binary reference sequences was now written as part of the header. They
+    are taken from the reference sequence dictionary of the given header.
+
 ### Removed
 
   * bam/reader: Remove `Reader::read_reference_sequences`.
 
     This is now considered as part of the header when calling
     `Reader::read_header`.
+
+  * bam/writer: Remove `Writer::write_reference_sequences`.
+
+    This is now considered as part of the header when calling
+    `Writer::write_header`.
 
 ## 0.28.0 - 2023-03-14
 

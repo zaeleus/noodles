@@ -19,7 +19,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut writer = bam::Writer::new(stdout);
 
     writer.write_header(&header)?;
-    writer.write_reference_sequences(header.reference_sequences())?;
 
     for src in srcs {
         let mut reader = bam::reader::Builder::default().build_from_path(src)?;

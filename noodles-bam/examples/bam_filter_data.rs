@@ -30,7 +30,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut writer = bam::Writer::new(stdout);
 
     writer.write_header(&header)?;
-    writer.write_reference_sequences(header.reference_sequences())?;
 
     for result in reader.records(&header) {
         let record = result?;

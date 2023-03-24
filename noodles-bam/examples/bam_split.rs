@@ -41,7 +41,6 @@ fn write_headers(writers: &mut Writers, header: &sam::Header) -> io::Result<()> 
         read_groups.insert(id.into(), read_group.clone());
 
         writer.write_header(&modified_header)?;
-        writer.write_reference_sequences(modified_header.reference_sequences())?;
     }
 
     Ok(())
