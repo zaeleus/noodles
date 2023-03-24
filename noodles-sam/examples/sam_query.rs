@@ -5,9 +5,8 @@
 //!
 //! The result matches the output of `samtools view <src> <region>`.
 
-use std::{env, fs::File, io, path::PathBuf};
+use std::{env, io, path::PathBuf};
 
-use noodles_csi as csi;
 use noodles_sam as sam;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -16,9 +15,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = args.nth(1).map(PathBuf::from).expect("missing src");
     let region = args.next().expect("missing region").parse()?;
 
-    let index = csi::read(src.with_extension("gz.csi"))?;
-    let mut reader = File::open(src).map(|file| sam::IndexedReader::new(file, index))?;
-
+    let mut reader = sam::indexed_reader::Builder::default().build_from_path(src)?;
     let header = reader.read_header()?;
 
     let query = reader.query(&header, &region)?;

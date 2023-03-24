@@ -41,7 +41,7 @@ pub mod alignment;
 mod alignment_reader;
 mod alignment_writer;
 pub mod header;
-mod indexed_reader;
+pub mod indexed_reader;
 pub mod lazy;
 pub mod reader;
 pub mod record;
