@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/reader: Change `Reader::read_header` to return a parsed header
+    (`Header`).
+
+    This no longer returns a raw string.
+
 ## 0.25.0 - 2023-03-14
 
 ### Added

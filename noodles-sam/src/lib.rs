@@ -25,13 +25,13 @@
 //!     .map(BufReader::new)
 //!     .map(sam::Reader::new)?;
 //!
-//! let header = reader.read_header()?.parse()?;
+//! let header = reader.read_header()?;
 //!
 //! for result in reader.records(&header) {
 //!     let record = result?;
 //!     // ...
 //! }
-//! # Ok::<(), Box<dyn std::error::Error>>(())
+//! # Ok::<_, std::io::Error>(())
 //! ```
 
 #[cfg(feature = "async")]

@@ -18,12 +18,12 @@ fn is_unique_record(record: &Record) -> io::Result<bool> {
     }
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> io::Result<()> {
     let mut args = env::args().skip(1);
     let src = args.next().expect("missing src");
 
     let mut reader = sam::reader::Builder::default().build_from_path(src)?;
-    let header = reader.read_header()?.parse()?;
+    let header = reader.read_header()?;
 
     let stdout = io::stdout().lock();
     let mut writer = sam::Writer::new(stdout);

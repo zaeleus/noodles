@@ -36,13 +36,13 @@ use super::{alignment::Record, header::ReferenceSequences, lazy, AlignmentReader
 ///     .map(BufReader::new)
 ///     .map(sam::Reader::new)?;
 ///
-/// let header = reader.read_header()?.parse()?;
+/// let header = reader.read_header()?;
 ///
 /// for result in reader.records(&header) {
 ///     let record = result?;
 ///     // ...
 /// }
-/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// # Ok::<_, std::io::Error>(())
 /// ```
 #[derive(Debug)]
 pub struct Reader<R> {
@@ -112,14 +112,11 @@ where
         self.inner
     }
 
-    /// Reads the raw SAM header.
+    /// Reads the SAM header.
     ///
     /// The position of the stream is expected to be at the start.
     ///
-    /// This returns the raw SAM header as a [`String`]. It can subsequently be parsed as a
-    /// [`crate::Header`].
-    ///
-    /// The SAM header is optional, and if it is missing, an empty string is returned.
+    /// The SAM header is optional, and if it is missing, an empty [`Header`] is returned.
     ///
     /// # Examples
     ///
@@ -132,12 +129,16 @@ where
     /// ";
     ///
     /// let mut reader = sam::Reader::new(&data[..]);
-    /// let header = reader.read_header()?;
+    /// let actual = reader.read_header()?;
     ///
-    /// assert_eq!(header, "@HD\tVN:1.6\n");
+    /// let expected = sam::Header::builder()
+    ///     .set_header(Default::default())
+    ///     .build();
+    ///
+    /// assert_eq!(actual, expected);
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn read_header(&mut self) -> io::Result<String> {
+    pub fn read_header(&mut self) -> io::Result<Header> {
         use self::header::read_header;
         read_header(&mut self.inner)
     }
@@ -165,13 +166,13 @@ where
     /// ";
     ///
     /// let mut reader = sam::Reader::new(&data[..]);
-    /// let header = reader.read_header()?.parse()?;
+    /// let header = reader.read_header()?;
     ///
     /// let mut record = Record::default();
     /// reader.read_record(&header, &mut record)?;
     ///
     /// assert_eq!(record, Record::default());
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn read_record(&mut self, header: &Header, record: &mut Record) -> io::Result<usize> {
         use self::record::read_record;
@@ -192,12 +193,12 @@ where
     /// ";
     ///
     /// let mut reader = sam::Reader::new(&data[..]);
-    /// let header = reader.read_header()?.parse()?;
+    /// let header = reader.read_header()?;
     ///
     /// let mut records = reader.records(&header);
     /// assert!(records.next().is_some());
     /// assert!(records.next().is_none());
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn records<'a>(&'a mut self, header: &'a Header) -> Records<'a, R> {
         Records::new(self, header)
@@ -279,7 +280,7 @@ where
     ///     .map(bgzf::Reader::new)
     ///     .map(sam::Reader::new)?;
     ///
-    /// let header = reader.read_header()?.parse()?;
+    /// let header = reader.read_header()?;
     ///
     /// let index = csi::read("sample.sam.gz.csi")?;
     /// let region = "sq0:8-13".parse()?;
@@ -327,10 +328,7 @@ where
     R: BufRead,
 {
     fn read_alignment_header(&mut self) -> io::Result<Header> {
-        self.read_header().and_then(|s| {
-            s.parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })
+        self.read_header()
     }
 
     fn alignment_records<'a>(

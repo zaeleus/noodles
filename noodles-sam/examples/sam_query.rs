@@ -21,7 +21,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(bgzf::Reader::new)
         .map(sam::Reader::new)?;
 
-    let header = reader.read_header()?.parse()?;
+    let header = reader.read_header()?;
 
     let index = csi::read(src.with_extension("gz.csi"))?;
     let query = reader.query(&header, &index, &region)?;

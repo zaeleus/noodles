@@ -2,15 +2,15 @@
 //!
 //! The result matches the output of `samtools view --count <src>`.
 
-use std::env;
+use std::{env, io};
 
 use noodles_sam as sam;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
     let mut reader = sam::reader::Builder::default().build_from_path(src)?;
-    let header = reader.read_header()?.parse()?;
+    let header = reader.read_header()?;
 
     let mut n = 0;
 
