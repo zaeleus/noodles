@@ -5,7 +5,6 @@
 use std::{env, io};
 
 use noodles_bam as bam;
-use noodles_sam::AlignmentReader;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let srcs: Vec<_> = env::args().skip(1).collect();
@@ -13,7 +12,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let first_src = srcs.first().expect("missing srcs[0]");
     let header = bam::reader::Builder::default()
         .build_from_path(first_src)
-        .and_then(|mut reader| reader.read_alignment_header())?;
+        .and_then(|mut reader| reader.read_header())?;
 
     let stdout = io::stdout().lock();
     let mut writer = bam::Writer::new(stdout);
