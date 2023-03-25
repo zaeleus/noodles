@@ -18,6 +18,7 @@ type Tag = super::tag::Tag<StandardTag>;
 pub struct Contig {
     length: Option<usize>,
     md5: Option<String>,
+    url: Option<String>,
     idx: Option<usize>,
 }
 
@@ -135,6 +136,7 @@ impl TryFrom<Fields> for Map<Contig> {
 
         let mut length = None;
         let mut md5 = None;
+        let mut url = None;
         let mut idx = None;
 
         for (key, value) in fields {
@@ -142,13 +144,19 @@ impl TryFrom<Fields> for Map<Contig> {
                 Tag::Standard(StandardTag::Id) => return Err(TryFromFieldsError::DuplicateTag),
                 Tag::Standard(StandardTag::Length) => parse_length(&value, &mut length)?,
                 Tag::Standard(StandardTag::Md5) => parse_md5(&value, &mut md5)?,
+                Tag::Standard(StandardTag::Url) => parse_url(&value, &mut url)?,
                 Tag::Standard(StandardTag::Idx) => super::parse_idx(&value, &mut idx)?,
                 Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
             }
         }
 
         Ok(Self {
-            inner: Contig { length, md5, idx },
+            inner: Contig {
+                length,
+                md5,
+                url,
+                idx,
+            },
             other_fields,
         })
     }
@@ -167,6 +175,14 @@ fn parse_length(s: &str, value: &mut Option<usize>) -> Result<(), TryFromFieldsE
 }
 
 fn parse_md5(s: &str, value: &mut Option<String>) -> Result<(), TryFromFieldsError> {
+    if value.replace(s.into()).is_none() {
+        Ok(())
+    } else {
+        Err(TryFromFieldsError::DuplicateTag)
+    }
+}
+
+fn parse_url(s: &str, value: &mut Option<String>) -> Result<(), TryFromFieldsError> {
     if value.replace(s.into()).is_none() {
         Ok(())
     } else {

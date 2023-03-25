@@ -4,7 +4,7 @@
 
 ### Added
 
-  * vcf/header/record/value/map/contig: Add `md5` as a standard tag.
+  * vcf/header/record/value/map/contig: Add `md5` and `URL` as a standard tags.
 
   * vcf/record: Implement `Default`.
 

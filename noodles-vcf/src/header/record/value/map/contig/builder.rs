@@ -5,6 +5,7 @@ use crate::header::record::value::map::{self, builder::BuildError};
 pub struct Builder {
     length: Option<usize>,
     md5: Option<String>,
+    url: Option<String>,
     idx: Option<usize>,
 }
 
@@ -13,6 +14,7 @@ impl map::builder::Inner<Contig> for Builder {
         Ok(Contig {
             length: self.length,
             md5: self.md5,
+            url: self.url,
             idx: self.idx,
         })
     }
