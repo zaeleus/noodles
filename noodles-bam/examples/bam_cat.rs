@@ -1,6 +1,6 @@
 //! Concatenates BAM files.
 //!
-//! The result is similar to the output `samtools cat --no-PG <srcs...>`.
+//! The result is similar to the output of `samtools cat --no-PG <srcs...>`.
 
 use std::{env, io};
 
