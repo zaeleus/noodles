@@ -1,6 +1,7 @@
 mod chromosome;
 mod filters;
 mod genotypes;
+mod ids;
 mod position;
 mod reference_bases;
 
@@ -8,10 +9,10 @@ use std::io;
 
 use self::{
     chromosome::parse_chromosome, filters::parse_filters, genotypes::parse_genotypes,
-    position::parse_position, reference_bases::parse_reference_bases,
+    ids::parse_ids, position::parse_position, reference_bases::parse_reference_bases,
 };
 use crate::{
-    record::{AlternateBases, Ids, Info, QualityScore},
+    record::{AlternateBases, Info, QualityScore},
     Header, Record,
 };
 
@@ -25,7 +26,7 @@ pub(super) fn parse_record(mut s: &str, header: &Header, record: &mut Record) ->
     *record.position_mut() = parse_position(field)?;
 
     let field = next_field(&mut s);
-    *record.ids_mut() = parse_ids(field)?;
+    parse_ids(field, record.ids_mut())?;
 
     let field = next_field(&mut s);
     parse_reference_bases(field, record.reference_bases_mut())?;
@@ -57,15 +58,6 @@ fn next_field<'a>(s: &mut &'a str) -> &'a str {
     *s = rest;
 
     field
-}
-
-fn parse_ids(s: &str) -> io::Result<Ids> {
-    match s {
-        MISSING => Ok(Ids::default()),
-        _ => s
-            .parse()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-    }
 }
 
 fn parse_alternate_bases(s: &str) -> io::Result<AlternateBases> {
