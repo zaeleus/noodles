@@ -1,17 +1,12 @@
 use std::io;
 
-use super::MISSING;
 use crate::record::Ids;
 
 pub(super) fn parse_ids(s: &str, ids: &mut Ids) -> io::Result<()> {
     const DELIMITER: char = ';';
 
-    ids.clear();
-
     if s.is_empty() {
         return Err(io::Error::new(io::ErrorKind::InvalidData, "empty IDs"));
-    } else if s == MISSING {
-        return Ok(());
     }
 
     for raw_id in s.split(DELIMITER) {
@@ -40,42 +35,53 @@ mod tests {
 
         let mut ids = Ids::default();
 
-        parse_ids(".", &mut ids)?;
-        assert!(ids.is_empty());
-
+        ids.clear();
         parse_ids("nd0", &mut ids)?;
         let expected = [id0.clone()].into_iter().collect();
         assert_eq!(ids, expected);
 
+        ids.clear();
         parse_ids("nd0;nd1", &mut ids)?;
         let expected = [id0, id1].into_iter().collect();
         assert_eq!(ids, expected);
 
+        ids.clear();
         assert!(matches!(
             parse_ids("", &mut ids),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 
+        ids.clear();
+        assert!(matches!(
+            parse_ids(".", &mut ids),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        ids.clear();
         assert!(matches!(
             parse_ids("nd0;nd0", &mut ids),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 
+        ids.clear();
         assert!(matches!(
             parse_ids("nd 0", &mut ids),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 
+        ids.clear();
         assert!(matches!(
             parse_ids(";nd0", &mut ids),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 
+        ids.clear();
         assert!(matches!(
             parse_ids("nd0;;nd1", &mut ids),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 
+        ids.clear();
         assert!(matches!(
             parse_ids("nd0;", &mut ids),
             Err(e) if e.kind() == io::ErrorKind::InvalidData

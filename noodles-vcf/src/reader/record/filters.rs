@@ -2,7 +2,6 @@ use std::{io, mem};
 
 use indexmap::IndexSet;
 
-use super::MISSING;
 use crate::record::Filters;
 
 pub(super) fn parse_filters(s: &str, filters: &mut Option<Filters>) -> io::Result<()> {
@@ -11,9 +10,6 @@ pub(super) fn parse_filters(s: &str, filters: &mut Option<Filters>) -> io::Resul
 
     if s.is_empty() {
         return Err(io::Error::new(io::ErrorKind::InvalidData, "empty filters"));
-    } else if s == MISSING {
-        *filters = None;
-        return Ok(());
     } else if s == PASS {
         *filters = Some(Filters::Pass);
         return Ok(());
@@ -57,9 +53,6 @@ mod tests {
     #[test]
     fn test_parse_filters() -> io::Result<()> {
         let mut filters = None;
-
-        parse_filters(".", &mut filters)?;
-        assert_eq!(filters, None);
 
         parse_filters("PASS", &mut filters)?;
         assert_eq!(filters, Some(Filters::Pass));
