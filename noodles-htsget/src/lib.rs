@@ -7,7 +7,7 @@ mod client;
 mod format;
 pub mod reads;
 pub(crate) mod request;
-pub(crate) mod response;
+pub mod response;
 pub mod variants;
 
 pub use self::{client::Client, format::Format, response::Response};

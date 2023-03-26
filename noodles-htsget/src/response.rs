@@ -1,3 +1,5 @@
+//! htsget response.
+
 mod error;
 pub(crate) mod ticket;
 
