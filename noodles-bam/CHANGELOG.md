@@ -19,8 +19,9 @@
 
   * bam/reader: Consider binary reference sequences as part of the header.
 
-    If the SAM header has a reference sequence dictionary, the binary reference
-    sequences are discarded; otherwise, they are added to the SAM header.
+    If the SAM header has a reference sequence dictionary, it must match the
+    binary reference sequences; otherwise, the binary reference sequences are
+    added to the SAM header.
 
   * bam/writer: Consider binary reference sequences as part of the header.
 

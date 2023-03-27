@@ -108,8 +108,9 @@ where
     /// Reads the SAM header.
     ///
     /// This verifies the BAM magic number, reads and parses the raw SAM header, and reads the
-    /// binary reference sequences. If the SAM header has a reference sequence dictionary, the
-    /// binary reference sequences are discarded; otherwise, they are added to the SAM header.
+    /// binary reference sequences. If the SAM header has a reference sequence dictionary, it must
+    /// match the binary reference sequences; otherwise, the binary reference sequences are added
+    /// to the SAM header.
     ///
     /// The position of the stream is expected to be at the start.
     ///

@@ -33,6 +33,11 @@ where
 
     if header.reference_sequences().is_empty() {
         *header.reference_sequences_mut() = reference_sequences;
+    } else if !reference_sequences_eq(header.reference_sequences(), &reference_sequences) {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "SAM header and binary reference sequence dictionaries mismatch",
+        ));
     }
 
     Ok(header)
@@ -120,9 +125,29 @@ where
     Ok((name, reference_sequence))
 }
 
+fn reference_sequences_eq(
+    header_reference_sequences: &ReferenceSequences,
+    binary_reference_sequences: &ReferenceSequences,
+) -> bool {
+    header_reference_sequences.len() == binary_reference_sequences.len()
+        && header_reference_sequences
+            .iter()
+            .zip(binary_reference_sequences)
+            .all(|((h_name, h_map), (b_name, b_map))| {
+                h_name == b_name && h_map.length() == b_map.length()
+            })
+}
+
 #[cfg(test)]
 mod tests {
-    use noodles_sam as sam;
+    use bytes::BufMut;
+    use noodles_sam::{
+        self as sam,
+        header::record::value::{
+            map::{self, header::Version},
+            Map,
+        },
+    };
 
     use super::*;
 
@@ -151,12 +176,34 @@ mod tests {
 
     #[test]
     fn test_read_header() -> Result<(), Box<dyn std::error::Error>> {
-        use bytes::BufMut;
-        use sam::header::record::value::{
-            map::{self, header::Version},
-            Map,
-        };
+        let mut data = Vec::new();
+        data.put_slice(MAGIC_NUMBER); // magic
+        data.put_u32_le(27); // l_text
+        data.put_slice(b"@HD\tVN:1.6\n@SQ\tSN:sq0\tLN:8\n"); // text
+        data.put_u32_le(1); // n_ref
+        data.put_u32_le(4); // ref[0].l_name
+        data.put_slice(b"sq0\x00"); // ref[0].name
+        data.put_u32_le(8); // ref[0].l_ref
 
+        let mut reader = &data[..];
+        let actual = read_header(&mut reader)?;
+
+        let expected = sam::Header::builder()
+            .set_header(Map::<map::Header>::new(Version::new(1, 6)))
+            .add_reference_sequence(
+                "sq0".parse()?,
+                Map::<map::ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
+            )
+            .build();
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_header_with_missing_sam_header_reference_sequence_dictionary(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut data = Vec::new();
         data.put_slice(MAGIC_NUMBER); // magic
         data.put_u32_le(11); // l_text
