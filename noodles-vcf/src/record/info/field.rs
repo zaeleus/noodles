@@ -53,7 +53,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(super) fn parse(s: &str, infos: &Infos) -> Result<(Key, Option<Value>), ParseError> {
+pub(crate) fn parse(s: &str, infos: &Infos) -> Result<(Key, Option<Value>), ParseError> {
     const MAX_COMPONENTS: usize = 2;
 
     let mut components = s.splitn(MAX_COMPONENTS, SEPARATOR);
