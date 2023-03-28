@@ -17,16 +17,15 @@ pub struct Builder {
 
 impl Builder {
     pub fn add_record(
-        mut self,
+        &mut self,
         min_shift: u8,
         depth: u8,
         start: Position,
         end: Position,
         chunk: Chunk,
-    ) -> Self {
-        self = self.update_bins(min_shift, depth, start, end, chunk);
-        self = self.update_metadata(chunk);
-        self
+    ) {
+        self.update_bins(min_shift, depth, start, end, chunk);
+        self.update_metadata(chunk);
     }
 
     pub fn build(self) -> ReferenceSequence {
@@ -40,36 +39,30 @@ impl Builder {
     }
 
     fn update_bins(
-        mut self,
+        &mut self,
         min_shift: u8,
         depth: u8,
         start: Position,
         end: Position,
         chunk: Chunk,
-    ) -> Self {
+    ) {
         use super::reg2bin;
 
         let bin_id = reg2bin(start, end, min_shift, depth);
 
-        let mut builder = self
+        let builder = self
             .bin_builders
-            .remove(&bin_id)
-            .unwrap_or_else(|| Bin::builder().set_id(bin_id));
+            .entry(bin_id)
+            .or_insert_with(|| Bin::builder().set_id(bin_id));
 
-        builder = builder.add_chunk(chunk);
-
-        self.bin_builders.insert(bin_id, builder);
-
-        self
+        builder.add_chunk(chunk);
     }
 
-    fn update_metadata(mut self, chunk: Chunk) -> Self {
+    fn update_metadata(&mut self, chunk: Chunk) {
         // TODO: Update mapped and unmapped record counts.
 
         self.start_position = self.start_position.min(chunk.start());
         self.end_position = self.end_position.max(chunk.end());
-
-        self
     }
 }
 
@@ -94,7 +87,7 @@ mod tests {
 
         let mut builder = Builder::default();
 
-        builder = builder.add_record(
+        builder.add_record(
             MIN_SHIFT,
             DEPTH,
             Position::try_from(2)?,
@@ -105,7 +98,7 @@ mod tests {
             ),
         );
 
-        builder = builder.add_record(
+        builder.add_record(
             MIN_SHIFT,
             DEPTH,
             Position::try_from(8)?,

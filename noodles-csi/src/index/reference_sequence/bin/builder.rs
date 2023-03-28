@@ -16,7 +16,7 @@ impl Builder {
         self
     }
 
-    pub fn add_chunk(mut self, chunk: Chunk) -> Self {
+    pub fn add_chunk(&mut self, chunk: Chunk) {
         if chunk.start() < self.loffset {
             self.loffset = chunk.start();
         }
@@ -24,13 +24,11 @@ impl Builder {
         if let Some(last_chunk) = self.chunks.last_mut() {
             if chunk.start() <= last_chunk.end() {
                 *last_chunk = Chunk::new(last_chunk.start(), chunk.end());
-                return self;
+                return;
             }
         }
 
         self.chunks.push(chunk);
-
-        self
     }
 
     pub fn build(self) -> Bin {
@@ -76,7 +74,7 @@ mod tests {
 
         assert!(builder.chunks.is_empty());
 
-        builder = builder.add_chunk(Chunk::new(
+        builder.add_chunk(Chunk::new(
             bgzf::VirtualPosition::from(5),
             bgzf::VirtualPosition::from(13),
         ));
@@ -89,7 +87,7 @@ mod tests {
             )]
         );
 
-        builder = builder.add_chunk(Chunk::new(
+        builder.add_chunk(Chunk::new(
             bgzf::VirtualPosition::from(8),
             bgzf::VirtualPosition::from(21),
         ));
@@ -102,7 +100,7 @@ mod tests {
             )]
         );
 
-        builder = builder.add_chunk(Chunk::new(
+        builder.add_chunk(Chunk::new(
             bgzf::VirtualPosition::from(34),
             bgzf::VirtualPosition::from(55),
         ));
@@ -124,13 +122,14 @@ mod tests {
 
     #[test]
     fn test_build() {
-        let actual = Builder::default()
-            .set_id(8)
-            .add_chunk(Chunk::new(
-                bgzf::VirtualPosition::from(5),
-                bgzf::VirtualPosition::from(13),
-            ))
-            .build();
+        let mut builder = Builder::default().set_id(8);
+
+        builder.add_chunk(Chunk::new(
+            bgzf::VirtualPosition::from(5),
+            bgzf::VirtualPosition::from(13),
+        ));
+
+        let actual = builder.build();
 
         let expected = Bin {
             id: 8,

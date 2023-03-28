@@ -1,11 +1,10 @@
-#![allow(dead_code)]
-
 //! Coordinate-sorted index (CSI) reference sequence and fields.
 
 pub mod bin;
 mod builder;
 mod metadata;
 
+pub(crate) use self::builder::Builder;
 pub use self::{bin::Bin, metadata::Metadata};
 
 use std::{io, num::NonZeroUsize};

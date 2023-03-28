@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * csi/index: Add an indexer (`csi::index::Indexer`) ([#157]).
+
+[#157]: https://github.com/zaeleus/noodles/issues/157
+
 ## 0.14.0 - 2023-03-03
 
 ### Changed
