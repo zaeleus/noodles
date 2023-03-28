@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 //! CSI reference sequence bin and fields.
 
 mod builder;

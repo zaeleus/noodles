@@ -1,6 +1,9 @@
+#![allow(dead_code)]
+
 //! Coordinate-sorted index (CSI) reference sequence and fields.
 
 pub mod bin;
+mod builder;
 mod metadata;
 
 pub use self::{bin::Bin, metadata::Metadata};
