@@ -1,7 +1,11 @@
+#![allow(dead_code)]
+
 //! CSI reference sequence bin and fields.
 
+mod builder;
 mod chunk;
 
+pub(crate) use self::builder::Builder;
 pub use self::chunk::Chunk;
 
 use noodles_bgzf as bgzf;
@@ -17,6 +21,10 @@ pub struct Bin {
 }
 
 impl Bin {
+    pub(crate) fn builder() -> Builder {
+        Builder::default()
+    }
+
     /// Calculates the maximum bin ID.
     ///
     /// # Examples
