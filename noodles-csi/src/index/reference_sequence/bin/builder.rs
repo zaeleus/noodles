@@ -6,7 +6,7 @@ use super::{Bin, Chunk};
 #[derive(Debug)]
 pub struct Builder {
     id: usize,
-    loffset: bgzf::VirtualPosition,
+    pub(crate) loffset: bgzf::VirtualPosition,
     chunks: Vec<Chunk>,
 }
 

@@ -28,12 +28,33 @@ impl Builder {
         self.update_metadata(chunk);
     }
 
-    pub fn build(self) -> ReferenceSequence {
+    pub fn build(mut self) -> ReferenceSequence {
+        use super::parent_id;
+
         if self.bin_builders.is_empty() {
             return ReferenceSequence::new(Vec::new(), None);
         }
 
-        let bins = self.bin_builders.into_values().map(|b| b.build()).collect();
+        let builders: Vec<_> = self
+            .bin_builders
+            .iter()
+            .map(|(id, builder)| (*id, builder.loffset))
+            .collect();
+
+        for (mut id, loffset) in builders {
+            while let Some(pid) = parent_id(id) {
+                if let Some(builder) = self.bin_builders.get_mut(&pid) {
+                    if loffset < builder.loffset {
+                        builder.loffset = loffset;
+                    }
+                }
+
+                id = pid;
+            }
+        }
+
+        let bins: Vec<_> = self.bin_builders.into_values().map(|b| b.build()).collect();
+
         let metadata = Metadata::new(self.start_position, self.end_position, 0, 0);
         ReferenceSequence::new(bins, Some(metadata))
     }
