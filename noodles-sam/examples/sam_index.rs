@@ -56,7 +56,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             record.alignment_start(),
             record.alignment_end(),
         ) {
-            (Some(id), Some(start), Some(end)) => Some((id, start, end)),
+            (Some(id), Some(start), Some(end)) => {
+                Some((id, start, end, !record.flags().is_unmapped()))
+            }
             _ => None,
         };
 

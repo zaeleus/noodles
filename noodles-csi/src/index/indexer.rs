@@ -50,22 +50,23 @@ impl Indexer {
     /// let reference_sequence_id = 0;
     /// let start = Position::try_from(8)?;
     /// let end = Position::try_from(13)?;
+    /// let is_mapped = true;
     /// let chunk = Chunk::new(
     ///     bgzf::VirtualPosition::from(144),
     ///     bgzf::VirtualPosition::from(233),
     /// );
     ///
-    /// indexer.add_record(Some((reference_sequence_id, start, end)), chunk)?;
+    /// indexer.add_record(Some((reference_sequence_id, start, end, is_mapped)), chunk)?;
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn add_record(
         &mut self,
-        alignment_context: Option<(usize, Position, Position)>,
+        alignment_context: Option<(usize, Position, Position, bool)>,
         chunk: Chunk,
     ) -> io::Result<()> {
         use std::cmp::Ordering;
 
-        let (reference_sequence_id, start, end) = if let Some(ctx) = alignment_context {
+        let (reference_sequence_id, start, end, is_mapped) = if let Some(ctx) = alignment_context {
             ctx
         } else {
             self.unplaced_unmapped_record_count += 1;
@@ -83,8 +84,14 @@ impl Indexer {
             Ordering::Greater => self.add_reference_sequences_builders_until(reference_sequence_id),
         }
 
-        self.reference_sequence_builder
-            .add_record(self.min_shift, self.depth, start, end, chunk);
+        self.reference_sequence_builder.add_record(
+            self.min_shift,
+            self.depth,
+            start,
+            end,
+            is_mapped,
+            chunk,
+        );
 
         Ok(())
     }

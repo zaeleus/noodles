@@ -13,6 +13,8 @@ pub struct Builder {
     bin_builders: HashMap<usize, bin::Builder>,
     start_position: bgzf::VirtualPosition,
     end_position: bgzf::VirtualPosition,
+    mapped_record_count: u64,
+    unmapped_record_count: u64,
 }
 
 impl Builder {
@@ -22,10 +24,11 @@ impl Builder {
         depth: u8,
         start: Position,
         end: Position,
+        is_mapped: bool,
         chunk: Chunk,
     ) {
         self.update_bins(min_shift, depth, start, end, chunk);
-        self.update_metadata(chunk);
+        self.update_metadata(is_mapped, chunk);
     }
 
     pub fn build(mut self) -> ReferenceSequence {
@@ -55,7 +58,13 @@ impl Builder {
 
         let bins: Vec<_> = self.bin_builders.into_values().map(|b| b.build()).collect();
 
-        let metadata = Metadata::new(self.start_position, self.end_position, 0, 0);
+        let metadata = Metadata::new(
+            self.start_position,
+            self.end_position,
+            self.mapped_record_count,
+            self.unmapped_record_count,
+        );
+
         ReferenceSequence::new(bins, Some(metadata))
     }
 
@@ -79,8 +88,12 @@ impl Builder {
         builder.add_chunk(chunk);
     }
 
-    fn update_metadata(&mut self, chunk: Chunk) {
-        // TODO: Update mapped and unmapped record counts.
+    fn update_metadata(&mut self, is_mapped: bool, chunk: Chunk) {
+        if is_mapped {
+            self.mapped_record_count += 1;
+        } else {
+            self.unmapped_record_count += 1;
+        }
 
         self.start_position = self.start_position.min(chunk.start());
         self.end_position = self.end_position.max(chunk.end());
@@ -93,6 +106,8 @@ impl Default for Builder {
             bin_builders: HashMap::new(),
             start_position: bgzf::VirtualPosition::MAX,
             end_position: bgzf::VirtualPosition::MIN,
+            mapped_record_count: 0,
+            unmapped_record_count: 0,
         }
     }
 }
@@ -113,6 +128,7 @@ mod tests {
             DEPTH,
             Position::try_from(2)?,
             Position::try_from(5)?,
+            true,
             Chunk::new(
                 bgzf::VirtualPosition::from(55),
                 bgzf::VirtualPosition::from(89),
@@ -124,6 +140,7 @@ mod tests {
             DEPTH,
             Position::try_from(8)?,
             Position::try_from(13)?,
+            false,
             Chunk::new(
                 bgzf::VirtualPosition::from(89),
                 bgzf::VirtualPosition::from(144),
@@ -144,8 +161,8 @@ mod tests {
             Some(Metadata::new(
                 bgzf::VirtualPosition::from(55),
                 bgzf::VirtualPosition::from(144),
-                0,
-                0,
+                1,
+                1,
             )),
         );
 
