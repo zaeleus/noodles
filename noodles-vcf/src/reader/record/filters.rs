@@ -69,7 +69,7 @@ pub(super) fn parse_filters(s: &str, filters: &mut Option<Filters>) -> Result<()
 fn is_valid_filter(s: &str) -> bool {
     match s {
         "" | "0" => false,
-        _ => s.chars().all(|c| !c.is_ascii_whitespace()),
+        _ => s.chars().all(|c| !c.is_whitespace()),
     }
 }
 
