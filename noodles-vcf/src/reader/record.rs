@@ -6,7 +6,9 @@ mod info;
 mod position;
 mod reference_bases;
 
-use std::io;
+use std::{error, fmt, io};
+
+use noodles_core as core;
 
 use self::{
     chromosome::parse_chromosome, filters::parse_filters, genotypes::parse_genotypes,
@@ -20,12 +22,43 @@ use crate::{
 
 const MISSING: &str = ".";
 
+/// An error when a raw VCF record fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The position is invalid.
+    InvalidPosition(position::ParseError),
+}
+
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidPosition(e) => Some(e),
+        }
+    }
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidPosition(_) => write!(f, "invalid position"),
+        }
+    }
+}
+
+impl From<ParseError> for core::Error {
+    fn from(e: ParseError) -> Self {
+        Self::new(core::error::Kind::Parse, e)
+    }
+}
+
 pub(super) fn parse_record(mut s: &str, header: &Header, record: &mut Record) -> io::Result<()> {
     let field = next_field(&mut s);
     parse_chromosome(field, record.chromosome_mut())?;
 
     let field = next_field(&mut s);
-    *record.position_mut() = parse_position(field)?;
+    *record.position_mut() = parse_position(field)
+        .map_err(ParseError::InvalidPosition)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     record.ids_mut().clear();
     let field = next_field(&mut s);
