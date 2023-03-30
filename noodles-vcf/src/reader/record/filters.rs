@@ -1,15 +1,45 @@
-use std::{io, mem};
+use std::{error, fmt, mem};
 
 use indexmap::IndexSet;
+use noodles_core as core;
 
 use crate::record::Filters;
 
-pub(super) fn parse_filters(s: &str, filters: &mut Option<Filters>) -> io::Result<()> {
+/// An error when raw VCF record filters fail to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+    /// A filter is invalid.
+    InvalidFilter,
+    /// A filter is duplicated.
+    DuplicateFilter,
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Empty => write!(f, "empty input"),
+            Self::InvalidFilter => write!(f, "invalid filter"),
+            Self::DuplicateFilter => write!(f, "duplicate filter"),
+        }
+    }
+}
+
+impl From<ParseError> for core::Error {
+    fn from(e: ParseError) -> Self {
+        Self::new(core::error::Kind::Parse, e)
+    }
+}
+
+pub(super) fn parse_filters(s: &str, filters: &mut Option<Filters>) -> Result<(), ParseError> {
     const DELIMITER: char = ';';
     const PASS: &str = "PASS";
 
     if s.is_empty() {
-        return Err(io::Error::new(io::ErrorKind::InvalidData, "empty filters"));
+        return Err(ParseError::Empty);
     } else if s == PASS {
         *filters = Some(Filters::Pass);
         return Ok(());
@@ -25,12 +55,9 @@ pub(super) fn parse_filters(s: &str, filters: &mut Option<Filters>) -> io::Resul
 
     for raw_filter in s.split(DELIMITER) {
         if !set.insert(raw_filter.into()) {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                "duplicate filter",
-            ));
+            return Err(ParseError::DuplicateFilter);
         } else if !is_valid_filter(raw_filter) {
-            return Err(io::Error::new(io::ErrorKind::InvalidData, "invalid filter"));
+            return Err(ParseError::InvalidFilter);
         }
     }
 
@@ -51,7 +78,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_filters() -> io::Result<()> {
+    fn test_parse_filters() -> Result<(), ParseError> {
         let mut filters = None;
 
         parse_filters("PASS", &mut filters)?;
@@ -73,34 +100,31 @@ mod tests {
             ))
         );
 
-        assert!(matches!(
-            parse_filters("", &mut filters),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData
-        ));
-        assert!(matches!(
-            parse_filters("q10;q10", &mut filters),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData
-        ));
-        assert!(matches!(
+        assert_eq!(parse_filters("", &mut filters), Err(ParseError::Empty));
+        assert_eq!(
             parse_filters("0", &mut filters),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData
-        ));
-        assert!(matches!(
+            Err(ParseError::InvalidFilter)
+        );
+        assert_eq!(
             parse_filters("q 10", &mut filters),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData
-        ));
-        assert!(matches!(
+            Err(ParseError::InvalidFilter)
+        );
+        assert_eq!(
             parse_filters(";q10", &mut filters),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData
-        ));
-        assert!(matches!(
+            Err(ParseError::InvalidFilter)
+        );
+        assert_eq!(
             parse_filters("q10;;s50", &mut filters),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData
-        ));
-        assert!(matches!(
+            Err(ParseError::InvalidFilter)
+        );
+        assert_eq!(
             parse_filters("q10;", &mut filters),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData
-        ));
+            Err(ParseError::InvalidFilter)
+        );
+        assert_eq!(
+            parse_filters("q10;q10", &mut filters),
+            Err(ParseError::DuplicateFilter)
+        );
 
         Ok(())
     }

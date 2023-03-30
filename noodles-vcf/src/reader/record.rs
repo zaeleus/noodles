@@ -30,6 +30,8 @@ pub enum ParseError {
     InvalidIds(ids::ParseError),
     /// The quality score is invalid.
     InvalidQualityScore(quality_score::ParseError),
+    /// The filters are invalid.
+    InvalidFilters(filters::ParseError),
 }
 
 impl error::Error for ParseError {
@@ -38,6 +40,7 @@ impl error::Error for ParseError {
             Self::InvalidPosition(e) => Some(e),
             Self::InvalidIds(e) => Some(e),
             Self::InvalidQualityScore(e) => Some(e),
+            Self::InvalidFilters(e) => Some(e),
         }
     }
 }
@@ -48,6 +51,7 @@ impl fmt::Display for ParseError {
             Self::InvalidPosition(_) => write!(f, "invalid position"),
             Self::InvalidIds(_) => write!(f, "invalid IDs"),
             Self::InvalidQualityScore(_) => write!(f, "invalid quality score"),
+            Self::InvalidFilters(_) => write!(f, "invalid filters"),
         }
     }
 }
@@ -95,7 +99,9 @@ pub(super) fn parse_record(mut s: &str, header: &Header, record: &mut Record) ->
         MISSING => {
             record.filters_mut().take();
         }
-        _ => parse_filters(field, record.filters_mut())?,
+        _ => parse_filters(field, record.filters_mut())
+            .map_err(ParseError::InvalidFilters)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
     }
 
     record.info_mut().clear();
