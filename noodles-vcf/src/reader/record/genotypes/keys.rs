@@ -1,14 +1,55 @@
-use std::io;
+use std::{error, fmt};
 
-use crate::{reader::record::MISSING, record::genotypes::Keys, Header};
+use noodles_core as core;
 
-pub(super) fn parse_keys(header: &Header, s: &str, keys: &mut Keys) -> io::Result<()> {
-    use crate::header::format::key;
+use crate::{header::format::key, reader::record::MISSING, record::genotypes::Keys, Header};
 
+/// An error when raw VCF record filters fail to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+    /// A key is invalid.
+    InvalidKey(key::ParseError),
+    /// The genotype key (`GT`) position is invalid.
+    ///
+    /// The genotype key must be first, if present.
+    InvalidGenotypeKeyPosition,
+    /// A key is duplicated.
+    DuplicateKey,
+}
+
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidKey(e) => Some(e),
+            _ => None,
+        }
+    }
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Empty => write!(f, "empty input"),
+            Self::InvalidKey(_) => write!(f, "invalid key"),
+            Self::InvalidGenotypeKeyPosition => write!(f, "invalid genotype key position"),
+            Self::DuplicateKey => write!(f, "duplicate key"),
+        }
+    }
+}
+
+impl From<ParseError> for core::Error {
+    fn from(e: ParseError) -> Self {
+        Self::new(core::error::Kind::Parse, e)
+    }
+}
+
+pub(super) fn parse_keys(header: &Header, s: &str, keys: &mut Keys) -> Result<(), ParseError> {
     const DELIMITER: char = ':';
 
     if s.is_empty() {
-        return Err(io::Error::new(io::ErrorKind::InvalidData, "missing keys"));
+        return Err(ParseError::Empty);
     } else if s == MISSING {
         return Ok(());
     }
@@ -18,9 +59,7 @@ pub(super) fn parse_keys(header: &Header, s: &str, keys: &mut Keys) -> io::Resul
     for (i, raw_key) in s.split(DELIMITER).enumerate() {
         let key = match header.formats().get_full(raw_key) {
             Some((_, k, _)) => k.clone(),
-            None => raw_key
-                .parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
+            None => raw_key.parse().map_err(ParseError::InvalidKey)?,
         };
 
         if key == key::GENOTYPE {
@@ -28,16 +67,13 @@ pub(super) fn parse_keys(header: &Header, s: &str, keys: &mut Keys) -> io::Resul
         }
 
         if !keys.insert(key) {
-            return Err(io::Error::new(io::ErrorKind::InvalidData, "duplicate key"));
+            return Err(ParseError::DuplicateKey);
         }
     }
 
     if let Some(i) = gt_position {
         if i != 0 {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                "invalid GT key position",
-            ));
+            return Err(ParseError::InvalidGenotypeKeyPosition);
         }
     }
 
@@ -75,22 +111,19 @@ mod tests {
         assert_eq!(keys, expected);
 
         keys.clear();
-        assert!(matches!(
-            parse_keys(&header, "", &mut keys),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData,
-        ));
+        assert_eq!(parse_keys(&header, "", &mut keys), Err(ParseError::Empty));
 
         keys.clear();
-        assert!(matches!(
+        assert_eq!(
             parse_keys(&header, "GQ:GT", &mut keys),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData,
-        ));
+            Err(ParseError::InvalidGenotypeKeyPosition)
+        );
 
         keys.clear();
-        assert!(matches!(
+        assert_eq!(
             parse_keys(&header, "GT:GT", &mut keys),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData,
-        ));
+            Err(ParseError::DuplicateKey)
+        );
 
         Ok(())
     }
