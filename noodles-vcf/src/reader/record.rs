@@ -4,6 +4,7 @@ mod genotypes;
 mod ids;
 mod info;
 mod position;
+mod quality_score;
 mod reference_bases;
 
 use std::{error, fmt, io};
@@ -12,13 +13,10 @@ use noodles_core as core;
 
 use self::{
     chromosome::parse_chromosome, filters::parse_filters, genotypes::parse_genotypes,
-    ids::parse_ids, info::parse_info, position::parse_position,
+    ids::parse_ids, info::parse_info, position::parse_position, quality_score::parse_quality_score,
     reference_bases::parse_reference_bases,
 };
-use crate::{
-    record::{AlternateBases, QualityScore},
-    Header, Record,
-};
+use crate::{record::AlternateBases, Header, Record};
 
 const MISSING: &str = ".";
 
@@ -27,12 +25,15 @@ const MISSING: &str = ".";
 pub enum ParseError {
     /// The position is invalid.
     InvalidPosition(position::ParseError),
+    /// The quality score is invalid.
+    InvalidQualityScore(quality_score::ParseError),
 }
 
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::InvalidPosition(e) => Some(e),
+            Self::InvalidQualityScore(e) => Some(e),
         }
     }
 }
@@ -41,6 +42,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidPosition(_) => write!(f, "invalid position"),
+            Self::InvalidQualityScore(_) => write!(f, "invalid quality score"),
         }
     }
 }
@@ -75,7 +77,10 @@ pub(super) fn parse_record(mut s: &str, header: &Header, record: &mut Record) ->
     let field = next_field(&mut s);
     *record.quality_score_mut() = match field {
         MISSING => None,
-        _ => parse_quality_score(field).map(Some)?,
+        _ => parse_quality_score(field)
+            .map(Some)
+            .map_err(ParseError::InvalidQualityScore)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
     };
 
     let field = next_field(&mut s);
@@ -116,9 +121,4 @@ fn parse_alternate_bases(s: &str) -> io::Result<AlternateBases> {
             .parse()
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
     }
-}
-
-fn parse_quality_score(s: &str) -> io::Result<QualityScore> {
-    s.parse()
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
