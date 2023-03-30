@@ -14,12 +14,15 @@ use crate::{record::Genotypes, Header};
 pub enum ParseError {
     /// The keys are invalid.
     InvalidKeys(keys::ParseError),
+    /// A list of sample values is invalid.
+    InvalidValues(values::ParseError),
 }
 
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::InvalidKeys(e) => Some(e),
+            Self::InvalidValues(e) => Some(e),
         }
     }
 }
@@ -28,6 +31,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ParseError::InvalidKeys(_) => write!(f, "invalid keys"),
+            ParseError::InvalidValues(_) => write!(f, "invalid values"),
         }
     }
 }
@@ -64,7 +68,9 @@ pub(super) fn parse_genotypes(
 
     for values in &mut genotypes.values {
         let field = next_field(&mut s);
-        parse_values(header, &genotypes.keys, field, values)?;
+        parse_values(header, &genotypes.keys, field, values)
+            .map_err(ParseError::InvalidValues)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     }
 
     Ok(())
