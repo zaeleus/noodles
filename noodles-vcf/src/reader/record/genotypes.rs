@@ -1,7 +1,7 @@
 mod keys;
 mod values;
 
-use std::{error, fmt, io};
+use std::{error, fmt};
 
 use noodles_core as core;
 
@@ -46,7 +46,7 @@ pub(super) fn parse_genotypes(
     header: &Header,
     mut s: &str,
     genotypes: &mut Genotypes,
-) -> io::Result<()> {
+) -> Result<(), ParseError> {
     genotypes.keys.clear();
 
     for values in &mut genotypes.values {
@@ -58,9 +58,7 @@ pub(super) fn parse_genotypes(
     }
 
     let field = next_field(&mut s);
-    parse_keys(header, field, &mut genotypes.keys)
-        .map_err(ParseError::InvalidKeys)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    parse_keys(header, field, &mut genotypes.keys).map_err(ParseError::InvalidKeys)?;
 
     genotypes
         .values
@@ -68,9 +66,7 @@ pub(super) fn parse_genotypes(
 
     for values in &mut genotypes.values {
         let field = next_field(&mut s);
-        parse_values(header, &genotypes.keys, field, values)
-            .map_err(ParseError::InvalidValues)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        parse_values(header, &genotypes.keys, field, values).map_err(ParseError::InvalidValues)?;
     }
 
     Ok(())
@@ -116,19 +112,20 @@ mod tests {
         assert_eq!(genotypes, expected);
 
         let header = Header::builder().add_sample_name("sample0").build();
-        assert!(matches!(
-            parse_genotypes(&header, "GT:GQ", &mut genotypes),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData
-        ));
 
         assert!(matches!(
             parse_genotypes(&header, "\t0|0", &mut genotypes),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData
+            Err(ParseError::InvalidKeys(_))
+        ));
+
+        assert!(matches!(
+            parse_genotypes(&header, "GT:GQ", &mut genotypes),
+            Err(ParseError::InvalidValues(_))
         ));
 
         assert!(matches!(
             parse_genotypes(&header, "GQ\tndls", &mut genotypes),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData
+            Err(ParseError::InvalidValues(_))
         ));
 
         Ok(())

@@ -32,6 +32,8 @@ pub enum ParseError {
     InvalidQualityScore(quality_score::ParseError),
     /// The filters are invalid.
     InvalidFilters(filters::ParseError),
+    /// The genotypes are invalid.
+    InvalidGenotypes(genotypes::ParseError),
 }
 
 impl error::Error for ParseError {
@@ -41,6 +43,7 @@ impl error::Error for ParseError {
             Self::InvalidIds(e) => Some(e),
             Self::InvalidQualityScore(e) => Some(e),
             Self::InvalidFilters(e) => Some(e),
+            Self::InvalidGenotypes(e) => Some(e),
         }
     }
 }
@@ -52,6 +55,7 @@ impl fmt::Display for ParseError {
             Self::InvalidIds(_) => write!(f, "invalid IDs"),
             Self::InvalidQualityScore(_) => write!(f, "invalid quality score"),
             Self::InvalidFilters(_) => write!(f, "invalid filters"),
+            Self::InvalidGenotypes(_) => write!(f, "invalid genotypes"),
         }
     }
 }
@@ -110,7 +114,9 @@ pub(super) fn parse_record(mut s: &str, header: &Header, record: &mut Record) ->
         parse_info(header, field, record.info_mut())?;
     }
 
-    parse_genotypes(header, s, record.genotypes_mut())?;
+    parse_genotypes(header, s, record.genotypes_mut())
+        .map_err(ParseError::InvalidGenotypes)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     Ok(())
 }
