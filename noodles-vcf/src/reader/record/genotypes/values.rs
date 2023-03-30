@@ -1,7 +1,10 @@
+mod value;
+
 use std::{error, fmt};
 
 use noodles_core as core;
 
+use self::value::parse_value;
 use crate::{
     header::record::value::{map::Format, Map},
     reader::record::MISSING,
@@ -15,7 +18,7 @@ pub enum ParseError {
     /// The input is empty.
     Empty,
     /// A value is invalid.
-    InvalidValue(crate::record::genotypes::sample::value::ParseError),
+    InvalidValue(value::ParseError),
     /// The value was unexpected.
     ///
     /// There are unexpectedly more values than keys.
@@ -64,11 +67,20 @@ pub(super) fn parse_values(
     let mut raw_values = s.split(DELIMITER);
 
     for (key, raw_value) in keys.iter().zip(&mut raw_values) {
-        let value = if let Some(format) = header.formats().get(key) {
-            parse_value(format, raw_value).map_err(ParseError::InvalidValue)?
-        } else {
-            let format = Map::<Format>::from(key);
-            parse_value(&format, raw_value).map_err(ParseError::InvalidValue)?
+        let value = match raw_value {
+            MISSING => None,
+            _ => {
+                let (number, ty) = if let Some(format) = header.formats().get(key) {
+                    (format.number(), format.ty())
+                } else {
+                    let format = Map::<Format>::from(key);
+                    (format.number(), format.ty())
+                };
+
+                parse_value(number, ty, raw_value)
+                    .map(Some)
+                    .map_err(ParseError::InvalidValue)?
+            }
         };
 
         values.push(value);
@@ -79,16 +91,6 @@ pub(super) fn parse_values(
     }
 
     Ok(())
-}
-
-fn parse_value(
-    format: &Map<Format>,
-    s: &str,
-) -> Result<Option<Value>, crate::record::genotypes::sample::value::ParseError> {
-    match s {
-        MISSING => Ok(None),
-        _ => Value::from_str_format(s, format).map(Some),
-    }
 }
 
 #[cfg(test)]
