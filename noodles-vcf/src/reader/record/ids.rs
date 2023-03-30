@@ -1,22 +1,53 @@
 mod id;
 
-use std::io;
+use std::{error, fmt};
+
+use noodles_core as core;
 
 use self::id::parse_id;
 use crate::record::Ids;
 
-pub(super) fn parse_ids(s: &str, ids: &mut Ids) -> io::Result<()> {
+/// An error when raw VCF record IDs fail to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+    /// The input is invalid.
+    InvalidId(id::ParseError),
+    /// An ID is duplicated.
+    DuplicateId,
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Empty => write!(f, "empty input"),
+            Self::InvalidId(_) => write!(f, "invalid ID"),
+            Self::DuplicateId => write!(f, "duplicate ID"),
+        }
+    }
+}
+
+impl From<ParseError> for core::Error {
+    fn from(e: ParseError) -> Self {
+        Self::new(core::error::Kind::Parse, e)
+    }
+}
+
+pub(super) fn parse_ids(s: &str, ids: &mut Ids) -> Result<(), ParseError> {
     const DELIMITER: char = ';';
 
     if s.is_empty() {
-        return Err(io::Error::new(io::ErrorKind::InvalidData, "empty IDs"));
+        return Err(ParseError::Empty);
     }
 
     for raw_id in s.split(DELIMITER) {
-        let id = parse_id(raw_id).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let id = parse_id(raw_id).map_err(ParseError::InvalidId)?;
 
         if !ids.insert(id) {
-            return Err(io::Error::new(io::ErrorKind::InvalidData, "duplicate ID"));
+            return Err(ParseError::DuplicateId);
         }
     }
 
@@ -47,40 +78,34 @@ mod tests {
         assert_eq!(ids, expected);
 
         ids.clear();
-        assert!(matches!(
-            parse_ids("", &mut ids),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData
-        ));
-
-        ids.clear();
-        assert!(matches!(
-            parse_ids("nd0;nd0", &mut ids),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData
-        ));
+        assert_eq!(parse_ids("", &mut ids), Err(ParseError::Empty));
 
         ids.clear();
         assert!(matches!(
             parse_ids("nd 0", &mut ids),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData
+            Err(ParseError::InvalidId(_))
         ));
 
         ids.clear();
         assert!(matches!(
             parse_ids(";nd0", &mut ids),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData
+            Err(ParseError::InvalidId(_))
         ));
 
         ids.clear();
         assert!(matches!(
             parse_ids("nd0;;nd1", &mut ids),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData
+            Err(ParseError::InvalidId(_))
         ));
 
         ids.clear();
         assert!(matches!(
             parse_ids("nd0;", &mut ids),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData
+            Err(ParseError::InvalidId(_))
         ));
+
+        ids.clear();
+        assert_eq!(parse_ids("nd0;nd0", &mut ids), Err(ParseError::DuplicateId));
 
         Ok(())
     }

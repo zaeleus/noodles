@@ -21,10 +21,13 @@ use crate::{record::AlternateBases, Header, Record};
 const MISSING: &str = ".";
 
 /// An error when a raw VCF record fails to parse.
+#[allow(clippy::enum_variant_names)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The position is invalid.
     InvalidPosition(position::ParseError),
+    /// The IDs are invalid.
+    InvalidIds(ids::ParseError),
     /// The quality score is invalid.
     InvalidQualityScore(quality_score::ParseError),
 }
@@ -33,6 +36,7 @@ impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::InvalidPosition(e) => Some(e),
+            Self::InvalidIds(e) => Some(e),
             Self::InvalidQualityScore(e) => Some(e),
         }
     }
@@ -42,6 +46,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidPosition(_) => write!(f, "invalid position"),
+            Self::InvalidIds(_) => write!(f, "invalid IDs"),
             Self::InvalidQualityScore(_) => write!(f, "invalid quality score"),
         }
     }
@@ -65,7 +70,9 @@ pub(super) fn parse_record(mut s: &str, header: &Header, record: &mut Record) ->
     record.ids_mut().clear();
     let field = next_field(&mut s);
     if field != MISSING {
-        parse_ids(field, record.ids_mut())?;
+        parse_ids(field, record.ids_mut())
+            .map_err(ParseError::InvalidIds)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     }
 
     let field = next_field(&mut s);
