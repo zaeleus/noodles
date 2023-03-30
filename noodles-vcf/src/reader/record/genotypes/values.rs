@@ -6,7 +6,7 @@ use noodles_core as core;
 
 use self::value::parse_value;
 use crate::{
-    header::record::value::{map::Format, Map},
+    header::{format::key, record::value::map::format::Type, Number},
     reader::record::MISSING,
     record::genotypes::{sample::Value, Keys},
     Header,
@@ -70,12 +70,12 @@ pub(super) fn parse_values(
         let value = match raw_value {
             MISSING => None,
             _ => {
-                let (number, ty) = if let Some(format) = header.formats().get(key) {
-                    (format.number(), format.ty())
-                } else {
-                    let format = Map::<Format>::from(key);
-                    (format.number(), format.ty())
-                };
+                let (number, ty) = header
+                    .formats()
+                    .get(key)
+                    .map(|format| (format.number(), format.ty()))
+                    .or_else(|| key::definition(header.file_format(), key).map(|(n, t, _)| (n, t)))
+                    .unwrap_or((Number::Count(1), Type::String));
 
                 parse_value(number, ty, raw_value)
                     .map(Some)
