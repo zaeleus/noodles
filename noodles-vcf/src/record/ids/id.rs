@@ -4,7 +4,7 @@ use std::{error, fmt, ops::Deref, str::FromStr};
 
 /// A VCF record ID.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct Id(String);
+pub struct Id(pub(crate) String);
 
 impl Deref for Id {
     type Target = str;

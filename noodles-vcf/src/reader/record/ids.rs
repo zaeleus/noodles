@@ -1,5 +1,8 @@
+mod id;
+
 use std::io;
 
+use self::id::parse_id;
 use crate::record::Ids;
 
 pub(super) fn parse_ids(s: &str, ids: &mut Ids) -> io::Result<()> {
@@ -10,9 +13,7 @@ pub(super) fn parse_ids(s: &str, ids: &mut Ids) -> io::Result<()> {
     }
 
     for raw_id in s.split(DELIMITER) {
-        let id = raw_id
-            .parse()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let id = parse_id(raw_id).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         if !ids.insert(id) {
             return Err(io::Error::new(io::ErrorKind::InvalidData, "duplicate ID"));
@@ -48,12 +49,6 @@ mod tests {
         ids.clear();
         assert!(matches!(
             parse_ids("", &mut ids),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData
-        ));
-
-        ids.clear();
-        assert!(matches!(
-            parse_ids(".", &mut ids),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 
