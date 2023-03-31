@@ -16,7 +16,10 @@ use self::{
     ids::parse_ids, info::parse_info, position::parse_position, quality_score::parse_quality_score,
     reference_bases::parse_reference_bases,
 };
-use crate::{record::AlternateBases, Header, Record};
+use crate::{
+    record::{alternate_bases, AlternateBases},
+    Header, Record,
+};
 
 const MISSING: &str = ".";
 
@@ -32,6 +35,8 @@ pub enum ParseError {
     InvalidIds(ids::ParseError),
     /// The reference bases are invalid.
     InvalidReferenceBases(reference_bases::ParseError),
+    /// The alternate bases are invalid.
+    InvalidAlternateBases(alternate_bases::ParseError),
     /// The quality score is invalid.
     InvalidQualityScore(quality_score::ParseError),
     /// The filters are invalid.
@@ -49,6 +54,7 @@ impl error::Error for ParseError {
             Self::InvalidPosition(e) => Some(e),
             Self::InvalidIds(e) => Some(e),
             Self::InvalidReferenceBases(e) => Some(e),
+            Self::InvalidAlternateBases(e) => Some(e),
             Self::InvalidQualityScore(e) => Some(e),
             Self::InvalidFilters(e) => Some(e),
             Self::InvalidInfo(e) => Some(e),
@@ -64,6 +70,7 @@ impl fmt::Display for ParseError {
             Self::InvalidPosition(_) => write!(f, "invalid position"),
             Self::InvalidIds(_) => write!(f, "invalid IDs"),
             Self::InvalidReferenceBases(_) => write!(f, "invalid reference bases"),
+            Self::InvalidAlternateBases(_) => write!(f, "invalid alternate bases"),
             Self::InvalidQualityScore(_) => write!(f, "invalid quality score"),
             Self::InvalidFilters(_) => write!(f, "invalid filters"),
             Self::InvalidInfo(_) => write!(f, "invalid info"),
@@ -103,7 +110,9 @@ pub(super) fn parse_record(mut s: &str, header: &Header, record: &mut Record) ->
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     let field = next_field(&mut s);
-    *record.alternate_bases_mut() = parse_alternate_bases(field)?;
+    *record.alternate_bases_mut() = parse_alternate_bases(field)
+        .map_err(ParseError::InvalidAlternateBases)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     let field = next_field(&mut s);
     *record.quality_score_mut() = match field {
@@ -151,11 +160,9 @@ fn next_field<'a>(s: &mut &'a str) -> &'a str {
     field
 }
 
-fn parse_alternate_bases(s: &str) -> io::Result<AlternateBases> {
+fn parse_alternate_bases(s: &str) -> Result<AlternateBases, alternate_bases::ParseError> {
     match s {
         MISSING => Ok(AlternateBases::default()),
-        _ => s
-            .parse()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+        _ => s.parse(),
     }
 }
