@@ -20,8 +20,8 @@ use crate::{
 pub enum ParseError {
     /// The input is empty.
     Empty,
-    /// A field is invalid.
-    InvalidField,
+    /// A key is invalid.
+    InvalidKey(key::ParseError),
     /// A value is missing.
     MissingValue,
     /// A value is invalid.
@@ -33,6 +33,7 @@ pub enum ParseError {
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
+            Self::InvalidKey(e) => Some(e),
             Self::InvalidValue(e) => Some(e),
             _ => None,
         }
@@ -43,7 +44,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ParseError::Empty => write!(f, "empty input"),
-            ParseError::InvalidField => write!(f, "invalid field"),
+            ParseError::InvalidKey(_) => write!(f, "invalid key"),
             ParseError::MissingValue => write!(f, "missing value"),
             ParseError::InvalidValue(_) => write!(f, "invalid value"),
             ParseError::DuplicateKey => write!(f, "duplicate key"),
@@ -83,10 +84,8 @@ fn parse_field(header: &Header, s: &str) -> Result<(Key, Option<Value>), ParseEr
 
     let mut components = s.splitn(MAX_COMPONENTS, SEPARATOR);
 
-    let key: Key = components
-        .next()
-        .ok_or(ParseError::InvalidField)
-        .and_then(|t| t.parse().map_err(|_| ParseError::InvalidField))?;
+    let raw_key = components.next().unwrap_or_default();
+    let key = raw_key.parse().map_err(ParseError::InvalidKey)?;
 
     let (number, ty) = header
         .infos()
@@ -158,10 +157,10 @@ mod tests {
         assert_eq!(info, expected);
 
         info.clear();
-        assert_eq!(
+        assert!(matches!(
             parse_info(&header, ".", &mut info),
-            Err(ParseError::InvalidField)
-        );
+            Err(ParseError::InvalidKey(_))
+        ));
 
         info.clear();
         assert!(matches!(
