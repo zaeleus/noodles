@@ -1,25 +1,57 @@
 mod base;
 
-use std::io;
+use std::{error, fmt};
+
+use noodles_core as core;
 
 use self::base::parse_base;
 use crate::record::ReferenceBases;
 
+/// An error when raw VCF record reference bases fail to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+    /// A base is invalid.
+    InvalidBase(base::ParseError),
+}
+
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidBase(e) => Some(e),
+            _ => None,
+        }
+    }
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Empty => write!(f, "empty input"),
+            Self::InvalidBase(_) => write!(f, "invalid base"),
+        }
+    }
+}
+
+impl From<ParseError> for core::Error {
+    fn from(e: ParseError) -> Self {
+        Self::new(core::error::Kind::Parse, e)
+    }
+}
+
 pub(super) fn parse_reference_bases(
     s: &str,
     reference_bases: &mut ReferenceBases,
-) -> io::Result<()> {
+) -> Result<(), ParseError> {
     if s.is_empty() {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "empty reference bases",
-        ));
+        return Err(ParseError::Empty);
     }
 
     reference_bases.0.clear();
 
     for c in s.chars() {
-        let base = parse_base(c).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let base = parse_base(c).map_err(ParseError::InvalidBase)?;
         reference_bases.0.push(base);
     }
 
@@ -47,19 +79,19 @@ mod tests {
         parse_reference_bases("AtCgN", &mut reference_bases)?;
         assert_eq!(&reference_bases[..], &expected[..]);
 
-        assert!(matches!(
+        assert_eq!(
             parse_reference_bases("", &mut reference_bases),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData,
-        ));
+            Err(ParseError::Empty)
+        );
 
         assert!(matches!(
             parse_reference_bases(".", &mut reference_bases),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData,
+            Err(ParseError::InvalidBase(_))
         ));
 
         assert!(matches!(
             parse_reference_bases("Z", &mut reference_bases),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData,
+            Err(ParseError::InvalidBase(_))
         ));
 
         Ok(())

@@ -28,6 +28,8 @@ pub enum ParseError {
     InvalidPosition(position::ParseError),
     /// The IDs are invalid.
     InvalidIds(ids::ParseError),
+    /// The reference bases are invalid.
+    InvalidReferenceBases(reference_bases::ParseError),
     /// The quality score is invalid.
     InvalidQualityScore(quality_score::ParseError),
     /// The filters are invalid.
@@ -43,6 +45,7 @@ impl error::Error for ParseError {
         match self {
             Self::InvalidPosition(e) => Some(e),
             Self::InvalidIds(e) => Some(e),
+            Self::InvalidReferenceBases(e) => Some(e),
             Self::InvalidQualityScore(e) => Some(e),
             Self::InvalidFilters(e) => Some(e),
             Self::InvalidInfo(e) => Some(e),
@@ -56,6 +59,7 @@ impl fmt::Display for ParseError {
         match self {
             Self::InvalidPosition(_) => write!(f, "invalid position"),
             Self::InvalidIds(_) => write!(f, "invalid IDs"),
+            Self::InvalidReferenceBases(_) => write!(f, "invalid reference bases"),
             Self::InvalidQualityScore(_) => write!(f, "invalid quality score"),
             Self::InvalidFilters(_) => write!(f, "invalid filters"),
             Self::InvalidInfo(_) => write!(f, "invalid info"),
@@ -88,7 +92,9 @@ pub(super) fn parse_record(mut s: &str, header: &Header, record: &mut Record) ->
     }
 
     let field = next_field(&mut s);
-    parse_reference_bases(field, record.reference_bases_mut())?;
+    parse_reference_bases(field, record.reference_bases_mut())
+        .map_err(ParseError::InvalidReferenceBases)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     let field = next_field(&mut s);
     *record.alternate_bases_mut() = parse_alternate_bases(field)?;
