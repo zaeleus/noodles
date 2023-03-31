@@ -6,6 +6,13 @@
 
   * cram: Add an indexed reader (`cram::IndexedReader`).
 
+### Changed
+
+  * cram/reader: Change `Reader::read_file_header` to return a parsed header
+    (`sam::Header`).
+
+    This no longer returns a raw string.
+
 ## 0.25.0 - 2023-03-14
 
 ### Changed

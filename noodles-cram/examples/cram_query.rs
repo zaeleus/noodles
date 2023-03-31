@@ -30,7 +30,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut reader = cram::indexed_reader::Builder::default().build_from_path(src)?;
     reader.read_file_definition()?;
-    let header = reader.read_file_header()?.parse()?;
+    let header = reader.read_file_header()?;
 
     let stdout = io::stdout().lock();
     let mut writer = sam::Writer::new(BufWriter::new(stdout));

@@ -6,6 +6,7 @@ use std::{
 };
 
 use bytes::{Buf, Bytes, BytesMut};
+use noodles_sam as sam;
 
 use self::header::read_header;
 use crate::container::{
@@ -13,7 +14,7 @@ use crate::container::{
     Block,
 };
 
-pub fn read_header_container<R>(reader: &mut R, buf: &mut BytesMut) -> io::Result<String>
+pub fn read_header_container<R>(reader: &mut R, buf: &mut BytesMut) -> io::Result<sam::Header>
 where
     R: Read,
 {
@@ -23,7 +24,10 @@ where
     reader.read_exact(buf)?;
     let mut buf = buf.split().freeze();
 
-    read_raw_sam_header_from_block(&mut buf)
+    read_raw_sam_header_from_block(&mut buf).and_then(|s| {
+        s.parse()
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })
 }
 
 pub fn read_raw_sam_header_from_block(src: &mut Bytes) -> io::Result<String> {

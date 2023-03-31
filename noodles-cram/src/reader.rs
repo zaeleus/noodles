@@ -37,14 +37,14 @@ use crate::data_container::DataContainer;
 /// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
 /// reader.read_file_definition()?;
 ///
-/// let header = reader.read_file_header()?.parse()?;
+/// let header = reader.read_file_header()?;
 ///
 /// for result in reader.records(&repository, &header) {
 ///     let record = result?;
 ///     println!("{:?}", record);
 /// }
 ///
-/// # Ok::<_, Box<dyn std::error::Error>>(())
+/// # Ok::<_, io::Error>(())
 /// ```
 pub struct Reader<R> {
     inner: R,
@@ -143,9 +143,6 @@ where
     /// The position of the stream is expected to be at the CRAM header container, i.e., directly
     /// after the file definition.
     ///
-    /// This returns the raw SAM header as a [`String`]. It can subsequently be parsed as a
-    /// [`noodles_sam::Header`].
-    ///
     /// # Examples
     ///
     /// ```no_run
@@ -158,7 +155,7 @@ where
     /// let header = reader.read_file_header()?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn read_file_header(&mut self) -> io::Result<String> {
+    pub fn read_file_header(&mut self) -> io::Result<sam::Header> {
         use self::header_container::read_header_container;
         read_header_container(&mut self.inner, &mut self.buf)
     }
@@ -212,13 +209,13 @@ where
     /// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
     /// reader.read_file_definition()?;
     ///
-    /// let header = reader.read_file_header()?.parse()?;
+    /// let header = reader.read_file_header()?;
     ///
     /// for result in reader.records(&repository, &header) {
     ///     let record = result?;
     ///     println!("{:?}", record);
     /// }
-    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// # Ok::<_, io::Error>(())
     /// ```
     pub fn records<'a>(
         &'a mut self,
@@ -282,7 +279,7 @@ where
     /// reader.read_file_definition()?;
     ///
     /// let repository = fasta::Repository::default();
-    /// let header = reader.read_file_header()?.parse()?;
+    /// let header = reader.read_file_header()?;
     /// let index = crai::read("sample.cram.crai")?;
     /// let region = "sq0:8-13".parse()?;
     /// let query = reader.query(&repository, &header, &index, &region)?;
@@ -327,11 +324,7 @@ where
 {
     fn read_alignment_header(&mut self) -> io::Result<sam::Header> {
         self.read_file_definition()?;
-
-        self.read_file_header().and_then(|s| {
-            s.parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })
+        self.read_file_header()
     }
 
     fn alignment_records<'a>(
