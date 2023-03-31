@@ -1,26 +1,54 @@
-use std::io;
+use std::{error, fmt};
+
+use noodles_core as core;
 
 use crate::{
     record::{info::field, Info},
     Header,
 };
 
-pub(super) fn parse_info(header: &Header, s: &str, info: &mut Info) -> io::Result<()> {
+/// An error when raw VCF record genotypes values fail to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+    /// A field is invalid.
+    InvalidField,
+    /// A key is duplicated.
+    DuplicateKey,
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ParseError::Empty => write!(f, "empty input"),
+            ParseError::InvalidField => write!(f, "invalid field"),
+            ParseError::DuplicateKey => write!(f, "duplicate key"),
+        }
+    }
+}
+
+impl From<ParseError> for core::Error {
+    fn from(e: ParseError) -> Self {
+        Self::new(core::error::Kind::Parse, e)
+    }
+}
+
+pub(super) fn parse_info(header: &Header, s: &str, info: &mut Info) -> Result<(), ParseError> {
     const DELIMITER: char = ';';
 
     if s.is_empty() {
-        return Err(io::Error::new(io::ErrorKind::InvalidData, "empty info"));
+        return Err(ParseError::Empty);
     }
 
     for raw_field in s.split(DELIMITER) {
-        let (key, value) = field::parse(raw_field, header.infos())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let (key, value) =
+            field::parse(raw_field, header.infos()).map_err(|_| ParseError::InvalidField)?;
 
         if info.insert(key, value).is_some() {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                "duplicate info key",
-            ));
+            return Err(ParseError::DuplicateKey);
         }
     }
 
@@ -32,11 +60,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_info() -> io::Result<()> {
+    fn test_parse_info() -> Result<(), ParseError> {
         use crate::{header::info::key, record::info::field::Value};
 
         let header = Header::default();
-
         let mut info = Info::default();
 
         info.clear();
@@ -60,16 +87,16 @@ mod tests {
         assert_eq!(info, expected);
 
         info.clear();
-        assert!(matches!(
+        assert_eq!(
             parse_info(&header, ".", &mut info),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData,
-        ));
+            Err(ParseError::InvalidField)
+        );
 
         info.clear();
-        assert!(matches!(
+        assert_eq!(
             parse_info(&header, "NS=ndls", &mut info),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData,
-        ));
+            Err(ParseError::InvalidField)
+        );
 
         Ok(())
     }
