@@ -12,16 +12,16 @@ documentation = "https://docs.rs/noodles-util"
 
 [features]
 alignment = [
-  "noodles-bam",
-  "noodles-bgzf",
-  "noodles-cram",
-  "noodles-fasta",
-  "noodles-sam",
+  "dep:noodles-bam",
+  "dep:noodles-bgzf",
+  "dep:noodles-cram",
+  "dep:noodles-fasta",
+  "dep:noodles-sam",
 ]
 variant = [
-  "noodles-bcf",
-  "noodles-bgzf",
-  "noodles-vcf",
+  "dep:noodles-bcf",
+  "dep:noodles-bgzf",
+  "dep:noodles-vcf",
 ]
 
 [dependencies]
