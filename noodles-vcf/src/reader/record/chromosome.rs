@@ -1,8 +1,33 @@
-use std::io;
+use std::{error, fmt};
+
+use noodles_core as core;
 
 use crate::record::Chromosome;
 
-pub(super) fn parse_chromosome(s: &str, chromosome: &mut Chromosome) -> io::Result<()> {
+/// An error when a raw VCF record chromosome fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The input is invalid.
+    Invalid,
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Invalid => write!(f, "invalid input"),
+        }
+    }
+}
+
+impl From<ParseError> for core::Error {
+    fn from(e: ParseError) -> Self {
+        Self::new(core::error::Kind::Parse, e)
+    }
+}
+
+pub(super) fn parse_chromosome(s: &str, chromosome: &mut Chromosome) -> Result<(), ParseError> {
     // symbol
     if let Some(t) = s.strip_prefix('<') {
         if let Some(t) = t.strip_suffix('>') {
@@ -19,10 +44,7 @@ pub(super) fn parse_chromosome(s: &str, chromosome: &mut Chromosome) -> io::Resu
         if is_valid_name(s) {
             *chromosome = Chromosome::Name(s.into());
         } else {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                "invalid chromosome",
-            ));
+            return Err(ParseError::Invalid);
         }
     }
 
@@ -54,7 +76,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_chromosome() -> io::Result<()> {
+    fn test_parse_chromosome() -> Result<(), ParseError> {
         let mut chromosome = Chromosome::Name(String::from("."));
 
         parse_chromosome("sq0", &mut chromosome)?;
@@ -63,10 +85,10 @@ mod tests {
         parse_chromosome("<sq0>", &mut chromosome)?;
         assert_eq!(chromosome, Chromosome::Symbol(String::from("sq0")));
 
-        assert!(matches!(
+        assert_eq!(
             parse_chromosome("", &mut chromosome),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData,
-        ));
+            Err(ParseError::Invalid)
+        );
 
         Ok(())
     }

@@ -24,6 +24,8 @@ const MISSING: &str = ".";
 #[allow(clippy::enum_variant_names)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The chromosome is invalid.
+    InvalidChromosome(chromosome::ParseError),
     /// The position is invalid.
     InvalidPosition(position::ParseError),
     /// The IDs are invalid.
@@ -43,6 +45,7 @@ pub enum ParseError {
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
+            Self::InvalidChromosome(e) => Some(e),
             Self::InvalidPosition(e) => Some(e),
             Self::InvalidIds(e) => Some(e),
             Self::InvalidReferenceBases(e) => Some(e),
@@ -57,6 +60,7 @@ impl error::Error for ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::InvalidChromosome(_) => write!(f, "invalid chromosome"),
             Self::InvalidPosition(_) => write!(f, "invalid position"),
             Self::InvalidIds(_) => write!(f, "invalid IDs"),
             Self::InvalidReferenceBases(_) => write!(f, "invalid reference bases"),
@@ -76,7 +80,9 @@ impl From<ParseError> for core::Error {
 
 pub(super) fn parse_record(mut s: &str, header: &Header, record: &mut Record) -> io::Result<()> {
     let field = next_field(&mut s);
-    parse_chromosome(field, record.chromosome_mut())?;
+    parse_chromosome(field, record.chromosome_mut())
+        .map_err(ParseError::InvalidChromosome)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     let field = next_field(&mut s);
     *record.position_mut() = parse_position(field)
