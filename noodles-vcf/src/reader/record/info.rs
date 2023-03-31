@@ -1,11 +1,15 @@
+mod value;
+
 use std::{error, fmt};
 
 use noodles_core as core;
 
+use self::value::parse_value;
 use crate::{
     header::{
-        info::Key,
-        record::value::{map, Map},
+        info::{key, Key},
+        record::value::map::info::Type,
+        Number,
     },
     record::{info::field::Value, Info},
     Header,
@@ -18,17 +22,30 @@ pub enum ParseError {
     Empty,
     /// A field is invalid.
     InvalidField,
+    /// A value is missing.
+    MissingValue,
+    /// A value is invalid.
+    InvalidValue(value::ParseError),
     /// A key is duplicated.
     DuplicateKey,
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidValue(e) => Some(e),
+            _ => None,
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ParseError::Empty => write!(f, "empty input"),
             ParseError::InvalidField => write!(f, "invalid field"),
+            ParseError::MissingValue => write!(f, "missing value"),
+            ParseError::InvalidValue(_) => write!(f, "invalid value"),
             ParseError::DuplicateKey => write!(f, "duplicate key"),
         }
     }
@@ -59,23 +76,51 @@ pub(super) fn parse_info(header: &Header, s: &str, info: &mut Info) -> Result<()
 }
 
 fn parse_field(header: &Header, s: &str) -> Result<(Key, Option<Value>), ParseError> {
-    use crate::record::info::field::parse_value;
+    use super::MISSING;
 
     const MAX_COMPONENTS: usize = 2;
     const SEPARATOR: char = '=';
 
     let mut components = s.splitn(MAX_COMPONENTS, SEPARATOR);
 
-    let key = components
+    let key: Key = components
         .next()
         .ok_or(ParseError::InvalidField)
         .and_then(|t| t.parse().map_err(|_| ParseError::InvalidField))?;
 
-    let value = if let Some(info) = header.infos().get(&key) {
-        parse_value(&mut components, &key, info).map_err(|_| ParseError::InvalidField)?
+    let (number, ty) = header
+        .infos()
+        .get(&key)
+        .map(|info| (info.number(), info.ty()))
+        .or_else(|| key::definition(header.file_format(), &key).map(|(n, t, _)| (n, t)))
+        .unwrap_or((Number::Count(1), Type::String));
+
+    let raw_value = components.next();
+
+    let value = if matches!(ty, Type::Flag) {
+        match raw_value.unwrap_or_default() {
+            MISSING => None,
+            t => parse_value(number, ty, t)
+                .map(Some)
+                .map_err(ParseError::InvalidValue)?,
+        }
+    } else if matches!(key, Key::Other(_)) {
+        match raw_value {
+            Some(MISSING) => None,
+            Some(t) => parse_value(number, ty, t)
+                .map(Some)
+                .map_err(ParseError::InvalidValue)?,
+            None => Some(Value::Flag),
+        }
+    } else if let Some(t) = raw_value {
+        match t {
+            MISSING => None,
+            _ => parse_value(number, ty, t)
+                .map(Some)
+                .map_err(ParseError::InvalidValue)?,
+        }
     } else {
-        let info = Map::<map::Info>::from(&key);
-        parse_value(&mut components, &key, &info).map_err(|_| ParseError::InvalidField)?
+        return Err(ParseError::MissingValue);
     };
 
     Ok((key, value))
@@ -119,10 +164,10 @@ mod tests {
         );
 
         info.clear();
-        assert_eq!(
+        assert!(matches!(
             parse_info(&header, "NS=ndls", &mut info),
-            Err(ParseError::InvalidField)
-        );
+            Err(ParseError::InvalidValue(_))
+        ));
 
         Ok(())
     }
