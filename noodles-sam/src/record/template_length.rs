@@ -108,7 +108,7 @@ impl TryFrom<i32> for TemplateLength {
     type Error = TryFromIntError;
 
     fn try_from(n: i32) -> Result<Self, Self::Error> {
-        usize::try_from(abs(n))
+        usize::try_from(n.unsigned_abs())
             .and_then(NonZeroUsize::try_from)
             .map(|len| {
                 if n > 0 {
@@ -191,14 +191,5 @@ mod tests {
         assert_eq!(usize::from(TemplateLength::try_from(8)?), 8);
         assert_eq!(usize::from(TemplateLength::try_from(-8)?), 8);
         Ok(())
-    }
-}
-
-// Returns the absolute value without overflow.
-fn abs(n: i32) -> u32 {
-    if n < 0 {
-        0u32.wrapping_sub(n as u32)
-    } else {
-        n as u32
     }
 }
