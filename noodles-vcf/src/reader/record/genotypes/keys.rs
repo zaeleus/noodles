@@ -4,7 +4,7 @@ use noodles_core as core;
 
 use crate::{header::format::key, reader::record::MISSING, record::genotypes::Keys, Header};
 
-/// An error when raw VCF record filters fail to parse.
+/// An error when raw VCF record genotypes keys fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The input is empty.
