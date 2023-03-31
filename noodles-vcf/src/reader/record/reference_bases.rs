@@ -1,6 +1,9 @@
+mod base;
+
 use std::io;
 
-use crate::record::{reference_bases::Base, ReferenceBases};
+use self::base::parse_base;
+use crate::record::ReferenceBases;
 
 pub(super) fn parse_reference_bases(
     s: &str,
@@ -16,22 +19,11 @@ pub(super) fn parse_reference_bases(
     reference_bases.0.clear();
 
     for c in s.chars() {
-        let base = parse_base(c)?;
+        let base = parse_base(c).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
         reference_bases.0.push(base);
     }
 
     Ok(())
-}
-
-fn parse_base(c: char) -> io::Result<Base> {
-    match c.to_ascii_uppercase() {
-        'A' => Ok(Base::A),
-        'C' => Ok(Base::C),
-        'G' => Ok(Base::G),
-        'T' => Ok(Base::T),
-        'N' => Ok(Base::N),
-        _ => Err(io::Error::new(io::ErrorKind::InvalidData, "invalid base")),
-    }
 }
 
 #[cfg(test)]
@@ -40,6 +32,8 @@ mod tests {
 
     #[test]
     fn test_parse_reference_bases() -> Result<(), Box<dyn std::error::Error>> {
+        use crate::record::reference_bases::Base;
+
         let mut reference_bases = ReferenceBases::try_from(vec![Base::N])?;
 
         let expected = [Base::A, Base::T, Base::C, Base::G, Base::N];
