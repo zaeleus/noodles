@@ -73,7 +73,7 @@ pub(crate) fn parse(s: &str, infos: &Infos) -> Result<(Key, Option<Value>), Pars
     Ok((key, value))
 }
 
-fn parse_value<'a, I>(
+pub(crate) fn parse_value<'a, I>(
     iter: &mut I,
     key: &Key,
     info: &Map<Info>,

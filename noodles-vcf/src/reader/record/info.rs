@@ -3,7 +3,11 @@ use std::{error, fmt};
 use noodles_core as core;
 
 use crate::{
-    record::{info::field, Info},
+    header::{
+        info::Key,
+        record::value::{map, Map},
+    },
+    record::{info::field::Value, Info},
     Header,
 };
 
@@ -44,8 +48,7 @@ pub(super) fn parse_info(header: &Header, s: &str, info: &mut Info) -> Result<()
     }
 
     for raw_field in s.split(DELIMITER) {
-        let (key, value) =
-            field::parse(raw_field, header.infos()).map_err(|_| ParseError::InvalidField)?;
+        let (key, value) = parse_field(header, raw_field)?;
 
         if info.insert(key, value).is_some() {
             return Err(ParseError::DuplicateKey);
@@ -53,6 +56,29 @@ pub(super) fn parse_info(header: &Header, s: &str, info: &mut Info) -> Result<()
     }
 
     Ok(())
+}
+
+fn parse_field(header: &Header, s: &str) -> Result<(Key, Option<Value>), ParseError> {
+    use crate::record::info::field::parse_value;
+
+    const MAX_COMPONENTS: usize = 2;
+    const SEPARATOR: char = '=';
+
+    let mut components = s.splitn(MAX_COMPONENTS, SEPARATOR);
+
+    let key = components
+        .next()
+        .ok_or(ParseError::InvalidField)
+        .and_then(|t| t.parse().map_err(|_| ParseError::InvalidField))?;
+
+    let value = if let Some(info) = header.infos().get(&key) {
+        parse_value(&mut components, &key, info).map_err(|_| ParseError::InvalidField)?
+    } else {
+        let info = Map::<map::Info>::from(&key);
+        parse_value(&mut components, &key, &info).map_err(|_| ParseError::InvalidField)?
+    };
+
+    Ok((key, value))
 }
 
 #[cfg(test)]
