@@ -1,7 +1,7 @@
-use crate::record::{Cigar, Data, Flags, MappingQuality, QualityScores, ReadName, Sequence};
 use noodles_core::Position;
 
 use super::Record;
+use crate::record::{Cigar, Data, Flags, MappingQuality, QualityScores, ReadName, Sequence};
 
 /// An alignment record builder.
 #[derive(Debug)]
