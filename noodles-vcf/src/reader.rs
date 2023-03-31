@@ -176,7 +176,9 @@ where
         match read_line(&mut self.inner, &mut self.buf)? {
             0 => Ok(0),
             n => {
-                parse_record(&self.buf, header, record)?;
+                parse_record(&self.buf, header, record)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
                 Ok(n)
             }
         }

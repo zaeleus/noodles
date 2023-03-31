@@ -7,7 +7,7 @@ mod position;
 mod quality_score;
 mod reference_bases;
 
-use std::{error, fmt, io};
+use std::{error, fmt};
 
 use noodles_core as core;
 
@@ -85,42 +85,37 @@ impl From<ParseError> for core::Error {
     }
 }
 
-pub(super) fn parse_record(mut s: &str, header: &Header, record: &mut Record) -> io::Result<()> {
+pub(super) fn parse_record(
+    mut s: &str,
+    header: &Header,
+    record: &mut Record,
+) -> Result<(), ParseError> {
     let field = next_field(&mut s);
-    parse_chromosome(field, record.chromosome_mut())
-        .map_err(ParseError::InvalidChromosome)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    parse_chromosome(field, record.chromosome_mut()).map_err(ParseError::InvalidChromosome)?;
 
     let field = next_field(&mut s);
-    *record.position_mut() = parse_position(field)
-        .map_err(ParseError::InvalidPosition)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    *record.position_mut() = parse_position(field).map_err(ParseError::InvalidPosition)?;
 
     record.ids_mut().clear();
     let field = next_field(&mut s);
     if field != MISSING {
-        parse_ids(field, record.ids_mut())
-            .map_err(ParseError::InvalidIds)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        parse_ids(field, record.ids_mut()).map_err(ParseError::InvalidIds)?;
     }
 
     let field = next_field(&mut s);
     parse_reference_bases(field, record.reference_bases_mut())
-        .map_err(ParseError::InvalidReferenceBases)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        .map_err(ParseError::InvalidReferenceBases)?;
 
     let field = next_field(&mut s);
-    *record.alternate_bases_mut() = parse_alternate_bases(field)
-        .map_err(ParseError::InvalidAlternateBases)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    *record.alternate_bases_mut() =
+        parse_alternate_bases(field).map_err(ParseError::InvalidAlternateBases)?;
 
     let field = next_field(&mut s);
     *record.quality_score_mut() = match field {
         MISSING => None,
         _ => parse_quality_score(field)
             .map(Some)
-            .map_err(ParseError::InvalidQualityScore)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
+            .map_err(ParseError::InvalidQualityScore)?,
     };
 
     let field = next_field(&mut s);
@@ -128,22 +123,16 @@ pub(super) fn parse_record(mut s: &str, header: &Header, record: &mut Record) ->
         MISSING => {
             record.filters_mut().take();
         }
-        _ => parse_filters(field, record.filters_mut())
-            .map_err(ParseError::InvalidFilters)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
+        _ => parse_filters(field, record.filters_mut()).map_err(ParseError::InvalidFilters)?,
     }
 
     record.info_mut().clear();
     let field = next_field(&mut s);
     if field != MISSING {
-        parse_info(header, field, record.info_mut())
-            .map_err(ParseError::InvalidInfo)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        parse_info(header, field, record.info_mut()).map_err(ParseError::InvalidInfo)?;
     }
 
-    parse_genotypes(header, s, record.genotypes_mut())
-        .map_err(ParseError::InvalidGenotypes)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    parse_genotypes(header, s, record.genotypes_mut()).map_err(ParseError::InvalidGenotypes)?;
 
     Ok(())
 }
