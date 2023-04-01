@@ -8,6 +8,7 @@ use super::{
     Bin, Metadata, ReferenceSequence,
 };
 
+/// A CSI reference sequence builder.
 #[derive(Debug)]
 pub struct Builder {
     bin_builders: HashMap<usize, bin::Builder>,
@@ -19,6 +20,7 @@ pub struct Builder {
 }
 
 impl Builder {
+    /// Adds a record.
     pub fn add_record(
         &mut self,
         min_shift: u8,
@@ -33,6 +35,7 @@ impl Builder {
         self.update_metadata(is_mapped, chunk);
     }
 
+    /// Builds a CSI reference sequence.
     pub fn build(mut self) -> ReferenceSequence {
         use super::parent_id;
 

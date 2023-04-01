@@ -17,6 +17,8 @@
 
 ### Changed
 
+  * csi/index/reference_sequence: Increase the visibility of `Builder`.
+
   * csi/index/reference_sequence/bin: Increase the visibility of `Builder`.
 
 ## 0.14.0 - 2023-03-03

@@ -4,8 +4,7 @@ pub mod bin;
 mod builder;
 mod metadata;
 
-pub(crate) use self::builder::Builder;
-pub use self::{bin::Bin, metadata::Metadata};
+pub use self::{bin::Bin, builder::Builder, metadata::Metadata};
 
 use std::{io, num::NonZeroUsize};
 
