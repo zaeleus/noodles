@@ -11,6 +11,8 @@
 
     This is optional and may be preferred over bin linear offsets.
 
+  * csi/index/reference_sequence/builder: Build linear index.
+
 [#157]: https://github.com/zaeleus/noodles/issues/157
 
 ### Changed
