@@ -3,8 +3,7 @@
 mod builder;
 mod chunk;
 
-pub(crate) use self::builder::Builder;
-pub use self::chunk::Chunk;
+pub use self::{builder::Builder, chunk::Chunk};
 
 use noodles_bgzf as bgzf;
 
@@ -19,7 +18,8 @@ pub struct Bin {
 }
 
 impl Bin {
-    pub(crate) fn builder() -> Builder {
+    /// Creates a bin builder.
+    pub fn builder() -> Builder {
         Builder::default()
     }
 

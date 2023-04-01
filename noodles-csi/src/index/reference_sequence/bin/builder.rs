@@ -11,11 +11,13 @@ pub struct Builder {
 }
 
 impl Builder {
+    /// Sets the ID.
     pub fn set_id(mut self, id: usize) -> Self {
         self.id = id;
         self
     }
 
+    /// Adds or merges a chunk.
     pub fn add_chunk(&mut self, chunk: Chunk) {
         if chunk.start() < self.loffset {
             self.loffset = chunk.start();
@@ -31,6 +33,7 @@ impl Builder {
         self.chunks.push(chunk);
     }
 
+    /// Builds a bin.
     pub fn build(self) -> Bin {
         Bin {
             id: self.id,
