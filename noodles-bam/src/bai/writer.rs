@@ -3,14 +3,11 @@ use std::io::{self, Write};
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_csi::{
     binning_index::ReferenceSequenceExt,
-    index::reference_sequence::{bin::Chunk, Metadata},
+    index::reference_sequence::{bin::Chunk, Bin, Metadata},
     BinningIndex,
 };
 
-use super::{
-    index::{reference_sequence::Bin, ReferenceSequence},
-    Index, MAGIC_NUMBER,
-};
+use super::{index::ReferenceSequence, Index, MAGIC_NUMBER};
 
 /// A BAM index (BAI) writer.
 ///
@@ -185,10 +182,14 @@ fn write_metadata<W>(writer: &mut W, metadata: &Metadata) -> io::Result<()>
 where
     W: Write,
 {
-    use crate::bai::index::reference_sequence::bin::{METADATA_CHUNK_COUNT, METADATA_ID};
+    use super::index::DEPTH;
+
+    const METADATA_CHUNK_COUNT: usize = 2;
+
+    let metadata_id = Bin::metadata_id(DEPTH);
 
     let id =
-        u32::try_from(METADATA_ID).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        u32::try_from(metadata_id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32::<LittleEndian>(id)?;
 
     let n_chunk = u32::try_from(METADATA_CHUNK_COUNT)
@@ -224,7 +225,7 @@ mod tests {
             bgzf::VirtualPosition::from(509268599425),
             bgzf::VirtualPosition::from(509268599570),
         )];
-        let bins = vec![Bin::new(16385, chunks)];
+        let bins = vec![Bin::new(16385, bgzf::VirtualPosition::default(), chunks)];
         let intervals = vec![bgzf::VirtualPosition::from(337)];
         let reference_sequences = vec![ReferenceSequence::new(bins, intervals, None)];
         let index = Index::new(reference_sequences, None);

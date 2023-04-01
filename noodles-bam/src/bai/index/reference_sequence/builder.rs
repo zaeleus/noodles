@@ -2,12 +2,15 @@ use std::{cmp, collections::HashMap, io};
 
 use noodles_bgzf as bgzf;
 use noodles_core::Position;
-use noodles_csi::index::reference_sequence::bin::Chunk;
+use noodles_csi::index::reference_sequence::{
+    bin::{self, Chunk},
+    Bin,
+};
 use noodles_sam::record::Flags;
 
 use crate::writer::record::region_to_bin;
 
-use super::{bin, Bin, Metadata, ReferenceSequence, MIN_SHIFT};
+use super::{Metadata, ReferenceSequence, MIN_SHIFT};
 
 // § 5.2 The BAI index format for BAM files (2020-07-19)
 const MAX_INTERVAL_COUNT: usize = 131072;
@@ -62,11 +65,10 @@ impl Builder {
     fn update_bins(&mut self, start: Position, end: Position, chunk: Chunk) -> io::Result<()> {
         let bin_id = region_to_bin(start, end).map(usize::from)?;
 
-        let builder = self.bin_builders.entry(bin_id).or_insert_with(|| {
-            let mut builder = Bin::builder();
-            builder.set_id(bin_id);
-            builder
-        });
+        let builder = self
+            .bin_builders
+            .entry(bin_id)
+            .or_insert_with(|| Bin::builder().set_id(bin_id));
 
         builder.add_chunk(chunk);
 
@@ -149,6 +151,7 @@ mod tests {
         let expected = ReferenceSequence::new(
             vec![Bin::new(
                 4681,
+                bgzf::VirtualPosition::from(55),
                 vec![Chunk::new(
                     bgzf::VirtualPosition::from(55),
                     bgzf::VirtualPosition::from(144),

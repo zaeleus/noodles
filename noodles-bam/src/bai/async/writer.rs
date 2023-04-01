@@ -1,15 +1,12 @@
 use noodles_bgzf as bgzf;
 use noodles_csi::{
     binning_index::ReferenceSequenceExt,
-    index::reference_sequence::{bin::Chunk, Metadata},
+    index::reference_sequence::{bin::Chunk, Bin, Metadata},
     BinningIndex,
 };
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
-use crate::bai::{
-    index::reference_sequence::{Bin, ReferenceSequence},
-    Index, MAGIC_NUMBER,
-};
+use crate::bai::{index::reference_sequence::ReferenceSequence, Index, MAGIC_NUMBER};
 
 /// An async BAM index (BAI) writer.
 pub struct Writer<W> {
@@ -248,10 +245,14 @@ async fn write_metadata<W>(writer: &mut W, metadata: &Metadata) -> io::Result<()
 where
     W: AsyncWrite + Unpin,
 {
-    use crate::bai::index::reference_sequence::bin::{METADATA_CHUNK_COUNT, METADATA_ID};
+    use crate::bai::index::DEPTH;
+
+    const METADATA_CHUNK_COUNT: usize = 2;
+
+    let metadata_id = Bin::metadata_id(DEPTH);
 
     let id =
-        u32::try_from(METADATA_ID).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        u32::try_from(metadata_id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32_le(id).await?;
 
     let n_chunk = u32::try_from(METADATA_CHUNK_COUNT)
@@ -297,7 +298,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_write_bins() -> io::Result<()> {
-        let bins = vec![Bin::new(8, Vec::new())];
+        let bins = vec![Bin::new(8, bgzf::VirtualPosition::default(), Vec::new())];
 
         let mut buf = Vec::new();
         write_bins(&mut buf, &bins, None).await?;
@@ -315,7 +316,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_write_bins_with_metadata() -> io::Result<()> {
-        let bins = vec![Bin::new(8, Vec::new())];
+        let bins = vec![Bin::new(8, bgzf::VirtualPosition::default(), Vec::new())];
         let metadata = Metadata::new(
             bgzf::VirtualPosition::from(13),
             bgzf::VirtualPosition::from(21),
@@ -350,6 +351,7 @@ mod tests {
     async fn test_write_bin() -> io::Result<()> {
         let bin = Bin::new(
             8,
+            bgzf::VirtualPosition::default(),
             vec![Chunk::new(
                 bgzf::VirtualPosition::from(13),
                 bgzf::VirtualPosition::from(21),

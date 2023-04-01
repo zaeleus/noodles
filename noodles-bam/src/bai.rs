@@ -41,8 +41,6 @@ use std::{
     path::Path,
 };
 
-use self::index::reference_sequence::Bin;
-
 static MAGIC_NUMBER: &[u8] = b"BAI\x01";
 
 /// Reads the entire contents of a BAM index.
