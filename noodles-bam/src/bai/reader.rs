@@ -2,9 +2,12 @@ use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
-use noodles_csi::index::reference_sequence::{bin::Chunk, Bin, Metadata};
+use noodles_csi::index::{
+    reference_sequence::{bin::Chunk, Bin, Metadata},
+    ReferenceSequence,
+};
 
-use super::{index::ReferenceSequence, Index, MAGIC_NUMBER};
+use super::{Index, MAGIC_NUMBER};
 
 /// A BAM index (BAI) reader.
 ///

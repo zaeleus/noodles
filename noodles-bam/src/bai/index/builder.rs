@@ -1,9 +1,9 @@
 use std::{cmp::Ordering, io, mem};
 
-use noodles_csi::index::reference_sequence::bin::Chunk;
+use noodles_csi::index::reference_sequence::{self, bin::Chunk};
 use noodles_sam::alignment::Record;
 
-use super::{reference_sequence, Index};
+use super::Index;
 
 /// A BAM index builder.
 #[derive(Default)]
@@ -39,6 +39,8 @@ impl Builder {
     /// builder.add_record(&record, chunk);
     /// ```
     pub fn add_record(&mut self, record: &Record, chunk: Chunk) -> io::Result<()> {
+        use super::{DEPTH, MIN_SHIFT};
+
         let (reference_sequence_id, start, end) = match (
             record.reference_sequence_id(),
             record.alignment_start(),
@@ -67,8 +69,16 @@ impl Builder {
             Ordering::Greater => self.add_reference_sequences_builders_until(reference_sequence_id),
         }
 
-        self.reference_sequence_builder
-            .add_record(start, end, record.flags(), chunk)
+        self.reference_sequence_builder.add_record(
+            MIN_SHIFT,
+            DEPTH,
+            start,
+            end,
+            !record.flags().is_unmapped(),
+            chunk,
+        );
+
+        Ok(())
     }
 
     fn add_reference_sequences_builders_until(&mut self, reference_sequence_id: usize) {

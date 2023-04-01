@@ -1,12 +1,15 @@
 use noodles_bgzf as bgzf;
 use noodles_csi::{
     binning_index::ReferenceSequenceExt,
-    index::reference_sequence::{bin::Chunk, Bin, Metadata},
+    index::{
+        reference_sequence::{bin::Chunk, Bin, Metadata},
+        ReferenceSequence,
+    },
     BinningIndex,
 };
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
-use crate::bai::{index::reference_sequence::ReferenceSequence, Index, MAGIC_NUMBER};
+use crate::bai::{Index, MAGIC_NUMBER};
 
 /// An async BAM index (BAI) writer.
 pub struct Writer<W> {
@@ -154,7 +157,7 @@ where
     )
     .await?;
 
-    write_intervals(writer, reference_sequence.intervals()).await?;
+    write_intervals(writer, reference_sequence.linear_index()).await?;
 
     Ok(())
 }

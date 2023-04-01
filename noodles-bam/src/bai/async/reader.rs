@@ -1,8 +1,11 @@
 use noodles_bgzf as bgzf;
-use noodles_csi::index::reference_sequence::{bin::Chunk, Bin, Metadata};
+use noodles_csi::index::{
+    reference_sequence::{bin::Chunk, Bin, Metadata},
+    ReferenceSequence,
+};
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
-use crate::bai::{index::ReferenceSequence, Index, MAGIC_NUMBER};
+use crate::bai::{Index, MAGIC_NUMBER};
 
 /// An async BAM index (BAI) reader.
 pub struct Reader<R>

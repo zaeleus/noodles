@@ -3,11 +3,14 @@ use std::io::{self, Write};
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_csi::{
     binning_index::ReferenceSequenceExt,
-    index::reference_sequence::{bin::Chunk, Bin, Metadata},
+    index::{
+        reference_sequence::{bin::Chunk, Bin, Metadata},
+        ReferenceSequence,
+    },
     BinningIndex,
 };
 
-use super::{index::ReferenceSequence, Index, MAGIC_NUMBER};
+use super::{Index, MAGIC_NUMBER};
 
 /// A BAM index (BAI) writer.
 ///
@@ -135,11 +138,11 @@ where
         write_metadata(writer, metadata)?;
     }
 
-    let n_intv = u32::try_from(reference_sequence.intervals().len())
+    let n_intv = u32::try_from(reference_sequence.linear_index().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32::<LittleEndian>(n_intv)?;
 
-    for interval in reference_sequence.intervals() {
+    for interval in reference_sequence.linear_index() {
         let ioffset = u64::from(*interval);
         writer.write_u64::<LittleEndian>(ioffset)?;
     }

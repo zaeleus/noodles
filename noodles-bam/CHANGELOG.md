@@ -12,8 +12,8 @@
 
 ### Changed
 
-  * bam/bai/index/reference_sequence: Replace `Bin` with
-    `noodles_csi::index::reference_sequence::Bin`.
+  * bam/bai/index: Replace `ReferenceSequence` with
+    `noodles_csi::index::ReferenceSequence`.
 
   * bam/reader: Change `Reader::read_header` to return a parsed header
     (`sam::Header`).
