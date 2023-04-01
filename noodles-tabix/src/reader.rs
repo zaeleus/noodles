@@ -5,15 +5,9 @@ use std::{
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
-use noodles_csi::index::reference_sequence::{bin::Chunk, Metadata};
+use noodles_csi::index::reference_sequence::{bin::Chunk, Bin, Metadata};
 
-use crate::index::{
-    self,
-    header::Format,
-    header::ReferenceSequenceNames,
-    reference_sequence::{self, Bin},
-    ReferenceSequence,
-};
+use crate::index::{self, header::Format, header::ReferenceSequenceNames, ReferenceSequence};
 
 use super::{Index, MAGIC_NUMBER};
 
@@ -209,7 +203,9 @@ fn read_bins<R>(reader: &mut R) -> io::Result<(Vec<Bin>, Option<Metadata>)>
 where
     R: Read,
 {
-    use reference_sequence::bin::METADATA_ID;
+    use super::index::DEPTH;
+
+    let metadata_id = Bin::metadata_id(DEPTH);
 
     let n_bin = reader.read_i32::<LittleEndian>().and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -223,11 +219,11 @@ where
             usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })?;
 
-        if id == METADATA_ID {
+        if id == metadata_id {
             metadata = read_metadata(reader).map(Some)?;
         } else {
             let chunks = read_chunks(reader)?;
-            let bin = Bin::new(id, chunks);
+            let bin = Bin::new(id, bgzf::VirtualPosition::default(), chunks);
             bins.push(bin);
         }
     }
@@ -285,7 +281,7 @@ fn read_metadata<R>(reader: &mut R) -> io::Result<Metadata>
 where
     R: Read,
 {
-    use reference_sequence::bin::METADATA_CHUNK_COUNT;
+    const METADATA_CHUNK_COUNT: usize = 2;
 
     let n_chunk = reader.read_u32::<LittleEndian>().and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))

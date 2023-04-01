@@ -1,5 +1,10 @@
 # Changelog
 
+### Changed
+
+  * tabix/index/reference_sequence: Replace `Bin` with
+    `noodles_csi::index::reference_sequence::Bin`.
+
 ## 0.17.0 - 2023-03-03
 
 ### Changed

@@ -1,9 +1,6 @@
 //! Tabix index reference sequence and fields.
 
-pub mod bin;
 mod builder;
-
-pub use self::bin::Bin;
 
 pub(crate) use self::builder::Builder;
 
@@ -12,7 +9,10 @@ use std::io;
 use bit_vec::BitVec;
 use noodles_bgzf as bgzf;
 use noodles_core::{region::Interval, Position};
-use noodles_csi::{binning_index::ReferenceSequenceExt, index::reference_sequence::Metadata};
+use noodles_csi::{
+    binning_index::ReferenceSequenceExt,
+    index::reference_sequence::{Bin, Metadata},
+};
 
 use super::{resolve_interval, MIN_SHIFT};
 
@@ -187,11 +187,15 @@ impl ReferenceSequenceExt for ReferenceSequence {
 }
 
 fn region_to_bins(start: Position, end: Position) -> BitVec {
+    use super::DEPTH;
+
+    let max_id = Bin::max_id(DEPTH);
+
     // 0-based, [start, end)
     let start = usize::from(start) - 1;
     let end = usize::from(end) - 1;
 
-    let mut bins = BitVec::from_elem(bin::MAX_ID, false);
+    let mut bins = BitVec::from_elem(max_id, false);
     bins.set(0, true);
 
     for k in (1 + (start >> 26))..=(1 + (end >> 26)) {
@@ -237,10 +241,14 @@ mod tests {
 
     #[test]
     fn test_region_to_bins() -> Result<(), noodles_core::position::TryFromIntError> {
+        use crate::index::DEPTH;
+
+        let max_id = Bin::max_id(DEPTH);
+
         let start = Position::try_from(8)?;
         let end = Position::try_from(13)?;
         let actual = region_to_bins(start, end);
-        let mut expected = BitVec::from_elem(bin::MAX_ID, false);
+        let mut expected = BitVec::from_elem(max_id, false);
         for &k in &[0, 1, 9, 73, 585, 4681] {
             expected.set(k, true);
         }
@@ -249,7 +257,7 @@ mod tests {
         let start = Position::try_from(63245985)?;
         let end = Position::try_from(63255986)?;
         let actual = region_to_bins(start, end);
-        let mut expected = BitVec::from_elem(bin::MAX_ID, false);
+        let mut expected = BitVec::from_elem(max_id, false);
         for &k in &[0, 1, 16, 133, 1067, 8541] {
             expected.set(k, true);
         }

@@ -2,9 +2,12 @@ use std::{cmp, collections::HashMap, io};
 
 use noodles_bgzf as bgzf;
 use noodles_core::Position;
-use noodles_csi::index::reference_sequence::bin::Chunk;
+use noodles_csi::index::reference_sequence::{
+    bin::{self, Chunk},
+    Bin,
+};
 
-use super::{bin, Bin, Metadata, ReferenceSequence, WINDOW_SIZE};
+use super::{Metadata, ReferenceSequence, WINDOW_SIZE};
 
 #[derive(Debug, Default)]
 pub struct Builder {
@@ -49,11 +52,10 @@ impl Builder {
     fn update_bins(&mut self, start: Position, end: Position, chunk: Chunk) {
         let bin_id = usize::from(region_to_bin(start, end).unwrap());
 
-        let builder = self.bin_builders.entry(bin_id).or_insert_with(|| {
-            let mut builder = Bin::builder();
-            builder.set_id(bin_id);
-            builder
-        });
+        let builder = self
+            .bin_builders
+            .entry(bin_id)
+            .or_insert_with(|| Bin::builder().set_id(bin_id));
 
         builder.add_chunk(chunk);
     }
@@ -134,6 +136,7 @@ mod tests {
             let bins = vec![
                 Bin::new(
                     4681,
+                    bgzf::VirtualPosition::from(0),
                     vec![Chunk::new(
                         bgzf::VirtualPosition::from(0),
                         bgzf::VirtualPosition::from(9),
@@ -141,6 +144,7 @@ mod tests {
                 ),
                 Bin::new(
                     73,
+                    bgzf::VirtualPosition::from(9),
                     vec![Chunk::new(
                         bgzf::VirtualPosition::from(9),
                         bgzf::VirtualPosition::from(3473408),

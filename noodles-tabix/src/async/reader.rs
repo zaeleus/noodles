@@ -1,9 +1,9 @@
 use noodles_bgzf as bgzf;
-use noodles_csi::index::reference_sequence::{bin::Chunk, Metadata};
+use noodles_csi::index::reference_sequence::{bin::Chunk, Bin, Metadata};
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::{
-    index::{header::ReferenceSequenceNames, reference_sequence::Bin, Header, ReferenceSequence},
+    index::{header::ReferenceSequenceNames, Header, ReferenceSequence},
     Index,
 };
 
@@ -202,7 +202,9 @@ async fn read_bins<R>(reader: &mut R) -> io::Result<(Vec<Bin>, Option<Metadata>)
 where
     R: AsyncRead + Unpin,
 {
-    use crate::index::reference_sequence::bin::METADATA_ID;
+    use crate::index::DEPTH;
+
+    let metadata_id = Bin::metadata_id(DEPTH);
 
     let n_bin = reader.read_i32_le().await.and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -216,11 +218,11 @@ where
             usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })?;
 
-        if id == METADATA_ID {
+        if id == metadata_id {
             metadata = read_metadata(reader).await.map(Some)?;
         } else {
             let chunks = read_chunks(reader).await?;
-            let bin = Bin::new(id, chunks);
+            let bin = Bin::new(id, bgzf::VirtualPosition::default(), chunks);
             bins.push(bin);
         }
     }
@@ -289,7 +291,7 @@ async fn read_metadata<R>(reader: &mut R) -> io::Result<Metadata>
 where
     R: AsyncRead + Unpin,
 {
-    use crate::index::reference_sequence::bin::METADATA_CHUNK_COUNT;
+    const METADATA_CHUNK_COUNT: usize = 2;
 
     let n_chunk = reader.read_u32_le().await.and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))

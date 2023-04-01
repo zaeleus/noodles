@@ -17,7 +17,7 @@ use noodles_csi::{
 };
 
 const MIN_SHIFT: u8 = 14;
-const DEPTH: u8 = 5;
+pub(crate) const DEPTH: u8 = 5;
 
 const MAX_POSITION: Position = match Position::new((1 << (MIN_SHIFT + 3 * DEPTH)) - 1) {
     Some(position) => position,
