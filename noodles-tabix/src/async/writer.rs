@@ -1,13 +1,16 @@
 use noodles_bgzf as bgzf;
 use noodles_csi::{
     binning_index::ReferenceSequenceExt,
-    index::reference_sequence::{bin::Chunk, Bin, Metadata},
+    index::{
+        reference_sequence::{bin::Chunk, Bin, Metadata},
+        ReferenceSequence,
+    },
     BinningIndex,
 };
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 use crate::{
-    index::{header::ReferenceSequenceNames, Header, ReferenceSequence},
+    index::{header::ReferenceSequenceNames, Header},
     Index,
 };
 
@@ -198,7 +201,7 @@ where
     )
     .await?;
 
-    write_intervals(writer, reference_sequence.intervals()).await?;
+    write_intervals(writer, reference_sequence.linear_index()).await?;
 
     Ok(())
 }

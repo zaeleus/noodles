@@ -1,9 +1,12 @@
 use noodles_bgzf as bgzf;
-use noodles_csi::index::reference_sequence::{bin::Chunk, Bin, Metadata};
+use noodles_csi::index::{
+    reference_sequence::{bin::Chunk, Bin, Metadata},
+    ReferenceSequence,
+};
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::{
-    index::{header::ReferenceSequenceNames, Header, ReferenceSequence},
+    index::{header::ReferenceSequenceNames, Header},
     Index,
 };
 

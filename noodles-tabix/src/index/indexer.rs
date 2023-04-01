@@ -1,7 +1,7 @@
 use noodles_core::Position;
-use noodles_csi::index::reference_sequence::bin::Chunk;
+use noodles_csi::index::reference_sequence::{self, bin::Chunk};
 
-use super::{header::ReferenceSequenceNames, reference_sequence, Header, Index, ReferenceSequence};
+use super::{header::ReferenceSequenceNames, Header, Index};
 
 /// A tabix indexer.
 #[derive(Debug, Default)]
@@ -53,9 +53,11 @@ impl Indexer {
         end: Position,
         chunk: Chunk,
     ) {
+        use super::{DEPTH, MIN_SHIFT};
+
         if reference_sequence_name != self.current_reference_sequence_name {
             self.reference_sequence_builders
-                .push(ReferenceSequence::builder());
+                .push(reference_sequence::Builder::default());
 
             self.current_reference_sequence_name = reference_sequence_name.into();
 
@@ -68,7 +70,7 @@ impl Indexer {
             .last_mut()
             .expect("reference_sequence_builders cannot be empty");
 
-        reference_sequence_builder.add_record(start, end, chunk);
+        reference_sequence_builder.add_record(MIN_SHIFT, DEPTH, start, end, true, chunk);
     }
 
     /// Builds a tabix index.

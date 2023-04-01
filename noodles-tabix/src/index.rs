@@ -3,17 +3,16 @@
 pub mod builder;
 pub mod header;
 mod indexer;
-pub mod reference_sequence;
 
-pub use self::{
-    builder::Builder, header::Header, indexer::Indexer, reference_sequence::ReferenceSequence,
-};
+pub use self::{builder::Builder, header::Header, indexer::Indexer};
 
 use std::io;
 
 use noodles_core::{region::Interval, Position};
 use noodles_csi::{
-    binning_index::optimize_chunks, index::reference_sequence::bin::Chunk, BinningIndex,
+    binning_index::optimize_chunks,
+    index::{reference_sequence::bin::Chunk, ReferenceSequence},
+    BinningIndex,
 };
 
 const MIN_SHIFT: u8 = 14;
@@ -113,7 +112,7 @@ impl BinningIndex for Index {
         let interval = interval.into();
 
         let query_bins = reference_sequence
-            .query(interval)
+            .query(MIN_SHIFT, DEPTH, interval)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
         let chunks: Vec<_> = query_bins
@@ -123,7 +122,7 @@ impl BinningIndex for Index {
             .collect();
 
         let (start, _) = resolve_interval(interval)?;
-        let min_offset = reference_sequence.min_offset(start);
+        let min_offset = reference_sequence.min_offset(MIN_SHIFT, DEPTH, start);
         let merged_chunks = optimize_chunks(&chunks, min_offset);
 
         Ok(merged_chunks)

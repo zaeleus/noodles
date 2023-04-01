@@ -4,12 +4,15 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf as bgzf;
 use noodles_csi::{
     binning_index::ReferenceSequenceExt,
-    index::reference_sequence::{bin::Chunk, Bin, Metadata},
+    index::{
+        reference_sequence::{bin::Chunk, Bin, Metadata},
+        ReferenceSequence,
+    },
     BinningIndex,
 };
 
 use super::{
-    index::{self, header::ReferenceSequenceNames, ReferenceSequence},
+    index::{self, header::ReferenceSequenceNames},
     Index, MAGIC_NUMBER,
 };
 
@@ -208,11 +211,11 @@ where
         write_metadata(writer, metadata)?;
     }
 
-    let n_intv = i32::try_from(reference.intervals().len())
+    let n_intv = i32::try_from(reference.linear_index().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_i32::<LittleEndian>(n_intv)?;
 
-    for interval in reference.intervals() {
+    for interval in reference.linear_index() {
         let ioff = u64::from(*interval);
         writer.write_u64::<LittleEndian>(ioff)?;
     }

@@ -5,9 +5,12 @@ use std::{
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
-use noodles_csi::index::reference_sequence::{bin::Chunk, Bin, Metadata};
+use noodles_csi::index::{
+    reference_sequence::{bin::Chunk, Bin, Metadata},
+    ReferenceSequence,
+};
 
-use crate::index::{self, header::Format, header::ReferenceSequenceNames, ReferenceSequence};
+use crate::index::{self, header::Format, header::ReferenceSequenceNames};
 
 use super::{Index, MAGIC_NUMBER};
 

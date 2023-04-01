@@ -2,8 +2,8 @@
 
 ### Changed
 
-  * tabix/index/reference_sequence: Replace `Bin` with
-    `noodles_csi::index::reference_sequence::Bin`.
+  * tabix/index: Replace `ReferenceSequence` with
+    `noodles_csi::index::ReferenceSequence`.
 
 ## 0.17.0 - 2023-03-03
 

@@ -55,8 +55,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::BinningIndex;
-    /// use noodles_tabix::{self as tabix, index::ReferenceSequence};
+    /// use noodles_csi::{index::ReferenceSequence, BinningIndex};
+    /// use noodles_tabix as tabix;
     ///
     /// let reference_sequences = vec![ReferenceSequence::new(Vec::new(), Vec::new(), None)];
     ///
