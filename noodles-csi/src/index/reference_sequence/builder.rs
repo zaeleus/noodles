@@ -35,7 +35,7 @@ impl Builder {
         use super::parent_id;
 
         if self.bin_builders.is_empty() {
-            return ReferenceSequence::new(Vec::new(), None);
+            return ReferenceSequence::new(Vec::new(), Vec::new(), None);
         }
 
         let builders: Vec<_> = self
@@ -65,7 +65,7 @@ impl Builder {
             self.unmapped_record_count,
         );
 
-        ReferenceSequence::new(bins, Some(metadata))
+        ReferenceSequence::new(bins, Vec::new(), Some(metadata))
     }
 
     fn update_bins(
@@ -158,6 +158,7 @@ mod tests {
                     bgzf::VirtualPosition::from(144),
                 )],
             )],
+            Vec::new(),
             Some(Metadata::new(
                 bgzf::VirtualPosition::from(55),
                 bgzf::VirtualPosition::from(144),

@@ -16,10 +16,13 @@ use noodles_core::{region::Interval, Position};
 use super::resolve_interval;
 use crate::binning_index::ReferenceSequenceExt;
 
+const LINEAR_INDEX_WINDOW_SIZE: usize = 1 << 14;
+
 /// A CSI reference sequence.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReferenceSequence {
     bins: Vec<Bin>,
+    linear_index: Vec<bgzf::VirtualPosition>,
     metadata: Option<Metadata>,
 }
 
@@ -36,10 +39,18 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_csi::index::ReferenceSequence;
-    /// let reference_sequence = ReferenceSequence::new(Vec::new(), None);
+    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
     /// ```
-    pub fn new(bins: Vec<Bin>, metadata: Option<Metadata>) -> Self {
-        Self { bins, metadata }
+    pub fn new(
+        bins: Vec<Bin>,
+        linear_index: Vec<bgzf::VirtualPosition>,
+        metadata: Option<Metadata>,
+    ) -> Self {
+        Self {
+            bins,
+            linear_index,
+            metadata,
+        }
     }
 
     /// Returns the list of bins in the reference sequence.
@@ -50,11 +61,18 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_csi::index::ReferenceSequence;
-    /// let reference_sequence = ReferenceSequence::new(Vec::new(), None);
+    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
     /// assert!(reference_sequence.bins().is_empty());
     /// ```
     pub fn bins(&self) -> &[Bin] {
         &self.bins
+    }
+
+    /// Returns the linear index.
+    ///
+    /// The linear index is optional and can be empty.
+    pub fn linear_index(&self) -> &[bgzf::VirtualPosition] {
+        &self.linear_index
     }
 
     /// Returns a list of bins in this reference sequence that intersects the given range.
@@ -67,7 +85,7 @@ impl ReferenceSequence {
     /// use noodles_core::Position;
     /// use noodles_csi::index::ReferenceSequence;
     ///
-    /// let reference_sequence = ReferenceSequence::new(Vec::new(), None);
+    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
     /// let start = Position::try_from(8)?;
     /// let end = Position::try_from(13)?;
     ///
@@ -104,7 +122,7 @@ impl ReferenceSequence {
     /// const DEPTH: u8 = 2;
     ///
     /// let bins = vec![Bin::new(1, bgzf::VirtualPosition::from(233), Vec::new())];
-    /// let reference_sequence = ReferenceSequence::new(bins, None);
+    /// let reference_sequence = ReferenceSequence::new(bins, Vec::new(), None);
     ///
     /// let start = Position::try_from(8)?;
     /// assert_eq!(
@@ -121,21 +139,26 @@ impl ReferenceSequence {
     /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
     pub fn min_offset(&self, min_shift: u8, depth: u8, start: Position) -> bgzf::VirtualPosition {
-        let end = start;
-        let mut bin_id = reg2bin(start, end, min_shift, depth);
+        if self.linear_index.is_empty() {
+            let end = start;
+            let mut bin_id = reg2bin(start, end, min_shift, depth);
 
-        loop {
-            if let Some(bin) = self.bins.iter().find(|bin| bin.id() == bin_id) {
-                return bin.loffset();
+            loop {
+                if let Some(bin) = self.bins.iter().find(|bin| bin.id() == bin_id) {
+                    return bin.loffset();
+                }
+
+                bin_id = match parent_id(bin_id) {
+                    Some(id) => id,
+                    None => break,
+                }
             }
 
-            bin_id = match parent_id(bin_id) {
-                Some(id) => id,
-                None => break,
-            }
+            bgzf::VirtualPosition::default()
+        } else {
+            let i = (usize::from(start) - 1) / LINEAR_INDEX_WINDOW_SIZE;
+            self.linear_index.get(i).copied().unwrap_or_default()
         }
-
-        bgzf::VirtualPosition::default()
     }
 }
 
@@ -151,12 +174,16 @@ impl ReferenceSequenceExt for ReferenceSequence {
     ///     index::{reference_sequence::Metadata, ReferenceSequence},
     /// };
     ///
-    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Some(Metadata::new(
-    ///     bgzf::VirtualPosition::from(610),
-    ///     bgzf::VirtualPosition::from(1597),
-    ///     55,
-    ///     0,
-    /// )));
+    /// let reference_sequence = ReferenceSequence::new(
+    ///     Vec::new(),
+    ///     Vec::new(),
+    ///     Some(Metadata::new(
+    ///         bgzf::VirtualPosition::from(610),
+    ///         bgzf::VirtualPosition::from(1597),
+    ///         55,
+    ///         0,
+    ///     )),
+    /// );
     ///
     /// assert!(reference_sequence.metadata().is_some());
     /// ```
@@ -175,7 +202,7 @@ impl ReferenceSequenceExt for ReferenceSequence {
     ///     index::{reference_sequence::Bin, ReferenceSequence},
     /// };
     ///
-    /// let reference_sequence = ReferenceSequence::new(Vec::new(), None);
+    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
     /// assert!(reference_sequence.first_record_in_last_linear_bin_start_position().is_none());
     ///
     /// let bins = vec![
@@ -183,7 +210,7 @@ impl ReferenceSequenceExt for ReferenceSequence {
     ///     Bin::new(2, bgzf::VirtualPosition::from(21), Vec::new()),
     ///     Bin::new(9, bgzf::VirtualPosition::from(13), Vec::new()),
     /// ];
-    /// let reference_sequence = ReferenceSequence::new(bins, None);
+    /// let reference_sequence = ReferenceSequence::new(bins, Vec::new(), None);
     /// assert_eq!(
     ///     reference_sequence.first_record_in_last_linear_bin_start_position(),
     ///     Some(bgzf::VirtualPosition::from(21))
@@ -274,7 +301,7 @@ mod tests {
     #[cfg(not(target_pointer_width = "16"))]
     #[test]
     fn test_query() -> Result<(), noodles_core::position::TryFromIntError> {
-        let reference_sequence = ReferenceSequence::new(Vec::new(), None);
+        let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
         let end = usize::try_from(i32::MAX).and_then(Position::try_from)?;
 
         assert!(matches!(

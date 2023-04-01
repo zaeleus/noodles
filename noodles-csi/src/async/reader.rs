@@ -158,7 +158,7 @@ where
     R: AsyncRead + Unpin,
 {
     let (bins, metadata) = read_bins(reader, depth).await?;
-    Ok(ReferenceSequence::new(bins, metadata))
+    Ok(ReferenceSequence::new(bins, Vec::new(), metadata))
 }
 
 async fn read_bins<R>(reader: &mut R, depth: u8) -> io::Result<(Vec<Bin>, Option<Metadata>)>

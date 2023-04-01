@@ -121,7 +121,7 @@ where
 
     for _ in 0..n_ref {
         let (bins, metadata) = read_bins(reader, depth)?;
-        let reference_sequence = ReferenceSequence::new(bins, metadata);
+        let reference_sequence = ReferenceSequence::new(bins, Vec::new(), metadata);
         reference_sequences.push(reference_sequence);
     }
 

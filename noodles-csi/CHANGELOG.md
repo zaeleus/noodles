@@ -6,6 +6,11 @@
 
   * csi/index: Add an indexer (`csi::index::Indexer`) ([#157]).
 
+  * csi/index/reference_sequence: Add a linear index
+    (`ReferenceSequence::linear_index`).
+
+    This is optional and may be preferred over bin linear offsets.
+
 [#157]: https://github.com/zaeleus/noodles/issues/157
 
 ### Changed
