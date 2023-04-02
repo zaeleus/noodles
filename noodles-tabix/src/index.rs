@@ -65,8 +65,6 @@ impl Index {
 }
 
 impl BinningIndex for Index {
-    type ReferenceSequence = ReferenceSequence;
-
     /// Returns a list of indexed reference sequences.
     ///
     /// # Examples
@@ -77,7 +75,7 @@ impl BinningIndex for Index {
     /// let index = tabix::Index::default();
     /// assert!(index.reference_sequences().is_empty());
     /// ```
-    fn reference_sequences(&self) -> &[Self::ReferenceSequence] {
+    fn reference_sequences(&self) -> &[ReferenceSequence] {
         &self.reference_sequences
     }
 

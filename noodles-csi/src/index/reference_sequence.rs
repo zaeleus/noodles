@@ -13,7 +13,6 @@ use noodles_bgzf as bgzf;
 use noodles_core::{region::Interval, Position};
 
 use super::resolve_interval;
-use crate::binning_index::ReferenceSequenceExt;
 
 const LINEAR_INDEX_WINDOW_SIZE: usize = 1 << 14;
 
@@ -72,6 +71,31 @@ impl ReferenceSequence {
     /// The linear index is optional and can be empty.
     pub fn linear_index(&self) -> &[bgzf::VirtualPosition] {
         &self.linear_index
+    }
+
+    /// Returns the optional metadata for the reference sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_csi::index::{reference_sequence::Metadata, ReferenceSequence};
+    ///
+    /// let reference_sequence = ReferenceSequence::new(
+    ///     Vec::new(),
+    ///     Vec::new(),
+    ///     Some(Metadata::new(
+    ///         bgzf::VirtualPosition::from(610),
+    ///         bgzf::VirtualPosition::from(1597),
+    ///         55,
+    ///         0,
+    ///     )),
+    /// );
+    ///
+    /// assert!(reference_sequence.metadata().is_some());
+    /// ```
+    pub fn metadata(&self) -> Option<&Metadata> {
+        self.metadata.as_ref()
     }
 
     /// Returns a list of bins in this reference sequence that intersects the given range.
@@ -159,36 +183,6 @@ impl ReferenceSequence {
             self.linear_index.get(i).copied().unwrap_or_default()
         }
     }
-}
-
-impl ReferenceSequenceExt for ReferenceSequence {
-    /// Returns the optional metadata for the reference sequence.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bgzf as bgzf;
-    /// use noodles_csi::{
-    ///     binning_index::ReferenceSequenceExt,
-    ///     index::{reference_sequence::Metadata, ReferenceSequence},
-    /// };
-    ///
-    /// let reference_sequence = ReferenceSequence::new(
-    ///     Vec::new(),
-    ///     Vec::new(),
-    ///     Some(Metadata::new(
-    ///         bgzf::VirtualPosition::from(610),
-    ///         bgzf::VirtualPosition::from(1597),
-    ///         55,
-    ///         0,
-    ///     )),
-    /// );
-    ///
-    /// assert!(reference_sequence.metadata().is_some());
-    /// ```
-    fn metadata(&self) -> Option<&Metadata> {
-        self.metadata.as_ref()
-    }
 
     /// Returns the start position of the first record in the last linear bin.
     ///
@@ -196,10 +190,7 @@ impl ReferenceSequenceExt for ReferenceSequence {
     ///
     /// ```
     /// use noodles_bgzf as bgzf;
-    /// use noodles_csi::{
-    ///     binning_index::ReferenceSequenceExt,
-    ///     index::{reference_sequence::Bin, ReferenceSequence},
-    /// };
+    /// use noodles_csi::index::{reference_sequence::Bin, ReferenceSequence};
     ///
     /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
     /// assert!(reference_sequence.first_record_in_last_linear_bin_start_position().is_none());
@@ -215,7 +206,7 @@ impl ReferenceSequenceExt for ReferenceSequence {
     ///     Some(bgzf::VirtualPosition::from(21))
     /// );
     /// ```
-    fn first_record_in_last_linear_bin_start_position(&self) -> Option<bgzf::VirtualPosition> {
+    pub fn first_record_in_last_linear_bin_start_position(&self) -> Option<bgzf::VirtualPosition> {
         self.bins().iter().map(|bin| bin.loffset()).max()
     }
 }

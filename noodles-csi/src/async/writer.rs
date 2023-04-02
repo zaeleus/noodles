@@ -2,7 +2,6 @@ use noodles_bgzf as bgzf;
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 use crate::{
-    binning_index::ReferenceSequenceExt,
     index::{
         reference_sequence::{bin::Chunk, Bin, Metadata},
         ReferenceSequence,

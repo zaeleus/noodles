@@ -4,7 +4,7 @@
 
 use std::env;
 
-use noodles_csi::{self as csi, binning_index::ReferenceSequenceExt, BinningIndex};
+use noodles_csi::{self as csi, BinningIndex};
 use tokio::io;
 
 #[tokio::main]

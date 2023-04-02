@@ -141,8 +141,6 @@ impl Default for Builder {
 
 #[cfg(test)]
 mod tests {
-    use crate::binning_index::ReferenceSequenceExt;
-
     use super::*;
 
     #[test]

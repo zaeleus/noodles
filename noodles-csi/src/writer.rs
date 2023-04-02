@@ -4,7 +4,6 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf as bgzf;
 
 use super::{
-    binning_index::ReferenceSequenceExt,
     index::{
         reference_sequence::{bin::Chunk, Bin, Metadata},
         ReferenceSequence,

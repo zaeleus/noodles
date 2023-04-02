@@ -1,23 +1,16 @@
 //! Binning index utilities.
 
-mod reference_sequence_ext;
-
-pub use reference_sequence_ext::ReferenceSequenceExt;
-
 use std::io;
 
 use noodles_bgzf as bgzf;
 use noodles_core::region::Interval;
 
-use super::index::reference_sequence::bin::Chunk;
+use super::index::{reference_sequence::bin::Chunk, ReferenceSequence};
 
 /// A binning index.
 pub trait BinningIndex {
-    /// The returned output indexed reference sequence.
-    type ReferenceSequence: ReferenceSequenceExt;
-
     /// Returns a list of indexed reference sequences.
-    fn reference_sequences(&self) -> &[Self::ReferenceSequence];
+    fn reference_sequences(&self) -> &[ReferenceSequence];
 
     /// Returns the number of unplaced, unmapped records in the associated file.
     fn unplaced_unmapped_record_count(&self) -> Option<u64>;

@@ -15,6 +15,16 @@
 
 [#157]: https://github.com/zaeleus/noodles/issues/157
 
+### Removed
+
+  * csi/binning_index: Remove `ReferenceSequence` associated type from
+    `BinningIndex`.
+
+  * csi/binning_index: Remove `ReferenceSequenceExt`.
+
+    This is no longer used, as there is only a single concrete
+    `ReferenceSequence` now.
+
 ### Changed
 
   * csi/index/reference_sequence: Increase the visibility of `Builder`.
