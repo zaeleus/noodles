@@ -11,8 +11,8 @@ repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-bgzf"
 
 [features]
-async = ["futures", "pin-project-lite", "tokio", "tokio-util"]
-libdeflate = ["libdeflater"]
+async = ["dep:futures", "dep:pin-project-lite", "dep:tokio", "dep:tokio-util"]
+libdeflate = ["dep:libdeflater"]
 
 [dependencies]
 byteorder.workspace = true
