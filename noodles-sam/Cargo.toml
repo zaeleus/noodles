@@ -11,7 +11,7 @@ repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-sam"
 
 [features]
-async = ["futures", "noodles-bgzf/async", "tokio"]
+async = ["dep:futures", "dep:tokio", "noodles-bgzf/async"]
 
 [dependencies]
 bitflags.workspace = true
