@@ -14,6 +14,8 @@ use noodles_core::{region::Interval, Position};
 
 use super::resolve_interval;
 
+// _Sequence Alignment/Map Format Specification_ (2022-08-22) § 5.1.2 "Combining with linear
+// index": "...each tiling 16384bp window..."
 const LINEAR_INDEX_WINDOW_SIZE: usize = 1 << 14;
 
 /// A CSI reference sequence.
