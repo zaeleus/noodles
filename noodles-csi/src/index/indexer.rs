@@ -4,7 +4,7 @@ use noodles_core::Position;
 
 use super::{
     reference_sequence::{self, bin::Chunk},
-    Index, ReferenceSequence,
+    Header, Index, ReferenceSequence,
 };
 
 /// A CSI indexer.
@@ -12,6 +12,7 @@ use super::{
 pub struct Indexer {
     min_shift: u8,
     depth: u8,
+    header: Option<Header>,
     reference_sequence_builder: reference_sequence::Builder,
     reference_sequences: Vec<ReferenceSequence>,
     unplaced_unmapped_record_count: u64,
@@ -30,10 +31,26 @@ impl Indexer {
         Self {
             min_shift,
             depth,
+            header: None,
             reference_sequence_builder: reference_sequence::Builder::default(),
             reference_sequences: Vec::new(),
             unplaced_unmapped_record_count: 0,
         }
+    }
+
+    /// Sets a tabix header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_csi::index::{Header, Indexer};
+    ///
+    /// let header = Header::default();
+    /// let indexer = Indexer::new(14, 5).set_header(header);
+    /// ```
+    pub fn set_header(mut self, header: Header) -> Self {
+        self.header = Some(header);
+        self
     }
 
     /// Adds a record.
@@ -116,10 +133,15 @@ impl Indexer {
         let last_reference_sequence_id = reference_sequence_count - 1;
         self.add_reference_sequences_builders_until(last_reference_sequence_id);
 
-        Index::builder()
+        let mut builder = Index::builder()
             .set_reference_sequences(self.reference_sequences)
-            .set_unplaced_unmapped_record_count(self.unplaced_unmapped_record_count)
-            .build()
+            .set_unplaced_unmapped_record_count(self.unplaced_unmapped_record_count);
+
+        if let Some(header) = self.header {
+            builder = builder.set_header(header);
+        }
+
+        builder.build()
     }
 
     fn current_reference_sequence_id(&self) -> usize {
