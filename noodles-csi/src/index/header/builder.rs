@@ -19,8 +19,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_tabix as tabix;
-    /// let builder = tabix::index::header::Builder::bed();
+    /// use noodles_csi as csi;
+    /// let builder = csi::index::header::Builder::bed();
     /// ```
     pub fn bed() -> Self {
         Self {
@@ -39,8 +39,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_tabix as tabix;
-    /// let builder = tabix::index::header::Builder::gff();
+    /// use noodles_csi as csi;
+    /// let builder = csi::index::header::Builder::gff();
     /// ```
     pub fn gff() -> Self {
         Self {
@@ -59,8 +59,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_tabix as tabix;
-    /// let builder = tabix::index::header::Builder::sam();
+    /// use noodles_csi as csi;
+    /// let builder = csi::index::header::Builder::sam();
     /// ```
     pub fn sam() -> Self {
         Self {
@@ -79,8 +79,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_tabix as tabix;
-    /// let builder = tabix::index::header::Builder::vcf();
+    /// use noodles_csi as csi;
+    /// let builder = csi::index::header::Builder::vcf();
     /// ```
     pub fn vcf() -> Self {
         Self {
@@ -99,9 +99,9 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_tabix::{self as tabix, index::header::Format};
+    /// use noodles_csi::{self as csi, index::header::Format};
     ///
-    /// let header = tabix::index::Header::builder()
+    /// let header = csi::index::Header::builder()
     ///     .set_format(Format::Vcf)
     ///     .build();
     ///
@@ -117,9 +117,9 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_tabix as tabix;
+    /// use noodles_csi as csi;
     ///
-    /// let header = tabix::index::Header::builder()
+    /// let header = csi::index::Header::builder()
     ///     .set_reference_sequence_name_index(1)
     ///     .build();
     ///
@@ -138,9 +138,9 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_tabix as tabix;
+    /// use noodles_csi as csi;
     ///
-    /// let header = tabix::index::Header::builder()
+    /// let header = csi::index::Header::builder()
     ///     .set_start_position_index(4)
     ///     .build();
     ///
@@ -156,9 +156,9 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_tabix as tabix;
+    /// use noodles_csi as csi;
     ///
-    /// let header = tabix::index::Header::builder()
+    /// let header = csi::index::Header::builder()
     ///     .set_end_position_index(Some(5))
     ///     .build();
     ///
@@ -174,9 +174,9 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_tabix as tabix;
+    /// use noodles_csi as csi;
     ///
-    /// let header = tabix::index::Header::builder()
+    /// let header = csi::index::Header::builder()
     ///     .set_line_comment_prefix(b'#')
     ///     .build();
     ///
@@ -192,9 +192,9 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_tabix as tabix;
+    /// use noodles_csi as csi;
     ///
-    /// let header = tabix::index::Header::builder()
+    /// let header = csi::index::Header::builder()
     ///     .set_line_skip_count(0)
     ///     .build();
     ///
@@ -210,11 +210,11 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_tabix::{self as tabix, index::header::ReferenceSequenceNames};
+    /// use noodles_csi::{self as csi, index::header::ReferenceSequenceNames};
     ///
     /// let reference_sequence_names = ReferenceSequenceNames::new();
     ///
-    /// let header = tabix::index::Header::builder()
+    /// let header = csi::index::Header::builder()
     ///     .set_reference_sequence_names(reference_sequence_names.clone())
     ///     .build();
     ///
@@ -233,8 +233,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_tabix as tabix;
-    /// let index = tabix::index::Header::builder().build();
+    /// use noodles_csi as csi;
+    /// let index = csi::index::Header::builder().build();
     /// ```
     pub fn build(self) -> Header {
         Header {

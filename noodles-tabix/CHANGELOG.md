@@ -1,9 +1,17 @@
 # Changelog
 
+## Unreleased
+
 ### Changed
 
   * tabix/index: Replace `ReferenceSequence` with
     `noodles_csi::index::ReferenceSequence`.
+
+### Removed
+
+  * tabix/index: Remove `Header`.
+
+    Use `noodles_csi::index::Header` instead.
 
 ## 0.17.0 - 2023-03-03
 

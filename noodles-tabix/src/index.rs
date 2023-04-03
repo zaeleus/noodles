@@ -1,17 +1,16 @@
 //! Tabix index and fields.
 
 pub mod builder;
-pub mod header;
 mod indexer;
 
-pub use self::{builder::Builder, header::Header, indexer::Indexer};
+pub use self::{builder::Builder, indexer::Indexer};
 
 use std::io;
 
 use noodles_core::{region::Interval, Position};
 use noodles_csi::{
     binning_index::optimize_chunks,
-    index::{reference_sequence::bin::Chunk, ReferenceSequence},
+    index::{reference_sequence::bin::Chunk, Header, ReferenceSequence},
     BinningIndex,
 };
 
@@ -54,8 +53,10 @@ impl Index {
     /// # Examples
     ///
     /// ```
+    /// use noodles_csi as csi;
     /// use noodles_tabix as tabix;
-    /// let header = tabix::index::Header::default();
+    ///
+    /// let header = csi::index::Header::default();
     /// let index = tabix::Index::builder().set_header(header.clone()).build();
     /// assert_eq!(index.header(), &header);
     /// ```

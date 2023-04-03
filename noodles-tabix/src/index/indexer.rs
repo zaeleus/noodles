@@ -1,7 +1,11 @@
 use noodles_core::Position;
-use noodles_csi::index::reference_sequence::{self, bin::Chunk};
+use noodles_csi::index::{
+    header::ReferenceSequenceNames,
+    reference_sequence::{self, bin::Chunk},
+    Header,
+};
 
-use super::{header::ReferenceSequenceNames, Header, Index};
+use super::Index;
 
 /// A tabix indexer.
 #[derive(Debug, Default)]
@@ -18,8 +22,9 @@ impl Indexer {
     /// # Examples
     ///
     /// ```
+    /// use noodles_csi as csi;
     /// use noodles_tabix as tabix;
-    /// let builder = tabix::Index::indexer().set_header(tabix::index::Header::default());
+    /// let builder = tabix::Index::indexer().set_header(csi::index::Header::default());
     /// ```
     pub fn set_header(&mut self, header: Header) {
         self.header = header;

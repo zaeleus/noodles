@@ -19,7 +19,8 @@ pub struct Header {
     end_position_index: Option<usize>,
     line_comment_prefix: u8,
     line_skip_count: u32,
-    pub(crate) reference_sequence_names: ReferenceSequenceNames,
+    /// A set of ordered reference sequence names.
+    pub reference_sequence_names: ReferenceSequenceNames,
 }
 
 impl Header {
@@ -28,8 +29,8 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_tabix as tabix;
-    /// let builder = tabix::index::Header::builder();
+    /// use noodles_csi as csi;
+    /// let builder = csi::index::Header::builder();
     /// ```
     pub fn builder() -> Builder {
         Builder::default()
@@ -40,9 +41,9 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_tabix::{self as tabix, index::header::Format};
+    /// use noodles_csi::{self as csi, index::header::Format};
     ///
-    /// let header = tabix::index::Header::builder()
+    /// let header = csi::index::Header::builder()
     ///     .set_format(Format::Vcf)
     ///     .build();
     ///
@@ -59,9 +60,9 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_tabix as tabix;
+    /// use noodles_csi as csi;
     ///
-    /// let header = tabix::index::Header::builder()
+    /// let header = csi::index::Header::builder()
     ///     .set_reference_sequence_name_index(1)
     ///     .build();
     ///
@@ -78,9 +79,9 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_tabix as tabix;
+    /// use noodles_csi as csi;
     ///
-    /// let header = tabix::index::Header::builder()
+    /// let header = csi::index::Header::builder()
     ///     .set_start_position_index(4)
     ///     .build();
     ///
@@ -98,9 +99,9 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_tabix as tabix;
+    /// use noodles_csi as csi;
     ///
-    /// let header = tabix::index::Header::builder()
+    /// let header = csi::index::Header::builder()
     ///     .set_end_position_index(Some(5))
     ///     .build();
     ///
@@ -115,9 +116,9 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_tabix as tabix;
+    /// use noodles_csi as csi;
     ///
-    /// let header = tabix::index::Header::builder()
+    /// let header = csi::index::Header::builder()
     ///     .set_line_comment_prefix(b'#')
     ///     .build();
     ///
@@ -132,9 +133,9 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_tabix as tabix;
+    /// use noodles_csi as csi;
     ///
-    /// let header = tabix::index::Header::builder()
+    /// let header = csi::index::Header::builder()
     ///     .set_line_skip_count(0)
     ///     .build();
     ///
@@ -149,11 +150,11 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_tabix::{self as tabix, index::header::ReferenceSequenceNames};
+    /// use noodles_csi::{self as csi, index::header::ReferenceSequenceNames};
     ///
     /// let reference_sequence_names = ReferenceSequenceNames::new();
     ///
-    /// let header = tabix::index::Header::builder()
+    /// let header = csi::index::Header::builder()
     ///     .set_reference_sequence_names(reference_sequence_names.clone())
     ///     .build();
     ///

@@ -6,11 +6,10 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
 use noodles_csi::index::{
+    header::{Format, ReferenceSequenceNames},
     reference_sequence::{bin::Chunk, Bin, Metadata},
-    ReferenceSequence,
+    Header, ReferenceSequence,
 };
-
-use crate::index::{self, header::Format, header::ReferenceSequenceNames};
 
 use super::{Index, MAGIC_NUMBER};
 
@@ -97,7 +96,7 @@ where
     }
 }
 
-fn read_header<R>(reader: &mut R) -> io::Result<index::Header>
+fn read_header<R>(reader: &mut R) -> io::Result<Header>
 where
     R: Read,
 {
@@ -133,7 +132,7 @@ where
 
     let names = read_names(reader)?;
 
-    Ok(index::Header::builder()
+    Ok(Header::builder()
         .set_format(format)
         .set_reference_sequence_name_index(col_seq)
         .set_start_position_index(col_beg)
@@ -354,6 +353,8 @@ mod tests {
 
     #[test]
     fn test_read_header() -> io::Result<()> {
+        use noodles_csi::index::header;
+
         let data = [
             0x00, 0x00, 0x00, 0x00, // format = Generic(GFF)
             0x01, 0x00, 0x00, 0x00, // col_seq = 1
@@ -367,7 +368,7 @@ mod tests {
         let mut reader = &data[..];
         let actual = read_header(&mut reader)?;
 
-        let expected = index::header::Builder::gff().build();
+        let expected = header::Builder::gff().build();
         assert_eq!(actual, expected);
 
         Ok(())

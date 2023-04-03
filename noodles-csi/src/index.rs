@@ -1,10 +1,13 @@
 //! Coordinate-sorted index and fields.
 
 mod builder;
+pub mod header;
 mod indexer;
 pub mod reference_sequence;
 
-pub use self::{builder::Builder, indexer::Indexer, reference_sequence::ReferenceSequence};
+pub use self::{
+    builder::Builder, header::Header, indexer::Indexer, reference_sequence::ReferenceSequence,
+};
 
 use std::io;
 

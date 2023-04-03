@@ -26,7 +26,7 @@ impl Format {
     /// # Examples
     ///
     /// ```
-    /// use noodles_tabix::index::header::{format::CoordinateSystem, Format};
+    /// use noodles_csi::index::header::{format::CoordinateSystem, Format};
     ///
     /// let format = Format::Generic(CoordinateSystem::Bed);
     /// assert_eq!(format.coordinate_system(), CoordinateSystem::Bed);

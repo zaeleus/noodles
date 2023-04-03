@@ -1,6 +1,8 @@
 //! Tabix index builder.
 
-use super::{header::ReferenceSequenceNames, Header, Index, ReferenceSequence};
+use noodles_csi::index::{header::ReferenceSequenceNames, Header};
+
+use super::{Index, ReferenceSequence};
 
 /// A tabix index builder.
 pub struct Builder {
@@ -15,8 +17,10 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// use noodles_csi as csi;
     /// use noodles_tabix as tabix;
-    /// let header = tabix::index::Header::default();
+    ///
+    /// let header = csi::index::Header::default();
     /// let index = tabix::Index::builder().set_header(header.clone()).build();
     /// assert_eq!(index.header(), &header);
     /// ```
@@ -30,7 +34,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_tabix::{self as tabix, index::header::ReferenceSequenceNames};
+    /// use noodles_csi::index::header::ReferenceSequenceNames;
+    /// use noodles_tabix as tabix;
     ///
     /// let reference_sequence_names: ReferenceSequenceNames = [String::from("sq0")]
     ///     .into_iter()

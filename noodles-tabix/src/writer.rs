@@ -4,16 +4,14 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf as bgzf;
 use noodles_csi::{
     index::{
+        header::ReferenceSequenceNames,
         reference_sequence::{bin::Chunk, Bin, Metadata},
-        ReferenceSequence,
+        Header, ReferenceSequence,
     },
     BinningIndex,
 };
 
-use super::{
-    index::{self, header::ReferenceSequenceNames},
-    Index, MAGIC_NUMBER,
-};
+use super::{Index, MAGIC_NUMBER};
 
 /// A tabix writer.
 pub struct Writer<W>
@@ -116,7 +114,7 @@ where
     writer.write_all(MAGIC_NUMBER)
 }
 
-fn write_header<W>(writer: &mut W, header: &index::Header) -> io::Result<()>
+fn write_header<W>(writer: &mut W, header: &Header) -> io::Result<()>
 where
     W: Write,
 {

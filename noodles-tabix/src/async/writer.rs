@@ -1,17 +1,15 @@
 use noodles_bgzf as bgzf;
 use noodles_csi::{
     index::{
+        header::ReferenceSequenceNames,
         reference_sequence::{bin::Chunk, Bin, Metadata},
-        ReferenceSequence,
+        Header, ReferenceSequence,
     },
     BinningIndex,
 };
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
-use crate::{
-    index::{header::ReferenceSequenceNames, Header},
-    Index,
-};
+use crate::Index;
 
 const NUL: u8 = b'\x00';
 
@@ -334,7 +332,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_write_header() -> io::Result<()> {
-        let header = crate::index::header::Builder::gff().build();
+        use noodles_csi::index::header;
+
+        let header = header::Builder::gff().build();
 
         let mut buf = Vec::new();
         write_header(&mut buf, &header).await?;

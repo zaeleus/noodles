@@ -6,7 +6,7 @@ use std::io::{self, BufRead, Write};
 
 use noodles_bgzf as bgzf;
 use noodles_core::Position;
-use noodles_csi::index::reference_sequence::bin::Chunk;
+use noodles_csi::index::{header, reference_sequence::bin::Chunk};
 use noodles_tabix as tabix;
 
 const SEPARATOR: char = '\t';
@@ -47,7 +47,7 @@ fn main() -> io::Result<()> {
     let mut reader = bgzf::Reader::new(&data[..]);
 
     let mut indexer = tabix::Index::indexer();
-    indexer.set_header(tabix::index::header::Builder::bed().build());
+    indexer.set_header(header::Builder::bed().build());
 
     let mut buf = String::new();
     let mut start_position = reader.virtual_position();

@@ -1,14 +1,12 @@
 use noodles_bgzf as bgzf;
 use noodles_csi::index::{
+    header::{Format, ReferenceSequenceNames},
     reference_sequence::{bin::Chunk, Bin, Metadata},
-    ReferenceSequence,
+    Header, ReferenceSequence,
 };
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
-use crate::{
-    index::{header::ReferenceSequenceNames, Header},
-    Index,
-};
+use crate::Index;
 
 /// An async tabix reader.
 pub struct Reader<R>
@@ -116,8 +114,6 @@ async fn read_header<R>(reader: &mut R) -> io::Result<Header>
 where
     R: AsyncRead + Unpin,
 {
-    use crate::index::header::Format;
-
     let format = reader.read_i32_le().await.and_then(|n| {
         Format::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
@@ -363,6 +359,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_read_header() -> io::Result<()> {
+        use noodles_csi::index::header;
+
         let data = [
             0x00, 0x00, 0x00, 0x00, // format = Generic(GFF)
             0x01, 0x00, 0x00, 0x00, // col_seq = 1
@@ -375,7 +373,7 @@ mod tests {
         let mut reader = &data[..];
         let actual = read_header(&mut reader).await?;
 
-        let expected = crate::index::header::Builder::gff().build();
+        let expected = header::Builder::gff().build();
         assert_eq!(actual, expected);
 
         Ok(())
