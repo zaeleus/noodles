@@ -109,6 +109,10 @@ impl Index {
     where
         I: Into<Interval>,
     {
+        use super::binning_index::optimize_chunks;
+
+        let interval = interval.into();
+
         let reference_sequence = self
             .reference_sequences()
             .get(reference_sequence_id)
@@ -129,7 +133,11 @@ impl Index {
             .copied()
             .collect();
 
-        Ok(chunks)
+        let (start, _) = resolve_interval(self.min_shift(), self.depth(), interval)?;
+        let min_offset = reference_sequence.min_offset(self.min_shift(), self.depth(), start);
+        let merged_chunks = optimize_chunks(&chunks, min_offset);
+
+        Ok(merged_chunks)
     }
 
     /// Returns the start position of the first record in the last linear bin.
