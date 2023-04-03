@@ -62,7 +62,7 @@ impl Builder {
     /// ```
     /// use noodles_csi::{self as csi, index::ReferenceSequence};
     ///
-    /// let reference_sequences = vec![ReferenceSequence::new(Vec::new(), Vec::new(), None)];
+    /// let reference_sequences = vec![ReferenceSequence::new(Default::default(), Vec::new(), None)];
     /// let index = csi::Index::builder()
     ///     .set_reference_sequences(reference_sequences.clone())
     ///     .build();

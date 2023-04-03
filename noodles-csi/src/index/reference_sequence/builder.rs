@@ -40,7 +40,7 @@ impl Builder {
         use super::parent_id;
 
         if self.bin_builders.is_empty() {
-            return ReferenceSequence::new(Vec::new(), Vec::new(), None);
+            return ReferenceSequence::new(Default::default(), Vec::new(), None);
         }
 
         let builders: Vec<_> = self
@@ -61,7 +61,11 @@ impl Builder {
             }
         }
 
-        let bins: Vec<_> = self.bin_builders.into_values().map(|b| b.build()).collect();
+        let bins = self
+            .bin_builders
+            .into_iter()
+            .map(|(id, builder)| (id, builder.build()))
+            .collect();
 
         let linear_index = self
             .linear_index
@@ -90,12 +94,7 @@ impl Builder {
         use super::reg2bin;
 
         let bin_id = reg2bin(start, end, min_shift, depth);
-
-        let builder = self
-            .bin_builders
-            .entry(bin_id)
-            .or_insert_with(|| Bin::builder().set_id(bin_id));
-
+        let builder = self.bin_builders.entry(bin_id).or_insert(Bin::builder());
         builder.add_chunk(chunk);
     }
 
@@ -176,26 +175,33 @@ mod tests {
 
         let actual = builder.build();
 
-        let expected = ReferenceSequence::new(
-            vec![
-                Bin::new(
+        let expected = {
+            let bins = [
+                (
                     4681,
-                    bgzf::VirtualPosition::from(0),
-                    vec![Chunk::new(
+                    Bin::new(
                         bgzf::VirtualPosition::from(0),
-                        bgzf::VirtualPosition::from(9),
-                    )],
+                        vec![Chunk::new(
+                            bgzf::VirtualPosition::from(0),
+                            bgzf::VirtualPosition::from(9),
+                        )],
+                    ),
                 ),
-                Bin::new(
+                (
                     73,
-                    bgzf::VirtualPosition::from(0),
-                    vec![Chunk::new(
-                        bgzf::VirtualPosition::from(9),
-                        bgzf::VirtualPosition::from(3473408),
-                    )],
+                    Bin::new(
+                        bgzf::VirtualPosition::from(0),
+                        vec![Chunk::new(
+                            bgzf::VirtualPosition::from(9),
+                            bgzf::VirtualPosition::from(3473408),
+                        )],
+                    ),
                 ),
-            ],
-            vec![
+            ]
+            .into_iter()
+            .collect();
+
+            let linear_index = vec![
                 bgzf::VirtualPosition::from(0),
                 bgzf::VirtualPosition::from(0),
                 bgzf::VirtualPosition::from(0),
@@ -208,22 +214,20 @@ mod tests {
                 bgzf::VirtualPosition::from(9),
                 bgzf::VirtualPosition::from(9),
                 bgzf::VirtualPosition::from(9),
-            ],
-            Some(Metadata::new(
+            ];
+
+            let metadata = Metadata::new(
                 bgzf::VirtualPosition::from(0),
                 bgzf::VirtualPosition::from(3473408),
                 1,
                 1,
-            )),
-        );
+            );
 
-        for expected_bin in expected.bins() {
-            let actual_bin = actual
-                .bins()
-                .iter()
-                .find(|b| b.id() == expected_bin.id())
-                .expect("missing bin");
+            ReferenceSequence::new(bins, linear_index, Some(metadata))
+        };
 
+        for (id, expected_bin) in expected.bins() {
+            let actual_bin = actual.bins().get(id).expect("missing bin");
             assert_eq!(actual_bin, expected_bin);
         }
 

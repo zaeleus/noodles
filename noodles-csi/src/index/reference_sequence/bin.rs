@@ -12,7 +12,6 @@ pub(crate) const METADATA_CHUNK_COUNT: u32 = 2;
 /// A CSI reference sequence bin.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Bin {
-    id: usize,
     loffset: bgzf::VirtualPosition,
     chunks: Vec<Chunk>,
 }
@@ -54,28 +53,10 @@ impl Bin {
     /// ```
     /// use noodles_bgzf as bgzf;
     /// use noodles_csi::index::reference_sequence::Bin;
-    /// let bin = Bin::new(10946, bgzf::VirtualPosition::default(), Vec::new());
+    /// let bin = Bin::new(bgzf::VirtualPosition::default(), Vec::new());
     /// ```
-    pub fn new(id: usize, loffset: bgzf::VirtualPosition, chunks: Vec<Chunk>) -> Self {
-        Self {
-            id,
-            loffset,
-            chunks,
-        }
-    }
-
-    /// Returns the bin ID.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bgzf as bgzf;
-    /// use noodles_csi::index::reference_sequence::Bin;
-    /// let bin = Bin::new(10946, bgzf::VirtualPosition::default(), Vec::new());
-    /// assert_eq!(bin.id(), 10946);
-    /// ```
-    pub fn id(&self) -> usize {
-        self.id
+    pub fn new(loffset: bgzf::VirtualPosition, chunks: Vec<Chunk>) -> Self {
+        Self { loffset, chunks }
     }
 
     /// Returns the start virtual position of the first overlapping record in this bin.
@@ -85,7 +66,7 @@ impl Bin {
     /// ```
     /// use noodles_bgzf as bgzf;
     /// use noodles_csi::index::reference_sequence::Bin;
-    /// let bin = Bin::new(10946, bgzf::VirtualPosition::default(), Vec::new());
+    /// let bin = Bin::new(bgzf::VirtualPosition::default(), Vec::new());
     /// assert_eq!(bin.loffset(), bgzf::VirtualPosition::default());
     /// ```
     pub fn loffset(&self) -> bgzf::VirtualPosition {
@@ -99,7 +80,7 @@ impl Bin {
     /// ```
     /// use noodles_bgzf as bgzf;
     /// use noodles_csi::index::reference_sequence::Bin;
-    /// let bin = Bin::new(10946, bgzf::VirtualPosition::default(), Vec::new());
+    /// let bin = Bin::new(bgzf::VirtualPosition::default(), Vec::new());
     /// assert!(bin.chunks().is_empty());
     /// ```
     pub fn chunks(&self) -> &[Chunk] {

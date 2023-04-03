@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use noodles_bgzf as bgzf;
 use noodles_csi::index::{
     header::ReferenceSequenceNames,
@@ -207,7 +209,11 @@ where
     Ok(())
 }
 
-async fn write_bins<W>(writer: &mut W, bins: &[Bin], metadata: Option<&Metadata>) -> io::Result<()>
+async fn write_bins<W>(
+    writer: &mut W,
+    bins: &HashMap<usize, Bin>,
+    metadata: Option<&Metadata>,
+) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
@@ -224,8 +230,8 @@ where
 
     writer.write_i32_le(n_bin).await?;
 
-    for bin in bins {
-        write_bin(writer, bin).await?;
+    for (&id, bin) in bins {
+        write_bin(writer, id, bin).await?;
     }
 
     if let Some(m) = metadata {
@@ -235,11 +241,11 @@ where
     Ok(())
 }
 
-async fn write_bin<W>(writer: &mut W, bin: &Bin) -> io::Result<()>
+async fn write_bin<W>(writer: &mut W, id: usize, bin: &Bin) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
-    let id = u32::try_from(bin.id()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    let id = u32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32_le(id).await?;
     write_chunks(writer, bin.chunks()).await?;
     Ok(())

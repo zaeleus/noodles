@@ -32,6 +32,10 @@
 
   * csi/index/reference_sequence: Increase the visibility of `Builder`.
 
+  * csi/index/reference_sequence: Change bins to a `HashMap<usize, Bin>`.
+
+    `Bin` no longer holds its bin ID.
+
   * csi/index/reference_sequence/bin: Increase the visibility of `Builder`.
 
 ### Removed

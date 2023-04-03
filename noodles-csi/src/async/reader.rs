@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use noodles_bgzf as bgzf;
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
@@ -171,7 +173,10 @@ where
     Ok(ReferenceSequence::new(bins, Vec::new(), metadata))
 }
 
-async fn read_bins<R>(reader: &mut R, depth: u8) -> io::Result<(Vec<Bin>, Option<Metadata>)>
+async fn read_bins<R>(
+    reader: &mut R,
+    depth: u8,
+) -> io::Result<(HashMap<usize, Bin>, Option<Metadata>)>
 where
     R: AsyncRead + Unpin,
 {
@@ -179,7 +184,7 @@ where
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let mut bins = Vec::with_capacity(n_bin);
+    let mut bins = HashMap::with_capacity(n_bin);
 
     let metadata_id = Bin::metadata_id(depth);
     let mut metadata = None;
@@ -198,8 +203,9 @@ where
             metadata = read_metadata(reader).await.map(Some)?;
         } else {
             let chunks = read_chunks(reader).await?;
-            let bin = Bin::new(id, loffset, chunks);
-            bins.push(bin);
+            let bin = Bin::new(loffset, chunks);
+            // TODO: Check for duplicates.
+            bins.insert(id, bin);
         }
     }
 

@@ -1,4 +1,7 @@
-use std::io::{self, Read};
+use std::{
+    collections::HashMap,
+    io::{self, Read},
+};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
@@ -138,7 +141,7 @@ where
     Ok(references)
 }
 
-fn read_bins<R>(reader: &mut R) -> io::Result<(Vec<Bin>, Option<Metadata>)>
+fn read_bins<R>(reader: &mut R) -> io::Result<(HashMap<usize, Bin>, Option<Metadata>)>
 where
     R: Read,
 {
@@ -150,7 +153,7 @@ where
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let mut bins = Vec::with_capacity(n_bin);
+    let mut bins = HashMap::with_capacity(n_bin);
     let mut metadata = None;
 
     for _ in 0..n_bin {
@@ -162,8 +165,9 @@ where
             metadata = read_metadata(reader).map(Some)?;
         } else {
             let chunks = read_chunks(reader)?;
-            let bin = Bin::new(id, bgzf::VirtualPosition::default(), chunks);
-            bins.push(bin);
+            let bin = Bin::new(bgzf::VirtualPosition::default(), chunks);
+            // TODO: Check for duplicates.
+            bins.insert(id, bin);
         }
     }
 

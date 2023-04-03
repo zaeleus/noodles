@@ -210,8 +210,8 @@ where
 
     writer.write_i32::<LittleEndian>(n_bin)?;
 
-    for bin in reference.bins() {
-        write_bin(writer, bin)?;
+    for (&id, bin) in reference.bins() {
+        write_bin(writer, id, bin)?;
     }
 
     if let Some(metadata) = reference.metadata() {
@@ -230,11 +230,11 @@ where
     Ok(())
 }
 
-pub fn write_bin<W>(writer: &mut W, bin: &Bin) -> io::Result<()>
+pub fn write_bin<W>(writer: &mut W, id: usize, bin: &Bin) -> io::Result<()>
 where
     W: Write,
 {
-    let id = u32::try_from(bin.id()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    let id = u32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32::<LittleEndian>(id)?;
     write_chunks(writer, bin.chunks())?;
     Ok(())
@@ -314,7 +314,9 @@ mod tests {
             bgzf::VirtualPosition::from(509268599425),
             bgzf::VirtualPosition::from(509268599570),
         )];
-        let bins = vec![Bin::new(16385, bgzf::VirtualPosition::default(), chunks)];
+        let bins = [(16385, Bin::new(bgzf::VirtualPosition::default(), chunks))]
+            .into_iter()
+            .collect();
         let intervals = vec![bgzf::VirtualPosition::from(337)];
         let references = vec![ReferenceSequence::new(bins, intervals, None)];
 

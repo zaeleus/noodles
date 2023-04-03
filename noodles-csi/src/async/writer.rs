@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use noodles_bgzf as bgzf;
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
@@ -181,7 +183,7 @@ where
 async fn write_bins<W>(
     writer: &mut W,
     depth: u8,
-    bins: &[Bin],
+    bins: &HashMap<usize, Bin>,
     metadata: Option<&Metadata>,
 ) -> io::Result<()>
 where
@@ -200,8 +202,8 @@ where
 
     writer.write_i32_le(n_bin).await?;
 
-    for bin in bins {
-        write_bin(writer, bin).await?;
+    for (&id, bin) in bins {
+        write_bin(writer, id, bin).await?;
     }
 
     if let Some(m) = metadata {
@@ -211,12 +213,11 @@ where
     Ok(())
 }
 
-async fn write_bin<W>(writer: &mut W, bin: &Bin) -> io::Result<()>
+async fn write_bin<W>(writer: &mut W, id: usize, bin: &Bin) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
-    let bin_id =
-        u32::try_from(bin.id()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    let bin_id = u32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32_le(bin_id).await?;
 
     let loffset = u64::from(bin.loffset());

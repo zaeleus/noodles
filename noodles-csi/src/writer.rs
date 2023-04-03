@@ -1,4 +1,7 @@
-use std::io::{self, Write};
+use std::{
+    collections::HashMap,
+    io::{self, Write},
+};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf as bgzf;
@@ -180,7 +183,7 @@ where
 fn write_bins<W>(
     writer: &mut W,
     depth: u8,
-    bins: &[Bin],
+    bins: &HashMap<usize, Bin>,
     metadata: Option<&Metadata>,
 ) -> io::Result<()>
 where
@@ -195,9 +198,9 @@ where
 
     writer.write_i32::<LittleEndian>(n_bin)?;
 
-    for bin in bins {
+    for (&id, bin) in bins {
         let bin_id =
-            u32::try_from(bin.id()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+            u32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
         writer.write_u32::<LittleEndian>(bin_id)?;
 
         let loffset = u64::from(bin.loffset());

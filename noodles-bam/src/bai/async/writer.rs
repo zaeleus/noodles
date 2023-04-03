@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use noodles_bgzf as bgzf;
 use noodles_csi::index::{
     reference_sequence::{bin::Chunk, Bin, Metadata},
@@ -159,7 +161,11 @@ where
     Ok(())
 }
 
-async fn write_bins<W>(writer: &mut W, bins: &[Bin], metadata: Option<&Metadata>) -> io::Result<()>
+async fn write_bins<W>(
+    writer: &mut W,
+    bins: &HashMap<usize, Bin>,
+    metadata: Option<&Metadata>,
+) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
@@ -176,8 +182,8 @@ where
 
     writer.write_u32_le(n_bin).await?;
 
-    for bin in bins {
-        write_bin(writer, bin).await?;
+    for (&id, bin) in bins {
+        write_bin(writer, id, bin).await?;
     }
 
     if let Some(m) = metadata {
@@ -187,11 +193,11 @@ where
     Ok(())
 }
 
-async fn write_bin<W>(writer: &mut W, bin: &Bin) -> io::Result<()>
+async fn write_bin<W>(writer: &mut W, id: usize, bin: &Bin) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
-    let id = u32::try_from(bin.id()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    let id = u32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32_le(id).await?;
     write_chunks(writer, bin.chunks()).await?;
     Ok(())
@@ -298,7 +304,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_write_bins() -> io::Result<()> {
-        let bins = vec![Bin::new(8, bgzf::VirtualPosition::default(), Vec::new())];
+        let bins = [(8, Bin::new(bgzf::VirtualPosition::default(), Vec::new()))]
+            .into_iter()
+            .collect();
 
         let mut buf = Vec::new();
         write_bins(&mut buf, &bins, None).await?;
@@ -316,7 +324,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_write_bins_with_metadata() -> io::Result<()> {
-        let bins = vec![Bin::new(8, bgzf::VirtualPosition::default(), Vec::new())];
+        let bins = [(8, Bin::new(bgzf::VirtualPosition::default(), Vec::new()))]
+            .into_iter()
+            .collect();
         let metadata = Metadata::new(
             bgzf::VirtualPosition::from(13),
             bgzf::VirtualPosition::from(21),
@@ -350,7 +360,6 @@ mod tests {
     #[tokio::test]
     async fn test_write_bin() -> io::Result<()> {
         let bin = Bin::new(
-            8,
             bgzf::VirtualPosition::default(),
             vec![Chunk::new(
                 bgzf::VirtualPosition::from(13),
@@ -359,7 +368,7 @@ mod tests {
         );
 
         let mut buf = Vec::new();
-        write_bin(&mut buf, &bin).await?;
+        write_bin(&mut buf, 8, &bin).await?;
 
         let expected = [
             0x08, 0x00, 0x00, 0x00, // bin = 8

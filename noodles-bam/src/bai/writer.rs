@@ -128,8 +128,8 @@ where
 
     writer.write_u32::<LittleEndian>(n_bin)?;
 
-    for bin in reference_sequence.bins() {
-        write_bin(writer, bin)?;
+    for (&id, bin) in reference_sequence.bins() {
+        write_bin(writer, id, bin)?;
     }
 
     if let Some(metadata) = reference_sequence.metadata() {
@@ -148,11 +148,11 @@ where
     Ok(())
 }
 
-fn write_bin<W>(writer: &mut W, bin: &Bin) -> io::Result<()>
+fn write_bin<W>(writer: &mut W, id: usize, bin: &Bin) -> io::Result<()>
 where
     W: Write,
 {
-    let id = u32::try_from(bin.id()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    let id = u32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32::<LittleEndian>(id)?;
 
     let n_chunk = u32::try_from(bin.chunks().len())
@@ -226,7 +226,9 @@ mod tests {
             bgzf::VirtualPosition::from(509268599425),
             bgzf::VirtualPosition::from(509268599570),
         )];
-        let bins = vec![Bin::new(16385, bgzf::VirtualPosition::default(), chunks)];
+        let bins = [(16385, Bin::new(bgzf::VirtualPosition::default(), chunks))]
+            .into_iter()
+            .collect();
         let intervals = vec![bgzf::VirtualPosition::from(337)];
         let reference_sequences = vec![ReferenceSequence::new(bins, intervals, None)];
         let index = Index::builder()

@@ -6,7 +6,7 @@ mod metadata;
 
 pub use self::{bin::Bin, builder::Builder, metadata::Metadata};
 
-use std::{io, num::NonZeroUsize};
+use std::{collections::HashMap, io, num::NonZeroUsize};
 
 use bit_vec::BitVec;
 use noodles_bgzf as bgzf;
@@ -21,7 +21,7 @@ const LINEAR_INDEX_WINDOW_SIZE: usize = 1 << 14;
 /// A CSI reference sequence.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReferenceSequence {
-    bins: Vec<Bin>,
+    bins: HashMap<usize, Bin>,
     linear_index: Vec<bgzf::VirtualPosition>,
     metadata: Option<Metadata>,
 }
@@ -39,10 +39,10 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_csi::index::ReferenceSequence;
-    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
+    /// let reference_sequence = ReferenceSequence::new(Default::default(), Vec::new(), None);
     /// ```
     pub fn new(
-        bins: Vec<Bin>,
+        bins: HashMap<usize, Bin>,
         linear_index: Vec<bgzf::VirtualPosition>,
         metadata: Option<Metadata>,
     ) -> Self {
@@ -61,10 +61,10 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_csi::index::ReferenceSequence;
-    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
+    /// let reference_sequence = ReferenceSequence::new(Default::default(), Vec::new(), None);
     /// assert!(reference_sequence.bins().is_empty());
     /// ```
-    pub fn bins(&self) -> &[Bin] {
+    pub fn bins(&self) -> &HashMap<usize, Bin> {
         &self.bins
     }
 
@@ -84,7 +84,7 @@ impl ReferenceSequence {
     /// use noodles_csi::index::{reference_sequence::Metadata, ReferenceSequence};
     ///
     /// let reference_sequence = ReferenceSequence::new(
-    ///     Vec::new(),
+    ///     Default::default(),
     ///     Vec::new(),
     ///     Some(Metadata::new(
     ///         bgzf::VirtualPosition::from(610),
@@ -110,7 +110,7 @@ impl ReferenceSequence {
     /// use noodles_core::Position;
     /// use noodles_csi::index::ReferenceSequence;
     ///
-    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
+    /// let reference_sequence = ReferenceSequence::new(Default::default(), Vec::new(), None);
     /// let start = Position::try_from(8)?;
     /// let end = Position::try_from(13)?;
     ///
@@ -129,7 +129,13 @@ impl ReferenceSequence {
 
         reg2bins(start, end, min_shift, depth, &mut region_bins);
 
-        let query_bins = self.bins().iter().filter(|b| region_bins[b.id()]).collect();
+        let query_bins = self
+            .bins()
+            .iter()
+            .filter(|(id, _)| region_bins[**id])
+            .map(|(_, bin)| bin)
+            .collect();
+
         Ok(query_bins)
     }
 
@@ -146,7 +152,9 @@ impl ReferenceSequence {
     /// const MIN_SHIFT: u8 = 4;
     /// const DEPTH: u8 = 2;
     ///
-    /// let bins = vec![Bin::new(1, bgzf::VirtualPosition::from(233), Vec::new())];
+    /// let bins = [(1, Bin::new(bgzf::VirtualPosition::from(233), Vec::new()))]
+    ///     .into_iter()
+    ///     .collect();
     /// let reference_sequence = ReferenceSequence::new(bins, Vec::new(), None);
     ///
     /// let start = Position::try_from(8)?;
@@ -169,7 +177,7 @@ impl ReferenceSequence {
             let mut bin_id = reg2bin(start, end, min_shift, depth);
 
             loop {
-                if let Some(bin) = self.bins.iter().find(|bin| bin.id() == bin_id) {
+                if let Some(bin) = self.bins.get(&bin_id) {
                     return bin.loffset();
                 }
 
@@ -194,22 +202,26 @@ impl ReferenceSequence {
     /// use noodles_bgzf as bgzf;
     /// use noodles_csi::index::{reference_sequence::Bin, ReferenceSequence};
     ///
-    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
+    /// let reference_sequence = ReferenceSequence::new(Default::default(), Vec::new(), None);
     /// assert!(reference_sequence.first_record_in_last_linear_bin_start_position().is_none());
     ///
-    /// let bins = vec![
-    ///     Bin::new(0, bgzf::VirtualPosition::from(8), Vec::new()),
-    ///     Bin::new(2, bgzf::VirtualPosition::from(21), Vec::new()),
-    ///     Bin::new(9, bgzf::VirtualPosition::from(13), Vec::new()),
-    /// ];
+    /// let bins = [
+    ///     (0, Bin::new(bgzf::VirtualPosition::from(8), Vec::new())),
+    ///     (2, Bin::new(bgzf::VirtualPosition::from(21), Vec::new())),
+    ///     (9, Bin::new(bgzf::VirtualPosition::from(13), Vec::new())),
+    /// ]
+    /// .into_iter()
+    /// .collect();
+    ///
     /// let reference_sequence = ReferenceSequence::new(bins, Vec::new(), None);
+    ///
     /// assert_eq!(
     ///     reference_sequence.first_record_in_last_linear_bin_start_position(),
     ///     Some(bgzf::VirtualPosition::from(21))
     /// );
     /// ```
     pub fn first_record_in_last_linear_bin_start_position(&self) -> Option<bgzf::VirtualPosition> {
-        self.bins().iter().map(|bin| bin.loffset()).max()
+        self.bins().values().map(|bin| bin.loffset()).max()
     }
 }
 
@@ -293,7 +305,7 @@ mod tests {
     #[cfg(not(target_pointer_width = "16"))]
     #[test]
     fn test_query() -> Result<(), noodles_core::position::TryFromIntError> {
-        let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
+        let reference_sequence = ReferenceSequence::new(Default::default(), Vec::new(), None);
         let end = usize::try_from(i32::MAX).and_then(Position::try_from)?;
 
         assert!(matches!(

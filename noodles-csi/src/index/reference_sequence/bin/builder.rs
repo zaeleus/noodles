@@ -5,18 +5,11 @@ use super::{Bin, Chunk};
 /// A CSI index reference sequence bin builder.
 #[derive(Debug)]
 pub struct Builder {
-    id: usize,
     pub(crate) loffset: bgzf::VirtualPosition,
     chunks: Vec<Chunk>,
 }
 
 impl Builder {
-    /// Sets the ID.
-    pub fn set_id(mut self, id: usize) -> Self {
-        self.id = id;
-        self
-    }
-
     /// Adds or merges a chunk.
     pub fn add_chunk(&mut self, chunk: Chunk) {
         if chunk.start() < self.loffset {
@@ -36,7 +29,6 @@ impl Builder {
     /// Builds a bin.
     pub fn build(self) -> Bin {
         Bin {
-            id: self.id,
             loffset: self.loffset,
             chunks: self.chunks,
         }
@@ -46,7 +38,6 @@ impl Builder {
 impl Default for Builder {
     fn default() -> Self {
         Self {
-            id: 0,
             loffset: bgzf::VirtualPosition::MAX,
             chunks: Vec::new(),
         }
@@ -60,15 +51,8 @@ mod tests {
     #[test]
     fn test_default() {
         let builder = Builder::default();
-        assert_eq!(builder.id, 0);
         assert_eq!(builder.loffset, bgzf::VirtualPosition::MAX);
         assert!(builder.chunks.is_empty());
-    }
-
-    #[test]
-    fn test_set_id() {
-        let builder = Builder::default().set_id(8);
-        assert_eq!(builder.id, 8);
     }
 
     #[test]
@@ -125,7 +109,7 @@ mod tests {
 
     #[test]
     fn test_build() {
-        let mut builder = Builder::default().set_id(8);
+        let mut builder = Builder::default();
 
         builder.add_chunk(Chunk::new(
             bgzf::VirtualPosition::from(5),
@@ -135,7 +119,6 @@ mod tests {
         let actual = builder.build();
 
         let expected = Bin {
-            id: 8,
             loffset: bgzf::VirtualPosition::from(5),
             chunks: vec![Chunk::new(
                 bgzf::VirtualPosition::from(5),
