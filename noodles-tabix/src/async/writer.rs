@@ -77,9 +77,12 @@ where
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> io::Result<()> {
+    /// use noodles_csi as csi;
     /// use noodles_tabix as tabix;
     ///
-    /// let index = tabix::Index::default();
+    /// let index = csi::Index::builder()
+    ///     .set_header(csi::index::Header::default())
+    ///     .build();
     ///
     /// let mut writer = tabix::AsyncWriter::new(Vec::new());
     /// writer.write_index(&index).await?;
@@ -101,7 +104,11 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_i32_le(n_ref).await?;
 
-    write_header(writer, index.header()).await?;
+    let header = index
+        .header()
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing tabix header"))?;
+    write_header(writer, header).await?;
+
     write_reference_sequences(writer, index.reference_sequences()).await?;
 
     if let Some(n_no_coor) = index.unplaced_unmapped_record_count() {

@@ -4,8 +4,7 @@
 
 ### Changed
 
-  * tabix/index: Replace `ReferenceSequence` with
-    `noodles_csi::index::ReferenceSequence`.
+  * tabix: Replace `Index` with `noodles_csi::Index`.
 
 ### Removed
 

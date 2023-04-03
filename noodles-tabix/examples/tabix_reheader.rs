@@ -21,6 +21,10 @@ fn main() -> io::Result<()> {
     let tabix_src = format!("{src}.tbi");
     let index = tabix::read(tabix_src)?;
 
+    let tabix_header = index
+        .header()
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing tabix header"))?;
+
     let stdout = io::stdout().lock();
     let mut writer = bgzf::Writer::new(stdout);
 
@@ -28,7 +32,7 @@ fn main() -> io::Result<()> {
     io::copy(&mut header_reader, &mut writer)?;
 
     let mut reader = File::open(src).map(bgzf::Reader::new)?;
-    let line_comment_prefix = index.header().line_comment_prefix();
+    let line_comment_prefix = tabix_header.line_comment_prefix();
 
     let mut buf = Vec::new();
 

@@ -72,16 +72,17 @@ where
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let header = read_header(reader).await?;
+    let mut header = read_header(reader).await?;
 
     let reference_sequence_names = read_reference_sequence_names(reader).await?;
+    header.reference_sequence_names = reference_sequence_names;
+
     let reference_sequences = read_reference_sequences(reader, n_ref).await?;
 
     let unplaced_unmapped_record_count = read_unplaced_unmapped_record_count(reader).await?;
 
     let mut builder = Index::builder()
         .set_header(header)
-        .set_reference_sequence_names(reference_sequence_names)
         .set_reference_sequences(reference_sequences);
 
     if let Some(count) = unplaced_unmapped_record_count {

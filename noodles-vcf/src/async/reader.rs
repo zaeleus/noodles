@@ -4,8 +4,7 @@ use futures::{stream, Stream};
 use memchr::memchr;
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
-use noodles_csi::BinningIndex;
-use noodles_tabix as tabix;
+use noodles_csi::{self as csi, BinningIndex};
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncSeek};
 
 use self::query::query;
@@ -291,7 +290,7 @@ where
     pub fn query<'r>(
         &'r mut self,
         header: &'r Header,
-        index: &tabix::Index,
+        index: &csi::Index,
         region: &Region,
     ) -> io::Result<impl Stream<Item = io::Result<Record>> + 'r> {
         let (reference_sequence_id, reference_sequence_name) = resolve_region(index, region)?;

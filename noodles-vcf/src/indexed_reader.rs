@@ -8,7 +8,7 @@ use std::io::{self, Read, Seek};
 
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
-use noodles_tabix as tabix;
+use noodles_csi as csi;
 
 use super::{
     reader::{Query, Records},
@@ -18,7 +18,7 @@ use super::{
 /// An indexed VCF reader.
 pub struct IndexedReader<R> {
     inner: Reader<bgzf::Reader<R>>,
-    index: tabix::Index,
+    index: csi::Index,
 }
 
 impl<R> IndexedReader<R>
@@ -26,7 +26,7 @@ where
     R: Read,
 {
     /// Creates an indexed VCF reader.
-    pub fn new(inner: R, index: tabix::Index) -> Self {
+    pub fn new(inner: R, index: csi::Index) -> Self {
         Self {
             inner: Reader::new(bgzf::Reader::new(inner)),
             index,

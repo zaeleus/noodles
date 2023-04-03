@@ -2,10 +2,8 @@ use noodles_core::Position;
 use noodles_csi::{
     self as csi,
     index::{header::ReferenceSequenceNames, reference_sequence::bin::Chunk, Header},
-    BinningIndex,
+    Index,
 };
-
-use super::Index;
 
 /// A tabix indexer.
 #[derive(Debug, Default)]
@@ -23,7 +21,9 @@ impl Indexer {
     /// ```
     /// use noodles_csi as csi;
     /// use noodles_tabix as tabix;
-    /// let builder = tabix::Index::indexer().set_header(csi::index::Header::default());
+    ///
+    /// let builder = tabix::index::Indexer::default()
+    ///     .set_header(csi::index::Header::default());
     /// ```
     pub fn set_header(&mut self, header: Header) {
         self.header = header;
@@ -39,7 +39,7 @@ impl Indexer {
     /// use noodles_csi::index::reference_sequence::bin::Chunk;
     /// use noodles_tabix as tabix;
     ///
-    /// let mut indexer = tabix::Index::indexer();
+    /// let mut indexer = tabix::index::Indexer::default();
     ///
     /// let start = Position::try_from(8)?;
     /// let end = Position::try_from(13)?;
@@ -72,16 +72,11 @@ impl Indexer {
     ///
     /// ```
     /// use noodles_tabix as tabix;
-    /// let indexer = tabix::Index::indexer();
-    /// let index = indexer.build();
+    /// let index = tabix::index::Indexer::default().build();
     /// ```
-    pub fn build(self) -> Index {
-        let index = self.indexer.build(self.reference_sequence_names.len());
-
-        Index::builder()
-            .set_header(self.header)
-            .set_reference_sequence_names(self.reference_sequence_names)
-            .set_reference_sequences(index.reference_sequences().to_vec())
-            .build()
+    pub fn build(mut self) -> Index {
+        let reference_sequence_count = self.reference_sequence_names.len();
+        self.header.reference_sequence_names = self.reference_sequence_names;
+        self.indexer.build(reference_sequence_count)
     }
 }

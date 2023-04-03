@@ -17,8 +17,12 @@ fn main() -> io::Result<()> {
     let tabix_src = format!("{src}.tbi");
     let index = tabix::read(tabix_src)?;
 
+    let header = index
+        .header()
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing tabix header"))?;
+
     let reader = File::open(src).map(bgzf::Reader::new)?;
-    let line_comment_prefix = char::from(index.header().line_comment_prefix());
+    let line_comment_prefix = char::from(header.line_comment_prefix());
 
     for result in reader.lines() {
         let line = result?;

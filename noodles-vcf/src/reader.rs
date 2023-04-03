@@ -12,8 +12,7 @@ use std::io::{self, BufRead, Read, Seek};
 
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
-use noodles_csi::BinningIndex;
-use noodles_tabix as tabix;
+use noodles_csi::{self as csi, BinningIndex};
 
 use self::{header::read_header, record::parse_record};
 use super::{Header, Record, VariantReader};
@@ -293,7 +292,7 @@ where
     pub fn query<'r, 'h>(
         &'r mut self,
         header: &'h Header,
-        index: &tabix::Index,
+        index: &csi::Index,
         region: &Region,
     ) -> io::Result<Query<'r, 'h, R>> {
         let (reference_sequence_id, reference_sequence_name) = resolve_region(index, region)?;
@@ -352,9 +351,12 @@ where
     }
 }
 
-pub(crate) fn resolve_region(index: &tabix::Index, region: &Region) -> io::Result<(usize, String)> {
-    let i = index
+pub(crate) fn resolve_region(index: &csi::Index, region: &Region) -> io::Result<(usize, String)> {
+    let header = index
         .header()
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing tabix header"))?;
+
+    let i = header
         .reference_sequence_names()
         .get_index_of(region.name())
         .ok_or_else(|| {

@@ -18,8 +18,12 @@ async fn main() -> io::Result<()> {
     let tabix_src = format!("{src}.tbi");
     let index = tabix::r#async::read(tabix_src).await?;
 
+    let header = index
+        .header()
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing tabix header"))?;
+
     let reader = File::open(src).await.map(bgzf::AsyncReader::new)?;
-    let line_comment_prefix = char::from(index.header().line_comment_prefix());
+    let line_comment_prefix = char::from(header.line_comment_prefix());
 
     let mut lines = reader.lines();
 

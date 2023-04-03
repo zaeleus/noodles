@@ -5,6 +5,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use noodles_csi as csi;
 use noodles_tabix as tabix;
 
 use super::IndexedReader;
@@ -12,7 +13,7 @@ use super::IndexedReader;
 /// An indexed VCF reader builder.
 #[derive(Default)]
 pub struct Builder {
-    index: Option<tabix::Index>,
+    index: Option<csi::Index>,
 }
 
 impl Builder {
@@ -21,13 +22,13 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_tabix as tabix;
+    /// use noodles_csi as csi;
     /// use noodles_vcf::indexed_reader::Builder;
     ///
-    /// let index = tabix::Index::default();
+    /// let index = csi::Index::default();
     /// let builder = Builder::default().set_index(index);
     /// ```
-    pub fn set_index(mut self, index: tabix::Index) -> Self {
+    pub fn set_index(mut self, index: csi::Index) -> Self {
         self.index = Some(index);
         self
     }
@@ -61,10 +62,10 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_tabix as tabix;
+    /// use noodles_csi as csi;
     /// use noodles_vcf::indexed_reader::Builder;
     ///
-    /// let index = tabix::Index::default();
+    /// let index = csi::Index::default();
     /// let data = [];
     /// let reader = Builder::default()
     ///     .set_index(index)

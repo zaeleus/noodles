@@ -3,15 +3,17 @@ use std::{
     str,
 };
 
+use super::MAGIC_NUMBER;
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
-use noodles_csi::index::{
-    header::{Format, ReferenceSequenceNames},
-    reference_sequence::{bin::Chunk, Bin, Metadata},
-    Header, ReferenceSequence,
+use noodles_csi::{
+    index::{
+        header::{Format, ReferenceSequenceNames},
+        reference_sequence::{bin::Chunk, Bin, Metadata},
+        Header, ReferenceSequence,
+    },
+    Index,
 };
-
-use super::{Index, MAGIC_NUMBER};
 
 const NUL: u8 = b'\x00';
 

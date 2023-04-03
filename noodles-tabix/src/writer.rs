@@ -8,10 +8,10 @@ use noodles_csi::{
         reference_sequence::{bin::Chunk, Bin, Metadata},
         Header, ReferenceSequence,
     },
-    BinningIndex,
+    BinningIndex, Index,
 };
 
-use super::{Index, MAGIC_NUMBER};
+use super::MAGIC_NUMBER;
 
 /// A tabix writer.
 pub struct Writer<W>
@@ -76,9 +76,15 @@ where
     ///
     /// ```
     /// # use std::io;
+    /// use noodles_csi as csi;
     /// use noodles_tabix as tabix;
-    /// let index = tabix::Index::default();
+    ///
     /// let mut writer = tabix::Writer::new(Vec::new());
+    ///
+    /// let index = csi::Index::builder()
+    ///     .set_header(csi::index::Header::default())
+    ///     .build();
+    ///
     /// writer.write_index(&index)?;
     /// # Ok::<(), io::Error>(())
     /// ```
@@ -97,7 +103,11 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_i32::<LittleEndian>(n_ref)?;
 
-    write_header(writer, index.header())?;
+    let header = index
+        .header()
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing tabix header"))?;
+    write_header(writer, header)?;
+
     write_reference_sequences(writer, index.reference_sequences())?;
 
     if let Some(n_no_coor) = index.unplaced_unmapped_record_count() {
@@ -294,6 +304,7 @@ where
 #[cfg(test)]
 mod tests {
     use noodles_bgzf as bgzf;
+    use noodles_csi as csi;
 
     use super::*;
 
@@ -311,8 +322,12 @@ mod tests {
             .into_iter()
             .collect();
 
-        let index = Index::builder()
+        let header = csi::index::Header::builder()
             .set_reference_sequence_names(reference_sequence_names)
+            .build();
+
+        let index = Index::builder()
+            .set_header(header)
             .set_reference_sequences(references)
             .build();
 

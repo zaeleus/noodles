@@ -46,7 +46,7 @@ fn main() -> io::Result<()> {
     let data = compress_data(BED_DATA)?;
     let mut reader = bgzf::Reader::new(&data[..]);
 
-    let mut indexer = tabix::Index::indexer();
+    let mut indexer = tabix::index::Indexer::default();
     indexer.set_header(header::Builder::bed().build());
 
     let mut buf = String::new();
