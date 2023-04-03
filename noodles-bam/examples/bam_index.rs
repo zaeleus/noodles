@@ -9,7 +9,7 @@
 use std::{env, io};
 
 use noodles_bam::{self as bam, bai};
-use noodles_csi::index::reference_sequence::bin::Chunk;
+use noodles_csi::{self as csi, index::reference_sequence::bin::Chunk};
 use noodles_sam::{self as sam, alignment::Record};
 
 fn is_coordinate_sorted(header: &sam::Header) -> bool {
@@ -40,7 +40,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut record = Record::default();
 
-    let mut builder = bai::Index::builder();
+    let mut builder = csi::index::Indexer::default();
     let mut start_position = reader.virtual_position();
 
     loop {
@@ -53,7 +53,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let end_position = reader.virtual_position();
         let chunk = Chunk::new(start_position, end_position);
 
-        builder.add_record(&record, chunk)?;
+        let alignment_context = match (
+            record.reference_sequence_id(),
+            record.alignment_start(),
+            record.alignment_end(),
+        ) {
+            (Some(id), Some(start), Some(end)) => {
+                Some((id, start, end, !record.flags().is_unmapped()))
+            }
+            _ => None,
+        };
+
+        builder.add_record(alignment_context, chunk)?;
 
         start_position = end_position;
     }

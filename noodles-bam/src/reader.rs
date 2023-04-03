@@ -20,11 +20,11 @@ use std::{
 
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
-use noodles_csi::BinningIndex;
+use noodles_csi::{self as csi, BinningIndex};
 use noodles_fasta as fasta;
 use noodles_sam::{self as sam, alignment::Record, header::ReferenceSequences};
 
-use super::{bai, lazy};
+use super::lazy;
 
 /// A BAM reader.
 ///
@@ -384,7 +384,7 @@ where
     /// }
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn query_unmapped(&mut self, index: &bai::Index) -> io::Result<UnmappedRecords<'_, R>> {
+    pub fn query_unmapped(&mut self, index: &csi::Index) -> io::Result<UnmappedRecords<'_, R>> {
         if let Some(pos) = index.first_record_in_last_linear_bin_start_position() {
             self.seek(pos)?;
         } else {

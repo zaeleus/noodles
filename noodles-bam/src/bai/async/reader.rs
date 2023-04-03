@@ -1,11 +1,14 @@
 use noodles_bgzf as bgzf;
-use noodles_csi::index::{
-    reference_sequence::{bin::Chunk, Bin, Metadata},
-    ReferenceSequence,
+use noodles_csi::{
+    index::{
+        reference_sequence::{bin::Chunk, Bin, Metadata},
+        ReferenceSequence,
+    },
+    Index,
 };
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
-use crate::bai::{Index, MAGIC_NUMBER};
+use crate::bai::MAGIC_NUMBER;
 
 /// An async BAM index (BAI) reader.
 pub struct Reader<R>
@@ -85,10 +88,13 @@ where
         let unplaced_unmapped_record_count =
             read_unplaced_unmapped_record_count(&mut self.inner).await?;
 
-        Ok(Index::new(
-            reference_sequences,
-            unplaced_unmapped_record_count,
-        ))
+        let mut builder = Index::builder().set_reference_sequences(reference_sequences);
+
+        if let Some(n) = unplaced_unmapped_record_count {
+            builder = builder.set_unplaced_unmapped_record_count(n);
+        }
+
+        Ok(builder.build())
     }
 }
 
@@ -140,7 +146,7 @@ async fn read_bins<R>(reader: &mut R) -> io::Result<(Vec<Bin>, Option<Metadata>)
 where
     R: AsyncRead + Unpin,
 {
-    use crate::bai::index::DEPTH;
+    use crate::bai::DEPTH;
 
     let metadata_id = Bin::metadata_id(DEPTH);
 

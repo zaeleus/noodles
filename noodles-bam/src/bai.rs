@@ -26,11 +26,10 @@
 #[cfg(feature = "async")]
 pub mod r#async;
 
-pub mod index;
 mod reader;
 mod writer;
 
-pub use self::{index::Index, reader::Reader, writer::Writer};
+pub use self::{reader::Reader, writer::Writer};
 
 #[cfg(feature = "async")]
 pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};
@@ -40,6 +39,10 @@ use std::{
     io::{self, BufReader, BufWriter},
     path::Path,
 };
+
+use noodles_csi::Index;
+
+const DEPTH: u8 = 5;
 
 static MAGIC_NUMBER: &[u8] = b"BAI\x01";
 
@@ -74,8 +77,10 @@ where
 ///
 /// ```no_run
 /// # use std::io;
+/// use noodles_csi as csi;
 /// use noodles_bam::bai;
-/// let index = bai::Index::default();
+///
+/// let index = csi::Index::default();
 /// bai::write("sample.bam.bai", &index)?;
 /// # Ok::<(), io::Error>(())
 /// ```

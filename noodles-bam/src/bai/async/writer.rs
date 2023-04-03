@@ -96,8 +96,9 @@ where
     /// # #[tokio::main]
     /// # async fn main() -> io::Result<()> {
     /// use noodles_bam::bai;
+    /// use noodles_csi as csi;
     ///
-    /// let index = bai::Index::default();
+    /// let index = csi::Index::default();
     ///
     /// let mut writer = bai::AsyncWriter::new(Vec::new());
     /// writer.write_header().await?;
@@ -247,7 +248,7 @@ async fn write_metadata<W>(writer: &mut W, metadata: &Metadata) -> io::Result<()
 where
     W: AsyncWrite + Unpin,
 {
-    use crate::bai::index::DEPTH;
+    use crate::bai::DEPTH;
 
     const METADATA_CHUNK_COUNT: usize = 2;
 

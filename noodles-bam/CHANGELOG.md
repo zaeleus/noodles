@@ -12,8 +12,7 @@
 
 ### Changed
 
-  * bam/bai/index: Replace `ReferenceSequence` with
-    `noodles_csi::index::ReferenceSequence`.
+  * bam/bai: Replace `Index` with `noodles_csi::Index`.
 
   * bam/reader: Change `Reader::read_header` to return a parsed header
     (`sam::Header`).

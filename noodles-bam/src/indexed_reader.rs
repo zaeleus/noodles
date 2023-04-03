@@ -8,12 +8,13 @@ use std::io::{self, Read, Seek};
 
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
+use noodles_csi as csi;
 use noodles_sam::{self as sam, alignment::Record};
 
 use crate::reader::UnmappedRecords;
 
 use super::{
-    bai, lazy,
+    lazy,
     reader::{LazyRecords, Query, Records},
     Reader,
 };
@@ -21,7 +22,7 @@ use super::{
 /// An indexed BAM reader.
 pub struct IndexedReader<R> {
     inner: Reader<R>,
-    index: bai::Index,
+    index: csi::Index,
 }
 
 impl<R> IndexedReader<R>
@@ -69,7 +70,7 @@ where
     }
 
     /// Returns the associated index.
-    pub fn index(&self) -> &bai::Index {
+    pub fn index(&self) -> &csi::Index {
         &self.index
     }
 }
@@ -79,7 +80,7 @@ where
     R: Read,
 {
     /// Creates an indexed BAM reader.
-    pub fn new(inner: R, index: bai::Index) -> Self {
+    pub fn new(inner: R, index: csi::Index) -> Self {
         Self {
             inner: Reader::new(inner),
             index,

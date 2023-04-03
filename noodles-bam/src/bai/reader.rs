@@ -2,12 +2,15 @@ use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
-use noodles_csi::index::{
-    reference_sequence::{bin::Chunk, Bin, Metadata},
-    ReferenceSequence,
+use noodles_csi::{
+    index::{
+        reference_sequence::{bin::Chunk, Bin, Metadata},
+        ReferenceSequence,
+    },
+    Index,
 };
 
-use super::{Index, MAGIC_NUMBER};
+use super::MAGIC_NUMBER;
 
 /// A BAM index (BAI) reader.
 ///
@@ -88,7 +91,14 @@ where
     pub fn read_index(&mut self) -> io::Result<Index> {
         let references = read_references(&mut self.inner)?;
         let n_no_coor = read_unplaced_unmapped_record_count(&mut self.inner)?;
-        Ok(Index::new(references, n_no_coor))
+
+        let mut builder = Index::builder().set_reference_sequences(references);
+
+        if let Some(n) = n_no_coor {
+            builder = builder.set_unplaced_unmapped_record_count(n);
+        }
+
+        Ok(builder.build())
     }
 }
 
@@ -132,7 +142,7 @@ fn read_bins<R>(reader: &mut R) -> io::Result<(Vec<Bin>, Option<Metadata>)>
 where
     R: Read,
 {
-    use super::index::DEPTH;
+    use super::DEPTH;
 
     let metadata_id = Bin::metadata_id(DEPTH);
 

@@ -7,12 +7,11 @@ pub use self::{reader::Reader, writer::Writer};
 
 use std::path::Path;
 
+use noodles_csi::Index;
 use tokio::{
     fs::File,
     io::{self, BufReader, BufWriter},
 };
-
-use super::Index;
 
 /// Reads the entire contents of a BAM index.
 ///
@@ -53,7 +52,9 @@ where
 /// # #[tokio::main]
 /// # async fn main() -> io::Result<()> {
 /// use noodles_bam::bai;
-/// let index = bai::Index::default();
+/// use noodles_csi as csi;
+///
+/// let index = csi::Index::default();
 /// bai::r#async::write("sample.bam.bai", &index).await?;
 /// # Ok(())
 /// # }

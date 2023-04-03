@@ -6,6 +6,7 @@ use std::{
 };
 
 use noodles_bgzf as bgzf;
+use noodles_csi as csi;
 
 use super::IndexedReader;
 use crate::bai;
@@ -13,7 +14,7 @@ use crate::bai;
 /// An indexed BAM reader builder.
 #[derive(Default)]
 pub struct Builder {
-    index: Option<bai::Index>,
+    index: Option<csi::Index>,
 }
 
 impl Builder {
@@ -22,11 +23,13 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{bai, indexed_reader::Builder};
-    /// let index = bai::Index::default();
+    /// use noodles_bam::indexed_reader::Builder;
+    /// use noodles_csi as csi;
+    ///
+    /// let index = csi::Index::default();
     /// let builder = Builder::default().set_index(index);
     /// ```
-    pub fn set_index(mut self, index: bai::Index) -> Self {
+    pub fn set_index(mut self, index: csi::Index) -> Self {
         self.index = Some(index);
         self
     }
@@ -60,9 +63,10 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{bai, indexed_reader::Builder};
+    /// use noodles_bam::indexed_reader::Builder;
+    /// use noodles_csi as csi;
     ///
-    /// let index = bai::Index::default();
+    /// let index = csi::Index::default();
     /// let data = [];
     /// let builder = Builder::default()
     ///     .set_index(index)

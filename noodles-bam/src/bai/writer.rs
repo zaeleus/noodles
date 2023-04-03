@@ -18,8 +18,9 @@ use super::{Index, MAGIC_NUMBER};
 /// ```no_run
 /// # use std::{fs::File, io};
 /// use noodles_bam::bai;
+/// use noodles_csi as csi;
 ///
-/// let index = bai::Index::new(Vec::new(), None);
+/// let index = csi::Index::default();
 ///
 /// let mut writer = File::create("sample.bam.bai").map(bai::Writer::new)?;
 /// writer.write_header()?;
@@ -86,8 +87,9 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bam::bai;
+    /// use noodles_csi as csi;
     ///
-    /// let index = bai::Index::new(Vec::new(), None);
+    /// let index = csi::Index::default();
     ///
     /// let mut writer = bai::Writer::new(Vec::new());
     /// writer.write_header()?;
@@ -184,7 +186,7 @@ fn write_metadata<W>(writer: &mut W, metadata: &Metadata) -> io::Result<()>
 where
     W: Write,
 {
-    use super::index::DEPTH;
+    use super::DEPTH;
 
     const METADATA_CHUNK_COUNT: usize = 2;
 
@@ -230,7 +232,9 @@ mod tests {
         let bins = vec![Bin::new(16385, bgzf::VirtualPosition::default(), chunks)];
         let intervals = vec![bgzf::VirtualPosition::from(337)];
         let reference_sequences = vec![ReferenceSequence::new(bins, intervals, None)];
-        let index = Index::new(reference_sequences, None);
+        let index = Index::builder()
+            .set_reference_sequences(reference_sequences)
+            .build();
 
         let mut actual_writer = Writer::new(Vec::new());
         actual_writer.write_header()?;
