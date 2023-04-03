@@ -76,7 +76,11 @@ impl Indexer {
     /// ```
     pub fn build(mut self) -> Index {
         let reference_sequence_count = self.reference_sequence_names.len();
+
         self.header.reference_sequence_names = self.reference_sequence_names;
-        self.indexer.build(reference_sequence_count)
+
+        self.indexer
+            .set_header(self.header)
+            .build(reference_sequence_count)
     }
 }
