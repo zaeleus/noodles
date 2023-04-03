@@ -1,12 +1,12 @@
 //! CSI index builder.
 
-use super::{Index, ReferenceSequence};
+use super::{Header, Index, ReferenceSequence};
 
 /// A coordinate-sorted index (CSI) builder.
 pub struct Builder {
     min_shift: u8,
     depth: u8,
-    aux: Vec<u8>,
+    header: Option<Header>,
     reference_sequences: Vec<ReferenceSequence>,
     unplaced_unmapped_record_count: Option<u64>,
 }
@@ -40,17 +40,18 @@ impl Builder {
         self
     }
 
-    /// Set auxiliary data.
+    /// Sets a tabix header..
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_csi as csi;
-    /// let index = csi::Index::builder().set_aux(b"ndls".to_vec()).build();
-    /// assert_eq!(index.aux(), b"ndls");
+    /// let header = csi::index::Header::default();
+    /// let index = csi::Index::builder().set_header(header.clone()).build();
+    /// assert_eq!(index.header(), Some(&header));
     /// ```
-    pub fn set_aux(mut self, aux: Vec<u8>) -> Self {
-        self.aux = aux;
+    pub fn set_header(mut self, header: Header) -> Self {
+        self.header = Some(header);
         self
     }
 
@@ -102,7 +103,7 @@ impl Builder {
         Index {
             min_shift: self.min_shift,
             depth: self.depth,
-            aux: self.aux,
+            header: self.header,
             reference_sequences: self.reference_sequences,
             n_no_coor: self.unplaced_unmapped_record_count,
         }
@@ -114,7 +115,7 @@ impl Default for Builder {
         Self {
             min_shift: 14,
             depth: 5,
-            aux: Vec::new(),
+            header: None,
             reference_sequences: Vec::new(),
             unplaced_unmapped_record_count: None,
         }
@@ -131,7 +132,7 @@ mod tests {
 
         assert_eq!(builder.min_shift, 14);
         assert_eq!(builder.depth, 5);
-        assert!(builder.aux.is_empty());
+        assert!(builder.header.is_none());
         assert!(builder.reference_sequences.is_empty());
         assert!(builder.unplaced_unmapped_record_count.is_none());
     }

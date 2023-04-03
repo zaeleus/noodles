@@ -20,7 +20,7 @@ use super::{index::reference_sequence::bin::Chunk, BinningIndex};
 pub struct Index {
     min_shift: u8,
     depth: u8,
-    aux: Vec<u8>,
+    header: Option<Header>,
     reference_sequences: Vec<ReferenceSequence>,
     n_no_coor: Option<u64>,
 }
@@ -64,17 +64,17 @@ impl Index {
         self.depth
     }
 
-    /// Returns the auxiliary data.
+    /// Returns the tabix header.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_csi as csi;
     /// let index = csi::Index::default();
-    /// assert!(index.aux().is_empty());
+    /// assert!(index.header().is_none());
     /// ```
-    pub fn aux(&self) -> &[u8] {
-        &self.aux
+    pub fn header(&self) -> Option<&Header> {
+        self.header.as_ref()
     }
 }
 

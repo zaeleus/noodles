@@ -22,6 +22,12 @@
 
 ### Changed
 
+  * csi/index: Replace `aux` with an optional tabix header
+    (`Option<csi::index::Header>`).
+
+    It isn't clear what `aux` is supposed to be used for, so noodles-csi
+    assumes if it's set, it's a tabix header.
+
   * csi/index/reference_sequence: Increase the visibility of `Builder`.
 
   * csi/index/reference_sequence/bin: Increase the visibility of `Builder`.

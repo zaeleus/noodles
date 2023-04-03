@@ -4,7 +4,7 @@ use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 use crate::{
     index::{
         reference_sequence::{bin::Chunk, Bin, Metadata},
-        ReferenceSequence,
+        Header, ReferenceSequence,
     },
     BinningIndex, Index,
 };
@@ -93,7 +93,7 @@ where
 {
     write_magic(writer).await?;
 
-    write_header(writer, index.min_shift(), index.depth(), index.aux()).await?;
+    write_header(writer, index.min_shift(), index.depth(), index.header()).await?;
     write_reference_sequences(writer, index.depth(), index.reference_sequences()).await?;
 
     if let Some(unplaced_unmapped_record_count) = index.unplaced_unmapped_record_count() {
@@ -110,25 +110,38 @@ where
     writer.write_all(crate::MAGIC_NUMBER).await
 }
 
-async fn write_header<W>(writer: &mut W, min_shift: u8, depth: u8, aux: &[u8]) -> io::Result<()>
+async fn write_header<W>(
+    writer: &mut W,
+    min_shift: u8,
+    depth: u8,
+    header: Option<&Header>,
+) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
     writer.write_i32_le(i32::from(min_shift)).await?;
     writer.write_i32_le(i32::from(depth)).await?;
-    write_aux(writer, aux).await?;
+    write_aux(writer, header).await?;
     Ok(())
 }
 
-async fn write_aux<W>(writer: &mut W, aux: &[u8]) -> io::Result<()>
+async fn write_aux<W>(writer: &mut W, header: Option<&Header>) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
+    use crate::writer::write_header as write_tabix_header;
+
+    let mut aux = Vec::new();
+
+    if let Some(hdr) = header {
+        write_tabix_header(&mut aux, hdr)?;
+    }
+
     let l_aux =
         i32::try_from(aux.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_i32_le(l_aux).await?;
 
-    writer.write_all(aux).await?;
+    writer.write_all(&aux).await?;
 
     Ok(())
 }
@@ -287,13 +300,12 @@ mod tests {
     #[tokio::test]
     async fn test_write_header() -> io::Result<()> {
         let mut buf = Vec::new();
-        write_header(&mut buf, 14, 5, b"ndls").await?;
+        write_header(&mut buf, 14, 5, None).await?;
 
         let expected = [
             0x0e, 0x00, 0x00, 0x00, // min_shift = 14
             0x05, 0x00, 0x00, 0x00, // depth = 5
-            0x04, 0x00, 0x00, 0x00, // l_aux = 4
-            0x6e, 0x64, 0x6c, 0x73, // aux = b"ndls"
+            0x00, 0x00, 0x00, 0x00, // l_aux = 0
         ];
 
         assert_eq!(buf, expected);

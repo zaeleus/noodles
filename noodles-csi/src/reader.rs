@@ -1,12 +1,16 @@
-use std::io::{self, Read};
+use std::{
+    io::{self, Read},
+    str,
+};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
 
 use super::{
     index::{
+        header::ReferenceSequenceNames,
         reference_sequence::{bin::Chunk, Bin, Metadata},
-        ReferenceSequence,
+        Header, ReferenceSequence,
     },
     Index, MAGIC_NUMBER,
 };
@@ -60,15 +64,18 @@ where
             u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })?;
 
-        let aux = read_aux(&mut self.inner)?;
+        let header = read_aux(&mut self.inner)?;
         let reference_sequences = read_reference_sequences(&mut self.inner, depth)?;
         let n_no_coor = read_unplaced_unmapped_record_count(&mut self.inner)?;
 
         let mut builder = Index::builder()
             .set_min_shift(min_shift)
             .set_depth(depth)
-            .set_aux(aux)
             .set_reference_sequences(reference_sequences);
+
+        if let Some(hdr) = header {
+            builder = builder.set_header(hdr);
+        }
 
         if let Some(n_no_coor) = n_no_coor {
             builder = builder.set_unplaced_unmapped_record_count(n_no_coor);
@@ -95,7 +102,7 @@ where
     }
 }
 
-fn read_aux<R>(reader: &mut R) -> io::Result<Vec<u8>>
+fn read_aux<R>(reader: &mut R) -> io::Result<Option<Header>>
 where
     R: Read,
 {
@@ -103,10 +110,106 @@ where
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let mut aux = vec![0; l_aux];
-    reader.read_exact(&mut aux)?;
+    if l_aux > 0 {
+        let mut aux = vec![0; l_aux];
+        reader.read_exact(&mut aux)?;
 
-    Ok(aux)
+        let mut rdr = &aux[..];
+        read_header(&mut rdr).map(Some)
+    } else {
+        Ok(None)
+    }
+}
+
+pub(crate) fn read_header<R>(reader: &mut R) -> io::Result<Header>
+where
+    R: Read,
+{
+    use super::index::header::Format;
+
+    let format = reader.read_i32::<LittleEndian>().and_then(|n| {
+        Format::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
+    let col_seq = reader.read_i32::<LittleEndian>().and_then(|i| {
+        usize::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
+    let col_beg = reader.read_i32::<LittleEndian>().and_then(|i| {
+        usize::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
+    let col_end = reader.read_i32::<LittleEndian>().and_then(|i| match i {
+        0 => Ok(None),
+        _ => usize::try_from(i)
+            .map(Some)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+    })?;
+
+    let meta = reader
+        .read_i32::<LittleEndian>()
+        .and_then(|b| u8::try_from(b).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))?;
+
+    let skip = reader.read_i32::<LittleEndian>().and_then(|n| {
+        u32::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
+    let names = read_names(reader)?;
+
+    Ok(Header::builder()
+        .set_format(format)
+        .set_reference_sequence_name_index(col_seq)
+        .set_start_position_index(col_beg)
+        .set_end_position_index(col_end)
+        .set_line_comment_prefix(meta)
+        .set_line_skip_count(skip)
+        .set_reference_sequence_names(names)
+        .build())
+}
+
+fn read_names<R>(reader: &mut R) -> io::Result<ReferenceSequenceNames>
+where
+    R: Read,
+{
+    let l_nm = reader.read_i32::<LittleEndian>().and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
+    let mut names = vec![0; l_nm];
+    reader.read_exact(&mut names)?;
+
+    parse_names(&names)
+}
+
+pub(crate) fn parse_names(mut src: &[u8]) -> io::Result<ReferenceSequenceNames> {
+    const NUL: u8 = 0x00;
+
+    let mut names = ReferenceSequenceNames::new();
+
+    while let Some(i) = src.iter().position(|&b| b == NUL) {
+        let (raw_name, rest) = src.split_at(i);
+
+        let name =
+            str::from_utf8(raw_name).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+        if !names.insert(name.into()) {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("duplicate reference sequence name: {name}"),
+            ));
+        }
+
+        src = &rest[1..];
+    }
+
+    if src.is_empty() {
+        Ok(names)
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid reference sequence names",
+        ))
+    }
 }
 
 fn read_reference_sequences<R>(reader: &mut R, depth: u8) -> io::Result<Vec<ReferenceSequence>>

@@ -4,7 +4,7 @@ use tokio::io::{self, AsyncRead, AsyncReadExt};
 use crate::{
     index::{
         reference_sequence::{bin::Chunk, Bin, Metadata},
-        ReferenceSequence,
+        Header, ReferenceSequence,
     },
     Index,
 };
@@ -61,7 +61,7 @@ where
     pub async fn read_index(&mut self) -> io::Result<Index> {
         read_magic(&mut self.inner).await?;
 
-        let (min_shift, depth, aux) = read_header(&mut self.inner).await?;
+        let (min_shift, depth, header) = read_header(&mut self.inner).await?;
         let reference_sequences = read_reference_sequences(&mut self.inner, depth).await?;
         let unplaced_unmapped_record_count =
             read_unplaced_unmapped_record_count(&mut self.inner).await?;
@@ -69,8 +69,11 @@ where
         let mut builder = Index::builder()
             .set_min_shift(min_shift)
             .set_depth(depth)
-            .set_aux(aux)
             .set_reference_sequences(reference_sequences);
+
+        if let Some(hdr) = header {
+            builder = builder.set_header(hdr);
+        }
 
         if let Some(count) = unplaced_unmapped_record_count {
             builder = builder.set_unplaced_unmapped_record_count(count);
@@ -99,7 +102,7 @@ where
     }
 }
 
-async fn read_header<R>(reader: &mut R) -> io::Result<(u8, u8, Vec<u8>)>
+async fn read_header<R>(reader: &mut R) -> io::Result<(u8, u8, Option<Header>)>
 where
     R: AsyncRead + Unpin,
 {
@@ -113,23 +116,30 @@ where
         .await
         .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))?;
 
-    let aux = read_aux(reader).await?;
+    let header = read_aux(reader).await?;
 
-    Ok((min_shift, depth, aux))
+    Ok((min_shift, depth, header))
 }
 
-async fn read_aux<R>(reader: &mut R) -> io::Result<Vec<u8>>
+async fn read_aux<R>(reader: &mut R) -> io::Result<Option<Header>>
 where
     R: AsyncRead + Unpin,
 {
+    use crate::reader::read_header as read_tabix_header;
+
     let l_aux = reader.read_i32_le().await.and_then(|len| {
         usize::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let mut aux = vec![0; l_aux];
-    reader.read_exact(&mut aux).await?;
+    if l_aux > 0 {
+        let mut aux = vec![0; l_aux];
+        reader.read_exact(&mut aux).await?;
 
-    Ok(aux)
+        let mut rdr = &aux[..];
+        read_tabix_header(&mut rdr).map(Some)
+    } else {
+        Ok(None)
+    }
 }
 
 async fn read_reference_sequences<R>(
@@ -305,16 +315,15 @@ mod tests {
         let data = [
             0x0e, 0x00, 0x00, 0x00, // min_shift = 14
             0x05, 0x00, 0x00, 0x00, // depth = 5
-            0x04, 0x00, 0x00, 0x00, // l_aux = 4
-            0x6e, 0x64, 0x6c, 0x73, // aux = b"ndls"
+            0x00, 0x00, 0x00, 0x00, // l_aux = 0
         ];
 
         let mut reader = &data[..];
-        let (min_shift, depth, aux) = read_header(&mut reader).await?;
+        let (min_shift, depth, header) = read_header(&mut reader).await?;
 
         assert_eq!(min_shift, 14);
         assert_eq!(depth, 5);
-        assert_eq!(aux, b"ndls");
+        assert!(header.is_none());
 
         Ok(())
     }
