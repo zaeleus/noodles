@@ -8,7 +8,7 @@ use noodles_csi::{
         reference_sequence::{bin::Chunk, Bin, Metadata},
         Header, ReferenceSequence,
     },
-    BinningIndex, Index,
+    Index,
 };
 
 use super::MAGIC_NUMBER;

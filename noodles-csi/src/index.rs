@@ -11,9 +11,10 @@ pub use self::{
 
 use std::io;
 
+use noodles_bgzf as bgzf;
 use noodles_core::{region::Interval, Position};
 
-use super::{index::reference_sequence::bin::Chunk, BinningIndex};
+use super::index::reference_sequence::bin::Chunk;
 
 /// A coordinate-sorted index (CSI).
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -76,19 +77,17 @@ impl Index {
     pub fn header(&self) -> Option<&Header> {
         self.header.as_ref()
     }
-}
 
-impl BinningIndex for Index {
     /// Returns a list of indexed reference sequences.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::{self as csi, BinningIndex};
+    /// use noodles_csi as csi;
     /// let index = csi::Index::default();
     /// assert!(index.reference_sequences().is_empty());
     /// ```
-    fn reference_sequences(&self) -> &[ReferenceSequence] {
+    pub fn reference_sequences(&self) -> &[ReferenceSequence] {
         &self.reference_sequences
     }
 
@@ -97,15 +96,16 @@ impl BinningIndex for Index {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::{self as csi, BinningIndex};
+    /// use noodles_csi as csi;
     /// let index = csi::Index::default();
     /// assert!(index.unplaced_unmapped_record_count().is_none());
     /// ```
-    fn unplaced_unmapped_record_count(&self) -> Option<u64> {
+    pub fn unplaced_unmapped_record_count(&self) -> Option<u64> {
         self.n_no_coor
     }
 
-    fn query<I>(&self, reference_sequence_id: usize, interval: I) -> io::Result<Vec<Chunk>>
+    /// Returns the chunks that overlap with the given region.
+    pub fn query<I>(&self, reference_sequence_id: usize, interval: I) -> io::Result<Vec<Chunk>>
     where
         I: Into<Interval>,
     {
@@ -130,6 +130,17 @@ impl BinningIndex for Index {
             .collect();
 
         Ok(chunks)
+    }
+
+    /// Returns the start position of the first record in the last linear bin.
+    ///
+    /// This is the closest position to the unplaced, unmapped records, if any, that is available
+    /// in an index.
+    pub fn first_record_in_last_linear_bin_start_position(&self) -> Option<bgzf::VirtualPosition> {
+        self.reference_sequences()
+            .iter()
+            .rev()
+            .find_map(|rs| rs.first_record_in_last_linear_bin_start_position())
     }
 }
 

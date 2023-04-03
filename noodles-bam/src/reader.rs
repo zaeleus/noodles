@@ -20,7 +20,7 @@ use std::{
 
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
-use noodles_csi::{self as csi, BinningIndex};
+use noodles_csi as csi;
 use noodles_fasta as fasta;
 use noodles_sam::{self as sam, alignment::Record, header::ReferenceSequences};
 
@@ -345,15 +345,12 @@ where
     /// }
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn query<'a, I>(
+    pub fn query<'a>(
         &'a mut self,
         header: &'a sam::Header,
-        index: &I,
+        index: &csi::Index,
         region: &Region,
-    ) -> io::Result<Query<'_, R>>
-    where
-        I: BinningIndex,
-    {
+    ) -> io::Result<Query<'_, R>> {
         let reference_sequence_id = resolve_region(header.reference_sequences(), region)?;
         let chunks = index.query(reference_sequence_id, region.interval())?;
 

@@ -1,36 +1,8 @@
 //! Binning index utilities.
 
-use std::io;
-
 use noodles_bgzf as bgzf;
-use noodles_core::region::Interval;
 
-use super::index::{reference_sequence::bin::Chunk, ReferenceSequence};
-
-/// A binning index.
-pub trait BinningIndex {
-    /// Returns a list of indexed reference sequences.
-    fn reference_sequences(&self) -> &[ReferenceSequence];
-
-    /// Returns the number of unplaced, unmapped records in the associated file.
-    fn unplaced_unmapped_record_count(&self) -> Option<u64>;
-
-    /// Returns the chunks that overlap with the given region.
-    fn query<I>(&self, reference_sequence_id: usize, interval: I) -> io::Result<Vec<Chunk>>
-    where
-        I: Into<Interval>;
-
-    /// Returns the start position of the first record in the last linear bin.
-    ///
-    /// This is the closest position to the unplaced, unmapped records, if any, that is available
-    /// in an index.
-    fn first_record_in_last_linear_bin_start_position(&self) -> Option<bgzf::VirtualPosition> {
-        self.reference_sequences()
-            .iter()
-            .rev()
-            .find_map(|rs| rs.first_record_in_last_linear_bin_start_position())
-    }
-}
+use super::index::reference_sequence::bin::Chunk;
 
 /// Merges a list of chunks into a list of non-overlapping chunks.
 ///

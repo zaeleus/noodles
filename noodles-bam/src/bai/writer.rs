@@ -1,12 +1,9 @@
 use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
-use noodles_csi::{
-    index::{
-        reference_sequence::{bin::Chunk, Bin, Metadata},
-        ReferenceSequence,
-    },
-    BinningIndex,
+use noodles_csi::index::{
+    reference_sequence::{bin::Chunk, Bin, Metadata},
+    ReferenceSequence,
 };
 
 use super::{Index, MAGIC_NUMBER};

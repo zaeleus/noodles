@@ -10,7 +10,7 @@ pub mod index;
 mod reader;
 mod writer;
 
-pub use self::{binning_index::BinningIndex, index::Index, reader::Reader, writer::Writer};
+pub use self::{index::Index, reader::Reader, writer::Writer};
 
 #[cfg(feature = "async")]
 pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};

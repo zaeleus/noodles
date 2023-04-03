@@ -9,7 +9,6 @@
 use std::{env, path::PathBuf};
 
 use noodles_bam as bam;
-use noodles_csi::BinningIndex;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).map(PathBuf::from).expect("missing src");

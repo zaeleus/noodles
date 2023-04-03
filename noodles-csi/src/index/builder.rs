@@ -60,7 +60,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::{self as csi, index::ReferenceSequence, BinningIndex};
+    /// use noodles_csi::{self as csi, index::ReferenceSequence};
     ///
     /// let reference_sequences = vec![ReferenceSequence::new(Vec::new(), Vec::new(), None)];
     /// let index = csi::Index::builder()
@@ -79,7 +79,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::{self as csi, BinningIndex};
+    /// use noodles_csi as csi;
     /// let index = csi::Index::builder().set_unplaced_unmapped_record_count(21).build();
     /// assert_eq!(index.unplaced_unmapped_record_count(), Some(21));
     /// ```

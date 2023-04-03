@@ -34,13 +34,9 @@
 
 ### Removed
 
-  * csi/binning_index: Remove `ReferenceSequence` associated type from
-    `BinningIndex`.
+  * csi: Remove `BinningIndex`.
 
-  * csi/binning_index: Remove `ReferenceSequenceExt`.
-
-    This is no longer used, as there is only a single concrete
-    `ReferenceSequence` now.
+    `csi::Index` is now the only concrete implementation of a binning index.
 
 ## 0.14.0 - 2023-03-03
 

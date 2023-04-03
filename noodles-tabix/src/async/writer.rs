@@ -1,11 +1,8 @@
 use noodles_bgzf as bgzf;
-use noodles_csi::{
-    index::{
-        header::ReferenceSequenceNames,
-        reference_sequence::{bin::Chunk, Bin, Metadata},
-        Header, ReferenceSequence,
-    },
-    BinningIndex,
+use noodles_csi::index::{
+    header::ReferenceSequenceNames,
+    reference_sequence::{bin::Chunk, Bin, Metadata},
+    Header, ReferenceSequence,
 };
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 

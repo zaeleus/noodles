@@ -4,7 +4,7 @@ mod record;
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
-use noodles_csi::BinningIndex;
+use noodles_csi as csi;
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};
 
 use self::{query::query, record::read_record};
@@ -309,15 +309,12 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn query<I>(
+    pub fn query(
         &mut self,
         contig_string_map: &ContigStringMap,
-        index: &I,
+        index: &csi::Index,
         region: &Region,
-    ) -> io::Result<impl Stream<Item = io::Result<Record>> + '_>
-    where
-        I: BinningIndex,
-    {
+    ) -> io::Result<impl Stream<Item = io::Result<Record>> + '_> {
         use crate::reader::resolve_region;
 
         let reference_sequence_id = resolve_region(contig_string_map, region)?;

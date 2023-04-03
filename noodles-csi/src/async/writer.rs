@@ -6,7 +6,7 @@ use crate::{
         reference_sequence::{bin::Chunk, Bin, Metadata},
         Header, ReferenceSequence,
     },
-    BinningIndex, Index,
+    Index,
 };
 
 /// An async CSI writer.

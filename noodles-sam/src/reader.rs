@@ -12,7 +12,7 @@ use std::io::{self, BufRead, Read, Seek};
 
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
-use noodles_csi::BinningIndex;
+use noodles_csi as csi;
 use noodles_fasta as fasta;
 
 use super::{alignment::Record, header::ReferenceSequences, lazy, AlignmentReader, Header};
@@ -292,15 +292,12 @@ where
     /// }
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn query<'a, I>(
+    pub fn query<'a>(
         &'a mut self,
         header: &'a Header,
-        index: &I,
+        index: &csi::Index,
         region: &Region,
-    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'a>
-    where
-        I: BinningIndex,
-    {
+    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'a> {
         use self::query::{FilterByRegion, Query};
 
         let reference_sequence_id = resolve_region(header.reference_sequences(), region)?;

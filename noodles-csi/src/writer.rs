@@ -9,7 +9,7 @@ use super::{
         reference_sequence::{bin::Chunk, Bin, Metadata},
         Header, ReferenceSequence,
     },
-    BinningIndex, Index, MAGIC_NUMBER,
+    Index, MAGIC_NUMBER,
 };
 
 /// A CSI writer.

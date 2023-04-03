@@ -16,7 +16,7 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
-use noodles_csi::BinningIndex;
+use noodles_csi as csi;
 use noodles_vcf as vcf;
 
 use super::Record;
@@ -260,15 +260,12 @@ where
     /// }
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn query<I>(
+    pub fn query(
         &mut self,
         contig_string_map: &ContigStringMap,
-        index: &I,
+        index: &csi::Index,
         region: &Region,
-    ) -> io::Result<Query<'_, R>>
-    where
-        I: BinningIndex,
-    {
+    ) -> io::Result<Query<'_, R>> {
         let reference_sequence_id = resolve_region(contig_string_map, region)?;
         let chunks = index.query(reference_sequence_id, region.interval())?;
 

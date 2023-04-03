@@ -4,7 +4,7 @@
 
 use std::{env, io};
 
-use noodles_csi::{self as csi, BinningIndex};
+use noodles_csi as csi;
 
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
