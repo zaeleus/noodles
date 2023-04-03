@@ -11,8 +11,8 @@ repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-cram"
 
 [features]
-async = ["async-compression", "futures", "pin-project-lite", "tokio"]
-libdeflate = ["libdeflater"]
+async = ["dep:async-compression", "dep:futures", "dep:pin-project-lite", "dep:tokio"]
+libdeflate = ["dep:libdeflater"]
 
 [dependencies]
 bitflags.workspace = true
