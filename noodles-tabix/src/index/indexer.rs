@@ -1,8 +1,8 @@
 use noodles_core::Position;
-use noodles_csi::index::{
-    header::ReferenceSequenceNames,
-    reference_sequence::{self, bin::Chunk},
-    Header,
+use noodles_csi::{
+    self as csi,
+    index::{header::ReferenceSequenceNames, reference_sequence::bin::Chunk, Header},
+    BinningIndex,
 };
 
 use super::Index;
@@ -11,9 +11,8 @@ use super::Index;
 #[derive(Debug, Default)]
 pub struct Indexer {
     header: Header,
-    current_reference_sequence_name: String,
     reference_sequence_names: ReferenceSequenceNames,
-    reference_sequence_builders: Vec<reference_sequence::Builder>,
+    indexer: csi::index::Indexer,
 }
 
 impl Indexer {
@@ -58,24 +57,13 @@ impl Indexer {
         end: Position,
         chunk: Chunk,
     ) {
-        use super::{DEPTH, MIN_SHIFT};
+        // TODO: Validate contiguous regions.
+        let (reference_sequence_id, _) = self
+            .reference_sequence_names
+            .insert_full(reference_sequence_name.into());
 
-        if reference_sequence_name != self.current_reference_sequence_name {
-            self.reference_sequence_builders
-                .push(reference_sequence::Builder::default());
-
-            self.current_reference_sequence_name = reference_sequence_name.into();
-
-            self.reference_sequence_names
-                .insert(reference_sequence_name.into());
-        }
-
-        let reference_sequence_builder = self
-            .reference_sequence_builders
-            .last_mut()
-            .expect("reference_sequence_builders cannot be empty");
-
-        reference_sequence_builder.add_record(MIN_SHIFT, DEPTH, start, end, true, chunk);
+        let alignment_context = Some((reference_sequence_id, start, end, true));
+        self.indexer.add_record(alignment_context, chunk).unwrap();
     }
 
     /// Builds a tabix index.
@@ -88,16 +76,12 @@ impl Indexer {
     /// let index = indexer.build();
     /// ```
     pub fn build(self) -> Index {
-        let reference_sequences = self
-            .reference_sequence_builders
-            .into_iter()
-            .map(|b| b.build())
-            .collect();
+        let index = self.indexer.build(self.reference_sequence_names.len());
 
         Index::builder()
             .set_header(self.header)
             .set_reference_sequence_names(self.reference_sequence_names)
-            .set_reference_sequences(reference_sequences)
+            .set_reference_sequences(index.reference_sequences().to_vec())
             .build()
     }
 }
