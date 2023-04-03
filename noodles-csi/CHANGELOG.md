@@ -6,6 +6,11 @@
 
   * csi/index: Add an indexer (`csi::index::Indexer`) ([#157]).
 
+  * csi/index: Add `Header`.
+
+    This is the same structure as a tabix header. It was moved from
+    `noodles_tabix::index::Header`.
+
   * csi/index/reference_sequence: Add a linear index
     (`ReferenceSequence::linear_index`).
 
@@ -13,12 +18,13 @@
 
   * csi/index/reference_sequence/builder: Build linear index.
 
-  * csi/index: Add `Header`.
-
-    This is the same structure as a tabix header. It was moved from
-    `noodles_tabix::index::Header`.
-
 [#157]: https://github.com/zaeleus/noodles/issues/157
+
+### Changed
+
+  * csi/index/reference_sequence: Increase the visibility of `Builder`.
+
+  * csi/index/reference_sequence/bin: Increase the visibility of `Builder`.
 
 ### Removed
 
@@ -29,12 +35,6 @@
 
     This is no longer used, as there is only a single concrete
     `ReferenceSequence` now.
-
-### Changed
-
-  * csi/index/reference_sequence: Increase the visibility of `Builder`.
-
-  * csi/index/reference_sequence/bin: Increase the visibility of `Builder`.
 
 ## 0.14.0 - 2023-03-03
 
