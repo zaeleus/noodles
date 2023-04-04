@@ -2,7 +2,7 @@ bitflags::bitflags! {
     /// SAM record flags.
     #[derive(Default)]
     pub struct Flags: u16 {
-        /// Read is segmented (0x01).
+        /// Read is segmented (`0x01`).
         const SEGMENTED = 0x01;
         /// Each segment in the read is properly aligned (`0x02`).
         const PROPERLY_ALIGNED = 0x02;
