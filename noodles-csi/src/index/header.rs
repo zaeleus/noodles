@@ -19,8 +19,7 @@ pub struct Header {
     end_position_index: Option<usize>,
     line_comment_prefix: u8,
     line_skip_count: u32,
-    /// A set of ordered reference sequence names.
-    pub reference_sequence_names: ReferenceSequenceNames,
+    reference_sequence_names: ReferenceSequenceNames,
 }
 
 impl Header {
@@ -162,6 +161,24 @@ impl Header {
     /// ```
     pub fn reference_sequence_names(&self) -> &ReferenceSequenceNames {
         &self.reference_sequence_names
+    }
+
+    /// Returns a mutable reference to the reference sequence names.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_csi::{self as csi, index::header::ReferenceSequenceNames};
+    ///
+    /// let reference_sequence_names = ReferenceSequenceNames::new();
+    ///
+    /// let mut header = csi::index::Header::default();
+    /// *header.reference_sequence_names_mut() = reference_sequence_names.clone();
+    ///
+    /// assert_eq!(header.reference_sequence_names(), &reference_sequence_names);
+    /// ```
+    pub fn reference_sequence_names_mut(&mut self) -> &mut ReferenceSequenceNames {
+        &mut self.reference_sequence_names
     }
 }
 
