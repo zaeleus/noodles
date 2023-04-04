@@ -105,7 +105,7 @@ impl Builder {
             depth: self.depth,
             header: self.header,
             reference_sequences: self.reference_sequences,
-            n_no_coor: self.unplaced_unmapped_record_count,
+            unplaced_unmapped_record_count: self.unplaced_unmapped_record_count,
         }
     }
 }

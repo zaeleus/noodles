@@ -23,7 +23,7 @@ pub struct Index {
     depth: u8,
     header: Option<Header>,
     reference_sequences: Vec<ReferenceSequence>,
-    n_no_coor: Option<u64>,
+    unplaced_unmapped_record_count: Option<u64>,
 }
 
 impl Index {
@@ -101,7 +101,7 @@ impl Index {
     /// assert!(index.unplaced_unmapped_record_count().is_none());
     /// ```
     pub fn unplaced_unmapped_record_count(&self) -> Option<u64> {
-        self.n_no_coor
+        self.unplaced_unmapped_record_count
     }
 
     /// Returns the chunks that overlap with the given region.
