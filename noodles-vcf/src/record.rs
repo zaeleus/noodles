@@ -16,13 +16,13 @@ pub(crate) mod value;
 
 pub use self::{
     alternate_bases::AlternateBases, builder::Builder, chromosome::Chromosome, field::Field,
-    filters::Filters, genotypes::Genotypes, ids::Ids, info::Info, parser::ParseError,
-    position::Position, quality_score::QualityScore, reference_bases::ReferenceBases,
+    filters::Filters, genotypes::Genotypes, ids::Ids, info::Info, position::Position,
+    quality_score::QualityScore, reference_bases::ReferenceBases,
 };
 
 use std::{error, fmt, num, str::FromStr};
 
-use super::Header;
+use super::{reader::record::ParseError, Header};
 
 pub(crate) const MISSING_FIELD: &str = ".";
 pub(crate) const FIELD_DELIMITER: char = '\t';
@@ -59,7 +59,7 @@ impl Record {
     /// let s = "sq0\t8\t.\tA\t.\t.\tPASS\t.";
     /// let header = vcf::Header::default();
     /// let record = vcf::Record::try_from_str(s, &header)?;
-    /// # Ok::<_, vcf::record::ParseError>(())
+    /// # Ok::<_, vcf::reader::record::ParseError>(())
     /// ```
     pub fn try_from_str(s: &str, header: &Header) -> Result<Self, ParseError> {
         parser::parse(s, header)

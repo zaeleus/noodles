@@ -38,6 +38,8 @@
 
     `Info` no longer handles "." as missing.
 
+  * vcf/record/parser: Use `vcf::reader::parse_record` to parse records.
+
   * vcf/record/reference_bases: Move missing field value parsing to record
     parser.
 
@@ -46,6 +48,10 @@
   * vcf/writer: Require header when writing a record (`Writer::write_record`).
 
 ### Removed
+
+  * vcf/record: Remove `ParseError`.
+
+    Use `vcf::reader::record::ParseError` instead.
 
   * vcf/record/genotypes: Remove `Deref` and `DerefMut` for `Genotypes`.
 
