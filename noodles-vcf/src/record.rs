@@ -61,7 +61,7 @@ impl Record {
     /// # Ok::<_, vcf::reader::record::ParseError>(())
     /// ```
     pub fn try_from_str(s: &str, header: &Header) -> Result<Self, ParseError> {
-        parser::parse(s, header)
+        Self::try_from((header, s))
     }
 
     /// Returns a builder to create a record from each of its fields.
@@ -773,6 +773,14 @@ impl FromStr for Record {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Self::try_from_str(s, &Header::default())
+    }
+}
+
+impl TryFrom<(&Header, &str)> for Record {
+    type Error = ParseError;
+
+    fn try_from((header, s): (&Header, &str)) -> Result<Self, Self::Error> {
+        parser::parse(s, header)
     }
 }
 
