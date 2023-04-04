@@ -22,12 +22,17 @@ where
     const LINE_FEED: u8 = b'\n';
 
     let mut buf = Vec::new();
+
+    let mut is_first_line = true;
     let mut is_eol = false;
 
-    for i in 0.. {
+    loop {
         let src = reader.fill_buf().await?;
 
-        if (i == 0 || is_eol) && src.first().map(|&b| b != HEADER_PREFIX).unwrap_or(true) {
+        let is_eof = src.is_empty();
+        let is_end_of_header = || (is_first_line || is_eol) && src[0] != HEADER_PREFIX;
+
+        if is_eof || is_end_of_header() {
             break;
         }
 
@@ -39,10 +44,39 @@ where
             (false, src.len())
         };
 
+        is_first_line = false;
         is_eol = read_eol;
 
         reader.consume(len);
     }
 
     String::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_read_raw_header() -> io::Result<()> {
+        static DATA: &[u8] = b"\
+##fileformat=VCFv4.3
+##fileDate=20200501
+#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
+sq0\t1\t.\tA\t.\t.\tPASS\t.
+";
+
+        let mut reader = DATA;
+
+        let actual = read_raw_header(&mut reader).await?;
+        let expected = "\
+##fileformat=VCFv4.3
+##fileDate=20200501
+#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
+";
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
 }
