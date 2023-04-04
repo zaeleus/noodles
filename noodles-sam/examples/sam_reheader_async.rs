@@ -22,7 +22,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(BufReader::new)
         .map(sam::AsyncReader::new)?;
 
-    let mut header: sam::Header = reader.read_header().await?.parse()?;
+    let mut header: sam::Header = reader.read_header().await?;
     header.add_comment("a comment added by noodles-sam");
 
     let mut writer = sam::AsyncWriter::new(io::stdout());

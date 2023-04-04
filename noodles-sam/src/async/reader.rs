@@ -70,16 +70,11 @@ where
         self.inner
     }
 
-    /// Reads the raw SAM header.
-    ///
-    /// This reads all header lines prefixed with a `@` (at sign).
+    /// Reads the SAM header.
     ///
     /// The position of the stream is expected to be at the start.
     ///
-    /// This returns the raw SAM header as a [`String`], and as such, it is no necessarily valid.
-    /// The raw header can subsequently be parsed as a [`crate::Header`].
-    ///
-    /// The SAM header is optional, and if it is missing, an empty string is returned.
+    /// The SAM header is optional, and if it is missing, an empty [`Header`] is returned.
     ///
     /// # Examples
     ///
@@ -96,12 +91,10 @@ where
     ///
     /// let mut reader = sam::AsyncReader::new(&data[..]);
     /// let header = reader.read_header().await?;
-    ///
-    /// assert_eq!(header, "@HD\tVN:1.6\n");
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_header(&mut self) -> io::Result<String> {
+    pub async fn read_header(&mut self) -> io::Result<Header> {
         read_header(&mut self.inner).await
     }
 
@@ -130,7 +123,7 @@ where
     /// ";
     ///
     /// let mut reader = sam::AsyncReader::new(&data[..]);
-    /// let header = reader.read_header().await?.parse()?;
+    /// let header = reader.read_header().await?;
     ///
     /// let mut record = Record::default();
     /// reader.read_record(&header, &mut record).await?;
@@ -161,7 +154,7 @@ where
     /// ";
     ///
     /// let mut reader = sam::AsyncReader::new(&data[..]);
-    /// let header = reader.read_header().await?.parse()?;
+    /// let header = reader.read_header().await?;
     ///
     /// let mut records = reader.records(&header);
     ///

@@ -8,6 +8,11 @@
 
 ### Changed
 
+  * sam/async/reader: Change `Reader::read_header` to return a parsed header
+    (`Header`).
+
+    This no longer returns a raw string.
+
   * sam/reader: Change `Reader::read_header` to return a parsed header
     (`Header`).
 

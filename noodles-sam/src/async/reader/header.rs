@@ -1,6 +1,18 @@
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt};
 
-pub(super) async fn read_header<R>(reader: &mut R) -> io::Result<String>
+use crate::Header;
+
+pub(super) async fn read_header<R>(reader: &mut R) -> io::Result<Header>
+where
+    R: AsyncBufRead + Unpin,
+{
+    read_raw_header(reader).await.and_then(|s| {
+        s.parse()
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })
+}
+
+async fn read_raw_header<R>(reader: &mut R) -> io::Result<String>
 where
     R: AsyncBufRead + Unpin,
 {

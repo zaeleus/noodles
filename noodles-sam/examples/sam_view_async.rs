@@ -20,7 +20,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(BufReader::new)
         .map(sam::AsyncReader::new)?;
 
-    let header = reader.read_header().await?.parse()?;
+    let header = reader.read_header().await?;
 
     let mut writer = sam::AsyncWriter::new(io::stdout());
 
