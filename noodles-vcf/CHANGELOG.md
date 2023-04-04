@@ -53,6 +53,10 @@
 
     Use `vcf::reader::record::ParseError` instead.
 
+  * vcf/record: Remove `Field`.
+
+    This is no longer used.
+
   * vcf/record/genotypes: Remove `Deref` and `DerefMut` for `Genotypes`.
 
   * vcf/record/genotypes: Remove `Values`.

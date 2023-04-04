@@ -3,7 +3,6 @@
 pub mod alternate_bases;
 pub mod builder;
 pub mod chromosome;
-mod field;
 pub mod filters;
 pub mod genotypes;
 pub mod ids;
@@ -15,9 +14,9 @@ pub mod reference_bases;
 pub(crate) mod value;
 
 pub use self::{
-    alternate_bases::AlternateBases, builder::Builder, chromosome::Chromosome, field::Field,
-    filters::Filters, genotypes::Genotypes, ids::Ids, info::Info, position::Position,
-    quality_score::QualityScore, reference_bases::ReferenceBases,
+    alternate_bases::AlternateBases, builder::Builder, chromosome::Chromosome, filters::Filters,
+    genotypes::Genotypes, ids::Ids, info::Info, position::Position, quality_score::QualityScore,
+    reference_bases::ReferenceBases,
 };
 
 use std::{error, fmt, num, str::FromStr};
