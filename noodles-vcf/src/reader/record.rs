@@ -1,3 +1,5 @@
+//! VCF record reader.
+
 mod chromosome;
 mod filters;
 mod genotypes;

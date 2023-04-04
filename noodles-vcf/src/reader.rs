@@ -3,7 +3,7 @@
 mod builder;
 mod header;
 pub(crate) mod query;
-mod record;
+pub mod record;
 mod records;
 
 pub use self::{builder::Builder, query::Query, records::Records};
