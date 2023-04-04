@@ -87,7 +87,7 @@ impl From<ParseError> for core::Error {
     }
 }
 
-pub(super) fn parse_record(
+pub(crate) fn parse_record(
     mut s: &str,
     header: &Header,
     record: &mut Record,

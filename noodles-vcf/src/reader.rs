@@ -6,6 +6,7 @@ pub(crate) mod query;
 pub mod record;
 mod records;
 
+pub(crate) use self::record::parse_record;
 pub use self::{builder::Builder, query::Query, records::Records};
 
 use std::io::{self, BufRead, Read, Seek};
@@ -14,7 +15,7 @@ use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi as csi;
 
-use self::{header::read_header, record::parse_record};
+use self::header::read_header;
 use super::{Header, Record, VariantReader};
 
 /// A VCF reader.
