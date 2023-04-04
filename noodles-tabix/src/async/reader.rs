@@ -74,13 +74,8 @@ where
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let mut header = read_header(reader).await?;
-
-    let reference_sequence_names = read_reference_sequence_names(reader).await?;
-    header.reference_sequence_names = reference_sequence_names;
-
+    let header = read_header(reader).await?;
     let reference_sequences = read_reference_sequences(reader, n_ref).await?;
-
     let unplaced_unmapped_record_count = read_unplaced_unmapped_record_count(reader).await?;
 
     let mut builder = Index::builder()
@@ -148,6 +143,8 @@ where
         u32::try_from(b).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
+    let reference_sequence_names = read_reference_sequence_names(reader).await?;
+
     Ok(Header::builder()
         .set_format(format)
         .set_reference_sequence_name_index(col_seq)
@@ -155,6 +152,7 @@ where
         .set_end_position_index(col_end)
         .set_line_comment_prefix(meta)
         .set_line_skip_count(skip)
+        .set_reference_sequence_names(reference_sequence_names)
         .build())
 }
 
@@ -372,6 +370,7 @@ mod tests {
             0x05, 0x00, 0x00, 0x00, // col_end = 5
             0x23, 0x00, 0x00, 0x00, // meta = '#'
             0x00, 0x00, 0x00, 0x00, // skip = 0
+            0x00, 0x00, 0x00, 0x00, // l_nm = 0
         ];
 
         let mut reader = &data[..];
