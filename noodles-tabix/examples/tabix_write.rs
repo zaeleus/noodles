@@ -63,7 +63,7 @@ fn main() -> io::Result<()> {
         let chunk = Chunk::new(start_position, end_position);
 
         let (reference_sequence_name, start, end) = parse_record(buf.trim_end())?;
-        indexer.add_record(reference_sequence_name, start, end, chunk);
+        indexer.add_record(reference_sequence_name, start, end, chunk)?;
 
         start_position = end_position;
     }

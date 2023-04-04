@@ -1,3 +1,5 @@
+use std::io;
+
 use noodles_core::Position;
 use noodles_csi::{
     self as csi,
@@ -47,8 +49,8 @@ impl Indexer {
     /// indexer.add_record("sq0", start, end, Chunk::new(
     ///     bgzf::VirtualPosition::from(144),
     ///     bgzf::VirtualPosition::from(233),
-    /// ));
-    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
+    /// ))?;
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn add_record(
         &mut self,
@@ -56,14 +58,13 @@ impl Indexer {
         start: Position,
         end: Position,
         chunk: Chunk,
-    ) {
-        // TODO: Validate contiguous regions.
+    ) -> io::Result<()> {
         let (reference_sequence_id, _) = self
             .reference_sequence_names
             .insert_full(reference_sequence_name.into());
 
         let alignment_context = Some((reference_sequence_id, start, end, true));
-        self.indexer.add_record(alignment_context, chunk).unwrap();
+        self.indexer.add_record(alignment_context, chunk)
     }
 
     /// Builds a tabix index.
