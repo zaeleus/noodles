@@ -11,7 +11,7 @@ repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-vcf"
 
 [features]
-async = ["futures", "noodles-bgzf/async", "noodles-tabix/async", "tokio"]
+async = ["dep:futures", "dep:tokio", "noodles-bgzf/async", "noodles-tabix/async"]
 
 [dependencies]
 indexmap.workspace = true
