@@ -4,6 +4,9 @@
 
 ### Added
 
+  * csi/async: Add a convenience write function to write an index to a file
+    (`csi::r#async::write`).
+
   * csi/index: Add an indexer (`csi::index::Indexer`) ([#157]).
 
   * csi/index: Add `Header`.
