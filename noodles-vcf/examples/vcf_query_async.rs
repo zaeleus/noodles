@@ -24,7 +24,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(bgzf::AsyncReader::new)
         .map(vcf::AsyncReader::new)?;
 
-    let header = reader.read_header().await?.parse()?;
+    let header = reader.read_header().await?;
 
     let index = tabix::r#async::read(src.with_extension("gz.tbi")).await?;
     let mut query = reader.query(&header, &index, &region)?;

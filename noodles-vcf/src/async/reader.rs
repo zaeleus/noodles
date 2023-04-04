@@ -28,7 +28,7 @@ const HEADER_PREFIX: u8 = b'#';
 ///
 /// ```no_run
 /// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # async fn main() -> std::io::Result<()> {
 /// use futures::TryStreamExt;
 /// use noodles_vcf as vcf;
 /// use tokio::{fs::File, io::BufReader};
@@ -38,7 +38,7 @@ const HEADER_PREFIX: u8 = b'#';
 ///     .map(BufReader::new)
 ///     .map(vcf::AsyncReader::new)?;
 ///
-/// let header = reader.read_header().await?.parse()?;
+/// let header = reader.read_header().await?;
 ///
 /// let mut records = reader.records(&header);
 ///
@@ -69,15 +69,12 @@ where
         Self { inner }
     }
 
-    /// Reads the raw VCF header.
+    /// Reads the VCF header.
     ///
     /// This reads all header lines prefixed with a `#` (number sign), which includes the header
-    /// header (`#CHROM`...).
+    /// header (`#CHROM`...), and parses it as a [`crate::Header`].
     ///
     /// The position of the stream is expected to be at the start.
-    ///
-    /// This returns the raw VCF header as a [`String`], and as such, it is not necessarily valid.
-    /// The raw header can subsequently be parsed as a [`crate::Header`].
     ///
     /// # Examples
     ///
@@ -95,12 +92,10 @@ where
     ///
     /// let mut reader = vcf::AsyncReader::new(&data[..]);
     /// let header = reader.read_header().await?;
-    ///
-    /// assert_eq!(header, "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n");
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_header(&mut self) -> io::Result<String> {
+    pub async fn read_header(&mut self) -> io::Result<Header> {
         read_header(&mut self.inner).await
     }
 
@@ -158,7 +153,7 @@ where
     ///
     /// ```
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # async fn main() -> std::io::Result<()> {
     /// use futures::TryStreamExt;
     /// use noodles_vcf as vcf;
     ///
@@ -168,7 +163,7 @@ where
     /// ";
     ///
     /// let mut reader = vcf::AsyncReader::new(&data[..]);
-    /// let header = reader.read_header().await?.parse()?;
+    /// let header = reader.read_header().await?;
     ///
     /// let mut records = reader.records(&header);
     ///
@@ -275,7 +270,7 @@ where
     ///     .map(bgzf::AsyncReader::new)
     ///     .map(vcf::AsyncReader::new)?;
     ///
-    /// let header = reader.read_header().await?.parse()?;
+    /// let header = reader.read_header().await?;
     ///
     /// let index = tabix::read("sample.vcf.gz.tbi")?;
     /// let region = "sq0:8-13".parse()?;
@@ -307,7 +302,17 @@ where
     }
 }
 
-async fn read_header<R>(reader: &mut R) -> io::Result<String>
+async fn read_header<R>(reader: &mut R) -> io::Result<Header>
+where
+    R: AsyncBufRead + Unpin,
+{
+    read_raw_header(reader).await.and_then(|s| {
+        s.parse()
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+    })
+}
+
+async fn read_raw_header<R>(reader: &mut R) -> io::Result<String>
 where
     R: AsyncBufRead + Unpin,
 {

@@ -31,7 +31,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(BufReader::new)
         .map(vcf::AsyncReader::new)?;
 
-    let mut header = reader.read_header().await?.parse()?;
+    let mut header = reader.read_header().await?;
     add_comment(&mut header);
 
     let mut writer = vcf::AsyncWriter::new(io::stdout());

@@ -18,6 +18,11 @@
 
 ### Changed
 
+  * vcf/async/reader: Change `Reader::read_header` to return a parsed header
+    (`Header`).
+
+    This no longer returns a raw string.
+
   * vcf/reader: Change `Reader::read_header` to return a parsed header
     (`Header`).
 
