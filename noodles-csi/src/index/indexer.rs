@@ -8,7 +8,7 @@ use super::{
 };
 
 /// A CSI indexer.
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Indexer {
     min_shift: u8,
     depth: u8,
@@ -154,5 +154,34 @@ impl Indexer {
             let reference_sequence = reference_sequence_builder.build();
             self.reference_sequences.push(reference_sequence);
         }
+    }
+}
+
+impl Default for Indexer {
+    fn default() -> Self {
+        Self {
+            min_shift: 14,
+            depth: 5,
+            header: None,
+            reference_sequence_builder: reference_sequence::Builder::default(),
+            reference_sequences: Vec::new(),
+            unplaced_unmapped_record_count: 0,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_default() {
+        let indexer = Indexer::default();
+
+        assert_eq!(indexer.min_shift, 14);
+        assert_eq!(indexer.depth, 5);
+        assert!(indexer.header.is_none());
+        assert!(indexer.reference_sequences.is_empty());
+        assert_eq!(indexer.unplaced_unmapped_record_count, 0);
     }
 }

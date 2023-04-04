@@ -12,9 +12,6 @@ use noodles_bgzf as bgzf;
 use noodles_csi::{self as csi, index::reference_sequence::bin::Chunk};
 use noodles_sam::{self as sam, alignment::Record};
 
-const MIN_SHIFT: u8 = 14;
-const DEPTH: u8 = 5;
-
 fn is_coordinate_sorted(header: &sam::Header) -> bool {
     use sam::header::record::value::map::header::SortOrder;
 
@@ -44,7 +41,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut record = Record::default();
 
-    let mut indexer = csi::index::Indexer::new(MIN_SHIFT, DEPTH);
+    let mut indexer = csi::index::Indexer::default();
     let mut start_position = reader.get_ref().virtual_position();
 
     while reader.read_record(&header, &mut record)? != 0 {
