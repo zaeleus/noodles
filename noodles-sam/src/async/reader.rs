@@ -1,6 +1,9 @@
+mod header;
+
 use futures::{stream, Stream};
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt};
 
+use self::header::read_header;
 use crate::{alignment::Record, Header};
 
 /// An async SAM reader.
@@ -182,39 +185,6 @@ where
             },
         ))
     }
-}
-
-async fn read_header<R>(reader: &mut R) -> io::Result<String>
-where
-    R: AsyncBufRead + Unpin,
-{
-    const PREFIX: u8 = b'@';
-    const LINE_FEED: u8 = b'\n';
-
-    let mut header_buf = Vec::new();
-    let mut is_eol = false;
-
-    for i in 0.. {
-        let buf = reader.fill_buf().await?;
-
-        if (i == 0 || is_eol) && buf.first().map(|&b| b != PREFIX).unwrap_or(true) {
-            break;
-        }
-
-        let (read_eol, len) = if let Some(i) = buf.iter().position(|&b| b == LINE_FEED) {
-            header_buf.extend(&buf[..=i]);
-            (true, i + 1)
-        } else {
-            header_buf.extend(buf);
-            (false, buf.len())
-        };
-
-        is_eol = read_eol;
-
-        reader.consume(len);
-    }
-
-    String::from_utf8(header_buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 async fn read_record<R>(reader: &mut R, header: &Header, record: &mut Record) -> io::Result<usize>
