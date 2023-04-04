@@ -23,6 +23,12 @@
 
     This no longer returns a raw string.
 
+  * vcf/async/reader: Change `Reader::read_record` to read into a `Record`
+    buffer.
+
+    This now requires a `Header` and `Record` buffer. It no longer returns the
+    raw string.
+
   * vcf/reader: Change `Reader::read_header` to return a parsed header
     (`Header`).
 

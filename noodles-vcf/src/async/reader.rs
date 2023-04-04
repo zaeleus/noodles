@@ -50,6 +50,7 @@ const HEADER_PREFIX: u8 = b'#';
 /// ```
 pub struct Reader<R> {
     inner: R,
+    buf: String,
 }
 
 impl<R> Reader<R>
@@ -66,7 +67,10 @@ where
     /// let reader = vcf::AsyncReader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
-        Self { inner }
+        Self {
+            inner,
+            buf: String::new(),
+        }
     }
 
     /// Reads the VCF header.
@@ -99,17 +103,15 @@ where
         read_header(&mut self.inner).await
     }
 
-    /// Reads a single raw VCF record.
+    /// Reads a single VCF record.
     ///
-    /// This reads from the underlying stream until a newline is reached and appends it to the
-    /// given buffer, sans the final newline. The buffer does not necessarily represent a valid VCF
-    /// record but can subsequently be parsed as a [`crate::Record`].
+    /// This reads a line from the underlying stream until a newline is reached and parses that
+    /// line into the given record.
     ///
     /// The stream is expected to be directly after the header or at the start of another record.
     ///
     /// It is more ergonomic to read records using a stream (see [`Self::records`] and
-    /// [`Self::query`]), but using this method allows control of the line buffer and whether the
-    /// raw record should be parsed.
+    /// [`Self::query`]), but using this method allows control of the record buffer.
     ///
     /// If successful, the number of bytes read is returned. If the number of bytes read is 0, the
     /// stream reached EOF.
@@ -129,17 +131,27 @@ where
     /// ";
     ///
     /// let mut reader = vcf::AsyncReader::new(&data[..]);
-    /// reader.read_header().await?;
+    /// let header = reader.read_header().await?;
     ///
-    /// let mut buf = String::new();
-    /// reader.read_record(&mut buf).await?;
-    ///
-    /// assert_eq!(buf, "sq0\t1\t.\tA\t.\t.\tPASS\t.");
+    /// let mut record = vcf::Record::default();
+    /// reader.read_record(&header, &mut record).await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_record(&mut self, buf: &mut String) -> io::Result<usize> {
-        read_line(&mut self.inner, buf).await
+    pub async fn read_record(&mut self, header: &Header, record: &mut Record) -> io::Result<usize> {
+        use crate::reader::parse_record;
+
+        self.buf.clear();
+
+        match read_line(&mut self.inner, &mut self.buf).await? {
+            0 => Ok(0),
+            n => {
+                parse_record(&self.buf, header, record)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+                Ok(n)
+            }
+        }
     }
 
     /// Returns an (async) stream over records starting from the current (input) stream position.
@@ -177,19 +189,17 @@ where
         &'r mut self,
         header: &'h Header,
     ) -> impl Stream<Item = io::Result<Record>> + 'r {
-        Box::pin(stream::try_unfold(
-            (&mut self.inner, String::new()),
-            move |(mut reader, mut buf)| async move {
-                buf.clear();
+        Box::pin(stream::try_unfold(self, move |reader| async move {
+            let mut record = Record::default();
 
-                match read_line(&mut reader, &mut buf).await? {
-                    0 => Ok(None),
-                    _ => Record::try_from((header, buf.as_ref()))
-                        .map(|record| Some((record, (reader, buf))))
-                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-                }
-            },
-        ))
+            reader
+                .read_record(header, &mut record)
+                .await
+                .map(|n| match n {
+                    0 => None,
+                    _ => Some((record, reader)),
+                })
+        }))
     }
 }
 

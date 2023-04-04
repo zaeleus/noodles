@@ -91,12 +91,13 @@ async fn next_record<R>(
 where
     R: AsyncRead + Unpin,
 {
-    let mut buf = String::new();
+    let mut record = Record::default();
 
-    match reader.read_record(&mut buf).await? {
-        0 => Ok(None),
-        _ => Record::try_from((header, buf.as_ref()))
-            .map(Some)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-    }
+    reader
+        .read_record(header, &mut record)
+        .await
+        .map(|n| match n {
+            0 => None,
+            _ => Some(record),
+        })
 }
