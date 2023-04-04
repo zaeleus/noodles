@@ -48,6 +48,10 @@ pub use noodles_gff as gff;
 #[doc(inline)]
 pub use noodles_gtf as gtf;
 
+#[cfg(feature = "htsget")]
+#[doc(inline)]
+pub use noodles_htsget as htsget;
+
 #[cfg(feature = "sam")]
 #[doc(inline)]
 pub use noodles_sam as sam;
