@@ -212,7 +212,6 @@ where
     /// assert_eq!(reader.virtual_position(), bgzf::VirtualPosition::default());
     /// # Ok::<(), io::Error>(())
     /// ```
-    ///
     pub fn virtual_position(&self) -> bgzf::VirtualPosition {
         self.inner.virtual_position()
     }
