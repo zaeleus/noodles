@@ -1,4 +1,4 @@
-//! Htsget request.
+//! htsget request.
 
 mod builder;
 mod class;
