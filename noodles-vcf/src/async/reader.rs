@@ -184,12 +184,12 @@ where
     ) -> impl Stream<Item = io::Result<Record>> + 'r {
         Box::pin(stream::try_unfold(
             (&mut self.inner, String::new()),
-            |(mut reader, mut buf)| async {
+            move |(mut reader, mut buf)| async move {
                 buf.clear();
 
                 match read_line(&mut reader, &mut buf).await? {
                     0 => Ok(None),
-                    _ => Record::try_from_str(&buf, header)
+                    _ => Record::try_from((header, buf.as_ref()))
                         .map(|record| Some((record, (reader, buf))))
                         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
                 }

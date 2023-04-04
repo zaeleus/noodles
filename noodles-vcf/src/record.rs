@@ -60,6 +60,7 @@ impl Record {
     /// let record = vcf::Record::try_from_str(s, &header)?;
     /// # Ok::<_, vcf::reader::record::ParseError>(())
     /// ```
+    #[deprecated(since = "0.27.0", note = "Use `TryFrom<(&Header, &str)>` instead.")]
     pub fn try_from_str(s: &str, header: &Header) -> Result<Self, ParseError> {
         Self::try_from((header, s))
     }
@@ -772,7 +773,7 @@ impl FromStr for Record {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Self::try_from_str(s, &Header::default())
+        Self::try_from((&Header::default(), s))
     }
 }
 

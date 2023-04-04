@@ -95,7 +95,7 @@ where
 
     match reader.read_record(&mut buf).await? {
         0 => Ok(None),
-        _ => Record::try_from_str(&buf, header)
+        _ => Record::try_from((header, buf.as_ref()))
             .map(Some)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
     }

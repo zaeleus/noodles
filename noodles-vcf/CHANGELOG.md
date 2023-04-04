@@ -51,6 +51,12 @@
 
   * vcf/writer: Require header when writing a record (`Writer::write_record`).
 
+### Deprecated
+
+  * vcf/record: Deprecate `Record::try_from_str`.
+
+    Use `TryFrom<(&Header, &str)>` instead.
+
 ### Removed
 
   * vcf/record: Remove `ParseError`.
