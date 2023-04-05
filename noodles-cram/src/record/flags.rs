@@ -1,6 +1,6 @@
 bitflags::bitflags! {
     /// CRAM record flags.
-    #[derive(Default)]
+    #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
     pub struct Flags: u8 {
         /// The per-base quality scores are stored as an array, as opposed to read features
         /// (`0x01`).

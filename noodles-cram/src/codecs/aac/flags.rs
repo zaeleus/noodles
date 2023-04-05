@@ -1,5 +1,6 @@
 bitflags::bitflags! {
     /// Adaptive arithmetic coder flags.
+    #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
     pub struct Flags: u8 {
         /// Order-1 entropy coding.
         const ORDER = 0x01;

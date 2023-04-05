@@ -1,4 +1,5 @@
 bitflags::bitflags! {
+    #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
     pub struct Flags: u8 {
         const RESERVED = 0x01;
         const DO_DEDUP = 0x02;

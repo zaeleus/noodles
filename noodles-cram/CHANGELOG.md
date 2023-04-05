@@ -8,6 +8,8 @@
 
 ### Changed
 
+  * cram: Update to bitflags 2.0.2.
+
   * cram/reader: Change `Reader::read_file_header` to return a parsed header
     (`sam::Header`).
 

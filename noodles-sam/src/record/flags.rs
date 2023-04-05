@@ -1,6 +1,6 @@
 bitflags::bitflags! {
     /// SAM record flags.
-    #[derive(Default)]
+    #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
     pub struct Flags: u16 {
         /// Read is segmented (`0x01`).
         const SEGMENTED = 0x01;

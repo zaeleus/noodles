@@ -1,6 +1,6 @@
 bitflags::bitflags! {
     /// CRAM record next mate flags.
-    #[derive(Default)]
+    #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
     pub struct NextMateFlags: u8 {
         /// The mate is on the negative strand (`0x01`).
         const ON_NEGATIVE_STRAND = 0x01;

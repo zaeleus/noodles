@@ -1,4 +1,5 @@
 bitflags::bitflags! {
+    #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
     pub struct Flags: u8 {
         const MULTI_PARAM = 0x01;
         const HAVE_S_TAB = 0x02;

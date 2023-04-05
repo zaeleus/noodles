@@ -8,6 +8,8 @@
 
 ### Changed
 
+  * sam: Update to bitflags 2.0.2.
+
   * sam/async/reader: Change `Reader::read_header` to return a parsed header
     (`Header`).
 
