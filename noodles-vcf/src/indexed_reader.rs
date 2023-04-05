@@ -62,6 +62,11 @@ where
     pub fn records<'r, 'h>(&'r mut self, header: &'h Header) -> Records<'r, 'h, bgzf::Reader<R>> {
         self.inner.records(header)
     }
+
+    /// Returns the associated index.
+    pub fn index(&self) -> &csi::Index {
+        &self.index
+    }
 }
 
 impl<R> IndexedReader<R>

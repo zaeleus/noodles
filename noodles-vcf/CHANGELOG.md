@@ -6,6 +6,8 @@
 
   * vcf/header/record/value/map/contig: Add `md5` and `URL` as a standard tags.
 
+  * vcf/indexed_reader: Add getter for index (`IndexedReader::index`).
+
   * vcf/record: Implement `Default`.
 
     This is meant as a convenience to more easily create a mutable buffer.
