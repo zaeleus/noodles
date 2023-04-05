@@ -36,6 +36,9 @@ impl Builder {
 
     /// Builds an indexed BAM reader from a path.
     ///
+    /// If no index is set, this will attempt to read an associated index at `<src>.bai` or
+    /// `<src>.csi`, in that order.
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -50,8 +53,7 @@ impl Builder {
         let src = src.as_ref();
 
         if self.index.is_none() {
-            let index_src = build_index_src(src);
-            self.index = bai::read(index_src).map(Some)?;
+            self.index = read_associated_index(src).map(Some)?;
         }
 
         let file = File::open(src)?;
@@ -85,12 +87,25 @@ impl Builder {
     }
 }
 
-fn build_index_src<P>(src: P) -> PathBuf
+fn read_associated_index<P>(src: P) -> io::Result<csi::Index>
 where
     P: AsRef<Path>,
 {
-    const EXT: &str = "bai";
-    push_ext(src.as_ref().into(), EXT)
+    let src = src.as_ref();
+
+    match bai::read(build_index_src(src, "bai")) {
+        Ok(index) => Ok(index),
+        Err(e) if e.kind() == io::ErrorKind::NotFound => csi::read(build_index_src(src, "csi")),
+        Err(e) => Err(e),
+    }
+}
+
+fn build_index_src<P, S>(src: P, ext: S) -> PathBuf
+where
+    P: AsRef<Path>,
+    S: AsRef<OsStr>,
+{
+    push_ext(src.as_ref().into(), ext)
 }
 
 fn push_ext<S>(path: PathBuf, ext: S) -> PathBuf
@@ -108,7 +123,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_build_index_src() {
-        assert_eq!(build_index_src("ref.fa"), PathBuf::from("ref.fa.bai"));
+    fn test_push_ext() {
+        assert_eq!(
+            push_ext(PathBuf::from("sample.bam"), "bai"),
+            PathBuf::from("sample.bam.bai")
+        );
     }
 }

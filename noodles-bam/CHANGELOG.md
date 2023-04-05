@@ -14,6 +14,9 @@
 
   * bam/bai: Replace `Index` with `noodles_csi::Index`.
 
+  * bam/indexed_reader/builder: Attempt to load either an associated BAM index
+    (`<src>.bai`) or CSI (`<src>.csi`), in that order.
+
   * bam/reader: Change `Reader::read_header` to return a parsed header
     (`sam::Header`).
 
