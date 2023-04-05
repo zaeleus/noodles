@@ -49,7 +49,7 @@ where
 /// # #[tokio::main]
 /// # async fn main() -> io::Result<()> {
 /// use noodles_csi as csi;
-/// use noodles_tabix as tabix;;
+/// use noodles_tabix as tabix;
 ///
 /// let index = csi::Index::builder()
 ///     .set_header(csi::index::Header::default())
