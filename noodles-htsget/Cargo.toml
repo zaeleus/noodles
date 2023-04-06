@@ -9,7 +9,6 @@ description = "An htsget client"
 homepage = "https://github.com/zaeleus/noodles"
 repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-htsget"
-publish = false
 
 [dependencies]
 base64 = "0.21.0"
