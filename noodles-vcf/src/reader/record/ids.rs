@@ -12,7 +12,7 @@ use crate::record::Ids;
 pub enum ParseError {
     /// The input is empty.
     Empty,
-    /// The input is invalid.
+    /// An ID is invalid.
     InvalidId(id::ParseError),
     /// An ID is duplicated.
     DuplicateId,
