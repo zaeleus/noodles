@@ -1,6 +1,6 @@
 [package]
 name = "noodles-tabix"
-version = "0.17.0"
+version = "0.18.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
@@ -18,7 +18,7 @@ bit-vec.workspace = true
 byteorder.workspace = true
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.20.0" }
 noodles-core = { path = "../noodles-core", version = "0.11.0" }
-noodles-csi = { path = "../noodles-csi", version = "0.14.0" }
+noodles-csi = { path = "../noodles-csi", version = "0.15.0" }
 
 tokio = { workspace = true, optional = true, features = ["fs", "io-util"] }
 

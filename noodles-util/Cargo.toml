@@ -1,6 +1,6 @@
 [package]
 name = "noodles-util"
-version = "0.6.0"
+version = "0.7.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
@@ -25,13 +25,13 @@ variant = [
 ]
 
 [dependencies]
-noodles-bam = { path = "../noodles-bam", version = "0.28.0", optional = true }
-noodles-bcf = { path = "../noodles-bcf", version = "0.22.0", optional = true }
+noodles-bam = { path = "../noodles-bam", version = "0.29.0", optional = true }
+noodles-bcf = { path = "../noodles-bcf", version = "0.23.0", optional = true }
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.20.0", optional = true }
-noodles-cram = { path = "../noodles-cram", version = "0.25.0", optional = true }
+noodles-cram = { path = "../noodles-cram", version = "0.26.0", optional = true }
 noodles-fasta = { path = "../noodles-fasta", version = "0.20.0", optional = true }
-noodles-sam = { path = "../noodles-sam", version = "0.25.0", optional = true }
-noodles-vcf = { path = "../noodles-vcf", version = "0.26.0", optional = true }
+noodles-sam = { path = "../noodles-sam", version = "0.26.0", optional = true }
+noodles-vcf = { path = "../noodles-vcf", version = "0.27.0", optional = true }
 
 [package.metadata.docs.rs]
 all-features = true
