@@ -42,18 +42,20 @@ impl Builder {
     /// let reader = Builder::default().build_from_path("sample.vcf.gz")?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn build_from_path<P>(mut self, src: P) -> io::Result<IndexedReader<File>>
+    pub fn build_from_path<P>(self, src: P) -> io::Result<IndexedReader<File>>
     where
         P: AsRef<Path>,
     {
         let src = src.as_ref();
 
-        if self.index.is_none() {
-            self.index = read_associated_index(src).map(Some)?;
-        }
+        let index = match self.index {
+            Some(index) => index,
+            None => read_associated_index(src)?,
+        };
 
         let file = File::open(src)?;
-        self.build_from_reader(file)
+
+        Ok(IndexedReader::new(file, index))
     }
 
     /// Builds an indexed VCF reader from a reader.
