@@ -9,6 +9,7 @@ use crate::{alignment::Record, Header};
 /// An async SAM reader.
 pub struct Reader<R> {
     inner: R,
+    buf: Vec<u8>,
 }
 
 impl<R> Reader<R>
@@ -25,7 +26,10 @@ where
     /// let reader = sam::AsyncReader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
-        Self { inner }
+        Self {
+            inner,
+            buf: Vec::new(),
+        }
     }
 
     /// Returns a reference to the underlying reader.
@@ -133,7 +137,7 @@ where
     /// # }
     /// ```
     pub async fn read_record(&mut self, header: &Header, record: &mut Record) -> io::Result<usize> {
-        read_record(&mut self.inner, header, record).await
+        read_record(&mut self.inner, &mut self.buf, header, record).await
     }
 
     /// Returns an (async) stream over records starting from the current (input) stream position.
@@ -169,9 +173,9 @@ where
         header: &'a Header,
     ) -> impl Stream<Item = io::Result<Record>> + 'a {
         Box::pin(stream::try_unfold(
-            (&mut self.inner, Record::default()),
-            |(mut reader, mut record)| async {
-                match read_record(&mut reader, header, &mut record).await? {
+            (self, Record::default()),
+            |(reader, mut record)| async {
+                match reader.read_record(header, &mut record).await? {
                     0 => Ok(None),
                     _ => Ok(Some((record.clone(), (reader, record)))),
                 }
@@ -180,18 +184,23 @@ where
     }
 }
 
-async fn read_record<R>(reader: &mut R, header: &Header, record: &mut Record) -> io::Result<usize>
+async fn read_record<R>(
+    reader: &mut R,
+    buf: &mut Vec<u8>,
+    header: &Header,
+    record: &mut Record,
+) -> io::Result<usize>
 where
     R: AsyncBufRead + Unpin,
 {
     use crate::reader::record::parse_record;
 
-    let mut buf = Vec::new();
+    buf.clear();
 
-    match read_line(reader, &mut buf).await? {
+    match read_line(reader, buf).await? {
         0 => Ok(0),
         n => {
-            parse_record(&buf, header, record)?;
+            parse_record(buf, header, record)?;
             Ok(n)
         }
     }
