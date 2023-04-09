@@ -21,16 +21,21 @@ use crate::{
     Header,
 };
 
-pub fn read_record<R>(reader: &mut R, header: &Header, record: &mut Record) -> io::Result<usize>
+pub fn read_record<R>(
+    reader: &mut R,
+    buf: &mut Vec<u8>,
+    header: &Header,
+    record: &mut Record,
+) -> io::Result<usize>
 where
     R: BufRead,
 {
-    let mut buf = Vec::new();
+    buf.clear();
 
-    match read_line(reader, &mut buf)? {
+    match read_line(reader, buf)? {
         0 => Ok(0),
         n => {
-            parse_record(&buf, header, record)?;
+            parse_record(buf, header, record)?;
             Ok(n)
         }
     }

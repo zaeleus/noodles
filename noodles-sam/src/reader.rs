@@ -47,6 +47,7 @@ use super::{alignment::Record, header::ReferenceSequences, lazy, AlignmentReader
 #[derive(Debug)]
 pub struct Reader<R> {
     inner: R,
+    buf: Vec<u8>,
 }
 
 impl<R> Reader<R>
@@ -176,7 +177,7 @@ where
     /// ```
     pub fn read_record(&mut self, header: &Header, record: &mut Record) -> io::Result<usize> {
         use self::record::read_record;
-        read_record(&mut self.inner, header, record)
+        read_record(&mut self.inner, &mut self.buf, header, record)
     }
 
     /// Returns an iterator over records starting from the current stream position.
@@ -316,7 +317,10 @@ where
     R: BufRead,
 {
     fn from(inner: R) -> Self {
-        Self { inner }
+        Self {
+            inner,
+            buf: Vec::new(),
+        }
     }
 }
 
