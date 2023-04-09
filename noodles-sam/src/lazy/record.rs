@@ -304,8 +304,13 @@ impl Record {
     /// ```
     pub fn data(&self) -> io::Result<Data> {
         use crate::reader::record::parse_data;
+
+        let mut data = Data::default();
+
         let src = &self.buf[self.bounds.data_range()];
-        parse_data(src)
+        parse_data(src, &mut data)?;
+
+        Ok(data)
     }
 }
 
