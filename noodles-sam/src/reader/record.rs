@@ -1,6 +1,7 @@
 mod cigar;
 pub(crate) mod data;
 mod quality_scores;
+mod reference_sequence_id;
 mod sequence;
 
 pub(crate) use self::{
@@ -8,13 +9,11 @@ pub(crate) use self::{
     sequence::parse_sequence,
 };
 
-use std::{
-    io::{self, BufRead},
-    str,
-};
+use std::io::{self, BufRead};
 
 use noodles_core::Position;
 
+use self::reference_sequence_id::parse_reference_sequence_id;
 use super::read_line;
 use crate::{
     alignment::Record,
@@ -111,28 +110,6 @@ pub(crate) fn parse_flags(src: &[u8]) -> io::Result<Flags> {
     lexical_core::parse::<u16>(src)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         .map(Flags::from)
-}
-
-fn parse_reference_sequence_id(header: &Header, src: &[u8]) -> io::Result<Option<usize>> {
-    const MISSING: &[u8] = b"*";
-
-    match src {
-        MISSING => Ok(None),
-        _ => str::from_utf8(src)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            .and_then(|s| {
-                header
-                    .reference_sequences()
-                    .get_index_of(s)
-                    .map(Some)
-                    .ok_or_else(|| {
-                        io::Error::new(
-                            io::ErrorKind::InvalidData,
-                            "invalid reference sequence name",
-                        )
-                    })
-            }),
-    }
 }
 
 pub(crate) fn parse_alignment_start(src: &[u8]) -> io::Result<Option<Position>> {
