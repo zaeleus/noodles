@@ -4,7 +4,7 @@ use std::{error, fmt, fmt::Write, str::FromStr};
 
 const LENGTH: usize = 2;
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[doc(hidden)]
 pub struct Other([u8; LENGTH]);
 
@@ -12,7 +12,7 @@ pub struct Other([u8; LENGTH]);
 ///
 /// Standard tags are defined in "Sequence Alignment/Map Optional Fields Specification"
 /// (2020-05-29).
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Tag {
     /// (`AM`).
     MinMappingQuality,
