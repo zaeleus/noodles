@@ -6,12 +6,6 @@ use crate::record::{
 };
 
 pub(crate) fn parse_cigar(mut src: &[u8]) -> io::Result<Cigar> {
-    const MISSING: &[u8] = b"*";
-
-    if src == MISSING {
-        return Ok(Cigar::default());
-    }
-
     let mut cigar = Cigar::default();
 
     while !src.is_empty() {

@@ -17,7 +17,7 @@ use self::reference_sequence_id::parse_reference_sequence_id;
 use super::read_line;
 use crate::{
     alignment::Record,
-    record::{Flags, MappingQuality, ReadName},
+    record::{Cigar, Flags, MappingQuality, QualityScores, ReadName, Sequence},
     Header,
 };
 
@@ -37,14 +37,21 @@ where
 }
 
 pub(crate) fn parse_record(mut src: &[u8], header: &Header, record: &mut Record) -> io::Result<()> {
-    let field = next_field(&mut src);
-    *record.read_name_mut() = parse_read_name(field)?;
+    const MISSING: &[u8] = b"*";
+
+    *record.read_name_mut() = match next_field(&mut src) {
+        MISSING => None,
+        field => parse_read_name(field).map(Some)?,
+    };
 
     let field = next_field(&mut src);
     *record.flags_mut() = parse_flags(field)?;
 
-    let field = next_field(&mut src);
-    let reference_sequence_id = parse_reference_sequence_id(header, field)?;
+    let reference_sequence_id = match next_field(&mut src) {
+        MISSING => None,
+        field => parse_reference_sequence_id(header, field).map(Some)?,
+    };
+
     *record.reference_sequence_id_mut() = reference_sequence_id;
 
     let field = next_field(&mut src);
@@ -53,12 +60,15 @@ pub(crate) fn parse_record(mut src: &[u8], header: &Header, record: &mut Record)
     let field = next_field(&mut src);
     *record.mapping_quality_mut() = parse_mapping_quality(field)?;
 
-    let field = next_field(&mut src);
-    *record.cigar_mut() = parse_cigar(field)?;
+    *record.cigar_mut() = match next_field(&mut src) {
+        MISSING => Cigar::default(),
+        field => parse_cigar(field)?,
+    };
 
-    let field = next_field(&mut src);
-    *record.mate_reference_sequence_id_mut() =
-        parse_mate_reference_sequence_id(header, reference_sequence_id, field)?;
+    *record.mate_reference_sequence_id_mut() = match next_field(&mut src) {
+        MISSING => None,
+        field => parse_mate_reference_sequence_id(header, reference_sequence_id, field)?,
+    };
 
     let field = next_field(&mut src);
     *record.mate_alignment_start_mut() = parse_alignment_start(field)?;
@@ -66,11 +76,15 @@ pub(crate) fn parse_record(mut src: &[u8], header: &Header, record: &mut Record)
     let field = next_field(&mut src);
     *record.template_length_mut() = parse_template_length(field)?;
 
-    let field = next_field(&mut src);
-    *record.sequence_mut() = parse_sequence(field)?;
+    *record.sequence_mut() = match next_field(&mut src) {
+        MISSING => Sequence::default(),
+        field => parse_sequence(field)?,
+    };
 
-    let field = next_field(&mut src);
-    *record.quality_scores_mut() = parse_quality_scores(field)?;
+    *record.quality_scores_mut() = match next_field(&mut src) {
+        MISSING => QualityScores::default(),
+        field => parse_quality_scores(field)?,
+    };
 
     let field = next_field(&mut src);
     *record.data_mut() = parse_data(field)?;
@@ -95,15 +109,8 @@ fn next_field<'a>(src: &mut &'a [u8]) -> &'a [u8] {
     field
 }
 
-pub(crate) fn parse_read_name(src: &[u8]) -> io::Result<Option<ReadName>> {
-    const MISSING: &[u8] = b"*";
-
-    match src {
-        MISSING => Ok(None),
-        _ => ReadName::try_new(src)
-            .map(Some)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-    }
+pub(crate) fn parse_read_name(src: &[u8]) -> io::Result<ReadName> {
+    ReadName::try_new(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 pub(crate) fn parse_flags(src: &[u8]) -> io::Result<Flags> {
@@ -133,7 +140,7 @@ fn parse_mate_reference_sequence_id(
 
     match src {
         EQ => Ok(reference_sequence_id),
-        _ => parse_reference_sequence_id(header, src),
+        _ => parse_reference_sequence_id(header, src).map(Some),
     }
 }
 
@@ -144,11 +151,12 @@ pub(crate) fn parse_template_length(src: &[u8]) -> io::Result<i32> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::header::record::value::{map::ReferenceSequence, Map};
 
     #[test]
     fn test_parse_mate_reference_sequence_id() -> Result<(), Box<dyn std::error::Error>> {
         use std::num::NonZeroUsize;
+
+        use crate::header::record::value::{map::ReferenceSequence, Map};
 
         let header = Header::builder()
             .add_reference_sequence(
@@ -163,20 +171,30 @@ mod tests {
 
         let reference_sequence_id = Some(0);
 
-        let src = b"*";
-        assert!(parse_mate_reference_sequence_id(&header, reference_sequence_id, src)?.is_none());
-
-        let src = b"=";
         assert_eq!(
-            parse_mate_reference_sequence_id(&header, reference_sequence_id, src)?,
+            parse_mate_reference_sequence_id(&header, reference_sequence_id, b"=")?,
             reference_sequence_id
         );
 
-        let src = b"sq1";
         assert_eq!(
-            parse_mate_reference_sequence_id(&header, reference_sequence_id, src)?,
+            parse_mate_reference_sequence_id(&header, reference_sequence_id, b"sq0")?,
+            Some(0)
+        );
+
+        assert_eq!(
+            parse_mate_reference_sequence_id(&header, reference_sequence_id, b"sq1")?,
             Some(1)
         );
+
+        assert!(matches!(
+            parse_mate_reference_sequence_id(&header, reference_sequence_id, b"*"),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        assert!(matches!(
+            parse_mate_reference_sequence_id(&header, reference_sequence_id, b"sq2"),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
 
         Ok(())
     }

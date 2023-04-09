@@ -10,6 +10,8 @@ use crate::record::{
     Cigar, Data, Flags, MappingQuality, QualityScores, ReadName, ReferenceSequenceName, Sequence,
 };
 
+const MISSING: &[u8] = b"*";
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct Bounds {
     pub(crate) read_name_end: usize,
@@ -97,8 +99,13 @@ impl Record {
     /// ```
     pub fn read_name(&self) -> io::Result<Option<ReadName>> {
         use crate::reader::record::parse_read_name;
+
         let src = &self.buf[self.bounds.read_name_range()];
-        parse_read_name(src)
+
+        match src {
+            MISSING => Ok(None),
+            _ => parse_read_name(src).map(Some),
+        }
     }
 
     /// Returns the flags.
@@ -129,7 +136,11 @@ impl Record {
     /// ```
     pub fn reference_sequence_name(&self) -> io::Result<Option<ReferenceSequenceName>> {
         let src = &self.buf[self.bounds.reference_sequence_name_range()];
-        parse_reference_sequence_name(src)
+
+        match src {
+            MISSING => Ok(None),
+            _ => parse_reference_sequence_name(src).map(Some),
+        }
     }
 
     /// Returns the alignment start.
@@ -176,8 +187,13 @@ impl Record {
     /// ```
     pub fn cigar(&self) -> io::Result<Cigar> {
         use crate::reader::record::parse_cigar;
+
         let src = &self.buf[self.bounds.cigar_range()];
-        parse_cigar(src)
+
+        match src {
+            MISSING => Ok(Cigar::default()),
+            _ => parse_cigar(src),
+        }
     }
 
     /// Returns the mate reference sequence name.
@@ -196,8 +212,9 @@ impl Record {
         let src = &self.buf[self.bounds.mate_reference_sequence_name_range()];
 
         match src {
+            MISSING => Ok(None),
             EQ => self.reference_sequence_name(),
-            _ => parse_reference_sequence_name(src),
+            _ => parse_reference_sequence_name(src).map(Some),
         }
     }
 
@@ -245,8 +262,13 @@ impl Record {
     /// ```
     pub fn sequence(&self) -> io::Result<Sequence> {
         use crate::reader::record::parse_sequence;
+
         let src = &self.buf[self.bounds.sequence_range()];
-        parse_sequence(src)
+
+        match src {
+            MISSING => Ok(Sequence::default()),
+            _ => parse_sequence(src),
+        }
     }
 
     /// Returns the quality scores.
@@ -261,8 +283,13 @@ impl Record {
     /// ```
     pub fn quality_scores(&self) -> io::Result<QualityScores> {
         use crate::reader::record::parse_quality_scores;
+
         let src = &self.buf[self.bounds.quality_scores_range()];
-        parse_quality_scores(src)
+
+        match src {
+            MISSING => Ok(QualityScores::default()),
+            _ => parse_quality_scores(src),
+        }
     }
 
     /// Returns the data.
@@ -326,14 +353,11 @@ impl Default for Record {
     }
 }
 
-fn parse_reference_sequence_name(buf: &[u8]) -> io::Result<Option<ReferenceSequenceName>> {
+fn parse_reference_sequence_name(buf: &[u8]) -> io::Result<ReferenceSequenceName> {
     str::from_utf8(buf)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        .and_then(|s| match s {
-            "*" => Ok(None),
-            _ => s
-                .parse()
-                .map(Some)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+        .and_then(|s| {
+            s.parse()
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })
 }

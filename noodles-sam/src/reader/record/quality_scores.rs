@@ -3,13 +3,7 @@ use std::io;
 use crate::record::QualityScores;
 
 pub(crate) fn parse_quality_scores(src: &[u8]) -> io::Result<QualityScores> {
-    const MISSING: &[u8] = b"*";
     const OFFSET: u8 = b'!';
-
-    if src == MISSING {
-        return Ok(QualityScores::default());
-    }
-
     let scores: Vec<u8> = src.iter().map(|n| n.wrapping_sub(OFFSET)).collect();
     QualityScores::try_from(scores).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }

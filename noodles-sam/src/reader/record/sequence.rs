@@ -3,12 +3,6 @@ use std::io;
 use crate::record::{sequence::Base, Sequence};
 
 pub(crate) fn parse_sequence(src: &[u8]) -> io::Result<Sequence> {
-    const MISSING: &[u8] = b"*";
-
-    if src == MISSING {
-        return Ok(Sequence::default());
-    }
-
     src.iter()
         .copied()
         .map(Base::try_from)
