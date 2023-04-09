@@ -284,12 +284,15 @@ impl Record {
     pub fn quality_scores(&self) -> io::Result<QualityScores> {
         use crate::reader::record::parse_quality_scores;
 
+        let mut quality_scores = QualityScores::default();
+
         let src = &self.buf[self.bounds.quality_scores_range()];
 
-        match src {
-            MISSING => Ok(QualityScores::default()),
-            _ => parse_quality_scores(src),
+        if src != MISSING {
+            parse_quality_scores(src, &mut quality_scores)?;
         }
+
+        Ok(quality_scores)
     }
 
     /// Returns the data.

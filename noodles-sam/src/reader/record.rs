@@ -17,7 +17,7 @@ use self::reference_sequence_id::parse_reference_sequence_id;
 use super::read_line;
 use crate::{
     alignment::Record,
-    record::{Cigar, Flags, MappingQuality, QualityScores, ReadName, Sequence},
+    record::{Cigar, Flags, MappingQuality, ReadName, Sequence},
     Header,
 };
 
@@ -86,10 +86,11 @@ pub(crate) fn parse_record(mut src: &[u8], header: &Header, record: &mut Record)
         field => parse_sequence(field)?,
     };
 
-    *record.quality_scores_mut() = match next_field(&mut src) {
-        MISSING => QualityScores::default(),
-        field => parse_quality_scores(field)?,
-    };
+    record.quality_scores_mut().clear();
+    let field = next_field(&mut src);
+    if field != MISSING {
+        parse_quality_scores(field, record.quality_scores_mut())?;
+    }
 
     record.data_mut().clear();
     let field = next_field(&mut src);
