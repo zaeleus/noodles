@@ -263,12 +263,15 @@ impl Record {
     pub fn sequence(&self) -> io::Result<Sequence> {
         use crate::reader::record::parse_sequence;
 
+        let mut sequence = Sequence::default();
+
         let src = &self.buf[self.bounds.sequence_range()];
 
-        match src {
-            MISSING => Ok(Sequence::default()),
-            _ => parse_sequence(src),
+        if src != MISSING {
+            parse_sequence(src, &mut sequence)?;
         }
+
+        Ok(sequence)
     }
 
     /// Returns the quality scores.
