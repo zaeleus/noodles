@@ -18,7 +18,9 @@ where
     cigar.clear();
 
     for _ in 0..n_cigar_op {
-        let op = decode_op(src.get_u32_le())?;
+        let op = decode_op(src.get_u32_le())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
         cigar.as_mut().push(op);
     }
 

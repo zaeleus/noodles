@@ -200,7 +200,9 @@ fn resolve_cigar(header: &sam::Header, record: &mut Record) -> io::Result<()> {
                     cigar.clear();
 
                     for &n in data {
-                        let op = cigar::decode_op(n)?;
+                        let op = cigar::decode_op(n)
+                            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
                         cigar.as_mut().push(op);
                     }
                 }
