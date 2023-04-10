@@ -1,17 +1,54 @@
-use std::{io, mem};
+use std::{error, fmt, mem};
 
 use bytes::Buf;
 use noodles_sam::record::data::field::value::Type;
 
-pub fn get_type<B>(src: &mut B) -> io::Result<Type>
+/// An error when a raw BAM record data field value type fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// Unexpected EOF.
+    UnexpectedEof,
+    /// The type is invalid.
+    Invalid { actual: u8 },
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::UnexpectedEof => write!(f, "unexpected EOF"),
+            Self::Invalid { actual } => write!(
+                f,
+                "invalid type: expected {{A, c, C, s, S, i, I, f, Z, H, B}}, got {}",
+                char::from(*actual)
+            ),
+        }
+    }
+}
+
+pub fn get_type<B>(src: &mut B) -> Result<Type, ParseError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<u8>() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+        return Err(ParseError::UnexpectedEof);
     }
 
-    Type::try_from(src.get_u8()).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    match src.get_u8() {
+        b'A' => Ok(Type::Character),
+        b'c' => Ok(Type::Int8),
+        b'C' => Ok(Type::UInt8),
+        b's' => Ok(Type::Int16),
+        b'S' => Ok(Type::UInt16),
+        b'i' => Ok(Type::Int32),
+        b'I' => Ok(Type::UInt32),
+        b'f' => Ok(Type::Float),
+        b'Z' => Ok(Type::String),
+        b'H' => Ok(Type::Hex),
+        b'B' => Ok(Type::Array),
+        n => Err(ParseError::Invalid { actual: n }),
+    }
 }
 
 #[cfg(test)]
@@ -19,17 +56,34 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_type() -> io::Result<()> {
-        let data = [b'i'];
-        let mut reader = &data[..];
-        assert_eq!(get_type(&mut reader)?, Type::Int32);
+    fn test_get_type() -> Result<(), ParseError> {
+        fn t(mut src: &[u8], expected: Type) -> Result<(), ParseError> {
+            assert_eq!(get_type(&mut src)?, expected);
+            Ok(())
+        }
 
-        let data = [b'n'];
-        let mut reader = &data[..];
-        assert!(matches!(
-            get_type(&mut reader),
-            Err(ref e) if e.kind() == io::ErrorKind::InvalidData
-        ));
+        t(b"A", Type::Character)?;
+        t(b"c", Type::Int8)?;
+        t(b"C", Type::UInt8)?;
+        t(b"s", Type::Int16)?;
+        t(b"S", Type::UInt16)?;
+        t(b"i", Type::Int32)?;
+        t(b"I", Type::UInt32)?;
+        t(b"f", Type::Float)?;
+        t(b"Z", Type::String)?;
+        t(b"H", Type::Hex)?;
+        t(b"B", Type::Array)?;
+
+        let data = b"";
+        let mut src = &data[..];
+        assert_eq!(get_type(&mut src), Err(ParseError::UnexpectedEof));
+
+        let data = b"n";
+        let mut src = &data[..];
+        assert_eq!(
+            get_type(&mut src),
+            Err(ParseError::Invalid { actual: b'n' })
+        );
 
         Ok(())
     }

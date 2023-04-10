@@ -22,7 +22,7 @@ where
         Err(e) => return Err(e),
     };
 
-    let ty = value::get_type(src)?;
+    let ty = value::get_type(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     let value = get_value(src, ty)?;
 
     Ok(Some((tag, value)))
