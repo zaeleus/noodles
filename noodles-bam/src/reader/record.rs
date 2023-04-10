@@ -90,7 +90,8 @@ where
     *record.template_length_mut() = get_template_length(src)?;
 
     get_read_name(src, record.read_name_mut(), l_read_name)?;
-    get_cigar(src, record.cigar_mut(), n_cigar_op)?;
+    get_cigar(src, record.cigar_mut(), n_cigar_op)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     get_sequence(src, record.sequence_mut(), l_seq)?;
     get_quality_scores(src, record.quality_scores_mut(), l_seq)?;
 
