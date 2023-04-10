@@ -19,7 +19,7 @@ use self::{
     genotypes::parse_genotypes, ids::parse_ids, info::parse_info, position::parse_position,
     quality_score::parse_quality_score, reference_bases::parse_reference_bases,
 };
-use crate::{record, Header, Record};
+use crate::{Header, Record};
 
 const MISSING: &str = ".";
 
@@ -36,7 +36,7 @@ pub enum ParseError {
     /// The reference bases are invalid.
     InvalidReferenceBases(reference_bases::ParseError),
     /// The alternate bases are invalid.
-    InvalidAlternateBases(record::alternate_bases::ParseError),
+    InvalidAlternateBases(alternate_bases::ParseError),
     /// The quality score is invalid.
     InvalidQualityScore(quality_score::ParseError),
     /// The filters are invalid.
