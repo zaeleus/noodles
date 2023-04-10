@@ -7,7 +7,7 @@ use noodles_sam::record::cigar::Op;
 use self::kind::decode_kind;
 
 pub(crate) fn decode_op(n: u32) -> io::Result<Op> {
-    let kind = decode_kind(n)?;
+    let kind = decode_kind(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     let len = usize::try_from(n >> 4).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     Ok(Op::new(kind, len))
 }

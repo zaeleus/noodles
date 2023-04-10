@@ -1,8 +1,25 @@
-use std::io;
+use std::{error, fmt};
 
 use noodles_sam::record::cigar::op::Kind;
 
-pub(super) fn decode_kind(n: u32) -> io::Result<Kind> {
+/// An error when a raw BAM record CIGAR op kind fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The input is invalid.
+    Invalid { actual: u8 },
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Invalid { actual } => write!(f, "invalid kind: expected 0..=8, got {actual}"),
+        }
+    }
+}
+
+pub(super) fn decode_kind(n: u32) -> Result<Kind, ParseError> {
     match n & 0x0f {
         0 => Ok(Kind::Match),
         1 => Ok(Kind::Insertion),
@@ -13,10 +30,10 @@ pub(super) fn decode_kind(n: u32) -> io::Result<Kind> {
         6 => Ok(Kind::Pad),
         7 => Ok(Kind::SequenceMatch),
         8 => Ok(Kind::SequenceMismatch),
-        _ => Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "invalid CIGAR op kind",
-        )),
+        n => Err(ParseError::Invalid {
+            // SAFETY: `n` is <= 15.
+            actual: n as u8,
+        }),
     }
 }
 
@@ -25,22 +42,17 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_decode_kind() -> io::Result<()> {
-        assert_eq!(decode_kind(0x00)?, Kind::Match);
-        assert_eq!(decode_kind(0x01)?, Kind::Insertion);
-        assert_eq!(decode_kind(0x02)?, Kind::Deletion);
-        assert_eq!(decode_kind(0x03)?, Kind::Skip);
-        assert_eq!(decode_kind(0x04)?, Kind::SoftClip);
-        assert_eq!(decode_kind(0x05)?, Kind::HardClip);
-        assert_eq!(decode_kind(0x06)?, Kind::Pad);
-        assert_eq!(decode_kind(0x07)?, Kind::SequenceMatch);
-        assert_eq!(decode_kind(0x08)?, Kind::SequenceMismatch);
+    fn test_decode_kind() {
+        assert_eq!(decode_kind(0x00), Ok(Kind::Match));
+        assert_eq!(decode_kind(0x01), Ok(Kind::Insertion));
+        assert_eq!(decode_kind(0x02), Ok(Kind::Deletion));
+        assert_eq!(decode_kind(0x03), Ok(Kind::Skip));
+        assert_eq!(decode_kind(0x04), Ok(Kind::SoftClip));
+        assert_eq!(decode_kind(0x05), Ok(Kind::HardClip));
+        assert_eq!(decode_kind(0x06), Ok(Kind::Pad));
+        assert_eq!(decode_kind(0x07), Ok(Kind::SequenceMatch));
+        assert_eq!(decode_kind(0x08), Ok(Kind::SequenceMismatch));
 
-        assert!(matches!(
-            decode_kind(0x09),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData
-        ));
-
-        Ok(())
+        assert_eq!(decode_kind(0x09), Err(ParseError::Invalid { actual: 9 }));
     }
 }
