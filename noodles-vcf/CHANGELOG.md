@@ -7,6 +7,9 @@
   * vcf/indexed_reader/builder: Attempt to load either an associated tabix
     index (`<src>.tbi`) or CSI (`<src>.csi`), in that order.
 
+  * vcf/record/alternate_bases: Change `Deref` target from `[Allele]` to
+    `Vec<Allele>`.
+
 ## 0.27.0 - 2023-04-06
 
 ### Added

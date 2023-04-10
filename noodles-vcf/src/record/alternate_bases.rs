@@ -17,7 +17,7 @@ const DELIMITER: char = ',';
 pub struct AlternateBases(Vec<Allele>);
 
 impl Deref for AlternateBases {
-    type Target = [Allele];
+    type Target = Vec<Allele>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
