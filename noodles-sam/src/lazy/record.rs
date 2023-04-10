@@ -188,12 +188,15 @@ impl Record {
     pub fn cigar(&self) -> io::Result<Cigar> {
         use crate::reader::record::parse_cigar;
 
+        let mut cigar = Cigar::default();
+
         let src = &self.buf[self.bounds.cigar_range()];
 
-        match src {
-            MISSING => Ok(Cigar::default()),
-            _ => parse_cigar(src),
+        if src != MISSING {
+            parse_cigar(src, &mut cigar)?;
         }
+
+        Ok(cigar)
     }
 
     /// Returns the mate reference sequence name.

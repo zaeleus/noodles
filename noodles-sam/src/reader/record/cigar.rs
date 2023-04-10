@@ -1,19 +1,21 @@
-use std::io;
+use std::{io, mem};
 
 use crate::record::{
     cigar::{op::Kind, Op},
     Cigar,
 };
 
-pub(crate) fn parse_cigar(mut src: &[u8]) -> io::Result<Cigar> {
-    let mut cigar = Cigar::default();
+pub(crate) fn parse_cigar(mut src: &[u8], cigar: &mut Cigar) -> io::Result<()> {
+    let mut ops = Vec::from(mem::take(cigar));
 
     while !src.is_empty() {
         let op = parse_op(&mut src)?;
-        cigar.as_mut().push(op);
+        ops.push(op);
     }
 
-    Ok(cigar)
+    *cigar = Cigar::try_from(ops).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+    Ok(())
 }
 
 fn parse_op(src: &mut &[u8]) -> io::Result<Op> {
@@ -62,7 +64,8 @@ mod tests {
     #[test]
     fn test_parse_cigar() -> Result<(), Box<dyn std::error::Error>> {
         let src = b"1M13N144S";
-        let actual = parse_cigar(src)?;
+        let mut cigar = Cigar::default();
+        parse_cigar(src, &mut cigar)?;
 
         let expected = Cigar::try_from(vec![
             Op::new(Kind::Match, 1),
@@ -70,7 +73,7 @@ mod tests {
             Op::new(Kind::SoftClip, 144),
         ])?;
 
-        assert_eq!(actual, expected);
+        assert_eq!(cigar, expected);
 
         Ok(())
     }
