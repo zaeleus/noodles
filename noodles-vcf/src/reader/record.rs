@@ -1,5 +1,6 @@
 //! VCF record reader.
 
+mod alternate_bases;
 mod chromosome;
 mod filters;
 mod genotypes;
@@ -14,14 +15,11 @@ use std::{error, fmt};
 use noodles_core as core;
 
 use self::{
-    chromosome::parse_chromosome, filters::parse_filters, genotypes::parse_genotypes,
-    ids::parse_ids, info::parse_info, position::parse_position, quality_score::parse_quality_score,
-    reference_bases::parse_reference_bases,
+    alternate_bases::parse_alternate_bases, chromosome::parse_chromosome, filters::parse_filters,
+    genotypes::parse_genotypes, ids::parse_ids, info::parse_info, position::parse_position,
+    quality_score::parse_quality_score, reference_bases::parse_reference_bases,
 };
-use crate::{
-    record::{alternate_bases, AlternateBases},
-    Header, Record,
-};
+use crate::{record, Header, Record};
 
 const MISSING: &str = ".";
 
@@ -38,7 +36,7 @@ pub enum ParseError {
     /// The reference bases are invalid.
     InvalidReferenceBases(reference_bases::ParseError),
     /// The alternate bases are invalid.
-    InvalidAlternateBases(alternate_bases::ParseError),
+    InvalidAlternateBases(record::alternate_bases::ParseError),
     /// The quality score is invalid.
     InvalidQualityScore(quality_score::ParseError),
     /// The filters are invalid.
@@ -149,11 +147,4 @@ fn next_field<'a>(s: &mut &'a str) -> &'a str {
     *s = rest;
 
     field
-}
-
-fn parse_alternate_bases(s: &str) -> Result<AlternateBases, alternate_bases::ParseError> {
-    match s {
-        MISSING => Ok(AlternateBases::default()),
-        _ => s.parse(),
-    }
 }
