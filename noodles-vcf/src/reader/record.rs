@@ -106,9 +106,12 @@ pub(crate) fn parse_record(
     parse_reference_bases(field, record.reference_bases_mut())
         .map_err(ParseError::InvalidReferenceBases)?;
 
+    record.alternate_bases_mut().clear();
     let field = next_field(&mut s);
-    *record.alternate_bases_mut() =
-        parse_alternate_bases(field).map_err(ParseError::InvalidAlternateBases)?;
+    if field != MISSING {
+        *record.alternate_bases_mut() =
+            parse_alternate_bases(field).map_err(ParseError::InvalidAlternateBases)?;
+    }
 
     let field = next_field(&mut s);
     *record.quality_score_mut() = match field {
