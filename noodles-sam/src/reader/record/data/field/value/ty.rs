@@ -9,7 +9,15 @@ pub(crate) fn parse_type(src: &mut &[u8]) -> io::Result<Type> {
 
     *src = rest;
 
-    Type::try_from(*n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    match n {
+        b'A' => Ok(Type::Character),
+        b'i' => Ok(Type::Int32),
+        b'f' => Ok(Type::Float),
+        b'Z' => Ok(Type::String),
+        b'H' => Ok(Type::Hex),
+        b'B' => Ok(Type::Array),
+        _ => Err(io::Error::new(io::ErrorKind::InvalidData, "invalid type")),
+    }
 }
 
 #[cfg(test)]

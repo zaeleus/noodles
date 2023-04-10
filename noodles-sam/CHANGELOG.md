@@ -8,6 +8,13 @@
 
   * sam/record/data/field/tag: Implement `Ord` + `PartialOrd`.
 
+### Changed
+
+  * sam/reader/record/data/field/value/ty: Constrain type to only SAM field
+    value types.
+
+    This reduces the valid set of field value types to `{A, i, f, Z, H, B}`.
+
 ## 0.26.0 - 2023-04-06
 
 ### Added
