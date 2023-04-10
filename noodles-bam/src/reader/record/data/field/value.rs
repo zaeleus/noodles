@@ -173,7 +173,7 @@ fn get_array_value<B>(src: &mut B) -> io::Result<Value>
 where
     B: Buf,
 {
-    let subtype = get_subtype(src)?;
+    let subtype = get_subtype(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     let len = usize::try_from(src.get_i32_le())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;

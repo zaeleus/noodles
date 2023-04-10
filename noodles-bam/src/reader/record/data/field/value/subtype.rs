@@ -1,17 +1,50 @@
-use std::{io, mem};
+use std::{error, fmt, mem};
 
 use bytes::Buf;
 use noodles_sam::record::data::field::value::Subtype;
 
-pub fn get_subtype<B>(src: &mut B) -> io::Result<Subtype>
+/// An error when a raw BAM record data field value subtype fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// Unexpected EOF.
+    UnexpectedEof,
+    /// The subtype is invalid.
+    Invalid { actual: u8 },
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::UnexpectedEof => write!(f, "unexpected EOF"),
+            Self::Invalid { actual } => write!(
+                f,
+                "invalid subtype: expected {{c, C, s, S, i, I, f}}, got {}",
+                char::from(*actual)
+            ),
+        }
+    }
+}
+
+pub fn get_subtype<B>(src: &mut B) -> Result<Subtype, ParseError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<u8>() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+        return Err(ParseError::UnexpectedEof);
     }
 
-    Subtype::try_from(src.get_u8()).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    match src.get_u8() {
+        b'c' => Ok(Subtype::Int8),
+        b'C' => Ok(Subtype::UInt8),
+        b's' => Ok(Subtype::Int16),
+        b'S' => Ok(Subtype::UInt16),
+        b'i' => Ok(Subtype::Int32),
+        b'I' => Ok(Subtype::UInt32),
+        b'f' => Ok(Subtype::Float),
+        n => Err(ParseError::Invalid { actual: n }),
+    }
 }
 
 #[cfg(test)]
@@ -19,17 +52,30 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_subtype() -> io::Result<()> {
-        let data = [b'i'];
-        let mut reader = &data[..];
-        assert_eq!(get_subtype(&mut reader)?, Subtype::Int32);
+    fn test_get_subtype() -> Result<(), ParseError> {
+        fn t(mut src: &[u8], expected: Subtype) -> Result<(), ParseError> {
+            assert_eq!(get_subtype(&mut src)?, expected);
+            Ok(())
+        }
 
-        let data = [b'n'];
-        let mut reader = &data[..];
-        assert!(matches!(
-            get_subtype(&mut reader),
-            Err(ref e) if e.kind() == io::ErrorKind::InvalidData
-        ));
+        t(b"c", Subtype::Int8)?;
+        t(b"C", Subtype::UInt8)?;
+        t(b"s", Subtype::Int16)?;
+        t(b"S", Subtype::UInt16)?;
+        t(b"i", Subtype::Int32)?;
+        t(b"I", Subtype::UInt32)?;
+        t(b"f", Subtype::Float)?;
+
+        let data = b"";
+        let mut src = &data[..];
+        assert_eq!(get_subtype(&mut src), Err(ParseError::UnexpectedEof));
+
+        let data = b"n";
+        let mut src = &data[..];
+        assert_eq!(
+            get_subtype(&mut src),
+            Err(ParseError::Invalid { actual: b'n' })
+        );
 
         Ok(())
     }
