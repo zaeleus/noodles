@@ -20,7 +20,8 @@ pub(super) fn parse_field(src: &mut &[u8]) -> io::Result<Option<(Tag, Value)>> {
     };
 
     consume_delimiter(&mut buf)?;
-    let ty = value::parse_type(&mut buf)?;
+    let ty =
+        value::parse_type(&mut buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     consume_delimiter(&mut buf)?;
     let value = parse_value(&mut buf, ty)?;

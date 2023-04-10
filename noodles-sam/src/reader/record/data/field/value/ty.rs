@@ -1,11 +1,33 @@
-use std::io;
+use std::{error, fmt};
 
 use crate::record::data::field::value::Type;
 
-pub(crate) fn parse_type(src: &mut &[u8]) -> io::Result<Type> {
-    let (n, rest) = src
-        .split_first()
-        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
+/// An error when a raw SAM record data field value type fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// Unexpected EOF.
+    UnexpectedEof,
+    /// The type is invalid.
+    Invalid { actual: u8 },
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::UnexpectedEof => write!(f, "unexpected EOF"),
+            Self::Invalid { actual } => write!(
+                f,
+                "invalid type: expected {{A, i, f, Z, H, B}}, got {}",
+                char::from(*actual)
+            ),
+        }
+    }
+}
+
+pub(crate) fn parse_type(src: &mut &[u8]) -> Result<Type, ParseError> {
+    let (n, rest) = src.split_first().ok_or(ParseError::UnexpectedEof)?;
 
     *src = rest;
 
@@ -16,7 +38,7 @@ pub(crate) fn parse_type(src: &mut &[u8]) -> io::Result<Type> {
         b'Z' => Ok(Type::String),
         b'H' => Ok(Type::Hex),
         b'B' => Ok(Type::Array),
-        _ => Err(io::Error::new(io::ErrorKind::InvalidData, "invalid type")),
+        _ => Err(ParseError::Invalid { actual: *n }),
     }
 }
 
@@ -25,21 +47,28 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_type() -> io::Result<()> {
-        let mut src = &b"i"[..];
-        assert_eq!(parse_type(&mut src)?, Type::Int32);
+    fn test_parse_type() -> Result<(), ParseError> {
+        fn t(mut src: &[u8], expected: Type) -> Result<(), ParseError> {
+            assert_eq!(parse_type(&mut src)?, expected);
+            Ok(())
+        }
 
-        let mut src = &b""[..];
-        assert!(matches!(
-            parse_type(&mut src),
-            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
-        ));
+        t(b"A", Type::Character)?;
+        t(b"i", Type::Int32)?;
+        t(b"f", Type::Float)?;
+        t(b"Z", Type::String)?;
+        t(b"H", Type::Hex)?;
+        t(b"B", Type::Array)?;
 
-        let mut src = &b"n"[..];
-        assert!(matches!(
-            parse_type(&mut src),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData
-        ));
+        let data = b"";
+        let mut src = &data[..];
+        assert_eq!(parse_type(&mut src), Err(ParseError::UnexpectedEof));
+
+        for &n in b"cCsSIn" {
+            let data = [n];
+            let mut src = &data[..];
+            assert_eq!(parse_type(&mut src), Err(ParseError::Invalid { actual: n }));
+        }
 
         Ok(())
     }
