@@ -4,6 +4,8 @@
 
 ### Added
 
+  * sam/record/cigar: Add conversion to `Vec<Op>`.
+
   * sam/record/data/field/tag: Implement `Ord` + `PartialOrd`.
 
 ## 0.26.0 - 2023-04-06

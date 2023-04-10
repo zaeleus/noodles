@@ -173,6 +173,12 @@ impl FromStr for Cigar {
     }
 }
 
+impl From<Cigar> for Vec<Op> {
+    fn from(cigar: Cigar) -> Self {
+        cigar.0
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{op::Kind, *};
