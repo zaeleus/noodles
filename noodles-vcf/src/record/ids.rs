@@ -96,7 +96,7 @@ impl FromStr for Ids {
 
 impl Extend<Id> for Ids {
     fn extend<T: IntoIterator<Item = Id>>(&mut self, iter: T) {
-        self.0.extend(iter)
+        self.0.extend(iter);
     }
 }
 
