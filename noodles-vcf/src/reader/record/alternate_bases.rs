@@ -53,3 +53,32 @@ pub(super) fn parse_alternate_bases(s: &str) -> Result<AlternateBases, ParseErro
 
     Ok(alternate_bases)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::record::{alternate_bases::Allele, reference_bases::Base};
+
+    #[test]
+    fn test_parse_alternate_bases() {
+        assert_eq!(
+            parse_alternate_bases("A"),
+            Ok(AlternateBases::from(vec![Allele::Bases(vec![Base::A])]))
+        );
+
+        assert_eq!(
+            parse_alternate_bases("A,C"),
+            Ok(AlternateBases::from(vec![
+                Allele::Bases(vec![Base::A]),
+                Allele::Bases(vec![Base::C]),
+            ]))
+        );
+
+        assert_eq!(parse_alternate_bases(""), Err(ParseError::Empty));
+
+        assert!(matches!(
+            parse_alternate_bases("."),
+            Err(ParseError::InvalidAllele(_))
+        ));
+    }
+}
