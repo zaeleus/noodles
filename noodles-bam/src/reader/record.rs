@@ -15,6 +15,7 @@ pub(crate) use self::{
 };
 
 use std::{
+    error, fmt,
     io::{self, Read},
     mem,
     num::NonZeroUsize,
@@ -59,6 +60,29 @@ where
     }
 }
 
+/// An error when a raw BAM record fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The CIGAR is invalid.
+    InvalidCigar(cigar::ParseError),
+}
+
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidCigar(e) => Some(e),
+        }
+    }
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidCigar(_) => write!(f, "invalid CIGAR"),
+        }
+    }
+}
+
 pub(crate) fn decode_record<B>(
     src: &mut B,
     header: &sam::Header,
@@ -90,8 +114,11 @@ where
     *record.template_length_mut() = get_template_length(src)?;
 
     get_read_name(src, record.read_name_mut(), l_read_name)?;
+
     get_cigar(src, record.cigar_mut(), n_cigar_op)
+        .map_err(ParseError::InvalidCigar)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
     get_sequence(src, record.sequence_mut(), l_seq)?;
     get_quality_scores(src, record.quality_scores_mut(), l_seq)?;
 
