@@ -193,7 +193,8 @@ impl Record {
         let src = &self.buf[self.bounds.cigar_range()];
 
         if src != MISSING {
-            parse_cigar(src, &mut cigar)?;
+            parse_cigar(src, &mut cigar)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
         }
 
         Ok(cigar)

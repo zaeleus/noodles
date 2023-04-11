@@ -68,7 +68,8 @@ pub(crate) fn parse_record(mut src: &[u8], header: &Header, record: &mut Record)
     record.cigar_mut().clear();
     let field = next_field(&mut src);
     if field != MISSING {
-        parse_cigar(field, record.cigar_mut())?;
+        parse_cigar(field, record.cigar_mut())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     }
 
     *record.mate_reference_sequence_id_mut() = match next_field(&mut src) {
