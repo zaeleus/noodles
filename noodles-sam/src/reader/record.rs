@@ -45,16 +45,23 @@ where
 }
 
 /// An error when a raw SAM record fails to parse.
+#[allow(clippy::enum_variant_names)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The reference sequence ID is invalid.
+    InvalidReferenceSequenceId(reference_sequence_id::ParseError),
     /// The CIGAR is invalid.
     InvalidCigar(cigar::ParseError),
+    /// The mate reference sequence ID is invalid.
+    InvalidMateReferenceSequenceId(reference_sequence_id::ParseError),
 }
 
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
+            Self::InvalidReferenceSequenceId(e) => Some(e),
             Self::InvalidCigar(e) => Some(e),
+            Self::InvalidMateReferenceSequenceId(e) => Some(e),
         }
     }
 }
@@ -62,7 +69,11 @@ impl error::Error for ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::InvalidReferenceSequenceId(_) => write!(f, "invalid reference sequence ID"),
             Self::InvalidCigar(_) => write!(f, "invalid CIGAR"),
+            Self::InvalidMateReferenceSequenceId(_) => {
+                write!(f, "invalid mate reference sequence ID")
+            }
         }
     }
 }
@@ -80,7 +91,10 @@ pub(crate) fn parse_record(mut src: &[u8], header: &Header, record: &mut Record)
 
     let reference_sequence_id = match next_field(&mut src) {
         MISSING => None,
-        field => parse_reference_sequence_id(header, field).map(Some)?,
+        field => parse_reference_sequence_id(header, field)
+            .map(Some)
+            .map_err(ParseError::InvalidReferenceSequenceId)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
     };
 
     *record.reference_sequence_id_mut() = reference_sequence_id;
@@ -101,7 +115,8 @@ pub(crate) fn parse_record(mut src: &[u8], header: &Header, record: &mut Record)
 
     *record.mate_reference_sequence_id_mut() = match next_field(&mut src) {
         MISSING => None,
-        field => parse_mate_reference_sequence_id(header, reference_sequence_id, field)?,
+        field => parse_mate_reference_sequence_id(header, reference_sequence_id, field)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
     };
 
     let field = next_field(&mut src);
@@ -172,12 +187,14 @@ fn parse_mate_reference_sequence_id(
     header: &Header,
     reference_sequence_id: Option<usize>,
     src: &[u8],
-) -> io::Result<Option<usize>> {
+) -> Result<Option<usize>, ParseError> {
     const EQ: &[u8] = b"=";
 
     match src {
         EQ => Ok(reference_sequence_id),
-        _ => parse_reference_sequence_id(header, src).map(Some),
+        _ => parse_reference_sequence_id(header, src)
+            .map(Some)
+            .map_err(ParseError::InvalidMateReferenceSequenceId),
     }
 }
 
@@ -225,12 +242,12 @@ mod tests {
 
         assert!(matches!(
             parse_mate_reference_sequence_id(&header, reference_sequence_id, b"*"),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData
+            Err(ParseError::InvalidMateReferenceSequenceId(_))
         ));
 
         assert!(matches!(
             parse_mate_reference_sequence_id(&header, reference_sequence_id, b"sq2"),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData
+            Err(ParseError::InvalidMateReferenceSequenceId(_))
         ));
 
         Ok(())
