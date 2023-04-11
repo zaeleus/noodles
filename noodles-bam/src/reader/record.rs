@@ -63,14 +63,20 @@ where
 /// An error when a raw BAM record fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The reference sequence ID is invalid.
+    InvalidReferenceSequenceId(reference_sequence_id::ParseError),
     /// The CIGAR is invalid.
     InvalidCigar(cigar::ParseError),
+    /// The mate reference sequence ID is invalid.
+    InvalidMateReferenceSequenceId(reference_sequence_id::ParseError),
 }
 
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
+            Self::InvalidReferenceSequenceId(e) => Some(e),
             Self::InvalidCigar(e) => Some(e),
+            Self::InvalidMateReferenceSequenceId(e) => Some(e),
         }
     }
 }
@@ -78,7 +84,11 @@ impl error::Error for ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::InvalidReferenceSequenceId(_) => write!(f, "invalid reference sequence ID"),
             Self::InvalidCigar(_) => write!(f, "invalid CIGAR"),
+            Self::InvalidMateReferenceSequenceId(_) => {
+                write!(f, "invalid mate reference sequence ID")
+            }
         }
     }
 }
@@ -93,7 +103,10 @@ where
 {
     let n_ref = header.reference_sequences().len();
 
-    *record.reference_sequence_id_mut() = get_reference_sequence_id(src, n_ref)?;
+    *record.reference_sequence_id_mut() = get_reference_sequence_id(src, n_ref)
+        .map_err(ParseError::InvalidReferenceSequenceId)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
     *record.alignment_start_mut() = get_position(src)?;
 
     let l_read_name = get_read_name_len(src)?;
@@ -109,7 +122,10 @@ where
 
     let l_seq = get_sequence_len(src)?;
 
-    *record.mate_reference_sequence_id_mut() = get_reference_sequence_id(src, n_ref)?;
+    *record.mate_reference_sequence_id_mut() = get_reference_sequence_id(src, n_ref)
+        .map_err(ParseError::InvalidMateReferenceSequenceId)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
     *record.mate_alignment_start_mut() = get_position(src)?;
     *record.template_length_mut() = get_template_length(src)?;
 
