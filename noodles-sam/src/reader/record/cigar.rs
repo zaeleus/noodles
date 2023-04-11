@@ -53,17 +53,35 @@ mod tests {
     fn test_parse_cigar() -> Result<(), Box<dyn std::error::Error>> {
         use crate::record::cigar::{op::Kind, Op};
 
-        let src = b"1M13N144S";
         let mut cigar = Cigar::default();
-        parse_cigar(src, &mut cigar)?;
 
-        let expected = Cigar::try_from(vec![
-            Op::new(Kind::Match, 1),
-            Op::new(Kind::Skip, 13),
-            Op::new(Kind::SoftClip, 144),
-        ])?;
+        cigar.clear();
+        parse_cigar(b"", &mut cigar)?;
+        assert!(cigar.is_empty());
 
-        assert_eq!(cigar, expected);
+        cigar.clear();
+        parse_cigar(b"8M13N", &mut cigar)?;
+        assert_eq!(
+            cigar,
+            Cigar::try_from(vec![Op::new(Kind::Match, 8), Op::new(Kind::Skip, 13),])?
+        );
+
+        cigar.clear();
+        parse_cigar(b"8M13N144S", &mut cigar)?;
+        assert_eq!(
+            cigar,
+            Cigar::try_from(vec![
+                Op::new(Kind::Match, 8),
+                Op::new(Kind::Skip, 13),
+                Op::new(Kind::SoftClip, 144),
+            ])?
+        );
+
+        cigar.clear();
+        assert!(matches!(
+            parse_cigar(b"8Z", &mut cigar),
+            Err(ParseError::InvalidOp(_))
+        ));
 
         Ok(())
     }
