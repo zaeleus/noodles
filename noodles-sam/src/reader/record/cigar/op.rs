@@ -7,7 +7,7 @@ use crate::record::cigar::Op;
 
 pub(super) fn parse_op(src: &mut &[u8]) -> io::Result<Op> {
     let len = parse_len(src)?;
-    let kind = parse_kind(src)?;
+    let kind = parse_kind(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     Ok(Op::new(kind, len))
 }
 

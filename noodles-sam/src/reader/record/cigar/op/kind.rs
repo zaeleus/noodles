@@ -1,11 +1,33 @@
-use std::io;
+use std::{error, fmt};
 
 use crate::record::cigar::op::Kind;
 
-pub(super) fn parse_kind(src: &mut &[u8]) -> io::Result<Kind> {
-    let (n, rest) = src
-        .split_first()
-        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
+/// An error when a raw SAM record CIGAR op kind fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// Unexpected EOF.
+    UnexpectedEof,
+    /// The input is invalid.
+    Invalid { actual: u8 },
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::UnexpectedEof => write!(f, "unexpected EOF"),
+            Self::Invalid { actual } => write!(
+                f,
+                "invalid kind: expected {{M, I, D, N, S, H, P, =, X}}, got {c}",
+                c = char::from(*actual)
+            ),
+        }
+    }
+}
+
+pub(super) fn parse_kind(src: &mut &[u8]) -> Result<Kind, ParseError> {
+    let (n, rest) = src.split_first().ok_or(ParseError::UnexpectedEof)?;
 
     *src = rest;
 
@@ -19,10 +41,7 @@ pub(super) fn parse_kind(src: &mut &[u8]) -> io::Result<Kind> {
         b'P' => Ok(Kind::Pad),
         b'=' => Ok(Kind::SequenceMatch),
         b'X' => Ok(Kind::SequenceMismatch),
-        _ => Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "invalid CIGAR op kind",
-        )),
+        _ => Err(ParseError::Invalid { actual: *n }),
     }
 }
 
@@ -31,32 +50,26 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_kind() -> io::Result<()> {
-        fn t(mut src: &[u8], expected: Kind) -> io::Result<()> {
-            assert_eq!(parse_kind(&mut src)?, expected);
-            Ok(())
+    fn test_parse_kind() {
+        fn t(mut src: &[u8], expected: Kind) {
+            assert_eq!(parse_kind(&mut src), Ok(expected));
         }
 
-        t(b"M", Kind::Match)?;
-        t(b"I", Kind::Insertion)?;
-        t(b"D", Kind::Deletion)?;
-        t(b"N", Kind::Skip)?;
-        t(b"S", Kind::SoftClip)?;
-        t(b"H", Kind::HardClip)?;
-        t(b"P", Kind::Pad)?;
-        t(b"=", Kind::SequenceMatch)?;
-        t(b"X", Kind::SequenceMismatch)?;
+        t(b"M", Kind::Match);
+        t(b"I", Kind::Insertion);
+        t(b"D", Kind::Deletion);
+        t(b"N", Kind::Skip);
+        t(b"S", Kind::SoftClip);
+        t(b"H", Kind::HardClip);
+        t(b"P", Kind::Pad);
+        t(b"=", Kind::SequenceMatch);
+        t(b"X", Kind::SequenceMismatch);
 
-        assert!(matches!(
-            parse_kind(&mut &[][..]),
-            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof,
-        ));
+        assert_eq!(parse_kind(&mut &[][..]), Err(ParseError::UnexpectedEof));
 
-        assert!(matches!(
+        assert_eq!(
             parse_kind(&mut &b"!"[..]),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData,
-        ));
-
-        Ok(())
+            Err(ParseError::Invalid { actual: b'!' })
+        );
     }
 }
