@@ -49,7 +49,26 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_len() {
-        assert_eq!(parse_len(&mut &[][..]), Err(ParseError::InvalidLength));
+    fn test_parse_op() {
+        use crate::record::cigar::op::Kind;
+
+        fn t(mut src: &[u8], expected: Op) {
+            assert_eq!(parse_op(&mut src), Ok(expected));
+        }
+
+        t(b"8M", Op::new(Kind::Match, 8));
+        t(b"13N", Op::new(Kind::Skip, 13));
+        t(b"144S", Op::new(Kind::SoftClip, 144));
+
+        let data = [];
+        let mut src = &data[..];
+        assert_eq!(parse_op(&mut src), Err(ParseError::InvalidLength));
+
+        let data = b"8Z";
+        let mut src = &data[..];
+        assert!(matches!(
+            parse_op(&mut src),
+            Err(ParseError::InvalidKind(_))
+        ));
     }
 }
