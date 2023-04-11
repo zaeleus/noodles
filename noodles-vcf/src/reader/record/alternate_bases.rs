@@ -37,21 +37,22 @@ impl From<ParseError> for core::Error {
     }
 }
 
-pub(super) fn parse_alternate_bases(s: &str) -> Result<AlternateBases, ParseError> {
+pub(super) fn parse_alternate_bases(
+    s: &str,
+    alternate_bases: &mut AlternateBases,
+) -> Result<(), ParseError> {
     const DELIMITER: char = ',';
 
     if s.is_empty() {
         return Err(ParseError::Empty);
     }
 
-    let mut alternate_bases = AlternateBases::default();
-
     for raw_allele in s.split(DELIMITER) {
         let allele = raw_allele.parse().map_err(ParseError::InvalidAllele)?;
         alternate_bases.push(allele);
     }
 
-    Ok(alternate_bases)
+    Ok(())
 }
 
 #[cfg(test)]
@@ -60,25 +61,38 @@ mod tests {
     use crate::record::{alternate_bases::Allele, reference_bases::Base};
 
     #[test]
-    fn test_parse_alternate_bases() {
+    fn test_parse_alternate_bases() -> Result<(), ParseError> {
+        let mut alternate_bases = AlternateBases::default();
+
+        alternate_bases.clear();
+        parse_alternate_bases("A", &mut alternate_bases)?;
         assert_eq!(
-            parse_alternate_bases("A"),
-            Ok(AlternateBases::from(vec![Allele::Bases(vec![Base::A])]))
+            alternate_bases,
+            AlternateBases::from(vec![Allele::Bases(vec![Base::A])])
         );
 
+        alternate_bases.clear();
+        parse_alternate_bases("A,C", &mut alternate_bases)?;
         assert_eq!(
-            parse_alternate_bases("A,C"),
-            Ok(AlternateBases::from(vec![
+            alternate_bases,
+            AlternateBases::from(vec![
                 Allele::Bases(vec![Base::A]),
                 Allele::Bases(vec![Base::C]),
-            ]))
+            ])
         );
 
-        assert_eq!(parse_alternate_bases(""), Err(ParseError::Empty));
+        alternate_bases.clear();
+        assert_eq!(
+            parse_alternate_bases("", &mut alternate_bases),
+            Err(ParseError::Empty)
+        );
 
+        alternate_bases.clear();
         assert!(matches!(
-            parse_alternate_bases("."),
+            parse_alternate_bases(".", &mut alternate_bases),
             Err(ParseError::InvalidAllele(_))
         ));
+
+        Ok(())
     }
 }

@@ -109,8 +109,8 @@ pub(crate) fn parse_record(
     record.alternate_bases_mut().clear();
     let field = next_field(&mut s);
     if field != MISSING {
-        *record.alternate_bases_mut() =
-            parse_alternate_bases(field).map_err(ParseError::InvalidAlternateBases)?;
+        parse_alternate_bases(field, record.alternate_bases_mut())
+            .map_err(ParseError::InvalidAlternateBases)?;
     }
 
     let field = next_field(&mut s);
