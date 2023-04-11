@@ -9,7 +9,10 @@ pub(crate) use self::{
     sequence::parse_sequence,
 };
 
-use std::io::{self, BufRead};
+use std::{
+    error, fmt,
+    io::{self, BufRead},
+};
 
 use noodles_core::Position;
 
@@ -37,6 +40,29 @@ where
         n => {
             parse_record(buf, header, record)?;
             Ok(n)
+        }
+    }
+}
+
+/// An error when a raw SAM record fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The CIGAR is invalid.
+    InvalidCigar(cigar::ParseError),
+}
+
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidCigar(e) => Some(e),
+        }
+    }
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidCigar(_) => write!(f, "invalid CIGAR"),
         }
     }
 }
@@ -69,6 +95,7 @@ pub(crate) fn parse_record(mut src: &[u8], header: &Header, record: &mut Record)
     let field = next_field(&mut src);
     if field != MISSING {
         parse_cigar(field, record.cigar_mut())
+            .map_err(ParseError::InvalidCigar)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     }
 
