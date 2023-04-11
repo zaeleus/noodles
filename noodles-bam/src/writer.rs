@@ -1,7 +1,10 @@
 //! BAM writer.
 
+mod builder;
 mod header;
 pub mod record;
+
+pub use self::builder::Builder;
 
 use std::io::{self, Write};
 

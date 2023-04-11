@@ -20,7 +20,10 @@ fn build_writers(read_groups: &sam::header::ReadGroups) -> io::Result<Writers> {
         .enumerate()
         .map(|(i, id)| {
             let dst = format!("out_{i}.bam");
-            File::create(dst).map(|f| (id.clone(), bam::Writer::new(f)))
+
+            bam::writer::Builder::default()
+                .build_from_path(dst)
+                .map(|writer| (id.clone(), writer))
         })
         .collect::<Result<_, _>>()
 }

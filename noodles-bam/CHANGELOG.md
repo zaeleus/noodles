@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bam/writer: Add builder (`writer::Builder`).
+
 ## 0.29.0 - 2023-04-06
 
 ### Added
