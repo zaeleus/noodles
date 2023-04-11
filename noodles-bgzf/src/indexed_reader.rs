@@ -103,6 +103,21 @@ where
     pub fn virtual_position(&self) -> VirtualPosition {
         self.inner.virtual_position()
     }
+
+    /// Returns the associated index.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bgzf::{self as bgzf, gzi};
+    /// let index = gzi::Index::default();
+    /// let reader = bgzf::IndexedReader::new(io::empty(), index.clone());
+    /// assert_eq!(reader.index(), &index);
+    /// ```
+    pub fn index(&self) -> &gzi::Index {
+        &self.index
+    }
 }
 
 impl<R> Read for IndexedReader<R>

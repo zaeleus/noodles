@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+  * bgzf/indexed_reader: Add getter for index
+    (`IndexedReader::index`).
+
 ### Changed
 
   * bgzf: Update to libdeflater 0.13.0.
