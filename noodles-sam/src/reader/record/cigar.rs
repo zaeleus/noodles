@@ -9,7 +9,7 @@ pub(crate) fn parse_cigar(mut src: &[u8], cigar: &mut Cigar) -> io::Result<()> {
     let mut ops = Vec::from(mem::take(cigar));
 
     while !src.is_empty() {
-        let op = parse_op(&mut src)?;
+        let op = parse_op(&mut src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
         ops.push(op);
     }
 
