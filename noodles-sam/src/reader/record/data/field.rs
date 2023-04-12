@@ -9,16 +9,12 @@ use std::io;
 use self::{tag::parse_tag, ty::parse_type};
 use crate::record::data::field::{Tag, Value};
 
-pub(super) fn parse_field(src: &mut &[u8]) -> io::Result<Option<(Tag, Value)>> {
+pub(super) fn parse_field(src: &mut &[u8]) -> io::Result<(Tag, Value)> {
     use crate::reader::record::next_field;
 
     let mut buf = next_field(src);
 
-    let tag = match parse_tag(&mut buf) {
-        Ok(t) => t,
-        Err(tag::ParseError::UnexpectedEof) => return Ok(None),
-        Err(e) => return Err(io::Error::new(io::ErrorKind::InvalidData, e)),
-    };
+    let tag = parse_tag(&mut buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     consume_delimiter(&mut buf)?;
     let ty = parse_type(&mut buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
@@ -27,7 +23,7 @@ pub(super) fn parse_field(src: &mut &[u8]) -> io::Result<Option<(Tag, Value)>> {
     let value =
         parse_value(&mut buf, ty).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    Ok(Some((tag, value)))
+    Ok((tag, value))
 }
 
 fn consume_delimiter(src: &mut &[u8]) -> io::Result<()> {
@@ -58,13 +54,13 @@ mod tests {
 
         let actual = parse_field(&mut src)?;
         let expected = (Tag::AlignmentHitCount, Value::from(1));
-        assert_eq!(actual, Some(expected));
+        assert_eq!(actual, expected);
 
         let actual = parse_field(&mut src)?;
         let expected = (Tag::Comment, Value::String(String::from("ndls")));
-        assert_eq!(actual, Some(expected));
+        assert_eq!(actual, expected);
 
-        assert!(parse_field(&mut src)?.is_none());
+        assert!(src.is_empty());
 
         Ok(())
     }

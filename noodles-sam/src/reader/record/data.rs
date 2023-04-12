@@ -6,7 +6,8 @@ use self::field::parse_field;
 use crate::record::Data;
 
 pub(crate) fn parse_data(mut src: &[u8], data: &mut Data) -> io::Result<()> {
-    while let Some((tag, value)) = parse_field(&mut src)? {
+    while !src.is_empty() {
+        let (tag, value) = parse_field(&mut src)?;
         data.insert(tag, value);
     }
 
