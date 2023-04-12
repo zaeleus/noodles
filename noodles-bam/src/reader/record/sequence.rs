@@ -1,16 +1,33 @@
-use std::io;
+use std::{error, fmt};
 
 use bytes::Buf;
 use noodles_sam::record::{sequence::Base, Sequence};
 
-pub fn get_sequence<B>(src: &mut B, sequence: &mut Sequence, l_seq: usize) -> io::Result<()>
+/// An error when a raw BAM record sequence fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// Unexpected EOF.
+    UnexpectedEof,
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::UnexpectedEof => write!(f, "unexpected EOF"),
+        }
+    }
+}
+
+pub fn get_sequence<B>(src: &mut B, sequence: &mut Sequence, l_seq: usize) -> Result<(), ParseError>
 where
     B: Buf,
 {
     let seq_len = (l_seq + 1) / 2;
 
     if src.remaining() < seq_len {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+        return Err(ParseError::UnexpectedEof);
     }
 
     let seq = src.take(seq_len);
@@ -56,16 +73,25 @@ mod tests {
 
     #[test]
     fn test_get_sequence() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(mut src: &[u8], expected: &Sequence) -> io::Result<()> {
-            let mut actual = Sequence::default();
-            get_sequence(&mut src, &mut actual, expected.len())?;
-            assert_eq!(&actual, expected);
+        fn t(mut src: &[u8], buf: &mut Sequence, expected: &Sequence) -> Result<(), ParseError> {
+            buf.clear();
+            get_sequence(&mut src, buf, expected.len())?;
+            assert_eq!(buf, expected);
             Ok(())
         }
 
-        t(&[], &Sequence::default())?;
-        t(&[0x12, 0x40], &"ACG".parse()?)?;
-        t(&[0x12, 0x48], &"ACGT".parse()?)?;
+        let mut sequence = Sequence::default();
+
+        t(&[], &mut sequence, &Sequence::default())?;
+        t(&[0x12, 0x40], &mut sequence, &"ACG".parse()?)?;
+        t(&[0x12, 0x48], &mut sequence, &"ACGT".parse()?)?;
+
+        sequence.clear();
+        let mut src = &b""[..];
+        assert_eq!(
+            get_sequence(&mut src, &mut sequence, 4),
+            Err(ParseError::UnexpectedEof)
+        );
 
         Ok(())
     }

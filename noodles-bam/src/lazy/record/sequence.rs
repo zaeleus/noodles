@@ -42,7 +42,8 @@ impl<'a> TryFrom<Sequence<'a>> for sam::record::Sequence {
         let mut src = bam_sequence.src;
         let mut sam_sequence = Self::default();
         let base_count = bam_sequence.base_count;
-        get_sequence(&mut src, &mut sam_sequence, base_count)?;
+        get_sequence(&mut src, &mut sam_sequence, base_count)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         Ok(sam_sequence)
     }
