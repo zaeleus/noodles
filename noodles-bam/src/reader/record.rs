@@ -3,13 +3,14 @@
 mod cigar;
 pub mod data;
 mod mapping_quality;
+mod position;
 mod quality_scores;
 mod read_name;
 mod reference_sequence_id;
 mod sequence;
 
 pub(crate) use self::{
-    cigar::get_cigar, data::get_data, mapping_quality::get_mapping_quality,
+    cigar::get_cigar, data::get_data, mapping_quality::get_mapping_quality, position::get_position,
     quality_scores::get_quality_scores, read_name::get_read_name,
     reference_sequence_id::get_reference_sequence_id, sequence::get_sequence,
 };
@@ -23,7 +24,6 @@ use std::{
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use bytes::Buf;
-use noodles_core::Position;
 use noodles_sam::{self as sam, alignment::Record};
 
 pub(crate) fn read_record<R>(
@@ -156,24 +156,6 @@ where
     resolve_cigar(header, record)?;
 
     Ok(())
-}
-
-pub(crate) fn get_position<B>(src: &mut B) -> io::Result<Option<Position>>
-where
-    B: Buf,
-{
-    const MISSING: i32 = -1;
-
-    if src.remaining() < mem::size_of::<i32>() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
-
-    match src.get_i32_le() {
-        MISSING => Ok(None),
-        n => usize::try_from(n + 1)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            .map(Position::new),
-    }
 }
 
 pub(crate) fn get_read_name_len<B>(src: &mut B) -> io::Result<NonZeroUsize>
