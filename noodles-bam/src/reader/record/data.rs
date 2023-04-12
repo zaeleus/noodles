@@ -4,20 +4,42 @@ pub mod field;
 
 pub(crate) use self::field::get_field;
 
-use std::io;
+use std::{error, fmt};
 
 use bytes::Buf;
 use noodles_sam::record::Data;
 
-pub(crate) fn get_data<B>(src: &mut B, data: &mut Data) -> io::Result<()>
+/// An error when a raw BAM record data field tag fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// A field is invalid.
+    InvalidField(field::ParseError),
+}
+
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidField(e) => Some(e),
+        }
+    }
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidField(_) => write!(f, "invalid field"),
+        }
+    }
+}
+
+pub(crate) fn get_data<B>(src: &mut B, data: &mut Data) -> Result<(), ParseError>
 where
     B: Buf,
 {
     data.clear();
 
     while src.has_remaining() {
-        let (tag, value) =
-            get_field(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let (tag, value) = get_field(src).map_err(ParseError::InvalidField)?;
         data.insert(tag, value);
     }
 
@@ -30,10 +52,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_data() -> io::Result<()> {
+    fn test_get_data() -> Result<(), ParseError> {
         use noodles_sam::record::data::field::{Tag, Value};
 
-        fn t(mut src: &[u8], actual: &mut Data, expected: &Data) -> io::Result<()> {
+        fn t(mut src: &[u8], actual: &mut Data, expected: &Data) -> Result<(), ParseError> {
             get_data(&mut src, actual)?;
             assert_eq!(actual, expected);
             Ok(())

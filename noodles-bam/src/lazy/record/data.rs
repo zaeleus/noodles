@@ -31,7 +31,8 @@ impl<'a> TryFrom<Data<'a>> for sam::record::Data {
 
         let mut src = bam_data.0;
         let mut sam_data = Self::default();
-        get_data(&mut src, &mut sam_data)?;
+        get_data(&mut src, &mut sam_data)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         Ok(sam_data)
     }
