@@ -15,7 +15,8 @@ where
 {
     data.clear();
 
-    while let Some((tag, value)) = get_field(src)? {
+    while src.has_remaining() {
+        let (tag, value) = get_field(src)?;
         data.insert(tag, value);
     }
 
