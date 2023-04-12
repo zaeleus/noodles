@@ -1,10 +1,11 @@
 //! SAM record data field value and types.
 
+mod array;
 pub mod character;
 pub mod hex;
 pub mod subtype;
 
-pub use self::{character::Character, hex::Hex, subtype::Subtype};
+pub use self::{array::Array, character::Character, hex::Hex, subtype::Subtype};
 
 use std::{
     error,
@@ -37,20 +38,8 @@ pub enum Value {
     String(String),
     /// A hex string (`H`).
     Hex(Hex),
-    /// An 8-bit integer array (`Bc`).
-    Int8Array(Vec<i8>),
-    /// An 8-bit unsigned integer array (`BC`).
-    UInt8Array(Vec<u8>),
-    /// A 16-bit integer array (`Bs`).
-    Int16Array(Vec<i16>),
-    /// A 16-bit unsigned integer array (`BS`).
-    UInt16Array(Vec<u16>),
-    /// A 32-bit integer array (`Bi`).
-    Int32Array(Vec<i32>),
-    /// A 32-bit unsigned integer array (`BI`).
-    UInt32Array(Vec<u32>),
-    /// A single-precision floating-point array (`Bf`).
-    FloatArray(Vec<f32>),
+    /// An array (`B`).
+    Array(Array),
 }
 
 impl Value {
@@ -92,37 +81,7 @@ impl Value {
             Self::Float(_) => Type::Float,
             Self::String(_) => Type::String,
             Self::Hex(_) => Type::Hex,
-            Self::Int8Array(_) => Type::Array,
-            Self::UInt8Array(_) => Type::Array,
-            Self::Int16Array(_) => Type::Array,
-            Self::UInt16Array(_) => Type::Array,
-            Self::Int32Array(_) => Type::Array,
-            Self::UInt32Array(_) => Type::Array,
-            Self::FloatArray(_) => Type::Array,
-        }
-    }
-
-    /// Returns the subtype of the value.
-    ///
-    /// Only arrays have subtypes.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::data::field::{value::Subtype, Value};
-    /// assert_eq!(Value::UInt8Array(vec![0]).subtype(), Some(Subtype::UInt8));
-    /// assert_eq!(Value::Int32(0).subtype(), None);
-    /// ```
-    pub fn subtype(&self) -> Option<Subtype> {
-        match *self {
-            Self::Int8Array(_) => Some(Subtype::Int8),
-            Self::UInt8Array(_) => Some(Subtype::UInt8),
-            Self::Int16Array(_) => Some(Subtype::Int16),
-            Self::UInt16Array(_) => Some(Subtype::UInt16),
-            Self::Int32Array(_) => Some(Subtype::Int32),
-            Self::UInt32Array(_) => Some(Subtype::UInt32),
-            Self::FloatArray(_) => Some(Subtype::Float),
-            _ => None,
+            Self::Array(_) => Type::Array,
         }
     }
 
@@ -328,13 +287,14 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
-    /// assert_eq!(Value::Int8Array(vec![0]).as_int8_array(), Some(&[0][..]));
-    /// assert_eq!(Value::Int32(0).as_int8_array(), None);
+    /// use noodles_sam::record::data::field::{value::Array, Value};
+    /// let array = Array::UInt8(vec![0]);
+    /// assert_eq!(Value::Array(array.clone()).as_array(), Some(&array));
+    /// assert_eq!(Value::Int32(0).as_array(), None);
     /// ```
-    pub fn as_int8_array(&self) -> Option<&[i8]> {
+    pub fn as_array(&self) -> Option<&Array> {
         match *self {
-            Self::Int8Array(ref a) => Some(a),
+            Self::Array(ref array) => Some(array),
             _ => None,
         }
     }
@@ -344,190 +304,12 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
-    /// assert!(Value::Int8Array(vec![0]).is_int8_array());
-    /// assert!(!Value::Int32(0).is_int8_array());
+    /// use noodles_sam::record::data::field::{value::Array, Value};
+    /// assert!(Value::Array(Array::UInt8(vec![0])).is_array());
+    /// assert!(!Value::Int32(0).is_array());
     /// ```
-    pub fn is_int8_array(&self) -> bool {
-        matches!(self, Self::Int8Array(_))
-    }
-
-    /// Returns the value as an array of 8-bit unsigned integers if it is an array of 8-bit
-    /// unsigned integers.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::data::field::Value;
-    /// assert_eq!(Value::UInt8Array(vec![0]).as_uint8_array(), Some(&[0][..]));
-    /// assert_eq!(Value::Int32(0).as_uint8_array(), None);
-    /// ```
-    pub fn as_uint8_array(&self) -> Option<&[u8]> {
-        match *self {
-            Self::UInt8Array(ref a) => Some(a),
-            _ => None,
-        }
-    }
-
-    /// Returns whether the value is an 8-bit unsigned integer array.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::data::field::Value;
-    /// assert!(Value::UInt8Array(vec![0]).is_uint8_array());
-    /// assert!(!Value::Int32(0).is_uint8_array());
-    /// ```
-    pub fn is_uint8_array(&self) -> bool {
-        matches!(self, Self::UInt8Array(_))
-    }
-
-    /// Returns the value as an array of 16-bit integers if it is an array of 16-bit integers.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::data::field::Value;
-    /// assert_eq!(Value::Int16Array(vec![0]).as_int16_array(), Some(&[0][..]));
-    /// assert_eq!(Value::Int32(0).as_int16_array(), None);
-    /// ```
-    pub fn as_int16_array(&self) -> Option<&[i16]> {
-        match *self {
-            Self::Int16Array(ref a) => Some(a),
-            _ => None,
-        }
-    }
-
-    /// Returns whether the value is a 16-bit integer array.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::data::field::Value;
-    /// assert!(Value::Int16Array(vec![0]).is_int16_array());
-    /// assert!(!Value::Int32(0).is_int16_array());
-    /// ```
-    pub fn is_int16_array(&self) -> bool {
-        matches!(self, Self::Int16Array(_))
-    }
-
-    /// Returns the value as an array of 16-bit unsigned integers if it is an array of 16-bit
-    /// unsigned integers.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::data::field::Value;
-    /// assert_eq!(Value::UInt16Array(vec![0]).as_uint16_array(), Some(&[0][..]));
-    /// assert_eq!(Value::Int32(0).as_uint16_array(), None);
-    /// ```
-    pub fn as_uint16_array(&self) -> Option<&[u16]> {
-        match *self {
-            Self::UInt16Array(ref a) => Some(a),
-            _ => None,
-        }
-    }
-
-    /// Returns whether the value is a 16-bit unsigned integer array.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::data::field::Value;
-    /// assert!(Value::UInt16Array(vec![0]).is_uint16_array());
-    /// assert!(!Value::Int32(0).is_int16_array());
-    /// ```
-    pub fn is_uint16_array(&self) -> bool {
-        matches!(self, Self::UInt16Array(_))
-    }
-
-    /// Returns the value as an array of 32-bit integers if it is an array of 32-bit integers.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::data::field::Value;
-    /// assert_eq!(Value::Int32Array(vec![0]).as_int32_array(), Some(&[0][..]));
-    /// assert_eq!(Value::Int32(0).as_int32_array(), None);
-    /// ```
-    pub fn as_int32_array(&self) -> Option<&[i32]> {
-        match *self {
-            Self::Int32Array(ref a) => Some(a),
-            _ => None,
-        }
-    }
-
-    /// Returns whether the value is a 32-bit integer array.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::data::field::Value;
-    /// assert!(Value::Int32Array(vec![0]).is_int32_array());
-    /// assert!(!Value::Int32(0).is_int16_array());
-    /// ```
-    pub fn is_int32_array(&self) -> bool {
-        matches!(self, Self::Int32Array(_))
-    }
-
-    /// Returns the value as an array of 32-bit unsigned integers if it is an array of 32-bit
-    /// unsigned integers.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::data::field::Value;
-    /// assert_eq!(Value::UInt32Array(vec![0]).as_uint32_array(), Some(&[0][..]));
-    /// assert_eq!(Value::Int32(0).as_uint32_array(), None);
-    /// ```
-    pub fn as_uint32_array(&self) -> Option<&[u32]> {
-        match *self {
-            Self::UInt32Array(ref a) => Some(a),
-            _ => None,
-        }
-    }
-
-    /// Returns whether the value is a 32-bit unsigned integer array.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::data::field::Value;
-    /// assert!(Value::UInt32Array(vec![0]).is_uint32_array());
-    /// assert!(!Value::Int32(0).is_int32_array());
-    /// ```
-    pub fn is_uint32_array(&self) -> bool {
-        matches!(self, Self::UInt32Array(_))
-    }
-
-    /// Returns the value as an array of single-precision floating-points if it is an array of
-    /// single-precision floating-points.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::data::field::Value;
-    /// assert_eq!(Value::FloatArray(vec![0.0]).as_float_array(), Some(&[0.0][..]));
-    /// assert_eq!(Value::Int32(0).as_float_array(), None);
-    /// ```
-    pub fn as_float_array(&self) -> Option<&[f32]> {
-        match *self {
-            Self::FloatArray(ref a) => Some(a),
-            _ => None,
-        }
-    }
-
-    /// Returns whether the value is a 32-bit integer array.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::data::field::Value;
-    /// assert!(Value::Int32Array(vec![0]).is_int32_array());
-    /// assert!(!Value::Int32(0).is_int16_array());
-    /// ```
-    pub fn is_float_array(&self) -> bool {
-        matches!(self, Self::FloatArray(_))
+    pub fn is_array(&self) -> bool {
+        matches!(self, Self::Array(_))
     }
 }
 
@@ -603,43 +385,43 @@ impl From<f32> for Value {
 
 impl From<Vec<i8>> for Value {
     fn from(values: Vec<i8>) -> Self {
-        Value::Int8Array(values)
+        Value::Array(Array::Int8(values))
     }
 }
 
 impl From<Vec<u8>> for Value {
     fn from(values: Vec<u8>) -> Self {
-        Value::UInt8Array(values)
+        Value::Array(Array::UInt8(values))
     }
 }
 
 impl From<Vec<i16>> for Value {
     fn from(values: Vec<i16>) -> Self {
-        Value::Int16Array(values)
+        Value::Array(Array::Int16(values))
     }
 }
 
 impl From<Vec<u16>> for Value {
     fn from(values: Vec<u16>) -> Self {
-        Value::UInt16Array(values)
+        Value::Array(Array::UInt16(values))
     }
 }
 
 impl From<Vec<i32>> for Value {
     fn from(values: Vec<i32>) -> Self {
-        Value::Int32Array(values)
+        Value::Array(Array::Int32(values))
     }
 }
 
 impl From<Vec<u32>> for Value {
     fn from(values: Vec<u32>) -> Self {
-        Value::UInt32Array(values)
+        Value::Array(Array::UInt32(values))
     }
 }
 
 impl From<Vec<f32>> for Value {
     fn from(values: Vec<f32>) -> Self {
-        Value::FloatArray(values)
+        Value::Array(Array::Float(values))
     }
 }
 
@@ -678,69 +460,7 @@ impl fmt::Display for Value {
             Self::Float(n) => write!(f, "{n}"),
             Self::String(s) => f.write_str(s),
             Self::Hex(s) => write!(f, "{s}"),
-            Self::Int8Array(values) => {
-                f.write_char(char::from(Subtype::Int8))?;
-
-                for value in values {
-                    write!(f, ",{value}")?;
-                }
-
-                Ok(())
-            }
-            Self::UInt8Array(values) => {
-                f.write_char(char::from(Subtype::UInt8))?;
-
-                for value in values {
-                    write!(f, ",{value}")?;
-                }
-
-                Ok(())
-            }
-            Self::Int16Array(values) => {
-                f.write_char(char::from(Subtype::Int16))?;
-
-                for value in values {
-                    write!(f, ",{value}")?;
-                }
-
-                Ok(())
-            }
-            Self::UInt16Array(values) => {
-                f.write_char(char::from(Subtype::UInt16))?;
-
-                for value in values {
-                    write!(f, ",{value}")?;
-                }
-
-                Ok(())
-            }
-            Self::Int32Array(values) => {
-                f.write_char(char::from(Subtype::Int32))?;
-
-                for value in values {
-                    write!(f, ",{value}")?;
-                }
-
-                Ok(())
-            }
-            Self::UInt32Array(values) => {
-                f.write_char(char::from(Subtype::UInt32))?;
-
-                for value in values {
-                    write!(f, ",{value}")?;
-                }
-
-                Ok(())
-            }
-            Self::FloatArray(values) => {
-                f.write_char(char::from(Subtype::Float))?;
-
-                for value in values {
-                    write!(f, ",{value}")?;
-                }
-
-                Ok(())
-            }
+            Self::Array(array) => write!(f, "{array}"),
         }
     }
 }
@@ -818,31 +538,7 @@ mod tests {
         assert_eq!(Value::Float(0.0).ty(), Type::Float);
         assert_eq!(Value::String(String::from("noodles")).ty(), Type::String);
         assert_eq!(Value::Hex("CAFE".parse()?).ty(), Type::Hex);
-        assert_eq!(Value::Int8Array(vec![0]).ty(), Type::Array);
-        assert_eq!(Value::UInt8Array(vec![0]).ty(), Type::Array);
-        assert_eq!(Value::Int16Array(vec![0]).ty(), Type::Array);
-        assert_eq!(Value::UInt16Array(vec![0]).ty(), Type::Array);
-        assert_eq!(Value::Int32Array(vec![0]).ty(), Type::Array);
-        assert_eq!(Value::UInt32Array(vec![0]).ty(), Type::Array);
-        assert_eq!(Value::FloatArray(vec![0.0]).ty(), Type::Array);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_subtype() -> Result<(), Box<dyn std::error::Error>> {
-        assert_eq!(Value::Character(Character::try_from('n')?).subtype(), None);
-        assert_eq!(Value::Int32(0).subtype(), None);
-        assert_eq!(Value::Float(0.0).subtype(), None);
-        assert_eq!(Value::String(String::from("noodles")).subtype(), None);
-        assert_eq!(Value::Hex("CAFE".parse()?).subtype(), None);
-        assert_eq!(Value::Int8Array(vec![0]).subtype(), Some(Subtype::Int8));
-        assert_eq!(Value::UInt8Array(vec![0]).subtype(), Some(Subtype::UInt8));
-        assert_eq!(Value::Int16Array(vec![0]).subtype(), Some(Subtype::Int16));
-        assert_eq!(Value::UInt16Array(vec![0]).subtype(), Some(Subtype::UInt16));
-        assert_eq!(Value::Int32Array(vec![0]).subtype(), Some(Subtype::Int32));
-        assert_eq!(Value::UInt32Array(vec![0]).subtype(), Some(Subtype::UInt32));
-        assert_eq!(Value::FloatArray(vec![0.0]).subtype(), Some(Subtype::Float));
+        assert_eq!(Value::Array(Array::UInt8(vec![0])).ty(), Type::Array);
 
         Ok(())
     }
@@ -929,37 +625,46 @@ mod tests {
 
     #[test]
     fn test_from_vec_i8_for_value() {
-        assert_eq!(Value::from(vec![0i8]), Value::Int8Array(vec![0]));
+        assert_eq!(Value::from(vec![0i8]), Value::Array(Array::Int8(vec![0])));
     }
 
     #[test]
     fn test_from_vec_u8_for_value() {
-        assert_eq!(Value::from(vec![0u8]), Value::UInt8Array(vec![0]));
+        assert_eq!(Value::from(vec![0u8]), Value::Array(Array::UInt8(vec![0])));
     }
 
     #[test]
     fn test_from_vec_i16_for_value() {
-        assert_eq!(Value::from(vec![0i16]), Value::Int16Array(vec![0]));
+        assert_eq!(Value::from(vec![0i16]), Value::Array(Array::Int16(vec![0])));
     }
 
     #[test]
     fn test_from_vec_u16_for_value() {
-        assert_eq!(Value::from(vec![0u16]), Value::UInt16Array(vec![0]));
+        assert_eq!(
+            Value::from(vec![0u16]),
+            Value::Array(Array::UInt16(vec![0]))
+        );
     }
 
     #[test]
     fn test_from_vec_i32_for_value() {
-        assert_eq!(Value::from(vec![0i32]), Value::Int32Array(vec![0]));
+        assert_eq!(Value::from(vec![0i32]), Value::Array(Array::Int32(vec![0])));
     }
 
     #[test]
     fn test_from_vec_u32_for_value() {
-        assert_eq!(Value::from(vec![0u32]), Value::UInt32Array(vec![0]));
+        assert_eq!(
+            Value::from(vec![0u32]),
+            Value::Array(Array::UInt32(vec![0]))
+        );
     }
 
     #[test]
     fn test_from_vec_f32_for_value() {
-        assert_eq!(Value::from(vec![0.0f32]), Value::FloatArray(vec![0.0]));
+        assert_eq!(
+            Value::from(vec![0.0f32]),
+            Value::Array(Array::Float(vec![0.0]))
+        );
     }
 
     #[test]
@@ -1000,26 +705,10 @@ mod tests {
         assert_eq!(Value::Hex(Hex::default()).to_string(), "");
         assert_eq!(Value::Hex("CAFE".parse()?).to_string(), "CAFE");
 
-        assert_eq!(Value::Int8Array(Vec::new()).to_string(), "c");
-        assert_eq!(Value::Int8Array(vec![1, -2]).to_string(), "c,1,-2");
-
-        assert_eq!(Value::UInt8Array(Vec::new()).to_string(), "C");
-        assert_eq!(Value::UInt8Array(vec![3, 5]).to_string(), "C,3,5");
-
-        assert_eq!(Value::Int16Array(Vec::new()).to_string(), "s");
-        assert_eq!(Value::Int16Array(vec![8, -13]).to_string(), "s,8,-13");
-
-        assert_eq!(Value::UInt16Array(Vec::new()).to_string(), "S");
-        assert_eq!(Value::UInt16Array(vec![21, 34]).to_string(), "S,21,34");
-
-        assert_eq!(Value::Int32Array(Vec::new()).to_string(), "i");
-        assert_eq!(Value::Int32Array(vec![55, -89]).to_string(), "i,55,-89");
-
-        assert_eq!(Value::UInt32Array(Vec::new()).to_string(), "I");
-        assert_eq!(Value::UInt32Array(vec![144, 233]).to_string(), "I,144,233");
-
-        assert_eq!(Value::FloatArray(Vec::new()).to_string(), "f");
-        assert_eq!(Value::FloatArray(vec![0.0, 1.0]).to_string(), "f,0,1");
+        assert_eq!(
+            Value::Array(Array::UInt8(vec![8, 13])).to_string(),
+            "C,8,13"
+        );
 
         Ok(())
     }

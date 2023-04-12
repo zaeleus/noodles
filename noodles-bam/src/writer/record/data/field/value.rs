@@ -5,7 +5,10 @@ pub use self::subtype::put_subtype;
 use std::{ffi::CString, io};
 
 use bytes::BufMut;
-use noodles_sam::record::data::field::{value::Subtype, Value};
+use noodles_sam::record::data::field::{
+    value::{Array, Subtype},
+    Value,
+};
 
 /// Writes a BAM record data field value.
 ///
@@ -36,49 +39,49 @@ where
         Value::Float(n) => dst.put_f32_le(*n),
         Value::String(s) => put_string(dst, s)?,
         Value::Hex(s) => put_string(dst, s.as_ref())?,
-        Value::Int8Array(values) => {
+        Value::Array(Array::Int8(values)) => {
             put_array_header(dst, Subtype::Int8, values.len())?;
 
             for &n in values {
                 dst.put_i8(n);
             }
         }
-        Value::UInt8Array(values) => {
+        Value::Array(Array::UInt8(values)) => {
             put_array_header(dst, Subtype::UInt8, values.len())?;
 
             for &n in values {
                 dst.put_u8(n);
             }
         }
-        Value::Int16Array(values) => {
+        Value::Array(Array::Int16(values)) => {
             put_array_header(dst, Subtype::Int16, values.len())?;
 
             for &n in values {
                 dst.put_i16_le(n);
             }
         }
-        Value::UInt16Array(values) => {
+        Value::Array(Array::UInt16(values)) => {
             put_array_header(dst, Subtype::UInt16, values.len())?;
 
             for &n in values {
                 dst.put_u16_le(n);
             }
         }
-        Value::Int32Array(values) => {
+        Value::Array(Array::Int32(values)) => {
             put_array_header(dst, Subtype::Int32, values.len())?;
 
             for &n in values {
                 dst.put_i32_le(n);
             }
         }
-        Value::UInt32Array(values) => {
+        Value::Array(Array::UInt32(values)) => {
             put_array_header(dst, Subtype::UInt32, values.len())?;
 
             for &n in values {
                 dst.put_u32_le(n);
             }
         }
-        Value::FloatArray(values) => {
+        Value::Array(Array::Float(values)) => {
             put_array_header(dst, Subtype::Float, values.len())?;
 
             for &n in values {
@@ -155,7 +158,7 @@ mod tests {
 
         t(
             &mut buf,
-            &Value::Int8Array(vec![1, -2]),
+            &Value::Array(Array::Int8(vec![1, -2])),
             &[
                 b'c', // subtype = Int8
                 0x02, 0x00, 0x00, 0x00, // count = 2
@@ -166,7 +169,7 @@ mod tests {
 
         t(
             &mut buf,
-            &Value::UInt8Array(vec![3, 5]),
+            &Value::Array(Array::UInt8(vec![3, 5])),
             &[
                 b'C', // subtype = UInt8
                 0x02, 0x00, 0x00, 0x00, // count = 2
@@ -177,7 +180,7 @@ mod tests {
 
         t(
             &mut buf,
-            &Value::Int16Array(vec![8, -13]),
+            &Value::Array(Array::Int16(vec![8, -13])),
             &[
                 b's', // subtype = Int16
                 0x02, 0x00, 0x00, 0x00, // count = 2
@@ -188,7 +191,7 @@ mod tests {
 
         t(
             &mut buf,
-            &Value::UInt16Array(vec![21, 34]),
+            &Value::Array(Array::UInt16(vec![21, 34])),
             &[
                 b'S', // subtype = UInt16
                 0x02, 0x00, 0x00, 0x00, // count = 2
@@ -199,7 +202,7 @@ mod tests {
 
         t(
             &mut buf,
-            &Value::Int32Array(vec![55, -89]),
+            &Value::Array(Array::Int32(vec![55, -89])),
             &[
                 b'i', // subtype = Int32
                 0x02, 0x00, 0x00, 0x00, // count = 2
@@ -210,7 +213,7 @@ mod tests {
 
         t(
             &mut buf,
-            &Value::UInt32Array(vec![144, 223]),
+            &Value::Array(Array::UInt32(vec![144, 223])),
             &[
                 b'I', // subtype = UInt32
                 0x02, 0x00, 0x00, 0x00, // count = 2
@@ -221,7 +224,7 @@ mod tests {
 
         t(
             &mut buf,
-            &Value::FloatArray(vec![8.0, 13.0]),
+            &Value::Array(Array::Float(vec![8.0, 13.0])),
             &[
                 b'f', // subtype = Float
                 0x02, 0x00, 0x00, 0x00, // count = 2

@@ -17,6 +17,10 @@
 
   * sam/record/data/field: Move `Type` from value to field.
 
+  * sam/record/data/field/value: Add array value wrapper (`Array`).
+
+    This replaces `Value::*Array(_)` as `Value::Array(Array)`.
+
 ## 0.26.0 - 2023-04-06
 
 ### Added

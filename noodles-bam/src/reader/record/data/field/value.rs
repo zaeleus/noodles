@@ -207,6 +207,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use noodles_sam::record::data::field::value::Array;
+
     use super::*;
 
     #[test]
@@ -243,37 +245,37 @@ mod tests {
         t(
             &[b'c', 0x01, 0x00, 0x00, 0x00, 0x00],
             Type::Array,
-            Value::Int8Array(vec![0]),
+            Value::Array(Array::Int8(vec![0])),
         )?;
         t(
             &[b'C', 0x01, 0x00, 0x00, 0x00, 0x00],
             Type::Array,
-            Value::UInt8Array(vec![0]),
+            Value::Array(Array::UInt8(vec![0])),
         )?;
         t(
             &[b's', 0x01, 0x00, 0x00, 0x00, 0x00, 0x00],
             Type::Array,
-            Value::Int16Array(vec![0]),
+            Value::Array(Array::Int16(vec![0])),
         )?;
         t(
             &[b'S', 0x01, 0x00, 0x00, 0x00, 0x00, 0x00],
             Type::Array,
-            Value::UInt16Array(vec![0]),
+            Value::Array(Array::UInt16(vec![0])),
         )?;
         t(
             &[b'i', 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
             Type::Array,
-            Value::Int32Array(vec![0]),
+            Value::Array(Array::Int32(vec![0])),
         )?;
         t(
             &[b'I', 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
             Type::Array,
-            Value::UInt32Array(vec![0]),
+            Value::Array(Array::UInt32(vec![0])),
         )?;
         t(
             &[b'f', 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
             Type::Array,
-            Value::FloatArray(vec![0.0]),
+            Value::Array(Array::Float(vec![0.0])),
         )?;
 
         Ok(())

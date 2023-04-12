@@ -229,7 +229,7 @@ where
 fn resolve_cigar(header: &sam::Header, record: &mut Record) -> io::Result<()> {
     use sam::record::{
         cigar::{op::Kind, Op},
-        data::field::Tag,
+        data::field::{value::Array, Tag},
     };
 
     if let Some((_, reference_sequence)) = record.reference_sequence(header).transpose()? {
@@ -239,12 +239,18 @@ fn resolve_cigar(header: &sam::Header, record: &mut Record) -> io::Result<()> {
 
             if *op_0 == Op::new(Kind::SoftClip, k) && *op_1 == Op::new(Kind::Skip, m) {
                 if let Some((_, value)) = record.data_mut().remove(Tag::Cigar) {
-                    let data = value.as_uint32_array().ok_or_else(|| {
-                        io::Error::new(
-                            io::ErrorKind::InvalidData,
-                            "invalid CG data field value type",
-                        )
-                    })?;
+                    let data = value
+                        .as_array()
+                        .and_then(|array| match array {
+                            Array::UInt32(values) => Some(values),
+                            _ => None,
+                        })
+                        .ok_or_else(|| {
+                            io::Error::new(
+                                io::ErrorKind::InvalidData,
+                                "invalid CG data field value type",
+                            )
+                        })?;
 
                     let cigar = record.cigar_mut();
                     cigar.clear();
@@ -334,7 +340,7 @@ mod tests {
             header::record::value::{map::ReferenceSequence, Map},
             record::{
                 cigar::op::{self, Op},
-                data::field::{Tag, Value},
+                data::field::{value::Array, Tag, Value},
                 Cigar,
             },
         };
@@ -351,7 +357,7 @@ mod tests {
             .set_cigar("4S8N".parse()?)
             .set_sequence("ACGT".parse()?)
             .set_data(
-                [(Tag::Cigar, Value::UInt32Array(vec![0x40]))]
+                [(Tag::Cigar, Value::Array(Array::UInt32(vec![0x40])))]
                     .into_iter()
                     .collect(),
             )

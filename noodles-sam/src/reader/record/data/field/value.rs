@@ -4,7 +4,7 @@ use std::{io, str};
 
 use self::subtype::parse_subtype;
 use crate::record::data::field::{
-    value::{Character, Hex, Subtype},
+    value::{Array, Character, Hex, Subtype},
     Type, Value,
 };
 
@@ -93,7 +93,7 @@ fn parse_array_value(src: &mut &[u8]) -> io::Result<Value> {
                 values.push(value);
             }
 
-            Ok(Value::Int8Array(values))
+            Ok(Value::Array(Array::Int8(values)))
         }
         Subtype::UInt8 => {
             let mut values = Vec::new();
@@ -106,7 +106,7 @@ fn parse_array_value(src: &mut &[u8]) -> io::Result<Value> {
                 values.push(value);
             }
 
-            Ok(Value::UInt8Array(values))
+            Ok(Value::Array(Array::UInt8(values)))
         }
         Subtype::Int16 => {
             let mut values = Vec::new();
@@ -119,7 +119,7 @@ fn parse_array_value(src: &mut &[u8]) -> io::Result<Value> {
                 values.push(value);
             }
 
-            Ok(Value::Int16Array(values))
+            Ok(Value::Array(Array::Int16(values)))
         }
         Subtype::UInt16 => {
             let mut values = Vec::new();
@@ -132,7 +132,7 @@ fn parse_array_value(src: &mut &[u8]) -> io::Result<Value> {
                 values.push(value);
             }
 
-            Ok(Value::UInt16Array(values))
+            Ok(Value::Array(Array::UInt16(values)))
         }
         Subtype::Int32 => {
             let mut values = Vec::new();
@@ -145,7 +145,7 @@ fn parse_array_value(src: &mut &[u8]) -> io::Result<Value> {
                 values.push(value);
             }
 
-            Ok(Value::Int32Array(values))
+            Ok(Value::Array(Array::Int32(values)))
         }
         Subtype::UInt32 => {
             let mut values = Vec::new();
@@ -158,7 +158,7 @@ fn parse_array_value(src: &mut &[u8]) -> io::Result<Value> {
                 values.push(value);
             }
 
-            Ok(Value::UInt32Array(values))
+            Ok(Value::Array(Array::UInt32(values)))
         }
         Subtype::Float => {
             let mut values = Vec::new();
@@ -171,7 +171,7 @@ fn parse_array_value(src: &mut &[u8]) -> io::Result<Value> {
                 values.push(value);
             }
 
-            Ok(Value::FloatArray(values))
+            Ok(Value::Array(Array::Float(values)))
         }
     }
 }
@@ -244,57 +244,81 @@ mod tests {
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 
-        t(b"c", Type::Array, Value::Int8Array(vec![]))?;
-        t(b"c,0", Type::Array, Value::Int8Array(vec![0]))?;
-        t(b"c,0,0", Type::Array, Value::Int8Array(vec![0, 0]))?;
+        t(b"c", Type::Array, Value::Array(Array::Int8(vec![])))?;
+        t(b"c,0", Type::Array, Value::Array(Array::Int8(vec![0])))?;
+        t(b"c,0,0", Type::Array, Value::Array(Array::Int8(vec![0, 0])))?;
         assert!(matches!(
             parse_value(&mut &b"c,"[..], Type::Array),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 
-        t(b"C", Type::Array, Value::UInt8Array(vec![]))?;
-        t(b"C,0", Type::Array, Value::UInt8Array(vec![0]))?;
-        t(b"C,0,0", Type::Array, Value::UInt8Array(vec![0, 0]))?;
+        t(b"C", Type::Array, Value::Array(Array::UInt8(vec![])))?;
+        t(b"C,0", Type::Array, Value::Array(Array::UInt8(vec![0])))?;
+        t(
+            b"C,0,0",
+            Type::Array,
+            Value::Array(Array::UInt8(vec![0, 0])),
+        )?;
         assert!(matches!(
             parse_value(&mut &b"C,"[..], Type::Float),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 
-        t(b"s", Type::Array, Value::Int16Array(vec![]))?;
-        t(b"s,0", Type::Array, Value::Int16Array(vec![0]))?;
-        t(b"s,0,0", Type::Array, Value::Int16Array(vec![0, 0]))?;
+        t(b"s", Type::Array, Value::Array(Array::Int16(vec![])))?;
+        t(b"s,0", Type::Array, Value::Array(Array::Int16(vec![0])))?;
+        t(
+            b"s,0,0",
+            Type::Array,
+            Value::Array(Array::Int16(vec![0, 0])),
+        )?;
         assert!(matches!(
             parse_value(&mut &b"s,"[..], Type::Float),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 
-        t(b"S", Type::Array, Value::UInt16Array(vec![]))?;
-        t(b"S,0", Type::Array, Value::UInt16Array(vec![0]))?;
-        t(b"S,0,0", Type::Array, Value::UInt16Array(vec![0, 0]))?;
+        t(b"S", Type::Array, Value::Array(Array::UInt16(vec![])))?;
+        t(b"S,0", Type::Array, Value::Array(Array::UInt16(vec![0])))?;
+        t(
+            b"S,0,0",
+            Type::Array,
+            Value::Array(Array::UInt16(vec![0, 0])),
+        )?;
         assert!(matches!(
             parse_value(&mut &b"S,"[..], Type::Float),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 
-        t(b"i", Type::Array, Value::Int32Array(vec![]))?;
-        t(b"i,0", Type::Array, Value::Int32Array(vec![0]))?;
-        t(b"i,0,0", Type::Array, Value::Int32Array(vec![0, 0]))?;
+        t(b"i", Type::Array, Value::Array(Array::Int32(vec![])))?;
+        t(b"i,0", Type::Array, Value::Array(Array::Int32(vec![0])))?;
+        t(
+            b"i,0,0",
+            Type::Array,
+            Value::Array(Array::Int32(vec![0, 0])),
+        )?;
         assert!(matches!(
             parse_value(&mut &b"i,"[..], Type::Float),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 
-        t(b"I", Type::Array, Value::UInt32Array(vec![]))?;
-        t(b"I,0", Type::Array, Value::UInt32Array(vec![0]))?;
-        t(b"I,0,0", Type::Array, Value::UInt32Array(vec![0, 0]))?;
+        t(b"I", Type::Array, Value::Array(Array::UInt32(vec![])))?;
+        t(b"I,0", Type::Array, Value::Array(Array::UInt32(vec![0])))?;
+        t(
+            b"I,0,0",
+            Type::Array,
+            Value::Array(Array::UInt32(vec![0, 0])),
+        )?;
         assert!(matches!(
             parse_value(&mut &b"I,"[..], Type::Float),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 
-        t(b"f", Type::Array, Value::FloatArray(vec![]))?;
-        t(b"f,0", Type::Array, Value::FloatArray(vec![0.0]))?;
-        t(b"f,0,0", Type::Array, Value::FloatArray(vec![0.0, 0.0]))?;
+        t(b"f", Type::Array, Value::Array(Array::Float(vec![])))?;
+        t(b"f,0", Type::Array, Value::Array(Array::Float(vec![0.0])))?;
+        t(
+            b"f,0,0",
+            Type::Array,
+            Value::Array(Array::Float(vec![0.0, 0.0])),
+        )?;
         assert!(matches!(
             parse_value(&mut &b"f,"[..], Type::Float),
             Err(e) if e.kind() == io::ErrorKind::InvalidData

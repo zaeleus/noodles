@@ -4,7 +4,10 @@ use std::io::{self, Write};
 
 use self::subtype::write_subtype;
 use crate::{
-    record::data::field::{value::Character, value::Subtype, Value},
+    record::data::field::{
+        value::{Array, Character, Subtype},
+        Value,
+    },
     writer::num,
 };
 
@@ -25,7 +28,7 @@ where
         Value::Float(n) => num::write_f32(writer, *n),
         Value::String(s) => writer.write_all(s.as_bytes()),
         Value::Hex(s) => writer.write_all(s.as_ref().as_bytes()),
-        Value::Int8Array(values) => {
+        Value::Array(Array::Int8(values)) => {
             write_subtype(writer, Subtype::Int8)?;
 
             for &n in values {
@@ -35,7 +38,7 @@ where
 
             Ok(())
         }
-        Value::UInt8Array(values) => {
+        Value::Array(Array::UInt8(values)) => {
             write_subtype(writer, Subtype::UInt8)?;
 
             for &n in values {
@@ -45,7 +48,7 @@ where
 
             Ok(())
         }
-        Value::Int16Array(values) => {
+        Value::Array(Array::Int16(values)) => {
             write_subtype(writer, Subtype::Int16)?;
 
             for &n in values {
@@ -55,7 +58,7 @@ where
 
             Ok(())
         }
-        Value::UInt16Array(values) => {
+        Value::Array(Array::UInt16(values)) => {
             write_subtype(writer, Subtype::UInt16)?;
 
             for &n in values {
@@ -65,7 +68,7 @@ where
 
             Ok(())
         }
-        Value::Int32Array(values) => {
+        Value::Array(Array::Int32(values)) => {
             write_subtype(writer, Subtype::Int32)?;
 
             for &n in values {
@@ -75,7 +78,7 @@ where
 
             Ok(())
         }
-        Value::UInt32Array(values) => {
+        Value::Array(Array::UInt32(values)) => {
             write_subtype(writer, Subtype::UInt32)?;
 
             for &n in values {
@@ -85,7 +88,7 @@ where
 
             Ok(())
         }
-        Value::FloatArray(values) => {
+        Value::Array(Array::Float(values)) => {
             write_subtype(writer, Subtype::Float)?;
 
             for &n in values {
@@ -134,13 +137,33 @@ mod tests {
         t(&mut buf, &Value::Float(8.0), b"8")?;
         t(&mut buf, &Value::String(String::from("ndls")), b"ndls")?;
         t(&mut buf, &Value::Hex("CAFE".parse()?), b"CAFE")?;
-        t(&mut buf, &Value::Int8Array(vec![1, -2]), b"c,1,-2")?;
-        t(&mut buf, &Value::UInt8Array(vec![3, 5]), b"C,3,5")?;
-        t(&mut buf, &Value::Int16Array(vec![8, -13]), b"s,8,-13")?;
-        t(&mut buf, &Value::UInt16Array(vec![21, 34]), b"S,21,34")?;
-        t(&mut buf, &Value::Int32Array(vec![55, -89]), b"i,55,-89")?;
-        t(&mut buf, &Value::UInt32Array(vec![144, 223]), b"I,144,223")?;
-        t(&mut buf, &Value::FloatArray(vec![8.0, 13.0]), b"f,8,13")?;
+        t(&mut buf, &Value::Array(Array::Int8(vec![1, -2])), b"c,1,-2")?;
+        t(&mut buf, &Value::Array(Array::UInt8(vec![3, 5])), b"C,3,5")?;
+        t(
+            &mut buf,
+            &Value::Array(Array::Int16(vec![8, -13])),
+            b"s,8,-13",
+        )?;
+        t(
+            &mut buf,
+            &Value::Array(Array::UInt16(vec![21, 34])),
+            b"S,21,34",
+        )?;
+        t(
+            &mut buf,
+            &Value::Array(Array::Int32(vec![55, -89])),
+            b"i,55,-89",
+        )?;
+        t(
+            &mut buf,
+            &Value::Array(Array::UInt32(vec![144, 223])),
+            b"I,144,223",
+        )?;
+        t(
+            &mut buf,
+            &Value::Array(Array::Float(vec![8.0, 13.0])),
+            b"f,8,13",
+        )?;
 
         Ok(())
     }

@@ -3,7 +3,10 @@ pub mod subtype;
 use std::{error, fmt, num};
 
 use bytes::Buf;
-use noodles_sam::record::data::field::{value::Subtype, Value};
+use noodles_sam::record::data::field::{
+    value::{Array, Subtype},
+    Value,
+};
 
 use self::subtype::get_subtype;
 
@@ -49,7 +52,7 @@ where
                 buf.push(src.get_i8());
             }
 
-            Ok(Value::Int8Array(buf))
+            Ok(Value::Array(Array::Int8(buf)))
         }
         Subtype::UInt8 => {
             let mut buf = Vec::with_capacity(len);
@@ -58,7 +61,7 @@ where
                 buf.push(src.get_u8());
             }
 
-            Ok(Value::UInt8Array(buf))
+            Ok(Value::Array(Array::UInt8(buf)))
         }
         Subtype::Int16 => {
             let mut buf = Vec::with_capacity(len);
@@ -67,7 +70,7 @@ where
                 buf.push(src.get_i16_le());
             }
 
-            Ok(Value::Int16Array(buf))
+            Ok(Value::Array(Array::Int16(buf)))
         }
         Subtype::UInt16 => {
             let mut buf = Vec::with_capacity(len);
@@ -76,7 +79,7 @@ where
                 buf.push(src.get_u16_le());
             }
 
-            Ok(Value::UInt16Array(buf))
+            Ok(Value::Array(Array::UInt16(buf)))
         }
         Subtype::Int32 => {
             let mut buf = Vec::with_capacity(len);
@@ -85,7 +88,7 @@ where
                 buf.push(src.get_i32_le());
             }
 
-            Ok(Value::Int32Array(buf))
+            Ok(Value::Array(Array::Int32(buf)))
         }
         Subtype::UInt32 => {
             let mut buf = Vec::with_capacity(len);
@@ -94,7 +97,7 @@ where
                 buf.push(src.get_u32_le());
             }
 
-            Ok(Value::UInt32Array(buf))
+            Ok(Value::Array(Array::UInt32(buf)))
         }
         Subtype::Float => {
             let mut buf = Vec::with_capacity(len);
@@ -103,7 +106,7 @@ where
                 buf.push(src.get_f32_le());
             }
 
-            Ok(Value::FloatArray(buf))
+            Ok(Value::Array(Array::Float(buf)))
         }
     }
 }
