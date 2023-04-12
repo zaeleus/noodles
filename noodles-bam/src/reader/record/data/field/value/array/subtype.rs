@@ -20,7 +20,7 @@ impl fmt::Display for ParseError {
             Self::UnexpectedEof => write!(f, "unexpected EOF"),
             Self::Invalid { actual } => write!(
                 f,
-                "invalid subtype: expected {{c, C, s, S, i, I, f}}, got {}",
+                "invalid input: expected {{c, C, s, S, i, I, f}}, got {}",
                 char::from(*actual)
             ),
         }
