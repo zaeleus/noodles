@@ -6,6 +6,13 @@
 
   * bam/writer: Add builder (`writer::Builder`).
 
+### Fixed
+
+  * bam/reader/record/position: Fix reading position at max position (2^31-1).
+
+    This would previously overflow and error instead of returning a properly
+    normalized `Some(Position)`.
+
 ## 0.29.0 - 2023-04-06
 
 ### Added
