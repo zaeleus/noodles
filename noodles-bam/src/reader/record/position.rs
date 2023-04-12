@@ -20,3 +20,34 @@ where
             .map(Position::new),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_position() -> io::Result<()> {
+        let data = (-1i32).to_le_bytes();
+        let mut src = &data[..];
+        assert!(get_position(&mut src)?.is_none());
+
+        let data = 0i32.to_le_bytes();
+        let mut src = &data[..];
+        assert_eq!(get_position(&mut src)?, Some(Position::MIN));
+
+        let mut src = &[][..];
+        assert!(matches!(
+            get_position(&mut src),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof,
+        ));
+
+        let data = (-2i32).to_le_bytes();
+        let mut src = &data[..];
+        assert!(matches!(
+            get_position(&mut src),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData,
+        ));
+
+        Ok(())
+    }
+}
