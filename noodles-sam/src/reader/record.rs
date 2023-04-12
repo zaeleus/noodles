@@ -54,6 +54,8 @@ pub enum ParseError {
     InvalidCigar(cigar::ParseError),
     /// The mate reference sequence ID is invalid.
     InvalidMateReferenceSequenceId(reference_sequence_id::ParseError),
+    /// The data is invalid.
+    InvalidData(data::ParseError),
 }
 
 impl error::Error for ParseError {
@@ -62,6 +64,7 @@ impl error::Error for ParseError {
             Self::InvalidReferenceSequenceId(e) => Some(e),
             Self::InvalidCigar(e) => Some(e),
             Self::InvalidMateReferenceSequenceId(e) => Some(e),
+            Self::InvalidData(e) => Some(e),
         }
     }
 }
@@ -74,6 +77,7 @@ impl fmt::Display for ParseError {
             Self::InvalidMateReferenceSequenceId(_) => {
                 write!(f, "invalid mate reference sequence ID")
             }
+            Self::InvalidData(_) => write!(f, "invalid data"),
         }
     }
 }
@@ -139,7 +143,9 @@ pub(crate) fn parse_record(mut src: &[u8], header: &Header, record: &mut Record)
 
     record.data_mut().clear();
     let field = next_field(&mut src);
-    parse_data(field, record.data_mut())?;
+    parse_data(field, record.data_mut())
+        .map_err(ParseError::InvalidData)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     Ok(())
 }

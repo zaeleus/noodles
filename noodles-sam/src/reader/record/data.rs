@@ -1,14 +1,44 @@
 pub(crate) mod field;
 
-use std::io;
+use std::{error, fmt};
 
 use self::field::parse_field;
 use crate::record::Data;
 
-pub(crate) fn parse_data(mut src: &[u8], data: &mut Data) -> io::Result<()> {
+/// An error when raw SAM record data fail to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// A field is invalid.
+    InvalidField(field::ParseError),
+}
+
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidField(e) => Some(e),
+        }
+    }
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidField(e) => {
+                write!(f, "invalid field")?;
+
+                if let Some(tag) = e.tag() {
+                    write!(f, ": {tag}")?;
+                }
+            }
+        }
+
+        Ok(())
+    }
+}
+
+pub(crate) fn parse_data(mut src: &[u8], data: &mut Data) -> Result<(), ParseError> {
     while !src.is_empty() {
-        let (tag, value) =
-            parse_field(&mut src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let (tag, value) = parse_field(&mut src).map_err(ParseError::InvalidField)?;
         data.insert(tag, value);
     }
 
@@ -20,7 +50,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_data() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_parse_data() -> Result<(), ParseError> {
         use crate::record::data::field::{Tag, Value};
 
         let mut data = Data::default();

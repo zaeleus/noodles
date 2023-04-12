@@ -24,6 +24,17 @@ pub enum ParseError {
     InvalidValue(Tag, value::ParseError),
 }
 
+impl ParseError {
+    /// Returns the tag of the field that caused the failure.
+    pub fn tag(&self) -> Option<Tag> {
+        match self {
+            Self::InvalidType(tag, _) => Some(*tag),
+            Self::InvalidValue(tag, _) => Some(*tag),
+            _ => None,
+        }
+    }
+}
+
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {

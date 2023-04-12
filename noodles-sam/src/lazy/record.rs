@@ -318,7 +318,7 @@ impl Record {
         let mut data = Data::default();
 
         let src = &self.buf[self.bounds.data_range()];
-        parse_data(src, &mut data)?;
+        parse_data(src, &mut data).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         Ok(data)
     }
