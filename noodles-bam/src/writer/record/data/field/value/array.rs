@@ -1,9 +1,11 @@
+mod subtype;
+
 use std::io;
 
 use bytes::BufMut;
 use noodles_sam::record::data::field::value::{array::Subtype, Array};
 
-use super::put_subtype;
+use self::subtype::put_subtype;
 
 pub fn put_array<B>(dst: &mut B, array: &Array) -> io::Result<()>
 where

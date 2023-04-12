@@ -1,7 +1,4 @@
 pub mod array;
-mod subtype;
-
-pub use self::subtype::put_subtype;
 
 use std::{ffi::CString, io};
 
