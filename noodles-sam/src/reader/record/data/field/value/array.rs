@@ -22,7 +22,7 @@ pub(super) fn parse_array(src: &mut &[u8]) -> io::Result<Array> {
         }
     }
 
-    let subtype = parse_subtype(src)?;
+    let subtype = parse_subtype(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     match subtype {
         Subtype::Int8 => {
