@@ -1,8 +1,7 @@
 mod array;
-mod subtype;
 mod ty;
 
-pub use self::{subtype::get_subtype, ty::get_type};
+pub use self::{array::subtype::get_subtype, ty::get_type};
 
 use std::{error, fmt, mem, num, string};
 
@@ -28,7 +27,7 @@ pub enum ParseError {
     /// The hex is invalid.
     InvalidHex(hex::ParseError),
     /// The array subtype is invalid.
-    InvalidArraySubtype(subtype::ParseError),
+    InvalidArraySubtype(array::subtype::ParseError),
     /// The array length is invalid.
     InvalidArrayLength(num::TryFromIntError),
 }

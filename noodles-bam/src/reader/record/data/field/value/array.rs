@@ -1,3 +1,5 @@
+pub mod subtype;
+
 use bytes::Buf;
 use noodles_sam::record::data::field::{value::Subtype, Value};
 
