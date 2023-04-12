@@ -1,7 +1,4 @@
 mod subtype;
-mod ty;
-
-pub use self::ty::write_type;
 
 use std::io::{self, Write};
 

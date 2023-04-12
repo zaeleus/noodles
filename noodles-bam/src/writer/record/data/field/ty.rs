@@ -1,5 +1,5 @@
 use bytes::BufMut;
-use noodles_sam::record::data::field::value::Type;
+use noodles_sam::record::data::field::Type;
 
 pub fn put_type<B>(dst: &mut B, ty: Type)
 where

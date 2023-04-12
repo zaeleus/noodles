@@ -1,14 +1,11 @@
 mod array;
-pub mod ty;
-
-pub use self::ty::get_type;
 
 use std::{error, fmt, mem, string};
 
 use bytes::Buf;
 use noodles_sam::record::data::field::{
-    value::{character, hex, Character, Type},
-    Value,
+    value::{character, hex, Character},
+    Type, Value,
 };
 
 use self::array::get_array;
@@ -64,7 +61,7 @@ impl fmt::Display for ParseError {
 /// ```
 /// # use std::io;
 /// use noodles_bam::reader::record::data::field::get_value;
-/// use noodles_sam::record::data::field::{value::Type, Value};
+/// use noodles_sam::record::data::field::{Type, Value};
 ///
 /// let data = [0x01, 0x00, 0x00, 0x00];
 /// let mut reader = &data[..];

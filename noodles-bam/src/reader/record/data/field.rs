@@ -1,6 +1,7 @@
 //! BAM record data field component readers.
 
 mod tag;
+mod ty;
 mod value;
 
 pub use self::value::get_value;
@@ -10,13 +11,15 @@ use std::{error, fmt};
 use bytes::Buf;
 use noodles_sam::record::data::field::{Tag, Value};
 
+use self::{tag::get_tag, ty::get_type};
+
 /// An error when a raw BAM record data field fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The tag is invalid.
     InvalidTag(tag::ParseError),
     /// The type is invalid.
-    InvalidType(Tag, value::ty::ParseError),
+    InvalidType(Tag, ty::ParseError),
     /// The value is invalid.
     InvalidValue(Tag, value::ParseError),
 }
@@ -56,11 +59,9 @@ pub(crate) fn get_field<B>(src: &mut B) -> Result<(Tag, Value), ParseError>
 where
     B: Buf,
 {
-    use self::tag::get_tag;
-
     let tag = get_tag(src).map_err(ParseError::InvalidTag)?;
 
-    let ty = value::get_type(src).map_err(|e| ParseError::InvalidType(tag, e))?;
+    let ty = get_type(src).map_err(|e| ParseError::InvalidType(tag, e))?;
     let value = get_value(src, ty).map_err(|e| ParseError::InvalidValue(tag, e))?;
 
     Ok((tag, value))

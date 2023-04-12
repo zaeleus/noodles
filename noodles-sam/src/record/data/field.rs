@@ -1,9 +1,10 @@
 //! SAM record data field and components.
 
 pub mod tag;
+pub mod ty;
 pub mod value;
 
-pub use self::{tag::Tag, value::Value};
+pub use self::{tag::Tag, ty::Type, value::Value};
 
 use std::{error, fmt};
 
@@ -15,7 +16,7 @@ pub enum ParseError {
     /// The data field tag is invalid.
     InvalidTag(tag::ParseError),
     /// The data field type is invalid.
-    InvalidType(value::ty::ParseError),
+    InvalidType(ty::ParseError),
     /// The data field value is invalid.
     InvalidValue,
 }

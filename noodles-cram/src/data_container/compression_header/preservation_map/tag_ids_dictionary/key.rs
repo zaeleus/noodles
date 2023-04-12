@@ -1,4 +1,4 @@
-use noodles_sam::record::data::field::{value::Type, Tag};
+use noodles_sam::record::data::field::{Tag, Type};
 
 use crate::container::block;
 
@@ -16,7 +16,7 @@ impl Key {
     ///
     /// ```
     /// use noodles_cram::data_container::compression_header::preservation_map::tag_ids_dictionary::Key;
-    /// use noodles_sam::record::data::field::{value::Type, Tag};
+    /// use noodles_sam::record::data::field::{Type, Tag};
     /// let key = Key::new(Tag::AlignmentHitCount, Type::UInt8);
     /// ```
     pub fn new(tag: Tag, ty: Type) -> Self {
@@ -29,7 +29,7 @@ impl Key {
     ///
     /// ```
     /// use noodles_cram::data_container::compression_header::preservation_map::tag_ids_dictionary::Key;
-    /// use noodles_sam::record::data::field::{value::Type, Tag};
+    /// use noodles_sam::record::data::field::{Type, Tag};
     /// let key = Key::new(Tag::AlignmentHitCount, Type::UInt8);
     /// assert_eq!(key.tag(), Tag::AlignmentHitCount);
     /// ```
@@ -43,7 +43,7 @@ impl Key {
     ///
     /// ```
     /// use noodles_cram::data_container::compression_header::preservation_map::tag_ids_dictionary::Key;
-    /// use noodles_sam::record::data::field::{value::Type, Tag};
+    /// use noodles_sam::record::data::field::{Type, Tag};
     /// let key = Key::new(Tag::AlignmentHitCount, Type::UInt8);
     /// assert_eq!(key.ty(), Type::UInt8);
     /// ```

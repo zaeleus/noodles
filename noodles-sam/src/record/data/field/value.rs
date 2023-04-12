@@ -3,15 +3,16 @@
 pub mod character;
 pub mod hex;
 pub mod subtype;
-pub mod ty;
 
-pub use self::{character::Character, hex::Hex, subtype::Subtype, ty::Type};
+pub use self::{character::Character, hex::Hex, subtype::Subtype};
 
 use std::{
     error,
     fmt::{self, Write},
     io, num,
 };
+
+use super::Type;
 
 /// A SAM record data field value.
 #[derive(Clone, Debug, PartialEq)]
@@ -59,7 +60,7 @@ impl Value {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_sam::record::data::field::{value::Type, Value};
+    /// use noodles_sam::record::data::field::{Type, Value};
     /// let value = Value::from_str_type("rg0", Type::String)?;
     /// assert_eq!(value, Value::String(String::from("rg0")));
     /// # Ok::<_, io::Error>(())
@@ -76,7 +77,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::{value::Type, Value};
+    /// use noodles_sam::record::data::field::{Type, Value};
     /// assert_eq!(Value::Int32(0).ty(), Type::Int32);
     /// ```
     pub fn ty(&self) -> Type {

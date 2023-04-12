@@ -1,7 +1,6 @@
 mod subtype;
-mod ty;
 
-pub use self::{subtype::put_subtype, ty::put_type};
+pub use self::subtype::put_subtype;
 
 use std::{ffi::CString, io};
 

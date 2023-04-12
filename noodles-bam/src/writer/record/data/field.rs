@@ -1,28 +1,26 @@
 //! BAM record data field component writers.
 
 mod tag;
+mod ty;
 mod value;
 
 use std::io;
 
 use bytes::BufMut;
 use noodles_sam::record::{
-    data::field::{
-        value::{Subtype, Type},
-        Tag, Value,
-    },
+    data::field::{value::Subtype, Tag, Type, Value},
     Cigar,
 };
 
-use self::tag::put_tag;
 pub use self::value::put_value;
+use self::{tag::put_tag, ty::put_type};
 
 pub(super) fn put_field<B>(dst: &mut B, tag: Tag, value: &Value) -> io::Result<()>
 where
     B: BufMut,
 {
     put_tag(dst, tag);
-    value::put_type(dst, value.ty());
+    put_type(dst, value.ty());
     put_value(dst, value)?;
     Ok(())
 }
@@ -32,7 +30,7 @@ where
     B: BufMut,
 {
     put_tag(dst, Tag::Cigar);
-    value::put_type(dst, Type::Array);
+    put_type(dst, Type::Array);
     value::put_array_header(dst, Subtype::UInt32, cigar.len())?;
     crate::writer::record::put_cigar(dst, cigar)?;
     Ok(())

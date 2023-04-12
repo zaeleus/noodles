@@ -217,7 +217,7 @@ impl Data {
 
 impl fmt::Display for Data {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use field::value::Type;
+        use field::Type;
 
         for (i, (tag, value)) in self.iter().enumerate() {
             if i > 0 {

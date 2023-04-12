@@ -15,6 +15,8 @@
 
     This reduces the valid set of field value types to `{A, i, f, Z, H, B}`.
 
+  * sam/record/data/field: Move `Type` from value to field.
+
 ## 0.26.0 - 2023-04-06
 
 ### Added

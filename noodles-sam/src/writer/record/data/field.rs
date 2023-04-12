@@ -1,9 +1,10 @@
 mod tag;
+mod ty;
 mod value;
 
 use std::io::{self, Write};
 
-use self::{tag::write_tag, value::write_value};
+use self::{tag::write_tag, ty::write_type, value::write_value};
 use crate::record::data::field::{Tag, Value};
 
 pub fn write_field<W>(writer: &mut W, tag: Tag, value: &Value) -> io::Result<()>
@@ -14,7 +15,7 @@ where
 
     write_tag(writer, tag)?;
     writer.write_all(&[DELIMITER])?;
-    value::write_type(writer, value.ty())?;
+    write_type(writer, value.ty())?;
     writer.write_all(&[DELIMITER])?;
     write_value(writer, value)?;
 

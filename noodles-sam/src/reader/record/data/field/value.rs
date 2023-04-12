@@ -1,14 +1,11 @@
 mod subtype;
-mod ty;
-
-pub(super) use self::ty::parse_type;
 
 use std::{io, str};
 
 use self::subtype::parse_subtype;
 use crate::record::data::field::{
-    value::{Character, Hex, Subtype, Type},
-    Value,
+    value::{Character, Hex, Subtype},
+    Type, Value,
 };
 
 pub(crate) fn parse_value(src: &mut &[u8], ty: Type) -> io::Result<Value> {
