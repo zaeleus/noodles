@@ -1,9 +1,9 @@
 mod array;
 mod ty;
 
-pub use self::{array::subtype::get_subtype, ty::get_type};
+pub use self::ty::get_type;
 
-use std::{error, fmt, mem, num, string};
+use std::{error, fmt, mem, string};
 
 use bytes::Buf;
 use noodles_sam::record::data::field::{
@@ -27,9 +27,7 @@ pub enum ParseError {
     /// The hex is invalid.
     InvalidHex(hex::ParseError),
     /// The array subtype is invalid.
-    InvalidArraySubtype(array::subtype::ParseError),
-    /// The array length is invalid.
-    InvalidArrayLength(num::TryFromIntError),
+    InvalidArray(array::ParseError),
 }
 
 impl error::Error for ParseError {
@@ -38,8 +36,7 @@ impl error::Error for ParseError {
             Self::InvalidCharacter(e) => Some(e),
             Self::InvalidString(e) => Some(e),
             Self::InvalidHex(e) => Some(e),
-            Self::InvalidArraySubtype(e) => Some(e),
-            Self::InvalidArrayLength(e) => Some(e),
+            Self::InvalidArray(e) => Some(e),
             _ => None,
         }
     }
@@ -53,8 +50,7 @@ impl fmt::Display for ParseError {
             Self::StringNotNulTerminated => write!(f, "string is not NUL terminated"),
             Self::InvalidString(_) => write!(f, "invalid string"),
             Self::InvalidHex(_) => write!(f, "invalid hex"),
-            Self::InvalidArraySubtype(_) => write!(f, "invalid array subtype"),
-            Self::InvalidArrayLength(_) => write!(f, "invalid array length"),
+            Self::InvalidArray(_) => write!(f, "invalid array"),
         }
     }
 }
@@ -90,7 +86,7 @@ where
         Type::Float => get_f32_value(src),
         Type::String => get_string(src).map(Value::String),
         Type::Hex => get_hex_value(src),
-        Type::Array => get_array_value(src),
+        Type::Array => get_array_value(src).map_err(ParseError::InvalidArray),
     }
 }
 
