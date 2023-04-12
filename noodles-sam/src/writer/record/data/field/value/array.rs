@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use super::subtype::write_subtype;
 use crate::{
-    record::data::field::value::{Array, Subtype},
+    record::data::field::value::{array::Subtype, Array},
     writer::num,
 };
 

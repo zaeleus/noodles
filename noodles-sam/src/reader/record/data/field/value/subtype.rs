@@ -1,6 +1,6 @@
 use std::io;
 
-use crate::record::data::field::value::Subtype;
+use crate::record::data::field::value::array::Subtype;
 
 pub(super) fn parse_subtype(src: &mut &[u8]) -> io::Result<Subtype> {
     let (n, rest) = src

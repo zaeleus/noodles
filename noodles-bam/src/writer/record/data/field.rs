@@ -8,7 +8,7 @@ use std::io;
 
 use bytes::BufMut;
 use noodles_sam::record::{
-    data::field::{value::Subtype, Tag, Type, Value},
+    data::field::{value::array::Subtype, Tag, Type, Value},
     Cigar,
 };
 

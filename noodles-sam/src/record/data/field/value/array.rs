@@ -1,6 +1,10 @@
-use std::fmt;
+//! SAM record data field array.
 
-use super::Subtype;
+pub mod subtype;
+
+pub use self::subtype::Subtype;
+
+use std::fmt;
 
 /// A SAM record data field array value.
 #[derive(Clone, Debug, PartialEq)]
@@ -27,7 +31,7 @@ impl Array {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::{value::{Array, Subtype}, Value};
+    /// use noodles_sam::record::data::field::{value::{Array, array::Subtype}, Value};
     /// assert_eq!(Array::UInt8(vec![0]).subtype(), Subtype::UInt8);
     /// ```
     pub fn subtype(&self) -> Subtype {

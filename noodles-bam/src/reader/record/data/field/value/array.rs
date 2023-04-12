@@ -4,7 +4,7 @@ use std::{error, fmt, num};
 
 use bytes::Buf;
 use noodles_sam::record::data::field::{
-    value::{Array, Subtype},
+    value::{array::Subtype, Array},
     Value,
 };
 

@@ -1,5 +1,5 @@
 use bytes::BufMut;
-use noodles_sam::record::data::field::value::Subtype;
+use noodles_sam::record::data::field::value::array::Subtype;
 
 pub fn put_subtype<B>(dst: &mut B, subtype: Subtype)
 where

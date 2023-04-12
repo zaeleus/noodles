@@ -21,6 +21,8 @@
 
     This replaces `Value::*Array(_)` as `Value::Array(Array)`.
 
+  * sam/record/data/field/value: Move `Subtype` under `array` module.
+
 ## 0.26.0 - 2023-04-06
 
 ### Added

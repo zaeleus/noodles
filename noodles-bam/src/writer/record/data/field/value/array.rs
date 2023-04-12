@@ -1,7 +1,7 @@
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::record::data::field::value::{Array, Subtype};
+use noodles_sam::record::data::field::value::{array::Subtype, Array};
 
 use super::put_subtype;
 

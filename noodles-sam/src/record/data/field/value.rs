@@ -1,11 +1,10 @@
 //! SAM record data field value and types.
 
-mod array;
+pub mod array;
 pub mod character;
 pub mod hex;
-pub mod subtype;
 
-pub use self::{array::Array, character::Character, hex::Hex, subtype::Subtype};
+pub use self::{array::Array, character::Character, hex::Hex};
 
 use std::{
     error,
@@ -485,7 +484,7 @@ pub enum ParseError {
     /// The data field subtype is missing.
     MissingSubtype,
     /// The data field subtype is invalid.
-    InvalidSubtype(subtype::ParseError),
+    InvalidSubtype(array::subtype::ParseError),
 }
 
 impl error::Error for ParseError {

@@ -4,7 +4,7 @@ use std::{io, str};
 
 use self::subtype::parse_subtype;
 use crate::record::data::field::{
-    value::{Array, Character, Hex, Subtype},
+    value::{array::Subtype, Array, Character, Hex},
     Type, Value,
 };
 
