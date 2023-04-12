@@ -7,7 +7,8 @@ use crate::record::Data;
 
 pub(crate) fn parse_data(mut src: &[u8], data: &mut Data) -> io::Result<()> {
     while !src.is_empty() {
-        let (tag, value) = parse_field(&mut src)?;
+        let (tag, value) =
+            parse_field(&mut src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
         data.insert(tag, value);
     }
 
