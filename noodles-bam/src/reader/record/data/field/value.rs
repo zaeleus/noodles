@@ -11,7 +11,7 @@ use noodles_sam::record::data::field::{
     Value,
 };
 
-use self::array::get_array_value;
+use self::array::get_array;
 
 // An error when a raw BAM record data field value fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -76,21 +76,21 @@ where
     B: Buf,
 {
     match ty {
-        Type::Character => get_char_value(src),
-        Type::Int8 => get_i8_value(src),
-        Type::UInt8 => get_u8_value(src),
-        Type::Int16 => get_i16_value(src),
-        Type::UInt16 => get_u16_value(src),
-        Type::Int32 => get_i32_value(src),
-        Type::UInt32 => get_u32_value(src),
-        Type::Float => get_f32_value(src),
+        Type::Character => get_char(src),
+        Type::Int8 => get_i8(src),
+        Type::UInt8 => get_u8(src),
+        Type::Int16 => get_i16(src),
+        Type::UInt16 => get_u16(src),
+        Type::Int32 => get_i32(src),
+        Type::UInt32 => get_u32(src),
+        Type::Float => get_f32(src),
         Type::String => get_string(src).map(Value::String),
-        Type::Hex => get_hex_value(src),
-        Type::Array => get_array_value(src).map_err(ParseError::InvalidArray),
+        Type::Hex => get_hex(src),
+        Type::Array => get_array(src).map_err(ParseError::InvalidArray),
     }
 }
 
-fn get_char_value<B>(src: &mut B) -> Result<Value, ParseError>
+fn get_char<B>(src: &mut B) -> Result<Value, ParseError>
 where
     B: Buf,
 {
@@ -103,7 +103,7 @@ where
         .map_err(ParseError::InvalidCharacter)
 }
 
-fn get_i8_value<B>(src: &mut B) -> Result<Value, ParseError>
+fn get_i8<B>(src: &mut B) -> Result<Value, ParseError>
 where
     B: Buf,
 {
@@ -114,7 +114,7 @@ where
     Ok(Value::Int8(src.get_i8()))
 }
 
-fn get_u8_value<B>(src: &mut B) -> Result<Value, ParseError>
+fn get_u8<B>(src: &mut B) -> Result<Value, ParseError>
 where
     B: Buf,
 {
@@ -125,7 +125,7 @@ where
     Ok(Value::UInt8(src.get_u8()))
 }
 
-fn get_i16_value<B>(src: &mut B) -> Result<Value, ParseError>
+fn get_i16<B>(src: &mut B) -> Result<Value, ParseError>
 where
     B: Buf,
 {
@@ -136,7 +136,7 @@ where
     Ok(Value::Int16(src.get_i16_le()))
 }
 
-fn get_u16_value<B>(src: &mut B) -> Result<Value, ParseError>
+fn get_u16<B>(src: &mut B) -> Result<Value, ParseError>
 where
     B: Buf,
 {
@@ -147,7 +147,7 @@ where
     Ok(Value::UInt16(src.get_u16_le()))
 }
 
-fn get_i32_value<B>(src: &mut B) -> Result<Value, ParseError>
+fn get_i32<B>(src: &mut B) -> Result<Value, ParseError>
 where
     B: Buf,
 {
@@ -158,7 +158,7 @@ where
     Ok(Value::Int32(src.get_i32_le()))
 }
 
-fn get_u32_value<B>(src: &mut B) -> Result<Value, ParseError>
+fn get_u32<B>(src: &mut B) -> Result<Value, ParseError>
 where
     B: Buf,
 {
@@ -169,7 +169,7 @@ where
     Ok(Value::UInt32(src.get_u32_le()))
 }
 
-fn get_f32_value<B>(src: &mut B) -> Result<Value, ParseError>
+fn get_f32<B>(src: &mut B) -> Result<Value, ParseError>
 where
     B: Buf,
 {
@@ -199,7 +199,7 @@ where
     String::from_utf8(buf).map_err(ParseError::InvalidString)
 }
 
-fn get_hex_value<B>(src: &mut B) -> Result<Value, ParseError>
+fn get_hex<B>(src: &mut B) -> Result<Value, ParseError>
 where
     B: Buf,
 {

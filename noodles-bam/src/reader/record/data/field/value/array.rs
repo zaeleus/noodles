@@ -34,7 +34,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(super) fn get_array_value<B>(src: &mut B) -> Result<Value, ParseError>
+pub(super) fn get_array<B>(src: &mut B) -> Result<Value, ParseError>
 where
     B: Buf,
 {
