@@ -10,17 +10,17 @@ use crate::record::data::field::{
 
 pub(crate) fn parse_value(src: &mut &[u8], ty: Type) -> io::Result<Value> {
     match ty {
-        Type::Character => parse_char_value(src),
-        Type::Int32 => parse_int_value(src),
-        Type::Float => parse_float_value(src),
-        Type::String => parse_string_value(src),
-        Type::Hex => parse_hex_value(src),
-        Type::Array => parse_array_value(src),
+        Type::Character => parse_char(src),
+        Type::Int32 => parse_int(src),
+        Type::Float => parse_float(src),
+        Type::String => parse_string(src),
+        Type::Hex => parse_hex(src),
+        Type::Array => parse_array(src),
         _ => Err(io::Error::from(io::ErrorKind::InvalidData)),
     }
 }
 
-fn parse_char_value(src: &[u8]) -> io::Result<Value> {
+fn parse_char(src: &[u8]) -> io::Result<Value> {
     let (n, rest) = src
         .split_first()
         .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
@@ -34,19 +34,19 @@ fn parse_char_value(src: &[u8]) -> io::Result<Value> {
     }
 }
 
-fn parse_int_value(src: &[u8]) -> io::Result<Value> {
+fn parse_int(src: &[u8]) -> io::Result<Value> {
     lexical_core::parse::<i32>(src)
         .map(Value::from)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
-fn parse_float_value(src: &[u8]) -> io::Result<Value> {
+fn parse_float(src: &[u8]) -> io::Result<Value> {
     lexical_core::parse(src)
         .map(Value::Float)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
-fn parse_string_value(src: &[u8]) -> io::Result<Value> {
+fn parse_string(src: &[u8]) -> io::Result<Value> {
     if src.iter().all(|n| matches!(n, b' '..=b'~')) {
         str::from_utf8(src)
             .map(|s| Value::String(s.into()))
@@ -56,13 +56,13 @@ fn parse_string_value(src: &[u8]) -> io::Result<Value> {
     }
 }
 
-fn parse_hex_value(src: &[u8]) -> io::Result<Value> {
+fn parse_hex(src: &[u8]) -> io::Result<Value> {
     Hex::try_from(src)
         .map(Value::Hex)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
-fn parse_array_value(src: &mut &[u8]) -> io::Result<Value> {
+fn parse_array(src: &mut &[u8]) -> io::Result<Value> {
     const DELIMITER: u8 = b',';
 
     fn consume_delimiter(src: &mut &[u8]) -> io::Result<()> {
