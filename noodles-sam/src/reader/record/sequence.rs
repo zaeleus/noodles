@@ -1,12 +1,38 @@
-use std::{io, mem};
+use std::{error, fmt, mem};
 
-use crate::record::{sequence::Base, Sequence};
+use crate::record::{
+    sequence::{base, Base},
+    Sequence,
+};
 
-pub(crate) fn parse_sequence(src: &[u8], sequence: &mut Sequence) -> io::Result<()> {
+/// An error when a raw SAM record sequence fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// A base is invalid.
+    InvalidBase(base::TryFromCharError),
+}
+
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidBase(e) => Some(e),
+        }
+    }
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidBase(_) => write!(f, "invalid base"),
+        }
+    }
+}
+
+pub(crate) fn parse_sequence(src: &[u8], sequence: &mut Sequence) -> Result<(), ParseError> {
     let mut bases = Vec::from(mem::take(sequence));
 
     for &n in src {
-        let base = Base::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let base = Base::try_from(n).map_err(ParseError::InvalidBase)?;
         bases.push(base);
     }
 
@@ -20,7 +46,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_sequence() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_parse_sequence() -> Result<(), ParseError> {
         let mut sequence = Sequence::default();
 
         sequence.clear();
@@ -36,7 +62,7 @@ mod tests {
         sequence.clear();
         assert!(matches!(
             parse_sequence(&[0x07], &mut sequence),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData
+            Err(ParseError::InvalidBase(_))
         ));
 
         Ok(())

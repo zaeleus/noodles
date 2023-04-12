@@ -272,7 +272,8 @@ impl Record {
         let src = &self.buf[self.bounds.sequence_range()];
 
         if src != MISSING {
-            parse_sequence(src, &mut sequence)?;
+            parse_sequence(src, &mut sequence)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
         }
 
         Ok(sequence)
