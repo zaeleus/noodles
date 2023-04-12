@@ -16,8 +16,8 @@ pub(super) fn parse_field(src: &mut &[u8]) -> io::Result<Option<(Tag, Value)>> {
 
     let tag = match parse_tag(&mut buf) {
         Ok(t) => t,
-        Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(None),
-        Err(e) => return Err(e),
+        Err(tag::ParseError::UnexpectedEof) => return Ok(None),
+        Err(e) => return Err(io::Error::new(io::ErrorKind::InvalidData, e)),
     };
 
     consume_delimiter(&mut buf)?;
