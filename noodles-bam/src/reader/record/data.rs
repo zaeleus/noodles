@@ -16,7 +16,8 @@ where
     data.clear();
 
     while src.has_remaining() {
-        let (tag, value) = get_field(src)?;
+        let (tag, value) =
+            get_field(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
         data.insert(tag, value);
     }
 
