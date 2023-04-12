@@ -16,17 +16,28 @@ pub enum ParseError {
     /// The tag is invalid.
     InvalidTag(tag::ParseError),
     /// The type is invalid.
-    InvalidType(value::ty::ParseError),
+    InvalidType(Tag, value::ty::ParseError),
     /// The value is invalid.
-    InvalidValue(value::ParseError),
+    InvalidValue(Tag, value::ParseError),
+}
+
+impl ParseError {
+    /// Returns the tag of the field that caused the failure.
+    pub fn tag(&self) -> Option<Tag> {
+        match self {
+            Self::InvalidTag(_) => None,
+            Self::InvalidType(tag, _) => Some(*tag),
+            Self::InvalidValue(tag, _) => Some(*tag),
+        }
+    }
 }
 
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             ParseError::InvalidTag(e) => Some(e),
-            ParseError::InvalidType(e) => Some(e),
-            ParseError::InvalidValue(e) => Some(e),
+            ParseError::InvalidType(_, e) => Some(e),
+            ParseError::InvalidValue(_, e) => Some(e),
         }
     }
 }
@@ -35,8 +46,8 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ParseError::InvalidTag(_) => write!(f, "invalid tag"),
-            ParseError::InvalidType(_) => write!(f, "invalid type"),
-            ParseError::InvalidValue(_) => write!(f, "invalid value"),
+            ParseError::InvalidType(..) => write!(f, "invalid type"),
+            ParseError::InvalidValue(..) => write!(f, "invalid value"),
         }
     }
 }
@@ -49,8 +60,8 @@ where
 
     let tag = get_tag(src).map_err(ParseError::InvalidTag)?;
 
-    let ty = value::get_type(src).map_err(ParseError::InvalidType)?;
-    let value = get_value(src, ty).map_err(ParseError::InvalidValue)?;
+    let ty = value::get_type(src).map_err(|e| ParseError::InvalidType(tag, e))?;
+    let value = get_value(src, ty).map_err(|e| ParseError::InvalidValue(tag, e))?;
 
     Ok((tag, value))
 }
@@ -75,6 +86,20 @@ mod tests {
         assert!(matches!(
             get_field(&mut reader),
             Err(ParseError::InvalidTag(_))
+        ));
+
+        let data = [b'N', b'H', b'z'];
+        let mut reader = &data[..];
+        assert!(matches!(
+            get_field(&mut reader),
+            Err(ParseError::InvalidType(Tag::AlignmentHitCount, _))
+        ));
+
+        let data = [b'N', b'H', b'C'];
+        let mut reader = &data[..];
+        assert!(matches!(
+            get_field(&mut reader),
+            Err(ParseError::InvalidValue(Tag::AlignmentHitCount, _))
         ));
     }
 }

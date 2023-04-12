@@ -27,8 +27,16 @@ impl error::Error for ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidField(_) => write!(f, "invalid field"),
+            Self::InvalidField(e) => {
+                write!(f, "invalid field")?;
+
+                if let Some(tag) = e.tag() {
+                    write!(f, ": {tag}")?;
+                }
+            }
         }
+
+        Ok(())
     }
 }
 
