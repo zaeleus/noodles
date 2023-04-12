@@ -16,7 +16,7 @@ where
 {
     use self::tag::get_tag;
 
-    let tag = get_tag(src)?;
+    let tag = get_tag(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     let ty = value::get_type(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     let value = get_value(src, ty).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
@@ -42,7 +42,7 @@ mod tests {
         let mut reader = &data[..];
         assert!(matches!(
            get_field(&mut reader),
-           Err(e) if e.kind() == io::ErrorKind::UnexpectedEof,
+           Err(e) if e.kind() == io::ErrorKind::InvalidData,
         ));
 
         Ok(())
