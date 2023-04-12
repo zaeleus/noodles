@@ -13,7 +13,7 @@ use noodles_sam::record::data::field::{
 
 use self::array::get_array;
 
-// An error when a raw BAM record data field value fails to parse.
+/// An error when a raw BAM record data field value fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// Unexpected EOF.
