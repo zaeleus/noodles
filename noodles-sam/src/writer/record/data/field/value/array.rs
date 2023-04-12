@@ -1,6 +1,8 @@
+mod subtype;
+
 use std::io::{self, Write};
 
-use super::subtype::write_subtype;
+use self::subtype::write_subtype;
 use crate::{
     record::data::field::value::{array::Subtype, Array},
     writer::num,

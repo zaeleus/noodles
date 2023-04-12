@@ -1,5 +1,4 @@
 mod array;
-mod subtype;
 
 use std::io::{self, Write};
 
