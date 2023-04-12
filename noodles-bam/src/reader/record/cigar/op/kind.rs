@@ -14,7 +14,7 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Invalid { actual } => write!(f, "invalid kind: expected 0..=8, got {actual}"),
+            Self::Invalid { actual } => write!(f, "invalid input: expected 0..=8, got {actual}"),
         }
     }
 }
