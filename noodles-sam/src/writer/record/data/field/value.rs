@@ -1,22 +1,19 @@
+mod array;
 mod subtype;
 
 use std::io::{self, Write};
 
-use self::subtype::write_subtype;
 use crate::{
-    record::data::field::{
-        value::{Array, Character, Subtype},
-        Value,
-    },
+    record::data::field::{value::Character, Value},
     writer::num,
 };
+
+use self::array::write_array;
 
 pub fn write_value<W>(writer: &mut W, value: &Value) -> io::Result<()>
 where
     W: Write,
 {
-    const ARRAY_VALUE_DELIMITER: u8 = b',';
-
     match value {
         Value::Character(c) => write_character(writer, *c),
         Value::Int8(n) => num::write_i8(writer, *n),
@@ -28,75 +25,7 @@ where
         Value::Float(n) => num::write_f32(writer, *n),
         Value::String(s) => writer.write_all(s.as_bytes()),
         Value::Hex(s) => writer.write_all(s.as_ref().as_bytes()),
-        Value::Array(Array::Int8(values)) => {
-            write_subtype(writer, Subtype::Int8)?;
-
-            for &n in values {
-                writer.write_all(&[ARRAY_VALUE_DELIMITER])?;
-                num::write_i8(writer, n)?;
-            }
-
-            Ok(())
-        }
-        Value::Array(Array::UInt8(values)) => {
-            write_subtype(writer, Subtype::UInt8)?;
-
-            for &n in values {
-                writer.write_all(&[ARRAY_VALUE_DELIMITER])?;
-                num::write_u8(writer, n)?;
-            }
-
-            Ok(())
-        }
-        Value::Array(Array::Int16(values)) => {
-            write_subtype(writer, Subtype::Int16)?;
-
-            for &n in values {
-                writer.write_all(&[ARRAY_VALUE_DELIMITER])?;
-                num::write_i16(writer, n)?;
-            }
-
-            Ok(())
-        }
-        Value::Array(Array::UInt16(values)) => {
-            write_subtype(writer, Subtype::UInt16)?;
-
-            for &n in values {
-                writer.write_all(&[ARRAY_VALUE_DELIMITER])?;
-                num::write_u16(writer, n)?;
-            }
-
-            Ok(())
-        }
-        Value::Array(Array::Int32(values)) => {
-            write_subtype(writer, Subtype::Int32)?;
-
-            for &n in values {
-                writer.write_all(&[ARRAY_VALUE_DELIMITER])?;
-                num::write_i32(writer, n)?;
-            }
-
-            Ok(())
-        }
-        Value::Array(Array::UInt32(values)) => {
-            write_subtype(writer, Subtype::UInt32)?;
-
-            for &n in values {
-                writer.write_all(&[ARRAY_VALUE_DELIMITER])?;
-                num::write_u32(writer, n)?;
-            }
-
-            Ok(())
-        }
-        Value::Array(Array::Float(values)) => {
-            write_subtype(writer, Subtype::Float)?;
-
-            for &n in values {
-                write!(writer, ",{n}")?;
-            }
-
-            Ok(())
-        }
+        Value::Array(array) => write_array(writer, array),
     }
 }
 
@@ -114,6 +43,8 @@ mod tests {
 
     #[test]
     fn test_write_value() -> Result<(), Box<dyn std::error::Error>> {
+        use crate::record::data::field::value::Array;
+
         fn t(buf: &mut Vec<u8>, value: &Value, expected: &[u8]) -> io::Result<()> {
             buf.clear();
             write_value(buf, value)?;
@@ -137,33 +68,7 @@ mod tests {
         t(&mut buf, &Value::Float(8.0), b"8")?;
         t(&mut buf, &Value::String(String::from("ndls")), b"ndls")?;
         t(&mut buf, &Value::Hex("CAFE".parse()?), b"CAFE")?;
-        t(&mut buf, &Value::Array(Array::Int8(vec![1, -2])), b"c,1,-2")?;
-        t(&mut buf, &Value::Array(Array::UInt8(vec![3, 5])), b"C,3,5")?;
-        t(
-            &mut buf,
-            &Value::Array(Array::Int16(vec![8, -13])),
-            b"s,8,-13",
-        )?;
-        t(
-            &mut buf,
-            &Value::Array(Array::UInt16(vec![21, 34])),
-            b"S,21,34",
-        )?;
-        t(
-            &mut buf,
-            &Value::Array(Array::Int32(vec![55, -89])),
-            b"i,55,-89",
-        )?;
-        t(
-            &mut buf,
-            &Value::Array(Array::UInt32(vec![144, 223])),
-            b"I,144,223",
-        )?;
-        t(
-            &mut buf,
-            &Value::Array(Array::Float(vec![8.0, 13.0])),
-            b"f,8,13",
-        )?;
+        t(&mut buf, &Value::Array(Array::Int8(vec![0])), b"c,0")?;
 
         Ok(())
     }
