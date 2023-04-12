@@ -57,7 +57,7 @@ impl Value {
         use crate::reader::record::data::field::parse_value;
 
         let mut src = s.as_bytes();
-        parse_value(&mut src, ty)
+        parse_value(&mut src, ty).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
     /// Returns the type of the value.
