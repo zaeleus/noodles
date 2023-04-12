@@ -3,13 +3,59 @@ mod ty;
 
 pub use self::{subtype::get_subtype, ty::get_type};
 
-use std::{io, mem};
+use std::{error, fmt, mem, num, string};
 
 use bytes::Buf;
 use noodles_sam::record::data::field::{
-    value::{Character, Subtype, Type},
+    value::{character, hex, Character, Subtype, Type},
     Value,
 };
+
+// An error when a raw BAM record data field value fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// Unexpected EOF.
+    UnexpectedEof,
+    /// The character is invalid.
+    InvalidCharacter(character::ParseError),
+    /// The string is not NUL terminated.
+    StringNotNulTerminated,
+    /// The string is invalid.
+    InvalidString(string::FromUtf8Error),
+    /// The hex is invalid.
+    InvalidHex(hex::ParseError),
+    /// The array subtype is invalid.
+    InvalidArraySubtype(subtype::ParseError),
+    /// The array length is invalid.
+    InvalidArrayLength(num::TryFromIntError),
+}
+
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidCharacter(e) => Some(e),
+            Self::InvalidString(e) => Some(e),
+            Self::InvalidHex(e) => Some(e),
+            Self::InvalidArraySubtype(e) => Some(e),
+            Self::InvalidArrayLength(e) => Some(e),
+            _ => None,
+        }
+    }
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::UnexpectedEof => write!(f, "unexpected EOF"),
+            Self::InvalidCharacter(_) => write!(f, "invalid character"),
+            Self::StringNotNulTerminated => write!(f, "string is not NUL terminated"),
+            Self::InvalidString(_) => write!(f, "invalid string"),
+            Self::InvalidHex(_) => write!(f, "invalid hex"),
+            Self::InvalidArraySubtype(_) => write!(f, "invalid array subtype"),
+            Self::InvalidArrayLength(_) => write!(f, "invalid array length"),
+        }
+    }
+}
 
 /// Reads a BAM record data field value.
 ///
@@ -25,10 +71,9 @@ use noodles_sam::record::data::field::{
 /// let data = [0x01, 0x00, 0x00, 0x00];
 /// let mut reader = &data[..];
 ///
-/// assert_eq!(get_value(&mut reader, Type::Int32)?, Value::Int32(1));
-/// # Ok::<(), io::Error>(())
+/// assert_eq!(get_value(&mut reader, Type::Int32), Ok(Value::Int32(1)));
 /// ```
-pub fn get_value<B>(src: &mut B, ty: Type) -> io::Result<Value>
+pub fn get_value<B>(src: &mut B, ty: Type) -> Result<Value, ParseError>
 where
     B: Buf,
 {
@@ -47,136 +92,130 @@ where
     }
 }
 
-fn get_char_value<B>(src: &mut B) -> io::Result<Value>
+fn get_char_value<B>(src: &mut B) -> Result<Value, ParseError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<u8>() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+        return Err(ParseError::UnexpectedEof);
     }
 
     Character::try_from(src.get_u8())
         .map(Value::Character)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        .map_err(ParseError::InvalidCharacter)
 }
 
-fn get_i8_value<B>(src: &mut B) -> io::Result<Value>
+fn get_i8_value<B>(src: &mut B) -> Result<Value, ParseError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<i8>() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+        return Err(ParseError::UnexpectedEof);
     }
 
     Ok(Value::Int8(src.get_i8()))
 }
 
-fn get_u8_value<B>(src: &mut B) -> io::Result<Value>
+fn get_u8_value<B>(src: &mut B) -> Result<Value, ParseError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<u8>() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+        return Err(ParseError::UnexpectedEof);
     }
 
     Ok(Value::UInt8(src.get_u8()))
 }
 
-fn get_i16_value<B>(src: &mut B) -> io::Result<Value>
+fn get_i16_value<B>(src: &mut B) -> Result<Value, ParseError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<i16>() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+        return Err(ParseError::UnexpectedEof);
     }
 
     Ok(Value::Int16(src.get_i16_le()))
 }
 
-fn get_u16_value<B>(src: &mut B) -> io::Result<Value>
+fn get_u16_value<B>(src: &mut B) -> Result<Value, ParseError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<u16>() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+        return Err(ParseError::UnexpectedEof);
     }
 
     Ok(Value::UInt16(src.get_u16_le()))
 }
 
-fn get_i32_value<B>(src: &mut B) -> io::Result<Value>
+fn get_i32_value<B>(src: &mut B) -> Result<Value, ParseError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<i32>() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+        return Err(ParseError::UnexpectedEof);
     }
 
     Ok(Value::Int32(src.get_i32_le()))
 }
 
-fn get_u32_value<B>(src: &mut B) -> io::Result<Value>
+fn get_u32_value<B>(src: &mut B) -> Result<Value, ParseError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<u32>() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+        return Err(ParseError::UnexpectedEof);
     }
 
     Ok(Value::UInt32(src.get_u32_le()))
 }
 
-fn get_f32_value<B>(src: &mut B) -> io::Result<Value>
+fn get_f32_value<B>(src: &mut B) -> Result<Value, ParseError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<f32>() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+        return Err(ParseError::UnexpectedEof);
     }
 
     Ok(Value::Float(src.get_f32_le()))
 }
 
-fn get_string<B>(src: &mut B) -> io::Result<String>
+fn get_string<B>(src: &mut B) -> Result<String, ParseError>
 where
     B: Buf,
 {
     const NUL: u8 = 0x00;
 
-    let len = src.chunk().iter().position(|&b| b == NUL).ok_or_else(|| {
-        io::Error::new(
-            io::ErrorKind::InvalidData,
-            "string value missing NUL terminator",
-        )
-    })?;
+    let len = src
+        .chunk()
+        .iter()
+        .position(|&b| b == NUL)
+        .ok_or(ParseError::StringNotNulTerminated)?;
 
     let mut buf = vec![0; len];
     src.copy_to_slice(&mut buf);
     src.advance(1); // Discard the NUL terminator.
 
-    String::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    String::from_utf8(buf).map_err(ParseError::InvalidString)
 }
 
-fn get_hex_value<B>(src: &mut B) -> io::Result<Value>
+fn get_hex_value<B>(src: &mut B) -> Result<Value, ParseError>
 where
     B: Buf,
 {
     get_string(src)
-        .and_then(|s| {
-            s.parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })
+        .and_then(|s| s.parse().map_err(ParseError::InvalidHex))
         .map(Value::Hex)
 }
 
-fn get_array_value<B>(src: &mut B) -> io::Result<Value>
+fn get_array_value<B>(src: &mut B) -> Result<Value, ParseError>
 where
     B: Buf,
 {
-    let subtype = get_subtype(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-    let len = usize::try_from(src.get_i32_le())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let subtype = get_subtype(src).map_err(ParseError::InvalidArraySubtype)?;
+    let len = usize::try_from(src.get_i32_le()).map_err(ParseError::InvalidArrayLength)?;
 
     match subtype {
         Subtype::Int8 => {
@@ -251,7 +290,7 @@ mod tests {
 
     #[test]
     fn test_get_value() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(mut data: &[u8], ty: Type, expected: Value) -> io::Result<()> {
+        fn t(mut data: &[u8], ty: Type, expected: Value) -> Result<(), ParseError> {
             let actual = get_value(&mut data, ty)?;
             assert_eq!(actual, expected);
             Ok(())

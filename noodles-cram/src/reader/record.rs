@@ -486,7 +486,8 @@ where
             )?;
 
             let mut data_reader = &data[..];
-            let value = get_value(&mut data_reader, key.ty())?;
+            let value = get_value(&mut data_reader, key.ty())
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
             let field = (key.tag(), value);
             fields.push(field);
