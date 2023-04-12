@@ -15,7 +15,9 @@ pub(crate) fn parse_value(src: &mut &[u8], ty: Type) -> io::Result<Value> {
         Type::Float => parse_float(src),
         Type::String => parse_string(src),
         Type::Hex => parse_hex(src),
-        Type::Array => parse_array(src).map(Value::Array),
+        Type::Array => parse_array(src)
+            .map(Value::Array)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
         _ => Err(io::Error::from(io::ErrorKind::InvalidData)),
     }
 }
