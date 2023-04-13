@@ -71,6 +71,8 @@ pub enum ParseError {
     InvalidMateReferenceSequenceId(reference_sequence_id::ParseError),
     /// The sequence is invalid.
     InvalidSequence(sequence::ParseError),
+    /// The quality scores are invalid.
+    InvalidQualityScores(quality_scores::ParseError),
     /// The data is invalid.
     InvalidData(data::ParseError),
 }
@@ -82,6 +84,7 @@ impl error::Error for ParseError {
             Self::InvalidCigar(e) => Some(e),
             Self::InvalidMateReferenceSequenceId(e) => Some(e),
             Self::InvalidSequence(e) => Some(e),
+            Self::InvalidQualityScores(e) => Some(e),
             Self::InvalidData(e) => Some(e),
         }
     }
@@ -96,6 +99,7 @@ impl fmt::Display for ParseError {
                 write!(f, "invalid mate reference sequence ID")
             }
             Self::InvalidSequence(_) => write!(f, "invalid sequence"),
+            Self::InvalidQualityScores(_) => write!(f, "invalid quality scores"),
             Self::InvalidData(_) => write!(f, "invalid data"),
         }
     }
@@ -147,7 +151,9 @@ where
         .map_err(ParseError::InvalidSequence)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    get_quality_scores(src, record.quality_scores_mut(), l_seq)?;
+    get_quality_scores(src, record.quality_scores_mut(), l_seq)
+        .map_err(ParseError::InvalidQualityScores)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     get_data(src, record.data_mut())
         .map_err(ParseError::InvalidData)
