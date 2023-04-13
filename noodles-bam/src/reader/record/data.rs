@@ -9,7 +9,7 @@ use std::{error, fmt};
 use bytes::Buf;
 use noodles_sam::record::Data;
 
-/// An error when a raw BAM record data field tag fails to parse.
+/// An error when raw BAM record data fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// A field is invalid.

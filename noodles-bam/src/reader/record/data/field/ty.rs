@@ -3,7 +3,7 @@ use std::{error, fmt, mem};
 use bytes::Buf;
 use noodles_sam::record::data::field::Type;
 
-/// An error when a raw BAM record data field value type fails to parse.
+/// An error when a raw BAM record data field type fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// Unexpected EOF.
