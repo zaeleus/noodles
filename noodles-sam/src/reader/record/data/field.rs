@@ -9,7 +9,7 @@ use std::{error, fmt};
 use self::{tag::parse_tag, ty::parse_type};
 use crate::record::data::field::{Tag, Value};
 
-/// An error when a raw BAM record data field fails to parse.
+/// An error when a raw SAM record data field fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// Unexpected EOF.
