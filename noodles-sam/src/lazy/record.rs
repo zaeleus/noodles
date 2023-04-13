@@ -297,7 +297,8 @@ impl Record {
         let src = &self.buf[self.bounds.quality_scores_range()];
 
         if src != MISSING {
-            parse_quality_scores(src, &mut quality_scores)?;
+            parse_quality_scores(src, &mut quality_scores)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
         }
 
         Ok(quality_scores)

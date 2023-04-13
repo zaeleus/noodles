@@ -1,11 +1,34 @@
-use std::{io, mem};
+use std::{error, fmt, mem};
 
-use crate::record::QualityScores;
+use crate::record::{quality_scores, QualityScores};
+
+/// An error when raw SAM record quality scores fail to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The input is invalid.
+    Invalid(quality_scores::ParseError),
+}
+
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Invalid(e) => Some(e),
+        }
+    }
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Invalid(_) => write!(f, "invalid input"),
+        }
+    }
+}
 
 pub(crate) fn parse_quality_scores(
     src: &[u8],
     quality_scores: &mut QualityScores,
-) -> io::Result<()> {
+) -> Result<(), ParseError> {
     const OFFSET: u8 = b'!';
 
     let raw_quality_scores = Vec::from(mem::take(quality_scores));
@@ -13,8 +36,7 @@ pub(crate) fn parse_quality_scores(
     let mut raw_scores: Vec<u8> = raw_quality_scores.into_iter().map(u8::from).collect();
     raw_scores.extend(src.iter().map(|n| n.wrapping_sub(OFFSET)));
 
-    *quality_scores = QualityScores::try_from(raw_scores)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    *quality_scores = QualityScores::try_from(raw_scores).map_err(ParseError::Invalid)?;
 
     Ok(())
 }
@@ -39,7 +61,7 @@ mod tests {
         quality_scores.clear();
         assert!(matches!(
             parse_quality_scores(&[0x07], &mut quality_scores),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData
+            Err(ParseError::Invalid(_))
         ));
 
         Ok(())

@@ -56,6 +56,8 @@ pub enum ParseError {
     InvalidMateReferenceSequenceId(reference_sequence_id::ParseError),
     /// The sequence is invalid.
     InvalidSequence(sequence::ParseError),
+    /// The quality scores are invalid.
+    InvalidQualityScores(quality_scores::ParseError),
     /// The data is invalid.
     InvalidData(data::ParseError),
 }
@@ -67,6 +69,7 @@ impl error::Error for ParseError {
             Self::InvalidCigar(e) => Some(e),
             Self::InvalidMateReferenceSequenceId(e) => Some(e),
             Self::InvalidSequence(e) => Some(e),
+            Self::InvalidQualityScores(e) => Some(e),
             Self::InvalidData(e) => Some(e),
         }
     }
@@ -80,6 +83,7 @@ impl fmt::Display for ParseError {
             Self::InvalidMateReferenceSequenceId(_) => {
                 write!(f, "invalid mate reference sequence ID")
             }
+            Self::InvalidQualityScores(_) => write!(f, "invalid quality scores"),
             Self::InvalidSequence(_) => write!(f, "invalid sequence"),
             Self::InvalidData(_) => write!(f, "invalid data"),
         }
@@ -144,7 +148,9 @@ pub(crate) fn parse_record(mut src: &[u8], header: &Header, record: &mut Record)
     record.quality_scores_mut().clear();
     let field = next_field(&mut src);
     if field != MISSING {
-        parse_quality_scores(field, record.quality_scores_mut())?;
+        parse_quality_scores(field, record.quality_scores_mut())
+            .map_err(ParseError::InvalidQualityScores)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     }
 
     record.data_mut().clear();
