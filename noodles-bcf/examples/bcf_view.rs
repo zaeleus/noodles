@@ -2,9 +2,14 @@
 //!
 //! The result matches the output of `bcftools view <src>`.
 
-use std::{env, fs::File};
+use std::{
+    env,
+    fs::File,
+    io::{self, BufWriter},
+};
 
 use noodles_bcf as bcf;
+use noodles_vcf as vcf;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");
@@ -16,12 +21,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let header = raw_header.parse()?;
     let string_maps = raw_header.parse()?;
 
-    print!("{raw_header}");
+    let stdout = io::stdout().lock();
+    let mut writer = vcf::Writer::new(BufWriter::new(stdout));
+
+    writer.write_header(&header)?;
 
     for result in reader.records() {
         let record = result?;
         let vcf_record = record.try_into_vcf_record(&header, &string_maps)?;
-        println!("{vcf_record}");
+        writer.write_record(&header, &vcf_record)?;
     }
 
     Ok(())
