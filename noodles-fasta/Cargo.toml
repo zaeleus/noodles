@@ -11,7 +11,7 @@ repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-fasta"
 
 [features]
-async = ["tokio"]
+async = ["dep:tokio"]
 
 [dependencies]
 bytes.workspace = true
