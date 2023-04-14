@@ -1,4 +1,3 @@
-mod record;
 mod string_map;
 mod value;
 mod vcf_record;
@@ -12,7 +11,7 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf as bgzf;
 use noodles_vcf as vcf;
 
-use super::{header::StringMaps, Record};
+use super::header::StringMaps;
 
 const MAJOR: u8 = 2;
 const MINOR: u8 = 2;
@@ -97,22 +96,6 @@ where
     /// ```
     pub fn write_header(&mut self, header: &vcf::Header) -> io::Result<()> {
         write_header(&mut self.inner, header)
-    }
-
-    /// Writes a record.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io;
-    /// use noodles_bcf as bcf;
-    /// let mut writer = bcf::Writer::new(Vec::new());
-    /// let record = bcf::Record::default();
-    /// writer.write_record(&record)?;
-    /// # Ok::<_, io::Error>(())
-    /// ```
-    pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        record::write_record(&mut self.inner, record)
     }
 
     /// Writes a VCF record.

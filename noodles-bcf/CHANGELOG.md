@@ -9,6 +9,13 @@
 
     This no longer returns a raw string.
 
+### Removed
+
+  * bcf/writer: Remove `Writer::write_record`.
+
+    A `bcf::Record` is effectively a lazy record, and writing lazy records is
+    not supported.
+
 ## 0.23.0 - 2023-04-06
 
 ### Changed
