@@ -2,6 +2,7 @@
 
 mod cigar;
 pub mod data;
+mod flags;
 mod mapping_quality;
 mod position;
 mod quality_scores;
@@ -10,8 +11,8 @@ mod reference_sequence_id;
 mod sequence;
 
 pub(crate) use self::{
-    cigar::get_cigar, data::get_data, mapping_quality::get_mapping_quality, position::get_position,
-    quality_scores::get_quality_scores, read_name::get_read_name,
+    cigar::get_cigar, data::get_data, flags::get_flags, mapping_quality::get_mapping_quality,
+    position::get_position, quality_scores::get_quality_scores, read_name::get_read_name,
     reference_sequence_id::get_reference_sequence_id, sequence::get_sequence,
 };
 
@@ -185,17 +186,6 @@ where
     }
 
     Ok(usize::from(src.get_u16_le()))
-}
-
-pub(crate) fn get_flags<B>(src: &mut B) -> io::Result<sam::record::Flags>
-where
-    B: Buf,
-{
-    if src.remaining() < mem::size_of::<u16>() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
-
-    Ok(sam::record::Flags::from(src.get_u16_le()))
 }
 
 pub(crate) fn get_sequence_len<B>(src: &mut B) -> io::Result<usize>
