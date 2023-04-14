@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bcf/reader: Change `Reader::read_header` to return a parsed header and
+    string maps (`(Header, StringMaps)`).
+
+    This no longer returns a raw string.
+
 ## 0.23.0 - 2023-04-06
 
 ### Changed

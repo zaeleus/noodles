@@ -4,8 +4,28 @@ use std::{
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
+use noodles_vcf as vcf;
 
-pub(super) fn read_header<R>(reader: &mut R) -> io::Result<String>
+use crate::header::StringMaps;
+
+pub(super) fn read_header<R>(reader: &mut R) -> io::Result<(vcf::Header, StringMaps)>
+where
+    R: Read,
+{
+    let raw_header = read_raw_header(reader)?;
+
+    let header = raw_header
+        .parse()
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+    let string_maps = raw_header
+        .parse()
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+    Ok((header, string_maps))
+}
+
+pub fn read_raw_header<R>(reader: &mut R) -> io::Result<String>
 where
     R: Read,
 {
@@ -31,7 +51,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_header() -> io::Result<()> {
+    fn test_read_raw_header() -> io::Result<()> {
         const NUL: u8 = 0x00;
 
         let raw_header = "##fileformat=VCFv4.3\n";
@@ -41,7 +61,7 @@ mod tests {
         data.push(NUL);
 
         let mut reader = &data[..];
-        let actual = read_header(&mut reader)?;
+        let actual = read_raw_header(&mut reader)?;
 
         assert_eq!(actual, raw_header);
 

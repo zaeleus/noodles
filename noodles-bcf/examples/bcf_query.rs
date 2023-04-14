@@ -11,7 +11,7 @@ use std::{
     path::PathBuf,
 };
 
-use noodles_bcf::{self as bcf, header::StringMaps};
+use noodles_bcf as bcf;
 use noodles_csi as csi;
 use noodles_vcf as vcf;
 
@@ -23,10 +23,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut reader = File::open(&src).map(bcf::Reader::new)?;
     reader.read_file_format()?;
-    let raw_header = reader.read_header()?;
-
-    let header: vcf::Header = raw_header.parse()?;
-    let string_maps: StringMaps = raw_header.parse()?;
+    let (header, string_maps) = reader.read_header()?;
 
     let index = csi::read(src.with_extension("bcf.csi"))?;
 

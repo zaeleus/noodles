@@ -12,7 +12,7 @@ fn main() -> io::Result<()> {
     let mut reader = File::open(src).map(bcf::Reader::new)?;
     reader.read_file_format()?;
 
-    let header = reader.read_header()?;
+    let (header, _) = reader.read_header()?;
     print!("{header}");
 
     Ok(())

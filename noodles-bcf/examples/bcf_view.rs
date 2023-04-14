@@ -16,10 +16,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut reader = File::open(src).map(bcf::Reader::new)?;
     reader.read_file_format()?;
-
-    let raw_header = reader.read_header()?;
-    let header = raw_header.parse()?;
-    let string_maps = raw_header.parse()?;
+    let (header, string_maps) = reader.read_header()?;
 
     let stdout = io::stdout().lock();
     let mut writer = vcf::Writer::new(BufWriter::new(stdout));

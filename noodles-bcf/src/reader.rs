@@ -97,12 +97,12 @@ where
         read_format_version(&mut self.inner)
     }
 
-    /// Reads the raw VCF header.
+    /// Reads the VCF header.
     ///
     /// The position of the stream is expected to be directly after the file format.
     ///
-    /// This returns the raw VCF header as a [`String`]. It can subsequently be parsed as a
-    /// [`noodles_vcf::Header`].
+    /// This returns both the parsed VCF header and the associated string maps built from the raw
+    /// header.
     ///
     /// # Examples
     ///
@@ -111,10 +111,10 @@ where
     /// use noodles_bcf as bcf;
     /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
     /// reader.read_file_format()?;
-    /// let header = reader.read_header()?;
+    /// let (header, string_maps) = reader.read_header()?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn read_header(&mut self) -> io::Result<String> {
+    pub fn read_header(&mut self) -> io::Result<(vcf::Header, StringMaps)> {
         read_header(&mut self.inner)
     }
 
@@ -246,8 +246,7 @@ where
     ///
     /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
     /// reader.read_file_format()?;
-    ///
-    /// let string_maps: StringMaps = reader.read_header()?.parse()?;
+    /// let (_, string_maps) = reader.read_header()?;
     ///
     /// let index = csi::read("sample.bcf.csi")?;
     /// let region = "sq0:8-13".parse()?;
@@ -293,11 +292,7 @@ where
     fn read_variant_header(&mut self) -> io::Result<vcf::Header> {
         read_magic(&mut self.inner)?;
         read_format_version(&mut self.inner)?;
-
-        read_header(&mut self.inner).and_then(|s| {
-            s.parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })
+        self.read_header().map(|(header, _)| header)
     }
 
     fn variant_records<'a>(
