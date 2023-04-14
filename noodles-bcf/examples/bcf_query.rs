@@ -4,7 +4,12 @@
 //!
 //! The result matches the output of `bcftools view --no-header <src> <region>`.
 
-use std::{env, fs::File, path::PathBuf};
+use std::{
+    env,
+    fs::File,
+    io::{self, BufWriter},
+    path::PathBuf,
+};
 
 use noodles_bcf::{self as bcf, header::StringMaps};
 use noodles_csi as csi;
@@ -28,10 +33,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let region = raw_region.parse()?;
     let query = reader.query(string_maps.contigs(), &index, &region)?;
 
+    let stdout = io::stdout().lock();
+    let mut writer = vcf::Writer::new(BufWriter::new(stdout));
+
     for result in query {
         let record = result?;
         let vcf_record = record.try_into_vcf_record(&header, &string_maps)?;
-        println!("{vcf_record}");
+        writer.write_record(&header, &vcf_record)?;
     }
 
     Ok(())
