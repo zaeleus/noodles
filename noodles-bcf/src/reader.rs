@@ -1,5 +1,6 @@
 //! BCF reader and iterators.
 
+mod header;
 pub(crate) mod query;
 pub(crate) mod record;
 mod records;
@@ -8,17 +9,15 @@ pub(crate) mod value;
 
 pub use self::{query::Query, records::Records};
 
-use std::{
-    ffi::CStr,
-    io::{self, BufRead, Read, Seek},
-};
+use std::io::{self, BufRead, Read, Seek};
 
-use byteorder::{LittleEndian, ReadBytesExt};
+use byteorder::ReadBytesExt;
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi as csi;
 use noodles_vcf as vcf;
 
+use self::header::read_header;
 use super::Record;
 use crate::header::string_maps::{ContigStringMap, StringMaps};
 
@@ -342,27 +341,6 @@ where
     Ok((major_version, minor_version))
 }
 
-fn read_header<R>(reader: &mut R) -> io::Result<String>
-where
-    R: Read,
-{
-    let l_text = reader.read_u32::<LittleEndian>().and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let mut buf = vec![0; l_text];
-    reader.read_exact(&mut buf)?;
-
-    CStr::from_bytes_with_nul(&buf)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        .and_then(|c_header| {
-            c_header
-                .to_str()
-                .map(|s| s.into())
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })
-}
-
 pub(crate) fn resolve_region(
     contig_string_map: &ContigStringMap,
     region: &Region,
@@ -407,24 +385,6 @@ mod tests {
         let data = [0x02, 0x01];
         let mut reader = &data[..];
         assert_eq!(read_format_version(&mut reader)?, (2, 1));
-        Ok(())
-    }
-
-    #[test]
-    fn test_read_header() -> io::Result<()> {
-        const NUL: u8 = 0x00;
-
-        let raw_header = "##fileformat=VCFv4.3\n";
-
-        let mut data = 22u32.to_le_bytes().to_vec(); // l_text = 22
-        data.extend_from_slice(raw_header.as_bytes());
-        data.push(NUL);
-
-        let mut reader = &data[..];
-        let actual = read_header(&mut reader)?;
-
-        assert_eq!(actual, raw_header);
-
         Ok(())
     }
 }
