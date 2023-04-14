@@ -17,7 +17,7 @@ use noodles_core::Region;
 use noodles_csi as csi;
 use noodles_vcf as vcf;
 
-use self::header::read_header;
+use self::{header::read_header, record::read_record};
 use super::Record;
 use crate::header::string_maps::{ContigStringMap, StringMaps};
 
@@ -143,7 +143,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        record::read_record(&mut self.inner, &mut self.buf, record)
+        read_record(&mut self.inner, &mut self.buf, record)
     }
 
     /// Returns an iterator over records starting from the current stream position.
