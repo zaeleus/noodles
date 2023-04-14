@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use byteorder::WriteBytesExt;
 
-use crate::record::value::{Int16, Int32, Int8, Type, Value};
+use crate::lazy::record::value::{Int16, Int32, Int8, Type, Value};
 
 use super::write_value;
 

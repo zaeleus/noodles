@@ -21,7 +21,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     print!("{raw_header}");
 
-    let mut records = reader.records();
+    let mut records = reader.lazy_records();
 
     while let Some(record) = records.try_next().await? {
         let vcf_record = record.try_into_vcf_record(&header, &string_maps)?;

@@ -10,11 +10,11 @@ use noodles_vcf::{
 
 use crate::{
     header::string_maps::StringStringMap,
-    reader::{string_map::read_string_map_index, value::read_value},
-    record::{
+    lazy::record::{
         value::{Float, Int16, Int32, Int8},
         Value,
     },
+    reader::{string_map::read_string_map_index, value::read_value},
 };
 
 pub fn read_info<R>(

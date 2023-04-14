@@ -2,7 +2,7 @@ use std::io::{self, Read};
 
 use byteorder::ReadBytesExt;
 
-use crate::record::{value::Type, Value};
+use crate::lazy::record::{value::Type, Value};
 
 use super::read_value;
 

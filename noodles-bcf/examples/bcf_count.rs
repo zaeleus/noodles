@@ -15,7 +15,7 @@ fn main() -> io::Result<()> {
 
     let mut n = 0;
 
-    for result in reader.records() {
+    for result in reader.lazy_records() {
         let _ = result?;
         n += 1;
     }

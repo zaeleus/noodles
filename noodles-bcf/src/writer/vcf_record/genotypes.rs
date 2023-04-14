@@ -15,7 +15,7 @@ use noodles_vcf::{
 
 use crate::{
     header::string_maps::StringStringMap,
-    record::value::{Float, Int16, Int32, Int8, Type},
+    lazy::record::value::{Float, Int16, Int32, Int8, Type},
     writer::{string_map::write_string_map_index, value::write_type},
 };
 

@@ -3,7 +3,7 @@ use std::{
     io::{self, Write},
 };
 
-use crate::record::{
+use crate::lazy::record::{
     value::{Int16, Int32, Int8},
     Value,
 };

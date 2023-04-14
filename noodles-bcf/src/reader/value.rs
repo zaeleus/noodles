@@ -6,7 +6,7 @@ use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use crate::record::{
+use crate::lazy::record::{
     value::{Float, Int16, Int32, Int8, Type},
     Value,
 };

@@ -10,11 +10,15 @@ use noodles_vcf::record::{AlternateBases, Ids, Position, QualityScore, Reference
 
 use super::value::read_value;
 use crate::{
-    record::{ChromosomeId, Filters, Value},
-    Record,
+    lazy,
+    lazy::record::{ChromosomeId, Filters, Value},
 };
 
-pub fn read_record<R>(reader: &mut R, buf: &mut Vec<u8>, record: &mut Record) -> io::Result<usize>
+pub fn read_lazy_record<R>(
+    reader: &mut R,
+    buf: &mut Vec<u8>,
+    record: &mut lazy::Record,
+) -> io::Result<usize>
 where
     R: Read,
 {
@@ -42,7 +46,7 @@ where
     Ok(l_shared + l_indiv)
 }
 
-pub(crate) fn read_site<R>(reader: &mut R, record: &mut Record) -> io::Result<(usize, usize)>
+pub(crate) fn read_site<R>(reader: &mut R, record: &mut lazy::Record) -> io::Result<(usize, usize)>
 where
     R: Read,
 {
@@ -110,7 +114,7 @@ pub fn read_qual<R>(reader: &mut R) -> io::Result<Option<QualityScore>>
 where
     R: Read,
 {
-    use crate::record::value::Float;
+    use crate::lazy::record::value::Float;
 
     match reader.read_f32::<LittleEndian>().map(Float::from)? {
         Float::Value(value) => QualityScore::try_from(value)
@@ -268,7 +272,7 @@ pub(crate) mod tests {
     ];
 
     #[test]
-    fn test_read_record() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_read_lazy_record() -> Result<(), Box<dyn std::error::Error>> {
         use noodles_vcf::{
             header::{format, info},
             record::{
@@ -285,8 +289,8 @@ pub(crate) mod tests {
 
         let mut reader = &DATA[..];
         let mut buf = Vec::new();
-        let mut record = Record::default();
-        read_record(&mut reader, &mut buf, &mut record)?;
+        let mut record = lazy::Record::default();
+        read_lazy_record(&mut reader, &mut buf, &mut record)?;
 
         assert_eq!(record.chromosome_id(), 1);
         assert_eq!(record.position(), Position::try_from(101)?);

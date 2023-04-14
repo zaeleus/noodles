@@ -1,10 +1,10 @@
-use crate::Record;
+use crate::lazy;
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
-pub(super) async fn read_record<R>(
+pub(super) async fn read_lazy_record<R>(
     reader: &mut R,
     buf: &mut Vec<u8>,
-    record: &mut Record,
+    record: &mut lazy::Record,
 ) -> io::Result<usize>
 where
     R: AsyncRead + Unpin,
@@ -50,7 +50,7 @@ mod tests {
     use crate::header::StringMaps;
 
     #[tokio::test]
-    async fn test_read_record() -> Result<(), Box<dyn std::error::Error>> {
+    async fn test_read_lazy_record() -> Result<(), Box<dyn std::error::Error>> {
         use crate::reader::record::tests::{DATA, RAW_HEADER};
 
         let header = RAW_HEADER.parse()?;
@@ -58,8 +58,8 @@ mod tests {
 
         let mut reader = &DATA[..];
         let mut buf = Vec::new();
-        let mut record = Record::default();
-        read_record(&mut reader, &mut buf, &mut record).await?;
+        let mut record = lazy::Record::default();
+        read_lazy_record(&mut reader, &mut buf, &mut record).await?;
 
         assert_eq!(record.chromosome_id(), 1);
         assert_eq!(record.position(), Position::from(101));

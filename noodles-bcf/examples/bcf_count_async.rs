@@ -16,7 +16,7 @@ async fn main() -> io::Result<()> {
     reader.read_file_format().await?;
     reader.read_header().await?;
 
-    let mut records = reader.records();
+    let mut records = reader.lazy_records();
     let mut n = 0;
 
     while records.try_next().await?.is_some() {

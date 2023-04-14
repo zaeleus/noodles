@@ -19,7 +19,7 @@ impl Genotypes {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_bcf::{header::string_maps::StringMap, record::Genotypes};
+    /// use noodles_bcf::{header::string_maps::StringMap, lazy::record::Genotypes};
     /// use noodles_vcf as vcf;
     ///
     /// let bcf_genotypes = Genotypes::default();
@@ -60,7 +60,7 @@ impl Genotypes {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bcf::record::Genotypes;
+    /// use noodles_bcf::lazy::record::Genotypes;
     /// let genotypes = Genotypes::default();
     /// assert_eq!(genotypes.len(), 0);
     /// ```
@@ -73,7 +73,7 @@ impl Genotypes {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bcf::record::Genotypes;
+    /// use noodles_bcf::lazy::record::Genotypes;
     /// let genotypes = Genotypes::default();
     /// assert!(genotypes.is_empty());
     /// ```
@@ -88,7 +88,7 @@ impl Genotypes {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bcf::record::Genotypes;
+    /// use noodles_bcf::lazy::record::Genotypes;
     /// let mut genotypes = Genotypes::default();
     /// genotypes.clear();
     /// assert!(genotypes.is_empty());
@@ -104,7 +104,7 @@ impl Genotypes {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bcf::record::Genotypes;
+    /// use noodles_bcf::lazy::record::Genotypes;
     /// let genotypes = Genotypes::default();
     /// assert_eq!(genotypes.format_count(), 0);
     /// ```

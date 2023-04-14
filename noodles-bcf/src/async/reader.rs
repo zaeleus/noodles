@@ -1,5 +1,5 @@
+mod lazy_record;
 mod query;
-mod record;
 
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
@@ -7,8 +7,8 @@ use noodles_core::Region;
 use noodles_csi as csi;
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};
 
-use self::{query::query, record::read_record};
-use crate::{header::string_maps::ContigStringMap, Record};
+use self::{lazy_record::read_lazy_record, query::query};
+use crate::{header::string_maps::ContigStringMap, lazy};
 
 /// An async BCF reader.
 ///
@@ -27,7 +27,7 @@ use crate::{header::string_maps::ContigStringMap, Record};
 /// reader.read_file_format().await?;
 /// reader.read_header().await?;
 ///
-/// let mut records = reader.records();
+/// let mut records = reader.lazy_records();
 ///
 /// while let Some(record) = records.try_next().await? {
 ///     // ...
@@ -141,12 +141,12 @@ where
         read_header(&mut self.inner).await
     }
 
-    /// Reads a single record.
+    /// Reads a single record without decoding (most of) its feilds.
     ///
     /// The stream is expected to be directly after the header or at the start of another record.
     ///
-    /// It is more ergonomic to read records using a stream (see [`Self::records`]), but using this
-    /// method directly allows the reuse of a single [`Record`] buffer.
+    /// It is more ergonomic to read records using a stream (see [`Self::lazy_records`]), but using
+    /// this method directly allows the reuse of a single [`lazy::Record`] buffer.
     ///
     /// If successful, the record size is returned. If a record size of 0 is returned, the stream
     /// reached EOF.
@@ -163,16 +163,17 @@ where
     /// reader.read_file_format().await?;
     /// reader.read_header().await?;
     ///
-    /// let mut record = bcf::Record::default();
-    /// reader.read_record(&mut record).await?;
+    /// let mut record = bcf::lazy::Record::default();
+    /// reader.read_lazy_record(&mut record).await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        read_record(&mut self.inner, &mut self.buf, record).await
+    pub async fn read_lazy_record(&mut self, record: &mut lazy::Record) -> io::Result<usize> {
+        read_lazy_record(&mut self.inner, &mut self.buf, record).await
     }
 
-    /// Returns an (async) stream over records starting from the current (input) stream position.
+    /// Returns an (async) stream over lazy records starting from the current (input) stream
+    /// position.
     ///
     /// The (input) stream is expected to be directly after the header or at the start of another
     /// record.
@@ -192,7 +193,7 @@ where
     /// reader.read_file_format().await?;
     /// reader.read_header().await?;
     ///
-    /// let mut records = reader.records();
+    /// let mut records = reader.lazy_records();
     ///
     /// while let Some(record) = records.try_next().await? {
     ///     // ...
@@ -200,11 +201,11 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn records(&mut self) -> impl Stream<Item = io::Result<Record>> + '_ {
+    pub fn lazy_records(&mut self) -> impl Stream<Item = io::Result<lazy::Record>> + '_ {
         Box::pin(stream::try_unfold(
-            (&mut self.inner, Vec::new(), Record::default()),
+            (&mut self.inner, Vec::new(), lazy::Record::default()),
             |(mut reader, mut buf, mut record)| async {
-                read_record(&mut reader, &mut buf, &mut record)
+                read_lazy_record(&mut reader, &mut buf, &mut record)
                     .await
                     .map(|n| match n {
                         0 => None,
@@ -314,7 +315,7 @@ where
         contig_string_map: &ContigStringMap,
         index: &csi::Index,
         region: &Region,
-    ) -> io::Result<impl Stream<Item = io::Result<Record>> + '_> {
+    ) -> io::Result<impl Stream<Item = io::Result<lazy::Record>> + '_> {
         use crate::reader::resolve_region;
 
         let reference_sequence_id = resolve_region(contig_string_map, region)?;

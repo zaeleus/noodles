@@ -4,17 +4,27 @@
 
 ### Changed
 
+  * bcf: Rename `Record` to `lazy::Record`.
+
+  * bcf/async/reader: Rename `Reader::read_record` to
+    `Reader::read_lazy_record`.
+
+  * bcf/async/reader: Rename `Reader::records` to `Reader::lazy_records`.
+
   * bcf/reader: Change `Reader::read_header` to return a parsed header and
     string maps (`(Header, StringMaps)`).
 
     This no longer returns a raw string.
 
+  * bcf/reader: Rename `Reader::read_record` to `Reader::read_lazy_record`.
+
+  * bcf/reader: Rename `Reader::records` to `Reader::lazy_records`.
+
 ### Removed
 
   * bcf/writer: Remove `Writer::write_record`.
 
-    A `bcf::Record` is effectively a lazy record, and writing lazy records is
-    not supported.
+    Writing lazy records is not supported.
 
 ## 0.23.0 - 2023-04-06
 

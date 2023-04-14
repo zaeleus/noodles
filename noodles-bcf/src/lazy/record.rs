@@ -1,4 +1,4 @@
-//! BCF record and fields.
+//! Lazily-evaluated BCF record and fields.
 
 mod convert;
 mod filters;
@@ -43,7 +43,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_bcf as bcf;
-    /// let record = bcf::Record::default();
+    /// let record = bcf::lazy::Record::default();
     /// assert_eq!(record.chromosome_id(), 0);
     /// ```
     pub fn chromosome_id(&self) -> ChromosomeId {
@@ -63,7 +63,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_bcf as bcf;
-    /// let record = bcf::Record::default();
+    /// let record = bcf::lazy::Record::default();
     /// assert_eq!(usize::from(record.position()), 1);
     /// ```
     pub fn position(&self) -> vcf::record::Position {
@@ -78,7 +78,7 @@ impl Record {
     /// use noodles_bcf as bcf;
     /// use noodles_vcf::record::Position;
     ///
-    /// let mut record = bcf::Record::default();
+    /// let mut record = bcf::lazy::Record::default();
     /// *record.position_mut() = Position::from(8);
     ///
     /// assert_eq!(usize::from(record.position()), 8);
@@ -104,7 +104,7 @@ impl Record {
     /// ```
     /// # use std::io;
     /// use noodles_bcf as bcf;
-    /// let record = bcf::Record::default();
+    /// let record = bcf::lazy::Record::default();
     /// assert_eq!(record.end().map(usize::from)?, 1);
     /// # Ok::<(), io::Error>(())
     /// ```
@@ -124,7 +124,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_bcf as bcf;
-    /// let record = bcf::Record::default();
+    /// let record = bcf::lazy::Record::default();
     /// assert!(record.quality_score().is_none());
     /// ```
     pub fn quality_score(&self) -> Option<vcf::record::QualityScore> {
@@ -139,7 +139,7 @@ impl Record {
     /// use noodles_bcf as bcf;
     /// use noodles_vcf::record::QualityScore;
     ///
-    /// let mut record = bcf::Record::default();
+    /// let mut record = bcf::lazy::Record::default();
     /// *record.quality_score_mut() = QualityScore::try_from(13.0).map(Some)?;
     ///
     /// assert_eq!(record.quality_score().map(f32::from), Some(13.0));
@@ -155,7 +155,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_bcf as bcf;
-    /// let record = bcf::Record::default();
+    /// let record = bcf::lazy::Record::default();
     /// assert!(record.ids().is_empty());
     /// ```
     pub fn ids(&self) -> &vcf::record::Ids {
@@ -170,7 +170,7 @@ impl Record {
     /// use noodles_bcf as bcf;
     /// use noodles_vcf::record::Ids;
     ///
-    /// let mut record = bcf::Record::default();
+    /// let mut record = bcf::lazy::Record::default();
     /// let ids: Ids = "nd0".parse()?;
     /// *record.ids_mut() = ids.clone();
     ///
@@ -195,7 +195,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_bcf as bcf;
-    /// let record = bcf::Record::default();
+    /// let record = bcf::lazy::Record::default();
     /// assert!(record.filters().is_empty());
     /// ```
     pub fn filters(&self) -> &Filters {
@@ -212,7 +212,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_bcf as bcf;
-    /// let record = bcf::Record::default();
+    /// let record = bcf::lazy::Record::default();
     /// assert!(record.info().is_empty());
     /// ```
     pub fn info(&self) -> &Info {
@@ -229,7 +229,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_bcf as bcf;
-    /// let record = bcf::Record::default();
+    /// let record = bcf::lazy::Record::default();
     /// assert!(record.genotypes().is_empty());
     /// ```
     pub fn genotypes(&self) -> &Genotypes {

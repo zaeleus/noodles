@@ -7,7 +7,7 @@ use noodles_bgzf as bgzf;
 use noodles_core::{region::Interval, Position};
 use noodles_csi::index::reference_sequence::bin::Chunk;
 
-use crate::Record;
+use crate::lazy;
 
 use super::Reader;
 
@@ -32,7 +32,7 @@ where
     interval: Interval,
 
     state: State,
-    record: Record,
+    record: lazy::Record,
 }
 
 impl<'a, R> Query<'a, R>
@@ -54,15 +54,17 @@ where
             interval,
 
             state: State::Seek,
-            record: Record::default(),
+            record: lazy::Record::default(),
         }
     }
 
-    fn read_record(&mut self) -> io::Result<Option<Record>> {
-        self.reader.read_record(&mut self.record).map(|n| match n {
-            0 => None,
-            _ => Some(self.record.clone()),
-        })
+    fn read_record(&mut self) -> io::Result<Option<lazy::Record>> {
+        self.reader
+            .read_lazy_record(&mut self.record)
+            .map(|n| match n {
+                0 => None,
+                _ => Some(self.record.clone()),
+            })
     }
 }
 
@@ -70,7 +72,7 @@ impl<'a, R> Iterator for Query<'a, R>
 where
     R: Read + Seek,
 {
-    type Item = io::Result<Record>;
+    type Item = io::Result<lazy::Record>;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
@@ -109,7 +111,7 @@ where
 }
 
 pub(crate) fn intersects(
-    record: &Record,
+    record: &lazy::Record,
     chromosome_id: usize,
     region_interval: Interval,
 ) -> io::Result<bool> {

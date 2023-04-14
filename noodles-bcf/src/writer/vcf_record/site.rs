@@ -10,7 +10,7 @@ use crate::{
         string_maps::{ContigStringMap, StringStringMap},
         StringMaps,
     },
-    record::value::{Float, Value},
+    lazy::record::value::{Float, Value},
     writer::value::write_value,
 };
 
