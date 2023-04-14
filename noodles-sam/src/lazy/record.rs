@@ -121,7 +121,7 @@ impl Record {
     pub fn flags(&self) -> io::Result<Flags> {
         use crate::reader::record::parse_flags;
         let src = &self.buf[self.bounds.flags_range()];
-        parse_flags(src)
+        parse_flags(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
     /// Returns the reference sequence name.
