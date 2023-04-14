@@ -4,10 +4,11 @@ mod header;
 pub(crate) mod lazy_record;
 pub(crate) mod query;
 pub(crate) mod record;
+mod records;
 pub(crate) mod string_map;
 pub(crate) mod value;
 
-pub use self::query::Query;
+pub use self::{query::Query, records::Records};
 
 use std::{
     io::{self, BufRead, Read, Seek},
@@ -125,6 +126,9 @@ where
     ///
     /// The stream is expected to be directly after the header or at the start of another record.
     ///
+    /// It is more ergonomic to read records using an iterator (see [`Self::records`]), but using
+    /// this method directly allows the reuse of a single [`vcf::Record`] buffer.
+    ///
     /// If successful, the record size is returned. If a record size of 0 is returned, the stream
     /// reached EOF.
     ///
@@ -178,6 +182,34 @@ where
     /// ```
     pub fn read_lazy_record(&mut self, record: &mut lazy::Record) -> io::Result<usize> {
         read_lazy_record(&mut self.inner, &mut self.buf, record)
+    }
+
+    /// Returns an iterator over records starting from the current stream position.
+    ///
+    /// The stream is expected to be directly after the reference sequences or at the start of
+    /// another record.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_bcf as bcf;
+    ///
+    /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
+    /// reader.read_file_format()?;
+    /// let (header, string_maps) = reader.read_header()?;
+    ///
+    /// for result in reader.records(&header, &string_maps) {
+    ///     let record = result?;
+    ///     // ...
+    /// }
+    /// # Ok::<(), io::Error>(())
+    pub fn records<'a>(
+        &'a mut self,
+        header: &'a vcf::Header,
+        string_maps: &'a StringMaps,
+    ) -> Records<'_, R> {
+        Records::new(self, header, string_maps)
     }
 
     /// Returns an iterator over lazy records starting from the current stream position.

@@ -1,6 +1,8 @@
 use std::io::{self, Read};
 
-use crate::Record;
+use noodles_vcf as vcf;
+
+use crate::header::StringMaps;
 
 use super::Reader;
 
@@ -12,17 +14,25 @@ where
     R: Read,
 {
     reader: &'a mut Reader<R>,
-    record: Record,
+    header: &'a vcf::Header,
+    string_maps: &'a StringMaps,
+    record: vcf::Record,
 }
 
 impl<'a, R> Records<'a, R>
 where
     R: Read,
 {
-    pub(crate) fn new(reader: &'a mut Reader<R>) -> Records<'_, R> {
+    pub(crate) fn new(
+        reader: &'a mut Reader<R>,
+        header: &'a vcf::Header,
+        string_maps: &'a StringMaps,
+    ) -> Records<'a, R> {
         Self {
             reader,
-            record: Record::default(),
+            header,
+            string_maps,
+            record: vcf::Record::default(),
         }
     }
 }
@@ -31,10 +41,13 @@ impl<'a, R> Iterator for Records<'a, R>
 where
     R: Read,
 {
-    type Item = io::Result<Record>;
+    type Item = io::Result<vcf::Record>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.reader.read_record(&mut self.record) {
+        match self
+            .reader
+            .read_record(self.header, self.string_maps, &mut self.record)
+        {
             Ok(0) => None,
             Ok(_) => Some(Ok(self.record.clone())),
             Err(e) => Some(Err(e)),

@@ -23,9 +23,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     writer.write_header(&header)?;
 
-    let mut record = vcf::Record::default();
-
-    while reader.read_record(&header, &string_maps, &mut record)? != 0 {
+    for result in reader.records(&header, &string_maps) {
+        let record = result?;
         writer.write_record(&header, &record)?;
     }
 
