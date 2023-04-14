@@ -11,7 +11,7 @@ repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-fastq"
 
 [features]
-async = ["futures", "tokio"]
+async = ["dep:futures", "dep:tokio"]
 
 [dependencies]
 futures = { workspace = true, optional = true, features = ["std"] }
