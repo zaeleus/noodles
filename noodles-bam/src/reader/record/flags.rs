@@ -13,3 +13,31 @@ where
 
     Ok(Flags::from(src.get_u16_le()))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_flags() -> io::Result<()> {
+        let mut src = &[0x00, 0x00][..];
+        assert_eq!(get_flags(&mut src)?, Flags::empty());
+
+        let mut src = &[0x04, 0x00][..];
+        assert_eq!(get_flags(&mut src)?, Flags::UNMAPPED);
+
+        let mut src = &[][..];
+        assert!(matches!(
+            get_flags(&mut src),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
+
+        let mut src = &[0x00][..];
+        assert!(matches!(
+            get_flags(&mut src),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
+
+        Ok(())
+    }
+}
