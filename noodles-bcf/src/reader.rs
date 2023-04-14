@@ -20,7 +20,7 @@ use noodles_core::Region;
 use noodles_csi as csi;
 use noodles_vcf as vcf;
 
-use self::{header::read_header, lazy_record::read_lazy_record};
+use self::{header::read_header, lazy_record::read_lazy_record, record::read_record};
 use super::lazy;
 use crate::header::string_maps::{ContigStringMap, StringMaps};
 
@@ -119,6 +119,37 @@ where
     /// ```
     pub fn read_header(&mut self) -> io::Result<(vcf::Header, StringMaps)> {
         read_header(&mut self.inner)
+    }
+
+    /// Reads a single record.
+    ///
+    /// The stream is expected to be directly after the header or at the start of another record.
+    ///
+    /// If successful, the record size is returned. If a record size of 0 is returned, the stream
+    /// reached EOF.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_bcf as bcf;
+    /// use noodles_vcf as vcf;
+    ///
+    /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
+    /// reader.read_file_format()?;
+    /// let (header, string_maps) = reader.read_header()?;
+    ///
+    /// let mut record = vcf::Record::default();
+    /// reader.read_record(&header, &string_maps, &mut record)?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn read_record(
+        &mut self,
+        header: &vcf::Header,
+        string_maps: &StringMaps,
+        record: &mut vcf::Record,
+    ) -> io::Result<usize> {
+        read_record(&mut self.inner, header, string_maps, &mut self.buf, record)
     }
 
     /// Reads a single record without eagerly decoding (most of) its fields.

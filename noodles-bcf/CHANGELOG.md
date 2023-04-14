@@ -16,7 +16,10 @@
 
     This no longer returns a raw string.
 
-  * bcf/reader: Rename `Reader::read_record` to `Reader::read_lazy_record`.
+  * bcf/reader: Change `Reader:read_record` to read a parsed record.
+
+    This now requires the header and strings map. If reading a lazy record, use
+    `Reader::read_lazy_record` instead.
 
   * bcf/reader: Rename `Reader::records` to `Reader::lazy_records`.
 

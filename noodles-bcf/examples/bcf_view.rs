@@ -23,10 +23,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     writer.write_header(&header)?;
 
-    for result in reader.lazy_records() {
-        let record = result?;
-        let vcf_record = record.try_into_vcf_record(&header, &string_maps)?;
-        writer.write_record(&header, &vcf_record)?;
+    let mut record = vcf::Record::default();
+
+    while reader.read_record(&header, &string_maps, &mut record)? != 0 {
+        writer.write_record(&header, &record)?;
     }
 
     Ok(())
