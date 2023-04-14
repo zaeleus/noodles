@@ -1,6 +1,7 @@
 //! BCF reader and iterators.
 
 mod header;
+pub(crate) mod lazy_record;
 pub(crate) mod query;
 pub(crate) mod record;
 pub(crate) mod string_map;
@@ -19,7 +20,7 @@ use noodles_core::Region;
 use noodles_csi as csi;
 use noodles_vcf as vcf;
 
-use self::{header::read_header, record::read_lazy_record};
+use self::{header::read_header, lazy_record::read_lazy_record};
 use super::lazy;
 use crate::header::string_maps::{ContigStringMap, StringMaps};
 
