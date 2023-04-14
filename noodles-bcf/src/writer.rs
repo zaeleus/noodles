@@ -1,6 +1,6 @@
+mod record;
 mod string_map;
 mod value;
-mod vcf_record;
 
 use std::{
     ffi::CString,
@@ -11,6 +11,7 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf as bgzf;
 use noodles_vcf as vcf;
 
+use self::record::write_record;
 use super::header::StringMaps;
 
 const MAJOR: u8 = 2;
@@ -98,7 +99,7 @@ where
         write_header(&mut self.inner, header)
     }
 
-    /// Writes a VCF record.
+    /// Writes a record.
     ///
     /// # Examples
     ///
@@ -126,16 +127,16 @@ where
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
-    /// writer.write_vcf_record(&header, &string_maps, &record)?;
+    /// writer.write_record(&header, &string_maps, &record)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn write_vcf_record(
+    pub fn write_record(
         &mut self,
         header: &vcf::Header,
         string_maps: &StringMaps,
         record: &vcf::Record,
     ) -> io::Result<()> {
-        vcf_record::write_vcf_record(&mut self.inner, header, string_maps, record)
+        write_record(&mut self.inner, header, string_maps, record)
     }
 }
 
@@ -198,7 +199,7 @@ where
     ) -> io::Result<()> {
         let string_maps = StringMaps::from(header);
 
-        vcf_record::write_vcf_record(&mut self.inner, header, &string_maps, record)
+        write_record(&mut self.inner, header, &string_maps, record)
     }
 }
 

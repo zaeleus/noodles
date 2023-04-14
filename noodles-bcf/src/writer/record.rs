@@ -8,7 +8,7 @@ use noodles_vcf as vcf;
 
 use crate::header::StringMaps;
 
-pub fn write_vcf_record<W>(
+pub fn write_record<W>(
     writer: &mut W,
     header: &vcf::Header,
     string_maps: &StringMaps,
@@ -48,7 +48,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_vcf_record() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_write_record() -> Result<(), Box<dyn std::error::Error>> {
         use vcf::header::record::value::{map::Contig, Map};
 
         let header = vcf::Header::builder()
@@ -64,7 +64,7 @@ mod tests {
             .build()?;
 
         let mut buf = Vec::new();
-        write_vcf_record(&mut buf, &header, &string_maps, &record)?;
+        write_record(&mut buf, &header, &string_maps, &record)?;
 
         let expected = [
             0x1c, 0x00, 0x00, 0x00, // l_shared = 28

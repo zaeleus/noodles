@@ -20,9 +20,11 @@
 
   * bcf/reader: Rename `Reader::records` to `Reader::lazy_records`.
 
+  * bcf/writer: Rename `Writer::write_vcf_record` to `Writer::write_record`.
+
 ### Removed
 
-  * bcf/writer: Remove `Writer::write_record`.
+  * bcf/writer: Remove `Writer::write_record(lazy::Record)`.
 
     Writing lazy records is not supported.
 

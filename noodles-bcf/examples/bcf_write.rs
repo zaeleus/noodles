@@ -36,7 +36,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .set_reference_bases("A".parse()?)
         .build()?;
 
-    writer.write_vcf_record(&header, &string_maps, &record)?;
+    writer.write_record(&header, &string_maps, &record)?;
 
     Ok(())
 }
