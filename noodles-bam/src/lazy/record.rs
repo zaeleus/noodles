@@ -126,7 +126,7 @@ impl Record {
     pub fn flags(&self) -> io::Result<sam::record::Flags> {
         use crate::reader::record::get_flags;
         let mut src = &self.buf[FLAGS_RANGE];
-        get_flags(&mut src)
+        get_flags(&mut src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
     /// Returns the mate reference sequence ID.

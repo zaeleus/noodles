@@ -1,14 +1,31 @@
-use std::{io, mem};
+use std::{error, fmt, mem};
 
 use bytes::Buf;
 use noodles_sam::record::Flags;
 
-pub(crate) fn get_flags<B>(src: &mut B) -> io::Result<Flags>
+/// An error when raw BAM record flags fail to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// Unexpected EOF.
+    UnexpectedEof,
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::UnexpectedEof => write!(f, "unexpected EOF"),
+        }
+    }
+}
+
+pub(crate) fn get_flags<B>(src: &mut B) -> Result<Flags, ParseError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<u16>() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+        return Err(ParseError::UnexpectedEof);
     }
 
     Ok(Flags::from(src.get_u16_le()))
@@ -19,25 +36,17 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_flags() -> io::Result<()> {
+    fn test_get_flags() {
         let mut src = &[0x00, 0x00][..];
-        assert_eq!(get_flags(&mut src)?, Flags::empty());
+        assert_eq!(get_flags(&mut src), Ok(Flags::empty()));
 
         let mut src = &[0x04, 0x00][..];
-        assert_eq!(get_flags(&mut src)?, Flags::UNMAPPED);
+        assert_eq!(get_flags(&mut src), Ok(Flags::UNMAPPED));
 
         let mut src = &[][..];
-        assert!(matches!(
-            get_flags(&mut src),
-            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
-        ));
+        assert_eq!(get_flags(&mut src), Err(ParseError::UnexpectedEof));
 
         let mut src = &[0x00][..];
-        assert!(matches!(
-            get_flags(&mut src),
-            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
-        ));
-
-        Ok(())
+        assert_eq!(get_flags(&mut src), Err(ParseError::UnexpectedEof));
     }
 }

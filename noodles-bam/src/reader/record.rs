@@ -66,6 +66,8 @@ where
 pub enum ParseError {
     /// The reference sequence ID is invalid.
     InvalidReferenceSequenceId(reference_sequence_id::ParseError),
+    /// The flags are invalid.
+    InvalidFlags(flags::ParseError),
     /// The CIGAR is invalid.
     InvalidCigar(cigar::ParseError),
     /// The mate reference sequence ID is invalid.
@@ -82,6 +84,7 @@ impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::InvalidReferenceSequenceId(e) => Some(e),
+            Self::InvalidFlags(e) => Some(e),
             Self::InvalidCigar(e) => Some(e),
             Self::InvalidMateReferenceSequenceId(e) => Some(e),
             Self::InvalidSequence(e) => Some(e),
@@ -95,6 +98,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidReferenceSequenceId(_) => write!(f, "invalid reference sequence ID"),
+            Self::InvalidFlags(_) => write!(f, "invalid flags"),
             Self::InvalidCigar(_) => write!(f, "invalid CIGAR"),
             Self::InvalidMateReferenceSequenceId(_) => {
                 write!(f, "invalid mate reference sequence ID")
@@ -131,7 +135,9 @@ where
 
     let n_cigar_op = get_cigar_op_count(src)?;
 
-    *record.flags_mut() = get_flags(src)?;
+    *record.flags_mut() = get_flags(src)
+        .map_err(ParseError::InvalidFlags)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     let l_seq = get_sequence_len(src)?;
 
