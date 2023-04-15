@@ -16,14 +16,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut reader = File::open(src).map(bcf::Reader::new)?;
     reader.read_file_format()?;
-    let (header, string_maps) = reader.read_header()?;
+    let header = reader.read_header()?;
 
     let stdout = io::stdout().lock();
     let mut writer = vcf::Writer::new(BufWriter::new(stdout));
 
     writer.write_header(&header)?;
 
-    for result in reader.records(&header, &string_maps) {
+    for result in reader.records(&header) {
         let record = result?;
         writer.write_record(&header, &record)?;
     }

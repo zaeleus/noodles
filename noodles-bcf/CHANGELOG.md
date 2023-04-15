@@ -11,10 +11,12 @@
 
   * bcf/async/reader: Rename `Reader::records` to `Reader::lazy_records`.
 
-  * bcf/reader: Change `Reader::read_header` to return a parsed header and
-    string maps (`(Header, StringMaps)`).
+  * bcf/reader: Change `Reader::read_header` to return a parsed header
+    (`Header`).
 
-    This no longer returns a raw string.
+    This no longer returns a raw string. `StringMaps` are also parsed and
+    attached to the reader. Use `Reader::string_maps` to get a reference to the
+    string maps.
 
   * bcf/reader: Change `Reader:read_record` to read a parsed record.
 

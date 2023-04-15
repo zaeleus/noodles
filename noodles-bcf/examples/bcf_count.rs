@@ -11,11 +11,11 @@ fn main() -> io::Result<()> {
 
     let mut reader = File::open(src).map(bcf::Reader::new)?;
     reader.read_file_format()?;
-    let (header, string_maps) = reader.read_header()?;
+    let header = reader.read_header()?;
 
     let mut n = 0;
 
-    for result in reader.records(&header, &string_maps) {
+    for result in reader.records(&header) {
         let _ = result?;
         n += 1;
     }

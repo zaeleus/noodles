@@ -23,12 +23,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut reader = File::open(&src).map(bcf::Reader::new)?;
     reader.read_file_format()?;
-    let (header, string_maps) = reader.read_header()?;
+    let header = reader.read_header()?;
+    let string_maps = reader.string_maps().clone();
 
     let index = csi::read(src.with_extension("bcf.csi"))?;
 
     let region = raw_region.parse()?;
-    let query = reader.query(string_maps.contigs(), &index, &region)?;
+    let query = reader.query(&index, &region)?;
 
     let stdout = io::stdout().lock();
     let mut writer = vcf::Writer::new(BufWriter::new(stdout));

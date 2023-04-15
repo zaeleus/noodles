@@ -31,6 +31,7 @@ use crate::header::string_maps::{ContigStringMap, StringMaps};
 pub struct Reader<R> {
     inner: R,
     buf: Vec<u8>,
+    string_maps: StringMaps,
 }
 
 impl<R> Reader<R>
@@ -79,6 +80,13 @@ where
         self.inner
     }
 
+    /// Returns the string maps.
+    ///
+    /// This is only built after reading the header using [`Self::read_header`].
+    pub fn string_maps(&self) -> &StringMaps {
+        &self.string_maps
+    }
+
     /// Reads the BCF file format.
     ///
     /// The BCF magic number is also checked.
@@ -115,11 +123,13 @@ where
     /// use noodles_bcf as bcf;
     /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
     /// reader.read_file_format()?;
-    /// let (header, string_maps) = reader.read_header()?;
+    /// let header = reader.read_header()?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn read_header(&mut self) -> io::Result<(vcf::Header, StringMaps)> {
-        read_header(&mut self.inner)
+    pub fn read_header(&mut self) -> io::Result<vcf::Header> {
+        let (header, string_maps) = read_header(&mut self.inner)?;
+        self.string_maps = string_maps;
+        Ok(header)
     }
 
     /// Reads a single record.
@@ -141,19 +151,24 @@ where
     ///
     /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
     /// reader.read_file_format()?;
-    /// let (header, string_maps) = reader.read_header()?;
+    /// let header = reader.read_header()?;
     ///
     /// let mut record = vcf::Record::default();
-    /// reader.read_record(&header, &string_maps, &mut record)?;
+    /// reader.read_record(&header, &mut record)?;
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_record(
         &mut self,
         header: &vcf::Header,
-        string_maps: &StringMaps,
         record: &mut vcf::Record,
     ) -> io::Result<usize> {
-        read_record(&mut self.inner, header, string_maps, &mut self.buf, record)
+        read_record(
+            &mut self.inner,
+            header,
+            &self.string_maps,
+            &mut self.buf,
+            record,
+        )
     }
 
     /// Reads a single record without eagerly decoding (most of) its fields.
@@ -197,19 +212,15 @@ where
     ///
     /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
     /// reader.read_file_format()?;
-    /// let (header, string_maps) = reader.read_header()?;
+    /// let header = reader.read_header()?;
     ///
-    /// for result in reader.records(&header, &string_maps) {
+    /// for result in reader.records(&header) {
     ///     let record = result?;
     ///     // ...
     /// }
     /// # Ok::<(), io::Error>(())
-    pub fn records<'a>(
-        &'a mut self,
-        header: &'a vcf::Header,
-        string_maps: &'a StringMaps,
-    ) -> Records<'_, R> {
-        Records::new(self, header, string_maps)
+    pub fn records<'r, 'h>(&'r mut self, header: &'h vcf::Header) -> Records<'r, 'h, R> {
+        Records::new(self, header)
     }
 
     /// Returns an iterator over lazy records starting from the current stream position.
@@ -318,11 +329,11 @@ where
     ///
     /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
     /// reader.read_file_format()?;
-    /// let (_, string_maps) = reader.read_header()?;
+    /// reader.read_header()?;
     ///
     /// let index = csi::read("sample.bcf.csi")?;
     /// let region = "sq0:8-13".parse()?;
-    /// let query = reader.query(string_maps.contigs(), &index, &region)?;
+    /// let query = reader.query(&index, &region)?;
     ///
     /// for result in query {
     ///     let record = result?;
@@ -330,13 +341,8 @@ where
     /// }
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn query(
-        &mut self,
-        contig_string_map: &ContigStringMap,
-        index: &csi::Index,
-        region: &Region,
-    ) -> io::Result<Query<'_, R>> {
-        let reference_sequence_id = resolve_region(contig_string_map, region)?;
+    pub fn query(&mut self, index: &csi::Index, region: &Region) -> io::Result<Query<'_, R>> {
+        let reference_sequence_id = resolve_region(self.string_maps.contigs(), region)?;
         let chunks = index.query(reference_sequence_id, region.interval())?;
 
         Ok(Query::new(
@@ -353,6 +359,7 @@ impl<R> From<R> for Reader<R> {
         Self {
             inner,
             buf: Vec::new(),
+            string_maps: StringMaps::default(),
         }
     }
 }
@@ -364,7 +371,7 @@ where
     fn read_variant_header(&mut self) -> io::Result<vcf::Header> {
         read_magic(&mut self.inner)?;
         read_format_version(&mut self.inner)?;
-        self.read_header().map(|(header, _)| header)
+        self.read_header()
     }
 
     fn variant_records<'r, 'h: 'r>(
