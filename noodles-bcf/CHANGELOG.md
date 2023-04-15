@@ -30,6 +30,12 @@
     This now requires `Reader::query` to receive a reference to a
     `vcf::Header`.
 
+  * bcf/writer: Build string maps upon writing header.
+
+    `StringMaps` are now built from the header upon calling
+    `Writer::write_header`. This is subsequently used as context when writing
+    records.
+
   * bcf/writer: Rename `Writer::write_vcf_record` to `Writer::write_record`.
 
 ### Removed

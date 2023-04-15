@@ -20,6 +20,7 @@ const MINOR: u8 = 2;
 /// A BCF writer.
 pub struct Writer<W> {
     inner: W,
+    string_maps: StringMaps,
 }
 
 impl<W> Writer<W>
@@ -96,6 +97,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_header(&mut self, header: &vcf::Header) -> io::Result<()> {
+        self.string_maps = StringMaps::from(header);
         write_header(&mut self.inner, header)
     }
 
@@ -119,24 +121,17 @@ where
     ///
     /// writer.write_header(&header)?;
     ///
-    /// let string_maps = StringMaps::from(&header);
-    ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
     ///     .set_position(Position::from(8))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
-    /// writer.write_record(&header, &string_maps, &record)?;
+    /// writer.write_record(&header, &record)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn write_record(
-        &mut self,
-        header: &vcf::Header,
-        string_maps: &StringMaps,
-        record: &vcf::Record,
-    ) -> io::Result<()> {
-        write_record(&mut self.inner, header, string_maps, record)
+    pub fn write_record(&mut self, header: &vcf::Header, record: &vcf::Record) -> io::Result<()> {
+        write_record(&mut self.inner, header, &self.string_maps, record)
     }
 }
 
@@ -179,7 +174,10 @@ where
 
 impl<W> From<W> for Writer<W> {
     fn from(inner: W) -> Self {
-        Self { inner }
+        Self {
+            inner,
+            string_maps: StringMaps::default(),
+        }
     }
 }
 
@@ -189,7 +187,7 @@ where
 {
     fn write_variant_header(&mut self, header: &vcf::Header) -> io::Result<()> {
         write_file_format(&mut self.inner)?;
-        write_header(&mut self.inner, header)
+        self.write_header(header)
     }
 
     fn write_variant_record(
@@ -197,9 +195,7 @@ where
         header: &vcf::Header,
         record: &vcf::Record,
     ) -> io::Result<()> {
-        let string_maps = StringMaps::from(header);
-
-        write_record(&mut self.inner, header, &string_maps, record)
+        write_record(&mut self.inner, header, &self.string_maps, record)
     }
 }
 
