@@ -2,7 +2,7 @@
 
 pub mod field;
 
-use std::{error, fmt, str::FromStr};
+use std::{error, fmt, hash::Hash, str::FromStr};
 
 use indexmap::IndexMap;
 
@@ -87,7 +87,10 @@ impl Info {
     /// assert_eq!(info.get(&key::TOTAL_DEPTH), Some(Some(&Value::Integer(13))));
     /// assert!(info.get(&key::ALLELE_FREQUENCIES).is_none());
     /// ```
-    pub fn get(&self, key: &Key) -> Option<Option<&field::Value>> {
+    pub fn get<K>(&self, key: &K) -> Option<Option<&field::Value>>
+    where
+        K: Hash + indexmap::Equivalent<Key>,
+    {
         self.0.get(key).map(|value| value.as_ref())
     }
 
@@ -111,7 +114,10 @@ impl Info {
     ///
     /// assert_eq!(info.get(&key::TOTAL_DEPTH), Some(Some(&Value::Integer(8))));
     /// ```
-    pub fn get_mut(&mut self, key: &Key) -> Option<&mut Option<field::Value>> {
+    pub fn get_mut<K>(&mut self, key: &K) -> Option<&mut Option<field::Value>>
+    where
+        K: Hash + indexmap::Equivalent<Key>,
+    {
         self.0.get_mut(key)
     }
 

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+  * vcf/record/info: Change getters to accept keys that implement
+    `Equivalent<Key>`.
+
 ### Changed
 
   * vcf/indexed_reader/builder: Attempt to load either an associated tabix
