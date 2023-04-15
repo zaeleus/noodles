@@ -329,11 +329,11 @@ where
     ///
     /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
     /// reader.read_file_format()?;
-    /// reader.read_header()?;
+    /// let header = reader.read_header()?;
     ///
     /// let index = csi::read("sample.bcf.csi")?;
     /// let region = "sq0:8-13".parse()?;
-    /// let query = reader.query(&index, &region)?;
+    /// let query = reader.query(&header, &index, &region)?;
     ///
     /// for result in query {
     ///     let record = result?;
@@ -341,12 +341,18 @@ where
     /// }
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn query(&mut self, index: &csi::Index, region: &Region) -> io::Result<Query<'_, R>> {
+    pub fn query<'r, 'h>(
+        &'r mut self,
+        header: &'h vcf::Header,
+        index: &csi::Index,
+        region: &Region,
+    ) -> io::Result<Query<'r, 'h, R>> {
         let reference_sequence_id = resolve_region(self.string_maps.contigs(), region)?;
         let chunks = index.query(reference_sequence_id, region.interval())?;
 
         Ok(Query::new(
             self,
+            header,
             chunks,
             reference_sequence_id,
             region.interval(),

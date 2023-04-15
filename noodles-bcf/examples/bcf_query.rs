@@ -24,20 +24,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut reader = File::open(&src).map(bcf::Reader::new)?;
     reader.read_file_format()?;
     let header = reader.read_header()?;
-    let string_maps = reader.string_maps().clone();
 
     let index = csi::read(src.with_extension("bcf.csi"))?;
 
     let region = raw_region.parse()?;
-    let query = reader.query(&index, &region)?;
+    let query = reader.query(&header, &index, &region)?;
 
     let stdout = io::stdout().lock();
     let mut writer = vcf::Writer::new(BufWriter::new(stdout));
 
     for result in query {
         let record = result?;
-        let vcf_record = record.try_into_vcf_record(&header, &string_maps)?;
-        writer.write_record(&header, &vcf_record)?;
+        writer.write_record(&header, &record)?;
     }
 
     Ok(())

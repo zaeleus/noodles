@@ -2,15 +2,12 @@ use std::vec;
 
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
-use noodles_core::region::Interval;
+use noodles_core::{region::Interval, Position};
 use noodles_csi::index::reference_sequence::bin::Chunk;
 use tokio::io::{self, AsyncRead, AsyncSeek};
 
 use super::Reader;
-use crate::{
-    lazy::{self, record::ChromosomeId},
-    reader::query::intersects,
-};
+use crate::lazy::{self, record::ChromosomeId};
 
 enum State {
     Seek,
@@ -94,4 +91,23 @@ where
         0 => None,
         _ => Some(record),
     })
+}
+
+fn intersects(
+    record: &lazy::Record,
+    chromosome_id: usize,
+    region_interval: Interval,
+) -> io::Result<bool> {
+    let id = record.chromosome_id();
+
+    let start = Position::try_from(usize::from(record.position()))
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+    let end = record.end().map(usize::from).and_then(|n| {
+        Position::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
+    let record_interval = Interval::from(start..=end);
+
+    Ok(id == chromosome_id && record_interval.intersects(region_interval))
 }

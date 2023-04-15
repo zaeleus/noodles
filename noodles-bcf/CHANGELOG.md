@@ -25,6 +25,11 @@
 
   * bcf/reader: Rename `Reader::records` to `Reader::lazy_records`.
 
+  * bcf/reader/query: Return `vcf::Record` instead of `bcf::lazy::Record`.
+
+    This now requires `Reader::query` to receive a reference to a
+    `vcf::Header`.
+
   * bcf/writer: Rename `Writer::write_vcf_record` to `Writer::write_record`.
 
 ### Removed
