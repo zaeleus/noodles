@@ -384,11 +384,7 @@ where
         &'r mut self,
         header: &'h vcf::Header,
     ) -> Box<dyn Iterator<Item = io::Result<vcf::Record>> + 'r> {
-        let string_maps = StringMaps::from(header);
-
-        Box::new(self.lazy_records().map(move |result| {
-            result.and_then(|record| record.try_into_vcf_record(header, &string_maps))
-        }))
+        Box::new(self.records(header))
     }
 }
 
