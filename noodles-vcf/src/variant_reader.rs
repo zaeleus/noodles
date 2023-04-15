@@ -8,8 +8,8 @@ pub trait VariantReader<R> {
     fn read_variant_header(&mut self) -> io::Result<Header>;
 
     /// Returns an iterator over records.
-    fn variant_records<'a>(
-        &'a mut self,
-        header: &'a Header,
-    ) -> Box<dyn Iterator<Item = io::Result<Record>> + 'a>;
+    fn variant_records<'r, 'h: 'r>(
+        &'r mut self,
+        header: &'h Header,
+    ) -> Box<dyn Iterator<Item = io::Result<Record>> + 'r>;
 }

@@ -367,10 +367,10 @@ where
         self.read_header().map(|(header, _)| header)
     }
 
-    fn variant_records<'a>(
-        &'a mut self,
-        header: &'a vcf::Header,
-    ) -> Box<dyn Iterator<Item = io::Result<vcf::Record>> + 'a> {
+    fn variant_records<'r, 'h: 'r>(
+        &'r mut self,
+        header: &'h vcf::Header,
+    ) -> Box<dyn Iterator<Item = io::Result<vcf::Record>> + 'r> {
         let string_maps = StringMaps::from(header);
 
         Box::new(self.lazy_records().map(move |result| {

@@ -59,7 +59,10 @@ where
     }
 
     /// Returns an iterator over records starting from the current stream position.
-    pub fn records<'r, 'h>(&'r mut self, header: &'h Header) -> Records<'r, 'h, bgzf::Reader<R>> {
+    pub fn records<'r, 'h: 'r>(
+        &'r mut self,
+        header: &'h Header,
+    ) -> Records<'r, 'h, bgzf::Reader<R>> {
         self.inner.records(header)
     }
 
