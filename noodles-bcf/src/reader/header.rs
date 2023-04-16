@@ -18,9 +18,7 @@ where
         .parse()
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    let string_maps = raw_header
-        .parse()
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let string_maps = StringMaps::from(&header);
 
     Ok((header, string_maps))
 }
