@@ -25,7 +25,7 @@ where
     fn build(self) -> Result<I, BuildError>;
 }
 
-pub trait Typed<I>: Inner<I>
+pub trait Typed<I>
 where
     I: super::Typed,
 {
@@ -33,7 +33,7 @@ where
     fn set_type(self, ty: I::Type) -> Self;
 }
 
-pub trait Described<I>: Inner<I>
+pub trait Described<I>
 where
     I: super::Described,
 {
@@ -42,7 +42,7 @@ where
         D: Into<String>;
 }
 
-pub trait Indexed<I>: Inner<I>
+pub trait Indexed<I>
 where
     I: super::Indexed,
 {
@@ -158,6 +158,44 @@ where
     pub(super) idx: Option<usize>,
 }
 
+impl<I> Typed<I> for TypedDescribedIndexed<I>
+where
+    I: super::Typed + super::Described + super::Indexed,
+{
+    fn set_number(mut self, number: Number) -> Self {
+        self.number = Some(number);
+        self
+    }
+
+    fn set_type(mut self, ty: I::Type) -> Self {
+        self.ty = Some(ty);
+        self
+    }
+}
+
+impl<I> Described<I> for TypedDescribedIndexed<I>
+where
+    I: super::Typed + super::Described + super::Indexed,
+{
+    fn set_description<D>(mut self, description: D) -> Self
+    where
+        D: Into<String>,
+    {
+        self.description = Some(description.into());
+        self
+    }
+}
+
+impl<I> Indexed<I> for TypedDescribedIndexed<I>
+where
+    I: super::Typed + super::Described + super::Indexed,
+{
+    fn set_idx(mut self, idx: usize) -> Self {
+        self.idx = Some(idx);
+        self
+    }
+}
+
 impl<I> Default for TypedDescribedIndexed<I>
 where
     I: super::Typed + super::Described + super::Indexed,
@@ -176,4 +214,27 @@ where
 pub struct DescribedIndexed {
     pub(super) description: Option<String>,
     pub(super) idx: Option<usize>,
+}
+
+impl<I> Described<I> for DescribedIndexed
+where
+    I: super::Described,
+{
+    fn set_description<D>(mut self, description: D) -> Self
+    where
+        D: Into<String>,
+    {
+        self.description = Some(description.into());
+        self
+    }
+}
+
+impl<I> Indexed<I> for DescribedIndexed
+where
+    I: super::Indexed,
+{
+    fn set_idx(mut self, idx: usize) -> Self {
+        self.idx = Some(idx);
+        self
+    }
 }

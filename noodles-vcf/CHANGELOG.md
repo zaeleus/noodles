@@ -7,6 +7,11 @@
   * vcf/record/info: Change getters to accept keys that implement
     `Equivalent<Key>`.
 
+### Fixed
+
+  * vcf/header/record/value/map/builder: Implement builder traits for generic
+    builders.
+
 ### Changed
 
   * vcf/indexed_reader/builder: Attempt to load either an associated tabix
