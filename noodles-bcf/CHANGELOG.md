@@ -11,6 +11,9 @@
 
   * bcf/async/reader: Rename `Reader::records` to `Reader::lazy_records`.
 
+  * bcf/header/string_maps: Use the `IDX` field, if present, when building
+    string maps from a `vcf::Header`.
+
   * bcf/reader: Change `Reader::read_header` to return a parsed header
     (`Header`).
 

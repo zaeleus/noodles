@@ -187,20 +187,20 @@ impl From<&vcf::Header> for StringMaps {
     fn from(header: &vcf::Header) -> Self {
         let mut string_maps = StringMaps::default();
 
-        for id in header.contigs().keys() {
-            string_maps.contigs_mut().insert(id.as_ref().into());
+        for (id, contig) in header.contigs() {
+            insert(string_maps.contigs_mut(), id.as_ref(), contig.idx()).unwrap();
         }
 
-        for id in header.infos().keys() {
-            string_maps.strings_mut().insert(id.as_ref().into());
+        for (id, info) in header.infos() {
+            insert(string_maps.strings_mut(), id.as_ref(), info.idx()).unwrap();
         }
 
-        for id in header.filters().keys() {
-            string_maps.strings_mut().insert(id.clone());
+        for (id, filter) in header.filters() {
+            insert(string_maps.strings_mut(), id, filter.idx()).unwrap();
         }
 
-        for id in header.formats().keys() {
-            string_maps.strings_mut().insert(id.as_ref().into());
+        for (id, format) in header.formats() {
+            insert(string_maps.strings_mut(), id.as_ref(), format.idx()).unwrap();
         }
 
         string_maps
@@ -461,6 +461,83 @@ mod tests {
                 Some(String::from("sq2")),
             ],
         };
+
+        let expected = StringMaps {
+            string_string_map,
+            contig_string_map,
+        };
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_from_vcf_header_for_string_maps_with_idx() -> Result<(), Box<dyn std::error::Error>> {
+        use vcf::header::{
+            info,
+            record::value::{
+                map::{Filter, Info},
+                Map,
+            },
+        };
+
+        let ns = {
+            let mut map = Map::<Info>::from(&info::key::SAMPLES_WITH_DATA_COUNT);
+            *map.idx_mut() = Some(1);
+            map
+        };
+
+        let header = vcf::Header::builder()
+            .add_filter(
+                "PASS",
+                Map::<Filter>::builder()
+                    .set_description("All filters passed")
+                    .set_idx(0)
+                    .build()?,
+            )
+            .add_filter(
+                "q10",
+                Map::<Filter>::builder()
+                    .set_description("Quality below 10")
+                    .set_idx(3)
+                    .build()?,
+            )
+            .add_filter(
+                "q15",
+                Map::<Filter>::builder()
+                    .set_description("Quality below 15")
+                    .set_idx(4)
+                    .build()?,
+            )
+            .add_filter("q20", Map::<Filter>::new("Quality below 20"))
+            .add_filter("NS", Map::<Filter>::new(""))
+            .add_info(info::key::SAMPLES_WITH_DATA_COUNT, ns)
+            .build();
+
+        let actual = StringMaps::from(&header);
+
+        let string_string_map = StringMap {
+            indices: [
+                (String::from("PASS"), 0),
+                (String::from("NS"), 1),
+                (String::from("q10"), 3),
+                (String::from("q15"), 4),
+                (String::from("q20"), 5),
+            ]
+            .into_iter()
+            .collect(),
+            entries: vec![
+                Some(String::from("PASS")),
+                Some(String::from("NS")),
+                None,
+                Some(String::from("q10")),
+                Some(String::from("q15")),
+                Some(String::from("q20")),
+            ],
+        };
+
+        let contig_string_map = StringMap::default();
 
         let expected = StringMaps {
             string_string_map,
