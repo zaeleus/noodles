@@ -535,7 +535,7 @@ mod tests {
             .add_filter("q10", Map::<Filter>::new("Quality below 10"))
             .build();
 
-        let string_maps = StringMaps::from(&header);
+        let string_maps = StringMaps::try_from(&header)?;
 
         let mut buf = Vec::new();
 

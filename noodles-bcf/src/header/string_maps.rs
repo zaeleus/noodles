@@ -47,7 +47,7 @@ impl StringMaps {
     ///     .add_contig("sq0".parse()?, Map::<Contig>::new())
     ///     .build();
     ///
-    /// let string_maps = StringMaps::from(&header);
+    /// let string_maps = StringMaps::try_from(&header)?;
     /// let string_string_map = string_maps.strings();
     ///
     /// assert_eq!(string_string_map.get_index(0), Some("PASS"));
@@ -82,7 +82,7 @@ impl StringMaps {
     ///     .add_contig("sq0".parse()?, Map::<Contig>::new())
     ///     .build();
     ///
-    /// let string_maps = StringMaps::from(&header);
+    /// let string_maps = StringMaps::try_from(&header)?;
     /// let contig_string_map = string_maps.contigs();
     ///
     /// assert_eq!(contig_string_map.get_index(0), Some("sq0"));
@@ -183,27 +183,29 @@ fn insert(string_map: &mut StringMap, id: &str, idx: Option<usize>) -> Result<()
     Ok(())
 }
 
-impl From<&vcf::Header> for StringMaps {
-    fn from(header: &vcf::Header) -> Self {
+impl TryFrom<&vcf::Header> for StringMaps {
+    type Error = ParseError;
+
+    fn try_from(header: &vcf::Header) -> Result<Self, Self::Error> {
         let mut string_maps = StringMaps::default();
 
         for (id, contig) in header.contigs() {
-            insert(string_maps.contigs_mut(), id.as_ref(), contig.idx()).unwrap();
+            insert(string_maps.contigs_mut(), id.as_ref(), contig.idx())?;
         }
 
         for (id, info) in header.infos() {
-            insert(string_maps.strings_mut(), id.as_ref(), info.idx()).unwrap();
+            insert(string_maps.strings_mut(), id.as_ref(), info.idx())?;
         }
 
         for (id, filter) in header.filters() {
-            insert(string_maps.strings_mut(), id, filter.idx()).unwrap();
+            insert(string_maps.strings_mut(), id, filter.idx())?;
         }
 
         for (id, format) in header.formats() {
-            insert(string_maps.strings_mut(), id.as_ref(), format.idx()).unwrap();
+            insert(string_maps.strings_mut(), id.as_ref(), format.idx())?;
         }
 
-        string_maps
+        Ok(string_maps)
     }
 }
 
@@ -383,8 +385,7 @@ mod tests {
     }
 
     #[test]
-    fn test_vcf_header_for_string_map(
-    ) -> Result<(), vcf::header::record::value::map::contig::name::ParseError> {
+    fn test_try_from_vcf_header_for_string_maps() -> Result<(), Box<dyn std::error::Error>> {
         use vcf::{
             header::{
                 format, info,
@@ -426,7 +427,7 @@ mod tests {
             .add_alternative_allele(del, Map::<AlternativeAllele>::new("Deletion"))
             .build();
 
-        let actual = StringMaps::from(&header);
+        let actual = StringMaps::try_from(&header)?;
 
         let string_string_map = StringMap {
             indices: [
@@ -473,7 +474,8 @@ mod tests {
     }
 
     #[test]
-    fn test_from_vcf_header_for_string_maps_with_idx() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_try_from_vcf_header_for_string_maps_with_idx() -> Result<(), Box<dyn std::error::Error>>
+    {
         use vcf::header::{
             info,
             record::value::{
@@ -515,7 +517,7 @@ mod tests {
             .add_info(info::key::SAMPLES_WITH_DATA_COUNT, ns)
             .build();
 
-        let actual = StringMaps::from(&header);
+        let actual = StringMaps::try_from(&header)?;
 
         let string_string_map = StringMap {
             indices: [

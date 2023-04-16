@@ -796,7 +796,7 @@ mod tests {
             .add_sample_name("sample1")
             .build();
 
-        let string_maps = StringMaps::from(&header);
+        let string_maps = StringMaps::try_from(&header)?;
 
         let genotypes = vcf::record::Genotypes::new(
             vcf::record::genotypes::Keys::try_from(vec![

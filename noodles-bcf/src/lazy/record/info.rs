@@ -118,7 +118,7 @@ impl Info {
     ///     .add_info(key::TOTAL_DEPTH, Map::<map::Info>::from(&key::TOTAL_DEPTH))
     ///     .build();
     ///
-    /// let string_maps = StringMaps::from(&header);
+    /// let string_maps = StringMaps::try_from(&header)?;
     ///
     /// let data = vec![
     ///     0x11, 0x01, 0x11, 0x05, // AC=5
@@ -133,7 +133,7 @@ impl Info {
     /// );
     ///
     /// assert!(info.get(&header, string_maps.strings(), &key::ANCESTRAL_ALLELE).is_none());
-    /// # Ok::<_, io::Error>(())
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn get(
         &self,
@@ -173,7 +173,7 @@ impl Info {
     ///     .add_info(key::TOTAL_DEPTH, Map::<map::Info>::from(&key::TOTAL_DEPTH))
     ///     .build();
     ///
-    /// let string_maps = StringMaps::from(&header);
+    /// let string_maps = StringMaps::try_from(&header)?;
     ///
     /// let data = vec![
     ///     0x11, 0x01, 0x11, 0x05, // AC=5
@@ -194,7 +194,7 @@ impl Info {
     /// );
     ///
     /// assert!(fields.next().is_none());
-    /// # Ok::<_, io::Error>(())
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn iter<'a>(
         &'a self,
@@ -232,7 +232,7 @@ impl Info {
     ///     .add_info(key::TOTAL_DEPTH, Map::<map::Info>::from(&key::TOTAL_DEPTH))
     ///     .build();
     ///
-    /// let string_maps = StringMaps::from(&header);
+    /// let string_maps = StringMaps::try_from(&header)?;
     ///
     /// let data = vec![
     ///     0x11, 0x01, 0x11, 0x05, // AC=5
@@ -245,7 +245,7 @@ impl Info {
     /// assert_eq!(fields.next().transpose()?, Some(Some(Value::Integer(5))));
     /// assert_eq!(fields.next().transpose()?, Some(Some(Value::Integer(8))));
     /// assert!(fields.next().is_none());
-    /// # Ok::<_, io::Error>(())
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn values<'a>(
         &'a self,

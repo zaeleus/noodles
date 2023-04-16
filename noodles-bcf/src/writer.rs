@@ -97,7 +97,9 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_header(&mut self, header: &vcf::Header) -> io::Result<()> {
-        self.string_maps = StringMaps::from(header);
+        self.string_maps = StringMaps::try_from(header)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
         write_header(&mut self.inner, header)
     }
 

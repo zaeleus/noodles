@@ -55,7 +55,7 @@ mod tests {
             .add_contig("sq0".parse()?, Map::<Contig>::new())
             .build();
 
-        let string_maps = StringMaps::from(&header);
+        let string_maps = StringMaps::try_from(&header)?;
 
         let record = vcf::Record::builder()
             .set_chromosome("sq0".parse()?)
