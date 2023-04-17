@@ -9,6 +9,8 @@
 
 ### Changed
 
+  * vcf/header/format: Move `Key` under `record::genotypes::keys` module.
+
   * vcf/header/info: Move `Key` under `record::info::field` module.
 
   * vcf/indexed_reader/builder: Attempt to load either an associated tabix

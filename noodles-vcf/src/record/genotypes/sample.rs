@@ -6,8 +6,10 @@ pub use self::value::Value;
 
 use std::{error, fmt, hash::Hash};
 
-use super::Keys;
-use crate::header::format::{key, Key};
+use super::{
+    keys::{key, Key},
+    Keys,
+};
 
 /// A VCF record genotype sample.
 pub struct Sample<'g> {

@@ -495,8 +495,8 @@ impl Record {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{format::key, record::value::{map::Format, Map}},
-    ///     record::{genotypes::Keys, Genotypes, Position},
+    ///     header::{record::value::{map::Format, Map}},
+    ///     record::{genotypes::{keys::key, Keys}, Genotypes, Position},
     /// };
     ///
     /// let header = vcf::Header::builder()

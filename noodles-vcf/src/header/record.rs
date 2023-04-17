@@ -33,7 +33,7 @@ pub enum Record {
     /// A `FILTER` record.
     Filter(String, Map<Filter>),
     /// A `FORMAT` record.
-    Format(crate::header::format::Key, Map<Format>),
+    Format(crate::record::genotypes::keys::Key, Map<Format>),
     /// An `INFO` record.
     Info(crate::record::info::field::Key, Map<Info>),
     /// A `META` record.
@@ -238,7 +238,7 @@ fn remove_field(fields: &mut Vec<(String, String)>, key: &str) -> Option<String>
 
 fn validate_format_definition(
     file_format: FileFormat,
-    id: &super::format::Key,
+    id: &crate::record::genotypes::keys::Key,
     actual_number: super::Number,
     actual_type: super::record::value::map::format::Type,
 ) -> Result<(), ParseError> {

@@ -36,9 +36,9 @@ impl Genotypes {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{format::key, record::value::{map::Format, Map}},
+    ///     header::record::value::{map::Format, Map},
     ///     record::{
-    ///         genotypes::{sample::Value, Keys},
+    ///         genotypes::{keys::key, sample::Value, Keys},
     ///         Genotypes,
     ///     },
     /// };
@@ -94,7 +94,7 @@ impl Genotypes {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{header::format::key, record::{genotypes::Keys, Genotypes}};
+    /// use noodles_vcf::record::{genotypes::{keys::key, Keys}, Genotypes};
     ///
     /// let genotypes = Genotypes::default();
     /// assert!(genotypes.keys().is_empty());
@@ -113,7 +113,7 @@ impl Genotypes {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{header::format::key, record::{genotypes::Keys, Genotypes}};
+    /// use noodles_vcf::record::{genotypes::{keys::key, Keys}, Genotypes};
     ///
     /// let keys = Keys::try_from(vec![key::GENOTYPE])?;
     ///
@@ -277,13 +277,11 @@ fn parse_value(format: &Map<Format>, s: &str) -> Result<Option<Value>, sample::v
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::record::genotypes::keys::key;
 
     #[test]
     fn test_genotypes() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::header::{
-            format::key,
-            record::value::{map::Format, Map},
-        };
+        use crate::header::record::value::{map::Format, Map};
 
         let header = crate::Header::builder()
             .add_format(key::GENOTYPE, Map::<Format>::from(&key::GENOTYPE))
@@ -310,8 +308,6 @@ mod tests {
 
     #[test]
     fn test_fmt() -> Result<(), super::keys::TryFromKeyVectorError> {
-        use crate::header::format::key;
-
         let genotypes = Genotypes::new(
             Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?,
             vec![vec![
@@ -327,8 +323,6 @@ mod tests {
 
     #[test]
     fn test_from_str() -> Result<(), super::keys::TryFromKeyVectorError> {
-        use crate::header::format::key;
-
         let expected = Genotypes::new(
             Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?,
             vec![vec![

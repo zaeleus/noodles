@@ -37,14 +37,14 @@ impl StringMaps {
     /// use noodles_bcf::header::StringMaps;
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{format, record::value::{map::{Contig, Filter, Format, Info}, Map}},
-    ///     record::info,
+    ///     header::record::value::{map::{Contig, Filter, Format, Info}, Map},
+    ///     record::{genotypes, info},
     /// };
     ///
     /// let header = vcf::Header::builder()
     ///     .add_info(info::field::key::TOTAL_DEPTH, Map::<Info>::from(&info::field::key::TOTAL_DEPTH))
     ///     .add_filter("q10", Map::<Filter>::new("Quality below 10"))
-    ///     .add_format(format::key::READ_DEPTH, Map::<Format>::from(&format::key::READ_DEPTH))
+    ///     .add_format(genotypes::keys::key::READ_DEPTH, Map::<Format>::from(&genotypes::keys::key::READ_DEPTH))
     ///     .add_contig("sq0".parse()?, Map::<Contig>::new())
     ///     .build();
     ///
@@ -73,14 +73,14 @@ impl StringMaps {
     /// use noodles_bcf::header::StringMaps;
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{format, record::value::{map::{Contig, Filter, Format, Info}, Map}},
-    ///     record::info,
+    ///     header::record::value::{map::{Contig, Filter, Format, Info}, Map},
+    ///     record::{genotypes, info},
     /// };
     ///
     /// let header = vcf::Header::builder()
     ///     .add_info(info::field::key::TOTAL_DEPTH, Map::<Info>::from(&info::field::key::TOTAL_DEPTH))
     ///     .add_filter("q10", Map::<Filter>::new("Quality below 10"))
-    ///     .add_format(format::key::READ_DEPTH, Map::<Format>::from(&format::key::READ_DEPTH))
+    ///     .add_format(genotypes::keys::key::READ_DEPTH, Map::<Format>::from(&genotypes::keys::key::READ_DEPTH))
     ///     .add_contig("sq0".parse()?, Map::<Contig>::new())
     ///     .build();
     ///
@@ -389,19 +389,16 @@ mod tests {
     #[test]
     fn test_try_from_vcf_header_for_string_maps() -> Result<(), Box<dyn std::error::Error>> {
         use vcf::{
-            header::{
-                format,
-                record::value::{
-                    map::{AlternativeAllele, Contig, Filter, Format, Info},
-                    Map,
-                },
+            header::record::value::{
+                map::{AlternativeAllele, Contig, Filter, Format, Info},
+                Map,
             },
             record::{
                 alternate_bases::allele::{
                     symbol::{structural_variant::Type, StructuralVariant},
                     Symbol,
                 },
-                info,
+                genotypes, info,
             },
         };
 
@@ -422,12 +419,12 @@ mod tests {
             .add_filter("PASS", Map::<Filter>::pass())
             .add_filter("q10", Map::<Filter>::new("Quality below 10"))
             .add_format(
-                format::key::GENOTYPE,
-                Map::<Format>::from(&format::key::GENOTYPE),
+                genotypes::keys::key::GENOTYPE,
+                Map::<Format>::from(&genotypes::keys::key::GENOTYPE),
             )
             .add_format(
-                format::key::READ_DEPTH,
-                Map::<Format>::from(&format::key::READ_DEPTH),
+                genotypes::keys::key::READ_DEPTH,
+                Map::<Format>::from(&genotypes::keys::key::READ_DEPTH),
             )
             .add_alternative_allele(del, Map::<AlternativeAllele>::new("Deletion"))
             .build();

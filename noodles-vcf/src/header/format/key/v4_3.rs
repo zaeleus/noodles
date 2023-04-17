@@ -1,5 +1,7 @@
-use super::Standard;
-use crate::header::{record::value::map::format::Type, Number};
+use crate::{
+    header::{record::value::map::format::Type, Number},
+    record::genotypes::keys::key::Standard,
+};
 
 pub(super) fn definition(key: Standard) -> Option<(Number, Type, &'static str)> {
     match key {

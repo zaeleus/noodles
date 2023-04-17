@@ -6,9 +6,12 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_vcf::{
     self as vcf,
-    header::format::{key, Key},
     record::{
-        genotypes::{sample::Value, Keys},
+        genotypes::{
+            keys::{key, Key},
+            sample::Value,
+            Keys,
+        },
         Genotypes,
     },
 };

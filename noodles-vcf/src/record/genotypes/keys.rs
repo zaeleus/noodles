@@ -1,5 +1,9 @@
 //! VCF record genotypes keys.
 
+pub mod key;
+
+pub use self::key::Key;
+
 use std::{
     error, fmt,
     ops::{Deref, DerefMut},
@@ -8,13 +12,7 @@ use std::{
 
 use indexmap::IndexSet;
 
-use crate::{
-    header::{
-        self,
-        format::{key, Key},
-    },
-    record::MISSING_FIELD,
-};
+use crate::{header, record::MISSING_FIELD};
 
 const DELIMITER: char = ':';
 
@@ -67,7 +65,7 @@ pub enum ParseError {
     /// The input is empty.
     Empty,
     /// The key is invalid.
-    InvalidKey(crate::header::format::key::ParseError),
+    InvalidKey(key::ParseError),
     /// The format is invalid.
     InvalidFormat(TryFromKeyVectorError),
 }

@@ -6,11 +6,11 @@ use std::{
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_vcf::{
     self as vcf,
-    header::{
-        format::{key, Key},
-        record::value::{map::Format, Map},
+    header::record::value::{map::Format, Map},
+    record::genotypes::{
+        keys::{key, Key},
+        sample::Value,
     },
-    record::genotypes::sample::Value,
 };
 
 use crate::{
@@ -782,8 +782,8 @@ mod tests {
     #[test]
     fn test_write_genotypes() -> Result<(), Box<dyn std::error::Error>> {
         use vcf::{
-            header::{format::key, record::value::Map},
-            record::genotypes::sample::Value,
+            header::record::value::Map,
+            record::genotypes::{keys::key, sample::Value},
         };
 
         let header = vcf::Header::builder()

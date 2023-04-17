@@ -99,7 +99,7 @@ mod tests {
 
     #[test]
     fn test_parse_values() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::header::format::key;
+        use crate::record::genotypes::keys::key;
 
         let header = Header::default();
         let mut values = Vec::new();

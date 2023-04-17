@@ -2,7 +2,11 @@ use std::{error, fmt};
 
 use noodles_core as core;
 
-use crate::{header::format::key, reader::record::MISSING, record::genotypes::Keys, Header};
+use crate::{
+    reader::record::MISSING,
+    record::genotypes::{keys::key, Keys},
+    Header,
+};
 
 /// An error when raw VCF record genotypes keys fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -86,8 +90,6 @@ mod tests {
 
     #[test]
     fn test_parse_keys() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::header::format::key;
-
         let header = Header::default();
         let mut keys = Keys::default();
 

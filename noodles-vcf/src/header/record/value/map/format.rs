@@ -9,9 +9,9 @@ use core::fmt;
 use indexmap::IndexMap;
 
 use super::{builder, tag, Described, Fields, Indexed, Inner, Map, TryFromFieldsError, Typed};
-use crate::header::{
-    format::{key, Key},
-    FileFormat, Number,
+use crate::{
+    header::{FileFormat, Number},
+    record::genotypes::keys::Key,
 };
 
 type StandardTag = tag::TypedDescribedIndexed;
@@ -77,13 +77,9 @@ impl Map<Format> {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::header::{
-    ///     format::key,
-    ///     record::value::{
-    ///         map::{format::Type, Format},
-    ///         Map,
-    ///     },
-    ///     Number,
+    /// use noodles_vcf::{
+    ///     header::{record::value::{map::{format::Type, Format}, Map}, Number},
+    ///     record::genotypes::keys::key,
     /// };
     ///
     /// let id = key::GENOTYPE;
@@ -121,6 +117,8 @@ impl fmt::Display for Map<Format> {
 
 impl From<&Key> for Map<Format> {
     fn from(key: &Key) -> Self {
+        use crate::header::format::key;
+
         let number = key::number(key).unwrap_or(Number::Count(1));
         let ty = key::ty(key).unwrap_or(Type::String);
         let description = key::description(key).map(|s| s.into()).unwrap_or_default();
@@ -209,6 +207,7 @@ impl builder::Inner<Format> for builder::TypedDescribedIndexed<Format> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::record::genotypes::keys::key;
 
     #[test]
     fn test_fmt() {

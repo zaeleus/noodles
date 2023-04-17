@@ -106,7 +106,8 @@ impl Builder {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{format::key, record::value::{map::Format, Map}},
+    ///     header::record::value::{map::Format, Map},
+    ///     record::genotypes::keys::key,
     /// };
     ///
     /// let id = key::GENOTYPE;
@@ -120,7 +121,11 @@ impl Builder {
     /// assert_eq!(formats.len(), 1);
     /// assert_eq!(&formats[0], &format);
     /// ```
-    pub fn add_format(mut self, id: super::format::Key, format: Map<Format>) -> Self {
+    pub fn add_format(
+        mut self,
+        id: crate::record::genotypes::keys::Key,
+        format: Map<Format>,
+    ) -> Self {
         self.formats.insert(id, format);
         self
     }
@@ -378,8 +383,11 @@ mod tests {
     #[test]
     fn test_build() -> Result<(), crate::header::record::value::map::contig::name::ParseError> {
         use crate::{
-            header::{self, format::key as format_key},
-            record::{alternate_bases::allele, info::field::key as info_key},
+            header,
+            record::{
+                alternate_bases::allele, genotypes::keys::key as format_key,
+                info::field::key as info_key,
+            },
         };
 
         let del = allele::Symbol::StructuralVariant(allele::symbol::StructuralVariant::from(

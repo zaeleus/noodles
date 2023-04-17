@@ -199,12 +199,9 @@ mod tests {
 
     #[test]
     fn test_write_record_with_format() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::{
-            header::format::key,
-            record::{
-                genotypes::{sample::Value, Keys},
-                Genotypes,
-            },
+        use crate::record::{
+            genotypes::{keys::key, sample::Value, Keys},
+            Genotypes,
         };
 
         let header = Header::default();

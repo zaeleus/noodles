@@ -139,7 +139,7 @@ mod tests {
 
     #[test]
     fn test_write_genotypes() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::header::format::key;
+        use crate::record::genotypes::keys::key;
 
         fn t(buf: &mut Vec<u8>, genotypes: &Genotypes, expected: &[u8]) -> io::Result<()> {
             buf.clear();

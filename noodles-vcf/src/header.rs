@@ -30,7 +30,7 @@ pub type Infos = IndexMap<crate::record::info::field::Key, Map<Info>>;
 pub type Filters = IndexMap<String, Map<Filter>>;
 
 /// VCF header format records.
-pub type Formats = IndexMap<format::Key, Map<Format>>;
+pub type Formats = IndexMap<crate::record::genotypes::keys::Key, Map<Format>>;
 
 /// VCF header alternative allele records.
 pub type AlternativeAlleles =
@@ -212,7 +212,8 @@ impl Header {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{format::key, record::value::{map::Format, Map}},
+    ///     header::record::value::{map::Format, Map},
+    ///     record::genotypes::keys::key,
     /// };
     ///
     /// let id = key::GENOTYPE;
@@ -237,7 +238,8 @@ impl Header {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{format::key, record::value::{map::Format, Map}},
+    ///     header::record::value::{map::Format, Map},
+    ///     record::genotypes::keys::key,
     /// };
     ///
     /// let mut header = vcf::Header::default();

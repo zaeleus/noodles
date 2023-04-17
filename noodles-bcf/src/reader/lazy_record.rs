@@ -147,13 +147,10 @@ pub(crate) mod tests {
 
     #[test]
     fn test_read_lazy_record() -> Result<(), Box<dyn std::error::Error>> {
-        use noodles_vcf::{
-            header::format,
-            record::{
-                genotypes::{sample::Value as GenotypeFieldValue, Keys},
-                info::{self, field::Value as InfoFieldValue},
-                Filters as VcfFilters, Genotypes as VcfGenotypes, Ids, Position, QualityScore,
-            },
+        use noodles_vcf::record::{
+            genotypes::{self, sample::Value as GenotypeFieldValue, Keys},
+            info::{self, field::Value as InfoFieldValue},
+            Filters as VcfFilters, Genotypes as VcfGenotypes, Ids, Position, QualityScore,
         };
 
         use crate::header::StringMaps;
@@ -218,11 +215,11 @@ pub(crate) mod tests {
 
         let expected = VcfGenotypes::new(
             Keys::try_from(vec![
-                format::key::GENOTYPE,
-                format::key::CONDITIONAL_GENOTYPE_QUALITY,
-                format::key::READ_DEPTH,
-                format::key::READ_DEPTHS,
-                format::key::ROUNDED_GENOTYPE_LIKELIHOODS,
+                genotypes::keys::key::GENOTYPE,
+                genotypes::keys::key::CONDITIONAL_GENOTYPE_QUALITY,
+                genotypes::keys::key::READ_DEPTH,
+                genotypes::keys::key::READ_DEPTHS,
+                genotypes::keys::key::ROUNDED_GENOTYPE_LIKELIHOODS,
             ])?,
             vec![
                 vec![

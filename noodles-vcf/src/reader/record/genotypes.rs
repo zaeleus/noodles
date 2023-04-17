@@ -90,10 +90,7 @@ mod tests {
 
     #[test]
     fn test_parse_genotypes() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::{
-            header::format::key,
-            record::genotypes::{sample::Value, Keys},
-        };
+        use crate::record::genotypes::{keys::key, sample::Value, Keys};
 
         let mut genotypes = Genotypes::default();
 
