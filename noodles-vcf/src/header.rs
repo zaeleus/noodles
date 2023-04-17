@@ -3,7 +3,6 @@
 mod builder;
 pub mod file_format;
 mod fmt;
-pub mod info;
 mod number;
 pub mod parser;
 pub mod record;

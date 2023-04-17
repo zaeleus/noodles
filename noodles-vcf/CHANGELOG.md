@@ -30,6 +30,10 @@
 
     For genotype keys, use `record::genotypes::keys::Key` instead.
 
+  * vcf/header/info: Remove `info` module.
+
+    For info keys, use `record::info::field::Key` instead.
+
 ## 0.27.0 - 2023-04-06
 
 ### Added

@@ -77,6 +77,7 @@ pub(super) fn parse_info(header: &Header, s: &str, info: &mut Info) -> Result<()
 
 fn parse_field(header: &Header, s: &str) -> Result<(Key, Option<Value>), ParseError> {
     use super::MISSING;
+    use crate::header::record::value::map::info::definition::definition;
 
     const MAX_COMPONENTS: usize = 2;
     const SEPARATOR: char = '=';
@@ -90,9 +91,7 @@ fn parse_field(header: &Header, s: &str) -> Result<(Key, Option<Value>), ParseEr
         .infos()
         .get(&key)
         .map(|info| (info.number(), info.ty()))
-        .or_else(|| {
-            crate::header::info::key::definition(header.file_format(), &key).map(|(n, t, _)| (n, t))
-        })
+        .or_else(|| definition(header.file_format(), &key).map(|(n, t, _)| (n, t)))
         .unwrap_or((Number::Count(1), Type::String));
 
     let raw_value = components.next();

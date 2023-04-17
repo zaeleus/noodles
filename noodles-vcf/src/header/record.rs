@@ -259,9 +259,9 @@ fn validate_info_definition(
     actual_number: super::Number,
     actual_type: super::record::value::map::info::Type,
 ) -> Result<(), ParseError> {
-    use super::info::key;
+    use super::record::value::map::info::definition::definition;
 
-    if let Some((expected_number, expected_type, _)) = key::definition(file_format, id) {
+    if let Some((expected_number, expected_type, _)) = definition(file_format, id) {
         if actual_number != expected_number || actual_type != expected_type {
             return Err(ParseError::Invalid);
         }
