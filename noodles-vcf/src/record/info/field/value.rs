@@ -161,8 +161,8 @@ impl Value {
     ///
     /// ```
     /// use noodles_vcf::{
-    ///     header::{info::key, record::value::{map::Info, Map}},
-    ///     record::info::field::Value,
+    ///     header::record::value::{map::Info, Map},
+    ///     record::info::field::{key, Value},
     /// };
     ///
     /// let info = Map::<Info>::from(&key::SAMPLES_WITH_DATA_COUNT);

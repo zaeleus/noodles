@@ -35,7 +35,7 @@ pub enum Record {
     /// A `FORMAT` record.
     Format(crate::header::format::Key, Map<Format>),
     /// An `INFO` record.
-    Info(crate::header::info::Key, Map<Info>),
+    Info(crate::record::info::field::Key, Map<Info>),
     /// A `META` record.
     Meta(String, Map<Meta>),
     /// A `pedigreeDB` record.
@@ -255,7 +255,7 @@ fn validate_format_definition(
 
 fn validate_info_definition(
     file_format: FileFormat,
-    id: &super::info::Key,
+    id: &crate::record::info::field::Key,
     actual_number: super::Number,
     actual_type: super::record::value::map::info::Type,
 ) -> Result<(), ParseError> {

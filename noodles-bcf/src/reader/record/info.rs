@@ -47,7 +47,7 @@ pub fn read_info_field<R>(
     infos: &vcf::header::Infos,
     string_string_map: &StringStringMap,
 ) -> io::Result<(
-    vcf::header::info::Key,
+    vcf::record::info::field::Key,
     Option<vcf::record::info::field::Value>,
 )>
 where
@@ -71,7 +71,7 @@ fn read_info_field_key<R>(
     reader: &mut R,
     infos: &vcf::header::Infos,
     string_string_map: &StringStringMap,
-) -> io::Result<vcf::header::info::Key>
+) -> io::Result<vcf::record::info::field::Key>
 where
     R: Read,
 {

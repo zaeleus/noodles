@@ -1,14 +1,13 @@
 //! VCF record info field.
 
+pub mod key;
 pub mod value;
 
-pub use self::value::Value;
+pub use self::{key::Key, value::Value};
 
 use std::{error, fmt};
 
 use crate::header::{
-    self,
-    info::Key,
     record::value::{
         map::{info::Type, Info},
         Map,
@@ -25,7 +24,7 @@ pub enum ParseError {
     /// The key is missing.
     MissingKey,
     /// The key is invalid.
-    InvalidKey(header::info::key::ParseError),
+    InvalidKey(key::ParseError),
     /// The value is missing.
     MissingValue,
     /// The value is invalid.
@@ -119,10 +118,9 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::header::info::key;
 
     #[test]
-    fn test_parse() -> Result<(), crate::header::info::key::ParseError> {
+    fn test_parse() -> Result<(), key::ParseError> {
         let header = crate::Header::builder()
             .add_info(key::ALLELE_COUNT, Map::<Info>::from(&key::ALLELE_COUNT))
             .add_info(

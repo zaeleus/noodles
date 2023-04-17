@@ -6,7 +6,8 @@ use std::{error, fmt, hash::Hash, str::FromStr};
 
 use indexmap::IndexMap;
 
-use crate::header::{self, info::Key};
+use self::field::Key;
+use crate::header;
 
 const DELIMITER: char = ';';
 
@@ -53,10 +54,7 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     header::info::key,
-    ///     record::{info::field::Value, Info},
-    /// };
+    /// use noodles_vcf::record::{info::field::{key, Value}, Info};
     ///
     /// let ns = (key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(2)));
     /// let dp = (key::TOTAL_DEPTH, Some(Value::Integer(13)));
@@ -75,10 +73,7 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     header::info::key,
-    ///     record::{info::field::Value, Info},
-    /// };
+    /// use noodles_vcf::record::{info::field::{key, Value}, Info};
     ///
     /// let ns = (key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(2)));
     /// let dp = (key::TOTAL_DEPTH, Some(Value::Integer(13)));
@@ -99,10 +94,7 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     header::info::key,
-    ///     record::{info::field::Value, Info},
-    /// };
+    /// use noodles_vcf::record::{info::field::{key, Value}, Info};
     ///
     /// let ns = (key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(2)));
     /// let dp = (key::TOTAL_DEPTH, Some(Value::Integer(13)));
@@ -126,10 +118,7 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     header::info::key,
-    ///     record::{info::field::Value, Info},
-    /// };
+    /// use noodles_vcf::record::{info::field::{key, Value}, Info};
     ///
     /// let ns = (key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(2)));
     /// let dp = (key::TOTAL_DEPTH, Some(Value::Integer(13)));
@@ -153,10 +142,7 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     header::info::key,
-    ///     record::{info::field::Value, Info},
-    /// };
+    /// use noodles_vcf::record::{info::field::{key, Value}, Info};
     ///
     /// let ns = (key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(2)));
     /// let dp = (key::TOTAL_DEPTH, Some(Value::Integer(13)));
@@ -183,10 +169,7 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     header::info::key,
-    ///     record::{info::field::Value, Info},
-    /// };
+    /// use noodles_vcf::record::{info::field::{key, Value}, Info};
     ///
     /// let ns = (key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(2)));
     /// let mut info: Info = [ns].into_iter().collect();
@@ -210,10 +193,7 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     header::info::key,
-    ///     record::{info::field::Value, Info},
-    /// };
+    /// use noodles_vcf::record::{info::field::{key, Value}, Info};
     ///
     /// let ns = (key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(2)));
     /// let dp = (key::TOTAL_DEPTH, Some(Value::Integer(13)));
@@ -234,10 +214,7 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     header::info::key,
-    ///     record::{info::field::Value, Info},
-    /// };
+    /// use noodles_vcf::record::{info::field::{key, Value}, Info};
     ///
     /// let ns = (key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(2)));
     /// let dp = (key::TOTAL_DEPTH, Some(Value::Integer(13)));
@@ -380,8 +357,7 @@ impl fmt::Display for TryFromFieldsError {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::header::info::key;
+    use super::{field::key, *};
 
     #[test]
     fn test_fmt() {

@@ -6,12 +6,11 @@ use noodles_core as core;
 
 use self::value::parse_value;
 use crate::{
-    header::{
-        info::{key, Key},
-        record::value::map::info::Type,
-        Number,
+    header::{record::value::map::info::Type, Number},
+    record::{
+        info::field::{key, Key, Value},
+        Info,
     },
-    record::{info::field::Value, Info},
     Header,
 };
 
@@ -91,7 +90,9 @@ fn parse_field(header: &Header, s: &str) -> Result<(Key, Option<Value>), ParseEr
         .infos()
         .get(&key)
         .map(|info| (info.number(), info.ty()))
-        .or_else(|| key::definition(header.file_format(), &key).map(|(n, t, _)| (n, t)))
+        .or_else(|| {
+            crate::header::info::key::definition(header.file_format(), &key).map(|(n, t, _)| (n, t))
+        })
         .unwrap_or((Number::Count(1), Type::String));
 
     let raw_value = components.next();
@@ -131,7 +132,7 @@ mod tests {
 
     #[test]
     fn test_parse_info() -> Result<(), ParseError> {
-        use crate::{header::info::key, record::info::field::Value};
+        use crate::record::info::field::{key, Value};
 
         let header = Header::default();
         let mut info = Info::default();

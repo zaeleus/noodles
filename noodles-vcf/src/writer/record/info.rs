@@ -118,7 +118,7 @@ mod tests {
 
     #[test]
     fn test_write_info() -> io::Result<()> {
-        use crate::header::info::key;
+        use crate::record::info::field::key;
 
         fn t(buf: &mut Vec<u8>, info: &Info, expected: &[u8]) -> io::Result<()> {
             buf.clear();

@@ -1,5 +1,3 @@
-//! VCF header info record components.
+//! VCF header info record definitions.
 
 pub mod key;
-
-pub use self::key::Key;

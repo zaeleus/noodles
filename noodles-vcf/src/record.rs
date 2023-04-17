@@ -432,8 +432,7 @@ impl Record {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::info::key,
-    ///     record::{info::field::Value, Info, Position},
+    ///     record::{info::field::{key, Value}, Info, Position},
     /// };
     ///
     /// let record = vcf::Record::builder()
@@ -463,8 +462,7 @@ impl Record {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::info::key,
-    ///     record::{info::field::Value, Info, Position},
+    ///     record::{info::field::{key, Value}, Info, Position},
     /// };
     ///
     /// let mut record = vcf::Record::builder()
@@ -697,8 +695,7 @@ impl Record {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn end(&self) -> Result<Position, EndError> {
-        use self::info::field::Value;
-        use super::header::info::key;
+        use self::info::field::{key, Value};
 
         let end = if let Some(Some(value)) = self.info().get(&key::END_POSITION) {
             match value {
@@ -806,7 +803,7 @@ mod tests {
 
     #[test]
     fn test_end() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::header::info::key;
+        use crate::record::info::field::key;
 
         let record = Record::builder()
             .set_chromosome("sq0".parse()?)

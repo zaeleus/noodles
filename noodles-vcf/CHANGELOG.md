@@ -14,6 +14,8 @@
 
 ### Changed
 
+  * vcf/header/info: Move `Key` under `record::info::field` module.
+
   * vcf/indexed_reader/builder: Attempt to load either an associated tabix
     index (`<src>.tbi`) or CSI (`<src>.csi`), in that order.
 

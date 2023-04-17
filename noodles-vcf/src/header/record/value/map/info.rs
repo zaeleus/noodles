@@ -9,7 +9,10 @@ use std::fmt;
 use indexmap::IndexMap;
 
 use super::{builder, tag, Described, Fields, Indexed, Inner, Map, TryFromFieldsError, Typed};
-use crate::header::{info::Key, FileFormat, Number};
+use crate::{
+    header::{FileFormat, Number},
+    record::info::field::Key,
+};
 
 type StandardTag = tag::TypedDescribedIndexed;
 type Tag = tag::Tag<StandardTag>;
@@ -74,13 +77,9 @@ impl Map<Info> {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::header::{
-    ///     info::key,
-    ///     record::value::{
-    ///         map::{info::Type, Info},
-    ///         Map,
-    ///     },
-    ///     Number,
+    /// use noodles_vcf::{
+    ///     header::{record::value::{map::{info::Type, Info}, Map}, Number},
+    ///     record::info::field::key,
     /// };
     ///
     /// let id = key::SAMPLES_WITH_DATA_COUNT;
@@ -212,7 +211,7 @@ impl builder::Inner<Info> for builder::TypedDescribedIndexed<Info> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::header::info::key;
+    use crate::record::info::field::key;
 
     #[test]
     fn test_fmt() {

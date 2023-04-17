@@ -38,10 +38,10 @@ where
 #[cfg(test)]
 mod tests {
     use noodles_vcf::{
-        header::{format, info},
+        header::format,
         record::{
             genotypes::{sample::Value as GenotypeFieldValue, Keys},
-            info::field::Value as InfoFieldValue,
+            info::{self, field::Value as InfoFieldValue},
             Filters as VcfFilters, Genotypes as VcfGenotypes, Ids, Position, QualityScore,
         },
     };
@@ -87,13 +87,16 @@ mod tests {
 
         let expected = [
             ("HM3".parse()?, Some(InfoFieldValue::Flag)),
-            (info::key::ALLELE_COUNT, Some(InfoFieldValue::Integer(3))),
             (
-                info::key::TOTAL_ALLELE_COUNT,
+                info::field::key::ALLELE_COUNT,
+                Some(InfoFieldValue::Integer(3)),
+            ),
+            (
+                info::field::key::TOTAL_ALLELE_COUNT,
                 Some(InfoFieldValue::Integer(6)),
             ),
             (
-                info::key::ANCESTRAL_ALLELE,
+                info::field::key::ANCESTRAL_ALLELE,
                 Some(InfoFieldValue::String(String::from("C"))),
             ),
         ]

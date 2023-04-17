@@ -24,7 +24,7 @@ use self::record::value::{
 };
 
 /// VCF header info records.
-pub type Infos = IndexMap<info::Key, Map<Info>>;
+pub type Infos = IndexMap<crate::record::info::field::Key, Map<Info>>;
 
 /// VCF header filter records.
 pub type Filters = IndexMap<String, Map<Filter>>;
@@ -120,7 +120,8 @@ impl Header {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{info::key, record::value::{map::Info, Map}},
+    ///     header::record::value::{map::Info, Map},
+    ///     record::info::field::key,
     /// };
     ///
     /// let id = key::SAMPLES_WITH_DATA_COUNT;
@@ -145,7 +146,8 @@ impl Header {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{info::key, record::value::{map::Info, Map}},
+    ///     header::record::value::{map::Info, Map},
+    ///     record::info::field::key,
     /// };
     ///
     /// let mut header = vcf::Header::default();

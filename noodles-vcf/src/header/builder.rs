@@ -54,7 +54,8 @@ impl Builder {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{info::key, record::value::{map::Info, Map}},
+    ///     header::record::value::{map::Info, Map},
+    ///     record::info::field::key,
     /// };
     ///
     /// let id = key::SAMPLES_WITH_DATA_COUNT;
@@ -68,7 +69,7 @@ impl Builder {
     /// assert_eq!(infos.len(), 1);
     /// assert_eq!(&infos[0], &info);
     /// ```
-    pub fn add_info(mut self, id: super::info::Key, info: Map<Info>) -> Self {
+    pub fn add_info(mut self, id: crate::record::info::field::Key, info: Map<Info>) -> Self {
         self.infos.insert(id, info);
         self
     }
@@ -377,8 +378,8 @@ mod tests {
     #[test]
     fn test_build() -> Result<(), crate::header::record::value::map::contig::name::ParseError> {
         use crate::{
-            header::{self, format::key as format_key, info::key as info_key},
-            record::alternate_bases::allele,
+            header::{self, format::key as format_key},
+            record::{alternate_bases::allele, info::field::key as info_key},
         };
 
         let del = allele::Symbol::StructuralVariant(allele::symbol::StructuralVariant::from(

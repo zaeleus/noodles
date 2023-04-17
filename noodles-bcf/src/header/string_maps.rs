@@ -37,11 +37,12 @@ impl StringMaps {
     /// use noodles_bcf::header::StringMaps;
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{format, info, record::value::{map::{Contig, Filter, Format, Info}, Map}},
+    ///     header::{format, record::value::{map::{Contig, Filter, Format, Info}, Map}},
+    ///     record::info,
     /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_info(info::key::TOTAL_DEPTH, Map::<Info>::from(&info::key::TOTAL_DEPTH))
+    ///     .add_info(info::field::key::TOTAL_DEPTH, Map::<Info>::from(&info::field::key::TOTAL_DEPTH))
     ///     .add_filter("q10", Map::<Filter>::new("Quality below 10"))
     ///     .add_format(format::key::READ_DEPTH, Map::<Format>::from(&format::key::READ_DEPTH))
     ///     .add_contig("sq0".parse()?, Map::<Contig>::new())
@@ -72,11 +73,12 @@ impl StringMaps {
     /// use noodles_bcf::header::StringMaps;
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{format, info, record::value::{map::{Contig, Filter, Format, Info}, Map}},
+    ///     header::{format, record::value::{map::{Contig, Filter, Format, Info}, Map}},
+    ///     record::info,
     /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_info(info::key::TOTAL_DEPTH, Map::<Info>::from(&info::key::TOTAL_DEPTH))
+    ///     .add_info(info::field::key::TOTAL_DEPTH, Map::<Info>::from(&info::field::key::TOTAL_DEPTH))
     ///     .add_filter("q10", Map::<Filter>::new("Quality below 10"))
     ///     .add_format(format::key::READ_DEPTH, Map::<Format>::from(&format::key::READ_DEPTH))
     ///     .add_contig("sq0".parse()?, Map::<Contig>::new())
@@ -388,15 +390,18 @@ mod tests {
     fn test_try_from_vcf_header_for_string_maps() -> Result<(), Box<dyn std::error::Error>> {
         use vcf::{
             header::{
-                format, info,
+                format,
                 record::value::{
                     map::{AlternativeAllele, Contig, Filter, Format, Info},
                     Map,
                 },
             },
-            record::alternate_bases::allele::{
-                symbol::{structural_variant::Type, StructuralVariant},
-                Symbol,
+            record::{
+                alternate_bases::allele::{
+                    symbol::{structural_variant::Type, StructuralVariant},
+                    Symbol,
+                },
+                info,
             },
         };
 
@@ -407,12 +412,12 @@ mod tests {
             .add_contig("sq1".parse()?, Map::<Contig>::new())
             .add_contig("sq2".parse()?, Map::<Contig>::new())
             .add_info(
-                info::key::SAMPLES_WITH_DATA_COUNT,
-                Map::<Info>::from(&info::key::SAMPLES_WITH_DATA_COUNT),
+                info::field::key::SAMPLES_WITH_DATA_COUNT,
+                Map::<Info>::from(&info::field::key::SAMPLES_WITH_DATA_COUNT),
             )
             .add_info(
-                info::key::TOTAL_DEPTH,
-                Map::<Info>::from(&info::key::TOTAL_DEPTH),
+                info::field::key::TOTAL_DEPTH,
+                Map::<Info>::from(&info::field::key::TOTAL_DEPTH),
             )
             .add_filter("PASS", Map::<Filter>::pass())
             .add_filter("q10", Map::<Filter>::new("Quality below 10"))
@@ -476,16 +481,16 @@ mod tests {
     #[test]
     fn test_try_from_vcf_header_for_string_maps_with_idx() -> Result<(), Box<dyn std::error::Error>>
     {
-        use vcf::header::{
-            info,
-            record::value::{
+        use vcf::{
+            header::record::value::{
                 map::{Filter, Info},
                 Map,
             },
+            record::info,
         };
 
         let ns = {
-            let mut map = Map::<Info>::from(&info::key::SAMPLES_WITH_DATA_COUNT);
+            let mut map = Map::<Info>::from(&info::field::key::SAMPLES_WITH_DATA_COUNT);
             *map.idx_mut() = Some(1);
             map
         };
@@ -514,7 +519,7 @@ mod tests {
             )
             .add_filter("q20", Map::<Filter>::new("Quality below 20"))
             .add_filter("NS", Map::<Filter>::new(""))
-            .add_info(info::key::SAMPLES_WITH_DATA_COUNT, ns)
+            .add_info(info::field::key::SAMPLES_WITH_DATA_COUNT, ns)
             .build();
 
         let actual = StringMaps::try_from(&header)?;

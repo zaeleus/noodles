@@ -109,8 +109,8 @@ impl Info {
     /// use noodles_bcf::{header::StringMaps, lazy::record::Info};
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{info::key, record::value::{map, Map}},
-    ///     record::info::field::Value,
+    ///     header::record::value::{map, Map},
+    ///     record::info::field::{key, Value},
     /// };
     ///
     /// let header = vcf::Header::builder()
@@ -139,7 +139,7 @@ impl Info {
         &self,
         header: &vcf::Header,
         string_string_map: &StringStringMap,
-        key: &vcf::header::info::Key,
+        key: &vcf::record::info::field::Key,
     ) -> Option<io::Result<Option<vcf::record::info::field::Value>>> {
         for result in self.iter(header, string_string_map) {
             match result {
@@ -164,8 +164,8 @@ impl Info {
     /// use noodles_bcf::{header::StringMaps, lazy::record::Info};
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{info::key, record::value::{map, Map}},
-    ///     record::info::field::Value,
+    ///     header::record::value::{map, Map},
+    ///     record::info::field::{key, Value},
     /// };
     ///
     /// let header = vcf::Header::builder()
@@ -202,7 +202,7 @@ impl Info {
         string_string_map: &'a StringStringMap,
     ) -> impl Iterator<
         Item = io::Result<(
-            vcf::header::info::Key,
+            vcf::record::info::field::Key,
             Option<vcf::record::info::field::Value>,
         )>,
     > + 'a {
@@ -223,8 +223,8 @@ impl Info {
     /// use noodles_bcf::{header::StringMaps, lazy::record::Info};
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{info::key, record::value::{map, Map}},
-    ///     record::info::field::Value,
+    ///     header::record::value::{map, Map},
+    ///     record::info::field::{key, Value},
     /// };
     ///
     /// let header = vcf::Header::builder()
