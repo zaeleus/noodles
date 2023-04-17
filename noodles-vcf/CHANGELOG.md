@@ -7,11 +7,6 @@
   * vcf/record/info: Change getters to accept keys that implement
     `Equivalent<Key>`.
 
-### Fixed
-
-  * vcf/header/record/value/map/builder: Implement builder traits for generic
-    builders.
-
 ### Changed
 
   * vcf/header/info: Move `Key` under `record::info::field` module.
@@ -21,6 +16,11 @@
 
   * vcf/record/alternate_bases: Change `Deref` target from `[Allele]` to
     `Vec<Allele>`.
+
+### Fixed
+
+  * vcf/header/record/value/map/builder: Implement builder traits for generic
+    builders.
 
 ## 0.27.0 - 2023-04-06
 
