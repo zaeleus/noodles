@@ -242,9 +242,9 @@ fn validate_format_definition(
     actual_number: super::Number,
     actual_type: super::record::value::map::format::Type,
 ) -> Result<(), ParseError> {
-    use crate::header::format::key;
+    use crate::header::record::value::map::format::definition::definition;
 
-    if let Some((expected_number, expected_type, _)) = key::definition(file_format, id) {
+    if let Some((expected_number, expected_type, _)) = definition(file_format, id) {
         if actual_number != expected_number || actual_type != expected_type {
             return Err(ParseError::Invalid);
         }

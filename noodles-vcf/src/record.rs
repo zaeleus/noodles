@@ -528,7 +528,6 @@ impl Record {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::format::key,
     ///     record::{
     ///         genotypes::{sample::Value, Genotypes},
     ///         Position,
@@ -565,7 +564,6 @@ impl Record {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::format::key,
     ///     record::{
     ///         genotypes::{sample::Value, Genotypes},
     ///         Position,

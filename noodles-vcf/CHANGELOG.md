@@ -24,6 +24,12 @@
   * vcf/header/record/value/map/builder: Implement builder traits for generic
     builders.
 
+### Removed
+
+  * vcf/header/format: Remove `format` module.
+
+    For genotype keys, use `record::genotypes::keys::Key` instead.
+
 ## 0.27.0 - 2023-04-06
 
 ### Added

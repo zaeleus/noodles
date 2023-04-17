@@ -1,5 +1,6 @@
 //! Inner VCF header FORMAT map value.
 
+pub(crate) mod definition;
 mod ty;
 
 pub use self::ty::Type;
@@ -117,11 +118,11 @@ impl fmt::Display for Map<Format> {
 
 impl From<&Key> for Map<Format> {
     fn from(key: &Key) -> Self {
-        use crate::header::format::key;
-
-        let number = key::number(key).unwrap_or(Number::Count(1));
-        let ty = key::ty(key).unwrap_or(Type::String);
-        let description = key::description(key).map(|s| s.into()).unwrap_or_default();
+        let number = definition::number(key).unwrap_or(Number::Count(1));
+        let ty = definition::ty(key).unwrap_or(Type::String);
+        let description = definition::description(key)
+            .map(|s| s.into())
+            .unwrap_or_default();
 
         Self {
             inner: Format {
