@@ -20,11 +20,7 @@ use noodles_core::Position;
 
 use self::reference_sequence_id::parse_reference_sequence_id;
 use super::read_line;
-use crate::{
-    alignment::Record,
-    record::{MappingQuality, ReadName},
-    Header,
-};
+use crate::{alignment::Record, record::MappingQuality, Header};
 
 pub fn read_record<R>(
     reader: &mut R,

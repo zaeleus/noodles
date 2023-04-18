@@ -16,7 +16,7 @@ const MAX_LENGTH: usize = 254;
 ///
 /// This is also called a query name.
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct ReadName(Vec<u8>);
+pub struct ReadName(pub(crate) Vec<u8>);
 
 impl ReadName {
     /// Creates a read name.
