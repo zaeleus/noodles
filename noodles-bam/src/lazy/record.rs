@@ -108,7 +108,7 @@ impl Record {
     pub fn mapping_quality(&self) -> io::Result<Option<sam::record::MappingQuality>> {
         use crate::reader::record::get_mapping_quality;
         let mut src = &self.buf[MAPPING_QUALITY_RANGE];
-        get_mapping_quality(&mut src)
+        get_mapping_quality(&mut src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
     /// Returns the flags.

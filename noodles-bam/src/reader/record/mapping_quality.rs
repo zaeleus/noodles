@@ -1,14 +1,31 @@
-use std::{io, mem};
+use std::{error, fmt, mem};
 
 use bytes::Buf;
 use noodles_sam::record::MappingQuality;
 
-pub fn get_mapping_quality<B>(src: &mut B) -> io::Result<Option<MappingQuality>>
+/// An error when a raw BAM record mapping quality fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// Unexpected EOF.
+    UnexpectedEof,
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::UnexpectedEof => write!(f, "unexpected EOF"),
+        }
+    }
+}
+
+pub fn get_mapping_quality<B>(src: &mut B) -> Result<Option<MappingQuality>, ParseError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<u8>() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+        return Err(ParseError::UnexpectedEof);
     }
 
     Ok(MappingQuality::new(src.get_u8()))
@@ -19,16 +36,19 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_mapping_quality() -> io::Result<()> {
-        fn t(mut buf: &[u8], expected: Option<MappingQuality>) -> io::Result<()> {
-            let actual = get_mapping_quality(&mut buf)?;
-            assert_eq!(actual, expected);
-            Ok(())
+    fn test_get_mapping_quality() {
+        fn t(mut buf: &[u8], expected: Option<MappingQuality>) {
+            assert_eq!(get_mapping_quality(&mut buf), Ok(expected));
         }
 
-        t(&[0xff], None)?;
-        t(&[0x08], MappingQuality::new(8))?;
+        t(&[0x00], MappingQuality::new(0));
+        t(&[0x08], MappingQuality::new(8));
+        t(&[0xff], None);
 
-        Ok(())
+        let mut src = &[][..];
+        assert_eq!(
+            get_mapping_quality(&mut src),
+            Err(ParseError::UnexpectedEof)
+        );
     }
 }

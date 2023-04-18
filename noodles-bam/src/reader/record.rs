@@ -68,6 +68,8 @@ pub enum ParseError {
     InvalidReferenceSequenceId(reference_sequence_id::ParseError),
     /// The position is invalid.
     InvalidPosition(position::ParseError),
+    /// The mapping quality is invalid.
+    InvalidMappingQuality(mapping_quality::ParseError),
     /// The flags are invalid.
     InvalidFlags(flags::ParseError),
     /// The mate reference sequence ID is invalid.
@@ -91,6 +93,7 @@ impl error::Error for ParseError {
         match self {
             Self::InvalidReferenceSequenceId(e) => Some(e),
             Self::InvalidPosition(e) => Some(e),
+            Self::InvalidMappingQuality(e) => Some(e),
             Self::InvalidFlags(e) => Some(e),
             Self::InvalidMateReferenceSequenceId(e) => Some(e),
             Self::InvalidMatePosition(e) => Some(e),
@@ -108,6 +111,7 @@ impl fmt::Display for ParseError {
         match self {
             Self::InvalidReferenceSequenceId(_) => write!(f, "invalid reference sequence ID"),
             Self::InvalidPosition(_) => write!(f, "invalid position"),
+            Self::InvalidMappingQuality(_) => write!(f, "invalid mapping quality"),
             Self::InvalidFlags(_) => write!(f, "invalid flags"),
             Self::InvalidMateReferenceSequenceId(_) => {
                 write!(f, "invalid mate reference sequence ID")
@@ -142,7 +146,9 @@ where
 
     let l_read_name = get_read_name_len(src)?;
 
-    *record.mapping_quality_mut() = get_mapping_quality(src)?;
+    *record.mapping_quality_mut() = get_mapping_quality(src)
+        .map_err(ParseError::InvalidMappingQuality)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     // Discard bin.
     src.advance(mem::size_of::<u16>());
