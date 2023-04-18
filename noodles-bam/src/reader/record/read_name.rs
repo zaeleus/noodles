@@ -24,11 +24,11 @@ where
         src.advance(MISSING.len());
         None
     } else {
-        let mut read_name_buf = read_name.take().map(Vec::from).unwrap_or_default();
+        let mut dst = read_name.take().map(Vec::from).unwrap_or_default();
 
         // SAFETY: len is guaranteed to be > 0.
-        read_name_buf.resize(len - 1, 0);
-        src.copy_to_slice(&mut read_name_buf);
+        dst.resize(len - 1, 0);
+        src.copy_to_slice(&mut dst);
 
         let terminator = src.get_u8();
 
@@ -39,7 +39,7 @@ where
             ));
         }
 
-        ReadName::try_from(read_name_buf)
+        ReadName::try_from(dst)
             .map(Some)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
     };
