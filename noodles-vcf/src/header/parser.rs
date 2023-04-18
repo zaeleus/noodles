@@ -131,7 +131,7 @@ impl std::fmt::Display for ParseError {
 }
 
 fn parse_file_format(s: &str) -> Result<FileFormat, ParseError> {
-    let record: Record = s.parse().map_err(ParseError::InvalidRecord)?;
+    let record = s.parse().map_err(ParseError::InvalidRecord)?;
 
     match record {
         Record::FileFormat(file_format) => Ok(file_format),
