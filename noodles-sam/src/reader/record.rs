@@ -49,14 +49,14 @@ where
 pub enum ParseError {
     /// The read name is invalid.
     InvalidReadName(read_name::ParseError),
+    /// The flags are invalid.
+    InvalidFlags(flags::ParseError),
     /// The reference sequence ID is invalid.
     InvalidReferenceSequenceId(reference_sequence_id::ParseError),
     /// The position is invalid.
     InvalidPosition(position::ParseError),
     /// The mapping quality is invalid.
     InvalidMappingQuality(mapping_quality::ParseError),
-    /// The flags are invalid.
-    InvalidFlags(flags::ParseError),
     /// The CIGAR is invalid.
     InvalidCigar(cigar::ParseError),
     /// The mate reference sequence ID is invalid.
@@ -75,10 +75,10 @@ impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::InvalidReadName(e) => Some(e),
+            Self::InvalidFlags(e) => Some(e),
             Self::InvalidReferenceSequenceId(e) => Some(e),
             Self::InvalidPosition(e) => Some(e),
             Self::InvalidMappingQuality(e) => Some(e),
-            Self::InvalidFlags(e) => Some(e),
             Self::InvalidCigar(e) => Some(e),
             Self::InvalidMateReferenceSequenceId(e) => Some(e),
             Self::InvalidMatePosition(e) => Some(e),
@@ -93,10 +93,10 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidReadName(_) => write!(f, "invalid read name"),
+            Self::InvalidFlags(_) => write!(f, "invalid flags"),
             Self::InvalidReferenceSequenceId(_) => write!(f, "invalid reference sequence ID"),
             Self::InvalidPosition(_) => write!(f, "invalid position"),
             Self::InvalidMappingQuality(_) => write!(f, "invalid mapping quality"),
-            Self::InvalidFlags(_) => write!(f, "invalid flags"),
             Self::InvalidCigar(_) => write!(f, "invalid CIGAR"),
             Self::InvalidMateReferenceSequenceId(_) => {
                 write!(f, "invalid mate reference sequence ID")
