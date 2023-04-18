@@ -22,7 +22,7 @@ impl fmt::Display for ParseError {
         match self {
             Self::Empty => write!(f, "empty input"),
             Self::ExceedsMaxLength(actual) => {
-                write!(f, "expected input to be < {MAX_LENGTH}, got {actual}")
+                write!(f, "expected input to be <= {MAX_LENGTH}, got {actual}")
             }
             Self::Invalid => write!(f, "invalid input"),
         }
