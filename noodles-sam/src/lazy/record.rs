@@ -183,7 +183,7 @@ impl Record {
     pub fn mapping_quality(&self) -> io::Result<Option<MappingQuality>> {
         use crate::reader::record::parse_mapping_quality;
         let src = &self.buf[self.bounds.mapping_quality_range()];
-        parse_mapping_quality(src)
+        parse_mapping_quality(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
     /// Returns the CIGAR operations.

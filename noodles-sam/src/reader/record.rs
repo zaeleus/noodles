@@ -53,6 +53,8 @@ pub enum ParseError {
     InvalidReferenceSequenceId(reference_sequence_id::ParseError),
     /// The position is invalid.
     InvalidPosition(position::ParseError),
+    /// The mapping quality is invalid.
+    InvalidMappingQuality(mapping_quality::ParseError),
     /// The flags are invalid.
     InvalidFlags(flags::ParseError),
     /// The CIGAR is invalid.
@@ -75,6 +77,7 @@ impl error::Error for ParseError {
             Self::InvalidReadName(e) => Some(e),
             Self::InvalidReferenceSequenceId(e) => Some(e),
             Self::InvalidPosition(e) => Some(e),
+            Self::InvalidMappingQuality(e) => Some(e),
             Self::InvalidFlags(e) => Some(e),
             Self::InvalidCigar(e) => Some(e),
             Self::InvalidMateReferenceSequenceId(e) => Some(e),
@@ -92,6 +95,7 @@ impl fmt::Display for ParseError {
             Self::InvalidReadName(_) => write!(f, "invalid read name"),
             Self::InvalidReferenceSequenceId(_) => write!(f, "invalid reference sequence ID"),
             Self::InvalidPosition(_) => write!(f, "invalid position"),
+            Self::InvalidMappingQuality(_) => write!(f, "invalid mapping quality"),
             Self::InvalidFlags(_) => write!(f, "invalid flags"),
             Self::InvalidCigar(_) => write!(f, "invalid CIGAR"),
             Self::InvalidMateReferenceSequenceId(_) => {
@@ -139,7 +143,9 @@ pub(crate) fn parse_record(mut src: &[u8], header: &Header, record: &mut Record)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     let field = next_field(&mut src);
-    *record.mapping_quality_mut() = parse_mapping_quality(field)?;
+    *record.mapping_quality_mut() = parse_mapping_quality(field)
+        .map_err(ParseError::InvalidMappingQuality)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     record.cigar_mut().clear();
     let field = next_field(&mut src);
