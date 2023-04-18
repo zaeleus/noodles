@@ -104,7 +104,9 @@ impl Record {
 
         match src {
             MISSING => Ok(None),
-            _ => parse_read_name(src).map(Some),
+            _ => parse_read_name(src)
+                .map(Some)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
         }
     }
 

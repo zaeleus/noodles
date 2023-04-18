@@ -46,6 +46,8 @@ where
 #[allow(clippy::enum_variant_names)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The read name is invalid.
+    InvalidReadName(read_name::ParseError),
     /// The reference sequence ID is invalid.
     InvalidReferenceSequenceId(reference_sequence_id::ParseError),
     /// The flags are invalid.
@@ -65,6 +67,7 @@ pub enum ParseError {
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
+            Self::InvalidReadName(e) => Some(e),
             Self::InvalidReferenceSequenceId(e) => Some(e),
             Self::InvalidFlags(e) => Some(e),
             Self::InvalidCigar(e) => Some(e),
@@ -79,6 +82,7 @@ impl error::Error for ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::InvalidReadName(_) => write!(f, "invalid read name"),
             Self::InvalidReferenceSequenceId(_) => write!(f, "invalid reference sequence ID"),
             Self::InvalidFlags(_) => write!(f, "invalid flags"),
             Self::InvalidCigar(_) => write!(f, "invalid CIGAR"),
@@ -97,7 +101,10 @@ pub(crate) fn parse_record(mut src: &[u8], header: &Header, record: &mut Record)
 
     *record.read_name_mut() = match next_field(&mut src) {
         MISSING => None,
-        field => parse_read_name(field).map(Some)?,
+        field => parse_read_name(field)
+            .map(Some)
+            .map_err(ParseError::InvalidReadName)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
     };
 
     let field = next_field(&mut src);
