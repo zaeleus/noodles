@@ -192,7 +192,8 @@ impl Record {
         let mut read_name = None;
         let len = NonZeroUsize::try_from(src.len())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-        get_read_name(&mut src, &mut read_name, len)?;
+        get_read_name(&mut src, &mut read_name, len)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         Ok(read_name)
     }

@@ -68,6 +68,8 @@ pub enum ParseError {
     InvalidReferenceSequenceId(reference_sequence_id::ParseError),
     /// The flags are invalid.
     InvalidFlags(flags::ParseError),
+    /// The read name is invalid.
+    InvalidReadName(read_name::ParseError),
     /// The CIGAR is invalid.
     InvalidCigar(cigar::ParseError),
     /// The mate reference sequence ID is invalid.
@@ -85,6 +87,7 @@ impl error::Error for ParseError {
         match self {
             Self::InvalidReferenceSequenceId(e) => Some(e),
             Self::InvalidFlags(e) => Some(e),
+            Self::InvalidReadName(e) => Some(e),
             Self::InvalidCigar(e) => Some(e),
             Self::InvalidMateReferenceSequenceId(e) => Some(e),
             Self::InvalidSequence(e) => Some(e),
@@ -99,6 +102,7 @@ impl fmt::Display for ParseError {
         match self {
             Self::InvalidReferenceSequenceId(_) => write!(f, "invalid reference sequence ID"),
             Self::InvalidFlags(_) => write!(f, "invalid flags"),
+            Self::InvalidReadName(_) => write!(f, "invalid read name"),
             Self::InvalidCigar(_) => write!(f, "invalid CIGAR"),
             Self::InvalidMateReferenceSequenceId(_) => {
                 write!(f, "invalid mate reference sequence ID")
@@ -148,7 +152,9 @@ where
     *record.mate_alignment_start_mut() = get_position(src)?;
     *record.template_length_mut() = get_template_length(src)?;
 
-    get_read_name(src, record.read_name_mut(), l_read_name)?;
+    get_read_name(src, record.read_name_mut(), l_read_name)
+        .map_err(ParseError::InvalidReadName)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     get_cigar(src, record.cigar_mut(), n_cigar_op)
         .map_err(ParseError::InvalidCigar)
