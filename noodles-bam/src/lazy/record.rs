@@ -92,7 +92,7 @@ impl Record {
     pub fn alignment_start(&self) -> io::Result<Option<Position>> {
         use crate::reader::record::get_position;
         let mut src = &self.buf[ALIGNMENT_START_RANGE];
-        get_position(&mut src)
+        get_position(&mut src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
     /// Returns the mapping quality.
@@ -157,7 +157,7 @@ impl Record {
     pub fn mate_alignment_start(&self) -> io::Result<Option<Position>> {
         use crate::reader::record::get_position;
         let mut src = &self.buf[MATE_ALIGNMENT_START_RANGE];
-        get_position(&mut src)
+        get_position(&mut src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
     /// Returns the template length.

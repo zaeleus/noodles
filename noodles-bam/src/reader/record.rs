@@ -66,10 +66,14 @@ where
 pub enum ParseError {
     /// The reference sequence ID is invalid.
     InvalidReferenceSequenceId(reference_sequence_id::ParseError),
+    /// The position is invalid.
+    InvalidPosition(position::ParseError),
     /// The flags are invalid.
     InvalidFlags(flags::ParseError),
     /// The mate reference sequence ID is invalid.
     InvalidMateReferenceSequenceId(reference_sequence_id::ParseError),
+    /// The mate position is invalid.
+    InvalidMatePosition(position::ParseError),
     /// The read name is invalid.
     InvalidReadName(read_name::ParseError),
     /// The CIGAR is invalid.
@@ -86,8 +90,10 @@ impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::InvalidReferenceSequenceId(e) => Some(e),
+            Self::InvalidPosition(e) => Some(e),
             Self::InvalidFlags(e) => Some(e),
             Self::InvalidMateReferenceSequenceId(e) => Some(e),
+            Self::InvalidMatePosition(e) => Some(e),
             Self::InvalidReadName(e) => Some(e),
             Self::InvalidCigar(e) => Some(e),
             Self::InvalidSequence(e) => Some(e),
@@ -101,10 +107,12 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidReferenceSequenceId(_) => write!(f, "invalid reference sequence ID"),
+            Self::InvalidPosition(_) => write!(f, "invalid position"),
             Self::InvalidFlags(_) => write!(f, "invalid flags"),
             Self::InvalidMateReferenceSequenceId(_) => {
                 write!(f, "invalid mate reference sequence ID")
             }
+            Self::InvalidMatePosition(_) => write!(f, "invalid mate position"),
             Self::InvalidReadName(_) => write!(f, "invalid read name"),
             Self::InvalidCigar(_) => write!(f, "invalid CIGAR"),
             Self::InvalidSequence(_) => write!(f, "invalid sequence"),
@@ -128,7 +136,9 @@ where
         .map_err(ParseError::InvalidReferenceSequenceId)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    *record.alignment_start_mut() = get_position(src)?;
+    *record.alignment_start_mut() = get_position(src)
+        .map_err(ParseError::InvalidPosition)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     let l_read_name = get_read_name_len(src)?;
 
@@ -149,7 +159,10 @@ where
         .map_err(ParseError::InvalidMateReferenceSequenceId)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    *record.mate_alignment_start_mut() = get_position(src)?;
+    *record.mate_alignment_start_mut() = get_position(src)
+        .map_err(ParseError::InvalidMatePosition)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
     *record.template_length_mut() = get_template_length(src)?;
 
     get_read_name(src, record.read_name_mut(), l_read_name)
