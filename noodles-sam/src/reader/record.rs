@@ -49,12 +49,16 @@ pub enum ParseError {
     InvalidReadName(read_name::ParseError),
     /// The reference sequence ID is invalid.
     InvalidReferenceSequenceId(reference_sequence_id::ParseError),
+    /// The position is invalid.
+    InvalidPosition(position::ParseError),
     /// The flags are invalid.
     InvalidFlags(flags::ParseError),
     /// The CIGAR is invalid.
     InvalidCigar(cigar::ParseError),
     /// The mate reference sequence ID is invalid.
     InvalidMateReferenceSequenceId(reference_sequence_id::ParseError),
+    /// The mate position is invalid.
+    InvalidMatePosition(position::ParseError),
     /// The sequence is invalid.
     InvalidSequence(sequence::ParseError),
     /// The quality scores are invalid.
@@ -68,9 +72,11 @@ impl error::Error for ParseError {
         match self {
             Self::InvalidReadName(e) => Some(e),
             Self::InvalidReferenceSequenceId(e) => Some(e),
+            Self::InvalidPosition(e) => Some(e),
             Self::InvalidFlags(e) => Some(e),
             Self::InvalidCigar(e) => Some(e),
             Self::InvalidMateReferenceSequenceId(e) => Some(e),
+            Self::InvalidMatePosition(e) => Some(e),
             Self::InvalidSequence(e) => Some(e),
             Self::InvalidQualityScores(e) => Some(e),
             Self::InvalidData(e) => Some(e),
@@ -83,11 +89,13 @@ impl fmt::Display for ParseError {
         match self {
             Self::InvalidReadName(_) => write!(f, "invalid read name"),
             Self::InvalidReferenceSequenceId(_) => write!(f, "invalid reference sequence ID"),
+            Self::InvalidPosition(_) => write!(f, "invalid position"),
             Self::InvalidFlags(_) => write!(f, "invalid flags"),
             Self::InvalidCigar(_) => write!(f, "invalid CIGAR"),
             Self::InvalidMateReferenceSequenceId(_) => {
                 write!(f, "invalid mate reference sequence ID")
             }
+            Self::InvalidMatePosition(_) => write!(f, "invalid mate position"),
             Self::InvalidQualityScores(_) => write!(f, "invalid quality scores"),
             Self::InvalidSequence(_) => write!(f, "invalid sequence"),
             Self::InvalidData(_) => write!(f, "invalid data"),
@@ -124,7 +132,9 @@ pub(crate) fn parse_record(mut src: &[u8], header: &Header, record: &mut Record)
     *record.reference_sequence_id_mut() = reference_sequence_id;
 
     let field = next_field(&mut src);
-    *record.alignment_start_mut() = parse_alignment_start(field)?;
+    *record.alignment_start_mut() = parse_alignment_start(field)
+        .map_err(ParseError::InvalidPosition)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     let field = next_field(&mut src);
     *record.mapping_quality_mut() = parse_mapping_quality(field)?;
@@ -144,7 +154,9 @@ pub(crate) fn parse_record(mut src: &[u8], header: &Header, record: &mut Record)
     };
 
     let field = next_field(&mut src);
-    *record.mate_alignment_start_mut() = parse_alignment_start(field)?;
+    *record.mate_alignment_start_mut() = parse_alignment_start(field)
+        .map_err(ParseError::InvalidMatePosition)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     let field = next_field(&mut src);
     *record.template_length_mut() = parse_template_length(field)?;

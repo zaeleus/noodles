@@ -167,7 +167,7 @@ impl Record {
     pub fn alignment_start(&self) -> io::Result<Option<Position>> {
         use crate::reader::record::parse_alignment_start;
         let src = &self.buf[self.bounds.alignment_start_range()];
-        parse_alignment_start(src)
+        parse_alignment_start(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
     /// Returns the mapping quality.
@@ -246,7 +246,7 @@ impl Record {
     pub fn mate_alignment_start(&self) -> io::Result<Option<Position>> {
         use crate::reader::record::parse_alignment_start;
         let src = &self.buf[self.bounds.mate_alignment_start_range()];
-        parse_alignment_start(src)
+        parse_alignment_start(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
     /// Returns the template length.
