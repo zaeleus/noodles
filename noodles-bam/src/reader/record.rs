@@ -68,12 +68,12 @@ pub enum ParseError {
     InvalidReferenceSequenceId(reference_sequence_id::ParseError),
     /// The flags are invalid.
     InvalidFlags(flags::ParseError),
+    /// The mate reference sequence ID is invalid.
+    InvalidMateReferenceSequenceId(reference_sequence_id::ParseError),
     /// The read name is invalid.
     InvalidReadName(read_name::ParseError),
     /// The CIGAR is invalid.
     InvalidCigar(cigar::ParseError),
-    /// The mate reference sequence ID is invalid.
-    InvalidMateReferenceSequenceId(reference_sequence_id::ParseError),
     /// The sequence is invalid.
     InvalidSequence(sequence::ParseError),
     /// The quality scores are invalid.
@@ -87,9 +87,9 @@ impl error::Error for ParseError {
         match self {
             Self::InvalidReferenceSequenceId(e) => Some(e),
             Self::InvalidFlags(e) => Some(e),
+            Self::InvalidMateReferenceSequenceId(e) => Some(e),
             Self::InvalidReadName(e) => Some(e),
             Self::InvalidCigar(e) => Some(e),
-            Self::InvalidMateReferenceSequenceId(e) => Some(e),
             Self::InvalidSequence(e) => Some(e),
             Self::InvalidQualityScores(e) => Some(e),
             Self::InvalidData(e) => Some(e),
@@ -102,11 +102,11 @@ impl fmt::Display for ParseError {
         match self {
             Self::InvalidReferenceSequenceId(_) => write!(f, "invalid reference sequence ID"),
             Self::InvalidFlags(_) => write!(f, "invalid flags"),
-            Self::InvalidReadName(_) => write!(f, "invalid read name"),
-            Self::InvalidCigar(_) => write!(f, "invalid CIGAR"),
             Self::InvalidMateReferenceSequenceId(_) => {
                 write!(f, "invalid mate reference sequence ID")
             }
+            Self::InvalidReadName(_) => write!(f, "invalid read name"),
+            Self::InvalidCigar(_) => write!(f, "invalid CIGAR"),
             Self::InvalidSequence(_) => write!(f, "invalid sequence"),
             Self::InvalidQualityScores(_) => write!(f, "invalid quality scores"),
             Self::InvalidData(_) => write!(f, "invalid data"),
