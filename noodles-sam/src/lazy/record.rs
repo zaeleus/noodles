@@ -104,9 +104,18 @@ impl Record {
 
         match src {
             MISSING => Ok(None),
-            _ => parse_read_name(src)
-                .map(Some)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+            _ => {
+                let mut read_name = Some(
+                    ReadName::try_new(".")
+                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
+                );
+
+                parse_read_name(src, &mut read_name)
+                    .map(Some)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+                Ok(read_name)
+            }
         }
     }
 

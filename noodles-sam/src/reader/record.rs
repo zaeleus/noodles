@@ -99,12 +99,14 @@ impl fmt::Display for ParseError {
 pub(crate) fn parse_record(mut src: &[u8], header: &Header, record: &mut Record) -> io::Result<()> {
     const MISSING: &[u8] = b"*";
 
-    *record.read_name_mut() = match next_field(&mut src) {
-        MISSING => None,
-        field => parse_read_name(field)
-            .map(Some)
-            .map_err(ParseError::InvalidReadName)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
+    match next_field(&mut src) {
+        MISSING => *record.read_name_mut() = None,
+        field => {
+            parse_read_name(field, record.read_name_mut())
+                .map(Some)
+                .map_err(ParseError::InvalidReadName)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        }
     };
 
     let field = next_field(&mut src);

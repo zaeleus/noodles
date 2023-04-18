@@ -29,16 +29,30 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(crate) fn parse_read_name(src: &[u8]) -> Result<ReadName, ParseError> {
+pub(crate) fn parse_read_name(
+    src: &[u8],
+    read_name: &mut Option<ReadName>,
+) -> Result<(), ParseError> {
     if src.is_empty() {
-        Err(ParseError::Empty)
+        return Err(ParseError::Empty);
     } else if src.len() > MAX_LENGTH {
-        Err(ParseError::ExceedsMaxLength(src.len()))
-    } else if is_valid_name(src) {
-        Ok(ReadName(src.to_vec()))
-    } else {
-        Err(ParseError::Invalid)
+        return Err(ParseError::ExceedsMaxLength(src.len()));
+    } else if !is_valid_name(src) {
+        return Err(ParseError::Invalid);
     }
+
+    let rname = match read_name.take().map(Vec::from) {
+        Some(mut dst) => {
+            dst.clear();
+            dst.extend(src);
+            dst
+        }
+        None => src.into(),
+    };
+
+    *read_name = Some(ReadName(rname));
+
+    Ok(())
 }
 
 fn is_valid_name_char(b: u8) -> bool {
@@ -54,16 +68,25 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_name() -> Result<(), crate::record::read_name::ParseError> {
-        assert_eq!(parse_read_name(b"r0"), Ok(ReadName::try_new("r0")?));
+    fn test_parse_name() -> Result<(), Box<dyn std::error::Error>> {
+        let mut read_name = Some(ReadName::try_new("ndls")?);
 
-        assert_eq!(parse_read_name(b""), Err(ParseError::Empty));
-        assert_eq!(parse_read_name(b"r 0"), Err(ParseError::Invalid));
-        assert_eq!(parse_read_name(b"@r0"), Err(ParseError::Invalid));
+        parse_read_name(b"r0", &mut read_name)?;
+        assert_eq!(read_name, Some(ReadName::try_new("r0")?));
+
+        assert_eq!(parse_read_name(b"", &mut read_name), Err(ParseError::Empty));
+        assert_eq!(
+            parse_read_name(b"r 0", &mut read_name),
+            Err(ParseError::Invalid)
+        );
+        assert_eq!(
+            parse_read_name(b"@r0", &mut read_name),
+            Err(ParseError::Invalid)
+        );
 
         let src = vec![b'n'; MAX_LENGTH + 1];
         assert_eq!(
-            parse_read_name(&src),
+            parse_read_name(&src, &mut read_name),
             Err(ParseError::ExceedsMaxLength(src.len()))
         );
 
