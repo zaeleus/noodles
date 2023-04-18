@@ -38,7 +38,8 @@ flags.
 
   * `async`: Enables asynchronous I/O with [Tokio]. (BAM, BCF, BGZF, CRAM, CSI,
     FASTA, FASTQ, SAM, tabix, and VCF)
-  * `libdeflate`: Use [libdeflate] to encode and decode DEFLATE streams. (BGZF and CRAM)
+  * `libdeflate`: Use [libdeflate] to encode and decode DEFLATE streams. (BGZF
+    and CRAM)
 
 [Tokio]: https://tokio.rs/
 [libdeflate]: https://github.com/ebiggers/libdeflate
