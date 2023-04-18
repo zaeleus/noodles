@@ -2,12 +2,13 @@ mod cigar;
 pub(crate) mod data;
 mod flags;
 mod quality_scores;
+mod read_name;
 mod reference_sequence_id;
 mod sequence;
 
 pub(crate) use self::{
     cigar::parse_cigar, data::parse_data, flags::parse_flags, quality_scores::parse_quality_scores,
-    sequence::parse_sequence,
+    read_name::parse_read_name, sequence::parse_sequence,
 };
 
 use std::{
@@ -184,10 +185,6 @@ fn next_field<'a>(src: &mut &'a [u8]) -> &'a [u8] {
     *src = rest;
 
     field
-}
-
-pub(crate) fn parse_read_name(src: &[u8]) -> io::Result<ReadName> {
-    ReadName::try_new(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 pub(crate) fn parse_alignment_start(src: &[u8]) -> io::Result<Option<Position>> {
