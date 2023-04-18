@@ -27,7 +27,7 @@ where
         let mut read_name_buf = read_name.take().map(Vec::from).unwrap_or_default();
 
         // SAFETY: len is guaranteed to be > 0.
-        read_name_buf.resize(len - 1, Default::default());
+        read_name_buf.resize(len - 1, 0);
         src.copy_to_slice(&mut read_name_buf);
 
         let terminator = src.get_u8();
