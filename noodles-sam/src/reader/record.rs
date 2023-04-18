@@ -1,22 +1,21 @@
 mod cigar;
 pub(crate) mod data;
 mod flags;
+mod position;
 mod quality_scores;
 mod read_name;
 mod reference_sequence_id;
 mod sequence;
 
 pub(crate) use self::{
-    cigar::parse_cigar, data::parse_data, flags::parse_flags, quality_scores::parse_quality_scores,
-    read_name::parse_read_name, sequence::parse_sequence,
+    cigar::parse_cigar, data::parse_data, flags::parse_flags, position::parse_alignment_start,
+    quality_scores::parse_quality_scores, read_name::parse_read_name, sequence::parse_sequence,
 };
 
 use std::{
     error, fmt,
     io::{self, BufRead},
 };
-
-use noodles_core::Position;
 
 use self::reference_sequence_id::parse_reference_sequence_id;
 use super::read_line;
@@ -190,12 +189,6 @@ fn next_field<'a>(src: &mut &'a [u8]) -> &'a [u8] {
     *src = rest;
 
     field
-}
-
-pub(crate) fn parse_alignment_start(src: &[u8]) -> io::Result<Option<Position>> {
-    lexical_core::parse(src)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        .map(Position::new)
 }
 
 pub(crate) fn parse_mapping_quality(src: &[u8]) -> io::Result<Option<MappingQuality>> {
