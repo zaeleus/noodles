@@ -1,9 +1,13 @@
+//! Inner VCF header other map value.
+
 use std::fmt;
 
 use super::{builder, tag, Fields, Inner, Map, TryFromFieldsError};
 
 type StandardTag = tag::Identity;
-type Tag = tag::Tag<StandardTag>;
+
+/// A VCF header other map tag.
+pub type Tag = tag::Tag<StandardTag>;
 
 /// An inner VCF header other map value.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]

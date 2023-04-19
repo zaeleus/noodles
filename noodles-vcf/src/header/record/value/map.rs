@@ -1,13 +1,13 @@
 //! VCF header map value.
 
-mod alternative_allele;
+pub mod alternative_allele;
 mod builder;
 pub mod contig;
-mod filter;
+pub mod filter;
 pub mod format;
 pub mod info;
-mod meta;
-mod other;
+pub mod meta;
+pub mod other;
 mod tag;
 
 pub use self::{

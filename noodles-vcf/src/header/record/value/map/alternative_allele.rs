@@ -1,3 +1,5 @@
+//! Inner VCF header alternative allele map value.
+
 mod builder;
 
 use std::fmt;
@@ -7,7 +9,9 @@ use indexmap::IndexMap;
 use super::{tag, Described, Fields, Inner, Map, TryFromFieldsError};
 
 type StandardTag = tag::Described;
-type Tag = tag::Tag<StandardTag>;
+
+/// A VCF header alternative allele map tag.
+pub type Tag = tag::Tag<StandardTag>;
 
 /// An inner VCF header alternative allele map value.
 #[derive(Clone, Debug, Eq, PartialEq)]

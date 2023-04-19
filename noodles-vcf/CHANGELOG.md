@@ -21,6 +21,9 @@
 
   * vcf/header/info: Move `Key` under `record::info::field` module.
 
+  * vcf/header/record/value/map: Increase the visibility of `Tag` for inner
+    maps.
+
   * vcf/header/record/value/map/other: Move record ID from record to map key.
 
     `Map<Other>` no longer holds the record ID. Use the collection key instead.

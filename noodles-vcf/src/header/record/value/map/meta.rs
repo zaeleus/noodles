@@ -1,3 +1,5 @@
+//! Inner VCF header meta map value.
+
 mod builder;
 mod tag;
 
@@ -9,7 +11,9 @@ use super::{Fields, Inner, Map, TryFromFieldsError};
 use crate::header::Number;
 
 type StandardTag = tag::Standard;
-type Tag = super::tag::Tag<StandardTag>;
+
+/// A VCF header meta map tag.
+pub type Tag = super::tag::Tag<StandardTag>;
 
 /// An inner VCF header meta map value.
 #[derive(Clone, Debug, Eq, PartialEq)]

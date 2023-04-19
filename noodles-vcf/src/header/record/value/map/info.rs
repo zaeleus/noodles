@@ -16,7 +16,9 @@ use crate::{
 };
 
 type StandardTag = tag::TypedDescribedIndexed;
-type Tag = tag::Tag<StandardTag>;
+
+/// A VCF header info map tag.
+pub type Tag = tag::Tag<StandardTag>;
 
 /// An inner VCF header info map value.
 #[derive(Clone, Debug, Eq, PartialEq)]
