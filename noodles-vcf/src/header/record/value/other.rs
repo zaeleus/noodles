@@ -46,7 +46,7 @@ mod tests {
     fn test_fmt() {
         assert_eq!(Other::from("VCFv4.3").to_string(), "VCFv4.3");
         assert_eq!(
-            Other::Map(String::from("0"), Map::<map::Other>::new("0")).to_string(),
+            Other::Map(String::from("0"), Map::<map::Other>::new()).to_string(),
             "<ID=0>"
         );
     }
@@ -66,7 +66,7 @@ mod tests {
     #[test]
     fn test_from_map_other_for_value() {
         let id = String::from("0");
-        let map = Map::<map::Other>::new(&id);
+        let map = Map::<map::Other>::new();
         assert_eq!(Other::from((id.clone(), map.clone())), Other::Map(id, map));
     }
 }

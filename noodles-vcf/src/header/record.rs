@@ -205,10 +205,8 @@ impl TryFrom<(FileFormat, &str)> for Record {
             Key::Other(k) => {
                 let v = match value {
                     Value::String(s) => value::Other::from(s),
-                    Value::Struct(fields) => {
-                        let id = get_field(&fields, "ID")
-                            .map(|v| v.into())
-                            .ok_or(ParseError::Invalid)?;
+                    Value::Struct(mut fields) => {
+                        let id = remove_field(&mut fields, "ID").ok_or(ParseError::Invalid)?;
 
                         let map =
                             Map::<Other>::try_from(fields).map_err(|_| ParseError::Invalid)?;
@@ -221,13 +219,6 @@ impl TryFrom<(FileFormat, &str)> for Record {
             }
         }
     }
-}
-
-fn get_field<'a>(fields: &'a [(String, String)], key: &str) -> Option<&'a str> {
-    fields
-        .iter()
-        .find(|(k, _)| k == key)
-        .map(|(_, v)| v.as_str())
 }
 
 fn remove_field(fields: &mut Vec<(String, String)>, key: &str) -> Option<String> {

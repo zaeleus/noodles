@@ -238,21 +238,6 @@ fn init_other_fields<S>() -> OtherFields<S> {
     IndexMap::new()
 }
 
-fn parse_id<I>(s: &str, id: &mut Option<I>) -> Result<(), TryFromFieldsError>
-where
-    I: FromStr,
-{
-    s.parse()
-        .map_err(|_| TryFromFieldsError::InvalidValue(tag::ID))
-        .and_then(|value| {
-            if id.replace(value).is_none() {
-                Ok(())
-            } else {
-                Err(TryFromFieldsError::DuplicateTag)
-            }
-        })
-}
-
 fn parse_number(s: &str, number: &mut Option<Number>) -> Result<(), TryFromFieldsError> {
     s.parse()
         .map_err(|_| TryFromFieldsError::InvalidValue(tag::NUMBER))
