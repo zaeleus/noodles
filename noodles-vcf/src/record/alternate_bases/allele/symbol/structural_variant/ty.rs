@@ -16,6 +16,8 @@ pub enum Type {
     /// A copy number variation (`CNV`).
     CopyNumberVariation,
     /// A breakend (`BND`).
+    ///
+    /// Removed in VCF 4.4.
     Breakend,
 }
 
