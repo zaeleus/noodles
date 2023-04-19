@@ -4,6 +4,9 @@
 
 ### Added
 
+  * vcf/header/record/value/map/contig: Add getter (`Map::<Contig>::url`) and
+    mutable getter (`Map::<Contig>::url_mut`) for URL.
+
   * vcf/record/info: Change getters to accept keys that implement
     `Equivalent<Key>`.
 

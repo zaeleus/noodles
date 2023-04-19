@@ -108,6 +108,36 @@ impl Map<Contig> {
     pub fn md5_mut(&mut self) -> &mut Option<String> {
         &mut self.inner.md5
     }
+
+    /// Returns the URL.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::header::record::value::{map::Contig, Map};
+    /// let map = Map::<Contig>::new();
+    /// assert!(map.url().is_none());
+    /// ```
+    pub fn url(&self) -> Option<&str> {
+        self.inner.url.as_deref()
+    }
+
+    /// Returns a mutable reference to the URL.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::header::record::value::{map::Contig, Map};
+    ///
+    /// let mut map = Map::<Contig>::new();
+    /// assert!(map.url().is_none());
+    ///
+    /// *map.url_mut() = Some(String::from("https://example.com/reference.fa"));
+    /// assert_eq!(map.url(), Some("https://example.com/reference.fa"));
+    /// ```
+    pub fn url_mut(&mut self) -> &mut Option<String> {
+        &mut self.inner.url
+    }
 }
 
 impl fmt::Display for Map<Contig> {
