@@ -42,6 +42,9 @@
   * vcf/header/record/value/map/builder: Implement builder traits for generic
     builders.
 
+  * vcf/header/record/value/map/contig: Include URL in `Display`
+    implementation.
+
 ### Removed
 
   * vcf/header/format: Remove `format` module.

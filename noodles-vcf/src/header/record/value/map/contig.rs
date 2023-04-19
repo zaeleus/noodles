@@ -150,6 +150,10 @@ impl fmt::Display for Map<Contig> {
             write!(f, ",md5={md5}")?;
         }
 
+        if let Some(url) = self.url() {
+            write!(f, ",URL={url}")?;
+        }
+
         super::fmt_display_other_fields(f, self.other_fields())?;
 
         if let Some(idx) = self.idx() {
@@ -234,9 +238,13 @@ mod tests {
                 String::from("md5"),
                 String::from("d7eba311421bbc9d3ada44709dd61534"),
             ),
+            (
+                String::from("URL"),
+                String::from("https://example.com/reference.fa"),
+            ),
         ])?;
 
-        let expected = r#",length=8,md5=d7eba311421bbc9d3ada44709dd61534"#;
+        let expected = r#",length=8,md5=d7eba311421bbc9d3ada44709dd61534,URL=https://example.com/reference.fa"#;
         assert_eq!(map.to_string(), expected);
 
         Ok(())
