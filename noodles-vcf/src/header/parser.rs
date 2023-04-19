@@ -241,12 +241,16 @@ mod tests {
 
         assert_eq!(
             header.get("fileDate"),
-            Some(&[record::value::Other::from("20200506")][..])
+            Some(&record::value::Collection::Unstructured(vec![
+                String::from("20200506"),
+            ])),
         );
 
         assert_eq!(
             header.get("source"),
-            Some(&[record::value::Other::from("noodles-vcf")][..])
+            Some(&record::value::Collection::Unstructured(vec![
+                String::from("noodles-vcf"),
+            ])),
         );
 
         Ok(())

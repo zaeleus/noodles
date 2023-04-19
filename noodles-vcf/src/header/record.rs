@@ -4,7 +4,7 @@ pub mod key;
 pub(crate) mod parser;
 pub mod value;
 
-pub use self::key::Key;
+pub use self::{key::Key, value::Value};
 
 use std::{error, fmt, str::FromStr};
 
@@ -41,7 +41,7 @@ pub enum Record {
     /// A `pedigreeDB` record.
     PedigreeDb(String),
     /// A nonstadard record.
-    Other(key::Other, value::Other),
+    Other(key::Other, Value),
 }
 
 /// An error returned when a raw VCF header record fails to parse.
@@ -107,20 +107,18 @@ impl TryFrom<(FileFormat, &str)> for Record {
     type Error = ParseError;
 
     fn try_from((file_format, s): (FileFormat, &str)) -> Result<Self, Self::Error> {
-        use self::parser::Value;
-
         let (_, (raw_key, value)) = parser::parse(s).map_err(|_| ParseError::Invalid)?;
 
         match Key::from(raw_key) {
             key::FILE_FORMAT => match value {
-                Value::String(s) => {
+                parser::Value::String(s) => {
                     let file_format = s.parse().map_err(ParseError::InvalidFileFormat)?;
                     Ok(Self::FileFormat(file_format))
                 }
                 _ => Err(ParseError::Invalid),
             },
             key::INFO => match value {
-                Value::Struct(mut fields) => {
+                parser::Value::Struct(mut fields) => {
                     let id = remove_field(&mut fields, "ID")
                         .ok_or(ParseError::Invalid)
                         .and_then(|id| id.parse().map_err(|_| ParseError::Invalid))?;
@@ -135,7 +133,7 @@ impl TryFrom<(FileFormat, &str)> for Record {
                 _ => Err(ParseError::Invalid),
             },
             key::FILTER => match value {
-                Value::Struct(mut fields) => {
+                parser::Value::Struct(mut fields) => {
                     let id = remove_field(&mut fields, "ID").ok_or(ParseError::Invalid)?;
 
                     let filter =
@@ -146,7 +144,7 @@ impl TryFrom<(FileFormat, &str)> for Record {
                 _ => Err(ParseError::Invalid),
             },
             key::FORMAT => match value {
-                Value::Struct(mut fields) => {
+                parser::Value::Struct(mut fields) => {
                     let id = remove_field(&mut fields, "ID")
                         .ok_or(ParseError::Invalid)
                         .and_then(|id| id.parse().map_err(|_| ParseError::Invalid))?;
@@ -161,7 +159,7 @@ impl TryFrom<(FileFormat, &str)> for Record {
                 _ => Err(ParseError::Invalid),
             },
             key::ALTERNATIVE_ALLELE => match value {
-                Value::Struct(mut fields) => {
+                parser::Value::Struct(mut fields) => {
                     let id = remove_field(&mut fields, "ID")
                         .ok_or(ParseError::Invalid)
                         .and_then(|id| id.parse().map_err(|_| ParseError::Invalid))?;
@@ -174,11 +172,11 @@ impl TryFrom<(FileFormat, &str)> for Record {
                 _ => Err(ParseError::Invalid),
             },
             key::ASSEMBLY => match value {
-                Value::String(s) => Ok(Self::Assembly(s)),
+                parser::Value::String(s) => Ok(Self::Assembly(s)),
                 _ => Err(ParseError::Invalid),
             },
             key::CONTIG => match value {
-                Value::Struct(mut fields) => {
+                parser::Value::Struct(mut fields) => {
                     let id = remove_field(&mut fields, "ID")
                         .ok_or(ParseError::Invalid)
                         .and_then(|id| id.parse().map_err(|_| ParseError::Invalid))?;
@@ -191,7 +189,7 @@ impl TryFrom<(FileFormat, &str)> for Record {
                 _ => Err(ParseError::Invalid),
             },
             key::META => match value {
-                Value::Struct(mut fields) => {
+                parser::Value::Struct(mut fields) => {
                     let id = remove_field(&mut fields, "ID").ok_or(ParseError::Invalid)?;
                     let meta = Map::<Meta>::try_from(fields).map_err(|_| ParseError::Invalid)?;
                     Ok(Self::Meta(id, meta))
@@ -199,19 +197,19 @@ impl TryFrom<(FileFormat, &str)> for Record {
                 _ => Err(ParseError::Invalid),
             },
             key::PEDIGREE_DB => match value {
-                Value::String(s) => Ok(Self::PedigreeDb(s)),
+                parser::Value::String(s) => Ok(Self::PedigreeDb(s)),
                 _ => Err(ParseError::Invalid),
             },
             Key::Other(k) => {
                 let v = match value {
-                    Value::String(s) => value::Other::from(s),
-                    Value::Struct(mut fields) => {
+                    parser::Value::String(s) => Value::from(s),
+                    parser::Value::Struct(mut fields) => {
                         let id = remove_field(&mut fields, "ID").ok_or(ParseError::Invalid)?;
 
                         let map =
                             Map::<Other>::try_from(fields).map_err(|_| ParseError::Invalid)?;
 
-                        value::Other::from((id, map))
+                        Value::from((id, map))
                     }
                 };
 

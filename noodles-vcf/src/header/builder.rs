@@ -318,20 +318,31 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::{record::{self, Key}}};
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     header::record::{value::Collection, Key, Value},
+    /// };
     ///
     /// let key = Key::other("fileDate").unwrap();
-    /// let value = record::value::Other::from("20200709");
+    /// let value = Value::from("20200709");
+    /// let header = vcf::Header::builder().insert(key.clone(), value.clone()).build();
     ///
-    /// let header = vcf::Header::builder()
-    ///     .insert(key.clone(), value.clone())
-    ///     .build();
-    ///
-    /// assert_eq!(header.get(&key), Some(&[value][..]));
+    /// assert_eq!(
+    ///     header.get(&key),
+    ///     Some(&Collection::Unstructured(vec![String::from("20200709")]))
+    /// );
     /// ```
-    pub fn insert(mut self, key: record::key::Other, value: record::value::Other) -> Self {
-        let records = self.other_records.entry(key).or_default();
-        records.push(value);
+    pub fn insert(mut self, key: record::key::Other, value: record::Value) -> Self {
+        let collection = self
+            .other_records
+            .entry(key)
+            .or_insert_with(|| match value {
+                record::Value::String(_) => record::value::Collection::Unstructured(Vec::new()),
+                record::Value::Map(..) => record::value::Collection::Structured(IndexMap::new()),
+            });
+
+        collection.add(value);
+
         self
     }
 
@@ -396,7 +407,7 @@ mod tests {
 
         let (key, value) = (
             header::record::Key::other("fileDate").unwrap(),
-            header::record::value::Other::from("20200709"),
+            header::record::Value::from("20200709"),
         );
 
         let header = Builder::default()
@@ -420,7 +431,7 @@ mod tests {
             )
             .add_sample_name("sample0")
             .insert(key.clone(), value.clone())
-            .insert(key.clone(), value.clone())
+            .insert(key.clone(), value)
             .build();
 
         assert_eq!(header.file_format(), FileFormat::new(4, 3));
@@ -431,7 +442,7 @@ mod tests {
         assert_eq!(header.assembly(), Some("file:///assemblies.fasta"));
         assert_eq!(header.contigs().len(), 2);
         assert_eq!(header.meta().len(), 1);
-        assert_eq!(header.get(&key), Some(&[value.clone(), value][..]));
+        assert_eq!(header.get(&key).map(|collection| collection.len()), Some(2));
 
         Ok(())
     }

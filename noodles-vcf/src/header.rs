@@ -41,7 +41,7 @@ pub type Contigs = IndexMap<contig::Name, Map<Contig>>;
 pub type SampleNames = IndexSet<String>;
 
 /// VCF header generic records.
-pub type OtherRecords = IndexMap<record::key::Other, Vec<record::value::Other>>;
+pub type OtherRecords = IndexMap<record::key::Other, record::value::Collection>;
 
 /// A VCF header.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -517,52 +517,55 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::{record::{self, Key}}};
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     header::record::{value::Collection, Key, Value},
+    /// };
     ///
-    /// let key = record::Key::other("fileDate").unwrap();
-    /// let value = record::value::Other::from("20200709");
-    ///
-    /// let header = vcf::Header::builder()
-    ///     .insert(key.clone(), value.clone())
-    ///     .build();
+    /// let key = Key::other("fileDate").unwrap();
+    /// let value = Value::from("20200709");
+    /// let header = vcf::Header::builder().insert(key.clone(), value.clone()).build();
     ///
     /// assert_eq!(
     ///     header.other_records().first(),
-    ///     Some((&key, &vec![value])),
+    ///     Some((&key, &Collection::Unstructured(vec![String::from("20200709")])))
     /// );
     /// ```
     pub fn other_records(&self) -> &OtherRecords {
         &self.other_records
     }
 
-    /// Returns a mutable reference to a map of records with nonstandard keys.
+    /// Returns a mutable reference to a map of collections of records with nonstandard keys.
     ///
     /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`,
     /// `assembly`, `contig`, `META`, `SAMPLE`, and `pedigreeDB`.
     ///
-    /// To simply add an unstructured record, consider using [`Self::insert`] instead.
+    /// To simply add an nonstandard record, consider using [`Self::insert`] instead.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::{record::{self, Key}}};
-    ///
-    /// let key = record::Key::other("fileDate").unwrap();
-    /// let value = record::value::Other::from("20200709");
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     header::record::{value::Collection, Key, Value},
+    /// };
     ///
     /// let mut header = vcf::Header::default();
-    /// header.other_records_mut().insert(key.clone(), vec![value.clone()]);
+    ///
+    /// let key = Key::other("fileDate").unwrap();
+    /// let collection = Collection::Unstructured(vec![String::from("20200709")]);
+    /// header.other_records_mut().insert(key.clone(), collection.clone());
     ///
     /// assert_eq!(
-    ///     header.other_records().first(),
-    ///     Some((&key, &vec![value])),
+    ///     header.other_records().get(&key),
+    ///     Some(&Collection::Unstructured(vec![String::from("20200709")]))
     /// );
     /// ```
     pub fn other_records_mut(&mut self) -> &mut OtherRecords {
         &mut self.other_records
     }
 
-    /// Returns a header record with the given key.
+    /// Returns a collection of header values with the given key.
     ///
     /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`,
     /// `assembly`, `contig`, `META`, `SAMPLE`, and `pedigreeDB`.
@@ -570,44 +573,61 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::{record::{self, Key}}};
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     header::record::{value::Collection, Key, Value},
+    /// };
     ///
-    /// let key = record::Key::other("fileDate").unwrap();
-    /// let value = record::value::Other::from("20200709");
+    /// let key = Key::other("fileDate").unwrap();
+    /// let value = Value::from("20200709");
+    /// let header = vcf::Header::builder().insert(key.clone(), value).build();
     ///
-    /// let header = vcf::Header::builder()
-    ///     .insert(key.clone(), value.clone())
-    ///     .build();
+    /// assert_eq!(
+    ///     header.get(&key),
+    ///     Some(&Collection::Unstructured(vec![String::from("20200709")]))
+    /// );
     ///
-    /// assert_eq!(header.get(&key), Some(&[value][..]));
     /// assert!(header.get("reference").is_none());
     /// ```
-    pub fn get<Q>(&self, key: &Q) -> Option<&[record::value::Other]>
+    pub fn get<Q>(&self, key: &Q) -> Option<&record::value::Collection>
     where
         Q: ?Sized + Hash + indexmap::Equivalent<record::key::Other>,
     {
-        self.other_records.get(key).map(|r| &**r)
+        self.other_records.get(key)
     }
 
-    /// Inserts a key-value pair representing an unstructured record into the header.
+    /// Inserts a key-value pair representing a nonstandard record into the header.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::{record::{self, Key}}};
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     header::record::{value::Collection, Key, Value},
+    /// };
     ///
-    /// let key = record::Key::other("fileDate").unwrap();
-    /// let value = record::value::Other::from("20200709");
+    /// let key = Key::other("fileDate").unwrap();
+    /// let value = Value::from("20200709");
     ///
     /// let mut header = vcf::Header::default();
     /// assert!(header.get(&key).is_none());
     ///
     /// header.insert(key.clone(), value.clone());
-    /// assert_eq!(header.get(&key), Some(&[value][..]));
+    /// assert_eq!(
+    ///     header.get(&key),
+    ///     Some(&Collection::Unstructured(vec![String::from("20200709")]))
+    /// );
     /// ```
-    pub fn insert(&mut self, key: record::key::Other, value: record::value::Other) {
-        let records = self.other_records.entry(key).or_default();
-        records.push(value);
+    pub fn insert(&mut self, key: record::key::Other, value: record::Value) {
+        let collection = self
+            .other_records
+            .entry(key)
+            .or_insert_with(|| match value {
+                record::Value::String(_) => record::value::Collection::Unstructured(Vec::new()),
+                record::Value::Map(..) => record::value::Collection::Structured(IndexMap::new()),
+            });
+
+        collection.add(value);
     }
 }
 
@@ -713,9 +733,18 @@ impl std::fmt::Display for Header {
             )?;
         }
 
-        for (key, values) in &self.other_records {
-            for value in values {
-                writeln!(f, "{}{}={}", record::PREFIX, key, value)?;
+        for (key, collection) in &self.other_records {
+            match collection {
+                record::value::Collection::Unstructured(vs) => {
+                    for v in vs {
+                        writeln!(f, "{}{}={}", record::PREFIX, key, v)?;
+                    }
+                }
+                record::value::Collection::Structured(maps) => {
+                    for (id, map) in maps {
+                        writeln!(f, "{}{}=<ID={}{}>", record::PREFIX, key, id, map)?;
+                    }
+                }
             }
         }
 
@@ -765,7 +794,7 @@ mod tests {
             )
             .insert(
                 record::Key::other("fileDate").unwrap(),
-                record::value::Other::String(String::from("20200514")),
+                record::Value::from("20200514"),
             )
             .build();
 
@@ -805,10 +834,7 @@ mod tests {
     #[test]
     fn test_insert_with_duplicate_keys() {
         let key = record::Key::other("noodles").unwrap();
-        let values = [
-            record::value::Other::from("0"),
-            record::value::Other::from("1"),
-        ];
+        let values = [record::Value::from("0"), record::Value::from("1")];
 
         let mut header = Header::default();
 
@@ -816,6 +842,12 @@ mod tests {
             header.insert(key.clone(), value.clone());
         }
 
-        assert_eq!(header.get(&key), Some(&values[..]));
+        assert_eq!(
+            header.get(&key),
+            Some(&record::value::Collection::Unstructured(vec![
+                String::from("0"),
+                String::from("1")
+            ]))
+        );
     }
 }

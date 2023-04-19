@@ -9,6 +9,14 @@
 
 ### Changed
 
+  * vcf/header: Change other records to a collection of either unstructured or
+    structured records.
+
+    This changes `OtherRecords` to a be `IndexMap<key::Other,
+    value::Collection>`, where the collection can be a list of strings or a map
+    of `Map<Other>` values. Change usages of `header::record::value::Other` to
+    `header::record::Value`.
+
   * vcf/header/format: Move `Key` under `record::genotypes::keys` module.
 
   * vcf/header/info: Move `Key` under `record::info::field` module.
