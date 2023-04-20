@@ -1,6 +1,10 @@
 //! VCF header record key.
 
-use std::{borrow::Borrow, fmt};
+pub mod other;
+
+pub use self::other::Other;
+
+use std::fmt;
 
 /// VCF header record file format key.
 pub const FILE_FORMAT: Key = Key::Standard(Standard::FileFormat);
@@ -86,28 +90,6 @@ impl AsRef<str> for Standard {
 }
 
 impl fmt::Display for Standard {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.as_ref().fmt(f)
-    }
-}
-
-/// A nonstandard VCF record key.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct Other(String);
-
-impl AsRef<str> for Other {
-    fn as_ref(&self) -> &str {
-        &self.0
-    }
-}
-
-impl Borrow<str> for Other {
-    fn borrow(&self) -> &str {
-        &self.0
-    }
-}
-
-impl fmt::Display for Other {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.as_ref().fmt(f)
     }
