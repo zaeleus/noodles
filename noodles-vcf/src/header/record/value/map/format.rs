@@ -120,17 +120,20 @@ impl fmt::Display for Map<Format> {
 
 impl From<&Key> for Map<Format> {
     fn from(key: &Key) -> Self {
-        let number = definition::number(key).unwrap_or_default();
-        let ty = definition::ty(key).unwrap_or_default();
-        let description = definition::description(key)
-            .map(|s| s.into())
-            .unwrap_or_default();
+        Self::from((FileFormat::default(), key))
+    }
+}
+
+impl From<(FileFormat, &Key)> for Map<Format> {
+    fn from((file_format, key): (FileFormat, &Key)) -> Self {
+        let (number, ty, description) =
+            definition::definition(file_format, key).unwrap_or_default();
 
         Self {
             inner: Format {
                 number,
                 ty,
-                description,
+                description: description.into(),
                 idx: None,
             },
             other_fields: IndexMap::new(),

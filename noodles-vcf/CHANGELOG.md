@@ -43,6 +43,8 @@
   * vcf/header/record/value/map/builder: Accept `Into<String>` for other field
     values (`Builder::insert`).
 
+  * vcf/header/record/value/map/format: Implement `From<(FileFormat, &Key)>`.
+
   * vcf/header/record/value/map/format/ty: Implement `Default`.
 
     `Type::String` is now the default format type.
