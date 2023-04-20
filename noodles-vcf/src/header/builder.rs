@@ -320,20 +320,18 @@ impl Builder {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::record::{value::Collection, Key, Value},
+    ///     header::record::{value::Collection, Value},
     /// };
     ///
-    /// let key = Key::other("fileDate").unwrap();
-    /// let value = Value::from("20200709");
     /// let header = vcf::Header::builder()
-    ///     .insert(key.clone(), value.clone())?
+    ///     .insert("fileDate".parse()?, Value::from("20200709"))?
     ///     .build();
     ///
     /// assert_eq!(
-    ///     header.get(&key),
+    ///     header.get("fileDate"),
     ///     Some(&Collection::Unstructured(vec![String::from("20200709")]))
     /// );
-    /// # Ok::<_, vcf::header::record::value::collection::AddError>(())
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn insert(
         mut self,
@@ -413,7 +411,7 @@ mod tests {
         ));
 
         let (key, value) = (
-            header::record::Key::other("fileDate").unwrap(),
+            "fileDate".parse::<header::record::key::Other>()?,
             header::record::Value::from("20200709"),
         );
 

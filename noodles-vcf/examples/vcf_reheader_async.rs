@@ -13,15 +13,15 @@ use tokio::{
     io::{self, BufReader},
 };
 
-fn add_comment(
-    header: &mut vcf::Header,
-) -> Result<(), vcf::header::record::value::collection::AddError> {
-    use vcf::header::record::{Key, Value};
+fn add_comment(header: &mut vcf::Header) -> Result<(), Box<dyn std::error::Error>> {
+    use vcf::header::record::Value;
 
     header.insert(
-        Key::other("comment").unwrap(),
+        "comment".parse()?,
         Value::from("a comment added by noodles-vcf"),
-    )
+    )?;
+
+    Ok(())
 }
 
 #[tokio::main]

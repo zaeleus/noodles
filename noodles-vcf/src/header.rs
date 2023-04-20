@@ -517,22 +517,14 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     self as vcf,
-    ///     header::record::{value::Collection, Key, Value},
-    /// };
+    /// use noodles_vcf::{self as vcf, header::record::Value};
     ///
-    /// let key = Key::other("fileDate").unwrap();
-    /// let value = Value::from("20200709");
     /// let header = vcf::Header::builder()
-    ///     .insert(key.clone(), value.clone())?
+    ///     .insert("fileDate".parse()?, Value::from("20200709"))?
     ///     .build();
     ///
-    /// assert_eq!(
-    ///     header.other_records().first(),
-    ///     Some((&key, &Collection::Unstructured(vec![String::from("20200709")])))
-    /// );
-    /// # Ok::<_, vcf::header::record::value::collection::AddError>(())
+    /// assert_eq!(header.other_records().len(), 1);
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn other_records(&self) -> &OtherRecords {
         &self.other_records
@@ -550,19 +542,16 @@ impl Header {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::record::{value::Collection, Key, Value},
+    ///     header::record::{value::Collection, Value},
     /// };
     ///
     /// let mut header = vcf::Header::default();
     ///
-    /// let key = Key::other("fileDate").unwrap();
     /// let collection = Collection::Unstructured(vec![String::from("20200709")]);
-    /// header.other_records_mut().insert(key.clone(), collection.clone());
+    /// header.other_records_mut().insert("fileDate".parse()?, collection.clone());
     ///
-    /// assert_eq!(
-    ///     header.other_records().get(&key),
-    ///     Some(&Collection::Unstructured(vec![String::from("20200709")]))
-    /// );
+    /// assert_eq!(header.other_records().get("fileDate"), Some(&collection));
+    /// # Ok::<_, vcf::header::record::key::other::ParseError>(())
     /// ```
     pub fn other_records_mut(&mut self) -> &mut OtherRecords {
         &mut self.other_records
@@ -578,22 +567,20 @@ impl Header {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::record::{value::Collection, Key, Value},
+    ///     header::record::{value::Collection, Value},
     /// };
     ///
-    /// let key = Key::other("fileDate").unwrap();
-    /// let value = Value::from("20200709");
     /// let header = vcf::Header::builder()
-    ///     .insert(key.clone(), value)?
+    ///     .insert("fileDate".parse()?, Value::from("20200709"))?
     ///     .build();
     ///
     /// assert_eq!(
-    ///     header.get(&key),
+    ///     header.get("fileDate"),
     ///     Some(&Collection::Unstructured(vec![String::from("20200709")]))
     /// );
     ///
     /// assert!(header.get("reference").is_none());
-    /// # Ok::<_, vcf::header::record::value::collection::AddError>(())
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn get<Q>(&self, key: &Q) -> Option<&record::value::Collection>
     where
@@ -609,21 +596,18 @@ impl Header {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::record::{value::Collection, Key, Value},
+    ///     header::record::{value::Collection, Value},
     /// };
     ///
-    /// let key = Key::other("fileDate").unwrap();
-    /// let value = Value::from("20200709");
-    ///
     /// let mut header = vcf::Header::default();
-    /// assert!(header.get(&key).is_none());
+    /// assert!(header.get("fileDate").is_none());
     ///
-    /// header.insert(key.clone(), value.clone())?;
+    /// header.insert("fileDate".parse()?, Value::from("20200709"))?;
     /// assert_eq!(
-    ///     header.get(&key),
+    ///     header.get("fileDate"),
     ///     Some(&Collection::Unstructured(vec![String::from("20200709")]))
     /// );
-    /// # Ok::<_, vcf::header::record::value::collection::AddError>(())
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn insert(
         &mut self,
@@ -794,7 +778,7 @@ mod tests {
     }
 
     #[test]
-    fn test_fmt() -> Result<(), record::value::collection::AddError> {
+    fn test_fmt() -> Result<(), Box<dyn std::error::Error>> {
         let header = Header::builder()
             .set_file_format(FileFormat::new(4, 3))
             .add_filter("PASS", Map::<Filter>::pass())
@@ -803,10 +787,7 @@ mod tests {
                 "Assay",
                 Map::<Meta>::new(vec![String::from("WholeGenome"), String::from("Exome")]),
             )
-            .insert(
-                record::Key::other("fileDate").unwrap(),
-                record::Value::from("20200514"),
-            )?
+            .insert("fileDate".parse()?, record::Value::from("20200514"))?
             .build();
 
         let expected = r#"##fileformat=VCFv4.3
@@ -845,14 +826,14 @@ mod tests {
     }
 
     #[test]
-    fn test_insert_with_duplicate_keys() -> Result<(), record::value::collection::AddError> {
-        let key = record::Key::other("noodles").unwrap();
+    fn test_insert_with_duplicate_keys() -> Result<(), Box<dyn std::error::Error>> {
+        let key: record::key::Other = "noodles".parse()?;
         let values = [record::Value::from("0"), record::Value::from("1")];
 
         let mut header = Header::default();
 
-        for value in &values {
-            header.insert(key.clone(), value.clone())?;
+        for value in values {
+            header.insert(key.clone(), value)?;
         }
 
         assert_eq!(
