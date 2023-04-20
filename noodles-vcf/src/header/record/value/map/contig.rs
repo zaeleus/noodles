@@ -47,7 +47,6 @@ impl Map<Contig> {
     /// ```
     /// use noodles_vcf::header::record::value::{map::Contig, Map};
     /// let map = Map::<Contig>::new();
-    /// # Ok::<_, noodles_vcf::header::record::value::map::contig::name::ParseError>(())
     /// ```
     pub fn new() -> Self {
         Self::default()
