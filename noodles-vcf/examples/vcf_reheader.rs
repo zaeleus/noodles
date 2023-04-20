@@ -11,13 +11,15 @@ use std::{
 
 use noodles_vcf as vcf;
 
-fn add_comment(header: &mut vcf::Header) {
+fn add_comment(
+    header: &mut vcf::Header,
+) -> Result<(), vcf::header::record::value::collection::AddError> {
     use vcf::header::record::{Key, Value};
 
     header.insert(
         Key::other("comment").unwrap(),
         Value::from("a comment added by noodles-vcf"),
-    );
+    )
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -26,7 +28,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut reader = vcf::reader::Builder::default().build_from_path(src)?;
 
     let mut header = reader.read_header()?;
-    add_comment(&mut header);
+    add_comment(&mut header)?;
 
     let stdout = io::stdout().lock();
     let mut writer = vcf::Writer::new(BufWriter::new(stdout));

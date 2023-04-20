@@ -1,6 +1,6 @@
 //! VCF header record value.
 
-mod collection;
+pub mod collection;
 pub mod map;
 
 pub use self::{collection::Collection, map::Map};

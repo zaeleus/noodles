@@ -79,7 +79,7 @@ pub enum ParseError {
     /// A record is invalid.
     InvalidRecord(record::ParseError),
     /// A record has an invalid value.
-    InvalidRecordValue,
+    InvalidRecordValue(super::record::value::collection::AddError),
     /// The header is missing.
     MissingHeader,
     /// The header is invalid.
@@ -100,6 +100,7 @@ impl error::Error for ParseError {
         match self {
             Self::InvalidFileFormat(e) => Some(e),
             Self::InvalidRecord(e) => Some(e),
+            Self::InvalidRecordValue(e) => Some(e),
             _ => None,
         }
     }
@@ -112,7 +113,7 @@ impl std::fmt::Display for ParseError {
             Self::UnexpectedFileFormat => f.write_str("unexpected file format"),
             Self::InvalidFileFormat(_) => f.write_str("invalid file format"),
             Self::InvalidRecord(_) => f.write_str("invalid record"),
-            Self::InvalidRecordValue => f.write_str("invalid record value"),
+            Self::InvalidRecordValue(_) => f.write_str("invalid record value"),
             Self::MissingHeader => f.write_str("missing header"),
             Self::InvalidHeader(actual, expected) => {
                 write!(f, "invalid header: expected {expected}, got {actual}")
@@ -158,7 +159,9 @@ fn parse_record(
         Record::Contig(id, contig) => builder.add_contig(id, contig),
         Record::Meta(id, meta) => builder.add_meta(id, meta),
         Record::PedigreeDb(pedigree_db) => builder.set_pedigree_db(pedigree_db),
-        Record::Other(key, value) => builder.insert(key, value),
+        Record::Other(key, value) => builder
+            .insert(key, value)
+            .map_err(ParseError::InvalidRecordValue)?,
     };
 
     Ok(builder)

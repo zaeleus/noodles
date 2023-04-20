@@ -13,13 +13,15 @@ use tokio::{
     io::{self, BufReader},
 };
 
-fn add_comment(header: &mut vcf::Header) {
+fn add_comment(
+    header: &mut vcf::Header,
+) -> Result<(), vcf::header::record::value::collection::AddError> {
     use vcf::header::record::{Key, Value};
 
     header.insert(
         Key::other("comment").unwrap(),
         Value::from("a comment added by noodles-vcf"),
-    );
+    )
 }
 
 #[tokio::main]
@@ -32,7 +34,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(vcf::AsyncReader::new)?;
 
     let mut header = reader.read_header().await?;
-    add_comment(&mut header);
+    add_comment(&mut header)?;
 
     let mut writer = vcf::AsyncWriter::new(io::stdout());
     writer.write_header(&header).await?;

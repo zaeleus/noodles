@@ -524,12 +524,15 @@ impl Header {
     ///
     /// let key = Key::other("fileDate").unwrap();
     /// let value = Value::from("20200709");
-    /// let header = vcf::Header::builder().insert(key.clone(), value.clone()).build();
+    /// let header = vcf::Header::builder()
+    ///     .insert(key.clone(), value.clone())?
+    ///     .build();
     ///
     /// assert_eq!(
     ///     header.other_records().first(),
     ///     Some((&key, &Collection::Unstructured(vec![String::from("20200709")])))
     /// );
+    /// # Ok::<_, vcf::header::record::value::collection::AddError>(())
     /// ```
     pub fn other_records(&self) -> &OtherRecords {
         &self.other_records
@@ -580,7 +583,9 @@ impl Header {
     ///
     /// let key = Key::other("fileDate").unwrap();
     /// let value = Value::from("20200709");
-    /// let header = vcf::Header::builder().insert(key.clone(), value).build();
+    /// let header = vcf::Header::builder()
+    ///     .insert(key.clone(), value)?
+    ///     .build();
     ///
     /// assert_eq!(
     ///     header.get(&key),
@@ -588,6 +593,7 @@ impl Header {
     /// );
     ///
     /// assert!(header.get("reference").is_none());
+    /// # Ok::<_, vcf::header::record::value::collection::AddError>(())
     /// ```
     pub fn get<Q>(&self, key: &Q) -> Option<&record::value::Collection>
     where
@@ -612,13 +618,18 @@ impl Header {
     /// let mut header = vcf::Header::default();
     /// assert!(header.get(&key).is_none());
     ///
-    /// header.insert(key.clone(), value.clone());
+    /// header.insert(key.clone(), value.clone())?;
     /// assert_eq!(
     ///     header.get(&key),
     ///     Some(&Collection::Unstructured(vec![String::from("20200709")]))
     /// );
+    /// # Ok::<_, vcf::header::record::value::collection::AddError>(())
     /// ```
-    pub fn insert(&mut self, key: record::key::Other, value: record::Value) {
+    pub fn insert(
+        &mut self,
+        key: record::key::Other,
+        value: record::Value,
+    ) -> Result<(), record::value::collection::AddError> {
         let collection = self
             .other_records
             .entry(key)
@@ -627,7 +638,7 @@ impl Header {
                 record::Value::Map(..) => record::value::Collection::Structured(IndexMap::new()),
             });
 
-        collection.add(value);
+        collection.add(value)
     }
 }
 
@@ -783,7 +794,7 @@ mod tests {
     }
 
     #[test]
-    fn test_fmt() {
+    fn test_fmt() -> Result<(), record::value::collection::AddError> {
         let header = Header::builder()
             .set_file_format(FileFormat::new(4, 3))
             .add_filter("PASS", Map::<Filter>::pass())
@@ -795,7 +806,7 @@ mod tests {
             .insert(
                 record::Key::other("fileDate").unwrap(),
                 record::Value::from("20200514"),
-            )
+            )?
             .build();
 
         let expected = r#"##fileformat=VCFv4.3
@@ -807,6 +818,8 @@ mod tests {
 "#;
 
         assert_eq!(header.to_string(), expected);
+
+        Ok(())
     }
 
     #[test]
@@ -832,14 +845,14 @@ mod tests {
     }
 
     #[test]
-    fn test_insert_with_duplicate_keys() {
+    fn test_insert_with_duplicate_keys() -> Result<(), record::value::collection::AddError> {
         let key = record::Key::other("noodles").unwrap();
         let values = [record::Value::from("0"), record::Value::from("1")];
 
         let mut header = Header::default();
 
         for value in &values {
-            header.insert(key.clone(), value.clone());
+            header.insert(key.clone(), value.clone())?;
         }
 
         assert_eq!(
@@ -849,5 +862,7 @@ mod tests {
                 String::from("1")
             ]))
         );
+
+        Ok(())
     }
 }

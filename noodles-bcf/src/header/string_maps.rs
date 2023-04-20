@@ -162,7 +162,7 @@ fn parse_file_format(lines: &mut Lines<'_>) -> Result<vcf::header::FileFormat, P
 
     match record {
         Record::FileFormat(file_format) => Ok(file_format),
-        _ => Err(ParseError::InvalidRecordValue),
+        _ => Err(ParseError::MissingFileFormat),
     }
 }
 
@@ -568,6 +568,13 @@ mod tests {
             Err(ParseError::MissingFileFormat)
         );
 
+        let s = "##fileDate=20211119";
+        let mut lines = s.lines();
+        assert_eq!(
+            parse_file_format(&mut lines),
+            Err(ParseError::MissingFileFormat)
+        );
+
         let s = "fileformat=VCFv4.3";
         let mut lines = s.lines();
         assert!(matches!(
@@ -581,12 +588,5 @@ mod tests {
             parse_file_format(&mut lines),
             Err(ParseError::InvalidRecord(_))
         ));
-
-        let s = "##fileDate=20211119";
-        let mut lines = s.lines();
-        assert_eq!(
-            parse_file_format(&mut lines),
-            Err(ParseError::InvalidRecordValue)
-        );
     }
 }

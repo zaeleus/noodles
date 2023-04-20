@@ -325,14 +325,21 @@ impl Builder {
     ///
     /// let key = Key::other("fileDate").unwrap();
     /// let value = Value::from("20200709");
-    /// let header = vcf::Header::builder().insert(key.clone(), value.clone()).build();
+    /// let header = vcf::Header::builder()
+    ///     .insert(key.clone(), value.clone())?
+    ///     .build();
     ///
     /// assert_eq!(
     ///     header.get(&key),
     ///     Some(&Collection::Unstructured(vec![String::from("20200709")]))
     /// );
+    /// # Ok::<_, vcf::header::record::value::collection::AddError>(())
     /// ```
-    pub fn insert(mut self, key: record::key::Other, value: record::Value) -> Self {
+    pub fn insert(
+        mut self,
+        key: record::key::Other,
+        value: record::Value,
+    ) -> Result<Self, super::record::value::collection::AddError> {
         let collection = self
             .other_records
             .entry(key)
@@ -341,9 +348,9 @@ impl Builder {
                 record::Value::Map(..) => record::value::Collection::Structured(IndexMap::new()),
             });
 
-        collection.add(value);
+        collection.add(value)?;
 
-        self
+        Ok(self)
     }
 
     /// Builds a VCF header.
@@ -392,7 +399,7 @@ mod tests {
     }
 
     #[test]
-    fn test_build() -> Result<(), crate::header::record::value::map::contig::name::ParseError> {
+    fn test_build() -> Result<(), Box<dyn std::error::Error>> {
         use crate::{
             header,
             record::{
@@ -430,8 +437,8 @@ mod tests {
                 Map::<Meta>::new(vec![String::from("WholeGenome"), String::from("Exome")]),
             )
             .add_sample_name("sample0")
-            .insert(key.clone(), value.clone())
-            .insert(key.clone(), value)
+            .insert(key.clone(), value.clone())?
+            .insert(key.clone(), value)?
             .build();
 
         assert_eq!(header.file_format(), FileFormat::new(4, 3));

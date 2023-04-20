@@ -24,6 +24,11 @@
     of `Map<Other>` values. Change usages of `header::record::value::Other` to
     `header::record::Value`.
 
+  * vcf/header: `Header::insert` is now fallible.
+
+    This can fail when the value type does not match the collection type for
+    the given key.
+
   * vcf/header/format: Move `Key` under `record::genotypes::keys` module.
 
   * vcf/header/info: Move `Key` under `record::info::field` module.
