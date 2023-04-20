@@ -102,8 +102,12 @@ impl Map<Contig> {
     ///
     /// ```
     /// use noodles_vcf::header::record::value::{map::Contig, Map};
-    /// let map = Map::<Contig>::new();
+    ///
+    /// let mut map = Map::<Contig>::new();
     /// assert!(map.md5().is_none());
+    ///
+    /// *map.md5_mut() = Some(String::from("d7eba311421bbc9d3ada44709dd61534"));
+    /// assert_eq!(map.md5(), Some("d7eba311421bbc9d3ada44709dd61534"));
     /// ```
     pub fn md5_mut(&mut self) -> &mut Option<String> {
         &mut self.inner.md5
