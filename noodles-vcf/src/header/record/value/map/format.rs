@@ -121,7 +121,7 @@ impl fmt::Display for Map<Format> {
 impl From<&Key> for Map<Format> {
     fn from(key: &Key) -> Self {
         let number = definition::number(key).unwrap_or_default();
-        let ty = definition::ty(key).unwrap_or(Type::String);
+        let ty = definition::ty(key).unwrap_or_default();
         let description = definition::description(key)
             .map(|s| s.into())
             .unwrap_or_default();

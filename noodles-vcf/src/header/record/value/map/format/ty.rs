@@ -3,7 +3,7 @@
 use std::{error, fmt, str::FromStr};
 
 /// A VCF header genotype format field value type.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 pub enum Type {
     /// A 32-bit integer.
     Integer,
@@ -12,6 +12,7 @@ pub enum Type {
     /// A character.
     Character,
     /// A string.
+    #[default]
     String,
 }
 
@@ -65,6 +66,11 @@ impl FromStr for Type {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_default() {
+        assert_eq!(Type::default(), Type::String);
+    }
 
     #[test]
     fn test_fmt() {
