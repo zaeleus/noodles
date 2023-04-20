@@ -61,7 +61,7 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Invalid => write!(f, "invalid input"),
+            Self::Invalid => write!(f, "invalid input: tag cannot be 'ID'"),
         }
     }
 }
