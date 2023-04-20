@@ -124,17 +124,20 @@ impl fmt::Display for Map<Info> {
 
 impl From<&Key> for Map<Info> {
     fn from(key: &Key) -> Self {
-        let number = definition::number(key).unwrap_or_default();
-        let ty = definition::ty(key).unwrap_or(Type::String);
-        let description = definition::description(key)
-            .map(|s| s.into())
-            .unwrap_or_default();
+        Self::from((FileFormat::default(), key))
+    }
+}
+
+impl From<(FileFormat, &Key)> for Map<Info> {
+    fn from((file_format, key): (FileFormat, &Key)) -> Self {
+        let (number, ty, description) =
+            definition::definition(file_format, key).unwrap_or_default();
 
         Self {
             inner: Info {
                 number,
                 ty,
-                description,
+                description: description.into(),
                 idx: None,
             },
             other_fields: IndexMap::new(),

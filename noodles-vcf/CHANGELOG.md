@@ -47,6 +47,8 @@
 
     `Type::String` is now the default format type.
 
+  * vcf/header/record/value/map/info: Implement `From<(FileFormat, &Key)>`.
+
   * vcf/header/record/value/map/other: Move record ID from record to map key.
 
     `Map<Other>` no longer holds the record ID. Use the collection key instead.
