@@ -512,7 +512,7 @@ impl Header {
     /// Returns a map of records with nonstandard keys.
     ///
     /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`,
-    /// `assembly`, `contig`, `META`, `SAMPLE`, and `pedigreeDB`.
+    /// `assembly`, `contig`, `META`, and `pedigreeDB`.
     ///
     /// # Examples
     ///
@@ -533,7 +533,7 @@ impl Header {
     /// Returns a mutable reference to a map of collections of records with nonstandard keys.
     ///
     /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`,
-    /// `assembly`, `contig`, `META`, `SAMPLE`, and `pedigreeDB`.
+    /// `assembly`, `contig`, `META`, and `pedigreeDB`.
     ///
     /// To simply add an nonstandard record, consider using [`Self::insert`] instead.
     ///
@@ -560,7 +560,7 @@ impl Header {
     /// Returns a collection of header values with the given key.
     ///
     /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`,
-    /// `assembly`, `contig`, `META`, `SAMPLE`, and `pedigreeDB`.
+    /// `assembly`, `contig`, `META`, and `pedigreeDB`.
     ///
     /// # Examples
     ///
