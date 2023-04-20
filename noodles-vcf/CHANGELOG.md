@@ -4,6 +4,8 @@
 
 ### Added
 
+  * vcf/header/record/key/other: Implement `FromStr` for `Other`.
+
   * vcf/header/record/value/map/contig: Add getter (`Map::<Contig>::url`) and
     mutable getter (`Map::<Contig>::url_mut`) for URL.
 
