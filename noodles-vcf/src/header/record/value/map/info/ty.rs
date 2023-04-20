@@ -3,7 +3,7 @@
 use std::{error, fmt, str::FromStr};
 
 /// A VCF header information field value type.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 pub enum Type {
     /// A 32-bit integer.
     Integer,
@@ -14,6 +14,7 @@ pub enum Type {
     /// A character.
     Character,
     /// A string.
+    #[default]
     String,
 }
 
@@ -26,12 +27,6 @@ impl AsRef<str> for Type {
             Self::Character => "Character",
             Self::String => "String",
         }
-    }
-}
-
-impl Default for Type {
-    fn default() -> Self {
-        Self::String
     }
 }
 
