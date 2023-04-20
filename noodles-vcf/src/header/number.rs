@@ -17,7 +17,7 @@ pub enum Number {
 
 impl Default for Number {
     fn default() -> Self {
-        Self::Unknown
+        Self::Count(1)
     }
 }
 
@@ -77,7 +77,7 @@ mod tests {
 
     #[test]
     fn test_default() {
-        assert_eq!(Number::default(), Number::Unknown);
+        assert_eq!(Number::default(), Number::Count(1));
     }
 
     #[test]

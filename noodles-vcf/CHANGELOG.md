@@ -33,6 +33,10 @@
 
   * vcf/header/info: Move `Key` under `record::info::field` module.
 
+  * vcf/header/number: Change default to `Number::Count(1)`.
+
+    The default type definition is simplified to a single string.
+
   * vcf/header/record/value/map: Increase the visibility of `Tag` for inner
     maps.
 
