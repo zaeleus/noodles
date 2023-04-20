@@ -77,11 +77,9 @@ mod tests {
             Tag::Standard(_) => panic!("invalid tag"),
         };
 
-        let expected = Map::<Other>::builder()
-            .insert(noodles_tag, String::from("vcf"))
-            .build()?;
-
+        let expected = Map::<Other>::builder().insert(noodles_tag, "vcf").build()?;
         assert_eq!(actual, expected);
+
         Ok(())
     }
 }

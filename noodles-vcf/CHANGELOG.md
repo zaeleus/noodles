@@ -27,6 +27,9 @@
   * vcf/header/record/value/map: Increase the visibility of `Tag` for inner
     maps.
 
+  * vcf/header/record/value/map/builder: Accept `Into<String>` for other field
+    values (`Builder::insert`).
+
   * vcf/header/record/value/map/other: Move record ID from record to map key.
 
     `Map<Other>` no longer holds the record ID. Use the collection key instead.

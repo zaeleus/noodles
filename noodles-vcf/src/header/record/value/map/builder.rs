@@ -63,8 +63,11 @@ where
     I: super::Inner,
 {
     /// Inserts a key-value pair into the other fields.
-    pub fn insert(mut self, key: tag::Other<I::StandardTag>, value: String) -> Self {
-        self.other_fields.insert(key, value);
+    pub fn insert<V>(mut self, key: tag::Other<I::StandardTag>, value: V) -> Self
+    where
+        V: Into<String>,
+    {
+        self.other_fields.insert(key, value.into());
         self
     }
 
