@@ -39,7 +39,9 @@ where
     match read_line(reader, buf)? {
         0 => Ok(0),
         n => {
-            parse_record(buf, header, record)?;
+            parse_record(buf, header, record)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
             Ok(n)
         }
     }
@@ -115,7 +117,11 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(crate) fn parse_record(mut src: &[u8], header: &Header, record: &mut Record) -> io::Result<()> {
+pub(crate) fn parse_record(
+    mut src: &[u8],
+    header: &Header,
+    record: &mut Record,
+) -> Result<(), ParseError> {
     const MISSING: &[u8] = b"*";
 
     match next_field(&mut src) {
@@ -123,81 +129,65 @@ pub(crate) fn parse_record(mut src: &[u8], header: &Header, record: &mut Record)
         field => {
             parse_read_name(field, record.read_name_mut())
                 .map(Some)
-                .map_err(ParseError::InvalidReadName)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+                .map_err(ParseError::InvalidReadName)?;
         }
     };
 
     let field = next_field(&mut src);
-    *record.flags_mut() = parse_flags(field)
-        .map_err(ParseError::InvalidFlags)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    *record.flags_mut() = parse_flags(field).map_err(ParseError::InvalidFlags)?;
 
     let reference_sequence_id = match next_field(&mut src) {
         MISSING => None,
         field => parse_reference_sequence_id(header, field)
             .map(Some)
-            .map_err(ParseError::InvalidReferenceSequenceId)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
+            .map_err(ParseError::InvalidReferenceSequenceId)?,
     };
 
     *record.reference_sequence_id_mut() = reference_sequence_id;
 
     let field = next_field(&mut src);
-    *record.alignment_start_mut() = parse_alignment_start(field)
-        .map_err(ParseError::InvalidPosition)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    *record.alignment_start_mut() =
+        parse_alignment_start(field).map_err(ParseError::InvalidPosition)?;
 
     let field = next_field(&mut src);
-    *record.mapping_quality_mut() = parse_mapping_quality(field)
-        .map_err(ParseError::InvalidMappingQuality)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    *record.mapping_quality_mut() =
+        parse_mapping_quality(field).map_err(ParseError::InvalidMappingQuality)?;
 
     record.cigar_mut().clear();
     let field = next_field(&mut src);
     if field != MISSING {
-        parse_cigar(field, record.cigar_mut())
-            .map_err(ParseError::InvalidCigar)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        parse_cigar(field, record.cigar_mut()).map_err(ParseError::InvalidCigar)?;
     }
 
     *record.mate_reference_sequence_id_mut() = match next_field(&mut src) {
         MISSING => None,
-        field => parse_mate_reference_sequence_id(header, reference_sequence_id, field)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
+        field => parse_mate_reference_sequence_id(header, reference_sequence_id, field)?,
     };
 
     let field = next_field(&mut src);
-    *record.mate_alignment_start_mut() = parse_alignment_start(field)
-        .map_err(ParseError::InvalidMatePosition)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    *record.mate_alignment_start_mut() =
+        parse_alignment_start(field).map_err(ParseError::InvalidMatePosition)?;
 
     let field = next_field(&mut src);
-    *record.template_length_mut() = parse_template_length(field)
-        .map_err(ParseError::InvalidTemplateLength)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    *record.template_length_mut() =
+        parse_template_length(field).map_err(ParseError::InvalidTemplateLength)?;
 
     record.sequence_mut().clear();
     let field = next_field(&mut src);
     if field != MISSING {
-        parse_sequence(field, record.sequence_mut())
-            .map_err(ParseError::InvalidSequence)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        parse_sequence(field, record.sequence_mut()).map_err(ParseError::InvalidSequence)?;
     }
 
     record.quality_scores_mut().clear();
     let field = next_field(&mut src);
     if field != MISSING {
         parse_quality_scores(field, record.quality_scores_mut())
-            .map_err(ParseError::InvalidQualityScores)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+            .map_err(ParseError::InvalidQualityScores)?;
     }
 
     record.data_mut().clear();
     let field = next_field(&mut src);
-    parse_data(field, record.data_mut())
-        .map_err(ParseError::InvalidData)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    parse_data(field, record.data_mut()).map_err(ParseError::InvalidData)?;
 
     Ok(())
 }

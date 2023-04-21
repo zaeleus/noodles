@@ -200,7 +200,9 @@ where
     match read_line(reader, buf).await? {
         0 => Ok(0),
         n => {
-            parse_record(buf, header, record)?;
+            parse_record(buf, header, record)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
             Ok(n)
         }
     }
