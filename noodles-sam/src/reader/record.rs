@@ -65,6 +65,8 @@ pub enum ParseError {
     InvalidMateReferenceSequenceId(reference_sequence_id::ParseError),
     /// The mate position is invalid.
     InvalidMatePosition(position::ParseError),
+    /// The template length is invalid.
+    InvalidTemplateLength(template_length::ParseError),
     /// The sequence is invalid.
     InvalidSequence(sequence::ParseError),
     /// The quality scores are invalid.
@@ -84,6 +86,7 @@ impl error::Error for ParseError {
             Self::InvalidCigar(e) => Some(e),
             Self::InvalidMateReferenceSequenceId(e) => Some(e),
             Self::InvalidMatePosition(e) => Some(e),
+            Self::InvalidTemplateLength(e) => Some(e),
             Self::InvalidSequence(e) => Some(e),
             Self::InvalidQualityScores(e) => Some(e),
             Self::InvalidData(e) => Some(e),
@@ -104,6 +107,7 @@ impl fmt::Display for ParseError {
                 write!(f, "invalid mate reference sequence ID")
             }
             Self::InvalidMatePosition(_) => write!(f, "invalid mate position"),
+            Self::InvalidTemplateLength(_) => write!(f, "invalid template length"),
             Self::InvalidQualityScores(_) => write!(f, "invalid quality scores"),
             Self::InvalidSequence(_) => write!(f, "invalid sequence"),
             Self::InvalidData(_) => write!(f, "invalid data"),
@@ -169,7 +173,9 @@ pub(crate) fn parse_record(mut src: &[u8], header: &Header, record: &mut Record)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     let field = next_field(&mut src);
-    *record.template_length_mut() = parse_template_length(field)?;
+    *record.template_length_mut() = parse_template_length(field)
+        .map_err(ParseError::InvalidTemplateLength)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     record.sequence_mut().clear();
     let field = next_field(&mut src);

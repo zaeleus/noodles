@@ -262,7 +262,7 @@ impl Record {
     pub fn template_length(&self) -> io::Result<i32> {
         use crate::reader::record::parse_template_length;
         let src = &self.buf[self.bounds.template_length_range()];
-        parse_template_length(src)
+        parse_template_length(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
     /// Returns the sequence.
