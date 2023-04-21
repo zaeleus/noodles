@@ -63,14 +63,18 @@ where
 {
     writer.write_all(b"@")?;
     writer.write_all(record.name())?;
+
+    if !record.description().is_empty() {
+        writer.write_all(b" ")?;
+        writer.write_all(record.description())?;
+    }
+
     writer.write_all(b"\n")?;
 
     writer.write_all(record.sequence())?;
     writer.write_all(b"\n")?;
 
-    writer.write_all(b"+")?;
-    writer.write_all(record.description())?;
-    writer.write_all(b"\n")?;
+    writer.write_all(b"+\n")?;
 
     writer.write_all(record.quality_scores())?;
     writer.write_all(b"\n")?;
@@ -91,11 +95,11 @@ mod tests {
         let expected = b"@r0\nACGT\n+\nNDLS\n";
         assert_eq!(buf, expected);
 
-        record.description_mut().extend_from_slice(b"r0");
+        record.description_mut().extend_from_slice(b"LN:4");
 
         buf.clear();
         write_record(&mut buf, &record)?;
-        let expected = b"@r0\nACGT\n+r0\nNDLS\n";
+        let expected = b"@r0 LN:4\nACGT\n+\nNDLS\n";
         assert_eq!(buf, expected);
 
         Ok(())

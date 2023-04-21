@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * fastq/writer: Write description as part of name line ([#161]).
+
+    This is no longer written to the "plus" line.
+
+[#161]: https://github.com/zaeleus/noodles/issues/161
+
 ## 0.6.0 - 2023-02-03
 
 ### Added
