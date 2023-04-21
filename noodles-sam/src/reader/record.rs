@@ -7,11 +7,13 @@ mod quality_scores;
 mod read_name;
 mod reference_sequence_id;
 mod sequence;
+mod template_length;
 
 pub(crate) use self::{
     cigar::parse_cigar, data::parse_data, flags::parse_flags,
     mapping_quality::parse_mapping_quality, position::parse_alignment_start,
     quality_scores::parse_quality_scores, read_name::parse_read_name, sequence::parse_sequence,
+    template_length::parse_template_length,
 };
 
 use std::{
@@ -224,10 +226,6 @@ fn parse_mate_reference_sequence_id(
             .map(Some)
             .map_err(ParseError::InvalidMateReferenceSequenceId),
     }
-}
-
-pub(crate) fn parse_template_length(src: &[u8]) -> io::Result<i32> {
-    lexical_core::parse(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 #[cfg(test)]
