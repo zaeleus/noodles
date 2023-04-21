@@ -110,8 +110,8 @@ impl fmt::Display for ParseError {
             }
             Self::InvalidMatePosition(_) => write!(f, "invalid mate position"),
             Self::InvalidTemplateLength(_) => write!(f, "invalid template length"),
-            Self::InvalidQualityScores(_) => write!(f, "invalid quality scores"),
             Self::InvalidSequence(_) => write!(f, "invalid sequence"),
+            Self::InvalidQualityScores(_) => write!(f, "invalid quality scores"),
             Self::InvalidData(_) => write!(f, "invalid data"),
         }
     }
