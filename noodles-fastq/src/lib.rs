@@ -3,13 +3,22 @@
 //! **noodles-fastq** handles the reading and writing of the FASTQ format.
 //!
 //! FASTQ is a text format with no formal specification and only has de facto rules. It typically
-//! consists of a list of records, each with four lines: a read name, a sequence, a plus line, and
-//! quality scores.
+//! consists of a list of records, each with four lines: a definition (read name and description),
+//! a sequence, a plus line, and quality scores.
 //!
-//! The read name is prefixed with an `@` (at sign) character. The sequence is a list of bases
-//! encoded using IUPAC base symbols. The plus line is effectively a separator, sometimes repeating
-//! the read name, and is commonly discarded. The quality scores is list of Phred quality scores
-//! offset by 33 and is parallel to a base in the sequence.
+//! The read name is prefixed with an `@` (at sign) character and includes an optional description,
+//! delimited by a space. The sequence is a list of bases encoded using IUPAC base symbols. The
+//! plus line is effectively a separator, sometimes repeating the read name and optional
+//! description, and is commonly discarded. The quality scores is list of Phred quality scores
+//! offset by 33 and is parallel to each base in the sequence. That is, each record can be
+//! described like the following:
+//!
+//! ```text
+//! @<name>[ definition]
+//! <sequence>
+//! +[<name>[ definition]]
+//! <quality scores>
+//! ```
 //!
 //! # Examples
 //!
@@ -19,11 +28,13 @@
 //! # use std::{fs::File, io::{self, BufReader}};
 //! use noodles_fastq as fastq;
 //!
-//! let mut reader = File::open("sample.fastq").map(BufReader::new).map(fastq::Reader::new)?;
+//! let mut reader = File::open("sample.fq")
+//!     .map(BufReader::new)
+//!     .map(fastq::Reader::new)?;
 //!
 //! for result in reader.records() {
 //!     let record = result?;
-//!     println!("{:?}", record);
+//!     // ...
 //! }
 //! # Ok::<(), io::Error>(())
 //! ```
