@@ -157,6 +157,14 @@ impl fmt::Display for Record {
             write!(f, "{}", b as char)?;
         }
 
+        if !self.description().is_empty() {
+            write!(f, " ")?;
+
+            for &b in self.description() {
+                write!(f, "{}", b as char)?;
+            }
+        }
+
         writeln!(f)?;
 
         for &b in self.sequence() {
@@ -165,13 +173,7 @@ impl fmt::Display for Record {
 
         writeln!(f)?;
 
-        f.write_str("+")?;
-
-        for &b in self.description() {
-            write!(f, "{}", b as char)?;
-        }
-
-        writeln!(f)?;
+        writeln!(f, "+")?;
 
         for &b in self.quality_scores() {
             write!(f, "{}", b as char)?;
@@ -192,8 +194,8 @@ mod tests {
         let mut record = Record::new("r0", "ATCG", "NDLS");
         assert_eq!(record.to_string(), "@r0\nATCG\n+\nNDLS\n");
 
-        record.description_mut().extend_from_slice(b"r0");
-        assert_eq!(record.to_string(), "@r0\nATCG\n+r0\nNDLS\n");
+        record.description_mut().extend_from_slice(b"LN:4");
+        assert_eq!(record.to_string(), "@r0 LN:4\nATCG\n+\nNDLS\n");
     }
 
     #[test]
