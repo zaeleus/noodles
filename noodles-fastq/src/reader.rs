@@ -140,7 +140,7 @@ where
 {
     record.clear();
 
-    let mut len = match read_name(reader, record.name_mut()) {
+    let mut len = match read_definition(reader, record) {
         Ok(0) => return Ok(0),
         Ok(n) => n,
         Err(e) => return Err(e),
@@ -153,7 +153,7 @@ where
     Ok(len)
 }
 
-fn read_line<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
+pub(crate) fn read_line<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
 where
     R: BufRead,
 {
@@ -206,14 +206,27 @@ where
     Ok(len)
 }
 
-pub(crate) fn read_name<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
+fn read_definition<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
 where
     R: BufRead,
 {
+    use memchr::memchr;
+
+    const DELIMITER: u8 = b' ';
     const NAME_PREFIX: u8 = b'@';
 
     match read_u8(reader) {
-        Ok(NAME_PREFIX) => read_line(reader, buf).map(|n| n + 1),
+        Ok(NAME_PREFIX) => {
+            let n = read_line(reader, record.name_mut()).map(|n| n + 1)?;
+
+            if let Some(i) = memchr(DELIMITER, record.name()) {
+                let description = record.name_mut().split_off(i + 1);
+                record.name_mut().pop();
+                *record.description_mut() = description;
+            }
+
+            Ok(n)
+        }
         Ok(_) => Err(io::Error::new(
             io::ErrorKind::InvalidData,
             "invalid name prefix",
@@ -238,7 +251,7 @@ where
     }
 }
 
-fn read_u8<R>(reader: &mut R) -> io::Result<u8>
+pub(crate) fn read_u8<R>(reader: &mut R) -> io::Result<u8>
 where
     R: Read,
 {
@@ -307,20 +320,28 @@ dcba
     }
 
     #[test]
-    fn test_read_name() -> io::Result<()> {
-        let mut buf = Vec::new();
+    fn test_read_definition() -> io::Result<()> {
+        let mut record = Record::default();
 
         let data = b"@r0\n";
         let mut reader = &data[..];
-        buf.clear();
-        read_name(&mut reader, &mut buf)?;
-        assert_eq!(buf, b"r0");
+        record.clear();
+        read_definition(&mut reader, &mut record)?;
+        assert_eq!(record.name(), b"r0");
+        assert!(record.description().is_empty());
+
+        let data = b"@r0 LN:4\n";
+        let mut reader = &data[..];
+        record.clear();
+        read_definition(&mut reader, &mut record)?;
+        assert_eq!(record.name(), b"r0");
+        assert_eq!(record.description(), b"LN:4");
 
         let data = b"r0\n";
         let mut reader = &data[..];
-        buf.clear();
+        record.clear();
         assert!(matches!(
-            read_name(&mut reader, &mut buf),
+            read_definition(&mut reader, &mut record),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidData
         ));
 

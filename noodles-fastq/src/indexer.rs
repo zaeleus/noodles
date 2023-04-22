@@ -1,6 +1,6 @@
 use std::io::{self, BufRead};
 
-use super::{fai::Record, reader::read_name};
+use super::fai::Record;
 
 const LINE_FEED: u8 = b'\n';
 
@@ -50,9 +50,8 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn index_record(&mut self) -> io::Result<Option<Record>> {
-        self.line_buf.clear();
-
         // read name
+        self.line_buf.clear();
         self.offset += match read_name(&mut self.inner, &mut self.line_buf) {
             Ok(0) => return Ok(None),
             Ok(n) => n as u64,
@@ -89,6 +88,25 @@ where
             line_width,
             quality_scores_offset,
         )))
+    }
+}
+
+fn read_name<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    use crate::reader::read_u8;
+
+    const NAME_PREFIX: u8 = b'@';
+
+    match read_u8(reader) {
+        Ok(NAME_PREFIX) => crate::reader::read_line(reader, buf).map(|n| n + 1),
+        Ok(_) => Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid name prefix",
+        )),
+        Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => Ok(0),
+        Err(e) => Err(e),
     }
 }
 

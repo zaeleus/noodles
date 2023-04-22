@@ -6,7 +6,8 @@
 
   * fastq/reader: The description is now considered part of the name line.
 
-    The content of the "plus" line is discarded.
+    This is similar to the FASTA definition, where the FASTQ definition is
+    "@<name> <description>". The content of the "plus" line is discarded.
 
   * fastq/writer: Write description as part of name line ([#161]).
 
