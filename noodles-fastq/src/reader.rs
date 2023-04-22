@@ -210,30 +210,73 @@ fn read_definition<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
 where
     R: BufRead,
 {
-    use memchr::memchr;
+    use memchr::memchr2;
 
     const DELIMITER: u8 = b' ';
     const NAME_PREFIX: u8 = b'@';
 
     match read_u8(reader) {
-        Ok(NAME_PREFIX) => {
-            let n = read_line(reader, record.name_mut()).map(|n| n + 1)?;
-
-            if let Some(i) = memchr(DELIMITER, record.name()) {
-                let description = record.name_mut().split_off(i + 1);
-                record.name_mut().pop();
-                *record.description_mut() = description;
+        Ok(prefix) => {
+            if prefix != NAME_PREFIX {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "invalid name prefix",
+                ));
             }
-
-            Ok(n)
         }
-        Ok(_) => Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "invalid name prefix",
-        )),
-        Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => Ok(0),
-        Err(e) => Err(e),
+        Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(0),
+        Err(e) => return Err(e),
     }
+
+    let mut is_eol = false;
+    let mut len = 1;
+
+    loop {
+        let src = reader.fill_buf()?;
+
+        if src.is_empty() {
+            break;
+        }
+
+        let (matched_needle, n) = match memchr2(DELIMITER, LINE_FEED, src) {
+            Some(i) => {
+                let name_src = match src[i] {
+                    DELIMITER => &src[..i],
+                    LINE_FEED => {
+                        is_eol = true;
+
+                        if src.ends_with(&[CARRIAGE_RETURN]) {
+                            &src[..i - 1]
+                        } else {
+                            &src[..i]
+                        }
+                    }
+                    _ => unreachable!(),
+                };
+
+                record.name_mut().extend(name_src);
+
+                (true, i + 1)
+            }
+            None => {
+                record.name_mut().extend(src);
+                (false, src.len())
+            }
+        };
+
+        len += n;
+        reader.consume(n);
+
+        if matched_needle {
+            break;
+        }
+    }
+
+    if !is_eol {
+        len += read_line(reader, record.description_mut())?;
+    }
+
+    Ok(len)
 }
 
 fn consume_description<R>(reader: &mut R) -> io::Result<usize>
