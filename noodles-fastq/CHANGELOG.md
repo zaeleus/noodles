@@ -4,6 +4,10 @@
 
 ### Changed
 
+  * fastq/reader: The description is now considered part of the name line.
+
+    The content of the "plus" line is discarded.
+
   * fastq/writer: Write description as part of name line ([#161]).
 
     This is no longer written to the "plus" line.

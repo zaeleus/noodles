@@ -15,6 +15,7 @@ async = ["dep:futures", "dep:tokio"]
 
 [dependencies]
 futures = { workspace = true, optional = true, features = ["std"] }
+memchr.workspace = true
 tokio = { workspace = true, optional = true, features = ["io-util"] }
 
 [dev-dependencies]
