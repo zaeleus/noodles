@@ -2,8 +2,6 @@ use std::io::{self, BufRead};
 
 use super::fai::Record;
 
-const LINE_FEED: u8 = b'\n';
-
 /// A FASTQ indexer.
 #[derive(Debug)]
 pub struct Indexer<R> {
@@ -114,6 +112,7 @@ fn read_line<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
 where
     R: BufRead,
 {
+    const LINE_FEED: u8 = b'\n';
     reader.read_until(LINE_FEED, buf)
 }
 
