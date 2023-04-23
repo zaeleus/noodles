@@ -206,7 +206,7 @@ where
     Ok(len)
 }
 
-fn read_definition<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
+pub(super) fn read_definition<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
 where
     R: BufRead,
 {
@@ -294,7 +294,7 @@ where
     }
 }
 
-pub(crate) fn read_u8<R>(reader: &mut R) -> io::Result<u8>
+fn read_u8<R>(reader: &mut R) -> io::Result<u8>
 where
     R: Read,
 {

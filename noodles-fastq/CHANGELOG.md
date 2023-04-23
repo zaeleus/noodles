@@ -4,6 +4,11 @@
 
 ### Changed
 
+  * fastq/indexer: Trim description from read name.
+
+    The index record no longer includes the description from the read name
+    line.
+
   * fastq/reader: The description is now considered part of the name line.
 
     This is similar to the FASTA definition, where the FASTQ definition is

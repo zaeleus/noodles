@@ -1,4 +1,7 @@
-use std::io::{self, BufRead};
+use std::{
+    io::{self, BufRead},
+    str,
+};
 
 use super::fai::Record;
 
@@ -7,7 +10,7 @@ use super::fai::Record;
 pub struct Indexer<R> {
     inner: R,
     offset: u64,
-    line_buf: Vec<u8>,
+    record: crate::Record,
 }
 
 impl<R> Indexer<R>
@@ -27,7 +30,7 @@ where
         Self {
             inner,
             offset: 0,
-            line_buf: Vec::new(),
+            record: crate::Record::default(),
         }
     }
 
@@ -48,35 +51,40 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn index_record(&mut self) -> io::Result<Option<Record>> {
+        use crate::reader::read_definition;
+
         // read name
-        self.line_buf.clear();
-        self.offset += match read_name(&mut self.inner, &mut self.line_buf) {
+        self.record.clear();
+        self.offset += match read_definition(&mut self.inner, &mut self.record) {
             Ok(0) => return Ok(None),
             Ok(n) => n as u64,
             Err(e) => return Err(e),
         };
 
-        let name = String::from_utf8(self.line_buf.clone())
+        let name = str::from_utf8(self.record.name())
+            .map(|s| s.into())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         // sequence
+        let line_buf = self.record.name_mut();
+
         let sequence_offset = self.offset;
 
-        self.line_buf.clear();
-        self.offset += read_line(&mut self.inner, &mut self.line_buf)? as u64;
-        let line_width = self.line_buf.len() as u64;
+        line_buf.clear();
+        self.offset += read_line(&mut self.inner, line_buf)? as u64;
+        let line_width = line_buf.len() as u64;
 
-        let line_bases = len_with_right_trim(&self.line_buf) as u64;
+        let line_bases = len_with_right_trim(line_buf) as u64;
 
         // plus line
-        self.line_buf.clear();
-        self.offset += read_line(&mut self.inner, &mut self.line_buf)? as u64;
+        line_buf.clear();
+        self.offset += read_line(&mut self.inner, line_buf)? as u64;
 
         // quality scores
         let quality_scores_offset = self.offset;
 
-        self.line_buf.clear();
-        self.offset += read_line(&mut self.inner, &mut self.line_buf)? as u64;
+        line_buf.clear();
+        self.offset += read_line(&mut self.inner, line_buf)? as u64;
 
         Ok(Some(Record::new(
             name,
@@ -86,25 +94,6 @@ where
             line_width,
             quality_scores_offset,
         )))
-    }
-}
-
-fn read_name<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
-where
-    R: BufRead,
-{
-    use crate::reader::read_u8;
-
-    const NAME_PREFIX: u8 = b'@';
-
-    match read_u8(reader) {
-        Ok(NAME_PREFIX) => crate::reader::read_line(reader, buf).map(|n| n + 1),
-        Ok(_) => Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "invalid name prefix",
-        )),
-        Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => Ok(0),
-        Err(e) => Err(e),
     }
 }
 
@@ -134,7 +123,7 @@ mod tests {
 ACGT
 +
 NDLS
-@r1
+@r1 LN:4
 NNNNNNNNNN
 +
 NDLSNDLSND
@@ -151,7 +140,7 @@ NDLSNDLSND
         let record = indexer.index_record()?;
         assert_eq!(
             record,
-            Some(Record::new(String::from("r1"), 10, 20, 10, 11, 33))
+            Some(Record::new(String::from("r1"), 10, 25, 10, 11, 38))
         );
 
         assert!(indexer.index_record()?.is_none());
