@@ -4,8 +4,8 @@ use std::fmt;
 #[derive(Clone, Default, Debug, Eq, PartialEq)]
 pub struct Record {
     name: Vec<u8>,
-    sequence: Vec<u8>,
     description: Vec<u8>,
+    sequence: Vec<u8>,
     quality_scores: Vec<u8>,
 }
 
@@ -26,8 +26,8 @@ impl Record {
     {
         Self {
             name: name.into(),
-            sequence: sequence.into(),
             description: Vec::new(),
+            sequence: sequence.into(),
             quality_scores: quality_scores.into(),
         }
     }
@@ -59,33 +59,6 @@ impl Record {
         &mut self.name
     }
 
-    /// Returns the sequence of the record.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_fastq::Record;
-    /// let record = Record::new("r0", "AGCT", "NDLS");
-    /// assert_eq!(record.sequence(), b"AGCT");
-    /// ```
-    pub fn sequence(&self) -> &[u8] {
-        &self.sequence
-    }
-
-    /// Returns a mutable reference to the sequence.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_fastq::Record;
-    /// let mut record = Record::new("r0", "AGCT", "NDLS");
-    /// record.sequence_mut()[0] = b'C';
-    /// assert_eq!(record.sequence(), b"CGCT");
-    /// ```
-    pub fn sequence_mut(&mut self) -> &mut Vec<u8> {
-        &mut self.sequence
-    }
-
     /// Returns the description of the record.
     ///
     /// # Examples
@@ -111,6 +84,33 @@ impl Record {
     /// ```
     pub fn description_mut(&mut self) -> &mut Vec<u8> {
         &mut self.description
+    }
+
+    /// Returns the sequence of the record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fastq::Record;
+    /// let record = Record::new("r0", "AGCT", "NDLS");
+    /// assert_eq!(record.sequence(), b"AGCT");
+    /// ```
+    pub fn sequence(&self) -> &[u8] {
+        &self.sequence
+    }
+
+    /// Returns a mutable reference to the sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fastq::Record;
+    /// let mut record = Record::new("r0", "AGCT", "NDLS");
+    /// record.sequence_mut()[0] = b'C';
+    /// assert_eq!(record.sequence(), b"CGCT");
+    /// ```
+    pub fn sequence_mut(&mut self) -> &mut Vec<u8> {
+        &mut self.sequence
     }
 
     /// Returns the quality scores of the record.
@@ -204,8 +204,8 @@ mod tests {
         record.clear();
 
         assert!(record.name().is_empty());
-        assert!(record.sequence().is_empty());
         assert!(record.description().is_empty());
+        assert!(record.sequence().is_empty());
         assert!(record.quality_scores().is_empty());
     }
 }
