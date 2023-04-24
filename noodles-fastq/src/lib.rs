@@ -14,9 +14,9 @@
 //! described like the following:
 //!
 //! ```text
-//! @<name>[ definition]
+//! @<name>[ description]
 //! <sequence>
-//! +[<name>[ definition]]
+//! +[<name>[ description]]
 //! <quality scores>
 //! ```
 //!
