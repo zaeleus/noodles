@@ -1,16 +1,12 @@
-mod value;
+mod field;
 
 use std::{error, fmt};
 
 use noodles_core as core;
 
-use self::value::parse_value;
+use self::field::parse_field;
 use crate::{
-    header::{record::value::map::info::Type, Number},
-    record::{
-        info::field::{key, Key, Value},
-        Info,
-    },
+    record::{info::field::key, Info},
     Header,
 };
 
@@ -24,7 +20,7 @@ pub enum ParseError {
     /// A value is missing.
     MissingValue,
     /// A value is invalid.
-    InvalidValue(value::ParseError),
+    InvalidValue(field::value::ParseError),
     /// A key is duplicated.
     DuplicateKey,
 }
@@ -73,56 +69,6 @@ pub(super) fn parse_info(header: &Header, s: &str, info: &mut Info) -> Result<()
     }
 
     Ok(())
-}
-
-fn parse_field(header: &Header, s: &str) -> Result<(Key, Option<Value>), ParseError> {
-    use super::MISSING;
-    use crate::header::record::value::map::info::definition::definition;
-
-    const MAX_COMPONENTS: usize = 2;
-    const SEPARATOR: char = '=';
-
-    let mut components = s.splitn(MAX_COMPONENTS, SEPARATOR);
-
-    let raw_key = components.next().unwrap_or_default();
-    let key = raw_key.parse().map_err(ParseError::InvalidKey)?;
-
-    let (number, ty) = header
-        .infos()
-        .get(&key)
-        .map(|info| (info.number(), info.ty()))
-        .or_else(|| definition(header.file_format(), &key).map(|(n, t, _)| (n, t)))
-        .unwrap_or((Number::Count(1), Type::String));
-
-    let raw_value = components.next();
-
-    let value = if matches!(ty, Type::Flag) {
-        match raw_value.unwrap_or_default() {
-            MISSING => None,
-            t => parse_value(number, ty, t)
-                .map(Some)
-                .map_err(ParseError::InvalidValue)?,
-        }
-    } else if matches!(key, Key::Other(_)) {
-        match raw_value {
-            Some(MISSING) => None,
-            Some(t) => parse_value(number, ty, t)
-                .map(Some)
-                .map_err(ParseError::InvalidValue)?,
-            None => Some(Value::Flag),
-        }
-    } else if let Some(t) = raw_value {
-        match t {
-            MISSING => None,
-            _ => parse_value(number, ty, t)
-                .map(Some)
-                .map_err(ParseError::InvalidValue)?,
-        }
-    } else {
-        return Err(ParseError::MissingValue);
-    };
-
-    Ok((key, value))
 }
 
 #[cfg(test)]
