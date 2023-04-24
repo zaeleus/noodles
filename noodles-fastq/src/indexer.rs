@@ -51,7 +51,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn index_record(&mut self) -> io::Result<Option<Record>> {
-        use crate::reader::read_definition;
+        use crate::reader::record::read_definition;
 
         // read name
         self.record.clear();
