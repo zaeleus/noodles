@@ -4,7 +4,10 @@ use noodles_core as core;
 
 use crate::{
     reader::record::MISSING,
-    record::genotypes::{keys::key, Keys},
+    record::genotypes::{
+        keys::{key, Key},
+        Keys,
+    },
     Header,
 };
 
@@ -20,7 +23,7 @@ pub enum ParseError {
     /// The genotype key must be first, if present.
     InvalidGenotypeKeyPosition,
     /// A key is duplicated.
-    DuplicateKey,
+    DuplicateKey(Key),
 }
 
 impl error::Error for ParseError {
@@ -38,7 +41,7 @@ impl fmt::Display for ParseError {
             Self::Empty => write!(f, "empty input"),
             Self::InvalidKey(_) => write!(f, "invalid key"),
             Self::InvalidGenotypeKeyPosition => write!(f, "invalid genotype key position"),
-            Self::DuplicateKey => write!(f, "duplicate key"),
+            Self::DuplicateKey(key) => write!(f, "duplicate key: {key}"),
         }
     }
 }
@@ -70,8 +73,8 @@ pub(super) fn parse_keys(header: &Header, s: &str, keys: &mut Keys) -> Result<()
             gt_position = Some(i);
         }
 
-        if !keys.insert(key) {
-            return Err(ParseError::DuplicateKey);
+        if let Some(key) = keys.replace(key) {
+            return Err(ParseError::DuplicateKey(key));
         }
     }
 
@@ -124,7 +127,7 @@ mod tests {
         keys.clear();
         assert_eq!(
             parse_keys(&header, "GT:GT", &mut keys),
-            Err(ParseError::DuplicateKey)
+            Err(ParseError::DuplicateKey(key::GENOTYPE))
         );
 
         Ok(())
