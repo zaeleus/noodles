@@ -5,7 +5,10 @@ use std::{error, fmt};
 use noodles_core as core;
 
 use self::field::parse_field;
-use crate::{record::Info, Header};
+use crate::{
+    record::{info::field::Key, Info},
+    Header,
+};
 
 /// An error when raw VCF record info fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -15,7 +18,7 @@ pub enum ParseError {
     /// A field is invalid.
     InvalidField(field::ParseError),
     /// A key is duplicated.
-    DuplicateKey,
+    DuplicateKey(Key),
 }
 
 impl error::Error for ParseError {
@@ -32,7 +35,7 @@ impl fmt::Display for ParseError {
         match self {
             ParseError::Empty => write!(f, "empty input"),
             ParseError::InvalidField(_) => write!(f, "invalid field"),
-            ParseError::DuplicateKey => write!(f, "duplicate key"),
+            ParseError::DuplicateKey(key) => write!(f, "duplicate key: {key}"),
         }
     }
 }
@@ -44,6 +47,8 @@ impl From<ParseError> for core::Error {
 }
 
 pub(super) fn parse_info(header: &Header, s: &str, info: &mut Info) -> Result<(), ParseError> {
+    use indexmap::map::Entry;
+
     const DELIMITER: char = ';';
 
     if s.is_empty() {
@@ -53,8 +58,14 @@ pub(super) fn parse_info(header: &Header, s: &str, info: &mut Info) -> Result<()
     for raw_field in s.split(DELIMITER) {
         let (key, value) = parse_field(header, raw_field).map_err(ParseError::InvalidField)?;
 
-        if info.insert(key, value).is_some() {
-            return Err(ParseError::DuplicateKey);
+        match info.as_mut().entry(key) {
+            Entry::Vacant(entry) => {
+                entry.insert(value);
+            }
+            Entry::Occupied(entry) => {
+                let (k, _) = entry.remove_entry();
+                return Err(ParseError::DuplicateKey(k));
+            }
         }
     }
 
@@ -93,6 +104,11 @@ mod tests {
         assert_eq!(info, expected);
 
         assert_eq!(parse_info(&header, "", &mut info), Err(ParseError::Empty));
+
+        assert_eq!(
+            parse_info(&header, "NS=2;NS=2", &mut info),
+            Err(ParseError::DuplicateKey(key::SAMPLES_WITH_DATA_COUNT))
+        );
 
         Ok(())
     }
