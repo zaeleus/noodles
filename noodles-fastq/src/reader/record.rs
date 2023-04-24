@@ -22,7 +22,7 @@ where
     };
 
     len += read_line(reader, record.sequence_mut())?;
-    len += consume_description(reader)?;
+    len += consume_plus_line(reader)?;
     len += read_line(reader, record.quality_scores_mut())?;
 
     Ok(len)
@@ -90,14 +90,14 @@ where
     Ok(buf[0])
 }
 
-fn consume_description<R>(reader: &mut R) -> io::Result<usize>
+fn consume_plus_line<R>(reader: &mut R) -> io::Result<usize>
 where
     R: BufRead,
 {
-    const DESCRIPTION_PREFIX: u8 = b'+';
+    const PREFIX: u8 = b'+';
 
     match read_u8(reader)? {
-        DESCRIPTION_PREFIX => consume_line(reader).map(|n| n + 1),
+        PREFIX => consume_line(reader).map(|n| n + 1),
         _ => Err(io::Error::new(
             io::ErrorKind::InvalidData,
             "invalid description prefix",
@@ -135,15 +135,15 @@ mod tests {
     }
 
     #[test]
-    fn test_consume_description() -> io::Result<()> {
+    fn test_consume_plus_line() -> io::Result<()> {
         let data = b"+r0\n";
         let mut reader = &data[..];
-        consume_description(&mut reader)?;
+        consume_plus_line(&mut reader)?;
 
         let data = b"r0\n";
         let mut reader = &data[..];
         assert!(matches!(
-            consume_description(&mut reader),
+            consume_plus_line(&mut reader),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidData
         ));
 
