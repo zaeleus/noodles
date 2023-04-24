@@ -129,7 +129,7 @@ where
 
     match (compression, ext) {
         (None, Some("vcf")) => Some(Format::Vcf),
-        (Some(Compression::Bgzf), Some("gz") | Some("bgz")) => {
+        (Some(Compression::Bgzf), Some("gz" | "bgz")) => {
             let path: &Path = path.file_stem()?.as_ref();
             let ext = path.extension().and_then(|ext| ext.to_str());
 
@@ -148,7 +148,7 @@ where
     P: AsRef<Path>,
 {
     match path.as_ref().extension().and_then(|ext| ext.to_str()) {
-        Some("bcf") | Some("gz") | Some("bgz") => Some(Compression::Bgzf),
+        Some("bcf" | "gz" | "bgz") => Some(Compression::Bgzf),
         _ => None,
     }
 }
