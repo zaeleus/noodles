@@ -3,7 +3,7 @@ pub(super) mod value;
 use self::value::parse_value;
 use super::ParseError;
 use crate::{
-    header::{record::value::map::info::Type, Number},
+    header::record::value::map::info::Type,
     reader::record::MISSING,
     record::info::field::{Key, Value},
     Header,
@@ -25,7 +25,7 @@ pub(super) fn parse_field(header: &Header, s: &str) -> Result<(Key, Option<Value
         .get(&key)
         .map(|info| (info.number(), info.ty()))
         .or_else(|| definition(header.file_format(), &key).map(|(n, t, _)| (n, t)))
-        .unwrap_or((Number::Count(1), Type::String));
+        .unwrap_or_default();
 
     let raw_value = components.next();
 
