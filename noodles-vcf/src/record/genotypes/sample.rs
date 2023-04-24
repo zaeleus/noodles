@@ -12,6 +12,7 @@ use super::{
 };
 
 /// A VCF record genotype sample.
+#[derive(Debug, PartialEq)]
 pub struct Sample<'g> {
     keys: &'g Keys,
     values: &'g [Option<Value>],

@@ -11,6 +11,9 @@
 
   * vcf/header/record/value/map/tag/other: Implement `FromStr` for `Other`.
 
+  * vcf/record/genotypes/sample: Implement `Debug` and `PartialEq`
+    for `Sample`.
+
   * vcf/record/info: Change getters to accept keys that implement
     `Equivalent<Key>`.
 
