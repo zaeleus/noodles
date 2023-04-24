@@ -4,8 +4,7 @@
 
 ### Added
 
-  * fasta/indexed_reader: Add getter for index
-    (`IndexedReader::index`).
+  * fasta/indexed_reader: Add getter for index (`IndexedReader::index`).
 
 ## 0.19.0 - 2023-03-03
 
