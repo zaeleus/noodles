@@ -10,7 +10,7 @@ use crate::{
     Header,
 };
 
-/// An error when raw VCF record genotypes values fail to parse.
+/// An error when raw VCF record info fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The input is empty.
