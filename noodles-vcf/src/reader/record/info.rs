@@ -34,7 +34,15 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ParseError::Empty => write!(f, "empty input"),
-            ParseError::InvalidField(_) => write!(f, "invalid field"),
+            ParseError::InvalidField(e) => {
+                write!(f, "invalid field")?;
+
+                if let Some(key) = e.key() {
+                    write!(f, ": {key}")?;
+                }
+
+                Ok(())
+            }
             ParseError::DuplicateKey(key) => write!(f, "duplicate key: {key}"),
         }
     }

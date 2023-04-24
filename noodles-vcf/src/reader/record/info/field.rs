@@ -16,16 +16,27 @@ pub enum ParseError {
     /// A key is invalid.
     InvalidKey(key::ParseError),
     /// A value is missing.
-    MissingValue,
+    MissingValue(Key),
     /// A value is invalid.
-    InvalidValue(value::ParseError),
+    InvalidValue(Key, value::ParseError),
+}
+
+impl ParseError {
+    /// Returns the key of the field that caused the failure.
+    pub fn key(&self) -> Option<&Key> {
+        match self {
+            Self::InvalidKey(_) => None,
+            Self::MissingValue(key) => Some(key),
+            Self::InvalidValue(key, _) => Some(key),
+        }
+    }
 }
 
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::InvalidKey(e) => Some(e),
-            Self::InvalidValue(e) => Some(e),
+            Self::InvalidValue(_, e) => Some(e),
             _ => None,
         }
     }
@@ -35,8 +46,8 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ParseError::InvalidKey(_) => write!(f, "invalid key"),
-            ParseError::MissingValue => write!(f, "missing value"),
-            ParseError::InvalidValue(_) => write!(f, "invalid value"),
+            ParseError::MissingValue(_) => write!(f, "missing value"),
+            ParseError::InvalidValue(..) => write!(f, "invalid value"),
         }
     }
 }
@@ -66,14 +77,14 @@ pub(super) fn parse_field(header: &Header, s: &str) -> Result<(Key, Option<Value
             MISSING => None,
             t => parse_value(number, ty, t)
                 .map(Some)
-                .map_err(ParseError::InvalidValue)?,
+                .map_err(|e| ParseError::InvalidValue(key.clone(), e))?,
         }
     } else if matches!(key, Key::Other(_)) {
         match raw_value {
             Some(MISSING) => None,
             Some(t) => parse_value(number, ty, t)
                 .map(Some)
-                .map_err(ParseError::InvalidValue)?,
+                .map_err(|e| ParseError::InvalidValue(key.clone(), e))?,
             None => Some(Value::Flag),
         }
     } else if let Some(t) = raw_value {
@@ -81,10 +92,10 @@ pub(super) fn parse_field(header: &Header, s: &str) -> Result<(Key, Option<Value
             MISSING => None,
             _ => parse_value(number, ty, t)
                 .map(Some)
-                .map_err(ParseError::InvalidValue)?,
+                .map_err(|e| ParseError::InvalidValue(key.clone(), e))?,
         }
     } else {
-        return Err(ParseError::MissingValue);
+        return Err(ParseError::MissingValue(key));
     };
 
     Ok((key, value))
@@ -110,12 +121,12 @@ mod tests {
 
         assert!(matches!(
             parse_field(&header, "NS="),
-            Err(ParseError::InvalidValue(_))
+            Err(ParseError::InvalidValue(key::SAMPLES_WITH_DATA_COUNT, _))
         ));
 
         assert!(matches!(
             parse_field(&header, "NS=ndls"),
-            Err(ParseError::InvalidValue(_))
+            Err(ParseError::InvalidValue(key::SAMPLES_WITH_DATA_COUNT, _))
         ));
     }
 }
