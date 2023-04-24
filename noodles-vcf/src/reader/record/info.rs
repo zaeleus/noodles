@@ -5,22 +5,15 @@ use std::{error, fmt};
 use noodles_core as core;
 
 use self::field::parse_field;
-use crate::{
-    record::{info::field::key, Info},
-    Header,
-};
+use crate::{record::Info, Header};
 
 /// An error when raw VCF record info fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The input is empty.
     Empty,
-    /// A key is invalid.
-    InvalidKey(key::ParseError),
-    /// A value is missing.
-    MissingValue,
-    /// A value is invalid.
-    InvalidValue(field::value::ParseError),
+    /// A field is invalid.
+    InvalidField(field::ParseError),
     /// A key is duplicated.
     DuplicateKey,
 }
@@ -28,8 +21,7 @@ pub enum ParseError {
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
-            Self::InvalidKey(e) => Some(e),
-            Self::InvalidValue(e) => Some(e),
+            Self::InvalidField(e) => Some(e),
             _ => None,
         }
     }
@@ -39,9 +31,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ParseError::Empty => write!(f, "empty input"),
-            ParseError::InvalidKey(_) => write!(f, "invalid key"),
-            ParseError::MissingValue => write!(f, "missing value"),
-            ParseError::InvalidValue(_) => write!(f, "invalid value"),
+            ParseError::InvalidField(_) => write!(f, "invalid field"),
             ParseError::DuplicateKey => write!(f, "duplicate key"),
         }
     }
@@ -61,7 +51,7 @@ pub(super) fn parse_info(header: &Header, s: &str, info: &mut Info) -> Result<()
     }
 
     for raw_field in s.split(DELIMITER) {
-        let (key, value) = parse_field(header, raw_field)?;
+        let (key, value) = parse_field(header, raw_field).map_err(ParseError::InvalidField)?;
 
         if info.insert(key, value).is_some() {
             return Err(ParseError::DuplicateKey);
@@ -102,17 +92,7 @@ mod tests {
         .collect();
         assert_eq!(info, expected);
 
-        info.clear();
-        assert!(matches!(
-            parse_info(&header, ".", &mut info),
-            Err(ParseError::InvalidKey(_))
-        ));
-
-        info.clear();
-        assert!(matches!(
-            parse_info(&header, "NS=ndls", &mut info),
-            Err(ParseError::InvalidValue(_))
-        ));
+        assert_eq!(parse_info(&header, "", &mut info), Err(ParseError::Empty));
 
         Ok(())
     }
