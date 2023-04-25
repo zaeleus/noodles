@@ -234,8 +234,19 @@ fn validate_format_definition(
     use crate::header::record::value::map::format::definition::definition;
 
     if let Some((expected_number, expected_type, _)) = definition(file_format, id) {
-        if actual_number != expected_number || actual_type != expected_type {
-            return Err(ParseError::Invalid);
+        if actual_number != expected_number {
+            return Err(ParseError::InvalidFormat(
+                map::TryFromFieldsError::NumberMismatch(actual_number, expected_number),
+            ));
+        }
+
+        if actual_type != expected_type {
+            return Err(ParseError::InvalidFormat(
+                map::TryFromFieldsError::TypeMismatch(
+                    actual_type.to_string(),
+                    expected_type.to_string(),
+                ),
+            ));
         }
     }
 
