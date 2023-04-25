@@ -1,6 +1,6 @@
 mod other;
 
-use std::{marker::PhantomData, str::FromStr};
+use std::{fmt, marker::PhantomData, str::FromStr};
 
 pub use self::other::Other;
 
@@ -152,6 +152,15 @@ where
             Self::Standard(tag) => tag.as_ref(),
             Self::Other(tag) => tag.as_ref(),
         }
+    }
+}
+
+impl<S> fmt::Display for Tag<S>
+where
+    S: Standard,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.as_ref().fmt(f)
     }
 }
 
