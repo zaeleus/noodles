@@ -7,9 +7,9 @@ pub use self::ty::Type;
 
 use core::fmt;
 
-use indexmap::IndexMap;
-
-use super::{builder, tag, Described, Fields, Indexed, Inner, Map, TryFromFieldsError, Typed};
+use super::{
+    builder, tag, Described, Fields, Indexed, Inner, Map, OtherFields, TryFromFieldsError, Typed,
+};
 use crate::{
     header::{FileFormat, Number},
     record::genotypes::keys::Key,
@@ -99,7 +99,7 @@ impl Map<Format> {
                 description: description.into(),
                 idx: None,
             },
-            other_fields: IndexMap::new(),
+            other_fields: OtherFields::new(),
         }
     }
 }
@@ -136,7 +136,7 @@ impl From<(FileFormat, &Key)> for Map<Format> {
                 description: description.into(),
                 idx: None,
             },
-            other_fields: IndexMap::new(),
+            other_fields: OtherFields::new(),
         }
     }
 }

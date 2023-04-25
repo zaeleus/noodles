@@ -4,9 +4,7 @@ mod builder;
 
 use std::fmt;
 
-use indexmap::IndexMap;
-
-use super::{tag, Described, Fields, Inner, Map, TryFromFieldsError};
+use super::{tag, Described, Fields, Inner, Map, OtherFields, TryFromFieldsError};
 
 type StandardTag = tag::Described;
 
@@ -59,7 +57,7 @@ impl Map<AlternativeAllele> {
             inner: AlternativeAllele {
                 description: description.into(),
             },
-            other_fields: IndexMap::new(),
+            other_fields: OtherFields::new(),
         }
     }
 }

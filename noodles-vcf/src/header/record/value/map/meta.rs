@@ -5,9 +5,7 @@ mod tag;
 
 use std::fmt::{self, Display};
 
-use indexmap::IndexMap;
-
-use super::{Fields, Inner, Map, TryFromFieldsError};
+use super::{Fields, Inner, Map, OtherFields, TryFromFieldsError};
 use crate::header::Number;
 
 type StandardTag = tag::Standard;
@@ -42,7 +40,7 @@ impl Map<Meta> {
     pub fn new(values: Vec<String>) -> Self {
         Self {
             inner: Meta { values },
-            other_fields: IndexMap::new(),
+            other_fields: OtherFields::new(),
         }
     }
 

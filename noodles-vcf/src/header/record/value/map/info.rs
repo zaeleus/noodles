@@ -8,10 +8,10 @@ pub use self::{tag::Tag, ty::Type};
 
 use std::fmt;
 
-use indexmap::IndexMap;
-
 use self::tag::StandardTag;
-use super::{builder, Described, Fields, Indexed, Inner, Map, TryFromFieldsError, Typed};
+use super::{
+    builder, Described, Fields, Indexed, Inner, Map, OtherFields, TryFromFieldsError, Typed,
+};
 use crate::{
     header::{FileFormat, Number},
     record::info::field::Key,
@@ -100,7 +100,7 @@ impl Map<Info> {
                 description: description.into(),
                 idx: None,
             },
-            other_fields: IndexMap::new(),
+            other_fields: OtherFields::new(),
         }
     }
 }
@@ -137,7 +137,7 @@ impl From<(FileFormat, &Key)> for Map<Info> {
                 description: description.into(),
                 idx: None,
             },
-            other_fields: IndexMap::new(),
+            other_fields: OtherFields::new(),
         }
     }
 }
