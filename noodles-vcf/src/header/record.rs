@@ -137,7 +137,7 @@ impl TryFrom<(FileFormat, &str)> for Record {
                     let id = remove_field(&mut fields, "ID").ok_or(ParseError::Invalid)?;
 
                     let filter =
-                        Map::<Filter>::try_from(fields).map_err(|_| ParseError::Invalid)?;
+                        Map::<Filter>::try_from(fields).map_err(ParseError::InvalidFilter)?;
 
                     Ok(Self::Filter(id, filter))
                 }
@@ -150,7 +150,7 @@ impl TryFrom<(FileFormat, &str)> for Record {
                         .and_then(|id| id.parse().map_err(|_| ParseError::Invalid))?;
 
                     let format = Map::<Format>::try_from((file_format, fields))
-                        .map_err(|_| ParseError::Invalid)?;
+                        .map_err(ParseError::InvalidFormat)?;
 
                     validate_format_definition(file_format, &id, format.number(), format.ty())?;
 
@@ -165,7 +165,7 @@ impl TryFrom<(FileFormat, &str)> for Record {
                         .and_then(|id| id.parse().map_err(|_| ParseError::Invalid))?;
 
                     let alternative_allele = Map::<AlternativeAllele>::try_from(fields)
-                        .map_err(|_| ParseError::Invalid)?;
+                        .map_err(ParseError::InvalidAlternativeAllele)?;
 
                     Ok(Self::AlternativeAllele(id, alternative_allele))
                 }
@@ -182,7 +182,7 @@ impl TryFrom<(FileFormat, &str)> for Record {
                         .and_then(|id| id.parse().map_err(|_| ParseError::Invalid))?;
 
                     let contig =
-                        Map::<Contig>::try_from(fields).map_err(|_| ParseError::Invalid)?;
+                        Map::<Contig>::try_from(fields).map_err(ParseError::InvalidContig)?;
 
                     Ok(Self::Contig(id, contig))
                 }
@@ -191,7 +191,7 @@ impl TryFrom<(FileFormat, &str)> for Record {
             key::META => match value {
                 parser::Value::Struct(mut fields) => {
                     let id = remove_field(&mut fields, "ID").ok_or(ParseError::Invalid)?;
-                    let meta = Map::<Meta>::try_from(fields).map_err(|_| ParseError::Invalid)?;
+                    let meta = Map::<Meta>::try_from(fields).map_err(ParseError::InvalidMeta)?;
                     Ok(Self::Meta(id, meta))
                 }
                 _ => Err(ParseError::Invalid),
