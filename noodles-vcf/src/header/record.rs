@@ -111,6 +111,8 @@ impl TryFrom<(FileFormat, &str)> for Record {
     type Error = ParseError;
 
     fn try_from((file_format, s): (FileFormat, &str)) -> Result<Self, Self::Error> {
+        const ID: &str = "ID";
+
         let (_, (raw_key, value)) = parser::parse(s).map_err(|_| ParseError::Invalid)?;
 
         match Key::from(raw_key) {
@@ -123,9 +125,9 @@ impl TryFrom<(FileFormat, &str)> for Record {
             },
             key::INFO => match value {
                 parser::Value::Struct(mut fields) => {
-                    let id = remove_field(&mut fields, "ID")
+                    let id = remove_field(&mut fields, ID)
                         .ok_or(ParseError::InvalidInfo(
-                            map::TryFromFieldsError::MissingField("ID"),
+                            map::TryFromFieldsError::MissingField(ID),
                         ))
                         .and_then(|id| id.parse().map_err(|_| ParseError::Invalid))?;
 
@@ -140,8 +142,8 @@ impl TryFrom<(FileFormat, &str)> for Record {
             },
             key::FILTER => match value {
                 parser::Value::Struct(mut fields) => {
-                    let id = remove_field(&mut fields, "ID").ok_or(ParseError::InvalidFilter(
-                        map::TryFromFieldsError::MissingField("ID"),
+                    let id = remove_field(&mut fields, ID).ok_or(ParseError::InvalidFilter(
+                        map::TryFromFieldsError::MissingField(ID),
                     ))?;
 
                     let filter =
@@ -153,9 +155,9 @@ impl TryFrom<(FileFormat, &str)> for Record {
             },
             key::FORMAT => match value {
                 parser::Value::Struct(mut fields) => {
-                    let id = remove_field(&mut fields, "ID")
+                    let id = remove_field(&mut fields, ID)
                         .ok_or(ParseError::InvalidFormat(
-                            map::TryFromFieldsError::MissingField("ID"),
+                            map::TryFromFieldsError::MissingField(ID),
                         ))
                         .and_then(|id| id.parse().map_err(|_| ParseError::Invalid))?;
 
@@ -170,9 +172,9 @@ impl TryFrom<(FileFormat, &str)> for Record {
             },
             key::ALTERNATIVE_ALLELE => match value {
                 parser::Value::Struct(mut fields) => {
-                    let id = remove_field(&mut fields, "ID")
+                    let id = remove_field(&mut fields, ID)
                         .ok_or(ParseError::InvalidAlternativeAllele(
-                            map::TryFromFieldsError::MissingField("ID"),
+                            map::TryFromFieldsError::MissingField(ID),
                         ))
                         .and_then(|id| id.parse().map_err(|_| ParseError::Invalid))?;
 
@@ -189,9 +191,9 @@ impl TryFrom<(FileFormat, &str)> for Record {
             },
             key::CONTIG => match value {
                 parser::Value::Struct(mut fields) => {
-                    let id = remove_field(&mut fields, "ID")
+                    let id = remove_field(&mut fields, ID)
                         .ok_or(ParseError::InvalidContig(
-                            map::TryFromFieldsError::MissingField("ID"),
+                            map::TryFromFieldsError::MissingField(ID),
                         ))
                         .and_then(|id| id.parse().map_err(|_| ParseError::Invalid))?;
 
@@ -204,8 +206,8 @@ impl TryFrom<(FileFormat, &str)> for Record {
             },
             key::META => match value {
                 parser::Value::Struct(mut fields) => {
-                    let id = remove_field(&mut fields, "ID").ok_or(ParseError::InvalidMeta(
-                        map::TryFromFieldsError::MissingField("ID"),
+                    let id = remove_field(&mut fields, ID).ok_or(ParseError::InvalidMeta(
+                        map::TryFromFieldsError::MissingField(ID),
                     ))?;
 
                     let meta = Map::<Meta>::try_from(fields).map_err(ParseError::InvalidMeta)?;
@@ -222,10 +224,10 @@ impl TryFrom<(FileFormat, &str)> for Record {
                 let v = match value {
                     parser::Value::String(s) => Value::from(s),
                     parser::Value::Struct(mut fields) => {
-                        let id = remove_field(&mut fields, "ID").ok_or_else(|| {
+                        let id = remove_field(&mut fields, ID).ok_or_else(|| {
                             ParseError::InvalidOther(
                                 k.clone(),
-                                map::TryFromFieldsError::MissingField("ID"),
+                                map::TryFromFieldsError::MissingField(ID),
                             )
                         })?;
 
