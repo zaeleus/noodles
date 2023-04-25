@@ -1,24 +1,21 @@
 //! Inner VCF header INFO map value.
 
 pub(crate) mod definition;
+mod tag;
 mod ty;
 
-pub use self::ty::Type;
+pub use self::{tag::Tag, ty::Type};
 
 use std::fmt;
 
 use indexmap::IndexMap;
 
-use super::{builder, tag, Described, Fields, Indexed, Inner, Map, TryFromFieldsError, Typed};
+use self::tag::StandardTag;
+use super::{builder, Described, Fields, Indexed, Inner, Map, TryFromFieldsError, Typed};
 use crate::{
     header::{FileFormat, Number},
     record::info::field::Key,
 };
-
-type StandardTag = tag::TypedDescribedIndexed;
-
-/// A VCF header info map tag.
-pub type Tag = tag::Tag<StandardTag>;
 
 /// An inner VCF header info map value.
 #[derive(Clone, Debug, Eq, PartialEq)]
