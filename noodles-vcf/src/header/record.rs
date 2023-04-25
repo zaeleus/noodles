@@ -52,7 +52,10 @@ pub enum ParseError {
     /// The file format record is invalid.
     InvalidFileFormat(file_format::ParseError),
     /// An INFO record is invalid.
-    InvalidInfo(map::TryFromFieldsError),
+    InvalidInfo(
+        Option<crate::record::info::field::Key>,
+        map::TryFromFieldsError,
+    ),
     /// A FILTER record is invalid.
     InvalidFilter(map::TryFromFieldsError),
     /// A FORMAT record is invalid.
@@ -72,7 +75,7 @@ impl error::Error for ParseError {
         match self {
             Self::Invalid => None,
             Self::InvalidFileFormat(e) => Some(e),
-            Self::InvalidInfo(e)
+            Self::InvalidInfo(_, e)
             | Self::InvalidFilter(e)
             | Self::InvalidFormat(e)
             | Self::InvalidAlternativeAllele(e)
@@ -88,7 +91,15 @@ impl fmt::Display for ParseError {
         match self {
             Self::Invalid => f.write_str("invalid input"),
             Self::InvalidFileFormat(_) => write!(f, "invalid {}", key::FILE_FORMAT),
-            Self::InvalidInfo(_) => write!(f, "invalid {}", key::INFO),
+            Self::InvalidInfo(id, _) => {
+                write!(f, "invalid {} record", key::INFO)?;
+
+                if let Some(id) = id {
+                    write!(f, ": ID={id}")?;
+                }
+
+                Ok(())
+            }
             Self::InvalidFilter(_) => write!(f, "invalid {}", key::FILTER),
             Self::InvalidFormat(_) => write!(f, "invalid {}", key::FORMAT),
             Self::InvalidAlternativeAllele(_) => write!(f, "invalid {}", key::ALTERNATIVE_ALLELE),
@@ -125,14 +136,15 @@ impl TryFrom<(FileFormat, &str)> for Record {
             },
             key::INFO => match value {
                 parser::Value::Struct(mut fields) => {
-                    let id = remove_field(&mut fields, ID)
+                    let id: crate::record::info::field::Key = remove_field(&mut fields, ID)
                         .ok_or(ParseError::InvalidInfo(
+                            None,
                             map::TryFromFieldsError::MissingField(ID),
                         ))
                         .and_then(|id| id.parse().map_err(|_| ParseError::Invalid))?;
 
                     let info = Map::<Info>::try_from((file_format, fields))
-                        .map_err(ParseError::InvalidInfo)?;
+                        .map_err(|e| ParseError::InvalidInfo(Some(id.clone()), e))?;
 
                     validate_info_definition(file_format, &id, info.number(), info.ty())?;
 
@@ -289,12 +301,14 @@ fn validate_info_definition(
     if let Some((expected_number, expected_type, _)) = definition(file_format, id) {
         if actual_number != expected_number {
             return Err(ParseError::InvalidInfo(
+                Some(id.clone()),
                 map::TryFromFieldsError::NumberMismatch(actual_number, expected_number),
             ));
         }
 
         if actual_type != expected_type {
             return Err(ParseError::InvalidInfo(
+                Some(id.clone()),
                 map::TryFromFieldsError::TypeMismatch(
                     actual_type.to_string(),
                     expected_type.to_string(),
