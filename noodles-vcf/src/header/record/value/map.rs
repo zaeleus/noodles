@@ -245,17 +245,6 @@ fn parse_number(s: &str, number: &mut Option<Number>) -> Result<(), TryFromField
         })
 }
 
-fn parse_description(
-    s: String,
-    description: &mut Option<String>,
-) -> Result<(), TryFromFieldsError> {
-    if description.replace(s).is_none() {
-        Ok(())
-    } else {
-        Err(TryFromFieldsError::DuplicateTag)
-    }
-}
-
 fn parse_idx(s: &str, idx: &mut Option<usize>) -> Result<(), TryFromFieldsError> {
     s.parse()
         .map_err(|_| TryFromFieldsError::InvalidValue(tag::IDX))
