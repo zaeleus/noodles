@@ -35,17 +35,26 @@ impl fmt::Display for Type {
 
 /// An error returned when a VCF header genotype format field type fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ParseError(String);
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+    /// The input is invalid.
+    Invalid { actual: String },
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "invalid format type: expected {{Integer, Float, Character, String}}, got {}",
-            self.0
-        )
+        match self {
+            Self::Empty => write!(f, "empty input"),
+            Self::Invalid { actual } => {
+                write!(
+                    f,
+                    "invalid input: expected {{Integer, Float, Character, String}}, got {actual}"
+                )
+            }
+        }
     }
 }
 
@@ -54,11 +63,12 @@ impl FromStr for Type {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+            "" => Err(ParseError::Empty),
             "Integer" => Ok(Self::Integer),
             "Float" => Ok(Self::Float),
             "Character" => Ok(Self::Character),
             "String" => Ok(Self::String),
-            _ => Err(ParseError(s.into())),
+            _ => Err(ParseError::Invalid { actual: s.into() }),
         }
     }
 }
@@ -87,10 +97,12 @@ mod tests {
         assert_eq!("Character".parse(), Ok(Type::Character));
         assert_eq!("String".parse(), Ok(Type::String));
 
-        assert_eq!("".parse::<Type>(), Err(ParseError(String::new())));
+        assert_eq!("".parse::<Type>(), Err(ParseError::Empty));
         assert_eq!(
-            "Noodles".parse::<Type>(),
-            Err(ParseError(String::from("Noodles")))
+            "noodles".parse::<Type>(),
+            Err(ParseError::Invalid {
+                actual: String::from("noodles")
+            })
         );
     }
 }
