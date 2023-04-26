@@ -2,14 +2,14 @@
 
 mod builder;
 pub mod name;
-mod tag;
+pub(crate) mod tag;
 
 pub use self::{name::Name, tag::Tag};
 
-use std::fmt;
+use std::{error, fmt, num};
 
 use self::tag::StandardTag;
-use super::{Fields, Indexed, Inner, Map, OtherFields, TryFromFieldsError};
+use super::{Fields, Indexed, Inner, Map, OtherFields};
 
 /// An inner VCF header contig map value.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -163,8 +163,46 @@ impl fmt::Display for Map<Contig> {
     }
 }
 
+/// An error returned when a raw contig record fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// A field is missing.
+    MissingField(Tag),
+    /// A tag is duplicated.
+    DuplicateTag(Tag),
+    /// The ID is invalid.
+    InvalidId(name::ParseError),
+    /// The length is invalid.
+    InvalidLength(num::ParseIntError),
+    /// The IDX is invalid.
+    InvalidIdx(num::ParseIntError),
+}
+
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidId(e) => Some(e),
+            Self::InvalidLength(e) => Some(e),
+            Self::InvalidIdx(e) => Some(e),
+            _ => None,
+        }
+    }
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::MissingField(tag) => write!(f, "missing field: {tag}"),
+            Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
+            Self::InvalidId(_) => write!(f, "invalid ID"),
+            Self::InvalidLength(_) => write!(f, "invalid length"),
+            Self::InvalidIdx(_) => write!(f, "invalid IDX"),
+        }
+    }
+}
+
 impl TryFrom<Fields> for Map<Contig> {
-    type Error = TryFromFieldsError;
+    type Error = ParseError;
 
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
         let mut length = None;
@@ -176,7 +214,7 @@ impl TryFrom<Fields> for Map<Contig> {
 
         for (key, value) in fields {
             match Tag::from(key) {
-                tag::ID => return Err(TryFromFieldsError::DuplicateTag),
+                tag::ID => return Err(ParseError::DuplicateTag(tag::ID)),
                 tag::LENGTH => {
                     parse_length(&value).and_then(|v| try_replace(&mut length, tag::LENGTH, v))?
                 }
@@ -199,21 +237,19 @@ impl TryFrom<Fields> for Map<Contig> {
     }
 }
 
-fn parse_length(s: &str) -> Result<usize, TryFromFieldsError> {
-    s.parse()
-        .map_err(|_| TryFromFieldsError::InvalidValue("length"))
+fn parse_length(s: &str) -> Result<usize, ParseError> {
+    s.parse().map_err(ParseError::InvalidLength)
 }
 
-fn parse_idx(s: &str) -> Result<usize, TryFromFieldsError> {
-    s.parse()
-        .map_err(|_| TryFromFieldsError::InvalidValue("IDX"))
+fn parse_idx(s: &str) -> Result<usize, ParseError> {
+    s.parse().map_err(ParseError::InvalidIdx)
 }
 
-fn try_replace<T>(option: &mut Option<T>, _: Tag, value: T) -> Result<(), TryFromFieldsError> {
+fn try_replace<T>(option: &mut Option<T>, tag: Tag, value: T) -> Result<(), ParseError> {
     if option.replace(value).is_none() {
         Ok(())
     } else {
-        Err(TryFromFieldsError::DuplicateTag)
+        Err(ParseError::DuplicateTag(tag))
     }
 }
 
@@ -221,7 +257,7 @@ fn try_insert(
     other_fields: &mut OtherFields<StandardTag>,
     tag: super::tag::Other<StandardTag>,
     value: String,
-) -> Result<(), TryFromFieldsError> {
+) -> Result<(), ParseError> {
     use indexmap::map::Entry;
 
     match other_fields.entry(tag) {
@@ -229,7 +265,10 @@ fn try_insert(
             entry.insert(value);
             Ok(())
         }
-        Entry::Occupied(_) => Err(TryFromFieldsError::DuplicateTag),
+        Entry::Occupied(entry) => {
+            let (t, _) = entry.remove_entry();
+            Err(ParseError::DuplicateTag(Tag::Other(t)))
+        }
     }
 }
 
@@ -238,7 +277,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_fmt() -> Result<(), TryFromFieldsError> {
+    fn test_fmt() -> Result<(), ParseError> {
         let map = Map::<Contig>::try_from(vec![
             (String::from("length"), String::from("8")),
             (
