@@ -94,8 +94,8 @@ impl TryFrom<Fields> for Map<Meta> {
         for (key, value) in fields {
             match Tag::from(key) {
                 tag::ID => return Err(TryFromFieldsError::DuplicateTag),
-                tag::TYPE => parse_type(value, &mut ty)?,
-                tag::NUMBER => super::parse_number(&value, &mut number)?,
+                tag::TYPE => try_replace(&mut ty, tag::TYPE, value)?,
+                tag::NUMBER => try_replace(&mut number, tag::NUMBER, value)?,
                 tag::VALUES => parse_values(&value, &mut values)?,
                 Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
             }
@@ -112,20 +112,20 @@ impl TryFrom<Fields> for Map<Meta> {
     }
 }
 
-fn parse_type(s: String, ty: &mut Option<String>) -> Result<(), TryFromFieldsError> {
-    if ty.replace(s).is_none() {
-        Ok(())
-    } else {
-        Err(TryFromFieldsError::DuplicateTag)
-    }
-}
-
 fn parse_values(s: &str, values: &mut Option<Vec<String>>) -> Result<(), TryFromFieldsError> {
     const DELIMITER: char = ',';
 
     let value = s.split(DELIMITER).map(|t| t.trim().into()).collect();
 
     if values.replace(value).is_none() {
+        Ok(())
+    } else {
+        Err(TryFromFieldsError::DuplicateTag)
+    }
+}
+
+fn try_replace<T>(option: &mut Option<T>, _: Tag, value: T) -> Result<(), TryFromFieldsError> {
+    if option.replace(value).is_none() {
         Ok(())
     } else {
         Err(TryFromFieldsError::DuplicateTag)

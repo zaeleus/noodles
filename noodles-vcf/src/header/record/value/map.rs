@@ -233,18 +233,6 @@ fn fmt_display_idx_field(f: &mut fmt::Formatter<'_>, idx: usize) -> fmt::Result 
     write!(f, ",{}={}", tag::IDX, idx)
 }
 
-fn parse_number(s: &str, number: &mut Option<Number>) -> Result<(), TryFromFieldsError> {
-    s.parse()
-        .map_err(|_| TryFromFieldsError::InvalidValue(tag::NUMBER))
-        .and_then(|value| {
-            if number.replace(value).is_none() {
-                Ok(())
-            } else {
-                Err(TryFromFieldsError::DuplicateTag)
-            }
-        })
-}
-
 fn insert_other_field<S>(
     other_fields: &mut OtherFields<S>,
     key: tag::Other<S>,
