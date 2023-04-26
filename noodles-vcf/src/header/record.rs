@@ -70,7 +70,7 @@ pub enum ParseError {
     /// A META record is invalid.
     InvalidMeta(map::meta::ParseError),
     /// A nonstandard record is invalid.
-    InvalidOther(key::Other, map::TryFromFieldsError),
+    InvalidOther(key::Other, map::other::ParseError),
 }
 
 impl error::Error for ParseError {
@@ -272,7 +272,7 @@ impl TryFrom<(FileFormat, &str)> for Record {
                         let id = remove_field(&mut fields, ID).ok_or_else(|| {
                             ParseError::InvalidOther(
                                 k.clone(),
-                                map::TryFromFieldsError::MissingField(ID),
+                                map::other::ParseError::MissingField(map::other::tag::ID),
                             )
                         })?;
 
