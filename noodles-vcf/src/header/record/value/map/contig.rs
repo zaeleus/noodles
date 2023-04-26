@@ -142,15 +142,15 @@ impl Map<Contig> {
 impl fmt::Display for Map<Contig> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(length) = self.length() {
-            write!(f, ",length={length}")?;
+            write!(f, ",{tag}={length}", tag = tag::LENGTH)?;
         }
 
         if let Some(md5) = self.md5() {
-            write!(f, ",md5={md5}")?;
+            write!(f, ",{tag}={md5}", tag = tag::MD5)?;
         }
 
         if let Some(url) = self.url() {
-            write!(f, ",URL={url}")?;
+            write!(f, ",{tag}={url}", tag = tag::URL)?;
         }
 
         super::fmt_display_other_fields(f, self.other_fields())?;
