@@ -183,7 +183,7 @@ impl TryFrom<Fields> for Map<Contig> {
                 tag::MD5 => try_replace(&mut md5, tag::MD5, value)?,
                 tag::URL => try_replace(&mut url, tag::URL, value)?,
                 tag::IDX => parse_idx(&value).and_then(|v| try_replace(&mut idx, tag::IDX, v))?,
-                Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
+                Tag::Other(t) => try_insert(&mut other_fields, t, value)?,
             }
         }
 
@@ -214,6 +214,22 @@ fn try_replace<T>(option: &mut Option<T>, _: Tag, value: T) -> Result<(), TryFro
         Ok(())
     } else {
         Err(TryFromFieldsError::DuplicateTag)
+    }
+}
+
+fn try_insert(
+    other_fields: &mut OtherFields<StandardTag>,
+    tag: super::tag::Other<StandardTag>,
+    value: String,
+) -> Result<(), TryFromFieldsError> {
+    use indexmap::map::Entry;
+
+    match other_fields.entry(tag) {
+        Entry::Vacant(entry) => {
+            entry.insert(value);
+            Ok(())
+        }
+        Entry::Occupied(_) => Err(TryFromFieldsError::DuplicateTag),
     }
 }
 

@@ -245,18 +245,6 @@ fn parse_number(s: &str, number: &mut Option<Number>) -> Result<(), TryFromField
         })
 }
 
-fn parse_idx(s: &str, idx: &mut Option<usize>) -> Result<(), TryFromFieldsError> {
-    s.parse()
-        .map_err(|_| TryFromFieldsError::InvalidValue(tag::IDX))
-        .and_then(|n| {
-            if idx.replace(n).is_none() {
-                Ok(())
-            } else {
-                Err(TryFromFieldsError::DuplicateTag)
-            }
-        })
-}
-
 fn insert_other_field<S>(
     other_fields: &mut OtherFields<S>,
     key: tag::Other<S>,
