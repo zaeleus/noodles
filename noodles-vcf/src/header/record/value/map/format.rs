@@ -1,24 +1,21 @@
 //! Inner VCF header FORMAT map value.
 
 pub(crate) mod definition;
+mod tag;
 mod ty;
 
-pub use self::ty::Type;
+pub use self::{tag::Tag, ty::Type};
 
 use core::fmt;
 
+use self::tag::StandardTag;
 use super::{
-    builder, tag, Described, Fields, Indexed, Inner, Map, OtherFields, TryFromFieldsError, Typed,
+    builder, Described, Fields, Indexed, Inner, Map, OtherFields, TryFromFieldsError, Typed,
 };
 use crate::{
     header::{FileFormat, Number},
     record::genotypes::keys::Key,
 };
-
-type StandardTag = tag::TypedDescribedIndexed;
-
-/// A VCF header format map tag.
-pub type Tag = tag::Tag<StandardTag>;
 
 /// An inner VCF header format map value.
 #[derive(Clone, Debug, Eq, PartialEq)]
