@@ -99,7 +99,7 @@ impl fmt::Display for Map<Filter> {
     }
 }
 
-/// An error returned when a raw FORMAT record fails to parse.
+/// An error returned when a raw FILTER record fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// A field is missing.
