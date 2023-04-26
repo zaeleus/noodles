@@ -177,9 +177,11 @@ impl TryFrom<Fields> for Map<Contig> {
         for (key, value) in fields {
             match Tag::from(key) {
                 tag::ID => return Err(TryFromFieldsError::DuplicateTag),
-                tag::LENGTH => parse_length(&value, &mut length)?,
-                tag::MD5 => parse_md5(&value, &mut md5)?,
-                tag::URL => parse_url(&value, &mut url)?,
+                tag::LENGTH => {
+                    parse_length(&value).and_then(|v| try_replace(&mut length, tag::LENGTH, v))?
+                }
+                tag::MD5 => try_replace(&mut md5, tag::MD5, value)?,
+                tag::URL => try_replace(&mut url, tag::URL, value)?,
                 tag::IDX => super::parse_idx(&value, &mut idx)?,
                 Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
             }
@@ -197,28 +199,13 @@ impl TryFrom<Fields> for Map<Contig> {
     }
 }
 
-fn parse_length(s: &str, value: &mut Option<usize>) -> Result<(), TryFromFieldsError> {
-    let n = s
-        .parse()
-        .map_err(|_| TryFromFieldsError::InvalidValue("length"))?;
-
-    if value.replace(n).is_none() {
-        Ok(())
-    } else {
-        Err(TryFromFieldsError::DuplicateTag)
-    }
+fn parse_length(s: &str) -> Result<usize, TryFromFieldsError> {
+    s.parse()
+        .map_err(|_| TryFromFieldsError::InvalidValue("length"))
 }
 
-fn parse_md5(s: &str, value: &mut Option<String>) -> Result<(), TryFromFieldsError> {
-    if value.replace(s.into()).is_none() {
-        Ok(())
-    } else {
-        Err(TryFromFieldsError::DuplicateTag)
-    }
-}
-
-fn parse_url(s: &str, value: &mut Option<String>) -> Result<(), TryFromFieldsError> {
-    if value.replace(s.into()).is_none() {
+fn try_replace<T>(option: &mut Option<T>, _: Tag, value: T) -> Result<(), TryFromFieldsError> {
+    if option.replace(value).is_none() {
         Ok(())
     } else {
         Err(TryFromFieldsError::DuplicateTag)
@@ -254,20 +241,6 @@ mod tests {
         let actual = Map::<Contig>::try_from(Vec::new())?;
         let expected = Map::<Contig>::new();
         assert_eq!(actual, expected);
-        Ok(())
-    }
-
-    #[test]
-    fn test_parse_length() -> Result<(), TryFromFieldsError> {
-        let mut length = None;
-        parse_length("8", &mut length)?;
-        assert_eq!(length, Some(8));
-
-        assert_eq!(
-            parse_length("eight", &mut None),
-            Err(TryFromFieldsError::InvalidValue("length"))
-        );
-
         Ok(())
     }
 }
