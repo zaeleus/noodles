@@ -57,7 +57,7 @@ pub enum ParseError {
         map::info::ParseError,
     ),
     /// A FILTER record is invalid.
-    InvalidFilter(map::TryFromFieldsError),
+    InvalidFilter(map::filter::ParseError),
     /// A FORMAT record is invalid.
     InvalidFormat(
         Option<crate::record::genotypes::keys::Key>,
@@ -80,8 +80,8 @@ impl error::Error for ParseError {
             Self::InvalidFileFormat(e) => Some(e),
             Self::InvalidInfo(_, e) => Some(e),
             Self::InvalidFormat(_, e) => Some(e),
-            Self::InvalidFilter(e)
-            | Self::InvalidAlternativeAllele(e)
+            Self::InvalidFilter(e) => Some(e),
+            Self::InvalidAlternativeAllele(e)
             | Self::InvalidContig(e)
             | Self::InvalidMeta(e)
             | Self::InvalidOther(_, e) => Some(e),
@@ -103,7 +103,7 @@ impl fmt::Display for ParseError {
 
                 Ok(())
             }
-            Self::InvalidFilter(_) => write!(f, "invalid {}", key::FILTER),
+            Self::InvalidFilter(_) => write!(f, "invalid {} record", key::FILTER),
             Self::InvalidFormat(id, _) => {
                 write!(f, "invalid {} record", key::FORMAT)?;
 
@@ -170,7 +170,7 @@ impl TryFrom<(FileFormat, &str)> for Record {
             key::FILTER => match value {
                 parser::Value::Struct(mut fields) => {
                     let id = remove_field(&mut fields, ID).ok_or(ParseError::InvalidFilter(
-                        map::TryFromFieldsError::MissingField(ID),
+                        map::filter::ParseError::MissingField(map::filter::tag::ID),
                     ))?;
 
                     let filter =

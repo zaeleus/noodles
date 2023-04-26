@@ -1,15 +1,15 @@
 //! Inner VCF header filter map value.
 
-mod tag;
+pub(crate) mod tag;
 
 pub use self::tag::Tag;
 
-use std::fmt;
+use std::{error, fmt, num};
 
 use indexmap::IndexMap;
 
 use self::tag::StandardTag;
-use super::{builder, Described, Fields, Indexed, Inner, Map, OtherFields, TryFromFieldsError};
+use super::{builder, Described, Fields, Indexed, Inner, Map, OtherFields};
 
 /// An inner VCF header filter map value.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -99,8 +99,38 @@ impl fmt::Display for Map<Filter> {
     }
 }
 
+/// An error returned when a raw FORMAT record fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// A field is missing.
+    MissingField(Tag),
+    /// A tag is duplicated.
+    DuplicateTag(Tag),
+    /// The IDX is invalid.
+    InvalidIdx(num::ParseIntError),
+}
+
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidIdx(e) => Some(e),
+            _ => None,
+        }
+    }
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::MissingField(tag) => write!(f, "missing field: {tag}"),
+            Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
+            Self::InvalidIdx(_) => write!(f, "invalid IDX"),
+        }
+    }
+}
+
 impl TryFrom<Fields> for Map<Filter> {
-    type Error = TryFromFieldsError;
+    type Error = ParseError;
 
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
         let mut description = None;
@@ -110,14 +140,14 @@ impl TryFrom<Fields> for Map<Filter> {
 
         for (key, value) in fields {
             match Tag::from(key) {
-                tag::ID => return Err(TryFromFieldsError::DuplicateTag),
+                tag::ID => return Err(ParseError::DuplicateTag(tag::ID)),
                 tag::DESCRIPTION => try_replace(&mut description, tag::DESCRIPTION, value)?,
                 tag::IDX => parse_idx(&value).and_then(|v| try_replace(&mut idx, tag::IDX, v))?,
                 Tag::Other(t) => try_insert(&mut other_fields, t, value)?,
             }
         }
 
-        let description = description.ok_or(TryFromFieldsError::MissingField("Description"))?;
+        let description = description.ok_or(ParseError::MissingField(tag::DESCRIPTION))?;
 
         Ok(Self {
             inner: Filter { description, idx },
@@ -126,16 +156,15 @@ impl TryFrom<Fields> for Map<Filter> {
     }
 }
 
-fn parse_idx(s: &str) -> Result<usize, TryFromFieldsError> {
-    s.parse()
-        .map_err(|_| TryFromFieldsError::InvalidValue("IDX"))
+fn parse_idx(s: &str) -> Result<usize, ParseError> {
+    s.parse().map_err(ParseError::InvalidIdx)
 }
 
-fn try_replace<T>(option: &mut Option<T>, _: Tag, value: T) -> Result<(), TryFromFieldsError> {
+fn try_replace<T>(option: &mut Option<T>, tag: Tag, value: T) -> Result<(), ParseError> {
     if option.replace(value).is_none() {
         Ok(())
     } else {
-        Err(TryFromFieldsError::DuplicateTag)
+        Err(ParseError::DuplicateTag(tag))
     }
 }
 
@@ -143,7 +172,7 @@ fn try_insert(
     other_fields: &mut OtherFields<StandardTag>,
     tag: super::tag::Other<StandardTag>,
     value: String,
-) -> Result<(), TryFromFieldsError> {
+) -> Result<(), ParseError> {
     use indexmap::map::Entry;
 
     match other_fields.entry(tag) {
@@ -151,7 +180,10 @@ fn try_insert(
             entry.insert(value);
             Ok(())
         }
-        Entry::Occupied(_) => Err(TryFromFieldsError::DuplicateTag),
+        Entry::Occupied(entry) => {
+            let (t, _) = entry.remove_entry();
+            Err(ParseError::DuplicateTag(Tag::Other(t)))
+        }
     }
 }
 
@@ -180,7 +212,7 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_fields_for_map_filter() -> Result<(), TryFromFieldsError> {
+    fn test_try_from_fields_for_map_filter() -> Result<(), ParseError> {
         let actual = Map::<Filter>::try_from(vec![(
             String::from("Description"),
             String::from("All filters passed"),
@@ -197,7 +229,7 @@ mod tests {
     fn test_try_from_fields_for_map_filter_with_missing_fields() {
         assert_eq!(
             Map::<Filter>::try_from(vec![(String::from("Other"), String::from("noodles")),]),
-            Err(TryFromFieldsError::MissingField("Description")),
+            Err(ParseError::MissingField(tag::DESCRIPTION)),
         );
     }
 }
