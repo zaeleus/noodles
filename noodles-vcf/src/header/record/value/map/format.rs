@@ -159,13 +159,11 @@ impl TryFrom<(FileFormat, Fields)> for Map<Format> {
 
         for (key, value) in fields {
             match Tag::from(key) {
-                Tag::Standard(StandardTag::Id) => return Err(TryFromFieldsError::DuplicateTag),
-                Tag::Standard(StandardTag::Number) => super::parse_number(&value, &mut number)?,
-                Tag::Standard(StandardTag::Type) => super::parse_type(&value, &mut ty)?,
-                Tag::Standard(StandardTag::Description) => {
-                    super::parse_description(value, &mut description)?
-                }
-                Tag::Standard(StandardTag::Idx) => super::parse_idx(&value, &mut idx)?,
+                tag::ID => return Err(TryFromFieldsError::DuplicateTag),
+                tag::NUMBER => super::parse_number(&value, &mut number)?,
+                tag::TYPE => super::parse_type(&value, &mut ty)?,
+                tag::DESCRIPTION => super::parse_description(value, &mut description)?,
+                tag::IDX => super::parse_idx(&value, &mut idx)?,
                 Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
             }
         }
