@@ -1,16 +1,18 @@
 use std::str::FromStr;
 
-use crate::header::record::value::map::{
-    self,
-    tag::{ID, NUMBER, TYPE},
-};
+use crate::header::record::value::map;
 
 pub(super) type StandardTag = Standard;
 
 /// A VCF header meta map tag.
 pub type Tag = map::tag::Tag<StandardTag>;
 
-const VALUES: &str = "Values";
+// For some reason, using the `Tag` type alias produces a `nontrivial_structural_match` warning
+// when pattern matching, so it's avoided here.
+pub(super) const ID: Tag = map::tag::Tag::<StandardTag>::Standard(StandardTag::Id);
+pub(super) const TYPE: Tag = map::tag::Tag::<StandardTag>::Standard(StandardTag::Type);
+pub(super) const NUMBER: Tag = map::tag::Tag::<StandardTag>::Standard(StandardTag::Number);
+pub(super) const VALUES: Tag = map::tag::Tag::<StandardTag>::Standard(StandardTag::Values);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Standard {
@@ -25,10 +27,10 @@ impl map::tag::Standard for Standard {}
 impl AsRef<str> for Standard {
     fn as_ref(&self) -> &str {
         match self {
-            Self::Id => map::tag::ID,
-            Self::Type => map::tag::TYPE,
-            Self::Number => map::tag::NUMBER,
-            Self::Values => VALUES,
+            Self::Id => "ID",
+            Self::Type => "Type",
+            Self::Number => "Number",
+            Self::Values => "Values",
         }
     }
 }
@@ -38,10 +40,10 @@ impl FromStr for Standard {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            ID => Ok(Self::Id),
-            TYPE => Ok(Self::Type),
-            NUMBER => Ok(Self::Number),
-            VALUES => Ok(Self::Values),
+            "ID" => Ok(Self::Id),
+            "Type" => Ok(Self::Type),
+            "Number" => Ok(Self::Number),
+            "Values" => Ok(Self::Values),
             _ => Err(()),
         }
     }

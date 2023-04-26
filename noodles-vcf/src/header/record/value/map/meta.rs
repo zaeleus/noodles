@@ -93,10 +93,10 @@ impl TryFrom<Fields> for Map<Meta> {
 
         for (key, value) in fields {
             match Tag::from(key) {
-                Tag::Standard(StandardTag::Id) => return Err(TryFromFieldsError::DuplicateTag),
-                Tag::Standard(StandardTag::Type) => parse_type(value, &mut ty)?,
-                Tag::Standard(StandardTag::Number) => super::parse_number(&value, &mut number)?,
-                Tag::Standard(StandardTag::Values) => parse_values(&value, &mut values)?,
+                tag::ID => return Err(TryFromFieldsError::DuplicateTag),
+                tag::TYPE => parse_type(value, &mut ty)?,
+                tag::NUMBER => super::parse_number(&value, &mut number)?,
+                tag::VALUES => parse_values(&value, &mut values)?,
                 Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
             }
         }
