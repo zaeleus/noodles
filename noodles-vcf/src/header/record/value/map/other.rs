@@ -72,12 +72,10 @@ mod tests {
     fn test_try_from_fields_for_map_other() -> Result<(), Box<dyn std::error::Error>> {
         let actual = Map::<Other>::try_from(vec![(String::from("noodles"), String::from("vcf"))])?;
 
-        let noodles_tag = match Tag::from(String::from("noodles")) {
-            Tag::Other(tag) => tag,
-            Tag::Standard(_) => panic!("invalid tag"),
-        };
+        let expected = Map::<Other>::builder()
+            .insert("noodles".parse()?, "vcf")
+            .build()?;
 
-        let expected = Map::<Other>::builder().insert(noodles_tag, "vcf").build()?;
         assert_eq!(actual, expected);
 
         Ok(())
