@@ -176,11 +176,11 @@ impl TryFrom<Fields> for Map<Contig> {
 
         for (key, value) in fields {
             match Tag::from(key) {
-                Tag::Standard(StandardTag::Id) => return Err(TryFromFieldsError::DuplicateTag),
-                Tag::Standard(StandardTag::Length) => parse_length(&value, &mut length)?,
-                Tag::Standard(StandardTag::Md5) => parse_md5(&value, &mut md5)?,
-                Tag::Standard(StandardTag::Url) => parse_url(&value, &mut url)?,
-                Tag::Standard(StandardTag::Idx) => super::parse_idx(&value, &mut idx)?,
+                tag::ID => return Err(TryFromFieldsError::DuplicateTag),
+                tag::LENGTH => parse_length(&value, &mut length)?,
+                tag::MD5 => parse_md5(&value, &mut md5)?,
+                tag::URL => parse_url(&value, &mut url)?,
+                tag::IDX => super::parse_idx(&value, &mut idx)?,
                 Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
             }
         }
