@@ -1,14 +1,14 @@
 //! Inner VCF header alternative allele map value.
 
 mod builder;
-mod tag;
+pub(crate) mod tag;
 
 pub use self::tag::Tag;
 
-use std::fmt;
+use std::{error, fmt};
 
 use self::tag::StandardTag;
-use super::{Described, Fields, Inner, Map, OtherFields, TryFromFieldsError};
+use super::{Described, Fields, Inner, Map, OtherFields};
 
 /// An inner VCF header alternative allele map value.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -69,8 +69,38 @@ impl fmt::Display for Map<AlternativeAllele> {
     }
 }
 
+/// An error returned when a raw ALT record fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// A field is missing.
+    MissingField(Tag),
+    /// A tag is duplicated.
+    DuplicateTag(Tag),
+    /// The ID is invalid.
+    InvalidId(crate::record::alternate_bases::allele::symbol::ParseError),
+}
+
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidId(e) => Some(e),
+            _ => None,
+        }
+    }
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::MissingField(tag) => write!(f, "missing field: {tag}"),
+            Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
+            Self::InvalidId(_) => write!(f, "invalid ID"),
+        }
+    }
+}
+
 impl TryFrom<Fields> for Map<AlternativeAllele> {
-    type Error = TryFromFieldsError;
+    type Error = ParseError;
 
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
         let mut description = None;
@@ -78,13 +108,13 @@ impl TryFrom<Fields> for Map<AlternativeAllele> {
 
         for (key, value) in fields {
             match Tag::from(key) {
-                tag::ID => return Err(TryFromFieldsError::DuplicateTag),
+                tag::ID => return Err(ParseError::DuplicateTag(tag::ID)),
                 tag::DESCRIPTION => try_replace(&mut description, tag::DESCRIPTION, value)?,
                 Tag::Other(t) => try_insert(&mut other_fields, t, value)?,
             }
         }
 
-        let description = description.ok_or(TryFromFieldsError::MissingField("Description"))?;
+        let description = description.ok_or(ParseError::MissingField(tag::DESCRIPTION))?;
 
         Ok(Self {
             inner: AlternativeAllele { description },
@@ -93,11 +123,11 @@ impl TryFrom<Fields> for Map<AlternativeAllele> {
     }
 }
 
-fn try_replace<T>(option: &mut Option<T>, _: Tag, value: T) -> Result<(), TryFromFieldsError> {
+fn try_replace<T>(option: &mut Option<T>, tag: Tag, value: T) -> Result<(), ParseError> {
     if option.replace(value).is_none() {
         Ok(())
     } else {
-        Err(TryFromFieldsError::DuplicateTag)
+        Err(ParseError::DuplicateTag(tag))
     }
 }
 
@@ -105,7 +135,7 @@ fn try_insert(
     other_fields: &mut OtherFields<StandardTag>,
     tag: super::tag::Other<StandardTag>,
     value: String,
-) -> Result<(), TryFromFieldsError> {
+) -> Result<(), ParseError> {
     use indexmap::map::Entry;
 
     match other_fields.entry(tag) {
@@ -113,7 +143,10 @@ fn try_insert(
             entry.insert(value);
             Ok(())
         }
-        Entry::Occupied(_) => Err(TryFromFieldsError::DuplicateTag),
+        Entry::Occupied(entry) => {
+            let (t, _) = entry.remove_entry();
+            Err(ParseError::DuplicateTag(Tag::Other(t)))
+        }
     }
 }
 
@@ -129,7 +162,7 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_fields_for_map_alternative_allele() -> Result<(), TryFromFieldsError> {
+    fn test_try_from_fields_for_map_alternative_allele() -> Result<(), ParseError> {
         let actual = Map::<AlternativeAllele>::try_from(vec![(
             String::from("Description"),
             String::from("Deletion"),
@@ -149,7 +182,7 @@ mod tests {
                 String::from("Other"),
                 String::from("noodles")
             ),]),
-            Err(TryFromFieldsError::MissingField("Description")),
+            Err(ParseError::MissingField(tag::DESCRIPTION)),
         );
     }
 }

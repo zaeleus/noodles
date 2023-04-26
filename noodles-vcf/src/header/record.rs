@@ -64,7 +64,7 @@ pub enum ParseError {
         map::format::ParseError,
     ),
     /// An ALT record is invalid.
-    InvalidAlternativeAllele(map::TryFromFieldsError),
+    InvalidAlternativeAllele(map::alternative_allele::ParseError),
     /// A contig record is invalid.
     InvalidContig(map::contig::ParseError),
     /// A META record is invalid.
@@ -82,9 +82,8 @@ impl error::Error for ParseError {
             Self::InvalidFormat(_, e) => Some(e),
             Self::InvalidFilter(e) => Some(e),
             Self::InvalidContig(e) => Some(e),
-            Self::InvalidAlternativeAllele(e) | Self::InvalidMeta(e) | Self::InvalidOther(_, e) => {
-                Some(e)
-            }
+            Self::InvalidAlternativeAllele(e) => Some(e),
+            Self::InvalidMeta(e) | Self::InvalidOther(_, e) => Some(e),
         }
     }
 }
@@ -113,7 +112,9 @@ impl fmt::Display for ParseError {
 
                 Ok(())
             }
-            Self::InvalidAlternativeAllele(_) => write!(f, "invalid {}", key::ALTERNATIVE_ALLELE),
+            Self::InvalidAlternativeAllele(_) => {
+                write!(f, "invalid {} record", key::ALTERNATIVE_ALLELE)
+            }
             Self::InvalidContig(_) => write!(f, "invalid {} record", key::CONTIG),
             Self::InvalidMeta(_) => write!(f, "invalid {}", key::META),
             Self::InvalidOther(key, _) => write!(f, "invalid {key} record"),
@@ -209,9 +210,17 @@ impl TryFrom<(FileFormat, &str)> for Record {
                 parser::Value::Struct(mut fields) => {
                     let id = remove_field(&mut fields, ID)
                         .ok_or(ParseError::InvalidAlternativeAllele(
-                            map::TryFromFieldsError::MissingField(ID),
+                            map::alternative_allele::ParseError::MissingField(
+                                map::alternative_allele::tag::ID,
+                            ),
                         ))
-                        .and_then(|id| id.parse().map_err(|_| ParseError::Invalid))?;
+                        .and_then(|id| {
+                            id.parse().map_err(|e| {
+                                ParseError::InvalidAlternativeAllele(
+                                    map::alternative_allele::ParseError::InvalidId(e),
+                                )
+                            })
+                        })?;
 
                     let alternative_allele = Map::<AlternativeAllele>::try_from(fields)
                         .map_err(ParseError::InvalidAlternativeAllele)?;
