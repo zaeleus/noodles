@@ -68,7 +68,7 @@ pub enum ParseError {
     /// A contig record is invalid.
     InvalidContig(map::contig::ParseError),
     /// A META record is invalid.
-    InvalidMeta(map::TryFromFieldsError),
+    InvalidMeta(map::meta::ParseError),
     /// A nonstandard record is invalid.
     InvalidOther(key::Other, map::TryFromFieldsError),
 }
@@ -83,7 +83,8 @@ impl error::Error for ParseError {
             Self::InvalidFilter(e) => Some(e),
             Self::InvalidContig(e) => Some(e),
             Self::InvalidAlternativeAllele(e) => Some(e),
-            Self::InvalidMeta(e) | Self::InvalidOther(_, e) => Some(e),
+            Self::InvalidMeta(e) => Some(e),
+            Self::InvalidOther(_, e) => Some(e),
         }
     }
 }
@@ -116,7 +117,7 @@ impl fmt::Display for ParseError {
                 write!(f, "invalid {} record", key::ALTERNATIVE_ALLELE)
             }
             Self::InvalidContig(_) => write!(f, "invalid {} record", key::CONTIG),
-            Self::InvalidMeta(_) => write!(f, "invalid {}", key::META),
+            Self::InvalidMeta(_) => write!(f, "invalid {} record", key::META),
             Self::InvalidOther(key, _) => write!(f, "invalid {key} record"),
         }
     }
@@ -251,7 +252,7 @@ impl TryFrom<(FileFormat, &str)> for Record {
             key::META => match value {
                 parser::Value::Struct(mut fields) => {
                     let id = remove_field(&mut fields, ID).ok_or(ParseError::InvalidMeta(
-                        map::TryFromFieldsError::MissingField(ID),
+                        map::meta::ParseError::MissingField(map::meta::tag::ID),
                     ))?;
 
                     let meta = Map::<Meta>::try_from(fields).map_err(ParseError::InvalidMeta)?;

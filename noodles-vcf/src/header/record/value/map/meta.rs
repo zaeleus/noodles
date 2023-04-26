@@ -1,14 +1,14 @@
 //! Inner VCF header meta map value.
 
 mod builder;
-mod tag;
+pub(crate) mod tag;
 
 pub use self::tag::Tag;
 
-use std::fmt::{self, Display};
+use std::{error, fmt};
 
 use self::tag::StandardTag;
-use super::{Fields, Inner, Map, OtherFields, TryFromFieldsError};
+use super::{Fields, Inner, Map, OtherFields};
 use crate::header::Number;
 
 /// An inner VCF header meta map value.
@@ -57,7 +57,7 @@ impl Map<Meta> {
     }
 }
 
-impl Display for Map<Meta> {
+impl fmt::Display for Map<Meta> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         ",Type=String".fmt(f)?;
         write!(f, ",Number={}", Number::Unknown)?;
@@ -81,8 +81,28 @@ impl Display for Map<Meta> {
     }
 }
 
+/// An error returned when a raw META record fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// A field is missing.
+    MissingField(Tag),
+    /// A tag is duplicated.
+    DuplicateTag(Tag),
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::MissingField(tag) => write!(f, "missing field: {tag}"),
+            Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
+        }
+    }
+}
+
 impl TryFrom<Fields> for Map<Meta> {
-    type Error = TryFromFieldsError;
+    type Error = ParseError;
 
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
         let mut ty = None;
@@ -93,17 +113,20 @@ impl TryFrom<Fields> for Map<Meta> {
 
         for (key, value) in fields {
             match Tag::from(key) {
-                tag::ID => return Err(TryFromFieldsError::DuplicateTag),
+                tag::ID => return Err(ParseError::DuplicateTag(tag::ID)),
                 tag::TYPE => try_replace(&mut ty, tag::TYPE, value)?,
                 tag::NUMBER => try_replace(&mut number, tag::NUMBER, value)?,
-                tag::VALUES => parse_values(&value, &mut values)?,
+                tag::VALUES => {
+                    let v = parse_values(&value);
+                    try_replace(&mut values, tag::VALUES, v)?;
+                }
                 Tag::Other(t) => try_insert(&mut other_fields, t, value)?,
             }
         }
 
-        let _ = ty.ok_or(TryFromFieldsError::MissingField("Type"))?;
-        let _ = number.ok_or(TryFromFieldsError::MissingField("Number"))?;
-        let values = values.ok_or(TryFromFieldsError::MissingField("Values"))?;
+        let _ = ty.ok_or(ParseError::MissingField(tag::TYPE))?;
+        let _ = number.ok_or(ParseError::MissingField(tag::NUMBER))?;
+        let values = values.ok_or(ParseError::MissingField(tag::VALUES))?;
 
         Ok(Self {
             inner: Meta { values },
@@ -112,23 +135,16 @@ impl TryFrom<Fields> for Map<Meta> {
     }
 }
 
-fn parse_values(s: &str, values: &mut Option<Vec<String>>) -> Result<(), TryFromFieldsError> {
+fn parse_values(s: &str) -> Vec<String> {
     const DELIMITER: char = ',';
-
-    let value = s.split(DELIMITER).map(|t| t.trim().into()).collect();
-
-    if values.replace(value).is_none() {
-        Ok(())
-    } else {
-        Err(TryFromFieldsError::DuplicateTag)
-    }
+    s.split(DELIMITER).map(|t| t.trim().into()).collect()
 }
 
-fn try_replace<T>(option: &mut Option<T>, _: Tag, value: T) -> Result<(), TryFromFieldsError> {
+fn try_replace<T>(option: &mut Option<T>, tag: Tag, value: T) -> Result<(), ParseError> {
     if option.replace(value).is_none() {
         Ok(())
     } else {
-        Err(TryFromFieldsError::DuplicateTag)
+        Err(ParseError::DuplicateTag(tag))
     }
 }
 
@@ -136,7 +152,7 @@ fn try_insert(
     other_fields: &mut OtherFields<StandardTag>,
     tag: super::tag::Other<StandardTag>,
     value: String,
-) -> Result<(), TryFromFieldsError> {
+) -> Result<(), ParseError> {
     use indexmap::map::Entry;
 
     match other_fields.entry(tag) {
@@ -144,7 +160,10 @@ fn try_insert(
             entry.insert(value);
             Ok(())
         }
-        Entry::Occupied(_) => Err(TryFromFieldsError::DuplicateTag),
+        Entry::Occupied(entry) => {
+            let (t, _) = entry.remove_entry();
+            Err(ParseError::DuplicateTag(Tag::Other(t)))
+        }
     }
 }
 
@@ -160,7 +179,7 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_fields_for_map_meta() -> Result<(), TryFromFieldsError> {
+    fn test_try_from_fields_for_map_meta() -> Result<(), ParseError> {
         let actual = Map::<Meta>::try_from(vec![
             (String::from("Type"), String::from("String")),
             (String::from("Number"), String::from(".")),
@@ -181,7 +200,7 @@ mod tests {
                 (String::from("Number"), String::from(".")),
                 (String::from("Values"), String::from("WholeGenome, Exome")),
             ]),
-            Err(TryFromFieldsError::MissingField("Type"))
+            Err(ParseError::MissingField(tag::TYPE))
         );
 
         assert_eq!(
@@ -189,7 +208,7 @@ mod tests {
                 (String::from("Type"), String::from("String")),
                 (String::from("Values"), String::from("WholeGenome, Exome")),
             ]),
-            Err(TryFromFieldsError::MissingField("Number"))
+            Err(ParseError::MissingField(tag::NUMBER))
         );
 
         assert_eq!(
@@ -197,7 +216,7 @@ mod tests {
                 (String::from("Type"), String::from("String")),
                 (String::from("Number"), String::from(".")),
             ]),
-            Err(TryFromFieldsError::MissingField("Values"))
+            Err(ParseError::MissingField(tag::VALUES))
         );
     }
 }
