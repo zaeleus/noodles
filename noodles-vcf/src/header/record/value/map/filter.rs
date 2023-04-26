@@ -111,9 +111,9 @@ impl TryFrom<Fields> for Map<Filter> {
         for (key, value) in fields {
             match Tag::from(key) {
                 tag::ID => return Err(TryFromFieldsError::DuplicateTag),
-                tag::DESCRIPTION => super::parse_description(value, &mut description)?,
-                tag::IDX => super::parse_idx(&value, &mut idx)?,
-                Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
+                tag::DESCRIPTION => try_replace(&mut description, tag::DESCRIPTION, value)?,
+                tag::IDX => parse_idx(&value).and_then(|v| try_replace(&mut idx, tag::IDX, v))?,
+                Tag::Other(t) => try_insert(&mut other_fields, t, value)?,
             }
         }
 
@@ -123,6 +123,35 @@ impl TryFrom<Fields> for Map<Filter> {
             inner: Filter { description, idx },
             other_fields,
         })
+    }
+}
+
+fn parse_idx(s: &str) -> Result<usize, TryFromFieldsError> {
+    s.parse()
+        .map_err(|_| TryFromFieldsError::InvalidValue("IDX"))
+}
+
+fn try_replace<T>(option: &mut Option<T>, _: Tag, value: T) -> Result<(), TryFromFieldsError> {
+    if option.replace(value).is_none() {
+        Ok(())
+    } else {
+        Err(TryFromFieldsError::DuplicateTag)
+    }
+}
+
+fn try_insert(
+    other_fields: &mut OtherFields<StandardTag>,
+    tag: super::tag::Other<StandardTag>,
+    value: String,
+) -> Result<(), TryFromFieldsError> {
+    use indexmap::map::Entry;
+
+    match other_fields.entry(tag) {
+        Entry::Vacant(entry) => {
+            entry.insert(value);
+            Ok(())
+        }
+        Entry::Occupied(_) => Err(TryFromFieldsError::DuplicateTag),
     }
 }
 
