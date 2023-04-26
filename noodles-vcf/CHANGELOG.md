@@ -82,6 +82,11 @@
 
     For info keys, use `record::info::field::Key` instead.
 
+  * vcf/header/record/value/map: Remove `TryFromFieldsError`.
+
+    Use the inner record `ParseError` instead, e.g., `map::info::ParseError`,
+    etc.
+
 ## 0.27.0 - 2023-04-06
 
 ### Added

@@ -15,10 +15,7 @@ pub use self::{
     format::Format, info::Info, meta::Meta, other::Other,
 };
 
-use std::{
-    error,
-    fmt::{self, Display},
-};
+use std::fmt::{self, Display};
 
 use indexmap::IndexMap;
 
@@ -161,39 +158,6 @@ where
     /// Returns a mutable reference to the index.
     pub fn idx_mut(&mut self) -> &mut Option<usize> {
         self.inner.idx_mut()
-    }
-}
-
-/// An error returned when a VCF header map value fails to parse.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum TryFromFieldsError {
-    /// A field is missing.
-    MissingField(&'static str),
-    /// A tag is duplicated.
-    DuplicateTag,
-    /// A value is invalid.
-    InvalidValue(&'static str),
-    /// The actual number does not match the expected number in the reserved definition.
-    NumberMismatch(Number, Number),
-    /// The actual type does not match the expected type in the reserved definition.
-    TypeMismatch(String, String),
-}
-
-impl error::Error for TryFromFieldsError {}
-
-impl Display for TryFromFieldsError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::MissingField(tag) => write!(f, "missing field: {tag}"),
-            Self::DuplicateTag => "duplicate tag".fmt(f),
-            Self::InvalidValue(tag) => write!(f, "invalid value for {tag}"),
-            Self::NumberMismatch(actual, expected) => {
-                write!(f, "number mismatch: expected {expected}, got {actual}")
-            }
-            Self::TypeMismatch(actual, expected) => {
-                write!(f, "type mismatch: expected {expected}, got {actual}")
-            }
-        }
     }
 }
 
