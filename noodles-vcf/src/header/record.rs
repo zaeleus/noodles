@@ -61,7 +61,7 @@ pub enum ParseError {
     /// A FORMAT record is invalid.
     InvalidFormat(
         Option<crate::record::genotypes::keys::Key>,
-        map::TryFromFieldsError,
+        map::format::ParseError,
     ),
     /// An ALT record is invalid.
     InvalidAlternativeAllele(map::TryFromFieldsError),
@@ -79,8 +79,8 @@ impl error::Error for ParseError {
             Self::Invalid => None,
             Self::InvalidFileFormat(e) => Some(e),
             Self::InvalidInfo(_, e) => Some(e),
+            Self::InvalidFormat(_, e) => Some(e),
             Self::InvalidFilter(e)
-            | Self::InvalidFormat(_, e)
             | Self::InvalidAlternativeAllele(e)
             | Self::InvalidContig(e)
             | Self::InvalidMeta(e)
@@ -185,9 +185,16 @@ impl TryFrom<(FileFormat, &str)> for Record {
                     let id: crate::record::genotypes::keys::Key = remove_field(&mut fields, ID)
                         .ok_or(ParseError::InvalidFormat(
                             None,
-                            map::TryFromFieldsError::MissingField(ID),
+                            map::format::ParseError::MissingField(map::format::tag::ID),
                         ))
-                        .and_then(|id| id.parse().map_err(|_| ParseError::Invalid))?;
+                        .and_then(|id| {
+                            id.parse().map_err(|e| {
+                                ParseError::InvalidFormat(
+                                    None,
+                                    map::format::ParseError::InvalidId(e),
+                                )
+                            })
+                        })?;
 
                     let format = Map::<Format>::try_from((file_format, fields))
                         .map_err(|e| ParseError::InvalidFormat(Some(id.clone()), e))?;
@@ -290,17 +297,20 @@ fn validate_format_definition(
         if actual_number != expected_number {
             return Err(ParseError::InvalidFormat(
                 Some(id.clone()),
-                map::TryFromFieldsError::NumberMismatch(actual_number, expected_number),
+                map::format::ParseError::NumberMismatch {
+                    actual: actual_number,
+                    expected: expected_number,
+                },
             ));
         }
 
         if actual_type != expected_type {
             return Err(ParseError::InvalidFormat(
                 Some(id.clone()),
-                map::TryFromFieldsError::TypeMismatch(
-                    actual_type.to_string(),
-                    expected_type.to_string(),
-                ),
+                map::format::ParseError::TypeMismatch {
+                    actual: actual_type,
+                    expected: expected_type,
+                },
             ));
         }
     }
