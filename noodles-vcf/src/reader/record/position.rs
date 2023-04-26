@@ -10,16 +10,23 @@ pub enum ParseError {
     /// The input is empty.
     Empty,
     /// The input is invalid.
-    Invalid,
+    Invalid(num::ParseIntError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Empty => None,
+            Self::Invalid(e) => Some(e),
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => write!(f, "empty input"),
-            Self::Invalid => write!(f, "invalid input"),
+            Self::Invalid(_) => write!(f, "invalid input"),
         }
     }
 }
@@ -28,7 +35,7 @@ impl From<num::ParseIntError> for ParseError {
     fn from(e: num::ParseIntError) -> Self {
         match e.kind() {
             num::IntErrorKind::Empty => Self::Empty,
-            _ => Self::Invalid,
+            _ => Self::Invalid(e),
         }
     }
 }
@@ -53,8 +60,11 @@ mod tests {
         assert_eq!(parse_position("8"), Ok(Position::from(8)));
 
         assert_eq!(parse_position(""), Err(ParseError::Empty));
-        assert_eq!(parse_position("."), Err(ParseError::Invalid));
-        assert_eq!(parse_position("ndls"), Err(ParseError::Invalid));
-        assert_eq!(parse_position("-1"), Err(ParseError::Invalid));
+        assert!(matches!(parse_position("."), Err(ParseError::Invalid(_))));
+        assert!(matches!(
+            parse_position("ndls"),
+            Err(ParseError::Invalid(_))
+        ));
+        assert!(matches!(parse_position("-1"), Err(ParseError::Invalid(_))));
     }
 }
