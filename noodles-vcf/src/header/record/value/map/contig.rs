@@ -182,7 +182,7 @@ impl TryFrom<Fields> for Map<Contig> {
                 }
                 tag::MD5 => try_replace(&mut md5, tag::MD5, value)?,
                 tag::URL => try_replace(&mut url, tag::URL, value)?,
-                tag::IDX => super::parse_idx(&value, &mut idx)?,
+                tag::IDX => parse_idx(&value).and_then(|v| try_replace(&mut idx, tag::IDX, v))?,
                 Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
             }
         }
@@ -202,6 +202,11 @@ impl TryFrom<Fields> for Map<Contig> {
 fn parse_length(s: &str) -> Result<usize, TryFromFieldsError> {
     s.parse()
         .map_err(|_| TryFromFieldsError::InvalidValue("length"))
+}
+
+fn parse_idx(s: &str) -> Result<usize, TryFromFieldsError> {
+    s.parse()
+        .map_err(|_| TryFromFieldsError::InvalidValue("IDX"))
 }
 
 fn try_replace<T>(option: &mut Option<T>, _: Tag, value: T) -> Result<(), TryFromFieldsError> {
