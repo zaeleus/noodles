@@ -121,7 +121,9 @@ fn parse_type(s: String, ty: &mut Option<String>) -> Result<(), TryFromFieldsErr
 }
 
 fn parse_values(s: &str, values: &mut Option<Vec<String>>) -> Result<(), TryFromFieldsError> {
-    let value = s.split(',').map(|t| t.trim().into()).collect();
+    const DELIMITER: char = ',';
+
+    let value = s.split(DELIMITER).map(|t| t.trim().into()).collect();
 
     if values.replace(value).is_none() {
         Ok(())
