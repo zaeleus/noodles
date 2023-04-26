@@ -164,11 +164,11 @@ impl TryFrom<(FileFormat, Fields)> for Map<Info> {
         for (key, value) in fields {
             match Tag::from(key) {
                 tag::ID => return Err(TryFromFieldsError::DuplicateTag),
-                tag::NUMBER => super::parse_number(&value, &mut number)?,
-                tag::TYPE => super::parse_type(&value, &mut ty)?,
-                tag::DESCRIPTION => super::parse_description(value, &mut description)?,
-                tag::IDX => super::parse_idx(&value, &mut idx)?,
-                Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
+                tag::NUMBER => parse_number(&value).and_then(|v| try_replace(&mut number, v))?,
+                tag::TYPE => parse_type(&value).and_then(|v| try_replace(&mut ty, v))?,
+                tag::DESCRIPTION => try_replace(&mut description, value)?,
+                tag::IDX => parse_idx(&value).and_then(|v| try_replace(&mut idx, v))?,
+                Tag::Other(t) => try_insert(&mut other_fields, t, value)?,
             }
         }
 
@@ -185,6 +185,41 @@ impl TryFrom<(FileFormat, Fields)> for Map<Info> {
             },
             other_fields,
         })
+    }
+}
+
+fn parse_number(s: &str) -> Result<Number, TryFromFieldsError> {
+    s.parse()
+        .map_err(|_| TryFromFieldsError::InvalidValue("Number"))
+}
+
+fn parse_type(s: &str) -> Result<Type, TryFromFieldsError> {
+    s.parse()
+        .map_err(|_| TryFromFieldsError::InvalidValue("Type"))
+}
+
+fn parse_idx(s: &str) -> Result<usize, TryFromFieldsError> {
+    s.parse()
+        .map_err(|_| TryFromFieldsError::InvalidValue("IDX"))
+}
+
+fn try_replace<T>(option: &mut Option<T>, value: T) -> Result<(), TryFromFieldsError> {
+    if option.replace(value).is_none() {
+        Ok(())
+    } else {
+        Err(TryFromFieldsError::DuplicateTag)
+    }
+}
+
+fn try_insert(
+    other_fields: &mut OtherFields<StandardTag>,
+    key: super::tag::Other<StandardTag>,
+    value: String,
+) -> Result<(), TryFromFieldsError> {
+    if other_fields.insert(key, value).is_none() {
+        Ok(())
+    } else {
+        Err(TryFromFieldsError::DuplicateTag)
     }
 }
 
