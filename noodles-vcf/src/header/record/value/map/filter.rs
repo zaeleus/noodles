@@ -1,17 +1,15 @@
 //! Inner VCF header filter map value.
 
+mod tag;
+
+pub use self::tag::Tag;
+
 use std::fmt;
 
 use indexmap::IndexMap;
 
-use super::{
-    builder, tag, Described, Fields, Indexed, Inner, Map, OtherFields, TryFromFieldsError,
-};
-
-type StandardTag = tag::DescribedIndexed;
-
-/// A VCF header filter map tag.
-pub type Tag = tag::Tag<StandardTag>;
+use self::tag::StandardTag;
+use super::{builder, Described, Fields, Indexed, Inner, Map, OtherFields, TryFromFieldsError};
 
 /// An inner VCF header filter map value.
 #[derive(Clone, Debug, Eq, PartialEq)]
