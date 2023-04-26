@@ -1,6 +1,14 @@
 use std::str::FromStr;
 
-use crate::header::record::value::map::tag::{self, ID, IDX};
+use crate::header::record::value::map::{
+    self,
+    tag::{ID, IDX},
+};
+
+pub(super) type StandardTag = Standard;
+
+/// A VCF header contig map tag.
+pub type Tag = map::tag::Tag<StandardTag>;
 
 const LENGTH: &str = "length";
 const MD5: &str = "md5";
@@ -15,7 +23,7 @@ pub enum Standard {
     Idx,
 }
 
-impl tag::Standard for Standard {}
+impl map::tag::Standard for Standard {}
 
 impl AsRef<str> for Standard {
     fn as_ref(&self) -> &str {

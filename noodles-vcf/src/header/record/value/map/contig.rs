@@ -4,16 +4,12 @@ mod builder;
 pub mod name;
 mod tag;
 
-pub use self::name::Name;
+pub use self::{name::Name, tag::Tag};
 
 use std::fmt;
 
+use self::tag::StandardTag;
 use super::{Fields, Indexed, Inner, Map, TryFromFieldsError};
-
-type StandardTag = tag::Standard;
-
-/// A VCF header contig map tag.
-pub type Tag = super::tag::Tag<StandardTag>;
 
 /// An inner VCF header contig map value.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
