@@ -78,10 +78,8 @@ impl TryFrom<Fields> for Map<AlternativeAllele> {
 
         for (key, value) in fields {
             match Tag::from(key) {
-                Tag::Standard(StandardTag::Id) => return Err(TryFromFieldsError::DuplicateTag),
-                Tag::Standard(StandardTag::Description) => {
-                    super::parse_description(value, &mut description)?
-                }
+                tag::ID => return Err(TryFromFieldsError::DuplicateTag),
+                tag::DESCRIPTION => super::parse_description(value, &mut description)?,
                 Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
             }
         }
