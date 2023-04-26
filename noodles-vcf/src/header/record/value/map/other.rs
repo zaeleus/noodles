@@ -1,13 +1,13 @@
 //! Inner VCF header other map value.
 
+mod tag;
+
+pub use self::tag::Tag;
+
 use std::fmt;
 
-use super::{builder, tag, Fields, Inner, Map, OtherFields, TryFromFieldsError};
-
-type StandardTag = tag::Identity;
-
-/// A VCF header other map tag.
-pub type Tag = tag::Tag<StandardTag>;
+use self::tag::StandardTag;
+use super::{builder, Fields, Inner, Map, OtherFields, TryFromFieldsError};
 
 /// An inner VCF header other map value.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
