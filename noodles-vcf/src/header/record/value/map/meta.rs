@@ -97,7 +97,7 @@ impl TryFrom<Fields> for Map<Meta> {
                 tag::TYPE => try_replace(&mut ty, tag::TYPE, value)?,
                 tag::NUMBER => try_replace(&mut number, tag::NUMBER, value)?,
                 tag::VALUES => parse_values(&value, &mut values)?,
-                Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
+                Tag::Other(t) => try_insert(&mut other_fields, t, value)?,
             }
         }
 
@@ -129,6 +129,22 @@ fn try_replace<T>(option: &mut Option<T>, _: Tag, value: T) -> Result<(), TryFro
         Ok(())
     } else {
         Err(TryFromFieldsError::DuplicateTag)
+    }
+}
+
+fn try_insert(
+    other_fields: &mut OtherFields<StandardTag>,
+    tag: super::tag::Other<StandardTag>,
+    value: String,
+) -> Result<(), TryFromFieldsError> {
+    use indexmap::map::Entry;
+
+    match other_fields.entry(tag) {
+        Entry::Vacant(entry) => {
+            entry.insert(value);
+            Ok(())
+        }
+        Entry::Occupied(_) => Err(TryFromFieldsError::DuplicateTag),
     }
 }
 

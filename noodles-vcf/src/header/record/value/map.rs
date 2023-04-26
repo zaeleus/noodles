@@ -232,15 +232,3 @@ fn fmt_display_other_fields<S>(
 fn fmt_display_idx_field(f: &mut fmt::Formatter<'_>, idx: usize) -> fmt::Result {
     write!(f, ",{}={}", tag::IDX, idx)
 }
-
-fn insert_other_field<S>(
-    other_fields: &mut OtherFields<S>,
-    key: tag::Other<S>,
-    value: String,
-) -> Result<(), TryFromFieldsError> {
-    if other_fields.insert(key, value).is_none() {
-        Ok(())
-    } else {
-        Err(TryFromFieldsError::DuplicateTag)
-    }
-}
