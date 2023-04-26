@@ -136,7 +136,7 @@ impl From<(FileFormat, &Key)> for Map<Format> {
     }
 }
 
-/// An error returned when a raw INFO record fails to parse.
+/// An error returned when a raw FORMAT record fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// A field is missing.
