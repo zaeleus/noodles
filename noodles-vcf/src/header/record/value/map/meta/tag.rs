@@ -1,6 +1,14 @@
 use std::str::FromStr;
 
-use crate::header::record::value::map::tag::{self, ID, NUMBER, TYPE};
+use crate::header::record::value::map::{
+    self,
+    tag::{ID, NUMBER, TYPE},
+};
+
+pub(super) type StandardTag = Standard;
+
+/// A VCF header meta map tag.
+pub type Tag = map::tag::Tag<StandardTag>;
 
 const VALUES: &str = "Values";
 
@@ -12,14 +20,14 @@ pub enum Standard {
     Values,
 }
 
-impl tag::Standard for Standard {}
+impl map::tag::Standard for Standard {}
 
 impl AsRef<str> for Standard {
     fn as_ref(&self) -> &str {
         match self {
-            Self::Id => tag::ID,
-            Self::Type => tag::TYPE,
-            Self::Number => tag::NUMBER,
+            Self::Id => map::tag::ID,
+            Self::Type => map::tag::TYPE,
+            Self::Number => map::tag::NUMBER,
             Self::Values => VALUES,
         }
     }

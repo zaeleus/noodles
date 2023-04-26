@@ -3,15 +3,13 @@
 mod builder;
 mod tag;
 
+pub use self::tag::Tag;
+
 use std::fmt::{self, Display};
 
+use self::tag::StandardTag;
 use super::{Fields, Inner, Map, OtherFields, TryFromFieldsError};
 use crate::header::Number;
-
-type StandardTag = tag::Standard;
-
-/// A VCF header meta map tag.
-pub type Tag = super::tag::Tag<StandardTag>;
 
 /// An inner VCF header meta map value.
 #[derive(Clone, Debug, Eq, PartialEq)]
