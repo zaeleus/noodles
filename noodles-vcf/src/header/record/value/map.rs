@@ -18,7 +18,6 @@ pub use self::{
 use std::{
     error,
     fmt::{self, Display},
-    str::FromStr,
 };
 
 use indexmap::IndexMap;
@@ -239,21 +238,6 @@ fn parse_number(s: &str, number: &mut Option<Number>) -> Result<(), TryFromField
         .map_err(|_| TryFromFieldsError::InvalidValue(tag::NUMBER))
         .and_then(|value| {
             if number.replace(value).is_none() {
-                Ok(())
-            } else {
-                Err(TryFromFieldsError::DuplicateTag)
-            }
-        })
-}
-
-fn parse_type<T>(s: &str, ty: &mut Option<T>) -> Result<(), TryFromFieldsError>
-where
-    T: FromStr,
-{
-    s.parse()
-        .map_err(|_| TryFromFieldsError::InvalidValue(tag::TYPE))
-        .and_then(|value| {
-            if ty.replace(value).is_none() {
                 Ok(())
             } else {
                 Err(TryFromFieldsError::DuplicateTag)
