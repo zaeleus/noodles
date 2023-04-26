@@ -9,7 +9,7 @@ pub use self::{name::Name, tag::Tag};
 use std::fmt;
 
 use self::tag::StandardTag;
-use super::{Fields, Indexed, Inner, Map, TryFromFieldsError};
+use super::{Fields, Indexed, Inner, Map, OtherFields, TryFromFieldsError};
 
 /// An inner VCF header contig map value.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -167,12 +167,12 @@ impl TryFrom<Fields> for Map<Contig> {
     type Error = TryFromFieldsError;
 
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
-        let mut other_fields = super::init_other_fields();
-
         let mut length = None;
         let mut md5 = None;
         let mut url = None;
         let mut idx = None;
+
+        let mut other_fields = OtherFields::new();
 
         for (key, value) in fields {
             match Tag::from(key) {

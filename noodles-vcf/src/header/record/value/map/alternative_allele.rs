@@ -74,9 +74,8 @@ impl TryFrom<Fields> for Map<AlternativeAllele> {
     type Error = TryFromFieldsError;
 
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
-        let mut other_fields = super::init_other_fields();
-
         let mut description = None;
+        let mut other_fields = OtherFields::new();
 
         for (key, value) in fields {
             match Tag::from(key) {

@@ -2,7 +2,7 @@
 
 use std::fmt;
 
-use super::{builder, tag, Fields, Inner, Map, TryFromFieldsError};
+use super::{builder, tag, Fields, Inner, Map, OtherFields, TryFromFieldsError};
 
 type StandardTag = tag::Identity;
 
@@ -42,7 +42,7 @@ impl TryFrom<Fields> for Map<Other> {
     type Error = TryFromFieldsError;
 
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
-        let mut other_fields = super::init_other_fields();
+        let mut other_fields = OtherFields::new();
 
         for (key, value) in fields {
             match Tag::from(key) {
