@@ -46,7 +46,7 @@ impl TryFrom<Fields> for Map<Other> {
 
         for (key, value) in fields {
             match Tag::from(key) {
-                Tag::Standard(StandardTag::Id) => return Err(TryFromFieldsError::DuplicateTag),
+                tag::ID => return Err(TryFromFieldsError::DuplicateTag),
                 Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
             }
         }
