@@ -1,17 +1,15 @@
 //! Inner VCF header INFO map value.
 
 pub(crate) mod definition;
-mod tag;
+pub(crate) mod tag;
 mod ty;
 
 pub use self::{tag::Tag, ty::Type};
 
-use std::fmt;
+use std::{error, fmt, num};
 
 use self::tag::StandardTag;
-use super::{
-    builder, Described, Fields, Indexed, Inner, Map, OtherFields, TryFromFieldsError, Typed,
-};
+use super::{builder, Described, Fields, Indexed, Inner, Map, OtherFields, Typed};
 use crate::{
     header::{FileFormat, Number},
     record::info::field::Key,
@@ -142,8 +140,70 @@ impl From<(FileFormat, &Key)> for Map<Info> {
     }
 }
 
+/// An error returned when a raw INFO record fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// A field is missing.
+    MissingField(Tag),
+    /// A tag is duplicated.
+    DuplicateTag(Tag),
+    /// The ID is invalid.
+    InvalidId(crate::record::info::field::key::ParseError),
+    /// The number is invalid.
+    InvalidNumber(crate::header::number::ParseError),
+    /// The type is invalid.
+    InvalidType(ty::ParseError),
+    /// The IDX is invalid.
+    InvalidIdx(num::ParseIntError),
+    /// The number for the given ID does not match its reserved type definition.
+    NumberMismatch {
+        /// The actual number.
+        actual: Number,
+        /// The expected number.
+        expected: Number,
+    },
+    /// The type for the given ID does not match its reserved type definition.
+    TypeMismatch {
+        /// The actual type.
+        actual: Type,
+        /// The expected type.
+        expected: Type,
+    },
+}
+
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidId(e) => Some(e),
+            Self::InvalidNumber(e) => Some(e),
+            Self::InvalidType(e) => Some(e),
+            Self::InvalidIdx(e) => Some(e),
+            _ => None,
+        }
+    }
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::MissingField(tag) => write!(f, "missing field: {tag}"),
+            Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
+            Self::InvalidId(_) => write!(f, "invalid ID"),
+            Self::InvalidNumber(_) => write!(f, "invalid number"),
+            Self::InvalidType(_) => write!(f, "invalid type"),
+            Self::InvalidIdx(_) => write!(f, "invalid IDX"),
+            Self::NumberMismatch { actual, expected } => {
+                write!(f, "number mismatch: expected {expected}, got {actual}")
+            }
+            Self::TypeMismatch { actual, expected } => {
+                write!(f, "type mismatch: expected {expected}, got {actual}")
+            }
+        }
+    }
+}
+
 impl TryFrom<Fields> for Map<Info> {
-    type Error = TryFromFieldsError;
+    type Error = ParseError;
 
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
         Self::try_from((FileFormat::default(), fields))
@@ -151,7 +211,7 @@ impl TryFrom<Fields> for Map<Info> {
 }
 
 impl TryFrom<(FileFormat, Fields)> for Map<Info> {
-    type Error = TryFromFieldsError;
+    type Error = ParseError;
 
     fn try_from((_, fields): (FileFormat, Fields)) -> Result<Self, Self::Error> {
         let mut number = None;
@@ -163,18 +223,20 @@ impl TryFrom<(FileFormat, Fields)> for Map<Info> {
 
         for (key, value) in fields {
             match Tag::from(key) {
-                tag::ID => return Err(TryFromFieldsError::DuplicateTag),
-                tag::NUMBER => parse_number(&value).and_then(|v| try_replace(&mut number, v))?,
-                tag::TYPE => parse_type(&value).and_then(|v| try_replace(&mut ty, v))?,
-                tag::DESCRIPTION => try_replace(&mut description, value)?,
-                tag::IDX => parse_idx(&value).and_then(|v| try_replace(&mut idx, v))?,
+                tag::ID => return Err(ParseError::DuplicateTag(tag::ID)),
+                tag::NUMBER => {
+                    parse_number(&value).and_then(|v| try_replace(&mut number, tag::NUMBER, v))?
+                }
+                tag::TYPE => parse_type(&value).and_then(|v| try_replace(&mut ty, tag::TYPE, v))?,
+                tag::DESCRIPTION => try_replace(&mut description, tag::DESCRIPTION, value)?,
+                tag::IDX => parse_idx(&value).and_then(|v| try_replace(&mut idx, tag::IDX, v))?,
                 Tag::Other(t) => try_insert(&mut other_fields, t, value)?,
             }
         }
 
-        let number = number.ok_or(TryFromFieldsError::MissingField("Number"))?;
-        let ty = ty.ok_or(TryFromFieldsError::MissingField("Type"))?;
-        let description = description.ok_or(TryFromFieldsError::MissingField("Description"))?;
+        let number = number.ok_or(ParseError::MissingField(tag::NUMBER))?;
+        let ty = ty.ok_or(ParseError::MissingField(tag::TYPE))?;
+        let description = description.ok_or(ParseError::MissingField(tag::DESCRIPTION))?;
 
         Ok(Self {
             inner: Info {
@@ -188,38 +250,42 @@ impl TryFrom<(FileFormat, Fields)> for Map<Info> {
     }
 }
 
-fn parse_number(s: &str) -> Result<Number, TryFromFieldsError> {
-    s.parse()
-        .map_err(|_| TryFromFieldsError::InvalidValue("Number"))
+fn parse_number(s: &str) -> Result<Number, ParseError> {
+    s.parse().map_err(ParseError::InvalidNumber)
 }
 
-fn parse_type(s: &str) -> Result<Type, TryFromFieldsError> {
-    s.parse()
-        .map_err(|_| TryFromFieldsError::InvalidValue("Type"))
+fn parse_type(s: &str) -> Result<Type, ParseError> {
+    s.parse().map_err(ParseError::InvalidType)
 }
 
-fn parse_idx(s: &str) -> Result<usize, TryFromFieldsError> {
-    s.parse()
-        .map_err(|_| TryFromFieldsError::InvalidValue("IDX"))
+fn parse_idx(s: &str) -> Result<usize, ParseError> {
+    s.parse().map_err(ParseError::InvalidIdx)
 }
 
-fn try_replace<T>(option: &mut Option<T>, value: T) -> Result<(), TryFromFieldsError> {
+fn try_replace<T>(option: &mut Option<T>, tag: Tag, value: T) -> Result<(), ParseError> {
     if option.replace(value).is_none() {
         Ok(())
     } else {
-        Err(TryFromFieldsError::DuplicateTag)
+        Err(ParseError::DuplicateTag(tag))
     }
 }
 
 fn try_insert(
     other_fields: &mut OtherFields<StandardTag>,
-    key: super::tag::Other<StandardTag>,
+    tag: super::tag::Other<StandardTag>,
     value: String,
-) -> Result<(), TryFromFieldsError> {
-    if other_fields.insert(key, value).is_none() {
-        Ok(())
-    } else {
-        Err(TryFromFieldsError::DuplicateTag)
+) -> Result<(), ParseError> {
+    use indexmap::map::Entry;
+
+    match other_fields.entry(tag) {
+        Entry::Vacant(entry) => {
+            entry.insert(value);
+            Ok(())
+        }
+        Entry::Occupied(entry) => {
+            let (t, _) = entry.remove_entry();
+            Err(ParseError::DuplicateTag(Tag::Other(t)))
+        }
     }
 }
 
@@ -257,7 +323,7 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_fields_for_map_info() -> Result<(), TryFromFieldsError> {
+    fn test_try_from_fields_for_map_info() -> Result<(), ParseError> {
         let actual = Map::<Info>::try_from(vec![
             (String::from("Number"), String::from("1")),
             (String::from("Type"), String::from("Integer")),
@@ -284,7 +350,7 @@ mod tests {
                     String::from("Number of samples with data")
                 ),
             ]),
-            Err(TryFromFieldsError::MissingField("Number"))
+            Err(ParseError::MissingField(tag::NUMBER))
         );
 
         assert_eq!(
@@ -295,7 +361,7 @@ mod tests {
                     String::from("Number of samples with data")
                 ),
             ]),
-            Err(TryFromFieldsError::MissingField("Type"))
+            Err(ParseError::MissingField(tag::TYPE))
         );
 
         assert_eq!(
@@ -303,7 +369,7 @@ mod tests {
                 (String::from("Number"), String::from("1")),
                 (String::from("Type"), String::from("Integer")),
             ]),
-            Err(TryFromFieldsError::MissingField("Description"))
+            Err(ParseError::MissingField(tag::DESCRIPTION))
         );
     }
 }

@@ -54,7 +54,7 @@ pub enum ParseError {
     /// An INFO record is invalid.
     InvalidInfo(
         Option<crate::record::info::field::Key>,
-        map::TryFromFieldsError,
+        map::info::ParseError,
     ),
     /// A FILTER record is invalid.
     InvalidFilter(map::TryFromFieldsError),
@@ -78,8 +78,8 @@ impl error::Error for ParseError {
         match self {
             Self::Invalid => None,
             Self::InvalidFileFormat(e) => Some(e),
-            Self::InvalidInfo(_, e)
-            | Self::InvalidFilter(e)
+            Self::InvalidInfo(_, e) => Some(e),
+            Self::InvalidFilter(e)
             | Self::InvalidFormat(_, e)
             | Self::InvalidAlternativeAllele(e)
             | Self::InvalidContig(e)
@@ -150,9 +150,13 @@ impl TryFrom<(FileFormat, &str)> for Record {
                     let id: crate::record::info::field::Key = remove_field(&mut fields, ID)
                         .ok_or(ParseError::InvalidInfo(
                             None,
-                            map::TryFromFieldsError::MissingField(ID),
+                            map::info::ParseError::MissingField(map::info::tag::ID),
                         ))
-                        .and_then(|id| id.parse().map_err(|_| ParseError::Invalid))?;
+                        .and_then(|s| {
+                            s.parse().map_err(|e| {
+                                ParseError::InvalidInfo(None, map::info::ParseError::InvalidId(e))
+                            })
+                        })?;
 
                     let info = Map::<Info>::try_from((file_format, fields))
                         .map_err(|e| ParseError::InvalidInfo(Some(id.clone()), e))?;
@@ -316,17 +320,20 @@ fn validate_info_definition(
         if actual_number != expected_number {
             return Err(ParseError::InvalidInfo(
                 Some(id.clone()),
-                map::TryFromFieldsError::NumberMismatch(actual_number, expected_number),
+                map::info::ParseError::NumberMismatch {
+                    actual: actual_number,
+                    expected: expected_number,
+                },
             ));
         }
 
         if actual_type != expected_type {
             return Err(ParseError::InvalidInfo(
                 Some(id.clone()),
-                map::TryFromFieldsError::TypeMismatch(
-                    actual_type.to_string(),
-                    expected_type.to_string(),
-                ),
+                map::info::ParseError::TypeMismatch {
+                    actual: actual_type,
+                    expected: expected_type,
+                },
             ));
         }
     }
