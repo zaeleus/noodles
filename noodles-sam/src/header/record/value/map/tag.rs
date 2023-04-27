@@ -10,7 +10,7 @@ pub(crate) const LENGTH: usize = 2;
 
 pub trait Standard: AsRef<[u8; LENGTH]> + TryFrom<[u8; LENGTH]> {}
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Other<S>([u8; LENGTH], PhantomData<S>);
 
 impl<S> Borrow<[u8; LENGTH]> for Other<S> {
@@ -45,7 +45,7 @@ impl<S> fmt::Display for Other<S> {
 }
 
 /// A SAM header record map value field tag.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Tag<S> {
     /// A standard tag.
     Standard(S),
