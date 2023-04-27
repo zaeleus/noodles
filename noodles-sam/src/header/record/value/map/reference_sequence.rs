@@ -15,11 +15,11 @@ pub use self::{
     md5_checksum::Md5Checksum, molecule_topology::MoleculeTopology, name::Name,
 };
 
-use self::builder::Builder;
+use self::{
+    builder::Builder,
+    tag::{StandardTag, Tag},
+};
 use super::{Fields, Inner, Map, OtherFields, TryFromFieldsError};
-
-type StandardTag = tag::Standard;
-type Tag = super::tag::Tag<StandardTag>;
 
 /// A SAM header record reference sequence map value.
 ///
