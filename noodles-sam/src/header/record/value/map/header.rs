@@ -175,18 +175,18 @@ impl Map<Header> {
 
 impl fmt::Display for Map<Header> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "VN:{}", self.version())?;
+        write!(f, "{}:{}", tag::VERSION, self.version())?;
 
         if let Some(sort_order) = self.sort_order() {
-            write!(f, "\tSO:{sort_order}")?;
+            write!(f, "\t{}:{sort_order}", tag::SORT_ORDER)?;
         }
 
         if let Some(group_order) = self.group_order() {
-            write!(f, "\tGO:{group_order}")?;
+            write!(f, "\t{}:{group_order}", tag::GROUP_ORDER)?;
         }
 
         if let Some(subsort_order) = self.subsort_order() {
-            write!(f, "\tSS:{subsort_order}")?;
+            write!(f, "\t{}:{subsort_order}", tag::SUBSORT_ORDER)?;
         }
 
         super::fmt_display_other_fields(f, self.other_fields())?;
