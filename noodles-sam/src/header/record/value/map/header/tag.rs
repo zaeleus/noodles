@@ -1,6 +1,9 @@
 //! SAM header header tag.
 
-use crate::header::record::value::map::tag::{self, LENGTH};
+use crate::header::record::value::map::{self, tag::LENGTH};
+
+pub(super) type StandardTag = Standard;
+pub(super) type Tag = map::tag::Tag<StandardTag>;
 
 const VN: [u8; LENGTH] = [b'V', b'N'];
 const SO: [u8; LENGTH] = [b'S', b'O'];
@@ -20,7 +23,7 @@ pub enum Standard {
     SubsortOrder,
 }
 
-impl tag::Standard for Standard {}
+impl map::tag::Standard for Standard {}
 
 impl AsRef<[u8; LENGTH]> for Standard {
     fn as_ref(&self) -> &[u8; LENGTH] {

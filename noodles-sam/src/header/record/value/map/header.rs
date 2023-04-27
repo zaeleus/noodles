@@ -13,11 +13,11 @@ pub use self::{
 
 use std::fmt;
 
-use self::builder::Builder;
+use self::{
+    builder::Builder,
+    tag::{StandardTag, Tag},
+};
 use super::{Fields, Inner, Map, OtherFields, TryFromFieldsError};
-
-type StandardTag = tag::Standard;
-type Tag = super::tag::Tag<StandardTag>;
 
 /// A SAM header record header map value.
 ///
