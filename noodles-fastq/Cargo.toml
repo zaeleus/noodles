@@ -1,6 +1,6 @@
 [package]
 name = "noodles-fastq"
-version = "0.6.0"
+version = "0.7.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
