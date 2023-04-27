@@ -98,23 +98,23 @@ impl Map<Program> {
 impl fmt::Display for Map<Program> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(name) = self.name() {
-            write!(f, "\tPN:{name}")?;
+            write!(f, "\t{}:{name}", tag::NAME)?;
         }
 
         if let Some(command_line) = self.command_line() {
-            write!(f, "\tCL:{command_line}")?;
+            write!(f, "\t{}:{command_line}", tag::COMMAND_LINE)?;
         }
 
         if let Some(previous_id) = self.previous_id() {
-            write!(f, "\tPP:{previous_id}")?;
+            write!(f, "\t{}:{previous_id}", tag::PREVIOUS_ID)?;
         }
 
         if let Some(description) = self.description() {
-            write!(f, "\tDS:{description}")?;
+            write!(f, "\t{}:{description}", tag::DESCRIPTION)?;
         }
 
         if let Some(version) = self.version() {
-            write!(f, "\tVN:{version}")?;
+            write!(f, "\t{}:{version}", tag::VERSION)?;
         }
 
         super::fmt_display_other_fields(f, self.other_fields())?;
@@ -139,12 +139,12 @@ impl TryFrom<Fields> for Map<Program> {
             let tag = key.parse().map_err(|_| TryFromFieldsError::InvalidTag)?;
 
             match tag {
-                Tag::Standard(StandardTag::Id) => return Err(TryFromFieldsError::DuplicateTag),
-                Tag::Standard(StandardTag::Name) => name = Some(value),
-                Tag::Standard(StandardTag::CommandLine) => command_line = Some(value),
-                Tag::Standard(StandardTag::PreviousId) => previous_id = Some(value),
-                Tag::Standard(StandardTag::Description) => description = Some(value),
-                Tag::Standard(StandardTag::Version) => version = Some(value),
+                tag::ID => return Err(TryFromFieldsError::DuplicateTag),
+                tag::NAME => name = Some(value),
+                tag::COMMAND_LINE => command_line = Some(value),
+                tag::PREVIOUS_ID => previous_id = Some(value),
+                tag::DESCRIPTION => description = Some(value),
+                tag::VERSION => version = Some(value),
                 Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
             }
         }

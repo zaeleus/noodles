@@ -5,7 +5,14 @@ use crate::header::record::value::map::{self, tag::LENGTH};
 pub(super) type StandardTag = Standard;
 pub(super) type Tag = map::tag::Tag<StandardTag>;
 
-const ID: [u8; LENGTH] = [b'I', b'D'];
+pub(super) const ID: Tag = map::tag::Tag::Standard(Standard::Id);
+pub(super) const NAME: Tag = map::tag::Tag::Standard(Standard::Name);
+pub(super) const COMMAND_LINE: Tag = map::tag::Tag::Standard(Standard::CommandLine);
+pub(super) const PREVIOUS_ID: Tag = map::tag::Tag::Standard(Standard::PreviousId);
+pub(super) const DESCRIPTION: Tag = map::tag::Tag::Standard(Standard::Description);
+pub(super) const VERSION: Tag = map::tag::Tag::Standard(Standard::Version);
+
+const ID_VALUE: [u8; LENGTH] = [b'I', b'D'];
 const PN: [u8; LENGTH] = [b'P', b'N'];
 const CL: [u8; LENGTH] = [b'C', b'L'];
 const PP: [u8; LENGTH] = [b'P', b'P'];
@@ -34,7 +41,7 @@ impl map::tag::Standard for Standard {}
 impl AsRef<[u8; LENGTH]> for Standard {
     fn as_ref(&self) -> &[u8; LENGTH] {
         match self {
-            Standard::Id => &ID,
+            Standard::Id => &ID_VALUE,
             Standard::Name => &PN,
             Standard::CommandLine => &CL,
             Standard::PreviousId => &PP,
@@ -49,7 +56,7 @@ impl TryFrom<[u8; LENGTH]> for Standard {
 
     fn try_from(b: [u8; LENGTH]) -> Result<Self, Self::Error> {
         match b {
-            ID => Ok(Self::Id),
+            ID_VALUE => Ok(Self::Id),
             PN => Ok(Self::Name),
             CL => Ok(Self::CommandLine),
             PP => Ok(Self::PreviousId),
@@ -63,7 +70,7 @@ impl TryFrom<[u8; LENGTH]> for Standard {
 impl From<Standard> for [u8; LENGTH] {
     fn from(tag: Standard) -> Self {
         match tag {
-            Standard::Id => ID,
+            Standard::Id => ID_VALUE,
             Standard::Name => PN,
             Standard::CommandLine => CL,
             Standard::PreviousId => PP,
