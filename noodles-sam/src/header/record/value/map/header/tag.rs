@@ -5,6 +5,11 @@ use crate::header::record::value::map::{self, tag::LENGTH};
 pub(super) type StandardTag = Standard;
 pub(super) type Tag = map::tag::Tag<StandardTag>;
 
+pub(super) const VERSION: Tag = map::tag::Tag::Standard(Standard::Version);
+pub(super) const SORT_ORDER: Tag = map::tag::Tag::Standard(Standard::SortOrder);
+pub(super) const GROUP_ORDER: Tag = map::tag::Tag::Standard(Standard::GroupOrder);
+pub(super) const SUBSORT_ORDER: Tag = map::tag::Tag::Standard(Standard::SubsortOrder);
+
 const VN: [u8; LENGTH] = [b'V', b'N'];
 const SO: [u8; LENGTH] = [b'S', b'O'];
 const GO: [u8; LENGTH] = [b'G', b'O'];

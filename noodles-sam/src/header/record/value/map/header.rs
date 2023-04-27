@@ -210,25 +210,25 @@ impl TryFrom<Fields> for Map<Header> {
             let tag = key.parse().map_err(|_| TryFromFieldsError::InvalidTag)?;
 
             match tag {
-                Tag::Standard(StandardTag::Version) => {
+                tag::VERSION => {
                     version = value
                         .parse()
                         .map(Some)
                         .map_err(|_| TryFromFieldsError::InvalidValue("VN"))?;
                 }
-                Tag::Standard(StandardTag::SortOrder) => {
+                tag::SORT_ORDER => {
                     sort_order = value
                         .parse()
                         .map(Some)
                         .map_err(|_| TryFromFieldsError::InvalidValue("SO"))?;
                 }
-                Tag::Standard(StandardTag::GroupOrder) => {
+                tag::GROUP_ORDER => {
                     group_order = value
                         .parse()
                         .map(Some)
                         .map_err(|_| TryFromFieldsError::InvalidValue("GO"))?;
                 }
-                Tag::Standard(StandardTag::SubsortOrder) => {
+                tag::SUBSORT_ORDER => {
                     subsort_order = value
                         .parse()
                         .map(Some)
