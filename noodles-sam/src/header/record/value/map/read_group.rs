@@ -8,11 +8,11 @@ pub use self::platform::Platform;
 
 use std::fmt;
 
-use self::builder::Builder;
+use self::{
+    builder::Builder,
+    tag::{StandardTag, Tag},
+};
 use super::{Fields, Inner, Map, TryFromFieldsError};
-
-type StandardTag = tag::Standard;
-type Tag = super::tag::Tag<StandardTag>;
 
 /// A SAM header record read group map value.
 ///

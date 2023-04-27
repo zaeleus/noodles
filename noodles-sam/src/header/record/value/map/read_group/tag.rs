@@ -1,6 +1,9 @@
 //! SAM header read group tag.
 
-use crate::header::record::value::map::tag::{self, LENGTH};
+use crate::header::record::value::map::{self, tag::LENGTH};
+
+pub(super) type StandardTag = Standard;
+pub(super) type Tag = map::tag::Tag<StandardTag>;
 
 const ID: [u8; LENGTH] = [b'I', b'D'];
 const BC: [u8; LENGTH] = [b'B', b'C'];
@@ -50,7 +53,7 @@ pub enum Standard {
     Sample,
 }
 
-impl tag::Standard for Standard {}
+impl map::tag::Standard for Standard {}
 
 impl AsRef<[u8; LENGTH]> for Standard {
     fn as_ref(&self) -> &[u8; LENGTH] {
