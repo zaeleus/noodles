@@ -6,6 +6,8 @@
 
   * sam/header/record/value/map/tag: Implement `Copy` + `Display` for `Tag<S>`.
 
+  * sam/header/record/value/map/tag: Add a parse error (`ParseError`).
+
 ## 0.27.0 - 2023-04-27
 
 ### Added

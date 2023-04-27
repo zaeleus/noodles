@@ -1,6 +1,6 @@
 use std::{
     borrow::Borrow,
-    fmt,
+    error, fmt,
     hash::{Hash, Hasher},
     marker::PhantomData,
     str::FromStr,
@@ -85,19 +85,51 @@ where
     }
 }
 
+/// An error returned when a raw SAM header map tag fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+    /// The input is not two bytes.
+    LengthMismatch { actual: usize },
+    /// The input is invalid.
+    Invalid,
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Empty => write!(f, "empty input"),
+            Self::LengthMismatch { actual } => {
+                write!(f, "length mismatch: expected {LENGTH}, got {actual}")
+            }
+            Self::Invalid => write!(f, "invalid input"),
+        }
+    }
+}
+
 impl<S> FromStr for Tag<S>
 where
     S: Standard,
 {
-    type Err = ();
+    type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let b: [u8; 2] = s.as_bytes().try_into().map_err(|_| ())?;
-
-        if is_valid_tag(b) {
-            Ok(Self::from(b))
+        if s.is_empty() {
+            Err(ParseError::Empty)
+        } else if s.len() != 2 {
+            Err(ParseError::LengthMismatch { actual: s.len() })
         } else {
-            Err(())
+            // SAFETY: `s` is 2 bytes.
+            let raw_tag = s.as_bytes().try_into().unwrap();
+
+            if is_valid_tag(raw_tag) {
+                Ok(Self::from(raw_tag))
+            } else {
+                Err(ParseError::Invalid)
+            }
         }
     }
 }
@@ -114,6 +146,7 @@ mod tests {
     fn test_from_str_for_tag() {
         const ID: [u8; LENGTH] = [b'I', b'D'];
 
+        #[derive(Debug, Eq, PartialEq)]
         enum TestTag {
             Id,
         }
@@ -137,14 +170,20 @@ mod tests {
             }
         }
 
-        assert!(matches!("ID".parse(), Ok(Tag::Standard(TestTag::Id))));
-        assert!(matches!(
+        assert_eq!("ID".parse(), Ok(Tag::Standard(TestTag::Id)));
+        assert_eq!(
             "VN".parse(),
             Ok(Tag::<TestTag>::Other(Other([b'V', b'N'], PhantomData)))
-        ));
+        );
 
-        assert!("V".parse::<Tag<TestTag>>().is_err());
-        assert!("0V".parse::<Tag<TestTag>>().is_err());
-        assert!("VER".parse::<Tag<TestTag>>().is_err());
+        assert_eq!(
+            "V".parse::<Tag<TestTag>>(),
+            Err(ParseError::LengthMismatch { actual: 1 })
+        );
+        assert_eq!("0V".parse::<Tag<TestTag>>(), Err(ParseError::Invalid));
+        assert_eq!(
+            "VER".parse::<Tag<TestTag>>(),
+            Err(ParseError::LengthMismatch { actual: 3 })
+        );
     }
 }
