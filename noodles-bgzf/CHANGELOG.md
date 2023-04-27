@@ -4,8 +4,7 @@
 
 ### Added
 
-  * bgzf/indexed_reader: Add getter for index
-    (`IndexedReader::index`).
+  * bgzf/indexed_reader: Add getter for index (`IndexedReader::index`).
 
 ### Changed
 
