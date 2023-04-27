@@ -257,38 +257,38 @@ impl Map<ReferenceSequence> {
 
 impl fmt::Display for Map<ReferenceSequence> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "\tLN:{}", self.length())?;
+        write!(f, "\t{}:{}", tag::LENGTH, self.length())?;
 
         if let Some(alternative_locus) = self.alternative_locus() {
-            write!(f, "\tAH:{alternative_locus}")?;
+            write!(f, "\t{}:{alternative_locus}", tag::ALTERNATIVE_LOCUS)?;
         }
 
         if let Some(alternative_names) = self.alternative_names() {
-            write!(f, "\tAN:{alternative_names}")?;
+            write!(f, "\t{}:{alternative_names}", tag::ALTERNATIVE_NAMES)?;
         }
 
         if let Some(assembly_id) = self.assembly_id() {
-            write!(f, "\tAS:{assembly_id}")?;
+            write!(f, "\t{}:{assembly_id}", tag::ASSEMBLY_ID)?;
         }
 
         if let Some(description) = self.description() {
-            write!(f, "\tDS:{description}")?;
+            write!(f, "\t{}:{description}", tag::DESCRIPTION)?;
         }
 
         if let Some(md5_checksum) = self.md5_checksum() {
-            write!(f, "\tM5:{md5_checksum}")?;
+            write!(f, "\t{}:{md5_checksum}", tag::MD5_CHECKSUM)?;
         }
 
         if let Some(species) = self.species() {
-            write!(f, "\tSP:{species}")?;
+            write!(f, "\t{}:{species}", tag::SPECIES)?;
         }
 
         if let Some(molecule_topology) = self.molecule_topology() {
-            write!(f, "\tTP:{molecule_topology}")?;
+            write!(f, "\t{}:{molecule_topology}", tag::MOLECULE_TOPOLOGY)?;
         }
 
         if let Some(uri) = self.uri() {
-            write!(f, "\tUR:{uri}")?;
+            write!(f, "\t{}:{uri}", tag::URI)?;
         }
 
         super::fmt_display_other_fields(f, self.other_fields())?;
@@ -317,41 +317,41 @@ impl TryFrom<Fields> for Map<ReferenceSequence> {
             let tag = key.parse().map_err(|_| TryFromFieldsError::InvalidTag)?;
 
             match tag {
-                Tag::Standard(StandardTag::Name) => return Err(TryFromFieldsError::DuplicateTag),
-                Tag::Standard(StandardTag::Length) => {
+                tag::NAME => return Err(TryFromFieldsError::DuplicateTag),
+                tag::LENGTH => {
                     length = value
                         .parse()
                         .map(Some)
                         .map_err(|_| TryFromFieldsError::InvalidValue("LN"))?;
                 }
-                Tag::Standard(StandardTag::AlternativeLocus) => {
+                tag::ALTERNATIVE_LOCUS => {
                     alternative_locus = value
                         .parse()
                         .map(Some)
                         .map_err(|_| TryFromFieldsError::InvalidValue("AH"))?;
                 }
-                Tag::Standard(StandardTag::AlternativeNames) => {
+                tag::ALTERNATIVE_NAMES => {
                     alternative_names = value
                         .parse()
                         .map(Some)
                         .map_err(|_| TryFromFieldsError::InvalidValue("AN"))?;
                 }
-                Tag::Standard(StandardTag::AssemblyId) => assembly_id = Some(value),
-                Tag::Standard(StandardTag::Description) => description = Some(value),
-                Tag::Standard(StandardTag::Md5Checksum) => {
+                tag::ASSEMBLY_ID => assembly_id = Some(value),
+                tag::DESCRIPTION => description = Some(value),
+                tag::MD5_CHECKSUM => {
                     md5_checksum = value
                         .parse()
                         .map(Some)
                         .map_err(|_| TryFromFieldsError::InvalidValue("M5"))?;
                 }
-                Tag::Standard(StandardTag::Species) => species = Some(value),
-                Tag::Standard(StandardTag::MoleculeTopology) => {
+                tag::SPECIES => species = Some(value),
+                tag::MOLECULE_TOPOLOGY => {
                     molecule_topology = value
                         .parse()
                         .map(Some)
                         .map_err(|_| TryFromFieldsError::InvalidValue("TP"))?;
                 }
-                Tag::Standard(StandardTag::Uri) => uri = Some(value),
+                tag::URI => uri = Some(value),
                 Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
             }
         }

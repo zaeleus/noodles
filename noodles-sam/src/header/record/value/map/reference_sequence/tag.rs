@@ -1,20 +1,31 @@
 //! SAM header reference sequence tag.
 
-use crate::header::record::value::map::{self, tag::LENGTH};
+use crate::header::record::value::map::{self, tag};
 
 pub(super) type StandardTag = Standard;
 pub(super) type Tag = map::tag::Tag<StandardTag>;
 
-const SN: [u8; LENGTH] = [b'S', b'N'];
-const LN: [u8; LENGTH] = [b'L', b'N'];
-const AH: [u8; LENGTH] = [b'A', b'H'];
-const AN: [u8; LENGTH] = [b'A', b'N'];
-const AS: [u8; LENGTH] = [b'A', b'S'];
-const DS: [u8; LENGTH] = [b'D', b'S'];
-const M5: [u8; LENGTH] = [b'M', b'5'];
-const SP: [u8; LENGTH] = [b'S', b'P'];
-const TP: [u8; LENGTH] = [b'T', b'P'];
-const UR: [u8; LENGTH] = [b'U', b'R'];
+pub(super) const NAME: Tag = map::tag::Tag::Standard(Standard::Name);
+pub(super) const LENGTH: Tag = map::tag::Tag::Standard(Standard::Length);
+pub(super) const ALTERNATIVE_LOCUS: Tag = map::tag::Tag::Standard(Standard::AlternativeLocus);
+pub(super) const ALTERNATIVE_NAMES: Tag = map::tag::Tag::Standard(Standard::AlternativeNames);
+pub(super) const ASSEMBLY_ID: Tag = map::tag::Tag::Standard(Standard::AssemblyId);
+pub(super) const DESCRIPTION: Tag = map::tag::Tag::Standard(Standard::Description);
+pub(super) const MD5_CHECKSUM: Tag = map::tag::Tag::Standard(Standard::Md5Checksum);
+pub(super) const SPECIES: Tag = map::tag::Tag::Standard(Standard::Species);
+pub(super) const MOLECULE_TOPOLOGY: Tag = map::tag::Tag::Standard(Standard::MoleculeTopology);
+pub(super) const URI: Tag = map::tag::Tag::Standard(Standard::Uri);
+
+const SN: [u8; tag::LENGTH] = [b'S', b'N'];
+const LN: [u8; tag::LENGTH] = [b'L', b'N'];
+const AH: [u8; tag::LENGTH] = [b'A', b'H'];
+const AN: [u8; tag::LENGTH] = [b'A', b'N'];
+const AS: [u8; tag::LENGTH] = [b'A', b'S'];
+const DS: [u8; tag::LENGTH] = [b'D', b'S'];
+const M5: [u8; tag::LENGTH] = [b'M', b'5'];
+const SP: [u8; tag::LENGTH] = [b'S', b'P'];
+const TP: [u8; tag::LENGTH] = [b'T', b'P'];
+const UR: [u8; tag::LENGTH] = [b'U', b'R'];
 
 /// A SAM header reference sequence tag.
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
@@ -43,8 +54,8 @@ pub enum Standard {
 
 impl map::tag::Standard for Standard {}
 
-impl AsRef<[u8; LENGTH]> for Standard {
-    fn as_ref(&self) -> &[u8; LENGTH] {
+impl AsRef<[u8; tag::LENGTH]> for Standard {
+    fn as_ref(&self) -> &[u8; tag::LENGTH] {
         match self {
             Standard::Name => &SN,
             Standard::Length => &LN,
@@ -60,10 +71,10 @@ impl AsRef<[u8; LENGTH]> for Standard {
     }
 }
 
-impl TryFrom<[u8; LENGTH]> for Standard {
+impl TryFrom<[u8; tag::LENGTH]> for Standard {
     type Error = ();
 
-    fn try_from(b: [u8; LENGTH]) -> Result<Self, Self::Error> {
+    fn try_from(b: [u8; tag::LENGTH]) -> Result<Self, Self::Error> {
         match b {
             SN => Ok(Self::Name),
             LN => Ok(Self::Length),
@@ -80,7 +91,7 @@ impl TryFrom<[u8; LENGTH]> for Standard {
     }
 }
 
-impl From<Standard> for [u8; LENGTH] {
+impl From<Standard> for [u8; tag::LENGTH] {
     fn from(tag: Standard) -> Self {
         match tag {
             Standard::Name => SN,
@@ -142,24 +153,33 @@ mod tests {
 
     #[test]
     fn test_from_standard_for_u8_2_array() {
-        assert_eq!(<[u8; LENGTH]>::from(Standard::Name), [b'S', b'N']);
-        assert_eq!(<[u8; LENGTH]>::from(Standard::Length), [b'L', b'N']);
+        assert_eq!(<[u8; tag::LENGTH]>::from(Standard::Name), [b'S', b'N']);
+        assert_eq!(<[u8; tag::LENGTH]>::from(Standard::Length), [b'L', b'N']);
         assert_eq!(
-            <[u8; LENGTH]>::from(Standard::AlternativeLocus),
+            <[u8; tag::LENGTH]>::from(Standard::AlternativeLocus),
             [b'A', b'H']
         );
         assert_eq!(
-            <[u8; LENGTH]>::from(Standard::AlternativeNames),
+            <[u8; tag::LENGTH]>::from(Standard::AlternativeNames),
             [b'A', b'N']
         );
-        assert_eq!(<[u8; LENGTH]>::from(Standard::AssemblyId), [b'A', b'S']);
-        assert_eq!(<[u8; LENGTH]>::from(Standard::Description), [b'D', b'S']);
-        assert_eq!(<[u8; LENGTH]>::from(Standard::Md5Checksum), [b'M', b'5']);
-        assert_eq!(<[u8; LENGTH]>::from(Standard::Species), [b'S', b'P']);
         assert_eq!(
-            <[u8; LENGTH]>::from(Standard::MoleculeTopology),
+            <[u8; tag::LENGTH]>::from(Standard::AssemblyId),
+            [b'A', b'S']
+        );
+        assert_eq!(
+            <[u8; tag::LENGTH]>::from(Standard::Description),
+            [b'D', b'S']
+        );
+        assert_eq!(
+            <[u8; tag::LENGTH]>::from(Standard::Md5Checksum),
+            [b'M', b'5']
+        );
+        assert_eq!(<[u8; tag::LENGTH]>::from(Standard::Species), [b'S', b'P']);
+        assert_eq!(
+            <[u8; tag::LENGTH]>::from(Standard::MoleculeTopology),
             [b'T', b'P']
         );
-        assert_eq!(<[u8; LENGTH]>::from(Standard::Uri), [b'U', b'R']);
+        assert_eq!(<[u8; tag::LENGTH]>::from(Standard::Uri), [b'U', b'R']);
     }
 }
