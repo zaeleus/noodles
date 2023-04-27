@@ -5,7 +5,23 @@ use crate::header::record::value::map::{self, tag::LENGTH};
 pub(super) type StandardTag = Standard;
 pub(super) type Tag = map::tag::Tag<StandardTag>;
 
-const ID: [u8; LENGTH] = [b'I', b'D'];
+pub(super) const ID: Tag = map::tag::Tag::Standard(Standard::Id);
+pub(super) const BARCODE: Tag = map::tag::Tag::Standard(Standard::Barcode);
+pub(super) const SEQUENCING_CENTER: Tag = map::tag::Tag::Standard(Standard::SequencingCenter);
+pub(super) const DESCRIPTION: Tag = map::tag::Tag::Standard(Standard::Description);
+pub(super) const PRODUCED_AT: Tag = map::tag::Tag::Standard(Standard::ProducedAt);
+pub(super) const FLOW_ORDER: Tag = map::tag::Tag::Standard(Standard::FlowOrder);
+pub(super) const KEY_SEQUENCE: Tag = map::tag::Tag::Standard(Standard::KeySequence);
+pub(super) const LIBRARY: Tag = map::tag::Tag::Standard(Standard::Library);
+pub(super) const PROGRAM: Tag = map::tag::Tag::Standard(Standard::Program);
+pub(super) const PREDICTED_MEDIAN_INSERT_SIZE: Tag =
+    map::tag::Tag::Standard(Standard::PredictedMedianInsertSize);
+pub(super) const PLATFORM: Tag = map::tag::Tag::Standard(Standard::Platform);
+pub(super) const PLATFORM_MODEL: Tag = map::tag::Tag::Standard(Standard::PlatformModel);
+pub(super) const PLATFORM_UNIT: Tag = map::tag::Tag::Standard(Standard::PlatformUnit);
+pub(super) const SAMPLE: Tag = map::tag::Tag::Standard(Standard::Sample);
+
+const ID_VALUE: [u8; LENGTH] = [b'I', b'D'];
 const BC: [u8; LENGTH] = [b'B', b'C'];
 const CN: [u8; LENGTH] = [b'C', b'N'];
 const DS: [u8; LENGTH] = [b'D', b'S'];
@@ -58,7 +74,7 @@ impl map::tag::Standard for Standard {}
 impl AsRef<[u8; LENGTH]> for Standard {
     fn as_ref(&self) -> &[u8; LENGTH] {
         match self {
-            Standard::Id => &ID,
+            Standard::Id => &ID_VALUE,
             Standard::Barcode => &BC,
             Standard::SequencingCenter => &CN,
             Standard::Description => &DS,
@@ -81,7 +97,7 @@ impl TryFrom<[u8; LENGTH]> for Standard {
 
     fn try_from(b: [u8; LENGTH]) -> Result<Self, Self::Error> {
         match b {
-            ID => Ok(Self::Id),
+            ID_VALUE => Ok(Self::Id),
             BC => Ok(Self::Barcode),
             CN => Ok(Self::SequencingCenter),
             DS => Ok(Self::Description),
@@ -103,7 +119,7 @@ impl TryFrom<[u8; LENGTH]> for Standard {
 impl From<Standard> for [u8; LENGTH] {
     fn from(tag: Standard) -> Self {
         match tag {
-            Standard::Id => ID,
+            Standard::Id => ID_VALUE,
             Standard::Barcode => BC,
             Standard::SequencingCenter => CN,
             Standard::Description => DS,

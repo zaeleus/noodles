@@ -214,55 +214,59 @@ impl Map<ReadGroup> {
 impl fmt::Display for Map<ReadGroup> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(barcode) = self.barcode() {
-            write!(f, "\tBC:{barcode}")?;
+            write!(f, "\t{}:{barcode}", tag::BARCODE)?;
         }
 
         if let Some(sequencing_center) = self.sequencing_center() {
-            write!(f, "\tCN:{sequencing_center}")?;
+            write!(f, "\t{}:{sequencing_center}", tag::SEQUENCING_CENTER)?;
         }
 
         if let Some(description) = self.description() {
-            write!(f, "\tDS:{description}")?;
+            write!(f, "\t{}:{description}", tag::DESCRIPTION)?;
         }
 
         if let Some(produced_at) = self.produced_at() {
-            write!(f, "\tDT:{produced_at}")?;
+            write!(f, "\t{}:{produced_at}", tag::PRODUCED_AT)?;
         }
 
         if let Some(flow_order) = self.flow_order() {
-            write!(f, "\tFO:{flow_order}")?;
+            write!(f, "\t{}:{flow_order}", tag::FLOW_ORDER)?;
         }
 
         if let Some(key_sequence) = self.key_sequence() {
-            write!(f, "\tKS:{key_sequence}")?;
+            write!(f, "\t{}:{key_sequence}", tag::KEY_SEQUENCE)?;
         }
 
         if let Some(library) = self.library() {
-            write!(f, "\tLB:{library}")?;
+            write!(f, "\t{}:{library}", tag::LIBRARY)?;
         }
 
         if let Some(program) = self.program() {
-            write!(f, "\tPG:{program}")?;
+            write!(f, "\t{}:{program}", tag::PROGRAM)?;
         }
 
         if let Some(predicted_median_insert_size) = self.predicted_median_insert_size() {
-            write!(f, "\tPI:{predicted_median_insert_size}")?;
+            write!(
+                f,
+                "\t{}:{predicted_median_insert_size}",
+                tag::PREDICTED_MEDIAN_INSERT_SIZE
+            )?;
         }
 
         if let Some(platform) = self.platform() {
-            write!(f, "\tPL:{platform}")?;
+            write!(f, "\t{}:{platform}", tag::PLATFORM)?;
         }
 
         if let Some(platform_model) = self.platform_model() {
-            write!(f, "\tPM:{platform_model}")?;
+            write!(f, "\t{}:{platform_model}", tag::PLATFORM_MODEL)?;
         }
 
         if let Some(platform_unit) = self.platform_unit() {
-            write!(f, "\tPU:{platform_unit}")?;
+            write!(f, "\t{}:{platform_unit}", tag::PLATFORM_UNIT)?;
         }
 
         if let Some(sample) = self.sample() {
-            write!(f, "\tSM:{sample}")?;
+            write!(f, "\t{}:{sample}", tag::SAMPLE)?;
         }
 
         super::fmt_display_other_fields(f, self.other_fields())?;
@@ -295,30 +299,30 @@ impl TryFrom<Fields> for Map<ReadGroup> {
             let tag = key.parse().map_err(|_| TryFromFieldsError::InvalidTag)?;
 
             match tag {
-                Tag::Standard(StandardTag::Id) => return Err(TryFromFieldsError::DuplicateTag),
-                Tag::Standard(StandardTag::Barcode) => barcode = Some(value),
-                Tag::Standard(StandardTag::SequencingCenter) => sequencing_center = Some(value),
-                Tag::Standard(StandardTag::Description) => description = Some(value),
-                Tag::Standard(StandardTag::ProducedAt) => produced_at = Some(value),
-                Tag::Standard(StandardTag::FlowOrder) => flow_order = Some(value),
-                Tag::Standard(StandardTag::KeySequence) => key_sequence = Some(value),
-                Tag::Standard(StandardTag::Library) => library = Some(value),
-                Tag::Standard(StandardTag::Program) => program = Some(value),
-                Tag::Standard(StandardTag::PredictedMedianInsertSize) => {
+                tag::ID => return Err(TryFromFieldsError::DuplicateTag),
+                tag::BARCODE => barcode = Some(value),
+                tag::SEQUENCING_CENTER => sequencing_center = Some(value),
+                tag::DESCRIPTION => description = Some(value),
+                tag::PRODUCED_AT => produced_at = Some(value),
+                tag::FLOW_ORDER => flow_order = Some(value),
+                tag::KEY_SEQUENCE => key_sequence = Some(value),
+                tag::LIBRARY => library = Some(value),
+                tag::PROGRAM => program = Some(value),
+                tag::PREDICTED_MEDIAN_INSERT_SIZE => {
                     predicted_median_insert_size = value
                         .parse()
                         .map(Some)
                         .map_err(|_| TryFromFieldsError::InvalidValue("PI"))?;
                 }
-                Tag::Standard(StandardTag::Platform) => {
+                tag::PLATFORM => {
                     platform = value
                         .parse()
                         .map(Some)
                         .map_err(|_| TryFromFieldsError::InvalidValue("PL"))?;
                 }
-                Tag::Standard(StandardTag::PlatformModel) => platform_model = Some(value),
-                Tag::Standard(StandardTag::PlatformUnit) => platform_unit = Some(value),
-                Tag::Standard(StandardTag::Sample) => sample = Some(value),
+                tag::PLATFORM_MODEL => platform_model = Some(value),
+                tag::PLATFORM_UNIT => platform_unit = Some(value),
+                tag::SAMPLE => sample = Some(value),
                 Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
             }
         }
