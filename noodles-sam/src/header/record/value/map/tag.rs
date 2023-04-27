@@ -53,6 +53,26 @@ pub enum Tag<S> {
     Other(Other<S>),
 }
 
+impl<S> fmt::Display for Tag<S>
+where
+    S: Standard,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Standard(tag) => {
+                let b = tag.as_ref();
+                char::from(b[0]).fmt(f)?;
+                char::from(b[1]).fmt(f)?;
+            }
+            Self::Other(tag) => {
+                tag.fmt(f)?;
+            }
+        }
+
+        Ok(())
+    }
+}
+
 impl<S> From<[u8; LENGTH]> for Tag<S>
 where
     S: Standard,
