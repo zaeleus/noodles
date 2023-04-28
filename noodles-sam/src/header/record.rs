@@ -73,7 +73,7 @@ impl fmt::Display for ParseError {
             Self::InvalidKind(_) => f.write_str("invalid kind"),
             Self::InvalidField => write!(f, "invalid field"),
             Self::InvalidValue => write!(f, "invalid value"),
-            Self::InvalidHeader(_) => f.write_str("invalid header"),
+            Self::InvalidHeader(_) => f.write_str("invalid header (HD) record"),
             Self::InvalidReferenceSequence(name, _) => {
                 write!(f, "invalid reference sequence (SQ) record")?;
 
