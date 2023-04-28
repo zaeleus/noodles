@@ -145,7 +145,7 @@ impl TryFrom<Fields> for Map<Program> {
                 tag::PREVIOUS_ID => previous_id = Some(value),
                 tag::DESCRIPTION => description = Some(value),
                 tag::VERSION => version = Some(value),
-                Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
+                Tag::Other(t) => try_insert(&mut other_fields, t, value)?,
             }
         }
 
@@ -159,6 +159,22 @@ impl TryFrom<Fields> for Map<Program> {
             },
             other_fields,
         })
+    }
+}
+
+fn try_insert(
+    other_fields: &mut OtherFields<StandardTag>,
+    tag: super::tag::Other<StandardTag>,
+    value: String,
+) -> Result<(), TryFromFieldsError> {
+    use indexmap::map::Entry;
+
+    match other_fields.entry(tag) {
+        Entry::Vacant(entry) => {
+            entry.insert(value);
+            Ok(())
+        }
+        Entry::Occupied(_) => Err(TryFromFieldsError::DuplicateTag),
     }
 }
 

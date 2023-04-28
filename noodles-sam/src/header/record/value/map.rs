@@ -103,15 +103,3 @@ fn fmt_display_other_fields<S>(
 
     Ok(())
 }
-
-fn insert_other_field<S>(
-    other_fields: &mut OtherFields<S>,
-    key: tag::Other<S>,
-    value: String,
-) -> Result<(), TryFromFieldsError> {
-    if other_fields.insert(key, value).is_none() {
-        Ok(())
-    } else {
-        Err(TryFromFieldsError::DuplicateTag)
-    }
-}
