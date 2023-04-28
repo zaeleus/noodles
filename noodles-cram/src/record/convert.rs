@@ -61,7 +61,7 @@ impl Record {
         if !record.data().is_empty() {
             use sam::record::data::field::Tag;
             let mut data = record.data().clone();
-            data.remove(Tag::ReadGroup);
+            data.remove(&Tag::ReadGroup);
             builder = builder.set_tags(data);
         }
 
@@ -173,7 +173,7 @@ fn get_read_group_id(
 ) -> io::Result<Option<usize>> {
     use sam::record::data::field::Tag;
 
-    let rg_value = match data.get(Tag::ReadGroup) {
+    let rg_value = match data.get(&Tag::ReadGroup) {
         Some(value) => value,
         None => return Ok(None),
     };

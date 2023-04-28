@@ -8,7 +8,7 @@ use noodles_bam as bam;
 use noodles_sam::{alignment::Record, record::data::field::Tag};
 
 fn is_unique_record(record: &Record) -> io::Result<bool> {
-    match record.data().get(Tag::AlignmentHitCount) {
+    match record.data().get(&Tag::AlignmentHitCount) {
         Some(value) => value.as_int().map(|hits| hits == 1).ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidData,

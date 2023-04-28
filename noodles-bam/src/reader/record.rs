@@ -254,7 +254,7 @@ fn resolve_cigar(header: &sam::Header, record: &mut Record) -> io::Result<()> {
             let m = reference_sequence.length().get();
 
             if *op_0 == Op::new(Kind::SoftClip, k) && *op_1 == Op::new(Kind::Skip, m) {
-                if let Some((_, value)) = record.data_mut().remove(Tag::Cigar) {
+                if let Some((_, value)) = record.data_mut().remove(&Tag::Cigar) {
                     let data = value
                         .as_array()
                         .and_then(|array| match array {
@@ -384,7 +384,7 @@ mod tests {
         let expected = Cigar::try_from(vec![Op::new(op::Kind::Match, 4)])?;
 
         assert_eq!(record.cigar(), &expected);
-        assert!(record.data().get(Tag::Cigar).is_none());
+        assert!(record.data().get(&Tag::Cigar).is_none());
 
         Ok(())
     }

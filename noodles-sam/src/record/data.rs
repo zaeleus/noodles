@@ -74,11 +74,11 @@ impl Data {
     /// let (tag, value) = (Tag::AlignmentHitCount, Value::from(1));
     /// let data: Data = [(tag, value.clone())].into_iter().collect();
     ///
-    /// assert_eq!(data.get(tag), Some(&value));
-    /// assert!(data.get(Tag::ReadGroup).is_none());
+    /// assert_eq!(data.get(&tag), Some(&value));
+    /// assert!(data.get(&Tag::ReadGroup).is_none());
     /// ```
-    pub fn get(&self, tag: field::Tag) -> Option<&field::Value> {
-        self.fields.iter().find(|(t, _)| *t == tag).map(|(_, v)| v)
+    pub fn get(&self, tag: &field::Tag) -> Option<&field::Value> {
+        self.fields.iter().find(|(t, _)| t == tag).map(|(_, v)| v)
     }
 
     /// Returns the index of the field of the given tag.
@@ -91,11 +91,11 @@ impl Data {
     /// let nh = (Tag::AlignmentHitCount, Value::from(1));
     /// let data: Data = [nh].into_iter().collect();
     ///
-    /// assert_eq!(data.get_index_of(Tag::AlignmentHitCount), Some(0));
-    /// assert!(data.get_index_of(Tag::ReadGroup).is_none());
+    /// assert_eq!(data.get_index_of(&Tag::AlignmentHitCount), Some(0));
+    /// assert!(data.get_index_of(&Tag::ReadGroup).is_none());
     /// ```
-    pub fn get_index_of(&self, tag: field::Tag) -> Option<usize> {
-        self.fields.iter().position(|(t, _)| *t == tag)
+    pub fn get_index_of(&self, tag: &field::Tag) -> Option<usize> {
+        self.fields.iter().position(|(t, _)| t == tag)
     }
 
     /// Returns an iterator over all tag-value pairs.
@@ -173,7 +173,7 @@ impl Data {
     ) -> Option<(field::Tag, field::Value)> {
         let field = (tag, value);
 
-        match self.get_index_of(tag) {
+        match self.get_index_of(&tag) {
             Some(i) => Some(mem::replace(&mut self.fields[i], field)),
             None => {
                 self.fields.push(field);
@@ -199,18 +199,18 @@ impl Data {
     /// let md = (Tag::AlignmentScore, Value::from(98));
     /// let mut data: Data = [nh.clone(), rg.clone(), md.clone()].into_iter().collect();
     ///
-    /// assert_eq!(data.remove(Tag::AlignmentHitCount), Some(nh));
-    /// assert!(data.remove(Tag::Comment).is_none());
+    /// assert_eq!(data.remove(&Tag::AlignmentHitCount), Some(nh));
+    /// assert!(data.remove(&Tag::Comment).is_none());
     ///
     /// let expected = [md, rg].into_iter().collect();
     /// assert_eq!(data, expected);
     /// # Ok::<_, noodles_sam::record::data::ParseError>(())
     /// ```
-    pub fn remove(&mut self, tag: field::Tag) -> Option<(field::Tag, field::Value)> {
+    pub fn remove(&mut self, tag: &field::Tag) -> Option<(field::Tag, field::Value)> {
         self.swap_remove(tag)
     }
 
-    fn swap_remove(&mut self, tag: field::Tag) -> Option<(field::Tag, field::Value)> {
+    fn swap_remove(&mut self, tag: &field::Tag) -> Option<(field::Tag, field::Value)> {
         self.get_index_of(tag).map(|i| self.fields.swap_remove(i))
     }
 }
@@ -335,9 +335,9 @@ mod tests {
         .into_iter()
         .collect();
 
-        data.remove(Tag::EditDistance);
-        data.remove(zz);
-        data.remove(Tag::AlignmentHitCount);
+        data.remove(&Tag::EditDistance);
+        data.remove(&zz);
+        data.remove(&Tag::AlignmentHitCount);
 
         assert!(data.is_empty());
 

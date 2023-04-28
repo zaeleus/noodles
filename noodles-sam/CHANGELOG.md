@@ -13,6 +13,9 @@
   * sam/header/record/value/map: Increase the visiblity of the `program`
     module.
 
+  * sam/record/data: `Data::get`, `Data::get_index_of`, and `Data::remove` take
+    a reference to `Tag`.
+
 ### Removed
 
   * sam/header/record/value/map: Remove `TryFromFieldsError`.
