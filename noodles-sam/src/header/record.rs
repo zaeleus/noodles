@@ -50,7 +50,7 @@ pub enum ParseError {
     /// A read group record is invalid.
     InvalidReadGroup(Option<String>, map::read_group::ParseError),
     /// A program record is invalid.
-    InvalidProgram(map::program::ParseError),
+    InvalidProgram(Option<String>, map::program::ParseError),
 }
 
 impl error::Error for ParseError {
@@ -60,7 +60,7 @@ impl error::Error for ParseError {
             Self::InvalidHeader(e) => Some(e),
             Self::InvalidReferenceSequence(_, e) => Some(e),
             Self::InvalidReadGroup(_, e) => Some(e),
-            Self::InvalidProgram(e) => Some(e),
+            Self::InvalidProgram(_, e) => Some(e),
             _ => None,
         }
     }
@@ -92,7 +92,15 @@ impl fmt::Display for ParseError {
 
                 Ok(())
             }
-            Self::InvalidProgram(_) => f.write_str("invalid program"),
+            Self::InvalidProgram(id, _) => {
+                write!(f, "invalid program (PG) record")?;
+
+                if let Some(id) = id {
+                    write!(f, ": {}:{}", map::program::tag::ID, id)?;
+                }
+
+                Ok(())
+            }
         }
     }
 }
@@ -154,9 +162,13 @@ impl FromStr for Record {
             Kind::Program => {
                 let mut fields = split_fields(v)?;
 
-                let id = remove_field(&mut fields, ID).ok_or(ParseError::Invalid)?;
-                let program =
-                    Map::<Program>::try_from(fields).map_err(ParseError::InvalidProgram)?;
+                let id = remove_field(&mut fields, ID).ok_or(ParseError::InvalidProgram(
+                    None,
+                    map::program::ParseError::MissingField(map::program::tag::ID),
+                ))?;
+
+                let program = Map::<Program>::try_from(fields)
+                    .map_err(|e| ParseError::InvalidProgram(Some(id.clone()), e))?;
 
                 Ok(Self::Program(id, program))
             }

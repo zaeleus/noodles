@@ -1,7 +1,7 @@
 //! SAM header record program map value.
 
 mod builder;
-mod tag;
+pub(crate) mod tag;
 
 use std::{error, fmt};
 

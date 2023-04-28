@@ -5,7 +5,7 @@ use crate::header::record::value::map::{self, tag::LENGTH};
 pub(super) type StandardTag = Standard;
 pub(super) type Tag = map::tag::Tag<StandardTag>;
 
-pub(super) const ID: Tag = map::tag::Tag::Standard(Standard::Id);
+pub(crate) const ID: Tag = map::tag::Tag::Standard(Standard::Id);
 pub(super) const NAME: Tag = map::tag::Tag::Standard(Standard::Name);
 pub(super) const COMMAND_LINE: Tag = map::tag::Tag::Standard(Standard::CommandLine);
 pub(super) const PREVIOUS_ID: Tag = map::tag::Tag::Standard(Standard::PreviousId);
