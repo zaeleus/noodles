@@ -2,7 +2,7 @@
 
 mod builder;
 pub mod platform;
-mod tag;
+pub(crate) mod tag;
 
 pub use self::platform::Platform;
 

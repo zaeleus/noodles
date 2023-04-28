@@ -48,7 +48,7 @@ pub enum ParseError {
         map::reference_sequence::ParseError,
     ),
     /// A read group record is invalid.
-    InvalidReadGroup(String, map::read_group::ParseError),
+    InvalidReadGroup(Option<String>, map::read_group::ParseError),
     /// A program record is invalid.
     InvalidProgram(map::program::ParseError),
 }
@@ -83,7 +83,15 @@ impl fmt::Display for ParseError {
 
                 Ok(())
             }
-            Self::InvalidReadGroup(id, _) => write!(f, "invalid read group: ID:{id}"),
+            Self::InvalidReadGroup(id, _) => {
+                write!(f, "invalid read group (RG) record")?;
+
+                if let Some(id) = id {
+                    write!(f, ": {}:{}", map::read_group::tag::ID, id)?;
+                }
+
+                Ok(())
+            }
             Self::InvalidProgram(_) => f.write_str("invalid program"),
         }
     }
@@ -135,7 +143,7 @@ impl FromStr for Record {
 
                 let id = remove_field(&mut fields, ID).ok_or(ParseError::Invalid)?;
                 let read_group = Map::<ReadGroup>::try_from(fields)
-                    .map_err(|e| ParseError::InvalidReadGroup(id.clone(), e))?;
+                    .map_err(|e| ParseError::InvalidReadGroup(Some(id.clone()), e))?;
 
                 Ok(Self::ReadGroup(id, read_group))
             }

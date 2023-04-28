@@ -5,7 +5,7 @@ use crate::header::record::value::map::{self, tag::LENGTH};
 pub(super) type StandardTag = Standard;
 pub(super) type Tag = map::tag::Tag<StandardTag>;
 
-pub(super) const ID: Tag = map::tag::Tag::Standard(Standard::Id);
+pub(crate) const ID: Tag = map::tag::Tag::Standard(Standard::Id);
 pub(super) const BARCODE: Tag = map::tag::Tag::Standard(Standard::Barcode);
 pub(super) const SEQUENCING_CENTER: Tag = map::tag::Tag::Standard(Standard::SequencingCenter);
 pub(super) const DESCRIPTION: Tag = map::tag::Tag::Standard(Standard::Description);
