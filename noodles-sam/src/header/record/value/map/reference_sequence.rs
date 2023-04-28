@@ -318,41 +318,22 @@ impl TryFrom<Fields> for Map<ReferenceSequence> {
 
             match tag {
                 tag::NAME => return Err(TryFromFieldsError::DuplicateTag),
-                tag::LENGTH => {
-                    length = value
-                        .parse()
-                        .map(Some)
-                        .map_err(|_| TryFromFieldsError::InvalidValue("LN"))?;
-                }
+                tag::LENGTH => length = parse_length(&value).map(Some)?,
                 tag::ALTERNATIVE_LOCUS => {
-                    alternative_locus = value
-                        .parse()
-                        .map(Some)
-                        .map_err(|_| TryFromFieldsError::InvalidValue("AH"))?;
+                    alternative_locus = parse_alternative_locus(&value).map(Some)?
                 }
                 tag::ALTERNATIVE_NAMES => {
-                    alternative_names = value
-                        .parse()
-                        .map(Some)
-                        .map_err(|_| TryFromFieldsError::InvalidValue("AN"))?;
+                    alternative_names = parse_alternative_names(&value).map(Some)?
                 }
                 tag::ASSEMBLY_ID => assembly_id = Some(value),
                 tag::DESCRIPTION => description = Some(value),
-                tag::MD5_CHECKSUM => {
-                    md5_checksum = value
-                        .parse()
-                        .map(Some)
-                        .map_err(|_| TryFromFieldsError::InvalidValue("M5"))?;
-                }
+                tag::MD5_CHECKSUM => md5_checksum = parse_md5_checksum(&value).map(Some)?,
                 tag::SPECIES => species = Some(value),
                 tag::MOLECULE_TOPOLOGY => {
-                    molecule_topology = value
-                        .parse()
-                        .map(Some)
-                        .map_err(|_| TryFromFieldsError::InvalidValue("TP"))?;
+                    molecule_topology = parse_molecule_topology(&value).map(Some)?
                 }
                 tag::URI => uri = Some(value),
-                Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
+                Tag::Other(t) => try_insert(&mut other_fields, t, value)?,
             }
         }
 
@@ -372,6 +353,47 @@ impl TryFrom<Fields> for Map<ReferenceSequence> {
             },
             other_fields,
         })
+    }
+}
+
+fn parse_length(s: &str) -> Result<NonZeroUsize, TryFromFieldsError> {
+    s.parse()
+        .map_err(|_| TryFromFieldsError::InvalidValue("LN"))
+}
+
+fn parse_alternative_locus(s: &str) -> Result<AlternativeLocus, TryFromFieldsError> {
+    s.parse()
+        .map_err(|_| TryFromFieldsError::InvalidValue("AH"))
+}
+
+fn parse_alternative_names(s: &str) -> Result<AlternativeNames, TryFromFieldsError> {
+    s.parse()
+        .map_err(|_| TryFromFieldsError::InvalidValue("AN"))
+}
+
+fn parse_md5_checksum(s: &str) -> Result<Md5Checksum, TryFromFieldsError> {
+    s.parse()
+        .map_err(|_| TryFromFieldsError::InvalidValue("M5"))
+}
+
+fn parse_molecule_topology(s: &str) -> Result<MoleculeTopology, TryFromFieldsError> {
+    s.parse()
+        .map_err(|_| TryFromFieldsError::InvalidValue("TP"))
+}
+
+fn try_insert(
+    other_fields: &mut OtherFields<StandardTag>,
+    tag: super::tag::Other<StandardTag>,
+    value: String,
+) -> Result<(), TryFromFieldsError> {
+    use indexmap::map::Entry;
+
+    match other_fields.entry(tag) {
+        Entry::Vacant(entry) => {
+            entry.insert(value);
+            Ok(())
+        }
+        Entry::Occupied(_) => Err(TryFromFieldsError::DuplicateTag),
     }
 }
 
