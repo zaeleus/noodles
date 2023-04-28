@@ -8,13 +8,18 @@
 
   * sam/header/record/value/map/tag: Add a parse error (`ParseError`).
 
+  * sam/record/data/field/tag: Implement `Borrow<[u8; 2]>` for `Tag`.
+
 ### Changed
 
   * sam/header/record/value/map: Increase the visiblity of the `program`
     module.
 
   * sam/record/data: `Data::get`, `Data::get_index_of`, and `Data::remove` take
-    a reference to `Tag`.
+    a reference of an equivalent tag.
+
+    For example, `data.get(&Tag::AlignmentHitCount)` and `data.get(b"NH")` are
+    equivalent.
 
 ### Removed
 

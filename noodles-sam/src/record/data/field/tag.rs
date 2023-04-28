@@ -1,6 +1,6 @@
 //! SAM record data field tag.
 
-use std::{error, fmt, fmt::Write, str::FromStr};
+use std::{borrow::Borrow, error, fmt, fmt::Write, str::FromStr};
 
 const LENGTH: usize = 2;
 
@@ -209,6 +209,12 @@ impl AsRef<[u8; LENGTH]> for Tag {
             Self::SegmentLikelihood => b"UQ",
             Self::Other(Other(tag)) => tag,
         }
+    }
+}
+
+impl Borrow<[u8; LENGTH]> for Tag {
+    fn borrow(&self) -> &[u8; LENGTH] {
+        self.as_ref()
     }
 }
 

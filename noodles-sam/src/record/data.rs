@@ -77,8 +77,14 @@ impl Data {
     /// assert_eq!(data.get(&tag), Some(&value));
     /// assert!(data.get(&Tag::ReadGroup).is_none());
     /// ```
-    pub fn get(&self, tag: &field::Tag) -> Option<&field::Value> {
-        self.fields.iter().find(|(t, _)| t == tag).map(|(_, v)| v)
+    pub fn get<K>(&self, tag: &K) -> Option<&field::Value>
+    where
+        K: indexmap::Equivalent<field::Tag>,
+    {
+        self.fields
+            .iter()
+            .find(|(t, _)| tag.equivalent(t))
+            .map(|(_, v)| v)
     }
 
     /// Returns the index of the field of the given tag.
@@ -94,8 +100,11 @@ impl Data {
     /// assert_eq!(data.get_index_of(&Tag::AlignmentHitCount), Some(0));
     /// assert!(data.get_index_of(&Tag::ReadGroup).is_none());
     /// ```
-    pub fn get_index_of(&self, tag: &field::Tag) -> Option<usize> {
-        self.fields.iter().position(|(t, _)| t == tag)
+    pub fn get_index_of<K>(&self, tag: &K) -> Option<usize>
+    where
+        K: indexmap::Equivalent<field::Tag>,
+    {
+        self.fields.iter().position(|(t, _)| tag.equivalent(t))
     }
 
     /// Returns an iterator over all tag-value pairs.
@@ -206,11 +215,17 @@ impl Data {
     /// assert_eq!(data, expected);
     /// # Ok::<_, noodles_sam::record::data::ParseError>(())
     /// ```
-    pub fn remove(&mut self, tag: &field::Tag) -> Option<(field::Tag, field::Value)> {
+    pub fn remove<K>(&mut self, tag: &K) -> Option<(field::Tag, field::Value)>
+    where
+        K: indexmap::Equivalent<field::Tag>,
+    {
         self.swap_remove(tag)
     }
 
-    fn swap_remove(&mut self, tag: &field::Tag) -> Option<(field::Tag, field::Value)> {
+    fn swap_remove<K>(&mut self, tag: &K) -> Option<(field::Tag, field::Value)>
+    where
+        K: indexmap::Equivalent<field::Tag>,
+    {
         self.get_index_of(tag).map(|i| self.fields.swap_remove(i))
     }
 }
