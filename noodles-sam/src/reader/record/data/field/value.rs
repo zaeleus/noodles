@@ -13,8 +13,6 @@ use crate::record::data::field::{
 pub enum ParseError {
     /// Unexpected EOF.
     UnexpectedEof,
-    /// Expected EOF.
-    ExpectedEof,
     /// The type is invalid.
     InvalidType { actual: Type },
     /// The character is invalid.
@@ -48,7 +46,6 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnexpectedEof => write!(f, "unexpected EOF"),
-            Self::ExpectedEof => write!(f, ""),
             Self::InvalidType { actual } => write!(
                 f,
                 "invalid type: expected {{A, i, f, Z, H, B}}, got {}",
@@ -86,7 +83,9 @@ fn parse_char(src: &[u8]) -> Result<Value, ParseError> {
             .map(Value::Character)
             .map_err(ParseError::InvalidCharacter)
     } else {
-        Err(ParseError::ExpectedEof)
+        Err(ParseError::InvalidCharacter(
+            character::ParseError::LengthMismatch { actual: src.len() },
+        ))
     }
 }
 
@@ -139,10 +138,10 @@ mod tests {
             parse_value(&mut &b""[..], Type::Character),
             Err(ParseError::UnexpectedEof)
         ));
-        assert_eq!(
+        assert!(matches!(
             parse_value(&mut &b"ndls"[..], Type::Character),
-            Err(ParseError::ExpectedEof)
-        );
+            Err(ParseError::InvalidCharacter(_))
+        ));
 
         t(b"0", Type::Int32, Value::UInt8(0));
         assert!(matches!(

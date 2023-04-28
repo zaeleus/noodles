@@ -11,6 +11,11 @@ pub struct Character(u8);
 pub enum ParseError {
     /// The input is invalid.
     Invalid,
+    /// The length is not 1.
+    LengthMismatch {
+        /// The actual length of the input.
+        actual: usize,
+    },
 }
 
 impl error::Error for ParseError {}
@@ -19,6 +24,9 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Invalid => f.write_str("invalid input"),
+            Self::LengthMismatch { actual } => {
+                write!(f, "length mismatch: expected 1, got {actual}")
+            }
         }
     }
 }
