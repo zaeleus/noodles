@@ -41,7 +41,7 @@ pub enum ParseError {
     /// A value is invalid.
     InvalidValue,
     /// A header record is invalid.
-    InvalidHeader(map::TryFromFieldsError),
+    InvalidHeader(map::header::ParseError),
     /// A reference sequence name is invalid.
     InvalidReferenceSequenceName(map::reference_sequence::name::ParseError),
     /// A reference sequence record is invalid.
@@ -56,8 +56,8 @@ impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::InvalidKind(e) => Some(e),
-            Self::InvalidHeader(e)
-            | Self::InvalidReferenceSequence(_, e)
+            Self::InvalidHeader(e) => Some(e),
+            Self::InvalidReferenceSequence(_, e)
             | Self::InvalidReadGroup(_, e)
             | Self::InvalidProgram(e) => Some(e),
             Self::InvalidReferenceSequenceName(e) => Some(e),

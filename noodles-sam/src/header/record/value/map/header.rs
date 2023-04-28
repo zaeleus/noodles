@@ -11,13 +11,13 @@ pub use self::{
     group_order::GroupOrder, sort_order::SortOrder, subsort_order::SubsortOrder, version::Version,
 };
 
-use std::fmt;
+use std::{error, fmt};
 
 use self::{
     builder::Builder,
     tag::{StandardTag, Tag},
 };
-use super::{Fields, Inner, Map, OtherFields, TryFromFieldsError};
+use super::{Fields, Inner, Map, OtherFields};
 
 /// A SAM header record header map value.
 ///
@@ -195,8 +195,54 @@ impl fmt::Display for Map<Header> {
     }
 }
 
+/// An error returned when a raw header header record fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// A field is missing.
+    MissingField(Tag),
+    /// A tag is invalid.
+    InvalidTag(super::tag::ParseError),
+    /// A tag is duplicated.
+    DuplicateTag(Tag),
+    /// The version is invalid.
+    InvalidVersion(version::ParseError),
+    /// The sort order is invalid.
+    InvalidSortOrder(sort_order::ParseError),
+    /// The group order is invalid.
+    InvalidGroupOrder(group_order::ParseError),
+    /// The subsort order is invalid.
+    InvalidSubsortOrder(subsort_order::ParseError),
+}
+
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidTag(e) => Some(e),
+            Self::InvalidVersion(e) => Some(e),
+            Self::InvalidSortOrder(e) => Some(e),
+            Self::InvalidGroupOrder(e) => Some(e),
+            Self::InvalidSubsortOrder(e) => Some(e),
+            _ => None,
+        }
+    }
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::MissingField(tag) => write!(f, "missing field: {tag}"),
+            Self::InvalidTag(_) => write!(f, "invalid tag"),
+            Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
+            Self::InvalidVersion(_) => write!(f, "invalid version"),
+            Self::InvalidSortOrder(_) => write!(f, "invalid sort order"),
+            Self::InvalidGroupOrder(_) => write!(f, "invalid group order"),
+            Self::InvalidSubsortOrder(_) => write!(f, "invalid subsort order"),
+        }
+    }
+}
+
 impl TryFrom<Fields> for Map<Header> {
-    type Error = TryFromFieldsError;
+    type Error = ParseError;
 
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
         let mut version = None;
@@ -207,38 +253,18 @@ impl TryFrom<Fields> for Map<Header> {
         let mut other_fields = super::init_other_fields();
 
         for (key, value) in fields {
-            let tag = key.parse().map_err(|_| TryFromFieldsError::InvalidTag)?;
+            let tag = key.parse().map_err(ParseError::InvalidTag)?;
 
             match tag {
-                tag::VERSION => {
-                    version = value
-                        .parse()
-                        .map(Some)
-                        .map_err(|_| TryFromFieldsError::InvalidValue("VN"))?;
-                }
-                tag::SORT_ORDER => {
-                    sort_order = value
-                        .parse()
-                        .map(Some)
-                        .map_err(|_| TryFromFieldsError::InvalidValue("SO"))?;
-                }
-                tag::GROUP_ORDER => {
-                    group_order = value
-                        .parse()
-                        .map(Some)
-                        .map_err(|_| TryFromFieldsError::InvalidValue("GO"))?;
-                }
-                tag::SUBSORT_ORDER => {
-                    subsort_order = value
-                        .parse()
-                        .map(Some)
-                        .map_err(|_| TryFromFieldsError::InvalidValue("SS"))?;
-                }
-                Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
+                tag::VERSION => version = parse_version(&value).map(Some)?,
+                tag::SORT_ORDER => sort_order = parse_sort_order(&value).map(Some)?,
+                tag::GROUP_ORDER => group_order = parse_group_order(&value).map(Some)?,
+                tag::SUBSORT_ORDER => subsort_order = parse_subsort_order(&value).map(Some)?,
+                Tag::Other(t) => try_insert(&mut other_fields, t, value)?,
             }
         }
 
-        let version = version.ok_or(TryFromFieldsError::MissingField("VN"))?;
+        let version = version.ok_or(ParseError::MissingField(tag::VERSION))?;
 
         Ok(Self {
             inner: Header {
@@ -249,6 +275,41 @@ impl TryFrom<Fields> for Map<Header> {
             },
             other_fields,
         })
+    }
+}
+
+fn parse_version(s: &str) -> Result<Version, ParseError> {
+    s.parse().map_err(ParseError::InvalidVersion)
+}
+
+fn parse_sort_order(s: &str) -> Result<SortOrder, ParseError> {
+    s.parse().map_err(ParseError::InvalidSortOrder)
+}
+
+fn parse_group_order(s: &str) -> Result<GroupOrder, ParseError> {
+    s.parse().map_err(ParseError::InvalidGroupOrder)
+}
+
+fn parse_subsort_order(s: &str) -> Result<SubsortOrder, ParseError> {
+    s.parse().map_err(ParseError::InvalidSubsortOrder)
+}
+
+fn try_insert(
+    other_fields: &mut OtherFields<StandardTag>,
+    tag: super::tag::Other<StandardTag>,
+    value: String,
+) -> Result<(), ParseError> {
+    use indexmap::map::Entry;
+
+    match other_fields.entry(tag) {
+        Entry::Vacant(entry) => {
+            entry.insert(value);
+            Ok(())
+        }
+        Entry::Occupied(entry) => {
+            let (t, _) = entry.remove_entry();
+            Err(ParseError::DuplicateTag(Tag::Other(t)))
+        }
     }
 }
 
@@ -281,15 +342,10 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_fields_for_map_header_with_missing_version() -> Result<(), TryFromFieldsError>
-    {
-        let fields = vec![(String::from("SO"), String::from("coordinate"))];
-
+    fn test_try_from_fields_for_map_header_with_missing_version() {
         assert_eq!(
-            Map::<Header>::try_from(fields),
-            Err(TryFromFieldsError::MissingField("VN"))
+            Map::<Header>::try_from(vec![(String::from("SO"), String::from("coordinate"))]),
+            Err(ParseError::MissingField(tag::VERSION))
         );
-
-        Ok(())
     }
 }
