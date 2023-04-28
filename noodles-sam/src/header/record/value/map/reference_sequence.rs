@@ -309,6 +309,8 @@ pub enum ParseError {
     InvalidTag(super::tag::ParseError),
     /// A tag is duplicated.
     DuplicateTag(Tag),
+    /// The name is invalid.
+    InvalidName(name::ParseError),
     /// The length is invalid.
     InvalidLength(num::ParseIntError),
     /// The alternative locus is invalid.
@@ -325,6 +327,7 @@ impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::InvalidTag(e) => Some(e),
+            Self::InvalidName(e) => Some(e),
             Self::InvalidLength(e) => Some(e),
             Self::InvalidAlternativeLocus(e) => Some(e),
             Self::InvalidAlternativeNames(e) => Some(e),
@@ -341,6 +344,7 @@ impl fmt::Display for ParseError {
             Self::MissingField(tag) => write!(f, "missing field: {tag}"),
             Self::InvalidTag(_) => write!(f, "invalid tag"),
             Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
+            Self::InvalidName(_) => write!(f, "invalid name"),
             Self::InvalidLength(_) => write!(f, "invalid length"),
             Self::InvalidAlternativeLocus(_) => write!(f, "invalid alternative locus"),
             Self::InvalidAlternativeNames(_) => write!(f, "invalid alternative names"),
