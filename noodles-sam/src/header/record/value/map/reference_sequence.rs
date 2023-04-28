@@ -311,7 +311,7 @@ impl TryFrom<Fields> for Map<ReferenceSequence> {
         let mut molecule_topology = None;
         let mut uri = None;
 
-        let mut other_fields = super::init_other_fields();
+        let mut other_fields = OtherFields::new();
 
         for (key, value) in fields {
             let tag = key.parse().map_err(|_| TryFromFieldsError::InvalidTag)?;

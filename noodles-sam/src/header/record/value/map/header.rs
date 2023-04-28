@@ -250,7 +250,7 @@ impl TryFrom<Fields> for Map<Header> {
         let mut group_order = None;
         let mut subsort_order = None;
 
-        let mut other_fields = super::init_other_fields();
+        let mut other_fields = OtherFields::new();
 
         for (key, value) in fields {
             let tag = key.parse().map_err(ParseError::InvalidTag)?;

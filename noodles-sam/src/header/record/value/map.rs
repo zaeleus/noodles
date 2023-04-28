@@ -104,10 +104,6 @@ fn fmt_display_other_fields<S>(
     Ok(())
 }
 
-fn init_other_fields<S>() -> OtherFields<S> {
-    IndexMap::new()
-}
-
 fn insert_other_field<S>(
     other_fields: &mut OtherFields<S>,
     key: tag::Other<S>,

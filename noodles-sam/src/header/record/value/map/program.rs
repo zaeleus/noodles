@@ -9,7 +9,7 @@ use self::{
     builder::Builder,
     tag::{StandardTag, Tag},
 };
-use super::{Fields, Inner, Map, TryFromFieldsError};
+use super::{Fields, Inner, Map, OtherFields, TryFromFieldsError};
 
 // A SAM header record program map value.
 ///
@@ -133,7 +133,7 @@ impl TryFrom<Fields> for Map<Program> {
         let mut description = None;
         let mut version = None;
 
-        let mut other_fields = super::init_other_fields();
+        let mut other_fields = OtherFields::new();
 
         for (key, value) in fields {
             let tag = key.parse().map_err(|_| TryFromFieldsError::InvalidTag)?;
