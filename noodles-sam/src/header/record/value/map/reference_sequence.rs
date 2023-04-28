@@ -6,7 +6,7 @@ mod builder;
 pub mod md5_checksum;
 pub mod molecule_topology;
 pub mod name;
-mod tag;
+pub(crate) mod tag;
 
 use std::{
     error, fmt,

@@ -46,7 +46,7 @@ pub enum ParseError {
     InvalidReferenceSequenceName(map::reference_sequence::name::ParseError),
     /// A reference sequence record is invalid.
     InvalidReferenceSequence(
-        map::reference_sequence::Name,
+        Option<map::reference_sequence::Name>,
         map::reference_sequence::ParseError,
     ),
     /// A read group record is invalid.
@@ -79,7 +79,13 @@ impl fmt::Display for ParseError {
             Self::InvalidHeader(_) => f.write_str("invalid header"),
             Self::InvalidReferenceSequenceName(_) => f.write_str("invalid reference sequence name"),
             Self::InvalidReferenceSequence(name, _) => {
-                write!(f, "invalid reference sequence: SN:{name}")
+                write!(f, "invalid reference sequence (SQ) record")?;
+
+                if let Some(name) = name {
+                    write!(f, ": {}:{}", map::reference_sequence::tag::NAME, name)?;
+                }
+
+                Ok(())
             }
             Self::InvalidReadGroup(id, _) => write!(f, "invalid read group: ID:{id}"),
             Self::InvalidProgram(_) => f.write_str("invalid program"),
@@ -112,7 +118,7 @@ impl FromStr for Record {
                     .and_then(|t| t.parse().map_err(ParseError::InvalidReferenceSequenceName))?;
 
                 let reference_sequence = Map::<ReferenceSequence>::try_from(fields)
-                    .map_err(|e| ParseError::InvalidReferenceSequence(name.clone(), e))?;
+                    .map_err(|e| ParseError::InvalidReferenceSequence(Some(name.clone()), e))?;
 
                 Ok(Self::ReferenceSequence(name, reference_sequence))
             }

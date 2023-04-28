@@ -5,7 +5,7 @@ use crate::header::record::value::map::{self, tag};
 pub(super) type StandardTag = Standard;
 pub(super) type Tag = map::tag::Tag<StandardTag>;
 
-pub(super) const NAME: Tag = map::tag::Tag::Standard(Standard::Name);
+pub(crate) const NAME: Tag = map::tag::Tag::Standard(Standard::Name);
 pub(super) const LENGTH: Tag = map::tag::Tag::Standard(Standard::Length);
 pub(super) const ALTERNATIVE_LOCUS: Tag = map::tag::Tag::Standard(Standard::AlternativeLocus);
 pub(super) const ALTERNATIVE_NAMES: Tag = map::tag::Tag::Standard(Standard::AlternativeNames);
