@@ -50,7 +50,7 @@ pub enum ParseError {
         map::reference_sequence::ParseError,
     ),
     /// A read group record is invalid.
-    InvalidReadGroup(String, map::TryFromFieldsError),
+    InvalidReadGroup(String, map::read_group::ParseError),
     /// A program record is invalid.
     InvalidProgram(map::TryFromFieldsError),
 }
@@ -61,7 +61,8 @@ impl error::Error for ParseError {
             Self::InvalidKind(e) => Some(e),
             Self::InvalidHeader(e) => Some(e),
             Self::InvalidReferenceSequence(_, e) => Some(e),
-            Self::InvalidReadGroup(_, e) | Self::InvalidProgram(e) => Some(e),
+            Self::InvalidReadGroup(_, e) => Some(e),
+            Self::InvalidProgram(e) => Some(e),
             Self::InvalidReferenceSequenceName(e) => Some(e),
             _ => None,
         }
