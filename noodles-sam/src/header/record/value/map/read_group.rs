@@ -309,21 +309,14 @@ impl TryFrom<Fields> for Map<ReadGroup> {
                 tag::LIBRARY => library = Some(value),
                 tag::PROGRAM => program = Some(value),
                 tag::PREDICTED_MEDIAN_INSERT_SIZE => {
-                    predicted_median_insert_size = value
-                        .parse()
-                        .map(Some)
-                        .map_err(|_| TryFromFieldsError::InvalidValue("PI"))?;
+                    predicted_median_insert_size =
+                        parse_predicted_median_insert_size(&value).map(Some)?
                 }
-                tag::PLATFORM => {
-                    platform = value
-                        .parse()
-                        .map(Some)
-                        .map_err(|_| TryFromFieldsError::InvalidValue("PL"))?;
-                }
+                tag::PLATFORM => platform = parse_platform(&value).map(Some)?,
                 tag::PLATFORM_MODEL => platform_model = Some(value),
                 tag::PLATFORM_UNIT => platform_unit = Some(value),
                 tag::SAMPLE => sample = Some(value),
-                Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
+                Tag::Other(t) => try_insert(&mut other_fields, t, value)?,
             }
         }
 
@@ -345,6 +338,32 @@ impl TryFrom<Fields> for Map<ReadGroup> {
             },
             other_fields,
         })
+    }
+}
+
+fn parse_predicted_median_insert_size(s: &str) -> Result<i32, TryFromFieldsError> {
+    s.parse()
+        .map_err(|_| TryFromFieldsError::InvalidValue("PI"))
+}
+
+fn parse_platform(s: &str) -> Result<Platform, TryFromFieldsError> {
+    s.parse()
+        .map_err(|_| TryFromFieldsError::InvalidValue("PL"))
+}
+
+fn try_insert(
+    other_fields: &mut OtherFields<StandardTag>,
+    tag: super::tag::Other<StandardTag>,
+    value: String,
+) -> Result<(), TryFromFieldsError> {
+    use indexmap::map::Entry;
+
+    match other_fields.entry(tag) {
+        Entry::Vacant(entry) => {
+            entry.insert(value);
+            Ok(())
+        }
+        Entry::Occupied(_) => Err(TryFromFieldsError::DuplicateTag),
     }
 }
 
