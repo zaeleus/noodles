@@ -8,7 +8,10 @@ pub mod molecule_topology;
 pub mod name;
 mod tag;
 
-use std::{fmt, num::NonZeroUsize};
+use std::{
+    error, fmt,
+    num::{self, NonZeroUsize},
+};
 
 pub use self::{
     alternative_locus::AlternativeLocus, alternative_names::AlternativeNames,
@@ -19,7 +22,7 @@ use self::{
     builder::Builder,
     tag::{StandardTag, Tag},
 };
-use super::{Fields, Inner, Map, OtherFields, TryFromFieldsError};
+use super::{Fields, Inner, Map, OtherFields};
 
 /// A SAM header record reference sequence map value.
 ///
@@ -297,8 +300,58 @@ impl fmt::Display for Map<ReferenceSequence> {
     }
 }
 
+/// An error returned when a raw header reference sequence record fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// A field is missing.
+    MissingField(Tag),
+    /// A tag is invalid.
+    InvalidTag(super::tag::ParseError),
+    /// A tag is duplicated.
+    DuplicateTag(Tag),
+    /// The length is invalid.
+    InvalidLength(num::ParseIntError),
+    /// The alternative locus is invalid.
+    InvalidAlternativeLocus(alternative_locus::ParseError),
+    /// The alternative names is invalid.
+    InvalidAlternativeNames(alternative_names::ParseError),
+    /// The MD5 checksum is invalid.
+    InvalidMd5Checksum(md5_checksum::ParseError),
+    /// The molecule topology is invalid.
+    InvalidMoleculeToplogy(molecule_topology::ParseError),
+}
+
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidTag(e) => Some(e),
+            Self::InvalidLength(e) => Some(e),
+            Self::InvalidAlternativeLocus(e) => Some(e),
+            Self::InvalidAlternativeNames(e) => Some(e),
+            Self::InvalidMd5Checksum(e) => Some(e),
+            Self::InvalidMoleculeToplogy(e) => Some(e),
+            _ => None,
+        }
+    }
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::MissingField(tag) => write!(f, "missing field: {tag}"),
+            Self::InvalidTag(_) => write!(f, "invalid tag"),
+            Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
+            Self::InvalidLength(_) => write!(f, "invalid length"),
+            Self::InvalidAlternativeLocus(_) => write!(f, "invalid alternative locus"),
+            Self::InvalidAlternativeNames(_) => write!(f, "invalid alternative names"),
+            Self::InvalidMd5Checksum(_) => write!(f, "invalid MD5 checksum"),
+            Self::InvalidMoleculeToplogy(_) => write!(f, "invalid molecule topology"),
+        }
+    }
+}
+
 impl TryFrom<Fields> for Map<ReferenceSequence> {
-    type Error = TryFromFieldsError;
+    type Error = ParseError;
 
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
         let mut length = None;
@@ -314,10 +367,10 @@ impl TryFrom<Fields> for Map<ReferenceSequence> {
         let mut other_fields = OtherFields::new();
 
         for (key, value) in fields {
-            let tag = key.parse().map_err(|_| TryFromFieldsError::InvalidTag)?;
+            let tag = key.parse().map_err(ParseError::InvalidTag)?;
 
             match tag {
-                tag::NAME => return Err(TryFromFieldsError::DuplicateTag),
+                tag::NAME => return Err(ParseError::DuplicateTag(tag::NAME)),
                 tag::LENGTH => length = parse_length(&value).map(Some)?,
                 tag::ALTERNATIVE_LOCUS => {
                     alternative_locus = parse_alternative_locus(&value).map(Some)?
@@ -337,7 +390,7 @@ impl TryFrom<Fields> for Map<ReferenceSequence> {
             }
         }
 
-        let length = length.ok_or(TryFromFieldsError::MissingField("LN"))?;
+        let length = length.ok_or(ParseError::MissingField(tag::LENGTH))?;
 
         Ok(Self {
             inner: ReferenceSequence {
@@ -356,36 +409,31 @@ impl TryFrom<Fields> for Map<ReferenceSequence> {
     }
 }
 
-fn parse_length(s: &str) -> Result<NonZeroUsize, TryFromFieldsError> {
-    s.parse()
-        .map_err(|_| TryFromFieldsError::InvalidValue("LN"))
+fn parse_length(s: &str) -> Result<NonZeroUsize, ParseError> {
+    s.parse().map_err(ParseError::InvalidLength)
 }
 
-fn parse_alternative_locus(s: &str) -> Result<AlternativeLocus, TryFromFieldsError> {
-    s.parse()
-        .map_err(|_| TryFromFieldsError::InvalidValue("AH"))
+fn parse_alternative_locus(s: &str) -> Result<AlternativeLocus, ParseError> {
+    s.parse().map_err(ParseError::InvalidAlternativeLocus)
 }
 
-fn parse_alternative_names(s: &str) -> Result<AlternativeNames, TryFromFieldsError> {
-    s.parse()
-        .map_err(|_| TryFromFieldsError::InvalidValue("AN"))
+fn parse_alternative_names(s: &str) -> Result<AlternativeNames, ParseError> {
+    s.parse().map_err(ParseError::InvalidAlternativeNames)
 }
 
-fn parse_md5_checksum(s: &str) -> Result<Md5Checksum, TryFromFieldsError> {
-    s.parse()
-        .map_err(|_| TryFromFieldsError::InvalidValue("M5"))
+fn parse_md5_checksum(s: &str) -> Result<Md5Checksum, ParseError> {
+    s.parse().map_err(ParseError::InvalidMd5Checksum)
 }
 
-fn parse_molecule_topology(s: &str) -> Result<MoleculeTopology, TryFromFieldsError> {
-    s.parse()
-        .map_err(|_| TryFromFieldsError::InvalidValue("TP"))
+fn parse_molecule_topology(s: &str) -> Result<MoleculeTopology, ParseError> {
+    s.parse().map_err(ParseError::InvalidMoleculeToplogy)
 }
 
 fn try_insert(
     other_fields: &mut OtherFields<StandardTag>,
     tag: super::tag::Other<StandardTag>,
     value: String,
-) -> Result<(), TryFromFieldsError> {
+) -> Result<(), ParseError> {
     use indexmap::map::Entry;
 
     match other_fields.entry(tag) {
@@ -393,7 +441,10 @@ fn try_insert(
             entry.insert(value);
             Ok(())
         }
-        Entry::Occupied(_) => Err(TryFromFieldsError::DuplicateTag),
+        Entry::Occupied(entry) => {
+            let (t, _) = entry.remove_entry();
+            Err(ParseError::DuplicateTag(Tag::Other(t)))
+        }
     }
 }
 
@@ -425,7 +476,7 @@ mod tests {
 
         assert_eq!(
             Map::<ReferenceSequence>::try_from(fields),
-            Err(TryFromFieldsError::DuplicateTag)
+            Err(ParseError::DuplicateTag(tag::NAME))
         );
     }
 
@@ -433,7 +484,7 @@ mod tests {
     fn test_try_from_fields_for_map_reference_sequence_with_missing_length() {
         assert_eq!(
             Map::<ReferenceSequence>::try_from(vec![]),
-            Err(TryFromFieldsError::MissingField("LN"))
+            Err(ParseError::MissingField(tag::LENGTH))
         );
     }
 
@@ -441,16 +492,16 @@ mod tests {
     fn test_try_from_fields_for_map_reference_sequence_with_invalid_length() {
         let fields = vec![(String::from("LN"), String::from("NA"))];
 
-        assert_eq!(
+        assert!(matches!(
             Map::<ReferenceSequence>::try_from(fields),
-            Err(TryFromFieldsError::InvalidValue("LN"))
-        );
+            Err(ParseError::InvalidLength(_))
+        ));
 
         let fields = vec![(String::from("LN"), String::from("0"))];
 
-        assert_eq!(
+        assert!(matches!(
             Map::<ReferenceSequence>::try_from(fields),
-            Err(TryFromFieldsError::InvalidValue("LN"))
-        );
+            Err(ParseError::InvalidLength(_))
+        ));
     }
 }

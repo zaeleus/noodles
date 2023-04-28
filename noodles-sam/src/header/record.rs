@@ -45,7 +45,10 @@ pub enum ParseError {
     /// A reference sequence name is invalid.
     InvalidReferenceSequenceName(map::reference_sequence::name::ParseError),
     /// A reference sequence record is invalid.
-    InvalidReferenceSequence(map::reference_sequence::Name, map::TryFromFieldsError),
+    InvalidReferenceSequence(
+        map::reference_sequence::Name,
+        map::reference_sequence::ParseError,
+    ),
     /// A read group record is invalid.
     InvalidReadGroup(String, map::TryFromFieldsError),
     /// A program record is invalid.
@@ -57,9 +60,8 @@ impl error::Error for ParseError {
         match self {
             Self::InvalidKind(e) => Some(e),
             Self::InvalidHeader(e) => Some(e),
-            Self::InvalidReferenceSequence(_, e)
-            | Self::InvalidReadGroup(_, e)
-            | Self::InvalidProgram(e) => Some(e),
+            Self::InvalidReferenceSequence(_, e) => Some(e),
+            Self::InvalidReadGroup(_, e) | Self::InvalidProgram(e) => Some(e),
             Self::InvalidReferenceSequenceName(e) => Some(e),
             _ => None,
         }
