@@ -52,7 +52,7 @@ pub enum ParseError {
     /// A read group record is invalid.
     InvalidReadGroup(String, map::read_group::ParseError),
     /// A program record is invalid.
-    InvalidProgram(map::TryFromFieldsError),
+    InvalidProgram(map::program::ParseError),
 }
 
 impl error::Error for ParseError {

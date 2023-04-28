@@ -2,7 +2,7 @@
 
 pub mod builder;
 pub mod header;
-mod program;
+pub mod program;
 pub mod read_group;
 pub mod reference_sequence;
 mod tag;
@@ -12,7 +12,7 @@ pub use self::{
     reference_sequence::ReferenceSequence, tag::Tag,
 };
 
-use std::{error, fmt};
+use std::fmt;
 
 use indexmap::IndexMap;
 
@@ -63,32 +63,6 @@ where
         Self {
             inner: I::default(),
             other_fields: OtherFields::new(),
-        }
-    }
-}
-
-/// An error returned when a SAM header record map value fails to parse.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum TryFromFieldsError {
-    /// A field is missing.
-    MissingField(&'static str),
-    /// A tag is invalid.
-    InvalidTag,
-    /// A tag is duplicated.
-    DuplicateTag,
-    /// A value is invalid.
-    InvalidValue(&'static str),
-}
-
-impl error::Error for TryFromFieldsError {}
-
-impl fmt::Display for TryFromFieldsError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::MissingField(tag) => write!(f, "missing field: {tag}"),
-            Self::InvalidTag => "invalid tag".fmt(f),
-            Self::DuplicateTag => "duplicate tag".fmt(f),
-            Self::InvalidValue(tag) => write!(f, "invalid value for {tag}"),
         }
     }
 }

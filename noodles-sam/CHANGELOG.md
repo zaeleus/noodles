@@ -8,6 +8,18 @@
 
   * sam/header/record/value/map/tag: Add a parse error (`ParseError`).
 
+### Changed
+
+  * sam/header/record/value/map: Increase the visiblity of the `program`
+    module.
+
+### Removed
+
+  * sam/header/record/value/map: Remove `TryFromFieldsError`.
+
+    Use the inner record `ParseError` instead, e.g., `map::header::ParseError`,
+    etc.
+
 ## 0.27.0 - 2023-04-27
 
 ### Added

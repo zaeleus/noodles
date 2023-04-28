@@ -3,13 +3,13 @@
 mod builder;
 mod tag;
 
-use std::fmt;
+use std::{error, fmt};
 
 use self::{
     builder::Builder,
     tag::{StandardTag, Tag},
 };
-use super::{Fields, Inner, Map, OtherFields, TryFromFieldsError};
+use super::{Fields, Inner, Map, OtherFields};
 
 // A SAM header record program map value.
 ///
@@ -123,8 +123,38 @@ impl fmt::Display for Map<Program> {
     }
 }
 
+/// An error returned when a raw header program record fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// A field is missing.
+    MissingField(Tag),
+    /// A tag is invalid.
+    InvalidTag(super::tag::ParseError),
+    /// A tag is duplicated.
+    DuplicateTag(Tag),
+}
+
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidTag(e) => Some(e),
+            _ => None,
+        }
+    }
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::MissingField(tag) => write!(f, "missing field: {tag}"),
+            Self::InvalidTag(_) => write!(f, "invalid tag"),
+            Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
+        }
+    }
+}
+
 impl TryFrom<Fields> for Map<Program> {
-    type Error = TryFromFieldsError;
+    type Error = ParseError;
 
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
         let mut name = None;
@@ -136,10 +166,10 @@ impl TryFrom<Fields> for Map<Program> {
         let mut other_fields = OtherFields::new();
 
         for (key, value) in fields {
-            let tag = key.parse().map_err(|_| TryFromFieldsError::InvalidTag)?;
+            let tag = key.parse().map_err(ParseError::InvalidTag)?;
 
             match tag {
-                tag::ID => return Err(TryFromFieldsError::DuplicateTag),
+                tag::ID => return Err(ParseError::DuplicateTag(tag::ID)),
                 tag::NAME => name = Some(value),
                 tag::COMMAND_LINE => command_line = Some(value),
                 tag::PREVIOUS_ID => previous_id = Some(value),
@@ -166,7 +196,7 @@ fn try_insert(
     other_fields: &mut OtherFields<StandardTag>,
     tag: super::tag::Other<StandardTag>,
     value: String,
-) -> Result<(), TryFromFieldsError> {
+) -> Result<(), ParseError> {
     use indexmap::map::Entry;
 
     match other_fields.entry(tag) {
@@ -174,7 +204,10 @@ fn try_insert(
             entry.insert(value);
             Ok(())
         }
-        Entry::Occupied(_) => Err(TryFromFieldsError::DuplicateTag),
+        Entry::Occupied(entry) => {
+            let (t, _) = entry.remove_entry();
+            Err(ParseError::DuplicateTag(Tag::Other(t)))
+        }
     }
 }
 
@@ -201,7 +234,7 @@ mod tests {
 
         assert_eq!(
             Map::<Program>::try_from(fields),
-            Err(TryFromFieldsError::DuplicateTag)
+            Err(ParseError::DuplicateTag(tag::ID))
         );
     }
 }
