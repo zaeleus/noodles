@@ -141,7 +141,11 @@ impl FromStr for Record {
             Kind::ReadGroup => {
                 let mut fields = split_fields(v)?;
 
-                let id = remove_field(&mut fields, ID).ok_or(ParseError::Invalid)?;
+                let id = remove_field(&mut fields, ID).ok_or(ParseError::InvalidReadGroup(
+                    None,
+                    map::read_group::ParseError::MissingField(map::read_group::tag::ID),
+                ))?;
+
                 let read_group = Map::<ReadGroup>::try_from(fields)
                     .map_err(|e| ParseError::InvalidReadGroup(Some(id.clone()), e))?;
 
