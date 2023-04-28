@@ -23,6 +23,11 @@ impl fmt::Display for Hex {
 pub enum ParseError {
     /// The input is invalid.
     Invalid,
+    /// The length is invalid.
+    InvalidLength {
+        /// The actual length.
+        actual: usize,
+    },
 }
 
 impl error::Error for ParseError {}
@@ -31,6 +36,12 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Invalid => f.write_str("invalid input"),
+            Self::InvalidLength { actual } => {
+                write!(
+                    f,
+                    "invalid length: expected length to be even, got {actual}"
+                )
+            }
         }
     }
 }
@@ -47,7 +58,9 @@ impl TryFrom<&[u8]> for Hex {
     type Error = ParseError;
 
     fn try_from(buf: &[u8]) -> Result<Self, Self::Error> {
-        if is_even(buf.len()) && buf.iter().copied().all(is_upper_ascii_hexdigit) {
+        if !is_even_length(buf.len()) {
+            Err(ParseError::InvalidLength { actual: buf.len() })
+        } else if buf.iter().copied().all(is_upper_ascii_hexdigit) {
             // SAFETY: `buf` is guaranteed to contain only hex digits.
             Ok(Self(String::from_utf8(buf.into()).unwrap()))
         } else {
@@ -56,7 +69,7 @@ impl TryFrom<&[u8]> for Hex {
     }
 }
 
-fn is_even(n: usize) -> bool {
+fn is_even_length(n: usize) -> bool {
     n % 2 == 0
 }
 
@@ -73,7 +86,14 @@ mod tests {
         assert_eq!(Hex::try_from(&b"CAFE"[..]), Ok(Hex(String::from("CAFE"))));
 
         assert_eq!(Hex::try_from(&b"cafe"[..]), Err(ParseError::Invalid));
-        assert_eq!(Hex::try_from(&b"CAFE0"[..]), Err(ParseError::Invalid));
         assert_eq!(Hex::try_from(&b"NDLS"[..]), Err(ParseError::Invalid));
+        assert_eq!(
+            Hex::try_from(&b"CAF"[..]),
+            Err(ParseError::InvalidLength { actual: 3 })
+        );
+        assert_eq!(
+            Hex::try_from(&b"CAFE0"[..]),
+            Err(ParseError::InvalidLength { actual: 5 })
+        );
     }
 }
