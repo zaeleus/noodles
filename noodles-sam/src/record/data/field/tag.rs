@@ -1,6 +1,6 @@
 //! SAM record data field tag.
 
-use std::{borrow::Borrow, error, fmt, fmt::Write, str::FromStr};
+use std::{borrow::Borrow, error, fmt, str::FromStr};
 
 const LENGTH: usize = 2;
 
@@ -220,9 +220,9 @@ impl Borrow<[u8; LENGTH]> for Tag {
 
 impl fmt::Display for Tag {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let bytes = self.as_ref();
-        f.write_char(char::from(bytes[0]))?;
-        f.write_char(char::from(bytes[1]))?;
+        let [b0, b1] = self.as_ref();
+        char::from(*b0).fmt(f)?;
+        char::from(*b1).fmt(f)?;
         Ok(())
     }
 }
