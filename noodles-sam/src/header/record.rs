@@ -88,6 +88,9 @@ impl FromStr for Record {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        const ID: &str = "ID";
+        const SN: &str = "SN";
+
         let (k, v) = s.split_once(DELIMITER).ok_or(ParseError::Invalid)?;
         let kind = k.parse().map_err(ParseError::InvalidKind)?;
 
@@ -101,7 +104,7 @@ impl FromStr for Record {
             Kind::ReferenceSequence => {
                 let mut fields = split_fields(v)?;
 
-                let name: map::reference_sequence::Name = remove_field(&mut fields, "SN")
+                let name: map::reference_sequence::Name = remove_field(&mut fields, SN)
                     .ok_or(ParseError::Invalid)
                     .and_then(|t| t.parse().map_err(ParseError::InvalidReferenceSequenceName))?;
 
@@ -113,7 +116,7 @@ impl FromStr for Record {
             Kind::ReadGroup => {
                 let mut fields = split_fields(v)?;
 
-                let id = remove_field(&mut fields, "ID").ok_or(ParseError::Invalid)?;
+                let id = remove_field(&mut fields, ID).ok_or(ParseError::Invalid)?;
                 let read_group = Map::<ReadGroup>::try_from(fields)
                     .map_err(|e| ParseError::InvalidReadGroup(id.clone(), e))?;
 
@@ -122,7 +125,7 @@ impl FromStr for Record {
             Kind::Program => {
                 let mut fields = split_fields(v)?;
 
-                let id = remove_field(&mut fields, "ID").ok_or(ParseError::Invalid)?;
+                let id = remove_field(&mut fields, ID).ok_or(ParseError::Invalid)?;
                 let program =
                     Map::<Program>::try_from(fields).map_err(ParseError::InvalidProgram)?;
 
