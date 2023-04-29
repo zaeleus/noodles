@@ -61,7 +61,7 @@ mod tests {
 
     #[test]
     fn test_get_data() -> Result<(), ParseError> {
-        use noodles_sam::record::data::field::{Tag, Value};
+        use noodles_sam::record::data::field::{tag, Value};
 
         fn t(mut src: &[u8], actual: &mut Data, expected: &Data) -> Result<(), ParseError> {
             get_data(&mut src, actual)?;
@@ -74,7 +74,7 @@ mod tests {
         let expected = Data::default();
         t(&[], &mut buf, &expected)?;
 
-        let expected = [(Tag::AlignmentHitCount, Value::UInt8(1))]
+        let expected = [(tag::ALIGNMENT_HIT_COUNT, Value::UInt8(1))]
             .into_iter()
             .collect();
 
@@ -85,8 +85,8 @@ mod tests {
         )?;
 
         let expected = [
-            (Tag::AlignmentHitCount, Value::UInt8(1)),
-            (Tag::ReadGroup, Value::String(String::from("rg0"))),
+            (tag::ALIGNMENT_HIT_COUNT, Value::UInt8(1)),
+            (tag::READ_GROUP, Value::String(String::from("rg0"))),
         ]
         .into_iter()
         .collect();

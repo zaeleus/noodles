@@ -50,9 +50,9 @@ fn write_headers(writers: &mut Writers, header: &sam::Header) -> io::Result<()> 
 }
 
 fn find_read_group(data: &sam::record::Data) -> io::Result<Option<String>> {
-    use sam::record::data::field::{Tag, Type};
+    use sam::record::data::field::{tag, Type};
 
-    match data.get(&Tag::ReadGroup) {
+    match data.get(&tag::READ_GROUP) {
         Some(value) => value.as_str().map(|s| Some(s.into())).ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidData,

@@ -73,13 +73,13 @@ mod tests {
 
     #[test]
     fn test_get_field() {
-        use noodles_sam::record::data::field::{Tag, Value};
+        use noodles_sam::record::data::field::{tag, Value};
 
         let data = [b'N', b'H', b'C', 0x01];
         let mut reader = &data[..];
         assert_eq!(
             get_field(&mut reader),
-            Ok((Tag::AlignmentHitCount, Value::from(1)))
+            Ok((tag::ALIGNMENT_HIT_COUNT, Value::from(1)))
         );
 
         let data = [];
@@ -93,14 +93,14 @@ mod tests {
         let mut reader = &data[..];
         assert!(matches!(
             get_field(&mut reader),
-            Err(ParseError::InvalidType(Tag::AlignmentHitCount, _))
+            Err(ParseError::InvalidType(tag::ALIGNMENT_HIT_COUNT, _))
         ));
 
         let data = [b'N', b'H', b'C'];
         let mut reader = &data[..];
         assert!(matches!(
             get_field(&mut reader),
-            Err(ParseError::InvalidValue(Tag::AlignmentHitCount, _))
+            Err(ParseError::InvalidValue(tag::ALIGNMENT_HIT_COUNT, _))
         ));
     }
 }

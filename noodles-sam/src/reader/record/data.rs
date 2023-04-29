@@ -51,15 +51,15 @@ mod tests {
 
     #[test]
     fn test_parse_data() -> Result<(), ParseError> {
-        use crate::record::data::field::{Tag, Value};
+        use crate::record::data::field::{tag, Value};
 
         let mut data = Data::default();
 
         parse_data(b"", &mut data)?;
         assert!(data.is_empty());
 
-        let nh = (Tag::AlignmentHitCount, Value::from(1u8));
-        let co = (Tag::Comment, Value::String(String::from("ndls")));
+        let nh = (tag::ALIGNMENT_HIT_COUNT, Value::from(1u8));
+        let co = (tag::COMMENT, Value::String(String::from("ndls")));
 
         data.clear();
         parse_data(b"NH:i:1", &mut data)?;

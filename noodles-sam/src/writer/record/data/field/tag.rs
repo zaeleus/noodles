@@ -15,9 +15,12 @@ mod tests {
 
     #[test]
     fn test_put_tag() -> io::Result<()> {
+        use crate::record::data::field::tag;
+
         let mut buf = Vec::new();
-        write_tag(&mut buf, Tag::AlignmentHitCount)?;
+        write_tag(&mut buf, tag::ALIGNMENT_HIT_COUNT)?;
         assert_eq!(buf, b"NH");
+
         Ok(())
     }
 }

@@ -47,7 +47,7 @@ mod tests {
     #[test]
     fn test_parse_tag() {
         let mut src = &b"NH"[..];
-        assert_eq!(parse_tag(&mut src), Ok(Tag::AlignmentHitCount));
+        assert_eq!(parse_tag(&mut src), Ok(tag::ALIGNMENT_HIT_COUNT));
 
         let mut src = &b""[..];
         assert_eq!(parse_tag(&mut src), Err(ParseError::UnexpectedEof));

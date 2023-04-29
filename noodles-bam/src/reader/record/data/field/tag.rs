@@ -53,6 +53,6 @@ mod tests {
     fn test_get_tag() {
         let data = [b'N', b'H'];
         let mut reader = &data[..];
-        assert_eq!(get_tag(&mut reader), Ok(Tag::AlignmentHitCount));
+        assert_eq!(get_tag(&mut reader), Ok(tag::ALIGNMENT_HIT_COUNT));
     }
 }

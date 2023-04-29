@@ -8,7 +8,10 @@ use std::io;
 
 use bytes::BufMut;
 use noodles_sam::record::{
-    data::field::{value::array::Subtype, Tag, Type, Value},
+    data::{
+        self,
+        field::{value::array::Subtype, Tag, Type, Value},
+    },
     Cigar,
 };
 
@@ -29,7 +32,7 @@ pub(crate) fn put_cigar<B>(dst: &mut B, cigar: &Cigar) -> io::Result<()>
 where
     B: BufMut,
 {
-    put_tag(dst, Tag::Cigar);
+    put_tag(dst, data::field::tag::CIGAR);
     put_type(dst, Type::Array);
     value::array::put_header(dst, Subtype::UInt32, cigar.len())?;
     crate::writer::record::put_cigar(dst, cigar)?;
@@ -43,7 +46,7 @@ mod tests {
     #[test]
     fn test_put_field() -> io::Result<()> {
         let mut buf = Vec::new();
-        let (tag, value) = (Tag::AlignmentHitCount, Value::from(1));
+        let (tag, value) = (data::field::tag::ALIGNMENT_HIT_COUNT, Value::from(1));
         put_field(&mut buf, tag, &value)?;
         assert_eq!(buf, [b'N', b'H', b'C', 0x01]);
         Ok(())

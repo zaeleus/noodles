@@ -111,7 +111,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::record::data::field::{Tag, Type};
+    use noodles_sam::record::data::field::{tag, Type};
 
     use super::*;
     use crate::data_container::compression_header::preservation_map::tag_ids_dictionary::Key;
@@ -121,10 +121,10 @@ mod tests {
         let mut buf = Vec::new();
 
         let tag_ids_dictionary = TagIdsDictionary::from(vec![
-            vec![Key::new(Tag::AlignmentHitCount, Type::Int8)],
+            vec![Key::new(tag::ALIGNMENT_HIT_COUNT, Type::Int8)],
             vec![
-                Key::new(Tag::AlignmentHitCount, Type::Int8),
-                Key::new(Tag::Comment, Type::String),
+                Key::new(tag::ALIGNMENT_HIT_COUNT, Type::Int8),
+                Key::new(tag::COMMENT, Type::String),
             ],
         ]);
 

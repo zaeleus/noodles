@@ -31,7 +31,7 @@ impl Builder {
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::record::data::field::{Tag, Type, Value};
+    use noodles_sam::record::data::field::{tag, Type, Value};
 
     use super::*;
 
@@ -40,18 +40,18 @@ mod tests {
         let mut builder = Builder::default();
 
         let mut record = Record::default();
-        record.tags.insert(Tag::AlignmentHitCount, Value::Int8(1));
+        record.tags.insert(tag::ALIGNMENT_HIT_COUNT, Value::Int8(1));
         builder.update(&record);
 
         let mut record = Record::default();
-        record.tags.insert(Tag::AlignmentHitCount, Value::Int8(2));
+        record.tags.insert(tag::ALIGNMENT_HIT_COUNT, Value::Int8(2));
         builder.update(&record);
 
         let mut record = Record::default();
-        record.tags.insert(Tag::AlignmentHitCount, Value::Int8(1));
+        record.tags.insert(tag::ALIGNMENT_HIT_COUNT, Value::Int8(1));
         record
             .tags
-            .insert(Tag::Comment, Value::String(String::from("noodles")));
+            .insert(tag::COMMENT, Value::String(String::from("noodles")));
         builder.update(&record);
 
         let dictionary = builder.build();
@@ -59,10 +59,10 @@ mod tests {
         assert_eq!(
             *dictionary,
             [
-                vec![Key::new(Tag::AlignmentHitCount, Type::Int8)],
+                vec![Key::new(tag::ALIGNMENT_HIT_COUNT, Type::Int8)],
                 vec![
-                    Key::new(Tag::AlignmentHitCount, Type::Int8),
-                    Key::new(Tag::Comment, Type::String)
+                    Key::new(tag::ALIGNMENT_HIT_COUNT, Type::Int8),
+                    Key::new(tag::COMMENT, Type::String)
                 ]
             ]
         )

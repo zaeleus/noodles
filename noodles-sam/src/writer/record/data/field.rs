@@ -28,10 +28,13 @@ mod tests {
 
     #[test]
     fn test_write_field() -> io::Result<()> {
+        use crate::record::data::field::tag;
+
         let mut buf = Vec::new();
-        let (tag, value) = (Tag::AlignmentHitCount, Value::from(1));
+        let (tag, value) = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
         write_field(&mut buf, tag, &value)?;
         assert_eq!(buf, b"NH:i:1");
+
         Ok(())
     }
 }

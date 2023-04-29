@@ -18,8 +18,12 @@
   * sam/record/data: `Data::get`, `Data::get_index_of`, and `Data::remove` take
     a reference of an equivalent tag.
 
-    For example, `data.get(&Tag::AlignmentHitCount)` and `data.get(b"NH")` are
-    equivalent.
+    For example, `data.get(&tag::ALIGNMENT_HIT_COUNT)` and `data.get(b"NH")`
+    are equivalent.
+
+  * sam/record/data/field/tag: Split standard and other tags.
+
+    Use, e.g., `tag::ALIGNMENT_HIT_COUNT` instead of `Tag::AlignmentHitCount`.
 
 ### Removed
 

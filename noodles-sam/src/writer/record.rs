@@ -100,13 +100,13 @@ mod tests {
 
     #[test]
     fn test_write_record_with_data() -> io::Result<()> {
-        use crate::record::data::field::{Tag, Value};
+        use crate::record::data::field::{tag, Value};
 
         let mut buf = Vec::new();
 
         let header = Header::default();
 
-        let data = [(Tag::ReadGroup, Value::String(String::from("rg0")))]
+        let data = [(tag::READ_GROUP, Value::String(String::from("rg0")))]
             .into_iter()
             .collect();
         let record = Record::builder().set_data(data).build();

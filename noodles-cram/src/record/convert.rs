@@ -59,9 +59,9 @@ impl Record {
         // distance to next fragment
 
         if !record.data().is_empty() {
-            use sam::record::data::field::Tag;
+            use sam::record::data::field::tag;
             let mut data = record.data().clone();
-            data.remove(&Tag::ReadGroup);
+            data.remove(&tag::READ_GROUP);
             builder = builder.set_tags(data);
         }
 
@@ -171,9 +171,9 @@ fn get_read_group_id(
     read_groups: &sam::header::ReadGroups,
     data: &sam::record::Data,
 ) -> io::Result<Option<usize>> {
-    use sam::record::data::field::Tag;
+    use sam::record::data::field::tag;
 
-    let rg_value = match data.get(&Tag::ReadGroup) {
+    let rg_value = match data.get(&tag::READ_GROUP) {
         Some(value) => value,
         None => return Ok(None),
     };
@@ -196,7 +196,7 @@ fn maybe_insert_read_group(
     read_groups: &sam::header::ReadGroups,
     read_group_id: Option<usize>,
 ) -> io::Result<()> {
-    use sam::record::data::field::{Tag, Value};
+    use sam::record::data::field::{tag, Value};
 
     if let Some(id) = read_group_id {
         let name = read_groups
@@ -204,7 +204,7 @@ fn maybe_insert_read_group(
             .map(|(name, _)| name)
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid read group ID"))?;
 
-        data.insert(Tag::ReadGroup, Value::String(name.into()));
+        data.insert(tag::READ_GROUP, Value::String(name.into()));
     }
 
     Ok(())

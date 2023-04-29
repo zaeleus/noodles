@@ -53,8 +53,8 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::field::{Tag, Value}, Data};
-    /// let nh = (Tag::AlignmentHitCount, Value::from(1));
+    /// use noodles_sam::record::{data::field::{tag, Value}, Data};
+    /// let nh = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
     /// let mut data: Data = [nh].into_iter().collect();
     /// assert_eq!(data.len(), 1);
     /// data.clear();
@@ -69,13 +69,13 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::field::{Tag, Value}, Data};
+    /// use noodles_sam::record::{data::field::{tag, Value}, Data};
     ///
-    /// let (tag, value) = (Tag::AlignmentHitCount, Value::from(1));
+    /// let (tag, value) = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
     /// let data: Data = [(tag, value.clone())].into_iter().collect();
     ///
     /// assert_eq!(data.get(&tag), Some(&value));
-    /// assert!(data.get(&Tag::ReadGroup).is_none());
+    /// assert!(data.get(&tag::READ_GROUP).is_none());
     /// ```
     pub fn get<K>(&self, tag: &K) -> Option<&field::Value>
     where
@@ -92,13 +92,13 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::field::{Tag, Value}, Data};
+    /// use noodles_sam::record::{data::field::{tag, Value}, Data};
     ///
-    /// let nh = (Tag::AlignmentHitCount, Value::from(1));
+    /// let nh = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
     /// let data: Data = [nh].into_iter().collect();
     ///
-    /// assert_eq!(data.get_index_of(&Tag::AlignmentHitCount), Some(0));
-    /// assert!(data.get_index_of(&Tag::ReadGroup).is_none());
+    /// assert_eq!(data.get_index_of(&tag::ALIGNMENT_HIT_COUNT), Some(0));
+    /// assert!(data.get_index_of(&tag::READ_GROUP).is_none());
     /// ```
     pub fn get_index_of<K>(&self, tag: &K) -> Option<usize>
     where
@@ -112,9 +112,9 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::field::{Tag, Value}, Data};
+    /// use noodles_sam::record::{data::field::{tag, Value}, Data};
     ///
-    /// let (tag, value) = (Tag::AlignmentHitCount, Value::from(1));
+    /// let (tag, value) = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
     /// let data: Data = [(tag, value.clone())].into_iter().collect();
     ///
     /// let mut fields = data.iter();
@@ -130,13 +130,13 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::field::{Tag, Value}, Data};
+    /// use noodles_sam::record::{data::field::{tag, Value}, Data};
     ///
-    /// let nh = (Tag::AlignmentHitCount, Value::from(1));
+    /// let nh = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
     /// let data: Data = [nh].into_iter().collect();
     ///
     /// let mut keys = data.keys();
-    /// assert_eq!(keys.next(), Some(Tag::AlignmentHitCount));
+    /// assert_eq!(keys.next(), Some(tag::ALIGNMENT_HIT_COUNT));
     /// assert!(keys.next().is_none());
     /// ```
     pub fn keys(&self) -> impl Iterator<Item = field::Tag> + '_ {
@@ -148,9 +148,9 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::field::{Tag, Value}, Data};
+    /// use noodles_sam::record::{data::field::{tag, Value}, Data};
     ///
-    /// let (tag, value) = (Tag::AlignmentHitCount, Value::from(1));
+    /// let (tag, value) = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
     /// let data: Data = [(tag, value.clone())].into_iter().collect();
     ///
     /// let mut values = data.values();
@@ -171,9 +171,9 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::field::{Tag, Value}, Data};
+    /// use noodles_sam::record::{data::field::{tag, Value}, Data};
     /// let mut data = Data::default();
-    /// data.insert(Tag::AlignmentHitCount, Value::from(1));
+    /// data.insert(tag::ALIGNMENT_HIT_COUNT, Value::from(1));
     /// ```
     pub fn insert(
         &mut self,
@@ -201,15 +201,15 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::field::{Tag, Value}, Data};
+    /// use noodles_sam::record::{data::field::{tag, Value}, Data};
     ///
-    /// let nh = (Tag::AlignmentHitCount, Value::from(1));
-    /// let rg = (Tag::ReadGroup, Value::String(String::from("rg0")));
-    /// let md = (Tag::AlignmentScore, Value::from(98));
+    /// let nh = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
+    /// let rg = (tag::READ_GROUP, Value::String(String::from("rg0")));
+    /// let md = (tag::ALIGNMENT_SCORE, Value::from(98));
     /// let mut data: Data = [nh.clone(), rg.clone(), md.clone()].into_iter().collect();
     ///
-    /// assert_eq!(data.remove(&Tag::AlignmentHitCount), Some(nh));
-    /// assert!(data.remove(&Tag::Comment).is_none());
+    /// assert_eq!(data.remove(&tag::ALIGNMENT_HIT_COUNT), Some(nh));
+    /// assert!(data.remove(&tag::COMMENT).is_none());
     ///
     /// let expected = [md, rg].into_iter().collect();
     /// assert_eq!(data, expected);
@@ -334,7 +334,7 @@ fn parse_field(s: &str) -> Result<(field::Tag, field::Value), field::ParseError>
 
 #[cfg(test)]
 mod tests {
-    use super::field::{Tag, Value};
+    use super::field::{tag, Value};
 
     use super::*;
 
@@ -343,16 +343,16 @@ mod tests {
         let zz = "zz".parse()?;
 
         let mut data: Data = [
-            (Tag::AlignmentHitCount, Value::from(2)),
-            (Tag::EditDistance, Value::from(1)),
+            (tag::ALIGNMENT_HIT_COUNT, Value::from(2)),
+            (tag::EDIT_DISTANCE, Value::from(1)),
             (zz, Value::from(0)),
         ]
         .into_iter()
         .collect();
 
-        data.remove(&Tag::EditDistance);
+        data.remove(&tag::EDIT_DISTANCE);
         data.remove(&zz);
-        data.remove(&Tag::AlignmentHitCount);
+        data.remove(&tag::ALIGNMENT_HIT_COUNT);
 
         assert!(data.is_empty());
 
@@ -362,8 +362,8 @@ mod tests {
     #[test]
     fn test_fmt() {
         let data: Data = [
-            (Tag::ReadGroup, Value::String(String::from("rg0"))),
-            (Tag::AlignmentHitCount, Value::from(1)),
+            (tag::READ_GROUP, Value::String(String::from("rg0"))),
+            (tag::ALIGNMENT_HIT_COUNT, Value::from(1)),
         ]
         .into_iter()
         .collect();
@@ -376,15 +376,15 @@ mod tests {
     #[test]
     fn test_from_iterator() {
         let actual: Data = [
-            (Tag::ReadGroup, Value::String(String::from("rg0"))),
-            (Tag::AlignmentHitCount, Value::from(1)),
+            (tag::READ_GROUP, Value::String(String::from("rg0"))),
+            (tag::ALIGNMENT_HIT_COUNT, Value::from(1)),
         ]
         .into_iter()
         .collect();
 
         let expected: Data = [
-            (Tag::ReadGroup, Value::String(String::from("rg0"))),
-            (Tag::AlignmentHitCount, Value::from(1)),
+            (tag::READ_GROUP, Value::String(String::from("rg0"))),
+            (tag::ALIGNMENT_HIT_COUNT, Value::from(1)),
         ]
         .into_iter()
         .collect();
@@ -399,8 +399,8 @@ mod tests {
         assert_eq!(
             "RG:Z:rg0\tNH:i:1".parse::<Data>(),
             Ok([
-                (Tag::ReadGroup, Value::String(String::from("rg0"))),
-                (Tag::AlignmentHitCount, Value::from(1)),
+                (tag::READ_GROUP, Value::String(String::from("rg0"))),
+                (tag::ALIGNMENT_HIT_COUNT, Value::from(1)),
             ]
             .into_iter()
             .collect())
@@ -408,7 +408,7 @@ mod tests {
 
         assert_eq!(
             "NH:i:1\tNH:i:1".parse::<Data>(),
-            Err(ParseError::DuplicateTag(Tag::AlignmentHitCount))
+            Err(ParseError::DuplicateTag(tag::ALIGNMENT_HIT_COUNT))
         );
     }
 }
