@@ -275,7 +275,7 @@ impl fmt::Display for Map<ReadGroup> {
     }
 }
 
-/// An error returned when a raw header reference sequence record fails to parse.
+/// An error returned when a raw header read group record fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// A field is missing.
