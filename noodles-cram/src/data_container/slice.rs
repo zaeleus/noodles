@@ -339,7 +339,7 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
     Ok(())
 }
 
-fn set_mate(mut record: &mut Record, mate: &mut Record) {
+fn set_mate(record: &mut Record, mate: &mut Record) {
     let mate_bam_flags = mate.bam_flags();
 
     if mate_bam_flags.is_reverse_complemented() {
