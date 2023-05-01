@@ -71,6 +71,12 @@ mod tests {
         let expected = [nh, co].into_iter().collect();
         assert_eq!(data, expected);
 
+        data.clear();
+        assert!(matches!(
+            parse_data(b"NH:i:ndls", &mut data),
+            Err(ParseError::InvalidField(_))
+        ));
+
         Ok(())
     }
 }
