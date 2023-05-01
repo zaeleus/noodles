@@ -39,6 +39,10 @@
 
     Use, e.g., `tag::ALIGNMENT_HIT_COUNT` instead of `Tag::AlignmentHitCount`.
 
+  * sam/record/data/field/tag: Add `ParseError::Empty` for empty inputs.
+
+    This replaces `ParseError::InvalidLength { actual: 0 }`.
+
 ### Fixed
 
   * sam/reader/record: Fix reading all optional data fields.

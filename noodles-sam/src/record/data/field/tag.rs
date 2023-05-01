@@ -240,6 +240,8 @@ impl fmt::Display for Tag {
 /// An error returned when a raw SAM record data field tag fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The input is empty.
+    Empty,
     /// The length is invalid.
     ///
     /// The tag length must be 2 characters.
@@ -253,6 +255,7 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::Empty => write!(f, "empty input"),
             Self::InvalidLength(len) => {
                 write!(f, "invalid length: expected {LENGTH}, got {len}")
             }
@@ -285,7 +288,9 @@ impl TryFrom<&[u8]> for Tag {
     type Error = ParseError;
 
     fn try_from(b: &[u8]) -> Result<Self, Self::Error> {
-        if b.len() == LENGTH {
+        if b.is_empty() {
+            Err(ParseError::Empty)
+        } else if b.len() == LENGTH {
             Self::try_from([b[0], b[1]])
         } else {
             Err(ParseError::InvalidLength(b.len()))
@@ -438,7 +443,7 @@ mod tests {
         assert_eq!("UQ".parse(), Ok(SEGMENT_LIKELIHOOD));
         assert_eq!("ZN".parse(), Ok(Tag::Other(Other([b'Z', b'N']))));
 
-        assert_eq!("".parse::<Tag>(), Err(ParseError::InvalidLength(0)));
+        assert_eq!("".parse::<Tag>(), Err(ParseError::Empty));
         assert_eq!("R".parse::<Tag>(), Err(ParseError::InvalidLength(1)));
         assert_eq!("RGP".parse::<Tag>(), Err(ParseError::InvalidLength(3)));
         assert_eq!("1G".parse::<Tag>(), Err(ParseError::InvalidCharacter('1')));
