@@ -45,7 +45,7 @@ mod tests {
             &mut buf,
             &"NH:i:1\tRG:Z:rg0".parse()?,
             &[
-                b'N', b'H', b'C', 0x01, // NH:C:0
+                b'N', b'H', b'C', 0x01, // NH:C:1
                 b'R', b'G', b'Z', b'r', b'g', b'0', 0x00, // RG:Z:rg0
             ],
         )?;
