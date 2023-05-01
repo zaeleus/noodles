@@ -310,10 +310,7 @@ mod tests {
     fn test_fmt() -> Result<(), super::keys::TryFromKeyVectorError> {
         let genotypes = Genotypes::new(
             Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?,
-            vec![vec![
-                Some(Value::String(String::from("0|0"))),
-                Some(Value::Integer(13)),
-            ]],
+            vec![vec![Some(Value::from("0|0")), Some(Value::from(13))]],
         );
 
         assert_eq!(genotypes.to_string(), "GT:GQ\t0|0:13");
@@ -325,10 +322,7 @@ mod tests {
     fn test_from_str() -> Result<(), super::keys::TryFromKeyVectorError> {
         let expected = Genotypes::new(
             Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?,
-            vec![vec![
-                Some(Value::String(String::from("0|0"))),
-                Some(Value::Integer(13)),
-            ]],
+            vec![vec![Some(Value::from("0|0")), Some(Value::from(13))]],
         );
         assert_eq!("GT:GQ\t0|0:13".parse(), Ok(expected));
 

@@ -537,10 +537,7 @@ impl Record {
     /// let keys = "GT:GQ".parse()?;
     /// let genotypes = Genotypes::new(
     ///     keys,
-    ///     vec![vec![
-    ///         Some(Value::String(String::from("0|0"))),
-    ///         Some(Value::Integer(13)),
-    ///     ]],
+    ///     vec![vec![Some(Value::from("0|0")), Some(Value::from(13))]],
     /// );
     ///
     /// let record = vcf::Record::builder()
@@ -579,10 +576,7 @@ impl Record {
     /// let keys = "GT:GQ".parse()?;
     /// let genotypes = Genotypes::new(
     ///     keys,
-    ///     vec![vec![
-    ///         Some(Value::String(String::from("0|0"))),
-    ///         Some(Value::Integer(13)),
-    ///     ]],
+    ///     vec![vec![Some(Value::from("0|0")), Some(Value::from(13))]],
     /// );
     ///
     /// *record.genotypes_mut() = genotypes.clone();

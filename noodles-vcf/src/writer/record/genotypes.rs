@@ -155,21 +155,15 @@ mod tests {
 
         let genotypes = Genotypes::new(
             Keys::try_from(vec![key::GENOTYPE])?,
-            vec![vec![Some(Value::String(String::from("0|0")))]],
+            vec![vec![Some(Value::from("0|0"))]],
         );
         t(&mut buf, &genotypes, b"GT\t0|0")?;
 
         let genotypes = Genotypes::new(
             Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?,
             vec![
-                vec![
-                    Some(Value::String(String::from("0|0"))),
-                    Some(Value::Integer(13)),
-                ],
-                vec![
-                    Some(Value::String(String::from("0/1"))),
-                    Some(Value::Integer(8)),
-                ],
+                vec![Some(Value::from("0|0")), Some(Value::from(13))],
+                vec![Some(Value::from("0/1")), Some(Value::from(8))],
             ],
         );
         t(&mut buf, &genotypes, b"GT:GQ\t0|0:13\t0/1:8")?;
@@ -188,75 +182,43 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        t(&mut buf, &Value::Integer(8), b"8")?;
-        t(&mut buf, &Value::Float(0.333), b"0.333")?;
-        t(&mut buf, &Value::Character('n'), b"n")?;
-        t(
-            &mut buf,
-            &Value::String(String::from("noodles")),
-            b"noodles",
-        )?;
+        t(&mut buf, &Value::from(8), b"8")?;
+        t(&mut buf, &Value::from(0.333), b"0.333")?;
+        t(&mut buf, &Value::from('n'), b"n")?;
+        t(&mut buf, &Value::from("noodles"), b"noodles")?;
 
-        t(&mut buf, &Value::Array(Array::Integer(vec![Some(8)])), b"8")?;
-        t(
-            &mut buf,
-            &Value::Array(Array::Integer(vec![Some(8), Some(13)])),
-            b"8,13",
-        )?;
-        t(
-            &mut buf,
-            &Value::Array(Array::Integer(vec![Some(8), None])),
-            b"8,.",
-        )?;
+        t(&mut buf, &Value::from(vec![Some(8)]), b"8")?;
+        t(&mut buf, &Value::from(vec![Some(8), Some(13)]), b"8,13")?;
+        t(&mut buf, &Value::from(vec![Some(8), None]), b"8,.")?;
 
+        t(&mut buf, &Value::from(vec![Some(0.333)]), b"0.333")?;
         t(
             &mut buf,
-            &Value::Array(Array::Float(vec![Some(0.333)])),
-            b"0.333",
-        )?;
-        t(
-            &mut buf,
-            &Value::Array(Array::Float(vec![Some(0.333), Some(0.667)])),
+            &Value::from(vec![Some(0.333), Some(0.667)]),
             b"0.333,0.667",
         )?;
-        t(
-            &mut buf,
-            &Value::Array(Array::Float(vec![Some(0.333), None])),
-            b"0.333,.",
-        )?;
+        t(&mut buf, &Value::from(vec![Some(0.333), None]), b"0.333,.")?;
+
+        t(&mut buf, &Value::from(vec![Some('n')]), b"n")?;
+        t(&mut buf, &Value::from(vec![Some('n'), Some('d')]), b"n,d")?;
+        t(&mut buf, &Value::from(vec![Some('n'), None]), b"n,.")?;
 
         t(
             &mut buf,
-            &Value::Array(Array::Character(vec![Some('n')])),
-            b"n",
-        )?;
-        t(
-            &mut buf,
-            &Value::Array(Array::Character(vec![Some('n'), Some('d')])),
-            b"n,d",
-        )?;
-        t(
-            &mut buf,
-            &Value::Array(Array::Character(vec![Some('n'), None])),
-            b"n,.",
-        )?;
-
-        t(
-            &mut buf,
-            &Value::Array(Array::String(vec![Some(String::from("noodles"))])),
+            &Value::from(vec![Some(String::from("noodles"))]),
             b"noodles",
         )?;
         t(
             &mut buf,
-            &Value::Array(Array::String(vec![
+            &Value::from(vec![
                 Some(String::from("noodles")),
                 Some(String::from("vcf")),
-            ])),
+            ]),
             b"noodles,vcf",
         )?;
         t(
             &mut buf,
-            &Value::Array(Array::String(vec![Some(String::from("noodles")), None])),
+            &Value::from(vec![Some(String::from("noodles")), None]),
             b"noodles,.",
         )?;
 

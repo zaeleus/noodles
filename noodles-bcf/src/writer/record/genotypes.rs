@@ -804,8 +804,8 @@ mod tests {
                 key::READ_DEPTH,
             ])?,
             vec![
-                vec![Some(Value::Integer(13)), Some(Value::Integer(5))],
-                vec![Some(Value::Integer(8))],
+                vec![Some(Value::from(13)), Some(Value::from(5))],
+                vec![Some(Value::from(8))],
             ],
         );
 
@@ -1019,9 +1019,9 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        let value_0 = Value::Array(Array::Integer(vec![Some(-2147483641), Some(-2147483640)]));
-        let value_1 = Value::Array(Array::Integer(vec![Some(-2147483639), None]));
-        let value_2 = Value::Array(Array::Integer(vec![Some(-2147483638)]));
+        let value_0 = Value::from(vec![Some(-2147483641), Some(-2147483640)]);
+        let value_1 = Value::from(vec![Some(-2147483639), None]);
+        let value_2 = Value::from(vec![Some(-2147483638)]);
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
         buf.clear();
         assert!(matches!(
@@ -1029,9 +1029,9 @@ mod tests {
             Err(ref e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
-        let value_0 = Value::Array(Array::Integer(vec![Some(-2147483640), Some(-2147483639)]));
-        let value_1 = Value::Array(Array::Integer(vec![Some(-2147483638), None]));
-        let value_2 = Value::Array(Array::Integer(vec![Some(-2147483637)]));
+        let value_0 = Value::from(vec![Some(-2147483640), Some(-2147483639)]);
+        let value_1 = Value::from(vec![Some(-2147483638), None]);
+        let value_2 = Value::from(vec![Some(-2147483637)]);
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
         #[rustfmt::skip]
         let expected = [
@@ -1043,9 +1043,9 @@ mod tests {
         ];
         t(&mut buf, &format, &values, &expected)?;
 
-        let value_0 = Value::Array(Array::Integer(vec![Some(-32761), Some(-32760)]));
-        let value_1 = Value::Array(Array::Integer(vec![Some(-32759), None]));
-        let value_2 = Value::Array(Array::Integer(vec![Some(-32758)]));
+        let value_0 = Value::from(vec![Some(-32761), Some(-32760)]);
+        let value_1 = Value::from(vec![Some(-32759), None]);
+        let value_2 = Value::from(vec![Some(-32758)]);
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
         #[rustfmt::skip]
         let expected = [
@@ -1057,9 +1057,9 @@ mod tests {
         ];
         t(&mut buf, &format, &values, &expected)?;
 
-        let value_0 = Value::Array(Array::Integer(vec![Some(-32760), Some(-32759)]));
-        let value_1 = Value::Array(Array::Integer(vec![Some(-32758), None]));
-        let value_2 = Value::Array(Array::Integer(vec![Some(-32757)]));
+        let value_0 = Value::from(vec![Some(-32760), Some(-32759)]);
+        let value_1 = Value::from(vec![Some(-32758), None]);
+        let value_2 = Value::from(vec![Some(-32757)]);
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
         let expected = [
             0x22, // Some(Type::Int16(2))
@@ -1070,9 +1070,9 @@ mod tests {
         ];
         t(&mut buf, &format, &values, &expected)?;
 
-        let value_0 = Value::Array(Array::Integer(vec![Some(-121), Some(-120)]));
-        let value_1 = Value::Array(Array::Integer(vec![Some(-119), None]));
-        let value_2 = Value::Array(Array::Integer(vec![Some(-118)]));
+        let value_0 = Value::from(vec![Some(-121), Some(-120)]);
+        let value_1 = Value::from(vec![Some(-119), None]);
+        let value_2 = Value::from(vec![Some(-118)]);
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
         let expected = [
             0x22, // Some(Type::Int16(2))
@@ -1083,9 +1083,9 @@ mod tests {
         ];
         t(&mut buf, &format, &values, &expected)?;
 
-        let value_0 = Value::Array(Array::Integer(vec![Some(-120), Some(-119)]));
-        let value_1 = Value::Array(Array::Integer(vec![Some(-118), None]));
-        let value_2 = Value::Array(Array::Integer(vec![Some(-117)]));
+        let value_0 = Value::from(vec![Some(-120), Some(-119)]);
+        let value_1 = Value::from(vec![Some(-118), None]);
+        let value_2 = Value::from(vec![Some(-117)]);
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
         let expected = [
             0x21, // Some(Type::Int8(2))
@@ -1096,9 +1096,9 @@ mod tests {
         ];
         t(&mut buf, &format, &values, &expected)?;
 
-        let value_0 = Value::Array(Array::Integer(vec![Some(-1), Some(0)]));
-        let value_1 = Value::Array(Array::Integer(vec![Some(1), None]));
-        let value_2 = Value::Array(Array::Integer(vec![Some(2)]));
+        let value_0 = Value::from(vec![Some(-1), Some(0)]);
+        let value_1 = Value::from(vec![Some(1), None]);
+        let value_2 = Value::from(vec![Some(2)]);
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
         let expected = [
             0x21, // Some(Type::Int8(2))
@@ -1109,9 +1109,9 @@ mod tests {
         ];
         t(&mut buf, &format, &values, &expected)?;
 
-        let value_0 = Value::Array(Array::Integer(vec![Some(124), Some(125)]));
-        let value_1 = Value::Array(Array::Integer(vec![Some(126), None]));
-        let value_2 = Value::Array(Array::Integer(vec![Some(127)]));
+        let value_0 = Value::from(vec![Some(124), Some(125)]);
+        let value_1 = Value::from(vec![Some(126), None]);
+        let value_2 = Value::from(vec![Some(127)]);
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
         let expected = [
             0x21, // Some(Type::Int8(2))
@@ -1122,9 +1122,9 @@ mod tests {
         ];
         t(&mut buf, &format, &values, &expected)?;
 
-        let value_0 = Value::Array(Array::Integer(vec![Some(125), Some(126)]));
-        let value_1 = Value::Array(Array::Integer(vec![Some(127), None]));
-        let value_2 = Value::Array(Array::Integer(vec![Some(128)]));
+        let value_0 = Value::from(vec![Some(125), Some(126)]);
+        let value_1 = Value::from(vec![Some(127), None]);
+        let value_2 = Value::from(vec![Some(128)]);
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
         let expected = [
             0x22, // Some(Type::Int16(2))
@@ -1135,9 +1135,9 @@ mod tests {
         ];
         t(&mut buf, &format, &values, &expected)?;
 
-        let value_0 = Value::Array(Array::Integer(vec![Some(32764), Some(32765)]));
-        let value_1 = Value::Array(Array::Integer(vec![Some(32766), None]));
-        let value_2 = Value::Array(Array::Integer(vec![Some(32767)]));
+        let value_0 = Value::from(vec![Some(32764), Some(32765)]);
+        let value_1 = Value::from(vec![Some(32766), None]);
+        let value_2 = Value::from(vec![Some(32767)]);
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
         let expected = [
             0x22, // Some(Type::Int16(2))
@@ -1148,9 +1148,9 @@ mod tests {
         ];
         t(&mut buf, &format, &values, &expected)?;
 
-        let value_0 = Value::Array(Array::Integer(vec![Some(32765), Some(32766)]));
-        let value_1 = Value::Array(Array::Integer(vec![Some(32767), None]));
-        let value_2 = Value::Array(Array::Integer(vec![Some(32768)]));
+        let value_0 = Value::from(vec![Some(32765), Some(32766)]);
+        let value_1 = Value::from(vec![Some(32767), None]);
+        let value_2 = Value::from(vec![Some(32768)]);
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
         #[rustfmt::skip]
         let expected = [
@@ -1162,9 +1162,9 @@ mod tests {
         ];
         t(&mut buf, &format, &values, &expected)?;
 
-        let value_0 = Value::Array(Array::Integer(vec![Some(2147483644), Some(2147483645)]));
-        let value_1 = Value::Array(Array::Integer(vec![Some(2147483646), None]));
-        let value_2 = Value::Array(Array::Integer(vec![Some(2147483647)]));
+        let value_0 = Value::from(vec![Some(2147483644), Some(2147483645)]);
+        let value_1 = Value::from(vec![Some(2147483646), None]);
+        let value_2 = Value::from(vec![Some(2147483647)]);
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
         #[rustfmt::skip]
         let expected = [
@@ -1206,9 +1206,9 @@ mod tests {
     ) -> Result<(), Box<dyn std::error::Error>> {
         let format = Map::<Format>::new(Number::Count(2), format::Type::Float, String::new());
 
-        let value_0 = Value::Array(Array::Float(vec![Some(0.0), Some(1.0)]));
-        let value_1 = Value::Array(Array::Float(vec![Some(0.0), None]));
-        let value_2 = Value::Array(Array::Float(vec![Some(0.0)]));
+        let value_0 = Value::from(vec![Some(0.0), Some(1.0)]);
+        let value_1 = Value::from(vec![Some(0.0), None]);
+        let value_2 = Value::from(vec![Some(0.0)]);
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
 
         let mut buf = Vec::new();
@@ -1258,9 +1258,9 @@ mod tests {
     ) -> Result<(), Box<dyn std::error::Error>> {
         let format = Map::<Format>::new(Number::Count(2), format::Type::Character, String::new());
 
-        let value_0 = Value::Array(Array::Character(vec![Some('n'), Some('d')]));
-        let value_1 = Value::Array(Array::Character(vec![Some('l'), None]));
-        let value_2 = Value::Array(Array::Character(vec![Some('s')]));
+        let value_0 = Value::from(vec![Some('n'), Some('d')]);
+        let value_1 = Value::from(vec![Some('l'), None]);
+        let value_2 = Value::from(vec![Some('s')]);
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
 
         let mut buf = Vec::new();
@@ -1284,9 +1284,9 @@ mod tests {
     ) -> Result<(), Box<dyn std::error::Error>> {
         let format = Map::<Format>::new(Number::Count(1), format::Type::String, String::new());
 
-        let value_0 = Value::String(String::from("n"));
-        let value_1 = Value::String(String::from("ndl"));
-        let value_2 = Value::String(String::from("ndls"));
+        let value_0 = Value::from("n");
+        let value_1 = Value::from("ndl");
+        let value_2 = Value::from("ndls");
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
 
         let mut buf = Vec::new();
@@ -1310,12 +1310,9 @@ mod tests {
     ) -> Result<(), Box<dyn std::error::Error>> {
         let format = Map::<Format>::new(Number::Count(2), format::Type::String, String::new());
 
-        let value_0 = Value::Array(Array::String(vec![
-            Some(String::from("n")),
-            Some(String::from("nd")),
-        ]));
-        let value_1 = Value::Array(Array::String(vec![Some(String::from("ndls")), None]));
-        let value_2 = Value::Array(Array::String(vec![Some(String::from("nd"))]));
+        let value_0 = Value::from(vec![Some(String::from("n")), Some(String::from("nd"))]);
+        let value_1 = Value::from(vec![Some(String::from("ndls")), None]);
+        let value_2 = Value::from(vec![Some(String::from("nd"))]);
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
 
         let mut buf = Vec::new();
@@ -1336,9 +1333,9 @@ mod tests {
 
     #[test]
     fn test_write_genotype_genotype_field_values() -> io::Result<()> {
-        let value_0 = Value::String(String::from("0/1"));
-        let value_1 = Value::String(String::from("1/1"));
-        let value_2 = Value::String(String::from("0/0"));
+        let value_0 = Value::from("0/1");
+        let value_1 = Value::from("1/1");
+        let value_2 = Value::from("0/0");
         let values = [Some(&value_0), Some(&value_1), Some(&value_2)];
 
         let mut buf = Vec::new();
@@ -1358,8 +1355,8 @@ mod tests {
 
     #[test]
     fn test_write_genotype_genotype_field_values_with_padding() -> io::Result<()> {
-        let value_0 = Value::String(String::from("0"));
-        let value_1 = Value::String(String::from("0/1"));
+        let value_0 = Value::from("0");
+        let value_1 = Value::from("0/1");
         let values = [Some(&value_0), Some(&value_1)];
 
         let mut buf = Vec::new();

@@ -9,7 +9,7 @@ use noodles_vcf::{
     record::{
         genotypes::{
             keys::{key, Key},
-            sample::{value::Array, Value},
+            sample::Value,
             Keys,
         },
         Genotypes,
@@ -150,7 +150,7 @@ where
         let value = reader.read_i8().map(Int8::from)?;
 
         match value {
-            Int8::Value(n) => values.push(Some(Value::Integer(i32::from(n)))),
+            Int8::Value(n) => values.push(Some(Value::from(i32::from(n)))),
             Int8::Missing => values.push(None),
             _ => todo!("unhandled i8 value: {:?}", value),
         }
@@ -187,7 +187,7 @@ where
         if vs.len() == 1 && vs[0].is_none() {
             values.push(None);
         } else {
-            values.push(Some(Value::Array(Array::Integer(vs))));
+            values.push(Some(Value::from(vs)));
         }
     }
 
@@ -207,7 +207,7 @@ where
         let value = reader.read_i16::<LittleEndian>().map(Int16::from)?;
 
         match value {
-            Int16::Value(n) => values.push(Some(Value::Integer(i32::from(n)))),
+            Int16::Value(n) => values.push(Some(Value::from(i32::from(n)))),
             Int16::Missing => values.push(None),
             _ => todo!("unhandled i16 value: {:?}", value),
         }
@@ -244,7 +244,7 @@ where
         if vs.len() == 1 && vs[0].is_none() {
             values.push(None);
         } else {
-            values.push(Some(Value::Array(Array::Integer(vs))));
+            values.push(Some(Value::from(vs)));
         }
     }
 
@@ -264,7 +264,7 @@ where
         let value = reader.read_i32::<LittleEndian>().map(Int32::from)?;
 
         match value {
-            Int32::Value(n) => values.push(Some(Value::Integer(n))),
+            Int32::Value(n) => values.push(Some(Value::from(n))),
             Int32::Missing => values.push(None),
             _ => todo!("unhandled i32 value: {:?}", value),
         }
@@ -301,7 +301,7 @@ where
         if vs.len() == 1 && vs[0].is_none() {
             values.push(None);
         } else {
-            values.push(Some(Value::Array(Array::Integer(vs))));
+            values.push(Some(Value::from(vs)));
         }
     }
 
@@ -321,7 +321,7 @@ where
         let value = reader.read_f32::<LittleEndian>().map(Float::from)?;
 
         match value {
-            Float::Value(n) => values.push(Some(Value::Float(n))),
+            Float::Value(n) => values.push(Some(Value::from(n))),
             Float::Missing => values.push(None),
             _ => todo!("unhandled f32 value: {:?}", value),
         }
@@ -358,7 +358,7 @@ where
         if vs.len() == 1 && vs[0].is_none() {
             values.push(None);
         } else {
-            values.push(Some(Value::Array(Array::Float(vs))));
+            values.push(Some(Value::from(vs)));
         }
     }
 
@@ -385,7 +385,7 @@ where
         };
 
         let s = str::from_utf8(data).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-        let value = Value::String(s.into());
+        let value = Value::from(s);
 
         values.push(Some(value));
     }
@@ -410,7 +410,7 @@ where
                     let value = reader
                         .read_i8()
                         .map(|v| parse_genotype_genotype_field_values(&[v]))
-                        .map(Value::String)?;
+                        .map(Value::from)?;
 
                     values.push(Some(value));
                 }
@@ -420,7 +420,7 @@ where
 
                 for _ in 0..sample_count {
                     reader.read_i8_into(&mut buf)?;
-                    let value = Value::String(parse_genotype_genotype_field_values(&buf));
+                    let value = Value::from(parse_genotype_genotype_field_values(&buf));
                     values.push(Some(value));
                 }
             }
@@ -477,7 +477,7 @@ mod tests {
         let mut reader = &data[..];
 
         let actual = read_genotype_field_values(&mut reader, 3)?;
-        let expected = vec![Some(Value::Integer(5)), Some(Value::Integer(8)), None];
+        let expected = vec![Some(Value::from(5)), Some(Value::from(8)), None];
 
         assert_eq!(actual, expected);
 
@@ -497,9 +497,9 @@ mod tests {
 
         let actual = read_genotype_field_values(&mut reader, 4)?;
         let expected = vec![
-            Some(Value::Array(Array::Integer(vec![Some(5), Some(8)]))),
-            Some(Value::Array(Array::Integer(vec![Some(13), None]))),
-            Some(Value::Array(Array::Integer(vec![Some(21)]))),
+            Some(Value::from(vec![Some(5), Some(8)])),
+            Some(Value::from(vec![Some(13), None])),
+            Some(Value::from(vec![Some(21)])),
             None,
         ];
 
@@ -519,7 +519,7 @@ mod tests {
         let mut reader = &data[..];
 
         let actual = read_genotype_field_values(&mut reader, 3)?;
-        let expected = vec![Some(Value::Integer(5)), Some(Value::Integer(8)), None];
+        let expected = vec![Some(Value::from(5)), Some(Value::from(8)), None];
 
         assert_eq!(actual, expected);
 
@@ -539,9 +539,9 @@ mod tests {
 
         let actual = read_genotype_field_values(&mut reader, 4)?;
         let expected = vec![
-            Some(Value::Array(Array::Integer(vec![Some(5), Some(8)]))),
-            Some(Value::Array(Array::Integer(vec![Some(13), None]))),
-            Some(Value::Array(Array::Integer(vec![Some(21)]))),
+            Some(Value::from(vec![Some(5), Some(8)])),
+            Some(Value::from(vec![Some(13), None])),
+            Some(Value::from(vec![Some(21)])),
             None,
         ];
 
@@ -561,7 +561,7 @@ mod tests {
         let mut reader = &data[..];
 
         let actual = read_genotype_field_values(&mut reader, 3)?;
-        let expected = vec![Some(Value::Integer(5)), Some(Value::Integer(8)), None];
+        let expected = vec![Some(Value::from(5)), Some(Value::from(8)), None];
 
         assert_eq!(actual, expected);
 
@@ -581,9 +581,9 @@ mod tests {
 
         let actual = read_genotype_field_values(&mut reader, 4)?;
         let expected = vec![
-            Some(Value::Array(Array::Integer(vec![Some(5), Some(8)]))),
-            Some(Value::Array(Array::Integer(vec![Some(13), None]))),
-            Some(Value::Array(Array::Integer(vec![Some(21)]))),
+            Some(Value::from(vec![Some(5), Some(8)])),
+            Some(Value::from(vec![Some(13), None])),
+            Some(Value::from(vec![Some(21)])),
             None,
         ];
 
@@ -603,7 +603,7 @@ mod tests {
         let mut reader = &data[..];
 
         let actual = read_genotype_field_values(&mut reader, 3)?;
-        let expected = vec![Some(Value::Float(0.0)), Some(Value::Float(1.0)), None];
+        let expected = vec![Some(Value::from(0.0)), Some(Value::from(1.0)), None];
 
         assert_eq!(actual, expected);
 
@@ -623,9 +623,9 @@ mod tests {
 
         let actual = read_genotype_field_values(&mut reader, 4)?;
         let expected = vec![
-            Some(Value::Array(Array::Float(vec![Some(0.0), Some(1.0)]))),
-            Some(Value::Array(Array::Float(vec![Some(0.0), None]))),
-            Some(Value::Array(Array::Float(vec![Some(0.0)]))),
+            Some(Value::from(vec![Some(0.0), Some(1.0)])),
+            Some(Value::from(vec![Some(0.0), None])),
+            Some(Value::from(vec![Some(0.0)])),
             None,
         ];
 
@@ -646,9 +646,9 @@ mod tests {
 
         let actual = read_genotype_field_values(&mut reader, 3)?;
         let expected = vec![
-            Some(Value::String(String::from("n"))),
-            Some(Value::String(String::from("ndl"))),
-            Some(Value::String(String::from("ndls"))),
+            Some(Value::from("n")),
+            Some(Value::from("ndl")),
+            Some(Value::from("ndls")),
         ];
 
         assert_eq!(actual, expected);

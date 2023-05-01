@@ -113,28 +113,25 @@ mod tests {
         let keys = Keys::try_from(vec![key::GENOTYPE])?;
         values.clear();
         parse_values(&header, &keys, "0|0", &mut values)?;
-        assert_eq!(values, vec![Some(Value::String(String::from("0|0")))]);
+        assert_eq!(values, vec![Some(Value::from("0|0"))]);
 
         let keys = Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?;
         values.clear();
         parse_values(&header, &keys, "0|0:13", &mut values)?;
         assert_eq!(
             values,
-            vec![
-                Some(Value::String(String::from("0|0"))),
-                Some(Value::Integer(13)),
-            ]
+            vec![Some(Value::from("0|0")), Some(Value::from(13)),]
         );
 
         let keys = Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?;
         values.clear();
         parse_values(&header, &keys, "0|0:.", &mut values)?;
-        assert_eq!(values, vec![Some(Value::String(String::from("0|0"))), None]);
+        assert_eq!(values, vec![Some(Value::from("0|0")), None]);
 
         let keys = Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?;
         values.clear();
         parse_values(&header, &keys, "0|0", &mut values)?;
-        assert_eq!(values, vec![Some(Value::String(String::from("0|0")))]);
+        assert_eq!(values, vec![Some(Value::from("0|0"))]);
 
         let keys = Keys::try_from(vec![key::GENOTYPE])?;
         values.clear();

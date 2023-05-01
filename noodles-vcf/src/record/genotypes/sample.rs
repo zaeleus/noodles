@@ -124,7 +124,7 @@ mod tests {
     fn test_genotype() -> Result<(), crate::record::genotypes::keys::TryFromKeyVectorError> {
         let keys = Keys::try_from(vec![key::GENOTYPE])?;
 
-        let values = vec![Some(Value::String(String::from("ndls")))];
+        let values = vec![Some(Value::from("ndls"))];
         let sample = Sample::new(&keys, &values);
 
         assert!(matches!(
@@ -132,7 +132,7 @@ mod tests {
             Some(Err(GenotypeError::InvalidValue(_)))
         ));
 
-        let values = vec![Some(Value::Integer(0))];
+        let values = vec![Some(Value::from(0))];
         let sample = Sample::new(&keys, &values);
 
         assert!(matches!(

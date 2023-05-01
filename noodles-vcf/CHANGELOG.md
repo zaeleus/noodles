@@ -4,6 +4,8 @@
 
 ### Added
 
+  * vcf/record/genotypes/sample/value: Add conversions from raw types.
+
   * vcf/record/info/field/value: Add conversions from raw types.
 
 ### Changed
