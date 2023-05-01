@@ -52,6 +52,10 @@
     Use the inner record `ParseError` instead, e.g., `map::header::ParseError`,
     etc.
 
+  * sam/record/data/field/value: Remove `ParseError::UnsupportedType`.
+
+    This is unused.
+
 ## 0.27.0 - 2023-04-27
 
 ### Added

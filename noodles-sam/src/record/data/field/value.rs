@@ -469,8 +469,6 @@ impl fmt::Display for Value {
 pub enum ParseError {
     /// The input is invalid.
     Invalid,
-    /// The data field type is unsupported.
-    UnsupportedType(Type),
     /// The data field character value is invalid.
     InvalidCharacterValue,
     /// The data field integer value is invalid.
@@ -502,7 +500,6 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Invalid => f.write_str("invalid input"),
-            Self::UnsupportedType(ty) => write!(f, "unsupported type: {ty}"),
             Self::InvalidCharacterValue => f.write_str("invalid character value"),
             Self::InvalidIntValue(_) => f.write_str("invalid int value"),
             Self::InvalidFloatValue(_) => f.write_str("invalid float value"),
