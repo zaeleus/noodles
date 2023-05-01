@@ -10,6 +10,8 @@
 
   * sam/record/data/field/tag: Implement `Borrow<[u8; 2]>` for `Tag`.
 
+  * sam/record/data/field/value/character: Implement `Display`.
+
 ### Changed
 
   * sam/header/record/value/map: Increase the visiblity of the `program`

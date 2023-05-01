@@ -6,6 +6,12 @@ use std::{error, fmt};
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Character(u8);
 
+impl fmt::Display for Character {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        char::from(*self).fmt(f)
+    }
+}
+
 /// An error returned when a raw character fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -71,6 +77,11 @@ impl From<Character> for u8 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(Character(b'n').to_string(), "n");
+    }
 
     #[test]
     fn test_try_from_u8_for_character() {
