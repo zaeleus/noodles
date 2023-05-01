@@ -15,6 +15,11 @@
   * sam/header/record/value/map: Increase the visiblity of the `program`
     module.
 
+  * sam/reader/record/sequence: Reading an empty sequence field fails with
+    `ParseError::Empty`.
+
+    If present, the sequence must have at least one base.
+
   * sam/record/data: `Data::get`, `Data::get_index_of`, and `Data::remove` take
     a reference of an equivalent tag.
 
