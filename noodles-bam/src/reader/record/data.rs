@@ -86,7 +86,7 @@ mod tests {
             .collect();
 
         t(
-            &[b'N', b'H', b'C', 0x01], // NH:C:0
+            &[b'N', b'H', b'C', 0x01], // NH:C:1
             &mut buf,
             &expected,
         )?;
@@ -100,7 +100,7 @@ mod tests {
 
         t(
             &[
-                b'N', b'H', b'C', 0x01, // NH:C:0
+                b'N', b'H', b'C', 0x01, // NH:C:1
                 b'R', b'G', b'Z', b'r', b'g', b'0', 0x00, // RG:Z:rg0
             ],
             &mut buf,
@@ -108,8 +108,8 @@ mod tests {
         )?;
 
         let data = [
-            b'N', b'H', b'C', 0x01, // NH:C:0
-            b'N', b'H', b'C', 0x01, // NH:C:0
+            b'N', b'H', b'C', 0x01, // NH:C:1
+            b'N', b'H', b'C', 0x01, // NH:C:1
         ];
         let mut src = &data[..];
         assert_eq!(
