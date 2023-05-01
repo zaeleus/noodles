@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bam/reader/record/data: Disallow duplicate tags.
+
 ## 0.30.0 - 2023-04-27
 
 ### Added

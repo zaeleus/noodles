@@ -7,11 +7,13 @@ pub(crate) use self::field::get_field;
 use std::{error, fmt};
 
 use bytes::Buf;
-use noodles_sam::record::Data;
+use noodles_sam::record::{data::field::Tag, Data};
 
 /// An error when raw BAM record data fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// A tag is duplicated.
+    DuplicateTag(Tag),
     /// A field is invalid.
     InvalidField(field::ParseError),
 }
@@ -19,6 +21,7 @@ pub enum ParseError {
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
+            Self::DuplicateTag(_) => None,
             Self::InvalidField(e) => Some(e),
         }
     }
@@ -27,16 +30,17 @@ impl error::Error for ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
             Self::InvalidField(e) => {
                 write!(f, "invalid field")?;
 
                 if let Some(tag) = e.tag() {
                     write!(f, ": {tag}")?;
                 }
+
+                Ok(())
             }
         }
-
-        Ok(())
     }
 }
 
@@ -48,7 +52,10 @@ where
 
     while src.has_remaining() {
         let (tag, value) = get_field(src).map_err(ParseError::InvalidField)?;
-        data.insert(tag, value);
+
+        if let Some((t, _)) = data.insert(tag, value) {
+            return Err(ParseError::DuplicateTag(t));
+        }
     }
 
     Ok(())
@@ -99,6 +106,16 @@ mod tests {
             &mut buf,
             &expected,
         )?;
+
+        let data = [
+            b'N', b'H', b'C', 0x01, // NH:C:0
+            b'N', b'H', b'C', 0x01, // NH:C:0
+        ];
+        let mut src = &data[..];
+        assert_eq!(
+            get_data(&mut src, &mut buf),
+            Err(ParseError::DuplicateTag(tag::ALIGNMENT_HIT_COUNT))
+        );
 
         Ok(())
     }
