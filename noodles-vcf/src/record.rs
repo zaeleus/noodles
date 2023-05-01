@@ -432,7 +432,7 @@ impl Record {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     record::{info::field::{key, value::Array, Value}, Info, Position},
+    ///     record::{info::field::{key, Value}, Info, Position},
     /// };
     ///
     /// let record = vcf::Record::builder()
@@ -444,8 +444,8 @@ impl Record {
     ///     .build()?;
     ///
     /// let expected = [
-    ///     (key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(3))),
-    ///     (key::ALLELE_FREQUENCIES, Some(Value::Array(Array::Float(vec![Some(0.5)])))),
+    ///     (key::SAMPLES_WITH_DATA_COUNT, Some(Value::from(3))),
+    ///     (key::ALLELE_FREQUENCIES, Some(Value::from(vec![Some(0.5)]))),
     /// ].into_iter().collect();
     ///
     /// assert_eq!(record.info(), &expected);
@@ -462,7 +462,7 @@ impl Record {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     record::{info::field::{key, value::Array, Value}, Info, Position},
+    ///     record::{info::field::{key, Value}, Info, Position},
     /// };
     ///
     /// let mut record = vcf::Record::builder()
@@ -477,7 +477,7 @@ impl Record {
     ///
     /// let expected = [
     ///     (key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(3))),
-    ///     (key::ALLELE_FREQUENCIES, Some(Value::Array(Array::Float(vec![Some(0.5)])))),
+    ///     (key::ALLELE_FREQUENCIES, Some(Value::from(vec![Some(0.5)]))),
     ///     (key::TOTAL_DEPTH, Some(Value::Integer(13))),
     /// ].into_iter().collect();
     ///

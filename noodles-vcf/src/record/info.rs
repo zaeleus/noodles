@@ -364,19 +364,16 @@ mod tests {
         let info = Info::default();
         assert!(info.to_string().is_empty());
 
-        let info: Info = [(key::SAMPLES_WITH_DATA_COUNT, Some(field::Value::Integer(2)))]
+        let info: Info = [(key::SAMPLES_WITH_DATA_COUNT, Some(field::Value::from(2)))]
             .into_iter()
             .collect();
         assert_eq!(info.to_string(), "NS=2");
 
         let info: Info = [
-            (key::SAMPLES_WITH_DATA_COUNT, Some(field::Value::Integer(2))),
+            (key::SAMPLES_WITH_DATA_COUNT, Some(field::Value::from(2))),
             (
                 key::ALLELE_FREQUENCIES,
-                Some(field::Value::Array(field::value::Array::Float(vec![
-                    Some(0.333),
-                    Some(0.667),
-                ]))),
+                Some(field::Value::from(vec![Some(0.333), Some(0.667)])),
             ),
         ]
         .into_iter()
@@ -388,10 +385,10 @@ mod tests {
     fn test_extend() {
         let mut info = Info::default();
 
-        let fields = [(key::SAMPLES_WITH_DATA_COUNT, Some(field::Value::Integer(2)))];
+        let fields = [(key::SAMPLES_WITH_DATA_COUNT, Some(field::Value::from(2)))];
         info.extend(fields);
 
-        let expected = [(key::SAMPLES_WITH_DATA_COUNT, Some(field::Value::Integer(2)))]
+        let expected = [(key::SAMPLES_WITH_DATA_COUNT, Some(field::Value::from(2)))]
             .into_iter()
             .collect();
 

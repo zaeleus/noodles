@@ -141,12 +141,12 @@ mod tests {
 
         assert_eq!(
             parse("NS=2", header.infos()),
-            Ok((key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(2))))
+            Ok((key::SAMPLES_WITH_DATA_COUNT, Some(Value::from(2))))
         );
 
         assert_eq!(
             parse("BQ=1.333", header.infos()),
-            Ok((key::BASE_QUALITY, Some(Value::Float(1.333))))
+            Ok((key::BASE_QUALITY, Some(Value::from(1.333))))
         );
 
         assert_eq!(
@@ -156,16 +156,13 @@ mod tests {
 
         assert_eq!(
             parse("EVENT=INV0", header.infos()),
-            Ok((
-                key::BREAKEND_EVENT_ID,
-                Some(Value::String(String::from("INV0")))
-            ))
+            Ok((key::BREAKEND_EVENT_ID, Some(Value::from("INV0"))))
         );
 
         let key = "NDLS".parse()?;
         assert_eq!(
             parse("NDLS=VCF", header.infos()),
-            Ok((key, Some(Value::String(String::from("VCF")))))
+            Ok((key, Some(Value::from("VCF"))))
         );
 
         let key = "FLG".parse()?;

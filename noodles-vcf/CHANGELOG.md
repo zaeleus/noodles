@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * vcf/record/info/field/value: Add conversions from raw types.
+
 ### Changed
 
   * vcf/record/genotypes/sample/value: Add array value wrapper (`Array`).

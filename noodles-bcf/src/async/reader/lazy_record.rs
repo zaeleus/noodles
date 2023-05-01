@@ -90,15 +90,15 @@ mod tests {
             ("HM3".parse()?, Some(InfoFieldValue::Flag)),
             (
                 info::field::key::ALLELE_COUNT,
-                Some(InfoFieldValue::Integer(3)),
+                Some(InfoFieldValue::from(3)),
             ),
             (
                 info::field::key::TOTAL_ALLELE_COUNT,
-                Some(InfoFieldValue::Integer(6)),
+                Some(InfoFieldValue::from(6)),
             ),
             (
                 info::field::key::ANCESTRAL_ALLELE,
-                Some(InfoFieldValue::String(String::from("C"))),
+                Some(InfoFieldValue::from("C")),
             ),
         ]
         .into_iter()

@@ -182,16 +182,16 @@ mod tests {
 
         assert_eq!(
             parse_value(Number::Count(1), Type::Integer, "8"),
-            Ok(Value::Integer(8))
+            Ok(Value::from(8))
         );
 
         assert_eq!(
             parse_value(Number::Count(2), Type::Integer, "8,13"),
-            Ok(Value::Array(Array::Integer(vec![Some(8), Some(13)]))),
+            Ok(Value::from(vec![Some(8), Some(13)])),
         );
         assert_eq!(
             parse_value(Number::Count(2), Type::Integer, "8,."),
-            Ok(Value::Array(Array::Integer(vec![Some(8), None]))),
+            Ok(Value::from(vec![Some(8), None])),
         );
     }
 
@@ -207,16 +207,16 @@ mod tests {
 
         assert_eq!(
             parse_value(Number::Count(1), Type::Float, "0.333"),
-            Ok(Value::Float(0.333))
+            Ok(Value::from(0.333))
         );
 
         assert_eq!(
             parse_value(Number::Count(2), Type::Float, "0.333,0.667"),
-            Ok(Value::Array(Array::Float(vec![Some(0.333), Some(0.667)])))
+            Ok(Value::from(vec![Some(0.333), Some(0.667)]))
         );
         assert_eq!(
             parse_value(Number::Count(2), Type::Float, "0.333,."),
-            Ok(Value::Array(Array::Float(vec![Some(0.333), None])))
+            Ok(Value::from(vec![Some(0.333), None]))
         );
     }
 
@@ -253,26 +253,21 @@ mod tests {
 
         assert_eq!(
             parse_value(Number::Count(1), Type::Character, "n"),
-            Ok(Value::Character('n'))
+            Ok(Value::from('n'))
         );
 
         assert_eq!(
             parse_value(Number::Count(2), Type::Character, "n,d,l,s"),
-            Ok(Value::Array(Array::Character(vec![
+            Ok(Value::from(vec![
                 Some('n'),
                 Some('d'),
                 Some('l'),
                 Some('s')
-            ])))
+            ]))
         );
         assert_eq!(
             parse_value(Number::Count(2), Type::Character, "n,d,l,."),
-            Ok(Value::Array(Array::Character(vec![
-                Some('n'),
-                Some('d'),
-                Some('l'),
-                None
-            ])))
+            Ok(Value::from(vec![Some('n'), Some('d'), Some('l'), None]))
         );
     }
 
@@ -288,33 +283,30 @@ mod tests {
 
         assert_eq!(
             parse_value(Number::Count(1), Type::String, "noodles"),
-            Ok(Value::String(String::from("noodles")))
+            Ok(Value::from("noodles"))
         );
         assert_eq!(
             parse_value(Number::Count(1), Type::String, "8%25"),
-            Ok(Value::String(String::from("8%")))
+            Ok(Value::from("8%"))
         );
 
         assert_eq!(
             parse_value(Number::Count(2), Type::String, "noodles,vcf"),
-            Ok(Value::Array(Array::String(vec![
+            Ok(Value::from(vec![
                 Some(String::from("noodles")),
                 Some(String::from("vcf"))
-            ])))
+            ]))
         );
         assert_eq!(
             parse_value(Number::Count(2), Type::String, "noodles,."),
-            Ok(Value::Array(Array::String(vec![
-                Some(String::from("noodles")),
-                None
-            ])))
+            Ok(Value::from(vec![Some(String::from("noodles")), None]))
         );
         assert_eq!(
             parse_value(Number::Count(2), Type::String, "8%25,13%25"),
-            Ok(Value::Array(Array::String(vec![
+            Ok(Value::from(vec![
                 Some(String::from("8%")),
                 Some(String::from("13%"))
-            ])))
+            ]))
         );
     }
 }

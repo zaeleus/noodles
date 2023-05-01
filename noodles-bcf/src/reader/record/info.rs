@@ -126,52 +126,46 @@ where
         | Some(Value::Int16(None | Some(Int16::Missing)))
         | Some(Value::Int32(None | Some(Int32::Missing))) => Ok(None),
         Some(Value::Int8(Some(Int8::Value(n)))) => {
-            Ok(Some(vcf::record::info::field::Value::Integer(i32::from(n))))
+            Ok(Some(vcf::record::info::field::Value::from(i32::from(n))))
         }
-        Some(Value::Int8Array(values)) => Ok(Some(vcf::record::info::field::Value::Array(
-            vcf::record::info::field::value::Array::Integer(
-                values
-                    .into_iter()
-                    .map(Int8::from)
-                    .map(|value| match value {
-                        Int8::Value(n) => Some(i32::from(n)),
-                        Int8::Missing => None,
-                        _ => todo!("unhandled i8 array value: {:?}", value),
-                    })
-                    .collect(),
-            ),
+        Some(Value::Int8Array(values)) => Ok(Some(vcf::record::info::field::Value::from(
+            values
+                .into_iter()
+                .map(Int8::from)
+                .map(|value| match value {
+                    Int8::Value(n) => Some(i32::from(n)),
+                    Int8::Missing => None,
+                    _ => todo!("unhandled i8 array value: {:?}", value),
+                })
+                .collect::<Vec<_>>(),
         ))),
         Some(Value::Int16(Some(Int16::Value(n)))) => {
-            Ok(Some(vcf::record::info::field::Value::Integer(i32::from(n))))
+            Ok(Some(vcf::record::info::field::Value::from(i32::from(n))))
         }
-        Some(Value::Int16Array(values)) => Ok(Some(vcf::record::info::field::Value::Array(
-            vcf::record::info::field::value::Array::Integer(
-                values
-                    .into_iter()
-                    .map(Int16::from)
-                    .map(|value| match value {
-                        Int16::Value(n) => Some(i32::from(n)),
-                        Int16::Missing => None,
-                        _ => todo!("unhandled i16 array value: {:?}", value),
-                    })
-                    .collect(),
-            ),
+        Some(Value::Int16Array(values)) => Ok(Some(vcf::record::info::field::Value::from(
+            values
+                .into_iter()
+                .map(Int16::from)
+                .map(|value| match value {
+                    Int16::Value(n) => Some(i32::from(n)),
+                    Int16::Missing => None,
+                    _ => todo!("unhandled i16 array value: {:?}", value),
+                })
+                .collect::<Vec<_>>(),
         ))),
         Some(Value::Int32(Some(Int32::Value(n)))) => {
-            Ok(Some(vcf::record::info::field::Value::Integer(n)))
+            Ok(Some(vcf::record::info::field::Value::from(n)))
         }
-        Some(Value::Int32Array(values)) => Ok(Some(vcf::record::info::field::Value::Array(
-            vcf::record::info::field::value::Array::Integer(
-                values
-                    .into_iter()
-                    .map(Int32::from)
-                    .map(|value| match value {
-                        Int32::Value(n) => Some(n),
-                        Int32::Missing => None,
-                        _ => todo!("unhandled i32 array value: {:?}", value),
-                    })
-                    .collect(),
-            ),
+        Some(Value::Int32Array(values)) => Ok(Some(vcf::record::info::field::Value::from(
+            values
+                .into_iter()
+                .map(Int32::from)
+                .map(|value| match value {
+                    Int32::Value(n) => Some(n),
+                    Int32::Missing => None,
+                    _ => todo!("unhandled i32 array value: {:?}", value),
+                })
+                .collect::<Vec<_>>(),
         ))),
         v => Err(type_mismatch_error(v, Type::Integer)),
     }
@@ -200,20 +194,18 @@ where
     match read_value(reader)? {
         None | Some(Value::Float(None | Some(Float::Missing))) => Ok(None),
         Some(Value::Float(Some(Float::Value(n)))) => {
-            Ok(Some(vcf::record::info::field::Value::Float(n)))
+            Ok(Some(vcf::record::info::field::Value::from(n)))
         }
-        Some(Value::FloatArray(values)) => Ok(Some(vcf::record::info::field::Value::Array(
-            vcf::record::info::field::value::Array::Float(
-                values
-                    .into_iter()
-                    .map(Float::from)
-                    .map(|value| match value {
-                        Float::Value(n) => Some(n),
-                        Float::Missing => None,
-                        _ => todo!("unhandled float array value: {:?}", value),
-                    })
-                    .collect(),
-            ),
+        Some(Value::FloatArray(values)) => Ok(Some(vcf::record::info::field::Value::from(
+            values
+                .into_iter()
+                .map(Float::from)
+                .map(|value| match value {
+                    Float::Value(n) => Some(n),
+                    Float::Missing => None,
+                    _ => todo!("unhandled float array value: {:?}", value),
+                })
+                .collect::<Vec<_>>(),
         ))),
         v => Err(type_mismatch_error(v, Type::Float)),
     }
@@ -234,21 +226,19 @@ where
             0 | 1 => s
                 .chars()
                 .next()
-                .map(vcf::record::info::field::Value::Character)
+                .map(vcf::record::info::field::Value::from)
                 .map(|v| Ok(Some(v)))
                 .ok_or_else(|| {
                     io::Error::new(io::ErrorKind::InvalidData, "INFO character value missing")
                 })?,
-            _ => Ok(Some(vcf::record::info::field::Value::Array(
-                vcf::record::info::field::value::Array::Character(
-                    s.split(DELIMITER)
-                        .flat_map(|t| t.chars())
-                        .map(|c| match c {
-                            MISSING_VALUE => None,
-                            _ => Some(c),
-                        })
-                        .collect(),
-                ),
+            _ => Ok(Some(vcf::record::info::field::Value::from(
+                s.split(DELIMITER)
+                    .flat_map(|t| t.chars())
+                    .map(|c| match c {
+                        MISSING_VALUE => None,
+                        _ => Some(c),
+                    })
+                    .collect::<Vec<_>>(),
             ))),
         },
         v => Err(type_mismatch_error(v, Type::Character)),
@@ -263,7 +253,7 @@ where
 {
     match read_value(reader)? {
         None | Some(Value::String(None)) => Ok(None),
-        Some(Value::String(Some(s))) => Ok(Some(vcf::record::info::field::Value::String(s))),
+        Some(Value::String(Some(s))) => Ok(Some(vcf::record::info::field::Value::from(s))),
         v => Err(type_mismatch_error(v, Type::String)),
     }
 }
@@ -289,7 +279,7 @@ mod tests {
             expected_value: Option<i32>,
         ) -> io::Result<()> {
             let actual = read_info_field_value(&mut reader, info)?;
-            let expected = expected_value.map(vcf::record::info::field::Value::Integer);
+            let expected = expected_value.map(vcf::record::info::field::Value::from);
             assert_eq!(actual, expected);
             Ok(())
         }
@@ -332,15 +322,8 @@ mod tests {
             expected_value: Option<Vec<Option<i32>>>,
         ) -> io::Result<()> {
             let actual = read_info_field_value(&mut reader, info)?;
-
-            let expected = expected_value.map(|values| {
-                vcf::record::info::field::Value::Array(
-                    vcf::record::info::field::value::Array::Integer(values),
-                )
-            });
-
+            let expected = expected_value.map(vcf::record::info::field::Value::from);
             assert_eq!(actual, expected);
-
             Ok(())
         }
 
@@ -407,7 +390,7 @@ mod tests {
             expected_value: Option<f32>,
         ) -> io::Result<()> {
             let actual = read_info_field_value(&mut reader, info)?;
-            let expected = expected_value.map(vcf::record::info::field::Value::Float);
+            let expected = expected_value.map(vcf::record::info::field::Value::from);
             assert_eq!(actual, expected);
             Ok(())
         }
@@ -436,15 +419,8 @@ mod tests {
             expected_value: Option<Vec<Option<f32>>>,
         ) -> io::Result<()> {
             let actual = read_info_field_value(&mut reader, info)?;
-
-            let expected = expected_value.map(|values| {
-                vcf::record::info::field::Value::Array(
-                    vcf::record::info::field::value::Array::Float(values),
-                )
-            });
-
+            let expected = expected_value.map(vcf::record::info::field::Value::from);
             assert_eq!(actual, expected);
-
             Ok(())
         }
 
@@ -474,7 +450,7 @@ mod tests {
             expected_value: Option<char>,
         ) -> io::Result<()> {
             let actual = read_info_field_value(&mut reader, info)?;
-            let expected = expected_value.map(vcf::record::info::field::Value::Character);
+            let expected = expected_value.map(vcf::record::info::field::Value::from);
             assert_eq!(actual, expected);
             Ok(())
         }
@@ -501,15 +477,8 @@ mod tests {
             expected_value: Option<Vec<Option<char>>>,
         ) -> io::Result<()> {
             let actual = read_info_field_value(&mut reader, info)?;
-
-            let expected = expected_value.map(|values| {
-                vcf::record::info::field::Value::Array(
-                    vcf::record::info::field::value::Array::Character(values),
-                )
-            });
-
+            let expected = expected_value.map(vcf::record::info::field::Value::from);
             assert_eq!(actual, expected);
-
             Ok(())
         }
 
@@ -542,8 +511,7 @@ mod tests {
             expected_value: Option<&str>,
         ) -> io::Result<()> {
             let actual = read_info_field_value(&mut reader, info)?;
-            let expected =
-                expected_value.map(|s| vcf::record::info::field::Value::String(s.into()));
+            let expected = expected_value.map(vcf::record::info::field::Value::from);
             assert_eq!(actual, expected);
             Ok(())
         }

@@ -135,13 +135,13 @@ mod tests {
         let info = Info::default();
         t(&mut buf, &info, b".")?;
 
-        let info = [(key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(2)))]
+        let info = [(key::SAMPLES_WITH_DATA_COUNT, Some(Value::from(2)))]
             .into_iter()
             .collect();
         t(&mut buf, &info, b"NS=2")?;
 
         let info = [
-            (key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(2))),
+            (key::SAMPLES_WITH_DATA_COUNT, Some(Value::from(2))),
             (key::IS_IN_DB_SNP, Some(Value::Flag)),
         ]
         .into_iter()

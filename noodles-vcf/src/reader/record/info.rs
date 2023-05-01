@@ -93,7 +93,7 @@ mod tests {
 
         info.clear();
         parse_info(&header, "NS=2", &mut info)?;
-        let expected = [(key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(2)))]
+        let expected = [(key::SAMPLES_WITH_DATA_COUNT, Some(Value::from(2)))]
             .into_iter()
             .collect();
         assert_eq!(info, expected);
@@ -101,11 +101,8 @@ mod tests {
         info.clear();
         parse_info(&header, "NS=2;AA=T", &mut info)?;
         let expected = [
-            (key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(2))),
-            (
-                key::ANCESTRAL_ALLELE,
-                Some(Value::String(String::from("T"))),
-            ),
+            (key::SAMPLES_WITH_DATA_COUNT, Some(Value::from(2))),
+            (key::ANCESTRAL_ALLELE, Some(Value::from("T"))),
         ]
         .into_iter()
         .collect();
