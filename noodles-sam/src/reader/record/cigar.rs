@@ -8,6 +8,8 @@ use crate::record::Cigar;
 /// An error when a raw SAM record CIGAR fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The input is empty.
+    Empty,
     /// The input is invalid.
     Invalid,
     /// An op is invalid.
@@ -17,8 +19,8 @@ pub enum ParseError {
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
-            Self::Invalid => None,
             Self::InvalidOp(e) => Some(e),
+            _ => None,
         }
     }
 }
@@ -26,6 +28,7 @@ impl error::Error for ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::Empty => write!(f, "empty input"),
             Self::Invalid => write!(f, "invalid input"),
             Self::InvalidOp(_) => write!(f, "invalid op"),
         }
@@ -33,6 +36,10 @@ impl fmt::Display for ParseError {
 }
 
 pub(crate) fn parse_cigar(mut src: &[u8], cigar: &mut Cigar) -> Result<(), ParseError> {
+    if src.is_empty() {
+        return Err(ParseError::Empty);
+    }
+
     let mut ops = Vec::from(mem::take(cigar));
 
     while !src.is_empty() {
@@ -56,10 +63,6 @@ mod tests {
         let mut cigar = Cigar::default();
 
         cigar.clear();
-        parse_cigar(b"", &mut cigar)?;
-        assert!(cigar.is_empty());
-
-        cigar.clear();
         parse_cigar(b"8M13N", &mut cigar)?;
         assert_eq!(
             cigar,
@@ -76,6 +79,9 @@ mod tests {
                 Op::new(Kind::SoftClip, 144),
             ])?
         );
+
+        cigar.clear();
+        assert_eq!(parse_cigar(b"", &mut cigar), Err(ParseError::Empty));
 
         cigar.clear();
         assert!(matches!(

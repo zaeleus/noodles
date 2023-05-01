@@ -17,6 +17,11 @@
   * sam/header/record/value/map: Increase the visiblity of the `program`
     module.
 
+  * sam/reader/record/sequence: Reading an empty CIGAR field fails with
+    `ParseError::Empty`.
+
+    If present, the CIGAR must have at least one operation.
+
   * sam/reader/record/data: Disallow duplicate tags.
 
   * sam/reader/record/sequence: Reading an empty sequence field fails with
