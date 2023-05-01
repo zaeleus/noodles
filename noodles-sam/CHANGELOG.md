@@ -15,6 +15,8 @@
   * sam/header/record/value/map: Increase the visiblity of the `program`
     module.
 
+  * sam/reader/record/data: Disallow duplicate tags.
+
   * sam/reader/record/sequence: Reading an empty sequence field fails with
     `ParseError::Empty`.
 
