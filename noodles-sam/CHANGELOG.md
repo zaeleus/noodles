@@ -20,6 +20,11 @@
 
     If present, the sequence must have at least one base.
 
+  * sam/reader/record/quality_scores: Reading an empty list of quality scores
+    fails with `ParseError::Empty`.
+
+    If present, the quality scores must have at least one score.
+
   * sam/record/data: `Data::get`, `Data::get_index_of`, and `Data::remove` take
     a reference of an equivalent tag.
 
