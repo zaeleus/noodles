@@ -373,7 +373,10 @@ mod tests {
             (key::SAMPLES_WITH_DATA_COUNT, Some(field::Value::Integer(2))),
             (
                 key::ALLELE_FREQUENCIES,
-                Some(field::Value::FloatArray(vec![Some(0.333), Some(0.667)])),
+                Some(field::Value::Array(field::value::Array::Float(vec![
+                    Some(0.333),
+                    Some(0.667),
+                ]))),
             ),
         ]
         .into_iter()

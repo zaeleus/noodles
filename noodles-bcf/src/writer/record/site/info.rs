@@ -77,16 +77,16 @@ where
         Some(field::Value::Flag) => write_info_field_flag_value(writer),
         Some(field::Value::Character(c)) => write_info_field_character_value(writer, *c),
         Some(field::Value::String(s)) => write_info_field_string_value(writer, s),
-        Some(field::Value::IntegerArray(values)) => {
+        Some(field::Value::Array(field::value::Array::Integer(values))) => {
             write_info_field_integer_array_value(writer, values)
         }
-        Some(field::Value::FloatArray(values)) => {
+        Some(field::Value::Array(field::value::Array::Float(values))) => {
             write_info_field_float_array_value(writer, values)
         }
-        Some(field::Value::CharacterArray(values)) => {
+        Some(field::Value::Array(field::value::Array::Character(values))) => {
             write_info_field_character_array_value(writer, values)
         }
-        Some(field::Value::StringArray(values)) => {
+        Some(field::Value::Array(field::value::Array::String(values))) => {
             write_info_field_string_array_value(writer, values)
         }
         _ => todo!("unhandled INFO field value: {:?}", value),
@@ -454,96 +454,119 @@ mod test {
 
         let mut buf = Vec::new();
 
-        let value = field::Value::IntegerArray(vec![Some(-2147483641), Some(-2147483640)]);
+        let value = field::Value::Array(field::value::Array::Integer(vec![
+            Some(-2147483641),
+            Some(-2147483640),
+        ]));
         buf.clear();
         assert!(matches!(
             write_info_field_value(&mut buf, Some(&value)),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
-        let value = field::Value::IntegerArray(vec![Some(-2147483640), Some(-2147483639)]);
+        let value = field::Value::Array(field::value::Array::Integer(vec![
+            Some(-2147483640),
+            Some(-2147483639),
+        ]));
         t(
             &mut buf,
             Some(&value),
             &[0x23, 0x08, 0x00, 0x00, 0x80, 0x09, 0x00, 0x00, 0x80],
         )?;
-        let value = field::Value::IntegerArray(vec![Some(-2147483640), None]);
+        let value =
+            field::Value::Array(field::value::Array::Integer(vec![Some(-2147483640), None]));
         t(
             &mut buf,
             Some(&value),
             &[0x23, 0x08, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x80],
         )?;
 
-        let value = field::Value::IntegerArray(vec![Some(-32761), Some(-32760)]);
+        let value = field::Value::Array(field::value::Array::Integer(vec![
+            Some(-32761),
+            Some(-32760),
+        ]));
         t(
             &mut buf,
             Some(&value),
             &[0x23, 0x07, 0x80, 0xff, 0xff, 0x08, 0x80, 0xff, 0xff],
         )?;
-        let value = field::Value::IntegerArray(vec![Some(-32761), None]);
+        let value = field::Value::Array(field::value::Array::Integer(vec![Some(-32761), None]));
         t(
             &mut buf,
             Some(&value),
             &[0x23, 0x07, 0x80, 0xff, 0xff, 0x00, 0x00, 0x00, 0x80],
         )?;
 
-        let value = field::Value::IntegerArray(vec![Some(-32760), Some(-32759)]);
+        let value = field::Value::Array(field::value::Array::Integer(vec![
+            Some(-32760),
+            Some(-32759),
+        ]));
         t(&mut buf, Some(&value), &[0x22, 0x08, 0x80, 0x09, 0x80])?;
-        let value = field::Value::IntegerArray(vec![Some(-32760), None]);
+        let value = field::Value::Array(field::value::Array::Integer(vec![Some(-32760), None]));
         t(&mut buf, Some(&value), &[0x22, 0x08, 0x80, 0x00, 0x80])?;
 
-        let value = field::Value::IntegerArray(vec![Some(-121), Some(-120)]);
+        let value = field::Value::Array(field::value::Array::Integer(vec![Some(-121), Some(-120)]));
         t(&mut buf, Some(&value), &[0x22, 0x87, 0xff, 0x88, 0xff])?;
-        let value = field::Value::IntegerArray(vec![Some(-121), None]);
+        let value = field::Value::Array(field::value::Array::Integer(vec![Some(-121), None]));
         t(&mut buf, Some(&value), &[0x22, 0x87, 0xff, 0x00, 0x80])?;
 
-        let value = field::Value::IntegerArray(vec![Some(-120), Some(-119)]);
+        let value = field::Value::Array(field::value::Array::Integer(vec![Some(-120), Some(-119)]));
         t(&mut buf, Some(&value), &[0x21, 0x88, 0x89])?;
-        let value = field::Value::IntegerArray(vec![Some(-120), None]);
+        let value = field::Value::Array(field::value::Array::Integer(vec![Some(-120), None]));
         t(&mut buf, Some(&value), &[0x21, 0x88, 0x80])?;
 
-        let value = field::Value::IntegerArray(vec![None, Some(0), Some(1)]);
+        let value = field::Value::Array(field::value::Array::Integer(vec![None, Some(0), Some(1)]));
         t(&mut buf, Some(&value), &[0x31, 0x80, 0x00, 0x01])?;
-        let value = field::Value::IntegerArray(vec![Some(-1), Some(0), Some(1)]);
+        let value = field::Value::Array(field::value::Array::Integer(vec![
+            Some(-1),
+            Some(0),
+            Some(1),
+        ]));
         t(&mut buf, Some(&value), &[0x31, 0xff, 0x00, 0x01])?;
-        let value = field::Value::IntegerArray(vec![Some(-1), Some(0), None]);
+        let value =
+            field::Value::Array(field::value::Array::Integer(vec![Some(-1), Some(0), None]));
         t(&mut buf, Some(&value), &[0x31, 0xff, 0x00, 0x80])?;
 
-        let value = field::Value::IntegerArray(vec![Some(126), Some(127)]);
+        let value = field::Value::Array(field::value::Array::Integer(vec![Some(126), Some(127)]));
         t(&mut buf, Some(&value), &[0x21, 0x7e, 0x7f])?;
-        let value = field::Value::IntegerArray(vec![None, Some(127)]);
+        let value = field::Value::Array(field::value::Array::Integer(vec![None, Some(127)]));
         t(&mut buf, Some(&value), &[0x21, 0x80, 0x7f])?;
 
-        let value = field::Value::IntegerArray(vec![Some(127), Some(128)]);
+        let value = field::Value::Array(field::value::Array::Integer(vec![Some(127), Some(128)]));
         t(&mut buf, Some(&value), &[0x22, 0x7f, 0x00, 0x80, 0x00])?;
-        let value = field::Value::IntegerArray(vec![None, Some(128)]);
+        let value = field::Value::Array(field::value::Array::Integer(vec![None, Some(128)]));
         t(&mut buf, Some(&value), &[0x22, 0x00, 0x80, 0x80, 0x00])?;
 
-        let value = field::Value::IntegerArray(vec![Some(32766), Some(32767)]);
+        let value =
+            field::Value::Array(field::value::Array::Integer(vec![Some(32766), Some(32767)]));
         t(&mut buf, Some(&value), &[0x22, 0xfe, 0x7f, 0xff, 0x7f])?;
-        let value = field::Value::IntegerArray(vec![None, Some(32767)]);
+        let value = field::Value::Array(field::value::Array::Integer(vec![None, Some(32767)]));
         t(&mut buf, Some(&value), &[0x22, 0x00, 0x80, 0xff, 0x7f])?;
 
-        let value = field::Value::IntegerArray(vec![Some(32767), Some(32768)]);
+        let value =
+            field::Value::Array(field::value::Array::Integer(vec![Some(32767), Some(32768)]));
         t(
             &mut buf,
             Some(&value),
             &[0x23, 0xff, 0x7f, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00],
         )?;
-        let value = field::Value::IntegerArray(vec![None, Some(32768)]);
+        let value = field::Value::Array(field::value::Array::Integer(vec![None, Some(32768)]));
         t(
             &mut buf,
             Some(&value),
             &[0x23, 0x00, 0x00, 0x00, 0x80, 0x00, 0x80, 0x00, 0x00],
         )?;
 
-        let value = field::Value::IntegerArray(vec![Some(2147483646), Some(2147483647)]);
+        let value = field::Value::Array(field::value::Array::Integer(vec![
+            Some(2147483646),
+            Some(2147483647),
+        ]));
         t(
             &mut buf,
             Some(&value),
             &[0x23, 0xfe, 0xff, 0xff, 0x7f, 0xff, 0xff, 0xff, 0x7f],
         )?;
-        let value = field::Value::IntegerArray(vec![None, Some(2147483647)]);
+        let value = field::Value::Array(field::value::Array::Integer(vec![None, Some(2147483647)]));
         t(
             &mut buf,
             Some(&value),
@@ -566,14 +589,14 @@ mod test {
 
         let mut buf = Vec::new();
 
-        let value = field::Value::FloatArray(vec![Some(0.0), Some(1.0)]);
+        let value = field::Value::Array(field::value::Array::Float(vec![Some(0.0), Some(1.0)]));
         t(
             &mut buf,
             Some(&value),
             &[0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f],
         )?;
 
-        let value = field::Value::FloatArray(vec![Some(0.0), None]);
+        let value = field::Value::Array(field::value::Array::Float(vec![Some(0.0), None]));
         t(
             &mut buf,
             Some(&value),
@@ -596,14 +619,24 @@ mod test {
 
         let mut buf = Vec::new();
 
-        let value = field::Value::CharacterArray(vec![Some('n'), Some('d'), Some('l'), Some('s')]);
+        let value = field::Value::Array(field::value::Array::Character(vec![
+            Some('n'),
+            Some('d'),
+            Some('l'),
+            Some('s'),
+        ]));
         t(
             &mut buf,
             Some(&value),
             &[0x77, 0x6e, 0x2c, 0x64, 0x2c, 0x6c, 0x2c, 0x73],
         )?;
 
-        let value = field::Value::CharacterArray(vec![Some('n'), Some('d'), Some('l'), None]);
+        let value = field::Value::Array(field::value::Array::Character(vec![
+            Some('n'),
+            Some('d'),
+            Some('l'),
+            None,
+        ]));
         t(
             &mut buf,
             Some(&value),
@@ -626,15 +659,20 @@ mod test {
 
         let mut buf = Vec::new();
 
-        let value =
-            field::Value::StringArray(vec![Some(String::from("nd")), Some(String::from("ls"))]);
+        let value = field::Value::Array(field::value::Array::String(vec![
+            Some(String::from("nd")),
+            Some(String::from("ls")),
+        ]));
         t(
             &mut buf,
             Some(&value),
             &[0x57, 0x6e, 0x64, 0x2c, 0x6c, 0x73],
         )?;
 
-        let value = field::Value::StringArray(vec![Some(String::from("nd")), None]);
+        let value = field::Value::Array(field::value::Array::String(vec![
+            Some(String::from("nd")),
+            None,
+        ]));
         t(&mut buf, Some(&value), &[0x47, 0x6e, 0x64, 0x2c, 0x2e])?;
 
         Ok(())

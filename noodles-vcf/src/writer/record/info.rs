@@ -1,7 +1,10 @@
 use std::io::{self, Write};
 
 use super::MISSING;
-use crate::record::{info::field::Value, Info};
+use crate::record::{
+    info::field::{value::Array, Value},
+    Info,
+};
 
 pub(super) fn write_info<W>(writer: &mut W, info: &Info) -> io::Result<()>
 where
@@ -49,7 +52,7 @@ where
         Value::Flag => Ok(()),
         Value::Character(c) => write!(writer, "{c}"),
         Value::String(s) => writer.write_all(s.as_bytes()),
-        Value::IntegerArray(values) => {
+        Value::Array(Array::Integer(values)) => {
             for (i, v) in values.iter().enumerate() {
                 if i > 0 {
                     writer.write_all(DELIMITER)?;
@@ -64,7 +67,7 @@ where
 
             Ok(())
         }
-        Value::FloatArray(values) => {
+        Value::Array(Array::Float(values)) => {
             for (i, v) in values.iter().enumerate() {
                 if i > 0 {
                     writer.write_all(DELIMITER)?;
@@ -79,7 +82,7 @@ where
 
             Ok(())
         }
-        Value::CharacterArray(values) => {
+        Value::Array(Array::Character(values)) => {
             for (i, v) in values.iter().enumerate() {
                 if i > 0 {
                     writer.write_all(DELIMITER)?;
@@ -94,7 +97,7 @@ where
 
             Ok(())
         }
-        Value::StringArray(values) => {
+        Value::Array(Array::String(values)) => {
             for (i, v) in values.iter().enumerate() {
                 if i > 0 {
                     writer.write_all(DELIMITER)?;

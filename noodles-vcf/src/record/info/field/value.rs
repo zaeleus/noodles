@@ -1,5 +1,9 @@
 //! VCF record info field value.
 
+mod array;
+
+pub use self::array::Array;
+
 use std::{error, fmt, num, str};
 
 use super::MISSING_VALUE;
@@ -29,14 +33,8 @@ pub enum Value {
     Character(char),
     /// A string.
     String(String),
-    /// An array of 32-bit integers.
-    IntegerArray(Vec<Option<i32>>),
-    /// An array of single-precision floating-points.
-    FloatArray(Vec<Option<f32>>),
-    /// An array of characters.
-    CharacterArray(Vec<Option<char>>),
-    /// An array of strings.
-    StringArray(Vec<Option<String>>),
+    /// An array.
+    Array(Array),
 }
 
 impl fmt::Display for Value {
@@ -47,66 +45,7 @@ impl fmt::Display for Value {
             Self::Flag => Ok(()),
             Self::Character(c) => write!(f, "{c}"),
             Self::String(s) => write!(f, "{s}"),
-            Self::IntegerArray(values) => {
-                for (i, value) in values.iter().enumerate() {
-                    if i > 0 {
-                        write!(f, "{DELIMITER}")?;
-                    }
-
-                    if let Some(v) = value {
-                        write!(f, "{v}")?;
-                    } else {
-                        f.write_str(MISSING_VALUE)?;
-                    }
-                }
-
-                Ok(())
-            }
-            Self::FloatArray(values) => {
-                for (i, value) in values.iter().enumerate() {
-                    if i > 0 {
-                        write!(f, "{DELIMITER}")?;
-                    }
-
-                    if let Some(v) = value {
-                        write!(f, "{v}")?;
-                    } else {
-                        f.write_str(MISSING_VALUE)?;
-                    }
-                }
-
-                Ok(())
-            }
-            Self::CharacterArray(values) => {
-                for (i, value) in values.iter().enumerate() {
-                    if i > 0 {
-                        write!(f, "{DELIMITER}")?;
-                    }
-
-                    if let Some(v) = value {
-                        write!(f, "{v}")?;
-                    } else {
-                        f.write_str(MISSING_VALUE)?;
-                    }
-                }
-
-                Ok(())
-            }
-            Self::StringArray(values) => {
-                for (i, value) in values.iter().enumerate() {
-                    if i > 0 {
-                        write!(f, "{DELIMITER}")?;
-                    }
-
-                    if let Some(v) = value {
-                        write!(f, "{v}")?;
-                    } else {
-                        f.write_str(MISSING_VALUE)?;
-                    }
-                }
-
-                Ok(())
-            }
+            Self::Array(array) => write!(f, "{array}"),
         }
     }
 }
@@ -223,7 +162,7 @@ fn parse_i32_array(s: &str) -> Result<Value, ParseError> {
             _ => t.parse().map(Some).map_err(ParseError::InvalidInteger),
         })
         .collect::<Result<_, _>>()
-        .map(Value::IntegerArray)
+        .map(|values| Value::Array(Array::Integer(values)))
 }
 
 fn parse_f32(s: &str) -> Result<Value, ParseError> {
@@ -241,7 +180,7 @@ fn parse_f32_array(s: &str) -> Result<Value, ParseError> {
                 .map_err(ParseError::InvalidFloat),
         })
         .collect::<Result<_, _>>()
-        .map(Value::FloatArray)
+        .map(|values| Value::Array(Array::Float(values)))
 }
 
 fn parse_flag(s: &str) -> Result<Value, ParseError> {
@@ -275,7 +214,7 @@ fn parse_char_array(s: &str) -> Result<Value, ParseError> {
             _ => parse_raw_char(t).map(Some),
         })
         .collect::<Result<_, _>>()
-        .map(Value::CharacterArray)
+        .map(|values| Value::Array(Array::Character(values)))
 }
 
 fn parse_string(s: &str) -> Result<Value, ParseError> {
@@ -293,7 +232,7 @@ fn parse_string_array(s: &str) -> Result<Value, ParseError> {
                 .map_err(ParseError::InvalidString),
         })
         .collect::<Result<_, _>>()
-        .map(Value::StringArray)
+        .map(|values| Value::Array(Array::String(values)))
 }
 
 #[cfg(test)]
@@ -316,43 +255,53 @@ mod tests {
         let value = Value::String(String::from("noodles"));
         assert_eq!(value.to_string(), "noodles");
 
-        let value = Value::IntegerArray(vec![Some(2)]);
+        let value = Value::Array(Array::Integer(vec![Some(2)]));
         assert_eq!(value.to_string(), "2");
 
-        let value = Value::IntegerArray(vec![Some(2), Some(5)]);
+        let value = Value::Array(Array::Integer(vec![Some(2), Some(5)]));
         assert_eq!(value.to_string(), "2,5");
 
-        let value = Value::IntegerArray(vec![Some(2), None]);
+        let value = Value::Array(Array::Integer(vec![Some(2), None]));
         assert_eq!(value.to_string(), "2,.");
 
-        let value = Value::FloatArray(vec![Some(0.333)]);
+        let value = Value::Array(Array::Float(vec![Some(0.333)]));
         assert_eq!(value.to_string(), "0.333");
 
-        let value = Value::FloatArray(vec![Some(0.333), Some(0.667)]);
+        let value = Value::Array(Array::Float(vec![Some(0.333), Some(0.667)]));
         assert_eq!(value.to_string(), "0.333,0.667");
 
-        let value = Value::FloatArray(vec![Some(0.333), None]);
+        let value = Value::Array(Array::Float(vec![Some(0.333), None]));
         assert_eq!(value.to_string(), "0.333,.");
 
-        let value = Value::CharacterArray(vec![Some('n')]);
+        let value = Value::Array(Array::Character(vec![Some('n')]));
         assert_eq!(value.to_string(), "n");
 
-        let value = Value::CharacterArray(vec![Some('n'), Some('d'), Some('l'), Some('s')]);
+        let value = Value::Array(Array::Character(vec![
+            Some('n'),
+            Some('d'),
+            Some('l'),
+            Some('s'),
+        ]));
         assert_eq!(value.to_string(), "n,d,l,s");
 
-        let value = Value::CharacterArray(vec![Some('n'), Some('d'), Some('l'), None]);
+        let value = Value::Array(Array::Character(vec![
+            Some('n'),
+            Some('d'),
+            Some('l'),
+            None,
+        ]));
         assert_eq!(value.to_string(), "n,d,l,.");
 
-        let value = Value::StringArray(vec![Some(String::from("noodles"))]);
+        let value = Value::Array(Array::String(vec![Some(String::from("noodles"))]));
         assert_eq!(value.to_string(), "noodles");
 
-        let value = Value::StringArray(vec![
+        let value = Value::Array(Array::String(vec![
             Some(String::from("noodles")),
             Some(String::from("vcf")),
-        ]);
+        ]));
         assert_eq!(value.to_string(), "noodles,vcf");
 
-        let value = Value::StringArray(vec![Some(String::from("noodles")), None]);
+        let value = Value::Array(Array::String(vec![Some(String::from("noodles")), None]));
         assert_eq!(value.to_string(), "noodles,.");
     }
 
@@ -373,11 +322,11 @@ mod tests {
 
         assert_eq!(
             parse(Number::Count(2), Type::Integer, "8,13"),
-            Ok(Value::IntegerArray(vec![Some(8), Some(13)])),
+            Ok(Value::Array(Array::Integer(vec![Some(8), Some(13)])))
         );
         assert_eq!(
             parse(Number::Count(2), Type::Integer, "8,."),
-            Ok(Value::IntegerArray(vec![Some(8), None])),
+            Ok(Value::Array(Array::Integer(vec![Some(8), None])))
         );
     }
 
@@ -398,11 +347,11 @@ mod tests {
 
         assert_eq!(
             parse(Number::Count(2), Type::Float, "0.333,0.667"),
-            Ok(Value::FloatArray(vec![Some(0.333), Some(0.667)]))
+            Ok(Value::Array(Array::Float(vec![Some(0.333), Some(0.667)])))
         );
         assert_eq!(
             parse(Number::Count(2), Type::Float, "0.333,."),
-            Ok(Value::FloatArray(vec![Some(0.333), None]))
+            Ok(Value::Array(Array::Float(vec![Some(0.333), None])))
         );
     }
 
@@ -441,21 +390,21 @@ mod tests {
 
         assert_eq!(
             parse(Number::Count(2), Type::Character, "n,d,l,s"),
-            Ok(Value::CharacterArray(vec![
+            Ok(Value::Array(Array::Character(vec![
                 Some('n'),
                 Some('d'),
                 Some('l'),
                 Some('s')
-            ]))
+            ])))
         );
         assert_eq!(
             parse(Number::Count(2), Type::Character, "n,d,l,."),
-            Ok(Value::CharacterArray(vec![
+            Ok(Value::Array(Array::Character(vec![
                 Some('n'),
                 Some('d'),
                 Some('l'),
                 None
-            ]))
+            ])))
         );
     }
 
@@ -480,24 +429,24 @@ mod tests {
 
         assert_eq!(
             parse(Number::Count(2), Type::String, "noodles,vcf"),
-            Ok(Value::StringArray(vec![
+            Ok(Value::Array(Array::String(vec![
                 Some(String::from("noodles")),
                 Some(String::from("vcf"))
-            ]))
+            ])))
         );
         assert_eq!(
             parse(Number::Count(2), Type::String, "noodles,."),
-            Ok(Value::StringArray(vec![
+            Ok(Value::Array(Array::String(vec![
                 Some(String::from("noodles")),
                 None
-            ]))
+            ])))
         );
         assert_eq!(
             parse(Number::Count(2), Type::String, "8%25,13%25"),
-            Ok(Value::StringArray(vec![
+            Ok(Value::Array(Array::String(vec![
                 Some(String::from("8%")),
                 Some(String::from("13%"))
-            ]))
+            ])))
         );
     }
 }

@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * vcf/record/info/field/value: Add array value wrapper (`Array`).
+
+    This replaces `Value::*Array(_)` with `Value::Array(Array)`.
+
 ## 0.28.0 - 2023-04-27
 
 ### Added
