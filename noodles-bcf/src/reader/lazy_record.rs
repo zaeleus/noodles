@@ -148,7 +148,11 @@ pub(crate) mod tests {
     #[test]
     fn test_read_lazy_record() -> Result<(), Box<dyn std::error::Error>> {
         use noodles_vcf::record::{
-            genotypes::{self, sample::Value as GenotypeFieldValue, Keys},
+            genotypes::{
+                self,
+                sample::{value::Array, Value as GenotypeFieldValue},
+                Keys,
+            },
             info::{self, field::Value as InfoFieldValue},
             Filters as VcfFilters, Genotypes as VcfGenotypes, Ids, Position, QualityScore,
         };
@@ -226,34 +230,43 @@ pub(crate) mod tests {
                     Some(GenotypeFieldValue::String(String::from("0/0"))),
                     Some(GenotypeFieldValue::Integer(10)),
                     Some(GenotypeFieldValue::Integer(32)),
-                    Some(GenotypeFieldValue::IntegerArray(vec![Some(32), Some(0)])),
-                    Some(GenotypeFieldValue::IntegerArray(vec![
+                    Some(GenotypeFieldValue::Array(Array::Integer(vec![
+                        Some(32),
+                        Some(0),
+                    ]))),
+                    Some(GenotypeFieldValue::Array(Array::Integer(vec![
                         Some(0),
                         Some(10),
                         Some(100),
-                    ])),
+                    ]))),
                 ],
                 vec![
                     Some(GenotypeFieldValue::String(String::from("0/1"))),
                     Some(GenotypeFieldValue::Integer(10)),
                     Some(GenotypeFieldValue::Integer(48)),
-                    Some(GenotypeFieldValue::IntegerArray(vec![Some(32), Some(16)])),
-                    Some(GenotypeFieldValue::IntegerArray(vec![
+                    Some(GenotypeFieldValue::Array(Array::Integer(vec![
+                        Some(32),
+                        Some(16),
+                    ]))),
+                    Some(GenotypeFieldValue::Array(Array::Integer(vec![
                         Some(10),
                         Some(0),
                         Some(100),
-                    ])),
+                    ]))),
                 ],
                 vec![
                     Some(GenotypeFieldValue::String(String::from("1/1"))),
                     Some(GenotypeFieldValue::Integer(10)),
                     Some(GenotypeFieldValue::Integer(64)),
-                    Some(GenotypeFieldValue::IntegerArray(vec![Some(0), Some(64)])),
-                    Some(GenotypeFieldValue::IntegerArray(vec![
+                    Some(GenotypeFieldValue::Array(Array::Integer(vec![
+                        Some(0),
+                        Some(64),
+                    ]))),
+                    Some(GenotypeFieldValue::Array(Array::Integer(vec![
                         Some(100),
                         Some(10),
                         Some(0),
-                    ])),
+                    ]))),
                 ],
             ],
         );

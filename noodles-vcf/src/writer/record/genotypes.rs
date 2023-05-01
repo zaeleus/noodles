@@ -2,7 +2,10 @@ use std::io::{self, Write};
 
 use super::MISSING;
 use crate::record::{
-    genotypes::{sample::Value, Keys, Sample},
+    genotypes::{
+        sample::{value::Array, Value},
+        Keys, Sample,
+    },
     Genotypes,
 };
 
@@ -70,7 +73,7 @@ where
         Value::Float(n) => write!(writer, "{n}"),
         Value::Character(c) => write!(writer, "{c}"),
         Value::String(s) => writer.write_all(s.as_bytes()),
-        Value::IntegerArray(values) => {
+        Value::Array(Array::Integer(values)) => {
             for (i, v) in values.iter().enumerate() {
                 if i > 0 {
                     writer.write_all(DELIMITER)?;
@@ -85,7 +88,7 @@ where
 
             Ok(())
         }
-        Value::FloatArray(values) => {
+        Value::Array(Array::Float(values)) => {
             for (i, v) in values.iter().enumerate() {
                 if i > 0 {
                     writer.write_all(DELIMITER)?;
@@ -100,7 +103,7 @@ where
 
             Ok(())
         }
-        Value::CharacterArray(values) => {
+        Value::Array(Array::Character(values)) => {
             for (i, v) in values.iter().enumerate() {
                 if i > 0 {
                     writer.write_all(DELIMITER)?;
@@ -115,7 +118,7 @@ where
 
             Ok(())
         }
-        Value::StringArray(values) => {
+        Value::Array(Array::String(values)) => {
             for (i, v) in values.iter().enumerate() {
                 if i > 0 {
                     writer.write_all(DELIMITER)?;
@@ -194,54 +197,66 @@ mod tests {
             b"noodles",
         )?;
 
-        t(&mut buf, &Value::IntegerArray(vec![Some(8)]), b"8")?;
+        t(&mut buf, &Value::Array(Array::Integer(vec![Some(8)])), b"8")?;
         t(
             &mut buf,
-            &Value::IntegerArray(vec![Some(8), Some(13)]),
+            &Value::Array(Array::Integer(vec![Some(8), Some(13)])),
             b"8,13",
         )?;
-        t(&mut buf, &Value::IntegerArray(vec![Some(8), None]), b"8,.")?;
-
-        t(&mut buf, &Value::FloatArray(vec![Some(0.333)]), b"0.333")?;
         t(
             &mut buf,
-            &Value::FloatArray(vec![Some(0.333), Some(0.667)]),
+            &Value::Array(Array::Integer(vec![Some(8), None])),
+            b"8,.",
+        )?;
+
+        t(
+            &mut buf,
+            &Value::Array(Array::Float(vec![Some(0.333)])),
+            b"0.333",
+        )?;
+        t(
+            &mut buf,
+            &Value::Array(Array::Float(vec![Some(0.333), Some(0.667)])),
             b"0.333,0.667",
         )?;
         t(
             &mut buf,
-            &Value::FloatArray(vec![Some(0.333), None]),
+            &Value::Array(Array::Float(vec![Some(0.333), None])),
             b"0.333,.",
         )?;
 
-        t(&mut buf, &Value::CharacterArray(vec![Some('n')]), b"n")?;
         t(
             &mut buf,
-            &Value::CharacterArray(vec![Some('n'), Some('d')]),
+            &Value::Array(Array::Character(vec![Some('n')])),
+            b"n",
+        )?;
+        t(
+            &mut buf,
+            &Value::Array(Array::Character(vec![Some('n'), Some('d')])),
             b"n,d",
         )?;
         t(
             &mut buf,
-            &Value::CharacterArray(vec![Some('n'), None]),
+            &Value::Array(Array::Character(vec![Some('n'), None])),
             b"n,.",
         )?;
 
         t(
             &mut buf,
-            &Value::StringArray(vec![Some(String::from("noodles"))]),
+            &Value::Array(Array::String(vec![Some(String::from("noodles"))])),
             b"noodles",
         )?;
         t(
             &mut buf,
-            &Value::StringArray(vec![
+            &Value::Array(Array::String(vec![
                 Some(String::from("noodles")),
                 Some(String::from("vcf")),
-            ]),
+            ])),
             b"noodles,vcf",
         )?;
         t(
             &mut buf,
-            &Value::StringArray(vec![Some(String::from("noodles")), None]),
+            &Value::Array(Array::String(vec![Some(String::from("noodles")), None])),
             b"noodles,.",
         )?;
 

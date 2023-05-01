@@ -9,7 +9,7 @@ use noodles_vcf::{
     record::{
         genotypes::{
             keys::{key, Key},
-            sample::Value,
+            sample::{value::Array, Value},
             Keys,
         },
         Genotypes,
@@ -187,7 +187,7 @@ where
         if vs.len() == 1 && vs[0].is_none() {
             values.push(None);
         } else {
-            values.push(Some(Value::IntegerArray(vs)));
+            values.push(Some(Value::Array(Array::Integer(vs))));
         }
     }
 
@@ -244,7 +244,7 @@ where
         if vs.len() == 1 && vs[0].is_none() {
             values.push(None);
         } else {
-            values.push(Some(Value::IntegerArray(vs)));
+            values.push(Some(Value::Array(Array::Integer(vs))));
         }
     }
 
@@ -301,7 +301,7 @@ where
         if vs.len() == 1 && vs[0].is_none() {
             values.push(None);
         } else {
-            values.push(Some(Value::IntegerArray(vs)));
+            values.push(Some(Value::Array(Array::Integer(vs))));
         }
     }
 
@@ -358,7 +358,7 @@ where
         if vs.len() == 1 && vs[0].is_none() {
             values.push(None);
         } else {
-            values.push(Some(Value::FloatArray(vs)));
+            values.push(Some(Value::Array(Array::Float(vs))));
         }
     }
 
@@ -497,9 +497,9 @@ mod tests {
 
         let actual = read_genotype_field_values(&mut reader, 4)?;
         let expected = vec![
-            Some(Value::IntegerArray(vec![Some(5), Some(8)])),
-            Some(Value::IntegerArray(vec![Some(13), None])),
-            Some(Value::IntegerArray(vec![Some(21)])),
+            Some(Value::Array(Array::Integer(vec![Some(5), Some(8)]))),
+            Some(Value::Array(Array::Integer(vec![Some(13), None]))),
+            Some(Value::Array(Array::Integer(vec![Some(21)]))),
             None,
         ];
 
@@ -539,9 +539,9 @@ mod tests {
 
         let actual = read_genotype_field_values(&mut reader, 4)?;
         let expected = vec![
-            Some(Value::IntegerArray(vec![Some(5), Some(8)])),
-            Some(Value::IntegerArray(vec![Some(13), None])),
-            Some(Value::IntegerArray(vec![Some(21)])),
+            Some(Value::Array(Array::Integer(vec![Some(5), Some(8)]))),
+            Some(Value::Array(Array::Integer(vec![Some(13), None]))),
+            Some(Value::Array(Array::Integer(vec![Some(21)]))),
             None,
         ];
 
@@ -581,9 +581,9 @@ mod tests {
 
         let actual = read_genotype_field_values(&mut reader, 4)?;
         let expected = vec![
-            Some(Value::IntegerArray(vec![Some(5), Some(8)])),
-            Some(Value::IntegerArray(vec![Some(13), None])),
-            Some(Value::IntegerArray(vec![Some(21)])),
+            Some(Value::Array(Array::Integer(vec![Some(5), Some(8)]))),
+            Some(Value::Array(Array::Integer(vec![Some(13), None]))),
+            Some(Value::Array(Array::Integer(vec![Some(21)]))),
             None,
         ];
 
@@ -623,9 +623,9 @@ mod tests {
 
         let actual = read_genotype_field_values(&mut reader, 4)?;
         let expected = vec![
-            Some(Value::FloatArray(vec![Some(0.0), Some(1.0)])),
-            Some(Value::FloatArray(vec![Some(0.0), None])),
-            Some(Value::FloatArray(vec![Some(0.0)])),
+            Some(Value::Array(Array::Float(vec![Some(0.0), Some(1.0)]))),
+            Some(Value::Array(Array::Float(vec![Some(0.0), None]))),
+            Some(Value::Array(Array::Float(vec![Some(0.0)]))),
             None,
         ];
 

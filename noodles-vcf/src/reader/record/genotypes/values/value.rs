@@ -5,7 +5,10 @@ use noodles_core as core;
 use crate::{
     header::{record::value::map::format::Type, Number},
     reader::record::MISSING,
-    record::{genotypes::sample::Value, value},
+    record::{
+        genotypes::sample::{value::Array, Value},
+        value,
+    },
 };
 
 const DELIMITER: char = ',';
@@ -84,7 +87,7 @@ fn parse_i32_array(s: &str) -> Result<Value, ParseError> {
             _ => t.parse().map(Some).map_err(ParseError::InvalidInteger),
         })
         .collect::<Result<_, _>>()
-        .map(Value::IntegerArray)
+        .map(|values| Value::Array(Array::Integer(values)))
 }
 
 fn parse_f32(s: &str) -> Result<Value, ParseError> {
@@ -100,7 +103,7 @@ fn parse_f32_array(s: &str) -> Result<Value, ParseError> {
             _ => t.parse().map(Some).map_err(ParseError::InvalidFloat),
         })
         .collect::<Result<_, _>>()
-        .map(Value::FloatArray)
+        .map(|values| Value::Array(Array::Float(values)))
 }
 
 fn parse_raw_char(s: &str) -> Result<char, ParseError> {
@@ -126,7 +129,7 @@ fn parse_char_array(s: &str) -> Result<Value, ParseError> {
             _ => parse_raw_char(t).map(Some),
         })
         .collect::<Result<_, _>>()
-        .map(Value::CharacterArray)
+        .map(|values| Value::Array(Array::Character(values)))
 }
 
 fn parse_raw_string(s: &str) -> Result<String, ParseError> {
@@ -146,7 +149,7 @@ fn parse_string_array(s: &str) -> Result<Value, ParseError> {
             _ => parse_raw_string(t).map(Some),
         })
         .collect::<Result<_, _>>()
-        .map(Value::StringArray)
+        .map(|values| Value::Array(Array::String(values)))
 }
 
 #[cfg(test)]
@@ -170,12 +173,12 @@ mod tests {
 
         assert_eq!(
             parse_value(Number::Count(2), Type::Integer, "8,13"),
-            Ok(Value::IntegerArray(vec![Some(8), Some(13)]))
+            Ok(Value::Array(Array::Integer(vec![Some(8), Some(13)])))
         );
 
         assert_eq!(
             parse_value(Number::Count(2), Type::Integer, "8,."),
-            Ok(Value::IntegerArray(vec![Some(8), None]))
+            Ok(Value::Array(Array::Integer(vec![Some(8), None])))
         );
     }
 
@@ -196,12 +199,12 @@ mod tests {
 
         assert_eq!(
             parse_value(Number::Count(2), Type::Float, "0.333,0.667"),
-            Ok(Value::FloatArray(vec![Some(0.333), Some(0.667)]))
+            Ok(Value::Array(Array::Float(vec![Some(0.333), Some(0.667)])))
         );
 
         assert_eq!(
             parse_value(Number::Count(2), Type::Float, "0.333,."),
-            Ok(Value::FloatArray(vec![Some(0.333), None]))
+            Ok(Value::Array(Array::Float(vec![Some(0.333), None])))
         );
     }
 
@@ -222,22 +225,22 @@ mod tests {
 
         assert_eq!(
             parse_value(Number::Count(2), Type::Character, "n,d,l,s"),
-            Ok(Value::CharacterArray(vec![
+            Ok(Value::Array(Array::Character(vec![
                 Some('n'),
                 Some('d'),
                 Some('l'),
                 Some('s')
-            ]))
+            ])))
         );
 
         assert_eq!(
             parse_value(Number::Count(2), Type::Character, "n,d,l,."),
-            Ok(Value::CharacterArray(vec![
+            Ok(Value::Array(Array::Character(vec![
                 Some('n'),
                 Some('d'),
                 Some('l'),
                 None
-            ]))
+            ])))
         );
     }
 
@@ -262,24 +265,24 @@ mod tests {
 
         assert_eq!(
             parse_value(Number::Count(2), Type::String, "noodles,vcf"),
-            Ok(Value::StringArray(vec![
+            Ok(Value::Array(Array::String(vec![
                 Some(String::from("noodles")),
                 Some(String::from("vcf"))
-            ]))
+            ])))
         );
         assert_eq!(
             parse_value(Number::Count(2), Type::String, "8%25,13%25"),
-            Ok(Value::StringArray(vec![
+            Ok(Value::Array(Array::String(vec![
                 Some(String::from("8%")),
                 Some(String::from("13%")),
-            ]))
+            ])))
         );
         assert_eq!(
             parse_value(Number::Count(2), Type::String, "noodles,."),
-            Ok(Value::StringArray(vec![
+            Ok(Value::Array(Array::String(vec![
                 Some(String::from("noodles")),
                 None,
-            ]))
+            ])))
         );
     }
 }

@@ -4,6 +4,10 @@
 
 ### Changed
 
+  * vcf/record/genotypes/sample/value: Add array value wrapper (`Array`).
+
+    This replaces `Value::*Array(_)` with `Value::Array(Array)`.
+
   * vcf/record/info/field/value: Add array value wrapper (`Array`).
 
     This replaces `Value::*Array(_)` with `Value::Array(Array)`.
