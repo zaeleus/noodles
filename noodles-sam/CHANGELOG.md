@@ -37,6 +37,12 @@
 
     Use, e.g., `tag::ALIGNMENT_HIT_COUNT` instead of `Tag::AlignmentHitCount`.
 
+### Fixed
+
+  * sam/reader/record: Fix reading all optional data fields.
+
+    This previously only received the first field.
+
 ### Removed
 
   * sam/header/record/value/map: Remove `TryFromFieldsError`.

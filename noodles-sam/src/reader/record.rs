@@ -186,8 +186,7 @@ pub(crate) fn parse_record(
     }
 
     record.data_mut().clear();
-    let field = next_field(&mut src);
-    parse_data(field, record.data_mut()).map_err(ParseError::InvalidData)?;
+    parse_data(src, record.data_mut()).map_err(ParseError::InvalidData)?;
 
     Ok(())
 }
@@ -227,6 +226,31 @@ fn parse_mate_reference_sequence_id(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_parse_with_data() -> Result<(), ParseError> {
+        use crate::record::data::field::{tag, Value};
+
+        let header = Header::default();
+        let s = b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\tNH:i:1\tCO:Z:ndls";
+        let mut record = Record::default();
+        parse_record(s, &header, &mut record)?;
+
+        let expected = Record::builder()
+            .set_data(
+                [
+                    (tag::ALIGNMENT_HIT_COUNT, Value::from(1)),
+                    (tag::COMMENT, Value::String(String::from("ndls"))),
+                ]
+                .into_iter()
+                .collect(),
+            )
+            .build();
+
+        assert_eq!(record, expected);
+
+        Ok(())
+    }
 
     #[test]
     fn test_parse_mate_reference_sequence_id() -> Result<(), Box<dyn std::error::Error>> {
