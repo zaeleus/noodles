@@ -1,29 +1,18 @@
-use std::{
-    io::{self, Read, Seek},
-    vec,
-};
+use std::io::{self, Read, Seek};
 
 use noodles_bgzf as bgzf;
 use noodles_core::region::Interval;
-use noodles_csi::index::reference_sequence::bin::Chunk;
+use noodles_csi::{self as csi, index::reference_sequence::bin::Chunk};
 
 use super::Reader;
 use crate::{alignment::Record, Header};
-
-enum State {
-    Seek,
-    Read(bgzf::VirtualPosition),
-    Done,
-}
 
 pub struct Query<'a, R>
 where
     R: Read + Seek,
 {
-    reader: &'a mut Reader<bgzf::Reader<R>>,
+    reader: Reader<csi::io::Query<'a, R>>,
     header: &'a Header,
-    chunks: vec::IntoIter<Chunk>,
-    state: State,
     record: Record,
 }
 
@@ -32,15 +21,13 @@ where
     R: Read + Seek,
 {
     pub(super) fn new(
-        reader: &'a mut Reader<bgzf::Reader<R>>,
+        reader: &'a mut bgzf::Reader<R>,
         header: &'a Header,
         chunks: Vec<Chunk>,
     ) -> Self {
         Self {
-            reader,
+            reader: Reader::new(csi::io::Query::new(reader, chunks)),
             header,
-            chunks: chunks.into_iter(),
-            state: State::Seek,
             record: Record::default(),
         }
     }
@@ -62,33 +49,10 @@ where
     type Item = io::Result<Record>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        loop {
-            match self.state {
-                State::Seek => {
-                    self.state = match self.chunks.next() {
-                        Some(chunk) => {
-                            if let Err(e) = self.reader.seek(chunk.start()) {
-                                return Some(Err(e));
-                            }
-
-                            State::Read(chunk.end())
-                        }
-                        None => State::Done,
-                    }
-                }
-                State::Read(chunk_end) => match self.next_record() {
-                    Ok(Some(record)) => {
-                        if self.reader.get_ref().virtual_position() >= chunk_end {
-                            self.state = State::Seek;
-                        }
-
-                        return Some(Ok(record));
-                    }
-                    Ok(None) => self.state = State::Seek,
-                    Err(e) => return Some(Err(e)),
-                },
-                State::Done => return None,
-            }
+        match self.next_record() {
+            Ok(Some(record)) => Some(Ok(record)),
+            Ok(None) => None,
+            Err(e) => Some(Err(e)),
         }
     }
 }
