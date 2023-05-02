@@ -6,8 +6,6 @@ pub use self::phasing::Phasing;
 
 use std::{error, fmt, num, str::FromStr};
 
-const MISSING_POSITION: &str = ".";
-
 /// A VCF record genotype value allele.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Allele {
@@ -130,10 +128,11 @@ impl FromStr for Allele {
 }
 
 pub(super) fn parse_position(s: &str) -> Result<Option<usize>, ParseError> {
-    if s == MISSING_POSITION {
-        Ok(None)
-    } else {
-        s.parse().map(Some).map_err(ParseError::InvalidPosition)
+    const MISSING: &str = ".";
+
+    match s {
+        MISSING => Ok(None),
+        _ => s.parse().map(Some).map_err(ParseError::InvalidPosition),
     }
 }
 
