@@ -86,7 +86,7 @@ impl FromStr for Platform {
             .filter(char::is_ascii_alphabetic)
             .map(|c| c.is_ascii_uppercase())
             .fold((true, true), |(l, u), is_ascii_uppercase| {
-                (l & !is_ascii_uppercase, u & is_ascii_uppercase)
+                (l && !is_ascii_uppercase, u && is_ascii_uppercase)
             });
 
         let t = if is_uppercase {
