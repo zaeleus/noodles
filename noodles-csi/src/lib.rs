@@ -7,6 +7,7 @@ pub mod r#async;
 
 pub mod binning_index;
 pub mod index;
+pub mod io;
 mod reader;
 mod writer;
 
@@ -15,7 +16,7 @@ pub use self::{index::Index, reader::Reader, writer::Writer};
 #[cfg(feature = "async")]
 pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};
 
-use std::{fs::File, io, path::Path};
+use std::{fs::File, path::Path};
 
 static MAGIC_NUMBER: &[u8] = b"CSI\x01";
 
@@ -32,7 +33,7 @@ static MAGIC_NUMBER: &[u8] = b"CSI\x01";
 /// let index = csi::read("sample.bcf.csi")?;
 /// # Ok::<(), io::Error>(())
 /// ```
-pub fn read<P>(src: P) -> io::Result<Index>
+pub fn read<P>(src: P) -> std::io::Result<Index>
 where
     P: AsRef<Path>,
 {
@@ -54,7 +55,7 @@ where
 /// csi::write("sample.bcf.csi", &index)?;
 /// # Ok::<(), io::Error>(())
 /// ```
-pub fn write<P>(dst: P, index: &Index) -> io::Result<()>
+pub fn write<P>(dst: P, index: &Index) -> std::io::Result<()>
 where
     P: AsRef<Path>,
 {

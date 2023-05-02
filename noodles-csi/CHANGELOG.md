@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * csi/io: Add `Query` reader for reading the uncompressed data between all
+    the given chunks.
+
 ## 0.16.0 - 2023-04-27
 
 ### Changed
