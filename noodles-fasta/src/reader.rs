@@ -232,9 +232,9 @@ where
         let definition = Definition::new(region.to_string(), None);
 
         let mut raw_sequence = Vec::new();
-        read_segment(&mut self.inner, &mut raw_sequence, range.len())?;
+        read_sequence_limit(&mut self.inner, range.len(), &mut raw_sequence)?;
 
-        let sequence = Sequence::from(raw_sequence.to_vec());
+        let sequence = Sequence::from(raw_sequence);
 
         Ok(Record::new(definition, sequence))
     }
@@ -271,95 +271,58 @@ fn read_sequence<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
 where
     R: BufRead,
 {
-    const LINE_FEED: u8 = b'\n';
-    const CARRIAGE_RETURN: u8 = b'\r';
-
-    let mut bytes_read = 0;
-
-    loop {
-        let reader_buf = reader.fill_buf()?;
-
-        if reader_buf.is_empty() || reader_buf[0] == DEFINITION_PREFIX {
-            break;
-        }
-
-        let len = match memchr(LINE_FEED, reader_buf) {
-            Some(i) => {
-                let line = &reader_buf[..i];
-
-                if line.ends_with(&[CARRIAGE_RETURN]) {
-                    let end = line.len() - 1;
-                    buf.extend(&line[..end]);
-                } else {
-                    buf.extend(line);
-                }
-
-                i + 1
-            }
-            None => {
-                buf.extend(reader_buf);
-                reader_buf.len()
-            }
-        };
-
-        reader.consume(len);
-
-        bytes_read += len;
-    }
-
-    Ok(bytes_read)
+    read_sequence_limit(reader, usize::MAX, buf)
 }
 
-fn read_segment<R>(reader: &mut R, buf: &mut Vec<u8>, max_bases: usize) -> io::Result<usize>
+fn read_sequence_limit<R>(reader: &mut R, max_bases: usize, buf: &mut Vec<u8>) -> io::Result<usize>
 where
     R: BufRead,
 {
     const LINE_FEED: u8 = b'\n';
     const CARRIAGE_RETURN: u8 = b'\r';
 
-    let mut bases_left = max_bases;
-    let mut bytes_read = 0;
+    let mut len = 0;
 
-    loop {
-        if bases_left == 0 {
+    while buf.len() < max_bases {
+        let src = reader.fill_buf()?;
+
+        let is_eof = src.is_empty();
+        let is_end_of_sequence = || src[0] == DEFINITION_PREFIX;
+
+        if is_eof || is_end_of_sequence() {
             break;
         }
-        let reader_buf = reader.fill_buf()?;
 
-        if reader_buf.is_empty() || reader_buf[0] == DEFINITION_PREFIX {
-            break;
-        }
+        let remaining_bases = max_bases - buf.len();
 
-        let len = match memchr(LINE_FEED, reader_buf) {
+        let n = match memchr(LINE_FEED, src) {
             Some(i) => {
-                let i = std::cmp::min(i, bases_left);
-                let line = &reader_buf[..i];
+                let i = i.min(remaining_bases);
+                let line = &src[..i];
 
                 if line.ends_with(&[CARRIAGE_RETURN]) {
                     let end = line.len() - 1;
                     buf.extend(&line[..end]);
-                    bases_left -= end;
                 } else {
                     buf.extend(line);
-                    bases_left -= i;
                 }
 
                 i + 1
             }
             None => {
-                let i = std::cmp::min(bases_left, reader_buf.len());
-                bases_left -= i;
-                buf.extend(&reader_buf[..i]);
+                let i = remaining_bases.min(src.len());
+                let line = &src[..i];
+                buf.extend(line);
                 i
             }
         };
 
-        reader.consume(len);
+        reader.consume(n);
 
-        bytes_read += len;
+        len += n;
     }
 
-    Ok(bytes_read)
+    Ok(len)
 }
 
 // Shifts a 1-based interval to a 0-based range for slicing.
@@ -419,10 +382,15 @@ mod tests {
     }
 
     #[test]
-    fn test_read_segment() -> io::Result<()> {
-        fn t(buf: &mut Vec<u8>, mut reader: &[u8], len: usize, expected: &[u8]) -> io::Result<()> {
+    fn test_read_sequence_limit() -> io::Result<()> {
+        fn t(
+            buf: &mut Vec<u8>,
+            mut reader: &[u8],
+            max_bases: usize,
+            expected: &[u8],
+        ) -> io::Result<()> {
             buf.clear();
-            read_segment(&mut reader, buf, len)?;
+            read_sequence_limit(&mut reader, max_bases, buf)?;
             assert_eq!(buf, expected);
             Ok(())
         }
