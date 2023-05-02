@@ -9,6 +9,7 @@ mod quality_scores;
 mod read_name;
 mod reference_sequence_id;
 mod sequence;
+mod template_length;
 
 pub(crate) use self::{
     cigar::get_cigar, data::get_data, flags::get_flags, mapping_quality::get_mapping_quality,
@@ -26,6 +27,8 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 use bytes::Buf;
 use noodles_sam::{self as sam, alignment::Record};
+
+use self::template_length::get_template_length;
 
 pub(crate) fn read_record<R>(
     reader: &mut R,
@@ -228,17 +231,6 @@ where
     }
 
     usize::try_from(src.get_u32_le()).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-}
-
-fn get_template_length<B>(src: &mut B) -> io::Result<i32>
-where
-    B: Buf,
-{
-    if src.remaining() < mem::size_of::<i32>() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
-
-    Ok(src.get_i32_le())
 }
 
 // § 4.2.2 "`N_CIGAR_OP` field" (2022-08-22)
