@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * fasta/fai/record: Accept `Into<String>` for the record name.
+
 ## 0.21.0 - 2023-04-27
 
 ### Changed

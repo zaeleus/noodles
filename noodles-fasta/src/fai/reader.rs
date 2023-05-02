@@ -39,8 +39,8 @@ where
     /// let index = reader.read_index()?;
     ///
     /// assert_eq!(index, vec![
-    ///     fai::Record::new(String::from("sq0"), 13, 5, 80, 81),
-    ///     fai::Record::new(String::from("sq1"), 21, 19, 80, 81),
+    ///     fai::Record::new("sq0", 13, 5, 80, 81),
+    ///     fai::Record::new("sq1", 21, 19, 80, 81),
     /// ]);
     /// # Ok::<(), io::Error>(())
     /// ```

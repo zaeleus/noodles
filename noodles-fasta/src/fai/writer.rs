@@ -46,7 +46,7 @@ where
     ///
     /// let mut writer = fai::Writer::new(Vec::new());
     ///
-    /// let index = vec![fai::Record::new(String::from("sq0"), 13, 5, 80, 81)];
+    /// let index = vec![fai::Record::new("sq0", 13, 5, 80, 81)];
     /// writer.write_index(&index)?;
     ///
     /// assert_eq!(writer.get_ref(), b"sq0\t13\t5\t80\t81\n");

@@ -89,7 +89,7 @@ where
         }
 
         let record = Record::new(
-            definition.name().into(),
+            definition.name(),
             length as u64,
             offset,
             line_bases as u64,
@@ -225,10 +225,10 @@ mod tests {
         let mut indexer = Indexer::new(&data[..]);
 
         let record = indexer.index_record()?;
-        assert_eq!(record, Some(Record::new(String::from("sq0"), 4, 5, 4, 5)));
+        assert_eq!(record, Some(Record::new("sq0", 4, 5, 4, 5)));
 
         let record = indexer.index_record()?;
-        assert_eq!(record, Some(Record::new(String::from("sq1"), 10, 15, 4, 5)));
+        assert_eq!(record, Some(Record::new("sq1", 10, 15, 4, 5)));
 
         assert!(indexer.index_record()?.is_none());
 

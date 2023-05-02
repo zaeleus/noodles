@@ -186,9 +186,9 @@ where
     ///
     /// let data = b">sq0\nNNNN\n>sq1\nACGT\n>sq2\nNNNN\n";
     /// let index = vec![
-    ///     fai::Record::new(String::from("sq0"), 4, 5, 4, 5),
-    ///     fai::Record::new(String::from("sq1"), 4, 15, 4, 5),
-    ///     fai::Record::new(String::from("sq2"), 4, 25, 4, 5),
+    ///     fai::Record::new("sq0", 4, 5, 4, 5),
+    ///     fai::Record::new("sq1", 4, 15, 4, 5),
+    ///     fai::Record::new("sq2", 4, 25, 4, 5),
     /// ];
     ///
     /// let mut reader = fasta::Reader::new(Cursor::new(data));
