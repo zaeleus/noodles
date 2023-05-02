@@ -303,12 +303,18 @@ impl Record {
     pub fn quality_scores(&self) -> io::Result<QualityScores> {
         use crate::reader::record::parse_quality_scores;
 
+        let src = &self.buf[self.bounds.sequence_range()];
+        let sequence_len = match src {
+            MISSING => 0,
+            _ => src.len(),
+        };
+
         let mut quality_scores = QualityScores::default();
 
         let src = &self.buf[self.bounds.quality_scores_range()];
 
         if src != MISSING {
-            parse_quality_scores(src, &mut quality_scores)
+            parse_quality_scores(src, sequence_len, &mut quality_scores)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
         }
 

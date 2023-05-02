@@ -181,7 +181,7 @@ pub(crate) fn parse_record(
     record.quality_scores_mut().clear();
     let field = next_field(&mut src);
     if field != MISSING {
-        parse_quality_scores(field, record.quality_scores_mut())
+        parse_quality_scores(field, record.sequence().len(), record.quality_scores_mut())
             .map_err(ParseError::InvalidQualityScores)?;
     }
 
