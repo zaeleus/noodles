@@ -1,20 +1,11 @@
-use std::{
-    io::{self, Read, Seek},
-    vec,
-};
+use std::io::{self, Read, Seek};
 
-use noodles_bgzf::{self as bgzf, VirtualPosition};
+use noodles_bgzf::{self as bgzf};
 use noodles_core::region::Interval;
-use noodles_csi::index::reference_sequence::bin::Chunk;
+use noodles_csi::{self as csi, index::reference_sequence::bin::Chunk};
 use noodles_sam::{self as sam, alignment::Record};
 
 use super::Reader;
-
-enum State {
-    Seek,
-    Read(VirtualPosition),
-    Done,
-}
 
 /// An iterator over records of a BAM reader that intersects a given region.
 ///
@@ -23,15 +14,10 @@ pub struct Query<'a, R>
 where
     R: Read + Seek,
 {
-    reader: &'a mut Reader<bgzf::Reader<R>>,
-
+    reader: Reader<csi::io::Query<'a, R>>,
     header: &'a sam::Header,
-    chunks: vec::IntoIter<Chunk>,
-
     reference_sequence_id: usize,
     interval: Interval,
-
-    state: State,
     record: Record,
 }
 
@@ -40,22 +26,17 @@ where
     R: Read + Seek,
 {
     pub(super) fn new(
-        reader: &'a mut Reader<bgzf::Reader<R>>,
+        reader: &'a mut bgzf::Reader<R>,
         header: &'a sam::Header,
         chunks: Vec<Chunk>,
         reference_sequence_id: usize,
         interval: Interval,
     ) -> Self {
         Self {
-            reader,
-
+            reader: Reader::from(csi::io::Query::new(reader, chunks)),
             header,
-            chunks: chunks.into_iter(),
-
             reference_sequence_id,
             interval,
-
-            state: State::Seek,
             record: Record::default(),
         }
     }
@@ -78,33 +59,14 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
-            match self.state {
-                State::Seek => {
-                    self.state = match self.chunks.next() {
-                        Some(chunk) => {
-                            if let Err(e) = self.reader.seek(chunk.start()) {
-                                return Some(Err(e));
-                            }
-
-                            State::Read(chunk.end())
-                        }
-                        None => State::Done,
+            match self.next_record() {
+                Ok(Some(record)) => {
+                    if intersects(&record, self.reference_sequence_id, self.interval) {
+                        return Some(Ok(record));
                     }
                 }
-                State::Read(chunk_end) => match self.next_record() {
-                    Ok(Some(record)) => {
-                        if self.reader.virtual_position() >= chunk_end {
-                            self.state = State::Seek;
-                        }
-
-                        if intersects(&record, self.reference_sequence_id, self.interval) {
-                            return Some(Ok(record));
-                        }
-                    }
-                    Ok(None) => self.state = State::Seek,
-                    Err(e) => return Some(Err(e)),
-                },
-                State::Done => return None,
+                Ok(None) => return None,
+                Err(e) => return Some(Err(e)),
             }
         }
     }
