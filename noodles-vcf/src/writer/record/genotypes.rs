@@ -19,7 +19,7 @@ where
 
     for sample in genotypes.values() {
         writer.write_all(DELIMITER)?;
-        write_sample(writer, sample)?;
+        write_sample(writer, &sample)?;
     }
 
     Ok(())
@@ -42,7 +42,7 @@ where
     Ok(())
 }
 
-fn write_sample<W>(writer: &mut W, sample: Sample<'_>) -> io::Result<()>
+fn write_sample<W>(writer: &mut W, sample: &Sample<'_>) -> io::Result<()>
 where
     W: Write,
 {
