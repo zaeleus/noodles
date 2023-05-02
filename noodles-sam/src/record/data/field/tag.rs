@@ -31,7 +31,7 @@ pub const NEXT_HIT_REFERENCE_SEQUENCE_NAME: Tag =
     Tag::Standard(Standard::NextHitReferenceSequenceName);
 
 /// BAM only: `CIGAR` in BAM's binary encoding if (and only if) it consists of > 65535 operators
-/// (`CG).
+/// (`CG`).
 pub const CIGAR: Tag = Tag::Standard(Standard::Cigar);
 
 /// Edit distance between the color sequence and the color reference (see also `NM`) (`CM`).
