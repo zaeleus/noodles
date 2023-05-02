@@ -79,6 +79,8 @@ pub enum ParseError {
     InvalidMateReferenceSequenceId(reference_sequence_id::ParseError),
     /// The mate position is invalid.
     InvalidMatePosition(position::ParseError),
+    /// The template length is invalid.
+    InvalidTemplateLength(template_length::ParseError),
     /// The read name is invalid.
     InvalidReadName(read_name::ParseError),
     /// The CIGAR is invalid.
@@ -100,6 +102,7 @@ impl error::Error for ParseError {
             Self::InvalidFlags(e) => Some(e),
             Self::InvalidMateReferenceSequenceId(e) => Some(e),
             Self::InvalidMatePosition(e) => Some(e),
+            Self::InvalidTemplateLength(e) => Some(e),
             Self::InvalidReadName(e) => Some(e),
             Self::InvalidCigar(e) => Some(e),
             Self::InvalidSequence(e) => Some(e),
@@ -120,6 +123,7 @@ impl fmt::Display for ParseError {
                 write!(f, "invalid mate reference sequence ID")
             }
             Self::InvalidMatePosition(_) => write!(f, "invalid mate position"),
+            Self::InvalidTemplateLength(_) => write!(f, "invalid template length"),
             Self::InvalidReadName(_) => write!(f, "invalid read name"),
             Self::InvalidCigar(_) => write!(f, "invalid CIGAR"),
             Self::InvalidSequence(_) => write!(f, "invalid sequence"),
@@ -172,7 +176,9 @@ where
         .map_err(ParseError::InvalidMatePosition)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    *record.template_length_mut() = get_template_length(src)?;
+    *record.template_length_mut() = get_template_length(src)
+        .map_err(ParseError::InvalidTemplateLength)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     get_read_name(src, record.read_name_mut(), l_read_name)
         .map_err(ParseError::InvalidReadName)
