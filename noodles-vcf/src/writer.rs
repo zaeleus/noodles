@@ -33,7 +33,7 @@ use super::{Header, Record, VariantWriter};
 ///
 /// writer.write_record(&header, &record);
 ///
-/// let expected = b"##fileformat=VCFv4.3
+/// let expected = b"##fileformat=VCFv4.4
 /// ###contig=<ID=sq0>
 /// #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
 /// sq0\t1\t.\tA\t.\t.\t.\t.
@@ -169,7 +169,7 @@ mod tests {
         let header = Header::default();
         writer.write_header(&header)?;
 
-        let expected = b"##fileformat=VCFv4.3
+        let expected = b"##fileformat=VCFv4.4
 #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
 ";
 

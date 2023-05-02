@@ -807,7 +807,7 @@ mod tests {
     fn test_fmt_with_genotypes() {
         let header = Header::builder().add_sample_name("sample0").build();
         let expected = "\
-##fileformat=VCFv4.3
+##fileformat=VCFv4.4
 #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tsample0
 ";
         assert_eq!(header.to_string(), expected);
@@ -818,7 +818,7 @@ mod tests {
             .build();
 
         let expected = "\
-##fileformat=VCFv4.3
+##fileformat=VCFv4.4
 #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tsample0\tsample1
 ";
 

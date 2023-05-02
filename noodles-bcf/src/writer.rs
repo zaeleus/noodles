@@ -262,7 +262,7 @@ mod tests {
             0x3d, 0x00, 0x00, 0x00, // l_text = 61
         ];
 
-        let text = b"##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n\0";
+        let text = b"##fileformat=VCFv4.4\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n\0";
         expected.extend_from_slice(text);
 
         assert_eq!(buf, expected);

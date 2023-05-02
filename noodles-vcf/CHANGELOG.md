@@ -10,6 +10,8 @@
 
 ### Changed
 
+  * vcf/header/file_format: The default file format is now VCF 4.4.
+
   * vcf/record/genotypes/sample/value: Add array value wrapper (`Array`).
 
     This replaces `Value::*Array(_)` with `Value::Array(Array)`.

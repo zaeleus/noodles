@@ -28,7 +28,7 @@ where
     /// };
     /// use noodles_util::variant;
     ///
-    /// let data = Cursor::new(b"##fileformat=VCFv4.3
+    /// let data = Cursor::new(b"##fileformat=VCFv4.4
     /// #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
     /// sq0\t1\t.\tA\t.\t.\tPASS\t.
     /// ");

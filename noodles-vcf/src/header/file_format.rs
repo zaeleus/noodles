@@ -12,7 +12,7 @@ pub struct FileFormat {
 static PREFIX: &str = "VCFv";
 
 const MAJOR_VERSION: u32 = 4;
-const MINOR_VERSION: u32 = 3;
+const MINOR_VERSION: u32 = 4;
 
 const DELIMITER: char = '.';
 const MAX_COMPONENT_COUNT: usize = 2;

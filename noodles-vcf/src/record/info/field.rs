@@ -156,7 +156,10 @@ mod tests {
 
         assert_eq!(
             parse("EVENT=INV0", header.infos()),
-            Ok((key::BREAKEND_EVENT_ID, Some(Value::from("INV0"))))
+            Ok((
+                key::BREAKEND_EVENT_ID,
+                Some(Value::from(vec![Some(String::from("INV0"))]))
+            ))
         );
 
         let key = "NDLS".parse()?;
