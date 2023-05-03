@@ -413,7 +413,8 @@ fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     let mut src = &buf[CIGAR_OP_COUNT_RANGE];
-    let n_cigar_op = cigar::get_op_count(&mut src)?;
+    let n_cigar_op =
+        cigar::get_op_count(&mut src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     let mut src = &buf[READ_LENGTH_RANGE];
     let l_seq = sequence::get_length(&mut src)

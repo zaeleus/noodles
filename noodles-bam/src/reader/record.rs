@@ -161,7 +161,9 @@ where
     // Discard bin.
     src.advance(mem::size_of::<u16>());
 
-    let n_cigar_op = cigar::get_op_count(src)?;
+    let n_cigar_op = cigar::get_op_count(src)
+        .map_err(ParseError::InvalidCigar)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     *record.flags_mut() = get_flags(src)
         .map_err(ParseError::InvalidFlags)

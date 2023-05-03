@@ -1,6 +1,6 @@
 mod op;
 
-use std::{error, fmt, io, mem};
+use std::{error, fmt, mem};
 
 use bytes::Buf;
 use noodles_sam::record::Cigar;
@@ -34,12 +34,12 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(crate) fn get_op_count<B>(src: &mut B) -> io::Result<usize>
+pub(crate) fn get_op_count<B>(src: &mut B) -> Result<usize, ParseError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<u16>() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+        return Err(ParseError::UnexpectedEof);
     }
 
     Ok(usize::from(src.get_u16_le()))
@@ -66,6 +66,18 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_get_op_count() {
+        let mut src = &0u16.to_le_bytes()[..];
+        assert_eq!(get_op_count(&mut src), Ok(0));
+
+        let mut src = &8u16.to_le_bytes()[..];
+        assert_eq!(get_op_count(&mut src), Ok(8));
+
+        let mut src = &[][..];
+        assert_eq!(get_op_count(&mut src), Err(ParseError::UnexpectedEof));
+    }
 
     #[test]
     fn test_get_cigar() -> Result<(), Box<dyn std::error::Error>> {
