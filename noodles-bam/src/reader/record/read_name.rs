@@ -1,4 +1,4 @@
-use std::{error, fmt, num::NonZeroUsize};
+use std::{error, fmt, io, mem, num::NonZeroUsize};
 
 use bytes::Buf;
 use noodles_sam::record::{read_name, ReadName};
@@ -36,6 +36,18 @@ impl fmt::Display for ParseError {
             Self::Invalid(_) => todo!(),
         }
     }
+}
+
+pub(crate) fn get_length<B>(src: &mut B) -> io::Result<NonZeroUsize>
+where
+    B: Buf,
+{
+    if src.remaining() < mem::size_of::<u8>() {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
+
+    NonZeroUsize::new(usize::from(src.get_u8()))
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid l_read_name"))
 }
 
 pub fn get_read_name<B>(

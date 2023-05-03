@@ -397,7 +397,7 @@ impl TryFrom<Record> for sam::alignment::Record {
 }
 
 fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
-    use crate::reader::record::{get_cigar_op_count, get_read_name_len, get_sequence_len};
+    use crate::reader::record::{get_cigar_op_count, get_sequence_len, read_name};
 
     const MIN_BUF_LENGTH: usize = TEMPLATE_LENGTH_RANGE.end;
     const READ_NAME_LENGTH_RANGE: Range<usize> = 8..9;
@@ -409,7 +409,7 @@ fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
     }
 
     let mut src = &buf[READ_NAME_LENGTH_RANGE];
-    let l_read_name = get_read_name_len(&mut src)?;
+    let l_read_name = read_name::get_length(&mut src)?;
 
     let mut src = &buf[CIGAR_OP_COUNT_RANGE];
     let n_cigar_op = get_cigar_op_count(&mut src)?;

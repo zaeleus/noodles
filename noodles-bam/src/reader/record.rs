@@ -6,7 +6,7 @@ mod flags;
 mod mapping_quality;
 mod position;
 mod quality_scores;
-mod read_name;
+pub(crate) mod read_name;
 mod reference_sequence_id;
 mod sequence;
 mod template_length;
@@ -21,7 +21,6 @@ use std::{
     error, fmt,
     io::{self, Read},
     mem,
-    num::NonZeroUsize,
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
@@ -151,7 +150,7 @@ where
         .map_err(ParseError::InvalidPosition)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    let l_read_name = get_read_name_len(src)?;
+    let l_read_name = read_name::get_length(src)?;
 
     *record.mapping_quality_mut() = get_mapping_quality(src)
         .map_err(ParseError::InvalidMappingQuality)
@@ -203,18 +202,6 @@ where
     resolve_cigar(header, record)?;
 
     Ok(())
-}
-
-pub(crate) fn get_read_name_len<B>(src: &mut B) -> io::Result<NonZeroUsize>
-where
-    B: Buf,
-{
-    if src.remaining() < mem::size_of::<u8>() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
-
-    NonZeroUsize::new(usize::from(src.get_u8()))
-        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid l_read_name"))
 }
 
 pub(crate) fn get_cigar_op_count<B>(src: &mut B) -> io::Result<usize>
@@ -350,6 +337,8 @@ mod tests {
 
     #[test]
     fn test_resolve_cigar() -> Result<(), Box<dyn std::error::Error>> {
+        use std::num::NonZeroUsize;
+
         use sam::{
             header::record::value::{map::ReferenceSequence, Map},
             record::{
