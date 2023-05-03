@@ -416,7 +416,8 @@ fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
     let n_cigar_op = get_cigar_op_count(&mut src)?;
 
     let mut src = &buf[READ_LENGTH_RANGE];
-    let l_seq = sequence::get_length(&mut src)?;
+    let l_seq = sequence::get_length(&mut src)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     let mut i = TEMPLATE_LENGTH_RANGE.end;
     i += usize::from(l_read_name);

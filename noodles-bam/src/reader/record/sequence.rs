@@ -1,4 +1,4 @@
-use std::{error, fmt, io, mem};
+use std::{error, fmt, mem, num};
 
 use bytes::Buf;
 use noodles_sam::record::{sequence::Base, Sequence};
@@ -8,27 +8,37 @@ use noodles_sam::record::{sequence::Base, Sequence};
 pub enum ParseError {
     /// Unexpected EOF.
     UnexpectedEof,
+    /// The length is invalid.
+    InvalidLength(num::TryFromIntError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::UnexpectedEof => None,
+            Self::InvalidLength(e) => Some(e),
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnexpectedEof => write!(f, "unexpected EOF"),
+            Self::InvalidLength(_) => write!(f, "invalid length"),
         }
     }
 }
 
-pub(crate) fn get_length<B>(src: &mut B) -> io::Result<usize>
+pub(crate) fn get_length<B>(src: &mut B) -> Result<usize, ParseError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<u32>() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+        return Err(ParseError::UnexpectedEof);
     }
 
-    usize::try_from(src.get_u32_le()).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    usize::try_from(src.get_u32_le()).map_err(ParseError::InvalidLength)
 }
 
 pub fn get_sequence<B>(src: &mut B, sequence: &mut Sequence, l_seq: usize) -> Result<(), ParseError>
@@ -81,6 +91,15 @@ fn decode_base(n: u8) -> Base {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_get_length() {
+        let mut src = &8u32.to_le_bytes()[..];
+        assert_eq!(get_length(&mut src), Ok(8));
+
+        let mut src = &[][..];
+        assert_eq!(get_length(&mut src), Err(ParseError::UnexpectedEof));
+    }
 
     #[test]
     fn test_get_sequence() -> Result<(), Box<dyn std::error::Error>> {

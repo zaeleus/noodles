@@ -167,7 +167,9 @@ where
         .map_err(ParseError::InvalidFlags)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    let l_seq = sequence::get_length(src)?;
+    let l_seq = sequence::get_length(src)
+        .map_err(ParseError::InvalidSequence)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     *record.mate_reference_sequence_id_mut() = get_reference_sequence_id(src, n_ref)
         .map_err(ParseError::InvalidMateReferenceSequenceId)
