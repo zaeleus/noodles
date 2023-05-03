@@ -1,6 +1,6 @@
 //! BAM record field readers.
 
-mod cigar;
+pub(crate) mod cigar;
 pub mod data;
 mod flags;
 mod mapping_quality;
@@ -161,7 +161,7 @@ where
     // Discard bin.
     src.advance(mem::size_of::<u16>());
 
-    let n_cigar_op = get_cigar_op_count(src)?;
+    let n_cigar_op = cigar::get_op_count(src)?;
 
     *record.flags_mut() = get_flags(src)
         .map_err(ParseError::InvalidFlags)
@@ -206,17 +206,6 @@ where
     resolve_cigar(header, record)?;
 
     Ok(())
-}
-
-pub(crate) fn get_cigar_op_count<B>(src: &mut B) -> io::Result<usize>
-where
-    B: Buf,
-{
-    if src.remaining() < mem::size_of::<u16>() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
-
-    Ok(usize::from(src.get_u16_le()))
 }
 
 // § 4.2.2 "`N_CIGAR_OP` field" (2022-08-22)

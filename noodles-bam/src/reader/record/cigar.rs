@@ -1,6 +1,6 @@
 mod op;
 
-use std::{error, fmt, mem};
+use std::{error, fmt, io, mem};
 
 use bytes::Buf;
 use noodles_sam::record::Cigar;
@@ -32,6 +32,17 @@ impl fmt::Display for ParseError {
             Self::InvalidOp(_) => write!(f, "invalid op"),
         }
     }
+}
+
+pub(crate) fn get_op_count<B>(src: &mut B) -> io::Result<usize>
+where
+    B: Buf,
+{
+    if src.remaining() < mem::size_of::<u16>() {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
+
+    Ok(usize::from(src.get_u16_le()))
 }
 
 pub fn get_cigar<B>(src: &mut B, cigar: &mut Cigar, n_cigar_op: usize) -> Result<(), ParseError>
