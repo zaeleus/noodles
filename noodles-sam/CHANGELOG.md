@@ -12,6 +12,8 @@
 
   * sam/record/data/field/value/character: Implement `Display`.
 
+  * sam/record/mapping_quality: Implement `Display`.
+
 ### Changed
 
   * sam/header/record/value/map: Increase the visiblity of the `program`

@@ -51,6 +51,12 @@ impl MappingQuality {
     }
 }
 
+impl fmt::Display for MappingQuality {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
 /// An error returned when a raw SAM record mapping quality fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -104,6 +110,14 @@ impl From<MappingQuality> for u8 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(MappingQuality(0).to_string(), "0");
+        assert_eq!(MappingQuality(8).to_string(), "8");
+        assert_eq!(MappingQuality(13).to_string(), "13");
+        assert_eq!(MappingQuality(144).to_string(), "144");
+    }
 
     #[test]
     fn test_from_str() {
