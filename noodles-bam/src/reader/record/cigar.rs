@@ -1,11 +1,11 @@
 mod op;
 
-use std::{error, fmt, mem};
+use std::{error, fmt, io, mem};
 
 use bytes::Buf;
-use noodles_sam::record::Cigar;
+use noodles_sam::{self as sam, alignment::Record, record::Cigar};
 
-pub(super) use self::op::decode_op;
+use self::op::decode_op;
 
 /// An error when a raw BAM record CIGAR fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -63,6 +63,50 @@ where
     Ok(())
 }
 
+// § 4.2.2 "`N_CIGAR_OP` field" (2022-08-22)
+pub(super) fn resolve(header: &sam::Header, record: &mut Record) -> io::Result<()> {
+    use sam::record::{
+        cigar::{op::Kind, Op},
+        data::field::{tag, value::Array},
+    };
+
+    if let Some((_, reference_sequence)) = record.reference_sequence(header).transpose()? {
+        if let [op_0, op_1] = record.cigar().as_ref() {
+            let k = record.sequence().len();
+            let m = reference_sequence.length().get();
+
+            if *op_0 == Op::new(Kind::SoftClip, k) && *op_1 == Op::new(Kind::Skip, m) {
+                if let Some((_, value)) = record.data_mut().remove(&tag::CIGAR) {
+                    let data = value
+                        .as_array()
+                        .and_then(|array| match array {
+                            Array::UInt32(values) => Some(values),
+                            _ => None,
+                        })
+                        .ok_or_else(|| {
+                            io::Error::new(
+                                io::ErrorKind::InvalidData,
+                                "invalid CG data field value type",
+                            )
+                        })?;
+
+                    let cigar = record.cigar_mut();
+                    cigar.clear();
+
+                    for &n in data {
+                        let op = decode_op(n)
+                            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+                        cigar.as_mut().push(op);
+                    }
+                }
+            }
+        }
+    }
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -102,6 +146,47 @@ mod tests {
             2,
             &"4M2H".parse()?,
         )?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_resolve() -> Result<(), Box<dyn std::error::Error>> {
+        use std::num::NonZeroUsize;
+
+        use sam::{
+            header::record::value::{map::ReferenceSequence, Map},
+            record::{
+                cigar::op::{self, Op},
+                data::field::{tag, value::Array, Value},
+                Cigar,
+            },
+        };
+
+        let header = sam::Header::builder()
+            .add_reference_sequence(
+                "sq0".parse()?,
+                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
+            )
+            .build();
+
+        let mut record = Record::builder()
+            .set_reference_sequence_id(0)
+            .set_cigar("4S8N".parse()?)
+            .set_sequence("ACGT".parse()?)
+            .set_data(
+                [(tag::CIGAR, Value::Array(Array::UInt32(vec![0x40])))]
+                    .into_iter()
+                    .collect(),
+            )
+            .build();
+
+        resolve(&header, &mut record)?;
+
+        let expected = Cigar::try_from(vec![Op::new(op::Kind::Match, 4)])?;
+
+        assert_eq!(record.cigar(), &expected);
+        assert!(record.data().get(&tag::CIGAR).is_none());
 
         Ok(())
     }
