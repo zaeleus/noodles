@@ -47,7 +47,8 @@ where
     reader.read_exact(buf)?;
 
     let mut src = &buf[..];
-    decode_record(&mut src, header, record)?;
+    decode_record(&mut src, header, record)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     Ok(block_size)
 }
@@ -136,78 +137,48 @@ pub(crate) fn decode_record<B>(
     src: &mut B,
     header: &sam::Header,
     record: &mut Record,
-) -> io::Result<()>
+) -> Result<(), ParseError>
 where
     B: Buf,
 {
     let n_ref = header.reference_sequences().len();
 
-    *record.reference_sequence_id_mut() = get_reference_sequence_id(src, n_ref)
-        .map_err(ParseError::InvalidReferenceSequenceId)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    *record.reference_sequence_id_mut() =
+        get_reference_sequence_id(src, n_ref).map_err(ParseError::InvalidReferenceSequenceId)?;
 
-    *record.alignment_start_mut() = get_position(src)
-        .map_err(ParseError::InvalidPosition)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    *record.alignment_start_mut() = get_position(src).map_err(ParseError::InvalidPosition)?;
 
-    let l_read_name = read_name::get_length(src)
-        .map_err(ParseError::InvalidReadName)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let l_read_name = read_name::get_length(src).map_err(ParseError::InvalidReadName)?;
 
-    *record.mapping_quality_mut() = get_mapping_quality(src)
-        .map_err(ParseError::InvalidMappingQuality)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    *record.mapping_quality_mut() =
+        get_mapping_quality(src).map_err(ParseError::InvalidMappingQuality)?;
 
     // Discard bin.
     src.advance(mem::size_of::<u16>());
 
-    let n_cigar_op = cigar::get_op_count(src)
-        .map_err(ParseError::InvalidCigar)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let n_cigar_op = cigar::get_op_count(src).map_err(ParseError::InvalidCigar)?;
 
-    *record.flags_mut() = get_flags(src)
-        .map_err(ParseError::InvalidFlags)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    *record.flags_mut() = get_flags(src).map_err(ParseError::InvalidFlags)?;
 
-    let l_seq = sequence::get_length(src)
-        .map_err(ParseError::InvalidSequence)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let l_seq = sequence::get_length(src).map_err(ParseError::InvalidSequence)?;
 
     *record.mate_reference_sequence_id_mut() = get_reference_sequence_id(src, n_ref)
-        .map_err(ParseError::InvalidMateReferenceSequenceId)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        .map_err(ParseError::InvalidMateReferenceSequenceId)?;
 
-    *record.mate_alignment_start_mut() = get_position(src)
-        .map_err(ParseError::InvalidMatePosition)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    *record.mate_alignment_start_mut() =
+        get_position(src).map_err(ParseError::InvalidMatePosition)?;
 
-    *record.template_length_mut() = get_template_length(src)
-        .map_err(ParseError::InvalidTemplateLength)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    *record.template_length_mut() =
+        get_template_length(src).map_err(ParseError::InvalidTemplateLength)?;
 
-    get_read_name(src, record.read_name_mut(), l_read_name)
-        .map_err(ParseError::InvalidReadName)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-    get_cigar(src, record.cigar_mut(), n_cigar_op)
-        .map_err(ParseError::InvalidCigar)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-    get_sequence(src, record.sequence_mut(), l_seq)
-        .map_err(ParseError::InvalidSequence)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
+    get_read_name(src, record.read_name_mut(), l_read_name).map_err(ParseError::InvalidReadName)?;
+    get_cigar(src, record.cigar_mut(), n_cigar_op).map_err(ParseError::InvalidCigar)?;
+    get_sequence(src, record.sequence_mut(), l_seq).map_err(ParseError::InvalidSequence)?;
     get_quality_scores(src, record.quality_scores_mut(), l_seq)
-        .map_err(ParseError::InvalidQualityScores)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        .map_err(ParseError::InvalidQualityScores)?;
+    get_data(src, record.data_mut()).map_err(ParseError::InvalidData)?;
 
-    get_data(src, record.data_mut())
-        .map_err(ParseError::InvalidData)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-    cigar::resolve(header, record)
-        .map_err(ParseError::InvalidCigar)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    cigar::resolve(header, record).map_err(ParseError::InvalidCigar)?;
 
     Ok(())
 }
@@ -273,7 +244,7 @@ mod tests {
 
         assert!(matches!(
             decode_record(&mut src, &header, &mut record),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData
+            Err(ParseError::InvalidReadName(_))
         ));
     }
 }

@@ -23,7 +23,8 @@ where
     buf.resize(block_size, Default::default());
     reader.read_exact(buf).await?;
 
-    decode_record(buf, header, record)?;
+    decode_record(buf, header, record)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     Ok(block_size)
 }
