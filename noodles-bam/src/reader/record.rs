@@ -205,7 +205,9 @@ where
         .map_err(ParseError::InvalidData)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    cigar::resolve(header, record)?;
+    cigar::resolve(header, record)
+        .map_err(ParseError::InvalidCigar)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     Ok(())
 }

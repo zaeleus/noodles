@@ -1,6 +1,6 @@
 mod op;
 
-use std::{error, fmt, io, mem};
+use std::{error, fmt, mem};
 
 use bytes::Buf;
 use noodles_sam::{self as sam, alignment::Record, record::Cigar};
@@ -14,13 +14,17 @@ pub enum ParseError {
     UnexpectedEof,
     /// An op is invalid.
     InvalidOp(op::ParseError),
+    /// The reference sequence ID is invalid.
+    InvalidReferenceSequence,
+    /// The `CG` data field type is invalid.
+    InvalidDataType,
 }
 
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
-            Self::UnexpectedEof => None,
             Self::InvalidOp(e) => Some(e),
+            _ => None,
         }
     }
 }
@@ -30,6 +34,8 @@ impl fmt::Display for ParseError {
         match self {
             Self::UnexpectedEof => write!(f, "unexpected EOF"),
             Self::InvalidOp(_) => write!(f, "invalid op"),
+            Self::InvalidReferenceSequence => write!(f, "invalid reference sequence"),
+            Self::InvalidDataType => write!(f, "invalid CG data field type"),
         }
     }
 }
@@ -64,14 +70,19 @@ where
 }
 
 // § 4.2.2 "`N_CIGAR_OP` field" (2022-08-22)
-pub(super) fn resolve(header: &sam::Header, record: &mut Record) -> io::Result<()> {
+pub(super) fn resolve(header: &sam::Header, record: &mut Record) -> Result<(), ParseError> {
     use sam::record::{
         cigar::{op::Kind, Op},
         data::field::{tag, value::Array},
     };
 
     if let [op_0, op_1] = record.cigar().as_ref() {
-        if let Some((_, reference_sequence)) = record.reference_sequence(header).transpose()? {
+        let rs = record
+            .reference_sequence(header)
+            .transpose()
+            .map_err(|_| ParseError::InvalidReferenceSequence)?;
+
+        if let Some((_, reference_sequence)) = rs {
             let k = record.sequence().len();
             let m = reference_sequence.length().get();
 
@@ -83,20 +94,13 @@ pub(super) fn resolve(header: &sam::Header, record: &mut Record) -> io::Result<(
                             Array::UInt32(values) => Some(values),
                             _ => None,
                         })
-                        .ok_or_else(|| {
-                            io::Error::new(
-                                io::ErrorKind::InvalidData,
-                                "invalid CG data field value type",
-                            )
-                        })?;
+                        .ok_or(ParseError::InvalidDataType)?;
 
                     let cigar = record.cigar_mut();
                     cigar.clear();
 
                     for &n in data {
-                        let op = decode_op(n)
-                            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
+                        let op = decode_op(n).map_err(ParseError::InvalidOp)?;
                         cigar.as_mut().push(op);
                     }
                 }
