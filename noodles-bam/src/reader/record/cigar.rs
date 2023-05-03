@@ -70,8 +70,8 @@ pub(super) fn resolve(header: &sam::Header, record: &mut Record) -> io::Result<(
         data::field::{tag, value::Array},
     };
 
-    if let Some((_, reference_sequence)) = record.reference_sequence(header).transpose()? {
-        if let [op_0, op_1] = record.cigar().as_ref() {
+    if let [op_0, op_1] = record.cigar().as_ref() {
+        if let Some((_, reference_sequence)) = record.reference_sequence(header).transpose()? {
             let k = record.sequence().len();
             let m = reference_sequence.length().get();
 
