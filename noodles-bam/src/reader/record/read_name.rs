@@ -1,4 +1,7 @@
-use std::{error, fmt, io, mem, num::NonZeroUsize};
+use std::{
+    error, fmt, mem,
+    num::{self, NonZeroUsize},
+};
 
 use bytes::Buf;
 use noodles_sam::record::{read_name, ReadName};
@@ -10,6 +13,8 @@ const NUL: u8 = 0x00;
 pub enum ParseError {
     /// Unexpected EOF.
     UnexpectedEof,
+    /// The length is invalid.
+    InvalidLength(num::TryFromIntError),
     /// The NUL terminator is missing.
     MissingNulTerminator { actual: u8 },
     /// An input is invalid.
@@ -19,6 +24,7 @@ pub enum ParseError {
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
+            Self::InvalidLength(e) => Some(e),
             Self::Invalid(e) => Some(e),
             _ => None,
         }
@@ -29,6 +35,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnexpectedEof => write!(f, "unexpected EOF"),
+            Self::InvalidLength(_) => write!(f, "invalid length"),
             Self::MissingNulTerminator { actual } => write!(
                 f,
                 "missing NUL terminator: expected {NUL:#04x}, got {actual:#04x}"
@@ -38,16 +45,15 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(crate) fn get_length<B>(src: &mut B) -> io::Result<NonZeroUsize>
+pub(crate) fn get_length<B>(src: &mut B) -> Result<NonZeroUsize, ParseError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<u8>() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+        return Err(ParseError::UnexpectedEof);
     }
 
-    NonZeroUsize::new(usize::from(src.get_u8()))
-        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid l_read_name"))
+    NonZeroUsize::try_from(usize::from(src.get_u8())).map_err(ParseError::InvalidLength)
 }
 
 pub fn get_read_name<B>(
@@ -93,6 +99,23 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_get_length() -> Result<(), num::TryFromIntError> {
+        let mut src = &8i32.to_le_bytes()[..];
+        assert_eq!(get_length(&mut src), Ok(NonZeroUsize::try_from(8)?));
+
+        let mut src = &[][..];
+        assert_eq!(get_length(&mut src), Err(ParseError::UnexpectedEof));
+
+        let mut src = &0i32.to_le_bytes()[..];
+        assert!(matches!(
+            get_length(&mut src),
+            Err(ParseError::InvalidLength(_))
+        ));
+
+        Ok(())
+    }
 
     #[test]
     fn test_get_read_name() -> Result<(), Box<dyn std::error::Error>> {

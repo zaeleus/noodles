@@ -150,7 +150,9 @@ where
         .map_err(ParseError::InvalidPosition)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    let l_read_name = read_name::get_length(src)?;
+    let l_read_name = read_name::get_length(src)
+        .map_err(ParseError::InvalidReadName)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     *record.mapping_quality_mut() = get_mapping_quality(src)
         .map_err(ParseError::InvalidMappingQuality)
