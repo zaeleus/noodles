@@ -5,7 +5,12 @@
 use std::{env, fmt};
 
 use noodles_bam as bam;
-use noodles_sam::{self as sam, alignment::Record};
+use noodles_sam::{alignment::Record, record::MappingQuality};
+
+const MIN_HQ_MAPPING_QUALITY: MappingQuality = match MappingQuality::new(5) {
+    Some(mapping_quality) => mapping_quality,
+    None => unreachable!(),
+};
 
 #[derive(Debug, Default)]
 struct Counts {
@@ -79,12 +84,11 @@ fn count(counts: &mut Counts, record: &Record) {
                     if record.mate_reference_sequence_id() != record.reference_sequence_id() {
                         counts.mate_reference_sequence_id_mismatch += 1;
 
-                        let mapq = record
+                        if record
                             .mapping_quality()
-                            .map(u8::from)
-                            .unwrap_or(sam::record::mapping_quality::MISSING);
-
-                        if mapq >= 5 {
+                            .map(|mapq| mapq >= MIN_HQ_MAPPING_QUALITY)
+                            .unwrap_or(true)
+                        {
                             counts.mate_reference_sequence_id_mismatch_hq += 1;
                         }
                     }
