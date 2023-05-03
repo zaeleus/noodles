@@ -1,4 +1,4 @@
-use std::{error, fmt};
+use std::{error, fmt, io, mem};
 
 use bytes::Buf;
 use noodles_sam::record::{sequence::Base, Sequence};
@@ -18,6 +18,17 @@ impl fmt::Display for ParseError {
             Self::UnexpectedEof => write!(f, "unexpected EOF"),
         }
     }
+}
+
+pub(crate) fn get_length<B>(src: &mut B) -> io::Result<usize>
+where
+    B: Buf,
+{
+    if src.remaining() < mem::size_of::<u32>() {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
+
+    usize::try_from(src.get_u32_le()).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 pub fn get_sequence<B>(src: &mut B, sequence: &mut Sequence, l_seq: usize) -> Result<(), ParseError>

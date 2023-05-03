@@ -8,7 +8,7 @@ mod position;
 mod quality_scores;
 pub(crate) mod read_name;
 mod reference_sequence_id;
-mod sequence;
+pub(crate) mod sequence;
 mod template_length;
 
 pub(crate) use self::{
@@ -167,7 +167,7 @@ where
         .map_err(ParseError::InvalidFlags)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    let l_seq = get_sequence_len(src)?;
+    let l_seq = sequence::get_length(src)?;
 
     *record.mate_reference_sequence_id_mut() = get_reference_sequence_id(src, n_ref)
         .map_err(ParseError::InvalidMateReferenceSequenceId)
@@ -215,17 +215,6 @@ where
     }
 
     Ok(usize::from(src.get_u16_le()))
-}
-
-pub(crate) fn get_sequence_len<B>(src: &mut B) -> io::Result<usize>
-where
-    B: Buf,
-{
-    if src.remaining() < mem::size_of::<u32>() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
-
-    usize::try_from(src.get_u32_le()).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 // § 4.2.2 "`N_CIGAR_OP` field" (2022-08-22)
