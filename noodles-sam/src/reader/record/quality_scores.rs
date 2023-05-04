@@ -1,6 +1,9 @@
 use std::{error, fmt, mem};
 
-use crate::record::{quality_scores, QualityScores};
+use crate::record::{
+    quality_scores::{self, Score},
+    QualityScores,
+};
 
 /// An error when raw SAM record quality scores fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -14,14 +17,14 @@ pub enum ParseError {
         /// The expected length.
         expected: usize,
     },
-    /// The input is invalid.
-    Invalid(quality_scores::ParseError),
+    /// A score is invalid.
+    InvalidScore(quality_scores::score::TryFromUByteError),
 }
 
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
-            Self::Invalid(e) => Some(e),
+            Self::InvalidScore(e) => Some(e),
             _ => None,
         }
     }
@@ -34,7 +37,7 @@ impl fmt::Display for ParseError {
             Self::LengthMismatch { actual, expected } => {
                 write!(f, "length mismatch: expeced {expected}, got {actual}")
             }
-            Self::Invalid(_) => write!(f, "invalid input"),
+            Self::InvalidScore(_) => write!(f, "invalid score"),
         }
     }
 }
@@ -57,12 +60,24 @@ pub(crate) fn parse_quality_scores(
 
     let raw_quality_scores = Vec::from(mem::take(quality_scores));
 
-    let mut raw_scores: Vec<u8> = raw_quality_scores.into_iter().map(u8::from).collect();
+    let mut raw_scores: Vec<_> = raw_quality_scores.into_iter().map(u8::from).collect();
     raw_scores.extend(src.iter().map(|n| n.wrapping_sub(OFFSET)));
 
-    *quality_scores = QualityScores::try_from(raw_scores).map_err(ParseError::Invalid)?;
+    if let Some(n) = raw_scores.iter().copied().find(|&n| !is_valid_score(n)) {
+        return Err(ParseError::InvalidScore(
+            quality_scores::score::TryFromUByteError(n),
+        ));
+    }
+
+    // SAFETY: Each score is guaranteed to be <= 93.
+    let scores: Vec<_> = raw_scores.into_iter().map(Score).collect();
+    *quality_scores = QualityScores::from(scores);
 
     Ok(())
+}
+
+fn is_valid_score(n: u8) -> bool {
+    n <= Score::MAX.get()
 }
 
 #[cfg(test)]
@@ -96,7 +111,7 @@ mod tests {
         quality_scores.clear();
         assert!(matches!(
             parse_quality_scores(&[0x07], 1, &mut quality_scores),
-            Err(ParseError::Invalid(_))
+            Err(ParseError::InvalidScore(_))
         ));
 
         Ok(())

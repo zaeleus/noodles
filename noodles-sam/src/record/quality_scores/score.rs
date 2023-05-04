@@ -17,7 +17,7 @@ const OFFSET: u8 = b'!';
 /// Quality scores can be represented as ASCII characters. Each score is offset by 33 (`!`) to only
 /// use the set of printable characters (`!`-`~`, excluding the space character).
 #[derive(Clone, Copy, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
-pub struct Score(pub(super) u8);
+pub struct Score(pub(crate) u8);
 
 impl Score {
     /// The minimum score (0).
@@ -74,7 +74,7 @@ impl TryFrom<char> for Score {
 
 /// An error returned when the conversion from a byte to a SAM quality scores score fails.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct TryFromUByteError(u8);
+pub struct TryFromUByteError(pub(crate) u8);
 
 impl error::Error for TryFromUByteError {}
 
