@@ -14,8 +14,9 @@ const OFFSET: u8 = b'!';
 ///
 /// A quality score ranges from 0 to 93 (inclusive), where higher is better.
 ///
-/// Quality scores can be represented as ASCII characters. Each score is offset by 33 (`!`) to only
-/// use the set of printable characters (`!`-`~`, excluding the space character).
+/// Quality scores can be represented as ASCII characters. Each score is offset by +33 (`!`) to
+/// only use the set of graphic characters (`!`-`~`).
+
 #[derive(Clone, Copy, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Score(pub(crate) u8);
 
