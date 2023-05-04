@@ -45,59 +45,44 @@ impl fmt::Display for Score {
     }
 }
 
-/// An error returned when the conversion from a character to a SAM quality scores score fails.
+/// An error returned when parsing a raw SAM record quality score fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct TryFromCharError(char);
-
-impl error::Error for TryFromCharError {}
-
-impl fmt::Display for TryFromCharError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "expected {{{}..={}}}, got {}",
-            START_CHAR, END_CHAR, self.0
-        )
-    }
+pub enum ParseError {
+    /// The input is invalid.
+    Invalid(u32),
 }
 
-impl TryFrom<char> for Score {
-    type Error = TryFromCharError;
+impl error::Error for ParseError {}
 
-    fn try_from(c: char) -> Result<Self, Self::Error> {
-        match c {
-            START_CHAR..=END_CHAR => Ok(Self((c as u8) - OFFSET)),
-            _ => Err(TryFromCharError(c)),
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Invalid(actual) => {
+                write!(f, "expected <= {}, got {actual}", Score::MAX.get())
+            }
         }
     }
 }
 
-/// An error returned when the conversion from a byte to a SAM quality scores score fails.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct TryFromUByteError(pub(crate) u8);
+impl TryFrom<char> for Score {
+    type Error = ParseError;
 
-impl error::Error for TryFromUByteError {}
-
-impl fmt::Display for TryFromUByteError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "invalid score: expected {{{}..={}}}, got {}",
-            Score::MIN,
-            Score::MAX,
-            self.0
-        )
+    fn try_from(c: char) -> Result<Self, Self::Error> {
+        match c {
+            START_CHAR..=END_CHAR => Ok(Self((c as u8) - OFFSET)),
+            _ => Err(ParseError::Invalid(u32::from(c))),
+        }
     }
 }
 
 impl TryFrom<u8> for Score {
-    type Error = TryFromUByteError;
+    type Error = ParseError;
 
     fn try_from(n: u8) -> Result<Self, Self::Error> {
         if n <= Self::MAX.get() {
             Ok(Self(n))
         } else {
-            Err(TryFromUByteError(n))
+            Err(ParseError::Invalid(u32::from(n)))
         }
     }
 }
@@ -122,13 +107,16 @@ mod tests {
     #[test]
     fn test_try_from_char_for_score() {
         assert_eq!(Score::try_from('N'), Ok(Score(45)));
-        assert_eq!(Score::try_from(' '), Err(TryFromCharError(' ')));
+        assert_eq!(
+            Score::try_from(' '),
+            Err(ParseError::Invalid(u32::from(' ')))
+        );
     }
 
     #[test]
     fn test_try_from_u8_for_score() {
         assert_eq!(Score::try_from(8), Ok(Score(8)));
-        assert_eq!(Score::try_from(144), Err(TryFromUByteError(144)));
+        assert_eq!(Score::try_from(144), Err(ParseError::Invalid(144)));
     }
 
     #[test]

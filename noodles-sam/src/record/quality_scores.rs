@@ -52,12 +52,11 @@ impl QualityScores {
     /// ```
     /// use noodles_sam::record::{quality_scores::Score, QualityScores};
     ///
-    /// let mut quality_scores = QualityScores::from(vec![Score::try_from('!')?]);
+    /// let mut quality_scores = QualityScores::from(vec![Score::MIN]);
     /// assert!(!quality_scores.is_empty());
     ///
     /// quality_scores.clear();
     /// assert!(quality_scores.is_empty());
-    /// # Ok::<_, noodles_sam::record::quality_scores::score::TryFromCharError>(())
     /// ```
     pub fn clear(&mut self) {
         self.0.clear();
@@ -167,7 +166,7 @@ pub enum ParseError {
     /// The input is invalid.
     Invalid,
     /// The raw quality scores has an invalid score.
-    InvalidScore(score::TryFromCharError),
+    InvalidScore(score::ParseError),
 }
 
 impl error::Error for ParseError {

@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/record/quality_scores/score: Merge `TryFromCharError` and
+    `TryFromUByteError` into a single `ParseError`.
+
 ## 0.28.0 - 2023-05-04
 
 ### Added

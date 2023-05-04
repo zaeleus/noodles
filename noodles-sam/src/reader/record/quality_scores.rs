@@ -18,7 +18,7 @@ pub enum ParseError {
         expected: usize,
     },
     /// A score is invalid.
-    InvalidScore(quality_scores::score::TryFromUByteError),
+    InvalidScore(quality_scores::score::ParseError),
 }
 
 impl error::Error for ParseError {
@@ -65,7 +65,7 @@ pub(crate) fn parse_quality_scores(
 
     if let Some(n) = raw_scores.iter().copied().find(|&n| !is_valid_score(n)) {
         return Err(ParseError::InvalidScore(
-            quality_scores::score::TryFromUByteError(n),
+            quality_scores::score::ParseError::Invalid(u32::from(n.wrapping_add(OFFSET))),
         ));
     }
 
