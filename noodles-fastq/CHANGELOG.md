@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * fastq/reader/record/definition: Fix panic on trailing newline removal.
+
+    This previously checked the wrong buffer when removing the trailing
+    newline.
+
+[#166]: https://github.com/zaeleus/noodles/issues/166
+
 ## 0.7.0 - 2023-04-27
 
 ### Changed

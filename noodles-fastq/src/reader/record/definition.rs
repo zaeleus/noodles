@@ -42,10 +42,14 @@ where
                     LINE_FEED => {
                         is_eol = true;
 
-                        if src.ends_with(&[CARRIAGE_RETURN]) {
-                            &src[..i - 1]
+                        let line = &src[..i];
+
+                        if line.ends_with(&[CARRIAGE_RETURN]) {
+                            // SAFETY: `line.len()` is > 0.
+                            let end = line.len() - 1;
+                            &line[..end]
                         } else {
-                            &src[..i]
+                            line
                         }
                     }
                     _ => unreachable!(),
@@ -97,6 +101,14 @@ mod tests {
         read_definition(&mut reader, &mut record)?;
         assert_eq!(record.name(), b"r0");
         assert_eq!(record.description(), b"LN:4");
+
+        // https://github.com/zaeleus/noodles/issues/166
+        let data = b"@\nA\r";
+        let mut reader = &data[..];
+        record.clear();
+        read_definition(&mut reader, &mut record)?;
+        assert!(record.name().is_empty());
+        assert!(record.description().is_empty());
 
         let data = b"r0\n";
         let mut reader = &data[..];
