@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * sam/record/quality_scores/score: Add `const` constructor (`Score::new`).
+
 ### Changed
 
   * sam/record/quality_scores/score: Merge `TryFromCharError` and

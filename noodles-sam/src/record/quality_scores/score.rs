@@ -27,6 +27,25 @@ impl Score {
     /// The maximum score (93).
     pub const MAX: Self = Self(93);
 
+    /// Crates a score if the given value is within range.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::quality_scores::Score;
+    /// assert_eq!(Score::new(0), Some(Score::MIN));
+    /// assert!(Score::new(8).is_some());
+    /// assert_eq!(Score::new(93), Some(Score::MAX));
+    /// assert!(Score::new(94).is_none());
+    /// ```
+    pub const fn new(n: u8) -> Option<Self> {
+        if n <= Self::MAX.get() {
+            Some(Self(n))
+        } else {
+            None
+        }
+    }
+
     /// Returns the inner value.
     ///
     /// # Examples
