@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+  * bcf/reader: Remove `Reader::read_file_format`.
+
+    `Reader::read_header` now includes the checking the magic number and
+    reading the file format version. Calling `Reader::read_file_format` is no
+    longer necessary.
+
 ## 0.25.0 - 2023-05-04
 
 ### Changed

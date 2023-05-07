@@ -15,7 +15,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");
 
     let mut reader = File::open(src).map(bcf::Reader::new)?;
-    reader.read_file_format()?;
     let header = reader.read_header()?;
 
     let stdout = io::stdout().lock();

@@ -87,31 +87,11 @@ where
         &self.string_maps
     }
 
-    /// Reads the BCF file format.
-    ///
-    /// The BCF magic number is also checked.
-    ///
-    /// The position of the stream is expected to be at the start.
-    ///
-    /// This returns the major and minor format versions as a tuple.
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// # use std::{fs::File, io};
-    /// use noodles_bcf as bcf;
-    /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
-    /// let (major, minor) = reader.read_file_format()?;
-    /// # Ok::<(), io::Error>(())
-    /// ```
-    pub fn read_file_format(&mut self) -> io::Result<(u8, u8)> {
-        read_magic(&mut self.inner)?;
-        read_format_version(&mut self.inner)
-    }
-
     /// Reads the VCF header.
     ///
-    /// The position of the stream is expected to be directly after the file format.
+    /// The BCF magic number is checked, and the file format version is discarded.
+    ///
+    /// The position of the stream is expected to be at the start.
     ///
     /// This returns both the parsed VCF header and the associated string maps built from the raw
     /// header.
@@ -122,11 +102,12 @@ where
     /// # use std::{fs::File, io};
     /// use noodles_bcf as bcf;
     /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
-    /// reader.read_file_format()?;
     /// let header = reader.read_header()?;
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_header(&mut self) -> io::Result<vcf::Header> {
+        read_magic(&mut self.inner)?;
+        read_format_version(&mut self.inner)?;
         let (header, string_maps) = read_header(&mut self.inner)?;
         self.string_maps = string_maps;
         Ok(header)
@@ -150,7 +131,6 @@ where
     /// use noodles_vcf as vcf;
     ///
     /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
-    /// reader.read_file_format()?;
     /// let header = reader.read_header()?;
     ///
     /// let mut record = vcf::Record::default();
@@ -188,7 +168,6 @@ where
     /// use noodles_bcf as bcf;
     ///
     /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
-    /// reader.read_file_format()?;
     /// reader.read_header()?;
     ///
     /// let mut record = bcf::lazy::Record::default();
@@ -211,7 +190,6 @@ where
     /// use noodles_bcf as bcf;
     ///
     /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
-    /// reader.read_file_format()?;
     /// let header = reader.read_header()?;
     ///
     /// for result in reader.records(&header) {
@@ -234,7 +212,6 @@ where
     /// use noodles_bcf as bcf;
     ///
     /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
-    /// reader.read_file_format()?;
     /// reader.read_header()?;
     ///
     /// for result in reader.lazy_records() {
@@ -328,7 +305,6 @@ where
     /// use noodles_csi as csi;
     ///
     /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
-    /// reader.read_file_format()?;
     /// let header = reader.read_header()?;
     ///
     /// let index = csi::read("sample.bcf.csi")?;
@@ -375,8 +351,6 @@ where
     R: BufRead,
 {
     fn read_variant_header(&mut self) -> io::Result<vcf::Header> {
-        read_magic(&mut self.inner)?;
-        read_format_version(&mut self.inner)?;
         self.read_header()
     }
 

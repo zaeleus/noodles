@@ -22,7 +22,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let raw_region = args.next().expect("missing region");
 
     let mut reader = File::open(&src).map(bcf::Reader::new)?;
-    reader.read_file_format()?;
     let header = reader.read_header()?;
 
     let index = csi::read(src.with_extension("bcf.csi"))?;
