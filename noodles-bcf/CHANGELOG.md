@@ -10,6 +10,11 @@
     reading the file format version. Calling `Reader::read_file_format` is no
     longer necessary.
 
+  * bcf/writer: Remove `Writer::write_file_format`.
+
+    `Writer::write_header` now includes writing the magic number and file
+    format version. Calling `Writer::write_file_format` is no longer necessary.
+
 ## 0.25.0 - 2023-05-04
 
 ### Changed

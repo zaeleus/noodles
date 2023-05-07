@@ -66,21 +66,6 @@ where
         self.inner
     }
 
-    /// Writes a BCF file format.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io;
-    /// use noodles_bcf as bcf;
-    /// let mut writer = bcf::Writer::new(Vec::new());
-    /// writer.write_file_format()?;
-    /// # Ok::<(), io::Error>(())
-    /// ```
-    pub fn write_file_format(&mut self) -> io::Result<()> {
-        write_file_format(&mut self.inner)
-    }
-
     /// Writes a VCF header.
     ///
     /// # Examples
@@ -97,6 +82,8 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_header(&mut self, header: &vcf::Header) -> io::Result<()> {
+        write_file_format(&mut self.inner)?;
+
         self.string_maps = StringMaps::try_from(header)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
@@ -188,7 +175,6 @@ where
     W: Write,
 {
     fn write_variant_header(&mut self, header: &vcf::Header) -> io::Result<()> {
-        write_file_format(&mut self.inner)?;
         self.write_header(header)
     }
 

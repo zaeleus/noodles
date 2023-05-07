@@ -19,7 +19,6 @@ use noodles_vcf::{
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let stdout = io::stdout().lock();
     let mut writer = bcf::Writer::new(stdout);
-    writer.write_file_format()?;
 
     let header = vcf::Header::builder()
         .add_filter("PASS", Map::<Filter>::pass())
