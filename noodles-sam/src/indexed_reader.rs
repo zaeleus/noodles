@@ -64,6 +64,11 @@ where
     pub fn read_lazy_record(&mut self, record: &mut lazy::Record) -> io::Result<usize> {
         self.inner.read_lazy_record(record)
     }
+
+    /// Returns the associated index.
+    pub fn index(&self) -> &csi::Index {
+        &self.index
+    }
 }
 
 impl<R> IndexedReader<R>
