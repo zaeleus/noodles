@@ -38,13 +38,10 @@ pub(crate) fn read_record<R>(
 where
     R: Read,
 {
-    let block_size = match read_block_size(reader)? {
+    let block_size = match read_raw_record(reader, buf)? {
         0 => return Ok(0),
         n => n,
     };
-
-    buf.resize(block_size, 0);
-    reader.read_exact(buf)?;
 
     let mut src = &buf[..];
     decode_record(&mut src, header, record)
@@ -53,7 +50,22 @@ where
     Ok(block_size)
 }
 
-pub(super) fn read_block_size<R>(reader: &mut R) -> io::Result<usize>
+pub(super) fn read_raw_record<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
+where
+    R: Read,
+{
+    let block_size = match read_block_size(reader)? {
+        0 => return Ok(0),
+        n => n,
+    };
+
+    buf.resize(block_size, 0);
+    reader.read_exact(buf)?;
+
+    Ok(block_size)
+}
+
+fn read_block_size<R>(reader: &mut R) -> io::Result<usize>
 where
     R: Read,
 {

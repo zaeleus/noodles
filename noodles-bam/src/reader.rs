@@ -189,15 +189,12 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_lazy_record(&mut self, record: &mut lazy::Record) -> io::Result<usize> {
-        use self::record::read_block_size;
+        use self::record::read_raw_record;
 
-        let block_size = match read_block_size(&mut self.inner)? {
+        let block_size = match read_raw_record(&mut self.inner, &mut record.buf)? {
             0 => return Ok(0),
             n => n,
         };
-
-        record.buf.resize(block_size, 0);
-        self.inner.read_exact(&mut record.buf)?;
 
         record.index()?;
 
