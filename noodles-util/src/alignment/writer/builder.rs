@@ -8,6 +8,7 @@ use std::{
 
 use cram::data_container::BlockContentEncoderMap;
 use noodles_bam as bam;
+use noodles_bgzf as bgzf;
 use noodles_cram as cram;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
@@ -130,6 +131,7 @@ impl Builder {
 
         let inner: Box<dyn sam::AlignmentWriter> = match format {
             Format::Sam => Box::new(sam::Writer::new(writer)),
+            Format::SamGz => Box::new(sam::Writer::new(bgzf::Writer::new(writer))),
             Format::Bam => Box::new(bam::Writer::new(writer)),
             Format::Cram => Box::new(
                 cram::writer::Builder::default()
@@ -147,11 +149,18 @@ fn detect_format_from_path_extension<P>(path: P) -> Option<Format>
 where
     P: AsRef<Path>,
 {
-    match path.as_ref().extension().and_then(|ext| ext.to_str()) {
-        Some("sam") => Some(Format::Sam),
-        Some("bam") => Some(Format::Bam),
-        Some("cram") => Some(Format::Cram),
-        _ => None,
+    let ext = path.as_ref().file_name().and_then(|ext| ext.to_str())?;
+
+    if ext.ends_with("sam") {
+        Some(Format::Sam)
+    } else if ext.ends_with("sam.gz") || ext.ends_with("sam.bgz") {
+        Some(Format::SamGz)
+    } else if ext.ends_with("bam") {
+        Some(Format::Bam)
+    } else if ext.ends_with("cram") {
+        Some(Format::Cram)
+    } else {
+        None
     }
 }
 
@@ -164,6 +173,10 @@ mod tests {
         assert_eq!(
             detect_format_from_path_extension("out.sam"),
             Some(Format::Sam)
+        );
+        assert_eq!(
+            detect_format_from_path_extension("out.sam.gz"),
+            Some(Format::SamGz)
         );
         assert_eq!(
             detect_format_from_path_extension("out.bam"),

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * util/alignment/format: Add support for bgzipped SAM (`*.sam.gz`).
+
 ## 0.9.0 - 2023-05-04
 
 ### Changed

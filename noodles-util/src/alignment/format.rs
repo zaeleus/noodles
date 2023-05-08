@@ -3,6 +3,8 @@
 pub enum Format {
     /// Sequence Alignment/Map (SAM).
     Sam,
+    /// bgzipped SAM.
+    SamGz,
     /// Binary Alignment/Map (BAM).
     Bam,
     /// CRAM.

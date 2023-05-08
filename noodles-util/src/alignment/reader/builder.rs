@@ -107,6 +107,10 @@ impl Builder {
                 let inner: Box<dyn BufRead> = Box::new(reader);
                 Box::new(sam::Reader::from(inner))
             }
+            Format::SamGz => {
+                let inner: Box<dyn BufRead> = Box::new(bgzf::Reader::new(reader));
+                Box::new(sam::Reader::from(inner))
+            }
             Format::Bam => {
                 let inner: Box<dyn BufRead> = Box::new(bgzf::Reader::new(reader));
                 Box::new(bam::Reader::from(inner))
@@ -146,6 +150,8 @@ where
 
             if buf == BAM_MAGIC_NUMBER {
                 return Ok(Format::Bam);
+            } else {
+                return Ok(Format::SamGz);
             }
         }
     }
@@ -171,7 +177,7 @@ mod tests {
         let mut writer = bgzf::Writer::new(Vec::new());
         writer.write_all(b"@HD\tVN:1.6\n")?;
         let src = writer.finish()?;
-        t(&src, Format::Sam);
+        t(&src, Format::SamGz);
 
         let mut writer = bgzf::Writer::new(Vec::new());
         writer.write_all(b"BAM\x01")?;
