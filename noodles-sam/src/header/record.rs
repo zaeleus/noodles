@@ -112,8 +112,7 @@ impl FromStr for Record {
         const ID: &str = "ID";
         const SN: &str = "SN";
 
-        let (k, v) = s.split_once(DELIMITER).ok_or(ParseError::Invalid)?;
-        let kind = k.parse().map_err(ParseError::InvalidKind)?;
+        let (kind, v) = split_record(s)?;
 
         match kind {
             Kind::Header => {
@@ -175,6 +174,12 @@ impl FromStr for Record {
             Kind::Comment => Ok(Self::Comment(v.into())),
         }
     }
+}
+
+fn split_record(s: &str) -> Result<(Kind, &str), ParseError> {
+    let (k, v) = s.split_once(DELIMITER).ok_or(ParseError::Invalid)?;
+    let kind = k.parse().map_err(ParseError::InvalidKind)?;
+    Ok((kind, v))
 }
 
 fn split_fields(s: &str) -> Result<Vec<(String, String)>, ParseError> {
