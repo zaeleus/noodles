@@ -152,3 +152,34 @@ where
 
     Ok(Format::Sam)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_detect_format() -> io::Result<()> {
+        use std::io::Write;
+
+        fn t(mut src: &[u8], expected: Format) {
+            assert!(matches!(detect_format(&mut src), Ok(value) if value == expected));
+        }
+
+        t(b"@HD\tVN:1.6\n", Format::Sam);
+        t(b"", Format::Sam);
+
+        let mut writer = bgzf::Writer::new(Vec::new());
+        writer.write_all(b"@HD\tVN:1.6\n")?;
+        let src = writer.finish()?;
+        t(&src, Format::Sam);
+
+        let mut writer = bgzf::Writer::new(Vec::new());
+        writer.write_all(b"BAM\x01")?;
+        let src = writer.finish()?;
+        t(&src, Format::Bam);
+
+        t(b"CRAM", Format::Cram);
+
+        Ok(())
+    }
+}
