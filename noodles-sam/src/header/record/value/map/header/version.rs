@@ -8,7 +8,7 @@ const MINOR_VERSION: u32 = 6;
 const DELIMITER: char = '.';
 
 /// A SAM header header version (`VN`).
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Version {
     major: u32,
     minor: u32,

@@ -4,6 +4,8 @@
 
 ### Added
 
+  * sam/header/record/value/map/header/version: Implement `Ord` + `PartialOrd`.
+
   * sam/indexed_reader: Add getter for index (`IndexedReader::index`).
 
   * sam/record/quality_scores/score: Add `const` constructor (`Score::new`).
