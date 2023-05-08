@@ -117,8 +117,7 @@ impl FromStr for Record {
         match kind {
             Kind::Header => {
                 let fields = split_fields(v)?;
-                let header =
-                    Map::<map::Header>::try_from(fields).map_err(ParseError::InvalidHeader)?;
+                let header = Map::try_from(fields).map_err(ParseError::InvalidHeader)?;
                 Ok(Self::Header(header))
             }
             Kind::ReferenceSequence => {
@@ -140,7 +139,7 @@ impl FromStr for Record {
                         })
                     })?;
 
-                let reference_sequence = Map::<ReferenceSequence>::try_from(fields)
+                let reference_sequence = Map::try_from(fields)
                     .map_err(|e| ParseError::InvalidReferenceSequence(Some(name.clone()), e))?;
 
                 Ok(Self::ReferenceSequence(name, reference_sequence))
@@ -153,7 +152,7 @@ impl FromStr for Record {
                     map::read_group::ParseError::MissingField(map::read_group::tag::ID),
                 ))?;
 
-                let read_group = Map::<ReadGroup>::try_from(fields)
+                let read_group = Map::try_from(fields)
                     .map_err(|e| ParseError::InvalidReadGroup(Some(id.clone()), e))?;
 
                 Ok(Self::ReadGroup(id, read_group))
@@ -166,7 +165,7 @@ impl FromStr for Record {
                     map::program::ParseError::MissingField(map::program::tag::ID),
                 ))?;
 
-                let program = Map::<Program>::try_from(fields)
+                let program = Map::try_from(fields)
                     .map_err(|e| ParseError::InvalidProgram(Some(id.clone()), e))?;
 
                 Ok(Self::Program(id, program))
