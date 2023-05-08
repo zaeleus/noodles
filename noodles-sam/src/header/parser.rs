@@ -78,7 +78,7 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
     let mut lines = s.lines();
 
     if let Some(line) = lines.next() {
-        let record: Record = line.parse().map_err(ParseError::InvalidRecord)?;
+        let record = line.parse().map_err(ParseError::InvalidRecord)?;
 
         builder = match record {
             Record::Header(header) => builder.set_header(header),
@@ -99,7 +99,7 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
     }
 
     for line in lines {
-        let record: Record = line.parse().map_err(ParseError::InvalidRecord)?;
+        let record = line.parse().map_err(ParseError::InvalidRecord)?;
 
         builder = match record {
             Record::Header(_) => return Err(ParseError::UnexpectedHeader),
