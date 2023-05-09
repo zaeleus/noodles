@@ -182,10 +182,13 @@ fn split_record(s: &str) -> Result<(Kind, &str), ParseError> {
 }
 
 fn split_fields(s: &str) -> Result<Vec<(String, String)>, ParseError> {
-    s.split(DELIMITER).map(split_field).collect()
+    s.split(DELIMITER)
+        .map(split_field)
+        .map(|result| result.map(|(key, value)| (key.into(), value.into())))
+        .collect()
 }
 
-fn split_field(s: &str) -> Result<(String, String), ParseError> {
+fn split_field(s: &str) -> Result<(&str, &str), ParseError> {
     const FIELD_DELIMITER: char = ':';
 
     match s.split_once(FIELD_DELIMITER) {
@@ -194,7 +197,7 @@ fn split_field(s: &str) -> Result<(String, String), ParseError> {
                 return Err(ParseError::InvalidValue);
             }
 
-            Ok((tag.into(), value.into()))
+            Ok((tag, value))
         }
         None => Err(ParseError::InvalidField),
     }
