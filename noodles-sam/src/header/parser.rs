@@ -78,6 +78,10 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
     let mut lines = s.lines();
 
     if let Some(line) = lines.next() {
+        let _ = record::extract_version(line)
+            .transpose()
+            .map_err(ParseError::InvalidRecord)?;
+
         let record = line.parse().map_err(ParseError::InvalidRecord)?;
 
         builder = match record {
