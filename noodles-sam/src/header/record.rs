@@ -11,6 +11,7 @@ use self::value::{
     map::{self, header::Version, Program, ReadGroup, ReferenceSequence},
     Map,
 };
+use super::parser::Context;
 
 const DELIMITER: char = '\t';
 
@@ -109,6 +110,14 @@ impl FromStr for Record {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::try_from((&Context::default(), s))
+    }
+}
+
+impl TryFrom<(&Context, &str)> for Record {
+    type Error = ParseError;
+
+    fn try_from((ctx, s): (&Context, &str)) -> Result<Self, Self::Error> {
         const ID: &str = "ID";
         const SN: &str = "SN";
 
@@ -117,7 +126,7 @@ impl FromStr for Record {
         match kind {
             Kind::Header => {
                 let fields = split_fields(v)?;
-                let header = Map::try_from(fields).map_err(ParseError::InvalidHeader)?;
+                let header = Map::try_from((ctx, fields)).map_err(ParseError::InvalidHeader)?;
                 Ok(Self::Header(header))
             }
             Kind::ReferenceSequence => {

@@ -23,6 +23,7 @@ use self::{
     tag::{StandardTag, Tag},
 };
 use super::{Fields, Inner, Map, OtherFields};
+use crate::header::parser::Context;
 
 /// A SAM header record reference sequence map value.
 ///
@@ -358,6 +359,14 @@ impl TryFrom<Fields> for Map<ReferenceSequence> {
     type Error = ParseError;
 
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
+        Self::try_from((&Context::default(), fields))
+    }
+}
+
+impl TryFrom<(&Context, Fields)> for Map<ReferenceSequence> {
+    type Error = ParseError;
+
+    fn try_from((ctx, fields): (&Context, Fields)) -> Result<Self, Self::Error> {
         let mut length = None;
         let mut alternative_locus = None;
         let mut alternative_names = None;
@@ -375,22 +384,24 @@ impl TryFrom<Fields> for Map<ReferenceSequence> {
 
             match tag {
                 tag::NAME => return Err(ParseError::DuplicateTag(tag::NAME)),
-                tag::LENGTH => length = parse_length(&value).map(Some)?,
-                tag::ALTERNATIVE_LOCUS => {
-                    alternative_locus = parse_alternative_locus(&value).map(Some)?
-                }
-                tag::ALTERNATIVE_NAMES => {
-                    alternative_names = parse_alternative_names(&value).map(Some)?
-                }
-                tag::ASSEMBLY_ID => assembly_id = Some(value),
-                tag::DESCRIPTION => description = Some(value),
-                tag::MD5_CHECKSUM => md5_checksum = parse_md5_checksum(&value).map(Some)?,
-                tag::SPECIES => species = Some(value),
-                tag::MOLECULE_TOPOLOGY => {
-                    molecule_topology = parse_molecule_topology(&value).map(Some)?
-                }
-                tag::URI => uri = Some(value),
-                Tag::Other(t) => try_insert(&mut other_fields, t, value)?,
+                tag::LENGTH => parse_length(&value)
+                    .and_then(|v| try_replace(&mut length, ctx, tag::LENGTH, v))?,
+                tag::ALTERNATIVE_LOCUS => parse_alternative_locus(&value).and_then(|v| {
+                    try_replace(&mut alternative_locus, ctx, tag::ALTERNATIVE_LOCUS, v)
+                })?,
+                tag::ALTERNATIVE_NAMES => parse_alternative_names(&value).and_then(|v| {
+                    try_replace(&mut alternative_names, ctx, tag::ALTERNATIVE_NAMES, v)
+                })?,
+                tag::ASSEMBLY_ID => try_replace(&mut assembly_id, ctx, tag::ASSEMBLY_ID, value)?,
+                tag::DESCRIPTION => try_replace(&mut description, ctx, tag::DESCRIPTION, value)?,
+                tag::MD5_CHECKSUM => parse_md5_checksum(&value)
+                    .and_then(|v| try_replace(&mut md5_checksum, ctx, tag::MD5_CHECKSUM, v))?,
+                tag::SPECIES => try_replace(&mut species, ctx, tag::SPECIES, value)?,
+                tag::MOLECULE_TOPOLOGY => parse_molecule_topology(&value).and_then(|v| {
+                    try_replace(&mut molecule_topology, ctx, tag::MOLECULE_TOPOLOGY, v)
+                })?,
+                tag::URI => try_replace(&mut uri, ctx, tag::URI, value)?,
+                Tag::Other(t) => try_insert(&mut other_fields, ctx, t, value)?,
             }
         }
 
@@ -433,22 +444,29 @@ fn parse_molecule_topology(s: &str) -> Result<MoleculeTopology, ParseError> {
     s.parse().map_err(ParseError::InvalidMoleculeToplogy)
 }
 
+fn try_replace<T>(
+    option: &mut Option<T>,
+    ctx: &Context,
+    tag: Tag,
+    value: T,
+) -> Result<(), ParseError> {
+    if option.replace(value).is_some() && !ctx.allow_duplicate_tags() {
+        Err(ParseError::DuplicateTag(tag))
+    } else {
+        Ok(())
+    }
+}
+
 fn try_insert(
     other_fields: &mut OtherFields<StandardTag>,
+    ctx: &Context,
     tag: super::tag::Other<StandardTag>,
     value: String,
 ) -> Result<(), ParseError> {
-    use indexmap::map::Entry;
-
-    match other_fields.entry(tag) {
-        Entry::Vacant(entry) => {
-            entry.insert(value);
-            Ok(())
-        }
-        Entry::Occupied(entry) => {
-            let (t, _) = entry.remove_entry();
-            Err(ParseError::DuplicateTag(Tag::Other(t)))
-        }
+    if other_fields.insert(tag, value).is_some() && !ctx.allow_duplicate_tags() {
+        Err(ParseError::DuplicateTag(Tag::Other(tag)))
+    } else {
+        Ok(())
     }
 }
 

@@ -10,6 +10,7 @@ use self::{
     tag::{StandardTag, Tag},
 };
 use super::{Fields, Inner, Map, OtherFields};
+use crate::header::parser::Context;
 
 // A SAM header record program map value.
 ///
@@ -157,6 +158,14 @@ impl TryFrom<Fields> for Map<Program> {
     type Error = ParseError;
 
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
+        Self::try_from((&Context::default(), fields))
+    }
+}
+
+impl TryFrom<(&Context, Fields)> for Map<Program> {
+    type Error = ParseError;
+
+    fn try_from((ctx, fields): (&Context, Fields)) -> Result<Self, Self::Error> {
         let mut name = None;
         let mut command_line = None;
         let mut previous_id = None;
@@ -170,12 +179,12 @@ impl TryFrom<Fields> for Map<Program> {
 
             match tag {
                 tag::ID => return Err(ParseError::DuplicateTag(tag::ID)),
-                tag::NAME => name = Some(value),
-                tag::COMMAND_LINE => command_line = Some(value),
-                tag::PREVIOUS_ID => previous_id = Some(value),
-                tag::DESCRIPTION => description = Some(value),
-                tag::VERSION => version = Some(value),
-                Tag::Other(t) => try_insert(&mut other_fields, t, value)?,
+                tag::NAME => try_replace(&mut name, ctx, tag::NAME, value)?,
+                tag::COMMAND_LINE => try_replace(&mut command_line, ctx, tag::COMMAND_LINE, value)?,
+                tag::PREVIOUS_ID => try_replace(&mut previous_id, ctx, tag::PREVIOUS_ID, value)?,
+                tag::DESCRIPTION => try_replace(&mut description, ctx, tag::DESCRIPTION, value)?,
+                tag::VERSION => try_replace(&mut version, ctx, tag::VERSION, value)?,
+                Tag::Other(t) => try_insert(&mut other_fields, ctx, t, value)?,
             }
         }
 
@@ -192,22 +201,29 @@ impl TryFrom<Fields> for Map<Program> {
     }
 }
 
+fn try_replace<T>(
+    option: &mut Option<T>,
+    ctx: &Context,
+    tag: Tag,
+    value: T,
+) -> Result<(), ParseError> {
+    if option.replace(value).is_some() && !ctx.allow_duplicate_tags() {
+        Err(ParseError::DuplicateTag(tag))
+    } else {
+        Ok(())
+    }
+}
+
 fn try_insert(
     other_fields: &mut OtherFields<StandardTag>,
+    ctx: &Context,
     tag: super::tag::Other<StandardTag>,
     value: String,
 ) -> Result<(), ParseError> {
-    use indexmap::map::Entry;
-
-    match other_fields.entry(tag) {
-        Entry::Vacant(entry) => {
-            entry.insert(value);
-            Ok(())
-        }
-        Entry::Occupied(entry) => {
-            let (t, _) = entry.remove_entry();
-            Err(ParseError::DuplicateTag(Tag::Other(t)))
-        }
+    if other_fields.insert(tag, value).is_some() && !ctx.allow_duplicate_tags() {
+        Err(ParseError::DuplicateTag(Tag::Other(tag)))
+    } else {
+        Ok(())
     }
 }
 

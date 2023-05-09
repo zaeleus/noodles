@@ -12,6 +12,8 @@
 
 ### Changed
 
+  * sam/header/record/value/map: Disallow duplicate tags in SAM 1.6.
+
   * sam/record/quality_scores/score: Merge `TryFromCharError` and
     `TryFromUByteError` into a single `ParseError`.
 

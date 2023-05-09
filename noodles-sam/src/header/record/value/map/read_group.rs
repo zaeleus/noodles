@@ -13,6 +13,7 @@ use self::{
     tag::{StandardTag, Tag},
 };
 use super::{Fields, Inner, Map, OtherFields};
+use crate::header::parser::Context;
 
 /// A SAM header record read group map value.
 ///
@@ -319,6 +320,14 @@ impl TryFrom<Fields> for Map<ReadGroup> {
     type Error = ParseError;
 
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
+        Self::try_from((&Context::default(), fields))
+    }
+}
+
+impl TryFrom<(&Context, Fields)> for Map<ReadGroup> {
+    type Error = ParseError;
+
+    fn try_from((ctx, fields): (&Context, Fields)) -> Result<Self, Self::Error> {
         let mut barcode = None;
         let mut sequencing_center = None;
         let mut description = None;
@@ -340,23 +349,35 @@ impl TryFrom<Fields> for Map<ReadGroup> {
 
             match tag {
                 tag::ID => return Err(ParseError::DuplicateTag(tag::ID)),
-                tag::BARCODE => barcode = Some(value),
-                tag::SEQUENCING_CENTER => sequencing_center = Some(value),
-                tag::DESCRIPTION => description = Some(value),
-                tag::PRODUCED_AT => produced_at = Some(value),
-                tag::FLOW_ORDER => flow_order = Some(value),
-                tag::KEY_SEQUENCE => key_sequence = Some(value),
-                tag::LIBRARY => library = Some(value),
-                tag::PROGRAM => program = Some(value),
-                tag::PREDICTED_MEDIAN_INSERT_SIZE => {
-                    predicted_median_insert_size =
-                        parse_predicted_median_insert_size(&value).map(Some)?
+                tag::BARCODE => try_replace(&mut barcode, ctx, tag::BARCODE, value)?,
+                tag::SEQUENCING_CENTER => {
+                    try_replace(&mut sequencing_center, ctx, tag::SEQUENCING_CENTER, value)?
                 }
-                tag::PLATFORM => platform = parse_platform(&value).map(Some)?,
-                tag::PLATFORM_MODEL => platform_model = Some(value),
-                tag::PLATFORM_UNIT => platform_unit = Some(value),
-                tag::SAMPLE => sample = Some(value),
-                Tag::Other(t) => try_insert(&mut other_fields, t, value)?,
+                tag::DESCRIPTION => try_replace(&mut description, ctx, tag::DESCRIPTION, value)?,
+                tag::PRODUCED_AT => try_replace(&mut produced_at, ctx, tag::PRODUCED_AT, value)?,
+                tag::FLOW_ORDER => try_replace(&mut flow_order, ctx, tag::FLOW_ORDER, value)?,
+                tag::KEY_SEQUENCE => try_replace(&mut key_sequence, ctx, tag::KEY_SEQUENCE, value)?,
+                tag::LIBRARY => try_replace(&mut library, ctx, tag::LIBRARY, value)?,
+                tag::PROGRAM => try_replace(&mut program, ctx, tag::PROGRAM, value)?,
+                tag::PREDICTED_MEDIAN_INSERT_SIZE => parse_predicted_median_insert_size(&value)
+                    .and_then(|v| {
+                        try_replace(
+                            &mut predicted_median_insert_size,
+                            ctx,
+                            tag::PREDICTED_MEDIAN_INSERT_SIZE,
+                            v,
+                        )
+                    })?,
+                tag::PLATFORM => parse_platform(&value)
+                    .and_then(|v| try_replace(&mut platform, ctx, tag::PLATFORM, v))?,
+                tag::PLATFORM_MODEL => {
+                    try_replace(&mut platform_model, ctx, tag::PLATFORM_MODEL, value)?
+                }
+                tag::PLATFORM_UNIT => {
+                    try_replace(&mut platform_unit, ctx, tag::PLATFORM_UNIT, value)?
+                }
+                tag::SAMPLE => try_replace(&mut sample, ctx, tag::SAMPLE, value)?,
+                Tag::Other(t) => try_insert(&mut other_fields, ctx, t, value)?,
             }
         }
 
@@ -390,22 +411,29 @@ fn parse_platform(s: &str) -> Result<Platform, ParseError> {
     s.parse().map_err(ParseError::InvalidPlatform)
 }
 
+fn try_replace<T>(
+    option: &mut Option<T>,
+    ctx: &Context,
+    tag: Tag,
+    value: T,
+) -> Result<(), ParseError> {
+    if option.replace(value).is_some() && !ctx.allow_duplicate_tags() {
+        Err(ParseError::DuplicateTag(tag))
+    } else {
+        Ok(())
+    }
+}
+
 fn try_insert(
     other_fields: &mut OtherFields<StandardTag>,
+    ctx: &Context,
     tag: super::tag::Other<StandardTag>,
     value: String,
 ) -> Result<(), ParseError> {
-    use indexmap::map::Entry;
-
-    match other_fields.entry(tag) {
-        Entry::Vacant(entry) => {
-            entry.insert(value);
-            Ok(())
-        }
-        Entry::Occupied(entry) => {
-            let (t, _) = entry.remove_entry();
-            Err(ParseError::DuplicateTag(Tag::Other(t)))
-        }
+    if other_fields.insert(tag, value).is_some() && !ctx.allow_duplicate_tags() {
+        Err(ParseError::DuplicateTag(Tag::Other(tag)))
+    } else {
+        Ok(())
     }
 }
 

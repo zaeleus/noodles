@@ -1,5 +1,8 @@
+mod context;
+
 use std::{collections::HashSet, error, fmt};
 
+pub(crate) use self::context::Context;
 use super::{
     record::{self, value::map::reference_sequence},
     Header, Record,
@@ -71,6 +74,8 @@ impl fmt::Display for ParseError {
 pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
     let mut builder = Header::builder();
 
+    let mut ctx = Context::default();
+
     let mut read_group_ids: HashSet<String> = HashSet::new();
     let mut reference_sequence_names: HashSet<reference_sequence::Name> = HashSet::new();
     let mut program_ids: HashSet<String> = HashSet::new();
@@ -78,11 +83,15 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
     let mut lines = s.lines();
 
     if let Some(line) = lines.next() {
-        let _ = record::extract_version(line)
+        let version = record::extract_version(line)
             .transpose()
             .map_err(ParseError::InvalidRecord)?;
 
-        let record = line.parse().map_err(ParseError::InvalidRecord)?;
+        if let Some(version) = version {
+            ctx = Context::from(version);
+        }
+
+        let record = Record::try_from((&ctx, line)).map_err(ParseError::InvalidRecord)?;
 
         builder = match record {
             Record::Header(header) => builder.set_header(header),
@@ -103,7 +112,7 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
     }
 
     for line in lines {
-        let record = line.parse().map_err(ParseError::InvalidRecord)?;
+        let record = Record::try_from((&ctx, line)).map_err(ParseError::InvalidRecord)?;
 
         builder = match record {
             Record::Header(_) => return Err(ParseError::UnexpectedHeader),

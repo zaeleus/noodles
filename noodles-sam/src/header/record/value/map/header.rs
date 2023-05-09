@@ -18,6 +18,7 @@ use self::{
     tag::{StandardTag, Tag},
 };
 use super::{Fields, Inner, Map, OtherFields};
+use crate::header::parser::Context;
 
 /// A SAM header record header map value.
 ///
@@ -245,6 +246,14 @@ impl TryFrom<Fields> for Map<Header> {
     type Error = ParseError;
 
     fn try_from(fields: Fields) -> Result<Self, Self::Error> {
+        Self::try_from((&Context::default(), fields))
+    }
+}
+
+impl TryFrom<(&Context, Fields)> for Map<Header> {
+    type Error = ParseError;
+
+    fn try_from((ctx, fields): (&Context, Fields)) -> Result<Self, Self::Error> {
         let mut version = None;
         let mut sort_order = None;
         let mut group_order = None;
@@ -256,11 +265,15 @@ impl TryFrom<Fields> for Map<Header> {
             let tag = key.parse().map_err(ParseError::InvalidTag)?;
 
             match tag {
-                tag::VERSION => version = parse_version(&value).map(Some)?,
-                tag::SORT_ORDER => sort_order = parse_sort_order(&value).map(Some)?,
-                tag::GROUP_ORDER => group_order = parse_group_order(&value).map(Some)?,
-                tag::SUBSORT_ORDER => subsort_order = parse_subsort_order(&value).map(Some)?,
-                Tag::Other(t) => try_insert(&mut other_fields, t, value)?,
+                tag::VERSION => parse_version(&value)
+                    .and_then(|v| try_replace(&mut version, ctx, tag::VERSION, v))?,
+                tag::SORT_ORDER => parse_sort_order(&value)
+                    .and_then(|v| try_replace(&mut sort_order, ctx, tag::SORT_ORDER, v))?,
+                tag::GROUP_ORDER => parse_group_order(&value)
+                    .and_then(|v| try_replace(&mut group_order, ctx, tag::GROUP_ORDER, v))?,
+                tag::SUBSORT_ORDER => parse_subsort_order(&value)
+                    .and_then(|v| try_replace(&mut subsort_order, ctx, tag::SUBSORT_ORDER, v))?,
+                Tag::Other(t) => try_insert(&mut other_fields, ctx, t, value)?,
             }
         }
 
@@ -294,22 +307,29 @@ fn parse_subsort_order(s: &str) -> Result<SubsortOrder, ParseError> {
     s.parse().map_err(ParseError::InvalidSubsortOrder)
 }
 
+fn try_replace<T>(
+    option: &mut Option<T>,
+    ctx: &Context,
+    tag: Tag,
+    value: T,
+) -> Result<(), ParseError> {
+    if option.replace(value).is_some() && !ctx.allow_duplicate_tags() {
+        Err(ParseError::DuplicateTag(tag))
+    } else {
+        Ok(())
+    }
+}
+
 fn try_insert(
     other_fields: &mut OtherFields<StandardTag>,
+    ctx: &Context,
     tag: super::tag::Other<StandardTag>,
     value: String,
 ) -> Result<(), ParseError> {
-    use indexmap::map::Entry;
-
-    match other_fields.entry(tag) {
-        Entry::Vacant(entry) => {
-            entry.insert(value);
-            Ok(())
-        }
-        Entry::Occupied(entry) => {
-            let (t, _) = entry.remove_entry();
-            Err(ParseError::DuplicateTag(Tag::Other(t)))
-        }
+    if other_fields.insert(tag, value).is_some() && !ctx.allow_duplicate_tags() {
+        Err(ParseError::DuplicateTag(Tag::Other(tag)))
+    } else {
+        Ok(())
     }
 }
 
