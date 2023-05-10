@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * gtf/record/attributes: Relax parser by allowing whitespace between entries
+    and no final entry terminator ([#169]).
+
+    The entry terminator (`;`) is now considered a separator rather than a
+    terminator.
+
+  * gtf/record/attributes/entry: The text representation of an entry no
+    longer has a terminator (`;`).
+
+[#169]: https://github.com/zaeleus/noodles/issues/169
+
 ## 0.8.0 - 2023-03-03
 
 ### Changed

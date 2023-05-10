@@ -36,6 +36,8 @@ impl fmt::Display for Attributes {
         for (i, entry) in self.0.iter().enumerate() {
             write!(f, "{entry}")?;
 
+            f.write_char(entry::TERMINATOR)?;
+
             if i < self.0.len() - 1 {
                 f.write_char(DELIMITER)?;
             }
@@ -78,43 +80,20 @@ impl fmt::Display for ParseError {
 impl FromStr for Attributes {
     type Err = ParseError;
 
-    fn from_str(mut s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.is_empty() {
             return Err(ParseError::Empty);
         }
 
-        let mut entries = Vec::new();
+        let s = s.strip_suffix(entry::TERMINATOR).unwrap_or(s);
 
-        while let Some(i) = s.chars().position(|c| c == entry::TERMINATOR) {
-            let (raw_entry, tail) = s.split_at(i + 1);
+        let entries = s
+            .split(entry::TERMINATOR)
+            .map(|t| t.trim().parse().map_err(ParseError::InvalidEntry))
+            .collect::<Result<_, _>>()?;
 
-            let entry = raw_entry.parse().map_err(ParseError::InvalidEntry)?;
-            entries.push(entry);
-
-            s = consume_space(tail)?;
-        }
-
-        if s.is_empty() {
-            Ok(Self(entries))
-        } else {
-            Err(ParseError::Invalid)
-        }
+        Ok(Self(entries))
     }
-}
-
-// _GTF2.2: A Gene Annotation Format_ (2013-02-25): "Attributes must end in a semicolon which must
-// then be separated from the start of any subsequent attribute by exactly one space character (NOT
-// a tab character)."
-fn consume_space(s: &str) -> Result<&str, ParseError> {
-    if s.is_empty() {
-        return Ok(s);
-    } else if let Some(t) = s.strip_prefix(DELIMITER) {
-        if t.strip_prefix(DELIMITER).is_none() {
-            return Ok(t);
-        }
-    }
-
-    Err(ParseError::Invalid)
 }
 
 #[cfg(test)]
@@ -144,6 +123,11 @@ mod tests {
         );
 
         assert_eq!(
+            r#"gene_id "g0""#.parse::<Attributes>(),
+            Ok(Attributes::from(vec![Entry::new("gene_id", "g0")]))
+        );
+
+        assert_eq!(
             r#"gene_id "g0"; transcript_id "t0";"#.parse(),
             Ok(Attributes::from(vec![
                 Entry::new("gene_id", "g0"),
@@ -151,19 +135,23 @@ mod tests {
             ]))
         );
 
-        assert_eq!("".parse::<Attributes>(), Err(ParseError::Empty));
-        assert_eq!(
-            r#"gene_id "g0""#.parse::<Attributes>(),
-            Err(ParseError::Invalid)
-        );
         assert_eq!(
             r#"gene_id "g0";transcript_id "t0";"#.parse::<Attributes>(),
-            Err(ParseError::Invalid)
+            Ok(Attributes::from(vec![
+                Entry::new("gene_id", "g0"),
+                Entry::new("transcript_id", "t0")
+            ]))
         );
+
         assert_eq!(
             r#"gene_id "g0";  transcript_id "t0";"#.parse::<Attributes>(),
-            Err(ParseError::Invalid)
+            Ok(Attributes::from(vec![
+                Entry::new("gene_id", "g0"),
+                Entry::new("transcript_id", "t0")
+            ]))
         );
+
+        assert_eq!("".parse::<Attributes>(), Err(ParseError::Empty));
         assert!(matches!(
             r#";"#.parse::<Attributes>(),
             Err(ParseError::InvalidEntry(_))
