@@ -33,7 +33,7 @@
 
 ### Changed
 
-  * sam/header/record/value/map: Increase the visiblity of the `program`
+  * sam/header/record/value/map: Increase the visibility of the `program`
     module.
 
   * sam/reader/record/sequence: Reading an empty CIGAR field fails with
