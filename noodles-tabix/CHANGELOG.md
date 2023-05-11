@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * reader: Ensure header column indices are > 0.
+
 ## 0.20.0 - 2023-05-04
 
 ### Changed

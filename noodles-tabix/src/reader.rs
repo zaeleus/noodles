@@ -1,6 +1,7 @@
 use std::{
     collections::HashMap,
     io::{self, Read},
+    num::NonZeroUsize,
     str,
 };
 
@@ -108,11 +109,19 @@ where
     })?;
 
     let col_seq = reader.read_i32::<LittleEndian>().and_then(|i| {
-        usize::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        usize::try_from(i)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            .and_then(|n| {
+                NonZeroUsize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })
     })?;
 
     let col_beg = reader.read_i32::<LittleEndian>().and_then(|i| {
-        usize::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        usize::try_from(i)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            .and_then(|n| {
+                NonZeroUsize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })
     })?;
 
     let col_end = reader.read_i32::<LittleEndian>().and_then(|i| {
@@ -137,8 +146,8 @@ where
 
     Ok(Header::builder()
         .set_format(format)
-        .set_reference_sequence_name_index(col_seq)
-        .set_start_position_index(col_beg)
+        .set_reference_sequence_name_index(usize::from(col_seq))
+        .set_start_position_index(usize::from(col_beg))
         .set_end_position_index(col_end)
         .set_line_comment_prefix(meta)
         .set_line_skip_count(skip)
