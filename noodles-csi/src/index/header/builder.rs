@@ -25,9 +25,9 @@ impl Builder {
     pub fn bed() -> Self {
         Self {
             format: Format::Generic(CoordinateSystem::Bed),
-            reference_sequence_name_index: 1,
-            start_position_index: 2,
-            end_position_index: Some(3),
+            reference_sequence_name_index: 0,
+            start_position_index: 1,
+            end_position_index: Some(2),
             line_comment_prefix: b'#',
             line_skip_count: 0,
             reference_sequence_names: ReferenceSequenceNames::new(),
@@ -45,9 +45,9 @@ impl Builder {
     pub fn gff() -> Self {
         Self {
             format: Format::Generic(CoordinateSystem::Gff),
-            reference_sequence_name_index: 1,
-            start_position_index: 4,
-            end_position_index: Some(5),
+            reference_sequence_name_index: 0,
+            start_position_index: 3,
+            end_position_index: Some(4),
             line_comment_prefix: b'#',
             line_skip_count: 0,
             reference_sequence_names: ReferenceSequenceNames::new(),
@@ -65,8 +65,8 @@ impl Builder {
     pub fn sam() -> Self {
         Self {
             format: Format::Sam,
-            reference_sequence_name_index: 3,
-            start_position_index: 4,
+            reference_sequence_name_index: 2,
+            start_position_index: 3,
             end_position_index: None,
             line_comment_prefix: b'@',
             line_skip_count: 0,
@@ -85,8 +85,8 @@ impl Builder {
     pub fn vcf() -> Self {
         Self {
             format: Format::Vcf,
-            reference_sequence_name_index: 1,
-            start_position_index: 2,
+            reference_sequence_name_index: 0,
+            start_position_index: 1,
             end_position_index: None,
             line_comment_prefix: b'#',
             line_skip_count: 0,
@@ -120,10 +120,10 @@ impl Builder {
     /// use noodles_csi as csi;
     ///
     /// let header = csi::index::Header::builder()
-    ///     .set_reference_sequence_name_index(1)
+    ///     .set_reference_sequence_name_index(0)
     ///     .build();
     ///
-    /// assert_eq!(header.reference_sequence_name_index(), 1);
+    /// assert_eq!(header.reference_sequence_name_index(), 0);
     /// ```
     pub fn set_reference_sequence_name_index(
         mut self,
@@ -141,10 +141,10 @@ impl Builder {
     /// use noodles_csi as csi;
     ///
     /// let header = csi::index::Header::builder()
-    ///     .set_start_position_index(4)
+    ///     .set_start_position_index(3)
     ///     .build();
     ///
-    /// assert_eq!(header.start_position_index(), 4);
+    /// assert_eq!(header.start_position_index(), 3);
     /// ```
     pub fn set_start_position_index(mut self, start_position_index: usize) -> Self {
         self.start_position_index = start_position_index;
@@ -159,10 +159,10 @@ impl Builder {
     /// use noodles_csi as csi;
     ///
     /// let header = csi::index::Header::builder()
-    ///     .set_end_position_index(Some(5))
+    ///     .set_end_position_index(Some(4))
     ///     .build();
     ///
-    /// assert_eq!(header.end_position_index(), Some(5));
+    /// assert_eq!(header.end_position_index(), Some(4));
     /// ```
     pub fn set_end_position_index(mut self, end_position_index: Option<usize>) -> Self {
         self.end_position_index = end_position_index;
@@ -263,9 +263,9 @@ mod tests {
     fn test_bed() {
         let builder = Builder::bed();
         assert_eq!(builder.format, Format::Generic(CoordinateSystem::Bed));
-        assert_eq!(builder.reference_sequence_name_index, 1);
-        assert_eq!(builder.start_position_index, 2);
-        assert_eq!(builder.end_position_index, Some(3));
+        assert_eq!(builder.reference_sequence_name_index, 0);
+        assert_eq!(builder.start_position_index, 1);
+        assert_eq!(builder.end_position_index, Some(2));
         assert_eq!(builder.line_comment_prefix, b'#');
         assert_eq!(builder.line_skip_count, 0);
         assert!(builder.reference_sequence_names.is_empty());
@@ -275,9 +275,9 @@ mod tests {
     fn test_gff() {
         let builder = Builder::gff();
         assert_eq!(builder.format, Format::Generic(CoordinateSystem::Gff));
-        assert_eq!(builder.reference_sequence_name_index, 1);
-        assert_eq!(builder.start_position_index, 4);
-        assert_eq!(builder.end_position_index, Some(5));
+        assert_eq!(builder.reference_sequence_name_index, 0);
+        assert_eq!(builder.start_position_index, 3);
+        assert_eq!(builder.end_position_index, Some(4));
         assert_eq!(builder.line_comment_prefix, b'#');
         assert_eq!(builder.line_skip_count, 0);
         assert!(builder.reference_sequence_names.is_empty());
@@ -287,8 +287,8 @@ mod tests {
     fn test_sam() {
         let builder = Builder::sam();
         assert_eq!(builder.format, Format::Sam);
-        assert_eq!(builder.reference_sequence_name_index, 3);
-        assert_eq!(builder.start_position_index, 4);
+        assert_eq!(builder.reference_sequence_name_index, 2);
+        assert_eq!(builder.start_position_index, 3);
         assert_eq!(builder.end_position_index, None);
         assert_eq!(builder.line_comment_prefix, b'@');
         assert_eq!(builder.line_skip_count, 0);
@@ -299,8 +299,8 @@ mod tests {
     fn test_vcf() {
         let builder = Builder::vcf();
         assert_eq!(builder.format, Format::Vcf);
-        assert_eq!(builder.reference_sequence_name_index, 1);
-        assert_eq!(builder.start_position_index, 2);
+        assert_eq!(builder.reference_sequence_name_index, 0);
+        assert_eq!(builder.start_position_index, 1);
         assert_eq!(builder.end_position_index, None);
         assert_eq!(builder.line_comment_prefix, b'#');
         assert_eq!(builder.line_skip_count, 0);

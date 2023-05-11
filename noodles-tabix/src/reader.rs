@@ -1,7 +1,6 @@
 use std::{
     collections::HashMap,
     io::{self, Read},
-    num::NonZeroUsize,
     str,
 };
 
@@ -112,7 +111,14 @@ where
         usize::try_from(i)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             .and_then(|n| {
-                NonZeroUsize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                if i > 0 {
+                    Ok(n - 1)
+                } else {
+                    Err(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        "invalid col_seq",
+                    ))
+                }
             })
     })?;
 
@@ -120,7 +126,14 @@ where
         usize::try_from(i)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             .and_then(|n| {
-                NonZeroUsize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                if i > 0 {
+                    Ok(n - 1)
+                } else {
+                    Err(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        "invalid col_bed",
+                    ))
+                }
             })
     })?;
 
@@ -129,8 +142,18 @@ where
             Ok(None)
         } else {
             usize::try_from(i)
-                .map(Some)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                .and_then(|n| {
+                    if n > 0 {
+                        Ok(n - 1)
+                    } else {
+                        Err(io::Error::new(
+                            io::ErrorKind::InvalidData,
+                            "invalid col_end",
+                        ))
+                    }
+                })
+                .map(Some)
         }
     })?;
 
@@ -146,8 +169,8 @@ where
 
     Ok(Header::builder()
         .set_format(format)
-        .set_reference_sequence_name_index(usize::from(col_seq))
-        .set_start_position_index(usize::from(col_beg))
+        .set_reference_sequence_name_index(col_seq)
+        .set_start_position_index(col_beg)
         .set_end_position_index(col_end)
         .set_line_comment_prefix(meta)
         .set_line_skip_count(skip)

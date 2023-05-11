@@ -131,15 +131,24 @@ where
     let format = i32::from(header.format());
     writer.write_i32::<LittleEndian>(format)?;
 
-    let col_seq = i32::try_from(header.reference_sequence_name_index())
+    let reference_sequence_name_index = header
+        .reference_sequence_name_index()
+        .checked_add(1)
+        .expect("attempt to add with overflow");
+    let col_seq = i32::try_from(reference_sequence_name_index)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_i32::<LittleEndian>(col_seq)?;
 
-    let col_beg = i32::try_from(header.start_position_index())
+    let start_position_index = header
+        .start_position_index()
+        .checked_add(1)
+        .expect("attempt to add with overflow");
+    let col_beg = i32::try_from(start_position_index)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_i32::<LittleEndian>(col_beg)?;
 
-    let col_end = header.end_position_index().map_or(Ok(0), |i| {
+    let col_end = header.end_position_index().map_or(Ok(0), |mut i| {
+        i = i.checked_add(1).expect("attempt to add with overflow");
         i32::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
     })?;
     writer.write_i32::<LittleEndian>(col_end)?;

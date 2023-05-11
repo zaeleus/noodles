@@ -117,11 +117,33 @@ where
     })?;
 
     let col_seq = reader.read_i32_le().await.and_then(|i| {
-        usize::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        usize::try_from(i)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            .and_then(|n| {
+                if i > 0 {
+                    Ok(n - 1)
+                } else {
+                    Err(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        "invalid col_seq",
+                    ))
+                }
+            })
     })?;
 
     let col_beg = reader.read_i32_le().await.and_then(|i| {
-        usize::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        usize::try_from(i)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            .and_then(|n| {
+                if i > 0 {
+                    Ok(n - 1)
+                } else {
+                    Err(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        "invalid col_bed",
+                    ))
+                }
+            })
     })?;
 
     let col_end = reader.read_i32_le().await.and_then(|i| {
@@ -129,8 +151,18 @@ where
             Ok(None)
         } else {
             usize::try_from(i)
-                .map(Some)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                .and_then(|n| {
+                    if n > 0 {
+                        Ok(n - 1)
+                    } else {
+                        Err(io::Error::new(
+                            io::ErrorKind::InvalidData,
+                            "invalid col_end",
+                        ))
+                    }
+                })
+                .map(Some)
         }
     })?;
 

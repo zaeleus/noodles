@@ -54,7 +54,7 @@ impl Header {
 
     /// Returns the reference sequence name field index.
     ///
-    /// This index is 1-based.
+    /// This index is 0-based.
     ///
     /// # Examples
     ///
@@ -62,10 +62,10 @@ impl Header {
     /// use noodles_csi as csi;
     ///
     /// let header = csi::index::Header::builder()
-    ///     .set_reference_sequence_name_index(1)
+    ///     .set_reference_sequence_name_index(0)
     ///     .build();
     ///
-    /// assert_eq!(header.reference_sequence_name_index(), 1);
+    /// assert_eq!(header.reference_sequence_name_index(), 0);
     /// ```
     pub fn reference_sequence_name_index(&self) -> usize {
         self.reference_sequence_name_index
@@ -73,7 +73,7 @@ impl Header {
 
     /// Returns the start position field index.
     ///
-    /// This index is 1-based.
+    /// This index is 0-based.
     ///
     /// # Examples
     ///
@@ -81,10 +81,10 @@ impl Header {
     /// use noodles_csi as csi;
     ///
     /// let header = csi::index::Header::builder()
-    ///     .set_start_position_index(4)
+    ///     .set_start_position_index(3)
     ///     .build();
     ///
-    /// assert_eq!(header.start_position_index(), 4);
+    /// assert_eq!(header.start_position_index(), 3);
     /// ```
     pub fn start_position_index(&self) -> usize {
         self.start_position_index
@@ -92,7 +92,7 @@ impl Header {
 
     /// Returns the end position field index.
     ///
-    /// This index is 1-based. It is not set if the format does not have a column for the end
+    /// This index is 0-based. It is not set if the format does not have a column for the end
     /// position.
     ///
     /// # Examples

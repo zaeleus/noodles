@@ -50,14 +50,14 @@ fn intersects(
 
     let fields: Vec<_> = line.split(DELIMITER).collect();
 
-    let reference_sequence_name = fields[header.reference_sequence_name_index() - 1];
+    let reference_sequence_name = fields[header.reference_sequence_name_index()];
 
-    let raw_start = fields[header.start_position_index() - 1];
+    let raw_start = fields[header.start_position_index()];
     let coordinate_system = header.format().coordinate_system();
     let start = parse_start_position(raw_start, coordinate_system)?;
 
     let end = if let Some(i) = header.end_position_index() {
-        fields[i - 1].parse()?
+        fields[i].parse()?
     } else {
         start.checked_add(1).expect("attempt to add with overflow")
     };
