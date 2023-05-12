@@ -4,9 +4,18 @@
 
 ### Added
 
-  * csi/io: Add a filtered lines iterator (`FilteredLines`).
+  * csi/io: Add a filtered indexed records iterator (`FilterByRegion`).
 
-    This filters raw records that intersect a given region.
+    This filters indexed records that intersect a given region.
+
+  * csi/io: Add an indexed records iterator (`IndexedRecords`).
+
+    This parses lines from a reader as an indexed record.
+
+  * csi/io: Add `IndexedRecord` trait to represent the components used to
+    index a record.
+
+    I.e., a reference sequence name, start position, and end position.
 
   * csi/io/query: Add `Query::indexed_records` to create an
     iterator of indexed records.
