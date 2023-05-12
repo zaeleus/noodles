@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * tabix/io/indexed_reader: Add builder (`indexed_reader::Builder`).
+
 ### Changed
 
   * tabix/async/reader: Ensure header column indices are > 0.

@@ -4,9 +4,8 @@
 //!
 //! The result matches the output of `tabix <src> <region>`.
 
-use std::{env, fs::File};
+use std::env;
 
-use noodles_csi as csi;
 use noodles_tabix as tabix;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -14,10 +13,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = args.next().expect("missing src");
     let region = args.next().expect("missing region").parse()?;
 
-    let tabix_src = format!("{src}.tbi");
-    let index = tabix::read(tabix_src)?;
-    let mut reader = File::open(src).map(|f| csi::io::IndexedReader::new(f, index))?;
-
+    let mut reader = tabix::io::indexed_reader::Builder::default().build_from_path(src)?;
     let query = reader.query(&region)?;
 
     for result in query {
