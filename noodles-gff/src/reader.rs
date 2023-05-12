@@ -5,7 +5,13 @@ mod records;
 
 pub use self::{lines::Lines, records::Records};
 
-use std::io::{self, BufRead};
+use std::io::{self, BufRead, Read, Seek};
+
+use noodles_bgzf as bgzf;
+use noodles_core::Region;
+use noodles_csi as csi;
+
+use super::Record;
 
 const LINE_FEED: char = '\n';
 const CARRIAGE_RETURN: char = '\r';
@@ -156,6 +162,48 @@ where
     /// ```
     pub fn records(&mut self) -> Records<'_, R> {
         Records::new(self.lines())
+    }
+}
+
+impl<R> Reader<bgzf::Reader<R>>
+where
+    R: Read + Seek,
+{
+    /// Returns an iterator over records that intersects the given region.
+    pub fn query<'r>(
+        &'r mut self,
+        index: &csi::Index,
+        region: &'r Region,
+    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'r> {
+        let header = index
+            .header()
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing index header"))?;
+
+        let reference_sequence_id = header
+            .reference_sequence_names()
+            .get_index_of(region.name())
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "missing reference sequence name",
+                )
+            })?;
+
+        let chunks = index.query(reference_sequence_id, region.interval())?;
+
+        let query = csi::io::Query::new(&mut self.inner, chunks);
+        let indexed_records = csi::io::IndexedRecords::new(query, header);
+        let filter_by_region = csi::io::FilterByRegion::new(indexed_records, region);
+
+        let records = filter_by_region.map(|result| {
+            result.and_then(|r| {
+                r.as_ref()
+                    .parse()
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })
+        });
+
+        Ok(records)
     }
 }
 
