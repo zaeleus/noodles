@@ -191,8 +191,7 @@ where
 
         let chunks = index.query(reference_sequence_id, region.interval())?;
 
-        let query = csi::io::Query::new(&mut self.inner, chunks);
-        let indexed_records = csi::io::IndexedRecords::new(query, header);
+        let indexed_records = csi::io::Query::new(&mut self.inner, chunks).indexed_records(header);
         let filter_by_region = csi::io::FilterByRegion::new(indexed_records, region);
 
         let records = filter_by_region.map(|result| {

@@ -5,7 +5,8 @@ use std::{
 
 use noodles_bgzf as bgzf;
 
-use crate::index::reference_sequence::bin::Chunk;
+use super::IndexedRecords;
+use crate::index::{reference_sequence::bin::Chunk, Header};
 
 enum State {
     Seek,
@@ -33,6 +34,11 @@ where
             chunks: chunks.into_iter(),
             state: State::Seek,
         }
+    }
+
+    /// Creates an iterator that parses indexed records.
+    pub fn indexed_records(self, header: &Header) -> IndexedRecords<Self> {
+        IndexedRecords::new(self, header)
     }
 }
 

@@ -8,6 +8,9 @@
 
     This filters raw records that intersect a given region.
 
+  * csi/io/query: Add `Query::indexed_records` to create an
+    iterator of indexed records.
+
 ### Changed
 
   * csi/index/header: Change column indices to be 0-based.

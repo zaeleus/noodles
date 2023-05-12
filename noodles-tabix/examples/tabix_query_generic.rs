@@ -38,8 +38,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let reference_sequence_id = resolve_region(header, &region)?;
     let chunks = index.query(reference_sequence_id, region.interval())?;
-    let query = csi::io::Query::new(&mut reader, chunks);
-    let indexed_records = csi::io::IndexedRecords::new(query, header);
+    let indexed_records = csi::io::Query::new(&mut reader, chunks).indexed_records(header);
     let filter_by_region = csi::io::FilterByRegion::new(indexed_records, &region);
 
     for result in filter_by_region {
