@@ -2,10 +2,10 @@ mod position;
 
 use std::{error, fmt, ops::Range};
 
-use noodles_core::{region::Interval, Position};
+use noodles_core::Position;
 
 use self::position::parse_start_position;
-use crate::index::header::format::coordinate_system::CoordinateSystem;
+use crate::{index::header::format::coordinate_system::CoordinateSystem, io::IndexedRecord};
 
 pub struct Record {
     buf: String,
@@ -14,21 +14,17 @@ pub struct Record {
     end_position: Position,
 }
 
-impl Record {
-    pub fn reference_sequence_name(&self) -> &str {
+impl IndexedRecord for Record {
+    fn indexed_reference_sequence_name(&self) -> &str {
         &self.buf[self.reference_sequence_name_bounds.clone()]
     }
 
-    pub fn start_position(&self) -> Position {
+    fn indexed_start_position(&self) -> Position {
         self.start_position
     }
 
-    pub fn end_position(&self) -> Position {
+    fn indexed_end_position(&self) -> Position {
         self.end_position
-    }
-
-    pub fn interval(&self) -> Interval {
-        (self.start_position..=self.end_position).into()
     }
 }
 
