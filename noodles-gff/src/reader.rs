@@ -191,16 +191,16 @@ where
 
         let chunks = index.query(reference_sequence_id, region.interval())?;
 
-        let indexed_records = csi::io::Query::new(&mut self.inner, chunks).indexed_records(header);
-        let filter_by_region = csi::io::FilterByRegion::new(indexed_records, region);
-
-        let records = filter_by_region.map(|result| {
-            result.and_then(|r| {
-                r.as_ref()
-                    .parse()
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            })
-        });
+        let records = csi::io::Query::new(&mut self.inner, chunks)
+            .indexed_records(header)
+            .filter_by_region(region)
+            .map(|result| {
+                result.and_then(|r| {
+                    r.as_ref()
+                        .parse()
+                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                })
+            });
 
         Ok(records)
     }

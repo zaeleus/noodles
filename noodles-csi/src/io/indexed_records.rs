@@ -1,11 +1,15 @@
 mod record;
 
+use noodles_core::Region;
+
 pub use self::record::Record;
 
 use std::io::{self, BufRead, Lines};
 
 use self::record::parse_record;
 use crate::index::{header::format::CoordinateSystem, Header};
+
+use super::FilterByRegion;
 
 /// An iterator over indexed records.
 pub struct IndexedRecords<R> {
@@ -31,6 +35,11 @@ where
             end_position_index: header.end_position_index(),
             coordinate_system: header.format().coordinate_system(),
         }
+    }
+
+    /// Creates an iterator that filters indexed records that intersect the given region.
+    pub fn filter_by_region(self, region: &Region) -> FilterByRegion<Self, Record> {
+        FilterByRegion::new(self, region)
     }
 }
 
