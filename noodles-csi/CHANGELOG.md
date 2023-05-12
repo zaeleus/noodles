@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added
+
+  * csi/io: Add a filtered lines iterator (`FilteredLines`).
+
+    This filters raw records that intersect a given region.
+
 ### Changed
 
   * csi/index/header: Change column indices to be 0-based.

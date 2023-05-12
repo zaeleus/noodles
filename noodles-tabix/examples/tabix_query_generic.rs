@@ -4,15 +4,11 @@
 //!
 //! The result matches the output of `tabix <src> <region>`.
 
-use std::{
-    env,
-    fs::File,
-    io::{self, BufRead},
-};
+use std::{env, fs::File, io};
 
 use noodles_bgzf as bgzf;
-use noodles_core::{region::Interval, Position, Region};
-use noodles_csi::{self as csi, index::header::format::CoordinateSystem};
+use noodles_core::Region;
+use noodles_csi as csi;
 use noodles_tabix as tabix;
 
 fn resolve_region(header: &csi::index::Header, region: &Region) -> io::Result<usize> {
@@ -25,46 +21,6 @@ fn resolve_region(header: &csi::index::Header, region: &Region) -> io::Result<us
                 "missing reference sequence name",
             )
         })
-}
-
-fn parse_start_position(s: &str, coordinate_system: CoordinateSystem) -> io::Result<Position> {
-    fn invalid_position<E>(_: E) -> io::Error {
-        io::Error::new(io::ErrorKind::InvalidData, "invalid position")
-    }
-
-    match coordinate_system {
-        CoordinateSystem::Gff => s.parse().map_err(invalid_position),
-        CoordinateSystem::Bed => s
-            .parse::<usize>()
-            .map_err(invalid_position)
-            .and_then(|n| Position::try_from(n + 1).map_err(invalid_position)),
-    }
-}
-
-fn intersects(
-    header: &csi::index::Header,
-    line: &str,
-    region: &Region,
-) -> Result<bool, Box<dyn std::error::Error>> {
-    const DELIMITER: char = '\t';
-
-    let fields: Vec<_> = line.split(DELIMITER).collect();
-
-    let reference_sequence_name = fields[header.reference_sequence_name_index()];
-
-    let raw_start = fields[header.start_position_index()];
-    let coordinate_system = header.format().coordinate_system();
-    let start = parse_start_position(raw_start, coordinate_system)?;
-
-    let end = if let Some(i) = header.end_position_index() {
-        fields[i].parse()?
-    } else {
-        start.checked_add(1).expect("attempt to add with overflow")
-    };
-
-    let interval = Interval::from(start..=end);
-
-    Ok(reference_sequence_name == region.name() && interval.intersects(region.interval()))
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -83,13 +39,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let reference_sequence_id = resolve_region(header, &region)?;
     let chunks = index.query(reference_sequence_id, region.interval())?;
     let query = csi::io::Query::new(&mut reader, chunks);
+    let records = csi::io::FilteredLines::new(query, header, region);
 
-    for result in query.lines() {
+    for result in records {
         let line = result?;
-
-        if intersects(header, &line, &region)? {
-            println!("{line}");
-        }
+        println!("{line}");
     }
 
     Ok(())
