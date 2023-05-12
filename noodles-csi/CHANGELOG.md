@@ -17,6 +17,8 @@
 
     I.e., a reference sequence name, start position, and end position.
 
+  * csi/io: Add an indexed reader (`IndexedReader`).
+
   * csi/io/query: Add `Query::indexed_records` to create an
     iterator of indexed records.
 
