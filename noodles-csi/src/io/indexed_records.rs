@@ -64,3 +64,32 @@ where
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_next() -> Result<(), Box<dyn std::error::Error>> {
+        let data = b"sq0\t8\t13
+# noodles
+sq0\t21\t34
+";
+
+        let reader = &data[..];
+
+        let header = Header::builder()
+            .set_start_position_index(1)
+            .set_end_position_index(Some(2))
+            .set_reference_sequence_names([String::from("sq0")].into_iter().collect())
+            .build();
+
+        let records: Vec<_> = IndexedRecords::new(reader, &header).collect::<Result<_, _>>()?;
+        let lines: Vec<_> = records.iter().map(|r| r.as_ref()).collect();
+
+        let expected = ["sq0\t8\t13", "sq0\t21\t34"];
+        assert_eq!(lines, expected);
+
+        Ok(())
+    }
+}
