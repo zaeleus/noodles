@@ -108,7 +108,7 @@ pub const RESERVED_MF: Tag = Tag::Standard(Standard::ReservedMf);
 
 /// Molecular identifier (`MI`).
 ///
-/// A string that uniquely identifies the molecule from which the record was dervied.
+/// A string that uniquely identifies the molecule from which the record was derived.
 pub const UMI_ID: Tag = Tag::Standard(Standard::UmiId);
 
 /// Base modification probabilities (`ML`).
@@ -133,7 +133,7 @@ pub const ORIGINAL_ALIGNMENT: Tag = Tag::Standard(Standard::OriginalAlignment);
 /// Original CIGAR (deprecated; use `OA` instead) (`OC`).
 pub const ORIGINAL_CIGAR: Tag = Tag::Standard(Standard::OriginalCigar);
 
-/// Original mapping position (deprected; use `OA` instead) (`OP`).
+/// Original mapping position (deprecated; use `OA` instead) (`OP`).
 pub const ORIGINAL_POSITION: Tag = Tag::Standard(Standard::OriginalPosition);
 
 /// Original base quality (`OQ`).
