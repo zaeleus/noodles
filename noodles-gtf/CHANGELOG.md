@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * gff/reader: Add query iterator (`Reader::query`).
+
 ## 0.9.0 - 2023-05-11
 
 ### Changed

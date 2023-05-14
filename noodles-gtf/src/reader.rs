@@ -1,7 +1,11 @@
 use std::{
-    io::{self, BufRead},
+    io::{self, BufRead, Read, Seek},
     iter,
 };
+
+use noodles_bgzf as bgzf;
+use noodles_core::Region;
+use noodles_csi as csi;
 
 use super::{Line, Record};
 
@@ -125,6 +129,47 @@ where
                 Err(e) => return Some(Err(e)),
             }
         })
+    }
+}
+
+impl<R> Reader<bgzf::Reader<R>>
+where
+    R: Read + Seek,
+{
+    /// Returns an iterator over records that intersects the given region.
+    pub fn query<'r>(
+        &'r mut self,
+        index: &csi::Index,
+        region: &'r Region,
+    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'r> {
+        let header = index
+            .header()
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing index header"))?;
+
+        let reference_sequence_id = header
+            .reference_sequence_names()
+            .get_index_of(region.name())
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "missing reference sequence name",
+                )
+            })?;
+
+        let chunks = index.query(reference_sequence_id, region.interval())?;
+
+        let records = csi::io::Query::new(&mut self.inner, chunks)
+            .indexed_records(header)
+            .filter_by_region(region)
+            .map(|result| {
+                result.and_then(|r| {
+                    r.as_ref()
+                        .parse()
+                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                })
+            });
+
+        Ok(records)
     }
 }
 
