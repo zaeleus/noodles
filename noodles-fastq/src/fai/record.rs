@@ -26,18 +26,21 @@ impl Record {
     ///
     /// ```
     /// use noodles_fastq::fai;
-    /// let record = fai::Record::new(String::from("sq0"), 8, 4, 8, 9, 15);
+    /// let record = fai::Record::new("sq0", 8, 4, 8, 9, 15);
     /// ```
-    pub fn new(
-        name: String,
+    pub fn new<N>(
+        name: N,
         len: u64,
         sequence_offset: u64,
         line_bases: u64,
         line_width: u64,
         quality_scores_offset: u64,
-    ) -> Self {
+    ) -> Self
+    where
+        N: Into<String>,
+    {
         Self {
-            name,
+            name: name.into(),
             len,
             sequence_offset,
             line_bases,
@@ -52,7 +55,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_fastq::fai;
-    /// let record = fai::Record::new(String::from("sq0"), 8, 4, 8, 9, 15);
+    /// let record = fai::Record::new("sq0", 8, 4, 8, 9, 15);
     /// assert_eq!(record.name(), "sq0");
     /// ```
     pub fn name(&self) -> &str {
@@ -65,7 +68,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_fastq::fai;
-    /// let record = fai::Record::new(String::from("sq0"), 8, 4, 8, 9, 15);
+    /// let record = fai::Record::new("sq0", 8, 4, 8, 9, 15);
     /// assert_eq!(record.len(), 8);
     /// ```
     pub fn len(&self) -> u64 {
@@ -78,7 +81,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_fastq::fai;
-    /// let record = fai::Record::new(String::from("sq0"), 8, 4, 8, 9, 15);
+    /// let record = fai::Record::new("sq0", 8, 4, 8, 9, 15);
     /// assert_eq!(record.sequence_offset(), 4);
     /// ```
     pub fn sequence_offset(&self) -> u64 {
@@ -91,7 +94,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_fastq::fai;
-    /// let record = fai::Record::new(String::from("sq0"), 8, 4, 8, 9, 15);
+    /// let record = fai::Record::new("sq0", 8, 4, 8, 9, 15);
     /// assert_eq!(record.line_bases(), 8);
     /// ```
     pub fn line_bases(&self) -> u64 {
@@ -104,7 +107,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_fastq::fai;
-    /// let record = fai::Record::new(String::from("sq0"), 8, 4, 8, 9, 15);
+    /// let record = fai::Record::new("sq0", 8, 4, 8, 9, 15);
     /// assert_eq!(record.line_width(), 9);
     /// ```
     pub fn line_width(&self) -> u64 {
@@ -117,7 +120,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_fastq::fai;
-    /// let record = fai::Record::new(String::from("sq0"), 8, 4, 8, 9, 15);
+    /// let record = fai::Record::new("sq0", 8, 4, 8, 9, 15);
     /// assert_eq!(record.quality_scores_offset(), 15);
     /// ```
     pub fn quality_scores_offset(&self) -> u64 {
@@ -211,7 +214,7 @@ mod tests {
     fn test_from_str() {
         assert_eq!(
             "r0\t4\t4\t4\t5\t11".parse(),
-            Ok(Record::new(String::from("r0"), 4, 4, 4, 5, 11))
+            Ok(Record::new("r0", 4, 4, 4, 5, 11))
         );
 
         assert_eq!("".parse::<Record>(), Err(ParseError::Empty));

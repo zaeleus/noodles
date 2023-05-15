@@ -46,7 +46,7 @@ where
     /// let mut indexer = fastq::Indexer::new(&data[..]);
     ///
     /// let actual = indexer.index_record()?;
-    /// let expected = fai::Record::new(String::from("r0"), 4, 4, 4, 5, 11);
+    /// let expected = fai::Record::new("r0", 4, 4, 4, 5, 11);
     /// assert_eq!(actual, Some(expected));
     /// # Ok::<(), io::Error>(())
     /// ```
@@ -62,7 +62,7 @@ where
         };
 
         let name = str::from_utf8(self.record.name())
-            .map(|s| s.into())
+            .map(String::from)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         // sequence
@@ -132,16 +132,10 @@ NDLSNDLSND
         let mut indexer = Indexer::new(&data[..]);
 
         let record = indexer.index_record()?;
-        assert_eq!(
-            record,
-            Some(Record::new(String::from("r0"), 4, 4, 4, 5, 11))
-        );
+        assert_eq!(record, Some(Record::new("r0", 4, 4, 4, 5, 11)));
 
         let record = indexer.index_record()?;
-        assert_eq!(
-            record,
-            Some(Record::new(String::from("r1"), 10, 25, 10, 11, 38))
-        );
+        assert_eq!(record, Some(Record::new("r1", 10, 25, 10, 11, 38)));
 
         assert!(indexer.index_record()?.is_none());
 

@@ -4,6 +4,8 @@
 
 ### Changed
 
+  * fastq/fai/record: Accept `Into<String>` for the record name.
+
   * fastq/record: Add `Definition` wrapper ([#165]).
 
     Like `fasta::record::Definition`, `fastq::record::Definition` wraps the

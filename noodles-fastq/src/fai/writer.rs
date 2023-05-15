@@ -46,7 +46,7 @@ where
     ///
     /// let mut writer = fai::Writer::new(Vec::new());
     ///
-    /// let record = fai::Record::new(String::from("r0"), 4, 4, 4, 5, 11);
+    /// let record = fai::Record::new("r0", 4, 4, 4, 5, 11);
     /// writer.write_record(&record)?;
     ///
     /// assert_eq!(writer.get_ref(), b"r0\t4\t4\t4\t5\t11\n");
