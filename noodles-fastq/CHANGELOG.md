@@ -18,7 +18,8 @@
 
 ### Fixed
 
-  * fastq/reader/record/definition: Fix panic on trailing newline removal.
+  * fastq/reader/record/definition: Fix panic on trailing newline removal
+    ([#166]).
 
     This previously checked the wrong buffer when removing the trailing
     newline.
