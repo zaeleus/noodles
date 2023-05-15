@@ -4,7 +4,9 @@
 
 ### Added
 
-  * gff/reader: Add query iterator (`Reader::query`).
+  * gff/reader: Add query iterator (`Reader::query`) ([#158]).
+
+[#158]: https://github.com/zaeleus/noodles/issues/158
 
 ## 0.11.0 - 2023-03-03
 
