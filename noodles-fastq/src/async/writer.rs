@@ -56,11 +56,11 @@ where
     /// ```
     /// # #[tokio::main]
     /// # async fn main() -> std::io::Result<()> {
-    /// use noodles_fastq as fastq;
+    /// use noodles_fastq::{self as fastq, record::Definition};
     ///
     /// let mut writer = fastq::AsyncWriter::new(Vec::new());
     ///
-    /// let record = fastq::Record::new("r0", "ATCG", "NDLS");
+    /// let record = fastq::Record::new(Definition::new("r0", ""), "ATCG", "NDLS");
     /// writer.write_record(&record).await?;
     ///
     /// assert_eq!(writer.get_ref(), b"@r0\nATCG\n+\nNDLS\n");
@@ -100,12 +100,13 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::record::Definition;
 
     #[tokio::test]
     async fn test_write_record() -> io::Result<()> {
         let mut buf = Vec::new();
 
-        let mut record = Record::new("r0", "ACGT", "NDLS");
+        let mut record = Record::new(Definition::new("r0", ""), "ACGT", "NDLS");
         write_record(&mut buf, &record).await?;
         let expected = b"@r0\nACGT\n+\nNDLS\n";
         assert_eq!(buf, expected);

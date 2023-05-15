@@ -1,9 +1,9 @@
 use std::io::{self, BufRead};
 
 use super::{read_line, read_u8, CARRIAGE_RETURN, LINE_FEED};
-use crate::Record;
+use crate::record::Definition;
 
-pub(crate) fn read_definition<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
+pub(crate) fn read_definition<R>(reader: &mut R, definition: &mut Definition) -> io::Result<usize>
 where
     R: BufRead,
 {
@@ -55,12 +55,12 @@ where
                     _ => unreachable!(),
                 };
 
-                record.name_mut().extend(name_src);
+                definition.name_mut().extend(name_src);
 
                 (true, i + 1)
             }
             None => {
-                record.name_mut().extend(src);
+                definition.name_mut().extend(src);
                 (false, src.len())
             }
         };
@@ -74,7 +74,7 @@ where
     }
 
     if !is_eol {
-        len += read_line(reader, record.description_mut())?;
+        len += read_line(reader, definition.description_mut())?;
     }
 
     Ok(len)
@@ -86,35 +86,35 @@ mod tests {
 
     #[test]
     fn test_read_definition() -> io::Result<()> {
-        let mut record = Record::default();
+        let mut definition = Definition::default();
 
         let data = b"@r0\n";
         let mut reader = &data[..];
-        record.clear();
-        read_definition(&mut reader, &mut record)?;
-        assert_eq!(record.name(), b"r0");
-        assert!(record.description().is_empty());
+        definition.clear();
+        read_definition(&mut reader, &mut definition)?;
+        assert_eq!(definition.name(), b"r0");
+        assert!(definition.description().is_empty());
 
         let data = b"@r0 LN:4\n";
         let mut reader = &data[..];
-        record.clear();
-        read_definition(&mut reader, &mut record)?;
-        assert_eq!(record.name(), b"r0");
-        assert_eq!(record.description(), b"LN:4");
+        definition.clear();
+        read_definition(&mut reader, &mut definition)?;
+        assert_eq!(definition.name(), b"r0");
+        assert_eq!(definition.description(), b"LN:4");
 
         // https://github.com/zaeleus/noodles/issues/166
         let data = b"@\nA\r";
         let mut reader = &data[..];
-        record.clear();
-        read_definition(&mut reader, &mut record)?;
-        assert!(record.name().is_empty());
-        assert!(record.description().is_empty());
+        definition.clear();
+        read_definition(&mut reader, &mut definition)?;
+        assert!(definition.name().is_empty());
+        assert!(definition.description().is_empty());
 
         let data = b"r0\n";
         let mut reader = &data[..];
-        record.clear();
+        definition.clear();
         assert!(matches!(
-            read_definition(&mut reader, &mut record),
+            read_definition(&mut reader, &mut definition),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidData
         ));
 

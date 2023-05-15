@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * fastq/record: Add `Definition` wrapper ([#165]).
+
+    Like `fasta::record::Definition`, `fastq::record::Definition` wraps the
+    record name and optional description. Change usages of
+    `fastq::Record::new(name, sequence, quality_scores)` to
+    `fastq::Record::new(Definition::new(name, description), sequence,
+    quality_scores)`.
+
+[#165]: https://github.com/zaeleus/noodles/issues/165
+
 ## 0.7.1 - 2023-05-11
 
 ### Fixed

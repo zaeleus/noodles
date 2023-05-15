@@ -113,7 +113,7 @@ where
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_fastq as fastq;
+    /// use noodles_fastq::{self as fastq, record::Definition};
     ///
     /// let data = b"@r0\nATCG\n+\nNDLS\n";
     /// let mut reader = fastq::Reader::new(&data[..]);
@@ -122,7 +122,7 @@ where
     ///
     /// assert_eq!(
     ///     records.next().transpose()?,
-    ///     Some(fastq::Record::new("r0", "ATCG", "NDLS")
+    ///     Some(fastq::Record::new(Definition::new("r0", ""), "ATCG", "NDLS")
     /// ));
     ///
     /// assert!(records.next().is_none());
@@ -136,6 +136,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::record::Definition;
 
     #[test]
     fn test_read_record() -> io::Result<()> {
@@ -154,11 +155,11 @@ dcba
         let mut record = Record::default();
 
         read_record(&mut reader, &mut record)?;
-        let expected = Record::new("noodles:1/1", "AGCT", "abcd");
+        let expected = Record::new(Definition::new("noodles:1/1", ""), "AGCT", "abcd");
         assert_eq!(record, expected);
 
         read_record(&mut reader, &mut record)?;
-        let expected = Record::new("noodles:2/1", "TCGA", "dcba");
+        let expected = Record::new(Definition::new("noodles:2/1", ""), "TCGA", "dcba");
         assert_eq!(record, expected);
 
         let n = read_record(&mut reader, &mut record)?;

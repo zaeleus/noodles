@@ -4,13 +4,13 @@
 
 use std::io;
 
-use noodles_fastq as fastq;
+use noodles_fastq::{self as fastq, record::Definition};
 
 fn main() -> io::Result<()> {
     let stdout = io::stdout().lock();
     let mut writer = fastq::Writer::new(stdout);
 
-    let record = fastq::Record::new("r0", "ACGT", "NDLS");
+    let record = fastq::Record::new(Definition::new("r0", ""), "ACGT", "NDLS");
     writer.write_record(&record)?;
 
     Ok(())

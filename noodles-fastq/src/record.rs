@@ -1,10 +1,15 @@
+//! FASTQ record.
+
+mod definition;
+
+pub use self::definition::Definition;
+
 use std::fmt;
 
 /// A FASTQ record.
 #[derive(Clone, Default, Debug, Eq, PartialEq)]
 pub struct Record {
-    name: Vec<u8>,
-    description: Vec<u8>,
+    definition: Definition,
     sequence: Vec<u8>,
     quality_scores: Vec<u8>,
 }
@@ -15,21 +20,29 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_fastq::Record;
-    /// let record = Record::new("r0", "AGCT", "NDLS");
+    /// use noodles_fastq::{self as fastq, record::Definition};
+    /// let record = fastq::Record::new(Definition::new("r0", ""), "AGCT", "NDLS");
     /// ```
-    pub fn new<S, T, U>(name: S, sequence: T, quality_scores: U) -> Self
+    pub fn new<S, Q>(definition: Definition, sequence: S, quality_scores: Q) -> Self
     where
         S: Into<Vec<u8>>,
-        T: Into<Vec<u8>>,
-        U: Into<Vec<u8>>,
+        Q: Into<Vec<u8>>,
     {
         Self {
-            name: name.into(),
-            description: Vec::new(),
+            definition,
             sequence: sequence.into(),
             quality_scores: quality_scores.into(),
         }
+    }
+
+    /// Returns the record definition.
+    pub fn definition(&self) -> &Definition {
+        &self.definition
+    }
+
+    /// Returns a mutable reference to the record definition.
+    pub fn definition_mut(&mut self) -> &mut Definition {
+        &mut self.definition
     }
 
     /// Returns the name of the record.
@@ -37,12 +50,12 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_fastq::Record;
-    /// let record = Record::new("r0", "AGCT", "NDLS");
+    /// use noodles_fastq::{self as fastq, record::Definition};
+    /// let record = fastq::Record::new(Definition::new("r0", ""), "AGCT", "NDLS");
     /// assert_eq!(record.name(), b"r0");
     /// ```
     pub fn name(&self) -> &[u8] {
-        &self.name
+        self.definition.name()
     }
 
     /// Returns a mutable reference to the name.
@@ -50,13 +63,13 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_fastq::Record;
-    /// let mut record = Record::new("r0", "AGCT", "NDLS");
+    /// use noodles_fastq::{self as fastq, record::Definition};
+    /// let mut record = fastq::Record::new(Definition::new("r0", ""), "AGCT", "NDLS");
     /// *record.name_mut() = b"r1".to_vec();
     /// assert_eq!(record.name(), b"r1");
     /// ```
     pub fn name_mut(&mut self) -> &mut Vec<u8> {
-        &mut self.name
+        self.definition.name_mut()
     }
 
     /// Returns the description of the record.
@@ -64,12 +77,12 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_fastq::Record;
-    /// let record = Record::new("r0", "AGCT", "NDLS");
+    /// use noodles_fastq::{self as fastq, record::Definition};
+    /// let record = fastq::Record::new(Definition::new("r0", ""), "AGCT", "NDLS");
     /// assert!(record.description().is_empty());
     /// ```
     pub fn description(&self) -> &[u8] {
-        &self.description
+        self.definition.description()
     }
 
     /// Returns a mutable reference to the description.
@@ -77,13 +90,13 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_fastq::Record;
-    /// let mut record = Record::new("r0", "AGCT", "NDLS");
+    /// use noodles_fastq::{self as fastq, record::Definition};
+    /// let mut record = fastq::Record::new(Definition::new("r0", ""), "AGCT", "NDLS");
     /// *record.description_mut() = b"LN=4".to_vec();
     /// assert_eq!(record.description(), b"LN=4");
     /// ```
     pub fn description_mut(&mut self) -> &mut Vec<u8> {
-        &mut self.description
+        self.definition.description_mut()
     }
 
     /// Returns the sequence of the record.
@@ -91,8 +104,8 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_fastq::Record;
-    /// let record = Record::new("r0", "AGCT", "NDLS");
+    /// use noodles_fastq::{self as fastq, record::Definition};
+    /// let record = fastq::Record::new(Definition::new("r0", ""), "AGCT", "NDLS");
     /// assert_eq!(record.sequence(), b"AGCT");
     /// ```
     pub fn sequence(&self) -> &[u8] {
@@ -104,8 +117,8 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_fastq::Record;
-    /// let mut record = Record::new("r0", "AGCT", "NDLS");
+    /// use noodles_fastq::{self as fastq, record::Definition};
+    /// let mut record = fastq::Record::new(Definition::new("r0", ""), "AGCT", "NDLS");
     /// record.sequence_mut()[0] = b'C';
     /// assert_eq!(record.sequence(), b"CGCT");
     /// ```
@@ -118,8 +131,8 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_fastq::Record;
-    /// let record = Record::new("r0", "AGCT", "NDLS");
+    /// use noodles_fastq::{self as fastq, record::Definition};
+    /// let record = fastq::Record::new(Definition::new("r0", ""), "AGCT", "NDLS");
     /// assert_eq!(record.quality_scores(), b"NDLS");
     /// ```
     pub fn quality_scores(&self) -> &[u8] {
@@ -131,8 +144,8 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_fastq::Record;
-    /// let mut record = Record::new("r0", "AGCT", "NDLS");
+    /// use noodles_fastq::{self as fastq, record::Definition};
+    /// let mut record = fastq::Record::new(Definition::new("r0", ""), "AGCT", "NDLS");
     /// *record.quality_scores_mut() = b"!!!!".to_vec();
     /// assert_eq!(record.quality_scores(), b"!!!!");
     /// ```
@@ -142,9 +155,8 @@ impl Record {
 
     // Truncates all field buffers to 0.
     pub(crate) fn clear(&mut self) {
-        self.name.clear();
+        self.definition.clear();
         self.sequence.clear();
-        self.description.clear();
         self.quality_scores.clear();
     }
 }
@@ -191,7 +203,7 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let mut record = Record::new("r0", "ATCG", "NDLS");
+        let mut record = Record::new(Definition::new("r0", ""), "ATCG", "NDLS");
         assert_eq!(record.to_string(), "@r0\nATCG\n+\nNDLS\n");
 
         record.description_mut().extend_from_slice(b"LN:4");
@@ -200,7 +212,7 @@ mod tests {
 
     #[test]
     fn test_clear() {
-        let mut record = Record::new("r0", "AGCT", "NDLS");
+        let mut record = Record::new(Definition::new("r0", ""), "AGCT", "NDLS");
         record.clear();
 
         assert!(record.name().is_empty());

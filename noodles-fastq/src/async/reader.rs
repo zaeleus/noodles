@@ -173,6 +173,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::record::Definition;
 
     #[tokio::test]
     async fn test_read_record() -> io::Result<()> {
@@ -191,11 +192,11 @@ dcba
         let mut record = Record::default();
 
         read_record(&mut reader, &mut record).await?;
-        let expected = Record::new("noodles:1/1", "AGCT", "abcd");
+        let expected = Record::new(Definition::new("noodles:1/1", ""), "AGCT", "abcd");
         assert_eq!(record, expected);
 
         read_record(&mut reader, &mut record).await?;
-        let expected = Record::new("noodles:2/1", "TCGA", "dcba");
+        let expected = Record::new(Definition::new("noodles:2/1", ""), "TCGA", "dcba");
         assert_eq!(record, expected);
 
         let n = read_record(&mut reader, &mut record).await?;

@@ -55,7 +55,7 @@ where
 
         // read name
         self.record.clear();
-        self.offset += match read_definition(&mut self.inner, &mut self.record) {
+        self.offset += match read_definition(&mut self.inner, self.record.definition_mut()) {
             Ok(0) => return Ok(None),
             Ok(n) => n as u64,
             Err(e) => return Err(e),

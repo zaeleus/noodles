@@ -15,7 +15,7 @@ where
 {
     record.clear();
 
-    let mut len = match read_definition(reader, record) {
+    let mut len = match read_definition(reader, record.definition_mut()) {
         Ok(0) => return Ok(0),
         Ok(n) => n,
         Err(e) => return Err(e),

@@ -42,11 +42,11 @@ where
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_fastq as fastq;
+    /// use noodles_fastq::{self as fastq, record::Definition};
     ///
     /// let mut writer = fastq::Writer::new(Vec::new());
     ///
-    /// let record = fastq::Record::new("r0", "ATCG", "NDLS");
+    /// let record = fastq::Record::new(Definition::new("r0", ""), "ATCG", "NDLS");
     /// writer.write_record(&record)?;
     ///
     /// assert_eq!(writer.get_ref(), b"@r0\nATCG\n+\nNDLS\n");
@@ -88,7 +88,9 @@ mod tests {
 
     #[test]
     fn test_write_record() -> io::Result<()> {
-        let mut record = Record::new("r0", "ACGT", "NDLS");
+        use crate::record::Definition;
+
+        let mut record = Record::new(Definition::new("r0", ""), "ACGT", "NDLS");
 
         let mut buf = Vec::new();
         write_record(&mut buf, &record)?;
