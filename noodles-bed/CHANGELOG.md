@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * bed/record/name: Fix valid name character set.
+
+    This previously disallowed the tilde (`~`) character.
+
 ## 0.8.0 - 2023-03-03
 
 ### Changed

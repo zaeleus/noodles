@@ -57,7 +57,7 @@ impl FromStr for Name {
 }
 
 fn is_valid_name_char(c: char) -> bool {
-    matches!(c, ' '..='}')
+    matches!(c, ' '..='~')
 }
 
 fn is_valid_name(s: &str) -> bool {
@@ -77,6 +77,7 @@ mod tests {
     #[test]
     fn test_from_str() {
         assert_eq!("ndls1".parse(), Ok(Name(String::from("ndls1"))));
+        assert_eq!(" ~".parse(), Ok(Name(String::from(" ~"))));
 
         assert_eq!("".parse::<Name>(), Err(ParseError::Empty));
         assert_eq!("🍜".parse::<Name>(), Err(ParseError::Invalid));
