@@ -10,6 +10,12 @@ const MAX_VALUE: u16 = 1000;
 pub struct Score(u16);
 
 impl Score {
+    /// The minimun score (1).
+    pub const MIN: Self = Self(MIN_VALUE);
+
+    /// The maximum score (1000).
+    pub const MAX: Self = Self(MAX_VALUE);
+
     /// Creates a score if the given value is within range.
     ///
     /// # Examples
@@ -128,8 +134,9 @@ mod tests {
 
     #[test]
     fn test_try_from_u16_for_score() {
-        assert_eq!(Score::try_from(1), Ok(Score(1)));
-        assert_eq!(Score::try_from(1000), Ok(Score(1000)));
+        assert_eq!(Score::try_from(1), Ok(Score::MIN));
+        assert_eq!(Score::try_from(8), Ok(Score(8)));
+        assert_eq!(Score::try_from(1000), Ok(Score::MAX));
 
         assert_eq!(Score::try_from(0), Err(TryFromIntError(0)));
         assert_eq!(Score::try_from(1001), Err(TryFromIntError(1001)));
