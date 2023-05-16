@@ -14,8 +14,9 @@ documentation = "https://docs.rs/noodles-fastq"
 async = ["dep:futures", "dep:tokio"]
 
 [dependencies]
-futures = { workspace = true, optional = true, features = ["std"] }
 memchr.workspace = true
+
+futures = { workspace = true, optional = true, features = ["std"] }
 tokio = { workspace = true, optional = true, features = ["io-util"] }
 
 [dev-dependencies]
