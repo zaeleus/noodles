@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * bed/record/score: Add a const getter (`Score::get`).
+
 ### Fixed
 
   * bed/record/name: Fix valid name character set.

@@ -6,6 +6,21 @@ use std::{error, fmt, num, str::FromStr};
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Score(u16);
 
+impl Score {
+    /// Returns the inner value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed::record::Score;
+    /// let score = Score::try_from(8).unwrap();
+    /// assert_eq!(score.get(), 8);
+    /// ```
+    pub const fn get(&self) -> u16 {
+        self.0
+    }
+}
+
 impl fmt::Display for Score {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
