@@ -221,7 +221,7 @@ where
                 )
             })?;
 
-        let seq_len = index_record.len() as usize;
+        let seq_len = index_record.length() as usize;
         let range = interval_to_slice_range(region.interval(), seq_len);
 
         let pos = index_record.offset()

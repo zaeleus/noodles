@@ -66,9 +66,9 @@ where
 {
     writeln!(
         writer,
-        "{name}\t{len}\t{offset}\t{line_bases}\t{line_width}",
+        "{name}\t{length}\t{offset}\t{line_bases}\t{line_width}",
         name = record.name(),
-        len = record.len(),
+        length = record.length(),
         offset = record.offset(),
         line_bases = record.line_bases(),
         line_width = record.line_width(),

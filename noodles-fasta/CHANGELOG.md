@@ -1,5 +1,11 @@
 # Changelog
 
+### Deprecated
+
+  * fasta/fai/record: Deprecate `Record::len`.
+
+    Use `Record::length` instead.
+
 ## 0.22.0 - 2023-05-04
 
 ### Changed
