@@ -4,7 +4,8 @@
 
 ### Added
 
-  * bed/record/score: Add a const getter (`Score::get`).
+  * bed/record/score: Add a const constructor (`Score::new`) and
+    getter (`Score::get`).
 
 ### Fixed
 

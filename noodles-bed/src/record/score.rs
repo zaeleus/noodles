@@ -2,18 +2,41 @@
 
 use std::{error, fmt, num, str::FromStr};
 
+const MIN_VALUE: u16 = 1;
+const MAX_VALUE: u16 = 1000;
+
 /// A BED record score.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Score(u16);
 
 impl Score {
+    /// Creates a score if the given value is within range.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed::record::Score;
+    ///
+    /// assert!(Score::new(8).is_some());
+    ///
+    /// assert!(Score::new(0).is_none());
+    /// assert!(Score::new(1001).is_none());
+    /// ```
+    pub const fn new(n: u16) -> Option<Self> {
+        if MIN_VALUE <= n && n <= MAX_VALUE {
+            Some(Self(n))
+        } else {
+            None
+        }
+    }
+
     /// Returns the inner value.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_bed::record::Score;
-    /// let score = Score::try_from(8).unwrap();
+    /// let score = Score::new(8).unwrap();
     /// assert_eq!(score.get(), 8);
     /// ```
     pub const fn get(&self) -> u16 {
@@ -79,10 +102,7 @@ impl TryFrom<u16> for Score {
     type Error = TryFromIntError;
 
     fn try_from(n: u16) -> Result<Self, Self::Error> {
-        const MIN: u16 = 1;
-        const MAX: u16 = 1000;
-
-        if (MIN..=MAX).contains(&n) {
+        if (MIN_VALUE..=MAX_VALUE).contains(&n) {
             Ok(Self(n))
         } else {
             Err(TryFromIntError(n))
