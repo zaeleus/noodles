@@ -116,7 +116,7 @@ where
     where
         Record<N>: FromStr<Err = super::record::ParseError>,
     {
-        const COMMENT_PREFIX: &str = "#";
+        const COMMENT_PREFIX: char = '#';
 
         let mut buf = String::new();
 
