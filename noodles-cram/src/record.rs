@@ -217,10 +217,6 @@ impl Record {
         &self.features
     }
 
-    pub(crate) fn add_feature(&mut self, feature: Feature) {
-        self.features.push(feature);
-    }
-
     /// Returns the mapping quality.
     pub fn mapping_quality(&self) -> Option<sam::record::MappingQuality> {
         self.mapping_quality
