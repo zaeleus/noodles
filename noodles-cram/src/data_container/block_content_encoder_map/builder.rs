@@ -17,7 +17,6 @@ pub struct Builder {
     tag_values_encoders: HashMap<block::ContentId, Option<Encoder>>,
 }
 
-#[allow(dead_code)]
 impl Builder {
     /// Sets the core data encoder.
     ///
