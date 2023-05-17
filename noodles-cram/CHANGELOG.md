@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * cram/reader/record: Add Elias gamma decoder for integers.
+
 ## 0.29.0 - 2023-05-11
 
 ### Changed

@@ -1037,6 +1037,18 @@ where
             }
         }
         Integer::Beta(offset, len) => core_data_reader.read_u32(*len).map(|i| (i as i32 - offset)),
+        Integer::Gamma(offset) => {
+            let mut n = 0;
+
+            while core_data_reader.read_bit()? == 0 {
+                n += 1;
+            }
+
+            let m = core_data_reader.read_u32(n)? as i32;
+            let x = (1 << n) + m;
+
+            Ok(x - offset)
+        }
         _ => todo!("decode_itf8: {:?}", encoding),
     }
 }
@@ -1125,9 +1137,13 @@ mod tests {
 
     #[test]
     fn test_decode_itf8() -> io::Result<()> {
-        fn t(encoding: &Encoding<Integer>, expected: i32) -> io::Result<()> {
-            let core_data = [0b10000000];
-            let mut core_data_reader = BitReader::new(&core_data[..]);
+        fn t(
+            core_data: Option<&[u8]>,
+            encoding: &Encoding<Integer>,
+            expected: i32,
+        ) -> io::Result<()> {
+            let core_data = core_data.unwrap_or(&[0b10000000]);
+            let mut core_data_reader = BitReader::new(core_data);
 
             let external_data = [0x0d];
             let mut external_data_readers = ExternalDataReaders::new();
@@ -1141,11 +1157,17 @@ mod tests {
         }
 
         t(
+            None,
             &Encoding::new(Integer::External(block::ContentId::from(1))),
             13,
         )?;
-        t(&Encoding::new(Integer::Huffman(vec![0x4e], vec![0])), 0x4e)?;
-        t(&Encoding::new(Integer::Beta(1, 3)), 3)?;
+        t(
+            None,
+            &Encoding::new(Integer::Huffman(vec![0x4e], vec![0])),
+            0x4e,
+        )?;
+        t(None, &Encoding::new(Integer::Beta(1, 3)), 3)?;
+        t(Some(&[0b00011010]), &Encoding::new(Integer::Gamma(5)), 8)?;
 
         Ok(())
     }

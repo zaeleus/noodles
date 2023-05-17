@@ -30,7 +30,7 @@ where
         Ok(value)
     }
 
-    fn read_bit(&mut self) -> io::Result<u8> {
+    pub(crate) fn read_bit(&mut self) -> io::Result<u8> {
         if self.i >= 8 {
             if !self.src.has_remaining() {
                 return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
