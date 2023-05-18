@@ -5,27 +5,61 @@ use crate::record::{Features, Flags, NextMateFlags};
 
 #[derive(Default)]
 pub struct Chunk {
-    ids: Vec<u64>,
-    bam_bit_flags: Vec<sam::record::Flags>,
+    pub(super) ids: Vec<u64>,
+    pub(super) bam_bit_flags: Vec<sam::record::Flags>,
     cram_bit_flags: Vec<Flags>,
-    reference_sequence_ids: Vec<Option<usize>>,
-    read_lengths: Vec<usize>,
-    alignment_starts: Vec<Option<Position>>,
+    pub(super) reference_sequence_ids: Vec<Option<usize>>,
+    pub(super) read_lengths: Vec<usize>,
+    pub(super) alignment_starts: Vec<Option<Position>>,
     read_group_ids: Vec<Option<usize>>,
-    read_names: Vec<Option<sam::record::ReadName>>,
+    pub(super) read_names: Vec<Option<sam::record::ReadName>>,
     next_mate_bit_flags: Vec<NextMateFlags>,
-    next_fragment_reference_sequence_ids: Vec<Option<usize>>,
-    next_mate_alignment_starts: Vec<Option<Position>>,
-    template_sizes: Vec<i32>,
-    distances_to_next_fragment: Vec<Option<usize>>,
+    pub(super) next_fragment_reference_sequence_ids: Vec<Option<usize>>,
+    pub(super) next_mate_alignment_starts: Vec<Option<Position>>,
+    pub(super) template_sizes: Vec<i32>,
+    pub(super) distances_to_next_fragment: Vec<Option<usize>>,
     tags: Vec<sam::record::Data>,
     bases: Vec<sam::record::Sequence>,
-    features: Vec<Features>,
+    pub(super) features: Vec<Features>,
     mapping_qualities: Vec<Option<sam::record::MappingQuality>>,
     quality_scores: Vec<sam::record::QualityScores>,
 }
 
 impl Chunk {
+    pub fn is_empty(&self) -> bool {
+        self.ids.is_empty()
+    }
+
+    pub fn len(&self) -> usize {
+        self.ids.len()
+    }
+
+    #[cfg(test)]
+    pub fn push(&mut self, record: crate::Record) {
+        self.ids.push(record.id);
+        self.bam_bit_flags.push(record.bam_bit_flags);
+        self.cram_bit_flags.push(record.cram_bit_flags);
+        self.reference_sequence_ids
+            .push(record.reference_sequence_id);
+        self.read_lengths.push(record.read_length);
+        self.alignment_starts.push(record.alignment_start);
+        self.read_group_ids.push(record.read_group);
+        self.read_names.push(record.read_name);
+        self.next_mate_bit_flags.push(record.next_mate_bit_flags);
+        self.next_fragment_reference_sequence_ids
+            .push(record.next_fragment_reference_sequence_id);
+        self.next_mate_alignment_starts
+            .push(record.next_mate_alignment_start);
+        self.template_sizes.push(record.template_size);
+        self.distances_to_next_fragment
+            .push(record.distance_to_next_fragment);
+        self.tags.push(record.tags);
+        self.bases.push(record.bases);
+        self.features.push(record.features);
+        self.mapping_qualities.push(record.mapping_quality);
+        self.quality_scores.push(record.quality_scores);
+    }
+
     pub fn resize(&mut self, new_len: usize) {
         self.ids.resize(new_len, 0);
         self.bam_bit_flags

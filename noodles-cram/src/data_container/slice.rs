@@ -15,7 +15,10 @@ use super::{CompressionHeader, ReferenceSequenceContext};
 use crate::{
     container::Block,
     io::BitReader,
-    record::resolve::{resolve_bases, resolve_quality_scores},
+    record::{
+        resolve::{resolve_bases, resolve_quality_scores},
+        Features,
+    },
     Record,
 };
 
@@ -319,6 +322,10 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
             let mate = &mut right[mate_index - mid];
             set_mate(record, mate);
 
+            if mate.read_name().is_none() {
+                mate.read_name = record.read_name().cloned();
+            }
+
             j = mate_index;
         }
 
@@ -349,35 +356,162 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
 }
 
 fn set_mate(record: &mut Record, mate: &mut Record) {
-    let mate_bam_flags = mate.bam_flags();
+    set_mate_chunk(
+        &mut record.bam_bit_flags,
+        &mut record.next_fragment_reference_sequence_id,
+        &mut record.next_mate_alignment_start,
+        mate.bam_flags(),
+        mate.reference_sequence_id(),
+        mate.alignment_start(),
+    );
+}
 
-    if mate_bam_flags.is_reverse_complemented() {
-        record.bam_bit_flags |= sam::record::Flags::MATE_REVERSE_COMPLEMENTED;
+fn calculate_template_size(record: &Record, mate: &Record) -> i32 {
+    calculate_template_size_chunk(
+        record.alignment_start(),
+        record.read_length(),
+        record.features(),
+        mate.alignment_start(),
+        mate.read_length(),
+        mate.features(),
+    )
+}
+
+#[allow(dead_code)]
+fn resolve_mates_chunk(chunk: &mut Chunk) -> io::Result<()> {
+    if chunk.is_empty() {
+        return Ok(());
     }
 
-    if mate_bam_flags.is_unmapped() {
-        record.bam_bit_flags |= sam::record::Flags::MATE_UNMAPPED;
+    let mut mate_indices: Vec<_> = chunk
+        .distances_to_next_fragment
+        .iter()
+        .enumerate()
+        .map(|(i, distance_to_next_fragment)| distance_to_next_fragment.map(|len| i + len + 1))
+        .collect();
+
+    for i in 0..chunk.len() {
+        if chunk.read_names[i].is_none() {
+            // SAFETY: `u64::to_string` is always a valid read name.
+            let read_name = chunk.ids[i].to_string().parse().unwrap();
+            chunk.read_names[i] = Some(read_name);
+        }
+
+        if mate_indices[i].is_none() {
+            continue;
+        }
+
+        let mut j = i;
+
+        while let Some(mate_index) = mate_indices[j] {
+            let mate_bam_bit_flags = chunk.bam_bit_flags[mate_index];
+
+            set_mate_chunk(
+                &mut chunk.bam_bit_flags[j],
+                &mut chunk.next_fragment_reference_sequence_ids[j],
+                &mut chunk.next_mate_alignment_starts[j],
+                mate_bam_bit_flags,
+                chunk.reference_sequence_ids[mate_index],
+                chunk.alignment_starts[mate_index],
+            );
+
+            if chunk.read_names[mate_index].is_none() {
+                chunk.read_names[mate_index] = chunk.read_names[j].clone();
+            }
+
+            j = mate_index;
+        }
+
+        let mate_bam_bit_flags = chunk.bam_bit_flags[j];
+
+        set_mate_chunk(
+            &mut chunk.bam_bit_flags[j],
+            &mut chunk.next_fragment_reference_sequence_ids[j],
+            &mut chunk.next_mate_alignment_starts[j],
+            mate_bam_bit_flags,
+            chunk.reference_sequence_ids[i],
+            chunk.alignment_starts[i],
+        );
+
+        let template_size = calculate_template_size_chunk(
+            chunk.alignment_starts[i],
+            chunk.read_lengths[i],
+            &chunk.features[i],
+            chunk.alignment_starts[j],
+            chunk.read_lengths[j],
+            &chunk.features[j],
+        );
+
+        chunk.template_sizes[i] = template_size;
+
+        let mut j = i;
+
+        while let Some(mate_index) = mate_indices[j] {
+            chunk.template_sizes[mate_index] = -template_size;
+            mate_indices[j] = None;
+            j = mate_index;
+        }
     }
 
-    if mate.read_name().is_none() {
-        mate.read_name = record.read_name().cloned();
+    Ok(())
+}
+
+fn set_mate_chunk(
+    record_bam_bit_flags: &mut sam::record::Flags,
+    record_next_fragment_reference_sequence_id: &mut Option<usize>,
+    record_next_mate_alignment_start: &mut Option<Position>,
+    mate_bam_bit_flags: sam::record::Flags,
+    mate_reference_sequence_id: Option<usize>,
+    mate_alignment_start: Option<Position>,
+) {
+    if mate_bam_bit_flags.is_reverse_complemented() {
+        *record_bam_bit_flags |= sam::record::Flags::MATE_REVERSE_COMPLEMENTED;
     }
 
-    record.next_fragment_reference_sequence_id = mate.reference_sequence_id();
-    record.next_mate_alignment_start = mate.alignment_start;
+    if mate_bam_bit_flags.is_unmapped() {
+        *record_bam_bit_flags |= sam::record::Flags::MATE_UNMAPPED;
+    }
+
+    *record_next_fragment_reference_sequence_id = mate_reference_sequence_id;
+    *record_next_mate_alignment_start = mate_alignment_start;
 }
 
 // _Sequence Alignment/Map Format Specification_ (2021-06-03) § 1.4.9 "TLEN"
-fn calculate_template_size(record: &Record, mate: &Record) -> i32 {
-    use std::cmp;
+fn calculate_template_size_chunk(
+    record_alignment_start: Option<Position>,
+    record_read_length: usize,
+    record_features: &Features,
+    mate_alignment_start: Option<Position>,
+    mate_read_length: usize,
+    mate_features: &Features,
+) -> i32 {
+    use crate::record::calculate_alignment_span;
 
-    let start = cmp::min(record.alignment_start(), mate.alignment_start())
+    fn alignment_end(
+        alignment_start: Option<Position>,
+        read_length: usize,
+        features: &Features,
+    ) -> Option<Position> {
+        alignment_start.and_then(|start| {
+            let span = calculate_alignment_span(read_length, features);
+            let end = usize::from(start) + span - 1;
+            Position::new(end)
+        })
+    }
+
+    let start = record_alignment_start
+        .min(mate_alignment_start)
         .map(usize::from)
         .expect("invalid start positions");
 
-    let end = cmp::max(record.alignment_end(), mate.alignment_end())
+    let record_alignment_end =
+        alignment_end(record_alignment_start, record_read_length, record_features);
+    let mate_alignment_end = alignment_end(mate_alignment_start, mate_read_length, mate_features);
+
+    let end = record_alignment_end
+        .max(mate_alignment_end)
         .map(usize::from)
-        .expect("invalid end positions");
+        .expect("invalid end position");
 
     // "...the absolute value of TLEN equals the distance between the mapped end of the template
     // and the mapped start of the template, inclusively..."
@@ -390,16 +524,13 @@ fn calculate_template_size(record: &Record, mate: &Record) -> i32 {
 
 #[cfg(test)]
 mod tests {
-    use noodles_core::Position;
+    use sam::record::ReadName;
 
     use super::*;
+    use crate::record::Flags;
 
     #[test]
     fn test_resolve_mates() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::record::ReadName;
-
-        use crate::record::Flags;
-
         let mut records = vec![
             Record::builder()
                 .set_id(1)
@@ -465,6 +596,83 @@ mod tests {
             records[0].alignment_start(),
         );
         assert_eq!(records[3].template_size(), -12);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_resolve_mates_chunk() -> Result<(), Box<dyn std::error::Error>> {
+        let records = [
+            Record::builder()
+                .set_id(1)
+                .set_flags(Flags::HAS_MATE_DOWNSTREAM)
+                .set_reference_sequence_id(2)
+                .set_read_length(4)
+                .set_alignment_start(Position::try_from(5)?)
+                .set_distance_to_next_fragment(0)
+                .build(),
+            Record::builder()
+                .set_id(2)
+                .set_flags(Flags::HAS_MATE_DOWNSTREAM)
+                .set_reference_sequence_id(2)
+                .set_read_length(4)
+                .set_alignment_start(Position::try_from(8)?)
+                .set_distance_to_next_fragment(1)
+                .build(),
+            Record::builder().set_id(3).build(),
+            Record::builder()
+                .set_id(4)
+                .set_reference_sequence_id(2)
+                .set_read_length(4)
+                .set_alignment_start(Position::try_from(13)?)
+                .build(),
+        ];
+
+        let mut chunk = Chunk::default();
+
+        for record in records {
+            chunk.push(record);
+        }
+
+        resolve_mates_chunk(&mut chunk)?;
+
+        let read_name_1 = ReadName::try_from(b"1".to_vec())?;
+
+        assert_eq!(chunk.read_names[0].as_ref(), Some(&read_name_1));
+        assert_eq!(
+            chunk.next_fragment_reference_sequence_ids[0],
+            chunk.reference_sequence_ids[1]
+        );
+        assert_eq!(
+            chunk.next_mate_alignment_starts[0],
+            chunk.alignment_starts[1]
+        );
+        assert_eq!(chunk.template_sizes[0], 12);
+
+        assert_eq!(chunk.read_names[1].as_ref(), Some(&read_name_1));
+        assert_eq!(
+            chunk.next_fragment_reference_sequence_ids[1],
+            chunk.reference_sequence_ids[3]
+        );
+        assert_eq!(
+            chunk.next_mate_alignment_starts[1],
+            chunk.alignment_starts[3],
+        );
+        assert_eq!(chunk.template_sizes[1], -12);
+
+        let read_name_3 = ReadName::try_from(b"3".to_vec())?;
+        assert_eq!(chunk.read_names[2].as_ref(), Some(&read_name_3));
+
+        assert_eq!(chunk.read_names[3].as_ref(), Some(&read_name_1));
+        assert_eq!(
+            chunk.next_fragment_reference_sequence_ids[3],
+            chunk.reference_sequence_ids[0]
+        );
+        assert_eq!(
+            chunk.next_mate_alignment_starts[3],
+            chunk.alignment_starts[0]
+        );
+        assert_eq!(chunk.template_sizes[3], -12);
 
         Ok(())
     }

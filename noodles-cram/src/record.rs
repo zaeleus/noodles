@@ -234,7 +234,7 @@ impl Default for Record {
     }
 }
 
-fn calculate_alignment_span(read_length: usize, features: &Features) -> usize {
+pub(crate) fn calculate_alignment_span(read_length: usize, features: &Features) -> usize {
     features
         .iter()
         .fold(read_length, |alignment_span, feature| match feature {
