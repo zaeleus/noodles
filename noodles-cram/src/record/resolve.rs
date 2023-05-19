@@ -19,8 +19,10 @@ pub(crate) fn resolve_bases(
     features: &Features,
     alignment_start: Position,
     read_length: usize,
-) -> io::Result<sam::record::Sequence> {
-    let mut buf = sam::record::Sequence::from(vec![Base::N; read_length]);
+    buf: &mut sam::record::Sequence,
+) -> io::Result<()> {
+    buf.as_mut().fill(Base::N);
+    buf.as_mut().resize(read_length, Base::N);
 
     let mut it = features.with_positions(alignment_start);
 
@@ -92,7 +94,7 @@ pub(crate) fn resolve_bases(
         ));
     }
 
-    Ok(buf)
+    Ok(())
 }
 
 fn copy_from_bases(dst: &mut [Base], src: &[Base]) {
@@ -154,12 +156,15 @@ mod tests {
         let alignment_start = Position::try_from(1)?;
 
         let t = |features: &Features, expected: &sam::record::Sequence| {
-            let actual = resolve_bases(
+            let mut actual = sam::record::Sequence::default();
+
+            resolve_bases(
                 Some(&reference_sequence),
                 &substitution_matrix,
                 features,
                 alignment_start,
                 4,
+                &mut actual,
             )?;
 
             assert_eq!(&actual, expected);
@@ -229,14 +234,18 @@ mod tests {
             Position::try_from(2)?,
             substitution::Value::Bases(SubstitutionBase::A, SubstitutionBase::C),
         )]);
-        let actual = resolve_bases(
-            Some(&reference_sequence),
-            &substitution_matrix,
-            &features,
-            alignment_start,
-            4,
-        );
-        assert!(matches!(actual, Err(e) if e.kind() == io::ErrorKind::InvalidData));
+        let mut actual = sam::record::Sequence::default();
+        assert!(matches!(
+            resolve_bases(
+                Some(&reference_sequence),
+                &substitution_matrix,
+                &features,
+                alignment_start,
+                4,
+                &mut actual,
+            ),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
 
         Ok(())
     }
@@ -250,7 +259,15 @@ mod tests {
         )]);
         let alignment_start = Position::try_from(1)?;
 
-        let actual = resolve_bases(None, &substitution_matrix, &features, alignment_start, 4)?;
+        let mut actual = sam::record::Sequence::default();
+        resolve_bases(
+            None,
+            &substitution_matrix,
+            &features,
+            alignment_start,
+            4,
+            &mut actual,
+        )?;
         let expected = "NNNN".parse()?;
 
         assert_eq!(actual, expected);
