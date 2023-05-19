@@ -154,33 +154,19 @@ impl Slice {
         compression_header: &CompressionHeader,
         records: &mut [Record],
     ) -> io::Result<()> {
-        let embedded_reference_sequence = if let Some(block_content_id) =
-            self.header().embedded_reference_bases_block_content_id()
+        enum SliceReferenceSequence {
+            External(usize, fasta::record::Sequence),
+            Embedded(usize, fasta::record::Sequence),
+        }
+
+        let preservation_map = compression_header.preservation_map();
+        let is_reference_required = preservation_map.is_reference_required();
+        let substitution_matrix = preservation_map.substitution_matrix();
+
+        let slice_reference_sequence = if let ReferenceSequenceContext::Some(context) =
+            self.header.reference_sequence_context()
         {
-            let block = self
-                .external_blocks()
-                .iter()
-                .find(|block| block.content_id() == block_content_id)
-                .expect("invalid block content ID");
-
-            let data = block.decompressed_data()?;
-            let sequence = fasta::record::Sequence::from(data);
-
-            Some(sequence)
-        } else {
-            None
-        };
-
-        // § 11 "Reference sequences" (2021-11-15): "All CRAM reader implementations are
-        // expected to check for reference MD5 checksums and report any missing or
-        // mismatching entries."
-        if compression_header
-            .preservation_map()
-            .is_reference_required()
-        {
-            if let ReferenceSequenceContext::Some(context) =
-                self.header().reference_sequence_context()
-            {
+            if is_reference_required {
                 let reference_sequence_name = header
                     .reference_sequences()
                     .get_index(context.reference_sequence_id())
@@ -192,6 +178,9 @@ impl Slice {
                     .transpose()?
                     .expect("invalid slice reference sequence name");
 
+                // § 11 "Reference sequences" (2021-11-15): "All CRAM reader implementations are
+                // expected to check for reference MD5 checksums and report any missing or
+                // mismatching entries."
                 let start = context.alignment_start();
                 let end = context.alignment_end();
 
@@ -207,8 +196,31 @@ impl Slice {
                         ),
                     ));
                 }
+
+                Some(SliceReferenceSequence::External(
+                    context.reference_sequence_id(),
+                    sequence,
+                ))
+            } else if let Some(block_content_id) =
+                self.header().embedded_reference_bases_block_content_id()
+            {
+                let block = self
+                    .external_blocks()
+                    .iter()
+                    .find(|block| block.content_id() == block_content_id)
+                    .expect("invalid block content ID");
+
+                let data = block.decompressed_data()?;
+                let sequence = fasta::record::Sequence::from(data);
+
+                let offset = usize::from(context.alignment_start());
+                Some(SliceReferenceSequence::Embedded(offset, sequence))
+            } else {
+                None
             }
-        }
+        } else {
+            None
+        };
 
         for record in records {
             if record.bam_flags().is_unmapped() || record.cram_flags().decode_sequence_as_unknown()
@@ -218,40 +230,40 @@ impl Slice {
 
             let mut alignment_start = record.alignment_start.expect("invalid alignment start");
 
-            let reference_sequence = if compression_header
-                .preservation_map()
-                .is_reference_required()
-            {
-                let reference_sequence_name = record
-                    .reference_sequence(header.reference_sequences())
-                    .transpose()?
-                    .map(|(name, _)| name)
-                    .expect("invalid reference sequence ID");
-
-                let sequence = reference_sequence_repository
-                    .get(reference_sequence_name)
-                    .transpose()?
-                    .expect("invalid reference sequence name");
-
-                Some(sequence)
-            } else if let Some(ref sequence) = embedded_reference_sequence {
-                let offset = match self.header().reference_sequence_context() {
-                    ReferenceSequenceContext::Some(context) => {
-                        usize::from(context.alignment_start())
+            let reference_sequence = if is_reference_required {
+                if let Some(SliceReferenceSequence::External(reference_sequence_id, sequence)) =
+                    &slice_reference_sequence
+                {
+                    if record.reference_sequence_id() == Some(*reference_sequence_id) {
+                        Some(sequence.clone())
+                    } else {
+                        // An invalid state?
+                        todo!();
                     }
-                    _ => panic!("invalid slice alignment start"),
-                };
+                } else {
+                    let reference_sequence_name = record
+                        .reference_sequence(header.reference_sequences())
+                        .transpose()?
+                        .map(|(name, _)| name)
+                        .expect("invalid reference sequence ID");
 
+                    let sequence = reference_sequence_repository
+                        .get(reference_sequence_name)
+                        .transpose()?
+                        .expect("invalid reference sequence name");
+
+                    Some(sequence)
+                }
+            } else if let Some(SliceReferenceSequence::Embedded(offset, sequence)) =
+                &slice_reference_sequence
+            {
                 let start = usize::from(alignment_start) - offset + 1;
                 alignment_start = Position::try_from(start)
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
                 Some(sequence.clone())
             } else {
                 None
             };
-
-            let substitution_matrix = compression_header.preservation_map().substitution_matrix();
 
             resolve_bases(
                 reference_sequence.as_ref(),
