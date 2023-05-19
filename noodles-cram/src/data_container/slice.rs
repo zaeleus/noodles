@@ -523,6 +523,24 @@ fn calculate_template_size_chunk(
     }
 }
 
+#[allow(dead_code)]
+fn resolve_quality_scores_chunk(chunk: &mut Chunk) {
+    for ((((bam_bit_flags, cram_bit_flags), features), read_length), quality_scores) in chunk
+        .bam_bit_flags
+        .iter()
+        .zip(&chunk.cram_bit_flags)
+        .zip(&chunk.features)
+        .zip(&chunk.read_lengths)
+        .zip(&mut chunk.quality_scores)
+    {
+        if bam_bit_flags.is_unmapped() || cram_bit_flags.are_quality_scores_stored_as_array() {
+            continue;
+        }
+
+        resolve_quality_scores(features, *read_length, quality_scores);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use sam::record::ReadName;
@@ -743,6 +761,50 @@ mod tests {
 
         assert_eq!(calculate_template_size(&record, &mate), 150);
         assert_eq!(calculate_template_size(&mate, &record), 150);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_resolve_quality_scores_chunk() -> Result<(), Box<dyn std::error::Error>> {
+        use sam::record::{quality_scores::Score, QualityScores};
+
+        use crate::record::{Feature, Features};
+
+        let records = [
+            Record::builder()
+                .set_id(1)
+                .set_bam_flags(sam::record::Flags::empty())
+                .set_read_length(2)
+                .set_features(Features::from(vec![Feature::Scores(
+                    Position::try_from(1)?,
+                    vec![Score::try_from(8)?, Score::try_from(13)?],
+                )]))
+                .build(),
+            Record::builder().set_id(2).build(),
+            Record::builder()
+                .set_id(3)
+                .set_flags(Flags::QUALITY_SCORES_STORED_AS_ARRAY)
+                .set_read_length(2)
+                .set_quality_scores(QualityScores::try_from(vec![21, 34])?)
+                .build(),
+        ];
+
+        let mut chunk = Chunk::default();
+
+        for record in records {
+            chunk.push(record);
+        }
+
+        resolve_quality_scores_chunk(&mut chunk);
+
+        let expected = [
+            QualityScores::try_from(vec![8, 13])?,
+            QualityScores::default(),
+            QualityScores::try_from(vec![21, 34])?,
+        ];
+
+        assert_eq!(chunk.quality_scores, expected);
 
         Ok(())
     }
