@@ -272,10 +272,11 @@ impl Slice {
             if !record.flags().is_unmapped()
                 && !record.cram_flags().are_quality_scores_stored_as_array()
             {
-                let quality_scores =
-                    resolve_quality_scores(record.features(), record.read_length());
-
-                record.quality_scores = quality_scores;
+                resolve_quality_scores(
+                    &record.features,
+                    record.read_length(),
+                    &mut record.quality_scores,
+                );
             }
         }
     }

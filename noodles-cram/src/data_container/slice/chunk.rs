@@ -7,7 +7,7 @@ use crate::record::{Features, Flags, NextMateFlags};
 pub struct Chunk {
     pub(super) ids: Vec<u64>,
     pub(super) bam_bit_flags: Vec<sam::record::Flags>,
-    cram_bit_flags: Vec<Flags>,
+    pub(super) cram_bit_flags: Vec<Flags>,
     pub(super) reference_sequence_ids: Vec<Option<usize>>,
     pub(super) read_lengths: Vec<usize>,
     pub(super) alignment_starts: Vec<Option<Position>>,
@@ -22,7 +22,7 @@ pub struct Chunk {
     bases: Vec<sam::record::Sequence>,
     pub(super) features: Vec<Features>,
     mapping_qualities: Vec<Option<sam::record::MappingQuality>>,
-    quality_scores: Vec<sam::record::QualityScores>,
+    pub(super) quality_scores: Vec<sam::record::QualityScores>,
 }
 
 impl Chunk {

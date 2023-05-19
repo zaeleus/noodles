@@ -112,10 +112,15 @@ fn copy_from_raw_bases(dst: &mut [Base], src: &[u8]) -> io::Result<()> {
 }
 
 /// Resolves the quality scores.
-pub fn resolve_quality_scores(features: &[Feature], read_len: usize) -> sam::record::QualityScores {
+pub fn resolve_quality_scores(
+    features: &[Feature],
+    read_len: usize,
+    quality_scores: &mut sam::record::QualityScores,
+) {
     use sam::record::quality_scores::Score;
 
-    let mut quality_scores = sam::record::QualityScores::from(vec![Score::default(); read_len]);
+    quality_scores.as_mut().fill(Score::default());
+    quality_scores.as_mut().resize(read_len, Score::default());
 
     for feature in features {
         let read_position = feature.position();
@@ -133,8 +138,6 @@ pub fn resolve_quality_scores(features: &[Feature], read_len: usize) -> sam::rec
             _ => continue,
         }
     }
-
-    quality_scores
 }
 
 #[cfg(test)]
@@ -268,9 +271,10 @@ mod tests {
             ),
         ];
 
-        let actual = resolve_quality_scores(&features, 6);
+        let mut quality_scores = QualityScores::default();
+        resolve_quality_scores(&features, 6, &mut quality_scores);
         let expected = QualityScores::try_from(vec![5, 0, 8, 0, 13, 21])?;
-        assert_eq!(actual, expected);
+        assert_eq!(quality_scores, expected);
 
         Ok(())
     }
