@@ -19,7 +19,7 @@ pub struct Chunk {
     pub(super) template_sizes: Vec<i32>,
     pub(super) distances_to_next_fragment: Vec<Option<usize>>,
     tags: Vec<sam::record::Data>,
-    bases: Vec<sam::record::Sequence>,
+    pub(super) bases: Vec<sam::record::Sequence>,
     pub(super) features: Vec<Features>,
     mapping_qualities: Vec<Option<sam::record::MappingQuality>>,
     pub(super) quality_scores: Vec<sam::record::QualityScores>,

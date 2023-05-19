@@ -535,6 +535,157 @@ fn calculate_template_size_chunk(
 }
 
 #[allow(dead_code)]
+fn resolve_bases_chunk(
+    reference_sequence_repository: &fasta::Repository,
+    header: &sam::Header,
+    compression_header: &CompressionHeader,
+    slice: &Slice,
+    chunk: &mut Chunk,
+) -> io::Result<()> {
+    enum SliceReferenceSequence {
+        External(usize, fasta::record::Sequence),
+        Embedded(usize, fasta::record::Sequence),
+    }
+
+    let preservation_map = compression_header.preservation_map();
+    let is_reference_required = preservation_map.is_reference_required();
+    let substitution_matrix = preservation_map.substitution_matrix();
+
+    let slice_reference_sequence = if let ReferenceSequenceContext::Some(context) =
+        slice.header.reference_sequence_context()
+    {
+        if is_reference_required {
+            let reference_sequence_name = header
+                .reference_sequences()
+                .get_index(context.reference_sequence_id())
+                .map(|(name, _)| name)
+                .expect("invalid slice reference sequence ID");
+
+            let sequence = reference_sequence_repository
+                .get(reference_sequence_name)
+                .transpose()?
+                .expect("invalid slice reference sequence name");
+
+            // § 11 "Reference sequences" (2021-11-15): "All CRAM reader implementations are
+            // expected to check for reference MD5 checksums and report any missing or
+            // mismatching entries."
+            let start = context.alignment_start();
+            let end = context.alignment_end();
+
+            let actual_md5 = builder::calculate_normalized_sequence_digest(&sequence[start..=end]);
+            let expected_md5 = slice.header().reference_md5();
+
+            if actual_md5 != expected_md5 {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!(
+                        "reference sequence checksum mismatch: expected {expected_md5:?}, got {actual_md5:?}"
+                    ),
+                ));
+            }
+
+            Some(SliceReferenceSequence::External(
+                context.reference_sequence_id(),
+                sequence,
+            ))
+        } else if let Some(block_content_id) =
+            slice.header().embedded_reference_bases_block_content_id()
+        {
+            let block = slice
+                .external_blocks()
+                .iter()
+                .find(|block| block.content_id() == block_content_id)
+                .expect("invalid block content ID");
+
+            let data = block.decompressed_data()?;
+            let sequence = fasta::record::Sequence::from(data);
+
+            let offset = usize::from(context.alignment_start());
+            Some(SliceReferenceSequence::Embedded(offset, sequence))
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+
+    for (
+        (
+            (
+                (((bam_bit_flags, cram_bit_flags), reference_sequence_id), read_length),
+                alignment_start,
+            ),
+            bases,
+        ),
+        features,
+    ) in chunk
+        .bam_bit_flags
+        .iter()
+        .zip(&chunk.cram_bit_flags)
+        .zip(&chunk.reference_sequence_ids)
+        .zip(&chunk.read_lengths)
+        .zip(&chunk.alignment_starts)
+        .zip(&mut chunk.bases)
+        .zip(&chunk.features)
+    {
+        if bam_bit_flags.is_unmapped() || cram_bit_flags.decode_sequence_as_unknown() {
+            continue;
+        }
+
+        let mut alignment_start = alignment_start.expect("invalid alignment start");
+
+        let reference_sequence = if is_reference_required {
+            if let Some(SliceReferenceSequence::External(slice_reference_sequence_id, sequence)) =
+                &slice_reference_sequence
+            {
+                if *reference_sequence_id == Some(*slice_reference_sequence_id) {
+                    Some(sequence.clone())
+                } else {
+                    // An invalid state?
+                    todo!();
+                }
+            } else {
+                let reference_sequence_name = reference_sequence_id
+                    .and_then(|id| {
+                        header
+                            .reference_sequences()
+                            .get_index(id)
+                            .map(|(name, _)| name)
+                    })
+                    .expect("invalid reference sequence ID");
+
+                let sequence = reference_sequence_repository
+                    .get(reference_sequence_name)
+                    .transpose()?
+                    .expect("invalid reference sequence name");
+
+                Some(sequence)
+            }
+        } else if let Some(SliceReferenceSequence::Embedded(offset, sequence)) =
+            &slice_reference_sequence
+        {
+            let start = usize::from(alignment_start) - offset + 1;
+            alignment_start = Position::try_from(start)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+            Some(sequence.clone())
+        } else {
+            None
+        };
+
+        resolve_bases(
+            reference_sequence.as_ref(),
+            substitution_matrix,
+            features,
+            alignment_start,
+            *read_length,
+            bases,
+        )?;
+    }
+
+    Ok(())
+}
+
+#[allow(dead_code)]
 fn resolve_quality_scores_chunk(chunk: &mut Chunk) {
     for ((((bam_bit_flags, cram_bit_flags), features), read_length), quality_scores) in chunk
         .bam_bit_flags
@@ -772,6 +923,90 @@ mod tests {
 
         assert_eq!(calculate_template_size(&record, &mate), 150);
         assert_eq!(calculate_template_size(&mate, &record), 150);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_resolve_bases_chunk() -> Result<(), Box<dyn std::error::Error>> {
+        use std::num::NonZeroUsize;
+
+        use sam::{
+            header::record::value::map::{self, Map},
+            record::{sequence::Base, Sequence},
+        };
+
+        use crate::{
+            container::block::ContentType,
+            record::{Feature, Features},
+        };
+
+        const SQ0_LENGTH: NonZeroUsize = match NonZeroUsize::new(8) {
+            Some(length) => length,
+            None => unreachable!(),
+        };
+
+        let start = Position::try_from(1)?;
+        let end = Position::try_from(2)?;
+        let sequence = fasta::record::Sequence::from(b"ACGT".to_vec());
+        let reference_md5 = builder::calculate_normalized_sequence_digest(&sequence[start..=end]);
+
+        let reference_sequence_repository = fasta::Repository::new(vec![fasta::Record::new(
+            fasta::record::Definition::new("sq0", None),
+            sequence,
+        )]);
+
+        let header = sam::Header::builder()
+            .add_reference_sequence(
+                "sq0".parse()?,
+                Map::<map::ReferenceSequence>::new(SQ0_LENGTH),
+            )
+            .build();
+
+        let compression_header = CompressionHeader::builder().build();
+
+        let slice = Slice {
+            header: Header::builder()
+                .set_reference_sequence_context(ReferenceSequenceContext::some(0, start, end))
+                .set_reference_md5(reference_md5)
+                .build(),
+            core_data_block: Block::builder()
+                .set_content_type(ContentType::CoreData)
+                .build(),
+            external_blocks: vec![Block::builder()
+                .set_content_type(ContentType::ExternalData)
+                .build()],
+        };
+
+        let records = [Record::builder()
+            .set_id(1)
+            .set_bam_flags(sam::record::Flags::default())
+            .set_reference_sequence_id(0)
+            .set_read_length(2)
+            .set_alignment_start(Position::MIN)
+            .set_features(Features::from(vec![Feature::Bases(
+                Position::MIN,
+                vec![Base::A, Base::C],
+            )]))
+            .build()];
+
+        let mut chunk = Chunk::default();
+
+        for record in records {
+            chunk.push(record);
+        }
+
+        resolve_bases_chunk(
+            &reference_sequence_repository,
+            &header,
+            &compression_header,
+            &slice,
+            &mut chunk,
+        )?;
+
+        let expected = [Sequence::from(vec![Base::A, Base::C])];
+
+        assert_eq!(chunk.bases, expected);
 
         Ok(())
     }
