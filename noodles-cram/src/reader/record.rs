@@ -12,14 +12,13 @@ use noodles_sam::{
     record::{quality_scores::Score, sequence::Base},
 };
 
-use super::num::get_itf8;
 use crate::{
     container::block,
     data_container::{
         compression_header::{
             data_series_encoding_map::DataSeries,
             encoding::{
-                codec::{Byte, ByteArray, Integer},
+                codec::{Byte, ByteArray},
                 Encoding,
             },
             preservation_map::tag_ids_dictionary,
@@ -121,33 +120,25 @@ where
     }
 
     fn read_bam_bit_flags(&mut self) -> io::Result<sam::record::Flags> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
-            .bam_bit_flags_encoding();
-
-        decode_itf8(
-            encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
-        .and_then(|n| u16::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
-        .map(sam::record::Flags::from)
+            .bam_bit_flags_encoding()
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)
+            .and_then(|n| {
+                u16::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })
+            .map(sam::record::Flags::from)
     }
 
     fn read_cram_bit_flags(&mut self) -> io::Result<Flags> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
-            .cram_bit_flags_encoding();
-
-        decode_itf8(
-            encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
-        .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
-        .map(Flags::from)
+            .cram_bit_flags_encoding()
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)
+            .and_then(|n| {
+                u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })
+            .map(Flags::from)
     }
 
     fn read_positional_data(&mut self, record: &mut RecordMut<'_>) -> io::Result<usize> {
@@ -169,8 +160,7 @@ where
     fn read_reference_id(&mut self) -> io::Result<Option<usize>> {
         const UNMAPPED: i32 = -1;
 
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .reference_id_encoding()
             .ok_or_else(|| {
@@ -178,33 +168,24 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::ReferenceId),
                 )
-            })?;
-
-        decode_itf8(
-            encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
-        .and_then(|n| match n {
-            UNMAPPED => Ok(None),
-            _ => usize::try_from(n)
-                .map(Some)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-        })
+            })?
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)
+            .and_then(|n| match n {
+                UNMAPPED => Ok(None),
+                _ => usize::try_from(n)
+                    .map(Some)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+            })
     }
 
     fn read_read_length(&mut self) -> io::Result<usize> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
-            .read_lengths_encoding();
-
-        decode_itf8(
-            encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
-        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+            .read_lengths_encoding()
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)
+            .and_then(|n| {
+                usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })
     }
 
     fn read_alignment_start(&mut self) -> io::Result<Option<Position>> {
@@ -213,16 +194,11 @@ where
             .preservation_map()
             .ap_data_series_delta();
 
-        let encoding = self
+        let alignment_start_or_delta = self
             .compression_header
             .data_series_encoding_map()
-            .in_seq_positions_encoding();
-
-        let alignment_start_or_delta = decode_itf8(
-            encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )?;
+            .in_seq_positions_encoding()
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)?;
 
         let alignment_start = if ap_data_series_delta {
             let prev_alignment_start = i32::try_from(
@@ -246,22 +222,16 @@ where
         // § 10.2 "CRAM positional data" (2021-10-15): "-1 for no group".
         const MISSING: i32 = -1;
 
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
-            .read_groups_encoding();
-
-        decode_itf8(
-            encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
-        .and_then(|n| match n {
-            MISSING => Ok(None),
-            _ => usize::try_from(n)
-                .map(Some)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-        })
+            .read_groups_encoding()
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)
+            .and_then(|n| match n {
+                MISSING => Ok(None),
+                _ => usize::try_from(n)
+                    .map(Some)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+            })
     }
 
     fn read_read_names(&mut self, record: &mut RecordMut<'_>) -> io::Result<()> {
@@ -342,8 +312,7 @@ where
     }
 
     fn read_next_mate_bit_flags(&mut self) -> io::Result<NextMateFlags> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .next_mate_bit_flags_encoding()
             .ok_or_else(|| {
@@ -351,22 +320,18 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::NextMateBitFlags),
                 )
-            })?;
-
-        decode_itf8(
-            encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
-        .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
-        .map(NextMateFlags::from)
+            })?
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)
+            .and_then(|n| {
+                u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })
+            .map(NextMateFlags::from)
     }
 
     fn read_next_fragment_reference_sequence_id(&mut self) -> io::Result<Option<usize>> {
         const UNMAPPED: i32 = -1;
 
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .next_fragment_reference_sequence_id_encoding()
             .ok_or_else(|| {
@@ -376,24 +341,18 @@ where
                         DataSeries::NextFragmentReferenceSequenceId,
                     ),
                 )
-            })?;
-
-        decode_itf8(
-            encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
-        .and_then(|id| match id {
-            UNMAPPED => Ok(None),
-            _ => usize::try_from(id)
-                .map(Some)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-        })
+            })?
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)
+            .and_then(|id| match id {
+                UNMAPPED => Ok(None),
+                _ => usize::try_from(id)
+                    .map(Some)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+            })
     }
 
     fn read_next_mate_alignment_start(&mut self) -> io::Result<Option<Position>> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .next_mate_alignment_start_encoding()
             .ok_or_else(|| {
@@ -401,15 +360,12 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::NextMateAlignmentStart),
                 )
-            })?;
-
-        decode_itf8(
-            encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
-        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
-        .map(Position::new)
+            })?
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)
+            .and_then(|n| {
+                usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })
+            .map(Position::new)
     }
 
     fn read_template_size(&mut self) -> io::Result<i32> {
@@ -421,19 +377,12 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::TemplateSize),
                 )
-            })
-            .and_then(|encoding| {
-                decode_itf8(
-                    encoding,
-                    &mut self.core_data_reader,
-                    &mut self.external_data_readers,
-                )
-            })
+            })?
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)
     }
 
     fn read_distance_to_next_fragment(&mut self) -> io::Result<usize> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .distance_to_next_fragment_encoding()
             .ok_or_else(|| {
@@ -441,14 +390,11 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::DistanceToNextFragment),
                 )
-            })?;
-
-        decode_itf8(
-            encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
-        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+            })?
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)
+            .and_then(|n| {
+                usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })
     }
 
     fn read_tag_data(&mut self) -> io::Result<sam::record::Data> {
@@ -494,17 +440,13 @@ where
     }
 
     fn read_tag_line(&mut self) -> io::Result<usize> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
-            .tag_ids_encoding();
-
-        decode_itf8(
-            encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
-        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+            .tag_ids_encoding()
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)
+            .and_then(|n| {
+                usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })
     }
 
     fn read_mapped_read(
@@ -533,8 +475,7 @@ where
     }
 
     fn read_number_of_read_features(&mut self) -> io::Result<usize> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .number_of_read_features_encoding()
             .ok_or_else(|| {
@@ -542,14 +483,11 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::NumberOfReadFeatures),
                 )
-            })?;
-
-        decode_itf8(
-            encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
-        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+            })?
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)
+            .and_then(|n| {
+                usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })
     }
 
     fn read_feature(&mut self, prev_position: usize) -> io::Result<Feature> {
@@ -641,8 +579,7 @@ where
     }
 
     fn read_feature_position(&mut self) -> io::Result<usize> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .in_read_positions_encoding()
             .ok_or_else(|| {
@@ -650,14 +587,11 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::InReadPositions),
                 )
-            })?;
-
-        decode_itf8(
-            encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
-        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+            })?
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)
+            .and_then(|n| {
+                usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })
     }
 
     fn read_stretches_of_bases(&mut self) -> io::Result<Vec<Base>> {
@@ -794,8 +728,7 @@ where
     }
 
     fn read_deletion_length(&mut self) -> io::Result<usize> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .deletion_lengths_encoding()
             .ok_or_else(|| {
@@ -803,19 +736,15 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::DeletionLengths),
                 )
-            })?;
-
-        decode_itf8(
-            encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
-        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+            })?
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)
+            .and_then(|n| {
+                usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })
     }
 
     fn read_reference_skip_length(&mut self) -> io::Result<usize> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .reference_skip_length_encoding()
             .ok_or_else(|| {
@@ -823,14 +752,11 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::ReferenceSkipLength),
                 )
-            })?;
-
-        decode_itf8(
-            encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
-        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+            })?
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)
+            .and_then(|n| {
+                usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })
     }
 
     fn read_soft_clip(&mut self) -> io::Result<Vec<Base>> {
@@ -858,8 +784,7 @@ where
     }
 
     fn read_padding(&mut self) -> io::Result<usize> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .padding_encoding()
             .ok_or_else(|| {
@@ -867,19 +792,15 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::Padding),
                 )
-            })?;
-
-        decode_itf8(
-            encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
-        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+            })?
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)
+            .and_then(|n| {
+                usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })
     }
 
     fn read_hard_clip(&mut self) -> io::Result<usize> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .hard_clip_encoding()
             .ok_or_else(|| {
@@ -887,19 +808,15 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::HardClip),
                 )
-            })?;
-
-        decode_itf8(
-            encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
-        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+            })?
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)
+            .and_then(|n| {
+                usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })
     }
 
     fn read_mapping_quality(&mut self) -> io::Result<Option<sam::record::MappingQuality>> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .mapping_qualities_encoding()
             .ok_or_else(|| {
@@ -907,15 +824,12 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::MappingQualities),
                 )
-            })?;
-
-        decode_itf8(
-            encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
-        .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
-        .map(sam::record::MappingQuality::new)
+            })?
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)
+            .and_then(|n| {
+                u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })
+            .map(sam::record::MappingQuality::new)
     }
 
     fn read_unmapped_read(
@@ -1003,53 +917,6 @@ where
     }
 }
 
-fn decode_itf8<CDR, EDR>(
-    encoding: &Encoding<Integer>,
-    core_data_reader: &mut BitReader<CDR>,
-    external_data_readers: &mut ExternalDataReaders<EDR>,
-) -> io::Result<i32>
-where
-    CDR: Buf,
-    EDR: Buf,
-{
-    match encoding.get() {
-        Integer::External(block_content_id) => {
-            let src = external_data_readers
-                .get_mut(block_content_id)
-                .ok_or_else(|| {
-                    io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        ReadRecordError::MissingExternalBlock(*block_content_id),
-                    )
-                })?;
-
-            get_itf8(src)
-        }
-        Integer::Huffman(alphabet, bit_lens) => {
-            if alphabet.len() == 1 {
-                Ok(alphabet[0])
-            } else {
-                let decoder = CanonicalHuffmanDecoder::new(alphabet, bit_lens);
-                decoder.decode(core_data_reader)
-            }
-        }
-        Integer::Beta(offset, len) => core_data_reader.read_u32(*len).map(|i| (i as i32 - offset)),
-        Integer::Gamma(offset) => {
-            let mut n = 0;
-
-            while core_data_reader.read_bit()? == 0 {
-                n += 1;
-            }
-
-            let m = core_data_reader.read_u32(n)? as i32;
-            let x = (1 << n) + m;
-
-            Ok(x - offset)
-        }
-        _ => todo!("decode_itf8: {:?}", encoding),
-    }
-}
-
 fn decode_byte_array<CDR, EDR>(
     encoding: &Encoding<ByteArray>,
     core_data_reader: &mut BitReader<CDR>,
@@ -1061,7 +928,7 @@ where
 {
     match encoding.get() {
         ByteArray::ByteArrayLen(len_encoding, value_encoding) => {
-            let len = decode_itf8(len_encoding, core_data_reader, external_data_readers)?;
+            let len = len_encoding.decode(core_data_reader, external_data_readers)?;
 
             let mut buf = vec![0; len as usize];
 
@@ -1104,6 +971,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use crate::data_container::compression_header::encoding::codec::Integer;
+
     use super::*;
 
     #[test]
@@ -1128,43 +997,6 @@ mod tests {
             0x0d,
         )?;
         t(&Encoding::new(Byte::Huffman(vec![0x4e], vec![0])), 0x4e)?;
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_decode_itf8() -> io::Result<()> {
-        fn t(
-            core_data: Option<&[u8]>,
-            encoding: &Encoding<Integer>,
-            expected: i32,
-        ) -> io::Result<()> {
-            let core_data = core_data.unwrap_or(&[0b10000000]);
-            let mut core_data_reader = BitReader::new(core_data);
-
-            let external_data = [0x0d];
-            let mut external_data_readers = ExternalDataReaders::new();
-            external_data_readers.insert(block::ContentId::from(1), &external_data[..]);
-
-            let actual = decode_itf8(encoding, &mut core_data_reader, &mut external_data_readers)?;
-
-            assert_eq!(expected, actual);
-
-            Ok(())
-        }
-
-        t(
-            None,
-            &Encoding::new(Integer::External(block::ContentId::from(1))),
-            13,
-        )?;
-        t(
-            None,
-            &Encoding::new(Integer::Huffman(vec![0x4e], vec![0])),
-            0x4e,
-        )?;
-        t(None, &Encoding::new(Integer::Beta(1, 3)), 3)?;
-        t(Some(&[0b00011010]), &Encoding::new(Integer::Gamma(5)), 8)?;
 
         Ok(())
     }
