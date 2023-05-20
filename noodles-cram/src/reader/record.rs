@@ -16,9 +16,7 @@ use crate::{
     container::block,
     data_container::{
         compression_header::{
-            data_series_encoding_map::DataSeries,
-            encoding::{codec::ByteArray, Encoding},
-            preservation_map::tag_ids_dictionary,
+            data_series_encoding_map::DataSeries, preservation_map::tag_ids_dictionary,
         },
         slice::chunk::RecordMut,
         CompressionHeader, ReferenceSequenceContext,
@@ -35,7 +33,6 @@ use crate::{
 pub enum ReadRecordError {
     MissingDataSeriesEncoding(DataSeries),
     MissingTagEncoding(tag_ids_dictionary::Key),
-    MissingExternalBlock(block::ContentId),
 }
 
 impl error::Error for ReadRecordError {}
@@ -47,9 +44,6 @@ impl fmt::Display for ReadRecordError {
                 write!(f, "missing data series encoding: {data_series:?}")
             }
             Self::MissingTagEncoding(key) => write!(f, "missing tag encoding: {key:?}"),
-            Self::MissingExternalBlock(block_content_id) => {
-                write!(f, "missing external block: {block_content_id}")
-            }
         }
     }
 }
@@ -244,7 +238,7 @@ where
     fn read_read_name(&mut self) -> io::Result<Option<sam::record::ReadName>> {
         use sam::record::read_name::MISSING;
 
-        let encoding = self
+        let buf = self
             .compression_header
             .data_series_encoding_map()
             .read_names_encoding()
@@ -253,13 +247,8 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::ReadNames),
                 )
-            })?;
-
-        let buf = decode_byte_array(
-            encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )?;
+            })?
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)?;
 
         match &buf[..] {
             MISSING => Ok(None),
@@ -411,6 +400,7 @@ where
 
         for &key in tag_keys {
             let id = block::ContentId::from(key);
+
             let encoding = tag_encoding_map.get(&id).ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -418,11 +408,8 @@ where
                 )
             })?;
 
-            let data = decode_byte_array(
-                encoding,
-                &mut self.core_data_reader,
-                &mut self.external_data_readers,
-            )?;
+            let data =
+                encoding.decode(&mut self.core_data_reader, &mut self.external_data_readers)?;
 
             let mut data_reader = &data[..];
             let value = get_value(&mut data_reader, key.ty())
@@ -586,7 +573,7 @@ where
     }
 
     fn read_stretches_of_bases(&mut self) -> io::Result<Vec<Base>> {
-        let encoding = self
+        let raw_bases = self
             .compression_header
             .data_series_encoding_map()
             .stretches_of_bases_encoding()
@@ -595,13 +582,8 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::StretchesOfBases),
                 )
-            })?;
-
-        let raw_bases = decode_byte_array(
-            encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )?;
+            })?
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)?;
 
         raw_bases
             .into_iter()
@@ -610,7 +592,7 @@ where
     }
 
     fn read_stretches_of_quality_scores(&mut self) -> io::Result<Vec<Score>> {
-        let encoding = self
+        let scores = self
             .compression_header
             .data_series_encoding_map()
             .stretches_of_quality_scores_encoding()
@@ -621,13 +603,8 @@ where
                         DataSeries::StretchesOfQualityScores,
                     ),
                 )
-            })?;
-
-        let scores = decode_byte_array(
-            encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )?;
+            })?
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)?;
 
         scores
             .into_iter()
@@ -679,7 +656,7 @@ where
     }
 
     fn read_insertion(&mut self) -> io::Result<Vec<Base>> {
-        let encoding = self
+        let raw_bases = self
             .compression_header
             .data_series_encoding_map()
             .insertion_encoding()
@@ -688,13 +665,8 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::Insertion),
                 )
-            })?;
-
-        let raw_bases = decode_byte_array(
-            encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )?;
+            })?
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)?;
 
         raw_bases
             .into_iter()
@@ -735,7 +707,7 @@ where
     }
 
     fn read_soft_clip(&mut self) -> io::Result<Vec<Base>> {
-        let encoding = self
+        let raw_bases = self
             .compression_header
             .data_series_encoding_map()
             .soft_clip_encoding()
@@ -744,13 +716,8 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::SoftClip),
                 )
-            })?;
-
-        let raw_bases = decode_byte_array(
-            encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )?;
+            })?
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)?;
 
         raw_bases
             .into_iter()
@@ -852,111 +819,5 @@ where
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok(sam::record::QualityScores::from(scores))
-    }
-}
-
-fn decode_byte_array<CDR, EDR>(
-    encoding: &Encoding<ByteArray>,
-    core_data_reader: &mut BitReader<CDR>,
-    external_data_readers: &mut ExternalDataReaders<EDR>,
-) -> io::Result<Vec<u8>>
-where
-    CDR: Buf,
-    EDR: Buf,
-{
-    match encoding.get() {
-        ByteArray::ByteArrayLen(len_encoding, value_encoding) => {
-            let len = len_encoding.decode(core_data_reader, external_data_readers)?;
-
-            let mut buf = vec![0; len as usize];
-
-            for value in &mut buf {
-                *value = value_encoding.decode(core_data_reader, external_data_readers)?;
-            }
-
-            Ok(buf)
-        }
-        ByteArray::ByteArrayStop(stop_byte, block_content_id) => {
-            let src = external_data_readers
-                .get_mut(block_content_id)
-                .ok_or_else(|| {
-                    io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        ReadRecordError::MissingExternalBlock(*block_content_id),
-                    )
-                })?;
-
-            let len = match src.chunk().iter().position(|&b| b == *stop_byte) {
-                Some(i) => i,
-                None => {
-                    return Err(io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        "missing byte array stop byte",
-                    ))
-                }
-            };
-
-            let mut buf = vec![0; len];
-            src.copy_to_slice(&mut buf);
-
-            // Discard the stop byte.
-            src.advance(1);
-
-            Ok(buf)
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::data_container::compression_header::encoding::codec::{Byte, Integer};
-
-    use super::*;
-
-    #[test]
-    fn test_decode_byte_array() -> io::Result<()> {
-        fn t(
-            external_data: &[u8],
-            encoding: &Encoding<ByteArray>,
-            expected: &[u8],
-        ) -> io::Result<()> {
-            let core_data = [];
-            let mut core_data_reader = BitReader::new(&core_data[..]);
-
-            let mut external_data_readers = ExternalDataReaders::new();
-            external_data_readers.insert(block::ContentId::from(1), external_data);
-
-            let actual =
-                decode_byte_array(encoding, &mut core_data_reader, &mut external_data_readers)?;
-
-            assert_eq!(expected, actual);
-
-            Ok(())
-        }
-
-        let len_encoding = Encoding::new(Integer::External(block::ContentId::from(1)));
-        let value_encoding = Encoding::new(Byte::External(block::ContentId::from(1)));
-        t(
-            &[0x04, 0x6e, 0x64, 0x6c, 0x73],
-            &Encoding::new(ByteArray::ByteArrayLen(len_encoding, value_encoding)),
-            b"ndls",
-        )?;
-
-        t(
-            &[0x6e, 0x64, 0x6c, 0x73, 0x00],
-            &Encoding::new(ByteArray::ByteArrayStop(0x00, block::ContentId::from(1))),
-            b"ndls",
-        )?;
-
-        assert!(matches!(
-            t(
-                &[0x6e, 0x64, 0x6c, 0x73],
-                &Encoding::new(ByteArray::ByteArrayStop(0x00, block::ContentId::from(1))),
-                b""
-            ),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData
-        ));
-
-        Ok(())
     }
 }
