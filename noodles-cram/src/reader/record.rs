@@ -17,16 +17,12 @@ use crate::{
     data_container::{
         compression_header::{
             data_series_encoding_map::DataSeries,
-            encoding::{
-                codec::{Byte, ByteArray},
-                Encoding,
-            },
+            encoding::{codec::ByteArray, Encoding},
             preservation_map::tag_ids_dictionary,
         },
         slice::chunk::RecordMut,
         CompressionHeader, ReferenceSequenceContext,
     },
-    huffman::CanonicalHuffmanDecoder,
     io::BitReader,
     record::{
         feature::{self, substitution},
@@ -557,8 +553,7 @@ where
     }
 
     fn read_feature_code(&mut self) -> io::Result<feature::Code> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .read_features_codes_encoding()
             .ok_or_else(|| {
@@ -566,16 +561,12 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::ReadFeaturesCodes),
                 )
-            })?;
-
-        decode_byte(
-            encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
-        .and_then(|id| {
-            feature::Code::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })
+            })?
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)
+            .and_then(|id| {
+                feature::Code::try_from(id)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })
     }
 
     fn read_feature_position(&mut self) -> io::Result<usize> {
@@ -645,8 +636,7 @@ where
     }
 
     fn read_base(&mut self) -> io::Result<Base> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .bases_encoding()
             .ok_or_else(|| {
@@ -654,19 +644,15 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::Bases),
                 )
-            })?;
-
-        decode_byte(
-            encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
-        .and_then(|n| Base::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+            })?
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)
+            .and_then(|n| {
+                Base::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })
     }
 
     fn read_quality_score(&mut self) -> io::Result<u8> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .quality_scores_encoding()
             .ok_or_else(|| {
@@ -674,18 +660,12 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::QualityScores),
                 )
-            })?;
-
-        decode_byte(
-            encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
+            })?
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)
     }
 
     fn read_base_substitution_code(&mut self) -> io::Result<substitution::Value> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .base_substitution_codes_encoding()
             .ok_or_else(|| {
@@ -693,14 +673,9 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::BaseSubstitutionCodes),
                 )
-            })?;
-
-        decode_byte(
-            encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
-        .map(substitution::Value::Code)
+            })?
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)
+            .map(substitution::Value::Code)
     }
 
     fn read_insertion(&mut self) -> io::Result<Vec<Base>> {
@@ -880,43 +855,6 @@ where
     }
 }
 
-fn decode_byte<CDR, EDR>(
-    encoding: &Encoding<Byte>,
-    core_data_reader: &mut BitReader<CDR>,
-    external_data_readers: &mut ExternalDataReaders<EDR>,
-) -> io::Result<u8>
-where
-    CDR: Buf,
-    EDR: Buf,
-{
-    match encoding.get() {
-        Byte::External(block_content_id) => {
-            let src = external_data_readers
-                .get_mut(block_content_id)
-                .ok_or_else(|| {
-                    io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        ReadRecordError::MissingExternalBlock(*block_content_id),
-                    )
-                })?;
-
-            if !src.has_remaining() {
-                return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-            }
-
-            Ok(src.get_u8())
-        }
-        Byte::Huffman(alphabet, bit_lens) => {
-            if alphabet.len() == 1 {
-                Ok(alphabet[0] as u8)
-            } else {
-                let decoder = CanonicalHuffmanDecoder::new(alphabet, bit_lens);
-                decoder.decode(core_data_reader).map(|i| i as u8)
-            }
-        }
-    }
-}
-
 fn decode_byte_array<CDR, EDR>(
     encoding: &Encoding<ByteArray>,
     core_data_reader: &mut BitReader<CDR>,
@@ -933,7 +871,7 @@ where
             let mut buf = vec![0; len as usize];
 
             for value in &mut buf {
-                *value = decode_byte(value_encoding, core_data_reader, external_data_readers)?;
+                *value = value_encoding.decode(core_data_reader, external_data_readers)?;
             }
 
             Ok(buf)
@@ -971,35 +909,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::data_container::compression_header::encoding::codec::Integer;
+    use crate::data_container::compression_header::encoding::codec::{Byte, Integer};
 
     use super::*;
-
-    #[test]
-    fn test_decode_byte() -> io::Result<()> {
-        fn t(encoding: &Encoding<Byte>, expected: u8) -> io::Result<()> {
-            let core_data = [0b10000000];
-            let mut core_data_reader = BitReader::new(&core_data[..]);
-
-            let external_data = [0x0d];
-            let mut external_data_readers = ExternalDataReaders::new();
-            external_data_readers.insert(block::ContentId::from(1), &external_data[..]);
-
-            let actual = decode_byte(encoding, &mut core_data_reader, &mut external_data_readers)?;
-
-            assert_eq!(expected, actual);
-
-            Ok(())
-        }
-
-        t(
-            &Encoding::new(Byte::External(block::ContentId::from(1))),
-            0x0d,
-        )?;
-        t(&Encoding::new(Byte::Huffman(vec![0x4e], vec![0])), 0x4e)?;
-
-        Ok(())
-    }
 
     #[test]
     fn test_decode_byte_array() -> io::Result<()> {
