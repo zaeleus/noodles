@@ -1,10 +1,14 @@
-use std::io;
+use std::{collections::HashMap, io};
 
+use byteorder::WriteBytesExt;
 use bytes::Buf;
 
 use crate::{
-    container::block, data_container::compression_header::encoding::Decode,
-    huffman::CanonicalHuffmanDecoder, io::BitReader, reader::record::ExternalDataReaders,
+    container::block,
+    data_container::compression_header::encoding::{Decode, Encode},
+    huffman::CanonicalHuffmanDecoder,
+    io::{BitReader, BitWriter},
+    reader::record::ExternalDataReaders,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -52,6 +56,37 @@ impl Decode for Byte {
                     decoder.decode(core_data_reader).map(|i| i as u8)
                 }
             }
+        }
+    }
+}
+
+impl Encode for Byte {
+    type Value = u8;
+
+    fn encode<W, X>(
+        &self,
+        _core_data_writer: &mut BitWriter<W>,
+        external_data_writers: &mut HashMap<block::ContentId, X>,
+        value: &Self::Value,
+    ) -> io::Result<()>
+    where
+        W: io::Write,
+        X: io::Write,
+    {
+        match self {
+            Byte::External(block_content_id) => {
+                let writer = external_data_writers
+                    .get_mut(block_content_id)
+                    .ok_or_else(|| {
+                        io::Error::new(
+                            io::ErrorKind::InvalidData,
+                            format!("missing external block: {block_content_id}"),
+                        )
+                    })?;
+
+                writer.write_u8(*value)
+            }
+            _ => todo!("encode_byte: {:?}", self),
         }
     }
 }

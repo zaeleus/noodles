@@ -19,7 +19,7 @@ use crate::{
     data_container::{
         compression_header::{
             data_series_encoding_map::DataSeries,
-            encoding::codec::{Byte, ByteArray, Integer},
+            encoding::codec::{ByteArray, Integer},
             preservation_map::tag_ids_dictionary,
             Encoding,
         },
@@ -624,17 +624,12 @@ where
                     io::ErrorKind::InvalidData,
                     WriteRecordError::MissingDataSeriesEncoding(DataSeries::ReadFeaturesCodes),
                 )
-            })
-            .and_then(|encoding| {
-                let feature_code = u8::from(code);
-
-                encode_byte(
-                    encoding,
-                    self.core_data_writer,
-                    self.external_data_writers,
-                    feature_code,
-                )
-            })
+            })?
+            .encode(
+                self.core_data_writer,
+                self.external_data_writers,
+                &u8::from(code),
+            )
     }
 
     fn write_feature_position(&mut self, position: usize) -> io::Result<()> {
@@ -707,8 +702,7 @@ where
     }
 
     fn write_base(&mut self, base: Base) -> io::Result<()> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .bases_encoding()
             .ok_or_else(|| {
@@ -716,21 +710,16 @@ where
                     io::ErrorKind::InvalidData,
                     WriteRecordError::MissingDataSeriesEncoding(DataSeries::Bases),
                 )
-            })?;
-
-        let raw_base = u8::from(base);
-
-        encode_byte(
-            encoding,
-            self.core_data_writer,
-            self.external_data_writers,
-            raw_base,
-        )
+            })?
+            .encode(
+                self.core_data_writer,
+                self.external_data_writers,
+                &u8::from(base),
+            )
     }
 
     fn write_quality_score(&mut self, quality_score: Score) -> io::Result<()> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .quality_scores_encoding()
             .ok_or_else(|| {
@@ -738,16 +727,12 @@ where
                     io::ErrorKind::InvalidData,
                     WriteRecordError::MissingDataSeriesEncoding(DataSeries::QualityScores),
                 )
-            })?;
-
-        let score = u8::from(quality_score);
-
-        encode_byte(
-            encoding,
-            self.core_data_writer,
-            self.external_data_writers,
-            score,
-        )
+            })?
+            .encode(
+                self.core_data_writer,
+                self.external_data_writers,
+                &u8::from(quality_score),
+            )
     }
 
     fn write_base_substitution_code(&mut self, value: substitution::Value) -> io::Result<()> {
@@ -779,12 +764,7 @@ where
             }
         };
 
-        encode_byte(
-            encoding,
-            self.core_data_writer,
-            self.external_data_writers,
-            code,
-        )
+        encoding.encode(self.core_data_writer, self.external_data_writers, &code)
     }
 
     fn write_insertion(&mut self, bases: &[Base]) -> io::Result<()> {
@@ -963,33 +943,6 @@ where
     }
 }
 
-fn encode_byte<W, X>(
-    encoding: &Encoding<Byte>,
-    _core_data_writer: &mut BitWriter<W>,
-    external_data_writers: &mut HashMap<block::ContentId, X>,
-    value: u8,
-) -> io::Result<()>
-where
-    W: Write,
-    X: Write,
-{
-    match encoding.get() {
-        Byte::External(block_content_id) => {
-            let writer = external_data_writers
-                .get_mut(block_content_id)
-                .ok_or_else(|| {
-                    io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        WriteRecordError::MissingExternalBlock(*block_content_id),
-                    )
-                })?;
-
-            writer.write_u8(value)
-        }
-        _ => todo!("encode_byte: {:?}", encoding),
-    }
-}
-
 fn encode_itf8<W, X>(
     encoding: &Encoding<Integer>,
     _core_data_writer: &mut BitWriter<W>,
@@ -1033,13 +986,8 @@ where
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
             encode_itf8(len_encoding, core_data_writer, external_data_writers, len)?;
 
-            for &value in data {
-                encode_byte(
-                    value_encoding,
-                    core_data_writer,
-                    external_data_writers,
-                    value,
-                )?;
+            for value in data {
+                value_encoding.encode(core_data_writer, external_data_writers, value)?;
             }
 
             Ok(())

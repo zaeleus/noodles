@@ -5,9 +5,16 @@ use bytes::Buf;
 
 pub use self::kind::Kind;
 
-use std::io;
+use std::{
+    collections::HashMap,
+    io::{self, Write},
+};
 
-use crate::{io::BitReader, reader::record::ExternalDataReaders};
+use crate::{
+    container::block,
+    io::{BitReader, BitWriter},
+    reader::record::ExternalDataReaders,
+};
 
 pub trait Decode {
     type Value;
@@ -20,6 +27,20 @@ pub trait Decode {
     where
         R: Buf,
         S: Buf;
+}
+
+pub trait Encode {
+    type Value;
+
+    fn encode<W, X>(
+        &self,
+        core_data_writer: &mut BitWriter<W>,
+        external_data_writers: &mut HashMap<block::ContentId, X>,
+        value: &Self::Value,
+    ) -> io::Result<()>
+    where
+        W: Write,
+        X: Write;
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -49,5 +70,24 @@ where
         S: Buf,
     {
         self.get().decode(core_data_reader, external_data_readers)
+    }
+}
+
+impl<C> Encoding<C>
+where
+    C: Encode,
+{
+    pub fn encode<W, X>(
+        &self,
+        core_data_writer: &mut BitWriter<W>,
+        external_data_writers: &mut HashMap<block::ContentId, X>,
+        value: &C::Value,
+    ) -> io::Result<()>
+    where
+        W: Write,
+        X: Write,
+    {
+        self.get()
+            .encode(core_data_writer, external_data_writers, value)
     }
 }
