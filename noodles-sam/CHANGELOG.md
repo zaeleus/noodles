@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * sam/record/data/field/tag: Add base modification sequence length (`MN`) tag
+    (`BASE_MODIFICATION_SEQUENCE_LENGTH`).
+
 ## 0.30.0 - 2023-05-18
 
 ### Changed

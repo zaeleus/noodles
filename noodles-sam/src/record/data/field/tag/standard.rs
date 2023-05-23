@@ -74,6 +74,8 @@ pub enum Standard {
     BaseModificationProbabilities,
     /// (`MM`).
     BaseModifications,
+    /// (`MN`).
+    BaseModificationSequenceLength,
     /// (`MQ`).
     MateMappingQuality,
     /// (`NH`).
@@ -168,6 +170,7 @@ impl AsRef<[u8; LENGTH]> for Standard {
             Self::UmiId => b"MI",
             Self::BaseModificationProbabilities => b"ML",
             Self::BaseModifications => b"MM",
+            Self::BaseModificationSequenceLength => b"MN",
             Self::MateMappingQuality => b"MQ",
             Self::AlignmentHitCount => b"NH",
             Self::EditDistance => b"NM",
@@ -239,6 +242,7 @@ impl TryFrom<[u8; LENGTH]> for Standard {
             b"MI" => Ok(Self::UmiId),
             b"ML" => Ok(Self::BaseModificationProbabilities),
             b"MM" => Ok(Self::BaseModifications),
+            b"MN" => Ok(Self::BaseModificationSequenceLength),
             b"MQ" => Ok(Self::MateMappingQuality),
             b"NH" => Ok(Self::AlignmentHitCount),
             b"NM" => Ok(Self::EditDistance),

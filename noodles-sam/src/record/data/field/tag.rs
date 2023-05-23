@@ -118,6 +118,10 @@ pub const BASE_MODIFICATION_PROBABILITIES: Tag =
 /// Base modifications / methylation (`MM`).
 pub const BASE_MODIFICATIONS: Tag = Tag::Standard(Standard::BaseModifications);
 
+/// Length of sequence at the time `MM` and `ML` were produced (`MN`).
+pub const BASE_MODIFICATION_SEQUENCE_LENGTH: Tag =
+    Tag::Standard(Standard::BaseModificationSequenceLength);
+
 /// Mapping quality of the mate/next segment (`MQ`).
 pub const MATE_MAPPING_QUALITY: Tag = Tag::Standard(Standard::MateMappingQuality);
 
@@ -414,6 +418,7 @@ mod tests {
         assert_eq!("MI".parse(), Ok(UMI_ID));
         assert_eq!("ML".parse(), Ok(BASE_MODIFICATION_PROBABILITIES));
         assert_eq!("MM".parse(), Ok(BASE_MODIFICATIONS));
+        assert_eq!("MN".parse(), Ok(BASE_MODIFICATION_SEQUENCE_LENGTH));
         assert_eq!("MQ".parse(), Ok(MATE_MAPPING_QUALITY));
         assert_eq!("NH".parse(), Ok(ALIGNMENT_HIT_COUNT));
         assert_eq!("NM".parse(), Ok(EDIT_DISTANCE));
