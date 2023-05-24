@@ -29,14 +29,14 @@ pub trait Decode {
         S: Buf;
 }
 
-pub trait Encode {
+pub trait Encode<'en> {
     type Value;
 
     fn encode<W, X>(
         &self,
         core_data_writer: &mut BitWriter<W>,
         external_data_writers: &mut HashMap<block::ContentId, X>,
-        value: &Self::Value,
+        value: Self::Value,
     ) -> io::Result<()>
     where
         W: Write,
@@ -73,15 +73,15 @@ where
     }
 }
 
-impl<C> Encoding<C>
+impl<'en, C> Encoding<C>
 where
-    C: Encode,
+    C: Encode<'en>,
 {
     pub fn encode<W, X>(
         &self,
         core_data_writer: &mut BitWriter<W>,
         external_data_writers: &mut HashMap<block::ContentId, X>,
-        value: &C::Value,
+        value: C::Value,
     ) -> io::Result<()>
     where
         W: Write,

@@ -85,14 +85,14 @@ impl Decode for Integer {
     }
 }
 
-impl Encode for Integer {
+impl<'en> Encode<'en> for Integer {
     type Value = i32;
 
     fn encode<W, X>(
         &self,
         _core_data_writer: &mut BitWriter<W>,
         external_data_writers: &mut HashMap<block::ContentId, X>,
-        value: &Self::Value,
+        value: Self::Value,
     ) -> io::Result<()>
     where
         W: Write,
@@ -109,7 +109,7 @@ impl Encode for Integer {
                         )
                     })?;
 
-                write_itf8(writer, *value)
+                write_itf8(writer, value)
             }
             _ => todo!("encode_itf8: {:?}", self),
         }

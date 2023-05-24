@@ -122,7 +122,7 @@ where
             .encode(
                 self.core_data_writer,
                 self.external_data_writers,
-                &bam_bit_flags,
+                bam_bit_flags,
             )
     }
 
@@ -135,7 +135,7 @@ where
             .encode(
                 self.core_data_writer,
                 self.external_data_writers,
-                &cram_bit_flags,
+                cram_bit_flags,
             )
     }
 
@@ -174,7 +174,7 @@ where
         encoding.encode(
             self.core_data_writer,
             self.external_data_writers,
-            &reference_id,
+            reference_id,
         )
     }
 
@@ -187,7 +187,7 @@ where
         let len = i32::try_from(read_length)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-        encoding.encode(self.core_data_writer, self.external_data_writers, &len)
+        encoding.encode(self.core_data_writer, self.external_data_writers, len)
     }
 
     fn write_alignment_start(&mut self, alignment_start: Option<Position>) -> io::Result<()> {
@@ -231,7 +231,7 @@ where
         encoding.encode(
             self.core_data_writer,
             self.external_data_writers,
-            &alignment_start_or_delta,
+            alignment_start_or_delta,
         )
     }
 
@@ -253,7 +253,7 @@ where
         encoding.encode(
             self.core_data_writer,
             self.external_data_writers,
-            &read_group,
+            read_group,
         )
     }
 
@@ -319,7 +319,7 @@ where
             .encode(
                 self.core_data_writer,
                 self.external_data_writers,
-                &next_mate_bit_flags,
+                next_mate_bit_flags,
             )
     }
 
@@ -352,7 +352,7 @@ where
         encoding.encode(
             self.core_data_writer,
             self.external_data_writers,
-            &raw_next_fragment_reference_sequence_id,
+            raw_next_fragment_reference_sequence_id,
         )
     }
 
@@ -378,7 +378,7 @@ where
         )
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        encoding.encode(self.core_data_writer, self.external_data_writers, &position)
+        encoding.encode(self.core_data_writer, self.external_data_writers, position)
     }
 
     fn write_template_size(&mut self, template_size: i32) -> io::Result<()> {
@@ -394,7 +394,7 @@ where
             .encode(
                 self.core_data_writer,
                 self.external_data_writers,
-                &template_size,
+                template_size,
             )
     }
 
@@ -416,7 +416,7 @@ where
         let n = i32::try_from(distance_to_next_fragment)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        encoding.encode(self.core_data_writer, self.external_data_writers, &n)
+        encoding.encode(self.core_data_writer, self.external_data_writers, n)
     }
 
     fn write_tag_data(&mut self, record: &Record) -> io::Result<()> {
@@ -481,7 +481,7 @@ where
         let n =
             i32::try_from(tag_line).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        encoding.encode(self.core_data_writer, self.external_data_writers, &n)
+        encoding.encode(self.core_data_writer, self.external_data_writers, n)
     }
 
     fn write_mapped_read(&mut self, record: &Record) -> io::Result<()> {
@@ -524,7 +524,7 @@ where
         encoding.encode(
             self.core_data_writer,
             self.external_data_writers,
-            &number_of_read_features,
+            number_of_read_features,
         )
     }
 
@@ -588,7 +588,7 @@ where
             .encode(
                 self.core_data_writer,
                 self.external_data_writers,
-                &u8::from(code),
+                u8::from(code),
             )
     }
 
@@ -607,7 +607,7 @@ where
         let position =
             i32::try_from(position).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        encoding.encode(self.core_data_writer, self.external_data_writers, &position)
+        encoding.encode(self.core_data_writer, self.external_data_writers, position)
     }
 
     fn write_stretches_of_bases(&mut self, bases: &[Base]) -> io::Result<()> {
@@ -669,7 +669,7 @@ where
             .encode(
                 self.core_data_writer,
                 self.external_data_writers,
-                &u8::from(base),
+                u8::from(base),
             )
     }
 
@@ -686,7 +686,7 @@ where
             .encode(
                 self.core_data_writer,
                 self.external_data_writers,
-                &u8::from(quality_score),
+                u8::from(quality_score),
             )
     }
 
@@ -719,7 +719,7 @@ where
             }
         };
 
-        encoding.encode(self.core_data_writer, self.external_data_writers, &code)
+        encoding.encode(self.core_data_writer, self.external_data_writers, code)
     }
 
     fn write_insertion(&mut self, bases: &[Base]) -> io::Result<()> {
@@ -758,7 +758,7 @@ where
 
         let n = i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        encoding.encode(self.core_data_writer, self.external_data_writers, &n)
+        encoding.encode(self.core_data_writer, self.external_data_writers, n)
     }
 
     fn write_reference_skip_length(&mut self, len: usize) -> io::Result<()> {
@@ -775,7 +775,7 @@ where
 
         let n = i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        encoding.encode(self.core_data_writer, self.external_data_writers, &n)
+        encoding.encode(self.core_data_writer, self.external_data_writers, n)
     }
 
     fn write_soft_clip(&mut self, bases: &[Base]) -> io::Result<()> {
@@ -814,7 +814,7 @@ where
 
         let n = i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        encoding.encode(self.core_data_writer, self.external_data_writers, &n)
+        encoding.encode(self.core_data_writer, self.external_data_writers, n)
     }
 
     fn write_hard_clip(&mut self, len: usize) -> io::Result<()> {
@@ -831,7 +831,7 @@ where
 
         let n = i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        encoding.encode(self.core_data_writer, self.external_data_writers, &n)
+        encoding.encode(self.core_data_writer, self.external_data_writers, n)
     }
 
     fn write_mapping_quality(
@@ -858,7 +858,7 @@ where
         encoding.encode(
             self.core_data_writer,
             self.external_data_writers,
-            &mapping_quality,
+            mapping_quality,
         )
     }
 
@@ -891,9 +891,9 @@ where
         ByteArray::ByteArrayLen(len_encoding, value_encoding) => {
             let len = i32::try_from(data.len())
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-            len_encoding.encode(core_data_writer, external_data_writers, &len)?;
+            len_encoding.encode(core_data_writer, external_data_writers, len)?;
 
-            for value in data {
+            for &value in data {
                 value_encoding.encode(core_data_writer, external_data_writers, value)?;
             }
 

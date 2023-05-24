@@ -60,14 +60,14 @@ impl Decode for Byte {
     }
 }
 
-impl Encode for Byte {
+impl<'en> Encode<'en> for Byte {
     type Value = u8;
 
     fn encode<W, X>(
         &self,
         _core_data_writer: &mut BitWriter<W>,
         external_data_writers: &mut HashMap<block::ContentId, X>,
-        value: &Self::Value,
+        value: Self::Value,
     ) -> io::Result<()>
     where
         W: io::Write,
@@ -84,7 +84,7 @@ impl Encode for Byte {
                         )
                     })?;
 
-                writer.write_u8(*value)
+                writer.write_u8(value)
             }
             _ => todo!("encode_byte: {:?}", self),
         }
