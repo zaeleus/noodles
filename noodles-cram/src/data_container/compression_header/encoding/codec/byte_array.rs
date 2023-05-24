@@ -1,11 +1,13 @@
 use std::io;
 
+use byteorder::WriteBytesExt;
+
 use crate::{
     container::block,
     data_container::compression_header::{
         encoding::{
             codec::{Byte, Integer},
-            Decode,
+            Decode, Encode,
         },
         Encoding,
     },
@@ -72,6 +74,50 @@ impl Decode for ByteArray {
                 src.advance(1);
 
                 Ok(buf)
+            }
+        }
+    }
+}
+
+impl<'en> Encode<'en> for ByteArray {
+    type Value = &'en [u8];
+
+    fn encode<W, X>(
+        &self,
+        core_data_writer: &mut crate::io::BitWriter<W>,
+        external_data_writers: &mut std::collections::HashMap<block::ContentId, X>,
+        value: Self::Value,
+    ) -> io::Result<()>
+    where
+        W: io::Write,
+        X: io::Write,
+    {
+        match self {
+            ByteArray::ByteArrayLen(len_encoding, value_encoding) => {
+                let len = i32::try_from(value.len())
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+                len_encoding.encode(core_data_writer, external_data_writers, len)?;
+
+                for &v in value {
+                    value_encoding.encode(core_data_writer, external_data_writers, v)?;
+                }
+
+                Ok(())
+            }
+            ByteArray::ByteArrayStop(stop_byte, block_content_id) => {
+                let writer = external_data_writers
+                    .get_mut(block_content_id)
+                    .ok_or_else(|| {
+                        io::Error::new(
+                            io::ErrorKind::InvalidInput,
+                            format!("missing external block: {block_content_id}"),
+                        )
+                    })?;
+
+                writer.write_all(value)?;
+                writer.write_u8(*stop_byte)?;
+
+                Ok(())
             }
         }
     }

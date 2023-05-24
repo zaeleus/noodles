@@ -4,8 +4,6 @@ use std::{
     io::{self, Write},
 };
 
-use byteorder::WriteBytesExt;
-
 use noodles_bam as bam;
 use noodles_core::Position;
 use noodles_sam::{
@@ -17,8 +15,7 @@ use crate::{
     container::block,
     data_container::{
         compression_header::{
-            data_series_encoding_map::DataSeries, encoding::codec::ByteArray,
-            preservation_map::tag_ids_dictionary, Encoding,
+            data_series_encoding_map::DataSeries, preservation_map::tag_ids_dictionary,
         },
         CompressionHeader, ReferenceSequenceContext,
     },
@@ -35,7 +32,6 @@ use crate::{
 pub enum WriteRecordError {
     MissingDataSeriesEncoding(DataSeries),
     MissingTagEncoding(tag_ids_dictionary::Key),
-    MissingExternalBlock(block::ContentId),
 }
 
 impl error::Error for WriteRecordError {}
@@ -47,9 +43,6 @@ impl fmt::Display for WriteRecordError {
                 write!(f, "missing data series encoding: {data_series:?}")
             }
             Self::MissingTagEncoding(key) => write!(f, "missing tag encoding: {key:?}"),
-            Self::MissingExternalBlock(block_content_id) => {
-                write!(f, "missing external block: {block_content_id}")
-            }
         }
     }
 }
@@ -273,12 +266,7 @@ where
 
         let read_name = read_name.map(|name| name.as_ref()).unwrap_or(MISSING);
 
-        encode_byte_array(
-            encoding,
-            self.core_data_writer,
-            self.external_data_writers,
-            read_name,
-        )
+        encoding.encode(self.core_data_writer, self.external_data_writers, read_name)
     }
 
     fn write_mate_data(&mut self, record: &Record) -> io::Result<()> {
@@ -461,12 +449,7 @@ where
             buf.clear();
             put_value(&mut buf, value)?;
 
-            encode_byte_array(
-                encoding,
-                self.core_data_writer,
-                self.external_data_writers,
-                &buf,
-            )?;
+            encoding.encode(self.core_data_writer, self.external_data_writers, &buf)?;
         }
 
         Ok(())
@@ -624,8 +607,7 @@ where
 
         let raw_bases: Vec<_> = bases.iter().copied().map(u8::from).collect();
 
-        encode_byte_array(
-            encoding,
+        encoding.encode(
             self.core_data_writer,
             self.external_data_writers,
             &raw_bases,
@@ -648,12 +630,7 @@ where
 
         let scores: Vec<_> = quality_scores.iter().copied().map(u8::from).collect();
 
-        encode_byte_array(
-            encoding,
-            self.core_data_writer,
-            self.external_data_writers,
-            &scores,
-        )
+        encoding.encode(self.core_data_writer, self.external_data_writers, &scores)
     }
 
     fn write_base(&mut self, base: Base) -> io::Result<()> {
@@ -736,8 +713,7 @@ where
 
         let raw_bases: Vec<_> = bases.iter().copied().map(u8::from).collect();
 
-        encode_byte_array(
-            encoding,
+        encoding.encode(
             self.core_data_writer,
             self.external_data_writers,
             &raw_bases,
@@ -792,8 +768,7 @@ where
 
         let raw_bases: Vec<_> = bases.iter().copied().map(u8::from).collect();
 
-        encode_byte_array(
-            encoding,
+        encoding.encode(
             self.core_data_writer,
             self.external_data_writers,
             &raw_bases,
@@ -874,45 +849,5 @@ where
         }
 
         Ok(())
-    }
-}
-
-fn encode_byte_array<W, X>(
-    encoding: &Encoding<ByteArray>,
-    core_data_writer: &mut BitWriter<W>,
-    external_data_writers: &mut HashMap<block::ContentId, X>,
-    data: &[u8],
-) -> io::Result<()>
-where
-    W: Write,
-    X: Write,
-{
-    match encoding.get() {
-        ByteArray::ByteArrayLen(len_encoding, value_encoding) => {
-            let len = i32::try_from(data.len())
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-            len_encoding.encode(core_data_writer, external_data_writers, len)?;
-
-            for &value in data {
-                value_encoding.encode(core_data_writer, external_data_writers, value)?;
-            }
-
-            Ok(())
-        }
-        ByteArray::ByteArrayStop(stop_byte, block_content_id) => {
-            let writer = external_data_writers
-                .get_mut(block_content_id)
-                .ok_or_else(|| {
-                    io::Error::new(
-                        io::ErrorKind::InvalidInput,
-                        WriteRecordError::MissingExternalBlock(*block_content_id),
-                    )
-                })?;
-
-            writer.write_all(data)?;
-            writer.write_u8(*stop_byte)?;
-
-            Ok(())
-        }
     }
 }
