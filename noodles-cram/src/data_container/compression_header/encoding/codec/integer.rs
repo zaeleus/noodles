@@ -1,13 +1,17 @@
-use std::io;
+use std::{
+    collections::HashMap,
+    io::{self, Write},
+};
 
 use bytes::Buf;
 
 use crate::{
     container::block,
-    data_container::compression_header::encoding::Decode,
+    data_container::compression_header::encoding::{Decode, Encode},
     huffman::CanonicalHuffmanDecoder,
-    io::BitReader,
+    io::{BitReader, BitWriter},
     reader::{num::get_itf8, record::ExternalDataReaders},
+    writer::num::write_itf8,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -77,6 +81,37 @@ impl Decode for Integer {
                 Ok(x - offset)
             }
             _ => todo!("decode_itf8: {:?}", self),
+        }
+    }
+}
+
+impl Encode for Integer {
+    type Value = i32;
+
+    fn encode<W, X>(
+        &self,
+        _core_data_writer: &mut BitWriter<W>,
+        external_data_writers: &mut HashMap<block::ContentId, X>,
+        value: &Self::Value,
+    ) -> io::Result<()>
+    where
+        W: Write,
+        X: Write,
+    {
+        match self {
+            Integer::External(block_content_id) => {
+                let writer = external_data_writers
+                    .get_mut(block_content_id)
+                    .ok_or_else(|| {
+                        io::Error::new(
+                            io::ErrorKind::InvalidData,
+                            format!("missing external block: {block_content_id}"),
+                        )
+                    })?;
+
+                write_itf8(writer, *value)
+            }
+            _ => todo!("encode_itf8: {:?}", self),
         }
     }
 }

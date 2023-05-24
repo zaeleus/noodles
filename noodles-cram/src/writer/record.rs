@@ -13,15 +13,12 @@ use noodles_sam::{
     record::{quality_scores::Score, sequence::Base},
 };
 
-use super::num::write_itf8;
 use crate::{
     container::block,
     data_container::{
         compression_header::{
-            data_series_encoding_map::DataSeries,
-            encoding::codec::{ByteArray, Integer},
-            preservation_map::tag_ids_dictionary,
-            Encoding,
+            data_series_encoding_map::DataSeries, encoding::codec::ByteArray,
+            preservation_map::tag_ids_dictionary, Encoding,
         },
         CompressionHeader, ReferenceSequenceContext,
     },
@@ -117,35 +114,29 @@ where
     }
 
     fn write_bam_bit_flags(&mut self, bam_flags: sam::record::Flags) -> io::Result<()> {
-        let encoding = self
-            .compression_header
-            .data_series_encoding_map()
-            .bam_bit_flags_encoding();
-
         let bam_bit_flags = i32::from(u16::from(bam_flags));
 
-        encode_itf8(
-            encoding,
-            self.core_data_writer,
-            self.external_data_writers,
-            bam_bit_flags,
-        )
+        self.compression_header
+            .data_series_encoding_map()
+            .bam_bit_flags_encoding()
+            .encode(
+                self.core_data_writer,
+                self.external_data_writers,
+                &bam_bit_flags,
+            )
     }
 
     fn write_cram_bit_flags(&mut self, flags: Flags) -> io::Result<()> {
-        let encoding = self
-            .compression_header
-            .data_series_encoding_map()
-            .cram_bit_flags_encoding();
-
         let cram_bit_flags = i32::from(u8::from(flags));
 
-        encode_itf8(
-            encoding,
-            self.core_data_writer,
-            self.external_data_writers,
-            cram_bit_flags,
-        )
+        self.compression_header
+            .data_series_encoding_map()
+            .cram_bit_flags_encoding()
+            .encode(
+                self.core_data_writer,
+                self.external_data_writers,
+                &cram_bit_flags,
+            )
     }
 
     fn write_positional_data(&mut self, record: &Record) -> io::Result<()> {
@@ -180,11 +171,10 @@ where
             UNMAPPED
         };
 
-        encode_itf8(
-            encoding,
+        encoding.encode(
             self.core_data_writer,
             self.external_data_writers,
-            reference_id,
+            &reference_id,
         )
     }
 
@@ -197,12 +187,7 @@ where
         let len = i32::try_from(read_length)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-        encode_itf8(
-            encoding,
-            self.core_data_writer,
-            self.external_data_writers,
-            len,
-        )
+        encoding.encode(self.core_data_writer, self.external_data_writers, &len)
     }
 
     fn write_alignment_start(&mut self, alignment_start: Option<Position>) -> io::Result<()> {
@@ -243,11 +228,10 @@ where
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
         };
 
-        encode_itf8(
-            encoding,
+        encoding.encode(
             self.core_data_writer,
             self.external_data_writers,
-            alignment_start_or_delta,
+            &alignment_start_or_delta,
         )
     }
 
@@ -266,11 +250,10 @@ where
             MISSING
         };
 
-        encode_itf8(
-            encoding,
+        encoding.encode(
             self.core_data_writer,
             self.external_data_writers,
-            read_group,
+            &read_group,
         )
     }
 
@@ -322,6 +305,8 @@ where
     }
 
     fn write_next_mate_bit_flags(&mut self, next_mate_flags: NextMateFlags) -> io::Result<()> {
+        let next_mate_bit_flags = i32::from(u8::from(next_mate_flags));
+
         self.compression_header
             .data_series_encoding_map()
             .next_mate_bit_flags_encoding()
@@ -330,17 +315,12 @@ where
                     io::ErrorKind::InvalidData,
                     WriteRecordError::MissingDataSeriesEncoding(DataSeries::NextMateBitFlags),
                 )
-            })
-            .and_then(|encoding| {
-                let next_mate_bit_flags = i32::from(u8::from(next_mate_flags));
-
-                encode_itf8(
-                    encoding,
-                    self.core_data_writer,
-                    self.external_data_writers,
-                    next_mate_bit_flags,
-                )
-            })
+            })?
+            .encode(
+                self.core_data_writer,
+                self.external_data_writers,
+                &next_mate_bit_flags,
+            )
     }
 
     fn write_next_fragment_reference_sequence_id(
@@ -369,11 +349,10 @@ where
                 UNMAPPED
             };
 
-        encode_itf8(
-            encoding,
+        encoding.encode(
             self.core_data_writer,
             self.external_data_writers,
-            raw_next_fragment_reference_sequence_id,
+            &raw_next_fragment_reference_sequence_id,
         )
     }
 
@@ -399,12 +378,7 @@ where
         )
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        encode_itf8(
-            encoding,
-            self.core_data_writer,
-            self.external_data_writers,
-            position,
-        )
+        encoding.encode(self.core_data_writer, self.external_data_writers, &position)
     }
 
     fn write_template_size(&mut self, template_size: i32) -> io::Result<()> {
@@ -416,15 +390,12 @@ where
                     io::ErrorKind::InvalidData,
                     WriteRecordError::MissingDataSeriesEncoding(DataSeries::TemplateSize),
                 )
-            })
-            .and_then(|encoding| {
-                encode_itf8(
-                    encoding,
-                    self.core_data_writer,
-                    self.external_data_writers,
-                    template_size,
-                )
-            })
+            })?
+            .encode(
+                self.core_data_writer,
+                self.external_data_writers,
+                &template_size,
+            )
     }
 
     fn write_distance_to_next_fragment(
@@ -445,12 +416,7 @@ where
         let n = i32::try_from(distance_to_next_fragment)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        encode_itf8(
-            encoding,
-            self.core_data_writer,
-            self.external_data_writers,
-            n,
-        )
+        encoding.encode(self.core_data_writer, self.external_data_writers, &n)
     }
 
     fn write_tag_data(&mut self, record: &Record) -> io::Result<()> {
@@ -515,12 +481,7 @@ where
         let n =
             i32::try_from(tag_line).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        encode_itf8(
-            encoding,
-            self.core_data_writer,
-            self.external_data_writers,
-            n,
-        )
+        encoding.encode(self.core_data_writer, self.external_data_writers, &n)
     }
 
     fn write_mapped_read(&mut self, record: &Record) -> io::Result<()> {
@@ -560,11 +521,10 @@ where
         let number_of_read_features = i32::try_from(feature_count)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        encode_itf8(
-            encoding,
+        encoding.encode(
             self.core_data_writer,
             self.external_data_writers,
-            number_of_read_features,
+            &number_of_read_features,
         )
     }
 
@@ -647,12 +607,7 @@ where
         let position =
             i32::try_from(position).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        encode_itf8(
-            encoding,
-            self.core_data_writer,
-            self.external_data_writers,
-            position,
-        )
+        encoding.encode(self.core_data_writer, self.external_data_writers, &position)
     }
 
     fn write_stretches_of_bases(&mut self, bases: &[Base]) -> io::Result<()> {
@@ -803,12 +758,7 @@ where
 
         let n = i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        encode_itf8(
-            encoding,
-            self.core_data_writer,
-            self.external_data_writers,
-            n,
-        )
+        encoding.encode(self.core_data_writer, self.external_data_writers, &n)
     }
 
     fn write_reference_skip_length(&mut self, len: usize) -> io::Result<()> {
@@ -825,12 +775,7 @@ where
 
         let n = i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        encode_itf8(
-            encoding,
-            self.core_data_writer,
-            self.external_data_writers,
-            n,
-        )
+        encoding.encode(self.core_data_writer, self.external_data_writers, &n)
     }
 
     fn write_soft_clip(&mut self, bases: &[Base]) -> io::Result<()> {
@@ -869,12 +814,7 @@ where
 
         let n = i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        encode_itf8(
-            encoding,
-            self.core_data_writer,
-            self.external_data_writers,
-            n,
-        )
+        encoding.encode(self.core_data_writer, self.external_data_writers, &n)
     }
 
     fn write_hard_clip(&mut self, len: usize) -> io::Result<()> {
@@ -891,12 +831,7 @@ where
 
         let n = i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        encode_itf8(
-            encoding,
-            self.core_data_writer,
-            self.external_data_writers,
-            n,
-        )
+        encoding.encode(self.core_data_writer, self.external_data_writers, &n)
     }
 
     fn write_mapping_quality(
@@ -920,11 +855,10 @@ where
                 .unwrap_or(sam::record::mapping_quality::MISSING),
         );
 
-        encode_itf8(
-            encoding,
+        encoding.encode(
             self.core_data_writer,
             self.external_data_writers,
-            mapping_quality,
+            &mapping_quality,
         )
     }
 
@@ -943,33 +877,6 @@ where
     }
 }
 
-fn encode_itf8<W, X>(
-    encoding: &Encoding<Integer>,
-    _core_data_writer: &mut BitWriter<W>,
-    external_data_writers: &mut HashMap<block::ContentId, X>,
-    value: i32,
-) -> io::Result<()>
-where
-    W: Write,
-    X: Write,
-{
-    match encoding.get() {
-        Integer::External(block_content_id) => {
-            let writer = external_data_writers
-                .get_mut(block_content_id)
-                .ok_or_else(|| {
-                    io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        WriteRecordError::MissingExternalBlock(*block_content_id),
-                    )
-                })?;
-
-            write_itf8(writer, value)
-        }
-        _ => todo!("encode_itf8: {:?}", encoding),
-    }
-}
-
 fn encode_byte_array<W, X>(
     encoding: &Encoding<ByteArray>,
     core_data_writer: &mut BitWriter<W>,
@@ -984,7 +891,7 @@ where
         ByteArray::ByteArrayLen(len_encoding, value_encoding) => {
             let len = i32::try_from(data.len())
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-            encode_itf8(len_encoding, core_data_writer, external_data_writers, len)?;
+            len_encoding.encode(core_data_writer, external_data_writers, &len)?;
 
             for value in data {
                 value_encoding.encode(core_data_writer, external_data_writers, value)?;
