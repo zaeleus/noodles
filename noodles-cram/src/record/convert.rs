@@ -146,7 +146,7 @@ impl Record {
         }
 
         let mut data = self.tags;
-        maybe_insert_read_group(&mut data, header.read_groups(), self.read_group)?;
+        maybe_insert_read_group(&mut data, header.read_groups(), self.read_group_id)?;
         builder = builder.set_data(data);
 
         Ok(builder.build())

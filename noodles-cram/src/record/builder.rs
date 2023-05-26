@@ -177,7 +177,7 @@ impl Builder {
             reference_sequence_id: self.reference_sequence_id,
             read_length: self.read_length,
             alignment_start: self.alignment_start,
-            read_group: self.read_group_id,
+            read_group_id: self.read_group_id,
             read_name: self.read_name,
             next_mate_bit_flags: self.next_mate_flags,
             next_fragment_reference_sequence_id: self.next_fragment_reference_sequence_id,

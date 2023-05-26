@@ -33,7 +33,7 @@ pub struct Record {
     pub(crate) reference_sequence_id: Option<usize>,
     pub(crate) read_length: usize,
     pub(crate) alignment_start: Option<Position>,
-    pub(crate) read_group: Option<usize>,
+    pub(crate) read_group_id: Option<usize>,
     pub(crate) read_name: Option<sam::record::ReadName>,
     pub(crate) next_mate_bit_flags: NextMateFlags,
     pub(crate) next_fragment_reference_sequence_id: Option<usize>,
@@ -125,7 +125,7 @@ impl Record {
     /// This is also simply called the read group. It is the position of the read group in the SAM
     /// header.
     pub fn read_group_id(&self) -> Option<usize> {
-        self.read_group
+        self.read_group_id
     }
 
     /// Returns the read name.

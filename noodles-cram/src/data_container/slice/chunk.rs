@@ -43,7 +43,7 @@ impl Chunk {
             .push(record.reference_sequence_id);
         self.read_lengths.push(record.read_length);
         self.alignment_starts.push(record.alignment_start);
-        self.read_group_ids.push(record.read_group);
+        self.read_group_ids.push(record.read_group_id);
         self.read_names.push(record.read_name);
         self.next_mate_bit_flags.push(record.next_mate_bit_flags);
         self.next_fragment_reference_sequence_ids
@@ -162,7 +162,7 @@ impl Chunk {
                         reference_sequence_id,
                         read_length,
                         alignment_start,
-                        read_group: read_group_id,
+                        read_group_id,
                         read_name,
                         next_mate_bit_flags,
                         next_fragment_reference_sequence_id,
