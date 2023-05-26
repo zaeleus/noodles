@@ -122,7 +122,7 @@ mod tests {
     use crate::data_container::compression_header::Encoding;
 
     #[test]
-    fn test_decode_itf8() -> io::Result<()> {
+    fn test_decode() -> io::Result<()> {
         fn t(
             core_data: Option<&[u8]>,
             encoding: &Encoding<Integer>,
