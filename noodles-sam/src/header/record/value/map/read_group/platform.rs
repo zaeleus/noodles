@@ -11,20 +11,20 @@ pub enum Platform {
     DnbSeq,
     /// Element Biosciences (`ELEMENT`).
     Element,
-    /// 454 Life Sciences sequencing (`LS454`).
-    Ls454,
-    /// Illumina sequencing (`ILLUMINA`).
-    Illumina,
-    /// SOLiD sequencing (`SOLID`).
-    Solid,
     /// Helicos sequencing (`HELICOS`).
     Helicos,
+    /// Illumina sequencing (`ILLUMINA`).
+    Illumina,
     /// Ion Torrent sequencing (`IONTORRENT`).
     IonTorrent,
+    /// 454 Life Sciences sequencing (`LS454`).
+    Ls454,
     /// Oxford Nanopore Technologies (ONT) sequencing (`ONT`).
     Ont,
     /// Pacific Biosciences (PacBio) sequencing (`PACBIO`).
     PacBio,
+    /// SOLiD sequencing (`SOLID`).
+    Solid,
     /// Ultima Genomics (`ULTIMA`).
     Ultima,
 }
@@ -35,13 +35,13 @@ impl AsRef<str> for Platform {
             Self::Capillary => "CAPILLARY",
             Self::DnbSeq => "DNBSEQ",
             Self::Element => "ELEMENT",
-            Self::Ls454 => "LS454",
-            Self::Illumina => "ILLUMINA",
-            Self::Solid => "SOLID",
             Self::Helicos => "HELICOS",
+            Self::Illumina => "ILLUMINA",
             Self::IonTorrent => "IONTORRENT",
+            Self::Ls454 => "LS454",
             Self::Ont => "ONT",
             Self::PacBio => "PACBIO",
+            Self::Solid => "SOLID",
             Self::Ultima => "ULTIMA",
         }
     }
@@ -101,13 +101,13 @@ impl FromStr for Platform {
             "CAPILLARY" => Ok(Self::Capillary),
             "DNBSEQ" => Ok(Self::DnbSeq),
             "ELEMENT" => Ok(Self::Element),
-            "LS454" => Ok(Self::Ls454),
-            "ILLUMINA" => Ok(Self::Illumina),
-            "SOLID" => Ok(Self::Solid),
             "HELICOS" => Ok(Self::Helicos),
+            "ILLUMINA" => Ok(Self::Illumina),
             "IONTORRENT" => Ok(Self::IonTorrent),
+            "LS454" => Ok(Self::Ls454),
             "ONT" => Ok(Self::Ont),
             "PACBIO" => Ok(Self::PacBio),
+            "SOLID" => Ok(Self::Solid),
             "ULTIMA" => Ok(Self::Ultima),
             _ => Err(ParseError::Invalid),
         }
@@ -123,13 +123,13 @@ mod tests {
         assert_eq!(Platform::Capillary.to_string(), "CAPILLARY");
         assert_eq!(Platform::DnbSeq.to_string(), "DNBSEQ");
         assert_eq!(Platform::Element.to_string(), "ELEMENT");
-        assert_eq!(Platform::Ls454.to_string(), "LS454");
-        assert_eq!(Platform::Illumina.to_string(), "ILLUMINA");
-        assert_eq!(Platform::Solid.to_string(), "SOLID");
         assert_eq!(Platform::Helicos.to_string(), "HELICOS");
+        assert_eq!(Platform::Illumina.to_string(), "ILLUMINA");
         assert_eq!(Platform::IonTorrent.to_string(), "IONTORRENT");
+        assert_eq!(Platform::Ls454.to_string(), "LS454");
         assert_eq!(Platform::Ont.to_string(), "ONT");
         assert_eq!(Platform::PacBio.to_string(), "PACBIO");
+        assert_eq!(Platform::Solid.to_string(), "SOLID");
         assert_eq!(Platform::Ultima.to_string(), "ULTIMA");
     }
 
@@ -138,13 +138,13 @@ mod tests {
         assert_eq!("CAPILLARY".parse(), Ok(Platform::Capillary));
         assert_eq!("DNBSEQ".parse(), Ok(Platform::DnbSeq));
         assert_eq!("ELEMENT".parse(), Ok(Platform::Element));
-        assert_eq!("LS454".parse(), Ok(Platform::Ls454));
-        assert_eq!("ILLUMINA".parse(), Ok(Platform::Illumina));
-        assert_eq!("SOLID".parse(), Ok(Platform::Solid));
         assert_eq!("HELICOS".parse(), Ok(Platform::Helicos));
+        assert_eq!("ILLUMINA".parse(), Ok(Platform::Illumina));
         assert_eq!("IONTORRENT".parse(), Ok(Platform::IonTorrent));
+        assert_eq!("LS454".parse(), Ok(Platform::Ls454));
         assert_eq!("ONT".parse(), Ok(Platform::Ont));
         assert_eq!("PACBIO".parse(), Ok(Platform::PacBio));
+        assert_eq!("SOLID".parse(), Ok(Platform::Solid));
         assert_eq!("ULTIMA".parse(), Ok(Platform::Ultima));
 
         assert_eq!("illumina".parse(), Ok(Platform::Illumina));
