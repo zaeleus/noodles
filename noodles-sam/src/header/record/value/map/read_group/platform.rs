@@ -23,6 +23,8 @@ pub enum Platform {
     Ont,
     /// Pacific Biosciences (PacBio) sequencing (`PACBIO`).
     PacBio,
+    /// Singular Genomics (`SINGULAR`).
+    Singular,
     /// SOLiD sequencing (`SOLID`).
     Solid,
     /// Ultima Genomics (`ULTIMA`).
@@ -41,6 +43,7 @@ impl AsRef<str> for Platform {
             Self::Ls454 => "LS454",
             Self::Ont => "ONT",
             Self::PacBio => "PACBIO",
+            Self::Singular => "SINGULAR",
             Self::Solid => "SOLID",
             Self::Ultima => "ULTIMA",
         }
@@ -107,6 +110,7 @@ impl FromStr for Platform {
             "LS454" => Ok(Self::Ls454),
             "ONT" => Ok(Self::Ont),
             "PACBIO" => Ok(Self::PacBio),
+            "SINGULAR" => Ok(Self::Singular),
             "SOLID" => Ok(Self::Solid),
             "ULTIMA" => Ok(Self::Ultima),
             _ => Err(ParseError::Invalid),
@@ -129,6 +133,7 @@ mod tests {
         assert_eq!(Platform::Ls454.to_string(), "LS454");
         assert_eq!(Platform::Ont.to_string(), "ONT");
         assert_eq!(Platform::PacBio.to_string(), "PACBIO");
+        assert_eq!(Platform::Singular.to_string(), "SINGULAR");
         assert_eq!(Platform::Solid.to_string(), "SOLID");
         assert_eq!(Platform::Ultima.to_string(), "ULTIMA");
     }
@@ -144,6 +149,7 @@ mod tests {
         assert_eq!("LS454".parse(), Ok(Platform::Ls454));
         assert_eq!("ONT".parse(), Ok(Platform::Ont));
         assert_eq!("PACBIO".parse(), Ok(Platform::PacBio));
+        assert_eq!("SINGULAR".parse(), Ok(Platform::Singular));
         assert_eq!("SOLID".parse(), Ok(Platform::Solid));
         assert_eq!("ULTIMA".parse(), Ok(Platform::Ultima));
 

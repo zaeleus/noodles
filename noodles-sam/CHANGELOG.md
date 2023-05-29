@@ -4,8 +4,13 @@
 
 ### Added
 
+  * sam/header/record/value/map/read_group/platform: Add Singular Genomics
+    (`SINGULAR`; [samtools/hts-specs@0dd3e0d]).
+
   * sam/record/data/field/tag: Add base modification sequence length (`MN`) tag
     (`BASE_MODIFICATION_SEQUENCE_LENGTH`).
+
+[samtools/hts-specs@0dd3e0d]: https://github.com/samtools/hts-specs/commit/0dd3e0d7c6f02b0627a29d6cbab777df07b4daad
 
 ## 0.30.0 - 2023-05-18
 
