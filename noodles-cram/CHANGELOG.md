@@ -4,6 +4,8 @@
 
 ### Changed
 
+  * cram: Update to async-compression 0.4.0.
+
   * cram: Update to libdeflater 0.14.0 (libdeflate 1.18).
 
 ## 0.30.0 - 2023-05-18

@@ -27,7 +27,7 @@ noodles-fasta = { path = "../noodles-fasta", version = "0.22.0" }
 noodles-sam = { path = "../noodles-sam", version = "0.30.0" }
 xz2 = "0.1.6"
 
-async-compression = { version = "0.3.8", optional = true, features = ["gzip", "tokio"] }
+async-compression = { version = "0.4.0", optional = true, features = ["gzip", "tokio"] }
 futures = { workspace = true, optional = true, features = ["std"] }
 pin-project-lite = { version = "0.2.6", optional = true }
 tokio = { workspace = true, optional = true, features = ["fs", "io-util"] }
