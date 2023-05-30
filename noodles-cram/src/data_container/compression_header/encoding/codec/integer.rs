@@ -157,4 +157,38 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_encode() -> io::Result<()> {
+        fn t(
+            encoding: &Encoding<Integer>,
+            value: i32,
+            expected_core_data: &[u8],
+            expected_external_data: &[u8],
+        ) -> io::Result<()> {
+            let mut core_data_writer = BitWriter::new(Vec::new());
+
+            let block_content_id = block::ContentId::from(1);
+            let mut external_data_writers = [(block_content_id, Vec::new())].into_iter().collect();
+
+            encoding.encode(&mut core_data_writer, &mut external_data_writers, value)?;
+
+            let actual_core_data = core_data_writer.finish()?;
+            assert_eq!(actual_core_data, expected_core_data);
+
+            let actual_external_data = &external_data_writers[&block_content_id];
+            assert_eq!(actual_external_data, expected_external_data);
+
+            Ok(())
+        }
+
+        t(
+            &Encoding::new(Integer::External(block::ContentId::from(1))),
+            0x0d,
+            &[],
+            &[0x0d],
+        )?;
+
+        Ok(())
+    }
 }
