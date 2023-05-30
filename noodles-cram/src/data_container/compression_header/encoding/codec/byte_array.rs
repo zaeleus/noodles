@@ -1,6 +1,10 @@
-use std::io;
+use std::{
+    collections::HashMap,
+    io::{self, Write},
+};
 
 use byteorder::WriteBytesExt;
+use bytes::Buf;
 
 use crate::{
     container::block,
@@ -11,7 +15,7 @@ use crate::{
         },
         Encoding,
     },
-    io::BitReader,
+    io::{BitReader, BitWriter},
     reader::record::ExternalDataReaders,
 };
 
@@ -32,8 +36,8 @@ impl Decode for ByteArray {
         external_data_readers: &mut ExternalDataReaders<S>,
     ) -> std::io::Result<Self::Value>
     where
-        R: bytes::Buf,
-        S: bytes::Buf,
+        R: Buf,
+        S: Buf,
     {
         match self {
             ByteArray::ByteArrayLen(len_encoding, value_encoding) => {
@@ -84,13 +88,13 @@ impl<'en> Encode<'en> for ByteArray {
 
     fn encode<W, X>(
         &self,
-        core_data_writer: &mut crate::io::BitWriter<W>,
-        external_data_writers: &mut std::collections::HashMap<block::ContentId, X>,
+        core_data_writer: &mut BitWriter<W>,
+        external_data_writers: &mut HashMap<block::ContentId, X>,
         value: Self::Value,
     ) -> io::Result<()>
     where
-        W: io::Write,
-        X: io::Write,
+        W: Write,
+        X: Write,
     {
         match self {
             ByteArray::ByteArrayLen(len_encoding, value_encoding) => {
