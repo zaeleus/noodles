@@ -176,4 +176,47 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_encode() -> io::Result<()> {
+        fn t(
+            encoding: &Encoding<ByteArray>,
+            value: &[u8],
+            expected_core_data: &[u8],
+            expected_external_data: &[u8],
+        ) -> io::Result<()> {
+            let mut core_data_writer = BitWriter::new(Vec::new());
+
+            let block_content_id = block::ContentId::from(1);
+            let mut external_data_writers = [(block_content_id, Vec::new())].into_iter().collect();
+
+            encoding.encode(&mut core_data_writer, &mut external_data_writers, value)?;
+
+            let actual_core_data = core_data_writer.finish()?;
+            assert_eq!(actual_core_data, expected_core_data);
+
+            let actual_external_data = &external_data_writers[&block_content_id];
+            assert_eq!(actual_external_data, expected_external_data);
+
+            Ok(())
+        }
+
+        let len_encoding = Encoding::new(Integer::External(block::ContentId::from(1)));
+        let value_encoding = Encoding::new(Byte::External(block::ContentId::from(1)));
+        t(
+            &Encoding::new(ByteArray::ByteArrayLen(len_encoding, value_encoding)),
+            &[b'n', b'd', b'l', b's'],
+            &[],
+            &[0x04, b'n', b'd', b'l', b's'],
+        )?;
+
+        t(
+            &Encoding::new(ByteArray::ByteArrayStop(0x00, block::ContentId::from(1))),
+            &[b'n', b'd', b'l', b's'],
+            &[],
+            &[b'n', b'd', b'l', b's', 0x00],
+        )?;
+
+        Ok(())
+    }
 }
