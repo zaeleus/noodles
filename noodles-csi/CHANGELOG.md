@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * csi/index/reference_sequence: Use the available linear index for the start
+    position of the first record in the last linear bin ([#172]).
+
+[#172]: https://github.com/zaeleus/noodles/issues/172
+
 ## 0.18.0 - 2023-05-18
 
 ### Added

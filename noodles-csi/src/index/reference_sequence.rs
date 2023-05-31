@@ -196,32 +196,55 @@ impl ReferenceSequence {
 
     /// Returns the start position of the first record in the last linear bin.
     ///
+    /// This uses the linear index, if available; otherwise, the largest linear offset of all the
+    /// bins is returned. If there is neither a linear index nor a collection of bins, this returns
+    /// `None`.
+    ///
     /// # Examples
     ///
     /// ```
     /// use noodles_bgzf as bgzf;
     /// use noodles_csi::index::{reference_sequence::Bin, ReferenceSequence};
     ///
-    /// let reference_sequence = ReferenceSequence::new(Default::default(), Vec::new(), None);
-    /// assert!(reference_sequence.first_record_in_last_linear_bin_start_position().is_none());
-    ///
-    /// let bins = [
-    ///     (0, Bin::new(bgzf::VirtualPosition::from(8), Vec::new())),
-    ///     (2, Bin::new(bgzf::VirtualPosition::from(21), Vec::new())),
-    ///     (9, Bin::new(bgzf::VirtualPosition::from(13), Vec::new())),
-    /// ]
-    /// .into_iter()
-    /// .collect();
-    ///
-    /// let reference_sequence = ReferenceSequence::new(bins, Vec::new(), None);
-    ///
+    /// let reference_sequence = ReferenceSequence::new(
+    ///     Default::default(),
+    ///     vec![
+    ///         bgzf::VirtualPosition::from(8),
+    ///         bgzf::VirtualPosition::from(13),
+    ///         bgzf::VirtualPosition::from(21),
+    ///     ],
+    ///     None,
+    /// );
     /// assert_eq!(
     ///     reference_sequence.first_record_in_last_linear_bin_start_position(),
     ///     Some(bgzf::VirtualPosition::from(21))
     /// );
+    ///
+    /// let reference_sequence = ReferenceSequence::new(
+    ///     [
+    ///         (0, Bin::new(bgzf::VirtualPosition::from(8), Vec::new())),
+    ///         (2, Bin::new(bgzf::VirtualPosition::from(21), Vec::new())),
+    ///         (9, Bin::new(bgzf::VirtualPosition::from(13), Vec::new())),
+    ///     ]
+    ///     .into_iter()
+    ///     .collect(),
+    ///     Vec::new(),
+    ///     None,
+    /// );
+    /// assert_eq!(
+    ///     reference_sequence.first_record_in_last_linear_bin_start_position(),
+    ///     Some(bgzf::VirtualPosition::from(21))
+    /// );
+    ///
+    /// let reference_sequence = ReferenceSequence::new(Default::default(), Vec::new(), None);
+    /// assert!(reference_sequence.first_record_in_last_linear_bin_start_position().is_none());
     /// ```
     pub fn first_record_in_last_linear_bin_start_position(&self) -> Option<bgzf::VirtualPosition> {
-        self.bins().values().map(|bin| bin.loffset()).max()
+        if self.linear_index().is_empty() {
+            self.bins().values().map(|bin| bin.loffset()).max()
+        } else {
+            self.linear_index().last().copied()
+        }
     }
 }
 
