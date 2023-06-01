@@ -16,7 +16,7 @@ use crate::{
     container::Block,
     io::BitReader,
     record::{
-        resolve::{resolve_bases, resolve_quality_scores},
+        resolve::{self, resolve_bases},
         Features,
     },
     Record,
@@ -142,7 +142,7 @@ impl Slice {
             records,
         )?;
 
-        self.resolve_quality_scores(records);
+        resolve_quality_scores(records);
 
         Ok(())
     }
@@ -276,20 +276,6 @@ impl Slice {
         }
 
         Ok(())
-    }
-
-    fn resolve_quality_scores(&self, records: &mut [Record]) {
-        for record in records {
-            if !record.flags().is_unmapped()
-                && !record.cram_flags().are_quality_scores_stored_as_array()
-            {
-                resolve_quality_scores(
-                    &record.features,
-                    record.read_length(),
-                    &mut record.quality_scores,
-                );
-            }
-        }
     }
 }
 
@@ -593,21 +579,17 @@ fn resolve_bases_chunk(
     Ok(())
 }
 
-#[allow(dead_code)]
-fn resolve_quality_scores_chunk(chunk: &mut Chunk) {
-    for ((((bam_bit_flags, cram_bit_flags), features), read_length), quality_scores) in chunk
-        .bam_bit_flags
-        .iter()
-        .zip(&chunk.cram_bit_flags)
-        .zip(&chunk.features)
-        .zip(&chunk.read_lengths)
-        .zip(&mut chunk.quality_scores)
-    {
-        if bam_bit_flags.is_unmapped() || cram_bit_flags.are_quality_scores_stored_as_array() {
-            continue;
+fn resolve_quality_scores(records: &mut [Record]) {
+    for record in records {
+        if !record.flags().is_unmapped()
+            && !record.cram_flags().are_quality_scores_stored_as_array()
+        {
+            resolve::resolve_quality_scores(
+                &record.features,
+                record.read_length(),
+                &mut record.quality_scores,
+            );
         }
-
-        resolve_quality_scores(features, *read_length, quality_scores);
     }
 }
 
@@ -843,12 +825,12 @@ mod tests {
     }
 
     #[test]
-    fn test_resolve_quality_scores_chunk() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_resolve_quality_scores() -> Result<(), Box<dyn std::error::Error>> {
         use sam::record::{quality_scores::Score, QualityScores};
 
         use crate::record::{Feature, Features};
 
-        let records = [
+        let mut records = [
             Record::builder()
                 .set_id(1)
                 .set_bam_flags(sam::record::Flags::empty())
@@ -867,13 +849,9 @@ mod tests {
                 .build(),
         ];
 
-        let mut chunk = Chunk::default();
+        resolve_quality_scores(&mut records);
 
-        for record in records {
-            chunk.push(record);
-        }
-
-        resolve_quality_scores_chunk(&mut chunk);
+        let actual: Vec<_> = records.into_iter().map(|r| r.quality_scores).collect();
 
         let expected = [
             QualityScores::try_from(vec![8, 13])?,
@@ -881,7 +859,7 @@ mod tests {
             QualityScores::try_from(vec![21, 34])?,
         ];
 
-        assert_eq!(chunk.quality_scores, expected);
+        assert_eq!(actual, expected);
 
         Ok(())
     }
