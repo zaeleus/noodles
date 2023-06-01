@@ -294,33 +294,22 @@ impl Slice {
 }
 
 fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
-    let mut mate_indices = vec![None; records.len()];
+    let mut mate_indices: Vec<_> = records
+        .iter()
+        .enumerate()
+        .map(|(i, record)| record.distance_to_next_fragment().map(|len| i + len + 1))
+        .collect();
 
-    for (i, record) in records.iter().enumerate() {
-        if let Some(distance_to_next_fragment) = record.distance_to_next_fragment() {
-            let mate_index = i + distance_to_next_fragment + 1;
-            mate_indices[i] = Some(mate_index);
-        }
-    }
-
-    let mut i = 0;
-
-    while i < records.len() - 1 {
+    for i in 0..records.len() {
         let record = &mut records[i];
 
         if record.read_name().is_none() {
-            let read_name = record
-                .id()
-                .to_string()
-                .parse()
-                .map(Some)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-            record.read_name = read_name;
+            // SAFETY: `u64::to_string` is always a valid read name.
+            let read_name = record.id().to_string().parse().unwrap();
+            record.read_name = Some(read_name);
         }
 
         if mate_indices[i].is_none() {
-            i += 1;
             continue;
         }
 
@@ -360,8 +349,6 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
             mate_indices[j] = None;
             j = mate_index;
         }
-
-        i += 1;
     }
 
     Ok(())
@@ -387,85 +374,6 @@ fn calculate_template_size(record: &Record, mate: &Record) -> i32 {
         mate.read_length(),
         mate.features(),
     )
-}
-
-#[allow(dead_code)]
-fn resolve_mates_chunk(chunk: &mut Chunk) -> io::Result<()> {
-    if chunk.is_empty() {
-        return Ok(());
-    }
-
-    let mut mate_indices: Vec<_> = chunk
-        .distances_to_next_fragment
-        .iter()
-        .enumerate()
-        .map(|(i, distance_to_next_fragment)| distance_to_next_fragment.map(|len| i + len + 1))
-        .collect();
-
-    for i in 0..chunk.len() {
-        if chunk.read_names[i].is_none() {
-            // SAFETY: `u64::to_string` is always a valid read name.
-            let read_name = chunk.ids[i].to_string().parse().unwrap();
-            chunk.read_names[i] = Some(read_name);
-        }
-
-        if mate_indices[i].is_none() {
-            continue;
-        }
-
-        let mut j = i;
-
-        while let Some(mate_index) = mate_indices[j] {
-            let mate_bam_bit_flags = chunk.bam_bit_flags[mate_index];
-
-            set_mate_chunk(
-                &mut chunk.bam_bit_flags[j],
-                &mut chunk.next_fragment_reference_sequence_ids[j],
-                &mut chunk.next_mate_alignment_starts[j],
-                mate_bam_bit_flags,
-                chunk.reference_sequence_ids[mate_index],
-                chunk.alignment_starts[mate_index],
-            );
-
-            if chunk.read_names[mate_index].is_none() {
-                chunk.read_names[mate_index] = chunk.read_names[j].clone();
-            }
-
-            j = mate_index;
-        }
-
-        let mate_bam_bit_flags = chunk.bam_bit_flags[j];
-
-        set_mate_chunk(
-            &mut chunk.bam_bit_flags[j],
-            &mut chunk.next_fragment_reference_sequence_ids[j],
-            &mut chunk.next_mate_alignment_starts[j],
-            mate_bam_bit_flags,
-            chunk.reference_sequence_ids[i],
-            chunk.alignment_starts[i],
-        );
-
-        let template_size = calculate_template_size_chunk(
-            chunk.alignment_starts[i],
-            chunk.read_lengths[i],
-            &chunk.features[i],
-            chunk.alignment_starts[j],
-            chunk.read_lengths[j],
-            &chunk.features[j],
-        );
-
-        chunk.template_sizes[i] = template_size;
-
-        let mut j = i;
-
-        while let Some(mate_index) = mate_indices[j] {
-            chunk.template_sizes[mate_index] = -template_size;
-            mate_indices[j] = None;
-            j = mate_index;
-        }
-    }
-
-    Ok(())
 }
 
 fn set_mate_chunk(
@@ -777,83 +685,6 @@ mod tests {
             records[0].alignment_start(),
         );
         assert_eq!(records[3].template_size(), -12);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_resolve_mates_chunk() -> Result<(), Box<dyn std::error::Error>> {
-        let records = [
-            Record::builder()
-                .set_id(1)
-                .set_flags(Flags::HAS_MATE_DOWNSTREAM)
-                .set_reference_sequence_id(2)
-                .set_read_length(4)
-                .set_alignment_start(Position::try_from(5)?)
-                .set_distance_to_next_fragment(0)
-                .build(),
-            Record::builder()
-                .set_id(2)
-                .set_flags(Flags::HAS_MATE_DOWNSTREAM)
-                .set_reference_sequence_id(2)
-                .set_read_length(4)
-                .set_alignment_start(Position::try_from(8)?)
-                .set_distance_to_next_fragment(1)
-                .build(),
-            Record::builder().set_id(3).build(),
-            Record::builder()
-                .set_id(4)
-                .set_reference_sequence_id(2)
-                .set_read_length(4)
-                .set_alignment_start(Position::try_from(13)?)
-                .build(),
-        ];
-
-        let mut chunk = Chunk::default();
-
-        for record in records {
-            chunk.push(record);
-        }
-
-        resolve_mates_chunk(&mut chunk)?;
-
-        let read_name_1 = ReadName::try_from(b"1".to_vec())?;
-
-        assert_eq!(chunk.read_names[0].as_ref(), Some(&read_name_1));
-        assert_eq!(
-            chunk.next_fragment_reference_sequence_ids[0],
-            chunk.reference_sequence_ids[1]
-        );
-        assert_eq!(
-            chunk.next_mate_alignment_starts[0],
-            chunk.alignment_starts[1]
-        );
-        assert_eq!(chunk.template_sizes[0], 12);
-
-        assert_eq!(chunk.read_names[1].as_ref(), Some(&read_name_1));
-        assert_eq!(
-            chunk.next_fragment_reference_sequence_ids[1],
-            chunk.reference_sequence_ids[3]
-        );
-        assert_eq!(
-            chunk.next_mate_alignment_starts[1],
-            chunk.alignment_starts[3],
-        );
-        assert_eq!(chunk.template_sizes[1], -12);
-
-        let read_name_3 = ReadName::try_from(b"3".to_vec())?;
-        assert_eq!(chunk.read_names[2].as_ref(), Some(&read_name_3));
-
-        assert_eq!(chunk.read_names[3].as_ref(), Some(&read_name_1));
-        assert_eq!(
-            chunk.next_fragment_reference_sequence_ids[3],
-            chunk.reference_sequence_ids[0]
-        );
-        assert_eq!(
-            chunk.next_mate_alignment_starts[3],
-            chunk.alignment_starts[0]
-        );
-        assert_eq!(chunk.template_sizes[3], -12);
 
         Ok(())
     }

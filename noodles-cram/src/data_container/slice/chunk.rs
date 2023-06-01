@@ -26,14 +26,6 @@ pub struct Chunk {
 }
 
 impl Chunk {
-    pub fn is_empty(&self) -> bool {
-        self.ids.is_empty()
-    }
-
-    pub fn len(&self) -> usize {
-        self.ids.len()
-    }
-
     #[cfg(test)]
     pub fn push(&mut self, record: crate::Record) {
         self.ids.push(record.id);
