@@ -26,32 +26,6 @@ pub struct Chunk {
 }
 
 impl Chunk {
-    #[cfg(test)]
-    pub fn push(&mut self, record: crate::Record) {
-        self.ids.push(record.id);
-        self.bam_bit_flags.push(record.bam_bit_flags);
-        self.cram_bit_flags.push(record.cram_bit_flags);
-        self.reference_sequence_ids
-            .push(record.reference_sequence_id);
-        self.read_lengths.push(record.read_length);
-        self.alignment_starts.push(record.alignment_start);
-        self.read_group_ids.push(record.read_group_id);
-        self.read_names.push(record.read_name);
-        self.next_mate_bit_flags.push(record.next_mate_bit_flags);
-        self.next_fragment_reference_sequence_ids
-            .push(record.next_fragment_reference_sequence_id);
-        self.next_mate_alignment_starts
-            .push(record.next_mate_alignment_start);
-        self.template_sizes.push(record.template_size);
-        self.distances_to_next_fragment
-            .push(record.distance_to_next_fragment);
-        self.tags.push(record.tags);
-        self.bases.push(record.bases);
-        self.features.push(record.features);
-        self.mapping_qualities.push(record.mapping_quality);
-        self.quality_scores.push(record.quality_scores);
-    }
-
     pub fn resize(&mut self, new_len: usize) {
         self.ids.resize(new_len, 0);
         self.bam_bit_flags
