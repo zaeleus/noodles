@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.23.0 - 2023-06-01
+
+### Changed
+
+  * fasta: Sync dependencies.
+
 ### Deprecated
 
   * fasta/fai/record: Deprecate `Record::len`.

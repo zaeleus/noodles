@@ -1,6 +1,6 @@
 [package]
 name = "noodles-bam"
-version = "0.33.0"
+version = "0.34.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
@@ -20,14 +20,14 @@ bytes.workspace = true
 futures = { workspace = true, optional = true, features = ["std"] }
 tokio = { workspace = true, optional = true, features = ["fs", "io-util"] }
 
-noodles-bgzf = { path = "../noodles-bgzf", version = "0.21.0" }
+noodles-bgzf = { path = "../noodles-bgzf", version = "0.22.0" }
 noodles-core = { path = "../noodles-core", version = "0.11.0" }
-noodles-csi = { path = "../noodles-csi", version = "0.18.0" }
-noodles-fasta = { path = "../noodles-fasta", version = "0.22.0" }
-noodles-sam = { path = "../noodles-sam", version = "0.30.0" }
+noodles-csi = { path = "../noodles-csi", version = "0.19.0" }
+noodles-fasta = { path = "../noodles-fasta", version = "0.23.0" }
+noodles-sam = { path = "../noodles-sam", version = "0.31.0" }
 
 [dev-dependencies]
-noodles-sam = { path = "../noodles-sam", version = "0.30.0", features = ["async"] }
+noodles-sam = { path = "../noodles-sam", version = "0.31.0", features = ["async"] }
 tokio = { workspace = true, features = ["io-std", "macros", "rt-multi-thread"] }
 
 [package.metadata.docs.rs]

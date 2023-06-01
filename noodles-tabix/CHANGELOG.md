@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.22.0 - 2023-06-01
+
+### Changed
+
+  * tabix: Sync dependencies.
+
 ## 0.21.0 - 2023-05-18
 
 ### Added
