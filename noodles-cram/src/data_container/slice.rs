@@ -1,5 +1,4 @@
 pub(crate) mod builder;
-pub(crate) mod chunk;
 pub(crate) mod header;
 
 pub use self::{builder::Builder, header::Header};
@@ -10,7 +9,6 @@ use noodles_core::Position;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
-use self::chunk::Chunk;
 use super::{CompressionHeader, ReferenceSequenceContext};
 use crate::{
     container::Block,
@@ -77,11 +75,6 @@ impl Slice {
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn records(&self, compression_header: &CompressionHeader) -> io::Result<Vec<Record>> {
-        self.chunk(compression_header)
-            .map(|chunk| chunk.into_record_bufs().collect())
-    }
-
-    fn chunk(&self, compression_header: &CompressionHeader) -> io::Result<Chunk> {
         use crate::reader::record::ExternalDataReaders;
 
         let core_data_reader = self
@@ -105,19 +98,18 @@ impl Slice {
 
         let record_count = self.header().record_count();
 
-        let mut chunk = Chunk::default();
-        chunk.resize(record_count);
+        let mut records = vec![Record::default(); record_count];
 
         let start_id = self.header().record_counter();
         let end_id = start_id + (record_count as u64);
         let ids = start_id..end_id;
 
-        for (id, mut record) in ids.zip(chunk.records_mut()) {
-            *record.id = id;
-            record_reader.read_record(&mut record)?;
+        for (id, record) in ids.zip(&mut records) {
+            record.id = id;
+            record_reader.read_record(record)?;
         }
 
-        Ok(chunk)
+        Ok(records)
     }
 
     /// Resolves records.

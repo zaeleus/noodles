@@ -18,7 +18,6 @@ use crate::{
         compression_header::{
             data_series_encoding_map::DataSeries, preservation_map::tag_ids_dictionary,
         },
-        slice::chunk::RecordMut,
         CompressionHeader, ReferenceSequenceContext,
     },
     io::BitReader,
@@ -26,6 +25,7 @@ use crate::{
         feature::{self, substitution},
         Feature, Flags, NextMateFlags,
     },
+    Record,
 };
 
 #[allow(clippy::enum_variant_names)]
@@ -85,18 +85,18 @@ where
         }
     }
 
-    pub fn read_record(&mut self, record: &mut RecordMut<'_>) -> io::Result<()> {
+    pub fn read_record(&mut self, record: &mut Record) -> io::Result<()> {
         let bam_bit_flags = self.read_bam_bit_flags()?;
-        *record.bam_bit_flags = bam_bit_flags;
+        record.bam_bit_flags = bam_bit_flags;
 
         let cram_bit_flags = self.read_cram_bit_flags()?;
-        *record.cram_bit_flags = cram_bit_flags;
+        record.cram_bit_flags = cram_bit_flags;
 
         let read_length = self.read_positional_data(record)?;
         self.read_read_names(record)?;
         self.read_mate_data(record, bam_bit_flags, cram_bit_flags)?;
 
-        *record.tags = self.read_tag_data()?;
+        record.tags = self.read_tag_data()?;
 
         if bam_bit_flags.is_unmapped() {
             self.read_unmapped_read(record, cram_bit_flags, read_length)?;
@@ -104,7 +104,7 @@ where
             self.read_mapped_read(record, cram_bit_flags, read_length)?;
         }
 
-        self.prev_alignment_start = *record.alignment_start;
+        self.prev_alignment_start = record.alignment_start;
 
         Ok(())
     }
@@ -131,18 +131,18 @@ where
             .map(Flags::from)
     }
 
-    fn read_positional_data(&mut self, record: &mut RecordMut<'_>) -> io::Result<usize> {
-        *record.reference_sequence_id = match self.reference_sequence_context {
+    fn read_positional_data(&mut self, record: &mut Record) -> io::Result<usize> {
+        record.reference_sequence_id = match self.reference_sequence_context {
             ReferenceSequenceContext::Some(context) => Some(context.reference_sequence_id()),
             ReferenceSequenceContext::None => None,
             ReferenceSequenceContext::Many => self.read_reference_id()?,
         };
 
         let read_length = self.read_read_length()?;
-        *record.read_length = read_length;
+        record.read_length = read_length;
 
-        *record.alignment_start = self.read_alignment_start()?;
-        *record.read_group_id = self.read_read_group()?;
+        record.alignment_start = self.read_alignment_start()?;
+        record.read_group_id = self.read_read_group()?;
 
         Ok(read_length)
     }
@@ -224,12 +224,12 @@ where
             })
     }
 
-    fn read_read_names(&mut self, record: &mut RecordMut<'_>) -> io::Result<()> {
+    fn read_read_names(&mut self, record: &mut Record) -> io::Result<()> {
         let preservation_map = self.compression_header.preservation_map();
 
         // Missing read names are generated when resolving mates.
         if preservation_map.read_names_included() {
-            *record.read_name = self.read_read_name()?;
+            record.read_name = self.read_read_name()?;
         }
 
         Ok(())
@@ -260,13 +260,13 @@ where
 
     fn read_mate_data(
         &mut self,
-        record: &mut RecordMut<'_>,
+        record: &mut Record,
         mut bam_flags: sam::record::Flags,
         flags: Flags,
     ) -> io::Result<()> {
         if flags.is_detached() {
             let next_mate_bit_flags = self.read_next_mate_bit_flags()?;
-            *record.next_mate_bit_flags = next_mate_bit_flags;
+            record.next_mate_bit_flags = next_mate_bit_flags;
 
             if next_mate_bit_flags.is_on_negative_strand() {
                 bam_flags |= sam::record::Flags::MATE_REVERSE_COMPLEMENTED;
@@ -276,21 +276,21 @@ where
                 bam_flags |= sam::record::Flags::MATE_UNMAPPED;
             }
 
-            *record.bam_bit_flags = bam_flags;
+            record.bam_bit_flags = bam_flags;
 
             let preservation_map = self.compression_header.preservation_map();
 
             if !preservation_map.read_names_included() {
-                *record.read_name = self.read_read_name()?;
+                record.read_name = self.read_read_name()?;
             }
 
-            *record.next_fragment_reference_sequence_id =
+            record.next_fragment_reference_sequence_id =
                 self.read_next_fragment_reference_sequence_id()?;
 
-            *record.next_mate_alignment_start = self.read_next_mate_alignment_start()?;
-            *record.template_size = self.read_template_size()?;
+            record.next_mate_alignment_start = self.read_next_mate_alignment_start()?;
+            record.template_size = self.read_template_size()?;
         } else if flags.has_mate_downstream() {
-            *record.distance_to_next_fragment = self.read_distance_to_next_fragment().map(Some)?;
+            record.distance_to_next_fragment = self.read_distance_to_next_fragment().map(Some)?;
         }
 
         Ok(())
@@ -434,7 +434,7 @@ where
 
     fn read_mapped_read(
         &mut self,
-        record: &mut RecordMut<'_>,
+        record: &mut Record,
         flags: Flags,
         read_length: usize,
     ) -> io::Result<()> {
@@ -448,10 +448,10 @@ where
             record.features.push(feature);
         }
 
-        *record.mapping_quality = self.read_mapping_quality()?;
+        record.mapping_quality = self.read_mapping_quality()?;
 
         if flags.are_quality_scores_stored_as_array() {
-            *record.quality_scores = self.read_quality_scores_stored_as_array(read_length)?;
+            record.quality_scores = self.read_quality_scores_stored_as_array(read_length)?;
         }
 
         Ok(())
@@ -776,7 +776,7 @@ where
 
     fn read_unmapped_read(
         &mut self,
-        record: &mut RecordMut<'_>,
+        record: &mut Record,
         flags: Flags,
         read_length: usize,
     ) -> io::Result<()> {
@@ -788,7 +788,7 @@ where
         }
 
         if flags.are_quality_scores_stored_as_array() {
-            *record.quality_scores = self.read_quality_scores_stored_as_array(read_length)?;
+            record.quality_scores = self.read_quality_scores_stored_as_array(read_length)?;
         }
 
         Ok(())
