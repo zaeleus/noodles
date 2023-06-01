@@ -35,7 +35,7 @@ impl fmt::Display for ParseError {
         match self {
             Self::Empty => write!(f, "empty input"),
             Self::LengthMismatch { actual, expected } => {
-                write!(f, "length mismatch: expeced {expected}, got {actual}")
+                write!(f, "length mismatch: expected {expected}, got {actual}")
             }
             Self::InvalidScore(_) => write!(f, "invalid score"),
         }
