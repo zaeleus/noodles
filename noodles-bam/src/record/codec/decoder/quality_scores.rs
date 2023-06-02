@@ -5,14 +5,14 @@ use noodles_sam::record::{quality_scores, QualityScores};
 
 /// An error when raw BAM record quality scores fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
+pub enum DecodeError {
     /// Unexpected EOF.
     UnexpectedEof,
     /// The input is invalid.
     Invalid(quality_scores::ParseError),
 }
 
-impl error::Error for ParseError {
+impl error::Error for DecodeError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::UnexpectedEof => None,
@@ -21,7 +21,7 @@ impl error::Error for ParseError {
     }
 }
 
-impl fmt::Display for ParseError {
+impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnexpectedEof => write!(f, "unexpected EOF"),
@@ -34,7 +34,7 @@ pub fn get_quality_scores<B>(
     src: &mut B,
     quality_scores: &mut QualityScores,
     l_seq: usize,
-) -> Result<(), ParseError>
+) -> Result<(), DecodeError>
 where
     B: Buf,
 {
@@ -44,7 +44,7 @@ where
     }
 
     if src.remaining() < l_seq {
-        return Err(ParseError::UnexpectedEof);
+        return Err(DecodeError::UnexpectedEof);
     }
 
     if is_missing_quality_scores(src.take(l_seq).chunk()) {
@@ -57,7 +57,7 @@ where
         buf.resize(l_seq, 0);
         src.copy_to_slice(&mut buf);
 
-        *quality_scores = QualityScores::try_from(buf).map_err(ParseError::Invalid)?;
+        *quality_scores = QualityScores::try_from(buf).map_err(DecodeError::Invalid)?;
     }
 
     Ok(())
@@ -75,7 +75,7 @@ mod tests {
 
     #[test]
     fn test_get_quality_scores() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(mut src: &[u8], expected: &QualityScores) -> Result<(), ParseError> {
+        fn t(mut src: &[u8], expected: &QualityScores) -> Result<(), DecodeError> {
             let mut actual = QualityScores::default();
             get_quality_scores(&mut src, &mut actual, expected.len())?;
             assert_eq!(&actual, expected);
@@ -89,7 +89,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_quality_scores_with_sequence_and_no_quality_scores() -> Result<(), ParseError> {
+    fn test_get_quality_scores_with_sequence_and_no_quality_scores() -> Result<(), DecodeError> {
         let data = [0xff, 0xff, 0xff, 0xff];
         let mut buf = &data[..];
 

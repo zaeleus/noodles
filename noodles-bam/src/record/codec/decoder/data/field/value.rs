@@ -12,7 +12,7 @@ use self::array::get_array;
 
 /// An error when a raw BAM record data field value fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
+pub enum DecodeError {
     /// Unexpected EOF.
     UnexpectedEof,
     /// The character is invalid.
@@ -24,10 +24,10 @@ pub enum ParseError {
     /// The hex is invalid.
     InvalidHex(hex::ParseError),
     /// The array subtype is invalid.
-    InvalidArray(array::ParseError),
+    InvalidArray(array::DecodeError),
 }
 
-impl error::Error for ParseError {
+impl error::Error for DecodeError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::InvalidCharacter(e) => Some(e),
@@ -39,7 +39,7 @@ impl error::Error for ParseError {
     }
 }
 
-impl fmt::Display for ParseError {
+impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnexpectedEof => write!(f, "unexpected EOF"),
@@ -52,7 +52,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub fn get_value<B>(src: &mut B, ty: Type) -> Result<Value, ParseError>
+pub fn get_value<B>(src: &mut B, ty: Type) -> Result<Value, DecodeError>
 where
     B: Buf,
 {
@@ -67,101 +67,101 @@ where
         Type::Float => get_f32(src),
         Type::String => get_string(src).map(Value::String),
         Type::Hex => get_hex(src),
-        Type::Array => get_array(src).map_err(ParseError::InvalidArray),
+        Type::Array => get_array(src).map_err(DecodeError::InvalidArray),
     }
 }
 
-fn get_char<B>(src: &mut B) -> Result<Value, ParseError>
+fn get_char<B>(src: &mut B) -> Result<Value, DecodeError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<u8>() {
-        return Err(ParseError::UnexpectedEof);
+        return Err(DecodeError::UnexpectedEof);
     }
 
     Character::try_from(src.get_u8())
         .map(Value::Character)
-        .map_err(ParseError::InvalidCharacter)
+        .map_err(DecodeError::InvalidCharacter)
 }
 
-fn get_i8<B>(src: &mut B) -> Result<Value, ParseError>
+fn get_i8<B>(src: &mut B) -> Result<Value, DecodeError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<i8>() {
-        return Err(ParseError::UnexpectedEof);
+        return Err(DecodeError::UnexpectedEof);
     }
 
     Ok(Value::Int8(src.get_i8()))
 }
 
-fn get_u8<B>(src: &mut B) -> Result<Value, ParseError>
+fn get_u8<B>(src: &mut B) -> Result<Value, DecodeError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<u8>() {
-        return Err(ParseError::UnexpectedEof);
+        return Err(DecodeError::UnexpectedEof);
     }
 
     Ok(Value::UInt8(src.get_u8()))
 }
 
-fn get_i16<B>(src: &mut B) -> Result<Value, ParseError>
+fn get_i16<B>(src: &mut B) -> Result<Value, DecodeError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<i16>() {
-        return Err(ParseError::UnexpectedEof);
+        return Err(DecodeError::UnexpectedEof);
     }
 
     Ok(Value::Int16(src.get_i16_le()))
 }
 
-fn get_u16<B>(src: &mut B) -> Result<Value, ParseError>
+fn get_u16<B>(src: &mut B) -> Result<Value, DecodeError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<u16>() {
-        return Err(ParseError::UnexpectedEof);
+        return Err(DecodeError::UnexpectedEof);
     }
 
     Ok(Value::UInt16(src.get_u16_le()))
 }
 
-fn get_i32<B>(src: &mut B) -> Result<Value, ParseError>
+fn get_i32<B>(src: &mut B) -> Result<Value, DecodeError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<i32>() {
-        return Err(ParseError::UnexpectedEof);
+        return Err(DecodeError::UnexpectedEof);
     }
 
     Ok(Value::Int32(src.get_i32_le()))
 }
 
-fn get_u32<B>(src: &mut B) -> Result<Value, ParseError>
+fn get_u32<B>(src: &mut B) -> Result<Value, DecodeError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<u32>() {
-        return Err(ParseError::UnexpectedEof);
+        return Err(DecodeError::UnexpectedEof);
     }
 
     Ok(Value::UInt32(src.get_u32_le()))
 }
 
-fn get_f32<B>(src: &mut B) -> Result<Value, ParseError>
+fn get_f32<B>(src: &mut B) -> Result<Value, DecodeError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<f32>() {
-        return Err(ParseError::UnexpectedEof);
+        return Err(DecodeError::UnexpectedEof);
     }
 
     Ok(Value::Float(src.get_f32_le()))
 }
 
-fn get_string<B>(src: &mut B) -> Result<String, ParseError>
+fn get_string<B>(src: &mut B) -> Result<String, DecodeError>
 where
     B: Buf,
 {
@@ -171,21 +171,21 @@ where
         .chunk()
         .iter()
         .position(|&b| b == NUL)
-        .ok_or(ParseError::StringNotNulTerminated)?;
+        .ok_or(DecodeError::StringNotNulTerminated)?;
 
     let mut buf = vec![0; len];
     src.copy_to_slice(&mut buf);
     src.advance(1); // Discard the NUL terminator.
 
-    String::from_utf8(buf).map_err(ParseError::InvalidString)
+    String::from_utf8(buf).map_err(DecodeError::InvalidString)
 }
 
-fn get_hex<B>(src: &mut B) -> Result<Value, ParseError>
+fn get_hex<B>(src: &mut B) -> Result<Value, DecodeError>
 where
     B: Buf,
 {
     get_string(src)
-        .and_then(|s| s.parse().map_err(ParseError::InvalidHex))
+        .and_then(|s| s.parse().map_err(DecodeError::InvalidHex))
         .map(Value::Hex)
 }
 
@@ -197,7 +197,7 @@ mod tests {
 
     #[test]
     fn test_get_value() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(mut data: &[u8], ty: Type, expected: Value) -> Result<(), ParseError> {
+        fn t(mut data: &[u8], ty: Type, expected: Value) -> Result<(), DecodeError> {
             let actual = get_value(&mut data, ty)?;
             assert_eq!(actual, expected);
             Ok(())

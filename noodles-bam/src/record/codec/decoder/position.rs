@@ -5,14 +5,14 @@ use noodles_core::Position;
 
 /// An error when raw BAM record flags fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
+pub enum DecodeError {
     /// Unexpected EOF.
     UnexpectedEof,
     /// The input is invalid.
     Invalid(num::TryFromIntError),
 }
 
-impl error::Error for ParseError {
+impl error::Error for DecodeError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::UnexpectedEof => None,
@@ -21,7 +21,7 @@ impl error::Error for ParseError {
     }
 }
 
-impl fmt::Display for ParseError {
+impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnexpectedEof => write!(f, "unexpected EOF"),
@@ -30,21 +30,21 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(crate) fn get_position<B>(src: &mut B) -> Result<Option<Position>, ParseError>
+pub(crate) fn get_position<B>(src: &mut B) -> Result<Option<Position>, DecodeError>
 where
     B: Buf,
 {
     const MISSING: i32 = -1;
 
     if src.remaining() < mem::size_of::<i32>() {
-        return Err(ParseError::UnexpectedEof);
+        return Err(DecodeError::UnexpectedEof);
     }
 
     match src.get_i32_le() {
         MISSING => Ok(None),
         n => usize::try_from(n)
             .map(|m| m + 1)
-            .map_err(ParseError::Invalid)
+            .map_err(DecodeError::Invalid)
             .map(Position::new),
     }
 }
@@ -64,13 +64,13 @@ mod tests {
         assert_eq!(get_position(&mut src), Ok(Some(Position::MIN)));
 
         let mut src = &[][..];
-        assert_eq!(get_position(&mut src), Err(ParseError::UnexpectedEof));
+        assert_eq!(get_position(&mut src), Err(DecodeError::UnexpectedEof));
 
         let data = (-2i32).to_le_bytes();
         let mut src = &data[..];
         assert!(matches!(
             get_position(&mut src),
-            Err(ParseError::Invalid(_))
+            Err(DecodeError::Invalid(_))
         ));
     }
 

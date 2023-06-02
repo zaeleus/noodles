@@ -9,18 +9,18 @@ use self::op::decode_op;
 
 /// An error when a raw BAM record CIGAR fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
+pub enum DecodeError {
     /// Unexpected EOF.
     UnexpectedEof,
     /// An op is invalid.
-    InvalidOp(op::ParseError),
+    InvalidOp(op::DecodeError),
     /// The reference sequence ID is invalid.
     InvalidReferenceSequence,
     /// The `CG` data field type is invalid.
     InvalidDataType,
 }
 
-impl error::Error for ParseError {
+impl error::Error for DecodeError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::InvalidOp(e) => Some(e),
@@ -29,7 +29,7 @@ impl error::Error for ParseError {
     }
 }
 
-impl fmt::Display for ParseError {
+impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnexpectedEof => write!(f, "unexpected EOF"),
@@ -40,29 +40,29 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(crate) fn get_op_count<B>(src: &mut B) -> Result<usize, ParseError>
+pub(crate) fn get_op_count<B>(src: &mut B) -> Result<usize, DecodeError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<u16>() {
-        return Err(ParseError::UnexpectedEof);
+        return Err(DecodeError::UnexpectedEof);
     }
 
     Ok(usize::from(src.get_u16_le()))
 }
 
-pub fn get_cigar<B>(src: &mut B, cigar: &mut Cigar, n_cigar_op: usize) -> Result<(), ParseError>
+pub fn get_cigar<B>(src: &mut B, cigar: &mut Cigar, n_cigar_op: usize) -> Result<(), DecodeError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<u32>() * n_cigar_op {
-        return Err(ParseError::UnexpectedEof);
+        return Err(DecodeError::UnexpectedEof);
     }
 
     cigar.clear();
 
     for _ in 0..n_cigar_op {
-        let op = decode_op(src.get_u32_le()).map_err(ParseError::InvalidOp)?;
+        let op = decode_op(src.get_u32_le()).map_err(DecodeError::InvalidOp)?;
         cigar.as_mut().push(op);
     }
 
@@ -70,7 +70,7 @@ where
 }
 
 // § 4.2.2 "`N_CIGAR_OP` field" (2022-08-22)
-pub(super) fn resolve(header: &sam::Header, record: &mut Record) -> Result<(), ParseError> {
+pub(super) fn resolve(header: &sam::Header, record: &mut Record) -> Result<(), DecodeError> {
     use sam::record::{
         cigar::{op::Kind, Op},
         data::field::{tag, value::Array},
@@ -80,7 +80,7 @@ pub(super) fn resolve(header: &sam::Header, record: &mut Record) -> Result<(), P
         let rs = record
             .reference_sequence(header)
             .transpose()
-            .map_err(|_| ParseError::InvalidReferenceSequence)?;
+            .map_err(|_| DecodeError::InvalidReferenceSequence)?;
 
         if let Some((_, reference_sequence)) = rs {
             let k = record.sequence().len();
@@ -94,13 +94,13 @@ pub(super) fn resolve(header: &sam::Header, record: &mut Record) -> Result<(), P
                             Array::UInt32(values) => Some(values),
                             _ => None,
                         })
-                        .ok_or(ParseError::InvalidDataType)?;
+                        .ok_or(DecodeError::InvalidDataType)?;
 
                     let cigar = record.cigar_mut();
                     cigar.clear();
 
                     for &n in data {
-                        let op = decode_op(n).map_err(ParseError::InvalidOp)?;
+                        let op = decode_op(n).map_err(DecodeError::InvalidOp)?;
                         cigar.as_mut().push(op);
                     }
                 }
@@ -124,7 +124,7 @@ mod tests {
         assert_eq!(get_op_count(&mut src), Ok(8));
 
         let mut src = &[][..];
-        assert_eq!(get_op_count(&mut src), Err(ParseError::UnexpectedEof));
+        assert_eq!(get_op_count(&mut src), Err(DecodeError::UnexpectedEof));
     }
 
     #[test]
@@ -134,7 +134,7 @@ mod tests {
             actual: &mut Cigar,
             n_cigar_op: usize,
             expected: &Cigar,
-        ) -> Result<(), ParseError> {
+        ) -> Result<(), DecodeError> {
             get_cigar(&mut src, actual, n_cigar_op)?;
             assert_eq!(actual, expected);
             Ok(())

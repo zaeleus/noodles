@@ -13,16 +13,16 @@ use self::{tag::get_tag, ty::get_type};
 
 /// An error when a raw BAM record data field fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
+pub enum DecodeError {
     /// The tag is invalid.
-    InvalidTag(tag::ParseError),
+    InvalidTag(tag::DecodeError),
     /// The type is invalid.
-    InvalidType(Tag, ty::ParseError),
+    InvalidType(Tag, ty::DecodeError),
     /// The value is invalid.
-    InvalidValue(Tag, value::ParseError),
+    InvalidValue(Tag, value::DecodeError),
 }
 
-impl ParseError {
+impl DecodeError {
     /// Returns the tag of the field that caused the failure.
     pub fn tag(&self) -> Option<Tag> {
         match self {
@@ -33,34 +33,34 @@ impl ParseError {
     }
 }
 
-impl error::Error for ParseError {
+impl error::Error for DecodeError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
-            ParseError::InvalidTag(e) => Some(e),
-            ParseError::InvalidType(_, e) => Some(e),
-            ParseError::InvalidValue(_, e) => Some(e),
+            DecodeError::InvalidTag(e) => Some(e),
+            DecodeError::InvalidType(_, e) => Some(e),
+            DecodeError::InvalidValue(_, e) => Some(e),
         }
     }
 }
 
-impl fmt::Display for ParseError {
+impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ParseError::InvalidTag(_) => write!(f, "invalid tag"),
-            ParseError::InvalidType(..) => write!(f, "invalid type"),
-            ParseError::InvalidValue(..) => write!(f, "invalid value"),
+            DecodeError::InvalidTag(_) => write!(f, "invalid tag"),
+            DecodeError::InvalidType(..) => write!(f, "invalid type"),
+            DecodeError::InvalidValue(..) => write!(f, "invalid value"),
         }
     }
 }
 
-pub(crate) fn get_field<B>(src: &mut B) -> Result<(Tag, Value), ParseError>
+pub(crate) fn get_field<B>(src: &mut B) -> Result<(Tag, Value), DecodeError>
 where
     B: Buf,
 {
-    let tag = get_tag(src).map_err(ParseError::InvalidTag)?;
+    let tag = get_tag(src).map_err(DecodeError::InvalidTag)?;
 
-    let ty = get_type(src).map_err(|e| ParseError::InvalidType(tag, e))?;
-    let value = get_value(src, ty).map_err(|e| ParseError::InvalidValue(tag, e))?;
+    let ty = get_type(src).map_err(|e| DecodeError::InvalidType(tag, e))?;
+    let value = get_value(src, ty).map_err(|e| DecodeError::InvalidValue(tag, e))?;
 
     Ok((tag, value))
 }
@@ -84,21 +84,21 @@ mod tests {
         let mut reader = &data[..];
         assert!(matches!(
             get_field(&mut reader),
-            Err(ParseError::InvalidTag(_))
+            Err(DecodeError::InvalidTag(_))
         ));
 
         let data = [b'N', b'H', b'z'];
         let mut reader = &data[..];
         assert!(matches!(
             get_field(&mut reader),
-            Err(ParseError::InvalidType(tag::ALIGNMENT_HIT_COUNT, _))
+            Err(DecodeError::InvalidType(tag::ALIGNMENT_HIT_COUNT, _))
         ));
 
         let data = [b'N', b'H', b'C'];
         let mut reader = &data[..];
         assert!(matches!(
             get_field(&mut reader),
-            Err(ParseError::InvalidValue(tag::ALIGNMENT_HIT_COUNT, _))
+            Err(DecodeError::InvalidValue(tag::ALIGNMENT_HIT_COUNT, _))
         ));
     }
 }

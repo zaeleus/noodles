@@ -5,14 +5,14 @@ use noodles_sam::record::MappingQuality;
 
 /// An error when a raw BAM record mapping quality fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
+pub enum DecodeError {
     /// Unexpected EOF.
     UnexpectedEof,
 }
 
-impl error::Error for ParseError {}
+impl error::Error for DecodeError {}
 
-impl fmt::Display for ParseError {
+impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnexpectedEof => write!(f, "unexpected EOF"),
@@ -20,12 +20,12 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub fn get_mapping_quality<B>(src: &mut B) -> Result<Option<MappingQuality>, ParseError>
+pub fn get_mapping_quality<B>(src: &mut B) -> Result<Option<MappingQuality>, DecodeError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<u8>() {
-        return Err(ParseError::UnexpectedEof);
+        return Err(DecodeError::UnexpectedEof);
     }
 
     Ok(MappingQuality::new(src.get_u8()))
@@ -48,7 +48,7 @@ mod tests {
         let mut src = &[][..];
         assert_eq!(
             get_mapping_quality(&mut src),
-            Err(ParseError::UnexpectedEof)
+            Err(DecodeError::UnexpectedEof)
         );
     }
 }

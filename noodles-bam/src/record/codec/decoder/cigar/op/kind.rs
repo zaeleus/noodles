@@ -4,14 +4,14 @@ use noodles_sam::record::cigar::op::Kind;
 
 /// An error when a raw BAM record CIGAR op kind fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
+pub enum DecodeError {
     /// The input is invalid.
     Invalid { actual: u8 },
 }
 
-impl error::Error for ParseError {}
+impl error::Error for DecodeError {}
 
-impl fmt::Display for ParseError {
+impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Invalid { actual } => write!(f, "invalid input: expected 0..=8, got {actual}"),
@@ -19,7 +19,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(super) fn decode_kind(n: u32) -> Result<Kind, ParseError> {
+pub(super) fn decode_kind(n: u32) -> Result<Kind, DecodeError> {
     match n & 0x0f {
         0 => Ok(Kind::Match),
         1 => Ok(Kind::Insertion),
@@ -30,7 +30,7 @@ pub(super) fn decode_kind(n: u32) -> Result<Kind, ParseError> {
         6 => Ok(Kind::Pad),
         7 => Ok(Kind::SequenceMatch),
         8 => Ok(Kind::SequenceMismatch),
-        n => Err(ParseError::Invalid {
+        n => Err(DecodeError::Invalid {
             // SAFETY: `n` is <= 15.
             actual: n as u8,
         }),
@@ -53,6 +53,6 @@ mod tests {
         assert_eq!(decode_kind(0x07), Ok(Kind::SequenceMatch));
         assert_eq!(decode_kind(0x08), Ok(Kind::SequenceMismatch));
 
-        assert_eq!(decode_kind(0x09), Err(ParseError::Invalid { actual: 9 }));
+        assert_eq!(decode_kind(0x09), Err(DecodeError::Invalid { actual: 9 }));
     }
 }

@@ -9,14 +9,14 @@ use noodles_sam::record::{data::field::Tag, Data};
 
 /// An error when raw BAM record data fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
+pub enum DecodeError {
     /// A tag is duplicated.
     DuplicateTag(Tag),
     /// A field is invalid.
-    InvalidField(field::ParseError),
+    InvalidField(field::DecodeError),
 }
 
-impl error::Error for ParseError {
+impl error::Error for DecodeError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::DuplicateTag(_) => None,
@@ -25,7 +25,7 @@ impl error::Error for ParseError {
     }
 }
 
-impl fmt::Display for ParseError {
+impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
@@ -42,17 +42,17 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(crate) fn get_data<B>(src: &mut B, data: &mut Data) -> Result<(), ParseError>
+pub(crate) fn get_data<B>(src: &mut B, data: &mut Data) -> Result<(), DecodeError>
 where
     B: Buf,
 {
     data.clear();
 
     while src.has_remaining() {
-        let (tag, value) = get_field(src).map_err(ParseError::InvalidField)?;
+        let (tag, value) = get_field(src).map_err(DecodeError::InvalidField)?;
 
         if let Some((t, _)) = data.insert(tag, value) {
-            return Err(ParseError::DuplicateTag(t));
+            return Err(DecodeError::DuplicateTag(t));
         }
     }
 
@@ -65,10 +65,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_data() -> Result<(), ParseError> {
+    fn test_get_data() -> Result<(), DecodeError> {
         use noodles_sam::record::data::field::{tag, Value};
 
-        fn t(mut src: &[u8], actual: &mut Data, expected: &Data) -> Result<(), ParseError> {
+        fn t(mut src: &[u8], actual: &mut Data, expected: &Data) -> Result<(), DecodeError> {
             get_data(&mut src, actual)?;
             assert_eq!(actual, expected);
             Ok(())
@@ -112,7 +112,7 @@ mod tests {
         let mut src = &data[..];
         assert_eq!(
             get_data(&mut src, &mut buf),
-            Err(ParseError::DuplicateTag(tag::ALIGNMENT_HIT_COUNT))
+            Err(DecodeError::DuplicateTag(tag::ALIGNMENT_HIT_COUNT))
         );
 
         Ok(())

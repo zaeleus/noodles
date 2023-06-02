@@ -12,14 +12,14 @@ use self::subtype::get_subtype;
 
 // An error when a raw BAM record data field array value fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
+pub enum DecodeError {
     /// The subtype is invalid.
-    InvalidSubtype(subtype::ParseError),
+    InvalidSubtype(subtype::DecodeError),
     /// The length is invalid.
     InvalidLength(num::TryFromIntError),
 }
 
-impl error::Error for ParseError {
+impl error::Error for DecodeError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::InvalidSubtype(e) => Some(e),
@@ -28,7 +28,7 @@ impl error::Error for ParseError {
     }
 }
 
-impl fmt::Display for ParseError {
+impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidSubtype(_) => write!(f, "invalid subtype"),
@@ -37,12 +37,12 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(super) fn get_array<B>(src: &mut B) -> Result<Value, ParseError>
+pub(super) fn get_array<B>(src: &mut B) -> Result<Value, DecodeError>
 where
     B: Buf,
 {
-    let subtype = get_subtype(src).map_err(ParseError::InvalidSubtype)?;
-    let len = usize::try_from(src.get_i32_le()).map_err(ParseError::InvalidLength)?;
+    let subtype = get_subtype(src).map_err(DecodeError::InvalidSubtype)?;
+    let len = usize::try_from(src.get_i32_le()).map_err(DecodeError::InvalidLength)?;
 
     match subtype {
         Subtype::Int8 => {

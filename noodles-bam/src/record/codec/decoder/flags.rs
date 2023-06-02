@@ -5,14 +5,14 @@ use noodles_sam::record::Flags;
 
 /// An error when raw BAM record flags fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
+pub enum DecodeError {
     /// Unexpected EOF.
     UnexpectedEof,
 }
 
-impl error::Error for ParseError {}
+impl error::Error for DecodeError {}
 
-impl fmt::Display for ParseError {
+impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnexpectedEof => write!(f, "unexpected EOF"),
@@ -20,12 +20,12 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(crate) fn get_flags<B>(src: &mut B) -> Result<Flags, ParseError>
+pub(crate) fn get_flags<B>(src: &mut B) -> Result<Flags, DecodeError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<u16>() {
-        return Err(ParseError::UnexpectedEof);
+        return Err(DecodeError::UnexpectedEof);
     }
 
     Ok(Flags::from(src.get_u16_le()))
@@ -44,9 +44,9 @@ mod tests {
         assert_eq!(get_flags(&mut src), Ok(Flags::UNMAPPED));
 
         let mut src = &[][..];
-        assert_eq!(get_flags(&mut src), Err(ParseError::UnexpectedEof));
+        assert_eq!(get_flags(&mut src), Err(DecodeError::UnexpectedEof));
 
         let mut src = &[0x00][..];
-        assert_eq!(get_flags(&mut src), Err(ParseError::UnexpectedEof));
+        assert_eq!(get_flags(&mut src), Err(DecodeError::UnexpectedEof));
     }
 }

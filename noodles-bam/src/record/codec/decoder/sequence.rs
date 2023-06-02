@@ -5,14 +5,14 @@ use noodles_sam::record::{sequence::Base, Sequence};
 
 /// An error when a raw BAM record sequence fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
+pub enum DecodeError {
     /// Unexpected EOF.
     UnexpectedEof,
     /// The length is invalid.
     InvalidLength(num::TryFromIntError),
 }
 
-impl error::Error for ParseError {
+impl error::Error for DecodeError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::UnexpectedEof => None,
@@ -21,7 +21,7 @@ impl error::Error for ParseError {
     }
 }
 
-impl fmt::Display for ParseError {
+impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnexpectedEof => write!(f, "unexpected EOF"),
@@ -30,25 +30,29 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(crate) fn get_length<B>(src: &mut B) -> Result<usize, ParseError>
+pub(crate) fn get_length<B>(src: &mut B) -> Result<usize, DecodeError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<u32>() {
-        return Err(ParseError::UnexpectedEof);
+        return Err(DecodeError::UnexpectedEof);
     }
 
-    usize::try_from(src.get_u32_le()).map_err(ParseError::InvalidLength)
+    usize::try_from(src.get_u32_le()).map_err(DecodeError::InvalidLength)
 }
 
-pub fn get_sequence<B>(src: &mut B, sequence: &mut Sequence, l_seq: usize) -> Result<(), ParseError>
+pub fn get_sequence<B>(
+    src: &mut B,
+    sequence: &mut Sequence,
+    l_seq: usize,
+) -> Result<(), DecodeError>
 where
     B: Buf,
 {
     let seq_len = (l_seq + 1) / 2;
 
     if src.remaining() < seq_len {
-        return Err(ParseError::UnexpectedEof);
+        return Err(DecodeError::UnexpectedEof);
     }
 
     let seq = src.take(seq_len);
@@ -98,12 +102,12 @@ mod tests {
         assert_eq!(get_length(&mut src), Ok(8));
 
         let mut src = &[][..];
-        assert_eq!(get_length(&mut src), Err(ParseError::UnexpectedEof));
+        assert_eq!(get_length(&mut src), Err(DecodeError::UnexpectedEof));
     }
 
     #[test]
     fn test_get_sequence() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(mut src: &[u8], buf: &mut Sequence, expected: &Sequence) -> Result<(), ParseError> {
+        fn t(mut src: &[u8], buf: &mut Sequence, expected: &Sequence) -> Result<(), DecodeError> {
             buf.clear();
             get_sequence(&mut src, buf, expected.len())?;
             assert_eq!(buf, expected);
@@ -120,7 +124,7 @@ mod tests {
         let mut src = &b""[..];
         assert_eq!(
             get_sequence(&mut src, &mut sequence, 4),
-            Err(ParseError::UnexpectedEof)
+            Err(DecodeError::UnexpectedEof)
         );
 
         Ok(())

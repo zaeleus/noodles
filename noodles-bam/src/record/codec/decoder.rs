@@ -26,34 +26,34 @@ use self::template_length::get_template_length;
 
 /// An error when a raw BAM record fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
+pub enum DecodeError {
     /// The reference sequence ID is invalid.
-    InvalidReferenceSequenceId(reference_sequence_id::ParseError),
+    InvalidReferenceSequenceId(reference_sequence_id::DecodeError),
     /// The position is invalid.
-    InvalidPosition(position::ParseError),
+    InvalidPosition(position::DecodeError),
     /// The mapping quality is invalid.
-    InvalidMappingQuality(mapping_quality::ParseError),
+    InvalidMappingQuality(mapping_quality::DecodeError),
     /// The flags are invalid.
-    InvalidFlags(flags::ParseError),
+    InvalidFlags(flags::DecodeError),
     /// The mate reference sequence ID is invalid.
-    InvalidMateReferenceSequenceId(reference_sequence_id::ParseError),
+    InvalidMateReferenceSequenceId(reference_sequence_id::DecodeError),
     /// The mate position is invalid.
-    InvalidMatePosition(position::ParseError),
+    InvalidMatePosition(position::DecodeError),
     /// The template length is invalid.
-    InvalidTemplateLength(template_length::ParseError),
+    InvalidTemplateLength(template_length::DecodeError),
     /// The read name is invalid.
-    InvalidReadName(read_name::ParseError),
+    InvalidReadName(read_name::DecodeError),
     /// The CIGAR is invalid.
-    InvalidCigar(cigar::ParseError),
+    InvalidCigar(cigar::DecodeError),
     /// The sequence is invalid.
-    InvalidSequence(sequence::ParseError),
+    InvalidSequence(sequence::DecodeError),
     /// The quality scores are invalid.
-    InvalidQualityScores(quality_scores::ParseError),
+    InvalidQualityScores(quality_scores::DecodeError),
     /// The data is invalid.
-    InvalidData(data::ParseError),
+    InvalidData(data::DecodeError),
 }
 
-impl error::Error for ParseError {
+impl error::Error for DecodeError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::InvalidReferenceSequenceId(e) => Some(e),
@@ -72,7 +72,7 @@ impl error::Error for ParseError {
     }
 }
 
-impl fmt::Display for ParseError {
+impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidReferenceSequenceId(_) => write!(f, "invalid reference sequence ID"),
@@ -97,48 +97,49 @@ pub(crate) fn decode_record<B>(
     src: &mut B,
     header: &sam::Header,
     record: &mut Record,
-) -> Result<(), ParseError>
+) -> Result<(), DecodeError>
 where
     B: Buf,
 {
     let n_ref = header.reference_sequences().len();
 
     *record.reference_sequence_id_mut() =
-        get_reference_sequence_id(src, n_ref).map_err(ParseError::InvalidReferenceSequenceId)?;
+        get_reference_sequence_id(src, n_ref).map_err(DecodeError::InvalidReferenceSequenceId)?;
 
-    *record.alignment_start_mut() = get_position(src).map_err(ParseError::InvalidPosition)?;
+    *record.alignment_start_mut() = get_position(src).map_err(DecodeError::InvalidPosition)?;
 
-    let l_read_name = read_name::get_length(src).map_err(ParseError::InvalidReadName)?;
+    let l_read_name = read_name::get_length(src).map_err(DecodeError::InvalidReadName)?;
 
     *record.mapping_quality_mut() =
-        get_mapping_quality(src).map_err(ParseError::InvalidMappingQuality)?;
+        get_mapping_quality(src).map_err(DecodeError::InvalidMappingQuality)?;
 
     // Discard bin.
     src.advance(mem::size_of::<u16>());
 
-    let n_cigar_op = cigar::get_op_count(src).map_err(ParseError::InvalidCigar)?;
+    let n_cigar_op = cigar::get_op_count(src).map_err(DecodeError::InvalidCigar)?;
 
-    *record.flags_mut() = get_flags(src).map_err(ParseError::InvalidFlags)?;
+    *record.flags_mut() = get_flags(src).map_err(DecodeError::InvalidFlags)?;
 
-    let l_seq = sequence::get_length(src).map_err(ParseError::InvalidSequence)?;
+    let l_seq = sequence::get_length(src).map_err(DecodeError::InvalidSequence)?;
 
     *record.mate_reference_sequence_id_mut() = get_reference_sequence_id(src, n_ref)
-        .map_err(ParseError::InvalidMateReferenceSequenceId)?;
+        .map_err(DecodeError::InvalidMateReferenceSequenceId)?;
 
     *record.mate_alignment_start_mut() =
-        get_position(src).map_err(ParseError::InvalidMatePosition)?;
+        get_position(src).map_err(DecodeError::InvalidMatePosition)?;
 
     *record.template_length_mut() =
-        get_template_length(src).map_err(ParseError::InvalidTemplateLength)?;
+        get_template_length(src).map_err(DecodeError::InvalidTemplateLength)?;
 
-    get_read_name(src, record.read_name_mut(), l_read_name).map_err(ParseError::InvalidReadName)?;
-    get_cigar(src, record.cigar_mut(), n_cigar_op).map_err(ParseError::InvalidCigar)?;
-    get_sequence(src, record.sequence_mut(), l_seq).map_err(ParseError::InvalidSequence)?;
+    get_read_name(src, record.read_name_mut(), l_read_name)
+        .map_err(DecodeError::InvalidReadName)?;
+    get_cigar(src, record.cigar_mut(), n_cigar_op).map_err(DecodeError::InvalidCigar)?;
+    get_sequence(src, record.sequence_mut(), l_seq).map_err(DecodeError::InvalidSequence)?;
     get_quality_scores(src, record.quality_scores_mut(), l_seq)
-        .map_err(ParseError::InvalidQualityScores)?;
-    get_data(src, record.data_mut()).map_err(ParseError::InvalidData)?;
+        .map_err(DecodeError::InvalidQualityScores)?;
+    get_data(src, record.data_mut()).map_err(DecodeError::InvalidData)?;
 
-    cigar::resolve(header, record).map_err(ParseError::InvalidCigar)?;
+    cigar::resolve(header, record).map_err(DecodeError::InvalidCigar)?;
 
     Ok(())
 }
@@ -161,7 +162,7 @@ mod tests {
 
         assert!(matches!(
             decode_record(&mut src, &header, &mut record),
-            Err(ParseError::InvalidReadName(_))
+            Err(DecodeError::InvalidReadName(_))
         ));
     }
 }

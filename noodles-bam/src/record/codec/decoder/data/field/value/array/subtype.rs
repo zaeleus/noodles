@@ -5,16 +5,16 @@ use noodles_sam::record::data::field::value::array::Subtype;
 
 /// An error when a raw BAM record data field value subtype fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
+pub enum DecodeError {
     /// Unexpected EOF.
     UnexpectedEof,
     /// The subtype is invalid.
     Invalid { actual: u8 },
 }
 
-impl error::Error for ParseError {}
+impl error::Error for DecodeError {}
 
-impl fmt::Display for ParseError {
+impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnexpectedEof => write!(f, "unexpected EOF"),
@@ -27,12 +27,12 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub fn get_subtype<B>(src: &mut B) -> Result<Subtype, ParseError>
+pub fn get_subtype<B>(src: &mut B) -> Result<Subtype, DecodeError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<u8>() {
-        return Err(ParseError::UnexpectedEof);
+        return Err(DecodeError::UnexpectedEof);
     }
 
     match src.get_u8() {
@@ -43,7 +43,7 @@ where
         b'i' => Ok(Subtype::Int32),
         b'I' => Ok(Subtype::UInt32),
         b'f' => Ok(Subtype::Float),
-        n => Err(ParseError::Invalid { actual: n }),
+        n => Err(DecodeError::Invalid { actual: n }),
     }
 }
 
@@ -52,8 +52,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_subtype() -> Result<(), ParseError> {
-        fn t(mut src: &[u8], expected: Subtype) -> Result<(), ParseError> {
+    fn test_get_subtype() -> Result<(), DecodeError> {
+        fn t(mut src: &[u8], expected: Subtype) -> Result<(), DecodeError> {
             assert_eq!(get_subtype(&mut src)?, expected);
             Ok(())
         }
@@ -68,13 +68,13 @@ mod tests {
 
         let data = b"";
         let mut src = &data[..];
-        assert_eq!(get_subtype(&mut src), Err(ParseError::UnexpectedEof));
+        assert_eq!(get_subtype(&mut src), Err(DecodeError::UnexpectedEof));
 
         let data = b"n";
         let mut src = &data[..];
         assert_eq!(
             get_subtype(&mut src),
-            Err(ParseError::Invalid { actual: b'n' })
+            Err(DecodeError::Invalid { actual: b'n' })
         );
 
         Ok(())

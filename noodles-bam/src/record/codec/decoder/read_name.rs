@@ -10,7 +10,7 @@ const NUL: u8 = 0x00;
 
 /// An error when a raw BAM record read name fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
+pub enum DecodeError {
     /// Unexpected EOF.
     UnexpectedEof,
     /// The length is invalid.
@@ -21,7 +21,7 @@ pub enum ParseError {
     Invalid(read_name::ParseError),
 }
 
-impl error::Error for ParseError {
+impl error::Error for DecodeError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::InvalidLength(e) => Some(e),
@@ -31,7 +31,7 @@ impl error::Error for ParseError {
     }
 }
 
-impl fmt::Display for ParseError {
+impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnexpectedEof => write!(f, "unexpected EOF"),
@@ -45,22 +45,22 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(crate) fn get_length<B>(src: &mut B) -> Result<NonZeroUsize, ParseError>
+pub(crate) fn get_length<B>(src: &mut B) -> Result<NonZeroUsize, DecodeError>
 where
     B: Buf,
 {
     if src.remaining() < mem::size_of::<u8>() {
-        return Err(ParseError::UnexpectedEof);
+        return Err(DecodeError::UnexpectedEof);
     }
 
-    NonZeroUsize::try_from(usize::from(src.get_u8())).map_err(ParseError::InvalidLength)
+    NonZeroUsize::try_from(usize::from(src.get_u8())).map_err(DecodeError::InvalidLength)
 }
 
 pub fn get_read_name<B>(
     src: &mut B,
     read_name: &mut Option<ReadName>,
     l_read_name: NonZeroUsize,
-) -> Result<(), ParseError>
+) -> Result<(), DecodeError>
 where
     B: Buf,
 {
@@ -69,7 +69,7 @@ where
     let len = usize::from(l_read_name);
 
     if src.remaining() < len {
-        return Err(ParseError::UnexpectedEof);
+        return Err(DecodeError::UnexpectedEof);
     }
 
     *read_name = if src.take(len).chunk() == MISSING {
@@ -85,12 +85,12 @@ where
         let terminator = src.get_u8();
 
         if terminator != NUL {
-            return Err(ParseError::MissingNulTerminator { actual: terminator });
+            return Err(DecodeError::MissingNulTerminator { actual: terminator });
         }
 
         ReadName::try_from(dst)
             .map(Some)
-            .map_err(ParseError::Invalid)?
+            .map_err(DecodeError::Invalid)?
     };
 
     Ok(())
@@ -106,12 +106,12 @@ mod tests {
         assert_eq!(get_length(&mut src), Ok(NonZeroUsize::try_from(8)?));
 
         let mut src = &[][..];
-        assert_eq!(get_length(&mut src), Err(ParseError::UnexpectedEof));
+        assert_eq!(get_length(&mut src), Err(DecodeError::UnexpectedEof));
 
         let mut src = &0i32.to_le_bytes()[..];
         assert!(matches!(
             get_length(&mut src),
-            Err(ParseError::InvalidLength(_))
+            Err(DecodeError::InvalidLength(_))
         ));
 
         Ok(())
@@ -119,7 +119,7 @@ mod tests {
 
     #[test]
     fn test_get_read_name() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(mut src: &[u8], expected: Option<ReadName>) -> Result<(), ParseError> {
+        fn t(mut src: &[u8], expected: Option<ReadName>) -> Result<(), DecodeError> {
             let mut actual = None;
             let l_read_name = NonZeroUsize::try_from(src.len()).unwrap();
             get_read_name(&mut src, &mut actual, l_read_name)?;
@@ -136,7 +136,7 @@ mod tests {
         let l_read_name = NonZeroUsize::try_from(data.len()).unwrap();
         assert_eq!(
             get_read_name(&mut src, &mut None, l_read_name),
-            Err(ParseError::MissingNulTerminator { actual: b'*' })
+            Err(DecodeError::MissingNulTerminator { actual: b'*' })
         );
 
         let data = [0xf0, 0x9f, 0x8d, 0x9c, 0x00]; // "🍜\x00"
@@ -144,7 +144,7 @@ mod tests {
         let l_read_name = NonZeroUsize::try_from(data.len()).unwrap();
         assert!(matches!(
             get_read_name(&mut src, &mut None, l_read_name),
-            Err(ParseError::Invalid(_))
+            Err(DecodeError::Invalid(_))
         ));
 
         Ok(())

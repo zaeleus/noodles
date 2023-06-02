@@ -5,14 +5,14 @@ use noodles_sam::record::data::field::{tag, Tag};
 
 /// An error when a raw BAM record data field tag fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
+pub enum DecodeError {
     /// Unexpected EOF.
     UnexpectedEof,
     /// The input is invalid.
     Invalid(tag::ParseError),
 }
 
-impl error::Error for ParseError {
+impl error::Error for DecodeError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::UnexpectedEof => None,
@@ -21,7 +21,7 @@ impl error::Error for ParseError {
     }
 }
 
-impl fmt::Display for ParseError {
+impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnexpectedEof => write!(f, "unexpected EOF"),
@@ -30,19 +30,19 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub fn get_tag<B>(src: &mut B) -> Result<Tag, ParseError>
+pub fn get_tag<B>(src: &mut B) -> Result<Tag, DecodeError>
 where
     B: Buf,
 {
     let mut buf = [0; 2];
 
     if src.remaining() < buf.len() {
-        return Err(ParseError::UnexpectedEof);
+        return Err(DecodeError::UnexpectedEof);
     }
 
     src.copy_to_slice(&mut buf);
 
-    Tag::try_from(buf).map_err(ParseError::Invalid)
+    Tag::try_from(buf).map_err(DecodeError::Invalid)
 }
 
 #[cfg(test)]
