@@ -1,5 +1,3 @@
-//! BAM record data field component readers.
-
 mod tag;
 mod ty;
 mod value;

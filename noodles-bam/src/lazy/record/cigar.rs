@@ -34,7 +34,7 @@ impl<'a> TryFrom<Cigar<'a>> for sam::record::Cigar {
     type Error = io::Error;
 
     fn try_from(bam_cigar: Cigar<'a>) -> Result<Self, Self::Error> {
-        use crate::reader::record::get_cigar;
+        use crate::record::codec::decoder::get_cigar;
 
         let mut src = bam_cigar.0;
         let mut cigar = Self::default();

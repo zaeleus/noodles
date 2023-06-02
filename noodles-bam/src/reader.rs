@@ -4,11 +4,9 @@ mod builder;
 mod header;
 mod lazy_records;
 pub(crate) mod query;
+mod record;
 mod records;
 mod unmapped_records;
-
-#[doc(hidden)]
-pub mod record;
 
 pub use self::{
     builder::Builder, lazy_records::LazyRecords, query::Query, records::Records,

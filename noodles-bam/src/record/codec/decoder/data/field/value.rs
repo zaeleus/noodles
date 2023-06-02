@@ -52,22 +52,6 @@ impl fmt::Display for ParseError {
     }
 }
 
-/// Reads a BAM record data field value.
-///
-/// The stream is expected to be at the start of the value, i.e., after the tag and data type.
-///
-/// # Examples
-///
-/// ```
-/// # use std::io;
-/// use noodles_bam::reader::record::data::field::get_value;
-/// use noodles_sam::record::data::field::{Type, Value};
-///
-/// let data = [0x01, 0x00, 0x00, 0x00];
-/// let mut reader = &data[..];
-///
-/// assert_eq!(get_value(&mut reader, Type::Int32), Ok(Value::Int32(1)));
-/// ```
 pub fn get_value<B>(src: &mut B, ty: Type) -> Result<Value, ParseError>
 where
     B: Buf,

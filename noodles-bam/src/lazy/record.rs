@@ -90,7 +90,7 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn alignment_start(&self) -> io::Result<Option<Position>> {
-        use crate::reader::record::get_position;
+        use crate::record::codec::decoder::get_position;
         let mut src = &self.buf[ALIGNMENT_START_RANGE];
         get_position(&mut src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
@@ -106,7 +106,7 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn mapping_quality(&self) -> io::Result<Option<sam::record::MappingQuality>> {
-        use crate::reader::record::get_mapping_quality;
+        use crate::record::codec::decoder::get_mapping_quality;
         let mut src = &self.buf[MAPPING_QUALITY_RANGE];
         get_mapping_quality(&mut src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
@@ -124,7 +124,7 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn flags(&self) -> io::Result<sam::record::Flags> {
-        use crate::reader::record::get_flags;
+        use crate::record::codec::decoder::get_flags;
         let mut src = &self.buf[FLAGS_RANGE];
         get_flags(&mut src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
@@ -155,7 +155,7 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn mate_alignment_start(&self) -> io::Result<Option<Position>> {
-        use crate::reader::record::get_position;
+        use crate::record::codec::decoder::get_position;
         let mut src = &self.buf[MATE_ALIGNMENT_START_RANGE];
         get_position(&mut src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
@@ -186,7 +186,7 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn read_name(&self) -> io::Result<Option<sam::record::ReadName>> {
-        use crate::reader::record::get_read_name;
+        use crate::record::codec::decoder::get_read_name;
 
         let mut src = &self.buf[self.bounds.read_name_range()];
         let mut read_name = None;
@@ -397,7 +397,7 @@ impl TryFrom<Record> for sam::alignment::Record {
 }
 
 fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
-    use crate::reader::record::{cigar, read_name, sequence};
+    use crate::record::codec::decoder::{cigar, read_name, sequence};
 
     const MIN_BUF_LENGTH: usize = TEMPLATE_LENGTH_RANGE.end;
     const READ_NAME_LENGTH_RANGE: Range<usize> = 8..9;

@@ -53,6 +53,9 @@ pub mod lazy;
 pub mod reader;
 pub mod writer;
 
+#[doc(hidden)]
+pub mod record;
+
 pub use self::{indexed_reader::IndexedReader, reader::Reader, writer::Writer};
 
 #[cfg(feature = "async")]

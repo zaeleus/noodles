@@ -383,7 +383,7 @@ where
     }
 
     fn read_tag_data(&mut self) -> io::Result<sam::record::Data> {
-        use bam::reader::record::data::field::get_value;
+        use bam::record::codec::decoder::data::field::get_value;
 
         let tag_line = self.read_tag_line()?;
 

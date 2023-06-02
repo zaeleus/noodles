@@ -27,7 +27,7 @@ impl<'a> TryFrom<Data<'a>> for sam::record::Data {
     type Error = io::Error;
 
     fn try_from(bam_data: Data<'a>) -> Result<Self, Self::Error> {
-        use crate::reader::record::get_data;
+        use crate::record::codec::decoder::get_data;
 
         let mut src = bam_data.0;
         let mut sam_data = Self::default();

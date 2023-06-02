@@ -13,7 +13,7 @@ pub(super) async fn read_record<R>(
 where
     R: AsyncRead + Unpin,
 {
-    use crate::reader::record::decode_record;
+    use crate::record::codec::decode;
 
     let block_size = match read_block_size(reader).await? {
         0 => return Ok(0),
@@ -23,8 +23,7 @@ where
     buf.resize(block_size, Default::default());
     reader.read_exact(buf).await?;
 
-    decode_record(buf, header, record)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    decode(buf, header, record).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     Ok(block_size)
 }

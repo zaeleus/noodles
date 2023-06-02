@@ -37,7 +37,7 @@ impl<'a> TryFrom<Sequence<'a>> for sam::record::Sequence {
     type Error = io::Error;
 
     fn try_from(bam_sequence: Sequence<'a>) -> Result<Self, Self::Error> {
-        use crate::reader::record::get_sequence;
+        use crate::record::codec::decoder::get_sequence;
 
         let mut src = bam_sequence.src;
         let mut sam_sequence = Self::default();

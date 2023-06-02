@@ -32,7 +32,7 @@ impl<'a> TryFrom<QualityScores<'a>> for sam::record::QualityScores {
     type Error = io::Error;
 
     fn try_from(bam_quality_scores: QualityScores<'a>) -> Result<Self, Self::Error> {
-        use crate::reader::record::get_quality_scores;
+        use crate::record::codec::decoder::get_quality_scores;
 
         let mut src = bam_quality_scores.0;
         let mut quality_scores = Self::default();
