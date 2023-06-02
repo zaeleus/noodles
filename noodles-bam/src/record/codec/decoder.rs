@@ -93,7 +93,7 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub(crate) fn decode_record<B>(
+pub(crate) fn decode<B>(
     src: &mut B,
     header: &sam::Header,
     record: &mut Record,
@@ -149,7 +149,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_decode_record_with_invalid_l_read_name() {
+    fn test_decode_with_invalid_l_read_name() {
         let data = vec![
             0xff, 0xff, 0xff, 0xff, // ref_id = -1
             0xff, 0xff, 0xff, 0xff, // pos = -1
@@ -161,7 +161,7 @@ mod tests {
         let mut record = Record::default();
 
         assert!(matches!(
-            decode_record(&mut src, &header, &mut record),
+            decode(&mut src, &header, &mut record),
             Err(DecodeError::InvalidReadName(_))
         ));
     }

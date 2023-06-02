@@ -25,7 +25,7 @@ pub(crate) const UNMAPPED_BIN: u16 = 4680;
 // § 4.2.3 SEQ and QUAL encoding (2021-06-03)
 const MISSING_QUALITY_SCORE: u8 = 255;
 
-pub(crate) fn encode_record<B>(dst: &mut B, header: &sam::Header, record: &Record) -> io::Result<()>
+pub(crate) fn encode<B>(dst: &mut B, header: &sam::Header, record: &Record) -> io::Result<()>
 where
     B: BufMut,
 {
@@ -272,11 +272,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_record_with_default_fields() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_encode_with_default_fields() -> Result<(), Box<dyn std::error::Error>> {
         let mut buf = Vec::new();
         let header = sam::Header::default();
         let record = Record::default();
-        encode_record(&mut buf, &header, &record)?;
+        encode(&mut buf, &header, &record)?;
 
         let expected = [
             0xff, 0xff, 0xff, 0xff, // ref_id = -1
@@ -299,7 +299,7 @@ mod tests {
     }
 
     #[test]
-    fn test_write_record_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_encode_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
         use sam::record::MappingQuality;
 
         let mut buf = Vec::new();
@@ -330,7 +330,7 @@ mod tests {
             .set_data("NH:i:1".parse()?)
             .build();
 
-        encode_record(&mut buf, &header, &record)?;
+        encode(&mut buf, &header, &record)?;
 
         let expected = [
             0x01, 0x00, 0x00, 0x00, // ref_id = 1
@@ -358,7 +358,7 @@ mod tests {
     }
 
     #[test]
-    fn test_write_record_with_oversized_cigar() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_encode_with_oversized_cigar() -> Result<(), Box<dyn std::error::Error>> {
         use sam::record::{
             cigar::{op::Kind, Op},
             sequence::Base,
@@ -387,7 +387,7 @@ mod tests {
             .set_data("NH:i:1".parse()?)
             .build();
 
-        encode_record(&mut buf, &header, &record)?;
+        encode(&mut buf, &header, &record)?;
 
         let mut expected = vec![
             0x00, 0x00, 0x00, 0x00, // ref_id = 0
