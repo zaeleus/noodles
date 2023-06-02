@@ -408,7 +408,7 @@ where
     }
 
     fn write_tag_data(&mut self, record: &Record) -> io::Result<()> {
-        use bam::writer::record::data::field::put_value;
+        use bam::record::codec::encoder::data::field::put_value;
 
         let preservation_map = self.compression_header.preservation_map();
         let tag_ids_dictionary = preservation_map.tag_ids_dictionary();

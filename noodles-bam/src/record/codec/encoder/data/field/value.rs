@@ -7,20 +7,6 @@ use noodles_sam::record::data::field::Value;
 
 use self::array::put_array;
 
-/// Writes a BAM record data field value.
-///
-/// # Examples
-///
-/// ```
-/// # use std::io;
-/// use noodles_bam::writer::record::data::field::put_value;
-/// use noodles_sam::record::data::field::Value;
-/// let mut buf = Vec::new();
-/// let value = Value::UInt8(0);
-/// put_value(&mut buf, &value)?;
-/// assert_eq!(buf, [0x00]);
-/// # Ok::<_, io::Error>(())
-/// ```
 pub fn put_value<B>(dst: &mut B, value: &Value) -> io::Result<()>
 where
     B: BufMut,

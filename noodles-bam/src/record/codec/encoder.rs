@@ -1,4 +1,4 @@
-//! BAM record and field writers.
+//! BAM record encoder.
 
 mod cigar;
 pub mod data;

@@ -9,6 +9,11 @@
     `bam::reader::record::data::field::get_value` is not intended to be part of
     the public API.
 
+  * bam/writer: Reduce the visibility of `record`.
+
+    `bam::writer::record::data::field::put_value` is not intended to be part
+    of the public API.
+
 ## 0.34.0 - 2023-06-01
 
 ### Changed

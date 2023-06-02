@@ -35,7 +35,7 @@ where
     put_tag(dst, data::field::tag::CIGAR);
     put_type(dst, Type::Array);
     value::array::put_header(dst, Subtype::UInt32, cigar.len())?;
-    crate::writer::record::put_cigar(dst, cigar)?;
+    crate::record::codec::encoder::put_cigar(dst, cigar)?;
     Ok(())
 }
 
