@@ -10,7 +10,7 @@ const MAX_VALUE: u16 = 1000;
 pub struct Score(u16);
 
 impl Score {
-    /// The minimun score (1).
+    /// The minimum score (1).
     pub const MIN: Self = Self(MIN_VALUE);
 
     /// The maximum score (1000).
