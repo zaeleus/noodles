@@ -3,9 +3,10 @@
 use std::{error, fmt, str::FromStr};
 
 /// A SAM header header sort order (`SO`).
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum SortOrder {
     /// Alignment order is unknown (`unknown`).
+    #[default]
     Unknown,
     /// Alignments are not sorted (`unsorted`).
     Unsorted,
@@ -23,12 +24,6 @@ impl AsRef<str> for SortOrder {
             Self::QueryName => "queryname",
             Self::Coordinate => "coordinate",
         }
-    }
-}
-
-impl Default for SortOrder {
-    fn default() -> Self {
-        Self::Unknown
     }
 }
 
