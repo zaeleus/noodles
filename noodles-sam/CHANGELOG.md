@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/header/record/value/map/header/version: Make methods `const`.
+
 ## 0.31.0 - 2023-06-01
 
 ### Added

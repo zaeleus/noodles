@@ -23,7 +23,7 @@ impl Version {
     /// use noodles_sam::header::record::value::map::header::Version;
     /// let version = Version::new(1, 6);
     /// ```
-    pub fn new(major: u32, minor: u32) -> Self {
+    pub const fn new(major: u32, minor: u32) -> Self {
         Self { major, minor }
     }
 
@@ -36,7 +36,7 @@ impl Version {
     /// let version = Version::new(1, 6);
     /// assert_eq!(version.major(), 1);
     /// ```
-    pub fn major(&self) -> u32 {
+    pub const fn major(&self) -> u32 {
         self.major
     }
 
@@ -49,7 +49,7 @@ impl Version {
     /// let version = Version::new(1, 6);
     /// assert_eq!(version.minor(), 6);
     /// ```
-    pub fn minor(&self) -> u32 {
+    pub const fn minor(&self) -> u32 {
         self.minor
     }
 }
