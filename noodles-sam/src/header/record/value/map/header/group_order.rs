@@ -3,9 +3,10 @@
 use std::{error, fmt, str::FromStr};
 
 /// A SAM header header group order (`GO`).
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum GroupOrder {
     /// Alignments are not grouped (`none`).
+    #[default]
     None,
     /// Alignments are grouped by read name (`query`).
     Query,
@@ -20,12 +21,6 @@ impl AsRef<str> for GroupOrder {
             Self::Query => "query",
             Self::Reference => "reference",
         }
-    }
-}
-
-impl Default for GroupOrder {
-    fn default() -> Self {
-        Self::None
     }
 }
 
