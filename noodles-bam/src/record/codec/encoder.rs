@@ -22,9 +22,6 @@ use noodles_sam::{self as sam, alignment::Record, record::Cigar};
 // becomes -1 in BAM) therefore use `reg2bin(-1, 0)` which is computed as 4680."
 pub(crate) const UNMAPPED_BIN: u16 = 4680;
 
-// § 4.2.3 SEQ and QUAL encoding (2021-06-03)
-const MISSING_QUALITY_SCORE: u8 = 255;
-
 pub(crate) fn encode<B>(dst: &mut B, header: &sam::Header, record: &Record) -> io::Result<()>
 where
     B: BufMut,
@@ -76,20 +73,8 @@ where
     // seq
     put_sequence(dst, record.cigar().read_length(), sequence)?;
 
-    if sequence.len() == quality_scores.len() {
-        put_quality_scores(dst, quality_scores);
-    } else if quality_scores.is_empty() {
-        dst.put_bytes(MISSING_QUALITY_SCORE, sequence.len());
-    } else {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            format!(
-                "quality scores length mismatch: expected {}, got {}",
-                sequence.len(),
-                quality_scores.len()
-            ),
-        ));
-    }
+    // qual
+    put_quality_scores(dst, sequence.len(), quality_scores)?;
 
     put_data(dst, record.data())?;
 
