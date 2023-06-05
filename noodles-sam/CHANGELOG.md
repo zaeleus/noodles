@@ -6,6 +6,9 @@
 
   * sam/header/record/value/map/header/version: Make methods `const`.
 
+  * sam/writer/record/quality_scores: Disallow writing quality scores when
+    there is a length mismatch with the sequence.
+
 ## 0.31.0 - 2023-06-01
 
 ### Added

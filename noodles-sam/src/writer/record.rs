@@ -85,7 +85,7 @@ where
     write_sequence(writer, record.cigar().read_length(), record.sequence())?;
 
     writer.write_all(DELIMITER)?;
-    write_quality_scores(writer, record.quality_scores())?;
+    write_quality_scores(writer, record.sequence().len(), record.quality_scores())?;
 
     write_data(writer, record.data())?;
 
