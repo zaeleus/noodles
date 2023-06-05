@@ -49,8 +49,8 @@ where
 
 pub fn read_frequencies_0<R>(
     reader: &mut R,
-    freqs: &mut [u32],
-    cumulative_freqs: &mut [u32],
+    freqs: &mut [u32; 256],
+    cumulative_freqs: &mut [u32; 256],
 ) -> io::Result<()>
 where
     R: Read,
@@ -91,7 +91,7 @@ where
     Ok(())
 }
 
-pub fn build_cumulative_freqs_symbols_table_0(cumulative_freqs: &[u32]) -> [u8; 4096] {
+pub fn build_cumulative_freqs_symbols_table_0(cumulative_freqs: &[u32; 256]) -> [u8; 4096] {
     let mut table = [0; 4096];
     let mut sym = 0;
 

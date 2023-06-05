@@ -8,8 +8,8 @@ pub fn decode<R>(reader: &mut R, dst: &mut [u8]) -> io::Result<()>
 where
     R: Read,
 {
-    let mut freqs = vec![vec![0; 256]; 256];
-    let mut cumulative_freqs = vec![vec![0; 256]; 256];
+    let mut freqs = [[0; 256]; 256];
+    let mut cumulative_freqs = [[0; 256]; 256];
 
     read_frequencies_1(reader, &mut freqs, &mut cumulative_freqs)?;
 
@@ -72,8 +72,8 @@ where
 
 fn read_frequencies_1<R>(
     reader: &mut R,
-    freqs: &mut [Vec<u32>],
-    cumulative_freqs: &mut [Vec<u32>],
+    freqs: &mut [[u32; 256]; 256],
+    cumulative_freqs: &mut [[u32; 256]; 256],
 ) -> io::Result<()>
 where
     R: Read,
@@ -110,8 +110,10 @@ where
     Ok(())
 }
 
-pub fn build_cumulative_freqs_symbols_table_1(cumulative_freqs: &[Vec<u32>]) -> [[u8; 4096]; 256] {
-    let mut tables = [[0; 4096]; 256];
+pub fn build_cumulative_freqs_symbols_table_1(
+    cumulative_freqs: &[[u32; 256]; 256],
+) -> Box<[[u8; 4096]; 256]> {
+    let mut tables = Box::new([[0; 4096]; 256]);
 
     for (table, cumulative_freqs) in tables.iter_mut().zip(cumulative_freqs) {
         *table = order_0::build_cumulative_freqs_symbols_table_0(cumulative_freqs);
