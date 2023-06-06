@@ -15,7 +15,7 @@ use crate::{
         },
         Number,
     },
-    record::value::{self, percent_decode},
+    record::value::percent_decode,
 };
 
 const DELIMITER: char = ',';
@@ -220,7 +220,7 @@ fn parse_i32_array(s: &str) -> Result<Value, ParseError> {
 }
 
 fn parse_f32(s: &str) -> Result<Value, ParseError> {
-    value::parse_f32(s)
+    s.parse()
         .map(Value::Float)
         .map_err(ParseError::InvalidFloat)
 }
@@ -229,9 +229,7 @@ fn parse_f32_array(s: &str) -> Result<Value, ParseError> {
     s.split(DELIMITER)
         .map(|t| match t {
             MISSING_VALUE => Ok(None),
-            _ => value::parse_f32(t)
-                .map(Some)
-                .map_err(ParseError::InvalidFloat),
+            _ => t.parse().map(Some).map_err(ParseError::InvalidFloat),
         })
         .collect::<Result<_, _>>()
         .map(|values| Value::Array(Array::Float(values)))

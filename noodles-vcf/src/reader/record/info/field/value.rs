@@ -97,7 +97,7 @@ fn parse_i32_array(s: &str) -> Result<Value, ParseError> {
 }
 
 fn parse_f32(s: &str) -> Result<Value, ParseError> {
-    value::parse_f32(s)
+    s.parse()
         .map(Value::Float)
         .map_err(ParseError::InvalidFloat)
 }
