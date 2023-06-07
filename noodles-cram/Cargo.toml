@@ -18,7 +18,7 @@ libdeflate = ["dep:libdeflater"]
 bitflags.workspace = true
 byteorder.workspace = true
 bytes.workspace = true
-bzip2 = "0.4.1"
+bzip2 = "0.4.4"
 flate2.workspace = true
 md-5 = "0.10.0"
 noodles-bam = { path = "../noodles-bam", version = "0.34.0" }
