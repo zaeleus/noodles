@@ -6,13 +6,11 @@ pub use self::builder::Builder;
 
 use std::io::{self, Read};
 
-use noodles_fasta as fasta;
 use noodles_sam::{self as sam, alignment::Record, AlignmentReader};
 
 /// An alignment reader.
 pub struct Reader<R> {
     inner: Box<dyn AlignmentReader<R>>,
-    reference_sequence_repository: fasta::Repository,
 }
 
 impl<R> Reader<R>
@@ -75,7 +73,6 @@ where
         &'a mut self,
         header: &'a sam::Header,
     ) -> impl Iterator<Item = io::Result<Record>> + 'a {
-        self.inner
-            .alignment_records(&self.reference_sequence_repository, header)
+        self.inner.alignment_records(header)
     }
 }

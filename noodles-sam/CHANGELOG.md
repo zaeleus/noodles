@@ -4,6 +4,9 @@
 
 ### Changed
 
+  * sam/alignment_reader: Remove `fasta::Repository` as a parameter to
+    `AlignmentReader::alignment_records`.
+
   * sam/header/record/value/map/header/version: Make methods `const`.
 
   * sam/writer/record/quality_scores: Disallow writing quality scores when

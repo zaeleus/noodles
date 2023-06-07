@@ -117,20 +117,16 @@ impl Builder {
             }
             Format::Cram => {
                 let inner: Box<dyn BufRead> = Box::new(reader);
+
                 Box::new(
                     cram::reader::Builder::default()
-                        .set_reference_sequence_repository(
-                            self.reference_sequence_repository.clone(),
-                        )
+                        .set_reference_sequence_repository(self.reference_sequence_repository)
                         .build_from_reader(inner),
                 )
             }
         };
 
-        Ok(Reader {
-            inner,
-            reference_sequence_repository: self.reference_sequence_repository,
-        })
+        Ok(Reader { inner })
     }
 }
 

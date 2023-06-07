@@ -321,7 +321,6 @@ where
 
     fn alignment_records<'a>(
         &'a mut self,
-        _: &'a fasta::Repository,
         header: &'a sam::Header,
     ) -> Box<dyn Iterator<Item = io::Result<sam::alignment::Record>> + 'a> {
         Box::new(

@@ -21,7 +21,6 @@ use std::{
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi as csi;
-use noodles_fasta as fasta;
 use noodles_sam::{self as sam, alignment::Record, header::ReferenceSequences};
 
 use super::lazy;
@@ -408,7 +407,6 @@ where
 
     fn alignment_records<'a>(
         &'a mut self,
-        _: &'a fasta::Repository,
         header: &'a sam::Header,
     ) -> Box<dyn Iterator<Item = io::Result<Record>> + 'a> {
         Box::new(self.records(header))
