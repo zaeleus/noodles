@@ -6,7 +6,6 @@
 
 use std::{
     env,
-    fs::File,
     io::{self, BufWriter},
 };
 
@@ -27,7 +26,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(fasta::Repository::new)
         .unwrap_or_default();
 
-    let mut reader = File::open(src).map(cram::Reader::new)?;
+    let mut reader = cram::reader::Builder::default().build_from_path(src)?;
     reader.read_file_definition()?;
 
     let header = reader.read_file_header()?;

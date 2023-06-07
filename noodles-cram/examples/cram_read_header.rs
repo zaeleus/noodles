@@ -4,14 +4,14 @@
 //!
 //! The result matches the output of `samtools head <src>`.
 
-use std::{env, fs::File, io};
+use std::{env, io};
 
 use noodles_cram as cram;
 
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = File::open(src).map(cram::Reader::new)?;
+    let mut reader = cram::reader::Builder::default().build_from_path(src)?;
     reader.read_file_definition()?;
 
     let header = reader.read_file_header()?;

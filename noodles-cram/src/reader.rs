@@ -1,5 +1,6 @@
 //! CRAM reader and record iterator.
 
+mod builder;
 pub(crate) mod container;
 pub(crate) mod data_container;
 pub(crate) mod header_container;
@@ -8,7 +9,7 @@ mod query;
 pub(crate) mod record;
 mod records;
 
-pub use self::{query::Query, records::Records};
+pub use self::{builder::Builder, query::Query, records::Records};
 
 use std::io::{self, Read, Seek, SeekFrom};
 

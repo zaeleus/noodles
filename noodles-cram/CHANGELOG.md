@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * cram/reader: Add builder (`cram::reader::Builder`).
+
 ### Changed
 
   * cram: Update to bzip2 0.4.4 ([#174]).
