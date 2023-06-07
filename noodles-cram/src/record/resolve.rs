@@ -21,7 +21,7 @@ pub(crate) fn resolve_bases(
     read_length: usize,
     buf: &mut sam::record::Sequence,
 ) -> io::Result<()> {
-    buf.as_mut().fill(Base::N);
+    buf.as_mut().clear();
     buf.as_mut().resize(read_length, Base::N);
 
     let mut it = features.with_positions(alignment_start);
@@ -121,7 +121,7 @@ pub fn resolve_quality_scores(
 ) {
     use sam::record::quality_scores::Score;
 
-    quality_scores.as_mut().fill(Score::default());
+    quality_scores.as_mut().clear();
     quality_scores.as_mut().resize(read_len, Score::default());
 
     for feature in features {
