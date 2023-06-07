@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * cram: Update to bzip2 0.4.4 ([#174]).
+
+[#174]: https://github.com/zaeleus/noodles/pull/174
+
 ## 0.31.0 - 2023-06-01
 
 ### Changed
