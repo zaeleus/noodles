@@ -800,11 +800,24 @@ where
     ) -> io::Result<sam::record::QualityScores> {
         const MISSING: u8 = 0xff;
 
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .quality_scores_encoding()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::QualityScores),
+                )
+            })?;
+
         let mut buf = vec![0; read_length];
 
-        for n in &mut buf {
-            *n = self.read_quality_score()?;
-        }
+        encoding.get().decode_exact(
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+            &mut buf,
+        )?;
 
         if buf.iter().all(|&n| n == MISSING) {
             buf.clear();

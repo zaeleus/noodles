@@ -19,6 +19,41 @@ pub enum Byte {
     Huffman(Vec<i32>, Vec<u32>),
 }
 
+impl Byte {
+    pub fn decode_exact<R, S>(
+        &self,
+        _core_data_reader: &mut BitReader<R>,
+        external_data_readers: &mut ExternalDataReaders<S>,
+        dst: &mut [u8],
+    ) -> io::Result<()>
+    where
+        R: Buf,
+        S: Buf,
+    {
+        match self {
+            Byte::External(block_content_id) => {
+                let src = external_data_readers
+                    .get_mut(block_content_id)
+                    .ok_or_else(|| {
+                        io::Error::new(
+                            io::ErrorKind::InvalidData,
+                            format!("missing external block: {block_content_id}"),
+                        )
+                    })?;
+
+                if src.remaining() < dst.len() {
+                    return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+                }
+
+                src.copy_to_slice(dst);
+            }
+            Byte::Huffman(..) => todo!(),
+        }
+
+        Ok(())
+    }
+}
+
 impl Decode for Byte {
     type Value = u8;
 
@@ -95,6 +130,24 @@ impl<'en> Encode<'en> for Byte {
 mod tests {
     use super::*;
     use crate::data_container::compression_header::Encoding;
+
+    #[test]
+    fn test_decode_exact() -> io::Result<()> {
+        let core_data = [0b10000000];
+        let mut core_data_reader = BitReader::new(&core_data[..]);
+
+        let external_data = b"ndls";
+        let mut external_data_readers = ExternalDataReaders::new();
+        external_data_readers.insert(block::ContentId::from(1), &external_data[..]);
+
+        let codec = Byte::External(block::ContentId::from(1));
+        let mut dst = vec![0; 4];
+        codec.decode_exact(&mut core_data_reader, &mut external_data_readers, &mut dst)?;
+
+        assert_eq!(dst, external_data);
+
+        Ok(())
+    }
 
     #[test]
     fn test_decode() -> io::Result<()> {
