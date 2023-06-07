@@ -116,8 +116,8 @@ where
     /// The position of the stream is expected to be at the start of a sequence, which is directly
     /// after a definition.
     ///
-    /// If successful, this returns the number of bytes read from the stream. If the number of
-    /// bytes read is 0, the stream reached EOF (though this case is likely an error).
+    /// If successful, this returns the number of bases read from the stream. If the number of
+    /// bases read is 0, the stream reached EOF (though this case is likely an error).
     ///
     /// # Examples
     ///
@@ -138,6 +138,34 @@ where
     pub fn read_sequence(&mut self, buf: &mut Vec<u8>) -> io::Result<usize> {
         use self::sequence::read_sequence;
         read_sequence(&mut self.inner, buf)
+    }
+
+    /// Returns a sequence reader.
+    ///
+    /// A [`sequence::Reader`] can be used for lower-level reading of the raw sequence.
+    ///
+    /// The position of the stream is expected to be at the start of a sequence to read a full
+    /// sequence or within a sequence to read a partial one.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io::{self, Read};
+    /// use noodles_fasta as fasta;
+    ///
+    /// let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
+    /// let mut reader = fasta::Reader::new(&data[..]);
+    /// reader.read_definition(&mut String::new())?;
+    ///
+    /// let mut sequence_reader = reader.sequence_reader();
+    /// let mut buf = vec![0; 2];
+    /// sequence_reader.read_exact(&mut buf)?;
+    ///
+    /// assert_eq!(buf, b"AC");
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn sequence_reader(&mut self) -> sequence::Reader<'_, R> {
+        sequence::Reader::new(self.get_mut())
     }
 
     /// Returns an iterator over records starting from the current stream position.

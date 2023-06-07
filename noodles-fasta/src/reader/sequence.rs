@@ -1,12 +1,98 @@
-use std::io::{self, BufRead};
+use std::io::{self, BufRead, Read};
 
 use super::DEFINITION_PREFIX;
+
+const LINE_FEED: u8 = b'\n';
+const CARRIAGE_RETURN: u8 = b'\r';
+
+/// A sequence reader.
+///
+/// This is used for lower-level reading of the sequence. It implements [`Read`] and [`BufRead`] to
+/// return raw bases sans newlines. It reads up to the next record definition or EOF.
+///
+/// This is created by calling [`super::Reader::sequence_reader`].
+pub struct Reader<'r, R> {
+    inner: &'r mut R,
+}
+
+impl<'r, R> Reader<'r, R>
+where
+    R: BufRead,
+{
+    pub(super) fn new(inner: &'r mut R) -> Self {
+        Self { inner }
+    }
+}
+
+impl<'r, R> Read for Reader<'r, R>
+where
+    R: BufRead,
+{
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        let mut src = self.fill_buf()?;
+        let amt = src.read(buf)?;
+        self.consume(amt);
+        Ok(amt)
+    }
+}
+
+impl<'r, R> BufRead for Reader<'r, R>
+where
+    R: BufRead,
+{
+    fn fill_buf(&mut self) -> io::Result<&[u8]> {
+        use memchr::memchr;
+
+        consume_newline(&mut self.inner)?;
+
+        let src = self.inner.fill_buf()?;
+
+        let is_eof = src.is_empty();
+        let is_end_of_sequence = || src[0] == DEFINITION_PREFIX;
+
+        if is_eof || is_end_of_sequence() {
+            return Ok(&[]);
+        }
+
+        let line = match memchr(LINE_FEED, src) {
+            Some(i) => &src[..i],
+            None => src,
+        };
+
+        if line.ends_with(&[CARRIAGE_RETURN]) {
+            let end = line.len() - 1;
+            Ok(&line[..end])
+        } else {
+            Ok(line)
+        }
+    }
+
+    fn consume(&mut self, amt: usize) {
+        self.inner.consume(amt);
+    }
+}
+
+fn consume_newline<R>(reader: &mut R) -> io::Result<()>
+where
+    R: BufRead,
+{
+    if reader.fill_buf()?.starts_with(&[CARRIAGE_RETURN]) {
+        reader.consume(1);
+    }
+
+    if reader.fill_buf()?.starts_with(&[LINE_FEED]) {
+        reader.consume(1);
+    }
+
+    Ok(())
+}
 
 pub(super) fn read_sequence<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
 where
     R: BufRead,
 {
-    read_sequence_limit(reader, usize::MAX, buf)
+    let mut reader = Reader::new(reader);
+    reader.read_to_end(buf)
 }
 
 pub(super) fn read_sequence_limit<R>(
@@ -17,50 +103,25 @@ pub(super) fn read_sequence_limit<R>(
 where
     R: BufRead,
 {
-    use memchr::memchr;
-
-    const LINE_FEED: u8 = b'\n';
-    const CARRIAGE_RETURN: u8 = b'\r';
-
+    let mut reader = Reader::new(reader);
     let mut len = 0;
 
     while buf.len() < max_bases {
         let src = reader.fill_buf()?;
 
-        let is_eof = src.is_empty();
-        let is_end_of_sequence = || src[0] == DEFINITION_PREFIX;
-
-        if is_eof || is_end_of_sequence() {
+        if src.is_empty() {
             break;
         }
 
         let remaining_bases = max_bases - buf.len();
+        let i = remaining_bases.min(src.len());
 
-        let n = match memchr(LINE_FEED, src) {
-            Some(i) => {
-                let i = i.min(remaining_bases);
-                let line = &src[..i];
+        let bases = &src[..i];
+        buf.extend(bases);
 
-                if line.ends_with(&[CARRIAGE_RETURN]) {
-                    let end = line.len() - 1;
-                    buf.extend(&line[..end]);
-                } else {
-                    buf.extend(line);
-                }
+        reader.consume(i);
 
-                i + 1
-            }
-            None => {
-                let i = remaining_bases.min(src.len());
-                let line = &src[..i];
-                buf.extend(line);
-                i
-            }
-        };
-
-        reader.consume(n);
-
-        len += n;
+        len += i;
     }
 
     Ok(len)

@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * fasta/reader: Add a sequence reader (`fasta::reader::sequence::Reader`)
+    ([#101]).
+
+    This is created by calling `fasta::Reader::sequence_reader`. It is used for
+    lower-level reading of the sequence.
+
+[#101]: https://github.com/zaeleus/noodles/issues/101
+
 ## 0.23.0 - 2023-06-01
 
 ### Changed
