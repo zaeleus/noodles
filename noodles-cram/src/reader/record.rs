@@ -798,26 +798,19 @@ where
         &mut self,
         read_length: usize,
     ) -> io::Result<sam::record::QualityScores> {
-        const MISSING_QUALITY_SCORE: u8 = 0xff;
+        const MISSING: u8 = 0xff;
 
-        let mut raw_quality_scores = Vec::with_capacity(read_length);
-        let mut is_missing = true;
+        let mut buf = vec![0; read_length];
 
-        for _ in 0..read_length {
-            let raw_score = self.read_quality_score()?;
-            raw_quality_scores.push(raw_score);
-            is_missing &= raw_score == MISSING_QUALITY_SCORE;
+        for n in &mut buf {
+            *n = self.read_quality_score()?;
         }
 
-        if is_missing {
-            raw_quality_scores.clear();
+        if buf.iter().all(|&n| n == MISSING) {
+            buf.clear();
         }
 
-        let scores = raw_quality_scores
-            .into_iter()
-            .map(|n| Score::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
-            .collect::<Result<Vec<_>, _>>()?;
-
-        Ok(sam::record::QualityScores::from(scores))
+        sam::record::QualityScores::try_from(buf)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 }
