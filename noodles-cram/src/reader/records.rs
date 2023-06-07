@@ -3,7 +3,6 @@ use std::{
     vec,
 };
 
-use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 use super::Reader;
@@ -17,7 +16,6 @@ where
     R: Read,
 {
     reader: &'a mut Reader<R>,
-    reference_sequence_repository: &'a fasta::Repository,
     header: &'a sam::Header,
     records: vec::IntoIter<Record>,
 }
@@ -26,14 +24,9 @@ impl<'a, R> Records<'a, R>
 where
     R: Read,
 {
-    pub(crate) fn new(
-        reader: &'a mut Reader<R>,
-        reference_sequence_repository: &'a fasta::Repository,
-        header: &'a sam::Header,
-    ) -> Self {
+    pub(crate) fn new(reader: &'a mut Reader<R>, header: &'a sam::Header) -> Self {
         Self {
             reader,
-            reference_sequence_repository,
             header,
             records: Vec::new().into_iter(),
         }
@@ -53,7 +46,7 @@ where
 
                 slice.records(compression_header).and_then(|mut records| {
                     slice.resolve_records(
-                        self.reference_sequence_repository,
+                        self.reader.reference_sequence_repository(),
                         self.header,
                         compression_header,
                         &mut records,

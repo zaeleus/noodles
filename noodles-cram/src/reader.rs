@@ -33,14 +33,12 @@ use crate::data_container::DataContainer;
 /// use noodles_cram as cram;
 /// use noodles_fasta as fasta;
 ///
-/// let repository = fasta::Repository::default();
-///
 /// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
 /// reader.read_file_definition()?;
 ///
 /// let header = reader.read_file_header()?;
 ///
-/// for result in reader.records(&repository, &header) {
+/// for result in reader.records(&header) {
 ///     let record = result?;
 ///     println!("{:?}", record);
 /// }
@@ -49,6 +47,7 @@ use crate::data_container::DataContainer;
 /// ```
 pub struct Reader<R> {
     inner: R,
+    reference_sequence_repository: fasta::Repository,
     buf: BytesMut,
 }
 
@@ -66,11 +65,8 @@ where
     /// let mut reader = File::open("sample.bam").map(cram::Reader::new)?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn new(reader: R) -> Self {
-        Self {
-            inner: reader,
-            buf: BytesMut::new(),
-        }
+    pub fn new(inner: R) -> Self {
+        Builder::default().build_from_reader(inner)
     }
 
     /// Returns a reference to the underlying reader.
@@ -113,6 +109,10 @@ where
     /// ```
     pub fn into_inner(self) -> R {
         self.inner
+    }
+
+    pub(crate) fn reference_sequence_repository(&self) -> &fasta::Repository {
+        &self.reference_sequence_repository
     }
 
     /// Reads the CRAM file definition.
@@ -205,25 +205,19 @@ where
     /// use noodles_cram as cram;
     /// use noodles_fasta as fasta;
     ///
-    /// let repository = fasta::Repository::default();
-    ///
     /// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
     /// reader.read_file_definition()?;
     ///
     /// let header = reader.read_file_header()?;
     ///
-    /// for result in reader.records(&repository, &header) {
+    /// for result in reader.records(&header) {
     ///     let record = result?;
-    ///     println!("{:?}", record);
+    ///     // ...
     /// }
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn records<'a>(
-        &'a mut self,
-        reference_sequence_repository: &'a fasta::Repository,
-        header: &'a sam::Header,
-    ) -> Records<'a, R> {
-        Records::new(self, reference_sequence_repository, header)
+    pub fn records<'r>(&'r mut self, header: &'r sam::Header) -> Records<'r, R> {
+        Records::new(self, header)
     }
 }
 
@@ -279,11 +273,10 @@ where
     /// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
     /// reader.read_file_definition()?;
     ///
-    /// let repository = fasta::Repository::default();
     /// let header = reader.read_file_header()?;
     /// let index = crai::read("sample.cram.crai")?;
     /// let region = "sq0:8-13".parse()?;
-    /// let query = reader.query(&repository, &header, &index, &region)?;
+    /// let query = reader.query(&header, &index, &region)?;
     ///
     /// for result in query {
     ///     let record = result?;
@@ -293,7 +286,6 @@ where
     /// ```
     pub fn query<'a>(
         &'a mut self,
-        reference_sequence_repository: &'a fasta::Repository,
         header: &'a sam::Header,
         index: &'a crai::Index,
         region: &Region,
@@ -310,7 +302,6 @@ where
 
         Ok(Query::new(
             self,
-            reference_sequence_repository,
             header,
             index,
             reference_sequence_id,
@@ -330,11 +321,11 @@ where
 
     fn alignment_records<'a>(
         &'a mut self,
-        reference_sequence_repository: &'a fasta::Repository,
+        _: &'a fasta::Repository,
         header: &'a sam::Header,
     ) -> Box<dyn Iterator<Item = io::Result<sam::alignment::Record>> + 'a> {
         Box::new(
-            self.records(reference_sequence_repository, header)
+            self.records(header)
                 .map(|result| result.and_then(|record| record.try_into_alignment_record(header))),
         )
     }

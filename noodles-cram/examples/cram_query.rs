@@ -21,21 +21,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let region = args.next().expect("missing region").parse()?;
     let fasta_src = args.next();
 
-    let repository = fasta_src
+    let reference_sequence_repository = fasta_src
         .map(|src| fasta::indexed_reader::Builder::default().build_from_path(src))
         .transpose()?
         .map(IndexedReader::new)
         .map(fasta::Repository::new)
         .unwrap_or_default();
 
-    let mut reader = cram::indexed_reader::Builder::default().build_from_path(src)?;
+    let mut reader = cram::indexed_reader::Builder::default()
+        .set_reference_sequence_repository(reference_sequence_repository)
+        .build_from_path(src)?;
+
     reader.read_file_definition()?;
     let header = reader.read_file_header()?;
 
     let stdout = io::stdout().lock();
     let mut writer = sam::Writer::new(BufWriter::new(stdout));
 
-    let query = reader.query(&repository, &header, &region)?;
+    let query = reader.query(&header, &region)?;
 
     for result in query {
         let record = result.and_then(|record| record.try_into_alignment_record(&header))?;

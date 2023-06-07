@@ -4,7 +4,6 @@ use std::{
 };
 
 use noodles_core::region::Interval;
-use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 use super::Reader;
@@ -19,7 +18,6 @@ where
 {
     reader: &'a mut Reader<R>,
 
-    reference_sequence_repository: &'a fasta::Repository,
     header: &'a sam::Header,
 
     index: slice::Iter<'a, crai::Record>,
@@ -36,7 +34,6 @@ where
 {
     pub(super) fn new(
         reader: &'a mut Reader<R>,
-        reference_sequence_repository: &'a fasta::Repository,
         header: &'a sam::Header,
         index: &'a crai::Index,
         reference_sequence_id: usize,
@@ -45,7 +42,6 @@ where
         Self {
             reader,
 
-            reference_sequence_repository,
             header,
 
             index: index.iter(),
@@ -82,7 +78,7 @@ where
 
                 slice.records(compression_header).and_then(|mut records| {
                     slice.resolve_records(
-                        self.reference_sequence_repository,
+                        self.reader.reference_sequence_repository(),
                         self.header,
                         compression_header,
                         &mut records,

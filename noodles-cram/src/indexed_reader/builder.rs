@@ -5,16 +5,28 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use noodles_fasta as fasta;
+
 use super::IndexedReader;
 use crate::crai;
 
 /// An indexed BAM reader builder.
 #[derive(Default)]
 pub struct Builder {
+    reference_sequence_repository: fasta::Repository,
     index: Option<crai::Index>,
 }
 
 impl Builder {
+    /// Sets the reference sequence repository.
+    pub fn set_reference_sequence_repository(
+        mut self,
+        reference_sequence_repository: fasta::Repository,
+    ) -> Self {
+        self.reference_sequence_repository = reference_sequence_repository;
+        self
+    }
+
     /// Sets an index.
     pub fn set_index(mut self, index: crai::Index) -> Self {
         self.index = Some(index);
@@ -42,11 +54,15 @@ impl Builder {
     where
         R: Read,
     {
+        let inner = crate::reader::Builder::default()
+            .set_reference_sequence_repository(self.reference_sequence_repository)
+            .build_from_reader(reader);
+
         let index = self
             .index
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing index"))?;
 
-        Ok(IndexedReader::new(reader, index))
+        Ok(IndexedReader { inner, index })
     }
 }
 

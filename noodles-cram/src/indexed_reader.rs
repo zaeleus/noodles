@@ -49,6 +49,11 @@ where
         self.inner.into_inner()
     }
 
+    /// Returns the reference sequence repository.
+    pub fn reference_sequence_repository(&self) -> &fasta::Repository {
+        self.inner.reference_sequence_repository()
+    }
+
     /// Reads the CRAM file definition.
     pub fn read_file_definition(&mut self) -> io::Result<FileDefinition> {
         self.inner.read_file_definition()
@@ -65,12 +70,8 @@ where
     }
 
     /// Returns a iterator over records starting from the current stream position.
-    pub fn records<'a>(
-        &'a mut self,
-        reference_sequence_repository: &'a fasta::Repository,
-        header: &'a sam::Header,
-    ) -> Records<'a, R> {
-        self.inner.records(reference_sequence_repository, header)
+    pub fn records<'r>(&'r mut self, header: &'r sam::Header) -> Records<'r, R> {
+        self.inner.records(header)
     }
 
     /// Returns the associated index.
@@ -86,11 +87,9 @@ where
     /// Returns an iterator over records that intersects the given region.
     pub fn query<'a>(
         &'a mut self,
-        reference_sequence_repository: &'a fasta::Repository,
         header: &'a sam::Header,
         region: &Region,
-    ) -> io::Result<Query<'_, R>> {
-        self.inner
-            .query(reference_sequence_repository, header, &self.index, region)
+    ) -> io::Result<Query<'a, R>> {
+        self.inner.query(header, &self.index, region)
     }
 }

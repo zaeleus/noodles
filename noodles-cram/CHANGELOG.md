@@ -10,6 +10,12 @@
 
   * cram: Update to bzip2 0.4.4 ([#174]).
 
+  * cram/reader: Add a reference sequence repository as context.
+
+    `Reader::records` and `Reader::query` no longer accepts a reference
+    sequence repository but uses the one attached to the reader. Use
+    `cram::reader::Builder` to set the appropriate `fasta::Repository`.
+
 [#174]: https://github.com/zaeleus/noodles/pull/174
 
 ## 0.31.0 - 2023-06-01

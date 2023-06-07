@@ -4,13 +4,39 @@ use std::{
     path::Path,
 };
 
+use bytes::BytesMut;
+use noodles_fasta as fasta;
+
 use super::Reader;
 
 /// A CRAM reader builder.
 #[derive(Debug, Default)]
-pub struct Builder;
+pub struct Builder {
+    reference_sequence_repository: fasta::Repository,
+}
 
 impl Builder {
+    /// Sets the reference sequence repository.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram as cram;
+    /// use noodles_fasta as fasta;
+    ///
+    /// let reference_sequence_repository = fasta::Repository::default();
+    ///
+    /// let builder = cram::reader::Builder::default()
+    ///     .set_reference_sequence_repository(reference_sequence_repository);
+    /// ```
+    pub fn set_reference_sequence_repository(
+        mut self,
+        reference_sequence_repository: fasta::Repository,
+    ) -> Self {
+        self.reference_sequence_repository = reference_sequence_repository;
+        self
+    }
+
     /// Builds a CRAM reader from a path.
     ///
     /// # Examples
@@ -41,6 +67,10 @@ impl Builder {
     where
         R: Read,
     {
-        Reader::new(reader)
+        Reader {
+            inner: reader,
+            reference_sequence_repository: self.reference_sequence_repository,
+            buf: BytesMut::new(),
+        }
     }
 }
