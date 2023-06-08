@@ -10,15 +10,15 @@
 //! ## Read all records
 //!
 //! ```no_run
-//! # use std::{fs::File, io};
+//! # use std::io;
 //! use noodles_bam as bam;
 //!
-//! let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
+//! let mut reader = bam::reader::Builder::default().build_from_path("sample.bam")?;
 //! let header = reader.read_header()?;
 //!
 //! for result in reader.records(&header) {
 //!     let record = result?;
-//!     println!("{:?}", record);
+//!     // ...
 //! }
 //! # Ok::<_, io::Error>(())
 //! ```
