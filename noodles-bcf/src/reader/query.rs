@@ -1,22 +1,12 @@
-use std::{
-    io::{self, Read, Seek},
-    vec,
-};
+use std::io::{self, Read, Seek};
 
 use noodles_bgzf as bgzf;
 use noodles_core::{region::Interval, Position};
-use noodles_csi::index::reference_sequence::bin::Chunk;
+use noodles_csi::{self as csi, index::reference_sequence::bin::Chunk};
 use noodles_vcf as vcf;
 
-use crate::header::StringMaps;
-
 use super::Reader;
-
-enum State {
-    Seek,
-    Read(bgzf::VirtualPosition),
-    Done,
-}
+use crate::header::StringMaps;
 
 /// An iterator over records of a BCF reader that intersects a given region.
 ///
@@ -25,15 +15,10 @@ pub struct Query<'r, 'h, R>
 where
     R: Read + Seek,
 {
-    reader: &'r mut Reader<bgzf::Reader<R>>,
-
+    reader: Reader<csi::io::Query<'r, R>>,
     header: &'h vcf::Header,
-    chunks: vec::IntoIter<Chunk>,
-
     chromosome_id: usize,
     interval: Interval,
-
-    state: State,
     record: vcf::Record,
 }
 
@@ -41,28 +26,23 @@ impl<'r, 'h, R> Query<'r, 'h, R>
 where
     R: Read + Seek,
 {
-    pub(crate) fn new(
-        reader: &'r mut Reader<bgzf::Reader<R>>,
+    pub(super) fn new(
+        reader: &'r mut bgzf::Reader<R>,
         header: &'h vcf::Header,
         chunks: Vec<Chunk>,
         chromosome_id: usize,
         interval: Interval,
     ) -> Self {
         Self {
-            reader,
-
+            reader: Reader::from(csi::io::Query::new(reader, chunks)),
             header,
-            chunks: chunks.into_iter(),
-
             chromosome_id,
             interval,
-
-            state: State::Seek,
             record: vcf::Record::default(),
         }
     }
 
-    fn read_record(&mut self) -> io::Result<Option<vcf::Record>> {
+    fn next_record(&mut self) -> io::Result<Option<vcf::Record>> {
         self.reader
             .read_record(self.header, &mut self.record)
             .map(|n| match n {
@@ -80,40 +60,21 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
-            match self.state {
-                State::Seek => {
-                    self.state = match self.chunks.next() {
-                        Some(chunk) => {
-                            if let Err(e) = self.reader.seek(chunk.start()) {
-                                return Some(Err(e));
-                            }
-
-                            State::Read(chunk.end())
-                        }
-                        None => State::Done,
+            match self.next_record() {
+                Ok(Some(record)) => {
+                    match intersects(
+                        self.reader.string_maps(),
+                        &record,
+                        self.chromosome_id,
+                        self.interval,
+                    ) {
+                        Ok(true) => return Some(Ok(record)),
+                        Ok(false) => {}
+                        Err(e) => return Some(Err(e)),
                     }
                 }
-                State::Read(chunk_end) => match self.read_record() {
-                    Ok(Some(record)) => {
-                        if self.reader.virtual_position() >= chunk_end {
-                            self.state = State::Seek;
-                        }
-
-                        match intersects(
-                            self.reader.string_maps(),
-                            &record,
-                            self.chromosome_id,
-                            self.interval,
-                        ) {
-                            Ok(true) => return Some(Ok(record)),
-                            Ok(false) => {}
-                            Err(e) => return Some(Err(e)),
-                        }
-                    }
-                    Ok(None) => self.state = State::Seek,
-                    Err(e) => return Some(Err(e)),
-                },
-                State::Done => return None,
+                Ok(None) => return None,
+                Err(e) => return Some(Err(e)),
             }
         }
     }
