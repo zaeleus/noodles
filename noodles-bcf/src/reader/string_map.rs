@@ -1,7 +1,7 @@
 use std::io::{self, Read};
 
 use crate::lazy::record::{
-    value::{Int16, Int32, Int8},
+    value::{Array, Int16, Int32, Int8},
     Value,
 };
 
@@ -32,11 +32,11 @@ where
 {
     let indices = match read_value(reader)? {
         Some(Value::Int8(Some(Int8::Value(i)))) => vec![i32::from(i)],
-        Some(Value::Int8Array(indices)) => indices.into_iter().map(i32::from).collect(),
+        Some(Value::Array(Array::Int8(indices))) => indices.into_iter().map(i32::from).collect(),
         Some(Value::Int16(Some(Int16::Value(i)))) => vec![i32::from(i)],
-        Some(Value::Int16Array(indices)) => indices.into_iter().map(i32::from).collect(),
+        Some(Value::Array(Array::Int16(indices))) => indices.into_iter().map(i32::from).collect(),
         Some(Value::Int32(Some(Int32::Value(i)))) => vec![i],
-        Some(Value::Int32Array(indices)) => indices,
+        Some(Value::Array(Array::Int32(indices))) => indices,
         None => Vec::new(),
         v => {
             return Err(io::Error::new(

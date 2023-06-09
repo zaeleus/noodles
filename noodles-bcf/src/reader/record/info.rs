@@ -11,7 +11,7 @@ use noodles_vcf::{
 use crate::{
     header::string_maps::StringStringMap,
     lazy::record::{
-        value::{Float, Int16, Int32, Int8},
+        value::{Array, Float, Int16, Int32, Int8},
         Value,
     },
     reader::{string_map::read_string_map_index, value::read_value},
@@ -128,7 +128,7 @@ where
         Some(Value::Int8(Some(Int8::Value(n)))) => {
             Ok(Some(vcf::record::info::field::Value::from(i32::from(n))))
         }
-        Some(Value::Int8Array(values)) => Ok(Some(vcf::record::info::field::Value::from(
+        Some(Value::Array(Array::Int8(values))) => Ok(Some(vcf::record::info::field::Value::from(
             values
                 .into_iter()
                 .map(Int8::from)
@@ -142,31 +142,35 @@ where
         Some(Value::Int16(Some(Int16::Value(n)))) => {
             Ok(Some(vcf::record::info::field::Value::from(i32::from(n))))
         }
-        Some(Value::Int16Array(values)) => Ok(Some(vcf::record::info::field::Value::from(
-            values
-                .into_iter()
-                .map(Int16::from)
-                .map(|value| match value {
-                    Int16::Value(n) => Some(i32::from(n)),
-                    Int16::Missing => None,
-                    _ => todo!("unhandled i16 array value: {:?}", value),
-                })
-                .collect::<Vec<_>>(),
-        ))),
+        Some(Value::Array(Array::Int16(values))) => {
+            Ok(Some(vcf::record::info::field::Value::from(
+                values
+                    .into_iter()
+                    .map(Int16::from)
+                    .map(|value| match value {
+                        Int16::Value(n) => Some(i32::from(n)),
+                        Int16::Missing => None,
+                        _ => todo!("unhandled i16 array value: {:?}", value),
+                    })
+                    .collect::<Vec<_>>(),
+            )))
+        }
         Some(Value::Int32(Some(Int32::Value(n)))) => {
             Ok(Some(vcf::record::info::field::Value::from(n)))
         }
-        Some(Value::Int32Array(values)) => Ok(Some(vcf::record::info::field::Value::from(
-            values
-                .into_iter()
-                .map(Int32::from)
-                .map(|value| match value {
-                    Int32::Value(n) => Some(n),
-                    Int32::Missing => None,
-                    _ => todo!("unhandled i32 array value: {:?}", value),
-                })
-                .collect::<Vec<_>>(),
-        ))),
+        Some(Value::Array(Array::Int32(values))) => {
+            Ok(Some(vcf::record::info::field::Value::from(
+                values
+                    .into_iter()
+                    .map(Int32::from)
+                    .map(|value| match value {
+                        Int32::Value(n) => Some(n),
+                        Int32::Missing => None,
+                        _ => todo!("unhandled i32 array value: {:?}", value),
+                    })
+                    .collect::<Vec<_>>(),
+            )))
+        }
         v => Err(type_mismatch_error(v, Type::Integer)),
     }
 }
@@ -196,17 +200,19 @@ where
         Some(Value::Float(Some(Float::Value(n)))) => {
             Ok(Some(vcf::record::info::field::Value::from(n)))
         }
-        Some(Value::FloatArray(values)) => Ok(Some(vcf::record::info::field::Value::from(
-            values
-                .into_iter()
-                .map(Float::from)
-                .map(|value| match value {
-                    Float::Value(n) => Some(n),
-                    Float::Missing => None,
-                    _ => todo!("unhandled float array value: {:?}", value),
-                })
-                .collect::<Vec<_>>(),
-        ))),
+        Some(Value::Array(Array::Float(values))) => {
+            Ok(Some(vcf::record::info::field::Value::from(
+                values
+                    .into_iter()
+                    .map(Float::from)
+                    .map(|value| match value {
+                        Float::Value(n) => Some(n),
+                        Float::Missing => None,
+                        _ => todo!("unhandled float array value: {:?}", value),
+                    })
+                    .collect::<Vec<_>>(),
+            )))
+        }
         v => Err(type_mismatch_error(v, Type::Float)),
     }
 }

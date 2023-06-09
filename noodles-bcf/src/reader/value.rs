@@ -7,7 +7,7 @@ use std::io::{self, Read};
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use crate::lazy::record::{
-    value::{Float, Int16, Int32, Int8, Type},
+    value::{Array, Float, Int16, Int32, Int8, Type},
     Value,
 };
 
@@ -25,7 +25,10 @@ where
                 .map(Some)
                 .map(Value::Int8)
                 .map(Some),
-            _ => read_i8_array(reader, len).map(Value::Int8Array).map(Some),
+            _ => read_i8_array(reader, len)
+                .map(Array::Int8)
+                .map(Value::Array)
+                .map(Some),
         },
         Some(Type::Int16(len)) => match len {
             0 => Ok(Some(Value::Int16(None))),
@@ -34,7 +37,10 @@ where
                 .map(Some)
                 .map(Value::Int16)
                 .map(Some),
-            _ => read_i16_array(reader, len).map(Value::Int16Array).map(Some),
+            _ => read_i16_array(reader, len)
+                .map(Array::Int16)
+                .map(Value::Array)
+                .map(Some),
         },
         Some(Type::Int32(len)) => match len {
             0 => Ok(Some(Value::Int32(None))),
@@ -43,7 +49,10 @@ where
                 .map(Some)
                 .map(Value::Int32)
                 .map(Some),
-            _ => read_i32_array(reader, len).map(Value::Int32Array).map(Some),
+            _ => read_i32_array(reader, len)
+                .map(Array::Int32)
+                .map(Value::Array)
+                .map(Some),
         },
         Some(Type::Float(len)) => match len {
             0 => Ok(Some(Value::Float(None))),
@@ -53,7 +62,8 @@ where
                 .map(Value::Float)
                 .map(Some),
             _ => read_float_array(reader, len)
-                .map(Value::FloatArray)
+                .map(Array::Float)
+                .map(Value::Array)
                 .map(Some),
         },
         Some(Type::String(len)) => match len {
@@ -168,7 +178,7 @@ mod tests {
         let mut reader = &data[..];
         assert!(matches!(
             read_value(&mut reader),
-            Ok(Some(Value::Int8Array(values))) if values == [5, 8, 13]
+            Ok(Some(Value::Array(Array::Int8(values)))) if values == [5, 8, 13]
         ));
 
         let data = [0x02];
@@ -189,7 +199,7 @@ mod tests {
         let mut reader = &data[..];
         assert!(matches!(
             read_value(&mut reader),
-            Ok(Some(Value::Int16Array(values))) if values == [377, 610, 987]
+            Ok(Some(Value::Array(Array::Int16(values)))) if values == [377, 610, 987]
         ));
 
         let data = [0x03];
@@ -212,7 +222,7 @@ mod tests {
         let mut reader = &data[..];
         assert!(matches!(
             read_value(&mut reader),
-            Ok(Some(Value::Int32Array(values))) if values == [75025, 121393, 196418]
+            Ok(Some(Value::Array(Array::Int32(values)))) if values == [75025, 121393, 196418]
         ));
 
         let data = [0x05];
@@ -233,7 +243,7 @@ mod tests {
         let mut reader = &data[..];
         assert!(matches!(
             read_value(&mut reader),
-            Ok(Some(Value::FloatArray(value))) if value == [0.0, 0.5]
+            Ok(Some(Value::Array(Array::Float(value)))) if value == [0.0, 0.5]
         ));
 
         let data = [0x07];

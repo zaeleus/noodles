@@ -7,7 +7,10 @@ use noodles_vcf as vcf;
 
 use crate::{
     header::string_maps::StringStringMap,
-    lazy::record::value::{Float, Int16, Int32, Int8, Value},
+    lazy::record::{
+        value::{Array, Float, Int16, Int32, Int8},
+        Value,
+    },
     writer::{string_map::write_string_map_index, value::write_value},
 };
 
@@ -213,7 +216,7 @@ where
         vs.push(n);
     }
 
-    write_value(writer, Some(Value::Int8Array(vs)))
+    write_value(writer, Some(Value::Array(Array::Int8(vs))))
 }
 
 fn write_info_field_int16_array_value<W>(writer: &mut W, values: &[Option<i32>]) -> io::Result<()>
@@ -239,7 +242,7 @@ where
         vs.push(n);
     }
 
-    write_value(writer, Some(Value::Int16Array(vs)))
+    write_value(writer, Some(Value::Array(Array::Int16(vs))))
 }
 
 fn write_info_field_int32_array_value<W>(writer: &mut W, values: &[Option<i32>]) -> io::Result<()>
@@ -256,7 +259,7 @@ where
         })
         .collect();
 
-    write_value(writer, Some(Value::Int32Array(vs)))
+    write_value(writer, Some(Value::Array(Array::Int32(vs))))
 }
 
 fn write_info_field_float_array_value<W>(writer: &mut W, values: &[Option<f32>]) -> io::Result<()>
@@ -273,7 +276,7 @@ where
         })
         .collect();
 
-    write_value(writer, Some(Value::FloatArray(vs)))
+    write_value(writer, Some(Value::Array(Array::Float(vs))))
 }
 
 fn write_info_field_character_array_value<W>(

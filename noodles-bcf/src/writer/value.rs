@@ -6,7 +6,7 @@ use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 
-use crate::lazy::record::value::{Float, Int16, Int32, Int8, Type, Value};
+use crate::lazy::record::value::{Array, Float, Int16, Int32, Int8, Type, Value};
 
 pub fn write_value<W>(writer: &mut W, value: Option<Value>) -> io::Result<()>
 where
@@ -15,13 +15,13 @@ where
     match value {
         None => write_missing(writer),
         Some(Value::Int8(v)) => write_int8(writer, v),
-        Some(Value::Int8Array(v)) => write_int8_array(writer, &v),
+        Some(Value::Array(Array::Int8(v))) => write_int8_array(writer, &v),
         Some(Value::Int16(v)) => write_int16(writer, v),
-        Some(Value::Int16Array(v)) => write_int16_array(writer, &v),
+        Some(Value::Array(Array::Int16(v))) => write_int16_array(writer, &v),
         Some(Value::Int32(v)) => write_int32(writer, v),
-        Some(Value::Int32Array(v)) => write_int32_array(writer, &v),
+        Some(Value::Array(Array::Int32(v))) => write_int32_array(writer, &v),
         Some(Value::Float(v)) => write_float(writer, v),
-        Some(Value::FloatArray(v)) => write_float_array(writer, &v),
+        Some(Value::Array(Array::Float(v))) => write_float_array(writer, &v),
         Some(Value::String(v)) => write_string(writer, v),
     }
 }
@@ -189,7 +189,7 @@ mod tests {
         assert_eq!(buf, [0x11, 0x05]);
 
         buf.clear();
-        write_value(&mut buf, Some(Value::Int8Array(vec![5, 8, 13])))?;
+        write_value(&mut buf, Some(Value::Array(Array::Int8(vec![5, 8, 13]))))?;
         assert_eq!(buf, [0x31, 0x05, 0x08, 0x0d]);
 
         buf.clear();
@@ -201,7 +201,10 @@ mod tests {
         assert_eq!(buf, [0x12, 0x79, 0x01]);
 
         buf.clear();
-        write_value(&mut buf, Some(Value::Int16Array(vec![377, 610, 987])))?;
+        write_value(
+            &mut buf,
+            Some(Value::Array(Array::Int16(vec![377, 610, 987]))),
+        )?;
         assert_eq!(buf, [0x32, 0x79, 0x01, 0x62, 0x02, 0xdb, 0x03]);
 
         buf.clear();
@@ -215,7 +218,7 @@ mod tests {
         buf.clear();
         write_value(
             &mut buf,
-            Some(Value::Int32Array(vec![75025, 121393, 196418])),
+            Some(Value::Array(Array::Int32(vec![75025, 121393, 196418]))),
         )?;
         assert_eq!(
             buf,
@@ -227,7 +230,7 @@ mod tests {
         assert_eq!(buf, [0x15, 0x00, 0x00, 0x00, 0x00]);
 
         buf.clear();
-        write_value(&mut buf, Some(Value::FloatArray(vec![0.0, 0.5])))?;
+        write_value(&mut buf, Some(Value::Array(Array::Float(vec![0.0, 0.5]))))?;
         assert_eq!(buf, [0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3f]);
 
         buf.clear();

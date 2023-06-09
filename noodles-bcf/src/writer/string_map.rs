@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::lazy::record::{
-    value::{Int16, Int32, Int8},
+    value::{Array, Int16, Int32, Int8},
     Value,
 };
 
@@ -49,13 +49,13 @@ where
 
             if max <= i32::from(Int8::MAX_VALUE) {
                 let is = indices.iter().map(|&i| i as i8).collect();
-                write_value(writer, Some(Value::Int8Array(is)))
+                write_value(writer, Some(Value::Array(Array::Int8(is))))
             } else if max <= i32::from(Int16::MAX_VALUE) {
                 let is = indices.iter().map(|&i| i as i16).collect();
-                write_value(writer, Some(Value::Int16Array(is)))
+                write_value(writer, Some(Value::Array(Array::Int16(is))))
             } else {
                 let is = indices.iter().map(|&i| i as i32).collect();
-                write_value(writer, Some(Value::Int32Array(is)))
+                write_value(writer, Some(Value::Array(Array::Int32(is))))
             }
         }
     }
