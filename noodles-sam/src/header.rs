@@ -86,7 +86,7 @@ use self::record::value::{
     Map,
 };
 
-/// A reference seqeuence dictionary.
+/// A reference sequence dictionary.
 pub type ReferenceSequences = IndexMap<map::reference_sequence::Name, Map<ReferenceSequence>>;
 
 /// An ordered map of read groups.
@@ -97,7 +97,7 @@ pub type Programs = IndexMap<String, Map<Program>>;
 
 /// A SAM header.
 ///
-/// Records are grouped by their types: header, reference seqeuence, read group, program, and
+/// Records are grouped by their types: header, reference sequence, read group, program, and
 /// comment.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Header {
