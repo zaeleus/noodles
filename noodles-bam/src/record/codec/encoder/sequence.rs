@@ -7,6 +7,10 @@ pub fn put_sequence<B>(dst: &mut B, read_length: usize, sequence: &Sequence) -> 
 where
     B: BufMut,
 {
+    if sequence.is_empty() {
+        return Ok(());
+    }
+
     // § 1.4.10 "`SEQ`" (2022-08-22): "If not a '*', the length of the sequence must equal the sum
     // of lengths of `M`/`I`/`S`/`=`/`X` operations in `CIGAR`."
     if read_length > 0 && sequence.len() != read_length {
