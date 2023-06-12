@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * bam/record/codec/encoder/sequence: Fix writing an empty sequence when the
+    read length is nonempty ([#176]).
+
+[#176]: https://github.com/zaeleus/noodles/issues/176
+
 ## 0.35.0 - 2023-06-08
 
 ### Removed
