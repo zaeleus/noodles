@@ -80,6 +80,10 @@ mod tests {
         t(&mut buf, &"ACGT".parse()?, &[0x12, 0x48])?;
 
         buf.clear();
+        put_sequence(&mut buf, 2, &Sequence::default())?;
+        assert!(buf.is_empty());
+
+        buf.clear();
         let sequence = "A".parse()?;
         assert!(matches!(
             put_sequence(&mut buf, 2, &sequence),
