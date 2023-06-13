@@ -10,7 +10,7 @@ use noodles_fasta as fasta;
 use super::IndexedReader;
 use crate::crai;
 
-/// An indexed BAM reader builder.
+/// An indexed CRAM reader builder.
 #[derive(Default)]
 pub struct Builder {
     reference_sequence_repository: fasta::Repository,
