@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * sam/alignment/iter: Add column depth iterator (`Depth`).
+
+    This is a pileup iterator that calculates column depths. It requires the
+    records in the input iterator to be coordinate-sorted.
+
 ## 0.32.0 - 2023-06-08
 
 ### Changed
