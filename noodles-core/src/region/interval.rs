@@ -59,6 +59,25 @@ impl Interval {
         self.end
     }
 
+    /// Returns whether the given position is in this interval.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_core::{region::Interval, Position};
+    ///
+    /// let interval = Interval::from(Position::try_from(5)?..=Position::try_from(13)?);
+    /// assert!(interval.contains(Position::try_from(8)?));
+    /// assert!(!interval.contains(Position::try_from(2)?));
+    /// assert!(!interval.contains(Position::try_from(21)?));
+    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
+    /// ```
+    pub fn contains(&self, position: Position) -> bool {
+        let start = self.start.unwrap_or(Position::MIN);
+        let end = self.end.unwrap_or(Position::MAX);
+        start <= position && position <= end
+    }
+
     /// Returns whether the given interval intersects this interval.
     ///
     /// # Examples

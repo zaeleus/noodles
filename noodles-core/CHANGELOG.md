@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * core/region/interval: Add position inclusion query (`Interval::contains`).
+
 ## 0.11.0 - 2023-03-03
 
 ### Added
