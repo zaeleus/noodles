@@ -30,7 +30,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for result in pileup {
         let (position, depth) = result?;
 
-        if !region.interval().intersects((position..=position).into()) {
+        if !region.interval().contains(position) {
             continue;
         }
 
