@@ -1,6 +1,6 @@
 [package]
 name = "noodles-htsget"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
@@ -14,7 +14,7 @@ documentation = "https://docs.rs/noodles-htsget"
 base64 = "0.21.0"
 bytes.workspace = true
 futures = { workspace = true, features = ["std"] }
-noodles-core = { path = "../noodles-core", version = "0.11.0" }
+noodles-core = { path = "../noodles-core", version = "0.12.0" }
 reqwest = { version = "0.11.9", default-features = false, features = ["json", "rustls-tls", "stream"] }
 serde = { version = "1.0.136", features = ["derive"] }
 url = { version = "2.2.2", features = ["serde"] }

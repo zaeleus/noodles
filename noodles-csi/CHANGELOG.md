@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.20.0 - 2023-06-15
+
+### Changed
+
+  * csi: Sync dependencies.
+
 ## 0.19.0 - 2023-06-01
 
 ### Fixed
