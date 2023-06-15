@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bcf: Add an indexed reader (`IndexedReader`).
+
 ## 0.28.0 - 2023-06-01
 
 ### Changed
