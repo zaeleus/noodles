@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bcf/indexed_reader: Add builder (`indexed_reader::Builder`).
+
 ## 0.29.0 - 2023-06-15
 
 ### Added

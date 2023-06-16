@@ -6,7 +6,7 @@
 mod r#async;
 
 pub mod header;
-mod indexed_reader;
+pub mod indexed_reader;
 pub mod lazy;
 pub mod reader;
 mod writer;
