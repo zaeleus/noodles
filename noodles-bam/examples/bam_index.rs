@@ -24,7 +24,7 @@ fn is_coordinate_sorted(header: &sam::Header) -> bool {
     false
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
     let mut reader = bam::reader::Builder::default().build_from_path(src)?;
@@ -34,8 +34,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
             "the input BAM must be coordinate-sorted to be indexed",
-        )
-        .into());
+        ));
     }
 
     let mut record = Record::default();
@@ -43,13 +42,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut builder = csi::index::Indexer::default();
     let mut start_position = reader.virtual_position();
 
-    loop {
-        match reader.read_record(&header, &mut record) {
-            Ok(0) => break,
-            Ok(_) => {}
-            Err(e) => return Err(e.into()),
-        }
-
+    while reader.read_record(&header, &mut record)? != 0 {
         let end_position = reader.virtual_position();
         let chunk = Chunk::new(start_position, end_position);
 

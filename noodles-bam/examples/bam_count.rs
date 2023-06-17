@@ -2,11 +2,11 @@
 //!
 //! The result matches the output of `samtools view --count <src>`.
 
-use std::env;
+use std::{env, io};
 
 use noodles_bam as bam;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
     let mut reader = bam::reader::Builder::default().build_from_path(src)?;

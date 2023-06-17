@@ -19,7 +19,7 @@ fn is_unique_record(record: &Record) -> io::Result<bool> {
     }
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> io::Result<()> {
     let mut args = env::args().skip(1);
     let src = args.next().expect("missing src");
 

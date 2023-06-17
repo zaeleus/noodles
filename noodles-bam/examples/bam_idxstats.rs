@@ -6,11 +6,11 @@
 //!
 //! The result matches the output of `samtools idxstats <src>`.
 
-use std::{env, path::PathBuf};
+use std::{env, io, path::PathBuf};
 
 use noodles_bam as bam;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> io::Result<()> {
     let src = env::args().nth(1).map(PathBuf::from).expect("missing src");
 
     let mut reader = bam::indexed_reader::Builder::default().build_from_path(src)?;

@@ -46,7 +46,7 @@ where
     Ok(read_names)
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> io::Result<()> {
     let mut args = env::args().skip(1);
     let read_names_src = args.next().expect("missing read_names_src");
     let src = args.next().expect("missing src");

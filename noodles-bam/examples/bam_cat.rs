@@ -6,7 +6,7 @@ use std::{env, io};
 
 use noodles_bam as bam;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> io::Result<()> {
     let srcs: Vec<_> = env::args().skip(1).collect();
 
     let first_src = srcs.first().expect("missing srcs[0]");
