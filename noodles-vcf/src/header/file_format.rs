@@ -15,7 +15,6 @@ const MAJOR_VERSION: u32 = 4;
 const MINOR_VERSION: u32 = 4;
 
 const DELIMITER: char = '.';
-const MAX_COMPONENT_COUNT: usize = 2;
 
 impl FileFormat {
     /// Creates a file format.
@@ -79,12 +78,12 @@ pub enum ParseError {
     Empty,
     /// The prefix is invalid.
     InvalidPrefix,
-    /// The major version is missing.
-    MissingMajorVersion,
+    /// The version is missing.
+    MissingVersion,
+    /// The version is invalid.
+    InvalidVersion,
     /// The major version is invalid.
     InvalidMajorVersion(num::ParseIntError),
-    /// The minor version is missing.
-    MissingMinorVersion,
     /// The minor version is invalid.
     InvalidMinorVersion(num::ParseIntError),
 }
@@ -103,9 +102,9 @@ impl fmt::Display for ParseError {
         match self {
             Self::Empty => f.write_str("empty input"),
             Self::InvalidPrefix => f.write_str("invalid prefix"),
-            Self::MissingMajorVersion => f.write_str("missing major version"),
+            Self::MissingVersion => f.write_str("missing version"),
+            Self::InvalidVersion => f.write_str("invalid version"),
             Self::InvalidMajorVersion(_) => f.write_str("invalid major version"),
-            Self::MissingMinorVersion => f.write_str("missing minor version"),
             Self::InvalidMinorVersion(_) => f.write_str("invalid minor version"),
         }
     }
@@ -119,26 +118,18 @@ impl FromStr for FileFormat {
             return Err(ParseError::Empty);
         }
 
-        let raw_version = match s.strip_prefix(PREFIX) {
-            Some(t) => t,
-            None => return Err(ParseError::InvalidPrefix),
-        };
+        let raw_version = s.strip_prefix(PREFIX).ok_or(ParseError::InvalidPrefix)?;
 
         if raw_version.is_empty() {
-            return Err(ParseError::MissingMajorVersion);
+            return Err(ParseError::MissingVersion);
         }
 
-        let mut components = raw_version.splitn(MAX_COMPONENT_COUNT, DELIMITER);
+        let (raw_major, raw_minor) = raw_version
+            .split_once(DELIMITER)
+            .ok_or(ParseError::InvalidVersion)?;
 
-        let major = components
-            .next()
-            .ok_or(ParseError::MissingMajorVersion)
-            .and_then(|t| t.parse().map_err(ParseError::InvalidMajorVersion))?;
-
-        let minor = components
-            .next()
-            .ok_or(ParseError::MissingMinorVersion)
-            .and_then(|t| t.parse().map_err(ParseError::InvalidMinorVersion))?;
+        let major = raw_major.parse().map_err(ParseError::InvalidMajorVersion)?;
+        let minor = raw_minor.parse().map_err(ParseError::InvalidMinorVersion)?;
 
         Ok(Self::new(major, minor))
     }
@@ -175,18 +166,23 @@ mod tests {
 
         assert_eq!(
             "VCFv".parse::<FileFormat>(),
-            Err(ParseError::MissingMajorVersion)
+            Err(ParseError::MissingVersion)
         );
 
-        assert!(matches!(
+        assert_eq!(
             "VCFvx".parse::<FileFormat>(),
-            Err(ParseError::InvalidMajorVersion(_))
-        ));
+            Err(ParseError::InvalidVersion)
+        );
 
         assert_eq!(
             "VCFv4".parse::<FileFormat>(),
-            Err(ParseError::MissingMinorVersion)
+            Err(ParseError::InvalidVersion)
         );
+
+        assert!(matches!(
+            "VCFvx.3".parse::<FileFormat>(),
+            Err(ParseError::InvalidMajorVersion(_))
+        ));
 
         assert!(matches!(
             "VCFv4.x".parse::<FileFormat>(),
