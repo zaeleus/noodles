@@ -25,7 +25,7 @@ impl FileFormat {
     /// use noodles_vcf::header::FileFormat;
     /// let file_format = FileFormat::new(4, 3);
     /// ```
-    pub fn new(major: u32, minor: u32) -> Self {
+    pub const fn new(major: u32, minor: u32) -> Self {
         Self { major, minor }
     }
 
@@ -38,7 +38,7 @@ impl FileFormat {
     /// let file_format = FileFormat::new(4, 3);
     /// assert_eq!(file_format.major(), 4);
     /// ```
-    pub fn major(&self) -> u32 {
+    pub const fn major(&self) -> u32 {
         self.major
     }
 
@@ -51,7 +51,7 @@ impl FileFormat {
     /// let file_format = FileFormat::new(4, 3);
     /// assert_eq!(file_format.minor(), 3);
     /// ```
-    pub fn minor(&self) -> u32 {
+    pub const fn minor(&self) -> u32 {
         self.minor
     }
 }

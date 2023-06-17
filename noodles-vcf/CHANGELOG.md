@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * vcf/header/file_format: Make methods `const`.
+
 ## 0.32.0 - 2023-06-15
 
 ### Changed
