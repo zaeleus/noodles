@@ -34,9 +34,7 @@ use crate::data_container::DataContainer;
 /// use noodles_fasta as fasta;
 ///
 /// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
-/// reader.read_file_definition()?;
-///
-/// let header = reader.read_file_header()?;
+/// let header = reader.read_header()?;
 ///
 /// for result in reader.records(&header) {
 ///     let record = result?;
@@ -161,6 +159,27 @@ where
         read_header_container(&mut self.inner, &mut self.buf)
     }
 
+    /// Reads the SAM header.
+    ///
+    /// This verifies the CRAM magic number, discards the file definition, and reads and parses the
+    /// file header as a SAM header.
+    ///
+    /// The position of the stream is expected to be at the start.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_cram as cram;
+    /// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
+    /// let header = reader.read_header()?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn read_header(&mut self) -> io::Result<sam::Header> {
+        self.read_file_definition()?;
+        self.read_file_header()
+    }
+
     pub(crate) fn read_data_container_with_container_header(
         &mut self,
     ) -> io::Result<Option<(crate::data_container::Header, DataContainer)>> {
@@ -180,8 +199,7 @@ where
     /// use noodles_cram as cram;
     ///
     /// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
-    /// reader.read_file_definition()?;
-    /// reader.read_file_header()?;
+    /// reader.read_header()?;
     ///
     /// while let Some(container) = reader.read_data_container()? {
     ///     // ...
@@ -206,9 +224,7 @@ where
     /// use noodles_fasta as fasta;
     ///
     /// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
-    /// reader.read_file_definition()?;
-    ///
-    /// let header = reader.read_file_header()?;
+    /// let header = reader.read_header()?;
     ///
     /// for result in reader.records(&header) {
     ///     let record = result?;
@@ -271,9 +287,8 @@ where
     /// use noodles_fasta as fasta;
     ///
     /// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
-    /// reader.read_file_definition()?;
     ///
-    /// let header = reader.read_file_header()?;
+    /// let header = reader.read_header()?;
     /// let index = crai::read("sample.cram.crai")?;
     /// let region = "sq0:8-13".parse()?;
     /// let query = reader.query(&header, &index, &region)?;
@@ -315,8 +330,7 @@ where
     R: Read,
 {
     fn read_alignment_header(&mut self) -> io::Result<sam::Header> {
-        self.read_file_definition()?;
-        self.read_file_header()
+        self.read_header()
     }
 
     fn alignment_records<'a>(

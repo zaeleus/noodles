@@ -23,8 +23,7 @@ where
     P: AsRef<Path>,
 {
     let mut reader = File::open(src).map(Reader::new)?;
-    reader.read_file_definition()?;
-    reader.read_file_header()?;
+    reader.read_header()?;
 
     let mut index = Vec::new();
     let mut container_position = reader.position()?;

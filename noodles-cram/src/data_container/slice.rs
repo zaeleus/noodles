@@ -63,8 +63,7 @@ impl Slice {
     ///
     /// let data = [];
     /// let mut reader = cram::Reader::new(&data[..]);
-    /// reader.read_file_definition()?;
-    /// reader.read_file_header()?;
+    /// reader.read_header()?;
     ///
     /// while let Some(container) = reader.read_data_container()? {
     ///     for slice in container.slices() {

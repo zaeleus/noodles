@@ -32,8 +32,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .set_reference_sequence_repository(reference_sequence_repository)
         .build_from_path(src)?;
 
-    reader.read_file_definition()?;
-    let header = reader.read_file_header()?;
+    let header = reader.read_header()?;
 
     let stdout = io::stdout().lock();
     let mut writer = sam::Writer::new(BufWriter::new(stdout));

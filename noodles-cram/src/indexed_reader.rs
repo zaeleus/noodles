@@ -64,6 +64,11 @@ where
         self.inner.read_file_header()
     }
 
+    /// Reads the SAM header.
+    pub fn read_header(&mut self) -> io::Result<sam::Header> {
+        self.inner.read_header()
+    }
+
     /// Reads a data container.
     pub fn read_data_container(&mut self) -> io::Result<Option<DataContainer>> {
         self.inner.read_data_container()

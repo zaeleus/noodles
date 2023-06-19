@@ -13,8 +13,7 @@ fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
     let mut reader = cram::reader::Builder::default().build_from_path(src)?;
-    reader.read_file_definition()?;
-    reader.read_file_header()?;
+    reader.read_header()?;
 
     let mut n = 0;
 
