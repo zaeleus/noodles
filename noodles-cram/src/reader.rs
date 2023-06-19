@@ -139,7 +139,7 @@ where
         Ok(FileDefinition::new(format, file_id))
     }
 
-    /// Reads the raw SAM header.
+    /// Reads the SAM header.
     ///
     /// The position of the stream is expected to be at the CRAM header container, i.e., directly
     /// after the file definition.
