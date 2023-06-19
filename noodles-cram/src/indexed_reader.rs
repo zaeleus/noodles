@@ -59,7 +59,7 @@ where
         self.inner.read_file_definition()
     }
 
-    /// Reads the raw SAM header.
+    /// Reads the SAM header.
     pub fn read_file_header(&mut self) -> io::Result<sam::Header> {
         self.inner.read_file_header()
     }
