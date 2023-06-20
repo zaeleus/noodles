@@ -69,8 +69,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .set_reference_sequence_repository(repository)
         .build_with_writer(stdout);
 
-    writer.write_file_definition()?;
-    writer.write_file_header(&header)?;
+    writer.write_header(&header)?;
 
     let record = Record::builder()
         .set_flags(sam::record::Flags::empty())

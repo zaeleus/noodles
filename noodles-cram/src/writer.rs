@@ -33,10 +33,9 @@ use super::{file_definition::Version, DataContainer, FileDefinition, Record, MAG
 /// use noodles_sam as sam;
 ///
 /// let mut writer = cram::Writer::new(Vec::new());
-/// writer.write_file_definition()?;
 ///
 /// let header = sam::Header::default();
-/// writer.write_file_header(&header)?;
+/// writer.write_header(&header)?;
 ///
 /// let record = cram::Record::default();
 /// writer.write_record(&header, record)?;
@@ -174,6 +173,27 @@ where
         write_header_container(&mut self.inner, &header)
     }
 
+    /// Writes a SAM header.
+    ///
+    /// This writes the CRAM magic number, the file definition, and file header using the given SAM
+    /// header.
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_cram as cram;
+    /// use noodles_sam as sam;
+    ///
+    /// let mut writer = cram::Writer::new(io::sink());
+    ///
+    /// let header = sam::Header::builder().add_comment("noodles-cram").build();
+    /// writer.write_header(&header)?;
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn write_header(&mut self, header: &sam::Header) -> io::Result<()> {
+        self.write_file_definition()?;
+        self.write_file_header(header)
+    }
+
     /// Writes a CRAM record.
     ///
     /// # Examples
@@ -185,10 +205,8 @@ where
     ///
     /// let mut writer = cram::Writer::new(Vec::new());
     ///
-    /// writer.write_file_definition()?;
-    ///
     /// let header = sam::Header::default();
-    /// writer.write_file_header(&header)?;
+    /// writer.write_header(&header)?;
     ///
     /// let record = cram::Record::default();
     /// writer.write_record(&header, record)?;
@@ -248,9 +266,7 @@ where
     W: Write,
 {
     fn write_alignment_header(&mut self, header: &sam::Header) -> io::Result<()> {
-        self.write_file_definition()?;
-        self.write_file_header(header)?;
-        Ok(())
+        self.write_header(header)
     }
 
     fn write_alignment_record(

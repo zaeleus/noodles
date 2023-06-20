@@ -9,6 +9,10 @@
     This is a convenience method that reads the file definition and header and
     returns a parsed SAM header.
 
+  * cram/writer: Add `Writer::write_header`.
+
+    This is a convenience method that writes the file definition and header.
+
 ## 0.33.0 - 2023-06-15
 
 ### Changed
