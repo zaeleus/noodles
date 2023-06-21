@@ -96,10 +96,10 @@ impl Builder {
             None => detect_compression(&mut reader)?,
         };
 
-        let format = self
-            .format
-            .map(Ok)
-            .unwrap_or_else(|| detect_format(&mut reader, compression))?;
+        let format = match self.format {
+            Some(format) => format,
+            None => detect_format(&mut reader, compression)?,
+        };
 
         let inner: Box<dyn VariantReader<_>> = match (format, compression) {
             (Format::Vcf, None) => {
@@ -149,16 +149,20 @@ where
 
     let src = reader.fill_buf()?;
 
-    if compression == Some(Compression::Bgzf) {
-        let mut reader = bgzf::Reader::new(src);
-        let mut buf = [0; 3];
-        reader.read_exact(&mut buf).ok();
+    if let Some(compression) = compression {
+        if compression == Compression::Bgzf {
+            let mut reader = bgzf::Reader::new(src);
+            let mut buf = [0; BCF_MAGIC_NUMBER.len()];
+            reader.read_exact(&mut buf).ok();
 
+            if buf == BCF_MAGIC_NUMBER {
+                return Ok(Format::Bcf);
+            }
+        }
+    } else if let Some(buf) = src.get(..BCF_MAGIC_NUMBER.len()) {
         if buf == BCF_MAGIC_NUMBER {
             return Ok(Format::Bcf);
         }
-    } else if src.get(..3) == Some(&BCF_MAGIC_NUMBER) {
-        return Ok(Format::Bcf);
     }
 
     Ok(Format::Vcf)
