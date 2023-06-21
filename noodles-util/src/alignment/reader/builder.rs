@@ -60,7 +60,7 @@ impl Builder {
     /// Builds an alignment reader from a path.
     ///
     /// By default, the format will be autodetected. This can be overridden by using
-    /// [`Self::set_format`]. An associated index will also attempt to be loaded.
+    /// [`Self::set_format`].
     ///
     /// # Examples
     ///
