@@ -166,6 +166,20 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_detect_compression() -> io::Result<()> {
+        let mut src = &[0x1f, 0x8b][..];
+        assert_eq!(detect_compression(&mut src)?, Some(Compression::Bgzf));
+
+        let mut src = &b"fileformat=VCFv4.4\n"[..];
+        assert!(detect_compression(&mut src)?.is_none());
+
+        let mut src = &[][..];
+        assert!(detect_compression(&mut src)?.is_none());
+
+        Ok(())
+    }
+
+    #[test]
     fn test_detect_format() -> io::Result<()> {
         use std::io::Write;
 
