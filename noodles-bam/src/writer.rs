@@ -20,7 +20,7 @@ use noodles_sam::{self as sam, alignment::Record};
 /// use noodles_bam as bam;
 /// use noodles_sam::{self as sam, alignment::Record};
 ///
-/// let mut writer = bam::Writer::new(Vec::new());
+/// let mut writer = bam::Writer::new(io::sink());
 ///
 /// let header = sam::Header::default();
 /// writer.write_header(&header)?;
@@ -89,7 +89,7 @@ where
     /// use noodles_bam as bam;
     /// use noodles_sam as sam;
     ///
-    /// let mut writer = bam::Writer::new(Vec::new());
+    /// let mut writer = bam::Writer::new(io::sink());
     ///
     /// let header = sam::Header::builder().add_comment("noodles-bam").build();
     /// writer.write_header(&header)?;
@@ -111,7 +111,7 @@ where
     ///
     /// let header = sam::Header::default();
     ///
-    /// let mut writer = bam::Writer::new(Vec::new());
+    /// let mut writer = bam::Writer::new(io::sink());
     /// writer.write_header(&header)?;
     ///
     /// let record = Record::default();
@@ -145,8 +145,9 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bam as bam;
-    /// let writer = bam::Writer::new(Vec::new());
+    /// let writer = bam::Writer::new(io::sink());
     /// ```
     pub fn new(writer: W) -> Self {
         Self::from(bgzf::Writer::new(writer))
@@ -162,7 +163,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bam as bam;
-    /// let mut writer = bam::Writer::new(Vec::new());
+    /// let mut writer = bam::Writer::new(io::sink());
     /// writer.try_finish()?;
     /// # Ok::<(), io::Error>(())
     /// ```
