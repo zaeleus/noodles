@@ -36,7 +36,7 @@ impl Genotypes {
         header: &vcf::Header,
         string_map: &StringStringMap,
     ) -> io::Result<vcf::record::Genotypes> {
-        use crate::reader::record::read_genotypes;
+        use crate::record::codec::decoder::read_genotypes;
 
         if self.is_empty() {
             return Ok(vcf::record::Genotypes::default());

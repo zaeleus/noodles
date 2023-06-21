@@ -8,13 +8,13 @@ use noodles_vcf::{
     },
 };
 
+use super::{string_map::read_string_map_index, value::read_value};
 use crate::{
     header::string_maps::StringStringMap,
     lazy::record::{
         value::{Array, Float, Int16, Int32, Int8},
         Value,
     },
-    reader::{string_map::read_string_map_index, value::read_value},
 };
 
 pub fn read_info<R>(

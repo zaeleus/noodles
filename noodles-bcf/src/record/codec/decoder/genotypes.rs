@@ -18,10 +18,10 @@ use noodles_vcf::{
 
 const NUL: u8 = 0x00;
 
+use super::{string_map::read_string_map_index, value::read_type};
 use crate::{
     header::string_maps::StringStringMap,
     lazy::record::value::{Float, Int16, Int32, Int8, Type},
-    reader::{string_map::read_string_map_index, value::read_type},
 };
 
 pub fn read_genotypes<R>(

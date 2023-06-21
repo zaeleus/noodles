@@ -34,7 +34,7 @@ impl Info {
         header: &vcf::Header,
         string_string_map: &StringStringMap,
     ) -> io::Result<vcf::record::Info> {
-        use crate::reader::record::read_info;
+        use crate::record::codec::decoder::read_info;
         let mut reader = &self.buf[..];
         read_info(&mut reader, header.infos(), string_string_map, self.len())
     }
@@ -206,7 +206,7 @@ impl Info {
             Option<vcf::record::info::field::Value>,
         )>,
     > + 'a {
-        use crate::reader::record::info::read_info_field;
+        use crate::record::codec::decoder::info::read_info_field;
 
         let mut reader = &self.buf[..];
 

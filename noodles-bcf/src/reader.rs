@@ -5,8 +5,6 @@ pub(crate) mod lazy_record;
 pub(crate) mod query;
 pub(crate) mod record;
 mod records;
-pub(crate) mod string_map;
-pub(crate) mod value;
 
 pub use self::{query::Query, records::Records};
 

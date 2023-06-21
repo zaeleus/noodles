@@ -2,10 +2,10 @@ use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use super::record::{
+use crate::lazy;
+use crate::record::codec::decoder::{
     read_chrom, read_filter, read_id, read_pos, read_qual, read_ref_alt, read_rlen,
 };
-use crate::lazy;
 
 pub fn read_lazy_record<R>(
     reader: &mut R,
