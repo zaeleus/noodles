@@ -1,15 +1,13 @@
+mod header;
 mod record;
 
-use std::{
-    ffi::CString,
-    io::{self, Write},
-};
+use std::io::{self, Write};
 
-use byteorder::{LittleEndian, WriteBytesExt};
+use byteorder::WriteBytesExt;
 use noodles_bgzf as bgzf;
 use noodles_vcf as vcf;
 
-use self::record::write_record;
+use self::{header::write_header, record::write_record};
 use super::header::StringMaps;
 
 const MAJOR: u8 = 2;
@@ -198,24 +196,6 @@ where
     Ok(())
 }
 
-fn write_header<W>(writer: &mut W, header: &vcf::Header) -> io::Result<()>
-where
-    W: Write,
-{
-    let raw_header = header.to_string();
-    let c_raw_header =
-        CString::new(raw_header).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-    let text = c_raw_header.as_bytes_with_nul();
-    let l_text =
-        u32::try_from(text.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-    writer.write_u32::<LittleEndian>(l_text)?;
-    writer.write_all(text)?;
-
-    Ok(())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -230,24 +210,6 @@ mod tests {
             0x02, // major
             0x02, // minor
         ];
-
-        assert_eq!(buf, expected);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_write_header() -> io::Result<()> {
-        let mut buf = Vec::new();
-        let header = vcf::Header::default();
-        write_header(&mut buf, &header)?;
-
-        let mut expected = vec![
-            0x3d, 0x00, 0x00, 0x00, // l_text = 61
-        ];
-
-        let text = b"##fileformat=VCFv4.4\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n\0";
-        expected.extend_from_slice(text);
 
         assert_eq!(buf, expected);
 
