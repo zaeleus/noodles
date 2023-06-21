@@ -71,7 +71,7 @@ where
     /// use noodles_bcf as bcf;
     /// use noodles_vcf as vcf;
     ///
-    /// let mut writer = bcf::Writer::new(Vec::new());
+    /// let mut writer = bcf::Writer::new(io::sink());
     ///
     /// let header = vcf::Header::default();
     /// writer.write_header(&header)?;
@@ -91,6 +91,7 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bcf::{self as bcf, header::StringMaps};
     /// use noodles_vcf::{
     ///     self as vcf,
@@ -98,7 +99,7 @@ where
     ///     record::Position,
     /// };
     ///
-    /// let mut writer = bcf::Writer::new(Vec::new());
+    /// let mut writer = bcf::Writer::new(io::sink());
     ///
     /// let header = vcf::Header::builder()
     ///     .add_contig("sq0".parse()?, Map::<Contig>::new())
@@ -131,8 +132,9 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bcf as bcf;
-    /// let writer = bcf::Writer::new(Vec::new());
+    /// let writer = bcf::Writer::new(io::sink());
     /// ```
     pub fn new(writer: W) -> Self {
         Self::from(bgzf::Writer::new(writer))
@@ -148,7 +150,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bcf as bcf;
-    /// let mut writer = bcf::Writer::new(Vec::new());
+    /// let mut writer = bcf::Writer::new(io::sink());
     /// writer.try_finish()?;
     /// # Ok::<(), io::Error>(())
     /// ```
