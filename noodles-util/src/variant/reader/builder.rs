@@ -91,10 +91,10 @@ impl Builder {
     {
         let mut reader = BufReader::new(reader);
 
-        let compression = self
-            .compression
-            .map(Ok)
-            .unwrap_or_else(|| detect_compression(&mut reader))?;
+        let compression = match self.compression {
+            Some(compression) => compression,
+            None => detect_compression(&mut reader)?,
+        };
 
         let format = self
             .format
@@ -131,11 +131,14 @@ where
     const GZIP_MAGIC_NUMBER: [u8; 2] = [0x1f, 0x8b];
 
     let src = reader.fill_buf()?;
-    if src.get(..2) == Some(&GZIP_MAGIC_NUMBER) {
-        Ok(Some(Compression::Bgzf))
-    } else {
-        Ok(None)
+
+    if let Some(buf) = src.get(..GZIP_MAGIC_NUMBER.len()) {
+        if buf == GZIP_MAGIC_NUMBER {
+            return Ok(Some(Compression::Bgzf));
+        }
     }
+
+    Ok(None)
 }
 
 fn detect_format<R>(reader: &mut R, compression: Option<Compression>) -> io::Result<Format>
