@@ -160,3 +160,40 @@ where
 
     Ok(Format::Vcf)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_detect_format() -> io::Result<()> {
+        use std::io::Write;
+
+        fn t(mut src: &[u8], compression: Option<Compression>, expected: Format) {
+            assert!(matches!(detect_format(&mut src, compression), Ok(value) if value == expected));
+        }
+
+        let header = vcf::Header::default();
+        let raw_header = header.to_string();
+
+        let src = raw_header.as_bytes();
+        t(src, None, Format::Vcf);
+
+        let mut writer = bgzf::Writer::new(Vec::new());
+        writer.write_all(raw_header.as_bytes())?;
+        let src = writer.finish()?;
+        t(&src, Some(Compression::Bgzf), Format::Vcf);
+
+        let mut writer = bcf::Writer::from(Vec::new());
+        writer.write_header(&header)?;
+        let src = writer.into_inner();
+        t(&src, None, Format::Bcf);
+
+        let mut writer = bcf::Writer::new(Vec::new());
+        writer.write_header(&header)?;
+        let src = writer.into_inner().finish()?;
+        t(&src, Some(Compression::Bgzf), Format::Bcf);
+
+        Ok(())
+    }
+}
