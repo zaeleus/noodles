@@ -1,6 +1,4 @@
 mod record;
-mod string_map;
-mod value;
 
 use std::{
     ffi::CString,

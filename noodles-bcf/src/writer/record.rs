@@ -1,6 +1,3 @@
-mod genotypes;
-pub(crate) mod site;
-
 use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
@@ -17,7 +14,7 @@ pub fn write_record<W>(
 where
     W: Write,
 {
-    use self::{genotypes::write_genotypes, site::write_site};
+    use crate::record::codec::encoder::{genotypes::write_genotypes, site::write_site};
 
     let mut site_buf = Vec::new();
     write_site(&mut site_buf, header, string_maps, record)?;

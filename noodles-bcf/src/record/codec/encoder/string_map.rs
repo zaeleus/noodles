@@ -3,12 +3,11 @@ use std::{
     io::{self, Write},
 };
 
+use super::value::write_value;
 use crate::lazy::record::{
     value::{Array, Int16, Int32, Int8},
     Value,
 };
-
-use super::value::write_value;
 
 pub fn write_string_map_index<W>(writer: &mut W, i: usize) -> io::Result<()>
 where

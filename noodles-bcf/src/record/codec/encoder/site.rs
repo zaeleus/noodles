@@ -5,13 +5,13 @@ use std::io::{self, Write};
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_vcf as vcf;
 
+use super::value::write_value;
 use crate::{
     header::{
         string_maps::{ContigStringMap, StringStringMap},
         StringMaps,
     },
     lazy::record::value::{Float, Value},
-    writer::value::write_value,
 };
 
 use self::info::write_info;
@@ -221,7 +221,7 @@ where
 {
     use vcf::record::Filters;
 
-    use crate::writer::string_map::write_string_map_indices;
+    use crate::record::codec::encoder::string_map::write_string_map_indices;
 
     let indices = match filters {
         None => Vec::new(),
