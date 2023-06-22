@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bam/bai/reader: Disallow duplicate bin IDs.
+
 ## 0.36.0 - 2023-06-15
 
 ### Changed
