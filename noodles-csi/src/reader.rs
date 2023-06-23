@@ -221,15 +221,17 @@ where
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let mut reference_sequences = Vec::with_capacity(n_ref);
+    (0..n_ref)
+        .map(|_| read_reference_sequence(reader, depth))
+        .collect()
+}
 
-    for _ in 0..n_ref {
-        let (bins, metadata) = read_bins(reader, depth)?;
-        let reference_sequence = ReferenceSequence::new(bins, Vec::new(), metadata);
-        reference_sequences.push(reference_sequence);
-    }
-
-    Ok(reference_sequences)
+fn read_reference_sequence<R>(reader: &mut R, depth: u8) -> io::Result<ReferenceSequence>
+where
+    R: Read,
+{
+    let (bins, metadata) = read_bins(reader, depth)?;
+    Ok(ReferenceSequence::new(bins, Vec::new(), metadata))
 }
 
 fn read_bins<R>(reader: &mut R, depth: u8) -> io::Result<(HashMap<usize, Bin>, Option<Metadata>)>
