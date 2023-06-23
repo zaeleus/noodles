@@ -334,7 +334,7 @@ mod tests {
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // bins[1].metadata.n_unmapped = 0
         ];
         let mut reader = &data[..];
-        let (actual_bins, actual_metadata) = dbg!(read_bins(&mut reader))?;
+        let (actual_bins, actual_metadata) = read_bins(&mut reader)?;
         assert_eq!(actual_bins.len(), 1);
         assert!(actual_bins.get(&0).is_some());
         assert!(actual_metadata.is_some());
