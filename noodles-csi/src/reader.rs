@@ -277,21 +277,22 @@ where
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let mut chunks = Vec::with_capacity(n_chunk);
+    (0..n_chunk).map(|_| read_chunk(reader)).collect()
+}
 
-    for _ in 0..n_chunk {
-        let chunk_beg = reader
-            .read_u64::<LittleEndian>()
-            .map(bgzf::VirtualPosition::from)?;
+fn read_chunk<R>(reader: &mut R) -> io::Result<Chunk>
+where
+    R: Read,
+{
+    let chunk_beg = reader
+        .read_u64::<LittleEndian>()
+        .map(bgzf::VirtualPosition::from)?;
 
-        let chunk_end = reader
-            .read_u64::<LittleEndian>()
-            .map(bgzf::VirtualPosition::from)?;
+    let chunk_end = reader
+        .read_u64::<LittleEndian>()
+        .map(bgzf::VirtualPosition::from)?;
 
-        chunks.push(Chunk::new(chunk_beg, chunk_end));
-    }
-
-    Ok(chunks)
+    Ok(Chunk::new(chunk_beg, chunk_end))
 }
 
 fn read_metadata<R>(reader: &mut R) -> io::Result<Metadata>
