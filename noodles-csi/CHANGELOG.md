@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * csi/reader: Disallow duplicate bin IDs.
+
 ## 0.20.0 - 2023-06-15
 
 ### Changed
