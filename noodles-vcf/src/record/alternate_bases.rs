@@ -131,7 +131,7 @@ mod tests {
         assert_eq!("".parse::<AlternateBases>(), Err(ParseError::Empty));
 
         assert!(matches!(
-            dbg!(".".parse::<AlternateBases>()),
+            ".".parse::<AlternateBases>(),
             Err(ParseError::InvalidAllele(_))
         ));
     }
