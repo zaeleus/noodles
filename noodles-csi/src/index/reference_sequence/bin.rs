@@ -30,7 +30,7 @@ impl Bin {
     /// use noodles_csi::index::reference_sequence::Bin;
     /// assert_eq!(Bin::max_id(5), 37449);
     /// ```
-    pub fn max_id(depth: u8) -> usize {
+    pub const fn max_id(depth: u8) -> usize {
         bin_limit(depth) as usize
     }
 
@@ -89,7 +89,7 @@ impl Bin {
 }
 
 // `CSIv1.pdf` (2020-07-21)
-fn bin_limit(depth: u8) -> i32 {
+const fn bin_limit(depth: u8) -> i32 {
     assert!(depth <= 10);
     (1 << ((depth + 1) * 3)) / 7
 }

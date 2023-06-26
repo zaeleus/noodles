@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * csi/index/reference_sequence/bin: Make `Bin::max_id` `const`.
+
 ### Changed
 
   * csi/reader: Disallow duplicate bin IDs.
