@@ -150,7 +150,7 @@ where
 {
     use crate::bai::DEPTH;
 
-    let metadata_id = Bin::metadata_id(DEPTH);
+    const METADATA_ID: usize = Bin::metadata_id(DEPTH);
 
     let n_bin = reader.read_u32_le().await.and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -164,7 +164,7 @@ where
             usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })?;
 
-        if id == metadata_id {
+        if id == METADATA_ID {
             metadata = read_metadata(reader).await.map(Some)?;
         } else {
             let chunks = read_chunks(reader).await?;

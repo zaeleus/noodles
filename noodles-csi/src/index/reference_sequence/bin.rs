@@ -42,7 +42,7 @@ impl Bin {
     /// use noodles_csi::index::reference_sequence::Bin;
     /// assert_eq!(Bin::metadata_id(5), 37450);
     /// ```
-    pub fn metadata_id(depth: u8) -> usize {
+    pub const fn metadata_id(depth: u8) -> usize {
         Self::max_id(depth) + 1
     }
 

@@ -4,7 +4,8 @@
 
 ### Added
 
-  * csi/index/reference_sequence/bin: Make `Bin::max_id` `const`.
+  * csi/index/reference_sequence/bin: Make `Bin::max_id` and `Bin::metadata_id`
+    `const`.
 
 ### Changed
 

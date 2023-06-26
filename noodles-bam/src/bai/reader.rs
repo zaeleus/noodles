@@ -147,14 +147,14 @@ where
 {
     use super::DEPTH;
 
+    const METADATA_ID: usize = Bin::metadata_id(DEPTH);
+
     fn duplicate_bin_error(id: usize) -> io::Result<(HashMap<usize, Bin>, Option<Metadata>)> {
         Err(io::Error::new(
             io::ErrorKind::InvalidData,
             format!("duplicate bin ID: {id}"),
         ))
     }
-
-    let metadata_id = Bin::metadata_id(DEPTH);
 
     let n_bin = reader.read_u32::<LittleEndian>().and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -168,7 +168,7 @@ where
             usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })?;
 
-        if id == metadata_id {
+        if id == METADATA_ID {
             let m = read_metadata(reader)?;
 
             if metadata.replace(m).is_some() {

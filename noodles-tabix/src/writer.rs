@@ -283,12 +283,11 @@ where
 {
     use super::index::DEPTH;
 
+    const METADATA_ID: usize = Bin::metadata_id(DEPTH);
     const METADATA_CHUNK_COUNT: usize = 2;
 
-    let metadata_id = Bin::metadata_id(DEPTH);
-
     let bin_id =
-        u32::try_from(metadata_id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        u32::try_from(METADATA_ID).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32::<LittleEndian>(bin_id)?;
 
     let n_chunk = u32::try_from(METADATA_CHUNK_COUNT)
