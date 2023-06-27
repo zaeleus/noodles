@@ -76,7 +76,6 @@ impl Builder {
     /// let builder = Builder::default()
     ///     .set_index(index)
     ///     .build_from_reader(&data[..])?;
-    ///
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn build_from_reader<R>(self, reader: R) -> io::Result<IndexedReader<R>>
