@@ -39,9 +39,10 @@ impl Context {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum ReferenceSequenceContext {
     Some(Context),
+    #[default]
     None,
     Many,
 }
@@ -84,12 +85,6 @@ impl ReferenceSequenceContext {
             (Self::None, None, ..) => Self::None,
             (Self::Many, ..) => Self::Many,
         }
-    }
-}
-
-impl Default for ReferenceSequenceContext {
-    fn default() -> Self {
-        Self::None
     }
 }
 
