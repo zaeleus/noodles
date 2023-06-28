@@ -2,12 +2,13 @@
 
 mod builder;
 pub mod metadata;
+pub mod service;
 
 use bytes::Bytes;
 
 use crate::Client;
 
-pub use self::{builder::Builder, metadata::Metadata};
+pub use self::{builder::Builder, metadata::Metadata, service::Service};
 
 /// A response from the sequence endpoint.
 #[derive(Debug)]

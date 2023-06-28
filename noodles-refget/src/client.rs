@@ -85,4 +85,9 @@ impl Client {
     {
         sequence::metadata::Builder::new(self.clone(), id)
     }
+
+    /// Creates a service info request.
+    pub fn service_info(&self) -> sequence::service::Builder {
+        sequence::service::Builder::new(self.clone())
+    }
 }
