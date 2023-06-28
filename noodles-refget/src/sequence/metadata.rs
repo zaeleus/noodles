@@ -1,6 +1,8 @@
 mod alias;
+pub(crate) mod builder;
 
 pub use self::alias::Alias;
+pub(crate) use self::builder::Builder;
 
 use serde::Deserialize;
 

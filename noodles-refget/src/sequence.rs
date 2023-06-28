@@ -4,9 +4,8 @@ mod builder;
 pub mod metadata;
 
 use bytes::Bytes;
-use serde::Deserialize;
 
-use crate::{Client, Error};
+use crate::Client;
 
 pub use self::{builder::Builder, metadata::Metadata};
 
@@ -32,31 +31,8 @@ impl Sequence {
         self.sequence.clone()
     }
 
-    /// Returns metadata related to the sequence.
-    pub async fn metadata(&self) -> crate::Result<Metadata> {
-        let endpoint = self
-            .client
-            .base_url()
-            .join(&format!("sequence/{}/metadata", self.id))
-            .map_err(Error::Url)?;
-
-        let response = self
-            .client
-            .http_client()
-            .get(endpoint)
-            .send()
-            .await
-            .map_err(Error::Request)?;
-
-        response
-            .json()
-            .await
-            .map(|data: MetadataResponse| data.metadata)
-            .map_err(Error::Request)
+    /// Builds a request to get the metadata related to the sequence.
+    pub fn metadata(&self) -> metadata::Builder {
+        metadata::Builder::new(self.client.clone(), &self.id)
     }
-}
-
-#[derive(Deserialize)]
-struct MetadataResponse {
-    metadata: Metadata,
 }

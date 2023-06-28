@@ -68,4 +68,21 @@ impl Client {
     {
         sequence::Builder::new(self.clone(), id)
     }
+
+    /// Creates a sequence metadata request for the given ID.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_refget as refget;
+    /// let client = refget::Client::new("https://localhost/".parse()?);
+    /// let sequence_builder = client.sequence_metadata("d7eba311421bbc9d3ada44709dd61534");
+    /// # Ok::<_, url::ParseError>(())
+    /// ```
+    pub fn sequence_metadata<I>(&self, id: I) -> sequence::metadata::Builder
+    where
+        I: Into<String>,
+    {
+        sequence::metadata::Builder::new(self.clone(), id)
+    }
 }
