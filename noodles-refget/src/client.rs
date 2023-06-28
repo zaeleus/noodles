@@ -26,6 +26,24 @@ impl Client {
         }
     }
 
+    /// Creates a refget client with the given HTTP client.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_refget as refget;
+    /// let http_client = reqwest::Client::new();
+    /// let base_url = "https://localhost/".parse()?;
+    /// let client = refget::Client::with_http_client(http_client, base_url);
+    /// # Ok::<_, url::ParseError>(())
+    /// ```
+    pub fn with_http_client(http_client: reqwest::Client, base_url: Url) -> Self {
+        Self {
+            http_client,
+            base_url,
+        }
+    }
+
     pub(crate) fn http_client(&self) -> &reqwest::Client {
         &self.http_client
     }
