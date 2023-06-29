@@ -134,6 +134,8 @@ fn detect_format<R>(reader: &mut R) -> io::Result<Format>
 where
     R: BufRead,
 {
+    use flate2::bufread::MultiGzDecoder;
+
     const CRAM_MAGIC_NUMBER: [u8; 4] = [b'C', b'R', b'A', b'M'];
     const GZIP_MAGIC_NUMBER: [u8; 2] = [0x1f, 0x8b];
     const BAM_MAGIC_NUMBER: [u8; 4] = [b'B', b'A', b'M', 0x01];
@@ -146,9 +148,9 @@ where
         }
 
         if buf[..2] == GZIP_MAGIC_NUMBER {
-            let mut reader = bgzf::Reader::new(src);
+            let mut decoder = MultiGzDecoder::new(src);
             let mut buf = [0; 4];
-            reader.read_exact(&mut buf).ok();
+            decoder.read_exact(&mut buf)?;
 
             if buf == BAM_MAGIC_NUMBER {
                 return Ok(Format::Bam);
@@ -183,7 +185,25 @@ mod tests {
 
         let mut writer = bgzf::Writer::new(Vec::new());
         writer.write_all(b"BAM\x01")?;
-        let src = writer.finish()?;
+        let src = dbg!(writer.finish())?;
+        t(&src, Format::Bam);
+
+        // An incomplete gzip stream. See #179.
+        #[rustfmt::skip]
+        let src = [
+            0x1f, 0x8b, // ID1, ID2
+            0x08, // CM = DEFLATE
+            0x04, // FLG = FEXTRA
+            0x00, 0x00, 0x00, 0x00, // MTIME = 0
+            0x00, // XFL = 0
+            0xff, // OS = 255 (unknown)
+            0x06, 0x00, // XLEN = 6
+            b'B', b'C', // SI1, SI2
+            0x02, 0x00, // SLEN = 2
+            0x00, 0x40, // BSIZE = 16384
+            0x73, 0x72, 0xf4, 0x65, 0x04, 0x00, // CDATA = deflate(b"BAM\x01")
+            // ...
+        ];
         t(&src, Format::Bam);
 
         t(b"CRAM", Format::Cram);

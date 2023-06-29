@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * util/alignment/reader: Fix format detection when the first BGZF block is
+    incomplete (#179).
+
+[#179]: https://github.com/zaeleus/noodles/issues/179
+
 ## 0.14.0 - 2023-06-15
 
 ### Changed
