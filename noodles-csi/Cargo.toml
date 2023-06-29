@@ -1,6 +1,6 @@
 [package]
 name = "noodles-csi"
-version = "0.20.0"
+version = "0.21.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
