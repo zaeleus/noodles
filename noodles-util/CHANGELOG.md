@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * util/alignment/variant/builder: Fix format detection when the first BGZF
+    block is incomplete.
+
 ## 0.15.0 - 2023-06-29
 
 ### Changed

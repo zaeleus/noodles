@@ -145,15 +145,17 @@ fn detect_format<R>(reader: &mut R, compression: Option<Compression>) -> io::Res
 where
     R: BufRead,
 {
+    use flate2::bufread::MultiGzDecoder;
+
     const BCF_MAGIC_NUMBER: [u8; 3] = *b"BCF";
 
     let src = reader.fill_buf()?;
 
     if let Some(compression) = compression {
         if compression == Compression::Bgzf {
-            let mut reader = bgzf::Reader::new(src);
+            let mut decoder = MultiGzDecoder::new(src);
             let mut buf = [0; BCF_MAGIC_NUMBER.len()];
-            reader.read_exact(&mut buf).ok();
+            decoder.read_exact(&mut buf)?;
 
             if buf == BCF_MAGIC_NUMBER {
                 return Ok(Format::Bcf);
@@ -213,6 +215,24 @@ mod tests {
         let mut writer = bcf::Writer::new(Vec::new());
         writer.write_header(&header)?;
         let src = writer.into_inner().finish()?;
+        t(&src, Some(Compression::Bgzf), Format::Bcf);
+
+        // An incomplete gzip stream.
+        #[rustfmt::skip]
+        let src = [
+            0x1f, 0x8b, // ID1, ID2
+            0x08, // CM = DEFLATE
+            0x04, // FLG = FEXTRA
+            0x00, 0x00, 0x00, 0x00, // MTIME = 0
+            0x00, // XFL = 0
+            0xff, // OS = 255 (unknown)
+            0x06, 0x00, // XLEN = 6
+            b'B', b'C', // SI1, SI2
+            0x02, 0x00, // SLEN = 2
+            0x00, 0x40, // BSIZE = 16384
+            0x73, 0x72, 0x76, 0x03, 0x00, // CDATA = deflate(b"BCF")
+            // ...
+        ];
         t(&src, Some(Compression::Bgzf), Format::Bcf);
 
         Ok(())
