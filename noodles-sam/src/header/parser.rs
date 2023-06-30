@@ -1,11 +1,11 @@
 mod context;
 
-use std::{collections::HashSet, error, fmt};
+use std::{error, fmt};
 
 pub(crate) use self::context::Context;
 use super::{
     record::{self, value::map::reference_sequence},
-    Header, Record,
+    Header, Programs, ReadGroups, Record, ReferenceSequences,
 };
 
 /// An error returned when a raw SAM header fails to parse.
@@ -72,13 +72,15 @@ impl fmt::Display for ParseError {
 /// # Ok::<(), sam::header::ParseError>(())
 /// ```
 pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
-    let mut builder = Header::builder();
+    use indexmap::map::Entry;
 
     let mut ctx = Context::default();
 
-    let mut read_group_ids: HashSet<String> = HashSet::new();
-    let mut reference_sequence_names: HashSet<reference_sequence::Name> = HashSet::new();
-    let mut program_ids: HashSet<String> = HashSet::new();
+    let mut header = None;
+    let mut read_groups = ReadGroups::new();
+    let mut reference_sequences = ReferenceSequences::new();
+    let mut programs = Programs::new();
+    let mut comments = Vec::new();
 
     let mut lines = s.lines();
 
@@ -93,55 +95,64 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
 
         let record = Record::try_from((&ctx, line)).map_err(ParseError::InvalidRecord)?;
 
-        builder = match record {
-            Record::Header(header) => builder.set_header(header),
+        match record {
+            Record::Header(hd) => header = Some(hd),
             Record::ReferenceSequence(name, reference_sequence) => {
-                reference_sequence_names.insert(name.clone());
-                builder.add_reference_sequence(name, reference_sequence)
+                reference_sequences.insert(name, reference_sequence);
             }
             Record::ReadGroup(id, read_group) => {
-                read_group_ids.insert(id.clone());
-                builder.add_read_group(id, read_group)
+                read_groups.insert(id, read_group);
             }
             Record::Program(id, program) => {
-                program_ids.insert(id.clone());
-                builder.add_program(id, program)
+                programs.insert(id, program);
             }
-            Record::Comment(comment) => builder.add_comment(comment),
-        };
+            Record::Comment(comment) => comments.push(comment),
+        }
     }
 
     for line in lines {
         let record = Record::try_from((&ctx, line)).map_err(ParseError::InvalidRecord)?;
 
-        builder = match record {
+        match record {
             Record::Header(_) => return Err(ParseError::UnexpectedHeader),
             Record::ReferenceSequence(name, reference_sequence) => {
-                if !reference_sequence_names.insert(name.clone()) {
-                    return Err(ParseError::DuplicateReferenceSequenceName(name));
-                }
-
-                builder.add_reference_sequence(name, reference_sequence)
+                match reference_sequences.entry(name) {
+                    Entry::Vacant(e) => e.insert(reference_sequence),
+                    Entry::Occupied(e) => {
+                        let (k, _) = e.remove_entry();
+                        return Err(ParseError::DuplicateReferenceSequenceName(k));
+                    }
+                };
             }
             Record::ReadGroup(id, read_group) => {
-                if !read_group_ids.insert(id.clone()) {
-                    return Err(ParseError::DuplicateReadGroupId(id));
-                }
-
-                builder.add_read_group(id, read_group)
+                match read_groups.entry(id) {
+                    Entry::Vacant(e) => e.insert(read_group),
+                    Entry::Occupied(e) => {
+                        let (k, _) = e.remove_entry();
+                        return Err(ParseError::DuplicateReadGroupId(k));
+                    }
+                };
             }
             Record::Program(id, program) => {
-                if !program_ids.insert(id.clone()) {
-                    return Err(ParseError::DuplicateProgramId(id));
-                }
-
-                builder.add_program(id, program)
+                match programs.entry(id) {
+                    Entry::Vacant(e) => e.insert(program),
+                    Entry::Occupied(e) => {
+                        let (k, _) = e.remove_entry();
+                        return Err(ParseError::DuplicateProgramId(k));
+                    }
+                };
             }
-            Record::Comment(comment) => builder.add_comment(comment),
+            Record::Comment(comment) => comments.push(comment),
         };
     }
 
-    Ok(builder.build())
+    Ok(Header {
+        header,
+        reference_sequences,
+        read_groups,
+        programs,
+        comments,
+    })
 }
 
 #[cfg(test)]
