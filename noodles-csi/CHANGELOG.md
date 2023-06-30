@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * csi: Update to indexmap 2.0.0.
+
 ## 0.21.0 - 2023-06-29
 
 ### Added

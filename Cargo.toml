@@ -31,7 +31,7 @@ byteorder = "1.2.3"
 bytes = "1.0.1"
 flate2 = "1.0.1"
 futures = { version = "0.3.15", default-features = false }
-indexmap = "1.4.0"
+indexmap = "2.0.0"
 libdeflater = "0.14.0"
 memchr = "2.3.3"
 percent-encoding = "2.1.0"

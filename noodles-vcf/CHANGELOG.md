@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * vcf: Update to indexmap 2.0.0.
+
+  * vcf/record/info: Change `Info::get_index_mut` to return a reference to the
+    key.
+
+    This was previously a _mutable_ reference to the key, but this is only safe
+    to change if the new value matches the previous key's hash and quality,
+    which is (very likely) never the case for info keys.
+
 ## 0.33.0 - 2023-06-29
 
 ### Changed

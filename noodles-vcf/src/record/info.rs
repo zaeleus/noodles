@@ -157,7 +157,7 @@ impl Info {
     ///     Some((&key::TOTAL_DEPTH, Some(&Value::Integer(8))))
     /// );
     /// ```
-    pub fn get_index_mut(&mut self, i: usize) -> Option<(&mut Key, &mut Option<field::Value>)> {
+    pub fn get_index_mut(&mut self, i: usize) -> Option<(&Key, &mut Option<field::Value>)> {
         self.0.get_index_mut(i)
     }
 
