@@ -8,8 +8,8 @@
 
 ### Fixed
 
-  * util/alignment/reader: Fix format detection when the first BGZF block is
-    incomplete (#179).
+  * util/alignment/reader/builder: Fix format detection when the first BGZF
+    block is incomplete (#179).
 
 [#179]: https://github.com/zaeleus/noodles/issues/179
 
