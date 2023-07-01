@@ -1,10 +1,18 @@
 mod context;
 
-use std::{error, fmt};
+use std::{error, fmt, hash::Hash};
+
+use indexmap::IndexMap;
 
 pub(crate) use self::context::Context;
 use super::{
-    record::{self, value::map::reference_sequence},
+    record::{
+        self,
+        value::{
+            map::{self, reference_sequence},
+            Map,
+        },
+    },
     Header, Programs, ReadGroups, Record, ReferenceSequences,
 };
 
@@ -49,6 +57,97 @@ impl fmt::Display for ParseError {
     }
 }
 
+#[derive(Default)]
+struct Parser {
+    ctx: Context,
+    header: Option<Map<map::Header>>,
+    reference_sequences: ReferenceSequences,
+    read_groups: ReadGroups,
+    programs: Programs,
+    comments: Vec<String>,
+}
+
+impl Parser {
+    fn is_empty(&self) -> bool {
+        self.header.is_none()
+            && self.reference_sequences.is_empty()
+            && self.read_groups.is_empty()
+            && self.programs.is_empty()
+            && self.comments.is_empty()
+    }
+
+    fn parse_partial(&mut self, s: &str) -> Result<(), ParseError> {
+        if self.is_empty() {
+            if let Some(result) = record::extract_version(s) {
+                let version = result.map_err(ParseError::InvalidRecord)?;
+                self.ctx = Context::from(version);
+            }
+        }
+
+        let record = Record::try_from((&self.ctx, s)).map_err(ParseError::InvalidRecord)?;
+
+        match record {
+            Record::Header(header) => {
+                if self.is_empty() {
+                    self.header = Some(header);
+                } else {
+                    return Err(ParseError::UnexpectedHeader);
+                }
+            }
+            Record::ReferenceSequence(name, reference_sequence) => try_insert(
+                &mut self.reference_sequences,
+                name,
+                reference_sequence,
+                ParseError::DuplicateReferenceSequenceName,
+            )?,
+            Record::ReadGroup(id, read_group) => try_insert(
+                &mut self.read_groups,
+                id,
+                read_group,
+                ParseError::DuplicateReadGroupId,
+            )?,
+            Record::Program(id, program) => try_insert(
+                &mut self.programs,
+                id,
+                program,
+                ParseError::DuplicateProgramId,
+            )?,
+            Record::Comment(comment) => self.comments.push(comment),
+        }
+
+        Ok(())
+    }
+
+    fn finish(self) -> Header {
+        Header {
+            header: self.header,
+            reference_sequences: self.reference_sequences,
+            read_groups: self.read_groups,
+            programs: self.programs,
+            comments: self.comments,
+        }
+    }
+}
+
+fn try_insert<K, V, F, E>(map: &mut IndexMap<K, V>, key: K, value: V, f: F) -> Result<(), E>
+where
+    K: Hash + Eq,
+    F: FnOnce(K) -> E,
+{
+    use indexmap::map::Entry;
+
+    match map.entry(key) {
+        Entry::Vacant(e) => {
+            e.insert(value);
+            Ok(())
+        }
+        Entry::Occupied(e) => {
+            let (k, _) = e.remove_entry();
+            Err(f(k))
+        }
+    }
+}
+
 /// Parses a raw SAM header.
 ///
 /// # Examples
@@ -72,87 +171,13 @@ impl fmt::Display for ParseError {
 /// # Ok::<(), sam::header::ParseError>(())
 /// ```
 pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
-    use indexmap::map::Entry;
+    let mut parser = Parser::default();
 
-    let mut ctx = Context::default();
-
-    let mut header = None;
-    let mut read_groups = ReadGroups::new();
-    let mut reference_sequences = ReferenceSequences::new();
-    let mut programs = Programs::new();
-    let mut comments = Vec::new();
-
-    let mut lines = s.lines();
-
-    if let Some(line) = lines.next() {
-        let version = record::extract_version(line)
-            .transpose()
-            .map_err(ParseError::InvalidRecord)?;
-
-        if let Some(version) = version {
-            ctx = Context::from(version);
-        }
-
-        let record = Record::try_from((&ctx, line)).map_err(ParseError::InvalidRecord)?;
-
-        match record {
-            Record::Header(hd) => header = Some(hd),
-            Record::ReferenceSequence(name, reference_sequence) => {
-                reference_sequences.insert(name, reference_sequence);
-            }
-            Record::ReadGroup(id, read_group) => {
-                read_groups.insert(id, read_group);
-            }
-            Record::Program(id, program) => {
-                programs.insert(id, program);
-            }
-            Record::Comment(comment) => comments.push(comment),
-        }
+    for line in s.lines() {
+        parser.parse_partial(line)?;
     }
 
-    for line in lines {
-        let record = Record::try_from((&ctx, line)).map_err(ParseError::InvalidRecord)?;
-
-        match record {
-            Record::Header(_) => return Err(ParseError::UnexpectedHeader),
-            Record::ReferenceSequence(name, reference_sequence) => {
-                match reference_sequences.entry(name) {
-                    Entry::Vacant(e) => e.insert(reference_sequence),
-                    Entry::Occupied(e) => {
-                        let (k, _) = e.remove_entry();
-                        return Err(ParseError::DuplicateReferenceSequenceName(k));
-                    }
-                };
-            }
-            Record::ReadGroup(id, read_group) => {
-                match read_groups.entry(id) {
-                    Entry::Vacant(e) => e.insert(read_group),
-                    Entry::Occupied(e) => {
-                        let (k, _) = e.remove_entry();
-                        return Err(ParseError::DuplicateReadGroupId(k));
-                    }
-                };
-            }
-            Record::Program(id, program) => {
-                match programs.entry(id) {
-                    Entry::Vacant(e) => e.insert(program),
-                    Entry::Occupied(e) => {
-                        let (k, _) = e.remove_entry();
-                        return Err(ParseError::DuplicateProgramId(k));
-                    }
-                };
-            }
-            Record::Comment(comment) => comments.push(comment),
-        };
-    }
-
-    Ok(Header {
-        header,
-        reference_sequences,
-        read_groups,
-        programs,
-        comments,
-    })
+    Ok(parser.finish())
 }
 
 #[cfg(test)]
