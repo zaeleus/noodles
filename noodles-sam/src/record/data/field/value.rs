@@ -1,6 +1,7 @@
 //! SAM record data field value and types.
 
 pub mod array;
+mod base_modifications;
 pub mod character;
 pub mod hex;
 
