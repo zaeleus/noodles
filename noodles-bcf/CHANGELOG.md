@@ -6,6 +6,12 @@
 
   * bcf: Update to indexmap 2.0.0.
 
+### Fixed
+
+  * bcf/reader/query: Fix using parsed string maps for query ([#181]).
+
+[#181]: https://github.com/zaeleus/noodles/issues/181
+
 ## 0.30.0 - 2023-06-29
 
 ### Added

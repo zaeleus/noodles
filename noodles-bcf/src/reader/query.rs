@@ -5,7 +5,6 @@ use noodles_core::{region::Interval, Position};
 use noodles_csi::{self as csi, index::reference_sequence::bin::Chunk};
 use noodles_vcf as vcf;
 
-use super::Reader;
 use crate::header::StringMaps;
 
 /// An iterator over records of a BCF reader that intersects a given region.
@@ -15,10 +14,12 @@ pub struct Query<'r, 'h, R>
 where
     R: Read + Seek,
 {
-    reader: Reader<csi::io::Query<'r, R>>,
+    reader: csi::io::Query<'r, R>,
     header: &'h vcf::Header,
+    string_maps: &'r StringMaps,
     chromosome_id: usize,
     interval: Interval,
+    buf: Vec<u8>,
     record: vcf::Record,
 }
 
@@ -29,26 +30,36 @@ where
     pub(super) fn new(
         reader: &'r mut bgzf::Reader<R>,
         header: &'h vcf::Header,
+        string_maps: &'r StringMaps,
         chunks: Vec<Chunk>,
         chromosome_id: usize,
         interval: Interval,
     ) -> Self {
         Self {
-            reader: Reader::from(csi::io::Query::new(reader, chunks)),
+            reader: csi::io::Query::new(reader, chunks),
             header,
+            string_maps,
             chromosome_id,
             interval,
+            buf: Vec::new(),
             record: vcf::Record::default(),
         }
     }
 
     fn next_record(&mut self) -> io::Result<Option<vcf::Record>> {
-        self.reader
-            .read_record(self.header, &mut self.record)
-            .map(|n| match n {
-                0 => None,
-                _ => Some(self.record.clone()),
-            })
+        use super::read_record;
+
+        read_record(
+            &mut self.reader,
+            self.header,
+            self.string_maps,
+            &mut self.buf,
+            &mut self.record,
+        )
+        .map(|n| match n {
+            0 => None,
+            _ => Some(self.record.clone()),
+        })
     }
 }
 
@@ -62,12 +73,7 @@ where
         loop {
             match self.next_record() {
                 Ok(Some(record)) => {
-                    match intersects(
-                        self.reader.string_maps(),
-                        &record,
-                        self.chromosome_id,
-                        self.interval,
-                    ) {
+                    match intersects(self.string_maps, &record, self.chromosome_id, self.interval) {
                         Ok(true) => return Some(Ok(record)),
                         Ok(false) => {}
                         Err(e) => return Some(Err(e)),
