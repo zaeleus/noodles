@@ -1,10 +1,11 @@
 #![allow(dead_code)]
 
-mod group;
+pub mod group;
+mod parser;
+
+pub use self::group::Group;
 
 use std::ops::Deref;
-
-use self::group::Group;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BaseModifications(Vec<Group>);
