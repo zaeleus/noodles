@@ -1,6 +1,6 @@
 [package]
 name = "noodles-vcf"
-version = "0.33.0"
+version = "0.34.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
@@ -19,8 +19,8 @@ memchr.workspace = true
 nom = "7.0.0"
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.22.0" }
 noodles-core = { path = "../noodles-core", version = "0.12.0" }
-noodles-csi = { path = "../noodles-csi", version = "0.21.0" }
-noodles-tabix = { path = "../noodles-tabix", version = "0.24.0" }
+noodles-csi = { path = "../noodles-csi", version = "0.22.0" }
+noodles-tabix = { path = "../noodles-tabix", version = "0.25.0" }
 percent-encoding.workspace = true
 
 futures = { workspace = true, optional = true, features = ["std"] }

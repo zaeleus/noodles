@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.44.0 - 2023-07-06
+
+  * [noodles-bam 0.38.0](https://github.com/zaeleus/noodles/blob/noodles-bam-0.38.0/noodles-bam/CHANGELOG.md)
+  * [noodles-bcf 0.31.0](https://github.com/zaeleus/noodles/blob/noodles-bcf-0.31.0/noodles-bcf/CHANGELOG.md)
+  * [noodles-cram 0.35.0](https://github.com/zaeleus/noodles/blob/noodles-cram-0.35.0/noodles-cram/CHANGELOG.md)
+  * [noodles-csi 0.22.0](https://github.com/zaeleus/noodles/blob/noodles-csi-0.22.0/noodles-csi/CHANGELOG.md)
+  * [noodles-gff 0.16.0](https://github.com/zaeleus/noodles/blob/noodles-gff-0.16.0/noodles-gff/CHANGELOG.md)
+  * [noodles-gtf 0.14.0](https://github.com/zaeleus/noodles/blob/noodles-gtf-0.14.0/noodles-gtf/CHANGELOG.md)
+  * [noodles-sam 0.35.0](https://github.com/zaeleus/noodles/blob/noodles-sam-0.35.0/noodles-sam/CHANGELOG.md)
+  * [noodles-tabix 0.25.0](https://github.com/zaeleus/noodles/blob/noodles-tabix-0.25.0/noodles-tabix/CHANGELOG.md)
+  * [noodles-util 0.16.0](https://github.com/zaeleus/noodles/blob/noodles-util-0.16.0/noodles-util/CHANGELOG.md)
+  * [noodles-vcf 0.34.0](https://github.com/zaeleus/noodles/blob/noodles-vcf-0.34.0/noodles-vcf/CHANGELOG.md)
+
 ## 0.43.0 - 2023-06-29
 
   * [noodles-bam 0.37.0](https://github.com/zaeleus/noodles/blob/noodles-bam-0.37.0/noodles-bam/CHANGELOG.md)
