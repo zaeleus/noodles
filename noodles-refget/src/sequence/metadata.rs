@@ -9,7 +9,7 @@ use serde::Deserialize;
 /// Sequence metadata.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct Metadata {
-    md5: String,
+    md5: Option<String>,
     trunc512: Option<String>,
     length: u32,
     aliases: Vec<Alias>,
@@ -17,8 +17,8 @@ pub struct Metadata {
 
 impl Metadata {
     /// Returns the MD5 digest in hexadecimal.
-    pub fn md5(&self) -> &str {
-        &self.md5
+    pub fn md5(&self) -> Option<&str> {
+        self.md5.as_deref()
     }
 
     /// Returns the TRUNC512 digest in hexadecimal.
