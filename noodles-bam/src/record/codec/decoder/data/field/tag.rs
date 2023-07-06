@@ -1,4 +1,4 @@
-use std::{error, fmt};
+use std::{error, fmt, mem};
 
 use bytes::Buf;
 use noodles_sam::record::data::field::{tag, Tag};
@@ -34,13 +34,13 @@ pub fn get_tag<B>(src: &mut B) -> Result<Tag, DecodeError>
 where
     B: Buf,
 {
-    let mut buf = [0; 2];
-
-    if src.remaining() < buf.len() {
+    if src.remaining() < 2 * mem::size_of::<u8>() {
         return Err(DecodeError::UnexpectedEof);
     }
 
-    src.copy_to_slice(&mut buf);
+    let b0 = src.get_u8();
+    let b1 = src.get_u8();
+    let buf = [b0, b1];
 
     Tag::try_from(buf).map_err(DecodeError::Invalid)
 }
