@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * cram/writer/header_container: Compress the SAM header with gzip.
+
+    This previously wrote the SAM header data uncompressed. It now uses gzip to
+    compress the data at the default compression level.
+
 ## 0.34.0 - 2023-06-29
 
 ### Added
