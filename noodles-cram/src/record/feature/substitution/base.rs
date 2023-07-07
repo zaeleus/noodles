@@ -3,7 +3,7 @@ use std::{error, fmt};
 use noodles_sam as sam;
 
 /// A substitution base.
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub enum Base {
     /// Adenine.
     A,
@@ -14,13 +14,8 @@ pub enum Base {
     /// Thymine.
     T,
     /// Any base.
+    #[default]
     N,
-}
-
-impl Default for Base {
-    fn default() -> Self {
-        Self::N
-    }
 }
 
 #[derive(Debug, Eq, PartialEq)]
