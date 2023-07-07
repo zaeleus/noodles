@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * gff/record/attributes: Change underlying structure to an `IndexMap<Key,
+    Value>` ([#183]).
+
+    This allows record attribute fields to have multiple values. Replace usages
+    of, e.g., `attributes.iter().find(|entry| entry.key() == key).map(|entry|
+    entry.value())` with `attributes.get(key).and_then(|values|
+    values.first())`.
+
+    Values are now wrapped with `Value`, a newtype for `Vec<String>`. Replace
+    `String` values with `Value::from(value)`.
+
+[#183]: https://github.com/zaeleus/noodles/issues/183
+
 ## 0.16.0 - 2023-07-06
 
 ### Changed

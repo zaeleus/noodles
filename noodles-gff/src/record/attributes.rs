@@ -1,19 +1,28 @@
-//! GFF record attributes and entry.
+//! GFF record attributes.
 
-pub mod entry;
+pub mod field;
 
-pub use self::entry::Entry;
+use std::{
+    error, fmt,
+    ops::Deref,
+    str::{self, FromStr},
+};
 
-use std::{error, fmt, ops::Deref, str::FromStr};
+use indexmap::IndexMap;
+
+use self::field::{Key, Value};
 
 const DELIMITER: char = ';';
 
 /// GFF record attributes.
+///
+/// Attributes are extra data attached to a GFF record. They are represented as a multimap, where
+/// each key can contain any number of values.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub struct Attributes(Vec<Entry>);
+pub struct Attributes(IndexMap<Key, Value>);
 
 impl Deref for Attributes {
-    type Target = [Entry];
+    type Target = IndexMap<Key, Value>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -22,12 +31,14 @@ impl Deref for Attributes {
 
 impl fmt::Display for Attributes {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for (i, entry) in self.iter().enumerate() {
+        use self::field::field_fmt;
+
+        for (i, field) in self.iter().enumerate() {
             if i > 0 {
-                write!(f, "{DELIMITER}")?;
+                DELIMITER.fmt(f)?;
             }
 
-            write!(f, "{entry}")?;
+            field_fmt(field, f)?;
         }
 
         Ok(())
@@ -37,14 +48,14 @@ impl fmt::Display for Attributes {
 /// An error returned when raw attributes fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
-    /// The input attributes has an invalid entry.
-    InvalidEntry(entry::ParseError),
+    /// A field is invalid.
+    InvalidField(field::ParseError),
 }
 
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
-            Self::InvalidEntry(e) => Some(e),
+            Self::InvalidField(e) => Some(e),
         }
     }
 }
@@ -52,14 +63,30 @@ impl error::Error for ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidEntry(_) => f.write_str("invalid entry"),
+            Self::InvalidField(e) => {
+                write!(f, "invalid field")?;
+
+                if let Some(key) = e.key() {
+                    write!(f, ": {key}")?;
+                }
+
+                Ok(())
+            }
         }
     }
 }
 
-impl From<Vec<Entry>> for Attributes {
-    fn from(entries: Vec<Entry>) -> Self {
-        Self(entries)
+impl Extend<(Key, Value)> for Attributes {
+    fn extend<T: IntoIterator<Item = (Key, Value)>>(&mut self, iter: T) {
+        self.0.extend(iter);
+    }
+}
+
+impl FromIterator<(Key, Value)> for Attributes {
+    fn from_iter<T: IntoIterator<Item = (Key, Value)>>(iter: T) -> Self {
+        let mut attributes = Self::default();
+        attributes.extend(iter);
+        attributes
     }
 }
 
@@ -67,15 +94,23 @@ impl FromStr for Attributes {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        use self::field::parse_field;
+
         if s.is_empty() {
             return Ok(Self::default());
         }
 
-        s.split(DELIMITER)
-            .map(|t| t.parse())
-            .collect::<Result<Vec<_>, _>>()
-            .map(Self::from)
-            .map_err(ParseError::InvalidEntry)
+        let mut map: IndexMap<Key, Value> = IndexMap::new();
+
+        for raw_field in s.split(DELIMITER) {
+            let (key, value) = parse_field(raw_field).map_err(ParseError::InvalidField)?;
+
+            map.entry(key)
+                .and_modify(|v| v.extend(value.iter().cloned()))
+                .or_insert(value);
+        }
+
+        Ok(Self(map))
     }
 }
 
@@ -88,38 +123,51 @@ mod tests {
         let attributes = Attributes::default();
         assert!(attributes.to_string().is_empty());
 
-        let attributes = Attributes::from(vec![Entry::new("gene_id", "ndls0")]);
-
+        let attributes: Attributes = [(Key::from("gene_id"), Value::from("ndls0"))]
+            .into_iter()
+            .collect();
         assert_eq!(attributes.to_string(), "gene_id=ndls0");
 
-        let attributes = Attributes::from(vec![
-            Entry::new("gene_id", "ndls0"),
-            Entry::new("gene_name", "gene0"),
-        ]);
-
+        let attributes: Attributes = [
+            (Key::from("gene_id"), Value::from("ndls0")),
+            (Key::from("gene_name"), Value::from("gene0")),
+        ]
+        .into_iter()
+        .collect();
         assert_eq!(attributes.to_string(), "gene_id=ndls0;gene_name=gene0")
     }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
-        let s = "gene_id=ndls0;gene_name=gene0";
-        let actual = s.parse::<Attributes>()?;
-        let expected = Attributes::from(vec![
-            Entry::new("gene_id", "ndls0"),
-            Entry::new("gene_name", "gene0"),
-        ]);
+        let actual: Attributes = "".parse()?;
+        let expected = Attributes::default();
         assert_eq!(actual, expected);
 
         let s = "gene_id=ndls0";
-        let actual = s.parse::<Attributes>()?;
-        let expected = Attributes::from(vec![Entry::new(
-            String::from("gene_id"),
-            String::from("ndls0"),
-        )]);
+        let actual: Attributes = s.parse()?;
+        let expected = [(Key::from("gene_id"), Value::from("ndls0"))]
+            .into_iter()
+            .collect();
         assert_eq!(actual, expected);
 
-        let actual = "".parse::<Attributes>()?;
-        let expected = Attributes::default();
+        let s = "gene_id=ndls0;gene_name=gene0";
+        let actual: Attributes = s.parse()?;
+        let expected = [
+            (Key::from("gene_id"), Value::from("ndls0")),
+            (Key::from("gene_name"), Value::from("gene0")),
+        ]
+        .into_iter()
+        .collect();
+        assert_eq!(actual, expected);
+
+        let s = "gene_id=ndls0;gene_id=ndls1";
+        let actual: Attributes = s.parse()?;
+        let expected = [(
+            Key::from("gene_id"),
+            Value::from(vec![String::from("ndls0"), String::from("ndls1")]),
+        )]
+        .into_iter()
+        .collect();
         assert_eq!(actual, expected);
 
         Ok(())

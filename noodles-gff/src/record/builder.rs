@@ -170,10 +170,15 @@ impl Builder {
     /// ```
     /// use noodles_gff::{
     ///     self as gff,
-    ///     record::{attributes::Entry, Attributes},
+    ///     record::{
+    ///         attributes::field::{Key, Value},
+    ///         Attributes,
+    ///     },
     /// };
     ///
-    /// let attributes = Attributes::from(vec![Entry::new("gene_id", "ndls0")]);
+    /// let attributes: Attributes = [(Key::from("gene_id"), Value::from("ndls0"))]
+    ///     .into_iter()
+    ///     .collect();
     ///
     /// let record = gff::Record::builder()
     ///     .set_attributes(attributes.clone())
@@ -227,8 +232,6 @@ impl Default for Builder {
 
 #[cfg(test)]
 mod tests {
-    use crate::record::attributes::Entry;
-
     use super::*;
 
     #[test]
@@ -248,7 +251,11 @@ mod tests {
 
     #[test]
     fn test_build() -> Result<(), noodles_core::position::TryFromIntError> {
-        let attributes = Attributes::from(vec![Entry::new("gene_id", "ndls0")]);
+        use crate::record::attributes::field::{Key, Value};
+
+        let attributes: Attributes = [(Key::from("gene_id"), Value::from("ndls0"))]
+            .into_iter()
+            .collect();
 
         let record = Builder::new()
             .set_reference_sequence_name(String::from("sq0"))

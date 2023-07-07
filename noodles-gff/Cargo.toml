@@ -11,6 +11,7 @@ repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-gff"
 
 [dependencies]
+indexmap.workspace = true
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.22.0" }
 noodles-core = { path = "../noodles-core", version = "0.12.0" }
 noodles-csi = { path = "../noodles-csi", version = "0.22.0" }
