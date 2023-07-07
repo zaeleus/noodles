@@ -14,7 +14,7 @@ use std::{
 use percent_encoding::{percent_decode_str, utf8_percent_encode, AsciiSet, CONTROLS};
 
 /// A GFF record attributes field key.
-pub type Key = String;
+pub type Tag = String;
 
 pub(super) const SEPARATOR: char = '=';
 
@@ -28,7 +28,7 @@ const PERCENT_ENCODE_SET: &AsciiSet = &CONTROLS
     .add(b'&')
     .add(b',');
 
-pub(super) fn field_fmt((key, value): (&Key, &Value), f: &mut fmt::Formatter<'_>) -> fmt::Result {
+pub(super) fn field_fmt((key, value): (&Tag, &Value), f: &mut fmt::Formatter<'_>) -> fmt::Result {
     percent_encode(key).fmt(f)?;
     SEPARATOR.fmt(f)?;
     value.fmt(f)?;
@@ -43,12 +43,12 @@ pub enum ParseError {
     /// A key is invalid.
     InvalidKey(str::Utf8Error),
     /// A value is invalid.
-    InvalidValue(Key, value::ParseError),
+    InvalidValue(Tag, value::ParseError),
 }
 
 impl ParseError {
     /// Returns the key of the field that caused the failure.
-    pub fn key(&self) -> Option<&Key> {
+    pub fn key(&self) -> Option<&Tag> {
         match self {
             Self::InvalidValue(key, _) => Some(key),
             _ => None,
@@ -76,10 +76,10 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(super) fn parse_field(s: &str) -> Result<(Key, Value), ParseError> {
+pub(super) fn parse_field(s: &str) -> Result<(Tag, Value), ParseError> {
     let (raw_key, raw_value) = s.split_once(SEPARATOR).ok_or(ParseError::Invalid)?;
 
-    let key: Key = percent_decode(raw_key)
+    let key: Tag = percent_decode(raw_key)
         .map(|k| k.into())
         .map_err(ParseError::InvalidKey)?;
 
@@ -104,7 +104,7 @@ mod tests {
 
     #[test]
     fn test_field_fmt() {
-        struct F(Key, Value);
+        struct F(Tag, Value);
 
         impl fmt::Display for F {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -112,10 +112,10 @@ mod tests {
             }
         }
 
-        let field = F(Key::from("gene_id"), Value::from("gene0"));
+        let field = F(Tag::from("gene_id"), Value::from("gene0"));
         assert_eq!(field.to_string(), "gene_id=gene0");
 
-        let field = F(Key::from("%s"), Value::from("13,21"));
+        let field = F(Tag::from("%s"), Value::from("13,21"));
         assert_eq!(field.to_string(), "%25s=13%2C21");
     }
 

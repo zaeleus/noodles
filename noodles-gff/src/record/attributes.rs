@@ -10,7 +10,7 @@ use std::{
 
 use indexmap::IndexMap;
 
-use self::field::{Key, Value};
+use self::field::{Tag, Value};
 
 const DELIMITER: char = ';';
 
@@ -19,10 +19,10 @@ const DELIMITER: char = ';';
 /// Attributes are extra data attached to a GFF record. They are represented as a multimap, where
 /// each key can contain any number of values.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub struct Attributes(IndexMap<Key, Value>);
+pub struct Attributes(IndexMap<Tag, Value>);
 
 impl Deref for Attributes {
-    type Target = IndexMap<Key, Value>;
+    type Target = IndexMap<Tag, Value>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -76,14 +76,14 @@ impl fmt::Display for ParseError {
     }
 }
 
-impl Extend<(Key, Value)> for Attributes {
-    fn extend<T: IntoIterator<Item = (Key, Value)>>(&mut self, iter: T) {
+impl Extend<(Tag, Value)> for Attributes {
+    fn extend<T: IntoIterator<Item = (Tag, Value)>>(&mut self, iter: T) {
         self.0.extend(iter);
     }
 }
 
-impl FromIterator<(Key, Value)> for Attributes {
-    fn from_iter<T: IntoIterator<Item = (Key, Value)>>(iter: T) -> Self {
+impl FromIterator<(Tag, Value)> for Attributes {
+    fn from_iter<T: IntoIterator<Item = (Tag, Value)>>(iter: T) -> Self {
         let mut attributes = Self::default();
         attributes.extend(iter);
         attributes
@@ -100,7 +100,7 @@ impl FromStr for Attributes {
             return Ok(Self::default());
         }
 
-        let mut map: IndexMap<Key, Value> = IndexMap::new();
+        let mut map: IndexMap<Tag, Value> = IndexMap::new();
 
         for raw_field in s.split(DELIMITER) {
             let (key, value) = parse_field(raw_field).map_err(ParseError::InvalidField)?;
@@ -123,14 +123,14 @@ mod tests {
         let attributes = Attributes::default();
         assert!(attributes.to_string().is_empty());
 
-        let attributes: Attributes = [(Key::from("gene_id"), Value::from("ndls0"))]
+        let attributes: Attributes = [(Tag::from("gene_id"), Value::from("ndls0"))]
             .into_iter()
             .collect();
         assert_eq!(attributes.to_string(), "gene_id=ndls0");
 
         let attributes: Attributes = [
-            (Key::from("gene_id"), Value::from("ndls0")),
-            (Key::from("gene_name"), Value::from("gene0")),
+            (Tag::from("gene_id"), Value::from("ndls0")),
+            (Tag::from("gene_name"), Value::from("gene0")),
         ]
         .into_iter()
         .collect();
@@ -145,7 +145,7 @@ mod tests {
 
         let s = "gene_id=ndls0";
         let actual: Attributes = s.parse()?;
-        let expected = [(Key::from("gene_id"), Value::from("ndls0"))]
+        let expected = [(Tag::from("gene_id"), Value::from("ndls0"))]
             .into_iter()
             .collect();
         assert_eq!(actual, expected);
@@ -153,8 +153,8 @@ mod tests {
         let s = "gene_id=ndls0;gene_name=gene0";
         let actual: Attributes = s.parse()?;
         let expected = [
-            (Key::from("gene_id"), Value::from("ndls0")),
-            (Key::from("gene_name"), Value::from("gene0")),
+            (Tag::from("gene_id"), Value::from("ndls0")),
+            (Tag::from("gene_name"), Value::from("gene0")),
         ]
         .into_iter()
         .collect();
@@ -163,7 +163,7 @@ mod tests {
         let s = "gene_id=ndls0;gene_id=ndls1";
         let actual: Attributes = s.parse()?;
         let expected = [(
-            Key::from("gene_id"),
+            Tag::from("gene_id"),
             Value::from(vec![String::from("ndls0"), String::from("ndls1")]),
         )]
         .into_iter()

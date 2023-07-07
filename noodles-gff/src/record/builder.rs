@@ -171,12 +171,12 @@ impl Builder {
     /// use noodles_gff::{
     ///     self as gff,
     ///     record::{
-    ///         attributes::field::{Key, Value},
+    ///         attributes::field::{Tag, Value},
     ///         Attributes,
     ///     },
     /// };
     ///
-    /// let attributes: Attributes = [(Key::from("gene_id"), Value::from("ndls0"))]
+    /// let attributes: Attributes = [(Tag::from("gene_id"), Value::from("ndls0"))]
     ///     .into_iter()
     ///     .collect();
     ///
@@ -251,9 +251,9 @@ mod tests {
 
     #[test]
     fn test_build() -> Result<(), noodles_core::position::TryFromIntError> {
-        use crate::record::attributes::field::{Key, Value};
+        use crate::record::attributes::field::{Tag, Value};
 
-        let attributes: Attributes = [(Key::from("gene_id"), Value::from("ndls0"))]
+        let attributes: Attributes = [(Tag::from("gene_id"), Value::from("ndls0"))]
             .into_iter()
             .collect();
 

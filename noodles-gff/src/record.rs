@@ -363,7 +363,7 @@ mod tests {
 
     #[test]
     fn test_from_str() -> Result<(), Box<dyn std::error::Error>> {
-        use self::attributes::field::{Key, Value};
+        use self::attributes::field::{Tag, Value};
 
         let s = "sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id=ndls0;gene_name=gene0";
         let record = s.parse::<Record>()?;
@@ -380,8 +380,8 @@ mod tests {
         assert_eq!(
             record.attributes(),
             &[
-                (Key::from("gene_id"), Value::from("ndls0")),
-                (Key::from("gene_name"), Value::from("gene0")),
+                (Tag::from("gene_id"), Value::from("ndls0")),
+                (Tag::from("gene_name"), Value::from("gene0")),
             ]
             .into_iter()
             .collect()
