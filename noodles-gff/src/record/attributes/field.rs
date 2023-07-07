@@ -1,8 +1,9 @@
 //! GFF record attributes field.
 
+pub mod tag;
 pub mod value;
 
-pub use self::value::Value;
+pub use self::{tag::Tag, value::Value};
 
 use std::{
     borrow::Cow,
@@ -12,9 +13,6 @@ use std::{
 };
 
 use percent_encoding::{percent_decode_str, utf8_percent_encode, AsciiSet, CONTROLS};
-
-/// A GFF record attributes field key.
-pub type Tag = String;
 
 pub(super) const SEPARATOR: char = '=';
 

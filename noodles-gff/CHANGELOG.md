@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * gff/record/attributes/field/tag: Add standard tag constants.
+
 ### Changed
 
   * gff/record/attributes: Change underlying structure to an `IndexMap<Tag,
