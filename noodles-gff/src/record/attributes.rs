@@ -4,7 +4,7 @@ pub mod field;
 
 use std::{
     error, fmt,
-    ops::Deref,
+    ops::{Deref, DerefMut},
     str::{self, FromStr},
 };
 
@@ -26,6 +26,12 @@ impl Deref for Attributes {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl DerefMut for Attributes {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 
