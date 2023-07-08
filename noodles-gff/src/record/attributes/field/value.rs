@@ -1,8 +1,7 @@
 //! GFF record attributes field value.
 
 use std::{
-    error, fmt,
-    ops::{Deref, DerefMut},
+    error, fmt, iter, mem,
     str::{self, FromStr},
 };
 
@@ -10,19 +9,35 @@ const DELIMITER: char = ',';
 
 /// A GFF record attribute field value.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Value(Vec<String>);
-
-impl Deref for Value {
-    type Target = Vec<String>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
+pub enum Value {
+    /// A string.
+    String(String),
+    /// An array.
+    Array(Vec<String>),
 }
 
-impl DerefMut for Value {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
+impl Value {
+    /// Returns the value as a string, if the value is a string.
+    pub fn as_string(&self) -> Option<&str> {
+        match self {
+            Self::String(value) => Some(value),
+            Self::Array(_) => None,
+        }
+    }
+    /// Returns the value as an array, if the value is an array.
+    pub fn as_array(&self) -> Option<&[String]> {
+        match self {
+            Self::String(_) => None,
+            Self::Array(values) => Some(values),
+        }
+    }
+
+    /// An iterator over values.
+    pub fn iter(&self) -> Box<dyn Iterator<Item = &String> + '_> {
+        match self {
+            Self::String(value) => Box::new(iter::once(value)),
+            Self::Array(values) => Box::new(values.iter()),
+        }
     }
 }
 
@@ -42,21 +57,34 @@ impl fmt::Display for Value {
     }
 }
 
+impl Extend<String> for Value {
+    fn extend<T: IntoIterator<Item = String>>(&mut self, iter: T) {
+        match self {
+            Self::String(value) => {
+                let mut values = vec![value.clone()];
+                values.extend(iter);
+                mem::swap(self, &mut Self::Array(values));
+            }
+            Self::Array(values) => values.extend(iter),
+        }
+    }
+}
+
 impl From<&str> for Value {
     fn from(s: &str) -> Self {
-        Self(vec![String::from(s)])
+        Self::String(s.into())
     }
 }
 
 impl From<String> for Value {
     fn from(s: String) -> Self {
-        Self(vec![s])
+        Self::String(s)
     }
 }
 
 impl From<Vec<String>> for Value {
     fn from(values: Vec<String>) -> Self {
-        Self(values)
+        Self::Array(values)
     }
 }
 
@@ -87,17 +115,24 @@ impl FromStr for Value {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use super::percent_decode;
-
-        s.split(DELIMITER)
-            .map(|s| {
-                percent_decode(s)
-                    .map(|t| t.into_owned())
-                    .map_err(ParseError::Invalid)
-            })
-            .collect::<Result<_, _>>()
-            .map(Self)
+        if let Some((a, b)) = s.split_once(DELIMITER) {
+            iter::once(a)
+                .chain(b.split(DELIMITER))
+                .map(decode_value)
+                .collect::<Result<_, _>>()
+                .map(Self::Array)
+        } else {
+            decode_value(s).map(Self::String)
+        }
     }
+}
+
+fn decode_value(s: &str) -> Result<String, ParseError> {
+    use super::percent_decode;
+
+    percent_decode(s)
+        .map(|t| t.into_owned())
+        .map_err(ParseError::Invalid)
 }
 
 #[cfg(test)]

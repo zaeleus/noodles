@@ -14,10 +14,11 @@
     This allows record attribute fields to have multiple values. Replace usages
     of, e.g., `attributes.iter().find(|entry| entry.key() == tag).map(|entry|
     entry.value())` with `attributes.get(tag).and_then(|values|
-    values.first())`.
+    values.as_string())`.
 
-    Values are now wrapped with `Value`, a newtype for `Vec<String>`. Replace
-    `String` values with `Value::from(value)`.
+    Values are now wrapped with a typed `Value`, i.e., it can either be a
+    string or array of strings. Replace `String` values with
+    `Value::from(value)`.
 
 [#183]: https://github.com/zaeleus/noodles/issues/183
 
