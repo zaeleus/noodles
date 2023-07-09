@@ -135,6 +135,15 @@ fn decode_value(s: &str) -> Result<String, ParseError> {
         .map_err(ParseError::Invalid)
 }
 
+impl<'a> IntoIterator for &'a Value {
+    type Item = &'a String;
+    type IntoIter = Box<dyn Iterator<Item = Self::Item> + 'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
