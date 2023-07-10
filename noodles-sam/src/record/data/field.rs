@@ -41,3 +41,14 @@ impl fmt::Display for ParseError {
         }
     }
 }
+
+pub(super) fn parse_field(s: &str) -> Result<(Tag, Value), ParseError> {
+    let (raw_tag, rest) = s.split_once(':').ok_or(ParseError::Invalid)?;
+    let tag = raw_tag.parse().map_err(ParseError::InvalidTag)?;
+
+    let (raw_ty, raw_value) = rest.split_once(':').ok_or(ParseError::Invalid)?;
+    let ty = raw_ty.parse().map_err(ParseError::InvalidType)?;
+    let value = Value::from_str_type(raw_value, ty).map_err(|_| ParseError::InvalidValue)?;
+
+    Ok((tag, value))
+}
