@@ -50,6 +50,19 @@ impl TryFrom<u8> for UnmodifiedBase {
     }
 }
 
+impl From<UnmodifiedBase> for crate::record::sequence::Base {
+    fn from(unmodified_base: UnmodifiedBase) -> Self {
+        match unmodified_base {
+            UnmodifiedBase::A => Self::A,
+            UnmodifiedBase::C => Self::C,
+            UnmodifiedBase::G => Self::G,
+            UnmodifiedBase::T => Self::T,
+            UnmodifiedBase::U => Self::U,
+            UnmodifiedBase::N => Self::N,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -68,5 +81,17 @@ mod tests {
         t(b'N', UnmodifiedBase::N);
 
         assert_eq!(UnmodifiedBase::try_from(b'n'), Err(ParseError::Invalid));
+    }
+
+    #[test]
+    fn test_from_unmodified_base_for_crate_sam_record_sequence_base() {
+        use crate::record::sequence::Base;
+
+        assert_eq!(Base::from(UnmodifiedBase::A), Base::A);
+        assert_eq!(Base::from(UnmodifiedBase::C), Base::C);
+        assert_eq!(Base::from(UnmodifiedBase::G), Base::G);
+        assert_eq!(Base::from(UnmodifiedBase::T), Base::T);
+        assert_eq!(Base::from(UnmodifiedBase::U), Base::U);
+        assert_eq!(Base::from(UnmodifiedBase::N), Base::N);
     }
 }
