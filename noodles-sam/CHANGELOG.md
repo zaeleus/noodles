@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/record/data/field/value: Replace `ParseError` with record parser
+    `ParseError`.
+
 ## 0.35.0 - 2023-07-06
 
 ### Changed

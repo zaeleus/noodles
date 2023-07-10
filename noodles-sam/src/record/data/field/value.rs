@@ -8,12 +8,12 @@ pub mod hex;
 pub use self::{array::Array, character::Character, hex::Hex};
 
 use std::{
-    error,
     fmt::{self, Write},
-    io, num,
+    io,
 };
 
 use super::Type;
+use crate::reader::record::data::field::value::ParseError;
 
 /// A SAM record data field value.
 #[derive(Clone, Debug, PartialEq)]
@@ -431,7 +431,7 @@ impl TryFrom<char> for Value {
     fn try_from(c: char) -> Result<Self, Self::Error> {
         Character::try_from(c)
             .map(Self::Character)
-            .map_err(|_| ParseError::InvalidCharacterValue)
+            .map_err(ParseError::InvalidCharacter)
     }
 }
 
@@ -442,7 +442,7 @@ impl TryFrom<String> for Value {
         if is_valid_string(&s) {
             Ok(Self::String(s))
         } else {
-            Err(ParseError::InvalidStringValue)
+            Err(ParseError::InvalidString)
         }
     }
 }
@@ -461,53 +461,6 @@ impl fmt::Display for Value {
             Self::String(s) => f.write_str(s),
             Self::Hex(s) => write!(f, "{s}"),
             Self::Array(array) => write!(f, "{array}"),
-        }
-    }
-}
-
-/// An error returned when a raw SAM record data field value fails to parse.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
-    /// The input is invalid.
-    Invalid,
-    /// The data field character value is invalid.
-    InvalidCharacterValue,
-    /// The data field integer value is invalid.
-    InvalidIntValue(num::ParseIntError),
-    /// The data field floating-point value is invalid.
-    InvalidFloatValue(num::ParseFloatError),
-    /// The data field string value is invalid.
-    InvalidStringValue,
-    /// The data field hex value is invalid.
-    InvalidHexValue,
-    /// The data field subtype is missing.
-    MissingSubtype,
-    /// The data field subtype is invalid.
-    InvalidSubtype(array::subtype::ParseError),
-}
-
-impl error::Error for ParseError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match self {
-            Self::InvalidIntValue(e) => Some(e),
-            Self::InvalidFloatValue(e) => Some(e),
-            Self::InvalidSubtype(e) => Some(e),
-            _ => None,
-        }
-    }
-}
-
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Invalid => f.write_str("invalid input"),
-            Self::InvalidCharacterValue => f.write_str("invalid character value"),
-            Self::InvalidIntValue(_) => f.write_str("invalid int value"),
-            Self::InvalidFloatValue(_) => f.write_str("invalid float value"),
-            Self::InvalidStringValue => f.write_str("invalid string value"),
-            Self::InvalidHexValue => f.write_str("invalid hex value"),
-            Self::MissingSubtype => f.write_str("missing subtype"),
-            Self::InvalidSubtype(_) => f.write_str("invalid subtype"),
         }
     }
 }
@@ -671,10 +624,10 @@ mod tests {
             Ok(Value::Character(Character::try_from('n')?))
         );
 
-        assert_eq!(
+        assert!(matches!(
             Value::try_from('🍜'),
-            Err(ParseError::InvalidCharacterValue)
-        );
+            Err(ParseError::InvalidCharacter(_))
+        ));
 
         Ok(())
     }

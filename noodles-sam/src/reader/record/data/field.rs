@@ -1,6 +1,6 @@
 mod tag;
 mod ty;
-mod value;
+pub mod value;
 
 pub(crate) use self::value::parse_value;
 
