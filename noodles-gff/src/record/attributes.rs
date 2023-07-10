@@ -16,8 +16,8 @@ const DELIMITER: char = ';';
 
 /// GFF record attributes.
 ///
-/// Attributes are extra data attached to a GFF record. They are represented as a multimap, where
-/// each key can contain any number of values.
+/// Attributes are extra data attached to a GFF record. They are represented as a typed map, where
+/// each key ([`Tag`]) is associated with a typed [`Value`].
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Attributes(IndexMap<Tag, Value>);
 
