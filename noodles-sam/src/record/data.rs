@@ -9,6 +9,8 @@ use std::{
     str::FromStr,
 };
 
+use self::field::{Tag, Value};
+
 const DELIMITER: char = '\t';
 
 /// SAM record data.
@@ -16,7 +18,7 @@ const DELIMITER: char = '\t';
 /// This is also called optional fields.
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Data {
-    fields: Vec<(field::Tag, field::Value)>,
+    fields: Vec<(Tag, Value)>,
 }
 
 impl Data {
@@ -77,9 +79,9 @@ impl Data {
     /// assert_eq!(data.get(&tag), Some(&value));
     /// assert!(data.get(&tag::READ_GROUP).is_none());
     /// ```
-    pub fn get<K>(&self, tag: &K) -> Option<&field::Value>
+    pub fn get<K>(&self, tag: &K) -> Option<&Value>
     where
-        K: indexmap::Equivalent<field::Tag>,
+        K: indexmap::Equivalent<Tag>,
     {
         self.fields
             .iter()
@@ -102,7 +104,7 @@ impl Data {
     /// ```
     pub fn get_index_of<K>(&self, tag: &K) -> Option<usize>
     where
-        K: indexmap::Equivalent<field::Tag>,
+        K: indexmap::Equivalent<Tag>,
     {
         self.fields.iter().position(|(t, _)| tag.equivalent(t))
     }
@@ -121,7 +123,7 @@ impl Data {
     /// assert_eq!(fields.next(), Some((tag, &value)));
     /// assert!(fields.next().is_none());
     /// ```
-    pub fn iter(&self) -> impl Iterator<Item = (field::Tag, &field::Value)> {
+    pub fn iter(&self) -> impl Iterator<Item = (Tag, &Value)> {
         self.fields.iter().map(|(tag, value)| (*tag, value))
     }
 
@@ -139,7 +141,7 @@ impl Data {
     /// assert_eq!(keys.next(), Some(tag::ALIGNMENT_HIT_COUNT));
     /// assert!(keys.next().is_none());
     /// ```
-    pub fn keys(&self) -> impl Iterator<Item = field::Tag> + '_ {
+    pub fn keys(&self) -> impl Iterator<Item = Tag> + '_ {
         self.fields.iter().map(|(tag, _)| *tag)
     }
 
@@ -157,7 +159,7 @@ impl Data {
     /// assert_eq!(values.next(), Some(&value));
     /// assert!(values.next().is_none());
     /// ```
-    pub fn values(&self) -> impl Iterator<Item = &field::Value> {
+    pub fn values(&self) -> impl Iterator<Item = &Value> {
         self.fields.iter().map(|(_, value)| value)
     }
 
@@ -175,11 +177,7 @@ impl Data {
     /// let mut data = Data::default();
     /// data.insert(tag::ALIGNMENT_HIT_COUNT, Value::from(1));
     /// ```
-    pub fn insert(
-        &mut self,
-        tag: field::Tag,
-        value: field::Value,
-    ) -> Option<(field::Tag, field::Value)> {
+    pub fn insert(&mut self, tag: Tag, value: Value) -> Option<(Tag, Value)> {
         let field = (tag, value);
 
         match self.get_index_of(&tag) {
@@ -215,16 +213,16 @@ impl Data {
     /// assert_eq!(data, expected);
     /// # Ok::<_, noodles_sam::record::data::ParseError>(())
     /// ```
-    pub fn remove<K>(&mut self, tag: &K) -> Option<(field::Tag, field::Value)>
+    pub fn remove<K>(&mut self, tag: &K) -> Option<(Tag, Value)>
     where
-        K: indexmap::Equivalent<field::Tag>,
+        K: indexmap::Equivalent<Tag>,
     {
         self.swap_remove(tag)
     }
 
-    fn swap_remove<K>(&mut self, tag: &K) -> Option<(field::Tag, field::Value)>
+    fn swap_remove<K>(&mut self, tag: &K) -> Option<(Tag, Value)>
     where
-        K: indexmap::Equivalent<field::Tag>,
+        K: indexmap::Equivalent<Tag>,
     {
         self.get_index_of(tag).map(|i| self.fields.swap_remove(i))
     }
@@ -232,7 +230,7 @@ impl Data {
 
 impl fmt::Display for Data {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use field::Type;
+        use self::field::Type;
 
         for (i, (tag, value)) in self.iter().enumerate() {
             if i > 0 {
@@ -252,8 +250,8 @@ impl fmt::Display for Data {
     }
 }
 
-impl Extend<(field::Tag, field::Value)> for Data {
-    fn extend<T: IntoIterator<Item = (field::Tag, field::Value)>>(&mut self, iter: T) {
+impl Extend<(Tag, Value)> for Data {
+    fn extend<T: IntoIterator<Item = (Tag, Value)>>(&mut self, iter: T) {
         for (tag, value) in iter {
             self.insert(tag, value);
         }
@@ -269,7 +267,7 @@ pub enum ParseError {
     ///
     /// § 1.5 The alignment section: optional fields (2021-01-07): "Each `TAG` can only appear once
     /// in one alignment line."
-    DuplicateTag(field::Tag),
+    DuplicateTag(Tag),
 }
 
 impl error::Error for ParseError {
@@ -290,8 +288,8 @@ impl fmt::Display for ParseError {
     }
 }
 
-impl FromIterator<(field::Tag, field::Value)> for Data {
-    fn from_iter<T: IntoIterator<Item = (field::Tag, field::Value)>>(iter: T) -> Self {
+impl FromIterator<(Tag, Value)> for Data {
+    fn from_iter<T: IntoIterator<Item = (Tag, Value)>>(iter: T) -> Self {
         let mut data = Self::default();
         data.extend(iter);
         data
@@ -324,7 +322,7 @@ impl FromStr for Data {
 
 #[cfg(test)]
 mod tests {
-    use super::field::{tag, Value};
+    use super::field::tag;
 
     use super::*;
 
