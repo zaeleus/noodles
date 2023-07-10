@@ -32,12 +32,12 @@ impl Builder {
         response
             .json()
             .await
-            .map(|data: ServiceInfoResponse| data.serivce)
+            .map(|data: ServiceInfoResponse| data.service)
             .map_err(Error::Request)
     }
 }
 
 #[derive(Deserialize)]
 struct ServiceInfoResponse {
-    serivce: Service,
+    service: Service,
 }
