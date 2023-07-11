@@ -1,5 +1,35 @@
 use std::{error, fmt};
 
+/// 5-Methylcytosine (m; 5mC; CHEBI:27551).
+const FIVE_METHYLCYTOSINE: Modification = Modification::FiveMethylcytosine;
+
+/// 5-Hydroxymethylcytosine (h; 5hmC; CHEBI:76792).
+const FIVE_HYDROXYMETHYLCYTOSINE: Modification = Modification::FiveHydroxymethylcytosine;
+
+/// 5-Formylcytosine (f; 5fC; CHEBI:76794).
+const FIVE_FORMYLCYTOSINE: Modification = Modification::FiveFormylcytosine;
+
+/// 5-Carboxylcytosine (c; 5caC; CHEBI:76793).
+const FIVE_CARBOXYLCYTOSINE: Modification = Modification::FiveCarboxylcytosine;
+
+/// 5-Hydroxymethyluracil (g; 5hmU; CHEBI:16964).
+const FIVE_HYDROXYMETHYLURACIL: Modification = Modification::FiveHydroxymethyluracil;
+
+/// 5-Formyluracil (e; 5fU; CHEBI:80961).
+const FIVE_FORMYLURACIL: Modification = Modification::FiveFormyluracil;
+
+/// 5-Carboxyluracil (b; 5caU; CHEBI:17477).
+const FIVE_CARBOXYLURACIL: Modification = Modification::FiveCarboxyluracil;
+
+/// 6-Methyladenine (a; 6mA; CHEBI:28871).
+const SIX_METHYLADENINE: Modification = Modification::SixMethyladenine;
+
+/// 8-Oxoguanine (o; 8oxoG; CHEBI:44605).
+const EIGHT_OXOGUANINE: Modification = Modification::EightOxoguanine;
+
+/// Xanthosine (n; Xao; CHEBI:18107).
+const XANTHOSINE: Modification = Modification::Xanthosine;
+
 /// A base modification.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Modification {
