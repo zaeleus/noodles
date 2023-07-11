@@ -1,6 +1,9 @@
 use std::{error, fmt};
 
-use crate::record::data::field::value::base_modifications::Group;
+use crate::record::{
+    data::field::value::base_modifications::{group::UnmodifiedBase, Group},
+    Sequence,
+};
 
 mod modifications;
 mod status;
@@ -57,7 +60,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(super) fn parse_group(src: &mut &[u8]) -> Result<Group, ParseError> {
+pub(super) fn parse_group(src: &mut &[u8], sequence: &Sequence) -> Result<Group, ParseError> {
     let unmodified_base = parse_unmodified_base(src).map_err(ParseError::InvalidUnmodifiedBase)?;
     let strand = parse_strand(src).map_err(ParseError::InvalidStrand)?;
     let modifications = parse_modifications(src).map_err(ParseError::InvalidModifications)?;
@@ -65,12 +68,14 @@ pub(super) fn parse_group(src: &mut &[u8]) -> Result<Group, ParseError> {
     let skip_counts = parse_skip_counts(src)?;
     consume_terminator(src)?;
 
+    let positions = decode_positions(&skip_counts, sequence, unmodified_base)?;
+
     Ok(Group::new(
         unmodified_base,
         strand,
         modifications,
         status,
-        skip_counts,
+        positions,
     ))
 }
 
@@ -113,61 +118,90 @@ fn consume_terminator(src: &mut &[u8]) -> Result<(), ParseError> {
     }
 }
 
+fn decode_positions(
+    skip_counts: &[usize],
+    sequence: &Sequence,
+    unmodified_base: UnmodifiedBase,
+) -> Result<Vec<usize>, ParseError> {
+    use crate::record::sequence::Base;
+
+    let mut positions = Vec::with_capacity(skip_counts.len());
+    let unmodified_base = Base::from(unmodified_base);
+
+    let mut iter = sequence
+        .as_ref()
+        .iter()
+        .enumerate()
+        .filter(|(_, &base)| base == unmodified_base)
+        .map(|(i, _)| i);
+
+    for &count in skip_counts {
+        let i = iter.nth(count).unwrap();
+        positions.push(i);
+    }
+
+    Ok(positions)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_group() {
+    fn test_parse_group() -> Result<(), crate::record::sequence::ParseError> {
         use crate::record::data::field::value::base_modifications::group::{
             Modification, Status, Strand, UnmodifiedBase,
         };
 
+        let sequence = "CACCCGATGACCGGCT".parse()?;
+
         let mut src = &b"C+m,1,3,0;"[..];
-        let actual = parse_group(&mut src);
+        let actual = parse_group(&mut src, &sequence);
         let expected = Group::new(
             UnmodifiedBase::C,
             Strand::Forward,
             vec![Modification::FiveMethylcytosine],
             None,
-            vec![1, 3, 0],
+            vec![2, 11, 14],
         );
         assert_eq!(actual, Ok(expected));
 
         let mut src = &b"C+m.,1,3,0;"[..];
-        let actual = parse_group(&mut src);
+        let actual = parse_group(&mut src, &sequence);
         let expected = Group::new(
             UnmodifiedBase::C,
             Strand::Forward,
             vec![Modification::FiveMethylcytosine],
             Some(Status::Implicit),
-            vec![1, 3, 0],
+            vec![2, 11, 14],
         );
         assert_eq!(actual, Ok(expected));
 
         let mut src = &b""[..];
         assert!(matches!(
-            parse_group(&mut src),
+            parse_group(&mut src, &sequence),
             Err(ParseError::InvalidUnmodifiedBase(_))
         ));
 
         let mut src = &b"C"[..];
         assert!(matches!(
-            parse_group(&mut src),
+            parse_group(&mut src, &sequence),
             Err(ParseError::InvalidStrand(_))
         ));
 
         let mut src = &b"C+"[..];
         assert!(matches!(
-            parse_group(&mut src),
+            parse_group(&mut src, &sequence),
             Err(ParseError::InvalidModifications(_))
         ));
 
         let mut src = &b"C+m,"[..];
         assert!(matches!(
-            parse_group(&mut src),
+            parse_group(&mut src, &sequence),
             Err(ParseError::InvalidSkipCount(_))
         ));
+
+        Ok(())
     }
 
     #[test]

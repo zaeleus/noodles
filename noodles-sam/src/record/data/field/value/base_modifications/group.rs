@@ -14,7 +14,7 @@ pub struct Group {
     strand: Strand,
     modifications: Vec<Modification>,
     status: Option<Status>,
-    skip_counts: Vec<usize>,
+    positions: Vec<usize>,
 }
 
 impl Group {
@@ -24,14 +24,14 @@ impl Group {
         strand: Strand,
         modifications: Vec<Modification>,
         status: Option<Status>,
-        skip_counts: Vec<usize>,
+        positions: Vec<usize>,
     ) -> Self {
         Self {
             unmodified_base,
             strand,
             modifications,
             status,
-            skip_counts,
+            positions,
         }
     }
 
@@ -55,8 +55,8 @@ impl Group {
         self.status
     }
 
-    /// Returns the skip counts.
-    pub fn skip_counts(&self) -> &[usize] {
-        &self.skip_counts
+    /// Returns the positions on the sequence.
+    pub fn positions(&self) -> &[usize] {
+        &self.positions
     }
 }
