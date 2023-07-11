@@ -20,23 +20,42 @@ impl fmt::Display for ParseError {
 }
 
 pub fn parse_modifications(src: &mut &[u8]) -> Result<Vec<Modification>, ParseError> {
-    parse_short_codes(src)
+    if let Some(modifications) = parse_short_codes(src)? {
+        Ok(modifications)
+    } else if let Some(modification) = parse_chebi_id(src)? {
+        Ok(vec![modification])
+    } else {
+        Err(ParseError::Invalid)
+    }
 }
 
-fn parse_short_codes(src: &mut &[u8]) -> Result<Vec<Modification>, ParseError> {
+fn parse_short_codes(src: &mut &[u8]) -> Result<Option<Vec<Modification>>, ParseError> {
     let raw_codes = take_while(src, |b| b.is_ascii_lowercase());
 
     if raw_codes.is_empty() {
-        return Err(ParseError::Invalid);
+        return Ok(None);
     }
 
-    let codes = raw_codes
+    let modifications = raw_codes
         .iter()
         .copied()
         .map(|raw_code| Modification::try_from(raw_code).map_err(|_| ParseError::Invalid))
         .collect::<Result<_, _>>()?;
 
-    Ok(codes)
+    Ok(Some(modifications))
+}
+
+fn parse_chebi_id(src: &mut &[u8]) -> Result<Option<Modification>, ParseError> {
+    let raw_id = take_while(src, |b| b.is_ascii_digit());
+
+    if raw_id.is_empty() {
+        Ok(None)
+    } else {
+        lexical_core::parse(raw_id)
+            .map(Modification::ChebiId)
+            .map(Some)
+            .map_err(|_| ParseError::Invalid)
+    }
 }
 
 fn take_while<'a, P>(src: &mut &'a [u8], predicate: P) -> &'a [u8]
@@ -76,9 +95,11 @@ mod tests {
             ])
         );
 
-        // TODO
         let mut src = &b"27551"[..];
-        assert_eq!(parse_modifications(&mut src), Err(ParseError::Invalid));
+        assert_eq!(
+            parse_modifications(&mut src),
+            Ok(vec![Modification::ChebiId(27551)])
+        );
 
         let mut src = &b""[..];
         assert_eq!(parse_modifications(&mut src), Err(ParseError::Invalid));

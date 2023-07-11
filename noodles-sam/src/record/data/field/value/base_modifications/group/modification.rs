@@ -37,6 +37,8 @@ pub const XANTHOSINE: Modification = Modification::Code(b'n');
 pub enum Modification {
     /// A modification code.
     Code(u8),
+    /// A ChEBI ID.
+    ChebiId(u32),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
