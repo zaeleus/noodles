@@ -47,7 +47,7 @@ mod tests {
     #[test]
     fn test_parse() -> Result<(), crate::record::sequence::ParseError> {
         use crate::record::data::field::value::base_modifications::{
-            group::{Modification, Strand, UnmodifiedBase},
+            group::{modification, Strand, UnmodifiedBase},
             Group,
         };
 
@@ -58,14 +58,14 @@ mod tests {
             Group::new(
                 UnmodifiedBase::C,
                 Strand::Forward,
-                vec![Modification::FiveMethylcytosine],
+                vec![modification::FIVE_METHYLCYTOSINE],
                 None,
                 vec![2, 11, 14],
             ),
             Group::new(
                 UnmodifiedBase::G,
                 Strand::Reverse,
-                vec![Modification::EightOxoguanine],
+                vec![modification::EIGHT_OXOGUANINE],
                 None,
                 vec![12],
             ),

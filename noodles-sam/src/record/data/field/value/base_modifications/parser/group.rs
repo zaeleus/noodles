@@ -150,7 +150,7 @@ mod tests {
     #[test]
     fn test_parse_group() -> Result<(), crate::record::sequence::ParseError> {
         use crate::record::data::field::value::base_modifications::group::{
-            Modification, Status, Strand, UnmodifiedBase,
+            modification, Status, Strand, UnmodifiedBase,
         };
 
         let sequence = "CACCCGATGACCGGCT".parse()?;
@@ -160,7 +160,7 @@ mod tests {
         let expected = Group::new(
             UnmodifiedBase::C,
             Strand::Forward,
-            vec![Modification::FiveMethylcytosine],
+            vec![modification::FIVE_METHYLCYTOSINE],
             None,
             vec![2, 11, 14],
         );
@@ -171,7 +171,7 @@ mod tests {
         let expected = Group::new(
             UnmodifiedBase::C,
             Strand::Forward,
-            vec![Modification::FiveMethylcytosine],
+            vec![modification::FIVE_METHYLCYTOSINE],
             Some(Status::Implicit),
             vec![2, 11, 14],
         );

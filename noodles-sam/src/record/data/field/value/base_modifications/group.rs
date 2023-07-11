@@ -1,4 +1,4 @@
-mod modification;
+pub mod modification;
 mod status;
 mod strand;
 mod unmodified_base;

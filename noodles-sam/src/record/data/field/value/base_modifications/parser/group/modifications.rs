@@ -59,18 +59,20 @@ mod tests {
 
     #[test]
     fn test_parse_modifications() {
+        use crate::record::data::field::value::base_modifications::group::modification;
+
         let mut src = &b"m"[..];
         assert_eq!(
             parse_modifications(&mut src),
-            Ok(vec![Modification::FiveMethylcytosine])
+            Ok(vec![modification::FIVE_METHYLCYTOSINE])
         );
 
         let mut src = &b"mh"[..];
         assert_eq!(
             parse_modifications(&mut src),
             Ok(vec![
-                Modification::FiveMethylcytosine,
-                Modification::FiveHydroxymethylcytosine
+                modification::FIVE_METHYLCYTOSINE,
+                modification::FIVE_HYDROXYMETHYLCYTOSINE,
             ])
         );
 
