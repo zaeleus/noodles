@@ -24,7 +24,7 @@ pub fn parse_modifications(src: &mut &[u8]) -> Result<Vec<Modification>, ParseEr
 }
 
 fn parse_short_codes(src: &mut &[u8]) -> Result<Vec<Modification>, ParseError> {
-    let raw_codes = dbg!(take_while(src, |b| b.is_ascii_lowercase()));
+    let raw_codes = take_while(src, |b| b.is_ascii_lowercase());
 
     if raw_codes.is_empty() {
         return Err(ParseError::Invalid);
