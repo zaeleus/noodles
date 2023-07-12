@@ -97,7 +97,7 @@ impl Write for MultithreadedWriter {
         use super::writer::MAX_BUF_SIZE;
 
         let amt = cmp::min(MAX_BUF_SIZE - self.buf.len(), buf.len());
-        self.buf.extend(&buf[..amt]);
+        self.buf.extend_from_slice(&buf[..amt]);
 
         if self.buf.len() >= MAX_BUF_SIZE {
             self.flush()?;
