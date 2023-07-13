@@ -11,7 +11,7 @@ use noodles_sam as sam;
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = sam::reader::Builder::default().build_from_path(src)?;
+    let mut reader = sam::reader::Builder.build_from_path(src)?;
     let mut header = reader.read_header()?;
 
     header.add_comment("a comment added by noodles-sam");

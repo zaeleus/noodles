@@ -10,7 +10,7 @@ fn main() -> io::Result<()> {
     let srcs: Vec<_> = env::args().skip(1).collect();
 
     let first_src = srcs.first().expect("missing srcs[0]");
-    let header = bam::reader::Builder::default()
+    let header = bam::reader::Builder
         .build_from_path(first_src)
         .and_then(|mut reader| reader.read_header())?;
 
@@ -20,7 +20,7 @@ fn main() -> io::Result<()> {
     writer.write_header(&header)?;
 
     for src in srcs {
-        let mut reader = bam::reader::Builder::default().build_from_path(src)?;
+        let mut reader = bam::reader::Builder.build_from_path(src)?;
         reader.read_header()?;
 
         io::copy(reader.get_mut(), writer.get_mut())?;

@@ -53,7 +53,7 @@ fn main() -> io::Result<()> {
 
     let read_names = read_read_names(read_names_src)?;
 
-    let mut reader = bam::reader::Builder::default().build_from_path(src)?;
+    let mut reader = bam::reader::Builder.build_from_path(src)?;
     let header = reader.read_header()?;
 
     let stdout = io::stdout().lock();

@@ -11,7 +11,7 @@ pub struct Empty;
 impl Empty {
     /// Creates an empty adapter.
     pub fn new() -> Self {
-        Self::default()
+        Self
     }
 }
 

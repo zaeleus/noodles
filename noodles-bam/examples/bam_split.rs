@@ -21,7 +21,7 @@ fn build_writers(read_groups: &sam::header::ReadGroups) -> io::Result<Writers> {
         .map(|(i, id)| {
             let dst = format!("out_{i}.bam");
 
-            bam::writer::Builder::default()
+            bam::writer::Builder
                 .build_from_path(dst)
                 .map(|writer| (id.clone(), writer))
         })
@@ -67,7 +67,7 @@ fn main() -> io::Result<()> {
     let mut args = env::args().skip(1);
     let src = args.next().expect("missing src");
 
-    let mut reader = bam::reader::Builder::default().build_from_path(src)?;
+    let mut reader = bam::reader::Builder.build_from_path(src)?;
     let header = reader.read_header()?;
 
     let mut writers = build_writers(header.read_groups())?;

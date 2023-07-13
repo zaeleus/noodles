@@ -19,7 +19,7 @@ use noodles_sam::{
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = bam::reader::Builder::default().build_from_path(src)?;
+    let mut reader = bam::reader::Builder.build_from_path(src)?;
     let header = reader.read_header()?;
 
     let stdout = BufWriter::new(io::stdout().lock());
