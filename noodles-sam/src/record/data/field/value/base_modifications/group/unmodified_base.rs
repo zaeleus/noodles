@@ -17,6 +17,19 @@ pub enum UnmodifiedBase {
     N,
 }
 
+impl UnmodifiedBase {
+    pub fn complement(&self) -> Self {
+        match self {
+            Self::A => Self::T,
+            Self::C => Self::G,
+            Self::G => Self::C,
+            Self::T => Self::A,
+            Self::U => Self::A,
+            Self::N => Self::N,
+        }
+    }
+}
+
 /// An error returned when a base modifications group unmodified base fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -66,6 +79,16 @@ impl From<UnmodifiedBase> for crate::record::sequence::Base {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_complement() {
+        assert_eq!(UnmodifiedBase::A.complement(), UnmodifiedBase::T);
+        assert_eq!(UnmodifiedBase::C.complement(), UnmodifiedBase::G);
+        assert_eq!(UnmodifiedBase::G.complement(), UnmodifiedBase::C);
+        assert_eq!(UnmodifiedBase::T.complement(), UnmodifiedBase::A);
+        assert_eq!(UnmodifiedBase::U.complement(), UnmodifiedBase::A);
+        assert_eq!(UnmodifiedBase::N.complement(), UnmodifiedBase::N);
+    }
 
     #[test]
     fn test_try_from_u8_for_unmodified_base() {

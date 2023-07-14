@@ -60,7 +60,11 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(super) fn parse_group(src: &mut &[u8], sequence: &Sequence) -> Result<Group, ParseError> {
+pub(super) fn parse_group(
+    src: &mut &[u8],
+    is_reverse_complemented: bool,
+    sequence: &Sequence,
+) -> Result<Group, ParseError> {
     let unmodified_base = parse_unmodified_base(src).map_err(ParseError::InvalidUnmodifiedBase)?;
     let strand = parse_strand(src).map_err(ParseError::InvalidStrand)?;
     let modifications = parse_modifications(src).map_err(ParseError::InvalidModifications)?;
@@ -68,7 +72,12 @@ pub(super) fn parse_group(src: &mut &[u8], sequence: &Sequence) -> Result<Group,
     let skip_counts = parse_skip_counts(src)?;
     consume_terminator(src)?;
 
-    let positions = decode_positions(&skip_counts, sequence, unmodified_base)?;
+    let positions = decode_positions(
+        &skip_counts,
+        is_reverse_complemented,
+        sequence,
+        unmodified_base,
+    )?;
 
     Ok(Group::new(
         unmodified_base,
@@ -120,20 +129,38 @@ fn consume_terminator(src: &mut &[u8]) -> Result<(), ParseError> {
 
 fn decode_positions(
     skip_counts: &[usize],
+    is_reverse_complemented: bool,
     sequence: &Sequence,
     unmodified_base: UnmodifiedBase,
 ) -> Result<Vec<usize>, ParseError> {
     use crate::record::sequence::Base;
 
     let mut positions = Vec::with_capacity(skip_counts.len());
-    let unmodified_base = Base::from(unmodified_base);
 
-    let mut iter = sequence
-        .as_ref()
-        .iter()
-        .enumerate()
-        .filter(|(_, &base)| base == unmodified_base)
-        .map(|(i, _)| i);
+    let mut iter: Box<dyn Iterator<Item = usize>> = if is_reverse_complemented {
+        let unmodified_base = Base::from(unmodified_base.complement());
+
+        Box::new(
+            sequence
+                .as_ref()
+                .iter()
+                .enumerate()
+                .rev()
+                .filter(move |(_, &base)| base == unmodified_base)
+                .map(|(i, _)| i),
+        )
+    } else {
+        let unmodified_base = Base::from(unmodified_base);
+
+        Box::new(
+            sequence
+                .as_ref()
+                .iter()
+                .enumerate()
+                .filter(move |(_, &base)| base == unmodified_base)
+                .map(|(i, _)| i),
+        )
+    };
 
     for &count in skip_counts {
         let i = iter.nth(count).unwrap();
@@ -153,10 +180,11 @@ mod tests {
             modification, Status, Strand, UnmodifiedBase,
         };
 
+        let is_reverse_complemented = false;
         let sequence = "CACCCGATGACCGGCT".parse()?;
 
         let mut src = &b"C+m,1,3,0;"[..];
-        let actual = parse_group(&mut src, &sequence);
+        let actual = parse_group(&mut src, is_reverse_complemented, &sequence);
         let expected = Group::new(
             UnmodifiedBase::C,
             Strand::Forward,
@@ -167,7 +195,7 @@ mod tests {
         assert_eq!(actual, Ok(expected));
 
         let mut src = &b"C+m.,1,3,0;"[..];
-        let actual = parse_group(&mut src, &sequence);
+        let actual = parse_group(&mut src, is_reverse_complemented, &sequence);
         let expected = Group::new(
             UnmodifiedBase::C,
             Strand::Forward,
@@ -177,27 +205,38 @@ mod tests {
         );
         assert_eq!(actual, Ok(expected));
 
+        let mut src = &b"C+m,1,0,0;"[..];
+        let actual = parse_group(&mut src, true, &sequence);
+        let expected = Group::new(
+            UnmodifiedBase::C,
+            Strand::Forward,
+            vec![modification::FIVE_METHYLCYTOSINE],
+            None,
+            vec![12, 8, 5],
+        );
+        assert_eq!(actual, Ok(expected));
+
         let mut src = &b""[..];
         assert!(matches!(
-            parse_group(&mut src, &sequence),
+            parse_group(&mut src, is_reverse_complemented, &sequence),
             Err(ParseError::InvalidUnmodifiedBase(_))
         ));
 
         let mut src = &b"C"[..];
         assert!(matches!(
-            parse_group(&mut src, &sequence),
+            parse_group(&mut src, is_reverse_complemented, &sequence),
             Err(ParseError::InvalidStrand(_))
         ));
 
         let mut src = &b"C+"[..];
         assert!(matches!(
-            parse_group(&mut src, &sequence),
+            parse_group(&mut src, is_reverse_complemented, &sequence),
             Err(ParseError::InvalidModifications(_))
         ));
 
         let mut src = &b"C+m,"[..];
         assert!(matches!(
-            parse_group(&mut src, &sequence),
+            parse_group(&mut src, is_reverse_complemented, &sequence),
             Err(ParseError::InvalidSkipCount(_))
         ));
 
