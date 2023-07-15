@@ -1,3 +1,5 @@
+//! Sequence reader.
+
 use std::io::{self, BufRead, Read};
 
 use super::DEFINITION_PREFIX;

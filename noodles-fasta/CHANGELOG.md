@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * fasta/reader: Increase visibility of `sequence::Reader`.
+
 ## 0.25.0 - 2023-06-15
 
 ### Changed

@@ -2,7 +2,7 @@
 
 mod builder;
 mod records;
-mod sequence;
+pub mod sequence;
 
 pub use self::{builder::Builder, records::Records};
 
