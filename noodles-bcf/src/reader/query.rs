@@ -9,7 +9,7 @@ use crate::header::StringMaps;
 
 /// An iterator over records of a BCF reader that intersects a given region.
 ///
-/// This is created by calling [`Reader::query`].
+/// This is created by calling [`super::Reader::query`].
 pub struct Query<'r, 'h, R>
 where
     R: Read + Seek,
