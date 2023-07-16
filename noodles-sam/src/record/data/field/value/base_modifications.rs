@@ -5,8 +5,20 @@ mod parser;
 
 pub use self::group::Group;
 
+use crate::record::Sequence;
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BaseModifications(Vec<Group>);
+
+impl BaseModifications {
+    pub fn parse(
+        s: &str,
+        is_reverse_complemented: bool,
+        sequence: &Sequence,
+    ) -> Result<Self, parser::ParseError> {
+        parser::parse(s, is_reverse_complemented, sequence)
+    }
+}
 
 impl AsRef<[Group]> for BaseModifications {
     fn as_ref(&self) -> &[Group] {
