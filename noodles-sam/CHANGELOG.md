@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * sam/record/data/field/value: Add support for parsing base modifications.
+
 ### Changed
 
   * sam/record/data/field/value: Replace `ParseError` with record parser

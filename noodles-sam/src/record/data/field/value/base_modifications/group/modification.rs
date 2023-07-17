@@ -41,8 +41,10 @@ pub enum Modification {
     ChebiId(u32),
 }
 
+/// An error returned when a base modifications group modification fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The input is invalid.
     Invalid,
 }
 

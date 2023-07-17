@@ -1,11 +1,13 @@
 //! SAM record data field value and types.
 
 pub mod array;
-mod base_modifications;
+pub mod base_modifications;
 pub mod character;
 pub mod hex;
 
-pub use self::{array::Array, character::Character, hex::Hex};
+pub use self::{
+    array::Array, base_modifications::BaseModifications, character::Character, hex::Hex,
+};
 
 use std::{
     fmt::{self, Write},

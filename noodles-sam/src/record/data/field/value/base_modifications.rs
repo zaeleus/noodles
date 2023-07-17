@@ -1,4 +1,4 @@
-#![allow(dead_code)]
+//! SAM record data field value for base modifications.
 
 pub mod group;
 mod parser;
@@ -7,10 +7,12 @@ pub use self::group::Group;
 
 use crate::record::Sequence;
 
+/// Base modifications.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BaseModifications(Vec<Group>);
 
 impl BaseModifications {
+    /// Parses base modifications from a string.
     pub fn parse(
         s: &str,
         is_reverse_complemented: bool,

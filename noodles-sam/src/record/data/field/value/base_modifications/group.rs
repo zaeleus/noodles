@@ -1,3 +1,5 @@
+//! Base modifications group.
+
 pub mod modification;
 mod status;
 mod strand;

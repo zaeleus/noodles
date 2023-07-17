@@ -18,6 +18,7 @@ pub enum UnmodifiedBase {
 }
 
 impl UnmodifiedBase {
+    /// Complements the base.
     pub fn complement(&self) -> Self {
         match self {
             Self::A => Self::T,
