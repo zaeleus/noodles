@@ -32,12 +32,12 @@ impl Builder {
         response
             .json()
             .await
-            .map(|data: ServiceInfoResponse| data.service)
+            .map(|data: ServiceInfoResponse| data.refget)
             .map_err(Error::Request)
     }
 }
 
 #[derive(Deserialize)]
 struct ServiceInfoResponse {
-    service: Service,
+    refget: Service,
 }
