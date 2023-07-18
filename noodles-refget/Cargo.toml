@@ -19,4 +19,5 @@ serde = { version = "1.0.136", features = ["derive"] }
 url = "2.2.2"
 
 [dev-dependencies]
+serde_test = "1.0.137"
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
