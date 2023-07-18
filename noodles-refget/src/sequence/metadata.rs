@@ -10,7 +10,7 @@ use serde::Deserialize;
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct Metadata {
     md5: String,
-    trunc512: Option<String>,
+    ga4gh: Option<String>,
     length: u32,
     aliases: Vec<Alias>,
 }
@@ -21,9 +21,9 @@ impl Metadata {
         &self.md5
     }
 
-    /// Returns the TRUNC512 digest in hexadecimal.
-    pub fn trunc512(&self) -> Option<&str> {
-        self.trunc512.as_deref()
+    /// Returns the ga4gh digest in hexadecimal.
+    pub fn ga4gh(&self) -> Option<&str> {
+        self.ga4gh.as_deref()
     }
 
     /// Returns the length.
