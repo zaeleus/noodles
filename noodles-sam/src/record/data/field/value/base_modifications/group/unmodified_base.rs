@@ -19,6 +19,13 @@ pub enum UnmodifiedBase {
 
 impl UnmodifiedBase {
     /// Complements the base.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::data::field::value::base_modifications::group::UnmodifiedBase;
+    /// assert_eq!(UnmodifiedBase::A.complement(), UnmodifiedBase::T);
+    /// ```
     pub fn complement(&self) -> Self {
         match self {
             Self::A => Self::T,
