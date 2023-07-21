@@ -75,11 +75,12 @@ mod builder;
 mod parser;
 pub mod record;
 
+pub(crate) use self::parser::Parser;
+pub use self::{builder::Builder, parser::ParseError, record::Record};
+
 use std::{fmt, str::FromStr};
 
 use indexmap::IndexMap;
-
-pub use self::{builder::Builder, parser::ParseError, record::Record};
 
 use self::record::value::{
     map::{self, Program, ReadGroup, ReferenceSequence},

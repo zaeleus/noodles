@@ -58,7 +58,7 @@ impl fmt::Display for ParseError {
 }
 
 #[derive(Default)]
-struct Parser {
+pub(crate) struct Parser {
     ctx: Context,
     header: Option<Map<map::Header>>,
     reference_sequences: ReferenceSequences,
@@ -76,7 +76,7 @@ impl Parser {
             && self.comments.is_empty()
     }
 
-    fn parse_partial(&mut self, s: &str) -> Result<(), ParseError> {
+    pub(crate) fn parse_partial(&mut self, s: &str) -> Result<(), ParseError> {
         if self.is_empty() {
             if let Some(result) = record::extract_version(s) {
                 let version = result.map_err(ParseError::InvalidRecord)?;
@@ -118,7 +118,7 @@ impl Parser {
         Ok(())
     }
 
-    fn finish(self) -> Header {
+    pub(crate) fn finish(self) -> Header {
         Header {
             header: self.header,
             reference_sequences: self.reference_sequences,

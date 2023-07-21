@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/reader/header: Parse header line by line.
+
+    The header parser can now build a `sam::Header` by parsing a raw header
+    line by line. This makes it so that it is no longer required to read the
+    entire raw header into memory before parsing.
+
 ## 0.36.0 - 2023-07-20
 
 ### Added
