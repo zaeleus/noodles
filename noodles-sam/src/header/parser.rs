@@ -1,4 +1,5 @@
 mod context;
+mod record;
 
 use std::{error, fmt, hash::Hash};
 
@@ -6,12 +7,9 @@ use indexmap::IndexMap;
 
 pub(crate) use self::context::Context;
 use super::{
-    record::{
-        self,
-        value::{
-            map::{self, reference_sequence},
-            Map,
-        },
+    record::value::{
+        map::{self, reference_sequence},
+        Map,
     },
     Header, Programs, ReadGroups, Record, ReferenceSequences,
 };
@@ -22,7 +20,7 @@ pub enum ParseError {
     /// A header record is not on the first line.
     UnexpectedHeader,
     /// The record is invalid.
-    InvalidRecord(record::ParseError),
+    InvalidRecord(super::record::ParseError),
     /// A reference sequence name is duplicated.
     DuplicateReferenceSequenceName(reference_sequence::Name),
     /// A read group ID is duplicated.
@@ -78,7 +76,7 @@ impl Parser {
 
     pub(crate) fn parse_partial(&mut self, s: &str) -> Result<(), ParseError> {
         if self.is_empty() {
-            if let Some(result) = record::extract_version(s) {
+            if let Some(result) = super::record::extract_version(s) {
                 let version = result.map_err(ParseError::InvalidRecord)?;
                 self.ctx = Context::from(version);
             }
