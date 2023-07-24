@@ -7,7 +7,6 @@
 use std::{
     env,
     io::{self, BufWriter},
-    path::PathBuf,
 };
 
 use noodles_bcf as bcf;
@@ -16,7 +15,7 @@ use noodles_vcf as vcf;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = env::args();
 
-    let src = args.nth(1).map(PathBuf::from).expect("missing src");
+    let src = args.nth(1).expect("missing src");
     let raw_region = args.next().expect("missing region");
 
     let mut reader = bcf::indexed_reader::Builder::default().build_from_path(src)?;
