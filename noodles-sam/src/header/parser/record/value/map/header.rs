@@ -2,6 +2,7 @@ use std::{error, fmt, str};
 
 use indexmap::IndexMap;
 
+use super::parse_tag;
 use crate::header::{
     parser::Context,
     record::value::{
@@ -20,8 +21,8 @@ use crate::header::{
 /// An error returned when a SAM header header record value fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
-    UnexpectedEof,
     InvalidDelimiter,
+    InvalidTag(super::tag::ParseError),
     InvalidSeparator,
     InvalidVersion(version::ParseError),
     InvalidSortOrder(sort_order::ParseError),
@@ -37,8 +38,8 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::UnexpectedEof => write!(f, "unexpected EOF"),
             Self::InvalidDelimiter => write!(f, "invalid delimiter"),
+            Self::InvalidTag(_) => write!(f, "invalid tag"),
             Self::InvalidSeparator => write!(f, "invalid separator"),
             Self::InvalidVersion(_) => write!(f, "invalid version"),
             Self::InvalidSortOrder(_) => write!(f, "invalid sort order"),
@@ -61,7 +62,7 @@ pub(crate) fn parse_header(src: &mut &[u8], ctx: &Context) -> Result<Map<Header>
 
     while !src.is_empty() {
         consume_delimiter(src)?;
-        let tag = parse_tag(src)?;
+        let tag = parse_tag(src).map_err(ParseError::InvalidTag)?;
         consume_separator(src)?;
 
         match tag {
@@ -104,24 +105,6 @@ fn consume_delimiter(src: &mut &[u8]) -> Result<(), ParseError> {
     }
 
     Err(ParseError::InvalidDelimiter)
-}
-
-fn parse_tag(src: &mut &[u8]) -> Result<Tag, ParseError> {
-    const TAG_LENGTH: usize = 2;
-
-    if src.len() < TAG_LENGTH {
-        return Err(ParseError::UnexpectedEof);
-    }
-
-    let (raw_tag, rest) = src.split_at(TAG_LENGTH);
-
-    // SAFETY: `raw_tag` is `TAG_LENGTH` bytes.
-    let buf: [u8; TAG_LENGTH] = raw_tag.try_into().unwrap();
-    let tag = Tag::from(buf);
-
-    *src = rest;
-
-    Ok(tag)
 }
 
 fn consume_separator(src: &mut &[u8]) -> Result<(), ParseError> {
