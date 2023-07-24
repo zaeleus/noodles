@@ -124,7 +124,7 @@ impl Builder {
     }
 }
 
-fn detect_compression<R>(reader: &mut R) -> io::Result<Option<Compression>>
+pub(crate) fn detect_compression<R>(reader: &mut R) -> io::Result<Option<Compression>>
 where
     R: BufRead,
 {
@@ -141,7 +141,10 @@ where
     Ok(None)
 }
 
-fn detect_format<R>(reader: &mut R, compression: Option<Compression>) -> io::Result<Format>
+pub(crate) fn detect_format<R>(
+    reader: &mut R,
+    compression: Option<Compression>,
+) -> io::Result<Format>
 where
     R: BufRead,
 {

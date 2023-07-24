@@ -1,7 +1,7 @@
 //! I/O for variant formats.
 
 mod format;
-mod indexed_reader;
+pub mod indexed_reader;
 pub mod reader;
 pub mod writer;
 

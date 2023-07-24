@@ -1,3 +1,9 @@
+//! Indexed variant reader.
+
+mod builder;
+
+pub use self::builder::Builder;
+
 use std::io::{self, Read, Seek};
 
 use noodles_bcf as bcf;
@@ -13,7 +19,7 @@ pub enum IndexedReader<R> {
     Bcf(bcf::IndexedReader<bgzf::Reader<R>>),
 }
 
-impl<R> IndexedReader<bgzf::Reader<R>>
+impl<R> IndexedReader<R>
 where
     R: Read,
 {
