@@ -38,14 +38,16 @@ impl Builder {
         };
 
         match (format, compression) {
-            (Format::Vcf, None) => todo!(),
             (Format::Vcf, Some(Compression::Bgzf)) => vcf::indexed_reader::Builder::default()
                 .build_from_path(src)
                 .map(IndexedReader::Vcf),
-            (Format::Bcf, None) => todo!(),
             (Format::Bcf, Some(Compression::Bgzf)) => bcf::indexed_reader::Builder::default()
                 .build_from_path(src)
                 .map(IndexedReader::Bcf),
+            (_, None) => Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "source not bgzip-compressed",
+            )),
         }
     }
 }
