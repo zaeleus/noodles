@@ -2,7 +2,7 @@ use std::{error, fmt, str};
 
 use indexmap::IndexMap;
 
-use super::parse_tag;
+use super::{parse_string, parse_tag};
 use crate::header::{
     parser::Context,
     record::value::{
@@ -75,9 +75,9 @@ pub(crate) fn parse_header(src: &mut &[u8], ctx: &Context) -> Result<Map<Header>
                 .and_then(|v| try_replace(&mut group_order, ctx, tag::GROUP_ORDER, v))?,
             tag::SUBSORT_ORDER => parse_subsort_order(src)
                 .and_then(|v| try_replace(&mut subsort_order, ctx, tag::SUBSORT_ORDER, v))?,
-            Tag::Other(t) => {
-                parse_string(src).and_then(|value| try_insert(&mut other_fields, ctx, t, value))?
-            }
+            Tag::Other(t) => parse_string(src)
+                .map_err(ParseError::InvalidValue)
+                .and_then(|value| try_insert(&mut other_fields, ctx, t, value))?,
         }
     }
 
@@ -120,33 +120,28 @@ fn consume_separator(src: &mut &[u8]) -> Result<(), ParseError> {
     Err(ParseError::InvalidSeparator)
 }
 
-fn parse_string<'a>(src: &mut &'a [u8]) -> Result<&'a str, ParseError> {
-    use memchr::memchr;
-
-    const DELIMITER: u8 = b'\t';
-
-    let i = memchr(DELIMITER, src).unwrap_or(src.len());
-    let (buf, rest) = src.split_at(i);
-
-    *src = rest;
-
-    str::from_utf8(buf).map_err(ParseError::InvalidValue)
-}
-
 fn parse_version(src: &mut &[u8]) -> Result<Version, ParseError> {
-    parse_string(src).and_then(|s| s.parse().map_err(ParseError::InvalidVersion))
+    parse_string(src)
+        .map_err(ParseError::InvalidValue)
+        .and_then(|s| s.parse().map_err(ParseError::InvalidVersion))
 }
 
 fn parse_sort_order(src: &mut &[u8]) -> Result<SortOrder, ParseError> {
-    parse_string(src).and_then(|s| s.parse().map_err(ParseError::InvalidSortOrder))
+    parse_string(src)
+        .map_err(ParseError::InvalidValue)
+        .and_then(|s| s.parse().map_err(ParseError::InvalidSortOrder))
 }
 
 fn parse_group_order(src: &mut &[u8]) -> Result<GroupOrder, ParseError> {
-    parse_string(src).and_then(|s| s.parse().map_err(ParseError::InvalidGroupOrder))
+    parse_string(src)
+        .map_err(ParseError::InvalidValue)
+        .and_then(|s| s.parse().map_err(ParseError::InvalidGroupOrder))
 }
 
 fn parse_subsort_order(src: &mut &[u8]) -> Result<SubsortOrder, ParseError> {
-    parse_string(src).and_then(|s| s.parse().map_err(ParseError::InvalidSubsortOrder))
+    parse_string(src)
+        .map_err(ParseError::InvalidValue)
+        .and_then(|s| s.parse().map_err(ParseError::InvalidSubsortOrder))
 }
 
 fn try_replace<T>(
