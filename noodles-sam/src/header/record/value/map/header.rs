@@ -4,19 +4,17 @@ mod builder;
 pub mod group_order;
 pub mod sort_order;
 pub mod subsort_order;
-mod tag;
+pub(crate) mod tag;
 pub mod version;
 
 pub use self::{
-    group_order::GroupOrder, sort_order::SortOrder, subsort_order::SubsortOrder, version::Version,
+    group_order::GroupOrder, sort_order::SortOrder, subsort_order::SubsortOrder, tag::Tag,
+    version::Version,
 };
 
 use std::{error, fmt};
 
-use self::{
-    builder::Builder,
-    tag::{StandardTag, Tag},
-};
+use self::{builder::Builder, tag::StandardTag};
 use super::{Fields, Inner, Map, OtherFields};
 use crate::header::parser::Context;
 
@@ -25,10 +23,10 @@ use crate::header::parser::Context;
 /// The header describes file-level metadata. The format version is guaranteed to be set.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Header {
-    version: Version,
-    sort_order: Option<SortOrder>,
-    group_order: Option<GroupOrder>,
-    subsort_order: Option<SubsortOrder>,
+    pub(crate) version: Version,
+    pub(crate) sort_order: Option<SortOrder>,
+    pub(crate) group_order: Option<GroupOrder>,
+    pub(crate) subsort_order: Option<SubsortOrder>,
 }
 
 impl Inner for Header {

@@ -5,7 +5,7 @@ pub mod header;
 pub mod program;
 pub mod read_group;
 pub mod reference_sequence;
-mod tag;
+pub(crate) mod tag;
 
 pub use self::{
     builder::Builder, header::Header, program::Program, read_group::ReadGroup,
@@ -17,7 +17,7 @@ use std::fmt;
 use indexmap::IndexMap;
 
 type Fields = Vec<(String, String)>;
-type OtherFields<S> = IndexMap<tag::Other<S>, String>;
+pub(crate) type OtherFields<S> = IndexMap<tag::Other<S>, String>;
 
 /// An inner SAM header record map value.
 pub trait Inner: Sized {
@@ -36,8 +36,8 @@ pub struct Map<I>
 where
     I: Inner,
 {
-    inner: I,
-    other_fields: OtherFields<I::StandardTag>,
+    pub(crate) inner: I,
+    pub(crate) other_fields: OtherFields<I::StandardTag>,
 }
 
 impl<I> Map<I>
