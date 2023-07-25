@@ -1,7 +1,5 @@
 use std::{error, fmt};
 
-use indexmap::IndexMap;
-
 use super::field::{consume_delimiter, consume_separator, parse_tag, parse_value};
 use crate::header::{
     parser::Context,
@@ -63,7 +61,7 @@ pub(crate) fn parse_header(src: &mut &[u8], ctx: &Context) -> Result<Map<Header>
     let mut group_order = None;
     let mut subsort_order = None;
 
-    let mut other_fields = IndexMap::new();
+    let mut other_fields = OtherFields::new();
 
     while !src.is_empty() {
         consume_delimiter(src).map_err(ParseError::InvalidField)?;
