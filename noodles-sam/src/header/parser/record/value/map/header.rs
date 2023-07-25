@@ -1,8 +1,8 @@
-use std::{error, fmt, str};
+use std::{error, fmt};
 
 use indexmap::IndexMap;
 
-use super::{parse_string, parse_tag};
+use super::field::{consume_delimiter, consume_separator, parse_tag, parse_value};
 use crate::header::{
     parser::Context,
     record::value::{
@@ -21,14 +21,11 @@ use crate::header::{
 /// An error returned when a SAM header header record value fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
-    InvalidDelimiter,
-    InvalidTag(super::tag::ParseError),
-    InvalidSeparator,
+    InvalidField(super::field::ParseError),
     InvalidVersion(version::ParseError),
     InvalidSortOrder(sort_order::ParseError),
     InvalidGroupOrder(group_order::ParseError),
     InvalidSubsortOrder(subsort_order::ParseError),
-    InvalidValue(str::Utf8Error),
     MissingField(Tag),
     DuplicateTag(Tag),
 }
@@ -36,12 +33,11 @@ pub enum ParseError {
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
-            Self::InvalidTag(e) => Some(e),
+            Self::InvalidField(e) => Some(e),
             Self::InvalidVersion(e) => Some(e),
             Self::InvalidSortOrder(e) => Some(e),
             Self::InvalidGroupOrder(e) => Some(e),
             Self::InvalidSubsortOrder(e) => Some(e),
-            Self::InvalidValue(e) => Some(e),
             _ => None,
         }
     }
@@ -50,14 +46,11 @@ impl error::Error for ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidDelimiter => write!(f, "invalid delimiter"),
-            Self::InvalidTag(_) => write!(f, "invalid tag"),
-            Self::InvalidSeparator => write!(f, "invalid separator"),
+            Self::InvalidField(_) => write!(f, "invalid field"),
             Self::InvalidVersion(_) => write!(f, "invalid version"),
             Self::InvalidSortOrder(_) => write!(f, "invalid sort order"),
             Self::InvalidGroupOrder(_) => write!(f, "invalid group order"),
             Self::InvalidSubsortOrder(_) => write!(f, "invalid subsort order"),
-            Self::InvalidValue(_) => write!(f, "invalid value"),
             Self::MissingField(tag) => write!(f, "missing field: {tag}"),
             Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
         }
@@ -73,9 +66,9 @@ pub(crate) fn parse_header(src: &mut &[u8], ctx: &Context) -> Result<Map<Header>
     let mut other_fields = IndexMap::new();
 
     while !src.is_empty() {
-        consume_delimiter(src)?;
-        let tag = parse_tag(src).map_err(ParseError::InvalidTag)?;
-        consume_separator(src)?;
+        consume_delimiter(src).map_err(ParseError::InvalidField)?;
+        let tag = parse_tag(src).map_err(ParseError::InvalidField)?;
+        consume_separator(src).map_err(ParseError::InvalidField)?;
 
         match tag {
             tag::VERSION => {
@@ -87,8 +80,8 @@ pub(crate) fn parse_header(src: &mut &[u8], ctx: &Context) -> Result<Map<Header>
                 .and_then(|v| try_replace(&mut group_order, ctx, tag::GROUP_ORDER, v))?,
             tag::SUBSORT_ORDER => parse_subsort_order(src)
                 .and_then(|v| try_replace(&mut subsort_order, ctx, tag::SUBSORT_ORDER, v))?,
-            Tag::Other(t) => parse_string(src)
-                .map_err(ParseError::InvalidValue)
+            Tag::Other(t) => parse_value(src)
+                .map_err(ParseError::InvalidField)
                 .and_then(|value| try_insert(&mut other_fields, ctx, t, value))?,
         }
     }
@@ -106,53 +99,27 @@ pub(crate) fn parse_header(src: &mut &[u8], ctx: &Context) -> Result<Map<Header>
     })
 }
 
-fn consume_delimiter(src: &mut &[u8]) -> Result<(), ParseError> {
-    const PREFIX: u8 = b'\t';
-
-    if let Some((b, rest)) = src.split_first() {
-        if *b == PREFIX {
-            *src = rest;
-            return Ok(());
-        }
-    }
-
-    Err(ParseError::InvalidDelimiter)
-}
-
-fn consume_separator(src: &mut &[u8]) -> Result<(), ParseError> {
-    const SEPARATOR: u8 = b':';
-
-    if let Some((b, rest)) = src.split_first() {
-        if *b == SEPARATOR {
-            *src = rest;
-            return Ok(());
-        }
-    }
-
-    Err(ParseError::InvalidSeparator)
-}
-
 fn parse_version(src: &mut &[u8]) -> Result<Version, ParseError> {
-    parse_string(src)
-        .map_err(ParseError::InvalidValue)
+    parse_value(src)
+        .map_err(ParseError::InvalidField)
         .and_then(|s| s.parse().map_err(ParseError::InvalidVersion))
 }
 
 fn parse_sort_order(src: &mut &[u8]) -> Result<SortOrder, ParseError> {
-    parse_string(src)
-        .map_err(ParseError::InvalidValue)
+    parse_value(src)
+        .map_err(ParseError::InvalidField)
         .and_then(|s| s.parse().map_err(ParseError::InvalidSortOrder))
 }
 
 fn parse_group_order(src: &mut &[u8]) -> Result<GroupOrder, ParseError> {
-    parse_string(src)
-        .map_err(ParseError::InvalidValue)
+    parse_value(src)
+        .map_err(ParseError::InvalidField)
         .and_then(|s| s.parse().map_err(ParseError::InvalidGroupOrder))
 }
 
 fn parse_subsort_order(src: &mut &[u8]) -> Result<SubsortOrder, ParseError> {
-    parse_string(src)
-        .map_err(ParseError::InvalidValue)
+    parse_value(src)
+        .map_err(ParseError::InvalidField)
         .and_then(|s| s.parse().map_err(ParseError::InvalidSubsortOrder))
 }
 
