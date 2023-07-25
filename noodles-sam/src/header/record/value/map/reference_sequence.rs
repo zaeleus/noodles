@@ -13,15 +13,13 @@ use std::{
     num::{self, NonZeroUsize},
 };
 
+pub(crate) use self::tag::Tag;
 pub use self::{
     alternative_locus::AlternativeLocus, alternative_names::AlternativeNames,
     md5_checksum::Md5Checksum, molecule_topology::MoleculeTopology, name::Name,
 };
 
-use self::{
-    builder::Builder,
-    tag::{StandardTag, Tag},
-};
+use self::{builder::Builder, tag::StandardTag};
 use super::{Fields, Inner, Map, OtherFields};
 use crate::header::parser::Context;
 
@@ -33,15 +31,15 @@ use crate::header::parser::Context;
 /// A list of reference sequences creates a reference sequence dictionary.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReferenceSequence {
-    length: NonZeroUsize,
-    alternative_locus: Option<AlternativeLocus>,
-    alternative_names: Option<AlternativeNames>,
-    assembly_id: Option<String>,
-    description: Option<String>,
-    md5_checksum: Option<Md5Checksum>,
-    species: Option<String>,
-    molecule_topology: Option<MoleculeTopology>,
-    uri: Option<String>,
+    pub(crate) length: NonZeroUsize,
+    pub(crate) alternative_locus: Option<AlternativeLocus>,
+    pub(crate) alternative_names: Option<AlternativeNames>,
+    pub(crate) assembly_id: Option<String>,
+    pub(crate) description: Option<String>,
+    pub(crate) md5_checksum: Option<Md5Checksum>,
+    pub(crate) species: Option<String>,
+    pub(crate) molecule_topology: Option<MoleculeTopology>,
+    pub(crate) uri: Option<String>,
 }
 
 impl Inner for ReferenceSequence {

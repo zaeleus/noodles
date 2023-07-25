@@ -1,9 +1,11 @@
 pub(crate) mod header;
+pub(crate) mod reference_sequence;
 mod tag;
+
+pub(crate) use self::{header::parse_header, reference_sequence::parse_reference_sequence};
 
 use std::str;
 
-pub(crate) use self::header::parse_header;
 use self::tag::parse_tag;
 
 fn parse_string<'a>(src: &mut &'a [u8]) -> Result<&'a str, str::Utf8Error> {

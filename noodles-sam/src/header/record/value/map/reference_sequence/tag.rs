@@ -3,18 +3,18 @@
 use crate::header::record::value::map::{self, tag};
 
 pub(super) type StandardTag = Standard;
-pub(super) type Tag = map::tag::Tag<StandardTag>;
+pub(crate) type Tag = map::tag::Tag<StandardTag>;
 
 pub(crate) const NAME: Tag = map::tag::Tag::Standard(Standard::Name);
-pub(super) const LENGTH: Tag = map::tag::Tag::Standard(Standard::Length);
-pub(super) const ALTERNATIVE_LOCUS: Tag = map::tag::Tag::Standard(Standard::AlternativeLocus);
-pub(super) const ALTERNATIVE_NAMES: Tag = map::tag::Tag::Standard(Standard::AlternativeNames);
-pub(super) const ASSEMBLY_ID: Tag = map::tag::Tag::Standard(Standard::AssemblyId);
-pub(super) const DESCRIPTION: Tag = map::tag::Tag::Standard(Standard::Description);
-pub(super) const MD5_CHECKSUM: Tag = map::tag::Tag::Standard(Standard::Md5Checksum);
-pub(super) const SPECIES: Tag = map::tag::Tag::Standard(Standard::Species);
-pub(super) const MOLECULE_TOPOLOGY: Tag = map::tag::Tag::Standard(Standard::MoleculeTopology);
-pub(super) const URI: Tag = map::tag::Tag::Standard(Standard::Uri);
+pub(crate) const LENGTH: Tag = map::tag::Tag::Standard(Standard::Length);
+pub(crate) const ALTERNATIVE_LOCUS: Tag = map::tag::Tag::Standard(Standard::AlternativeLocus);
+pub(crate) const ALTERNATIVE_NAMES: Tag = map::tag::Tag::Standard(Standard::AlternativeNames);
+pub(crate) const ASSEMBLY_ID: Tag = map::tag::Tag::Standard(Standard::AssemblyId);
+pub(crate) const DESCRIPTION: Tag = map::tag::Tag::Standard(Standard::Description);
+pub(crate) const MD5_CHECKSUM: Tag = map::tag::Tag::Standard(Standard::Md5Checksum);
+pub(crate) const SPECIES: Tag = map::tag::Tag::Standard(Standard::Species);
+pub(crate) const MOLECULE_TOPOLOGY: Tag = map::tag::Tag::Standard(Standard::MoleculeTopology);
+pub(crate) const URI: Tag = map::tag::Tag::Standard(Standard::Uri);
 
 const SN: [u8; tag::LENGTH] = [b'S', b'N'];
 const LN: [u8; tag::LENGTH] = [b'L', b'N'];
