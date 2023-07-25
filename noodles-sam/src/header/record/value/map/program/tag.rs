@@ -3,14 +3,14 @@
 use crate::header::record::value::map::{self, tag::LENGTH};
 
 pub(super) type StandardTag = Standard;
-pub(super) type Tag = map::tag::Tag<StandardTag>;
+pub(crate) type Tag = map::tag::Tag<StandardTag>;
 
 pub(crate) const ID: Tag = map::tag::Tag::Standard(Standard::Id);
-pub(super) const NAME: Tag = map::tag::Tag::Standard(Standard::Name);
-pub(super) const COMMAND_LINE: Tag = map::tag::Tag::Standard(Standard::CommandLine);
-pub(super) const PREVIOUS_ID: Tag = map::tag::Tag::Standard(Standard::PreviousId);
-pub(super) const DESCRIPTION: Tag = map::tag::Tag::Standard(Standard::Description);
-pub(super) const VERSION: Tag = map::tag::Tag::Standard(Standard::Version);
+pub(crate) const NAME: Tag = map::tag::Tag::Standard(Standard::Name);
+pub(crate) const COMMAND_LINE: Tag = map::tag::Tag::Standard(Standard::CommandLine);
+pub(crate) const PREVIOUS_ID: Tag = map::tag::Tag::Standard(Standard::PreviousId);
+pub(crate) const DESCRIPTION: Tag = map::tag::Tag::Standard(Standard::Description);
+pub(crate) const VERSION: Tag = map::tag::Tag::Standard(Standard::Version);
 
 const ID_VALUE: [u8; LENGTH] = [b'I', b'D'];
 const PN: [u8; LENGTH] = [b'P', b'N'];

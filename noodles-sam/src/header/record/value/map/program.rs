@@ -3,12 +3,11 @@
 mod builder;
 pub(crate) mod tag;
 
+pub(crate) use self::tag::Tag;
+
 use std::{error, fmt};
 
-use self::{
-    builder::Builder,
-    tag::{StandardTag, Tag},
-};
+use self::{builder::Builder, tag::StandardTag};
 use super::{Fields, Inner, Map, OtherFields};
 use crate::header::parser::Context;
 
@@ -17,11 +16,11 @@ use crate::header::parser::Context;
 /// A program describes any program that created, viewed, or mutated a SAM file.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Program {
-    name: Option<String>,
-    command_line: Option<String>,
-    previous_id: Option<String>,
-    description: Option<String>,
-    version: Option<String>,
+    pub(crate) name: Option<String>,
+    pub(crate) command_line: Option<String>,
+    pub(crate) previous_id: Option<String>,
+    pub(crate) description: Option<String>,
+    pub(crate) version: Option<String>,
 }
 
 impl Inner for Program {
