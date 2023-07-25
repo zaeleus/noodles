@@ -76,7 +76,7 @@ pub(super) fn consume_separator(src: &mut &[u8]) -> Result<(), ParseError> {
     if let Some((b, rest)) = src.split_first() {
         if *b == SEPARATOR {
             *src = rest;
-            return Ok(());
+            Ok(())
         } else {
             Err(ParseError::InvalidSeparator)
         }
