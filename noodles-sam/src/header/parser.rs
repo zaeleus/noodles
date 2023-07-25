@@ -19,8 +19,10 @@ use super::{
 pub enum ParseError {
     /// A header record is not on the first line.
     UnexpectedHeader,
+    /// The header record is invalid.
+    InvalidHeaderRecord(super::record::ParseError),
     /// The record is invalid.
-    InvalidRecord(super::record::ParseError),
+    InvalidRecord(record::ParseError),
     /// A reference sequence name is duplicated.
     DuplicateReferenceSequenceName(reference_sequence::Name),
     /// A read group ID is duplicated.
@@ -34,6 +36,7 @@ pub enum ParseError {
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
+            Self::InvalidHeaderRecord(e) => Some(e),
             Self::InvalidRecord(e) => Some(e),
             _ => None,
         }
@@ -44,6 +47,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnexpectedHeader => f.write_str("unexpected @HD"),
+            Self::InvalidHeaderRecord(_) => f.write_str("invalid header record"),
             Self::InvalidRecord(_) => f.write_str("invalid record"),
             Self::DuplicateReferenceSequenceName(name) => {
                 write!(f, "duplicate reference sequence name: {name}")
@@ -77,12 +81,13 @@ impl Parser {
     pub(crate) fn parse_partial(&mut self, s: &str) -> Result<(), ParseError> {
         if self.is_empty() {
             if let Some(result) = super::record::extract_version(s) {
-                let version = result.map_err(ParseError::InvalidRecord)?;
+                let version = result.map_err(ParseError::InvalidHeaderRecord)?;
                 self.ctx = Context::from(version);
             }
         }
 
-        let record = Record::try_from((&self.ctx, s)).map_err(ParseError::InvalidRecord)?;
+        let record =
+            record::parse_record(s.as_bytes(), &self.ctx).map_err(ParseError::InvalidRecord)?;
 
         match record {
             Record::Header(header) => {

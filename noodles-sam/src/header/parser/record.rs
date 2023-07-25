@@ -41,7 +41,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-fn parse_record(mut src: &[u8], ctx: &Context) -> Result<Record, ParseError> {
+pub(super) fn parse_record(mut src: &[u8], ctx: &Context) -> Result<Record, ParseError> {
     consume_prefix(&mut src)?;
     let kind = parse_kind(&mut src).map_err(ParseError::InvalidKind)?;
     parse_value(&mut src, ctx, kind).map_err(ParseError::InvalidValue)
