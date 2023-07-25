@@ -3,23 +3,23 @@
 use crate::header::record::value::map::{self, tag::LENGTH};
 
 pub(super) type StandardTag = Standard;
-pub(super) type Tag = map::tag::Tag<StandardTag>;
+pub(crate) type Tag = map::tag::Tag<StandardTag>;
 
 pub(crate) const ID: Tag = map::tag::Tag::Standard(Standard::Id);
-pub(super) const BARCODE: Tag = map::tag::Tag::Standard(Standard::Barcode);
-pub(super) const SEQUENCING_CENTER: Tag = map::tag::Tag::Standard(Standard::SequencingCenter);
-pub(super) const DESCRIPTION: Tag = map::tag::Tag::Standard(Standard::Description);
-pub(super) const PRODUCED_AT: Tag = map::tag::Tag::Standard(Standard::ProducedAt);
-pub(super) const FLOW_ORDER: Tag = map::tag::Tag::Standard(Standard::FlowOrder);
-pub(super) const KEY_SEQUENCE: Tag = map::tag::Tag::Standard(Standard::KeySequence);
-pub(super) const LIBRARY: Tag = map::tag::Tag::Standard(Standard::Library);
-pub(super) const PROGRAM: Tag = map::tag::Tag::Standard(Standard::Program);
-pub(super) const PREDICTED_MEDIAN_INSERT_SIZE: Tag =
+pub(crate) const BARCODE: Tag = map::tag::Tag::Standard(Standard::Barcode);
+pub(crate) const SEQUENCING_CENTER: Tag = map::tag::Tag::Standard(Standard::SequencingCenter);
+pub(crate) const DESCRIPTION: Tag = map::tag::Tag::Standard(Standard::Description);
+pub(crate) const PRODUCED_AT: Tag = map::tag::Tag::Standard(Standard::ProducedAt);
+pub(crate) const FLOW_ORDER: Tag = map::tag::Tag::Standard(Standard::FlowOrder);
+pub(crate) const KEY_SEQUENCE: Tag = map::tag::Tag::Standard(Standard::KeySequence);
+pub(crate) const LIBRARY: Tag = map::tag::Tag::Standard(Standard::Library);
+pub(crate) const PROGRAM: Tag = map::tag::Tag::Standard(Standard::Program);
+pub(crate) const PREDICTED_MEDIAN_INSERT_SIZE: Tag =
     map::tag::Tag::Standard(Standard::PredictedMedianInsertSize);
-pub(super) const PLATFORM: Tag = map::tag::Tag::Standard(Standard::Platform);
-pub(super) const PLATFORM_MODEL: Tag = map::tag::Tag::Standard(Standard::PlatformModel);
-pub(super) const PLATFORM_UNIT: Tag = map::tag::Tag::Standard(Standard::PlatformUnit);
-pub(super) const SAMPLE: Tag = map::tag::Tag::Standard(Standard::Sample);
+pub(crate) const PLATFORM: Tag = map::tag::Tag::Standard(Standard::Platform);
+pub(crate) const PLATFORM_MODEL: Tag = map::tag::Tag::Standard(Standard::PlatformModel);
+pub(crate) const PLATFORM_UNIT: Tag = map::tag::Tag::Standard(Standard::PlatformUnit);
+pub(crate) const SAMPLE: Tag = map::tag::Tag::Standard(Standard::Sample);
 
 const ID_VALUE: [u8; LENGTH] = [b'I', b'D'];
 const BC: [u8; LENGTH] = [b'B', b'C'];

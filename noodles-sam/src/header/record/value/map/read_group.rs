@@ -5,13 +5,11 @@ pub mod platform;
 pub(crate) mod tag;
 
 pub use self::platform::Platform;
+pub(crate) use self::tag::Tag;
 
 use std::{error, fmt, num};
 
-use self::{
-    builder::Builder,
-    tag::{StandardTag, Tag},
-};
+use self::{builder::Builder, tag::StandardTag};
 use super::{Fields, Inner, Map, OtherFields};
 use crate::header::parser::Context;
 
@@ -21,19 +19,19 @@ use crate::header::parser::Context;
 /// instrument.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct ReadGroup {
-    barcode: Option<String>,
-    sequencing_center: Option<String>,
-    description: Option<String>,
-    produced_at: Option<String>,
-    flow_order: Option<String>,
-    key_sequence: Option<String>,
-    library: Option<String>,
-    program: Option<String>,
-    predicted_median_insert_size: Option<i32>,
-    platform: Option<Platform>,
-    platform_model: Option<String>,
-    platform_unit: Option<String>,
-    sample: Option<String>,
+    pub(crate) barcode: Option<String>,
+    pub(crate) sequencing_center: Option<String>,
+    pub(crate) description: Option<String>,
+    pub(crate) produced_at: Option<String>,
+    pub(crate) flow_order: Option<String>,
+    pub(crate) key_sequence: Option<String>,
+    pub(crate) library: Option<String>,
+    pub(crate) program: Option<String>,
+    pub(crate) predicted_median_insert_size: Option<i32>,
+    pub(crate) platform: Option<Platform>,
+    pub(crate) platform_model: Option<String>,
+    pub(crate) platform_unit: Option<String>,
+    pub(crate) sample: Option<String>,
 }
 
 impl Inner for ReadGroup {

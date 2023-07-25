@@ -14,6 +14,8 @@ pub enum ParseError {
     InvalidHeader(map::header::ParseError),
     /// The reference sequence is invalid.
     InvalidReferenceSequence(map::reference_sequence::ParseError),
+    /// The read group is invalid.
+    InvalidReadGroup(map::read_group::ParseError),
     /// The comment is invalid.
     InvalidComment(comment::ParseError),
 }
@@ -23,6 +25,7 @@ impl error::Error for ParseError {
         match self {
             Self::InvalidHeader(e) => Some(e),
             Self::InvalidReferenceSequence(e) => Some(e),
+            Self::InvalidReadGroup(e) => Some(e),
             Self::InvalidComment(e) => Some(e),
         }
     }
@@ -33,6 +36,7 @@ impl fmt::Display for ParseError {
         match self {
             Self::InvalidHeader(_) => write!(f, "invalid header"),
             Self::InvalidReferenceSequence(_) => write!(f, "invalid reference sequence"),
+            Self::InvalidReadGroup(_) => write!(f, "invalid read group"),
             Self::InvalidComment(_) => write!(f, "invalid comment"),
         }
     }
@@ -50,7 +54,9 @@ pub(super) fn parse_value(
         Kind::ReferenceSequence => map::parse_reference_sequence(src, ctx)
             .map(|(name, map)| Record::ReferenceSequence(name, map))
             .map_err(ParseError::InvalidReferenceSequence),
-        Kind::ReadGroup => todo!(),
+        Kind::ReadGroup => map::parse_read_group(src, ctx)
+            .map(|(id, map)| Record::ReadGroup(id, map))
+            .map_err(ParseError::InvalidReadGroup),
         Kind::Program => todo!(),
         Kind::Comment => parse_comment(src)
             .map(Record::Comment)
