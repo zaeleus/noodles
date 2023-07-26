@@ -155,19 +155,22 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_header() -> Result<(), Box<dyn std::error::Error>> {
-        let mut src = &b"\tVN:1.6\tSO:coordinate"[..];
-
+    fn test_parse_header() {
+        let mut src = &b"\tVN:1.6"[..];
         let ctx = Context::default();
+        assert_eq!(
+            parse_header(&mut src, &ctx),
+            Ok(Map::<Header>::new(Version::new(1, 6)))
+        );
+    }
 
-        let actual = parse_header(&mut src, &ctx)?;
-        let expected = Map::<Header>::builder()
-            .set_version(Version::new(1, 6))
-            .set_sort_order(SortOrder::Coordinate)
-            .build()?;
-
-        assert_eq!(actual, expected);
-
-        Ok(())
+    #[test]
+    fn test_parse_header_with_missing_version() {
+        let mut src = &b"\tSO:coordinate"[..];
+        let ctx = Context::default();
+        assert_eq!(
+            parse_header(&mut src, &ctx),
+            Err(ParseError::MissingField(tag::VERSION))
+        );
     }
 }

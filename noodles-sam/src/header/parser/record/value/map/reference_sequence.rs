@@ -233,24 +233,59 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_header() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_parse_header() -> Result<(), map::reference_sequence::name::ParseError> {
         const LN: NonZeroUsize = match NonZeroUsize::new(8) {
             Some(length) => length,
             None => unreachable!(),
         };
 
         let mut src = &b"\tSN:sq0\tLN:8"[..];
-
         let ctx = Context::default();
-
-        let actual = parse_reference_sequence(&mut src, &ctx)?;
+        let actual = parse_reference_sequence(&mut src, &ctx);
 
         let name = "sq0".parse()?;
         let map = Map::<ReferenceSequence>::new(LN);
         let expected = (name, map);
 
-        assert_eq!(actual, expected);
+        assert_eq!(actual, Ok(expected));
 
         Ok(())
+    }
+
+    #[test]
+    fn test_parse_header_with_missing_name() {
+        let mut src = &b"\tLN:8"[..];
+        let ctx = Context::default();
+        assert_eq!(
+            parse_reference_sequence(&mut src, &ctx),
+            Err(ParseError::MissingField(tag::NAME))
+        );
+    }
+
+    #[test]
+    fn test_parse_header_with_missing_length() {
+        let mut src = &b"\tSN:sq0"[..];
+        let ctx = Context::default();
+        assert_eq!(
+            parse_reference_sequence(&mut src, &ctx),
+            Err(ParseError::MissingField(tag::LENGTH))
+        );
+    }
+
+    #[test]
+    fn test_parse_header_with_invalid_length() {
+        let ctx = Context::default();
+
+        let mut src = &b"\tSN:sq0\tLN:NA"[..];
+        assert_eq!(
+            parse_reference_sequence(&mut src, &ctx),
+            Err(ParseError::InvalidLength)
+        );
+
+        let mut src = &b"\tSN:sq0\tLN:0"[..];
+        assert_eq!(
+            parse_reference_sequence(&mut src, &ctx),
+            Err(ParseError::InvalidLength)
+        );
     }
 }

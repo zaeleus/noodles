@@ -209,9 +209,17 @@ mod tests {
         let mut src = &b"\tID:rg0"[..];
         let ctx = Context::default();
         let actual = parse_read_group(&mut src, &ctx);
-
         let expected = (String::from("rg0"), Map::<ReadGroup>::default());
-
         assert_eq!(actual, Ok(expected));
+    }
+
+    #[test]
+    fn test_parse_read_group_with_missing_id() {
+        let mut src = &b"\tPL:ILLUMINA"[..];
+        let ctx = Context::default();
+        assert_eq!(
+            parse_read_group(&mut src, &ctx),
+            Err(ParseError::MissingField(tag::ID))
+        );
     }
 }

@@ -141,9 +141,17 @@ mod tests {
         let mut src = &b"\tID:pg0"[..];
         let ctx = Context::default();
         let actual = parse_program(&mut src, &ctx);
-
         let expected = (String::from("pg0"), Map::<Program>::default());
-
         assert_eq!(actual, Ok(expected));
+    }
+
+    #[test]
+    fn test_parse_program_with_missing_id() {
+        let mut src = &b"\tPN:pg0"[..];
+        let ctx = Context::default();
+        assert_eq!(
+            parse_program(&mut src, &ctx),
+            Err(ParseError::MissingField(tag::ID))
+        );
     }
 }
