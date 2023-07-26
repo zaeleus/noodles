@@ -6,9 +6,10 @@ use std::{error, fmt, hash::Hash};
 use indexmap::IndexMap;
 
 pub(crate) use self::context::Context;
+use self::record::parse_record;
 use super::{
     record::value::{
-        map::{self, reference_sequence},
+        map::{self, header::Version, reference_sequence},
         Map,
     },
     Header, Programs, ReadGroups, Record, ReferenceSequences,
@@ -80,14 +81,12 @@ impl Parser {
 
     pub(crate) fn parse_partial(&mut self, s: &str) -> Result<(), ParseError> {
         if self.is_empty() {
-            if let Some(result) = super::record::extract_version(s) {
-                let version = result.map_err(ParseError::InvalidHeaderRecord)?;
+            if let Some(version) = extract_version(s) {
                 self.ctx = Context::from(version);
             }
         }
 
-        let record =
-            record::parse_record(s.as_bytes(), &self.ctx).map_err(ParseError::InvalidRecord)?;
+        let record = parse_record(s.as_bytes(), &self.ctx).map_err(ParseError::InvalidRecord)?;
 
         match record {
             Record::Header(header) => {
@@ -130,6 +129,24 @@ impl Parser {
             comments: self.comments,
         }
     }
+}
+
+fn extract_version(src: &str) -> Option<Version> {
+    use std::str;
+
+    const RECORD_PREFIX: &str = "@HD\t";
+    const DELIMITER: char = '\t';
+    const FIELD_PREFIX: &str = "VN:";
+
+    if let Some(raw_value) = src.strip_prefix(RECORD_PREFIX) {
+        for raw_field in raw_value.split(DELIMITER) {
+            if let Some(raw_version) = raw_field.strip_prefix(FIELD_PREFIX) {
+                return raw_version.parse().ok();
+            }
+        }
+    }
+
+    None
 }
 
 fn try_insert<K, V, F, E>(map: &mut IndexMap<K, V>, key: K, value: V, f: F) -> Result<(), E>
@@ -306,5 +323,17 @@ mod tests {
             parse(s),
             Err(ParseError::DuplicateProgramId(String::from("pg0")))
         );
+    }
+
+    #[test]
+    fn test_extract_version() {
+        assert_eq!(extract_version("@HD\tVN:1.6"), Some(Version::new(1, 6)));
+        assert_eq!(
+            extract_version("@HD\tSO:coordinate\tVN:1.6"),
+            Some(Version::new(1, 6))
+        );
+        assert!(extract_version("@HD\tVN:NA").is_none());
+        assert!(extract_version("@SQ\tSN:sq0\tLN:8\tVN:1.6").is_none());
+        assert!(extract_version("@CO\tVN:1.6").is_none());
     }
 }

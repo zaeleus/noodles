@@ -8,7 +8,7 @@ use std::{error, fmt, str::FromStr};
 pub use self::kind::Kind;
 
 use self::value::{
-    map::{self, header::Version, Program, ReadGroup, ReferenceSequence},
+    map::{self, Program, ReadGroup, ReferenceSequence},
     Map,
 };
 use super::parser::Context;
@@ -184,35 +184,6 @@ impl TryFrom<(&Context, &str)> for Record {
     }
 }
 
-pub(super) fn extract_version(s: &str) -> Option<Result<Version, ParseError>> {
-    const VN: &str = "VN";
-
-    let (kind, fields) = match split_record(s) {
-        Ok((k, v)) => (k, v),
-        Err(e) => return Some(Err(e)),
-    };
-
-    if kind == Kind::Header {
-        for result in fields.split(DELIMITER).map(split_field) {
-            let (tag, value) = match result {
-                Ok((t, v)) => (t, v),
-                Err(e) => return Some(Err(e)),
-            };
-
-            if tag == VN {
-                return Some(
-                    value
-                        .parse()
-                        .map_err(map::header::ParseError::InvalidVersion)
-                        .map_err(ParseError::InvalidHeader),
-                );
-            }
-        }
-    }
-
-    None
-}
-
 fn split_record(s: &str) -> Result<(Kind, &str), ParseError> {
     let (k, v) = s.split_once(DELIMITER).ok_or(ParseError::Invalid)?;
     let kind = k.parse().map_err(ParseError::InvalidKind)?;
@@ -296,16 +267,5 @@ mod tests {
         );
 
         assert_eq!("@CO".parse::<Record>(), Err(ParseError::Invalid));
-    }
-
-    #[test]
-    fn test_extract_version() {
-        assert_eq!(extract_version("@HD\tVN:1.6"), Some(Ok(Version::new(1, 6))));
-        assert_eq!(
-            extract_version("@HD\tSO:coordinate\tVN:1.6"),
-            Some(Ok(Version::new(1, 6)))
-        );
-        assert_eq!(extract_version("@SQ\tSN:sq0\tLN:8\tVN:1.6"), None);
-        assert_eq!(extract_version("@CO\tVN:1.6"), None);
     }
 }
