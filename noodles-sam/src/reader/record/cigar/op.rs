@@ -11,14 +11,14 @@ pub enum ParseError {
     /// The kind is invalid.
     InvalidKind(kind::ParseError),
     /// The length is invalid.
-    InvalidLength,
+    InvalidLength(lexical_core::Error),
 }
 
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::InvalidKind(e) => Some(e),
-            Self::InvalidLength => None,
+            Self::InvalidLength(e) => Some(e),
         }
     }
 }
@@ -27,7 +27,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidKind(_) => write!(f, "invalid kind"),
-            Self::InvalidLength => write!(f, "invalid length"),
+            Self::InvalidLength(_) => write!(f, "invalid length"),
         }
     }
 }
@@ -39,7 +39,7 @@ pub(super) fn parse_op(src: &mut &[u8]) -> Result<Op, ParseError> {
 }
 
 fn parse_len(src: &mut &[u8]) -> Result<usize, ParseError> {
-    let (len, i) = lexical_core::parse_partial(src).map_err(|_| ParseError::InvalidLength)?;
+    let (len, i) = lexical_core::parse_partial(src).map_err(ParseError::InvalidLength)?;
     *src = &src[i..];
     Ok(len)
 }
@@ -62,7 +62,10 @@ mod tests {
 
         let data = [];
         let mut src = &data[..];
-        assert_eq!(parse_op(&mut src), Err(ParseError::InvalidLength));
+        assert!(matches!(
+            parse_op(&mut src),
+            Err(ParseError::InvalidLength(_))
+        ));
 
         let data = b"8Z";
         let mut src = &data[..];
