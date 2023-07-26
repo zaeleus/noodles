@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * fasta/reader/sequence: Skip empty lines ([#189]).
+
+[#189]: https://github.com/zaeleus/noodles/issues/189
+
 ## 0.26.0 - 2023-07-20
 
 ### Changed

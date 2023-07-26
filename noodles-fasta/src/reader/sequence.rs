@@ -45,7 +45,7 @@ where
     fn fill_buf(&mut self) -> io::Result<&[u8]> {
         use memchr::memchr;
 
-        consume_newline(&mut self.inner)?;
+        consume_empty_lines(&mut self.inner)?;
 
         let src = self.inner.fill_buf()?;
 
@@ -74,16 +74,26 @@ where
     }
 }
 
-fn consume_newline<R>(reader: &mut R) -> io::Result<()>
+fn consume_empty_lines<R>(reader: &mut R) -> io::Result<()>
 where
     R: BufRead,
 {
-    if reader.fill_buf()?.starts_with(&[CARRIAGE_RETURN]) {
-        reader.consume(1);
-    }
+    loop {
+        let mut is_newline = false;
 
-    if reader.fill_buf()?.starts_with(&[LINE_FEED]) {
-        reader.consume(1);
+        if reader.fill_buf()?.starts_with(&[CARRIAGE_RETURN]) {
+            is_newline = true;
+            reader.consume(1);
+        }
+
+        if reader.fill_buf()?.starts_with(&[LINE_FEED]) {
+            is_newline = true;
+            reader.consume(1);
+        }
+
+        if !is_newline {
+            break;
+        }
     }
 
     Ok(())
@@ -146,11 +156,11 @@ mod tests {
 
         t(&mut buf, b"ACGT\n", b"ACGT")?;
         t(&mut buf, b"ACGT\n>sq1\n", b"ACGT")?;
-        t(&mut buf, b"NNNN\nNNNN\nNN\n", b"NNNNNNNNNN")?;
+        t(&mut buf, b"ACGT\n\nACGT\nAC\n\n", b"ACGTACGTAC")?;
 
         t(&mut buf, b"ACGT\r\n", b"ACGT")?;
         t(&mut buf, b"ACGT\r\n>sq1\r\n", b"ACGT")?;
-        t(&mut buf, b"NNNN\r\nNNNN\r\nNN\r\n", b"NNNNNNNNNN")?;
+        t(&mut buf, b"ACGT\r\n\r\nACGT\r\nAC\r\n\r\n", b"ACGTACGTAC")?;
 
         Ok(())
     }
