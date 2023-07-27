@@ -16,7 +16,6 @@ use std::fmt;
 
 use indexmap::IndexMap;
 
-type Fields = Vec<(String, String)>;
 pub(crate) type OtherFields<S> = IndexMap<tag::Other<S>, String>;
 
 /// An inner SAM header record map value.

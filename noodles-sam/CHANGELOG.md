@@ -10,6 +10,14 @@
     line by line. This makes it so that it is no longer required to read the
     entire raw header into memory before parsing.
 
+### Removed
+
+  * sam/header/record: Remove `FromStr` for `Record`.
+
+  * sam/header/record/value/map: Remove `TryFrom<Vec<String, String>>`.
+
+    Use the map builders instead.
+
 ## 0.36.0 - 2023-07-20
 
 ### Added

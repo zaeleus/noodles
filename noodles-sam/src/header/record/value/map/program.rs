@@ -5,11 +5,10 @@ pub(crate) mod tag;
 
 pub(crate) use self::tag::Tag;
 
-use std::{error, fmt};
+use std::fmt;
 
 use self::{builder::Builder, tag::StandardTag};
-use super::{Fields, Inner, Map, OtherFields};
-use crate::header::parser::Context;
+use super::{Inner, Map};
 
 // A SAM header record program map value.
 ///
@@ -123,109 +122,6 @@ impl fmt::Display for Map<Program> {
     }
 }
 
-/// An error returned when a raw header program record fails to parse.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
-    /// A field is missing.
-    MissingField(Tag),
-    /// A tag is invalid.
-    InvalidTag(super::tag::ParseError),
-    /// A tag is duplicated.
-    DuplicateTag(Tag),
-}
-
-impl error::Error for ParseError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match self {
-            Self::InvalidTag(e) => Some(e),
-            _ => None,
-        }
-    }
-}
-
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::MissingField(tag) => write!(f, "missing field: {tag}"),
-            Self::InvalidTag(_) => write!(f, "invalid tag"),
-            Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
-        }
-    }
-}
-
-impl TryFrom<Fields> for Map<Program> {
-    type Error = ParseError;
-
-    fn try_from(fields: Fields) -> Result<Self, Self::Error> {
-        Self::try_from((&Context::default(), fields))
-    }
-}
-
-impl TryFrom<(&Context, Fields)> for Map<Program> {
-    type Error = ParseError;
-
-    fn try_from((ctx, fields): (&Context, Fields)) -> Result<Self, Self::Error> {
-        let mut name = None;
-        let mut command_line = None;
-        let mut previous_id = None;
-        let mut description = None;
-        let mut version = None;
-
-        let mut other_fields = OtherFields::new();
-
-        for (key, value) in fields {
-            let tag = key.parse().map_err(ParseError::InvalidTag)?;
-
-            match tag {
-                tag::ID => return Err(ParseError::DuplicateTag(tag::ID)),
-                tag::NAME => try_replace(&mut name, ctx, tag::NAME, value)?,
-                tag::COMMAND_LINE => try_replace(&mut command_line, ctx, tag::COMMAND_LINE, value)?,
-                tag::PREVIOUS_ID => try_replace(&mut previous_id, ctx, tag::PREVIOUS_ID, value)?,
-                tag::DESCRIPTION => try_replace(&mut description, ctx, tag::DESCRIPTION, value)?,
-                tag::VERSION => try_replace(&mut version, ctx, tag::VERSION, value)?,
-                Tag::Other(t) => try_insert(&mut other_fields, ctx, t, value)?,
-            }
-        }
-
-        Ok(Self {
-            inner: Program {
-                name,
-                command_line,
-                previous_id,
-                description,
-                version,
-            },
-            other_fields,
-        })
-    }
-}
-
-fn try_replace<T>(
-    option: &mut Option<T>,
-    ctx: &Context,
-    tag: Tag,
-    value: T,
-) -> Result<(), ParseError> {
-    if option.replace(value).is_some() && !ctx.allow_duplicate_tags() {
-        Err(ParseError::DuplicateTag(tag))
-    } else {
-        Ok(())
-    }
-}
-
-fn try_insert(
-    other_fields: &mut OtherFields<StandardTag>,
-    ctx: &Context,
-    tag: super::tag::Other<StandardTag>,
-    value: String,
-) -> Result<(), ParseError> {
-    if other_fields.insert(tag, value).is_some() && !ctx.allow_duplicate_tags() {
-        Err(ParseError::DuplicateTag(Tag::Other(tag)))
-    } else {
-        Ok(())
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -241,15 +137,5 @@ mod tests {
         assert_eq!(program.to_string(), "\tPN:noodles-sam\tVN:0.23.0");
 
         Ok(())
-    }
-
-    #[test]
-    fn test_try_from_fields_for_map_program_with_duplicate_id() {
-        let fields = vec![(String::from("ID"), String::from("pg0"))];
-
-        assert_eq!(
-            Map::<Program>::try_from(fields),
-            Err(ParseError::DuplicateTag(tag::ID))
-        );
     }
 }
