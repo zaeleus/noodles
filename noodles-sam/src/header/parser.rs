@@ -1,7 +1,7 @@
 mod context;
 mod record;
 
-use std::{error, fmt, hash::Hash};
+use std::{error, fmt, hash::Hash, str};
 
 use indexmap::IndexMap;
 
@@ -88,7 +88,7 @@ impl Parser {
     /// ```
     pub fn parse_partial(&mut self, s: &str) -> Result<(), ParseError> {
         if self.is_empty() {
-            if let Some(version) = extract_version(s) {
+            if let Some(version) = extract_version(s.as_bytes()) {
                 self.ctx = Context::from(version);
             }
         }
@@ -149,17 +149,17 @@ impl Parser {
     }
 }
 
-fn extract_version(src: &str) -> Option<Version> {
-    use std::str;
-
-    const RECORD_PREFIX: &str = "@HD\t";
-    const DELIMITER: char = '\t';
-    const FIELD_PREFIX: &str = "VN:";
+fn extract_version(src: &[u8]) -> Option<Version> {
+    const RECORD_PREFIX: &[u8] = b"@HD\t";
+    const DELIMITER: u8 = b'\t';
+    const FIELD_PREFIX: &[u8] = b"VN:";
 
     if let Some(raw_value) = src.strip_prefix(RECORD_PREFIX) {
-        for raw_field in raw_value.split(DELIMITER) {
+        for raw_field in raw_value.split(|&b| b == DELIMITER) {
             if let Some(raw_version) = raw_field.strip_prefix(FIELD_PREFIX) {
-                return raw_version.parse().ok();
+                return str::from_utf8(raw_version)
+                    .ok()
+                    .and_then(|s| s.parse().ok());
             }
         }
     }
@@ -345,13 +345,13 @@ mod tests {
 
     #[test]
     fn test_extract_version() {
-        assert_eq!(extract_version("@HD\tVN:1.6"), Some(Version::new(1, 6)));
+        assert_eq!(extract_version(b"@HD\tVN:1.6"), Some(Version::new(1, 6)));
         assert_eq!(
-            extract_version("@HD\tSO:coordinate\tVN:1.6"),
+            extract_version(b"@HD\tSO:coordinate\tVN:1.6"),
             Some(Version::new(1, 6))
         );
-        assert!(extract_version("@HD\tVN:NA").is_none());
-        assert!(extract_version("@SQ\tSN:sq0\tLN:8\tVN:1.6").is_none());
-        assert!(extract_version("@CO\tVN:1.6").is_none());
+        assert!(extract_version(b"@HD\tVN:NA").is_none());
+        assert!(extract_version(b"@SQ\tSN:sq0\tLN:8\tVN:1.6").is_none());
+        assert!(extract_version(b"@CO\tVN:1.6").is_none());
     }
 }
