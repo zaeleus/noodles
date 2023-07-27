@@ -83,17 +83,17 @@ impl Parser {
     /// ```
     /// use noodles_sam as sam;
     /// let mut parser = sam::header::Parser::default();
-    /// parser.parse_partial("@HD\tVN:1.6")?;
+    /// parser.parse_partial(b"@HD\tVN:1.6")?;
     /// # Ok::<_, sam::header::ParseError>(())
     /// ```
-    pub fn parse_partial(&mut self, s: &str) -> Result<(), ParseError> {
+    pub fn parse_partial(&mut self, src: &[u8]) -> Result<(), ParseError> {
         if self.is_empty() {
-            if let Some(version) = extract_version(s.as_bytes()) {
+            if let Some(version) = extract_version(src) {
                 self.ctx = Context::from(version);
             }
         }
 
-        let record = parse_record(s.as_bytes(), &self.ctx).map_err(ParseError::InvalidRecord)?;
+        let record = parse_record(src, &self.ctx).map_err(ParseError::InvalidRecord)?;
 
         match record {
             Record::Header(header) => {
@@ -212,7 +212,7 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
     let mut parser = Parser::default();
 
     for line in s.lines() {
-        parser.parse_partial(line)?;
+        parser.parse_partial(line.as_bytes())?;
     }
 
     Ok(parser.finish())

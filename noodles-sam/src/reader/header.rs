@@ -11,7 +11,7 @@ where
 
     while read_header_line(reader, &mut buf)? != 0 {
         parser
-            .parse_partial(&buf)
+            .parse_partial(buf.as_bytes())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     }
 
