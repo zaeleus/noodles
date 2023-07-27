@@ -75,8 +75,11 @@ mod builder;
 mod parser;
 pub mod record;
 
-pub(crate) use self::parser::Parser;
-pub use self::{builder::Builder, parser::ParseError, record::Record};
+pub use self::{
+    builder::Builder,
+    parser::{ParseError, Parser},
+    record::Record,
+};
 
 use std::{fmt, str::FromStr};
 

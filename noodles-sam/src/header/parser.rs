@@ -56,8 +56,9 @@ impl fmt::Display for ParseError {
     }
 }
 
+/// A SAM header parser.
 #[derive(Default)]
-pub(crate) struct Parser {
+pub struct Parser {
     ctx: Context,
     header: Option<Map<map::Header>>,
     reference_sequences: ReferenceSequences,
@@ -75,7 +76,17 @@ impl Parser {
             && self.comments.is_empty()
     }
 
-    pub(crate) fn parse_partial(&mut self, s: &str) -> Result<(), ParseError> {
+    /// Parses and adds a raw record to the header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam as sam;
+    /// let mut parser = sam::header::Parser::default();
+    /// parser.parse_partial("@HD\tVN:1.6")?;
+    /// # Ok::<_, sam::header::ParseError>(())
+    /// ```
+    pub fn parse_partial(&mut self, s: &str) -> Result<(), ParseError> {
         if self.is_empty() {
             if let Some(version) = extract_version(s) {
                 self.ctx = Context::from(version);
@@ -116,7 +127,18 @@ impl Parser {
         Ok(())
     }
 
-    pub(crate) fn finish(self) -> Header {
+    /// Builds the SAM header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam as sam;
+    /// let parser = sam::header::Parser::default();
+    /// let header = parser.finish();
+    /// assert!(header.is_empty());
+    /// # Ok::<_, sam::header::ParseError>(())
+    /// ```
+    pub fn finish(self) -> Header {
         Header {
             header: self.header,
             reference_sequences: self.reference_sequences,

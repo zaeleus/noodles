@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/header: Increase the visibility of `Parser`.
+
+    This allows raw headers to be parsed line by line.
+
 ## 0.37.0 - 2023-07-27
 
 ### Changed
