@@ -4,6 +4,8 @@
 
 ### Changed
 
+  * sam/header/parser/record/value: Allow UTF-8 encoded values.
+
   * sam/reader/header: Parse header line by line.
 
     The header parser can now build a `sam::Header` by parsing a raw header
