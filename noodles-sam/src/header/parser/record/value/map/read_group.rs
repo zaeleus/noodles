@@ -23,7 +23,7 @@ pub enum ParseError {
     /// The platform is invalid.
     InvalidPlatform(platform::ParseError),
 
-    MissingField(Tag),
+    MissingId,
     DuplicateTag(Tag),
 }
 
@@ -46,7 +46,7 @@ impl fmt::Display for ParseError {
                 write!(f, "invalid predicted median insert size")
             }
             Self::InvalidPlatform(_) => write!(f, "invalid platform"),
-            Self::MissingField(tag) => write!(f, "missing field: {tag}"),
+            Self::MissingId => write!(f, "missing ID field"),
             Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
         }
     }
@@ -125,7 +125,7 @@ pub(crate) fn parse_read_group(
         }
     }
 
-    let id = id.ok_or(ParseError::MissingField(tag::ID))?;
+    let id = id.ok_or(ParseError::MissingId)?;
 
     Ok((
         id,
@@ -217,9 +217,6 @@ mod tests {
     fn test_parse_read_group_with_missing_id() {
         let mut src = &b"\tPL:ILLUMINA"[..];
         let ctx = Context::default();
-        assert_eq!(
-            parse_read_group(&mut src, &ctx),
-            Err(ParseError::MissingField(tag::ID))
-        );
+        assert_eq!(parse_read_group(&mut src, &ctx), Err(ParseError::MissingId));
     }
 }
