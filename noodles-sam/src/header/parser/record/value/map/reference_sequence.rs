@@ -20,6 +20,7 @@ use crate::header::{
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     InvalidField(super::field::ParseError),
+    InvalidTag(super::field::tag::ParseError),
 
     MissingName,
     InvalidName(crate::record::reference_sequence_name::ParseError),
@@ -37,6 +38,7 @@ impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::InvalidField(e) => Some(e),
+            Self::InvalidTag(e) => Some(e),
             Self::InvalidName(e) => Some(e),
             Self::InvalidAlternativeLocus(e) => Some(e),
             Self::InvalidAlternativeNames(e) => Some(e),
@@ -51,6 +53,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidField(_) => write!(f, "invalid field"),
+            Self::InvalidTag(_) => write!(f, "invalid tag"),
             Self::MissingName => write!(f, "missing name ({}) field", tag::NAME),
             Self::InvalidName(_) => write!(f, "invalid name"),
             Self::MissingLength => write!(f, "missing length ({}) field", tag::LENGTH),
@@ -83,7 +86,7 @@ pub(crate) fn parse_reference_sequence(
 
     while !src.is_empty() {
         consume_delimiter(src).map_err(ParseError::InvalidField)?;
-        let tag = parse_tag(src).map_err(ParseError::InvalidField)?;
+        let tag = parse_tag(src).map_err(ParseError::InvalidTag)?;
         consume_separator(src).map_err(ParseError::InvalidField)?;
 
         match tag {

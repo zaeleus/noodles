@@ -18,6 +18,7 @@ use super::field::{consume_delimiter, consume_separator, parse_tag};
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     InvalidField(super::field::ParseError),
+    InvalidTag(super::field::tag::ParseError),
     MissingId,
     InvalidId(str::Utf8Error),
     InvalidName(str::Utf8Error),
@@ -33,6 +34,7 @@ impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::InvalidField(e) => Some(e),
+            Self::InvalidTag(e) => Some(e),
             Self::InvalidId(e) => Some(e),
             Self::InvalidName(e) => Some(e),
             Self::InvalidCommandLine(e) => Some(e),
@@ -49,6 +51,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidField(_) => write!(f, "invalid field"),
+            Self::InvalidTag(_) => write!(f, "invalid tag"),
             Self::MissingId => write!(f, "missing ID field"),
             Self::InvalidId(_) => write!(f, "invalid ID"),
             Self::InvalidName(_) => write!(f, "invalid name ({})", tag::NAME),
@@ -79,7 +82,7 @@ pub(crate) fn parse_program(
 
     while !src.is_empty() {
         consume_delimiter(src).map_err(ParseError::InvalidField)?;
-        let tag = parse_tag(src).map_err(ParseError::InvalidField)?;
+        let tag = parse_tag(src).map_err(ParseError::InvalidTag)?;
         consume_separator(src).map_err(ParseError::InvalidField)?;
 
         match tag {
