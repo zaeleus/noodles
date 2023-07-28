@@ -1,18 +1,18 @@
 use std::{error, fmt, str};
 
+use super::field::{consume_delimiter, consume_separator, parse_tag, parse_value};
 use crate::header::{
     parser::Context,
     record::value::{
         map::{
             self,
             program::{tag, Tag},
+            tag::Other,
             OtherFields, Program,
         },
         Map,
     },
 };
-
-use super::field::{consume_delimiter, consume_separator, parse_tag};
 
 /// An error returned when a SAM header program record value fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -26,7 +26,7 @@ pub enum ParseError {
     InvalidPreviousId(str::Utf8Error),
     InvalidDescription(str::Utf8Error),
     InvalidVersion(str::Utf8Error),
-    InvalidOther(Tag, str::Utf8Error),
+    InvalidOther(Other<tag::Standard>, str::Utf8Error),
     DuplicateTag(Tag),
 }
 
@@ -97,7 +97,7 @@ pub(crate) fn parse_program(
             tag::VERSION => {
                 parse_version(src).and_then(|v| try_replace(&mut version, ctx, tag::VERSION, v))?
             }
-            Tag::Other(t) => parse_other(src, Tag::Other(t))
+            Tag::Other(t) => parse_other(src, t)
                 .and_then(|value| try_insert(&mut other_fields, ctx, t, value))?,
         }
     }
@@ -119,45 +119,46 @@ pub(crate) fn parse_program(
     ))
 }
 
-fn parse_string(src: &mut &[u8]) -> Result<String, str::Utf8Error> {
-    use memchr::memchr;
-
-    const DELIMITER: u8 = b'\t';
-
-    let i = memchr(DELIMITER, src).unwrap_or(src.len());
-    let (buf, rest) = src.split_at(i);
-
-    *src = rest;
-
-    str::from_utf8(buf).map(String::from)
-}
-
 fn parse_id(src: &mut &[u8]) -> Result<String, ParseError> {
-    parse_string(src).map_err(ParseError::InvalidId)
+    parse_value(src)
+        .map(String::from)
+        .map_err(ParseError::InvalidId)
 }
 
 fn parse_name(src: &mut &[u8]) -> Result<String, ParseError> {
-    parse_string(src).map_err(ParseError::InvalidName)
+    parse_value(src)
+        .map(String::from)
+        .map_err(ParseError::InvalidName)
 }
 
 fn parse_command_line(src: &mut &[u8]) -> Result<String, ParseError> {
-    parse_string(src).map_err(ParseError::InvalidCommandLine)
+    parse_value(src)
+        .map(String::from)
+        .map_err(ParseError::InvalidCommandLine)
 }
 
 fn parse_previous_id(src: &mut &[u8]) -> Result<String, ParseError> {
-    parse_string(src).map_err(ParseError::InvalidPreviousId)
+    parse_value(src)
+        .map(String::from)
+        .map_err(ParseError::InvalidPreviousId)
 }
 
 fn parse_description(src: &mut &[u8]) -> Result<String, ParseError> {
-    parse_string(src).map_err(ParseError::InvalidDescription)
+    parse_value(src)
+        .map(String::from)
+        .map_err(ParseError::InvalidDescription)
 }
 
 fn parse_version(src: &mut &[u8]) -> Result<String, ParseError> {
-    parse_string(src).map_err(ParseError::InvalidVersion)
+    parse_value(src)
+        .map(String::from)
+        .map_err(ParseError::InvalidVersion)
 }
 
-fn parse_other(src: &mut &[u8], tag: Tag) -> Result<String, ParseError> {
-    parse_string(src).map_err(|e| ParseError::InvalidOther(tag, e))
+fn parse_other(src: &mut &[u8], tag: Other<tag::Standard>) -> Result<String, ParseError> {
+    parse_value(src)
+        .map(String::from)
+        .map_err(|e| ParseError::InvalidOther(tag, e))
 }
 
 fn try_replace<T>(

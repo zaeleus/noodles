@@ -1,4 +1,4 @@
-use std::{error, fmt};
+use std::{error, fmt, str};
 
 use super::field::{consume_delimiter, consume_separator, parse_tag, parse_value};
 use crate::header::{
@@ -7,6 +7,7 @@ use crate::header::{
         map::{
             self,
             read_group::{platform, tag, Platform, Tag},
+            tag::Other,
             OtherFields, ReadGroup,
         },
         Map,
@@ -19,12 +20,14 @@ pub enum ParseError {
     InvalidField(super::field::ParseError),
     InvalidTag(super::field::tag::ParseError),
 
+    MissingId,
     /// The predicted median insert size is invalid.
     InvalidPredictedMedianInsertSize(lexical_core::Error),
     /// The platform is invalid.
     InvalidPlatform(platform::ParseError),
+    /// An other value is invalid.
+    InvalidOther(Other<tag::Standard>, str::Utf8Error),
 
-    MissingId,
     DuplicateTag(Tag),
 }
 
@@ -35,6 +38,7 @@ impl error::Error for ParseError {
             Self::InvalidTag(e) => Some(e),
             Self::InvalidPredictedMedianInsertSize(e) => Some(e),
             Self::InvalidPlatform(e) => Some(e),
+            Self::InvalidOther(_, e) => Some(e),
             _ => None,
         }
     }
@@ -45,11 +49,12 @@ impl fmt::Display for ParseError {
         match self {
             Self::InvalidField(_) => write!(f, "invalid field"),
             Self::InvalidTag(_) => write!(f, "invalid tag"),
+            Self::MissingId => write!(f, "missing ID field"),
             Self::InvalidPredictedMedianInsertSize(_) => {
                 write!(f, "invalid predicted median insert size")
             }
             Self::InvalidPlatform(_) => write!(f, "invalid platform"),
-            Self::MissingId => write!(f, "missing ID field"),
+            Self::InvalidOther(tag, _) => write!(f, "invalid other ({tag})"),
             Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
         }
     }
@@ -122,8 +127,7 @@ pub(crate) fn parse_read_group(
             tag::SAMPLE => {
                 parse_string(src).and_then(|v| try_replace(&mut sample, ctx, tag::SAMPLE, v))?
             }
-            Tag::Other(t) => parse_value(src)
-                .map_err(ParseError::InvalidField)
+            Tag::Other(t) => parse_other(src, t)
                 .and_then(|value| try_insert(&mut other_fields, ctx, t, value))?,
         }
     }
@@ -154,9 +158,7 @@ pub(crate) fn parse_read_group(
 }
 
 fn parse_string(src: &mut &[u8]) -> Result<String, ParseError> {
-    parse_value(src)
-        .map(String::from)
-        .map_err(ParseError::InvalidField)
+    parse_value(src).map(String::from).map_err(|_| todo!())
 }
 
 fn parse_predicted_median_insert_size(src: &mut &[u8]) -> Result<i32, ParseError> {
@@ -170,8 +172,14 @@ fn parse_predicted_median_insert_size(src: &mut &[u8]) -> Result<i32, ParseError
 
 fn parse_platform(src: &mut &[u8]) -> Result<Platform, ParseError> {
     parse_value(src)
-        .map_err(ParseError::InvalidField)
+        .map_err(|_| todo!())
         .and_then(|s| s.parse().map_err(ParseError::InvalidPlatform))
+}
+
+fn parse_other(src: &mut &[u8], tag: Other<tag::Standard>) -> Result<String, ParseError> {
+    parse_value(src)
+        .map(String::from)
+        .map_err(|e| ParseError::InvalidOther(tag, e))
 }
 
 fn try_replace<T>(

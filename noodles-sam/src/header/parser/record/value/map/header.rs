@@ -1,4 +1,4 @@
-use std::{error, fmt};
+use std::{error, fmt, str};
 
 use super::field::{consume_delimiter, consume_separator, parse_tag, parse_value};
 use crate::header::{
@@ -10,6 +10,7 @@ use crate::header::{
                 group_order, sort_order, subsort_order, tag, version, GroupOrder, SortOrder,
                 SubsortOrder, Tag, Version,
             },
+            tag::Other,
             Header, OtherFields,
         },
         Map,
@@ -21,11 +22,12 @@ use crate::header::{
 pub enum ParseError {
     InvalidField(super::field::ParseError),
     InvalidTag(super::field::tag::ParseError),
+    MissingVersion,
     InvalidVersion(version::ParseError),
     InvalidSortOrder(sort_order::ParseError),
     InvalidGroupOrder(group_order::ParseError),
     InvalidSubsortOrder(subsort_order::ParseError),
-    MissingVersion,
+    InvalidOther(Other<tag::Standard>, str::Utf8Error),
     DuplicateTag(Tag),
 }
 
@@ -38,6 +40,7 @@ impl error::Error for ParseError {
             Self::InvalidSortOrder(e) => Some(e),
             Self::InvalidGroupOrder(e) => Some(e),
             Self::InvalidSubsortOrder(e) => Some(e),
+            Self::InvalidOther(_, e) => Some(e),
             _ => None,
         }
     }
@@ -48,11 +51,12 @@ impl fmt::Display for ParseError {
         match self {
             Self::InvalidField(_) => write!(f, "invalid field"),
             Self::InvalidTag(_) => write!(f, "invalid tag"),
+            Self::MissingVersion => write!(f, "missing version ({}) field", tag::VERSION),
             Self::InvalidVersion(_) => write!(f, "invalid version"),
             Self::InvalidSortOrder(_) => write!(f, "invalid sort order"),
             Self::InvalidGroupOrder(_) => write!(f, "invalid group order"),
             Self::InvalidSubsortOrder(_) => write!(f, "invalid subsort order"),
-            Self::MissingVersion => write!(f, "missing version ({}) field", tag::VERSION),
+            Self::InvalidOther(tag, _) => write!(f, "invalid other ({tag})"),
             Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
         }
     }
@@ -81,8 +85,7 @@ pub(crate) fn parse_header(src: &mut &[u8], ctx: &Context) -> Result<Map<Header>
                 .and_then(|v| try_replace(&mut group_order, ctx, tag::GROUP_ORDER, v))?,
             tag::SUBSORT_ORDER => parse_subsort_order(src)
                 .and_then(|v| try_replace(&mut subsort_order, ctx, tag::SUBSORT_ORDER, v))?,
-            Tag::Other(t) => parse_value(src)
-                .map_err(ParseError::InvalidField)
+            Tag::Other(t) => parse_other(src, t)
                 .and_then(|value| try_insert(&mut other_fields, ctx, t, value))?,
         }
     }
@@ -102,26 +105,32 @@ pub(crate) fn parse_header(src: &mut &[u8], ctx: &Context) -> Result<Map<Header>
 
 fn parse_version(src: &mut &[u8]) -> Result<Version, ParseError> {
     parse_value(src)
-        .map_err(ParseError::InvalidField)
+        .map_err(|_| todo!())
         .and_then(|s| s.parse().map_err(ParseError::InvalidVersion))
 }
 
 fn parse_sort_order(src: &mut &[u8]) -> Result<SortOrder, ParseError> {
     parse_value(src)
-        .map_err(ParseError::InvalidField)
+        .map_err(|_| todo!())
         .and_then(|s| s.parse().map_err(ParseError::InvalidSortOrder))
 }
 
 fn parse_group_order(src: &mut &[u8]) -> Result<GroupOrder, ParseError> {
     parse_value(src)
-        .map_err(ParseError::InvalidField)
+        .map_err(|_| todo!())
         .and_then(|s| s.parse().map_err(ParseError::InvalidGroupOrder))
 }
 
 fn parse_subsort_order(src: &mut &[u8]) -> Result<SubsortOrder, ParseError> {
     parse_value(src)
-        .map_err(ParseError::InvalidField)
+        .map_err(|_| todo!())
         .and_then(|s| s.parse().map_err(ParseError::InvalidSubsortOrder))
+}
+
+fn parse_other(src: &mut &[u8], tag: Other<tag::Standard>) -> Result<String, ParseError> {
+    parse_value(src)
+        .map(String::from)
+        .map_err(|e| ParseError::InvalidOther(tag, e))
 }
 
 fn try_replace<T>(
