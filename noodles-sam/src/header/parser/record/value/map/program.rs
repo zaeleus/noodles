@@ -18,8 +18,7 @@ use super::field::{consume_delimiter, consume_separator, parse_tag, parse_value}
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     InvalidField(super::field::ParseError),
-
-    MissingField(Tag),
+    MissingId,
     DuplicateTag(Tag),
 }
 
@@ -36,7 +35,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidField(_) => write!(f, "invalid field"),
-            Self::MissingField(tag) => write!(f, "missing field: {tag}"),
+            Self::MissingId => write!(f, "missing ID field"),
             Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
         }
     }
@@ -80,7 +79,7 @@ pub(crate) fn parse_program(
         }
     }
 
-    let id = id.ok_or(ParseError::MissingField(tag::ID))?;
+    let id = id.ok_or(ParseError::MissingId)?;
 
     Ok((
         id,
@@ -149,9 +148,6 @@ mod tests {
     fn test_parse_program_with_missing_id() {
         let mut src = &b"\tPN:pg0"[..];
         let ctx = Context::default();
-        assert_eq!(
-            parse_program(&mut src, &ctx),
-            Err(ParseError::MissingField(tag::ID))
-        );
+        assert_eq!(parse_program(&mut src, &ctx), Err(ParseError::MissingId));
     }
 }
