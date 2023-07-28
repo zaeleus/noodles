@@ -1,3 +1,9 @@
+//! Queries a variant file with the given region.
+//!
+//! The input must have an associated index in the same directory.
+//!
+//! The result matches the output of `bcftools view <src> <region>`.
+
 use std::{
     env,
     io::{self, BufWriter},
