@@ -22,17 +22,19 @@ use crate::header::{
 pub enum ParseError {
     InvalidField(super::field::ParseError),
     InvalidTag(super::field::tag::ParseError),
-
     MissingName,
     InvalidName(crate::record::reference_sequence_name::ParseError),
     MissingLength,
     InvalidLength,
     InvalidAlternativeLocus(alternative_locus::ParseError),
     InvalidAlternativeNames(alternative_names::ParseError),
+    InvalidAssemblyId(str::Utf8Error),
+    InvalidDescription(str::Utf8Error),
     InvalidMd5Checksum(md5_checksum::ParseError),
+    InvalidSpecies(str::Utf8Error),
     InvalidMoleculeTopology(molecule_topology::ParseError),
+    InvalidUri(str::Utf8Error),
     InvalidOther(Other<tag::Standard>, str::Utf8Error),
-
     DuplicateTag(Tag),
 }
 
@@ -44,8 +46,12 @@ impl error::Error for ParseError {
             Self::InvalidName(e) => Some(e),
             Self::InvalidAlternativeLocus(e) => Some(e),
             Self::InvalidAlternativeNames(e) => Some(e),
+            Self::InvalidAssemblyId(e) => Some(e),
+            Self::InvalidDescription(e) => Some(e),
             Self::InvalidMd5Checksum(e) => Some(e),
+            Self::InvalidSpecies(e) => Some(e),
             Self::InvalidMoleculeTopology(e) => Some(e),
+            Self::InvalidUri(e) => Some(e),
             Self::InvalidOther(_, e) => Some(e),
             _ => None,
         }
@@ -57,14 +63,26 @@ impl fmt::Display for ParseError {
         match self {
             Self::InvalidField(_) => write!(f, "invalid field"),
             Self::InvalidTag(_) => write!(f, "invalid tag"),
-            Self::MissingName => write!(f, "missing name ({}) field", tag::NAME),
-            Self::InvalidName(_) => write!(f, "invalid name"),
-            Self::MissingLength => write!(f, "missing length ({}) field", tag::LENGTH),
-            Self::InvalidLength => write!(f, "invalid length"),
-            Self::InvalidAlternativeLocus(_) => write!(f, "invalid alternative locus"),
-            Self::InvalidAlternativeNames(_) => write!(f, "invalid alternative names"),
-            Self::InvalidMd5Checksum(_) => write!(f, "invalid MD5 checksum"),
-            Self::InvalidMoleculeTopology(_) => write!(f, "invalid molecule topology"),
+            Self::MissingName => write!(f, "missing name ({})", tag::NAME),
+            Self::InvalidName(_) => write!(f, "invalid name ({})", tag::NAME),
+            Self::MissingLength => write!(f, "missing length ({})", tag::LENGTH),
+            Self::InvalidLength => write!(f, "invalid length ({})", tag::LENGTH),
+            Self::InvalidAlternativeLocus(_) => {
+                write!(f, "invalid alternative locus ({})", tag::ALTERNATIVE_LOCUS)
+            }
+            Self::InvalidAlternativeNames(_) => {
+                write!(f, "invalid alternative names ({})", tag::ALTERNATIVE_NAMES)
+            }
+            Self::InvalidAssemblyId(_) => write!(f, "invalid assembly ID ({})", tag::ASSEMBLY_ID),
+            Self::InvalidDescription(_) => write!(f, "invalid description ({})", tag::DESCRIPTION),
+            Self::InvalidMd5Checksum(_) => {
+                write!(f, "invalid MD5 checksum ({})", tag::MD5_CHECKSUM)
+            }
+            Self::InvalidSpecies(_) => write!(f, "invalid species ({})", tag::SPECIES),
+            Self::InvalidMoleculeTopology(_) => {
+                write!(f, "invalid molecule topology ({})", tag::MOLECULE_TOPOLOGY)
+            }
+            Self::InvalidUri(_) => write!(f, "invalid URI ({})", tag::URI),
             Self::InvalidOther(tag, _) => write!(f, "invalid other ({tag})"),
             Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
         }
@@ -172,11 +190,15 @@ fn parse_alternative_names(src: &mut &[u8]) -> Result<AlternativeNames, ParseErr
 }
 
 fn parse_assembly_id(src: &mut &[u8]) -> Result<String, ParseError> {
-    parse_value(src).map(String::from).map_err(|_| todo!())
+    parse_value(src)
+        .map(String::from)
+        .map_err(ParseError::InvalidAssemblyId)
 }
 
 fn parse_description(src: &mut &[u8]) -> Result<String, ParseError> {
-    parse_value(src).map(String::from).map_err(|_| todo!())
+    parse_value(src)
+        .map(String::from)
+        .map_err(ParseError::InvalidDescription)
 }
 
 fn parse_md5_checksum(src: &mut &[u8]) -> Result<Md5Checksum, ParseError> {
@@ -186,7 +208,9 @@ fn parse_md5_checksum(src: &mut &[u8]) -> Result<Md5Checksum, ParseError> {
 }
 
 fn parse_species(src: &mut &[u8]) -> Result<String, ParseError> {
-    parse_value(src).map(String::from).map_err(|_| todo!())
+    parse_value(src)
+        .map(String::from)
+        .map_err(ParseError::InvalidSpecies)
 }
 
 fn parse_molecule_topology(src: &mut &[u8]) -> Result<MoleculeTopology, ParseError> {
@@ -196,7 +220,9 @@ fn parse_molecule_topology(src: &mut &[u8]) -> Result<MoleculeTopology, ParseErr
 }
 
 fn parse_uri(src: &mut &[u8]) -> Result<String, ParseError> {
-    parse_value(src).map(String::from).map_err(|_| todo!())
+    parse_value(src)
+        .map(String::from)
+        .map_err(ParseError::InvalidUri)
 }
 
 fn parse_other(src: &mut &[u8], tag: Other<tag::Standard>) -> Result<String, ParseError> {
