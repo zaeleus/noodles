@@ -70,8 +70,10 @@ fn fmt_display_other_fields<S>(
     f: &mut fmt::Formatter<'_>,
     other_fields: &OtherFields<S>,
 ) -> fmt::Result {
+    const DELIMITER: char = '\t';
+
     for (key, value) in other_fields {
-        write!(f, "\t{key}:{value}")?;
+        write!(f, "{DELIMITER}{key}:{value}")?;
     }
 
     Ok(())
