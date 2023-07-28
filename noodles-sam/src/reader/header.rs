@@ -7,24 +7,24 @@ where
     R: BufRead,
 {
     let mut parser = header::Parser::default();
-    let mut buf = String::new();
+    let mut buf = Vec::new();
 
     while read_header_line(reader, &mut buf)? != 0 {
         parser
-            .parse_partial(buf.as_bytes())
+            .parse_partial(&buf)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     }
 
     Ok(parser.finish())
 }
 
-fn read_header_line<R>(reader: &mut R, dst: &mut String) -> io::Result<usize>
+fn read_header_line<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<usize>
 where
     R: BufRead,
 {
     const PREFIX: u8 = b'@';
-    const LINE_FEED: char = '\n';
-    const CARRIAGE_RETURN: char = '\r';
+    const LINE_FEED: u8 = b'\n';
+    const CARRIAGE_RETURN: u8 = b'\r';
 
     let src = reader.fill_buf()?;
 
@@ -34,13 +34,13 @@ where
 
     dst.clear();
 
-    match reader.read_line(dst)? {
+    match reader.read_until(LINE_FEED, dst)? {
         0 => Ok(0),
         n => {
-            if dst.ends_with(LINE_FEED) {
+            if dst.ends_with(&[LINE_FEED]) {
                 dst.pop();
 
-                if dst.ends_with(CARRIAGE_RETURN) {
+                if dst.ends_with(&[CARRIAGE_RETURN]) {
                     dst.pop();
                 }
             }
