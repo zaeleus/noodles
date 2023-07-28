@@ -24,7 +24,7 @@ pub enum ParseError {
     InvalidSortOrder(sort_order::ParseError),
     InvalidGroupOrder(group_order::ParseError),
     InvalidSubsortOrder(subsort_order::ParseError),
-    MissingField(Tag),
+    MissingVersion,
     DuplicateTag(Tag),
 }
 
@@ -49,7 +49,7 @@ impl fmt::Display for ParseError {
             Self::InvalidSortOrder(_) => write!(f, "invalid sort order"),
             Self::InvalidGroupOrder(_) => write!(f, "invalid group order"),
             Self::InvalidSubsortOrder(_) => write!(f, "invalid subsort order"),
-            Self::MissingField(tag) => write!(f, "missing field: {tag}"),
+            Self::MissingVersion => write!(f, "missing version ({}) field", tag::VERSION),
             Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
         }
     }
@@ -84,7 +84,7 @@ pub(crate) fn parse_header(src: &mut &[u8], ctx: &Context) -> Result<Map<Header>
         }
     }
 
-    let version = version.ok_or(ParseError::MissingField(tag::VERSION))?;
+    let version = version.ok_or(ParseError::MissingVersion)?;
 
     Ok(Map {
         inner: Header {
@@ -170,7 +170,7 @@ mod tests {
         let ctx = Context::default();
         assert_eq!(
             parse_header(&mut src, &ctx),
-            Err(ParseError::MissingField(tag::VERSION))
+            Err(ParseError::MissingVersion)
         );
     }
 }
