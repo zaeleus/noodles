@@ -21,14 +21,15 @@ use crate::header::{
 pub enum ParseError {
     InvalidField(super::field::ParseError),
 
+    MissingName,
     InvalidName(crate::record::reference_sequence_name::ParseError),
+    MissingLength,
     InvalidLength,
     InvalidAlternativeLocus(alternative_locus::ParseError),
     InvalidAlternativeNames(alternative_names::ParseError),
     InvalidMd5Checksum(md5_checksum::ParseError),
     InvalidMoleculeTopology(molecule_topology::ParseError),
 
-    MissingField(Tag),
     DuplicateTag(Tag),
 }
 
@@ -50,13 +51,14 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidField(_) => write!(f, "invalid field"),
+            Self::MissingName => write!(f, "missing name ({}) field", tag::NAME),
             Self::InvalidName(_) => write!(f, "invalid name"),
+            Self::MissingLength => write!(f, "missing length ({}) field", tag::LENGTH),
             Self::InvalidLength => write!(f, "invalid length"),
             Self::InvalidAlternativeLocus(_) => write!(f, "invalid alternative locus"),
             Self::InvalidAlternativeNames(_) => write!(f, "invalid alternative names"),
             Self::InvalidMd5Checksum(_) => write!(f, "invalid MD5 checksum"),
             Self::InvalidMoleculeTopology(_) => write!(f, "invalid molecule topology"),
-            Self::MissingField(tag) => write!(f, "missing field: {tag}"),
             Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
         }
     }
@@ -114,8 +116,8 @@ pub(crate) fn parse_reference_sequence(
         }
     }
 
-    let name = name.ok_or(ParseError::MissingField(tag::NAME))?;
-    let length = length.ok_or(ParseError::MissingField(tag::LENGTH))?;
+    let name = name.ok_or(ParseError::MissingName)?;
+    let length = length.ok_or(ParseError::MissingLength)?;
 
     Ok((
         name,
@@ -258,7 +260,7 @@ mod tests {
         let ctx = Context::default();
         assert_eq!(
             parse_reference_sequence(&mut src, &ctx),
-            Err(ParseError::MissingField(tag::NAME))
+            Err(ParseError::MissingName)
         );
     }
 
@@ -268,7 +270,7 @@ mod tests {
         let ctx = Context::default();
         assert_eq!(
             parse_reference_sequence(&mut src, &ctx),
-            Err(ParseError::MissingField(tag::LENGTH))
+            Err(ParseError::MissingLength)
         );
     }
 
