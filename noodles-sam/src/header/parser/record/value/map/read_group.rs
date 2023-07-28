@@ -19,15 +19,22 @@ use crate::header::{
 pub enum ParseError {
     InvalidField(super::field::ParseError),
     InvalidTag(super::field::tag::ParseError),
-
     MissingId,
-    /// The predicted median insert size is invalid.
+    InvalidId(str::Utf8Error),
+    InvalidBarcode(str::Utf8Error),
+    InvalidSequencingCenter(str::Utf8Error),
+    InvalidDescription(str::Utf8Error),
+    InvalidProducedAt(str::Utf8Error),
+    InvalidFlowOrder(str::Utf8Error),
+    InvalidKeySequence(str::Utf8Error),
+    InvalidLibrary(str::Utf8Error),
+    InvalidProgram(str::Utf8Error),
     InvalidPredictedMedianInsertSize(lexical_core::Error),
-    /// The platform is invalid.
     InvalidPlatform(platform::ParseError),
-    /// An other value is invalid.
+    InvalidPlatformModel(str::Utf8Error),
+    InvalidPlatformUnit(str::Utf8Error),
+    InvalidSample(str::Utf8Error),
     InvalidOther(Other<tag::Standard>, str::Utf8Error),
-
     DuplicateTag(Tag),
 }
 
@@ -36,8 +43,20 @@ impl error::Error for ParseError {
         match self {
             Self::InvalidField(e) => Some(e),
             Self::InvalidTag(e) => Some(e),
+            Self::InvalidId(e) => Some(e),
+            Self::InvalidBarcode(e) => Some(e),
+            Self::InvalidSequencingCenter(e) => Some(e),
+            Self::InvalidDescription(e) => Some(e),
+            Self::InvalidProducedAt(e) => Some(e),
+            Self::InvalidFlowOrder(e) => Some(e),
+            Self::InvalidKeySequence(e) => Some(e),
+            Self::InvalidLibrary(e) => Some(e),
+            Self::InvalidProgram(e) => Some(e),
             Self::InvalidPredictedMedianInsertSize(e) => Some(e),
             Self::InvalidPlatform(e) => Some(e),
+            Self::InvalidPlatformModel(e) => Some(e),
+            Self::InvalidPlatformUnit(e) => Some(e),
+            Self::InvalidSample(e) => Some(e),
             Self::InvalidOther(_, e) => Some(e),
             _ => None,
         }
@@ -49,11 +68,35 @@ impl fmt::Display for ParseError {
         match self {
             Self::InvalidField(_) => write!(f, "invalid field"),
             Self::InvalidTag(_) => write!(f, "invalid tag"),
-            Self::MissingId => write!(f, "missing ID field"),
-            Self::InvalidPredictedMedianInsertSize(_) => {
-                write!(f, "invalid predicted median insert size")
+            Self::MissingId => write!(f, "missing ID"),
+            Self::InvalidId(_) => write!(f, "invalid ID"),
+            Self::InvalidBarcode(_) => write!(f, "invalid barcode ({})", tag::BARCODE),
+            Self::InvalidSequencingCenter(_) => {
+                write!(f, "invalid sequencing center ({})", tag::SEQUENCING_CENTER)
             }
-            Self::InvalidPlatform(_) => write!(f, "invalid platform"),
+            Self::InvalidDescription(_) => write!(f, "invalid description ({})", tag::DESCRIPTION),
+            Self::InvalidProducedAt(_) => write!(f, "invalid producted at ({})", tag::PRODUCED_AT),
+            Self::InvalidFlowOrder(_) => write!(f, "invalid flow order ({})", tag::FLOW_ORDER),
+            Self::InvalidKeySequence(_) => {
+                write!(f, "invalid key sequence ({})", tag::KEY_SEQUENCE)
+            }
+            Self::InvalidLibrary(_) => write!(f, "invalid library ({})", tag::LIBRARY),
+            Self::InvalidProgram(_) => write!(f, "invalid program ({})", tag::PROGRAM),
+            Self::InvalidPredictedMedianInsertSize(_) => {
+                write!(
+                    f,
+                    "invalid predicted median insert size ({})",
+                    tag::PREDICTED_MEDIAN_INSERT_SIZE
+                )
+            }
+            Self::InvalidPlatform(_) => write!(f, "invalid platform ({})", tag::PLATFORM),
+            Self::InvalidPlatformModel(_) => {
+                write!(f, "invalid platform model ({})", tag::PLATFORM_MODEL)
+            }
+            Self::InvalidPlatformUnit(_) => {
+                write!(f, "invalid platform unit ({})", tag::PLATFORM_UNIT)
+            }
+            Self::InvalidSample(_) => write!(f, "invalid sample ({})", tag::SAMPLE),
             Self::InvalidOther(tag, _) => write!(f, "invalid other ({tag})"),
             Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
         }
@@ -87,26 +130,26 @@ pub(crate) fn parse_read_group(
         consume_separator(src).map_err(ParseError::InvalidField)?;
 
         match tag {
-            tag::ID => parse_string(src).and_then(|v| try_replace(&mut id, ctx, tag::ID, v))?,
+            tag::ID => parse_id(src).and_then(|v| try_replace(&mut id, ctx, tag::ID, v))?,
             tag::BARCODE => {
-                parse_string(src).and_then(|v| try_replace(&mut barcode, ctx, tag::BARCODE, v))?
+                parse_barcode(src).and_then(|v| try_replace(&mut barcode, ctx, tag::BARCODE, v))?
             }
-            tag::SEQUENCING_CENTER => parse_string(src).and_then(|v| {
+            tag::SEQUENCING_CENTER => parse_sequencing_center(src).and_then(|v| {
                 try_replace(&mut sequencing_center, ctx, tag::SEQUENCING_CENTER, v)
             })?,
-            tag::DESCRIPTION => parse_string(src)
+            tag::DESCRIPTION => parse_description(src)
                 .and_then(|v| try_replace(&mut description, ctx, tag::DESCRIPTION, v))?,
-            tag::PRODUCED_AT => parse_string(src)
+            tag::PRODUCED_AT => parse_produced_at(src)
                 .and_then(|v| try_replace(&mut produced_at, ctx, tag::PRODUCED_AT, v))?,
-            tag::FLOW_ORDER => parse_string(src)
+            tag::FLOW_ORDER => parse_flow_order(src)
                 .and_then(|v| try_replace(&mut flow_order, ctx, tag::FLOW_ORDER, v))?,
-            tag::KEY_SEQUENCE => parse_string(src)
+            tag::KEY_SEQUENCE => parse_key_sequence(src)
                 .and_then(|v| try_replace(&mut key_sequence, ctx, tag::KEY_SEQUENCE, v))?,
             tag::LIBRARY => {
-                parse_string(src).and_then(|v| try_replace(&mut library, ctx, tag::LIBRARY, v))?
+                parse_library(src).and_then(|v| try_replace(&mut library, ctx, tag::LIBRARY, v))?
             }
             tag::PROGRAM => {
-                parse_string(src).and_then(|v| try_replace(&mut program, ctx, tag::PROGRAM, v))?
+                parse_program(src).and_then(|v| try_replace(&mut program, ctx, tag::PROGRAM, v))?
             }
             tag::PREDICTED_MEDIAN_INSERT_SIZE => {
                 parse_predicted_median_insert_size(src).and_then(|v| {
@@ -120,12 +163,12 @@ pub(crate) fn parse_read_group(
             }
             tag::PLATFORM => parse_platform(src)
                 .and_then(|v| try_replace(&mut platform, ctx, tag::PLATFORM, v))?,
-            tag::PLATFORM_MODEL => parse_string(src)
+            tag::PLATFORM_MODEL => parse_platform_model(src)
                 .and_then(|v| try_replace(&mut platform_model, ctx, tag::PLATFORM_MODEL, v))?,
-            tag::PLATFORM_UNIT => parse_string(src)
+            tag::PLATFORM_UNIT => parse_platform_unit(src)
                 .and_then(|v| try_replace(&mut platform_unit, ctx, tag::PLATFORM_UNIT, v))?,
             tag::SAMPLE => {
-                parse_string(src).and_then(|v| try_replace(&mut sample, ctx, tag::SAMPLE, v))?
+                parse_sample(src).and_then(|v| try_replace(&mut sample, ctx, tag::SAMPLE, v))?
             }
             Tag::Other(t) => parse_other(src, t)
                 .and_then(|value| try_insert(&mut other_fields, ctx, t, value))?,
@@ -157,8 +200,58 @@ pub(crate) fn parse_read_group(
     ))
 }
 
-fn parse_string(src: &mut &[u8]) -> Result<String, ParseError> {
-    parse_value(src).map(String::from).map_err(|_| todo!())
+fn parse_id(src: &mut &[u8]) -> Result<String, ParseError> {
+    parse_value(src)
+        .map(String::from)
+        .map_err(ParseError::InvalidId)
+}
+
+fn parse_barcode(src: &mut &[u8]) -> Result<String, ParseError> {
+    parse_value(src)
+        .map(String::from)
+        .map_err(ParseError::InvalidBarcode)
+}
+
+fn parse_sequencing_center(src: &mut &[u8]) -> Result<String, ParseError> {
+    parse_value(src)
+        .map(String::from)
+        .map_err(ParseError::InvalidSequencingCenter)
+}
+
+fn parse_description(src: &mut &[u8]) -> Result<String, ParseError> {
+    parse_value(src)
+        .map(String::from)
+        .map_err(ParseError::InvalidDescription)
+}
+
+fn parse_produced_at(src: &mut &[u8]) -> Result<String, ParseError> {
+    parse_value(src)
+        .map(String::from)
+        .map_err(ParseError::InvalidProducedAt)
+}
+
+fn parse_flow_order(src: &mut &[u8]) -> Result<String, ParseError> {
+    parse_value(src)
+        .map(String::from)
+        .map_err(ParseError::InvalidFlowOrder)
+}
+
+fn parse_key_sequence(src: &mut &[u8]) -> Result<String, ParseError> {
+    parse_value(src)
+        .map(String::from)
+        .map_err(ParseError::InvalidKeySequence)
+}
+
+fn parse_library(src: &mut &[u8]) -> Result<String, ParseError> {
+    parse_value(src)
+        .map(String::from)
+        .map_err(ParseError::InvalidLibrary)
+}
+
+fn parse_program(src: &mut &[u8]) -> Result<String, ParseError> {
+    parse_value(src)
+        .map(String::from)
+        .map_err(ParseError::InvalidProgram)
 }
 
 fn parse_predicted_median_insert_size(src: &mut &[u8]) -> Result<i32, ParseError> {
@@ -174,6 +267,24 @@ fn parse_platform(src: &mut &[u8]) -> Result<Platform, ParseError> {
     parse_value(src)
         .map_err(|_| todo!())
         .and_then(|s| s.parse().map_err(ParseError::InvalidPlatform))
+}
+
+fn parse_platform_model(src: &mut &[u8]) -> Result<String, ParseError> {
+    parse_value(src)
+        .map(String::from)
+        .map_err(ParseError::InvalidPlatformModel)
+}
+
+fn parse_platform_unit(src: &mut &[u8]) -> Result<String, ParseError> {
+    parse_value(src)
+        .map(String::from)
+        .map_err(ParseError::InvalidPlatformUnit)
+}
+
+fn parse_sample(src: &mut &[u8]) -> Result<String, ParseError> {
+    parse_value(src)
+        .map(String::from)
+        .map_err(ParseError::InvalidSample)
 }
 
 fn parse_other(src: &mut &[u8], tag: Other<tag::Standard>) -> Result<String, ParseError> {
