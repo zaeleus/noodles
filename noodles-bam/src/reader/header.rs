@@ -1,5 +1,5 @@
 use std::{
-    io::{self, Read},
+    io::{self, BufRead, BufReader, Read},
     num::NonZeroUsize,
 };
 
@@ -24,11 +24,7 @@ where
 {
     read_magic(reader)?;
 
-    let mut header: sam::Header = read_raw_header(reader).and_then(|s| {
-        s.parse()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
+    let mut header = read_header_inner(reader)?;
     let reference_sequences = read_reference_sequences(reader)?;
 
     if header.reference_sequences().is_empty() {
@@ -60,22 +56,64 @@ where
     }
 }
 
-fn read_raw_header<R>(reader: &mut R) -> io::Result<String>
+fn read_header_inner<R>(reader: &mut R) -> io::Result<sam::Header>
 where
     R: Read,
 {
-    let l_text = reader.read_u32::<LittleEndian>().and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    const NUL: u8 = 0x00;
 
-    let mut text = vec![0; l_text];
-    reader.read_exact(&mut text)?;
+    let l_text = reader.read_u32::<LittleEndian>().map(u64::from)?;
 
-    // § 4.2 The BAM format (2021-06-03): "Plain header text in SAM; not necessarily
-    // NUL-terminated".
-    bytes_with_nul_to_string(&text).or_else(|_| {
-        String::from_utf8(text).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })
+    let mut parser = sam::header::Parser::default();
+
+    let mut header_reader = BufReader::new(reader.take(l_text));
+    let mut buf = Vec::new();
+
+    while read_header_line(&mut header_reader, &mut buf)? != 0 {
+        // § 4.2 The BAM format (2021-06-03): "Plain header text in SAM; not necessarily
+        // NUL-terminated".
+        if buf.ends_with(&[NUL]) {
+            buf.pop();
+        }
+
+        parser
+            .parse_partial(&buf)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    }
+
+    Ok(parser.finish())
+}
+
+fn read_header_line<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    const PREFIX: u8 = b'@';
+    const LINE_FEED: u8 = b'\n';
+    const CARRIAGE_RETURN: u8 = b'\r';
+
+    let src = reader.fill_buf()?;
+
+    if src.is_empty() || src[0] != PREFIX {
+        return Ok(0);
+    }
+
+    dst.clear();
+
+    match reader.read_until(LINE_FEED, dst)? {
+        0 => Ok(0),
+        n => {
+            if dst.ends_with(&[LINE_FEED]) {
+                dst.pop();
+
+                if dst.ends_with(&[CARRIAGE_RETURN]) {
+                    dst.pop();
+                }
+            }
+
+            Ok(n)
+        }
+    }
 }
 
 fn read_reference_sequences<R>(reader: &mut R) -> io::Result<ReferenceSequences>
@@ -223,22 +261,6 @@ mod tests {
                 Map::<map::ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
             )
             .build();
-
-        assert_eq!(actual, expected);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_read_raw_header() -> io::Result<()> {
-        let expected = "@HD\tVN:1.6\n";
-
-        let data_len = expected.len() as u32;
-        let mut data = data_len.to_le_bytes().to_vec();
-        data.extend(expected.as_bytes());
-
-        let mut reader = &data[..];
-        let actual = read_raw_header(&mut reader)?;
 
         assert_eq!(actual, expected);
 
