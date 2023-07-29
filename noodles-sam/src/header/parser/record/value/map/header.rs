@@ -1,6 +1,6 @@
-use std::{error, fmt, str};
+use std::{error, fmt};
 
-use super::field::{consume_delimiter, consume_separator, parse_tag, parse_value};
+use super::field::{consume_delimiter, consume_separator, parse_tag, parse_value, value};
 use crate::header::{
     parser::Context,
     record::value::{
@@ -22,12 +22,13 @@ use crate::header::{
 pub enum ParseError {
     InvalidField(super::field::ParseError),
     InvalidTag(super::field::tag::ParseError),
+    InvalidValue(value::ParseError),
     MissingVersion,
     InvalidVersion(version::ParseError),
     InvalidSortOrder(sort_order::ParseError),
     InvalidGroupOrder(group_order::ParseError),
     InvalidSubsortOrder(subsort_order::ParseError),
-    InvalidOther(Other<tag::Standard>, str::Utf8Error),
+    InvalidOther(Other<tag::Standard>, value::ParseError),
     DuplicateTag(Tag),
 }
 
@@ -51,6 +52,7 @@ impl fmt::Display for ParseError {
         match self {
             Self::InvalidField(_) => write!(f, "invalid field"),
             Self::InvalidTag(_) => write!(f, "invalid tag"),
+            Self::InvalidValue(_) => write!(f, "invalid value"),
             Self::MissingVersion => write!(f, "missing version ({}) field", tag::VERSION),
             Self::InvalidVersion(_) => write!(f, "invalid version"),
             Self::InvalidSortOrder(_) => write!(f, "invalid sort order"),

@@ -1,6 +1,6 @@
-use std::{error, fmt, str};
+use std::{error, fmt};
 
-use super::field::{consume_delimiter, consume_separator, parse_tag, parse_value};
+use super::field::{consume_delimiter, consume_separator, parse_tag, parse_value, value};
 use crate::header::{
     parser::Context,
     record::value::{
@@ -19,14 +19,15 @@ use crate::header::{
 pub enum ParseError {
     InvalidField(super::field::ParseError),
     InvalidTag(super::field::tag::ParseError),
+    InvalidValue(value::ParseError),
     MissingId,
-    InvalidId(str::Utf8Error),
-    InvalidName(str::Utf8Error),
-    InvalidCommandLine(str::Utf8Error),
-    InvalidPreviousId(str::Utf8Error),
-    InvalidDescription(str::Utf8Error),
-    InvalidVersion(str::Utf8Error),
-    InvalidOther(Other<tag::Standard>, str::Utf8Error),
+    InvalidId(value::ParseError),
+    InvalidName(value::ParseError),
+    InvalidCommandLine(value::ParseError),
+    InvalidPreviousId(value::ParseError),
+    InvalidDescription(value::ParseError),
+    InvalidVersion(value::ParseError),
+    InvalidOther(Other<tag::Standard>, value::ParseError),
     DuplicateTag(Tag),
 }
 
@@ -52,6 +53,7 @@ impl fmt::Display for ParseError {
         match self {
             Self::InvalidField(_) => write!(f, "invalid field"),
             Self::InvalidTag(_) => write!(f, "invalid tag"),
+            Self::InvalidValue(_) => write!(f, "invalid value"),
             Self::MissingId => write!(f, "missing ID field"),
             Self::InvalidId(_) => write!(f, "invalid ID"),
             Self::InvalidName(_) => write!(f, "invalid name ({})", tag::NAME),

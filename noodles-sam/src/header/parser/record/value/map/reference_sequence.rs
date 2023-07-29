@@ -1,6 +1,6 @@
-use std::{error, fmt, num::NonZeroUsize, str};
+use std::{error, fmt, num::NonZeroUsize};
 
-use super::field::{consume_delimiter, consume_separator, parse_tag, parse_value};
+use super::field::{consume_delimiter, consume_separator, parse_tag, parse_value, value};
 use crate::header::{
     parser::Context,
     record::value::{
@@ -22,19 +22,20 @@ use crate::header::{
 pub enum ParseError {
     InvalidField(super::field::ParseError),
     InvalidTag(super::field::tag::ParseError),
+    InvalidValue(value::ParseError),
     MissingName,
     InvalidName(crate::record::reference_sequence_name::ParseError),
     MissingLength,
     InvalidLength,
     InvalidAlternativeLocus(alternative_locus::ParseError),
     InvalidAlternativeNames(alternative_names::ParseError),
-    InvalidAssemblyId(str::Utf8Error),
-    InvalidDescription(str::Utf8Error),
+    InvalidAssemblyId(value::ParseError),
+    InvalidDescription(value::ParseError),
     InvalidMd5Checksum(md5_checksum::ParseError),
-    InvalidSpecies(str::Utf8Error),
+    InvalidSpecies(value::ParseError),
     InvalidMoleculeTopology(molecule_topology::ParseError),
-    InvalidUri(str::Utf8Error),
-    InvalidOther(Other<tag::Standard>, str::Utf8Error),
+    InvalidUri(value::ParseError),
+    InvalidOther(Other<tag::Standard>, value::ParseError),
     DuplicateTag(Tag),
 }
 
@@ -63,6 +64,7 @@ impl fmt::Display for ParseError {
         match self {
             Self::InvalidField(_) => write!(f, "invalid field"),
             Self::InvalidTag(_) => write!(f, "invalid tag"),
+            Self::InvalidValue(_) => write!(f, "invalid value"),
             Self::MissingName => write!(f, "missing name ({})", tag::NAME),
             Self::InvalidName(_) => write!(f, "invalid name ({})", tag::NAME),
             Self::MissingLength => write!(f, "missing length ({})", tag::LENGTH),
@@ -164,7 +166,7 @@ pub(crate) fn parse_reference_sequence(
 
 fn parse_name(src: &mut &[u8]) -> Result<Name, ParseError> {
     parse_value(src)
-        .map_err(|_| todo!())
+        .map_err(ParseError::InvalidValue)
         .and_then(|s| s.parse().map_err(ParseError::InvalidName))
 }
 

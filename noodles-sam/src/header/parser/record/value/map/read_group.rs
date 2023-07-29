@@ -1,6 +1,6 @@
-use std::{error, fmt, str};
+use std::{error, fmt};
 
-use super::field::{consume_delimiter, consume_separator, parse_tag, parse_value};
+use super::field::{consume_delimiter, consume_separator, parse_tag, parse_value, value};
 use crate::header::{
     parser::Context,
     record::value::{
@@ -19,22 +19,23 @@ use crate::header::{
 pub enum ParseError {
     InvalidField(super::field::ParseError),
     InvalidTag(super::field::tag::ParseError),
+    InvalidValue(value::ParseError),
     MissingId,
-    InvalidId(str::Utf8Error),
-    InvalidBarcode(str::Utf8Error),
-    InvalidSequencingCenter(str::Utf8Error),
-    InvalidDescription(str::Utf8Error),
-    InvalidProducedAt(str::Utf8Error),
-    InvalidFlowOrder(str::Utf8Error),
-    InvalidKeySequence(str::Utf8Error),
-    InvalidLibrary(str::Utf8Error),
-    InvalidProgram(str::Utf8Error),
+    InvalidId(value::ParseError),
+    InvalidBarcode(value::ParseError),
+    InvalidSequencingCenter(value::ParseError),
+    InvalidDescription(value::ParseError),
+    InvalidProducedAt(value::ParseError),
+    InvalidFlowOrder(value::ParseError),
+    InvalidKeySequence(value::ParseError),
+    InvalidLibrary(value::ParseError),
+    InvalidProgram(value::ParseError),
     InvalidPredictedMedianInsertSize(lexical_core::Error),
     InvalidPlatform(platform::ParseError),
-    InvalidPlatformModel(str::Utf8Error),
-    InvalidPlatformUnit(str::Utf8Error),
-    InvalidSample(str::Utf8Error),
-    InvalidOther(Other<tag::Standard>, str::Utf8Error),
+    InvalidPlatformModel(value::ParseError),
+    InvalidPlatformUnit(value::ParseError),
+    InvalidSample(value::ParseError),
+    InvalidOther(Other<tag::Standard>, value::ParseError),
     DuplicateTag(Tag),
 }
 
@@ -68,6 +69,7 @@ impl fmt::Display for ParseError {
         match self {
             Self::InvalidField(_) => write!(f, "invalid field"),
             Self::InvalidTag(_) => write!(f, "invalid tag"),
+            Self::InvalidValue(_) => write!(f, "invalid value"),
             Self::MissingId => write!(f, "missing ID"),
             Self::InvalidId(_) => write!(f, "invalid ID"),
             Self::InvalidBarcode(_) => write!(f, "invalid barcode ({})", tag::BARCODE),
