@@ -143,7 +143,7 @@ impl Map<ReadGroup> {
         self.inner.program.as_deref()
     }
 
-    /// Returns the predicted median insert size.
+    /// Returns the predicted median insert size, rounded to the nearest integer.
     ///
     /// # Examples
     ///
