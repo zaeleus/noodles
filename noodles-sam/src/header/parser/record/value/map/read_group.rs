@@ -267,7 +267,7 @@ fn parse_predicted_median_insert_size(src: &mut &[u8]) -> Result<i32, ParseError
 
 fn parse_platform(src: &mut &[u8]) -> Result<Platform, ParseError> {
     parse_value(src)
-        .map_err(|_| todo!())
+        .map_err(ParseError::InvalidValue)
         .and_then(|s| s.parse().map_err(ParseError::InvalidPlatform))
 }
 
