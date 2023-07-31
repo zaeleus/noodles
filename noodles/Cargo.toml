@@ -24,6 +24,7 @@ noodles-fastq = { path = "../noodles-fastq", version = "0.8.0", optional = true 
 noodles-gff = { path = "../noodles-gff", version = "0.17.0", optional = true }
 noodles-gtf = { path = "../noodles-gtf", version = "0.14.0", optional = true }
 noodles-htsget = { path = "../noodles-htsget", version = "0.2.0", optional = true }
+noodles-refget = { path = "../noodles-refget", version = "0.1.0", optional = true }
 noodles-sam = { path = "../noodles-sam", version = "0.37.0", optional = true }
 noodles-tabix = { path = "../noodles-tabix", version = "0.25.0", optional = true }
 noodles-vcf = { path = "../noodles-vcf", version = "0.34.0", optional = true }
@@ -43,6 +44,7 @@ fastq = ["dep:noodles-fastq"]
 gff = ["dep:noodles-gff"]
 gtf = ["dep:noodles-gtf"]
 htsget = ["dep:noodles-htsget"]
+refget = ["dep:noodles-refget"]
 sam = ["dep:noodles-sam"]
 tabix = ["dep:noodles-tabix"]
 vcf = ["dep:noodles-vcf"]

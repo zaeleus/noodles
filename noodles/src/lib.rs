@@ -2,7 +2,7 @@
 
 //! **noodles** attempts to provide correct implementations of libraries for handling various
 //! bioinformatics file formats. It currently supports BAM 1.6, BCF 2.2, BED, BGZF, CRAM 3.0/3.1,
-//! CSI, FASTA, FASTQ, GFF3, GTF 2.2, SAM 1.6, tabix, and VCF 4.3/4.4.
+//! CSI, FASTA, FASTQ, GFF3, GTF 2.2, refget 2.0, SAM 1.6, tabix, and VCF 4.3/4.4.
 
 #[cfg(feature = "bam")]
 #[doc(inline)]
@@ -51,6 +51,10 @@ pub use noodles_gtf as gtf;
 #[cfg(feature = "htsget")]
 #[doc(inline)]
 pub use noodles_htsget as htsget;
+
+#[cfg(feature = "refget")]
+#[doc(inline)]
+pub use noodles_refget as refget;
 
 #[cfg(feature = "sam")]
 #[doc(inline)]

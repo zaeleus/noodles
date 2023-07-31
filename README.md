@@ -6,8 +6,8 @@
 
 **noodles** attempts to provide correct implementations of libraries for
 handling various bioinformatics file formats. It currently supports BAM 1.6,
-BCF 2.2, BED, BGZF, CRAM 3.0/3.1, CSI, FASTA, FASTQ, GFF3, GTF 2.2, SAM 1.6,
-tabix, and VCF 4.3/4.4.
+BCF 2.2, BED, BGZF, CRAM 3.0/3.1, CSI, FASTA, FASTQ, GFF3, GTF 2.2, refget 2.0,
+SAM 1.6, tabix, and VCF 4.3/4.4.
 
 ## Usage
 
