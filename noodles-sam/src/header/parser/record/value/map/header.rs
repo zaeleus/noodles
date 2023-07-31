@@ -107,25 +107,25 @@ pub(crate) fn parse_header(src: &mut &[u8], ctx: &Context) -> Result<Map<Header>
 
 fn parse_version(src: &mut &[u8]) -> Result<Version, ParseError> {
     parse_value(src)
-        .map_err(|_| todo!())
+        .map_err(ParseError::InvalidValue)
         .and_then(|s| s.parse().map_err(ParseError::InvalidVersion))
 }
 
 fn parse_sort_order(src: &mut &[u8]) -> Result<SortOrder, ParseError> {
     parse_value(src)
-        .map_err(|_| todo!())
+        .map_err(ParseError::InvalidValue)
         .and_then(|s| s.parse().map_err(ParseError::InvalidSortOrder))
 }
 
 fn parse_group_order(src: &mut &[u8]) -> Result<GroupOrder, ParseError> {
     parse_value(src)
-        .map_err(|_| todo!())
+        .map_err(ParseError::InvalidValue)
         .and_then(|s| s.parse().map_err(ParseError::InvalidGroupOrder))
 }
 
 fn parse_subsort_order(src: &mut &[u8]) -> Result<SubsortOrder, ParseError> {
     parse_value(src)
-        .map_err(|_| todo!())
+        .map_err(ParseError::InvalidValue)
         .and_then(|s| s.parse().map_err(ParseError::InvalidSubsortOrder))
 }
 
