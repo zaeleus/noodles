@@ -13,9 +13,9 @@ documentation = "https://docs.rs/noodles-refget"
 [dependencies]
 bytes.workspace = true
 noodles-core = { path = "../noodles-core", version = "0.12.0" }
-reqwest = { version = "0.11.9", default-features = false, features = ["json", "rustls-tls", "stream"] }
-serde = { version = "1.0.136", features = ["derive"] }
-url = "2.2.2"
+reqwest.workspace = true
+serde.workspace = true
+url.workspace = true
 
 [dev-dependencies]
 serde_test = "1.0.137"
