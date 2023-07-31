@@ -181,13 +181,13 @@ fn parse_length(src: &mut &[u8]) -> Result<NonZeroUsize, ParseError> {
 
 fn parse_alternative_locus(src: &mut &[u8]) -> Result<AlternativeLocus, ParseError> {
     parse_value(src)
-        .map_err(|_| todo!())
+        .map_err(ParseError::InvalidValue)
         .and_then(|s| s.parse().map_err(ParseError::InvalidAlternativeLocus))
 }
 
 fn parse_alternative_names(src: &mut &[u8]) -> Result<AlternativeNames, ParseError> {
     parse_value(src)
-        .map_err(|_| todo!())
+        .map_err(ParseError::InvalidValue)
         .and_then(|s| s.parse().map_err(ParseError::InvalidAlternativeNames))
 }
 
@@ -205,7 +205,7 @@ fn parse_description(src: &mut &[u8]) -> Result<String, ParseError> {
 
 fn parse_md5_checksum(src: &mut &[u8]) -> Result<Md5Checksum, ParseError> {
     parse_value(src)
-        .map_err(|_| todo!())
+        .map_err(ParseError::InvalidValue)
         .and_then(|s| s.parse().map_err(ParseError::InvalidMd5Checksum))
 }
 
@@ -217,7 +217,7 @@ fn parse_species(src: &mut &[u8]) -> Result<String, ParseError> {
 
 fn parse_molecule_topology(src: &mut &[u8]) -> Result<MoleculeTopology, ParseError> {
     parse_value(src)
-        .map_err(|_| todo!())
+        .map_err(ParseError::InvalidValue)
         .and_then(|s| s.parse().map_err(ParseError::InvalidMoleculeTopology))
 }
 
