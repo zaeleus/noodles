@@ -76,6 +76,15 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_fmt() {
+        assert_eq!(Kind::Header.to_string(), "@HD");
+        assert_eq!(Kind::ReferenceSequence.to_string(), "@SQ");
+        assert_eq!(Kind::ReadGroup.to_string(), "@RG");
+        assert_eq!(Kind::Program.to_string(), "@PG");
+        assert_eq!(Kind::Comment.to_string(), "@CO");
+    }
+
+    #[test]
     fn test_from_str() {
         assert_eq!("@HD".parse(), Ok(Kind::Header));
         assert_eq!("@SQ".parse(), Ok(Kind::ReferenceSequence));
