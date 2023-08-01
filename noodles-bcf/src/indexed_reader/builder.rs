@@ -17,6 +17,12 @@ pub struct Builder {
 }
 
 impl Builder {
+    /// Sets an index.
+    pub fn set_index(mut self, index: csi::Index) -> Self {
+        self.index = Some(index);
+        self
+    }
+
     /// Builds an indexed BCF reader from a path.
     pub fn build_from_path<P>(self, src: P) -> io::Result<IndexedReader<bgzf::Reader<File>>>
     where

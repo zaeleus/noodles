@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bcf/indexed_reader/builder: Add index setter (`Builder::set_index`).
+
 ## 0.31.0 - 2023-07-06
 
 ### Changed
