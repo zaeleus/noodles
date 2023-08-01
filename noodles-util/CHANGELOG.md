@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * util/variant/indexed_reader/builder: Add index setter
+    (`Builder::set_index`).
+
 ## 0.18.0 - 2023-07-27
 
 ### Changed
