@@ -1,5 +1,8 @@
-use std::{error, fmt, num::NonZeroUsize};
+mod length;
 
+use std::{error, fmt};
+
+use self::length::parse_length;
 use super::field::{consume_delimiter, consume_separator, parse_tag, parse_value, value};
 use crate::header::{
     parser::Context,
@@ -26,7 +29,7 @@ pub enum ParseError {
     MissingName,
     InvalidName(crate::record::reference_sequence_name::ParseError),
     MissingLength,
-    InvalidLength,
+    InvalidLength(length::ParseError),
     InvalidAlternativeLocus(alternative_locus::ParseError),
     InvalidAlternativeNames(alternative_names::ParseError),
     InvalidAssemblyId(value::ParseError),
@@ -45,6 +48,7 @@ impl error::Error for ParseError {
             Self::InvalidField(e) => Some(e),
             Self::InvalidTag(e) => Some(e),
             Self::InvalidName(e) => Some(e),
+            Self::InvalidLength(e) => Some(e),
             Self::InvalidAlternativeLocus(e) => Some(e),
             Self::InvalidAlternativeNames(e) => Some(e),
             Self::InvalidAssemblyId(e) => Some(e),
@@ -68,7 +72,7 @@ impl fmt::Display for ParseError {
             Self::MissingName => write!(f, "missing name ({})", tag::NAME),
             Self::InvalidName(_) => write!(f, "invalid name ({})", tag::NAME),
             Self::MissingLength => write!(f, "missing length ({})", tag::LENGTH),
-            Self::InvalidLength => write!(f, "invalid length ({})", tag::LENGTH),
+            Self::InvalidLength(_) => write!(f, "invalid length ({})", tag::LENGTH),
             Self::InvalidAlternativeLocus(_) => {
                 write!(f, "invalid alternative locus ({})", tag::ALTERNATIVE_LOCUS)
             }
@@ -115,9 +119,9 @@ pub(crate) fn parse_reference_sequence(
 
         match tag {
             tag::NAME => parse_name(src).and_then(|v| try_replace(&mut name, ctx, tag::NAME, v))?,
-            tag::LENGTH => {
-                parse_length(src).and_then(|v| try_replace(&mut length, ctx, tag::LENGTH, v))?
-            }
+            tag::LENGTH => parse_length(src)
+                .map_err(ParseError::InvalidLength)
+                .and_then(|v| try_replace(&mut length, ctx, tag::LENGTH, v))?,
             tag::ALTERNATIVE_LOCUS => parse_alternative_locus(src).and_then(|v| {
                 try_replace(&mut alternative_locus, ctx, tag::ALTERNATIVE_LOCUS, v)
             })?,
@@ -168,15 +172,6 @@ fn parse_name(src: &mut &[u8]) -> Result<Name, ParseError> {
     parse_value(src)
         .map_err(ParseError::InvalidValue)
         .and_then(|s| s.parse().map_err(ParseError::InvalidName))
-}
-
-fn parse_length(src: &mut &[u8]) -> Result<NonZeroUsize, ParseError> {
-    let (n, i) =
-        lexical_core::parse_partial::<usize>(src).map_err(|_| ParseError::InvalidLength)?;
-
-    *src = &src[i..];
-
-    NonZeroUsize::try_from(n).map_err(|_| ParseError::InvalidLength)
 }
 
 fn parse_alternative_locus(src: &mut &[u8]) -> Result<AlternativeLocus, ParseError> {
@@ -264,6 +259,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::num::NonZeroUsize;
+
     use super::*;
 
     #[test]
@@ -311,15 +308,15 @@ mod tests {
         let ctx = Context::default();
 
         let mut src = &b"\tSN:sq0\tLN:NA"[..];
-        assert_eq!(
+        assert!(matches!(
             parse_reference_sequence(&mut src, &ctx),
-            Err(ParseError::InvalidLength)
-        );
+            Err(ParseError::InvalidLength(_))
+        ));
 
         let mut src = &b"\tSN:sq0\tLN:0"[..];
-        assert_eq!(
+        assert!(matches!(
             parse_reference_sequence(&mut src, &ctx),
-            Err(ParseError::InvalidLength)
-        );
+            Err(ParseError::InvalidLength(_))
+        ));
     }
 }
