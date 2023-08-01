@@ -9,9 +9,9 @@
 
 ## 0.18.0 - 2023-07-27
 
-### Changed
+### Added
 
-  * util: Sync dependencies.
+  * util/variant: Add an indexed reader (`variant::IndexedReader`).
 
 ## 0.17.0 - 2023-07-20
 
