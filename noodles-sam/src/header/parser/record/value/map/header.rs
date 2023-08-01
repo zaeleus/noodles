@@ -54,10 +54,12 @@ impl fmt::Display for ParseError {
             Self::InvalidTag(_) => write!(f, "invalid tag"),
             Self::InvalidValue(_) => write!(f, "invalid value"),
             Self::MissingVersion => write!(f, "missing version ({}) field", tag::VERSION),
-            Self::InvalidVersion(_) => write!(f, "invalid version"),
-            Self::InvalidSortOrder(_) => write!(f, "invalid sort order"),
-            Self::InvalidGroupOrder(_) => write!(f, "invalid group order"),
-            Self::InvalidSubsortOrder(_) => write!(f, "invalid subsort order"),
+            Self::InvalidVersion(_) => write!(f, "invalid version ({})", tag::VERSION),
+            Self::InvalidSortOrder(_) => write!(f, "invalid sort order ({})", tag::SORT_ORDER),
+            Self::InvalidGroupOrder(_) => write!(f, "invalid group order ({})", tag::GROUP_ORDER),
+            Self::InvalidSubsortOrder(_) => {
+                write!(f, "invalid subsort order ({})", tag::SUBSORT_ORDER)
+            }
             Self::InvalidOther(tag, _) => write!(f, "invalid other ({tag})"),
             Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
         }
