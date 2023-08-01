@@ -131,7 +131,7 @@ impl Builder {
         }
     }
 
-    /// Builds an indexed variant reader from a path.
+    /// Builds an indexed variant reader from a reader.
     ///
     /// The compression method and format will be autodetected, if not overridden. An index must be
     /// set (`[Self::set_index]`). The reader must be a bgzip-compressed stream.
