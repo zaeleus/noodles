@@ -7,6 +7,8 @@
   * util/variant/indexed_reader/builder: Add index setter
     (`Builder::set_index`).
 
+  * util/variant/indexed_reader/builder: Add `Builder::build_from_reader`.
+
 ## 0.18.0 - 2023-07-27
 
 ### Added

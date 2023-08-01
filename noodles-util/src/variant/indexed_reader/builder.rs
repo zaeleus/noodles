@@ -1,6 +1,6 @@
 use std::{
     fs::File,
-    io::{self, BufReader},
+    io::{self, BufReader, Read},
     path::Path,
 };
 
@@ -9,7 +9,10 @@ use noodles_csi as csi;
 use noodles_vcf as vcf;
 
 use super::IndexedReader;
-use crate::variant::{Compression, Format};
+use crate::variant::{
+    reader::builder::{detect_compression, detect_format},
+    Compression, Format,
+};
 
 /// An indexed variant reader builder.
 #[derive(Default)]
@@ -31,8 +34,6 @@ impl Builder {
     where
         P: AsRef<Path>,
     {
-        use crate::variant::reader::builder::{detect_compression, detect_format};
-
         let mut reader = File::open(src.as_ref()).map(BufReader::new)?;
 
         let compression = match self.compression {
@@ -63,6 +64,51 @@ impl Builder {
                 }
 
                 builder.build_from_path(src).map(IndexedReader::Bcf)
+            }
+            (_, None) => Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "source not bgzip-compressed",
+            )),
+        }
+    }
+
+    /// Builds an indexed variant reader from a path.
+    pub fn build_from_reader<R>(self, reader: R) -> io::Result<IndexedReader<R>>
+    where
+        R: Read,
+    {
+        let mut buf_reader = BufReader::new(reader);
+
+        let compression = match self.compression {
+            Some(compression) => compression,
+            None => detect_compression(&mut buf_reader)?,
+        };
+
+        let format = match self.format {
+            Some(format) => format,
+            None => detect_format(&mut buf_reader, compression)?,
+        };
+
+        let reader = buf_reader.into_inner();
+
+        match (format, compression) {
+            (Format::Vcf, Some(Compression::Bgzf)) => {
+                let mut builder = vcf::indexed_reader::Builder::default();
+
+                if let Some(index) = self.index {
+                    builder = builder.set_index(index);
+                }
+
+                builder.build_from_reader(reader).map(IndexedReader::Vcf)
+            }
+            (Format::Bcf, Some(Compression::Bgzf)) => {
+                let mut builder = bcf::indexed_reader::Builder::default();
+
+                if let Some(index) = self.index {
+                    builder = builder.set_index(index);
+                }
+
+                builder.build_from_reader(reader).map(IndexedReader::Bcf)
             }
             (_, None) => Err(io::Error::new(
                 io::ErrorKind::InvalidData,
