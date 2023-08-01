@@ -1,7 +1,7 @@
 use std::{
     ffi::{OsStr, OsString},
     fs::File,
-    io,
+    io::{self, Read},
     path::{Path, PathBuf},
 };
 
@@ -38,6 +38,18 @@ impl Builder {
         };
 
         Ok(IndexedReader::new(file, index))
+    }
+
+    /// Builds an indexed BCF reader from a reader.
+    pub fn build_from_reader<R>(self, reader: R) -> io::Result<IndexedReader<bgzf::Reader<R>>>
+    where
+        R: Read,
+    {
+        let index = self
+            .index
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing index"))?;
+
+        Ok(IndexedReader::new(reader, index))
     }
 }
 

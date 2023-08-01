@@ -6,6 +6,8 @@
 
   * bcf/indexed_reader/builder: Add index setter (`Builder::set_index`).
 
+  * bcf/indexed_reader/builder: Add `Builder::build_from_reader`.
+
 ## 0.31.0 - 2023-07-06
 
 ### Changed
