@@ -25,7 +25,7 @@ impl Builder {
         self
     }
 
-    /// Set a GZ index.
+    /// Sets a GZ index.
     pub fn set_index(mut self, index: gzi::Index) -> Self {
         self.index = Some(index);
         self
