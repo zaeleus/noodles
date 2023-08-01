@@ -23,6 +23,12 @@ pub struct Builder {
 }
 
 impl Builder {
+    /// Sets the compression of the input.
+    pub fn set_compression(mut self, compression: Option<Compression>) -> Self {
+        self.compression = Some(compression);
+        self
+    }
+
     /// Sets an index.
     pub fn set_index(mut self, index: csi::Index) -> Self {
         self.index = Some(index);

@@ -4,8 +4,8 @@
 
 ### Added
 
-  * util/variant/indexed_reader/builder: Add index setter
-    (`Builder::set_index`).
+  * util/variant/indexed_reader/builder: Add compression
+    (`Builder::set_compression`) and index setters (`Builder::set_index`).
 
   * util/variant/indexed_reader/builder: Add `Builder::build_from_reader`.
 
