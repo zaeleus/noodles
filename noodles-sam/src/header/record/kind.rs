@@ -31,7 +31,7 @@ impl AsRef<str> for Kind {
 
 impl fmt::Display for Kind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "@{}", self.as_ref())
+        self.as_ref().fmt(f)
     }
 }
 
@@ -77,11 +77,11 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        assert_eq!(Kind::Header.to_string(), "@HD");
-        assert_eq!(Kind::ReferenceSequence.to_string(), "@SQ");
-        assert_eq!(Kind::ReadGroup.to_string(), "@RG");
-        assert_eq!(Kind::Program.to_string(), "@PG");
-        assert_eq!(Kind::Comment.to_string(), "@CO");
+        assert_eq!(Kind::Header.to_string(), "HD");
+        assert_eq!(Kind::ReferenceSequence.to_string(), "SQ");
+        assert_eq!(Kind::ReadGroup.to_string(), "RG");
+        assert_eq!(Kind::Program.to_string(), "PG");
+        assert_eq!(Kind::Comment.to_string(), "CO");
     }
 
     #[test]

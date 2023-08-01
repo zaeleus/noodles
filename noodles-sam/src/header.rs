@@ -1,7 +1,7 @@
 //! SAM header and records.
 //!
-//! A SAM header is a list of header records. There are 5 record types: [header] (`@HD`),
-//! [reference sequence] (`@SQ`), [read group] (`@RG`), [program] (`@PG`), and comment (`@CO`).
+//! A SAM header is a list of header records. There are 5 record types: [header] (`HD`), [reference
+//! sequence] (`SQ`), [read group] (`RG`), [program] (`PG`), and comment (`CO`).
 //!
 //! Each record is effectively a map. It defines key-value pairs associated with that record type.
 //!
@@ -404,14 +404,17 @@ impl fmt::Display for Header {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use self::record::Kind;
 
+        const PREFIX: char = '@';
+
         if let Some(header) = self.header() {
-            writeln!(f, "{}\t{}", Kind::Header, header)?;
+            writeln!(f, "{}{}\t{}", PREFIX, Kind::Header, header)?;
         }
 
         for (name, reference_sequence) in &self.reference_sequences {
             writeln!(
                 f,
-                "{}\tSN:{}{}",
+                "{}{}\tSN:{}{}",
+                PREFIX,
                 Kind::ReferenceSequence,
                 name,
                 reference_sequence
@@ -419,15 +422,15 @@ impl fmt::Display for Header {
         }
 
         for (id, read_group) in &self.read_groups {
-            writeln!(f, "{}\tID:{}{}", Kind::ReadGroup, id, read_group)?;
+            writeln!(f, "{}{}\tID:{}{}", PREFIX, Kind::ReadGroup, id, read_group)?;
         }
 
         for (id, program) in &self.programs {
-            writeln!(f, "{}\tID:{}{}", Kind::Program, id, program)?;
+            writeln!(f, "{}{}\tID:{}{}", PREFIX, Kind::Program, id, program)?;
         }
 
         for comment in &self.comments {
-            writeln!(f, "{}\t{}", Kind::Comment, comment)?;
+            writeln!(f, "{}{}\t{}", PREFIX, Kind::Comment, comment)?;
         }
 
         Ok(())

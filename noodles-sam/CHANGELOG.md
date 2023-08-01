@@ -8,6 +8,10 @@
 
     This allows raw headers to be parsed line by line.
 
+  * sam/header/record/kind: Remove prefix from display format.
+
+    `Kind` no longer is written with the `@` prefix.
+
 ## 0.37.0 - 2023-07-27
 
 ### Changed
