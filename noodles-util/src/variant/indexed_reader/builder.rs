@@ -29,6 +29,12 @@ impl Builder {
         self
     }
 
+    /// Sets the format of the input.
+    pub fn set_format(mut self, format: Format) -> Self {
+        self.format = Some(format);
+        self
+    }
+
     /// Sets an index.
     pub fn set_index(mut self, index: csi::Index) -> Self {
         self.index = Some(index);

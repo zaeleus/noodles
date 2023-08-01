@@ -5,7 +5,8 @@
 ### Added
 
   * util/variant/indexed_reader/builder: Add compression
-    (`Builder::set_compression`) and index setters (`Builder::set_index`).
+    (`Builder::set_compression`), format (`Builder::set_format`), and index
+    setters (`Builder::set_index`).
 
   * util/variant/indexed_reader/builder: Add `Builder::build_from_reader`.
 
