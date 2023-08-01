@@ -44,7 +44,13 @@ impl error::Error for ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::UnexpectedHeader => f.write_str("unexpected @HD"),
+            Self::UnexpectedHeader => {
+                write!(
+                    f,
+                    "unexpected header ({}) record",
+                    super::record::Kind::Header
+                )
+            }
             Self::InvalidRecord(_) => f.write_str("invalid record"),
             Self::DuplicateReferenceSequenceName(name) => {
                 write!(f, "duplicate reference sequence name: {name}")
