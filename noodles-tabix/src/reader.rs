@@ -256,13 +256,20 @@ where
             usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })?;
 
-        if id == METADATA_ID {
-            metadata = read_metadata(reader).map(Some)?;
+        let is_duplicate = if id == METADATA_ID {
+            let m = read_metadata(reader)?;
+            metadata.replace(m).is_some()
         } else {
             let chunks = read_chunks(reader)?;
             let bin = Bin::new(bgzf::VirtualPosition::default(), chunks);
-            // TODO: Check for duplicates.
-            bins.insert(id, bin);
+            bins.insert(id, bin).is_some()
+        };
+
+        if is_duplicate {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("duplicate bin ID: {id}"),
+            ));
         }
     }
 
