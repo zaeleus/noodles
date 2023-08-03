@@ -1,7 +1,10 @@
+//! Nonstandard GFF directive name.
+
 use std::{error, fmt, str::FromStr};
 
+/// A nonstandard GFF directive name.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Other(pub String);
+pub struct Other(pub(crate) String);
 
 impl AsRef<str> for Other {
     fn as_ref(&self) -> &str {
@@ -12,6 +15,12 @@ impl AsRef<str> for Other {
 impl fmt::Display for Other {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.as_ref().fmt(f)
+    }
+}
+
+impl PartialEq<str> for Other {
+    fn eq(&self, other: &str) -> bool {
+        self.0.eq(other)
     }
 }
 

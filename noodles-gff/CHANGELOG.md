@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * gff/directive: Add support for nonstandard directives ([#190]).
+
+    Nonstandard directives are now parsed as `Directive::Other(name::Other,
+    Option<String>)`.
+
+[#190]: https://github.com/zaeleus/noodles/issues/190
+
 ## 0.17.0 - 2023-07-20
 
 ### Added

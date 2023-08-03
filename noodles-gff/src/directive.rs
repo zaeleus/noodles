@@ -2,7 +2,7 @@
 
 pub mod genome_build;
 pub mod gff_version;
-mod name;
+pub mod name;
 pub mod sequence_region;
 
 pub use self::{
@@ -39,6 +39,8 @@ pub enum Directive {
     /// A marker indicating the end of the records list and start of a bundled reference sequences
     /// (`FASTA`).
     StartOfFasta,
+    /// A nonstandard directive.
+    Other(name::Other, Option<String>),
 }
 
 impl fmt::Display for Directive {
@@ -53,6 +55,15 @@ impl fmt::Display for Directive {
             Self::GenomeBuild(genome_build) => write!(f, "{genome_build}"),
             Self::ForwardReferencesAreResolved => write!(f, "{PREFIX}#"),
             Self::StartOfFasta => write!(f, "{PREFIX}FASTA"),
+            Self::Other(name, value) => {
+                write!(f, "{PREFIX}{name}")?;
+
+                if let Some(v) = value {
+                    write!(f, " {v}")?;
+                }
+
+                Ok(())
+            }
         }
     }
 }
@@ -147,7 +158,10 @@ impl FromStr for Directive {
                 .map(Self::GenomeBuild),
             name::FORWARD_REFERENCES_ARE_RESOLVED => Ok(Self::ForwardReferencesAreResolved),
             name::START_OF_FASTA => Ok(Self::StartOfFasta),
-            _ => todo!(),
+            Name::Other(name) => {
+                let value = components.next().map(String::from);
+                Ok(Self::Other(name, value))
+            }
         }
     }
 }
@@ -157,7 +171,25 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_fmt() {
+    fn test_from_str() -> Result<(), name::other::ParseError> {
+        assert_eq!(
+            "##noodles".parse(),
+            Ok(Directive::Other("noodles".parse()?, None)),
+        );
+
+        assert_eq!(
+            "##noodles gff".parse(),
+            Ok(Directive::Other(
+                "noodles".parse()?,
+                Some(String::from("gff"))
+            )),
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_fmt() -> Result<(), name::other::ParseError> {
         assert_eq!(
             Directive::GffVersion(GffVersion::default()).to_string(),
             "##gff-version 3"
@@ -192,5 +224,13 @@ mod tests {
 
         assert_eq!(Directive::ForwardReferencesAreResolved.to_string(), "###");
         assert_eq!(Directive::StartOfFasta.to_string(), "##FASTA");
+
+        let directive = Directive::Other("noodles".parse()?, None);
+        assert_eq!(directive.to_string(), "##noodles");
+
+        let directive = Directive::Other("noodles".parse()?, Some(String::from("gff")));
+        assert_eq!(directive.to_string(), "##noodles gff");
+
+        Ok(())
     }
 }
