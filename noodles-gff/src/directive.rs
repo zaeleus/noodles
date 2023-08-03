@@ -2,6 +2,7 @@
 
 pub mod genome_build;
 pub mod gff_version;
+mod name;
 pub mod sequence_region;
 
 pub use self::{
@@ -9,6 +10,8 @@ pub use self::{
 };
 
 use std::{error, fmt, str::FromStr};
+
+use self::name::Name;
 
 pub(crate) const PREFIX: &str = "##";
 
@@ -61,8 +64,6 @@ pub enum ParseError {
     MissingPrefix,
     /// The directive name is missing.
     MissingName,
-    /// The directive name is invalid.
-    InvalidName(String),
     /// The directive value is missing.
     MissingValue,
     /// The GFF version is invalid.
@@ -89,7 +90,6 @@ impl fmt::Display for ParseError {
         match self {
             Self::MissingPrefix => f.write_str("directive prefix is missing"),
             Self::MissingName => f.write_str("directive name is missing"),
-            Self::InvalidName(s) => write!(f, "invalid directive name: {s}"),
             Self::MissingValue => f.write_str("directive value is missing"),
             Self::InvalidGffVersion(_) => f.write_str("invalid GFF version"),
             Self::InvalidSequenceRegion(_) => f.write_str("invalid sequence region"),
@@ -108,43 +108,46 @@ impl FromStr for Directive {
 
         let mut components = s[PREFIX.len()..].splitn(2, |c: char| c.is_ascii_whitespace());
 
-        let name = components.next().ok_or(ParseError::MissingName)?;
+        let name = components
+            .next()
+            .map(Name::from)
+            .ok_or(ParseError::MissingName)?;
 
         match name {
-            "gff-version" => components
+            name::GFF_VERSION => components
                 .next()
                 .ok_or(ParseError::MissingValue)
                 .and_then(|s| s.parse().map_err(ParseError::InvalidGffVersion))
                 .map(Self::GffVersion),
-            "sequence-region" => components
+            name::SEQUENCE_REGION => components
                 .next()
                 .ok_or(ParseError::MissingValue)
                 .and_then(|s| s.parse().map_err(ParseError::InvalidSequenceRegion))
                 .map(Self::SequenceRegion),
-            "feature-ontology" => components
+            name::FEATURE_ONTOLOGY => components
                 .next()
                 .map(|s| Self::FeatureOntology(s.into()))
                 .ok_or(ParseError::MissingValue),
-            "attribute-ontology" => components
+            name::ATTRIBUTE_ONTOLOGY => components
                 .next()
                 .map(|s| Self::AttributeOntology(s.into()))
                 .ok_or(ParseError::MissingValue),
-            "source-ontology" => components
+            name::SOURCE_ONTOLOGY => components
                 .next()
                 .map(|s| Self::SourceOntology(s.into()))
                 .ok_or(ParseError::MissingValue),
-            "species" => components
+            name::SPECIES => components
                 .next()
                 .map(|s| Self::Species(s.into()))
                 .ok_or(ParseError::MissingValue),
-            "genome-build" => components
+            name::GENOME_BUILD => components
                 .next()
                 .ok_or(ParseError::MissingValue)
                 .and_then(|s| s.parse().map_err(ParseError::InvalidGenomeBuild))
                 .map(Self::GenomeBuild),
-            "#" => Ok(Self::ForwardReferencesAreResolved),
-            "FASTA" => Ok(Self::StartOfFasta),
-            _ => Err(ParseError::InvalidName(name.into())),
+            name::FORWARD_REFERENCES_ARE_RESOLVED => Ok(Self::ForwardReferencesAreResolved),
+            name::START_OF_FASTA => Ok(Self::StartOfFasta),
+            _ => todo!(),
         }
     }
 }
