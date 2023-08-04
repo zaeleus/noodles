@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * util/variant/indexed_reader/builder: Avoid discarding buffer after file
+    type detection.
+
 ## 0.19.0 - 2023-08-03
 
 ### Added

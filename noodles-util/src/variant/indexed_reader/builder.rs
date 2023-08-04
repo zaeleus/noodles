@@ -154,23 +154,21 @@ impl Builder {
     ///     .build_from_reader(&data[..])?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn build_from_reader<R>(self, reader: R) -> io::Result<IndexedReader<R>>
+    pub fn build_from_reader<R>(self, reader: R) -> io::Result<IndexedReader<BufReader<R>>>
     where
         R: Read,
     {
-        let mut buf_reader = BufReader::new(reader);
+        let mut reader = BufReader::new(reader);
 
         let compression = match self.compression {
             Some(compression) => compression,
-            None => detect_compression(&mut buf_reader)?,
+            None => detect_compression(&mut reader)?,
         };
 
         let format = match self.format {
             Some(format) => format,
-            None => detect_format(&mut buf_reader, compression)?,
+            None => detect_format(&mut reader, compression)?,
         };
-
-        let reader = buf_reader.into_inner();
 
         match (format, compression) {
             (Format::Vcf, Some(Compression::Bgzf)) => {
@@ -196,5 +194,29 @@ impl Builder {
                 "source not bgzip-compressed",
             )),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_build_from_reader() -> io::Result<()> {
+        let mut writer = bcf::Writer::new(Vec::new());
+        let header = vcf::Header::default();
+        writer.write_header(&header)?;
+        writer.try_finish()?;
+        let data = writer.into_inner().into_inner();
+
+        let index = csi::Index::default();
+
+        let mut reader = Builder::default()
+            .set_index(index)
+            .build_from_reader(&data[..])?;
+
+        reader.read_header()?;
+
+        Ok(())
     }
 }
