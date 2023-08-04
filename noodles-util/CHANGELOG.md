@@ -21,7 +21,9 @@
 
 ### Added
 
-  * util/variant: Add an indexed reader (`variant::IndexedReader`).
+  * util/variant: Add an indexed reader (`variant::IndexedReader`) ([#188]).
+
+[#188]: https://github.com/zaeleus/noodles/issues/188
 
 ## 0.17.0 - 2023-07-20
 
