@@ -2,6 +2,8 @@
 
 use std::{fmt, num, str::FromStr};
 
+use noodles_core as core;
+
 /// A VCF record position.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Position(usize);
@@ -32,6 +34,12 @@ impl From<usize> for Position {
 impl From<Position> for usize {
     fn from(position: Position) -> Self {
         position.0
+    }
+}
+
+impl PartialEq<core::Position> for Position {
+    fn eq(&self, other: &core::Position) -> bool {
+        self.0.eq(&usize::from(*other))
     }
 }
 
@@ -75,5 +83,16 @@ mod tests {
         assert_eq!(usize::from(Position::from(0)), 0);
         assert_eq!(usize::from(Position::from(8)), 8);
         assert_eq!(usize::from(Position::from(13)), 13);
+    }
+
+    #[test]
+    fn test_partial_eq_core_position_for_position() {
+        let q = core::Position::MIN;
+
+        let p = Position::from(1);
+        assert_eq!(p, q);
+
+        let p = Position::from(0);
+        assert_ne!(p, q);
     }
 }

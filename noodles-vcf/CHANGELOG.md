@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * vcf/record/position: Implement `PartialEq<core::Position>` for `Position`.
+
 ## 0.35.0 - 2023-08-03
 
 ### Changed
