@@ -1,6 +1,6 @@
 //! VCF record position.
 
-use std::{fmt, num, str::FromStr};
+use std::{cmp::Ordering, fmt, num, str::FromStr};
 
 use noodles_core as core;
 
@@ -40,6 +40,16 @@ impl From<Position> for usize {
 impl PartialEq<core::Position> for Position {
     fn eq(&self, other: &core::Position) -> bool {
         self.0.eq(&usize::from(*other))
+    }
+}
+
+impl PartialOrd<core::Position> for Position {
+    fn partial_cmp(&self, other: &core::Position) -> Option<Ordering> {
+        if self.0 == 0 {
+            None
+        } else {
+            self.0.partial_cmp(&usize::from(*other))
+        }
     }
 }
 
@@ -94,5 +104,38 @@ mod tests {
 
         let p = Position::from(0);
         assert_ne!(p, q);
+    }
+
+    #[allow(clippy::nonminimal_bool)]
+    #[test]
+    fn test_partial_ord_core_position_for_position() -> Result<(), core::position::TryFromIntError>
+    {
+        let q = core::Position::try_from(8)?;
+
+        let p = Position::from(7);
+        assert!(p < q);
+        assert!(p <= q);
+        assert!(!(p >= q));
+        assert!(!(p > q));
+
+        let p = Position::from(8);
+        assert!(!(p < q));
+        assert!(p <= q);
+        assert!(p >= q);
+        assert!(!(p > q));
+
+        let p = Position::from(9);
+        assert!(!(p < q));
+        assert!(!(p <= q));
+        assert!(p >= q);
+        assert!(p > q);
+
+        let p = Position::from(0);
+        assert!(!(p < q));
+        assert!(!(p <= q));
+        assert!(!(p >= q));
+        assert!(!(p > q));
+
+        Ok(())
     }
 }
