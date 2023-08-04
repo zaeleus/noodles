@@ -7,6 +7,8 @@
   * vcf/record/position: Implement `PartialEq<core::Position>` and
     `PartialOrd<core::Position>` for `Position` ([#191]).
 
+  * vcf/record/position: Implement `From<core::Position>` for `Position`.
+
 [#191]: https://github.com/zaeleus/noodles/issues/191
 
 ## 0.35.0 - 2023-08-03

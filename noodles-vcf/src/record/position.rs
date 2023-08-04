@@ -31,6 +31,12 @@ impl From<usize> for Position {
     }
 }
 
+impl From<core::Position> for Position {
+    fn from(position: core::Position) -> Self {
+        Self::from(usize::from(position))
+    }
+}
+
 impl From<Position> for usize {
     fn from(position: Position) -> Self {
         position.0
