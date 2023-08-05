@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * util/alignment: Add an indexed reader (`alignment::IndexedReader`).
+
 ## 0.19.1 - 2023-08-04
 
 ### Fixed

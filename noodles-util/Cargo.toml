@@ -14,6 +14,7 @@ documentation = "https://docs.rs/noodles-util"
 alignment = [
   "dep:noodles-bam",
   "dep:noodles-bgzf",
+  "dep:noodles-core",
   "dep:noodles-cram",
   "dep:noodles-fasta",
   "dep:noodles-sam",

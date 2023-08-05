@@ -130,7 +130,7 @@ impl Builder {
     }
 }
 
-fn detect_format<R>(reader: &mut R) -> io::Result<Format>
+pub(crate) fn detect_format<R>(reader: &mut R) -> io::Result<Format>
 where
     R: BufRead,
 {
