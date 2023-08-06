@@ -18,6 +18,12 @@ pub struct Builder {
 }
 
 impl Builder {
+    /// Sets the format of the input.
+    pub fn set_format(mut self, format: Format) -> Self {
+        self.format = Some(format);
+        self
+    }
+
     /// Builds an indexed alignment reader from a path.
     pub fn build_from_path<P>(self, src: P) -> io::Result<IndexedReader<File>>
     where
