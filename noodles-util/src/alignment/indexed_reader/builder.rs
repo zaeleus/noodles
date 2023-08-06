@@ -6,6 +6,7 @@ use std::{
 
 use noodles_bam as bam;
 use noodles_cram as cram;
+use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 use super::IndexedReader;
@@ -15,12 +16,22 @@ use crate::alignment::Format;
 #[derive(Default)]
 pub struct Builder {
     format: Option<Format>,
+    reference_sequence_repository: fasta::Repository,
 }
 
 impl Builder {
     /// Sets the format of the input.
     pub fn set_format(mut self, format: Format) -> Self {
         self.format = Some(format);
+        self
+    }
+
+    /// Sets the reference sequence repository.
+    pub fn set_reference_sequence_repository(
+        mut self,
+        reference_sequence_repository: fasta::Repository,
+    ) -> Self {
+        self.reference_sequence_repository = reference_sequence_repository;
         self
     }
 
@@ -50,6 +61,7 @@ impl Builder {
                 .build_from_path(src)
                 .map(IndexedReader::Bam),
             Format::Cram => cram::indexed_reader::Builder::default()
+                .set_reference_sequence_repository(self.reference_sequence_repository)
                 .build_from_path(src)
                 .map(IndexedReader::Cram),
         }
