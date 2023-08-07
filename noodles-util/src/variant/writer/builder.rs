@@ -57,7 +57,7 @@ impl Builder {
 
     /// Builds a variant writer from a path.
     ///
-    /// If the format or compression is not set, it is detected from the path extension.
+    /// If the format or compression method is not set, it is detected from the path extension.
     ///
     /// # Examples
     ///
@@ -87,8 +87,8 @@ impl Builder {
 
     /// Builds a variant writer from a writer.
     ///
-    /// If the format is not set, VCF format is used. If the compression is not set, no compression
-    /// is used.
+    /// If the format is not set, VCF format is used. If the compression method is not set, a
+    /// default one is used depending on the format.
     ///
     /// # Examples
     ///
