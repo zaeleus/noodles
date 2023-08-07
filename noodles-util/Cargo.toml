@@ -16,6 +16,7 @@ alignment = [
   "dep:noodles-bgzf",
   "dep:noodles-core",
   "dep:noodles-cram",
+  "dep:noodles-csi",
   "dep:noodles-fasta",
   "dep:noodles-sam",
 ]
