@@ -100,10 +100,7 @@ impl Builder {
     /// ```
     /// # use std::io;
     /// use noodles_util::variant::{self, Compression, Format};
-    ///
-    /// let writer = variant::writer::Builder::default()
-    ///     .set_format(Format::Vcf)
-    ///     .build_from_writer(io::sink());
+    /// let writer = variant::writer::Builder::default().build_from_writer(io::sink());
     /// ```
     pub fn build_from_writer<W>(self, writer: W) -> Writer
     where
