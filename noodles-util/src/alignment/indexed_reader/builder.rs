@@ -47,12 +47,32 @@ pub struct Builder {
 
 impl Builder {
     /// Sets the compression method.
+    ///
+    /// By default, the compression method is autodetected on build. This can be used to override
+    /// it, but note that only bgzip-compressed streams can be indexed.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_util::alignment::{self, CompressionMethod};
+    /// let builder = alignment::indexed_reader::Builder::default()
+    ///     .set_compression_method(Some(CompressionMethod::Bgzf));
+    /// ```
     pub fn set_compression_method(mut self, compression_method: Option<CompressionMethod>) -> Self {
         self.compression_method = Some(compression_method);
         self
     }
 
     /// Sets the format of the input.
+    ///
+    /// By default, the format is autodetected on build. This can be used to override it.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_util::alignment::{self, Format};
+    /// let builder = alignment::indexed_reader::Builder::default().set_format(Format::Sam);
+    /// ```
     pub fn set_format(mut self, format: Format) -> Self {
         self.format = Some(format);
         self
@@ -68,6 +88,20 @@ impl Builder {
     }
 
     /// Sets an index.
+    ///
+    /// When building from a path ([`Self::build_from_path`]), an associated index depending on the
+    /// format will attempt to be loaded. This can be used to override it if the index cannot be
+    /// found or when building from a reader ([`Self::build_from_reader`]).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_csi as csi;
+    /// use noodles_util::alignment;
+    ///
+    /// let index = csi::Index::default();
+    /// let builder = alignment::indexed_reader::Builder::default().set_index(index);
+    /// ```
     pub fn set_index<I>(mut self, index: I) -> Self
     where
         I: Into<Index>,
@@ -77,6 +111,18 @@ impl Builder {
     }
 
     /// Builds an indexed alignment reader from a path.
+    ///
+    /// The compression method and format will be autodetected, if not overridden. If no index is
+    /// set ([`Self::set_index`]), this will attempt to load an associated index depending on the
+    /// format.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use noodles_util::alignment;
+    /// let reader = alignment::indexed_reader::Builder::default().build_from_path("sample.bam")?;
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
     pub fn build_from_path<P>(self, src: P) -> io::Result<IndexedReader<File>>
     where
         P: AsRef<Path>,
@@ -113,6 +159,28 @@ impl Builder {
     }
 
     /// Builds an indexed alignment reader from a reader.
+    ///
+    /// The compression method and format will be autodetected, if not overridden. An index must be
+    /// set ([`Self::set_index`]). The reader must be a bgzip-compressed stream.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io::{self, Write};
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_csi as csi;
+    /// use noodles_util::alignment;
+    ///
+    /// let mut writer = bgzf::Writer::new(Vec::new());
+    /// writer.write_all(b"BAM\x01")?;
+    /// let data = writer.finish()?;
+    ///
+    /// let index = csi::Index::default();
+    /// let reader = alignment::indexed_reader::Builder::default()
+    ///     .set_index(index)
+    ///     .build_from_reader(&data[..])?;
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
     pub fn build_from_reader<R>(self, reader: R) -> io::Result<IndexedReader<BufReader<R>>>
     where
         R: Read,
