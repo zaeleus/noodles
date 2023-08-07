@@ -6,10 +6,3 @@ pub enum Format {
     /// BCF.
     Bcf,
 }
-
-/// A variant compression.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum Compression {
-    /// BGZF compression.
-    Bgzf,
-}
