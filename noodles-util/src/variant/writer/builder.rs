@@ -73,17 +73,12 @@ impl Builder {
     {
         let src = src.as_ref();
 
-        let compression_method = match self.compression_method {
-            Some(compression_method) => compression_method,
-            None => {
-                let compression_method = detect_compression_method_from_path_extension(src);
-                self.compression_method = Some(compression_method);
-                compression_method
-            }
-        };
+        if self.compression_method.is_none() {
+            self.compression_method = Some(detect_compression_method_from_path_extension(src));
+        }
 
         if self.format.is_none() {
-            self.format = detect_format_from_path_extension(src, compression_method);
+            self.format = detect_format_from_path_extension(src);
         }
 
         let file = File::create(src).map(BufWriter::new)?;
@@ -129,28 +124,19 @@ impl Builder {
     }
 }
 
-fn detect_format_from_path_extension<P>(
-    path: P,
-    compression: Option<CompressionMethod>,
-) -> Option<Format>
+fn detect_format_from_path_extension<P>(path: P) -> Option<Format>
 where
     P: AsRef<Path>,
 {
     let path = path.as_ref();
-    let ext = path.extension().and_then(|ext| ext.to_str());
 
-    match (compression, ext) {
-        (None, Some("vcf")) => Some(Format::Vcf),
-        (Some(CompressionMethod::Bgzf), Some("gz" | "bgz")) => {
-            let path: &Path = path.file_stem()?.as_ref();
-            let ext = path.extension().and_then(|ext| ext.to_str());
-
-            match ext {
-                Some("vcf") => Some(Format::Vcf),
-                _ => None,
-            }
+    match path.extension().and_then(|ext| ext.to_str()) {
+        Some("vcf") => Some(Format::Vcf),
+        Some("bcf") => Some(Format::Bcf),
+        Some("gz" | "bgz") => {
+            let file_stem = path.file_stem().and_then(|stem| stem.to_str())?;
+            file_stem.ends_with("vcf").then_some(Format::Vcf)
         }
-        (None | Some(CompressionMethod::Bgzf), Some("bcf")) => Some(Format::Bcf),
         _ => None,
     }
 }
@@ -188,24 +174,19 @@ mod tests {
     #[test]
     fn test_detect_format_from_path_extension() {
         assert_eq!(
-            detect_format_from_path_extension("out.vcf", None),
+            detect_format_from_path_extension("out.vcf"),
             Some(Format::Vcf)
         );
         assert_eq!(
-            detect_format_from_path_extension("out.vcf.gz", Some(CompressionMethod::Bgzf)),
+            detect_format_from_path_extension("out.vcf.gz"),
             Some(Format::Vcf)
         );
         assert_eq!(
-            detect_format_from_path_extension("out.bcf", None),
+            detect_format_from_path_extension("out.bcf"),
             Some(Format::Bcf)
         );
 
-        assert_eq!(
-            detect_format_from_path_extension("out.bcf.gz", Some(CompressionMethod::Bgzf)),
-            None
-        );
-        assert_eq!(detect_format_from_path_extension("out.vcf.gz", None), None);
-
-        assert!(detect_format_from_path_extension("out.fa", None).is_none());
+        assert!(detect_format_from_path_extension("out.bcf.gz").is_none());
+        assert!(detect_format_from_path_extension("out.fa").is_none());
     }
 }
