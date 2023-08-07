@@ -88,7 +88,6 @@ impl Builder {
     /// use noodles_util::alignment::{self, Format};
     ///
     /// let builder = alignment::writer::Builder::default()
-    ///     .set_format(Format::Cram)
     ///     .set_block_content_encoder_map(BlockContentEncoderMap::default());
     /// ```
     pub fn set_block_content_encoder_map(
@@ -108,10 +107,7 @@ impl Builder {
     /// ```no_run
     /// # use std::io;
     /// use noodles_util::alignment::{self, Format};
-    ///
-    /// let writer = alignment::writer::Builder::default()
-    ///     .set_format(Format::Sam)
-    ///     .build_from_path("out.sam")?;
+    /// let writer = alignment::writer::Builder::default().build_from_path("out.sam")?;
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn build_from_path<P>(mut self, src: P) -> io::Result<Writer>
@@ -140,10 +136,7 @@ impl Builder {
     /// ```
     /// # use std::io;
     /// use noodles_util::alignment::{self, Format};
-    ///
-    /// let writer = alignment::writer::Builder::default()
-    ///     .set_format(Format::Sam)
-    ///     .build_from_writer(io::sink());
+    /// let writer = alignment::writer::Builder::default().build_from_writer(io::sink());
     /// ```
     pub fn build_from_writer<W>(self, writer: W) -> io::Result<Writer>
     where
