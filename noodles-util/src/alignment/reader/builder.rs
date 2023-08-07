@@ -23,6 +23,17 @@ pub struct Builder {
 
 impl Builder {
     /// Sets the compression method.
+    ///
+    /// By default, the compression method is autodetected on build. This can be used to override
+    /// it.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_util::alignment::{self, CompressionMethod};
+    /// let builder = alignment::reader::Builder::default()
+    ///     .set_compression_method(Some(CompressionMethod::Bgzf));
+    /// ```
     pub fn set_compression_method(mut self, compression_method: Option<CompressionMethod>) -> Self {
         self.compression_method = Some(compression_method);
         self
