@@ -44,6 +44,8 @@ impl Builder {
 
     /// Sets the format of the output.
     ///
+    /// If not set, a default format is used.
+    ///
     /// # Examples
     ///
     /// ```
@@ -56,6 +58,8 @@ impl Builder {
     }
 
     /// Sets the reference sequence repository.
+    ///
+    /// This is only used when the output format is CRAM.
     ///
     /// # Examples
     ///
@@ -100,7 +104,8 @@ impl Builder {
 
     /// Builds an alignment writer from a path.
     ///
-    /// If the format is not set, it is detected from the path extension.
+    /// If the format is not set, it is detected from the path extension. If the compression
+    /// method is not set, a default one is used depending on the format.
     ///
     /// # Examples
     ///
@@ -130,6 +135,9 @@ impl Builder {
     }
 
     /// Builds an alignment writer from a writer.
+    ///
+    /// If the format is not set, a default format is used. If the compression method is not set, a
+    /// default one is determined by the format.
     ///
     /// # Examples
     ///
