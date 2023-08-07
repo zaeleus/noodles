@@ -69,7 +69,7 @@ impl Builder {
     ///
     /// When building from a path ([`Self::build_from_path`]), an associated index at `<src>.tbi`
     /// or `<src>.csi` will attempt to be loaded. This can be used to override it if the index
-    /// cannot be found or when building from a reader (`[Self::build_from_reader]`).
+    /// cannot be found or when building from a reader ([`Self::build_from_reader`]).
     ///
     /// # Examples
     ///
@@ -144,7 +144,7 @@ impl Builder {
     /// Builds an indexed variant reader from a reader.
     ///
     /// The compression method and format will be autodetected, if not overridden. An index must be
-    /// set (`[Self::set_index]`). The reader must be a bgzip-compressed stream.
+    /// set ([`Self::set_index`]). The reader must be a bgzip-compressed stream.
     ///
     /// # Examples
     ///
