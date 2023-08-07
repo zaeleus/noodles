@@ -43,7 +43,7 @@ impl Builder {
     /// ```
     /// use noodles_util::variant::{self, CompressionMethod};
     /// let builder = variant::indexed_reader::Builder::default()
-    ///     .set_compression(Some(CompressionMethod::Bgzf));
+    ///     .set_compression_method(Some(CompressionMethod::Bgzf));
     /// ```
     pub fn set_compression_method(mut self, compression_method: Option<CompressionMethod>) -> Self {
         self.compression_method = Some(compression_method);
