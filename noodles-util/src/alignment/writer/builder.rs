@@ -104,8 +104,7 @@ impl Builder {
 
     /// Builds an alignment writer from a path.
     ///
-    /// If the format is not set, it is detected from the path extension. If the compression
-    /// method is not set, a default one is used depending on the format.
+    /// If the format or compression method is not set, it is detected from the path extension.
     ///
     /// # Examples
     ///
