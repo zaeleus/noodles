@@ -87,8 +87,8 @@ impl Builder {
 
     /// Builds a variant writer from a writer.
     ///
-    /// If the format is not set, VCF format is used. If the compression method is not set, a
-    /// default one is used depending on the format.
+    /// If the format is not set, a default format is used. If the compression method is not set, a
+    /// default one is determined by the format.
     ///
     /// # Examples
     ///
