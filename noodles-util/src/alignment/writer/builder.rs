@@ -121,7 +121,7 @@ impl Builder {
         let src = src.as_ref();
 
         if self.compression_method.is_none() {
-            self.compression_method = detect_compression_method_from_path_extension(src);
+            self.compression_method = Some(detect_compression_method_from_path_extension(src));
         }
 
         if self.format.is_none() {
@@ -184,14 +184,14 @@ impl Builder {
     }
 }
 
-fn detect_compression_method_from_path_extension<P>(path: P) -> Option<Option<CompressionMethod>>
+fn detect_compression_method_from_path_extension<P>(path: P) -> Option<CompressionMethod>
 where
     P: AsRef<Path>,
 {
-    let ext = path.as_ref().file_name().and_then(|ext| ext.to_str())?;
-    let is_bgzip_compressed =
-        ext.ends_with("sam.gz") || ext.ends_with("sam.bgz") || ext.ends_with("bam");
-    Some(is_bgzip_compressed.then_some(CompressionMethod::Bgzf))
+    match path.as_ref().file_name().and_then(|ext| ext.to_str()) {
+        Some("bam" | "gz" | "bgz") => Some(CompressionMethod::Bgzf),
+        _ => None,
+    }
 }
 
 fn detect_format_from_path_extension<P>(path: P) -> Option<Format>
@@ -219,23 +219,23 @@ mod tests {
     fn test_detect_compression_method_from_path_extension() {
         assert_eq!(
             detect_compression_method_from_path_extension("out.sam"),
-            Some(None)
+            None
         );
         assert_eq!(
             detect_compression_method_from_path_extension("out.sam.gz"),
-            Some(Some(CompressionMethod::Bgzf))
+            Some(CompressionMethod::Bgzf)
         );
         assert_eq!(
             detect_compression_method_from_path_extension("out.sam.bgz"),
-            Some(Some(CompressionMethod::Bgzf))
+            Some(CompressionMethod::Bgzf)
         );
         assert_eq!(
             detect_compression_method_from_path_extension("out.bam"),
-            Some(Some(CompressionMethod::Bgzf))
+            Some(CompressionMethod::Bgzf)
         );
         assert_eq!(
             detect_compression_method_from_path_extension("out.cram"),
-            Some(None)
+            None
         );
 
         assert!(detect_format_from_path_extension("out.fa").is_none());
