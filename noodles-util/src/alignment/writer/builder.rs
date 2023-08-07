@@ -27,6 +27,16 @@ pub struct Builder {
 
 impl Builder {
     /// Sets the compression method.
+    ///
+    /// If not set, a default compression method is selected depending on the format.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_util::alignment::{self, CompressionMethod};
+    /// let builder = alignment::writer::Builder::default()
+    ///     .set_compression_method(Some(CompressionMethod::Bgzf));
+    /// ```
     pub fn set_compression_method(mut self, compression_method: Option<CompressionMethod>) -> Self {
         self.compression_method = Some(compression_method);
         self
