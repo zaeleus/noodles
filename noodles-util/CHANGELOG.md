@@ -12,6 +12,11 @@
 
   * util/alignment/reader/builder: Add support for raw BAM.
 
+### Changed
+
+  * util/alignment/writer/builder: `Builder::build_from_writer` now returns
+    an `io::Result<Writer>`.
+
 ### Removed
 
   * util/alignment/format: Remove `Format::SamGz`.

@@ -25,7 +25,7 @@ impl Writer {
     ///
     /// let mut writer = alignment::writer::Builder::default()
     ///     .set_format(Format::Bam)
-    ///     .build_from_writer(io::sink());
+    ///     .build_from_writer(io::sink())?;
     ///
     /// let header = sam::Header::default();
     /// writer.write_header(&header)?;
@@ -46,7 +46,7 @@ impl Writer {
     ///
     /// let mut writer = alignment::writer::Builder::default()
     ///     .set_format(Format::Sam)
-    ///     .build_from_writer(io::sink());
+    ///     .build_from_writer(io::sink())?;
     ///
     /// let header = sam::Header::default();
     /// writer.write_header(&header)?;
@@ -70,7 +70,7 @@ impl Writer {
     ///
     /// let mut writer = alignment::writer::Builder::default()
     ///     .set_format(Format::Sam)
-    ///     .build_from_writer(io::sink());
+    ///     .build_from_writer(io::sink())?;
     ///
     /// let header = sam::Header::default();
     /// writer.finish(&header)?;

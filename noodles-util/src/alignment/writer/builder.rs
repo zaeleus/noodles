@@ -119,8 +119,9 @@ impl Builder {
             }
         }
 
-        let file = File::create(src).map(BufWriter::new)?;
-        Ok(self.build_from_writer(file))
+        File::create(src)
+            .map(BufWriter::new)
+            .and_then(|writer| self.build_from_writer(writer))
     }
 
     /// Builds an alignment writer from a writer.
@@ -135,7 +136,7 @@ impl Builder {
     ///     .set_format(Format::Sam)
     ///     .build_from_writer(io::sink());
     /// ```
-    pub fn build_from_writer<W>(self, writer: W) -> Writer
+    pub fn build_from_writer<W>(self, writer: W) -> io::Result<Writer>
     where
         W: Write + 'static,
     {
@@ -162,10 +163,15 @@ impl Builder {
                     .set_block_content_encoder_map(self.block_content_encoder_map)
                     .build_with_writer(writer),
             ),
-            (Format::Cram, Some(_)) => todo!(),
+            (Format::Cram, Some(CompressionMethod::Bgzf)) => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "CRAM cannot be bgzip-compressed",
+                ));
+            }
         };
 
-        Writer { inner }
+        Ok(Writer { inner })
     }
 }
 
