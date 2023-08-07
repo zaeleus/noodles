@@ -199,16 +199,17 @@ fn detect_format_from_path_extension<P>(path: P) -> Option<Format>
 where
     P: AsRef<Path>,
 {
-    let ext = path.as_ref().file_name().and_then(|ext| ext.to_str())?;
+    let path = path.as_ref();
 
-    if ext.ends_with("sam") || ext.ends_with("sam.gz") || ext.ends_with("sam.bgz") {
-        Some(Format::Sam)
-    } else if ext.ends_with("bam") {
-        Some(Format::Bam)
-    } else if ext.ends_with("cram") {
-        Some(Format::Cram)
-    } else {
-        None
+    match path.extension().and_then(|ext| ext.to_str()) {
+        Some("sam") => Some(Format::Sam),
+        Some("bam") => Some(Format::Bam),
+        Some("cram") => Some(Format::Cram),
+        Some("gz" | "bgz") => {
+            let file_stem = path.file_stem().and_then(|stem| stem.to_str())?;
+            file_stem.ends_with("sam").then_some(Format::Sam)
+        }
+        _ => None,
     }
 }
 
