@@ -189,7 +189,7 @@ fn detect_compression_method_from_path_extension<P>(path: P) -> Option<Compressi
 where
     P: AsRef<Path>,
 {
-    match path.as_ref().file_name().and_then(|ext| ext.to_str()) {
+    match path.as_ref().extension().and_then(|ext| ext.to_str()) {
         Some("bam" | "gz" | "bgz") => Some(CompressionMethod::Bgzf),
         _ => None,
     }
