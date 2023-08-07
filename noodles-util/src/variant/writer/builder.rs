@@ -73,12 +73,17 @@ impl Builder {
     {
         let src = src.as_ref();
 
-        let compression = self
-            .compression_method
-            .get_or_insert_with(|| detect_compression_method_from_path_extension(src));
+        let compression_method = match self.compression_method {
+            Some(compression_method) => compression_method,
+            None => {
+                let compression_method = detect_compression_method_from_path_extension(src);
+                self.compression_method = Some(compression_method);
+                compression_method
+            }
+        };
 
         if self.format.is_none() {
-            self.format = detect_format_from_path_extension(src, *compression);
+            self.format = detect_format_from_path_extension(src, compression_method);
         }
 
         let file = File::create(src).map(BufWriter::new)?;
@@ -105,12 +110,16 @@ impl Builder {
         W: Write + 'static,
     {
         let format = self.format.unwrap_or(Format::Vcf);
-        let compression = self.compression_method.unwrap_or(match format {
-            Format::Vcf => None,
-            Format::Bcf => Some(CompressionMethod::Bgzf),
-        });
 
-        let inner: Box<dyn vcf::VariantWriter> = match (format, compression) {
+        let compression_method = match self.compression_method {
+            Some(compression_method) => compression_method,
+            None => match format {
+                Format::Vcf => None,
+                Format::Bcf => Some(CompressionMethod::Bgzf),
+            },
+        };
+
+        let inner: Box<dyn vcf::VariantWriter> = match (format, compression_method) {
             (Format::Vcf, None) => Box::new(vcf::Writer::new(writer)),
             (Format::Vcf, Some(CompressionMethod::Bgzf)) => {
                 Box::new(vcf::Writer::new(bgzf::Writer::new(writer)))
