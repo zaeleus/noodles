@@ -6,6 +6,19 @@
 
   * util/alignment: Add an indexed reader (`alignment::IndexedReader`).
 
+  * util/alignment: Add `CompressionMethod` to override I/O compression.
+
+    The compression method can now be overridden for most formats.
+
+  * util/alignment/reader/builder: Add support for raw BAM.
+
+### Removed
+
+  * util/alignment/format: Remove `Format::SamGz`.
+
+    Set the format-compression method to `(Format::Sam,
+    Some(CompressionMethod::Bgzf))` instead.
+
 ## 0.19.1 - 2023-08-04
 
 ### Fixed

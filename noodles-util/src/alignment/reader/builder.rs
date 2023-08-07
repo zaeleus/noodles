@@ -11,16 +11,23 @@ use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 use super::Reader;
-use crate::alignment::Format;
+use crate::alignment::{CompressionMethod, Format};
 
 /// An alignment reader builder.
 #[derive(Default)]
 pub struct Builder {
+    compression_method: Option<Option<CompressionMethod>>,
     format: Option<Format>,
     reference_sequence_repository: fasta::Repository,
 }
 
 impl Builder {
+    /// Sets the compression method.
+    pub fn set_compression_method(mut self, compression_method: Option<CompressionMethod>) -> Self {
+        self.compression_method = Some(compression_method);
+        self
+    }
+
     /// Sets the format of the input.
     ///
     /// By default, the format is autodetected on build. This can be used to override it.
@@ -97,25 +104,34 @@ impl Builder {
     {
         let mut reader = BufReader::new(reader);
 
-        let format = self
-            .format
-            .map(Ok)
-            .unwrap_or_else(|| detect_format(&mut reader))?;
+        let compression_method = match self.compression_method {
+            Some(compression_method) => compression_method,
+            None => detect_compression_method(&mut reader)?,
+        };
 
-        let inner: Box<dyn sam::AlignmentReader<_>> = match format {
-            Format::Sam => {
+        let format = match self.format {
+            Some(format) => format,
+            None => detect_format(&mut reader, compression_method)?,
+        };
+
+        let inner: Box<dyn sam::AlignmentReader<_>> = match (format, compression_method) {
+            (Format::Sam, None) => {
                 let inner: Box<dyn BufRead> = Box::new(reader);
                 Box::new(sam::Reader::from(inner))
             }
-            Format::SamGz => {
+            (Format::Sam, Some(CompressionMethod::Bgzf)) => {
                 let inner: Box<dyn BufRead> = Box::new(bgzf::Reader::new(reader));
                 Box::new(sam::Reader::from(inner))
             }
-            Format::Bam => {
+            (Format::Bam, None) => {
+                let inner: Box<dyn BufRead> = Box::new(reader);
+                Box::new(bam::Reader::from(inner))
+            }
+            (Format::Bam, Some(CompressionMethod::Bgzf)) => {
                 let inner: Box<dyn BufRead> = Box::new(bgzf::Reader::new(reader));
                 Box::new(bam::Reader::from(inner))
             }
-            Format::Cram => {
+            (Format::Cram, None) => {
                 let inner: Box<dyn BufRead> = Box::new(reader);
 
                 Box::new(
@@ -124,39 +140,57 @@ impl Builder {
                         .build_from_reader(inner),
                 )
             }
+            (Format::Cram, Some(_)) => todo!(),
         };
 
         Ok(Reader { inner })
     }
 }
 
-pub(crate) fn detect_format<R>(reader: &mut R) -> io::Result<Format>
+pub(crate) fn detect_compression_method<R>(reader: &mut R) -> io::Result<Option<CompressionMethod>>
+where
+    R: BufRead,
+{
+    const GZIP_MAGIC_NUMBER: [u8; 2] = [0x1f, 0x8b];
+
+    let src = reader.fill_buf()?;
+
+    if let Some(buf) = src.get(..GZIP_MAGIC_NUMBER.len()) {
+        if buf == GZIP_MAGIC_NUMBER {
+            return Ok(Some(CompressionMethod::Bgzf));
+        }
+    }
+
+    Ok(None)
+}
+
+pub(crate) fn detect_format<R>(
+    reader: &mut R,
+    compression_method: Option<CompressionMethod>,
+) -> io::Result<Format>
 where
     R: BufRead,
 {
     use flate2::bufread::MultiGzDecoder;
 
     const CRAM_MAGIC_NUMBER: [u8; 4] = [b'C', b'R', b'A', b'M'];
-    const GZIP_MAGIC_NUMBER: [u8; 2] = [0x1f, 0x8b];
     const BAM_MAGIC_NUMBER: [u8; 4] = [b'B', b'A', b'M', 0x01];
 
     let src = reader.fill_buf()?;
 
-    if let Some(buf) = src.get(..4) {
-        if buf == CRAM_MAGIC_NUMBER {
-            return Ok(Format::Cram);
+    if matches!(compression_method, Some(CompressionMethod::Bgzf)) {
+        let mut decoder = MultiGzDecoder::new(src);
+        let mut buf = [0; BAM_MAGIC_NUMBER.len()];
+        decoder.read_exact(&mut buf)?;
+
+        if buf == BAM_MAGIC_NUMBER {
+            return Ok(Format::Bam);
         }
-
-        if buf[..2] == GZIP_MAGIC_NUMBER {
-            let mut decoder = MultiGzDecoder::new(src);
-            let mut buf = [0; 4];
-            decoder.read_exact(&mut buf)?;
-
-            if buf == BAM_MAGIC_NUMBER {
-                return Ok(Format::Bam);
-            } else {
-                return Ok(Format::SamGz);
-            }
+    } else if let Some(buf) = src.get(..BAM_MAGIC_NUMBER.len()) {
+        if buf == BAM_MAGIC_NUMBER {
+            return Ok(Format::Bam);
+        } else if buf == CRAM_MAGIC_NUMBER {
+            return Ok(Format::Cram);
         }
     }
 
@@ -171,22 +205,24 @@ mod tests {
     fn test_detect_format() -> io::Result<()> {
         use std::io::Write;
 
-        fn t(mut src: &[u8], expected: Format) {
-            assert!(matches!(detect_format(&mut src), Ok(value) if value == expected));
+        fn t(mut src: &[u8], expected: Format, compression_method: Option<CompressionMethod>) {
+            assert!(
+                matches!(detect_format(&mut src, compression_method), Ok(value) if value == expected)
+            );
         }
 
-        t(b"@HD\tVN:1.6\n", Format::Sam);
-        t(b"", Format::Sam);
+        t(b"@HD\tVN:1.6\n", Format::Sam, None);
+        t(b"", Format::Sam, None);
 
         let mut writer = bgzf::Writer::new(Vec::new());
         writer.write_all(b"@HD\tVN:1.6\n")?;
         let src = writer.finish()?;
-        t(&src, Format::SamGz);
+        t(&src, Format::Sam, Some(CompressionMethod::Bgzf));
 
         let mut writer = bgzf::Writer::new(Vec::new());
         writer.write_all(b"BAM\x01")?;
         let src = dbg!(writer.finish())?;
-        t(&src, Format::Bam);
+        t(&src, Format::Bam, Some(CompressionMethod::Bgzf));
 
         // An incomplete gzip stream. See #179.
         #[rustfmt::skip]
@@ -204,9 +240,9 @@ mod tests {
             0x73, 0x72, 0xf4, 0x65, 0x04, 0x00, // CDATA = deflate(b"BAM\x01")
             // ...
         ];
-        t(&src, Format::Bam);
+        t(&src, Format::Bam, Some(CompressionMethod::Bgzf));
 
-        t(b"CRAM", Format::Cram);
+        t(b"CRAM", Format::Cram, None);
 
         Ok(())
     }

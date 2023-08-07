@@ -11,7 +11,10 @@ use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 use super::IndexedReader;
-use crate::alignment::{reader::builder::detect_format, Format};
+use crate::alignment::{
+    reader::builder::{detect_compression_method, detect_format},
+    CompressionMethod, Format,
+};
 
 /// An alignment index.
 pub enum Index {
@@ -36,12 +39,19 @@ impl From<crai::Index> for Index {
 /// An indexed alignment reader builder.
 #[derive(Default)]
 pub struct Builder {
+    compression_method: Option<Option<CompressionMethod>>,
     format: Option<Format>,
     reference_sequence_repository: fasta::Repository,
     index: Option<Index>,
 }
 
 impl Builder {
+    /// Sets the compression method.
+    pub fn set_compression_method(mut self, compression_method: Option<CompressionMethod>) -> Self {
+        self.compression_method = Some(compression_method);
+        self
+    }
+
     /// Sets the format of the input.
     pub fn set_format(mut self, format: Format) -> Self {
         self.format = Some(format);
@@ -73,26 +83,32 @@ impl Builder {
     {
         let mut reader = File::open(src.as_ref()).map(BufReader::new)?;
 
-        let format = match self.format {
-            Some(format) => format,
-            None => detect_format(&mut reader)?,
+        let compression_method = match self.compression_method {
+            Some(compression_method) => compression_method,
+            None => detect_compression_method(&mut reader)?,
         };
 
-        match format {
-            Format::Sam => Err(io::Error::new(
+        let format = match self.format {
+            Some(format) => format,
+            None => detect_format(&mut reader, compression_method)?,
+        };
+
+        match (format, compression_method) {
+            (Format::Sam, None) => Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 "source not bgzip-compressed",
             )),
-            Format::SamGz => sam::indexed_reader::Builder::default()
+            (Format::Sam, Some(CompressionMethod::Bgzf)) => sam::indexed_reader::Builder::default()
                 .build_from_path(src)
                 .map(IndexedReader::Sam),
-            Format::Bam => bam::indexed_reader::Builder::default()
+            (Format::Bam, Some(CompressionMethod::Bgzf)) => bam::indexed_reader::Builder::default()
                 .build_from_path(src)
                 .map(IndexedReader::Bam),
-            Format::Cram => cram::indexed_reader::Builder::default()
+            (Format::Cram, None) => cram::indexed_reader::Builder::default()
                 .set_reference_sequence_repository(self.reference_sequence_repository)
                 .build_from_path(src)
                 .map(IndexedReader::Cram),
+            (_, _) => todo!(),
         }
     }
 
@@ -103,17 +119,22 @@ impl Builder {
     {
         let mut reader = BufReader::new(reader);
 
-        let format = match self.format {
-            Some(format) => format,
-            None => detect_format(&mut reader)?,
+        let compression_method = match self.compression_method {
+            Some(compression_method) => compression_method,
+            None => detect_compression_method(&mut reader)?,
         };
 
-        match format {
-            Format::Sam => Err(io::Error::new(
+        let format = match self.format {
+            Some(format) => format,
+            None => detect_format(&mut reader, compression_method)?,
+        };
+
+        match (format, compression_method) {
+            (Format::Sam, None) => Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 "source not bgzip-compressed",
             )),
-            Format::SamGz => {
+            (Format::Sam, Some(CompressionMethod::Bgzf)) => {
                 let mut builder = sam::indexed_reader::Builder::default();
 
                 if let Some(Index::Csi(index)) = self.index {
@@ -122,7 +143,7 @@ impl Builder {
 
                 builder.build_from_reader(reader).map(IndexedReader::Sam)
             }
-            Format::Bam => {
+            (Format::Bam, Some(CompressionMethod::Bgzf)) => {
                 let mut builder = bam::indexed_reader::Builder::default();
 
                 if let Some(Index::Csi(index)) = self.index {
@@ -131,7 +152,7 @@ impl Builder {
 
                 builder.build_from_reader(reader).map(IndexedReader::Bam)
             }
-            Format::Cram => {
+            (Format::Cram, None) => {
                 let mut builder = cram::indexed_reader::Builder::default()
                     .set_reference_sequence_repository(self.reference_sequence_repository);
 
@@ -141,6 +162,7 @@ impl Builder {
 
                 builder.build_from_reader(reader).map(IndexedReader::Cram)
             }
+            (_, _) => todo!(),
         }
     }
 }
