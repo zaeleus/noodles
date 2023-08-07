@@ -140,7 +140,12 @@ impl Builder {
                         .build_from_reader(inner),
                 )
             }
-            (Format::Cram, Some(_)) => todo!(),
+            (Format::Cram, Some(CompressionMethod::Bgzf)) => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "CRAM cannot be bgzip-compressed",
+                ))
+            }
         };
 
         Ok(Reader { inner })
