@@ -154,6 +154,7 @@ impl Builder {
             (Format::Sam, Some(CompressionMethod::Bgzf)) => {
                 Box::new(sam::Writer::new(bgzf::Writer::new(writer)))
             }
+            (Format::Bam, None) => Box::new(bam::Writer::from(writer)),
             (Format::Bam, Some(CompressionMethod::Bgzf)) => Box::new(bam::Writer::new(writer)),
             (Format::Cram, None) => Box::new(
                 cram::writer::Builder::default()
@@ -161,7 +162,7 @@ impl Builder {
                     .set_block_content_encoder_map(self.block_content_encoder_map)
                     .build_with_writer(writer),
             ),
-            (_, _) => todo!(),
+            (Format::Cram, Some(_)) => todo!(),
         };
 
         Writer { inner }
