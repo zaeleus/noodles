@@ -1,6 +1,6 @@
-/// A variant compression.
+/// A variant compression method.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum Compression {
+pub enum CompressionMethod {
     /// BGZF compression.
     Bgzf,
 }

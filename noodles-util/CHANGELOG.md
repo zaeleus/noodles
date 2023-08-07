@@ -17,6 +17,16 @@
   * util/alignment/writer/builder: `Builder::build_from_writer` now returns
     an `io::Result<Writer>`.
 
+### Deprecated
+
+  * util/variant: Deprecate `Compression`.
+
+    Use `CompressionMethod` instead.
+
+  * util/variant: Deprecate `variant::*::Builder::set_compression`.
+
+    Use `variant::*::Builder::set_compression_method` instead.
+
 ### Removed
 
   * util/alignment/format: Remove `Format::SamGz`.

@@ -8,29 +8,37 @@ use noodles_bcf as bcf;
 use noodles_bgzf as bgzf;
 use noodles_vcf as vcf;
 
-use crate::variant::{Compression, Format};
-
 use super::Writer;
+#[allow(deprecated)]
+use crate::variant::Compression;
+use crate::variant::{CompressionMethod, Format};
 
 /// A variant writer builder.
 #[derive(Default)]
 pub struct Builder {
-    // None means infer on build; Some(None) means no compression explicitly set.
-    compression: Option<Option<Compression>>,
+    compression_method: Option<Option<CompressionMethod>>,
     format: Option<Format>,
 }
 
 impl Builder {
-    /// Sets the compression of the output.
+    /// Sets the compression method of the output.
+    #[allow(deprecated)]
+    #[deprecated(since = "0.20.0", note = "Use `Self::set_compression_method` instead.")]
+    pub fn set_compression(self, compression: Option<Compression>) -> Self {
+        self.set_compression_method(compression)
+    }
+
+    /// Sets the compression method of the output.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_util::variant::{self, Compression};
-    /// let builder = variant::writer::Builder::default().set_compression(Some(Compression::Bgzf));
+    /// use noodles_util::variant::{self, CompressionMethod};
+    /// let builder = variant::writer::Builder::default()
+    ///     .set_compression_method(Some(CompressionMethod::Bgzf));
     /// ```
-    pub fn set_compression(mut self, compression: Option<Compression>) -> Self {
-        self.compression = Some(compression);
+    pub fn set_compression_method(mut self, compression_method: Option<CompressionMethod>) -> Self {
+        self.compression_method = Some(compression_method);
         self
     }
 
@@ -55,12 +63,8 @@ impl Builder {
     ///
     /// ```no_run
     /// # use std::io;
-    /// use noodles_util::variant::{self, Compression, Format};
-    ///
-    /// let writer = variant::writer::Builder::default()
-    ///     .set_format(Format::Vcf)
-    ///     .set_compression(Some(Compression::Bgzf))
-    ///     .build_from_path("out.vcf.gz")?;
+    /// use noodles_util::variant::{self, Format};
+    /// let writer = variant::writer::Builder::default().build_from_path("out.vcf.gz")?;
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn build_from_path<P>(mut self, src: P) -> io::Result<Writer>
@@ -70,8 +74,8 @@ impl Builder {
         let src = src.as_ref();
 
         let compression = self
-            .compression
-            .get_or_insert_with(|| detect_compression_from_path_extension(src));
+            .compression_method
+            .get_or_insert_with(|| detect_compression_method_from_path_extension(src));
 
         if self.format.is_none() {
             self.format = detect_format_from_path_extension(src, *compression);
@@ -94,7 +98,6 @@ impl Builder {
     ///
     /// let writer = variant::writer::Builder::default()
     ///     .set_format(Format::Vcf)
-    ///     .set_compression(Some(Compression::Bgzf))
     ///     .build_from_writer(io::sink());
     /// ```
     pub fn build_from_writer<W>(self, writer: W) -> Writer
@@ -102,25 +105,28 @@ impl Builder {
         W: Write + 'static,
     {
         let format = self.format.unwrap_or(Format::Vcf);
-        let compression = self.compression.unwrap_or(match format {
+        let compression = self.compression_method.unwrap_or(match format {
             Format::Vcf => None,
-            Format::Bcf => Some(Compression::Bgzf),
+            Format::Bcf => Some(CompressionMethod::Bgzf),
         });
 
         let inner: Box<dyn vcf::VariantWriter> = match (format, compression) {
             (Format::Vcf, None) => Box::new(vcf::Writer::new(writer)),
-            (Format::Vcf, Some(Compression::Bgzf)) => {
+            (Format::Vcf, Some(CompressionMethod::Bgzf)) => {
                 Box::new(vcf::Writer::new(bgzf::Writer::new(writer)))
             }
             (Format::Bcf, None) => Box::new(bcf::Writer::from(writer)),
-            (Format::Bcf, Some(Compression::Bgzf)) => Box::new(bcf::Writer::new(writer)),
+            (Format::Bcf, Some(CompressionMethod::Bgzf)) => Box::new(bcf::Writer::new(writer)),
         };
 
         Writer { inner }
     }
 }
 
-fn detect_format_from_path_extension<P>(path: P, compression: Option<Compression>) -> Option<Format>
+fn detect_format_from_path_extension<P>(
+    path: P,
+    compression: Option<CompressionMethod>,
+) -> Option<Format>
 where
     P: AsRef<Path>,
 {
@@ -129,7 +135,7 @@ where
 
     match (compression, ext) {
         (None, Some("vcf")) => Some(Format::Vcf),
-        (Some(Compression::Bgzf), Some("gz" | "bgz")) => {
+        (Some(CompressionMethod::Bgzf), Some("gz" | "bgz")) => {
             let path: &Path = path.file_stem()?.as_ref();
             let ext = path.extension().and_then(|ext| ext.to_str());
 
@@ -138,17 +144,17 @@ where
                 _ => None,
             }
         }
-        (None | Some(Compression::Bgzf), Some("bcf")) => Some(Format::Bcf),
+        (None | Some(CompressionMethod::Bgzf), Some("bcf")) => Some(Format::Bcf),
         _ => None,
     }
 }
 
-fn detect_compression_from_path_extension<P>(path: P) -> Option<Compression>
+fn detect_compression_method_from_path_extension<P>(path: P) -> Option<CompressionMethod>
 where
     P: AsRef<Path>,
 {
     match path.as_ref().extension().and_then(|ext| ext.to_str()) {
-        Some("bcf" | "gz" | "bgz") => Some(Compression::Bgzf),
+        Some("bcf" | "gz" | "bgz") => Some(CompressionMethod::Bgzf),
         _ => None,
     }
 }
@@ -158,15 +164,18 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_detect_compression_from_path_extension() {
-        assert_eq!(detect_compression_from_path_extension("out.vcf"), None);
+    fn test_detect_compression_method_from_path_extension() {
         assert_eq!(
-            detect_compression_from_path_extension("out.vcf.gz"),
-            Some(Compression::Bgzf),
+            detect_compression_method_from_path_extension("out.vcf"),
+            None
         );
         assert_eq!(
-            detect_compression_from_path_extension("out.bcf"),
-            Some(Compression::Bgzf)
+            detect_compression_method_from_path_extension("out.vcf.gz"),
+            Some(CompressionMethod::Bgzf),
+        );
+        assert_eq!(
+            detect_compression_method_from_path_extension("out.bcf"),
+            Some(CompressionMethod::Bgzf)
         );
     }
 
@@ -177,7 +186,7 @@ mod tests {
             Some(Format::Vcf)
         );
         assert_eq!(
-            detect_format_from_path_extension("out.vcf.gz", Some(Compression::Bgzf)),
+            detect_format_from_path_extension("out.vcf.gz", Some(CompressionMethod::Bgzf)),
             Some(Format::Vcf)
         );
         assert_eq!(
@@ -186,7 +195,7 @@ mod tests {
         );
 
         assert_eq!(
-            detect_format_from_path_extension("out.bcf.gz", Some(Compression::Bgzf)),
+            detect_format_from_path_extension("out.bcf.gz", Some(CompressionMethod::Bgzf)),
             None
         );
         assert_eq!(detect_format_from_path_extension("out.vcf.gz", None), None);

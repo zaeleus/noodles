@@ -10,33 +10,43 @@ use noodles_vcf as vcf;
 
 use super::IndexedReader;
 use crate::variant::{
-    reader::builder::{detect_compression, detect_format},
-    Compression, Format,
+    reader::builder::{detect_compression_method, detect_format},
+    CompressionMethod, Format,
 };
+
+#[allow(deprecated)]
+use crate::variant::Compression;
 
 /// An indexed variant reader builder.
 #[derive(Default)]
 pub struct Builder {
-    compression: Option<Option<Compression>>,
+    compression_method: Option<Option<CompressionMethod>>,
     format: Option<Format>,
     index: Option<csi::Index>,
 }
 
 impl Builder {
-    /// Sets the compression of the input.
+    /// Sets the compression method of the input.
+    #[allow(deprecated)]
+    #[deprecated(since = "0.20.0", note = "Use `Self::set_compression_method` instead.")]
+    pub fn set_compression(self, compression: Option<Compression>) -> Self {
+        self.set_compression_method(compression)
+    }
+
+    /// Sets the compression method of the input.
     ///
-    /// By default, the compression is autodetected on build. This can be used to override it, but
-    /// note that only bgzip-compressed streams can be indexed.
+    /// By default, the compression method is autodetected on build. This can be used to override
+    /// it, but note that only bgzip-compressed streams can be indexed.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_util::variant::{self, Compression};
+    /// use noodles_util::variant::{self, CompressionMethod};
     /// let builder = variant::indexed_reader::Builder::default()
-    ///     .set_compression(Some(Compression::Bgzf));
+    ///     .set_compression(Some(CompressionMethod::Bgzf));
     /// ```
-    pub fn set_compression(mut self, compression: Option<Compression>) -> Self {
-        self.compression = Some(compression);
+    pub fn set_compression_method(mut self, compression_method: Option<CompressionMethod>) -> Self {
+        self.compression_method = Some(compression_method);
         self
     }
 
@@ -95,18 +105,18 @@ impl Builder {
     {
         let mut reader = File::open(src.as_ref()).map(BufReader::new)?;
 
-        let compression = match self.compression {
-            Some(compression) => compression,
-            None => detect_compression(&mut reader)?,
+        let compression_method = match self.compression_method {
+            Some(compression_method) => compression_method,
+            None => detect_compression_method(&mut reader)?,
         };
 
         let format = match self.format {
             Some(format) => format,
-            None => detect_format(&mut reader, compression)?,
+            None => detect_format(&mut reader, compression_method)?,
         };
 
-        match (format, compression) {
-            (Format::Vcf, Some(Compression::Bgzf)) => {
+        match (format, compression_method) {
+            (Format::Vcf, Some(CompressionMethod::Bgzf)) => {
                 let mut builder = vcf::indexed_reader::Builder::default();
 
                 if let Some(index) = self.index {
@@ -115,7 +125,7 @@ impl Builder {
 
                 builder.build_from_path(src).map(IndexedReader::Vcf)
             }
-            (Format::Bcf, Some(Compression::Bgzf)) => {
+            (Format::Bcf, Some(CompressionMethod::Bgzf)) => {
                 let mut builder = bcf::indexed_reader::Builder::default();
 
                 if let Some(index) = self.index {
@@ -160,9 +170,9 @@ impl Builder {
     {
         let mut reader = BufReader::new(reader);
 
-        let compression = match self.compression {
+        let compression = match self.compression_method {
             Some(compression) => compression,
-            None => detect_compression(&mut reader)?,
+            None => detect_compression_method(&mut reader)?,
         };
 
         let format = match self.format {
@@ -171,7 +181,7 @@ impl Builder {
         };
 
         match (format, compression) {
-            (Format::Vcf, Some(Compression::Bgzf)) => {
+            (Format::Vcf, Some(CompressionMethod::Bgzf)) => {
                 let mut builder = vcf::indexed_reader::Builder::default();
 
                 if let Some(index) = self.index {
@@ -180,7 +190,7 @@ impl Builder {
 
                 builder.build_from_reader(reader).map(IndexedReader::Vcf)
             }
-            (Format::Bcf, Some(Compression::Bgzf)) => {
+            (Format::Bcf, Some(CompressionMethod::Bgzf)) => {
                 let mut builder = bcf::indexed_reader::Builder::default();
 
                 if let Some(index) = self.index {

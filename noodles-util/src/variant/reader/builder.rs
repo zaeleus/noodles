@@ -8,31 +8,40 @@ use noodles_bcf as bcf;
 use noodles_bgzf as bgzf;
 use noodles_vcf::{self as vcf, VariantReader};
 
-use crate::variant::{Compression, Format};
-
 use super::Reader;
+#[allow(deprecated)]
+use crate::variant::Compression;
+use crate::variant::{CompressionMethod, Format};
 
 /// A variant reader builder.
 #[derive(Default)]
 pub struct Builder {
-    // None means infer on build; Some(None) means no compression explicitly set.
-    compression: Option<Option<Compression>>,
+    compression_method: Option<Option<CompressionMethod>>,
     format: Option<Format>,
 }
 
 impl Builder {
-    /// Sets the compression of the input.
+    /// Sets the compression method of the input.
+    #[allow(deprecated)]
+    #[deprecated(since = "0.20.0", note = "Use `Self::set_compression_method` instead.")]
+    pub fn set_compression(self, compression: Option<Compression>) -> Self {
+        self.set_compression_method(compression)
+    }
+
+    /// Sets the compression method of the input.
     ///
-    /// By default, the compression is autodetected on build. This can be used to override it.
+    /// By default, the compression method is autodetected on build. This can be used to override
+    /// it.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_util::variant::{self, Compression};
-    /// let builder = variant::reader::Builder::default().set_compression(Some(Compression::Bgzf));
+    /// use noodles_util::variant::{self, CompressionMethod};
+    /// let builder = variant::reader::Builder::default()
+    ///     .set_compression_method(Some(CompressionMethod::Bgzf));
     /// ```
-    pub fn set_compression(mut self, compression: Option<Compression>) -> Self {
-        self.compression = Some(compression);
+    pub fn set_compression_method(mut self, compression: Option<CompressionMethod>) -> Self {
+        self.compression_method = Some(compression);
         self
     }
 
@@ -54,7 +63,7 @@ impl Builder {
     /// Builds a variant reader from a path.
     ///
     /// By default, the format and compression will be autodetected. This can be overridden by
-    /// using [`Self::set_format`] and [`Self::set_compression`].
+    /// using [`Self::set_format`] and [`Self::set_compression_method`].
     ///
     /// # Examples
     ///
@@ -75,7 +84,7 @@ impl Builder {
     /// Builds a variant reader from a reader.
     ///
     /// By default, the format and compression will be autodetected. This can be overridden by
-    /// using [`Self::set_format`] and [`Self::set_compression`].
+    /// using [`Self::set_format`] and [`Self::set_compression_method`].
     ///
     /// # Examples
     ///
@@ -91,22 +100,22 @@ impl Builder {
     {
         let mut reader = BufReader::new(reader);
 
-        let compression = match self.compression {
-            Some(compression) => compression,
-            None => detect_compression(&mut reader)?,
+        let compression_method = match self.compression_method {
+            Some(compression_method) => compression_method,
+            None => detect_compression_method(&mut reader)?,
         };
 
         let format = match self.format {
             Some(format) => format,
-            None => detect_format(&mut reader, compression)?,
+            None => detect_format(&mut reader, compression_method)?,
         };
 
-        let inner: Box<dyn VariantReader<_>> = match (format, compression) {
+        let inner: Box<dyn VariantReader<_>> = match (format, compression_method) {
             (Format::Vcf, None) => {
                 let inner: Box<dyn BufRead> = Box::new(reader);
                 Box::new(vcf::Reader::new(inner))
             }
-            (Format::Vcf, Some(Compression::Bgzf)) => {
+            (Format::Vcf, Some(CompressionMethod::Bgzf)) => {
                 let inner: Box<dyn BufRead> = Box::new(bgzf::Reader::new(reader));
                 Box::new(vcf::Reader::new(inner))
             }
@@ -114,7 +123,7 @@ impl Builder {
                 let inner: Box<dyn BufRead> = Box::new(reader);
                 Box::new(bcf::Reader::from(inner))
             }
-            (Format::Bcf, Some(Compression::Bgzf)) => {
+            (Format::Bcf, Some(CompressionMethod::Bgzf)) => {
                 let inner: Box<dyn BufRead> = Box::new(bgzf::Reader::new(reader));
                 Box::new(bcf::Reader::from(inner))
             }
@@ -124,7 +133,7 @@ impl Builder {
     }
 }
 
-pub(crate) fn detect_compression<R>(reader: &mut R) -> io::Result<Option<Compression>>
+pub(crate) fn detect_compression_method<R>(reader: &mut R) -> io::Result<Option<CompressionMethod>>
 where
     R: BufRead,
 {
@@ -134,7 +143,7 @@ where
 
     if let Some(buf) = src.get(..GZIP_MAGIC_NUMBER.len()) {
         if buf == GZIP_MAGIC_NUMBER {
-            return Ok(Some(Compression::Bgzf));
+            return Ok(Some(CompressionMethod::Bgzf));
         }
     }
 
@@ -143,7 +152,7 @@ where
 
 pub(crate) fn detect_format<R>(
     reader: &mut R,
-    compression: Option<Compression>,
+    compression_method: Option<CompressionMethod>,
 ) -> io::Result<Format>
 where
     R: BufRead,
@@ -154,8 +163,8 @@ where
 
     let src = reader.fill_buf()?;
 
-    if let Some(compression) = compression {
-        if compression == Compression::Bgzf {
+    if let Some(compression_method) = compression_method {
+        if compression_method == CompressionMethod::Bgzf {
             let mut decoder = MultiGzDecoder::new(src);
             let mut buf = [0; BCF_MAGIC_NUMBER.len()];
             decoder.read_exact(&mut buf)?;
@@ -178,15 +187,18 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_detect_compression() -> io::Result<()> {
+    fn test_detect_compression_method() -> io::Result<()> {
         let mut src = &[0x1f, 0x8b][..];
-        assert_eq!(detect_compression(&mut src)?, Some(Compression::Bgzf));
+        assert_eq!(
+            detect_compression_method(&mut src)?,
+            Some(CompressionMethod::Bgzf)
+        );
 
         let mut src = &b"fileformat=VCFv4.4\n"[..];
-        assert!(detect_compression(&mut src)?.is_none());
+        assert!(detect_compression_method(&mut src)?.is_none());
 
         let mut src = &[][..];
-        assert!(detect_compression(&mut src)?.is_none());
+        assert!(detect_compression_method(&mut src)?.is_none());
 
         Ok(())
     }
@@ -195,8 +207,10 @@ mod tests {
     fn test_detect_format() -> io::Result<()> {
         use std::io::Write;
 
-        fn t(mut src: &[u8], compression: Option<Compression>, expected: Format) {
-            assert!(matches!(detect_format(&mut src, compression), Ok(value) if value == expected));
+        fn t(mut src: &[u8], compression_method: Option<CompressionMethod>, expected: Format) {
+            assert!(
+                matches!(detect_format(&mut src, compression_method), Ok(value) if value == expected)
+            );
         }
 
         let header = vcf::Header::default();
@@ -208,7 +222,7 @@ mod tests {
         let mut writer = bgzf::Writer::new(Vec::new());
         writer.write_all(raw_header.as_bytes())?;
         let src = writer.finish()?;
-        t(&src, Some(Compression::Bgzf), Format::Vcf);
+        t(&src, Some(CompressionMethod::Bgzf), Format::Vcf);
 
         let mut writer = bcf::Writer::from(Vec::new());
         writer.write_header(&header)?;
@@ -218,7 +232,7 @@ mod tests {
         let mut writer = bcf::Writer::new(Vec::new());
         writer.write_header(&header)?;
         let src = writer.into_inner().finish()?;
-        t(&src, Some(Compression::Bgzf), Format::Bcf);
+        t(&src, Some(CompressionMethod::Bgzf), Format::Bcf);
 
         // An incomplete gzip stream.
         #[rustfmt::skip]
@@ -236,7 +250,7 @@ mod tests {
             0x73, 0x72, 0x76, 0x03, 0x00, // CDATA = deflate(b"BCF")
             // ...
         ];
-        t(&src, Some(Compression::Bgzf), Format::Bcf);
+        t(&src, Some(CompressionMethod::Bgzf), Format::Bcf);
 
         Ok(())
     }
