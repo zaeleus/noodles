@@ -198,7 +198,7 @@ impl Builder {
         };
 
         match (format, compression_method) {
-            (Format::Sam, None) => Err(io::Error::new(
+            (Format::Sam | Format::Bam, None) => Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 "source not bgzip-compressed",
             )),
@@ -230,7 +230,10 @@ impl Builder {
 
                 builder.build_from_reader(reader).map(IndexedReader::Cram)
             }
-            (_, _) => todo!(),
+            (Format::Cram, Some(CompressionMethod::Bgzf)) => Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "CRAM cannot be bgzip-compressed",
+            )),
         }
     }
 }
