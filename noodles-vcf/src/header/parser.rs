@@ -2,6 +2,7 @@
 
 mod builder;
 mod file_format_option;
+mod record;
 
 pub use self::{builder::Builder, file_format_option::FileFormatOption};
 
@@ -11,7 +12,7 @@ use indexmap::IndexSet;
 
 use super::{
     file_format::{self, FileFormat},
-    record::{self, Record},
+    record::Record,
     Header,
 };
 
@@ -77,7 +78,7 @@ pub enum ParseError {
     /// The file format (`fileformat`) is invalid.
     InvalidFileFormat(file_format::ParseError),
     /// A record is invalid.
-    InvalidRecord(record::ParseError),
+    InvalidRecord(super::record::ParseError),
     /// A record has an invalid value.
     InvalidRecordValue(super::record::value::collection::AddError),
     /// The header is missing.
@@ -213,6 +214,8 @@ mod tests {
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
+        use crate::header::record::value::Collection;
+
         let s = r#"##fileformat=VCFv4.3
 ##fileDate=20200506
 ##source=noodles-vcf
@@ -244,16 +247,14 @@ mod tests {
 
         assert_eq!(
             header.get("fileDate"),
-            Some(&record::value::Collection::Unstructured(vec![
-                String::from("20200506"),
-            ])),
+            Some(&Collection::Unstructured(vec![String::from("20200506"),])),
         );
 
         assert_eq!(
             header.get("source"),
-            Some(&record::value::Collection::Unstructured(vec![
-                String::from("noodles-vcf"),
-            ])),
+            Some(&Collection::Unstructured(
+                vec![String::from("noodles-vcf"),]
+            )),
         );
 
         Ok(())
