@@ -1,6 +1,6 @@
 mod string;
 
-use std::{error, fmt};
+use std::{borrow::Cow, error, fmt};
 
 use self::string::{parse_escaped_string, parse_raw_string};
 
@@ -26,14 +26,17 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub fn parse_value<'a>(src: &mut &'a [u8]) -> Result<&'a str, ParseError> {
+pub fn parse_value<'a>(src: &mut &'a [u8]) -> Result<Cow<'a, str>, ParseError> {
     const QUOTATION_MARK: u8 = b'"';
 
     if let Some(buf) = src.strip_prefix(&[QUOTATION_MARK]) {
         *src = buf;
+
         parse_escaped_string(src).map_err(ParseError::InvalidString)
     } else {
-        parse_raw_string(src).map_err(ParseError::InvalidString)
+        parse_raw_string(src)
+            .map(Cow::from)
+            .map_err(ParseError::InvalidString)
     }
 }
 
@@ -44,10 +47,10 @@ mod tests {
     #[test]
     fn test_parse_value() {
         let mut src = &b"noodles-vcf,"[..];
-        assert_eq!(parse_value(&mut src), Ok("noodles-vcf"));
+        assert_eq!(parse_value(&mut src), Ok(Cow::from("noodles-vcf")));
 
         let mut src = &br#""noodles-vcf","#[..];
-        assert_eq!(parse_value(&mut src), Ok("noodles-vcf"));
+        assert_eq!(parse_value(&mut src), Ok(Cow::from("noodles-vcf")));
 
         let mut src = &b"noodles-vcf"[..];
         assert!(matches!(

@@ -1,4 +1,4 @@
-use std::{error, fmt, str};
+use std::{borrow::Cow, error, fmt, str};
 
 /// An error returned when a VCF header record escaped string fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -43,7 +43,7 @@ pub fn parse_raw_string<'a>(src: &mut &'a [u8]) -> Result<&'a str, ParseError> {
     }
 }
 
-pub fn parse_escaped_string<'a>(src: &mut &'a [u8]) -> Result<&'a str, ParseError> {
+pub fn parse_escaped_string<'a>(src: &mut &'a [u8]) -> Result<Cow<'a, str>, ParseError> {
     const BACKSLASH: u8 = b'\\';
     const QUOTATION_MARK: u8 = b'"';
 
@@ -54,16 +54,15 @@ pub fn parse_escaped_string<'a>(src: &mut &'a [u8]) -> Result<&'a str, ParseErro
     }
 
     let mut state = State::Normal;
+    let mut has_escape = false;
 
     for (i, &b) in src.iter().enumerate() {
-        if b == BACKSLASH {
-            state = State::Escape;
-            continue;
-        }
-
         match state {
             State::Normal => {
-                if b == QUOTATION_MARK {
+                if b == BACKSLASH {
+                    state = State::Escape;
+                    has_escape = true;
+                } else if b == QUOTATION_MARK {
                     state = State::Done { offset: i };
                     break;
                 }
@@ -84,11 +83,52 @@ pub fn parse_escaped_string<'a>(src: &mut &'a [u8]) -> Result<&'a str, ParseErro
 
         *src = &rest[1..];
 
-        // FIXME: Unescaped escaped string.
-        str::from_utf8(buf).map_err(ParseError::InvalidUtf8)
+        let s = str::from_utf8(buf).map_err(ParseError::InvalidUtf8)?;
+
+        if has_escape {
+            unescape_string(s).map(Cow::from)
+        } else {
+            Ok(Cow::from(s))
+        }
     } else {
         Err(ParseError::UnexpectedEof)
     }
+}
+
+fn unescape_string(s: &str) -> Result<String, ParseError> {
+    const BACKSLASH: char = '\\';
+    const QUOTATION_MARK: char = '"';
+
+    enum State {
+        Normal,
+        Escape,
+    }
+
+    let mut dst = String::with_capacity(s.len());
+    let mut state = State::Normal;
+
+    for c in s.chars() {
+        match state {
+            State::Normal => {
+                if c == BACKSLASH {
+                    state = State::Escape;
+                } else {
+                    dst.push(c);
+                }
+            }
+            State::Escape => {
+                match c {
+                    BACKSLASH => dst.push(BACKSLASH),
+                    QUOTATION_MARK => dst.push(QUOTATION_MARK),
+                    _ => return Err(ParseError::InvalidEscapeSequence { b: c as u8 }),
+                }
+
+                state = State::Normal;
+            }
+        }
+    }
+
+    Ok(dst)
 }
 
 #[cfg(test)]
@@ -110,15 +150,19 @@ mod tests {
     #[test]
     fn test_parse_escaped_string() {
         let mut src = &br#"noodles-vcf","#[..];
-        assert_eq!(parse_escaped_string(&mut src), Ok("noodles-vcf"));
+        assert_eq!(parse_escaped_string(&mut src), Ok(Cow::from("noodles-vcf")));
 
-        // FIXME
-        // let mut src = &br#"noodles-\"vcf\"","#[..];
-        // assert_eq!(parse_escaped_string(&mut src), Ok("noodles-\"vcf\""));
+        let mut src = &br#"noodles-\"vcf\"","#[..];
+        assert_eq!(
+            parse_escaped_string(&mut src),
+            Ok(Cow::from(r#"noodles-"vcf""#))
+        );
 
-        // FIXME
-        // let mut src = &br#"noodles\\vcf","#[..];
-        // assert_eq!(parse_escaped_string(&mut src), Ok("noodles\\vcf"));
+        let mut src = &br#"noodles\\vcf","#[..];
+        assert_eq!(
+            parse_escaped_string(&mut src),
+            Ok(Cow::from(r#"noodles\vcf"#))
+        );
 
         let mut src = &br#"noodles\nvcf","#[..];
         assert_eq!(
