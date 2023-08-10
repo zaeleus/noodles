@@ -8,7 +8,7 @@ pub mod format;
 pub mod info;
 pub mod meta;
 pub mod other;
-mod tag;
+pub(crate) mod tag;
 
 pub use self::{
     alternative_allele::AlternativeAllele, builder::Builder, contig::Contig, filter::Filter,
@@ -22,7 +22,7 @@ use indexmap::IndexMap;
 use crate::header::Number;
 
 type Fields = Vec<(String, String)>;
-type OtherFields<S> = IndexMap<tag::Other<S>, String>;
+pub(crate) type OtherFields<S> = IndexMap<tag::Other<S>, String>;
 
 /// An inner VCF header map value.
 pub trait Inner: Sized {
@@ -75,8 +75,8 @@ pub struct Map<I>
 where
     I: Inner,
 {
-    inner: I,
-    other_fields: OtherFields<I::StandardTag>,
+    pub(crate) inner: I,
+    pub(crate) other_fields: OtherFields<I::StandardTag>,
 }
 
 impl<I> Map<I>
