@@ -13,7 +13,7 @@ use crate::header::record::value::{
     Map,
 };
 
-/// An error returned when a VCF header record format map value fails to parse.
+/// An error returned when a VCF header record contig map value fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     InvalidMap(super::ParseError),
