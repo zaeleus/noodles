@@ -13,7 +13,7 @@
 
 ### Removed
 
-  * vcf/header: Remove `META` and `pedigreeDB`.
+  * vcf/header: Remove `assembly`, `META`, and `pedigreeDB`.
 
     Use other records instead.
 

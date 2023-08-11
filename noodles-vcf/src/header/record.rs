@@ -24,8 +24,6 @@ pub enum Record {
         crate::record::alternate_bases::allele::Symbol,
         Map<AlternativeAllele>,
     ),
-    /// An `assembly` record.
-    Assembly(String),
     /// A `contig` record.
     Contig(map::contig::Name, Map<Contig>),
     /// A `fileformat` record.
@@ -220,10 +218,6 @@ impl TryFrom<(FileFormat, &str)> for Record {
 
                     Ok(Self::AlternativeAllele(id, alternative_allele))
                 }
-                _ => Err(ParseError::Invalid),
-            },
-            key::ASSEMBLY => match value {
-                parser::Value::String(s) => Ok(Self::Assembly(s)),
                 _ => Err(ParseError::Invalid),
             },
             key::CONTIG => match value {

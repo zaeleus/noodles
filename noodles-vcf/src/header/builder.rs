@@ -20,7 +20,6 @@ pub struct Builder {
     filters: Filters,
     formats: Formats,
     alternative_alleles: AlternativeAlleles,
-    assembly: Option<String>,
     contigs: Contigs,
     sample_names: SampleNames,
     other_records: OtherRecords,
@@ -162,27 +161,6 @@ impl Builder {
         self
     }
 
-    /// Sets an breakpoint assemblies record (`assembly`).
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf as vcf;
-    ///
-    /// let header = vcf::Header::builder()
-    ///     .set_assembly("file:///assemblies.fasta")
-    ///     .build();
-    ///
-    /// assert_eq!(header.assembly(), Some("file:///assemblies.fasta"));
-    /// ```
-    pub fn set_assembly<I>(mut self, assembly: I) -> Self
-    where
-        I: Into<String>,
-    {
-        self.assembly = Some(assembly.into());
-        self
-    }
-
     /// Adds a contig record (`contig`).
     ///
     /// # Examples
@@ -316,7 +294,6 @@ impl Builder {
             filters: self.filters,
             formats: self.formats,
             alternative_alleles: self.alternative_alleles,
-            assembly: self.assembly,
             contigs: self.contigs,
             sample_names: self.sample_names,
             other_records: self.other_records,
@@ -337,7 +314,6 @@ mod tests {
         assert!(header.filters().is_empty());
         assert!(header.formats().is_empty());
         assert!(header.alternative_alleles().is_empty());
-        assert!(header.assembly().is_none());
         assert!(header.contigs().is_empty());
         assert!(header.sample_names().is_empty());
     }
@@ -373,7 +349,6 @@ mod tests {
                 Map::<Format>::from(&format_key::GENOTYPE),
             )
             .add_alternative_allele(del, Map::<AlternativeAllele>::new("Deletion"))
-            .set_assembly("file:///assemblies.fasta")
             .add_contig("sq0".parse()?, Map::<Contig>::new())
             .add_contig("sq1".parse()?, Map::<Contig>::new())
             .add_sample_name("sample0")
@@ -386,7 +361,6 @@ mod tests {
         assert_eq!(header.filters().len(), 1);
         assert_eq!(header.formats().len(), 1);
         assert_eq!(header.alternative_alleles().len(), 1);
-        assert_eq!(header.assembly(), Some("file:///assemblies.fasta"));
         assert_eq!(header.contigs().len(), 2);
         assert_eq!(header.get(&key).map(|collection| collection.len()), Some(2));
 

@@ -156,7 +156,6 @@ fn parse_record(
         Record::AlternativeAllele(id, alternative_allele) => {
             builder.add_alternative_allele(id, alternative_allele)
         }
-        Record::Assembly(assembly) => builder.set_assembly(assembly),
         Record::Contig(id, contig) => builder.add_contig(id, contig),
         Record::Other(key, value) => builder
             .insert(key, value)
@@ -217,7 +216,6 @@ mod tests {
         let s = r#"##fileformat=VCFv4.3
 ##fileDate=20200506
 ##source=noodles-vcf
-##assembly=file:///assemblies.fasta
 ##contig=<ID=sq0,length=8>
 ##contig=<ID=sq1,length=13>
 ##contig=<ID=sq2,length=21>
@@ -238,7 +236,6 @@ mod tests {
         assert_eq!(header.filters().len(), 1);
         assert_eq!(header.formats().len(), 1);
         assert_eq!(header.alternative_alleles().len(), 1);
-        assert_eq!(header.assembly(), Some("file:///assemblies.fasta"));
         assert_eq!(header.contigs().len(), 3);
         assert_eq!(header.sample_names().len(), 1);
 
@@ -266,16 +263,6 @@ mod tests {
             Parser::default().parse(s),
             Err(ParseError::MissingFileFormat)
         );
-    }
-
-    #[test]
-    fn test_from_str_without_assembly() -> Result<(), ParseError> {
-        let s = r#"##fileformat=VCFv4.3
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
-"#;
-        let header = Parser::default().parse(s)?;
-        assert!(header.assembly().is_none());
-        Ok(())
     }
 
     #[test]

@@ -21,9 +21,6 @@ pub const FORMAT: Key = Key::Standard(Standard::Format);
 /// VCF header record alternative allele key.
 pub const ALTERNATIVE_ALLELE: Key = Key::Standard(Standard::AlternativeAllele);
 
-/// VCF header record assembly key.
-pub const ASSEMBLY: Key = Key::Standard(Standard::Assembly);
-
 /// VCF header record contig key.
 pub const CONTIG: Key = Key::Standard(Standard::Contig);
 
@@ -40,8 +37,6 @@ pub enum Standard {
     Format,
     /// Symbolic alternate allele (`ALT`).
     AlternativeAllele,
-    /// Breakpoint assemblies URI (`assembly`).
-    Assembly,
     /// Contig (`contig`).
     Contig,
 }
@@ -54,7 +49,6 @@ impl Standard {
             "FILTER" => Some(Self::Filter),
             "FORMAT" => Some(Self::Format),
             "ALT" => Some(Self::AlternativeAllele),
-            "assembly" => Some(Self::Assembly),
             "contig" => Some(Self::Contig),
             _ => None,
         }
@@ -69,7 +63,6 @@ impl AsRef<str> for Standard {
             Self::Filter => "FILTER",
             Self::Format => "FORMAT",
             Self::AlternativeAllele => "ALT",
-            Self::Assembly => "assembly",
             Self::Contig => "contig",
         }
     }
@@ -152,7 +145,6 @@ mod tests {
         assert_eq!(FILTER.to_string(), "FILTER");
         assert_eq!(FORMAT.to_string(), "FORMAT");
         assert_eq!(ALTERNATIVE_ALLELE.to_string(), "ALT");
-        assert_eq!(ASSEMBLY.to_string(), "assembly");
         assert_eq!(CONTIG.to_string(), "contig");
         assert_eq!(
             Key::Other(Other(String::from("fileDate"))).to_string(),
@@ -167,7 +159,6 @@ mod tests {
         assert_eq!(Key::from("FILTER"), FILTER);
         assert_eq!(Key::from("FORMAT"), FORMAT);
         assert_eq!(Key::from("ALT"), ALTERNATIVE_ALLELE);
-        assert_eq!(Key::from("assembly"), ASSEMBLY);
         assert_eq!(Key::from("contig"), CONTIG);
         assert_eq!(
             Key::from("fileDate"),

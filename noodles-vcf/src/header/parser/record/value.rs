@@ -67,7 +67,6 @@ pub(super) fn parse_value(src: &mut &[u8], key: Key) -> Result<Record, ParseErro
         key::ALTERNATIVE_ALLELE => map::parse_alternative_allele(src)
             .map(|(id, map)| Record::AlternativeAllele(id, map))
             .map_err(ParseError::InvalidAlternativeAllele),
-        key::ASSEMBLY => todo!(),
         key::CONTIG => map::parse_contig(src)
             .map(|(id, map)| Record::Contig(id, map))
             .map_err(ParseError::InvalidContig),

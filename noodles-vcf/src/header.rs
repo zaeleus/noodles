@@ -51,7 +51,6 @@ pub struct Header {
     filters: Filters,
     formats: Formats,
     alternative_alleles: AlternativeAlleles,
-    assembly: Option<String>,
     contigs: Contigs,
     sample_names: SampleNames,
     other_records: OtherRecords,
@@ -309,38 +308,6 @@ impl Header {
         &mut self.alternative_alleles
     }
 
-    /// Returns a URI to the breakpoint assemblies (`assembly`) referenced in records.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf as vcf;
-    ///
-    /// let header = vcf::Header::builder()
-    ///     .set_assembly("file:///assemblies.fasta")
-    ///     .build();
-    ///
-    /// assert_eq!(header.assembly(), Some("file:///assemblies.fasta"));
-    /// ```
-    pub fn assembly(&self) -> Option<&str> {
-        self.assembly.as_deref()
-    }
-
-    /// Returns a mutable reference to a URI to the breakpoint assemblies (`assembly`) referenced
-    /// in records.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf as vcf;
-    /// let mut header = vcf::Header::default();
-    /// *header.assembly_mut() = Some(String::from("file:///assemblies.fasta"));
-    /// assert_eq!(header.assembly(), Some("file:///assemblies.fasta"));
-    /// ```
-    pub fn assembly_mut(&mut self) -> &mut Option<String> {
-        &mut self.assembly
-    }
-
     /// Returns a map of contig records (`contig`).
     ///
     /// # Examples
@@ -433,8 +400,8 @@ impl Header {
 
     /// Returns a map of records with nonstandard keys.
     ///
-    /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`,
-    /// `assembly`, and `contig`.
+    /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`, and
+    /// `contig`.
     ///
     /// # Examples
     ///
@@ -454,8 +421,8 @@ impl Header {
 
     /// Returns a mutable reference to a map of collections of records with nonstandard keys.
     ///
-    /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`,
-    /// `assembly`, and `contig`.
+    /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`, and
+    /// `contig`.
     ///
     /// To simply add an nonstandard record, consider using [`Self::insert`] instead.
     ///
@@ -481,8 +448,8 @@ impl Header {
 
     /// Returns a collection of header values with the given key.
     ///
-    /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`,
-    /// `assembly`, and `contig`.
+    /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`, and
+    /// `contig`.
     ///
     /// # Examples
     ///
@@ -608,16 +575,6 @@ impl std::fmt::Display for Header {
             )?;
         }
 
-        if let Some(assembly) = self.assembly() {
-            writeln!(
-                f,
-                "{}{}={}",
-                record::PREFIX,
-                record::key::ASSEMBLY,
-                assembly
-            )?;
-        }
-
         for (id, contig) in self.contigs() {
             writeln!(
                 f,
@@ -683,13 +640,11 @@ mod tests {
         let header = Header::builder()
             .set_file_format(FileFormat::new(4, 3))
             .add_filter("PASS", Map::<Filter>::pass())
-            .set_assembly("file:///assemblies.fasta")
             .insert("fileDate".parse()?, record::Value::from("20200514"))?
             .build();
 
         let expected = r#"##fileformat=VCFv4.3
 ##FILTER=<ID=PASS,Description="All filters passed">
-##assembly=file:///assemblies.fasta
 ##fileDate=20200514
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
 "#;
