@@ -5,7 +5,7 @@ mod value;
 
 use std::{error, fmt};
 
-use self::key::parse_key;
+use self::{key::parse_key, value::parse_value};
 use crate::header::Record;
 
 /// An error returned when a VCF header record fails to parse.
@@ -15,6 +15,8 @@ pub enum ParseError {
     MissingPrefix,
     /// The key is invalid.
     InvalidKey(key::ParseError),
+    /// The value is invalid.
+    InvalidValue(value::ParseError),
 }
 
 impl error::Error for ParseError {
@@ -22,6 +24,7 @@ impl error::Error for ParseError {
         match self {
             Self::MissingPrefix => None,
             Self::InvalidKey(e) => Some(e),
+            Self::InvalidValue(e) => Some(e),
         }
     }
 }
@@ -31,14 +34,16 @@ impl fmt::Display for ParseError {
         match self {
             Self::MissingPrefix => write!(f, "missing prefix"),
             Self::InvalidKey(_) => write!(f, "invalid key"),
+            Self::InvalidValue(_) => write!(f, "invalid value"),
         }
     }
 }
 
-pub(super) fn parse_record(mut src: &[u8]) -> Result<Record, ParseError> {
+#[allow(missing_docs)]
+pub fn parse_record(mut src: &[u8]) -> Result<Record, ParseError> {
     consume_prefix(&mut src)?;
-    let _ = parse_key(&mut src).map_err(ParseError::InvalidKey)?;
-    todo!()
+    let key = parse_key(&mut src).map_err(ParseError::InvalidKey)?;
+    parse_value(&mut src, key).map_err(ParseError::InvalidValue)
 }
 
 fn consume_prefix(src: &mut &[u8]) -> Result<(), ParseError> {

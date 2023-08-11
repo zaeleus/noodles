@@ -6,7 +6,7 @@ use std::str::{FromStr, Lines};
 
 use noodles_vcf::{
     self as vcf,
-    header::{ParseError, Record},
+    header::{parser::parse_record, ParseError, Record},
 };
 
 pub use self::string_map::StringMap;
@@ -123,15 +123,15 @@ impl FromStr for StringMaps {
         let mut string_maps = Self::default();
 
         let mut lines = s.lines();
-        let file_format = parse_file_format(&mut lines)?;
+        // FIXME: Pass `file_format` to record parser.
+        let _file_format = parse_file_format(&mut lines)?;
 
         for line in &mut lines {
             if line.starts_with("#CHROM") {
                 break;
             }
 
-            let record =
-                Record::try_from((file_format, line)).map_err(ParseError::InvalidRecord)?;
+            let record = parse_record(line.as_bytes()).map_err(ParseError::InvalidRecord)?;
 
             match record {
                 Record::Contig(id, contig) => {
@@ -158,7 +158,7 @@ fn parse_file_format(lines: &mut Lines<'_>) -> Result<vcf::header::FileFormat, P
     let record = lines
         .next()
         .ok_or(ParseError::MissingFileFormat)
-        .and_then(|line| line.parse().map_err(ParseError::InvalidRecord))?;
+        .and_then(|line| parse_record(line.as_bytes()).map_err(ParseError::InvalidRecord))?;
 
     match record {
         Record::FileFormat(file_format) => Ok(file_format),

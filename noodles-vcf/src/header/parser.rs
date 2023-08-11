@@ -4,7 +4,7 @@ mod builder;
 mod file_format_option;
 mod record;
 
-pub use self::{builder::Builder, file_format_option::FileFormatOption};
+pub use self::{builder::Builder, file_format_option::FileFormatOption, record::parse_record};
 
 use std::error;
 
@@ -53,7 +53,7 @@ impl Parser {
                 break;
             }
 
-            builder = parse_record(file_format, builder, line)?;
+            builder = add_record(file_format, builder, line)?;
         }
 
         if !has_header {
@@ -78,7 +78,7 @@ pub enum ParseError {
     /// The file format (`fileformat`) is invalid.
     InvalidFileFormat(file_format::ParseError),
     /// A record is invalid.
-    InvalidRecord(super::record::ParseError),
+    InvalidRecord(record::ParseError),
     /// A record has an invalid value.
     InvalidRecordValue(super::record::value::collection::AddError),
     /// The header is missing.
@@ -133,7 +133,7 @@ impl std::fmt::Display for ParseError {
 }
 
 fn parse_file_format(s: &str) -> Result<FileFormat, ParseError> {
-    let record = s.parse().map_err(ParseError::InvalidRecord)?;
+    let record = record::parse_record(s.as_bytes()).map_err(ParseError::InvalidRecord)?;
 
     match record {
         Record::FileFormat(file_format) => Ok(file_format),
@@ -141,12 +141,13 @@ fn parse_file_format(s: &str) -> Result<FileFormat, ParseError> {
     }
 }
 
-fn parse_record(
-    file_format: FileFormat,
+fn add_record(
+    _file_format: FileFormat,
     mut builder: super::Builder,
     line: &str,
 ) -> Result<super::Builder, ParseError> {
-    let record = Record::try_from((file_format, line)).map_err(ParseError::InvalidRecord)?;
+    // FIXME: Pass `file_format`.
+    let record = record::parse_record(line.as_bytes()).map_err(ParseError::InvalidRecord)?;
 
     builder = match record {
         Record::FileFormat(_) => return Err(ParseError::UnexpectedFileFormat),
@@ -223,7 +224,6 @@ mod tests {
 ##FILTER=<ID=q10,Description="Quality below 10">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
 ##ALT=<ID=DEL,Description="Deletion">
-##META=<ID=Assay,Type=String,Number=.,Values=[WholeGenome, Exome]>
 ##SAMPLE=<ID=sample0,Assay=WholeGenome>
 ##PEDIGREE=<ID=cid,Father=fid,Mother=mid>
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0

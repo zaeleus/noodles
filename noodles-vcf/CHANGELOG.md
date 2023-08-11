@@ -11,6 +11,14 @@
 
 [#191]: https://github.com/zaeleus/noodles/issues/191
 
+### Changed
+
+  * vcf/header/parser: Relax field order and value quoting rules.
+
+    Required fields no longer have to be strictly ordered. Values can either be
+    a raw or quoted string. Quoted strings are allowed to have some escape
+    sequences.
+
 ### Removed
 
   * vcf/header: Remove `assembly`, `META`, and `pedigreeDB`.
