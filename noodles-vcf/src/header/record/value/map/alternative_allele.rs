@@ -8,7 +8,7 @@ pub use self::tag::Tag;
 use std::{error, fmt};
 
 use self::tag::StandardTag;
-use super::{Described, Fields, Inner, Map, OtherFields};
+use super::{Described, Inner, Map, OtherFields};
 
 /// An inner VCF header alternative allele map value.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -99,57 +99,6 @@ impl fmt::Display for ParseError {
     }
 }
 
-impl TryFrom<Fields> for Map<AlternativeAllele> {
-    type Error = ParseError;
-
-    fn try_from(fields: Fields) -> Result<Self, Self::Error> {
-        let mut description = None;
-        let mut other_fields = OtherFields::new();
-
-        for (key, value) in fields {
-            match Tag::from(key) {
-                tag::ID => return Err(ParseError::DuplicateTag(tag::ID)),
-                tag::DESCRIPTION => try_replace(&mut description, tag::DESCRIPTION, value)?,
-                Tag::Other(t) => try_insert(&mut other_fields, t, value)?,
-            }
-        }
-
-        let description = description.ok_or(ParseError::MissingField(tag::DESCRIPTION))?;
-
-        Ok(Self {
-            inner: AlternativeAllele { description },
-            other_fields,
-        })
-    }
-}
-
-fn try_replace<T>(option: &mut Option<T>, tag: Tag, value: T) -> Result<(), ParseError> {
-    if option.replace(value).is_none() {
-        Ok(())
-    } else {
-        Err(ParseError::DuplicateTag(tag))
-    }
-}
-
-fn try_insert(
-    other_fields: &mut OtherFields<StandardTag>,
-    tag: super::tag::Other<StandardTag>,
-    value: String,
-) -> Result<(), ParseError> {
-    use indexmap::map::Entry;
-
-    match other_fields.entry(tag) {
-        Entry::Vacant(entry) => {
-            entry.insert(value);
-            Ok(())
-        }
-        Entry::Occupied(entry) => {
-            let (t, _) = entry.remove_entry();
-            Err(ParseError::DuplicateTag(Tag::Other(t)))
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -159,30 +108,5 @@ mod tests {
         let map = Map::<AlternativeAllele>::new("Deletion");
         let expected = r#",Description="Deletion""#;
         assert_eq!(map.to_string(), expected);
-    }
-
-    #[test]
-    fn test_try_from_fields_for_map_alternative_allele() -> Result<(), ParseError> {
-        let actual = Map::<AlternativeAllele>::try_from(vec![(
-            String::from("Description"),
-            String::from("Deletion"),
-        )])?;
-
-        let expected = Map::<AlternativeAllele>::new("Deletion");
-
-        assert_eq!(actual, expected);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_try_from_fields_for_map_alternative_allele_with_missing_fields() {
-        assert_eq!(
-            Map::<AlternativeAllele>::try_from(vec![(
-                String::from("Other"),
-                String::from("noodles")
-            ),]),
-            Err(ParseError::MissingField(tag::DESCRIPTION)),
-        );
     }
 }

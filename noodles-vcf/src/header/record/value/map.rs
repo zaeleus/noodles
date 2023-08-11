@@ -20,7 +20,6 @@ use indexmap::IndexMap;
 
 use crate::header::Number;
 
-type Fields = Vec<(String, String)>;
 pub(crate) type OtherFields<S> = IndexMap<tag::Other<S>, String>;
 
 /// An inner VCF header map value.

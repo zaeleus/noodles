@@ -33,6 +33,10 @@
 
     Use other records instead.
 
+  * vcf/header/record/value/map: Remove `TryFrom<Vec<String, String>>`.
+
+    Use the map builders instead.
+
 ## 0.35.0 - 2023-08-03
 
 ### Changed

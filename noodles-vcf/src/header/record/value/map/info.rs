@@ -6,10 +6,10 @@ mod ty;
 
 pub use self::{tag::Tag, ty::Type};
 
-use std::{error, fmt, num};
+use std::fmt;
 
 use self::tag::StandardTag;
-use super::{builder, Described, Fields, Indexed, Inner, Map, OtherFields, Typed};
+use super::{builder, Described, Indexed, Inner, Map, OtherFields, Typed};
 use crate::{
     header::{FileFormat, Number},
     record::info::field::Key,
@@ -140,155 +140,6 @@ impl From<(FileFormat, &Key)> for Map<Info> {
     }
 }
 
-/// An error returned when a raw INFO record fails to parse.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
-    /// A field is missing.
-    MissingField(Tag),
-    /// A tag is duplicated.
-    DuplicateTag(Tag),
-    /// The ID is invalid.
-    InvalidId(crate::record::info::field::key::ParseError),
-    /// The number is invalid.
-    InvalidNumber(crate::header::number::ParseError),
-    /// The type is invalid.
-    InvalidType(ty::ParseError),
-    /// The IDX is invalid.
-    InvalidIdx(num::ParseIntError),
-    /// The number for the given ID does not match its reserved type definition.
-    NumberMismatch {
-        /// The actual number.
-        actual: Number,
-        /// The expected number.
-        expected: Number,
-    },
-    /// The type for the given ID does not match its reserved type definition.
-    TypeMismatch {
-        /// The actual type.
-        actual: Type,
-        /// The expected type.
-        expected: Type,
-    },
-}
-
-impl error::Error for ParseError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match self {
-            Self::InvalidId(e) => Some(e),
-            Self::InvalidNumber(e) => Some(e),
-            Self::InvalidType(e) => Some(e),
-            Self::InvalidIdx(e) => Some(e),
-            _ => None,
-        }
-    }
-}
-
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::MissingField(tag) => write!(f, "missing field: {tag}"),
-            Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
-            Self::InvalidId(_) => write!(f, "invalid ID"),
-            Self::InvalidNumber(_) => write!(f, "invalid number"),
-            Self::InvalidType(_) => write!(f, "invalid type"),
-            Self::InvalidIdx(_) => write!(f, "invalid IDX"),
-            Self::NumberMismatch { actual, expected } => {
-                write!(f, "number mismatch: expected {expected}, got {actual}")
-            }
-            Self::TypeMismatch { actual, expected } => {
-                write!(f, "type mismatch: expected {expected}, got {actual}")
-            }
-        }
-    }
-}
-
-impl TryFrom<Fields> for Map<Info> {
-    type Error = ParseError;
-
-    fn try_from(fields: Fields) -> Result<Self, Self::Error> {
-        Self::try_from((FileFormat::default(), fields))
-    }
-}
-
-impl TryFrom<(FileFormat, Fields)> for Map<Info> {
-    type Error = ParseError;
-
-    fn try_from((_, fields): (FileFormat, Fields)) -> Result<Self, Self::Error> {
-        let mut number = None;
-        let mut ty = None;
-        let mut description = None;
-        let mut idx = None;
-
-        let mut other_fields = OtherFields::new();
-
-        for (key, value) in fields {
-            match Tag::from(key) {
-                tag::ID => return Err(ParseError::DuplicateTag(tag::ID)),
-                tag::NUMBER => {
-                    parse_number(&value).and_then(|v| try_replace(&mut number, tag::NUMBER, v))?
-                }
-                tag::TYPE => parse_type(&value).and_then(|v| try_replace(&mut ty, tag::TYPE, v))?,
-                tag::DESCRIPTION => try_replace(&mut description, tag::DESCRIPTION, value)?,
-                tag::IDX => parse_idx(&value).and_then(|v| try_replace(&mut idx, tag::IDX, v))?,
-                Tag::Other(t) => try_insert(&mut other_fields, t, value)?,
-            }
-        }
-
-        let number = number.ok_or(ParseError::MissingField(tag::NUMBER))?;
-        let ty = ty.ok_or(ParseError::MissingField(tag::TYPE))?;
-        let description = description.ok_or(ParseError::MissingField(tag::DESCRIPTION))?;
-
-        Ok(Self {
-            inner: Info {
-                number,
-                ty,
-                description,
-                idx,
-            },
-            other_fields,
-        })
-    }
-}
-
-fn parse_number(s: &str) -> Result<Number, ParseError> {
-    s.parse().map_err(ParseError::InvalidNumber)
-}
-
-fn parse_type(s: &str) -> Result<Type, ParseError> {
-    s.parse().map_err(ParseError::InvalidType)
-}
-
-fn parse_idx(s: &str) -> Result<usize, ParseError> {
-    s.parse().map_err(ParseError::InvalidIdx)
-}
-
-fn try_replace<T>(option: &mut Option<T>, tag: Tag, value: T) -> Result<(), ParseError> {
-    if option.replace(value).is_none() {
-        Ok(())
-    } else {
-        Err(ParseError::DuplicateTag(tag))
-    }
-}
-
-fn try_insert(
-    other_fields: &mut OtherFields<StandardTag>,
-    tag: super::tag::Other<StandardTag>,
-    value: String,
-) -> Result<(), ParseError> {
-    use indexmap::map::Entry;
-
-    match other_fields.entry(tag) {
-        Entry::Vacant(entry) => {
-            entry.insert(value);
-            Ok(())
-        }
-        Entry::Occupied(entry) => {
-            let (t, _) = entry.remove_entry();
-            Err(ParseError::DuplicateTag(Tag::Other(t)))
-        }
-    }
-}
-
 impl builder::Inner<Info> for builder::TypedDescribedIndexed<Info> {
     fn build(self) -> Result<Info, builder::BuildError> {
         let number = self
@@ -320,56 +171,5 @@ mod tests {
         let map = Map::<Info>::from(&key::SAMPLES_WITH_DATA_COUNT);
         let expected = r#",Number=1,Type=Integer,Description="Number of samples with data""#;
         assert_eq!(map.to_string(), expected);
-    }
-
-    #[test]
-    fn test_try_from_fields_for_map_info() -> Result<(), ParseError> {
-        let actual = Map::<Info>::try_from(vec![
-            (String::from("Number"), String::from("1")),
-            (String::from("Type"), String::from("Integer")),
-            (
-                String::from("Description"),
-                String::from("Number of samples with data"),
-            ),
-        ])?;
-
-        let expected = Map::<Info>::from(&key::SAMPLES_WITH_DATA_COUNT);
-
-        assert_eq!(actual, expected);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_try_from_fields_for_map_info_with_missing_fields() {
-        assert_eq!(
-            Map::<Info>::try_from(vec![
-                (String::from("Type"), String::from("Integer")),
-                (
-                    String::from("Description"),
-                    String::from("Number of samples with data")
-                ),
-            ]),
-            Err(ParseError::MissingField(tag::NUMBER))
-        );
-
-        assert_eq!(
-            Map::<Info>::try_from(vec![
-                (String::from("Number"), String::from("1")),
-                (
-                    String::from("Description"),
-                    String::from("Number of samples with data")
-                ),
-            ]),
-            Err(ParseError::MissingField(tag::TYPE))
-        );
-
-        assert_eq!(
-            Map::<Info>::try_from(vec![
-                (String::from("Number"), String::from("1")),
-                (String::from("Type"), String::from("Integer")),
-            ]),
-            Err(ParseError::MissingField(tag::DESCRIPTION))
-        );
     }
 }
