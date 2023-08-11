@@ -9,7 +9,7 @@ use std::{
 use super::Standard;
 
 #[derive(Clone, Debug)]
-pub struct Other<S>(pub(super) String, pub(super) PhantomData<S>);
+pub struct Other<S>(pub(crate) String, pub(crate) PhantomData<S>);
 
 impl<S> AsRef<str> for Other<S>
 where

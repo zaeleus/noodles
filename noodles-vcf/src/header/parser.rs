@@ -211,8 +211,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        use crate::header::record::value::Collection;
+    fn test_from_str() -> Result<(), Box<dyn std::error::Error>> {
+        use crate::header::record::value::{map::Other, Collection, Map};
 
         let s = r#"##fileformat=VCFv4.3
 ##fileDate=20200506
@@ -224,6 +224,7 @@ mod tests {
 ##FILTER=<ID=q10,Description="Quality below 10">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
 ##ALT=<ID=DEL,Description="Deletion">
+##META=<ID=Assay,Type=String,Number=.,Values=[WholeGenome, Exome]>
 ##SAMPLE=<ID=sample0,Assay=WholeGenome>
 ##PEDIGREE=<ID=cid,Father=fid,Mother=mid>
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0
@@ -249,6 +250,22 @@ mod tests {
             Some(&Collection::Unstructured(
                 vec![String::from("noodles-vcf"),]
             )),
+        );
+
+        assert_eq!(
+            header.get("META"),
+            Some(&Collection::Structured(
+                [(
+                    String::from("Assay"),
+                    Map::<Other>::builder()
+                        .insert("Type".parse()?, "String")
+                        .insert("Number".parse()?, ".")
+                        .insert("Values".parse()?, "[WholeGenome, Exome]")
+                        .build()?
+                )]
+                .into_iter()
+                .collect()
+            ))
         );
 
         Ok(())

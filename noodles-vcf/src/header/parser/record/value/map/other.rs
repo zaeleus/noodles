@@ -1,4 +1,4 @@
-use std::{error, fmt};
+use std::{error, fmt, str};
 
 use super::field::{parse_key, parse_value};
 use crate::header::record::value::{
@@ -18,6 +18,7 @@ pub enum ParseError {
     InvalidKey(super::field::key::ParseError),
     InvalidValue(super::field::value::ParseError),
     MissingId,
+    InvalidValues(str::Utf8Error),
     InvalidOther(
         map::tag::Other<tag::StandardTag>,
         super::field::value::ParseError,
@@ -32,6 +33,7 @@ impl error::Error for ParseError {
             ParseError::InvalidField(e) => Some(e),
             ParseError::InvalidKey(e) => Some(e),
             ParseError::InvalidValue(e) => Some(e),
+            ParseError::InvalidValues(e) => Some(e),
             ParseError::InvalidOther(_, e) => Some(e),
             _ => None,
         }
@@ -46,6 +48,7 @@ impl fmt::Display for ParseError {
             Self::InvalidKey(_) => write!(f, "invalid key"),
             Self::InvalidValue(_) => write!(f, "invalid value"),
             Self::MissingId => write!(f, "missing ID"),
+            Self::InvalidValues(_) => write!(f, "invalid values"),
             Self::InvalidOther(tag, _) => write!(f, "invalid other: {tag}"),
             Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
         }
@@ -53,6 +56,8 @@ impl fmt::Display for ParseError {
 }
 
 pub fn parse_other(src: &mut &[u8]) -> Result<(String, Map<Other>), ParseError> {
+    const VALUES: &str = "Values";
+
     super::consume_prefix(src).map_err(ParseError::InvalidMap)?;
 
     let mut id = None;
@@ -67,8 +72,15 @@ pub fn parse_other(src: &mut &[u8]) -> Result<(String, Map<Other>), ParseError> 
 
         match tag {
             tag::ID => parse_id(src).and_then(|v| try_replace(&mut id, tag::ID, v))?,
-            Tag::Other(t) => parse_other_value(src, &t)
-                .and_then(|value| try_insert(&mut other_fields, t, value))?,
+            Tag::Other(t) => {
+                if t.as_ref() == VALUES {
+                    parse_values(src, &t)
+                        .and_then(|value| try_insert(&mut other_fields, t, value))?;
+                } else {
+                    parse_other_value(src, &t)
+                        .and_then(|value| try_insert(&mut other_fields, t, value))?;
+                }
+            }
         }
 
         if !super::field::consume_separator(src).map_err(ParseError::InvalidField)? {
@@ -93,6 +105,27 @@ fn parse_id(src: &mut &[u8]) -> Result<String, ParseError> {
     parse_value(src)
         .map(String::from)
         .map_err(ParseError::InvalidValue)
+}
+
+fn parse_values(
+    src: &mut &[u8],
+    tag: &map::tag::Other<tag::StandardTag>,
+) -> Result<String, ParseError> {
+    const PREFIX: u8 = b'[';
+    const SUFFIX: u8 = b']';
+
+    let is_delimited = src.first().map(|&b| b == PREFIX).unwrap_or_default();
+
+    if is_delimited {
+        if let Some(i) = src.iter().position(|&b| b == SUFFIX) {
+            let (buf, rest) = src.split_at(i + 1);
+            let s = str::from_utf8(buf).map_err(ParseError::InvalidValues)?;
+            *src = rest;
+            return Ok(s.into());
+        }
+    }
+
+    parse_other_value(src, tag)
 }
 
 fn parse_other_value(

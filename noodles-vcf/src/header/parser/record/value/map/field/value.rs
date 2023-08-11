@@ -1,4 +1,4 @@
-mod string;
+pub(crate) mod string;
 
 use std::{borrow::Cow, error, fmt};
 
