@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use crate::header::record::value::map;
 
-pub(super) type StandardTag = Standard;
+pub(crate) type StandardTag = Standard;
 
 /// A VCF header contig map tag.
 pub type Tag = map::tag::Tag<StandardTag>;
@@ -10,10 +10,10 @@ pub type Tag = map::tag::Tag<StandardTag>;
 // For some reason, using the `Tag` type alias produces a `nontrivial_structural_match` warning
 // when pattern matching, so it's avoided here.
 pub(crate) const ID: Tag = map::tag::Tag::<StandardTag>::Standard(StandardTag::Id);
-pub(super) const LENGTH: Tag = map::tag::Tag::<StandardTag>::Standard(StandardTag::Length);
-pub(super) const MD5: Tag = map::tag::Tag::<StandardTag>::Standard(StandardTag::Md5);
-pub(super) const URL: Tag = map::tag::Tag::<StandardTag>::Standard(StandardTag::Url);
-pub(super) const IDX: Tag = map::tag::Tag::<StandardTag>::Standard(StandardTag::Idx);
+pub(crate) const LENGTH: Tag = map::tag::Tag::<StandardTag>::Standard(StandardTag::Length);
+pub(crate) const MD5: Tag = map::tag::Tag::<StandardTag>::Standard(StandardTag::Md5);
+pub(crate) const URL: Tag = map::tag::Tag::<StandardTag>::Standard(StandardTag::Url);
+pub(crate) const IDX: Tag = map::tag::Tag::<StandardTag>::Standard(StandardTag::Idx);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Standard {

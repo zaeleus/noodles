@@ -14,10 +14,10 @@ use super::{Fields, Indexed, Inner, Map, OtherFields};
 /// An inner VCF header contig map value.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Contig {
-    length: Option<usize>,
-    md5: Option<String>,
-    url: Option<String>,
-    idx: Option<usize>,
+    pub(crate) length: Option<usize>,
+    pub(crate) md5: Option<String>,
+    pub(crate) url: Option<String>,
+    pub(crate) idx: Option<usize>,
 }
 
 impl Inner for Contig {

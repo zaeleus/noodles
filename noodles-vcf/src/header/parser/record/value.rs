@@ -18,6 +18,7 @@ pub enum ParseError {
     InvalidFilter(map::filter::ParseError),
     InvalidFormat(map::format::ParseError),
     InvalidAlternativeAllele(map::alternative_allele::ParseError),
+    InvalidContig(map::contig::ParseError),
 }
 
 impl error::Error for ParseError {
@@ -27,6 +28,7 @@ impl error::Error for ParseError {
             Self::InvalidFilter(e) => Some(e),
             Self::InvalidFormat(e) => Some(e),
             Self::InvalidAlternativeAllele(e) => Some(e),
+            Self::InvalidContig(e) => Some(e),
             _ => None,
         }
     }
@@ -40,6 +42,7 @@ impl fmt::Display for ParseError {
             Self::InvalidFilter(_) => write!(f, "invalid filter"),
             Self::InvalidFormat(_) => write!(f, "invalid format"),
             Self::InvalidAlternativeAllele(_) => write!(f, "invalid alternative allele"),
+            Self::InvalidContig(_) => write!(f, "invalid contig"),
         }
     }
 }
@@ -63,7 +66,9 @@ pub(super) fn parse_value(src: &mut &[u8], key: Key) -> Result<Record, ParseErro
             .map(|(id, map)| Record::AlternativeAllele(id, map))
             .map_err(ParseError::InvalidAlternativeAllele),
         key::ASSEMBLY => todo!(),
-        key::CONTIG => todo!(),
+        key::CONTIG => map::parse_contig(src)
+            .map(|(id, map)| Record::Contig(id, map))
+            .map_err(ParseError::InvalidContig),
         key::META => todo!(),
         key::PEDIGREE_DB => todo!(),
         Key::Other(_) => todo!(),
