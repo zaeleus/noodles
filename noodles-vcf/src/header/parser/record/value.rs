@@ -61,7 +61,13 @@ impl fmt::Display for ParseError {
             } => {
                 let (actual_number, actual_type) = actual;
                 let (expected_number, expected_type) = expected;
-                write!(f, "format definition mismatch for ID={id}: expected Number={},Type={}, got Number={},Type={}", actual_number, actual_type, expected_number, expected_type)
+
+                write!(
+                    f,
+                    "format definition mismatch for ID={id}: expected Number={},Type={}, got Number={},Type={}",
+                    expected_number, expected_type,
+                    actual_number, actual_type,
+                )
             }
             Self::InfoDefinitionMismatch {
                 id,
@@ -70,7 +76,13 @@ impl fmt::Display for ParseError {
             } => {
                 let (actual_number, actual_type) = actual;
                 let (expected_number, expected_type) = expected;
-                write!(f, "info definition mismatch for ID={id}: expected Number={},Type={}, got Number={},Type={}", actual_number, actual_type, expected_number, expected_type)
+
+                write!(
+                    f,
+                    "info definition mismatch for ID={id}: expected Number={},Type={}, got Number={},Type={}",
+                    expected_number, expected_type,
+                    actual_number, actual_type,
+                )
             }
         }
     }
