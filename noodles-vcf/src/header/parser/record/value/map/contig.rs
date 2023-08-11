@@ -39,6 +39,7 @@ impl error::Error for ParseError {
             ParseError::InvalidKey(e) => Some(e),
             ParseError::InvalidValue(e) => Some(e),
             ParseError::InvalidId(e) => Some(e),
+            ParseError::InvalidLength(e) => Some(e),
             ParseError::InvalidIdx(e) => Some(e),
             ParseError::InvalidOther(_, e) => Some(e),
             _ => None,
