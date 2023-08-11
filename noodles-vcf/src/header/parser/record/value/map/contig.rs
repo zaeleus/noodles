@@ -34,14 +34,14 @@ pub enum ParseError {
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
-            ParseError::InvalidMap(e) => Some(e),
-            ParseError::InvalidField(e) => Some(e),
-            ParseError::InvalidKey(e) => Some(e),
-            ParseError::InvalidValue(e) => Some(e),
-            ParseError::InvalidId(e) => Some(e),
-            ParseError::InvalidLength(e) => Some(e),
-            ParseError::InvalidIdx(e) => Some(e),
-            ParseError::InvalidOther(_, e) => Some(e),
+            Self::InvalidMap(e) => Some(e),
+            Self::InvalidField(e) => Some(e),
+            Self::InvalidKey(e) => Some(e),
+            Self::InvalidValue(e) => Some(e),
+            Self::InvalidId(e) => Some(e),
+            Self::InvalidLength(e) => Some(e),
+            Self::InvalidIdx(e) => Some(e),
+            Self::InvalidOther(_, e) => Some(e),
             _ => None,
         }
     }
