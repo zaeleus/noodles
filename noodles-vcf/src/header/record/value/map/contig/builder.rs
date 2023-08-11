@@ -39,4 +39,13 @@ impl map::Builder<Contig> {
         self.inner.md5 = Some(md5);
         self
     }
+
+    /// Set the URL.
+    pub fn set_url<U>(mut self, url: U) -> Self
+    where
+        U: Into<String>,
+    {
+        self.inner.url = Some(url.into());
+        self
+    }
 }

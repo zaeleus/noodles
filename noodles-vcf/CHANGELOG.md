@@ -4,6 +4,9 @@
 
 ### Added
 
+  * vcf/header/record/value/map/contig/builder: Add URL setter
+    (`Builder::set_url`).
+
   * vcf/record/position: Implement `PartialEq<core::Position>` and
     `PartialOrd<core::Position>` for `Position` ([#191]).
 
