@@ -7,7 +7,7 @@ use crate::{
         record::value::{
             map::{
                 self,
-                format::{tag, Tag, Type},
+                format::{tag, ty, Tag, Type},
                 Format, OtherFields,
             },
             Map,
@@ -29,8 +29,7 @@ pub enum ParseError {
     MissingNumber,
     InvalidNumber(number::ParseError),
     MissingType,
-    // FIXME: Wrap parse error.
-    InvalidType,
+    InvalidType(ty::ParseError),
     MissingDescription,
     InvalidDescription,
     InvalidIdx(num::ParseIntError),
@@ -50,6 +49,7 @@ impl error::Error for ParseError {
             ParseError::InvalidValue(e) => Some(e),
             ParseError::InvalidId(e) => Some(e),
             ParseError::InvalidNumber(e) => Some(e),
+            ParseError::InvalidType(e) => Some(e),
             ParseError::InvalidIdx(e) => Some(e),
             ParseError::InvalidOther(_, e) => Some(e),
             _ => None,
@@ -69,7 +69,7 @@ impl fmt::Display for ParseError {
             Self::MissingNumber => write!(f, "missing number"),
             Self::InvalidNumber(_) => write!(f, "invalid number"),
             Self::MissingType => write!(f, "missing type"),
-            Self::InvalidType => write!(f, "invalid type"),
+            Self::InvalidType(_) => write!(f, "invalid type"),
             Self::MissingDescription => write!(f, "missing description"),
             Self::InvalidDescription => write!(f, "invalid description"),
             Self::InvalidIdx(_) => write!(f, "invalid IDX"),
@@ -149,10 +149,9 @@ fn parse_number(src: &mut &[u8]) -> Result<Number, ParseError> {
 }
 
 fn parse_type(src: &mut &[u8]) -> Result<Type, ParseError> {
-    // FIXME: Wrap parse error.
     parse_value(src)
         .map_err(ParseError::InvalidValue)
-        .and_then(|s| s.parse().map_err(|_| ParseError::InvalidType))
+        .and_then(|s| s.parse().map_err(ParseError::InvalidType))
 }
 
 fn parse_description(src: &mut &[u8]) -> Result<String, ParseError> {

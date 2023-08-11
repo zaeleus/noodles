@@ -2,7 +2,7 @@
 
 pub(crate) mod definition;
 pub(crate) mod tag;
-mod ty;
+pub(crate) mod ty;
 
 pub use self::{tag::Tag, ty::Type};
 
