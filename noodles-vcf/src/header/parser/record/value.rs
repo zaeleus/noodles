@@ -16,12 +16,14 @@ pub enum ParseError {
     InvalidFileFormat,
     InvalidInfo(map::info::ParseError),
     InvalidFilter(map::filter::ParseError),
+    InvalidFormat(map::format::ParseError),
 }
 
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::InvalidInfo(e) => Some(e),
+            Self::InvalidFormat(e) => Some(e),
             _ => None,
         }
     }
@@ -33,6 +35,7 @@ impl fmt::Display for ParseError {
             Self::InvalidFileFormat => write!(f, "invalid fileformat"),
             Self::InvalidInfo(_) => write!(f, "invalid info"),
             Self::InvalidFilter(_) => write!(f, "invalid filter"),
+            Self::InvalidFormat(_) => write!(f, "invalid format"),
         }
     }
 }
@@ -49,7 +52,9 @@ pub(super) fn parse_value(src: &mut &[u8], key: Key) -> Result<Record, ParseErro
         key::FILTER => map::parse_filter(src)
             .map(|(id, map)| Record::Filter(id, map))
             .map_err(ParseError::InvalidFilter),
-        key::FORMAT => todo!(),
+        key::FORMAT => map::parse_format(src)
+            .map(|(id, map)| Record::Format(id, map))
+            .map_err(ParseError::InvalidFormat),
         key::ALTERNATIVE_ALLELE => todo!(),
         key::ASSEMBLY => todo!(),
         key::CONTIG => todo!(),

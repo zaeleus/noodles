@@ -18,10 +18,10 @@ use crate::{
 /// An inner VCF header format map value.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Format {
-    number: Number,
-    ty: Type,
-    description: String,
-    idx: Option<usize>,
+    pub(crate) number: Number,
+    pub(crate) ty: Type,
+    pub(crate) description: String,
+    pub(crate) idx: Option<usize>,
 }
 
 impl Inner for Format {
