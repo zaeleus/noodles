@@ -23,6 +23,7 @@ impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::InvalidInfo(e) => Some(e),
+            Self::InvalidFilter(e) => Some(e),
             Self::InvalidFormat(e) => Some(e),
             _ => None,
         }
