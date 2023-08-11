@@ -38,8 +38,6 @@ pub enum Record {
     Info(crate::record::info::field::Key, Map<Info>),
     /// A `META` record.
     Meta(String, Map<Meta>),
-    /// A `pedigreeDB` record.
-    PedigreeDb(String),
     /// A nonstadard record.
     Other(key::Other, Value),
 }
@@ -259,10 +257,6 @@ impl TryFrom<(FileFormat, &str)> for Record {
 
                     Ok(Self::Meta(id, meta))
                 }
-                _ => Err(ParseError::Invalid),
-            },
-            key::PEDIGREE_DB => match value {
-                parser::Value::String(s) => Ok(Self::PedigreeDb(s)),
                 _ => Err(ParseError::Invalid),
             },
             Key::Other(k) => {

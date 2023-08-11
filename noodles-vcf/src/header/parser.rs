@@ -159,7 +159,6 @@ fn parse_record(
         Record::Assembly(assembly) => builder.set_assembly(assembly),
         Record::Contig(id, contig) => builder.add_contig(id, contig),
         Record::Meta(id, meta) => builder.add_meta(id, meta),
-        Record::PedigreeDb(pedigree_db) => builder.set_pedigree_db(pedigree_db),
         Record::Other(key, value) => builder
             .insert(key, value)
             .map_err(ParseError::InvalidRecordValue)?,

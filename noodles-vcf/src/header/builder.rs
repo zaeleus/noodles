@@ -23,7 +23,6 @@ pub struct Builder {
     assembly: Option<String>,
     contigs: Contigs,
     meta: IndexMap<String, Map<Meta>>,
-    pedigree_db: Option<String>,
     sample_names: SampleNames,
     other_records: OtherRecords,
 }
@@ -240,27 +239,6 @@ impl Builder {
         self
     }
 
-    /// Sets a pedigree database record (`pedigreeDB`).
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf as vcf;
-    ///
-    /// let header = vcf::Header::builder()
-    ///     .set_pedigree_db("file:///pedigree.db")
-    ///     .build();
-    ///
-    /// assert_eq!(header.pedigree_db(), Some("file:///pedigree.db"));
-    /// ```
-    pub fn set_pedigree_db<I>(mut self, pedigree_db: I) -> Self
-    where
-        I: Into<String>,
-    {
-        self.pedigree_db = Some(pedigree_db.into());
-        self
-    }
-
     /// Sets sample names.
     ///
     /// # Examples
@@ -369,7 +347,6 @@ impl Builder {
             assembly: self.assembly,
             contigs: self.contigs,
             meta: self.meta,
-            pedigree_db: self.pedigree_db,
             sample_names: self.sample_names,
             other_records: self.other_records,
         }
@@ -392,7 +369,6 @@ mod tests {
         assert!(header.assembly().is_none());
         assert!(header.contigs().is_empty());
         assert!(header.meta().is_empty());
-        assert!(header.pedigree_db().is_none());
         assert!(header.sample_names().is_empty());
     }
 

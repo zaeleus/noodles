@@ -11,6 +11,12 @@
 
 [#191]: https://github.com/zaeleus/noodles/issues/191
 
+### Removed
+
+  * vcf/header: Remove `pedigreeDB`.
+
+    Use an other record with a string value instead.
+
 ## 0.35.0 - 2023-08-03
 
 ### Changed

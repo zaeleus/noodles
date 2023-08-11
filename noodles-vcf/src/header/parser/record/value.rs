@@ -72,7 +72,6 @@ pub(super) fn parse_value(src: &mut &[u8], key: Key) -> Result<Record, ParseErro
             .map(|(id, map)| Record::Contig(id, map))
             .map_err(ParseError::InvalidContig),
         key::META => todo!(),
-        key::PEDIGREE_DB => todo!(),
         Key::Other(k) => {
             let is_map = src.first().map(|&b| b == b'<').unwrap_or_default();
 

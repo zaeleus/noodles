@@ -30,9 +30,6 @@ pub const CONTIG: Key = Key::Standard(Standard::Contig);
 /// VCF header record meta key.
 pub const META: Key = Key::Standard(Standard::Meta);
 
-/// VCF header record pedigree database key.
-pub const PEDIGREE_DB: Key = Key::Standard(Standard::PedigreeDb);
-
 /// A standard VCF record key.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Standard {
@@ -52,8 +49,6 @@ pub enum Standard {
     Contig,
     /// Meta (`META`).
     Meta,
-    /// Pedigree database URI (`pedigreeDB`).
-    PedigreeDb,
 }
 
 impl Standard {
@@ -67,7 +62,6 @@ impl Standard {
             "assembly" => Some(Self::Assembly),
             "contig" => Some(Self::Contig),
             "META" => Some(Self::Meta),
-            "pedigreeDB" => Some(Self::PedigreeDb),
             _ => None,
         }
     }
@@ -84,7 +78,6 @@ impl AsRef<str> for Standard {
             Self::Assembly => "assembly",
             Self::Contig => "contig",
             Self::Meta => "META",
-            Self::PedigreeDb => "pedigreeDB",
         }
     }
 }
@@ -169,7 +162,6 @@ mod tests {
         assert_eq!(ASSEMBLY.to_string(), "assembly");
         assert_eq!(CONTIG.to_string(), "contig");
         assert_eq!(META.to_string(), "META");
-        assert_eq!(PEDIGREE_DB.to_string(), "pedigreeDB");
         assert_eq!(
             Key::Other(Other(String::from("fileDate"))).to_string(),
             "fileDate"
@@ -186,7 +178,6 @@ mod tests {
         assert_eq!(Key::from("assembly"), ASSEMBLY);
         assert_eq!(Key::from("contig"), CONTIG);
         assert_eq!(Key::from("META"), META);
-        assert_eq!(Key::from("pedigreeDB"), PEDIGREE_DB);
         assert_eq!(
             Key::from("fileDate"),
             Key::Other(Other(String::from("fileDate")))

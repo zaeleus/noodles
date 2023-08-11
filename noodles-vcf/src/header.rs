@@ -54,7 +54,6 @@ pub struct Header {
     assembly: Option<String>,
     contigs: Contigs,
     meta: IndexMap<String, Map<Meta>>,
-    pedigree_db: Option<String>,
     sample_names: SampleNames,
     other_records: OtherRecords,
 }
@@ -433,37 +432,6 @@ impl Header {
         &mut self.meta
     }
 
-    /// Returns a URI to the relationships between genomes (`pedigreeDB`).
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf as vcf;
-    ///
-    /// let header = vcf::Header::builder()
-    ///     .set_pedigree_db("file:///pedigree.db")
-    ///     .build();
-    ///
-    /// assert_eq!(header.pedigree_db(), Some("file:///pedigree.db"));
-    /// ```
-    pub fn pedigree_db(&self) -> Option<&str> {
-        self.pedigree_db.as_deref()
-    }
-
-    /// Returns a mutable reference to a URI to the relationships between genomes (`pedigreeDB`).
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf as vcf;
-    /// let mut header = vcf::Header::default();
-    /// *header.pedigree_db_mut() = Some(String::from("file:///pedigree.db"));
-    /// assert_eq!(header.pedigree_db(), Some("file:///pedigree.db"));
-    /// ```
-    pub fn pedigree_db_mut(&mut self) -> &mut Option<String> {
-        &mut self.pedigree_db
-    }
-
     /// Returns a list of sample names that come after the FORMAT column in the header record.
     ///
     /// # Examples
@@ -512,7 +480,7 @@ impl Header {
     /// Returns a map of records with nonstandard keys.
     ///
     /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`,
-    /// `assembly`, `contig`, `META`, and `pedigreeDB`.
+    /// `assembly`, `contig`, and `META`.
     ///
     /// # Examples
     ///
@@ -533,7 +501,7 @@ impl Header {
     /// Returns a mutable reference to a map of collections of records with nonstandard keys.
     ///
     /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`,
-    /// `assembly`, `contig`, `META`, and `pedigreeDB`.
+    /// `assembly`, `contig`, and `META`.
     ///
     /// To simply add an nonstandard record, consider using [`Self::insert`] instead.
     ///
@@ -560,7 +528,7 @@ impl Header {
     /// Returns a collection of header values with the given key.
     ///
     /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`,
-    /// `assembly`, `contig`, `META`, and `pedigreeDB`.
+    /// `assembly`, `contig`, and `META`.
     ///
     /// # Examples
     ///
@@ -715,16 +683,6 @@ impl std::fmt::Display for Header {
                 record::key::META,
                 id,
                 meta
-            )?;
-        }
-
-        if let Some(pedigree_db) = self.pedigree_db() {
-            writeln!(
-                f,
-                "{}{}={}",
-                record::PREFIX,
-                record::key::PEDIGREE_DB,
-                pedigree_db
             )?;
         }
 
