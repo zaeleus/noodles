@@ -10,10 +10,12 @@ use crate::header::{
 };
 
 /// An error returned when a VCF header record value fails to parse.
+#[allow(clippy::enum_variant_names)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     InvalidFileFormat,
     InvalidInfo(map::info::ParseError),
+    InvalidFilter(map::filter::ParseError),
 }
 
 impl error::Error for ParseError {
@@ -30,6 +32,7 @@ impl fmt::Display for ParseError {
         match self {
             Self::InvalidFileFormat => write!(f, "invalid fileformat"),
             Self::InvalidInfo(_) => write!(f, "invalid info"),
+            Self::InvalidFilter(_) => write!(f, "invalid filter"),
         }
     }
 }
@@ -43,7 +46,9 @@ pub(super) fn parse_value(src: &mut &[u8], key: Key) -> Result<Record, ParseErro
         key::INFO => map::parse_info(src)
             .map(|(id, map)| Record::Info(id, map))
             .map_err(ParseError::InvalidInfo),
-        key::FILTER => todo!(),
+        key::FILTER => map::parse_filter(src)
+            .map(|(id, map)| Record::Filter(id, map))
+            .map_err(ParseError::InvalidFilter),
         key::FORMAT => todo!(),
         key::ALTERNATIVE_ALLELE => todo!(),
         key::ASSEMBLY => todo!(),

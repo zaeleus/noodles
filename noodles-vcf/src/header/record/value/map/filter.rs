@@ -14,8 +14,8 @@ use super::{builder, Described, Fields, Indexed, Inner, Map, OtherFields};
 /// An inner VCF header filter map value.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Filter {
-    description: String,
-    idx: Option<usize>,
+    pub(crate) description: String,
+    pub(crate) idx: Option<usize>,
 }
 
 impl Inner for Filter {
