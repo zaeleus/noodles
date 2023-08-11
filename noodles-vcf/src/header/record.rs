@@ -9,7 +9,7 @@ pub use self::{key::Key, value::Value};
 use std::{error, fmt, str::FromStr};
 
 use self::value::{
-    map::{self, AlternativeAllele, Contig, Filter, Format, Info, Meta, Other},
+    map::{self, AlternativeAllele, Contig, Filter, Format, Info, Other},
     Map,
 };
 use super::{file_format, FileFormat};
@@ -36,8 +36,6 @@ pub enum Record {
     Format(crate::record::genotypes::keys::Key, Map<Format>),
     /// An `INFO` record.
     Info(crate::record::info::field::Key, Map<Info>),
-    /// A `META` record.
-    Meta(String, Map<Meta>),
     /// A nonstadard record.
     Other(key::Other, Value),
 }
@@ -65,8 +63,6 @@ pub enum ParseError {
     InvalidAlternativeAllele(map::alternative_allele::ParseError),
     /// A contig record is invalid.
     InvalidContig(map::contig::ParseError),
-    /// A META record is invalid.
-    InvalidMeta(map::meta::ParseError),
     /// A nonstandard record is invalid.
     InvalidOther(key::Other, map::other::ParseError),
 }
@@ -81,7 +77,6 @@ impl error::Error for ParseError {
             Self::InvalidFilter(e) => Some(e),
             Self::InvalidContig(e) => Some(e),
             Self::InvalidAlternativeAllele(e) => Some(e),
-            Self::InvalidMeta(e) => Some(e),
             Self::InvalidOther(_, e) => Some(e),
         }
     }
@@ -115,7 +110,6 @@ impl fmt::Display for ParseError {
                 write!(f, "invalid {} record", key::ALTERNATIVE_ALLELE)
             }
             Self::InvalidContig(_) => write!(f, "invalid {} record", key::CONTIG),
-            Self::InvalidMeta(_) => write!(f, "invalid {} record", key::META),
             Self::InvalidOther(key, _) => write!(f, "invalid {key} record"),
         }
     }
@@ -244,18 +238,6 @@ impl TryFrom<(FileFormat, &str)> for Record {
                         Map::<Contig>::try_from(fields).map_err(ParseError::InvalidContig)?;
 
                     Ok(Self::Contig(id, contig))
-                }
-                _ => Err(ParseError::Invalid),
-            },
-            key::META => match value {
-                parser::Value::Struct(mut fields) => {
-                    let id = remove_field(&mut fields, ID).ok_or(ParseError::InvalidMeta(
-                        map::meta::ParseError::MissingField(map::meta::tag::ID),
-                    ))?;
-
-                    let meta = Map::<Meta>::try_from(fields).map_err(ParseError::InvalidMeta)?;
-
-                    Ok(Self::Meta(id, meta))
                 }
                 _ => Err(ParseError::Invalid),
             },

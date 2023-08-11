@@ -27,9 +27,6 @@ pub const ASSEMBLY: Key = Key::Standard(Standard::Assembly);
 /// VCF header record contig key.
 pub const CONTIG: Key = Key::Standard(Standard::Contig);
 
-/// VCF header record meta key.
-pub const META: Key = Key::Standard(Standard::Meta);
-
 /// A standard VCF record key.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Standard {
@@ -47,8 +44,6 @@ pub enum Standard {
     Assembly,
     /// Contig (`contig`).
     Contig,
-    /// Meta (`META`).
-    Meta,
 }
 
 impl Standard {
@@ -61,7 +56,6 @@ impl Standard {
             "ALT" => Some(Self::AlternativeAllele),
             "assembly" => Some(Self::Assembly),
             "contig" => Some(Self::Contig),
-            "META" => Some(Self::Meta),
             _ => None,
         }
     }
@@ -77,7 +71,6 @@ impl AsRef<str> for Standard {
             Self::AlternativeAllele => "ALT",
             Self::Assembly => "assembly",
             Self::Contig => "contig",
-            Self::Meta => "META",
         }
     }
 }
@@ -161,7 +154,6 @@ mod tests {
         assert_eq!(ALTERNATIVE_ALLELE.to_string(), "ALT");
         assert_eq!(ASSEMBLY.to_string(), "assembly");
         assert_eq!(CONTIG.to_string(), "contig");
-        assert_eq!(META.to_string(), "META");
         assert_eq!(
             Key::Other(Other(String::from("fileDate"))).to_string(),
             "fileDate"
@@ -177,7 +169,6 @@ mod tests {
         assert_eq!(Key::from("ALT"), ALTERNATIVE_ALLELE);
         assert_eq!(Key::from("assembly"), ASSEMBLY);
         assert_eq!(Key::from("contig"), CONTIG);
-        assert_eq!(Key::from("META"), META);
         assert_eq!(
             Key::from("fileDate"),
             Key::Other(Other(String::from("fileDate")))

@@ -6,13 +6,12 @@ pub mod contig;
 pub mod filter;
 pub mod format;
 pub mod info;
-pub mod meta;
 pub mod other;
 pub(crate) mod tag;
 
 pub use self::{
     alternative_allele::AlternativeAllele, builder::Builder, contig::Contig, filter::Filter,
-    format::Format, info::Info, meta::Meta, other::Other,
+    format::Format, info::Info, other::Other,
 };
 
 use std::fmt::{self, Display};

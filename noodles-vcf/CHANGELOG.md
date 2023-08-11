@@ -13,9 +13,9 @@
 
 ### Removed
 
-  * vcf/header: Remove `pedigreeDB`.
+  * vcf/header: Remove `META` and `pedigreeDB`.
 
-    Use an other record with a string value instead.
+    Use other records instead.
 
 ## 0.35.0 - 2023-08-03
 

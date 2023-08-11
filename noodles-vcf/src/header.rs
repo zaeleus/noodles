@@ -17,7 +17,7 @@ use std::{hash::Hash, str::FromStr};
 use indexmap::{IndexMap, IndexSet};
 
 use self::record::value::{
-    map::{contig, AlternativeAllele, Contig, Filter, Format, Info, Meta},
+    map::{contig, AlternativeAllele, Contig, Filter, Format, Info},
     Map,
 };
 
@@ -53,7 +53,6 @@ pub struct Header {
     alternative_alleles: AlternativeAlleles,
     assembly: Option<String>,
     contigs: Contigs,
-    meta: IndexMap<String, Map<Meta>>,
     sample_names: SampleNames,
     other_records: OtherRecords,
 }
@@ -387,51 +386,6 @@ impl Header {
         &mut self.contigs
     }
 
-    /// Returns a map of meta records (`META`).
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::{self as vcf, header::record::value::{map::Meta, Map}};
-    ///
-    /// let meta = Map::<Meta>::new(
-    ///     vec![String::from("WholeGenome"), String::from("Exome")],
-    /// );
-    ///
-    /// let header = vcf::Header::builder()
-    ///     .add_meta("Assay", meta.clone())
-    ///     .build();
-    ///
-    /// let records = header.meta();
-    /// assert_eq!(records.len(), 1);
-    /// assert_eq!(&records[0], &meta);
-    /// ```
-    pub fn meta(&self) -> &IndexMap<String, Map<Meta>> {
-        &self.meta
-    }
-
-    /// Returns a mutable reference to a map of meta records (`META`).
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::{self as vcf, header::record::value::{map::Meta, Map}};
-    ///
-    /// let mut header = vcf::Header::default();
-    ///
-    /// let meta = Map::<Meta>::new(
-    ///     vec![String::from("WholeGenome"), String::from("Exome")],
-    /// );
-    /// header.meta_mut().insert(String::from("Assay"), meta.clone());
-    ///
-    /// let records = header.meta();
-    /// assert_eq!(records.len(), 1);
-    /// assert_eq!(&records[0], &meta);
-    /// ```
-    pub fn meta_mut(&mut self) -> &mut IndexMap<String, Map<Meta>> {
-        &mut self.meta
-    }
-
     /// Returns a list of sample names that come after the FORMAT column in the header record.
     ///
     /// # Examples
@@ -480,7 +434,7 @@ impl Header {
     /// Returns a map of records with nonstandard keys.
     ///
     /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`,
-    /// `assembly`, `contig`, and `META`.
+    /// `assembly`, and `contig`.
     ///
     /// # Examples
     ///
@@ -501,7 +455,7 @@ impl Header {
     /// Returns a mutable reference to a map of collections of records with nonstandard keys.
     ///
     /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`,
-    /// `assembly`, `contig`, and `META`.
+    /// `assembly`, and `contig`.
     ///
     /// To simply add an nonstandard record, consider using [`Self::insert`] instead.
     ///
@@ -528,7 +482,7 @@ impl Header {
     /// Returns a collection of header values with the given key.
     ///
     /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`,
-    /// `assembly`, `contig`, and `META`.
+    /// `assembly`, and `contig`.
     ///
     /// # Examples
     ///
@@ -675,17 +629,6 @@ impl std::fmt::Display for Header {
             )?;
         }
 
-        for (id, meta) in self.meta() {
-            writeln!(
-                f,
-                "{}{}=<ID={}{}>",
-                record::PREFIX,
-                record::key::META,
-                id,
-                meta
-            )?;
-        }
-
         for (key, collection) in &self.other_records {
             match collection {
                 record::value::Collection::Unstructured(vs) => {
@@ -741,17 +684,12 @@ mod tests {
             .set_file_format(FileFormat::new(4, 3))
             .add_filter("PASS", Map::<Filter>::pass())
             .set_assembly("file:///assemblies.fasta")
-            .add_meta(
-                "Assay",
-                Map::<Meta>::new(vec![String::from("WholeGenome"), String::from("Exome")]),
-            )
             .insert("fileDate".parse()?, record::Value::from("20200514"))?
             .build();
 
         let expected = r#"##fileformat=VCFv4.3
 ##FILTER=<ID=PASS,Description="All filters passed">
 ##assembly=file:///assemblies.fasta
-##META=<ID=Assay,Type=String,Number=.,Values=[WholeGenome, Exome]>
 ##fileDate=20200514
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
 "#;

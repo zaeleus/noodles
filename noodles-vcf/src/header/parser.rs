@@ -158,7 +158,6 @@ fn parse_record(
         }
         Record::Assembly(assembly) => builder.set_assembly(assembly),
         Record::Contig(id, contig) => builder.add_contig(id, contig),
-        Record::Meta(id, meta) => builder.add_meta(id, meta),
         Record::Other(key, value) => builder
             .insert(key, value)
             .map_err(ParseError::InvalidRecordValue)?,
@@ -241,7 +240,6 @@ mod tests {
         assert_eq!(header.alternative_alleles().len(), 1);
         assert_eq!(header.assembly(), Some("file:///assemblies.fasta"));
         assert_eq!(header.contigs().len(), 3);
-        assert_eq!(header.meta().len(), 1);
         assert_eq!(header.sample_names().len(), 1);
 
         assert_eq!(

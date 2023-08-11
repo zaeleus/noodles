@@ -2,7 +2,7 @@ use super::{
     record::{
         self,
         value::{
-            map::{AlternativeAllele, Contig, Filter, Format, Info, Meta},
+            map::{AlternativeAllele, Contig, Filter, Format, Info},
             Map,
         },
     },
@@ -22,7 +22,6 @@ pub struct Builder {
     alternative_alleles: AlternativeAlleles,
     assembly: Option<String>,
     contigs: Contigs,
-    meta: IndexMap<String, Map<Meta>>,
     sample_names: SampleNames,
     other_records: OtherRecords,
 }
@@ -212,33 +211,6 @@ impl Builder {
         self
     }
 
-    /// Adds a meta record (`META`).
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::{self as vcf, header::record::value::{map::Meta, Map}};
-    ///
-    /// let meta = Map::<Meta>::new(
-    ///     vec![String::from("WholeGenome"), String::from("Exome")],
-    /// );
-    ///
-    /// let header = vcf::Header::builder()
-    ///     .add_meta("Assay", meta.clone())
-    ///     .build();
-    ///
-    /// let records = header.meta();
-    /// assert_eq!(records.len(), 1);
-    /// assert_eq!(&records[0], &meta);
-    /// ```
-    pub fn add_meta<I>(mut self, id: I, meta: Map<Meta>) -> Self
-    where
-        I: Into<String>,
-    {
-        self.meta.insert(id.into(), meta);
-        self
-    }
-
     /// Sets sample names.
     ///
     /// # Examples
@@ -346,7 +318,6 @@ impl Builder {
             alternative_alleles: self.alternative_alleles,
             assembly: self.assembly,
             contigs: self.contigs,
-            meta: self.meta,
             sample_names: self.sample_names,
             other_records: self.other_records,
         }
@@ -368,7 +339,6 @@ mod tests {
         assert!(header.alternative_alleles().is_empty());
         assert!(header.assembly().is_none());
         assert!(header.contigs().is_empty());
-        assert!(header.meta().is_empty());
         assert!(header.sample_names().is_empty());
     }
 
@@ -406,10 +376,6 @@ mod tests {
             .set_assembly("file:///assemblies.fasta")
             .add_contig("sq0".parse()?, Map::<Contig>::new())
             .add_contig("sq1".parse()?, Map::<Contig>::new())
-            .add_meta(
-                "Assay",
-                Map::<Meta>::new(vec![String::from("WholeGenome"), String::from("Exome")]),
-            )
             .add_sample_name("sample0")
             .insert(key.clone(), value.clone())?
             .insert(key.clone(), value)?
@@ -422,7 +388,6 @@ mod tests {
         assert_eq!(header.alternative_alleles().len(), 1);
         assert_eq!(header.assembly(), Some("file:///assemblies.fasta"));
         assert_eq!(header.contigs().len(), 2);
-        assert_eq!(header.meta().len(), 1);
         assert_eq!(header.get(&key).map(|collection| collection.len()), Some(2));
 
         Ok(())
