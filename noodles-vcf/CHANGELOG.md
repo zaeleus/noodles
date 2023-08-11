@@ -22,6 +22,9 @@
     a raw or quoted string. Quoted strings are allowed to have some escape
     sequences.
 
+  * vcf/header/record/value/map/contig/builder: Accept `Into<String>` for MD5
+    checksum values (`Builder::set_md5`).
+
 ### Removed
 
   * vcf: Remove nom parser.

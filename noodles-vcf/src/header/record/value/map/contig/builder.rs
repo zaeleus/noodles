@@ -35,8 +35,11 @@ impl map::Builder<Contig> {
     }
 
     /// Sets the MD5 hexdigest.
-    pub fn set_md5(mut self, md5: String) -> Self {
-        self.inner.md5 = Some(md5);
+    pub fn set_md5<D>(mut self, md5: D) -> Self
+    where
+        D: Into<String>,
+    {
+        self.inner.md5 = Some(md5.into());
         self
     }
 
