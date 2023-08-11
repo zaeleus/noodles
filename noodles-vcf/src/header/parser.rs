@@ -2,7 +2,7 @@
 
 mod builder;
 mod file_format_option;
-mod record;
+pub(crate) mod record;
 
 pub use self::{builder::Builder, file_format_option::FileFormatOption, record::parse_record};
 

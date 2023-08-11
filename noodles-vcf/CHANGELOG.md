@@ -21,6 +21,8 @@
 
 ### Removed
 
+  * vcf: Remove nom parser.
+
   * vcf/header: Remove `assembly`, `META`, and `pedigreeDB`.
 
     Use other records instead.
