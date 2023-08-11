@@ -132,7 +132,7 @@ fn parse_other_value(
     src: &mut &[u8],
     tag: &map::tag::Other<tag::StandardTag>,
 ) -> Result<String, ParseError> {
-    dbg!(parse_value(src))
+    parse_value(src)
         .map(String::from)
         .map_err(|e| ParseError::InvalidOther(tag.clone(), e))
 }
