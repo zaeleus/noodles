@@ -133,7 +133,8 @@ impl std::fmt::Display for ParseError {
 }
 
 fn parse_file_format(s: &str) -> Result<FileFormat, ParseError> {
-    let record = record::parse_record(s.as_bytes()).map_err(ParseError::InvalidRecord)?;
+    let record = record::parse_record(s.as_bytes(), FileFormat::default())
+        .map_err(ParseError::InvalidRecord)?;
 
     match record {
         Record::FileFormat(file_format) => Ok(file_format),
@@ -142,12 +143,12 @@ fn parse_file_format(s: &str) -> Result<FileFormat, ParseError> {
 }
 
 fn add_record(
-    _file_format: FileFormat,
+    file_format: FileFormat,
     mut builder: super::Builder,
     line: &str,
 ) -> Result<super::Builder, ParseError> {
-    // FIXME: Pass `file_format`.
-    let record = record::parse_record(line.as_bytes()).map_err(ParseError::InvalidRecord)?;
+    let record =
+        record::parse_record(line.as_bytes(), file_format).map_err(ParseError::InvalidRecord)?;
 
     builder = match record {
         Record::FileFormat(_) => return Err(ParseError::UnexpectedFileFormat),

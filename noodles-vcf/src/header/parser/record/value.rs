@@ -6,11 +6,10 @@ use std::{error, fmt};
 use self::string::parse_string;
 use crate::header::{
     record::{key, Key, Value},
-    Record,
+    FileFormat, Number, Record,
 };
 
 /// An error returned when a VCF header record value fails to parse.
-#[allow(clippy::enum_variant_names)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     InvalidFileFormat,
@@ -20,6 +19,16 @@ pub enum ParseError {
     InvalidAlternativeAllele(map::alternative_allele::ParseError),
     InvalidContig(map::contig::ParseError),
     InvalidOther,
+    FormatDefinitionMismatch {
+        id: crate::record::genotypes::keys::Key,
+        actual: (Number, crate::header::record::value::map::format::Type),
+        expected: (Number, crate::header::record::value::map::format::Type),
+    },
+    InfoDefinitionMismatch {
+        id: crate::record::info::field::Key,
+        actual: (Number, crate::header::record::value::map::info::Type),
+        expected: (Number, crate::header::record::value::map::info::Type),
+    },
 }
 
 impl error::Error for ParseError {
@@ -45,25 +54,51 @@ impl fmt::Display for ParseError {
             Self::InvalidAlternativeAllele(_) => write!(f, "invalid alternative allele"),
             Self::InvalidContig(_) => write!(f, "invalid contig"),
             Self::InvalidOther => write!(f, "invalid other"),
+            Self::FormatDefinitionMismatch {
+                id,
+                actual,
+                expected,
+            } => {
+                let (actual_number, actual_type) = actual;
+                let (expected_number, expected_type) = expected;
+                write!(f, "format definition mismatch for ID={id}: expected Number={},Type={}, got Number={},Type={}", actual_number, actual_type, expected_number, expected_type)
+            }
+            Self::InfoDefinitionMismatch {
+                id,
+                actual,
+                expected,
+            } => {
+                let (actual_number, actual_type) = actual;
+                let (expected_number, expected_type) = expected;
+                write!(f, "info definition mismatch for ID={id}: expected Number={},Type={}, got Number={},Type={}", actual_number, actual_type, expected_number, expected_type)
+            }
         }
     }
 }
 
-pub(super) fn parse_value(src: &mut &[u8], key: Key) -> Result<Record, ParseError> {
+pub(super) fn parse_value(
+    src: &mut &[u8],
+    file_format: FileFormat,
+    key: Key,
+) -> Result<Record, ParseError> {
     match key {
         key::FILE_FORMAT => parse_string(src)
             .map_err(|_| ParseError::InvalidFileFormat)
             .and_then(|s| s.parse().map_err(|_| ParseError::InvalidFileFormat))
             .map(Record::FileFormat),
-        key::INFO => map::parse_info(src)
-            .map(|(id, map)| Record::Info(id, map))
-            .map_err(ParseError::InvalidInfo),
+        key::INFO => {
+            let (id, map) = map::parse_info(src).map_err(ParseError::InvalidInfo)?;
+            validate_info_definition(file_format, &id, map.number(), map.ty())?;
+            Ok(Record::Info(id, map))
+        }
         key::FILTER => map::parse_filter(src)
             .map(|(id, map)| Record::Filter(id, map))
             .map_err(ParseError::InvalidFilter),
-        key::FORMAT => map::parse_format(src)
-            .map(|(id, map)| Record::Format(id, map))
-            .map_err(ParseError::InvalidFormat),
+        key::FORMAT => {
+            let (id, map) = map::parse_format(src).map_err(ParseError::InvalidFormat)?;
+            validate_format_definition(file_format, &id, map.number(), map.ty())?;
+            Ok(Record::Format(id, map))
+        }
         key::ALTERNATIVE_ALLELE => map::parse_alternative_allele(src)
             .map(|(id, map)| Record::AlternativeAllele(id, map))
             .map_err(ParseError::InvalidAlternativeAllele),
@@ -87,4 +122,46 @@ pub(super) fn parse_value(src: &mut &[u8], key: Key) -> Result<Record, ParseErro
             Ok(Record::Other(k, v))
         }
     }
+}
+
+fn validate_format_definition(
+    file_format: FileFormat,
+    id: &crate::record::genotypes::keys::Key,
+    actual_number: Number,
+    actual_type: crate::header::record::value::map::format::Type,
+) -> Result<(), ParseError> {
+    use crate::header::record::value::map::format::definition::definition;
+
+    if let Some((expected_number, expected_type, _)) = definition(file_format, id) {
+        if actual_number != expected_number || actual_type != expected_type {
+            return Err(ParseError::FormatDefinitionMismatch {
+                id: id.clone(),
+                actual: (actual_number, actual_type),
+                expected: (expected_number, expected_type),
+            });
+        }
+    }
+
+    Ok(())
+}
+
+fn validate_info_definition(
+    file_format: FileFormat,
+    id: &crate::record::info::field::Key,
+    actual_number: Number,
+    actual_type: crate::header::record::value::map::info::Type,
+) -> Result<(), ParseError> {
+    use crate::header::record::value::map::info::definition::definition;
+
+    if let Some((expected_number, expected_type, _)) = definition(file_format, id) {
+        if actual_number != expected_number || actual_type != expected_type {
+            return Err(ParseError::InfoDefinitionMismatch {
+                id: id.clone(),
+                actual: (actual_number, actual_type),
+                expected: (expected_number, expected_type),
+            });
+        }
+    }
+
+    Ok(())
 }

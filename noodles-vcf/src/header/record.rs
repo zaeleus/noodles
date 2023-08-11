@@ -48,8 +48,8 @@ impl FromStr for Record {
 impl TryFrom<(FileFormat, &str)> for Record {
     type Error = ParseError;
 
-    fn try_from((_file_format, s): (FileFormat, &str)) -> Result<Self, Self::Error> {
-        super::parser::parse_record(s.as_bytes())
+    fn try_from((file_format, s): (FileFormat, &str)) -> Result<Self, Self::Error> {
+        super::parser::parse_record(s.as_bytes(), file_format)
     }
 }
 

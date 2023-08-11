@@ -6,7 +6,7 @@ mod value;
 use std::{error, fmt};
 
 use self::{key::parse_key, value::parse_value};
-use crate::header::Record;
+use crate::header::{FileFormat, Record};
 
 /// An error returned when a VCF header record fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -40,10 +40,10 @@ impl fmt::Display for ParseError {
 }
 
 #[allow(missing_docs)]
-pub fn parse_record(mut src: &[u8]) -> Result<Record, ParseError> {
+pub fn parse_record(mut src: &[u8], file_format: FileFormat) -> Result<Record, ParseError> {
     consume_prefix(&mut src)?;
     let key = parse_key(&mut src).map_err(ParseError::InvalidKey)?;
-    parse_value(&mut src, key).map_err(ParseError::InvalidValue)
+    parse_value(&mut src, file_format, key).map_err(ParseError::InvalidValue)
 }
 
 fn consume_prefix(src: &mut &[u8]) -> Result<(), ParseError> {
