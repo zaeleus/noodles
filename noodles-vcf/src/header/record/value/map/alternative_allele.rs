@@ -13,7 +13,7 @@ use super::{Described, Fields, Inner, Map, OtherFields};
 /// An inner VCF header alternative allele map value.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AlternativeAllele {
-    description: String,
+    pub(crate) description: String,
 }
 
 impl Inner for AlternativeAllele {

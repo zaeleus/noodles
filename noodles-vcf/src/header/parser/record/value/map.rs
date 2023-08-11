@@ -1,3 +1,4 @@
+pub mod alternative_allele;
 mod field;
 pub mod filter;
 pub mod format;
@@ -5,7 +6,10 @@ pub mod info;
 
 use std::{error, fmt};
 
-pub use self::{filter::parse_filter, format::parse_format, info::parse_info};
+pub use self::{
+    alternative_allele::parse_alternative_allele, filter::parse_filter, format::parse_format,
+    info::parse_info,
+};
 
 /// An error returned when a VCF header record map value fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]

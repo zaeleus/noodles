@@ -17,6 +17,7 @@ pub enum ParseError {
     InvalidInfo(map::info::ParseError),
     InvalidFilter(map::filter::ParseError),
     InvalidFormat(map::format::ParseError),
+    InvalidAlternativeAllele(map::alternative_allele::ParseError),
 }
 
 impl error::Error for ParseError {
@@ -25,6 +26,7 @@ impl error::Error for ParseError {
             Self::InvalidInfo(e) => Some(e),
             Self::InvalidFilter(e) => Some(e),
             Self::InvalidFormat(e) => Some(e),
+            Self::InvalidAlternativeAllele(e) => Some(e),
             _ => None,
         }
     }
@@ -37,6 +39,7 @@ impl fmt::Display for ParseError {
             Self::InvalidInfo(_) => write!(f, "invalid info"),
             Self::InvalidFilter(_) => write!(f, "invalid filter"),
             Self::InvalidFormat(_) => write!(f, "invalid format"),
+            Self::InvalidAlternativeAllele(_) => write!(f, "invalid alternative allele"),
         }
     }
 }
@@ -56,7 +59,9 @@ pub(super) fn parse_value(src: &mut &[u8], key: Key) -> Result<Record, ParseErro
         key::FORMAT => map::parse_format(src)
             .map(|(id, map)| Record::Format(id, map))
             .map_err(ParseError::InvalidFormat),
-        key::ALTERNATIVE_ALLELE => todo!(),
+        key::ALTERNATIVE_ALLELE => map::parse_alternative_allele(src)
+            .map(|(id, map)| Record::AlternativeAllele(id, map))
+            .map_err(ParseError::InvalidAlternativeAllele),
         key::ASSEMBLY => todo!(),
         key::CONTIG => todo!(),
         key::META => todo!(),
