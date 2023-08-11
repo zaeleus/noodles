@@ -4,12 +4,13 @@ mod field;
 pub mod filter;
 pub mod format;
 pub mod info;
+pub mod other;
 
 use std::{error, fmt};
 
 pub use self::{
     alternative_allele::parse_alternative_allele, contig::parse_contig, filter::parse_filter,
-    format::parse_format, info::parse_info,
+    format::parse_format, info::parse_info, other::parse_other,
 };
 
 /// An error returned when a VCF header record map value fails to parse.

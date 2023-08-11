@@ -5,7 +5,7 @@ use std::{error, fmt};
 
 use self::string::parse_string;
 use crate::header::{
-    record::{key, Key},
+    record::{key, Key, Value},
     Record,
 };
 
@@ -19,6 +19,7 @@ pub enum ParseError {
     InvalidFormat(map::format::ParseError),
     InvalidAlternativeAllele(map::alternative_allele::ParseError),
     InvalidContig(map::contig::ParseError),
+    InvalidOther,
 }
 
 impl error::Error for ParseError {
@@ -43,6 +44,7 @@ impl fmt::Display for ParseError {
             Self::InvalidFormat(_) => write!(f, "invalid format"),
             Self::InvalidAlternativeAllele(_) => write!(f, "invalid alternative allele"),
             Self::InvalidContig(_) => write!(f, "invalid contig"),
+            Self::InvalidOther => write!(f, "invalid other"),
         }
     }
 }
@@ -71,6 +73,21 @@ pub(super) fn parse_value(src: &mut &[u8], key: Key) -> Result<Record, ParseErro
             .map_err(ParseError::InvalidContig),
         key::META => todo!(),
         key::PEDIGREE_DB => todo!(),
-        Key::Other(_) => todo!(),
+        Key::Other(k) => {
+            let is_map = src.first().map(|&b| b == b'<').unwrap_or_default();
+
+            let v = if is_map {
+                map::parse_other(src)
+                    .map(Value::from)
+                    .map_err(|_| ParseError::InvalidOther)?
+            } else {
+                parse_string(src)
+                    .map(String::from)
+                    .map(Value::from)
+                    .map_err(|_| ParseError::InvalidOther)?
+            };
+
+            Ok(Record::Other(k, v))
+        }
     }
 }
