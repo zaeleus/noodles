@@ -4,6 +4,8 @@
 
 ### Added
 
+  * vcf/header/record/value/map/tag: Implement `From<&str>` for `Tag<S>`.
+
   * vcf/header/record/value/map/contig/builder: Add URL setter
     (`Builder::set_url`).
 

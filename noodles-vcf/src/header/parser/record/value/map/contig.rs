@@ -77,7 +77,6 @@ pub fn parse_contig(src: &mut &[u8]) -> Result<(Name, Map<Contig>), ParseError> 
 
     loop {
         let tag = parse_key(src)
-            .map(String::from)
             .map(Tag::from)
             .map_err(ParseError::InvalidKey)?;
 

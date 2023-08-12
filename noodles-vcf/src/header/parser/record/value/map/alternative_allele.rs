@@ -77,7 +77,6 @@ pub fn parse_alternative_allele(
 
     loop {
         let tag = parse_key(src)
-            .map(String::from)
             .map(Tag::from)
             .map_err(ParseError::InvalidKey)?;
 

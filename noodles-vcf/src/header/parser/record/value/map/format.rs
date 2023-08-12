@@ -92,7 +92,6 @@ pub fn parse_format(src: &mut &[u8]) -> Result<(Key, Map<Format>), ParseError> {
 
     loop {
         let tag = parse_key(src)
-            .map(String::from)
             .map(Tag::from)
             .map_err(ParseError::InvalidKey)?;
 

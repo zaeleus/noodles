@@ -164,6 +164,18 @@ where
     }
 }
 
+impl<S> From<&str> for Tag<S>
+where
+    S: Standard,
+{
+    fn from(s: &str) -> Self {
+        match s.parse() {
+            Ok(tag) => Self::Standard(tag),
+            Err(_) => Self::Other(Other(s.into(), PhantomData)),
+        }
+    }
+}
+
 impl<S> From<String> for Tag<S>
 where
     S: Standard,

@@ -70,7 +70,6 @@ pub fn parse_filter(src: &mut &[u8]) -> Result<(String, Map<Filter>), ParseError
 
     loop {
         let tag = parse_key(src)
-            .map(String::from)
             .map(Tag::from)
             .map_err(ParseError::InvalidKey)?;
 
