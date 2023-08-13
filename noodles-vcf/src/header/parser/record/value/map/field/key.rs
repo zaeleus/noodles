@@ -5,15 +5,15 @@ use std::{error, fmt, str};
 pub enum ParseError {
     /// The input contains invalid UTF-8.
     InvalidUtf8(str::Utf8Error),
-    /// Unexepcted EOF
-    UnexepctedEof,
+    /// Unexpected EOF
+    UnexpectedEof,
 }
 
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::InvalidUtf8(e) => Some(e),
-            Self::UnexepctedEof => None,
+            Self::UnexpectedEof => None,
         }
     }
 }
@@ -22,7 +22,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidUtf8(_) => write!(f, "invalid UTF-8"),
-            Self::UnexepctedEof => write!(f, "unexpected EOF"),
+            Self::UnexpectedEof => write!(f, "unexpected EOF"),
         }
     }
 }
@@ -36,7 +36,7 @@ pub fn parse_key<'a>(src: &mut &'a [u8]) -> Result<&'a str, ParseError> {
         *src = &rest[1..];
         Ok(key)
     } else {
-        Err(ParseError::UnexepctedEof)
+        Err(ParseError::UnexpectedEof)
     }
 }
 
@@ -51,6 +51,6 @@ mod tests {
         assert!(src.is_empty());
 
         let mut src = &b"ID"[..];
-        assert_eq!(parse_key(&mut src), Err(ParseError::UnexepctedEof));
+        assert_eq!(parse_key(&mut src), Err(ParseError::UnexpectedEof));
     }
 }
