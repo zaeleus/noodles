@@ -48,7 +48,15 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidFileFormat => write!(f, "invalid fileformat"),
-            Self::InvalidInfo(_) => write!(f, "invalid info"),
+            Self::InvalidInfo(e) => {
+                write!(f, "invalid {}", key::INFO)?;
+
+                if let Some(id) = e.id() {
+                    write!(f, ": ID={id}")?;
+                }
+
+                Ok(())
+            }
             Self::InvalidFilter(e) => {
                 write!(f, "invalid {}", key::FILTER)?;
 
