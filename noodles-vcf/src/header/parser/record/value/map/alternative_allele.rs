@@ -13,7 +13,7 @@ use crate::{
     record::alternate_bases::allele::{symbol, Symbol},
 };
 
-/// An error returned when a VCF header record filter map value fails to parse.
+/// An error returned when a VCF header record alternative allele map value fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     InvalidMap(super::ParseError),
