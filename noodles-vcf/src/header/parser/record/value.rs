@@ -64,7 +64,15 @@ impl fmt::Display for ParseError {
 
                 Ok(())
             }
-            Self::InvalidContig(_) => write!(f, "invalid contig"),
+            Self::InvalidContig(e) => {
+                write!(f, "invalid {}", key::CONTIG)?;
+
+                if let Some(id) = e.id() {
+                    write!(f, ": ID={id}")?;
+                }
+
+                Ok(())
+            }
             Self::InvalidOther => write!(f, "invalid other"),
             Self::FormatDefinitionMismatch {
                 id,
