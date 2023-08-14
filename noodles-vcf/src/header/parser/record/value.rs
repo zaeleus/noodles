@@ -51,7 +51,19 @@ impl fmt::Display for ParseError {
             Self::InvalidInfo(_) => write!(f, "invalid info"),
             Self::InvalidFilter(_) => write!(f, "invalid filter"),
             Self::InvalidFormat(_) => write!(f, "invalid format"),
-            Self::InvalidAlternativeAllele(_) => write!(f, "invalid alternative allele"),
+            Self::InvalidAlternativeAllele(e) => {
+                write!(
+                    f,
+                    "invalid alternative allele ({})",
+                    key::ALTERNATIVE_ALLELE
+                )?;
+
+                if let Some(id) = e.id() {
+                    write!(f, ": ID={id}")?;
+                }
+
+                Ok(())
+            }
             Self::InvalidContig(_) => write!(f, "invalid contig"),
             Self::InvalidOther => write!(f, "invalid other"),
             Self::FormatDefinitionMismatch {

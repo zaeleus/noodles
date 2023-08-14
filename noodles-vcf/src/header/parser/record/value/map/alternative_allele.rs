@@ -13,9 +13,8 @@ use crate::{
     record::alternate_bases::allele::{symbol, Symbol},
 };
 
-/// An error returned when a VCF header record alternative allele map value fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
+enum ParseErrorKind {
     InvalidMap(super::ParseError),
     InvalidField(super::field::ParseError),
     InvalidKey(super::field::key::ParseError),
@@ -32,16 +31,33 @@ pub enum ParseError {
     DuplicateTag(Tag),
 }
 
+/// An error returned when a VCF header record alternative allele map value fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ParseError {
+    id: Option<Symbol>,
+    kind: ParseErrorKind,
+}
+
+impl ParseError {
+    fn new(id: Option<Symbol>, kind: ParseErrorKind) -> Self {
+        Self { id, kind }
+    }
+
+    pub(crate) fn id(&self) -> Option<&Symbol> {
+        self.id.as_ref()
+    }
+}
+
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match self {
-            Self::InvalidMap(e) => Some(e),
-            Self::InvalidField(e) => Some(e),
-            Self::InvalidKey(e) => Some(e),
-            Self::InvalidValue(e) => Some(e),
-            Self::InvalidId(e) => Some(e),
-            Self::InvalidIdx(e) => Some(e),
-            Self::InvalidOther(_, e) => Some(e),
+        match &self.kind {
+            ParseErrorKind::InvalidMap(e) => Some(e),
+            ParseErrorKind::InvalidField(e) => Some(e),
+            ParseErrorKind::InvalidKey(e) => Some(e),
+            ParseErrorKind::InvalidValue(e) => Some(e),
+            ParseErrorKind::InvalidId(e) => Some(e),
+            ParseErrorKind::InvalidIdx(e) => Some(e),
+            ParseErrorKind::InvalidOther(_, e) => Some(e),
             _ => None,
         }
     }
@@ -49,18 +65,18 @@ impl error::Error for ParseError {
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::InvalidMap(_) => write!(f, "invalid map"),
-            Self::InvalidField(_) => write!(f, "invalid field"),
-            Self::InvalidKey(_) => write!(f, "invalid key"),
-            Self::InvalidValue(_) => write!(f, "invalid value"),
-            Self::MissingId => write!(f, "missing ID"),
-            Self::InvalidId(_) => write!(f, "invalid ID"),
-            Self::MissingDescription => write!(f, "missing description"),
-            Self::InvalidDescription => write!(f, "invalid description"),
-            Self::InvalidIdx(_) => write!(f, "invalid IDX"),
-            Self::InvalidOther(tag, _) => write!(f, "invalid other: {tag}"),
-            Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
+        match &self.kind {
+            ParseErrorKind::InvalidMap(_) => write!(f, "invalid map"),
+            ParseErrorKind::InvalidField(_) => write!(f, "invalid field"),
+            ParseErrorKind::InvalidKey(_) => write!(f, "invalid key"),
+            ParseErrorKind::InvalidValue(_) => write!(f, "invalid value"),
+            ParseErrorKind::MissingId => write!(f, "missing ID"),
+            ParseErrorKind::InvalidId(_) => write!(f, "invalid ID"),
+            ParseErrorKind::MissingDescription => write!(f, "missing description"),
+            ParseErrorKind::InvalidDescription => write!(f, "invalid description"),
+            ParseErrorKind::InvalidIdx(_) => write!(f, "invalid IDX"),
+            ParseErrorKind::InvalidOther(tag, _) => write!(f, "invalid other: {tag}"),
+            ParseErrorKind::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
         }
     }
 }
@@ -68,36 +84,39 @@ impl fmt::Display for ParseError {
 pub fn parse_alternative_allele(
     src: &mut &[u8],
 ) -> Result<(Symbol, Map<AlternativeAllele>), ParseError> {
-    super::consume_prefix(src).map_err(ParseError::InvalidMap)?;
+    super::consume_prefix(src).map_err(|e| ParseError::new(None, ParseErrorKind::InvalidMap(e)))?;
 
     let mut id = None;
     let mut description = None;
-
     let mut other_fields = OtherFields::new();
 
     loop {
         let tag = parse_key(src)
             .map(Tag::from)
-            .map_err(ParseError::InvalidKey)?;
+            .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidKey(e)))?;
 
         match tag {
-            tag::ID => parse_id(src).and_then(|v| try_replace(&mut id, tag::ID, v))?,
-            tag::DESCRIPTION => parse_description(src)
-                .and_then(|v| try_replace(&mut description, tag::DESCRIPTION, v))?,
-            Tag::Other(t) => {
-                parse_other(src, &t).and_then(|value| try_insert(&mut other_fields, t, value))?
-            }
+            tag::ID => parse_id(src, &id).and_then(|v| try_replace(&mut id, &None, tag::ID, v))?,
+            tag::DESCRIPTION => parse_description(src, &id)
+                .and_then(|v| try_replace(&mut description, &id, tag::DESCRIPTION, v))?,
+            Tag::Other(t) => parse_other(src, &id, &t)
+                .and_then(|value| try_insert(&mut other_fields, &id, t, value))?,
         }
 
-        if !super::field::consume_separator(src).map_err(ParseError::InvalidField)? {
+        let has_separator = super::field::consume_separator(src)
+            .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidField(e)))?;
+
+        if !has_separator {
             break;
         }
     }
 
-    super::consume_suffix(src).map_err(ParseError::InvalidMap)?;
+    super::consume_suffix(src)
+        .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidMap(e)))?;
 
-    let id = id.ok_or(ParseError::MissingId)?;
-    let description = description.ok_or(ParseError::MissingDescription)?;
+    let id = id.ok_or_else(|| ParseError::new(None, ParseErrorKind::MissingId))?;
+    let description = description
+        .ok_or_else(|| ParseError::new(Some(id.clone()), ParseErrorKind::MissingDescription))?;
 
     Ok((
         id,
@@ -108,37 +127,50 @@ pub fn parse_alternative_allele(
     ))
 }
 
-fn parse_id(src: &mut &[u8]) -> Result<Symbol, ParseError> {
+fn parse_id(src: &mut &[u8], id: &Option<Symbol>) -> Result<Symbol, ParseError> {
     parse_value(src)
-        .map_err(ParseError::InvalidValue)
-        .and_then(|s| s.parse().map_err(ParseError::InvalidId))
+        .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidValue(e)))
+        .and_then(|s| {
+            s.parse()
+                .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidId(e)))
+        })
 }
 
-fn parse_description(src: &mut &[u8]) -> Result<String, ParseError> {
+fn parse_description(src: &mut &[u8], id: &Option<Symbol>) -> Result<String, ParseError> {
     parse_value(src)
         .map(String::from)
-        .map_err(ParseError::InvalidValue)
+        .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidValue(e)))
 }
 
 fn parse_other(
     src: &mut &[u8],
+    id: &Option<Symbol>,
     tag: &map::tag::Other<tag::StandardTag>,
 ) -> Result<String, ParseError> {
     parse_value(src)
         .map(String::from)
-        .map_err(|e| ParseError::InvalidOther(tag.clone(), e))
+        .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidOther(tag.clone(), e)))
 }
 
-fn try_replace<T>(option: &mut Option<T>, tag: Tag, value: T) -> Result<(), ParseError> {
+fn try_replace<T>(
+    option: &mut Option<T>,
+    id: &Option<Symbol>,
+    tag: Tag,
+    value: T,
+) -> Result<(), ParseError> {
     if option.replace(value).is_none() {
         Ok(())
     } else {
-        Err(ParseError::DuplicateTag(tag))
+        Err(ParseError::new(
+            id.clone(),
+            ParseErrorKind::DuplicateTag(tag),
+        ))
     }
 }
 
 fn try_insert(
     other_fields: &mut OtherFields<tag::StandardTag>,
+    id: &Option<Symbol>,
     tag: map::tag::Other<tag::StandardTag>,
     value: String,
 ) -> Result<(), ParseError> {
@@ -151,7 +183,10 @@ fn try_insert(
         }
         Entry::Occupied(entry) => {
             let (t, _) = entry.remove_entry();
-            Err(ParseError::DuplicateTag(Tag::Other(t)))
+            Err(ParseError::new(
+                id.clone(),
+                ParseErrorKind::DuplicateTag(Tag::Other(t)),
+            ))
         }
     }
 }
