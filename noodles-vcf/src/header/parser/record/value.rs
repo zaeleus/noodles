@@ -164,9 +164,7 @@ pub(super) fn parse_value(
             .map(|(id, map)| Record::Contig(id, map))
             .map_err(ParseError::InvalidContig),
         Key::Other(k) => {
-            let is_map = src.first().map(|&b| b == b'<').unwrap_or_default();
-
-            let v = if is_map {
+            let v = if map::is_map(src) {
                 map::parse_other(src)
                     .map(Value::from)
                     .map_err(|_| ParseError::InvalidOther)?

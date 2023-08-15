@@ -13,6 +13,8 @@ pub use self::{
     format::parse_format, info::parse_info, other::parse_other,
 };
 
+const PREFIX: u8 = b'<';
+
 /// An error returned when a VCF header record map value fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -33,9 +35,11 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub fn consume_prefix(src: &mut &[u8]) -> Result<(), ParseError> {
-    const PREFIX: u8 = b'<';
+pub fn is_map(src: &[u8]) -> bool {
+    src.first().map(|&b| b == PREFIX).unwrap_or_default()
+}
 
+pub fn consume_prefix(src: &mut &[u8]) -> Result<(), ParseError> {
     if let Some((b, rest)) = src.split_first() {
         if *b == PREFIX {
             *src = rest;
@@ -60,5 +64,17 @@ pub fn consume_suffix(src: &mut &[u8]) -> Result<(), ParseError> {
         }
     } else {
         Err(ParseError::UnexpectedEof)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_is_map() {
+        assert!(is_map(b"<ID=noodles>"));
+        assert!(!is_map(b"noodles"));
+        assert!(!is_map(b""));
     }
 }
