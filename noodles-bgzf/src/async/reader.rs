@@ -52,6 +52,68 @@ where
         Builder::default().build_with_reader(inner)
     }
 
+    /// Returns a reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// let data = [];
+    /// let reader = bgzf::AsyncReader::new(&data[..]);
+    /// assert!(reader.get_ref().is_empty());
+    /// ```
+    pub fn get_ref(&self) -> &R {
+        let stream = self.stream.as_ref().expect("missing stream");
+        stream.get_ref().get_ref()
+    }
+
+    /// Returns a mutable reference to the underlying stream.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// let data = [];
+    /// let mut reader = bgzf::AsyncReader::new(&data[..]);
+    /// assert!(reader.get_mut().is_empty());
+    /// ```
+    pub fn get_mut(&mut self) -> &mut R {
+        let stream = self.stream.as_mut().expect("missing stream");
+        stream.get_mut().get_mut()
+    }
+
+    /// Returns a pinned mutable reference to the underlying stream.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::pin::Pin;
+    /// use noodles_bgzf as bgzf;
+    /// let data = [];
+    /// let mut reader = bgzf::AsyncReader::new(&data[..]);
+    /// let mut pinned_reader = Pin::new(&mut reader);
+    /// assert!(pinned_reader.get_pin_mut().get_mut().is_empty());
+    /// ```
+    pub fn get_pin_mut(self: Pin<&mut Self>) -> Pin<&mut R> {
+        let stream = self.project().stream.as_pin_mut().expect("missing stream");
+        stream.get_pin_mut().get_pin_mut()
+    }
+
+    /// Unwraps and returns the underlying stream.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// let data = [];
+    /// let reader = bgzf::AsyncReader::new(&data[..]);
+    /// assert!(reader.into_inner().is_empty());
+    /// ```
+    pub fn into_inner(self) -> R {
+        let stream = self.stream.expect("missing stream");
+        stream.into_inner().into_inner()
+    }
+
     /// Returns the current virtual position of the stream.
     ///
     /// # Examples

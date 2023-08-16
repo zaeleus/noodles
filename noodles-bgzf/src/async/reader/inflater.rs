@@ -19,6 +19,24 @@ pin_project! {
     }
 }
 
+impl<R> Inflater<R> {
+    pub(super) fn get_ref(&self) -> &R {
+        self.inner.get_ref()
+    }
+
+    pub(super) fn get_mut(&mut self) -> &mut R {
+        self.inner.get_mut()
+    }
+
+    pub(super) fn get_pin_mut(self: Pin<&mut Self>) -> Pin<&mut R> {
+        self.project().inner.get_pin_mut()
+    }
+
+    pub(super) fn into_inner(self) -> R {
+        self.inner.into_inner()
+    }
+}
+
 impl<R> Inflater<R>
 where
     R: AsyncRead,
