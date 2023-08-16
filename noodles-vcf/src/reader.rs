@@ -6,10 +6,15 @@ pub(crate) mod query;
 pub mod record;
 mod records;
 
+use crate::lazy;
+
 pub(crate) use self::record::parse_record;
 pub use self::{builder::Builder, query::Query, records::Records};
 
-use std::io::{self, BufRead, Read, Seek};
+use std::{
+    io::{self, BufRead, Read, Seek},
+    str,
+};
 
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
@@ -209,6 +214,38 @@ where
     pub fn records<'r, 'h: 'r>(&'r mut self, header: &'h Header) -> Records<'r, 'h, R> {
         Records::new(self, header)
     }
+
+    /// Reads a single record without eagerly parsing its fields.
+    ///
+    /// The reads VCF record fields from the underlying stream into the given record's buffer until
+    /// a newline is reached. No fields are parsed, meaning the record is no necessarily valid.
+    /// However, the structure of the line is guaranteed to be record-like.
+    ///
+    /// The stream is expected to be directly after the header or at the start of another record.
+    ///
+    /// If successful, the number of bytes read is returned. If the number of bytes read is 0, the
+    /// stream reached EOF.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    ///
+    /// let data = b"##fileformat=VCFv4.3
+    /// #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
+    /// sq0\t1\t.\tA\t.\t.\tPASS\t.
+    /// ";
+    ///
+    /// let mut reader = vcf::Reader::new(&data[..]);
+    /// reader.read_header()?;
+    ///
+    /// let mut record = vcf::lazy::Record::default();
+    /// reader.read_lazy_record(&mut record)?;
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
+    pub fn read_lazy_record(&mut self, record: &mut lazy::Record) -> io::Result<usize> {
+        read_lazy_record(&mut self.inner, record)
+    }
 }
 
 impl<R> Reader<bgzf::Reader<R>>
@@ -350,6 +387,76 @@ where
         }
         Err(e) => Err(e),
     }
+}
+
+fn read_lazy_record<R>(reader: &mut R, record: &mut lazy::Record) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    let mut len = 0;
+
+    len += read_field(reader, &mut record.buf)?;
+    record.bounds.chromosome_end = record.buf.len();
+
+    len += read_field(reader, &mut record.buf)?;
+    record.bounds.position_end = record.buf.len();
+
+    len += read_field(reader, &mut record.buf)?;
+    record.bounds.ids_end = record.buf.len();
+
+    len += read_field(reader, &mut record.buf)?;
+    record.bounds.reference_bases_end = record.buf.len();
+
+    len += read_field(reader, &mut record.buf)?;
+    record.bounds.alternate_bases_end = record.buf.len();
+
+    len += read_field(reader, &mut record.buf)?;
+    record.bounds.quality_score_end = record.buf.len();
+
+    len += read_field(reader, &mut record.buf)?;
+    record.bounds.filters_end = record.buf.len();
+
+    len += read_field(reader, &mut record.buf)?;
+    record.bounds.info_end = record.buf.len();
+
+    len += read_line(reader, &mut record.buf)?;
+
+    Ok(len)
+}
+
+fn read_field<R>(reader: &mut R, dst: &mut String) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    const DELIMITER: u8 = b'\t';
+
+    let mut is_delimiter = false;
+    let mut len = 0;
+
+    loop {
+        let src = reader.fill_buf()?;
+
+        if is_delimiter || src.is_empty() {
+            break;
+        }
+
+        let (buf, n) = match src.iter().position(|&b| b == DELIMITER) {
+            Some(i) => {
+                is_delimiter = true;
+                (&src[..i], i + 1)
+            }
+            None => (src, src.len()),
+        };
+
+        let s = str::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        dst.push_str(s);
+
+        len += n;
+
+        reader.consume(n);
+    }
+
+    Ok(len)
 }
 
 pub(crate) fn resolve_region(index: &csi::Index, region: &Region) -> io::Result<(usize, String)> {

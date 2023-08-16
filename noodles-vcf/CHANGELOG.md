@@ -9,6 +9,13 @@
   * vcf/header/record/value/map/contig/builder: Add URL setter
     (`Builder::set_url`).
 
+  * vcf/lazy: Add a lazy record (`lazy::Record`).
+
+    Lazy records are variant records that are lazily-evaluated. Their fields
+    are not necessarily valid, but the buffer is guaranteed to be record-like.
+
+  * vcf/reader: Add `Reader::read_lazy_record` to read lazy records.
+
   * vcf/record/position: Implement `PartialEq<core::Position>` and
     `PartialOrd<core::Position>` for `Position` ([#191]).
 

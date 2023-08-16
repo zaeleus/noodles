@@ -24,6 +24,7 @@ mod r#async;
 
 pub mod header;
 pub mod indexed_reader;
+pub mod lazy;
 pub mod reader;
 pub mod record;
 mod variant_reader;
