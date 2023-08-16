@@ -195,7 +195,7 @@ where
     ///
     /// # Examples
     ///
-    /// ```no_run
+    /// ```
     /// use noodles_vcf as vcf;
     ///
     /// let data = b"##fileformat=VCFv4.3
