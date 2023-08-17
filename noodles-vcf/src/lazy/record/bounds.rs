@@ -28,7 +28,7 @@ impl Bounds {
         self.ids_end..self.reference_bases_end
     }
 
-    pub fn alternatve_bases_range(&self) -> Range<usize> {
+    pub fn alternate_bases_range(&self) -> Range<usize> {
         self.reference_bases_end..self.alternate_bases_end
     }
 

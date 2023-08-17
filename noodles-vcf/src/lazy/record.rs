@@ -35,7 +35,7 @@ impl Record {
 
     /// Returns the alternate bases.
     pub fn alternate_bases(&self) -> &str {
-        &self.buf[self.bounds.alternatve_bases_range()]
+        &self.buf[self.bounds.alternate_bases_range()]
     }
 
     /// Returns the quality score.
