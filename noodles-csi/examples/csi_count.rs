@@ -16,7 +16,7 @@ fn main() -> io::Result<()> {
 
     for reference_sequence in index.reference_sequences() {
         if let Some(metadata) = reference_sequence.metadata() {
-            n += metadata.mapped_record_count()
+            n += metadata.mapped_record_count();
         }
     }
 
