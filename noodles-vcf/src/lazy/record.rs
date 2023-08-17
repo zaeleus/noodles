@@ -2,9 +2,10 @@
 
 mod bounds;
 mod genotypes;
+mod info;
 
 use self::bounds::Bounds;
-pub use self::genotypes::Genotypes;
+pub use self::{genotypes::Genotypes, info::Info};
 
 /// An immutable, lazily-evaluated VCF record.
 pub struct Record {
@@ -49,8 +50,9 @@ impl Record {
     }
 
     /// Returns the info.
-    pub fn info(&self) -> &str {
-        &self.buf[self.bounds.info_range()]
+    pub fn info(&self) -> Info<'_> {
+        let buf = &self.buf[self.bounds.info_range()];
+        Info::new(buf)
     }
 
     /// Returns the genotypes.
