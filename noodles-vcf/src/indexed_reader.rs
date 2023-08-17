@@ -14,6 +14,7 @@ use super::{
     reader::{Query, Records},
     Header, Reader, Record,
 };
+use crate::lazy;
 
 /// An indexed VCF reader.
 pub struct IndexedReader<R> {
@@ -64,6 +65,11 @@ where
         header: &'h Header,
     ) -> Records<'r, 'h, bgzf::Reader<R>> {
         self.inner.records(header)
+    }
+
+    /// Reads a single record without eagerly parsing its fields.
+    pub fn read_lazy_record(&mut self, record: &mut lazy::Record) -> io::Result<usize> {
+        self.inner.read_lazy_record(record)
     }
 
     /// Returns the associated index.

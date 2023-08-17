@@ -4,6 +4,9 @@
 
 ### Added
 
+  * vcf/indexed_reader: Add lazy record reader
+    (`IndexedReader::read_lazy_record`).
+
   * vcf/lazy/record: Add info wrapper (`lazy::record::Info`).
 
 ## 0.36.0 - 2023-08-17
