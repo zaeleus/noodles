@@ -7,11 +7,11 @@ pub type Tag = map::tag::Tag<Standard>;
 
 // For some reason, using the `Tag` type alias produces a `nontrivial_structural_match` warning
 // when pattern matching, so it's avoided here.
-pub(crate) const ID: Tag = map::tag::Tag::<Standard>::Standard(Standard::Id);
-pub(crate) const LENGTH: Tag = map::tag::Tag::<Standard>::Standard(Standard::Length);
-pub(crate) const MD5: Tag = map::tag::Tag::<Standard>::Standard(Standard::Md5);
-pub(crate) const URL: Tag = map::tag::Tag::<Standard>::Standard(Standard::Url);
-pub(crate) const IDX: Tag = map::tag::Tag::<Standard>::Standard(Standard::Idx);
+pub(crate) const ID: Tag = map::tag::Tag::Standard(Standard::Id);
+pub(crate) const LENGTH: Tag = map::tag::Tag::Standard(Standard::Length);
+pub(crate) const MD5: Tag = map::tag::Tag::Standard(Standard::Md5);
+pub(crate) const URL: Tag = map::tag::Tag::Standard(Standard::Url);
+pub(crate) const IDX: Tag = map::tag::Tag::Standard(Standard::Idx);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Standard {
