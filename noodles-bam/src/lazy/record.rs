@@ -1,58 +1,18 @@
+mod bounds;
 mod cigar;
 mod data;
 mod quality_scores;
 mod sequence;
 
-pub use self::{cigar::Cigar, data::Data, quality_scores::QualityScores, sequence::Sequence};
-
-use std::{
-    fmt, io, mem,
-    num::NonZeroUsize,
-    ops::{Range, RangeFrom},
-};
+use std::{fmt, io, mem, num::NonZeroUsize, ops::Range};
 
 use byteorder::{ByteOrder, LittleEndian};
 use bytes::Buf;
 use noodles_core::Position;
 use noodles_sam as sam;
 
-const REFERENCE_SEQUENCE_ID_RANGE: Range<usize> = 0..4;
-const ALIGNMENT_START_RANGE: Range<usize> = 4..8;
-const MAPPING_QUALITY_RANGE: Range<usize> = 9..10;
-const FLAGS_RANGE: Range<usize> = 14..16;
-const MATE_REFERENCE_SEQUENCE_ID_RANGE: Range<usize> = 20..24;
-const MATE_ALIGNMENT_START_RANGE: Range<usize> = 24..28;
-const TEMPLATE_LENGTH_RANGE: Range<usize> = 28..32;
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-struct Bounds {
-    read_name_end: usize,
-    cigar_end: usize,
-    sequence_end: usize,
-    quality_scores_end: usize,
-}
-
-impl Bounds {
-    fn read_name_range(&self) -> Range<usize> {
-        TEMPLATE_LENGTH_RANGE.end..self.read_name_end
-    }
-
-    fn cigar_range(&self) -> Range<usize> {
-        self.read_name_end..self.cigar_end
-    }
-
-    fn sequence_range(&self) -> Range<usize> {
-        self.cigar_end..self.sequence_end
-    }
-
-    fn quality_scores_range(&self) -> Range<usize> {
-        self.sequence_end..self.quality_scores_end
-    }
-
-    fn data_range(&self) -> RangeFrom<usize> {
-        self.quality_scores_end..
-    }
-}
+use self::bounds::Bounds;
+pub use self::{cigar::Cigar, data::Data, quality_scores::QualityScores, sequence::Sequence};
 
 /// An immutable, lazily-evalulated BAM record.
 ///
@@ -75,7 +35,7 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn reference_sequence_id(&self) -> io::Result<Option<usize>> {
-        let mut src = &self.buf[REFERENCE_SEQUENCE_ID_RANGE];
+        let mut src = &self.buf[bounds::REFERENCE_SEQUENCE_ID_RANGE];
         get_reference_sequence_id(&mut src)
     }
 
@@ -91,7 +51,7 @@ impl Record {
     /// ```
     pub fn alignment_start(&self) -> io::Result<Option<Position>> {
         use crate::record::codec::decoder::get_position;
-        let mut src = &self.buf[ALIGNMENT_START_RANGE];
+        let mut src = &self.buf[bounds::ALIGNMENT_START_RANGE];
         get_position(&mut src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
@@ -107,7 +67,7 @@ impl Record {
     /// ```
     pub fn mapping_quality(&self) -> io::Result<Option<sam::record::MappingQuality>> {
         use crate::record::codec::decoder::get_mapping_quality;
-        let mut src = &self.buf[MAPPING_QUALITY_RANGE];
+        let mut src = &self.buf[bounds::MAPPING_QUALITY_RANGE];
         get_mapping_quality(&mut src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
@@ -125,7 +85,7 @@ impl Record {
     /// ```
     pub fn flags(&self) -> io::Result<sam::record::Flags> {
         use crate::record::codec::decoder::get_flags;
-        let mut src = &self.buf[FLAGS_RANGE];
+        let mut src = &self.buf[bounds::FLAGS_RANGE];
         get_flags(&mut src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
@@ -140,7 +100,7 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn mate_reference_sequence_id(&self) -> io::Result<Option<usize>> {
-        let mut src = &self.buf[MATE_REFERENCE_SEQUENCE_ID_RANGE];
+        let mut src = &self.buf[bounds::MATE_REFERENCE_SEQUENCE_ID_RANGE];
         get_reference_sequence_id(&mut src)
     }
 
@@ -156,7 +116,7 @@ impl Record {
     /// ```
     pub fn mate_alignment_start(&self) -> io::Result<Option<Position>> {
         use crate::record::codec::decoder::get_position;
-        let mut src = &self.buf[MATE_ALIGNMENT_START_RANGE];
+        let mut src = &self.buf[bounds::MATE_ALIGNMENT_START_RANGE];
         get_position(&mut src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
@@ -171,7 +131,7 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn template_length(&self) -> i32 {
-        let src = &self.buf[TEMPLATE_LENGTH_RANGE];
+        let src = &self.buf[bounds::TEMPLATE_LENGTH_RANGE];
         LittleEndian::read_i32(src)
     }
 
@@ -399,7 +359,7 @@ impl TryFrom<Record> for sam::alignment::Record {
 fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
     use crate::record::codec::decoder::{cigar, read_name, sequence};
 
-    const MIN_BUF_LENGTH: usize = TEMPLATE_LENGTH_RANGE.end;
+    const MIN_BUF_LENGTH: usize = bounds::TEMPLATE_LENGTH_RANGE.end;
     const READ_NAME_LENGTH_RANGE: Range<usize> = 8..9;
     const CIGAR_OP_COUNT_RANGE: Range<usize> = 12..14;
     const READ_LENGTH_RANGE: Range<usize> = 16..20;
@@ -420,7 +380,7 @@ fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
     let l_seq = sequence::get_length(&mut src)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    let mut i = TEMPLATE_LENGTH_RANGE.end;
+    let mut i = bounds::TEMPLATE_LENGTH_RANGE.end;
     i += usize::from(l_read_name);
     bounds.read_name_end = i;
 
