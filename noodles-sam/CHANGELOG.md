@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * sam/record/cigar: Implement `Extend<Op>` for `Cigar`.
+
 ## 0.39.0 - 2023-08-17
 
 ### Changed

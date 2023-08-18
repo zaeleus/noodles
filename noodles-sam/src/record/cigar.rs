@@ -108,6 +108,12 @@ impl fmt::Display for Cigar {
     }
 }
 
+impl Extend<Op> for Cigar {
+    fn extend<T: IntoIterator<Item = Op>>(&mut self, iter: T) {
+        self.0.extend(iter);
+    }
+}
+
 impl TryFrom<Vec<Op>> for Cigar {
     type Error = ParseError;
 
