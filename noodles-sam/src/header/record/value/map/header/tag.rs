@@ -2,10 +2,8 @@
 
 use crate::header::record::value::map::{self, tag::LENGTH};
 
-pub(super) type StandardTag = Standard;
-
 /// A header tag.
-pub type Tag = map::tag::Tag<StandardTag>;
+pub type Tag = map::tag::Tag<Standard>;
 
 pub(crate) const VERSION: Tag = map::tag::Tag::Standard(Standard::Version);
 pub(crate) const SORT_ORDER: Tag = map::tag::Tag::Standard(Standard::SortOrder);

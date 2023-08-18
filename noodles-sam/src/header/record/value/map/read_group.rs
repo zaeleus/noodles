@@ -9,7 +9,7 @@ pub(crate) use self::tag::Tag;
 
 use std::fmt;
 
-use self::{builder::Builder, tag::StandardTag};
+use self::builder::Builder;
 use super::{Inner, Map};
 
 /// A SAM header record read group map value.
@@ -34,7 +34,7 @@ pub struct ReadGroup {
 }
 
 impl Inner for ReadGroup {
-    type StandardTag = StandardTag;
+    type StandardTag = tag::Standard;
     type Builder = Builder;
 }
 

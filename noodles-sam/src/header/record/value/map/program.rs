@@ -7,7 +7,7 @@ pub(crate) use self::tag::Tag;
 
 use std::fmt;
 
-use self::{builder::Builder, tag::StandardTag};
+use self::builder::Builder;
 use super::{Inner, Map};
 
 // A SAM header record program map value.
@@ -23,7 +23,7 @@ pub struct Program {
 }
 
 impl Inner for Program {
-    type StandardTag = StandardTag;
+    type StandardTag = tag::Standard;
     type Builder = Builder;
 }
 

@@ -16,7 +16,7 @@ pub use self::{
     md5_checksum::Md5Checksum, molecule_topology::MoleculeTopology, name::Name,
 };
 
-use self::{builder::Builder, tag::StandardTag};
+use self::builder::Builder;
 use super::{Inner, Map, OtherFields};
 
 /// A SAM header record reference sequence map value.
@@ -39,7 +39,7 @@ pub struct ReferenceSequence {
 }
 
 impl Inner for ReferenceSequence {
-    type StandardTag = StandardTag;
+    type StandardTag = tag::Standard;
     type Builder = Builder;
 }
 

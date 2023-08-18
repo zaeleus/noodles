@@ -14,7 +14,7 @@ pub use self::{
 
 use std::fmt;
 
-use self::{builder::Builder, tag::StandardTag};
+use self::builder::Builder;
 use super::{Inner, Map, OtherFields};
 
 /// A SAM header record header map value.
@@ -29,7 +29,7 @@ pub struct Header {
 }
 
 impl Inner for Header {
-    type StandardTag = StandardTag;
+    type StandardTag = tag::Standard;
     type Builder = Builder;
 }
 

@@ -2,8 +2,7 @@
 
 use crate::header::record::value::map::{self, tag};
 
-pub(super) type StandardTag = Standard;
-pub(crate) type Tag = map::tag::Tag<StandardTag>;
+pub(crate) type Tag = map::tag::Tag<Standard>;
 
 pub(crate) const NAME: Tag = map::tag::Tag::Standard(Standard::Name);
 pub(crate) const LENGTH: Tag = map::tag::Tag::Standard(Standard::Length);
