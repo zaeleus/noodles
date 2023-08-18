@@ -2,9 +2,10 @@ mod bounds;
 mod cigar;
 mod data;
 mod quality_scores;
+mod read_name;
 mod sequence;
 
-use std::{fmt, io, mem, num::NonZeroUsize, ops::Range};
+use std::{fmt, io, mem, ops::Range};
 
 use byteorder::{ByteOrder, LittleEndian};
 use bytes::Buf;
@@ -12,7 +13,10 @@ use noodles_core::Position;
 use noodles_sam as sam;
 
 use self::bounds::Bounds;
-pub use self::{cigar::Cigar, data::Data, quality_scores::QualityScores, sequence::Sequence};
+pub use self::{
+    cigar::Cigar, data::Data, quality_scores::QualityScores, read_name::ReadName,
+    sequence::Sequence,
+};
 
 /// An immutable, lazily-evalulated BAM record.
 ///
@@ -142,20 +146,17 @@ impl Record {
     /// ```
     /// use noodles_bam as bam;
     /// let record = bam::lazy::Record::default();
-    /// assert!(record.read_name()?.is_none());
-    /// # Ok::<_, std::io::Error>(())
+    /// assert!(record.read_name().is_none());
     /// ```
-    pub fn read_name(&self) -> io::Result<Option<sam::record::ReadName>> {
-        use crate::record::codec::decoder::get_read_name;
+    pub fn read_name(&self) -> Option<ReadName> {
+        const MISSING: &[u8] = &[b'*', 0x00];
 
-        let mut src = &self.buf[self.bounds.read_name_range()];
-        let mut read_name = None;
-        let len = NonZeroUsize::try_from(src.len())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-        get_read_name(&mut src, &mut read_name, len)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let src = &self.buf[self.bounds.read_name_range()];
 
-        Ok(read_name)
+        match src {
+            MISSING => None,
+            _ => Some(ReadName::new(src)),
+        }
     }
 
     /// Returns the CIGAR operations.
@@ -318,8 +319,8 @@ impl TryFrom<Record> for sam::alignment::Record {
     fn try_from(lazy_record: Record) -> Result<Self, Self::Error> {
         let mut builder = Self::builder();
 
-        if let Some(read_name) = lazy_record.read_name()? {
-            builder = builder.set_read_name(read_name);
+        if let Some(read_name) = lazy_record.read_name() {
+            builder = builder.set_read_name(read_name.try_into()?);
         }
 
         builder = builder.set_flags(lazy_record.flags()?);

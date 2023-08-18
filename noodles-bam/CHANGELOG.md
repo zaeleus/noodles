@@ -4,6 +4,9 @@
 
 ### Added
 
+  * bam/lazy/record: Add read name wrapper
+    (`lazy::record::ReadName`).
+
   * bam/lazy/record/cigar: Add op iterator
     (`lazy::record::Cigar::iter`).
 
