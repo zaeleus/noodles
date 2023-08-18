@@ -27,8 +27,14 @@ impl<'a> Info<'a> {
 
         Box::new(self.0.split(DELIMITER).map(|raw_field| {
             let mut components = raw_field.split(FIELD_SEPARATOR);
+
             let key = components.next().unwrap();
-            let value = components.next();
+
+            let value = components.next().and_then(|s| match s {
+                MISSING_FIELD => None,
+                _ => Some(s),
+            });
+
             (key, value)
         }))
     }
