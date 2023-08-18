@@ -88,7 +88,7 @@ pub fn parse_other(src: &mut &[u8]) -> Result<(String, Map<Other>), ParseError> 
         match tag {
             tag::ID => parse_id(src, &id).and_then(|v| try_replace(&mut id, &None, tag::ID, v))?,
             Tag::Other(t) => {
-                if t.as_ref() == VALUES {
+                if t == VALUES {
                     parse_values(src, &id, &t)
                         .and_then(|value| try_insert(&mut other_fields, &id, t, value))?;
                 } else {

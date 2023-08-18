@@ -4,6 +4,9 @@
 
 ### Added
 
+  * vcf/header/record/value/map/tag/other: Implement `PartialEq<&str>` for
+    `Other<S>`.
+
   * vcf/indexed_reader: Add lazy record reader
     (`IndexedReader::read_lazy_record`).
 

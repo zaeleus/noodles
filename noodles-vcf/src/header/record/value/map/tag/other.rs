@@ -41,6 +41,12 @@ impl<S> PartialEq for Other<S> {
     }
 }
 
+impl<S> PartialEq<&str> for Other<S> {
+    fn eq(&self, other: &&str) -> bool {
+        self.0.eq(other)
+    }
+}
+
 impl<S> Eq for Other<S> {}
 
 impl<S> fmt::Display for Other<S> {
