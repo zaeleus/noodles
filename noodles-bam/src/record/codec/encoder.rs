@@ -198,12 +198,11 @@ where
             })?
             .map(|(_, rs)| rs.length().get())?;
 
-        Cigar::try_from(vec![
-            Op::new(op::Kind::SoftClip, k),
-            Op::new(op::Kind::Skip, m),
-        ])
-        .map(Some)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+        Ok(Some(
+            [Op::new(op::Kind::SoftClip, k), Op::new(op::Kind::Skip, m)]
+                .into_iter()
+                .collect(),
+        ))
     }
 }
 

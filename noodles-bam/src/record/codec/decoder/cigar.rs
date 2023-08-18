@@ -163,7 +163,6 @@ mod tests {
             record::{
                 cigar::op::{self, Op},
                 data::field::{tag, value::Array, Value},
-                Cigar,
             },
         };
 
@@ -187,7 +186,7 @@ mod tests {
 
         resolve(&header, &mut record)?;
 
-        let expected = Cigar::try_from(vec![Op::new(op::Kind::Match, 4)])?;
+        let expected = [Op::new(op::Kind::Match, 4)].into_iter().collect();
 
         assert_eq!(record.cigar(), &expected);
         assert!(record.data().get(&tag::CIGAR).is_none());

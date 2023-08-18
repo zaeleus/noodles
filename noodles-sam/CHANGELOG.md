@@ -4,7 +4,8 @@
 
 ### Added
 
-  * sam/record/cigar: Implement `Extend<Op>` for `Cigar`.
+  * sam/record/cigar: Implement `Extend<Op>` and `FromIterator<Op>` for
+    `Cigar`.
 
 ## 0.39.0 - 2023-08-17
 

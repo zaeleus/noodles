@@ -57,7 +57,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_cigar() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_parse_cigar() -> Result<(), ParseError> {
         use crate::record::cigar::{op::Kind, Op};
 
         let mut cigar = Cigar::default();
@@ -66,18 +66,22 @@ mod tests {
         parse_cigar(b"8M13N", &mut cigar)?;
         assert_eq!(
             cigar,
-            Cigar::try_from(vec![Op::new(Kind::Match, 8), Op::new(Kind::Skip, 13),])?
+            [Op::new(Kind::Match, 8), Op::new(Kind::Skip, 13),]
+                .into_iter()
+                .collect()
         );
 
         cigar.clear();
         parse_cigar(b"8M13N144S", &mut cigar)?;
         assert_eq!(
             cigar,
-            Cigar::try_from(vec![
+            [
                 Op::new(Kind::Match, 8),
                 Op::new(Kind::Skip, 13),
                 Op::new(Kind::SoftClip, 144),
-            ])?
+            ]
+            .into_iter()
+            .collect()
         );
 
         cigar.clear();

@@ -20,12 +20,11 @@ impl Cigar {
     /// ```
     /// use noodles_sam::record::{cigar::{op::Kind, Op}, Cigar};
     ///
-    /// let mut cigar = Cigar::try_from(vec![Op::new(Kind::Match, 5)])?;
+    /// let mut cigar: Cigar = [Op::new(Kind::Match, 5)].into_iter().collect();
     /// assert!(!cigar.is_empty());
     ///
     /// cigar.clear();
     /// assert!(cigar.is_empty());
-    /// # Ok::<_, noodles_sam::record::cigar::ParseError>(())
     /// ```
     pub fn clear(&mut self) {
         self.0.clear();
@@ -42,14 +41,15 @@ impl Cigar {
     /// ```
     /// use noodles_sam::record::{cigar::{op::Kind, Op}, Cigar};
     ///
-    /// let cigar = Cigar::try_from(vec![
+    /// let cigar: Cigar = [
     ///     Op::new(Kind::Match, 36),
     ///     Op::new(Kind::Deletion, 4),
     ///     Op::new(Kind::SoftClip, 8),
-    /// ])?;
+    /// ]
+    /// .into_iter()
+    /// .collect();
     ///
     /// assert_eq!(cigar.alignment_span(), 40);
-    /// # Ok::<_, noodles_sam::record::cigar::ParseError>(())
     /// ```
     pub fn alignment_span(&self) -> usize {
         self.iter()
@@ -68,14 +68,15 @@ impl Cigar {
     /// ```
     /// use noodles_sam::record::{cigar::{op::Kind, Op}, Cigar};
     ///
-    /// let cigar = Cigar::try_from(vec![
+    /// let cigar: Cigar = [
     ///     Op::new(Kind::Match, 36),
     ///     Op::new(Kind::Deletion, 4),
     ///     Op::new(Kind::SoftClip, 8),
-    /// ])?;
+    /// ]
+    /// .into_iter()
+    /// .collect();
     ///
     /// assert_eq!(cigar.read_length(), 44);
-    /// # Ok::<_, noodles_sam::record::cigar::ParseError>(())
     /// ```
     pub fn read_length(&self) -> usize {
         self.iter()
@@ -111,6 +112,14 @@ impl fmt::Display for Cigar {
 impl Extend<Op> for Cigar {
     fn extend<T: IntoIterator<Item = Op>>(&mut self, iter: T) {
         self.0.extend(iter);
+    }
+}
+
+impl FromIterator<Op> for Cigar {
+    fn from_iter<T: IntoIterator<Item = Op>>(iter: T) -> Self {
+        let mut cigar = Cigar::default();
+        cigar.extend(iter);
+        cigar
     }
 }
 
@@ -190,40 +199,41 @@ mod tests {
     use super::{op::Kind, *};
 
     #[test]
-    fn test_is_empty() -> Result<(), ParseError> {
+    fn test_is_empty() {
         let cigar = Cigar::default();
         assert!(cigar.is_empty());
 
-        let cigar = Cigar::try_from(vec![Op::new(Kind::Match, 1)])?;
+        let cigar: Cigar = [Op::new(Kind::Match, 1)].into_iter().collect();
         assert!(!cigar.is_empty());
-
-        Ok(())
     }
 
     #[test]
-    fn test_fmt() -> Result<(), ParseError> {
+    fn test_fmt() {
         let cigar = Cigar::default();
         assert!(cigar.to_string().is_empty());
 
-        let cigar = Cigar::try_from(vec![
+        let cigar: Cigar = [
             Op::new(Kind::Match, 1),
             Op::new(Kind::Skip, 13),
             Op::new(Kind::SoftClip, 144),
-        ])?;
-        assert_eq!(cigar.to_string(), "1M13N144S");
+        ]
+        .into_iter()
+        .collect();
 
-        Ok(())
+        assert_eq!(cigar.to_string(), "1M13N144S");
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
+    fn test_from_str() {
         assert_eq!(
-            "1M13N144S".parse(),
-            Ok(Cigar::try_from(vec![
+            "1M13N144S".parse::<Cigar>(),
+            Ok([
                 Op::new(Kind::Match, 1),
                 Op::new(Kind::Skip, 13),
                 Op::new(Kind::SoftClip, 144),
-            ])?)
+            ]
+            .into_iter()
+            .collect())
         );
 
         assert_eq!("".parse::<Cigar>(), Err(ParseError::Empty));
@@ -233,7 +243,5 @@ mod tests {
             "*".parse::<Cigar>(),
             Err(ParseError::InvalidOp(_))
         ));
-
-        Ok(())
     }
 }

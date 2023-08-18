@@ -53,11 +53,11 @@ mod tests {
     }
 
     #[test]
-    fn test_put_cigar() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_put_cigar() -> io::Result<()> {
         use noodles_sam::record::cigar::{op::Kind, Op};
 
         let mut buf = Vec::new();
-        let cigar = Cigar::try_from(vec![Op::new(Kind::Match, 4)])?;
+        let cigar = [Op::new(Kind::Match, 4)].into_iter().collect();
         put_cigar(&mut buf, &cigar)?;
 
         let expected = [

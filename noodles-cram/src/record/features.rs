@@ -81,11 +81,10 @@ impl Features {
             merge_or_insert_op(&mut ops, Kind::Match, len);
         }
 
-        sam::record::Cigar::try_from(
-            ops.into_iter()
-                .map(|(kind, len)| Op::new(kind, len))
-                .collect::<Vec<_>>(),
-        )
+        Ok(ops
+            .into_iter()
+            .map(|(kind, len)| Op::new(kind, len))
+            .collect())
     }
 
     pub(crate) fn with_positions(
@@ -455,19 +454,18 @@ mod tests {
     }
 
     #[test]
-    fn test_try_into_cigar() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_try_into_cigar() -> Result<(), noodles_core::position::TryFromIntError> {
         use noodles_sam::record::{
             cigar::{op::Kind, Op},
             sequence::Base,
-            Cigar,
         };
 
         use crate::record::feature::substitution;
 
         let features = Features::default();
         assert_eq!(
-            features.try_into_cigar(4)?,
-            Cigar::try_from(vec![Op::new(Kind::Match, 4)])?
+            features.try_into_cigar(4),
+            Ok([Op::new(Kind::Match, 4)].into_iter().collect())
         );
 
         let features = Features::from(vec![Feature::SoftClip(
@@ -475,8 +473,10 @@ mod tests {
             vec![Base::A, Base::T],
         )]);
         assert_eq!(
-            features.try_into_cigar(4)?,
-            Cigar::try_from(vec![Op::new(Kind::SoftClip, 2), Op::new(Kind::Match, 2)])?
+            features.try_into_cigar(4),
+            Ok([Op::new(Kind::SoftClip, 2), Op::new(Kind::Match, 2)]
+                .into_iter()
+                .collect())
         );
 
         let features = Features::from(vec![Feature::SoftClip(
@@ -484,14 +484,18 @@ mod tests {
             vec![Base::G],
         )]);
         assert_eq!(
-            features.try_into_cigar(4)?,
-            Cigar::try_from(vec![Op::new(Kind::Match, 3), Op::new(Kind::SoftClip, 1)])?
+            features.try_into_cigar(4),
+            Ok([Op::new(Kind::Match, 3), Op::new(Kind::SoftClip, 1)]
+                .into_iter()
+                .collect())
         );
 
         let features = Features::from(vec![Feature::HardClip(Position::try_from(1)?, 2)]);
         assert_eq!(
-            features.try_into_cigar(4)?,
-            Cigar::try_from(vec![Op::new(Kind::HardClip, 2), Op::new(Kind::Match, 4)])?
+            features.try_into_cigar(4),
+            Ok([Op::new(Kind::HardClip, 2), Op::new(Kind::Match, 4)]
+                .into_iter()
+                .collect())
         );
 
         let features = Features::from(vec![
@@ -499,8 +503,10 @@ mod tests {
             Feature::Substitution(Position::try_from(3)?, substitution::Value::Code(0)),
         ]);
         assert_eq!(
-            features.try_into_cigar(4)?,
-            Cigar::try_from(vec![Op::new(Kind::SoftClip, 1), Op::new(Kind::Match, 3)])?
+            features.try_into_cigar(4),
+            Ok([Op::new(Kind::SoftClip, 1), Op::new(Kind::Match, 3)]
+                .into_iter()
+                .collect())
         );
 
         let features = Features::from(vec![Feature::Substitution(
@@ -508,8 +514,8 @@ mod tests {
             substitution::Value::Code(0),
         )]);
         assert_eq!(
-            features.try_into_cigar(4)?,
-            Cigar::try_from(vec![Op::new(Kind::Match, 4)])?
+            features.try_into_cigar(4),
+            Ok([Op::new(Kind::Match, 4)].into_iter().collect())
         );
 
         Ok(())
