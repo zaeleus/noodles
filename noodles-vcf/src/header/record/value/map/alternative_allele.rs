@@ -7,7 +7,6 @@ pub use self::tag::Tag;
 
 use std::{error, fmt};
 
-use self::tag::StandardTag;
 use super::{Described, Inner, Map, OtherFields};
 
 /// An inner VCF header alternative allele map value.
@@ -17,7 +16,7 @@ pub struct AlternativeAllele {
 }
 
 impl Inner for AlternativeAllele {
-    type StandardTag = StandardTag;
+    type StandardTag = tag::Standard;
     type Builder = builder::Builder;
 }
 

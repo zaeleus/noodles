@@ -6,7 +6,6 @@ pub use self::tag::Tag;
 
 use std::fmt;
 
-use self::tag::StandardTag;
 use super::{builder, Inner, Map};
 
 /// An inner VCF header other map value.
@@ -14,7 +13,7 @@ use super::{builder, Inner, Map};
 pub struct Other;
 
 impl Inner for Other {
-    type StandardTag = StandardTag;
+    type StandardTag = tag::Standard;
     type Builder = builder::Identity;
 }
 

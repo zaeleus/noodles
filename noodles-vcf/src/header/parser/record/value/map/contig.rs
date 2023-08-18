@@ -24,7 +24,7 @@ enum ParseErrorKind {
     InvalidLength(num::ParseIntError),
     InvalidIdx(num::ParseIntError),
     InvalidOther(
-        map::tag::Other<tag::StandardTag>,
+        map::tag::Other<tag::Standard>,
         super::field::value::ParseError,
     ),
     DuplicateTag(Tag),
@@ -182,7 +182,7 @@ fn parse_idx(src: &mut &[u8], id: &Option<Name>) -> Result<usize, ParseError> {
 fn parse_other(
     src: &mut &[u8],
     id: &Option<Name>,
-    tag: &map::tag::Other<tag::StandardTag>,
+    tag: &map::tag::Other<tag::Standard>,
 ) -> Result<String, ParseError> {
     parse_value(src)
         .map(String::from)
@@ -206,9 +206,9 @@ fn try_replace<T>(
 }
 
 fn try_insert(
-    other_fields: &mut OtherFields<tag::StandardTag>,
+    other_fields: &mut OtherFields<tag::Standard>,
     id: &Option<Name>,
-    tag: map::tag::Other<tag::StandardTag>,
+    tag: map::tag::Other<tag::Standard>,
     value: String,
 ) -> Result<(), ParseError> {
     use indexmap::map::Entry;

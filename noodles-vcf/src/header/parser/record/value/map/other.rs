@@ -19,7 +19,7 @@ pub enum ParseErrorKind {
     MissingId,
     InvalidValues(str::Utf8Error),
     InvalidOther(
-        map::tag::Other<tag::StandardTag>,
+        map::tag::Other<tag::Standard>,
         super::field::value::ParseError,
     ),
     DuplicateTag(Tag),
@@ -129,7 +129,7 @@ fn parse_id(src: &mut &[u8], id: &Option<String>) -> Result<String, ParseError> 
 fn parse_values(
     src: &mut &[u8],
     id: &Option<String>,
-    tag: &map::tag::Other<tag::StandardTag>,
+    tag: &map::tag::Other<tag::Standard>,
 ) -> Result<String, ParseError> {
     const PREFIX: u8 = b'[';
     const SUFFIX: u8 = b']';
@@ -155,7 +155,7 @@ fn parse_values(
 fn parse_other_value(
     src: &mut &[u8],
     id: &Option<String>,
-    tag: &map::tag::Other<tag::StandardTag>,
+    tag: &map::tag::Other<tag::Standard>,
 ) -> Result<String, ParseError> {
     parse_value(src)
         .map(String::from)
@@ -179,9 +179,9 @@ fn try_replace<T>(
 }
 
 fn try_insert(
-    other_fields: &mut OtherFields<tag::StandardTag>,
+    other_fields: &mut OtherFields<tag::Standard>,
     id: &Option<String>,
-    tag: map::tag::Other<tag::StandardTag>,
+    tag: map::tag::Other<tag::Standard>,
     value: String,
 ) -> Result<(), ParseError> {
     use indexmap::map::Entry;

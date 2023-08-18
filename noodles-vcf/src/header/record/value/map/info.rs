@@ -8,7 +8,6 @@ pub use self::{tag::Tag, ty::Type};
 
 use std::fmt;
 
-use self::tag::StandardTag;
 use super::{builder, Described, Indexed, Inner, Map, OtherFields, Typed};
 use crate::{
     header::{FileFormat, Number},
@@ -25,7 +24,7 @@ pub struct Info {
 }
 
 impl Inner for Info {
-    type StandardTag = StandardTag;
+    type StandardTag = tag::Standard;
     type Builder = builder::TypedDescribedIndexed<Self>;
 }
 

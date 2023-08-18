@@ -8,7 +8,6 @@ pub use self::{name::Name, tag::Tag};
 
 use std::fmt;
 
-use self::tag::StandardTag;
 use super::{Indexed, Inner, Map};
 
 /// An inner VCF header contig map value.
@@ -21,7 +20,7 @@ pub struct Contig {
 }
 
 impl Inner for Contig {
-    type StandardTag = StandardTag;
+    type StandardTag = tag::Standard;
     type Builder = builder::Builder;
 }
 

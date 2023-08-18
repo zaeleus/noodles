@@ -8,7 +8,6 @@ use std::fmt;
 
 use indexmap::IndexMap;
 
-use self::tag::StandardTag;
 use super::{builder, Described, Indexed, Inner, Map};
 
 /// An inner VCF header filter map value.
@@ -19,7 +18,7 @@ pub struct Filter {
 }
 
 impl Inner for Filter {
-    type StandardTag = StandardTag;
+    type StandardTag = tag::Standard;
     type Builder = builder::DescribedIndexed;
 }
 
