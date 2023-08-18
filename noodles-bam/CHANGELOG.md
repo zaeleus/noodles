@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bam/lazy/record/cigar: Add op iterator
+    (`lazy::record::Cigar::iter`).
+
 ## 0.42.0 - 2023-08-17
 
 ### Changed

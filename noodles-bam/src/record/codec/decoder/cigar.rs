@@ -1,4 +1,4 @@
-mod op;
+pub mod op;
 
 use std::{error, fmt, mem};
 
