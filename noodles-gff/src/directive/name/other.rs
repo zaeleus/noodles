@@ -18,8 +18,8 @@ impl fmt::Display for Other {
     }
 }
 
-impl PartialEq<str> for Other {
-    fn eq(&self, other: &str) -> bool {
+impl PartialEq<&str> for Other {
+    fn eq(&self, other: &&str) -> bool {
         self.0.eq(other)
     }
 }

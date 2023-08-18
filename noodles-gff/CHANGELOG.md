@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * gff/directive/name/other: Fix comparison with `&str`.
+
 ## 0.19.0 - 2023-08-17
 
 ### Changed
