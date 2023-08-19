@@ -77,7 +77,7 @@ impl fmt::Display for ParseError {
                 write!(f, "invalid sequencing center ({})", tag::SEQUENCING_CENTER)
             }
             Self::InvalidDescription(_) => write!(f, "invalid description ({})", tag::DESCRIPTION),
-            Self::InvalidProducedAt(_) => write!(f, "invalid producted at ({})", tag::PRODUCED_AT),
+            Self::InvalidProducedAt(_) => write!(f, "invalid produced at ({})", tag::PRODUCED_AT),
             Self::InvalidFlowOrder(_) => write!(f, "invalid flow order ({})", tag::FLOW_ORDER),
             Self::InvalidKeySequence(_) => {
                 write!(f, "invalid key sequence ({})", tag::KEY_SEQUENCE)
