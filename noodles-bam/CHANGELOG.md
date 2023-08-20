@@ -10,6 +10,8 @@
   * bam/lazy/record/cigar: Add op iterator
     (`lazy::record::Cigar::iter`).
 
+  * bam/lazy/record/data: Add field iterator (`lazy::record::Data::iter`).
+
 ## 0.42.0 - 2023-08-17
 
 ### Changed

@@ -1,6 +1,12 @@
-use std::io;
+pub mod field;
+
+use std::{io, iter};
 
 use noodles_sam as sam;
+
+use self::field::{decode_field, Value};
+
+type Tag = [u8; 2];
 
 /// Raw BAM record data.
 #[derive(Debug, Eq, PartialEq)]
@@ -14,6 +20,19 @@ impl<'a> Data<'a> {
     /// Returns whether there are any fields.
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
+    }
+
+    /// Returns an iterator over all tag-value pairs.
+    pub fn iter(&self) -> impl Iterator<Item = io::Result<(Tag, Value<'_>)>> + '_ {
+        let mut src = self.0;
+
+        iter::from_fn(move || {
+            if src.is_empty() {
+                None
+            } else {
+                Some(decode_field(&mut src))
+            }
+        })
     }
 }
 
@@ -35,5 +54,23 @@ impl<'a> TryFrom<Data<'a>> for sam::record::Data {
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         Ok(sam_data)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_iter() -> io::Result<()> {
+        let data = Data::new(&[]);
+        assert!(data.iter().next().is_none());
+
+        let data = Data::new(&[b'N', b'H', b'C', 0x01]);
+        let actual: Vec<_> = data.iter().collect::<io::Result<_>>()?;
+        let expected = [([b'N', b'H'], Value::UInt8(1))];
+        assert_eq!(actual, expected);
+
+        Ok(())
     }
 }
