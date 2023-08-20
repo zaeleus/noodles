@@ -12,6 +12,15 @@
 
   * bam/lazy/record/data: Add field iterator (`lazy::record::Data::iter`).
 
+### Changed
+
+  * bam/record/codec/decoder/data/field/value/array: Read length as `u32`.
+
+    This used to be defined as an `int32_t` but was changed to a `uint32_t` in
+    [samtools/hts-specs@31d6e44].
+
+[samtools/hts-specs@31d6e44]: https://github.com/samtools/hts-specs/commit/31d6e44887ae3892472c20d06c15e9a763f3c7c0
+
 ## 0.42.0 - 2023-08-17
 
 ### Changed

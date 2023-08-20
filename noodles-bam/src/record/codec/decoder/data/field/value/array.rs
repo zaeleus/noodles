@@ -42,7 +42,7 @@ where
     B: Buf,
 {
     let subtype = get_subtype(src).map_err(DecodeError::InvalidSubtype)?;
-    let len = usize::try_from(src.get_i32_le()).map_err(DecodeError::InvalidLength)?;
+    let len = usize::try_from(src.get_u32_le()).map_err(DecodeError::InvalidLength)?;
 
     match subtype {
         Subtype::Int8 => {
