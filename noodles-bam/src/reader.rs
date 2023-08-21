@@ -50,7 +50,6 @@ use super::lazy;
 ///     let record = result?;
 ///     // ...
 /// }
-///
 /// # Ok::<_, io::Error>(())
 /// ```
 pub struct Reader<R> {
