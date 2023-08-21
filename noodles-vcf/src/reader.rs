@@ -348,7 +348,7 @@ where
 
 impl<R> VariantReader<R> for Reader<R>
 where
-    R: io::BufRead,
+    R: BufRead,
 {
     fn read_variant_header(&mut self) -> io::Result<Header> {
         self.read_header()
