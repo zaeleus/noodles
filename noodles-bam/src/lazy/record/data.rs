@@ -4,9 +4,7 @@ use std::{io, iter};
 
 use noodles_sam as sam;
 
-use self::field::{decode_field, Value};
-
-type Tag = [u8; 2];
+use self::field::{decode_field, Tag, Value};
 
 /// Raw BAM record data.
 #[derive(Debug, Eq, PartialEq)]

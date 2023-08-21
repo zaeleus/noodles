@@ -1,6 +1,7 @@
 use std::io::{self, Read};
 
-use crate::lazy::record::data::Tag;
+/// A raw BAM record data field tag.
+pub type Tag = [u8; 2];
 
 pub(super) fn decode_tag(src: &mut &[u8]) -> io::Result<Tag> {
     let mut buf = [0; 2];

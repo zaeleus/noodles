@@ -6,9 +6,8 @@ mod value;
 
 use std::io;
 
-pub use self::value::Value;
 use self::{tag::decode_tag, ty::decode_type, value::decode_value};
-use super::Tag;
+pub use self::{tag::Tag, value::Value};
 
 pub(super) fn decode_field<'a>(src: &mut &'a [u8]) -> io::Result<(Tag, Value<'a>)> {
     let tag = decode_tag(src)?;
