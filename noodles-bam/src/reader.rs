@@ -48,7 +48,7 @@ use super::lazy;
 ///
 /// for result in reader.records(&header) {
 ///     let record = result?;
-///     println!("{:?}", record);
+///     // ...
 /// }
 ///
 /// # Ok::<_, io::Error>(())
