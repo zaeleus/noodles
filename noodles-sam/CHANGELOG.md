@@ -4,6 +4,9 @@
 
 ### Added
 
+  * sam/header/record/value/map/tag/other: Implement `PartialEq<[u8; 2]>` for
+    `Other<S>`.
+
   * sam/record/cigar: Implement `Extend<Op>` and `FromIterator<Op>` for
     `Cigar`.
 
