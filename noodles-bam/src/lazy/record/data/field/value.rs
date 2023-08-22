@@ -22,6 +22,25 @@ pub enum Value<'a> {
     Array(Array<'a>),
 }
 
+impl<'a> Value<'a> {
+    /// Returns the value as a 64-bit integer.
+    ///
+    /// This is a convenience method that converts any integer to an `i64`, which captures the
+    /// entire range of all record data field integer values.
+    /// ```
+    pub fn as_int(&self) -> Option<i64> {
+        match *self {
+            Self::Int8(n) => Some(i64::from(n)),
+            Self::UInt8(n) => Some(i64::from(n)),
+            Self::Int16(n) => Some(i64::from(n)),
+            Self::UInt16(n) => Some(i64::from(n)),
+            Self::Int32(n) => Some(i64::from(n)),
+            Self::UInt32(n) => Some(i64::from(n)),
+            _ => None,
+        }
+    }
+}
+
 pub(super) fn decode_value<'a>(src: &mut &'a [u8], ty: Type) -> io::Result<Value<'a>> {
     match ty {
         Type::Character => decode_character(src),
