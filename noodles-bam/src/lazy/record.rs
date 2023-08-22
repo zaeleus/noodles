@@ -1,3 +1,5 @@
+//! Immutable, lazily-evalulated BAM record and fields.
+
 mod bounds;
 mod cigar;
 mod data;

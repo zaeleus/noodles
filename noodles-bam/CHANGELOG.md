@@ -12,6 +12,8 @@
 
 ### Changed
 
+  * bam/lazy: Increase the visibility of `lazy::record`.
+
   * bam/record/codec/decoder/data/field/value/array: Read length as `u32`.
 
     This used to be defined as an `int32_t` but was changed to a `uint32_t` in
