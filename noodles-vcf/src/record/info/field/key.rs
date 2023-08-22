@@ -72,6 +72,8 @@ pub const IS_NOVEL: Key = Key::Standard(Standard::IsNovel);
 pub const END_POSITION: Key = Key::Standard(Standard::EndPosition);
 
 /// Type of structural variant (`SVTYPE`).
+///
+/// Deprecated in VCF 4.4.
 pub const SV_TYPE: Key = Key::Standard(Standard::SvType);
 
 /// Difference in length between REF and ALT alleles (`SVLEN`).
@@ -127,7 +129,7 @@ pub const BREAKEND_CONFIDENCE_INTERVALS: Key = Key::Standard(Standard::BreakendC
 
 /// Read Depth of adjacency (`DPADJ`).
 ///
-/// Deprecated in VCF 4.4.
+/// Removed in VCF 4.4.
 pub const ADJACENT_READ_DEPTHS: Key = Key::Standard(Standard::AdjacentReadDepths);
 
 /// Copy number of segment containing breakend (`CN`).
@@ -135,7 +137,7 @@ pub const BREAKEND_COPY_NUMBER: Key = Key::Standard(Standard::BreakendCopyNumber
 
 /// Copy number of adjacency (`CNADJ`).
 ///
-/// Deprecated in VCF 4.4.
+/// Removed in VCF 4.4.
 pub const ADJACENT_COPY_NUMBER: Key = Key::Standard(Standard::AdjacentCopyNumber);
 
 /// Confidence interval around copy number for the segment (`CICN`).
@@ -144,7 +146,7 @@ pub const COPY_NUMBER_CONFIDENCE_INTERVALS: Key =
 
 /// Confidence interval around copy number for the adjacency (`CICNADJ`).
 ///
-/// Deprecated in VCF 4.4.
+/// Removed in VCF 4.4.
 pub const ADJACENT_COPY_NUMBER_CONFIDENCE_INTERVALS: Key =
     Key::Standard(Standard::AdjacentCopyNumberConfidenceIntervals);
 
@@ -290,19 +292,19 @@ pub enum Standard {
     // BreakendReadDepth,
     /// Read Depth of adjacency (`DPADJ`).
     ///
-    /// Deprecated in VCF 4.4.
+    /// Removed in VCF 4.4.
     AdjacentReadDepths,
     /// Copy number of segment containing breakend (`CN`).
     BreakendCopyNumber,
     /// Copy number of adjacency (`CNADJ`).
     ///
-    /// Deprecated in VCF 4.4.
+    /// Removed in VCF 4.4.
     AdjacentCopyNumber,
     /// Confidence interval around copy number for the segment (`CICN`).
     CopyNumberConfidenceIntervals,
     /// Confidence interval around copy number for the adjacency (`CICNADJ`).
     ///
-    /// Deprecated in VCF 4.4.
+    /// Removed in VCF 4.4.
     AdjacentCopyNumberConfidenceIntervals,
     /// Claim made by the structural variant call. Valid values are D, J, DJ for abundance,
     /// adjacency and both respectively.
