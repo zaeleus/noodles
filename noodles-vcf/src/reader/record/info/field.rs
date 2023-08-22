@@ -61,7 +61,7 @@ pub(super) fn parse_field(header: &Header, s: &str) -> Result<(Key, Option<Value
     let mut components = s.splitn(MAX_COMPONENTS, SEPARATOR);
 
     let raw_key = components.next().unwrap_or_default();
-    let key = raw_key.parse().map_err(ParseError::InvalidKey)?;
+    let key = Key::try_from((header.file_format(), raw_key)).map_err(ParseError::InvalidKey)?;
 
     let (number, ty) = header
         .infos()
