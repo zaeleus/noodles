@@ -18,7 +18,7 @@ impl<'a> Sample<'a> {
         }
 
         Box::new(self.0.split(DELIMITER).map(|s| match s {
-            "." => None,
+            MISSING => None,
             _ => Some(s),
         }))
     }
