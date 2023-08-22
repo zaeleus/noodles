@@ -12,6 +12,11 @@
 
   * vcf/lazy/record: Add info wrapper (`lazy::record::Info`).
 
+### Changed
+
+  * vcf/record/info/field/key: Allow full alphabet when the file format is <
+    VCF 4.3.
+
 ## 0.36.0 - 2023-08-17
 
 ### Added

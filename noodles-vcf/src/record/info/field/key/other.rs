@@ -1,6 +1,7 @@
 use std::{fmt, str::FromStr};
 
 use super::ParseError;
+use crate::header::FileFormat;
 
 /// A non-reserved VCF header info key.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -26,6 +27,20 @@ impl FromStr for Other {
             Ok(Self(s.into()))
         } else {
             Err(ParseError::Invalid)
+        }
+    }
+}
+
+impl TryFrom<(FileFormat, &str)> for Other {
+    type Error = ParseError;
+
+    fn try_from((file_format, s): (FileFormat, &str)) -> Result<Self, Self::Error> {
+        const VCF_4_3: FileFormat = FileFormat::new(4, 3);
+
+        if file_format < VCF_4_3 {
+            Ok(Self(s.into()))
+        } else {
+            s.parse()
         }
     }
 }
