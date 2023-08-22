@@ -145,7 +145,7 @@ pub(super) fn parse_value(
             .and_then(|s| s.parse().map_err(|_| ParseError::InvalidFileFormat))
             .map(Record::FileFormat),
         key::INFO => {
-            let (id, map) = map::parse_info(src).map_err(ParseError::InvalidInfo)?;
+            let (id, map) = map::parse_info(src, file_format).map_err(ParseError::InvalidInfo)?;
             validate_info_definition(file_format, &id, map.number(), map.ty())?;
             Ok(Record::Info(id, map))
         }

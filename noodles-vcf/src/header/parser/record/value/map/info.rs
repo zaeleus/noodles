@@ -12,7 +12,7 @@ use crate::{
             },
             Map,
         },
-        Number,
+        FileFormat, Number,
     },
     record::info::field::{key, Key},
 };
@@ -95,7 +95,10 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub fn parse_info(src: &mut &[u8]) -> Result<(Key, Map<Info>), ParseError> {
+pub fn parse_info(
+    src: &mut &[u8],
+    file_format: FileFormat,
+) -> Result<(Key, Map<Info>), ParseError> {
     super::consume_prefix(src).map_err(|e| ParseError::new(None, ParseErrorKind::InvalidMap(e)))?;
 
     let mut id = None;
@@ -112,7 +115,8 @@ pub fn parse_info(src: &mut &[u8]) -> Result<(Key, Map<Info>), ParseError> {
             .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidKey(e)))?;
 
         match tag {
-            tag::ID => parse_id(src, &id).and_then(|v| try_replace(&mut id, &None, tag::ID, v))?,
+            tag::ID => parse_id(src, file_format, &id)
+                .and_then(|v| try_replace(&mut id, &None, tag::ID, v))?,
             tag::NUMBER => parse_number(src, &id)
                 .and_then(|v| try_replace(&mut number, &id, tag::NUMBER, v))?,
             tag::TYPE => {
@@ -159,11 +163,11 @@ pub fn parse_info(src: &mut &[u8]) -> Result<(Key, Map<Info>), ParseError> {
     ))
 }
 
-fn parse_id(src: &mut &[u8], id: &Option<Key>) -> Result<Key, ParseError> {
+fn parse_id(src: &mut &[u8], file_format: FileFormat, id: &Option<Key>) -> Result<Key, ParseError> {
     parse_value(src)
         .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidValue(e)))
         .and_then(|s| {
-            s.parse()
+            Key::try_from((file_format, s.as_ref()))
                 .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidId(e)))
         })
 }
@@ -258,11 +262,12 @@ mod tests {
     fn test_parse_info() {
         let mut src =
             &br#"<ID=NS,Number=1,Type=Integer,Description="Number of samples with data">"#[..];
+        let file_format = FileFormat::new(4, 4);
 
         let id = key::SAMPLES_WITH_DATA_COUNT;
         let map = Map::<Info>::from(&id);
         let expected = (id, map);
 
-        assert_eq!(parse_info(&mut src), Ok(expected));
+        assert_eq!(parse_info(&mut src, file_format), Ok(expected));
     }
 }
