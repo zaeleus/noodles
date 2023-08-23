@@ -221,7 +221,7 @@ impl AsRef<[u8; LENGTH]> for Tag {
     fn as_ref(&self) -> &[u8; LENGTH] {
         match self {
             Self::Standard(tag) => tag.as_ref(),
-            Self::Other(Other(tag)) => tag,
+            Self::Other(tag) => tag.as_ref(),
         }
     }
 }
