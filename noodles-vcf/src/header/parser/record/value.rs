@@ -153,7 +153,8 @@ pub(super) fn parse_value(
             .map(|(id, map)| Record::Filter(id, map))
             .map_err(ParseError::InvalidFilter),
         key::FORMAT => {
-            let (id, map) = map::parse_format(src).map_err(ParseError::InvalidFormat)?;
+            let (id, map) =
+                map::parse_format(src, file_format).map_err(ParseError::InvalidFormat)?;
             validate_format_definition(file_format, &id, map.number(), map.ty())?;
             Ok(Record::Format(id, map))
         }
