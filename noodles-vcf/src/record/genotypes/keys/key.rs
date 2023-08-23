@@ -6,6 +6,7 @@ mod standard;
 use std::{borrow::Borrow, error, fmt, str::FromStr};
 
 pub use self::{other::Other, standard::Standard};
+use crate::header::FileFormat;
 
 /// Read depth for each allele (`AD`).
 pub const READ_DEPTHS: Key = Key::Standard(Standard::ReadDepths);
@@ -163,6 +164,20 @@ impl FromStr for Key {
         s.parse()
             .map(Self::Standard)
             .or_else(|_| s.parse().map(Self::Other))
+    }
+}
+
+impl TryFrom<(FileFormat, &str)> for Key {
+    type Error = ParseError;
+
+    fn try_from((file_format, s): (FileFormat, &str)) -> Result<Self, Self::Error> {
+        if s.is_empty() {
+            return Err(ParseError::Empty);
+        }
+
+        s.parse()
+            .map(Self::Standard)
+            .or_else(|_| Other::try_from((file_format, s)).map(Self::Other))
     }
 }
 
