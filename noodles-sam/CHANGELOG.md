@@ -10,6 +10,8 @@
   * sam/record/cigar: Implement `Extend<Op>` and `FromIterator<Op>` for
     `Cigar`.
 
+  * sam/record/data/field/tag: Implement `PartialEq<[u8; 2]>` for `Tag`.
+
 ## 0.39.0 - 2023-08-17
 
 ### Changed

@@ -310,6 +310,12 @@ impl FromStr for Tag {
     }
 }
 
+impl PartialEq<[u8; LENGTH]> for Tag {
+    fn eq(&self, other: &[u8; LENGTH]) -> bool {
+        self.as_ref().eq(other)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
