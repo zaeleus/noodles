@@ -66,7 +66,9 @@ pub(super) fn parse_keys(header: &Header, s: &str, keys: &mut Keys) -> Result<()
     for (i, raw_key) in s.split(DELIMITER).enumerate() {
         let key = match header.formats().get_full(raw_key) {
             Some((_, k, _)) => k.clone(),
-            None => raw_key.parse().map_err(ParseError::InvalidKey)?,
+            None => {
+                Key::try_from((header.file_format(), raw_key)).map_err(ParseError::InvalidKey)?
+            }
         };
 
         if key == key::GENOTYPE {
