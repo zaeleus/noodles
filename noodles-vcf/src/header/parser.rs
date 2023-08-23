@@ -213,7 +213,16 @@ mod tests {
 
     #[test]
     fn test_from_str() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::header::record::value::{map::Other, Collection, Map};
+        use crate::{
+            header::record::{
+                value::{
+                    map::{AlternativeAllele, Contig, Filter, Format, Info, Other},
+                    Map,
+                },
+                Value,
+            },
+            record::{genotypes, info},
+        };
 
         let s = r#"##fileformat=VCFv4.3
 ##fileDate=20200506
@@ -231,43 +240,71 @@ mod tests {
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0
 "#;
 
-        let header = Parser::default().parse(s)?;
+        let actual = Parser::default().parse(s)?;
 
-        assert_eq!(header.file_format(), FileFormat::new(4, 3));
-        assert_eq!(header.infos().len(), 1);
-        assert_eq!(header.filters().len(), 1);
-        assert_eq!(header.formats().len(), 1);
-        assert_eq!(header.alternative_alleles().len(), 1);
-        assert_eq!(header.contigs().len(), 3);
-        assert_eq!(header.sample_names().len(), 1);
-
-        assert_eq!(
-            header.get("fileDate"),
-            Some(&Collection::Unstructured(vec![String::from("20200506"),])),
-        );
-
-        assert_eq!(
-            header.get("source"),
-            Some(&Collection::Unstructured(
-                vec![String::from("noodles-vcf"),]
-            )),
-        );
-
-        assert_eq!(
-            header.get("META"),
-            Some(&Collection::Structured(
-                [(
+        let expected = Header::builder()
+            .set_file_format(FileFormat::new(4, 3))
+            .insert("fileDate".parse()?, Value::String(String::from("20200506")))?
+            .insert(
+                "source".parse()?,
+                Value::String(String::from("noodles-vcf")),
+            )?
+            .add_contig(
+                "sq0".parse()?,
+                Map::<Contig>::builder().set_length(8).build()?,
+            )
+            .add_contig(
+                "sq1".parse()?,
+                Map::<Contig>::builder().set_length(13).build()?,
+            )
+            .add_contig(
+                "sq2".parse()?,
+                Map::<Contig>::builder().set_length(21).build()?,
+            )
+            .add_info(
+                info::field::key::SAMPLES_WITH_DATA_COUNT,
+                Map::<Info>::from(&info::field::key::SAMPLES_WITH_DATA_COUNT),
+            )
+            .add_filter("q10", Map::<Filter>::new("Quality below 10"))
+            .add_format(
+                genotypes::keys::key::GENOTYPE,
+                Map::<Format>::from(&genotypes::keys::key::GENOTYPE),
+            )
+            .add_alternative_allele("DEL".parse()?, Map::<AlternativeAllele>::new("Deletion"))
+            .insert(
+                "META".parse()?,
+                Value::Map(
                     String::from("Assay"),
                     Map::<Other>::builder()
                         .insert("Type".parse()?, "String")
                         .insert("Number".parse()?, ".")
                         .insert("Values".parse()?, "[WholeGenome, Exome]")
-                        .build()?
-                )]
-                .into_iter()
-                .collect()
-            ))
-        );
+                        .build()?,
+                ),
+            )?
+            .insert(
+                "SAMPLE".parse()?,
+                Value::Map(
+                    String::from("sample0"),
+                    Map::<Other>::builder()
+                        .insert("Assay".parse()?, "WholeGenome")
+                        .build()?,
+                ),
+            )?
+            .insert(
+                "PEDIGREE".parse()?,
+                Value::Map(
+                    String::from("cid"),
+                    Map::<Other>::builder()
+                        .insert("Father".parse()?, "fid")
+                        .insert("Mother".parse()?, "mid")
+                        .build()?,
+                ),
+            )?
+            .add_sample_name("sample0")
+            .build();
+
+        assert_eq!(actual, expected);
 
         Ok(())
     }
