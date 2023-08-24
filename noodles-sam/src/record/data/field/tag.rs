@@ -3,7 +3,12 @@
 mod other;
 mod standard;
 
-use std::{borrow::Borrow, error, fmt, str::FromStr};
+use std::{
+    borrow::Borrow,
+    error, fmt,
+    hash::{Hash, Hasher},
+    str::FromStr,
+};
 
 use self::{other::Other, standard::Standard};
 
@@ -209,7 +214,7 @@ const LENGTH: usize = 2;
 ///
 /// Standard tags are defined in "Sequence Alignment/Map Optional Fields Specification"
 /// (2020-05-29).
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum Tag {
     /// A standard tag.
     Standard(Standard),
@@ -265,6 +270,12 @@ impl fmt::Display for ParseError {
             }
             Self::InvalidCharacter(c) => write!(f, "invalid character: {c}"),
         }
+    }
+}
+
+impl Hash for Tag {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.as_ref().hash(state)
     }
 }
 

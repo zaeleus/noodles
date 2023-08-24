@@ -12,6 +12,10 @@
 
   * sam/record/data/field/tag: Implement `PartialEq<[u8; 2]>` for `Tag`.
 
+### Fixed
+
+  * sam/record/data/field/tag: Hash inner tag.
+
 ## 0.39.0 - 2023-08-17
 
 ### Changed
