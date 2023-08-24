@@ -150,7 +150,7 @@ mod tests {
 
     #[test]
     fn test_decode_with_invalid_l_read_name() {
-        let data = vec![
+        let data = [
             0xff, 0xff, 0xff, 0xff, // ref_id = -1
             0xff, 0xff, 0xff, 0xff, // pos = -1
             0x00, // l_read_name = 0

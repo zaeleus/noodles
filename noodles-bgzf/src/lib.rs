@@ -126,7 +126,7 @@ mod tests {
         let expected_lines = vec!["noodles\n", "-\n", "bgzf\n", "buffered"];
         assert_eq!(lines, expected_lines);
 
-        let expected_upos = vec![0, 8, 10, 15];
+        let expected_upos = [0, 8, 10, 15];
         let expected_virtual_positions: Vec<VirtualPosition> = expected_upos
             .iter()
             .map(|x| VirtualPosition::try_from((0, *x)).unwrap())
