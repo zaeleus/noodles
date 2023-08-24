@@ -19,6 +19,7 @@ members = [
   "noodles-util",
   "noodles-vcf",
 ]
+resolver = "2"
 
 [workspace.package]
 license = "MIT"
