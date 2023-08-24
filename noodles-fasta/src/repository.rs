@@ -5,11 +5,7 @@ pub mod adapters;
 
 pub use self::adapter::Adapter;
 
-use std::{
-    collections::HashMap,
-    fmt, io,
-    sync::{Arc, RwLock},
-};
+use std::{collections::HashMap, fmt, io, rc::Rc, sync::RwLock};
 
 use super::record::Sequence;
 
@@ -19,7 +15,7 @@ struct AdapterCache {
 }
 
 /// A caching sequence repository.
-pub struct Repository(Arc<RwLock<AdapterCache>>);
+pub struct Repository(Rc<RwLock<AdapterCache>>);
 
 impl Repository {
     /// Creates a sequence repository.
@@ -27,7 +23,7 @@ impl Repository {
     where
         A: Adapter + 'static,
     {
-        Self(Arc::new(RwLock::new(AdapterCache {
+        Self(Rc::new(RwLock::new(AdapterCache {
             adapter: Box::new(adapter),
             cache: HashMap::new(),
         })))
