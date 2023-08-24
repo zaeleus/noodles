@@ -50,7 +50,7 @@ mod tests {
         );
 
         assert_eq!(
-            EscapedStringFormat(r#"noodles\vcf"#).to_string(),
+            EscapedStringFormat(r"noodles\vcf").to_string(),
             r#""noodles\\vcf""#
         );
     }

@@ -161,7 +161,7 @@ mod tests {
         let mut src = &br#"noodles\\vcf","#[..];
         assert_eq!(
             parse_escaped_string(&mut src),
-            Ok(Cow::from(r#"noodles\vcf"#))
+            Ok(Cow::from(r"noodles\vcf"))
         );
 
         let mut src = &br#"noodles\nvcf","#[..];
