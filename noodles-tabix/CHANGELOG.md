@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * tabix/async/reader: Disallow duplicate bin IDs.
+
 ## 0.27.0 - 2023-08-17
 
 ### Changed
