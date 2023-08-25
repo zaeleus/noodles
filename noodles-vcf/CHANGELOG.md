@@ -4,6 +4,8 @@
 
 ### Fixed
 
+  * vcf/record/genotypes/keys/key: Hash inner key.
+
   * vcf/record/info/field/key: Hash inner key.
 
 ## 0.37.0 - 2023-08-24
