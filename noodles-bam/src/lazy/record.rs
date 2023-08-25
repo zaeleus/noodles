@@ -2,7 +2,7 @@
 
 mod bounds;
 mod cigar;
-mod data;
+pub mod data;
 mod quality_scores;
 mod read_name;
 mod sequence;

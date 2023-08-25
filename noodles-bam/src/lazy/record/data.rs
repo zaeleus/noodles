@@ -1,3 +1,5 @@
+//! Raw BAM record data.
+
 pub mod field;
 
 use std::{borrow::Borrow, io, iter};

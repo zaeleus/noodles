@@ -2,7 +2,7 @@
 
 mod tag;
 mod ty;
-mod value;
+pub mod value;
 
 use std::io;
 

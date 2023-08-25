@@ -10,14 +10,22 @@ use noodles_sam::record::data::field::value::array::Subtype;
 
 use self::subtype::decode_subtype;
 
+/// A raw BAM record data field array value.
 #[derive(Debug, PartialEq)]
 pub enum Array<'a> {
+    /// An 8-bit integer array (`B:c`).
     Int8(&'a [u8]),
+    /// An 8-bit unsigned integer array (`B:C`).
     UInt8(&'a [u8]),
+    /// A 16-bit integer array (`B:s`).
     Int16(&'a [u8]),
+    /// A 16-bit unsigned integer array (`B:S`).
     UInt16(&'a [u8]),
+    /// A 32-bit integer array (`B:i`).
     Int32(&'a [u8]),
+    /// A 32-bit unsigned integer array (`B:I`).
     UInt32(&'a [u8]),
+    /// A single-precision floating-point array (`B:f`).
     Float(&'a [u8]),
 }
 

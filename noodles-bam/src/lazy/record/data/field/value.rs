@@ -1,3 +1,5 @@
+//! Raw BAM record data field value.
+
 mod array;
 
 use std::io::{self, BufRead};
@@ -5,20 +7,33 @@ use std::io::{self, BufRead};
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_sam::record::data::field::Type;
 
-use self::array::{decode_array, Array};
+use self::array::decode_array;
+pub use self::array::Array;
 
+/// A raw BAM record data field value.
 #[derive(Debug, PartialEq)]
 pub enum Value<'a> {
+    /// A character (`A`).
     Character(u8),
+    /// An 8-bit integer (`c`).
     Int8(i8),
+    /// An 8-bit unsigned integer (`C`).
     UInt8(u8),
+    /// A 16-bit integer (`s`).
     Int16(i16),
+    /// A 16-bit unsigned integer (`S`).
     UInt16(u16),
+    /// A 32-bit integer (`i`).
     Int32(i32),
+    /// A 32-bit unsigned integer (`I`).
     UInt32(u32),
+    /// A single-precision floating-point (`f`).
     Float(f32),
+    /// A string (`Z`).
     String(&'a [u8]),
+    /// A hex string (`H`).
     Hex(&'a [u8]),
+    /// An array (`B`).
     Array(Array<'a>),
 }
 
