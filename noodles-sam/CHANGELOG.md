@@ -14,7 +14,9 @@
 
 ### Fixed
 
-  * sam/record/data/field/tag: Hash inner tag.
+  * sam/record/data/field/tag: Hash inner tag ([#197]).
+
+[#197]: https://github.com/zaeleus/noodles/issues/197
 
 ## 0.39.0 - 2023-08-17
 
