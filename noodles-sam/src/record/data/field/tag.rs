@@ -5,6 +5,7 @@ mod standard;
 
 use std::{
     borrow::Borrow,
+    cmp::Ordering,
     error, fmt,
     hash::{Hash, Hasher},
     str::FromStr,
@@ -214,7 +215,7 @@ const LENGTH: usize = 2;
 ///
 /// Standard tags are defined in "Sequence Alignment/Map Optional Fields Specification"
 /// (2020-05-29).
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Tag {
     /// A standard tag.
     Standard(Standard),
@@ -276,6 +277,18 @@ impl fmt::Display for ParseError {
 impl Hash for Tag {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.as_ref().hash(state)
+    }
+}
+
+impl PartialOrd for Tag {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Tag {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.as_ref().cmp(other.as_ref())
     }
 }
 
