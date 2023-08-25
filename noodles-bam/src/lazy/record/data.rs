@@ -1,6 +1,6 @@
 pub mod field;
 
-use std::{io, iter};
+use std::{borrow::Borrow, io, iter};
 
 use noodles_sam as sam;
 
@@ -18,6 +18,25 @@ impl<'a> Data<'a> {
     /// Returns whether there are any fields.
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
+    }
+
+    /// Returns the value of the given tag.
+    pub fn get<K>(&self, tag: &K) -> Option<io::Result<Value<'_>>>
+    where
+        K: Borrow<[u8; 2]>,
+    {
+        for result in self.iter() {
+            match result {
+                Ok((t, value)) => {
+                    if &t == tag.borrow() {
+                        return Some(Ok(value));
+                    }
+                }
+                Err(e) => return Some(Err(e)),
+            };
+        }
+
+        None
     }
 
     /// Returns an iterator over all tag-value pairs.
@@ -57,7 +76,22 @@ impl<'a> TryFrom<Data<'a>> for sam::record::Data {
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
+
+    #[test]
+    fn test_get() -> io::Result<()> {
+        use sam::record::data::field::tag;
+
+        let data = Data::new(&[b'N', b'H', b'C', 0x01]);
+
+        assert!(data.get(&tag::ALIGNMENT_HIT_COUNT).is_some());
+        assert!(data.get(&[b'N', b'H']).is_some());
+
+        assert!(data.get(&tag::COMMENT).is_none());
+
+        Ok(())
+    }
 
     #[test]
     fn test_iter() -> io::Result<()> {

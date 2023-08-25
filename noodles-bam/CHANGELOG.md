@@ -4,6 +4,8 @@
 
 ### Added
 
+  * bam/lazy/record/data: Add lookup by tag (`Data::get`).
+
   * bam/lazy/record/data/field/value: Add `Value::ty` to return the value
     type.
 
