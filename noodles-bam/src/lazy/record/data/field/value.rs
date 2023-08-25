@@ -23,6 +23,23 @@ pub enum Value<'a> {
 }
 
 impl<'a> Value<'a> {
+    /// Returns the type of the value.
+    pub fn ty(&self) -> Type {
+        match self {
+            Self::Character(_) => Type::Character,
+            Self::Int8(_) => Type::Int8,
+            Self::UInt8(_) => Type::UInt8,
+            Self::Int16(_) => Type::Int16,
+            Self::UInt16(_) => Type::UInt16,
+            Self::Int32(_) => Type::Int32,
+            Self::UInt32(_) => Type::UInt32,
+            Self::Float(_) => Type::Float,
+            Self::String(_) => Type::String,
+            Self::Hex(_) => Type::Hex,
+            Self::Array(_) => Type::Array,
+        }
+    }
+
     /// Returns the value as a 64-bit integer.
     ///
     /// This is a convenience method that converts any integer to an `i64`, which captures the
@@ -112,6 +129,21 @@ fn decode_hex<'a>(src: &mut &'a [u8]) -> io::Result<Value<'a>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_ty() {
+        assert_eq!(Value::Character(b'n').ty(), Type::Character);
+        assert_eq!(Value::Int8(0).ty(), Type::Int8);
+        assert_eq!(Value::UInt8(0).ty(), Type::UInt8);
+        assert_eq!(Value::Int16(0).ty(), Type::Int16);
+        assert_eq!(Value::UInt16(0).ty(), Type::UInt16);
+        assert_eq!(Value::Int32(0).ty(), Type::Int32);
+        assert_eq!(Value::UInt32(0).ty(), Type::UInt32);
+        assert_eq!(Value::Float(0.0).ty(), Type::Float);
+        assert_eq!(Value::String(b"ndls").ty(), Type::String);
+        assert_eq!(Value::Hex(b"CAFE").ty(), Type::Hex);
+        assert_eq!(Value::Array(Array::UInt8(&[0])).ty(), Type::Array);
+    }
 
     #[test]
     fn test_decode_value() -> io::Result<()> {

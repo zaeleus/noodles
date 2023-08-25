@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bam/lazy/record/data/field/value: Add `Value::ty` to return the value
+    type.
+
 ## 0.43.0 - 2023-08-24
 
 ### Added
