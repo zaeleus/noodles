@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * vcf/record/info/field/key: Hash inner key.
+
 ## 0.37.0 - 2023-08-24
 
 ### Added

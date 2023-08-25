@@ -3,7 +3,12 @@
 mod other;
 mod standard;
 
-use std::{borrow::Borrow, error, fmt, str::FromStr};
+use std::{
+    borrow::Borrow,
+    error, fmt,
+    hash::{Hash, Hasher},
+    str::FromStr,
+};
 
 pub use self::{other::Other, standard::Standard};
 use crate::header::FileFormat;
@@ -225,7 +230,7 @@ impl fmt::Display for ParseError {
 }
 
 /// A VCF header info key.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Key {
     /// A reserved key.
     Standard(Standard),
@@ -265,6 +270,12 @@ impl FromStr for Key {
         s.parse()
             .map(Self::Standard)
             .or_else(|_| s.parse().map(Self::Other))
+    }
+}
+
+impl Hash for Key {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.as_ref().hash(state)
     }
 }
 
