@@ -11,6 +11,10 @@
   * bam/lazy/record/data/field/value: Add `Value::ty` to return the value
     type.
 
+### Changed
+
+  * bam/lazy/record: Change `lazy::Record::mapping_quality` to be infallible.
+
 ## 0.43.0 - 2023-08-24
 
 ### Added

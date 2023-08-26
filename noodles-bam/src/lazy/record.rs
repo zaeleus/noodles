@@ -13,6 +13,7 @@ use byteorder::{ByteOrder, LittleEndian};
 use bytes::Buf;
 use noodles_core::Position;
 use noodles_sam as sam;
+use sam::record::MappingQuality;
 
 use self::bounds::Bounds;
 pub use self::{
@@ -68,13 +69,11 @@ impl Record {
     /// ```
     /// use noodles_bam as bam;
     /// let record = bam::lazy::Record::default();
-    /// assert!(record.mapping_quality()?.is_none());
-    /// # Ok::<_, std::io::Error>(())
+    /// assert!(record.mapping_quality().is_none());
     /// ```
-    pub fn mapping_quality(&self) -> io::Result<Option<sam::record::MappingQuality>> {
-        use crate::record::codec::decoder::get_mapping_quality;
-        let mut src = &self.buf[bounds::MAPPING_QUALITY_RANGE];
-        get_mapping_quality(&mut src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    pub fn mapping_quality(&self) -> Option<sam::record::MappingQuality> {
+        let n = self.buf[bounds::MAPPING_QUALITY_INDEX];
+        MappingQuality::new(n)
     }
 
     /// Returns the flags.
@@ -335,7 +334,7 @@ impl TryFrom<Record> for sam::alignment::Record {
             builder = builder.set_alignment_start(alignment_start);
         }
 
-        if let Some(mapping_quality) = lazy_record.mapping_quality()? {
+        if let Some(mapping_quality) = lazy_record.mapping_quality() {
             builder = builder.set_mapping_quality(mapping_quality);
         }
 

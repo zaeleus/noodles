@@ -20,7 +20,7 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub fn get_mapping_quality<B>(src: &mut B) -> Result<Option<MappingQuality>, DecodeError>
+pub(super) fn get_mapping_quality<B>(src: &mut B) -> Result<Option<MappingQuality>, DecodeError>
 where
     B: Buf,
 {
