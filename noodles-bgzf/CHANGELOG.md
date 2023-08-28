@@ -4,6 +4,11 @@
 
 ### Added
 
+  * bgzf: Add a multithreaded reader (`bgzf::MultithreadedReader`).
+
+    This differents from a `bgzf::Reader` with > 1 worker by placing the inner
+    reader on its own thread to read raw frames asynchronously.
+
   * bgzf/async/reader: Add inner access delegates (`r#async::Reader::get_ref`,
     `r#async::Reader::get_mut`, `r#async::Reader::get_pin_mut`, and
     `r#async::Reader::into_inner`).

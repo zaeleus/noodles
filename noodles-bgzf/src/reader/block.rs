@@ -46,7 +46,7 @@ where
     }
 }
 
-fn read_frame<R>(reader: &mut R) -> io::Result<Option<Vec<u8>>>
+pub(crate) fn read_frame<R>(reader: &mut R) -> io::Result<Option<Vec<u8>>>
 where
     R: Read,
 {
