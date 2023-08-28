@@ -59,7 +59,7 @@ where
     }
 }
 
-fn read_frame_into<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<Option<()>>
+pub(crate) fn read_frame_into<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<Option<()>>
 where
     R: Read,
 {
@@ -160,13 +160,17 @@ where
     Ok((crc32, r#isize))
 }
 
-pub(crate) fn parse_frame(src: &[u8]) -> io::Result<Block> {
+pub fn parse_frame(src: &[u8]) -> io::Result<Block> {
+    let mut block = Block::default();
+    parse_frame_into(src, &mut block)?;
+    Ok(block)
+}
+
+pub(crate) fn parse_frame_into(src: &[u8], block: &mut Block) -> io::Result<()> {
     let (header, cdata, trailer) = split_frame(src);
 
     parse_header(header)?;
     let (crc32, r#isize) = parse_trailer(trailer)?;
-
-    let mut block = Block::default();
 
     let block_size =
         u64::try_from(src.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
@@ -178,7 +182,7 @@ pub(crate) fn parse_frame(src: &[u8]) -> io::Result<Block> {
 
     inflate(cdata, crc32, data.as_mut())?;
 
-    Ok(block)
+    Ok(())
 }
 
 fn inflate(src: &[u8], crc32: u32, dst: &mut [u8]) -> io::Result<()> {
