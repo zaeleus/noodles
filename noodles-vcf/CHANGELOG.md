@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * vcf/writer: Add builder (`vcf::writer::Builder`).
+
 ### Fixed
 
   * vcf/record/genotypes/keys/key: Hash inner key.

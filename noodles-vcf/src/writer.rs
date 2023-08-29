@@ -1,7 +1,11 @@
+//! VCF writer.
+
+mod builder;
 mod record;
 
 use std::io::{self, Write};
 
+pub use self::builder::Builder;
 use self::record::write_record;
 use super::{Header, Record, VariantWriter};
 

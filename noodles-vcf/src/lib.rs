@@ -29,7 +29,7 @@ pub mod reader;
 pub mod record;
 mod variant_reader;
 mod variant_writer;
-mod writer;
+pub mod writer;
 
 pub use self::{
     header::Header, indexed_reader::IndexedReader, reader::Reader, record::Record,
