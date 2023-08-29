@@ -7,7 +7,7 @@ use std::{
 
 use crossbeam_channel::{Receiver, Sender};
 
-use crate::Block;
+use crate::{Block, VirtualPosition};
 
 type BufferedTx = Sender<io::Result<Buffer>>;
 type BufferedRx = Receiver<io::Result<Buffer>>;
@@ -69,6 +69,11 @@ impl MultithreadedReader {
     /// Returns the current position of the stream.
     pub fn position(&self) -> u64 {
         self.position
+    }
+
+    /// Returns the current virtual position of the stream.
+    pub fn virtual_position(&self) -> VirtualPosition {
+        self.buffer.block.virtual_position()
     }
 
     /// Shuts down the reader and inflate workers.
