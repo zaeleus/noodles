@@ -66,6 +66,11 @@ impl MultithreadedReader {
         }
     }
 
+    /// Returns the current position of the stream.
+    pub fn position(&self) -> u64 {
+        self.position
+    }
+
     /// Shuts down the reader and inflate workers.
     pub fn finish(&mut self) -> io::Result<()> {
         self.recycle_tx.take();
