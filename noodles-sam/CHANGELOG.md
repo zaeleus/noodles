@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * sam/reader: Add `Reader::query_unmapped` to query for unmapped records.
+
 ### Fixed
 
   * sam/record/data/field/tag: Compare inner tag.

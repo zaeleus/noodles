@@ -8,7 +8,10 @@ mod records;
 
 pub use self::{builder::Builder, records::Records};
 
-use std::io::{self, BufRead, Read, Seek};
+use std::{
+    io::{self, BufRead, Read, Seek},
+    iter,
+};
 
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
@@ -266,7 +269,17 @@ where
         self.inner.seek(pos)
     }
 
+    // Seeks to the first record by setting the cursor to the beginning of the stream and
+    // (re)reading the header.
+    fn seek_to_first_record(&mut self) -> io::Result<bgzf::VirtualPosition> {
+        self.seek(bgzf::VirtualPosition::default())?;
+        self.read_header()?;
+        Ok(self.get_ref().virtual_position())
+    }
+
     /// Returns an iterator over records that intersect the given region.
+    ///
+    /// To query for unmapped records, use [`Self::query_unmapped`].
     ///
     /// # Examples
     ///
@@ -308,6 +321,55 @@ where
             reference_sequence_id,
             region.interval(),
         ))
+    }
+
+    /// Returns an iterator of unmapped records after querying for the unmapped region.
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_csi as csi;
+    /// use noodles_sam as sam;
+    ///
+    /// let mut reader = File::open("sample.sam.gz")
+    ///     .map(bgzf::Reader::new)
+    ///     .map(sam::Reader::new)?;
+    ///
+    /// let header = reader.read_header()?;
+    ///
+    /// let index = csi::read("sample.sam.gz.csi")?;
+    /// let query = reader.query_unmapped(&header, &index)?;
+    ///
+    /// for result in query {
+    ///     let record = result?;
+    ///     // ...
+    /// }
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn query_unmapped<'a>(
+        &'a mut self,
+        header: &'a Header,
+        index: &csi::Index,
+    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'a> {
+        let mut record = Record::default();
+
+        if let Some(pos) = index.first_record_in_last_linear_bin_start_position() {
+            self.seek(pos)?;
+        } else {
+            self.seek_to_first_record()?;
+        }
+
+        Ok(iter::from_fn(move || loop {
+            match self.read_record(header, &mut record) {
+                Ok(0) => return None,
+                Ok(_) => {
+                    if record.flags().is_unmapped() {
+                        return Some(Ok(record.clone()));
+                    }
+                }
+                Err(e) => return Some(Err(e)),
+            }
+        }))
     }
 }
 

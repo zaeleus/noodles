@@ -76,11 +76,21 @@ where
     R: Read + Seek,
 {
     /// Returns an iterator over records that intersect the given region.
+    ///
+    /// To query for unmapped records, use [`Self::query_unmapped`].
     pub fn query<'a>(
         &'a mut self,
         header: &'a Header,
         region: &Region,
     ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'a> {
         self.inner.query(header, &self.index, region)
+    }
+
+    /// Returns an iterator of unmapped records after querying for the unmapped region.
+    pub fn query_unmapped<'a>(
+        &'a mut self,
+        header: &'a Header,
+    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'a> {
+        self.inner.query_unmapped(header, &self.index)
     }
 }
