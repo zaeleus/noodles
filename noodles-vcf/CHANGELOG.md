@@ -4,7 +4,12 @@
 
 ### Added
 
+  * vcf/async/reader: Add lazy record reader (`AsyncReader::read_lazy_record`;
+    [#199]).
+
   * vcf/writer: Add builder (`vcf::writer::Builder`).
+
+[#199]: https://github.com/zaeleus/noodles/pull/199
 
 ### Fixed
 
