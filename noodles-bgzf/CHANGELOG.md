@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.23.0 - 2023-08-17
+## Unreleased
 
 ### Added
 
@@ -8,6 +8,10 @@
 
     This differs from a `bgzf::Reader` with > 1 worker by placing the inner
     reader on its own thread to read raw frames asynchronously.
+
+## 0.23.0 - 2023-08-17
+
+### Added
 
   * bgzf/async/reader: Add inner access delegates (`r#async::Reader::get_ref`,
     `r#async::Reader::get_mut`, `r#async::Reader::get_pin_mut`, and
