@@ -369,6 +369,8 @@ async fn read_lazy_record<R>(reader: &mut R, record: &mut lazy::Record) -> io::R
 where
     R: AsyncBufRead + Unpin,
 {
+    record.buf.clear();
+
     let mut len = 0;
 
     len += read_field(reader, &mut record.buf).await?;
@@ -454,6 +456,18 @@ mod tests {
         t(&mut buf, b"noodles\n", "noodles").await?;
         t(&mut buf, b"noodles\r\n", "noodles").await?;
         t(&mut buf, b"noodles", "noodles").await?;
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_read_lazy_record() -> io::Result<()> {
+        let mut src = &b"sq0\t1\t.\tA\t.\t.\tPASS\t."[..];
+
+        let mut record = lazy::Record::default();
+        read_lazy_record(&mut src, &mut record).await?;
+
+        assert_eq!(record.buf, "sq01.A..PASS.");
 
         Ok(())
     }

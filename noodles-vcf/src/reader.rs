@@ -393,6 +393,8 @@ fn read_lazy_record<R>(reader: &mut R, record: &mut lazy::Record) -> io::Result<
 where
     R: BufRead,
 {
+    record.buf.clear();
+
     let mut len = 0;
 
     len += read_field(reader, &mut record.buf)?;
@@ -527,6 +529,18 @@ sq0\t1\t.\tA\t.\t.\tPASS\t.
         buf.clear();
         read_line(&mut reader, &mut buf)?;
         assert_eq!(buf, "noodles");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_lazy_record() -> io::Result<()> {
+        let mut src = &b"sq0\t1\t.\tA\t.\t.\tPASS\t."[..];
+
+        let mut record = lazy::Record::default();
+        read_lazy_record(&mut src, &mut record)?;
+
+        assert_eq!(record.buf, "sq01.A..PASS.");
 
         Ok(())
     }

@@ -13,6 +13,8 @@
 
 ### Fixed
 
+  * vcf/reader: Clear lazy record buffer before read.
+
   * vcf/record/genotypes/keys/key: Hash inner key.
 
   * vcf/record/info/field/key: Hash inner key.
