@@ -8,6 +8,7 @@ use self::bounds::Bounds;
 pub use self::{genotypes::Genotypes, info::Info};
 
 /// An immutable, lazily-evaluated VCF record.
+#[derive(Clone, Eq, PartialEq)]
 pub struct Record {
     pub(crate) buf: String,
     pub(crate) bounds: Bounds,

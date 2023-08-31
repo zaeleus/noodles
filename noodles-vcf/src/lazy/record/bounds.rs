@@ -1,5 +1,6 @@
 use std::ops::{Range, RangeFrom};
 
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Bounds {
     pub chromosome_end: usize,
     pub position_end: usize,
