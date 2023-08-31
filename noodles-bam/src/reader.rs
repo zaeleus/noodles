@@ -6,12 +6,8 @@ mod lazy_records;
 pub(crate) mod query;
 mod record;
 mod records;
-mod unmapped_records;
 
-pub use self::{
-    builder::Builder, lazy_records::LazyRecords, query::Query, records::Records,
-    unmapped_records::UnmappedRecords,
-};
+pub use self::{builder::Builder, lazy_records::LazyRecords, query::Query, records::Records};
 
 use std::{
     ffi::CStr,
@@ -376,7 +372,7 @@ where
     ///
     /// for result in query {
     ///     let record = result?;
-    ///     println!("{:?}", record);
+    ///     // ...
     /// }
     /// # Ok::<(), io::Error>(())
     /// ```
@@ -384,14 +380,19 @@ where
         &'r mut self,
         header: &'r sam::Header,
         index: &csi::Index,
-    ) -> io::Result<UnmappedRecords<'r, R>> {
+    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'r> {
         if let Some(pos) = index.first_record_in_last_linear_bin_start_position() {
             self.seek(pos)?;
         } else {
             self.seek_to_first_record()?;
         }
 
-        Ok(UnmappedRecords::new(self, header))
+        Ok(self.records(header).filter(|result| {
+            result
+                .as_ref()
+                .map(|record| record.flags().is_unmapped())
+                .unwrap_or(true)
+        }))
     }
 }
 

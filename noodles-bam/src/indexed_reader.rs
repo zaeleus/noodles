@@ -11,8 +11,6 @@ use noodles_core::Region;
 use noodles_csi as csi;
 use noodles_sam::{self as sam, alignment::Record};
 
-use crate::reader::UnmappedRecords;
-
 use super::{
     lazy,
     reader::{LazyRecords, Query, Records},
@@ -107,7 +105,7 @@ where
     pub fn query_unmapped<'r>(
         &'r mut self,
         header: &'r sam::Header,
-    ) -> io::Result<UnmappedRecords<'r, R>> {
+    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'r> {
         self.inner.query_unmapped(header, &self.index)
     }
 }

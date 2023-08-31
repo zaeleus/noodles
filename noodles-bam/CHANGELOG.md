@@ -21,6 +21,13 @@
     It's possible for a chunk to include mapped records, which are subsequently
     filtered out, but they do require the associated header to decode.
 
+### Removed
+
+  * bam/reader: Remove `UnmappedRecords` iterator.
+
+    This is replaced by an `impl Trait`. Use `impl Iterator<Item =
+    io::Result<Record>>` instead.
+
 ## 0.43.0 - 2023-08-24
 
 ### Added
