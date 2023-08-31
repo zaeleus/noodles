@@ -8,10 +8,7 @@ mod records;
 
 pub use self::{builder::Builder, records::Records};
 
-use std::{
-    io::{self, BufRead, Read, Seek},
-    iter,
-};
+use std::io::{self, BufRead, Read, Seek};
 
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
@@ -351,24 +348,17 @@ where
         header: &'a Header,
         index: &csi::Index,
     ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'a> {
-        let mut record = Record::default();
-
         if let Some(pos) = index.first_record_in_last_linear_bin_start_position() {
             self.seek(pos)?;
         } else {
             self.seek_to_first_record()?;
         }
 
-        Ok(iter::from_fn(move || loop {
-            match self.read_record(header, &mut record) {
-                Ok(0) => return None,
-                Ok(_) => {
-                    if record.flags().is_unmapped() {
-                        return Some(Ok(record.clone()));
-                    }
-                }
-                Err(e) => return Some(Err(e)),
-            }
+        Ok(self.records(header).filter(|result| {
+            result
+                .as_ref()
+                .map(|record| record.flags().is_unmapped())
+                .unwrap_or(true)
         }))
     }
 }
