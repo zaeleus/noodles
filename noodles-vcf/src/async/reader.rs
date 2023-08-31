@@ -469,6 +469,15 @@ mod tests {
 
         assert_eq!(record.buf, "sq01.A..PASS.");
 
+        assert_eq!(record.bounds.chromosome_end, 3);
+        assert_eq!(record.bounds.position_end, 4);
+        assert_eq!(record.bounds.ids_end, 5);
+        assert_eq!(record.bounds.reference_bases_end, 6);
+        assert_eq!(record.bounds.alternate_bases_end, 7);
+        assert_eq!(record.bounds.quality_score_end, 8);
+        assert_eq!(record.bounds.filters_end, 12);
+        assert_eq!(record.bounds.info_end, 13);
+
         Ok(())
     }
 }
