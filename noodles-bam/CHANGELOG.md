@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bam/lazy/record: Change `lazy::Record::flags` to be infallible.
+
 ## 0.44.0 - 2023-08-31
 
 ### Added

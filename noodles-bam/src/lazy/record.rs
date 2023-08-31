@@ -83,15 +83,14 @@ impl Record {
     /// ```
     /// use noodles_bam as bam;
     /// use noodles_sam::record::Flags;
-    ///
     /// let record = bam::lazy::Record::default();
-    /// assert_eq!(record.flags()?, Flags::UNMAPPED);
-    /// # Ok::<_, std::io::Error>(())
+    /// assert_eq!(record.flags(), Flags::UNMAPPED);
     /// ```
-    pub fn flags(&self) -> io::Result<sam::record::Flags> {
-        use crate::record::codec::decoder::get_flags;
-        let mut src = &self.buf[bounds::FLAGS_RANGE];
-        get_flags(&mut src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    pub fn flags(&self) -> sam::record::Flags {
+        let src = &self.buf[bounds::FLAGS_RANGE];
+        // SAFETY: `src` is 2 bytes.
+        let n = u16::from_le_bytes(src.try_into().unwrap());
+        sam::record::Flags::from(n)
     }
 
     /// Returns the mate reference sequence ID.
@@ -324,7 +323,7 @@ impl TryFrom<Record> for sam::alignment::Record {
             builder = builder.set_read_name(read_name.try_into()?);
         }
 
-        builder = builder.set_flags(lazy_record.flags()?);
+        builder = builder.set_flags(lazy_record.flags());
 
         if let Some(reference_sequence_id) = lazy_record.reference_sequence_id()? {
             builder = builder.set_reference_sequence_id(reference_sequence_id);

@@ -20,7 +20,7 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub(crate) fn get_flags<B>(src: &mut B) -> Result<Flags, DecodeError>
+pub(super) fn get_flags<B>(src: &mut B) -> Result<Flags, DecodeError>
 where
     B: Buf,
 {

@@ -12,9 +12,9 @@ pub(crate) mod sequence;
 mod template_length;
 
 pub(crate) use self::{
-    cigar::get_cigar, data::get_data, flags::get_flags, position::get_position,
-    quality_scores::get_quality_scores, read_name::get_read_name,
-    reference_sequence_id::get_reference_sequence_id, sequence::get_sequence,
+    cigar::get_cigar, data::get_data, position::get_position, quality_scores::get_quality_scores,
+    read_name::get_read_name, reference_sequence_id::get_reference_sequence_id,
+    sequence::get_sequence,
 };
 
 use std::{error, fmt, mem};
@@ -22,7 +22,9 @@ use std::{error, fmt, mem};
 use bytes::Buf;
 use noodles_sam::{self as sam, alignment::Record};
 
-use self::{mapping_quality::get_mapping_quality, template_length::get_template_length};
+use self::{
+    flags::get_flags, mapping_quality::get_mapping_quality, template_length::get_template_length,
+};
 
 /// An error when a raw BAM record fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
