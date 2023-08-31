@@ -1,6 +1,8 @@
 mod header;
 mod query;
 
+use std::str;
+
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
@@ -426,8 +428,7 @@ where
             None => (src, src.len()),
         };
 
-        let s =
-            std::str::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let s = str::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
         dst.push_str(s);
 
         len += n;
