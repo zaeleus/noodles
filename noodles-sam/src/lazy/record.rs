@@ -1,81 +1,15 @@
-use std::{
-    fmt, io,
-    ops::{Range, RangeFrom},
-    str,
-};
+mod bounds;
+
+use std::{fmt, io, str};
 
 use noodles_core::Position;
 
+use self::bounds::Bounds;
 use crate::record::{
     Cigar, Data, Flags, MappingQuality, QualityScores, ReadName, ReferenceSequenceName, Sequence,
 };
 
 const MISSING: &[u8] = b"*";
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct Bounds {
-    pub(crate) read_name_end: usize,
-    pub(crate) flags_end: usize,
-    pub(crate) reference_sequence_name_end: usize,
-    pub(crate) alignment_start_end: usize,
-    pub(crate) mapping_quality_end: usize,
-    pub(crate) cigar_end: usize,
-    pub(crate) mate_reference_sequence_name_end: usize,
-    pub(crate) mate_alignment_start_end: usize,
-    pub(crate) template_length_end: usize,
-    pub(crate) sequence_end: usize,
-    pub(crate) quality_scores_end: usize,
-}
-
-impl Bounds {
-    fn read_name_range(&self) -> Range<usize> {
-        0..self.read_name_end
-    }
-
-    fn flags_range(&self) -> Range<usize> {
-        self.read_name_end..self.flags_end
-    }
-
-    fn reference_sequence_name_range(&self) -> Range<usize> {
-        self.flags_end..self.reference_sequence_name_end
-    }
-
-    fn alignment_start_range(&self) -> Range<usize> {
-        self.reference_sequence_name_end..self.alignment_start_end
-    }
-
-    fn mapping_quality_range(&self) -> Range<usize> {
-        self.alignment_start_end..self.mapping_quality_end
-    }
-
-    fn cigar_range(&self) -> Range<usize> {
-        self.mapping_quality_end..self.cigar_end
-    }
-
-    fn mate_reference_sequence_name_range(&self) -> Range<usize> {
-        self.cigar_end..self.mate_reference_sequence_name_end
-    }
-
-    fn mate_alignment_start_range(&self) -> Range<usize> {
-        self.mate_reference_sequence_name_end..self.mate_alignment_start_end
-    }
-
-    fn template_length_range(&self) -> Range<usize> {
-        self.mate_alignment_start_end..self.template_length_end
-    }
-
-    fn sequence_range(&self) -> Range<usize> {
-        self.template_length_end..self.sequence_end
-    }
-
-    fn quality_scores_range(&self) -> Range<usize> {
-        self.sequence_end..self.quality_scores_end
-    }
-
-    fn data_range(&self) -> RangeFrom<usize> {
-        self.quality_scores_end..
-    }
-}
 
 /// An immutable, lazily-evalulated SAM record.
 ///
