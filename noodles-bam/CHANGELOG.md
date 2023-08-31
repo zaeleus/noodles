@@ -15,6 +15,12 @@
 
   * bam/lazy/record: Change `lazy::Record::mapping_quality` to be infallible.
 
+  * bam/reader: Require a SAM header when querying for unmapped records
+    (`Reader::query_unmapped`).
+
+    It's possible for a chunk to include mapped records, which are subsequently
+    filtered out, but they do require the associated header to decode.
+
 ## 0.43.0 - 2023-08-24
 
 ### Added

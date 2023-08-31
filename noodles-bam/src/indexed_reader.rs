@@ -104,7 +104,10 @@ where
     /// Returns an iterator of unmapped records after querying for the unmapped region.
     ///
     /// To query for unmapped records, use [`Self::query_unmapped`].
-    pub fn query_unmapped(&mut self) -> io::Result<UnmappedRecords<'_, R>> {
-        self.inner.query_unmapped(&self.index)
+    pub fn query_unmapped<'r>(
+        &'r mut self,
+        header: &'r sam::Header,
+    ) -> io::Result<UnmappedRecords<'r, R>> {
+        self.inner.query_unmapped(header, &self.index)
     }
 }

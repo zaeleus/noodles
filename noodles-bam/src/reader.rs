@@ -369,8 +369,10 @@ where
     /// use noodles_bam::{self as bam, bai};
     ///
     /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
+    /// let header = reader.read_header()?;
+    ///
     /// let index = bai::read("sample.bam.bai")?;
-    /// let query = reader.query_unmapped(&index)?;
+    /// let query = reader.query_unmapped(&header, &index)?;
     ///
     /// for result in query {
     ///     let record = result?;
@@ -378,14 +380,18 @@ where
     /// }
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn query_unmapped(&mut self, index: &csi::Index) -> io::Result<UnmappedRecords<'_, R>> {
+    pub fn query_unmapped<'r>(
+        &'r mut self,
+        header: &'r sam::Header,
+        index: &csi::Index,
+    ) -> io::Result<UnmappedRecords<'r, R>> {
         if let Some(pos) = index.first_record_in_last_linear_bin_start_position() {
             self.seek(pos)?;
         } else {
             self.seek_to_first_record()?;
         }
 
-        Ok(UnmappedRecords::new(self))
+        Ok(UnmappedRecords::new(self, header))
     }
 }
 

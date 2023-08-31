@@ -13,7 +13,7 @@ where
     R: Read,
 {
     reader: &'a mut Reader<bgzf::Reader<R>>,
-    header: sam::Header,
+    header: &'a sam::Header,
     record: Record,
 }
 
@@ -21,10 +21,10 @@ impl<'a, R> UnmappedRecords<'a, R>
 where
     R: Read,
 {
-    pub(crate) fn new(reader: &'a mut Reader<bgzf::Reader<R>>) -> Self {
+    pub(crate) fn new(reader: &'a mut Reader<bgzf::Reader<R>>, header: &'a sam::Header) -> Self {
         Self {
             reader,
-            header: sam::Header::default(),
+            header,
             record: Record::default(),
         }
     }
