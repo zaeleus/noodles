@@ -1,11 +1,14 @@
 //! Lazily-evaluated VCF record and fields.
 
 mod bounds;
+mod filters;
 mod genotypes;
 mod info;
 
 use self::bounds::Bounds;
-pub use self::{genotypes::Genotypes, info::Info};
+pub use self::{filters::Filters, genotypes::Genotypes, info::Info};
+
+const MISSING: &str = ".";
 
 /// An immutable, lazily-evaluated VCF record.
 #[derive(Clone, Eq, PartialEq)]
@@ -46,8 +49,13 @@ impl Record {
     }
 
     /// Returns the filters.
-    pub fn filters(&self) -> &str {
-        &self.buf[self.bounds.filters_range()]
+    pub fn filters(&self) -> Option<Filters<'_>> {
+        let buf = &self.buf[self.bounds.filters_range()];
+
+        match buf {
+            MISSING => None,
+            _ => Some(Filters::new(buf)),
+        }
     }
 
     /// Returns the info.

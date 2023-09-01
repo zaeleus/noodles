@@ -6,6 +6,8 @@
 
   * vcf/lazy/record: Implement `Clone` + `Eq` + `PartialEq`.
 
+  * vcf/lazy/record: Add filters wrapper (`lazy::record::Filters`).
+
 ## 0.38.0 - 2023-08-31
 
 ### Added
