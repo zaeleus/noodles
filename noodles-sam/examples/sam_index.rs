@@ -1,6 +1,6 @@
 //! Builds and writes a SAM index from a SAM file.
 //!
-//! The input SAM must be coordinate-sorted, i.e., `SO:coordinate`.
+//! The input SAM must be bgzip-compressed and coordinate-sorted, i.e., `SO:coordinate`.
 //!
 //! This writes the output to stdout rather than `<src>.csi`.
 //!
