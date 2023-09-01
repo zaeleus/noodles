@@ -8,6 +8,10 @@
 
   * vcf/lazy/record: Add filters wrapper (`lazy::record::Filters`).
 
+### Changed
+
+  * vcf/lazy/record: Check missing field for quality score.
+
 ## 0.38.0 - 2023-08-31
 
 ### Added

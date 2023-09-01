@@ -46,8 +46,11 @@ impl Record {
     }
 
     /// Returns the quality score.
-    pub fn quality_score(&self) -> &str {
-        &self.buf[self.bounds.quality_score_range()]
+    pub fn quality_score(&self) -> Option<&str> {
+        match &self.buf[self.bounds.quality_score_range()] {
+            MISSING => None,
+            buf => Some(buf),
+        }
     }
 
     /// Returns the filters.
