@@ -5,6 +5,8 @@ mod filters;
 mod genotypes;
 mod info;
 
+use std::fmt;
+
 use self::bounds::Bounds;
 pub use self::{filters::Filters, genotypes::Genotypes, info::Info};
 
@@ -68,6 +70,22 @@ impl Record {
     pub fn genotypes(&self) -> Genotypes<'_> {
         let buf = &self.buf[self.bounds.genotypes_range()];
         Genotypes::new(buf)
+    }
+}
+
+impl fmt::Debug for Record {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Record")
+            .field("chromosome", &self.chromosome())
+            .field("position", &self.position())
+            .field("ids", &self.ids())
+            .field("reference_bases", &self.reference_bases())
+            .field("alternate_bases", &self.alternate_bases())
+            .field("quality_score", &self.quality_score())
+            .field("filters", &self.filters())
+            .field("info", &self.info())
+            .field("genotypes", &self.genotypes())
+            .finish()
     }
 }
 
