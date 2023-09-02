@@ -7,23 +7,30 @@
 
 use std::{env, io, path::PathBuf};
 
-use noodles_sam as sam;
+use noodles_sam::{self as sam, alignment::Record};
+
+const UNMAPPED: &str = "*";
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = env::args();
 
     let src = args.nth(1).map(PathBuf::from).expect("missing src");
-    let region = args.next().expect("missing region").parse()?;
+    let raw_region = args.next().expect("missing region");
 
     let mut reader = sam::indexed_reader::Builder::default().build_from_path(src)?;
     let header = reader.read_header()?;
 
-    let query = reader.query(&header, &region)?;
+    let records: Box<dyn Iterator<Item = io::Result<Record>>> = if raw_region == UNMAPPED {
+        reader.query_unmapped(&header).map(Box::new)?
+    } else {
+        let region = raw_region.parse()?;
+        reader.query(&header, &region).map(Box::new)?
+    };
 
     let stdout = io::stdout().lock();
     let mut writer = sam::Writer::new(stdout);
 
-    for result in query {
+    for result in records {
         let record = result?;
         writer.write_record(&header, &record)?;
     }
