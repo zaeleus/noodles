@@ -2,8 +2,11 @@ use std::ops::{Range, RangeFrom};
 
 pub const REFERENCE_SEQUENCE_ID_RANGE: Range<usize> = 0..4;
 pub const ALIGNMENT_START_RANGE: Range<usize> = 4..8;
+pub const READ_NAME_LENGTH_RANGE: Range<usize> = 8..9;
 pub const MAPPING_QUALITY_INDEX: usize = 9;
+pub const CIGAR_OP_COUNT_RANGE: Range<usize> = 12..14;
 pub const FLAGS_RANGE: Range<usize> = 14..16;
+pub const READ_LENGTH_RANGE: Range<usize> = 16..20;
 pub const MATE_REFERENCE_SEQUENCE_ID_RANGE: Range<usize> = 20..24;
 pub const MATE_ALIGNMENT_START_RANGE: Range<usize> = 24..28;
 pub const TEMPLATE_LENGTH_RANGE: Range<usize> = 28..32;

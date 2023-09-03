@@ -7,7 +7,7 @@ mod quality_scores;
 mod read_name;
 mod sequence;
 
-use std::{fmt, io, mem, ops::Range};
+use std::{fmt, io, mem};
 
 use byteorder::{ByteOrder, LittleEndian};
 use bytes::Buf;
@@ -361,23 +361,20 @@ fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
     use crate::record::codec::decoder::{cigar, read_name, sequence};
 
     const MIN_BUF_LENGTH: usize = bounds::TEMPLATE_LENGTH_RANGE.end;
-    const READ_NAME_LENGTH_RANGE: Range<usize> = 8..9;
-    const CIGAR_OP_COUNT_RANGE: Range<usize> = 12..14;
-    const READ_LENGTH_RANGE: Range<usize> = 16..20;
 
     if buf.len() < MIN_BUF_LENGTH {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
-    let mut src = &buf[READ_NAME_LENGTH_RANGE];
+    let mut src = &buf[bounds::READ_NAME_LENGTH_RANGE];
     let l_read_name = read_name::get_length(&mut src)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    let mut src = &buf[CIGAR_OP_COUNT_RANGE];
+    let mut src = &buf[bounds::CIGAR_OP_COUNT_RANGE];
     let n_cigar_op =
         cigar::get_op_count(&mut src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    let mut src = &buf[READ_LENGTH_RANGE];
+    let mut src = &buf[bounds::READ_LENGTH_RANGE];
     let l_seq = sequence::get_length(&mut src)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
