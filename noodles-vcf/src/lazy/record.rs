@@ -3,12 +3,13 @@
 mod bounds;
 mod filters;
 mod genotypes;
+mod ids;
 mod info;
 
 use std::fmt;
 
 use self::bounds::Bounds;
-pub use self::{filters::Filters, genotypes::Genotypes, info::Info};
+pub use self::{filters::Filters, genotypes::Genotypes, ids::Ids, info::Info};
 
 const MISSING: &str = ".";
 
@@ -31,8 +32,9 @@ impl Record {
     }
 
     /// Returns the IDs.
-    pub fn ids(&self) -> &str {
-        &self.buf[self.bounds.ids_range()]
+    pub fn ids(&self) -> Ids<'_> {
+        let buf = &self.buf[self.bounds.ids_range()];
+        Ids::new(buf)
     }
 
     /// Returns the reference bases.

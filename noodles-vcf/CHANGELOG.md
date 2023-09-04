@@ -6,7 +6,8 @@
 
   * vcf/lazy/record: Implement `Clone` + `Debug` + `Eq` + `PartialEq`.
 
-  * vcf/lazy/record: Add filters wrapper (`lazy::record::Filters`).
+  * vcf/lazy/record: Add filters (`lazy::record::Filters`) and IDs
+    (`lazy::record::Ids`) wrappers.
 
 ### Changed
 
