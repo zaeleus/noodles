@@ -358,7 +358,7 @@ impl TryFrom<Record> for sam::alignment::Record {
 }
 
 fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
-    use crate::record::codec::decoder::{cigar, read_name, sequence};
+    use crate::record::codec::decoder::{cigar, sequence};
 
     const MIN_BUF_LENGTH: usize = bounds::TEMPLATE_LENGTH_RANGE.end;
 
@@ -366,9 +366,7 @@ fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
-    let mut src = &buf[bounds::READ_NAME_LENGTH_RANGE];
-    let l_read_name = read_name::get_length(&mut src)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let l_read_name = usize::from(buf[bounds::READ_NAME_LENGTH_INDEX]);
 
     let mut src = &buf[bounds::CIGAR_OP_COUNT_RANGE];
     let n_cigar_op =
@@ -379,7 +377,7 @@ fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     let mut i = bounds::TEMPLATE_LENGTH_RANGE.end;
-    i += usize::from(l_read_name);
+    i += l_read_name;
     bounds.read_name_end = i;
 
     i += mem::size_of::<u32>() * n_cigar_op;

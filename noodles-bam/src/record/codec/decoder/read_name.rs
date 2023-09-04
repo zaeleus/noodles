@@ -45,7 +45,7 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub(crate) fn get_length<B>(src: &mut B) -> Result<NonZeroUsize, DecodeError>
+pub fn get_length<B>(src: &mut B) -> Result<NonZeroUsize, DecodeError>
 where
     B: Buf,
 {

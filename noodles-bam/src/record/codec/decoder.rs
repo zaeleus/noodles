@@ -6,7 +6,7 @@ mod flags;
 mod mapping_quality;
 mod position;
 mod quality_scores;
-pub(crate) mod read_name;
+pub mod read_name;
 mod reference_sequence_id;
 pub(crate) mod sequence;
 mod template_length;
