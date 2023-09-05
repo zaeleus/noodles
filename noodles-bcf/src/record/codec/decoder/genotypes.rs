@@ -77,8 +77,8 @@ where
         })
         .and_then(|raw_key| {
             formats
-                .keys()
-                .find(|k| k.as_ref() == raw_key)
+                .get_key_value(raw_key)
+                .map(|(k, _)| k)
                 .ok_or_else(|| {
                     io::Error::new(
                         io::ErrorKind::InvalidData,
