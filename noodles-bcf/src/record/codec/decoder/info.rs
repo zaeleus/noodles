@@ -55,7 +55,7 @@ where
 {
     let key = read_info_field_key(reader, infos, string_string_map)?;
 
-    let info = infos.get(&key).ok_or_else(|| {
+    let info = infos.get(key).ok_or_else(|| {
         io::Error::new(
             io::ErrorKind::InvalidData,
             format!("missing header INFO record for {key}"),
@@ -64,14 +64,14 @@ where
 
     let value = read_info_field_value(reader, info)?;
 
-    Ok((key, value))
+    Ok((key.clone(), value))
 }
 
-fn read_info_field_key<R>(
+fn read_info_field_key<'h, R>(
     reader: &mut R,
-    infos: &vcf::header::Infos,
+    infos: &'h vcf::header::Infos,
     string_string_map: &StringStringMap,
-) -> io::Result<vcf::record::info::field::Key>
+) -> io::Result<&'h vcf::record::info::field::Key>
 where
     R: Read,
 {
@@ -85,16 +85,12 @@ where
             })
         })
         .and_then(|raw_key| {
-            infos
-                .keys()
-                .find(|k| k.as_ref() == raw_key)
-                .cloned()
-                .ok_or_else(|| {
-                    io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        format!("missing header INFO record for {raw_key}"),
-                    )
-                })
+            infos.keys().find(|k| k.as_ref() == raw_key).ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!("missing header INFO record for {raw_key}"),
+                )
+            })
         })
 }
 
