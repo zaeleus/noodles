@@ -24,7 +24,7 @@ impl<'a> TryFrom<ReadName<'a>> for sam::record::ReadName {
     fn try_from(bam_read_name: ReadName<'a>) -> Result<Self, Self::Error> {
         use crate::record::codec::decoder::get_read_name;
 
-        let mut src = dbg!(bam_read_name.0);
+        let mut src = bam_read_name.0;
 
         let mut read_name = None;
         let len = NonZeroUsize::try_from(src.len())
