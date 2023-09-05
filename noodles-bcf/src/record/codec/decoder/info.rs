@@ -85,7 +85,7 @@ where
             })
         })
         .and_then(|raw_key| {
-            infos.keys().find(|k| k.as_ref() == raw_key).ok_or_else(|| {
+            infos.get_key_value(raw_key).map(|(k, _)| k).ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
                     format!("missing header INFO record for {raw_key}"),
