@@ -30,11 +30,11 @@ where
     let mut buf_reader = &buf[..];
     let (n_fmt, n_sample) = read_site(&mut buf_reader, record)?;
 
-    let genotypes = record.genotypes_mut().as_mut();
+    let genotypes = record.genotypes.as_mut();
     genotypes.resize(l_indiv, Default::default());
     reader.read_exact(genotypes)?;
-    record.genotypes_mut().set_format_count(n_fmt);
-    record.genotypes_mut().set_sample_count(n_sample);
+    record.genotypes.set_format_count(n_fmt);
+    record.genotypes.set_sample_count(n_sample);
 
     Ok(l_shared + l_indiv)
 }
@@ -43,12 +43,12 @@ pub(crate) fn read_site<R>(reader: &mut R, record: &mut lazy::Record) -> io::Res
 where
     R: Read,
 {
-    *record.chromosome_id_mut() = read_chrom(reader)?;
-    *record.position_mut() = read_pos(reader)?;
+    record.chrom = read_chrom(reader)?;
+    record.pos = read_pos(reader)?;
 
-    *record.rlen_mut() = read_rlen(reader)?;
+    record.rlen = read_rlen(reader)?;
 
-    *record.quality_score_mut() = read_qual(reader)?;
+    record.qual = read_qual(reader)?;
 
     let n_info = reader.read_u16::<LittleEndian>().map(usize::from)?;
     let n_allele = reader.read_u16::<LittleEndian>().map(usize::from)?;
@@ -58,18 +58,18 @@ where
     let n_sample = usize::try_from(n_fmt_sample & 0xffffff)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    *record.ids_mut() = read_id(reader)?;
+    record.id = read_id(reader)?;
 
     let (r#ref, alt) = read_ref_alt(reader, n_allele)?;
     record.r#ref = r#ref;
     record.alt = alt;
 
-    read_filter(reader, record.filters_mut())?;
+    read_filter(reader, &mut record.filter)?;
 
-    let info = record.info_mut().as_mut();
+    let info = record.info.as_mut();
     info.clear();
     reader.read_to_end(info)?;
-    record.info_mut().set_field_count(n_info);
+    record.info.set_field_count(n_info);
 
     Ok((n_fmt, n_sample))
 }

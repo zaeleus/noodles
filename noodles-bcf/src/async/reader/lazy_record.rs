@@ -26,11 +26,11 @@ where
     let mut buf_reader = &buf[..];
     let (n_fmt, n_sample) = read_site(&mut buf_reader, record)?;
 
-    let genotypes = record.genotypes_mut().as_mut();
+    let genotypes = record.genotypes.as_mut();
     genotypes.resize(l_indiv, Default::default());
     reader.read_exact(genotypes).await?;
-    record.genotypes_mut().set_format_count(n_fmt);
-    record.genotypes_mut().set_sample_count(n_sample);
+    record.genotypes.set_format_count(n_fmt);
+    record.genotypes.set_sample_count(n_sample);
 
     Ok(l_shared + l_indiv)
 }

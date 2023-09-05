@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+  * bcf/lazy/record: Remove mutable reference getters.
+
+    Lazy records were not meant to be mutable. This removes
+    `lazy::Record::position_mut`, `lazy::Record::quality_score_mut`, and
+    `lazy::Record::ids_mut`.
+
 ## 0.35.0 - 2023-08-31
 
 ### Changed

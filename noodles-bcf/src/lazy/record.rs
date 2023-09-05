@@ -19,16 +19,16 @@ pub type ChromosomeId = usize;
 /// A BCF record.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Record {
-    chrom: ChromosomeId,
-    pos: vcf::record::Position,
-    rlen: usize,
-    qual: Option<vcf::record::QualityScore>,
-    id: vcf::record::Ids,
+    pub(crate) chrom: ChromosomeId,
+    pub(crate) pos: vcf::record::Position,
+    pub(crate) rlen: usize,
+    pub(crate) qual: Option<vcf::record::QualityScore>,
+    pub(crate) id: vcf::record::Ids,
     pub(crate) r#ref: vcf::record::ReferenceBases,
     pub(crate) alt: vcf::record::AlternateBases,
-    filter: Filters,
-    info: Info,
-    genotypes: Genotypes,
+    pub(crate) filter: Filters,
+    pub(crate) info: Info,
+    pub(crate) genotypes: Genotypes,
 }
 
 impl Record {
@@ -50,10 +50,6 @@ impl Record {
         self.chrom
     }
 
-    pub(crate) fn chromosome_id_mut(&mut self) -> &mut ChromosomeId {
-        &mut self.chrom
-    }
-
     /// Returns the start position of this record.
     ///
     /// Despite the BCF format using 0-based positions, this normalizes the value as a 1-based
@@ -70,29 +66,8 @@ impl Record {
         self.pos
     }
 
-    /// Returns a mutable reference to the start position.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bcf as bcf;
-    /// use noodles_vcf::record::Position;
-    ///
-    /// let mut record = bcf::lazy::Record::default();
-    /// *record.position_mut() = Position::from(8);
-    ///
-    /// assert_eq!(usize::from(record.position()), 8);
-    /// ```
-    pub fn position_mut(&mut self) -> &mut vcf::record::Position {
-        &mut self.pos
-    }
-
     pub(crate) fn rlen(&self) -> usize {
         self.rlen
-    }
-
-    pub(crate) fn rlen_mut(&mut self) -> &mut usize {
-        &mut self.rlen
     }
 
     /// Returns the end position of this record.
@@ -131,24 +106,6 @@ impl Record {
         self.qual
     }
 
-    /// Return a mutable reference to the quality score.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bcf as bcf;
-    /// use noodles_vcf::record::QualityScore;
-    ///
-    /// let mut record = bcf::lazy::Record::default();
-    /// *record.quality_score_mut() = QualityScore::try_from(13.0).map(Some)?;
-    ///
-    /// assert_eq!(record.quality_score().map(f32::from), Some(13.0));
-    /// # Ok::<_, noodles_vcf::record::quality_score::TryFromFloatError>(())
-    /// ```
-    pub fn quality_score_mut(&mut self) -> &mut Option<vcf::record::QualityScore> {
-        &mut self.qual
-    }
-
     /// Returns the IDs.
     ///
     /// # Examples
@@ -160,25 +117,6 @@ impl Record {
     /// ```
     pub fn ids(&self) -> &vcf::record::Ids {
         &self.id
-    }
-
-    /// Returns a mutable reference to the IDs.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bcf as bcf;
-    /// use noodles_vcf::record::Ids;
-    ///
-    /// let mut record = bcf::lazy::Record::default();
-    /// let ids: Ids = "nd0".parse()?;
-    /// *record.ids_mut() = ids.clone();
-    ///
-    /// assert_eq!(record.ids(), &ids);
-    /// # Ok::<_, noodles_vcf::record::ids::ParseError>(())
-    /// ```
-    pub fn ids_mut(&mut self) -> &mut vcf::record::Ids {
-        &mut self.id
     }
 
     pub(crate) fn reference_bases(&self) -> &vcf::record::ReferenceBases {
@@ -202,10 +140,6 @@ impl Record {
         &self.filter
     }
 
-    pub(crate) fn filters_mut(&mut self) -> &mut Filters {
-        &mut self.filter
-    }
-
     /// Returns the info.
     ///
     /// # Examples
@@ -219,10 +153,6 @@ impl Record {
         &self.info
     }
 
-    pub(crate) fn info_mut(&mut self) -> &mut Info {
-        &mut self.info
-    }
-
     /// Returns the genotypes.
     ///
     /// # Examples
@@ -234,10 +164,6 @@ impl Record {
     /// ```
     pub fn genotypes(&self) -> &Genotypes {
         &self.genotypes
-    }
-
-    pub(crate) fn genotypes_mut(&mut self) -> &mut Genotypes {
-        &mut self.genotypes
     }
 }
 
