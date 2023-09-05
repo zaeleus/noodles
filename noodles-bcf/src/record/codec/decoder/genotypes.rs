@@ -40,13 +40,13 @@ where
     for _ in 0..format_count {
         let key = read_genotype_field_key(reader, formats, string_map)?;
 
-        let vs = if key == key::GENOTYPE {
+        let vs = if key == &key::GENOTYPE {
             read_genotype_genotype_field_values(reader, sample_count)?
         } else {
             read_genotype_field_values(reader, sample_count)?
         };
 
-        keys.push(key);
+        keys.push(key.clone());
 
         for (sample, value) in values.iter_mut().zip(vs) {
             sample.push(value);
@@ -58,11 +58,11 @@ where
     Ok(Genotypes::new(keys, values))
 }
 
-fn read_genotype_field_key<R>(
+fn read_genotype_field_key<'h, R>(
     reader: &mut R,
-    formats: &vcf::header::Formats,
+    formats: &'h vcf::header::Formats,
     string_map: &StringStringMap,
-) -> io::Result<Key>
+) -> io::Result<&'h Key>
 where
     R: Read,
 {
@@ -79,7 +79,6 @@ where
             formats
                 .keys()
                 .find(|k| k.as_ref() == raw_key)
-                .cloned()
                 .ok_or_else(|| {
                     io::Error::new(
                         io::ErrorKind::InvalidData,
