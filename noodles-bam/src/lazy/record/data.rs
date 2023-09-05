@@ -78,7 +78,6 @@ impl<'a> TryFrom<Data<'a>> for sam::record::Data {
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
 
     #[test]
