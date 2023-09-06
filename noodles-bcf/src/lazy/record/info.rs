@@ -206,12 +206,10 @@ impl Info {
             Option<vcf::record::info::field::Value>,
         )>,
     > + 'a {
-        use crate::record::codec::decoder::info::read_info_field;
+        use crate::record::codec::decoder::info::read_field;
 
         let mut reader = &self.buf[..];
-
-        (0..self.len())
-            .map(move |_| read_info_field(&mut reader, header.infos(), string_string_map))
+        (0..self.len()).map(move |_| read_field(&mut reader, header.infos(), string_string_map))
     }
 
     /// Returns an iterator over all info values.
