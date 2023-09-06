@@ -1,4 +1,4 @@
-use std::io::{self, Read};
+use std::io;
 
 use crate::lazy::record::{
     value::{Array, Int16, Int32, Int8},
@@ -7,11 +7,8 @@ use crate::lazy::record::{
 
 use super::value::read_value;
 
-pub fn read_string_map_index<R>(reader: &mut R) -> io::Result<usize>
-where
-    R: Read,
-{
-    let i = match read_value(reader)? {
+pub fn read_string_map_index(src: &mut &[u8]) -> io::Result<usize> {
+    let i = match read_value(src)? {
         Some(Value::Int8(Some(Int8::Value(i)))) => i32::from(i),
         Some(Value::Int16(Some(Int16::Value(i)))) => i32::from(i),
         Some(Value::Int32(Some(Int32::Value(i)))) => i,
@@ -26,11 +23,8 @@ where
     usize::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
-pub fn read_string_map_indices<R>(reader: &mut R) -> io::Result<Vec<usize>>
-where
-    R: Read,
-{
-    let indices = match read_value(reader)? {
+pub fn read_string_map_indices(src: &mut &[u8]) -> io::Result<Vec<usize>> {
+    let indices = match read_value(src)? {
         Some(Value::Int8(Some(Int8::Value(i)))) => vec![i32::from(i)],
         Some(Value::Array(Array::Int8(indices))) => indices.into_iter().map(i32::from).collect(),
         Some(Value::Int16(Some(Int16::Value(i)))) => vec![i32::from(i)],
@@ -61,25 +55,21 @@ mod tests {
     #[test]
     fn test_read_string_map_index() -> io::Result<()> {
         // Some(Type::Int8(Some(Int8::Value(8))))
-        let data = [0x11, 0x08];
-        let mut reader = &data[..];
-        assert_eq!(read_string_map_index(&mut reader)?, 8);
+        let mut src = &[0x11, 0x08][..];
+        assert_eq!(read_string_map_index(&mut src)?, 8);
 
         // Some(Type::Int16(Some(Int16::Value(13))))
-        let data = [0x12, 0x0d, 0x00];
-        let mut reader = &data[..];
-        assert_eq!(read_string_map_index(&mut reader)?, 13);
+        let mut src = &[0x12, 0x0d, 0x00][..];
+        assert_eq!(read_string_map_index(&mut src)?, 13);
 
         // Some(Type::Int32(Some(Int32::Value(21))))
-        let data = [0x13, 0x15, 0x00, 0x00, 0x00];
-        let mut reader = &data[..];
-        assert_eq!(read_string_map_index(&mut reader)?, 21);
+        let mut src = &[0x13, 0x15, 0x00, 0x00, 0x00][..];
+        assert_eq!(read_string_map_index(&mut src)?, 21);
 
         // Some(Type::String(Some(String::from("n"))))
-        let data = [0x17, b'n'];
-        let mut reader = &data[..];
+        let mut src = &[0x17, b'n'][..];
         assert!(matches!(
-            read_string_map_index(&mut reader),
+            read_string_map_index(&mut src),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidData,
         ));
 
@@ -88,9 +78,8 @@ mod tests {
 
     #[test]
     fn test_read_string_map_indices() -> io::Result<()> {
-        fn t(data: &[u8], expected: &[usize]) -> io::Result<()> {
-            let mut reader = data;
-            let actual = read_string_map_indices(&mut reader)?;
+        fn t(mut src: &[u8], expected: &[usize]) -> io::Result<()> {
+            let actual = read_string_map_indices(&mut src)?;
             assert_eq!(actual, expected);
             Ok(())
         }

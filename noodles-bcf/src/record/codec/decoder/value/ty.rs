@@ -1,4 +1,4 @@
-use std::io::{self, Read};
+use std::io;
 
 use byteorder::ReadBytesExt;
 
@@ -6,18 +6,15 @@ use crate::lazy::record::{value::Type, Value};
 
 use super::read_value;
 
-pub fn read_type<R>(reader: &mut R) -> io::Result<Option<Type>>
-where
-    R: Read,
-{
+pub fn read_type(src: &mut &[u8]) -> io::Result<Option<Type>> {
     use super::{Int16, Int32, Int8};
 
-    let encoding = reader.read_u8()?;
+    let encoding = src.read_u8()?;
 
     let mut len = usize::from(encoding >> 4);
 
     if len == 0x0f {
-        let value = read_value(reader)?;
+        let value = read_value(src)?;
 
         let next_len = match value {
             Some(Value::Int8(Some(Int8::Value(n)))) => i32::from(n),
@@ -57,58 +54,46 @@ mod tests {
 
     #[test]
     fn test_read_type() -> io::Result<()> {
-        let data = [0x00];
-        let mut reader = &data[..];
-        assert_eq!(read_type(&mut reader)?, None);
+        let mut src = &[0x00][..];
+        assert_eq!(read_type(&mut src)?, None);
 
-        let data = [0x11];
-        let mut reader = &data[..];
-        assert_eq!(read_type(&mut reader)?, Some(Type::Int8(1)));
+        let mut src = &[0x11][..];
+        assert_eq!(read_type(&mut src)?, Some(Type::Int8(1)));
 
-        let data = [0x31];
-        let mut reader = &data[..];
-        assert_eq!(read_type(&mut reader)?, Some(Type::Int8(3)));
+        let mut src = &[0x31][..];
+        assert_eq!(read_type(&mut src)?, Some(Type::Int8(3)));
 
-        let data = [0x12];
-        let mut reader = &data[..];
-        assert_eq!(read_type(&mut reader)?, Some(Type::Int16(1)));
+        let mut src = &[0x12][..];
+        assert_eq!(read_type(&mut src)?, Some(Type::Int16(1)));
 
-        let data = [0x32];
-        let mut reader = &data[..];
-        assert_eq!(read_type(&mut reader)?, Some(Type::Int16(3)));
+        let mut src = &[0x32][..];
+        assert_eq!(read_type(&mut src)?, Some(Type::Int16(3)));
 
-        let data = [0x13];
-        let mut reader = &data[..];
-        assert_eq!(read_type(&mut reader)?, Some(Type::Int32(1)));
+        let mut src = &[0x13][..];
+        assert_eq!(read_type(&mut src)?, Some(Type::Int32(1)));
 
-        let data = [0x33];
-        let mut reader = &data[..];
-        assert_eq!(read_type(&mut reader)?, Some(Type::Int32(3)));
+        let mut src = &[0x33][..];
+        assert_eq!(read_type(&mut src)?, Some(Type::Int32(3)));
 
-        let data = [0x15];
-        let mut reader = &data[..];
-        assert_eq!(read_type(&mut reader)?, Some(Type::Float(1)));
+        let mut src = &[0x15][..];
+        assert_eq!(read_type(&mut src)?, Some(Type::Float(1)));
 
-        let data = [0x35];
-        let mut reader = &data[..];
-        assert_eq!(read_type(&mut reader)?, Some(Type::Float(3)));
+        let mut src = &[0x35][..];
+        assert_eq!(read_type(&mut src)?, Some(Type::Float(3)));
 
-        let data = [0x17];
-        let mut reader = &data[..];
-        assert_eq!(read_type(&mut reader)?, Some(Type::String(1)));
+        let mut src = &[0x17][..];
+        assert_eq!(read_type(&mut src)?, Some(Type::String(1)));
 
-        let data = [0x37];
-        let mut reader = &data[..];
-        assert_eq!(read_type(&mut reader)?, Some(Type::String(3)));
+        let mut src = &[0x37][..];
+        assert_eq!(read_type(&mut src)?, Some(Type::String(3)));
 
         Ok(())
     }
 
     #[test]
     fn test_read_type_with_gt_14_values() -> io::Result<()> {
-        let data = [0xf1, 0x11, 0x15];
-        let mut reader = &data[..];
-        assert_eq!(read_type(&mut reader)?, Some(Type::Int8(21)));
+        let mut src = &[0xf1, 0x11, 0x15][..];
+        assert_eq!(read_type(&mut src)?, Some(Type::Int8(21)));
         Ok(())
     }
 }

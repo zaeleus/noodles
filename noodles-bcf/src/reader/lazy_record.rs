@@ -39,36 +39,33 @@ where
     Ok(l_shared + l_indiv)
 }
 
-pub(crate) fn read_site<R>(reader: &mut R, record: &mut lazy::Record) -> io::Result<(usize, usize)>
-where
-    R: Read,
-{
-    record.chrom = read_chrom(reader)?;
-    record.pos = read_pos(reader)?;
+pub(crate) fn read_site(src: &mut &[u8], record: &mut lazy::Record) -> io::Result<(usize, usize)> {
+    record.chrom = read_chrom(src)?;
+    record.pos = read_pos(src)?;
 
-    record.rlen = read_rlen(reader)?;
+    record.rlen = read_rlen(src)?;
 
-    record.qual = read_qual(reader)?;
+    record.qual = read_qual(src)?;
 
-    let n_info = reader.read_u16::<LittleEndian>().map(usize::from)?;
-    let n_allele = reader.read_u16::<LittleEndian>().map(usize::from)?;
+    let n_info = src.read_u16::<LittleEndian>().map(usize::from)?;
+    let n_allele = src.read_u16::<LittleEndian>().map(usize::from)?;
 
-    let n_fmt_sample = reader.read_u32::<LittleEndian>()?;
+    let n_fmt_sample = src.read_u32::<LittleEndian>()?;
     let n_fmt = usize::from((n_fmt_sample >> 24) as u8);
     let n_sample = usize::try_from(n_fmt_sample & 0xffffff)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    record.id = read_id(reader)?;
+    record.id = read_id(src)?;
 
-    let (r#ref, alt) = read_ref_alt(reader, n_allele)?;
+    let (r#ref, alt) = read_ref_alt(src, n_allele)?;
     record.r#ref = r#ref;
     record.alt = alt;
 
-    read_filter(reader, &mut record.filter)?;
+    read_filter(src, &mut record.filter)?;
 
     let info = record.info.as_mut();
     info.clear();
-    reader.read_to_end(info)?;
+    src.read_to_end(info)?;
     record.info.set_field_count(n_info);
 
     Ok((n_fmt, n_sample))

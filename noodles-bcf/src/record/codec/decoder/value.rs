@@ -11,142 +11,109 @@ use crate::lazy::record::{
     Value,
 };
 
-pub fn read_value<R>(reader: &mut R) -> io::Result<Option<Value>>
-where
-    R: Read,
-{
-    let ty = read_type(reader)?;
+pub fn read_value(src: &mut &[u8]) -> io::Result<Option<Value>> {
+    let ty = read_type(src)?;
 
     match ty {
         Some(Type::Int8(len)) => match len {
             0 => Ok(Some(Value::Int8(None))),
-            1 => read_i8(reader)
+            1 => read_i8(src)
                 .map(Int8::from)
                 .map(Some)
                 .map(Value::Int8)
                 .map(Some),
-            _ => read_i8_array(reader, len)
+            _ => read_i8_array(src, len)
                 .map(Array::Int8)
                 .map(Value::Array)
                 .map(Some),
         },
         Some(Type::Int16(len)) => match len {
             0 => Ok(Some(Value::Int16(None))),
-            1 => read_i16(reader)
+            1 => read_i16(src)
                 .map(Int16::from)
                 .map(Some)
                 .map(Value::Int16)
                 .map(Some),
-            _ => read_i16_array(reader, len)
+            _ => read_i16_array(src, len)
                 .map(Array::Int16)
                 .map(Value::Array)
                 .map(Some),
         },
         Some(Type::Int32(len)) => match len {
             0 => Ok(Some(Value::Int32(None))),
-            1 => read_i32(reader)
+            1 => read_i32(src)
                 .map(Int32::from)
                 .map(Some)
                 .map(Value::Int32)
                 .map(Some),
-            _ => read_i32_array(reader, len)
+            _ => read_i32_array(src, len)
                 .map(Array::Int32)
                 .map(Value::Array)
                 .map(Some),
         },
         Some(Type::Float(len)) => match len {
             0 => Ok(Some(Value::Float(None))),
-            1 => read_float(reader)
+            1 => read_float(src)
                 .map(Float::from)
                 .map(Some)
                 .map(Value::Float)
                 .map(Some),
-            _ => read_float_array(reader, len)
+            _ => read_float_array(src, len)
                 .map(Array::Float)
                 .map(Value::Array)
                 .map(Some),
         },
         Some(Type::String(len)) => match len {
             0 => Ok(Some(Value::String(None))),
-            _ => read_string(reader, len)
-                .map(Some)
-                .map(Value::String)
-                .map(Some),
+            _ => read_string(src, len).map(Some).map(Value::String).map(Some),
         },
         None => Ok(None),
     }
 }
 
-fn read_i8<R>(reader: &mut R) -> io::Result<i8>
-where
-    R: Read,
-{
-    reader.read_i8()
+fn read_i8(src: &mut &[u8]) -> io::Result<i8> {
+    src.read_i8()
 }
 
-fn read_i8_array<R>(reader: &mut R, len: usize) -> io::Result<Vec<i8>>
-where
-    R: Read,
-{
+fn read_i8_array(src: &mut &[u8], len: usize) -> io::Result<Vec<i8>> {
     let mut buf = vec![0; len];
-    reader.read_i8_into(&mut buf)?;
+    src.read_i8_into(&mut buf)?;
     Ok(buf)
 }
 
-fn read_i16<R>(reader: &mut R) -> io::Result<i16>
-where
-    R: Read,
-{
-    reader.read_i16::<LittleEndian>()
+fn read_i16(src: &mut &[u8]) -> io::Result<i16> {
+    src.read_i16::<LittleEndian>()
 }
 
-fn read_i16_array<R>(reader: &mut R, len: usize) -> io::Result<Vec<i16>>
-where
-    R: Read,
-{
+fn read_i16_array(src: &mut &[u8], len: usize) -> io::Result<Vec<i16>> {
     let mut buf = vec![0; len];
-    reader.read_i16_into::<LittleEndian>(&mut buf)?;
+    src.read_i16_into::<LittleEndian>(&mut buf)?;
     Ok(buf)
 }
 
-fn read_i32<R>(reader: &mut R) -> io::Result<i32>
-where
-    R: Read,
-{
-    reader.read_i32::<LittleEndian>()
+fn read_i32(src: &mut &[u8]) -> io::Result<i32> {
+    src.read_i32::<LittleEndian>()
 }
 
-fn read_i32_array<R>(reader: &mut R, len: usize) -> io::Result<Vec<i32>>
-where
-    R: Read,
-{
+fn read_i32_array(src: &mut &[u8], len: usize) -> io::Result<Vec<i32>> {
     let mut buf = vec![0; len];
-    reader.read_i32_into::<LittleEndian>(&mut buf)?;
+    src.read_i32_into::<LittleEndian>(&mut buf)?;
     Ok(buf)
 }
 
-fn read_float<R>(reader: &mut R) -> io::Result<f32>
-where
-    R: Read,
-{
-    reader.read_f32::<LittleEndian>()
+fn read_float(src: &mut &[u8]) -> io::Result<f32> {
+    src.read_f32::<LittleEndian>()
 }
 
-fn read_float_array<R>(reader: &mut R, len: usize) -> io::Result<Vec<f32>>
-where
-    R: Read,
-{
+fn read_float_array(src: &mut &[u8], len: usize) -> io::Result<Vec<f32>> {
     let mut buf = vec![0.0; len];
-    reader.read_f32_into::<LittleEndian>(&mut buf)?;
+    src.read_f32_into::<LittleEndian>(&mut buf)?;
     Ok(buf)
 }
 
-fn read_string<R>(reader: &mut R, len: usize) -> io::Result<String>
-where
-    R: Read,
-{
+fn read_string(src: &mut &[u8], len: usize) -> io::Result<String> {
     let mut buf = vec![0; len];
-    reader.read_exact(&mut buf)?;
+    src.read_exact(&mut buf)?;
     String::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 

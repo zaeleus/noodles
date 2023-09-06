@@ -5,7 +5,7 @@ mod value;
 
 pub use self::{genotypes::read_genotypes, info::read_info};
 
-use std::io::{self, Read};
+use std::io;
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_vcf::{
@@ -22,16 +22,13 @@ use crate::{
     },
 };
 
-pub fn read_site<R>(
-    reader: &mut R,
+pub fn read_site(
+    src: &mut &[u8],
     header: &vcf::Header,
     string_maps: &StringMaps,
     record: &mut vcf::Record,
-) -> io::Result<(usize, usize)>
-where
-    R: Read,
-{
-    let chrom = read_chrom(reader)?;
+) -> io::Result<(usize, usize)> {
+    let chrom = read_chrom(src)?;
 
     *record.chromosome_mut() = string_maps
         .contigs()
@@ -42,72 +39,59 @@ where
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
         })?;
 
-    *record.position_mut() = read_pos(reader)?;
+    *record.position_mut() = read_pos(src)?;
 
     // TODO
-    read_rlen(reader)?;
+    read_rlen(src)?;
 
-    *record.quality_score_mut() = read_qual(reader)?;
+    *record.quality_score_mut() = read_qual(src)?;
 
-    let n_info = reader.read_u16::<LittleEndian>().map(usize::from)?;
-    let n_allele = reader.read_u16::<LittleEndian>().map(usize::from)?;
+    let n_info = src.read_u16::<LittleEndian>().map(usize::from)?;
+    let n_allele = src.read_u16::<LittleEndian>().map(usize::from)?;
 
-    let n_fmt_sample = reader.read_u32::<LittleEndian>()?;
+    let n_fmt_sample = src.read_u32::<LittleEndian>()?;
     let n_fmt = usize::from((n_fmt_sample >> 24) as u8);
     let n_sample = usize::try_from(n_fmt_sample & 0xffffff)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    *record.ids_mut() = read_id(reader)?;
+    *record.ids_mut() = read_id(src)?;
 
-    let (r#ref, alt) = read_ref_alt(reader, n_allele)?;
+    let (r#ref, alt) = read_ref_alt(src, n_allele)?;
     *record.reference_bases_mut() = r#ref;
     *record.alternate_bases_mut() = alt;
 
     let mut filters = lazy::record::Filters::default();
-    read_filter(reader, &mut filters)?;
+    read_filter(src, &mut filters)?;
     *record.filters_mut() = filters.try_into_vcf_record_filters(string_maps.strings())?;
 
-    *record.info_mut() = read_info(reader, header.infos(), string_maps.strings(), n_info)?;
+    *record.info_mut() = read_info(src, header.infos(), string_maps.strings(), n_info)?;
 
     Ok((n_fmt, n_sample))
 }
 
-pub fn read_chrom<R>(reader: &mut R) -> io::Result<ChromosomeId>
-where
-    R: Read,
-{
-    reader.read_i32::<LittleEndian>().and_then(|n| {
+pub fn read_chrom(src: &mut &[u8]) -> io::Result<ChromosomeId> {
+    src.read_i32::<LittleEndian>().and_then(|n| {
         ChromosomeId::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })
 }
 
-pub fn read_rlen<R>(reader: &mut R) -> io::Result<usize>
-where
-    R: Read,
-{
-    reader
-        .read_i32::<LittleEndian>()
+pub fn read_rlen(src: &mut &[u8]) -> io::Result<usize> {
+    src.read_i32::<LittleEndian>()
         .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
 }
 
-pub fn read_pos<R>(reader: &mut R) -> io::Result<Position>
-where
-    R: Read,
-{
-    reader.read_i32::<LittleEndian>().and_then(|n| {
+pub fn read_pos(src: &mut &[u8]) -> io::Result<Position> {
+    src.read_i32::<LittleEndian>().and_then(|n| {
         usize::try_from(n + 1)
             .map(Position::from)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })
 }
 
-pub fn read_qual<R>(reader: &mut R) -> io::Result<Option<QualityScore>>
-where
-    R: Read,
-{
+pub fn read_qual(src: &mut &[u8]) -> io::Result<Option<QualityScore>> {
     use crate::lazy::record::value::Float;
 
-    match reader.read_f32::<LittleEndian>().map(Float::from)? {
+    match src.read_f32::<LittleEndian>().map(Float::from)? {
         Float::Value(value) => QualityScore::try_from(value)
             .map(Some)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e)),
@@ -119,11 +103,8 @@ where
     }
 }
 
-pub fn read_id<R>(reader: &mut R) -> io::Result<Ids>
-where
-    R: Read,
-{
-    match read_value(reader)? {
+pub fn read_id(src: &mut &[u8]) -> io::Result<Ids> {
+    match read_value(src)? {
         Some(Value::String(Some(id))) => id
             .parse()
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
@@ -135,14 +116,11 @@ where
     }
 }
 
-pub fn read_ref_alt<R>(reader: &mut R, len: usize) -> io::Result<(ReferenceBases, AlternateBases)>
-where
-    R: Read,
-{
+pub fn read_ref_alt(src: &mut &[u8], len: usize) -> io::Result<(ReferenceBases, AlternateBases)> {
     let mut alleles = Vec::with_capacity(len);
 
     for _ in 0..len {
-        match read_value(reader)? {
+        match read_value(src)? {
             Some(Value::String(Some(s))) => alleles.push(s),
             Some(Value::String(None)) => alleles.push(String::from(".")),
             v => {
@@ -176,10 +154,7 @@ where
     Ok((reference_bases, alternate_bases))
 }
 
-pub fn read_filter<R>(reader: &mut R, filters: &mut Filters) -> io::Result<()>
-where
-    R: Read,
-{
+pub fn read_filter(reader: &mut &[u8], filters: &mut Filters) -> io::Result<()> {
     use self::string_map::read_string_map_indices;
 
     let filter = filters.as_mut();
