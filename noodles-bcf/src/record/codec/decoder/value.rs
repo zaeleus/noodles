@@ -2,7 +2,7 @@ mod ty;
 
 pub use self::ty::read_type;
 
-use std::io::{self, Read};
+use std::{io, str};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
@@ -11,7 +11,7 @@ use crate::lazy::record::{
     Value,
 };
 
-pub fn read_value(src: &mut &[u8]) -> io::Result<Option<Value>> {
+pub fn read_value<'a>(src: &mut &'a [u8]) -> io::Result<Option<Value<'a>>> {
     let ty = read_type(src)?;
 
     match ty {
@@ -111,10 +111,16 @@ fn read_float_array(src: &mut &[u8], len: usize) -> io::Result<Vec<f32>> {
     Ok(buf)
 }
 
-fn read_string(src: &mut &[u8], len: usize) -> io::Result<String> {
-    let mut buf = vec![0; len];
-    src.read_exact(&mut buf)?;
-    String::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+fn read_string<'a>(src: &mut &'a [u8], len: usize) -> io::Result<&'a str> {
+    if src.len() < len {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
+
+    let (buf, rest) = src.split_at(len);
+    let s = str::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    *src = rest;
+
+    Ok(s)
 }
 
 #[cfg(test)]

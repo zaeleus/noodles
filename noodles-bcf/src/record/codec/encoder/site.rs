@@ -180,13 +180,14 @@ pub(crate) fn write_id<W>(writer: &mut W, ids: &vcf::record::Ids) -> io::Result<
 where
     W: Write,
 {
-    let value = if ids.is_empty() {
-        Some(Value::String(None))
+    if ids.is_empty() {
+        let value = Some(Value::String(None));
+        write_value(writer, value)
     } else {
-        Some(Value::String(Some(ids.to_string())))
-    };
-
-    write_value(writer, value)
+        let s = ids.to_string();
+        let value = Some(Value::String(Some(&s)));
+        write_value(writer, value)
+    }
 }
 
 pub(crate) fn write_ref_alt<W>(
@@ -198,12 +199,13 @@ where
     W: Write,
 {
     let r#ref = reference_bases.to_string();
-    let ref_value = Some(Value::String(Some(r#ref)));
+    let ref_value = Some(Value::String(Some(&r#ref)));
     write_value(writer, ref_value)?;
 
     if !alternate_bases.is_empty() {
         for allele in alternate_bases.iter() {
-            let alt_value = Some(Value::String(Some(allele.to_string())));
+            let alt = allele.to_string();
+            let alt_value = Some(Value::String(Some(&alt)));
             write_value(writer, alt_value)?;
         }
     }

@@ -121,7 +121,7 @@ pub fn read_ref_alt(src: &mut &[u8], len: usize) -> io::Result<(ReferenceBases, 
 
     for _ in 0..len {
         match read_value(src)? {
-            Some(Value::String(Some(s))) => alleles.push(s),
+            Some(Value::String(Some(s))) => alleles.push(s.into()),
             Some(Value::String(None)) => alleles.push(String::from(".")),
             v => {
                 return Err(io::Error::new(

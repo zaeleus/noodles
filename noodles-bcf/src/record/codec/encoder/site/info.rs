@@ -140,14 +140,15 @@ fn write_info_field_character_value<W>(writer: &mut W, c: char) -> io::Result<()
 where
     W: Write,
 {
-    write_value(writer, Some(Value::String(Some(c.into()))))
+    let s = c.to_string();
+    write_value(writer, Some(Value::String(Some(&s))))
 }
 
 fn write_info_field_string_value<W>(writer: &mut W, s: &str) -> io::Result<()>
 where
     W: Write,
 {
-    write_value(writer, Some(Value::String(Some(s.into()))))
+    write_value(writer, Some(Value::String(Some(s))))
 }
 
 fn write_info_field_integer_array_value<W>(writer: &mut W, values: &[Option<i32>]) -> io::Result<()>
@@ -297,7 +298,7 @@ where
         s.push(c);
     }
 
-    write_value(writer, Some(Value::String(Some(s))))
+    write_value(writer, Some(Value::String(Some(&s))))
 }
 
 fn write_info_field_string_array_value<W>(
@@ -321,7 +322,7 @@ where
         }
     }
 
-    write_value(writer, Some(Value::String(Some(s))))
+    write_value(writer, Some(Value::String(Some(&s))))
 }
 
 #[cfg(test)]

@@ -8,7 +8,7 @@ use byteorder::{LittleEndian, WriteBytesExt};
 
 use crate::lazy::record::value::{Array, Float, Int16, Int32, Int8, Type, Value};
 
-pub fn write_value<W>(writer: &mut W, value: Option<Value>) -> io::Result<()>
+pub fn write_value<W>(writer: &mut W, value: Option<Value<'_>>) -> io::Result<()>
 where
     W: Write,
 {
@@ -153,7 +153,7 @@ where
     Ok(())
 }
 
-fn write_string<W>(writer: &mut W, value: Option<String>) -> io::Result<()>
+fn write_string<W>(writer: &mut W, value: Option<&str>) -> io::Result<()>
 where
     W: Write,
 {
@@ -238,11 +238,11 @@ mod tests {
         assert_eq!(buf, [0x07]);
 
         buf.clear();
-        write_value(&mut buf, Some(Value::String(Some(String::from("n")))))?;
+        write_value(&mut buf, Some(Value::String(Some("n"))))?;
         assert_eq!(buf, [0x17, 0x6e]);
 
         buf.clear();
-        write_value(&mut buf, Some(Value::String(Some(String::from("ndls")))))?;
+        write_value(&mut buf, Some(Value::String(Some("ndls"))))?;
         assert_eq!(buf, [0x47, 0x6e, 0x64, 0x6c, 0x73]);
 
         Ok(())
