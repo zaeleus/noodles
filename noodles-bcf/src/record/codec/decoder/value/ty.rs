@@ -2,13 +2,11 @@ use std::io;
 
 use byteorder::ReadBytesExt;
 
-use crate::lazy::record::{value::Type, Value};
+use crate::lazy::record::value::Type;
 
 use super::read_value;
 
 pub fn read_type(src: &mut &[u8]) -> io::Result<Option<Type>> {
-    use super::{Int16, Int32, Int8};
-
     let encoding = src.read_u8()?;
 
     let mut len = usize::from(encoding >> 4);
@@ -16,10 +14,10 @@ pub fn read_type(src: &mut &[u8]) -> io::Result<Option<Type>> {
     if len == 0x0f {
         let value = read_value(src)?;
 
-        let next_len = match value {
-            Some(Value::Int8(Some(Int8::Value(n)))) => i32::from(n),
-            Some(Value::Int16(Some(Int16::Value(n)))) => i32::from(n),
-            Some(Value::Int32(Some(Int32::Value(n)))) => n,
+        len = match value.as_ref().and_then(|v| v.as_int()) {
+            Some(n) => {
+                usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
+            }
             _ => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -27,9 +25,6 @@ pub fn read_type(src: &mut &[u8]) -> io::Result<Option<Type>> {
                 ))
             }
         };
-
-        len =
-            usize::try_from(next_len).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     }
 
     let ty = encoding & 0x0f;

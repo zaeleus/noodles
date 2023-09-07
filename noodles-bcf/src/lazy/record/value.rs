@@ -16,3 +16,14 @@ pub enum Value<'a> {
     String(Option<&'a str>),
     Array(Array),
 }
+
+impl<'a> Value<'a> {
+    pub fn as_int(&self) -> Option<i32> {
+        match self {
+            Self::Int8(Some(Int8::Value(n))) => Some(i32::from(*n)),
+            Self::Int16(Some(Int16::Value(n))) => Some(i32::from(*n)),
+            Self::Int32(Some(Int32::Value(n))) => Some(*n),
+            _ => None,
+        }
+    }
+}

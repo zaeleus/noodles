@@ -8,19 +8,15 @@ use crate::lazy::record::{
 use super::value::read_value;
 
 pub fn read_string_map_index(src: &mut &[u8]) -> io::Result<usize> {
-    let i = match read_value(src)? {
-        Some(Value::Int8(Some(Int8::Value(i)))) => i32::from(i),
-        Some(Value::Int16(Some(Int16::Value(i)))) => i32::from(i),
-        Some(Value::Int32(Some(Int32::Value(i)))) => i,
-        v => {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                format!("expected {{Int8, Int16, Int32}}, got {v:?}"),
-            ))
-        }
-    };
+    let value = read_value(src)?;
 
-    usize::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    match value.as_ref().and_then(|v| v.as_int()) {
+        Some(i) => usize::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+        None => Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("expected {{Int8, Int16, Int32}}, got {value:?}"),
+        )),
+    }
 }
 
 pub fn read_string_map_indices(src: &mut &[u8]) -> io::Result<Vec<usize>> {
