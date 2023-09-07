@@ -104,7 +104,7 @@ pub fn read_qual(src: &mut &[u8]) -> io::Result<Option<QualityScore>> {
 }
 
 pub fn read_id(src: &mut &[u8]) -> io::Result<Ids> {
-    match read_value(src)? {
+    match read_value(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))? {
         Some(Value::String(Some(id))) => id
             .parse()
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
@@ -120,7 +120,7 @@ pub fn read_ref_alt(src: &mut &[u8], len: usize) -> io::Result<(ReferenceBases, 
     let mut alleles = Vec::with_capacity(len);
 
     for _ in 0..len {
-        match read_value(src)? {
+        match read_value(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))? {
             Some(Value::String(Some(s))) => alleles.push(s.into()),
             Some(Value::String(None)) => alleles.push(String::from(".")),
             v => {

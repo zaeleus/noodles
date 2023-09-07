@@ -12,7 +12,7 @@ use crate::{
 };
 
 pub(super) fn read_values(src: &mut &[u8], sample_count: usize) -> io::Result<Vec<Option<Value>>> {
-    match read_type(src)? {
+    match read_type(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))? {
         Some(Type::Int8(len)) => match len {
             0 => Err(io::Error::new(
                 io::ErrorKind::InvalidData,
@@ -278,7 +278,7 @@ pub(super) fn read_genotype_values(
 ) -> io::Result<Vec<Option<Value>>> {
     let mut values = Vec::with_capacity(sample_count);
 
-    match read_type(src)? {
+    match read_type(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))? {
         Some(Type::Int8(len)) => match len {
             0 => values.push(None),
             1 => {

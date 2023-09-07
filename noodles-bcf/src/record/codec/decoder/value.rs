@@ -1,126 +1,204 @@
 mod ty;
 
+use std::{error, fmt, mem, str};
+
 pub use self::ty::read_type;
-
-use std::{io, str};
-
-use byteorder::{LittleEndian, ReadBytesExt};
-
 use crate::lazy::record::{
     value::{Array, Float, Int16, Int32, Int8, Type},
     Value,
 };
 
-pub fn read_value<'a>(src: &mut &'a [u8]) -> io::Result<Option<Value<'a>>> {
-    let ty = read_type(src)?;
+pub fn read_value<'a>(src: &mut &'a [u8]) -> Result<Option<Value<'a>>, DecodeError> {
+    let ty = read_type(src).map_err(DecodeError::InvalidType)?;
 
     match ty {
-        Some(Type::Int8(len)) => match len {
-            0 => Ok(Some(Value::Int8(None))),
-            1 => read_i8(src)
-                .map(Int8::from)
-                .map(Some)
-                .map(Value::Int8)
-                .map(Some),
-            _ => read_i8_array(src, len)
-                .map(Array::Int8)
-                .map(Value::Array)
-                .map(Some),
-        },
-        Some(Type::Int16(len)) => match len {
-            0 => Ok(Some(Value::Int16(None))),
-            1 => read_i16(src)
-                .map(Int16::from)
-                .map(Some)
-                .map(Value::Int16)
-                .map(Some),
-            _ => read_i16_array(src, len)
-                .map(Array::Int16)
-                .map(Value::Array)
-                .map(Some),
-        },
-        Some(Type::Int32(len)) => match len {
-            0 => Ok(Some(Value::Int32(None))),
-            1 => read_i32(src)
-                .map(Int32::from)
-                .map(Some)
-                .map(Value::Int32)
-                .map(Some),
-            _ => read_i32_array(src, len)
-                .map(Array::Int32)
-                .map(Value::Array)
-                .map(Some),
-        },
-        Some(Type::Float(len)) => match len {
-            0 => Ok(Some(Value::Float(None))),
-            1 => read_float(src)
-                .map(Float::from)
-                .map(Some)
-                .map(Value::Float)
-                .map(Some),
-            _ => read_float_array(src, len)
-                .map(Array::Float)
-                .map(Value::Array)
-                .map(Some),
-        },
-        Some(Type::String(len)) => match len {
-            0 => Ok(Some(Value::String(None))),
-            _ => read_string(src, len).map(Some).map(Value::String).map(Some),
-        },
         None => Ok(None),
+        Some(Type::Int8(0)) => Ok(Some(Value::Int8(None))),
+        Some(Type::Int8(1)) => read_i8(src),
+        Some(Type::Int8(n)) => read_i8s(src, n),
+        Some(Type::Int16(0)) => Ok(Some(Value::Int16(None))),
+        Some(Type::Int16(1)) => read_i16(src),
+        Some(Type::Int16(n)) => read_i16s(src, n),
+        Some(Type::Int32(0)) => Ok(Some(Value::Int32(None))),
+        Some(Type::Int32(1)) => read_i32(src),
+        Some(Type::Int32(n)) => read_i32s(src, n),
+        Some(Type::Float(0)) => Ok(Some(Value::Float(None))),
+        Some(Type::Float(1)) => read_f32(src),
+        Some(Type::Float(n)) => read_f32s(src, n),
+        Some(Type::String(0)) => Ok(Some(Value::String(None))),
+        Some(Type::String(n)) => read_string(src, n),
     }
 }
 
-fn read_i8(src: &mut &[u8]) -> io::Result<i8> {
-    src.read_i8()
+fn read_i8<'a>(src: &mut &'a [u8]) -> Result<Option<Value<'a>>, DecodeError> {
+    if let Some((b, rest)) = src.split_first() {
+        *src = rest;
+        Ok(Some(Value::Int8(Some(Int8::from(*b as i8)))))
+    } else {
+        Err(DecodeError::UnexpectedEof)
+    }
 }
 
-fn read_i8_array(src: &mut &[u8], len: usize) -> io::Result<Vec<i8>> {
-    let mut buf = vec![0; len];
-    src.read_i8_into(&mut buf)?;
-    Ok(buf)
-}
-
-fn read_i16(src: &mut &[u8]) -> io::Result<i16> {
-    src.read_i16::<LittleEndian>()
-}
-
-fn read_i16_array(src: &mut &[u8], len: usize) -> io::Result<Vec<i16>> {
-    let mut buf = vec![0; len];
-    src.read_i16_into::<LittleEndian>(&mut buf)?;
-    Ok(buf)
-}
-
-fn read_i32(src: &mut &[u8]) -> io::Result<i32> {
-    src.read_i32::<LittleEndian>()
-}
-
-fn read_i32_array(src: &mut &[u8], len: usize) -> io::Result<Vec<i32>> {
-    let mut buf = vec![0; len];
-    src.read_i32_into::<LittleEndian>(&mut buf)?;
-    Ok(buf)
-}
-
-fn read_float(src: &mut &[u8]) -> io::Result<f32> {
-    src.read_f32::<LittleEndian>()
-}
-
-fn read_float_array(src: &mut &[u8], len: usize) -> io::Result<Vec<f32>> {
-    let mut buf = vec![0.0; len];
-    src.read_f32_into::<LittleEndian>(&mut buf)?;
-    Ok(buf)
-}
-
-fn read_string<'a>(src: &mut &'a [u8], len: usize) -> io::Result<&'a str> {
+fn read_i8s<'a>(src: &mut &'a [u8], len: usize) -> Result<Option<Value<'a>>, DecodeError> {
     if src.len() < len {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+        return Err(DecodeError::UnexpectedEof);
     }
 
     let (buf, rest) = src.split_at(len);
-    let s = str::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let values = buf.iter().map(|&b| b as i8).collect();
     *src = rest;
 
-    Ok(s)
+    Ok(Some(Value::Array(Array::Int8(values))))
+}
+
+fn read_i16<'a>(src: &mut &'a [u8]) -> Result<Option<Value<'a>>, DecodeError> {
+    if src.len() < mem::size_of::<i16>() {
+        return Err(DecodeError::UnexpectedEof);
+    }
+
+    let (buf, rest) = src.split_at(mem::size_of::<i16>());
+
+    // SAFETY: `buf` is 2 bytes.
+    let n = i16::from_le_bytes(buf.try_into().unwrap());
+
+    *src = rest;
+
+    Ok(Some(Value::Int16(Some(Int16::from(n)))))
+}
+
+fn read_i16s<'a>(src: &mut &'a [u8], len: usize) -> Result<Option<Value<'a>>, DecodeError> {
+    let len = mem::size_of::<i16>() * len;
+
+    if src.len() < len {
+        return Err(DecodeError::UnexpectedEof);
+    }
+
+    let (buf, rest) = src.split_at(len);
+
+    let values = buf
+        .chunks_exact(mem::size_of::<i16>())
+        .map(|chunk| {
+            // SAFETY: `chunk` is 2 bytes.
+            i16::from_le_bytes(chunk.try_into().unwrap())
+        })
+        .collect();
+
+    *src = rest;
+
+    Ok(Some(Value::Array(Array::Int16(values))))
+}
+
+fn read_i32<'a>(src: &mut &'a [u8]) -> Result<Option<Value<'a>>, DecodeError> {
+    if src.len() < mem::size_of::<i32>() {
+        return Err(DecodeError::UnexpectedEof);
+    }
+
+    let (buf, rest) = src.split_at(mem::size_of::<i32>());
+
+    // SAFETY: `buf` is 4 bytes.
+    let n = i32::from_le_bytes(buf.try_into().unwrap());
+
+    *src = rest;
+
+    Ok(Some(Value::Int32(Some(Int32::from(n)))))
+}
+
+fn read_i32s<'a>(src: &mut &'a [u8], len: usize) -> Result<Option<Value<'a>>, DecodeError> {
+    let len = mem::size_of::<i32>() * len;
+
+    if src.len() < len {
+        return Err(DecodeError::UnexpectedEof);
+    }
+
+    let (buf, rest) = src.split_at(len);
+
+    let values = buf
+        .chunks_exact(mem::size_of::<i32>())
+        .map(|chunk| {
+            // SAFETY: `chunk` is 4 bytes.
+            i32::from_le_bytes(chunk.try_into().unwrap())
+        })
+        .collect();
+
+    *src = rest;
+
+    Ok(Some(Value::Array(Array::Int32(values))))
+}
+
+fn read_f32<'a>(src: &mut &'a [u8]) -> Result<Option<Value<'a>>, DecodeError> {
+    if src.len() < mem::size_of::<f32>() {
+        return Err(DecodeError::UnexpectedEof);
+    }
+
+    let (buf, rest) = src.split_at(mem::size_of::<f32>());
+
+    // SAFETY: `buf` is 4 bytes.
+    let n = f32::from_le_bytes(buf.try_into().unwrap());
+
+    *src = rest;
+
+    Ok(Some(Value::Float(Some(Float::from(n)))))
+}
+
+fn read_f32s<'a>(src: &mut &'a [u8], len: usize) -> Result<Option<Value<'a>>, DecodeError> {
+    let len = mem::size_of::<f32>() * len;
+
+    if src.len() < len {
+        return Err(DecodeError::UnexpectedEof);
+    }
+
+    let (buf, rest) = src.split_at(len);
+
+    let values = buf
+        .chunks_exact(mem::size_of::<f32>())
+        .map(|chunk| {
+            // SAFETY: `chunk` is 4 bytes.
+            f32::from_le_bytes(chunk.try_into().unwrap())
+        })
+        .collect();
+
+    *src = rest;
+
+    Ok(Some(Value::Array(Array::Float(values))))
+}
+
+fn read_string<'a>(src: &mut &'a [u8], len: usize) -> Result<Option<Value<'a>>, DecodeError> {
+    if src.len() < len {
+        return Err(DecodeError::UnexpectedEof);
+    }
+
+    let (buf, rest) = src.split_at(len);
+    let s = str::from_utf8(buf).map_err(DecodeError::InvalidString)?;
+    *src = rest;
+
+    Ok(Some(Value::String(Some(s))))
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub enum DecodeError {
+    UnexpectedEof,
+    InvalidType(ty::DecodeError),
+    InvalidString(str::Utf8Error),
+}
+
+impl error::Error for DecodeError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::UnexpectedEof => None,
+            Self::InvalidType(e) => Some(e),
+            Self::InvalidString(e) => Some(e),
+        }
+    }
+}
+
+impl fmt::Display for DecodeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::UnexpectedEof => write!(f, "unexpected EOF"),
+            Self::InvalidType(_) => write!(f, "invalid type"),
+            Self::InvalidString(_) => write!(f, "invalid string"),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -129,115 +207,50 @@ mod tests {
 
     #[test]
     fn test_read_value() {
-        let data = [0x00];
-        let mut reader = &data[..];
-        assert!(matches!(read_value(&mut reader), Ok(None)));
+        fn t(mut src: &[u8], expected: Option<Value<'_>>) {
+            assert_eq!(read_value(&mut src), Ok(expected));
+        }
 
-        let data = [0x01];
-        let mut reader = &data[..];
-        assert!(matches!(
-            read_value(&mut reader),
-            Ok(Some(Value::Int8(None)))
-        ));
+        t(&[0x00], None);
+        t(&[0x01], Some(Value::Int8(None)));
+        t(&[0x11, 0x05], Some(Value::Int8(Some(Int8::Value(5)))));
 
-        let data = [0x11, 0x05];
-        let mut reader = &data[..];
-        assert!(matches!(
-            read_value(&mut reader),
-            Ok(Some(Value::Int8(Some(Int8::Value(5)))))
-        ));
+        let src = &[0x31, 0x05, 0x08, 0x0d];
+        t(src, Some(Value::Array(Array::Int8(vec![5, 8, 13]))));
 
-        let data = [0x31, 0x05, 0x08, 0x0d];
-        let mut reader = &data[..];
-        assert!(matches!(
-            read_value(&mut reader),
-            Ok(Some(Value::Array(Array::Int8(values)))) if values == [5, 8, 13]
-        ));
+        t(&[0x02], Some(Value::Int16(None)));
 
-        let data = [0x02];
-        let mut reader = &data[..];
-        assert!(matches!(
-            read_value(&mut reader),
-            Ok(Some(Value::Int16(None)))
-        ));
+        let src = &[0x12, 0x79, 0x01];
+        t(src, Some(Value::Int16(Some(Int16::Value(377)))));
 
-        let data = [0x12, 0x79, 0x01];
-        let mut reader = &data[..];
-        assert!(matches!(
-            read_value(&mut reader),
-            Ok(Some(Value::Int16(Some(Int16::Value(377)))))
-        ));
+        let src = &[0x32, 0x79, 0x01, 0x62, 0x02, 0xdb, 0x03];
+        t(src, Some(Value::Array(Array::Int16(vec![377, 610, 987]))));
 
-        let data = [0x32, 0x79, 0x01, 0x62, 0x02, 0xdb, 0x03];
-        let mut reader = &data[..];
-        assert!(matches!(
-            read_value(&mut reader),
-            Ok(Some(Value::Array(Array::Int16(values)))) if values == [377, 610, 987]
-        ));
+        t(&[0x03], Some(Value::Int32(None)));
 
-        let data = [0x03];
-        let mut reader = &data[..];
-        assert!(matches!(
-            read_value(&mut reader),
-            Ok(Some(Value::Int32(None)))
-        ));
+        let src = &[0x13, 0x11, 0x25, 0x01, 0x00];
+        t(src, Some(Value::Int32(Some(Int32::Value(75025)))));
 
-        let data = [0x13, 0x11, 0x25, 0x01, 0x00];
-        let mut reader = &data[..];
-        assert!(matches!(
-            read_value(&mut reader),
-            Ok(Some(Value::Int32(Some(Int32::Value(75025)))))
-        ));
-
-        let data = [
+        let src = &[
             0x33, 0x11, 0x25, 0x01, 0x00, 0x31, 0xda, 0x01, 0x00, 0x42, 0xff, 0x02, 0x00,
         ];
-        let mut reader = &data[..];
-        assert!(matches!(
-            read_value(&mut reader),
-            Ok(Some(Value::Array(Array::Int32(values)))) if values == [75025, 121393, 196418]
-        ));
+        t(
+            src,
+            Some(Value::Array(Array::Int32(vec![75025, 121393, 196418]))),
+        );
 
-        let data = [0x05];
-        let mut reader = &data[..];
-        assert!(matches!(
-            read_value(&mut reader),
-            Ok(Some(Value::Float(None)))
-        ));
+        t(&[0x05], Some(Value::Float(None)));
 
-        let data = [0x15, 0x00, 0x00, 0x00, 0x00];
-        let mut reader = &data[..];
-        assert!(matches!(
-            read_value(&mut reader),
-            Ok(Some(Value::Float(Some(Float::Value(value))))) if value == 0.0
-        ));
+        let src = &[0x15, 0x00, 0x00, 0x00, 0x00];
+        t(src, Some(Value::Float(Some(Float::from(0.0)))));
 
-        let data = [0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3f];
-        let mut reader = &data[..];
-        assert!(matches!(
-            read_value(&mut reader),
-            Ok(Some(Value::Array(Array::Float(value)))) if value == [0.0, 0.5]
-        ));
+        let src = &[0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3f];
+        t(src, Some(Value::Array(Array::Float(vec![0.0, 0.5]))));
 
-        let data = [0x07];
-        let mut reader = &data[..];
-        assert!(matches!(
-            read_value(&mut reader),
-            Ok(Some(Value::String(None)))
-        ));
+        t(&[0x07], Some(Value::String(None)));
+        t(&[0x17, b'n'], Some(Value::String(Some("n"))));
 
-        let data = [0x17, 0x6e];
-        let mut reader = &data[..];
-        assert!(matches!(
-            read_value(&mut reader),
-            Ok(Some(Value::String(Some(value)))) if value == "n"
-        ));
-
-        let data = [0x47, 0x6e, 0x64, 0x6c, 0x73];
-        let mut reader = &data[..];
-        assert!(matches!(
-            read_value(&mut reader),
-            Ok(Some(Value::String(Some(value)))) if value == "ndls"
-        ));
+        let src = &[0x47, b'n', b'd', b'l', b's'];
+        t(src, Some(Value::String(Some("ndls"))));
     }
 }

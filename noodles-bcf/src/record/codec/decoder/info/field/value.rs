@@ -30,7 +30,7 @@ pub(super) fn read_value(
 }
 
 fn read_integer_value(src: &mut &[u8]) -> io::Result<Option<vcf::record::info::field::Value>> {
-    match value::read_value(src)? {
+    match value::read_value(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))? {
         None
         | Some(Value::Int8(None | Some(Int8::Missing)))
         | Some(Value::Int16(None | Some(Int16::Missing)))
@@ -86,7 +86,7 @@ fn read_integer_value(src: &mut &[u8]) -> io::Result<Option<vcf::record::info::f
 }
 
 fn read_flag_value(src: &mut &[u8]) -> io::Result<Option<vcf::record::info::field::Value>> {
-    match value::read_value(src)? {
+    match value::read_value(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))? {
         None | Some(Value::Int8(Some(Int8::Value(1)))) => {
             Ok(Some(vcf::record::info::field::Value::Flag))
         }
@@ -95,7 +95,7 @@ fn read_flag_value(src: &mut &[u8]) -> io::Result<Option<vcf::record::info::fiel
 }
 
 fn read_float_value(src: &mut &[u8]) -> io::Result<Option<vcf::record::info::field::Value>> {
-    match value::read_value(src)? {
+    match value::read_value(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))? {
         None | Some(Value::Float(None | Some(Float::Missing))) => Ok(None),
         Some(Value::Float(Some(Float::Value(n)))) => {
             Ok(Some(vcf::record::info::field::Value::from(n)))
@@ -121,7 +121,7 @@ fn read_character_value(src: &mut &[u8]) -> io::Result<Option<vcf::record::info:
     const DELIMITER: char = ',';
     const MISSING_VALUE: char = '.';
 
-    match value::read_value(src)? {
+    match value::read_value(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))? {
         None | Some(Value::String(None)) => Ok(None),
         Some(Value::String(Some(s))) => match s.len() {
             0 | 1 => s
@@ -147,7 +147,7 @@ fn read_character_value(src: &mut &[u8]) -> io::Result<Option<vcf::record::info:
 }
 
 fn read_string_value(src: &mut &[u8]) -> io::Result<Option<vcf::record::info::field::Value>> {
-    match value::read_value(src)? {
+    match value::read_value(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))? {
         None | Some(Value::String(None)) => Ok(None),
         Some(Value::String(Some(s))) => Ok(Some(vcf::record::info::field::Value::from(s))),
         v => Err(type_mismatch_error(v, Type::String)),
