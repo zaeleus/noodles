@@ -343,7 +343,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_genotype_field_values_with_int8_values() -> io::Result<()> {
+    fn test_read_values_with_int8_values() -> io::Result<()> {
         let mut src = &[
             0x11, // Some(Type::Int8(1))
             0x05, // Some(5)
@@ -360,7 +360,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_genotype_field_values_with_int8_array_values() -> io::Result<()> {
+    fn test_read_values_with_int8_array_values() -> io::Result<()> {
         let mut src = &[
             0x21, // Some(Type::Int8(2))
             0x05, 0x08, // Some([Some(5), Some(8)])
@@ -383,7 +383,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_genotype_field_values_with_int16_values() -> io::Result<()> {
+    fn test_read_values_with_int16_values() -> io::Result<()> {
         let mut src = &[
             0x12, // Some(Type::Int16(1))
             0x05, 0x00, // Some(5)
@@ -400,7 +400,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_genotype_field_values_with_int16_array_values() -> io::Result<()> {
+    fn test_read_values_with_int16_array_values() -> io::Result<()> {
         let mut src = &[
             0x22, // Some(Type::Int16(2))
             0x05, 0x00, 0x08, 0x00, // Some([Some(5), Some(8)])
@@ -423,7 +423,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_genotype_field_values_with_int32_values() -> io::Result<()> {
+    fn test_read_values_with_int32_values() -> io::Result<()> {
         let mut src = &[
             0x13, // Some(Type::Int32(1))
             0x05, 0x00, 0x00, 0x00, // Some(5)
@@ -440,7 +440,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_genotype_field_values_with_int32_array_values() -> io::Result<()> {
+    fn test_read_values_with_int32_array_values() -> io::Result<()> {
         let mut src = &[
             0x23, // Some(Type::Int32(2))
             0x05, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, // Some([Some(5), Some(8)])
@@ -463,7 +463,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_genotype_field_values_with_float_values() -> io::Result<()> {
+    fn test_read_values_with_float_values() -> io::Result<()> {
         let mut src = &[
             0x15, // Some(Type::Float(1))
             0x00, 0x00, 0x00, 0x00, // Some(0.0)
@@ -480,7 +480,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_genotype_field_values_with_float_array_values() -> io::Result<()> {
+    fn test_read_values_with_float_array_values() -> io::Result<()> {
         let mut src = &[
             0x25, // Some(Type::Float(2))
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f, // Some([Some(0.0), Some(1.0)])
@@ -503,7 +503,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_genotype_field_values_with_string_values() -> io::Result<()> {
+    fn test_read_values_with_string_values() -> io::Result<()> {
         let mut src = &[
             0x47, // Some(Type::String(4))
             b'n', 0x00, 0x00, 0x00, // "n"

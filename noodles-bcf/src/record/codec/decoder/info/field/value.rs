@@ -168,7 +168,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_info_field_value_with_integer_value() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_read_value_with_integer_value() -> Result<(), Box<dyn std::error::Error>> {
         fn t(mut src: &[u8], info: &Map<map::Info>, expected_value: Option<i32>) -> io::Result<()> {
             let actual = read_value(&mut src, info)?;
             let expected = expected_value.map(vcf::record::info::field::Value::from);
@@ -206,8 +206,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_info_field_value_with_integer_array_value(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn test_read_value_with_integer_array_value() -> Result<(), Box<dyn std::error::Error>> {
         fn t(
             mut src: &[u8],
             info: &Map<map::Info>,
@@ -256,7 +255,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_info_field_value_with_flag_value() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_read_value_with_flag_value() -> Result<(), Box<dyn std::error::Error>> {
         fn t(mut src: &[u8], info: &Map<map::Info>) -> io::Result<()> {
             let actual = read_value(&mut src, info)?;
             let expected = Some(vcf::record::info::field::Value::Flag);
@@ -275,7 +274,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_info_field_value_with_float_value() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_read_value_with_float_value() -> Result<(), Box<dyn std::error::Error>> {
         fn t(mut src: &[u8], info: &Map<map::Info>, expected_value: Option<f32>) -> io::Result<()> {
             let actual = read_value(&mut src, info)?;
             let expected = expected_value.map(vcf::record::info::field::Value::from);
@@ -299,8 +298,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_info_field_value_with_float_array_value() -> Result<(), Box<dyn std::error::Error>>
-    {
+    fn test_read_value_with_float_array_value() -> Result<(), Box<dyn std::error::Error>> {
         fn t(
             mut src: &[u8],
             info: &Map<map::Info>,
@@ -331,7 +329,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_info_field_value_with_character_value() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_read_value_with_character_value() -> Result<(), Box<dyn std::error::Error>> {
         fn t(
             mut src: &[u8],
             info: &Map<map::Info>,
@@ -357,8 +355,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_info_field_value_with_character_array_value(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn test_read_value_with_character_array_value() -> Result<(), Box<dyn std::error::Error>> {
         fn t(
             mut src: &[u8],
             info: &Map<map::Info>,
@@ -392,7 +389,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_info_field_value_with_string_value() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_read_value_with_string_value() -> Result<(), Box<dyn std::error::Error>> {
         fn t(
             mut src: &[u8],
             info: &Map<map::Info>,
