@@ -64,7 +64,8 @@ pub fn read_site(
     read_filter(src, &mut filters)?;
     *record.filters_mut() = filters.try_into_vcf_record_filters(string_maps.strings())?;
 
-    *record.info_mut() = read_info(src, header.infos(), string_maps.strings(), n_info)?;
+    *record.info_mut() = read_info(src, header.infos(), string_maps.strings(), n_info)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     Ok((n_fmt, n_sample))
 }

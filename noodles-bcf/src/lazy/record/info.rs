@@ -35,8 +35,11 @@ impl Info {
         string_string_map: &StringStringMap,
     ) -> io::Result<vcf::record::Info> {
         use crate::record::codec::decoder::read_info;
+
         let mut reader = &self.buf[..];
+
         read_info(&mut reader, header.infos(), string_string_map, self.len())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
     /// Creates an info map by wrapping the given buffer.
