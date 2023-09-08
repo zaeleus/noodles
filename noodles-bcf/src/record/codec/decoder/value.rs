@@ -1,4 +1,4 @@
-mod ty;
+pub mod ty;
 
 use std::{error, fmt, mem, str};
 

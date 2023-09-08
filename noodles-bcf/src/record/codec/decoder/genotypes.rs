@@ -31,9 +31,11 @@ pub fn read_genotypes(
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         let vs = if key == &key::GENOTYPE {
-            read_genotype_values(src, sample_count)?
+            read_genotype_values(src, sample_count)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
         } else {
-            read_values(src, sample_count)?
+            read_values(src, sample_count)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
         };
 
         keys.push(key.clone());

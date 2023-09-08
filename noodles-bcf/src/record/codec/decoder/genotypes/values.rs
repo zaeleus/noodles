@@ -1,63 +1,42 @@
-use std::{
-    io::{self, Read},
-    str,
-};
+use std::{error, fmt, mem, str};
 
-use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_vcf::record::genotypes::sample::Value;
 
 use crate::{
     lazy::record::value::{Float, Int16, Int32, Int8, Type},
-    record::codec::decoder::value::read_type,
+    record::codec::decoder::value::{read_type, ty},
 };
 
-pub(super) fn read_values(src: &mut &[u8], sample_count: usize) -> io::Result<Vec<Option<Value>>> {
-    match read_type(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))? {
-        Some(Type::Int8(len)) => match len {
-            0 => Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                format!("invalid number: {len}"),
-            )),
-            1 => read_int8_values(src, sample_count),
-            _ => read_int8_array_values(src, sample_count, len),
-        },
-        Some(Type::Int16(len)) => match len {
-            0 => Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                format!("invalid number: {len}"),
-            )),
-            1 => read_int16_values(src, sample_count),
-            _ => read_int16_array_values(src, sample_count, len),
-        },
-        Some(Type::Int32(len)) => match len {
-            0 => Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                format!("invalid number: {len}"),
-            )),
-            1 => read_int32_values(src, sample_count),
-            _ => read_int32_array_values(src, sample_count, len),
-        },
-        Some(Type::Float(len)) => match len {
-            0 => Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                format!("invalid number: {len}"),
-            )),
-            1 => read_float_values(src, sample_count),
-            _ => read_float_array_values(src, sample_count, len),
-        },
-        Some(Type::String(len)) => read_string_values(src, sample_count, len),
-        ty => Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!("unhandled type: {ty:?}"),
-        )),
+pub(super) fn read_values(
+    src: &mut &[u8],
+    sample_count: usize,
+) -> Result<Vec<Option<Value>>, DecodeError> {
+    match read_type(src).map_err(DecodeError::InvalidType)? {
+        Some(Type::Int8(0)) => Err(DecodeError::InvalidLength),
+        Some(Type::Int8(1)) => read_int8_values(src, sample_count),
+        Some(Type::Int8(n)) => read_int8_array_values(src, sample_count, n),
+        Some(Type::Int16(0)) => Err(DecodeError::InvalidLength),
+        Some(Type::Int16(1)) => read_int16_values(src, sample_count),
+        Some(Type::Int16(n)) => read_int16_array_values(src, sample_count, n),
+        Some(Type::Int32(0)) => Err(DecodeError::InvalidLength),
+        Some(Type::Int32(1)) => read_int32_values(src, sample_count),
+        Some(Type::Int32(n)) => read_int32_array_values(src, sample_count, n),
+        Some(Type::Float(0)) => Err(DecodeError::InvalidLength),
+        Some(Type::Float(1)) => read_float_values(src, sample_count),
+        Some(Type::Float(n)) => read_float_array_values(src, sample_count, n),
+        Some(Type::String(n)) => read_string_values(src, sample_count, n),
+        ty => todo!("unhandled type: {ty:?}"),
     }
 }
 
-fn read_int8_values(src: &mut &[u8], sample_count: usize) -> io::Result<Vec<Option<Value>>> {
+fn read_int8_values(
+    src: &mut &[u8],
+    sample_count: usize,
+) -> Result<Vec<Option<Value>>, DecodeError> {
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
-        let value = src.read_i8().map(Int8::from)?;
+        let value = read_i8(src).map(Int8::from)?;
 
         match value {
             Int8::Value(n) => values.push(Some(Value::from(i32::from(n)))),
@@ -73,12 +52,11 @@ fn read_int8_array_values(
     src: &mut &[u8],
     sample_count: usize,
     len: usize,
-) -> io::Result<Vec<Option<Value>>> {
+) -> Result<Vec<Option<Value>>, DecodeError> {
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
-        let mut buf = vec![0; len];
-        src.read_i8_into(&mut buf)?;
+        let buf = read_i8s(src, len)?;
 
         let vs: Vec<_> = buf
             .into_iter()
@@ -101,11 +79,14 @@ fn read_int8_array_values(
     Ok(values)
 }
 
-fn read_int16_values(src: &mut &[u8], sample_count: usize) -> io::Result<Vec<Option<Value>>> {
+fn read_int16_values(
+    src: &mut &[u8],
+    sample_count: usize,
+) -> Result<Vec<Option<Value>>, DecodeError> {
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
-        let value = src.read_i16::<LittleEndian>().map(Int16::from)?;
+        let value = read_i16(src).map(Int16::from)?;
 
         match value {
             Int16::Value(n) => values.push(Some(Value::from(i32::from(n)))),
@@ -121,12 +102,11 @@ fn read_int16_array_values(
     src: &mut &[u8],
     sample_count: usize,
     len: usize,
-) -> io::Result<Vec<Option<Value>>> {
+) -> Result<Vec<Option<Value>>, DecodeError> {
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
-        let mut buf = vec![0; len];
-        src.read_i16_into::<LittleEndian>(&mut buf)?;
+        let buf = read_i16s(src, len)?;
 
         let vs: Vec<_> = buf
             .into_iter()
@@ -149,11 +129,14 @@ fn read_int16_array_values(
     Ok(values)
 }
 
-fn read_int32_values(src: &mut &[u8], sample_count: usize) -> io::Result<Vec<Option<Value>>> {
+fn read_int32_values(
+    src: &mut &[u8],
+    sample_count: usize,
+) -> Result<Vec<Option<Value>>, DecodeError> {
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
-        let value = src.read_i32::<LittleEndian>().map(Int32::from)?;
+        let value = read_i32(src).map(Int32::from)?;
 
         match value {
             Int32::Value(n) => values.push(Some(Value::from(n))),
@@ -169,12 +152,11 @@ fn read_int32_array_values(
     src: &mut &[u8],
     sample_count: usize,
     len: usize,
-) -> io::Result<Vec<Option<Value>>> {
+) -> Result<Vec<Option<Value>>, DecodeError> {
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
-        let mut buf = vec![0; len];
-        src.read_i32_into::<LittleEndian>(&mut buf)?;
+        let buf = read_i32s(src, len)?;
 
         let vs: Vec<_> = buf
             .into_iter()
@@ -197,11 +179,14 @@ fn read_int32_array_values(
     Ok(values)
 }
 
-fn read_float_values(src: &mut &[u8], sample_count: usize) -> io::Result<Vec<Option<Value>>> {
+fn read_float_values(
+    src: &mut &[u8],
+    sample_count: usize,
+) -> Result<Vec<Option<Value>>, DecodeError> {
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
-        let value = src.read_f32::<LittleEndian>().map(Float::from)?;
+        let value = read_f32(src).map(Float::from)?;
 
         match value {
             Float::Value(n) => values.push(Some(Value::from(n))),
@@ -217,12 +202,11 @@ fn read_float_array_values(
     src: &mut &[u8],
     sample_count: usize,
     len: usize,
-) -> io::Result<Vec<Option<Value>>> {
+) -> Result<Vec<Option<Value>>, DecodeError> {
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
-        let mut buf = vec![0.0; len];
-        src.read_f32_into::<LittleEndian>(&mut buf)?;
+        let buf = read_f32s(src, len)?;
 
         let vs: Vec<_> = buf
             .into_iter()
@@ -249,21 +233,20 @@ fn read_string_values(
     src: &mut &[u8],
     sample_count: usize,
     len: usize,
-) -> io::Result<Vec<Option<Value>>> {
+) -> Result<Vec<Option<Value>>, DecodeError> {
     const NUL: u8 = 0x00;
 
     let mut values = Vec::with_capacity(sample_count);
-    let mut buf = vec![0; len];
 
     for _ in 0..sample_count {
-        src.read_exact(&mut buf)?;
+        let buf = read_string(src, len)?;
 
         let data = match buf.iter().position(|&b| b == NUL) {
             Some(i) => &buf[..i],
-            None => &buf[..],
+            None => buf,
         };
 
-        let s = str::from_utf8(data).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let s = str::from_utf8(data).map_err(DecodeError::InvalidString)?;
         let value = Value::from(s);
 
         values.push(Some(value));
@@ -275,16 +258,15 @@ fn read_string_values(
 pub(super) fn read_genotype_values(
     src: &mut &[u8],
     sample_count: usize,
-) -> io::Result<Vec<Option<Value>>> {
+) -> Result<Vec<Option<Value>>, DecodeError> {
     let mut values = Vec::with_capacity(sample_count);
 
-    match read_type(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))? {
+    match read_type(src).map_err(DecodeError::InvalidType)? {
         Some(Type::Int8(len)) => match len {
             0 => values.push(None),
             1 => {
                 for _ in 0..sample_count {
-                    let value = src
-                        .read_i8()
+                    let value = read_i8(src)
                         .map(|v| parse_genotype_values(&[v]))
                         .map(Value::from)?;
 
@@ -292,10 +274,8 @@ pub(super) fn read_genotype_values(
                 }
             }
             _ => {
-                let mut buf = vec![0; len];
-
                 for _ in 0..sample_count {
-                    src.read_i8_into(&mut buf)?;
+                    let buf = read_i8s(src, len)?;
                     let value = Value::from(parse_genotype_values(&buf));
                     values.push(Some(value));
                 }
@@ -338,12 +318,184 @@ fn parse_genotype_values(values: &[i8]) -> String {
     genotype
 }
 
+fn read_i8(src: &mut &[u8]) -> Result<i8, DecodeError> {
+    if let Some((b, rest)) = src.split_first() {
+        *src = rest;
+        Ok(*b as i8)
+    } else {
+        Err(DecodeError::UnexpectedEof)
+    }
+}
+
+fn read_i8s(src: &mut &[u8], len: usize) -> Result<Vec<i8>, DecodeError> {
+    if src.len() < len {
+        return Err(DecodeError::UnexpectedEof);
+    }
+
+    let (buf, rest) = src.split_at(len);
+    let values = buf.iter().map(|&b| b as i8).collect();
+    *src = rest;
+
+    Ok(values)
+}
+
+fn read_i16(src: &mut &[u8]) -> Result<i16, DecodeError> {
+    if src.len() < mem::size_of::<i16>() {
+        return Err(DecodeError::UnexpectedEof);
+    }
+
+    let (buf, rest) = src.split_at(mem::size_of::<i16>());
+
+    // SAFETY: `buf` is 2 bytes.
+    let n = i16::from_le_bytes(buf.try_into().unwrap());
+
+    *src = rest;
+
+    Ok(n)
+}
+
+fn read_i16s(src: &mut &[u8], len: usize) -> Result<Vec<i16>, DecodeError> {
+    let len = mem::size_of::<i16>() * len;
+
+    if src.len() < len {
+        return Err(DecodeError::UnexpectedEof);
+    }
+
+    let (buf, rest) = src.split_at(len);
+
+    let values = buf
+        .chunks_exact(mem::size_of::<i16>())
+        .map(|chunk| {
+            // SAFETY: `chunk` is 2 bytes.
+            i16::from_le_bytes(chunk.try_into().unwrap())
+        })
+        .collect();
+
+    *src = rest;
+
+    Ok(values)
+}
+
+fn read_i32(src: &mut &[u8]) -> Result<i32, DecodeError> {
+    if src.len() < mem::size_of::<i32>() {
+        return Err(DecodeError::UnexpectedEof);
+    }
+
+    let (buf, rest) = src.split_at(mem::size_of::<i32>());
+
+    // SAFETY: `buf` is 4 bytes.
+    let n = i32::from_le_bytes(buf.try_into().unwrap());
+
+    *src = rest;
+
+    Ok(n)
+}
+
+fn read_i32s(src: &mut &[u8], len: usize) -> Result<Vec<i32>, DecodeError> {
+    let len = mem::size_of::<i32>() * len;
+
+    if src.len() < len {
+        return Err(DecodeError::UnexpectedEof);
+    }
+
+    let (buf, rest) = src.split_at(len);
+
+    let values = buf
+        .chunks_exact(mem::size_of::<i32>())
+        .map(|chunk| {
+            // SAFETY: `chunk` is 4 bytes.
+            i32::from_le_bytes(chunk.try_into().unwrap())
+        })
+        .collect();
+
+    *src = rest;
+
+    Ok(values)
+}
+
+fn read_f32(src: &mut &[u8]) -> Result<f32, DecodeError> {
+    if src.len() < mem::size_of::<f32>() {
+        return Err(DecodeError::UnexpectedEof);
+    }
+
+    let (buf, rest) = src.split_at(mem::size_of::<f32>());
+
+    // SAFETY: `buf` is 4 bytes.
+    let n = f32::from_le_bytes(buf.try_into().unwrap());
+
+    *src = rest;
+
+    Ok(n)
+}
+
+fn read_f32s(src: &mut &[u8], len: usize) -> Result<Vec<f32>, DecodeError> {
+    let len = mem::size_of::<f32>() * len;
+
+    if src.len() < len {
+        return Err(DecodeError::UnexpectedEof);
+    }
+
+    let (buf, rest) = src.split_at(len);
+
+    let values = buf
+        .chunks_exact(mem::size_of::<f32>())
+        .map(|chunk| {
+            // SAFETY: `chunk` is 4 bytes.
+            f32::from_le_bytes(chunk.try_into().unwrap())
+        })
+        .collect();
+
+    *src = rest;
+
+    Ok(values)
+}
+
+fn read_string<'a>(src: &mut &'a [u8], len: usize) -> Result<&'a [u8], DecodeError> {
+    if src.len() < len {
+        return Err(DecodeError::UnexpectedEof);
+    }
+
+    let (buf, rest) = src.split_at(len);
+    *src = rest;
+
+    Ok(buf)
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub enum DecodeError {
+    UnexpectedEof,
+    InvalidType(ty::DecodeError),
+    InvalidLength,
+    InvalidString(str::Utf8Error),
+}
+
+impl error::Error for DecodeError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidType(e) => Some(e),
+            Self::InvalidString(e) => Some(e),
+            _ => None,
+        }
+    }
+}
+
+impl fmt::Display for DecodeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::UnexpectedEof => write!(f, "unexpected EOF"),
+            Self::InvalidType(_) => write!(f, "invalid type"),
+            Self::InvalidLength => write!(f, "invalid length"),
+            Self::InvalidString(_) => write!(f, "invalid string"),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_read_values_with_int8_values() -> io::Result<()> {
+    fn test_read_values_with_int8_values() {
         let mut src = &[
             0x11, // Some(Type::Int8(1))
             0x05, // Some(5)
@@ -351,16 +503,14 @@ mod tests {
             0x80, // None
         ][..];
 
-        let actual = read_values(&mut src, 3)?;
-        let expected = vec![Some(Value::from(5)), Some(Value::from(8)), None];
-
-        assert_eq!(actual, expected);
-
-        Ok(())
+        assert_eq!(
+            read_values(&mut src, 3),
+            Ok(vec![Some(Value::from(5)), Some(Value::from(8)), None])
+        );
     }
 
     #[test]
-    fn test_read_values_with_int8_array_values() -> io::Result<()> {
+    fn test_read_values_with_int8_array_values() {
         let mut src = &[
             0x21, // Some(Type::Int8(2))
             0x05, 0x08, // Some([Some(5), Some(8)])
@@ -369,21 +519,19 @@ mod tests {
             0x80, 0x81, // None
         ][..];
 
-        let actual = read_values(&mut src, 4)?;
-        let expected = vec![
-            Some(Value::from(vec![Some(5), Some(8)])),
-            Some(Value::from(vec![Some(13), None])),
-            Some(Value::from(vec![Some(21)])),
-            None,
-        ];
-
-        assert_eq!(actual, expected);
-
-        Ok(())
+        assert_eq!(
+            read_values(&mut src, 4),
+            Ok(vec![
+                Some(Value::from(vec![Some(5), Some(8)])),
+                Some(Value::from(vec![Some(13), None])),
+                Some(Value::from(vec![Some(21)])),
+                None,
+            ])
+        );
     }
 
     #[test]
-    fn test_read_values_with_int16_values() -> io::Result<()> {
+    fn test_read_values_with_int16_values() {
         let mut src = &[
             0x12, // Some(Type::Int16(1))
             0x05, 0x00, // Some(5)
@@ -391,16 +539,14 @@ mod tests {
             0x00, 0x80, // None
         ][..];
 
-        let actual = read_values(&mut src, 3)?;
-        let expected = vec![Some(Value::from(5)), Some(Value::from(8)), None];
-
-        assert_eq!(actual, expected);
-
-        Ok(())
+        assert_eq!(
+            read_values(&mut src, 3),
+            Ok(vec![Some(Value::from(5)), Some(Value::from(8)), None])
+        );
     }
 
     #[test]
-    fn test_read_values_with_int16_array_values() -> io::Result<()> {
+    fn test_read_values_with_int16_array_values() {
         let mut src = &[
             0x22, // Some(Type::Int16(2))
             0x05, 0x00, 0x08, 0x00, // Some([Some(5), Some(8)])
@@ -409,21 +555,19 @@ mod tests {
             0x00, 0x80, 0x01, 0x80, // None
         ][..];
 
-        let actual = read_values(&mut src, 4)?;
-        let expected = vec![
-            Some(Value::from(vec![Some(5), Some(8)])),
-            Some(Value::from(vec![Some(13), None])),
-            Some(Value::from(vec![Some(21)])),
-            None,
-        ];
-
-        assert_eq!(actual, expected);
-
-        Ok(())
+        assert_eq!(
+            read_values(&mut src, 4),
+            Ok(vec![
+                Some(Value::from(vec![Some(5), Some(8)])),
+                Some(Value::from(vec![Some(13), None])),
+                Some(Value::from(vec![Some(21)])),
+                None,
+            ])
+        );
     }
 
     #[test]
-    fn test_read_values_with_int32_values() -> io::Result<()> {
+    fn test_read_values_with_int32_values() {
         let mut src = &[
             0x13, // Some(Type::Int32(1))
             0x05, 0x00, 0x00, 0x00, // Some(5)
@@ -431,16 +575,14 @@ mod tests {
             0x00, 0x00, 0x00, 0x80, // None
         ][..];
 
-        let actual = read_values(&mut src, 3)?;
-        let expected = vec![Some(Value::from(5)), Some(Value::from(8)), None];
-
-        assert_eq!(actual, expected);
-
-        Ok(())
+        assert_eq!(
+            read_values(&mut src, 3),
+            Ok(vec![Some(Value::from(5)), Some(Value::from(8)), None])
+        );
     }
 
     #[test]
-    fn test_read_values_with_int32_array_values() -> io::Result<()> {
+    fn test_read_values_with_int32_array_values() {
         let mut src = &[
             0x23, // Some(Type::Int32(2))
             0x05, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, // Some([Some(5), Some(8)])
@@ -449,21 +591,19 @@ mod tests {
             0x00, 0x00, 0x00, 0x80, 0x01, 0x00, 0x00, 0x80, // None
         ][..];
 
-        let actual = read_values(&mut src, 4)?;
-        let expected = vec![
-            Some(Value::from(vec![Some(5), Some(8)])),
-            Some(Value::from(vec![Some(13), None])),
-            Some(Value::from(vec![Some(21)])),
-            None,
-        ];
-
-        assert_eq!(actual, expected);
-
-        Ok(())
+        assert_eq!(
+            read_values(&mut src, 4),
+            Ok(vec![
+                Some(Value::from(vec![Some(5), Some(8)])),
+                Some(Value::from(vec![Some(13), None])),
+                Some(Value::from(vec![Some(21)])),
+                None,
+            ])
+        );
     }
 
     #[test]
-    fn test_read_values_with_float_values() -> io::Result<()> {
+    fn test_read_values_with_float_values() {
         let mut src = &[
             0x15, // Some(Type::Float(1))
             0x00, 0x00, 0x00, 0x00, // Some(0.0)
@@ -471,16 +611,14 @@ mod tests {
             0x01, 0x00, 0x80, 0x7f, // None
         ][..];
 
-        let actual = read_values(&mut src, 3)?;
-        let expected = vec![Some(Value::from(0.0)), Some(Value::from(1.0)), None];
-
-        assert_eq!(actual, expected);
-
-        Ok(())
+        assert_eq!(
+            read_values(&mut src, 3),
+            Ok(vec![Some(Value::from(0.0)), Some(Value::from(1.0)), None])
+        );
     }
 
     #[test]
-    fn test_read_values_with_float_array_values() -> io::Result<()> {
+    fn test_read_values_with_float_array_values() {
         let mut src = &[
             0x25, // Some(Type::Float(2))
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f, // Some([Some(0.0), Some(1.0)])
@@ -489,21 +627,19 @@ mod tests {
             0x01, 0x00, 0x80, 0x7f, 0x02, 0x00, 0x80, 0x7f, // None
         ][..];
 
-        let actual = read_values(&mut src, 4)?;
-        let expected = vec![
-            Some(Value::from(vec![Some(0.0), Some(1.0)])),
-            Some(Value::from(vec![Some(0.0), None])),
-            Some(Value::from(vec![Some(0.0)])),
-            None,
-        ];
-
-        assert_eq!(actual, expected);
-
-        Ok(())
+        assert_eq!(
+            read_values(&mut src, 4),
+            Ok(vec![
+                Some(Value::from(vec![Some(0.0), Some(1.0)])),
+                Some(Value::from(vec![Some(0.0), None])),
+                Some(Value::from(vec![Some(0.0)])),
+                None,
+            ])
+        );
     }
 
     #[test]
-    fn test_read_values_with_string_values() -> io::Result<()> {
+    fn test_read_values_with_string_values() {
         let mut src = &[
             0x47, // Some(Type::String(4))
             b'n', 0x00, 0x00, 0x00, // "n"
@@ -511,16 +647,14 @@ mod tests {
             b'n', b'd', b'l', b's', // "ndls"
         ][..];
 
-        let actual = read_values(&mut src, 3)?;
-        let expected = vec![
-            Some(Value::from("n")),
-            Some(Value::from("ndl")),
-            Some(Value::from("ndls")),
-        ];
-
-        assert_eq!(actual, expected);
-
-        Ok(())
+        assert_eq!(
+            read_values(&mut src, 3),
+            Ok(vec![
+                Some(Value::from("n")),
+                Some(Value::from("ndl")),
+                Some(Value::from("ndls")),
+            ])
+        );
     }
 
     #[test]
