@@ -27,7 +27,8 @@ pub fn read_genotypes(
     let mut values = vec![Vec::new(); sample_count];
 
     for _ in 0..format_count {
-        let key = read_key(src, formats, string_map)?;
+        let key = read_key(src, formats, string_map)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         let vs = if key == &key::GENOTYPE {
             read_genotype_values(src, sample_count)?
