@@ -26,7 +26,7 @@ pub(crate) fn read_field(
         )
     })?;
 
-    let value = read_value(src, info)?;
+    let value = read_value(src, info).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     Ok((key.clone(), value))
 }
