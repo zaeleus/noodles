@@ -16,7 +16,8 @@ pub fn read_info(
     let mut info = vcf::record::Info::default();
 
     for _ in 0..len {
-        let (key, value) = read_field(src, infos, string_string_map)?;
+        let (key, value) = read_field(src, infos, string_string_map)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         if info.insert(key.clone(), value).is_some() {
             return Err(io::Error::new(

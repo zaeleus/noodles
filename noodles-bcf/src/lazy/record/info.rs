@@ -209,7 +209,11 @@ impl Info {
         use crate::record::codec::decoder::info::read_field;
 
         let mut reader = &self.buf[..];
-        (0..self.len()).map(move |_| read_field(&mut reader, header.infos(), string_string_map))
+
+        (0..self.len()).map(move |_| {
+            read_field(&mut reader, header.infos(), string_string_map)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })
     }
 
     /// Returns an iterator over all info values.
