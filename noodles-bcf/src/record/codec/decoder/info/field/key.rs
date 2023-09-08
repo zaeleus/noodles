@@ -12,6 +12,7 @@ pub(super) fn read_key<'h>(
     string_string_map: &StringStringMap,
 ) -> io::Result<&'h vcf::record::info::field::Key> {
     read_string_map_index(src)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         .and_then(|j| {
             string_string_map.get_index(j).ok_or_else(|| {
                 io::Error::new(
