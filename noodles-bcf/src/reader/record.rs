@@ -42,7 +42,8 @@ where
         string_maps.strings(),
         n_sample,
         n_fmt,
-    )?;
+    )
+    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     Ok(l_shared + l_indiv)
 }

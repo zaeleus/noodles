@@ -50,7 +50,8 @@ impl Genotypes {
             string_map,
             self.len(),
             self.format_count(),
-        )?;
+        )
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         Ok(genotypes)
     }
