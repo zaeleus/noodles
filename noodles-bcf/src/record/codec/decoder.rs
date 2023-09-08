@@ -1,26 +1,25 @@
+mod bases;
+mod chromosome_id;
+mod filters;
 mod genotypes;
+mod ids;
 pub mod info;
+mod position;
+mod quality_score;
 mod string_map;
 mod value;
-
-pub use self::{genotypes::read_genotypes, info::read_info};
 
 use std::io;
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use noodles_vcf::{
-    self as vcf,
-    record::{AlternateBases, Ids, Position, QualityScore, ReferenceBases},
-};
+use noodles_vcf as vcf;
 
-use self::value::read_value;
-use crate::{
-    header::StringMaps,
-    lazy::{
-        self,
-        record::{ChromosomeId, Filters, Value},
-    },
+pub(crate) use self::{
+    bases::read_ref_alt, chromosome_id::read_chrom, filters::read_filter, ids::read_id,
+    position::read_pos, quality_score::read_qual,
 };
+pub use self::{genotypes::read_genotypes, info::read_info, value::read_value};
+use crate::{header::StringMaps, lazy};
 
 pub fn read_site(
     src: &mut &[u8],
@@ -70,101 +69,7 @@ pub fn read_site(
     Ok((n_fmt, n_sample))
 }
 
-pub fn read_chrom(src: &mut &[u8]) -> io::Result<ChromosomeId> {
-    src.read_i32::<LittleEndian>().and_then(|n| {
-        ChromosomeId::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })
-}
-
 pub fn read_rlen(src: &mut &[u8]) -> io::Result<usize> {
     src.read_i32::<LittleEndian>()
         .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
-}
-
-pub fn read_pos(src: &mut &[u8]) -> io::Result<Position> {
-    src.read_i32::<LittleEndian>().and_then(|n| {
-        usize::try_from(n + 1)
-            .map(Position::from)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })
-}
-
-pub fn read_qual(src: &mut &[u8]) -> io::Result<Option<QualityScore>> {
-    use crate::lazy::record::value::Float;
-
-    match src.read_f32::<LittleEndian>().map(Float::from)? {
-        Float::Value(value) => QualityScore::try_from(value)
-            .map(Some)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e)),
-        Float::Missing => Ok(None),
-        qual => Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            format!("invalid qual: {qual:?}"),
-        )),
-    }
-}
-
-pub fn read_id(src: &mut &[u8]) -> io::Result<Ids> {
-    match read_value(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))? {
-        Some(Value::String(Some(id))) => id
-            .parse()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-        Some(Value::String(None)) => Ok(Ids::default()),
-        v => Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!("invalid id: expected string, got {v:?}"),
-        )),
-    }
-}
-
-pub fn read_ref_alt(src: &mut &[u8], len: usize) -> io::Result<(ReferenceBases, AlternateBases)> {
-    let mut alleles = Vec::with_capacity(len);
-
-    for _ in 0..len {
-        match read_value(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))? {
-            Some(Value::String(Some(s))) => alleles.push(s.into()),
-            Some(Value::String(None)) => alleles.push(String::from(".")),
-            v => {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    format!("invalid ref_alt: expected string, got {v:?}"),
-                ))
-            }
-        }
-    }
-
-    let (raw_reference_bases, raw_alternate_bases) = alleles.split_at(1);
-
-    let reference_bases = raw_reference_bases
-        .first()
-        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing reference bases"))
-        .and_then(|s| {
-            s.parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-        })?;
-
-    let alternate_bases = raw_alternate_bases
-        .iter()
-        .map(|s| {
-            s.parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-        })
-        .collect::<Result<Vec<_>, _>>()
-        .map(AlternateBases::from)?;
-
-    Ok((reference_bases, alternate_bases))
-}
-
-pub fn read_filter(reader: &mut &[u8], filters: &mut Filters) -> io::Result<()> {
-    use self::string_map::read_string_map_indices;
-
-    let filter = filters.as_mut();
-    filter.clear();
-
-    let indices = read_string_map_indices(reader)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-    filter.extend_from_slice(&indices);
-
-    Ok(())
 }
