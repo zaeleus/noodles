@@ -16,7 +16,8 @@ pub(crate) fn read_field(
     vcf::record::info::field::Key,
     Option<vcf::record::info::field::Value>,
 )> {
-    let key = read_key(src, infos, string_string_map)?;
+    let key = read_key(src, infos, string_string_map)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     let info = infos.get(key).ok_or_else(|| {
         io::Error::new(
