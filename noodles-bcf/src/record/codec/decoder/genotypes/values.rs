@@ -1,10 +1,16 @@
-use std::{error, fmt, mem, str};
+use std::{error, fmt, str};
 
 use noodles_vcf::record::genotypes::sample::Value;
 
 use crate::{
     lazy::record::value::{Float, Int16, Int32, Int8, Type},
-    record::codec::decoder::value::{read_type, ty},
+    record::codec::decoder::{
+        raw_value::{
+            self, read_f32, read_f32s, read_i16, read_i16s, read_i32, read_i32s, read_i8, read_i8s,
+            read_string,
+        },
+        value::{read_type, ty},
+    },
 };
 
 pub(super) fn read_values(
@@ -36,7 +42,9 @@ fn read_int8_values(
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
-        let value = read_i8(src).map(Int8::from)?;
+        let value = read_i8(src)
+            .map(Int8::from)
+            .map_err(DecodeError::InvalidRawValue)?;
 
         match value {
             Int8::Value(n) => values.push(Some(Value::from(i32::from(n)))),
@@ -56,7 +64,7 @@ fn read_int8_array_values(
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
-        let buf = read_i8s(src, len)?;
+        let buf = read_i8s(src, len).map_err(DecodeError::InvalidRawValue)?;
 
         let vs: Vec<_> = buf
             .into_iter()
@@ -86,7 +94,9 @@ fn read_int16_values(
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
-        let value = read_i16(src).map(Int16::from)?;
+        let value = read_i16(src)
+            .map(Int16::from)
+            .map_err(DecodeError::InvalidRawValue)?;
 
         match value {
             Int16::Value(n) => values.push(Some(Value::from(i32::from(n)))),
@@ -106,7 +116,7 @@ fn read_int16_array_values(
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
-        let buf = read_i16s(src, len)?;
+        let buf = read_i16s(src, len).map_err(DecodeError::InvalidRawValue)?;
 
         let vs: Vec<_> = buf
             .into_iter()
@@ -136,7 +146,9 @@ fn read_int32_values(
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
-        let value = read_i32(src).map(Int32::from)?;
+        let value = read_i32(src)
+            .map(Int32::from)
+            .map_err(DecodeError::InvalidRawValue)?;
 
         match value {
             Int32::Value(n) => values.push(Some(Value::from(n))),
@@ -156,7 +168,7 @@ fn read_int32_array_values(
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
-        let buf = read_i32s(src, len)?;
+        let buf = read_i32s(src, len).map_err(DecodeError::InvalidRawValue)?;
 
         let vs: Vec<_> = buf
             .into_iter()
@@ -186,7 +198,9 @@ fn read_float_values(
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
-        let value = read_f32(src).map(Float::from)?;
+        let value = read_f32(src)
+            .map(Float::from)
+            .map_err(DecodeError::InvalidRawValue)?;
 
         match value {
             Float::Value(n) => values.push(Some(Value::from(n))),
@@ -206,7 +220,7 @@ fn read_float_array_values(
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
-        let buf = read_f32s(src, len)?;
+        let buf = read_f32s(src, len).map_err(DecodeError::InvalidRawValue)?;
 
         let vs: Vec<_> = buf
             .into_iter()
@@ -239,7 +253,7 @@ fn read_string_values(
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
-        let buf = read_string(src, len)?;
+        let buf = read_string(src, len).map_err(DecodeError::InvalidRawValue)?;
 
         let data = match buf.iter().position(|&b| b == NUL) {
             Some(i) => &buf[..i],
@@ -268,14 +282,15 @@ pub(super) fn read_genotype_values(
                 for _ in 0..sample_count {
                     let value = read_i8(src)
                         .map(|v| parse_genotype_values(&[v]))
-                        .map(Value::from)?;
+                        .map(Value::from)
+                        .map_err(DecodeError::InvalidRawValue)?;
 
                     values.push(Some(value));
                 }
             }
             _ => {
                 for _ in 0..sample_count {
-                    let buf = read_i8s(src, len)?;
+                    let buf = read_i8s(src, len).map_err(DecodeError::InvalidRawValue)?;
                     let value = Value::from(parse_genotype_values(&buf));
                     values.push(Some(value));
                 }
@@ -318,154 +333,12 @@ fn parse_genotype_values(values: &[i8]) -> String {
     genotype
 }
 
-fn read_i8(src: &mut &[u8]) -> Result<i8, DecodeError> {
-    if let Some((b, rest)) = src.split_first() {
-        *src = rest;
-        Ok(*b as i8)
-    } else {
-        Err(DecodeError::UnexpectedEof)
-    }
-}
-
-fn read_i8s(src: &mut &[u8], len: usize) -> Result<Vec<i8>, DecodeError> {
-    if src.len() < len {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    let (buf, rest) = src.split_at(len);
-    let values = buf.iter().map(|&b| b as i8).collect();
-    *src = rest;
-
-    Ok(values)
-}
-
-fn read_i16(src: &mut &[u8]) -> Result<i16, DecodeError> {
-    if src.len() < mem::size_of::<i16>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    let (buf, rest) = src.split_at(mem::size_of::<i16>());
-
-    // SAFETY: `buf` is 2 bytes.
-    let n = i16::from_le_bytes(buf.try_into().unwrap());
-
-    *src = rest;
-
-    Ok(n)
-}
-
-fn read_i16s(src: &mut &[u8], len: usize) -> Result<Vec<i16>, DecodeError> {
-    let len = mem::size_of::<i16>() * len;
-
-    if src.len() < len {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    let (buf, rest) = src.split_at(len);
-
-    let values = buf
-        .chunks_exact(mem::size_of::<i16>())
-        .map(|chunk| {
-            // SAFETY: `chunk` is 2 bytes.
-            i16::from_le_bytes(chunk.try_into().unwrap())
-        })
-        .collect();
-
-    *src = rest;
-
-    Ok(values)
-}
-
-fn read_i32(src: &mut &[u8]) -> Result<i32, DecodeError> {
-    if src.len() < mem::size_of::<i32>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    let (buf, rest) = src.split_at(mem::size_of::<i32>());
-
-    // SAFETY: `buf` is 4 bytes.
-    let n = i32::from_le_bytes(buf.try_into().unwrap());
-
-    *src = rest;
-
-    Ok(n)
-}
-
-fn read_i32s(src: &mut &[u8], len: usize) -> Result<Vec<i32>, DecodeError> {
-    let len = mem::size_of::<i32>() * len;
-
-    if src.len() < len {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    let (buf, rest) = src.split_at(len);
-
-    let values = buf
-        .chunks_exact(mem::size_of::<i32>())
-        .map(|chunk| {
-            // SAFETY: `chunk` is 4 bytes.
-            i32::from_le_bytes(chunk.try_into().unwrap())
-        })
-        .collect();
-
-    *src = rest;
-
-    Ok(values)
-}
-
-fn read_f32(src: &mut &[u8]) -> Result<f32, DecodeError> {
-    if src.len() < mem::size_of::<f32>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    let (buf, rest) = src.split_at(mem::size_of::<f32>());
-
-    // SAFETY: `buf` is 4 bytes.
-    let n = f32::from_le_bytes(buf.try_into().unwrap());
-
-    *src = rest;
-
-    Ok(n)
-}
-
-fn read_f32s(src: &mut &[u8], len: usize) -> Result<Vec<f32>, DecodeError> {
-    let len = mem::size_of::<f32>() * len;
-
-    if src.len() < len {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    let (buf, rest) = src.split_at(len);
-
-    let values = buf
-        .chunks_exact(mem::size_of::<f32>())
-        .map(|chunk| {
-            // SAFETY: `chunk` is 4 bytes.
-            f32::from_le_bytes(chunk.try_into().unwrap())
-        })
-        .collect();
-
-    *src = rest;
-
-    Ok(values)
-}
-
-fn read_string<'a>(src: &mut &'a [u8], len: usize) -> Result<&'a [u8], DecodeError> {
-    if src.len() < len {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    let (buf, rest) = src.split_at(len);
-    *src = rest;
-
-    Ok(buf)
-}
-
+#[allow(clippy::enum_variant_names)]
 #[derive(Debug, Eq, PartialEq)]
 pub enum DecodeError {
-    UnexpectedEof,
     InvalidType(ty::DecodeError),
     InvalidLength,
+    InvalidRawValue(raw_value::DecodeError),
     InvalidString(str::Utf8Error),
 }
 
@@ -473,8 +346,9 @@ impl error::Error for DecodeError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::InvalidType(e) => Some(e),
+            Self::InvalidLength => None,
+            Self::InvalidRawValue(e) => Some(e),
             Self::InvalidString(e) => Some(e),
-            _ => None,
         }
     }
 }
@@ -482,9 +356,9 @@ impl error::Error for DecodeError {
 impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::UnexpectedEof => write!(f, "unexpected EOF"),
             Self::InvalidType(_) => write!(f, "invalid type"),
             Self::InvalidLength => write!(f, "invalid length"),
+            Self::InvalidRawValue(_) => write!(f, "invalid raw value"),
             Self::InvalidString(_) => write!(f, "invalid string"),
         }
     }

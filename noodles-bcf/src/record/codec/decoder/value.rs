@@ -1,6 +1,6 @@
 pub mod ty;
 
-use std::{error, fmt, mem, str};
+use std::{error, fmt, str};
 
 pub use self::ty::read_type;
 use crate::lazy::record::{
@@ -14,178 +14,99 @@ pub fn read_value<'a>(src: &mut &'a [u8]) -> Result<Option<Value<'a>>, DecodeErr
     match ty {
         None => Ok(None),
         Some(Type::Int8(0)) => Ok(Some(Value::Int8(None))),
-        Some(Type::Int8(1)) => read_i8(src),
-        Some(Type::Int8(n)) => read_i8s(src, n),
+        Some(Type::Int8(1)) => read_i8_value(src),
+        Some(Type::Int8(n)) => read_i8s_value(src, n),
         Some(Type::Int16(0)) => Ok(Some(Value::Int16(None))),
-        Some(Type::Int16(1)) => read_i16(src),
-        Some(Type::Int16(n)) => read_i16s(src, n),
+        Some(Type::Int16(1)) => read_i16_value(src),
+        Some(Type::Int16(n)) => read_i16s_value(src, n),
         Some(Type::Int32(0)) => Ok(Some(Value::Int32(None))),
-        Some(Type::Int32(1)) => read_i32(src),
-        Some(Type::Int32(n)) => read_i32s(src, n),
+        Some(Type::Int32(1)) => read_i32_value(src),
+        Some(Type::Int32(n)) => read_i32s_value(src, n),
         Some(Type::Float(0)) => Ok(Some(Value::Float(None))),
-        Some(Type::Float(1)) => read_f32(src),
-        Some(Type::Float(n)) => read_f32s(src, n),
+        Some(Type::Float(1)) => read_f32_value(src),
+        Some(Type::Float(n)) => read_f32s_value(src, n),
         Some(Type::String(0)) => Ok(Some(Value::String(None))),
-        Some(Type::String(n)) => read_string(src, n),
+        Some(Type::String(n)) => read_string_value(src, n),
     }
 }
 
-fn read_i8<'a>(src: &mut &'a [u8]) -> Result<Option<Value<'a>>, DecodeError> {
-    if let Some((b, rest)) = src.split_first() {
-        *src = rest;
-        Ok(Some(Value::Int8(Some(Int8::from(*b as i8)))))
-    } else {
-        Err(DecodeError::UnexpectedEof)
-    }
+fn read_i8_value<'a>(src: &mut &'a [u8]) -> Result<Option<Value<'a>>, DecodeError> {
+    use super::raw_value::read_i8;
+
+    let n = read_i8(src).map_err(DecodeError::InvalidRawValue)?;
+    Ok(Some(Value::Int8(Some(Int8::from(n)))))
 }
 
-fn read_i8s<'a>(src: &mut &'a [u8], len: usize) -> Result<Option<Value<'a>>, DecodeError> {
-    if src.len() < len {
-        return Err(DecodeError::UnexpectedEof);
-    }
+fn read_i8s_value<'a>(src: &mut &'a [u8], len: usize) -> Result<Option<Value<'a>>, DecodeError> {
+    use super::raw_value::read_i8s;
 
-    let (buf, rest) = src.split_at(len);
-    let values = buf.iter().map(|&b| b as i8).collect();
-    *src = rest;
-
+    let values = read_i8s(src, len).map_err(DecodeError::InvalidRawValue)?;
     Ok(Some(Value::Array(Array::Int8(values))))
 }
 
-fn read_i16<'a>(src: &mut &'a [u8]) -> Result<Option<Value<'a>>, DecodeError> {
-    if src.len() < mem::size_of::<i16>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
+fn read_i16_value<'a>(src: &mut &'a [u8]) -> Result<Option<Value<'a>>, DecodeError> {
+    use super::raw_value::read_i16;
 
-    let (buf, rest) = src.split_at(mem::size_of::<i16>());
-
-    // SAFETY: `buf` is 2 bytes.
-    let n = i16::from_le_bytes(buf.try_into().unwrap());
-
-    *src = rest;
-
+    let n = read_i16(src).map_err(DecodeError::InvalidRawValue)?;
     Ok(Some(Value::Int16(Some(Int16::from(n)))))
 }
 
-fn read_i16s<'a>(src: &mut &'a [u8], len: usize) -> Result<Option<Value<'a>>, DecodeError> {
-    let len = mem::size_of::<i16>() * len;
+fn read_i16s_value<'a>(src: &mut &'a [u8], len: usize) -> Result<Option<Value<'a>>, DecodeError> {
+    use super::raw_value::read_i16s;
 
-    if src.len() < len {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    let (buf, rest) = src.split_at(len);
-
-    let values = buf
-        .chunks_exact(mem::size_of::<i16>())
-        .map(|chunk| {
-            // SAFETY: `chunk` is 2 bytes.
-            i16::from_le_bytes(chunk.try_into().unwrap())
-        })
-        .collect();
-
-    *src = rest;
-
+    let values = read_i16s(src, len).map_err(DecodeError::InvalidRawValue)?;
     Ok(Some(Value::Array(Array::Int16(values))))
 }
 
-fn read_i32<'a>(src: &mut &'a [u8]) -> Result<Option<Value<'a>>, DecodeError> {
-    if src.len() < mem::size_of::<i32>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
+fn read_i32_value<'a>(src: &mut &'a [u8]) -> Result<Option<Value<'a>>, DecodeError> {
+    use super::raw_value::read_i32;
 
-    let (buf, rest) = src.split_at(mem::size_of::<i32>());
-
-    // SAFETY: `buf` is 4 bytes.
-    let n = i32::from_le_bytes(buf.try_into().unwrap());
-
-    *src = rest;
-
+    let n = read_i32(src).map_err(DecodeError::InvalidRawValue)?;
     Ok(Some(Value::Int32(Some(Int32::from(n)))))
 }
 
-fn read_i32s<'a>(src: &mut &'a [u8], len: usize) -> Result<Option<Value<'a>>, DecodeError> {
-    let len = mem::size_of::<i32>() * len;
+fn read_i32s_value<'a>(src: &mut &'a [u8], len: usize) -> Result<Option<Value<'a>>, DecodeError> {
+    use super::raw_value::read_i32s;
 
-    if src.len() < len {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    let (buf, rest) = src.split_at(len);
-
-    let values = buf
-        .chunks_exact(mem::size_of::<i32>())
-        .map(|chunk| {
-            // SAFETY: `chunk` is 4 bytes.
-            i32::from_le_bytes(chunk.try_into().unwrap())
-        })
-        .collect();
-
-    *src = rest;
-
+    let values = read_i32s(src, len).map_err(DecodeError::InvalidRawValue)?;
     Ok(Some(Value::Array(Array::Int32(values))))
 }
 
-fn read_f32<'a>(src: &mut &'a [u8]) -> Result<Option<Value<'a>>, DecodeError> {
-    if src.len() < mem::size_of::<f32>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
+fn read_f32_value<'a>(src: &mut &'a [u8]) -> Result<Option<Value<'a>>, DecodeError> {
+    use super::raw_value::read_f32;
 
-    let (buf, rest) = src.split_at(mem::size_of::<f32>());
-
-    // SAFETY: `buf` is 4 bytes.
-    let n = f32::from_le_bytes(buf.try_into().unwrap());
-
-    *src = rest;
-
+    let n = read_f32(src).map_err(DecodeError::InvalidRawValue)?;
     Ok(Some(Value::Float(Some(Float::from(n)))))
 }
 
-fn read_f32s<'a>(src: &mut &'a [u8], len: usize) -> Result<Option<Value<'a>>, DecodeError> {
-    let len = mem::size_of::<f32>() * len;
+fn read_f32s_value<'a>(src: &mut &'a [u8], len: usize) -> Result<Option<Value<'a>>, DecodeError> {
+    use super::raw_value::read_f32s;
 
-    if src.len() < len {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    let (buf, rest) = src.split_at(len);
-
-    let values = buf
-        .chunks_exact(mem::size_of::<f32>())
-        .map(|chunk| {
-            // SAFETY: `chunk` is 4 bytes.
-            f32::from_le_bytes(chunk.try_into().unwrap())
-        })
-        .collect();
-
-    *src = rest;
-
+    let values = read_f32s(src, len).map_err(DecodeError::InvalidRawValue)?;
     Ok(Some(Value::Array(Array::Float(values))))
 }
 
-fn read_string<'a>(src: &mut &'a [u8], len: usize) -> Result<Option<Value<'a>>, DecodeError> {
-    if src.len() < len {
-        return Err(DecodeError::UnexpectedEof);
-    }
+fn read_string_value<'a>(src: &mut &'a [u8], len: usize) -> Result<Option<Value<'a>>, DecodeError> {
+    use super::raw_value::read_string;
 
-    let (buf, rest) = src.split_at(len);
+    let buf = read_string(src, len).map_err(DecodeError::InvalidRawValue)?;
     let s = str::from_utf8(buf).map_err(DecodeError::InvalidString)?;
-    *src = rest;
-
     Ok(Some(Value::String(Some(s))))
 }
 
+#[allow(clippy::enum_variant_names)]
 #[derive(Debug, Eq, PartialEq)]
 pub enum DecodeError {
-    UnexpectedEof,
     InvalidType(ty::DecodeError),
+    InvalidRawValue(super::raw_value::DecodeError),
     InvalidString(str::Utf8Error),
 }
 
 impl error::Error for DecodeError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
-            Self::UnexpectedEof => None,
             Self::InvalidType(e) => Some(e),
+            Self::InvalidRawValue(e) => Some(e),
             Self::InvalidString(e) => Some(e),
         }
     }
@@ -194,8 +115,8 @@ impl error::Error for DecodeError {
 impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::UnexpectedEof => write!(f, "unexpected EOF"),
             Self::InvalidType(_) => write!(f, "invalid type"),
+            Self::InvalidRawValue(_) => write!(f, "invalid raw value"),
             Self::InvalidString(_) => write!(f, "invalid string"),
         }
     }

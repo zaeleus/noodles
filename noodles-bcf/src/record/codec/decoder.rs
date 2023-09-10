@@ -6,6 +6,7 @@ mod ids;
 pub mod info;
 mod position;
 mod quality_score;
+mod raw_value;
 mod string_map;
 mod value;
 
