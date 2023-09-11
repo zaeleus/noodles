@@ -152,6 +152,13 @@ where
 
     const METADATA_ID: usize = Bin::metadata_id(DEPTH);
 
+    fn duplicate_bin_error(id: usize) -> io::Result<(HashMap<usize, Bin>, Option<Metadata>)> {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("duplicate bin ID: {id}"),
+        ))
+    }
+
     let n_bin = reader.read_u32_le().await.and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
@@ -165,12 +172,18 @@ where
         })?;
 
         if id == METADATA_ID {
-            metadata = read_metadata(reader).await.map(Some)?;
+            let m = read_metadata(reader).await?;
+
+            if metadata.replace(m).is_some() {
+                return duplicate_bin_error(id);
+            }
         } else {
             let chunks = read_chunks(reader).await?;
             let bin = Bin::new(bgzf::VirtualPosition::default(), chunks);
-            // TODO: Check for duplicates.
-            bins.insert(id, bin);
+
+            if bins.insert(id, bin).is_some() {
+                return duplicate_bin_error(id);
+            }
         }
     }
 
