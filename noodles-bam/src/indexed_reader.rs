@@ -91,6 +91,8 @@ where
     R: Read + Seek,
 {
     /// Returns an iterator over records that intersect the given region.
+    ///
+    /// To query for unmapped records, use [`Self::query_unmapped`].
     pub fn query<'a>(
         &'a mut self,
         header: &'a sam::Header,
@@ -100,8 +102,6 @@ where
     }
 
     /// Returns an iterator of unmapped records after querying for the unmapped region.
-    ///
-    /// To query for unmapped records, use [`Self::query_unmapped`].
     pub fn query_unmapped<'r>(
         &'r mut self,
         header: &'r sam::Header,
