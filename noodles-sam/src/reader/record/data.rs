@@ -40,7 +40,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(crate) fn parse_data(mut src: &[u8], data: &mut Data) -> Result<(), ParseError> {
+pub(super) fn parse_data(mut src: &[u8], data: &mut Data) -> Result<(), ParseError> {
     while !src.is_empty() {
         let (tag, value) = parse_field(&mut src).map_err(ParseError::InvalidField)?;
 
