@@ -42,7 +42,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(crate) fn parse_quality_scores(
+pub(super) fn parse_quality_scores(
     src: &[u8],
     sequence_len: usize,
     quality_scores: &mut QualityScores,

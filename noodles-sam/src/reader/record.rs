@@ -12,8 +12,7 @@ mod template_length;
 pub(crate) use self::{
     cigar::parse_cigar, data::parse_data, flags::parse_flags,
     mapping_quality::parse_mapping_quality, position::parse_alignment_start,
-    quality_scores::parse_quality_scores, read_name::parse_read_name, sequence::parse_sequence,
-    template_length::parse_template_length,
+    read_name::parse_read_name, sequence::parse_sequence, template_length::parse_template_length,
 };
 
 use std::{
@@ -21,7 +20,9 @@ use std::{
     io::{self, BufRead},
 };
 
-use self::reference_sequence_id::parse_reference_sequence_id;
+use self::{
+    quality_scores::parse_quality_scores, reference_sequence_id::parse_reference_sequence_id,
+};
 use super::read_line;
 use crate::{alignment::Record, Header};
 

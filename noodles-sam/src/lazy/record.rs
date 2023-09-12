@@ -1,4 +1,5 @@
 mod bounds;
+mod quality_scores;
 mod sequence;
 
 use std::{fmt, io, str};
@@ -6,10 +7,8 @@ use std::{fmt, io, str};
 use noodles_core::Position;
 
 use self::bounds::Bounds;
-pub use self::sequence::Sequence;
-use crate::record::{
-    Cigar, Data, Flags, MappingQuality, QualityScores, ReadName, ReferenceSequenceName,
-};
+pub use self::{quality_scores::QualityScores, sequence::Sequence};
+use crate::record::{Cigar, Data, Flags, MappingQuality, ReadName, ReferenceSequenceName};
 
 const MISSING: &[u8] = b"*";
 
@@ -226,28 +225,15 @@ impl Record {
     /// ```
     /// use noodles_sam as sam;
     /// let record = sam::lazy::Record::default();
-    /// assert!(record.quality_scores()?.is_empty());
-    /// # Ok::<_, std::io::Error>(())
+    /// assert!(record.quality_scores().is_empty());
     /// ```
-    pub fn quality_scores(&self) -> io::Result<QualityScores> {
-        use crate::reader::record::parse_quality_scores;
-
-        let src = &self.buf[self.bounds.sequence_range()];
-        let sequence_len = match src {
-            MISSING => 0,
-            _ => src.len(),
+    pub fn quality_scores(&self) -> QualityScores<'_> {
+        let buf = match &self.buf[self.bounds.quality_scores_range()] {
+            MISSING => b"",
+            buf => buf,
         };
 
-        let mut quality_scores = QualityScores::default();
-
-        let src = &self.buf[self.bounds.quality_scores_range()];
-
-        if src != MISSING {
-            parse_quality_scores(src, sequence_len, &mut quality_scores)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-        }
-
-        Ok(quality_scores)
+        QualityScores::new(buf)
     }
 
     /// Returns the data.
