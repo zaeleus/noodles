@@ -6,6 +6,10 @@
 
   * sam/reader: Add `Reader::query_unmapped` to query for unmapped records.
 
+### Changed
+
+  * sam/lazy/record: Return wrapper for sequence (`lazy::Record::sequence`).
+
 ### Fixed
 
   * sam/record/data/field/tag: Compare inner tag.

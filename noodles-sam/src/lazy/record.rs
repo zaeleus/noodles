@@ -1,12 +1,14 @@
 mod bounds;
+mod sequence;
 
 use std::{fmt, io, str};
 
 use noodles_core::Position;
 
 use self::bounds::Bounds;
+pub use self::sequence::Sequence;
 use crate::record::{
-    Cigar, Data, Flags, MappingQuality, QualityScores, ReadName, ReferenceSequenceName, Sequence,
+    Cigar, Data, Flags, MappingQuality, QualityScores, ReadName, ReferenceSequenceName,
 };
 
 const MISSING: &[u8] = b"*";
@@ -206,22 +208,15 @@ impl Record {
     /// ```
     /// use noodles_sam as sam;
     /// let record = sam::lazy::Record::default();
-    /// assert!(record.sequence()?.is_empty());
-    /// # Ok::<_, std::io::Error>(())
+    /// assert!(record.sequence().is_empty());
     /// ```
-    pub fn sequence(&self) -> io::Result<Sequence> {
-        use crate::reader::record::parse_sequence;
+    pub fn sequence(&self) -> Sequence<'_> {
+        let buf = match &self.buf[self.bounds.sequence_range()] {
+            MISSING => b"",
+            buf => buf,
+        };
 
-        let mut sequence = Sequence::default();
-
-        let src = &self.buf[self.bounds.sequence_range()];
-
-        if src != MISSING {
-            parse_sequence(src, &mut sequence)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-        }
-
-        Ok(sequence)
+        Sequence::new(buf)
     }
 
     /// Returns the quality scores.
