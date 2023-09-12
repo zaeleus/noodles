@@ -6,7 +6,7 @@ jobs:
   format:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Update Rust
         run: rustup update stable && rustup default stable
       - name: Install rustfmt
@@ -16,7 +16,7 @@ jobs:
   lint:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Update Rust
         run: rustup update stable && rustup default stable
       - name: Install clippy
@@ -26,7 +26,7 @@ jobs:
   test:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Update Rust
         run: rustup update stable && rustup default stable
       - run: cargo test --all-features
