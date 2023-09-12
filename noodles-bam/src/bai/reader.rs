@@ -180,7 +180,7 @@ where
 
             if bins.insert(id, bin).is_some() {
                 return duplicate_bin_error(id);
-            };
+            }
         }
     }
 
