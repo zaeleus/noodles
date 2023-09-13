@@ -14,7 +14,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_tag() -> io::Result<()> {
+    fn test_decode_tag() -> io::Result<()> {
         let mut src = &[b'N', b'H'][..];
         assert_eq!(decode_tag(&mut src)?, [b'N', b'H']);
         Ok(())
