@@ -13,30 +13,20 @@ impl<'a> Info<'a> {
 
     /// Returns whether there are any info fields.
     pub fn is_empty(&self) -> bool {
-        self.0 == MISSING_FIELD
+        self.0.is_empty()
     }
 
     /// Returns an iterator over all fields.
-    pub fn iter(&self) -> Box<dyn Iterator<Item = (&str, Option<&str>)> + '_> {
-        const DELIMITER: char = ';';
-        const FIELD_SEPARATOR: char = '=';
+    pub fn iter(&self) -> impl Iterator<Item = (&str, Option<&str>)> + '_ {
+        let mut src = self.0;
 
-        if self.is_empty() {
-            return Box::new(iter::empty());
-        }
-
-        Box::new(self.0.split(DELIMITER).map(|raw_field| {
-            let mut components = raw_field.split(FIELD_SEPARATOR);
-
-            let key = components.next().unwrap();
-
-            let value = components.next().and_then(|s| match s {
-                MISSING_FIELD => None,
-                _ => Some(s),
-            });
-
-            (key, value)
-        }))
+        iter::from_fn(move || {
+            if src.is_empty() {
+                None
+            } else {
+                Some(parse_field(&mut src))
+            }
+        })
     }
 }
 
@@ -46,19 +36,46 @@ impl<'a> AsRef<str> for Info<'a> {
     }
 }
 
+fn parse_field<'a>(src: &mut &'a str) -> (&'a str, Option<&'a str>) {
+    const DELIMITER: u8 = b';';
+    const FIELD_SEPARATOR: char = '=';
+
+    let raw_field = match src.as_bytes().iter().position(|&b| b == DELIMITER) {
+        Some(i) => {
+            let (buf, rest) = src.split_at(i);
+            *src = &rest[1..];
+            buf
+        }
+        None => {
+            let (buf, rest) = src.split_at(src.len());
+            *src = rest;
+            buf
+        }
+    };
+
+    let mut components = raw_field.split(FIELD_SEPARATOR);
+    let key = components.next().unwrap();
+    let value = components.next().and_then(|s| match s {
+        MISSING_FIELD => None,
+        _ => Some(s),
+    });
+
+    (key, value)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_is_empty() {
-        assert!(Info::new(".").is_empty());
+        assert!(Info::new("").is_empty());
         assert!(!Info::new("NS=2;DP=.").is_empty());
     }
 
     #[test]
     fn test_iter() {
-        let info = Info::new(".");
+        let info = Info::new("");
         assert!(info.iter().next().is_none());
 
         let info = Info::new("NS=2;DP=.");

@@ -67,7 +67,11 @@ impl Record {
 
     /// Returns the info.
     pub fn info(&self) -> Info<'_> {
-        let buf = &self.buf[self.bounds.info_range()];
+        let buf = match &self.buf[self.bounds.info_range()] {
+            MISSING => "",
+            buf => buf,
+        };
+
         Info::new(buf)
     }
 
