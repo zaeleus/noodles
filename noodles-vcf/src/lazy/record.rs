@@ -77,8 +77,22 @@ impl Record {
 
     /// Returns the genotypes.
     pub fn genotypes(&self) -> Genotypes<'_> {
+        use crate::record::FIELD_DELIMITER;
+
         let buf = &self.buf[self.bounds.genotypes_range()];
-        Genotypes::new(buf)
+
+        let is_missing = || {
+            buf.split(FIELD_DELIMITER)
+                .next()
+                .map(|s| s == MISSING)
+                .unwrap_or_default()
+        };
+
+        if buf.is_empty() || is_missing() {
+            Genotypes::new("")
+        } else {
+            Genotypes::new(buf)
+        }
     }
 }
 

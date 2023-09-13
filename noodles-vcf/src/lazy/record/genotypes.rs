@@ -1,9 +1,9 @@
 mod sample;
 
-use std::{io, iter};
+use std::iter;
 
 pub use self::sample::Sample;
-use crate::record::{FIELD_DELIMITER, MISSING_FIELD};
+use crate::record::FIELD_DELIMITER;
 
 /// Raw VCF record genotypes.
 #[derive(Debug, Eq, PartialEq)]
@@ -16,55 +16,79 @@ impl<'a> Genotypes<'a> {
 
     /// Returns whether there may be any genotypes.
     pub fn is_empty(&self) -> bool {
-        let is_missing = self
-            .0
-            .split(FIELD_DELIMITER)
-            .next()
-            .map(|s| s == MISSING_FIELD)
-            .unwrap_or_default();
-
-        self.0.is_empty() || is_missing
+        self.0.is_empty()
     }
 
     /// Returns an iterator over keys.
-    pub fn keys(&self) -> io::Result<Box<dyn Iterator<Item = &str> + '_>> {
-        const DELIMITER: char = ':';
+    pub fn keys(&self) -> impl Iterator<Item = &str> + '_ {
+        let (mut src, _) = self.0.split_once(FIELD_DELIMITER).unwrap_or_default();
 
-        if self.is_empty() {
-            return Ok(Box::new(iter::empty()));
-        }
-
-        let (raw_format, _) = self
-            .0
-            .split_once(FIELD_DELIMITER)
-            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing field separator"))?;
-
-        Ok(Box::new(raw_format.split(DELIMITER)))
+        iter::from_fn(move || {
+            if src.is_empty() {
+                None
+            } else {
+                Some(parse_key(&mut src))
+            }
+        })
     }
 
     /// Returns an iterator over samples.
-    pub fn samples(&self) -> io::Result<Box<dyn Iterator<Item = Option<Sample<'_>>> + '_>> {
-        if self.is_empty() {
-            return Ok(Box::new(iter::empty()));
-        }
+    pub fn samples(&self) -> impl Iterator<Item = Option<Sample<'_>>> + '_ {
+        let (_, mut src) = self.0.split_once(FIELD_DELIMITER).unwrap_or_default();
 
-        let (_, raw_samples) = self
-            .0
-            .split_once(FIELD_DELIMITER)
-            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing field separator"))?;
-
-        Ok(Box::new(raw_samples.split(FIELD_DELIMITER).map(
-            |s| match s {
-                "." => None,
-                _ => Some(Sample::new(s)),
-            },
-        )))
+        iter::from_fn(move || {
+            if src.is_empty() {
+                None
+            } else {
+                Some(parse_sample(&mut src))
+            }
+        })
     }
 }
 
 impl<'a> AsRef<str> for Genotypes<'a> {
     fn as_ref(&self) -> &str {
         self.0
+    }
+}
+
+fn parse_key<'a>(src: &mut &'a str) -> &'a str {
+    const DELIMITER: u8 = b':';
+
+    match src.as_bytes().iter().position(|&b| b == DELIMITER) {
+        Some(i) => {
+            let (buf, rest) = src.split_at(i);
+            *src = &rest[1..];
+            buf
+        }
+        None => {
+            let (buf, rest) = src.split_at(src.len());
+            *src = rest;
+            buf
+        }
+    }
+}
+
+fn parse_sample<'a>(src: &mut &'a str) -> Option<Sample<'a>> {
+    const DELIMITER: u8 = b'\t';
+    const MISSING: &str = ".";
+
+    let buf = match src.as_bytes().iter().position(|&b| b == DELIMITER) {
+        Some(i) => {
+            let (buf, rest) = src.split_at(i);
+            *src = &rest[1..];
+            buf
+        }
+        None => {
+            let (buf, rest) = src.split_at(src.len());
+            *src = rest;
+            buf
+        }
+    };
+
+    match buf {
+        MISSING => None,
+        _ => Some(Sample::new(buf)),
     }
 }
 
@@ -75,39 +99,28 @@ mod tests {
     #[test]
     fn test_is_empty() {
         assert!(Genotypes::new("").is_empty());
-        assert!(Genotypes::new(".\t.").is_empty());
         assert!(!Genotypes::new("GT:GQ\t0|0:13").is_empty());
     }
 
     #[test]
-    fn test_keys() -> io::Result<()> {
+    fn test_keys() {
         let genotypes = Genotypes::new("");
-        assert!(genotypes.keys()?.next().is_none());
-
-        let genotypes = Genotypes::new(".\t.");
-        assert!(genotypes.keys()?.next().is_none());
+        assert!(genotypes.keys().next().is_none());
 
         let genotypes = Genotypes::new("GT:GQ\t0|0:13");
-        let actual: Vec<_> = genotypes.keys()?.collect();
+        let actual: Vec<_> = genotypes.keys().collect();
         let expected = ["GT", "GQ"];
         assert_eq!(actual, expected);
-
-        Ok(())
     }
 
     #[test]
-    fn test_samples() -> io::Result<()> {
+    fn test_samples() {
         let genotypes = Genotypes::new("");
-        assert!(genotypes.samples()?.next().is_none());
-
-        let genotypes = Genotypes::new(".\t.");
-        assert!(genotypes.samples()?.next().is_none());
+        assert!(genotypes.samples().next().is_none());
 
         let genotypes = Genotypes::new("GT:GQ\t0|0:13\t.");
-        let actual: Vec<_> = genotypes.samples()?.collect();
+        let actual: Vec<_> = genotypes.samples().collect();
         let expected = [Some(Sample::new("0|0:13")), None];
         assert_eq!(actual, expected);
-
-        Ok(())
     }
 }
