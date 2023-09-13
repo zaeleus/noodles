@@ -8,8 +8,9 @@
 
 ### Changed
 
-  * sam/lazy/record: Return wrapper for data (`lazy::Record::data`), reference
-    sequence name (`lazy::Record::reference_sequence_name`), sequence
+  * sam/lazy/record: Return wrapper for CIGAR operations
+    (`lazy::Record::cigar`), data (`lazy::Record::data`), reference sequence
+    name (`lazy::Record::reference_sequence_name`), sequence
     (`lazy::Record::sequence`), and quality scores
     (`lazy::Record::quality_scores`).
 

@@ -1,4 +1,5 @@
 mod bounds;
+mod cigar;
 mod data;
 mod quality_scores;
 mod reference_sequence_name;
@@ -10,10 +11,10 @@ use noodles_core::Position;
 
 use self::bounds::Bounds;
 pub use self::{
-    data::Data, quality_scores::QualityScores, reference_sequence_name::ReferenceSequenceName,
-    sequence::Sequence,
+    cigar::Cigar, data::Data, quality_scores::QualityScores,
+    reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
 };
-use crate::record::{Cigar, Flags, MappingQuality, ReadName};
+use crate::record::{Flags, MappingQuality, ReadName};
 
 const MISSING: &[u8] = b"*";
 
@@ -130,22 +131,13 @@ impl Record {
     /// ```
     /// use noodles_sam as sam;
     /// let record = sam::lazy::Record::default();
-    /// assert!(record.cigar()?.is_empty());
-    /// # Ok::<_, std::io::Error>(())
+    /// assert!(record.cigar().is_empty());
     /// ```
-    pub fn cigar(&self) -> io::Result<Cigar> {
-        use crate::reader::record::parse_cigar;
-
-        let mut cigar = Cigar::default();
-
-        let src = &self.buf[self.bounds.cigar_range()];
-
-        if src != MISSING {
-            parse_cigar(src, &mut cigar)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    pub fn cigar(&self) -> Cigar<'_> {
+        match &self.buf[self.bounds.cigar_range()] {
+            MISSING => Cigar::new(b""),
+            buf => Cigar::new(buf),
         }
-
-        Ok(cigar)
     }
 
     /// Returns the mate reference sequence name.
