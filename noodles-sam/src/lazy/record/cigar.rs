@@ -1,4 +1,6 @@
-use std::io;
+use std::{io, iter};
+
+use crate::{reader::record::cigar::op, record::cigar::Op};
 
 /// Raw SAM record CIGAR operations.
 #[derive(Debug, Eq, PartialEq)]
@@ -12,6 +14,21 @@ impl<'a> Cigar<'a> {
     /// Returns whether there are any CIGAR operations.
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
+    }
+
+    /// Returns an iterator over CIGAR operations.
+    pub fn iter(&self) -> impl Iterator<Item = Result<Op, op::ParseError>> + '_ {
+        use crate::reader::record::cigar::op::parse_op;
+
+        let mut src = self.0;
+
+        iter::from_fn(move || {
+            if src.is_empty() {
+                None
+            } else {
+                Some(parse_op(&mut src))
+            }
+        })
     }
 }
 
@@ -35,5 +52,25 @@ impl<'a> TryFrom<Cigar<'a>> for crate::record::Cigar {
         }
 
         Ok(cigar)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_iter() -> Result<(), op::ParseError> {
+        use crate::record::cigar::op::Kind;
+
+        let cigar = Cigar::new(b"");
+        assert!(cigar.iter().next().is_none());
+
+        let cigar = Cigar::new(b"8M13N");
+        let actual: Vec<_> = cigar.iter().collect::<Result<_, _>>()?;
+        let expected = [Op::new(Kind::Match, 8), Op::new(Kind::Skip, 13)];
+        assert_eq!(actual, expected);
+
+        Ok(())
     }
 }

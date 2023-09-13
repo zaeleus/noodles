@@ -32,7 +32,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(super) fn parse_op(src: &mut &[u8]) -> Result<Op, ParseError> {
+pub(crate) fn parse_op(src: &mut &[u8]) -> Result<Op, ParseError> {
     let len = parse_len(src)?;
     let kind = parse_kind(src).map_err(ParseError::InvalidKind)?;
     Ok(Op::new(kind, len))

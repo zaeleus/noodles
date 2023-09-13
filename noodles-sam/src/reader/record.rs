@@ -1,4 +1,4 @@
-mod cigar;
+pub(crate) mod cigar;
 pub(crate) mod data;
 mod flags;
 mod mapping_quality;

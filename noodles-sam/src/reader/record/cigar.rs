@@ -1,4 +1,4 @@
-mod op;
+pub(crate) mod op;
 
 use std::{error, fmt};
 
