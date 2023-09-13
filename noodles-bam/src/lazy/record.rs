@@ -212,7 +212,7 @@ impl Record {
     /// let record = bam::lazy::Record::default();
     /// assert!(record.data().is_empty());
     /// ```
-    pub fn data(&self) -> Data {
+    pub fn data(&self) -> Data<'_> {
         let src = &self.buf[self.bounds.data_range()];
         Data::new(src)
     }
