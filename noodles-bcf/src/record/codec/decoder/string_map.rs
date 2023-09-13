@@ -109,17 +109,17 @@ mod tests {
 
         // Some(Type::Int8(Some(Int8::Value(2))))
         t(&[0x11, 0x02], &[2]);
-        // Some(Type::Int8Array(vec![2, 3]))
+        // Some(Type::Array(Array::Int8(vec![2, 3])))
         t(&[0x21, 0x02, 0x03], &[2, 3]);
 
         // Some(Type::Int16(Some(Int16::Value(5))))
         t(&[0x12, 0x05, 0x00], &[5]);
-        // Some(Type::Int16Array(vec![5, 8]))
+        // Some(Type::Array(Array::Int16(vec![5, 8])))
         t(&[0x22, 0x05, 0x00, 0x08, 0x00], &[5, 8]);
 
         // Some(Type::Int32(Some(Int32::Value(13))))
         t(&[0x13, 0x0d, 0x00, 0x00, 0x00], &[13]);
-        // Some(Type::Int32Array(vec![13, 21]))
+        // Some(Type::Array(Array::Int32(vec![13, 21])))
         t(
             &[0x23, 0x0d, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00],
             &[13, 21],
