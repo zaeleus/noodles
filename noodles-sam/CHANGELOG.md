@@ -8,8 +8,9 @@
 
 ### Changed
 
-  * sam/lazy/record: Return wrapper for data (`lazy::Record::data`), sequence
-    (`lazy::Record::sequence`) and quality scores
+  * sam/lazy/record: Return wrapper for data (`lazy::Record::data`), reference
+    sequence name (`lazy::Record::reference_sequence_name`), sequence
+    (`lazy::Record::sequence`), and quality scores
     (`lazy::Record::quality_scores`).
 
 ### Fixed

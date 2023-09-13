@@ -1,15 +1,19 @@
 mod bounds;
 mod data;
 mod quality_scores;
+mod reference_sequence_name;
 mod sequence;
 
-use std::{fmt, io, str};
+use std::{fmt, io};
 
 use noodles_core::Position;
 
 use self::bounds::Bounds;
-pub use self::{data::Data, quality_scores::QualityScores, sequence::Sequence};
-use crate::record::{Cigar, Flags, MappingQuality, ReadName, ReferenceSequenceName};
+pub use self::{
+    data::Data, quality_scores::QualityScores, reference_sequence_name::ReferenceSequenceName,
+    sequence::Sequence,
+};
+use crate::record::{Cigar, Flags, MappingQuality, ReadName};
 
 const MISSING: &[u8] = b"*";
 
@@ -78,15 +82,12 @@ impl Record {
     /// ```
     /// use noodles_sam as sam;
     /// let record = sam::lazy::Record::default();
-    /// assert!(record.reference_sequence_name()?.is_none());
-    /// # Ok::<_, std::io::Error>(())
+    /// assert!(record.reference_sequence_name().is_none());
     /// ```
-    pub fn reference_sequence_name(&self) -> io::Result<Option<ReferenceSequenceName>> {
-        let src = &self.buf[self.bounds.reference_sequence_name_range()];
-
-        match src {
-            MISSING => Ok(None),
-            _ => parse_reference_sequence_name(src).map(Some),
+    pub fn reference_sequence_name(&self) -> Option<ReferenceSequenceName<'_>> {
+        match &self.buf[self.bounds.reference_sequence_name_range()] {
+            MISSING => None,
+            buf => Some(ReferenceSequenceName::new(buf)),
         }
     }
 
@@ -154,18 +155,15 @@ impl Record {
     /// ```
     /// use noodles_sam as sam;
     /// let record = sam::lazy::Record::default();
-    /// assert!(record.mate_reference_sequence_name()?.is_none());
-    /// # Ok::<_, std::io::Error>(())
+    /// assert!(record.mate_reference_sequence_name().is_none());
     /// ```
-    pub fn mate_reference_sequence_name(&self) -> io::Result<Option<ReferenceSequenceName>> {
+    pub fn mate_reference_sequence_name(&self) -> Option<ReferenceSequenceName<'_>> {
         const EQ: &[u8] = b"=";
 
-        let src = &self.buf[self.bounds.mate_reference_sequence_name_range()];
-
-        match src {
-            MISSING => Ok(None),
+        match &self.buf[self.bounds.mate_reference_sequence_name_range()] {
+            MISSING => None,
             EQ => self.reference_sequence_name(),
-            _ => parse_reference_sequence_name(src).map(Some),
+            buf => Some(ReferenceSequenceName::new(buf)),
         }
     }
 
@@ -294,13 +292,4 @@ impl Default for Record {
 
         Self { buf, bounds }
     }
-}
-
-fn parse_reference_sequence_name(buf: &[u8]) -> io::Result<ReferenceSequenceName> {
-    str::from_utf8(buf)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        .and_then(|s| {
-            s.parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })
 }
