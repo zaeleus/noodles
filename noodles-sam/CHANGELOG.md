@@ -1,10 +1,6 @@
 # Changelog
 
-## 0.41.0 - 2023-08-31
-
-### Added
-
-  * sam/reader: Add `Reader::query_unmapped` to query for unmapped records.
+## Unreleased
 
 ### Changed
 
@@ -13,6 +9,12 @@
     name (`lazy::Record::reference_sequence_name`), sequence
     (`lazy::Record::sequence`), and quality scores
     (`lazy::Record::quality_scores`).
+
+## 0.41.0 - 2023-08-31
+
+### Added
+
+  * sam/reader: Add `Reader::query_unmapped` to query for unmapped records.
 
 ### Fixed
 
