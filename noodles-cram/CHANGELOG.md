@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.42.0 - 2023-09-14
+
+### Changed
+
+  * cram: Sync dependencies.
+
 ## 0.41.0 - 2023-08-31
 
 ### Changed
