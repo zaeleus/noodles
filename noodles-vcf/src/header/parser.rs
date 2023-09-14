@@ -310,6 +310,40 @@ mod tests {
     }
 
     #[test]
+    fn test_from_str_with_v42_pedigree() -> Result<(), Box<dyn std::error::Error>> {
+        use crate::{
+            header::record::{
+                value::{
+                    map::{Other},
+                    Map,
+                },
+                Value,
+            },
+        };
+        let s = r#"##fileformat=VCFv4.2
+##PEDIGREE=<Child=A,Mother=B,Father=C>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0
+"#;
+        let actual = Parser::default().parse(s)?;
+        let expected = Header::builder()
+            .set_file_format(FileFormat::new(4, 2))
+            .insert(
+                "PEDIGREE".parse()?,
+                Value::Map(
+                    String::from("A"),
+                    Map::<Other>::builder()
+                        .insert("Father".parse()?, "C")
+                        .insert("Mother".parse()?, "B")
+                        .build()?,
+                ),
+            )?
+            .add_sample_name("sample0")
+            .build();
+        assert_eq!(actual, expected);
+        Ok(())
+    }
+
+    #[test]
     fn test_from_str_without_file_format() {
         let s = r#"##ALT=<ID=DEL,Description="Deletion">
 "#;

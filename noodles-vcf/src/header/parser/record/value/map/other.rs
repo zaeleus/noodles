@@ -109,6 +109,12 @@ pub fn parse_other(src: &mut &[u8]) -> Result<(String, Map<Other>), ParseError> 
     super::consume_suffix(src)
         .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidMap(e)))?;
 
+    if id.is_none() {
+        if let Some((_, v)) = other_fields.shift_remove_index(0) {
+            id = Some(v.to_string());
+        }
+    }
+
     let id = id.ok_or_else(|| ParseError::new(None, ParseErrorKind::MissingId))?;
 
     Ok((
