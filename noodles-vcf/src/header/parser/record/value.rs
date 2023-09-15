@@ -18,7 +18,8 @@ pub enum ParseError {
     InvalidFormat(map::format::ParseError),
     InvalidAlternativeAllele(map::alternative_allele::ParseError),
     InvalidContig(map::contig::ParseError),
-    InvalidOther(key::Other),
+    InvalidOtherString(key::Other, string::ParseError),
+    InvalidOtherMap(key::Other, map::other::ParseError),
     FormatDefinitionMismatch {
         id: crate::record::genotypes::keys::Key,
         actual: (Number, crate::header::record::value::map::format::Type),
@@ -39,6 +40,8 @@ impl error::Error for ParseError {
             Self::InvalidFormat(e) => Some(e),
             Self::InvalidAlternativeAllele(e) => Some(e),
             Self::InvalidContig(e) => Some(e),
+            Self::InvalidOtherString(_, e) => Some(e),
+            Self::InvalidOtherMap(_, e) => Some(e),
             _ => None,
         }
     }
@@ -97,7 +100,16 @@ impl fmt::Display for ParseError {
 
                 Ok(())
             }
-            Self::InvalidOther(key) => write!(f, "invalid other: {key}"),
+            Self::InvalidOtherString(key, _) => write!(f, "invalid other string: {key}"),
+            Self::InvalidOtherMap(key, e) => {
+                write!(f, "invalid other map: {key}")?;
+
+                if let Some(id) = e.id() {
+                    write!(f, ": ID={id}")?;
+                }
+
+                Ok(())
+            }
             Self::FormatDefinitionMismatch {
                 id,
                 actual,
@@ -168,12 +180,12 @@ pub(super) fn parse_value(
             let v = if map::is_map(src) {
                 map::parse_other(src)
                     .map(Value::from)
-                    .map_err(|_| ParseError::InvalidOther(k.clone()))?
+                    .map_err(|e| ParseError::InvalidOtherMap(k.clone(), e))?
             } else {
                 parse_string(src)
                     .map(String::from)
                     .map(Value::from)
-                    .map_err(|_| ParseError::InvalidOther(k.clone()))?
+                    .map_err(|e| ParseError::InvalidOtherString(k.clone(), e))?
             };
 
             Ok(Record::Other(k, v))
