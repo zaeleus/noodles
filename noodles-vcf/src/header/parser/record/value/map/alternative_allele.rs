@@ -22,7 +22,7 @@ enum ParseErrorKind {
     MissingId,
     InvalidId(symbol::ParseError),
     MissingDescription,
-    InvalidDescription,
+    InvalidDescription(super::field::value::ParseError),
     InvalidIdx(num::ParseIntError),
     InvalidOther(
         map::tag::Other<tag::Standard>,
@@ -56,6 +56,7 @@ impl error::Error for ParseError {
             ParseErrorKind::InvalidKey(e) => Some(e),
             ParseErrorKind::InvalidValue(e) => Some(e),
             ParseErrorKind::InvalidId(e) => Some(e),
+            ParseErrorKind::InvalidDescription(e) => Some(e),
             ParseErrorKind::InvalidIdx(e) => Some(e),
             ParseErrorKind::InvalidOther(_, e) => Some(e),
             _ => None,
@@ -73,7 +74,7 @@ impl fmt::Display for ParseError {
             ParseErrorKind::MissingId => write!(f, "missing ID"),
             ParseErrorKind::InvalidId(_) => write!(f, "invalid ID"),
             ParseErrorKind::MissingDescription => write!(f, "missing description"),
-            ParseErrorKind::InvalidDescription => write!(f, "invalid description"),
+            ParseErrorKind::InvalidDescription(_) => write!(f, "invalid description"),
             ParseErrorKind::InvalidIdx(_) => write!(f, "invalid IDX"),
             ParseErrorKind::InvalidOther(tag, _) => write!(f, "invalid other: {tag}"),
             ParseErrorKind::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
@@ -139,7 +140,7 @@ fn parse_id(src: &mut &[u8], id: &Option<Symbol>) -> Result<Symbol, ParseError> 
 fn parse_description(src: &mut &[u8], id: &Option<Symbol>) -> Result<String, ParseError> {
     parse_value(src)
         .map(String::from)
-        .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidValue(e)))
+        .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidDescription(e)))
 }
 
 fn parse_other(
