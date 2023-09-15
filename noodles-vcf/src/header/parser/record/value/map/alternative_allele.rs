@@ -1,4 +1,4 @@
-use std::{error, fmt, num};
+use std::{error, fmt};
 
 use super::field::{parse_key, parse_value};
 use crate::{
@@ -23,7 +23,6 @@ enum ParseErrorKind {
     InvalidId(symbol::ParseError),
     MissingDescription,
     InvalidDescription(super::field::value::ParseError),
-    InvalidIdx(num::ParseIntError),
     InvalidOther(
         map::tag::Other<tag::Standard>,
         super::field::value::ParseError,
@@ -57,7 +56,6 @@ impl error::Error for ParseError {
             ParseErrorKind::InvalidValue(e) => Some(e),
             ParseErrorKind::InvalidId(e) => Some(e),
             ParseErrorKind::InvalidDescription(e) => Some(e),
-            ParseErrorKind::InvalidIdx(e) => Some(e),
             ParseErrorKind::InvalidOther(_, e) => Some(e),
             _ => None,
         }
@@ -75,7 +73,6 @@ impl fmt::Display for ParseError {
             ParseErrorKind::InvalidId(_) => write!(f, "invalid ID"),
             ParseErrorKind::MissingDescription => write!(f, "missing description"),
             ParseErrorKind::InvalidDescription(_) => write!(f, "invalid description"),
-            ParseErrorKind::InvalidIdx(_) => write!(f, "invalid IDX"),
             ParseErrorKind::InvalidOther(tag, _) => write!(f, "invalid other: {tag}"),
             ParseErrorKind::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
         }
