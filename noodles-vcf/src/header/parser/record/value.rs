@@ -18,7 +18,7 @@ pub enum ParseError {
     InvalidFormat(map::format::ParseError),
     InvalidAlternativeAllele(map::alternative_allele::ParseError),
     InvalidContig(map::contig::ParseError),
-    InvalidOther,
+    InvalidOther(key::Other),
     FormatDefinitionMismatch {
         id: crate::record::genotypes::keys::Key,
         actual: (Number, crate::header::record::value::map::format::Type),
@@ -97,7 +97,7 @@ impl fmt::Display for ParseError {
 
                 Ok(())
             }
-            Self::InvalidOther => write!(f, "invalid other"),
+            Self::InvalidOther(key) => write!(f, "invalid other: {key}"),
             Self::FormatDefinitionMismatch {
                 id,
                 actual,
@@ -168,12 +168,12 @@ pub(super) fn parse_value(
             let v = if map::is_map(src) {
                 map::parse_other(src)
                     .map(Value::from)
-                    .map_err(|_| ParseError::InvalidOther)?
+                    .map_err(|_| ParseError::InvalidOther(k.clone()))?
             } else {
                 parse_string(src)
                     .map(String::from)
                     .map(Value::from)
-                    .map_err(|_| ParseError::InvalidOther)?
+                    .map_err(|_| ParseError::InvalidOther(k.clone()))?
             };
 
             Ok(Record::Other(k, v))

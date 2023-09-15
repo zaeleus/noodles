@@ -113,15 +113,7 @@ impl std::fmt::Display for ParseError {
             Self::MissingFileFormat => f.write_str("missing fileformat"),
             Self::UnexpectedFileFormat => f.write_str("unexpected file format"),
             Self::InvalidFileFormat(_) => f.write_str("invalid file format"),
-            Self::InvalidRecord(e) => {
-                write!(f, "invalid record")?;
-
-                if let Some(key) = e.key() {
-                    write!(f, ": {key}")?;
-                }
-
-                Ok(())
-            }
+            Self::InvalidRecord(_) => f.write_str("invalid record"),
             Self::InvalidRecordValue(_) => f.write_str("invalid record value"),
             Self::MissingHeader => f.write_str("missing header"),
             Self::InvalidHeader(actual, expected) => {
