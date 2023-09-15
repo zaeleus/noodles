@@ -9,12 +9,20 @@ use std::fmt;
 use super::{builder, Inner, Map};
 
 /// An inner VCF header other map value.
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub struct Other;
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Other {
+    id_tag: Tag,
+}
 
 impl Inner for Other {
     type StandardTag = tag::Standard;
     type Builder = builder::Identity;
+}
+
+impl Default for Other {
+    fn default() -> Self {
+        Self { id_tag: tag::ID }
+    }
 }
 
 impl Map<Other> {
@@ -28,6 +36,10 @@ impl Map<Other> {
     /// ```
     pub fn new() -> Self {
         Self::default()
+    }
+
+    pub(crate) fn id_tag(&self) -> &Tag {
+        &self.inner.id_tag
     }
 }
 

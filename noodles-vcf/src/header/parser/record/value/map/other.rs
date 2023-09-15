@@ -114,7 +114,7 @@ pub fn parse_other(src: &mut &[u8]) -> Result<(String, Map<Other>), ParseError> 
     Ok((
         id,
         Map {
-            inner: Other,
+            inner: Other::default(),
             other_fields,
         },
     ))

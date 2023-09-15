@@ -607,7 +607,7 @@ impl std::fmt::Display for Header {
                             "{}{}=<{}={}{}>",
                             record::PREFIX,
                             key,
-                            map::other::tag::ID,
+                            map.id_tag(),
                             id,
                             map
                         )?;
