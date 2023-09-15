@@ -523,6 +523,8 @@ impl Default for Header {
 
 impl std::fmt::Display for Header {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use record::value::map;
+
         writeln!(
             f,
             "{}{}={}",
@@ -534,9 +536,10 @@ impl std::fmt::Display for Header {
         for (id, info) in self.infos() {
             writeln!(
                 f,
-                "{}{}=<ID={}{}>",
+                "{}{}=<{}={}{}>",
                 record::PREFIX,
                 record::key::INFO,
+                map::info::tag::ID,
                 id,
                 info
             )?;
@@ -545,9 +548,10 @@ impl std::fmt::Display for Header {
         for (id, filter) in self.filters() {
             writeln!(
                 f,
-                "{}{}=<ID={}{}>",
+                "{}{}=<{}={}{}>",
                 record::PREFIX,
                 record::key::FILTER,
+                map::filter::tag::ID,
                 id,
                 filter
             )?;
@@ -556,9 +560,10 @@ impl std::fmt::Display for Header {
         for (id, format) in self.formats() {
             writeln!(
                 f,
-                "{}{}=<ID={}{}>",
+                "{}{}=<{}={}{}>",
                 record::PREFIX,
                 record::key::FORMAT,
+                map::format::tag::ID,
                 id,
                 format
             )?;
@@ -567,9 +572,10 @@ impl std::fmt::Display for Header {
         for (id, alternative_allele) in self.alternative_alleles() {
             writeln!(
                 f,
-                "{}{}=<ID={}{}>",
+                "{}{}=<{}={}{}>",
                 record::PREFIX,
                 record::key::ALTERNATIVE_ALLELE,
+                map::alternative_allele::tag::ID,
                 id,
                 alternative_allele
             )?;
@@ -578,9 +584,10 @@ impl std::fmt::Display for Header {
         for (id, contig) in self.contigs() {
             writeln!(
                 f,
-                "{}{}=<ID={}{}>",
+                "{}{}=<{}={}{}>",
                 record::PREFIX,
                 record::key::CONTIG,
+                map::contig::tag::ID,
                 id,
                 contig
             )?;
@@ -595,7 +602,15 @@ impl std::fmt::Display for Header {
                 }
                 record::value::Collection::Structured(maps) => {
                     for (id, map) in maps {
-                        writeln!(f, "{}{}=<ID={}{}>", record::PREFIX, key, id, map)?;
+                        writeln!(
+                            f,
+                            "{}{}=<{}={}{}>",
+                            record::PREFIX,
+                            key,
+                            map::other::tag::ID,
+                            id,
+                            map
+                        )?;
                     }
                 }
             }
