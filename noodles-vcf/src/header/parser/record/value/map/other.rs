@@ -1,13 +1,16 @@
 use std::{error, fmt, str};
 
 use super::field::{parse_key, parse_value};
-use crate::header::record::value::{
-    map::{
-        self,
-        other::{tag, Tag},
-        Other, OtherFields,
+use crate::header::{
+    record::value::{
+        map::{
+            self,
+            other::{tag, Tag},
+            Other, OtherFields,
+        },
+        Map,
     },
-    Map,
+    FileFormat,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -120,6 +123,61 @@ pub fn parse_other(src: &mut &[u8]) -> Result<(String, Map<Other>), ParseError> 
     ))
 }
 
+pub fn parse_pedigree(
+    src: &mut &[u8],
+    file_format: FileFormat,
+) -> Result<(String, Map<Other>), ParseError> {
+    const CHILD: &str = "Child";
+    const DERIVED: &str = "Derived";
+    const VCF_4_3: FileFormat = FileFormat::new(4, 3);
+
+    super::consume_prefix(src).map_err(|e| ParseError::new(None, ParseErrorKind::InvalidMap(e)))?;
+
+    let mut id_tag = tag::ID;
+    let mut id = None;
+
+    let mut other_fields = OtherFields::new();
+
+    loop {
+        let tag = parse_key(src)
+            .map(Tag::from)
+            .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidKey(e)))?;
+
+        match tag {
+            tag::ID => parse_id(src, &id).and_then(|v| try_replace(&mut id, &None, tag::ID, v))?,
+            Tag::Other(t) => {
+                if file_format < VCF_4_3 && matches!(t.as_ref(), CHILD | DERIVED) {
+                    id_tag = Tag::Other(t);
+                    parse_id(src, &id).and_then(|v| try_replace(&mut id, &None, tag::ID, v))?
+                } else {
+                    parse_other_value(src, &id, &t)
+                        .and_then(|value| try_insert(&mut other_fields, &id, t, value))?;
+                }
+            }
+        }
+
+        let has_separator = super::field::consume_separator(src)
+            .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidField(e)))?;
+
+        if !has_separator {
+            break;
+        }
+    }
+
+    super::consume_suffix(src)
+        .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidMap(e)))?;
+
+    let id = id.ok_or_else(|| ParseError::new(None, ParseErrorKind::MissingId))?;
+
+    Ok((
+        id,
+        Map {
+            inner: Other { id_tag },
+            other_fields,
+        },
+    ))
+}
+
 fn parse_id(src: &mut &[u8], id: &Option<String>) -> Result<String, ParseError> {
     parse_value(src)
         .map(String::from)
@@ -214,5 +272,54 @@ mod tests {
         let expected = (id, map);
 
         assert_eq!(parse_other(&mut src), Ok(expected));
+    }
+
+    #[test]
+    fn test_parse_pedigree() -> Result<(), Box<dyn std::error::Error>> {
+        const VCF_4_2: FileFormat = FileFormat::new(4, 2);
+        const VCF_4_3: FileFormat = FileFormat::new(4, 3);
+
+        let mut src = &b"<ID=CID>"[..];
+        assert_eq!(
+            parse_pedigree(&mut src, VCF_4_3),
+            Ok((String::from("CID"), Map::<Other>::new()))
+        );
+
+        let mut src = &b"<Derived=DID,Original=OID>"[..];
+        assert_eq!(
+            parse_pedigree(&mut src, VCF_4_3),
+            Err(ParseError::new(None, ParseErrorKind::MissingId))
+        );
+
+        let mut src = &b"<Child=CID,Mother=MID,Father=FID>"[..];
+        assert_eq!(
+            parse_pedigree(&mut src, VCF_4_3),
+            Err(ParseError::new(None, ParseErrorKind::MissingId))
+        );
+
+        let mut src = &b"<Derived=DID,Original=OID>"[..];
+        let (actual_id, actual_map) = parse_pedigree(&mut src, VCF_4_2)?;
+
+        let expected_id = String::from("DID");
+        let mut expected_map = Map::<Other>::builder()
+            .insert("Original".parse()?, "OID")
+            .build()?;
+        expected_map.inner.id_tag = Tag::from("Derived");
+
+        assert_eq!((actual_id, actual_map), (expected_id, expected_map));
+
+        let mut src = &b"<Child=CID,Mother=MID,Father=FID>"[..];
+        let (actual_id, actual_map) = parse_pedigree(&mut src, VCF_4_2)?;
+
+        let expected_id = String::from("CID");
+        let mut expected_map = Map::<Other>::builder()
+            .insert("Mother".parse()?, "MID")
+            .insert("Father".parse()?, "FID")
+            .build()?;
+        expected_map.inner.id_tag = Tag::from("Child");
+
+        assert_eq!((actual_id, actual_map), (expected_id, expected_map));
+
+        Ok(())
     }
 }

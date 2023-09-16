@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * vcf/header/record/value/map/other: Add specialized PEDIGREE value parser.
+
+    When the input is VCF 4.2, this allows the `Child` or `Derived` field to
+    act as the record ID in the value collection.
+
 ## 0.39.0 - 2023-09-14
 
 ### Added

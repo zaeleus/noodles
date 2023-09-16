@@ -11,7 +11,7 @@ use super::{builder, Inner, Map};
 /// An inner VCF header other map value.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Other {
-    id_tag: Tag,
+    pub(crate) id_tag: Tag,
 }
 
 impl Inner for Other {
