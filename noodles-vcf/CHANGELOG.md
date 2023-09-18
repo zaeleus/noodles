@@ -8,11 +8,13 @@
 
     This no longer quotes the `Number`, `Type`, and `Values` field values.
 
-  * vcf/header/record/value/map/other: Add specialized PEDIGREE value parser.
+  * vcf/header/record/value/map/other: Add specialized PEDIGREE value parser
+    (#201).
 
     When the input is VCF 4.2, this allows the `Child` or `Derived` field to
     act as the record ID in the value collection.
 
+[#201]: https://github.com/zaeleus/noodles/issues/201
 [#203]: https://github.com/zaeleus/noodles/issues/203
 
 ## 0.39.0 - 2023-09-14
