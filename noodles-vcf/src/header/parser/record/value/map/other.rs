@@ -75,12 +75,40 @@ impl fmt::Display for ParseError {
 }
 
 pub fn parse_other(src: &mut &[u8]) -> Result<(String, Map<Other>), ParseError> {
+    super::consume_prefix(src).map_err(|e| ParseError::new(None, ParseErrorKind::InvalidMap(e)))?;
+
+    let mut id = None;
+    let mut other_fields = OtherFields::new();
+
+    while let Some((raw_key, raw_value)) = super::split_field(src)
+        .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidField(e)))?
+    {
+        match Tag::from(raw_key) {
+            tag::ID => try_replace(&mut id, &None, tag::ID, raw_value.into())?,
+            Tag::Other(t) => try_insert(&mut other_fields, &id, t, raw_value.into())?,
+        }
+    }
+
+    super::consume_suffix(src)
+        .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidMap(e)))?;
+
+    let id = id.ok_or_else(|| ParseError::new(None, ParseErrorKind::MissingId))?;
+
+    Ok((
+        id,
+        Map {
+            inner: Other::default(),
+            other_fields,
+        },
+    ))
+}
+
+pub fn parse_meta(src: &mut &[u8]) -> Result<(String, Map<Other>), ParseError> {
     const VALUES: &str = "Values";
 
     super::consume_prefix(src).map_err(|e| ParseError::new(None, ParseErrorKind::InvalidMap(e)))?;
 
     let mut id = None;
-
     let mut other_fields = OtherFields::new();
 
     loop {

@@ -151,6 +151,7 @@ pub(super) fn parse_value(
     file_format: FileFormat,
     key: Key,
 ) -> Result<Record, ParseError> {
+    const META: &str = "META";
     const PEDIGREE: &str = "PEDIGREE";
 
     match key {
@@ -179,7 +180,11 @@ pub(super) fn parse_value(
             .map(|(id, map)| Record::Contig(id, map))
             .map_err(ParseError::InvalidContig),
         Key::Other(k) => {
-            let v = if k.as_ref() == PEDIGREE {
+            let v = if k.as_ref() == META {
+                map::other::parse_meta(src)
+                    .map(Value::from)
+                    .map_err(|e| ParseError::InvalidOtherMap(k.clone(), e))?
+            } else if k.as_ref() == PEDIGREE {
                 map::other::parse_pedigree(src, file_format)
                     .map(Value::from)
                     .map_err(|e| ParseError::InvalidOtherMap(k.clone(), e))?

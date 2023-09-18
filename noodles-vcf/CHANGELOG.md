@@ -8,6 +8,9 @@
 
     This no longer quotes the `Number`, `Type`, and `Values` field values.
 
+  * vcf/header/parser/record/value/map/other: Only parse `Values` field in META
+    record.
+
   * vcf/header/record/value/map/other: Add specialized PEDIGREE value parser
     (#201).
 
