@@ -181,7 +181,7 @@ pub(super) fn parse_value(
             .map_err(ParseError::InvalidContig),
         Key::Other(k) => {
             let v = if k.as_ref() == META {
-                map::other::parse_meta(src)
+                map::other::parse_meta(src, file_format)
                     .map(Value::from)
                     .map_err(|e| ParseError::InvalidOtherMap(k.clone(), e))?
             } else if k.as_ref() == PEDIGREE {

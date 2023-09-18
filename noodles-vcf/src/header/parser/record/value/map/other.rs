@@ -103,8 +103,12 @@ pub fn parse_other(src: &mut &[u8]) -> Result<(String, Map<Other>), ParseError> 
     ))
 }
 
-pub fn parse_meta(src: &mut &[u8]) -> Result<(String, Map<Other>), ParseError> {
+pub fn parse_meta(
+    src: &mut &[u8],
+    file_format: FileFormat,
+) -> Result<(String, Map<Other>), ParseError> {
     const VALUES: &str = "Values";
+    const VCF_4_3: FileFormat = FileFormat::new(4, 3);
 
     super::consume_prefix(src).map_err(|e| ParseError::new(None, ParseErrorKind::InvalidMap(e)))?;
 
@@ -119,7 +123,7 @@ pub fn parse_meta(src: &mut &[u8]) -> Result<(String, Map<Other>), ParseError> {
         match tag {
             tag::ID => parse_id(src, &id).and_then(|v| try_replace(&mut id, &None, tag::ID, v))?,
             Tag::Other(t) => {
-                if t == VALUES {
+                if file_format >= VCF_4_3 && t == VALUES {
                     parse_values(src, &id, &t)
                         .and_then(|value| try_insert(&mut other_fields, &id, t, value))?;
                 } else {
@@ -300,6 +304,34 @@ mod tests {
         let expected = (id, map);
 
         assert_eq!(parse_other(&mut src), Ok(expected));
+    }
+
+    #[test]
+    fn test_parse_meta() -> Result<(), Box<dyn std::error::Error>> {
+        const VCF_4_2: FileFormat = FileFormat::new(4, 2);
+        const VCF_4_3: FileFormat = FileFormat::new(4, 3);
+
+        let mut src = &b"<ID=Assay,Values=[WholeGenome, Exome]>"[..];
+        assert_eq!(
+            parse_meta(&mut src, VCF_4_3),
+            Ok((
+                String::from("Assay"),
+                Map::<Other>::builder()
+                    .insert("Values".parse()?, "[WholeGenome, Exome]")
+                    .build()?
+            ))
+        );
+
+        let mut src = &b"<ID=Assay,Values=[WholeGenome, Exome]>"[..];
+        assert!(matches!(
+            parse_meta(&mut src, VCF_4_2),
+            Err(ParseError {
+                id,
+                kind: ParseErrorKind::InvalidKey(_)
+            }) if id == Some(String::from("Assay"))
+        ));
+
+        Ok(())
     }
 
     #[test]
