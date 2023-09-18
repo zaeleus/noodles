@@ -1,6 +1,5 @@
 use std::{error, fmt, num};
 
-use super::field::{parse_key, parse_value};
 use crate::{
     header::{
         number,
@@ -21,8 +20,6 @@ use crate::{
 pub enum ParseErrorKind {
     InvalidMap(super::ParseError),
     InvalidField(super::field::ParseError),
-    InvalidKey(super::field::key::ParseError),
-    InvalidValue(super::field::value::ParseError),
     MissingId,
     InvalidId(key::ParseError),
     MissingNumber,
@@ -30,12 +27,7 @@ pub enum ParseErrorKind {
     MissingType,
     InvalidType(ty::ParseError),
     MissingDescription,
-    InvalidDescription(super::field::value::ParseError),
     InvalidIdx(num::ParseIntError),
-    InvalidOther(
-        map::tag::Other<tag::Standard>,
-        super::field::value::ParseError,
-    ),
     DuplicateTag(Tag),
 }
 
@@ -61,14 +53,10 @@ impl error::Error for ParseError {
         match &self.kind {
             ParseErrorKind::InvalidMap(e) => Some(e),
             ParseErrorKind::InvalidField(e) => Some(e),
-            ParseErrorKind::InvalidKey(e) => Some(e),
-            ParseErrorKind::InvalidValue(e) => Some(e),
             ParseErrorKind::InvalidId(e) => Some(e),
             ParseErrorKind::InvalidNumber(e) => Some(e),
             ParseErrorKind::InvalidType(e) => Some(e),
-            ParseErrorKind::InvalidDescription(e) => Some(e),
             ParseErrorKind::InvalidIdx(e) => Some(e),
-            ParseErrorKind::InvalidOther(_, e) => Some(e),
             _ => None,
         }
     }
@@ -79,8 +67,6 @@ impl fmt::Display for ParseError {
         match &self.kind {
             ParseErrorKind::InvalidMap(_) => write!(f, "invalid map"),
             ParseErrorKind::InvalidField(_) => write!(f, "invalid field"),
-            ParseErrorKind::InvalidKey(_) => write!(f, "invalid key"),
-            ParseErrorKind::InvalidValue(_) => write!(f, "invalid value"),
             ParseErrorKind::MissingId => write!(f, "missing ID"),
             ParseErrorKind::InvalidId(_) => write!(f, "invalid ID"),
             ParseErrorKind::MissingNumber => write!(f, "missing number"),
@@ -88,9 +74,7 @@ impl fmt::Display for ParseError {
             ParseErrorKind::MissingType => write!(f, "missing type"),
             ParseErrorKind::InvalidType(_) => write!(f, "invalid type"),
             ParseErrorKind::MissingDescription => write!(f, "missing description"),
-            ParseErrorKind::InvalidDescription(_) => write!(f, "invalid description"),
             ParseErrorKind::InvalidIdx(_) => write!(f, "invalid IDX"),
-            ParseErrorKind::InvalidOther(tag, _) => write!(f, "invalid other: {tag}"),
             ParseErrorKind::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
         }
     }
@@ -110,33 +94,24 @@ pub fn parse_info(
 
     let mut other_fields = OtherFields::new();
 
-    loop {
-        let tag = parse_key(src)
-            .map(Tag::from)
-            .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidKey(e)))?;
-
-        match tag {
-            tag::ID => parse_id(src, file_format, &id)
+    while let Some((raw_key, raw_value)) = super::split_field(src)
+        .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidField(e)))?
+    {
+        match Tag::from(raw_key) {
+            tag::ID => parse_id(&raw_value, file_format, &id)
                 .and_then(|v| try_replace(&mut id, &None, tag::ID, v))?,
-            tag::NUMBER => parse_number(src, &id)
+            tag::NUMBER => parse_number(&raw_value, &id)
                 .and_then(|v| try_replace(&mut number, &id, tag::NUMBER, v))?,
             tag::TYPE => {
-                parse_type(src, &id).and_then(|v| try_replace(&mut ty, &id, tag::TYPE, v))?
+                parse_type(&raw_value, &id).and_then(|v| try_replace(&mut ty, &id, tag::TYPE, v))?
             }
-            tag::DESCRIPTION => parse_description(src, &id)
-                .and_then(|v| try_replace(&mut description, &id, tag::DESCRIPTION, v))?,
+            tag::DESCRIPTION => {
+                try_replace(&mut description, &id, tag::DESCRIPTION, raw_value.into())?
+            }
             tag::IDX => {
-                parse_idx(src, &id).and_then(|v| try_replace(&mut idx, &id, tag::IDX, v))?
+                parse_idx(&raw_value, &id).and_then(|v| try_replace(&mut idx, &id, tag::IDX, v))?
             }
-            Tag::Other(t) => parse_other(src, &id, &t)
-                .and_then(|value| try_insert(&mut other_fields, &id, t, value))?,
-        }
-
-        let has_separator = super::field::consume_separator(src)
-            .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidField(e)))?;
-
-        if !has_separator {
-            break;
+            Tag::Other(t) => try_insert(&mut other_fields, &id, t, raw_value.into())?,
         }
     }
 
@@ -164,56 +139,24 @@ pub fn parse_info(
     ))
 }
 
-fn parse_id(src: &mut &[u8], file_format: FileFormat, id: &Option<Key>) -> Result<Key, ParseError> {
-    parse_value(src)
-        .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidValue(e)))
-        .and_then(|s| {
-            Key::try_from((file_format, s.as_ref()))
-                .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidId(e)))
-        })
+fn parse_id(s: &str, file_format: FileFormat, id: &Option<Key>) -> Result<Key, ParseError> {
+    Key::try_from((file_format, s))
+        .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidId(e)))
 }
 
-fn parse_number(src: &mut &[u8], id: &Option<Key>) -> Result<Number, ParseError> {
-    parse_value(src)
-        .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidValue(e)))
-        .and_then(|s| {
-            s.parse()
-                .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidNumber(e)))
-        })
+fn parse_number(s: &str, id: &Option<Key>) -> Result<Number, ParseError> {
+    s.parse()
+        .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidNumber(e)))
 }
 
-fn parse_type(src: &mut &[u8], id: &Option<Key>) -> Result<Type, ParseError> {
-    parse_value(src)
-        .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidValue(e)))
-        .and_then(|s| {
-            s.parse()
-                .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidType(e)))
-        })
+fn parse_type(s: &str, id: &Option<Key>) -> Result<Type, ParseError> {
+    s.parse()
+        .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidType(e)))
 }
 
-fn parse_description(src: &mut &[u8], id: &Option<Key>) -> Result<String, ParseError> {
-    parse_value(src)
-        .map(String::from)
-        .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidDescription(e)))
-}
-
-fn parse_idx(src: &mut &[u8], id: &Option<Key>) -> Result<usize, ParseError> {
-    parse_value(src)
-        .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidValue(e)))
-        .and_then(|s| {
-            s.parse()
-                .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidIdx(e)))
-        })
-}
-
-fn parse_other(
-    src: &mut &[u8],
-    id: &Option<Key>,
-    tag: &map::tag::Other<tag::Standard>,
-) -> Result<String, ParseError> {
-    parse_value(src)
-        .map(String::from)
-        .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidOther(tag.clone(), e)))
+fn parse_idx(s: &str, id: &Option<Key>) -> Result<usize, ParseError> {
+    s.parse()
+        .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidIdx(e)))
 }
 
 fn try_replace<T>(

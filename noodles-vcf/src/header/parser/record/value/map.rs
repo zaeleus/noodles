@@ -8,6 +8,7 @@ pub mod other;
 
 use std::{error, fmt};
 
+use self::field::split_field;
 pub use self::{
     alternative_allele::parse_alternative_allele, contig::parse_contig, filter::parse_filter,
     format::parse_format, info::parse_info, other::parse_other,
