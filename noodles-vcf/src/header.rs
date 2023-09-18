@@ -525,6 +525,8 @@ impl std::fmt::Display for Header {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use record::value::map;
 
+        const META: &str = "META";
+
         writeln!(
             f,
             "{}{}={}",
@@ -602,15 +604,20 @@ impl std::fmt::Display for Header {
                 }
                 record::value::Collection::Structured(maps) => {
                     for (id, map) in maps {
-                        writeln!(
-                            f,
-                            "{}{}=<{}={}{}>",
-                            record::PREFIX,
-                            key,
-                            map.id_tag(),
-                            id,
-                            map
-                        )?;
+                        if key.as_ref() == META {
+                            fmt::write_meta_record(f, id, map)?;
+                            writeln!(f)?;
+                        } else {
+                            writeln!(
+                                f,
+                                "{}{}=<{}={}{}>",
+                                record::PREFIX,
+                                key,
+                                map.id_tag(),
+                                id,
+                                map
+                            )?;
+                        }
                     }
                 }
             }
