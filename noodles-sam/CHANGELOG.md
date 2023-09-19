@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * sam/record/data/field/tag: Add `const` initializer (`Tag::new`) ([#204]).
+
+[#204]: https://github.com/zaeleus/noodles/issues/204
+
 ## 0.42.0 - 2023-09-14
 
 ### Changed

@@ -223,6 +223,27 @@ pub enum Tag {
     Other(Other),
 }
 
+impl Tag {
+    /// Creates a data field tag.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::data::field::Tag;
+    /// assert!(Tag::new([b'x', b'n']).is_some());
+    /// assert!(Tag::new([b'1', b'n']).is_none());
+    /// ```
+    pub const fn new(buf: [u8; LENGTH]) -> Option<Self> {
+        if let Some(tag) = Standard::new(buf) {
+            Some(Self::Standard(tag))
+        } else if let Some(tag) = Other::new(buf) {
+            Some(Self::Other(tag))
+        } else {
+            None
+        }
+    }
+}
+
 impl AsRef<[u8; LENGTH]> for Tag {
     fn as_ref(&self) -> &[u8; LENGTH] {
         match self {
@@ -297,9 +318,9 @@ impl TryFrom<[u8; LENGTH]> for Tag {
     type Error = ParseError;
 
     fn try_from(b: [u8; LENGTH]) -> Result<Self, Self::Error> {
-        match Standard::try_from(b) {
-            Ok(tag) => Ok(Self::Standard(tag)),
-            Err(_) => {
+        match Standard::new(b) {
+            Some(tag) => Ok(Self::Standard(tag)),
+            None => {
                 if !b[0].is_ascii_alphabetic() {
                     Err(ParseError::InvalidCharacter(char::from(b[0])))
                 } else if !b[1].is_ascii_alphanumeric() {
