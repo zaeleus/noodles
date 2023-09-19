@@ -284,7 +284,11 @@ mod tests {
 
     #[test]
     fn test_encode_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::record::MappingQuality;
+        use sam::record::{
+            cigar::{op, Op},
+            data::field::{tag, Value},
+            MappingQuality,
+        };
 
         let mut buf = Vec::new();
 
@@ -305,13 +309,21 @@ mod tests {
             .set_reference_sequence_id(1)
             .set_alignment_start(Position::try_from(9)?)
             .set_mapping_quality(MappingQuality::try_from(13)?)
-            .set_cigar("3M1S".parse()?)
+            .set_cigar(
+                [Op::new(op::Kind::Match, 3), Op::new(op::Kind::SoftClip, 1)]
+                    .into_iter()
+                    .collect(),
+            )
             .set_mate_reference_sequence_id(1)
             .set_mate_alignment_start(Position::try_from(22)?)
             .set_template_length(144)
             .set_sequence("ACGT".parse()?)
             .set_quality_scores("NDLS".parse()?)
-            .set_data("NH:i:1".parse()?)
+            .set_data(
+                [(tag::ALIGNMENT_HIT_COUNT, Value::from(1))]
+                    .into_iter()
+                    .collect(),
+            )
             .build();
 
         encode(&mut buf, &header, &record)?;
@@ -345,22 +357,26 @@ mod tests {
     fn test_encode_with_oversized_cigar() -> Result<(), Box<dyn std::error::Error>> {
         use sam::record::{
             cigar::{op::Kind, Op},
+            data::field::{tag, Value},
             sequence::Base,
             Cigar, Sequence,
+        };
+
+        const BASE_COUNT: usize = 65536;
+
+        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(131072) {
+            Some(n) => n,
+            None => unreachable!(),
         };
 
         let mut buf = Vec::new();
 
         let header = sam::Header::builder()
-            .add_reference_sequence(
-                "sq0".parse()?,
-                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(131072)?),
-            )
+            .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(SQ0_LN))
             .build();
 
-        let base_count = 65536;
-        let cigar = Cigar::try_from(vec![Op::new(Kind::Match, 1); base_count])?;
-        let sequence = Sequence::try_from(vec![Base::A; base_count])?;
+        let cigar = Cigar::try_from(vec![Op::new(Kind::Match, 1); BASE_COUNT])?;
+        let sequence = Sequence::from(vec![Base::A; BASE_COUNT]);
 
         let record = Record::builder()
             .set_flags(Flags::empty())
@@ -368,7 +384,11 @@ mod tests {
             .set_alignment_start(Position::MIN)
             .set_cigar(cigar)
             .set_sequence(sequence)
-            .set_data("NH:i:1".parse()?)
+            .set_data(
+                [(tag::ALIGNMENT_HIT_COUNT, Value::from(1))]
+                    .into_iter()
+                    .collect(),
+            )
             .build();
 
         encode(&mut buf, &header, &record)?;
@@ -390,13 +410,13 @@ mod tests {
             0x03, 0x00, 0x20, 0x00, // cigar[1] = 131072N
         ];
 
-        expected.resize(expected.len() + (base_count + 1) / 2, 0x11); // seq = [A, ...]
-        expected.resize(expected.len() + base_count, 0xff); // qual = [0xff, ...]
+        expected.resize(expected.len() + (BASE_COUNT + 1) / 2, 0x11); // seq = [A, ...]
+        expected.resize(expected.len() + BASE_COUNT, 0xff); // qual = [0xff, ...]
         expected.extend([b'N', b'H', b'C', 0x01]); // data[0] = NH:i:1
 
         // data[1] = CG:B,I:...
         expected.extend([b'C', b'G', b'B', b'I', 0x00, 0x00, 0x01, 0x00]);
-        expected.extend((0..base_count).flat_map(|_| {
+        expected.extend((0..BASE_COUNT).flat_map(|_| {
             [
                 0x10, 0x00, 0x00, 0x00, // 1M
             ]
