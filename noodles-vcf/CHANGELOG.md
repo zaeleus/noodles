@@ -4,12 +4,12 @@
 
 ### Changed
 
-  * vcf/header/fmt: Add specialized META record serializer (#203).
+  * vcf/header/fmt: Add specialized META record serializer ([#203]).
 
     This no longer quotes the `Number`, `Type`, and `Values` field values.
 
   * vcf/header/parser/record/value/map/other: Add specialized PEDIGREE value
-    parser (#201).
+    parser ([#201]).
 
     When the input is VCF 4.2, this allows the `Child` or `Derived` field to
     act as the record ID in the value collection.
