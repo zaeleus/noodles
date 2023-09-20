@@ -7,6 +7,7 @@ use std::{
 
 use super::LENGTH;
 
+/// A nonstandard tag.
 #[derive(Clone, Copy, Debug)]
 pub struct Other<S>(pub(super) [u8; LENGTH], pub(super) PhantomData<S>);
 

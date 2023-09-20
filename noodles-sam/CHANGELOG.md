@@ -8,6 +8,11 @@
 
 [#204]: https://github.com/zaeleus/noodles/issues/204
 
+### Changed
+
+  * sam/header/record/value/map/tag: Increase the visibility of the `tag`
+    module.
+
 ## 0.42.0 - 2023-09-14
 
 ### Changed

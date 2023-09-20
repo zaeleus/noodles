@@ -1,3 +1,5 @@
+//! SAM header record map value tag;
+
 mod other;
 
 use std::{error, fmt, marker::PhantomData, str::FromStr};
@@ -6,6 +8,7 @@ pub use self::other::Other;
 
 pub(crate) const LENGTH: usize = 2;
 
+/// A standard tag.
 pub trait Standard: AsRef<[u8; LENGTH]> + TryFrom<[u8; LENGTH]> {}
 
 /// A SAM header record map value field tag.
@@ -55,7 +58,10 @@ pub enum ParseError {
     /// The input is empty.
     Empty,
     /// The input is not two bytes.
-    LengthMismatch { actual: usize },
+    LengthMismatch {
+        /// The actual length of the input.
+        actual: usize,
+    },
     /// The input is invalid.
     Invalid,
 }

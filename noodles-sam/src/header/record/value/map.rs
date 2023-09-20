@@ -5,7 +5,7 @@ pub mod header;
 pub mod program;
 pub mod read_group;
 pub mod reference_sequence;
-pub(crate) mod tag;
+pub mod tag;
 
 pub use self::{
     builder::Builder, header::Header, program::Program, read_group::ReadGroup,
