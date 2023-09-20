@@ -47,12 +47,37 @@ where
     I: super::Inner,
 {
     /// Inserts a key-value pair into the other fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::record::value::{map::{Header, Tag}, Map};
+    ///
+    /// let nd = match Tag::try_from([b'n', b'd']) {
+    ///     Ok(Tag::Other(tag)) => tag,
+    ///     _ => unreachable!(),
+    /// };
+    ///
+    /// let header = Map::<Header>::builder()
+    ///     .insert(nd, String::from("noodles"))
+    ///     .build()?;
+    ///
+    /// assert_eq!(header.other_fields().get(b"nd"), Some(&String::from("noodles")));
+    /// # Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
+    /// ```
     pub fn insert(mut self, key: tag::Other<I::StandardTag>, value: String) -> Self {
         self.other_fields.insert(key, value);
         self
     }
 
     /// Builds a SAM header record map value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::record::value::{map::Header, Map};
+    /// let header = Map::<Header>::builder().build()?;
+    /// # Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
     pub fn build(self) -> Result<Map<I>, BuildError> {
         let inner = self.inner.build()?;
 
