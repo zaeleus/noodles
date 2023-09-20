@@ -4,6 +4,9 @@
 
 ### Added
 
+  * sam/header/record/value/map: Add mutable getter for other fields
+    (`Map::other_fields_mut`).
+
   * sam/record/data/field/tag: Add `const` initializer (`Tag::new`) ([#204]).
 
 [#204]: https://github.com/zaeleus/noodles/issues/204

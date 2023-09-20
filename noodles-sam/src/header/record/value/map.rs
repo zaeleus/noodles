@@ -52,6 +52,25 @@ where
     pub fn other_fields(&self) -> &OtherFields<I::StandardTag> {
         &self.other_fields
     }
+
+    /// Returns a mutable reference to the nonstandard fields in the map.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use noodles_sam::header::record::value::{map::{Header, Tag}, Map};
+    ///
+    /// let nd = match Tag::try_from([b'n', b'd']) {
+    ///     Ok(Tag::Other(tag)) => tag,
+    ///     _ => unreachable!(),
+    /// };
+    ///
+    /// let mut map = Map::<Header>::new(Default::default());
+    /// map.other_fields_mut().insert(nd, String::from("noodles"));
+    /// ```
+    pub fn other_fields_mut(&mut self) -> &mut OtherFields<I::StandardTag> {
+        &mut self.other_fields
+    }
 }
 
 impl<I> Default for Map<I>
