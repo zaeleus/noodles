@@ -358,7 +358,7 @@ impl TryFrom<Record> for sam::alignment::Record {
 }
 
 fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
-    use crate::record::codec::decoder::{cigar, sequence};
+    use crate::record::codec::decoder::sequence;
 
     const MIN_BUF_LENGTH: usize = bounds::TEMPLATE_LENGTH_RANGE.end;
 
@@ -368,9 +368,9 @@ fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
 
     let l_read_name = usize::from(buf[bounds::READ_NAME_LENGTH_INDEX]);
 
-    let mut src = &buf[bounds::CIGAR_OP_COUNT_RANGE];
-    let n_cigar_op =
-        cigar::get_op_count(&mut src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let src = &buf[bounds::CIGAR_OP_COUNT_RANGE];
+    // SAFETY: `src` is 2 bytes.
+    let n_cigar_op = usize::from(u16::from_le_bytes(src.try_into().unwrap()));
 
     let mut src = &buf[bounds::READ_LENGTH_RANGE];
     let l_seq = sequence::get_length(&mut src)

@@ -40,7 +40,7 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub(crate) fn get_op_count<B>(src: &mut B) -> Result<usize, DecodeError>
+pub fn get_op_count<B>(src: &mut B) -> Result<usize, DecodeError>
 where
     B: Buf,
 {
