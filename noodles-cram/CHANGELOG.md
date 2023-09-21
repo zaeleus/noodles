@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * cram: Update to libdeflater 1.19.0 (libdeflate 1.19).
+
 ## 0.43.0 - 2023-09-21
 
 ### Changed
