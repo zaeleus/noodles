@@ -1,12 +1,14 @@
-mod key;
 mod value;
 
 use std::{error, fmt};
 
 use noodles_vcf as vcf;
 
-use self::{key::read_key, value::read_value};
-use crate::header::string_maps::StringStringMap;
+use self::value::read_value;
+use crate::{
+    header::string_maps::StringStringMap,
+    record::codec::decoder::string_map::{self, read_string_map_entry},
+};
 
 pub(crate) fn read_field(
     src: &mut &[u8],
@@ -19,7 +21,7 @@ pub(crate) fn read_field(
     ),
     DecodeError,
 > {
-    let raw_key = read_key(src, string_map).map_err(DecodeError::InvalidKey)?;
+    let raw_key = read_string_map_entry(src, string_map).map_err(DecodeError::InvalidStringMap)?;
 
     let (key, info) = infos
         .get_key_value(raw_key)
@@ -32,7 +34,7 @@ pub(crate) fn read_field(
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum DecodeError {
-    InvalidKey(key::DecodeError),
+    InvalidStringMap(string_map::DecodeError),
     MissingInfoMapEntry,
     InvalidValue(value::DecodeError),
 }
@@ -40,7 +42,7 @@ pub enum DecodeError {
 impl error::Error for DecodeError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
-            Self::InvalidKey(e) => Some(e),
+            Self::InvalidStringMap(e) => Some(e),
             Self::MissingInfoMapEntry => None,
             Self::InvalidValue(e) => Some(e),
         }
@@ -50,7 +52,7 @@ impl error::Error for DecodeError {
 impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidKey(_) => write!(f, "invalid key"),
+            Self::InvalidStringMap(_) => write!(f, "invalid string map"),
             Self::MissingInfoMapEntry => write!(f, "missing info map entry"),
             Self::InvalidValue(_) => write!(f, "invalid value"),
         }

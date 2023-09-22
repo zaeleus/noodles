@@ -1,8 +1,11 @@
 use std::{error, fmt, num};
 
-use crate::lazy::record::{
-    value::{Array, Int16, Int32, Int8},
-    Value,
+use crate::{
+    header::string_maps::StringMap,
+    lazy::record::{
+        value::{Array, Int16, Int32, Int8},
+        Value,
+    },
 };
 
 use super::value::read_value;
@@ -36,12 +39,21 @@ pub fn read_string_map_indices(src: &mut &[u8]) -> Result<Vec<usize>, DecodeErro
         .collect()
 }
 
+pub fn read_string_map_entry<'m>(
+    src: &mut &[u8],
+    string_map: &'m StringMap,
+) -> Result<&'m str, DecodeError> {
+    read_string_map_index(src)
+        .and_then(|j| string_map.get_index(j).ok_or(DecodeError::MissingEntry))
+}
+
 #[allow(clippy::enum_variant_names)]
 #[derive(Debug, Eq, PartialEq)]
 pub enum DecodeError {
     InvalidValue(super::value::DecodeError),
     InvalidIndex(num::TryFromIntError),
     InvalidIndexValue,
+    MissingEntry,
 }
 
 impl error::Error for DecodeError {
@@ -49,7 +61,7 @@ impl error::Error for DecodeError {
         match self {
             Self::InvalidValue(e) => Some(e),
             Self::InvalidIndex(e) => Some(e),
-            Self::InvalidIndexValue => None,
+            _ => None,
         }
     }
 }
@@ -60,6 +72,7 @@ impl fmt::Display for DecodeError {
             Self::InvalidValue(_) => write!(f, "invalid value"),
             Self::InvalidIndex(_) => write!(f, "invalid index"),
             Self::InvalidIndexValue => write!(f, "invalid index value"),
+            Self::MissingEntry => write!(f, "missing entry"),
         }
     }
 }
@@ -158,6 +171,25 @@ mod tests {
         assert_eq!(
             read_string_map_indices(&mut src),
             Err(DecodeError::InvalidIndexValue)
+        );
+    }
+
+    #[test]
+    fn test_read_string_map_entry() {
+        let mut string_map = StringMap::default();
+        string_map.insert(String::from("PASS"));
+        string_map.insert(String::from("NS"));
+        string_map.insert(String::from("DP"));
+
+        // Some(Type::Int8(Some(Int8::Value(1))))
+        let mut src = &[0x11, 0x01][..];
+        assert_eq!(read_string_map_entry(&mut src, &string_map), Ok("NS"));
+
+        // Some(Type::Int8(Some(Int8::Value(8))))
+        let mut src = &[0x11, 0x08][..];
+        assert_eq!(
+            read_string_map_entry(&mut src, &string_map),
+            Err(DecodeError::MissingEntry)
         );
     }
 }
