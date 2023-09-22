@@ -19,9 +19,14 @@ pub(crate) fn read_field(
     ),
     DecodeError,
 > {
-    let key = read_key(src, infos, string_map).map_err(DecodeError::InvalidKey)?;
-    let info = infos.get(key).ok_or(DecodeError::MissingInfoMapEntry)?;
+    let raw_key = read_key(src, string_map).map_err(DecodeError::InvalidKey)?;
+
+    let (key, info) = infos
+        .get_key_value(raw_key)
+        .ok_or(DecodeError::MissingInfoMapEntry)?;
+
     let value = read_value(src, info).map_err(DecodeError::InvalidValue)?;
+
     Ok((key.clone(), value))
 }
 
