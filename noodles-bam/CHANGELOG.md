@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bam/lazy/record/sequence: Add bases iterator (`Sequence::iter`).
+
 ## 0.46.0 - 2023-09-21
 
 ### Changed

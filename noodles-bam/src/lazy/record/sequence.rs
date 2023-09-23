@@ -25,6 +25,16 @@ impl<'a> Sequence<'a> {
     pub fn len(&self) -> usize {
         self.base_count
     }
+
+    /// Returns an iterator over the bases in the sequence.
+    pub fn iter(&self) -> impl Iterator<Item = sam::record::sequence::Base> + '_ {
+        use crate::record::codec::decoder::sequence::decode_base;
+
+        self.src
+            .iter()
+            .flat_map(|&b| [decode_base(b >> 4), decode_base(b)])
+            .take(self.base_count)
+    }
 }
 
 impl<'a> AsRef<[u8]> for Sequence<'a> {
@@ -46,5 +56,26 @@ impl<'a> TryFrom<Sequence<'a>> for sam::record::Sequence {
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         Ok(sam_sequence)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_iter() {
+        use sam::record::sequence::Base;
+
+        let sequence = Sequence::new(&[], 0);
+        assert!(sequence.iter().next().is_none());
+
+        let sequence = Sequence::new(&[0x12, 0x40], 3);
+        let actual: Vec<_> = sequence.iter().collect();
+        assert_eq!(actual, [Base::A, Base::C, Base::G]);
+
+        let sequence = Sequence::new(&[0x12, 0x48], 4);
+        let actual: Vec<_> = sequence.iter().collect();
+        assert_eq!(actual, [Base::A, Base::C, Base::G, Base::T]);
     }
 }
