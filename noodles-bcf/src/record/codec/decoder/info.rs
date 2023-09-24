@@ -12,8 +12,9 @@ pub fn read_info(
     infos: &vcf::header::Infos,
     string_string_map: &StringStringMap,
     len: usize,
-) -> Result<vcf::record::Info, DecodeError> {
-    let mut info = vcf::record::Info::default();
+    info: &mut vcf::record::Info,
+) -> Result<(), DecodeError> {
+    info.clear();
 
     for _ in 0..len {
         let (key, value) =
@@ -24,7 +25,7 @@ pub fn read_info(
         }
     }
 
-    Ok(info)
+    Ok(())
 }
 
 #[derive(Debug, Eq, PartialEq)]
