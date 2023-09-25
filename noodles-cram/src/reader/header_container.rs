@@ -1,11 +1,9 @@
 mod header;
 
-use std::{
-    io::{self, Read},
-    str,
-};
+use std::io::{self, BufRead, BufReader, Read};
 
-use bytes::{Buf, Bytes, BytesMut};
+use byteorder::{LittleEndian, ReadBytesExt};
+use bytes::{Bytes, BytesMut};
 use noodles_sam as sam;
 
 use self::header::read_header;
@@ -24,36 +22,20 @@ where
     reader.read_exact(buf)?;
     let mut buf = buf.split().freeze();
 
-    read_raw_sam_header_from_block(&mut buf).and_then(|s| {
-        s.parse()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })
+    read_sam_header_from_block(&mut buf)
 }
 
-pub fn read_raw_sam_header_from_block(src: &mut Bytes) -> io::Result<String> {
+pub fn read_sam_header_from_block(src: &mut Bytes) -> io::Result<sam::Header> {
     use super::container::read_block;
 
     let block = read_block(src)?;
-    read_raw_sam_header(&block)
+    read_sam_header(&block)
 }
 
-fn read_raw_sam_header(block: &Block) -> io::Result<String> {
-    const EXPECTED_CONTENT_TYPE: ContentType = ContentType::FileHeader;
+fn read_sam_header(block: &Block) -> io::Result<sam::Header> {
+    use flate2::bufread::GzDecoder;
 
-    if !matches!(
-        block.compression_method(),
-        CompressionMethod::None | CompressionMethod::Gzip
-    ) {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!(
-                "invalid block compression method: expected {:?} or {:?}, got {:?}",
-                CompressionMethod::None,
-                CompressionMethod::Gzip,
-                block.compression_method()
-            ),
-        ));
-    }
+    const EXPECTED_CONTENT_TYPE: ContentType = ContentType::FileHeader;
 
     if block.content_type() != EXPECTED_CONTENT_TYPE {
         return Err(io::Error::new(
@@ -66,16 +48,66 @@ fn read_raw_sam_header(block: &Block) -> io::Result<String> {
         ));
     }
 
-    let mut data = block.decompressed_data()?;
+    let mut reader: Box<dyn BufRead> = match block.compression_method() {
+        CompressionMethod::None => Box::new(block.data()),
+        CompressionMethod::Gzip => {
+            let decoder = GzDecoder::new(block.data());
+            Box::new(BufReader::new(decoder))
+        }
+        compression_method => {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!(
+                    "invalid block compression method: expected {:?} or {:?}, got {:?}",
+                    CompressionMethod::None,
+                    CompressionMethod::Gzip,
+                    compression_method
+                ),
+            ))
+        }
+    };
 
-    let len = usize::try_from(data.get_i32_le())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let len = reader.read_i32::<LittleEndian>().and_then(|n| {
+        u64::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
 
-    data.truncate(len);
+    let mut parser = sam::header::Parser::default();
 
-    str::from_utf8(&data[..])
-        .map(|s| s.into())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    let mut header_reader = reader.take(len);
+    let mut buf = Vec::new();
+
+    while read_line(&mut header_reader, &mut buf)? != 0 {
+        parser
+            .parse_partial(&buf)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    }
+
+    Ok(parser.finish())
+}
+
+fn read_line<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    const LINE_FEED: u8 = b'\n';
+    const CARRIAGE_RETURN: u8 = b'\r';
+
+    dst.clear();
+
+    match reader.read_until(LINE_FEED, dst)? {
+        0 => Ok(0),
+        n => {
+            if dst.ends_with(&[LINE_FEED]) {
+                dst.pop();
+
+                if dst.ends_with(&[CARRIAGE_RETURN]) {
+                    dst.pop();
+                }
+            }
+
+            Ok(n)
+        }
+    }
 }
 
 #[cfg(test)]
@@ -85,8 +117,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_raw_sam_header() -> io::Result<()> {
-        let raw_header = "@HD\tVN:1.6\n";
+    fn test_read_sam_header() -> io::Result<()> {
+        use sam::header::record::value::{
+            map::{self, header::Version},
+            Map,
+        };
+
+        let raw_header = "@HD\tVN:1.6\n@CO\tnoodles-cram\n";
 
         let header_data = raw_header.to_string().into_bytes();
         let header_data_len = i32::try_from(header_data.len())
@@ -102,34 +139,39 @@ mod tests {
             .set_data(data.into())
             .build();
 
-        let actual = read_raw_sam_header(&block)?;
+        let actual = read_sam_header(&block)?;
 
-        assert_eq!(actual, raw_header);
+        let expected = sam::Header::builder()
+            .set_header(Map::<map::Header>::new(Version::new(1, 6)))
+            .add_comment("noodles-cram")
+            .build();
+
+        assert_eq!(actual, expected);
 
         Ok(())
     }
 
     #[test]
-    fn test_read_raw_sam_header_with_invalid_compression_method() {
+    fn test_read_sam_header_with_invalid_compression_method() {
         let block = Block::builder()
             .set_compression_method(CompressionMethod::Lzma)
             .set_content_type(ContentType::FileHeader)
             .build();
 
         assert!(matches!(
-            read_raw_sam_header(&block),
+            read_sam_header(&block),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
     }
 
     #[test]
-    fn test_read_raw_sam_header_with_invalid_content_type() {
+    fn test_read_sam_header_with_invalid_content_type() {
         let block = Block::builder()
             .set_content_type(ContentType::ExternalData)
             .build();
 
         assert!(matches!(
-            read_raw_sam_header(&block),
+            read_sam_header(&block),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
     }

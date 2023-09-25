@@ -6,6 +6,12 @@
 
   * cram: Update to libdeflater 1.19.0 (libdeflate 1.19).
 
+  * cram/reader/header_container: Parse header line by line.
+
+    The header parser can now build a `sam::Header` by parsing a raw header
+    line by line. This makes it so that it is no longer required to read the
+    entire header into memory before parsing.
+
 ## 0.43.0 - 2023-09-21
 
 ### Changed
