@@ -29,7 +29,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(crate) fn parse_read_name(
+pub(super) fn parse_read_name(
     src: &[u8],
     read_name: &mut Option<ReadName>,
 ) -> Result<(), ParseError> {

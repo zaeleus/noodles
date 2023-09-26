@@ -14,7 +14,7 @@ pub use self::{
     cigar::Cigar, data::Data, quality_scores::QualityScores,
     reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
 };
-use crate::record::{Flags, MappingQuality, ReadName};
+use crate::record::{Flags, MappingQuality};
 
 const MISSING: &[u8] = b"*";
 
@@ -35,28 +35,12 @@ impl Record {
     /// ```
     /// use noodles_sam as sam;
     /// let record = sam::lazy::Record::default();
-    /// assert!(record.read_name()?.is_none());
-    /// # Ok::<_, std::io::Error>(())
+    /// assert!(record.read_name().is_none());
     /// ```
-    pub fn read_name(&self) -> io::Result<Option<ReadName>> {
-        use crate::reader::record::parse_read_name;
-
-        let src = &self.buf[self.bounds.read_name_range()];
-
-        match src {
-            MISSING => Ok(None),
-            _ => {
-                let mut read_name = Some(
-                    ReadName::try_new(".")
-                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
-                );
-
-                parse_read_name(src, &mut read_name)
-                    .map(Some)
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-                Ok(read_name)
-            }
+    pub fn read_name(&self) -> Option<&[u8]> {
+        match &self.buf[self.bounds.read_name_range()] {
+            MISSING => None,
+            buf => Some(buf),
         }
     }
 

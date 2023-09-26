@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/lazy/record: Return raw read name (`lazy::Record::read_name`).
+
 ## 0.43.0 - 2023-09-21
 
 ### Added
