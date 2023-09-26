@@ -151,11 +151,9 @@ impl Record {
     pub fn read_name(&self) -> Option<ReadName> {
         const MISSING: &[u8] = &[b'*', 0x00];
 
-        let src = &self.buf[self.bounds.read_name_range()];
-
-        match src {
+        match &self.buf[self.bounds.read_name_range()] {
             MISSING => None,
-            _ => Some(ReadName::new(src)),
+            buf => Some(ReadName::new(buf)),
         }
     }
 
