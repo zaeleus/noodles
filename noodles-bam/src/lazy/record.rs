@@ -132,7 +132,6 @@ impl Record {
     /// use noodles_bam as bam;
     /// let record = bam::lazy::Record::default();
     /// assert_eq!(record.template_length(), 0);
-    /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn template_length(&self) -> i32 {
         let src = &self.buf[bounds::TEMPLATE_LENGTH_RANGE];
