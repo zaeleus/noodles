@@ -364,31 +364,25 @@ fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
-    let l_read_name = usize::from(buf[bounds::READ_NAME_LENGTH_INDEX]);
+    let read_name_len = usize::from(buf[bounds::READ_NAME_LENGTH_INDEX]);
+    bounds.read_name_end = bounds::TEMPLATE_LENGTH_RANGE.end + read_name_len;
 
     let src = &buf[bounds::CIGAR_OP_COUNT_RANGE];
     // SAFETY: `src` is 2 bytes.
-    let n_cigar_op = usize::from(u16::from_le_bytes(src.try_into().unwrap()));
+    let cigar_op_count = usize::from(u16::from_le_bytes(src.try_into().unwrap()));
+    let cigar_len = mem::size_of::<u32>() * cigar_op_count;
+    bounds.cigar_end = bounds.read_name_end + cigar_len;
 
     let src = &buf[bounds::READ_LENGTH_RANGE];
     // SAFETY: `src` is 4 bytes.
-    let l_seq = usize::try_from(u32::from_le_bytes(src.try_into().unwrap()))
+    let base_count = usize::try_from(u32::from_le_bytes(src.try_into().unwrap()))
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let sequence_len = (base_count + 1) / 2;
+    bounds.sequence_end = bounds.cigar_end + sequence_len;
 
-    let mut i = bounds::TEMPLATE_LENGTH_RANGE.end;
-    i += l_read_name;
-    bounds.read_name_end = i;
+    bounds.quality_scores_end = bounds.sequence_end + base_count;
 
-    i += mem::size_of::<u32>() * n_cigar_op;
-    bounds.cigar_end = i;
-
-    i += (l_seq + 1) / 2;
-    bounds.sequence_end = i;
-
-    i += l_seq;
-    bounds.quality_scores_end = i;
-
-    if buf.len() < i {
+    if buf.len() < bounds.quality_scores_end {
         Err(io::Error::from(io::ErrorKind::UnexpectedEof))
     } else {
         Ok(())
