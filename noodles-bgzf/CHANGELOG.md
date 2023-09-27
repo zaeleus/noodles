@@ -6,6 +6,9 @@
 
   * bgzf: Update to libdeflater 1.19.0 (libdeflate 1.19).
 
+  * bgzf/multithreaded_reader: Return inner reader from
+    `bgzf::MultithreadedReader::finish`.
+
 ## 0.24.0 - 2023-08-31
 
 ### Added

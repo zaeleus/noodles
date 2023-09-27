@@ -30,8 +30,8 @@ struct Buffer {
 /// differs from a [`super::Reader`] with > 1 worker by placing the inner reader on its own thread
 /// to read the raw frames asynchronously.
 #[doc(hidden)]
-pub struct MultithreadedReader {
-    reader_handle: Option<JoinHandle<io::Result<()>>>,
+pub struct MultithreadedReader<R> {
+    reader_handle: Option<JoinHandle<io::Result<R>>>,
     inflater_handles: Vec<JoinHandle<()>>,
     read_rx: ReadRx,
     recycle_tx: Option<RecycleTx>,
@@ -39,33 +39,7 @@ pub struct MultithreadedReader {
     buffer: Buffer,
 }
 
-impl MultithreadedReader {
-    /// Creates a multithreaded BGZF reader.
-    pub fn with_worker_count<R>(worker_count: NonZeroUsize, inner: R) -> Self
-    where
-        R: Read + Send + 'static,
-    {
-        let (inflate_tx, inflate_rx) = crossbeam_channel::bounded(worker_count.get());
-        let (read_tx, read_rx) = crossbeam_channel::bounded(worker_count.get());
-        let (recycle_tx, recycle_rx) = crossbeam_channel::bounded(worker_count.get());
-
-        for _ in 0..worker_count.get() {
-            recycle_tx.send(Buffer::default()).unwrap();
-        }
-
-        let reader_handle = spawn_reader(inner, inflate_tx, read_tx, recycle_rx);
-        let inflater_handles = spawn_inflaters(worker_count, inflate_rx);
-
-        Self {
-            reader_handle: Some(reader_handle),
-            inflater_handles,
-            read_rx,
-            recycle_tx: Some(recycle_tx),
-            position: 0,
-            buffer: Buffer::default(),
-        }
-    }
-
+impl<R> MultithreadedReader<R> {
     /// Returns the current position of the stream.
     pub fn position(&self) -> u64 {
         self.position
@@ -77,18 +51,17 @@ impl MultithreadedReader {
     }
 
     /// Shuts down the reader and inflate workers.
-    pub fn finish(&mut self) -> io::Result<()> {
+    pub fn finish(&mut self) -> io::Result<R> {
         self.recycle_tx.take();
 
         for handle in self.inflater_handles.drain(..) {
             handle.join().unwrap();
         }
 
-        if let Some(handle) = self.reader_handle.take() {
-            handle.join().unwrap()?;
-        }
+        let handle = self.reader_handle.take().unwrap();
+        let inner = handle.join().unwrap()?;
 
-        Ok(())
+        Ok(inner)
     }
 
     fn recv_buffer(&mut self) -> io::Result<Option<Buffer>> {
@@ -118,13 +91,41 @@ impl MultithreadedReader {
     }
 }
 
-impl Drop for MultithreadedReader {
+impl<R> MultithreadedReader<R>
+where
+    R: Read + Send + 'static,
+{
+    /// Creates a multithreaded BGZF reader.
+    pub fn with_worker_count(worker_count: NonZeroUsize, inner: R) -> Self {
+        let (inflate_tx, inflate_rx) = crossbeam_channel::bounded(worker_count.get());
+        let (read_tx, read_rx) = crossbeam_channel::bounded(worker_count.get());
+        let (recycle_tx, recycle_rx) = crossbeam_channel::bounded(worker_count.get());
+
+        for _ in 0..worker_count.get() {
+            recycle_tx.send(Buffer::default()).unwrap();
+        }
+
+        let reader_handle = spawn_reader(inner, inflate_tx, read_tx, recycle_rx);
+        let inflater_handles = spawn_inflaters(worker_count, inflate_rx);
+
+        Self {
+            reader_handle: Some(reader_handle),
+            inflater_handles,
+            read_rx,
+            recycle_tx: Some(recycle_tx),
+            position: 0,
+            buffer: Buffer::default(),
+        }
+    }
+}
+
+impl<R> Drop for MultithreadedReader<R> {
     fn drop(&mut self) {
         let _ = self.finish();
     }
 }
 
-impl Read for MultithreadedReader {
+impl<R> Read for MultithreadedReader<R> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         let mut src = self.fill_buf()?;
         let amt = src.read(buf)?;
@@ -133,7 +134,7 @@ impl Read for MultithreadedReader {
     }
 }
 
-impl BufRead for MultithreadedReader {
+impl<R> BufRead for MultithreadedReader<R> {
     fn fill_buf(&mut self) -> io::Result<&[u8]> {
         if !self.buffer.block.data().has_remaining() {
             self.read_block()?;
@@ -152,7 +153,7 @@ fn spawn_reader<R>(
     inflate_tx: InflateTx,
     read_tx: ReadTx,
     recycle_rx: RecycleRx,
-) -> JoinHandle<io::Result<()>>
+) -> JoinHandle<io::Result<R>>
 where
     R: Read + Send + 'static,
 {
@@ -170,7 +171,7 @@ where
             read_tx.send(buffered_rx).unwrap();
         }
 
-        Ok(())
+        Ok(reader)
     })
 }
 
