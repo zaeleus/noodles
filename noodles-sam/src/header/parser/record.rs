@@ -64,6 +64,7 @@ fn consume_prefix(src: &mut &[u8]) -> Result<(), ParseError> {
 mod tests {
     use super::*;
 
+    #[test]
     fn test_consume_prefix() {
         let mut src = &b"@HD"[..];
         assert!(consume_prefix(&mut src).is_ok());
