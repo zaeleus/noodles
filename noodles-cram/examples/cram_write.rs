@@ -12,12 +12,14 @@ use noodles_cram as cram;
 use noodles_fasta as fasta;
 use noodles_sam::{
     self as sam,
+    alignment::Record,
     header::record::value::{
         map::{Program, ReferenceSequence},
         Map,
     },
+    record::QualityScores,
+    AlignmentWriter,
 };
-use sam::{alignment::Record, AlignmentWriter};
 
 fn build_reference_sequences() -> Vec<fasta::Record> {
     use fasta::record::{Definition, Sequence};
@@ -77,7 +79,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .set_alignment_start(Position::MIN)
         .set_cigar("4M".parse()?)
         .set_sequence("TTCA".parse()?)
-        .set_quality_scores("NDLS".parse()?)
+        .set_quality_scores(QualityScores::try_from(vec![45, 35, 43, 50])?)
         .build();
 
     writer.write_alignment_record(&header, &record)?;

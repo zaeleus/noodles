@@ -228,7 +228,7 @@ mod tests {
         let expected = Features::from(vec![Feature::ReadBase(
             Position::try_from(1)?,
             Base::A,
-            Score::try_from('N')?,
+            Score::try_from(45)?,
         )]);
         assert_eq!(actual, expected);
 
@@ -240,7 +240,7 @@ mod tests {
             Feature::Bases(Position::try_from(1)?, vec![Base::A, Base::C]),
             Feature::Scores(
                 Position::try_from(1)?,
-                vec![Score::try_from('N')?, Score::try_from('D')?],
+                vec![Score::try_from(45)?, Score::try_from(35)?],
             ),
         ]);
         assert_eq!(actual, expected);
@@ -251,8 +251,8 @@ mod tests {
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
         let expected = Features::from(vec![
             Feature::InsertBase(Position::try_from(1)?, Base::A),
-            Feature::QualityScore(Position::try_from(1)?, Score::try_from('N')?),
-            Feature::ReadBase(Position::try_from(2)?, Base::C, Score::try_from('D')?),
+            Feature::QualityScore(Position::try_from(1)?, Score::try_from(45)?),
+            Feature::ReadBase(Position::try_from(2)?, Base::C, Score::try_from(35)?),
         ]);
         assert_eq!(actual, expected);
 
@@ -264,9 +264,9 @@ mod tests {
             Feature::Insertion(Position::try_from(1)?, vec![Base::A, Base::C]),
             Feature::Scores(
                 Position::try_from(1)?,
-                vec![Score::try_from('N')?, Score::try_from('D')?],
+                vec![Score::try_from(45)?, Score::try_from(35)?],
             ),
-            Feature::ReadBase(Position::try_from(3)?, Base::G, Score::try_from('L')?),
+            Feature::ReadBase(Position::try_from(3)?, Base::G, Score::try_from(43)?),
         ]);
         assert_eq!(actual, expected);
 
@@ -279,7 +279,7 @@ mod tests {
             Feature::Bases(Position::try_from(1)?, vec![Base::A, Base::C]),
             Feature::Scores(
                 Position::try_from(1)?,
-                vec![Score::try_from('N')?, Score::try_from('D')?],
+                vec![Score::try_from(45)?, Score::try_from(35)?],
             ),
         ]);
         assert_eq!(actual, expected);
@@ -290,7 +290,7 @@ mod tests {
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
         let expected = Features::from(vec![
             Feature::ReferenceSkip(Position::try_from(1)?, 1),
-            Feature::ReadBase(Position::try_from(1)?, Base::A, Score::try_from('N')?),
+            Feature::ReadBase(Position::try_from(1)?, Base::A, Score::try_from(45)?),
         ]);
         assert_eq!(actual, expected);
 
@@ -300,8 +300,8 @@ mod tests {
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
         let expected = Features::from(vec![
             Feature::SoftClip(Position::try_from(1)?, vec![Base::A]),
-            Feature::QualityScore(Position::try_from(1)?, Score::try_from('N')?),
-            Feature::ReadBase(Position::try_from(2)?, Base::C, Score::try_from('D')?),
+            Feature::QualityScore(Position::try_from(1)?, Score::try_from(45)?),
+            Feature::ReadBase(Position::try_from(2)?, Base::C, Score::try_from(35)?),
         ]);
         assert_eq!(actual, expected);
 
@@ -313,9 +313,9 @@ mod tests {
             Feature::SoftClip(Position::try_from(1)?, vec![Base::A, Base::C]),
             Feature::Scores(
                 Position::try_from(1)?,
-                vec![Score::try_from('N')?, Score::try_from('D')?],
+                vec![Score::try_from(45)?, Score::try_from(35)?],
             ),
-            Feature::ReadBase(Position::try_from(3)?, Base::G, Score::try_from('L')?),
+            Feature::ReadBase(Position::try_from(3)?, Base::G, Score::try_from(43)?),
         ]);
         assert_eq!(actual, expected);
 
@@ -325,7 +325,7 @@ mod tests {
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
         let expected = Features::from(vec![
             Feature::HardClip(Position::try_from(1)?, 1),
-            Feature::ReadBase(Position::try_from(1)?, Base::A, Score::try_from('N')?),
+            Feature::ReadBase(Position::try_from(1)?, Base::A, Score::try_from(45)?),
         ]);
         assert_eq!(actual, expected);
 
@@ -335,7 +335,7 @@ mod tests {
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
         let expected = Features::from(vec![
             Feature::Padding(Position::try_from(1)?, 1),
-            Feature::ReadBase(Position::try_from(1)?, Base::A, Score::try_from('N')?),
+            Feature::ReadBase(Position::try_from(1)?, Base::A, Score::try_from(45)?),
         ]);
         assert_eq!(actual, expected);
 
@@ -356,7 +356,7 @@ mod tests {
         let expected = Features::from(vec![Feature::ReadBase(
             Position::try_from(1)?,
             Base::A,
-            Score::try_from('N')?,
+            Score::try_from(45)?,
         )]);
         assert_eq!(actual, expected);
 
@@ -376,7 +376,7 @@ mod tests {
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
         let expected = Features::from(vec![
             Feature::InsertBase(Position::try_from(1)?, Base::A),
-            Feature::ReadBase(Position::try_from(2)?, Base::C, Score::try_from('D')?),
+            Feature::ReadBase(Position::try_from(2)?, Base::C, Score::try_from(35)?),
         ]);
         assert_eq!(actual, expected);
 
@@ -386,7 +386,7 @@ mod tests {
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
         let expected = Features::from(vec![
             Feature::Insertion(Position::try_from(1)?, vec![Base::A, Base::C]),
-            Feature::ReadBase(Position::try_from(3)?, Base::G, Score::try_from('L')?),
+            Feature::ReadBase(Position::try_from(3)?, Base::G, Score::try_from(43)?),
         ]);
         assert_eq!(actual, expected);
 
@@ -406,7 +406,7 @@ mod tests {
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
         let expected = Features::from(vec![
             Feature::ReferenceSkip(Position::try_from(1)?, 1),
-            Feature::ReadBase(Position::try_from(1)?, Base::A, Score::try_from('N')?),
+            Feature::ReadBase(Position::try_from(1)?, Base::A, Score::try_from(45)?),
         ]);
         assert_eq!(actual, expected);
 
@@ -416,7 +416,7 @@ mod tests {
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
         let expected = Features::from(vec![
             Feature::SoftClip(Position::try_from(1)?, vec![Base::A]),
-            Feature::ReadBase(Position::try_from(2)?, Base::C, Score::try_from('D')?),
+            Feature::ReadBase(Position::try_from(2)?, Base::C, Score::try_from(35)?),
         ]);
         assert_eq!(actual, expected);
 
@@ -426,7 +426,7 @@ mod tests {
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
         let expected = Features::from(vec![
             Feature::SoftClip(Position::try_from(1)?, vec![Base::A, Base::C]),
-            Feature::ReadBase(Position::try_from(3)?, Base::G, Score::try_from('L')?),
+            Feature::ReadBase(Position::try_from(3)?, Base::G, Score::try_from(43)?),
         ]);
         assert_eq!(actual, expected);
 
@@ -436,7 +436,7 @@ mod tests {
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
         let expected = Features::from(vec![
             Feature::HardClip(Position::try_from(1)?, 1),
-            Feature::ReadBase(Position::try_from(1)?, Base::A, Score::try_from('N')?),
+            Feature::ReadBase(Position::try_from(1)?, Base::A, Score::try_from(45)?),
         ]);
         assert_eq!(actual, expected);
 
@@ -446,7 +446,7 @@ mod tests {
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
         let expected = Features::from(vec![
             Feature::Padding(Position::try_from(1)?, 1),
-            Feature::ReadBase(Position::try_from(1)?, Base::A, Score::try_from('N')?),
+            Feature::ReadBase(Position::try_from(1)?, Base::A, Score::try_from(45)?),
         ]);
         assert_eq!(actual, expected);
 
