@@ -170,27 +170,16 @@ impl TryFrom<(Number, Type, &str)> for Value {
 }
 
 fn parse(number: Number, ty: Type, s: &str) -> Result<Value, ParseError> {
-    match ty {
-        Type::Integer => match number {
-            Number::Count(0) => Err(ParseError::InvalidNumberForType(number, ty)),
-            Number::Count(1) => parse_i32(s),
-            _ => parse_i32_array(s),
-        },
-        Type::Float => match number {
-            Number::Count(0) => Err(ParseError::InvalidNumberForType(number, ty)),
-            Number::Count(1) => parse_f32(s),
-            _ => parse_f32_array(s),
-        },
-        Type::Character => match number {
-            Number::Count(0) => Err(ParseError::InvalidNumberForType(number, ty)),
-            Number::Count(1) => parse_char(s),
-            _ => parse_char_array(s),
-        },
-        Type::String => match number {
-            Number::Count(0) => Err(ParseError::InvalidNumberForType(number, ty)),
-            Number::Count(1) => parse_string(s),
-            _ => parse_string_array(s),
-        },
+    match (number, ty) {
+        (Number::Count(0), _) => Err(ParseError::InvalidNumberForType(number, ty)),
+        (Number::Count(1), Type::Integer) => parse_i32(s),
+        (Number::Count(1), Type::Float) => parse_f32(s),
+        (Number::Count(1), Type::Character) => parse_char(s),
+        (Number::Count(1), Type::String) => parse_string(s),
+        (_, Type::Integer) => parse_i32_array(s),
+        (_, Type::Float) => parse_f32_array(s),
+        (_, Type::Character) => parse_char_array(s),
+        (_, Type::String) => parse_string_array(s),
     }
 }
 
