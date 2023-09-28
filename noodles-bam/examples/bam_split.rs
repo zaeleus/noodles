@@ -49,18 +49,17 @@ fn write_headers(writers: &mut Writers, header: &sam::Header) -> io::Result<()> 
     Ok(())
 }
 
-fn find_read_group(data: &sam::record::Data) -> io::Result<Option<String>> {
+fn find_read_group(data: &sam::record::Data) -> Option<io::Result<&str>> {
     use sam::record::data::field::{tag, Type};
 
-    match data.get(&tag::READ_GROUP) {
-        Some(value) => value.as_str().map(|s| Some(s.into())).ok_or_else(|| {
+    data.get(&tag::READ_GROUP).map(|value| {
+        value.as_str().ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidData,
                 format!("expected {:?}, got {:?}", Type::String, value),
             )
-        }),
-        None => Ok(None),
-    }
+        })
+    })
 }
 
 fn main() -> io::Result<()> {
@@ -76,11 +75,11 @@ fn main() -> io::Result<()> {
     for result in reader.records(&header) {
         let record = result?;
 
-        if let Some(rg) = find_read_group(record.data())? {
-            let writer = writers.get_mut(&rg).ok_or_else(|| {
+        if let Some(read_group) = find_read_group(record.data()).transpose()? {
+            let writer = writers.get_mut(read_group).ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    format!("invalid read group: {rg}"),
+                    format!("invalid read group: {read_group}"),
                 )
             })?;
 
