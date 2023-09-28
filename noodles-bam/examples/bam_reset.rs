@@ -35,6 +35,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut record = sam::alignment::Record::default();
 
     while reader.read_record(&header, &mut record)? != 0 {
+        let flags = record.flags();
+
+        if flags.is_secondary() || flags.is_supplementary() {
+            continue;
+        }
+
         record.reference_sequence_id_mut().take();
         record.alignment_start_mut().take();
         record.mapping_quality_mut().take();
@@ -42,12 +48,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         record.mate_reference_sequence_id_mut().take();
         record.mate_alignment_start_mut().take();
         *record.template_length_mut() = 0;
-
-        let flags = record.flags();
-
-        if flags.is_secondary() || flags.is_supplementary() {
-            continue;
-        }
 
         let mut new_flags = Flags::UNMAPPED;
 
