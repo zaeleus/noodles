@@ -35,7 +35,7 @@ impl Cigar {
     /// # Examples
     ///
     /// ```no_run
-    /// use noodles_sam::record::{cigar::{op::Kind, Op}, Cigar};
+    /// use noodles_sam::record::Cigar;
     ///
     /// let mut cigar: Cigar = Cigar::default();
     /// cigar.reserve(1);
