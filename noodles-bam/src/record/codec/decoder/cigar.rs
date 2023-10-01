@@ -60,6 +60,7 @@ where
     }
 
     cigar.clear();
+    cigar.reserve(n_cigar_op);
 
     for _ in 0..n_cigar_op {
         let op = decode_op(src.get_u32_le()).map_err(DecodeError::InvalidOp)?;
