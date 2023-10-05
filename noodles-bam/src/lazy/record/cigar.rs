@@ -49,15 +49,8 @@ impl<'a> TryFrom<Cigar<'a>> for sam::record::Cigar {
     type Error = io::Error;
 
     fn try_from(bam_cigar: Cigar<'a>) -> Result<Self, Self::Error> {
-        use crate::record::codec::decoder::get_cigar;
-
-        let mut src = bam_cigar.0;
-        let mut cigar = Self::default();
-        let op_count = bam_cigar.len();
-        get_cigar(&mut src, &mut cigar, op_count)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-        Ok(cigar)
+        let result = bam_cigar.iter().collect::<io::Result<Vec<_>>>()?;
+        Self::try_from(result).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 }
 

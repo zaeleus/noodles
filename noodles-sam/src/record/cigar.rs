@@ -30,20 +30,6 @@ impl Cigar {
         self.0.clear();
     }
 
-    /// Reserves capacity for additional operations.
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// use noodles_sam::record::Cigar;
-    ///
-    /// let mut cigar: Cigar = Cigar::default();
-    /// cigar.reserve(1);
-    /// ```
-    pub fn reserve(&mut self, additional: usize) {
-        self.0.reserve(additional)
-    }
-
     /// Calculates the alignment span over the reference sequence.
     ///
     /// This sums the lengths of the CIGAR operations that consume the reference sequence, i.e.,
