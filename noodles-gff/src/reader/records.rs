@@ -33,7 +33,7 @@ where
         loop {
             match self.lines.next()? {
                 Ok(line) => match line {
-                    Line::Directive(d) if d == Directive::StartOfFasta => return None,
+                    Line::Directive(Directive::StartOfFasta) => return None,
                     Line::Record(r) => return Some(Ok(r)),
                     _ => {}
                 },
