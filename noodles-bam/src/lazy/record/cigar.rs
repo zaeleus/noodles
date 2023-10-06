@@ -49,8 +49,8 @@ impl<'a> TryFrom<Cigar<'a>> for sam::record::Cigar {
     type Error = io::Error;
 
     fn try_from(bam_cigar: Cigar<'a>) -> Result<Self, Self::Error> {
-        let result = bam_cigar.iter().collect::<io::Result<Vec<_>>>()?;
-        Self::try_from(result).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        let ops = bam_cigar.iter().collect::<io::Result<Vec<_>>>()?;
+        Ok(Self::from_iter(ops))
     }
 }
 
