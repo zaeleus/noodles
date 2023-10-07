@@ -6,6 +6,8 @@
 
   * sam/lazy/record: Return raw read name (`lazy::Record::read_name`).
 
+  * sam/record/cigar/op: Make `Op::new` `const`.
+
 ## 0.43.0 - 2023-09-21
 
 ### Added

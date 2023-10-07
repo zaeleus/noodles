@@ -26,7 +26,7 @@ impl Op {
     /// assert_eq!(op.kind(), Kind::Match);
     /// assert_eq!(op.len(), 13);
     /// ```
-    pub fn new(kind: Kind, len: usize) -> Self {
+    pub const fn new(kind: Kind, len: usize) -> Self {
         Self { kind, len }
     }
 
