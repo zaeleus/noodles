@@ -11,14 +11,13 @@ const MAX_FIELDS: usize = 6;
 #[derive(Debug, Default, Eq, PartialEq)]
 pub struct Record {
     name: String,
-    len: u64,
+    length: u64,
     sequence_offset: u64,
     line_bases: u64,
     line_width: u64,
     quality_scores_offset: u64,
 }
 
-#[allow(clippy::len_without_is_empty)]
 impl Record {
     /// Creates a FASTQ index record.
     ///
@@ -30,7 +29,7 @@ impl Record {
     /// ```
     pub fn new<N>(
         name: N,
-        len: u64,
+        length: u64,
         sequence_offset: u64,
         line_bases: u64,
         line_width: u64,
@@ -41,7 +40,7 @@ impl Record {
     {
         Self {
             name: name.into(),
-            len,
+            length,
             sequence_offset,
             line_bases,
             line_width,
@@ -71,8 +70,23 @@ impl Record {
     /// let record = fai::Record::new("sq0", 8, 4, 8, 9, 15);
     /// assert_eq!(record.len(), 8);
     /// ```
+    #[allow(clippy::len_without_is_empty)]
+    #[deprecated(since = "0.9.0", note = "Use `Record::length` instead.")]
     pub fn len(&self) -> u64 {
-        self.len
+        self.length
+    }
+
+    /// Returns the length of the sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fastq::fai;
+    /// let record = fai::Record::new("sq0", 8, 4, 8, 9, 15);
+    /// assert_eq!(record.length(), 8);
+    /// ```
+    pub fn length(&self) -> u64 {
+        self.length
     }
 
     /// Returns the offset to the sequence from the start.
@@ -177,7 +191,7 @@ impl FromStr for Record {
 
         Ok(Self {
             name,
-            len,
+            length: len,
             sequence_offset,
             line_bases,
             line_width,

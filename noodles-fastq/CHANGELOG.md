@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Deprecated
+
+  * fastq/fai/record: Deprecate `Record::len`.
+
+    Use `Record::length` instead.
+
 ## 0.8.0 - 2023-05-18
 
 ### Changed
