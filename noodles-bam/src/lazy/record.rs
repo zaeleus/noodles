@@ -9,7 +9,6 @@ mod sequence;
 
 use std::{fmt, io, mem};
 
-use byteorder::{ByteOrder, LittleEndian};
 use bytes::Buf;
 use noodles_core::Position;
 use noodles_sam as sam;
@@ -135,7 +134,8 @@ impl Record {
     /// ```
     pub fn template_length(&self) -> i32 {
         let src = &self.buf[bounds::TEMPLATE_LENGTH_RANGE];
-        LittleEndian::read_i32(src)
+        // SAFETY: `src` is 4 bytes.
+        i32::from_le_bytes(src.try_into().unwrap())
     }
 
     /// Returns the read name.
