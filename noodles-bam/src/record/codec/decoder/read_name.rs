@@ -45,7 +45,7 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub fn get_length<B>(src: &mut B) -> Result<NonZeroUsize, DecodeError>
+pub(super) fn get_length<B>(src: &mut B) -> Result<NonZeroUsize, DecodeError>
 where
     B: Buf,
 {
@@ -56,7 +56,7 @@ where
     NonZeroUsize::try_from(usize::from(src.get_u8())).map_err(DecodeError::InvalidLength)
 }
 
-pub fn get_read_name<B>(
+pub(super) fn get_read_name<B>(
     src: &mut B,
     read_name: &mut Option<ReadName>,
     l_read_name: NonZeroUsize,

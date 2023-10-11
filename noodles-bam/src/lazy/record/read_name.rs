@@ -1,4 +1,4 @@
-use std::{io, num::NonZeroUsize};
+use std::io;
 
 use noodles_sam as sam;
 
@@ -30,17 +30,8 @@ impl<'a> TryFrom<ReadName<'a>> for sam::record::ReadName {
     type Error = io::Error;
 
     fn try_from(bam_read_name: ReadName<'a>) -> Result<Self, Self::Error> {
-        use crate::record::codec::decoder::get_read_name;
-
-        let mut src = bam_read_name.0;
-
-        let mut read_name = None;
-        let len = NonZeroUsize::try_from(src.len())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-        get_read_name(&mut src, &mut read_name, len)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-        Ok(read_name.unwrap())
+        Self::try_from(bam_read_name.as_bytes().to_vec())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 }
 
