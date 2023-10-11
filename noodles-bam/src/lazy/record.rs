@@ -9,7 +9,6 @@ mod sequence;
 
 use std::{fmt, io, mem};
 
-use bytes::Buf;
 use noodles_core::Position;
 use noodles_sam as sam;
 use sam::record::MappingQuality;
@@ -41,8 +40,9 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn reference_sequence_id(&self) -> io::Result<Option<usize>> {
-        let mut src = &self.buf[bounds::REFERENCE_SEQUENCE_ID_RANGE];
-        get_reference_sequence_id(&mut src)
+        let src = &self.buf[bounds::REFERENCE_SEQUENCE_ID_RANGE];
+        // SAFETY: `src` is 4 bytes.
+        get_reference_sequence_id(src.try_into().unwrap())
     }
 
     /// Returns the alignment start.
@@ -103,8 +103,9 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn mate_reference_sequence_id(&self) -> io::Result<Option<usize>> {
-        let mut src = &self.buf[bounds::MATE_REFERENCE_SEQUENCE_ID_RANGE];
-        get_reference_sequence_id(&mut src)
+        let src = &self.buf[bounds::MATE_REFERENCE_SEQUENCE_ID_RANGE];
+        // SAFETY: `src` is 4 bytes.
+        get_reference_sequence_id(src.try_into().unwrap())
     }
 
     /// Returns the mate alignment start.
@@ -219,17 +220,10 @@ impl Record {
     }
 }
 
-fn get_reference_sequence_id<B>(src: &mut B) -> io::Result<Option<usize>>
-where
-    B: Buf,
-{
+fn get_reference_sequence_id(src: [u8; 4]) -> io::Result<Option<usize>> {
     const UNMAPPED: i32 = -1;
 
-    if src.remaining() < mem::size_of::<i32>() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
-
-    match src.get_i32_le() {
+    match i32::from_le_bytes(src) {
         UNMAPPED => Ok(None),
         n => usize::try_from(n)
             .map(Some)
