@@ -32,6 +32,7 @@
 //! ```
 
 pub mod directive;
+pub mod lazy;
 pub mod line;
 pub mod reader;
 pub mod record;

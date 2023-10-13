@@ -5,13 +5,16 @@ mod records;
 
 pub use self::{lines::Lines, records::Records};
 
-use std::io::{self, BufRead, Read, Seek};
+use std::{
+    io::{self, BufRead, Read, Seek},
+    mem,
+};
 
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi as csi;
 
-use super::Record;
+use super::{lazy, Record};
 
 const LINE_FEED: char = '\n';
 const CARRIAGE_RETURN: char = '\r';
@@ -137,6 +140,32 @@ where
     /// ```
     pub fn lines(&mut self) -> Lines<'_, R> {
         Lines::new(self)
+    }
+
+    /// Reads a single line without eagerly decoding it.
+    pub fn read_lazy_line(&mut self, line: &mut lazy::Line) -> io::Result<usize> {
+        const COMMENT_PREFIX: char = '#';
+        const DEFAULT_LINE: lazy::Line = lazy::Line::Comment(String::new());
+
+        let prev_line = mem::replace(line, DEFAULT_LINE);
+        let mut buf = prev_line.into();
+
+        match read_line(&mut self.inner, &mut buf)? {
+            0 => Ok(0),
+            n => {
+                *line = if let Some(rest) = buf.strip_prefix(COMMENT_PREFIX) {
+                    if rest.starts_with(COMMENT_PREFIX) {
+                        lazy::Line::Directive(buf)
+                    } else {
+                        lazy::Line::Comment(buf)
+                    }
+                } else {
+                    lazy::Line::Record(buf)
+                };
+
+                Ok(n)
+            }
+        }
     }
 
     /// Returns an iterator over records starting from the current stream position.

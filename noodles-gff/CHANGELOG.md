@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * gff/lazy: Add lazy line (`lazy::Line`).
+
 ## 0.21.0 - 2023-10-12
 
 ### Changed
