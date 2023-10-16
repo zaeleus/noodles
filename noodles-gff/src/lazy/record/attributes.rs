@@ -13,6 +13,22 @@ impl<'a> Attributes<'a> {
         self.0.is_empty()
     }
 
+    /// Returns the value of the given tag.
+    pub fn get(&self, tag: &str) -> Option<io::Result<&str>> {
+        for result in self.iter() {
+            match result {
+                Ok((t, value)) => {
+                    if t == tag {
+                        return Some(Ok(value));
+                    }
+                }
+                Err(e) => return Some(Err(e)),
+            }
+        }
+
+        None
+    }
+
     /// Returns an iterator over all tag-value pairs.
     pub fn iter(&self) -> impl Iterator<Item = io::Result<(&str, &str)>> {
         let mut src = self.0;
@@ -63,6 +79,13 @@ mod tests {
 
         let attributes = Attributes::new("gene_id=ndls0;gene_name=gene0");
         assert!(!attributes.is_empty());
+    }
+
+    #[test]
+    fn test_get() {
+        let attributes = Attributes::new("gene_id=ndls0;gene_name=gene0");
+        assert!(attributes.get("gene_name").is_some());
+        assert!(attributes.get("comment").is_none());
     }
 
     #[test]
