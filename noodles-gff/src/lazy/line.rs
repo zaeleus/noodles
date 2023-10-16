@@ -10,6 +10,12 @@ pub enum Line {
     Record(Record),
 }
 
+impl Default for Line {
+    fn default() -> Self {
+        Self::Comment(String::new())
+    }
+}
+
 impl From<Line> for String {
     fn from(line: Line) -> Self {
         match line {
