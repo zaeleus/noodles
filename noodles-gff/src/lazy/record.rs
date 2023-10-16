@@ -1,6 +1,10 @@
+mod attributes;
 mod bounds;
 
+use self::attributes::Attributes;
 pub(crate) use self::bounds::Bounds;
+
+const MISSING: &str = ".";
 
 /// An immutable, lazily-evalulated GFF record.
 pub struct Record {
@@ -50,8 +54,11 @@ impl Record {
     }
 
     /// Returns the attributes.
-    pub fn attributes(&self) -> &str {
-        &self.buf[self.bounds.attributes_range()]
+    pub fn attributes(&self) -> Attributes<'_> {
+        match &self.buf[self.bounds.attributes_range()] {
+            MISSING => Attributes::new(""),
+            buf => Attributes::new(buf),
+        }
     }
 }
 
