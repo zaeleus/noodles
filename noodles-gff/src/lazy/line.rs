@@ -1,3 +1,5 @@
+use super::Record;
+
 /// An immutable, lazily-evalulated GFF line.
 pub enum Line {
     /// A directive (`##`).
@@ -5,7 +7,7 @@ pub enum Line {
     /// A comment (`#`),
     Comment(String),
     /// A record.
-    Record(String),
+    Record(Record),
 }
 
 impl From<Line> for String {
@@ -13,7 +15,7 @@ impl From<Line> for String {
         match line {
             Line::Directive(s) => s,
             Line::Comment(s) => s,
-            Line::Record(s) => s,
+            Line::Record(record) => record.into(),
         }
     }
 }

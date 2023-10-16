@@ -7,7 +7,7 @@ pub use self::{lines::Lines, records::Records};
 
 use std::{
     io::{self, BufRead, Read, Seek},
-    mem,
+    mem, str,
 };
 
 use noodles_bgzf as bgzf;
@@ -144,27 +144,30 @@ where
 
     /// Reads a single line without eagerly decoding it.
     pub fn read_lazy_line(&mut self, line: &mut lazy::Line) -> io::Result<usize> {
-        const COMMENT_PREFIX: char = '#';
         const DEFAULT_LINE: lazy::Line = lazy::Line::Comment(String::new());
+        const DIRECTIVE_PREFIX: &str = "##";
 
         let prev_line = mem::replace(line, DEFAULT_LINE);
         let mut buf = prev_line.into();
 
-        match read_line(&mut self.inner, &mut buf)? {
-            0 => Ok(0),
-            n => {
-                *line = if let Some(rest) = buf.strip_prefix(COMMENT_PREFIX) {
-                    if rest.starts_with(COMMENT_PREFIX) {
-                        lazy::Line::Directive(buf)
-                    } else {
-                        lazy::Line::Comment(buf)
-                    }
+        match peek_line_type(&mut self.inner)? {
+            Some(LineType::Comment) => {
+                let n = read_line(&mut self.inner, &mut buf)?;
+
+                *line = if buf.starts_with(DIRECTIVE_PREFIX) {
+                    lazy::Line::Directive(buf)
                 } else {
-                    lazy::Line::Record(buf)
+                    lazy::Line::Comment(buf)
                 };
 
                 Ok(n)
             }
+            Some(LineType::Record) => {
+                let (n, bounds) = read_lazy_record(&mut self.inner, &mut buf)?;
+                *line = lazy::Line::Record(lazy::Record { buf, bounds });
+                Ok(n)
+            }
+            None => Ok(0),
         }
     }
 
@@ -254,6 +257,101 @@ where
         }
         Err(e) => Err(e),
     }
+}
+
+enum LineType {
+    Comment,
+    Record,
+}
+
+fn peek_line_type<R>(reader: &mut R) -> io::Result<Option<LineType>>
+where
+    R: BufRead,
+{
+    const COMMENT_PREFIX: u8 = b'#';
+
+    let src = reader.fill_buf()?;
+
+    Ok(src.first().map(|&b| match b {
+        COMMENT_PREFIX => LineType::Comment,
+        _ => LineType::Record,
+    }))
+}
+
+fn read_lazy_record<R>(
+    reader: &mut R,
+    buf: &mut String,
+) -> io::Result<(usize, lazy::record::Bounds)>
+where
+    R: BufRead,
+{
+    buf.clear();
+
+    let mut len = 0;
+    let mut bounds = lazy::record::Bounds::default();
+
+    len += read_field(reader, buf)?;
+    bounds.reference_sequence_name_end = buf.len();
+
+    len += read_field(reader, buf)?;
+    bounds.source_end = buf.len();
+
+    len += read_field(reader, buf)?;
+    bounds.type_end = buf.len();
+
+    len += read_field(reader, buf)?;
+    bounds.start_end = buf.len();
+
+    len += read_field(reader, buf)?;
+    bounds.end_end = buf.len();
+
+    len += read_field(reader, buf)?;
+    bounds.score_end = buf.len();
+
+    len += read_field(reader, buf)?;
+    bounds.strand_end = buf.len();
+
+    len += read_field(reader, buf)?;
+    bounds.phase_end = buf.len();
+
+    len += read_line(reader, buf)?;
+
+    Ok((len, bounds))
+}
+
+fn read_field<R>(reader: &mut R, dst: &mut String) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    const DELIMITER: u8 = b'\t';
+
+    let mut is_delimiter = false;
+    let mut len = 0;
+
+    loop {
+        let src = reader.fill_buf()?;
+
+        if is_delimiter || src.is_empty() {
+            break;
+        }
+
+        let (buf, n) = match src.iter().position(|&b| b == DELIMITER) {
+            Some(i) => {
+                is_delimiter = true;
+                (&src[..i], i + 1)
+            }
+            None => (src, src.len()),
+        };
+
+        let s = str::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        dst.push_str(s);
+
+        len += n;
+
+        reader.consume(n);
+    }
+
+    Ok(len)
 }
 
 #[cfg(test)]
