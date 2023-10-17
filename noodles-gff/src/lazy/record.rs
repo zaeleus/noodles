@@ -1,8 +1,9 @@
 mod attributes;
 mod bounds;
+mod strand;
 
-use self::attributes::Attributes;
 pub(crate) use self::bounds::Bounds;
+use self::{attributes::Attributes, strand::Strand};
 
 const MISSING: &str = ".";
 
@@ -44,8 +45,9 @@ impl Record {
     }
 
     /// Returns the strand.
-    pub fn strand(&self) -> &str {
-        &self.buf[self.bounds.strand_range()]
+    pub fn strand(&self) -> Strand<'_> {
+        let buf = &self.buf[self.bounds.strand_range()];
+        Strand::new(buf)
     }
 
     /// Returns the phase.
