@@ -4,7 +4,7 @@ pub mod attributes;
 mod builder;
 mod field;
 mod phase;
-mod strand;
+pub mod strand;
 
 pub use self::{
     attributes::Attributes, builder::Builder, field::Field, phase::Phase, strand::Strand,

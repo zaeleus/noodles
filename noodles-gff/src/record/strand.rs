@@ -1,3 +1,5 @@
+//! GFF record strand.
+
 use std::{error, fmt, str::FromStr};
 
 /// A GFF record strand.

@@ -6,6 +6,10 @@
 
   * gff/lazy: Add lazy line (`lazy::Line`).
 
+### Changed
+
+  * gff/record: Increase visibility of the `strand` module.
+
 ## 0.21.0 - 2023-10-12
 
 ### Changed
