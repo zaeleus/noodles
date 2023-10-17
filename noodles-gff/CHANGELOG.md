@@ -4,7 +4,7 @@
 
 ### Added
 
-  * gff/lazy: Add lazy line (`lazy::Line`).
+  * gff/lazy: Add lazy line (`lazy::Line`) and record (`lazy::Record`).
 
 ### Changed
 
