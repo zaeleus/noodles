@@ -1,9 +1,10 @@
 mod attributes;
 mod bounds;
+mod position;
 mod strand;
 
 pub(crate) use self::bounds::Bounds;
-use self::{attributes::Attributes, strand::Strand};
+use self::{attributes::Attributes, position::Position, strand::Strand};
 
 const MISSING: &str = ".";
 
@@ -30,13 +31,15 @@ impl Record {
     }
 
     /// Returns the start position.
-    pub fn start(&self) -> &str {
-        &self.buf[self.bounds.start_range()]
+    pub fn start(&self) -> Position<'_> {
+        let buf = &self.buf[self.bounds.start_range()];
+        Position::new(buf)
     }
 
     /// Returns the end position.
-    pub fn end(&self) -> &str {
-        &self.buf[self.bounds.end_range()]
+    pub fn end(&self) -> Position<'_> {
+        let buf = &self.buf[self.bounds.end_range()];
+        Position::new(buf)
     }
 
     /// Returns the score.
