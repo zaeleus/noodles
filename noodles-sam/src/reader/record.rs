@@ -11,8 +11,7 @@ mod template_length;
 
 pub(crate) use self::{
     cigar::parse_cigar, flags::parse_flags, mapping_quality::parse_mapping_quality,
-    position::parse_alignment_start, sequence::parse_sequence,
-    template_length::parse_template_length,
+    sequence::parse_sequence, template_length::parse_template_length,
 };
 
 use std::{
@@ -21,8 +20,8 @@ use std::{
 };
 
 use self::{
-    data::parse_data, quality_scores::parse_quality_scores, read_name::parse_read_name,
-    reference_sequence_id::parse_reference_sequence_id,
+    data::parse_data, position::parse_alignment_start, quality_scores::parse_quality_scores,
+    read_name::parse_read_name, reference_sequence_id::parse_reference_sequence_id,
 };
 use super::read_line;
 use crate::{alignment::Record, Header};

@@ -1,17 +1,16 @@
 mod bounds;
 mod cigar;
 mod data;
+mod position;
 mod quality_scores;
 mod reference_sequence_name;
 mod sequence;
 
 use std::{fmt, io};
 
-use noodles_core::Position;
-
 use self::bounds::Bounds;
 pub use self::{
-    cigar::Cigar, data::Data, quality_scores::QualityScores,
+    cigar::Cigar, data::Data, position::Position, quality_scores::QualityScores,
     reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
 };
 use crate::record::{Flags, MappingQuality};
@@ -83,13 +82,16 @@ impl Record {
     /// ```
     /// use noodles_sam as sam;
     /// let record = sam::lazy::Record::default();
-    /// assert!(record.alignment_start()?.is_none());
+    /// assert!(record.alignment_start().is_none());
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn alignment_start(&self) -> io::Result<Option<Position>> {
-        use crate::reader::record::parse_alignment_start;
-        let src = &self.buf[self.bounds.alignment_start_range()];
-        parse_alignment_start(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    pub fn alignment_start(&self) -> Option<Position<'_>> {
+        const MISSING: &[u8] = b"0";
+
+        match &self.buf[self.bounds.alignment_start_range()] {
+            MISSING => None,
+            buf => Some(Position::new(buf)),
+        }
     }
 
     /// Returns the mapping quality.
@@ -150,13 +152,16 @@ impl Record {
     /// ```
     /// use noodles_sam as sam;
     /// let record = sam::lazy::Record::default();
-    /// assert!(record.mate_alignment_start()?.is_none());
+    /// assert!(record.mate_alignment_start().is_none());
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn mate_alignment_start(&self) -> io::Result<Option<Position>> {
-        use crate::reader::record::parse_alignment_start;
-        let src = &self.buf[self.bounds.mate_alignment_start_range()];
-        parse_alignment_start(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    pub fn mate_alignment_start(&self) -> Option<Position<'_>> {
+        const MISSING: &[u8] = b"0";
+
+        match &self.buf[self.bounds.mate_alignment_start_range()] {
+            MISSING => None,
+            buf => Some(Position::new(buf)),
+        }
     }
 
     /// Returns the template length.

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+  * sam/lazy/record: Wrap positions (`lazy::Record::alignment_start` and
+    `lazy::Record::mate_alignment_start`).
+
 ### Removed
 
   * sam/lazy/record/data: Remove `Data::len`.

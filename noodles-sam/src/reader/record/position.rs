@@ -24,7 +24,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(crate) fn parse_alignment_start(src: &[u8]) -> Result<Option<Position>, ParseError> {
+pub(super) fn parse_alignment_start(src: &[u8]) -> Result<Option<Position>, ParseError> {
     lexical_core::parse(src)
         .map_err(ParseError::Invalid)
         .map(Position::new)
