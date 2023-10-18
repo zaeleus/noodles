@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+  * sam/lazy/record/data: Remove `Data::len`.
+
+    This returned the incorrect value. There is no method to reliably return
+    the number of data fields.
+
 ## 0.44.0 - 2023-10-12
 
 ### Changed

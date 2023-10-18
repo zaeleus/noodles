@@ -18,11 +18,6 @@ impl<'a> Data<'a> {
         self.0.is_empty()
     }
 
-    /// Returns the number of data fields.
-    pub fn len(&self) -> usize {
-        self.0.len()
-    }
-
     /// Returns an iterator over all tag-value pairs.
     pub fn iter(&self) -> impl Iterator<Item = io::Result<(Tag, Value<'_>)>> + '_ {
         let mut src = self.0;
