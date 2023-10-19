@@ -1,6 +1,6 @@
 [package]
 name = "noodles-gff"
-version = "0.21.0"
+version = "0.22.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
@@ -14,5 +14,5 @@ documentation = "https://docs.rs/noodles-gff"
 indexmap.workspace = true
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.25.0" }
 noodles-core = { path = "../noodles-core", version = "0.12.0" }
-noodles-csi = { path = "../noodles-csi", version = "0.25.0" }
+noodles-csi = { path = "../noodles-csi", version = "0.25.1" }
 percent-encoding.workspace = true

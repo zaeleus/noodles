@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.25.1 - 2023-10-19
 
 ### Fixed
 
