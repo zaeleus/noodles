@@ -129,9 +129,7 @@ impl Indexer {
                 .build();
         }
 
-        // SAFETY: `reference_sequence_count` is > 0.
-        let last_reference_sequence_id = reference_sequence_count - 1;
-        self.add_reference_sequences_builders_until(last_reference_sequence_id);
+        self.add_reference_sequences_builders_until(reference_sequence_count);
 
         let mut builder = Index::builder()
             .set_reference_sequences(self.reference_sequences)
@@ -183,5 +181,11 @@ mod tests {
         assert!(indexer.header.is_none());
         assert!(indexer.reference_sequences.is_empty());
         assert_eq!(indexer.unplaced_unmapped_record_count, 0);
+    }
+
+    #[test]
+    fn test_build() {
+        let index = Indexer::default().build(2);
+        assert_eq!(index.reference_sequences().len(), 2);
     }
 }

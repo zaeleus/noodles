@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * csi/index/indexer: Fix final reference sequence count when building index.
+
 ## 0.25.0 - 2023-10-12
 
 ### Changed
