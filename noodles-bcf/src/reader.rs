@@ -1,12 +1,13 @@
 //! BCF reader and iterators.
 
+mod builder;
 mod header;
 pub(crate) mod lazy_record;
 pub(crate) mod query;
 pub(crate) mod record;
 mod records;
 
-pub use self::{query::Query, records::Records};
+pub use self::{builder::Builder, query::Query, records::Records};
 
 use std::{
     io::{self, BufRead, Read, Seek},

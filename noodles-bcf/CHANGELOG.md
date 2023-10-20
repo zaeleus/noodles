@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bcf/reader: Add builder (`bcf::reader::Builder`).
+
 ## 0.39.0 - 2023-10-19
 
 ### Changed
