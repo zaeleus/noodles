@@ -10,7 +10,7 @@ use crate::data_container::compression_header::SubstitutionMatrix;
 
 use super::{
     feature::substitution::{self, Base as SubstitutionBase},
-    Feature, Features,
+    Feature, Features, QualityScores,
 };
 
 pub(crate) fn resolve_bases(
@@ -117,12 +117,10 @@ fn copy_from_raw_bases(dst: &mut [Base], src: &[u8]) -> io::Result<()> {
 pub fn resolve_quality_scores(
     features: &[Feature],
     read_len: usize,
-    quality_scores: &mut sam::record::QualityScores,
+    quality_scores: &mut QualityScores,
 ) {
-    use sam::record::quality_scores::Score;
-
     quality_scores.as_mut().clear();
-    quality_scores.as_mut().resize(read_len, Score::default());
+    quality_scores.as_mut().resize(read_len, 0);
 
     for feature in features {
         let read_position = feature.position();
@@ -145,7 +143,6 @@ pub fn resolve_quality_scores(
 #[cfg(test)]
 mod tests {
     use noodles_core::Position;
-    use sam::record::quality_scores::Score;
 
     use super::*;
 
@@ -181,11 +178,7 @@ mod tests {
             &"TGGT".parse()?,
         )?;
         t(
-            &Features::from(vec![Feature::ReadBase(
-                Position::try_from(2)?,
-                Base::Y,
-                Score::default(),
-            )]),
+            &Features::from(vec![Feature::ReadBase(Position::try_from(2)?, Base::Y, 0)]),
             &"AYGT".parse()?,
         )?;
         t(
@@ -277,15 +270,10 @@ mod tests {
 
     #[test]
     fn test_resolve_quality_scores() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::record::{quality_scores::Score, QualityScores};
-
         let features = [
-            Feature::ReadBase(Position::try_from(1)?, Base::A, Score::try_from(5)?),
-            Feature::QualityScore(Position::try_from(3)?, Score::try_from(8)?),
-            Feature::Scores(
-                Position::try_from(5)?,
-                vec![Score::try_from(13)?, Score::try_from(21)?],
-            ),
+            Feature::ReadBase(Position::try_from(1)?, Base::A, 5),
+            Feature::QualityScore(Position::try_from(3)?, 8),
+            Feature::Scores(Position::try_from(5)?, vec![13, 21]),
         ];
 
         let mut quality_scores = QualityScores::default();

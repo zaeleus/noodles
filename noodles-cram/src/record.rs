@@ -6,11 +6,12 @@ pub mod feature;
 mod features;
 mod flags;
 mod next_mate_flags;
+mod quality_scores;
 pub mod resolve;
 
 pub use self::{
     builder::Builder, feature::Feature, features::Features, flags::Flags,
-    next_mate_flags::NextMateFlags,
+    next_mate_flags::NextMateFlags, quality_scores::QualityScores,
 };
 
 use std::io;
@@ -44,7 +45,7 @@ pub struct Record {
     pub(crate) bases: sam::record::Sequence,
     pub(crate) features: Features,
     pub(crate) mapping_quality: Option<sam::record::MappingQuality>,
-    pub(crate) quality_scores: sam::record::QualityScores,
+    pub(crate) quality_scores: QualityScores,
 }
 
 impl Record {
@@ -223,7 +224,7 @@ impl Record {
     }
 
     /// Returns the quality scores.
-    pub fn quality_scores(&self) -> &sam::record::QualityScores {
+    pub fn quality_scores(&self) -> &QualityScores {
         &self.quality_scores
     }
 }

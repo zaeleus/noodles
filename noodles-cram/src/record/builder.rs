@@ -1,10 +1,7 @@
 use noodles_core::Position;
-use noodles_sam::{
-    self as sam,
-    record::{quality_scores::Score, sequence::Base},
-};
+use noodles_sam::{self as sam, record::sequence::Base};
 
-use super::{Feature, Features, Flags, NextMateFlags, Record};
+use super::{Feature, Features, Flags, NextMateFlags, QualityScores, Record};
 
 /// A CRAM record builder.
 pub struct Builder {
@@ -25,7 +22,7 @@ pub struct Builder {
     bases: sam::record::Sequence,
     features: Features,
     mapping_quality: Option<sam::record::MappingQuality>,
-    quality_scores: sam::record::QualityScores,
+    quality_scores: QualityScores,
 }
 
 impl Builder {
@@ -157,14 +154,14 @@ impl Builder {
     }
 
     /// Sets the per-base quality scores.
-    pub fn set_quality_scores(mut self, quality_scores: sam::record::QualityScores) -> Self {
+    pub fn set_quality_scores(mut self, quality_scores: QualityScores) -> Self {
         self.quality_scores = quality_scores;
         self
     }
 
     /// Adds a quality score.
-    pub fn add_quality_score(mut self, quality_score: Score) -> Self {
-        self.quality_scores.push(quality_score);
+    pub fn add_quality_score(mut self, score: u8) -> Self {
+        self.quality_scores.as_mut().push(score);
         self
     }
 
@@ -213,7 +210,7 @@ impl Default for Builder {
             bases: sam::record::Sequence::default(),
             features: Features::default(),
             mapping_quality: None,
-            quality_scores: sam::record::QualityScores::default(),
+            quality_scores: QualityScores::default(),
         }
     }
 }

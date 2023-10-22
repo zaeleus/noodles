@@ -7,10 +7,7 @@ use std::{error, fmt, io};
 use bytes::Buf;
 use noodles_bam as bam;
 use noodles_core::Position;
-use noodles_sam::{
-    self as sam,
-    record::{quality_scores::Score, sequence::Base},
-};
+use noodles_sam::{self as sam, record::sequence::Base};
 
 use crate::{
     container::block,
@@ -23,7 +20,7 @@ use crate::{
     io::BitReader,
     record::{
         feature::{self, substitution},
-        Feature, Flags, NextMateFlags,
+        Feature, Flags, NextMateFlags, QualityScores,
     },
     Record,
 };
@@ -493,9 +490,7 @@ where
             }
             Code::ReadBase => {
                 let base = self.read_base()?;
-                let quality_score = self.read_quality_score().and_then(|n| {
-                    Score::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-                })?;
+                let quality_score = self.read_quality_score()?;
                 Ok(Feature::ReadBase(position, base, quality_score))
             }
             Code::Substitution => {
@@ -515,9 +510,7 @@ where
                 Ok(Feature::InsertBase(position, base))
             }
             Code::QualityScore => {
-                let score = self.read_quality_score().and_then(|n| {
-                    Score::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-                })?;
+                let score = self.read_quality_score()?;
                 Ok(Feature::QualityScore(position, score))
             }
             Code::ReferenceSkip => {
@@ -591,9 +584,8 @@ where
             .collect()
     }
 
-    fn read_stretches_of_quality_scores(&mut self) -> io::Result<Vec<Score>> {
-        let scores = self
-            .compression_header
+    fn read_stretches_of_quality_scores(&mut self) -> io::Result<Vec<u8>> {
+        self.compression_header
             .data_series_encoding_map()
             .stretches_of_quality_scores_encoding()
             .ok_or_else(|| {
@@ -604,12 +596,7 @@ where
                     ),
                 )
             })?
-            .decode(&mut self.core_data_reader, &mut self.external_data_readers)?;
-
-        scores
-            .into_iter()
-            .map(|n| Score::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
-            .collect()
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)
     }
 
     fn read_base(&mut self) -> io::Result<Base> {
@@ -797,7 +784,7 @@ where
     fn read_quality_scores_stored_as_array(
         &mut self,
         read_length: usize,
-    ) -> io::Result<sam::record::QualityScores> {
+    ) -> io::Result<QualityScores> {
         const MISSING: u8 = 0xff;
 
         let encoding = self
@@ -823,7 +810,6 @@ where
             buf.clear();
         }
 
-        sam::record::QualityScores::try_from(buf)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        Ok(QualityScores::from(buf))
     }
 }

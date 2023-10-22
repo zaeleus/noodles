@@ -6,7 +6,7 @@ pub mod substitution;
 pub use self::code::Code;
 
 use noodles_core::Position;
-use noodles_sam::record::{quality_scores::Score, sequence::Base};
+use noodles_sam::record::sequence::Base;
 
 /// A CRAM record feature.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -14,9 +14,9 @@ pub enum Feature {
     /// A stretch of bases (position, bases).
     Bases(Position, Vec<Base>),
     /// A stretch of quality scores (position, quality scores).
-    Scores(Position, Vec<Score>),
+    Scores(Position, Vec<u8>),
     /// A base-quality score pair (position, base, quality score).
-    ReadBase(Position, Base, Score),
+    ReadBase(Position, Base, u8),
     /// A base substitution (position, code (read) / base (write)).
     Substitution(Position, substitution::Value),
     /// Inserted bases (position, bases).
@@ -26,7 +26,7 @@ pub enum Feature {
     /// A single inserted base (position, base).
     InsertBase(Position, Base),
     /// A single quality score (position, score).
-    QualityScore(Position, Score),
+    QualityScore(Position, u8),
     /// A number of skipped bases (position, length).
     ReferenceSkip(Position, usize),
     /// Soft clipped bases (position, bases).
@@ -112,7 +112,7 @@ mod tests {
         assert_eq!(Feature::Bases(position, Vec::new()).code(), Code::Bases);
         assert_eq!(Feature::Scores(position, Vec::new()).code(), Code::Scores);
         assert_eq!(
-            Feature::ReadBase(position, Base::N, Score::default()).code(),
+            Feature::ReadBase(position, Base::N, 0).code(),
             Code::ReadBase
         );
         assert_eq!(
@@ -129,7 +129,7 @@ mod tests {
             Code::InsertBase
         );
         assert_eq!(
-            Feature::QualityScore(position, Score::default()).code(),
+            Feature::QualityScore(position, 0).code(),
             Code::QualityScore
         );
         assert_eq!(
@@ -150,10 +150,7 @@ mod tests {
 
         assert_eq!(Feature::Bases(position, Vec::new()).position(), position);
         assert_eq!(Feature::Scores(position, Vec::new()).position(), position);
-        assert_eq!(
-            Feature::ReadBase(position, Base::N, Score::default()).position(),
-            position
-        );
+        assert_eq!(Feature::ReadBase(position, Base::N, 0).position(), position);
         assert_eq!(
             Feature::Substitution(position, substitution::Value::Code(0)).position(),
             position
@@ -164,10 +161,7 @@ mod tests {
         );
         assert_eq!(Feature::Deletion(position, 0).position(), position);
         assert_eq!(Feature::InsertBase(position, Base::N).position(), position);
-        assert_eq!(
-            Feature::QualityScore(position, Score::default()).position(),
-            position
-        );
+        assert_eq!(Feature::QualityScore(position, 0).position(), position);
         assert_eq!(Feature::ReferenceSkip(position, 0).position(), position);
         assert_eq!(Feature::SoftClip(position, Vec::new()).position(), position);
         assert_eq!(Feature::Padding(position, 0).position(), position);

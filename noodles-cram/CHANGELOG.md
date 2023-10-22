@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * cram/record: Change quality scores to be raw scores.
+
 ## 0.45.0 - 2023-10-19
 
 ### Changed

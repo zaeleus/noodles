@@ -5,7 +5,7 @@ use noodles_sam::{
     header::{record::value::map, ReferenceSequences},
 };
 
-use super::{Features, Flags, Record};
+use super::{Features, Flags, QualityScores, Record};
 
 impl Record {
     /// Converts an alignment record to a CRAM record.
@@ -87,7 +87,17 @@ impl Record {
                 flags.insert(Flags::QUALITY_SCORES_STORED_AS_ARRAY);
             }
 
-            builder = builder.set_quality_scores(record.quality_scores().clone());
+            let scores: Vec<_> = record
+                .quality_scores()
+                .as_ref()
+                .iter()
+                .copied()
+                .map(u8::from)
+                .collect();
+
+            let quality_scores = QualityScores::from(scores);
+
+            builder = builder.set_quality_scores(quality_scores);
         }
 
         Ok(builder.set_flags(flags).build())
@@ -142,7 +152,10 @@ impl Record {
         }
 
         if !self.quality_scores.is_empty() {
-            builder = builder.set_quality_scores(self.quality_scores);
+            let scores = Vec::<_>::from(self.quality_scores);
+            let quality_scores = sam::record::QualityScores::try_from(scores)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+            builder = builder.set_quality_scores(quality_scores);
         }
 
         let mut data = self.tags;

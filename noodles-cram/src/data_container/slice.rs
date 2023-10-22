@@ -656,9 +656,7 @@ mod tests {
 
     #[test]
     fn test_resolve_quality_scores() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::record::{quality_scores::Score, QualityScores};
-
-        use crate::record::{Feature, Features};
+        use crate::record::{Feature, Features, QualityScores};
 
         let mut records = [
             Record::builder()
@@ -667,7 +665,7 @@ mod tests {
                 .set_read_length(2)
                 .set_features(Features::from(vec![Feature::Scores(
                     Position::try_from(1)?,
-                    vec![Score::try_from(8)?, Score::try_from(13)?],
+                    vec![8, 13],
                 )]))
                 .build(),
             Record::builder().set_id(2).build(),
@@ -675,7 +673,7 @@ mod tests {
                 .set_id(3)
                 .set_flags(Flags::QUALITY_SCORES_STORED_AS_ARRAY)
                 .set_read_length(2)
-                .set_quality_scores(QualityScores::try_from(vec![21, 34])?)
+                .set_quality_scores(QualityScores::from(vec![21, 34]))
                 .build(),
         ];
 
@@ -684,9 +682,9 @@ mod tests {
         let actual: Vec<_> = records.into_iter().map(|r| r.quality_scores).collect();
 
         let expected = [
-            QualityScores::try_from(vec![8, 13])?,
+            QualityScores::from(vec![8, 13]),
             QualityScores::default(),
-            QualityScores::try_from(vec![21, 34])?,
+            QualityScores::from(vec![21, 34]),
         ];
 
         assert_eq!(actual, expected);

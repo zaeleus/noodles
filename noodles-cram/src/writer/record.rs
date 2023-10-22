@@ -6,10 +6,7 @@ use std::{
 
 use noodles_bam as bam;
 use noodles_core::Position;
-use noodles_sam::{
-    self as sam,
-    record::{quality_scores::Score, sequence::Base},
-};
+use noodles_sam::{self as sam, record::sequence::Base};
 
 use crate::{
     container::block,
@@ -614,9 +611,8 @@ where
         )
     }
 
-    fn write_stretches_of_quality_scores(&mut self, quality_scores: &[Score]) -> io::Result<()> {
-        let encoding = self
-            .compression_header
+    fn write_stretches_of_quality_scores(&mut self, quality_scores: &[u8]) -> io::Result<()> {
+        self.compression_header
             .data_series_encoding_map()
             .stretches_of_quality_scores_encoding()
             .ok_or_else(|| {
@@ -626,11 +622,12 @@ where
                         DataSeries::StretchesOfQualityScores,
                     ),
                 )
-            })?;
-
-        let scores: Vec<_> = quality_scores.iter().copied().map(u8::from).collect();
-
-        encoding.encode(self.core_data_writer, self.external_data_writers, &scores)
+            })?
+            .encode(
+                self.core_data_writer,
+                self.external_data_writers,
+                quality_scores,
+            )
     }
 
     fn write_base(&mut self, base: Base) -> io::Result<()> {
@@ -650,7 +647,7 @@ where
             )
     }
 
-    fn write_quality_score(&mut self, quality_score: Score) -> io::Result<()> {
+    fn write_quality_score(&mut self, quality_score: u8) -> io::Result<()> {
         self.compression_header
             .data_series_encoding_map()
             .quality_scores_encoding()
@@ -663,7 +660,7 @@ where
             .encode(
                 self.core_data_writer,
                 self.external_data_writers,
-                u8::from(quality_score),
+                quality_score,
             )
     }
 
