@@ -33,6 +33,14 @@ impl Builder {
     ///
     /// By defualt, the compression method will be autodetected. This can be overridden by using
     /// [`Self::set_compression_method`].
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use noodles_vcf::reader::Builder;
+    /// let reader = Builder::default().build_from_path("sample.vcf")?;
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
     pub fn build_from_path<P>(mut self, src: P) -> io::Result<Reader<Box<dyn BufRead>>>
     where
         P: AsRef<Path>,
@@ -51,6 +59,15 @@ impl Builder {
     }
 
     /// Builds a VCF reader from a reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_vcf::reader::Builder;
+    /// let reader = Builder::default().build_from_reader(io::empty())?;
+    /// # Ok::<_, io::Error>(())
+    /// ```
     pub fn build_from_reader<'r, R>(self, reader: R) -> io::Result<Reader<Box<dyn BufRead + 'r>>>
     where
         R: Read + 'r,
