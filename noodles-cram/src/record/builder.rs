@@ -114,6 +114,7 @@ impl Builder {
     }
 
     /// Adds a tag to the tag dictionary.
+    #[deprecated(since = "0.47.0", note = "Use `Builder::set_tags` instead.")]
     pub fn add_tag(
         mut self,
         tag: sam::record::data::field::Tag,
@@ -130,6 +131,7 @@ impl Builder {
     }
 
     /// Adds a base to the read bases.
+    #[deprecated(since = "0.47.0", note = "Use `Builder::set_bases` instead.")]
     pub fn add_base(mut self, base: Base) -> Self {
         self.bases.push(base);
         self
@@ -142,6 +144,7 @@ impl Builder {
     }
 
     /// Adds a read feature.
+    #[deprecated(since = "0.47.0", note = "Use `Builder::set_features` instead.")]
     pub fn add_feature(mut self, feature: Feature) -> Self {
         self.features.push(feature);
         self
@@ -160,6 +163,7 @@ impl Builder {
     }
 
     /// Adds a quality score.
+    #[deprecated(since = "0.47.0", note = "Use `Builder::set_quality_scores` instead.")]
     pub fn add_quality_score(mut self, score: u8) -> Self {
         self.quality_scores.as_mut().push(score);
         self

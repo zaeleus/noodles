@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Deprecated
+
+  * cram/record/builder Deprecate add methods: `Builder::add_tag`,
+    `Builder::add_base`, `Builder::add_feature`, and
+    `Builder::add_quality_score`.
+
+    Use the setters instead.
+
 ## 0.46.0 - 2023-10-23
 
 ### Changed
