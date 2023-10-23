@@ -37,4 +37,20 @@ impl Builder {
 
         Ok(Writer::new(writer))
     }
+
+    /// Builds a VCF writer from a writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_vcf as vcf;
+    /// let writer = vcf::writer::Builder.build_from_writer(io::sink());
+    /// ```
+    pub fn build_from_writer<W>(self, writer: W) -> Writer<W>
+    where
+        W: Write,
+    {
+        Writer::new(writer)
+    }
 }

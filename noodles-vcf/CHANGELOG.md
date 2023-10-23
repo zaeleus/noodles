@@ -13,6 +13,8 @@
     Change instantiations of `vcf::reader::Builder` to
     `vcf::reader::Builder::default()`.
 
+  * vcf/writer/builder: Add `Builder::build_from_writer`.
+
 ### Changed
 
   * vcf/reader/builder: Change `Builder::build_from_reader` to accept
