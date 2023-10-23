@@ -40,7 +40,10 @@ mod tests {
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
         use sam::record::Sequence;
 
-        use crate::record::feature::substitution::{self, Base};
+        use crate::record::{
+            feature::substitution::{self, Base},
+            Features,
+        };
 
         // reference sequence = "ACAGGAATAANNNNNN"
         let bases: Sequence = "TCTGGCGTGT".parse()?;
@@ -49,30 +52,32 @@ mod tests {
             .set_alignment_start(Position::try_from(1)?)
             .set_read_length(bases.len())
             .set_bases(bases)
-            .add_feature(Feature::Substitution(
-                Position::try_from(1)?,
-                substitution::Value::Bases(Base::A, Base::T),
-            ))
-            .add_feature(Feature::Substitution(
-                Position::try_from(3)?,
-                substitution::Value::Bases(Base::A, Base::T),
-            ))
-            .add_feature(Feature::Substitution(
-                Position::try_from(6)?,
-                substitution::Value::Bases(Base::A, Base::C),
-            ))
-            .add_feature(Feature::Substitution(
-                Position::try_from(7)?,
-                substitution::Value::Bases(Base::A, Base::G),
-            ))
-            .add_feature(Feature::Substitution(
-                Position::try_from(9)?,
-                substitution::Value::Bases(Base::A, Base::G),
-            ))
-            .add_feature(Feature::Substitution(
-                Position::try_from(10)?,
-                substitution::Value::Bases(Base::A, Base::T),
-            ))
+            .set_features(Features::from(vec![
+                Feature::Substitution(
+                    Position::try_from(1)?,
+                    substitution::Value::Bases(Base::A, Base::T),
+                ),
+                Feature::Substitution(
+                    Position::try_from(3)?,
+                    substitution::Value::Bases(Base::A, Base::T),
+                ),
+                Feature::Substitution(
+                    Position::try_from(6)?,
+                    substitution::Value::Bases(Base::A, Base::C),
+                ),
+                Feature::Substitution(
+                    Position::try_from(7)?,
+                    substitution::Value::Bases(Base::A, Base::G),
+                ),
+                Feature::Substitution(
+                    Position::try_from(9)?,
+                    substitution::Value::Bases(Base::A, Base::G),
+                ),
+                Feature::Substitution(
+                    Position::try_from(10)?,
+                    substitution::Value::Bases(Base::A, Base::T),
+                ),
+            ]))
             .build();
 
         let mut builder = Builder::default();
