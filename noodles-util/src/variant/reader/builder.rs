@@ -62,8 +62,8 @@ impl Builder {
 
     /// Builds a variant reader from a path.
     ///
-    /// By default, the format and compression will be autodetected. This can be overridden by
-    /// using [`Self::set_format`] and [`Self::set_compression_method`].
+    /// By default, the format and compression method will be autodetected. This can be overridden
+    /// by using [`Self::set_format`] and [`Self::set_compression_method`].
     ///
     /// # Examples
     ///
@@ -83,8 +83,8 @@ impl Builder {
 
     /// Builds a variant reader from a reader.
     ///
-    /// By default, the format and compression will be autodetected. This can be overridden by
-    /// using [`Self::set_format`] and [`Self::set_compression_method`].
+    /// By default, the format and compression methods will be autodetected. This can be overridden
+    /// by using [`Self::set_format`] and [`Self::set_compression_method`].
     ///
     /// # Examples
     ///
