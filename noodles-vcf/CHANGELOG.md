@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * vcf/reader/builder: Add a compression method setter.
+
+    This allows the compression method to be overridden using
+    `vcf::io::CompressionMethod`, instead of solely relying on the path
+    extension.
+
+    Change instantiations of `vcf::reader::Builder` to
+    `vcf::reader::Builder::default()`.
+
+### Changed
+
+  * vcf/reader/builder: Change `Builder::build_from_reader` to accept
+    implementations of `Read`.
+
 ## 0.43.0 - 2023-10-23
 
 ### Added
