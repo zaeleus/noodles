@@ -4,6 +4,11 @@
 
 ### Added
 
+  * vcf/async/writer: Add a `shutdown` delegate.
+
+    When the inner writer is buffered, a call to `AsyncWriter::shutdown` is
+    required prior to drop.
+
   * vcf/reader/builder: Add a compression method setter.
 
     This allows the compression method to be overridden using

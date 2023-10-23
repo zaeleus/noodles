@@ -29,5 +29,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     writer.write_record(&record).await?;
 
+    writer.shutdown().await?;
+
     Ok(())
 }

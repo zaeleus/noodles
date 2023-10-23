@@ -5,6 +5,9 @@ use crate::{Header, Record};
 const LINE_FEED: u8 = b'\n';
 
 /// An async VCF writer.
+///
+/// If the inner writer is buffered, a call to [`Self::shutdown`] must be made before the writer is
+/// dropped.
 pub struct Writer<W>
 where
     W: AsyncWrite,
@@ -65,6 +68,25 @@ where
     /// ```
     pub fn into_inner(self) -> W {
         self.inner
+    }
+
+    /// Shuts down the output stream.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> io::Result<()> {
+    /// use noodles_vcf as vcf;
+    /// let mut writer = vcf::AsyncWriter::new(Vec::new());
+    /// writer.shutdown().await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn shutdown(&mut self) -> io::Result<()> {
+        self.inner.shutdown().await
     }
 
     /// Writes a VCF header.
