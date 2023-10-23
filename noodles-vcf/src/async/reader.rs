@@ -73,6 +73,48 @@ where
         }
     }
 
+    /// Returns a reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    /// let data = [];
+    /// let reader = vcf::AsyncReader::new(&data[..]);
+    /// assert!(reader.get_ref().is_empty());
+    /// ```
+    pub fn get_ref(&self) -> &R {
+        &self.inner
+    }
+
+    /// Returns a mutable reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    /// let data = [];
+    /// let mut reader = vcf::AsyncReader::new(&data[..]);
+    /// assert!(reader.get_mut().is_empty());
+    /// ```
+    pub fn get_mut(&mut self) -> &mut R {
+        &mut self.inner
+    }
+
+    /// Returns the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    /// let data = [];
+    /// let reader = vcf::AsyncReader::new(&data[..]);
+    /// assert!(reader.into_inner().is_empty());
+    /// ```
+    pub fn into_inner(self) -> R {
+        self.inner
+    }
+
     /// Reads the VCF header.
     ///
     /// This reads all header lines prefixed with a `#` (number sign), which includes the header

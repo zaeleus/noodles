@@ -28,6 +28,45 @@ where
         Self { inner }
     }
 
+    /// Returns a reference to the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    /// let writer = vcf::AsyncWriter::new(Vec::new());
+    /// assert!(writer.get_ref().is_empty());
+    /// ```
+    pub fn get_ref(&self) -> &W {
+        &self.inner
+    }
+
+    /// Returns a mutable reference to the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    /// let mut writer = vcf::AsyncWriter::new(Vec::new());
+    /// assert!(writer.get_mut().is_empty());
+    /// ```
+    pub fn get_mut(&mut self) -> &mut W {
+        &mut self.inner
+    }
+
+    /// Returns the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    /// let writer = vcf::AsyncWriter::new(Vec::new());
+    /// assert!(writer.into_inner().is_empty());
+    /// ```
+    pub fn into_inner(self) -> W {
+        self.inner
+    }
+
     /// Writes a VCF header.
     ///
     /// # Examples

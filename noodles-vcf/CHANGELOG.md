@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * vcf/async: Add common methods to access the underlying I/O:
+    `AsyncReader::get_ref`, `AsyncReader::get_mut`, `AsyncReader::into_inner`,
+    `AsyncWriter::get_ref`, `AsyncWriter::get_mut`, and
+    `AsyncWriter::into_inner`.
+
 ## 0.42.0 - 2023-10-19
 
 ### Changed
