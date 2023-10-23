@@ -15,6 +15,15 @@
 
   * vcf/writer/builder: Add `Builder::build_from_writer`.
 
+  * vcf/writer/builder: Add a compression method setter.
+
+    This allows the compression method to be overridden using
+    `vcf::io::CompressionMethod`, instead of solely relying on the path
+    extension.
+
+    Change instantiations of `vcf::writer::Builder` to
+    `vcf::writer::Builder::default()`.
+
 ### Changed
 
   * vcf/reader/builder: Change `Builder::build_from_reader` to accept
