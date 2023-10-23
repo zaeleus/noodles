@@ -34,7 +34,7 @@ where
     ///
     /// ```
     /// use noodles_vcf as vcf;
-    /// let mut writer = vcf::AsyncWriter::new(Vec::new());
+    /// let writer = vcf::AsyncWriter::new(Vec::new());
     /// assert!(writer.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &W {
@@ -47,7 +47,7 @@ where
     ///
     /// ```
     /// use noodles_vcf as vcf;
-    /// let mut writer = bam::AsyncWriter::from(Vec::new());
+    /// let mut writer = vcf::AsyncWriter::new(Vec::new());
     /// assert!(writer.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut W {
@@ -60,7 +60,7 @@ where
     ///
     /// ```
     /// use noodles_vcf as vcf;
-    /// let writer = bam::AsyncWriter::from(Vec::new());
+    /// let writer = vcf::AsyncWriter::new(Vec::new());
     /// assert!(writer.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> W {
