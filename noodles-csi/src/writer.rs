@@ -1,9 +1,7 @@
-use std::{
-    collections::HashMap,
-    io::{self, Write},
-};
+use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
+use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
 
 use super::{
@@ -183,7 +181,7 @@ where
 fn write_bins<W>(
     writer: &mut W,
     depth: u8,
-    bins: &HashMap<usize, Bin>,
+    bins: &IndexMap<usize, Bin>,
     metadata: Option<&Metadata>,
 ) -> io::Result<()>
 where

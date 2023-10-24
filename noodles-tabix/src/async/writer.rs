@@ -1,5 +1,4 @@
-use std::collections::HashMap;
-
+use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
 use noodles_csi::index::{
     header::ReferenceSequenceNames,
@@ -220,7 +219,7 @@ where
 
 async fn write_bins<W>(
     writer: &mut W,
-    bins: &HashMap<usize, Bin>,
+    bins: &IndexMap<usize, Bin>,
     metadata: Option<&Metadata>,
 ) -> io::Result<()>
 where

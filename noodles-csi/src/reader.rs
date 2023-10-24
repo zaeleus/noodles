@@ -1,10 +1,10 @@
 use std::{
-    collections::HashMap,
     io::{self, Read},
     str,
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
+use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
 
 use super::{
@@ -234,11 +234,11 @@ where
     Ok(ReferenceSequence::new(bins, Vec::new(), metadata))
 }
 
-fn read_bins<R>(reader: &mut R, depth: u8) -> io::Result<(HashMap<usize, Bin>, Option<Metadata>)>
+fn read_bins<R>(reader: &mut R, depth: u8) -> io::Result<(IndexMap<usize, Bin>, Option<Metadata>)>
 where
     R: Read,
 {
-    fn duplicate_bin_error(id: usize) -> io::Result<(HashMap<usize, Bin>, Option<Metadata>)> {
+    fn duplicate_bin_error(id: usize) -> io::Result<(IndexMap<usize, Bin>, Option<Metadata>)> {
         Err(io::Error::new(
             io::ErrorKind::InvalidData,
             format!("duplicate bin ID: {id}"),
@@ -249,7 +249,7 @@ where
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let mut bins = HashMap::with_capacity(n_bin);
+    let mut bins = IndexMap::with_capacity(n_bin);
 
     let metadata_id = Bin::metadata_id(depth);
     let mut metadata = None;

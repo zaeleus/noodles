@@ -6,9 +6,10 @@ mod metadata;
 
 pub use self::{bin::Bin, builder::Builder, metadata::Metadata};
 
-use std::{collections::HashMap, io, num::NonZeroUsize};
+use std::{io, num::NonZeroUsize};
 
 use bit_vec::BitVec;
+use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
 use noodles_core::{region::Interval, Position};
 
@@ -21,7 +22,7 @@ const LINEAR_INDEX_WINDOW_SIZE: usize = 1 << 14;
 /// A CSI reference sequence.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReferenceSequence {
-    bins: HashMap<usize, Bin>,
+    bins: IndexMap<usize, Bin>,
     linear_index: Vec<bgzf::VirtualPosition>,
     metadata: Option<Metadata>,
 }
@@ -42,7 +43,7 @@ impl ReferenceSequence {
     /// let reference_sequence = ReferenceSequence::new(Default::default(), Vec::new(), None);
     /// ```
     pub fn new(
-        bins: HashMap<usize, Bin>,
+        bins: IndexMap<usize, Bin>,
         linear_index: Vec<bgzf::VirtualPosition>,
         metadata: Option<Metadata>,
     ) -> Self {
@@ -64,7 +65,7 @@ impl ReferenceSequence {
     /// let reference_sequence = ReferenceSequence::new(Default::default(), Vec::new(), None);
     /// assert!(reference_sequence.bins().is_empty());
     /// ```
-    pub fn bins(&self) -> &HashMap<usize, Bin> {
+    pub fn bins(&self) -> &IndexMap<usize, Bin> {
         &self.bins
     }
 

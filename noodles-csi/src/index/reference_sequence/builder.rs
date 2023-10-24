@@ -1,5 +1,4 @@
-use std::collections::HashMap;
-
+use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
 use noodles_core::Position;
 
@@ -11,7 +10,7 @@ use super::{
 /// A CSI reference sequence builder.
 #[derive(Debug)]
 pub struct Builder {
-    bin_builders: HashMap<usize, bin::Builder>,
+    bin_builders: IndexMap<usize, bin::Builder>,
     linear_index: Vec<Option<bgzf::VirtualPosition>>,
     start_position: bgzf::VirtualPosition,
     end_position: bgzf::VirtualPosition,
@@ -128,7 +127,7 @@ impl Builder {
 impl Default for Builder {
     fn default() -> Self {
         Self {
-            bin_builders: HashMap::new(),
+            bin_builders: IndexMap::new(),
             linear_index: Vec::new(),
             start_position: bgzf::VirtualPosition::MAX,
             end_position: bgzf::VirtualPosition::MIN,
@@ -226,11 +225,7 @@ mod tests {
             ReferenceSequence::new(bins, linear_index, Some(metadata))
         };
 
-        for (id, expected_bin) in expected.bins() {
-            let actual_bin = actual.bins().get(id).expect("missing bin");
-            assert_eq!(actual_bin, expected_bin);
-        }
-
+        assert_eq!(actual.bins(), expected.bins());
         assert_eq!(actual.linear_index(), expected.linear_index());
         assert_eq!(actual.metadata(), expected.metadata());
 

@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * csi/index/reference_sequence: Change bins to an ordered map ([#213]).
+
+    Bins now maintain their insertion order. While this does not directly
+    affect reading and in-memory usage, it does make serialization
+    deterministic.
+
+[#213]: https://github.com/zaeleus/noodles/issues/213
+
 ## 0.25.1 - 2023-10-19
 
 ### Fixed

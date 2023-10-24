@@ -1,5 +1,4 @@
-use std::collections::HashMap;
-
+use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
@@ -183,7 +182,7 @@ where
 async fn write_bins<W>(
     writer: &mut W,
     depth: u8,
-    bins: &HashMap<usize, Bin>,
+    bins: &IndexMap<usize, Bin>,
     metadata: Option<&Metadata>,
 ) -> io::Result<()>
 where

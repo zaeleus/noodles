@@ -1,5 +1,4 @@
-use std::collections::HashMap;
-
+use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
@@ -176,7 +175,7 @@ where
 async fn read_bins<R>(
     reader: &mut R,
     depth: u8,
-) -> io::Result<(HashMap<usize, Bin>, Option<Metadata>)>
+) -> io::Result<(IndexMap<usize, Bin>, Option<Metadata>)>
 where
     R: AsyncRead + Unpin,
 {
@@ -184,7 +183,7 @@ where
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let mut bins = HashMap::with_capacity(n_bin);
+    let mut bins = IndexMap::with_capacity(n_bin);
 
     let metadata_id = Bin::metadata_id(depth);
     let mut metadata = None;

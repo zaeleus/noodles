@@ -18,6 +18,7 @@ bit-vec.workspace = true
 byteorder.workspace = true
 bytes.workspace = true
 futures = { workspace = true, optional = true, features = ["std"] }
+indexmap.workspace = true
 tokio = { workspace = true, optional = true, features = ["fs", "io-util"] }
 
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.25.0" }

@@ -1,5 +1,4 @@
-use std::collections::HashMap;
-
+use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
 use noodles_csi::index::{
     header::{Format, ReferenceSequenceNames},
@@ -230,7 +229,7 @@ where
     Ok(ReferenceSequence::new(bins, intervals, metadata))
 }
 
-async fn read_bins<R>(reader: &mut R) -> io::Result<(HashMap<usize, Bin>, Option<Metadata>)>
+async fn read_bins<R>(reader: &mut R) -> io::Result<(IndexMap<usize, Bin>, Option<Metadata>)>
 where
     R: AsyncRead + Unpin,
 {
@@ -242,7 +241,7 @@ where
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let mut bins = HashMap::with_capacity(n_bin);
+    let mut bins = IndexMap::with_capacity(n_bin);
     let mut metadata = None;
 
     for _ in 0..n_bin {
