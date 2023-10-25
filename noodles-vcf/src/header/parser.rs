@@ -4,22 +4,38 @@ mod builder;
 mod file_format_option;
 pub(crate) mod record;
 
-pub use self::{builder::Builder, file_format_option::FileFormatOption, record::parse_record};
-
 use std::error;
 
-use indexmap::IndexSet;
+use indexmap::IndexMap;
 
+pub use self::{builder::Builder, file_format_option::FileFormatOption, record::parse_record};
 use super::{
     file_format::{self, FileFormat},
     record::Record,
-    Header,
+    AlternativeAlleles, Contigs, Filters, Formats, Header, Infos, OtherRecords, SampleNames,
 };
+
+#[derive(Debug, Default, Eq, PartialEq)]
+enum State {
+    #[default]
+    Empty,
+    Ready,
+    Done,
+}
 
 /// A VCF header parser.
 #[derive(Debug, Default, Eq, PartialEq)]
 pub struct Parser {
     file_format_option: FileFormatOption,
+    state: State,
+    file_format: FileFormat,
+    infos: Infos,
+    filters: Filters,
+    formats: Formats,
+    alternative_alleles: AlternativeAlleles,
+    contigs: Contigs,
+    sample_names: SampleNames,
+    other_records: OtherRecords,
 }
 
 impl Parser {
@@ -30,47 +46,94 @@ impl Parser {
 
     /// Parses a raw VCF header.
     pub fn parse(&self, s: &str) -> Result<Header, ParseError> {
-        let mut builder = Header::builder();
-        let mut lines = s.lines();
+        let mut parser = Self::default();
 
-        let line = lines.next().ok_or(ParseError::MissingFileFormat)?;
-        let file_format = match parse_file_format(line) {
-            Ok(f) => match self.file_format_option {
-                FileFormatOption::Auto => f,
-                FileFormatOption::FileFormat(g) => g,
-            },
-            Err(e) => return Err(e),
-        };
-
-        builder = builder.set_file_format(file_format);
-
-        let mut has_header = false;
-
-        for line in &mut lines {
-            if line.starts_with("#CHROM") {
-                builder = parse_header(builder, line)?;
-                has_header = true;
-                break;
-            }
-
-            builder = add_record(file_format, builder, line)?;
+        for line in s.lines() {
+            parser.parse_partial(line)?;
         }
 
-        if !has_header {
-            return Err(ParseError::MissingHeader);
-        }
+        parser.finish()
+    }
 
-        if lines.next().is_some() {
+    /// Parses and adds a raw record to the header.
+    pub fn parse_partial(&mut self, s: &str) -> Result<(), ParseError> {
+        if self.state == State::Done {
             return Err(ParseError::ExpectedEof);
         }
 
-        Ok(builder.build())
+        if self.state == State::Empty {
+            let file_format = match parse_file_format(s) {
+                Ok(f) => match self.file_format_option {
+                    FileFormatOption::Auto => f,
+                    FileFormatOption::FileFormat(g) => g,
+                },
+                Err(e) => return Err(e),
+            };
+
+            self.file_format = file_format;
+            self.state = State::Ready;
+
+            return Ok(());
+        }
+
+        if s.starts_with("#CHROM") {
+            parse_header(s, &mut self.sample_names)?;
+            self.state = State::Done;
+            return Ok(());
+        }
+
+        let record = record::parse_record(s.as_bytes(), self.file_format)
+            .map_err(ParseError::InvalidRecord)?;
+
+        match record {
+            Record::FileFormat(_) => return Err(ParseError::UnexpectedFileFormat),
+            Record::Info(id, info) => {
+                self.infos.insert(id, info);
+            }
+            Record::Filter(id, filter) => {
+                self.filters.insert(id, filter);
+            }
+            Record::Format(id, format) => {
+                self.formats.insert(id, format);
+            }
+            Record::AlternativeAllele(id, alternative_allele) => {
+                self.alternative_alleles.insert(id, alternative_allele);
+            }
+            Record::Contig(id, contig) => {
+                self.contigs.insert(id, contig);
+            }
+            Record::Other(key, value) => {
+                insert_other_record(&mut self.other_records, key, value)?;
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Builds the VCF header.
+    pub fn finish(self) -> Result<Header, ParseError> {
+        match self.state {
+            State::Empty => Err(ParseError::Empty),
+            State::Ready => Err(ParseError::MissingHeader),
+            State::Done => Ok(Header {
+                file_format: self.file_format,
+                infos: self.infos,
+                filters: self.filters,
+                formats: self.formats,
+                alternative_alleles: self.alternative_alleles,
+                contigs: self.contigs,
+                sample_names: self.sample_names,
+                other_records: self.other_records,
+            }),
+        }
     }
 }
 
 /// An error returned when a raw VCF header fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The input is empty.
+    Empty,
     /// The file format (`fileformat`) is missing.
     MissingFileFormat,
     /// The file format (`fileformat`) appears other than the first line.
@@ -110,6 +173,7 @@ impl error::Error for ParseError {
 impl std::fmt::Display for ParseError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::Empty => f.write_str("empty input"),
             Self::MissingFileFormat => f.write_str("missing fileformat"),
             Self::UnexpectedFileFormat => f.write_str("unexpected file format"),
             Self::InvalidFileFormat(_) => f.write_str("invalid file format"),
@@ -142,32 +206,28 @@ fn parse_file_format(s: &str) -> Result<FileFormat, ParseError> {
     }
 }
 
-fn add_record(
-    file_format: FileFormat,
-    mut builder: super::Builder,
-    line: &str,
-) -> Result<super::Builder, ParseError> {
-    let record =
-        record::parse_record(line.as_bytes(), file_format).map_err(ParseError::InvalidRecord)?;
-
-    builder = match record {
-        Record::FileFormat(_) => return Err(ParseError::UnexpectedFileFormat),
-        Record::Info(id, info) => builder.add_info(id, info),
-        Record::Filter(id, filter) => builder.add_filter(id, filter),
-        Record::Format(id, format) => builder.add_format(id, format),
-        Record::AlternativeAllele(id, alternative_allele) => {
-            builder.add_alternative_allele(id, alternative_allele)
+fn insert_other_record(
+    other_records: &mut OtherRecords,
+    key: super::record::key::Other,
+    value: super::record::Value,
+) -> Result<(), ParseError> {
+    let collection = other_records.entry(key).or_insert_with(|| match value {
+        super::record::Value::String(_) => {
+            super::record::value::Collection::Unstructured(Vec::new())
         }
-        Record::Contig(id, contig) => builder.add_contig(id, contig),
-        Record::Other(key, value) => builder
-            .insert(key, value)
-            .map_err(ParseError::InvalidRecordValue)?,
-    };
+        super::record::Value::Map(..) => {
+            super::record::value::Collection::Structured(IndexMap::new())
+        }
+    });
 
-    Ok(builder)
+    collection
+        .add(value)
+        .map_err(ParseError::InvalidRecordValue)?;
+
+    Ok(())
 }
 
-fn parse_header(mut builder: super::Builder, line: &str) -> Result<super::Builder, ParseError> {
+fn parse_header(line: &str, sample_names: &mut SampleNames) -> Result<(), ParseError> {
     static HEADERS: &[&str] = &[
         "#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO",
     ];
@@ -193,18 +253,14 @@ fn parse_header(mut builder: super::Builder, line: &str) -> Result<super::Builde
             ));
         }
 
-        let mut sample_names = IndexSet::new();
-
         for sample_name in fields {
             if !sample_names.insert(sample_name.into()) {
                 return Err(ParseError::DuplicateSampleName(sample_name.into()));
             }
         }
-
-        builder = builder.set_sample_names(sample_names);
     }
 
-    Ok(builder)
+    Ok(())
 }
 
 #[cfg(test)]

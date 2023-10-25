@@ -17,6 +17,7 @@ impl Builder {
     pub fn build(self) -> Parser {
         Parser {
             file_format_option: self.file_format_option,
+            ..Default::default()
         }
     }
 }

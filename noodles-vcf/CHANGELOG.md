@@ -9,6 +9,10 @@
     When the inner writer is buffered, a call to `AsyncWriter::shutdown` is
     required prior to drop.
 
+  * vcf/header/parser: Add partial parser.
+
+    This allows headers to be parsed line by line.
+
   * vcf/reader/builder: Add a compression method setter.
 
     This allows the compression method to be overridden using
