@@ -20,7 +20,7 @@ list; and formats, listed as [features]. For example, to work with the BAM
 format, enable the `bam` feature.
 
 ```toml
-noodles = { version = "0.55.0", features = ["bam"] }
+noodles = { version = "0.56.0", features = ["bam"] }
 ```
 
 Each enabled feature can then be imported by its re-exported name, e.g.,

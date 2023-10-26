@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.47.0 - 2023-10-26
 
 ### Deprecated
 
