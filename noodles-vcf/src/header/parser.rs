@@ -4,7 +4,7 @@ mod builder;
 mod file_format_option;
 pub(crate) mod record;
 
-use std::error;
+use std::{error, str};
 
 use indexmap::IndexMap;
 
@@ -49,20 +49,20 @@ impl Parser {
         let mut parser = Self::default();
 
         for line in s.lines() {
-            parser.parse_partial(line)?;
+            parser.parse_partial(line.as_bytes())?;
         }
 
         parser.finish()
     }
 
     /// Parses and adds a raw record to the header.
-    pub fn parse_partial(&mut self, s: &str) -> Result<(), ParseError> {
+    pub fn parse_partial(&mut self, src: &[u8]) -> Result<(), ParseError> {
         if self.state == State::Done {
             return Err(ParseError::ExpectedEof);
         }
 
         if self.state == State::Empty {
-            let file_format = match parse_file_format(s) {
+            let file_format = match parse_file_format(src) {
                 Ok(f) => match self.file_format_option {
                     FileFormatOption::Auto => f,
                     FileFormatOption::FileFormat(g) => g,
@@ -76,14 +76,14 @@ impl Parser {
             return Ok(());
         }
 
-        if s.starts_with("#CHROM") {
-            parse_header(s, &mut self.sample_names)?;
+        if src.starts_with(b"#CHROM") {
+            parse_header(src, &mut self.sample_names)?;
             self.state = State::Done;
             return Ok(());
         }
 
-        let record = record::parse_record(s.as_bytes(), self.file_format)
-            .map_err(ParseError::InvalidRecord)?;
+        let record =
+            record::parse_record(src, self.file_format).map_err(ParseError::InvalidRecord)?;
 
         match record {
             Record::FileFormat(_) => return Err(ParseError::UnexpectedFileFormat),
@@ -134,6 +134,8 @@ impl Parser {
 pub enum ParseError {
     /// The input is empty.
     Empty,
+    /// The input contains invalid UTF-8.
+    InvalidUtf8(str::Utf8Error),
     /// The file format (`fileformat`) is missing.
     MissingFileFormat,
     /// The file format (`fileformat`) appears other than the first line.
@@ -162,6 +164,7 @@ pub enum ParseError {
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
+            Self::InvalidUtf8(e) => Some(e),
             Self::InvalidFileFormat(e) => Some(e),
             Self::InvalidRecord(e) => Some(e),
             Self::InvalidRecordValue(e) => Some(e),
@@ -174,6 +177,7 @@ impl std::fmt::Display for ParseError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
+            Self::InvalidUtf8(_) => f.write_str("invalid UTF-8"),
             Self::MissingFileFormat => f.write_str("missing fileformat"),
             Self::UnexpectedFileFormat => f.write_str("unexpected file format"),
             Self::InvalidFileFormat(_) => f.write_str("invalid file format"),
@@ -196,9 +200,9 @@ impl std::fmt::Display for ParseError {
     }
 }
 
-fn parse_file_format(s: &str) -> Result<FileFormat, ParseError> {
-    let record = record::parse_record(s.as_bytes(), FileFormat::default())
-        .map_err(ParseError::InvalidRecord)?;
+fn parse_file_format(src: &[u8]) -> Result<FileFormat, ParseError> {
+    let record =
+        record::parse_record(src, FileFormat::default()).map_err(ParseError::InvalidRecord)?;
 
     match record {
         Record::FileFormat(file_format) => Ok(file_format),
@@ -227,12 +231,13 @@ fn insert_other_record(
     Ok(())
 }
 
-fn parse_header(line: &str, sample_names: &mut SampleNames) -> Result<(), ParseError> {
+fn parse_header(src: &[u8], sample_names: &mut SampleNames) -> Result<(), ParseError> {
     static HEADERS: &[&str] = &[
         "#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO",
     ];
     static FORMAT_HEADER: &str = "FORMAT";
 
+    let line = str::from_utf8(src).map_err(ParseError::InvalidUtf8)?;
     let mut fields = line.split(crate::record::FIELD_DELIMITER);
 
     for &expected in HEADERS.iter() {

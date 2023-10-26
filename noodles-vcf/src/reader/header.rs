@@ -1,7 +1,4 @@
-use std::{
-    io::{self, BufRead},
-    str,
-};
+use std::io::{self, BufRead};
 
 use crate::{header, Header};
 
@@ -13,10 +10,8 @@ where
     let mut buf = Vec::new();
 
     while read_header_line(reader, &mut buf)? != 0 {
-        let s = str::from_utf8(&buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
         parser
-            .parse_partial(s)
+            .parse_partial(&buf)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     }
 
