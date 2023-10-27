@@ -69,7 +69,7 @@ where
     let mut header_reader = BufReader::new(reader.take(l_text));
     let mut buf = Vec::new();
 
-    while read_header_line(&mut header_reader, &mut buf)? != 0 {
+    while read_line(&mut header_reader, &mut buf)? != 0 {
         // § 4.2 The BAM format (2021-06-03): "Plain header text in SAM; not necessarily
         // NUL-terminated".
         if buf.ends_with(&[NUL]) {
@@ -84,19 +84,12 @@ where
     Ok(parser.finish())
 }
 
-fn read_header_line<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<usize>
+fn read_line<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<usize>
 where
     R: BufRead,
 {
-    const PREFIX: u8 = b'@';
     const LINE_FEED: u8 = b'\n';
     const CARRIAGE_RETURN: u8 = b'\r';
-
-    let src = reader.fill_buf()?;
-
-    if src.is_empty() || src[0] != PREFIX {
-        return Ok(0);
-    }
 
     dst.clear();
 
