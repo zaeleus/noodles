@@ -88,7 +88,17 @@ impl Parser {
         match record {
             Record::FileFormat(_) => return Err(ParseError::UnexpectedFileFormat),
             Record::Info(id, info) => {
-                self.infos.insert(id, info);
+                use indexmap::map::Entry;
+
+                match self.infos.entry(id) {
+                    Entry::Vacant(entry) => {
+                        entry.insert(info);
+                    }
+                    Entry::Occupied(entry) => {
+                        let (id, _) = entry.remove_entry();
+                        return Err(ParseError::DuplicateInfoId(id));
+                    }
+                }
             }
             Record::Filter(id, filter) => {
                 self.filters.insert(id, filter);
@@ -144,6 +154,8 @@ pub enum ParseError {
     InvalidFileFormat(file_format::ParseError),
     /// A record is invalid.
     InvalidRecord(record::ParseError),
+    /// An info ID is duplicated.
+    DuplicateInfoId(crate::record::info::field::Key),
     /// A record has an invalid value.
     InvalidRecordValue(super::record::value::collection::AddError),
     /// The header is missing.
@@ -182,6 +194,7 @@ impl std::fmt::Display for ParseError {
             Self::UnexpectedFileFormat => f.write_str("unexpected file format"),
             Self::InvalidFileFormat(_) => f.write_str("invalid file format"),
             Self::InvalidRecord(_) => f.write_str("invalid record"),
+            Self::DuplicateInfoId(id) => write!(f, "duplicate INFO ID: {id}"),
             Self::InvalidRecordValue(_) => f.write_str("invalid record value"),
             Self::MissingHeader => f.write_str("missing header"),
             Self::InvalidHeader(actual, expected) => {
@@ -448,6 +461,20 @@ mod tests {
                 String::from("FORMAT")
             ))
         );
+    }
+
+    #[test]
+    fn test_from_str_with_duplicate_map_id() {
+        let s = r#"##fileformat=VCFv4.3
+##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of samples with data">
+##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of samples with data">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0	sample0
+"#;
+
+        assert!(matches!(
+            Parser::default().parse(s),
+            Err(ParseError::DuplicateInfoId(_))
+        ));
     }
 
     #[test]
