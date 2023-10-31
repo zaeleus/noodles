@@ -11,8 +11,9 @@ use indexmap::IndexMap;
 pub use self::{builder::Builder, file_format_option::FileFormatOption, record::parse_record};
 use super::{
     file_format::{self, FileFormat},
-    record::Record,
-    AlternativeAlleles, Contigs, Filters, Formats, Header, Infos, OtherRecords, SampleNames,
+    record::value::{map::Info, Map},
+    AlternativeAlleles, Contigs, Filters, Formats, Header, Infos, OtherRecords, Record,
+    SampleNames,
 };
 
 #[derive(Debug, Default, Eq, PartialEq)]
@@ -87,19 +88,7 @@ impl Parser {
 
         match record {
             Record::FileFormat(_) => return Err(ParseError::UnexpectedFileFormat),
-            Record::Info(id, info) => {
-                use indexmap::map::Entry;
-
-                match self.infos.entry(id) {
-                    Entry::Vacant(entry) => {
-                        entry.insert(info);
-                    }
-                    Entry::Occupied(entry) => {
-                        let (id, _) = entry.remove_entry();
-                        return Err(ParseError::DuplicateInfoId(id));
-                    }
-                }
-            }
+            Record::Info(id, info) => try_insert_info(&mut self.infos, id, info)?,
             Record::Filter(id, filter) => {
                 self.filters.insert(id, filter);
             }
@@ -223,6 +212,25 @@ fn parse_file_format(src: &[u8]) -> Result<FileFormat, ParseError> {
     }
 }
 
+fn try_insert_info(
+    infos: &mut Infos,
+    id: crate::record::info::field::Key,
+    info: Map<Info>,
+) -> Result<(), ParseError> {
+    use indexmap::map::Entry;
+
+    match infos.entry(id) {
+        Entry::Vacant(entry) => {
+            entry.insert(info);
+            Ok(())
+        }
+        Entry::Occupied(entry) => {
+            let (id, _) = entry.remove_entry();
+            Err(ParseError::DuplicateInfoId(id))
+        }
+    }
+}
+
 fn insert_other_record(
     other_records: &mut OtherRecords,
     key: super::record::key::Other,
@@ -289,10 +297,7 @@ mod tests {
     fn test_from_str() -> Result<(), Box<dyn std::error::Error>> {
         use crate::{
             header::record::{
-                value::{
-                    map::{AlternativeAllele, Contig, Filter, Format, Info, Other},
-                    Map,
-                },
+                value::map::{AlternativeAllele, Contig, Filter, Format, Other},
                 Value,
             },
             record::{genotypes, info},
