@@ -11,7 +11,10 @@ use indexmap::IndexMap;
 pub use self::{builder::Builder, file_format_option::FileFormatOption, record::parse_record};
 use super::{
     file_format::{self, FileFormat},
-    record::value::{map::Info, Map},
+    record::value::{
+        map::{Filter, Info},
+        Map,
+    },
     AlternativeAlleles, Contigs, Filters, Formats, Header, Infos, OtherRecords, Record,
     SampleNames,
 };
@@ -89,9 +92,7 @@ impl Parser {
         match record {
             Record::FileFormat(_) => return Err(ParseError::UnexpectedFileFormat),
             Record::Info(id, info) => try_insert_info(&mut self.infos, id, info)?,
-            Record::Filter(id, filter) => {
-                self.filters.insert(id, filter);
-            }
+            Record::Filter(id, filter) => try_insert_filter(&mut self.filters, id, filter)?,
             Record::Format(id, format) => {
                 self.formats.insert(id, format);
             }
@@ -145,6 +146,8 @@ pub enum ParseError {
     InvalidRecord(record::ParseError),
     /// An info ID is duplicated.
     DuplicateInfoId(crate::record::info::field::Key),
+    /// A filter ID is duplicated.
+    DuplicateFilterId(String),
     /// A record has an invalid value.
     InvalidRecordValue(super::record::value::collection::AddError),
     /// The header is missing.
@@ -184,6 +187,7 @@ impl std::fmt::Display for ParseError {
             Self::InvalidFileFormat(_) => f.write_str("invalid file format"),
             Self::InvalidRecord(_) => f.write_str("invalid record"),
             Self::DuplicateInfoId(id) => write!(f, "duplicate INFO ID: {id}"),
+            Self::DuplicateFilterId(id) => write!(f, "duplicate FILTER ID: {id}"),
             Self::InvalidRecordValue(_) => f.write_str("invalid record value"),
             Self::MissingHeader => f.write_str("missing header"),
             Self::InvalidHeader(actual, expected) => {
@@ -227,6 +231,25 @@ fn try_insert_info(
         Entry::Occupied(entry) => {
             let (id, _) = entry.remove_entry();
             Err(ParseError::DuplicateInfoId(id))
+        }
+    }
+}
+
+fn try_insert_filter(
+    filters: &mut Filters,
+    id: String,
+    info: Map<Filter>,
+) -> Result<(), ParseError> {
+    use indexmap::map::Entry;
+
+    match filters.entry(id) {
+        Entry::Vacant(entry) => {
+            entry.insert(info);
+            Ok(())
+        }
+        Entry::Occupied(entry) => {
+            let (id, _) = entry.remove_entry();
+            Err(ParseError::DuplicateFilterId(id))
         }
     }
 }
@@ -480,6 +503,17 @@ mod tests {
             Parser::default().parse(s),
             Err(ParseError::DuplicateInfoId(_))
         ));
+
+        let s = r#"##fileformat=VCFv4.3
+##FILTER=<ID=q10,Description="Quality below 10">
+##FILTER=<ID=q10,Description="Quality below 10">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0	sample0
+"#;
+
+        assert_eq!(
+            Parser::default().parse(s),
+            Err(ParseError::DuplicateFilterId(String::from("q10")))
+        );
     }
 
     #[test]
