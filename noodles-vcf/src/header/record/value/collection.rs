@@ -40,14 +40,30 @@ impl Collection {
                 actual: "structured",
                 expected: "unstructured",
             }),
-            (Self::Structured(map), Value::Map(id, m)) => {
-                map.insert(id, m);
-                Ok(())
-            }
+            (Self::Structured(map), Value::Map(id, m)) => try_insert(map, id, m),
             (Self::Structured(_), Value::String(_)) => Err(AddError::TypeMismatch {
                 actual: "unstructured",
                 expected: "structured",
             }),
+        }
+    }
+}
+
+fn try_insert(
+    map: &mut IndexMap<String, Map<map::Other>>,
+    id: String,
+    m: Map<map::Other>,
+) -> Result<(), AddError> {
+    use indexmap::map::Entry;
+
+    match map.entry(id) {
+        Entry::Vacant(entry) => {
+            entry.insert(m);
+            Ok(())
+        }
+        Entry::Occupied(entry) => {
+            let (id, _) = entry.remove_entry();
+            Err(AddError::DuplicateId(id))
         }
     }
 }
@@ -62,6 +78,8 @@ pub enum AddError {
         /// The collection type.
         expected: &'static str,
     },
+    /// An ID is duplicated.
+    DuplicateId(String),
 }
 
 impl error::Error for AddError {}
@@ -72,6 +90,7 @@ impl fmt::Display for AddError {
             Self::TypeMismatch { actual, expected } => {
                 write!(f, "type mismatch: expected {expected}, got {actual}")
             }
+            Self::DuplicateId(id) => write!(f, "duplicate ID: {id}"),
         }
     }
 }

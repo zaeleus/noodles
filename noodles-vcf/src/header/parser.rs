@@ -621,6 +621,17 @@ mod tests {
             Parser::default().parse(s),
             Err(ParseError::DuplicateContigId(_))
         ));
+
+        let s = r#"##fileformat=VCFv4.3
+##SAMPLE=<ID=sample0,Assay=WholeGenome>
+##SAMPLE=<ID=sample0,Assay=WholeGenome>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0	sample0
+"#;
+
+        assert!(matches!(
+            Parser::default().parse(s),
+            Err(ParseError::InvalidRecordValue(_))
+        ));
     }
 
     #[test]

@@ -41,8 +41,7 @@
 
 ### Changed
 
-  * vcf/header/parser: Return error on duplicate alternative allele, contig,
-    info, filter, and format ID.
+  * vcf/header/parser: Return error on duplicate structured line IDs.
 
   * vcf/reader/builder: Change `Builder::build_from_reader` to accept
     implementations of `Read`.
