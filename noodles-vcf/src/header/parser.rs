@@ -244,13 +244,13 @@ fn try_insert_info(
 fn try_insert_filter(
     filters: &mut Filters,
     id: String,
-    info: Map<Filter>,
+    filter: Map<Filter>,
 ) -> Result<(), ParseError> {
     use indexmap::map::Entry;
 
     match filters.entry(id) {
         Entry::Vacant(entry) => {
-            entry.insert(info);
+            entry.insert(filter);
             Ok(())
         }
         Entry::Occupied(entry) => {
