@@ -557,7 +557,7 @@ mod tests {
         let s = r#"##fileformat=VCFv4.3
 ##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of samples with data">
 ##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of samples with data">
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0	sample0
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
 "#;
 
         assert!(matches!(
@@ -568,7 +568,7 @@ mod tests {
         let s = r#"##fileformat=VCFv4.3
 ##FILTER=<ID=q10,Description="Quality below 10">
 ##FILTER=<ID=q10,Description="Quality below 10">
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0	sample0
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
 "#;
 
         assert_eq!(
@@ -579,7 +579,7 @@ mod tests {
         let s = r#"##fileformat=VCFv4.3
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0	sample0
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
 "#;
 
         assert_eq!(
@@ -592,7 +592,7 @@ mod tests {
         let s = r#"##fileformat=VCFv4.3
 ##ALT=<ID=DEL,Description="Deletion">
 ##ALT=<ID=DEL,Description="Deletion">
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0	sample0
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
 "#;
 
         assert!(matches!(
@@ -603,7 +603,7 @@ mod tests {
         let s = r#"##fileformat=VCFv4.3
 ##contig=<ID=sq0,length=8>
 ##contig=<ID=sq0,length=8>
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0	sample0
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
 "#;
 
         assert!(matches!(
@@ -614,7 +614,7 @@ mod tests {
         let s = r#"##fileformat=VCFv4.3
 ##contig=<ID=sq0,length=8>
 ##contig=<ID=sq0,length=8>
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0	sample0
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
 "#;
 
         assert!(matches!(
@@ -625,7 +625,7 @@ mod tests {
         let s = r#"##fileformat=VCFv4.3
 ##SAMPLE=<ID=sample0,Assay=WholeGenome>
 ##SAMPLE=<ID=sample0,Assay=WholeGenome>
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0	sample0
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
 "#;
 
         assert!(matches!(
