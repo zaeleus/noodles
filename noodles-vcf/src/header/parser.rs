@@ -12,7 +12,7 @@ pub use self::{builder::Builder, file_format_option::FileFormatOption, record::p
 use super::{
     file_format::{self, FileFormat},
     record::value::{
-        map::{AlternativeAllele, Filter, Format, Info},
+        map::{AlternativeAllele, Contig, Filter, Format, Info},
         Map,
     },
     AlternativeAlleles, Contigs, Filters, Formats, Header, Infos, OtherRecords, Record,
@@ -99,9 +99,7 @@ impl Parser {
                 id,
                 alternative_allele,
             )?,
-            Record::Contig(id, contig) => {
-                self.contigs.insert(id, contig);
-            }
+            Record::Contig(id, contig) => try_insert_contig(&mut self.contigs, id, contig)?,
             Record::Other(key, value) => {
                 insert_other_record(&mut self.other_records, key, value)?;
             }
@@ -152,6 +150,8 @@ pub enum ParseError {
     DuplicateFormatId(crate::record::genotypes::keys::Key),
     /// An alternative allele ID is duplicated.
     DuplicateAlternativeAlleleId(crate::record::alternate_bases::allele::Symbol),
+    /// A contig ID is duplicated.
+    DuplicateContigId(super::record::value::map::contig::Name),
     /// A record has an invalid value.
     InvalidRecordValue(super::record::value::collection::AddError),
     /// The header is missing.
@@ -194,6 +194,7 @@ impl std::fmt::Display for ParseError {
             Self::DuplicateFilterId(id) => write!(f, "duplicate FILTER ID: {id}"),
             Self::DuplicateFormatId(id) => write!(f, "duplicate FORMAT ID: {id}"),
             Self::DuplicateAlternativeAlleleId(id) => write!(f, "duplicate ALT ID: {id}"),
+            Self::DuplicateContigId(id) => write!(f, "duplicate contig ID: {id}"),
             Self::InvalidRecordValue(_) => f.write_str("invalid record value"),
             Self::MissingHeader => f.write_str("missing header"),
             Self::InvalidHeader(actual, expected) => {
@@ -298,6 +299,25 @@ fn try_insert_alternative_allele(
     }
 }
 
+fn try_insert_contig(
+    contigs: &mut Contigs,
+    id: super::record::value::map::contig::Name,
+    contig: Map<Contig>,
+) -> Result<(), ParseError> {
+    use indexmap::map::Entry;
+
+    match contigs.entry(id) {
+        Entry::Vacant(entry) => {
+            entry.insert(contig);
+            Ok(())
+        }
+        Entry::Occupied(entry) => {
+            let (id, _) = entry.remove_entry();
+            Err(ParseError::DuplicateContigId(id))
+        }
+    }
+}
+
 fn insert_other_record(
     other_records: &mut OtherRecords,
     key: super::record::key::Other,
@@ -363,10 +383,7 @@ mod tests {
     #[test]
     fn test_from_str() -> Result<(), Box<dyn std::error::Error>> {
         use crate::{
-            header::record::{
-                value::map::{Contig, Other},
-                Value,
-            },
+            header::record::{value::map::Other, Value},
             record::{genotypes, info},
         };
 
@@ -581,6 +598,28 @@ mod tests {
         assert!(matches!(
             Parser::default().parse(s),
             Err(ParseError::DuplicateAlternativeAlleleId(_))
+        ));
+
+        let s = r#"##fileformat=VCFv4.3
+##contig=<ID=sq0,length=8>
+##contig=<ID=sq0,length=8>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0	sample0
+"#;
+
+        assert!(matches!(
+            Parser::default().parse(s),
+            Err(ParseError::DuplicateContigId(_))
+        ));
+
+        let s = r#"##fileformat=VCFv4.3
+##contig=<ID=sq0,length=8>
+##contig=<ID=sq0,length=8>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0	sample0
+"#;
+
+        assert!(matches!(
+            Parser::default().parse(s),
+            Err(ParseError::DuplicateContigId(_))
         ));
     }
 
