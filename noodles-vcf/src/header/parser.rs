@@ -12,7 +12,7 @@ pub use self::{builder::Builder, file_format_option::FileFormatOption, record::p
 use super::{
     file_format::{self, FileFormat},
     record::value::{
-        map::{Filter, Info},
+        map::{Filter, Format, Info},
         Map,
     },
     AlternativeAlleles, Contigs, Filters, Formats, Header, Infos, OtherRecords, Record,
@@ -93,9 +93,7 @@ impl Parser {
             Record::FileFormat(_) => return Err(ParseError::UnexpectedFileFormat),
             Record::Info(id, info) => try_insert_info(&mut self.infos, id, info)?,
             Record::Filter(id, filter) => try_insert_filter(&mut self.filters, id, filter)?,
-            Record::Format(id, format) => {
-                self.formats.insert(id, format);
-            }
+            Record::Format(id, format) => try_insert_format(&mut self.formats, id, format)?,
             Record::AlternativeAllele(id, alternative_allele) => {
                 self.alternative_alleles.insert(id, alternative_allele);
             }
@@ -148,6 +146,8 @@ pub enum ParseError {
     DuplicateInfoId(crate::record::info::field::Key),
     /// A filter ID is duplicated.
     DuplicateFilterId(String),
+    /// A format ID is duplicated.
+    DuplicateFormatId(crate::record::genotypes::keys::Key),
     /// A record has an invalid value.
     InvalidRecordValue(super::record::value::collection::AddError),
     /// The header is missing.
@@ -188,6 +188,7 @@ impl std::fmt::Display for ParseError {
             Self::InvalidRecord(_) => f.write_str("invalid record"),
             Self::DuplicateInfoId(id) => write!(f, "duplicate INFO ID: {id}"),
             Self::DuplicateFilterId(id) => write!(f, "duplicate FILTER ID: {id}"),
+            Self::DuplicateFormatId(id) => write!(f, "duplicate FORMAT ID: {id}"),
             Self::InvalidRecordValue(_) => f.write_str("invalid record value"),
             Self::MissingHeader => f.write_str("missing header"),
             Self::InvalidHeader(actual, expected) => {
@@ -250,6 +251,25 @@ fn try_insert_filter(
         Entry::Occupied(entry) => {
             let (id, _) = entry.remove_entry();
             Err(ParseError::DuplicateFilterId(id))
+        }
+    }
+}
+
+fn try_insert_format(
+    formats: &mut Formats,
+    id: crate::record::genotypes::keys::Key,
+    format: Map<Format>,
+) -> Result<(), ParseError> {
+    use indexmap::map::Entry;
+
+    match formats.entry(id) {
+        Entry::Vacant(entry) => {
+            entry.insert(format);
+            Ok(())
+        }
+        Entry::Occupied(entry) => {
+            let (id, _) = entry.remove_entry();
+            Err(ParseError::DuplicateFormatId(id))
         }
     }
 }
@@ -513,6 +533,19 @@ mod tests {
         assert_eq!(
             Parser::default().parse(s),
             Err(ParseError::DuplicateFilterId(String::from("q10")))
+        );
+
+        let s = r#"##fileformat=VCFv4.3
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0	sample0
+"#;
+
+        assert_eq!(
+            Parser::default().parse(s),
+            Err(ParseError::DuplicateFormatId(
+                crate::record::genotypes::keys::key::GENOTYPE
+            ))
         );
     }
 
