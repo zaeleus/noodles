@@ -41,7 +41,8 @@
 
 ### Changed
 
-  * vcf/header/parser: Return error on duplicate info, filter, and format ID.
+  * vcf/header/parser: Return error on duplicate alternative allele, info,
+    filter, and format ID.
 
   * vcf/reader/builder: Change `Builder::build_from_reader` to accept
     implementations of `Read`.

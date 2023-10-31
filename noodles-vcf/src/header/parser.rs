@@ -12,7 +12,7 @@ pub use self::{builder::Builder, file_format_option::FileFormatOption, record::p
 use super::{
     file_format::{self, FileFormat},
     record::value::{
-        map::{Filter, Format, Info},
+        map::{AlternativeAllele, Filter, Format, Info},
         Map,
     },
     AlternativeAlleles, Contigs, Filters, Formats, Header, Infos, OtherRecords, Record,
@@ -94,9 +94,11 @@ impl Parser {
             Record::Info(id, info) => try_insert_info(&mut self.infos, id, info)?,
             Record::Filter(id, filter) => try_insert_filter(&mut self.filters, id, filter)?,
             Record::Format(id, format) => try_insert_format(&mut self.formats, id, format)?,
-            Record::AlternativeAllele(id, alternative_allele) => {
-                self.alternative_alleles.insert(id, alternative_allele);
-            }
+            Record::AlternativeAllele(id, alternative_allele) => try_insert_alternative_allele(
+                &mut self.alternative_alleles,
+                id,
+                alternative_allele,
+            )?,
             Record::Contig(id, contig) => {
                 self.contigs.insert(id, contig);
             }
@@ -148,6 +150,8 @@ pub enum ParseError {
     DuplicateFilterId(String),
     /// A format ID is duplicated.
     DuplicateFormatId(crate::record::genotypes::keys::Key),
+    /// An alternative allele ID is duplicated.
+    DuplicateAlternativeAlleleId(crate::record::alternate_bases::allele::Symbol),
     /// A record has an invalid value.
     InvalidRecordValue(super::record::value::collection::AddError),
     /// The header is missing.
@@ -189,6 +193,7 @@ impl std::fmt::Display for ParseError {
             Self::DuplicateInfoId(id) => write!(f, "duplicate INFO ID: {id}"),
             Self::DuplicateFilterId(id) => write!(f, "duplicate FILTER ID: {id}"),
             Self::DuplicateFormatId(id) => write!(f, "duplicate FORMAT ID: {id}"),
+            Self::DuplicateAlternativeAlleleId(id) => write!(f, "duplicate ALT ID: {id}"),
             Self::InvalidRecordValue(_) => f.write_str("invalid record value"),
             Self::MissingHeader => f.write_str("missing header"),
             Self::InvalidHeader(actual, expected) => {
@@ -274,6 +279,25 @@ fn try_insert_format(
     }
 }
 
+fn try_insert_alternative_allele(
+    alternative_alleles: &mut AlternativeAlleles,
+    id: crate::record::alternate_bases::allele::Symbol,
+    alternative_allele: Map<AlternativeAllele>,
+) -> Result<(), ParseError> {
+    use indexmap::map::Entry;
+
+    match alternative_alleles.entry(id) {
+        Entry::Vacant(entry) => {
+            entry.insert(alternative_allele);
+            Ok(())
+        }
+        Entry::Occupied(entry) => {
+            let (id, _) = entry.remove_entry();
+            Err(ParseError::DuplicateAlternativeAlleleId(id))
+        }
+    }
+}
+
 fn insert_other_record(
     other_records: &mut OtherRecords,
     key: super::record::key::Other,
@@ -340,7 +364,7 @@ mod tests {
     fn test_from_str() -> Result<(), Box<dyn std::error::Error>> {
         use crate::{
             header::record::{
-                value::map::{AlternativeAllele, Contig, Filter, Format, Other},
+                value::map::{Contig, Other},
                 Value,
             },
             record::{genotypes, info},
@@ -547,6 +571,17 @@ mod tests {
                 crate::record::genotypes::keys::key::GENOTYPE
             ))
         );
+
+        let s = r#"##fileformat=VCFv4.3
+##ALT=<ID=DEL,Description="Deletion">
+##ALT=<ID=DEL,Description="Deletion">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0	sample0
+"#;
+
+        assert!(matches!(
+            Parser::default().parse(s),
+            Err(ParseError::DuplicateAlternativeAlleleId(_))
+        ));
     }
 
     #[test]
