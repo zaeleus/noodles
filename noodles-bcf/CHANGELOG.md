@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bcf/reader/header: Parse header line by line.
+
+    The header parser can now build a `vcf::Header` and `StringMaps` by parsing
+    a raw header line by line. This makes it so that it is no longer required
+    to read the entire raw header into memory before parsing.
+
 ## 0.41.0 - 2023-10-26
 
 ### Changed

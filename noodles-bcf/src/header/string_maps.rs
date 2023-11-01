@@ -6,7 +6,10 @@ use std::str::{FromStr, Lines};
 
 use noodles_vcf::{
     self as vcf,
-    header::{parser::parse_record, ParseError, Record},
+    header::{
+        parser::{parse_record, Entry},
+        ParseError, Record,
+    },
 };
 
 pub use self::string_map::StringMap;
@@ -97,6 +100,16 @@ impl StringMaps {
 
     fn contigs_mut(&mut self) -> &mut ContigStringMap {
         &mut self.contig_string_map
+    }
+
+    pub(crate) fn insert_entry(&mut self, entry: &Entry<'_>) -> Result<(), ParseError> {
+        match entry {
+            Entry::Contig(id, contig) => insert(self.contigs_mut(), id.as_ref(), contig.idx()),
+            Entry::Filter(id, filter) => insert(self.strings_mut(), id, filter.idx()),
+            Entry::Format(id, format) => insert(self.strings_mut(), id.as_ref(), format.idx()),
+            Entry::Info(id, info) => insert(self.strings_mut(), id.as_ref(), info.idx()),
+            _ => Ok(()),
+        }
     }
 }
 
