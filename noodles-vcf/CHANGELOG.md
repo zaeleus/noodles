@@ -22,12 +22,6 @@
     Change instantiations of `vcf::reader::Builder` to
     `vcf::reader::Builder::default()`.
 
-  * vcf/reader/header: Parse header line by line.
-
-    The header parser can now build a `vcf::Header` by parsing a raw header
-    line by line. This makes it so that it is no longer required to read the
-    entire raw header into memory before parsing.
-
   * vcf/writer/builder: Add `Builder::build_from_writer`.
 
   * vcf/writer/builder: Add a compression method setter.
@@ -45,6 +39,12 @@
 
   * vcf/reader/builder: Change `Builder::build_from_reader` to accept
     implementations of `Read`.
+
+  * vcf/reader/header: Parse header line by line.
+
+    The header parser can now build a `vcf::Header` by parsing a raw header
+    line by line. This makes it so that it is no longer required to read the
+    entire raw header into memory before parsing.
 
 ## 0.43.0 - 2023-10-23
 
