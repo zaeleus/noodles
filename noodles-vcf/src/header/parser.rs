@@ -1,6 +1,7 @@
 //! VCF header parser.
 
 mod builder;
+mod entry;
 mod file_format_option;
 pub(crate) mod record;
 
@@ -8,7 +9,9 @@ use std::{error, str};
 
 use indexmap::IndexMap;
 
-pub use self::{builder::Builder, file_format_option::FileFormatOption, record::parse_record};
+pub use self::{
+    builder::Builder, entry::Entry, file_format_option::FileFormatOption, record::parse_record,
+};
 use super::{
     file_format::{self, FileFormat},
     record::value::{
@@ -60,7 +63,7 @@ impl Parser {
     }
 
     /// Parses and adds a raw record to the header.
-    pub fn parse_partial(&mut self, src: &[u8]) -> Result<(), ParseError> {
+    pub fn parse_partial(&mut self, src: &[u8]) -> Result<Entry<'_>, ParseError> {
         if self.state == State::Done {
             return Err(ParseError::ExpectedEof);
         }
@@ -77,35 +80,29 @@ impl Parser {
             self.file_format = file_format;
             self.state = State::Ready;
 
-            return Ok(());
+            return Ok(Entry::FileFormat(file_format));
         }
 
         if src.starts_with(b"#CHROM") {
             parse_header(src, &mut self.sample_names)?;
             self.state = State::Done;
-            return Ok(());
+            return Ok(Entry::Header);
         }
 
         let record =
             record::parse_record(src, self.file_format).map_err(ParseError::InvalidRecord)?;
 
         match record {
-            Record::FileFormat(_) => return Err(ParseError::UnexpectedFileFormat),
-            Record::Info(id, info) => try_insert_info(&mut self.infos, id, info)?,
-            Record::Filter(id, filter) => try_insert_filter(&mut self.filters, id, filter)?,
-            Record::Format(id, format) => try_insert_format(&mut self.formats, id, format)?,
-            Record::AlternativeAllele(id, alternative_allele) => try_insert_alternative_allele(
-                &mut self.alternative_alleles,
-                id,
-                alternative_allele,
-            )?,
-            Record::Contig(id, contig) => try_insert_contig(&mut self.contigs, id, contig)?,
-            Record::Other(key, value) => {
-                insert_other_record(&mut self.other_records, key, value)?;
+            Record::FileFormat(_) => Err(ParseError::UnexpectedFileFormat),
+            Record::Info(id, info) => try_insert_info(&mut self.infos, id, info),
+            Record::Filter(id, filter) => try_insert_filter(&mut self.filters, id, filter),
+            Record::Format(id, format) => try_insert_format(&mut self.formats, id, format),
+            Record::AlternativeAllele(id, alternative_allele) => {
+                try_insert_alternative_allele(&mut self.alternative_alleles, id, alternative_allele)
             }
+            Record::Contig(id, contig) => try_insert_contig(&mut self.contigs, id, contig),
+            Record::Other(key, value) => insert_other_record(&mut self.other_records, key, value),
         }
-
-        Ok(())
     }
 
     /// Builds the VCF header.
@@ -227,13 +224,20 @@ fn try_insert_info(
     infos: &mut Infos,
     id: crate::record::info::field::Key,
     info: Map<Info>,
-) -> Result<(), ParseError> {
+) -> Result<Entry<'_>, ParseError> {
     use indexmap::map::Entry;
 
     match infos.entry(id) {
         Entry::Vacant(entry) => {
+            let i = entry.index();
+
             entry.insert(info);
-            Ok(())
+
+            // SAFETY: The entry was inserted at `i`.
+            Ok(infos
+                .get_index(i)
+                .map(|(k, v)| self::Entry::Info(k, v))
+                .unwrap())
         }
         Entry::Occupied(entry) => {
             let (id, _) = entry.remove_entry();
@@ -246,13 +250,20 @@ fn try_insert_filter(
     filters: &mut Filters,
     id: String,
     filter: Map<Filter>,
-) -> Result<(), ParseError> {
+) -> Result<Entry<'_>, ParseError> {
     use indexmap::map::Entry;
 
     match filters.entry(id) {
         Entry::Vacant(entry) => {
+            let i = entry.index();
+
             entry.insert(filter);
-            Ok(())
+
+            // SAFETY: The entry was inserted at `i`.
+            Ok(filters
+                .get_index(i)
+                .map(|(k, v)| self::Entry::Filter(k, v))
+                .unwrap())
         }
         Entry::Occupied(entry) => {
             let (id, _) = entry.remove_entry();
@@ -265,13 +276,20 @@ fn try_insert_format(
     formats: &mut Formats,
     id: crate::record::genotypes::keys::Key,
     format: Map<Format>,
-) -> Result<(), ParseError> {
+) -> Result<Entry<'_>, ParseError> {
     use indexmap::map::Entry;
 
     match formats.entry(id) {
         Entry::Vacant(entry) => {
+            let i = entry.index();
+
             entry.insert(format);
-            Ok(())
+
+            // SAFETY: The entry was inserted at `i`.
+            Ok(formats
+                .get_index(i)
+                .map(|(k, v)| self::Entry::Format(k, v))
+                .unwrap())
         }
         Entry::Occupied(entry) => {
             let (id, _) = entry.remove_entry();
@@ -284,13 +302,20 @@ fn try_insert_alternative_allele(
     alternative_alleles: &mut AlternativeAlleles,
     id: crate::record::alternate_bases::allele::Symbol,
     alternative_allele: Map<AlternativeAllele>,
-) -> Result<(), ParseError> {
+) -> Result<Entry<'_>, ParseError> {
     use indexmap::map::Entry;
 
     match alternative_alleles.entry(id) {
         Entry::Vacant(entry) => {
+            let i = entry.index();
+
             entry.insert(alternative_allele);
-            Ok(())
+
+            // SAFETY: The entry was inserted at `i`.
+            Ok(alternative_alleles
+                .get_index(i)
+                .map(|(k, v)| self::Entry::AlternativeAllele(k, v))
+                .unwrap())
         }
         Entry::Occupied(entry) => {
             let (id, _) = entry.remove_entry();
@@ -303,13 +328,20 @@ fn try_insert_contig(
     contigs: &mut Contigs,
     id: super::record::value::map::contig::Name,
     contig: Map<Contig>,
-) -> Result<(), ParseError> {
+) -> Result<Entry<'_>, ParseError> {
     use indexmap::map::Entry;
 
     match contigs.entry(id) {
         Entry::Vacant(entry) => {
+            let i = entry.index();
+
             entry.insert(contig);
-            Ok(())
+
+            // SAFETY: The entry was inserted at `i`.
+            Ok(contigs
+                .get_index(i)
+                .map(|(k, v)| self::Entry::Contig(k, v))
+                .unwrap())
         }
         Entry::Occupied(entry) => {
             let (id, _) = entry.remove_entry();
@@ -322,7 +354,7 @@ fn insert_other_record(
     other_records: &mut OtherRecords,
     key: super::record::key::Other,
     value: super::record::Value,
-) -> Result<(), ParseError> {
+) -> Result<Entry<'_>, ParseError> {
     let collection = other_records.entry(key).or_insert_with(|| match value {
         super::record::Value::String(_) => {
             super::record::value::Collection::Unstructured(Vec::new())
@@ -336,7 +368,7 @@ fn insert_other_record(
         .add(value)
         .map_err(ParseError::InvalidRecordValue)?;
 
-    Ok(())
+    Ok(Entry::Other)
 }
 
 fn parse_header(src: &[u8], sample_names: &mut SampleNames) -> Result<(), ParseError> {
