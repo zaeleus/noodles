@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * bam/reader/header: Handle optional trailing `NUL` in SAM header text.
+
 ## 0.49.0 - 2023-10-26
 
 ### Changed

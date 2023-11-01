@@ -70,10 +70,10 @@ where
     let mut buf = Vec::new();
 
     while read_line(&mut header_reader, &mut buf)? != 0 {
-        // § 4.2 The BAM format (2021-06-03): "Plain header text in SAM; not necessarily
-        // NUL-terminated".
-        if buf.ends_with(&[NUL]) {
-            buf.pop();
+        // § 4.2 "The BAM format" (2023-05-24): "Plain header text in SAM; not necessarily
+        // `NUL`-terminated".
+        if buf == [NUL] {
+            break;
         }
 
         parser
@@ -225,6 +225,26 @@ mod tests {
                 "sq0".parse()?,
                 Map::<map::ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
             )
+            .build();
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_header_with_trailing_nul_in_text() -> Result<(), Box<dyn std::error::Error>> {
+        let mut data = Vec::new();
+        data.put_slice(MAGIC_NUMBER); // magic
+        data.put_u32_le(12); // l_text
+        data.put_slice(b"@HD\tVN:1.6\n\x00"); // text
+        data.put_u32_le(0); // n_ref
+
+        let mut reader = &data[..];
+        let actual = read_header(&mut reader)?;
+
+        let expected = sam::Header::builder()
+            .set_header(Map::<map::Header>::new(Version::new(1, 6)))
             .build();
 
         assert_eq!(actual, expected);
