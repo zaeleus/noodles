@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * vcf/header/parser: Return error on duplicate structured line IDs.
+
 ## 0.44.0 - 2023-10-26
 
 ### Added
@@ -34,8 +40,6 @@
     `vcf::writer::Builder::default()`.
 
 ### Changed
-
-  * vcf/header/parser: Return error on duplicate structured line IDs.
 
   * vcf/reader/builder: Change `Builder::build_from_reader` to accept
     implementations of `Read`.
