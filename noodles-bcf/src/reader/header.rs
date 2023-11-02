@@ -9,8 +9,6 @@ pub(super) fn read_header<R>(reader: &mut R) -> io::Result<(vcf::Header, StringM
 where
     R: Read,
 {
-    const NUL: u8 = 0x00;
-
     let l_text = reader.read_u32::<LittleEndian>().map(u64::from)?;
 
     let mut parser = vcf::header::Parser::default();
@@ -20,10 +18,6 @@ where
     let mut buf = Vec::new();
 
     while read_line(&mut header_reader, &mut buf)? != 0 {
-        if buf == [NUL] {
-            break;
-        }
-
         let entry = parser
             .parse_partial(&buf)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
@@ -32,6 +26,8 @@ where
             .insert_entry(&entry)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     }
+
+    discard_padding(&mut header_reader)?;
 
     let header = parser
         .finish()
@@ -44,10 +40,17 @@ fn read_line<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<usize>
 where
     R: BufRead,
 {
+    const NUL: u8 = 0x00;
     const LINE_FEED: u8 = b'\n';
     const CARRIAGE_RETURN: u8 = b'\r';
 
     dst.clear();
+
+    let src = reader.fill_buf()?;
+
+    if src.is_empty() || src[0] == NUL {
+        return Ok(0);
+    }
 
     match reader.read_until(LINE_FEED, dst)? {
         0 => Ok(0),
@@ -65,6 +68,22 @@ where
     }
 }
 
+fn discard_padding<R>(reader: &mut R) -> io::Result<()>
+where
+    R: BufRead,
+{
+    loop {
+        let src = reader.fill_buf()?;
+
+        if src.is_empty() {
+            return Ok(());
+        }
+
+        let len = src.len();
+        reader.consume(len);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -79,7 +98,7 @@ mod tests {
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
 ";
 
-        let mut data = 60u32.to_le_bytes().to_vec(); // l_text = 22
+        let mut data = 61u32.to_le_bytes().to_vec(); // l_text
         data.extend_from_slice(raw_header);
         data.push(NUL);
 
