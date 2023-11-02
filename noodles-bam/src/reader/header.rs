@@ -60,8 +60,6 @@ fn read_header_inner<R>(reader: &mut R) -> io::Result<sam::Header>
 where
     R: Read,
 {
-    const NUL: u8 = 0x00;
-
     let l_text = reader.read_u32::<LittleEndian>().map(u64::from)?;
 
     let mut parser = sam::header::Parser::default();
@@ -70,16 +68,12 @@ where
     let mut buf = Vec::new();
 
     while read_line(&mut header_reader, &mut buf)? != 0 {
-        // § 4.2 "The BAM format" (2023-05-24): "Plain header text in SAM; not necessarily
-        // `NUL`-terminated".
-        if buf == [NUL] {
-            break;
-        }
-
         parser
             .parse_partial(&buf)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     }
+
+    discard_padding(&mut header_reader)?;
 
     Ok(parser.finish())
 }
@@ -88,10 +82,17 @@ fn read_line<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<usize>
 where
     R: BufRead,
 {
+    const NUL: u8 = 0x00;
     const LINE_FEED: u8 = b'\n';
     const CARRIAGE_RETURN: u8 = b'\r';
 
     dst.clear();
+
+    let src = reader.fill_buf()?;
+
+    if src.is_empty() || src[0] == NUL {
+        return Ok(0);
+    }
 
     match reader.read_until(LINE_FEED, dst)? {
         0 => Ok(0),
@@ -106,6 +107,22 @@ where
 
             Ok(n)
         }
+    }
+}
+
+fn discard_padding<R>(reader: &mut R) -> io::Result<()>
+where
+    R: BufRead,
+{
+    loop {
+        let src = reader.fill_buf()?;
+
+        if src.is_empty() {
+            return Ok(());
+        }
+
+        let len = src.len();
+        reader.consume(len);
     }
 }
 
@@ -233,18 +250,29 @@ mod tests {
     }
 
     #[test]
-    fn test_read_header_with_trailing_nul_in_text() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_read_header_with_trailing_nul_padding_in_text() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let mut raw_header = b"@HD\tVN:1.6\n".to_vec();
+        raw_header.resize(16384, 0);
+
         let mut data = Vec::new();
         data.put_slice(MAGIC_NUMBER); // magic
-        data.put_u32_le(12); // l_text
-        data.put_slice(b"@HD\tVN:1.6\n\x00"); // text
-        data.put_u32_le(0); // n_ref
+        data.put_u32_le(16384); // l_text
+        data.put_slice(&raw_header); // text
+        data.put_u32_le(1); // n_ref
+        data.put_u32_le(4); // ref[0].l_name
+        data.put_slice(b"sq0\x00"); // ref[0].name
+        data.put_u32_le(8); // ref[0].l_ref
 
         let mut reader = &data[..];
         let actual = read_header(&mut reader)?;
 
         let expected = sam::Header::builder()
             .set_header(Map::<map::Header>::new(Version::new(1, 6)))
+            .add_reference_sequence(
+                "sq0".parse()?,
+                Map::<map::ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
+            )
             .build();
 
         assert_eq!(actual, expected);
