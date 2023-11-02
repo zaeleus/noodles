@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.48.0 - 2023-11-02
+
+### Changed
+
+  * cram: Sync dependencies.
+
 ## 0.47.0 - 2023-10-26
 
 ### Deprecated

@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.45.0 - 2023-11-02
 
 ### Changed
 
