@@ -31,7 +31,7 @@ impl Builder {
 
     /// Builds a VCF reader from a path.
     ///
-    /// By defualt, the compression method will be autodetected. This can be overridden by using
+    /// By default, the compression method will be autodetected. This can be overridden by using
     /// [`Self::set_compression_method`].
     ///
     /// # Examples
