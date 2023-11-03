@@ -300,7 +300,7 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        // TODO: Add test for telomere start (POS = 0).
+        t(&mut buf, Position::from(0), &[0xff, 0xff, 0xff, 0xff])?;
         t(&mut buf, Position::from(1), &[0x00, 0x00, 0x00, 0x00])?;
         t(
             &mut buf,
@@ -308,7 +308,11 @@ mod tests {
             &[0xfe, 0xff, 0xff, 0x7f],
         )?;
 
-        // TODO: Add failure for position > `i32::MAX`.
+        buf.clear();
+        assert!(matches!(
+            write_pos(&mut buf, Position::from(1 << 32)),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
 
         Ok(())
     }
