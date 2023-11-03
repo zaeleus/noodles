@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * csi/async/reader: Disallow duplicate bin IDs.
+
 ## 0.26.0 - 2023-10-26
 
 ### Changed
