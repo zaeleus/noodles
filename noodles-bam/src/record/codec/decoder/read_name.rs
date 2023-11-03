@@ -40,7 +40,7 @@ impl fmt::Display for DecodeError {
                 f,
                 "missing NUL terminator: expected {NUL:#04x}, got {actual:#04x}"
             ),
-            Self::Invalid(_) => todo!(),
+            Self::Invalid(_) => write!(f, "invalid input"),
         }
     }
 }
