@@ -162,15 +162,25 @@ fn read_string_value(
     }
 }
 
-fn type_mismatch_error(_actual: Option<Value>, expected: Type) -> DecodeError {
-    DecodeError::TypeMismatch { expected }
+fn type_mismatch_error(value: Option<Value>, expected: Type) -> DecodeError {
+    let actual = value.map(|v| match v {
+        Value::Int8(_) | Value::Int16(_) | Value::Int32(_) => Type::Integer,
+        Value::Float(_) => Type::Float,
+        Value::String(_) => Type::String,
+        Value::Array(Array::Int8(_) | Array::Int16(_) | Array::Int32(_)) => Type::Integer,
+        Value::Array(Array::Float(_)) => Type::Float,
+    });
+
+    DecodeError::TypeMismatch { actual, expected }
 }
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum DecodeError {
     InvalidValue(value::DecodeError),
-    // TODO: Add `actual`.
-    TypeMismatch { expected: Type },
+    TypeMismatch {
+        actual: Option<Type>,
+        expected: Type,
+    },
     MissingCharacter,
 }
 
@@ -187,7 +197,9 @@ impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidValue(_) => write!(f, "invalid value"),
-            Self::TypeMismatch { expected } => write!(f, "type mismatch: expected {expected}"),
+            Self::TypeMismatch { actual, expected } => {
+                write!(f, "type mismatch: expected {expected:?}, got {actual:?}")
+            }
             Self::MissingCharacter => write!(f, "missing character"),
         }
     }
