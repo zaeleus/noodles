@@ -28,8 +28,6 @@ pub trait Inner: Sized {
 }
 
 /// A SAM header record map value.
-// TODO: I'm not actually sure what's causing this lint warning.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Map<I>
 where
