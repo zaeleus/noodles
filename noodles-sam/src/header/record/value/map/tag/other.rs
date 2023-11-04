@@ -5,7 +5,7 @@ use std::{
     marker::PhantomData,
 };
 
-use super::LENGTH;
+use super::{ParseError, Standard, LENGTH};
 
 /// A nonstandard tag.
 #[derive(Clone, Copy, Debug)]
@@ -45,5 +45,25 @@ impl<S> fmt::Display for Other<S> {
         char::from(self.0[0]).fmt(f)?;
         char::from(self.0[1]).fmt(f)?;
         Ok(())
+    }
+}
+
+impl<S> TryFrom<[u8; LENGTH]> for Other<S>
+where
+    S: Standard,
+{
+    type Error = ParseError;
+
+    fn try_from(buf: [u8; LENGTH]) -> Result<Self, Self::Error> {
+        use super::{is_valid_tag, Tag};
+
+        if !is_valid_tag(buf) {
+            return Err(ParseError::Invalid);
+        }
+
+        match Tag::from(buf) {
+            Tag::Standard(_) => Err(ParseError::Invalid),
+            Tag::Other(tag) => Ok(tag),
+        }
     }
 }

@@ -56,15 +56,11 @@ where
     /// # Example
     ///
     /// ```
-    /// use noodles_sam::header::record::value::{map::{Header, Tag}, Map};
-    ///
-    /// let nd = match Tag::try_from([b'n', b'd']) {
-    ///     Ok(Tag::Other(tag)) => tag,
-    ///     _ => unreachable!(),
-    /// };
-    ///
+    /// use noodles_sam::header::record::value::{map::{tag, Header}, Map};
     /// let mut map = Map::<Header>::new(Default::default());
+    /// let nd = tag::Other::try_from([b'n', b'd'])?;
     /// map.other_fields_mut().insert(nd, String::from("noodles"));
+    /// # Ok::<_, tag::ParseError>(())
     /// ```
     pub fn other_fields_mut(&mut self) -> &mut OtherFields<I::StandardTag> {
         &mut self.other_fields

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * sam/header/record/value/map/tag/other: Implement `TryFrom<[u8; 2]>`.
+
 ## 0.46.0 - 2023-10-26
 
 ### Changed
