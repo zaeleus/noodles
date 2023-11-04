@@ -90,6 +90,25 @@ where
     pub fn other_fields(&self) -> &OtherFields<I::StandardTag> {
         &self.other_fields
     }
+
+    /// Returns a mutable reference to the nonstandard fields in the map.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::header::record::value::{map::Filter, Map};
+    ///
+    /// let tag = match "noodles".parse() {
+    ///     Ok(tag) => tag,
+    ///     Err(_) => unreachable!(),
+    /// };
+    ///
+    /// let mut map = Map::<Filter>::pass();
+    /// map.other_fields_mut().insert(tag, String::from("vcf"));
+    /// ```
+    pub fn other_fields_mut(&mut self) -> &mut OtherFields<I::StandardTag> {
+        &mut self.other_fields
+    }
 }
 
 impl<I> Default for Map<I>

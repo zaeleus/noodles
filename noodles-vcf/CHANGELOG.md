@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * vcf/header/record/value/map: Add mutable getter for other fields
+    (`Map::<I>::other_fields_mut`).
+
 ## 0.45.0 - 2023-11-02
 
 ### Changed
