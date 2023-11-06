@@ -266,8 +266,6 @@ mod tests {
 
     #[test]
     fn test_calculate_alignment_span() -> Result<(), noodles_core::position::TryFromIntError> {
-        use noodles_core::Position;
-
         let features = Features::default();
         assert_eq!(calculate_alignment_span(4, &features), 4);
 
