@@ -4,14 +4,12 @@ use std::io;
 
 use noodles_core::Position;
 use noodles_fasta as fasta;
-use noodles_sam::{self as sam, record::sequence::Base};
-
-use crate::data_container::compression_header::SubstitutionMatrix;
 
 use super::{
     feature::substitution::{self, Base as SubstitutionBase},
-    Feature, Features, QualityScores,
+    Feature, Features, QualityScores, Sequence,
 };
+use crate::data_container::compression_header::SubstitutionMatrix;
 
 pub(crate) fn resolve_bases(
     reference_sequence: Option<&fasta::record::Sequence>,
@@ -19,10 +17,10 @@ pub(crate) fn resolve_bases(
     features: &Features,
     alignment_start: Position,
     read_length: usize,
-    buf: &mut sam::record::Sequence,
+    buf: &mut Sequence,
 ) -> io::Result<()> {
     buf.as_mut().clear();
-    buf.as_mut().resize(read_length, Base::N);
+    buf.as_mut().resize(read_length, b'N');
 
     let mut it = features.with_positions(alignment_start);
 
@@ -32,7 +30,7 @@ pub(crate) fn resolve_bases(
         if let Some(reference_sequence) = reference_sequence {
             let dst = &mut buf[last_read_position..read_position];
             let src = &reference_sequence[last_reference_position..reference_position];
-            copy_from_raw_bases(dst, src)?;
+            copy_from_bases(dst, src);
         } else if read_position != last_read_position {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
@@ -49,7 +47,7 @@ pub(crate) fn resolve_bases(
                     let base = reference_sequence[reference_position];
                     let reference_base = SubstitutionBase::try_from(base).unwrap_or_default();
                     let read_base = substitution_matrix.get(reference_base, *code);
-                    buf[read_position] = Base::from(read_base);
+                    buf[read_position] = u8::from(read_base);
                 } else {
                     return Err(io::Error::new(
                         io::ErrorKind::InvalidData,
@@ -86,7 +84,7 @@ pub(crate) fn resolve_bases(
             .expect("attempt to add with overflow");
         let src = &reference_sequence[last_reference_position..end];
 
-        copy_from_raw_bases(dst, src)?;
+        copy_from_bases(dst, src);
     } else if buf[..last_read_position].len() != buf.len() {
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
@@ -97,20 +95,10 @@ pub(crate) fn resolve_bases(
     Ok(())
 }
 
-fn copy_from_bases(dst: &mut [Base], src: &[Base]) {
+fn copy_from_bases(dst: &mut [u8], src: &[u8]) {
     for (&base, b) in src.iter().zip(dst.iter_mut()) {
         *b = base;
     }
-}
-
-fn copy_from_raw_bases(dst: &mut [Base], src: &[u8]) -> io::Result<()> {
-    for (&raw_base, b) in src.iter().zip(dst.iter_mut()) {
-        let base =
-            Base::try_from(raw_base).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-        *b = base;
-    }
-
-    Ok(())
 }
 
 /// Resolves the quality scores.
@@ -152,8 +140,8 @@ mod tests {
         let substitution_matrix = Default::default();
         let alignment_start = Position::try_from(1)?;
 
-        let t = |features: &Features, expected: &sam::record::Sequence| {
-            let mut actual = sam::record::Sequence::default();
+        let t = |features: &Features, expected: &Sequence| {
+            let mut actual = Sequence::default();
 
             resolve_bases(
                 Some(&reference_sequence),
@@ -169,65 +157,65 @@ mod tests {
             Ok::<_, io::Error>(())
         };
 
-        t(&Features::default(), &"ACGT".parse()?)?;
+        t(&Features::default(), &Sequence::from(b"ACGT".to_vec()))?;
         t(
             &Features::from(vec![Feature::Bases(
                 Position::try_from(1)?,
-                vec![Base::T, Base::G],
+                vec![b'T', b'G'],
             )]),
-            &"TGGT".parse()?,
+            &Sequence::from(b"TGGT".to_vec()),
         )?;
         t(
-            &Features::from(vec![Feature::ReadBase(Position::try_from(2)?, Base::Y, 0)]),
-            &"AYGT".parse()?,
+            &Features::from(vec![Feature::ReadBase(Position::try_from(2)?, b'Y', 0)]),
+            &Sequence::from(b"AYGT".to_vec()),
         )?;
         t(
             &Features::from(vec![Feature::Substitution(
                 Position::try_from(2)?,
                 substitution::Value::Code(1),
             )]),
-            &"AGGT".parse()?,
+            &Sequence::from(b"AGGT".to_vec()),
         )?;
         t(
             &Features::from(vec![Feature::Insertion(
                 Position::try_from(2)?,
-                vec![Base::G, Base::G],
+                vec![b'G', b'G'],
             )]),
-            &"AGGC".parse()?,
+            &Sequence::from(b"AGGC".to_vec()),
         )?;
         t(
             &Features::from(vec![Feature::Deletion(Position::try_from(2)?, 2)]),
-            &"ATAC".parse()?,
+            &Sequence::from(b"ATAC".to_vec()),
         )?;
         t(
-            &Features::from(vec![Feature::InsertBase(Position::try_from(2)?, Base::G)]),
-            &"AGCG".parse()?,
+            &Features::from(vec![Feature::InsertBase(Position::try_from(2)?, b'G')]),
+            &Sequence::from(b"AGCG".to_vec()),
         )?;
         t(
             &Features::from(vec![Feature::ReferenceSkip(Position::try_from(2)?, 2)]),
-            &"ATAC".parse()?,
+            &Sequence::from(b"ATAC".to_vec()),
         )?;
         t(
             &Features::from(vec![Feature::SoftClip(
                 Position::try_from(3)?,
-                vec![Base::G, Base::G],
+                vec![b'G', b'G'],
             )]),
-            &"ACGG".parse()?,
+            &Sequence::from(b"ACGG".to_vec()),
         )?;
         t(
             &Features::from(vec![Feature::Padding(Position::try_from(1)?, 2)]),
-            &"ACGT".parse()?,
+            &Sequence::from(b"ACGT".to_vec()),
         )?;
         t(
             &Features::from(vec![Feature::HardClip(Position::try_from(1)?, 2)]),
-            &"ACGT".parse()?,
+            &Sequence::from(b"ACGT".to_vec()),
         )?;
 
         let features = Features::from(vec![Feature::Substitution(
             Position::try_from(2)?,
             substitution::Value::Bases(SubstitutionBase::A, SubstitutionBase::C),
         )]);
-        let mut actual = sam::record::Sequence::default();
+        let mut actual = Sequence::default();
         assert!(matches!(
             resolve_bases(
                 Some(&reference_sequence),
@@ -248,11 +236,11 @@ mod tests {
         let substitution_matrix = SubstitutionMatrix::default();
         let features = Features::from(vec![Feature::Bases(
             Position::try_from(1)?,
-            vec![Base::N, Base::N, Base::N, Base::N],
+            vec![b'N', b'N', b'N', b'N'],
         )]);
         let alignment_start = Position::try_from(1)?;
 
-        let mut actual = sam::record::Sequence::default();
+        let mut actual = Sequence::default();
         resolve_bases(
             None,
             &substitution_matrix,
@@ -261,7 +249,7 @@ mod tests {
             4,
             &mut actual,
         )?;
-        let expected = "NNNN".parse()?;
+        let expected = Sequence::from(b"NNNN".to_vec());
 
         assert_eq!(actual, expected);
 
@@ -271,7 +259,7 @@ mod tests {
     #[test]
     fn test_resolve_quality_scores() -> Result<(), Box<dyn std::error::Error>> {
         let features = [
-            Feature::ReadBase(Position::try_from(1)?, Base::A, 5),
+            Feature::ReadBase(Position::try_from(1)?, b'A', 5),
             Feature::QualityScore(Position::try_from(3)?, 8),
             Feature::Scores(Position::try_from(5)?, vec![13, 21]),
         ];

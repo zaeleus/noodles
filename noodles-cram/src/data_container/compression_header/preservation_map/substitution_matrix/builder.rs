@@ -32,21 +32,18 @@ impl Builder {
 #[cfg(test)]
 mod tests {
     use noodles_core::Position;
-    use noodles_sam as sam;
 
     use super::*;
 
     #[test]
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::record::Sequence;
-
         use crate::record::{
             feature::substitution::{self, Base},
-            Features,
+            Features, Sequence,
         };
 
         // reference sequence = "ACAGGAATAANNNNNN"
-        let bases: Sequence = "TCTGGCGTGT".parse()?;
+        let bases: Sequence = Sequence::from(b"TCTGGCGTGT".to_vec());
 
         let record = Record::builder()
             .set_alignment_start(Position::try_from(1)?)

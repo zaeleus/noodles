@@ -580,14 +580,11 @@ mod tests {
     fn test_resolve_bases() -> Result<(), Box<dyn std::error::Error>> {
         use std::num::NonZeroUsize;
 
-        use sam::{
-            header::record::value::map::{self, Map},
-            record::{sequence::Base, Sequence},
-        };
+        use sam::header::record::value::map::{self, Map};
 
         use crate::{
             container::block::ContentType,
-            record::{Feature, Features},
+            record::{Feature, Features, Sequence},
         };
 
         const SQ0_LENGTH: NonZeroUsize = match NonZeroUsize::new(8) {
@@ -635,7 +632,7 @@ mod tests {
             .set_alignment_start(Position::MIN)
             .set_features(Features::from(vec![Feature::Bases(
                 Position::MIN,
-                vec![Base::A, Base::C],
+                vec![b'A', b'C'],
             )]))
             .build()];
 
@@ -648,7 +645,7 @@ mod tests {
         )?;
 
         let actual: Vec<_> = records.into_iter().map(|r| r.bases).collect();
-        let expected = [Sequence::from(vec![Base::A, Base::C])];
+        let expected = [Sequence::from(vec![b'A', b'C'])];
         assert_eq!(actual, expected);
 
         Ok(())

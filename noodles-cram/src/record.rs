@@ -8,10 +8,11 @@ mod flags;
 mod next_mate_flags;
 mod quality_scores;
 pub mod resolve;
+mod sequence;
 
 pub use self::{
     builder::Builder, feature::Feature, features::Features, flags::Flags,
-    next_mate_flags::NextMateFlags, quality_scores::QualityScores,
+    next_mate_flags::NextMateFlags, quality_scores::QualityScores, sequence::Sequence,
 };
 
 use std::io;
@@ -42,7 +43,7 @@ pub struct Record {
     pub(crate) template_size: i32,
     pub(crate) distance_to_next_fragment: Option<usize>,
     pub(crate) tags: sam::record::Data,
-    pub(crate) bases: sam::record::Sequence,
+    pub(crate) bases: Sequence,
     pub(crate) features: Features,
     pub(crate) mapping_quality: Option<sam::record::MappingQuality>,
     pub(crate) quality_scores: QualityScores,
@@ -204,12 +205,12 @@ impl Record {
     }
 
     /// Returns the read bases.
-    pub fn bases(&self) -> &sam::record::Sequence {
+    pub fn bases(&self) -> &Sequence {
         &self.bases
     }
 
     /// Returns the sequence.
-    pub fn sequence(&self) -> &sam::record::Sequence {
+    pub fn sequence(&self) -> &Sequence {
         &self.bases
     }
 
@@ -266,7 +267,6 @@ mod tests {
     #[test]
     fn test_calculate_alignment_span() -> Result<(), noodles_core::position::TryFromIntError> {
         use noodles_core::Position;
-        use sam::record::sequence::Base;
 
         let features = Features::default();
         assert_eq!(calculate_alignment_span(4, &features), 4);
@@ -275,14 +275,11 @@ mod tests {
         assert_eq!(calculate_alignment_span(4, &features), 4);
 
         let features = Features::from(vec![
-            Feature::Insertion(Position::try_from(1)?, vec![Base::A, Base::C]),
-            Feature::InsertBase(Position::try_from(4)?, Base::G),
+            Feature::Insertion(Position::try_from(1)?, vec![b'A', b'C']),
+            Feature::InsertBase(Position::try_from(4)?, b'G'),
             Feature::Deletion(Position::try_from(6)?, 3),
             Feature::ReferenceSkip(Position::try_from(10)?, 5),
-            Feature::SoftClip(
-                Position::try_from(16)?,
-                vec![Base::A, Base::C, Base::G, Base::T],
-            ),
+            Feature::SoftClip(Position::try_from(16)?, vec![b'A', b'C', b'G', b'T']),
         ]);
         assert_eq!(calculate_alignment_span(20, &features), 21);
 

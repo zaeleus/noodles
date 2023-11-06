@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * cram/record: Change sequence to be raw bases.
+
 ## 0.48.0 - 2023-11-02
 
 ### Changed

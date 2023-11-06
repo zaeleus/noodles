@@ -92,12 +92,10 @@ mod tests {
 
     #[test]
     fn test_next() -> Result<(), Box<dyn std::error::Error>> {
-        use noodles_sam::record::sequence::Base;
-
         use crate::record::Features;
 
         let features = Features::from(vec![
-            Feature::Bases(Position::MIN, vec![Base::A, Base::C]),
+            Feature::Bases(Position::MIN, vec![b'A', b'C']),
             Feature::Scores(Position::MIN, vec![0, 0]),
         ]);
 

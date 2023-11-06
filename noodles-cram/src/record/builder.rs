@@ -1,7 +1,7 @@
 use noodles_core::Position;
-use noodles_sam::{self as sam, record::sequence::Base};
+use noodles_sam as sam;
 
-use super::{Feature, Features, Flags, NextMateFlags, QualityScores, Record};
+use super::{Feature, Features, Flags, NextMateFlags, QualityScores, Record, Sequence};
 
 /// A CRAM record builder.
 pub struct Builder {
@@ -19,7 +19,7 @@ pub struct Builder {
     template_size: i32,
     distance_to_next_fragment: Option<usize>,
     tags: sam::record::Data,
-    bases: sam::record::Sequence,
+    bases: Sequence,
     features: Features,
     mapping_quality: Option<sam::record::MappingQuality>,
     quality_scores: QualityScores,
@@ -125,15 +125,15 @@ impl Builder {
     }
 
     /// Sets the read bases.
-    pub fn set_bases(mut self, bases: sam::record::Sequence) -> Self {
+    pub fn set_bases(mut self, bases: Sequence) -> Self {
         self.bases = bases;
         self
     }
 
     /// Adds a base to the read bases.
     #[deprecated(since = "0.47.0", note = "Use `Builder::set_bases` instead.")]
-    pub fn add_base(mut self, base: Base) -> Self {
-        self.bases.push(base);
+    pub fn add_base(mut self, base: u8) -> Self {
+        self.bases.as_mut().push(base);
         self
     }
 
@@ -211,7 +211,7 @@ impl Default for Builder {
             template_size: 0,
             distance_to_next_fragment: None,
             tags: sam::record::Data::default(),
-            bases: sam::record::Sequence::default(),
+            bases: Sequence::default(),
             features: Features::default(),
             mapping_quality: None,
             quality_scores: QualityScores::default(),

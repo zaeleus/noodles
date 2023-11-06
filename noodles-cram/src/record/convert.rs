@@ -5,7 +5,7 @@ use noodles_sam::{
     header::{record::value::map, ReferenceSequences},
 };
 
-use super::{Features, Flags, QualityScores, Record};
+use super::{Features, Flags, QualityScores, Record, Sequence};
 
 impl Record {
     /// Converts an alignment record to a CRAM record.
@@ -65,7 +65,16 @@ impl Record {
             builder = builder.set_tags(data);
         }
 
-        builder = builder.set_bases(record.sequence().clone());
+        let raw_bases: Vec<_> = record
+            .sequence()
+            .as_ref()
+            .iter()
+            .copied()
+            .map(u8::from)
+            .collect();
+        let bases = Sequence::from(raw_bases);
+
+        builder = builder.set_bases(bases);
 
         if !bam_flags.is_unmapped() {
             let features = Features::from_cigar(
@@ -148,7 +157,10 @@ impl Record {
         builder = builder.set_template_length(self.template_size);
 
         if !self.bases.is_empty() {
-            builder = builder.set_sequence(self.bases);
+            let raw_bases = Vec::<_>::from(self.bases);
+            let bases = sam::record::Sequence::try_from(raw_bases)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+            builder = builder.set_sequence(bases);
         }
 
         if !self.quality_scores.is_empty() {
