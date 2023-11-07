@@ -297,7 +297,7 @@ impl fmt::Display for ParseError {
 
 impl Hash for Tag {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.as_ref().hash(state)
+        self.as_ref().hash(state);
     }
 }
 

@@ -138,7 +138,7 @@ where
     }
 
     fn consume(&mut self, amt: usize) {
-        self.inner.consume(amt)
+        self.inner.consume(amt);
     }
 }
 

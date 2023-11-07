@@ -97,7 +97,7 @@ pub(crate) fn parse_program(
             tag::DESCRIPTION => parse_description(src)
                 .and_then(|v| try_replace(&mut description, ctx, tag::DESCRIPTION, v))?,
             tag::VERSION => {
-                parse_version(src).and_then(|v| try_replace(&mut version, ctx, tag::VERSION, v))?
+                parse_version(src).and_then(|v| try_replace(&mut version, ctx, tag::VERSION, v))?;
             }
             Tag::Other(t) => parse_other(src, t)
                 .and_then(|value| try_insert(&mut other_fields, ctx, t, value))?,

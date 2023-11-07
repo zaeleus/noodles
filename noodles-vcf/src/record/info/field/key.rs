@@ -275,7 +275,7 @@ impl FromStr for Key {
 
 impl Hash for Key {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.as_ref().hash(state)
+        self.as_ref().hash(state);
     }
 }
 

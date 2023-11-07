@@ -134,7 +134,7 @@ pub(crate) fn parse_read_group(
         match tag {
             tag::ID => parse_id(src).and_then(|v| try_replace(&mut id, ctx, tag::ID, v))?,
             tag::BARCODE => {
-                parse_barcode(src).and_then(|v| try_replace(&mut barcode, ctx, tag::BARCODE, v))?
+                parse_barcode(src).and_then(|v| try_replace(&mut barcode, ctx, tag::BARCODE, v))?;
             }
             tag::SEQUENCING_CENTER => parse_sequencing_center(src).and_then(|v| {
                 try_replace(&mut sequencing_center, ctx, tag::SEQUENCING_CENTER, v)
@@ -148,10 +148,10 @@ pub(crate) fn parse_read_group(
             tag::KEY_SEQUENCE => parse_key_sequence(src)
                 .and_then(|v| try_replace(&mut key_sequence, ctx, tag::KEY_SEQUENCE, v))?,
             tag::LIBRARY => {
-                parse_library(src).and_then(|v| try_replace(&mut library, ctx, tag::LIBRARY, v))?
+                parse_library(src).and_then(|v| try_replace(&mut library, ctx, tag::LIBRARY, v))?;
             }
             tag::PROGRAM => {
-                parse_program(src).and_then(|v| try_replace(&mut program, ctx, tag::PROGRAM, v))?
+                parse_program(src).and_then(|v| try_replace(&mut program, ctx, tag::PROGRAM, v))?;
             }
             tag::PREDICTED_MEDIAN_INSERT_SIZE => {
                 parse_predicted_median_insert_size(src).and_then(|v| {
@@ -161,7 +161,7 @@ pub(crate) fn parse_read_group(
                         tag::PREDICTED_MEDIAN_INSERT_SIZE,
                         v,
                     )
-                })?
+                })?;
             }
             tag::PLATFORM => parse_platform(src)
                 .and_then(|v| try_replace(&mut platform, ctx, tag::PLATFORM, v))?,
@@ -170,7 +170,7 @@ pub(crate) fn parse_read_group(
             tag::PLATFORM_UNIT => parse_platform_unit(src)
                 .and_then(|v| try_replace(&mut platform_unit, ctx, tag::PLATFORM_UNIT, v))?,
             tag::SAMPLE => {
-                parse_sample(src).and_then(|v| try_replace(&mut sample, ctx, tag::SAMPLE, v))?
+                parse_sample(src).and_then(|v| try_replace(&mut sample, ctx, tag::SAMPLE, v))?;
             }
             Tag::Other(t) => parse_other(src, t)
                 .and_then(|value| try_insert(&mut other_fields, ctx, t, value))?,

@@ -83,14 +83,14 @@ pub fn parse_contig(src: &mut &[u8]) -> Result<(Name, Map<Contig>), ParseError> 
     {
         match Tag::from(raw_key) {
             tag::ID => {
-                parse_id(&raw_value, &id).and_then(|v| try_replace(&mut id, &None, tag::ID, v))?
+                parse_id(&raw_value, &id).and_then(|v| try_replace(&mut id, &None, tag::ID, v))?;
             }
             tag::LENGTH => parse_length(&raw_value, &id)
                 .and_then(|v| try_replace(&mut length, &id, tag::LENGTH, v))?,
             tag::MD5 => try_replace(&mut md5, &id, tag::MD5, raw_value.into())?,
             tag::URL => try_replace(&mut url, &id, tag::URL, raw_value.into())?,
             tag::IDX => {
-                parse_idx(&raw_value, &id).and_then(|v| try_replace(&mut idx, &id, tag::IDX, v))?
+                parse_idx(&raw_value, &id).and_then(|v| try_replace(&mut idx, &id, tag::IDX, v))?;
             }
             Tag::Other(t) => try_insert(&mut other_fields, &id, t, raw_value.into())?,
         }

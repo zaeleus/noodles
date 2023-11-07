@@ -103,13 +103,14 @@ pub fn parse_info(
             tag::NUMBER => parse_number(&raw_value, &id)
                 .and_then(|v| try_replace(&mut number, &id, tag::NUMBER, v))?,
             tag::TYPE => {
-                parse_type(&raw_value, &id).and_then(|v| try_replace(&mut ty, &id, tag::TYPE, v))?
+                parse_type(&raw_value, &id)
+                    .and_then(|v| try_replace(&mut ty, &id, tag::TYPE, v))?;
             }
             tag::DESCRIPTION => {
-                try_replace(&mut description, &id, tag::DESCRIPTION, raw_value.into())?
+                try_replace(&mut description, &id, tag::DESCRIPTION, raw_value.into())?;
             }
             tag::IDX => {
-                parse_idx(&raw_value, &id).and_then(|v| try_replace(&mut idx, &id, tag::IDX, v))?
+                parse_idx(&raw_value, &id).and_then(|v| try_replace(&mut idx, &id, tag::IDX, v))?;
             }
             Tag::Other(t) => try_insert(&mut other_fields, &id, t, raw_value.into())?,
         }

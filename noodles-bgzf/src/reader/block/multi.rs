@@ -129,7 +129,7 @@ fn spawn_inflaters(worker_count: usize, inflater_rx: InflaterRx) -> Vec<JoinHand
                     continue;
                 }
             }
-        }))
+        }));
     }
 
     handles

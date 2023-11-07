@@ -129,7 +129,7 @@ fn build_parameters(lens: &[usize], src: &[u8]) -> Parameters {
     for &b in src {
         let sym = usize::from(b);
         symbol_counts[sym] += 1;
-        max_symbol = max_symbol.max(b)
+        max_symbol = max_symbol.max(b);
     }
 
     let q_shift = 5;

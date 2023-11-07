@@ -77,10 +77,10 @@ pub fn parse_alternative_allele(
     {
         match Tag::from(raw_key) {
             tag::ID => {
-                parse_id(&raw_value, &id).and_then(|v| try_replace(&mut id, &None, tag::ID, v))?
+                parse_id(&raw_value, &id).and_then(|v| try_replace(&mut id, &None, tag::ID, v))?;
             }
             tag::DESCRIPTION => {
-                try_replace(&mut description, &id, tag::DESCRIPTION, raw_value.into())?
+                try_replace(&mut description, &id, tag::DESCRIPTION, raw_value.into())?;
             }
             Tag::Other(t) => try_insert(&mut other_fields, &id, t, raw_value.into())?,
         }

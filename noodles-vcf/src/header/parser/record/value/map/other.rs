@@ -180,7 +180,7 @@ pub fn parse_pedigree(
             Tag::Other(t) => {
                 if file_format < VCF_4_3 && matches!(t.as_ref(), CHILD | DERIVED) {
                     id_tag = Tag::Other(t);
-                    parse_id(src, &id).and_then(|v| try_replace(&mut id, &None, tag::ID, v))?
+                    parse_id(src, &id).and_then(|v| try_replace(&mut id, &None, tag::ID, v))?;
                 } else {
                     parse_other_value(src, &id, &t)
                         .and_then(|value| try_insert(&mut other_fields, &id, t, value))?;

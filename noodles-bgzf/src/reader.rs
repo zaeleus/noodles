@@ -220,7 +220,7 @@ where
     R: Read,
 {
     fn consume(&mut self, amt: usize) {
-        self.block.data_mut().consume(amt)
+        self.block.data_mut().consume(amt);
     }
 
     fn fill_buf(&mut self) -> io::Result<&[u8]> {

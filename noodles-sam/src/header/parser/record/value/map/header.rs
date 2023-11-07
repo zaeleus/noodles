@@ -81,7 +81,7 @@ pub(crate) fn parse_header(src: &mut &[u8], ctx: &Context) -> Result<Map<Header>
 
         match tag {
             tag::VERSION => {
-                parse_version(src).and_then(|v| try_replace(&mut version, ctx, tag::VERSION, v))?
+                parse_version(src).and_then(|v| try_replace(&mut version, ctx, tag::VERSION, v))?;
             }
             tag::SORT_ORDER => parse_sort_order(src)
                 .and_then(|v| try_replace(&mut sort_order, ctx, tag::SORT_ORDER, v))?,

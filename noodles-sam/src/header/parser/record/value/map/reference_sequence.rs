@@ -135,7 +135,7 @@ pub(crate) fn parse_reference_sequence(
             tag::MD5_CHECKSUM => parse_md5_checksum(src)
                 .and_then(|v| try_replace(&mut md5_checksum, ctx, tag::MD5_CHECKSUM, v))?,
             tag::SPECIES => {
-                parse_species(src).and_then(|v| try_replace(&mut species, ctx, tag::SPECIES, v))?
+                parse_species(src).and_then(|v| try_replace(&mut species, ctx, tag::SPECIES, v))?;
             }
             tag::MOLECULE_TOPOLOGY => parse_molecule_topology(src).and_then(|v| {
                 try_replace(&mut molecule_topology, ctx, tag::MOLECULE_TOPOLOGY, v)

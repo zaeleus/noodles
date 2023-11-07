@@ -75,10 +75,10 @@ pub fn parse_filter(src: &mut &[u8]) -> Result<(String, Map<Filter>), ParseError
         match Tag::from(raw_key) {
             tag::ID => try_replace(&mut id, &None, tag::ID, raw_value.into())?,
             tag::DESCRIPTION => {
-                try_replace(&mut description, &id, tag::DESCRIPTION, raw_value.into())?
+                try_replace(&mut description, &id, tag::DESCRIPTION, raw_value.into())?;
             }
             tag::IDX => {
-                parse_idx(&raw_value, &id).and_then(|v| try_replace(&mut idx, &id, tag::IDX, v))?
+                parse_idx(&raw_value, &id).and_then(|v| try_replace(&mut idx, &id, tag::IDX, v))?;
             }
             Tag::Other(t) => try_insert(&mut other_fields, &id, t, raw_value.into())?,
         }
