@@ -427,6 +427,29 @@ impl From<Vec<f32>> for Value {
     }
 }
 
+impl TryFrom<i64> for Value {
+    type Error = ParseError;
+
+    fn try_from(n: i64) -> Result<Self, Self::Error> {
+        const MIN: i64 = i32::MIN as i64;
+        const MAX: i64 = u32::MAX as i64;
+
+        if n > MAX {
+            Err(ParseError::InvalidIntegerValue)
+        } else if n >= 0 {
+            Ok(Self::from(n as u32))
+        } else if n >= i64::from(i8::MIN) {
+            Ok(Self::Int8(n as i8))
+        } else if n >= i64::from(i16::MIN) {
+            Ok(Self::Int16(n as i16))
+        } else if n >= MIN {
+            Ok(Self::Int32(n as i32))
+        } else {
+            Err(ParseError::InvalidIntegerValue)
+        }
+    }
+}
+
 impl TryFrom<char> for Value {
     type Error = ParseError;
 
@@ -617,6 +640,53 @@ mod tests {
             Value::from(vec![0.0f32]),
             Value::Array(Array::Float(vec![0.0]))
         );
+    }
+
+    #[test]
+    fn test_try_from_i64_for_value() -> Result<(), ParseError> {
+        fn t(n: i64, expected: Value) -> Result<(), ParseError> {
+            let actual = Value::try_from(n)?;
+            assert_eq!(actual, expected);
+            Ok(())
+        }
+
+        assert_eq!(
+            Value::try_from(-2147483649i64),
+            Err(ParseError::InvalidIntegerValue)
+        );
+
+        t(-2147483648, Value::Int32(i32::MIN))?;
+        t(-2147483647, Value::Int32(-2147483647))?;
+
+        t(-32769, Value::Int32(-32769))?;
+        t(-32768, Value::Int16(i16::MIN))?;
+        t(-32767, Value::Int16(-32767))?;
+
+        t(-129, Value::Int16(-129))?;
+        t(-128, Value::Int8(i8::MIN))?;
+        t(-127, Value::Int8(-127))?;
+
+        t(-1, Value::Int8(-1))?;
+        t(0, Value::UInt8(0))?;
+        t(1, Value::UInt8(1))?;
+
+        t(254, Value::UInt8(254))?;
+        t(255, Value::UInt8(u8::MAX))?;
+        t(256, Value::UInt16(256))?;
+
+        t(65534, Value::UInt16(65534))?;
+        t(65535, Value::UInt16(u16::MAX))?;
+        t(65536, Value::UInt32(65536))?;
+
+        t(4294967294, Value::UInt32(4294967294))?;
+        t(4294967295, Value::UInt32(u32::MAX))?;
+
+        assert_eq!(
+            Value::try_from(4294967296i64),
+            Err(ParseError::InvalidIntegerValue)
+        );
+
+        Ok(())
     }
 
     #[test]

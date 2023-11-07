@@ -19,6 +19,8 @@ pub enum ParseError {
     InvalidCharacter(character::ParseError),
     /// The integer is invalid.
     InvalidInteger(lexical_core::Error),
+    /// The integer value is invalid.
+    InvalidIntegerValue,
     /// The float is invalid.
     InvalidFloat(lexical_core::Error),
     /// The string is invalid.
@@ -53,6 +55,7 @@ impl fmt::Display for ParseError {
             ),
             Self::InvalidCharacter(_) => write!(f, "invalid character"),
             Self::InvalidInteger(_) => write!(f, "invalid integer"),
+            Self::InvalidIntegerValue => write!(f, "invalid integer value"),
             Self::InvalidFloat(_) => write!(f, "invalid float"),
             Self::InvalidString => write!(f, "invalid string"),
             Self::InvalidHex(_) => write!(f, "invalid hex"),

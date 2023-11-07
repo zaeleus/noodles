@@ -6,6 +6,8 @@
 
   * sam/header/record/value/map/tag/other: Implement `TryFrom<[u8; 2]>`.
 
+  * sam/record/data/field/value: Implement `TryFrom<i64>` for `Value`.
+
 ## 0.46.0 - 2023-10-26
 
 ### Changed
