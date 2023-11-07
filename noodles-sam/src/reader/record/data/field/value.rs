@@ -93,9 +93,9 @@ fn parse_char(src: &[u8]) -> Result<Value, ParseError> {
 }
 
 fn parse_int(src: &[u8]) -> Result<Value, ParseError> {
-    lexical_core::parse::<i32>(src)
-        .map(Value::from)
+    lexical_core::parse::<i64>(src)
         .map_err(ParseError::InvalidInteger)
+        .and_then(Value::try_from)
 }
 
 fn parse_float(src: &[u8]) -> Result<Value, ParseError> {
