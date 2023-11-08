@@ -6,6 +6,16 @@
 
   * sam/header/record/value/map/tag/other: Implement `TryFrom<[u8; 2]>`.
 
+  * sam/reader/builder: Add a compression method setter
+    (`Builder::set_compression_method`).
+
+    This allows the compression method to be overridden using
+    `sam::io::CompressionMethod`, instead of solely relying on the path
+    extension.
+
+    Change instantiations of `sam::reader::Builder` to
+    `sam::reader::Builder::default()`.
+
   * sam/reader/record/data/field/value: Support reading integer values up to
     2^32-1.
 
