@@ -26,7 +26,8 @@
 
     This allows headers to be parsed line by line.
 
-  * vcf/reader/builder: Add a compression method setter.
+  * vcf/reader/builder: Add a compression method setter
+    (`Builder::set_compression_method`).
 
     This allows the compression method to be overridden using
     `vcf::io::CompressionMethod`, instead of solely relying on the path
