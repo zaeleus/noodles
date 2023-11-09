@@ -42,7 +42,7 @@ pub mod io;
 pub mod lazy;
 pub mod reader;
 pub mod record;
-mod writer;
+pub mod writer;
 
 pub use self::{
     alignment_reader::AlignmentReader, alignment_writer::AlignmentWriter, header::Header,

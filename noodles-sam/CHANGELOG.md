@@ -21,6 +21,8 @@
 
   * sam/record/data/field/value: Implement `TryFrom<i64>` for `Value`.
 
+  * sam/writer: Add builder (`sam::writer::Builder`).
+
 ## 0.46.0 - 2023-10-26
 
 ### Changed

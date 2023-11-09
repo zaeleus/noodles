@@ -1,8 +1,12 @@
+//! SAM writer.
+
+mod builder;
 mod num;
 mod record;
 
 use std::io::{self, Write};
 
+pub use self::builder::Builder;
 pub(crate) use self::record::write_record;
 use super::{alignment::Record, AlignmentWriter, Header};
 
