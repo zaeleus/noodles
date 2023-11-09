@@ -18,13 +18,9 @@
 //! ## Read all records from a file
 //!
 //! ```no_run
-//! # use std::{fs::File, io::BufReader};
 //! use noodles_sam as sam;
 //!
-//! let mut reader = File::open("sample.sam")
-//!     .map(BufReader::new)
-//!     .map(sam::Reader::new)?;
-//!
+//! let mut reader = sam::reader::Builder::default().build_from_path("sample.sam")?;
 //! let header = reader.read_header()?;
 //!
 //! for result in reader.records(&header) {
