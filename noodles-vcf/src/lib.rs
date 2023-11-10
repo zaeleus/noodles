@@ -24,6 +24,7 @@ mod r#async;
 
 pub mod header;
 pub mod indexed_reader;
+mod indexer;
 pub mod io;
 pub mod lazy;
 pub mod reader;
@@ -33,7 +34,7 @@ mod variant_writer;
 pub mod writer;
 
 pub use self::{
-    header::Header, indexed_reader::IndexedReader, reader::Reader, record::Record,
+    header::Header, indexed_reader::IndexedReader, indexer::index, reader::Reader, record::Record,
     variant_reader::VariantReader, variant_writer::VariantWriter, writer::Writer,
 };
 

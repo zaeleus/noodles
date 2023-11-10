@@ -4,8 +4,14 @@
 
 ### Added
 
+  * vcf: Add indexer (`vcf::index`) ([#214]).
+
+    This is a convenience function to index a bgzip-compressed VCF file.
+
   * vcf/header/record/value/map: Add mutable getter for other fields
     (`Map::<I>::other_fields_mut`).
+
+[#214]: https://github.com/zaeleus/noodles/issues/214
 
 ## 0.45.0 - 2023-11-02
 
