@@ -256,9 +256,11 @@ const M: usize = match NonZeroUsize::new(8) {
 
 // parent of i = floor((i - 1) / M)
 fn parent_id(id: usize) -> Option<usize> {
-    // See <https://github.com/rust-lang/rust-clippy/issues/9422>.
-    #[allow(clippy::unnecessary_lazy_evaluations)]
-    (id > 0).then(|| (id - 1) / M)
+    if id > 0 {
+        Some((id - 1) / M)
+    } else {
+        None
+    }
 }
 
 // `CSIv1.pdf` (2020-07-21)
