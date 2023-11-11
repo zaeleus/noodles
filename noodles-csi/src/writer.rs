@@ -197,19 +197,27 @@ where
     writer.write_i32::<LittleEndian>(n_bin)?;
 
     for (&id, bin) in bins {
-        let bin_id =
-            u32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-        writer.write_u32::<LittleEndian>(bin_id)?;
-
-        let loffset = u64::from(bin.loffset());
-        writer.write_u64::<LittleEndian>(loffset)?;
-
-        write_chunks(writer, bin.chunks())?;
+        write_bin(writer, id, bin)?;
     }
 
     if let Some(m) = metadata {
         write_metadata(writer, depth, m)?;
     }
+
+    Ok(())
+}
+
+fn write_bin<W>(writer: &mut W, id: usize, bin: &Bin) -> io::Result<()>
+where
+    W: Write,
+{
+    let id = u32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_u32::<LittleEndian>(id)?;
+
+    let loffset = u64::from(bin.loffset());
+    writer.write_u64::<LittleEndian>(loffset)?;
+
+    write_chunks(writer, bin.chunks())?;
 
     Ok(())
 }
