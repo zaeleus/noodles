@@ -160,4 +160,39 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_parse_names() -> io::Result<()> {
+        let data = b"sq0\x00sq1\x00";
+        let actual = parse_names(&data[..])?;
+        let expected: ReferenceSequenceNames = [String::from("sq0"), String::from("sq1")]
+            .into_iter()
+            .collect();
+        assert_eq!(actual, expected);
+
+        let data = b"";
+        assert!(parse_names(&data[..])?.is_empty());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_parse_names_with_duplicate_name() {
+        let data = b"sq0\x00sq0\x00";
+
+        assert!(matches!(
+            parse_names(data),
+            Err(ref e) if e.kind() == io::ErrorKind::InvalidData,
+        ));
+    }
+
+    #[test]
+    fn test_parse_names_with_trailing_data() {
+        let data = b"sq0\x00sq1\x00sq2";
+
+        assert!(matches!(
+            parse_names(data),
+            Err(ref e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+    }
 }
