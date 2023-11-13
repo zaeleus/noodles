@@ -136,8 +136,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_header() -> io::Result<()> {
+    fn test_read_aux() -> io::Result<()> {
+        let src = [0x00, 0x00, 0x00, 0x00];
+        let mut reader = &src[..];
+        assert!(read_aux(&mut reader)?.is_none());
+
         let src = [
+            0x20, 0x00, 0x00, 0x00, // l_aux = 32
             0x02, 0x00, 0x00, 0x00, // format = 2 (VCF)
             0x01, 0x00, 0x00, 0x00, // col_seq = 1 (1-based)
             0x02, 0x00, 0x00, 0x00, // col_beg = 2 (1-based)
@@ -149,13 +154,12 @@ mod tests {
         ];
         let mut reader = &src[..];
 
-        let actual = read_header(&mut reader)?;
-
+        let actual = read_aux(&mut reader)?;
         let expected = crate::index::header::Builder::vcf()
             .set_reference_sequence_names([String::from("sq0")].into_iter().collect())
             .build();
 
-        assert_eq!(actual, expected);
+        assert_eq!(actual, Some(expected));
 
         Ok(())
     }
