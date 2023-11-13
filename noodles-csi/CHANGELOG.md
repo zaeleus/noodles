@@ -6,6 +6,13 @@
 
   * csi/async/reader: Disallow duplicate bin IDs.
 
+### Fixed
+
+  * csi/writer: Fix column indices being off-by-one when writing a tabix
+    header ([#215]).
+
+[#215]: https://github.com/zaeleus/noodles/issues/215
+
 ## 0.26.0 - 2023-10-26
 
 ### Changed
