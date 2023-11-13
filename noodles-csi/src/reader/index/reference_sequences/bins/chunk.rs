@@ -30,3 +30,28 @@ where
 
     Ok(Chunk::new(chunk_beg, chunk_end))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_read_chunks() -> io::Result<()> {
+        let src = [
+            0x01, 0x00, 0x00, 0x00, // n_chunk = 1
+            0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // chunk_beg = 8
+            0x0d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // chunk_beg = 13
+        ];
+        let mut reader = &src[..];
+
+        let actual = read_chunks(&mut reader)?;
+        let expected = [Chunk::new(
+            bgzf::VirtualPosition::from(8),
+            bgzf::VirtualPosition::from(13),
+        )];
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+}
