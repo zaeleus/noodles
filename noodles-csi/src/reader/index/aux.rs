@@ -12,15 +12,12 @@ where
     R: Read,
 {
     let l_aux = reader.read_i32::<LittleEndian>().and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        u64::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
     if l_aux > 0 {
-        let mut aux = vec![0; l_aux];
-        reader.read_exact(&mut aux)?;
-
-        let mut rdr = &aux[..];
-        read_header(&mut rdr).map(Some)
+        let mut aux_reader = reader.take(l_aux);
+        read_header(&mut aux_reader).map(Some)
     } else {
         Ok(None)
     }
