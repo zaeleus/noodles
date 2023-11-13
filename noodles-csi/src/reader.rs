@@ -133,18 +133,32 @@ where
     })?;
 
     let col_seq = reader.read_i32::<LittleEndian>().and_then(|i| {
-        usize::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        usize::try_from(i)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            .and_then(|n| {
+                n.checked_sub(1)
+                    .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid col_seq"))
+            })
     })?;
 
     let col_beg = reader.read_i32::<LittleEndian>().and_then(|i| {
-        usize::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        usize::try_from(i)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            .and_then(|n| {
+                n.checked_sub(1)
+                    .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid col_beg"))
+            })
     })?;
 
     let col_end = reader.read_i32::<LittleEndian>().and_then(|i| match i {
         0 => Ok(None),
         _ => usize::try_from(i)
-            .map(Some)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            .and_then(|n| {
+                n.checked_sub(1)
+                    .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid col_end"))
+            })
+            .map(Some),
     })?;
 
     let meta = reader
@@ -383,6 +397,31 @@ mod tests {
             read_magic(&mut reader),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidData
         ));
+    }
+
+    #[test]
+    fn test_read_header() -> io::Result<()> {
+        let src = [
+            0x02, 0x00, 0x00, 0x00, // format = 2 (VCF)
+            0x01, 0x00, 0x00, 0x00, // col_seq = 1 (1-based)
+            0x02, 0x00, 0x00, 0x00, // col_beg = 2 (1-based)
+            0x00, 0x00, 0x00, 0x00, // col_end = None (1-based)
+            0x23, 0x00, 0x00, 0x00, // meta = '#'
+            0x00, 0x00, 0x00, 0x00, // skip = 0
+            0x04, 0x00, 0x00, 0x00, // l_nm = 4
+            b's', b'q', b'0', 0x00, // names = ["sq0"]
+        ];
+        let mut reader = &src[..];
+
+        let actual = read_header(&mut reader)?;
+
+        let expected = crate::index::header::Builder::vcf()
+            .set_reference_sequence_names([String::from("sq0")].into_iter().collect())
+            .build();
+
+        assert_eq!(actual, expected);
+
+        Ok(())
     }
 
     #[test]

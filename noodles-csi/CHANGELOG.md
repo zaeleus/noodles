@@ -8,6 +8,9 @@
 
 ### Fixed
 
+  * csi/reader: Fix column indices being off-by-one when reading a tabix
+    header ([#215]).
+
   * csi/writer: Fix column indices being off-by-one when writing a tabix
     header ([#215]).
 
