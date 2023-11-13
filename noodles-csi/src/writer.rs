@@ -243,7 +243,7 @@ where
         let chunk_beg = u64::from(chunk.start());
         writer.write_u64::<LittleEndian>(chunk_beg)?;
 
-        let chunk_end = u64::from(chunk.start());
+        let chunk_end = u64::from(chunk.end());
         writer.write_u64::<LittleEndian>(chunk_end)?;
     }
 
@@ -302,6 +302,26 @@ mod tests {
             0x00, 0x00, 0x00, 0x00, // skip = 0
             0x04, 0x00, 0x00, 0x00, // l_nm = 4
             b's', b'q', b'0', 0x00, // names = ["sq0"]
+        ];
+
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_chunks() -> io::Result<()> {
+        let mut buf = Vec::new();
+        let chunk = Chunk::new(
+            bgzf::VirtualPosition::from(8),
+            bgzf::VirtualPosition::from(13),
+        );
+        write_chunks(&mut buf, &[chunk])?;
+
+        let expected = [
+            0x01, 0x00, 0x00, 0x00, // n_chunk = 1
+            0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // chunk_beg[0] = 8
+            0x0d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // chunk_end[0] = 13
         ];
 
         assert_eq!(buf, expected);

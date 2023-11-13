@@ -14,7 +14,10 @@
   * csi/writer: Fix column indices being off-by-one when writing a tabix
     header ([#215]).
 
+  * csi/writer: Fix writing the end position of a chunk ([#216]).
+
 [#215]: https://github.com/zaeleus/noodles/issues/215
+[#216]: https://github.com/zaeleus/noodles/issues/216
 
 ## 0.26.0 - 2023-10-26
 
