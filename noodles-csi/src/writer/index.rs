@@ -38,3 +38,17 @@ where
 
     writer.write_all(MAGIC_NUMBER)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_write_magic() -> io::Result<()> {
+        let mut buf = Vec::new();
+        write_magic(&mut buf)?;
+        let expected = b"CSI\x01";
+        assert_eq!(buf, expected);
+        Ok(())
+    }
+}
