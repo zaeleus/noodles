@@ -22,7 +22,7 @@ where
         .read_i32::<LittleEndian>()
         .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))?;
 
-    let header = read_aux(reader)?;
+    let header = read_aux(reader).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     let reference_sequences = read_reference_sequences(reader, depth)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;

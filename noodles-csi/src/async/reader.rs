@@ -137,7 +137,9 @@ where
         reader.read_exact(&mut aux).await?;
 
         let mut rdr = &aux[..];
-        read_tabix_header(&mut rdr).map(Some)
+        read_tabix_header(&mut rdr)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            .map(Some)
     } else {
         Ok(None)
     }
