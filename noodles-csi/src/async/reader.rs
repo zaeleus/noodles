@@ -88,7 +88,7 @@ async fn read_magic<R>(reader: &mut R) -> io::Result<()>
 where
     R: AsyncRead + Unpin,
 {
-    use crate::MAGIC_NUMBER;
+    use crate::io::MAGIC_NUMBER;
 
     let mut magic = [0; 4];
     reader.read_exact(&mut magic).await?;

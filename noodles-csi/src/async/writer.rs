@@ -108,7 +108,9 @@ async fn write_magic<W>(writer: &mut W) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
-    writer.write_all(crate::MAGIC_NUMBER).await
+    use crate::io::MAGIC_NUMBER;
+
+    writer.write_all(MAGIC_NUMBER).await
 }
 
 async fn write_header<W>(

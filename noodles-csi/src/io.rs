@@ -10,3 +10,5 @@ pub use self::{
     filter_by_region::FilterByRegion, indexed_reader::IndexedReader, indexed_record::IndexedRecord,
     indexed_records::IndexedRecords, query::Query,
 };
+
+pub(crate) static MAGIC_NUMBER: &[u8] = b"CSI\x01";

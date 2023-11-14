@@ -34,7 +34,7 @@ fn write_magic<W>(writer: &mut W) -> io::Result<()>
 where
     W: Write,
 {
-    use crate::MAGIC_NUMBER;
+    use crate::io::MAGIC_NUMBER;
 
     writer.write_all(MAGIC_NUMBER)
 }
