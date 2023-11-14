@@ -126,7 +126,7 @@ async fn read_aux<R>(reader: &mut R) -> io::Result<Option<Header>>
 where
     R: AsyncRead + Unpin,
 {
-    use crate::reader::index::aux::read_header as read_tabix_header;
+    use crate::reader::index::header::read_header as read_tabix_header;
 
     let l_aux = reader.read_i32_le().await.and_then(|len| {
         usize::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))

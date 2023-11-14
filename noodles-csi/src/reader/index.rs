@@ -1,11 +1,11 @@
-pub(crate) mod aux;
+pub(crate) mod header;
 mod reference_sequences;
 
 use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use self::{aux::read_aux, reference_sequences::read_reference_sequences};
+use self::{header::read_aux, reference_sequences::read_reference_sequences};
 use crate::Index;
 
 pub(super) fn read_index<R>(reader: &mut R) -> io::Result<Index>

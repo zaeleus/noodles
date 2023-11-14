@@ -1,11 +1,11 @@
-pub(crate) mod aux;
+pub(crate) mod header;
 mod reference_sequences;
 
 use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 
-use self::{aux::write_aux, reference_sequences::write_reference_sequences};
+use self::{header::write_aux, reference_sequences::write_reference_sequences};
 use crate::Index;
 
 pub(super) fn write_index<W>(writer: &mut W, index: &Index) -> io::Result<()>

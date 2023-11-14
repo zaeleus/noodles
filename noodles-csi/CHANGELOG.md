@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * csi: Rename `aux` module ([#217]).
+
+    Windows does not allow the `aux` module to be named `aux.rs`.
+
+[#217]: https://github.com/zaeleus/noodles/issues/217
+
 ## 0.27.0 - 2023-11-13
 
 ### Changed
