@@ -25,6 +25,8 @@ pub enum ReadError {
     InvalidBinId(num::TryFromIntError),
     /// A bin is duplicated.
     DuplicateBin(usize),
+    /// Metadata is invalid.
+    InvalidMetadata(super::metadata::ReadError),
     /// Bin chunks are invalid.
     InvalidChunks(chunks::ReadError),
 }
@@ -36,6 +38,7 @@ impl error::Error for ReadError {
             ReadError::InvalidBinCount(e) => Some(e),
             ReadError::InvalidBinId(e) => Some(e),
             ReadError::DuplicateBin(_) => None,
+            ReadError::InvalidMetadata(e) => Some(e),
             ReadError::InvalidChunks(e) => Some(e),
         }
     }
@@ -48,6 +51,7 @@ impl fmt::Display for ReadError {
             ReadError::InvalidBinCount(_) => write!(f, "invalid bin count"),
             ReadError::InvalidBinId(_) => write!(f, "invalid bin ID"),
             ReadError::DuplicateBin(id) => write!(f, "duplicate bin: {id}"),
+            ReadError::InvalidMetadata(_) => write!(f, "invalid metadata"),
             ReadError::InvalidChunks(_) => write!(f, "invalid chunks"),
         }
     }
@@ -87,7 +91,7 @@ where
             .map(bgzf::VirtualPosition::from)?;
 
         if id == metadata_id {
-            let m = read_metadata(reader)?;
+            let m = read_metadata(reader).map_err(ReadError::InvalidMetadata)?;
 
             if metadata.replace(m).is_some() {
                 return Err(ReadError::DuplicateBin(id));

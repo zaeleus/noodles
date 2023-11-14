@@ -1,25 +1,57 @@
-use std::io::{self, Read};
+use std::{
+    error, fmt,
+    io::{self, Read},
+};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
 
-use crate::index::reference_sequence::Metadata;
+use crate::index::reference_sequence::{bin::METADATA_CHUNK_COUNT, Metadata};
 
-pub(super) fn read_metadata<R>(reader: &mut R) -> io::Result<Metadata>
+/// An error returned when CSI reference sequence metadata fail to be read.
+#[derive(Debug)]
+pub enum ReadError {
+    /// An I/O error.
+    Io(io::Error),
+    /// The chunk count is invalid.
+    InvalidChunkCount(u32),
+}
+
+impl error::Error for ReadError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            ReadError::Io(e) => Some(e),
+            ReadError::InvalidChunkCount(_) => None,
+        }
+    }
+}
+
+impl fmt::Display for ReadError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ReadError::Io(_) => write!(f, "I/O error"),
+            ReadError::InvalidChunkCount(actual) => write!(
+                f,
+                "invalid chunk count: expected {METADATA_CHUNK_COUNT}, got {actual}"
+            ),
+        }
+    }
+}
+
+impl From<io::Error> for ReadError {
+    fn from(e: io::Error) -> Self {
+        Self::Io(e)
+    }
+}
+
+pub(super) fn read_metadata<R>(reader: &mut R) -> Result<Metadata, ReadError>
 where
     R: Read,
 {
-    use crate::index::reference_sequence::bin::METADATA_CHUNK_COUNT;
-
     let n_chunk = reader.read_u32::<LittleEndian>()?;
 
     if n_chunk != METADATA_CHUNK_COUNT {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!(
-                "invalid metadata pseudo-bin chunk count: expected {METADATA_CHUNK_COUNT}, got {n_chunk}"
-            ),
-        ));
+        return Err(ReadError::InvalidChunkCount(n_chunk));
     }
 
     let ref_beg = reader
@@ -41,7 +73,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_metadata() -> io::Result<()> {
+    fn test_read_metadata() -> Result<(), ReadError> {
         let data = [
             0x02, 0x00, 0x00, 0x00, // n_chunk = 2
             0x62, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // ref_beg = 610
