@@ -27,7 +27,6 @@ use super::{Index, MAGIC_NUMBER};
 ///# use std::{fs::File, io};
 /// use noodles_bam::bai;
 /// let mut reader = File::open("sample.bam.bai").map(bai::Reader::new)?;
-/// reader.read_header()?;
 /// let index = reader.read_index()?;
 /// # Ok::<(), io::Error>(())
 /// ```
@@ -53,9 +52,7 @@ where
         Self { inner }
     }
 
-    /// Reads the BAM index header.
-    ///
-    /// The BAM index header is just the magic number of the file format.
+    /// Reads the BAM index.
     ///
     /// The position of the stream is expected to be at the start.
     ///
@@ -65,28 +62,12 @@ where
     /// # use std::{fs::File, io};
     /// use noodles_bam::bai;
     /// let mut reader = File::open("sample.bam.bai").map(bai::Reader::new)?;
-    /// reader.read_header()?;
-    /// # Ok::<(), io::Error>(())
-    /// ```
-    pub fn read_header(&mut self) -> io::Result<()> {
-        read_magic(&mut self.inner)
-    }
-
-    /// Reads the BAM index.
-    ///
-    /// The position of the stream is expected to be directly after the header.
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// # use std::{fs::File, io};
-    /// use noodles_bam::bai;
-    /// let mut reader = File::open("sample.bam.bai").map(bai::Reader::new)?;
-    /// reader.read_header()?;
     /// let index = reader.read_index()?;
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_index(&mut self) -> io::Result<Index> {
+        read_magic(&mut self.inner)?;
+
         let references = read_references(&mut self.inner)?;
         let n_no_coor = read_unplaced_unmapped_record_count(&mut self.inner)?;
 

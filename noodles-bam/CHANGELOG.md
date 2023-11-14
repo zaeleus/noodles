@@ -6,6 +6,12 @@
 
   * bam/bai: Add `Index` type alias for `csi::Index`.
 
+### Removed
+
+  * bam/bai/reader: Remove `read_header`.
+
+    This is now read when reading the index (`Reader::read_index`).
+
 ## 0.50.0 - 2023-11-13
 
 ### Changed

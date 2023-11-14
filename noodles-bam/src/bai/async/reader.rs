@@ -36,29 +36,6 @@ where
         Self { inner }
     }
 
-    /// Reads the BAM index (BAI) header.
-    ///
-    /// The position of the stream is expected to be at the start.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io;
-    /// #
-    /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
-    /// use noodles_bam::bai;
-    ///
-    /// let data = b"BAI\x01";
-    /// let mut reader = bai::AsyncReader::new(&data[..]);
-    /// reader.read_header().await?;
-    /// # Ok(())
-    /// # }
-    /// ```
-    pub async fn read_header(&mut self) -> io::Result<()> {
-        read_magic(&mut self.inner).await
-    }
-
     /// Reads the BAM index.
     ///
     /// The position of the stream is expected to be directly after the header.
@@ -77,13 +54,13 @@ where
     ///     .await
     ///     .map(bai::AsyncReader::new)?;
     ///
-    /// reader.read_header().await?;
-    ///
     /// let index = reader.read_index().await?;
     /// # Ok(())
     /// # }
     /// ```
     pub async fn read_index(&mut self) -> io::Result<Index> {
+        read_magic(&mut self.inner).await?;
+
         let reference_sequences = read_reference_sequences(&mut self.inner).await?;
 
         let unplaced_unmapped_record_count =

@@ -67,7 +67,6 @@ where
     P: AsRef<Path>,
 {
     let mut reader = File::open(src).map(BufReader::new).map(Reader::new)?;
-    reader.read_header()?;
     reader.read_index()
 }
 
