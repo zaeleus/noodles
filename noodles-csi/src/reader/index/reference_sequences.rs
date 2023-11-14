@@ -28,6 +28,8 @@ fn read_reference_sequence<R>(reader: &mut R, depth: u8) -> io::Result<Reference
 where
     R: Read,
 {
-    let (bins, metadata) = read_bins(reader, depth)?;
+    let (bins, metadata) =
+        read_bins(reader, depth).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
     Ok(ReferenceSequence::new(bins, Vec::new(), metadata))
 }
