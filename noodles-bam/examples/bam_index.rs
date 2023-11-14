@@ -66,8 +66,6 @@ fn main() -> io::Result<()> {
 
     let stdout = io::stdout().lock();
     let mut writer = bai::Writer::new(stdout);
-
-    writer.write_header()?;
     writer.write_index(&index)?;
 
     Ok(())

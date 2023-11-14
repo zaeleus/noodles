@@ -12,6 +12,10 @@
 
     This is now read when reading the index (`Reader::read_index`).
 
+  * bam/bai/writer: Remove `write_header`.
+
+    This is now written when writing the index (`Writer::write_index`).
+
 ## 0.50.0 - 2023-11-13
 
 ### Changed

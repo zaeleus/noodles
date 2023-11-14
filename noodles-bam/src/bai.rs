@@ -91,6 +91,5 @@ where
     P: AsRef<Path>,
 {
     let mut writer = File::create(dst).map(BufWriter::new).map(Writer::new)?;
-    writer.write_header()?;
     writer.write_index(index)
 }

@@ -61,30 +61,9 @@ where
         self.inner.shutdown().await
     }
 
-    /// Writes a BAM index (BAI) header.
-    ///
-    /// The position of the stream is expected to be at the start.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io;
-    /// #
-    /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
-    /// use noodles_bam::bai;
-    /// let mut writer = bai::AsyncWriter::new(Vec::new());
-    /// writer.write_header().await?;
-    /// # Ok(())
-    /// # }
-    /// ```
-    pub async fn write_header(&mut self) -> io::Result<()> {
-        write_magic(&mut self.inner).await
-    }
-
     /// Writes a BAM index.
     ///
-    /// The position of the stream is expected to be directly after the header.
+    /// The position of the stream is expected to be at the start.
     ///
     /// # Examples
     ///
@@ -99,12 +78,13 @@ where
     /// let index = csi::Index::default();
     ///
     /// let mut writer = bai::AsyncWriter::new(Vec::new());
-    /// writer.write_header().await?;
     /// writer.write_index(&index).await?;
     /// # Ok(())
     /// # }
     /// ```
     pub async fn write_index(&mut self, index: &Index) -> io::Result<()> {
+        write_magic(&mut self.inner).await?;
+
         write_reference_sequences(&mut self.inner, index.reference_sequences()).await?;
 
         if let Some(unplaced_unmapped_record_count) = index.unplaced_unmapped_record_count() {

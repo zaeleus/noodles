@@ -20,7 +20,6 @@ use super::{Index, MAGIC_NUMBER};
 /// let index = csi::Index::default();
 ///
 /// let mut writer = File::create("sample.bam.bai").map(bai::Writer::new)?;
-/// writer.write_header()?;
 /// writer.write_index(&index)?;
 /// # Ok::<(), io::Error>(())
 /// ```
@@ -57,26 +56,6 @@ where
         &self.inner
     }
 
-    /// Writes a BAM index header.
-    ///
-    /// This writes the magic number of the file format.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io;
-    /// use noodles_bam::bai;
-    ///
-    /// let mut writer = bai::Writer::new(Vec::new());
-    /// writer.write_header()?;
-    ///
-    /// assert_eq!(writer.get_ref(), b"BAI\x01");
-    /// # Ok::<(), io::Error>(())
-    /// ```
-    pub fn write_header(&mut self) -> io::Result<()> {
-        self.inner.write_all(MAGIC_NUMBER)
-    }
-
     /// Writes a BAM index.
     ///
     /// # Examples
@@ -89,11 +68,12 @@ where
     /// let index = csi::Index::default();
     ///
     /// let mut writer = bai::Writer::new(Vec::new());
-    /// writer.write_header()?;
     /// writer.write_index(&index)?;
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_index(&mut self, index: &Index) -> io::Result<()> {
+        self.inner.write_all(MAGIC_NUMBER)?;
+
         let n_ref = u32::try_from(index.reference_sequences().len())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
         self.inner.write_u32::<LittleEndian>(n_ref)?;
@@ -235,7 +215,6 @@ mod tests {
             .build();
 
         let mut actual_writer = Writer::new(Vec::new());
-        actual_writer.write_header()?;
         actual_writer.write_index(&index)?;
 
         let mut expected_writer = BufWriter::new(Vec::new());
