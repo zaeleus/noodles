@@ -3,15 +3,12 @@ use std::io::{self, Read};
 use byteorder::{LittleEndian, ReadBytesExt};
 use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
-use noodles_csi::{
-    index::{
-        reference_sequence::{bin::Chunk, Bin, Metadata},
-        ReferenceSequence,
-    },
-    Index,
+use noodles_csi::index::{
+    reference_sequence::{bin::Chunk, Bin, Metadata},
+    ReferenceSequence,
 };
 
-use super::MAGIC_NUMBER;
+use super::{Index, MAGIC_NUMBER};
 
 /// A BAM index (BAI) reader.
 ///

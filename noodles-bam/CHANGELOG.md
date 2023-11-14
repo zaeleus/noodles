@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bam/bai: Add `Index` type alias for `csi::Index`.
+
 ## 0.50.0 - 2023-11-13
 
 ### Changed

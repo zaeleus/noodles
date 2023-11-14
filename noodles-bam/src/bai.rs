@@ -40,11 +40,14 @@ use std::{
     path::Path,
 };
 
-use noodles_csi::Index;
+use noodles_csi as csi;
 
 const DEPTH: u8 = 5;
 
 static MAGIC_NUMBER: &[u8] = b"BAI\x01";
+
+/// A BAM index.
+pub type Index = csi::Index;
 
 /// Reads the entire contents of a BAM index.
 ///
