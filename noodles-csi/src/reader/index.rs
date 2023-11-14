@@ -23,7 +23,10 @@ where
         .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))?;
 
     let header = read_aux(reader)?;
-    let reference_sequences = read_reference_sequences(reader, depth)?;
+
+    let reference_sequences = read_reference_sequences(reader, depth)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
     let n_no_coor = read_unplaced_unmapped_record_count(reader)?;
 
     let mut builder = Index::builder()
