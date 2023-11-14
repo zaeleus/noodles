@@ -139,21 +139,26 @@ mod tests {
         assert!(read_aux(&mut reader)?.is_none());
 
         let src = [
-            0x20, 0x00, 0x00, 0x00, // l_aux = 32
+            0x24, 0x00, 0x00, 0x00, // l_aux = 36
             0x02, 0x00, 0x00, 0x00, // format = 2 (VCF)
             0x01, 0x00, 0x00, 0x00, // col_seq = 1 (1-based)
             0x02, 0x00, 0x00, 0x00, // col_beg = 2 (1-based)
             0x00, 0x00, 0x00, 0x00, // col_end = None (1-based)
             0x23, 0x00, 0x00, 0x00, // meta = '#'
             0x00, 0x00, 0x00, 0x00, // skip = 0
-            0x04, 0x00, 0x00, 0x00, // l_nm = 4
-            b's', b'q', b'0', 0x00, // names = ["sq0"]
+            0x08, 0x00, 0x00, 0x00, // l_nm = 8
+            b's', b'q', b'0', 0x00, // names[0] = "sq0"
+            b's', b'q', b'1', 0x00, // names[1] = "sq1"
         ];
         let mut reader = &src[..];
 
         let actual = read_aux(&mut reader)?;
+
+        let names = [String::from("sq0"), String::from("sq1")]
+            .into_iter()
+            .collect();
         let expected = crate::index::header::Builder::vcf()
-            .set_reference_sequence_names([String::from("sq0")].into_iter().collect())
+            .set_reference_sequence_names(names)
             .build();
 
         assert_eq!(actual, Some(expected));
