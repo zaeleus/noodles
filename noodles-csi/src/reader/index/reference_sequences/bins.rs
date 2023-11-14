@@ -1,4 +1,4 @@
-mod chunk;
+mod chunks;
 
 use std::io::{self, Read};
 
@@ -6,7 +6,7 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
 
-use self::chunk::read_chunks;
+use self::chunks::read_chunks;
 use super::read_metadata;
 use crate::index::reference_sequence::{Bin, Metadata};
 
