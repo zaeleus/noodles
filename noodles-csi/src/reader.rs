@@ -46,6 +46,6 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_index(&mut self) -> io::Result<Index> {
-        read_index(&mut self.inner)
+        read_index(&mut self.inner).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 }

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * csi/reader/index: Add read errors.
+
 ### Changed
 
   * csi: Rename `aux` module ([#217]).

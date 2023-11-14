@@ -1,14 +1,61 @@
 pub(crate) mod header;
 mod reference_sequences;
 
-use std::io::{self, Read};
+use std::{
+    error, fmt,
+    io::{self, Read},
+    num,
+};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use self::{header::read_aux, reference_sequences::read_reference_sequences};
 use crate::Index;
 
-pub(super) fn read_index<R>(reader: &mut R) -> io::Result<Index>
+/// An error returned when a coordinate-sorted index fails to be read.
+#[derive(Debug)]
+pub enum ReadError {
+    Io(io::Error),
+    InvalidMagicNumber([u8; 4]),
+    InvalidMinShift(num::TryFromIntError),
+    InvalidDepth(num::TryFromIntError),
+    InvalidHeader(header::ReadError),
+    InvalidReferenceSequences(reference_sequences::ReadError),
+}
+
+impl error::Error for ReadError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Io(e) => Some(e),
+            Self::InvalidMagicNumber(_) => None,
+            Self::InvalidMinShift(e) => Some(e),
+            Self::InvalidDepth(e) => Some(e),
+            Self::InvalidHeader(e) => Some(e),
+            Self::InvalidReferenceSequences(e) => Some(e),
+        }
+    }
+}
+
+impl fmt::Display for ReadError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Io(_) => write!(f, "I/O error"),
+            Self::InvalidMagicNumber(_) => write!(f, "invalid magic number"),
+            Self::InvalidMinShift(_) => write!(f, "invalid min shift"),
+            Self::InvalidDepth(_) => write!(f, "invalid depth"),
+            Self::InvalidHeader(_) => write!(f, "invalid header"),
+            Self::InvalidReferenceSequences(_) => write!(f, "invalid reference sequences"),
+        }
+    }
+}
+
+impl From<io::Error> for ReadError {
+    fn from(e: io::Error) -> Self {
+        Self::Io(e)
+    }
+}
+
+pub(super) fn read_index<R>(reader: &mut R) -> Result<Index, ReadError>
 where
     R: Read,
 {
@@ -16,16 +63,18 @@ where
 
     let min_shift = reader
         .read_i32::<LittleEndian>()
-        .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))?;
+        .map_err(ReadError::Io)
+        .and_then(|n| u8::try_from(n).map_err(ReadError::InvalidMinShift))?;
 
     let depth = reader
         .read_i32::<LittleEndian>()
-        .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))?;
+        .map_err(ReadError::Io)
+        .and_then(|n| u8::try_from(n).map_err(ReadError::InvalidDepth))?;
 
-    let header = read_aux(reader).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let header = read_aux(reader).map_err(ReadError::InvalidHeader)?;
 
-    let reference_sequences = read_reference_sequences(reader, depth)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let reference_sequences =
+        read_reference_sequences(reader, depth).map_err(ReadError::InvalidReferenceSequences)?;
 
     let n_no_coor = read_unplaced_unmapped_record_count(reader)?;
 
@@ -45,7 +94,7 @@ where
     Ok(builder.build())
 }
 
-fn read_magic<R>(reader: &mut R) -> io::Result<()>
+fn read_magic<R>(reader: &mut R) -> Result<(), ReadError>
 where
     R: Read,
 {
@@ -57,21 +106,18 @@ where
     if magic == MAGIC_NUMBER {
         Ok(())
     } else {
-        Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "invalid CSI file format",
-        ))
+        Err(ReadError::InvalidMagicNumber(magic))
     }
 }
 
-fn read_unplaced_unmapped_record_count<R>(reader: &mut R) -> io::Result<Option<u64>>
+fn read_unplaced_unmapped_record_count<R>(reader: &mut R) -> Result<Option<u64>, ReadError>
 where
     R: Read,
 {
     match reader.read_u64::<LittleEndian>() {
         Ok(n) => Ok(Some(n)),
         Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => Ok(None),
-        Err(e) => Err(e),
+        Err(e) => Err(ReadError::Io(e)),
     }
 }
 
@@ -92,26 +138,26 @@ mod tests {
         let mut reader = &data[..];
         assert!(matches!(
             read_magic(&mut reader),
-            Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof
+            Err(ReadError::Io(e)) if e.kind() == io::ErrorKind::UnexpectedEof
         ));
 
         let data = b"CSI";
         let mut reader = &data[..];
         assert!(matches!(
             read_magic(&mut reader),
-            Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof
+            Err(ReadError::Io(e)) if e.kind() == io::ErrorKind::UnexpectedEof
         ));
 
         let data = b"MThd";
         let mut reader = &data[..];
         assert!(matches!(
             read_magic(&mut reader),
-            Err(ref e) if e.kind() == io::ErrorKind::InvalidData
+            Err(ReadError::InvalidMagicNumber([b'M', b'T', b'h', b'd']))
         ));
     }
 
     #[test]
-    fn test_read_unplaced_unmapped_record_count() -> io::Result<()> {
+    fn test_read_unplaced_unmapped_record_count() -> Result<(), ReadError> {
         let data = [];
         let mut reader = &data[..];
         assert_eq!(read_unplaced_unmapped_record_count(&mut reader)?, None);
