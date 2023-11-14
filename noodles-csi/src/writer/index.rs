@@ -1,0 +1,40 @@
+pub(crate) mod aux;
+mod reference_sequences;
+
+use std::io::{self, Write};
+
+use byteorder::{LittleEndian, WriteBytesExt};
+
+use self::{aux::write_aux, reference_sequences::write_reference_sequences};
+use crate::Index;
+
+pub(super) fn write_index<W>(writer: &mut W, index: &Index) -> io::Result<()>
+where
+    W: Write,
+{
+    write_magic(writer)?;
+
+    let min_shift = i32::from(index.min_shift());
+    writer.write_i32::<LittleEndian>(min_shift)?;
+
+    let depth = i32::from(index.depth());
+    writer.write_i32::<LittleEndian>(depth)?;
+
+    write_aux(writer, index.header())?;
+    write_reference_sequences(writer, index.depth(), index.reference_sequences())?;
+
+    if let Some(n_no_coor) = index.unplaced_unmapped_record_count() {
+        writer.write_u64::<LittleEndian>(n_no_coor)?;
+    }
+
+    Ok(())
+}
+
+fn write_magic<W>(writer: &mut W) -> io::Result<()>
+where
+    W: Write,
+{
+    use crate::MAGIC_NUMBER;
+
+    writer.write_all(MAGIC_NUMBER)
+}
