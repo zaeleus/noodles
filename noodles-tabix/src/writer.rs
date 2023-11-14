@@ -2,16 +2,13 @@ use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf as bgzf;
-use noodles_csi::{
-    index::{
-        header::ReferenceSequenceNames,
-        reference_sequence::{bin::Chunk, Bin, Metadata},
-        Header, ReferenceSequence,
-    },
-    Index,
+use noodles_csi::index::{
+    header::ReferenceSequenceNames,
+    reference_sequence::{bin::Chunk, Bin, Metadata},
+    Header, ReferenceSequence,
 };
 
-use super::MAGIC_NUMBER;
+use super::{Index, MAGIC_NUMBER};
 
 /// A tabix writer.
 pub struct Writer<W>

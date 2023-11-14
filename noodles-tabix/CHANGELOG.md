@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * tabix: Add `Index` type alias for `csi::Index`.
+
 ## 0.33.0 - 2023-11-13
 
 ### Changed
