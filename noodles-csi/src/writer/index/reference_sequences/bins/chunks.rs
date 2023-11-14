@@ -13,12 +13,21 @@ where
     writer.write_i32::<LittleEndian>(n_chunk)?;
 
     for chunk in chunks {
-        let chunk_beg = u64::from(chunk.start());
-        writer.write_u64::<LittleEndian>(chunk_beg)?;
-
-        let chunk_end = u64::from(chunk.end());
-        writer.write_u64::<LittleEndian>(chunk_end)?;
+        write_chunk(writer, chunk)?;
     }
+
+    Ok(())
+}
+
+fn write_chunk<W>(writer: &mut W, chunk: &Chunk) -> io::Result<()>
+where
+    W: Write,
+{
+    let chunk_beg = u64::from(chunk.start());
+    writer.write_u64::<LittleEndian>(chunk_beg)?;
+
+    let chunk_end = u64::from(chunk.end());
+    writer.write_u64::<LittleEndian>(chunk_end)?;
 
     Ok(())
 }
