@@ -53,12 +53,12 @@ where
 
     let chunks = (0..n_chunk)
         .map(|_| read_chunk(reader))
-        .collect::<Result<_, io::Error>>()?;
+        .collect::<Result<_, _>>()?;
 
     Ok(chunks)
 }
 
-fn read_chunk<R>(reader: &mut R) -> io::Result<Chunk>
+fn read_chunk<R>(reader: &mut R) -> Result<Chunk, ReadError>
 where
     R: Read,
 {
