@@ -194,7 +194,7 @@ where
     parse_names(&names)
 }
 
-pub(crate) fn parse_names(mut src: &[u8]) -> Result<ReferenceSequenceNames, ReadError> {
+fn parse_names(mut src: &[u8]) -> Result<ReferenceSequenceNames, ReadError> {
     const NUL: u8 = 0x00;
 
     let mut names = ReferenceSequenceNames::new();
