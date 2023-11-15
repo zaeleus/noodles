@@ -13,8 +13,8 @@ pub(crate) fn read_ref_alt(
 
     for _ in 0..len {
         match read_value(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))? {
-            Some(Value::String(Some(s))) => alleles.push(s.into()),
-            Some(Value::String(None)) => alleles.push(String::from(".")),
+            Some(Value::String(Some(s))) => alleles.push(s),
+            Some(Value::String(None)) => alleles.push("."),
             v => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
