@@ -34,12 +34,12 @@ pub enum ReadError {
 impl error::Error for ReadError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
-            ReadError::Io(e) => Some(e),
-            ReadError::InvalidBinCount(e) => Some(e),
-            ReadError::InvalidBinId(e) => Some(e),
-            ReadError::DuplicateBin(_) => None,
-            ReadError::InvalidMetadata(e) => Some(e),
-            ReadError::InvalidChunks(e) => Some(e),
+            Self::Io(e) => Some(e),
+            Self::InvalidBinCount(e) => Some(e),
+            Self::InvalidBinId(e) => Some(e),
+            Self::DuplicateBin(_) => None,
+            Self::InvalidMetadata(e) => Some(e),
+            Self::InvalidChunks(e) => Some(e),
         }
     }
 }
@@ -47,12 +47,12 @@ impl error::Error for ReadError {
 impl fmt::Display for ReadError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ReadError::Io(_) => write!(f, "I/O error"),
-            ReadError::InvalidBinCount(_) => write!(f, "invalid bin count"),
-            ReadError::InvalidBinId(_) => write!(f, "invalid bin ID"),
-            ReadError::DuplicateBin(id) => write!(f, "duplicate bin: {id}"),
-            ReadError::InvalidMetadata(_) => write!(f, "invalid metadata"),
-            ReadError::InvalidChunks(_) => write!(f, "invalid chunks"),
+            Self::Io(_) => write!(f, "I/O error"),
+            Self::InvalidBinCount(_) => write!(f, "invalid bin count"),
+            Self::InvalidBinId(_) => write!(f, "invalid bin ID"),
+            Self::DuplicateBin(id) => write!(f, "duplicate bin: {id}"),
+            Self::InvalidMetadata(_) => write!(f, "invalid metadata"),
+            Self::InvalidChunks(_) => write!(f, "invalid chunks"),
         }
     }
 }
