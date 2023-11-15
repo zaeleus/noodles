@@ -96,4 +96,17 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_read_metadata_with_invalid_chunk_count() {
+        let data = [
+            0x01, 0x00, 0x00, 0x00, // n_chunk = 1
+        ];
+        let mut reader = &data[..];
+
+        assert!(matches!(
+            read_metadata(&mut reader),
+            Err(ReadError::InvalidChunkCount(1))
+        ));
+    }
 }
