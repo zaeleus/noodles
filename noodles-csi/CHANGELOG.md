@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * csi: Increase the visibility of the `reader` module.
+
 ## 0.28.0 - 2023-11-14
 
 ### Added

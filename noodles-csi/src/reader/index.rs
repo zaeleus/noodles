@@ -1,3 +1,5 @@
+//! CSI index reader.
+
 pub(crate) mod header;
 mod reference_sequences;
 
@@ -9,17 +11,24 @@ use std::{
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
+pub use self::header::read_header;
 use self::{header::read_aux, reference_sequences::read_reference_sequences};
 use crate::Index;
 
 /// An error returned when a coordinate-sorted index fails to be read.
 #[derive(Debug)]
 pub enum ReadError {
+    /// I/O error.
     Io(io::Error),
+    /// The magic number is invalid.
     InvalidMagicNumber([u8; 4]),
+    /// The min shift is invalid.
     InvalidMinShift(num::TryFromIntError),
+    /// The depth is invalid.
     InvalidDepth(num::TryFromIntError),
+    /// The header is invalid.
     InvalidHeader(header::ReadError),
+    /// A reference sequence is invalid.
     InvalidReferenceSequences(reference_sequences::ReadError),
 }
 

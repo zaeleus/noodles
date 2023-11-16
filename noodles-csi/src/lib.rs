@@ -8,7 +8,7 @@ pub mod r#async;
 pub mod binning_index;
 pub mod index;
 pub mod io;
-mod reader;
+pub mod reader;
 mod writer;
 
 pub use self::{index::Index, reader::Reader, writer::Writer};

@@ -106,7 +106,8 @@ where
     }
 }
 
-pub(crate) fn read_header<R>(reader: &mut R) -> Result<Header, ReadError>
+#[doc(hidden)]
+pub fn read_header<R>(reader: &mut R) -> Result<Header, ReadError>
 where
     R: Read,
 {

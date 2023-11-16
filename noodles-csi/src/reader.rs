@@ -1,4 +1,6 @@
-pub(crate) mod index;
+//! CSI reader.
+
+pub mod index;
 
 use std::io::{self, Read};
 
