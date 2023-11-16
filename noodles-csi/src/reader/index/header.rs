@@ -21,9 +21,9 @@ pub enum ReadError {
     /// The header format is invalid.
     InvalidFormat(format::TryFromIntError),
     /// The header reference sequence index is invalid.
-    InvalidReferenceSequenceIndex(num::TryFromIntError),
+    InvalidReferenceSequenceNameIndex(num::TryFromIntError),
     /// The header reference sequence index value is invalid.
-    InvalidReferenceSequenceIndexValue,
+    InvalidReferenceSequenceNameIndexValue,
     /// The header start position index is invalid.
     InvalidStartPositionIndex(num::TryFromIntError),
     /// The header start position index value is invalid.
@@ -50,7 +50,7 @@ impl error::Error for ReadError {
             Self::Io(e) => Some(e),
             Self::InvalidAuxLength(e) => Some(e),
             Self::InvalidFormat(e) => Some(e),
-            Self::InvalidReferenceSequenceIndex(e) => Some(e),
+            Self::InvalidReferenceSequenceNameIndex(e) => Some(e),
             Self::InvalidStartPositionIndex(e) => Some(e),
             Self::InvalidEndPositionIndex(e) => Some(e),
             Self::InvalidLineCommentPrefix(e) => Some(e),
@@ -67,9 +67,11 @@ impl fmt::Display for ReadError {
             Self::Io(_) => write!(f, "I/O error"),
             Self::InvalidAuxLength(_) => write!(f, "invalid aux length"),
             Self::InvalidFormat(_) => write!(f, "invalid format"),
-            Self::InvalidReferenceSequenceIndex(_) => write!(f, "invalid reference sequence index"),
-            Self::InvalidReferenceSequenceIndexValue => {
-                write!(f, "invalid reference sequence index value")
+            Self::InvalidReferenceSequenceNameIndex(_) => {
+                write!(f, "invalid reference sequence name index")
+            }
+            Self::InvalidReferenceSequenceNameIndexValue => {
+                write!(f, "invalid reference sequence name index value")
             }
             Self::InvalidStartPositionIndex(_) => write!(f, "invalid start position index"),
             Self::InvalidStartPositionIndexValue => write!(f, "invalid start position index value"),
@@ -118,10 +120,10 @@ where
 
     let col_seq = read_i32(reader).and_then(|i| {
         usize::try_from(i)
-            .map_err(ReadError::InvalidReferenceSequenceIndex)
+            .map_err(ReadError::InvalidReferenceSequenceNameIndex)
             .and_then(|n| {
                 n.checked_sub(1)
-                    .ok_or(ReadError::InvalidReferenceSequenceIndexValue)
+                    .ok_or(ReadError::InvalidReferenceSequenceNameIndexValue)
             })
     })?;
 
