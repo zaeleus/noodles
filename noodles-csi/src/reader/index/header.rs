@@ -113,58 +113,43 @@ where
 {
     use crate::index::header::Format;
 
-    let format = reader
-        .read_i32::<LittleEndian>()
-        .map_err(ReadError::Io)
-        .and_then(|n| Format::try_from(n).map_err(ReadError::InvalidFormat))?;
+    let format =
+        read_i32(reader).and_then(|n| Format::try_from(n).map_err(ReadError::InvalidFormat))?;
 
-    let col_seq = reader
-        .read_i32::<LittleEndian>()
-        .map_err(ReadError::Io)
-        .and_then(|i| {
-            usize::try_from(i)
-                .map_err(ReadError::InvalidReferenceSequenceIndex)
-                .and_then(|n| {
-                    n.checked_sub(1)
-                        .ok_or(ReadError::InvalidReferenceSequenceIndexValue)
-                })
-        })?;
+    let col_seq = read_i32(reader).and_then(|i| {
+        usize::try_from(i)
+            .map_err(ReadError::InvalidReferenceSequenceIndex)
+            .and_then(|n| {
+                n.checked_sub(1)
+                    .ok_or(ReadError::InvalidReferenceSequenceIndexValue)
+            })
+    })?;
 
-    let col_beg = reader
-        .read_i32::<LittleEndian>()
-        .map_err(ReadError::Io)
-        .and_then(|i| {
-            usize::try_from(i)
-                .map_err(ReadError::InvalidStartPositionIndex)
-                .and_then(|n| {
-                    n.checked_sub(1)
-                        .ok_or(ReadError::InvalidStartPositionIndexValue)
-                })
-        })?;
+    let col_beg = read_i32(reader).and_then(|i| {
+        usize::try_from(i)
+            .map_err(ReadError::InvalidStartPositionIndex)
+            .and_then(|n| {
+                n.checked_sub(1)
+                    .ok_or(ReadError::InvalidStartPositionIndexValue)
+            })
+    })?;
 
-    let col_end = reader
-        .read_i32::<LittleEndian>()
-        .map_err(ReadError::Io)
-        .and_then(|i| match i {
-            0 => Ok(None),
-            _ => usize::try_from(i)
-                .map_err(ReadError::InvalidEndPositionIndex)
-                .and_then(|n| {
-                    n.checked_sub(1)
-                        .ok_or(ReadError::InvalidEndPositionIndexValue)
-                })
-                .map(Some),
-        })?;
+    let col_end = read_i32(reader).and_then(|i| match i {
+        0 => Ok(None),
+        _ => usize::try_from(i)
+            .map_err(ReadError::InvalidEndPositionIndex)
+            .and_then(|n| {
+                n.checked_sub(1)
+                    .ok_or(ReadError::InvalidEndPositionIndexValue)
+            })
+            .map(Some),
+    })?;
 
-    let meta = reader
-        .read_i32::<LittleEndian>()
-        .map_err(ReadError::Io)
+    let meta = read_i32(reader)
         .and_then(|b| u8::try_from(b).map_err(ReadError::InvalidLineCommentPrefix))?;
 
-    let skip = reader
-        .read_i32::<LittleEndian>()
-        .map_err(ReadError::Io)
-        .and_then(|n| u32::try_from(n).map_err(ReadError::InvalidLineSkipCount))?;
+    let skip =
+        read_i32(reader).and_then(|n| u32::try_from(n).map_err(ReadError::InvalidLineSkipCount))?;
 
     let names = read_names(reader)?;
 
@@ -177,6 +162,13 @@ where
         .set_line_skip_count(skip)
         .set_reference_sequence_names(names)
         .build())
+}
+
+fn read_i32<R>(reader: &mut R) -> Result<i32, ReadError>
+where
+    R: Read,
+{
+    reader.read_i32::<LittleEndian>().map_err(ReadError::Io)
 }
 
 fn read_names<R>(reader: &mut R) -> Result<ReferenceSequenceNames, ReadError>
