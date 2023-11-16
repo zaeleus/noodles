@@ -118,34 +118,9 @@ where
     let format =
         read_i32(reader).and_then(|n| Format::try_from(n).map_err(ReadError::InvalidFormat))?;
 
-    let col_seq = read_i32(reader).and_then(|i| {
-        usize::try_from(i)
-            .map_err(ReadError::InvalidReferenceSequenceNameIndex)
-            .and_then(|n| {
-                n.checked_sub(1)
-                    .ok_or(ReadError::InvalidReferenceSequenceNameIndexValue)
-            })
-    })?;
-
-    let col_beg = read_i32(reader).and_then(|i| {
-        usize::try_from(i)
-            .map_err(ReadError::InvalidStartPositionIndex)
-            .and_then(|n| {
-                n.checked_sub(1)
-                    .ok_or(ReadError::InvalidStartPositionIndexValue)
-            })
-    })?;
-
-    let col_end = read_i32(reader).and_then(|i| match i {
-        0 => Ok(None),
-        _ => usize::try_from(i)
-            .map_err(ReadError::InvalidEndPositionIndex)
-            .and_then(|n| {
-                n.checked_sub(1)
-                    .ok_or(ReadError::InvalidEndPositionIndexValue)
-            })
-            .map(Some),
-    })?;
+    let col_seq = read_reference_sequence_name_index(reader)?;
+    let col_beg = read_start_position_index(reader)?;
+    let col_end = read_end_position_index(reader)?;
 
     let meta = read_i32(reader)
         .and_then(|b| u8::try_from(b).map_err(ReadError::InvalidLineCommentPrefix))?;
@@ -171,6 +146,50 @@ where
     R: Read,
 {
     reader.read_i32::<LittleEndian>().map_err(ReadError::Io)
+}
+
+fn read_reference_sequence_name_index<R>(reader: &mut R) -> Result<usize, ReadError>
+where
+    R: Read,
+{
+    read_i32(reader).and_then(|i| {
+        usize::try_from(i)
+            .map_err(ReadError::InvalidReferenceSequenceNameIndex)
+            .and_then(|n| {
+                n.checked_sub(1)
+                    .ok_or(ReadError::InvalidReferenceSequenceNameIndexValue)
+            })
+    })
+}
+
+fn read_start_position_index<R>(reader: &mut R) -> Result<usize, ReadError>
+where
+    R: Read,
+{
+    read_i32(reader).and_then(|i| {
+        usize::try_from(i)
+            .map_err(ReadError::InvalidStartPositionIndex)
+            .and_then(|n| {
+                n.checked_sub(1)
+                    .ok_or(ReadError::InvalidStartPositionIndexValue)
+            })
+    })
+}
+
+fn read_end_position_index<R>(reader: &mut R) -> Result<Option<usize>, ReadError>
+where
+    R: Read,
+{
+    read_i32(reader).and_then(|i| match i {
+        0 => Ok(None),
+        _ => usize::try_from(i)
+            .map_err(ReadError::InvalidEndPositionIndex)
+            .and_then(|n| {
+                n.checked_sub(1)
+                    .ok_or(ReadError::InvalidEndPositionIndexValue)
+            })
+            .map(Some),
+    })
 }
 
 fn read_names<R>(reader: &mut R) -> Result<ReferenceSequenceNames, ReadError>
@@ -247,6 +266,58 @@ mod tests {
             .build();
 
         assert_eq!(actual, Some(expected));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_reference_sequence_name_index() -> Result<(), ReadError> {
+        let data = [0x01, 0x00, 0x00, 0x00]; // col_seq = 1
+        let mut reader = &data[..];
+        assert_eq!(read_reference_sequence_name_index(&mut reader)?, 0);
+
+        let data = [0xff, 0xff, 0xff, 0xff]; // col_seq = -1
+        let mut reader = &data[..];
+        assert!(matches!(
+            read_reference_sequence_name_index(&mut reader),
+            Err(ReadError::InvalidReferenceSequenceNameIndex(_))
+        ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_start_position_index() -> Result<(), ReadError> {
+        let data = [0x04, 0x00, 0x00, 0x00]; // col_beg = 4
+        let mut reader = &data[..];
+        assert_eq!(read_start_position_index(&mut reader)?, 3);
+
+        let data = [0xff, 0xff, 0xff, 0xff]; // col_beg = -1
+        let mut reader = &data[..];
+        assert!(matches!(
+            read_start_position_index(&mut reader),
+            Err(ReadError::InvalidStartPositionIndex(_))
+        ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_end_position_index() -> Result<(), ReadError> {
+        let data = [0x00, 0x00, 0x00, 0x00]; // col_end = 0
+        let mut reader = &data[..];
+        assert!(read_end_position_index(&mut reader)?.is_none());
+
+        let data = [0x05, 0x00, 0x00, 0x00]; // col_end = 5
+        let mut reader = &data[..];
+        assert_eq!(read_end_position_index(&mut reader)?, Some(4));
+
+        let data = [0xff, 0xff, 0xff, 0xff]; // col_end = -1
+        let mut reader = &data[..];
+        assert!(matches!(
+            read_end_position_index(&mut reader),
+            Err(ReadError::InvalidEndPositionIndex(_))
+        ));
 
         Ok(())
     }
