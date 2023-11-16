@@ -51,11 +51,7 @@ where
         .map_err(ReadError::Io)
         .and_then(|n| usize::try_from(n).map_err(ReadError::InvalidChunkCount))?;
 
-    let chunks = (0..n_chunk)
-        .map(|_| read_chunk(reader))
-        .collect::<Result<_, _>>()?;
-
-    Ok(chunks)
+    (0..n_chunk).map(|_| read_chunk(reader)).collect()
 }
 
 fn read_chunk<R>(reader: &mut R) -> Result<Chunk, ReadError>
