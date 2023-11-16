@@ -1,20 +1,17 @@
-use std::{
-    io::{self, Read},
-    str,
-};
+use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
-use noodles_csi::index::{
-    header::{Format, ReferenceSequenceNames},
-    reference_sequence::{bin::Chunk, Bin, Metadata},
-    Header, ReferenceSequence,
+use noodles_csi::{
+    self as csi,
+    index::{
+        reference_sequence::{bin::Chunk, Bin, Metadata},
+        ReferenceSequence,
+    },
 };
 
 use super::{Index, MAGIC_NUMBER};
-
-const NUL: u8 = b'\x00';
 
 /// A tabix reader.
 ///
@@ -57,13 +54,16 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_index(&mut self) -> io::Result<Index> {
+        use csi::reader::index::read_header;
+
         read_magic(&mut self.inner)?;
 
         let n_ref = self.inner.read_i32::<LittleEndian>().and_then(|n| {
             usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })?;
 
-        let header = read_header(&mut self.inner)?;
+        let header = read_header(&mut self.inner)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         let references = read_references(&mut self.inner, n_ref)?;
         let n_no_coor = read_unplaced_unmapped_record_count(&mut self.inner)?;
@@ -93,128 +93,6 @@ where
         Err(io::Error::new(
             io::ErrorKind::InvalidData,
             "invalid tabix header",
-        ))
-    }
-}
-
-fn read_header<R>(reader: &mut R) -> io::Result<Header>
-where
-    R: Read,
-{
-    let format = reader.read_i32::<LittleEndian>().and_then(|n| {
-        Format::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let col_seq = reader.read_i32::<LittleEndian>().and_then(|i| {
-        usize::try_from(i)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            .and_then(|n| {
-                if i > 0 {
-                    Ok(n - 1)
-                } else {
-                    Err(io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        "invalid col_seq",
-                    ))
-                }
-            })
-    })?;
-
-    let col_beg = reader.read_i32::<LittleEndian>().and_then(|i| {
-        usize::try_from(i)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            .and_then(|n| {
-                if i > 0 {
-                    Ok(n - 1)
-                } else {
-                    Err(io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        "invalid col_bed",
-                    ))
-                }
-            })
-    })?;
-
-    let col_end = reader.read_i32::<LittleEndian>().and_then(|i| {
-        if i == 0 {
-            Ok(None)
-        } else {
-            usize::try_from(i)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-                .and_then(|n| {
-                    if n > 0 {
-                        Ok(n - 1)
-                    } else {
-                        Err(io::Error::new(
-                            io::ErrorKind::InvalidData,
-                            "invalid col_end",
-                        ))
-                    }
-                })
-                .map(Some)
-        }
-    })?;
-
-    let meta = reader
-        .read_i32::<LittleEndian>()
-        .and_then(|b| u8::try_from(b).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))?;
-
-    let skip = reader.read_i32::<LittleEndian>().and_then(|n| {
-        u32::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let names = read_names(reader)?;
-
-    Ok(Header::builder()
-        .set_format(format)
-        .set_reference_sequence_name_index(col_seq)
-        .set_start_position_index(col_beg)
-        .set_end_position_index(col_end)
-        .set_line_comment_prefix(meta)
-        .set_line_skip_count(skip)
-        .set_reference_sequence_names(names)
-        .build())
-}
-
-fn read_names<R>(reader: &mut R) -> io::Result<ReferenceSequenceNames>
-where
-    R: Read,
-{
-    let l_nm = reader.read_i32::<LittleEndian>().and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let mut names = vec![0; l_nm];
-    reader.read_exact(&mut names)?;
-
-    parse_names(&names)
-}
-
-pub(crate) fn parse_names(mut buf: &[u8]) -> io::Result<ReferenceSequenceNames> {
-    let mut names = ReferenceSequenceNames::new();
-
-    while let Some(i) = buf.iter().position(|&b| b == NUL) {
-        let (raw_name, rest) = buf.split_at(i);
-
-        let name =
-            str::from_utf8(raw_name).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-        if !names.insert(name.into()) {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                format!("duplicate reference sequence name: {name}"),
-            ));
-        }
-
-        buf = &rest[1..];
-    }
-
-    if buf.is_empty() {
-        Ok(names)
-    } else {
-        Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "invalid reference sequence names",
         ))
     }
 }
@@ -388,128 +266,6 @@ mod tests {
         let mut reader = &data[..];
         assert!(matches!(
             read_magic(&mut reader),
-            Err(ref e) if e.kind() == io::ErrorKind::InvalidData
-        ));
-    }
-
-    #[test]
-    fn test_read_header() -> io::Result<()> {
-        use noodles_csi::index::header;
-
-        let data = [
-            0x00, 0x00, 0x00, 0x00, // format = Generic(GFF)
-            0x01, 0x00, 0x00, 0x00, // col_seq = 1
-            0x04, 0x00, 0x00, 0x00, // col_beg = 4
-            0x05, 0x00, 0x00, 0x00, // col_end = 5
-            0x23, 0x00, 0x00, 0x00, // meta = '#'
-            0x00, 0x00, 0x00, 0x00, // skip = 0
-            0x00, 0x00, 0x00, 0x00, // l_nm = 0
-        ];
-
-        let mut reader = &data[..];
-        let actual = read_header(&mut reader)?;
-
-        let expected = header::Builder::gff().build();
-        assert_eq!(actual, expected);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_read_header_with_invalid_reference_sequence_name_index() {
-        let data = [
-            0x00, 0x00, 0x00, 0x00, // format = Generic(GFF)
-            0xff, 0xff, 0xff, 0xff, // col_seq = -1
-            0x04, 0x00, 0x00, 0x00, // col_beg = 4
-            0x05, 0x00, 0x00, 0x00, // col_end = 5
-            0x23, 0x00, 0x00, 0x00, // meta = '#'
-            0x00, 0x00, 0x00, 0x00, // skip = 0
-            0x00, 0x00, 0x00, 0x00, // l_nm = 0
-        ];
-
-        let mut reader = &data[..];
-        assert!(read_header(&mut reader).is_err());
-    }
-
-    #[test]
-    fn test_read_header_with_invalid_start_position_index() {
-        let data = [
-            0x00, 0x00, 0x00, 0x00, // format = Generic(GFF)
-            0x01, 0x00, 0x00, 0x00, // col_seq = 1
-            0xff, 0xff, 0xff, 0xff, // col_beg = -1
-            0x05, 0x00, 0x00, 0x00, // col_end = 5
-            0x23, 0x00, 0x00, 0x00, // meta = '#'
-            0x00, 0x00, 0x00, 0x00, // skip = 0
-            0x00, 0x00, 0x00, 0x00, // l_nm = 0
-        ];
-
-        let mut reader = &data[..];
-        assert!(read_header(&mut reader).is_err());
-    }
-
-    #[test]
-    fn test_read_header_with_invalid_end_position_index() {
-        let data = [
-            0x00, 0x00, 0x00, 0x00, // format = Generic(GFF)
-            0x01, 0x00, 0x00, 0x00, // col_seq = 1
-            0x04, 0x00, 0x00, 0x00, // col_beg = 4
-            0xff, 0xff, 0xff, 0xff, // col_end = -1
-            0x23, 0x00, 0x00, 0x00, // meta = '#'
-            0x00, 0x00, 0x00, 0x00, // skip = 0
-            0x00, 0x00, 0x00, 0x00, // l_nm = 0
-        ];
-
-        let mut reader = &data[..];
-        assert!(read_header(&mut reader).is_err());
-    }
-
-    #[test]
-    fn test_read_header_with_invalid_line_comment_prefix() {
-        let data = [
-            0x00, 0x00, 0x00, 0x00, // format = Generic(GFF)
-            0x01, 0x00, 0x00, 0x00, // col_seq = 1
-            0x04, 0x00, 0x00, 0x00, // col_beg = 4
-            0x05, 0x00, 0x00, 0x00, // col_end = 5
-            0x5c, 0xf3, 0x01, 0x00, // meta = '🍜'
-            0x00, 0x00, 0x00, 0x00, // skip = 0
-            0x00, 0x00, 0x00, 0x00, // l_nm = 0
-        ];
-
-        let mut reader = &data[..];
-        assert!(read_header(&mut reader).is_err());
-    }
-
-    #[test]
-    fn test_parse_names() -> io::Result<()> {
-        let data = b"noodles\x00tabix\x00";
-        let actual = parse_names(&data[..])?;
-        let expected: ReferenceSequenceNames = [String::from("noodles"), String::from("tabix")]
-            .into_iter()
-            .collect();
-        assert_eq!(actual, expected);
-
-        let data = b"";
-        assert!(parse_names(&data[..])?.is_empty());
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_parse_names_with_duplicate_name() {
-        let data = b"sq0\x00sq0\x00";
-
-        assert!(matches!(
-            parse_names(data),
-            Err(ref e) if e.kind() == io::ErrorKind::InvalidData,
-        ));
-    }
-
-    #[test]
-    fn test_parse_names_with_trailing_data() {
-        let data = b"sq0\x00sq1\x00sq2";
-
-        assert!(matches!(
-            parse_names(data),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidData
         ));
     }

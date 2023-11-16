@@ -1,9 +1,11 @@
 use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
-use noodles_csi::index::{
-    header::{Format, ReferenceSequenceNames},
-    reference_sequence::{bin::Chunk, Bin, Metadata},
-    Header, ReferenceSequence,
+use noodles_csi::{
+    self as csi,
+    index::{
+        reference_sequence::{bin::Chunk, Bin, Metadata},
+        Header, ReferenceSequence,
+    },
 };
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
@@ -111,96 +113,28 @@ async fn read_header<R>(reader: &mut R) -> io::Result<Header>
 where
     R: AsyncRead + Unpin,
 {
-    let format = reader.read_i32_le().await.and_then(|n| {
-        Format::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    use std::mem;
 
-    let col_seq = reader.read_i32_le().await.and_then(|i| {
-        usize::try_from(i)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            .and_then(|n| {
-                if i > 0 {
-                    Ok(n - 1)
-                } else {
-                    Err(io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        "invalid col_seq",
-                    ))
-                }
-            })
-    })?;
+    use csi::reader::index::read_header;
 
-    let col_beg = reader.read_i32_le().await.and_then(|i| {
-        usize::try_from(i)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            .and_then(|n| {
-                if i > 0 {
-                    Ok(n - 1)
-                } else {
-                    Err(io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        "invalid col_bed",
-                    ))
-                }
-            })
-    })?;
+    const STATIC_FIELD_COUNT: usize = 6;
+    const STATIC_HEADER_SIZE: usize = mem::size_of::<i32>() * STATIC_FIELD_COUNT;
 
-    let col_end = reader.read_i32_le().await.and_then(|i| {
-        if i == 0 {
-            Ok(None)
-        } else {
-            usize::try_from(i)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-                .and_then(|n| {
-                    if n > 0 {
-                        Ok(n - 1)
-                    } else {
-                        Err(io::Error::new(
-                            io::ErrorKind::InvalidData,
-                            "invalid col_end",
-                        ))
-                    }
-                })
-                .map(Some)
-        }
-    })?;
+    let mut buf = vec![0; STATIC_HEADER_SIZE];
+    reader.read_exact(&mut buf).await?;
 
-    let meta = reader
-        .read_i32_le()
-        .await
-        .and_then(|b| u8::try_from(b).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))?;
+    let l_nm = reader.read_i32_le().await?;
 
-    let skip = reader.read_i32_le().await.and_then(|b| {
-        u32::try_from(b).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let reference_sequence_names = read_reference_sequence_names(reader).await?;
-
-    Ok(Header::builder()
-        .set_format(format)
-        .set_reference_sequence_name_index(col_seq)
-        .set_start_position_index(col_beg)
-        .set_end_position_index(col_end)
-        .set_line_comment_prefix(meta)
-        .set_line_skip_count(skip)
-        .set_reference_sequence_names(reference_sequence_names)
-        .build())
-}
-
-async fn read_reference_sequence_names<R>(reader: &mut R) -> io::Result<ReferenceSequenceNames>
-where
-    R: AsyncRead + Unpin,
-{
-    use crate::reader::parse_names;
-
-    let l_nm = reader.read_i32_le().await.and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let mut names = vec![0; l_nm];
+    let names_len =
+        usize::try_from(l_nm).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let mut names = vec![0; names_len];
     reader.read_exact(&mut names).await?;
 
-    parse_names(&names)
+    buf.extend(l_nm.to_le_bytes());
+    buf.extend(names);
+
+    let mut buf_reader = &buf[..];
+    read_header(&mut buf_reader).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 async fn read_reference_sequences<R>(
@@ -399,8 +333,6 @@ mod tests {
 
     #[tokio::test]
     async fn test_read_header() -> io::Result<()> {
-        use noodles_csi::index::header;
-
         let data = [
             0x00, 0x00, 0x00, 0x00, // format = Generic(GFF)
             0x01, 0x00, 0x00, 0x00, // col_seq = 1
@@ -408,32 +340,20 @@ mod tests {
             0x05, 0x00, 0x00, 0x00, // col_end = 5
             0x23, 0x00, 0x00, 0x00, // meta = '#'
             0x00, 0x00, 0x00, 0x00, // skip = 0
-            0x00, 0x00, 0x00, 0x00, // l_nm = 0
+            0x08, 0x00, 0x00, 0x00, // l_nm = 8
+            b's', b'q', b'0', 0x00, // names[0] = "sq0"
+            b's', b'q', b'1', 0x00, // names[1] = "sq1"
         ];
 
         let mut reader = &data[..];
         let actual = read_header(&mut reader).await?;
 
-        let expected = header::Builder::gff().build();
-        assert_eq!(actual, expected);
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_read_reference_sequence_names() -> io::Result<()> {
-        let data = [
-            0x08, 0x00, 0x00, 0x00, // l_nm = 8
-            0x73, 0x71, 0x30, 0x00, // names[0] = b"sq0\x00"
-            0x73, 0x71, 0x31, 0x00, // names[1] = b"sq1\x00"
-        ];
-
-        let mut reader = &data[..];
-        let actual = read_reference_sequence_names(&mut reader).await?;
-
-        let expected: ReferenceSequenceNames = [String::from("sq0"), String::from("sq1")]
+        let names = [String::from("sq0"), String::from("sq1")]
             .into_iter()
             .collect();
+        let expected = csi::index::header::Builder::gff()
+            .set_reference_sequence_names(names)
+            .build();
 
         assert_eq!(actual, expected);
 
