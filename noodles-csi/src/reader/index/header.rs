@@ -30,8 +30,6 @@ pub enum ReadError {
     InvalidStartPositionIndexValue,
     /// The header end position index is invalid.
     InvalidEndPositionIndex(num::TryFromIntError),
-    /// The header end position index value is invalid.
-    InvalidEndPositionIndexValue,
     /// The header line comment prefix is invalid.
     InvalidLineCommentPrefix(num::TryFromIntError),
     /// The header line skip count is invalid.
@@ -76,7 +74,6 @@ impl fmt::Display for ReadError {
             Self::InvalidStartPositionIndex(_) => write!(f, "invalid start position index"),
             Self::InvalidStartPositionIndexValue => write!(f, "invalid start position index value"),
             Self::InvalidEndPositionIndex(_) => write!(f, "invalid end position index"),
-            Self::InvalidEndPositionIndexValue => write!(f, "invalid end position index value"),
             Self::InvalidLineCommentPrefix(_) => write!(f, "invalid line comment prefix"),
             Self::InvalidLineSkipCount(_) => write!(f, "invalid line skip count"),
             Self::InvalidNamesLength(_) => write!(f, "invalid names length"),
@@ -183,12 +180,12 @@ where
     read_i32(reader).and_then(|i| match i {
         0 => Ok(None),
         _ => usize::try_from(i)
-            .map_err(ReadError::InvalidEndPositionIndex)
-            .and_then(|n| {
-                n.checked_sub(1)
-                    .ok_or(ReadError::InvalidEndPositionIndexValue)
+            .map(|n| {
+                // SAFETY: `n` is > 0.
+                n - 1
             })
-            .map(Some),
+            .map(Some)
+            .map_err(ReadError::InvalidEndPositionIndex),
     })
 }
 
