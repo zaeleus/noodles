@@ -17,7 +17,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
+    /// use noodles_csi::{self as csi, BinningIndex};
     /// let index = csi::Index::builder().set_min_shift(13).build();
     /// assert_eq!(index.min_shift(), 13);
     /// ```
@@ -31,7 +31,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
+    /// use noodles_csi::{self as csi, BinningIndex};
     /// let index = csi::Index::builder().set_depth(8).build();
     /// assert_eq!(index.depth(), 8);
     /// ```
@@ -45,7 +45,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
+    /// use noodles_csi::{self as csi, BinningIndex};
     /// let header = csi::index::Header::default();
     /// let index = csi::Index::builder().set_header(header.clone()).build();
     /// assert_eq!(index.header(), Some(&header));

@@ -4,7 +4,7 @@ use noodles_bgzf as bgzf;
 use noodles_core::Region;
 
 use super::{indexed_records::Record, Query};
-use crate::Index;
+use crate::{BinningIndex, Index};
 
 /// An indexed reader.
 pub struct IndexedReader<R> {

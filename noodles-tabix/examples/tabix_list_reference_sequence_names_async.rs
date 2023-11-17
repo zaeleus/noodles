@@ -4,6 +4,7 @@
 
 use std::env;
 
+use noodles_csi::BinningIndex;
 use noodles_tabix as tabix;
 use tokio::io;
 

@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Added
+
+  * csi: Readd `BinningIndex`.
+
+    This now encompasses a more generic interface to binning indices than
+    before, as it no longer includes access to the reference sequences. Import
+    `BinningIndex` if previously using `Index::min_shift`, `Index::depth`,
+    `Index::header`, `Index::unplaced_unmapped_record_count`, or
+    `Index::query`.
+
 ### Changed
 
   * csi: Increase the visibility of the `reader` module.

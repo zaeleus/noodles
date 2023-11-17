@@ -1,8 +1,31 @@
-//! Binning index utilities.
+//! Binning index.
+
+use std::io;
 
 use noodles_bgzf as bgzf;
+use noodles_core::region::Interval;
 
-use super::index::reference_sequence::bin::Chunk;
+use super::index::{reference_sequence::bin::Chunk, Header};
+
+/// A binning index.
+pub trait BinningIndex {
+    /// Returns the number of bits for the minimum interval.
+    fn min_shift(&self) -> u8;
+
+    /// Returns the depth of the binning index.
+    fn depth(&self) -> u8;
+
+    /// Returns the tabix header.
+    fn header(&self) -> Option<&Header>;
+
+    /// Returns the number of unplaced, unmapped records in the associated file.
+    fn unplaced_unmapped_record_count(&self) -> Option<u64>;
+
+    /// Returns the chunks that overlap with the given region.
+    fn query<I>(&self, reference_sequence_id: usize, interval: I) -> io::Result<Vec<Chunk>>
+    where
+        I: Into<Interval>;
+}
 
 /// Merges a list of chunks into a list of non-overlapping chunks.
 ///

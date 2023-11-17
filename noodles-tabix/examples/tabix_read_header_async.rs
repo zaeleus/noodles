@@ -5,6 +5,7 @@
 use std::env;
 
 use noodles_bgzf as bgzf;
+use noodles_csi::BinningIndex;
 use noodles_tabix as tabix;
 use tokio::{
     fs::File,

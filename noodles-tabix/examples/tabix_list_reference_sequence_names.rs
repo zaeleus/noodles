@@ -4,6 +4,7 @@
 
 use std::{env, io};
 
+use noodles_csi::BinningIndex;
 use noodles_tabix as tabix;
 
 fn main() -> io::Result<()> {

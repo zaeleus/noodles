@@ -9,6 +9,7 @@ use std::{
 };
 
 use noodles_bgzf as bgzf;
+use noodles_csi::BinningIndex;
 use noodles_tabix as tabix;
 
 const LINE_FEED: u8 = b'\n';

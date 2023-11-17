@@ -4,7 +4,7 @@ mod query;
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
-use noodles_csi as csi;
+use noodles_csi::{self as csi, BinningIndex};
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};
 
 use self::{lazy_record::read_lazy_record, query::query};

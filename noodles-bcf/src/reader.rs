@@ -17,7 +17,7 @@ use std::{
 use byteorder::ReadBytesExt;
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
-use noodles_csi as csi;
+use noodles_csi::{self as csi, BinningIndex};
 use noodles_vcf as vcf;
 
 use self::{header::read_header, lazy_record::read_lazy_record, record::read_record};

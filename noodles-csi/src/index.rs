@@ -14,7 +14,7 @@ use std::io;
 use noodles_bgzf as bgzf;
 use noodles_core::{region::Interval, Position};
 
-use super::index::reference_sequence::bin::Chunk;
+use super::{index::reference_sequence::bin::Chunk, BinningIndex};
 
 /// A coordinate-sorted index (CSI).
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -37,45 +37,6 @@ impl Index {
     /// ```
     pub fn builder() -> Builder {
         Builder::default()
-    }
-
-    /// Returns the number of bits for the minimum interval.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_csi as csi;
-    /// let index = csi::Index::default();
-    /// assert_eq!(index.min_shift(), 14);
-    /// ```
-    pub fn min_shift(&self) -> u8 {
-        self.min_shift
-    }
-
-    /// Returns the depth of the binning index.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_csi as csi;
-    /// let index = csi::Index::default();
-    /// assert_eq!(index.depth(), 5);
-    /// ```
-    pub fn depth(&self) -> u8 {
-        self.depth
-    }
-
-    /// Returns the tabix header.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_csi as csi;
-    /// let index = csi::Index::default();
-    /// assert!(index.header().is_none());
-    /// ```
-    pub fn header(&self) -> Option<&Header> {
-        self.header.as_ref()
     }
 
     /// Returns a list of indexed reference sequences.
@@ -104,8 +65,42 @@ impl Index {
         self.unplaced_unmapped_record_count
     }
 
-    /// Returns the chunks that overlap with the given region.
-    pub fn query<I>(&self, reference_sequence_id: usize, interval: I) -> io::Result<Vec<Chunk>>
+    /// Returns the start position of the first record in the last linear bin.
+    ///
+    /// This is the closest position to the unplaced, unmapped records, if any, that is available
+    /// in an index.
+    pub fn first_record_in_last_linear_bin_start_position(&self) -> Option<bgzf::VirtualPosition> {
+        self.reference_sequences()
+            .iter()
+            .rev()
+            .find_map(|rs| rs.first_record_in_last_linear_bin_start_position())
+    }
+}
+
+impl Default for Index {
+    fn default() -> Self {
+        Self::builder().build()
+    }
+}
+
+impl BinningIndex for Index {
+    fn min_shift(&self) -> u8 {
+        self.min_shift
+    }
+
+    fn depth(&self) -> u8 {
+        self.depth
+    }
+
+    fn header(&self) -> Option<&Header> {
+        self.header.as_ref()
+    }
+
+    fn unplaced_unmapped_record_count(&self) -> Option<u64> {
+        self.unplaced_unmapped_record_count
+    }
+
+    fn query<I>(&self, reference_sequence_id: usize, interval: I) -> io::Result<Vec<Chunk>>
     where
         I: Into<Interval>,
     {
@@ -138,23 +133,6 @@ impl Index {
         let merged_chunks = optimize_chunks(&chunks, min_offset);
 
         Ok(merged_chunks)
-    }
-
-    /// Returns the start position of the first record in the last linear bin.
-    ///
-    /// This is the closest position to the unplaced, unmapped records, if any, that is available
-    /// in an index.
-    pub fn first_record_in_last_linear_bin_start_position(&self) -> Option<bgzf::VirtualPosition> {
-        self.reference_sequences()
-            .iter()
-            .rev()
-            .find_map(|rs| rs.first_record_in_last_linear_bin_start_position())
-    }
-}
-
-impl Default for Index {
-    fn default() -> Self {
-        Self::builder().build()
     }
 }
 

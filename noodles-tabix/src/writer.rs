@@ -2,10 +2,13 @@ use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf as bgzf;
-use noodles_csi::index::{
-    header::ReferenceSequenceNames,
-    reference_sequence::{bin::Chunk, Bin, Metadata},
-    Header, ReferenceSequence,
+use noodles_csi::{
+    index::{
+        header::ReferenceSequenceNames,
+        reference_sequence::{bin::Chunk, Bin, Metadata},
+        Header, ReferenceSequence,
+    },
+    BinningIndex,
 };
 
 use super::{Index, MAGIC_NUMBER};
