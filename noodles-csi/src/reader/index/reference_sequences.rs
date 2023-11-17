@@ -11,7 +11,8 @@ use std::{
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use self::{bins::read_bins, metadata::read_metadata};
+use self::bins::read_bins;
+pub use self::metadata::read_metadata;
 use crate::index::ReferenceSequence;
 
 /// An error returned when CSI reference sequences fail to be read.

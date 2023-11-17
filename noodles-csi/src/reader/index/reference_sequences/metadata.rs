@@ -44,7 +44,7 @@ impl From<io::Error> for ReadError {
     }
 }
 
-pub(super) fn read_metadata<R>(reader: &mut R) -> Result<Metadata, ReadError>
+pub fn read_metadata<R>(reader: &mut R) -> Result<Metadata, ReadError>
 where
     R: Read,
 {

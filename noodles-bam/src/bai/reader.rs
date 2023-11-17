@@ -124,7 +124,7 @@ fn read_bins<R>(reader: &mut R) -> io::Result<(IndexMap<usize, Bin>, Option<Meta
 where
     R: Read,
 {
-    use csi::reader::index::reference_sequences::bins::read_chunks;
+    use csi::reader::index::reference_sequences::{bins::read_chunks, read_metadata};
 
     use super::DEPTH;
 
@@ -150,7 +150,8 @@ where
         })?;
 
         if id == METADATA_ID {
-            let m = read_metadata(reader)?;
+            let m =
+                read_metadata(reader).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
             if metadata.replace(m).is_some() {
                 return duplicate_bin_error(id);
@@ -189,39 +190,6 @@ where
     }
 
     Ok(intervals)
-}
-
-fn read_metadata<R>(reader: &mut R) -> io::Result<Metadata>
-where
-    R: Read,
-{
-    const METADATA_CHUNK_COUNT: usize = 2;
-
-    let n_chunk = reader.read_u32::<LittleEndian>().and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    if n_chunk != METADATA_CHUNK_COUNT {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!(
-                "invalid metadata pseudo-bin chunk count: expected {METADATA_CHUNK_COUNT}, got {n_chunk}"
-            ),
-        ));
-    }
-
-    let ref_beg = reader
-        .read_u64::<LittleEndian>()
-        .map(bgzf::VirtualPosition::from)?;
-
-    let ref_end = reader
-        .read_u64::<LittleEndian>()
-        .map(bgzf::VirtualPosition::from)?;
-
-    let n_mapped = reader.read_u64::<LittleEndian>()?;
-    let n_unmapped = reader.read_u64::<LittleEndian>()?;
-
-    Ok(Metadata::new(ref_beg, ref_end, n_mapped, n_unmapped))
 }
 
 fn read_unplaced_unmapped_record_count<R>(reader: &mut R) -> io::Result<Option<u64>>
@@ -339,31 +307,6 @@ mod tests {
             read_bins(&mut reader),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_read_metadata() -> io::Result<()> {
-        let data = [
-            0x02, 0x00, 0x00, 0x00, // n_chunk = 2
-            0x62, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // ref_beg = 610
-            0x3d, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // ref_end = 1597
-            0x37, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // n_mapped = 55
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // n_unmapped = 0
-        ];
-
-        let mut reader = &data[..];
-        let actual = read_metadata(&mut reader)?;
-
-        let expected = Metadata::new(
-            bgzf::VirtualPosition::from(610),
-            bgzf::VirtualPosition::from(1597),
-            55,
-            0,
-        );
-
-        assert_eq!(actual, expected);
 
         Ok(())
     }
