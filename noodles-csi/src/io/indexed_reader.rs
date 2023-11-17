@@ -4,20 +4,21 @@ use noodles_bgzf as bgzf;
 use noodles_core::Region;
 
 use super::{indexed_records::Record, Query};
-use crate::{BinningIndex, Index};
+use crate::BinningIndex;
 
 /// An indexed reader.
-pub struct IndexedReader<R> {
+pub struct IndexedReader<R, I> {
     inner: R,
-    index: Index,
+    index: I,
 }
 
-impl<R> IndexedReader<bgzf::Reader<R>>
+impl<R, I> IndexedReader<bgzf::Reader<R>, I>
 where
     R: Read,
+    I: BinningIndex,
 {
     /// Creates a indexed reader.
-    pub fn new(inner: R, index: Index) -> Self {
+    pub fn new(inner: R, index: I) -> Self {
         Self {
             inner: bgzf::Reader::new(inner),
             index,
@@ -40,14 +41,15 @@ where
     }
 
     /// Returns the associated index.
-    pub fn index(&self) -> &Index {
+    pub fn index(&self) -> &I {
         &self.index
     }
 }
 
-impl<R> IndexedReader<bgzf::Reader<R>>
+impl<R, I> IndexedReader<bgzf::Reader<R>, I>
 where
     R: Read + Seek,
+    I: BinningIndex,
 {
     /// Returns an iterator over records that intersects the given region.
     pub fn query<'r>(

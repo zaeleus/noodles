@@ -22,7 +22,10 @@ impl Builder {
     }
 
     /// Builds an indexed reader from a path.
-    pub fn build_from_path<P>(self, src: P) -> io::Result<IndexedReader<bgzf::Reader<File>>>
+    pub fn build_from_path<P>(
+        self,
+        src: P,
+    ) -> io::Result<IndexedReader<bgzf::Reader<File>, csi::Index>>
     where
         P: AsRef<Path>,
     {
