@@ -42,7 +42,7 @@ impl From<io::Error> for ReadError {
     }
 }
 
-pub(super) fn read_chunks<R>(reader: &mut R) -> Result<Vec<Chunk>, ReadError>
+pub fn read_chunks<R>(reader: &mut R) -> Result<Vec<Chunk>, ReadError>
 where
     R: Read,
 {

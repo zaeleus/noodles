@@ -3,9 +3,12 @@ use std::io::{self, Read};
 use byteorder::{LittleEndian, ReadBytesExt};
 use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
-use noodles_csi::index::{
-    reference_sequence::{bin::Chunk, Bin, Metadata},
-    ReferenceSequence,
+use noodles_csi::{
+    self as csi,
+    index::{
+        reference_sequence::{Bin, Metadata},
+        ReferenceSequence,
+    },
 };
 
 use super::{Index, MAGIC_NUMBER};
@@ -121,6 +124,8 @@ fn read_bins<R>(reader: &mut R) -> io::Result<(IndexMap<usize, Bin>, Option<Meta
 where
     R: Read,
 {
+    use csi::reader::index::reference_sequences::bins::read_chunks;
+
     use super::DEPTH;
 
     const METADATA_ID: usize = Bin::metadata_id(DEPTH);
@@ -151,7 +156,9 @@ where
                 return duplicate_bin_error(id);
             }
         } else {
-            let chunks = read_chunks(reader)?;
+            let chunks =
+                read_chunks(reader).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
             let bin = Bin::new(bgzf::VirtualPosition::default(), chunks);
 
             if bins.insert(id, bin).is_some() {
@@ -161,31 +168,6 @@ where
     }
 
     Ok((bins, metadata))
-}
-
-fn read_chunks<R>(reader: &mut R) -> io::Result<Vec<Chunk>>
-where
-    R: Read,
-{
-    let n_chunk = reader.read_u32::<LittleEndian>().and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let mut chunks = Vec::with_capacity(n_chunk);
-
-    for _ in 0..n_chunk {
-        let chunk_beg = reader
-            .read_u64::<LittleEndian>()
-            .map(bgzf::VirtualPosition::from)?;
-
-        let chunk_end = reader
-            .read_u64::<LittleEndian>()
-            .map(bgzf::VirtualPosition::from)?;
-
-        chunks.push(Chunk::new(chunk_beg, chunk_end));
-    }
-
-    Ok(chunks)
 }
 
 fn read_intervals<R>(reader: &mut R) -> io::Result<Vec<bgzf::VirtualPosition>>

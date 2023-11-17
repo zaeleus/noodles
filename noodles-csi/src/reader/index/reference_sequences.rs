@@ -1,4 +1,6 @@
-mod bins;
+#![doc(hidden)]
+
+pub mod bins;
 mod metadata;
 
 use std::{

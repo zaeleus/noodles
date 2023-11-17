@@ -1,7 +1,7 @@
 //! CSI index reader.
 
 pub(crate) mod header;
-mod reference_sequences;
+pub mod reference_sequences;
 
 use std::{
     error, fmt,

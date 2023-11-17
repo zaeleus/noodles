@@ -10,7 +10,7 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
 
-use self::chunks::read_chunks;
+pub use self::chunks::read_chunks;
 use super::read_metadata;
 use crate::index::reference_sequence::{Bin, Metadata};
 
