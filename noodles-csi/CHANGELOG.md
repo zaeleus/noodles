@@ -18,6 +18,12 @@
 
   * csi: Increase the visibility of the `reader` module.
 
+### Removed
+
+  * csi/index/reference_sequence/bin: Remove `Bin::loffset`.
+
+    First record positions for each bin is now moved to the reference sequence.
+
 ## 0.28.0 - 2023-11-14
 
 ### Added

@@ -67,6 +67,8 @@ fn read_reference_sequence<R>(reader: &mut R, depth: u8) -> Result<ReferenceSequ
 where
     R: Read,
 {
-    let (bins, metadata) = read_bins(reader, depth).map_err(ReadError::InvalidBins)?;
-    Ok(ReferenceSequence::new(bins, Vec::new(), metadata))
+    let (bins, index, metadata) = read_bins(reader, depth).map_err(ReadError::InvalidBins)?;
+    let mut reference_sequence = ReferenceSequence::new(bins, Vec::new(), metadata);
+    reference_sequence.binned_index = index;
+    Ok(reference_sequence)
 }

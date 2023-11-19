@@ -170,18 +170,31 @@ async fn read_reference_sequence<R>(reader: &mut R, depth: u8) -> io::Result<Ref
 where
     R: AsyncRead + Unpin,
 {
-    let (bins, metadata) = read_bins(reader, depth).await?;
-    Ok(ReferenceSequence::new(bins, Vec::new(), metadata))
+    let (bins, index, metadata) = read_bins(reader, depth).await?;
+    let mut reference_sequence = ReferenceSequence::new(bins, Vec::new(), metadata);
+    reference_sequence.binned_index = index;
+    Ok(reference_sequence)
 }
 
 async fn read_bins<R>(
     reader: &mut R,
     depth: u8,
-) -> io::Result<(IndexMap<usize, Bin>, Option<Metadata>)>
+) -> io::Result<(
+    IndexMap<usize, Bin>,
+    IndexMap<usize, bgzf::VirtualPosition>,
+    Option<Metadata>,
+)>
 where
     R: AsyncRead + Unpin,
 {
-    fn duplicate_bin_error(id: usize) -> io::Result<(IndexMap<usize, Bin>, Option<Metadata>)> {
+    #[allow(clippy::type_complexity)]
+    fn duplicate_bin_error(
+        id: usize,
+    ) -> io::Result<(
+        IndexMap<usize, Bin>,
+        IndexMap<usize, bgzf::VirtualPosition>,
+        Option<Metadata>,
+    )> {
         Err(io::Error::new(
             io::ErrorKind::InvalidData,
             format!("duplicate bin ID: {id}"),
@@ -193,6 +206,7 @@ where
     })?;
 
     let mut bins = IndexMap::with_capacity(n_bin);
+    let mut index = IndexMap::with_capacity(n_bin);
 
     let metadata_id = Bin::metadata_id(depth);
     let mut metadata = None;
@@ -215,15 +229,17 @@ where
             }
         } else {
             let chunks = read_chunks(reader).await?;
-            let bin = Bin::new(loffset, chunks);
+            let bin = Bin::new(chunks);
 
             if bins.insert(id, bin).is_some() {
                 return duplicate_bin_error(id);
             }
+
+            index.insert(id, loffset);
         }
     }
 
-    Ok((bins, metadata))
+    Ok((bins, index, metadata))
 }
 
 async fn read_chunks<R>(reader: &mut R) -> io::Result<Vec<Chunk>>

@@ -25,6 +25,7 @@ where
             writer,
             depth,
             reference_sequence.bins(),
+            reference_sequence.binned_index(),
             reference_sequence.metadata(),
         )?;
     }

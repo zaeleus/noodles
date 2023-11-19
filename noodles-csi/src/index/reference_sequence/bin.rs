@@ -5,14 +5,11 @@ mod chunk;
 
 pub use self::{builder::Builder, chunk::Chunk};
 
-use noodles_bgzf as bgzf;
-
 pub(crate) const METADATA_CHUNK_COUNT: u32 = 2;
 
 /// A CSI reference sequence bin.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Bin {
-    loffset: bgzf::VirtualPosition,
     chunks: Vec<Chunk>,
 }
 
@@ -51,26 +48,11 @@ impl Bin {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf as bgzf;
     /// use noodles_csi::index::reference_sequence::Bin;
-    /// let bin = Bin::new(bgzf::VirtualPosition::default(), Vec::new());
+    /// let bin = Bin::new(Vec::new());
     /// ```
-    pub fn new(loffset: bgzf::VirtualPosition, chunks: Vec<Chunk>) -> Self {
-        Self { loffset, chunks }
-    }
-
-    /// Returns the start virtual position of the first overlapping record in this bin.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bgzf as bgzf;
-    /// use noodles_csi::index::reference_sequence::Bin;
-    /// let bin = Bin::new(bgzf::VirtualPosition::default(), Vec::new());
-    /// assert_eq!(bin.loffset(), bgzf::VirtualPosition::default());
-    /// ```
-    pub fn loffset(&self) -> bgzf::VirtualPosition {
-        self.loffset
+    pub fn new(chunks: Vec<Chunk>) -> Self {
+        Self { chunks }
     }
 
     /// Returns the list of chunks in the bin.
@@ -80,7 +62,7 @@ impl Bin {
     /// ```
     /// use noodles_bgzf as bgzf;
     /// use noodles_csi::index::reference_sequence::Bin;
-    /// let bin = Bin::new(bgzf::VirtualPosition::default(), Vec::new());
+    /// let bin = Bin::new(Vec::new());
     /// assert!(bin.chunks().is_empty());
     /// ```
     pub fn chunks(&self) -> &[Chunk] {

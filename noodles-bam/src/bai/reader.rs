@@ -160,7 +160,7 @@ where
             let chunks =
                 read_chunks(reader).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-            let bin = Bin::new(bgzf::VirtualPosition::default(), chunks);
+            let bin = Bin::new(chunks);
 
             if bins.insert(id, bin).is_some() {
                 return duplicate_bin_error(id);

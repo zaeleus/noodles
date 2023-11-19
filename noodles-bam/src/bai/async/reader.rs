@@ -155,7 +155,7 @@ where
             }
         } else {
             let chunks = read_chunks(reader).await?;
-            let bin = Bin::new(bgzf::VirtualPosition::default(), chunks);
+            let bin = Bin::new(chunks);
 
             if bins.insert(id, bin).is_some() {
                 return duplicate_bin_error(id);

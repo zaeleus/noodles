@@ -282,9 +282,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_write_bins() -> io::Result<()> {
-        let bins = [(8, Bin::new(bgzf::VirtualPosition::default(), Vec::new()))]
-            .into_iter()
-            .collect();
+        let bins = [(8, Bin::new(Vec::new()))].into_iter().collect();
 
         let mut buf = Vec::new();
         write_bins(&mut buf, &bins, None).await?;
@@ -302,9 +300,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_write_bins_with_metadata() -> io::Result<()> {
-        let bins = [(8, Bin::new(bgzf::VirtualPosition::default(), Vec::new()))]
-            .into_iter()
-            .collect();
+        let bins = [(8, Bin::new(Vec::new()))].into_iter().collect();
         let metadata = Metadata::new(
             bgzf::VirtualPosition::from(13),
             bgzf::VirtualPosition::from(21),
@@ -337,13 +333,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_write_bin() -> io::Result<()> {
-        let bin = Bin::new(
-            bgzf::VirtualPosition::default(),
-            vec![Chunk::new(
-                bgzf::VirtualPosition::from(13),
-                bgzf::VirtualPosition::from(21),
-            )],
-        );
+        let bin = Bin::new(vec![Chunk::new(
+            bgzf::VirtualPosition::from(13),
+            bgzf::VirtualPosition::from(21),
+        )]);
 
         let mut buf = Vec::new();
         write_bin(&mut buf, 8, &bin).await?;

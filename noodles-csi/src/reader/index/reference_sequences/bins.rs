@@ -63,10 +63,18 @@ impl From<io::Error> for ReadError {
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub(super) fn read_bins<R>(
     reader: &mut R,
     depth: u8,
-) -> Result<(IndexMap<usize, Bin>, Option<Metadata>), ReadError>
+) -> Result<
+    (
+        IndexMap<usize, Bin>,
+        IndexMap<usize, bgzf::VirtualPosition>,
+        Option<Metadata>,
+    ),
+    ReadError,
+>
 where
     R: Read,
 {
@@ -76,6 +84,7 @@ where
         .and_then(|n| usize::try_from(n).map_err(ReadError::InvalidBinCount))?;
 
     let mut bins = IndexMap::with_capacity(n_bin);
+    let mut index = IndexMap::with_capacity(n_bin);
 
     let metadata_id = Bin::metadata_id(depth);
     let mut metadata = None;
@@ -98,15 +107,17 @@ where
             }
         } else {
             let chunks = read_chunks(reader).map_err(ReadError::InvalidChunks)?;
-            let bin = Bin::new(loffset, chunks);
+            let bin = Bin::new(chunks);
 
             if bins.insert(id, bin).is_some() {
                 return Err(ReadError::DuplicateBin(id));
             }
+
+            index.insert(id, loffset);
         }
     }
 
-    Ok((bins, metadata))
+    Ok((bins, index, metadata))
 }
 
 #[cfg(test)]
@@ -121,8 +132,9 @@ mod tests {
             0x00, 0x00, 0x00, 0x00, // n_bin = 0
         ];
         let mut reader = &data[..];
-        let (actual_bins, actual_metadata) = read_bins(&mut reader, DEPTH)?;
+        let (actual_bins, actual_index, actual_metadata) = read_bins(&mut reader, DEPTH)?;
         assert!(actual_bins.is_empty());
+        assert!(actual_index.is_empty());
         assert!(actual_metadata.is_none());
 
         let data = [
@@ -139,9 +151,15 @@ mod tests {
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // bins[1].metadata.n_unmapped = 0
         ];
         let mut reader = &data[..];
-        let (actual_bins, actual_metadata) = read_bins(&mut reader, DEPTH)?;
+        let (actual_bins, actual_index, actual_metadata) = read_bins(&mut reader, DEPTH)?;
         assert_eq!(actual_bins.len(), 1);
         assert!(actual_bins.get(&0).is_some());
+        assert_eq!(
+            actual_index,
+            [(0, bgzf::VirtualPosition::from(0))]
+                .into_iter()
+                .collect::<IndexMap<_, _>>()
+        );
         assert!(actual_metadata.is_some());
 
         let data = [

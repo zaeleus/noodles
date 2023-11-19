@@ -11,6 +11,7 @@ use super::{
 #[derive(Debug)]
 pub struct Builder {
     bin_builders: IndexMap<usize, bin::Builder>,
+    binned_index: IndexMap<usize, bgzf::VirtualPosition>,
     linear_index: Vec<Option<bgzf::VirtualPosition>>,
     start_position: bgzf::VirtualPosition,
     end_position: bgzf::VirtualPosition,
@@ -42,17 +43,13 @@ impl Builder {
             return ReferenceSequence::new(Default::default(), Vec::new(), None);
         }
 
-        let builders: Vec<_> = self
-            .bin_builders
-            .iter()
-            .map(|(id, builder)| (*id, builder.loffset))
-            .collect();
+        let binned_index_copy = self.binned_index.clone();
 
-        for (mut id, loffset) in builders {
+        for (mut id, i) in binned_index_copy {
             while let Some(pid) = parent_id(id) {
-                if let Some(builder) = self.bin_builders.get_mut(&pid) {
-                    if loffset < builder.loffset {
-                        builder.loffset = loffset;
+                if let Some(j) = self.binned_index.get_mut(&pid) {
+                    if i < *j {
+                        *j = i;
                     }
                 }
 
@@ -79,7 +76,9 @@ impl Builder {
             self.unmapped_record_count,
         );
 
-        ReferenceSequence::new(bins, linear_index, Some(metadata))
+        let mut reference_sequence = ReferenceSequence::new(bins, linear_index, Some(metadata));
+        reference_sequence.binned_index = self.binned_index;
+        reference_sequence
     }
 
     fn update_bins(
@@ -95,6 +94,15 @@ impl Builder {
         let bin_id = reg2bin(start, end, min_shift, depth);
         let builder = self.bin_builders.entry(bin_id).or_insert(Bin::builder());
         builder.add_chunk(chunk);
+
+        self.binned_index
+            .entry(bin_id)
+            .and_modify(|loffset| {
+                if chunk.start() < *loffset {
+                    *loffset = chunk.start();
+                }
+            })
+            .or_insert(chunk.start());
     }
 
     fn update_linear_index(&mut self, start: Position, end: Position, chunk: Chunk) {
@@ -128,6 +136,7 @@ impl Default for Builder {
     fn default() -> Self {
         Self {
             bin_builders: IndexMap::new(),
+            binned_index: IndexMap::new(),
             linear_index: Vec::new(),
             start_position: bgzf::VirtualPosition::MAX,
             end_position: bgzf::VirtualPosition::MIN,
@@ -178,24 +187,25 @@ mod tests {
             let bins = [
                 (
                     4681,
-                    Bin::new(
+                    Bin::new(vec![Chunk::new(
                         bgzf::VirtualPosition::from(0),
-                        vec![Chunk::new(
-                            bgzf::VirtualPosition::from(0),
-                            bgzf::VirtualPosition::from(9),
-                        )],
-                    ),
+                        bgzf::VirtualPosition::from(9),
+                    )]),
                 ),
                 (
                     73,
-                    Bin::new(
-                        bgzf::VirtualPosition::from(0),
-                        vec![Chunk::new(
-                            bgzf::VirtualPosition::from(9),
-                            bgzf::VirtualPosition::from(3473408),
-                        )],
-                    ),
+                    Bin::new(vec![Chunk::new(
+                        bgzf::VirtualPosition::from(9),
+                        bgzf::VirtualPosition::from(3473408),
+                    )]),
                 ),
+            ]
+            .into_iter()
+            .collect();
+
+            let binned_index = vec![
+                (4681, bgzf::VirtualPosition::from(0)),
+                (73, bgzf::VirtualPosition::from(0)),
             ]
             .into_iter()
             .collect();
@@ -222,10 +232,13 @@ mod tests {
                 1,
             );
 
-            ReferenceSequence::new(bins, linear_index, Some(metadata))
+            let mut reference_sequence = ReferenceSequence::new(bins, linear_index, Some(metadata));
+            reference_sequence.binned_index = binned_index;
+            reference_sequence
         };
 
         assert_eq!(actual.bins(), expected.bins());
+        assert_eq!(actual.binned_index, expected.binned_index);
         assert_eq!(actual.linear_index(), expected.linear_index());
         assert_eq!(actual.metadata(), expected.metadata());
 

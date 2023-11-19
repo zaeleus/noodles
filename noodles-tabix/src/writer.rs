@@ -322,9 +322,7 @@ mod tests {
             bgzf::VirtualPosition::from(509268599425),
             bgzf::VirtualPosition::from(509268599570),
         )];
-        let bins = [(16385, Bin::new(bgzf::VirtualPosition::default(), chunks))]
-            .into_iter()
-            .collect();
+        let bins = [(16385, Bin::new(chunks))].into_iter().collect();
         let intervals = vec![bgzf::VirtualPosition::from(337)];
         let references = vec![ReferenceSequence::new(bins, intervals, None)];
 
