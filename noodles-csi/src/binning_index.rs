@@ -22,9 +22,7 @@ pub trait BinningIndex {
     fn unplaced_unmapped_record_count(&self) -> Option<u64>;
 
     /// Returns the chunks that overlap with the given region.
-    fn query<I>(&self, reference_sequence_id: usize, interval: I) -> io::Result<Vec<Chunk>>
-    where
-        I: Into<Interval>;
+    fn query(&self, reference_sequence_id: usize, interval: Interval) -> io::Result<Vec<Chunk>>;
 }
 
 /// Merges a list of chunks into a list of non-overlapping chunks.

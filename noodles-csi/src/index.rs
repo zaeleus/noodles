@@ -100,13 +100,8 @@ impl BinningIndex for Index {
         self.unplaced_unmapped_record_count
     }
 
-    fn query<I>(&self, reference_sequence_id: usize, interval: I) -> io::Result<Vec<Chunk>>
-    where
-        I: Into<Interval>,
-    {
+    fn query(&self, reference_sequence_id: usize, interval: Interval) -> io::Result<Vec<Chunk>> {
         use super::binning_index::optimize_chunks;
-
-        let interval = interval.into();
 
         let reference_sequence = self
             .reference_sequences()
