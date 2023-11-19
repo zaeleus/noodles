@@ -129,6 +129,10 @@ impl BinningIndex for Index {
 
         Ok(merged_chunks)
     }
+
+    fn last_first_record_start_position(&self) -> Option<bgzf::VirtualPosition> {
+        self.first_record_in_last_linear_bin_start_position()
+    }
 }
 
 fn resolve_interval<I>(min_shift: u8, depth: u8, interval: I) -> io::Result<(Position, Position)>

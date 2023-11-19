@@ -23,6 +23,12 @@ pub trait BinningIndex {
 
     /// Returns the chunks that overlap with the given region.
     fn query(&self, reference_sequence_id: usize, interval: Interval) -> io::Result<Vec<Chunk>>;
+
+    /// Returns the last first record start position.
+    ///
+    /// This is the closest position to the unplaced, unmapped records, if any, that is available
+    /// in an index.
+    fn last_first_record_start_position(&self) -> Option<bgzf::VirtualPosition>;
 }
 
 /// Merges a list of chunks into a list of non-overlapping chunks.
