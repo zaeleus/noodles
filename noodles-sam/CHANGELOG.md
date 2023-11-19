@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/reader: Accept `csi::BinningIndex` for querying.
+
 ## 0.48.0 - 2023-11-14
 
 ### Changed

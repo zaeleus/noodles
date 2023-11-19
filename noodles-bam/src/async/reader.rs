@@ -7,7 +7,7 @@ use bytes::BytesMut;
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
-use noodles_csi::{self as csi, BinningIndex};
+use noodles_csi::BinningIndex;
 use noodles_sam::{
     self as sam,
     alignment::Record,
@@ -428,12 +428,15 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn query<'a>(
+    pub fn query<'a, I>(
         &'a mut self,
         header: &'a sam::Header,
-        index: &csi::Index,
+        index: &I,
         region: &Region,
-    ) -> io::Result<impl Stream<Item = io::Result<Record>> + '_> {
+    ) -> io::Result<impl Stream<Item = io::Result<Record>> + '_>
+    where
+        I: BinningIndex,
+    {
         let reference_sequence_id = resolve_region(header.reference_sequences(), region)?;
         let chunks = index.query(reference_sequence_id, region.interval())?;
 

@@ -16,7 +16,7 @@ use std::{
 
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
-use noodles_csi::{self as csi, BinningIndex};
+use noodles_csi::BinningIndex;
 use noodles_sam::{self as sam, alignment::Record, header::ReferenceSequences};
 
 use super::lazy;
@@ -338,12 +338,15 @@ where
     /// }
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn query<'a>(
+    pub fn query<'a, I>(
         &'a mut self,
         header: &'a sam::Header,
-        index: &csi::Index,
+        index: &I,
         region: &Region,
-    ) -> io::Result<Query<'_, R>> {
+    ) -> io::Result<Query<'_, R>>
+    where
+        I: BinningIndex,
+    {
         let reference_sequence_id = resolve_region(header.reference_sequences(), region)?;
         let chunks = index.query(reference_sequence_id, region.interval())?;
 
@@ -376,12 +379,15 @@ where
     /// }
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn query_unmapped<'r>(
+    pub fn query_unmapped<'r, I>(
         &'r mut self,
         header: &'r sam::Header,
-        index: &csi::Index,
-    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'r> {
-        if let Some(pos) = index.first_record_in_last_linear_bin_start_position() {
+        index: &I,
+    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'r>
+    where
+        I: BinningIndex,
+    {
+        if let Some(pos) = index.last_first_record_start_position() {
             self.seek(pos)?;
         } else {
             self.seek_to_first_record()?;

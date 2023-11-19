@@ -17,7 +17,7 @@ use std::{
 use byteorder::ReadBytesExt;
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
-use noodles_csi::{self as csi, BinningIndex};
+use noodles_csi::BinningIndex;
 use noodles_vcf as vcf;
 
 use self::{header::read_header, lazy_record::read_lazy_record, record::read_record};
@@ -316,12 +316,15 @@ where
     /// }
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn query<'r, 'h>(
+    pub fn query<'r, 'h, I>(
         &'r mut self,
         header: &'h vcf::Header,
-        index: &csi::Index,
+        index: &I,
         region: &Region,
-    ) -> io::Result<Query<'r, 'h, R>> {
+    ) -> io::Result<Query<'r, 'h, R>>
+    where
+        I: BinningIndex,
+    {
         let reference_sequence_id = resolve_region(self.string_maps.contigs(), region)?;
         let chunks = index.query(reference_sequence_id, region.interval())?;
 

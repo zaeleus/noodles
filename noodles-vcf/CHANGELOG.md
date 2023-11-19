@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * vcf/async/reader: Accept `csi::BinningIndex` for querying.
+
+  * vcf/reader: Accept `csi::BinningIndex` for querying.
+
 ## 0.47.0 - 2023-11-14
 
 ### Changed

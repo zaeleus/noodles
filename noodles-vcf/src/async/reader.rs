@@ -6,7 +6,7 @@ use std::str;
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
-use noodles_csi::{self as csi, BinningIndex};
+use noodles_csi::BinningIndex;
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncSeek};
 
 use self::{header::read_header, query::query};
@@ -368,12 +368,15 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn query<'r>(
+    pub fn query<'r, I>(
         &'r mut self,
         header: &'r Header,
-        index: &csi::Index,
+        index: &I,
         region: &Region,
-    ) -> io::Result<impl Stream<Item = io::Result<Record>> + 'r> {
+    ) -> io::Result<impl Stream<Item = io::Result<Record>> + 'r>
+    where
+        I: BinningIndex,
+    {
         let (reference_sequence_id, reference_sequence_name) = resolve_region(index, region)?;
 
         let chunks = index.query(reference_sequence_id, region.interval())?;

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * gtf/reader: Accept `csi::BinningIndex` for querying.
+
 ## 0.21.0 - 2023-11-14
 
 ### Changed

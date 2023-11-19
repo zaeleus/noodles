@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bam/async/reader: Accept `csi::BinningIndex` for querying.
+
+  * bam/reader: Accept `csi::BinningIndex` for querying.
+
 ## 0.51.0 - 2023-11-14
 
 ### Added

@@ -12,7 +12,7 @@ use std::io::{self, BufRead, Read, Seek};
 
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
-use noodles_csi::{self as csi, BinningIndex};
+use noodles_csi::BinningIndex;
 
 use super::{alignment::Record, header::ReferenceSequences, lazy, AlignmentReader, Header};
 
@@ -298,12 +298,15 @@ where
     /// }
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn query<'a>(
+    pub fn query<'a, I>(
         &'a mut self,
         header: &'a Header,
-        index: &csi::Index,
+        index: &I,
         region: &Region,
-    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'a> {
+    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'a>
+    where
+        I: BinningIndex,
+    {
         use self::query::{FilterByRegion, Query};
 
         let reference_sequence_id = resolve_region(header.reference_sequences(), region)?;
@@ -339,12 +342,15 @@ where
     /// }
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn query_unmapped<'a>(
+    pub fn query_unmapped<'a, I>(
         &'a mut self,
         header: &'a Header,
-        index: &csi::Index,
-    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'a> {
-        if let Some(pos) = index.first_record_in_last_linear_bin_start_position() {
+        index: &I,
+    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'a>
+    where
+        I: BinningIndex,
+    {
+        if let Some(pos) = index.last_first_record_start_position() {
             self.seek(pos)?;
         } else {
             self.seek_to_first_record()?;

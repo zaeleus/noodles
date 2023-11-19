@@ -18,7 +18,7 @@ use std::{
 
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
-use noodles_csi::{self as csi, BinningIndex};
+use noodles_csi::BinningIndex;
 
 use self::header::read_header;
 use super::{Header, Record, VariantReader};
@@ -327,12 +327,15 @@ where
     /// }
     /// Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn query<'r, 'h>(
+    pub fn query<'r, 'h, I>(
         &'r mut self,
         header: &'h Header,
-        index: &csi::Index,
+        index: &I,
         region: &Region,
-    ) -> io::Result<Query<'r, 'h, R>> {
+    ) -> io::Result<Query<'r, 'h, R>>
+    where
+        I: BinningIndex,
+    {
         let (reference_sequence_id, reference_sequence_name) = resolve_region(index, region)?;
         let chunks = index.query(reference_sequence_id, region.interval())?;
 
@@ -461,7 +464,10 @@ where
     Ok(len)
 }
 
-pub(crate) fn resolve_region(index: &csi::Index, region: &Region) -> io::Result<(usize, String)> {
+pub(crate) fn resolve_region<I>(index: &I, region: &Region) -> io::Result<(usize, String)>
+where
+    I: BinningIndex,
+{
     let header = index
         .header()
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing tabix header"))?;

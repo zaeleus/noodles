@@ -202,11 +202,14 @@ where
     R: Read + Seek,
 {
     /// Returns an iterator over records that intersects the given region.
-    pub fn query<'r>(
+    pub fn query<'r, I>(
         &'r mut self,
-        index: &csi::Index,
+        index: &I,
         region: &'r Region,
-    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'r> {
+    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'r>
+    where
+        I: BinningIndex,
+    {
         let header = index
             .header()
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing index header"))?;
