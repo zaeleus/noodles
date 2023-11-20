@@ -219,7 +219,7 @@ const M: usize = match NonZeroUsize::new(8) {
 };
 
 // parent of i = floor((i - 1) / M)
-fn parent_id(id: usize) -> Option<usize> {
+pub(crate) fn parent_id(id: usize) -> Option<usize> {
     if id > 0 {
         Some((id - 1) / M)
     } else {

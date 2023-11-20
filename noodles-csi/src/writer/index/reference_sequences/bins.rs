@@ -8,7 +8,9 @@ use noodles_bgzf as bgzf;
 
 use self::chunks::write_chunks;
 use super::write_metadata;
-use crate::binning_index::index::reference_sequence::{index::BinnedIndex, Bin, Metadata};
+use crate::binning_index::index::reference_sequence::{
+    index::BinnedIndex, parent_id, Bin, Metadata,
+};
 
 pub(super) fn write_bins<W>(
     writer: &mut W,
@@ -29,9 +31,9 @@ where
 
     writer.write_i32::<LittleEndian>(n_bin)?;
 
-    for (id, bin) in bins {
-        let first_record_start_position = index.get(id).copied().unwrap_or_default();
-        write_bin(writer, *id, first_record_start_position, bin)?;
+    for (&id, bin) in bins {
+        let first_record_start_position = first_record_start_position(index, id);
+        write_bin(writer, id, first_record_start_position, bin)?;
     }
 
     if let Some(m) = metadata {
@@ -59,4 +61,20 @@ where
     write_chunks(writer, bin.chunks())?;
 
     Ok(())
+}
+
+fn first_record_start_position(index: &BinnedIndex, mut id: usize) -> bgzf::VirtualPosition {
+    let mut min_position = index.get(&id).copied().unwrap_or_default();
+
+    while let Some(pid) = parent_id(id) {
+        if let Some(position) = index.get(&pid) {
+            if *position < min_position {
+                min_position = *position;
+            }
+        }
+
+        id = pid;
+    }
+
+    min_position
 }
