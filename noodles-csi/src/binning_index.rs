@@ -5,7 +5,7 @@ use std::io;
 use noodles_bgzf as bgzf;
 use noodles_core::region::Interval;
 
-use super::index::{reference_sequence::bin::Chunk, Header};
+use super::index::{reference_sequence::bin::Chunk, Header, ReferenceSequence};
 
 /// A binning index.
 pub trait BinningIndex {
@@ -17,6 +17,9 @@ pub trait BinningIndex {
 
     /// Returns the tabix header.
     fn header(&self) -> Option<&Header>;
+
+    /// Returns the reference sequences.
+    fn reference_sequences(&self) -> &[ReferenceSequence];
 
     /// Returns the number of unplaced, unmapped records in the associated file.
     fn unplaced_unmapped_record_count(&self) -> Option<u64>;

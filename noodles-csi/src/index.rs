@@ -96,6 +96,10 @@ impl BinningIndex for Index {
         self.header.as_ref()
     }
 
+    fn reference_sequences(&self) -> &[ReferenceSequence] {
+        &self.reference_sequences
+    }
+
     fn unplaced_unmapped_record_count(&self) -> Option<u64> {
         self.unplaced_unmapped_record_count
     }
