@@ -1,9 +1,8 @@
 //! CSI reference sequence bin and fields.
 
-mod builder;
 mod chunk;
 
-pub use self::{builder::Builder, chunk::Chunk};
+pub use self::chunk::Chunk;
 
 pub(crate) const METADATA_CHUNK_COUNT: u32 = 2;
 
@@ -14,11 +13,6 @@ pub struct Bin {
 }
 
 impl Bin {
-    /// Creates a bin builder.
-    pub fn builder() -> Builder {
-        Builder::default()
-    }
-
     /// Calculates the maximum bin ID.
     ///
     /// # Examples
@@ -68,10 +62,79 @@ impl Bin {
     pub fn chunks(&self) -> &[Chunk] {
         &self.chunks
     }
+
+    /// Adds or merges a chunk.
+    pub fn add_chunk(&mut self, chunk: Chunk) {
+        if let Some(last_chunk) = self.chunks.last_mut() {
+            if chunk.start() <= last_chunk.end() {
+                *last_chunk = Chunk::new(last_chunk.start(), chunk.end());
+                return;
+            }
+        }
+
+        self.chunks.push(chunk);
+    }
 }
 
 // `CSIv1.pdf` (2020-07-21)
 const fn bin_limit(depth: u8) -> i32 {
     assert!(depth <= 10);
     (1 << ((depth + 1) * 3)) / 7
+}
+
+#[cfg(test)]
+mod tests {
+    use noodles_bgzf as bgzf;
+
+    use super::*;
+
+    #[test]
+    fn test_add_chunk() {
+        let mut bin = Bin::new(Vec::new());
+
+        bin.add_chunk(Chunk::new(
+            bgzf::VirtualPosition::from(5),
+            bgzf::VirtualPosition::from(13),
+        ));
+
+        assert_eq!(
+            bin.chunks,
+            [Chunk::new(
+                bgzf::VirtualPosition::from(5),
+                bgzf::VirtualPosition::from(13)
+            )]
+        );
+
+        bin.add_chunk(Chunk::new(
+            bgzf::VirtualPosition::from(8),
+            bgzf::VirtualPosition::from(21),
+        ));
+
+        assert_eq!(
+            bin.chunks,
+            [Chunk::new(
+                bgzf::VirtualPosition::from(5),
+                bgzf::VirtualPosition::from(21)
+            )]
+        );
+
+        bin.add_chunk(Chunk::new(
+            bgzf::VirtualPosition::from(34),
+            bgzf::VirtualPosition::from(55),
+        ));
+
+        assert_eq!(
+            bin.chunks,
+            [
+                Chunk::new(
+                    bgzf::VirtualPosition::from(5),
+                    bgzf::VirtualPosition::from(21)
+                ),
+                Chunk::new(
+                    bgzf::VirtualPosition::from(34),
+                    bgzf::VirtualPosition::from(55)
+                )
+            ]
+        );
+    }
 }

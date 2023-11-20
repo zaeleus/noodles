@@ -14,6 +14,11 @@
 
   * csi: Move `Index` under the `binning_index` module.
 
+  * csi/binning_index/index/reference_sequence/bin: Add `Bin::add_chunk` to add
+    or merge a chunk.
+
+    `Bin` no longer has a builder.
+
   * csi/io/index_reader: Add type parameter for the index.
 
 ### Changed
@@ -27,6 +32,10 @@
   * csi/index/reference_sequence/bin: Remove `Bin::loffset`.
 
     First record positions for each bin is now moved to the reference sequence.
+
+  * csi/binning_index/index/reference_sequence/bin: Remove `Builder`.
+
+    Use `Bin::add_chunk` instead.
 
 ## 0.28.0 - 2023-11-14
 

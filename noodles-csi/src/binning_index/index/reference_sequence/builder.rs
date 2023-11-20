@@ -2,15 +2,12 @@ use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
 use noodles_core::Position;
 
-use super::{
-    bin::{self, Chunk},
-    Bin, Index, Metadata, ReferenceSequence,
-};
+use super::{bin::Chunk, Bin, Index, Metadata, ReferenceSequence};
 
 /// A CSI reference sequence builder.
 #[derive(Debug)]
 pub struct Builder<I> {
-    bin_builders: IndexMap<usize, bin::Builder>,
+    bins: IndexMap<usize, Bin>,
     index: I,
     start_position: bgzf::VirtualPosition,
     end_position: bgzf::VirtualPosition,
@@ -39,15 +36,9 @@ where
 
     /// Builds a CSI reference sequence.
     pub fn build(self) -> ReferenceSequence<I> {
-        if self.bin_builders.is_empty() {
+        if self.bins.is_empty() {
             return ReferenceSequence::new(IndexMap::new(), self.index, None);
         }
-
-        let bins = self
-            .bin_builders
-            .into_iter()
-            .map(|(id, builder)| (id, builder.build()))
-            .collect();
 
         let metadata = Metadata::new(
             self.start_position,
@@ -56,7 +47,7 @@ where
             self.unmapped_record_count,
         );
 
-        ReferenceSequence::new(bins, self.index, Some(metadata))
+        ReferenceSequence::new(self.bins, self.index, Some(metadata))
     }
 
     fn update_bins(
@@ -70,7 +61,7 @@ where
         use super::reg2bin;
 
         let bin_id = reg2bin(start, end, min_shift, depth);
-        let builder = self.bin_builders.entry(bin_id).or_insert(Bin::builder());
+        let builder = self.bins.entry(bin_id).or_insert(Bin::new(Vec::new()));
         builder.add_chunk(chunk);
     }
 
@@ -92,7 +83,7 @@ where
 {
     fn default() -> Self {
         Self {
-            bin_builders: IndexMap::new(),
+            bins: IndexMap::new(),
             index: I::default(),
             start_position: bgzf::VirtualPosition::MAX,
             end_position: bgzf::VirtualPosition::MIN,
