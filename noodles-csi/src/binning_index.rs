@@ -34,6 +34,39 @@ pub trait BinningIndex {
     fn last_first_record_start_position(&self) -> Option<bgzf::VirtualPosition>;
 }
 
+impl<I> BinningIndex for Box<I>
+where
+    I: BinningIndex + ?Sized,
+{
+    fn min_shift(&self) -> u8 {
+        (**self).min_shift()
+    }
+
+    fn depth(&self) -> u8 {
+        (**self).depth()
+    }
+
+    fn header(&self) -> Option<&Header> {
+        (**self).header()
+    }
+
+    fn reference_sequences(&self) -> &[ReferenceSequence] {
+        (**self).reference_sequences()
+    }
+
+    fn unplaced_unmapped_record_count(&self) -> Option<u64> {
+        (**self).unplaced_unmapped_record_count()
+    }
+
+    fn query(&self, reference_sequence_id: usize, interval: Interval) -> io::Result<Vec<Chunk>> {
+        (**self).query(reference_sequence_id, interval)
+    }
+
+    fn last_first_record_start_position(&self) -> Option<bgzf::VirtualPosition> {
+        (**self).last_first_record_start_position()
+    }
+}
+
 /// Merges a list of chunks into a list of non-overlapping chunks.
 ///
 /// This is the same as calling [`optimize_chunks`] with a `min_offset` of 0.
