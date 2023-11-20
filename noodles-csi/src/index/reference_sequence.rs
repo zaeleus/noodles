@@ -14,6 +14,7 @@ use noodles_bgzf as bgzf;
 use noodles_core::{region::Interval, Position};
 
 use super::resolve_interval;
+use crate::binning_index;
 
 // _Sequence Alignment/Map Format Specification_ (2022-08-22) § 5.1.2 "Combining with linear
 // index": "...each tiling 16384bp window..."
@@ -81,31 +82,6 @@ impl ReferenceSequence {
 
     pub(crate) fn binned_index(&self) -> &IndexMap<usize, bgzf::VirtualPosition> {
         &self.binned_index
-    }
-
-    /// Returns the optional metadata for the reference sequence.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bgzf as bgzf;
-    /// use noodles_csi::index::{reference_sequence::Metadata, ReferenceSequence};
-    ///
-    /// let reference_sequence = ReferenceSequence::new(
-    ///     Default::default(),
-    ///     Vec::new(),
-    ///     Some(Metadata::new(
-    ///         bgzf::VirtualPosition::from(610),
-    ///         bgzf::VirtualPosition::from(1597),
-    ///         55,
-    ///         0,
-    ///     )),
-    /// );
-    ///
-    /// assert!(reference_sequence.metadata().is_some());
-    /// ```
-    pub fn metadata(&self) -> Option<&Metadata> {
-        self.metadata.as_ref()
     }
 
     /// Returns a list of bins in this reference sequence that intersects the given range.
@@ -260,6 +236,12 @@ impl ReferenceSequence {
         } else {
             self.linear_index().last().copied()
         }
+    }
+}
+
+impl binning_index::ReferenceSequence for ReferenceSequence {
+    fn metadata(&self) -> Option<&Metadata> {
+        self.metadata.as_ref()
     }
 }
 

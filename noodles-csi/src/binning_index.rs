@@ -1,11 +1,14 @@
 //! Binning index.
 
+mod reference_sequence;
+
 use std::io;
 
 use noodles_bgzf as bgzf;
 use noodles_core::region::Interval;
 
-use super::index::{reference_sequence::bin::Chunk, Header, ReferenceSequence};
+pub use self::reference_sequence::ReferenceSequence;
+use super::index::{reference_sequence::bin::Chunk, Header};
 
 /// A binning index.
 pub trait BinningIndex {
@@ -19,7 +22,7 @@ pub trait BinningIndex {
     fn header(&self) -> Option<&Header>;
 
     /// Returns an iterator over reference sequences.
-    fn reference_sequences(&self) -> Box<dyn Iterator<Item = &ReferenceSequence> + '_>;
+    fn reference_sequences(&self) -> Box<dyn Iterator<Item = &dyn ReferenceSequence> + '_>;
 
     /// Returns the number of unplaced, unmapped records in the associated file.
     fn unplaced_unmapped_record_count(&self) -> Option<u64>;
@@ -50,7 +53,7 @@ where
         (**self).header()
     }
 
-    fn reference_sequences(&self) -> Box<dyn Iterator<Item = &ReferenceSequence> + '_> {
+    fn reference_sequences(&self) -> Box<dyn Iterator<Item = &dyn ReferenceSequence> + '_> {
         (**self).reference_sequences()
     }
 

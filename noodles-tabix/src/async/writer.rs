@@ -1,6 +1,7 @@
 use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
 use noodles_csi::{
+    binning_index::ReferenceSequence as _,
     index::{
         header::ReferenceSequenceNames,
         reference_sequence::{bin::Chunk, Bin, Metadata},

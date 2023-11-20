@@ -149,6 +149,7 @@ impl Default for Builder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::binning_index::ReferenceSequence as _;
 
     #[test]
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {

@@ -1,8 +1,11 @@
 use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
-use noodles_csi::index::{
-    reference_sequence::{bin::Chunk, Bin, Metadata},
-    ReferenceSequence,
+use noodles_csi::{
+    binning_index::ReferenceSequence as _,
+    index::{
+        reference_sequence::{bin::Chunk, Bin, Metadata},
+        ReferenceSequence,
+    },
 };
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 

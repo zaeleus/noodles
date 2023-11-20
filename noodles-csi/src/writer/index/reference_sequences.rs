@@ -6,7 +6,7 @@ use std::io::{self, Write};
 use byteorder::{LittleEndian, WriteBytesExt};
 
 use self::{bins::write_bins, metadata::write_metadata};
-use crate::index::ReferenceSequence;
+use crate::{binning_index::ReferenceSequence as _, index::ReferenceSequence};
 
 pub(super) fn write_reference_sequences<W>(
     writer: &mut W,

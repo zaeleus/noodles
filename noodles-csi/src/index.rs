@@ -14,7 +14,7 @@ use std::io;
 use noodles_bgzf as bgzf;
 use noodles_core::{region::Interval, Position};
 
-use super::{index::reference_sequence::bin::Chunk, BinningIndex};
+use super::{binning_index, index::reference_sequence::bin::Chunk, BinningIndex};
 
 /// A coordinate-sorted index (CSI).
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -96,8 +96,14 @@ impl BinningIndex for Index {
         self.header.as_ref()
     }
 
-    fn reference_sequences(&self) -> Box<dyn Iterator<Item = &ReferenceSequence> + '_> {
-        Box::new(self.reference_sequences.iter())
+    fn reference_sequences(
+        &self,
+    ) -> Box<dyn Iterator<Item = &dyn binning_index::ReferenceSequence> + '_> {
+        Box::new(
+            self.reference_sequences.iter().map(|reference_sequence| {
+                reference_sequence as &dyn binning_index::ReferenceSequence
+            }),
+        )
     }
 
     fn unplaced_unmapped_record_count(&self) -> Option<u64> {
