@@ -29,7 +29,7 @@
 
 ### Removed
 
-  * csi/index/reference_sequence/bin: Remove `Bin::loffset`.
+  * csi/binning_index/index/reference_sequence/bin: Remove `Bin::loffset`.
 
     First record positions for each bin is now moved to the reference sequence.
 
