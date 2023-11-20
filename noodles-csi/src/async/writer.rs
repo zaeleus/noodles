@@ -3,10 +3,12 @@ use noodles_bgzf as bgzf;
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 use crate::{
-    binning_index::ReferenceSequence as _,
-    index::{
-        reference_sequence::{bin::Chunk, index::BinnedIndex, Bin, Metadata},
-        Header, ReferenceSequence,
+    binning_index::{
+        index::{
+            reference_sequence::{bin::Chunk, index::BinnedIndex, Bin, Metadata},
+            Header, ReferenceSequence,
+        },
+        ReferenceSequence as _,
     },
     BinningIndex, Index,
 };
@@ -84,12 +86,12 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn write_index(&mut self, index: &Index<BinnedIndex>) -> io::Result<()> {
+    pub async fn write_index(&mut self, index: &Index) -> io::Result<()> {
         write_index(&mut self.inner, index).await
     }
 }
 
-async fn write_index<W>(writer: &mut W, index: &Index<BinnedIndex>) -> io::Result<()>
+async fn write_index<W>(writer: &mut W, index: &Index) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {

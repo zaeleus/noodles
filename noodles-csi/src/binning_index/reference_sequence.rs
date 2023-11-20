@@ -1,4 +1,4 @@
-use crate::index::reference_sequence::Metadata;
+use super::index::reference_sequence::Metadata;
 
 /// A binning index reference sequence.
 pub trait ReferenceSequence {

@@ -12,7 +12,7 @@ use noodles_bgzf as bgzf;
 
 pub use self::chunks::read_chunks;
 use super::read_metadata;
-use crate::index::reference_sequence::{index::BinnedIndex, Bin, Metadata};
+use crate::binning_index::index::reference_sequence::{index::BinnedIndex, Bin, Metadata};
 
 /// An error returned when CSI reference sequence bins fail to be read.
 #[derive(Debug)]

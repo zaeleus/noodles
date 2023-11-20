@@ -7,7 +7,7 @@ pub use self::record::Record;
 use std::io::{self, BufRead, Lines};
 
 use self::record::parse_record;
-use crate::index::{header::format::CoordinateSystem, Header};
+use crate::binning_index::index::{header::format::CoordinateSystem, Header};
 
 use super::FilterByRegion;
 

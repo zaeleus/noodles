@@ -8,7 +8,7 @@ use noodles_bam as bam;
 use noodles_cram::{self as cram, crai};
 use noodles_csi::{
     self as csi,
-    index::reference_sequence::index::{BinnedIndex, LinearIndex},
+    binning_index::index::reference_sequence::index::{BinnedIndex, LinearIndex},
     BinningIndex,
 };
 use noodles_fasta as fasta;
@@ -28,14 +28,14 @@ pub enum Index {
     Crai(crai::Index),
 }
 
-impl From<csi::Index<BinnedIndex>> for Index {
-    fn from(index: csi::Index<BinnedIndex>) -> Self {
+impl From<csi::binning_index::Index<BinnedIndex>> for Index {
+    fn from(index: csi::binning_index::Index<BinnedIndex>) -> Self {
         Self::Csi(Box::new(index))
     }
 }
 
-impl From<csi::Index<LinearIndex>> for Index {
-    fn from(index: csi::Index<LinearIndex>) -> Self {
+impl From<csi::binning_index::Index<LinearIndex>> for Index {
+    fn from(index: csi::binning_index::Index<LinearIndex>) -> Self {
         Self::Csi(Box::new(index))
     }
 }

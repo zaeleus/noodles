@@ -2,7 +2,7 @@ use std::{error, fmt};
 
 use noodles_core::{position, Position};
 
-use crate::index::header::format::CoordinateSystem;
+use crate::binning_index::index::header::format::CoordinateSystem;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {

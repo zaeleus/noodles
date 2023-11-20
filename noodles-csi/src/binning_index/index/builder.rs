@@ -20,8 +20,8 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::{self as csi, index::reference_sequence::index::BinnedIndex, BinningIndex};
-    /// let index = csi::Index::<BinnedIndex>::builder().set_min_shift(13).build();
+    /// use noodles_csi::{self as csi, BinningIndex};
+    /// let index = csi::Index::builder().set_min_shift(13).build();
     /// assert_eq!(index.min_shift(), 13);
     /// ```
     pub fn set_min_shift(mut self, min_shift: u8) -> Self {
@@ -34,8 +34,8 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::{self as csi, index::reference_sequence::index::BinnedIndex, BinningIndex};
-    /// let index = csi::Index::<BinnedIndex>::builder().set_depth(8).build();
+    /// use noodles_csi::{self as csi, BinningIndex};
+    /// let index = csi::Index::builder().set_depth(8).build();
     /// assert_eq!(index.depth(), 8);
     /// ```
     pub fn set_depth(mut self, depth: u8) -> Self {
@@ -48,9 +48,9 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::{self as csi, index::reference_sequence::index::BinnedIndex, BinningIndex};
-    /// let header = csi::index::Header::default();
-    /// let index = csi::Index::<BinnedIndex>::builder().set_header(header.clone()).build();
+    /// use noodles_csi::{self as csi, binning_index::index::Header, BinningIndex};
+    /// let header = Header::default();
+    /// let index = csi::Index::builder().set_header(header.clone()).build();
     /// assert_eq!(index.header(), Some(&header));
     /// ```
     pub fn set_header(mut self, header: Header) -> Self {
@@ -63,9 +63,9 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::{self as csi, index::ReferenceSequence};
+    /// use noodles_csi::{self as csi, binning_index::index::ReferenceSequence};
     ///
-    /// let reference_sequences = vec![ReferenceSequence::new(Default::default(), Vec::new(), None)];
+    /// let reference_sequences = vec![ReferenceSequence::new(Default::default(), Default::default(), None)];
     /// let index = csi::Index::builder()
     ///     .set_reference_sequences(reference_sequences.clone())
     ///     .build();
@@ -85,12 +85,8 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::{self as csi, index::reference_sequence::index::BinnedIndex};
-    ///
-    /// let index = csi::Index::<BinnedIndex>::builder()
-    ///     .set_unplaced_unmapped_record_count(21)
-    ///     .build();
-    ///
+    /// use noodles_csi as csi;
+    /// let index = csi::Index::builder().set_unplaced_unmapped_record_count(21).build();
     /// assert_eq!(index.unplaced_unmapped_record_count(), Some(21));
     /// ```
     pub fn set_unplaced_unmapped_record_count(
@@ -106,8 +102,8 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::{self as csi, index::reference_sequence::index::BinnedIndex};
-    /// let index = csi::Index::<BinnedIndex>::builder().build();
+    /// use noodles_csi as csi;
+    /// let index = csi::Index::builder().build();
     /// ```
     pub fn build(self) -> Index<I> {
         Index {
@@ -135,7 +131,7 @@ impl<I> Default for Builder<I> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::index::reference_sequence::index::BinnedIndex;
+    use crate::binning_index::index::reference_sequence::index::BinnedIndex;
 
     #[test]
     fn test_default() {

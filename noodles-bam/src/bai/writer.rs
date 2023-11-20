@@ -1,12 +1,12 @@
 use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
-use noodles_csi::{
-    binning_index::ReferenceSequence as _,
+use noodles_csi::binning_index::{
     index::{
         reference_sequence::{bin::Chunk, index::LinearIndex, Bin, Metadata},
         ReferenceSequence,
     },
+    ReferenceSequence as _,
 };
 
 use super::{Index, MAGIC_NUMBER};
@@ -20,7 +20,7 @@ use super::{Index, MAGIC_NUMBER};
 /// use noodles_bam::bai;
 /// use noodles_csi as csi;
 ///
-/// let index = csi::Index::default();
+/// let index = bai::Index::default();
 ///
 /// let mut writer = File::create("sample.bam.bai").map(bai::Writer::new)?;
 /// writer.write_index(&index)?;
@@ -66,9 +66,8 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bam::bai;
-    /// use noodles_csi as csi;
     ///
-    /// let index = csi::Index::default();
+    /// let index = bai::Index::default();
     ///
     /// let mut writer = bai::Writer::new(Vec::new());
     /// writer.write_index(&index)?;

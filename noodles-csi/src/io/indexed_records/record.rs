@@ -5,7 +5,9 @@ use std::{error, fmt, ops::Range};
 use noodles_core::Position;
 
 use self::position::parse_start_position;
-use crate::{index::header::format::coordinate_system::CoordinateSystem, io::IndexedRecord};
+use crate::{
+    binning_index::index::header::format::coordinate_system::CoordinateSystem, io::IndexedRecord,
+};
 
 pub struct Record {
     buf: String,

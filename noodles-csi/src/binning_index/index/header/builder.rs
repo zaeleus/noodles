@@ -19,8 +19,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
-    /// let builder = csi::index::header::Builder::bed();
+    /// use noodles_csi::binning_index::index::header::Builder;
+    /// let builder = Builder::bed();
     /// ```
     pub fn bed() -> Self {
         Self {
@@ -39,8 +39,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
-    /// let builder = csi::index::header::Builder::gff();
+    /// use noodles_csi::binning_index::index::header::Builder;
+    /// let builder = Builder::gff();
     /// ```
     pub fn gff() -> Self {
         Self {
@@ -59,8 +59,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
-    /// let builder = csi::index::header::Builder::sam();
+    /// use noodles_csi::binning_index::index::header::Builder;
+    /// let builder = Builder::sam();
     /// ```
     pub fn sam() -> Self {
         Self {
@@ -79,8 +79,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
-    /// let builder = csi::index::header::Builder::vcf();
+    /// use noodles_csi::binning_index::index::header::Builder;
+    /// let builder = Builder::vcf();
     /// ```
     pub fn vcf() -> Self {
         Self {
@@ -99,12 +99,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::{self as csi, index::header::Format};
-    ///
-    /// let header = csi::index::Header::builder()
-    ///     .set_format(Format::Vcf)
-    ///     .build();
-    ///
+    /// use noodles_csi::binning_index::index::{header::Format, Header};
+    /// let header = Header::builder().set_format(Format::Vcf).build();
     /// assert_eq!(header.format(), Format::Vcf);
     /// ```
     pub fn set_format(mut self, format: Format) -> Self {
@@ -117,12 +113,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
-    ///
-    /// let header = csi::index::Header::builder()
-    ///     .set_reference_sequence_name_index(0)
-    ///     .build();
-    ///
+    /// use noodles_csi::binning_index::index::Header;
+    /// let header = Header::builder().set_reference_sequence_name_index(0).build();
     /// assert_eq!(header.reference_sequence_name_index(), 0);
     /// ```
     pub fn set_reference_sequence_name_index(
@@ -138,12 +130,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
-    ///
-    /// let header = csi::index::Header::builder()
-    ///     .set_start_position_index(3)
-    ///     .build();
-    ///
+    /// use noodles_csi::binning_index::index::Header;
+    /// let header = Header::builder().set_start_position_index(3).build();
     /// assert_eq!(header.start_position_index(), 3);
     /// ```
     pub fn set_start_position_index(mut self, start_position_index: usize) -> Self {
@@ -156,12 +144,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
-    ///
-    /// let header = csi::index::Header::builder()
-    ///     .set_end_position_index(Some(4))
-    ///     .build();
-    ///
+    /// use noodles_csi::binning_index::index::Header;
+    /// let header = Header::builder().set_end_position_index(Some(4)).build();
     /// assert_eq!(header.end_position_index(), Some(4));
     /// ```
     pub fn set_end_position_index(mut self, end_position_index: Option<usize>) -> Self {
@@ -174,12 +158,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
-    ///
-    /// let header = csi::index::Header::builder()
-    ///     .set_line_comment_prefix(b'#')
-    ///     .build();
-    ///
+    /// use noodles_csi::binning_index::index::Header;
+    /// let header = Header::builder().set_line_comment_prefix(b'#').build();
     /// assert_eq!(header.line_comment_prefix(), b'#');
     /// ```
     pub fn set_line_comment_prefix(mut self, line_comment_prefix: u8) -> Self {
@@ -192,12 +172,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
-    ///
-    /// let header = csi::index::Header::builder()
-    ///     .set_line_skip_count(0)
-    ///     .build();
-    ///
+    /// use noodles_csi::binning_index::index::Header;
+    /// let header = Header::builder().set_line_skip_count(0).build();
     /// assert_eq!(header.line_skip_count(), 0);
     /// ```
     pub fn set_line_skip_count(mut self, line_skip_count: u32) -> Self {
@@ -210,11 +186,11 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::{self as csi, index::header::ReferenceSequenceNames};
+    /// use noodles_csi::binning_index::index::{header::ReferenceSequenceNames, Header};
     ///
     /// let reference_sequence_names = ReferenceSequenceNames::new();
     ///
-    /// let header = csi::index::Header::builder()
+    /// let header = Header::builder()
     ///     .set_reference_sequence_names(reference_sequence_names.clone())
     ///     .build();
     ///
@@ -233,8 +209,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
-    /// let index = csi::index::Header::builder().build();
+    /// use noodles_csi::binning_index::index::Header;
+    /// let index = Header::builder().build();
     /// ```
     pub fn build(self) -> Header {
         Header {

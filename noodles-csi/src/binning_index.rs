@@ -1,5 +1,6 @@
 //! Binning index.
 
+pub mod index;
 mod reference_sequence;
 
 use std::io;
@@ -7,8 +8,8 @@ use std::io;
 use noodles_bgzf as bgzf;
 use noodles_core::region::Interval;
 
-pub use self::reference_sequence::ReferenceSequence;
-use super::index::{reference_sequence::bin::Chunk, Header};
+use self::index::{reference_sequence::bin::Chunk, Header};
+pub use self::{index::Index, reference_sequence::ReferenceSequence};
 
 /// A binning index.
 pub trait BinningIndex {
@@ -78,10 +79,7 @@ where
 ///
 /// ```
 /// use noodles_bgzf as bgzf;
-/// use noodles_csi::{
-///     binning_index::merge_chunks,
-///     index::reference_sequence::bin::Chunk,
-/// };
+/// use noodles_csi::binning_index::{index::reference_sequence::bin::Chunk, merge_chunks};
 ///
 /// let chunks = [
 ///     Chunk::new(bgzf::VirtualPosition::from(2), bgzf::VirtualPosition::from(3)),
@@ -113,10 +111,7 @@ pub fn merge_chunks(chunks: &[Chunk]) -> Vec<Chunk> {
 ///
 /// ```
 /// use noodles_bgzf as bgzf;
-/// use noodles_csi::{
-///     binning_index::optimize_chunks,
-///     index::reference_sequence::bin::Chunk,
-/// };
+/// use noodles_csi::binning_index::{index::reference_sequence::bin::Chunk, optimize_chunks};
 ///
 /// let chunks = [
 ///     Chunk::new(bgzf::VirtualPosition::from(2), bgzf::VirtualPosition::from(3)),

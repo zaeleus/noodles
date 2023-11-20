@@ -6,26 +6,25 @@ use std::{
 };
 
 use noodles_bgzf as bgzf;
-use noodles_csi::{self as csi, index::reference_sequence::index::LinearIndex, io::IndexedReader};
+use noodles_csi::io::IndexedReader;
+
+use crate::Index;
 
 /// An indexed reader builder.
 #[derive(Default)]
 pub struct Builder {
-    index: Option<csi::Index<LinearIndex>>,
+    index: Option<Index>,
 }
 
 impl Builder {
     /// Sets an index.
-    pub fn set_index(mut self, index: csi::Index<LinearIndex>) -> Self {
+    pub fn set_index(mut self, index: Index) -> Self {
         self.index = Some(index);
         self
     }
 
     /// Builds an indexed reader from a path.
-    pub fn build_from_path<P>(
-        self,
-        src: P,
-    ) -> io::Result<IndexedReader<bgzf::Reader<File>, csi::Index<LinearIndex>>>
+    pub fn build_from_path<P>(self, src: P) -> io::Result<IndexedReader<bgzf::Reader<File>, Index>>
     where
         P: AsRef<Path>,
     {
@@ -42,7 +41,7 @@ impl Builder {
     }
 }
 
-fn read_associated_index<P>(src: P) -> io::Result<csi::Index<LinearIndex>>
+fn read_associated_index<P>(src: P) -> io::Result<Index>
 where
     P: AsRef<Path>,
 {

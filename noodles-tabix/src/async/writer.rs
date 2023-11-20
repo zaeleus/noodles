@@ -1,11 +1,13 @@
 use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
 use noodles_csi::{
-    binning_index::ReferenceSequence as _,
-    index::{
-        header::ReferenceSequenceNames,
-        reference_sequence::{bin::Chunk, index::LinearIndex, Bin, Metadata},
-        Header, ReferenceSequence,
+    binning_index::{
+        index::{
+            header::ReferenceSequenceNames,
+            reference_sequence::{bin::Chunk, index::LinearIndex, Bin, Metadata},
+            Header, ReferenceSequence,
+        },
+        ReferenceSequence as _,
     },
     BinningIndex,
 };
@@ -56,10 +58,8 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
+    /// # async fn main() -> std::io::Result<()> {
     /// use noodles_tabix as tabix;
     /// let mut writer = tabix::AsyncWriter::new(Vec::new());
     /// writer.shutdown().await?;
@@ -75,16 +75,12 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
-    /// use noodles_csi as csi;
+    /// # async fn main() -> std::io::Result<()> {
+    /// use noodles_csi::binning_index::index::Header;
     /// use noodles_tabix as tabix;
     ///
-    /// let index = csi::Index::builder()
-    ///     .set_header(csi::index::Header::default())
-    ///     .build();
+    /// let index = tabix::Index::builder().set_header(Header::default()).build();
     ///
     /// let mut writer = tabix::AsyncWriter::new(Vec::new());
     /// writer.write_index(&index).await?;
@@ -353,7 +349,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_write_header() -> io::Result<()> {
-        use noodles_csi::index::header;
+        use noodles_csi::binning_index::index::header;
 
         let header = header::Builder::gff().build();
 

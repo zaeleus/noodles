@@ -14,9 +14,9 @@ use std::io;
 use noodles_bgzf as bgzf;
 use noodles_core::{region::Interval, Position};
 
-use super::{binning_index, index::reference_sequence::bin::Chunk, BinningIndex};
+use super::{index::reference_sequence::bin::Chunk, BinningIndex};
 
-/// A coordinate-sorted index (CSI).
+/// A binning index.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Index<I> {
     min_shift: u8,
@@ -35,8 +35,8 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::{self as csi, index::reference_sequence::index::BinnedIndex};
-    /// let builder = csi::Index::<BinnedIndex>::builder();
+    /// use noodles_csi as csi;
+    /// let builder = csi::Index::builder();
     /// ```
     pub fn builder() -> Builder<I> {
         Builder::default()
@@ -47,8 +47,8 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::{self as csi, index::reference_sequence::index::BinnedIndex};
-    /// let index = csi::Index::<BinnedIndex>::default();
+    /// use noodles_csi as csi;
+    /// let index = csi::Index::default();
     /// assert!(index.reference_sequences().is_empty());
     /// ```
     pub fn reference_sequences(&self) -> &[ReferenceSequence<I>] {
@@ -60,8 +60,8 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::{self as csi, index::reference_sequence::index::BinnedIndex};
-    /// let index = csi::Index::<BinnedIndex>::default();
+    /// use noodles_csi as csi;
+    /// let index = csi::Index::default();
     /// assert!(index.unplaced_unmapped_record_count().is_none());
     /// ```
     pub fn unplaced_unmapped_record_count(&self) -> Option<u64> {
@@ -105,13 +105,11 @@ where
         self.header.as_ref()
     }
 
-    fn reference_sequences(
-        &self,
-    ) -> Box<dyn Iterator<Item = &dyn binning_index::ReferenceSequence> + '_> {
+    fn reference_sequences(&self) -> Box<dyn Iterator<Item = &dyn super::ReferenceSequence> + '_> {
         Box::new(
-            self.reference_sequences.iter().map(|reference_sequence| {
-                reference_sequence as &dyn binning_index::ReferenceSequence
-            }),
+            self.reference_sequences
+                .iter()
+                .map(|reference_sequence| reference_sequence as &dyn super::ReferenceSequence),
         )
     }
 
@@ -120,7 +118,7 @@ where
     }
 
     fn query(&self, reference_sequence_id: usize, interval: Interval) -> io::Result<Vec<Chunk>> {
-        use super::binning_index::optimize_chunks;
+        use super::optimize_chunks;
 
         let reference_sequence = self
             .reference_sequences()

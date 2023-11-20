@@ -3,20 +3,21 @@ use std::io;
 use noodles_core::Position;
 use noodles_csi::{
     self as csi,
-    index::{
+    binning_index::index::{
         header::ReferenceSequenceNames,
         reference_sequence::{bin::Chunk, index::LinearIndex},
         Header,
     },
-    Index,
 };
+
+use crate::Index;
 
 /// A tabix indexer.
 #[derive(Debug, Default)]
 pub struct Indexer {
     header: Header,
     reference_sequence_names: ReferenceSequenceNames,
-    indexer: csi::index::Indexer<LinearIndex>,
+    indexer: csi::binning_index::index::Indexer<LinearIndex>,
 }
 
 impl Indexer {
@@ -25,11 +26,9 @@ impl Indexer {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
-    /// use noodles_tabix as tabix;
-    ///
-    /// let builder = tabix::index::Indexer::default()
-    ///     .set_header(csi::index::Header::default());
+    /// use noodles_csi::binning_index::index::Header;
+    /// use noodles_tabix::index::Indexer;
+    /// let builder = Indexer::default().set_header(Header::default());
     /// ```
     pub fn set_header(&mut self, header: Header) {
         self.header = header;
@@ -42,10 +41,10 @@ impl Indexer {
     /// ```
     /// use noodles_bgzf as bgzf;
     /// use noodles_core::Position;
-    /// use noodles_csi::index::reference_sequence::bin::Chunk;
-    /// use noodles_tabix as tabix;
+    /// use noodles_csi::binning_index::index::reference_sequence::bin::Chunk;
+    /// use noodles_tabix::index::Indexer;
     ///
-    /// let mut indexer = tabix::index::Indexer::default();
+    /// let mut indexer = Indexer::default();
     ///
     /// let start = Position::try_from(8)?;
     /// let end = Position::try_from(13)?;
@@ -79,7 +78,7 @@ impl Indexer {
     /// use noodles_tabix as tabix;
     /// let index = tabix::index::Indexer::default().build();
     /// ```
-    pub fn build(mut self) -> Index<LinearIndex> {
+    pub fn build(mut self) -> Index {
         let reference_sequence_count = self.reference_sequence_names.len();
 
         *self.header.reference_sequence_names_mut() = self.reference_sequence_names;

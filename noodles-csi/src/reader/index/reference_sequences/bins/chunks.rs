@@ -7,7 +7,7 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
 
-use crate::index::reference_sequence::bin::Chunk;
+use crate::binning_index::index::reference_sequence::bin::Chunk;
 
 /// An error returned when CSI reference sequence bin chunks fail to be read.
 #[derive(Debug)]

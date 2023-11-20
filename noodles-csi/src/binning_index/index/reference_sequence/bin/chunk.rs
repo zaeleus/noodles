@@ -18,7 +18,7 @@ impl Chunk {
     ///
     /// ```
     /// use noodles_bgzf as bgzf;
-    /// use noodles_csi::index::reference_sequence::bin::Chunk;
+    /// use noodles_csi::binning_index::index::reference_sequence::bin::Chunk;
     /// let chunk = Chunk::new(bgzf::VirtualPosition::from(8), bgzf::VirtualPosition::from(13));
     /// ```
     pub fn new(start: bgzf::VirtualPosition, end: bgzf::VirtualPosition) -> Self {
@@ -31,7 +31,7 @@ impl Chunk {
     ///
     /// ```
     /// use noodles_bgzf as bgzf;
-    /// use noodles_csi::index::reference_sequence::bin::Chunk;
+    /// use noodles_csi::binning_index::index::reference_sequence::bin::Chunk;
     /// let chunk = Chunk::new(bgzf::VirtualPosition::from(8), bgzf::VirtualPosition::from(13));
     /// assert_eq!(chunk.start(), bgzf::VirtualPosition::from(8));
     /// ```
@@ -45,7 +45,7 @@ impl Chunk {
     ///
     /// ```
     /// use noodles_bgzf as bgzf;
-    /// use noodles_csi::index::reference_sequence::bin::Chunk;
+    /// use noodles_csi::binning_index::index::reference_sequence::bin::Chunk;
     /// let chunk = Chunk::new(bgzf::VirtualPosition::from(8), bgzf::VirtualPosition::from(13));
     /// assert_eq!(chunk.end(), bgzf::VirtualPosition::from(13));
     /// ```

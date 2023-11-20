@@ -24,7 +24,7 @@ impl Bin {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::index::reference_sequence::Bin;
+    /// use noodles_csi::binning_index::index::reference_sequence::Bin;
     /// assert_eq!(Bin::max_id(5), 37449);
     /// ```
     pub const fn max_id(depth: u8) -> usize {
@@ -36,7 +36,7 @@ impl Bin {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::index::reference_sequence::Bin;
+    /// use noodles_csi::binning_index::index::reference_sequence::Bin;
     /// assert_eq!(Bin::metadata_id(5), 37450);
     /// ```
     pub const fn metadata_id(depth: u8) -> usize {
@@ -48,7 +48,7 @@ impl Bin {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::index::reference_sequence::Bin;
+    /// use noodles_csi::binning_index::index::reference_sequence::Bin;
     /// let bin = Bin::new(Vec::new());
     /// ```
     pub fn new(chunks: Vec<Chunk>) -> Self {
@@ -61,7 +61,7 @@ impl Bin {
     ///
     /// ```
     /// use noodles_bgzf as bgzf;
-    /// use noodles_csi::index::reference_sequence::Bin;
+    /// use noodles_csi::binning_index::index::reference_sequence::Bin;
     /// let bin = Bin::new(Vec::new());
     /// assert!(bin.chunks().is_empty());
     /// ```

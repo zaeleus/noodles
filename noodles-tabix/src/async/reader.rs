@@ -2,7 +2,7 @@ use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
 use noodles_csi::{
     self as csi,
-    index::{
+    binning_index::index::{
         reference_sequence::{bin::Chunk, index::LinearIndex, Bin, Metadata},
         Header, ReferenceSequence,
     },
@@ -351,7 +351,7 @@ mod tests {
         let names = [String::from("sq0"), String::from("sq1")]
             .into_iter()
             .collect();
-        let expected = csi::index::header::Builder::gff()
+        let expected = csi::binning_index::index::header::Builder::gff()
             .set_reference_sequence_names(names)
             .build();
 

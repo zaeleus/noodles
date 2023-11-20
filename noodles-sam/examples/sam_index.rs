@@ -9,7 +9,7 @@
 use std::{env, fs::File, io};
 
 use noodles_bgzf as bgzf;
-use noodles_csi::{self as csi, index::reference_sequence::bin::Chunk};
+use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
 use noodles_sam::{self as sam, alignment::Record};
 
 fn is_coordinate_sorted(header: &sam::Header) -> bool {
@@ -41,7 +41,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut record = Record::default();
 
-    let mut indexer = csi::index::Indexer::default();
+    let mut indexer = csi::binning_index::index::Indexer::default();
     let mut start_position = reader.get_ref().virtual_position();
 
     while reader.read_record(&header, &mut record)? != 0 {

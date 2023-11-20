@@ -40,12 +40,12 @@ pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};
 
 use std::{fs::File, path::Path};
 
-use noodles_csi::{self as csi, index::reference_sequence::index::LinearIndex};
+use noodles_csi::binning_index::{self, index::reference_sequence::index::LinearIndex};
 
 static MAGIC_NUMBER: &[u8] = b"TBI\x01";
 
 /// A tabix index.
-pub type Index = csi::Index<LinearIndex>;
+pub type Index = binning_index::Index<LinearIndex>;
 
 /// Reads the entire contents of a tabix index.
 ///
@@ -55,10 +55,9 @@ pub type Index = csi::Index<LinearIndex>;
 /// # Examples
 ///
 /// ```no_run
-/// # use std::io;
 /// use noodles_tabix as tabix;
 /// let index = tabix::read("sample.vcf.gz.tbi")?;
-/// # Ok::<(), io::Error>(())
+/// # Ok::<(), std::io::Error>(())
 /// ```
 pub fn read<P>(src: P) -> std::io::Result<Index>
 where
@@ -76,16 +75,12 @@ where
 /// # Examples
 ///
 /// ```no_run
-/// # use std::io;
-/// use noodles_csi as csi;
+/// use noodles_csi::binning_index::index::Header;
 /// use noodles_tabix as tabix;
 ///
-/// let index = csi::Index::builder()
-///     .set_header(csi::index::Header::default())
-///     .build();
-///
+/// let index = tabix::Index::builder().set_header(Header::default()).build();
 /// tabix::write("sample.vcf.gz.tbi", &index)?;
-/// # Ok::<(), io::Error>(())
+/// # Ok::<(), std::io::Error>(())
 /// ```
 pub fn write<P>(dst: P, index: &Index) -> std::io::Result<()>
 where

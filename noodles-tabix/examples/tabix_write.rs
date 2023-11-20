@@ -7,7 +7,7 @@ use std::{fs::File, io::Write};
 
 use noodles_bgzf as bgzf;
 use noodles_core::Position;
-use noodles_csi::{self as csi, index::reference_sequence::bin::Chunk};
+use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
 use noodles_tabix as tabix;
 
 const DST: &str = "out.tsv.gz";
@@ -22,7 +22,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut writer = File::create(DST).map(bgzf::Writer::new)?;
 
     let mut indexer = tabix::index::Indexer::default();
-    indexer.set_header(csi::index::header::Builder::bed().build());
+    indexer.set_header(csi::binning_index::index::header::Builder::bed().build());
 
     let mut start_position = writer.virtual_position();
 

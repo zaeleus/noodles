@@ -1,11 +1,11 @@
 use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
-use noodles_csi::{
-    binning_index::ReferenceSequence as _,
+use noodles_csi::binning_index::{
     index::{
         reference_sequence::{bin::Chunk, index::LinearIndex, Bin, Metadata},
         ReferenceSequence,
     },
+    ReferenceSequence as _,
 };
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
@@ -76,9 +76,8 @@ where
     /// # #[tokio::main]
     /// # async fn main() -> io::Result<()> {
     /// use noodles_bam::bai;
-    /// use noodles_csi as csi;
     ///
-    /// let index = csi::Index::default();
+    /// let index = bai::Index::default();
     ///
     /// let mut writer = bai::AsyncWriter::new(Vec::new());
     /// writer.write_index(&index).await?;

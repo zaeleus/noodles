@@ -6,7 +6,7 @@ use std::{
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use crate::index::{
+use crate::binning_index::index::{
     header::{format, ReferenceSequenceNames},
     Header,
 };
@@ -111,7 +111,7 @@ pub fn read_header<R>(reader: &mut R) -> Result<Header, ReadError>
 where
     R: Read,
 {
-    use crate::index::header::Format;
+    use crate::binning_index::index::header::Format;
 
     let format =
         read_i32(reader).and_then(|n| Format::try_from(n).map_err(ReadError::InvalidFormat))?;
@@ -259,7 +259,7 @@ mod tests {
         let names = [String::from("sq0"), String::from("sq1")]
             .into_iter()
             .collect();
-        let expected = crate::index::header::Builder::vcf()
+        let expected = crate::binning_index::index::header::Builder::vcf()
             .set_reference_sequence_names(names)
             .build();
 

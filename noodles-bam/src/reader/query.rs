@@ -2,7 +2,7 @@ use std::io::{self, Read, Seek};
 
 use noodles_bgzf as bgzf;
 use noodles_core::region::Interval;
-use noodles_csi::{self as csi, index::reference_sequence::bin::Chunk};
+use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
 use noodles_sam::{self as sam, alignment::Record};
 
 use super::Reader;

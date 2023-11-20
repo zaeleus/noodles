@@ -1,13 +1,12 @@
 use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use csi::index::reference_sequence::index::LinearIndex;
 use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
 use noodles_csi::{
     self as csi,
-    index::{
-        reference_sequence::{Bin, Metadata},
+    binning_index::index::{
+        reference_sequence::{index::LinearIndex, Bin, Metadata},
         ReferenceSequence,
     },
 };

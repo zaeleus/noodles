@@ -3,7 +3,7 @@ use std::io::{self, Write};
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf as bgzf;
 
-use crate::index::reference_sequence::{Bin, Metadata};
+use crate::binning_index::index::reference_sequence::{Bin, Metadata};
 
 pub(super) fn write_metadata<W>(writer: &mut W, depth: u8, metadata: &Metadata) -> io::Result<()>
 where

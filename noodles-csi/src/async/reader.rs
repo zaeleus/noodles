@@ -3,7 +3,7 @@ use noodles_bgzf as bgzf;
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::{
-    index::{
+    binning_index::index::{
         reference_sequence::{bin::Chunk, index::BinnedIndex, Bin, Metadata},
         Header, ReferenceSequence,
     },
@@ -59,7 +59,7 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_index(&mut self) -> io::Result<Index<BinnedIndex>> {
+    pub async fn read_index(&mut self) -> io::Result<Index> {
         read_magic(&mut self.inner).await?;
 
         let (min_shift, depth, header) = read_header(&mut self.inner).await?;
@@ -282,7 +282,7 @@ async fn read_metadata<R>(reader: &mut R) -> io::Result<Metadata>
 where
     R: AsyncRead + Unpin,
 {
-    use crate::index::reference_sequence::bin::METADATA_CHUNK_COUNT;
+    use crate::binning_index::index::reference_sequence::bin::METADATA_CHUNK_COUNT;
 
     let n_chunk = reader.read_u32_le().await?;
 

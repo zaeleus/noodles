@@ -28,8 +28,8 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
-    /// let builder = csi::index::Header::builder();
+    /// use noodles_csi::binning_index::index::Header;
+    /// let builder = Header::builder();
     /// ```
     pub fn builder() -> Builder {
         Builder::default()
@@ -40,12 +40,8 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::{self as csi, index::header::Format};
-    ///
-    /// let header = csi::index::Header::builder()
-    ///     .set_format(Format::Vcf)
-    ///     .build();
-    ///
+    /// use noodles_csi::binning_index::index::{header::Format, Header};
+    /// let header = Header::builder().set_format(Format::Vcf).build();
     /// assert_eq!(header.format(), Format::Vcf);
     /// ```
     pub fn format(&self) -> Format {
@@ -59,12 +55,8 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
-    ///
-    /// let header = csi::index::Header::builder()
-    ///     .set_reference_sequence_name_index(0)
-    ///     .build();
-    ///
+    /// use noodles_csi::binning_index::index::Header;
+    /// let header = Header::builder().set_reference_sequence_name_index(0).build();
     /// assert_eq!(header.reference_sequence_name_index(), 0);
     /// ```
     pub fn reference_sequence_name_index(&self) -> usize {
@@ -78,12 +70,8 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
-    ///
-    /// let header = csi::index::Header::builder()
-    ///     .set_start_position_index(3)
-    ///     .build();
-    ///
+    /// use noodles_csi::binning_index::index::Header;
+    /// let header = Header::builder().set_start_position_index(3).build();
     /// assert_eq!(header.start_position_index(), 3);
     /// ```
     pub fn start_position_index(&self) -> usize {
@@ -98,12 +86,8 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
-    ///
-    /// let header = csi::index::Header::builder()
-    ///     .set_end_position_index(Some(5))
-    ///     .build();
-    ///
+    /// use noodles_csi::binning_index::index::Header;
+    /// let header = Header::builder().set_end_position_index(Some(5)).build();
     /// assert_eq!(header.end_position_index(), Some(5));
     /// ```
     pub fn end_position_index(&self) -> Option<usize> {
@@ -115,12 +99,8 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
-    ///
-    /// let header = csi::index::Header::builder()
-    ///     .set_line_comment_prefix(b'#')
-    ///     .build();
-    ///
+    /// use noodles_csi::binning_index::index::Header;
+    /// let header = Header::builder().set_line_comment_prefix(b'#').build();
     /// assert_eq!(header.line_comment_prefix(), b'#');
     /// ```
     pub fn line_comment_prefix(&self) -> u8 {
@@ -132,12 +112,8 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
-    ///
-    /// let header = csi::index::Header::builder()
-    ///     .set_line_skip_count(0)
-    ///     .build();
-    ///
+    /// use noodles_csi::binning_index::index::Header;
+    /// let header = Header::builder().set_line_skip_count(0).build();
     /// assert_eq!(header.line_skip_count(), 0);
     /// ```
     pub fn line_skip_count(&self) -> u32 {
@@ -149,11 +125,11 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::{self as csi, index::header::ReferenceSequenceNames};
+    /// use noodles_csi::binning_index::index::{header::ReferenceSequenceNames, Header};
     ///
     /// let reference_sequence_names = ReferenceSequenceNames::new();
     ///
-    /// let header = csi::index::Header::builder()
+    /// let header = Header::builder()
     ///     .set_reference_sequence_names(reference_sequence_names.clone())
     ///     .build();
     ///
@@ -168,11 +144,11 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::{self as csi, index::header::ReferenceSequenceNames};
+    /// use noodles_csi::binning_index::index::{header::ReferenceSequenceNames, Header};
     ///
     /// let reference_sequence_names = ReferenceSequenceNames::new();
     ///
-    /// let mut header = csi::index::Header::default();
+    /// let mut header = Header::default();
     /// *header.reference_sequence_names_mut() = reference_sequence_names.clone();
     ///
     /// assert_eq!(header.reference_sequence_names(), &reference_sequence_names);

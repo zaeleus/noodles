@@ -19,10 +19,8 @@ use super::Index;
 /// # Examples
 ///
 /// ```no_run
-/// # use std::io;
-/// #
 /// # #[tokio::main]
-/// # async fn main() -> io::Result<()> {
+/// # async fn main() -> std::io::Result<()> {
 /// use noodles_tabix as tabix;
 /// let index = tabix::r#async::read("sample.vcf.gz.tbi").await?;
 /// # Ok(())
@@ -44,17 +42,12 @@ where
 /// # Examples
 ///
 /// ```no_run
-/// # use std::io;
-/// #
 /// # #[tokio::main]
-/// # async fn main() -> io::Result<()> {
-/// use noodles_csi as csi;
+/// # async fn main() -> std::io::Result<()> {
+/// use noodles_csi::binning_index::index::Header;
 /// use noodles_tabix as tabix;
 ///
-/// let index = csi::Index::builder()
-///     .set_header(csi::index::Header::default())
-///     .build();
-///
+/// let index = tabix::Index::builder().set_header(Header::default()).build();
 /// tabix::r#async::write("sample.vcf.gz.tbi", &index).await?;
 /// # Ok(())
 /// # }

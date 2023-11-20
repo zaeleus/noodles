@@ -3,7 +3,7 @@ use noodles_bgzf as bgzf;
 use noodles_core::Position;
 
 use super::Index;
-use crate::index::reference_sequence::{bin::Chunk, parent_id, reg2bin};
+use crate::binning_index::index::reference_sequence::{bin::Chunk, parent_id, reg2bin};
 
 /// A binned index.
 pub type BinnedIndex = IndexMap<usize, bgzf::VirtualPosition>;

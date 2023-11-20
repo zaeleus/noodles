@@ -3,11 +3,13 @@ use std::io::{self, Write};
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf as bgzf;
 use noodles_csi::{
-    binning_index::ReferenceSequence as _,
-    index::{
-        header::ReferenceSequenceNames,
-        reference_sequence::{bin::Chunk, index::LinearIndex, Bin, Metadata},
-        Header, ReferenceSequence,
+    binning_index::{
+        index::{
+            header::ReferenceSequenceNames,
+            reference_sequence::{bin::Chunk, index::LinearIndex, Bin, Metadata},
+            Header, ReferenceSequence,
+        },
+        ReferenceSequence as _,
     },
     BinningIndex,
 };
@@ -76,18 +78,13 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
-    /// use noodles_csi as csi;
+    /// use noodles_csi::binning_index::index::Header;
     /// use noodles_tabix as tabix;
     ///
     /// let mut writer = tabix::Writer::new(Vec::new());
-    ///
-    /// let index = csi::Index::builder()
-    ///     .set_header(csi::index::Header::default())
-    ///     .build();
-    ///
+    /// let index = tabix::Index::builder().set_header(Header::default()).build();
     /// writer.write_index(&index)?;
-    /// # Ok::<(), io::Error>(())
+    /// # Ok::<(), std::io::Error>(())
     /// ```
     pub fn write_index(&mut self, index: &Index) -> io::Result<()> {
         write_index(&mut self.inner, index)
@@ -315,9 +312,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use noodles_bgzf as bgzf;
-    use noodles_csi as csi;
-
     use super::*;
 
     #[test]
@@ -334,7 +328,7 @@ mod tests {
             .into_iter()
             .collect();
 
-        let header = csi::index::Header::builder()
+        let header = Header::builder()
             .set_reference_sequence_names(reference_sequence_names)
             .build();
 

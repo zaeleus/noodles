@@ -1,15 +1,12 @@
 use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
-use noodles_csi::{
-    index::{
-        reference_sequence::{bin::Chunk, index::LinearIndex, Bin, Metadata},
-        ReferenceSequence,
-    },
-    Index,
+use noodles_csi::binning_index::index::{
+    reference_sequence::{bin::Chunk, index::LinearIndex, Bin, Metadata},
+    ReferenceSequence,
 };
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
-use crate::bai::MAGIC_NUMBER;
+use crate::bai::{Index, MAGIC_NUMBER};
 
 /// An async BAM index (BAI) reader.
 pub struct Reader<R>
@@ -58,7 +55,7 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_index(&mut self) -> io::Result<Index<LinearIndex>> {
+    pub async fn read_index(&mut self) -> io::Result<Index> {
         read_magic(&mut self.inner).await?;
 
         let reference_sequences = read_reference_sequences(&mut self.inner).await?;

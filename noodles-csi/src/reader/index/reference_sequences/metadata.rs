@@ -6,7 +6,7 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
 
-use crate::index::reference_sequence::{bin::METADATA_CHUNK_COUNT, Metadata};
+use crate::binning_index::index::reference_sequence::{bin::METADATA_CHUNK_COUNT, Metadata};
 
 /// An error returned when CSI reference sequence metadata fail to be read.
 #[derive(Debug)]

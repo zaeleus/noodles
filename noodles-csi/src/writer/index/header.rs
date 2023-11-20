@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 
-use crate::index::{header::ReferenceSequenceNames, Header};
+use crate::binning_index::index::{header::ReferenceSequenceNames, Header};
 
 pub(super) fn write_aux<W>(writer: &mut W, header: Option<&Header>) -> io::Result<()>
 where
@@ -103,7 +103,7 @@ mod tests {
         let names = [String::from("sq0"), String::from("sq1")]
             .into_iter()
             .collect();
-        let header = crate::index::header::Builder::vcf()
+        let header = crate::binning_index::index::header::Builder::vcf()
             .set_reference_sequence_names(names)
             .build();
 

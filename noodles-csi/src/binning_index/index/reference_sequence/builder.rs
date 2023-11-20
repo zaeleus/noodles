@@ -105,8 +105,8 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        binning_index::ReferenceSequence as _, index::reference_sequence::index::LinearIndex,
+    use crate::binning_index::{
+        index::reference_sequence::index::LinearIndex, ReferenceSequence as _,
     };
 
     #[test]

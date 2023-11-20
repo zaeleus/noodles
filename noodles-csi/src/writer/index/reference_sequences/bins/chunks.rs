@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 
-use crate::index::reference_sequence::bin::Chunk;
+use crate::binning_index::index::reference_sequence::bin::Chunk;
 
 pub(super) fn write_chunks<W>(writer: &mut W, chunks: &[Chunk]) -> io::Result<()>
 where

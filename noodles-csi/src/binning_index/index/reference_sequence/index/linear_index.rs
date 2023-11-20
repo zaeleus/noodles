@@ -2,7 +2,7 @@ use noodles_bgzf as bgzf;
 use noodles_core::Position;
 
 use super::Index;
-use crate::index::reference_sequence::bin::Chunk;
+use crate::binning_index::index::reference_sequence::bin::Chunk;
 
 /// A linear index.
 pub type LinearIndex = Vec<bgzf::VirtualPosition>;

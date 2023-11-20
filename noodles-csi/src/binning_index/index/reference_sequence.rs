@@ -34,7 +34,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::index::ReferenceSequence;
+    /// use noodles_csi::binning_index::index::ReferenceSequence;
     /// let reference_sequence = ReferenceSequence::new(Default::default(), Vec::new(), None);
     /// ```
     pub fn new(bins: IndexMap<usize, Bin>, index: I, metadata: Option<Metadata>) -> Self {
@@ -52,7 +52,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::index::ReferenceSequence;
+    /// use noodles_csi::binning_index::index::ReferenceSequence;
     /// let reference_sequence = ReferenceSequence::new(Default::default(), Vec::new(), None);
     /// assert!(reference_sequence.bins().is_empty());
     /// ```
@@ -75,7 +75,7 @@ where
     ///
     /// ```
     /// use noodles_core::Position;
-    /// use noodles_csi::index::ReferenceSequence;
+    /// use noodles_csi::binning_index::index::ReferenceSequence;
     ///
     /// let reference_sequence = ReferenceSequence::new(Default::default(), Vec::new(), None);
     /// let start = Position::try_from(8)?;
@@ -114,7 +114,7 @@ where
     /// ```
     /// use noodles_bgzf as bgzf;
     /// use noodles_core::Position;
-    /// use noodles_csi::index::{
+    /// use noodles_csi::binning_index::index::{
     ///     reference_sequence::{index::BinnedIndex, Bin},
     ///     ReferenceSequence,
     /// };
@@ -154,7 +154,7 @@ where
     ///
     /// ```
     /// use noodles_bgzf as bgzf;
-    /// use noodles_csi::index::{
+    /// use noodles_csi::binning_index::index::{
     ///     reference_sequence::{index::BinnedIndex, Bin},
     ///     ReferenceSequence,
     /// };

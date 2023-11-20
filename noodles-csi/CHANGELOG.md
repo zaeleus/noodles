@@ -12,11 +12,15 @@
     `Index::header`, `Index::unplaced_unmapped_record_count`, or
     `Index::query`.
 
+  * csi: Move `Index` under the `binning_index` module.
+
   * csi/io/index_reader: Add type parameter for the index.
 
 ### Changed
 
   * csi: Increase the visibility of the `reader` module.
+
+  * csi: Define `csi::Index` as `binning_index::Index<BinnedIndex>`.
 
 ### Removed
 

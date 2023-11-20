@@ -74,10 +74,10 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::{self as csi, index::reference_sequence::index::BinnedIndex};
+    /// use noodles_csi as csi;
     /// use noodles_util::variant;
     ///
-    /// let index = csi::Index::<BinnedIndex>::default();
+    /// let index = csi::Index::default();
     /// let builder = variant::indexed_reader::Builder::default().set_index(index);
     /// ```
     pub fn set_index<I>(mut self, index: I) -> Self
@@ -154,18 +154,18 @@ impl Builder {
     /// ```
     /// # use std::io::{self, Write};
     /// use noodles_bgzf as bgzf;
-    /// use noodles_csi::{self as csi, index::reference_sequence::index::BinnedIndex};
+    /// use noodles_csi as csi;
     /// use noodles_util::variant;
     ///
     /// let mut writer = bgzf::Writer::new(Vec::new());
     /// writer.write_all(b"BCF")?;
     /// let data = writer.finish()?;
     ///
-    /// let index = csi::Index::<BinnedIndex>::default();
+    /// let index = csi::Index::default();
     /// let reader = variant::indexed_reader::Builder::default()
     ///     .set_index(index)
     ///     .build_from_reader(&data[..])?;
-    /// # Ok::<_, std::io::Error>(())
+    /// # Ok::<_, io::Error>(())
     /// ```
     pub fn build_from_reader<R>(self, reader: R) -> io::Result<IndexedReader<BufReader<R>>>
     where
@@ -212,7 +212,7 @@ impl Builder {
 
 #[cfg(test)]
 mod tests {
-    use noodles_csi::{self as csi, index::reference_sequence::index::BinnedIndex};
+    use noodles_csi as csi;
 
     use super::*;
 
@@ -224,7 +224,7 @@ mod tests {
         writer.try_finish()?;
         let data = writer.into_inner().into_inner();
 
-        let index = csi::Index::<BinnedIndex>::default();
+        let index = csi::Index::default();
 
         let mut reader = Builder::default()
             .set_index(index)

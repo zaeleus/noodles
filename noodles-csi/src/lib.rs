@@ -6,19 +6,21 @@
 pub mod r#async;
 
 pub mod binning_index;
-pub mod index;
 pub mod io;
 pub mod reader;
 mod writer;
 
-pub use self::{binning_index::BinningIndex, index::Index, reader::Reader, writer::Writer};
+pub use self::{binning_index::BinningIndex, reader::Reader, writer::Writer};
 
 #[cfg(feature = "async")]
 pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};
 
 use std::{fs::File, path::Path};
 
-use index::reference_sequence::index::BinnedIndex;
+use self::binning_index::index::reference_sequence::index::BinnedIndex;
+
+/// A coordinate-sorted index (CSI).
+pub type Index = binning_index::Index<BinnedIndex>;
 
 /// Reads the entire contents of a coordinate-sorted index (CSI).
 ///
@@ -33,7 +35,7 @@ use index::reference_sequence::index::BinnedIndex;
 /// let index = csi::read("sample.bcf.csi")?;
 /// # Ok::<(), io::Error>(())
 /// ```
-pub fn read<P>(src: P) -> std::io::Result<Index<BinnedIndex>>
+pub fn read<P>(src: P) -> std::io::Result<Index>
 where
     P: AsRef<Path>,
 {
@@ -55,7 +57,7 @@ where
 /// csi::write("sample.bcf.csi", &index)?;
 /// # Ok::<(), io::Error>(())
 /// ```
-pub fn write<P>(dst: P, index: &Index<BinnedIndex>) -> std::io::Result<()>
+pub fn write<P>(dst: P, index: &Index) -> std::io::Result<()>
 where
     P: AsRef<Path>,
 {

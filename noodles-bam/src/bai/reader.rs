@@ -5,7 +5,7 @@ use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
 use noodles_csi::{
     self as csi,
-    index::{
+    binning_index::index::{
         reference_sequence::{index::LinearIndex, Bin, Metadata},
         ReferenceSequence,
     },
