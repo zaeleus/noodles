@@ -18,8 +18,8 @@ pub trait BinningIndex {
     /// Returns the tabix header.
     fn header(&self) -> Option<&Header>;
 
-    /// Returns the reference sequences.
-    fn reference_sequences(&self) -> &[ReferenceSequence];
+    /// Returns an iterator over reference sequences.
+    fn reference_sequences(&self) -> Box<dyn Iterator<Item = &ReferenceSequence> + '_>;
 
     /// Returns the number of unplaced, unmapped records in the associated file.
     fn unplaced_unmapped_record_count(&self) -> Option<u64>;
@@ -50,7 +50,7 @@ where
         (**self).header()
     }
 
-    fn reference_sequences(&self) -> &[ReferenceSequence] {
+    fn reference_sequences(&self) -> Box<dyn Iterator<Item = &ReferenceSequence> + '_> {
         (**self).reference_sequences()
     }
 

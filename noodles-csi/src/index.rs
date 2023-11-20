@@ -96,8 +96,8 @@ impl BinningIndex for Index {
         self.header.as_ref()
     }
 
-    fn reference_sequences(&self) -> &[ReferenceSequence] {
-        &self.reference_sequences
+    fn reference_sequences(&self) -> Box<dyn Iterator<Item = &ReferenceSequence> + '_> {
+        Box::new(self.reference_sequences.iter())
     }
 
     fn unplaced_unmapped_record_count(&self) -> Option<u64> {
