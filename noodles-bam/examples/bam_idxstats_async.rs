@@ -9,7 +9,7 @@
 use std::{env, path::PathBuf};
 
 use noodles_bam::{self as bam, bai};
-use noodles_csi::binning_index::ReferenceSequence;
+use noodles_csi::{binning_index::ReferenceSequence, BinningIndex};
 use noodles_sam as sam;
 use tokio::fs::File;
 

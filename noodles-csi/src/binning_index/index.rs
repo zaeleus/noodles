@@ -55,19 +55,6 @@ where
         &self.reference_sequences
     }
 
-    /// Returns the number of unplaced, unmapped records in the associated file.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_csi as csi;
-    /// let index = csi::Index::default();
-    /// assert!(index.unplaced_unmapped_record_count().is_none());
-    /// ```
-    pub fn unplaced_unmapped_record_count(&self) -> Option<u64> {
-        self.unplaced_unmapped_record_count
-    }
-
     /// Returns the start position of the first record in the last linear bin.
     ///
     /// This is the closest position to the unplaced, unmapped records, if any, that is available

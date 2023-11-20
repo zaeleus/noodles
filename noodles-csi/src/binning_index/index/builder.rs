@@ -85,7 +85,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
+    /// use noodles_csi::{self as csi, BinningIndex};
     /// let index = csi::Index::builder().set_unplaced_unmapped_record_count(21).build();
     /// assert_eq!(index.unplaced_unmapped_record_count(), Some(21));
     /// ```
