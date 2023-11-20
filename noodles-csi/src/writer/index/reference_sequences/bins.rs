@@ -8,13 +8,13 @@ use noodles_bgzf as bgzf;
 
 use self::chunks::write_chunks;
 use super::write_metadata;
-use crate::index::reference_sequence::{Bin, Metadata};
+use crate::index::reference_sequence::{index::BinnedIndex, Bin, Metadata};
 
 pub(super) fn write_bins<W>(
     writer: &mut W,
     depth: u8,
     bins: &IndexMap<usize, Bin>,
-    index: &IndexMap<usize, bgzf::VirtualPosition>,
+    index: &BinnedIndex,
     metadata: Option<&Metadata>,
 ) -> io::Result<()>
 where

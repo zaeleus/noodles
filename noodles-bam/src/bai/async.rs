@@ -7,7 +7,7 @@ pub use self::{reader::Reader, writer::Writer};
 
 use std::path::Path;
 
-use noodles_csi::Index;
+use noodles_csi::{index::reference_sequence::index::LinearIndex, Index};
 use tokio::{
     fs::File,
     io::{self, BufReader, BufWriter},
@@ -30,7 +30,7 @@ use tokio::{
 /// # Ok(())
 /// # }
 /// ```
-pub async fn read<P>(src: P) -> io::Result<Index>
+pub async fn read<P>(src: P) -> io::Result<Index<LinearIndex>>
 where
     P: AsRef<Path>,
 {
@@ -58,7 +58,7 @@ where
 /// # Ok(())
 /// # }
 /// ```
-pub async fn write<P>(dst: P, index: &Index) -> io::Result<()>
+pub async fn write<P>(dst: P, index: &Index<LinearIndex>) -> io::Result<()>
 where
     P: AsRef<Path>,
 {

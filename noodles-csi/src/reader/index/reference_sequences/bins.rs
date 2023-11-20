@@ -12,7 +12,7 @@ use noodles_bgzf as bgzf;
 
 pub use self::chunks::read_chunks;
 use super::read_metadata;
-use crate::index::reference_sequence::{Bin, Metadata};
+use crate::index::reference_sequence::{index::BinnedIndex, Bin, Metadata};
 
 /// An error returned when CSI reference sequence bins fail to be read.
 #[derive(Debug)]
@@ -67,14 +67,7 @@ impl From<io::Error> for ReadError {
 pub(super) fn read_bins<R>(
     reader: &mut R,
     depth: u8,
-) -> Result<
-    (
-        IndexMap<usize, Bin>,
-        IndexMap<usize, bgzf::VirtualPosition>,
-        Option<Metadata>,
-    ),
-    ReadError,
->
+) -> Result<(IndexMap<usize, Bin>, BinnedIndex, Option<Metadata>), ReadError>
 where
     R: Read,
 {
@@ -84,7 +77,7 @@ where
         .and_then(|n| usize::try_from(n).map_err(ReadError::InvalidBinCount))?;
 
     let mut bins = IndexMap::with_capacity(n_bin);
-    let mut index = IndexMap::with_capacity(n_bin);
+    let mut index = BinnedIndex::with_capacity(n_bin);
 
     let metadata_id = Bin::metadata_id(depth);
     let mut metadata = None;

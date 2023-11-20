@@ -6,7 +6,7 @@ use noodles_bgzf as bgzf;
 use noodles_csi::{
     self as csi,
     index::{
-        reference_sequence::{Bin, Metadata},
+        reference_sequence::{index::LinearIndex, Bin, Metadata},
         ReferenceSequence,
     },
 };
@@ -101,7 +101,7 @@ where
     }
 }
 
-fn read_references<R>(reader: &mut R) -> io::Result<Vec<ReferenceSequence>>
+fn read_references<R>(reader: &mut R) -> io::Result<Vec<ReferenceSequence<LinearIndex>>>
 where
     R: Read,
 {

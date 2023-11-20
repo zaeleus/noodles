@@ -2,9 +2,10 @@
 
 pub mod bin;
 mod builder;
+pub mod index;
 mod metadata;
 
-pub use self::{bin::Bin, builder::Builder, metadata::Metadata};
+pub use self::{bin::Bin, builder::Builder, index::Index, metadata::Metadata};
 
 use std::{io, num::NonZeroUsize};
 
@@ -16,21 +17,18 @@ use noodles_core::{region::Interval, Position};
 use super::resolve_interval;
 use crate::binning_index;
 
-// _Sequence Alignment/Map Format Specification_ (2022-08-22) § 5.1.2 "Combining with linear
-// index": "...each tiling 16384bp window..."
-const LINEAR_INDEX_WINDOW_SIZE: usize = 1 << 14;
-
 /// A CSI reference sequence.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ReferenceSequence {
+pub struct ReferenceSequence<I> {
     bins: IndexMap<usize, Bin>,
-    #[doc(hidden)]
-    pub binned_index: IndexMap<usize, bgzf::VirtualPosition>,
-    linear_index: Vec<bgzf::VirtualPosition>,
+    index: I,
     metadata: Option<Metadata>,
 }
 
-impl ReferenceSequence {
+impl<I> ReferenceSequence<I>
+where
+    I: Index,
+{
     pub(super) fn max_position(min_shift: u8, depth: u8) -> io::Result<Position> {
         assert!(min_shift > 0);
         let n = (1 << (usize::from(min_shift) + 3 * usize::from(depth))) - 1;
@@ -45,15 +43,10 @@ impl ReferenceSequence {
     /// use noodles_csi::index::ReferenceSequence;
     /// let reference_sequence = ReferenceSequence::new(Default::default(), Vec::new(), None);
     /// ```
-    pub fn new(
-        bins: IndexMap<usize, Bin>,
-        linear_index: Vec<bgzf::VirtualPosition>,
-        metadata: Option<Metadata>,
-    ) -> Self {
+    pub fn new(bins: IndexMap<usize, Bin>, index: I, metadata: Option<Metadata>) -> Self {
         Self {
             bins,
-            binned_index: IndexMap::new(),
-            linear_index,
+            index,
             metadata,
         }
     }
@@ -73,15 +66,11 @@ impl ReferenceSequence {
         &self.bins
     }
 
-    /// Returns the linear index.
+    /// Returns the index.
     ///
-    /// The linear index is optional and can be empty.
-    pub fn linear_index(&self) -> &[bgzf::VirtualPosition] {
-        &self.linear_index
-    }
-
-    pub(crate) fn binned_index(&self) -> &IndexMap<usize, bgzf::VirtualPosition> {
-        &self.binned_index
+    /// The index is optional and can be empty.
+    pub fn index(&self) -> &I {
+        &self.index
     }
 
     /// Returns a list of bins in this reference sequence that intersects the given range.
@@ -102,9 +91,9 @@ impl ReferenceSequence {
     /// assert!(query_bins.is_empty());
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn query<I>(&self, min_shift: u8, depth: u8, interval: I) -> io::Result<Vec<&Bin>>
+    pub fn query<J>(&self, min_shift: u8, depth: u8, interval: J) -> io::Result<Vec<&Bin>>
     where
-        I: Into<Interval>,
+        J: Into<Interval>,
     {
         let (start, end) = resolve_interval(min_shift, depth, interval)?;
 
@@ -131,14 +120,17 @@ impl ReferenceSequence {
     /// ```
     /// use noodles_bgzf as bgzf;
     /// use noodles_core::Position;
-    /// use noodles_csi::index::{reference_sequence::Bin, ReferenceSequence};
+    /// use noodles_csi::index::{
+    ///     reference_sequence::{index::BinnedIndex, Bin},
+    ///     ReferenceSequence,
+    /// };
     ///
     /// const MIN_SHIFT: u8 = 4;
     /// const DEPTH: u8 = 2;
     ///
     /// let bins = [(1, Bin::new(Vec::new()))].into_iter().collect();
-    /// let mut reference_sequence = ReferenceSequence::new(bins, Vec::new(), None);
-    /// reference_sequence.binned_index = [(1, bgzf::VirtualPosition::from(233))].into_iter().collect();
+    /// let index = [(1, bgzf::VirtualPosition::from(233))].into_iter().collect();
+    /// let reference_sequence: ReferenceSequence<BinnedIndex> = ReferenceSequence::new(bins, index, None);
     ///
     /// let start = Position::try_from(8)?;
     /// assert_eq!(
@@ -155,26 +147,7 @@ impl ReferenceSequence {
     /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
     pub fn min_offset(&self, min_shift: u8, depth: u8, start: Position) -> bgzf::VirtualPosition {
-        if self.linear_index.is_empty() {
-            let end = start;
-            let mut bin_id = reg2bin(start, end, min_shift, depth);
-
-            loop {
-                if let Some(position) = self.binned_index.get(&bin_id) {
-                    return *position;
-                }
-
-                bin_id = match parent_id(bin_id) {
-                    Some(id) => id,
-                    None => break,
-                }
-            }
-
-            bgzf::VirtualPosition::default()
-        } else {
-            let i = (usize::from(start) - 1) / LINEAR_INDEX_WINDOW_SIZE;
-            self.linear_index.get(i).copied().unwrap_or_default()
-        }
+        self.index.min_offset(min_shift, depth, start)
     }
 
     /// Returns the start position of the first record in the last linear bin.
@@ -187,7 +160,10 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_bgzf as bgzf;
-    /// use noodles_csi::index::{reference_sequence::Bin, ReferenceSequence};
+    /// use noodles_csi::index::{
+    ///     reference_sequence::{index::BinnedIndex, Bin},
+    ///     ReferenceSequence,
+    /// };
     ///
     /// let reference_sequence = ReferenceSequence::new(
     ///     Default::default(),
@@ -203,7 +179,7 @@ impl ReferenceSequence {
     ///     Some(bgzf::VirtualPosition::from(21))
     /// );
     ///
-    /// let mut reference_sequence = ReferenceSequence::new(
+    /// let mut reference_sequence: ReferenceSequence<BinnedIndex> = ReferenceSequence::new(
     ///     [
     ///         (0, Bin::new(Vec::new())),
     ///         (2, Bin::new(Vec::new())),
@@ -211,16 +187,15 @@ impl ReferenceSequence {
     ///     ]
     ///     .into_iter()
     ///     .collect(),
-    ///     Vec::new(),
+    ///     [
+    ///         (0, bgzf::VirtualPosition::from(8)),
+    ///         (2, bgzf::VirtualPosition::from(21)),
+    ///         (9, bgzf::VirtualPosition::from(13)),
+    ///     ]
+    ///     .into_iter()
+    ///     .collect(),
     ///     None,
     /// );
-    /// reference_sequence.binned_index = [
-    ///     (0, bgzf::VirtualPosition::from(8)),
-    ///     (2, bgzf::VirtualPosition::from(21)),
-    ///     (9, bgzf::VirtualPosition::from(13)),
-    /// ]
-    /// .into_iter()
-    /// .collect();
     ///
     /// assert_eq!(
     ///     reference_sequence.first_record_in_last_linear_bin_start_position(),
@@ -231,15 +206,14 @@ impl ReferenceSequence {
     /// assert!(reference_sequence.first_record_in_last_linear_bin_start_position().is_none());
     /// ```
     pub fn first_record_in_last_linear_bin_start_position(&self) -> Option<bgzf::VirtualPosition> {
-        if self.linear_index().is_empty() {
-            self.binned_index().values().max().copied()
-        } else {
-            self.linear_index().last().copied()
-        }
+        self.index.last_first_start_position()
     }
 }
 
-impl binning_index::ReferenceSequence for ReferenceSequence {
+impl<I> binning_index::ReferenceSequence for ReferenceSequence<I>
+where
+    I: Index,
+{
     fn metadata(&self) -> Option<&Metadata> {
         self.metadata.as_ref()
     }
@@ -318,7 +292,7 @@ mod tests {
 
     #[test]
     fn test_max_position() -> Result<(), Box<dyn std::error::Error>> {
-        let actual = ReferenceSequence::max_position(MIN_SHIFT, DEPTH)?;
+        let actual = ReferenceSequence::<index::BinnedIndex>::max_position(MIN_SHIFT, DEPTH)?;
         let expected = Position::try_from(536870911)?;
         assert_eq!(actual, expected);
         Ok(())

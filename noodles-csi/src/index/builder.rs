@@ -1,24 +1,27 @@
 //! CSI index builder.
 
-use super::{Header, Index, ReferenceSequence};
+use super::{reference_sequence, Header, Index, ReferenceSequence};
 
 /// A coordinate-sorted index (CSI) builder.
-pub struct Builder {
+pub struct Builder<I> {
     min_shift: u8,
     depth: u8,
     header: Option<Header>,
-    reference_sequences: Vec<ReferenceSequence>,
+    reference_sequences: Vec<ReferenceSequence<I>>,
     unplaced_unmapped_record_count: Option<u64>,
 }
 
-impl Builder {
+impl<I> Builder<I>
+where
+    I: reference_sequence::Index,
+{
     /// Sets a min shift.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::{self as csi, BinningIndex};
-    /// let index = csi::Index::builder().set_min_shift(13).build();
+    /// use noodles_csi::{self as csi, index::reference_sequence::index::BinnedIndex, BinningIndex};
+    /// let index = csi::Index::<BinnedIndex>::builder().set_min_shift(13).build();
     /// assert_eq!(index.min_shift(), 13);
     /// ```
     pub fn set_min_shift(mut self, min_shift: u8) -> Self {
@@ -31,8 +34,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::{self as csi, BinningIndex};
-    /// let index = csi::Index::builder().set_depth(8).build();
+    /// use noodles_csi::{self as csi, index::reference_sequence::index::BinnedIndex, BinningIndex};
+    /// let index = csi::Index::<BinnedIndex>::builder().set_depth(8).build();
     /// assert_eq!(index.depth(), 8);
     /// ```
     pub fn set_depth(mut self, depth: u8) -> Self {
@@ -45,9 +48,9 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::{self as csi, BinningIndex};
+    /// use noodles_csi::{self as csi, index::reference_sequence::index::BinnedIndex, BinningIndex};
     /// let header = csi::index::Header::default();
-    /// let index = csi::Index::builder().set_header(header.clone()).build();
+    /// let index = csi::Index::<BinnedIndex>::builder().set_header(header.clone()).build();
     /// assert_eq!(index.header(), Some(&header));
     /// ```
     pub fn set_header(mut self, header: Header) -> Self {
@@ -69,7 +72,10 @@ impl Builder {
     ///
     /// assert_eq!(index.reference_sequences(), &reference_sequences);
     /// ```
-    pub fn set_reference_sequences(mut self, reference_sequences: Vec<ReferenceSequence>) -> Self {
+    pub fn set_reference_sequences(
+        mut self,
+        reference_sequences: Vec<ReferenceSequence<I>>,
+    ) -> Self {
         self.reference_sequences = reference_sequences;
         self
     }
@@ -79,8 +85,12 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
-    /// let index = csi::Index::builder().set_unplaced_unmapped_record_count(21).build();
+    /// use noodles_csi::{self as csi, index::reference_sequence::index::BinnedIndex};
+    ///
+    /// let index = csi::Index::<BinnedIndex>::builder()
+    ///     .set_unplaced_unmapped_record_count(21)
+    ///     .build();
+    ///
     /// assert_eq!(index.unplaced_unmapped_record_count(), Some(21));
     /// ```
     pub fn set_unplaced_unmapped_record_count(
@@ -96,10 +106,10 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
-    /// let index = csi::Index::builder().build();
+    /// use noodles_csi::{self as csi, index::reference_sequence::index::BinnedIndex};
+    /// let index = csi::Index::<BinnedIndex>::builder().build();
     /// ```
-    pub fn build(self) -> Index {
+    pub fn build(self) -> Index<I> {
         Index {
             min_shift: self.min_shift,
             depth: self.depth,
@@ -110,7 +120,7 @@ impl Builder {
     }
 }
 
-impl Default for Builder {
+impl<I> Default for Builder<I> {
     fn default() -> Self {
         Self {
             min_shift: 14,
@@ -125,10 +135,11 @@ impl Default for Builder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::index::BinnedIndex;
 
     #[test]
     fn test_default() {
-        let builder = Builder::default();
+        let builder = Builder::<BinnedIndex>::default();
 
         assert_eq!(builder.min_shift, 14);
         assert_eq!(builder.depth, 5);

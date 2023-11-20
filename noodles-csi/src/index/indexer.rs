@@ -9,23 +9,26 @@ use super::{
 
 /// A CSI indexer.
 #[derive(Debug)]
-pub struct Indexer {
+pub struct Indexer<I> {
     min_shift: u8,
     depth: u8,
     header: Option<Header>,
-    reference_sequence_builder: reference_sequence::Builder,
-    reference_sequences: Vec<ReferenceSequence>,
+    reference_sequence_builder: reference_sequence::Builder<I>,
+    reference_sequences: Vec<ReferenceSequence<I>>,
     unplaced_unmapped_record_count: u64,
 }
 
-impl Indexer {
+impl<I> Indexer<I>
+where
+    I: reference_sequence::Index + Default,
+{
     /// Creates a CSI indexer.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::index::Indexer;
-    /// let indexer = Indexer::new(14, 5);
+    /// use noodles_csi::index::{reference_sequence::index::BinnedIndex, Indexer};
+    /// let indexer = Indexer::<BinnedIndex>::new(14, 5);
     /// ```
     pub fn new(min_shift: u8, depth: u8) -> Self {
         Self {
@@ -43,10 +46,9 @@ impl Indexer {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::index::{Header, Indexer};
-    ///
+    /// use noodles_csi::index::{reference_sequence::index::BinnedIndex, Header, Indexer};
     /// let header = Header::default();
-    /// let indexer = Indexer::new(14, 5).set_header(header);
+    /// let indexer = Indexer::<BinnedIndex>::new(14, 5).set_header(header);
     /// ```
     pub fn set_header(mut self, header: Header) -> Self {
         self.header = Some(header);
@@ -60,9 +62,12 @@ impl Indexer {
     /// ```
     /// use noodles_bgzf as bgzf;
     /// use noodles_core::Position;
-    /// use noodles_csi::index::{reference_sequence::bin::Chunk, Indexer};
+    /// use noodles_csi::index::{
+    ///     reference_sequence::{bin::Chunk, index::BinnedIndex},
+    ///     Indexer,
+    /// };
     ///
-    /// let mut indexer = Indexer::new(14, 5);
+    /// let mut indexer = Indexer::<BinnedIndex>::new(14, 5);
     ///
     /// let reference_sequence_id = 0;
     /// let start = Position::try_from(8)?;
@@ -118,11 +123,11 @@ impl Indexer {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::index::Indexer;
-    /// let indexer = Indexer::new(14, 5);
+    /// use noodles_csi::index::{reference_sequence::index::BinnedIndex, Indexer};
+    /// let indexer = Indexer::<BinnedIndex>::new(14, 5);
     /// let index = indexer.build(0);
     /// ```
-    pub fn build(mut self, reference_sequence_count: usize) -> Index {
+    pub fn build(mut self, reference_sequence_count: usize) -> Index<I> {
         if reference_sequence_count == 0 {
             return Index::builder()
                 .set_unplaced_unmapped_record_count(self.unplaced_unmapped_record_count)
@@ -155,7 +160,10 @@ impl Indexer {
     }
 }
 
-impl Default for Indexer {
+impl<I> Default for Indexer<I>
+where
+    I: reference_sequence::Index + Default,
+{
     fn default() -> Self {
         Self {
             min_shift: 14,
@@ -171,10 +179,11 @@ impl Default for Indexer {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::index::BinnedIndex;
 
     #[test]
     fn test_default() {
-        let indexer = Indexer::default();
+        let indexer = Indexer::<BinnedIndex>::default();
 
         assert_eq!(indexer.min_shift, 14);
         assert_eq!(indexer.depth, 5);
@@ -185,7 +194,7 @@ mod tests {
 
     #[test]
     fn test_build() {
-        let index = Indexer::default().build(2);
+        let index = Indexer::<BinnedIndex>::default().build(2);
         assert_eq!(index.reference_sequences().len(), 2);
     }
 }

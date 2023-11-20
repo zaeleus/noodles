@@ -40,14 +40,14 @@ use std::{
     path::Path,
 };
 
-use noodles_csi as csi;
+use noodles_csi::{self as csi, index::reference_sequence::index::LinearIndex};
 
 const DEPTH: u8 = 5;
 
 static MAGIC_NUMBER: &[u8] = b"BAI\x01";
 
 /// A BAM index.
-pub type Index = csi::Index;
+pub type Index = csi::Index<LinearIndex>;
 
 /// Reads the entire contents of a BAM index.
 ///

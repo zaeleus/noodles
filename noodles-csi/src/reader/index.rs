@@ -13,7 +13,7 @@ use byteorder::{LittleEndian, ReadBytesExt};
 
 pub use self::header::read_header;
 use self::{header::read_aux, reference_sequences::read_reference_sequences};
-use crate::Index;
+use crate::{index::reference_sequence::index::BinnedIndex, Index};
 
 /// An error returned when a coordinate-sorted index fails to be read.
 #[derive(Debug)]
@@ -64,7 +64,7 @@ impl From<io::Error> for ReadError {
     }
 }
 
-pub(super) fn read_index<R>(reader: &mut R) -> Result<Index, ReadError>
+pub(super) fn read_index<R>(reader: &mut R) -> Result<Index<BinnedIndex>, ReadError>
 where
     R: Read,
 {

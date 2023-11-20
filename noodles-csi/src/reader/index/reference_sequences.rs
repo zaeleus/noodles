@@ -13,7 +13,7 @@ use byteorder::{LittleEndian, ReadBytesExt};
 
 use self::bins::read_bins;
 pub use self::metadata::read_metadata;
-use crate::index::ReferenceSequence;
+use crate::index::{reference_sequence::index::BinnedIndex, ReferenceSequence};
 
 /// An error returned when CSI reference sequences fail to be read.
 #[derive(Debug)]
@@ -49,7 +49,7 @@ impl fmt::Display for ReadError {
 pub(super) fn read_reference_sequences<R>(
     reader: &mut R,
     depth: u8,
-) -> Result<Vec<ReferenceSequence>, ReadError>
+) -> Result<Vec<ReferenceSequence<BinnedIndex>>, ReadError>
 where
     R: Read,
 {
@@ -63,12 +63,13 @@ where
         .collect()
 }
 
-fn read_reference_sequence<R>(reader: &mut R, depth: u8) -> Result<ReferenceSequence, ReadError>
+fn read_reference_sequence<R>(
+    reader: &mut R,
+    depth: u8,
+) -> Result<ReferenceSequence<BinnedIndex>, ReadError>
 where
     R: Read,
 {
     let (bins, index, metadata) = read_bins(reader, depth).map_err(ReadError::InvalidBins)?;
-    let mut reference_sequence = ReferenceSequence::new(bins, Vec::new(), metadata);
-    reference_sequence.binned_index = index;
-    Ok(reference_sequence)
+    Ok(ReferenceSequence::new(bins, index, metadata))
 }

@@ -5,7 +5,7 @@ use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 use crate::{
     binning_index::ReferenceSequence as _,
     index::{
-        reference_sequence::{bin::Chunk, Bin, Metadata},
+        reference_sequence::{bin::Chunk, index::BinnedIndex, Bin, Metadata},
         Header, ReferenceSequence,
     },
     BinningIndex, Index,
@@ -84,12 +84,12 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn write_index(&mut self, index: &Index) -> io::Result<()> {
+    pub async fn write_index(&mut self, index: &Index<BinnedIndex>) -> io::Result<()> {
         write_index(&mut self.inner, index).await
     }
 }
 
-async fn write_index<W>(writer: &mut W, index: &Index) -> io::Result<()>
+async fn write_index<W>(writer: &mut W, index: &Index<BinnedIndex>) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
@@ -153,7 +153,7 @@ where
 async fn write_reference_sequences<W>(
     writer: &mut W,
     depth: u8,
-    reference_sequences: &[ReferenceSequence],
+    reference_sequences: &[ReferenceSequence<BinnedIndex>],
 ) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
@@ -168,7 +168,7 @@ where
 async fn write_reference_sequence<W>(
     writer: &mut W,
     depth: u8,
-    reference_sequence: &ReferenceSequence,
+    reference_sequence: &ReferenceSequence<BinnedIndex>,
 ) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
@@ -177,7 +177,7 @@ where
         writer,
         depth,
         reference_sequence.bins(),
-        reference_sequence.binned_index(),
+        reference_sequence.index(),
         reference_sequence.metadata(),
     )
     .await

@@ -21,10 +21,10 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
+    /// use noodles_csi::{self as csi, index::reference_sequence::index::BinnedIndex};
     /// use noodles_sam::indexed_reader::Builder;
     ///
-    /// let index = csi::Index::default();
+    /// let index = csi::Index::<BinnedIndex>::default();
     /// let builder = Builder::default().set_index(index);
     /// ```
     pub fn set_index<I>(mut self, index: I) -> Self
@@ -66,13 +66,11 @@ impl Builder {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_csi as csi;
+    /// use noodles_csi::{self as csi, index::reference_sequence::index::BinnedIndex};
     /// use noodles_sam::indexed_reader::Builder;
     ///
-    /// let index = csi::Index::default();
-    /// let reader = Builder::default()
-    ///     .set_index(index)
-    ///     .build_from_reader(io::empty())?;
+    /// let index = csi::Index::<BinnedIndex>::default();
+    /// let reader = Builder::default().set_index(index).build_from_reader(io::empty())?;
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn build_from_reader<R>(self, reader: R) -> io::Result<IndexedReader<R>>

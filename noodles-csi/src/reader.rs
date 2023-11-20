@@ -7,7 +7,7 @@ use std::io::{self, Read};
 use noodles_bgzf as bgzf;
 
 use self::index::read_index;
-use super::Index;
+use super::{index::reference_sequence::index::BinnedIndex, Index};
 
 /// A CSI reader.
 pub struct Reader<R> {
@@ -47,7 +47,7 @@ where
     /// let index = reader.read_index();
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn read_index(&mut self) -> io::Result<Index> {
+    pub fn read_index(&mut self) -> io::Result<Index<BinnedIndex>> {
         read_index(&mut self.inner).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 }

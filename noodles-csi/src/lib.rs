@@ -18,6 +18,8 @@ pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};
 
 use std::{fs::File, path::Path};
 
+use index::reference_sequence::index::BinnedIndex;
+
 /// Reads the entire contents of a coordinate-sorted index (CSI).
 ///
 /// This is a convenience function and is equivalent to opening the file at the given path and
@@ -31,7 +33,7 @@ use std::{fs::File, path::Path};
 /// let index = csi::read("sample.bcf.csi")?;
 /// # Ok::<(), io::Error>(())
 /// ```
-pub fn read<P>(src: P) -> std::io::Result<Index>
+pub fn read<P>(src: P) -> std::io::Result<Index<BinnedIndex>>
 where
     P: AsRef<Path>,
 {
@@ -53,7 +55,7 @@ where
 /// csi::write("sample.bcf.csi", &index)?;
 /// # Ok::<(), io::Error>(())
 /// ```
-pub fn write<P>(dst: P, index: &Index) -> std::io::Result<()>
+pub fn write<P>(dst: P, index: &Index<BinnedIndex>) -> std::io::Result<()>
 where
     P: AsRef<Path>,
 {

@@ -3,7 +3,11 @@ use std::io;
 use noodles_core::Position;
 use noodles_csi::{
     self as csi,
-    index::{header::ReferenceSequenceNames, reference_sequence::bin::Chunk, Header},
+    index::{
+        header::ReferenceSequenceNames,
+        reference_sequence::{bin::Chunk, index::LinearIndex},
+        Header,
+    },
     Index,
 };
 
@@ -12,7 +16,7 @@ use noodles_csi::{
 pub struct Indexer {
     header: Header,
     reference_sequence_names: ReferenceSequenceNames,
-    indexer: csi::index::Indexer,
+    indexer: csi::index::Indexer<LinearIndex>,
 }
 
 impl Indexer {
@@ -75,7 +79,7 @@ impl Indexer {
     /// use noodles_tabix as tabix;
     /// let index = tabix::index::Indexer::default().build();
     /// ```
-    pub fn build(mut self) -> Index {
+    pub fn build(mut self) -> Index<LinearIndex> {
         let reference_sequence_count = self.reference_sequence_names.len();
 
         *self.header.reference_sequence_names_mut() = self.reference_sequence_names;

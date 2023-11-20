@@ -4,7 +4,7 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_csi::{
     binning_index::ReferenceSequence as _,
     index::{
-        reference_sequence::{bin::Chunk, Bin, Metadata},
+        reference_sequence::{bin::Chunk, index::LinearIndex, Bin, Metadata},
         ReferenceSequence,
     },
 };
@@ -95,7 +95,7 @@ where
 
 fn write_reference_sequence<W>(
     writer: &mut W,
-    reference_sequence: &ReferenceSequence,
+    reference_sequence: &ReferenceSequence<LinearIndex>,
 ) -> io::Result<()>
 where
     W: Write,
@@ -119,11 +119,11 @@ where
         write_metadata(writer, metadata)?;
     }
 
-    let n_intv = u32::try_from(reference_sequence.linear_index().len())
+    let n_intv = u32::try_from(reference_sequence.index().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32::<LittleEndian>(n_intv)?;
 
-    for interval in reference_sequence.linear_index() {
+    for interval in reference_sequence.index() {
         let ioffset = u64::from(*interval);
         writer.write_u64::<LittleEndian>(ioffset)?;
     }

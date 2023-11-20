@@ -23,10 +23,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::indexed_reader::Builder;
-    /// use noodles_csi as csi;
-    ///
-    /// let index = csi::Index::default();
+    /// use noodles_bam::{bai, indexed_reader::Builder};
+    /// let index = bai::Index::default();
     /// let builder = Builder::default().set_index(index);
     /// ```
     pub fn set_index<I>(mut self, index: I) -> Self
@@ -70,14 +68,10 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::indexed_reader::Builder;
-    /// use noodles_csi as csi;
-    ///
-    /// let index = csi::Index::default();
+    /// use noodles_bam::{bai, indexed_reader::Builder};
+    /// let index = bai::Index::default();
     /// let data = [];
-    /// let builder = Builder::default()
-    ///     .set_index(index)
-    ///     .build_from_reader(&data[..])?;
+    /// let builder = Builder::default().set_index(index).build_from_reader(&data[..])?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn build_from_reader<R>(self, reader: R) -> io::Result<IndexedReader<bgzf::Reader<R>>>

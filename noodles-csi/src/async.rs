@@ -9,7 +9,7 @@ use std::path::Path;
 
 use tokio::{fs::File, io};
 
-use super::Index;
+use super::{index::reference_sequence::index::BinnedIndex, Index};
 
 /// Reads the entire contents of a coordinate-sorted index (CSI).
 ///
@@ -28,7 +28,7 @@ use super::Index;
 /// # Ok(())
 /// # }
 /// ```
-pub async fn read<P>(src: P) -> io::Result<Index>
+pub async fn read<P>(src: P) -> io::Result<Index<BinnedIndex>>
 where
     P: AsRef<Path>,
 {
@@ -54,7 +54,7 @@ where
 /// # Ok(())
 /// # }
 /// ```
-pub async fn write<P>(dst: P, index: &Index) -> io::Result<()>
+pub async fn write<P>(dst: P, index: &Index<BinnedIndex>) -> io::Result<()>
 where
     P: AsRef<Path>,
 {

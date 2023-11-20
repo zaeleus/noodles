@@ -5,7 +5,7 @@ use std::io::{self, Write};
 use noodles_bgzf as bgzf;
 
 use self::index::write_index;
-use super::Index;
+use super::{index::reference_sequence::index::BinnedIndex, Index};
 
 /// A CSI writer.
 pub struct Writer<W>
@@ -45,7 +45,7 @@ where
     /// writer.write_index(&index)?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn write_index(&mut self, index: &Index) -> io::Result<()> {
+    pub fn write_index(&mut self, index: &Index<BinnedIndex>) -> io::Result<()> {
         write_index(&mut self.inner, index)
     }
 }

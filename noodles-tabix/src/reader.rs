@@ -1,6 +1,7 @@
 use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
+use csi::index::reference_sequence::index::LinearIndex;
 use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
 use noodles_csi::{
@@ -97,7 +98,7 @@ where
     }
 }
 
-fn read_references<R>(reader: &mut R, len: usize) -> io::Result<Vec<ReferenceSequence>>
+fn read_references<R>(reader: &mut R, len: usize) -> io::Result<Vec<ReferenceSequence<LinearIndex>>>
 where
     R: Read,
 {

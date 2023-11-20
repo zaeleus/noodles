@@ -14,28 +14,32 @@ use std::io;
 use noodles_bgzf as bgzf;
 use noodles_core::{region::Interval, Position};
 
+use self::reference_sequence::index::BinnedIndex;
 use super::{binning_index, index::reference_sequence::bin::Chunk, BinningIndex};
 
 /// A coordinate-sorted index (CSI).
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Index {
+pub struct Index<I> {
     min_shift: u8,
     depth: u8,
     header: Option<Header>,
-    reference_sequences: Vec<ReferenceSequence>,
+    reference_sequences: Vec<ReferenceSequence<I>>,
     unplaced_unmapped_record_count: Option<u64>,
 }
 
-impl Index {
+impl<I> Index<I>
+where
+    I: reference_sequence::Index,
+{
     /// Returns a builder to create an index from each of its fields.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
-    /// let builder = csi::Index::builder();
+    /// use noodles_csi::{self as csi, index::reference_sequence::index::BinnedIndex};
+    /// let builder = csi::Index::<BinnedIndex>::builder();
     /// ```
-    pub fn builder() -> Builder {
+    pub fn builder() -> Builder<I> {
         Builder::default()
     }
 
@@ -44,11 +48,11 @@ impl Index {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
-    /// let index = csi::Index::default();
+    /// use noodles_csi::{self as csi, index::reference_sequence::index::BinnedIndex};
+    /// let index = csi::Index::<BinnedIndex>::default();
     /// assert!(index.reference_sequences().is_empty());
     /// ```
-    pub fn reference_sequences(&self) -> &[ReferenceSequence] {
+    pub fn reference_sequences(&self) -> &[ReferenceSequence<I>] {
         &self.reference_sequences
     }
 
@@ -57,8 +61,8 @@ impl Index {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
-    /// let index = csi::Index::default();
+    /// use noodles_csi::{self as csi, index::reference_sequence::index::BinnedIndex};
+    /// let index = csi::Index::<BinnedIndex>::default();
     /// assert!(index.unplaced_unmapped_record_count().is_none());
     /// ```
     pub fn unplaced_unmapped_record_count(&self) -> Option<u64> {
@@ -77,13 +81,19 @@ impl Index {
     }
 }
 
-impl Default for Index {
+impl<I> Default for Index<I>
+where
+    I: reference_sequence::Index,
+{
     fn default() -> Self {
         Self::builder().build()
     }
 }
 
-impl BinningIndex for Index {
+impl<I> BinningIndex for Index<I>
+where
+    I: reference_sequence::Index,
+{
     fn min_shift(&self) -> u8 {
         self.min_shift
     }
@@ -153,7 +163,7 @@ where
 
     let start = interval.start().unwrap_or(Position::MIN);
 
-    let max_position = ReferenceSequence::max_position(min_shift, depth)?;
+    let max_position = ReferenceSequence::<BinnedIndex>::max_position(min_shift, depth)?;
 
     if start > max_position {
         return Err(io::Error::new(

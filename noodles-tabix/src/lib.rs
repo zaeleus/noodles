@@ -40,12 +40,12 @@ pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};
 
 use std::{fs::File, path::Path};
 
-use noodles_csi as csi;
+use noodles_csi::{self as csi, index::reference_sequence::index::LinearIndex};
 
 static MAGIC_NUMBER: &[u8] = b"TBI\x01";
 
 /// A tabix index.
-pub type Index = csi::Index;
+pub type Index = csi::Index<LinearIndex>;
 
 /// Reads the entire contents of a tabix index.
 ///

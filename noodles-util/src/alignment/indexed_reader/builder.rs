@@ -6,7 +6,11 @@ use std::{
 
 use noodles_bam as bam;
 use noodles_cram::{self as cram, crai};
-use noodles_csi::{self as csi, BinningIndex};
+use noodles_csi::{
+    self as csi,
+    index::reference_sequence::index::{BinnedIndex, LinearIndex},
+    BinningIndex,
+};
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
@@ -24,8 +28,14 @@ pub enum Index {
     Crai(crai::Index),
 }
 
-impl From<csi::Index> for Index {
-    fn from(index: csi::Index) -> Self {
+impl From<csi::Index<BinnedIndex>> for Index {
+    fn from(index: csi::Index<BinnedIndex>) -> Self {
+        Self::Csi(Box::new(index))
+    }
+}
+
+impl From<csi::Index<LinearIndex>> for Index {
+    fn from(index: csi::Index<LinearIndex>) -> Self {
         Self::Csi(Box::new(index))
     }
 }
@@ -96,10 +106,10 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
+    /// use noodles_bam::bai;
     /// use noodles_util::alignment;
     ///
-    /// let index = csi::Index::default();
+    /// let index = bai::Index::default();
     /// let builder = alignment::indexed_reader::Builder::default().set_index(index);
     /// ```
     pub fn set_index<I>(mut self, index: I) -> Self
@@ -170,15 +180,15 @@ impl Builder {
     ///
     /// ```
     /// # use std::io::{self, Write};
+    /// use noodles_bam::bai;
     /// use noodles_bgzf as bgzf;
-    /// use noodles_csi as csi;
     /// use noodles_util::alignment;
     ///
     /// let mut writer = bgzf::Writer::new(Vec::new());
     /// writer.write_all(b"BAM\x01")?;
     /// let data = writer.finish()?;
     ///
-    /// let index = csi::Index::default();
+    /// let index = bai::Index::default();
     /// let reader = alignment::indexed_reader::Builder::default()
     ///     .set_index(index)
     ///     .build_from_reader(&data[..])?;

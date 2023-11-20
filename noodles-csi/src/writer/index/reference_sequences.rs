@@ -6,12 +6,15 @@ use std::io::{self, Write};
 use byteorder::{LittleEndian, WriteBytesExt};
 
 use self::{bins::write_bins, metadata::write_metadata};
-use crate::{binning_index::ReferenceSequence as _, index::ReferenceSequence};
+use crate::{
+    binning_index::ReferenceSequence as _,
+    index::{reference_sequence::index::BinnedIndex, ReferenceSequence},
+};
 
 pub(super) fn write_reference_sequences<W>(
     writer: &mut W,
     depth: u8,
-    reference_sequences: &[ReferenceSequence],
+    reference_sequences: &[ReferenceSequence<BinnedIndex>],
 ) -> io::Result<()>
 where
     W: Write,
@@ -25,7 +28,7 @@ where
             writer,
             depth,
             reference_sequence.bins(),
-            reference_sequence.binned_index(),
+            reference_sequence.index(),
             reference_sequence.metadata(),
         )?;
     }

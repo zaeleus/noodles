@@ -3,7 +3,7 @@ use noodles_bgzf as bgzf;
 use noodles_csi::{
     self as csi,
     index::{
-        reference_sequence::{bin::Chunk, Bin, Metadata},
+        reference_sequence::{bin::Chunk, index::LinearIndex, Bin, Metadata},
         Header, ReferenceSequence,
     },
 };
@@ -140,7 +140,7 @@ where
 async fn read_reference_sequences<R>(
     reader: &mut R,
     reference_sequence_count: usize,
-) -> io::Result<Vec<ReferenceSequence>>
+) -> io::Result<Vec<ReferenceSequence<LinearIndex>>>
 where
     R: AsyncRead + Unpin,
 {
@@ -154,7 +154,7 @@ where
     Ok(reference_sequences)
 }
 
-async fn read_reference_sequence<R>(reader: &mut R) -> io::Result<ReferenceSequence>
+async fn read_reference_sequence<R>(reader: &mut R) -> io::Result<ReferenceSequence<LinearIndex>>
 where
     R: AsyncRead + Unpin,
 {

@@ -3,7 +3,7 @@ use noodles_bgzf as bgzf;
 use noodles_csi::{
     binning_index::ReferenceSequence as _,
     index::{
-        reference_sequence::{bin::Chunk, Bin, Metadata},
+        reference_sequence::{bin::Chunk, index::LinearIndex, Bin, Metadata},
         ReferenceSequence,
     },
 };
@@ -108,7 +108,7 @@ where
 
 async fn write_reference_sequences<W>(
     writer: &mut W,
-    reference_sequences: &[ReferenceSequence],
+    reference_sequences: &[ReferenceSequence<LinearIndex>],
 ) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
@@ -126,7 +126,7 @@ where
 
 async fn write_reference_sequence<W>(
     writer: &mut W,
-    reference_sequence: &ReferenceSequence,
+    reference_sequence: &ReferenceSequence<LinearIndex>,
 ) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
@@ -138,7 +138,7 @@ where
     )
     .await?;
 
-    write_intervals(writer, reference_sequence.linear_index()).await?;
+    write_intervals(writer, reference_sequence.index()).await?;
 
     Ok(())
 }

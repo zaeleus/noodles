@@ -2,7 +2,7 @@ use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
 use noodles_csi::{
     index::{
-        reference_sequence::{bin::Chunk, Bin, Metadata},
+        reference_sequence::{bin::Chunk, index::LinearIndex, Bin, Metadata},
         ReferenceSequence,
     },
     Index,
@@ -58,7 +58,7 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_index(&mut self) -> io::Result<Index> {
+    pub async fn read_index(&mut self) -> io::Result<Index<LinearIndex>> {
         read_magic(&mut self.inner).await?;
 
         let reference_sequences = read_reference_sequences(&mut self.inner).await?;
@@ -93,7 +93,9 @@ where
     }
 }
 
-async fn read_reference_sequences<R>(reader: &mut R) -> io::Result<Vec<ReferenceSequence>>
+async fn read_reference_sequences<R>(
+    reader: &mut R,
+) -> io::Result<Vec<ReferenceSequence<LinearIndex>>>
 where
     R: AsyncRead + Unpin,
 {
@@ -111,7 +113,7 @@ where
     Ok(reference_sequences)
 }
 
-async fn read_reference_sequence<R>(reader: &mut R) -> io::Result<ReferenceSequence>
+async fn read_reference_sequence<R>(reader: &mut R) -> io::Result<ReferenceSequence<LinearIndex>>
 where
     R: AsyncRead + Unpin,
 {

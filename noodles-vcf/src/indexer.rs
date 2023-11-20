@@ -2,7 +2,10 @@ use std::{fs::File, io, path::Path};
 
 use noodles_bgzf as bgzf;
 use noodles_core::Position;
-use noodles_csi::{self as csi, index::reference_sequence::bin::Chunk};
+use noodles_csi::{
+    self as csi,
+    index::reference_sequence::{bin::Chunk, index::LinearIndex},
+};
 use noodles_tabix as tabix;
 
 use super::{Reader, Record};
@@ -14,7 +17,7 @@ use super::{Reader, Record};
 /// let index = vcf::index("sample.vcf.gz")?;
 /// # Ok::<_, std::io::Error>(())
 /// ```
-pub fn index<P>(src: P) -> io::Result<csi::Index>
+pub fn index<P>(src: P) -> io::Result<csi::Index<LinearIndex>>
 where
     P: AsRef<Path>,
 {

@@ -4,7 +4,7 @@ use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::{
     index::{
-        reference_sequence::{bin::Chunk, Bin, Metadata},
+        reference_sequence::{bin::Chunk, index::BinnedIndex, Bin, Metadata},
         Header, ReferenceSequence,
     },
     Index,
@@ -59,7 +59,7 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_index(&mut self) -> io::Result<Index> {
+    pub async fn read_index(&mut self) -> io::Result<Index<BinnedIndex>> {
         read_magic(&mut self.inner).await?;
 
         let (min_shift, depth, header) = read_header(&mut self.inner).await?;
@@ -148,7 +148,7 @@ where
 async fn read_reference_sequences<R>(
     reader: &mut R,
     depth: u8,
-) -> io::Result<Vec<ReferenceSequence>>
+) -> io::Result<Vec<ReferenceSequence<BinnedIndex>>>
 where
     R: AsyncRead + Unpin,
 {
@@ -166,14 +166,15 @@ where
     Ok(reference_sequences)
 }
 
-async fn read_reference_sequence<R>(reader: &mut R, depth: u8) -> io::Result<ReferenceSequence>
+async fn read_reference_sequence<R>(
+    reader: &mut R,
+    depth: u8,
+) -> io::Result<ReferenceSequence<BinnedIndex>>
 where
     R: AsyncRead + Unpin,
 {
     let (bins, index, metadata) = read_bins(reader, depth).await?;
-    let mut reference_sequence = ReferenceSequence::new(bins, Vec::new(), metadata);
-    reference_sequence.binned_index = index;
-    Ok(reference_sequence)
+    Ok(ReferenceSequence::new(bins, index, metadata))
 }
 
 async fn read_bins<R>(
