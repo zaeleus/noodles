@@ -14,7 +14,6 @@ use std::io;
 use noodles_bgzf as bgzf;
 use noodles_core::{region::Interval, Position};
 
-use self::reference_sequence::index::BinnedIndex;
 use super::{binning_index, index::reference_sequence::bin::Chunk, BinningIndex};
 
 /// A coordinate-sorted index (CSI).
@@ -162,8 +161,7 @@ where
     let interval = interval.into();
 
     let start = interval.start().unwrap_or(Position::MIN);
-
-    let max_position = ReferenceSequence::<BinnedIndex>::max_position(min_shift, depth)?;
+    let max_position = max_position(min_shift, depth)?;
 
     if start > max_position {
         return Err(io::Error::new(
@@ -181,5 +179,28 @@ where
         ))
     } else {
         Ok((start, end))
+    }
+}
+
+fn max_position(min_shift: u8, depth: u8) -> io::Result<Position> {
+    assert!(min_shift > 0);
+    let n = (1 << (usize::from(min_shift) + 3 * usize::from(depth))) - 1;
+    Position::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_max_position() -> Result<(), Box<dyn std::error::Error>> {
+        const MIN_SHIFT: u8 = 14;
+        const DEPTH: u8 = 5;
+
+        let actual = max_position(MIN_SHIFT, DEPTH)?;
+        let expected = Position::try_from(536870911)?;
+        assert_eq!(actual, expected);
+
+        Ok(())
     }
 }

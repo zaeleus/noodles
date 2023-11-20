@@ -179,7 +179,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::index::BinnedIndex;
+    use crate::index::reference_sequence::index::BinnedIndex;
 
     #[test]
     fn test_default() {
