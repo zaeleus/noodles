@@ -5,14 +5,14 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use noodles_csi as csi;
+use noodles_csi::{self as csi, BinningIndex};
 
 use super::IndexedReader;
 
 /// An indexed SAM reader builder.
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct Builder {
-    index: Option<csi::Index>,
+    index: Option<Box<dyn BinningIndex>>,
 }
 
 impl Builder {
@@ -27,8 +27,11 @@ impl Builder {
     /// let index = csi::Index::default();
     /// let builder = Builder::default().set_index(index);
     /// ```
-    pub fn set_index(mut self, index: csi::Index) -> Self {
-        self.index = Some(index);
+    pub fn set_index<I>(mut self, index: I) -> Self
+    where
+        I: BinningIndex + 'static,
+    {
+        self.index = Some(Box::new(index));
         self
     }
 
@@ -49,7 +52,8 @@ impl Builder {
 
         if self.index.is_none() {
             let index_src = build_index_src(src);
-            self.index = csi::read(index_src).map(Some)?;
+            let index = csi::read(index_src)?;
+            self.index = Some(Box::new(index));
         }
 
         let file = File::open(src)?;

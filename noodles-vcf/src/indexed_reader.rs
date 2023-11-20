@@ -8,7 +8,7 @@ use std::io::{self, Read, Seek};
 
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
-use noodles_csi as csi;
+use noodles_csi::BinningIndex;
 
 use super::{
     reader::{Query, Records},
@@ -19,7 +19,7 @@ use crate::lazy;
 /// An indexed VCF reader.
 pub struct IndexedReader<R> {
     inner: Reader<bgzf::Reader<R>>,
-    index: csi::Index,
+    index: Box<dyn BinningIndex>,
 }
 
 impl<R> IndexedReader<R>
@@ -27,10 +27,13 @@ where
     R: Read,
 {
     /// Creates an indexed VCF reader.
-    pub fn new(inner: R, index: csi::Index) -> Self {
+    pub fn new<I>(inner: R, index: I) -> Self
+    where
+        I: BinningIndex + 'static,
+    {
         Self {
             inner: Reader::new(bgzf::Reader::new(inner)),
-            index,
+            index: Box::new(index),
         }
     }
 
@@ -73,7 +76,7 @@ where
     }
 
     /// Returns the associated index.
-    pub fn index(&self) -> &csi::Index {
+    pub fn index(&self) -> &dyn BinningIndex {
         &self.index
     }
 }

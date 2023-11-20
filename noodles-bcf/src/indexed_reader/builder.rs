@@ -6,20 +6,23 @@ use std::{
 };
 
 use noodles_bgzf as bgzf;
-use noodles_csi as csi;
+use noodles_csi::{self as csi, BinningIndex};
 
 use super::IndexedReader;
 
 /// An indexed BCF reader.
 #[derive(Default)]
 pub struct Builder {
-    index: Option<csi::Index>,
+    index: Option<Box<dyn BinningIndex>>,
 }
 
 impl Builder {
     /// Sets an index.
-    pub fn set_index(mut self, index: csi::Index) -> Self {
-        self.index = Some(index);
+    pub fn set_index<I>(mut self, index: I) -> Self
+    where
+        I: BinningIndex + 'static,
+    {
+        self.index = Some(Box::new(index));
         self
     }
 
@@ -53,11 +56,12 @@ impl Builder {
     }
 }
 
-fn read_associated_index<P>(src: P) -> io::Result<csi::Index>
+fn read_associated_index<P>(src: P) -> io::Result<Box<dyn BinningIndex>>
 where
     P: AsRef<Path>,
 {
-    csi::read(build_index_src(src))
+    let index = csi::read(build_index_src(src))?;
+    Ok(Box::new(index))
 }
 
 fn build_index_src<P>(src: P) -> PathBuf

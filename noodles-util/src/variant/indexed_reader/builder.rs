@@ -5,7 +5,7 @@ use std::{
 };
 
 use noodles_bcf as bcf;
-use noodles_csi as csi;
+use noodles_csi::BinningIndex;
 use noodles_vcf as vcf;
 
 use super::IndexedReader;
@@ -22,7 +22,7 @@ use crate::variant::Compression;
 pub struct Builder {
     compression_method: Option<Option<CompressionMethod>>,
     format: Option<Format>,
-    index: Option<csi::Index>,
+    index: Option<Box<dyn BinningIndex>>,
 }
 
 impl Builder {
@@ -80,8 +80,11 @@ impl Builder {
     /// let index = csi::Index::default();
     /// let builder = variant::indexed_reader::Builder::default().set_index(index);
     /// ```
-    pub fn set_index(mut self, index: csi::Index) -> Self {
-        self.index = Some(index);
+    pub fn set_index<I>(mut self, index: I) -> Self
+    where
+        I: BinningIndex + 'static,
+    {
+        self.index = Some(Box::new(index));
         self
     }
 
@@ -209,6 +212,8 @@ impl Builder {
 
 #[cfg(test)]
 mod tests {
+    use noodles_csi as csi;
+
     use super::*;
 
     #[test]

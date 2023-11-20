@@ -6,7 +6,7 @@ use std::{
 };
 
 use noodles_bgzf as bgzf;
-use noodles_csi as csi;
+use noodles_csi::{self as csi, BinningIndex};
 
 use super::IndexedReader;
 use crate::bai;
@@ -14,7 +14,7 @@ use crate::bai;
 /// An indexed BAM reader builder.
 #[derive(Default)]
 pub struct Builder {
-    index: Option<csi::Index>,
+    index: Option<Box<dyn BinningIndex>>,
 }
 
 impl Builder {
@@ -29,8 +29,11 @@ impl Builder {
     /// let index = csi::Index::default();
     /// let builder = Builder::default().set_index(index);
     /// ```
-    pub fn set_index(mut self, index: csi::Index) -> Self {
-        self.index = Some(index);
+    pub fn set_index<I>(mut self, index: I) -> Self
+    where
+        I: BinningIndex + 'static,
+    {
+        self.index = Some(Box::new(index));
         self
     }
 
@@ -89,15 +92,18 @@ impl Builder {
     }
 }
 
-fn read_associated_index<P>(src: P) -> io::Result<csi::Index>
+fn read_associated_index<P>(src: P) -> io::Result<Box<dyn BinningIndex>>
 where
     P: AsRef<Path>,
 {
     let src = src.as_ref();
 
     match bai::read(build_index_src(src, "bai")) {
-        Ok(index) => Ok(index),
-        Err(e) if e.kind() == io::ErrorKind::NotFound => csi::read(build_index_src(src, "csi")),
+        Ok(index) => Ok(Box::new(index)),
+        Err(e) if e.kind() == io::ErrorKind::NotFound => {
+            let index = csi::read(build_index_src(src, "csi"))?;
+            Ok(Box::new(index))
+        }
         Err(e) => Err(e),
     }
 }

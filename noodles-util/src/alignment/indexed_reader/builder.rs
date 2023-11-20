@@ -6,7 +6,7 @@ use std::{
 
 use noodles_bam as bam;
 use noodles_cram::{self as cram, crai};
-use noodles_csi as csi;
+use noodles_csi::{self as csi, BinningIndex};
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
@@ -19,14 +19,14 @@ use crate::alignment::{
 /// An alignment index.
 pub enum Index {
     /// CSI.
-    Csi(csi::Index),
+    Csi(Box<dyn BinningIndex>),
     /// CRAI.
     Crai(crai::Index),
 }
 
 impl From<csi::Index> for Index {
     fn from(index: csi::Index) -> Self {
-        Self::Csi(index)
+        Self::Csi(Box::new(index))
     }
 }
 
