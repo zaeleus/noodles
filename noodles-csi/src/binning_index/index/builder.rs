@@ -43,7 +43,7 @@ where
         self
     }
 
-    /// Sets a tabix header..
+    /// Sets a tabix header.
     ///
     /// # Examples
     ///
