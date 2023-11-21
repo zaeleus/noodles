@@ -22,18 +22,22 @@ impl Index for LinearIndex {
     }
 
     fn update(&mut self, _: u8, _: u8, start: Position, end: Position, chunk: Chunk) {
-        let linear_index_start_offset = (usize::from(start) - 1) / WINDOW_SIZE;
-        let linear_index_end_offset = (usize::from(end) - 1) / WINDOW_SIZE;
+        let end_index = (usize::from(end) - 1) / WINDOW_SIZE;
+        let new_len = end_index + 1;
 
-        if linear_index_end_offset >= self.len() {
-            self.resize(
-                linear_index_end_offset + 1,
-                bgzf::VirtualPosition::default(),
-            );
+        if self.is_empty() {
+            self.resize(new_len, chunk.start());
+            return;
         }
 
+        if end_index >= self.len() {
+            self.resize(new_len, bgzf::VirtualPosition::default());
+        }
+
+        let start_index = (usize::from(start) - 1) / WINDOW_SIZE;
+
         #[allow(clippy::needless_range_loop)]
-        for i in linear_index_start_offset..=linear_index_end_offset {
+        for i in start_index..=end_index {
             if self[i] == bgzf::VirtualPosition::default() {
                 self[i] = chunk.start();
             }
@@ -63,7 +67,7 @@ mod tests {
         assert_eq!(
             index,
             [
-                bgzf::VirtualPosition::from(0),
+                bgzf::VirtualPosition::from(8),
                 bgzf::VirtualPosition::from(8),
                 bgzf::VirtualPosition::from(8),
                 bgzf::VirtualPosition::from(8),
@@ -81,7 +85,7 @@ mod tests {
         assert_eq!(
             index,
             [
-                bgzf::VirtualPosition::from(0),
+                bgzf::VirtualPosition::from(8),
                 bgzf::VirtualPosition::from(8),
                 bgzf::VirtualPosition::from(8),
                 bgzf::VirtualPosition::from(8),
@@ -99,7 +103,7 @@ mod tests {
         assert_eq!(
             index,
             [
-                bgzf::VirtualPosition::from(0),
+                bgzf::VirtualPosition::from(8),
                 bgzf::VirtualPosition::from(8),
                 bgzf::VirtualPosition::from(8),
                 bgzf::VirtualPosition::from(8),
