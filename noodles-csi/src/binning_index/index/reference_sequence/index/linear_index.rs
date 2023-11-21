@@ -40,3 +40,75 @@ impl Index for LinearIndex {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_update() -> Result<(), noodles_core::position::TryFromIntError> {
+        const MIN_SHIFT: u8 = 14;
+        const DEPTH: u8 = 5;
+
+        let mut index = LinearIndex::new();
+
+        let start = Position::try_from(16385)?;
+        let end = Position::try_from(65536)?;
+        let chunk = Chunk::new(
+            bgzf::VirtualPosition::from(8),
+            bgzf::VirtualPosition::from(13),
+        );
+        index.update(MIN_SHIFT, DEPTH, start, end, chunk);
+
+        assert_eq!(
+            index,
+            [
+                bgzf::VirtualPosition::from(0),
+                bgzf::VirtualPosition::from(8),
+                bgzf::VirtualPosition::from(8),
+                bgzf::VirtualPosition::from(8),
+            ]
+        );
+
+        let start = Position::try_from(32769)?;
+        let end = Position::try_from(49152)?;
+        let chunk = Chunk::new(
+            bgzf::VirtualPosition::from(13),
+            bgzf::VirtualPosition::from(21),
+        );
+        index.update(MIN_SHIFT, DEPTH, start, end, chunk);
+
+        assert_eq!(
+            index,
+            [
+                bgzf::VirtualPosition::from(0),
+                bgzf::VirtualPosition::from(8),
+                bgzf::VirtualPosition::from(8),
+                bgzf::VirtualPosition::from(8),
+            ]
+        );
+
+        let start = Position::try_from(98305)?;
+        let end = Position::try_from(114688)?;
+        let chunk = Chunk::new(
+            bgzf::VirtualPosition::from(21),
+            bgzf::VirtualPosition::from(34),
+        );
+        index.update(MIN_SHIFT, DEPTH, start, end, chunk);
+
+        assert_eq!(
+            index,
+            [
+                bgzf::VirtualPosition::from(0),
+                bgzf::VirtualPosition::from(8),
+                bgzf::VirtualPosition::from(8),
+                bgzf::VirtualPosition::from(8),
+                bgzf::VirtualPosition::from(0),
+                bgzf::VirtualPosition::from(0),
+                bgzf::VirtualPosition::from(21),
+            ]
+        );
+
+        Ok(())
+    }
+}
