@@ -155,12 +155,12 @@ mod tests {
 
             let index = vec![
                 bgzf::VirtualPosition::from(0),
-                bgzf::VirtualPosition::from(0),
-                bgzf::VirtualPosition::from(0),
-                bgzf::VirtualPosition::from(0),
-                bgzf::VirtualPosition::from(0),
-                bgzf::VirtualPosition::from(0),
-                bgzf::VirtualPosition::from(0),
+                bgzf::VirtualPosition::from(9),
+                bgzf::VirtualPosition::from(9),
+                bgzf::VirtualPosition::from(9),
+                bgzf::VirtualPosition::from(9),
+                bgzf::VirtualPosition::from(9),
+                bgzf::VirtualPosition::from(9),
                 bgzf::VirtualPosition::from(9),
                 bgzf::VirtualPosition::from(9),
                 bgzf::VirtualPosition::from(9),

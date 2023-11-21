@@ -21,26 +21,12 @@ impl Index for LinearIndex {
         self.last().copied()
     }
 
-    fn update(&mut self, _: u8, _: u8, start: Position, end: Position, chunk: Chunk) {
+    fn update(&mut self, _: u8, _: u8, _: Position, end: Position, chunk: Chunk) {
         let end_index = (usize::from(end) - 1) / WINDOW_SIZE;
         let new_len = end_index + 1;
 
-        if self.is_empty() {
+        if new_len > self.len() {
             self.resize(new_len, chunk.start());
-            return;
-        }
-
-        if end_index >= self.len() {
-            self.resize(new_len, bgzf::VirtualPosition::default());
-        }
-
-        let start_index = (usize::from(start) - 1) / WINDOW_SIZE;
-
-        #[allow(clippy::needless_range_loop)]
-        for i in start_index..=end_index {
-            if self[i] == bgzf::VirtualPosition::default() {
-                self[i] = chunk.start();
-            }
         }
     }
 }
@@ -107,8 +93,8 @@ mod tests {
                 bgzf::VirtualPosition::from(8),
                 bgzf::VirtualPosition::from(8),
                 bgzf::VirtualPosition::from(8),
-                bgzf::VirtualPosition::from(0),
-                bgzf::VirtualPosition::from(0),
+                bgzf::VirtualPosition::from(21),
+                bgzf::VirtualPosition::from(21),
                 bgzf::VirtualPosition::from(21),
             ]
         );
