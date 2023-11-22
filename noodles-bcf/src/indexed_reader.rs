@@ -78,6 +78,11 @@ where
     pub fn lazy_records(&mut self) -> impl Iterator<Item = io::Result<lazy::Record>> + '_ {
         self.inner.lazy_records()
     }
+
+    /// Returns the associated index.
+    pub fn index(&self) -> &dyn BinningIndex {
+        &self.index
+    }
 }
 
 impl<R> IndexedReader<bgzf::Reader<R>>

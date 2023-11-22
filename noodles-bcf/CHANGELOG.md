@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * bcf/indexed_reader: Add index getter (`IndexedReader::index`).
+
 ### Changed
 
   * bcf/async/reader: Accept `csi::BinningIndex` for querying.
