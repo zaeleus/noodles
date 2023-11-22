@@ -54,17 +54,6 @@ where
     pub fn reference_sequences(&self) -> &[ReferenceSequence<I>] {
         &self.reference_sequences
     }
-
-    /// Returns the start position of the first record in the last linear bin.
-    ///
-    /// This is the closest position to the unplaced, unmapped records, if any, that is available
-    /// in an index.
-    pub fn first_record_in_last_linear_bin_start_position(&self) -> Option<bgzf::VirtualPosition> {
-        self.reference_sequences()
-            .iter()
-            .rev()
-            .find_map(|rs| rs.first_record_in_last_linear_bin_start_position())
-    }
 }
 
 impl<I> Default for Index<I>
@@ -135,7 +124,10 @@ where
     }
 
     fn last_first_record_start_position(&self) -> Option<bgzf::VirtualPosition> {
-        self.first_record_in_last_linear_bin_start_position()
+        self.reference_sequences
+            .iter()
+            .rev()
+            .find_map(|rs| rs.first_record_in_last_linear_bin_start_position())
     }
 }
 
