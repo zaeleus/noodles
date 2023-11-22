@@ -95,16 +95,24 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_names() -> Result<(), ReadError> {
-        let data = b"sq0\x00sq1\x00";
-        let actual = parse_names(&data[..])?;
+    fn test_read_reference_sequence_names() -> Result<(), ReadError> {
+        let src = [
+            0x08, 0x00, 0x00, 0x00, // l_nm = 8
+            b's', b'q', b'0', 0x00, // names[0] = "sq0"
+            b's', b'q', b'1', 0x00, // names[1] = "sq1"
+        ];
+        let mut reader = &src[..];
+
+        let actual = read_reference_sequence_names(&mut reader)?;
         let expected: ReferenceSequenceNames = [String::from("sq0"), String::from("sq1")]
             .into_iter()
             .collect();
+
         assert_eq!(actual, expected);
 
-        let data = b"";
-        assert!(parse_names(&data[..])?.is_empty());
+        let src = [0x00, 0x00, 0x00, 0x00]; // l_nm = 0
+        let mut reader = &src[..];
+        assert!(read_reference_sequence_names(&mut reader)?.is_empty());
 
         Ok(())
     }
