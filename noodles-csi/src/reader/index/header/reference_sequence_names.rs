@@ -1,6 +1,6 @@
 use std::{
     error, fmt,
-    io::{self, Read},
+    io::{self, BufRead, BufReader, Read},
     num, str,
 };
 
@@ -57,37 +57,47 @@ where
     let l_nm = reader
         .read_i32::<LittleEndian>()
         .map_err(ReadError::Io)
-        .and_then(|n| usize::try_from(n).map_err(ReadError::InvalidLength))?;
+        .and_then(|n| u64::try_from(n).map_err(ReadError::InvalidLength))?;
 
-    let mut names = vec![0; l_nm];
-    reader.read_exact(&mut names)?;
-
-    parse_names(&names)
+    let mut names_reader = BufReader::new(reader.take(l_nm));
+    read_names(&mut names_reader)
 }
 
-fn parse_names(mut src: &[u8]) -> Result<ReferenceSequenceNames, ReadError> {
+fn read_names<R>(reader: &mut R) -> Result<ReferenceSequenceNames, ReadError>
+where
+    R: BufRead,
+{
     const NUL: u8 = 0x00;
 
     let mut names = ReferenceSequenceNames::new();
 
-    while let Some(i) = src.iter().position(|&b| b == NUL) {
-        let (raw_name, rest) = src.split_at(i);
+    loop {
+        let src = reader.fill_buf()?;
 
-        let name =
-            str::from_utf8(raw_name).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-        if !names.insert(name.into()) {
-            return Err(ReadError::DuplicateName(name.into()));
+        if src.is_empty() {
+            break;
         }
 
-        src = &rest[1..];
+        let len = match src.iter().position(|&b| b == NUL) {
+            Some(i) => {
+                let raw_name = &src[..i];
+
+                let name = str::from_utf8(raw_name)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+                if !names.insert(name.into()) {
+                    return Err(ReadError::DuplicateName(name.into()));
+                }
+
+                i + 1
+            }
+            None => return Err(ReadError::ExpectedEof),
+        };
+
+        reader.consume(len);
     }
 
-    if src.is_empty() {
-        Ok(names)
-    } else {
-        Err(ReadError::ExpectedEof)
-    }
+    Ok(names)
 }
 
 #[cfg(test)]
@@ -118,18 +128,24 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_names_with_duplicate_name() {
-        let data = b"sq0\x00sq0\x00";
+    fn test_read_names_with_duplicate_name() {
+        let src = b"sq0\x00sq0\x00";
+        let mut reader = &src[..];
 
         assert!(matches!(
-            parse_names(data),
+            read_names(&mut reader),
             Err(ReadError::DuplicateName(s)) if s == "sq0"
         ));
     }
 
     #[test]
-    fn test_parse_names_with_trailing_data() {
-        let data = b"sq0\x00sq1\x00sq2";
-        assert!(matches!(parse_names(data), Err(ReadError::ExpectedEof)));
+    fn test_read_names_with_trailing_data() {
+        let src = b"sq0\x00sq1";
+        let mut reader = &src[..];
+
+        assert!(matches!(
+            read_names(&mut reader),
+            Err(ReadError::ExpectedEof)
+        ));
     }
 }
