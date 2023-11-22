@@ -1,15 +1,15 @@
+mod reference_sequence_names;
+
 use std::{
     error, fmt,
     io::{self, Read},
-    num, str,
+    num,
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use crate::binning_index::index::{
-    header::{format, ReferenceSequenceNames},
-    Header,
-};
+use self::reference_sequence_names::read_reference_sequence_names;
+use crate::binning_index::index::{header::format, Header};
 
 /// An error returned when a CSI header fails to be read.
 #[derive(Debug)]
@@ -34,12 +34,8 @@ pub enum ReadError {
     InvalidLineCommentPrefix(num::TryFromIntError),
     /// The header line skip count is invalid.
     InvalidLineSkipCount(num::TryFromIntError),
-    /// The header names length is invalid.
-    InvalidNamesLength(num::TryFromIntError),
-    /// A header name is duplicated.
-    DuplicateName(String),
-    /// The header names is invalid.
-    InvalidNames,
+    /// The reference sequence names are invalid.
+    InvalidReferenceSequenceNames(reference_sequence_names::ReadError),
 }
 
 impl error::Error for ReadError {
@@ -53,7 +49,7 @@ impl error::Error for ReadError {
             Self::InvalidEndPositionIndex(e) => Some(e),
             Self::InvalidLineCommentPrefix(e) => Some(e),
             Self::InvalidLineSkipCount(e) => Some(e),
-            Self::InvalidNamesLength(e) => Some(e),
+            Self::InvalidReferenceSequenceNames(e) => Some(e),
             _ => None,
         }
     }
@@ -76,9 +72,7 @@ impl fmt::Display for ReadError {
             Self::InvalidEndPositionIndex(_) => write!(f, "invalid end position index"),
             Self::InvalidLineCommentPrefix(_) => write!(f, "invalid line comment prefix"),
             Self::InvalidLineSkipCount(_) => write!(f, "invalid line skip count"),
-            Self::InvalidNamesLength(_) => write!(f, "invalid names length"),
-            Self::DuplicateName(name) => write!(f, "duplicate name: {name}"),
-            Self::InvalidNames => write!(f, "invalid names"),
+            Self::InvalidReferenceSequenceNames(_) => write!(f, "invalid reference sequence names"),
         }
     }
 }
@@ -126,7 +120,8 @@ where
     let skip =
         read_i32(reader).and_then(|n| u32::try_from(n).map_err(ReadError::InvalidLineSkipCount))?;
 
-    let names = read_names(reader)?;
+    let names =
+        read_reference_sequence_names(reader).map_err(ReadError::InvalidReferenceSequenceNames)?;
 
     Ok(Header::builder()
         .set_format(format)
@@ -188,46 +183,6 @@ where
             .map(Some)
             .map_err(ReadError::InvalidEndPositionIndex),
     })
-}
-
-fn read_names<R>(reader: &mut R) -> Result<ReferenceSequenceNames, ReadError>
-where
-    R: Read,
-{
-    let l_nm = reader
-        .read_i32::<LittleEndian>()
-        .map_err(ReadError::Io)
-        .and_then(|n| usize::try_from(n).map_err(ReadError::InvalidNamesLength))?;
-
-    let mut names = vec![0; l_nm];
-    reader.read_exact(&mut names)?;
-
-    parse_names(&names)
-}
-
-fn parse_names(mut src: &[u8]) -> Result<ReferenceSequenceNames, ReadError> {
-    const NUL: u8 = 0x00;
-
-    let mut names = ReferenceSequenceNames::new();
-
-    while let Some(i) = src.iter().position(|&b| b == NUL) {
-        let (raw_name, rest) = src.split_at(i);
-
-        let name =
-            str::from_utf8(raw_name).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-        if !names.insert(name.into()) {
-            return Err(ReadError::DuplicateName(name.into()));
-        }
-
-        src = &rest[1..];
-    }
-
-    if src.is_empty() {
-        Ok(names)
-    } else {
-        Err(ReadError::InvalidNames)
-    }
 }
 
 #[cfg(test)]
@@ -318,36 +273,5 @@ mod tests {
         ));
 
         Ok(())
-    }
-
-    #[test]
-    fn test_parse_names() -> Result<(), ReadError> {
-        let data = b"sq0\x00sq1\x00";
-        let actual = parse_names(&data[..])?;
-        let expected: ReferenceSequenceNames = [String::from("sq0"), String::from("sq1")]
-            .into_iter()
-            .collect();
-        assert_eq!(actual, expected);
-
-        let data = b"";
-        assert!(parse_names(&data[..])?.is_empty());
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_parse_names_with_duplicate_name() {
-        let data = b"sq0\x00sq0\x00";
-
-        assert!(matches!(
-            parse_names(data),
-            Err(ReadError::DuplicateName(s)) if s == "sq0"
-        ));
-    }
-
-    #[test]
-    fn test_parse_names_with_trailing_data() {
-        let data = b"sq0\x00sq1\x00sq2";
-        assert!(matches!(parse_names(data), Err(ReadError::InvalidNames)));
     }
 }
