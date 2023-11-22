@@ -15,6 +15,8 @@ pub enum ReadError {
     Io(io::Error),
     /// The length is invalid.
     InvalidLength(num::TryFromIntError),
+    /// A reference sequence name is invalid.
+    InvalidName(str::Utf8Error),
     /// A reference sequence name is duplicated.
     DuplicateName(String),
     /// Expected EOF.
@@ -26,6 +28,7 @@ impl error::Error for ReadError {
         match self {
             Self::Io(e) => Some(e),
             Self::InvalidLength(e) => Some(e),
+            Self::InvalidName(e) => Some(e),
             _ => None,
         }
     }
@@ -36,6 +39,7 @@ impl fmt::Display for ReadError {
         match self {
             Self::Io(_) => write!(f, "I/O error"),
             Self::InvalidLength(_) => write!(f, "invalid length"),
+            Self::InvalidName(_) => write!(f, "invalid name"),
             Self::DuplicateName(name) => write!(f, "duplicate name: {name}"),
             Self::ExpectedEof => write!(f, "expected EOF"),
         }
@@ -81,9 +85,7 @@ where
         let len = match src.iter().position(|&b| b == NUL) {
             Some(i) => {
                 let raw_name = &src[..i];
-
-                let name = str::from_utf8(raw_name)
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+                let name = str::from_utf8(raw_name).map_err(ReadError::InvalidName)?;
 
                 if !names.insert(name.into()) {
                     return Err(ReadError::DuplicateName(name.into()));
