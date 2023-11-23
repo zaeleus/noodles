@@ -72,7 +72,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_aux() -> io::Result<()> {
+    fn test_write_aux() -> io::Result<()> {
         let mut buf = Vec::new();
         write_aux(&mut buf, None)?;
         let expected = [0x00, 0x00, 0x00, 0x00];
