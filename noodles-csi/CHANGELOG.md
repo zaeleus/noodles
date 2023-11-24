@@ -33,6 +33,10 @@
 
     First record positions for each bin is now moved to the reference sequence.
 
+  * csi/binning_index/index/reference_sequence: Remove `Builder`.
+
+    Use `ReferenceSequence::update` instead.
+
   * csi/binning_index/index/reference_sequence/bin: Remove `Builder`.
 
     Use `Bin::add_chunk` instead.

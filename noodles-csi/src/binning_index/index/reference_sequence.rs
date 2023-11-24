@@ -1,11 +1,10 @@
 //! Coordinate-sorted index (CSI) reference sequence and fields.
 
 pub mod bin;
-mod builder;
 pub mod index;
 mod metadata;
 
-pub use self::{bin::Bin, builder::Builder, index::Index, metadata::Metadata};
+pub use self::{bin::Bin, index::Index, metadata::Metadata};
 
 use std::{io, num::NonZeroUsize};
 
@@ -14,6 +13,7 @@ use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
 use noodles_core::{region::Interval, Position};
 
+use self::bin::Chunk;
 use super::resolve_interval;
 use crate::binning_index;
 
@@ -201,6 +201,31 @@ where
     /// ```
     pub fn first_record_in_last_linear_bin_start_position(&self) -> Option<bgzf::VirtualPosition> {
         self.index.last_first_start_position()
+    }
+
+    pub(super) fn update(
+        &mut self,
+        min_shift: u8,
+        depth: u8,
+        start: Position,
+        end: Position,
+        is_mapped: bool,
+        chunk: Chunk,
+    ) {
+        let id = reg2bin(start, end, min_shift, depth);
+        let bins = self.bins.entry(id).or_insert(Bin::new(Vec::new()));
+        bins.add_chunk(chunk);
+
+        self.index.update(min_shift, depth, start, end, chunk);
+
+        let metadata = self.metadata.get_or_insert(Metadata::new(
+            bgzf::VirtualPosition::MAX,
+            bgzf::VirtualPosition::MIN,
+            0,
+            0,
+        ));
+
+        metadata.update(is_mapped, chunk);
     }
 }
 
