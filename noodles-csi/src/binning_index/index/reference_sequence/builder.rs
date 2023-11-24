@@ -9,10 +9,7 @@ use super::{bin::Chunk, Bin, Index, Metadata, ReferenceSequence};
 pub struct Builder<I> {
     bins: IndexMap<usize, Bin>,
     index: I,
-    start_position: bgzf::VirtualPosition,
-    end_position: bgzf::VirtualPosition,
-    mapped_record_count: u64,
-    unmapped_record_count: u64,
+    metadata: Metadata,
 }
 
 impl<I> Builder<I>
@@ -31,7 +28,7 @@ where
     ) {
         self.update_bins(min_shift, depth, start, end, chunk);
         self.index.update(min_shift, depth, start, end, chunk);
-        self.update_metadata(is_mapped, chunk);
+        self.metadata.update(is_mapped, chunk);
     }
 
     /// Builds a CSI reference sequence.
@@ -40,14 +37,7 @@ where
             return ReferenceSequence::new(IndexMap::new(), self.index, None);
         }
 
-        let metadata = Metadata::new(
-            self.start_position,
-            self.end_position,
-            self.mapped_record_count,
-            self.unmapped_record_count,
-        );
-
-        ReferenceSequence::new(self.bins, self.index, Some(metadata))
+        ReferenceSequence::new(self.bins, self.index, Some(self.metadata))
     }
 
     fn update_bins(
@@ -64,17 +54,6 @@ where
         let builder = self.bins.entry(bin_id).or_insert(Bin::new(Vec::new()));
         builder.add_chunk(chunk);
     }
-
-    fn update_metadata(&mut self, is_mapped: bool, chunk: Chunk) {
-        if is_mapped {
-            self.mapped_record_count += 1;
-        } else {
-            self.unmapped_record_count += 1;
-        }
-
-        self.start_position = self.start_position.min(chunk.start());
-        self.end_position = self.end_position.max(chunk.end());
-    }
 }
 
 impl<I> Default for Builder<I>
@@ -85,10 +64,7 @@ where
         Self {
             bins: IndexMap::new(),
             index: I::default(),
-            start_position: bgzf::VirtualPosition::MAX,
-            end_position: bgzf::VirtualPosition::MIN,
-            mapped_record_count: 0,
-            unmapped_record_count: 0,
+            metadata: Metadata::new(bgzf::VirtualPosition::MAX, bgzf::VirtualPosition::MIN, 0, 0),
         }
     }
 }

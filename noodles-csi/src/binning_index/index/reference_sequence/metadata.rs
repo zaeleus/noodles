@@ -1,5 +1,7 @@
 use noodles_bgzf as bgzf;
 
+use super::bin::Chunk;
+
 /// Index reference sequence metadata.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Metadata {
@@ -121,5 +123,16 @@ impl Metadata {
     /// ```
     pub fn unmapped_record_count(&self) -> u64 {
         self.unmapped_record_count
+    }
+
+    pub(super) fn update(&mut self, is_mapped: bool, chunk: Chunk) {
+        if is_mapped {
+            self.mapped_record_count += 1;
+        } else {
+            self.unmapped_record_count += 1;
+        }
+
+        self.start_position = self.start_position.min(chunk.start());
+        self.end_position = self.end_position.max(chunk.end());
     }
 }
