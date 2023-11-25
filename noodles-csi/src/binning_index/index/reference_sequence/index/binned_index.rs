@@ -43,3 +43,48 @@ impl Index for BinnedIndex {
             .or_insert(chunk.start());
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_min_offset() -> Result<(), noodles_core::position::TryFromIntError> {
+        const MIN_SHIFT: u8 = 4;
+        const DEPTH: u8 = 2;
+
+        let index: BinnedIndex = [(1, bgzf::VirtualPosition::from(233))]
+            .into_iter()
+            .collect();
+
+        let start = Position::try_from(8)?;
+        assert_eq!(
+            index.min_offset(MIN_SHIFT, DEPTH, start),
+            bgzf::VirtualPosition::from(233)
+        );
+
+        let start = Position::try_from(144)?;
+        assert_eq!(
+            index.min_offset(MIN_SHIFT, DEPTH, start),
+            bgzf::VirtualPosition::default()
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_last_first_start_position() {
+        let index: BinnedIndex = [
+            (0, bgzf::VirtualPosition::from(8)),
+            (2, bgzf::VirtualPosition::from(21)),
+            (9, bgzf::VirtualPosition::from(13)),
+        ]
+        .into_iter()
+        .collect();
+
+        assert_eq!(
+            index.last_first_start_position(),
+            Some(bgzf::VirtualPosition::from(21))
+        );
+    }
+}
