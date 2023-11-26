@@ -1,8 +1,8 @@
-//! CSI index builder.
+//! Binning index builder.
 
 use super::{reference_sequence, Header, Index, ReferenceSequence};
 
-/// A coordinate-sorted index (CSI) builder.
+/// A binning index builder.
 pub struct Builder<I> {
     min_shift: u8,
     depth: u8,
@@ -97,7 +97,7 @@ where
         self
     }
 
-    /// Builds a coordinate-sorted index (CSI).
+    /// Builds a binning index.
     ///
     /// # Examples
     ///

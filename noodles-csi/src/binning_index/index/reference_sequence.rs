@@ -1,4 +1,4 @@
-//! Coordinate-sorted index (CSI) reference sequence and fields.
+//! Binning index reference sequence.
 
 pub mod bin;
 pub mod index;
@@ -17,7 +17,7 @@ use self::bin::Chunk;
 use super::resolve_interval;
 use crate::binning_index;
 
-/// A CSI reference sequence.
+/// A binning index reference sequence.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReferenceSequence<I> {
     bins: IndexMap<usize, Bin>,
@@ -29,7 +29,7 @@ impl<I> ReferenceSequence<I>
 where
     I: Index,
 {
-    /// Creates a CSI reference sequence.
+    /// Creates a binning index reference sequence.
     ///
     /// # Examples
     ///

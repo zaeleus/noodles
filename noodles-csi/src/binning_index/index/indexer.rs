@@ -8,7 +8,7 @@ use super::{
     Header, Index, ReferenceSequence,
 };
 
-/// A CSI indexer.
+/// A binning index indexer.
 #[derive(Debug)]
 pub struct Indexer<I> {
     min_shift: u8,
@@ -22,7 +22,7 @@ impl<I> Indexer<I>
 where
     I: reference_sequence::Index + Default,
 {
-    /// Creates a CSI indexer.
+    /// Creates a binning index indexer.
     ///
     /// # Examples
     ///
@@ -122,7 +122,7 @@ where
         Ok(())
     }
 
-    /// Builds a CSI index.
+    /// Builds a binning index.
     ///
     /// # Examples
     ///

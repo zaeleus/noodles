@@ -1,4 +1,4 @@
-//! CSI reference sequence index.
+//! Binning index reference sequence index.
 
 mod binned_index;
 mod linear_index;
@@ -9,7 +9,7 @@ use noodles_core::Position;
 pub use self::{binned_index::BinnedIndex, linear_index::LinearIndex};
 use super::bin::Chunk;
 
-/// A CSI reference sequence index.
+/// A binning index reference sequence index.
 pub trait Index {
     /// Returns the start virtual position of the first record in the bin that contains the given
     /// start position.

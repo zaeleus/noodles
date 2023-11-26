@@ -1,4 +1,4 @@
-//! CSI reference sequence bin and fields.
+//! Binning index reference sequence bin.
 
 mod chunk;
 
@@ -6,7 +6,7 @@ pub use self::chunk::Chunk;
 
 pub(crate) const METADATA_CHUNK_COUNT: u32 = 2;
 
-/// A CSI reference sequence bin.
+/// A binning index reference sequence bin.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Bin {
     chunks: Vec<Chunk>,
@@ -37,7 +37,7 @@ impl Bin {
         Self::max_id(depth) + 1
     }
 
-    /// Creates a new bin.
+    /// Creates a binning index reference sequence bin.
     ///
     /// # Examples
     ///
