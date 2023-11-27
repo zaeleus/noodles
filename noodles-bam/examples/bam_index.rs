@@ -52,7 +52,8 @@ fn main() -> io::Result<()> {
             record.alignment_end(),
         ) {
             (Some(id), Some(start), Some(end)) => {
-                Some((id, start, end, !record.flags().is_unmapped()))
+                let is_mapped = !record.flags().is_unmapped();
+                Some((id, start, end, is_mapped))
             }
             _ => None,
         };
