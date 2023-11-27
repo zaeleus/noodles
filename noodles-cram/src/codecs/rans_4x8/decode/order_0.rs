@@ -17,31 +17,24 @@ where
 
     let cumulative_freqs_symbols_table = build_cumulative_freqs_symbols_table_0(&cumulative_freqs);
 
-    let mut state = [0; 4];
-    reader.read_u32_into::<LittleEndian>(&mut state)?;
+    let mut states = [0; 4];
+    reader.read_u32_into::<LittleEndian>(&mut states)?;
 
-    let mut i = 0;
-
-    while i < dst.len() {
-        for j in 0..4 {
-            if i + j >= dst.len() {
-                return Ok(());
-            }
-
-            let f = rans_get_cumulative_freq(state[j]);
+    for chunk in dst.chunks_mut(states.len()) {
+        for (d, state) in chunk.iter_mut().zip(states.iter_mut()) {
+            let f = rans_get_cumulative_freq(*state);
             let s = cumulative_freqs_symbols_table[f as usize];
 
-            dst[i + j] = s;
+            *d = s;
 
-            state[j] = rans_advance_step(
-                state[j],
+            *state = rans_advance_step(
+                *state,
                 cumulative_freqs[usize::from(s)],
                 freqs[usize::from(s)],
             );
-            state[j] = rans_renorm(reader, state[j])?;
-        }
 
-        i += 4;
+            *state = rans_renorm(reader, *state)?;
+        }
     }
 
     Ok(())
