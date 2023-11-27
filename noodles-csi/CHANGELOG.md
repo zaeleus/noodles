@@ -27,6 +27,8 @@
 
   * csi: Define `csi::Index` as `binning_index::Index<BinnedIndex>`.
 
+  * csi/binning_index: Move `Indexer` under `binning_index` module.
+
 ### Removed
 
   * csi/binning_index/index/reference_sequence/bin: Remove `Bin::loffset`.

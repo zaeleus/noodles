@@ -3,7 +3,7 @@ use std::io;
 use indexmap::IndexMap;
 use noodles_core::Position;
 
-use super::{
+use super::index::{
     reference_sequence::{self, bin::Chunk},
     Header, Index, ReferenceSequence,
 };
@@ -27,7 +27,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::binning_index::index::{reference_sequence::index::BinnedIndex, Indexer};
+    /// use noodles_csi::binning_index::{index::reference_sequence::index::BinnedIndex, Indexer};
     /// let indexer = Indexer::<BinnedIndex>::new(14, 5);
     /// ```
     pub fn new(min_shift: u8, depth: u8) -> Self {
@@ -45,9 +45,9 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::binning_index::index::{
-    ///     reference_sequence::index::BinnedIndex,
-    ///     Header, Indexer,
+    /// use noodles_csi::binning_index::{
+    ///     index::{reference_sequence::index::BinnedIndex, Header},
+    ///     Indexer,
     /// };
     ///
     /// let header = Header::default();
@@ -65,8 +65,8 @@ where
     /// ```
     /// use noodles_bgzf as bgzf;
     /// use noodles_core::Position;
-    /// use noodles_csi::binning_index::index::{
-    ///     reference_sequence::{bin::Chunk, index::BinnedIndex},
+    /// use noodles_csi::binning_index::{
+    ///     index::reference_sequence::{bin::Chunk, index::BinnedIndex},
     ///     Indexer,
     /// };
     ///
@@ -127,7 +127,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::binning_index::index::{reference_sequence::index::BinnedIndex, Indexer};
+    /// use noodles_csi::binning_index::{index::reference_sequence::index::BinnedIndex, Indexer};
     /// let indexer = Indexer::<BinnedIndex>::new(14, 5);
     /// let index = indexer.build(0);
     /// ```

@@ -1,6 +1,7 @@
 //! Binning index.
 
 pub mod index;
+mod indexer;
 mod reference_sequence;
 
 use std::io;
@@ -9,7 +10,7 @@ use noodles_bgzf as bgzf;
 use noodles_core::region::Interval;
 
 use self::index::{reference_sequence::bin::Chunk, Header};
-pub use self::{index::Index, reference_sequence::ReferenceSequence};
+pub use self::{index::Index, indexer::Indexer, reference_sequence::ReferenceSequence};
 
 /// A binning index.
 pub trait BinningIndex {

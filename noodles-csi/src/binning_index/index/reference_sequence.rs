@@ -203,7 +203,7 @@ where
         self.index.last_first_start_position()
     }
 
-    pub(super) fn update(
+    pub(crate) fn update(
         &mut self,
         min_shift: u8,
         depth: u8,

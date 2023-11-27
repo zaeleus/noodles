@@ -17,7 +17,7 @@ use crate::Index;
 pub struct Indexer {
     header: Header,
     reference_sequence_names: ReferenceSequenceNames,
-    indexer: csi::binning_index::index::Indexer<LinearIndex>,
+    indexer: csi::binning_index::Indexer<LinearIndex>,
 }
 
 impl Indexer {
