@@ -27,8 +27,8 @@ pub(super) fn parse_value<'a>(src: &mut &'a [u8], ty: Type) -> io::Result<Value<
         Type::Character => parse_character_value(src),
         Type::Int32 => parse_int32_value(src),
         Type::Float => parse_float_value(src),
-        Type::String => parse_string_value(src),
-        Type::Hex => parse_hex_value(src),
+        Type::String => Ok(parse_string_value(src)),
+        Type::Hex => Ok(parse_hex_value(src)),
         Type::Array => parse_array(src).map(Value::Array),
     }
 }
@@ -60,7 +60,7 @@ fn parse_float_value<'a>(src: &mut &'a [u8]) -> io::Result<Value<'a>> {
     Ok(Value::Float(n))
 }
 
-fn parse_string<'a>(src: &mut &'a [u8]) -> io::Result<&'a [u8]> {
+fn parse_string<'a>(src: &mut &'a [u8]) -> &'a [u8] {
     const DELIMITER: u8 = b'\t';
 
     let i = src
@@ -72,15 +72,15 @@ fn parse_string<'a>(src: &mut &'a [u8]) -> io::Result<&'a [u8]> {
 
     *src = rest;
 
-    Ok(buf)
+    buf
 }
 
-fn parse_string_value<'a>(src: &mut &'a [u8]) -> io::Result<Value<'a>> {
-    parse_string(src).map(Value::String)
+fn parse_string_value<'a>(src: &mut &'a [u8]) -> Value<'a> {
+    Value::String(parse_string(src))
 }
 
-fn parse_hex_value<'a>(src: &mut &'a [u8]) -> io::Result<Value<'a>> {
-    parse_string(src).map(Value::Hex)
+fn parse_hex_value<'a>(src: &mut &'a [u8]) -> Value<'a> {
+    Value::Hex(parse_string(src))
 }
 
 #[cfg(test)]

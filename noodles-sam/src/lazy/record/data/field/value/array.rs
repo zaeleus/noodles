@@ -22,7 +22,7 @@ pub(super) fn parse_array<'a>(src: &mut &'a [u8]) -> io::Result<Array<'a>> {
     let subtype = parse_subtype(src)?;
     maybe_consume_delimiter(src)?;
 
-    let buf = parse_string(src)?;
+    let buf = parse_string(src);
 
     match subtype {
         Subtype::Int8 => Ok(Array::Int8(buf)),
