@@ -37,7 +37,7 @@ pub(super) fn write_meta_record(
 
     for (k, v) in map.other_fields() {
         match k.as_ref() {
-            NUMBER | TYPE | VALUES => write!(f, ",{}={}", k, v)?,
+            NUMBER | TYPE | VALUES => write!(f, ",{k}={v}")?,
             _ => {
                 write!(f, ",{k}=")?;
                 write_escaped_string(f, v)?;
