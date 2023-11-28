@@ -3,6 +3,7 @@
 mod cigar;
 pub mod data;
 mod mapping_quality;
+mod position;
 mod quality_scores;
 mod read_name;
 mod sequence;
@@ -17,6 +18,8 @@ use std::io;
 use bytes::BufMut;
 use noodles_core::Position;
 use noodles_sam::{self as sam, alignment::Record, record::Cigar};
+
+use self::position::put_position;
 
 // § 4.2.1 "BIN field calculation" (2021-06-03): "Note unmapped reads with `POS` 0 (which
 // becomes -1 in BAM) therefore use `reg2bin(-1, 0)` which is computed as 4680."
@@ -113,24 +116,6 @@ where
     };
 
     dst.put_i32_le(ref_id);
-
-    Ok(())
-}
-
-fn put_position<B>(dst: &mut B, position: Option<Position>) -> io::Result<()>
-where
-    B: BufMut,
-{
-    const MISSING: i32 = -1;
-
-    let pos = if let Some(position) = position {
-        i32::try_from(usize::from(position) - 1)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
-    } else {
-        MISSING
-    };
-
-    dst.put_i32_le(pos);
 
     Ok(())
 }
