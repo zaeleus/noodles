@@ -20,3 +20,30 @@ where
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_put_position() -> Result<(), Box<dyn std::error::Error>> {
+        fn t(buf: &mut Vec<u8>, position: Option<Position>, expected: &[u8]) -> io::Result<()> {
+            buf.clear();
+            put_position(buf, position)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
+        let mut buf = Vec::new();
+
+        t(&mut buf, None, &[0xff, 0xff, 0xff, 0xff])?;
+        t(&mut buf, Some(Position::MIN), &[0x00, 0x00, 0x00, 0x00])?;
+        t(
+            &mut buf,
+            Position::try_from(8).map(Some)?,
+            &[0x07, 0x00, 0x00, 0x00],
+        )?;
+
+        Ok(())
+    }
+}
