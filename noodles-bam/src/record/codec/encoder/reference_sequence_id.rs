@@ -34,3 +34,64 @@ where
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use std::num::NonZeroUsize;
+
+    use super::*;
+
+    #[test]
+    fn test_put_reference_sequence_id() -> Result<(), Box<dyn std::error::Error>> {
+        use sam::header::record::value::{map::ReferenceSequence, Map};
+
+        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
+            Some(ln) => ln,
+            None => unreachable!(),
+        };
+
+        fn t(
+            buf: &mut Vec<u8>,
+            header: &sam::Header,
+            reference_sequence_id: Option<usize>,
+            expected: &[u8],
+        ) -> io::Result<()> {
+            buf.clear();
+            put_reference_sequence_id(buf, header, reference_sequence_id)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
+        let mut buf = Vec::new();
+
+        let header = sam::Header::default();
+        let reference_sequence_id = None;
+        t(
+            &mut buf,
+            &header,
+            reference_sequence_id,
+            &[0xff, 0xff, 0xff, 0xff],
+        )?;
+
+        let header = sam::Header::builder()
+            .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(SQ0_LN))
+            .build();
+        let reference_sequence_id = Some(0);
+        t(
+            &mut buf,
+            &header,
+            reference_sequence_id,
+            &[0x00, 0x00, 0x00, 0x00],
+        )?;
+
+        buf.clear();
+        let header = sam::Header::default();
+        let reference_sequence_id = Some(0);
+        assert!(matches!(
+            put_reference_sequence_id(&mut buf, &header, reference_sequence_id),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        Ok(())
+    }
+}
