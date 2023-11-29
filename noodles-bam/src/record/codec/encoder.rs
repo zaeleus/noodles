@@ -6,6 +6,7 @@ mod mapping_quality;
 mod position;
 mod quality_scores;
 mod read_name;
+mod reference_sequence_id;
 mod sequence;
 
 pub(crate) use self::{
@@ -19,7 +20,7 @@ use bytes::BufMut;
 use noodles_core::Position;
 use noodles_sam::{self as sam, alignment::Record, record::Cigar};
 
-use self::position::put_position;
+use self::{position::put_position, reference_sequence_id::put_reference_sequence_id};
 
 // § 4.2.1 "BIN field calculation" (2021-06-03): "Note unmapped reads with `POS` 0 (which
 // becomes -1 in BAM) therefore use `reg2bin(-1, 0)` which is computed as 4680."
@@ -84,38 +85,6 @@ where
     if cigar.is_some() {
         data::field::put_cigar(dst, record.cigar())?;
     }
-
-    Ok(())
-}
-
-fn put_reference_sequence_id<B>(
-    dst: &mut B,
-    header: &sam::Header,
-    reference_sequence_id: Option<usize>,
-) -> io::Result<()>
-where
-    B: BufMut,
-{
-    const UNMAPPED: i32 = -1;
-
-    let ref_id = if let Some(id) = reference_sequence_id {
-        if id < header.reference_sequences().len() {
-            i32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
-        } else {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                format!(
-                    "invalid reference sequence ID: expected < {}, got {}",
-                    header.reference_sequences().len(),
-                    id
-                ),
-            ));
-        }
-    } else {
-        UNMAPPED
-    };
-
-    dst.put_i32_le(ref_id);
 
     Ok(())
 }
