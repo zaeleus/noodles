@@ -1,6 +1,7 @@
 mod bounds;
 mod cigar;
 mod data;
+mod flags;
 mod position;
 mod quality_scores;
 mod reference_sequence_name;
@@ -10,10 +11,10 @@ use std::{fmt, io};
 
 use self::bounds::Bounds;
 pub use self::{
-    cigar::Cigar, data::Data, position::Position, quality_scores::QualityScores,
+    cigar::Cigar, data::Data, flags::Flags, position::Position, quality_scores::QualityScores,
     reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
 };
-use crate::record::{Flags, MappingQuality};
+use crate::record::MappingQuality;
 
 const MISSING: &[u8] = b"*";
 
@@ -50,13 +51,12 @@ impl Record {
     /// ```
     /// use noodles_sam::{self as sam, record::Flags};
     /// let record = sam::lazy::Record::default();
-    /// assert_eq!(record.flags()?, Flags::UNMAPPED);
-    /// # Ok::<_, std::io::Error>(())
+    /// assert_eq!(Flags::try_from(record.flags())?, Flags::UNMAPPED);
+    /// # Ok::<_, lexical_core::Error>(())
     /// ```
-    pub fn flags(&self) -> io::Result<Flags> {
-        use crate::reader::record::parse_flags;
+    pub fn flags(&self) -> Flags<'_> {
         let src = &self.buf[self.bounds.flags_range()];
-        parse_flags(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        Flags::new(src)
     }
 
     /// Returns the reference sequence name.

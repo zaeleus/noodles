@@ -4,6 +4,8 @@
 
 ### Changed
 
+  * sam/lazy/record: Wrap flags (`lazy::Record::flags`).
+
   * sam/reader: Accept `csi::BinningIndex` for querying.
 
 ## 0.48.0 - 2023-11-14
