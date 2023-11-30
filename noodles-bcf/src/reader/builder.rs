@@ -5,6 +5,7 @@ use noodles_bgzf as bgzf;
 use super::Reader;
 
 /// A BCF reader builder.
+#[derive(Default)]
 pub struct Builder;
 
 impl Builder {
