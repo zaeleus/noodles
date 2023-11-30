@@ -1,4 +1,8 @@
-use std::{fs::File, io, path::Path};
+use std::{
+    fs::File,
+    io::{self, Read},
+    path::Path,
+};
 
 use noodles_bgzf as bgzf;
 
@@ -22,6 +26,23 @@ impl Builder {
     where
         P: AsRef<Path>,
     {
-        File::open(src).map(Reader::new)
+        let file = File::open(src)?;
+        self.build_from_reader(file)
+    }
+
+    /// Builds a BCF reader from a reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bcf::reader::Builder;
+    /// let reader = Builder::default().build_from_reader(io::empty());
+    /// ```
+    pub fn build_from_reader<R>(self, reader: R) -> io::Result<Reader<bgzf::Reader<R>>>
+    where
+        R: Read,
+    {
+        Ok(Reader::new(reader))
     }
 }

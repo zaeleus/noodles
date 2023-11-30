@@ -6,6 +6,8 @@
 
   * bcf/indexed_reader: Add index getter (`IndexedReader::index`).
 
+  * bcf/reader/builder: Add `Builder::build_from_reader`.
+
 ### Changed
 
   * bcf/async/reader: Accept `csi::BinningIndex` for querying.
