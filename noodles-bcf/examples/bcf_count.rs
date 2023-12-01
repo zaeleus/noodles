@@ -9,7 +9,7 @@ use noodles_bcf as bcf;
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = bcf::reader::Builder.build_from_path(src)?;
+    let mut reader = bcf::reader::Builder::default().build_from_path(src)?;
     let header = reader.read_header()?;
 
     let mut n = 0;

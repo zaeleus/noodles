@@ -7,6 +7,7 @@ mod r#async;
 
 pub mod header;
 pub mod indexed_reader;
+pub mod io;
 pub mod lazy;
 pub mod reader;
 pub(crate) mod record;

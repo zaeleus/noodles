@@ -8,6 +8,16 @@
 
   * bcf/reader/builder: Add `Builder::build_from_reader`.
 
+  * bcf/reader/builder: Add a compression method setter
+    (`Builder::set_compression_method`).
+
+    This allows the compression method to be overridden using
+    `bcf::io::CompressionMethod`, instead of assuming the input is
+    always bgzip-compressed.
+
+    Change instantiations of `bcf::reader::Builder` to
+    `bcf::reader::Builder::default()`.
+
 ### Changed
 
   * bcf/async/reader: Accept `csi::BinningIndex` for querying.
