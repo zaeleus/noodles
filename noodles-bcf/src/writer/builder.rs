@@ -1,4 +1,8 @@
-use std::{fs::File, io, path::Path};
+use std::{
+    fs::File,
+    io::{self, Write},
+    path::Path,
+};
 
 use noodles_bgzf as bgzf;
 
@@ -22,5 +26,22 @@ impl Builder {
         P: AsRef<Path>,
     {
         File::create(dst).map(Writer::new)
+    }
+
+    /// Builds a BCF writer from a writer.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::io;
+    /// use noodles_bcf::writer::Builder;
+    /// let writer = Builder.build_from_writer(io::sink())?;
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn build_from_writer<W>(self, writer: W) -> io::Result<Writer<bgzf::Writer<W>>>
+    where
+        W: Write,
+    {
+        Ok(Writer::new(writer))
     }
 }
