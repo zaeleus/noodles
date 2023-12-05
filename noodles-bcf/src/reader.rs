@@ -1,4 +1,4 @@
-//! BCF reader and iterators.
+//! BCF reader.
 
 mod builder;
 mod header;
