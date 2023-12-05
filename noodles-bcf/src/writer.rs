@@ -1,3 +1,6 @@
+//! BCF writer.
+
+mod builder;
 mod header;
 mod record;
 
@@ -7,6 +10,7 @@ use byteorder::WriteBytesExt;
 use noodles_bgzf as bgzf;
 use noodles_vcf as vcf;
 
+pub use self::builder::Builder;
 use self::{header::write_header, record::write_record};
 use super::header::StringMaps;
 

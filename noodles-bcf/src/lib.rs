@@ -11,7 +11,7 @@ pub mod io;
 pub mod lazy;
 pub mod reader;
 pub(crate) mod record;
-mod writer;
+pub mod writer;
 
 pub use self::{indexed_reader::IndexedReader, reader::Reader, writer::Writer};
 

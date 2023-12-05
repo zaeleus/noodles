@@ -18,7 +18,11 @@
     Change instantiations of `bcf::reader::Builder` to
     `bcf::reader::Builder::default()`.
 
+  * bcf/writer: Add builder (`bcf::writer::Builder`).
+
 ### Changed
+
+  * bcf: Increase the visibility of the `writer` module.
 
   * bcf/async/reader: Accept `csi::BinningIndex` for querying.
 
