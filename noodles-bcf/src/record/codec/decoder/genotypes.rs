@@ -24,12 +24,12 @@ pub fn read_genotypes(
     use vcf::record::genotypes::keys::key;
 
     let mut keys = Vec::with_capacity(format_count);
-    let mut values = vec![Vec::new(); sample_count];
+    let mut samples = vec![Vec::new(); sample_count];
 
     for _ in 0..format_count {
         let key = read_key(src, formats, string_map).map_err(DecodeError::InvalidKey)?;
 
-        let vs = if key == &key::GENOTYPE {
+        let values = if key == &key::GENOTYPE {
             read_genotype_values(src, sample_count).map_err(DecodeError::InvalidValues)?
         } else {
             read_values(src, sample_count).map_err(DecodeError::InvalidValues)?
@@ -37,14 +37,14 @@ pub fn read_genotypes(
 
         keys.push(key.clone());
 
-        for (sample, value) in values.iter_mut().zip(vs) {
+        for (sample, value) in samples.iter_mut().zip(values) {
             sample.push(value);
         }
     }
 
     let keys = Keys::try_from(keys).map_err(DecodeError::InvalidKeys)?;
 
-    Ok(Genotypes::new(keys, values))
+    Ok(Genotypes::new(keys, samples))
 }
 
 #[allow(clippy::enum_variant_names)]
