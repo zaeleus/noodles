@@ -121,7 +121,7 @@ pub enum TryFromKeyVectorError {
     /// The genotype key (`GT`) position is invalid.
     ///
     /// The genotype key must be first if present. See § 1.6.2 Genotype fields (2020-06-25).
-    InvalidGenotypeKeyPosition,
+    InvalidGenotypeKeyPosition(usize),
     /// A key is duplicated.
     ///
     /// § 1.6.2 Genotype fields (2021-01-13): "...duplicate keys are not allowed".
@@ -133,7 +133,9 @@ impl error::Error for TryFromKeyVectorError {}
 impl fmt::Display for TryFromKeyVectorError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidGenotypeKeyPosition => f.write_str("invalid genotype key position"),
+            Self::InvalidGenotypeKeyPosition(i) => {
+                write!(f, "invalid genotype key position: expected 0, got {i}")
+            }
             Self::DuplicateKey(key) => write!(f, "duplicate key: {key}"),
         }
     }
@@ -147,7 +149,7 @@ impl TryFrom<Vec<Key>> for Keys {
             return Ok(Keys::default());
         } else if let Some(i) = keys.iter().position(|k| k == &key::GENOTYPE) {
             if i != 0 {
-                return Err(TryFromKeyVectorError::InvalidGenotypeKeyPosition);
+                return Err(TryFromKeyVectorError::InvalidGenotypeKeyPosition(i));
             }
         }
 
@@ -237,7 +239,7 @@ mod tests {
 
         assert_eq!(
             Keys::try_from(vec![key::CONDITIONAL_GENOTYPE_QUALITY, key::GENOTYPE]),
-            Err(TryFromKeyVectorError::InvalidGenotypeKeyPosition)
+            Err(TryFromKeyVectorError::InvalidGenotypeKeyPosition(1))
         );
 
         assert_eq!(
