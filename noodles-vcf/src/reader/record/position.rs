@@ -1,7 +1,5 @@
 use std::{error, fmt, num};
 
-use noodles_core as core;
-
 use crate::record::Position;
 
 /// An error when a raw VCF record position fails to parse.
@@ -37,12 +35,6 @@ impl From<num::ParseIntError> for ParseError {
             num::IntErrorKind::Empty => Self::Empty,
             _ => Self::Invalid(e),
         }
-    }
-}
-
-impl From<ParseError> for core::Error {
-    fn from(e: ParseError) -> Self {
-        Self::new(core::error::Kind::Parse, e)
     }
 }
 

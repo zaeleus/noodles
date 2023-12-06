@@ -2,8 +2,6 @@ mod base;
 
 use std::{error, fmt};
 
-use noodles_core as core;
-
 use self::base::parse_base;
 use crate::record::ReferenceBases;
 
@@ -31,12 +29,6 @@ impl fmt::Display for ParseError {
             Self::Empty => write!(f, "empty input"),
             Self::InvalidBase(_) => write!(f, "invalid base"),
         }
-    }
-}
-
-impl From<ParseError> for core::Error {
-    fn from(e: ParseError) -> Self {
-        Self::new(core::error::Kind::Parse, e)
     }
 }
 

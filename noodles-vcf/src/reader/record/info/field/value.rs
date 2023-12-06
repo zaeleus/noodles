@@ -1,7 +1,5 @@
 use std::{error, fmt, num, str};
 
-use noodles_core as core;
-
 use crate::{
     header::{record::value::map::info::Type, Number},
     reader::record::MISSING,
@@ -54,12 +52,6 @@ impl fmt::Display for ParseError {
             ParseError::InvalidCharacter => write!(f, "invalid character"),
             ParseError::InvalidString(_) => write!(f, "invalid string"),
         }
-    }
-}
-
-impl From<ParseError> for core::Error {
-    fn from(e: ParseError) -> Self {
-        Self::new(core::error::Kind::Parse, e)
     }
 }
 

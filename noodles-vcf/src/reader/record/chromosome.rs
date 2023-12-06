@@ -1,7 +1,5 @@
 use std::{error, fmt};
 
-use noodles_core as core;
-
 use crate::record::Chromosome;
 
 /// An error when a raw VCF record chromosome fails to parse.
@@ -18,12 +16,6 @@ impl fmt::Display for ParseError {
         match self {
             Self::Invalid => write!(f, "invalid input"),
         }
-    }
-}
-
-impl From<ParseError> for core::Error {
-    fn from(e: ParseError) -> Self {
-        Self::new(core::error::Kind::Parse, e)
     }
 }
 

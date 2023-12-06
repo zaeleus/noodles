@@ -2,8 +2,6 @@ mod value;
 
 use std::{error, fmt};
 
-use noodles_core as core;
-
 use self::value::parse_value;
 use crate::{
     reader::record::MISSING,
@@ -40,12 +38,6 @@ impl fmt::Display for ParseError {
             Self::InvalidValue(_) => f.write_str("invalid value"),
             Self::UnexpectedValue => f.write_str("unexpected value"),
         }
-    }
-}
-
-impl From<ParseError> for core::Error {
-    fn from(e: ParseError) -> Self {
-        Self::new(core::error::Kind::Parse, e)
     }
 }
 

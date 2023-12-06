@@ -1,7 +1,5 @@
 use std::{error, fmt};
 
-use noodles_core as core;
-
 use crate::{
     reader::record::MISSING,
     record::genotypes::{
@@ -43,12 +41,6 @@ impl fmt::Display for ParseError {
             Self::InvalidGenotypeKeyPosition => write!(f, "invalid genotype key position"),
             Self::DuplicateKey(key) => write!(f, "duplicate key: {key}"),
         }
-    }
-}
-
-impl From<ParseError> for core::Error {
-    fn from(e: ParseError) -> Self {
-        Self::new(core::error::Kind::Parse, e)
     }
 }
 

@@ -1,7 +1,5 @@
 use std::{error, fmt};
 
-use noodles_core as core;
-
 use crate::record::QualityScore;
 
 /// An error when a raw VCF record quality score fails to parse.
@@ -23,12 +21,6 @@ impl fmt::Display for ParseError {
             Self::Invalid => write!(f, "invalid input"),
             Self::Negative => write!(f, "negative value"),
         }
-    }
-}
-
-impl From<ParseError> for core::Error {
-    fn from(e: ParseError) -> Self {
-        Self::new(core::error::Kind::Parse, e)
     }
 }
 

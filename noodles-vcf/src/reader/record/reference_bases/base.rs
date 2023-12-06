@@ -1,7 +1,5 @@
 use std::{error, fmt};
 
-use noodles_core as core;
-
 use crate::record::reference_bases::Base;
 
 /// An error when a raw VCF record base fails to parse.
@@ -18,12 +16,6 @@ impl fmt::Display for ParseError {
         match self {
             Self::Invalid(c) => write!(f, "expected {{A, C, G, T, N}}, got {}", c),
         }
-    }
-}
-
-impl From<ParseError> for core::Error {
-    fn from(e: ParseError) -> Self {
-        Self::new(core::error::Kind::Parse, e)
     }
 }
 

@@ -2,8 +2,6 @@ mod field;
 
 use std::{error, fmt};
 
-use noodles_core as core;
-
 use self::field::parse_field;
 use crate::{
     record::{info::field::Key, Info},
@@ -45,12 +43,6 @@ impl fmt::Display for ParseError {
             }
             ParseError::DuplicateKey(key) => write!(f, "duplicate key: {key}"),
         }
-    }
-}
-
-impl From<ParseError> for core::Error {
-    fn from(e: ParseError) -> Self {
-        Self::new(core::error::Kind::Parse, e)
     }
 }
 

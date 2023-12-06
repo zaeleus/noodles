@@ -3,8 +3,6 @@ mod values;
 
 use std::{error, fmt};
 
-use noodles_core as core;
-
 use self::{keys::parse_keys, values::parse_values};
 use super::next_field;
 use crate::{record::Genotypes, Header};
@@ -39,12 +37,6 @@ impl fmt::Display for ParseError {
             ParseError::InvalidKeys(_) => write!(f, "invalid keys"),
             ParseError::InvalidValues(_) => write!(f, "invalid values"),
         }
-    }
-}
-
-impl From<ParseError> for core::Error {
-    fn from(e: ParseError) -> Self {
-        Self::new(core::error::Kind::Parse, e)
     }
 }
 

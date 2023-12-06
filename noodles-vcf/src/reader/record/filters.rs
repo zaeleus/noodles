@@ -1,7 +1,6 @@
 use std::{error, fmt, mem};
 
 use indexmap::IndexSet;
-use noodles_core as core;
 
 use crate::record::Filters;
 
@@ -25,12 +24,6 @@ impl fmt::Display for ParseError {
             Self::InvalidFilter => write!(f, "invalid filter"),
             Self::DuplicateFilter => write!(f, "duplicate filter"),
         }
-    }
-}
-
-impl From<ParseError> for core::Error {
-    fn from(e: ParseError) -> Self {
-        Self::new(core::error::Kind::Parse, e)
     }
 }
 

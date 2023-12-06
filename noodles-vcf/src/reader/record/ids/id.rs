@@ -1,7 +1,5 @@
 use std::{error, fmt};
 
-use noodles_core as core;
-
 use crate::record::ids::Id;
 
 /// An error when a raw VCF record ID fails to parse.
@@ -21,12 +19,6 @@ impl fmt::Display for ParseError {
             Self::Empty => write!(f, "empty input"),
             Self::Invalid => write!(f, "invalid input"),
         }
-    }
-}
-
-impl From<ParseError> for core::Error {
-    fn from(e: ParseError) -> Self {
-        Self::new(core::error::Kind::Parse, e)
     }
 }
 

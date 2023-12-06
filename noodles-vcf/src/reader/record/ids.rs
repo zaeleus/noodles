@@ -2,8 +2,6 @@ mod id;
 
 use std::{error, fmt};
 
-use noodles_core as core;
-
 use self::id::parse_id;
 use crate::record::{ids::Id, Ids};
 
@@ -34,12 +32,6 @@ impl fmt::Display for ParseError {
             Self::InvalidId(_) => write!(f, "invalid ID"),
             Self::DuplicateId(id) => write!(f, "duplicate ID: {id}"),
         }
-    }
-}
-
-impl From<ParseError> for core::Error {
-    fn from(e: ParseError) -> Self {
-        Self::new(core::error::Kind::Parse, e)
     }
 }
 

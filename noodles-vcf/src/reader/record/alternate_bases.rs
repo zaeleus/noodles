@@ -1,7 +1,5 @@
 use std::{error, fmt};
 
-use noodles_core as core;
-
 use crate::record::{alternate_bases::allele, AlternateBases};
 
 /// An error when raw VCF record alternate bases fail to parse.
@@ -28,12 +26,6 @@ impl fmt::Display for ParseError {
             Self::Empty => write!(f, "empty input"),
             Self::InvalidAllele(_) => write!(f, "invalid allele"),
         }
-    }
-}
-
-impl From<ParseError> for core::Error {
-    fn from(e: ParseError) -> Self {
-        Self::new(core::error::Kind::Parse, e)
     }
 }
 

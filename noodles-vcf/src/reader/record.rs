@@ -12,8 +12,6 @@ mod reference_bases;
 
 use std::{error, fmt};
 
-use noodles_core as core;
-
 use self::{
     alternate_bases::parse_alternate_bases, chromosome::parse_chromosome, filters::parse_filters,
     genotypes::parse_genotypes, ids::parse_ids, info::parse_info, position::parse_position,
@@ -76,12 +74,6 @@ impl fmt::Display for ParseError {
             Self::InvalidInfo(_) => write!(f, "invalid info"),
             Self::InvalidGenotypes(_) => write!(f, "invalid genotypes"),
         }
-    }
-}
-
-impl From<ParseError> for core::Error {
-    fn from(e: ParseError) -> Self {
-        Self::new(core::error::Kind::Parse, e)
     }
 }
 
