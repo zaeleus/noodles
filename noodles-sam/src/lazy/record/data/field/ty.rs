@@ -1,6 +1,6 @@
 use std::io;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(super) enum Type {
     Character,
     Int32,
