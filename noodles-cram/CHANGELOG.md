@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * cram/async/reader: Add common methods to access the underlying reader:
+    `get_ref`, `get_mut`, and `into_inner` ([#220]).
+
+[#220]: https://github.com/zaeleus/noodles/issues/220
+
 ## 0.50.0 - 2023-11-14
 
 ### Changed

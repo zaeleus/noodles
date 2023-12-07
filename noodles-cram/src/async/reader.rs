@@ -42,6 +42,48 @@ where
         }
     }
 
+    /// Returns a reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram as cram;
+    /// let data = [];
+    /// let reader = cram::AsyncReader::new(&data[..]);
+    /// assert!(reader.get_ref().is_empty());
+    /// ```
+    pub fn get_ref(&self) -> &R {
+        &self.inner
+    }
+
+    /// Returns a mutable reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram as cram;
+    /// let data = [];
+    /// let mut reader = cram::AsyncReader::new(&data[..]);
+    /// assert!(reader.get_mut().is_empty());
+    /// ```
+    pub fn get_mut(&mut self) -> &mut R {
+        &mut self.inner
+    }
+
+    /// Returns the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram as cram;
+    /// let data = [];
+    /// let reader = cram::AsyncReader::new(&data[..]);
+    /// assert!(reader.into_inner().is_empty());
+    /// ```
+    pub fn into_inner(self) -> R {
+        self.inner
+    }
+
     /// Reads the CRAM file definition.
     ///
     /// This also checks the magic number.
