@@ -24,6 +24,7 @@ resolver = "2"
 [workspace.package]
 license = "MIT"
 edition = "2021"
+rust-version = "1.64.0"
 
 [workspace.dependencies]
 bit-vec = "0.6.1"
