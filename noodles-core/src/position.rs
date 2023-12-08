@@ -16,16 +16,10 @@ pub struct Position(NonZeroUsize);
 
 impl Position {
     /// The minimum value of a position.
-    pub const MIN: Self = match Self::new(1) {
-        Some(position) => position,
-        None => unreachable!(),
-    };
+    pub const MIN: Self = Self(NonZeroUsize::MIN);
 
     /// The maximum value of a position.
-    pub const MAX: Self = match Self::new(usize::MAX) {
-        Some(position) => position,
-        None => unreachable!(),
-    };
+    pub const MAX: Self = Self(NonZeroUsize::MAX);
 
     /// Creates a position if the given value is not zero.
     ///
