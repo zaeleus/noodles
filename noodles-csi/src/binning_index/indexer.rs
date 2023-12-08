@@ -91,9 +91,7 @@ where
     ) -> io::Result<()> {
         use std::cmp::Ordering;
 
-        let (reference_sequence_id, start, end, is_mapped) = if let Some(ctx) = alignment_context {
-            ctx
-        } else {
+        let Some((reference_sequence_id, start, end, is_mapped)) = alignment_context else {
             self.unplaced_unmapped_record_count += 1;
             return Ok(());
         };
