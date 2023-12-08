@@ -23,6 +23,8 @@
 
 ### Changed
 
+  * csi: Raise minimum supported Rust version (MSRV) to 1.70.0.
+
   * csi: Increase the visibility of the `reader` module.
 
   * csi: Define `csi::Index` as `binning_index::Index<BinnedIndex>`.

@@ -9,6 +9,10 @@
 
 [#220]: https://github.com/zaeleus/noodles/issues/220
 
+### Changed
+
+  * cram: Raise minimum supported Rust version (MSRV) to 1.70.0.
+
 ## 0.50.0 - 2023-11-14
 
 ### Changed

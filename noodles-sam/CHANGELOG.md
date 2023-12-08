@@ -4,6 +4,8 @@
 
 ### Changed
 
+  * sam: Raise minimum supported Rust version (MSRV) to 1.70.0.
+
   * sam/lazy/record: Wrap flags (`lazy::Record::flags`).
 
   * sam/reader: Accept `csi::BinningIndex` for querying.

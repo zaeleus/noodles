@@ -4,6 +4,8 @@
 
 ### Changed
 
+  * bam: Raise minimum supported Rust version (MSRV) to 1.70.0.
+
   * bam/async/reader: Accept `csi::BinningIndex` for querying.
 
   * bam/reader: Accept `csi::BinningIndex` for querying.

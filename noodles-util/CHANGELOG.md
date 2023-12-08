@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * util: Raise minimum supported Rust version (MSRV) to 1.70.0.
+
 ## 0.31.0 - 2023-11-14
 
 ### Changed

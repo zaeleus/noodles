@@ -22,6 +22,8 @@
 
 ### Changed
 
+  * bcf: Raise minimum supported Rust version (MSRV) to 1.70.0.
+
   * bcf: Increase the visibility of the `writer` module.
 
   * bcf/async/reader: Accept `csi::BinningIndex` for querying.

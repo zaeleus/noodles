@@ -4,6 +4,8 @@
 
 ### Changed
 
+  * vcf: Raise minimum supported Rust version (MSRV) to 1.70.0.
+
   * vcf/async/reader: Accept `csi::BinningIndex` for querying.
 
   * vcf/reader: Accept `csi::BinningIndex` for querying.

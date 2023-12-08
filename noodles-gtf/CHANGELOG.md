@@ -4,6 +4,8 @@
 
 ### Changed
 
+  * gtf: Raise minimum supported Rust version (MSRV) to 1.70.0.
+
   * gtf/reader: Accept `csi::BinningIndex` for querying.
 
 ## 0.21.0 - 2023-11-14

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bgzf: Raise minimum supported Rust version (MSRV) to 1.70.0.
+
 ## 0.25.0 - 2023-10-12
 
 ### Changed

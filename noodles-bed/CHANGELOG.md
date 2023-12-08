@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bed: Raise minimum supported Rust version (MSRV) to 1.70.0.
+
 ## 0.10.0 - 2023-06-15
 
 ### Changed
