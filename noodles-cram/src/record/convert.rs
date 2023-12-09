@@ -198,9 +198,8 @@ fn get_read_group_id(
 ) -> io::Result<Option<usize>> {
     use sam::record::data::field::tag;
 
-    let rg_value = match data.get(&tag::READ_GROUP) {
-        Some(value) => value,
-        None => return Ok(None),
+    let Some(rg_value) = data.get(&tag::READ_GROUP) else {
+        return Ok(None);
     };
 
     let read_group_name = rg_value.as_str().ok_or_else(|| {

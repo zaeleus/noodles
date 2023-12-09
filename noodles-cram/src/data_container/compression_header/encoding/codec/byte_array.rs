@@ -61,14 +61,11 @@ impl Decode for ByteArray {
                         )
                     })?;
 
-                let len = match src.chunk().iter().position(|&b| b == *stop_byte) {
-                    Some(i) => i,
-                    None => {
-                        return Err(io::Error::new(
-                            io::ErrorKind::InvalidData,
-                            "missing byte array stop byte",
-                        ))
-                    }
+                let Some(len) = src.chunk().iter().position(|&b| b == *stop_byte) else {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        "missing byte array stop byte",
+                    ));
                 };
 
                 let mut buf = vec![0; len];

@@ -18,9 +18,8 @@ pub fn read_data_container<R>(
 where
     R: Read,
 {
-    let header = match read_header(reader)? {
-        Some(header) => header,
-        None => return Ok(None),
+    let Some(header) = read_header(reader)? else {
+        return Ok(None);
     };
 
     buf.resize(header.len(), 0);
@@ -47,9 +46,8 @@ pub fn read_data_container_with_container_header<R>(
 where
     R: Read,
 {
-    let header = match read_header(reader)? {
-        Some(header) => header,
-        None => return Ok(None),
+    let Some(header) = read_header(reader)? else {
+        return Ok(None);
     };
 
     buf.resize(header.len(), 0);

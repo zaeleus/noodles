@@ -33,9 +33,8 @@ where
     }
 
     fn read_container_records(&mut self) -> io::Result<bool> {
-        let container = match self.reader.read_data_container()? {
-            Some(c) => c,
-            None => return Ok(true),
+        let Some(container) = self.reader.read_data_container()? else {
+            return Ok(true);
         };
 
         self.records = container
