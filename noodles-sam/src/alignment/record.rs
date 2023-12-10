@@ -1,6 +1,7 @@
 //! Alignment record.
 
 mod builder;
+mod read_name;
 
 pub use self::builder::Builder;
 
@@ -16,14 +17,17 @@ use crate::{
         },
         ReferenceSequences,
     },
-    record::{Cigar, Data, Flags, MappingQuality, QualityScores, ReadName, Sequence},
+    record::{self, Cigar, Data, Flags, MappingQuality, QualityScores, Sequence},
     Header,
 };
+
+#[doc(hidden)]
+pub use self::read_name::ReadName;
 
 /// An alignment record.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Record {
-    read_name: Option<ReadName>,
+    read_name: Option<record::ReadName>,
     flags: Flags,
     reference_sequence_id: Option<usize>,
     alignment_start: Option<Position>,
@@ -59,7 +63,7 @@ impl Record {
     /// let record = sam::alignment::Record::default();
     /// assert!(record.read_name().is_none());
     /// ```
-    pub fn read_name(&self) -> Option<&ReadName> {
+    pub fn read_name(&self) -> Option<&record::ReadName> {
         self.read_name.as_ref()
     }
 
@@ -78,7 +82,7 @@ impl Record {
     /// assert_eq!(record.read_name(), Some(&read_name));
     /// Ok::<_, sam::record::read_name::ParseError>(())
     /// ```
-    pub fn read_name_mut(&mut self) -> &mut Option<ReadName> {
+    pub fn read_name_mut(&mut self) -> &mut Option<record::ReadName> {
         &mut self.read_name
     }
 
