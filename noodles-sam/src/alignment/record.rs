@@ -5,6 +5,7 @@ mod flags;
 mod position;
 mod read_name;
 mod reference_sequence_id;
+mod sequence;
 
 pub use self::builder::Builder;
 
@@ -20,14 +21,14 @@ use crate::{
         },
         ReferenceSequences,
     },
-    record::{self, Cigar, Data, MappingQuality, QualityScores, Sequence},
+    record::{self, Cigar, Data, MappingQuality, QualityScores},
     Header,
 };
 
 #[doc(hidden)]
 pub use self::{
     flags::Flags, position::Position, read_name::ReadName,
-    reference_sequence_id::ReferenceSequenceId,
+    reference_sequence_id::ReferenceSequenceId, sequence::Sequence,
 };
 
 /// An alignment record.
@@ -42,7 +43,7 @@ pub struct Record {
     mate_reference_sequence_id: Option<usize>,
     mate_alignment_start: Option<core::Position>,
     template_length: i32,
-    sequence: Sequence,
+    sequence: record::Sequence,
     quality_scores: QualityScores,
     data: Data,
 }
@@ -324,7 +325,7 @@ impl Record {
     /// let record = sam::alignment::Record::default();
     /// assert!(record.sequence().is_empty());
     /// ```
-    pub fn sequence(&self) -> &Sequence {
+    pub fn sequence(&self) -> &record::Sequence {
         &self.sequence
     }
 
@@ -343,7 +344,7 @@ impl Record {
     /// assert_eq!(record.sequence(), &sequence);
     /// Ok::<_, sam::record::sequence::ParseError>(())
     /// ```
-    pub fn sequence_mut(&mut self) -> &mut Sequence {
+    pub fn sequence_mut(&mut self) -> &mut record::Sequence {
         &mut self.sequence
     }
 
