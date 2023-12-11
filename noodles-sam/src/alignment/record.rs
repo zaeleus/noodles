@@ -5,6 +5,7 @@ mod cigar;
 mod flags;
 mod mapping_quality;
 mod position;
+mod quality_scores;
 mod read_name;
 mod reference_sequence_id;
 mod sequence;
@@ -24,15 +25,15 @@ use crate::{
         },
         ReferenceSequences,
     },
-    record::{self, Data, QualityScores},
+    record::{self, Data},
     Header,
 };
 
 #[doc(hidden)]
 pub use self::{
     cigar::Cigar, flags::Flags, mapping_quality::MappingQuality, position::Position,
-    read_name::ReadName, reference_sequence_id::ReferenceSequenceId, sequence::Sequence,
-    template_length::TemplateLength,
+    quality_scores::QualityScores, read_name::ReadName, reference_sequence_id::ReferenceSequenceId,
+    sequence::Sequence, template_length::TemplateLength,
 };
 
 /// An alignment record.
@@ -48,7 +49,7 @@ pub struct Record {
     mate_alignment_start: Option<core::Position>,
     template_length: i32,
     sequence: record::Sequence,
-    quality_scores: QualityScores,
+    quality_scores: record::QualityScores,
     data: Data,
 }
 
@@ -361,7 +362,7 @@ impl Record {
     /// let record = sam::alignment::Record::default();
     /// assert!(record.quality_scores().is_empty());
     /// ```
-    pub fn quality_scores(&self) -> &QualityScores {
+    pub fn quality_scores(&self) -> &record::QualityScores {
         &self.quality_scores
     }
 
@@ -380,7 +381,7 @@ impl Record {
     /// assert_eq!(record.quality_scores(), &quality_scores);
     /// Ok::<_, sam::record::quality_scores::ParseError>(())
     /// ```
-    pub fn quality_scores_mut(&mut self) -> &mut QualityScores {
+    pub fn quality_scores_mut(&mut self) -> &mut record::QualityScores {
         &mut self.quality_scores
     }
 
