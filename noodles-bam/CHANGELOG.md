@@ -8,6 +8,8 @@
 
   * bam/async/reader: Accept `csi::BinningIndex` for querying.
 
+  * bam/bai: Define `bai::Index` as `binning_index::Index<LinearIndex>`.
+
   * bam/reader: Accept `csi::BinningIndex` for querying.
 
 ## 0.51.0 - 2023-11-14
