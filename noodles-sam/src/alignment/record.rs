@@ -8,6 +8,7 @@ mod position;
 mod read_name;
 mod reference_sequence_id;
 mod sequence;
+mod template_length;
 
 pub use self::builder::Builder;
 
@@ -31,6 +32,7 @@ use crate::{
 pub use self::{
     cigar::Cigar, flags::Flags, mapping_quality::MappingQuality, position::Position,
     read_name::ReadName, reference_sequence_id::ReferenceSequenceId, sequence::Sequence,
+    template_length::TemplateLength,
 };
 
 /// An alignment record.
