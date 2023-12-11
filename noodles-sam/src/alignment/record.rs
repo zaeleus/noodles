@@ -1,6 +1,7 @@
 //! Alignment record.
 
 mod builder;
+mod cigar;
 mod flags;
 mod position;
 mod read_name;
@@ -21,13 +22,13 @@ use crate::{
         },
         ReferenceSequences,
     },
-    record::{self, Cigar, Data, MappingQuality, QualityScores},
+    record::{self, Data, MappingQuality, QualityScores},
     Header,
 };
 
 #[doc(hidden)]
 pub use self::{
-    flags::Flags, position::Position, read_name::ReadName,
+    cigar::Cigar, flags::Flags, position::Position, read_name::ReadName,
     reference_sequence_id::ReferenceSequenceId, sequence::Sequence,
 };
 
@@ -39,7 +40,7 @@ pub struct Record {
     reference_sequence_id: Option<usize>,
     alignment_start: Option<core::Position>,
     mapping_quality: Option<MappingQuality>,
-    cigar: Cigar,
+    cigar: record::Cigar,
     mate_reference_sequence_id: Option<usize>,
     mate_alignment_start: Option<core::Position>,
     template_length: i32,
@@ -211,7 +212,7 @@ impl Record {
     /// let record = sam::alignment::Record::default();
     /// assert!(record.cigar().is_empty());
     /// ```
-    pub fn cigar(&self) -> &Cigar {
+    pub fn cigar(&self) -> &record::Cigar {
         &self.cigar
     }
 
@@ -230,7 +231,7 @@ impl Record {
     /// assert_eq!(record.cigar(), &cigar);
     /// Ok::<_, sam::record::cigar::ParseError>(())
     /// ```
-    pub fn cigar_mut(&mut self) -> &mut Cigar {
+    pub fn cigar_mut(&mut self) -> &mut record::Cigar {
         &mut self.cigar
     }
 
