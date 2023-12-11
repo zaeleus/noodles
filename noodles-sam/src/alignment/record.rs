@@ -3,6 +3,7 @@
 mod builder;
 mod cigar;
 mod flags;
+mod mapping_quality;
 mod position;
 mod read_name;
 mod reference_sequence_id;
@@ -22,14 +23,14 @@ use crate::{
         },
         ReferenceSequences,
     },
-    record::{self, Data, MappingQuality, QualityScores},
+    record::{self, Data, QualityScores},
     Header,
 };
 
 #[doc(hidden)]
 pub use self::{
-    cigar::Cigar, flags::Flags, position::Position, read_name::ReadName,
-    reference_sequence_id::ReferenceSequenceId, sequence::Sequence,
+    cigar::Cigar, flags::Flags, mapping_quality::MappingQuality, position::Position,
+    read_name::ReadName, reference_sequence_id::ReferenceSequenceId, sequence::Sequence,
 };
 
 /// An alignment record.
@@ -39,7 +40,7 @@ pub struct Record {
     flags: record::Flags,
     reference_sequence_id: Option<usize>,
     alignment_start: Option<core::Position>,
-    mapping_quality: Option<MappingQuality>,
+    mapping_quality: Option<record::MappingQuality>,
     cigar: record::Cigar,
     mate_reference_sequence_id: Option<usize>,
     mate_alignment_start: Option<core::Position>,
@@ -185,7 +186,7 @@ impl Record {
     /// let record = sam::alignment::Record::default();
     /// assert!(record.mapping_quality().is_none());
     /// ```
-    pub fn mapping_quality(&self) -> Option<MappingQuality> {
+    pub fn mapping_quality(&self) -> Option<record::MappingQuality> {
         self.mapping_quality
     }
 
@@ -199,7 +200,7 @@ impl Record {
     /// *record.mapping_quality_mut() = Some(MappingQuality::MIN);
     /// assert_eq!(record.mapping_quality(), Some(MappingQuality::MIN));
     /// ```
-    pub fn mapping_quality_mut(&mut self) -> &mut Option<MappingQuality> {
+    pub fn mapping_quality_mut(&mut self) -> &mut Option<record::MappingQuality> {
         &mut self.mapping_quality
     }
 
