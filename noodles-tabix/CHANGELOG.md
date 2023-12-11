@@ -6,6 +6,8 @@
 
   * tabix: Raise minimum supported Rust version (MSRV) to 1.70.0.
 
+  * tabix: Define `tabix::Index` as `binning_index::Index<LinearIndex>`.
+
 ## 0.34.0 - 2023-11-14
 
 ### Added
