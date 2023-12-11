@@ -3,6 +3,7 @@
 mod builder;
 mod flags;
 mod read_name;
+mod reference_sequence_id;
 
 pub use self::builder::Builder;
 
@@ -23,7 +24,7 @@ use crate::{
 };
 
 #[doc(hidden)]
-pub use self::{flags::Flags, read_name::ReadName};
+pub use self::{flags::Flags, read_name::ReadName, reference_sequence_id::ReferenceSequenceId};
 
 /// An alignment record.
 #[derive(Clone, Debug, PartialEq)]
