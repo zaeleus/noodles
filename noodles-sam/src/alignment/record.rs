@@ -2,6 +2,7 @@
 
 mod builder;
 mod cigar;
+mod data;
 mod flags;
 mod mapping_quality;
 mod position;
@@ -25,13 +26,12 @@ use crate::{
         },
         ReferenceSequences,
     },
-    record::{self, Data},
-    Header,
+    record, Header,
 };
 
 #[doc(hidden)]
 pub use self::{
-    cigar::Cigar, flags::Flags, mapping_quality::MappingQuality, position::Position,
+    cigar::Cigar, data::Data, flags::Flags, mapping_quality::MappingQuality, position::Position,
     quality_scores::QualityScores, read_name::ReadName, reference_sequence_id::ReferenceSequenceId,
     sequence::Sequence, template_length::TemplateLength,
 };
@@ -50,7 +50,7 @@ pub struct Record {
     template_length: i32,
     sequence: record::Sequence,
     quality_scores: record::QualityScores,
-    data: Data,
+    data: record::Data,
 }
 
 impl Record {
@@ -394,7 +394,7 @@ impl Record {
     /// let record = sam::alignment::Record::default();
     /// assert!(record.data().is_empty());
     /// ```
-    pub fn data(&self) -> &Data {
+    pub fn data(&self) -> &record::Data {
         &self.data
     }
 
@@ -413,7 +413,7 @@ impl Record {
     /// assert_eq!(record.data_mut(), &data);
     /// Ok::<_, sam::record::data::ParseError>(())
     /// ```
-    pub fn data_mut(&mut self) -> &mut Data {
+    pub fn data_mut(&mut self) -> &mut record::Data {
         &mut self.data
     }
 
