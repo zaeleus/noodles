@@ -26,6 +26,20 @@ impl<'a> AsRef<[u8]> for Sequence<'a> {
     }
 }
 
+impl<'a> crate::alignment::record::Sequence for Sequence<'a> {
+    fn is_empty(&self) -> bool {
+        self.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        self.len()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = u8> + '_> {
+        Box::new(self.as_ref().iter().copied())
+    }
+}
+
 impl<'a> TryInto<crate::record::Sequence> for Sequence<'a> {
     type Error = io::Error;
 
@@ -40,5 +54,23 @@ impl<'a> TryInto<crate::record::Sequence> for Sequence<'a> {
         }
 
         Ok(sequence)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_crate_alignment_record_sequence_iter() {
+        fn t(src: &[u8]) {
+            let sequence: &dyn crate::alignment::record::Sequence = &Sequence::new(src);
+            let actual: Vec<_> = sequence.iter().collect();
+            assert_eq!(actual, src);
+        }
+
+        t(&[]);
+        t(&[b'A', b'C', b'G']);
+        t(&[b'A', b'C', b'G', b'T']);
     }
 }
