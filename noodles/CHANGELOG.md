@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.60.0 - 2023-12-14
+
+  * [noodles-bam 0.52.0](https://github.com/zaeleus/noodles/blob/noodles-bam-0.52.0/noodles-bam/CHANGELOG.md)
+  * [noodles-bcf 0.45.0](https://github.com/zaeleus/noodles/blob/noodles-bcf-0.45.0/noodles-bcf/CHANGELOG.md)
+  * [noodles-bed 0.11.0](https://github.com/zaeleus/noodles/blob/noodles-bed-0.11.0/noodles-bed/CHANGELOG.md)
+  * [noodles-bgzf 0.26.0](https://github.com/zaeleus/noodles/blob/noodles-bgzf-0.26.0/noodles-bgzf/CHANGELOG.md)
+  * [noodles-core 0.13.0](https://github.com/zaeleus/noodles/blob/noodles-core-0.13.0/noodles-core/CHANGELOG.md)
+  * [noodles-cram 0.51.0](https://github.com/zaeleus/noodles/blob/noodles-cram-0.51.0/noodles-cram/CHANGELOG.md)
+  * [noodles-csi 0.29.0](https://github.com/zaeleus/noodles/blob/noodles-csi-0.29.0/noodles-csi/CHANGELOG.md)
+  * [noodles-fasta 0.31.0](https://github.com/zaeleus/noodles/blob/noodles-fasta-0.31.0/noodles-fasta/CHANGELOG.md)
+  * [noodles-fastq 0.10.0](https://github.com/zaeleus/noodles/blob/noodles-fastq-0.10.0/noodles-fastq/CHANGELOG.md)
+  * [noodles-gff 0.26.0](https://github.com/zaeleus/noodles/blob/noodles-gff-0.26.0/noodles-gff/CHANGELOG.md)
+  * [noodles-gtf 0.22.0](https://github.com/zaeleus/noodles/blob/noodles-gtf-0.22.0/noodles-gtf/CHANGELOG.md)
+  * [noodles-htsget 0.3.0](https://github.com/zaeleus/noodles/blob/noodles-htsget-0.3.0/noodles-htsget/CHANGELOG.md)
+  * [noodles-refget 0.2.0](https://github.com/zaeleus/noodles/blob/noodles-refget-0.2.0/noodles-refget/CHANGELOG.md)
+  * [noodles-sam 0.49.0](https://github.com/zaeleus/noodles/blob/noodles-sam-0.49.0/noodles-sam/CHANGELOG.md)
+  * [noodles-tabix 0.35.0](https://github.com/zaeleus/noodles/blob/noodles-tabix-0.35.0/noodles-tabix/CHANGELOG.md)
+  * [noodles-util 0.32.0](https://github.com/zaeleus/noodles/blob/noodles-util-0.32.0/noodles-util/CHANGELOG.md)
+  * [noodles-vcf 0.48.0](https://github.com/zaeleus/noodles/blob/noodles-vcf-0.48.0/noodles-vcf/CHANGELOG.md)
+
 ## 0.59.0 - 2023-11-14
 
   * [noodles-bam 0.51.0](https://github.com/zaeleus/noodles/blob/noodles-bam-0.51.0/noodles-bam/CHANGELOG.md)
