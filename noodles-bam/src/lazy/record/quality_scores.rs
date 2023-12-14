@@ -22,6 +22,20 @@ impl<'a> QualityScores<'a> {
     }
 }
 
+impl<'a> sam::alignment::record::QualityScores for QualityScores<'a> {
+    fn is_empty(&self) -> bool {
+        self.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        self.len()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = u8> + '_> {
+        Box::new(self.as_ref().iter().copied())
+    }
+}
+
 impl<'a> AsRef<[u8]> for QualityScores<'a> {
     fn as_ref(&self) -> &[u8] {
         self.0
