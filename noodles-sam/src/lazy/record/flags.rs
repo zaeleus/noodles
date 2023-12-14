@@ -1,3 +1,5 @@
+use std::io;
+
 /// Raw SAM record flags.
 #[derive(Debug, Eq, PartialEq)]
 pub struct Flags<'a>(&'a [u8]);
@@ -5,6 +7,13 @@ pub struct Flags<'a>(&'a [u8]);
 impl<'a> Flags<'a> {
     pub(super) fn new(src: &'a [u8]) -> Self {
         Self(src)
+    }
+}
+
+impl<'a> crate::alignment::record::Flags for Flags<'a> {
+    fn try_to_u16(&self) -> io::Result<u16> {
+        lexical_core::parse(self.as_ref())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 }
 
