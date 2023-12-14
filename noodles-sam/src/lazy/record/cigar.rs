@@ -32,6 +32,36 @@ impl<'a> Cigar<'a> {
     }
 }
 
+impl<'a> crate::alignment::record::Cigar for Cigar<'a> {
+    fn is_empty(&self) -> bool {
+        self.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        self.as_ref()
+            .iter()
+            .filter(|&b| {
+                matches!(
+                    b,
+                    b'M' | b'I' | b'D' | b'N' | b'S' | b'H' | b'P' | b'=' | b'X'
+                )
+            })
+            .count()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(u8, usize)>> + '_> {
+        Box::new(self.iter().map(|result| {
+            result
+                .map(|op| {
+                    // SAFETY: `char::from(op)` only returns ASCII characters.
+                    let raw_op = char::from(op.kind()) as u8;
+                    (raw_op, op.len())
+                })
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        }))
+    }
+}
+
 impl<'a> AsRef<[u8]> for Cigar<'a> {
     fn as_ref(&self) -> &[u8] {
         self.0
