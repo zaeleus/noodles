@@ -1,5 +1,7 @@
 use std::io;
 
+use crate::alignment::record::MappingQuality as _;
+
 /// Raw SAM record mapping quality.
 #[derive(Debug, Eq, PartialEq)]
 pub struct MappingQuality<'a>(&'a [u8]);
@@ -7,6 +9,13 @@ pub struct MappingQuality<'a>(&'a [u8]);
 impl<'a> MappingQuality<'a> {
     pub(super) fn new(buf: &'a [u8]) -> Self {
         Self(buf)
+    }
+}
+
+impl<'a> crate::alignment::record::MappingQuality for MappingQuality<'a> {
+    fn try_to_u8(&self) -> io::Result<u8> {
+        lexical_core::parse(self.as_ref())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 }
 
@@ -20,8 +29,7 @@ impl<'a> TryFrom<MappingQuality<'a>> for u8 {
     type Error = io::Error;
 
     fn try_from(raw_mapping_quality: MappingQuality<'a>) -> Result<Self, Self::Error> {
-        lexical_core::parse(raw_mapping_quality.as_ref())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        raw_mapping_quality.try_to_u8()
     }
 }
 
