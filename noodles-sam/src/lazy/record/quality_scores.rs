@@ -18,6 +18,21 @@ impl<'a> QualityScores<'a> {
     }
 }
 
+impl<'a> crate::alignment::record::QualityScores for QualityScores<'a> {
+    fn is_empty(&self) -> bool {
+        self.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        self.len()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = u8> + '_> {
+        const OFFSET: u8 = b'!';
+        Box::new(self.as_ref().iter().map(|&b| b - OFFSET))
+    }
+}
+
 impl<'a> AsRef<[u8]> for QualityScores<'a> {
     fn as_ref(&self) -> &[u8] {
         self.0
