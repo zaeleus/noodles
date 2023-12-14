@@ -24,7 +24,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(crate) fn parse_mapping_quality(src: &[u8]) -> Result<Option<MappingQuality>, ParseError> {
+pub(super) fn parse_mapping_quality(src: &[u8]) -> Result<Option<MappingQuality>, ParseError> {
     lexical_core::parse(src)
         .map_err(ParseError::Invalid)
         .map(MappingQuality::new)

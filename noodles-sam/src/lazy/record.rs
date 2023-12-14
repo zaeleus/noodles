@@ -2,6 +2,7 @@ mod bounds;
 mod cigar;
 mod data;
 mod flags;
+mod mapping_quality;
 mod position;
 mod quality_scores;
 mod reference_sequence_name;
@@ -11,10 +12,10 @@ use std::{fmt, io};
 
 use self::bounds::Bounds;
 pub use self::{
-    cigar::Cigar, data::Data, flags::Flags, position::Position, quality_scores::QualityScores,
-    reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
+    cigar::Cigar, data::Data, flags::Flags, mapping_quality::MappingQuality, position::Position,
+    quality_scores::QualityScores, reference_sequence_name::ReferenceSequenceName,
+    sequence::Sequence,
 };
-use crate::record::MappingQuality;
 
 const MISSING: &[u8] = b"*";
 
@@ -101,13 +102,15 @@ impl Record {
     /// ```
     /// use noodles_sam as sam;
     /// let record = sam::lazy::Record::default();
-    /// assert!(record.mapping_quality()?.is_none());
-    /// # Ok::<_, std::io::Error>(())
+    /// assert!(record.mapping_quality().is_none());
     /// ```
-    pub fn mapping_quality(&self) -> io::Result<Option<MappingQuality>> {
-        use crate::reader::record::parse_mapping_quality;
-        let src = &self.buf[self.bounds.mapping_quality_range()];
-        parse_mapping_quality(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    pub fn mapping_quality(&self) -> Option<MappingQuality<'_>> {
+        const MISSING: &[u8] = b"255";
+
+        match &self.buf[self.bounds.mapping_quality_range()] {
+            MISSING => None,
+            buf => Some(MappingQuality::new(buf)),
+        }
     }
 
     /// Returns the CIGAR operations.

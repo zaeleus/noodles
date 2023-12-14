@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+  * sam/lazy/record: Add wrapper for mapping quality
+    (`lazy::Record::mapping_quality`).
+
 ### Changed
 
   * sam: Raise minimum supported Rust version (MSRV) to 1.70.0.
