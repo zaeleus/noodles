@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * sam/lazy/record: Add wrapper for template length
+    (`lazy::Record::template_length`).
+
 ## 0.49.0 - 2023-12-14
 
 ### Added

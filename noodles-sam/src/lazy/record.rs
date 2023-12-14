@@ -7,14 +7,15 @@ mod position;
 mod quality_scores;
 mod reference_sequence_name;
 mod sequence;
+mod template_length;
 
-use std::{fmt, io};
+use std::fmt;
 
 use self::bounds::Bounds;
 pub use self::{
     cigar::Cigar, data::Data, flags::Flags, mapping_quality::MappingQuality, position::Position,
     quality_scores::QualityScores, reference_sequence_name::ReferenceSequenceName,
-    sequence::Sequence,
+    sequence::Sequence, template_length::TemplateLength,
 };
 
 const MISSING: &[u8] = b"*";
@@ -174,13 +175,12 @@ impl Record {
     /// ```
     /// use noodles_sam as sam;
     /// let record = sam::lazy::Record::default();
-    /// assert_eq!(record.template_length()?, 0);
+    /// assert_eq!(i32::try_from(record.template_length())?, 0);
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn template_length(&self) -> io::Result<i32> {
-        use crate::reader::record::parse_template_length;
-        let src = &self.buf[self.bounds.template_length_range()];
-        parse_template_length(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    pub fn template_length(&self) -> TemplateLength<'_> {
+        let buf = &self.buf[self.bounds.template_length_range()];
+        TemplateLength::new(buf)
     }
 
     /// Returns the sequence.
