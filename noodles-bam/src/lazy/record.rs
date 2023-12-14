@@ -9,9 +9,8 @@ mod sequence;
 
 use std::{fmt, io, mem};
 
-use noodles_core::Position;
+use noodles_core as core;
 use noodles_sam as sam;
-use sam::record::MappingQuality;
 
 use self::bounds::Bounds;
 pub use self::{
@@ -55,7 +54,7 @@ impl Record {
     /// assert!(record.alignment_start()?.is_none());
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn alignment_start(&self) -> io::Result<Option<Position>> {
+    pub fn alignment_start(&self) -> io::Result<Option<core::Position>> {
         use crate::record::codec::decoder::get_position;
         let mut src = &self.buf[bounds::ALIGNMENT_START_RANGE];
         get_position(&mut src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -72,7 +71,7 @@ impl Record {
     /// ```
     pub fn mapping_quality(&self) -> Option<sam::record::MappingQuality> {
         let n = self.buf[bounds::MAPPING_QUALITY_INDEX];
-        MappingQuality::new(n)
+        sam::record::MappingQuality::new(n)
     }
 
     /// Returns the flags.
@@ -118,7 +117,7 @@ impl Record {
     /// assert!(record.mate_alignment_start()?.is_none());
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn mate_alignment_start(&self) -> io::Result<Option<Position>> {
+    pub fn mate_alignment_start(&self) -> io::Result<Option<core::Position>> {
         use crate::record::codec::decoder::get_position;
         let mut src = &self.buf[bounds::MATE_ALIGNMENT_START_RANGE];
         get_position(&mut src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
