@@ -13,7 +13,10 @@ pub trait AnyRecord {
     fn flags(&self) -> Box<dyn Flags + '_>;
 
     /// Returns the reference sequence ID.
-    fn reference_sequence_id(&self, header: &Header) -> Option<Box<dyn ReferenceSequenceId + '_>>;
+    fn reference_sequence_id<'r, 'h: 'r>(
+        &'r self,
+        header: &'h Header,
+    ) -> Option<Box<dyn ReferenceSequenceId + 'r>>;
 
     /// Returns the alignment start.
     fn alignment_start(&self) -> Option<Box<dyn Position + '_>>;
@@ -25,10 +28,10 @@ pub trait AnyRecord {
     fn cigar(&self, header: &Header) -> Box<dyn Cigar + '_>;
 
     /// Returns the mate reference sequence ID.
-    fn mate_reference_sequence_id(
-        &self,
-        header: &Header,
-    ) -> Option<Box<dyn ReferenceSequenceId + '_>>;
+    fn mate_reference_sequence_id<'r, 'h: 'r>(
+        &'r self,
+        header: &'h Header,
+    ) -> Option<Box<dyn ReferenceSequenceId + 'r>>;
 
     /// Returns the mate alignment start.
     fn mate_alignment_start(&self) -> Option<Box<dyn Position + '_>>;
