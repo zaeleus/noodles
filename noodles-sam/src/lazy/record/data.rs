@@ -32,6 +32,31 @@ impl<'a> Data<'a> {
     }
 }
 
+impl<'a> crate::alignment::record::Data for Data<'a> {
+    fn is_empty(&self) -> bool {
+        self.is_empty()
+    }
+
+    fn get(&self, tag: &[u8; 2]) -> Option<io::Result<Value<'_>>> {
+        for result in self.iter() {
+            match result {
+                Ok((t, value)) => {
+                    if &t == tag {
+                        return Some(Ok(value));
+                    }
+                }
+                Err(e) => return Some(Err(e)),
+            }
+        }
+
+        None
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<([u8; 2], Value<'_>)>> + '_> {
+        Box::new(self.iter())
+    }
+}
+
 impl<'a> AsRef<[u8]> for Data<'a> {
     fn as_ref(&self) -> &[u8] {
         self.0
