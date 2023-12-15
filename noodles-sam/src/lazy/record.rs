@@ -153,6 +153,26 @@ impl Record {
         }
     }
 
+    /// Returns the mate reference sequence ID.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam as sam;
+    /// let header = sam::Header::default();
+    /// let record = sam::lazy::Record::default();
+    /// assert!(record.mate_reference_sequence_id(&header).is_none());
+    /// ```
+    pub fn mate_reference_sequence_id<'r, 'h>(
+        &'r self,
+        header: &'h Header,
+    ) -> Option<ReferenceSequenceId<'h, 'r>> {
+        self.mate_reference_sequence_name()
+            .map(|mate_reference_sequence_name| {
+                ReferenceSequenceId::new(header, mate_reference_sequence_name)
+            })
+    }
+
     /// Returns the mate reference sequence name.
     ///
     /// # Examples

@@ -8,7 +8,8 @@
     (`lazy::Record::template_length`).
 
   * sam/lazy/record: Add method to get reference sequence ID
-    (`lazy::Record::reference_sequence_id`).
+    (`lazy::Record::reference_sequence_id`) and mate reference sequence ID
+    (`lazy::Record::mate_reference_sequence_id`). .
 
   * sam/lazy/record/data/field/value/array: Add values wrapper (`Values`).
 
