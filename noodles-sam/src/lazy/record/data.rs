@@ -5,7 +5,6 @@ mod field;
 use self::field::{parse_field, Tag, Value};
 
 /// Raw SAM record data.
-#[derive(Debug, Eq, PartialEq)]
 pub struct Data<'a>(&'a [u8]);
 
 impl<'a> Data<'a> {
