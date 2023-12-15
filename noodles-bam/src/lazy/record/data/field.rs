@@ -25,7 +25,10 @@ mod tests {
     #[test]
     fn test_decode_field() -> io::Result<()> {
         let mut src = &[b'N', b'H', b'C', 0x01][..];
-        assert_eq!(decode_field(&mut src)?, ([b'N', b'H'], Value::UInt8(1)));
+        assert!(matches!(
+            decode_field(&mut src)?,
+            ([b'N', b'H'], Value::UInt8(1))
+        ));
 
         let mut src = &[][..];
         assert!(matches!(

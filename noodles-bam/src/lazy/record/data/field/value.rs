@@ -5,13 +5,11 @@ mod array;
 use std::io::{self, BufRead};
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use noodles_sam::record::data::field::Type;
+use noodles_sam::{alignment::record::data::field::value::Array, record::data::field::Type};
 
 use self::array::decode_array;
-pub use self::array::Array;
 
 /// A raw BAM record data field value.
-#[derive(Debug, PartialEq)]
 pub enum Value<'a> {
     /// A character (`A`).
     Character(u8),
@@ -158,42 +156,80 @@ mod tests {
         assert_eq!(Value::String(b"ndls").ty(), Type::String);
         assert_eq!(Value::Hex(b"CAFE").ty(), Type::Hex);
         assert_eq!(
-            Value::Array(Array::UInt8(array::Values::new(&[0]))).ty(),
+            Value::Array(Array::UInt8(Box::new(array::Values::new(&[0])))).ty(),
             Type::Array
         );
     }
 
     #[test]
     fn test_decode_value() -> io::Result<()> {
-        fn t(mut data: &[u8], ty: Type, expected: Value<'_>) -> io::Result<()> {
-            assert_eq!(decode_value(&mut data, ty)?, expected);
-            Ok(())
+        let mut src = &[b'n'][..];
+        assert!(matches!(
+            decode_value(&mut src, Type::Character)?,
+            Value::Character(b'n')
+        ));
+
+        let mut src = &[0x00][..];
+        assert!(matches!(
+            decode_value(&mut src, Type::Int8)?,
+            Value::Int8(0)
+        ));
+
+        let mut src = &[0x00][..];
+        assert!(matches!(
+            decode_value(&mut src, Type::UInt8)?,
+            Value::UInt8(0)
+        ));
+
+        let mut src = &[0x00, 0x00][..];
+        assert!(matches!(
+            decode_value(&mut src, Type::Int16)?,
+            Value::Int16(0)
+        ));
+
+        let mut src = &[0x00, 0x00][..];
+        assert!(matches!(
+            decode_value(&mut src, Type::UInt16)?,
+            Value::UInt16(0)
+        ));
+
+        let mut src = &[0x00, 0x00, 0x00, 0x00][..];
+        assert!(matches!(
+            decode_value(&mut src, Type::Int32)?,
+            Value::Int32(0)
+        ));
+
+        let mut src = &[0x00, 0x00, 0x00, 0x00][..];
+        assert!(matches!(
+            decode_value(&mut src, Type::UInt32)?,
+            Value::UInt32(0)
+        ));
+
+        let mut src = &[0x00, 0x00, 0x00, 0x00][..];
+        assert!(matches!(
+            decode_value(&mut src, Type::Float)?,
+            Value::Float(n) if n == 0.0
+        ));
+
+        let mut src = &[b'n', b'd', b'l', b's', 0x00][..];
+        assert!(matches!(
+            decode_value(&mut src, Type::String)?,
+            Value::String(b"ndls")
+        ));
+
+        let mut src = &[b'C', b'A', b'F', b'E', 0x00][..];
+        assert!(matches!(
+            decode_value(&mut src, Type::Hex)?,
+            Value::Hex(b"CAFE")
+        ));
+
+        let mut src = &[b'C', 0x01, 0x00, 0x00, 0x00, 0x00][..];
+        if let Value::Array(Array::UInt8(values)) = decode_value(&mut src, Type::Array)? {
+            let actual: Vec<_> = values.iter().collect::<Result<_, _>>()?;
+            assert_eq!(actual, [0]);
+        } else {
+            panic!();
         }
-
-        t(&[b'n'], Type::Character, Value::Character(b'n'))?;
-        t(&[0x00], Type::Int8, Value::Int8(0))?;
-        t(&[0x00], Type::UInt8, Value::UInt8(0))?;
-        t(&[0x00, 0x00], Type::Int16, Value::Int16(0))?;
-        t(&[0x00, 0x00], Type::UInt16, Value::UInt16(0))?;
-        t(&[0x00, 0x00, 0x00, 0x00], Type::Int32, Value::Int32(0))?;
-        t(&[0x00, 0x00, 0x00, 0x00], Type::UInt32, Value::UInt32(0))?;
-        t(&[0x00, 0x00, 0x00, 0x00], Type::Float, Value::Float(0.0))?;
-        t(
-            &[b'n', b'd', b'l', b's', 0x00],
-            Type::String,
-            Value::String(b"ndls"),
-        )?;
-        t(
-            &[b'C', b'A', b'F', b'E', 0x00],
-            Type::Hex,
-            Value::Hex(b"CAFE"),
-        )?;
-
-        t(
-            &[b'C', 0x01, 0x00, 0x00, 0x00, 0x00],
-            Type::Array,
-            Value::Array(Array::UInt8(array::Values::new(&[0x00]))),
-        )?;
 
         Ok(())
     }

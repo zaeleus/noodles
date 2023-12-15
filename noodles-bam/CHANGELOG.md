@@ -6,6 +6,11 @@
 
   * bam/lazy/record/data/field/value/array: Add values wrapper (`Values`).
 
+### Changed
+
+  * bam/lazy/record/data/field/value: Replace `Array` with
+    `sam::alignment::record::data::field::value::Array`.
+
 ## 0.52.0 - 2023-12-14
 
 ### Changed
