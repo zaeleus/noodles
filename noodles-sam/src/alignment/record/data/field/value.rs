@@ -1,6 +1,6 @@
 //! Alignment record data field value.
 
-mod array;
+pub mod array;
 
 pub use self::array::Array;
 

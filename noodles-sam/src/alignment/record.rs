@@ -2,7 +2,7 @@
 
 mod builder;
 mod cigar;
-mod data;
+pub mod data;
 mod flags;
 mod mapping_quality;
 mod position;
