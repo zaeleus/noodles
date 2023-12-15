@@ -29,3 +29,30 @@ pub enum Value<'a> {
     /// An array (`B`).
     Array(Array<'a>),
 }
+
+impl<'a> Value<'a> {
+    /// Returns the value as a 64-bit integer.
+    ///
+    /// This is a convenience method that converts any integer to an `i64`, which captures the
+    /// entire range of all record data field integer values.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::alignment::record::data::field::Value;
+    /// assert_eq!(Value::Int8(8).as_int(), Some(8));
+    /// assert_eq!(Value::UInt32(13).as_int(), Some(13));
+    /// assert!(Value::Float(0.0).as_int().is_none());
+    /// ```
+    pub fn as_int(&self) -> Option<i64> {
+        match self {
+            Self::Int8(n) => Some(i64::from(*n)),
+            Self::UInt8(n) => Some(i64::from(*n)),
+            Self::Int16(n) => Some(i64::from(*n)),
+            Self::UInt16(n) => Some(i64::from(*n)),
+            Self::Int32(n) => Some(i64::from(*n)),
+            Self::UInt32(n) => Some(i64::from(*n)),
+            _ => None,
+        }
+    }
+}
