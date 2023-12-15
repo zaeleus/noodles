@@ -4,8 +4,8 @@
 
 ### Added
 
-  * sam/lazy/record: Add wrapper for template length
-    (`lazy::Record::template_length`).
+  * sam/lazy/record: Add wrappers for read name (`lazy::record::ReadName`) and
+    template length (`lazy::record::TemplateLength`).
 
   * sam/lazy/record: Add method to get reference sequence ID
     (`lazy::Record::reference_sequence_id`) and mate reference sequence ID

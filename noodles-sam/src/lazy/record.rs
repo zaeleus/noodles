@@ -5,6 +5,7 @@ mod flags;
 mod mapping_quality;
 mod position;
 mod quality_scores;
+mod read_name;
 mod reference_sequence_id;
 mod reference_sequence_name;
 mod sequence;
@@ -15,7 +16,7 @@ use std::fmt;
 use self::bounds::Bounds;
 pub use self::{
     cigar::Cigar, data::Data, flags::Flags, mapping_quality::MappingQuality, position::Position,
-    quality_scores::QualityScores, reference_sequence_id::ReferenceSequenceId,
+    quality_scores::QualityScores, read_name::ReadName, reference_sequence_id::ReferenceSequenceId,
     reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
     template_length::TemplateLength,
 };
@@ -42,10 +43,10 @@ impl Record {
     /// let record = sam::lazy::Record::default();
     /// assert!(record.read_name().is_none());
     /// ```
-    pub fn read_name(&self) -> Option<&[u8]> {
+    pub fn read_name(&self) -> Option<ReadName<'_>> {
         match &self.buf[self.bounds.read_name_range()] {
             MISSING => None,
-            buf => Some(buf),
+            buf => Some(ReadName::new(buf)),
         }
     }
 
