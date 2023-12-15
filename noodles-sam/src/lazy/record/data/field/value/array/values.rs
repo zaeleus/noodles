@@ -25,6 +25,15 @@ where
     }
 }
 
+impl<'a, N> crate::alignment::record::data::field::value::array::Values<'a, N> for Values<'a, N>
+where
+    N: FromLexical,
+{
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<N>> + '_> {
+        Box::new(self.iter())
+    }
+}
+
 fn delimiter(b: &u8) -> bool {
     const DELIMITER: u8 = b',';
     *b == DELIMITER
