@@ -1,5 +1,7 @@
 use std::{io, marker::PhantomData, mem};
 
+use noodles_sam as sam;
+
 #[derive(Debug, PartialEq)]
 pub struct Values<'a, N> {
     src: &'a [u8],
@@ -22,10 +24,22 @@ impl<'a> Values<'a, i8> {
     }
 }
 
+impl<'a> sam::alignment::record::data::field::value::array::Values<'a, i8> for Values<'a, i8> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<i8>> + '_> {
+        Box::new(self.iter())
+    }
+}
+
 impl<'a> Values<'a, u8> {
     /// Returns an iterator over values.
     pub fn iter(&self) -> impl Iterator<Item = io::Result<u8>> + '_ {
         self.src.iter().copied().map(Ok)
+    }
+}
+
+impl<'a> sam::alignment::record::data::field::value::array::Values<'a, u8> for Values<'a, u8> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<u8>> + '_> {
+        Box::new(self.iter())
     }
 }
 
@@ -41,6 +55,12 @@ impl<'a> Values<'a, i16> {
     }
 }
 
+impl<'a> sam::alignment::record::data::field::value::array::Values<'a, i16> for Values<'a, i16> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<i16>> + '_> {
+        Box::new(self.iter())
+    }
+}
+
 impl<'a> Values<'a, u16> {
     /// Returns an iterator over values.
     pub fn iter(&self) -> impl Iterator<Item = io::Result<u16>> + '_ {
@@ -50,6 +70,12 @@ impl<'a> Values<'a, u16> {
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
             Ok(u16::from_le_bytes(buf))
         })
+    }
+}
+
+impl<'a> sam::alignment::record::data::field::value::array::Values<'a, u16> for Values<'a, u16> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<u16>> + '_> {
+        Box::new(self.iter())
     }
 }
 
@@ -65,6 +91,12 @@ impl<'a> Values<'a, i32> {
     }
 }
 
+impl<'a> sam::alignment::record::data::field::value::array::Values<'a, i32> for Values<'a, i32> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<i32>> + '_> {
+        Box::new(self.iter())
+    }
+}
+
 impl<'a> Values<'a, f32> {
     /// Returns an iterator over values.
     pub fn iter(&self) -> impl Iterator<Item = io::Result<f32>> + '_ {
@@ -74,5 +106,11 @@ impl<'a> Values<'a, f32> {
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
             Ok(f32::from_le_bytes(buf))
         })
+    }
+}
+
+impl<'a> sam::alignment::record::data::field::value::array::Values<'a, f32> for Values<'a, f32> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<f32>> + '_> {
+        Box::new(self.iter())
     }
 }
