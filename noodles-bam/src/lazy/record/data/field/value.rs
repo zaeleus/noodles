@@ -5,71 +5,9 @@ mod array;
 use std::io::{self, BufRead};
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use noodles_sam::{alignment::record::data::field::value::Array, record::data::field::Type};
+use noodles_sam::{alignment::record::data::field::Value, record::data::field::Type};
 
 use self::array::decode_array;
-
-/// A raw BAM record data field value.
-pub enum Value<'a> {
-    /// A character (`A`).
-    Character(u8),
-    /// An 8-bit integer (`c`).
-    Int8(i8),
-    /// An 8-bit unsigned integer (`C`).
-    UInt8(u8),
-    /// A 16-bit integer (`s`).
-    Int16(i16),
-    /// A 16-bit unsigned integer (`S`).
-    UInt16(u16),
-    /// A 32-bit integer (`i`).
-    Int32(i32),
-    /// A 32-bit unsigned integer (`I`).
-    UInt32(u32),
-    /// A single-precision floating-point (`f`).
-    Float(f32),
-    /// A string (`Z`).
-    String(&'a [u8]),
-    /// A hex string (`H`).
-    Hex(&'a [u8]),
-    /// An array (`B`).
-    Array(Array<'a>),
-}
-
-impl<'a> Value<'a> {
-    /// Returns the type of the value.
-    pub fn ty(&self) -> Type {
-        match self {
-            Self::Character(_) => Type::Character,
-            Self::Int8(_) => Type::Int8,
-            Self::UInt8(_) => Type::UInt8,
-            Self::Int16(_) => Type::Int16,
-            Self::UInt16(_) => Type::UInt16,
-            Self::Int32(_) => Type::Int32,
-            Self::UInt32(_) => Type::UInt32,
-            Self::Float(_) => Type::Float,
-            Self::String(_) => Type::String,
-            Self::Hex(_) => Type::Hex,
-            Self::Array(_) => Type::Array,
-        }
-    }
-
-    /// Returns the value as a 64-bit integer.
-    ///
-    /// This is a convenience method that converts any integer to an `i64`, which captures the
-    /// entire range of all record data field integer values.
-    /// ```
-    pub fn as_int(&self) -> Option<i64> {
-        match *self {
-            Self::Int8(n) => Some(i64::from(n)),
-            Self::UInt8(n) => Some(i64::from(n)),
-            Self::Int16(n) => Some(i64::from(n)),
-            Self::UInt16(n) => Some(i64::from(n)),
-            Self::Int32(n) => Some(i64::from(n)),
-            Self::UInt32(n) => Some(i64::from(n)),
-            _ => None,
-        }
-    }
-}
 
 pub(super) fn decode_value<'a>(src: &mut &'a [u8], ty: Type) -> io::Result<Value<'a>> {
     match ty {
@@ -141,6 +79,8 @@ fn decode_hex<'a>(src: &mut &'a [u8]) -> io::Result<Value<'a>> {
 
 #[cfg(test)]
 mod tests {
+    use noodles_sam::alignment::record::data::field::value::Array;
+
     use super::*;
 
     #[test]

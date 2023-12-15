@@ -8,6 +8,9 @@
 
 ### Changed
 
+  * bam/lazy/record/data/field: Replace `Value` with
+    `sam::alignment::record::data::field::Value`.
+
   * bam/lazy/record/data/field/value: Replace `Array` with
     `sam::alignment::record::data::field::value::Array`.
 

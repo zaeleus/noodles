@@ -4,9 +4,9 @@ pub mod field;
 
 use std::{borrow::Borrow, io, iter};
 
-use noodles_sam as sam;
+use noodles_sam::{self as sam, alignment::record::data::field::value::Value};
 
-use self::field::{decode_field, Tag, Value};
+use self::field::{decode_field, Tag};
 
 /// Raw BAM record data.
 pub struct Data<'a>(&'a [u8]);

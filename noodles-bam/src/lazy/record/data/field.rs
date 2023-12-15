@@ -6,8 +6,10 @@ pub mod value;
 
 use std::io;
 
+use noodles_sam::alignment::record::data::field::Value;
+
+pub use self::tag::Tag;
 use self::{tag::decode_tag, ty::decode_type, value::decode_value};
-pub use self::{tag::Tag, value::Value};
 
 pub(super) fn decode_field<'a>(src: &mut &'a [u8]) -> io::Result<(Tag, Value<'a>)> {
     let tag = decode_tag(src)?;
