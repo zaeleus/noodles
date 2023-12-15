@@ -100,7 +100,11 @@ mod tests {
         t(&b"ndls"[..], Type::String, Value::String(b"ndls"))?;
         t(&b"CAFE"[..], Type::Hex, Value::Hex(b"CAFE"))?;
 
-        t(&b"C,0"[..], Type::Array, Value::Array(Array::UInt8(b"0")))?;
+        t(
+            &b"C,0"[..],
+            Type::Array,
+            Value::Array(Array::UInt8(array::Values::new(b"0"))),
+        )?;
 
         Ok(())
     }

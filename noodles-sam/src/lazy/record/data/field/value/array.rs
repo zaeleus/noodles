@@ -1,19 +1,21 @@
 mod subtype;
+mod values;
 
 use std::io;
 
 use self::subtype::parse_subtype;
+pub use self::values::Values;
 use crate::record::data::field::value::array::Subtype;
 
 #[derive(Debug, PartialEq)]
 pub enum Array<'a> {
-    Int8(&'a [u8]),
-    UInt8(&'a [u8]),
-    Int16(&'a [u8]),
-    UInt16(&'a [u8]),
-    Int32(&'a [u8]),
-    UInt32(&'a [u8]),
-    Float(&'a [u8]),
+    Int8(Values<'a, i8>),
+    UInt8(Values<'a, u8>),
+    Int16(Values<'a, i16>),
+    UInt16(Values<'a, u16>),
+    Int32(Values<'a, i32>),
+    UInt32(Values<'a, u32>),
+    Float(Values<'a, f32>),
 }
 
 pub(super) fn parse_array<'a>(src: &mut &'a [u8]) -> io::Result<Array<'a>> {
@@ -25,13 +27,13 @@ pub(super) fn parse_array<'a>(src: &mut &'a [u8]) -> io::Result<Array<'a>> {
     let buf = parse_string(src);
 
     match subtype {
-        Subtype::Int8 => Ok(Array::Int8(buf)),
-        Subtype::UInt8 => Ok(Array::UInt8(buf)),
-        Subtype::Int16 => Ok(Array::Int16(buf)),
-        Subtype::UInt16 => Ok(Array::UInt16(buf)),
-        Subtype::Int32 => Ok(Array::Int32(buf)),
-        Subtype::UInt32 => Ok(Array::UInt32(buf)),
-        Subtype::Float => Ok(Array::Float(buf)),
+        Subtype::Int8 => Ok(Array::Int8(Values::new(buf))),
+        Subtype::UInt8 => Ok(Array::UInt8(Values::new(buf))),
+        Subtype::Int16 => Ok(Array::Int16(Values::new(buf))),
+        Subtype::UInt16 => Ok(Array::UInt16(Values::new(buf))),
+        Subtype::Int32 => Ok(Array::Int32(Values::new(buf))),
+        Subtype::UInt32 => Ok(Array::UInt32(Values::new(buf))),
+        Subtype::Float => Ok(Array::Float(Values::new(buf))),
     }
 }
 
@@ -63,13 +65,13 @@ mod tests {
             Ok(())
         }
 
-        t(b"c,0", Array::Int8(b"0"))?;
-        t(b"C,0", Array::UInt8(b"0"))?;
-        t(b"s,0", Array::Int16(b"0"))?;
-        t(b"S,0", Array::UInt16(b"0"))?;
-        t(b"i,0", Array::Int32(b"0"))?;
-        t(b"I,0", Array::UInt32(b"0"))?;
-        t(b"f,0.0", Array::Float(b"0.0"))?;
+        t(b"c,0", Array::Int8(Values::new(b"0")))?;
+        t(b"C,0", Array::UInt8(Values::new(b"0")))?;
+        t(b"s,0", Array::Int16(Values::new(b"0")))?;
+        t(b"S,0", Array::UInt16(Values::new(b"0")))?;
+        t(b"i,0", Array::Int32(Values::new(b"0")))?;
+        t(b"I,0", Array::UInt32(Values::new(b"0")))?;
+        t(b"f,0.0", Array::Float(Values::new(b"0.0")))?;
 
         Ok(())
     }

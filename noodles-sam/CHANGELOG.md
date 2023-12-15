@@ -10,6 +10,8 @@
   * sam/lazy/record: Add method to get reference sequence ID
     (`lazy::Record::reference_sequence_id`).
 
+  * sam/lazy/record/data/field/value/array: Add values wrapper (`Values`).
+
 ## 0.49.0 - 2023-12-14
 
 ### Added
