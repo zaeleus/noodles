@@ -157,7 +157,10 @@ mod tests {
         assert_eq!(Value::Float(0.0).ty(), Type::Float);
         assert_eq!(Value::String(b"ndls").ty(), Type::String);
         assert_eq!(Value::Hex(b"CAFE").ty(), Type::Hex);
-        assert_eq!(Value::Array(Array::UInt8(&[0])).ty(), Type::Array);
+        assert_eq!(
+            Value::Array(Array::UInt8(array::Values::new(&[0]))).ty(),
+            Type::Array
+        );
     }
 
     #[test]
@@ -189,7 +192,7 @@ mod tests {
         t(
             &[b'C', 0x01, 0x00, 0x00, 0x00, 0x00],
             Type::Array,
-            Value::Array(Array::UInt8(&[0x00])),
+            Value::Array(Array::UInt8(array::Values::new(&[0x00]))),
         )?;
 
         Ok(())

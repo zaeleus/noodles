@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bam/lazy/record/data/field/value/array: Add values wrapper (`Values`).
+
 ## 0.52.0 - 2023-12-14
 
 ### Changed
