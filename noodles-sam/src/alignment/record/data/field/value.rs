@@ -3,6 +3,7 @@
 pub mod array;
 
 pub use self::array::Array;
+use crate::record::data::field::Type;
 
 /// An alignment record data field value.
 pub enum Value<'a> {
@@ -31,6 +32,34 @@ pub enum Value<'a> {
 }
 
 impl<'a> Value<'a> {
+    /// Return the type of the value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{
+    ///     alignment::record::data::field::Value,
+    ///     record::data::field::Type,
+    /// };
+    ///
+    /// assert_eq!(Value::UInt8(0).ty(), Type::UInt8);
+    /// ```
+    pub fn ty(&self) -> Type {
+        match self {
+            Self::Character(_) => Type::Character,
+            Self::Int8(_) => Type::Int8,
+            Self::UInt8(_) => Type::UInt8,
+            Self::Int16(_) => Type::Int16,
+            Self::UInt16(_) => Type::UInt16,
+            Self::Int32(_) => Type::Int32,
+            Self::UInt32(_) => Type::UInt32,
+            Self::Float(_) => Type::Float,
+            Self::String(_) => Type::String,
+            Self::Hex(_) => Type::Hex,
+            Self::Array(_) => Type::Array,
+        }
+    }
+
     /// Returns the value as a 64-bit integer.
     ///
     /// This is a convenience method that converts any integer to an `i64`, which captures the
