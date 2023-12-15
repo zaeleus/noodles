@@ -97,6 +97,24 @@ impl<'a> sam::alignment::record::data::field::value::array::Values<'a, i32> for 
     }
 }
 
+impl<'a> Values<'a, u32> {
+    /// Returns an iterator over values.
+    pub fn iter(&self) -> impl Iterator<Item = io::Result<u32>> + '_ {
+        self.src.chunks(mem::size_of::<u32>()).map(|chunk| {
+            let buf = chunk
+                .try_into()
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+            Ok(u32::from_le_bytes(buf))
+        })
+    }
+}
+
+impl<'a> sam::alignment::record::data::field::value::array::Values<'a, u32> for Values<'a, u32> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<u32>> + '_> {
+        Box::new(self.iter())
+    }
+}
+
 impl<'a> Values<'a, f32> {
     /// Returns an iterator over values.
     pub fn iter(&self) -> impl Iterator<Item = io::Result<f32>> + '_ {
