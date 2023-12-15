@@ -5,6 +5,7 @@ mod flags;
 mod mapping_quality;
 mod position;
 mod quality_scores;
+mod reference_sequence_id;
 mod reference_sequence_name;
 mod sequence;
 mod template_length;
@@ -14,9 +15,11 @@ use std::fmt;
 use self::bounds::Bounds;
 pub use self::{
     cigar::Cigar, data::Data, flags::Flags, mapping_quality::MappingQuality, position::Position,
-    quality_scores::QualityScores, reference_sequence_name::ReferenceSequenceName,
-    sequence::Sequence, template_length::TemplateLength,
+    quality_scores::QualityScores, reference_sequence_id::ReferenceSequenceId,
+    reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
+    template_length::TemplateLength,
 };
+use crate::Header;
 
 const MISSING: &[u8] = b"*";
 
@@ -59,6 +62,26 @@ impl Record {
     pub fn flags(&self) -> Flags<'_> {
         let src = &self.buf[self.bounds.flags_range()];
         Flags::new(src)
+    }
+
+    /// Returns the reference sequence ID.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam as sam;
+    /// let header = sam::Header::default();
+    /// let record = sam::lazy::Record::default();
+    /// assert!(record.reference_sequence_id(&header).is_none());
+    /// ```
+    pub fn reference_sequence_id<'r, 'h>(
+        &'r self,
+        header: &'h Header,
+    ) -> Option<ReferenceSequenceId<'h, 'r>> {
+        self.reference_sequence_name()
+            .map(|reference_sequence_name| {
+                ReferenceSequenceId::new(header, reference_sequence_name)
+            })
     }
 
     /// Returns the reference sequence name.

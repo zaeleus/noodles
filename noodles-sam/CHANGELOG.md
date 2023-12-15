@@ -7,6 +7,9 @@
   * sam/lazy/record: Add wrapper for template length
     (`lazy::Record::template_length`).
 
+  * sam/lazy/record: Add method to get reference sequence ID
+    (`lazy::Record::reference_sequence_id`).
+
 ## 0.49.0 - 2023-12-14
 
 ### Added
