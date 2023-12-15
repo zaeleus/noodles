@@ -14,6 +14,9 @@
 
 ### Changed
 
+  * sam/lazy/record/data/field: Replace `Value` with
+    `crate::alignment::record::data::field::Value`.
+
   * sam/lazy/record/data/field/value: Replace `Array` with
     `crate::alignment::record::data::field::value::Array`.
 

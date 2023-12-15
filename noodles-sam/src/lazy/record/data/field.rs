@@ -4,9 +4,10 @@ mod value;
 
 use std::io;
 
+pub use self::tag::Tag;
 use self::ty::Type;
 use self::{tag::parse_tag, ty::parse_type, value::parse_value};
-pub use self::{tag::Tag, value::Value};
+use crate::alignment::record::data::field::Value;
 
 pub(super) fn parse_field<'a>(src: &mut &'a [u8]) -> io::Result<(Tag, Value<'a>)> {
     let tag = parse_tag(src)?;

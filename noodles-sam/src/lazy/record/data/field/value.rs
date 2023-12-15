@@ -4,23 +4,7 @@ use std::io;
 
 use self::array::parse_array;
 use super::Type;
-use crate::alignment::record::data::field::value::Array;
-
-/// A raw SAM record data field value.
-pub enum Value<'a> {
-    /// A character (`A`).
-    Character(u8),
-    /// A 32-bit integer (`i`).
-    Int32(i32),
-    /// A single-precision floating-point (`f`).
-    Float(f32),
-    /// A string (`Z`).
-    String(&'a [u8]),
-    /// A hex string (`H`).
-    Hex(&'a [u8]),
-    /// An array (`B`).
-    Array(Array<'a>),
-}
+use crate::alignment::record::data::field::Value;
 
 pub(super) fn parse_value<'a>(src: &mut &'a [u8], ty: Type) -> io::Result<Value<'a>> {
     match ty {
@@ -86,6 +70,7 @@ fn parse_hex_value<'a>(src: &mut &'a [u8]) -> Value<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::alignment::record::data::field::value::Array;
 
     #[test]
     fn test_parse_value() -> io::Result<()> {

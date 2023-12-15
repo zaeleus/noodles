@@ -2,7 +2,8 @@ use std::{io, iter};
 
 mod field;
 
-use self::field::{parse_field, Tag, Value};
+use self::field::{parse_field, Tag};
+use crate::alignment::record::data::field::Value;
 
 /// Raw SAM record data.
 pub struct Data<'a>(&'a [u8]);
