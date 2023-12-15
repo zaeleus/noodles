@@ -12,6 +12,11 @@
 
   * sam/lazy/record/data/field/value/array: Add values wrapper (`Values`).
 
+### Changed
+
+  * sam/lazy/record/data/field/value: Replace `Array` with
+    `crate::alignment::record::data::field::value::Array`.
+
 ## 0.49.0 - 2023-12-14
 
 ### Added

@@ -5,18 +5,9 @@ use std::io;
 
 use self::subtype::parse_subtype;
 pub use self::values::Values;
-use crate::record::data::field::value::array::Subtype;
-
-#[derive(Debug, PartialEq)]
-pub enum Array<'a> {
-    Int8(Values<'a, i8>),
-    UInt8(Values<'a, u8>),
-    Int16(Values<'a, i16>),
-    UInt16(Values<'a, u16>),
-    Int32(Values<'a, i32>),
-    UInt32(Values<'a, u32>),
-    Float(Values<'a, f32>),
-}
+use crate::{
+    alignment::record::data::field::value::Array, record::data::field::value::array::Subtype,
+};
 
 pub(super) fn parse_array<'a>(src: &mut &'a [u8]) -> io::Result<Array<'a>> {
     use super::parse_string;
@@ -27,13 +18,13 @@ pub(super) fn parse_array<'a>(src: &mut &'a [u8]) -> io::Result<Array<'a>> {
     let buf = parse_string(src);
 
     match subtype {
-        Subtype::Int8 => Ok(Array::Int8(Values::new(buf))),
-        Subtype::UInt8 => Ok(Array::UInt8(Values::new(buf))),
-        Subtype::Int16 => Ok(Array::Int16(Values::new(buf))),
-        Subtype::UInt16 => Ok(Array::UInt16(Values::new(buf))),
-        Subtype::Int32 => Ok(Array::Int32(Values::new(buf))),
-        Subtype::UInt32 => Ok(Array::UInt32(Values::new(buf))),
-        Subtype::Float => Ok(Array::Float(Values::new(buf))),
+        Subtype::Int8 => Ok(Array::Int8(Box::new(Values::new(buf)))),
+        Subtype::UInt8 => Ok(Array::UInt8(Box::new(Values::new(buf)))),
+        Subtype::Int16 => Ok(Array::Int16(Box::new(Values::new(buf)))),
+        Subtype::UInt16 => Ok(Array::UInt16(Box::new(Values::new(buf)))),
+        Subtype::Int32 => Ok(Array::Int32(Box::new(Values::new(buf)))),
+        Subtype::UInt32 => Ok(Array::UInt32(Box::new(Values::new(buf)))),
+        Subtype::Float => Ok(Array::Float(Box::new(Values::new(buf)))),
     }
 }
 
@@ -60,18 +51,61 @@ mod tests {
 
     #[test]
     fn test_parse_array() -> io::Result<()> {
-        fn t(mut src: &[u8], expected: Array<'_>) -> io::Result<()> {
-            assert_eq!(parse_array(&mut src)?, expected);
-            Ok(())
+        let mut src = &b"c,0"[..];
+        if let Array::Int8(values) = parse_array(&mut src)? {
+            let actual: Vec<_> = values.iter().collect::<Result<_, _>>()?;
+            assert_eq!(actual, [0]);
+        } else {
+            panic!();
         }
 
-        t(b"c,0", Array::Int8(Values::new(b"0")))?;
-        t(b"C,0", Array::UInt8(Values::new(b"0")))?;
-        t(b"s,0", Array::Int16(Values::new(b"0")))?;
-        t(b"S,0", Array::UInt16(Values::new(b"0")))?;
-        t(b"i,0", Array::Int32(Values::new(b"0")))?;
-        t(b"I,0", Array::UInt32(Values::new(b"0")))?;
-        t(b"f,0.0", Array::Float(Values::new(b"0.0")))?;
+        let mut src = &b"C,0"[..];
+        if let Array::UInt8(values) = parse_array(&mut src)? {
+            let actual: Vec<_> = values.iter().collect::<Result<_, _>>()?;
+            assert_eq!(actual, [0]);
+        } else {
+            panic!();
+        }
+
+        let mut src = &b"s,0"[..];
+        if let Array::Int16(values) = parse_array(&mut src)? {
+            let actual: Vec<_> = values.iter().collect::<Result<_, _>>()?;
+            assert_eq!(actual, [0]);
+        } else {
+            panic!();
+        }
+
+        let mut src = &b"S,0"[..];
+        if let Array::UInt16(values) = parse_array(&mut src)? {
+            let actual: Vec<_> = values.iter().collect::<Result<_, _>>()?;
+            assert_eq!(actual, [0]);
+        } else {
+            panic!();
+        }
+
+        let mut src = &b"i,0"[..];
+        if let Array::Int32(values) = parse_array(&mut src)? {
+            let actual: Vec<_> = values.iter().collect::<Result<_, _>>()?;
+            assert_eq!(actual, [0]);
+        } else {
+            panic!();
+        }
+
+        let mut src = &b"I,0"[..];
+        if let Array::UInt32(values) = parse_array(&mut src)? {
+            let actual: Vec<_> = values.iter().collect::<Result<_, _>>()?;
+            assert_eq!(actual, [0]);
+        } else {
+            panic!();
+        }
+
+        let mut src = &b"f,0.0"[..];
+        if let Array::Float(values) = parse_array(&mut src)? {
+            let actual: Vec<_> = values.iter().collect::<Result<_, _>>()?;
+            assert_eq!(actual, [0.0]);
+        } else {
+            panic!();
+        }
 
         Ok(())
     }

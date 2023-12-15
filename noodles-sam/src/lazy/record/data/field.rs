@@ -61,10 +61,16 @@ mod tests {
     #[test]
     fn test_parse_field() -> io::Result<()> {
         let mut src = &b"NH:i:1"[..];
-        assert_eq!(parse_field(&mut src)?, ([b'N', b'H'], Value::Int32(1)));
+        assert!(matches!(
+            parse_field(&mut src)?,
+            ([b'N', b'H'], Value::Int32(1))
+        ));
 
         let mut src = &b"NH:i:1\t"[..];
-        assert_eq!(parse_field(&mut src)?, ([b'N', b'H'], Value::Int32(1)));
+        assert!(matches!(
+            parse_field(&mut src)?,
+            ([b'N', b'H'], Value::Int32(1))
+        ));
 
         let mut src = &b""[..];
         assert!(matches!(

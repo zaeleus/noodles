@@ -48,8 +48,12 @@ mod tests {
 
         let data = Data::new(b"NH:i:1");
         let actual: Vec<_> = data.iter().collect::<io::Result<_>>()?;
-        let expected = [([b'N', b'H'], Value::Int32(1))];
-        assert_eq!(actual, expected);
+
+        assert_eq!(actual.len(), 1);
+
+        let (actual_tag, actual_value) = &actual[0];
+        assert_eq!(actual_tag, &[b'N', b'H']);
+        assert!(matches!(actual_value, Value::Int32(1)));
 
         Ok(())
     }

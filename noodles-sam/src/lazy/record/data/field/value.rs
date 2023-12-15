@@ -2,11 +2,11 @@ mod array;
 
 use std::io;
 
-use self::array::{parse_array, Array};
+use self::array::parse_array;
 use super::Type;
+use crate::alignment::record::data::field::value::Array;
 
 /// A raw SAM record data field value.
-#[derive(Debug, PartialEq)]
 pub enum Value<'a> {
     /// A character (`A`).
     Character(u8),
@@ -89,22 +89,43 @@ mod tests {
 
     #[test]
     fn test_parse_value() -> io::Result<()> {
-        fn t(mut data: &[u8], ty: Type, expected: Value<'_>) -> io::Result<()> {
-            assert_eq!(parse_value(&mut data, ty)?, expected);
-            Ok(())
+        let mut src = &b"n"[..];
+        assert!(matches!(
+            parse_value(&mut src, Type::Character)?,
+            Value::Character(b'n')
+        ));
+
+        let mut src = &b"0"[..];
+        assert!(matches!(
+            parse_value(&mut src, Type::Int32)?,
+            Value::Int32(0)
+        ));
+
+        let mut src = &b"0.0"[..];
+        assert!(matches!(
+            parse_value(&mut src, Type::Float)?,
+            Value::Float(n) if n == 0.0
+        ));
+
+        let mut src = &b"ndls"[..];
+        assert!(matches!(
+            parse_value(&mut src, Type::String)?,
+            Value::String(b"ndls")
+        ));
+
+        let mut src = &b"CAFE"[..];
+        assert!(matches!(
+            parse_value(&mut src, Type::Hex)?,
+            Value::Hex(b"CAFE")
+        ));
+
+        let mut src = &b"C,0"[..];
+        if let Value::Array(Array::UInt8(values)) = parse_value(&mut src, Type::Array)? {
+            let actual: Vec<_> = values.iter().collect::<Result<_, _>>()?;
+            assert_eq!(actual, [0]);
+        } else {
+            panic!();
         }
-
-        t(&b"n"[..], Type::Character, Value::Character(b'n'))?;
-        t(&b"0"[..], Type::Int32, Value::Int32(0))?;
-        t(&b"0.0"[..], Type::Float, Value::Float(0.0))?;
-        t(&b"ndls"[..], Type::String, Value::String(b"ndls"))?;
-        t(&b"CAFE"[..], Type::Hex, Value::Hex(b"CAFE"))?;
-
-        t(
-            &b"C,0"[..],
-            Type::Array,
-            Value::Array(Array::UInt8(array::Values::new(b"0"))),
-        )?;
 
         Ok(())
     }
