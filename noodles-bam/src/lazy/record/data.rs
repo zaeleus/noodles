@@ -9,7 +9,6 @@ use noodles_sam as sam;
 use self::field::{decode_field, Tag, Value};
 
 /// Raw BAM record data.
-#[derive(Debug, Eq, PartialEq)]
 pub struct Data<'a>(&'a [u8]);
 
 impl<'a> Data<'a> {

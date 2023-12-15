@@ -247,7 +247,7 @@ impl fmt::Debug for Record {
             .field("cigar", &self.cigar())
             .field("sequence", &self.sequence())
             .field("quality_scores", &self.quality_scores())
-            .field("data", &self.data())
+            // .field("data", &self.data()) // TODO
             .finish()
     }
 }
