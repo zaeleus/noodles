@@ -29,7 +29,6 @@ use crate::{
     record, Header,
 };
 
-#[doc(hidden)]
 pub use self::{
     cigar::Cigar, data::Data, flags::Flags, mapping_quality::MappingQuality, position::Position,
     quality_scores::QualityScores, read_name::ReadName, reference_sequence_id::ReferenceSequenceId,

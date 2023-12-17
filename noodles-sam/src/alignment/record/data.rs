@@ -1,7 +1,5 @@
 //! Alignment record data.
 
-#![allow(dead_code)]
-
 pub mod field;
 
 use std::io;
