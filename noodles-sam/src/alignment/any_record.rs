@@ -1,3 +1,5 @@
+use std::io;
+
 use super::record::{
     Cigar, Data, Flags, MappingQuality, Position, QualityScores, ReadName, ReferenceSequenceId,
     Sequence, TemplateLength,
@@ -47,4 +49,9 @@ pub trait AnyRecord {
 
     /// Returns the data.
     fn data(&self) -> Box<dyn Data + '_>;
+
+    /// Returns the alignment span.
+    fn alignment_span(&self, header: &Header) -> io::Result<usize> {
+        self.cigar(header).alignment_span()
+    }
 }
