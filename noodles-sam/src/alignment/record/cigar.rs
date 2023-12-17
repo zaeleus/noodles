@@ -62,9 +62,10 @@ mod tests {
 
     #[test]
     fn test_into_iter() -> io::Result<()> {
-        let sequence: &dyn Cigar = &T(vec![(b'M', 4)]);
+        let cigar: &dyn Cigar = &T(vec![(b'M', 4)]);
+
         assert_eq!(
-            sequence.into_iter().collect::<io::Result<Vec<_>>>()?,
+            cigar.into_iter().collect::<io::Result<Vec<_>>>()?,
             [(b'M', 4)]
         );
 
