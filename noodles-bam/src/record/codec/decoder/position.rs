@@ -30,7 +30,7 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub(crate) fn get_position<B>(src: &mut B) -> Result<Option<Position>, DecodeError>
+pub(super) fn get_position<B>(src: &mut B) -> Result<Option<Position>, DecodeError>
 where
     B: Buf,
 {

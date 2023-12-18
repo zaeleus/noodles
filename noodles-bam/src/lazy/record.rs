@@ -3,6 +3,7 @@
 mod bounds;
 mod cigar;
 pub mod data;
+mod position;
 mod quality_scores;
 mod read_name;
 mod reference_sequence_id;
@@ -15,8 +16,8 @@ use noodles_sam as sam;
 
 use self::bounds::Bounds;
 pub use self::{
-    cigar::Cigar, data::Data, quality_scores::QualityScores, read_name::ReadName,
-    reference_sequence_id::ReferenceSequenceId, sequence::Sequence,
+    cigar::Cigar, data::Data, position::Position, quality_scores::QualityScores,
+    read_name::ReadName, reference_sequence_id::ReferenceSequenceId, sequence::Sequence,
 };
 
 /// An immutable, lazily-evalulated BAM record.
@@ -51,13 +52,12 @@ impl Record {
     /// ```
     /// use noodles_bam as bam;
     /// let record = bam::lazy::Record::default();
-    /// assert!(record.alignment_start()?.is_none());
-    /// # Ok::<_, std::io::Error>(())
+    /// assert!(record.alignment_start().is_none());
     /// ```
-    pub fn alignment_start(&self) -> io::Result<Option<core::Position>> {
-        use crate::record::codec::decoder::get_position;
-        let mut src = &self.buf[bounds::ALIGNMENT_START_RANGE];
-        get_position(&mut src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    pub fn alignment_start(&self) -> Option<Position> {
+        let src = &self.buf[bounds::ALIGNMENT_START_RANGE];
+        // SAFETY: `src` is 4 bytes.
+        get_position(src.try_into().unwrap())
     }
 
     /// Returns the mapping quality.
@@ -113,13 +113,11 @@ impl Record {
     /// ```
     /// use noodles_bam as bam;
     /// let record = bam::lazy::Record::default();
-    /// assert!(record.mate_alignment_start()?.is_none());
-    /// # Ok::<_, std::io::Error>(())
+    /// assert!(record.mate_alignment_start().is_none());
     /// ```
-    pub fn mate_alignment_start(&self) -> io::Result<Option<core::Position>> {
-        use crate::record::codec::decoder::get_position;
-        let mut src = &self.buf[bounds::MATE_ALIGNMENT_START_RANGE];
-        get_position(&mut src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    pub fn mate_alignment_start(&self) -> Option<Position> {
+        let src = &self.buf[bounds::MATE_ALIGNMENT_START_RANGE];
+        get_position(src.try_into().unwrap())
     }
 
     /// Returns the template length.
@@ -227,6 +225,15 @@ fn get_reference_sequence_id(src: [u8; 4]) -> Option<ReferenceSequenceId> {
     }
 }
 
+fn get_position(src: [u8; 4]) -> Option<Position> {
+    const MISSING: i32 = -1;
+
+    match i32::from_le_bytes(src) {
+        MISSING => None,
+        n => Some(Position::new(n)),
+    }
+}
+
 impl fmt::Debug for Record {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Record")
@@ -317,8 +324,9 @@ impl TryFrom<Record> for sam::alignment::Record {
             builder = builder.set_reference_sequence_id(id);
         }
 
-        if let Some(alignment_start) = lazy_record.alignment_start()? {
-            builder = builder.set_alignment_start(alignment_start);
+        if let Some(alignment_start) = lazy_record.alignment_start() {
+            let start = core::Position::try_from(alignment_start)?;
+            builder = builder.set_alignment_start(start);
         }
 
         if let Some(mapping_quality) = lazy_record.mapping_quality() {
@@ -332,8 +340,9 @@ impl TryFrom<Record> for sam::alignment::Record {
             builder = builder.set_mate_reference_sequence_id(id);
         }
 
-        if let Some(mate_alignment_start) = lazy_record.mate_alignment_start()? {
-            builder = builder.set_mate_alignment_start(mate_alignment_start);
+        if let Some(mate_alignment_start) = lazy_record.mate_alignment_start() {
+            let start = core::Position::try_from(mate_alignment_start)?;
+            builder = builder.set_mate_alignment_start(start);
         }
 
         builder = builder
