@@ -1,6 +1,7 @@
 use std::io;
 
 use noodles_core as core;
+use noodles_sam::{self as sam, alignment::record::Position as _};
 
 /// A raw BAM record position.
 #[derive(Debug, Eq, PartialEq)]
@@ -12,13 +13,20 @@ impl Position {
     }
 }
 
+impl sam::alignment::record::Position for Position {
+    fn try_to_usize(&self) -> io::Result<usize> {
+        usize::try_from(self.0)
+            .map(|n| n + 1)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    }
+}
+
 impl TryFrom<Position> for core::Position {
     type Error = io::Error;
 
     fn try_from(position: Position) -> Result<Self, Self::Error> {
-        usize::try_from(position.0)
-            .map(|n| n + 1)
-            .and_then(Self::try_from)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        position.try_to_usize().and_then(|n| {
+            Self::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })
     }
 }
