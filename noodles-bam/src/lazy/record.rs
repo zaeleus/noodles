@@ -5,6 +5,7 @@ mod cigar;
 pub mod data;
 mod quality_scores;
 mod read_name;
+mod reference_sequence_id;
 mod sequence;
 
 use std::{fmt, io, mem};
@@ -15,7 +16,7 @@ use noodles_sam as sam;
 use self::bounds::Bounds;
 pub use self::{
     cigar::Cigar, data::Data, quality_scores::QualityScores, read_name::ReadName,
-    sequence::Sequence,
+    reference_sequence_id::ReferenceSequenceId, sequence::Sequence,
 };
 
 /// An immutable, lazily-evalulated BAM record.
@@ -35,10 +36,9 @@ impl Record {
     /// ```
     /// use noodles_bam as bam;
     /// let record = bam::lazy::Record::default();
-    /// assert!(record.reference_sequence_id()?.is_none());
-    /// # Ok::<_, std::io::Error>(())
+    /// assert!(record.reference_sequence_id().is_none());
     /// ```
-    pub fn reference_sequence_id(&self) -> io::Result<Option<usize>> {
+    pub fn reference_sequence_id(&self) -> Option<ReferenceSequenceId> {
         let src = &self.buf[bounds::REFERENCE_SEQUENCE_ID_RANGE];
         // SAFETY: `src` is 4 bytes.
         get_reference_sequence_id(src.try_into().unwrap())
@@ -98,10 +98,9 @@ impl Record {
     /// ```
     /// use noodles_bam as bam;
     /// let record = bam::lazy::Record::default();
-    /// assert!(record.mate_reference_sequence_id()?.is_none());
-    /// # Ok::<_, std::io::Error>(())
+    /// assert!(record.mate_reference_sequence_id().is_none());
     /// ```
-    pub fn mate_reference_sequence_id(&self) -> io::Result<Option<usize>> {
+    pub fn mate_reference_sequence_id(&self) -> Option<ReferenceSequenceId> {
         let src = &self.buf[bounds::MATE_REFERENCE_SEQUENCE_ID_RANGE];
         // SAFETY: `src` is 4 bytes.
         get_reference_sequence_id(src.try_into().unwrap())
@@ -219,14 +218,12 @@ impl Record {
     }
 }
 
-fn get_reference_sequence_id(src: [u8; 4]) -> io::Result<Option<usize>> {
+fn get_reference_sequence_id(src: [u8; 4]) -> Option<ReferenceSequenceId> {
     const UNMAPPED: i32 = -1;
 
     match i32::from_le_bytes(src) {
-        UNMAPPED => Ok(None),
-        n => usize::try_from(n)
-            .map(Some)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+        UNMAPPED => None,
+        n => Some(ReferenceSequenceId::new(n)),
     }
 }
 
@@ -315,8 +312,9 @@ impl TryFrom<Record> for sam::alignment::Record {
 
         builder = builder.set_flags(lazy_record.flags());
 
-        if let Some(reference_sequence_id) = lazy_record.reference_sequence_id()? {
-            builder = builder.set_reference_sequence_id(reference_sequence_id);
+        if let Some(reference_sequence_id) = lazy_record.reference_sequence_id() {
+            let id = usize::try_from(reference_sequence_id)?;
+            builder = builder.set_reference_sequence_id(id);
         }
 
         if let Some(alignment_start) = lazy_record.alignment_start()? {
@@ -329,8 +327,9 @@ impl TryFrom<Record> for sam::alignment::Record {
 
         builder = builder.set_cigar(lazy_record.cigar().try_into()?);
 
-        if let Some(mate_reference_sequence_id) = lazy_record.mate_reference_sequence_id()? {
-            builder = builder.set_mate_reference_sequence_id(mate_reference_sequence_id);
+        if let Some(mate_reference_sequence_id) = lazy_record.mate_reference_sequence_id() {
+            let id = usize::try_from(mate_reference_sequence_id)?;
+            builder = builder.set_mate_reference_sequence_id(id);
         }
 
         if let Some(mate_alignment_start) = lazy_record.mate_alignment_start()? {

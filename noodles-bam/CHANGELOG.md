@@ -4,6 +4,9 @@
 
 ### Added
 
+  * bam/lazy/record: Add reference sequence ID wrapper
+    (`lazy::record::ReferenceSequenceId`).
+
   * bam/lazy/record/data/field/value/array: Add values wrapper (`Values`).
 
 ### Changed
