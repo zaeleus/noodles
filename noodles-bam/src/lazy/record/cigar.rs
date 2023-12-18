@@ -39,6 +39,39 @@ impl<'a> Cigar<'a> {
     }
 }
 
+impl<'a> sam::alignment::record::Cigar for Cigar<'a> {
+    fn is_empty(&self) -> bool {
+        self.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        self.len()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(u8, usize)>> + '_> {
+        use sam::record::cigar::op::Kind;
+
+        fn kind_to_u8(kind: Kind) -> u8 {
+            match kind {
+                Kind::Match => b'M',
+                Kind::Insertion => b'I',
+                Kind::Deletion => b'D',
+                Kind::Skip => b'N',
+                Kind::SoftClip => b'S',
+                Kind::HardClip => b'H',
+                Kind::Pad => b'P',
+                Kind::SequenceMatch => b'=',
+                Kind::SequenceMismatch => b'X',
+            }
+        }
+
+        Box::new(
+            self.iter()
+                .map(|result| result.map(|op| (kind_to_u8(op.kind()), op.len()))),
+        )
+    }
+}
+
 impl<'a> AsRef<[u8]> for Cigar<'a> {
     fn as_ref(&self) -> &[u8] {
         self.0
