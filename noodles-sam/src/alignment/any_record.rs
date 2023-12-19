@@ -6,7 +6,13 @@ use super::record::{
     Cigar, Data, Flags, MappingQuality, Position, QualityScores, ReadName, ReferenceSequenceId,
     Sequence, TemplateLength,
 };
-use crate::Header;
+use crate::{
+    header::{
+        record::value::{map::ReferenceSequence, Map},
+        ReferenceSequences,
+    },
+    Header,
+};
 
 /// An alignment record.
 pub trait AnyRecord {
@@ -52,6 +58,28 @@ pub trait AnyRecord {
     /// Returns the data.
     fn data(&self) -> Box<dyn Data + '_>;
 
+    /// Returns the associated reference sequence.
+    fn reference_sequence<'h>(
+        &self,
+        header: &'h Header,
+    ) -> Option<io::Result<(&'h [u8], &'h Map<ReferenceSequence>)>> {
+        get_reference_sequence(
+            header.reference_sequences(),
+            self.reference_sequence_id(header),
+        )
+    }
+
+    /// Returns the associated mate reference sequence.
+    fn mate_reference_sequence<'h>(
+        &self,
+        header: &'h Header,
+    ) -> Option<io::Result<(&'h [u8], &'h Map<ReferenceSequence>)>> {
+        get_reference_sequence(
+            header.reference_sequences(),
+            self.mate_reference_sequence_id(header),
+        )
+    }
+
     /// Returns the alignment span.
     fn alignment_span(&self, header: &Header) -> io::Result<usize> {
         self.cigar(header).alignment_span()
@@ -74,6 +102,25 @@ pub trait AnyRecord {
         let end = usize::from(start) + span - 1;
         core::Position::new(end).map(Ok)
     }
+}
+
+fn get_reference_sequence<'r, 'h: 'r>(
+    reference_sequences: &'h ReferenceSequences,
+    reference_sequence_id: Option<Box<dyn ReferenceSequenceId + 'r>>,
+) -> Option<io::Result<(&'h [u8], &'h Map<ReferenceSequence>)>> {
+    let reference_sequence_id = reference_sequence_id?;
+
+    let id = match reference_sequence_id.try_to_usize() {
+        Ok(id) => id,
+        Err(e) => return Some(Err(e)),
+    };
+
+    let result = reference_sequences
+        .get_index(id)
+        .map(|(name, reference_sequence)| (name.as_ref(), reference_sequence))
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid reference sequence ID"));
+
+    Some(result)
 }
 
 #[cfg(test)]
