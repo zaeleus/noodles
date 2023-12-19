@@ -3,6 +3,7 @@
 mod bounds;
 mod cigar;
 pub mod data;
+mod flags;
 mod mapping_quality;
 mod position;
 mod quality_scores;
@@ -17,7 +18,7 @@ use noodles_sam as sam;
 
 use self::bounds::Bounds;
 pub use self::{
-    cigar::Cigar, data::Data, mapping_quality::MappingQuality, position::Position,
+    cigar::Cigar, data::Data, flags::Flags, mapping_quality::MappingQuality, position::Position,
     quality_scores::QualityScores, read_name::ReadName, reference_sequence_id::ReferenceSequenceId,
     sequence::Sequence,
 };
@@ -88,13 +89,13 @@ impl Record {
     /// use noodles_bam as bam;
     /// use noodles_sam::record::Flags;
     /// let record = bam::lazy::Record::default();
-    /// assert_eq!(record.flags(), Flags::UNMAPPED);
+    /// assert_eq!(Flags::from(record.flags()), Flags::UNMAPPED);
     /// ```
-    pub fn flags(&self) -> sam::record::Flags {
+    pub fn flags(&self) -> Flags {
         let src = &self.buf[bounds::FLAGS_RANGE];
         // SAFETY: `src` is 2 bytes.
         let n = u16::from_le_bytes(src.try_into().unwrap());
-        sam::record::Flags::from(n)
+        Flags::new(n)
     }
 
     /// Returns the mate reference sequence ID.
@@ -323,7 +324,8 @@ impl TryFrom<Record> for sam::alignment::Record {
             builder = builder.set_read_name(read_name.try_into()?);
         }
 
-        builder = builder.set_flags(lazy_record.flags());
+        let flags = sam::record::Flags::from(lazy_record.flags());
+        builder = builder.set_flags(flags);
 
         if let Some(reference_sequence_id) = lazy_record.reference_sequence_id() {
             let id = usize::try_from(reference_sequence_id)?;
