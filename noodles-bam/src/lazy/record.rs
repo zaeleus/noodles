@@ -3,6 +3,7 @@
 mod bounds;
 mod cigar;
 pub mod data;
+mod mapping_quality;
 mod position;
 mod quality_scores;
 mod read_name;
@@ -16,8 +17,9 @@ use noodles_sam as sam;
 
 use self::bounds::Bounds;
 pub use self::{
-    cigar::Cigar, data::Data, position::Position, quality_scores::QualityScores,
-    read_name::ReadName, reference_sequence_id::ReferenceSequenceId, sequence::Sequence,
+    cigar::Cigar, data::Data, mapping_quality::MappingQuality, position::Position,
+    quality_scores::QualityScores, read_name::ReadName, reference_sequence_id::ReferenceSequenceId,
+    sequence::Sequence,
 };
 
 /// An immutable, lazily-evalulated BAM record.
@@ -69,9 +71,13 @@ impl Record {
     /// let record = bam::lazy::Record::default();
     /// assert!(record.mapping_quality().is_none());
     /// ```
-    pub fn mapping_quality(&self) -> Option<sam::record::MappingQuality> {
-        let n = self.buf[bounds::MAPPING_QUALITY_INDEX];
-        sam::record::MappingQuality::new(n)
+    pub fn mapping_quality(&self) -> Option<MappingQuality> {
+        const MISSING: u8 = 255;
+
+        match self.buf[bounds::MAPPING_QUALITY_INDEX] {
+            MISSING => None,
+            n => Some(MappingQuality::new(n)),
+        }
     }
 
     /// Returns the flags.
@@ -330,6 +336,9 @@ impl TryFrom<Record> for sam::alignment::Record {
         }
 
         if let Some(mapping_quality) = lazy_record.mapping_quality() {
+            // SAFETY: `mapping_quality` cannot be missing.
+            let mapping_quality =
+                sam::record::MappingQuality::new(u8::from(mapping_quality)).unwrap();
             builder = builder.set_mapping_quality(mapping_quality);
         }
 
