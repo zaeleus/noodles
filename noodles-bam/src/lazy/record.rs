@@ -10,6 +10,7 @@ mod quality_scores;
 mod read_name;
 mod reference_sequence_id;
 mod sequence;
+mod template_length;
 
 use std::{fmt, io, mem};
 
@@ -20,7 +21,7 @@ use self::bounds::Bounds;
 pub use self::{
     cigar::Cigar, data::Data, flags::Flags, mapping_quality::MappingQuality, position::Position,
     quality_scores::QualityScores, read_name::ReadName, reference_sequence_id::ReferenceSequenceId,
-    sequence::Sequence,
+    sequence::Sequence, template_length::TemplateLength,
 };
 
 /// An immutable, lazily-evalulated BAM record.
@@ -134,12 +135,13 @@ impl Record {
     /// ```
     /// use noodles_bam as bam;
     /// let record = bam::lazy::Record::default();
-    /// assert_eq!(record.template_length(), 0);
+    /// assert_eq!(i32::from(record.template_length()), 0);
     /// ```
-    pub fn template_length(&self) -> i32 {
+    pub fn template_length(&self) -> TemplateLength {
         let src = &self.buf[bounds::TEMPLATE_LENGTH_RANGE];
         // SAFETY: `src` is 4 bytes.
-        i32::from_le_bytes(src.try_into().unwrap())
+        let n = i32::from_le_bytes(src.try_into().unwrap());
+        TemplateLength::new(n)
     }
 
     /// Returns the read name.
@@ -356,8 +358,10 @@ impl TryFrom<Record> for sam::alignment::Record {
             builder = builder.set_mate_alignment_start(start);
         }
 
+        let template_length = i32::from(lazy_record.template_length());
+        builder = builder.set_template_length(template_length);
+
         builder = builder
-            .set_template_length(lazy_record.template_length())
             .set_sequence(lazy_record.sequence().try_into()?)
             .set_quality_scores(lazy_record.quality_scores().try_into()?)
             .set_data(lazy_record.data().try_into()?);
