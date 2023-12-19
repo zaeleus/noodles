@@ -1,3 +1,5 @@
+use std::io;
+
 use noodles_sam as sam;
 
 /// Raw BAM record flags.
@@ -7,6 +9,12 @@ pub struct Flags(u16);
 impl Flags {
     pub(super) fn new(n: u16) -> Self {
         Self(n)
+    }
+}
+
+impl sam::alignment::record::Flags for Flags {
+    fn try_to_u16(&self) -> io::Result<u16> {
+        Ok(self.0)
     }
 }
 
