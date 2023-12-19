@@ -9,6 +9,8 @@
     reference sequence ID (`lazy::record::ReferenceSequenceId`), and template
     length (`lazy::record::TemplateLength`)  wrappers.
 
+  * bam/lazy/record: Implement `sam::alignment::AnyRecord`.
+
   * bam/lazy/record/data/field/value/array: Add values wrapper (`Values`).
 
 ### Changed

@@ -15,7 +15,7 @@ mod template_length;
 use std::{fmt, io, mem};
 
 use noodles_core as core;
-use noodles_sam as sam;
+use noodles_sam::{self as sam, alignment::AnyRecord};
 
 use self::bounds::Bounds;
 pub use self::{
@@ -262,6 +262,68 @@ impl fmt::Debug for Record {
             .field("quality_scores", &self.quality_scores())
             // .field("data", &self.data()) // TODO
             .finish()
+    }
+}
+
+impl AnyRecord for Record {
+    fn read_name(&self) -> Option<Box<dyn sam::alignment::record::ReadName + '_>> {
+        let read_name = self.read_name()?;
+        Some(Box::new(read_name))
+    }
+
+    fn flags(&self) -> Box<dyn sam::alignment::record::Flags + '_> {
+        Box::new(self.flags())
+    }
+
+    fn reference_sequence_id<'r, 'h: 'r>(
+        &'r self,
+        _: &'h sam::Header,
+    ) -> Option<Box<dyn sam::alignment::record::ReferenceSequenceId + 'r>> {
+        let reference_sequence_id = self.reference_sequence_id()?;
+        Some(Box::new(reference_sequence_id))
+    }
+
+    fn alignment_start(&self) -> Option<Box<dyn sam::alignment::record::Position + '_>> {
+        let alignment_start = self.alignment_start()?;
+        Some(Box::new(alignment_start))
+    }
+
+    fn mapping_quality(&self) -> Option<Box<dyn sam::alignment::record::MappingQuality + '_>> {
+        let mapping_quality = self.mapping_quality()?;
+        Some(Box::new(mapping_quality))
+    }
+
+    fn cigar(&self, _: &sam::Header) -> Box<dyn sam::alignment::record::Cigar + '_> {
+        Box::new(self.cigar())
+    }
+
+    fn mate_reference_sequence_id<'r, 'h: 'r>(
+        &'r self,
+        _: &'h sam::Header,
+    ) -> Option<Box<dyn sam::alignment::record::ReferenceSequenceId + 'r>> {
+        let mate_reference_sequence_id = self.mate_reference_sequence_id()?;
+        Some(Box::new(mate_reference_sequence_id))
+    }
+
+    fn mate_alignment_start(&self) -> Option<Box<dyn sam::alignment::record::Position + '_>> {
+        let mate_alignment_start = self.mate_alignment_start()?;
+        Some(Box::new(mate_alignment_start))
+    }
+
+    fn template_length(&self) -> Box<dyn sam::alignment::record::TemplateLength + '_> {
+        Box::new(self.template_length())
+    }
+
+    fn sequence(&self) -> Box<dyn sam::alignment::record::Sequence + '_> {
+        Box::new(self.sequence())
+    }
+
+    fn quality_scores(&self) -> Box<dyn sam::alignment::record::QualityScores + '_> {
+        Box::new(self.quality_scores())
+    }
+
+    fn data(&self) -> Box<dyn sam::alignment::record::Data + '_> {
+        Box::new(self.data())
     }
 }
 
