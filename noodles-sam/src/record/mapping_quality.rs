@@ -1,6 +1,6 @@
 //! SAM record mapping quality.
 
-use std::{error, fmt, num, str::FromStr};
+use std::{error, fmt, io, num, str::FromStr};
 
 /// The raw value of a missing mapping quality.
 pub const MISSING: u8 = 255;
@@ -48,6 +48,12 @@ impl MappingQuality {
     /// ```
     pub const fn get(&self) -> u8 {
         self.0
+    }
+}
+
+impl crate::alignment::record::MappingQuality for MappingQuality {
+    fn try_to_u8(&self) -> io::Result<u8> {
+        Ok(self.get())
     }
 }
 
