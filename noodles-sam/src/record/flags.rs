@@ -1,3 +1,5 @@
+use std::io;
+
 bitflags::bitflags! {
     /// SAM record flags.
     #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
@@ -187,6 +189,12 @@ impl Flags {
     /// ```
     pub fn is_supplementary(self) -> bool {
         self.contains(Self::SUPPLEMENTARY)
+    }
+}
+
+impl crate::alignment::record::Flags for Flags {
+    fn try_to_u16(&self) -> io::Result<u16> {
+        Ok(self.bits())
     }
 }
 
