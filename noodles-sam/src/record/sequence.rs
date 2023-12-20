@@ -130,6 +130,20 @@ impl Sequence {
     }
 }
 
+impl crate::alignment::record::Sequence for Sequence {
+    fn is_empty(&self) -> bool {
+        self.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        self.len()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = u8> + '_> {
+        Box::new(self.0.iter().copied().map(u8::from))
+    }
+}
+
 impl AsRef<[Base]> for Sequence {
     fn as_ref(&self) -> &[Base] {
         &self.0
