@@ -5,7 +5,7 @@
 ### Added
 
   * bam/lazy/record: Add flags (`lazy::record::Flags`), mapping quality
-    (`lazy::record::MappingQaulity`), position (`lazy::record::Position`),
+    (`lazy::record::MappingQuality`), position (`lazy::record::Position`),
     reference sequence ID (`lazy::record::ReferenceSequenceId`), and template
     length (`lazy::record::TemplateLength`)  wrappers.
 
