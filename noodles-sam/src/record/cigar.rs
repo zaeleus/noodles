@@ -2,7 +2,7 @@
 
 pub mod op;
 
-use std::{error, fmt, ops::Deref, str::FromStr};
+use std::{error, fmt, io, ops::Deref, str::FromStr};
 
 pub use self::op::Op;
 
@@ -82,6 +82,40 @@ impl Cigar {
         self.iter()
             .filter_map(|op| op.kind().consumes_read().then_some(op.len()))
             .sum()
+    }
+}
+
+impl crate::alignment::record::Cigar for Cigar {
+    fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(u8, usize)>> + '_> {
+        use self::op::Kind;
+
+        fn kind_to_u8(kind: Kind) -> u8 {
+            match kind {
+                Kind::Match => b'M',
+                Kind::Insertion => b'I',
+                Kind::Deletion => b'D',
+                Kind::Skip => b'N',
+                Kind::SoftClip => b'S',
+                Kind::HardClip => b'H',
+                Kind::Pad => b'P',
+                Kind::SequenceMatch => b'=',
+                Kind::SequenceMismatch => b'X',
+            }
+        }
+
+        Box::new(
+            self.0
+                .iter()
+                .map(|op| Ok((kind_to_u8(op.kind()), op.len()))),
+        )
     }
 }
 
