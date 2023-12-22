@@ -130,6 +130,20 @@ impl QualityScores {
     }
 }
 
+impl crate::alignment::record::QualityScores for QualityScores {
+    fn is_empty(&self) -> bool {
+        self.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        self.len()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = u8> + '_> {
+        Box::new(self.as_ref().iter().copied().map(u8::from))
+    }
+}
+
 impl AsRef<[Score]> for QualityScores {
     fn as_ref(&self) -> &[Score] {
         &self.0
