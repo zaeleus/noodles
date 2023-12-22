@@ -5,7 +5,7 @@ pub mod field;
 use std::{
     error,
     fmt::{self, Write},
-    mem,
+    io, mem,
     str::FromStr,
 };
 
@@ -225,6 +225,108 @@ impl Data {
         K: indexmap::Equivalent<Tag>,
     {
         self.get_index_of(tag).map(|i| self.fields.swap_remove(i))
+    }
+}
+
+impl crate::alignment::record::Data for Data {
+    fn is_empty(&self) -> bool {
+        self.is_empty()
+    }
+
+    fn get(
+        &self,
+        tag: &[u8; 2],
+    ) -> Option<io::Result<crate::alignment::record::data::field::Value<'_>>> {
+        let value = self.get(tag)?;
+        Some(Ok(value_to_alignment_record_data_field_value(value)))
+    }
+
+    fn iter(
+        &self,
+    ) -> Box<
+        dyn Iterator<Item = io::Result<([u8; 2], crate::alignment::record::data::field::Value<'_>)>>
+            + '_,
+    > {
+        Box::new(self.iter().map(|(tag, value)| {
+            let raw_tag = *tag.as_ref();
+            Ok((raw_tag, value_to_alignment_record_data_field_value(value)))
+        }))
+    }
+}
+
+fn value_to_alignment_record_data_field_value(
+    value: &Value,
+) -> crate::alignment::record::data::field::Value<'_> {
+    use self::field::value::Array;
+
+    match value {
+        Value::Character(c) => {
+            crate::alignment::record::data::field::Value::Character(u8::from(*c))
+        }
+        Value::Int8(n) => crate::alignment::record::data::field::Value::Int8(*n),
+        Value::UInt8(n) => crate::alignment::record::data::field::Value::UInt8(*n),
+        Value::Int16(n) => crate::alignment::record::data::field::Value::Int16(*n),
+        Value::UInt16(n) => crate::alignment::record::data::field::Value::UInt16(*n),
+        Value::Int32(n) => crate::alignment::record::data::field::Value::Int32(*n),
+        Value::UInt32(n) => crate::alignment::record::data::field::Value::UInt32(*n),
+        Value::Float(n) => crate::alignment::record::data::field::Value::Float(*n),
+        Value::String(s) => crate::alignment::record::data::field::Value::String(s.as_bytes()),
+        Value::Hex(s) => crate::alignment::record::data::field::Value::Hex(s.as_ref().as_bytes()),
+        Value::Array(Array::Int8(values)) => crate::alignment::record::data::field::Value::Array(
+            crate::alignment::record::data::field::value::Array::Int8(Box::new(Values::new(
+                values.as_ref(),
+            ))),
+        ),
+        Value::Array(Array::UInt8(values)) => crate::alignment::record::data::field::Value::Array(
+            crate::alignment::record::data::field::value::Array::UInt8(Box::new(Values::new(
+                values.as_ref(),
+            ))),
+        ),
+        Value::Array(Array::Int16(values)) => crate::alignment::record::data::field::Value::Array(
+            crate::alignment::record::data::field::value::Array::Int16(Box::new(Values::new(
+                values.as_ref(),
+            ))),
+        ),
+        Value::Array(Array::UInt16(values)) => crate::alignment::record::data::field::Value::Array(
+            crate::alignment::record::data::field::value::Array::UInt16(Box::new(Values::new(
+                values.as_ref(),
+            ))),
+        ),
+        Value::Array(Array::Int32(values)) => crate::alignment::record::data::field::Value::Array(
+            crate::alignment::record::data::field::value::Array::Int32(Box::new(Values::new(
+                values.as_ref(),
+            ))),
+        ),
+        Value::Array(Array::UInt32(values)) => crate::alignment::record::data::field::Value::Array(
+            crate::alignment::record::data::field::value::Array::UInt32(Box::new(Values::new(
+                values.as_ref(),
+            ))),
+        ),
+        Value::Array(Array::Float(values)) => crate::alignment::record::data::field::Value::Array(
+            crate::alignment::record::data::field::value::Array::Float(Box::new(Values::new(
+                values.as_ref(),
+            ))),
+        ),
+    }
+}
+
+struct Values<'a, N>(&'a [N]);
+
+impl<'a, N> Values<'a, N>
+where
+    N: Copy,
+{
+    fn new(values: &'a [N]) -> Self {
+        Self(values)
+    }
+}
+
+impl<'a, N> crate::alignment::record::data::field::value::array::Values<'a, N> for Values<'a, N>
+where
+    N: Copy,
+{
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<N>> + '_> {
+        Box::new(self.0.iter().copied().map(Ok))
     }
 }
 
