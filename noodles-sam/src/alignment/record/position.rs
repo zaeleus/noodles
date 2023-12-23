@@ -25,3 +25,9 @@ impl TryFrom<&dyn Position> for core::Position {
         })
     }
 }
+
+impl Position for core::Position {
+    fn try_to_usize(&self) -> io::Result<usize> {
+        Ok(self.get())
+    }
+}
