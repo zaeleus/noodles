@@ -13,3 +13,9 @@ impl TryFrom<&dyn ReferenceSequenceId> for usize {
         raw_reference_sequence_id.try_to_usize()
     }
 }
+
+impl ReferenceSequenceId for usize {
+    fn try_to_usize(&self) -> io::Result<usize> {
+        Ok(*self)
+    }
+}
