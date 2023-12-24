@@ -13,3 +13,9 @@ impl TryFrom<&dyn TemplateLength> for i32 {
         raw_template_length.try_to_i32()
     }
 }
+
+impl TemplateLength for i32 {
+    fn try_to_i32(&self) -> io::Result<i32> {
+        Ok(*self)
+    }
+}
