@@ -128,6 +128,10 @@ impl QualityScores {
     pub fn push(&mut self, score: Score) {
         self.0.push(score);
     }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = u8> + '_> {
+        Box::new(self.as_ref().iter().copied().map(u8::from))
+    }
 }
 
 impl crate::alignment::record::QualityScores for QualityScores {
@@ -140,7 +144,21 @@ impl crate::alignment::record::QualityScores for QualityScores {
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = u8> + '_> {
-        Box::new(self.as_ref().iter().copied().map(u8::from))
+        self.iter()
+    }
+}
+
+impl crate::alignment::record::QualityScores for &QualityScores {
+    fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = u8> + '_> {
+        QualityScores::iter(self)
     }
 }
 
