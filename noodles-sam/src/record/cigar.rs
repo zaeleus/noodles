@@ -52,7 +52,8 @@ impl Cigar {
     /// assert_eq!(cigar.alignment_span(), 40);
     /// ```
     pub fn alignment_span(&self) -> usize {
-        self.iter()
+        self.0
+            .iter()
             .filter_map(|op| op.kind().consumes_reference().then_some(op.len()))
             .sum()
     }
@@ -79,19 +80,10 @@ impl Cigar {
     /// assert_eq!(cigar.read_length(), 44);
     /// ```
     pub fn read_length(&self) -> usize {
-        self.iter()
+        self.0
+            .iter()
             .filter_map(|op| op.kind().consumes_read().then_some(op.len()))
             .sum()
-    }
-}
-
-impl crate::alignment::record::Cigar for Cigar {
-    fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
-    fn len(&self) -> usize {
-        self.0.len()
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(u8, usize)>> + '_> {
@@ -119,6 +111,34 @@ impl crate::alignment::record::Cigar for Cigar {
     }
 }
 
+impl crate::alignment::record::Cigar for Cigar {
+    fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(u8, usize)>> + '_> {
+        self.iter()
+    }
+}
+
+impl crate::alignment::record::Cigar for &Cigar {
+    fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(u8, usize)>> + '_> {
+        Cigar::iter(self)
+    }
+}
+
 impl Deref for Cigar {
     type Target = [Op];
 
@@ -135,7 +155,7 @@ impl AsMut<Vec<Op>> for Cigar {
 
 impl fmt::Display for Cigar {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for op in self.iter() {
+        for op in self.0.iter() {
             write!(f, "{op}")?;
         }
 
