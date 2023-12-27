@@ -34,6 +34,7 @@ pub use self::{
     quality_scores::QualityScores, read_name::ReadName, reference_sequence_id::ReferenceSequenceId,
     sequence::Sequence, template_length::TemplateLength,
 };
+use super::AnyRecord;
 
 /// An alignment record.
 #[derive(Clone, Debug, PartialEq)]
@@ -497,6 +498,68 @@ impl Record {
             let end = usize::from(alignment_start) + self.alignment_span() - 1;
             core::Position::new(end)
         })
+    }
+}
+
+impl AnyRecord for Record {
+    fn read_name(&self) -> Option<Box<dyn ReadName + '_>> {
+        let read_name = self.read_name()?;
+        Some(Box::new(read_name))
+    }
+
+    fn flags(&self) -> Box<dyn Flags + '_> {
+        Box::new(self.flags())
+    }
+
+    fn reference_sequence_id<'r, 'h: 'r>(
+        &'r self,
+        _: &'h Header,
+    ) -> Option<Box<dyn ReferenceSequenceId + 'r>> {
+        let reference_sequence_id = self.reference_sequence_id()?;
+        Some(Box::new(reference_sequence_id))
+    }
+
+    fn alignment_start(&self) -> Option<Box<dyn Position + '_>> {
+        let alignment_start = self.alignment_start()?;
+        Some(Box::new(alignment_start))
+    }
+
+    fn mapping_quality(&self) -> Option<Box<dyn MappingQuality + '_>> {
+        let mapping_quality = self.mapping_quality()?;
+        Some(Box::new(mapping_quality))
+    }
+
+    fn cigar(&self, _: &Header) -> Box<dyn Cigar + '_> {
+        Box::new(self.cigar())
+    }
+
+    fn mate_reference_sequence_id<'r, 'h: 'r>(
+        &'r self,
+        _: &'h Header,
+    ) -> Option<Box<dyn ReferenceSequenceId + 'r>> {
+        let mate_reference_sequence_id = self.mate_reference_sequence_id()?;
+        Some(Box::new(mate_reference_sequence_id))
+    }
+
+    fn mate_alignment_start(&self) -> Option<Box<dyn Position + '_>> {
+        let mate_alignment_start = self.mate_alignment_start()?;
+        Some(Box::new(mate_alignment_start))
+    }
+
+    fn template_length(&self) -> Box<dyn TemplateLength + '_> {
+        Box::new(self.template_length())
+    }
+
+    fn sequence(&self) -> Box<dyn Sequence + '_> {
+        Box::new(self.sequence())
+    }
+
+    fn quality_scores(&self) -> Box<dyn QualityScores + '_> {
+        Box::new(self.quality_scores())
+    }
+
+    fn data(&self) -> Box<dyn Data + '_> {
+        Box::new(self.data())
     }
 }
 
