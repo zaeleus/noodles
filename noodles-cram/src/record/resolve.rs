@@ -266,7 +266,7 @@ mod tests {
 
         let mut quality_scores = QualityScores::default();
         resolve_quality_scores(&features, 6, &mut quality_scores);
-        let expected = QualityScores::try_from(vec![5, 0, 8, 0, 13, 21])?;
+        let expected = QualityScores::from(vec![5, 0, 8, 0, 13, 21]);
         assert_eq!(quality_scores, expected);
 
         Ok(())

@@ -165,7 +165,7 @@ pub(crate) mod tests {
         read_lazy_record(&mut reader, &mut buf, &mut record)?;
 
         assert_eq!(record.chromosome_id(), 1);
-        assert_eq!(record.position(), Position::try_from(101)?);
+        assert_eq!(record.position(), Position::from(101));
         assert_eq!(record.rlen(), 1);
         assert_eq!(
             record.quality_score(),
