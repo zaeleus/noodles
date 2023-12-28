@@ -1,8 +1,8 @@
 //! Sequence endpoint.
 
 mod builder;
-pub mod metadata;
-pub mod service;
+pub(crate) mod metadata;
+pub(crate) mod service;
 
 use bytes::Bytes;
 

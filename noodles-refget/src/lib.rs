@@ -3,7 +3,7 @@
 //! **noodles-refget** is a refget 2.0 client.
 
 mod client;
-mod sequence;
+pub mod sequence;
 
 pub use self::{client::Client, sequence::Sequence};
 
