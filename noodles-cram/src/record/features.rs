@@ -49,7 +49,7 @@ impl Features {
         let mut read_position = Position::MIN;
 
         for feature in self.iter() {
-            if usize::from(feature.position()) > usize::from(read_position) {
+            if feature.position() > read_position {
                 let len = usize::from(feature.position()) - usize::from(read_position);
                 merge_or_insert_op(&mut ops, Kind::Match, len);
                 read_position = feature.position();
