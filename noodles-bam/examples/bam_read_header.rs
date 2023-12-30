@@ -2,7 +2,7 @@
 //!
 //! A BAM file header is a SAM header.
 //!
-//! The result is similar the output of `samtools head <src>`.
+//! The result is similar to the output of `samtools head <src>`.
 
 use std::{env, io};
 
