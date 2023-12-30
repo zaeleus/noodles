@@ -1,6 +1,6 @@
 //! Prints the header of a SAM file.
 //!
-//! The result is similar the output of `samtools head <src>`.
+//! The result is similar to the output of `samtools head <src>`.
 
 use std::env;
 
