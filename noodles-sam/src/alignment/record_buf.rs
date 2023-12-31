@@ -2,8 +2,9 @@
 
 mod builder;
 mod quality_scores;
+mod sequence;
 
-pub use self::{builder::Builder, quality_scores::QualityScores};
+pub use self::{builder::Builder, quality_scores::QualityScores, sequence::Sequence};
 
 use std::io;
 

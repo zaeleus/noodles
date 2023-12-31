@@ -580,11 +580,14 @@ mod tests {
     fn test_resolve_bases() -> Result<(), Box<dyn std::error::Error>> {
         use std::num::NonZeroUsize;
 
-        use sam::header::record::value::map::{self, Map};
+        use sam::{
+            alignment::record_buf::Sequence,
+            header::record::value::map::{self, Map},
+        };
 
         use crate::{
             container::block::ContentType,
-            record::{Feature, Features, Sequence},
+            record::{Feature, Features},
         };
 
         const SQ0_LENGTH: NonZeroUsize = match NonZeroUsize::new(8) {

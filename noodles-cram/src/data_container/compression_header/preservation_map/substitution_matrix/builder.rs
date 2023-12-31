@@ -32,6 +32,7 @@ impl Builder {
 #[cfg(test)]
 mod tests {
     use noodles_core::Position;
+    use noodles_sam::alignment::record_buf::Sequence;
 
     use super::*;
 
@@ -39,7 +40,7 @@ mod tests {
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
         use crate::record::{
             feature::substitution::{self, Base},
-            Features, Sequence,
+            Features,
         };
 
         // reference sequence = "ACAGGAATAANNNNNN"
