@@ -15,7 +15,7 @@ mod template_length;
 use std::{fmt, io, mem};
 
 use noodles_core as core;
-use noodles_sam::{self as sam, alignment::AnyRecord};
+use noodles_sam as sam;
 
 use self::bounds::Bounds;
 pub use self::{
@@ -265,7 +265,7 @@ impl fmt::Debug for Record {
     }
 }
 
-impl AnyRecord for Record {
+impl sam::alignment::Record for Record {
     fn read_name(&self) -> Option<Box<dyn sam::alignment::record::ReadName + '_>> {
         let read_name = self.read_name()?;
         Some(Box::new(read_name))

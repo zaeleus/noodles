@@ -20,7 +20,7 @@ pub use self::{
     reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
     template_length::TemplateLength,
 };
-use crate::{alignment::AnyRecord, Header};
+use crate::Header;
 
 const MISSING: &[u8] = b"*";
 
@@ -300,7 +300,7 @@ impl fmt::Debug for Record {
     }
 }
 
-impl AnyRecord for Record {
+impl crate::alignment::Record for Record {
     fn read_name(&self) -> Option<Box<dyn crate::alignment::record::ReadName + '_>> {
         let read_name = self.read_name()?;
         Some(Box::new(read_name))

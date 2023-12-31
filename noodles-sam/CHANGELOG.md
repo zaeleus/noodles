@@ -4,10 +4,11 @@
 
 ### Added
 
-  * sam/alignment: Add an `AnyRecord` trait to represent an opaque
-    alignment record.
+  * sam/alignment: Add a `Record` trait to represent an opaque alignment
+    record.
 
-    This also introduces traits for all fields.
+    The alignment record buffer is renamed to `RecordBuf`. This also introduces
+    traits for all fields.
 
   * sam/lazy/record: Add wrappers for read name (`lazy::record::ReadName`) and
     template length (`lazy::record::TemplateLength`).

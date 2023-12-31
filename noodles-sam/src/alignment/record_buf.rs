@@ -8,6 +8,7 @@ use std::io;
 
 use noodles_core as core;
 
+use super::Record;
 use crate::{
     header::{
         record::value::{
@@ -18,8 +19,6 @@ use crate::{
     },
     record, Header,
 };
-
-use super::AnyRecord;
 
 /// An alignment record.
 #[derive(Clone, Debug, PartialEq)]
@@ -486,7 +485,7 @@ impl RecordBuf {
     }
 }
 
-impl AnyRecord for RecordBuf {
+impl Record for RecordBuf {
     fn read_name(&self) -> Option<Box<dyn super::record::ReadName + '_>> {
         let read_name = self.read_name()?;
         Some(Box::new(read_name))
