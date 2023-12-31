@@ -56,3 +56,17 @@ impl From<QualityScores> for Vec<u8> {
         quality_scores.0
     }
 }
+
+impl crate::alignment::record::QualityScores for &QualityScores {
+    fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = u8> + '_> {
+        Box::new(self.0.iter().copied())
+    }
+}
