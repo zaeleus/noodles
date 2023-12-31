@@ -1,7 +1,7 @@
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::record::QualityScores;
+use noodles_sam::{self as sam, alignment::record_buf::QualityScores};
 
 pub fn put_quality_scores<B>(
     dst: &mut B,
@@ -14,10 +14,14 @@ where
     // § 4.2.3 SEQ and QUAL encoding (2022-08-22)
     const MISSING: u8 = 255;
 
+    let quality_scores = quality_scores.as_ref();
+
     if quality_scores.len() == base_count {
-        for &score in quality_scores.as_ref() {
-            dst.put_u8(u8::from(score));
+        if !is_valid(quality_scores) {
+            return Err(io::Error::from(io::ErrorKind::InvalidInput));
         }
+
+        dst.put_slice(quality_scores);
     } else if quality_scores.is_empty() {
         dst.put_bytes(MISSING, base_count);
     } else {
@@ -32,6 +36,17 @@ where
     }
 
     Ok(())
+}
+
+fn is_valid(scores: &[u8]) -> bool {
+    use sam::record::quality_scores::Score;
+
+    const MIN_SCORE: u8 = Score::MIN.get();
+    const MAX_SCORE: u8 = Score::MAX.get();
+
+    scores
+        .iter()
+        .all(|score| (MIN_SCORE..=MAX_SCORE).contains(score))
 }
 
 #[cfg(test)]
@@ -61,9 +76,11 @@ mod tests {
             &QualityScores::default(),
             &[0xff, 0xff, 0xff, 0xff],
         )?;
-        t(&mut buf, 4, &"NDLS".parse()?, &[0x2d, 0x23, 0x2b, 0x32])?;
 
-        let quality_scores = "NDLS".parse()?;
+        let quality_scores = QualityScores::from(vec![45, 35, 43, 50]);
+        t(&mut buf, 4, &quality_scores, &[0x2d, 0x23, 0x2b, 0x32])?;
+
+        let quality_scores = QualityScores::from(vec![45, 35, 43, 50]);
         buf.clear();
         assert!(matches!(
             put_quality_scores(&mut buf, 3, &quality_scores),

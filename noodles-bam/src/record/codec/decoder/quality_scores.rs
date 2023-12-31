@@ -1,7 +1,7 @@
-use std::{error, fmt, mem};
+use std::{error, fmt};
 
 use bytes::Buf;
-use noodles_sam::record::{quality_scores, QualityScores};
+use noodles_sam::alignment::record_buf::QualityScores;
 
 /// An error when raw BAM record quality scores fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -9,23 +9,16 @@ pub enum DecodeError {
     /// Unexpected EOF.
     UnexpectedEof,
     /// The input is invalid.
-    Invalid(quality_scores::ParseError),
+    Invalid,
 }
 
-impl error::Error for DecodeError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match self {
-            Self::UnexpectedEof => None,
-            Self::Invalid(e) => Some(e),
-        }
-    }
-}
+impl error::Error for DecodeError {}
 
 impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnexpectedEof => write!(f, "unexpected EOF"),
-            Self::Invalid(_) => write!(f, "invalid input"),
+            Self::Invalid => write!(f, "invalid input"),
         }
     }
 }
@@ -38,6 +31,8 @@ pub fn get_quality_scores<B>(
 where
     B: Buf,
 {
+    let quality_scores = quality_scores.as_mut();
+
     if l_seq == 0 {
         quality_scores.clear();
         return Ok(());
@@ -51,13 +46,8 @@ where
         quality_scores.clear();
         src.advance(l_seq);
     } else {
-        let scores = Vec::from(mem::take(quality_scores));
-
-        let mut buf: Vec<_> = scores.into_iter().map(u8::from).collect();
-        buf.resize(l_seq, 0);
-        src.copy_to_slice(&mut buf);
-
-        *quality_scores = QualityScores::try_from(buf).map_err(DecodeError::Invalid)?;
+        quality_scores.resize(l_seq, 0);
+        src.copy_to_slice(quality_scores);
     }
 
     Ok(())
@@ -74,16 +64,19 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_quality_scores() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_get_quality_scores() -> Result<(), DecodeError> {
         fn t(mut src: &[u8], expected: &QualityScores) -> Result<(), DecodeError> {
             let mut actual = QualityScores::default();
-            get_quality_scores(&mut src, &mut actual, expected.len())?;
+            get_quality_scores(&mut src, &mut actual, expected.as_ref().len())?;
             assert_eq!(&actual, expected);
             Ok(())
         }
 
         t(&[], &QualityScores::default())?;
-        t(&[0x2d, 0x23, 0x2b, 0x32], &"NDLS".parse()?)?;
+        t(
+            &[0x2d, 0x23, 0x2b, 0x32],
+            &QualityScores::from(vec![45, 35, 43, 50]),
+        )?;
 
         Ok(())
     }

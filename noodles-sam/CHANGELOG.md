@@ -23,6 +23,9 @@
 
   * sam/alignment: Rename `Record` to `RecordBuf`.
 
+  * sam/alignment/record_buf: Change quality scores to raw scores
+    (`record_buf::QualityScores`).
+
   * sam/lazy/record/data/field: Replace `Value` with
     `crate::alignment::record::data::field::Value`.
 

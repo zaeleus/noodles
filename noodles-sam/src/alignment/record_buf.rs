@@ -35,7 +35,7 @@ pub struct RecordBuf {
     mate_alignment_start: Option<core::Position>,
     template_length: i32,
     sequence: record::Sequence,
-    quality_scores: record::QualityScores,
+    quality_scores: QualityScores,
     data: record::Data,
 }
 
@@ -348,7 +348,7 @@ impl RecordBuf {
     /// let record = sam::alignment::RecordBuf::default();
     /// assert!(record.quality_scores().is_empty());
     /// ```
-    pub fn quality_scores(&self) -> &record::QualityScores {
+    pub fn quality_scores(&self) -> &QualityScores {
         &self.quality_scores
     }
 
@@ -357,17 +357,16 @@ impl RecordBuf {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::QualityScores};
+    /// use noodles_sam::{self as sam, alignment::record_buf::QualityScores};
     ///
-    /// let quality_scores: QualityScores = "NDLS".parse()?;
+    /// let quality_scores = QualityScores::default();
     ///
     /// let mut record = sam::alignment::RecordBuf::default();
     /// *record.quality_scores_mut() = quality_scores.clone();
     ///
     /// assert_eq!(record.quality_scores(), &quality_scores);
-    /// Ok::<_, sam::record::quality_scores::ParseError>(())
     /// ```
-    pub fn quality_scores_mut(&mut self) -> &mut record::QualityScores {
+    pub fn quality_scores_mut(&mut self) -> &mut QualityScores {
         &mut self.quality_scores
     }
 

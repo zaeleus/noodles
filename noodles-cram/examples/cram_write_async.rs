@@ -12,11 +12,11 @@ use noodles_cram as cram;
 use noodles_fasta as fasta;
 use noodles_sam::{
     self as sam,
+    alignment::record_buf::QualityScores,
     header::record::value::{
         map::{Program, ReferenceSequence},
         Map,
     },
-    record::QualityScores,
 };
 use tokio::io;
 
@@ -77,7 +77,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .set_alignment_start(Position::MIN)
         .set_cigar("4M".parse()?)
         .set_sequence("TTCA".parse()?)
-        .set_quality_scores(QualityScores::try_from(vec![45, 35, 43, 50])?)
+        .set_quality_scores(QualityScores::from(vec![45, 35, 43, 50]))
         .build();
 
     let cram_record = cram::Record::try_from_alignment_record(&header, &record)?;

@@ -1,5 +1,3 @@
-use std::io;
-
 use noodles_sam as sam;
 
 /// Raw BAM record quality scores.
@@ -42,18 +40,8 @@ impl<'a> AsRef<[u8]> for QualityScores<'a> {
     }
 }
 
-impl<'a> TryFrom<QualityScores<'a>> for sam::record::QualityScores {
-    type Error = io::Error;
-
-    fn try_from(bam_quality_scores: QualityScores<'a>) -> Result<Self, Self::Error> {
-        use crate::record::codec::decoder::get_quality_scores;
-
-        let mut src = bam_quality_scores.0;
-        let mut quality_scores = Self::default();
-        let base_count = src.len();
-        get_quality_scores(&mut src, &mut quality_scores, base_count)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-        Ok(quality_scores)
+impl<'a> From<QualityScores<'a>> for sam::alignment::record_buf::QualityScores {
+    fn from(quality_scores: QualityScores<'a>) -> Self {
+        Self::from(quality_scores.0.to_vec())
     }
 }

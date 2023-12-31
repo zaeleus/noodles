@@ -1,7 +1,7 @@
 use noodles_core::Position;
 
-use super::RecordBuf;
-use crate::record::{Cigar, Data, Flags, MappingQuality, QualityScores, ReadName, Sequence};
+use super::{QualityScores, RecordBuf};
+use crate::record::{Cigar, Data, Flags, MappingQuality, ReadName, Sequence};
 
 /// An alignment record builder.
 #[derive(Debug)]
@@ -217,16 +217,15 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::QualityScores};
+    /// use noodles_sam::{self as sam, alignment::record_buf::QualityScores};
     ///
-    /// let quality_scores: QualityScores = "NDLS".parse()?;
+    /// let quality_scores = QualityScores::from(vec![45, 35, 43, 50]);
     ///
     /// let record = sam::alignment::RecordBuf::builder()
     ///     .set_quality_scores(quality_scores.clone())
     ///     .build();
     ///
     /// assert_eq!(record.quality_scores(), &quality_scores);
-    /// Ok::<_, sam::record::quality_scores::ParseError>(())
     /// ```
     pub fn set_quality_scores(mut self, quality_scores: QualityScores) -> Self {
         self.quality_scores = quality_scores;

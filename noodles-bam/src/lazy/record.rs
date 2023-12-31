@@ -425,7 +425,7 @@ impl TryFrom<Record> for sam::alignment::RecordBuf {
 
         builder = builder
             .set_sequence(lazy_record.sequence().try_into()?)
-            .set_quality_scores(lazy_record.quality_scores().try_into()?)
+            .set_quality_scores(lazy_record.quality_scores().into())
             .set_data(lazy_record.data().try_into()?);
 
         Ok(builder.build())

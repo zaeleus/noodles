@@ -180,7 +180,7 @@ pub(crate) fn parse_record(
         parse_sequence(field, record.sequence_mut()).map_err(ParseError::InvalidSequence)?;
     }
 
-    record.quality_scores_mut().clear();
+    record.quality_scores_mut().as_mut().clear();
     let field = next_field(&mut src);
     if field != MISSING {
         parse_quality_scores(field, record.sequence().len(), record.quality_scores_mut())

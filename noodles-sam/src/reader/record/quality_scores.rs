@@ -1,15 +1,14 @@
-use std::{error, fmt, mem};
+use std::{error, fmt};
 
-use crate::record::{
-    quality_scores::{self, Score},
-    QualityScores,
-};
+use crate::alignment::record_buf::QualityScores;
 
 /// An error when raw SAM record quality scores fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The input is empty.
     Empty,
+    /// The input is invalid.
+    Invalid,
     /// The length does not match the sequence length.
     LengthMismatch {
         /// The actual length.
@@ -17,27 +16,18 @@ pub enum ParseError {
         /// The expected length.
         expected: usize,
     },
-    /// A score is invalid.
-    InvalidScore(quality_scores::score::ParseError),
 }
 
-impl error::Error for ParseError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match self {
-            Self::InvalidScore(e) => Some(e),
-            _ => None,
-        }
-    }
-}
+impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => write!(f, "empty input"),
+            Self::Invalid => write!(f, "invalid input"),
             Self::LengthMismatch { actual, expected } => {
                 write!(f, "length mismatch: expected {expected}, got {actual}")
             }
-            Self::InvalidScore(_) => write!(f, "invalid score"),
         }
     }
 }
@@ -56,28 +46,20 @@ pub(super) fn parse_quality_scores(
             actual: src.len(),
             expected: sequence_len,
         });
+    } else if !is_valid(src) {
+        return Err(ParseError::Invalid);
     }
 
-    let raw_quality_scores = Vec::from(mem::take(quality_scores));
-
-    let mut raw_scores: Vec<_> = raw_quality_scores.into_iter().map(u8::from).collect();
-    raw_scores.extend(src.iter().map(|n| n.wrapping_sub(OFFSET)));
-
-    if let Some(n) = raw_scores.iter().copied().find(|&n| !is_valid_score(n)) {
-        return Err(ParseError::InvalidScore(
-            quality_scores::score::ParseError::Invalid(u32::from(n.wrapping_add(OFFSET))),
-        ));
-    }
-
-    // SAFETY: Each score is guaranteed to be <= 93.
-    let scores: Vec<_> = raw_scores.into_iter().map(Score).collect();
-    *quality_scores = QualityScores::from(scores);
+    quality_scores.as_mut().extend(src.iter().map(|n| {
+        // SAFETY: `n` is guaranteed to be [33, 126].
+        n - OFFSET
+    }));
 
     Ok(())
 }
 
-fn is_valid_score(n: u8) -> bool {
-    n <= Score::MAX.get()
+fn is_valid(scores: &[u8]) -> bool {
+    scores.iter().all(|n| n.is_ascii_graphic())
 }
 
 #[cfg(test)]
@@ -85,21 +67,21 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_quality_scores() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_parse_quality_scores() -> Result<(), ParseError> {
         let mut quality_scores = QualityScores::default();
 
-        quality_scores.clear();
+        quality_scores.as_mut().clear();
         parse_quality_scores(b"NDLS", 4, &mut quality_scores)?;
-        let expected = QualityScores::try_from(vec![45, 35, 43, 50])?;
+        let expected = QualityScores::from(vec![45, 35, 43, 50]);
         assert_eq!(quality_scores, expected);
 
-        quality_scores.clear();
+        quality_scores.as_mut().clear();
         assert_eq!(
             parse_quality_scores(b"", 0, &mut quality_scores),
             Err(ParseError::Empty)
         );
 
-        quality_scores.clear();
+        quality_scores.as_mut().clear();
         assert_eq!(
             parse_quality_scores(b"NDLS", 2, &mut quality_scores),
             Err(ParseError::LengthMismatch {
@@ -108,11 +90,17 @@ mod tests {
             })
         );
 
-        quality_scores.clear();
-        assert!(matches!(
-            parse_quality_scores(&[0x07], 1, &mut quality_scores),
-            Err(ParseError::InvalidScore(_))
-        ));
+        quality_scores.as_mut().clear();
+        assert_eq!(
+            parse_quality_scores(&[0x08], 1, &mut quality_scores),
+            Err(ParseError::Invalid)
+        );
+
+        quality_scores.as_mut().clear();
+        assert_eq!(
+            parse_quality_scores(&[0x7f], 1, &mut quality_scores),
+            Err(ParseError::Invalid)
+        );
 
         Ok(())
     }

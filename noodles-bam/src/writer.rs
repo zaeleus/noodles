@@ -204,7 +204,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use sam::AlignmentWriter;
+    use sam::{alignment::record_buf::QualityScores, AlignmentWriter};
 
     use super::*;
     use crate::Reader;
@@ -247,7 +247,7 @@ mod tests {
         let header = sam::Header::default();
 
         let mut record = RecordBuf::builder().set_sequence("AT".parse()?).build();
-        *record.quality_scores_mut() = "NDLS".parse()?;
+        *record.quality_scores_mut() = QualityScores::from(vec![45, 35, 43, 50]);
 
         assert!(writer.write_alignment_record(&header, &record).is_err());
 
@@ -262,7 +262,7 @@ mod tests {
         let header = sam::Header::default();
 
         let mut record = RecordBuf::builder().set_sequence("ATCG".parse()?).build();
-        *record.quality_scores_mut() = "ND".parse()?;
+        *record.quality_scores_mut() = QualityScores::from(vec![45, 35]);
 
         assert!(writer.write_alignment_record(&header, &record).is_err());
 
@@ -276,7 +276,7 @@ mod tests {
 
         let header = sam::Header::default();
         let mut record = RecordBuf::default();
-        *record.quality_scores_mut() = "NDLS".parse()?;
+        *record.quality_scores_mut() = QualityScores::from(vec![45, 35, 43, 50]);
 
         assert!(writer.write_alignment_record(&header, &record).is_err());
 
@@ -315,7 +315,7 @@ mod tests {
         let header = sam::Header::default();
         let sam_record = RecordBuf::builder()
             .set_sequence("ATCG".parse()?)
-            .set_quality_scores("NDLS".parse()?)
+            .set_quality_scores(QualityScores::from(vec![45, 35, 43, 50]))
             .build();
 
         writer.write_alignment_record(&header, &sam_record)?;

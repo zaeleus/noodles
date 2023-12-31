@@ -1,7 +1,7 @@
 use std::io::{self, Write};
 
 use super::MISSING;
-use crate::record::QualityScores;
+use crate::alignment::record_buf::QualityScores;
 
 pub fn write_quality_scores<W>(
     writer: &mut W,
@@ -11,13 +11,19 @@ pub fn write_quality_scores<W>(
 where
     W: Write,
 {
-    const MIN_VALUE: u8 = b'!';
+    const OFFSET: u8 = b'!';
+
+    let quality_scores = quality_scores.as_ref();
 
     if quality_scores.is_empty() {
         writer.write_all(&[MISSING])?;
     } else if quality_scores.len() == base_count {
-        for &score in quality_scores.as_ref() {
-            let n = u8::from(score) + MIN_VALUE;
+        if !is_valid(quality_scores) {
+            return Err(io::Error::from(io::ErrorKind::InvalidInput));
+        }
+
+        for &score in quality_scores {
+            let n = score + OFFSET;
             writer.write_all(&[n])?;
         }
     } else {
@@ -32,6 +38,11 @@ where
     }
 
     Ok(())
+}
+
+fn is_valid(scores: &[u8]) -> bool {
+    const MAX_SCORE: u8 = b'~';
+    scores.iter().all(|&score| score <= MAX_SCORE)
 }
 
 #[cfg(test)]
@@ -56,12 +67,21 @@ mod tests {
 
         t(&mut buf, 0, &QualityScores::default(), &[b'*'])?;
         t(&mut buf, 4, &QualityScores::default(), &[b'*'])?;
-        t(&mut buf, 4, &"NDLS".parse()?, &[b'N', b'D', b'L', b'S'])?;
 
-        let quality_scores = "NDLS".parse()?;
+        let quality_scores = QualityScores::from(vec![45, 35, 43, 50]);
+        t(&mut buf, 4, &quality_scores, &[b'N', b'D', b'L', b'S'])?;
+
+        let quality_scores = QualityScores::from(vec![45, 35, 43, 50]);
         buf.clear();
         assert!(matches!(
             write_quality_scores(&mut buf, 3, &quality_scores),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        let quality_scores = QualityScores::from(vec![255]);
+        buf.clear();
+        assert!(matches!(
+            write_quality_scores(&mut buf, 1, &quality_scores),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 

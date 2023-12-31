@@ -163,12 +163,7 @@ impl Record {
             builder = builder.set_sequence(bases);
         }
 
-        if !self.quality_scores.is_empty() {
-            let scores = Vec::<_>::from(self.quality_scores);
-            let quality_scores = sam::record::QualityScores::try_from(scores)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-            builder = builder.set_quality_scores(quality_scores);
-        }
+        builder = builder.set_quality_scores(self.quality_scores);
 
         let mut data = self.tags;
         maybe_insert_read_group(&mut data, header.read_groups(), self.read_group_id)?;

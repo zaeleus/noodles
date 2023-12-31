@@ -238,10 +238,13 @@ mod tests {
 
     #[test]
     fn test_encode_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::record::{
-            cigar::{op, Op},
-            data::field::{tag, Value},
-            MappingQuality,
+        use sam::{
+            alignment::record_buf::QualityScores,
+            record::{
+                cigar::{op, Op},
+                data::field::{tag, Value},
+                MappingQuality,
+            },
         };
 
         let mut buf = Vec::new();
@@ -272,7 +275,7 @@ mod tests {
             .set_mate_alignment_start(Position::try_from(22)?)
             .set_template_length(144)
             .set_sequence("ACGT".parse()?)
-            .set_quality_scores("NDLS".parse()?)
+            .set_quality_scores(QualityScores::from(vec![45, 35, 43, 50]))
             .set_data(
                 [(tag::ALIGNMENT_HIT_COUNT, Value::from(1))]
                     .into_iter()
