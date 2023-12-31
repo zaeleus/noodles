@@ -653,7 +653,9 @@ mod tests {
 
     #[test]
     fn test_resolve_quality_scores() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::record::{Feature, Features, QualityScores};
+        use sam::alignment::record_buf::QualityScores;
+
+        use crate::record::{Feature, Features};
 
         let mut records = [
             Record::builder()

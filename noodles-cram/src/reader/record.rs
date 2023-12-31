@@ -7,7 +7,7 @@ use std::{error, fmt, io};
 use bytes::Buf;
 use noodles_bam as bam;
 use noodles_core::Position;
-use noodles_sam as sam;
+use noodles_sam::{self as sam, alignment::record_buf::QualityScores};
 
 use crate::{
     container::block,
@@ -20,7 +20,7 @@ use crate::{
     io::BitReader,
     record::{
         feature::{self, substitution},
-        Feature, Flags, NextMateFlags, QualityScores,
+        Feature, Flags, NextMateFlags,
     },
     Record,
 };

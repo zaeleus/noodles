@@ -1,8 +1,9 @@
 //! Alignment record buffer.
 
 mod builder;
+mod quality_scores;
 
-pub use self::builder::Builder;
+pub use self::{builder::Builder, quality_scores::QualityScores};
 
 use std::io;
 

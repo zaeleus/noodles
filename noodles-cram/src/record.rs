@@ -6,13 +6,12 @@ pub mod feature;
 mod features;
 mod flags;
 mod next_mate_flags;
-mod quality_scores;
 pub mod resolve;
 mod sequence;
 
 pub use self::{
     builder::Builder, feature::Feature, features::Features, flags::Flags,
-    next_mate_flags::NextMateFlags, quality_scores::QualityScores, sequence::Sequence,
+    next_mate_flags::NextMateFlags, sequence::Sequence,
 };
 
 use std::io;
@@ -20,6 +19,7 @@ use std::io;
 use noodles_core::Position;
 use noodles_sam::{
     self as sam,
+    alignment::record_buf::QualityScores,
     header::record::value::{
         map::{self, ReferenceSequence},
         Map,

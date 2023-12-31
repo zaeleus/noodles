@@ -2,7 +2,7 @@ use std::ops::{Index, IndexMut};
 
 use noodles_core::position::SequenceIndex;
 
-/// Raw CRAM record quality scores.
+/// An alignment record quality scores buffer.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct QualityScores(Vec<u8>);
 
