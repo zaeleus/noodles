@@ -71,7 +71,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     writer.write_file_definition().await?;
     writer.write_file_header(&header).await?;
 
-    let record = sam::alignment::Record::builder()
+    let record = sam::alignment::RecordBuf::builder()
         .set_flags(sam::record::Flags::empty())
         .set_reference_sequence_id(1)
         .set_alignment_start(Position::MIN)
@@ -83,7 +83,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cram_record = cram::Record::try_from_alignment_record(&header, &record)?;
     writer.write_record(&header, cram_record).await?;
 
-    let record = sam::alignment::Record::default();
+    let record = sam::alignment::RecordBuf::default();
     let cram_record = cram::Record::try_from_alignment_record(&header, &record)?;
     writer.write_record(&header, cram_record).await?;
 

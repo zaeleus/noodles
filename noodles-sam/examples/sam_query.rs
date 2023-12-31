@@ -7,7 +7,7 @@
 
 use std::{env, io, path::PathBuf};
 
-use noodles_sam::{self as sam, alignment::Record};
+use noodles_sam::{self as sam, alignment::RecordBuf};
 
 const UNMAPPED: &str = "*";
 
@@ -20,7 +20,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut reader = sam::indexed_reader::Builder::default().build_from_path(src)?;
     let header = reader.read_header()?;
 
-    let records: Box<dyn Iterator<Item = io::Result<Record>>> = if raw_region == UNMAPPED {
+    let records: Box<dyn Iterator<Item = io::Result<RecordBuf>>> = if raw_region == UNMAPPED {
         reader.query_unmapped(&header).map(Box::new)?
     } else {
         let region = raw_region.parse()?;

@@ -25,13 +25,13 @@ use self::{
     reference_sequence_id::parse_reference_sequence_id,
 };
 use super::read_line;
-use crate::{alignment::Record, Header};
+use crate::{alignment::RecordBuf, Header};
 
 pub fn read_record<R>(
     reader: &mut R,
     buf: &mut Vec<u8>,
     header: &Header,
-    record: &mut Record,
+    record: &mut RecordBuf,
 ) -> io::Result<usize>
 where
     R: BufRead,
@@ -122,7 +122,7 @@ impl fmt::Display for ParseError {
 pub(crate) fn parse_record(
     mut src: &[u8],
     header: &Header,
-    record: &mut Record,
+    record: &mut RecordBuf,
 ) -> Result<(), ParseError> {
     const MISSING: &[u8] = b"*";
 
@@ -235,10 +235,10 @@ mod tests {
 
         let header = Header::default();
         let s = b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\tNH:i:1\tCO:Z:ndls";
-        let mut record = Record::default();
+        let mut record = RecordBuf::default();
         parse_record(s, &header, &mut record)?;
 
-        let expected = Record::builder()
+        let expected = RecordBuf::builder()
             .set_data(
                 [
                     (tag::ALIGNMENT_HIT_COUNT, Value::from(1)),

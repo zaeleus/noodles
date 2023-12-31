@@ -1,6 +1,6 @@
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
-use crate::{alignment::Record, Header};
+use crate::{alignment::RecordBuf, Header};
 
 /// An async SAM writer.
 pub struct Writer<W>
@@ -99,19 +99,19 @@ where
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> io::Result<()> {
-    /// use noodles_sam::{self as sam, alignment::Record};
+    /// use noodles_sam::{self as sam, alignment::RecordBuf};
     ///
     /// let mut writer = sam::AsyncWriter::new(Vec::new());
     ///
     /// let header = sam::Header::default();
-    /// let record = Record::default();
+    /// let record = RecordBuf::default();
     /// writer.write_record(&header, &record).await?;
     ///
     /// assert_eq!(writer.get_ref(), b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\n");
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn write_record(&mut self, header: &Header, record: &Record) -> io::Result<()> {
+    pub async fn write_record(&mut self, header: &Header, record: &RecordBuf) -> io::Result<()> {
         self.write_alignment_record(header, record).await
     }
 
@@ -124,12 +124,12 @@ where
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> io::Result<()> {
-    /// use noodles_sam::{self as sam, alignment::Record};
+    /// use noodles_sam::{self as sam, alignment::RecordBuf};
     ///
     /// let mut writer = sam::AsyncWriter::new(Vec::new());
     ///
     /// let header = sam::Header::default();
-    /// let record = Record::default();
+    /// let record = RecordBuf::default();
     /// writer.write_alignment_record(&header, &record).await?;
     ///
     /// assert_eq!(writer.get_ref(), b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\n");
@@ -139,7 +139,7 @@ where
     pub async fn write_alignment_record(
         &mut self,
         header: &Header,
-        record: &Record,
+        record: &RecordBuf,
     ) -> io::Result<()> {
         use crate::writer::write_record;
 

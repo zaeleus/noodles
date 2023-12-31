@@ -4,7 +4,7 @@ use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
 use noodles_core::region::Interval;
 use noodles_csi::binning_index::index::reference_sequence::bin::Chunk;
-use noodles_sam::{self as sam, alignment::Record};
+use noodles_sam::{self as sam, alignment::RecordBuf};
 use tokio::io::{self, AsyncRead, AsyncSeek};
 
 use super::Reader;
@@ -37,7 +37,7 @@ pub fn query<'a, R>(
     chunks: Vec<Chunk>,
     reference_sequence_id: usize,
     interval: Interval,
-) -> impl Stream<Item = io::Result<Record>> + 'a
+) -> impl Stream<Item = io::Result<RecordBuf>> + 'a
 where
     R: AsyncRead + AsyncSeek + Unpin,
 {
@@ -86,11 +86,11 @@ where
 async fn next_record<R>(
     reader: &mut Reader<bgzf::AsyncReader<R>>,
     header: &sam::Header,
-) -> io::Result<Option<Record>>
+) -> io::Result<Option<RecordBuf>>
 where
     R: AsyncRead + AsyncSeek + Unpin,
 {
-    let mut record = Record::default();
+    let mut record = RecordBuf::default();
 
     reader
         .read_record(header, &mut record)

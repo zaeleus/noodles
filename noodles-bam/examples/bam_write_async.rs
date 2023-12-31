@@ -9,7 +9,7 @@ use std::num::NonZeroUsize;
 use noodles_bam as bam;
 use noodles_sam::{
     self as sam,
-    alignment::Record,
+    alignment::RecordBuf,
     header::record::value::{
         map::{Program, ReferenceSequence},
         Map,
@@ -36,7 +36,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .write_reference_sequences(header.reference_sequences())
         .await?;
 
-    let record = Record::default();
+    let record = RecordBuf::default();
     writer.write_record(&header, &record).await?;
 
     writer.shutdown().await?;

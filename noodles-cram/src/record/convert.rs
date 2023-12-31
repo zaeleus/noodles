@@ -11,7 +11,7 @@ impl Record {
     /// Converts an alignment record to a CRAM record.
     pub fn try_from_alignment_record(
         header: &sam::Header,
-        record: &sam::alignment::Record,
+        record: &sam::alignment::RecordBuf,
     ) -> io::Result<Self> {
         let mut builder = Self::builder();
 
@@ -116,8 +116,8 @@ impl Record {
     pub fn try_into_alignment_record(
         self,
         header: &sam::Header,
-    ) -> io::Result<sam::alignment::Record> {
-        let mut builder = sam::alignment::Record::builder();
+    ) -> io::Result<sam::alignment::RecordBuf> {
+        let mut builder = sam::alignment::RecordBuf::builder();
 
         if let Some(read_name) = self.read_name {
             builder = builder.set_read_name(read_name);

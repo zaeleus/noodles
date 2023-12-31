@@ -378,7 +378,7 @@ impl Default for Record {
     }
 }
 
-impl TryFrom<Record> for sam::alignment::Record {
+impl TryFrom<Record> for sam::alignment::RecordBuf {
     type Error = io::Error;
 
     fn try_from(lazy_record: Record) -> Result<Self, Self::Error> {
@@ -522,9 +522,9 @@ mod tests {
     #[test]
     fn test_try_from_record_for_sam_alignment_record() -> io::Result<()> {
         let lazy_record = Record::default();
-        let actual = sam::alignment::Record::try_from(lazy_record)?;
+        let actual = sam::alignment::RecordBuf::try_from(lazy_record)?;
 
-        let expected = sam::alignment::Record::default();
+        let expected = sam::alignment::RecordBuf::default();
 
         assert_eq!(actual, expected);
 

@@ -11,11 +11,11 @@ pub use self::{
 
 use std::io::{self, Write};
 
-use crate::{alignment::Record, Header};
+use crate::{alignment::RecordBuf, Header};
 
 const MISSING: u8 = b'*';
 
-pub fn write_record<W>(writer: &mut W, header: &Header, record: &Record) -> io::Result<()>
+pub fn write_record<W>(writer: &mut W, header: &Header, record: &RecordBuf) -> io::Result<()>
 where
     W: Write,
 {
@@ -109,7 +109,7 @@ mod tests {
         let data = [(tag::READ_GROUP, Value::String(String::from("rg0")))]
             .into_iter()
             .collect();
-        let record = Record::builder().set_data(data).build();
+        let record = RecordBuf::builder().set_data(data).build();
 
         write_record(&mut buf, &header, &record)?;
 

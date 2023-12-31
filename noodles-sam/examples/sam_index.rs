@@ -13,7 +13,7 @@ use noodles_csi::{
     self as csi,
     binning_index::{index::reference_sequence::bin::Chunk, Indexer},
 };
-use noodles_sam::{self as sam, alignment::Record};
+use noodles_sam::{self as sam, alignment::RecordBuf};
 
 fn is_coordinate_sorted(header: &sam::Header) -> bool {
     use sam::header::record::value::map::header::SortOrder;
@@ -42,7 +42,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .into());
     }
 
-    let mut record = Record::default();
+    let mut record = RecordBuf::default();
 
     let mut indexer = Indexer::default();
     let mut start_position = reader.get_ref().virtual_position();

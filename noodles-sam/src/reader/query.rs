@@ -5,7 +5,7 @@ use noodles_core::region::Interval;
 use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
 
 use super::Reader;
-use crate::{alignment::Record, Header};
+use crate::{alignment::RecordBuf, Header};
 
 pub struct Query<'a, R>
 where
@@ -13,7 +13,7 @@ where
 {
     reader: Reader<csi::io::Query<'a, R>>,
     header: &'a Header,
-    record: Record,
+    record: RecordBuf,
 }
 
 impl<'a, R> Query<'a, R>
@@ -28,11 +28,11 @@ where
         Self {
             reader: Reader::new(csi::io::Query::new(reader, chunks)),
             header,
-            record: Record::default(),
+            record: RecordBuf::default(),
         }
     }
 
-    fn next_record(&mut self) -> io::Result<Option<Record>> {
+    fn next_record(&mut self) -> io::Result<Option<RecordBuf>> {
         self.reader
             .read_record(self.header, &mut self.record)
             .map(|n| match n {
@@ -46,7 +46,7 @@ impl<'a, R> Iterator for Query<'a, R>
 where
     R: Read + Seek,
 {
-    type Item = io::Result<Record>;
+    type Item = io::Result<RecordBuf>;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.next_record() {
@@ -65,7 +65,7 @@ pub struct FilterByRegion<I> {
 
 impl<I> FilterByRegion<I>
 where
-    I: Iterator<Item = io::Result<Record>>,
+    I: Iterator<Item = io::Result<RecordBuf>>,
 {
     pub fn new(records: I, reference_sequence_id: usize, interval: Interval) -> Self {
         Self {
@@ -78,9 +78,9 @@ where
 
 impl<I> Iterator for FilterByRegion<I>
 where
-    I: Iterator<Item = io::Result<Record>>,
+    I: Iterator<Item = io::Result<RecordBuf>>,
 {
-    type Item = io::Result<Record>;
+    type Item = io::Result<RecordBuf>;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {

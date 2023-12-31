@@ -9,7 +9,7 @@ use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf as bgzf;
-use noodles_sam::{self as sam, alignment::Record};
+use noodles_sam::{self as sam, alignment::RecordBuf};
 
 /// A BAM writer.
 ///
@@ -18,14 +18,14 @@ use noodles_sam::{self as sam, alignment::Record};
 /// ```
 /// # use std::io;
 /// use noodles_bam as bam;
-/// use noodles_sam::{self as sam, alignment::Record};
+/// use noodles_sam::{self as sam, alignment::RecordBuf};
 ///
 /// let mut writer = bam::Writer::new(io::sink());
 ///
 /// let header = sam::Header::default();
 /// writer.write_header(&header)?;
 ///
-/// let record = Record::default();
+/// let record = RecordBuf::default();
 /// writer.write_record(&header, &record)?;
 /// # Ok::<(), io::Error>(())
 /// ```
@@ -107,18 +107,18 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bam as bam;
-    /// use noodles_sam::{self as sam, alignment::Record};
+    /// use noodles_sam::{self as sam, alignment::RecordBuf};
     ///
     /// let header = sam::Header::default();
     ///
     /// let mut writer = bam::Writer::new(io::sink());
     /// writer.write_header(&header)?;
     ///
-    /// let record = Record::default();
+    /// let record = RecordBuf::default();
     /// writer.write_record(&header, &record)?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn write_record(&mut self, header: &sam::Header, record: &Record) -> io::Result<()> {
+    pub fn write_record(&mut self, header: &sam::Header, record: &RecordBuf) -> io::Result<()> {
         use super::record::codec::encode;
 
         self.buf.clear();
@@ -189,7 +189,11 @@ where
         self.write_header(header)
     }
 
-    fn write_alignment_record(&mut self, header: &sam::Header, record: &Record) -> io::Result<()> {
+    fn write_alignment_record(
+        &mut self,
+        header: &sam::Header,
+        record: &RecordBuf,
+    ) -> io::Result<()> {
         self.write_record(header, record)
     }
 
@@ -210,13 +214,13 @@ mod tests {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();
-        let record = Record::default();
+        let record = RecordBuf::default();
         writer.write_alignment_record(&header, &record)?;
         writer.try_finish()?;
 
         let mut reader = Reader::new(writer.get_ref().get_ref().as_slice());
 
-        let mut record = Record::default();
+        let mut record = RecordBuf::default();
         reader.read_record(&header, &mut record)?;
 
         assert!(record.read_name().is_none());
@@ -242,7 +246,7 @@ mod tests {
 
         let header = sam::Header::default();
 
-        let mut record = Record::builder().set_sequence("AT".parse()?).build();
+        let mut record = RecordBuf::builder().set_sequence("AT".parse()?).build();
         *record.quality_scores_mut() = "NDLS".parse()?;
 
         assert!(writer.write_alignment_record(&header, &record).is_err());
@@ -257,7 +261,7 @@ mod tests {
 
         let header = sam::Header::default();
 
-        let mut record = Record::builder().set_sequence("ATCG".parse()?).build();
+        let mut record = RecordBuf::builder().set_sequence("ATCG".parse()?).build();
         *record.quality_scores_mut() = "ND".parse()?;
 
         assert!(writer.write_alignment_record(&header, &record).is_err());
@@ -271,7 +275,7 @@ mod tests {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();
-        let mut record = Record::default();
+        let mut record = RecordBuf::default();
         *record.quality_scores_mut() = "NDLS".parse()?;
 
         assert!(writer.write_alignment_record(&header, &record).is_err());
@@ -285,14 +289,14 @@ mod tests {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();
-        let record = Record::builder().set_sequence("ATCG".parse()?).build();
+        let record = RecordBuf::builder().set_sequence("ATCG".parse()?).build();
 
         writer.write_alignment_record(&header, &record)?;
         writer.try_finish()?;
 
         let mut reader = Reader::new(writer.get_ref().get_ref().as_slice());
 
-        let mut record = Record::default();
+        let mut record = RecordBuf::default();
         reader.read_record(&header, &mut record)?;
 
         let expected = "ATCG".parse()?;
@@ -309,7 +313,7 @@ mod tests {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();
-        let sam_record = Record::builder()
+        let sam_record = RecordBuf::builder()
             .set_sequence("ATCG".parse()?)
             .set_quality_scores("NDLS".parse()?)
             .build();
@@ -319,7 +323,7 @@ mod tests {
 
         let mut reader = Reader::new(writer.get_ref().get_ref().as_slice());
 
-        let mut record = Record::default();
+        let mut record = RecordBuf::default();
         reader.read_record(&header, &mut record)?;
 
         let expected = "ATCG".parse()?;
@@ -337,7 +341,7 @@ mod tests {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();
-        let sam_record = Record::builder()
+        let sam_record = RecordBuf::builder()
             .set_data(
                 [
                     (tag::READ_GROUP, Value::String(String::from("rg0"))),
@@ -353,7 +357,7 @@ mod tests {
 
         let mut reader = Reader::new(writer.get_ref().get_ref().as_slice());
 
-        let mut record = Record::default();
+        let mut record = RecordBuf::default();
         reader.read_record(&header, &mut record)?;
 
         let bam_data = record.data();

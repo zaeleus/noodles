@@ -20,6 +20,8 @@
 
 ### Changed
 
+  * sam/alignment: Rename `Record` to `RecordBuf`.
+
   * sam/lazy/record/data/field: Replace `Value` with
     `crate::alignment::record::data::field::Value`.
 

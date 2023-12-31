@@ -1,6 +1,6 @@
 use noodles_core::Position;
 
-use super::Record;
+use super::RecordBuf;
 use crate::record::{Cigar, Data, Flags, MappingQuality, QualityScores, ReadName, Sequence};
 
 /// An alignment record builder.
@@ -30,7 +30,7 @@ impl Builder {
     ///
     /// let read_name: ReadName = "r1".parse()?;
     ///
-    /// let record = sam::alignment::Record::builder()
+    /// let record = sam::alignment::RecordBuf::builder()
     ///     .set_read_name(read_name.clone())
     ///     .build();
     ///
@@ -49,7 +49,7 @@ impl Builder {
     /// ```
     /// use noodles_sam::{self as sam, record::Flags};
     ///
-    /// let record = sam::alignment::Record::builder()
+    /// let record = sam::alignment::RecordBuf::builder()
     ///     .set_flags(Flags::empty())
     ///     .build();
     ///
@@ -67,7 +67,7 @@ impl Builder {
     /// ```
     /// use noodles_sam as sam;
     ///
-    /// let record = sam::alignment::Record::builder()
+    /// let record = sam::alignment::RecordBuf::builder()
     ///     .set_reference_sequence_id(0)
     ///     .build();
     ///
@@ -86,7 +86,7 @@ impl Builder {
     /// use noodles_core::Position;
     /// use noodles_sam as sam;
     ///
-    /// let record = sam::alignment::Record::builder()
+    /// let record = sam::alignment::RecordBuf::builder()
     ///     .set_alignment_start(Position::MIN)
     ///     .build();
     ///
@@ -104,7 +104,7 @@ impl Builder {
     /// ```
     /// use noodles_sam::{self as sam, record::MappingQuality};
     ///
-    /// let record = sam::alignment::Record::builder()
+    /// let record = sam::alignment::RecordBuf::builder()
     ///     .set_mapping_quality(MappingQuality::MIN)
     ///     .build();
     ///
@@ -124,7 +124,7 @@ impl Builder {
     ///
     /// let cigar: Cigar = "4M".parse()?;
     ///
-    /// let record = sam::alignment::Record::builder()
+    /// let record = sam::alignment::RecordBuf::builder()
     ///     .set_cigar(cigar.clone())
     ///     .build();
     ///
@@ -143,7 +143,7 @@ impl Builder {
     /// ```
     /// use noodles_sam as sam;
     ///
-    /// let record = sam::alignment::Record::builder()
+    /// let record = sam::alignment::RecordBuf::builder()
     ///     .set_mate_reference_sequence_id(0)
     ///     .build();
     ///
@@ -162,7 +162,7 @@ impl Builder {
     /// use noodles_core::Position;
     /// use noodles_sam as sam;
     ///
-    /// let record = sam::alignment::Record::builder()
+    /// let record = sam::alignment::RecordBuf::builder()
     ///     .set_mate_alignment_start(Position::MIN)
     ///     .build();
     ///
@@ -180,7 +180,7 @@ impl Builder {
     /// ```
     /// use noodles_sam as sam;
     ///
-    /// let record = sam::alignment::Record::builder()
+    /// let record = sam::alignment::RecordBuf::builder()
     ///     .set_template_length(4)
     ///     .build();
     ///
@@ -200,7 +200,7 @@ impl Builder {
     ///
     /// let sequence: Sequence = "ACGT".parse()?;
     ///
-    /// let record = sam::alignment::Record::builder()
+    /// let record = sam::alignment::RecordBuf::builder()
     ///     .set_sequence(sequence.clone())
     ///     .build();
     ///
@@ -221,7 +221,7 @@ impl Builder {
     ///
     /// let quality_scores: QualityScores = "NDLS".parse()?;
     ///
-    /// let record = sam::alignment::Record::builder()
+    /// let record = sam::alignment::RecordBuf::builder()
     ///     .set_quality_scores(quality_scores.clone())
     ///     .build();
     ///
@@ -242,7 +242,7 @@ impl Builder {
     ///
     /// let data: Data = "NH:i:1".parse()?;
     ///
-    /// let record = sam::alignment::Record::builder()
+    /// let record = sam::alignment::RecordBuf::builder()
     ///     .set_data(data.clone())
     ///     .build();
     ///
@@ -260,11 +260,11 @@ impl Builder {
     ///
     /// ```
     /// use noodles_sam as sam;
-    /// let record = sam::alignment::Record::builder().build();
-    /// assert_eq!(record, sam::alignment::Record::default());
+    /// let record = sam::alignment::RecordBuf::builder().build();
+    /// assert_eq!(record, sam::alignment::RecordBuf::default());
     /// ```
-    pub fn build(self) -> Record {
-        Record {
+    pub fn build(self) -> RecordBuf {
+        RecordBuf {
             read_name: self.read_name,
             flags: self.flags,
             reference_sequence_id: self.reference_sequence_id,

@@ -10,7 +10,7 @@ use noodles_bam as bam;
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_cram as cram;
-use noodles_sam::{self as sam, alignment::Record};
+use noodles_sam::{self as sam, alignment::RecordBuf};
 
 /// An indexed alignment reader.
 pub enum IndexedReader<R> {
@@ -39,8 +39,8 @@ where
     pub fn records<'r, 'h: 'r>(
         &'r mut self,
         header: &'h sam::Header,
-    ) -> impl Iterator<Item = io::Result<Record>> + 'r {
-        let records: Box<dyn Iterator<Item = io::Result<Record>>> =
+    ) -> impl Iterator<Item = io::Result<RecordBuf>> + 'r {
+        let records: Box<dyn Iterator<Item = io::Result<RecordBuf>>> =
             match self {
                 Self::Sam(reader) => Box::new(reader.records(header)),
                 Self::Bam(reader) => Box::new(reader.records(header)),
@@ -62,8 +62,8 @@ where
         &'r mut self,
         header: &'h sam::Header,
         region: &Region,
-    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'r> {
-        let records: Box<dyn Iterator<Item = io::Result<Record>>> =
+    ) -> io::Result<impl Iterator<Item = io::Result<RecordBuf>> + 'r> {
+        let records: Box<dyn Iterator<Item = io::Result<RecordBuf>>> =
             match self {
                 Self::Sam(reader) => reader.query(header, region).map(Box::new)?,
                 Self::Bam(reader) => reader.query(header, region).map(Box::new)?,

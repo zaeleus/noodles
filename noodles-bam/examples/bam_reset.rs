@@ -11,7 +11,7 @@ use std::{
 use noodles_bam as bam;
 use noodles_sam::{
     self as sam,
-    alignment::Record,
+    alignment::RecordBuf,
     record::{sequence::Base, Flags},
     AlignmentWriter,
 };
@@ -32,7 +32,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     writer.write_header(&new_header)?;
 
-    let mut record = sam::alignment::Record::default();
+    let mut record = sam::alignment::RecordBuf::default();
 
     while reader.read_record(&header, &mut record)? != 0 {
         let flags = record.flags();
@@ -75,7 +75,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn reverse_complement(record: &mut Record) {
+fn reverse_complement(record: &mut RecordBuf) {
     fn complement(base: Base) -> Base {
         match base {
             Base::Eq => Base::Eq,

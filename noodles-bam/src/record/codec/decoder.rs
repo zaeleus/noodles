@@ -19,7 +19,7 @@ pub(crate) use self::{
 use std::{error, fmt, mem};
 
 use bytes::Buf;
-use noodles_sam::{self as sam, alignment::Record};
+use noodles_sam::{self as sam, alignment::RecordBuf};
 
 use self::{
     flags::get_flags, mapping_quality::get_mapping_quality, position::get_position,
@@ -98,7 +98,7 @@ impl fmt::Display for DecodeError {
 pub(crate) fn decode<B>(
     src: &mut B,
     header: &sam::Header,
-    record: &mut Record,
+    record: &mut RecordBuf,
 ) -> Result<(), DecodeError>
 where
     B: Buf,
@@ -160,7 +160,7 @@ mod tests {
         let mut src = &data[..];
 
         let header = sam::Header::default();
-        let mut record = Record::default();
+        let mut record = RecordBuf::default();
 
         assert!(matches!(
             decode(&mut src, &header, &mut record),

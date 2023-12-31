@@ -18,7 +18,7 @@ use std::io;
 
 use bytes::BufMut;
 use noodles_core::Position;
-use noodles_sam::{self as sam, alignment::Record, record::Cigar};
+use noodles_sam::{self as sam, alignment::RecordBuf, record::Cigar};
 
 use self::{position::put_position, reference_sequence_id::put_reference_sequence_id};
 
@@ -26,7 +26,7 @@ use self::{position::put_position, reference_sequence_id::put_reference_sequence
 // becomes -1 in BAM) therefore use `reg2bin(-1, 0)` which is computed as 4680."
 pub(crate) const UNMAPPED_BIN: u16 = 4680;
 
-pub(crate) fn encode<B>(dst: &mut B, header: &sam::Header, record: &Record) -> io::Result<()>
+pub(crate) fn encode<B>(dst: &mut B, header: &sam::Header, record: &RecordBuf) -> io::Result<()>
 where
     B: BufMut,
 {
@@ -131,7 +131,7 @@ where
 fn overflowing_put_cigar_op_count<B>(
     dst: &mut B,
     header: &sam::Header,
-    record: &Record,
+    record: &RecordBuf,
 ) -> io::Result<Option<Cigar>>
 where
     B: BufMut,
@@ -213,7 +213,7 @@ mod tests {
     fn test_encode_with_default_fields() -> Result<(), Box<dyn std::error::Error>> {
         let mut buf = Vec::new();
         let header = sam::Header::default();
-        let record = Record::default();
+        let record = RecordBuf::default();
         encode(&mut buf, &header, &record)?;
 
         let expected = [
@@ -257,7 +257,7 @@ mod tests {
             )
             .build();
 
-        let record = Record::builder()
+        let record = RecordBuf::builder()
             .set_read_name("r0".parse()?)
             .set_flags(Flags::SEGMENTED | Flags::FIRST_SEGMENT)
             .set_reference_sequence_id(1)
@@ -332,7 +332,7 @@ mod tests {
         let cigar = Cigar::try_from(vec![Op::new(Kind::Match, 1); BASE_COUNT])?;
         let sequence = Sequence::from(vec![Base::A; BASE_COUNT]);
 
-        let record = Record::builder()
+        let record = RecordBuf::builder()
             .set_flags(Flags::empty())
             .set_reference_sequence_id(0)
             .set_alignment_start(Position::MIN)

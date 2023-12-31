@@ -10,7 +10,7 @@ use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
 
-use super::{alignment::Record, lazy, reader::Records, Header, Reader};
+use super::{alignment::RecordBuf, lazy, reader::Records, Header, Reader};
 
 /// An indexed SAM reader.
 pub struct IndexedReader<R> {
@@ -54,7 +54,7 @@ where
     }
 
     /// Reads a single SAM record.
-    pub fn read_record(&mut self, header: &Header, record: &mut Record) -> io::Result<usize> {
+    pub fn read_record(&mut self, header: &Header, record: &mut RecordBuf) -> io::Result<usize> {
         self.inner.read_record(header, record)
     }
 
@@ -85,7 +85,7 @@ where
         &'a mut self,
         header: &'a Header,
         region: &Region,
-    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'a> {
+    ) -> io::Result<impl Iterator<Item = io::Result<RecordBuf>> + 'a> {
         self.inner.query(header, &self.index, region)
     }
 
@@ -93,7 +93,7 @@ where
     pub fn query_unmapped<'a>(
         &'a mut self,
         header: &'a Header,
-    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'a> {
+    ) -> io::Result<impl Iterator<Item = io::Result<RecordBuf>> + 'a> {
         self.inner.query_unmapped(header, &self.index)
     }
 }

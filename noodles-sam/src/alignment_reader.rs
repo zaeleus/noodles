@@ -1,6 +1,6 @@
 use std::io;
 
-use super::{alignment::Record, Header};
+use super::{alignment::RecordBuf, Header};
 
 /// An alignment format reader.
 pub trait AlignmentReader<R> {
@@ -11,5 +11,5 @@ pub trait AlignmentReader<R> {
     fn alignment_records<'a>(
         &'a mut self,
         header: &'a Header,
-    ) -> Box<dyn Iterator<Item = io::Result<Record>> + 'a>;
+    ) -> Box<dyn Iterator<Item = io::Result<RecordBuf>> + 'a>;
 }

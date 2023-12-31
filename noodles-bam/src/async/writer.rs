@@ -1,7 +1,7 @@
 use std::{ffi::CString, num::NonZeroUsize};
 
 use noodles_bgzf as bgzf;
-use noodles_sam::{self as sam, alignment::Record, header::record::value::map};
+use noodles_sam::{self as sam, alignment::RecordBuf, header::record::value::map};
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 /// An async BAM writer.
@@ -142,17 +142,21 @@ where
     /// # #[tokio::main]
     /// # async fn main() -> io::Result<()> {
     /// use noodles_bam as bam;
-    /// use noodles_sam::{self as sam, alignment::Record};
+    /// use noodles_sam::{self as sam, alignment::RecordBuf};
     ///
     /// let mut writer = bam::AsyncWriter::new(Vec::new());
     ///
     /// let header = sam::Header::default();
-    /// let record = Record::default();
+    /// let record = RecordBuf::default();
     /// writer.write_record(&header, &record).await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn write_record(&mut self, header: &sam::Header, record: &Record) -> io::Result<()> {
+    pub async fn write_record(
+        &mut self,
+        header: &sam::Header,
+        record: &RecordBuf,
+    ) -> io::Result<()> {
         use crate::record::codec::encode;
 
         self.buf.clear();
@@ -177,12 +181,12 @@ where
     /// # #[tokio::main]
     /// # async fn main() -> io::Result<()> {
     /// use noodles_bam as bam;
-    /// use noodles_sam::{self as sam, alignment::Record};
+    /// use noodles_sam::{self as sam, alignment::RecordBuf};
     ///
     /// let mut writer = bam::AsyncWriter::new(Vec::new());
     ///
     /// let header = sam::Header::default();
-    /// let record = Record::default();
+    /// let record = RecordBuf::default();
     /// writer.write_alignment_record(&header, &record).await?;
     /// # Ok(())
     /// # }
@@ -190,7 +194,7 @@ where
     pub async fn write_alignment_record(
         &mut self,
         header: &sam::Header,
-        record: &Record,
+        record: &RecordBuf,
     ) -> io::Result<()> {
         self.write_record(header, record).await
     }

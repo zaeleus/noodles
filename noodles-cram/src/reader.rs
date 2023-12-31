@@ -336,7 +336,7 @@ where
     fn alignment_records<'a>(
         &'a mut self,
         header: &'a sam::Header,
-    ) -> Box<dyn Iterator<Item = io::Result<sam::alignment::Record>> + 'a> {
+    ) -> Box<dyn Iterator<Item = io::Result<sam::alignment::RecordBuf>> + 'a> {
         Box::new(
             self.records(header)
                 .map(|result| result.and_then(|record| record.try_into_alignment_record(header))),

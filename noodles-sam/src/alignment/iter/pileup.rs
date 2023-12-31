@@ -3,7 +3,7 @@ use std::{collections::VecDeque, io};
 use noodles_core::Position;
 
 use crate::{
-    alignment::Record,
+    alignment::RecordBuf,
     record::{Cigar, Flags},
 };
 
@@ -28,12 +28,12 @@ pub struct Pileup<I> {
     state: State,
     position: Position,
     window: VecDeque<u64>,
-    next_record: Option<Record>,
+    next_record: Option<RecordBuf>,
 }
 
 impl<I> Pileup<I>
 where
-    I: Iterator<Item = io::Result<Record>>,
+    I: Iterator<Item = io::Result<RecordBuf>>,
 {
     /// Creates a pileup iterator.
     ///
@@ -123,7 +123,7 @@ where
 
 impl<I> Iterator for Pileup<I>
 where
-    I: Iterator<Item = io::Result<Record>>,
+    I: Iterator<Item = io::Result<RecordBuf>>,
 {
     type Item = io::Result<(Position, u64)>;
 
@@ -159,7 +159,7 @@ where
     }
 }
 
-fn alignment_context(record: &Record) -> io::Result<(usize, Position, Position)> {
+fn alignment_context(record: &RecordBuf) -> io::Result<(usize, Position, Position)> {
     match (
         record.reference_sequence_id(),
         record.alignment_start(),
@@ -177,7 +177,7 @@ fn filter(flags: Flags) -> bool {
     flags.is_unmapped() || flags.is_secondary() || flags.is_qc_fail() || flags.is_duplicate()
 }
 
-fn pile_record(window: &mut VecDeque<u64>, start: Position, end: Position, record: &Record) {
+fn pile_record(window: &mut VecDeque<u64>, start: Position, end: Position, record: &RecordBuf) {
     let span = usize::from(end) - usize::from(start) + 1;
 
     if span > window.len() {
@@ -234,7 +234,7 @@ mod tests {
         ]
         .into_iter()
         .map(|(reference_sequence_id, position, cigar)| {
-            Ok(Record::builder()
+            Ok(RecordBuf::builder()
                 .set_flags(Flags::empty())
                 .set_reference_sequence_id(reference_sequence_id)
                 .set_alignment_start(position)

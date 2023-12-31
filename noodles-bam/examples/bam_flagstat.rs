@@ -5,7 +5,7 @@
 use std::{env, fmt, io};
 
 use noodles_bam as bam;
-use noodles_sam::{alignment::Record, record::MappingQuality};
+use noodles_sam::{alignment::RecordBuf, record::MappingQuality};
 
 const MIN_HQ_MAPPING_QUALITY: MappingQuality = match MappingQuality::new(5) {
     Some(mapping_quality) => mapping_quality,
@@ -32,7 +32,7 @@ struct Counts {
     mate_reference_sequence_id_mismatch_hq: u64,
 }
 
-fn count(counts: &mut Counts, record: &Record) {
+fn count(counts: &mut Counts, record: &RecordBuf) {
     let flags = record.flags();
 
     counts.read += 1;

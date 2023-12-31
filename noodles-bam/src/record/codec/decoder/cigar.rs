@@ -3,7 +3,7 @@ pub mod op;
 use std::{error, fmt, mem};
 
 use bytes::Buf;
-use noodles_sam::{self as sam, alignment::Record, record::Cigar};
+use noodles_sam::{self as sam, alignment::RecordBuf, record::Cigar};
 
 use self::op::decode_op;
 
@@ -70,7 +70,7 @@ where
 }
 
 // § 4.2.2 "`N_CIGAR_OP` field" (2022-08-22)
-pub(super) fn resolve(header: &sam::Header, record: &mut Record) -> Result<(), DecodeError> {
+pub(super) fn resolve(header: &sam::Header, record: &mut RecordBuf) -> Result<(), DecodeError> {
     use sam::record::{
         cigar::{op::Kind, Op},
         data::field::{tag, value::Array},
@@ -173,7 +173,7 @@ mod tests {
             )
             .build();
 
-        let mut record = Record::builder()
+        let mut record = RecordBuf::builder()
             .set_reference_sequence_id(0)
             .set_cigar("4S8N".parse()?)
             .set_sequence("ACGT".parse()?)

@@ -4,7 +4,7 @@ use futures::{stream, Stream};
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt};
 
 use self::header::read_header;
-use crate::{alignment::Record, Header};
+use crate::{alignment::RecordBuf, Header};
 
 /// An async SAM reader.
 pub struct Reader<R> {
@@ -120,7 +120,7 @@ where
     /// ```
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use noodles_sam::{self as sam, alignment::Record};
+    /// use noodles_sam::{self as sam, alignment::RecordBuf};
     ///
     /// let data = b"@HD\tVN:1.6
     /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
@@ -129,14 +129,18 @@ where
     /// let mut reader = sam::AsyncReader::new(&data[..]);
     /// let header = reader.read_header().await?;
     ///
-    /// let mut record = Record::default();
+    /// let mut record = RecordBuf::default();
     /// reader.read_record(&header, &mut record).await?;
     ///
-    /// assert_eq!(record, Record::default());
+    /// assert_eq!(record, RecordBuf::default());
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_record(&mut self, header: &Header, record: &mut Record) -> io::Result<usize> {
+    pub async fn read_record(
+        &mut self,
+        header: &Header,
+        record: &mut RecordBuf,
+    ) -> io::Result<usize> {
         read_record(&mut self.inner, &mut self.buf, header, record).await
     }
 
@@ -171,9 +175,9 @@ where
     pub fn records<'a>(
         &'a mut self,
         header: &'a Header,
-    ) -> impl Stream<Item = io::Result<Record>> + 'a {
+    ) -> impl Stream<Item = io::Result<RecordBuf>> + 'a {
         Box::pin(stream::try_unfold(
-            (self, Record::default()),
+            (self, RecordBuf::default()),
             |(reader, mut record)| async {
                 match reader.read_record(header, &mut record).await? {
                     0 => Ok(None),
@@ -188,7 +192,7 @@ async fn read_record<R>(
     reader: &mut R,
     buf: &mut Vec<u8>,
     header: &Header,
-    record: &mut Record,
+    record: &mut RecordBuf,
 ) -> io::Result<usize>
 where
     R: AsyncBufRead + Unpin,

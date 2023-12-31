@@ -3,7 +3,7 @@ use std::io::{self, Read, Seek};
 use noodles_bgzf as bgzf;
 use noodles_core::region::Interval;
 use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
-use noodles_sam::{self as sam, alignment::Record};
+use noodles_sam::{self as sam, alignment::RecordBuf};
 
 use super::Reader;
 
@@ -18,7 +18,7 @@ where
     header: &'a sam::Header,
     reference_sequence_id: usize,
     interval: Interval,
-    record: Record,
+    record: RecordBuf,
 }
 
 impl<'a, R> Query<'a, R>
@@ -37,11 +37,11 @@ where
             header,
             reference_sequence_id,
             interval,
-            record: Record::default(),
+            record: RecordBuf::default(),
         }
     }
 
-    fn next_record(&mut self) -> io::Result<Option<Record>> {
+    fn next_record(&mut self) -> io::Result<Option<RecordBuf>> {
         self.reader
             .read_record(self.header, &mut self.record)
             .map(|n| match n {
@@ -55,7 +55,7 @@ impl<'a, R> Iterator for Query<'a, R>
 where
     R: Read + Seek,
 {
-    type Item = io::Result<Record>;
+    type Item = io::Result<RecordBuf>;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
@@ -73,7 +73,7 @@ where
 }
 
 pub(crate) fn intersects(
-    record: &Record,
+    record: &RecordBuf,
     reference_sequence_id: usize,
     region_interval: Interval,
 ) -> bool {

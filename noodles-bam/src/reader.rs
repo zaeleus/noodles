@@ -17,7 +17,7 @@ use std::{
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
-use noodles_sam::{self as sam, alignment::Record, header::ReferenceSequences};
+use noodles_sam::{self as sam, alignment::RecordBuf, header::ReferenceSequences};
 
 use super::lazy;
 
@@ -131,7 +131,7 @@ where
     /// another record.
     ///
     /// It is more ergonomic to read records using an iterator (see [`Self::records`] and
-    /// [`Self::query`]), but using this method directly allows the reuse of a single [`Record`]
+    /// [`Self::query`]), but using this method directly allows the reuse of a single [`RecordBuf`]
     /// buffer.
     ///
     /// If successful, the record block size is returned. If a block size of 0 is returned, the
@@ -142,17 +142,21 @@ where
     /// ```no_run
     /// # use std::{fs::File, io};
     /// use noodles_bam as bam;
-    /// use noodles_sam::alignment::Record;
+    /// use noodles_sam::alignment::RecordBuf;
     ///
     /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
     /// let header = reader.read_header()?;
     ///
-    /// let mut record = Record::default();
+    /// let mut record = RecordBuf::default();
     /// reader.read_record(&header, &mut record)?;
     ///
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn read_record(&mut self, header: &sam::Header, record: &mut Record) -> io::Result<usize> {
+    pub fn read_record(
+        &mut self,
+        header: &sam::Header,
+        record: &mut RecordBuf,
+    ) -> io::Result<usize> {
         use self::record::read_record;
         read_record(&mut self.inner, header, &mut self.buf, record)
     }
@@ -383,7 +387,7 @@ where
         &'r mut self,
         header: &'r sam::Header,
         index: &I,
-    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'r>
+    ) -> io::Result<impl Iterator<Item = io::Result<RecordBuf>> + 'r>
     where
         I: BinningIndex,
     {
@@ -422,7 +426,7 @@ where
     fn alignment_records<'a>(
         &'a mut self,
         header: &'a sam::Header,
-    ) -> Box<dyn Iterator<Item = io::Result<Record>> + 'a> {
+    ) -> Box<dyn Iterator<Item = io::Result<RecordBuf>> + 'a> {
         Box::new(self.records(header))
     }
 }

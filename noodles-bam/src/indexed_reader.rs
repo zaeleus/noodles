@@ -9,7 +9,7 @@ use std::io::{self, Read, Seek};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
-use noodles_sam::{self as sam, alignment::Record};
+use noodles_sam::{self as sam, alignment::RecordBuf};
 
 use super::{
     lazy,
@@ -48,7 +48,11 @@ where
     }
 
     /// Reads a single record.
-    pub fn read_record(&mut self, header: &sam::Header, record: &mut Record) -> io::Result<usize> {
+    pub fn read_record(
+        &mut self,
+        header: &sam::Header,
+        record: &mut RecordBuf,
+    ) -> io::Result<usize> {
         self.inner.read_record(header, record)
     }
 
@@ -108,7 +112,7 @@ where
     pub fn query_unmapped<'r>(
         &'r mut self,
         header: &'r sam::Header,
-    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'r> {
+    ) -> io::Result<impl Iterator<Item = io::Result<RecordBuf>> + 'r> {
         self.inner.query_unmapped(header, &self.index)
     }
 }

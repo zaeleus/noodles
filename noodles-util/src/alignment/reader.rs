@@ -6,7 +6,7 @@ pub use self::builder::Builder;
 
 use std::io::{self, Read};
 
-use noodles_sam::{self as sam, alignment::Record, AlignmentReader};
+use noodles_sam::{self as sam, alignment::RecordBuf, AlignmentReader};
 
 /// An alignment reader.
 pub struct Reader<R> {
@@ -72,7 +72,7 @@ where
     pub fn records<'a>(
         &'a mut self,
         header: &'a sam::Header,
-    ) -> impl Iterator<Item = io::Result<Record>> + 'a {
+    ) -> impl Iterator<Item = io::Result<RecordBuf>> + 'a {
         self.inner.alignment_records(header)
     }
 }

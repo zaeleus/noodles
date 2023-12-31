@@ -1,7 +1,7 @@
 use std::io::{self, BufRead};
 
 use super::Reader;
-use crate::{alignment::Record, Header};
+use crate::{alignment::RecordBuf, Header};
 
 /// An iterator over records of a SAM reader.
 ///
@@ -9,7 +9,7 @@ use crate::{alignment::Record, Header};
 pub struct Records<'a, R> {
     inner: &'a mut Reader<R>,
     header: &'a Header,
-    record: Record,
+    record: RecordBuf,
 }
 
 impl<'a, R> Records<'a, R>
@@ -20,7 +20,7 @@ where
         Self {
             inner,
             header,
-            record: Record::default(),
+            record: RecordBuf::default(),
         }
     }
 }
@@ -29,7 +29,7 @@ impl<'a, R> Iterator for Records<'a, R>
 where
     R: BufRead,
 {
-    type Item = io::Result<Record>;
+    type Item = io::Result<RecordBuf>;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.inner.read_record(self.header, &mut self.record) {

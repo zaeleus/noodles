@@ -10,7 +10,7 @@ use noodles_core::Region;
 use noodles_csi::BinningIndex;
 use noodles_sam::{
     self as sam,
-    alignment::Record,
+    alignment::RecordBuf,
     header::{
         record::value::{
             map::{self, ReferenceSequence},
@@ -171,7 +171,7 @@ where
     /// another record.
     ///
     /// It is more ergonomic to read records using a stream (see [`Self::records`] and
-    /// [`Self::query`]), but using this method directly allows the reuse of a single [`Record`]
+    /// [`Self::query`]), but using this method directly allows the reuse of a single [`RecordBuf`]
     /// buffer.
     ///
     /// If successful, the record block size is returned. If a block size of 0 is returned, the
@@ -183,14 +183,14 @@ where
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use noodles_bam as bam;
-    /// use noodles_sam::alignment::Record;
+    /// use noodles_sam::alignment::RecordBuf;
     /// use tokio::fs::File;
     ///
     /// let mut reader = File::open("sample.bam").await.map(bam::AsyncReader::new)?;
     /// let header = reader.read_header().await?.parse()?;
     /// reader.read_reference_sequences().await?;
     ///
-    /// let mut record = Record::default();
+    /// let mut record = RecordBuf::default();
     /// reader.read_record(&header, &mut record).await?;
     /// # Ok(())
     /// # }
@@ -198,7 +198,7 @@ where
     pub async fn read_record(
         &mut self,
         header: &sam::Header,
-        record: &mut Record,
+        record: &mut RecordBuf,
     ) -> io::Result<usize> {
         read_record(&mut self.inner, header, &mut self.buf, record).await
     }
@@ -224,7 +224,6 @@ where
     /// # #[tokio::main]
     /// # async fn main() -> io::Result<()> {
     /// use noodles_bam as bam;
-    /// use noodles_sam::alignment::Record;
     /// use tokio::fs::File;
     ///
     /// let mut reader = File::open("sample.bam").await.map(bam::AsyncReader::new)?;
@@ -281,9 +280,9 @@ where
     pub fn records<'a>(
         &'a mut self,
         header: &'a sam::Header,
-    ) -> impl Stream<Item = io::Result<Record>> + '_ {
+    ) -> impl Stream<Item = io::Result<RecordBuf>> + '_ {
         Box::pin(stream::try_unfold(
-            (&mut self.inner, &mut self.buf, Record::default()),
+            (&mut self.inner, &mut self.buf, RecordBuf::default()),
             move |(reader, buf, mut record)| async move {
                 read_record(reader, header, buf, &mut record)
                     .await
@@ -433,7 +432,7 @@ where
         header: &'a sam::Header,
         index: &I,
         region: &Region,
-    ) -> io::Result<impl Stream<Item = io::Result<Record>> + '_>
+    ) -> io::Result<impl Stream<Item = io::Result<RecordBuf>> + '_>
     where
         I: BinningIndex,
     {

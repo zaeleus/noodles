@@ -12,7 +12,7 @@ use noodles_cram as cram;
 use noodles_fasta as fasta;
 use noodles_sam::{
     self as sam,
-    alignment::Record,
+    alignment::RecordBuf,
     header::record::value::{
         map::{Program, ReferenceSequence},
         Map,
@@ -73,7 +73,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     writer.write_header(&header)?;
 
-    let record = Record::builder()
+    let record = RecordBuf::builder()
         .set_flags(sam::record::Flags::empty())
         .set_reference_sequence_id(1)
         .set_alignment_start(Position::MIN)
@@ -84,7 +84,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     writer.write_alignment_record(&header, &record)?;
 
-    let record = Record::default();
+    let record = RecordBuf::default();
     writer.write_alignment_record(&header, &record)?;
 
     writer.try_finish(&header)?;
