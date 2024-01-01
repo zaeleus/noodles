@@ -23,6 +23,9 @@
 
   * sam/alignment: Rename `Record` to `RecordBuf`.
 
+  * sam/alignment/record_buf: Change sequence to raw bases
+    (`record_buf::Sequence`).
+
   * sam/alignment/record_buf: Change quality scores to raw scores
     (`record_buf::QualityScores`).
 

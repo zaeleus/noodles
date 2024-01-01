@@ -1,12 +1,14 @@
 use std::io::{self, Write};
 
 use super::MISSING;
-use crate::record::Sequence;
+use crate::alignment::record_buf::Sequence;
 
 pub fn write_sequence<W>(writer: &mut W, read_length: usize, sequence: &Sequence) -> io::Result<()>
 where
     W: Write,
 {
+    let sequence = sequence.as_ref();
+
     // § 1.4.10 "`SEQ`" (2022-08-22): "This field can be a '*' when the sequence is not stored."
     if sequence.is_empty() {
         writer.write_all(&[MISSING])?;
@@ -22,12 +24,19 @@ where
         ));
     }
 
-    for &base in sequence.as_ref() {
-        let n = u8::from(base);
-        writer.write_all(&[n])?;
+    if !is_valid(sequence) {
+        return Err(io::Error::from(io::ErrorKind::InvalidInput));
     }
 
+    writer.write_all(sequence)?;
+
     Ok(())
+}
+
+fn is_valid(sequence: &[u8]) -> bool {
+    sequence
+        .iter()
+        .all(|&b| matches!(b, b'A'..=b'Z' | b'a'..=b'z' | b'=' | b'.'))
 }
 
 #[cfg(test)]
@@ -36,8 +45,6 @@ mod tests {
 
     #[test]
     fn test_write_sequence() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::record::sequence::Base;
-
         let mut buf = Vec::new();
 
         buf.clear();
@@ -45,15 +52,22 @@ mod tests {
         assert_eq!(buf, b"*");
 
         buf.clear();
-        let sequence = Sequence::from(vec![Base::A, Base::C, Base::G, Base::T]);
+        let sequence = Sequence::from(b"ACGT".to_vec());
         write_sequence(&mut buf, 4, &sequence)?;
         assert_eq!(buf, b"ACGT");
 
         buf.clear();
-        let sequence = Sequence::from(vec![Base::A, Base::C, Base::G, Base::T]);
+        let sequence = Sequence::from(b"ACGT".to_vec());
         write_sequence(&mut buf, 0, &sequence)?;
         assert_eq!(buf, b"ACGT");
 
+        buf.clear();
+        assert!(matches!(
+            write_sequence(&mut buf, 1, &sequence),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput,
+        ));
+
+        let sequence = Sequence::from(vec![b'!']);
         buf.clear();
         assert!(matches!(
             write_sequence(&mut buf, 1, &sequence),

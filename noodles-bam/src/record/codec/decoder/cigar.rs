@@ -159,6 +159,7 @@ mod tests {
         use std::num::NonZeroUsize;
 
         use sam::{
+            alignment::record_buf::Sequence,
             header::record::value::{map::ReferenceSequence, Map},
             record::{
                 cigar::op::{self, Op},
@@ -176,7 +177,7 @@ mod tests {
         let mut record = RecordBuf::builder()
             .set_reference_sequence_id(0)
             .set_cigar("4S8N".parse()?)
-            .set_sequence("ACGT".parse()?)
+            .set_sequence(Sequence::from(b"ACGT".to_vec()))
             .set_data(
                 [(tag::CIGAR, Value::Array(Array::UInt32(vec![0x40])))]
                     .into_iter()

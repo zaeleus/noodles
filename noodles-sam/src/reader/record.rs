@@ -10,8 +10,7 @@ mod sequence;
 mod template_length;
 
 pub(crate) use self::{
-    cigar::parse_cigar, flags::parse_flags, sequence::parse_sequence,
-    template_length::parse_template_length,
+    cigar::parse_cigar, flags::parse_flags, template_length::parse_template_length,
 };
 
 use std::{
@@ -22,7 +21,7 @@ use std::{
 use self::{
     data::parse_data, mapping_quality::parse_mapping_quality, position::parse_alignment_start,
     quality_scores::parse_quality_scores, read_name::parse_read_name,
-    reference_sequence_id::parse_reference_sequence_id,
+    reference_sequence_id::parse_reference_sequence_id, sequence::parse_sequence,
 };
 use super::read_line;
 use crate::{alignment::RecordBuf, Header};
@@ -174,7 +173,7 @@ pub(crate) fn parse_record(
     *record.template_length_mut() =
         parse_template_length(field).map_err(ParseError::InvalidTemplateLength)?;
 
-    record.sequence_mut().clear();
+    record.sequence_mut().as_mut().clear();
     let field = next_field(&mut src);
     if field != MISSING {
         parse_sequence(field, record.sequence_mut()).map_err(ParseError::InvalidSequence)?;

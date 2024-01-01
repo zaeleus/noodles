@@ -1,7 +1,7 @@
 use std::{error, fmt, mem, num};
 
 use bytes::Buf;
-use noodles_sam::record::{sequence::Base, Sequence};
+use noodles_sam::alignment::record_buf::Sequence;
 
 /// An error when a raw BAM record sequence fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -61,33 +61,34 @@ where
         .iter()
         .flat_map(|&b| [decode_base(b >> 4), decode_base(b)]);
 
+    let sequence = sequence.as_mut();
     sequence.clear();
-    sequence.as_mut().extend(bases);
-    sequence.as_mut().truncate(l_seq);
+    sequence.extend(bases);
+    sequence.truncate(l_seq);
 
     src.advance(seq_len);
 
     Ok(())
 }
 
-pub(crate) fn decode_base(n: u8) -> Base {
+fn decode_base(n: u8) -> u8 {
     match n & 0x0f {
-        0 => Base::Eq,
-        1 => Base::A,
-        2 => Base::C,
-        3 => Base::M,
-        4 => Base::G,
-        5 => Base::R,
-        6 => Base::S,
-        7 => Base::V,
-        8 => Base::T,
-        9 => Base::W,
-        10 => Base::Y,
-        11 => Base::H,
-        12 => Base::K,
-        13 => Base::D,
-        14 => Base::B,
-        15 => Base::N,
+        0 => b'=',
+        1 => b'A',
+        2 => b'C',
+        3 => b'M',
+        4 => b'G',
+        5 => b'R',
+        6 => b'S',
+        7 => b'V',
+        8 => b'T',
+        9 => b'W',
+        10 => b'Y',
+        11 => b'H',
+        12 => b'K',
+        13 => b'D',
+        14 => b'B',
+        15 => b'N',
         _ => unreachable!(),
     }
 }
@@ -108,7 +109,7 @@ mod tests {
     #[test]
     fn test_get_sequence() -> Result<(), Box<dyn std::error::Error>> {
         fn t(mut src: &[u8], buf: &mut Sequence, expected: &Sequence) -> Result<(), DecodeError> {
-            buf.clear();
+            buf.as_mut().clear();
             get_sequence(&mut src, buf, expected.len())?;
             assert_eq!(buf, expected);
             Ok(())
@@ -117,10 +118,18 @@ mod tests {
         let mut sequence = Sequence::default();
 
         t(&[], &mut sequence, &Sequence::default())?;
-        t(&[0x12, 0x40], &mut sequence, &"ACG".parse()?)?;
-        t(&[0x12, 0x48], &mut sequence, &"ACGT".parse()?)?;
+        t(
+            &[0x12, 0x40],
+            &mut sequence,
+            &Sequence::from(b"ACG".to_vec()),
+        )?;
+        t(
+            &[0x12, 0x48],
+            &mut sequence,
+            &Sequence::from(b"ACGT".to_vec()),
+        )?;
 
-        sequence.clear();
+        sequence.as_mut().clear();
         let mut src = &b""[..];
         assert_eq!(
             get_sequence(&mut src, &mut sequence, 4),
@@ -132,21 +141,21 @@ mod tests {
 
     #[test]
     fn test_decode_base() {
-        assert_eq!(decode_base(0), Base::Eq);
-        assert_eq!(decode_base(1), Base::A);
-        assert_eq!(decode_base(2), Base::C);
-        assert_eq!(decode_base(3), Base::M);
-        assert_eq!(decode_base(4), Base::G);
-        assert_eq!(decode_base(5), Base::R);
-        assert_eq!(decode_base(6), Base::S);
-        assert_eq!(decode_base(7), Base::V);
-        assert_eq!(decode_base(8), Base::T);
-        assert_eq!(decode_base(9), Base::W);
-        assert_eq!(decode_base(10), Base::Y);
-        assert_eq!(decode_base(11), Base::H);
-        assert_eq!(decode_base(12), Base::K);
-        assert_eq!(decode_base(13), Base::D);
-        assert_eq!(decode_base(14), Base::B);
-        assert_eq!(decode_base(15), Base::N);
+        assert_eq!(decode_base(0), b'=');
+        assert_eq!(decode_base(1), b'A');
+        assert_eq!(decode_base(2), b'C');
+        assert_eq!(decode_base(3), b'M');
+        assert_eq!(decode_base(4), b'G');
+        assert_eq!(decode_base(5), b'R');
+        assert_eq!(decode_base(6), b'S');
+        assert_eq!(decode_base(7), b'V');
+        assert_eq!(decode_base(8), b'T');
+        assert_eq!(decode_base(9), b'W');
+        assert_eq!(decode_base(10), b'Y');
+        assert_eq!(decode_base(11), b'H');
+        assert_eq!(decode_base(12), b'K');
+        assert_eq!(decode_base(13), b'D');
+        assert_eq!(decode_base(14), b'B');
+        assert_eq!(decode_base(15), b'N');
     }
 }

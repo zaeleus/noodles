@@ -239,7 +239,7 @@ mod tests {
     #[test]
     fn test_encode_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
         use sam::{
-            alignment::record_buf::QualityScores,
+            alignment::record_buf::{QualityScores, Sequence},
             record::{
                 cigar::{op, Op},
                 data::field::{tag, Value},
@@ -274,7 +274,7 @@ mod tests {
             .set_mate_reference_sequence_id(1)
             .set_mate_alignment_start(Position::try_from(22)?)
             .set_template_length(144)
-            .set_sequence("ACGT".parse()?)
+            .set_sequence(Sequence::from(b"ACGT".to_vec()))
             .set_quality_scores(QualityScores::from(vec![45, 35, 43, 50]))
             .set_data(
                 [(tag::ALIGNMENT_HIT_COUNT, Value::from(1))]
@@ -312,11 +312,13 @@ mod tests {
 
     #[test]
     fn test_encode_with_oversized_cigar() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::record::{
-            cigar::{op::Kind, Op},
-            data::field::{tag, Value},
-            sequence::Base,
-            Cigar, Sequence,
+        use sam::{
+            alignment::record_buf::Sequence,
+            record::{
+                cigar::{op::Kind, Op},
+                data::field::{tag, Value},
+                Cigar,
+            },
         };
 
         const BASE_COUNT: usize = 65536;
@@ -333,7 +335,7 @@ mod tests {
             .build();
 
         let cigar = Cigar::try_from(vec![Op::new(Kind::Match, 1); BASE_COUNT])?;
-        let sequence = Sequence::from(vec![Base::A; BASE_COUNT]);
+        let sequence = Sequence::from(vec![b'A'; BASE_COUNT]);
 
         let record = RecordBuf::builder()
             .set_flags(Flags::empty())

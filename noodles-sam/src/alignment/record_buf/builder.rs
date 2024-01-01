@@ -1,7 +1,7 @@
 use noodles_core::Position;
 
-use super::{QualityScores, RecordBuf};
-use crate::record::{Cigar, Data, Flags, MappingQuality, ReadName, Sequence};
+use super::{QualityScores, RecordBuf, Sequence};
+use crate::record::{Cigar, Data, Flags, MappingQuality, ReadName};
 
 /// An alignment record builder.
 #[derive(Debug)]
@@ -196,16 +196,15 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::Sequence};
+    /// use noodles_sam::{self as sam, alignment::record_buf::Sequence};
     ///
-    /// let sequence: Sequence = "ACGT".parse()?;
+    /// let sequence = Sequence::from(b"ACGT".to_vec());
     ///
     /// let record = sam::alignment::RecordBuf::builder()
     ///     .set_sequence(sequence.clone())
     ///     .build();
     ///
     /// assert_eq!(record.sequence(), &sequence);
-    /// Ok::<_, sam::record::sequence::ParseError>(())
     /// ```
     pub fn set_sequence(mut self, sequence: Sequence) -> Self {
         self.sequence = sequence;

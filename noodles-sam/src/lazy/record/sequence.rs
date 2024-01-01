@@ -1,5 +1,3 @@
-use std::io;
-
 /// A raw SAM record sequence.
 #[derive(Debug, Eq, PartialEq)]
 pub struct Sequence<'a>(&'a [u8]);
@@ -40,20 +38,9 @@ impl<'a> crate::alignment::record::Sequence for Sequence<'a> {
     }
 }
 
-impl<'a> TryInto<crate::record::Sequence> for Sequence<'a> {
-    type Error = io::Error;
-
-    fn try_into(self) -> Result<crate::record::Sequence, Self::Error> {
-        use crate::reader::record::parse_sequence;
-
-        let mut sequence = crate::record::Sequence::default();
-
-        if !self.is_empty() {
-            parse_sequence(self.as_ref(), &mut sequence)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-        }
-
-        Ok(sequence)
+impl<'a> From<Sequence<'a>> for crate::alignment::record_buf::Sequence {
+    fn from(sequence: Sequence<'a>) -> Self {
+        Self::from(sequence.0.to_vec())
     }
 }
 

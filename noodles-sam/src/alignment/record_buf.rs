@@ -34,7 +34,7 @@ pub struct RecordBuf {
     mate_reference_sequence_id: Option<usize>,
     mate_alignment_start: Option<core::Position>,
     template_length: i32,
-    sequence: record::Sequence,
+    sequence: Sequence,
     quality_scores: QualityScores,
     data: record::Data,
 }
@@ -316,7 +316,7 @@ impl RecordBuf {
     /// let record = sam::alignment::RecordBuf::default();
     /// assert!(record.sequence().is_empty());
     /// ```
-    pub fn sequence(&self) -> &record::Sequence {
+    pub fn sequence(&self) -> &Sequence {
         &self.sequence
     }
 
@@ -325,9 +325,9 @@ impl RecordBuf {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::Sequence};
+    /// use noodles_sam::{self as sam, alignment::record_buf::Sequence};
     ///
-    /// let sequence: Sequence = "ACGT".parse()?;
+    /// let sequence = Sequence::from(b"ACGT".to_vec());
     ///
     /// let mut record = sam::alignment::RecordBuf::default();
     /// *record.sequence_mut() = sequence.clone();
@@ -335,7 +335,7 @@ impl RecordBuf {
     /// assert_eq!(record.sequence(), &sequence);
     /// Ok::<_, sam::record::sequence::ParseError>(())
     /// ```
-    pub fn sequence_mut(&mut self) -> &mut record::Sequence {
+    pub fn sequence_mut(&mut self) -> &mut Sequence {
         &mut self.sequence
     }
 

@@ -9,12 +9,7 @@ use std::{
 };
 
 use noodles_bam as bam;
-use noodles_sam::{
-    self as sam,
-    alignment::RecordBuf,
-    record::{sequence::Base, Flags},
-    AlignmentWriter,
-};
+use noodles_sam::{self as sam, alignment::RecordBuf, record::Flags, AlignmentWriter};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");
@@ -76,24 +71,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn reverse_complement(record: &mut RecordBuf) {
-    fn complement(base: Base) -> Base {
+    fn complement(base: u8) -> u8 {
         match base {
-            Base::Eq => Base::Eq,
-            Base::A => Base::T,
-            Base::C => Base::G,
-            Base::M => Base::K,
-            Base::G => Base::C,
-            Base::R => Base::Y,
-            Base::S => Base::S,
-            Base::V => Base::B,
-            Base::T => Base::A,
-            Base::W => Base::W,
-            Base::Y => Base::R,
-            Base::H => Base::D,
-            Base::K => Base::M,
-            Base::D => Base::H,
-            Base::B => Base::V,
-            _ => Base::N,
+            b'=' => b'=',
+            b'A' => b'T',
+            b'C' => b'G',
+            b'M' => b'K',
+            b'G' => b'C',
+            b'R' => b'Y',
+            b'S' => b'S',
+            b'V' => b'B',
+            b'T' => b'A',
+            b'W' => b'W',
+            b'Y' => b'R',
+            b'H' => b'D',
+            b'K' => b'M',
+            b'D' => b'H',
+            b'B' => b'V',
+            _ => b'N',
         }
     }
 

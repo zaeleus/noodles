@@ -12,7 +12,7 @@ use noodles_cram as cram;
 use noodles_fasta as fasta;
 use noodles_sam::{
     self as sam,
-    alignment::record_buf::QualityScores,
+    alignment::record_buf::{QualityScores, Sequence},
     alignment::RecordBuf,
     header::record::value::{
         map::{Program, ReferenceSequence},
@@ -78,7 +78,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .set_reference_sequence_id(1)
         .set_alignment_start(Position::MIN)
         .set_cigar("4M".parse()?)
-        .set_sequence("TTCA".parse()?)
+        .set_sequence(Sequence::from(b"TTCA".to_vec()))
         .set_quality_scores(QualityScores::from(vec![45, 35, 43, 50]))
         .build();
 

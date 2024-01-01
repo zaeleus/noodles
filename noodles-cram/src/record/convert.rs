@@ -154,16 +154,10 @@ impl Record {
             builder = builder.set_mate_alignment_start(mate_alignment_start);
         }
 
-        builder = builder.set_template_length(self.template_size);
-
-        if !self.bases.is_empty() {
-            let raw_bases = Vec::<_>::from(self.bases);
-            let bases = sam::record::Sequence::try_from(raw_bases)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-            builder = builder.set_sequence(bases);
-        }
-
-        builder = builder.set_quality_scores(self.quality_scores);
+        builder = builder
+            .set_template_length(self.template_size)
+            .set_sequence(self.bases)
+            .set_quality_scores(self.quality_scores);
 
         let mut data = self.tags;
         maybe_insert_read_group(&mut data, header.read_groups(), self.read_group_id)?;

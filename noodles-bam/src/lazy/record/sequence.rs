@@ -1,6 +1,4 @@
-use std::io;
-
-use noodles_sam as sam;
+use noodles_sam::{self as sam, record::sequence::Base};
 
 /// A raw BAM record sequence.
 #[derive(Debug, Eq, PartialEq)]
@@ -27,8 +25,28 @@ impl<'a> Sequence<'a> {
     }
 
     /// Returns an iterator over the bases in the sequence.
-    pub fn iter(&self) -> impl Iterator<Item = sam::record::sequence::Base> + '_ {
-        use crate::record::codec::decoder::sequence::decode_base;
+    pub fn iter(&self) -> impl Iterator<Item = Base> + '_ {
+        fn decode_base(n: u8) -> Base {
+            match n & 0x0f {
+                0 => Base::Eq,
+                1 => Base::A,
+                2 => Base::C,
+                3 => Base::M,
+                4 => Base::G,
+                5 => Base::R,
+                6 => Base::S,
+                7 => Base::V,
+                8 => Base::T,
+                9 => Base::W,
+                10 => Base::Y,
+                11 => Base::H,
+                12 => Base::K,
+                13 => Base::D,
+                14 => Base::B,
+                15 => Base::N,
+                _ => unreachable!(),
+            }
+        }
 
         self.src
             .iter()
@@ -84,19 +102,9 @@ impl<'a> AsRef<[u8]> for Sequence<'a> {
     }
 }
 
-impl<'a> TryFrom<Sequence<'a>> for sam::record::Sequence {
-    type Error = io::Error;
-
-    fn try_from(bam_sequence: Sequence<'a>) -> Result<Self, Self::Error> {
-        use crate::record::codec::decoder::get_sequence;
-
-        let mut src = bam_sequence.src;
-        let mut sam_sequence = Self::default();
-        let base_count = bam_sequence.base_count;
-        get_sequence(&mut src, &mut sam_sequence, base_count)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-        Ok(sam_sequence)
+impl<'a> From<Sequence<'a>> for sam::alignment::record_buf::Sequence {
+    fn from(sequence: Sequence<'a>) -> Self {
+        Self::from(sequence.as_ref().to_vec())
     }
 }
 

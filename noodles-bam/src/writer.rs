@@ -204,7 +204,10 @@ where
 
 #[cfg(test)]
 mod tests {
-    use sam::{alignment::record_buf::QualityScores, AlignmentWriter};
+    use sam::{
+        alignment::record_buf::{QualityScores, Sequence},
+        AlignmentWriter,
+    };
 
     use super::*;
     use crate::Reader;
@@ -246,7 +249,10 @@ mod tests {
 
         let header = sam::Header::default();
 
-        let mut record = RecordBuf::builder().set_sequence("AT".parse()?).build();
+        let mut record = RecordBuf::builder()
+            .set_sequence(Sequence::from(b"AT".to_vec()))
+            .build();
+
         *record.quality_scores_mut() = QualityScores::from(vec![45, 35, 43, 50]);
 
         assert!(writer.write_alignment_record(&header, &record).is_err());
@@ -261,7 +267,10 @@ mod tests {
 
         let header = sam::Header::default();
 
-        let mut record = RecordBuf::builder().set_sequence("ATCG".parse()?).build();
+        let mut record = RecordBuf::builder()
+            .set_sequence(Sequence::from(b"ATCG".to_vec()))
+            .build();
+
         *record.quality_scores_mut() = QualityScores::from(vec![45, 35]);
 
         assert!(writer.write_alignment_record(&header, &record).is_err());
@@ -289,7 +298,10 @@ mod tests {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();
-        let record = RecordBuf::builder().set_sequence("ATCG".parse()?).build();
+
+        let record = RecordBuf::builder()
+            .set_sequence(Sequence::from(b"ATCG".to_vec()))
+            .build();
 
         writer.write_alignment_record(&header, &record)?;
         writer.try_finish()?;
@@ -299,7 +311,7 @@ mod tests {
         let mut record = RecordBuf::default();
         reader.read_record(&header, &mut record)?;
 
-        let expected = "ATCG".parse()?;
+        let expected = Sequence::from(b"ATCG".to_vec());
         assert_eq!(record.sequence(), &expected);
 
         assert!(record.quality_scores().is_empty());
@@ -314,7 +326,7 @@ mod tests {
 
         let header = sam::Header::default();
         let sam_record = RecordBuf::builder()
-            .set_sequence("ATCG".parse()?)
+            .set_sequence(Sequence::from(b"ATCG".to_vec()))
             .set_quality_scores(QualityScores::from(vec![45, 35, 43, 50]))
             .build();
 
@@ -326,7 +338,7 @@ mod tests {
         let mut record = RecordBuf::default();
         reader.read_record(&header, &mut record)?;
 
-        let expected = "ATCG".parse()?;
+        let expected = Sequence::from(b"ATCG".to_vec());
         assert_eq!(record.sequence(), &expected);
 
         assert_eq!(record.quality_scores(), sam_record.quality_scores());
