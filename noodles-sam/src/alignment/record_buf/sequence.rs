@@ -2,7 +2,7 @@ use std::ops::{Index, IndexMut};
 
 use noodles_core::position::SequenceIndex;
 
-/// RAW CRAM record sequence.
+/// An alignment record sequence buffer.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Sequence(Vec<u8>);
 
