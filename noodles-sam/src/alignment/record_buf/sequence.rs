@@ -61,3 +61,17 @@ impl From<Sequence> for Vec<u8> {
         sequence.0
     }
 }
+
+impl crate::alignment::record::Sequence for &Sequence {
+    fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = u8> + '_> {
+        Box::new(self.0.iter().copied())
+    }
+}
