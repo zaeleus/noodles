@@ -2,9 +2,9 @@ pub(crate) mod cigar;
 pub(crate) mod data;
 mod flags;
 mod mapping_quality;
+mod name;
 mod position;
 mod quality_scores;
-mod read_name;
 mod reference_sequence_id;
 mod sequence;
 mod template_length;
@@ -19,8 +19,8 @@ use std::{
 };
 
 use self::{
-    data::parse_data, mapping_quality::parse_mapping_quality, position::parse_alignment_start,
-    quality_scores::parse_quality_scores, read_name::parse_read_name,
+    data::parse_data, mapping_quality::parse_mapping_quality, name::parse_name,
+    position::parse_alignment_start, quality_scores::parse_quality_scores,
     reference_sequence_id::parse_reference_sequence_id, sequence::parse_sequence,
 };
 use super::read_line;
@@ -52,8 +52,8 @@ where
 #[allow(clippy::enum_variant_names)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
-    /// The read name is invalid.
-    InvalidReadName(read_name::ParseError),
+    /// The name is invalid.
+    InvalidName(name::ParseError),
     /// The flags are invalid.
     InvalidFlags(flags::ParseError),
     /// The reference sequence ID is invalid.
@@ -81,7 +81,7 @@ pub enum ParseError {
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
-            Self::InvalidReadName(e) => Some(e),
+            Self::InvalidName(e) => Some(e),
             Self::InvalidFlags(e) => Some(e),
             Self::InvalidReferenceSequenceId(e) => Some(e),
             Self::InvalidPosition(e) => Some(e),
@@ -100,7 +100,7 @@ impl error::Error for ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidReadName(_) => write!(f, "invalid read name"),
+            Self::InvalidName(_) => write!(f, "invalid name"),
             Self::InvalidFlags(_) => write!(f, "invalid flags"),
             Self::InvalidReferenceSequenceId(_) => write!(f, "invalid reference sequence ID"),
             Self::InvalidPosition(_) => write!(f, "invalid position"),
@@ -128,9 +128,9 @@ pub(crate) fn parse_record(
     match next_field(&mut src) {
         MISSING => *record.name_mut() = None,
         field => {
-            parse_read_name(field, record.name_mut())
+            parse_name(field, record.name_mut())
                 .map(Some)
-                .map_err(ParseError::InvalidReadName)?;
+                .map_err(ParseError::InvalidName)?;
         }
     };
 
