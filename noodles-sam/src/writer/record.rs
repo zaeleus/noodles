@@ -1,5 +1,6 @@
 mod cigar;
 mod data;
+mod name;
 mod position;
 mod quality_scores;
 mod sequence;
@@ -11,6 +12,7 @@ pub use self::{
 
 use std::io::{self, Write};
 
+use self::name::write_name;
 use crate::{alignment::RecordBuf, Header};
 
 const MISSING: u8 = b'*';
@@ -24,8 +26,6 @@ where
     const DELIMITER: &[u8] = b"\t";
     const EQ: &[u8] = b"=";
     const MISSING: &[u8] = b"*";
-
-    let qname = record.name().map(|s| s.as_ref()).unwrap_or(MISSING);
 
     let reference_sequence = record.reference_sequence(header).transpose()?;
 
@@ -52,7 +52,7 @@ where
         })
         .unwrap_or(MISSING);
 
-    writer.write_all(qname)?;
+    write_name(writer, record.name())?;
 
     writer.write_all(DELIMITER)?;
     num::write_u16(writer, u16::from(record.flags()))?;
