@@ -20,7 +20,7 @@ impl<'a> ReadName<'a> {
     }
 }
 
-impl<'a> sam::alignment::record::ReadName for ReadName<'a> {
+impl<'a> sam::alignment::record::Name for ReadName<'a> {
     fn as_bytes(&self) -> &[u8] {
         self.as_bytes()
     }

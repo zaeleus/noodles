@@ -4,9 +4,9 @@ mod cigar;
 pub mod data;
 mod flags;
 mod mapping_quality;
+mod name;
 mod position;
 mod quality_scores;
-mod read_name;
 mod reference_sequence_id;
 mod sequence;
 mod template_length;
@@ -16,8 +16,8 @@ use std::io;
 use noodles_core as core;
 
 pub use self::{
-    cigar::Cigar, data::Data, flags::Flags, mapping_quality::MappingQuality, position::Position,
-    quality_scores::QualityScores, read_name::ReadName, reference_sequence_id::ReferenceSequenceId,
+    cigar::Cigar, data::Data, flags::Flags, mapping_quality::MappingQuality, name::Name,
+    position::Position, quality_scores::QualityScores, reference_sequence_id::ReferenceSequenceId,
     sequence::Sequence, template_length::TemplateLength,
 };
 use crate::{
@@ -30,8 +30,8 @@ use crate::{
 
 /// An alignment record.
 pub trait Record {
-    /// Returns the read name.
-    fn read_name(&self) -> Option<Box<dyn ReadName + '_>>;
+    /// Returns the name.
+    fn name(&self) -> Option<Box<dyn Name + '_>>;
 
     /// Returns the flags.
     fn flags(&self) -> Box<dyn Flags + '_>;

@@ -51,13 +51,13 @@ impl ReadName {
     }
 }
 
-impl crate::alignment::record::ReadName for ReadName {
+impl crate::alignment::record::Name for ReadName {
     fn as_bytes(&self) -> &[u8] {
         self.as_ref()
     }
 }
 
-impl crate::alignment::record::ReadName for &ReadName {
+impl crate::alignment::record::Name for &ReadName {
     fn as_bytes(&self) -> &[u8] {
         self.as_ref()
     }

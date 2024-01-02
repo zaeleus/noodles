@@ -266,7 +266,7 @@ impl fmt::Debug for Record {
 }
 
 impl sam::alignment::Record for Record {
-    fn read_name(&self) -> Option<Box<dyn sam::alignment::record::ReadName + '_>> {
+    fn name(&self) -> Option<Box<dyn sam::alignment::record::Name + '_>> {
         let read_name = self.read_name()?;
         Some(Box::new(read_name))
     }

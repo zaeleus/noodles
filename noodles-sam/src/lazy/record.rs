@@ -301,7 +301,7 @@ impl fmt::Debug for Record {
 }
 
 impl crate::alignment::Record for Record {
-    fn read_name(&self) -> Option<Box<dyn crate::alignment::record::ReadName + '_>> {
+    fn name(&self) -> Option<Box<dyn crate::alignment::record::Name + '_>> {
         let read_name = self.read_name()?;
         Some(Box::new(read_name))
     }

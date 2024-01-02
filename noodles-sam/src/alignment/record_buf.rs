@@ -487,7 +487,7 @@ impl RecordBuf {
 }
 
 impl Record for RecordBuf {
-    fn read_name(&self) -> Option<Box<dyn super::record::ReadName + '_>> {
+    fn name(&self) -> Option<Box<dyn super::record::Name + '_>> {
         let read_name = self.read_name()?;
         Some(Box::new(read_name))
     }
