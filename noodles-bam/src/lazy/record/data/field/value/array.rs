@@ -1,10 +1,7 @@
 mod subtype;
 mod values;
 
-use std::{
-    io::{self, BufRead},
-    mem,
-};
+use std::{io, mem};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_sam::{
@@ -16,53 +13,42 @@ pub use self::values::Values;
 
 pub(super) fn decode_array<'a>(src: &mut &'a [u8]) -> io::Result<Array<'a>> {
     let subtype = decode_subtype(src)?;
-
-    let n = src.read_u32::<LittleEndian>().and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    let buf = decode_raw_array(src, subtype)?;
 
     match subtype {
-        Subtype::Int8 => {
-            let buf = &src[..n];
-            src.consume(n);
-            Ok(Array::Int8(Box::new(Values::new(buf))))
-        }
-        Subtype::UInt8 => {
-            let buf = &src[..n];
-            src.consume(n);
-            Ok(Array::UInt8(Box::new(Values::new(buf))))
-        }
-        Subtype::Int16 => {
-            let len = n * mem::size_of::<i16>();
-            let buf = &src[..len];
-            src.consume(len);
-            Ok(Array::Int16(Box::new(Values::new(buf))))
-        }
-        Subtype::UInt16 => {
-            let len = n * mem::size_of::<u16>();
-            let buf = &src[..len];
-            src.consume(len);
-            Ok(Array::UInt16(Box::new(Values::new(buf))))
-        }
-        Subtype::Int32 => {
-            let len = n * mem::size_of::<i32>();
-            let buf = &src[..len];
-            src.consume(len);
-            Ok(Array::Int32(Box::new(Values::new(buf))))
-        }
-        Subtype::UInt32 => {
-            let len = n * mem::size_of::<u32>();
-            let buf = &src[..len];
-            src.consume(len);
-            Ok(Array::UInt32(Box::new(Values::new(buf))))
-        }
-        Subtype::Float => {
-            let len = n * mem::size_of::<f32>();
-            let buf = &src[..len];
-            src.consume(len);
-            Ok(Array::Float(Box::new(Values::new(buf))))
-        }
+        Subtype::Int8 => Ok(Array::Int8(Box::new(Values::new(buf)))),
+        Subtype::UInt8 => Ok(Array::UInt8(Box::new(Values::new(buf)))),
+        Subtype::Int16 => Ok(Array::Int16(Box::new(Values::new(buf)))),
+        Subtype::UInt16 => Ok(Array::UInt16(Box::new(Values::new(buf)))),
+        Subtype::Int32 => Ok(Array::Int32(Box::new(Values::new(buf)))),
+        Subtype::UInt32 => Ok(Array::UInt32(Box::new(Values::new(buf)))),
+        Subtype::Float => Ok(Array::Float(Box::new(Values::new(buf)))),
     }
+}
+
+fn decode_length(src: &mut &[u8]) -> io::Result<usize> {
+    src.read_u32::<LittleEndian>()
+        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+}
+
+fn decode_raw_array<'a>(src: &mut &'a [u8], subtype: Subtype) -> io::Result<&'a [u8]> {
+    let n = decode_length(src)?;
+
+    let len = match subtype {
+        Subtype::Int8 => n,
+        Subtype::UInt8 => n,
+        Subtype::Int16 => n * mem::size_of::<i16>(),
+        Subtype::UInt16 => n * mem::size_of::<u16>(),
+        Subtype::Int32 => n * mem::size_of::<i32>(),
+        Subtype::UInt32 => n * mem::size_of::<u32>(),
+        Subtype::Float => n * mem::size_of::<f32>(),
+    };
+
+    let (buf, rest) = src.split_at(len);
+
+    *src = rest;
+
+    Ok(buf)
 }
 
 #[cfg(test)]
