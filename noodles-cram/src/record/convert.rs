@@ -36,8 +36,8 @@ impl Record {
             builder = builder.set_read_group_id(read_group_id);
         }
 
-        if let Some(read_name) = record.read_name() {
-            builder = builder.set_read_name(read_name.clone());
+        if let Some(name) = record.name() {
+            builder = builder.set_read_name(name.clone());
         }
 
         // next mate bit flags
@@ -120,7 +120,7 @@ impl Record {
         let mut builder = sam::alignment::RecordBuf::builder();
 
         if let Some(read_name) = self.read_name {
-            builder = builder.set_read_name(read_name);
+            builder = builder.set_name(read_name);
         }
 
         builder = builder.set_flags(self.bam_bit_flags);

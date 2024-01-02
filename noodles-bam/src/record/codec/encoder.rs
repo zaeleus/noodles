@@ -36,7 +36,7 @@ where
     // pos
     put_position(dst, record.alignment_start())?;
 
-    put_l_read_name(dst, record.read_name())?;
+    put_l_read_name(dst, record.name())?;
 
     // mapq
     put_mapping_quality(dst, record.mapping_quality());
@@ -63,7 +63,7 @@ where
     // tlen
     put_template_length(dst, record.template_length());
 
-    put_read_name(dst, record.read_name());
+    put_read_name(dst, record.name());
 
     if let Some(cigar) = &cigar {
         put_cigar(dst, cigar)?;
@@ -89,21 +89,21 @@ where
     Ok(())
 }
 
-fn put_l_read_name<B>(dst: &mut B, read_name: Option<&sam::record::ReadName>) -> io::Result<()>
+fn put_l_read_name<B>(dst: &mut B, name: Option<&sam::record::Name>) -> io::Result<()>
 where
     B: BufMut,
 {
     use std::mem;
 
-    let mut read_name_len = read_name
+    let mut name_len = name
         .map(|name| name.len())
-        .unwrap_or(sam::record::read_name::MISSING.len());
+        .unwrap_or(sam::record::name::MISSING.len());
 
     // + NUL terminator
-    read_name_len += mem::size_of::<u8>();
+    name_len += mem::size_of::<u8>();
 
     let l_read_name =
-        u8::try_from(read_name_len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        u8::try_from(name_len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     dst.put_u8(l_read_name);
 
@@ -261,7 +261,7 @@ mod tests {
             .build();
 
         let record = RecordBuf::builder()
-            .set_read_name("r0".parse()?)
+            .set_name("r0".parse()?)
             .set_flags(Flags::SEGMENTED | Flags::FIRST_SEGMENT)
             .set_reference_sequence_id(1)
             .set_alignment_start(Position::try_from(9)?)

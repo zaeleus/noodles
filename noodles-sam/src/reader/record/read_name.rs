@@ -1,6 +1,6 @@
 use std::{error, fmt};
 
-use crate::record::ReadName;
+use crate::record::Name;
 
 const MAX_LENGTH: usize = 254;
 
@@ -29,10 +29,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(super) fn parse_read_name(
-    src: &[u8],
-    read_name: &mut Option<ReadName>,
-) -> Result<(), ParseError> {
+pub(super) fn parse_read_name(src: &[u8], read_name: &mut Option<Name>) -> Result<(), ParseError> {
     if src.is_empty() {
         return Err(ParseError::Empty);
     } else if src.len() > MAX_LENGTH {
@@ -50,7 +47,7 @@ pub(super) fn parse_read_name(
         None => src.into(),
     };
 
-    *read_name = Some(ReadName(rname));
+    *read_name = Some(Name(rname));
 
     Ok(())
 }
@@ -69,10 +66,10 @@ mod tests {
 
     #[test]
     fn test_parse_name() -> Result<(), Box<dyn std::error::Error>> {
-        let mut read_name = Some(ReadName::try_new("ndls")?);
+        let mut read_name = Some(Name::try_new("ndls")?);
 
         parse_read_name(b"r0", &mut read_name)?;
-        assert_eq!(read_name, Some(ReadName::try_new("r0")?));
+        assert_eq!(read_name, Some(Name::try_new("r0")?));
 
         assert_eq!(parse_read_name(b"", &mut read_name), Err(ParseError::Empty));
         assert_eq!(

@@ -133,8 +133,7 @@ where
     *record.template_length_mut() =
         get_template_length(src).map_err(DecodeError::InvalidTemplateLength)?;
 
-    get_read_name(src, record.read_name_mut(), l_read_name)
-        .map_err(DecodeError::InvalidReadName)?;
+    get_read_name(src, record.name_mut(), l_read_name).map_err(DecodeError::InvalidReadName)?;
     get_cigar(src, record.cigar_mut(), n_cigar_op).map_err(DecodeError::InvalidCigar)?;
     get_sequence(src, record.sequence_mut(), l_seq).map_err(DecodeError::InvalidSequence)?;
     get_quality_scores(src, record.quality_scores_mut(), l_seq)

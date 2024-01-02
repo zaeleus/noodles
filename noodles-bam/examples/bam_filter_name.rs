@@ -25,33 +25,33 @@ use std::{
 };
 
 use noodles_bam as bam;
-use noodles_sam::record::ReadName;
+use noodles_sam::record::Name;
 
-fn read_read_names<P>(src: P) -> io::Result<HashSet<ReadName>>
+fn read_names<P>(src: P) -> io::Result<HashSet<Name>>
 where
     P: AsRef<Path>,
 {
     let reader = File::open(src).map(BufReader::new)?;
-    let mut read_names = HashSet::new();
+    let mut names = HashSet::new();
 
     for result in reader.lines() {
-        let read_name = result.and_then(|s| {
-            ReadName::try_from(s.into_bytes())
+        let name = result.and_then(|s| {
+            Name::try_from(s.into_bytes())
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })?;
 
-        read_names.insert(read_name);
+        names.insert(name);
     }
 
-    Ok(read_names)
+    Ok(names)
 }
 
 fn main() -> io::Result<()> {
     let mut args = env::args().skip(1);
-    let read_names_src = args.next().expect("missing read_names_src");
+    let names_src = args.next().expect("missing names_src");
     let src = args.next().expect("missing src");
 
-    let read_names = read_read_names(read_names_src)?;
+    let names = read_names(names_src)?;
 
     let mut reader = bam::reader::Builder.build_from_path(src)?;
     let header = reader.read_header()?;
@@ -64,8 +64,8 @@ fn main() -> io::Result<()> {
     for result in reader.records(&header) {
         let record = result?;
 
-        if let Some(read_name) = record.read_name() {
-            if read_names.contains(read_name) {
+        if let Some(name) = record.name() {
+            if names.contains(name) {
                 writer.write_record(&header, &record)?;
             }
         }

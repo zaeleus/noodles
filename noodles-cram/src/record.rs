@@ -35,7 +35,7 @@ pub struct Record {
     pub(crate) read_length: usize,
     pub(crate) alignment_start: Option<Position>,
     pub(crate) read_group_id: Option<usize>,
-    pub(crate) read_name: Option<sam::record::ReadName>,
+    pub(crate) read_name: Option<sam::record::Name>,
     pub(crate) next_mate_bit_flags: NextMateFlags,
     pub(crate) next_fragment_reference_sequence_id: Option<usize>,
     pub(crate) next_mate_alignment_start: Option<Position>,
@@ -130,7 +130,7 @@ impl Record {
     }
 
     /// Returns the read name.
-    pub fn read_name(&self) -> Option<&sam::record::ReadName> {
+    pub fn read_name(&self) -> Option<&sam::record::Name> {
         self.read_name.as_ref()
     }
 

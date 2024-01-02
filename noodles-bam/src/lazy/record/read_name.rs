@@ -32,7 +32,7 @@ impl<'a> AsRef<[u8]> for ReadName<'a> {
     }
 }
 
-impl<'a> TryFrom<ReadName<'a>> for sam::record::ReadName {
+impl<'a> TryFrom<ReadName<'a>> for sam::record::Name {
     type Error = io::Error;
 
     fn try_from(bam_read_name: ReadName<'a>) -> Result<Self, Self::Error> {

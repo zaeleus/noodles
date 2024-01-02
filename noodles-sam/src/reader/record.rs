@@ -126,9 +126,9 @@ pub(crate) fn parse_record(
     const MISSING: &[u8] = b"*";
 
     match next_field(&mut src) {
-        MISSING => *record.read_name_mut() = None,
+        MISSING => *record.name_mut() = None,
         field => {
-            parse_read_name(field, record.read_name_mut())
+            parse_read_name(field, record.name_mut())
                 .map(Some)
                 .map_err(ParseError::InvalidReadName)?;
         }

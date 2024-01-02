@@ -12,7 +12,7 @@ pub struct Builder {
     read_length: usize,
     alignment_start: Option<Position>,
     read_group_id: Option<usize>,
-    read_name: Option<sam::record::ReadName>,
+    read_name: Option<sam::record::Name>,
     next_mate_flags: NextMateFlags,
     next_fragment_reference_sequence_id: Option<usize>,
     next_mate_alignment_start: Option<Position>,
@@ -69,7 +69,7 @@ impl Builder {
     }
 
     /// Sets the read name.
-    pub fn set_read_name(mut self, read_name: sam::record::ReadName) -> Self {
+    pub fn set_read_name(mut self, read_name: sam::record::Name) -> Self {
         self.read_name = Some(read_name);
         self
     }

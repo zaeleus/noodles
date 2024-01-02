@@ -25,7 +25,7 @@ use crate::{
 /// An alignment record.
 #[derive(Clone, Debug, PartialEq)]
 pub struct RecordBuf {
-    read_name: Option<record::ReadName>,
+    name: Option<record::Name>,
     flags: record::Flags,
     reference_sequence_id: Option<usize>,
     alignment_start: Option<core::Position>,
@@ -59,10 +59,10 @@ impl RecordBuf {
     /// ```
     /// use noodles_sam as sam;
     /// let record = sam::alignment::RecordBuf::default();
-    /// assert!(record.read_name().is_none());
+    /// assert!(record.name().is_none());
     /// ```
-    pub fn read_name(&self) -> Option<&record::ReadName> {
-        self.read_name.as_ref()
+    pub fn name(&self) -> Option<&record::Name> {
+        self.name.as_ref()
     }
 
     /// Returns a mutable reference to the read name.
@@ -70,18 +70,18 @@ impl RecordBuf {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::ReadName};
+    /// use noodles_sam::{self as sam, record::Name};
     ///
-    /// let read_name: ReadName = "r1".parse()?;
+    /// let name: Name = "r1".parse()?;
     ///
     /// let mut record = sam::alignment::RecordBuf::default();
-    /// *record.read_name_mut() = Some(read_name.clone());
+    /// *record.name_mut() = Some(name.clone());
     ///
-    /// assert_eq!(record.read_name(), Some(&read_name));
-    /// Ok::<_, sam::record::read_name::ParseError>(())
+    /// assert_eq!(record.name(), Some(&name));
+    /// Ok::<_, sam::record::name::ParseError>(())
     /// ```
-    pub fn read_name_mut(&mut self) -> &mut Option<record::ReadName> {
-        &mut self.read_name
+    pub fn name_mut(&mut self) -> &mut Option<record::Name> {
+        &mut self.name
     }
 
     /// Returns the flags.
@@ -488,8 +488,8 @@ impl RecordBuf {
 
 impl Record for RecordBuf {
     fn name(&self) -> Option<Box<dyn super::record::Name + '_>> {
-        let read_name = self.read_name()?;
-        Some(Box::new(read_name))
+        let name = self.name()?;
+        Some(Box::new(name))
     }
 
     fn flags(&self) -> Box<dyn super::record::Flags + '_> {

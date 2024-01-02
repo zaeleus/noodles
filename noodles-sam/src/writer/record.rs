@@ -25,10 +25,7 @@ where
     const EQ: &[u8] = b"=";
     const MISSING: &[u8] = b"*";
 
-    let qname = record
-        .read_name()
-        .map(|name| name.as_ref())
-        .unwrap_or(MISSING);
+    let qname = record.name().map(|s| s.as_ref()).unwrap_or(MISSING);
 
     let reference_sequence = record.reference_sequence(header).transpose()?;
 

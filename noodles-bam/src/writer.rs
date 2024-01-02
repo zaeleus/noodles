@@ -226,7 +226,7 @@ mod tests {
         let mut record = RecordBuf::default();
         reader.read_record(&header, &mut record)?;
 
-        assert!(record.read_name().is_none());
+        assert!(record.name().is_none());
         assert_eq!(record.flags(), sam::record::Flags::UNMAPPED);
         assert!(record.reference_sequence_id().is_none());
         assert!(record.alignment_start().is_none());

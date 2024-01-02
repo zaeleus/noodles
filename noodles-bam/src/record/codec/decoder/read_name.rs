@@ -4,7 +4,7 @@ use std::{
 };
 
 use bytes::Buf;
-use noodles_sam::record::{read_name, ReadName};
+use noodles_sam::record::{name, Name};
 
 const NUL: u8 = 0x00;
 
@@ -18,7 +18,7 @@ pub enum DecodeError {
     /// The NUL terminator is missing.
     MissingNulTerminator { actual: u8 },
     /// An input is invalid.
-    Invalid(read_name::ParseError),
+    Invalid(name::ParseError),
 }
 
 impl error::Error for DecodeError {
@@ -58,7 +58,7 @@ where
 
 pub(super) fn get_read_name<B>(
     src: &mut B,
-    read_name: &mut Option<ReadName>,
+    read_name: &mut Option<Name>,
     l_read_name: NonZeroUsize,
 ) -> Result<(), DecodeError>
 where
@@ -88,7 +88,7 @@ where
             return Err(DecodeError::MissingNulTerminator { actual: terminator });
         }
 
-        ReadName::try_from(dst)
+        Name::try_from(dst)
             .map(Some)
             .map_err(DecodeError::Invalid)?
     };
@@ -119,7 +119,7 @@ mod tests {
 
     #[test]
     fn test_get_read_name() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(mut src: &[u8], expected: Option<ReadName>) -> Result<(), DecodeError> {
+        fn t(mut src: &[u8], expected: Option<Name>) -> Result<(), DecodeError> {
             let mut actual = None;
             let l_read_name = NonZeroUsize::try_from(src.len()).unwrap();
             get_read_name(&mut src, &mut actual, l_read_name)?;

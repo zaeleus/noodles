@@ -431,7 +431,7 @@ fn resolve_quality_scores(records: &mut [Record]) {
 
 #[cfg(test)]
 mod tests {
-    use sam::record::ReadName;
+    use sam::record::Name;
 
     use super::*;
     use crate::record::Flags;
@@ -466,7 +466,7 @@ mod tests {
 
         resolve_mates(&mut records)?;
 
-        let read_name_1 = ReadName::try_from(b"1".to_vec())?;
+        let read_name_1 = Name::try_from(b"1".to_vec())?;
 
         assert_eq!(records[0].read_name(), Some(&read_name_1));
         assert_eq!(
@@ -490,7 +490,7 @@ mod tests {
         );
         assert_eq!(records[1].template_size(), -12);
 
-        let read_name_3 = ReadName::try_from(b"3".to_vec())?;
+        let read_name_3 = Name::try_from(b"3".to_vec())?;
         assert_eq!(records[2].read_name(), Some(&read_name_3));
 
         assert_eq!(records[3].read_name(), Some(&read_name_1));

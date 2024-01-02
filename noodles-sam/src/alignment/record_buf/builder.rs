@@ -1,12 +1,12 @@
 use noodles_core::Position;
 
 use super::{QualityScores, RecordBuf, Sequence};
-use crate::record::{Cigar, Data, Flags, MappingQuality, ReadName};
+use crate::record::{Cigar, Data, Flags, MappingQuality, Name};
 
 /// An alignment record builder.
 #[derive(Debug)]
 pub struct Builder {
-    read_name: Option<ReadName>,
+    name: Option<Name>,
     flags: Flags,
     reference_sequence_id: Option<usize>,
     alignment_start: Option<Position>,
@@ -26,19 +26,19 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::ReadName};
+    /// use noodles_sam::{self as sam, record::Name};
     ///
-    /// let read_name: ReadName = "r1".parse()?;
+    /// let name: Name = "r1".parse()?;
     ///
     /// let record = sam::alignment::RecordBuf::builder()
-    ///     .set_read_name(read_name.clone())
+    ///     .set_name(name.clone())
     ///     .build();
     ///
-    /// assert_eq!(record.read_name(), Some(&read_name));
-    /// Ok::<_, sam::record::read_name::ParseError>(())
+    /// assert_eq!(record.name(), Some(&name));
+    /// Ok::<_, sam::record::name::ParseError>(())
     /// ```
-    pub fn set_read_name(mut self, read_name: ReadName) -> Self {
-        self.read_name = Some(read_name);
+    pub fn set_name(mut self, name: Name) -> Self {
+        self.name = Some(name);
         self
     }
 
@@ -263,7 +263,7 @@ impl Builder {
     /// ```
     pub fn build(self) -> RecordBuf {
         RecordBuf {
-            read_name: self.read_name,
+            name: self.name,
             flags: self.flags,
             reference_sequence_id: self.reference_sequence_id,
             alignment_start: self.alignment_start,
@@ -282,7 +282,7 @@ impl Builder {
 impl Default for Builder {
     fn default() -> Self {
         Self {
-            read_name: None,
+            name: None,
             flags: Flags::UNMAPPED,
             reference_sequence_id: None,
             alignment_start: None,
@@ -306,7 +306,7 @@ mod tests {
     fn test_default() {
         let builder = Builder::default();
 
-        assert!(builder.read_name.is_none());
+        assert!(builder.name.is_none());
         assert_eq!(builder.flags, Flags::UNMAPPED);
         assert!(builder.reference_sequence_id.is_none());
         assert!(builder.alignment_start.is_none());

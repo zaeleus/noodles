@@ -35,6 +35,10 @@
   * sam/lazy/record/data/field/value: Replace `Array` with
     `crate::alignment::record::data::field::value::Array`.
 
+  * sam/record: Rename `ReadName` to `Name`.
+
+    This also changes accessors from `read_name` to `name`.
+
 ## 0.49.0 - 2023-12-14
 
 ### Added

@@ -4,15 +4,14 @@ pub mod cigar;
 pub mod data;
 mod flags;
 pub mod mapping_quality;
+pub mod name;
 pub mod quality_scores;
-pub mod read_name;
 pub mod reference_sequence_name;
 pub mod sequence;
 pub mod template_length;
 
 pub use self::{
-    cigar::Cigar, data::Data, flags::Flags, mapping_quality::MappingQuality,
-    quality_scores::QualityScores, read_name::ReadName,
-    reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
-    template_length::TemplateLength,
+    cigar::Cigar, data::Data, flags::Flags, mapping_quality::MappingQuality, name::Name,
+    quality_scores::QualityScores, reference_sequence_name::ReferenceSequenceName,
+    sequence::Sequence, template_length::TemplateLength,
 };

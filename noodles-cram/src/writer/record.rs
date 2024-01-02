@@ -247,8 +247,8 @@ where
         )
     }
 
-    fn write_read_name(&mut self, read_name: Option<&sam::record::ReadName>) -> io::Result<()> {
-        use sam::record::read_name::MISSING;
+    fn write_read_name(&mut self, read_name: Option<&sam::record::Name>) -> io::Result<()> {
+        use sam::record::name::MISSING;
 
         let encoding = self
             .compression_header

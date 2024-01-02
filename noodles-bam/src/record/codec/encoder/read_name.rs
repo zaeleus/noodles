@@ -1,11 +1,11 @@
 use bytes::BufMut;
-use noodles_sam::{self as sam, record::ReadName};
+use noodles_sam::{self as sam, record::Name};
 
-pub fn put_read_name<B>(dst: &mut B, read_name: Option<&ReadName>)
+pub fn put_read_name<B>(dst: &mut B, read_name: Option<&Name>)
 where
     B: BufMut,
 {
-    use sam::record::read_name::MISSING;
+    use sam::record::name::MISSING;
 
     const NUL: u8 = 0x00;
 
@@ -23,8 +23,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_put_read_name() -> Result<(), sam::record::read_name::ParseError> {
-        fn t(buf: &mut Vec<u8>, read_name: Option<&ReadName>, expected: &[u8]) {
+    fn test_put_read_name() -> Result<(), sam::record::name::ParseError> {
+        fn t(buf: &mut Vec<u8>, read_name: Option<&Name>, expected: &[u8]) {
             buf.clear();
             put_read_name(buf, read_name);
             assert_eq!(buf, expected);

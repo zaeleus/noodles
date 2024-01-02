@@ -385,7 +385,7 @@ impl TryFrom<Record> for sam::alignment::RecordBuf {
         let mut builder = Self::builder();
 
         if let Some(read_name) = lazy_record.read_name() {
-            builder = builder.set_read_name(read_name.try_into()?);
+            builder = builder.set_name(read_name.try_into()?);
         }
 
         let flags = sam::record::Flags::from(lazy_record.flags());
