@@ -86,7 +86,7 @@ where
         let preservation_map = self.compression_header.preservation_map();
 
         if preservation_map.read_names_included() {
-            self.write_read_name(record.read_name())?;
+            self.write_read_name(record.name())?;
         }
 
         self.write_mate_data(record)?;
@@ -247,7 +247,7 @@ where
         )
     }
 
-    fn write_read_name(&mut self, read_name: Option<&sam::record::Name>) -> io::Result<()> {
+    fn write_read_name(&mut self, name: Option<&sam::record::Name>) -> io::Result<()> {
         use sam::record::name::MISSING;
 
         let encoding = self
@@ -261,9 +261,9 @@ where
                 )
             })?;
 
-        let read_name = read_name.map(|name| name.as_ref()).unwrap_or(MISSING);
+        let name = name.map(|name| name.as_ref()).unwrap_or(MISSING);
 
-        encoding.encode(self.core_data_writer, self.external_data_writers, read_name)
+        encoding.encode(self.core_data_writer, self.external_data_writers, name)
     }
 
     fn write_mate_data(&mut self, record: &Record) -> io::Result<()> {
@@ -273,7 +273,7 @@ where
             let preservation_map = self.compression_header.preservation_map();
 
             if !preservation_map.read_names_included() {
-                self.write_read_name(record.read_name())?;
+                self.write_read_name(record.name())?;
             }
 
             self.write_next_fragment_reference_sequence_id(

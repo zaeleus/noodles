@@ -247,9 +247,9 @@ fn set_mates(records: &mut [Record]) {
         let flags = record.flags();
 
         if flags.is_segmented() && !flags.is_secondary() {
-            let read_name = record.read_name().cloned();
+            let name = record.name().cloned();
 
-            if let Some(j) = indices.insert(read_name, i) {
+            if let Some(j) = indices.insert(name, i) {
                 let mid = i + 1;
                 let (left, right) = records.split_at_mut(mid);
 

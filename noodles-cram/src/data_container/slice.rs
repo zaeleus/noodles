@@ -147,10 +147,10 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
     for i in 0..records.len() {
         let record = &mut records[i];
 
-        if record.read_name().is_none() {
+        if record.name().is_none() {
             // SAFETY: `u64::to_string` is always a valid read name.
-            let read_name = record.id().to_string().parse().unwrap();
-            record.read_name = Some(read_name);
+            let name = record.id().to_string().parse().unwrap();
+            record.name = Some(name);
         }
 
         if mate_indices[i].is_none() {
@@ -167,8 +167,8 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
             let mate = &mut right[mate_index - mid];
             set_mate(record, mate);
 
-            if mate.read_name().is_none() {
-                mate.read_name = record.read_name().cloned();
+            if mate.name().is_none() {
+                mate.name = record.name().cloned();
             }
 
             j = mate_index;
@@ -466,9 +466,9 @@ mod tests {
 
         resolve_mates(&mut records)?;
 
-        let read_name_1 = Name::try_from(b"1".to_vec())?;
+        let name_1 = Name::try_from(b"1".to_vec())?;
 
-        assert_eq!(records[0].read_name(), Some(&read_name_1));
+        assert_eq!(records[0].name(), Some(&name_1));
         assert_eq!(
             records[0].next_fragment_reference_sequence_id(),
             records[1].reference_sequence_id()
@@ -479,7 +479,7 @@ mod tests {
         );
         assert_eq!(records[0].template_size(), 12);
 
-        assert_eq!(records[1].read_name(), Some(&read_name_1));
+        assert_eq!(records[1].name(), Some(&name_1));
         assert_eq!(
             records[1].next_fragment_reference_sequence_id(),
             records[3].reference_sequence_id()
@@ -490,10 +490,10 @@ mod tests {
         );
         assert_eq!(records[1].template_size(), -12);
 
-        let read_name_3 = Name::try_from(b"3".to_vec())?;
-        assert_eq!(records[2].read_name(), Some(&read_name_3));
+        let name_3 = Name::try_from(b"3".to_vec())?;
+        assert_eq!(records[2].name(), Some(&name_3));
 
-        assert_eq!(records[3].read_name(), Some(&read_name_1));
+        assert_eq!(records[3].name(), Some(&name_1));
         assert_eq!(
             records[3].next_fragment_reference_sequence_id(),
             records[0].reference_sequence_id()

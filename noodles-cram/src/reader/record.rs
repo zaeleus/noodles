@@ -226,7 +226,7 @@ where
 
         // Missing read names are generated when resolving mates.
         if preservation_map.read_names_included() {
-            record.read_name = self.read_read_name()?;
+            record.name = self.read_read_name()?;
         }
 
         Ok(())
@@ -278,7 +278,7 @@ where
             let preservation_map = self.compression_header.preservation_map();
 
             if !preservation_map.read_names_included() {
-                record.read_name = self.read_read_name()?;
+                record.name = self.read_read_name()?;
             }
 
             record.next_fragment_reference_sequence_id =

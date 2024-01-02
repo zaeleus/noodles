@@ -12,7 +12,7 @@ pub struct Builder {
     read_length: usize,
     alignment_start: Option<Position>,
     read_group_id: Option<usize>,
-    read_name: Option<sam::record::Name>,
+    name: Option<sam::record::Name>,
     next_mate_flags: NextMateFlags,
     next_fragment_reference_sequence_id: Option<usize>,
     next_mate_alignment_start: Option<Position>,
@@ -68,9 +68,9 @@ impl Builder {
         self
     }
 
-    /// Sets the read name.
-    pub fn set_read_name(mut self, read_name: sam::record::Name) -> Self {
-        self.read_name = Some(read_name);
+    /// Sets the name.
+    pub fn set_name(mut self, name: sam::record::Name) -> Self {
+        self.name = Some(name);
         self
     }
 
@@ -147,7 +147,7 @@ impl Builder {
             read_length: self.read_length,
             alignment_start: self.alignment_start,
             read_group_id: self.read_group_id,
-            read_name: self.read_name,
+            name: self.name,
             next_mate_bit_flags: self.next_mate_flags,
             next_fragment_reference_sequence_id: self.next_fragment_reference_sequence_id,
             next_mate_alignment_start: self.next_mate_alignment_start,
@@ -172,7 +172,7 @@ impl Default for Builder {
             read_length: 0,
             alignment_start: None,
             read_group_id: None,
-            read_name: None,
+            name: None,
             next_mate_flags: NextMateFlags::default(),
             next_fragment_reference_sequence_id: None,
             next_mate_alignment_start: None,
@@ -202,7 +202,7 @@ mod tests {
         assert_eq!(builder.read_length, 0);
         assert!(builder.alignment_start.is_none());
         assert!(builder.read_group_id.is_none());
-        assert!(builder.read_name.is_none());
+        assert!(builder.name.is_none());
         assert_eq!(builder.next_mate_flags, NextMateFlags::default());
         assert!(builder.next_fragment_reference_sequence_id.is_none());
         assert!(builder.next_mate_alignment_start.is_none());
