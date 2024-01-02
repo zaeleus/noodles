@@ -4,9 +4,9 @@ pub(crate) mod cigar;
 pub mod data;
 mod flags;
 mod mapping_quality;
+mod name;
 mod position;
 mod quality_scores;
-mod read_name;
 mod reference_sequence_id;
 pub(crate) mod sequence;
 mod template_length;
@@ -22,8 +22,8 @@ use bytes::Buf;
 use noodles_sam::{self as sam, alignment::RecordBuf};
 
 use self::{
-    flags::get_flags, mapping_quality::get_mapping_quality, position::get_position,
-    read_name::get_read_name, template_length::get_template_length,
+    flags::get_flags, mapping_quality::get_mapping_quality, name::get_name, position::get_position,
+    template_length::get_template_length,
 };
 
 /// An error when a raw BAM record fails to parse.
@@ -43,8 +43,8 @@ pub enum DecodeError {
     InvalidMatePosition(position::DecodeError),
     /// The template length is invalid.
     InvalidTemplateLength(template_length::DecodeError),
-    /// The read name is invalid.
-    InvalidReadName(read_name::DecodeError),
+    /// The name is invalid.
+    InvalidName(name::DecodeError),
     /// The CIGAR is invalid.
     InvalidCigar(cigar::DecodeError),
     /// The sequence is invalid.
@@ -65,7 +65,7 @@ impl error::Error for DecodeError {
             Self::InvalidMateReferenceSequenceId(e) => Some(e),
             Self::InvalidMatePosition(e) => Some(e),
             Self::InvalidTemplateLength(e) => Some(e),
-            Self::InvalidReadName(e) => Some(e),
+            Self::InvalidName(e) => Some(e),
             Self::InvalidCigar(e) => Some(e),
             Self::InvalidSequence(e) => Some(e),
             Self::InvalidQualityScores(e) => Some(e),
@@ -86,7 +86,7 @@ impl fmt::Display for DecodeError {
             }
             Self::InvalidMatePosition(_) => write!(f, "invalid mate position"),
             Self::InvalidTemplateLength(_) => write!(f, "invalid template length"),
-            Self::InvalidReadName(_) => write!(f, "invalid read name"),
+            Self::InvalidName(_) => write!(f, "invalid read name"),
             Self::InvalidCigar(_) => write!(f, "invalid CIGAR"),
             Self::InvalidSequence(_) => write!(f, "invalid sequence"),
             Self::InvalidQualityScores(_) => write!(f, "invalid quality scores"),
@@ -110,7 +110,7 @@ where
 
     *record.alignment_start_mut() = get_position(src).map_err(DecodeError::InvalidPosition)?;
 
-    let l_read_name = read_name::get_length(src).map_err(DecodeError::InvalidReadName)?;
+    let l_read_name = name::get_length(src).map_err(DecodeError::InvalidName)?;
 
     *record.mapping_quality_mut() =
         get_mapping_quality(src).map_err(DecodeError::InvalidMappingQuality)?;
@@ -133,7 +133,7 @@ where
     *record.template_length_mut() =
         get_template_length(src).map_err(DecodeError::InvalidTemplateLength)?;
 
-    get_read_name(src, record.name_mut(), l_read_name).map_err(DecodeError::InvalidReadName)?;
+    get_name(src, record.name_mut(), l_read_name).map_err(DecodeError::InvalidName)?;
     get_cigar(src, record.cigar_mut(), n_cigar_op).map_err(DecodeError::InvalidCigar)?;
     get_sequence(src, record.sequence_mut(), l_seq).map_err(DecodeError::InvalidSequence)?;
     get_quality_scores(src, record.quality_scores_mut(), l_seq)
@@ -163,7 +163,7 @@ mod tests {
 
         assert!(matches!(
             decode(&mut src, &header, &mut record),
-            Err(DecodeError::InvalidReadName(_))
+            Err(DecodeError::InvalidName(_))
         ));
     }
 }

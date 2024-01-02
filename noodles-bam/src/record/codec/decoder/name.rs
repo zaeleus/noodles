@@ -8,7 +8,7 @@ use noodles_sam::record::{name, Name};
 
 const NUL: u8 = 0x00;
 
-/// An error when a raw BAM record read name fails to parse.
+/// An error when a raw BAM record name fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DecodeError {
     /// Unexpected EOF.
@@ -56,9 +56,9 @@ where
     NonZeroUsize::try_from(usize::from(src.get_u8())).map_err(DecodeError::InvalidLength)
 }
 
-pub(super) fn get_read_name<B>(
+pub(super) fn get_name<B>(
     src: &mut B,
-    read_name: &mut Option<Name>,
+    name: &mut Option<Name>,
     l_read_name: NonZeroUsize,
 ) -> Result<(), DecodeError>
 where
@@ -72,11 +72,11 @@ where
         return Err(DecodeError::UnexpectedEof);
     }
 
-    *read_name = if src.take(len).chunk() == MISSING {
+    *name = if src.take(len).chunk() == MISSING {
         src.advance(MISSING.len());
         None
     } else {
-        let mut dst = read_name.take().map(Vec::from).unwrap_or_default();
+        let mut dst = name.take().map(Vec::from).unwrap_or_default();
 
         // SAFETY: len is guaranteed to be > 0.
         dst.resize(len - 1, 0);
@@ -118,11 +118,11 @@ mod tests {
     }
 
     #[test]
-    fn test_get_read_name() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_get_name() -> Result<(), Box<dyn std::error::Error>> {
         fn t(mut src: &[u8], expected: Option<Name>) -> Result<(), DecodeError> {
             let mut actual = None;
             let l_read_name = NonZeroUsize::try_from(src.len()).unwrap();
-            get_read_name(&mut src, &mut actual, l_read_name)?;
+            get_name(&mut src, &mut actual, l_read_name)?;
             assert_eq!(actual, expected);
             Ok(())
         }
@@ -135,7 +135,7 @@ mod tests {
         let mut src = &data[..];
         let l_read_name = NonZeroUsize::try_from(data.len()).unwrap();
         assert_eq!(
-            get_read_name(&mut src, &mut None, l_read_name),
+            get_name(&mut src, &mut None, l_read_name),
             Err(DecodeError::MissingNulTerminator { actual: b'*' })
         );
 
@@ -143,7 +143,7 @@ mod tests {
         let mut src = &data[..];
         let l_read_name = NonZeroUsize::try_from(data.len()).unwrap();
         assert!(matches!(
-            get_read_name(&mut src, &mut None, l_read_name),
+            get_name(&mut src, &mut None, l_read_name),
             Err(DecodeError::Invalid(_))
         ));
 
