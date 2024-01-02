@@ -3,15 +3,15 @@
 mod cigar;
 pub mod data;
 mod mapping_quality;
+mod name;
 mod position;
 mod quality_scores;
-mod read_name;
 mod reference_sequence_id;
 mod sequence;
 
 pub(crate) use self::{
-    cigar::put_cigar, data::put_data, mapping_quality::put_mapping_quality,
-    quality_scores::put_quality_scores, read_name::put_read_name, sequence::put_sequence,
+    cigar::put_cigar, data::put_data, mapping_quality::put_mapping_quality, name::put_name,
+    quality_scores::put_quality_scores, sequence::put_sequence,
 };
 
 use std::io;
@@ -63,7 +63,8 @@ where
     // tlen
     put_template_length(dst, record.template_length());
 
-    put_read_name(dst, record.name());
+    // read_name
+    put_name(dst, record.name());
 
     if let Some(cigar) = &cigar {
         put_cigar(dst, cigar)?;
