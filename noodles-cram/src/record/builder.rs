@@ -1,7 +1,7 @@
 use noodles_core::Position;
 use noodles_sam as sam;
 
-use super::{Feature, Features, Flags, NextMateFlags, QualityScores, Record, Sequence};
+use super::{Features, Flags, NextMateFlags, QualityScores, Record, Sequence};
 
 /// A CRAM record builder.
 pub struct Builder {
@@ -113,40 +113,15 @@ impl Builder {
         self
     }
 
-    /// Adds a tag to the tag dictionary.
-    #[deprecated(since = "0.47.0", note = "Use `Builder::set_tags` instead.")]
-    pub fn add_tag(
-        mut self,
-        tag: sam::record::data::field::Tag,
-        value: sam::record::data::field::Value,
-    ) -> Self {
-        self.tags.insert(tag, value);
-        self
-    }
-
     /// Sets the read bases.
     pub fn set_bases(mut self, bases: Sequence) -> Self {
         self.bases = bases;
         self
     }
 
-    /// Adds a base to the read bases.
-    #[deprecated(since = "0.47.0", note = "Use `Builder::set_bases` instead.")]
-    pub fn add_base(mut self, base: u8) -> Self {
-        self.bases.as_mut().push(base);
-        self
-    }
-
     /// Sets the read features.
     pub fn set_features(mut self, features: Features) -> Self {
         self.features = features;
-        self
-    }
-
-    /// Adds a read feature.
-    #[deprecated(since = "0.47.0", note = "Use `Builder::set_features` instead.")]
-    pub fn add_feature(mut self, feature: Feature) -> Self {
-        self.features.push(feature);
         self
     }
 
@@ -159,13 +134,6 @@ impl Builder {
     /// Sets the per-base quality scores.
     pub fn set_quality_scores(mut self, quality_scores: QualityScores) -> Self {
         self.quality_scores = quality_scores;
-        self
-    }
-
-    /// Adds a quality score.
-    #[deprecated(since = "0.47.0", note = "Use `Builder::set_quality_scores` instead.")]
-    pub fn add_quality_score(mut self, score: u8) -> Self {
-        self.quality_scores.as_mut().push(score);
         self
     }
 

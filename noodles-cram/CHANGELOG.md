@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+  * cram/record/builder: Remove deprecated methods.
+
+    These were deprecated in noodles-cram 0.47.0. Use the following instead:
+
+      * `Builder::add_tag` => `Builder::set_tags`,
+      * `Builder::add_base` => `Builder::set_bases`,
+      * `Builder::add_feature` => `Builder::set_features`, and
+      * `Builder::add_quality_scores` => `Builder::set_quality_scores`.
+
 ## 0.51.0 - 2023-12-14
 
 ### Added
