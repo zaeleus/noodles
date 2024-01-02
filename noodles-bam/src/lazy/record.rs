@@ -5,9 +5,9 @@ mod cigar;
 pub mod data;
 mod flags;
 mod mapping_quality;
+mod name;
 mod position;
 mod quality_scores;
-mod read_name;
 mod reference_sequence_id;
 mod sequence;
 mod template_length;
@@ -19,8 +19,8 @@ use noodles_sam as sam;
 
 use self::bounds::Bounds;
 pub use self::{
-    cigar::Cigar, data::Data, flags::Flags, mapping_quality::MappingQuality, position::Position,
-    quality_scores::QualityScores, read_name::ReadName, reference_sequence_id::ReferenceSequenceId,
+    cigar::Cigar, data::Data, flags::Flags, mapping_quality::MappingQuality, name::Name,
+    position::Position, quality_scores::QualityScores, reference_sequence_id::ReferenceSequenceId,
     sequence::Sequence, template_length::TemplateLength,
 };
 
@@ -151,14 +151,14 @@ impl Record {
     /// ```
     /// use noodles_bam as bam;
     /// let record = bam::lazy::Record::default();
-    /// assert!(record.read_name().is_none());
+    /// assert!(record.name().is_none());
     /// ```
-    pub fn read_name(&self) -> Option<ReadName> {
+    pub fn name(&self) -> Option<Name> {
         const MISSING: &[u8] = &[b'*', 0x00];
 
-        match &self.buf[self.bounds.read_name_range()] {
+        match &self.buf[self.bounds.name_range()] {
             MISSING => None,
-            buf => Some(ReadName::new(buf)),
+            buf => Some(Name::new(buf)),
         }
     }
 
@@ -256,7 +256,7 @@ impl fmt::Debug for Record {
             )
             .field("mate_alignment_start", &self.mate_alignment_start())
             .field("template_length", &self.template_length())
-            .field("read_name", &self.read_name())
+            .field("name", &self.name())
             .field("cigar", &self.cigar())
             .field("sequence", &self.sequence())
             .field("quality_scores", &self.quality_scores())
@@ -267,8 +267,8 @@ impl fmt::Debug for Record {
 
 impl sam::alignment::Record for Record {
     fn name(&self) -> Option<Box<dyn sam::alignment::record::Name + '_>> {
-        let read_name = self.read_name()?;
-        Some(Box::new(read_name))
+        let name = self.name()?;
+        Some(Box::new(name))
     }
 
     fn flags(&self) -> Box<dyn sam::alignment::record::Flags + '_> {
@@ -338,7 +338,7 @@ impl TryFrom<Vec<u8>> for Record {
 
     fn try_from(buf: Vec<u8>) -> Result<Self, Self::Error> {
         let mut bounds = Bounds {
-            read_name_end: 0,
+            name_end: 0,
             cigar_end: 0,
             sequence_end: 0,
             quality_scores_end: 0,
@@ -368,7 +368,7 @@ impl Default for Record {
         ];
 
         let bounds = Bounds {
-            read_name_end: buf.len(),
+            name_end: buf.len(),
             cigar_end: buf.len(),
             sequence_end: buf.len(),
             quality_scores_end: buf.len(),
@@ -384,8 +384,8 @@ impl TryFrom<Record> for sam::alignment::RecordBuf {
     fn try_from(lazy_record: Record) -> Result<Self, Self::Error> {
         let mut builder = Self::builder();
 
-        if let Some(read_name) = lazy_record.read_name() {
-            builder = builder.set_name(read_name.try_into()?);
+        if let Some(name) = lazy_record.name() {
+            builder = builder.set_name(name.try_into()?);
         }
 
         let flags = sam::record::Flags::from(lazy_record.flags());
@@ -439,14 +439,14 @@ fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
-    let read_name_len = usize::from(buf[bounds::READ_NAME_LENGTH_INDEX]);
-    bounds.read_name_end = bounds::TEMPLATE_LENGTH_RANGE.end + read_name_len;
+    let read_name_len = usize::from(buf[bounds::NAME_LENGTH_INDEX]);
+    bounds.name_end = bounds::TEMPLATE_LENGTH_RANGE.end + read_name_len;
 
     let src = &buf[bounds::CIGAR_OP_COUNT_RANGE];
     // SAFETY: `src` is 2 bytes.
     let cigar_op_count = usize::from(u16::from_le_bytes(src.try_into().unwrap()));
     let cigar_len = mem::size_of::<u32>() * cigar_op_count;
-    bounds.cigar_end = bounds.read_name_end + cigar_len;
+    bounds.cigar_end = bounds.name_end + cigar_len;
 
     let src = &buf[bounds::READ_LENGTH_RANGE];
     // SAFETY: `src` is 4 bytes.
@@ -495,7 +495,7 @@ mod tests {
 
         record.index()?;
 
-        assert_eq!(record.bounds.read_name_range(), 32..34);
+        assert_eq!(record.bounds.name_range(), 32..34);
         assert_eq!(record.bounds.cigar_range(), 34..38);
         assert_eq!(record.bounds.sequence_range(), 38..40);
         assert_eq!(record.bounds.quality_scores_range(), 40..44);
@@ -510,7 +510,7 @@ mod tests {
 
         assert_eq!(record.buf, DATA);
 
-        assert_eq!(record.bounds.read_name_range(), 32..34);
+        assert_eq!(record.bounds.name_range(), 32..34);
         assert_eq!(record.bounds.cigar_range(), 34..38);
         assert_eq!(record.bounds.sequence_range(), 38..40);
         assert_eq!(record.bounds.quality_scores_range(), 40..44);

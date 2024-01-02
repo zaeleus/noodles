@@ -15,6 +15,10 @@
 
 ### Changed
 
+  * bam/lazy/record: Rename `ReadName` to `Name`.
+
+    This also changes `Record::read_name` to `Record::name`.
+
   * bam/lazy/record/data/field: Replace `Value` with
     `sam::alignment::record::data::field::Value`.
 
