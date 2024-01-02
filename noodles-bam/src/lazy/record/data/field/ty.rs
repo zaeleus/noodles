@@ -2,7 +2,7 @@ use std::io::{self, Read};
 
 use noodles_sam::record::data::field::Type;
 
-pub(super) fn decode_type(src: &mut &[u8]) -> io::Result<Type> {
+pub(crate) fn decode_type(src: &mut &[u8]) -> io::Result<Type> {
     let mut buf = [0; 1];
     src.read_exact(&mut buf)?;
 

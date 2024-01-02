@@ -9,7 +9,7 @@ use std::io;
 use noodles_sam::alignment::record::data::field::Value;
 
 pub use self::tag::Tag;
-use self::{tag::decode_tag, ty::decode_type, value::decode_value};
+pub(crate) use self::{tag::decode_tag, ty::decode_type, value::decode_value};
 
 pub(super) fn decode_field<'a>(src: &mut &'a [u8]) -> io::Result<(Tag, Value<'a>)> {
     let tag = decode_tag(src)?;

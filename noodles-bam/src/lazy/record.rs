@@ -293,7 +293,43 @@ impl sam::alignment::Record for Record {
         Some(Box::new(mapping_quality))
     }
 
-    fn cigar(&self, _: &sam::Header) -> Box<dyn sam::alignment::record::Cigar + '_> {
+    fn cigar(&self, header: &sam::Header) -> Box<dyn sam::alignment::record::Cigar + '_> {
+        use bytes::Buf;
+
+        use self::data::get_raw_cigar;
+
+        const SKIP: u8 = 3;
+        const SOFT_CLIP: u8 = 4;
+
+        fn decode_op(n: u32) -> (u8, usize) {
+            ((n & 0x0f) as u8, usize::try_from(n >> 4).unwrap())
+        }
+
+        let mut src = &self.buf[self.bounds.cigar_range()];
+
+        if src.len() == 2 * mem::size_of::<u32>() {
+            let k = self.sequence().len();
+
+            let Some(Ok(m)) = self
+                .reference_sequence(header)
+                .map(|result| result.map(|(_, rs)| rs.length().get()))
+            else {
+                return Box::new(self.cigar());
+            };
+
+            // SAFETY: `src` is 8 bytes.
+            let op_1 = decode_op(src.get_u32_le());
+            let op_2 = decode_op(src.get_u32_le());
+
+            if op_1 == (SOFT_CLIP, k) && op_2 == (SKIP, m) {
+                let mut data_src = &self.buf[self.bounds.data_range()];
+
+                if let Ok(Some(buf)) = get_raw_cigar(&mut data_src) {
+                    return Box::new(Cigar::new(buf));
+                }
+            }
+        }
+
         Box::new(self.cigar())
     }
 
@@ -527,6 +563,67 @@ mod tests {
         let expected = sam::alignment::RecordBuf::default();
 
         assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_cigar_with_oversized_cigar() -> Result<(), Box<dyn std::error::Error>> {
+        use std::num::NonZeroUsize;
+
+        use noodles_core::Position;
+        use noodles_sam::{
+            alignment::{record_buf::Sequence, RecordBuf},
+            header::record::value::{map::ReferenceSequence, Map},
+            record::{
+                cigar::{op::Kind, Op},
+                data::field::{tag, Value},
+                Cigar, Flags,
+            },
+        };
+
+        use crate::record::codec::encode;
+
+        const BASE_COUNT: usize = 65536;
+
+        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(131072) {
+            Some(n) => n,
+            None => unreachable!(),
+        };
+
+        let mut buf = Vec::new();
+
+        let header = sam::Header::builder()
+            .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(SQ0_LN))
+            .build();
+
+        let cigar = Cigar::try_from(vec![Op::new(Kind::Match, 1); BASE_COUNT])?;
+        let sequence = Sequence::from(vec![b'A'; BASE_COUNT]);
+
+        let record = RecordBuf::builder()
+            .set_flags(Flags::empty())
+            .set_reference_sequence_id(0)
+            .set_alignment_start(Position::MIN)
+            .set_cigar(cigar)
+            .set_sequence(sequence)
+            .set_data(
+                [(tag::ALIGNMENT_HIT_COUNT, Value::from(1))]
+                    .into_iter()
+                    .collect(),
+            )
+            .build();
+
+        encode(&mut buf, &header, &record)?;
+
+        let mut record = Record {
+            buf,
+            ..Default::default()
+        };
+
+        record.index()?;
+
+        let cigar = sam::alignment::Record::cigar(&record, &header);
+        assert_eq!(cigar.len(), BASE_COUNT);
 
         Ok(())
     }

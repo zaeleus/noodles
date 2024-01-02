@@ -2,6 +2,7 @@ use std::{io, marker::PhantomData, mem};
 
 use noodles_sam as sam;
 
+/// BAM record data field array values.
 #[derive(Debug, PartialEq)]
 pub struct Values<'a, N> {
     src: &'a [u8],

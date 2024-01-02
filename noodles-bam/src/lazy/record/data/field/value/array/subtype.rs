@@ -2,7 +2,7 @@ use std::io;
 
 use noodles_sam::record::data::field::value::array::Subtype;
 
-pub(super) fn decode_subtype(src: &mut &[u8]) -> io::Result<Subtype> {
+pub(crate) fn decode_subtype(src: &mut &[u8]) -> io::Result<Subtype> {
     let Some((n, rest)) = src.split_first() else {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     };

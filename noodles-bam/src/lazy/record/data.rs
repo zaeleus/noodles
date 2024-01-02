@@ -89,6 +89,39 @@ impl<'a> TryFrom<Data<'a>> for sam::record::Data {
     }
 }
 
+pub(super) fn get_raw_cigar<'a>(src: &mut &'a [u8]) -> io::Result<Option<&'a [u8]>> {
+    use noodles_sam::record::data::field::Type;
+
+    use self::field::{
+        decode_tag, decode_type, decode_value,
+        value::array::{decode_raw_array, decode_subtype},
+    };
+
+    const CG: Tag = [b'C', b'G'];
+
+    fn get_array_field<'a>(src: &mut &'a [u8]) -> io::Result<Option<(Tag, &'a [u8])>> {
+        let tag = decode_tag(src)?;
+        let ty = decode_type(src)?;
+
+        if ty == Type::Array {
+            let subtype = decode_subtype(src)?;
+            let buf = decode_raw_array(src, subtype)?;
+            Ok(Some((tag, buf)))
+        } else {
+            decode_value(src, ty)?;
+            Ok(None)
+        }
+    }
+
+    while !src.is_empty() {
+        if let Some((CG, buf)) = get_array_field(src)? {
+            return Ok(Some(buf));
+        }
+    }
+
+    Ok(None)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

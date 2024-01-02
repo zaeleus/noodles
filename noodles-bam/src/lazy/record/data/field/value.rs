@@ -1,6 +1,6 @@
 //! Raw BAM record data field value.
 
-mod array;
+pub mod array;
 
 use std::io::{self, BufRead};
 
@@ -9,7 +9,7 @@ use noodles_sam::{alignment::record::data::field::Value, record::data::field::Ty
 
 use self::array::decode_array;
 
-pub(super) fn decode_value<'a>(src: &mut &'a [u8], ty: Type) -> io::Result<Value<'a>> {
+pub(crate) fn decode_value<'a>(src: &mut &'a [u8], ty: Type) -> io::Result<Value<'a>> {
     match ty {
         Type::Character => decode_character(src),
         Type::Int8 => decode_i8(src),

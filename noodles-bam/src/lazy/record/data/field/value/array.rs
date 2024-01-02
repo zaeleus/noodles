@@ -1,3 +1,5 @@
+//! Raw BAM record data field array value.
+
 mod subtype;
 mod values;
 
@@ -8,7 +10,7 @@ use noodles_sam::{
     alignment::record::data::field::value::Array, record::data::field::value::array::Subtype,
 };
 
-use self::subtype::decode_subtype;
+pub(crate) use self::subtype::decode_subtype;
 pub use self::values::Values;
 
 pub(super) fn decode_array<'a>(src: &mut &'a [u8]) -> io::Result<Array<'a>> {
@@ -31,7 +33,7 @@ fn decode_length(src: &mut &[u8]) -> io::Result<usize> {
         .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
 }
 
-fn decode_raw_array<'a>(src: &mut &'a [u8], subtype: Subtype) -> io::Result<&'a [u8]> {
+pub(crate) fn decode_raw_array<'a>(src: &mut &'a [u8], subtype: Subtype) -> io::Result<&'a [u8]> {
     let n = decode_length(src)?;
 
     let len = match subtype {
