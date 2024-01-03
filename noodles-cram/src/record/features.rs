@@ -204,14 +204,7 @@ fn cigar_to_features(
             Kind::Pad => features.push(Feature::Padding(read_position, op.len())),
         };
 
-        if matches!(
-            op.kind(),
-            Kind::Match
-                | Kind::Insertion
-                | Kind::SoftClip
-                | Kind::SequenceMatch
-                | Kind::SequenceMismatch
-        ) {
+        if op.kind().consumes_read() {
             read_position = read_position
                 .checked_add(op.len())
                 .expect("attempt to add with overflow");
