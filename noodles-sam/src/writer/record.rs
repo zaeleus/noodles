@@ -13,7 +13,10 @@ pub use self::{
 use std::io::{self, Write};
 
 use self::name::write_name;
-use crate::{alignment::RecordBuf, Header};
+use crate::{
+    alignment::{Record, RecordBuf},
+    Header,
+};
 
 const MISSING: u8 = b'*';
 
@@ -61,7 +64,7 @@ where
     writer.write_all(rname)?;
 
     writer.write_all(DELIMITER)?;
-    write_position(writer, record.alignment_start())?;
+    write_position(writer, Record::alignment_start(record).as_deref())?;
 
     writer.write_all(DELIMITER)?;
     num::write_u8(writer, mapq)?;
@@ -73,7 +76,7 @@ where
     writer.write_all(rnext)?;
 
     writer.write_all(DELIMITER)?;
-    write_position(writer, record.mate_alignment_start())?;
+    write_position(writer, Record::mate_alignment_start(record).as_deref())?;
 
     writer.write_all(DELIMITER)?;
     num::write_i32(writer, record.template_length())?;
