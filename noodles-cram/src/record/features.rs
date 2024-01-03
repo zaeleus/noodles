@@ -1,6 +1,7 @@
+mod cigar;
 mod with_positions;
 
-pub use self::with_positions::WithPositions;
+pub use self::{cigar::Cigar, with_positions::WithPositions};
 
 use std::{
     ops::{Deref, DerefMut},
@@ -88,6 +89,11 @@ impl Features {
             .into_iter()
             .map(|(kind, len)| Op::new(kind, len))
             .collect())
+    }
+
+    /// Returns an iterator over features as CIGAR operations.
+    pub fn cigar(&self, read_length: usize) -> Cigar<'_> {
+        Cigar::new(&self.0, read_length)
     }
 
     pub(crate) fn with_positions(

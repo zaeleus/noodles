@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+  * cram/record/features: Add features to CIGAR operations iterator
+    (`Features::cigar`).
+
 ### Removed
 
   * cram/record/builder: Remove deprecated methods.
