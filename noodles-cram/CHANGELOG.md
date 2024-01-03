@@ -4,6 +4,8 @@
 
 ### Added
 
+  * cram/record: Implement `sam::alignment::Record`.
+
   * cram/record/features: Add features to CIGAR operations iterator
     (`Features::cigar`).
 

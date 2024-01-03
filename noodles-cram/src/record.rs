@@ -235,6 +235,132 @@ impl Default for Record {
     }
 }
 
+struct Cigar<'a> {
+    features: &'a Features,
+    is_unmapped: bool,
+    read_length: usize,
+}
+
+impl<'a> Cigar<'a> {
+    fn new(features: &'a Features, is_unmapped: bool, read_length: usize) -> Self {
+        Self {
+            features,
+            is_unmapped,
+            read_length,
+        }
+    }
+}
+
+impl<'a> sam::alignment::record::Cigar for Cigar<'a> {
+    fn is_empty(&self) -> bool {
+        self.is_unmapped
+    }
+
+    fn len(&self) -> usize {
+        if self.is_unmapped {
+            0
+        } else {
+            self.features.cigar(self.read_length).count()
+        }
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(u8, usize)>> + '_> {
+        use std::iter;
+
+        use sam::record::cigar::op::Kind;
+
+        fn kind_to_u8(kind: Kind) -> u8 {
+            match kind {
+                Kind::Match => b'M',
+                Kind::Insertion => b'I',
+                Kind::Deletion => b'D',
+                Kind::Skip => b'N',
+                Kind::SoftClip => b'S',
+                Kind::HardClip => b'H',
+                Kind::Pad => b'P',
+                Kind::SequenceMatch => b'=',
+                Kind::SequenceMismatch => b'X',
+            }
+        }
+
+        if self.is_unmapped {
+            Box::new(iter::empty())
+        } else {
+            Box::new(
+                self.features
+                    .cigar(self.read_length)
+                    .map(|(kind, len)| Ok((kind_to_u8(kind), len))),
+            )
+        }
+    }
+}
+
+impl sam::alignment::Record for Record {
+    fn name(&self) -> Option<Box<dyn sam::alignment::record::Name + '_>> {
+        let name = self.name()?;
+        Some(Box::new(name))
+    }
+
+    fn flags(&self) -> Box<dyn sam::alignment::record::Flags + '_> {
+        Box::new(self.flags())
+    }
+
+    fn reference_sequence_id<'r, 'h: 'r>(
+        &'r self,
+        _: &'h sam::Header,
+    ) -> Option<Box<dyn sam::alignment::record::ReferenceSequenceId + 'r>> {
+        let reference_sequence_id = self.reference_sequence_id()?;
+        Some(Box::new(reference_sequence_id))
+    }
+
+    fn alignment_start(&self) -> Option<Box<dyn sam::alignment::record::Position + '_>> {
+        let alignment_start = self.alignment_start()?;
+        Some(Box::new(alignment_start))
+    }
+
+    fn mapping_quality(&self) -> Option<Box<dyn sam::alignment::record::MappingQuality + '_>> {
+        let mapping_quality = self.mapping_quality()?;
+        Some(Box::new(mapping_quality))
+    }
+
+    fn cigar(&self, _: &sam::Header) -> Box<dyn sam::alignment::record::Cigar + '_> {
+        Box::new(Cigar::new(
+            &self.features,
+            self.flags().is_unmapped(),
+            self.read_length(),
+        ))
+    }
+
+    fn mate_reference_sequence_id<'r, 'h: 'r>(
+        &'r self,
+        _: &'h sam::Header,
+    ) -> Option<Box<dyn sam::alignment::record::ReferenceSequenceId + 'r>> {
+        let mate_reference_sequence_id = self.next_fragment_reference_sequence_id()?;
+        Some(Box::new(mate_reference_sequence_id))
+    }
+
+    fn mate_alignment_start(&self) -> Option<Box<dyn sam::alignment::record::Position + '_>> {
+        let mate_alignment_start = self.next_mate_alignment_start()?;
+        Some(Box::new(mate_alignment_start))
+    }
+
+    fn template_length(&self) -> Box<dyn sam::alignment::record::TemplateLength + '_> {
+        Box::new(self.template_length())
+    }
+
+    fn sequence(&self) -> Box<dyn sam::alignment::record::Sequence + '_> {
+        Box::new(self.sequence())
+    }
+
+    fn quality_scores(&self) -> Box<dyn sam::alignment::record::QualityScores + '_> {
+        Box::new(self.quality_scores())
+    }
+
+    fn data(&self) -> Box<dyn sam::alignment::record::Data + '_> {
+        Box::new(self.data())
+    }
+}
+
 pub(crate) fn calculate_alignment_span(read_length: usize, features: &Features) -> usize {
     features
         .iter()
