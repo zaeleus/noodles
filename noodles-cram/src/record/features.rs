@@ -147,21 +147,11 @@ fn cigar_to_features(
                         .checked_add(op.len())
                         .expect("attempt to add with overflow");
 
-                    let bases = sequence[read_position..end]
-                        .iter()
-                        .copied()
-                        .map(u8::from)
-                        .collect();
-
+                    let bases = sequence[read_position..end].to_vec();
                     features.push(Feature::Bases(read_position, bases));
 
                     if !flags.are_quality_scores_stored_as_array() {
-                        let scores = quality_scores[read_position..end]
-                            .iter()
-                            .copied()
-                            .map(u8::from)
-                            .collect();
-
+                        let scores = quality_scores[read_position..end].to_vec();
                         features.push(Feature::Scores(read_position, scores));
                     }
                 }
@@ -180,21 +170,11 @@ fn cigar_to_features(
                         .checked_add(op.len())
                         .expect("attempt to add with overflow");
 
-                    let bases = sequence[read_position..end]
-                        .iter()
-                        .copied()
-                        .map(u8::from)
-                        .collect();
-
+                    let bases = sequence[read_position..end].to_vec();
                     features.push(Feature::Insertion(read_position, bases));
 
                     if !flags.are_quality_scores_stored_as_array() {
-                        let scores = quality_scores[read_position..end]
-                            .iter()
-                            .copied()
-                            .map(u8::from)
-                            .collect();
-
+                        let scores = quality_scores[read_position..end].to_vec();
                         features.push(Feature::Scores(read_position, scores));
                     }
                 }
@@ -208,22 +188,14 @@ fn cigar_to_features(
 
                 let bases = &sequence[read_position..end];
 
-                features.push(Feature::SoftClip(
-                    read_position,
-                    bases.iter().copied().map(u8::from).collect(),
-                ));
+                features.push(Feature::SoftClip(read_position, bases.to_vec()));
 
                 if !flags.are_quality_scores_stored_as_array() {
                     if bases.len() == 1 {
                         let score = quality_scores[read_position];
                         features.push(Feature::QualityScore(read_position, score));
                     } else {
-                        let scores = quality_scores[read_position..end]
-                            .iter()
-                            .copied()
-                            .map(u8::from)
-                            .collect();
-
+                        let scores = quality_scores[read_position..end].to_vec();
                         features.push(Feature::Scores(read_position, scores));
                     }
                 }
