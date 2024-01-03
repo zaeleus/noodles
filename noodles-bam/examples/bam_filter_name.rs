@@ -25,7 +25,7 @@ use std::{
 };
 
 use noodles_bam as bam;
-use noodles_sam::record::Name;
+use noodles_sam::alignment::record_buf::Name;
 
 fn read_names<P>(src: P) -> io::Result<HashSet<Name>>
 where
@@ -35,11 +35,7 @@ where
     let mut names = HashSet::new();
 
     for result in reader.lines() {
-        let name = result.and_then(|s| {
-            Name::try_from(s.into_bytes())
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })?;
-
+        let name = result.map(|s| Name::from(s.into_bytes()))?;
         names.insert(name);
     }
 

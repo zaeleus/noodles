@@ -18,7 +18,7 @@ use std::io;
 use noodles_core::Position;
 use noodles_sam::{
     self as sam,
-    alignment::record_buf::{QualityScores, Sequence},
+    alignment::record_buf::{Name, QualityScores, Sequence},
     header::record::value::{
         map::{self, ReferenceSequence},
         Map,
@@ -35,7 +35,7 @@ pub struct Record {
     pub(crate) read_length: usize,
     pub(crate) alignment_start: Option<Position>,
     pub(crate) read_group_id: Option<usize>,
-    pub(crate) name: Option<sam::record::Name>,
+    pub(crate) name: Option<Name>,
     pub(crate) next_mate_bit_flags: NextMateFlags,
     pub(crate) next_fragment_reference_sequence_id: Option<usize>,
     pub(crate) next_mate_alignment_start: Option<Position>,
@@ -130,7 +130,7 @@ impl Record {
     }
 
     /// Returns the name.
-    pub fn name(&self) -> Option<&sam::record::Name> {
+    pub fn name(&self) -> Option<&Name> {
         self.name.as_ref()
     }
 

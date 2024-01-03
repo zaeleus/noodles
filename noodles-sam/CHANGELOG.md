@@ -23,6 +23,8 @@
 
   * sam/alignment: Rename `Record` to `RecordBuf`.
 
+  * sam/alignment/record_buf: Change name to raw buffer (`record_buf::Name`).
+
   * sam/alignment/record_buf: Change sequence to raw bases
     (`record_buf::Sequence`).
 

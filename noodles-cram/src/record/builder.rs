@@ -1,7 +1,7 @@
 use noodles_core::Position;
 use noodles_sam as sam;
 
-use super::{Features, Flags, NextMateFlags, QualityScores, Record, Sequence};
+use super::{Features, Flags, Name, NextMateFlags, QualityScores, Record, Sequence};
 
 /// A CRAM record builder.
 pub struct Builder {
@@ -12,7 +12,7 @@ pub struct Builder {
     read_length: usize,
     alignment_start: Option<Position>,
     read_group_id: Option<usize>,
-    name: Option<sam::record::Name>,
+    name: Option<Name>,
     next_mate_flags: NextMateFlags,
     next_fragment_reference_sequence_id: Option<usize>,
     next_mate_alignment_start: Option<Position>,
@@ -69,7 +69,7 @@ impl Builder {
     }
 
     /// Sets the name.
-    pub fn set_name(mut self, name: sam::record::Name) -> Self {
+    pub fn set_name(mut self, name: Name) -> Self {
         self.name = Some(name);
         self
     }

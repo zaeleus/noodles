@@ -7,7 +7,7 @@ use std::io;
 
 use noodles_core::Position;
 use noodles_fasta as fasta;
-use noodles_sam as sam;
+use noodles_sam::{self as sam, alignment::record_buf::Name};
 
 use super::{CompressionHeader, ReferenceSequenceContext};
 use crate::{
@@ -149,7 +149,7 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
 
         if record.name().is_none() {
             // SAFETY: `u64::to_string` is always a valid read name.
-            let name = record.id().to_string().parse().unwrap();
+            let name = Name::from(record.id().to_string().into_bytes());
             record.name = Some(name);
         }
 
@@ -431,8 +431,6 @@ fn resolve_quality_scores(records: &mut [Record]) {
 
 #[cfg(test)]
 mod tests {
-    use sam::record::Name;
-
     use super::*;
     use crate::record::Flags;
 
@@ -466,7 +464,7 @@ mod tests {
 
         resolve_mates(&mut records)?;
 
-        let name_1 = Name::try_from(b"1".to_vec())?;
+        let name_1 = Name::from(b"1");
 
         assert_eq!(records[0].name(), Some(&name_1));
         assert_eq!(
@@ -490,7 +488,7 @@ mod tests {
         );
         assert_eq!(records[1].template_size(), -12);
 
-        let name_3 = Name::try_from(b"3".to_vec())?;
+        let name_3 = Name::from(b"3");
         assert_eq!(records[2].name(), Some(&name_3));
 
         assert_eq!(records[3].name(), Some(&name_1));

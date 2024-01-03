@@ -1,18 +1,12 @@
 use std::{error, fmt};
 
-use crate::record::Name;
-
-const MAX_LENGTH: usize = 254;
+use crate::alignment::record_buf::Name;
 
 /// An error when a raw SAM record name fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The input is empty.
     Empty,
-    /// The input is too long.
-    ExceedsMaxLength(usize),
-    /// The input is invalid.
-    Invalid,
 }
 
 impl error::Error for ParseError {}
@@ -21,10 +15,6 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => write!(f, "empty input"),
-            Self::ExceedsMaxLength(actual) => {
-                write!(f, "expected input to be <= {MAX_LENGTH}, got {actual}")
-            }
-            Self::Invalid => write!(f, "invalid input"),
         }
     }
 }
@@ -32,32 +22,17 @@ impl fmt::Display for ParseError {
 pub(super) fn parse_name(src: &[u8], name: &mut Option<Name>) -> Result<(), ParseError> {
     if src.is_empty() {
         return Err(ParseError::Empty);
-    } else if src.len() > MAX_LENGTH {
-        return Err(ParseError::ExceedsMaxLength(src.len()));
-    } else if !is_valid_name(src) {
-        return Err(ParseError::Invalid);
     }
 
-    let rname = match name.take().map(Vec::from) {
-        Some(mut dst) => {
-            dst.clear();
-            dst.extend(src);
-            dst
-        }
-        None => src.into(),
-    };
-
-    *name = Some(Name(rname));
+    if let Some(name) = name {
+        let buf = name.as_mut();
+        buf.clear();
+        buf.extend(src);
+    } else {
+        *name = Some(Name::from(src));
+    }
 
     Ok(())
-}
-
-fn is_valid_name_char(b: u8) -> bool {
-    matches!(b, b'!'..=b'?' | b'A'..=b'~')
-}
-
-fn is_valid_name(s: &[u8]) -> bool {
-    s.iter().copied().all(is_valid_name_char)
 }
 
 #[cfg(test)]
@@ -65,21 +40,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_name() -> Result<(), Box<dyn std::error::Error>> {
-        let mut name = Some(Name::try_new("ndls")?);
+    fn test_parse_name() -> Result<(), ParseError> {
+        let mut name = None;
 
         parse_name(b"r0", &mut name)?;
-        assert_eq!(name, Some(Name::try_new("r0")?));
+        assert_eq!(name, Some(Name::from(b"r0")));
 
         assert_eq!(parse_name(b"", &mut name), Err(ParseError::Empty));
-        assert_eq!(parse_name(b"r 0", &mut name), Err(ParseError::Invalid));
-        assert_eq!(parse_name(b"@r0", &mut name), Err(ParseError::Invalid));
-
-        let src = vec![b'n'; MAX_LENGTH + 1];
-        assert_eq!(
-            parse_name(&src, &mut name),
-            Err(ParseError::ExceedsMaxLength(src.len()))
-        );
 
         Ok(())
     }

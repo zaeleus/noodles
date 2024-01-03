@@ -4,7 +4,7 @@ use std::{
 };
 
 use bytes::Buf;
-use noodles_sam::record::{name, Name};
+use noodles_sam::alignment::record_buf::Name;
 
 const NUL: u8 = 0x00;
 
@@ -17,15 +17,12 @@ pub enum DecodeError {
     InvalidLength(num::TryFromIntError),
     /// The NUL terminator is missing.
     MissingNulTerminator { actual: u8 },
-    /// An input is invalid.
-    Invalid(name::ParseError),
 }
 
 impl error::Error for DecodeError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::InvalidLength(e) => Some(e),
-            Self::Invalid(e) => Some(e),
             _ => None,
         }
     }
@@ -40,7 +37,6 @@ impl fmt::Display for DecodeError {
                 f,
                 "missing NUL terminator: expected {NUL:#04x}, got {actual:#04x}"
             ),
-            Self::Invalid(_) => write!(f, "invalid input"),
         }
     }
 }
@@ -76,11 +72,12 @@ where
         src.advance(MISSING.len());
         None
     } else {
-        let mut dst = name.take().map(Vec::from).unwrap_or_default();
+        let mut name = name.take().unwrap_or(Name::from(b""));
+        let dst = name.as_mut();
 
         // SAFETY: len is guaranteed to be > 0.
         dst.resize(len - 1, 0);
-        src.copy_to_slice(&mut dst);
+        src.copy_to_slice(dst);
 
         let terminator = src.get_u8();
 
@@ -88,9 +85,7 @@ where
             return Err(DecodeError::MissingNulTerminator { actual: terminator });
         }
 
-        Name::try_from(dst)
-            .map(Some)
-            .map_err(DecodeError::Invalid)?
+        Some(name)
     };
 
     Ok(())
@@ -128,8 +123,10 @@ mod tests {
         }
 
         t(&[b'*', 0x00], None)?;
-        t(&[b'r', 0x00], "r".parse().map(Some)?)?;
-        t(&[b'r', b'1', 0x00], "r1".parse().map(Some)?)?;
+        t(&[b'r', b'1', 0x00], Some(Name::from(b"r1")))?;
+
+        let src = [0xf0, 0x9f, 0x8d, 0x9c, 0x00]; // "🍜\x00"
+        t(&src, Some(Name::from(&src[0..4])))?;
 
         let data = [b'*'];
         let mut src = &data[..];
@@ -138,14 +135,6 @@ mod tests {
             get_name(&mut src, &mut None, l_read_name),
             Err(DecodeError::MissingNulTerminator { actual: b'*' })
         );
-
-        let data = [0xf0, 0x9f, 0x8d, 0x9c, 0x00]; // "🍜\x00"
-        let mut src = &data[..];
-        let l_read_name = NonZeroUsize::try_from(data.len()).unwrap();
-        assert!(matches!(
-            get_name(&mut src, &mut None, l_read_name),
-            Err(DecodeError::Invalid(_))
-        ));
 
         Ok(())
     }

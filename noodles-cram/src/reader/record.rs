@@ -232,8 +232,8 @@ where
         Ok(())
     }
 
-    fn read_read_name(&mut self) -> io::Result<Option<sam::record::Name>> {
-        use sam::record::name::MISSING;
+    fn read_read_name(&mut self) -> io::Result<Option<sam::alignment::record_buf::Name>> {
+        const MISSING: &[u8] = &[b'*', 0x00];
 
         let buf = self
             .compression_header
@@ -247,12 +247,12 @@ where
             })?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)?;
 
-        match &buf[..] {
-            MISSING => Ok(None),
-            _ => sam::record::Name::try_from(buf)
-                .map(Some)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-        }
+        let name = match &buf[..] {
+            MISSING => None,
+            _ => Some(sam::alignment::record_buf::Name::from(buf)),
+        };
+
+        Ok(name)
     }
 
     fn read_mate_data(

@@ -1,10 +1,11 @@
 //! Alignment record buffer.
 
 mod builder;
+mod name;
 mod quality_scores;
 mod sequence;
 
-pub use self::{builder::Builder, quality_scores::QualityScores, sequence::Sequence};
+pub use self::{builder::Builder, name::Name, quality_scores::QualityScores, sequence::Sequence};
 
 use std::io;
 
@@ -25,7 +26,7 @@ use crate::{
 /// An alignment record.
 #[derive(Clone, Debug, PartialEq)]
 pub struct RecordBuf {
-    name: Option<record::Name>,
+    name: Option<Name>,
     flags: record::Flags,
     reference_sequence_id: Option<usize>,
     alignment_start: Option<core::Position>,
@@ -61,7 +62,7 @@ impl RecordBuf {
     /// let record = sam::alignment::RecordBuf::default();
     /// assert!(record.name().is_none());
     /// ```
-    pub fn name(&self) -> Option<&record::Name> {
+    pub fn name(&self) -> Option<&Name> {
         self.name.as_ref()
     }
 
@@ -70,17 +71,16 @@ impl RecordBuf {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::Name};
+    /// use noodles_sam::{self as sam, alignment::record_buf::Name};
     ///
-    /// let name: Name = "r1".parse()?;
+    /// let name = Name::from(b"r1");
     ///
     /// let mut record = sam::alignment::RecordBuf::default();
     /// *record.name_mut() = Some(name.clone());
     ///
     /// assert_eq!(record.name(), Some(&name));
-    /// Ok::<_, sam::record::name::ParseError>(())
     /// ```
-    pub fn name_mut(&mut self) -> &mut Option<record::Name> {
+    pub fn name_mut(&mut self) -> &mut Option<Name> {
         &mut self.name
     }
 

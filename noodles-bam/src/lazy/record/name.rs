@@ -1,5 +1,3 @@
-use std::io;
-
 use noodles_sam as sam;
 
 /// A raw BAM record name.
@@ -32,12 +30,9 @@ impl<'a> AsRef<[u8]> for Name<'a> {
     }
 }
 
-impl<'a> TryFrom<Name<'a>> for sam::record::Name {
-    type Error = io::Error;
-
-    fn try_from(bam_name: Name<'a>) -> Result<Self, Self::Error> {
-        Self::try_from(bam_name.as_bytes().to_vec())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+impl<'a> From<Name<'a>> for sam::alignment::record_buf::Name {
+    fn from(name: Name<'a>) -> Self {
+        Self::from(name.as_ref())
     }
 }
 

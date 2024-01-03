@@ -64,7 +64,7 @@ where
     put_template_length(dst, record.template_length());
 
     // read_name
-    put_name(dst, record.name());
+    put_name(dst, record.name())?;
 
     if let Some(cigar) = &cigar {
         put_cigar(dst, cigar)?;
@@ -90,14 +90,17 @@ where
     Ok(())
 }
 
-fn put_l_read_name<B>(dst: &mut B, name: Option<&sam::record::Name>) -> io::Result<()>
+fn put_l_read_name<B>(
+    dst: &mut B,
+    name: Option<&sam::alignment::record_buf::Name>,
+) -> io::Result<()>
 where
     B: BufMut,
 {
     use std::mem;
 
     let mut name_len = name
-        .map(|name| name.len())
+        .map(|name| name.as_ref().len())
         .unwrap_or(sam::record::name::MISSING.len());
 
     // + NUL terminator
@@ -240,7 +243,7 @@ mod tests {
     #[test]
     fn test_encode_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
         use sam::{
-            alignment::record_buf::{QualityScores, Sequence},
+            alignment::record_buf::{Name, QualityScores, Sequence},
             record::{
                 cigar::{op, Op},
                 data::field::{tag, Value},
@@ -262,7 +265,7 @@ mod tests {
             .build();
 
         let record = RecordBuf::builder()
-            .set_name("r0".parse()?)
+            .set_name(Name::from(b"r0"))
             .set_flags(Flags::SEGMENTED | Flags::FIRST_SEGMENT)
             .set_reference_sequence_id(1)
             .set_alignment_start(Position::try_from(9)?)

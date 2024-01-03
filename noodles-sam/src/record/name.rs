@@ -14,7 +14,7 @@ const MAX_LENGTH: usize = 254;
 
 /// A SAM record name.
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct Name(pub(crate) Vec<u8>);
+pub struct Name(Vec<u8>);
 
 impl Name {
     /// Creates a name.

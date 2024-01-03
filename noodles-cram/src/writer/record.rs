@@ -247,11 +247,15 @@ where
         )
     }
 
-    fn write_read_name(&mut self, name: Option<&sam::record::Name>) -> io::Result<()> {
-        use sam::record::name::MISSING;
+    fn write_read_name(
+        &mut self,
+        name: Option<&sam::alignment::record_buf::Name>,
+    ) -> io::Result<()> {
+        const MISSING: &[u8] = &[b'*', 0x00];
 
-        let encoding = self
-            .compression_header
+        let buf = name.map(|name| name.as_ref()).unwrap_or(MISSING);
+
+        self.compression_header
             .data_series_encoding_map()
             .read_names_encoding()
             .ok_or_else(|| {
@@ -259,11 +263,8 @@ where
                     io::ErrorKind::InvalidData,
                     WriteRecordError::MissingDataSeriesEncoding(DataSeries::ReadNames),
                 )
-            })?;
-
-        let name = name.map(|name| name.as_ref()).unwrap_or(MISSING);
-
-        encoding.encode(self.core_data_writer, self.external_data_writers, name)
+            })?
+            .encode(self.core_data_writer, self.external_data_writers, buf)
     }
 
     fn write_mate_data(&mut self, record: &Record) -> io::Result<()> {
