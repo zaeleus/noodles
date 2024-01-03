@@ -1,5 +1,6 @@
 mod cigar;
 mod data;
+mod mapping_quality;
 mod name;
 mod position;
 mod quality_scores;
@@ -12,7 +13,7 @@ pub use self::{
 
 use std::io::{self, Write};
 
-use self::name::write_name;
+use self::{mapping_quality::write_mapping_quality, name::write_name};
 use crate::{
     alignment::{Record, RecordBuf},
     Header,
@@ -35,11 +36,6 @@ where
     let rname = reference_sequence
         .map(|(name, _)| name.as_bytes())
         .unwrap_or(MISSING);
-
-    let mapq = record
-        .mapping_quality()
-        .map(u8::from)
-        .unwrap_or(crate::record::mapping_quality::MISSING);
 
     let rnext = record
         .mate_reference_sequence(header)
@@ -67,7 +63,7 @@ where
     write_position(writer, Record::alignment_start(record).as_deref())?;
 
     writer.write_all(DELIMITER)?;
-    num::write_u8(writer, mapq)?;
+    write_mapping_quality(writer, record.mapping_quality())?;
 
     writer.write_all(DELIMITER)?;
     write_cigar(writer, record.cigar())?;
