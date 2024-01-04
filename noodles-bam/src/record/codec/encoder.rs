@@ -18,7 +18,11 @@ use std::io;
 
 use bytes::BufMut;
 use noodles_core::Position;
-use noodles_sam::{self as sam, alignment::RecordBuf, record::Cigar};
+use noodles_sam::{
+    self as sam,
+    alignment::{Record, RecordBuf},
+    record::Cigar,
+};
 
 use self::{position::put_position, reference_sequence_id::put_reference_sequence_id};
 
@@ -64,7 +68,7 @@ where
     put_template_length(dst, record.template_length());
 
     // read_name
-    put_name(dst, record.name())?;
+    put_name(dst, Record::name(record))?;
 
     if let Some(cigar) = &cigar {
         put_cigar(dst, cigar)?;
