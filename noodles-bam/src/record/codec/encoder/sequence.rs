@@ -1,11 +1,12 @@
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::alignment::record_buf::Sequence;
+use noodles_sam::alignment::record::Sequence;
 
-pub fn put_sequence<B>(dst: &mut B, read_length: usize, sequence: &Sequence) -> io::Result<()>
+pub fn put_sequence<B, S>(dst: &mut B, read_length: usize, sequence: S) -> io::Result<()>
 where
     B: BufMut,
+    S: Sequence,
 {
     const EQ: u8 = b'=';
 
@@ -22,7 +23,7 @@ where
         ));
     }
 
-    let mut bases = sequence.as_ref().iter().copied();
+    let mut bases = sequence.iter();
 
     while let Some(l) = bases.next() {
         // § 4.2.3 "SEQ and QUAL encoding" (2021-06-03): "When `l_seq` is odd the bottom 4 bits of
@@ -60,11 +61,13 @@ fn encode_base(n: u8) -> u8 {
 
 #[cfg(test)]
 mod tests {
+    use noodles_sam::alignment::record_buf::Sequence as SequenceBuf;
+
     use super::*;
 
     #[test]
     fn test_put_sequence() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(buf: &mut Vec<u8>, sequence: &Sequence, expected: &[u8]) -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, sequence: &SequenceBuf, expected: &[u8]) -> io::Result<()> {
             buf.clear();
             put_sequence(buf, sequence.len(), sequence)?;
             assert_eq!(buf, expected);
@@ -73,16 +76,20 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        t(&mut buf, &Sequence::default(), &[])?;
-        t(&mut buf, &Sequence::from(b"ACG".to_vec()), &[0x12, 0x40])?;
-        t(&mut buf, &Sequence::from(b"ACGT".to_vec()), &[0x12, 0x48])?;
+        t(&mut buf, &SequenceBuf::default(), &[])?;
+        t(&mut buf, &SequenceBuf::from(b"ACG".to_vec()), &[0x12, 0x40])?;
+        t(
+            &mut buf,
+            &SequenceBuf::from(b"ACGT".to_vec()),
+            &[0x12, 0x48],
+        )?;
 
         buf.clear();
-        put_sequence(&mut buf, 2, &Sequence::default())?;
+        put_sequence(&mut buf, 2, &SequenceBuf::default())?;
         assert!(buf.is_empty());
 
         buf.clear();
-        let sequence = Sequence::from(b"A".to_vec());
+        let sequence = SequenceBuf::from(b"A".to_vec());
         assert!(matches!(
             put_sequence(&mut buf, 2, &sequence),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput,
