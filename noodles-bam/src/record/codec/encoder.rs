@@ -35,7 +35,7 @@ where
     B: BufMut,
 {
     // ref_id
-    put_reference_sequence_id(dst, header, record.reference_sequence_id())?;
+    put_reference_sequence_id(dst, header, Record::reference_sequence_id(record, header))?;
 
     // pos
     put_position(dst, record.alignment_start())?;
@@ -59,7 +59,11 @@ where
     dst.put_u32_le(l_seq);
 
     // next_ref_id
-    put_reference_sequence_id(dst, header, record.mate_reference_sequence_id())?;
+    put_reference_sequence_id(
+        dst,
+        header,
+        Record::mate_reference_sequence_id(record, header),
+    )?;
 
     // next_pos
     put_position(dst, record.mate_alignment_start())?;

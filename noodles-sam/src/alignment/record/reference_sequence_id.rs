@@ -19,3 +19,9 @@ impl ReferenceSequenceId for usize {
         Ok(*self)
     }
 }
+
+impl ReferenceSequenceId for Box<dyn ReferenceSequenceId + '_> {
+    fn try_to_usize(&self) -> io::Result<usize> {
+        (**self).try_to_usize()
+    }
+}

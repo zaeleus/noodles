@@ -1,19 +1,22 @@
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam as sam;
+use noodles_sam::{self as sam, alignment::record::ReferenceSequenceId};
 
-pub(super) fn put_reference_sequence_id<B>(
+pub(super) fn put_reference_sequence_id<B, I>(
     dst: &mut B,
     header: &sam::Header,
-    reference_sequence_id: Option<usize>,
+    reference_sequence_id: Option<I>,
 ) -> io::Result<()>
 where
     B: BufMut,
+    I: ReferenceSequenceId,
 {
     const UNMAPPED: i32 = -1;
 
     let ref_id = if let Some(id) = reference_sequence_id {
+        let id = id.try_to_usize()?;
+
         if id < header.reference_sequences().len() {
             i32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
         } else {
