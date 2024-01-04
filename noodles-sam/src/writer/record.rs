@@ -52,7 +52,7 @@ where
         })
         .unwrap_or(MISSING);
 
-    write_name(writer, record.name())?;
+    write_name(writer, Record::name(record))?;
 
     writer.write_all(DELIMITER)?;
     write_flags(writer, record.flags())?;

@@ -1,16 +1,17 @@
 use std::io::{self, Write};
 
-use crate::alignment::record_buf::Name;
+use crate::alignment::record::Name;
 
 const MAX_LENGTH: usize = 254;
 const MISSING: &[u8] = b"*";
 
-pub(super) fn write_name<W>(writer: &mut W, name: Option<&Name>) -> io::Result<()>
+pub(super) fn write_name<W, N>(writer: &mut W, name: Option<N>) -> io::Result<()>
 where
     W: Write,
+    N: Name,
 {
     if let Some(name) = name {
-        let name = name.as_ref();
+        let name = name.as_bytes();
 
         if !is_valid(name) {
             return Err(io::Error::from(io::ErrorKind::InvalidInput));
@@ -33,10 +34,11 @@ fn is_valid(buf: &[u8]) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::alignment::record_buf::Name as NameBuf;
 
     #[test]
     fn test_write_name() -> io::Result<()> {
-        fn t(buf: &mut Vec<u8>, name: Option<&Name>, expected: &[u8]) -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, name: Option<&NameBuf>, expected: &[u8]) -> io::Result<()> {
             buf.clear();
             write_name(buf, name)?;
             assert_eq!(buf, expected);
@@ -46,7 +48,7 @@ mod tests {
         let mut buf = Vec::new();
 
         t(&mut buf, None, b"*")?;
-        t(&mut buf, Some(&Name::from(b"r0")), b"r0")?;
+        t(&mut buf, Some(&NameBuf::from(b"r0")), b"r0")?;
 
         Ok(())
     }
@@ -57,7 +59,7 @@ mod tests {
             let mut buf = Vec::new();
 
             assert!(matches!(
-                write_name(&mut buf, Some(&Name::from(raw_name))),
+                write_name(&mut buf, Some(&NameBuf::from(raw_name))),
                 Err(e) if e.kind() == io::ErrorKind::InvalidInput
             ));
         }
