@@ -97,7 +97,7 @@ where
     if let Some(cigar) = &cigar {
         put_cigar(dst, cigar)?;
     } else {
-        put_cigar(dst, record.cigar())?;
+        put_cigar(dst, &Record::cigar(record, header))?;
     }
 
     let sequence = Record::sequence(record);
@@ -112,7 +112,7 @@ where
     put_data(dst, Record::data(record))?;
 
     if cigar.is_some() {
-        data::field::put_cigar(dst, record.cigar())?;
+        data::field::put_cigar(dst, &Record::cigar(record, header))?;
     }
 
     Ok(())

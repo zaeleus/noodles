@@ -8,11 +8,8 @@ use std::io;
 
 use bytes::BufMut;
 use noodles_sam::{
-    alignment::record::data::field::Value,
-    record::{
-        data::field::{value::array::Subtype, Type},
-        Cigar,
-    },
+    alignment::record::{data::field::Value, Cigar},
+    record::data::field::{value::array::Subtype, Type},
 };
 
 pub use self::value::put_value;
@@ -28,9 +25,10 @@ where
     Ok(())
 }
 
-pub(crate) fn put_cigar<B>(dst: &mut B, cigar: &Cigar) -> io::Result<()>
+pub(crate) fn put_cigar<B, C>(dst: &mut B, cigar: &C) -> io::Result<()>
 where
     B: BufMut,
+    C: Cigar,
 {
     put_tag(dst, [b'C', b'G']);
     put_type(dst, Type::Array);
@@ -54,10 +52,13 @@ mod tests {
 
     #[test]
     fn test_put_cigar() -> io::Result<()> {
-        use noodles_sam::record::cigar::{op::Kind, Op};
+        use noodles_sam::record::{
+            cigar::{op::Kind, Op},
+            Cigar as CigarBuf,
+        };
 
         let mut buf = Vec::new();
-        let cigar = [Op::new(Kind::Match, 4)].into_iter().collect();
+        let cigar: CigarBuf = [Op::new(Kind::Match, 4)].into_iter().collect();
         put_cigar(&mut buf, &cigar)?;
 
         let expected = [
