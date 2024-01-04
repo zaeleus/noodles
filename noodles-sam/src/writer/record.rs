@@ -1,5 +1,6 @@
 mod cigar;
 mod data;
+mod flags;
 mod mapping_quality;
 mod name;
 mod position;
@@ -13,7 +14,7 @@ pub use self::{
 
 use std::io::{self, Write};
 
-use self::{mapping_quality::write_mapping_quality, name::write_name};
+use self::{flags::write_flags, mapping_quality::write_mapping_quality, name::write_name};
 use crate::{
     alignment::{Record, RecordBuf},
     Header,
@@ -54,7 +55,7 @@ where
     write_name(writer, record.name())?;
 
     writer.write_all(DELIMITER)?;
-    num::write_u16(writer, u16::from(record.flags()))?;
+    write_flags(writer, record.flags())?;
 
     writer.write_all(DELIMITER)?;
     writer.write_all(rname)?;
