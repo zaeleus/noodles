@@ -351,6 +351,10 @@ impl<'a, N> crate::alignment::record::data::field::value::array::Values<'a, N> f
 where
     N: Copy,
 {
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<N>> + '_> {
         Box::new(self.0.iter().copied().map(Ok))
     }

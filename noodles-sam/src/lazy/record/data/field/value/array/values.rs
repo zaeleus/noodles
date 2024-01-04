@@ -2,6 +2,8 @@ use std::{io, marker::PhantomData};
 
 use lexical_core::FromLexical;
 
+const DELIMITER: u8 = b',';
+
 #[derive(Debug, PartialEq)]
 pub struct Values<'a, N> {
     src: &'a [u8],
@@ -19,6 +21,10 @@ where
         }
     }
 
+    fn len(&self) -> usize {
+        self.src.iter().filter(|&&b| b == DELIMITER).count() + 1
+    }
+
     /// Returns an iterator over values.
     pub fn iter(&self) -> impl Iterator<Item = io::Result<N>> + '_ {
         self.src.split(delimiter).map(parse_num)
@@ -29,13 +35,16 @@ impl<'a, N> crate::alignment::record::data::field::value::array::Values<'a, N> f
 where
     N: FromLexical,
 {
+    fn len(&self) -> usize {
+        self.len()
+    }
+
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<N>> + '_> {
         Box::new(self.iter())
     }
 }
 
 fn delimiter(b: &u8) -> bool {
-    const DELIMITER: u8 = b',';
     *b == DELIMITER
 }
 
@@ -49,6 +58,12 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_len() {
+        let values = Values::<'_, u8>::new(b"8,13");
+        assert_eq!(values.len(), 2);
+    }
 
     #[test]
     fn test_iter() -> io::Result<()> {

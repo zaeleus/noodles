@@ -26,6 +26,10 @@ impl<'a> Values<'a, i8> {
 }
 
 impl<'a> sam::alignment::record::data::field::value::array::Values<'a, i8> for Values<'a, i8> {
+    fn len(&self) -> usize {
+        self.src.len()
+    }
+
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<i8>> + '_> {
         Box::new(self.iter())
     }
@@ -39,6 +43,10 @@ impl<'a> Values<'a, u8> {
 }
 
 impl<'a> sam::alignment::record::data::field::value::array::Values<'a, u8> for Values<'a, u8> {
+    fn len(&self) -> usize {
+        self.src.len()
+    }
+
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<u8>> + '_> {
         Box::new(self.iter())
     }
@@ -57,6 +65,10 @@ impl<'a> Values<'a, i16> {
 }
 
 impl<'a> sam::alignment::record::data::field::value::array::Values<'a, i16> for Values<'a, i16> {
+    fn len(&self) -> usize {
+        self.src.len() * mem::size_of::<i16>()
+    }
+
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<i16>> + '_> {
         Box::new(self.iter())
     }
@@ -75,6 +87,10 @@ impl<'a> Values<'a, u16> {
 }
 
 impl<'a> sam::alignment::record::data::field::value::array::Values<'a, u16> for Values<'a, u16> {
+    fn len(&self) -> usize {
+        self.src.len() * mem::size_of::<u16>()
+    }
+
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<u16>> + '_> {
         Box::new(self.iter())
     }
@@ -93,6 +109,10 @@ impl<'a> Values<'a, i32> {
 }
 
 impl<'a> sam::alignment::record::data::field::value::array::Values<'a, i32> for Values<'a, i32> {
+    fn len(&self) -> usize {
+        self.src.len() * mem::size_of::<i32>()
+    }
+
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<i32>> + '_> {
         Box::new(self.iter())
     }
@@ -111,6 +131,10 @@ impl<'a> Values<'a, u32> {
 }
 
 impl<'a> sam::alignment::record::data::field::value::array::Values<'a, u32> for Values<'a, u32> {
+    fn len(&self) -> usize {
+        self.src.len() * mem::size_of::<u32>()
+    }
+
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<u32>> + '_> {
         Box::new(self.iter())
     }
@@ -129,6 +153,10 @@ impl<'a> Values<'a, f32> {
 }
 
 impl<'a> sam::alignment::record::data::field::value::array::Values<'a, f32> for Values<'a, f32> {
+    fn len(&self) -> usize {
+        self.src.len() * mem::size_of::<f32>()
+    }
+
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<f32>> + '_> {
         Box::new(self.iter())
     }
