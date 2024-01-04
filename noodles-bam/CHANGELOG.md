@@ -4,25 +4,29 @@
 
 ### Added
 
-  * bam/lazy/record: Add flags (`lazy::record::Flags`), mapping quality
+  * bam/record: Add flags (`lazy::record::Flags`), mapping quality
     (`lazy::record::MappingQuality`), position (`lazy::record::Position`),
     reference sequence ID (`lazy::record::ReferenceSequenceId`), and template
     length (`lazy::record::TemplateLength`)  wrappers.
 
-  * bam/lazy/record: Implement `sam::alignment::Record`.
+  * bam/record: Implement `sam::alignment::Record`.
 
-  * bam/lazy/record/data/field/value/array: Add values wrapper (`Values`).
+  * bam/record/data/field/value/array: Add values wrapper (`Values`).
 
 ### Changed
 
-  * bam/lazy/record: Rename `ReadName` to `Name`.
+  * bam: Move lazy record to record.
+
+    Use `bam::Record` instead of `bam::lazy::Record`.
+
+  * bam/record: Rename `ReadName` to `Name`.
 
     This also changes `Record::read_name` to `Record::name`.
 
-  * bam/lazy/record/data/field: Replace `Value` with
+  * bam/record/data/field: Replace `Value` with
     `sam::alignment::record::data::field::Value`.
 
-  * bam/lazy/record/data/field/value: Replace `Array` with
+  * bam/record/data/field/value: Replace `Array` with
     `sam::alignment::record::data::field::value::Array`.
 
 ## 0.52.0 - 2023-12-14
