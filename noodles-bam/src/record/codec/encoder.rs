@@ -21,7 +21,7 @@ use noodles_core::Position;
 use noodles_sam::{
     self as sam,
     alignment::{Record, RecordBuf},
-    record::Cigar,
+    record::{Cigar, Flags},
 };
 
 use self::{position::put_position, reference_sequence_id::put_reference_sequence_id};
@@ -61,7 +61,8 @@ where
     let cigar = overflowing_put_cigar_op_count(dst, header, record)?;
 
     // flag
-    put_flags(dst, record.flags());
+    let flags = Record::flags(record).try_to_u16().map(Flags::from)?;
+    put_flags(dst, flags);
 
     let l_seq = u32::try_from(record.sequence().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
