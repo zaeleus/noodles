@@ -31,3 +31,9 @@ impl Position for core::Position {
         Ok(self.get())
     }
 }
+
+impl Position for Box<dyn Position + '_> {
+    fn try_to_usize(&self) -> io::Result<usize> {
+        (**self).try_to_usize()
+    }
+}

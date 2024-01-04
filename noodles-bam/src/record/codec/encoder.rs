@@ -38,7 +38,7 @@ where
     put_reference_sequence_id(dst, header, Record::reference_sequence_id(record, header))?;
 
     // pos
-    put_position(dst, record.alignment_start())?;
+    put_position(dst, Record::alignment_start(record))?;
 
     put_l_read_name(dst, record.name())?;
 
@@ -66,7 +66,7 @@ where
     )?;
 
     // next_pos
-    put_position(dst, record.mate_alignment_start())?;
+    put_position(dst, Record::mate_alignment_start(record))?;
 
     // tlen
     put_template_length(dst, record.template_length());
