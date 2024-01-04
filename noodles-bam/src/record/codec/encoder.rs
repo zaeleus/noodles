@@ -58,7 +58,7 @@ where
     put_bin(dst, alignment_start, alignment_end)?;
 
     // n_cigar_op
-    let cigar = overflowing_put_cigar_op_count(dst, header, record)?;
+    let cigar = overflowing_put_cigar_op_count(dst, header, record as &dyn Record)?;
 
     // flag
     let flags = Record::flags(record).try_to_u16().map(Flags::from)?;
@@ -156,14 +156,14 @@ where
 fn overflowing_put_cigar_op_count<B>(
     dst: &mut B,
     header: &sam::Header,
-    record: &RecordBuf,
+    record: &dyn Record,
 ) -> io::Result<Option<Cigar>>
 where
     B: BufMut,
 {
     use sam::record::cigar::{op, Op};
 
-    if let Ok(n_cigar_op) = u16::try_from(record.cigar().len()) {
+    if let Ok(n_cigar_op) = u16::try_from(record.cigar(header).len()) {
         dst.put_u16_le(n_cigar_op);
         Ok(None)
     } else {
