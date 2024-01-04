@@ -17,3 +17,17 @@ pub trait Data {
     /// Returns an iterator over fields.
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<([u8; 2], Value<'_>)>> + '_>;
 }
+
+impl Data for Box<dyn Data + '_> {
+    fn is_empty(&self) -> bool {
+        (**self).is_empty()
+    }
+
+    fn get(&self, tag: &[u8; 2]) -> Option<io::Result<Value<'_>>> {
+        (**self).get(tag)
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<([u8; 2], Value<'_>)>> + '_> {
+        (**self).iter()
+    }
+}

@@ -5,20 +5,23 @@ pub mod field;
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::record::{data::field::tag, Data};
+use noodles_sam::{alignment::record::Data, record::data::field::tag};
 
 use self::field::put_field;
 
-pub(crate) fn put_data<B>(dst: &mut B, data: &Data) -> io::Result<()>
+pub(crate) fn put_data<B, D>(dst: &mut B, data: D) -> io::Result<()>
 where
     B: BufMut,
+    D: Data,
 {
-    for (tag, value) in data.iter() {
-        if tag == tag::CIGAR {
+    for result in data.iter() {
+        let (tag, value) = result?;
+
+        if &tag == tag::CIGAR.as_ref() {
             continue;
         }
 
-        put_field(dst, tag, value)?;
+        put_field(dst, tag, &value)?;
     }
 
     Ok(())
@@ -26,11 +29,13 @@ where
 
 #[cfg(test)]
 mod tests {
+    use noodles_sam::record::Data as DataBuf;
+
     use super::*;
 
     #[test]
     fn test_put_data() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(buf: &mut Vec<u8>, data: &Data, expected: &[u8]) -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, data: &DataBuf, expected: &[u8]) -> io::Result<()> {
             buf.clear();
             put_data(buf, data)?;
             assert_eq!(buf, expected);
@@ -39,7 +44,7 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        t(&mut buf, &Data::default(), &[])?;
+        t(&mut buf, &DataBuf::default(), &[])?;
         t(&mut buf, &"NH:i:1".parse()?, &[b'N', b'H', b'C', 0x01])?;
         t(
             &mut buf,

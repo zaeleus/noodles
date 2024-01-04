@@ -407,6 +407,7 @@ where
 
     fn write_tag_data(&mut self, record: &Record) -> io::Result<()> {
         use bam::record::codec::encoder::data::field::put_value;
+        use sam::record::data::field::Tag;
 
         let preservation_map = self.compression_header.preservation_map();
         let tag_ids_dictionary = preservation_map.tag_ids_dictionary();
@@ -434,7 +435,12 @@ where
         let tag_encoding_map = self.compression_header.tag_encoding_map();
         let mut buf = Vec::new();
 
-        for (tag, value) in record.tags().iter() {
+        for result in sam::alignment::Record::data(record).iter() {
+            let (tag, value) = result?;
+
+            let tag =
+                Tag::try_from(tag).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
             let key = tag_ids_dictionary::Key::new(tag, value.ty());
             let id = block::ContentId::from(key);
             let encoding = tag_encoding_map.get(&id).ok_or_else(|| {
@@ -445,7 +451,7 @@ where
             })?;
 
             buf.clear();
-            put_value(&mut buf, value)?;
+            put_value(&mut buf, &value)?;
 
             encoding.encode(self.core_data_writer, self.external_data_writers, &buf)?;
         }

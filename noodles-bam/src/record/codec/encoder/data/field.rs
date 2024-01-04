@@ -7,18 +7,18 @@ mod value;
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::record::{
-    data::{
-        self,
-        field::{value::array::Subtype, Tag, Type, Value},
+use noodles_sam::{
+    alignment::record::data::field::Value,
+    record::{
+        data::field::{value::array::Subtype, Type},
+        Cigar,
     },
-    Cigar,
 };
 
 pub use self::value::put_value;
 use self::{tag::put_tag, ty::put_type};
 
-pub(super) fn put_field<B>(dst: &mut B, tag: Tag, value: &Value) -> io::Result<()>
+pub(super) fn put_field<B>(dst: &mut B, tag: [u8; 2], value: &Value) -> io::Result<()>
 where
     B: BufMut,
 {
@@ -32,7 +32,7 @@ pub(crate) fn put_cigar<B>(dst: &mut B, cigar: &Cigar) -> io::Result<()>
 where
     B: BufMut,
 {
-    put_tag(dst, data::field::tag::CIGAR);
+    put_tag(dst, [b'C', b'G']);
     put_type(dst, Type::Array);
     value::array::put_header(dst, Subtype::UInt32, cigar.len())?;
     crate::record::codec::encoder::put_cigar(dst, cigar)?;
@@ -46,7 +46,7 @@ mod tests {
     #[test]
     fn test_put_field() -> io::Result<()> {
         let mut buf = Vec::new();
-        let (tag, value) = (data::field::tag::ALIGNMENT_HIT_COUNT, Value::from(1));
+        let (tag, value) = ([b'N', b'H'], Value::UInt8(1));
         put_field(&mut buf, tag, &value)?;
         assert_eq!(buf, [b'N', b'H', b'C', 0x01]);
         Ok(())

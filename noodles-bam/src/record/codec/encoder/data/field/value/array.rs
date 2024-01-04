@@ -3,7 +3,9 @@ mod subtype;
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::record::data::field::value::{array::Subtype, Array};
+use noodles_sam::{
+    alignment::record::data::field::value::Array, record::data::field::value::array::Subtype,
+};
 
 use self::subtype::put_subtype;
 
@@ -15,49 +17,56 @@ where
         Array::Int8(values) => {
             put_header(dst, Subtype::Int8, values.len())?;
 
-            for &n in values {
+            for result in values.iter() {
+                let n = result?;
                 dst.put_i8(n);
             }
         }
         Array::UInt8(values) => {
             put_header(dst, Subtype::UInt8, values.len())?;
 
-            for &n in values {
+            for result in values.iter() {
+                let n = result?;
                 dst.put_u8(n);
             }
         }
         Array::Int16(values) => {
             put_header(dst, Subtype::Int16, values.len())?;
 
-            for &n in values {
+            for result in values.iter() {
+                let n = result?;
                 dst.put_i16_le(n);
             }
         }
         Array::UInt16(values) => {
             put_header(dst, Subtype::UInt16, values.len())?;
 
-            for &n in values {
+            for result in values.iter() {
+                let n = result?;
                 dst.put_u16_le(n);
             }
         }
         Array::Int32(values) => {
             put_header(dst, Subtype::Int32, values.len())?;
 
-            for &n in values {
+            for result in values.iter() {
+                let n = result?;
                 dst.put_i32_le(n);
             }
         }
         Array::UInt32(values) => {
             put_header(dst, Subtype::UInt32, values.len())?;
 
-            for &n in values {
+            for result in values.iter() {
+                let n = result?;
                 dst.put_u32_le(n);
             }
         }
         Array::Float(values) => {
             put_header(dst, Subtype::Float, values.len())?;
 
-            for &n in values {
+            for result in values.iter() {
+                let n = result?;
                 dst.put_f32_le(n);
             }
         }
@@ -79,8 +88,34 @@ where
 }
 
 #[cfg(test)]
-mod tests {
+pub(super) mod tests {
+    use noodles_sam as sam;
+
     use super::*;
+
+    pub(crate) struct T<'a, N>(&'a [N]);
+
+    impl<'a, N> T<'a, N>
+    where
+        N: Copy,
+    {
+        pub(crate) fn new(values: &'a [N]) -> Self {
+            Self(values)
+        }
+    }
+
+    impl<'a, N> sam::alignment::record::data::field::value::array::Values<'a, N> for T<'a, N>
+    where
+        N: Copy,
+    {
+        fn len(&self) -> usize {
+            self.0.len()
+        }
+
+        fn iter(&self) -> Box<dyn Iterator<Item = io::Result<N>> + '_> {
+            Box::new(self.0.iter().copied().map(Ok))
+        }
+    }
 
     #[test]
     fn test_put_array() -> io::Result<()> {
@@ -95,7 +130,7 @@ mod tests {
 
         t(
             &mut buf,
-            &Array::Int8(vec![1, -2]),
+            &Array::Int8(Box::new(T::new(&[1, -2]))),
             &[
                 b'c', // subtype = Int8
                 0x02, 0x00, 0x00, 0x00, // count = 2
@@ -106,7 +141,7 @@ mod tests {
 
         t(
             &mut buf,
-            &Array::UInt8(vec![3, 5]),
+            &Array::UInt8(Box::new(T::new(&[3, 5]))),
             &[
                 b'C', // subtype = UInt8
                 0x02, 0x00, 0x00, 0x00, // count = 2
@@ -117,7 +152,7 @@ mod tests {
 
         t(
             &mut buf,
-            &Array::Int16(vec![8, -13]),
+            &Array::Int16(Box::new(T::new(&[8, -13]))),
             &[
                 b's', // subtype = Int16
                 0x02, 0x00, 0x00, 0x00, // count = 2
@@ -128,7 +163,7 @@ mod tests {
 
         t(
             &mut buf,
-            &Array::UInt16(vec![21, 34]),
+            &Array::UInt16(Box::new(T::new(&[21, 34]))),
             &[
                 b'S', // subtype = UInt16
                 0x02, 0x00, 0x00, 0x00, // count = 2
@@ -139,7 +174,7 @@ mod tests {
 
         t(
             &mut buf,
-            &Array::Int32(vec![55, -89]),
+            &Array::Int32(Box::new(T::new(&[55, -89]))),
             &[
                 b'i', // subtype = Int32
                 0x02, 0x00, 0x00, 0x00, // count = 2
@@ -150,7 +185,7 @@ mod tests {
 
         t(
             &mut buf,
-            &Array::UInt32(vec![144, 223]),
+            &Array::UInt32(Box::new(T::new(&[144, 223]))),
             &[
                 b'I', // subtype = UInt32
                 0x02, 0x00, 0x00, 0x00, // count = 2
@@ -161,7 +196,7 @@ mod tests {
 
         t(
             &mut buf,
-            &Array::Float(vec![8.0, 13.0]),
+            &Array::Float(Box::new(T::new(&[8.0, 13.0]))),
             &[
                 b'f', // subtype = Float
                 0x02, 0x00, 0x00, 0x00, // count = 2

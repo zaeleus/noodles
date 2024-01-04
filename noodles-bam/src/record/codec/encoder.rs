@@ -109,7 +109,7 @@ where
     // qual
     put_quality_scores(dst, base_count, Record::quality_scores(record))?;
 
-    put_data(dst, record.data())?;
+    put_data(dst, Record::data(record))?;
 
     if cigar.is_some() {
         data::field::put_cigar(dst, record.cigar())?;
