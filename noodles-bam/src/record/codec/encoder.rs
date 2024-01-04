@@ -50,7 +50,8 @@ where
     put_mapping_quality(dst, record.mapping_quality());
 
     // bin
-    put_bin(dst, alignment_start, record.alignment_end())?;
+    let alignment_end = Record::alignment_end(record, header).transpose()?;
+    put_bin(dst, alignment_start, alignment_end)?;
 
     // n_cigar_op
     let cigar = overflowing_put_cigar_op_count(dst, header, record)?;
