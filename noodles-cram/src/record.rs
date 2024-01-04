@@ -264,33 +264,15 @@ impl<'a> sam::alignment::record::Cigar for Cigar<'a> {
         }
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(u8, usize)>> + '_> {
+    fn iter(
+        &self,
+    ) -> Box<dyn Iterator<Item = io::Result<(sam::record::cigar::op::Kind, usize)>> + '_> {
         use std::iter;
-
-        use sam::record::cigar::op::Kind;
-
-        fn kind_to_u8(kind: Kind) -> u8 {
-            match kind {
-                Kind::Match => b'M',
-                Kind::Insertion => b'I',
-                Kind::Deletion => b'D',
-                Kind::Skip => b'N',
-                Kind::SoftClip => b'S',
-                Kind::HardClip => b'H',
-                Kind::Pad => b'P',
-                Kind::SequenceMatch => b'=',
-                Kind::SequenceMismatch => b'X',
-            }
-        }
 
         if self.is_unmapped {
             Box::new(iter::empty())
         } else {
-            Box::new(
-                self.features
-                    .cigar(self.read_length)
-                    .map(|(kind, len)| Ok((kind_to_u8(kind), len))),
-            )
+            Box::new(self.features.cigar(self.read_length).map(Ok))
         }
     }
 }

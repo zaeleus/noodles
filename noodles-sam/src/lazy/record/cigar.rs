@@ -1,6 +1,9 @@
 use std::{io, iter};
 
-use crate::{reader::record::cigar::op, record::cigar::Op};
+use crate::{
+    reader::record::cigar::op,
+    record::cigar::{op::Kind, Op},
+};
 
 /// Raw SAM record CIGAR operations.
 #[derive(Debug, Eq, PartialEq)]
@@ -49,14 +52,10 @@ impl<'a> crate::alignment::record::Cigar for Cigar<'a> {
             .count()
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(u8, usize)>> + '_> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Kind, usize)>> + '_> {
         Box::new(self.iter().map(|result| {
             result
-                .map(|op| {
-                    // SAFETY: `char::from(op)` only returns ASCII characters.
-                    let raw_op = char::from(op.kind()) as u8;
-                    (raw_op, op.len())
-                })
+                .map(|op| (op.kind(), op.len()))
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         }))
     }
@@ -91,8 +90,6 @@ mod tests {
 
     #[test]
     fn test_iter() -> Result<(), op::ParseError> {
-        use crate::record::cigar::op::Kind;
-
         let cigar = Cigar::new(b"");
         assert!(cigar.iter().next().is_none());
 

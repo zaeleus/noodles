@@ -4,6 +4,7 @@ pub mod op;
 
 use std::{error, fmt, io, ops::Deref, str::FromStr};
 
+use self::op::Kind;
 pub use self::op::Op;
 
 /// A SAM record CIGAR.
@@ -86,28 +87,8 @@ impl Cigar {
             .sum()
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(u8, usize)>> + '_> {
-        use self::op::Kind;
-
-        fn kind_to_u8(kind: Kind) -> u8 {
-            match kind {
-                Kind::Match => b'M',
-                Kind::Insertion => b'I',
-                Kind::Deletion => b'D',
-                Kind::Skip => b'N',
-                Kind::SoftClip => b'S',
-                Kind::HardClip => b'H',
-                Kind::Pad => b'P',
-                Kind::SequenceMatch => b'=',
-                Kind::SequenceMismatch => b'X',
-            }
-        }
-
-        Box::new(
-            self.0
-                .iter()
-                .map(|op| Ok((kind_to_u8(op.kind()), op.len()))),
-        )
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Kind, usize)>> + '_> {
+        Box::new(self.0.iter().map(|op| Ok((op.kind(), op.len()))))
     }
 }
 
@@ -120,7 +101,7 @@ impl crate::alignment::record::Cigar for Cigar {
         self.0.len()
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(u8, usize)>> + '_> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Kind, usize)>> + '_> {
         self.iter()
     }
 }
@@ -134,7 +115,7 @@ impl crate::alignment::record::Cigar for &Cigar {
         self.0.len()
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(u8, usize)>> + '_> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Kind, usize)>> + '_> {
         Cigar::iter(self)
     }
 }
