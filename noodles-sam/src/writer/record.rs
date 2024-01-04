@@ -36,14 +36,10 @@ where
     const EQ: &[u8] = b"=";
     const MISSING: &[u8] = b"*";
 
-    let reference_sequence = record.reference_sequence(header).transpose()?;
+    let reference_sequence = Record::reference_sequence(record, header).transpose()?;
+    let reference_sequence_name = reference_sequence.map(|(name, _)| name).unwrap_or(MISSING);
 
-    let rname = reference_sequence
-        .map(|(name, _)| name.as_bytes())
-        .unwrap_or(MISSING);
-
-    let rnext = record
-        .mate_reference_sequence(header)
+    let mate_reference_sequence_name = Record::mate_reference_sequence(record, header)
         .transpose()?
         .map(|(mate_reference_sequence_name, _)| {
             if let Some((reference_sequence_name, _)) = reference_sequence {
@@ -52,7 +48,7 @@ where
                 }
             }
 
-            mate_reference_sequence_name.as_ref()
+            mate_reference_sequence_name
         })
         .unwrap_or(MISSING);
 
@@ -62,7 +58,7 @@ where
     write_flags(writer, record.flags())?;
 
     writer.write_all(DELIMITER)?;
-    writer.write_all(rname)?;
+    writer.write_all(reference_sequence_name)?;
 
     writer.write_all(DELIMITER)?;
     let alignment_start = Record::alignment_start(record)
@@ -77,7 +73,7 @@ where
     write_cigar(writer, record.cigar())?;
 
     writer.write_all(DELIMITER)?;
-    writer.write_all(rnext)?;
+    writer.write_all(mate_reference_sequence_name)?;
 
     writer.write_all(DELIMITER)?;
     let mate_alignment_start = Record::mate_alignment_start(record)
