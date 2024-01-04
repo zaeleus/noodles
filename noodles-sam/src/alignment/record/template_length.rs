@@ -19,3 +19,9 @@ impl TemplateLength for i32 {
         Ok(*self)
     }
 }
+
+impl TemplateLength for Box<dyn TemplateLength + '_> {
+    fn try_to_i32(&self) -> io::Result<i32> {
+        (**self).try_to_i32()
+    }
+}

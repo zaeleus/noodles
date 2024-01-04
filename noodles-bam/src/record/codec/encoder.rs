@@ -82,7 +82,8 @@ where
     put_position(dst, mate_alignment_start)?;
 
     // tlen
-    put_template_length(dst, record.template_length());
+    let template_length = Record::template_length(record).try_to_i32()?;
+    put_template_length(dst, template_length);
 
     // read_name
     put_name(dst, Record::name(record))?;
