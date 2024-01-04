@@ -20,7 +20,7 @@ use bytes::BufMut;
 use noodles_core::Position;
 use noodles_sam::{
     self as sam,
-    alignment::{Record, RecordBuf},
+    alignment::Record,
     record::{Cigar, Flags, MappingQuality},
 };
 
@@ -30,27 +30,31 @@ use self::{position::put_position, reference_sequence_id::put_reference_sequence
 // becomes -1 in BAM) therefore use `reg2bin(-1, 0)` which is computed as 4680."
 pub(crate) const UNMAPPED_BIN: u16 = 4680;
 
-pub(crate) fn encode<B>(dst: &mut B, header: &sam::Header, record: &RecordBuf) -> io::Result<()>
+pub(crate) fn encode<B, R>(dst: &mut B, header: &sam::Header, record: &R) -> io::Result<()>
 where
     B: BufMut,
+    R: Record,
 {
-    let reference_sequence_id = Record::reference_sequence_id(record, header)
+    let reference_sequence_id = record
+        .reference_sequence_id(header)
         .map(|id| id.try_to_usize())
         .transpose()?;
 
     // ref_id
     put_reference_sequence_id(dst, header, reference_sequence_id)?;
 
-    let alignment_start = Record::alignment_start(record)
+    let alignment_start = record
+        .alignment_start()
         .map(|position| Position::try_from(&position as &dyn sam::alignment::record::Position))
         .transpose()?;
 
     // pos
     put_position(dst, alignment_start)?;
 
-    put_l_read_name(dst, Record::name(record))?;
+    put_l_read_name(dst, record.name())?;
 
-    let mapping_quality = Record::mapping_quality(record)
+    let mapping_quality = record
+        .mapping_quality()
         .map(|mapping_quality| mapping_quality.try_to_u8())
         .transpose()?
         .and_then(MappingQuality::new);
@@ -59,11 +63,11 @@ where
     put_mapping_quality(dst, mapping_quality);
 
     // bin
-    let alignment_end = Record::alignment_end(record, header).transpose()?;
+    let alignment_end = record.alignment_end(header).transpose()?;
     put_bin(dst, alignment_start, alignment_end)?;
 
     // n_cigar_op
-    let cigar = overflowing_put_cigar_op_count(dst, header, record as &dyn Record)?;
+    let cigar = overflowing_put_cigar_op_count(dst, header, record)?;
 
     // flag
     let flags = Record::flags(record).try_to_u16().map(Flags::from)?;
@@ -104,7 +108,7 @@ where
     let base_count = sequence.len();
 
     // seq
-    put_sequence(dst, record.cigar().read_length(), sequence)?;
+    put_sequence(dst, record.cigar(header).read_length(), sequence)?;
 
     // qual
     put_quality_scores(dst, base_count, Record::quality_scores(record))?;
@@ -233,6 +237,7 @@ mod tests {
     use std::num::NonZeroUsize;
 
     use sam::{
+        alignment::RecordBuf,
         header::record::value::{map::ReferenceSequence, Map},
         record::Flags,
     };

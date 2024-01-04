@@ -27,6 +27,21 @@ pub trait Cigar {
 
         Ok(span)
     }
+
+    /// Calculates the read length.
+    fn read_length(&self) -> io::Result<usize> {
+        let mut length = 0;
+
+        for result in self.iter() {
+            let (kind, len) = result?;
+
+            if kind.consumes_read() {
+                length += len;
+            }
+        }
+
+        Ok(length)
+    }
 }
 
 impl<'a> IntoIterator for &'a dyn Cigar {
@@ -93,6 +108,19 @@ mod tests {
         ]);
 
         assert_eq!(cigar.alignment_span()?, 40);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_length() -> io::Result<()> {
+        let cigar: &dyn Cigar = &T(vec![
+            (Kind::Match, 36),
+            (Kind::Deletion, 4),
+            (Kind::SoftClip, 8),
+        ]);
+
+        assert_eq!(cigar.read_length()?, 44);
 
         Ok(())
     }
