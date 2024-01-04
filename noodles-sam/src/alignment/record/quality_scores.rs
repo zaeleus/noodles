@@ -19,6 +19,20 @@ impl<'a> IntoIterator for &'a dyn QualityScores {
     }
 }
 
+impl QualityScores for Box<dyn QualityScores + '_> {
+    fn is_empty(&self) -> bool {
+        (**self).is_empty()
+    }
+
+    fn len(&self) -> usize {
+        (**self).len()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = u8> + '_> {
+        (**self).iter()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

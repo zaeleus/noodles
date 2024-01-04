@@ -97,13 +97,11 @@ where
     let sequence = Record::sequence(record);
     let base_count = sequence.len();
 
-    let quality_scores = record.quality_scores();
-
     // seq
     put_sequence(dst, record.cigar().read_length(), sequence)?;
 
     // qual
-    put_quality_scores(dst, base_count, quality_scores)?;
+    put_quality_scores(dst, base_count, Record::quality_scores(record))?;
 
     put_data(dst, record.data())?;
 
