@@ -70,21 +70,23 @@ where
     let cigar = overflowing_put_cigar_op_count(dst, header, record)?;
 
     // flag
-    let flags = Record::flags(record).try_to_u16().map(Flags::from)?;
+    let flags = record.flags().try_to_u16().map(Flags::from)?;
     put_flags(dst, flags);
 
     let l_seq = u32::try_from(record.sequence().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     dst.put_u32_le(l_seq);
 
-    let mate_reference_sequence_id = Record::mate_reference_sequence_id(record, header)
+    let mate_reference_sequence_id = record
+        .mate_reference_sequence_id(header)
         .map(|id| id.try_to_usize())
         .transpose()?;
 
     // next_ref_id
     put_reference_sequence_id(dst, header, mate_reference_sequence_id)?;
 
-    let mate_alignment_start = Record::mate_alignment_start(record)
+    let mate_alignment_start = record
+        .mate_alignment_start()
         .map(|position| Position::try_from(&position as &dyn sam::alignment::record::Position))
         .transpose()?;
 
@@ -92,31 +94,32 @@ where
     put_position(dst, mate_alignment_start)?;
 
     // tlen
-    let template_length = Record::template_length(record).try_to_i32()?;
+    let template_length = record.template_length().try_to_i32()?;
     put_template_length(dst, template_length);
 
     // read_name
-    put_name(dst, Record::name(record))?;
+    put_name(dst, record.name())?;
 
     if let Some(cigar) = &cigar {
         put_cigar(dst, cigar)?;
     } else {
-        put_cigar(dst, &Record::cigar(record, header))?;
+        put_cigar(dst, &record.cigar(header))?;
     }
 
-    let sequence = Record::sequence(record);
+    let sequence = record.sequence();
     let base_count = sequence.len();
 
     // seq
-    put_sequence(dst, record.cigar(header).read_length(), sequence)?;
+    let read_length = record.cigar(header).read_length()?;
+    put_sequence(dst, read_length, sequence)?;
 
     // qual
     put_quality_scores(dst, base_count, Record::quality_scores(record))?;
 
-    put_data(dst, Record::data(record))?;
+    put_data(dst, record.data())?;
 
     if cigar.is_some() {
-        data::field::put_cigar(dst, &Record::cigar(record, header))?;
+        data::field::put_cigar(dst, &record.cigar(header))?;
     }
 
     Ok(())
