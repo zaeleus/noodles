@@ -1,31 +1,29 @@
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::record::{
-    cigar::{op::Kind, Op},
-    Cigar,
-};
+use noodles_sam::{alignment::record::Cigar, record::cigar::op::Kind};
 
-pub fn put_cigar<B>(dst: &mut B, cigar: &Cigar) -> io::Result<()>
+pub fn put_cigar<B, C>(dst: &mut B, cigar: &C) -> io::Result<()>
 where
     B: BufMut,
+    C: Cigar,
 {
-    for &op in cigar.as_ref() {
-        let n = encode_op(op)?;
+    for result in cigar.iter() {
+        let (kind, len) = result?;
+        let n = encode_op(kind, len)?;
         dst.put_u32_le(n);
     }
 
     Ok(())
 }
 
-fn encode_op(op: Op) -> io::Result<u32> {
+fn encode_op(kind: Kind, len: usize) -> io::Result<u32> {
     const MAX_LENGTH: u32 = (1 << 28) - 1;
 
-    let len =
-        u32::try_from(op.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    let len = u32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     if len <= MAX_LENGTH {
-        let k = encode_kind(op.kind());
+        let k = encode_kind(kind);
         Ok(len << 4 | k)
     } else {
         Err(io::Error::new(
@@ -51,11 +49,13 @@ fn encode_kind(kind: Kind) -> u32 {
 
 #[cfg(test)]
 mod tests {
+    use noodles_sam::record::Cigar as CigarBuf;
+
     use super::*;
 
     #[test]
     fn test_put_cigar() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(buf: &mut Vec<u8>, cigar: &Cigar, expected: &[u8]) -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, cigar: &CigarBuf, expected: &[u8]) -> io::Result<()> {
             buf.clear();
             put_cigar(buf, cigar)?;
             assert_eq!(buf, expected);
@@ -64,7 +64,7 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        t(&mut buf, &Cigar::default(), &[])?;
+        t(&mut buf, &CigarBuf::default(), &[])?;
         t(&mut buf, &"4M".parse()?, &[0x40, 0x00, 0x00, 0x00])?;
         t(
             &mut buf,
@@ -77,12 +77,10 @@ mod tests {
 
     #[test]
     fn test_encode_op() -> io::Result<()> {
-        let op = Op::new(Kind::Match, 1);
-        assert_eq!(encode_op(op)?, 0x10);
+        assert_eq!(encode_op(Kind::Match, 1)?, 0x10);
 
-        let op = Op::new(Kind::Match, 1 << 28);
         assert!(matches!(
-            encode_op(op),
+            encode_op(Kind::Match, 1 << 28),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput,
         ));
 

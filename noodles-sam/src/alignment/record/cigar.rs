@@ -38,6 +38,20 @@ impl<'a> IntoIterator for &'a dyn Cigar {
     }
 }
 
+impl Cigar for Box<dyn Cigar + '_> {
+    fn is_empty(&self) -> bool {
+        (**self).is_empty()
+    }
+
+    fn len(&self) -> usize {
+        (**self).len()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Kind, usize)>> + '_> {
+        (**self).iter()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
