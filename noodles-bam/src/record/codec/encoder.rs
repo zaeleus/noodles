@@ -37,8 +37,12 @@ where
     // ref_id
     put_reference_sequence_id(dst, header, Record::reference_sequence_id(record, header))?;
 
+    let alignment_start = Record::alignment_start(record)
+        .map(|position| Position::try_from(&position as &dyn sam::alignment::record::Position))
+        .transpose()?;
+
     // pos
-    put_position(dst, Record::alignment_start(record))?;
+    put_position(dst, alignment_start)?;
 
     put_l_read_name(dst, Record::name(record))?;
 
@@ -46,7 +50,7 @@ where
     put_mapping_quality(dst, record.mapping_quality());
 
     // bin
-    put_bin(dst, record.alignment_start(), record.alignment_end())?;
+    put_bin(dst, alignment_start, record.alignment_end())?;
 
     // n_cigar_op
     let cigar = overflowing_put_cigar_op_count(dst, header, record)?;
@@ -65,8 +69,12 @@ where
         Record::mate_reference_sequence_id(record, header),
     )?;
 
+    let mate_alignment_start = Record::mate_alignment_start(record)
+        .map(|position| Position::try_from(&position as &dyn sam::alignment::record::Position))
+        .transpose()?;
+
     // next_pos
-    put_position(dst, Record::mate_alignment_start(record))?;
+    put_position(dst, mate_alignment_start)?;
 
     // tlen
     put_template_length(dst, record.template_length());
