@@ -19,7 +19,7 @@ use noodles_core::Region;
 use noodles_csi::BinningIndex;
 use noodles_sam::{self as sam, alignment::RecordBuf, header::ReferenceSequences};
 
-use super::lazy;
+use super::Record;
 
 /// A BAM reader.
 ///
@@ -182,11 +182,11 @@ where
     /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
     /// reader.read_header()?;
     ///
-    /// let mut record = bam::lazy::Record::default();
+    /// let mut record = bam::Record::default();
     /// reader.read_lazy_record(&mut record)?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn read_lazy_record(&mut self, record: &mut lazy::Record) -> io::Result<usize> {
+    pub fn read_lazy_record(&mut self, record: &mut Record) -> io::Result<usize> {
         use self::record::read_raw_record;
 
         let block_size = match read_raw_record(&mut self.inner, &mut record.buf)? {

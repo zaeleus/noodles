@@ -23,9 +23,8 @@ use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};
 
 use self::{query::query, record::read_record};
 use crate::{
-    lazy,
     reader::{bytes_with_nul_to_string, resolve_region},
-    MAGIC_NUMBER,
+    Record, MAGIC_NUMBER,
 };
 
 /// An async BAM reader.
@@ -230,12 +229,12 @@ where
     /// reader.read_header().await?;
     /// reader.read_reference_sequences().await?;
     ///
-    /// let mut record = bam::lazy::Record::default();
+    /// let mut record = bam::Record::default();
     /// reader.read_lazy_record(&mut record).await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_lazy_record(&mut self, record: &mut lazy::Record) -> io::Result<usize> {
+    pub async fn read_lazy_record(&mut self, record: &mut Record) -> io::Result<usize> {
         use self::record::read_block_size;
 
         let block_size = match read_block_size(&mut self.inner).await? {
@@ -322,9 +321,9 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn lazy_records(&mut self) -> impl Stream<Item = io::Result<lazy::Record>> + '_ {
+    pub fn lazy_records(&mut self) -> impl Stream<Item = io::Result<Record>> + '_ {
         Box::pin(stream::try_unfold(
-            (self, lazy::Record::default()),
+            (self, Record::default()),
             |(this, mut record)| async {
                 this.read_lazy_record(&mut record).await.map(|n| match n {
                     0 => None,

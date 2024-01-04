@@ -12,9 +12,8 @@ use noodles_csi::BinningIndex;
 use noodles_sam::{self as sam, alignment::RecordBuf};
 
 use super::{
-    lazy,
     reader::{LazyRecords, Query, Records},
-    Reader,
+    Reader, Record,
 };
 
 /// An indexed BAM reader.
@@ -57,7 +56,7 @@ where
     }
 
     /// Reads a single record without eagerly decoding its fields.
-    pub fn read_lazy_record(&mut self, record: &mut lazy::Record) -> io::Result<usize> {
+    pub fn read_lazy_record(&mut self, record: &mut Record) -> io::Result<usize> {
         self.inner.read_lazy_record(record)
     }
 

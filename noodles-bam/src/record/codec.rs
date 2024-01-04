@@ -1,3 +1,5 @@
+#![doc(hidden)]
+
 pub mod decoder;
 pub mod encoder;
 
