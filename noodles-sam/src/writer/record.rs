@@ -6,6 +6,7 @@ mod name;
 mod position;
 mod quality_scores;
 mod sequence;
+mod template_length;
 
 pub use self::{
     cigar::write_cigar, data::write_data, position::write_position,
@@ -14,7 +15,10 @@ pub use self::{
 
 use std::io::{self, Write};
 
-use self::{flags::write_flags, mapping_quality::write_mapping_quality, name::write_name};
+use self::{
+    flags::write_flags, mapping_quality::write_mapping_quality, name::write_name,
+    template_length::write_template_length,
+};
 use crate::{
     alignment::{Record, RecordBuf},
     Header,
@@ -26,8 +30,6 @@ pub fn write_record<W>(writer: &mut W, header: &Header, record: &RecordBuf) -> i
 where
     W: Write,
 {
-    use super::num;
-
     const DELIMITER: &[u8] = b"\t";
     const EQ: &[u8] = b"=";
     const MISSING: &[u8] = b"*";
@@ -76,7 +78,7 @@ where
     write_position(writer, Record::mate_alignment_start(record).as_deref())?;
 
     writer.write_all(DELIMITER)?;
-    num::write_i32(writer, record.template_length())?;
+    write_template_length(writer, record.template_length())?;
 
     writer.write_all(DELIMITER)?;
     write_sequence(writer, record.cigar().read_length(), record.sequence())?;
