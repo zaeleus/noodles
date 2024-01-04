@@ -15,6 +15,8 @@ pub use self::{
 
 use std::io::{self, Write};
 
+use noodles_core::Position;
+
 use self::{
     flags::write_flags, mapping_quality::write_mapping_quality, name::write_name,
     template_length::write_template_length,
@@ -63,7 +65,10 @@ where
     writer.write_all(rname)?;
 
     writer.write_all(DELIMITER)?;
-    write_position(writer, Record::alignment_start(record).as_deref())?;
+    let alignment_start = Record::alignment_start(record)
+        .map(|position| Position::try_from(&position as &dyn crate::alignment::record::Position))
+        .transpose()?;
+    write_position(writer, alignment_start)?;
 
     writer.write_all(DELIMITER)?;
     write_mapping_quality(writer, record.mapping_quality())?;
@@ -75,7 +80,10 @@ where
     writer.write_all(rnext)?;
 
     writer.write_all(DELIMITER)?;
-    write_position(writer, Record::mate_alignment_start(record).as_deref())?;
+    let mate_alignment_start = Record::mate_alignment_start(record)
+        .map(|position| Position::try_from(&position as &dyn crate::alignment::record::Position))
+        .transpose()?;
+    write_position(writer, mate_alignment_start)?;
 
     writer.write_all(DELIMITER)?;
     write_template_length(writer, record.template_length())?;
