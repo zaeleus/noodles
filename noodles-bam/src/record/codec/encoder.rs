@@ -40,7 +40,7 @@ where
     // pos
     put_position(dst, Record::alignment_start(record))?;
 
-    put_l_read_name(dst, record.name())?;
+    put_l_read_name(dst, Record::name(record))?;
 
     // mapq
     put_mapping_quality(dst, record.mapping_quality());
@@ -98,17 +98,15 @@ where
     Ok(())
 }
 
-fn put_l_read_name<B>(
-    dst: &mut B,
-    name: Option<&sam::alignment::record_buf::Name>,
-) -> io::Result<()>
+fn put_l_read_name<B, N>(dst: &mut B, name: Option<N>) -> io::Result<()>
 where
     B: BufMut,
+    N: sam::alignment::record::Name,
 {
     use std::mem;
 
     let mut name_len = name
-        .map(|name| name.as_ref().len())
+        .map(|name| name.len())
         .unwrap_or(sam::record::name::MISSING.len());
 
     // + NUL terminator
