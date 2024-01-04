@@ -21,7 +21,7 @@ use noodles_core::Position;
 use noodles_sam::{
     self as sam,
     alignment::{Record, RecordBuf},
-    record::{Cigar, Flags},
+    record::{Cigar, Flags, MappingQuality},
 };
 
 use self::{position::put_position, reference_sequence_id::put_reference_sequence_id};
@@ -50,8 +50,13 @@ where
 
     put_l_read_name(dst, Record::name(record))?;
 
+    let mapping_quality = Record::mapping_quality(record)
+        .map(|mapping_quality| mapping_quality.try_to_u8())
+        .transpose()?
+        .and_then(MappingQuality::new);
+
     // mapq
-    put_mapping_quality(dst, record.mapping_quality());
+    put_mapping_quality(dst, mapping_quality);
 
     // bin
     let alignment_end = Record::alignment_end(record, header).transpose()?;
