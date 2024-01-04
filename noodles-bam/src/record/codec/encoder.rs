@@ -34,8 +34,12 @@ pub(crate) fn encode<B>(dst: &mut B, header: &sam::Header, record: &RecordBuf) -
 where
     B: BufMut,
 {
+    let reference_sequence_id = Record::reference_sequence_id(record, header)
+        .map(|id| id.try_to_usize())
+        .transpose()?;
+
     // ref_id
-    put_reference_sequence_id(dst, header, Record::reference_sequence_id(record, header))?;
+    put_reference_sequence_id(dst, header, reference_sequence_id)?;
 
     let alignment_start = Record::alignment_start(record)
         .map(|position| Position::try_from(&position as &dyn sam::alignment::record::Position))
@@ -63,12 +67,12 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     dst.put_u32_le(l_seq);
 
+    let mate_reference_sequence_id = Record::mate_reference_sequence_id(record, header)
+        .map(|id| id.try_to_usize())
+        .transpose()?;
+
     // next_ref_id
-    put_reference_sequence_id(
-        dst,
-        header,
-        Record::mate_reference_sequence_id(record, header),
-    )?;
+    put_reference_sequence_id(dst, header, mate_reference_sequence_id)?;
 
     let mate_alignment_start = Record::mate_alignment_start(record)
         .map(|position| Position::try_from(&position as &dyn sam::alignment::record::Position))
