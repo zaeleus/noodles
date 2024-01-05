@@ -41,6 +41,9 @@
 
     This also changes accessors from `read_name` to `name`.
 
+  * sam/record/convert: Change `Record::try_from_alignment_record` to accept
+    `&sam::alignment::Record`.
+
 ## 0.49.0 - 2023-12-14
 
 ### Added
