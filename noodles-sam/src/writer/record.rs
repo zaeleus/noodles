@@ -100,7 +100,7 @@ where
     write_sequence(writer, record.cigar().read_length(), sequence)?;
 
     writer.write_all(DELIMITER)?;
-    write_quality_scores(writer, base_count, record.quality_scores())?;
+    write_quality_scores(writer, base_count, Record::quality_scores(record))?;
 
     write_data(writer, Record::data(record))?;
 
