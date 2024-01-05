@@ -5,9 +5,11 @@ mod header;
 mod lazy_records;
 pub(crate) mod query;
 mod record;
-mod records;
+mod record_bufs;
 
-pub use self::{builder::Builder, lazy_records::LazyRecords, query::Query, records::Records};
+pub use self::{
+    builder::Builder, lazy_records::LazyRecords, query::Query, record_bufs::RecordBufs,
+};
 
 use std::{
     ffi::CStr,
@@ -42,7 +44,7 @@ use super::Record;
 /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
 /// let header = reader.read_header()?;
 ///
-/// for result in reader.records(&header) {
+/// for result in reader.record_bufs(&header) {
 ///     let record = result?;
 ///     // ...
 /// }
@@ -148,17 +150,17 @@ where
     /// let header = reader.read_header()?;
     ///
     /// let mut record = RecordBuf::default();
-    /// reader.read_record(&header, &mut record)?;
+    /// reader.read_record_buf(&header, &mut record)?;
     ///
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn read_record(
+    pub fn read_record_buf(
         &mut self,
         header: &sam::Header,
         record: &mut RecordBuf,
     ) -> io::Result<usize> {
-        use self::record::read_record;
-        read_record(&mut self.inner, header, &mut self.buf, record)
+        use self::record::read_record_buf;
+        read_record_buf(&mut self.inner, header, &mut self.buf, record)
     }
 
     /// Reads a single record without eagerly decoding its fields.
@@ -213,14 +215,14 @@ where
     /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
     /// let header = reader.read_header()?;
     ///
-    /// for result in reader.records(&header) {
+    /// for result in reader.record_bufs(&header) {
     ///     let record = result?;
     ///     println!("{:?}", record);
     /// }
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn records<'a>(&'a mut self, header: &'a sam::Header) -> Records<'_, R> {
-        Records::new(self, header)
+    pub fn record_bufs<'a>(&'a mut self, header: &'a sam::Header) -> RecordBufs<'_, R> {
+        RecordBufs::new(self, header)
     }
 
     /// Returns an iterator over lazy records.
@@ -397,7 +399,7 @@ where
             self.seek_to_first_record()?;
         }
 
-        Ok(self.records(header).filter(|result| {
+        Ok(self.record_bufs(header).filter(|result| {
             result
                 .as_ref()
                 .map(|record| record.flags().is_unmapped())
@@ -428,7 +430,7 @@ where
         header: &'a sam::Header,
     ) -> Box<dyn Iterator<Item = io::Result<Box<dyn sam::alignment::Record>>> + 'a> {
         Box::new(
-            self.records(header).map(|result| {
+            self.record_bufs(header).map(|result| {
                 result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
             }),
         )

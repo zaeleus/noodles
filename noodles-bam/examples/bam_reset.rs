@@ -33,7 +33,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut record = sam::alignment::RecordBuf::default();
 
-    while reader.read_record(&header, &mut record)? != 0 {
+    while reader.read_record_buf(&header, &mut record)? != 0 {
         let flags = record.flags();
 
         if flags.is_secondary() || flags.is_supplementary() {

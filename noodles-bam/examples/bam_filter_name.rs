@@ -57,7 +57,7 @@ fn main() -> io::Result<()> {
 
     writer.write_header(&header)?;
 
-    for result in reader.records(&header) {
+    for result in reader.record_bufs(&header) {
         let record = result?;
 
         if let Some(name) = record.name() {

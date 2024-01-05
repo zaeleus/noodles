@@ -72,7 +72,7 @@ fn main() -> io::Result<()> {
     let mut writers = build_writers(header.read_groups())?;
     write_headers(&mut writers, &header)?;
 
-    for result in reader.records(&header) {
+    for result in reader.record_bufs(&header) {
         let record = result?;
 
         if let Some(read_group) = find_read_group(record.data()).transpose()? {

@@ -201,7 +201,7 @@ fn main() -> io::Result<()> {
     let mut qc_pass_counts = Counts::default();
     let mut qc_fail_counts = Counts::default();
 
-    for result in reader.records(&header) {
+    for result in reader.record_bufs(&header) {
         let record = result?;
 
         if record.flags().is_qc_fail() {

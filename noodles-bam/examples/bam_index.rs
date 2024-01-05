@@ -42,7 +42,7 @@ fn main() -> io::Result<()> {
     let mut builder = Indexer::default();
     let mut start_position = reader.virtual_position();
 
-    while reader.read_record(&header, &mut record)? != 0 {
+    while reader.read_record_buf(&header, &mut record)? != 0 {
         let end_position = reader.virtual_position();
         let chunk = Chunk::new(start_position, end_position);
 
