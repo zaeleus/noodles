@@ -10,10 +10,7 @@ use noodles_bam as bam;
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_cram as cram;
-use noodles_sam::{
-    self as sam,
-    alignment::{Record, RecordBuf},
-};
+use noodles_sam::{self as sam, alignment::Record};
 
 /// An indexed alignment reader.
 pub enum IndexedReader<R> {
@@ -78,15 +75,36 @@ where
         &'r mut self,
         header: &'h sam::Header,
         region: &Region,
-    ) -> io::Result<impl Iterator<Item = io::Result<RecordBuf>> + 'r> {
-        let records: Box<dyn Iterator<Item = io::Result<RecordBuf>>> =
-            match self {
-                Self::Sam(reader) => reader.query(header, region).map(Box::new)?,
-                Self::Bam(reader) => reader.query(header, region).map(Box::new)?,
-                Self::Cram(reader) => Box::new(reader.query(header, region)?.map(|result| {
-                    result.and_then(|record| record.try_into_alignment_record(header))
-                })),
-            };
+    ) -> io::Result<impl Iterator<Item = io::Result<Box<dyn Record>>> + 'r> {
+        let records: Box<dyn Iterator<Item = io::Result<Box<dyn Record>>>> = match self {
+            Self::Sam(reader) => {
+                let query = reader.query(header, region)?;
+
+                Box::new(
+                    query.map(|result| result.map(|record| Box::new(record) as Box<dyn Record>)),
+                )
+            }
+            Self::Bam(reader) => {
+                let query = reader.query(header, region)?;
+
+                Box::new(
+                    query.map(|result| result.map(|record| Box::new(record) as Box<dyn Record>)),
+                )
+            }
+            Self::Cram(reader) => {
+                let query = reader.query(header, region)?;
+
+                Box::new(query.map(|result| {
+                    result.and_then(|record| {
+                        record
+                            .try_into_alignment_record(header)
+                            .map(|alignment_record| {
+                                Box::new(alignment_record) as Box<dyn sam::alignment::Record>
+                            })
+                    })
+                }))
+            }
+        };
 
         Ok(records)
     }

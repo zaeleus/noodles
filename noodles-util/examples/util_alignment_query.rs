@@ -10,7 +10,7 @@ use std::{
 };
 
 use noodles_fasta as fasta;
-use noodles_sam as sam;
+use noodles_sam::{self as sam, alignment::io::Write};
 use noodles_util::alignment;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -41,7 +41,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for result in query {
         let record = result?;
-        writer.write_record(&header, &record)?;
+        writer.write_alignment_record(&header, &record)?;
     }
 
     Ok(())

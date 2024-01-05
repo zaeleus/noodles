@@ -4,6 +4,9 @@
 
 ### Changed
 
+  * util/alignment/indexed_reader: Change `IndexedReader::query` to return an
+    iterator over `io::Result<Box<dyn sam::alignment::Record>>`.
+
   * util/alignment/reader: Change `Reader::records` to return an iterator over
     `io::Result<Box<dyn sam::alignment::Record>>`.
 
