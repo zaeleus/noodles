@@ -90,7 +90,8 @@ where
     write_position(writer, mate_alignment_start)?;
 
     writer.write_all(DELIMITER)?;
-    write_template_length(writer, record.template_length())?;
+    let template_length = Record::template_length(record).try_to_i32()?;
+    write_template_length(writer, template_length)?;
 
     writer.write_all(DELIMITER)?;
     write_sequence(writer, record.cigar().read_length(), record.sequence())?;
