@@ -118,6 +118,62 @@ pub trait Record {
     }
 }
 
+impl Record for Box<dyn Record> {
+    fn name(&self) -> Option<Box<dyn Name + '_>> {
+        (**self).name()
+    }
+
+    fn flags(&self) -> Box<dyn Flags + '_> {
+        (**self).flags()
+    }
+
+    fn reference_sequence_id<'r, 'h: 'r>(
+        &'r self,
+        header: &'h Header,
+    ) -> Option<Box<dyn ReferenceSequenceId + 'r>> {
+        (**self).reference_sequence_id(header)
+    }
+
+    fn alignment_start(&self) -> Option<Box<dyn Position + '_>> {
+        (**self).alignment_start()
+    }
+
+    fn mapping_quality(&self) -> Option<Box<dyn MappingQuality + '_>> {
+        (**self).mapping_quality()
+    }
+
+    fn cigar(&self, header: &Header) -> Box<dyn Cigar + '_> {
+        (**self).cigar(header)
+    }
+
+    fn mate_reference_sequence_id<'r, 'h: 'r>(
+        &'r self,
+        header: &'h Header,
+    ) -> Option<Box<dyn ReferenceSequenceId + 'r>> {
+        (**self).mate_reference_sequence_id(header)
+    }
+
+    fn mate_alignment_start(&self) -> Option<Box<dyn Position + '_>> {
+        (**self).mate_alignment_start()
+    }
+
+    fn template_length(&self) -> Box<dyn TemplateLength + '_> {
+        (**self).template_length()
+    }
+
+    fn sequence(&self) -> Box<dyn Sequence + '_> {
+        (**self).sequence()
+    }
+
+    fn quality_scores(&self) -> Box<dyn QualityScores + '_> {
+        (**self).quality_scores()
+    }
+
+    fn data(&self) -> Box<dyn Data + '_> {
+        (**self).data()
+    }
+}
+
 fn get_reference_sequence<'r, 'h: 'r>(
     reference_sequences: &'h ReferenceSequences,
     reference_sequence_id: Option<Box<dyn ReferenceSequenceId + 'r>>,
