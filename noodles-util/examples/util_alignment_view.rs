@@ -11,7 +11,7 @@ use std::{
 };
 
 use noodles_fasta::{self as fasta, repository::adapters::IndexedReader};
-use noodles_sam::{self as sam, alignment::io::Writer};
+use noodles_sam::{self as sam, alignment::io::Write};
 use noodles_util::alignment;
 
 fn main() -> io::Result<()> {

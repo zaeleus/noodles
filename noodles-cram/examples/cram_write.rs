@@ -13,7 +13,7 @@ use noodles_fasta as fasta;
 use noodles_sam::{
     self as sam,
     alignment::{
-        io::Writer,
+        io::Write,
         record_buf::{QualityScores, Sequence},
         RecordBuf,
     },

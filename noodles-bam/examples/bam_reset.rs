@@ -11,7 +11,7 @@ use std::{
 use noodles_bam as bam;
 use noodles_sam::{
     self as sam,
-    alignment::{io::Writer, RecordBuf},
+    alignment::{io::Write, RecordBuf},
     record::Flags,
 };
 

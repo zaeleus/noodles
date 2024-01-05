@@ -144,7 +144,7 @@ where
     }
 }
 
-impl<W> crate::alignment::io::Writer for Writer<W>
+impl<W> crate::alignment::io::Write for Writer<W>
 where
     W: Write,
 {

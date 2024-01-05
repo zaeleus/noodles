@@ -5,7 +5,7 @@ use crate::{alignment::Record, Header};
 /// An alignment format writer.
 ///
 /// A call to [`Self::finish`] must be made before the writer is dropped.
-pub trait Writer {
+pub trait Write {
     /// Writes a SAM header.
     fn write_alignment_header(&mut self, header: &Header) -> io::Result<()>;
 

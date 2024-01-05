@@ -22,15 +22,15 @@
 ### Changed
 
   * sam: Move `AlignmentReader` and `AlignmentWriter` to `alignment::io::Read`
-    and `alignment::io::Writer`, respectively.
+    and `alignment::io::Write`, respectively.
 
   * sam/alignment: Rename `Record` to `RecordBuf`.
 
   * sam/alignment/io/read: Change `Read::records` to return an iterator
     over `io::Result<Box<dyn Record>>`.
 
-  * sam/alignment/io/writer: Change `AlignmentWriter::write_record` to accept
-    `&dyn crate::alignment::Record`.
+  * sam/alignment/io/write: Change `Write::write_record` to accept `&dyn
+    crate::alignment::Record`.
 
   * sam/alignment/record_buf: Change name to raw buffer (`record_buf::Name`).
 

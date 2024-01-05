@@ -5,7 +5,7 @@
 use std::{env, io};
 
 use noodles_bam as bam;
-use noodles_sam::{self as sam, alignment::io::Writer};
+use noodles_sam::{self as sam, alignment::io::Write};
 
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
