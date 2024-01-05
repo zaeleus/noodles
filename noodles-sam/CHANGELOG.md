@@ -26,6 +26,9 @@
 
   * sam/alignment: Rename `Record` to `RecordBuf`.
 
+  * sam/alignment/io/writer: Change `AlignmentWriter::write_record` to accept
+    `&dyn crate::alignment::Record`.
+
   * sam/alignment/record_buf: Change name to raw buffer (`record_buf::Name`).
 
   * sam/alignment/record_buf: Change sequence to raw bases
@@ -33,9 +36,6 @@
 
   * sam/alignment/record_buf: Change quality scores to raw scores
     (`record_buf::QualityScores`).
-
-  * sam/alignment_writer: Change `AlignmentWriter::write_record` to accept
-    `&dyn crate::alignment::Record`.
 
   * sam/lazy/record/data/field: Replace `Value` with
     `crate::alignment::record::data::field::Value`.
