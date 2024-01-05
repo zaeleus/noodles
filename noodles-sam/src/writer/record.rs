@@ -23,7 +23,7 @@ use self::{
 };
 use crate::{
     alignment::{Record, RecordBuf},
-    record::Flags,
+    record::{Flags, MappingQuality},
     Header,
 };
 
@@ -69,7 +69,13 @@ where
     write_position(writer, alignment_start)?;
 
     writer.write_all(DELIMITER)?;
-    write_mapping_quality(writer, record.mapping_quality())?;
+
+    let mapping_quality = Record::mapping_quality(record)
+        .map(|mapping_quality| mapping_quality.try_to_u8())
+        .transpose()?
+        .and_then(MappingQuality::new);
+
+    write_mapping_quality(writer, mapping_quality)?;
 
     writer.write_all(DELIMITER)?;
     write_cigar(writer, record.cigar())?;
