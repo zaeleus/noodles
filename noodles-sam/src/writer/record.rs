@@ -22,25 +22,27 @@ use self::{
     template_length::write_template_length,
 };
 use crate::{
-    alignment::{Record, RecordBuf},
+    alignment::Record,
     record::{Flags, MappingQuality},
     Header,
 };
 
 const MISSING: u8 = b'*';
 
-pub fn write_record<W>(writer: &mut W, header: &Header, record: &RecordBuf) -> io::Result<()>
+pub fn write_record<W, R>(writer: &mut W, header: &Header, record: &R) -> io::Result<()>
 where
     W: Write,
+    R: Record,
 {
     const DELIMITER: &[u8] = b"\t";
     const EQ: &[u8] = b"=";
     const MISSING: &[u8] = b"*";
 
-    let reference_sequence = Record::reference_sequence(record, header).transpose()?;
+    let reference_sequence = record.reference_sequence(header).transpose()?;
     let reference_sequence_name = reference_sequence.map(|(name, _)| name).unwrap_or(MISSING);
 
-    let mate_reference_sequence_name = Record::mate_reference_sequence(record, header)
+    let mate_reference_sequence_name = record
+        .mate_reference_sequence(header)
         .transpose()?
         .map(|(mate_reference_sequence_name, _)| {
             if let Some((reference_sequence_name, _)) = reference_sequence {
@@ -53,24 +55,26 @@ where
         })
         .unwrap_or(MISSING);
 
-    write_name(writer, Record::name(record))?;
+    write_name(writer, record.name())?;
 
     writer.write_all(DELIMITER)?;
-    let flags = Record::flags(record).try_to_u16().map(Flags::from)?;
+    let flags = record.flags().try_to_u16().map(Flags::from)?;
     write_flags(writer, flags)?;
 
     writer.write_all(DELIMITER)?;
     writer.write_all(reference_sequence_name)?;
 
     writer.write_all(DELIMITER)?;
-    let alignment_start = Record::alignment_start(record)
+    let alignment_start = record
+        .alignment_start()
         .map(|position| Position::try_from(&position as &dyn crate::alignment::record::Position))
         .transpose()?;
     write_position(writer, alignment_start)?;
 
     writer.write_all(DELIMITER)?;
 
-    let mapping_quality = Record::mapping_quality(record)
+    let mapping_quality = record
+        .mapping_quality()
         .map(|mapping_quality| mapping_quality.try_to_u8())
         .transpose()?
         .and_then(MappingQuality::new);
@@ -78,31 +82,33 @@ where
     write_mapping_quality(writer, mapping_quality)?;
 
     writer.write_all(DELIMITER)?;
-    write_cigar(writer, &Record::cigar(record, header))?;
+    write_cigar(writer, &record.cigar(header))?;
 
     writer.write_all(DELIMITER)?;
     writer.write_all(mate_reference_sequence_name)?;
 
     writer.write_all(DELIMITER)?;
-    let mate_alignment_start = Record::mate_alignment_start(record)
+    let mate_alignment_start = record
+        .mate_alignment_start()
         .map(|position| Position::try_from(&position as &dyn crate::alignment::record::Position))
         .transpose()?;
     write_position(writer, mate_alignment_start)?;
 
     writer.write_all(DELIMITER)?;
-    let template_length = Record::template_length(record).try_to_i32()?;
+    let template_length = record.template_length().try_to_i32()?;
     write_template_length(writer, template_length)?;
 
-    let sequence = Record::sequence(record);
+    let sequence = record.sequence();
     let base_count = sequence.len();
 
     writer.write_all(DELIMITER)?;
-    write_sequence(writer, record.cigar().read_length(), sequence)?;
+    let read_length = record.cigar(header).read_length()?;
+    write_sequence(writer, read_length, sequence)?;
 
     writer.write_all(DELIMITER)?;
-    write_quality_scores(writer, base_count, Record::quality_scores(record))?;
+    write_quality_scores(writer, base_count, record.quality_scores())?;
 
-    write_data(writer, Record::data(record))?;
+    write_data(writer, record.data())?;
 
     writeln!(writer)?;
 
@@ -112,6 +118,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::alignment::RecordBuf;
 
     #[test]
     fn test_write_record_with_data() -> io::Result<()> {
