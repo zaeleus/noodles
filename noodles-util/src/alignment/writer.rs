@@ -6,7 +6,7 @@ pub use self::builder::Builder;
 
 use std::io;
 
-use noodles_sam::{self as sam, alignment::RecordBuf};
+use noodles_sam::{self as sam, alignment::Record};
 
 /// An alignment writer.
 pub struct Writer {
@@ -55,7 +55,10 @@ impl Writer {
     /// writer.write_record(&header, &record)?;
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn write_record(&mut self, header: &sam::Header, record: &RecordBuf) -> io::Result<()> {
+    pub fn write_record<R>(&mut self, header: &sam::Header, record: &R) -> io::Result<()>
+    where
+        R: Record,
+    {
         self.inner.write_alignment_record(header, record)
     }
 

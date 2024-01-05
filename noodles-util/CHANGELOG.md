@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * util/alignment/writer: Change `Writer::write_record` to accept
+    `&sam::alignment::Record`.
+
 ## 0.32.0 - 2023-12-14
 
 ### Changed

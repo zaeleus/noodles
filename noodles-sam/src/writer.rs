@@ -152,7 +152,11 @@ where
         self.write_header(header)
     }
 
-    fn write_alignment_record(&mut self, header: &Header, record: &RecordBuf) -> io::Result<()> {
+    fn write_alignment_record(
+        &mut self,
+        header: &Header,
+        record: &dyn crate::alignment::Record,
+    ) -> io::Result<()> {
         write_record(&mut self.inner, header, record)
     }
 

@@ -32,7 +32,7 @@ const MISSING: u8 = b'*';
 pub fn write_record<W, R>(writer: &mut W, header: &Header, record: &R) -> io::Result<()>
 where
     W: Write,
-    R: Record,
+    R: Record + ?Sized,
 {
     const DELIMITER: &[u8] = b"\t";
     const EQ: &[u8] = b"=";

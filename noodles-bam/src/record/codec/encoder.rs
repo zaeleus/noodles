@@ -33,7 +33,7 @@ pub(crate) const UNMAPPED_BIN: u16 = 4680;
 pub(crate) fn encode<B, R>(dst: &mut B, header: &sam::Header, record: &R) -> io::Result<()>
 where
     B: BufMut,
-    R: Record,
+    R: Record + ?Sized,
 {
     let reference_sequence_id = record
         .reference_sequence_id(header)
@@ -165,13 +165,14 @@ where
     Ok(())
 }
 
-fn overflowing_put_cigar_op_count<B>(
+fn overflowing_put_cigar_op_count<B, R>(
     dst: &mut B,
     header: &sam::Header,
-    record: &dyn Record,
+    record: &R,
 ) -> io::Result<Option<Cigar>>
 where
     B: BufMut,
+    R: Record + ?Sized,
 {
     use sam::record::cigar::{op, Op};
 

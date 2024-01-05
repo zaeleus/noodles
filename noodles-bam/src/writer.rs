@@ -192,9 +192,20 @@ where
     fn write_alignment_record(
         &mut self,
         header: &sam::Header,
-        record: &RecordBuf,
+        record: &dyn sam::alignment::Record,
     ) -> io::Result<()> {
-        self.write_record(header, record)
+        use super::record::codec::encode;
+
+        self.buf.clear();
+        encode(&mut self.buf, header, record)?;
+
+        let block_size = u32::try_from(self.buf.len())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        self.inner.write_u32::<LittleEndian>(block_size)?;
+
+        self.inner.write_all(&self.buf)?;
+
+        Ok(())
     }
 
     fn finish(&mut self, _: &sam::Header) -> io::Result<()> {
