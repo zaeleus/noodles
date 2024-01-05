@@ -3,7 +3,7 @@ use std::io;
 use crate::{alignment::Record, Header};
 
 /// An alignment reader.
-pub trait Reader<R> {
+pub trait Read<R> {
     /// Reads a SAM header.
     fn read_alignment_header(&mut self) -> io::Result<Header>;
 

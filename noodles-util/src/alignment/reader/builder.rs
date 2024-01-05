@@ -125,7 +125,7 @@ impl Builder {
             None => detect_format(&mut reader, compression_method)?,
         };
 
-        let inner: Box<dyn sam::alignment::io::Reader<_>> = match (format, compression_method) {
+        let inner: Box<dyn sam::alignment::io::Read<_>> = match (format, compression_method) {
             (Format::Sam, None) => {
                 let inner: Box<dyn BufRead> = Box::new(reader);
                 Box::new(sam::Reader::from(inner))

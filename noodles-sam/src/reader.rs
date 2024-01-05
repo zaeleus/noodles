@@ -377,7 +377,7 @@ where
     }
 }
 
-impl<R> crate::alignment::io::Reader<R> for Reader<R>
+impl<R> crate::alignment::io::Read<R> for Reader<R>
 where
     R: BufRead,
 {

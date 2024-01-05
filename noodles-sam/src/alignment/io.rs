@@ -1,6 +1,6 @@
 //! Alignment record I/O.
 
-mod reader;
+mod read;
 mod writer;
 
-pub use self::{reader::Reader, writer::Writer};
+pub use self::{read::Read, writer::Writer};

@@ -415,7 +415,7 @@ impl<R> From<R> for Reader<R> {
     }
 }
 
-impl<R> sam::alignment::io::Reader<R> for Reader<R>
+impl<R> sam::alignment::io::Read<R> for Reader<R>
 where
     R: Read,
 {

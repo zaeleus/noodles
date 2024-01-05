@@ -21,12 +21,12 @@
 
 ### Changed
 
-  * sam: Move `AlignmentReader` and `AlignmentWriter` to
-    `alignment::io::Reader` and `alignment::io::Writer`, respectively.
+  * sam: Move `AlignmentReader` and `AlignmentWriter` to `alignment::io::Read`
+    and `alignment::io::Writer`, respectively.
 
   * sam/alignment: Rename `Record` to `RecordBuf`.
 
-  * sam/alignment/io/reader: Change `Reader::records` to return an iterator
+  * sam/alignment/io/read: Change `Read::records` to return an iterator
     over `io::Result<Box<dyn Record>>`.
 
   * sam/alignment/io/writer: Change `AlignmentWriter::write_record` to accept

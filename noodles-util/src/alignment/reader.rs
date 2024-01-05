@@ -10,7 +10,7 @@ use noodles_sam as sam;
 
 /// An alignment reader.
 pub struct Reader<R> {
-    inner: Box<dyn sam::alignment::io::Reader<R>>,
+    inner: Box<dyn sam::alignment::io::Read<R>>,
 }
 
 impl<R> Reader<R>
