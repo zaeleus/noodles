@@ -6,11 +6,11 @@ pub use self::builder::Builder;
 
 use std::io::{self, Read};
 
-use noodles_sam::{self as sam, alignment::RecordBuf, AlignmentReader};
+use noodles_sam::{self as sam, alignment::RecordBuf};
 
 /// An alignment reader.
 pub struct Reader<R> {
-    inner: Box<dyn AlignmentReader<R>>,
+    inner: Box<dyn sam::alignment::io::Reader<R>>,
 }
 
 impl<R> Reader<R>

@@ -21,6 +21,8 @@
 
 ### Changed
 
+  * sam: Move `AlignmentReader` to `alignment::io::Reader`.
+
   * sam/alignment: Rename `Record` to `RecordBuf`.
 
   * sam/alignment/record_buf: Change name to raw buffer (`record_buf::Name`).

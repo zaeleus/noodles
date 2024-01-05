@@ -1,9 +1,9 @@
 use std::io;
 
-use super::{alignment::RecordBuf, Header};
+use crate::{alignment::RecordBuf, Header};
 
-/// An alignment format reader.
-pub trait AlignmentReader<R> {
+/// An alignment reader.
+pub trait Reader<R> {
     /// Reads a SAM header.
     fn read_alignment_header(&mut self) -> io::Result<Header>;
 

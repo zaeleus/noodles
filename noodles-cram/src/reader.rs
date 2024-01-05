@@ -325,7 +325,7 @@ where
     }
 }
 
-impl<R> sam::AlignmentReader<R> for Reader<R>
+impl<R> sam::alignment::io::Reader<R> for Reader<R>
 where
     R: Read,
 {

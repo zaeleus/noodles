@@ -14,7 +14,7 @@ use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
 
-use super::{alignment::RecordBuf, header::ReferenceSequences, lazy, AlignmentReader, Header};
+use super::{alignment::RecordBuf, header::ReferenceSequences, lazy, Header};
 
 /// A SAM reader.
 ///
@@ -377,7 +377,7 @@ where
     }
 }
 
-impl<R> AlignmentReader<R> for Reader<R>
+impl<R> crate::alignment::io::Reader<R> for Reader<R>
 where
     R: BufRead,
 {
