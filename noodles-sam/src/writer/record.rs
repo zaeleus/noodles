@@ -78,7 +78,7 @@ where
     write_mapping_quality(writer, mapping_quality)?;
 
     writer.write_all(DELIMITER)?;
-    write_cigar(writer, record.cigar())?;
+    write_cigar(writer, &Record::cigar(record, header))?;
 
     writer.write_all(DELIMITER)?;
     writer.write_all(mate_reference_sequence_name)?;

@@ -1,23 +1,23 @@
 use std::io::{self, Write};
 
-use crate::{
-    record::{cigar::op::Kind, Cigar},
-    writer::num,
-};
+use crate::{alignment::record::Cigar, record::cigar::op::Kind, writer::num};
 
-pub fn write_cigar<W>(writer: &mut W, cigar: &Cigar) -> io::Result<()>
+pub fn write_cigar<W, C>(writer: &mut W, cigar: &C) -> io::Result<()>
 where
     W: Write,
+    C: Cigar,
 {
     use super::MISSING;
 
     if cigar.is_empty() {
         writer.write_all(&[MISSING])?;
     } else {
-        for op in cigar.iter() {
-            num::write_usize(writer, op.len())?;
+        for result in cigar.iter() {
+            let (kind, len) = result?;
 
-            let c = match op.kind() {
+            num::write_usize(writer, len)?;
+
+            let c = match kind {
                 Kind::Match => b'M',
                 Kind::Insertion => b'I',
                 Kind::Deletion => b'D',
@@ -39,17 +39,18 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::record::Cigar as CigarBuf;
 
     #[test]
     fn test_write_cigar() -> io::Result<()> {
         use crate::record::cigar::Op;
 
         let mut buf = Vec::new();
-        write_cigar(&mut buf, &Cigar::default())?;
+        write_cigar(&mut buf, &CigarBuf::default())?;
         assert_eq!(buf, b"*");
 
         buf.clear();
-        let cigar = [Op::new(Kind::Match, 8)].into_iter().collect();
+        let cigar: CigarBuf = [Op::new(Kind::Match, 8)].into_iter().collect();
         write_cigar(&mut buf, &cigar)?;
         assert_eq!(buf, b"8M");
 
