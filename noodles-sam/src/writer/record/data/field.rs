@@ -5,9 +5,9 @@ mod value;
 use std::io::{self, Write};
 
 use self::{tag::write_tag, ty::write_type, value::write_value};
-use crate::record::data::field::{Tag, Value};
+use crate::alignment::record::data::field::Value;
 
-pub fn write_field<W>(writer: &mut W, tag: Tag, value: &Value) -> io::Result<()>
+pub fn write_field<W>(writer: &mut W, tag: [u8; 2], value: &Value) -> io::Result<()>
 where
     W: Write,
 {
@@ -28,10 +28,8 @@ mod tests {
 
     #[test]
     fn test_write_field() -> io::Result<()> {
-        use crate::record::data::field::tag;
-
         let mut buf = Vec::new();
-        let (tag, value) = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
+        let (tag, value) = ([b'N', b'H'], Value::Int32(1));
         write_field(&mut buf, tag, &value)?;
         assert_eq!(buf, b"NH:i:1");
 

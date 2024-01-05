@@ -90,7 +90,7 @@ where
     writer.write_all(DELIMITER)?;
     write_quality_scores(writer, record.sequence().len(), record.quality_scores())?;
 
-    write_data(writer, record.data())?;
+    write_data(writer, Record::data(record))?;
 
     writeln!(writer)?;
 

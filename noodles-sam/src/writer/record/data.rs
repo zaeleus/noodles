@@ -3,17 +3,20 @@ mod field;
 use std::io::{self, Write};
 
 use self::field::write_field;
-use crate::record::Data;
+use crate::alignment::record::Data;
 
-pub fn write_data<W>(writer: &mut W, data: &Data) -> io::Result<()>
+pub fn write_data<W, D>(writer: &mut W, data: D) -> io::Result<()>
 where
     W: Write,
+    D: Data,
 {
     const DELIMITER: u8 = b'\t';
 
-    for (tag, value) in data.iter() {
+    for result in data.iter() {
+        let (tag, value) = result?;
+
         writer.write_all(&[DELIMITER])?;
-        write_field(writer, tag, value)?;
+        write_field(writer, tag, &value)?;
     }
 
     Ok(())
@@ -22,6 +25,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::record::Data as DataBuf;
 
     #[test]
     fn test_write_data() -> Result<(), Box<dyn std::error::Error>> {
@@ -29,7 +33,7 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        let data = [
+        let data: DataBuf = [
             (tag::ALIGNMENT_HIT_COUNT, Value::from(1)),
             (tag::COMMENT, Value::try_from(String::from("noodles"))?),
         ]

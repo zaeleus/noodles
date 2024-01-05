@@ -2,12 +2,8 @@ mod array;
 
 use std::io::{self, Write};
 
-use crate::{
-    record::data::field::{value::Character, Value},
-    writer::num,
-};
-
 use self::array::write_array;
+use crate::{alignment::record::data::field::Value, writer::num};
 
 pub fn write_value<W>(writer: &mut W, value: &Value) -> io::Result<()>
 where
@@ -22,17 +18,16 @@ where
         Value::Int32(n) => num::write_i32(writer, *n),
         Value::UInt32(n) => num::write_u32(writer, *n),
         Value::Float(n) => num::write_f32(writer, *n),
-        Value::String(s) => writer.write_all(s.as_bytes()),
-        Value::Hex(s) => writer.write_all(s.as_ref().as_bytes()),
+        Value::String(s) => writer.write_all(s),
+        Value::Hex(s) => writer.write_all(s),
         Value::Array(array) => write_array(writer, array),
     }
 }
 
-pub fn write_character<W>(writer: &mut W, character: Character) -> io::Result<()>
+pub fn write_character<W>(writer: &mut W, c: u8) -> io::Result<()>
 where
     W: Write,
 {
-    let c = u8::from(character);
     writer.write_all(&[c])
 }
 
@@ -42,7 +37,8 @@ mod tests {
 
     #[test]
     fn test_write_value() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::record::data::field::value::Array;
+        use super::array::tests::T;
+        use crate::alignment::record::data::field::value::Array;
 
         fn t(buf: &mut Vec<u8>, value: &Value, expected: &[u8]) -> io::Result<()> {
             buf.clear();
@@ -53,11 +49,7 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        t(
-            &mut buf,
-            &Value::Character(Character::try_from('n')?),
-            &[b'n'],
-        )?;
+        t(&mut buf, &Value::Character(b'n'), &[b'n'])?;
         t(&mut buf, &Value::Int8(1), b"1")?;
         t(&mut buf, &Value::UInt8(2), b"2")?;
         t(&mut buf, &Value::Int16(3), b"3")?;
@@ -65,9 +57,13 @@ mod tests {
         t(&mut buf, &Value::Int32(8), b"8")?;
         t(&mut buf, &Value::UInt32(13), b"13")?;
         t(&mut buf, &Value::Float(8.0), b"8")?;
-        t(&mut buf, &Value::String(String::from("ndls")), b"ndls")?;
-        t(&mut buf, &Value::Hex("CAFE".parse()?), b"CAFE")?;
-        t(&mut buf, &Value::Array(Array::Int8(vec![0])), b"c,0")?;
+        t(&mut buf, &Value::String(b"ndls"), b"ndls")?;
+        t(&mut buf, &Value::Hex(b"CAFE"), b"CAFE")?;
+        t(
+            &mut buf,
+            &Value::Array(Array::Int8(Box::new(T::new(&[0])))),
+            b"c,0",
+        )?;
 
         Ok(())
     }
