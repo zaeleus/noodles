@@ -9,7 +9,11 @@ use std::{
 };
 
 use noodles_bam as bam;
-use noodles_sam::{self as sam, alignment::RecordBuf, record::Flags, AlignmentWriter};
+use noodles_sam::{
+    self as sam,
+    alignment::{io::Writer, RecordBuf},
+    record::Flags,
+};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");

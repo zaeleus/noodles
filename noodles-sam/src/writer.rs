@@ -8,7 +8,7 @@ use std::io::{self, Write};
 
 pub use self::builder::Builder;
 pub(crate) use self::record::write_record;
-use super::{alignment::RecordBuf, AlignmentWriter, Header};
+use super::{alignment::RecordBuf, Header};
 
 /// A SAM writer.
 ///
@@ -144,7 +144,7 @@ where
     }
 }
 
-impl<W> AlignmentWriter for Writer<W>
+impl<W> crate::alignment::io::Writer for Writer<W>
 where
     W: Write,
 {

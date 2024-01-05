@@ -261,7 +261,7 @@ where
     }
 }
 
-impl<W> sam::AlignmentWriter for Writer<W>
+impl<W> sam::alignment::io::Writer for Writer<W>
 where
     W: Write,
 {

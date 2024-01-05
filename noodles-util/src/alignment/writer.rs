@@ -10,7 +10,7 @@ use noodles_sam::{self as sam, alignment::Record};
 
 /// An alignment writer.
 pub struct Writer {
-    inner: Box<dyn sam::AlignmentWriter>,
+    inner: Box<dyn sam::alignment::io::Writer>,
 }
 
 impl Writer {

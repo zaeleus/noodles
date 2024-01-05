@@ -181,7 +181,7 @@ impl<W> From<W> for Writer<W> {
     }
 }
 
-impl<W> sam::AlignmentWriter for Writer<W>
+impl<W> sam::alignment::io::Writer for Writer<W>
 where
     W: Write,
 {
@@ -215,9 +215,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use sam::{
-        alignment::record_buf::{QualityScores, Sequence},
-        AlignmentWriter,
+    use sam::alignment::{
+        io::Writer as _,
+        record_buf::{QualityScores, Sequence},
     };
 
     use super::*;

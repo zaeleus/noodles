@@ -159,7 +159,7 @@ impl Builder {
             },
         };
 
-        let inner: Box<dyn sam::AlignmentWriter> = match (format, compression_method) {
+        let inner: Box<dyn sam::alignment::io::Writer> = match (format, compression_method) {
             (Format::Sam, None) => Box::new(sam::Writer::new(writer)),
             (Format::Sam, Some(CompressionMethod::Bgzf)) => {
                 Box::new(sam::Writer::new(bgzf::Writer::new(writer)))

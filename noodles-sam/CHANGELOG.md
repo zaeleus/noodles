@@ -21,7 +21,8 @@
 
 ### Changed
 
-  * sam: Move `AlignmentReader` to `alignment::io::Reader`.
+  * sam: Move `AlignmentReader` and `AlignmentWriter` to
+    `alignment::io::Reader` and `alignment::io::Writer`, respectively.
 
   * sam/alignment: Rename `Record` to `RecordBuf`.
 

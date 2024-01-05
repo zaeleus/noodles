@@ -12,13 +12,15 @@ use noodles_cram as cram;
 use noodles_fasta as fasta;
 use noodles_sam::{
     self as sam,
-    alignment::record_buf::{QualityScores, Sequence},
-    alignment::RecordBuf,
+    alignment::{
+        io::Writer,
+        record_buf::{QualityScores, Sequence},
+        RecordBuf,
+    },
     header::record::value::{
         map::{Program, ReferenceSequence},
         Map,
     },
-    AlignmentWriter,
 };
 
 fn build_reference_sequences() -> Vec<fasta::Record> {

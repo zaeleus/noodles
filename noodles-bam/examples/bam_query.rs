@@ -7,8 +7,10 @@
 use std::{env, io, path::PathBuf};
 
 use noodles_bam as bam;
-use noodles_sam::{self as sam, alignment::RecordBuf};
-use sam::AlignmentWriter;
+use noodles_sam::{
+    self as sam,
+    alignment::{io::Writer, RecordBuf},
+};
 
 const UNMAPPED: &str = "*";
 
