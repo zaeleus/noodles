@@ -23,6 +23,7 @@ use self::{
 };
 use crate::{
     alignment::{Record, RecordBuf},
+    record::Flags,
     Header,
 };
 
@@ -55,7 +56,8 @@ where
     write_name(writer, Record::name(record))?;
 
     writer.write_all(DELIMITER)?;
-    write_flags(writer, record.flags())?;
+    let flags = Record::flags(record).try_to_u16().map(Flags::from)?;
+    write_flags(writer, flags)?;
 
     writer.write_all(DELIMITER)?;
     writer.write_all(reference_sequence_name)?;
