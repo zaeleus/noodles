@@ -2,14 +2,12 @@
 
 mod builder;
 mod header;
-mod lazy_records;
 pub(crate) mod query;
 mod record;
 mod record_bufs;
+mod records;
 
-pub use self::{
-    builder::Builder, lazy_records::LazyRecords, query::Query, record_bufs::RecordBufs,
-};
+pub use self::{builder::Builder, query::Query, record_bufs::RecordBufs, records::Records};
 
 use std::{
     ffi::CStr,
@@ -185,10 +183,10 @@ where
     /// reader.read_header()?;
     ///
     /// let mut record = bam::Record::default();
-    /// reader.read_lazy_record(&mut record)?;
+    /// reader.read_record(&mut record)?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn read_lazy_record(&mut self, record: &mut Record) -> io::Result<usize> {
+    pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         use self::record::read_raw_record;
 
         let block_size = match read_raw_record(&mut self.inner, &mut record.buf)? {
@@ -239,14 +237,14 @@ where
     /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
     /// reader.read_header()?;
     ///
-    /// for result in reader.lazy_records() {
+    /// for result in reader.records() {
     ///     let record = result?;
     ///     // ...
     /// }
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn lazy_records(&mut self) -> LazyRecords<'_, R> {
-        LazyRecords::new(self)
+    pub fn records(&mut self) -> Records<'_, R> {
+        Records::new(self)
     }
 }
 

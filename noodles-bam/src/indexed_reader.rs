@@ -12,7 +12,7 @@ use noodles_csi::BinningIndex;
 use noodles_sam::{self as sam, alignment::RecordBuf};
 
 use super::{
-    reader::{LazyRecords, Query, RecordBufs},
+    reader::{Query, RecordBufs, Records},
     Reader, Record,
 };
 
@@ -57,7 +57,7 @@ where
 
     /// Reads a single record without eagerly decoding its fields.
     pub fn read_lazy_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        self.inner.read_lazy_record(record)
+        self.inner.read_record(record)
     }
 
     /// Returns an iterator over records starting from the current stream position.
@@ -66,8 +66,8 @@ where
     }
 
     /// Returns an iterator over lazy records.
-    pub fn lazy_records(&mut self) -> LazyRecords<'_, R> {
-        self.inner.lazy_records()
+    pub fn lazy_records(&mut self) -> Records<'_, R> {
+        self.inner.records()
     }
 
     /// Returns the associated index.

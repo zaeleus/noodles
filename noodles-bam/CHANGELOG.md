@@ -19,13 +19,16 @@
 
     Use `bam::Record` instead of `bam::lazy::Record`.
 
-  * bam/reader: Rename "record" to "record buf".
+  * bam/reader: Rename "record" to "record buf" and "lazy record" to "record".
 
     This changes the following:
 
       * `Reader::read_record` => `Reader::read_record_buf`,
-      * `Reader::records` => `Reader::record_bufs`, and
-      * `Records` => `RecordBufs`.
+      * `Reader::records` => `Reader::record_bufs`,
+      * `Records` => `RecordBufs`,
+      * `Reader::read_lazy_record` => `Reader::read_record`,
+      * `Reader::lazy_records` => `Reader::records`, and
+      * `LazyRecords` => `LazyRecords`.
 
   * bam/record: Rename `ReadName` to `Name`.
 
