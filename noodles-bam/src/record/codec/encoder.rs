@@ -114,7 +114,7 @@ where
     put_sequence(dst, read_length, sequence)?;
 
     // qual
-    put_quality_scores(dst, base_count, Record::quality_scores(record))?;
+    put_quality_scores(dst, base_count, record.quality_scores())?;
 
     put_data(dst, record.data())?;
 
