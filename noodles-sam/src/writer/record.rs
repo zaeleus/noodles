@@ -93,11 +93,14 @@ where
     let template_length = Record::template_length(record).try_to_i32()?;
     write_template_length(writer, template_length)?;
 
-    writer.write_all(DELIMITER)?;
-    write_sequence(writer, record.cigar().read_length(), record.sequence())?;
+    let sequence = Record::sequence(record);
+    let base_count = sequence.len();
 
     writer.write_all(DELIMITER)?;
-    write_quality_scores(writer, record.sequence().len(), record.quality_scores())?;
+    write_sequence(writer, record.cigar().read_length(), sequence)?;
+
+    writer.write_all(DELIMITER)?;
+    write_quality_scores(writer, base_count, record.quality_scores())?;
 
     write_data(writer, Record::data(record))?;
 
