@@ -10,7 +10,10 @@ use noodles_bam as bam;
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_cram as cram;
-use noodles_sam::{self as sam, alignment::RecordBuf};
+use noodles_sam::{
+    self as sam,
+    alignment::{Record, RecordBuf},
+};
 
 /// An indexed alignment reader.
 pub enum IndexedReader<R> {
@@ -39,15 +42,28 @@ where
     pub fn records<'r, 'h: 'r>(
         &'r mut self,
         header: &'h sam::Header,
-    ) -> impl Iterator<Item = io::Result<RecordBuf>> + 'r {
-        let records: Box<dyn Iterator<Item = io::Result<RecordBuf>>> =
-            match self {
-                Self::Sam(reader) => Box::new(reader.records(header)),
-                Self::Bam(reader) => Box::new(reader.record_bufs(header)),
-                Self::Cram(reader) => Box::new(reader.records(header).map(|result| {
-                    result.and_then(|record| record.try_into_alignment_record(header))
-                })),
-            };
+    ) -> impl Iterator<Item = io::Result<Box<dyn Record>>> + 'r {
+        let records: Box<dyn Iterator<Item = io::Result<Box<dyn Record>>>> = match self {
+            Self::Sam(reader) => Box::new(
+                reader
+                    .records(header)
+                    .map(|result| result.map(|record| Box::new(record) as Box<dyn Record>)),
+            ),
+            Self::Bam(reader) => Box::new(
+                reader
+                    .record_bufs(header)
+                    .map(|result| result.map(|record| Box::new(record) as Box<dyn Record>)),
+            ),
+            Self::Cram(reader) => Box::new(reader.records(header).map(|result| {
+                result.and_then(|record| {
+                    record
+                        .try_into_alignment_record(header)
+                        .map(|alignment_record| {
+                            Box::new(alignment_record) as Box<dyn sam::alignment::Record>
+                        })
+                })
+            })),
+        };
 
         records
     }
