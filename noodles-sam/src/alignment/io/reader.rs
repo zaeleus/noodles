@@ -1,6 +1,6 @@
 use std::io;
 
-use crate::{alignment::RecordBuf, Header};
+use crate::{alignment::Record, Header};
 
 /// An alignment reader.
 pub trait Reader<R> {
@@ -11,5 +11,5 @@ pub trait Reader<R> {
     fn alignment_records<'a>(
         &'a mut self,
         header: &'a Header,
-    ) -> Box<dyn Iterator<Item = io::Result<RecordBuf>> + 'a>;
+    ) -> Box<dyn Iterator<Item = io::Result<Box<dyn Record>>> + 'a>;
 }

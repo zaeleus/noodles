@@ -26,6 +26,9 @@
 
   * sam/alignment: Rename `Record` to `RecordBuf`.
 
+  * sam/alignment/io/reader: Change `Reader::records` to return an iterator
+    over `io::Result<Box<dyn Record>>`.
+
   * sam/alignment/io/writer: Change `AlignmentWriter::write_record` to accept
     `&dyn crate::alignment::Record`.
 

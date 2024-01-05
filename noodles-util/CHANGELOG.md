@@ -4,6 +4,9 @@
 
 ### Changed
 
+  * util/alignment/reader: Change `Reader::records` to return an iterator over
+    `io::Result<Box<dyn sam::alignment::Record>>`.
+
   * util/alignment/writer: Change `Writer::write_record` to accept
     `&sam::alignment::Record`.
 
