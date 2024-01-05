@@ -43,7 +43,7 @@ where
         let records: Box<dyn Iterator<Item = io::Result<RecordBuf>>> =
             match self {
                 Self::Sam(reader) => Box::new(reader.records(header)),
-                Self::Bam(reader) => Box::new(reader.records(header)),
+                Self::Bam(reader) => Box::new(reader.record_bufs(header)),
                 Self::Cram(reader) => Box::new(reader.records(header).map(|result| {
                     result.and_then(|record| record.try_into_alignment_record(header))
                 })),

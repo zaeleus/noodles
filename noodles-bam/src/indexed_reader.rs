@@ -47,7 +47,7 @@ where
     }
 
     /// Reads a single record.
-    pub fn read_record(
+    pub fn read_record_buf(
         &mut self,
         header: &sam::Header,
         record: &mut RecordBuf,
@@ -56,17 +56,17 @@ where
     }
 
     /// Reads a single record without eagerly decoding its fields.
-    pub fn read_lazy_record(&mut self, record: &mut Record) -> io::Result<usize> {
+    pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         self.inner.read_record(record)
     }
 
     /// Returns an iterator over records starting from the current stream position.
-    pub fn records<'a>(&'a mut self, header: &'a sam::Header) -> RecordBufs<'_, R> {
+    pub fn record_bufs<'a>(&'a mut self, header: &'a sam::Header) -> RecordBufs<'_, R> {
         self.inner.record_bufs(header)
     }
 
     /// Returns an iterator over lazy records.
-    pub fn lazy_records(&mut self) -> Records<'_, R> {
+    pub fn records(&mut self) -> Records<'_, R> {
         self.inner.records()
     }
 
