@@ -9,6 +9,7 @@ use std::{
 
 use noodles_bam as bam;
 use noodles_core::Region;
+use noodles_sam as sam;
 use noodles_sam::alignment::iter::Depth;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -19,8 +20,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut reader = bam::indexed_reader::Builder::default().build_from_path(src)?;
     let header = reader.read_header()?;
 
-    let query = reader.query(&header, &region)?;
-    let pileup = Depth::new(query);
+    let query = reader
+        .query(&header, &region)?
+        .map(|result| result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>));
+
+    let pileup = Depth::new(&header, query);
 
     let stdout = io::stdout().lock();
     let mut writer = BufWriter::new(stdout);

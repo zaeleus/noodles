@@ -2,10 +2,7 @@ use std::{collections::VecDeque, io};
 
 use noodles_core::Position;
 
-use crate::{
-    alignment::RecordBuf,
-    record::{Cigar, Flags},
-};
+use crate::{alignment::Record, record::Flags, Header};
 
 type ActiveWindowRange = (Position, Position);
 
@@ -22,24 +19,25 @@ enum State {
 ///
 /// This takes an iterator of coordinate-sorted records and emits reference sequence column
 /// statistics.
-#[derive(Debug)]
-pub struct Pileup<I> {
+pub struct Pileup<'h, I> {
+    header: &'h Header,
     records: I,
     state: State,
     position: Position,
     window: VecDeque<u64>,
-    next_record: Option<RecordBuf>,
+    next_record: Option<Box<dyn Record>>,
 }
 
-impl<I> Pileup<I>
+impl<'h, I> Pileup<'h, I>
 where
-    I: Iterator<Item = io::Result<RecordBuf>>,
+    I: Iterator<Item = io::Result<Box<dyn Record>>>,
 {
     /// Creates a pileup iterator.
     ///
     /// The given iterator must be coordinate-sorted on a single reference sequence.
-    pub fn new(records: I) -> Self {
+    pub fn new(header: &'h Header, records: I) -> Self {
         Self {
+            header,
             records,
             state: State::Empty,
             position: Position::MIN,
@@ -52,8 +50,9 @@ where
         if self.next_record.is_none() {
             for result in &mut self.records {
                 let record = result?;
+                let flags = try_to_flags(record.flags().as_ref())?;
 
-                if filter(record.flags()) {
+                if filter(flags) {
                     continue;
                 }
 
@@ -64,9 +63,9 @@ where
         }
 
         if let Some(record) = self.next_record.take() {
-            let (_, start, end) = alignment_context(&record)?;
+            let (_, start, end) = alignment_context(self.header, &record)?;
             self.position = start;
-            pile_record(&mut self.window, start, end, &record);
+            pile_record(&mut self.window, start, end, self.header, &record)?;
             Ok(Some((start, end)))
         } else {
             Ok(None)
@@ -80,17 +79,19 @@ where
         let (mut active_window_start, mut active_window_end) = active_window_range;
 
         if let Some(record) = self.next_record.take() {
-            let (_, start, end) = alignment_context(&record)?;
-            pile_record(&mut self.window, start, end, &record);
+            let (_, start, end) = alignment_context(self.header, &record)?;
+            pile_record(&mut self.window, start, end, self.header, &record)?;
             active_window_end = end.max(active_window_end);
         }
 
         while let Some(record) = self.records.next().transpose()? {
-            if filter(record.flags()) {
+            let flags = try_to_flags(record.flags().as_ref())?;
+
+            if filter(flags) {
                 continue;
             }
 
-            let (_, start, end) = alignment_context(&record)?;
+            let (_, start, end) = alignment_context(self.header, &record)?;
 
             if start > active_window_end {
                 self.next_record = Some(record);
@@ -101,7 +102,7 @@ where
                 return Ok(Some((active_window_start, active_window_end)));
             }
 
-            pile_record(&mut self.window, start, end, &record);
+            pile_record(&mut self.window, start, end, self.header, &record)?;
             active_window_end = end.max(active_window_end);
         }
 
@@ -121,9 +122,9 @@ where
     }
 }
 
-impl<I> Iterator for Pileup<I>
+impl<'a, I> Iterator for Pileup<'a, I>
 where
-    I: Iterator<Item = io::Result<RecordBuf>>,
+    I: Iterator<Item = io::Result<Box<dyn Record>>>,
 {
     type Item = io::Result<(Position, u64)>;
 
@@ -159,13 +160,39 @@ where
     }
 }
 
-fn alignment_context(record: &RecordBuf) -> io::Result<(usize, Position, Position)> {
+fn try_to_flags(flags: &dyn crate::alignment::record::Flags) -> io::Result<Flags> {
+    flags.try_to_u16().map(Flags::from)
+}
+
+fn try_to_reference_sequence_id<I>(reference_sequence_id: I) -> io::Result<usize>
+where
+    I: crate::alignment::record::ReferenceSequenceId,
+{
+    reference_sequence_id.try_to_usize()
+}
+
+fn try_to_position<P>(position: P) -> io::Result<Position>
+where
+    P: crate::alignment::record::Position,
+{
+    Position::try_from(&position as &dyn crate::alignment::record::Position)
+}
+
+fn alignment_context<R>(header: &Header, record: &R) -> io::Result<(usize, Position, Position)>
+where
+    R: Record,
+{
     match (
-        record.reference_sequence_id(),
+        record.reference_sequence_id(header),
         record.alignment_start(),
-        record.alignment_end(),
+        record.alignment_end(header),
     ) {
-        (Some(id), Some(start), Some(end)) => Ok((id, start, end)),
+        (Some(id), Some(start), Some(end)) => {
+            let id = try_to_reference_sequence_id(id)?;
+            let start = try_to_position(start)?;
+            let end = end?;
+            Ok((id, start, end))
+        }
         _ => Err(io::Error::new(
             io::ErrorKind::InvalidData,
             "missing reference sequence ID or alignment start",
@@ -177,27 +204,47 @@ fn filter(flags: Flags) -> bool {
     flags.is_unmapped() || flags.is_secondary() || flags.is_qc_fail() || flags.is_duplicate()
 }
 
-fn pile_record(window: &mut VecDeque<u64>, start: Position, end: Position, record: &RecordBuf) {
+fn pile_record<R>(
+    window: &mut VecDeque<u64>,
+    start: Position,
+    end: Position,
+    header: &Header,
+    record: &R,
+) -> io::Result<()>
+where
+    R: Record,
+{
     let span = usize::from(end) - usize::from(start) + 1;
 
     if span > window.len() {
         window.resize(span, 0);
     }
 
-    pile(window, start, start, record.cigar());
+    let cigar = record.cigar(header);
+    pile(window, start, start, &cigar)
 }
 
-fn pile(window: &mut VecDeque<u64>, offset: Position, start: Position, cigar: &Cigar) {
+fn pile<C>(
+    window: &mut VecDeque<u64>,
+    offset: Position,
+    start: Position,
+    cigar: &C,
+) -> io::Result<()>
+where
+    C: crate::alignment::record::Cigar,
+{
     use crate::record::cigar::op::Kind;
 
     let offset = usize::from(offset) - 1;
     let start = usize::from(start) - 1;
     let mut i = start - offset;
 
-    for op in cigar.as_ref() {
-        match op.kind() {
+    for result in cigar.iter() {
+        let (kind, len) = result?;
+
+        match kind {
             Kind::Match | Kind::SequenceMatch | Kind::SequenceMismatch => {
-                let end = i + op.len();
+                let end = i + len;
 
                 for depth in window.range_mut(i..end) {
                     *depth += 1;
@@ -205,18 +252,25 @@ fn pile(window: &mut VecDeque<u64>, offset: Position, start: Position, cigar: &C
 
                 i = end;
             }
-            Kind::Deletion | Kind::Skip => i += op.len(),
+            Kind::Deletion | Kind::Skip => i += len,
             _ => {}
         }
     }
+
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
+    use std::num::NonZeroUsize;
+
     use super::*;
+    use crate::alignment::RecordBuf;
 
     #[test]
     fn test_next() -> Result<(), Box<dyn std::error::Error>> {
+        use crate::header::record::value::{map::ReferenceSequence, Map};
+
         // 1 2 3 4 5 6 7 8 9
         //   [   ]
         //   [     ]
@@ -234,16 +288,24 @@ mod tests {
         ]
         .into_iter()
         .map(|(reference_sequence_id, position, cigar)| {
-            Ok(RecordBuf::builder()
+            RecordBuf::builder()
                 .set_flags(Flags::empty())
                 .set_reference_sequence_id(reference_sequence_id)
                 .set_alignment_start(position)
                 .set_cigar(cigar)
-                .build())
+                .build()
         })
+        .map(|record| Ok(Box::new(record) as Box<dyn Record>))
         .collect();
 
-        let pileup = Pileup::new(records.into_iter());
+        let header = Header::builder()
+            .add_reference_sequence(
+                "sq0".parse()?,
+                Map::<ReferenceSequence>::new(NonZeroUsize::MAX),
+            )
+            .build();
+
+        let pileup = Pileup::new(&header, records.into_iter());
         let actual: Vec<_> = pileup.collect::<Result<_, _>>()?;
 
         let expected = [

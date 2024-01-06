@@ -24,6 +24,12 @@ impl TryFrom<&dyn Flags> for crate::record::Flags {
     }
 }
 
+impl Flags for Box<dyn Flags> {
+    fn try_to_u16(&self) -> io::Result<u16> {
+        (**self).try_to_u16()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

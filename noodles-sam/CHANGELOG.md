@@ -32,6 +32,10 @@
   * sam/alignment/io/write: Change `Write::write_record` to accept `&dyn
     crate::alignment::Record`.
 
+  * sam/alignment/iter/pileup: Work with `Record` objects.
+
+    Instantiating `Pileup` now requires a `Header`.
+
   * sam/alignment/record_buf: Change name to raw buffer (`record_buf::Name`).
 
   * sam/alignment/record_buf: Change sequence to raw bases
