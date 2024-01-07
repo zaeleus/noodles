@@ -49,7 +49,7 @@ mod tests {
 
         let mut src = &b"538522340430300790495419781092981030533"[..];
         assert!(matches!(
-            dbg!(parse_length(&mut src)),
+            parse_length(&mut src),
             Err(ParseError::Invalid(_))
         ));
 
