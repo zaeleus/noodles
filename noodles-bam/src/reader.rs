@@ -372,10 +372,10 @@ where
     /// use noodles_bam::{self as bam, bai};
     ///
     /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
-    /// let header = reader.read_header()?;
+    /// reader.read_header()?;
     ///
     /// let index = bai::read("sample.bam.bai")?;
-    /// let query = reader.query_unmapped(&header, &index)?;
+    /// let query = reader.query_unmapped(&index)?;
     ///
     /// for result in query {
     ///     let record = result?;
@@ -385,7 +385,6 @@ where
     /// ```
     pub fn query_unmapped<'r, I>(
         &'r mut self,
-        _header: &'r sam::Header,
         index: &I,
     ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'r>
     where

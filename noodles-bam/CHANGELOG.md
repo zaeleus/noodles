@@ -33,6 +33,8 @@
   * bam/reader: Return an iterator over `bam::Record` for queries
     (`Reader::query` and `Reader::query_unmapped`).
 
+    `Reader::query_unmapped` no longer needs a reference to the header.
+
   * bam/record: Rename `ReadName` to `Name`.
 
     This also changes `Record::read_name` to `Record::name`.

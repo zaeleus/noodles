@@ -21,7 +21,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let header = reader.read_header()?;
 
     let records: Box<dyn Iterator<Item = io::Result<bam::Record>>> = if raw_region == UNMAPPED {
-        reader.query_unmapped(&header).map(Box::new)?
+        reader.query_unmapped().map(Box::new)?
     } else {
         let region = raw_region.parse()?;
         reader.query(&header, &region).map(Box::new)?
