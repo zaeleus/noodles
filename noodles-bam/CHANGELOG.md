@@ -28,7 +28,7 @@
       * `Records` => `RecordBufs`,
       * `Reader::read_lazy_record` => `Reader::read_record`,
       * `Reader::lazy_records` => `Reader::records`, and
-      * `LazyRecords` => `LazyRecords`.
+      * `LazyRecords` => `Records`.
 
   * bam/reader: Return an iterator over `bam::Record` for queries
     (`Reader::query` and `Reader::query_unmapped`).
