@@ -4,7 +4,7 @@
 //!
 //! The result matches the output of `samtools view <src> <region>`.
 
-use std::{env, io, path::PathBuf};
+use std::{env, io};
 
 use noodles_bam as bam;
 use noodles_sam::{self as sam, alignment::io::Write};
@@ -14,7 +14,7 @@ const UNMAPPED: &str = "*";
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = env::args();
 
-    let src = args.nth(1).map(PathBuf::from).expect("missing src");
+    let src = args.nth(1).expect("missing src");
     let raw_region = args.next().expect("missing region");
 
     let mut reader = bam::indexed_reader::Builder::default().build_from_path(src)?;
