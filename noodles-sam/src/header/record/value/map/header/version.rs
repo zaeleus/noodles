@@ -89,7 +89,6 @@ impl error::Error for ParseError {
 }
 
 impl fmt::Display for ParseError {
-    #[allow(deprecated)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
