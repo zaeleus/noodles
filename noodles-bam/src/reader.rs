@@ -385,9 +385,9 @@ where
     /// ```
     pub fn query_unmapped<'r, I>(
         &'r mut self,
-        header: &'r sam::Header,
+        _header: &'r sam::Header,
         index: &I,
-    ) -> io::Result<impl Iterator<Item = io::Result<RecordBuf>> + 'r>
+    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'r>
     where
         I: BinningIndex,
     {
@@ -397,10 +397,10 @@ where
             self.seek_to_first_record()?;
         }
 
-        Ok(self.record_bufs(header).filter(|result| {
+        Ok(self.records().filter(|result| {
             result
                 .as_ref()
-                .map(|record| record.flags().is_unmapped())
+                .map(|record| sam::record::Flags::from(record.flags()).is_unmapped())
                 .unwrap_or(true)
         }))
     }

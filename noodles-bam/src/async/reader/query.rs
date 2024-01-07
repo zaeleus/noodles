@@ -8,7 +8,6 @@ use noodles_sam::{self as sam, alignment::RecordBuf};
 use tokio::io::{self, AsyncRead, AsyncSeek};
 
 use super::Reader;
-use crate::reader::query::intersects;
 
 enum State {
     Seek,
@@ -99,4 +98,18 @@ where
             0 => None,
             _ => Some(record),
         })
+}
+
+fn intersects(record: &RecordBuf, reference_sequence_id: usize, region_interval: Interval) -> bool {
+    match (
+        record.reference_sequence_id(),
+        record.alignment_start(),
+        record.alignment_end(),
+    ) {
+        (Some(id), Some(start), Some(end)) => {
+            let alignment_interval = (start..=end).into();
+            id == reference_sequence_id && region_interval.intersects(alignment_interval)
+        }
+        _ => false,
+    }
 }

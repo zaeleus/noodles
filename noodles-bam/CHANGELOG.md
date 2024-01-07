@@ -30,6 +30,9 @@
       * `Reader::lazy_records` => `Reader::records`, and
       * `LazyRecords` => `LazyRecords`.
 
+  * bam/reader: Return an iterator over `bam::Record` for queries
+    (`Reader::query` and `Reader::query_unmapped`).
+
   * bam/record: Rename `ReadName` to `Name`.
 
     This also changes `Record::read_name` to `Record::name`.

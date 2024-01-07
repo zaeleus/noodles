@@ -111,7 +111,7 @@ where
     pub fn query_unmapped<'r>(
         &'r mut self,
         header: &'r sam::Header,
-    ) -> io::Result<impl Iterator<Item = io::Result<RecordBuf>> + 'r> {
+    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'r> {
         self.inner.query_unmapped(header, &self.index)
     }
 }
