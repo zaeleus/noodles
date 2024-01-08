@@ -316,7 +316,7 @@ mod tests {
         assert!(builder.reference_sequence_id.is_none());
         assert!(builder.alignment_start.is_none());
         assert!(builder.mapping_quality.is_none());
-        assert!(builder.cigar.is_empty());
+        assert!(builder.cigar.as_ref().is_empty());
         assert!(builder.mate_reference_sequence_id.is_none());
         assert!(builder.mate_alignment_start.is_none());
         assert_eq!(builder.template_length, 0);

@@ -233,7 +233,7 @@ mod tests {
         assert!(record.reference_sequence_id().is_none());
         assert!(record.alignment_start().is_none());
         assert!(record.mapping_quality().is_none());
-        assert!(record.cigar().is_empty());
+        assert!(record.cigar().as_ref().is_empty());
         assert!(record.mate_reference_sequence_id().is_none());
         assert!(record.mate_alignment_start().is_none());
         assert_eq!(record.template_length(), 0);

@@ -2,7 +2,7 @@
 
 pub mod op;
 
-use std::{io, ops::Deref};
+use std::io;
 
 use self::op::Kind;
 pub use self::op::Op;
@@ -101,10 +101,8 @@ impl crate::alignment::record::Cigar for &Cigar {
     }
 }
 
-impl Deref for Cigar {
-    type Target = [Op];
-
-    fn deref(&self) -> &Self::Target {
+impl AsRef<[Op]> for Cigar {
+    fn as_ref(&self) -> &[Op] {
         &self.0
     }
 }

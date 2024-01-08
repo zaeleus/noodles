@@ -133,7 +133,7 @@ fn cigar_to_features(
     let mut features = Features::default();
     let mut read_position = Position::MIN;
 
-    for op in cigar.iter() {
+    for op in cigar.as_ref().iter() {
         match op.kind() {
             Kind::Match | Kind::SequenceMatch | Kind::SequenceMismatch => {
                 if op.len() == 1 {

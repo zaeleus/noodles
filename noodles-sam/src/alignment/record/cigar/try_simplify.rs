@@ -69,7 +69,7 @@ mod tests {
         .into_iter()
         .collect();
 
-        let iter = TrySimplify::new(cigar.iter().map(|op| Ok((op.kind(), op.len()))));
+        let iter = TrySimplify::new(cigar.as_ref().iter().map(|op| Ok((op.kind(), op.len()))));
         let actual: Vec<_> = iter.collect::<Result<_, _>>()?;
 
         assert_eq!(

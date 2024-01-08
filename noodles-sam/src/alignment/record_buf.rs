@@ -200,7 +200,7 @@ impl RecordBuf {
     /// ```
     /// use noodles_sam as sam;
     /// let record = sam::alignment::RecordBuf::default();
-    /// assert!(record.cigar().is_empty());
+    /// assert!(record.cigar().as_ref().is_empty());
     /// ```
     pub fn cigar(&self) -> &record::Cigar {
         &self.cigar
