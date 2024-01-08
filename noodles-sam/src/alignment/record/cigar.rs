@@ -1,15 +1,12 @@
 //! Alignment record CIGAR operations.
 
+pub mod iter;
 pub mod op;
-mod try_simplify;
 
 use std::io;
 
 use self::op::Kind;
 pub use self::op::Op;
-
-#[doc(hidden)]
-pub use self::try_simplify::TrySimplify;
 
 /// Alignment record CIGAR operations.
 pub trait Cigar {

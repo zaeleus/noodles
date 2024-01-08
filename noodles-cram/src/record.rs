@@ -270,7 +270,7 @@ impl<'a> sam::alignment::record::Cigar for Cigar<'a> {
     {
         use std::iter;
 
-        use sam::alignment::record::cigar::TrySimplify;
+        use sam::alignment::record::cigar::iter::TrySimplify;
 
         if self.is_unmapped {
             Box::new(iter::empty())
