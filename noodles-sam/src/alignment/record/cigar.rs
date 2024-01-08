@@ -1,6 +1,13 @@
+//! Alignment record CIGAR operations.
+
+mod try_simplify;
+
 use std::io;
 
 use crate::record::cigar::op::Kind;
+
+#[doc(hidden)]
+pub use self::try_simplify::TrySimplify;
 
 /// Alignment record CIGAR operations.
 pub trait Cigar {

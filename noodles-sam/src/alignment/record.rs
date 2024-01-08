@@ -1,6 +1,6 @@
 //! Alignment record.
 
-mod cigar;
+pub mod cigar;
 pub mod data;
 mod flags;
 mod mapping_quality;
