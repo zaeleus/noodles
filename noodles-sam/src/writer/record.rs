@@ -58,7 +58,7 @@ where
     write_name(writer, record.name())?;
 
     writer.write_all(DELIMITER)?;
-    let flags = record.flags().try_to_u16().map(Flags::from)?;
+    let flags = Flags::try_from(record.flags().as_ref())?;
     write_flags(writer, flags)?;
 
     writer.write_all(DELIMITER)?;
@@ -67,7 +67,7 @@ where
     writer.write_all(DELIMITER)?;
     let alignment_start = record
         .alignment_start()
-        .map(|position| Position::try_from(&position as &dyn crate::alignment::record::Position))
+        .map(|position| Position::try_from(position.as_ref()))
         .transpose()?;
     write_position(writer, alignment_start)?;
 
@@ -75,9 +75,8 @@ where
 
     let mapping_quality = record
         .mapping_quality()
-        .map(|mapping_quality| mapping_quality.try_to_u8())
-        .transpose()?
-        .and_then(MappingQuality::new);
+        .map(|mapping_quality| MappingQuality::try_from(mapping_quality.as_ref()))
+        .transpose()?;
 
     write_mapping_quality(writer, mapping_quality)?;
 
@@ -90,12 +89,12 @@ where
     writer.write_all(DELIMITER)?;
     let mate_alignment_start = record
         .mate_alignment_start()
-        .map(|position| Position::try_from(&position as &dyn crate::alignment::record::Position))
+        .map(|position| Position::try_from(position.as_ref()))
         .transpose()?;
     write_position(writer, mate_alignment_start)?;
 
     writer.write_all(DELIMITER)?;
-    let template_length = record.template_length().try_to_i32()?;
+    let template_length = i32::try_from(record.template_length().as_ref())?;
     write_template_length(writer, template_length)?;
 
     let sequence = record.sequence();
