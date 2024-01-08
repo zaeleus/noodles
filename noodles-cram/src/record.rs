@@ -269,10 +269,14 @@ impl<'a> sam::alignment::record::Cigar for Cigar<'a> {
     ) -> Box<dyn Iterator<Item = io::Result<(sam::record::cigar::op::Kind, usize)>> + '_> {
         use std::iter;
 
+        use sam::alignment::record::cigar::TrySimplify;
+
         if self.is_unmapped {
             Box::new(iter::empty())
         } else {
-            Box::new(self.features.cigar(self.read_length).map(Ok))
+            Box::new(TrySimplify::new(
+                self.features.cigar(self.read_length).map(Ok),
+            ))
         }
     }
 }
