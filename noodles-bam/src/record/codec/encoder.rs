@@ -173,7 +173,7 @@ where
     B: BufMut,
     R: Record + ?Sized,
 {
-    use sam::record::cigar::{op, Op};
+    use sam::alignment::record::cigar::{op::Kind, Op};
 
     if let Ok(n_cigar_op) = u16::try_from(record.cigar(header).len()) {
         dst.put_u16_le(n_cigar_op);
@@ -190,7 +190,7 @@ where
             .map(|(_, rs)| rs.length().get())?;
 
         Ok(Some(
-            [Op::new(op::Kind::SoftClip, k), Op::new(op::Kind::Skip, m)]
+            [Op::new(Kind::SoftClip, k), Op::new(Kind::Skip, m)]
                 .into_iter()
                 .collect(),
         ))
@@ -277,9 +277,11 @@ mod tests {
     #[test]
     fn test_encode_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
         use sam::{
-            alignment::record_buf::{Name, QualityScores, Sequence},
+            alignment::{
+                record::cigar::{op::Kind, Op},
+                record_buf::{Name, QualityScores, Sequence},
+            },
             record::{
-                cigar::{op, Op},
                 data::field::{tag, Value},
                 MappingQuality,
             },
@@ -305,7 +307,7 @@ mod tests {
             .set_alignment_start(Position::try_from(9)?)
             .set_mapping_quality(MappingQuality::try_from(13)?)
             .set_cigar(
-                [Op::new(op::Kind::Match, 3), Op::new(op::Kind::SoftClip, 1)]
+                [Op::new(Kind::Match, 3), Op::new(Kind::SoftClip, 1)]
                     .into_iter()
                     .collect(),
             )
@@ -351,9 +353,11 @@ mod tests {
     #[test]
     fn test_encode_with_oversized_cigar() -> Result<(), Box<dyn std::error::Error>> {
         use sam::{
-            alignment::record_buf::Sequence,
+            alignment::{
+                record::cigar::{op::Kind, Op},
+                record_buf::Sequence,
+            },
             record::{
-                cigar::{op::Kind, Op},
                 data::field::{tag, Value},
                 Cigar,
             },

@@ -2,7 +2,7 @@ use std::io;
 
 use noodles_sam::{
     self as sam,
-    record::cigar::{op::Kind, Op},
+    alignment::record::cigar::{op::Kind, Op},
 };
 
 const CHUNK_SIZE: usize = 4;
@@ -79,7 +79,7 @@ mod tests {
 
     #[test]
     fn test_iter() -> io::Result<()> {
-        use sam::record::cigar::op::Kind;
+        use sam::alignment::record::cigar::op::Kind;
 
         let src = &[][..];
         let cigar = Cigar::new(src);

@@ -1,11 +1,8 @@
 //! SAM CIGAR and operations.
 
-pub mod op;
-
 use std::io;
 
-use self::op::Kind;
-pub use self::op::Op;
+use crate::alignment::record::cigar::{op::Kind, Op};
 
 /// A SAM record CIGAR.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -21,7 +18,10 @@ impl Cigar {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{cigar::{op::Kind, Op}, Cigar};
+    /// use noodles_sam::{
+    ///     alignment::record::cigar::{op::Kind, Op},
+    ///     record::Cigar,
+    /// };
     ///
     /// let cigar: Cigar = [
     ///     Op::new(Kind::Match, 36),
@@ -49,7 +49,11 @@ impl Cigar {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{cigar::{op::Kind, Op}, Cigar};
+    /// use noodles_sam::{
+    ///     alignment::record::cigar::{op::Kind, Op},
+    ///     record::Cigar,
+    /// };
+
     ///
     /// let cigar: Cigar = [
     ///     Op::new(Kind::Match, 36),

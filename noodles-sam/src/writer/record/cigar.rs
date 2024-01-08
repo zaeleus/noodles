@@ -1,6 +1,9 @@
 use std::io::{self, Write};
 
-use crate::{alignment::record::Cigar, record::cigar::op::Kind, writer::num};
+use crate::{
+    alignment::record::{cigar::op::Kind, Cigar},
+    writer::num,
+};
 
 pub fn write_cigar<W, C>(writer: &mut W, cigar: &C) -> io::Result<()>
 where
@@ -43,7 +46,7 @@ mod tests {
 
     #[test]
     fn test_write_cigar() -> io::Result<()> {
-        use crate::record::cigar::Op;
+        use crate::alignment::record::cigar::Op;
 
         let mut buf = Vec::new();
         write_cigar(&mut buf, &CigarBuf::default())?;

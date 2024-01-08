@@ -1,10 +1,12 @@
 //! Alignment record CIGAR operations.
 
+pub mod op;
 mod try_simplify;
 
 use std::io;
 
-use crate::record::cigar::op::Kind;
+use self::op::Kind;
+pub use self::op::Op;
 
 #[doc(hidden)]
 pub use self::try_simplify::TrySimplify;

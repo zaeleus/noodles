@@ -1,6 +1,6 @@
-//! SAM record CIGAR operation kind.
+//! Alignment record CIGAR operation kind.
 
-/// A SAM record CIGAR operation kind.
+/// An alignment record CIGAR operation kind.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Kind {
     /// An alignment match (`M`).
@@ -29,7 +29,7 @@ impl Kind {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::cigar::op::Kind;
+    /// use noodles_sam::alignment::record::cigar::op::Kind;
     /// assert!(Kind::Match.consumes_read());
     /// assert!(Kind::Insertion.consumes_read());
     /// assert!(!Kind::Deletion.consumes_read());
@@ -50,7 +50,7 @@ impl Kind {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::cigar::op::Kind;
+    /// use noodles_sam::alignment::record::cigar::op::Kind;
     /// assert!(Kind::Match.consumes_reference());
     /// assert!(!Kind::Insertion.consumes_reference());
     /// assert!(Kind::Deletion.consumes_reference());

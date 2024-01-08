@@ -1,6 +1,6 @@
 use std::{error, fmt};
 
-use crate::record::cigar::op::Kind;
+use crate::alignment::record::cigar::op::Kind;
 
 /// An error when a raw SAM record CIGAR op kind fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]

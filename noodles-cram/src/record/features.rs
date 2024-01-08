@@ -34,7 +34,7 @@ impl Features {
 
     /// Converts CRAM features to SAM CIGAR operations.
     pub fn try_into_cigar(&self, read_length: usize) -> io::Result<sam::record::Cigar> {
-        use sam::record::cigar::{op::Kind, Op};
+        use sam::alignment::record::cigar::{op::Kind, Op};
 
         fn merge_or_insert_op(ops: &mut Vec<(Kind, usize)>, kind: Kind, len: usize) {
             if let Some(last_op) = ops.last_mut() {
@@ -128,7 +128,7 @@ fn cigar_to_features(
     sequence: &Sequence,
     quality_scores: &QualityScores,
 ) -> Features {
-    use sam::record::cigar::op::Kind;
+    use sam::alignment::record::cigar::op::Kind;
 
     let mut features = Features::default();
     let mut read_position = Position::MIN;
@@ -214,7 +214,7 @@ fn cigar_to_features(
 
 #[cfg(test)]
 mod tests {
-    use sam::record::cigar::{op::Kind, Op};
+    use sam::alignment::record::cigar::{op::Kind, Op};
 
     use super::*;
 

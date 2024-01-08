@@ -14,6 +14,7 @@ use noodles_sam::{
     self as sam,
     alignment::{
         io::Write,
+        record::cigar::{op::Kind, Op},
         record_buf::{QualityScores, Sequence},
         RecordBuf,
     },
@@ -21,7 +22,6 @@ use noodles_sam::{
         map::{Program, ReferenceSequence},
         Map,
     },
-    record::cigar::{op::Kind, Op},
 };
 
 fn build_reference_sequences() -> Vec<fasta::Record> {

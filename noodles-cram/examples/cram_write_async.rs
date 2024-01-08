@@ -12,12 +12,14 @@ use noodles_cram as cram;
 use noodles_fasta as fasta;
 use noodles_sam::{
     self as sam,
-    alignment::record_buf::{QualityScores, Sequence},
+    alignment::{
+        record::cigar::{op::Kind, Op},
+        record_buf::{QualityScores, Sequence},
+    },
     header::record::value::{
         map::{Program, ReferenceSequence},
         Map,
     },
-    record::cigar::{op::Kind, Op},
 };
 use tokio::io;
 

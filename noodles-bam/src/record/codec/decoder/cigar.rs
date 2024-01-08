@@ -5,11 +5,11 @@ use std::{error, fmt, mem};
 use bytes::Buf;
 use noodles_sam::{
     self as sam,
-    alignment::RecordBuf,
-    record::{
-        cigar::{op::Kind, Op},
-        Cigar,
+    alignment::{
+        record::cigar::{op::Kind, Op},
+        RecordBuf,
     },
+    record::Cigar,
 };
 
 use self::op::decode_op;
@@ -170,12 +170,9 @@ mod tests {
         use std::num::NonZeroUsize;
 
         use sam::{
-            alignment::record_buf::Sequence,
+            alignment::{record::cigar::Op, record_buf::Sequence},
             header::record::value::{map::ReferenceSequence, Map},
-            record::{
-                cigar::op::{self, Op},
-                data::field::{tag, value::Array, Value},
-            },
+            record::data::field::{tag, value::Array, Value},
         };
 
         let header = sam::Header::builder()
@@ -202,7 +199,7 @@ mod tests {
 
         resolve(&header, &mut record)?;
 
-        let expected = [Op::new(op::Kind::Match, 4)].into_iter().collect();
+        let expected = [Op::new(Kind::Match, 4)].into_iter().collect();
 
         assert_eq!(record.cigar(), &expected);
         assert!(record.data().get(&tag::CIGAR).is_none());

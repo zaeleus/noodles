@@ -122,10 +122,8 @@ impl Builder {
     /// ```
     /// use noodles_sam::{
     ///     self as sam,
-    ///     record::{
-    ///         cigar::{op::Kind, Op},
-    ///         Cigar,
-    ///     },
+    ///     alignment::record::cigar::{op::Kind, Op},
+    ///     record::Cigar,
     /// };
     ///
     /// let cigar: Cigar = [Op::new(Kind::Match, 4)].into_iter().collect();

@@ -3,7 +3,7 @@ mod kind;
 use std::{error, fmt};
 
 use self::kind::parse_kind;
-use crate::record::cigar::Op;
+use crate::alignment::record::cigar::Op;
 
 /// An error when a raw SAM record CIGAR op fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -50,7 +50,7 @@ mod tests {
 
     #[test]
     fn test_parse_op() {
-        use crate::record::cigar::op::Kind;
+        use crate::alignment::record::cigar::op::Kind;
 
         fn t(mut src: &[u8], expected: Op) {
             assert_eq!(parse_op(&mut src), Ok(expected));

@@ -1,7 +1,7 @@
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::{alignment::record::Cigar, record::cigar::op::Kind};
+use noodles_sam::alignment::record::{cigar::op::Kind, Cigar};
 
 pub fn put_cigar<B, C>(dst: &mut B, cigar: &C) -> io::Result<()>
 where
@@ -49,7 +49,7 @@ fn encode_kind(kind: Kind) -> u32 {
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::record::{cigar::Op, Cigar as CigarBuf};
+    use noodles_sam::{alignment::record::cigar::Op, record::Cigar as CigarBuf};
 
     use super::*;
 

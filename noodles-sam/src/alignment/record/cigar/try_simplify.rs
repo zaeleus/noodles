@@ -2,7 +2,7 @@
 
 use std::io;
 
-use crate::record::cigar::op::Kind;
+use crate::alignment::record::cigar::op::Kind;
 
 pub struct TrySimplify<I> {
     iter: I,
@@ -52,9 +52,9 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::record::{
-        cigar::{op::Kind, Op},
-        Cigar as CigarBuf,
+    use crate::{
+        alignment::record::cigar::{op::Kind, Op},
+        record::Cigar as CigarBuf,
     };
 
     #[test]

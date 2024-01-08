@@ -1,6 +1,6 @@
 use std::{error, fmt};
 
-use noodles_sam::record::cigar::op::Kind;
+use noodles_sam::alignment::record::cigar::op::Kind;
 
 /// An error when a raw BAM record CIGAR op kind fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]

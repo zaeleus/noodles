@@ -213,10 +213,8 @@ impl RecordBuf {
     /// ```
     /// use noodles_sam::{
     ///     self as sam,
-    ///     record::{
-    ///         cigar::{op::Kind, Op},
-    ///         Cigar,
-    ///     },
+    ///     alignment::record::cigar::{op::Kind, Op},
+    ///     record::Cigar,
     /// };
     ///
     /// let cigar: Cigar = [Op::new(Kind::Match, 4)].into_iter().collect();
@@ -475,7 +473,7 @@ impl RecordBuf {
     /// use noodles_core::Position;
     /// use noodles_sam::{
     ///     self as sam,
-    ///     record::cigar::{op::Kind, Op},
+    ///     alignment::record::cigar::{op::Kind, Op},
     /// };
     ///
     /// let record = sam::alignment::RecordBuf::builder()

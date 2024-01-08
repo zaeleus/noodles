@@ -1,10 +1,10 @@
-//! SAM record CIGAR operation and kind.
+//! Alignment record CIGAR operation.
 
 pub mod kind;
 
 pub use self::kind::Kind;
 
-/// A SAM record CIGAR operation.
+/// An alignment record CIGAR operation.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Op {
     kind: Kind,
@@ -17,7 +17,7 @@ impl Op {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::cigar::{op::Kind, Op};
+    /// use noodles_sam::alignment::record::cigar::{op::Kind, Op};
     ///
     /// let op = Op::new(Kind::Match, 13);
     ///
@@ -33,7 +33,7 @@ impl Op {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::cigar::{op::Kind, Op};
+    /// use noodles_sam::alignment::record::cigar::{op::Kind, Op};
     /// let op = Op::new(Kind::Match, 13);
     /// assert_eq!(op.kind(), Kind::Match);
     /// ```
@@ -46,7 +46,7 @@ impl Op {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::cigar::{op::Kind, Op};
+    /// use noodles_sam::alignment::record::cigar::{op::Kind, Op};
     /// let op = Op::new(Kind::Match, 13);
     /// assert_eq!(op.len(), 13);
     /// ```
@@ -61,7 +61,7 @@ impl Op {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::cigar::{op::Kind, Op};
+    /// use noodles_sam::alignment::record::cigar::{op::Kind, Op};
     ///
     /// let op = Op::new(Kind::Match, 0);
     /// assert!(op.is_empty());

@@ -175,7 +175,7 @@ fn alignment_record_cigar_to_cigar_buf<C>(cigar: C) -> io::Result<sam::record::C
 where
     C: sam::alignment::record::Cigar,
 {
-    use sam::record::cigar::Op;
+    use sam::alignment::record::cigar::Op;
 
     cigar
         .iter()

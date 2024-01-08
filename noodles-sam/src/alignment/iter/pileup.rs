@@ -233,7 +233,7 @@ fn pile<C>(
 where
     C: crate::alignment::record::Cigar,
 {
-    use crate::record::cigar::op::Kind;
+    use crate::alignment::record::cigar::op::Kind;
 
     let offset = usize::from(offset) - 1;
     let start = usize::from(start) - 1;
@@ -270,8 +270,8 @@ mod tests {
     #[test]
     fn test_next() -> Result<(), Box<dyn std::error::Error>> {
         use crate::{
+            alignment::record::cigar::{op::Kind, Op},
             header::record::value::{map::ReferenceSequence, Map},
-            record::cigar::{op::Kind, Op},
         };
 
         // 1 2 3 4 5 6 7 8 9

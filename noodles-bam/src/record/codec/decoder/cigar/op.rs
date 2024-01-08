@@ -2,7 +2,7 @@ mod kind;
 
 use std::{error, fmt, num};
 
-use noodles_sam::record::cigar::Op;
+use noodles_sam::alignment::record::cigar::Op;
 
 use self::kind::decode_kind;
 
@@ -41,7 +41,7 @@ pub(crate) fn decode_op(n: u32) -> Result<Op, DecodeError> {
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::record::cigar::op::Kind;
+    use noodles_sam::alignment::record::cigar::op::Kind;
 
     use super::*;
 

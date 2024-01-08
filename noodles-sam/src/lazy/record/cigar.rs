@@ -1,8 +1,8 @@
 use std::{io, iter};
 
 use crate::{
+    alignment::record::cigar::{op::Kind, Op},
     reader::record::cigar::op,
-    record::cigar::{op::Kind, Op},
 };
 
 /// Raw SAM record CIGAR operations.
