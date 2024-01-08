@@ -1,4 +1,4 @@
-//! Immutable, lazily-evalulated BAM record and fields.
+//! BAM record.
 
 mod bounds;
 mod cigar;
@@ -25,9 +25,7 @@ pub use self::{
     sequence::Sequence, template_length::TemplateLength,
 };
 
-/// An immutable, lazily-evalulated BAM record.
-///
-/// The fields are _not_ memoized.
+/// A BAM record.
 #[derive(Clone, Eq, PartialEq)]
 pub struct Record {
     pub(crate) buf: Vec<u8>,
