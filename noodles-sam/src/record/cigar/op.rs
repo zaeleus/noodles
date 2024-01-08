@@ -2,8 +2,6 @@
 
 pub mod kind;
 
-use std::fmt;
-
 pub use self::kind::Kind;
 
 /// A SAM record CIGAR operation.
@@ -73,25 +71,5 @@ impl Op {
     /// ```
     pub fn is_empty(self) -> bool {
         self.len == 0
-    }
-}
-
-impl fmt::Display for Op {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}{}", self.len(), self.kind())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_fmt() {
-        let op = Op::new(Kind::Match, 5);
-        assert_eq!(op.to_string(), "5M");
-
-        let op = Op::new(Kind::SoftClip, 13);
-        assert_eq!(op.to_string(), "13S");
     }
 }

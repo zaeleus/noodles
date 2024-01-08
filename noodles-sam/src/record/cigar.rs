@@ -2,7 +2,7 @@
 
 pub mod op;
 
-use std::{fmt, io, ops::Deref};
+use std::{io, ops::Deref};
 
 use self::op::Kind;
 pub use self::op::Op;
@@ -134,16 +134,6 @@ impl AsMut<Vec<Op>> for Cigar {
     }
 }
 
-impl fmt::Display for Cigar {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for op in self.0.iter() {
-            write!(f, "{op}")?;
-        }
-
-        Ok(())
-    }
-}
-
 impl Extend<Op> for Cigar {
     fn extend<T: IntoIterator<Item = Op>>(&mut self, iter: T) {
         self.0.extend(iter);
@@ -183,21 +173,5 @@ mod tests {
 
         let cigar: Cigar = [Op::new(Kind::Match, 1)].into_iter().collect();
         assert!(!cigar.is_empty());
-    }
-
-    #[test]
-    fn test_fmt() {
-        let cigar = Cigar::default();
-        assert!(cigar.to_string().is_empty());
-
-        let cigar: Cigar = [
-            Op::new(Kind::Match, 1),
-            Op::new(Kind::Skip, 13),
-            Op::new(Kind::SoftClip, 144),
-        ]
-        .into_iter()
-        .collect();
-
-        assert_eq!(cigar.to_string(), "1M13N144S");
     }
 }

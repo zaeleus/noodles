@@ -1,7 +1,5 @@
 //! SAM record CIGAR operation kind.
 
-use std::fmt::{self, Write};
-
 /// A SAM record CIGAR operation kind.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Kind {
@@ -69,28 +67,6 @@ impl Kind {
     }
 }
 
-impl fmt::Display for Kind {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_char(char::from(*self))
-    }
-}
-
-impl From<Kind> for char {
-    fn from(kind: Kind) -> Self {
-        match kind {
-            Kind::Match => 'M',
-            Kind::Insertion => 'I',
-            Kind::Deletion => 'D',
-            Kind::Skip => 'N',
-            Kind::SoftClip => 'S',
-            Kind::HardClip => 'H',
-            Kind::Pad => 'P',
-            Kind::SequenceMatch => '=',
-            Kind::SequenceMismatch => 'X',
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -119,31 +95,5 @@ mod tests {
         assert!(!Kind::Pad.consumes_reference());
         assert!(Kind::SequenceMatch.consumes_reference());
         assert!(Kind::SequenceMismatch.consumes_reference());
-    }
-
-    #[test]
-    fn test_fmt() {
-        assert_eq!(Kind::Match.to_string(), "M");
-        assert_eq!(Kind::Insertion.to_string(), "I");
-        assert_eq!(Kind::Deletion.to_string(), "D");
-        assert_eq!(Kind::Skip.to_string(), "N");
-        assert_eq!(Kind::SoftClip.to_string(), "S");
-        assert_eq!(Kind::HardClip.to_string(), "H");
-        assert_eq!(Kind::Pad.to_string(), "P");
-        assert_eq!(Kind::SequenceMatch.to_string(), "=");
-        assert_eq!(Kind::SequenceMismatch.to_string(), "X");
-    }
-
-    #[test]
-    fn test_from_kind_for_char() {
-        assert_eq!(char::from(Kind::Match), 'M');
-        assert_eq!(char::from(Kind::Insertion), 'I');
-        assert_eq!(char::from(Kind::Deletion), 'D');
-        assert_eq!(char::from(Kind::Skip), 'N');
-        assert_eq!(char::from(Kind::SoftClip), 'S');
-        assert_eq!(char::from(Kind::HardClip), 'H');
-        assert_eq!(char::from(Kind::Pad), 'P');
-        assert_eq!(char::from(Kind::SequenceMatch), '=');
-        assert_eq!(char::from(Kind::SequenceMismatch), 'X');
     }
 }
