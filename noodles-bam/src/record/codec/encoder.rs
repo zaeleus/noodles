@@ -372,7 +372,7 @@ mod tests {
             .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(SQ0_LN))
             .build();
 
-        let cigar = Cigar::try_from(vec![Op::new(Kind::Match, 1); BASE_COUNT])?;
+        let cigar = Cigar::from(vec![Op::new(Kind::Match, 1); BASE_COUNT]);
         let sequence = Sequence::from(vec![b'A'; BASE_COUNT]);
 
         let record = RecordBuf::builder()

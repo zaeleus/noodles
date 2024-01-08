@@ -148,11 +148,9 @@ impl FromIterator<Op> for Cigar {
     }
 }
 
-impl TryFrom<Vec<Op>> for Cigar {
-    type Error = io::Error;
-
-    fn try_from(ops: Vec<Op>) -> Result<Self, Self::Error> {
-        Ok(Self(ops))
+impl From<Vec<Op>> for Cigar {
+    fn from(ops: Vec<Op>) -> Self {
+        Self(ops)
     }
 }
 
