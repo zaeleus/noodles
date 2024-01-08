@@ -66,7 +66,7 @@ where
         return Err(DecodeError::UnexpectedEof);
     }
 
-    cigar.clear();
+    cigar.as_mut().clear();
 
     for _ in 0..n_cigar_op {
         let op = decode_op(src.get_u32_le()).map_err(DecodeError::InvalidOp)?;
@@ -100,12 +100,12 @@ pub(super) fn resolve(header: &sam::Header, record: &mut RecordBuf) -> Result<()
                         })
                         .ok_or(DecodeError::InvalidDataType)?;
 
-                    let cigar = record.cigar_mut();
+                    let cigar = record.cigar_mut().as_mut();
                     cigar.clear();
 
                     for &n in data {
                         let op = decode_op(n).map_err(DecodeError::InvalidOp)?;
-                        cigar.as_mut().push(op);
+                        cigar.push(op);
                     }
                 }
             }

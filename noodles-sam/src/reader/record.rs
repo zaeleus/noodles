@@ -154,7 +154,7 @@ pub(crate) fn parse_record(
     *record.mapping_quality_mut() =
         parse_mapping_quality(field).map_err(ParseError::InvalidMappingQuality)?;
 
-    record.cigar_mut().clear();
+    record.cigar_mut().as_mut().clear();
     let field = next_field(&mut src);
     if field != MISSING {
         parse_cigar(field, record.cigar_mut()).map_err(ParseError::InvalidCigar)?;

@@ -37,7 +37,7 @@ pub(crate) fn parse_cigar(mut src: &[u8], cigar: &mut Cigar) -> Result<(), Parse
         return Err(ParseError::Empty);
     }
 
-    cigar.clear();
+    cigar.as_mut().clear();
 
     while !src.is_empty() {
         let op = parse_op(&mut src).map_err(ParseError::InvalidOp)?;
@@ -57,7 +57,7 @@ mod tests {
 
         let mut cigar = Cigar::default();
 
-        cigar.clear();
+        cigar.as_mut().clear();
         parse_cigar(b"8M13N", &mut cigar)?;
         assert_eq!(
             cigar,
@@ -66,7 +66,7 @@ mod tests {
                 .collect()
         );
 
-        cigar.clear();
+        cigar.as_mut().clear();
         parse_cigar(b"8M13N144S", &mut cigar)?;
         assert_eq!(
             cigar,
@@ -79,10 +79,10 @@ mod tests {
             .collect()
         );
 
-        cigar.clear();
+        cigar.as_mut().clear();
         assert_eq!(parse_cigar(b"", &mut cigar), Err(ParseError::Empty));
 
-        cigar.clear();
+        cigar.as_mut().clear();
         assert!(matches!(
             parse_cigar(b"8Z", &mut cigar),
             Err(ParseError::InvalidOp(_))

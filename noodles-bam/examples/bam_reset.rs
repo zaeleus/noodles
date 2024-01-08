@@ -43,7 +43,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         record.reference_sequence_id_mut().take();
         record.alignment_start_mut().take();
         record.mapping_quality_mut().take();
-        record.cigar_mut().clear();
+        record.cigar_mut().as_mut().clear();
         record.mate_reference_sequence_id_mut().take();
         record.mate_alignment_start_mut().take();
         *record.template_length_mut() = 0;
