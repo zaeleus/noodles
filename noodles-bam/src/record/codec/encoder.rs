@@ -45,7 +45,7 @@ where
 
     let alignment_start = record
         .alignment_start()
-        .map(|position| Position::try_from(&position as &dyn sam::alignment::record::Position))
+        .map(|position| Position::try_from(position.as_ref()))
         .transpose()?;
 
     // pos
@@ -55,9 +55,8 @@ where
 
     let mapping_quality = record
         .mapping_quality()
-        .map(|mapping_quality| mapping_quality.try_to_u8())
-        .transpose()?
-        .and_then(MappingQuality::new);
+        .map(|mapping_quality| MappingQuality::try_from(mapping_quality.as_ref()))
+        .transpose()?;
 
     // mapq
     put_mapping_quality(dst, mapping_quality);
@@ -70,7 +69,7 @@ where
     let cigar = overflowing_put_cigar_op_count(dst, header, record)?;
 
     // flag
-    let flags = record.flags().try_to_u16().map(Flags::from)?;
+    let flags = Flags::try_from(record.flags().as_ref())?;
     put_flags(dst, flags);
 
     let l_seq = u32::try_from(record.sequence().len())
@@ -87,7 +86,7 @@ where
 
     let mate_alignment_start = record
         .mate_alignment_start()
-        .map(|position| Position::try_from(&position as &dyn sam::alignment::record::Position))
+        .map(|position| Position::try_from(position.as_ref()))
         .transpose()?;
 
     // next_pos
