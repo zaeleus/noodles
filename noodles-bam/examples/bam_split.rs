@@ -10,9 +10,9 @@ use noodles_bam as bam;
 use noodles_bgzf as bgzf;
 use noodles_sam as sam;
 
-use std::{collections::HashMap, env, fs::File, io};
+use std::{collections::HashMap, env, fs::File, io, str};
 
-type Writers = HashMap<String, bam::Writer<bgzf::Writer<File>>>;
+type Writers = HashMap<Vec<u8>, bam::Writer<bgzf::Writer<File>>>;
 
 fn build_writers(read_groups: &sam::header::ReadGroups) -> io::Result<Writers> {
     read_groups
@@ -23,14 +23,14 @@ fn build_writers(read_groups: &sam::header::ReadGroups) -> io::Result<Writers> {
 
             bam::writer::Builder
                 .build_from_path(dst)
-                .map(|writer| (id.clone(), writer))
+                .map(|writer| (id.as_bytes().into(), writer))
         })
         .collect::<Result<_, _>>()
 }
 
 fn write_headers(writers: &mut Writers, header: &sam::Header) -> io::Result<()> {
     for (id, read_group) in header.read_groups() {
-        let writer = writers.get_mut(id).ok_or_else(|| {
+        let writer = writers.get_mut(id.as_bytes()).ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidData,
                 format!("invalid read group: {id}"),
@@ -49,15 +49,19 @@ fn write_headers(writers: &mut Writers, header: &sam::Header) -> io::Result<()> 
     Ok(())
 }
 
-fn find_read_group(data: &sam::record::Data) -> Option<io::Result<&str>> {
-    use sam::record::data::field::{tag, Type};
+fn get_read_group(data: &dyn sam::alignment::record::Data) -> Option<io::Result<&[u8]>> {
+    use sam::{
+        alignment::record::data::field::Value,
+        record::data::field::{tag, Type},
+    };
 
-    data.get(&tag::READ_GROUP).map(|value| {
-        value.as_str().ok_or_else(|| {
-            io::Error::new(
+    data.get(tag::READ_GROUP.as_ref()).map(|result| {
+        result.and_then(|value| match value {
+            Value::String(s) => Ok(s),
+            _ => Err(io::Error::new(
                 io::ErrorKind::InvalidData,
-                format!("expected {:?}, got {:?}", Type::String, value),
-            )
+                format!("expected {:?}, got {:?}", Type::String, value.ty()),
+            )),
         })
     })
 }
@@ -72,14 +76,14 @@ fn main() -> io::Result<()> {
     let mut writers = build_writers(header.read_groups())?;
     write_headers(&mut writers, &header)?;
 
-    for result in reader.record_bufs(&header) {
+    for result in reader.records() {
         let record = result?;
 
-        if let Some(read_group) = find_read_group(record.data()).transpose()? {
+        if let Some(read_group) = get_read_group(&record.data()).transpose()? {
             let writer = writers.get_mut(read_group).ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    format!("invalid read group: {read_group}"),
+                    format!("invalid read group: {:?}", str::from_utf8(read_group)),
                 )
             })?;
 

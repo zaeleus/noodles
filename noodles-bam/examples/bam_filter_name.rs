@@ -25,9 +25,8 @@ use std::{
 };
 
 use noodles_bam as bam;
-use noodles_sam::alignment::record_buf::Name;
 
-fn read_names<P>(src: P) -> io::Result<HashSet<Name>>
+fn read_names<P>(src: P) -> io::Result<HashSet<Vec<u8>>>
 where
     P: AsRef<Path>,
 {
@@ -35,7 +34,7 @@ where
     let mut names = HashSet::new();
 
     for result in reader.lines() {
-        let name = result.map(|s| Name::from(s.into_bytes()))?;
+        let name = result.map(|s| s.into_bytes())?;
         names.insert(name);
     }
 
@@ -57,11 +56,11 @@ fn main() -> io::Result<()> {
 
     writer.write_header(&header)?;
 
-    for result in reader.record_bufs(&header) {
+    for result in reader.records() {
         let record = result?;
 
         if let Some(name) = record.name() {
-            if names.contains(name) {
+            if names.contains(name.as_bytes()) {
                 writer.write_record(&header, &record)?;
             }
         }

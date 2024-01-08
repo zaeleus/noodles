@@ -45,6 +45,11 @@
   * bam/record/data/field/value: Replace `Array` with
     `sam::alignment::record::data::field::value::Array`.
 
+  * bam/writer: Change `Writer::Record` to write a `bam::Record`.
+
+    Use `Writer::write_alignment_record` to write implementations of
+    `sam::alignment::Record`.
+
 ## 0.52.0 - 2023-12-14
 
 ### Changed

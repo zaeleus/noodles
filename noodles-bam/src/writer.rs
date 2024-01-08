@@ -9,7 +9,9 @@ use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf as bgzf;
-use noodles_sam::{self as sam, alignment::RecordBuf};
+use noodles_sam::{self as sam, alignment::io::Write as _};
+
+use super::Record;
 
 /// A BAM writer.
 ///
@@ -18,14 +20,14 @@ use noodles_sam::{self as sam, alignment::RecordBuf};
 /// ```
 /// # use std::io;
 /// use noodles_bam as bam;
-/// use noodles_sam::{self as sam, alignment::RecordBuf};
+/// use noodles_sam as sam;
 ///
 /// let mut writer = bam::Writer::new(io::sink());
 ///
 /// let header = sam::Header::default();
 /// writer.write_header(&header)?;
 ///
-/// let record = RecordBuf::default();
+/// let record = bam::Record::default();
 /// writer.write_record(&header, &record)?;
 /// # Ok::<(), io::Error>(())
 /// ```
@@ -107,30 +109,19 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bam as bam;
-    /// use noodles_sam::{self as sam, alignment::RecordBuf};
+    /// use noodles_sam as sam;
     ///
     /// let header = sam::Header::default();
     ///
     /// let mut writer = bam::Writer::new(io::sink());
     /// writer.write_header(&header)?;
     ///
-    /// let record = RecordBuf::default();
+    /// let record = bam::Record::default();
     /// writer.write_record(&header, &record)?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn write_record(&mut self, header: &sam::Header, record: &RecordBuf) -> io::Result<()> {
-        use super::record::codec::encode;
-
-        self.buf.clear();
-        encode(&mut self.buf, header, record)?;
-
-        let block_size = u32::try_from(self.buf.len())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-        self.inner.write_u32::<LittleEndian>(block_size)?;
-
-        self.inner.write_all(&self.buf)?;
-
-        Ok(())
+    pub fn write_record(&mut self, header: &sam::Header, record: &Record) -> io::Result<()> {
+        self.write_alignment_record(header, record)
     }
 }
 
@@ -216,8 +207,8 @@ where
 #[cfg(test)]
 mod tests {
     use sam::alignment::{
-        io::Write as _,
         record_buf::{QualityScores, Sequence},
+        RecordBuf,
     };
 
     use super::*;

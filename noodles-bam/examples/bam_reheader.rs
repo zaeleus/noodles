@@ -21,7 +21,7 @@ fn main() -> io::Result<()> {
 
     writer.write_header(&header)?;
 
-    for result in reader.record_bufs(&header) {
+    for result in reader.records() {
         let record = result?;
         writer.write_record(&header, &record)?;
     }
