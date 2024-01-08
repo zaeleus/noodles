@@ -2,7 +2,7 @@
 
 use std::io;
 
-use crate::alignment::record::cigar::{op::Kind, Op};
+use crate::alignment::record::cigar::Op;
 
 /// A SAM record CIGAR.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -72,8 +72,8 @@ impl Cigar {
             .sum()
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Kind, usize)>> + '_> {
-        Box::new(self.0.iter().map(|op| Ok((op.kind(), op.len()))))
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Op>> + '_> {
+        Box::new(self.0.iter().copied().map(Ok))
     }
 }
 
@@ -86,7 +86,7 @@ impl crate::alignment::record::Cigar for Cigar {
         self.0.len()
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Kind, usize)>> + '_> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Op>> + '_> {
         self.iter()
     }
 }
@@ -100,7 +100,7 @@ impl crate::alignment::record::Cigar for &Cigar {
         self.0.len()
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Kind, usize)>> + '_> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Op>> + '_> {
         Cigar::iter(self)
     }
 }

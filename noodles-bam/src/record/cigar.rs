@@ -1,9 +1,6 @@
 use std::io;
 
-use noodles_sam::{
-    self as sam,
-    alignment::record::cigar::{op::Kind, Op},
-};
+use noodles_sam::{self as sam, alignment::record::cigar::Op};
 
 const CHUNK_SIZE: usize = 4;
 
@@ -51,11 +48,8 @@ impl<'a> sam::alignment::record::Cigar for Cigar<'a> {
         self.len()
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Kind, usize)>> + '_> {
-        Box::new(
-            self.iter()
-                .map(|result| result.map(|op| (op.kind(), op.len()))),
-        )
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Op>> + '_> {
+        Box::new(self.iter())
     }
 }
 

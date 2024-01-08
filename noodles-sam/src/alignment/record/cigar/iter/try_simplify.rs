@@ -1,17 +1,15 @@
-#![doc(hidden)]
-
 use std::io;
 
-use crate::alignment::record::cigar::op::Kind;
+use crate::alignment::record::cigar::Op;
 
 pub struct TrySimplify<I> {
     iter: I,
-    prev_op: Option<(Kind, usize)>,
+    prev_op: Option<Op>,
 }
 
 impl<I> TrySimplify<I>
 where
-    I: Iterator<Item = io::Result<(Kind, usize)>>,
+    I: Iterator<Item = io::Result<Op>>,
 {
     pub fn new(iter: I) -> Self {
         Self {
@@ -23,9 +21,9 @@ where
 
 impl<I> Iterator for TrySimplify<I>
 where
-    I: Iterator<Item = io::Result<(Kind, usize)>>,
+    I: Iterator<Item = io::Result<Op>>,
 {
-    type Item = io::Result<(Kind, usize)>;
+    type Item = io::Result<Op>;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
@@ -33,16 +31,16 @@ where
                 return self.prev_op.take().map(Ok);
             };
 
-            let (kind, len) = match result {
+            let op = match result {
                 Ok(op) => op,
                 Err(e) => return Some(Err(e)),
             };
 
-            if let Some((prev_kind, prev_len)) = self.prev_op.replace((kind, len)) {
-                if prev_kind == kind {
-                    self.prev_op = Some((prev_kind, prev_len + len));
+            if let Some(prev_op) = self.prev_op.replace(op) {
+                if prev_op.kind() == op.kind() {
+                    self.prev_op = Some(Op::new(prev_op.kind(), prev_op.len() + op.len()));
                 } else {
-                    return Some(Ok((prev_kind, prev_len)));
+                    return Some(Ok(prev_op));
                 }
             }
         }
@@ -53,7 +51,7 @@ where
 mod tests {
     use super::*;
     use crate::{
-        alignment::record::cigar::{op::Kind, Op},
+        alignment::record::{cigar::op::Kind, Cigar},
         record::Cigar as CigarBuf,
     };
 
@@ -69,16 +67,16 @@ mod tests {
         .into_iter()
         .collect();
 
-        let iter = TrySimplify::new(cigar.as_ref().iter().map(|op| Ok((op.kind(), op.len()))));
+        let iter = TrySimplify::new((&cigar as &dyn Cigar).iter());
         let actual: Vec<_> = iter.collect::<Result<_, _>>()?;
 
         assert_eq!(
             actual,
             [
-                (Kind::Match, 1),
-                (Kind::Insertion, 2),
-                (Kind::Match, 7),
-                (Kind::SoftClip, 5)
+                Op::new(Kind::Match, 1),
+                Op::new(Kind::Insertion, 2),
+                Op::new(Kind::Match, 7),
+                Op::new(Kind::SoftClip, 5)
             ]
         );
 

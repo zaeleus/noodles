@@ -264,10 +264,7 @@ impl<'a> sam::alignment::record::Cigar for Cigar<'a> {
         }
     }
 
-    fn iter(
-        &self,
-    ) -> Box<dyn Iterator<Item = io::Result<(sam::alignment::record::cigar::op::Kind, usize)>> + '_>
-    {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<sam::alignment::record::cigar::Op>> + '_> {
         use std::iter;
 
         use sam::alignment::record::cigar::iter::TrySimplify;

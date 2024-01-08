@@ -240,11 +240,11 @@ where
     let mut i = start - offset;
 
     for result in cigar.iter() {
-        let (kind, len) = result?;
+        let op = result?;
 
-        match kind {
+        match op.kind() {
             Kind::Match | Kind::SequenceMatch | Kind::SequenceMismatch => {
-                let end = i + len;
+                let end = i + op.len();
 
                 for depth in window.range_mut(i..end) {
                     *depth += 1;
@@ -252,7 +252,7 @@ where
 
                 i = end;
             }
-            Kind::Deletion | Kind::Skip => i += len,
+            Kind::Deletion | Kind::Skip => i += op.len(),
             _ => {}
         }
     }

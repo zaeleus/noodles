@@ -5,7 +5,6 @@ pub mod op;
 
 use std::io;
 
-use self::op::Kind;
 pub use self::op::Op;
 
 /// Alignment record CIGAR operations.
@@ -17,17 +16,17 @@ pub trait Cigar {
     fn len(&self) -> usize;
 
     /// Returns an iterator over operations.
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Kind, usize)>> + '_>;
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Op>> + '_>;
 
     /// Calculates the alignment span over the reference sequence.
     fn alignment_span(&self) -> io::Result<usize> {
         let mut span = 0;
 
         for result in self.iter() {
-            let (kind, len) = result?;
+            let op = result?;
 
-            if kind.consumes_reference() {
-                span += len;
+            if op.kind().consumes_reference() {
+                span += op.len();
             }
         }
 
@@ -39,10 +38,10 @@ pub trait Cigar {
         let mut length = 0;
 
         for result in self.iter() {
-            let (kind, len) = result?;
+            let op = result?;
 
-            if kind.consumes_read() {
-                length += len;
+            if op.kind().consumes_read() {
+                length += op.len();
             }
         }
 
@@ -51,7 +50,7 @@ pub trait Cigar {
 }
 
 impl<'a> IntoIterator for &'a dyn Cigar {
-    type Item = io::Result<(Kind, usize)>;
+    type Item = io::Result<Op>;
     type IntoIter = Box<dyn Iterator<Item = Self::Item> + 'a>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -68,16 +67,16 @@ impl Cigar for Box<dyn Cigar + '_> {
         (**self).len()
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Kind, usize)>> + '_> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Op>> + '_> {
         (**self).iter()
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::{op::Kind, *};
 
-    struct T(Vec<(Kind, usize)>);
+    struct T(Vec<Op>);
 
     impl Cigar for T {
         fn is_empty(&self) -> bool {
@@ -88,18 +87,18 @@ mod tests {
             self.0.len()
         }
 
-        fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Kind, usize)>> + '_> {
+        fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Op>> + '_> {
             Box::new(self.0.iter().copied().map(Ok))
         }
     }
 
     #[test]
     fn test_into_iter() -> io::Result<()> {
-        let cigar: &dyn Cigar = &T(vec![(Kind::Match, 4)]);
+        let cigar: &dyn Cigar = &T(vec![Op::new(Kind::Match, 4)]);
 
         assert_eq!(
             cigar.into_iter().collect::<io::Result<Vec<_>>>()?,
-            [(Kind::Match, 4)]
+            [Op::new(Kind::Match, 4)]
         );
 
         Ok(())
@@ -108,9 +107,9 @@ mod tests {
     #[test]
     fn test_alignment_span() -> io::Result<()> {
         let cigar: &dyn Cigar = &T(vec![
-            (Kind::Match, 36),
-            (Kind::Deletion, 4),
-            (Kind::SoftClip, 8),
+            Op::new(Kind::Match, 36),
+            Op::new(Kind::Deletion, 4),
+            Op::new(Kind::SoftClip, 8),
         ]);
 
         assert_eq!(cigar.alignment_span()?, 40);
@@ -121,9 +120,9 @@ mod tests {
     #[test]
     fn test_read_length() -> io::Result<()> {
         let cigar: &dyn Cigar = &T(vec![
-            (Kind::Match, 36),
-            (Kind::Deletion, 4),
-            (Kind::SoftClip, 8),
+            Op::new(Kind::Match, 36),
+            Op::new(Kind::Deletion, 4),
+            Op::new(Kind::SoftClip, 8),
         ]);
 
         assert_eq!(cigar.read_length()?, 44);

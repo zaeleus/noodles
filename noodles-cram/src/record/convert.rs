@@ -175,12 +175,7 @@ fn alignment_record_cigar_to_cigar_buf<C>(cigar: C) -> io::Result<sam::record::C
 where
     C: sam::alignment::record::Cigar,
 {
-    use sam::alignment::record::cigar::Op;
-
-    cigar
-        .iter()
-        .map(|result| result.map(|(kind, len)| Op::new(kind, len)))
-        .collect()
+    cigar.iter().collect()
 }
 
 fn alignment_record_data_to_data_buf<D>(data: D) -> io::Result<sam::record::Data>

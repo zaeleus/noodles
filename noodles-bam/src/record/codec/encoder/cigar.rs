@@ -1,7 +1,10 @@
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::alignment::record::{cigar::op::Kind, Cigar};
+use noodles_sam::alignment::record::{
+    cigar::{op::Kind, Op},
+    Cigar,
+};
 
 pub fn put_cigar<B, C>(dst: &mut B, cigar: &C) -> io::Result<()>
 where
@@ -9,21 +12,22 @@ where
     C: Cigar,
 {
     for result in cigar.iter() {
-        let (kind, len) = result?;
-        let n = encode_op(kind, len)?;
+        let op = result?;
+        let n = encode_op(op)?;
         dst.put_u32_le(n);
     }
 
     Ok(())
 }
 
-fn encode_op(kind: Kind, len: usize) -> io::Result<u32> {
+fn encode_op(op: Op) -> io::Result<u32> {
     const MAX_LENGTH: u32 = (1 << 28) - 1;
 
-    let len = u32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    let len =
+        u32::try_from(op.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     if len <= MAX_LENGTH {
-        let k = encode_kind(kind);
+        let k = encode_kind(op.kind());
         Ok(len << 4 | k)
     } else {
         Err(io::Error::new(
@@ -49,7 +53,7 @@ fn encode_kind(kind: Kind) -> u32 {
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::{alignment::record::cigar::Op, record::Cigar as CigarBuf};
+    use noodles_sam::record::Cigar as CigarBuf;
 
     use super::*;
 
@@ -83,10 +87,10 @@ mod tests {
 
     #[test]
     fn test_encode_op() -> io::Result<()> {
-        assert_eq!(encode_op(Kind::Match, 1)?, 0x10);
+        assert_eq!(encode_op(Op::new(Kind::Match, 1))?, 0x10);
 
         assert!(matches!(
-            encode_op(Kind::Match, 1 << 28),
+            encode_op(Op::new(Kind::Match, 1 << 28)),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput,
         ));
 

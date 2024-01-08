@@ -16,11 +16,11 @@ where
         writer.write_all(&[MISSING])?;
     } else {
         for result in cigar.iter() {
-            let (kind, len) = result?;
+            let op = result?;
 
-            num::write_usize(writer, len)?;
+            num::write_usize(writer, op.len())?;
 
-            let c = match kind {
+            let c = match op.kind() {
                 Kind::Match => b'M',
                 Kind::Insertion => b'I',
                 Kind::Deletion => b'D',

@@ -1,9 +1,6 @@
 use std::{io, iter};
 
-use crate::{
-    alignment::record::cigar::{op::Kind, Op},
-    reader::record::cigar::op,
-};
+use crate::{alignment::record::cigar::Op, reader::record::cigar::op};
 
 /// Raw SAM record CIGAR operations.
 #[derive(Debug, Eq, PartialEq)]
@@ -52,10 +49,10 @@ impl<'a> crate::alignment::record::Cigar for Cigar<'a> {
             .count()
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Kind, usize)>> + '_> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Op>> + '_> {
         Box::new(self.iter().map(|result| {
             result
-                .map(|op| (op.kind(), op.len()))
+                .map(|op| Op::new(op.kind(), op.len()))
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         }))
     }
@@ -86,6 +83,8 @@ impl<'a> TryFrom<Cigar<'a>> for crate::record::Cigar {
 
 #[cfg(test)]
 mod tests {
+    use crate::alignment::record::cigar::op::Kind;
+
     use super::*;
 
     #[test]

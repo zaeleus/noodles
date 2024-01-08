@@ -1,7 +1,7 @@
 use std::slice;
 
 use noodles_core::Position;
-use noodles_sam::alignment::record::cigar::op::Kind;
+use noodles_sam::alignment::record::cigar::{op::Kind, Op};
 
 use crate::record::Feature;
 
@@ -32,18 +32,18 @@ impl<'a> Cigar<'a> {
 }
 
 impl<'a> Iterator for Cigar<'a> {
-    type Item = (Kind, usize);
+    type Item = Op;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some(op) = self.next_op.take() {
-            return Some(op);
+        if let Some((kind, len)) = self.next_op.take() {
+            return Some(Op::new(kind, len));
         }
 
         let Some(feature) = self.features.next() else {
             if usize::from(self.read_position) <= self.read_length {
                 let len = self.read_length - usize::from(self.read_position) + 1;
                 self.consume_read(len);
-                return Some((Kind::Match, len));
+                return Some(Op::new(Kind::Match, len));
             } else {
                 return None;
             }
@@ -72,8 +72,8 @@ impl<'a> Iterator for Cigar<'a> {
         }
 
         match self.next_op.replace((kind, len)) {
-            Some(op) => Some(op),
-            None => self.next_op.take(),
+            Some((kind, len)) => Some(Op::new(kind, len)),
+            None => self.next_op.take().map(|(kind, len)| Op::new(kind, len)),
         }
     }
 }
@@ -85,28 +85,39 @@ mod tests {
 
     #[test]
     fn test_next() -> Result<(), noodles_core::position::TryFromIntError> {
-        fn t(features: &Features, read_length: usize, expected: &[(Kind, usize)]) {
+        fn t(features: &Features, read_length: usize, expected: &[Op]) {
             let cigar = Cigar::new(features, read_length);
             let actual: Vec<_> = cigar.collect();
             assert_eq!(actual, expected);
         }
 
         let features = Features::default();
-        t(&features, 4, &[(Kind::Match, 4)]);
+        t(&features, 4, &[Op::new(Kind::Match, 4)]);
 
         let features = Features::from(vec![Feature::SoftClip(
             Position::try_from(1)?,
             vec![b'A', b'T'],
         )]);
-        t(&features, 4, &[(Kind::SoftClip, 2), (Kind::Match, 2)]);
+        t(
+            &features,
+            4,
+            &[Op::new(Kind::SoftClip, 2), Op::new(Kind::Match, 2)],
+        );
 
         let features = Features::from(vec![Feature::SoftClip(Position::try_from(4)?, vec![b'G'])]);
-        t(&features, 4, &[(Kind::Match, 3), (Kind::SoftClip, 1)]);
+        t(
+            &features,
+            4,
+            &[Op::new(Kind::Match, 3), Op::new(Kind::SoftClip, 1)],
+        );
 
         let features = Features::from(vec![Feature::HardClip(Position::try_from(1)?, 2)]);
-        t(&features, 4, &[(Kind::HardClip, 2), (Kind::Match, 4)]);
+        t(
+            &features,
+            4,
+            &[Op::new(Kind::HardClip, 2), Op::new(Kind::Match, 4)],
+        );
 
-        // FIXME
         let features = Features::from(vec![
             Feature::SoftClip(Position::try_from(1)?, vec![b'A']),
             Feature::Substitution(Position::try_from(3)?, substitution::Value::Code(0)),
@@ -115,14 +126,13 @@ mod tests {
             &features,
             4,
             &[
-                (Kind::SoftClip, 1),
-                (Kind::Match, 1),
-                (Kind::Match, 1),
-                (Kind::Match, 1),
+                Op::new(Kind::SoftClip, 1),
+                Op::new(Kind::Match, 1),
+                Op::new(Kind::Match, 1),
+                Op::new(Kind::Match, 1),
             ],
         );
 
-        // FIXME
         let features = Features::from(vec![Feature::Substitution(
             Position::try_from(2)?,
             substitution::Value::Code(0),
@@ -130,7 +140,11 @@ mod tests {
         t(
             &features,
             4,
-            &[(Kind::Match, 1), (Kind::Match, 1), (Kind::Match, 2)],
+            &[
+                Op::new(Kind::Match, 1),
+                Op::new(Kind::Match, 1),
+                Op::new(Kind::Match, 2),
+            ],
         );
 
         Ok(())
