@@ -49,7 +49,7 @@ fn encode_kind(kind: Kind) -> u32 {
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::record::Cigar as CigarBuf;
+    use noodles_sam::record::{cigar::Op, Cigar as CigarBuf};
 
     use super::*;
 
@@ -65,10 +65,16 @@ mod tests {
         let mut buf = Vec::new();
 
         t(&mut buf, &CigarBuf::default(), &[])?;
-        t(&mut buf, &"4M".parse()?, &[0x40, 0x00, 0x00, 0x00])?;
         t(
             &mut buf,
-            &"4M2H".parse()?,
+            &[Op::new(Kind::Match, 4)].into_iter().collect(),
+            &[0x40, 0x00, 0x00, 0x00],
+        )?;
+        t(
+            &mut buf,
+            &[Op::new(Kind::Match, 4), Op::new(Kind::HardClip, 2)]
+                .into_iter()
+                .collect(),
             &[0x40, 0x00, 0x00, 0x00, 0x25, 0x00, 0x00, 0x00],
         )?;
 

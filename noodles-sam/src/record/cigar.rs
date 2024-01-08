@@ -2,7 +2,7 @@
 
 pub mod op;
 
-use std::{error, fmt, io, ops::Deref, str::FromStr};
+use std::{fmt, io, ops::Deref};
 
 use self::op::Kind;
 pub use self::op::Op;
@@ -159,67 +159,10 @@ impl FromIterator<Op> for Cigar {
 }
 
 impl TryFrom<Vec<Op>> for Cigar {
-    type Error = ParseError;
+    type Error = io::Error;
 
     fn try_from(ops: Vec<Op>) -> Result<Self, Self::Error> {
         Ok(Self(ops))
-    }
-}
-
-/// An error returned when a raw CIGAR string fails to parse.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
-    /// The input is empty.
-    Empty,
-    /// The input is invalid.
-    Invalid,
-    /// The CIGAR string has an invalid operation.
-    InvalidOp(op::ParseError),
-}
-
-impl error::Error for ParseError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match self {
-            Self::InvalidOp(e) => Some(e),
-            _ => None,
-        }
-    }
-}
-
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Empty => f.write_str("empty input"),
-            Self::Invalid => f.write_str("invalid input"),
-            Self::InvalidOp(_) => f.write_str("invalid op"),
-        }
-    }
-}
-
-impl FromStr for Cigar {
-    type Err = ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.is_empty() {
-            return Err(ParseError::Empty);
-        }
-
-        let mut ops = Vec::new();
-
-        let matches = s.match_indices(|c: char| !c.is_ascii_digit());
-        let mut start = 0;
-
-        for (end, raw_kind) in matches {
-            let op = s[start..=end].parse().map_err(ParseError::InvalidOp)?;
-            ops.push(op);
-            start = end + raw_kind.len();
-        }
-
-        if start == s.len() {
-            Self::try_from(ops)
-        } else {
-            Err(ParseError::Invalid)
-        }
     }
 }
 
@@ -256,27 +199,5 @@ mod tests {
         .collect();
 
         assert_eq!(cigar.to_string(), "1M13N144S");
-    }
-
-    #[test]
-    fn test_from_str() {
-        assert_eq!(
-            "1M13N144S".parse::<Cigar>(),
-            Ok([
-                Op::new(Kind::Match, 1),
-                Op::new(Kind::Skip, 13),
-                Op::new(Kind::SoftClip, 144),
-            ]
-            .into_iter()
-            .collect())
-        );
-
-        assert_eq!("".parse::<Cigar>(), Err(ParseError::Empty));
-        assert_eq!("8M13".parse::<Cigar>(), Err(ParseError::Invalid));
-
-        assert!(matches!(
-            "*".parse::<Cigar>(),
-            Err(ParseError::InvalidOp(_))
-        ));
     }
 }

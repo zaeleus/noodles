@@ -120,16 +120,21 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::Cigar};
+    /// use noodles_sam::{
+    ///     self as sam,
+    ///     record::{
+    ///         cigar::{op::Kind, Op},
+    ///         Cigar,
+    ///     },
+    /// };
     ///
-    /// let cigar: Cigar = "4M".parse()?;
+    /// let cigar: Cigar = [Op::new(Kind::Match, 4)].into_iter().collect();
     ///
     /// let record = sam::alignment::RecordBuf::builder()
     ///     .set_cigar(cigar.clone())
     ///     .build();
     ///
     /// assert_eq!(record.cigar(), &cigar);
-    /// Ok::<_, sam::record::cigar::ParseError>(())
     /// ```
     pub fn set_cigar(mut self, cigar: Cigar) -> Self {
         self.cigar = cigar;

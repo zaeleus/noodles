@@ -3,7 +3,14 @@ pub mod op;
 use std::{error, fmt, mem};
 
 use bytes::Buf;
-use noodles_sam::{self as sam, alignment::RecordBuf, record::Cigar};
+use noodles_sam::{
+    self as sam,
+    alignment::RecordBuf,
+    record::{
+        cigar::{op::Kind, Op},
+        Cigar,
+    },
+};
 
 use self::op::decode_op;
 
@@ -71,10 +78,7 @@ where
 
 // § 4.2.2 "`N_CIGAR_OP` field" (2022-08-22)
 pub(super) fn resolve(header: &sam::Header, record: &mut RecordBuf) -> Result<(), DecodeError> {
-    use sam::record::{
-        cigar::{op::Kind, Op},
-        data::field::{tag, value::Array},
-    };
+    use sam::record::data::field::{tag, value::Array};
 
     if let [op_0, op_1] = record.cigar().as_ref() {
         let rs = record
@@ -143,12 +147,19 @@ mod tests {
         let mut buf = Cigar::default();
 
         t(&[], &mut buf, 0, &Cigar::default())?;
-        t(&[0x40, 0x00, 0x00, 0x00], &mut buf, 1, &"4M".parse()?)?;
+        t(
+            &[0x40, 0x00, 0x00, 0x00],
+            &mut buf,
+            1,
+            &[Op::new(Kind::Match, 4)].into_iter().collect(),
+        )?;
         t(
             &[0x40, 0x00, 0x00, 0x00, 0x25, 0x00, 0x00, 0x00],
             &mut buf,
             2,
-            &"4M2H".parse()?,
+            &[Op::new(Kind::Match, 4), Op::new(Kind::HardClip, 2)]
+                .into_iter()
+                .collect(),
         )?;
 
         Ok(())
@@ -176,7 +187,11 @@ mod tests {
 
         let mut record = RecordBuf::builder()
             .set_reference_sequence_id(0)
-            .set_cigar("4S8N".parse()?)
+            .set_cigar(
+                [Op::new(Kind::SoftClip, 4), Op::new(Kind::Skip, 8)]
+                    .into_iter()
+                    .collect(),
+            )
             .set_sequence(Sequence::from(b"ACGT".to_vec()))
             .set_data(
                 [(tag::CIGAR, Value::Array(Array::UInt32(vec![0x40])))]

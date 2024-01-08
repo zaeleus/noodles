@@ -1,10 +1,6 @@
 //! SAM record CIGAR operation kind.
 
-use std::{
-    error,
-    fmt::{self, Write},
-    str::FromStr,
-};
+use std::fmt::{self, Write};
 
 /// A SAM record CIGAR operation kind.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -79,37 +75,6 @@ impl fmt::Display for Kind {
     }
 }
 
-/// An error returned when a raw SAM record CIGAR operation kind fails to parse.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ParseError(String);
-
-impl error::Error for ParseError {}
-
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&self.0)
-    }
-}
-
-impl FromStr for Kind {
-    type Err = ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "M" => Ok(Self::Match),
-            "I" => Ok(Self::Insertion),
-            "D" => Ok(Self::Deletion),
-            "N" => Ok(Self::Skip),
-            "S" => Ok(Self::SoftClip),
-            "H" => Ok(Self::HardClip),
-            "P" => Ok(Self::Pad),
-            "=" => Ok(Self::SequenceMatch),
-            "X" => Ok(Self::SequenceMismatch),
-            _ => Err(ParseError(s.into())),
-        }
-    }
-}
-
 impl From<Kind> for char {
     fn from(kind: Kind) -> Self {
         match kind {
@@ -167,22 +132,6 @@ mod tests {
         assert_eq!(Kind::Pad.to_string(), "P");
         assert_eq!(Kind::SequenceMatch.to_string(), "=");
         assert_eq!(Kind::SequenceMismatch.to_string(), "X");
-    }
-
-    #[test]
-    fn test_from_str() {
-        assert_eq!("M".parse(), Ok(Kind::Match));
-        assert_eq!("I".parse(), Ok(Kind::Insertion));
-        assert_eq!("D".parse(), Ok(Kind::Deletion));
-        assert_eq!("N".parse(), Ok(Kind::Skip));
-        assert_eq!("S".parse(), Ok(Kind::SoftClip));
-        assert_eq!("H".parse(), Ok(Kind::HardClip));
-        assert_eq!("P".parse(), Ok(Kind::Pad));
-        assert_eq!("=".parse(), Ok(Kind::SequenceMatch));
-        assert_eq!("X".parse(), Ok(Kind::SequenceMismatch));
-
-        assert_eq!("".parse::<Kind>(), Err(ParseError(String::from(""))));
-        assert_eq!("O".parse::<Kind>(), Err(ParseError(String::from("O"))));
     }
 
     #[test]

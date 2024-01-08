@@ -4,6 +4,7 @@ mod with_positions;
 pub use self::{cigar::Cigar, with_positions::WithPositions};
 
 use std::{
+    io,
     ops::{Deref, DerefMut},
     slice,
 };
@@ -32,10 +33,7 @@ impl Features {
     }
 
     /// Converts CRAM features to SAM CIGAR operations.
-    pub fn try_into_cigar(
-        &self,
-        read_length: usize,
-    ) -> Result<sam::record::Cigar, sam::record::cigar::ParseError> {
+    pub fn try_into_cigar(&self, read_length: usize) -> io::Result<sam::record::Cigar> {
         use sam::record::cigar::{op::Kind, Op};
 
         fn merge_or_insert_op(ops: &mut Vec<(Kind, usize)>, kind: Kind, len: usize) {
@@ -216,20 +214,22 @@ fn cigar_to_features(
 
 #[cfg(test)]
 mod tests {
+    use sam::record::cigar::{op::Kind, Op};
+
     use super::*;
 
     #[test]
     fn test_cigar_to_features() -> Result<(), Box<dyn std::error::Error>> {
         let flags = Flags::default();
 
-        let cigar = "1M".parse()?;
+        let cigar = [Op::new(Kind::Match, 1)].into_iter().collect();
         let sequence = Sequence::from(b"A".to_vec());
         let quality_scores = QualityScores::from(vec![45]);
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
         let expected = Features::from(vec![Feature::ReadBase(Position::try_from(1)?, b'A', 45)]);
         assert_eq!(actual, expected);
 
-        let cigar = "2M".parse()?;
+        let cigar = [Op::new(Kind::Match, 2)].into_iter().collect();
         let sequence = Sequence::from(b"AC".to_vec());
         let quality_scores = QualityScores::from(vec![45, 35]);
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
@@ -239,7 +239,9 @@ mod tests {
         ]);
         assert_eq!(actual, expected);
 
-        let cigar = "1I1M".parse()?;
+        let cigar = [Op::new(Kind::Insertion, 1), Op::new(Kind::Match, 1)]
+            .into_iter()
+            .collect();
         let sequence = Sequence::from(b"AC".to_vec());
         let quality_scores = QualityScores::from(vec![45, 35]);
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
@@ -250,7 +252,9 @@ mod tests {
         ]);
         assert_eq!(actual, expected);
 
-        let cigar = "2I1M".parse()?;
+        let cigar = [Op::new(Kind::Insertion, 2), Op::new(Kind::Match, 1)]
+            .into_iter()
+            .collect();
         let sequence = Sequence::from(b"ACG".to_vec());
         let quality_scores = QualityScores::from(vec![45, 35, 43]);
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
@@ -261,7 +265,9 @@ mod tests {
         ]);
         assert_eq!(actual, expected);
 
-        let cigar = "1D2M".parse()?;
+        let cigar = [Op::new(Kind::Deletion, 1), Op::new(Kind::Match, 2)]
+            .into_iter()
+            .collect();
         let sequence = Sequence::from(b"AC".to_vec());
         let quality_scores = QualityScores::from(vec![45, 35]);
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
@@ -272,7 +278,9 @@ mod tests {
         ]);
         assert_eq!(actual, expected);
 
-        let cigar = "1N1M".parse()?;
+        let cigar = [Op::new(Kind::Skip, 1), Op::new(Kind::Match, 1)]
+            .into_iter()
+            .collect();
         let sequence = Sequence::from(b"A".to_vec());
         let quality_scores = QualityScores::from(vec![45]);
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
@@ -282,7 +290,9 @@ mod tests {
         ]);
         assert_eq!(actual, expected);
 
-        let cigar = "1S1M".parse()?;
+        let cigar = [Op::new(Kind::SoftClip, 1), Op::new(Kind::Match, 1)]
+            .into_iter()
+            .collect();
         let sequence = Sequence::from(b"AC".to_vec());
         let quality_scores = QualityScores::from(vec![45, 35]);
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
@@ -293,7 +303,9 @@ mod tests {
         ]);
         assert_eq!(actual, expected);
 
-        let cigar = "2S1M".parse()?;
+        let cigar = [Op::new(Kind::SoftClip, 2), Op::new(Kind::Match, 1)]
+            .into_iter()
+            .collect();
         let sequence = Sequence::from(b"ACG".to_vec());
         let quality_scores = QualityScores::from(vec![45, 35, 43]);
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
@@ -304,7 +316,9 @@ mod tests {
         ]);
         assert_eq!(actual, expected);
 
-        let cigar = "1H1M".parse()?;
+        let cigar = [Op::new(Kind::HardClip, 1), Op::new(Kind::Match, 1)]
+            .into_iter()
+            .collect();
         let sequence = Sequence::from(b"A".to_vec());
         let quality_scores = QualityScores::from(vec![45]);
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
@@ -314,7 +328,9 @@ mod tests {
         ]);
         assert_eq!(actual, expected);
 
-        let cigar = "1P1M".parse()?;
+        let cigar = [Op::new(Kind::Pad, 1), Op::new(Kind::Match, 1)]
+            .into_iter()
+            .collect();
         let sequence = Sequence::from(b"A".to_vec());
         let quality_scores = QualityScores::from(vec![45]);
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
@@ -332,14 +348,14 @@ mod tests {
     ) -> Result<(), Box<dyn std::error::Error>> {
         let flags = Flags::QUALITY_SCORES_STORED_AS_ARRAY;
 
-        let cigar = "1M".parse()?;
+        let cigar = [Op::new(Kind::Match, 1)].into_iter().collect();
         let sequence = Sequence::from(b"A".to_vec());
         let quality_scores = QualityScores::from(vec![45]);
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
         let expected = Features::from(vec![Feature::ReadBase(Position::try_from(1)?, b'A', 45)]);
         assert_eq!(actual, expected);
 
-        let cigar = "2M".parse()?;
+        let cigar = [Op::new(Kind::Match, 2)].into_iter().collect();
         let sequence = Sequence::from(b"AC".to_vec());
         let quality_scores = QualityScores::from(vec![45, 35]);
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
@@ -349,7 +365,9 @@ mod tests {
         )]);
         assert_eq!(actual, expected);
 
-        let cigar = "1I1M".parse()?;
+        let cigar = [Op::new(Kind::Insertion, 1), Op::new(Kind::Match, 1)]
+            .into_iter()
+            .collect();
         let sequence = Sequence::from(b"AC".to_vec());
         let quality_scores = QualityScores::from(vec![45, 35]);
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
@@ -359,7 +377,9 @@ mod tests {
         ]);
         assert_eq!(actual, expected);
 
-        let cigar = "2I1M".parse()?;
+        let cigar = [Op::new(Kind::Insertion, 2), Op::new(Kind::Match, 1)]
+            .into_iter()
+            .collect();
         let sequence = Sequence::from(b"ACG".to_vec());
         let quality_scores = QualityScores::from(vec![45, 35, 43]);
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
@@ -369,7 +389,9 @@ mod tests {
         ]);
         assert_eq!(actual, expected);
 
-        let cigar = "1D2M".parse()?;
+        let cigar = [Op::new(Kind::Deletion, 1), Op::new(Kind::Match, 2)]
+            .into_iter()
+            .collect();
         let sequence = Sequence::from(b"AC".to_vec());
         let quality_scores = QualityScores::from(vec![45, 35]);
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
@@ -379,7 +401,9 @@ mod tests {
         ]);
         assert_eq!(actual, expected);
 
-        let cigar = "1N1M".parse()?;
+        let cigar = [Op::new(Kind::Skip, 1), Op::new(Kind::Match, 1)]
+            .into_iter()
+            .collect();
         let sequence = Sequence::from(b"A".to_vec());
         let quality_scores = QualityScores::from(vec![45]);
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
@@ -389,7 +413,9 @@ mod tests {
         ]);
         assert_eq!(actual, expected);
 
-        let cigar = "1S1M".parse()?;
+        let cigar = [Op::new(Kind::SoftClip, 1), Op::new(Kind::Match, 1)]
+            .into_iter()
+            .collect();
         let sequence = Sequence::from(b"AC".to_vec());
         let quality_scores = QualityScores::from(vec![45, 35]);
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
@@ -399,7 +425,9 @@ mod tests {
         ]);
         assert_eq!(actual, expected);
 
-        let cigar = "2S1M".parse()?;
+        let cigar = [Op::new(Kind::SoftClip, 2), Op::new(Kind::Match, 1)]
+            .into_iter()
+            .collect();
         let sequence = Sequence::from(b"ACG".to_vec());
         let quality_scores = QualityScores::from(vec![45, 35, 43]);
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
@@ -409,7 +437,9 @@ mod tests {
         ]);
         assert_eq!(actual, expected);
 
-        let cigar = "1H1M".parse()?;
+        let cigar = [Op::new(Kind::HardClip, 1), Op::new(Kind::Match, 1)]
+            .into_iter()
+            .collect();
         let sequence = Sequence::from(b"A".to_vec());
         let quality_scores = QualityScores::from(vec![45]);
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
@@ -419,7 +449,9 @@ mod tests {
         ]);
         assert_eq!(actual, expected);
 
-        let cigar = "1P1M".parse()?;
+        let cigar = [Op::new(Kind::Pad, 1), Op::new(Kind::Match, 1)]
+            .into_iter()
+            .collect();
         let sequence = Sequence::from(b"A".to_vec());
         let quality_scores = QualityScores::from(vec![45]);
         let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
@@ -433,15 +465,13 @@ mod tests {
     }
 
     #[test]
-    fn test_try_into_cigar() -> Result<(), noodles_core::position::TryFromIntError> {
-        use sam::record::cigar::{op::Kind, Op};
-
+    fn test_try_into_cigar() -> Result<(), Box<dyn std::error::Error>> {
         use crate::record::feature::substitution;
 
         let features = Features::default();
         assert_eq!(
-            features.try_into_cigar(4),
-            Ok([Op::new(Kind::Match, 4)].into_iter().collect())
+            features.try_into_cigar(4)?,
+            [Op::new(Kind::Match, 4)].into_iter().collect()
         );
 
         let features = Features::from(vec![Feature::SoftClip(
@@ -449,26 +479,26 @@ mod tests {
             vec![b'A', b'T'],
         )]);
         assert_eq!(
-            features.try_into_cigar(4),
-            Ok([Op::new(Kind::SoftClip, 2), Op::new(Kind::Match, 2)]
+            features.try_into_cigar(4)?,
+            [Op::new(Kind::SoftClip, 2), Op::new(Kind::Match, 2)]
                 .into_iter()
-                .collect())
+                .collect()
         );
 
         let features = Features::from(vec![Feature::SoftClip(Position::try_from(4)?, vec![b'G'])]);
         assert_eq!(
-            features.try_into_cigar(4),
-            Ok([Op::new(Kind::Match, 3), Op::new(Kind::SoftClip, 1)]
+            features.try_into_cigar(4)?,
+            [Op::new(Kind::Match, 3), Op::new(Kind::SoftClip, 1)]
                 .into_iter()
-                .collect())
+                .collect()
         );
 
         let features = Features::from(vec![Feature::HardClip(Position::try_from(1)?, 2)]);
         assert_eq!(
-            features.try_into_cigar(4),
-            Ok([Op::new(Kind::HardClip, 2), Op::new(Kind::Match, 4)]
+            features.try_into_cigar(4)?,
+            [Op::new(Kind::HardClip, 2), Op::new(Kind::Match, 4)]
                 .into_iter()
-                .collect())
+                .collect()
         );
 
         let features = Features::from(vec![
@@ -476,10 +506,10 @@ mod tests {
             Feature::Substitution(Position::try_from(3)?, substitution::Value::Code(0)),
         ]);
         assert_eq!(
-            features.try_into_cigar(4),
-            Ok([Op::new(Kind::SoftClip, 1), Op::new(Kind::Match, 3)]
+            features.try_into_cigar(4)?,
+            [Op::new(Kind::SoftClip, 1), Op::new(Kind::Match, 3)]
                 .into_iter()
-                .collect())
+                .collect()
         );
 
         let features = Features::from(vec![Feature::Substitution(
@@ -487,8 +517,8 @@ mod tests {
             substitution::Value::Code(0),
         )]);
         assert_eq!(
-            features.try_into_cigar(4),
-            Ok([Op::new(Kind::Match, 4)].into_iter().collect())
+            features.try_into_cigar(4)?,
+            [Op::new(Kind::Match, 4)].into_iter().collect()
         );
 
         Ok(())

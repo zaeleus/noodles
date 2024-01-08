@@ -2,7 +2,7 @@
 
 pub mod kind;
 
-use std::{error, fmt, num, str::FromStr};
+use std::fmt;
 
 pub use self::kind::Kind;
 
@@ -82,54 +82,6 @@ impl fmt::Display for Op {
     }
 }
 
-/// An error returned when a raw CIGAR operation fails to parse.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
-    /// The input is empty.
-    Empty,
-    /// The raw operation has an invalid length.
-    InvalidLength(num::ParseIntError),
-    /// The raw operation has an invalid kind.
-    InvalidKind(kind::ParseError),
-}
-
-impl error::Error for ParseError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match self {
-            Self::Empty => None,
-            Self::InvalidLength(e) => Some(e),
-            Self::InvalidKind(e) => Some(e),
-        }
-    }
-}
-
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Empty => write!(f, "empty input"),
-            Self::InvalidLength(_) => f.write_str("invalid length"),
-            Self::InvalidKind(_) => f.write_str("invalid kind"),
-        }
-    }
-}
-
-impl FromStr for Op {
-    type Err = ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.is_empty() {
-            return Err(ParseError::Empty);
-        }
-
-        let (raw_len, raw_kind) = s.split_at(s.len() - 1);
-
-        let len = raw_len.parse().map_err(ParseError::InvalidLength)?;
-        let kind = raw_kind.parse().map_err(ParseError::InvalidKind)?;
-
-        Ok(Self::new(kind, len))
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -141,26 +93,5 @@ mod tests {
 
         let op = Op::new(Kind::SoftClip, 13);
         assert_eq!(op.to_string(), "13S");
-    }
-
-    #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        assert_eq!("1M".parse(), Ok(Op::new(Kind::Match, 1)));
-        assert_eq!("13N".parse(), Ok(Op::new(Kind::Skip, 13)));
-        assert_eq!("144S".parse(), Ok(Op::new(Kind::SoftClip, 144)));
-
-        assert_eq!("".parse::<Op>(), Err(ParseError::Empty));
-
-        assert!(matches!(
-            "Z".parse::<Op>(),
-            Err(ParseError::InvalidLength(_))
-        ));
-
-        assert!(matches!(
-            "21".parse::<Op>(),
-            Err(ParseError::InvalidKind(_))
-        ));
-
-        Ok(())
     }
 }

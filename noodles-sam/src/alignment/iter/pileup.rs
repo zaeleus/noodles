@@ -269,7 +269,10 @@ mod tests {
 
     #[test]
     fn test_next() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::header::record::value::{map::ReferenceSequence, Map};
+        use crate::{
+            header::record::value::{map::ReferenceSequence, Map},
+            record::cigar::{op::Kind, Op},
+        };
 
         // 1 2 3 4 5 6 7 8 9
         //   [   ]
@@ -279,12 +282,36 @@ mod tests {
         //             [ ]
         //             [   ]
         let records: Vec<_> = [
-            (0, Position::try_from(2)?, "3M".parse()?),
-            (0, Position::try_from(2)?, "4M".parse()?),
-            (0, Position::try_from(3)?, "2M".parse()?),
-            (0, Position::try_from(4)?, "2M".parse()?),
-            (0, Position::try_from(7)?, "2M".parse()?),
-            (0, Position::try_from(7)?, "3M".parse()?),
+            (
+                0,
+                Position::try_from(2)?,
+                [Op::new(Kind::Match, 3)].into_iter().collect(),
+            ),
+            (
+                0,
+                Position::try_from(2)?,
+                [Op::new(Kind::Match, 4)].into_iter().collect(),
+            ),
+            (
+                0,
+                Position::try_from(3)?,
+                [Op::new(Kind::Match, 2)].into_iter().collect(),
+            ),
+            (
+                0,
+                Position::try_from(4)?,
+                [Op::new(Kind::Match, 2)].into_iter().collect(),
+            ),
+            (
+                0,
+                Position::try_from(7)?,
+                [Op::new(Kind::Match, 2)].into_iter().collect(),
+            ),
+            (
+                0,
+                Position::try_from(7)?,
+                [Op::new(Kind::Match, 3)].into_iter().collect(),
+            ),
         ]
         .into_iter()
         .map(|(reference_sequence_id, position, cigar)| {

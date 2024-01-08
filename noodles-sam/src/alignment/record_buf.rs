@@ -211,15 +211,20 @@ impl RecordBuf {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::Cigar};
+    /// use noodles_sam::{
+    ///     self as sam,
+    ///     record::{
+    ///         cigar::{op::Kind, Op},
+    ///         Cigar,
+    ///     },
+    /// };
     ///
-    /// let cigar: Cigar = "4M".parse()?;
+    /// let cigar: Cigar = [Op::new(Kind::Match, 4)].into_iter().collect();
     ///
     /// let mut record = sam::alignment::RecordBuf::default();
     /// *record.cigar_mut() = cigar.clone();
     ///
     /// assert_eq!(record.cigar(), &cigar);
-    /// Ok::<_, sam::record::cigar::ParseError>(())
     /// ```
     pub fn cigar_mut(&mut self) -> &mut record::Cigar {
         &mut self.cigar
@@ -468,15 +473,18 @@ impl RecordBuf {
     ///
     /// ```
     /// use noodles_core::Position;
-    /// use noodles_sam as sam;
+    /// use noodles_sam::{
+    ///     self as sam,
+    ///     record::cigar::{op::Kind, Op},
+    /// };
     ///
     /// let record = sam::alignment::RecordBuf::builder()
     ///     .set_alignment_start(Position::try_from(8)?)
-    ///     .set_cigar("5M".parse()?)
+    ///     .set_cigar([Op::new(Kind::Match, 5)].into_iter().collect())
     ///     .build();
     ///
     /// assert_eq!(record.alignment_end(), Position::new(12));
-    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
     pub fn alignment_end(&self) -> Option<core::Position> {
         self.alignment_start().and_then(|alignment_start| {
