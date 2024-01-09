@@ -7,12 +7,9 @@ mod value;
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::{
-    alignment::record::{
-        data::field::{Type, Value},
-        Cigar,
-    },
-    record::data::field::value::array::Subtype,
+use noodles_sam::alignment::record::{
+    data::field::{value::array::Subtype, Type, Value},
+    Cigar,
 };
 
 pub use self::value::put_value;

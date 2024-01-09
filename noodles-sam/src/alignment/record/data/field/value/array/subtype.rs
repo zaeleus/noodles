@@ -1,8 +1,4 @@
-//! SAM record data field value subtype.
-
-/// A SAM record data field value subtype.
-///
-/// Only arrays have subtypes.
+/// A alignment record data field array value subtype.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Subtype {
     /// 8-bit integer (`c`).

@@ -3,7 +3,9 @@ mod subtype;
 use std::{error, fmt};
 
 use self::subtype::parse_subtype;
-use crate::record::data::field::value::{array::Subtype, Array};
+use crate::{
+    alignment::record::data::field::value::array::Subtype, record::data::field::value::Array,
+};
 
 /// An error when a raw BAM record data field array value subtype fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]

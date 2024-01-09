@@ -1,8 +1,9 @@
 //! Alignment record data field array value.
 
+mod subtype;
 mod values;
 
-pub use self::values::Values;
+pub use self::{subtype::Subtype, values::Values};
 
 /// An alignment record data field array value.
 pub enum Array<'a> {

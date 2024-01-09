@@ -3,9 +3,7 @@ mod subtype;
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::{
-    alignment::record::data::field::value::Array, record::data::field::value::array::Subtype,
-};
+use noodles_sam::alignment::record::data::field::value::{array::Subtype, Array};
 
 use self::subtype::put_subtype;
 

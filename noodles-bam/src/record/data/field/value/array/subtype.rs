@@ -1,6 +1,6 @@
 use std::io;
 
-use noodles_sam::record::data::field::value::array::Subtype;
+use noodles_sam::alignment::record::data::field::value::array::Subtype;
 
 pub(crate) fn decode_subtype(src: &mut &[u8]) -> io::Result<Subtype> {
     let Some((n, rest)) = src.split_first() else {

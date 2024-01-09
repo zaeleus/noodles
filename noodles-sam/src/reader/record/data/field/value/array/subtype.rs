@@ -1,6 +1,6 @@
 use std::{error, fmt};
 
-use crate::record::data::field::value::array::Subtype;
+use crate::alignment::record::data::field::value::array::Subtype;
 
 /// An error when a raw BAM record data field array value subtype fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]

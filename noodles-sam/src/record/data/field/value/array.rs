@@ -1,8 +1,6 @@
 //! SAM record data field array.
 
-pub mod subtype;
-
-pub use self::subtype::Subtype;
+use crate::alignment::record::data::field::value::array::Subtype;
 
 /// A SAM record data field array value.
 #[derive(Clone, Debug, PartialEq)]
@@ -29,7 +27,11 @@ impl Array {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::{value::{Array, array::Subtype}, Value};
+    /// use noodles_sam::{
+    ///     alignment::record::data::field::value::array::Subtype,
+    ///     record::data::field::{value::Array, Value},
+    /// };
+    ///
     /// assert_eq!(Array::UInt8(vec![0]).subtype(), Subtype::UInt8);
     /// ```
     pub fn subtype(&self) -> Subtype {
