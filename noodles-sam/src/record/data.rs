@@ -2,14 +2,9 @@
 
 pub mod field;
 
-use std::{
-    fmt::{self, Write},
-    io, mem,
-};
+use std::{io, mem};
 
 use self::field::{Tag, Value};
-
-const DELIMITER: char = '\t';
 
 /// SAM record data.
 ///
@@ -357,28 +352,6 @@ where
     }
 }
 
-impl fmt::Display for Data {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use self::field::Type;
-
-        for (i, (tag, value)) in self.iter().enumerate() {
-            if i > 0 {
-                f.write_char(DELIMITER)?;
-            }
-
-            let ty = if value.is_int() {
-                Type::Int32
-            } else {
-                value.ty()
-            };
-
-            write!(f, "{tag}:{ty}:{value}")?;
-        }
-
-        Ok(())
-    }
-}
-
 impl Extend<(Tag, Value)> for Data {
     fn extend<T: IntoIterator<Item = (Tag, Value)>>(&mut self, iter: T) {
         for (tag, value) in iter {
@@ -420,20 +393,6 @@ mod tests {
         assert!(data.is_empty());
 
         Ok(())
-    }
-
-    #[test]
-    fn test_fmt() {
-        let data: Data = [
-            (tag::READ_GROUP, Value::String(String::from("rg0"))),
-            (tag::ALIGNMENT_HIT_COUNT, Value::from(1)),
-        ]
-        .into_iter()
-        .collect();
-
-        let expected = "RG:Z:rg0\tNH:i:1";
-
-        assert_eq!(data.to_string(), expected);
     }
 
     #[test]
