@@ -1,7 +1,7 @@
 use std::io;
 
 use bytes::{Buf, Bytes};
-use noodles_sam::record::data::field::{Tag, Type};
+use noodles_sam::{alignment::record::data::field::Type, record::data::field::Tag};
 
 use crate::{
     data_container::compression_header::{

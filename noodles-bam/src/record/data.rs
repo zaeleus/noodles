@@ -90,7 +90,7 @@ impl<'a> TryFrom<Data<'a>> for sam::record::Data {
 }
 
 pub(super) fn get_raw_cigar<'a>(src: &mut &'a [u8]) -> io::Result<Option<&'a [u8]>> {
-    use noodles_sam::record::data::field::Type;
+    use noodles_sam::alignment::record::data::field::Type;
 
     use self::field::{
         decode_tag, decode_type, decode_value,

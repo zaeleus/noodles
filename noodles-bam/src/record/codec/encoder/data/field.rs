@@ -8,8 +8,11 @@ use std::io;
 
 use bytes::BufMut;
 use noodles_sam::{
-    alignment::record::{data::field::Value, Cigar},
-    record::data::field::{value::array::Subtype, Type},
+    alignment::record::{
+        data::field::{Type, Value},
+        Cigar,
+    },
+    record::data::field::value::array::Subtype,
 };
 
 pub use self::value::put_value;

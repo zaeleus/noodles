@@ -63,7 +63,10 @@ impl Builder {
     ///     compression_header::preservation_map::tag_ids_dictionary::Key,
     ///     BlockContentEncoderMap,
     /// };
-    /// use noodles_sam::record::data::field::{tag, Type};
+    /// use noodles_sam::{
+    ///     alignment::record::data::field::Type,
+    ///     record::data::field::tag,
+    /// };
     ///
     /// let key = Key::new(tag::ALIGNMENT_HIT_COUNT, Type::UInt8);
     /// let builder = BlockContentEncoderMap::builder()

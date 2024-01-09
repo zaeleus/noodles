@@ -3,7 +3,7 @@
 pub mod array;
 
 pub use self::array::Array;
-use crate::record::data::field::Type;
+use super::Type;
 
 /// An alignment record data field value.
 pub enum Value<'a> {
@@ -37,11 +37,7 @@ impl<'a> Value<'a> {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{
-    ///     alignment::record::data::field::Value,
-    ///     record::data::field::Type,
-    /// };
-    ///
+    /// use noodles_sam::alignment::record::data::field::{Type, Value};
     /// assert_eq!(Value::UInt8(0).ty(), Type::UInt8);
     /// ```
     pub fn ty(&self) -> Type {

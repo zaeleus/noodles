@@ -3,9 +3,12 @@ mod array;
 use std::{error, fmt, mem, string};
 
 use bytes::Buf;
-use noodles_sam::record::data::field::{
-    value::{character, hex, Character},
-    Type, Value,
+use noodles_sam::{
+    alignment::record::data::field::Type,
+    record::data::field::{
+        value::{character, hex, Character},
+        Value,
+    },
 };
 
 use self::array::get_array;

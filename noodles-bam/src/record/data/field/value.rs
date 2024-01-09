@@ -5,7 +5,7 @@ pub mod array;
 use std::io::{self, BufRead};
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use noodles_sam::{alignment::record::data::field::Value, record::data::field::Type};
+use noodles_sam::alignment::record::data::field::{Type, Value};
 
 use self::array::decode_array;
 

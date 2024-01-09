@@ -51,8 +51,8 @@ fn write_headers(writers: &mut Writers, header: &sam::Header) -> io::Result<()> 
 
 fn get_read_group(data: &dyn sam::alignment::record::Data) -> Option<io::Result<&[u8]>> {
     use sam::{
-        alignment::record::data::field::Value,
-        record::data::field::{tag, Type},
+        alignment::record::data::field::{Type, Value},
+        record::data::field::tag,
     };
 
     data.get(tag::READ_GROUP.as_ref()).map(|result| {

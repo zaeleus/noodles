@@ -1,7 +1,7 @@
 use std::{error, fmt, mem};
 
 use bytes::Buf;
-use noodles_sam::record::data::field::Type;
+use noodles_sam::alignment::record::data::field::Type;
 
 /// An error when a raw BAM record data field type fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]

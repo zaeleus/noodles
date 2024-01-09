@@ -1,6 +1,6 @@
 use std::io::{self, Read};
 
-use noodles_sam::record::data::field::Type;
+use noodles_sam::alignment::record::data::field::Type;
 
 pub(crate) fn decode_type(src: &mut &[u8]) -> io::Result<Type> {
     let mut buf = [0; 1];

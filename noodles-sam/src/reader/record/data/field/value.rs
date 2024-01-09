@@ -3,9 +3,12 @@ mod array;
 use std::{error, fmt, str};
 
 use self::array::parse_array;
-use crate::record::data::field::{
-    value::{character, hex, Character, Hex},
-    Type, Value,
+use crate::{
+    alignment::record::data::field::Type,
+    record::data::field::{
+        value::{character, hex, Character, Hex},
+        Value,
+    },
 };
 
 /// An error when a raw SAM record data field value fails to parse.

@@ -11,8 +11,7 @@ pub use self::{
 
 use std::fmt::{self, Write};
 
-use super::Type;
-use crate::reader::record::data::field::value::ParseError;
+use crate::{alignment::record::data::field::Type, reader::record::data::field::value::ParseError};
 
 /// A SAM record data field value.
 #[derive(Clone, Debug, PartialEq)]
@@ -47,7 +46,11 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::{Type, Value};
+    /// use noodles_sam::{
+    ///     alignment::record::data::field::Type,
+    ///     record::data::field::Value,
+    /// };
+    ///
     /// assert_eq!(Value::Int32(0).ty(), Type::Int32);
     /// ```
     pub fn ty(&self) -> Type {

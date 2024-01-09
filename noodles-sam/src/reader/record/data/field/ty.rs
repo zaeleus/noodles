@@ -1,6 +1,6 @@
 use std::{error, fmt};
 
-use crate::record::data::field::Type;
+use crate::alignment::record::data::field::Type;
 
 /// An error when a raw SAM record data field type fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
