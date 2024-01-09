@@ -9,8 +9,6 @@ pub use self::{
     array::Array, base_modifications::BaseModifications, character::Character, hex::Hex,
 };
 
-use std::fmt::{self, Write};
-
 use crate::{alignment::record::data::field::Type, reader::record::data::field::value::ParseError};
 
 /// A SAM record data field value.
@@ -454,24 +452,6 @@ impl TryFrom<String> for Value {
     }
 }
 
-impl fmt::Display for Value {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Character(c) => f.write_char(char::from(*c)),
-            Self::Int8(n) => write!(f, "{n}"),
-            Self::UInt8(n) => write!(f, "{n}"),
-            Self::Int16(n) => write!(f, "{n}"),
-            Self::UInt16(n) => write!(f, "{n}"),
-            Self::Int32(n) => write!(f, "{n}"),
-            Self::UInt32(n) => write!(f, "{n}"),
-            Self::Float(n) => write!(f, "{n}"),
-            Self::String(s) => f.write_str(s),
-            Self::Hex(s) => write!(f, "{s}"),
-            Self::Array(array) => write!(f, "{array}"),
-        }
-    }
-}
-
 // § 1.5 The alignment section: optional fields (2021-01-07)
 fn is_valid_string_char(c: char) -> bool {
     matches!(c, ' ' | '!'..='~')
@@ -692,28 +672,5 @@ mod tests {
             Value::try_from(String::from("noodles")),
             Ok(Value::String(String::from("noodles")))
         );
-    }
-
-    #[test]
-    fn test_fmt() -> Result<(), Box<dyn std::error::Error>> {
-        assert_eq!(Value::Character(Character::try_from('n')?).to_string(), "n");
-        assert_eq!(Value::Int32(13).to_string(), "13");
-        assert_eq!(Value::Float(0.0).to_string(), "0");
-
-        assert_eq!(Value::String(String::new()).to_string(), "");
-        assert_eq!(
-            Value::String(String::from("noodles")).to_string(),
-            "noodles"
-        );
-
-        assert_eq!(Value::Hex(Hex::default()).to_string(), "");
-        assert_eq!(Value::Hex("CAFE".parse()?).to_string(), "CAFE");
-
-        assert_eq!(
-            Value::Array(Array::UInt8(vec![8, 13])).to_string(),
-            "C,8,13"
-        );
-
-        Ok(())
     }
 }

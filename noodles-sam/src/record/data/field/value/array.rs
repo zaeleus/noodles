@@ -4,8 +4,6 @@ pub mod subtype;
 
 pub use self::subtype::Subtype;
 
-use std::fmt;
-
 /// A SAM record data field array value.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Array {
@@ -47,76 +45,6 @@ impl Array {
     }
 }
 
-impl fmt::Display for Array {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Int8(values) => {
-                char::from(Subtype::Int8).fmt(f)?;
-
-                for value in values {
-                    write!(f, ",{value}")?;
-                }
-
-                Ok(())
-            }
-            Self::UInt8(values) => {
-                char::from(Subtype::UInt8).fmt(f)?;
-
-                for value in values {
-                    write!(f, ",{value}")?;
-                }
-
-                Ok(())
-            }
-            Self::Int16(values) => {
-                char::from(Subtype::Int16).fmt(f)?;
-
-                for value in values {
-                    write!(f, ",{value}")?;
-                }
-
-                Ok(())
-            }
-            Self::UInt16(values) => {
-                char::from(Subtype::UInt16).fmt(f)?;
-
-                for value in values {
-                    write!(f, ",{value}")?;
-                }
-
-                Ok(())
-            }
-            Self::Int32(values) => {
-                char::from(Subtype::Int32).fmt(f)?;
-
-                for value in values {
-                    write!(f, ",{value}")?;
-                }
-
-                Ok(())
-            }
-            Self::UInt32(values) => {
-                char::from(Subtype::UInt32).fmt(f)?;
-
-                for value in values {
-                    write!(f, ",{value}")?;
-                }
-
-                Ok(())
-            }
-            Self::Float(values) => {
-                char::from(Subtype::Float).fmt(f)?;
-
-                for value in values {
-                    write!(f, ",{value}")?;
-                }
-
-                Ok(())
-            }
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -130,29 +58,5 @@ mod tests {
         assert_eq!(Array::Int32(vec![0]).subtype(), Subtype::Int32);
         assert_eq!(Array::UInt32(vec![0]).subtype(), Subtype::UInt32);
         assert_eq!(Array::Float(vec![0.0]).subtype(), Subtype::Float);
-    }
-
-    #[test]
-    fn test_fmt() {
-        assert_eq!(Array::Int8(Vec::new()).to_string(), "c");
-        assert_eq!(Array::Int8(vec![1, -2]).to_string(), "c,1,-2");
-
-        assert_eq!(Array::UInt8(Vec::new()).to_string(), "C");
-        assert_eq!(Array::UInt8(vec![3, 5]).to_string(), "C,3,5");
-
-        assert_eq!(Array::Int16(Vec::new()).to_string(), "s");
-        assert_eq!(Array::Int16(vec![8, -13]).to_string(), "s,8,-13");
-
-        assert_eq!(Array::UInt16(Vec::new()).to_string(), "S");
-        assert_eq!(Array::UInt16(vec![21, 34]).to_string(), "S,21,34");
-
-        assert_eq!(Array::Int32(Vec::new()).to_string(), "i");
-        assert_eq!(Array::Int32(vec![55, -89]).to_string(), "i,55,-89");
-
-        assert_eq!(Array::UInt32(Vec::new()).to_string(), "I");
-        assert_eq!(Array::UInt32(vec![144, 233]).to_string(), "I,144,233");
-
-        assert_eq!(Array::Float(Vec::new()).to_string(), "f");
-        assert_eq!(Array::Float(vec![0.0, 1.0]).to_string(), "f,0,1");
     }
 }
