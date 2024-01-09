@@ -7,9 +7,9 @@ use noodles_sam::{
     self as sam,
     alignment::{
         record::cigar::{op::Kind, Op},
+        record_buf::Cigar,
         RecordBuf,
     },
-    record::Cigar,
 };
 
 use self::op::decode_op;

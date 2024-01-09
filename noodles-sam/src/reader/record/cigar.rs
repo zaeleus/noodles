@@ -3,7 +3,7 @@ pub(crate) mod op;
 use std::{error, fmt};
 
 use self::op::parse_op;
-use crate::record::Cigar;
+use crate::alignment::record_buf::Cigar;
 
 /// An error when a raw SAM record CIGAR fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]

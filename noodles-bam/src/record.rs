@@ -574,13 +574,13 @@ mod tests {
         use noodles_sam::{
             alignment::{
                 record::cigar::{op::Kind, Op},
-                record_buf::Sequence,
+                record_buf::{Cigar, Sequence},
                 RecordBuf,
             },
             header::record::value::{map::ReferenceSequence, Map},
             record::{
                 data::field::{tag, Value},
-                Cigar, Flags,
+                Flags,
             },
         };
 

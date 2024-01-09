@@ -1,6 +1,5 @@
 //! SAM record and fields.
 
-pub mod cigar;
 pub mod data;
 mod flags;
 pub mod mapping_quality;
@@ -11,7 +10,7 @@ pub mod sequence;
 pub mod template_length;
 
 pub use self::{
-    cigar::Cigar, data::Data, flags::Flags, mapping_quality::MappingQuality, name::Name,
+    data::Data, flags::Flags, mapping_quality::MappingQuality, name::Name,
     quality_scores::QualityScores, reference_sequence_name::ReferenceSequenceName,
     sequence::Sequence, template_length::TemplateLength,
 };

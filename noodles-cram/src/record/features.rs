@@ -25,7 +25,7 @@ impl Features {
     /// Converts SAM record CIGAR operations to CRAM record features.
     pub fn from_cigar(
         flags: Flags,
-        cigar: &sam::record::Cigar,
+        cigar: &sam::alignment::record_buf::Cigar,
         sequence: &Sequence,
         quality_scores: &QualityScores,
     ) -> Self {
@@ -33,7 +33,10 @@ impl Features {
     }
 
     /// Converts CRAM features to SAM CIGAR operations.
-    pub fn try_into_cigar(&self, read_length: usize) -> io::Result<sam::record::Cigar> {
+    pub fn try_into_cigar(
+        &self,
+        read_length: usize,
+    ) -> io::Result<sam::alignment::record_buf::Cigar> {
         use sam::alignment::record::cigar::{op::Kind, Op};
 
         fn merge_or_insert_op(ops: &mut Vec<(Kind, usize)>, kind: Kind, len: usize) {
@@ -124,7 +127,7 @@ impl From<Vec<Feature>> for Features {
 
 fn cigar_to_features(
     flags: Flags,
-    cigar: &sam::record::Cigar,
+    cigar: &sam::alignment::record_buf::Cigar,
     sequence: &Sequence,
     quality_scores: &QualityScores,
 ) -> Features {

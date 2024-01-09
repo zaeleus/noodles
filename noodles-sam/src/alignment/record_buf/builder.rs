@@ -1,7 +1,7 @@
 use noodles_core::Position;
 
-use super::{Name, QualityScores, RecordBuf, Sequence};
-use crate::record::{Cigar, Data, Flags, MappingQuality};
+use super::{Cigar, Name, QualityScores, RecordBuf, Sequence};
+use crate::record::{Data, Flags, MappingQuality};
 
 /// An alignment record builder.
 #[derive(Debug)]
@@ -122,8 +122,10 @@ impl Builder {
     /// ```
     /// use noodles_sam::{
     ///     self as sam,
-    ///     alignment::record::cigar::{op::Kind, Op},
-    ///     record::Cigar,
+    ///     alignment::{
+    ///         record::cigar::{op::Kind, Op},
+    ///         record_buf::Cigar,
+    ///     },
     /// };
     ///
     /// let cigar: Cigar = [Op::new(Kind::Match, 4)].into_iter().collect();

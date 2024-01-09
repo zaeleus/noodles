@@ -1,11 +1,14 @@
 //! Alignment record buffer.
 
 mod builder;
+mod cigar;
 mod name;
 mod quality_scores;
 mod sequence;
 
-pub use self::{builder::Builder, name::Name, quality_scores::QualityScores, sequence::Sequence};
+pub use self::{
+    builder::Builder, cigar::Cigar, name::Name, quality_scores::QualityScores, sequence::Sequence,
+};
 
 use std::io;
 
@@ -31,7 +34,7 @@ pub struct RecordBuf {
     reference_sequence_id: Option<usize>,
     alignment_start: Option<core::Position>,
     mapping_quality: Option<record::MappingQuality>,
-    cigar: record::Cigar,
+    cigar: Cigar,
     mate_reference_sequence_id: Option<usize>,
     mate_alignment_start: Option<core::Position>,
     template_length: i32,
@@ -202,7 +205,7 @@ impl RecordBuf {
     /// let record = sam::alignment::RecordBuf::default();
     /// assert!(record.cigar().as_ref().is_empty());
     /// ```
-    pub fn cigar(&self) -> &record::Cigar {
+    pub fn cigar(&self) -> &Cigar {
         &self.cigar
     }
 
@@ -213,8 +216,10 @@ impl RecordBuf {
     /// ```
     /// use noodles_sam::{
     ///     self as sam,
-    ///     alignment::record::cigar::{op::Kind, Op},
-    ///     record::Cigar,
+    ///     alignment::{
+    ///         record::cigar::{op::Kind, Op},
+    ///         record_buf::Cigar,
+    ///     },
     /// };
     ///
     /// let cigar: Cigar = [Op::new(Kind::Match, 4)].into_iter().collect();
@@ -224,7 +229,7 @@ impl RecordBuf {
     ///
     /// assert_eq!(record.cigar(), &cigar);
     /// ```
-    pub fn cigar_mut(&mut self) -> &mut record::Cigar {
+    pub fn cigar_mut(&mut self) -> &mut Cigar {
         &mut self.cigar
     }
 

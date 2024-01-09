@@ -58,7 +58,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::record::Cigar as CigarBuf;
+    use crate::alignment::record_buf::Cigar as CigarBuf;
 
     #[test]
     fn test_write_cigar() -> io::Result<()> {

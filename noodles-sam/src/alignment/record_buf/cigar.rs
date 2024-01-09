@@ -1,10 +1,10 @@
-//! SAM CIGAR and operations.
+//! Alignment record CIGAR operations.
 
 use std::io;
 
 use crate::alignment::record::cigar::Op;
 
-/// A SAM record CIGAR.
+/// Alignment record CIGAR operations.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Cigar(Vec<Op>);
 
@@ -18,9 +18,9 @@ impl Cigar {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{
-    ///     alignment::record::cigar::{op::Kind, Op},
-    ///     record::Cigar,
+    /// use noodles_sam::alignment::{
+    ///     record::cigar::{op::Kind, Op},
+    ///     record_buf::Cigar,
     /// };
     ///
     /// let cigar: Cigar = [
@@ -49,11 +49,10 @@ impl Cigar {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{
-    ///     alignment::record::cigar::{op::Kind, Op},
-    ///     record::Cigar,
+    /// use noodles_sam::alignment::{
+    ///     record::cigar::{op::Kind, Op},
+    ///     record_buf::Cigar,
     /// };
-
     ///
     /// let cigar: Cigar = [
     ///     Op::new(Kind::Match, 36),

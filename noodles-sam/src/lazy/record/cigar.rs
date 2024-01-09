@@ -64,13 +64,13 @@ impl<'a> AsRef<[u8]> for Cigar<'a> {
     }
 }
 
-impl<'a> TryFrom<Cigar<'a>> for crate::record::Cigar {
+impl<'a> TryFrom<Cigar<'a>> for crate::alignment::record_buf::Cigar {
     type Error = io::Error;
 
     fn try_from(Cigar(src): Cigar<'a>) -> Result<Self, Self::Error> {
         use crate::reader::record::parse_cigar;
 
-        let mut cigar = crate::record::Cigar::default();
+        let mut cigar = Self::default();
 
         if !src.is_empty() {
             parse_cigar(src, &mut cigar)

@@ -59,7 +59,7 @@ impl<'a> AsRef<[u8]> for Cigar<'a> {
     }
 }
 
-impl<'a> TryFrom<Cigar<'a>> for sam::record::Cigar {
+impl<'a> TryFrom<Cigar<'a>> for sam::alignment::record_buf::Cigar {
     type Error = io::Error;
 
     fn try_from(bam_cigar: Cigar<'a>) -> Result<Self, Self::Error> {

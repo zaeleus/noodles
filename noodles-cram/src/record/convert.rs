@@ -171,7 +171,7 @@ impl Record {
     }
 }
 
-fn alignment_record_cigar_to_cigar_buf<C>(cigar: C) -> io::Result<sam::record::Cigar>
+fn alignment_record_cigar_to_cigar_buf<C>(cigar: C) -> io::Result<sam::alignment::record_buf::Cigar>
 where
     C: sam::alignment::record::Cigar,
 {

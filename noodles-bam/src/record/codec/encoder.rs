@@ -20,8 +20,8 @@ use bytes::BufMut;
 use noodles_core::Position;
 use noodles_sam::{
     self as sam,
-    alignment::Record,
-    record::{Cigar, Flags, MappingQuality},
+    alignment::{record_buf::Cigar, Record},
+    record::{Flags, MappingQuality},
 };
 
 use self::{position::put_position, reference_sequence_id::put_reference_sequence_id};
@@ -357,10 +357,7 @@ mod tests {
                 record::cigar::{op::Kind, Op},
                 record_buf::Sequence,
             },
-            record::{
-                data::field::{tag, Value},
-                Cigar,
-            },
+            record::data::field::{tag, Value},
         };
 
         const BASE_COUNT: usize = 65536;

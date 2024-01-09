@@ -54,7 +54,9 @@
 
     This also changes accessors from `read_name` to `name`.
 
-  * sam/record/cigar: Move `Op` to `alignment::record::cigar::Op`.
+  * sam/record/cigar: Move `Cigar` to `alignment::record_buf::Cigar`.
+
+    `op` is moved to `alignment::record::cigar::op`.
 
   * sam/record/convert: Change `Record::try_from_alignment_record` to accept
     `&sam::alignment::Record`.

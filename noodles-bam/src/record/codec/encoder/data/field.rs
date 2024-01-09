@@ -52,9 +52,9 @@ mod tests {
 
     #[test]
     fn test_put_cigar() -> io::Result<()> {
-        use noodles_sam::{
-            alignment::record::cigar::{op::Kind, Op},
-            record::Cigar as CigarBuf,
+        use noodles_sam::alignment::{
+            record::cigar::{op::Kind, Op},
+            record_buf::Cigar as CigarBuf,
         };
 
         let mut buf = Vec::new();

@@ -52,7 +52,7 @@ mod tests {
     use super::*;
     use crate::{
         alignment::record::{cigar::op::Kind, Cigar},
-        record::Cigar as CigarBuf,
+        alignment::record_buf::Cigar as CigarBuf,
     };
 
     #[test]

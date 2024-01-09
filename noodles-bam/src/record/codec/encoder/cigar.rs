@@ -53,7 +53,7 @@ fn encode_kind(kind: Kind) -> u32 {
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::record::Cigar as CigarBuf;
+    use noodles_sam::alignment::record_buf::Cigar as CigarBuf;
 
     use super::*;
 
