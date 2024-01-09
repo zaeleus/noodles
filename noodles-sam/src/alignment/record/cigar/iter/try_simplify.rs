@@ -67,7 +67,7 @@ mod tests {
         .into_iter()
         .collect();
 
-        let iter = TrySimplify::new((&cigar as &dyn Cigar).iter());
+        let iter = TrySimplify::new(cigar.iter());
         let actual: Vec<_> = iter.collect::<Result<_, _>>()?;
 
         assert_eq!(

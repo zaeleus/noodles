@@ -71,10 +71,6 @@ impl Cigar {
             .filter_map(|op| op.kind().consumes_read().then_some(op.len()))
             .sum()
     }
-
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Op>> + '_> {
-        Box::new(self.0.iter().copied().map(Ok))
-    }
 }
 
 impl crate::alignment::record::Cigar for Cigar {
@@ -87,21 +83,21 @@ impl crate::alignment::record::Cigar for Cigar {
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Op>> + '_> {
-        self.iter()
+        Box::new(self.0.iter().copied().map(Ok))
     }
 }
 
 impl crate::alignment::record::Cigar for &Cigar {
     fn is_empty(&self) -> bool {
-        self.0.is_empty()
+        (*self).is_empty()
     }
 
     fn len(&self) -> usize {
-        self.0.len()
+        (*self).len()
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Op>> + '_> {
-        Cigar::iter(self)
+        (*self).iter()
     }
 }
 
