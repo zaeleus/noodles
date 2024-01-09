@@ -396,15 +396,19 @@ impl RecordBuf {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::Data};
+    /// use noodles_sam::{
+    ///     self as sam,
+    ///     record::{data::field::{tag, Value}, Data},
+    /// };
     ///
-    /// let data: Data = "NH:i:1".parse()?;
+    /// let data: Data = [(tag::ALIGNMENT_HIT_COUNT, Value::from(1))]
+    ///     .into_iter()
+    ///     .collect();
     ///
     /// let mut record = sam::alignment::RecordBuf::default();
     /// *record.data_mut() = data.clone();
     ///
     /// assert_eq!(record.data_mut(), &data);
-    /// Ok::<_, sam::record::data::ParseError>(())
     /// ```
     pub fn data_mut(&mut self) -> &mut record::Data {
         &mut self.data

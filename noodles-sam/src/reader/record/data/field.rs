@@ -2,11 +2,9 @@ mod tag;
 mod ty;
 pub mod value;
 
-pub(crate) use self::value::parse_value;
-
 use std::{error, fmt};
 
-use self::{tag::parse_tag, ty::parse_type};
+use self::{tag::parse_tag, ty::parse_type, value::parse_value};
 use crate::record::data::field::{Tag, Value};
 
 /// An error when a raw SAM record data field fails to parse.

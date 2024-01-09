@@ -29,12 +29,12 @@ where
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::record::Data as DataBuf;
+    use noodles_sam::record::{data::field::Value, Data as DataBuf};
 
     use super::*;
 
     #[test]
-    fn test_put_data() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_put_data() -> io::Result<()> {
         fn t(buf: &mut Vec<u8>, data: &DataBuf, expected: &[u8]) -> io::Result<()> {
             buf.clear();
             put_data(buf, data)?;
@@ -44,11 +44,23 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        t(&mut buf, &DataBuf::default(), &[])?;
-        t(&mut buf, &"NH:i:1".parse()?, &[b'N', b'H', b'C', 0x01])?;
+        let data = DataBuf::default();
+        t(&mut buf, &data, &[])?;
+
+        let data = [(tag::ALIGNMENT_HIT_COUNT, Value::from(1))]
+            .into_iter()
+            .collect();
+        t(&mut buf, &data, &[b'N', b'H', b'C', 0x01])?;
+
+        let data = [
+            (tag::ALIGNMENT_HIT_COUNT, Value::from(1)),
+            (tag::READ_GROUP, Value::String(String::from("rg0"))),
+        ]
+        .into_iter()
+        .collect();
         t(
             &mut buf,
-            &"NH:i:1\tRG:Z:rg0".parse()?,
+            &data,
             &[
                 b'N', b'H', b'C', 0x01, // NH:C:1
                 b'R', b'G', b'Z', b'r', b'g', b'0', 0x00, // RG:Z:rg0

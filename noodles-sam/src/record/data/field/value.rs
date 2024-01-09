@@ -9,10 +9,7 @@ pub use self::{
     array::Array, base_modifications::BaseModifications, character::Character, hex::Hex,
 };
 
-use std::{
-    fmt::{self, Write},
-    io,
-};
+use std::fmt::{self, Write};
 
 use super::Type;
 use crate::reader::record::data::field::value::ParseError;
@@ -45,24 +42,6 @@ pub enum Value {
 }
 
 impl Value {
-    /// Parses a raw value as the given type.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io;
-    /// use noodles_sam::record::data::field::{Type, Value};
-    /// let value = Value::from_str_type("rg0", Type::String)?;
-    /// assert_eq!(value, Value::String(String::from("rg0")));
-    /// # Ok::<_, io::Error>(())
-    /// ```
-    pub fn from_str_type(s: &str, ty: Type) -> io::Result<Self> {
-        use crate::reader::record::data::field::parse_value;
-
-        let mut src = s.as_bytes();
-        parse_value(&mut src, ty).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    }
-
     /// Returns the type of the value.
     ///
     /// # Examples

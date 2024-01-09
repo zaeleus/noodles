@@ -64,7 +64,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(crate) fn parse_value(src: &mut &[u8], ty: Type) -> Result<Value, ParseError> {
+pub(super) fn parse_value(src: &mut &[u8], ty: Type) -> Result<Value, ParseError> {
     match ty {
         Type::Character => parse_char(src),
         Type::Int32 => parse_int(src),

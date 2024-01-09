@@ -241,16 +241,20 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::Data};
+    /// use noodles_sam::{
+    ///     self as sam,
+    ///     record::{data::field::{tag, Value}, Data},
+    /// };
     ///
-    /// let data: Data = "NH:i:1".parse()?;
+    /// let data: Data = [(tag::ALIGNMENT_HIT_COUNT, Value::from(1))]
+    ///     .into_iter()
+    ///     .collect();
     ///
     /// let record = sam::alignment::RecordBuf::builder()
     ///     .set_data(data.clone())
     ///     .build();
     ///
     /// assert_eq!(record.data(), &data);
-    /// Ok::<_, sam::record::data::ParseError>(())
     /// ```
     pub fn set_data(mut self, data: Data) -> Self {
         self.data = data;
