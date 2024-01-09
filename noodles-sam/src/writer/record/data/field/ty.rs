@@ -13,7 +13,16 @@ where
         ty = Type::Int32;
     }
 
-    let c = u8::from(ty);
+    let c = match ty {
+        Type::Character => b'A',
+        Type::Int32 => b'i',
+        Type::Float => b'f',
+        Type::String => b'Z',
+        Type::Hex => b'H',
+        Type::Array => b'B',
+        _ => unreachable!(),
+    };
+
     writer.write_all(&[c])
 }
 

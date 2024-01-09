@@ -1,7 +1,7 @@
 //! BAM record data field component writers.
 
 mod tag;
-mod ty;
+pub mod ty;
 mod value;
 
 use std::io;

@@ -13,7 +13,7 @@ fn is_unique_record(record: &bam::Record) -> io::Result<bool> {
         Some(value) => value.as_int().map(|hits| hits == 1).ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidData,
-                format!("expected an integer, got {}", value.ty()),
+                format!("expected an integer, got {:?}", value.ty()),
             )
         }),
         None => Ok(false),

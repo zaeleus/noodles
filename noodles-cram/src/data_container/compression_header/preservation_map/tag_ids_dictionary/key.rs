@@ -54,8 +54,10 @@ impl Key {
 
 impl From<Key> for block::ContentId {
     fn from(key: Key) -> Self {
+        use noodles_bam::record::codec::encoder::data::field::ty::type_to_u8;
+
         let [l, r] = key.tag.as_ref();
-        let ty = u8::from(key.ty);
+        let ty = type_to_u8(key.ty);
         let id = i32::from(*l) << 16 | i32::from(*r) << 8 | i32::from(ty);
         Self::from(id)
     }

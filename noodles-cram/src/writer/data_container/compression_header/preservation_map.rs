@@ -87,6 +87,8 @@ fn write_tag_ids_dictionary<W>(
 where
     W: Write,
 {
+    use noodles_bam::record::codec::encoder::data::field::ty::type_to_u8;
+
     let mut buf = Vec::new();
 
     for keys in tag_ids_dictionary.iter() {
@@ -95,7 +97,7 @@ where
             buf.extend_from_slice(tag.as_ref());
 
             let ty = key.ty();
-            buf.push(u8::from(ty));
+            buf.push(type_to_u8(ty));
         }
 
         buf.push(NUL);
