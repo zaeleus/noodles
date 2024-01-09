@@ -1,6 +1,4 @@
-//! SAM record data field value type.
-
-/// A SAM record data field value type.
+/// An alignment record data field value type.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Type {
     /// Character (`A`).
