@@ -1,7 +1,10 @@
 use std::io::{self, Write};
 
 use crate::{
-    alignment::record::{cigar::op::Kind, Cigar},
+    alignment::record::{
+        cigar::{op::Kind, Op},
+        Cigar,
+    },
     writer::num,
 };
 
@@ -17,11 +20,19 @@ where
     } else {
         for result in cigar.iter() {
             let op = result?;
-            num::write_usize(writer, op.len())?;
-            write_kind(writer, op.kind())?;
+            write_op(writer, op)?;
         }
     }
 
+    Ok(())
+}
+
+fn write_op<W>(writer: &mut W, op: Op) -> io::Result<()>
+where
+    W: Write,
+{
+    num::write_usize(writer, op.len())?;
+    write_kind(writer, op.kind())?;
     Ok(())
 }
 
@@ -51,16 +62,40 @@ mod tests {
 
     #[test]
     fn test_write_cigar() -> io::Result<()> {
-        use crate::alignment::record::cigar::Op;
+        fn t(buf: &mut Vec<u8>, cigar: &CigarBuf, expected: &[u8]) -> io::Result<()> {
+            buf.clear();
+            write_cigar(buf, cigar)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
 
         let mut buf = Vec::new();
-        write_cigar(&mut buf, &CigarBuf::default())?;
-        assert_eq!(buf, b"*");
+
+        let cigar = CigarBuf::default();
+        t(&mut buf, &cigar, b"*")?;
+
+        let cigar = [Op::new(Kind::Match, 4)].into_iter().collect();
+        t(&mut buf, &cigar, b"4M")?;
+
+        let cigar: CigarBuf = [Op::new(Kind::Match, 4), Op::new(Kind::HardClip, 2)]
+            .into_iter()
+            .collect();
+        t(&mut buf, &cigar, b"4M2H")?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_op() -> io::Result<()> {
+        let mut buf = Vec::new();
 
         buf.clear();
-        let cigar: CigarBuf = [Op::new(Kind::Match, 8)].into_iter().collect();
-        write_cigar(&mut buf, &cigar)?;
-        assert_eq!(buf, b"8M");
+        write_op(&mut buf, Op::new(Kind::Match, 1))?;
+        assert_eq!(buf, b"1M");
+
+        buf.clear();
+        write_op(&mut buf, Op::new(Kind::Match, 1 << 28))?;
+        assert_eq!(buf, b"268435456M");
 
         Ok(())
     }
