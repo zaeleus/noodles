@@ -195,7 +195,7 @@ impl Data {
     /// use noodles_sam::record::{data::field::{tag, Value}, Data};
     ///
     /// let nh = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
-    /// let rg = (tag::READ_GROUP, Value::String(String::from("rg0")));
+    /// let rg = (tag::READ_GROUP, Value::from("rg0"));
     /// let md = (tag::ALIGNMENT_SCORE, Value::from(98));
     /// let mut data: Data = [nh.clone(), rg.clone(), md.clone()].into_iter().collect();
     ///
@@ -286,8 +286,8 @@ fn value_to_alignment_record_data_field_value(
         Value::Int32(n) => crate::alignment::record::data::field::Value::Int32(*n),
         Value::UInt32(n) => crate::alignment::record::data::field::Value::UInt32(*n),
         Value::Float(n) => crate::alignment::record::data::field::Value::Float(*n),
-        Value::String(s) => crate::alignment::record::data::field::Value::String(s.as_bytes()),
-        Value::Hex(s) => crate::alignment::record::data::field::Value::Hex(s.as_bytes()),
+        Value::String(s) => crate::alignment::record::data::field::Value::String(s),
+        Value::Hex(s) => crate::alignment::record::data::field::Value::Hex(s),
         Value::Array(Array::Int8(values)) => crate::alignment::record::data::field::Value::Array(
             crate::alignment::record::data::field::value::Array::Int8(Box::new(Values::new(
                 values.as_ref(),
@@ -396,14 +396,14 @@ mod tests {
     #[test]
     fn test_from_iterator() {
         let actual: Data = [
-            (tag::READ_GROUP, Value::String(String::from("rg0"))),
+            (tag::READ_GROUP, Value::from("rg0")),
             (tag::ALIGNMENT_HIT_COUNT, Value::from(1)),
         ]
         .into_iter()
         .collect();
 
         let expected: Data = [
-            (tag::READ_GROUP, Value::String(String::from("rg0"))),
+            (tag::READ_GROUP, Value::from("rg0")),
             (tag::ALIGNMENT_HIT_COUNT, Value::from(1)),
         ]
         .into_iter()

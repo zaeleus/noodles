@@ -54,7 +54,7 @@ mod tests {
 
         let data = [
             (tag::ALIGNMENT_HIT_COUNT, Value::from(1)),
-            (tag::READ_GROUP, Value::String(String::from("rg0"))),
+            (tag::READ_GROUP, Value::from("rg0")),
         ]
         .into_iter()
         .collect();

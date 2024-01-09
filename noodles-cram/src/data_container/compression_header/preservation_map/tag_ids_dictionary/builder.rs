@@ -52,9 +52,7 @@ mod tests {
 
         let mut record = Record::default();
         record.tags.insert(tag::ALIGNMENT_HIT_COUNT, Value::Int8(1));
-        record
-            .tags
-            .insert(tag::COMMENT, Value::String(String::from("noodles")));
+        record.tags.insert(tag::COMMENT, Value::from("noodles"));
         builder.update(&record);
 
         let dictionary = builder.build();

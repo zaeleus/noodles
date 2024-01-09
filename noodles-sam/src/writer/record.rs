@@ -127,7 +127,7 @@ mod tests {
 
         let header = Header::default();
 
-        let data = [(tag::READ_GROUP, Value::String(String::from("rg0")))]
+        let data = [(tag::READ_GROUP, Value::from("rg0"))]
             .into_iter()
             .collect();
         let record = RecordBuf::builder().set_data(data).build();

@@ -260,12 +260,17 @@ fn get_read_group_id(
         return Ok(None);
     };
 
-    let read_group_name = rg_value.as_str().ok_or_else(|| {
-        io::Error::new(
-            io::ErrorKind::InvalidInput,
-            "invalid read group field value",
-        )
-    })?;
+    let read_group_name = rg_value
+        .as_str()
+        .ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "invalid read group field value",
+            )
+        })
+        .and_then(|buf| {
+            str::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+        })?;
 
     read_groups
         .get_index_of(read_group_name)
@@ -283,10 +288,10 @@ fn maybe_insert_read_group(
     if let Some(id) = read_group_id {
         let name = read_groups
             .get_index(id)
-            .map(|(name, _)| name)
+            .map(|(name, _)| name.as_ref())
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid read group ID"))?;
 
-        data.insert(tag::READ_GROUP, Value::String(name.into()));
+        data.insert(tag::READ_GROUP, Value::from(name));
     }
 
     Ok(())

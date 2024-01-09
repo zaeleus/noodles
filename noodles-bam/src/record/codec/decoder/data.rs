@@ -91,7 +91,7 @@ mod tests {
 
         let expected = [
             (tag::ALIGNMENT_HIT_COUNT, Value::UInt8(1)),
-            (tag::READ_GROUP, Value::String(String::from("rg0"))),
+            (tag::READ_GROUP, Value::from("rg0")),
         ]
         .into_iter()
         .collect();

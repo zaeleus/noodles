@@ -358,7 +358,7 @@ mod tests {
         let sam_record = RecordBuf::builder()
             .set_data(
                 [
-                    (tag::READ_GROUP, Value::String(String::from("rg0"))),
+                    (tag::READ_GROUP, Value::from("rg0")),
                     (tag::ALIGNMENT_HIT_COUNT, Value::UInt8(1)),
                 ]
                 .into_iter()
@@ -377,10 +377,7 @@ mod tests {
         let bam_data = record.data();
         let mut fields = bam_data.iter();
 
-        assert_eq!(
-            fields.next(),
-            Some((tag::READ_GROUP, &Value::String(String::from("rg0"))))
-        );
+        assert_eq!(fields.next(), Some((tag::READ_GROUP, &Value::from("rg0"))));
 
         assert_eq!(
             fields.next(),

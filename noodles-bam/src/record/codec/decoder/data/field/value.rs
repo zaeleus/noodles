@@ -6,7 +6,7 @@ use bytes::Buf;
 use noodles_sam::{
     alignment::record::data::field::Type,
     record::data::field::{
-        value::{character, hex, Character, Hex},
+        value::{character, Character},
         Value,
     },
 };
@@ -24,8 +24,6 @@ pub enum DecodeError {
     StringNotNulTerminated,
     /// The string is invalid.
     InvalidString(string::FromUtf8Error),
-    /// The hex is invalid.
-    InvalidHex(hex::ParseError),
     /// The array subtype is invalid.
     InvalidArray(array::DecodeError),
 }
@@ -35,7 +33,6 @@ impl error::Error for DecodeError {
         match self {
             Self::InvalidCharacter(e) => Some(e),
             Self::InvalidString(e) => Some(e),
-            Self::InvalidHex(e) => Some(e),
             Self::InvalidArray(e) => Some(e),
             _ => None,
         }
@@ -49,7 +46,6 @@ impl fmt::Display for DecodeError {
             Self::InvalidCharacter(_) => write!(f, "invalid character"),
             Self::StringNotNulTerminated => write!(f, "string is not NUL terminated"),
             Self::InvalidString(_) => write!(f, "invalid string"),
-            Self::InvalidHex(_) => write!(f, "invalid hex"),
             Self::InvalidArray(_) => write!(f, "invalid array"),
         }
     }
@@ -165,7 +161,7 @@ where
     Ok(Value::Float(src.get_f32_le()))
 }
 
-fn get_string<B>(src: &mut B) -> Result<String, DecodeError>
+fn get_string<B>(src: &mut B) -> Result<Vec<u8>, DecodeError>
 where
     B: Buf,
 {
@@ -181,17 +177,14 @@ where
     src.copy_to_slice(&mut buf);
     src.advance(1); // Discard the NUL terminator.
 
-    String::from_utf8(buf).map_err(DecodeError::InvalidString)
+    Ok(buf)
 }
 
 fn get_hex<B>(src: &mut B) -> Result<Value, DecodeError>
 where
     B: Buf,
 {
-    get_string(src)
-        .and_then(|s| s.parse::<Hex>().map_err(DecodeError::InvalidHex))
-        .map(|hex| hex.to_string())
-        .map(Value::Hex)
+    get_string(src).map(Value::Hex)
 }
 
 #[cfg(test)]
@@ -219,12 +212,12 @@ mod tests {
         t(
             &[b'n', b'd', b'l', b's', 0x00],
             Type::String,
-            Value::String(String::from("ndls")),
+            Value::from("ndls"),
         )?;
         t(
             &[b'C', b'A', b'F', b'E', 0x00],
             Type::Hex,
-            Value::Hex(String::from("CAFE")),
+            Value::Hex(b"CAFE".to_vec()),
         )?;
 
         t(

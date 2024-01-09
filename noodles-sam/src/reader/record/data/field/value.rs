@@ -117,7 +117,7 @@ fn parse_string(src: &[u8]) -> Result<Value, ParseError> {
 
 fn parse_hex(src: &[u8]) -> Result<Value, ParseError> {
     Hex::try_from(src)
-        .map(|hex| hex.to_string())
+        .map(|hex| hex.to_string().into_bytes())
         .map(Value::Hex)
         .map_err(ParseError::InvalidHex)
 }
@@ -164,15 +164,15 @@ mod tests {
             Err(ParseError::InvalidFloat(_))
         ));
 
-        t(b"", Type::String, Value::String(String::new()));
-        t(b" ", Type::String, Value::String(String::from(" ")));
-        t(b"ndls", Type::String, Value::String(String::from("ndls")));
+        t(b"", Type::String, Value::from(""));
+        t(b" ", Type::String, Value::from(" "));
+        t(b"ndls", Type::String, Value::from("ndls"));
         assert_eq!(
             parse_value(&mut &[0xf0, 0x9f, 0x8d, 0x9c][..], Type::String),
             Err(ParseError::InvalidString)
         );
 
-        t(b"CAFE", Type::Hex, Value::Hex("CAFE".parse()?));
+        t(b"CAFE", Type::Hex, Value::Hex(b"CAFE".to_vec()));
         assert!(matches!(
             parse_value(&mut &b"cafe"[..], Type::Hex),
             Err(ParseError::InvalidHex(_))

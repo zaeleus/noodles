@@ -241,7 +241,7 @@ mod tests {
             .set_data(
                 [
                     (tag::ALIGNMENT_HIT_COUNT, Value::from(1)),
-                    (tag::COMMENT, Value::String(String::from("ndls"))),
+                    (tag::COMMENT, Value::from("ndls")),
                 ]
                 .into_iter()
                 .collect(),

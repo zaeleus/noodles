@@ -103,7 +103,7 @@ mod tests {
 
         assert_eq!(
             parse_field(&mut src),
-            Ok((tag::COMMENT, Value::String(String::from("ndls"))))
+            Ok((tag::COMMENT, Value::from("ndls")))
         );
 
         assert!(src.is_empty());

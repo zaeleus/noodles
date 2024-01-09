@@ -30,9 +30,9 @@ pub enum Value {
     /// A single-precision floating-point (`f`).
     Float(f32),
     /// A string (`Z`).
-    String(String),
+    String(Vec<u8>),
     /// A hex string (`H`).
-    Hex(String),
+    Hex(Vec<u8>),
     /// An array (`B`).
     Array(Array),
 }
@@ -205,10 +205,10 @@ impl Value {
     ///
     /// ```
     /// use noodles_sam::record::data::field::Value;
-    /// assert_eq!(Value::String(String::from("noodles")).as_str(), Some("noodles"));
+    /// assert_eq!(Value::from("noodles").as_str(), Some(&b"noodles"[..]));
     /// assert_eq!(Value::Int32(0).as_str(), None);
     /// ```
-    pub fn as_str(&self) -> Option<&str> {
+    pub fn as_str(&self) -> Option<&[u8]> {
         match *self {
             Self::String(ref s) => Some(s),
             _ => None,
@@ -221,7 +221,7 @@ impl Value {
     ///
     /// ```
     /// use noodles_sam::record::data::field::Value;
-    /// assert!(Value::String(String::from("noodles")).is_str());
+    /// assert!(Value::from("noodles").is_str());
     /// assert!(!Value::Int32(0).is_str());
     /// ```
     pub fn is_str(&self) -> bool {
@@ -234,10 +234,10 @@ impl Value {
     ///
     /// ```
     /// use noodles_sam::record::data::field::Value;
-    /// assert_eq!(Value::Hex(String::from("CAFE")).as_hex(), Some("CAFE"));
+    /// assert_eq!(Value::Hex(b"CAFE".to_vec()).as_hex(), Some(&b"CAFE"[..]));
     /// assert_eq!(Value::Int32(0).as_hex(), None);
     /// ```
-    pub fn as_hex(&self) -> Option<&str> {
+    pub fn as_hex(&self) -> Option<&[u8]> {
         match *self {
             Self::Hex(ref h) => Some(h),
             _ => None,
@@ -250,7 +250,7 @@ impl Value {
     ///
     /// ```
     /// use noodles_sam::record::data::field::Value;
-    /// assert!(Value::Hex(String::from("CAFE")).is_hex());
+    /// assert!(Value::Hex(b"CAFE".to_vec()).is_hex());
     /// assert!(!Value::Int32(0).is_hex());
     /// ```
     pub fn is_hex(&self) -> bool {
@@ -444,7 +444,7 @@ impl TryFrom<String> for Value {
 
     fn try_from(s: String) -> Result<Self, Self::Error> {
         if is_valid_string(&s) {
-            Ok(Self::String(s))
+            Ok(Self::from(s.as_ref()))
         } else {
             Err(ParseError::InvalidString)
         }
@@ -465,15 +465,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_ty() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_ty() {
         assert_eq!(Value::Character(b'n').ty(), Type::Character);
         assert_eq!(Value::Int32(0).ty(), Type::Int32);
         assert_eq!(Value::Float(0.0).ty(), Type::Float);
-        assert_eq!(Value::String(String::from("noodles")).ty(), Type::String);
-        assert_eq!(Value::Hex("CAFE".parse()?).ty(), Type::Hex);
+        assert_eq!(Value::from("noodles").ty(), Type::String);
+        assert_eq!(Value::Hex(b"CAFE".to_vec()).ty(), Type::Hex);
         assert_eq!(Value::Array(Array::UInt8(vec![0])).ty(), Type::Array);
-
-        Ok(())
     }
 
     #[test]
@@ -657,7 +655,7 @@ mod tests {
     fn test_try_from_string_for_value() {
         assert_eq!(
             Value::try_from(String::from("noodles")),
-            Ok(Value::String(String::from("noodles")))
+            Ok(Value::from("noodles"))
         );
     }
 }

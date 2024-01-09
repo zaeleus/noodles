@@ -66,7 +66,7 @@ mod tests {
         assert!(data.is_empty());
 
         let nh = (tag::ALIGNMENT_HIT_COUNT, Value::from(1u8));
-        let co = (tag::COMMENT, Value::String(String::from("ndls")));
+        let co = (tag::COMMENT, Value::from("ndls"));
 
         data.clear();
         parse_data(b"NH:i:1", &mut data)?;

@@ -64,9 +64,7 @@ mod tests {
         builder.update(&record);
 
         let mut record = Record::default();
-        record
-            .tags
-            .insert(tag::COMMENT, Value::String(String::from("noodles")));
+        record.tags.insert(tag::COMMENT, Value::from("noodles"));
         builder.update(&record);
 
         let actual = builder.build();
