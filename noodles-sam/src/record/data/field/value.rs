@@ -358,6 +358,12 @@ impl From<f32> for Value {
     }
 }
 
+impl From<&str> for Value {
+    fn from(s: &str) -> Self {
+        Self::String(s.into())
+    }
+}
+
 impl From<Vec<i8>> for Value {
     fn from(values: Vec<i8>) -> Self {
         Value::Array(Array::Int8(values))
