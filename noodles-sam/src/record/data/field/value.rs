@@ -8,14 +8,13 @@ pub mod hex;
 pub use self::{
     array::Array, base_modifications::BaseModifications, character::Character, hex::Hex,
 };
-
 use crate::{alignment::record::data::field::Type, reader::record::data::field::value::ParseError};
 
 /// A SAM record data field value.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Value {
     /// A character (`A`).
-    Character(Character),
+    Character(u8),
     /// An 8-bit integer (`c`).
     Int8(i8),
     /// An 8-bit unsigned integer (`C`).
@@ -33,7 +32,7 @@ pub enum Value {
     /// A string (`Z`).
     String(String),
     /// A hex string (`H`).
-    Hex(Hex),
+    Hex(String),
     /// An array (`B`).
     Array(Array),
 }
@@ -72,13 +71,11 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::{value::Character, Value};
-    /// let c = Character::try_from('a')?;
-    /// assert_eq!(Value::Character(c).as_character(), Some(c));
+    /// use noodles_sam::record::data::field::Value;
+    /// assert_eq!(Value::Character(b'n').as_character(), Some(b'n'));
     /// assert_eq!(Value::Int32(0).as_character(), None);
-    /// # Ok::<_, noodles_sam::record::data::field::value::character::ParseError>(())
     /// ```
-    pub fn as_character(&self) -> Option<Character> {
+    pub fn as_character(&self) -> Option<u8> {
         match *self {
             Self::Character(c) => Some(c),
             _ => None,
@@ -90,10 +87,9 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::{value::Character, Value};
-    /// assert!(Value::Character(Character::try_from('a')?).is_character());
+    /// use noodles_sam::record::data::field::Value;
+    /// assert!(Value::Character(b'n').is_character());
     /// assert!(!Value::Int32(0).is_character());
-    /// # Ok::<_, noodles_sam::record::data::field::value::character::ParseError>(())
     /// ```
     pub fn is_character(&self) -> bool {
         matches!(self, Self::Character(_))
@@ -237,13 +233,11 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::{value::Hex, Value};
-    /// let hex: Hex = "CAFE".parse()?;
-    /// assert_eq!(Value::Hex(hex.clone()).as_hex(), Some(&hex));
+    /// use noodles_sam::record::data::field::Value;
+    /// assert_eq!(Value::Hex(String::from("CAFE")).as_hex(), Some("CAFE"));
     /// assert_eq!(Value::Int32(0).as_hex(), None);
-    /// # Ok::<_, noodles_sam::record::data::field::value::hex::ParseError>(())
     /// ```
-    pub fn as_hex(&self) -> Option<&Hex> {
+    pub fn as_hex(&self) -> Option<&str> {
         match *self {
             Self::Hex(ref h) => Some(h),
             _ => None,
@@ -256,9 +250,8 @@ impl Value {
     ///
     /// ```
     /// use noodles_sam::record::data::field::Value;
-    /// assert!(Value::Hex("CAFE".parse()?).is_hex());
+    /// assert!(Value::Hex(String::from("CAFE")).is_hex());
     /// assert!(!Value::Int32(0).is_hex());
-    /// # Ok::<_, noodles_sam::record::data::field::value::hex::ParseError>(())
     /// ```
     pub fn is_hex(&self) -> bool {
         matches!(self, Self::Hex(_))
@@ -434,9 +427,9 @@ impl TryFrom<char> for Value {
     type Error = ParseError;
 
     fn try_from(c: char) -> Result<Self, Self::Error> {
-        Character::try_from(c)
+        u8::try_from(c)
             .map(Self::Character)
-            .map_err(ParseError::InvalidCharacter)
+            .map_err(|_| ParseError::InvalidCharacter)
     }
 }
 
@@ -467,10 +460,7 @@ mod tests {
 
     #[test]
     fn test_ty() -> Result<(), Box<dyn std::error::Error>> {
-        assert_eq!(
-            Value::Character(Character::try_from('n')?).ty(),
-            Type::Character
-        );
+        assert_eq!(Value::Character(b'n').ty(), Type::Character);
         assert_eq!(Value::Int32(0).ty(), Type::Int32);
         assert_eq!(Value::Float(0.0).ty(), Type::Float);
         assert_eq!(Value::String(String::from("noodles")).ty(), Type::String);
@@ -652,18 +642,9 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_char_for_value() -> Result<(), character::ParseError> {
-        assert_eq!(
-            Value::try_from('n'),
-            Ok(Value::Character(Character::try_from('n')?))
-        );
-
-        assert!(matches!(
-            Value::try_from('🍜'),
-            Err(ParseError::InvalidCharacter(_))
-        ));
-
-        Ok(())
+    fn test_try_from_char_for_value() {
+        assert_eq!(Value::try_from('n'), Ok(Value::Character(b'n')));
+        assert_eq!(Value::try_from('🍜'), Err(ParseError::InvalidCharacter));
     }
 
     #[test]

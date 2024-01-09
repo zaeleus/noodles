@@ -6,7 +6,7 @@ use self::array::parse_array;
 use crate::{
     alignment::record::data::field::Type,
     record::data::field::{
-        value::{character, hex, Character, Hex},
+        value::{hex, Character, Hex},
         Value,
     },
 };
@@ -19,7 +19,7 @@ pub enum ParseError {
     /// The type is invalid.
     InvalidType { actual: Type },
     /// The character is invalid.
-    InvalidCharacter(character::ParseError),
+    InvalidCharacter,
     /// The integer is invalid.
     InvalidInteger(lexical_core::Error),
     /// The integer value is invalid.
@@ -37,7 +37,6 @@ pub enum ParseError {
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
-            Self::InvalidCharacter(e) => Some(e),
             Self::InvalidInteger(e) => Some(e),
             Self::InvalidFloat(e) => Some(e),
             Self::InvalidHex(e) => Some(e),
@@ -56,7 +55,7 @@ impl fmt::Display for ParseError {
                 "invalid type: expected {{Character, Int32, Float, String, Hex, Array}}, got {:?}",
                 actual
             ),
-            Self::InvalidCharacter(_) => write!(f, "invalid character"),
+            Self::InvalidCharacter => write!(f, "invalid character"),
             Self::InvalidInteger(_) => write!(f, "invalid integer"),
             Self::InvalidIntegerValue => write!(f, "invalid integer value"),
             Self::InvalidFloat(_) => write!(f, "invalid float"),
@@ -86,12 +85,11 @@ fn parse_char(src: &[u8]) -> Result<Value, ParseError> {
 
     if rest.is_empty() {
         Character::try_from(*n)
+            .map(u8::from)
             .map(Value::Character)
-            .map_err(ParseError::InvalidCharacter)
+            .map_err(|_| ParseError::InvalidCharacter)
     } else {
-        Err(ParseError::InvalidCharacter(
-            character::ParseError::LengthMismatch { actual: src.len() },
-        ))
+        Err(ParseError::InvalidCharacter)
     }
 }
 
@@ -119,6 +117,7 @@ fn parse_string(src: &[u8]) -> Result<Value, ParseError> {
 
 fn parse_hex(src: &[u8]) -> Result<Value, ParseError> {
     Hex::try_from(src)
+        .map(|hex| hex.to_string())
         .map(Value::Hex)
         .map_err(ParseError::InvalidHex)
 }
@@ -135,19 +134,15 @@ mod tests {
             assert_eq!(parse_value(&mut src, ty), Ok(expected));
         }
 
-        t(
-            b"n",
-            Type::Character,
-            Value::Character(Character::try_from('n')?),
-        );
-        assert!(matches!(
+        t(b"n", Type::Character, Value::Character(b'n'));
+        assert_eq!(
             parse_value(&mut &b""[..], Type::Character),
             Err(ParseError::UnexpectedEof)
-        ));
-        assert!(matches!(
+        );
+        assert_eq!(
             parse_value(&mut &b"ndls"[..], Type::Character),
-            Err(ParseError::InvalidCharacter(_))
-        ));
+            Err(ParseError::InvalidCharacter)
+        );
 
         t(b"0", Type::Int32, Value::UInt8(0));
         assert!(matches!(

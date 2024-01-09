@@ -278,9 +278,7 @@ fn value_to_alignment_record_data_field_value(
     use self::field::value::Array;
 
     match value {
-        Value::Character(c) => {
-            crate::alignment::record::data::field::Value::Character(u8::from(*c))
-        }
+        Value::Character(c) => crate::alignment::record::data::field::Value::Character(*c),
         Value::Int8(n) => crate::alignment::record::data::field::Value::Int8(*n),
         Value::UInt8(n) => crate::alignment::record::data::field::Value::UInt8(*n),
         Value::Int16(n) => crate::alignment::record::data::field::Value::Int16(*n),
@@ -289,7 +287,7 @@ fn value_to_alignment_record_data_field_value(
         Value::UInt32(n) => crate::alignment::record::data::field::Value::UInt32(*n),
         Value::Float(n) => crate::alignment::record::data::field::Value::Float(*n),
         Value::String(s) => crate::alignment::record::data::field::Value::String(s.as_bytes()),
-        Value::Hex(s) => crate::alignment::record::data::field::Value::Hex(s.as_ref().as_bytes()),
+        Value::Hex(s) => crate::alignment::record::data::field::Value::Hex(s.as_bytes()),
         Value::Array(Array::Int8(values)) => crate::alignment::record::data::field::Value::Array(
             crate::alignment::record::data::field::value::Array::Int8(Box::new(Values::new(
                 values.as_ref(),

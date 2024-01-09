@@ -184,18 +184,12 @@ where
 {
     use sam::{
         alignment::record::data::field::{value::Array, Value},
-        record::data::field::{
-            value::Array as ArrayBuf,
-            value::{Character, Hex},
-            Tag, Value as ValueBuf,
-        },
+        record::data::field::{value::Array as ArrayBuf, Tag, Value as ValueBuf},
     };
 
     fn value_to_value_buf(value: Value<'_>) -> io::Result<ValueBuf> {
         match value {
-            Value::Character(c) => Character::try_from(c)
-                .map(ValueBuf::Character)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e)),
+            Value::Character(c) => Ok(ValueBuf::Character(c)),
             Value::Int8(n) => Ok(ValueBuf::Int8(n)),
             Value::UInt8(n) => Ok(ValueBuf::UInt8(n)),
             Value::Int16(n) => Ok(ValueBuf::Int16(n)),
@@ -206,8 +200,8 @@ where
             Value::String(s) => str::from_utf8(s)
                 .map(|t| ValueBuf::String(t.into()))
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e)),
-            Value::Hex(s) => Hex::try_from(s)
-                .map(ValueBuf::Hex)
+            Value::Hex(s) => str::from_utf8(s)
+                .map(|t| ValueBuf::Hex(t.into()))
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e)),
             Value::Array(Array::Int8(values)) => values
                 .iter()

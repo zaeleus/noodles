@@ -6,7 +6,7 @@ use bytes::Buf;
 use noodles_sam::{
     alignment::record::data::field::Type,
     record::data::field::{
-        value::{character, hex, Character},
+        value::{character, hex, Character, Hex},
         Value,
     },
 };
@@ -83,6 +83,7 @@ where
     }
 
     Character::try_from(src.get_u8())
+        .map(u8::from)
         .map(Value::Character)
         .map_err(DecodeError::InvalidCharacter)
 }
@@ -188,7 +189,8 @@ where
     B: Buf,
 {
     get_string(src)
-        .and_then(|s| s.parse().map_err(DecodeError::InvalidHex))
+        .and_then(|s| s.parse::<Hex>().map_err(DecodeError::InvalidHex))
+        .map(|hex| hex.to_string())
         .map(Value::Hex)
 }
 
@@ -206,11 +208,7 @@ mod tests {
             Ok(())
         }
 
-        t(
-            &[b'n'],
-            Type::Character,
-            Value::Character(Character::try_from('n')?),
-        )?;
+        t(&[b'n'], Type::Character, Value::Character(b'n'))?;
         t(&[0x00], Type::Int8, Value::Int8(0))?;
         t(&[0x00], Type::UInt8, Value::UInt8(0))?;
         t(&[0x00, 0x00], Type::Int16, Value::Int16(0))?;
@@ -226,7 +224,7 @@ mod tests {
         t(
             &[b'C', b'A', b'F', b'E', 0x00],
             Type::Hex,
-            Value::Hex("CAFE".parse()?),
+            Value::Hex(String::from("CAFE")),
         )?;
 
         t(
