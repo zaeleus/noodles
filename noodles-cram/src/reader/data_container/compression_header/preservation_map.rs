@@ -1,7 +1,7 @@
 use std::io;
 
 use bytes::{Buf, Bytes};
-use noodles_sam::{alignment::record::data::field::Type, record::data::field::Tag};
+use noodles_sam::alignment::record::data::field::{Tag, Type};
 
 use crate::{
     data_container::compression_header::{
@@ -137,12 +137,10 @@ fn get_tag_ids_dictionary(src: &mut Bytes) -> io::Result<TagIdsDictionary> {
         for chunk in keys_buf.chunks_exact(3) {
             let (t0, t1, ty) = (chunk[0], chunk[1], chunk[2]);
 
-            let tag = Tag::try_from([t0, t1])
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
+            let tag = Tag::new(t0, t1);
             let ty = get_type(ty)?;
-
             let key = tag_ids_dictionary::Key::new(tag, ty);
+
             line.push(key);
         }
 
@@ -175,7 +173,7 @@ mod tests {
 
     #[test]
     fn test_get_preservation_map() -> io::Result<()> {
-        use noodles_sam::record::data::field::tag;
+        use noodles_sam::alignment::record::data::field::tag;
 
         let mut data = Bytes::from_static(&[
             0x18, // data.len = 24

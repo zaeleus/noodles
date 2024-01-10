@@ -278,10 +278,13 @@ mod tests {
     fn test_encode_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
         use sam::{
             alignment::{
-                record::cigar::{op::Kind, Op},
+                record::{
+                    cigar::{op::Kind, Op},
+                    data::field::tag,
+                },
                 record_buf::{data::field::Value, Name, QualityScores, Sequence},
             },
-            record::{data::field::tag, MappingQuality},
+            record::MappingQuality,
         };
 
         let mut buf = Vec::new();
@@ -349,12 +352,12 @@ mod tests {
 
     #[test]
     fn test_encode_with_oversized_cigar() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::{
-            alignment::{
-                record::cigar::{op::Kind, Op},
-                record_buf::{data::field::Value, Sequence},
+        use sam::alignment::{
+            record::{
+                cigar::{op::Kind, Op},
+                data::field::tag,
             },
-            record::data::field::tag,
+            record_buf::{data::field::Value, Sequence},
         };
 
         const BASE_COUNT: usize = 65536;

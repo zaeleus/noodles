@@ -4,9 +4,12 @@ pub mod field;
 
 use std::{borrow::Borrow, io, iter};
 
-use noodles_sam::{self as sam, alignment::record::data::field::value::Value};
+use noodles_sam::{
+    self as sam,
+    alignment::record::data::field::{Tag, Value},
+};
 
-use self::field::{decode_field, Tag};
+use self::field::decode_field;
 
 /// Raw BAM record data.
 pub struct Data<'a>(&'a [u8]);
@@ -59,11 +62,11 @@ impl<'a> sam::alignment::record::Data for Data<'a> {
         self.is_empty()
     }
 
-    fn get(&self, tag: &[u8; 2]) -> Option<io::Result<Value<'_>>> {
+    fn get(&self, tag: &Tag) -> Option<io::Result<Value<'_>>> {
         self.get(tag)
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<([u8; 2], Value<'_>)>> + '_> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Tag, Value<'_>)>> + '_> {
         Box::new(self.iter())
     }
 }
@@ -90,14 +93,12 @@ impl<'a> TryFrom<Data<'a>> for sam::record::Data {
 }
 
 pub(super) fn get_raw_cigar<'a>(src: &mut &'a [u8]) -> io::Result<Option<&'a [u8]>> {
-    use noodles_sam::alignment::record::data::field::Type;
+    use noodles_sam::alignment::record::data::field::{tag, Type};
 
     use self::field::{
         decode_tag, decode_type, decode_value,
         value::array::{decode_raw_array, decode_subtype},
     };
-
-    const CG: Tag = [b'C', b'G'];
 
     fn get_array_field<'a>(src: &mut &'a [u8]) -> io::Result<Option<(Tag, &'a [u8])>> {
         let tag = decode_tag(src)?;
@@ -114,7 +115,7 @@ pub(super) fn get_raw_cigar<'a>(src: &mut &'a [u8]) -> io::Result<Option<&'a [u8
     }
 
     while !src.is_empty() {
-        if let Some((CG, buf)) = get_array_field(src)? {
+        if let Some((tag::CIGAR, buf)) = get_array_field(src)? {
             return Ok(Some(buf));
         }
     }
@@ -124,12 +125,12 @@ pub(super) fn get_raw_cigar<'a>(src: &mut &'a [u8]) -> io::Result<Option<&'a [u8
 
 #[cfg(test)]
 mod tests {
+    use sam::alignment::record::data::field::tag;
+
     use super::*;
 
     #[test]
     fn test_get() -> io::Result<()> {
-        use sam::record::data::field::tag;
-
         let data = Data::new(&[b'N', b'H', b'C', 0x01]);
 
         assert!(data.get(&tag::ALIGNMENT_HIT_COUNT).is_some());
@@ -151,7 +152,7 @@ mod tests {
         assert_eq!(actual.len(), 1);
 
         let (actual_tag, actual_value) = &actual[0];
-        assert_eq!(actual_tag, &[b'N', b'H']);
+        assert_eq!(actual_tag, &tag::ALIGNMENT_HIT_COUNT);
         assert!(matches!(actual_value, Value::UInt8(1)));
 
         Ok(())

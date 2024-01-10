@@ -3,7 +3,7 @@ pub(crate) mod field;
 use std::{error, fmt};
 
 use self::field::parse_field;
-use crate::record::{data::field::Tag, Data};
+use crate::{alignment::record::data::field::Tag, record::Data};
 
 /// An error when raw SAM record data fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -26,12 +26,12 @@ impl error::Error for ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
+            Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag:?}"),
             Self::InvalidField(e) => {
                 write!(f, "invalid field")?;
 
                 if let Some(tag) = e.tag() {
-                    write!(f, ": {tag}")?;
+                    write!(f, ": {tag:?}")?;
                 }
 
                 Ok(())
@@ -58,7 +58,7 @@ mod tests {
 
     #[test]
     fn test_parse_data() -> Result<(), ParseError> {
-        use crate::{alignment::record_buf::data::field::Value, record::data::field::tag};
+        use crate::alignment::{record::data::field::tag, record_buf::data::field::Value};
 
         let mut data = Data::default();
 

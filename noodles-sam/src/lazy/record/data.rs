@@ -2,8 +2,8 @@ use std::{io, iter};
 
 mod field;
 
-use self::field::{parse_field, Tag};
-use crate::alignment::record::data::field::Value;
+use self::field::parse_field;
+use crate::alignment::record::data::field::{Tag, Value};
 
 /// Raw SAM record data.
 pub struct Data<'a>(&'a [u8]);
@@ -37,7 +37,7 @@ impl<'a> crate::alignment::record::Data for Data<'a> {
         self.is_empty()
     }
 
-    fn get(&self, tag: &[u8; 2]) -> Option<io::Result<Value<'_>>> {
+    fn get(&self, tag: &Tag) -> Option<io::Result<Value<'_>>> {
         for result in self.iter() {
             match result {
                 Ok((t, value)) => {
@@ -52,7 +52,7 @@ impl<'a> crate::alignment::record::Data for Data<'a> {
         None
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<([u8; 2], Value<'_>)>> + '_> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Tag, Value<'_>)>> + '_> {
         Box::new(self.iter())
     }
 }
@@ -69,6 +69,8 @@ mod tests {
 
     #[test]
     fn test_iter() -> io::Result<()> {
+        use crate::alignment::record::data::field::tag;
+
         let data = Data::new(b"");
         assert!(data.iter().next().is_none());
 
@@ -78,7 +80,7 @@ mod tests {
         assert_eq!(actual.len(), 1);
 
         let (actual_tag, actual_value) = &actual[0];
-        assert_eq!(actual_tag, &[b'N', b'H']);
+        assert_eq!(actual_tag, &tag::ALIGNMENT_HIT_COUNT);
         assert!(matches!(actual_value, Value::Int32(1)));
 
         Ok(())

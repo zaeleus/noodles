@@ -78,9 +78,9 @@ where
 
 // § 4.2.2 "`N_CIGAR_OP` field" (2022-08-22)
 pub(super) fn resolve(header: &sam::Header, record: &mut RecordBuf) -> Result<(), DecodeError> {
-    use sam::{
-        alignment::record_buf::data::field::{value::Array, Value},
+    use sam::alignment::{
         record::data::field::tag,
+        record_buf::data::field::{value::Array, Value},
     };
 
     if let [op_0, op_1] = record.cigar().as_ref() {
@@ -171,14 +171,13 @@ mod tests {
 
         use sam::{
             alignment::{
-                record::cigar::Op,
+                record::{cigar::Op, data::field::tag},
                 record_buf::{
                     data::field::{value::Array, Value},
                     Sequence,
                 },
             },
             header::record::value::{map::ReferenceSequence, Map},
-            record::data::field::tag,
         };
 
         let header = sam::Header::builder()

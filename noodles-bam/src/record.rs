@@ -573,12 +573,15 @@ mod tests {
         use noodles_core::Position;
         use noodles_sam::{
             alignment::{
-                record::cigar::{op::Kind, Op},
+                record::{
+                    cigar::{op::Kind, Op},
+                    data::field::tag,
+                },
                 record_buf::{data::field::Value, Cigar, Sequence},
                 RecordBuf,
             },
             header::record::value::{map::ReferenceSequence, Map},
-            record::{data::field::tag, Flags},
+            record::Flags,
         };
 
         use crate::record::codec::encode;

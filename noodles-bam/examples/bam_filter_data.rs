@@ -7,7 +7,7 @@ use std::{env, io};
 use noodles_bam as bam;
 
 fn is_unique_record(record: &bam::Record) -> io::Result<bool> {
-    use noodles_sam::record::data::field::tag;
+    use noodles_sam::alignment::record::data::field::tag;
 
     match record.data().get(&tag::ALIGNMENT_HIT_COUNT).transpose()? {
         Some(value) => value.as_int().map(|hits| hits == 1).ok_or_else(|| {

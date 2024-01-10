@@ -4,7 +4,10 @@
 
 use std::{env, io};
 
-use noodles_sam::{self as sam, alignment::RecordBuf, record::data::field::tag};
+use noodles_sam::{
+    self as sam,
+    alignment::{record::data::field::tag, RecordBuf},
+};
 
 fn is_unique_record(record: &RecordBuf) -> io::Result<bool> {
     match record.data().get(&tag::ALIGNMENT_HIT_COUNT) {

@@ -5,7 +5,7 @@ pub(crate) use self::field::get_field;
 use std::{error, fmt};
 
 use bytes::Buf;
-use noodles_sam::record::{data::field::Tag, Data};
+use noodles_sam::{alignment::record::data::field::Tag, record::Data};
 
 /// An error when raw BAM record data fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -28,12 +28,12 @@ impl error::Error for DecodeError {
 impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
+            Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag:?}"),
             Self::InvalidField(e) => {
                 write!(f, "invalid field")?;
 
                 if let Some(tag) = e.tag() {
-                    write!(f, ": {tag}")?;
+                    write!(f, ": {tag:?}")?;
                 }
 
                 Ok(())
@@ -66,7 +66,7 @@ mod tests {
 
     #[test]
     fn test_get_data() -> Result<(), DecodeError> {
-        use noodles_sam::{alignment::record_buf::data::field::Value, record::data::field::tag};
+        use noodles_sam::alignment::{record::data::field::tag, record_buf::data::field::Value};
 
         fn t(mut src: &[u8], actual: &mut Data, expected: &Data) -> Result<(), DecodeError> {
             get_data(&mut src, actual)?;

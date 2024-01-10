@@ -5,7 +5,7 @@ pub mod value;
 use std::{error, fmt};
 
 use self::{tag::parse_tag, ty::parse_type, value::parse_value};
-use crate::{alignment::record_buf::data::field::Value, record::data::field::Tag};
+use crate::alignment::{record::data::field::Tag, record_buf::data::field::Value};
 
 /// An error when a raw SAM record data field fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -92,7 +92,7 @@ mod tests {
 
     #[test]
     fn test_parse_field() {
-        use crate::record::data::field::tag;
+        use crate::alignment::record::data::field::tag;
 
         let mut src = &b"NH:i:1\tCO:Z:ndls"[..];
 

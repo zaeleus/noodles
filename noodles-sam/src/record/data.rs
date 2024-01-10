@@ -4,8 +4,7 @@ pub mod field;
 
 use std::{io, mem};
 
-use self::field::Tag;
-use crate::alignment::record_buf::data::field::Value;
+use crate::alignment::{record::data::field::Tag, record_buf::data::field::Value};
 
 /// SAM record data.
 ///
@@ -50,8 +49,8 @@ impl Data {
     ///
     /// ```
     /// use noodles_sam::{
-    ///     alignment::record_buf::data::field::Value,
-    ///     record::{data::field::tag, Data},
+    ///     alignment::{record::data::field::tag, record_buf::data::field::Value},
+    ///     record::Data,
     /// };
     ///
     /// let nh = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
@@ -70,8 +69,8 @@ impl Data {
     ///
     /// ```
     /// use noodles_sam::{
-    ///     alignment::record_buf::data::field::Value,
-    ///     record::{data::field::tag, Data},
+    ///     alignment::{record::data::field::tag, record_buf::data::field::Value},
+    ///     record::Data,
     /// };
     ///
     /// let (tag, value) = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
@@ -96,8 +95,8 @@ impl Data {
     ///
     /// ```
     /// use noodles_sam::{
-    ///     alignment::record_buf::data::field::Value,
-    ///     record::{data::field::tag, Data},
+    ///     alignment::{record::data::field::tag, record_buf::data::field::Value},
+    ///     record::Data,
     /// };
     ///
     /// let nh = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
@@ -119,8 +118,8 @@ impl Data {
     ///
     /// ```
     /// use noodles_sam::{
-    ///     alignment::record_buf::data::field::Value,
-    ///     record::{data::field::tag, Data},
+    ///     alignment::{record::data::field::tag, record_buf::data::field::Value},
+    ///     record::Data,
     /// };
     ///
     /// let (tag, value) = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
@@ -140,8 +139,8 @@ impl Data {
     ///
     /// ```
     /// use noodles_sam::{
-    ///     alignment::record_buf::data::field::Value,
-    ///     record::{data::field::tag, Data},
+    ///     alignment::{record::data::field::tag, record_buf::data::field::Value},
+    ///     record::Data,
     /// };
     ///
     /// let nh = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
@@ -161,8 +160,8 @@ impl Data {
     ///
     /// ```
     /// use noodles_sam::{
-    ///     alignment::record_buf::data::field::Value,
-    ///     record::{data::field::tag, Data},
+    ///     alignment::{record::data::field::tag, record_buf::data::field::Value},
+    ///     record::Data,
     /// };
     ///
     /// let (tag, value) = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
@@ -187,8 +186,8 @@ impl Data {
     ///
     /// ```
     /// use noodles_sam::{
-    ///     alignment::record_buf::data::field::Value,
-    ///     record::{data::field::tag, Data},
+    ///     alignment::{record::data::field::tag, record_buf::data::field::Value},
+    ///     record::Data,
     /// };
     ///
     /// let mut data = Data::default();
@@ -217,8 +216,8 @@ impl Data {
     ///
     /// ```
     /// use noodles_sam::{
-    ///     alignment::record_buf::data::field::Value,
-    ///     record::{data::field::tag, Data},
+    ///     alignment::{record::data::field::tag, record_buf::data::field::Value},
+    ///     record::Data,
     /// };
     ///
     /// let nh = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
@@ -254,7 +253,7 @@ impl crate::alignment::record::Data for &Data {
 
     fn get(
         &self,
-        tag: &[u8; 2],
+        tag: &Tag,
     ) -> Option<io::Result<crate::alignment::record::data::field::Value<'_>>> {
         let value = Data::get(self, tag)?;
         Some(Ok(value_buf_to_value(value)))
@@ -263,13 +262,10 @@ impl crate::alignment::record::Data for &Data {
     fn iter(
         &self,
     ) -> Box<
-        dyn Iterator<Item = io::Result<([u8; 2], crate::alignment::record::data::field::Value<'_>)>>
+        dyn Iterator<Item = io::Result<(Tag, crate::alignment::record::data::field::Value<'_>)>>
             + '_,
     > {
-        Box::new(Data::iter(self).map(|(tag, value)| {
-            let raw_tag = *tag.as_ref();
-            Ok((raw_tag, value_buf_to_value(value)))
-        }))
+        Box::new(Data::iter(self).map(|(tag, value)| Ok((tag, value_buf_to_value(value)))))
     }
 }
 
@@ -280,7 +276,7 @@ impl crate::alignment::record::Data for Data {
 
     fn get(
         &self,
-        tag: &[u8; 2],
+        tag: &Tag,
     ) -> Option<io::Result<crate::alignment::record::data::field::Value<'_>>> {
         let value = self.get(tag)?;
         Some(Ok(value_buf_to_value(value)))
@@ -289,13 +285,13 @@ impl crate::alignment::record::Data for Data {
     fn iter(
         &self,
     ) -> Box<
-        dyn Iterator<Item = io::Result<([u8; 2], crate::alignment::record::data::field::Value<'_>)>>
+        dyn Iterator<Item = io::Result<(Tag, crate::alignment::record::data::field::Value<'_>)>>
             + '_,
     > {
-        Box::new(self.iter().map(|(tag, value)| {
-            let raw_tag = *tag.as_ref();
-            Ok((raw_tag, value_buf_to_value(value)))
-        }))
+        Box::new(
+            self.iter()
+                .map(|(tag, value)| Ok((tag, value_buf_to_value(value)))),
+        )
     }
 }
 
@@ -393,13 +389,12 @@ impl FromIterator<(Tag, Value)> for Data {
 
 #[cfg(test)]
 mod tests {
-    use super::field::tag;
-
     use super::*;
+    use crate::alignment::record::data::field::tag;
 
     #[test]
-    fn test_remove_with_multiple_removes() -> Result<(), field::tag::ParseError> {
-        let zz = "zz".parse()?;
+    fn test_remove_with_multiple_removes() {
+        let zz = Tag::new(b'z', b'z');
 
         let mut data: Data = [
             (tag::ALIGNMENT_HIT_COUNT, Value::from(2)),
@@ -414,8 +409,6 @@ mod tests {
         data.remove(&tag::ALIGNMENT_HIT_COUNT);
 
         assert!(data.is_empty());
-
-        Ok(())
     }
 
     #[test]

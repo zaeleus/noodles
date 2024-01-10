@@ -399,8 +399,8 @@ impl RecordBuf {
     /// ```
     /// use noodles_sam::{
     ///     self as sam,
-    ///     alignment::record_buf::data::field::Value,
-    ///     record::{data::field::tag, Data},
+    ///     alignment::{record::data::field::tag, record_buf::data::field::Value},
+    ///     record::Data,
     /// };
     ///
     /// let data: Data = [(tag::ALIGNMENT_HIT_COUNT, Value::from(1))]

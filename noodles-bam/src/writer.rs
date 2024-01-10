@@ -350,7 +350,7 @@ mod tests {
 
     #[test]
     fn test_write_alignment_record_with_data() -> io::Result<()> {
-        use sam::{alignment::record_buf::data::field::Value, record::data::field::tag};
+        use sam::alignment::{record::data::field::tag, record_buf::data::field::Value};
 
         let mut writer = Writer::new(Vec::new());
 

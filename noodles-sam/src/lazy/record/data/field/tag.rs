@@ -1,19 +1,17 @@
 use std::io;
 
-const LENGTH: usize = 2;
-
-/// A raw BAM record data field tag.
-pub type Tag = [u8; LENGTH];
+use crate::alignment::record::data::field::Tag;
 
 pub(super) fn parse_tag(src: &mut &[u8]) -> io::Result<Tag> {
-    if src.len() < LENGTH {
+    if src.len() < 2 {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
-    let (buf, rest) = src.split_at(LENGTH);
+    let (buf, rest) = src.split_at(2);
 
     // SAFETY: `buf` is 2 bytes.
-    let tag = buf.try_into().unwrap();
+    let raw_tag: [u8; 2] = buf.try_into().unwrap();
+    let tag = Tag::from(raw_tag);
 
     *src = rest;
 
@@ -26,8 +24,10 @@ mod tests {
 
     #[test]
     fn test_parse_tag() -> io::Result<()> {
+        use crate::alignment::record::data::field::tag;
+
         let mut src = &b"NH"[..];
-        assert_eq!(parse_tag(&mut src)?, [b'N', b'H']);
+        assert_eq!(parse_tag(&mut src)?, tag::ALIGNMENT_HIT_COUNT);
         Ok(())
     }
 }

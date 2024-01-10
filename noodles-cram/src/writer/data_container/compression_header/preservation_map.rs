@@ -113,7 +113,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::{alignment::record::data::field::Type, record::data::field::tag};
+    use noodles_sam::alignment::record::data::field::{tag, Type};
 
     use super::*;
     use crate::data_container::compression_header::preservation_map::tag_ids_dictionary::Key;

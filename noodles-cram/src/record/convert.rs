@@ -65,7 +65,7 @@ impl Record {
         // distance to next fragment
 
         if !data.is_empty() {
-            use sam::record::data::field::tag;
+            use sam::alignment::record::data::field::tag;
             data.remove(&tag::READ_GROUP);
             builder = builder.set_tags(data);
         }
@@ -182,12 +182,9 @@ fn alignment_record_data_to_data_buf<D>(data: D) -> io::Result<sam::record::Data
 where
     D: sam::alignment::record::Data,
 {
-    use sam::{
-        alignment::{
-            record::data::field::{value::Array, Value},
-            record_buf::data::field::{value::Array as ArrayBuf, Value as ValueBuf},
-        },
-        record::data::field::Tag,
+    use sam::alignment::{
+        record::data::field::{value::Array, Value},
+        record_buf::data::field::{value::Array as ArrayBuf, Value as ValueBuf},
     };
 
     fn value_to_value_buf(value: Value<'_>) -> io::Result<ValueBuf> {
@@ -240,13 +237,8 @@ where
     let mut buf = sam::record::Data::default();
 
     for result in data.iter() {
-        let (raw_tag, raw_value) = result?;
-
-        let tag =
-            Tag::try_from(raw_tag).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
+        let (tag, raw_value) = result?;
         let value = value_to_value_buf(raw_value)?;
-
         buf.insert(tag, value);
     }
 
@@ -257,7 +249,7 @@ fn get_read_group_id(
     read_groups: &sam::header::ReadGroups,
     data: &sam::record::Data,
 ) -> io::Result<Option<usize>> {
-    use sam::{alignment::record_buf::data::field::Value, record::data::field::tag};
+    use sam::alignment::{record::data::field::tag, record_buf::data::field::Value};
 
     let Some(rg_value) = data.get(&tag::READ_GROUP) else {
         return Ok(None);
@@ -286,7 +278,7 @@ fn maybe_insert_read_group(
     read_groups: &sam::header::ReadGroups,
     read_group_id: Option<usize>,
 ) -> io::Result<()> {
-    use sam::{alignment::record_buf::data::field::Value, record::data::field::tag};
+    use sam::alignment::{record::data::field::tag, record_buf::data::field::Value};
 
     if let Some(id) = read_group_id {
         let name = read_groups

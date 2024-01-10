@@ -1,10 +1,11 @@
 use bytes::BufMut;
+use noodles_sam::alignment::record::data::field::Tag;
 
-pub fn put_tag<B>(dst: &mut B, tag: [u8; 2])
+pub fn put_tag<B>(dst: &mut B, tag: Tag)
 where
     B: BufMut,
 {
-    dst.put(&tag[..]);
+    dst.put_slice(tag.as_ref());
 }
 
 #[cfg(test)]
@@ -13,8 +14,10 @@ mod tests {
 
     #[test]
     fn test_put_tag() {
+        use noodles_sam::alignment::record::data::field::tag;
+
         let mut buf = Vec::new();
-        put_tag(&mut buf, [b'N', b'H']);
+        put_tag(&mut buf, tag::ALIGNMENT_HIT_COUNT);
         assert_eq!(buf, [b'N', b'H']);
     }
 }

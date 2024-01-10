@@ -4,10 +4,9 @@ mod value;
 
 use std::io;
 
-pub use self::tag::Tag;
 use self::ty::Type;
 use self::{tag::parse_tag, ty::parse_type, value::parse_value};
-use crate::alignment::record::data::field::Value;
+use crate::alignment::record::data::field::{Tag, Value};
 
 pub(super) fn parse_field<'a>(src: &mut &'a [u8]) -> io::Result<(Tag, Value<'a>)> {
     let tag = parse_tag(src)?;
@@ -61,16 +60,18 @@ mod tests {
 
     #[test]
     fn test_parse_field() -> io::Result<()> {
+        use crate::alignment::record::data::field::tag;
+
         let mut src = &b"NH:i:1"[..];
         assert!(matches!(
             parse_field(&mut src)?,
-            ([b'N', b'H'], Value::Int32(1))
+            (tag::ALIGNMENT_HIT_COUNT, Value::Int32(1))
         ));
 
         let mut src = &b"NH:i:1\t"[..];
         assert!(matches!(
             parse_field(&mut src)?,
-            ([b'N', b'H'], Value::Int32(1))
+            (tag::ALIGNMENT_HIT_COUNT, Value::Int32(1))
         ));
 
         let mut src = &b""[..];
