@@ -4,7 +4,8 @@ use std::{error, fmt};
 
 use self::subtype::parse_subtype;
 use crate::{
-    alignment::record::data::field::value::array::Subtype, record::data::field::value::Array,
+    alignment::record::data::field::value::array::Subtype,
+    alignment::record_buf::data::field::value::Array,
 };
 
 /// An error when a raw BAM record data field array value subtype fails to parse.

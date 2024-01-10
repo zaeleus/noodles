@@ -128,7 +128,7 @@ mod tests {
 
     #[test]
     fn test_get_value() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::record::data::field::value::Array;
+        use crate::alignment::record_buf::data::field::value::Array;
 
         fn t(mut src: &[u8], ty: Type, expected: Value) {
             assert_eq!(parse_value(&mut src, ty), Ok(expected));

@@ -4,8 +4,10 @@ use std::{error, fmt, num};
 
 use bytes::Buf;
 use noodles_sam::{
-    alignment::record::data::field::value::array::Subtype,
-    record::data::field::{value::Array, Value},
+    alignment::{
+        record::data::field::value::array::Subtype, record_buf::data::field::value::Array,
+    },
+    record::data::field::Value,
 };
 
 use self::subtype::get_subtype;

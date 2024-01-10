@@ -189,7 +189,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::record::data::field::value::Array;
+    use noodles_sam::alignment::record_buf::data::field::value::Array;
 
     use super::*;
 

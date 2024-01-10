@@ -1,8 +1,8 @@
-//! SAM record data field array.
+//! Alignment record data field array value buffer.
 
 use crate::alignment::record::data::field::value::array::Subtype;
 
-/// A SAM record data field array value.
+/// An alignment record data field array value buffer.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Array {
     /// An 8-bit integer array (`B:c`).
@@ -22,17 +22,16 @@ pub enum Array {
 }
 
 impl Array {
-    /// Returns the type of the array.
+    /// Returns the type of the array values.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{
-    ///     alignment::record::data::field::value::array::Subtype,
-    ///     record::data::field::{value::Array, Value},
+    /// use noodles_sam::alignment::{
+    ///     record::data::field::value::array::Subtype, record_buf::data::field::value::Array,
     /// };
     ///
-    /// assert_eq!(Array::UInt8(vec![0]).subtype(), Subtype::UInt8);
+    /// assert_eq!(Array::UInt8(Vec::new()).subtype(), Subtype::UInt8);
     /// ```
     pub fn subtype(&self) -> Subtype {
         match self {
@@ -53,12 +52,12 @@ mod tests {
 
     #[test]
     fn test_subtype() {
-        assert_eq!(Array::Int8(vec![0]).subtype(), Subtype::Int8);
-        assert_eq!(Array::UInt8(vec![0]).subtype(), Subtype::UInt8);
-        assert_eq!(Array::Int16(vec![0]).subtype(), Subtype::Int16);
-        assert_eq!(Array::UInt16(vec![0]).subtype(), Subtype::UInt16);
-        assert_eq!(Array::Int32(vec![0]).subtype(), Subtype::Int32);
-        assert_eq!(Array::UInt32(vec![0]).subtype(), Subtype::UInt32);
-        assert_eq!(Array::Float(vec![0.0]).subtype(), Subtype::Float);
+        assert_eq!(Array::Int8(Vec::new()).subtype(), Subtype::Int8);
+        assert_eq!(Array::UInt8(Vec::new()).subtype(), Subtype::UInt8);
+        assert_eq!(Array::Int16(Vec::new()).subtype(), Subtype::Int16);
+        assert_eq!(Array::UInt16(Vec::new()).subtype(), Subtype::UInt16);
+        assert_eq!(Array::Int32(Vec::new()).subtype(), Subtype::Int32);
+        assert_eq!(Array::UInt32(Vec::new()).subtype(), Subtype::UInt32);
+        assert_eq!(Array::Float(Vec::new()).subtype(), Subtype::Float);
     }
 }

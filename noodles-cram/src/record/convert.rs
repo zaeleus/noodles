@@ -183,8 +183,11 @@ where
     D: sam::alignment::record::Data,
 {
     use sam::{
-        alignment::record::data::field::{value::Array, Value},
-        record::data::field::{value::Array as ArrayBuf, Tag, Value as ValueBuf},
+        alignment::{
+            record::data::field::{value::Array, Value},
+            record_buf::data::field::value::Array as ArrayBuf,
+        },
+        record::data::field::{Tag, Value as ValueBuf},
     };
 
     fn value_to_value_buf(value: Value<'_>) -> io::Result<ValueBuf> {

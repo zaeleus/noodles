@@ -2,6 +2,7 @@
 
 mod builder;
 mod cigar;
+pub mod data;
 mod name;
 mod quality_scores;
 mod sequence;

@@ -230,7 +230,7 @@ impl crate::alignment::record::Data for &Data {
         tag: &[u8; 2],
     ) -> Option<io::Result<crate::alignment::record::data::field::Value<'_>>> {
         let value = Data::get(self, tag)?;
-        Some(Ok(value_to_alignment_record_data_field_value(value)))
+        Some(Ok(value_buf_to_value(value)))
     }
 
     fn iter(
@@ -241,7 +241,7 @@ impl crate::alignment::record::Data for &Data {
     > {
         Box::new(Data::iter(self).map(|(tag, value)| {
             let raw_tag = *tag.as_ref();
-            Ok((raw_tag, value_to_alignment_record_data_field_value(value)))
+            Ok((raw_tag, value_buf_to_value(value)))
         }))
     }
 }
@@ -256,7 +256,7 @@ impl crate::alignment::record::Data for Data {
         tag: &[u8; 2],
     ) -> Option<io::Result<crate::alignment::record::data::field::Value<'_>>> {
         let value = self.get(tag)?;
-        Some(Ok(value_to_alignment_record_data_field_value(value)))
+        Some(Ok(value_buf_to_value(value)))
     }
 
     fn iter(
@@ -267,15 +267,13 @@ impl crate::alignment::record::Data for Data {
     > {
         Box::new(self.iter().map(|(tag, value)| {
             let raw_tag = *tag.as_ref();
-            Ok((raw_tag, value_to_alignment_record_data_field_value(value)))
+            Ok((raw_tag, value_buf_to_value(value)))
         }))
     }
 }
 
-fn value_to_alignment_record_data_field_value(
-    value: &Value,
-) -> crate::alignment::record::data::field::Value<'_> {
-    use self::field::value::Array;
+fn value_buf_to_value(value: &Value) -> crate::alignment::record::data::field::Value<'_> {
+    use crate::alignment::record_buf::data::field::value::Array;
 
     match value {
         Value::Character(c) => crate::alignment::record::data::field::Value::Character(*c),

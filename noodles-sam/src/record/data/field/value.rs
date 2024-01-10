@@ -1,14 +1,14 @@
 //! SAM record data field value and types.
 
-pub mod array;
 pub mod base_modifications;
 pub mod character;
 pub mod hex;
 
-pub use self::{
-    array::Array, base_modifications::BaseModifications, character::Character, hex::Hex,
+pub use self::{base_modifications::BaseModifications, character::Character, hex::Hex};
+use crate::{
+    alignment::{record::data::field::Type, record_buf::data::field::value::Array},
+    reader::record::data::field::value::ParseError,
 };
-use crate::{alignment::record::data::field::Type, reader::record::data::field::value::ParseError};
 
 /// A SAM record data field value.
 #[derive(Clone, Debug, PartialEq)]
@@ -262,7 +262,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::{value::Array, Value};
+    /// use noodles_sam::{alignment::record_buf::data::field::value::Array, record::data::field::Value};
     /// let array = Array::UInt8(vec![0]);
     /// assert_eq!(Value::Array(array.clone()).as_array(), Some(&array));
     /// assert_eq!(Value::Int32(0).as_array(), None);
@@ -279,7 +279,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::{value::Array, Value};
+    /// use noodles_sam::{alignment::record_buf::data::field::value::Array, record::data::field::Value};
     /// assert!(Value::Array(Array::UInt8(vec![0])).is_array());
     /// assert!(!Value::Int32(0).is_array());
     /// ```
