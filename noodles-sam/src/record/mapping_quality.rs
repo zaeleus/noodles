@@ -1,6 +1,6 @@
 //! SAM record mapping quality.
 
-use std::{error, fmt, io, num, str::FromStr};
+use std::{error, fmt, io};
 
 /// The raw value of a missing mapping quality.
 pub const MISSING: u8 = 255;
@@ -66,8 +66,6 @@ impl fmt::Display for MappingQuality {
 /// An error returned when a raw SAM record mapping quality fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
-    /// The input failed to parse as an integer.
-    Parse(num::ParseIntError),
     /// The value is missing.
     Missing,
 }
@@ -75,7 +73,6 @@ pub enum ParseError {
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
-            Self::Parse(e) => Some(e),
             Self::Missing => None,
         }
     }
@@ -84,18 +81,8 @@ impl error::Error for ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Parse(_) => f.write_str("parse error"),
             Self::Missing => write!(f, "missing value: {MISSING}"),
         }
-    }
-}
-
-impl FromStr for MappingQuality {
-    type Err = ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let n: u8 = s.parse().map_err(ParseError::Parse)?;
-        Self::try_from(n)
     }
 }
 
@@ -123,24 +110,6 @@ mod tests {
         assert_eq!(MappingQuality(8).to_string(), "8");
         assert_eq!(MappingQuality(13).to_string(), "13");
         assert_eq!(MappingQuality(144).to_string(), "144");
-    }
-
-    #[test]
-    fn test_from_str() {
-        assert_eq!("0".parse(), Ok(MappingQuality(0)));
-        assert_eq!("8".parse(), Ok(MappingQuality(8)));
-        assert_eq!("13".parse(), Ok(MappingQuality(13)));
-        assert_eq!("144".parse(), Ok(MappingQuality(144)));
-
-        assert!(matches!(
-            "".parse::<MappingQuality>(),
-            Err(ParseError::Parse(_))
-        ));
-        assert!(matches!(
-            "256".parse::<MappingQuality>(),
-            Err(ParseError::Parse(_))
-        ));
-        assert_eq!("255".parse::<MappingQuality>(), Err(ParseError::Missing));
     }
 
     #[test]
