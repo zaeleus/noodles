@@ -28,14 +28,14 @@ mod tests {
     use crate::record::Data as DataBuf;
 
     #[test]
-    fn test_write_data() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_write_data() -> io::Result<()> {
         use crate::record::data::field::{tag, Value};
 
         let mut buf = Vec::new();
 
         let data: DataBuf = [
             (tag::ALIGNMENT_HIT_COUNT, Value::from(1)),
-            (tag::COMMENT, Value::try_from(String::from("noodles"))?),
+            (tag::COMMENT, Value::from("noodles")),
         ]
         .into_iter()
         .collect();

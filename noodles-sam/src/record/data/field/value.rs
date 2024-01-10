@@ -364,6 +364,12 @@ impl From<&str> for Value {
     }
 }
 
+impl From<String> for Value {
+    fn from(s: String) -> Self {
+        Self::String(s.into_bytes())
+    }
+}
+
 impl From<Vec<i8>> for Value {
     fn from(values: Vec<i8>) -> Self {
         Value::Array(Array::Int8(values))
@@ -437,27 +443,6 @@ impl TryFrom<char> for Value {
             .map(Self::Character)
             .map_err(|_| ParseError::InvalidCharacter)
     }
-}
-
-impl TryFrom<String> for Value {
-    type Error = ParseError;
-
-    fn try_from(s: String) -> Result<Self, Self::Error> {
-        if is_valid_string(&s) {
-            Ok(Self::from(s.as_ref()))
-        } else {
-            Err(ParseError::InvalidString)
-        }
-    }
-}
-
-// § 1.5 The alignment section: optional fields (2021-01-07)
-fn is_valid_string_char(c: char) -> bool {
-    matches!(c, ' ' | '!'..='~')
-}
-
-fn is_valid_string(s: &str) -> bool {
-    s.chars().all(is_valid_string_char)
 }
 
 #[cfg(test)]
@@ -649,13 +634,5 @@ mod tests {
     fn test_try_from_char_for_value() {
         assert_eq!(Value::try_from('n'), Ok(Value::Character(b'n')));
         assert_eq!(Value::try_from('🍜'), Err(ParseError::InvalidCharacter));
-    }
-
-    #[test]
-    fn test_try_from_string_for_value() {
-        assert_eq!(
-            Value::try_from(String::from("noodles")),
-            Ok(Value::from("noodles"))
-        );
     }
 }
