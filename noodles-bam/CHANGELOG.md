@@ -4,10 +4,10 @@
 
 ### Added
 
-  * bam/record: Add flags (`lazy::record::Flags`), mapping quality
-    (`lazy::record::MappingQuality`), position (`lazy::record::Position`),
-    reference sequence ID (`lazy::record::ReferenceSequenceId`), and template
-    length (`lazy::record::TemplateLength`)  wrappers.
+  * bam/record: Add flags (`record::Flags`), mapping quality
+    (`record::MappingQuality`), position (`record::Position`), reference
+    sequence ID (`record::ReferenceSequenceId`), and template length
+    (`record::TemplateLength`) wrappers.
 
   * bam/record: Implement `sam::alignment::Record`.
 
