@@ -14,7 +14,7 @@ pub use self::{
 
 use std::io;
 
-use noodles_core as core;
+use noodles_core::Position;
 
 use super::Record;
 use crate::{
@@ -34,11 +34,11 @@ pub struct RecordBuf {
     name: Option<Name>,
     flags: record::Flags,
     reference_sequence_id: Option<usize>,
-    alignment_start: Option<core::Position>,
+    alignment_start: Option<Position>,
     mapping_quality: Option<record::MappingQuality>,
     cigar: Cigar,
     mate_reference_sequence_id: Option<usize>,
-    mate_alignment_start: Option<core::Position>,
+    mate_alignment_start: Option<Position>,
     template_length: i32,
     sequence: Sequence,
     quality_scores: QualityScores,
@@ -152,7 +152,7 @@ impl RecordBuf {
     /// let record = sam::alignment::RecordBuf::default();
     /// assert!(record.alignment_start().is_none());
     /// ```
-    pub fn alignment_start(&self) -> Option<core::Position> {
+    pub fn alignment_start(&self) -> Option<Position> {
         self.alignment_start
     }
 
@@ -167,7 +167,7 @@ impl RecordBuf {
     /// *record.alignment_start_mut() = Some(Position::MIN);
     /// assert_eq!(record.alignment_start(), Some(Position::MIN));
     /// ```
-    pub fn alignment_start_mut(&mut self) -> &mut Option<core::Position> {
+    pub fn alignment_start_mut(&mut self) -> &mut Option<Position> {
         &mut self.alignment_start
     }
 
@@ -271,7 +271,7 @@ impl RecordBuf {
     /// let record = sam::alignment::RecordBuf::default();
     /// assert!(record.mate_alignment_start().is_none());
     /// ```
-    pub fn mate_alignment_start(&self) -> Option<core::Position> {
+    pub fn mate_alignment_start(&self) -> Option<Position> {
         self.mate_alignment_start
     }
 
@@ -286,7 +286,7 @@ impl RecordBuf {
     /// *record.mate_alignment_start_mut() = Some(Position::MIN);
     /// assert_eq!(record.mate_alignment_start(), Some(Position::MIN));
     /// ```
-    pub fn mate_alignment_start_mut(&mut self) -> &mut Option<core::Position> {
+    pub fn mate_alignment_start_mut(&mut self) -> &mut Option<Position> {
         &mut self.mate_alignment_start
     }
 
@@ -498,10 +498,10 @@ impl RecordBuf {
     /// assert_eq!(record.alignment_end(), Position::new(12));
     /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
-    pub fn alignment_end(&self) -> Option<core::Position> {
+    pub fn alignment_end(&self) -> Option<Position> {
         self.alignment_start().and_then(|alignment_start| {
             let end = usize::from(alignment_start) + self.alignment_span() - 1;
-            core::Position::new(end)
+            Position::new(end)
         })
     }
 }
