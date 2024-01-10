@@ -50,7 +50,7 @@ where
         if self.next_record.is_none() {
             for result in &mut self.records {
                 let record = result?;
-                let flags = try_to_flags(record.flags().as_ref())?;
+                let flags = Flags::try_from(record.flags().as_ref())?;
 
                 if filter(flags) {
                     continue;
@@ -85,7 +85,7 @@ where
         }
 
         while let Some(record) = self.records.next().transpose()? {
-            let flags = try_to_flags(record.flags().as_ref())?;
+            let flags = Flags::try_from(record.flags().as_ref())?;
 
             if filter(flags) {
                 continue;
@@ -160,24 +160,6 @@ where
     }
 }
 
-fn try_to_flags(flags: &dyn crate::alignment::record::Flags) -> io::Result<Flags> {
-    flags.try_to_u16().map(Flags::from)
-}
-
-fn try_to_reference_sequence_id<I>(reference_sequence_id: I) -> io::Result<usize>
-where
-    I: crate::alignment::record::ReferenceSequenceId,
-{
-    reference_sequence_id.try_to_usize()
-}
-
-fn try_to_position<P>(position: P) -> io::Result<Position>
-where
-    P: crate::alignment::record::Position,
-{
-    Position::try_from(&position as &dyn crate::alignment::record::Position)
-}
-
 fn alignment_context<R>(header: &Header, record: &R) -> io::Result<(usize, Position, Position)>
 where
     R: Record,
@@ -188,8 +170,8 @@ where
         record.alignment_end(header),
     ) {
         (Some(id), Some(start), Some(end)) => {
-            let id = try_to_reference_sequence_id(id)?;
-            let start = try_to_position(start)?;
+            let id = usize::try_from(id.as_ref())?;
+            let start = Position::try_from(start.as_ref())?;
             let end = end?;
             Ok((id, start, end))
         }
