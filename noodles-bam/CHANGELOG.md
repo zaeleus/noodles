@@ -50,6 +50,10 @@
     Use `Writer::write_alignment_record` to write implementations of
     `sam::alignment::Record`.
 
+### Fixed
+
+  * bam/record/codec/encoder: Use alignment span for `m` in overflowing CIGAR.
+
 ## 0.52.0 - 2023-12-14
 
 ### Changed

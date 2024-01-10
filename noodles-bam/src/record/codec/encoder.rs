@@ -175,19 +175,16 @@ where
 {
     use sam::alignment::record::cigar::{op::Kind, Op};
 
-    if let Ok(n_cigar_op) = u16::try_from(record.cigar(header).len()) {
-        dst.put_u16_le(n_cigar_op);
+    let cigar = record.cigar(header);
+
+    if let Ok(op_count) = u16::try_from(cigar.len()) {
+        dst.put_u16_le(op_count);
         Ok(None)
     } else {
         dst.put_u16_le(2);
 
         let k = record.sequence().len();
-        let m = record
-            .reference_sequence(header)
-            .ok_or_else(|| {
-                io::Error::new(io::ErrorKind::InvalidInput, "missing reference sequence")
-            })?
-            .map(|(_, rs)| rs.length().get())?;
+        let m = cigar.alignment_span()?;
 
         Ok(Some(
             [Op::new(Kind::SoftClip, k), Op::new(Kind::Skip, m)]
@@ -405,7 +402,7 @@ mod tests {
             0x00, 0x00, 0x00, 0x00, // tlen = 0
             b'*', 0x00, // read_name = "*\x00"
             0x04, 0x00, 0x10, 0x00, // cigar[0] = 65536S
-            0x03, 0x00, 0x20, 0x00, // cigar[1] = 131072N
+            0x03, 0x00, 0x10, 0x00, // cigar[1] = 65536N
         ];
 
         expected.resize(expected.len() + (BASE_COUNT + 1) / 2, 0x11); // seq = [A, ...]

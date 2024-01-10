@@ -292,7 +292,7 @@ impl sam::alignment::Record for Record {
         Some(Box::new(mapping_quality))
     }
 
-    fn cigar(&self, header: &sam::Header) -> Box<dyn sam::alignment::record::Cigar + '_> {
+    fn cigar(&self, _: &sam::Header) -> Box<dyn sam::alignment::record::Cigar + '_> {
         use bytes::Buf;
 
         use self::data::get_raw_cigar;
@@ -309,18 +309,11 @@ impl sam::alignment::Record for Record {
         if src.len() == 2 * mem::size_of::<u32>() {
             let k = self.sequence().len();
 
-            let Some(Ok(m)) = self
-                .reference_sequence(header)
-                .map(|result| result.map(|(_, rs)| rs.length().get()))
-            else {
-                return Box::new(self.cigar());
-            };
-
             // SAFETY: `src` is 8 bytes.
             let op_1 = decode_op(src.get_u32_le());
             let op_2 = decode_op(src.get_u32_le());
 
-            if op_1 == (SOFT_CLIP, k) && op_2 == (SKIP, m) {
+            if op_1 == (SOFT_CLIP, k) && matches!(op_2, (SKIP, _)) {
                 let mut data_src = &self.buf[self.bounds.data_range()];
 
                 if let Ok(Some(buf)) = get_raw_cigar(&mut data_src) {
