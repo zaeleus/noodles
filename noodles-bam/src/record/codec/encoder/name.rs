@@ -4,7 +4,7 @@ use bytes::BufMut;
 use noodles_sam::alignment::record::Name;
 
 const MAX_LENGTH: usize = 254;
-const MISSING: &[u8] = b"*";
+pub(super) const MISSING: &[u8] = b"*";
 
 pub fn put_name<B, N>(dst: &mut B, name: Option<N>) -> io::Result<()>
 where

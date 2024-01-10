@@ -131,9 +131,9 @@ where
 {
     use std::mem;
 
-    let mut name_len = name
-        .map(|name| name.len())
-        .unwrap_or(sam::record::name::MISSING.len());
+    use self::name::MISSING;
+
+    let mut name_len = name.map(|name| name.len()).unwrap_or(MISSING.len());
 
     // + NUL terminator
     name_len += mem::size_of::<u8>();

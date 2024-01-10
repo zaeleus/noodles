@@ -35,7 +35,6 @@ impl Builder {
     ///     .build();
     ///
     /// assert_eq!(record.name(), Some(&name));
-    /// Ok::<_, sam::record::name::ParseError>(())
     /// ```
     pub fn set_name(mut self, name: Name) -> Self {
         self.name = Some(name);
