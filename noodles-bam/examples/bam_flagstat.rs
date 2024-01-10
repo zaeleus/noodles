@@ -186,9 +186,10 @@ fn print_stats(qc_pass_counts: &Counts, qc_fail_counts: &Counts) {
         qc_fail_counts.mate_reference_sequence_id_mismatch
     );
     println!(
-        "{} + {} with mate mapped to a different chr (mapQ>={MIN_HQ_MAPPING_QUALITY})",
+        "{} + {} with mate mapped to a different chr (mapQ>={})",
         qc_pass_counts.mate_reference_sequence_id_mismatch_hq,
-        qc_fail_counts.mate_reference_sequence_id_mismatch_hq
+        qc_fail_counts.mate_reference_sequence_id_mismatch_hq,
+        MIN_HQ_MAPPING_QUALITY.get()
     );
 }
 
