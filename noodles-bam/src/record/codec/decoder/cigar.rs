@@ -78,7 +78,10 @@ where
 
 // § 4.2.2 "`N_CIGAR_OP` field" (2022-08-22)
 pub(super) fn resolve(header: &sam::Header, record: &mut RecordBuf) -> Result<(), DecodeError> {
-    use sam::{alignment::record_buf::data::field::value::Array, record::data::field::tag};
+    use sam::{
+        alignment::record_buf::data::field::{value::Array, Value},
+        record::data::field::tag,
+    };
 
     if let [op_0, op_1] = record.cigar().as_ref() {
         let rs = record
@@ -92,18 +95,15 @@ pub(super) fn resolve(header: &sam::Header, record: &mut RecordBuf) -> Result<()
 
             if *op_0 == Op::new(Kind::SoftClip, k) && *op_1 == Op::new(Kind::Skip, m) {
                 if let Some((_, value)) = record.data_mut().remove(&tag::CIGAR) {
-                    let data = value
-                        .as_array()
-                        .and_then(|array| match array {
-                            Array::UInt32(values) => Some(values),
-                            _ => None,
-                        })
-                        .ok_or(DecodeError::InvalidDataType)?;
+                    let data = match value {
+                        Value::Array(Array::UInt32(values)) => values,
+                        _ => return Err(DecodeError::InvalidDataType),
+                    };
 
                     let cigar = record.cigar_mut().as_mut();
                     cigar.clear();
 
-                    for &n in data {
+                    for n in data {
                         let op = decode_op(n).map_err(DecodeError::InvalidOp)?;
                         cigar.push(op);
                     }
@@ -172,10 +172,13 @@ mod tests {
         use sam::{
             alignment::{
                 record::cigar::Op,
-                record_buf::{data::field::value::Array, Sequence},
+                record_buf::{
+                    data::field::{value::Array, Value},
+                    Sequence,
+                },
             },
             header::record::value::{map::ReferenceSequence, Map},
-            record::data::field::{tag, Value},
+            record::data::field::tag,
         };
 
         let header = sam::Header::builder()

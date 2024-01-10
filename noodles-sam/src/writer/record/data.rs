@@ -29,7 +29,7 @@ mod tests {
 
     #[test]
     fn test_write_data() -> io::Result<()> {
-        use crate::record::data::field::{tag, Value};
+        use crate::{alignment::record_buf::data::field::Value, record::data::field::tag};
 
         let mut buf = Vec::new();
 

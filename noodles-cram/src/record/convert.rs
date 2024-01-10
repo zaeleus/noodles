@@ -185,9 +185,9 @@ where
     use sam::{
         alignment::{
             record::data::field::{value::Array, Value},
-            record_buf::data::field::value::Array as ArrayBuf,
+            record_buf::data::field::{value::Array as ArrayBuf, Value as ValueBuf},
         },
-        record::data::field::{Tag, Value as ValueBuf},
+        record::data::field::Tag,
     };
 
     fn value_to_value_buf(value: Value<'_>) -> io::Result<ValueBuf> {
@@ -257,23 +257,23 @@ fn get_read_group_id(
     read_groups: &sam::header::ReadGroups,
     data: &sam::record::Data,
 ) -> io::Result<Option<usize>> {
-    use sam::record::data::field::tag;
+    use sam::{alignment::record_buf::data::field::Value, record::data::field::tag};
 
     let Some(rg_value) = data.get(&tag::READ_GROUP) else {
         return Ok(None);
     };
 
-    let read_group_name = rg_value
-        .as_str()
-        .ok_or_else(|| {
-            io::Error::new(
+    let read_group_name = match rg_value {
+        Value::String(s) => {
+            str::from_utf8(s).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
+        }
+        _ => {
+            return Err(io::Error::new(
                 io::ErrorKind::InvalidInput,
                 "invalid read group field value",
-            )
-        })
-        .and_then(|buf| {
-            str::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-        })?;
+            ))
+        }
+    };
 
     read_groups
         .get_index_of(read_group_name)
@@ -286,7 +286,7 @@ fn maybe_insert_read_group(
     read_groups: &sam::header::ReadGroups,
     read_group_id: Option<usize>,
 ) -> io::Result<()> {
-    use sam::record::data::field::{tag, Value};
+    use sam::{alignment::record_buf::data::field::Value, record::data::field::tag};
 
     if let Some(id) = read_group_id {
         let name = read_groups

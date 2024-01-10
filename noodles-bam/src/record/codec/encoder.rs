@@ -279,12 +279,9 @@ mod tests {
         use sam::{
             alignment::{
                 record::cigar::{op::Kind, Op},
-                record_buf::{Name, QualityScores, Sequence},
+                record_buf::{data::field::Value, Name, QualityScores, Sequence},
             },
-            record::{
-                data::field::{tag, Value},
-                MappingQuality,
-            },
+            record::{data::field::tag, MappingQuality},
         };
 
         let mut buf = Vec::new();
@@ -355,9 +352,9 @@ mod tests {
         use sam::{
             alignment::{
                 record::cigar::{op::Kind, Op},
-                record_buf::Sequence,
+                record_buf::{data::field::Value, Sequence},
             },
-            record::data::field::{tag, Value},
+            record::data::field::tag,
         };
 
         const BASE_COUNT: usize = 65536;

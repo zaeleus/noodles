@@ -7,7 +7,7 @@ pub use self::value::get_value;
 use std::{error, fmt};
 
 use bytes::Buf;
-use noodles_sam::record::data::field::{Tag, Value};
+use noodles_sam::{alignment::record_buf::data::field::Value, record::data::field::Tag};
 
 use self::{tag::get_tag, ty::get_type};
 
@@ -71,7 +71,7 @@ mod tests {
 
     #[test]
     fn test_get_field() {
-        use noodles_sam::record::data::field::{tag, Value};
+        use noodles_sam::record::data::field::tag;
 
         let data = [b'N', b'H', b'C', 0x01];
         let mut reader = &data[..];

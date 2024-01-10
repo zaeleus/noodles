@@ -58,7 +58,7 @@ mod tests {
 
     #[test]
     fn test_parse_data() -> Result<(), ParseError> {
-        use crate::record::data::field::{tag, Value};
+        use crate::{alignment::record_buf::data::field::Value, record::data::field::tag};
 
         let mut data = Data::default();
 

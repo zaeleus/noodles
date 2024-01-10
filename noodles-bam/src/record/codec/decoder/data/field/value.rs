@@ -4,11 +4,8 @@ use std::{error, fmt, mem, string};
 
 use bytes::Buf;
 use noodles_sam::{
-    alignment::record::data::field::Type,
-    record::data::field::{
-        value::{character, Character},
-        Value,
-    },
+    alignment::{record::data::field::Type, record_buf::data::field::Value},
+    record::data::field::value::{character, Character},
 };
 
 use self::array::get_array;

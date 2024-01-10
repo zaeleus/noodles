@@ -32,8 +32,8 @@ impl Builder {
 #[cfg(test)]
 mod tests {
     use noodles_sam::{
-        alignment::record::data::field::Type,
-        record::data::field::{tag, Value},
+        alignment::{record::data::field::Type, record_buf::data::field::Value},
+        record::data::field::tag,
     };
 
     use super::*;

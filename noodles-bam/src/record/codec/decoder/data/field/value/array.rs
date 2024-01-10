@@ -3,11 +3,9 @@ pub mod subtype;
 use std::{error, fmt, num};
 
 use bytes::Buf;
-use noodles_sam::{
-    alignment::{
-        record::data::field::value::array::Subtype, record_buf::data::field::value::Array,
-    },
-    record::data::field::Value,
+use noodles_sam::alignment::{
+    record::data::field::value::array::Subtype,
+    record_buf::data::field::{value::Array, Value},
 };
 
 use self::subtype::get_subtype;

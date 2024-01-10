@@ -230,7 +230,7 @@ mod tests {
 
     #[test]
     fn test_parse_with_data() -> Result<(), ParseError> {
-        use crate::record::data::field::{tag, Value};
+        use crate::{alignment::record_buf::data::field::Value, record::data::field::tag};
 
         let header = Header::default();
         let s = b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\tNH:i:1\tCO:Z:ndls";

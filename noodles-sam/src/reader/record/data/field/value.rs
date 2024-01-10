@@ -4,11 +4,8 @@ use std::{error, fmt, str};
 
 use self::array::parse_array;
 use crate::{
-    alignment::record::data::field::Type,
-    record::data::field::{
-        value::{hex, Character, Hex},
-        Value,
-    },
+    alignment::{record::data::field::Type, record_buf::data::field::Value},
+    record::data::field::value::{hex, Character, Hex},
 };
 
 /// An error when a raw SAM record data field value fails to parse.

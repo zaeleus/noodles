@@ -5,7 +5,7 @@ pub mod value;
 use std::{error, fmt};
 
 use self::{tag::parse_tag, ty::parse_type, value::parse_value};
-use crate::record::data::field::{Tag, Value};
+use crate::{alignment::record_buf::data::field::Value, record::data::field::Tag};
 
 /// An error when a raw SAM record data field fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]

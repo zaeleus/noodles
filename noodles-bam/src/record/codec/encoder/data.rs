@@ -29,7 +29,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::record::{data::field::Value, Data as DataBuf};
+    use noodles_sam::{alignment::record_buf::data::field::Value, record::Data as DataBuf};
 
     use super::*;
 

@@ -66,7 +66,7 @@ mod tests {
 
     #[test]
     fn test_get_data() -> Result<(), DecodeError> {
-        use noodles_sam::record::data::field::{tag, Value};
+        use noodles_sam::{alignment::record_buf::data::field::Value, record::data::field::tag};
 
         fn t(mut src: &[u8], actual: &mut Data, expected: &Data) -> Result<(), DecodeError> {
             get_data(&mut src, actual)?;

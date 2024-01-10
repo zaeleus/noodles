@@ -4,7 +4,8 @@ pub mod field;
 
 use std::{io, mem};
 
-use self::field::{Tag, Value};
+use self::field::Tag;
+use crate::alignment::record_buf::data::field::Value;
 
 /// SAM record data.
 ///
@@ -48,7 +49,11 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::field::{tag, Value}, Data};
+    /// use noodles_sam::{
+    ///     alignment::record_buf::data::field::Value,
+    ///     record::{data::field::tag, Data},
+    /// };
+    ///
     /// let nh = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
     /// let mut data: Data = [nh].into_iter().collect();
     /// assert_eq!(data.len(), 1);
@@ -64,7 +69,10 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::field::{tag, Value}, Data};
+    /// use noodles_sam::{
+    ///     alignment::record_buf::data::field::Value,
+    ///     record::{data::field::tag, Data},
+    /// };
     ///
     /// let (tag, value) = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
     /// let data: Data = [(tag, value.clone())].into_iter().collect();
@@ -87,7 +95,10 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::field::{tag, Value}, Data};
+    /// use noodles_sam::{
+    ///     alignment::record_buf::data::field::Value,
+    ///     record::{data::field::tag, Data},
+    /// };
     ///
     /// let nh = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
     /// let data: Data = [nh].into_iter().collect();
@@ -107,7 +118,10 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::field::{tag, Value}, Data};
+    /// use noodles_sam::{
+    ///     alignment::record_buf::data::field::Value,
+    ///     record::{data::field::tag, Data},
+    /// };
     ///
     /// let (tag, value) = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
     /// let data: Data = [(tag, value.clone())].into_iter().collect();
@@ -125,7 +139,10 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::field::{tag, Value}, Data};
+    /// use noodles_sam::{
+    ///     alignment::record_buf::data::field::Value,
+    ///     record::{data::field::tag, Data},
+    /// };
     ///
     /// let nh = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
     /// let data: Data = [nh].into_iter().collect();
@@ -143,7 +160,10 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::field::{tag, Value}, Data};
+    /// use noodles_sam::{
+    ///     alignment::record_buf::data::field::Value,
+    ///     record::{data::field::tag, Data},
+    /// };
     ///
     /// let (tag, value) = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
     /// let data: Data = [(tag, value.clone())].into_iter().collect();
@@ -166,7 +186,11 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::field::{tag, Value}, Data};
+    /// use noodles_sam::{
+    ///     alignment::record_buf::data::field::Value,
+    ///     record::{data::field::tag, Data},
+    /// };
+    ///
     /// let mut data = Data::default();
     /// data.insert(tag::ALIGNMENT_HIT_COUNT, Value::from(1));
     /// ```
@@ -192,7 +216,10 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::field::{tag, Value}, Data};
+    /// use noodles_sam::{
+    ///     alignment::record_buf::data::field::Value,
+    ///     record::{data::field::tag, Data},
+    /// };
     ///
     /// let nh = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
     /// let rg = (tag::READ_GROUP, Value::from("rg0"));
