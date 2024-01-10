@@ -5,7 +5,7 @@ pub(crate) use self::field::get_field;
 use std::{error, fmt};
 
 use bytes::Buf;
-use noodles_sam::{alignment::record::data::field::Tag, record::Data};
+use noodles_sam::alignment::{record::data::field::Tag, record_buf::Data};
 
 /// An error when raw BAM record data fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]

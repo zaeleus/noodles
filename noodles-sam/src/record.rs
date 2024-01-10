@@ -10,7 +10,7 @@ pub mod sequence;
 pub mod template_length;
 
 pub use self::{
-    data::Data, flags::Flags, mapping_quality::MappingQuality, name::Name,
-    quality_scores::QualityScores, reference_sequence_name::ReferenceSequenceName,
-    sequence::Sequence, template_length::TemplateLength,
+    flags::Flags, mapping_quality::MappingQuality, name::Name, quality_scores::QualityScores,
+    reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
+    template_length::TemplateLength,
 };

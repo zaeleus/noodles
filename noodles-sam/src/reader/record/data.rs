@@ -3,7 +3,7 @@ pub(crate) mod field;
 use std::{error, fmt};
 
 use self::field::parse_field;
-use crate::{alignment::record::data::field::Tag, record::Data};
+use crate::alignment::{record::data::field::Tag, record_buf::Data};
 
 /// An error when raw SAM record data fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]

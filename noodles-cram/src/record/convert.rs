@@ -178,7 +178,7 @@ where
     cigar.iter().collect()
 }
 
-fn alignment_record_data_to_data_buf<D>(data: D) -> io::Result<sam::record::Data>
+fn alignment_record_data_to_data_buf<D>(data: D) -> io::Result<sam::alignment::record_buf::Data>
 where
     D: sam::alignment::record::Data,
 {
@@ -234,7 +234,7 @@ where
         }
     }
 
-    let mut buf = sam::record::Data::default();
+    let mut buf = sam::alignment::record_buf::Data::default();
 
     for result in data.iter() {
         let (tag, raw_value) = result?;
@@ -247,7 +247,7 @@ where
 
 fn get_read_group_id(
     read_groups: &sam::header::ReadGroups,
-    data: &sam::record::Data,
+    data: &sam::alignment::record_buf::Data,
 ) -> io::Result<Option<usize>> {
     use sam::alignment::{record::data::field::tag, record_buf::data::field::Value};
 
@@ -274,7 +274,7 @@ fn get_read_group_id(
 }
 
 fn maybe_insert_read_group(
-    data: &mut sam::record::Data,
+    data: &mut sam::alignment::record_buf::Data,
     read_groups: &sam::header::ReadGroups,
     read_group_id: Option<usize>,
 ) -> io::Result<()> {

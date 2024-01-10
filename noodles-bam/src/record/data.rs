@@ -77,7 +77,7 @@ impl<'a> AsRef<[u8]> for Data<'a> {
     }
 }
 
-impl<'a> TryFrom<Data<'a>> for sam::record::Data {
+impl<'a> TryFrom<Data<'a>> for sam::alignment::record_buf::Data {
     type Error = io::Error;
 
     fn try_from(bam_data: Data<'a>) -> Result<Self, Self::Error> {

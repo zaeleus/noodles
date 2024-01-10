@@ -1,7 +1,7 @@
 use noodles_core::Position;
 use noodles_sam as sam;
 
-use super::{Features, Flags, Name, NextMateFlags, QualityScores, Record, Sequence};
+use super::{Data, Features, Flags, Name, NextMateFlags, QualityScores, Record, Sequence};
 
 /// A CRAM record builder.
 pub struct Builder {
@@ -18,7 +18,7 @@ pub struct Builder {
     next_mate_alignment_start: Option<Position>,
     template_size: i32,
     distance_to_next_fragment: Option<usize>,
-    tags: sam::record::Data,
+    tags: Data,
     bases: Sequence,
     features: Features,
     mapping_quality: Option<sam::record::MappingQuality>,
@@ -108,7 +108,7 @@ impl Builder {
     }
 
     /// Sets the tag dictionary.
-    pub fn set_tags(mut self, tags: sam::record::Data) -> Self {
+    pub fn set_tags(mut self, tags: Data) -> Self {
         self.tags = tags;
         self
     }
@@ -178,7 +178,7 @@ impl Default for Builder {
             next_mate_alignment_start: None,
             template_size: 0,
             distance_to_next_fragment: None,
-            tags: sam::record::Data::default(),
+            tags: Data::default(),
             bases: Sequence::default(),
             features: Features::default(),
             mapping_quality: None,

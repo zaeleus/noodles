@@ -1,7 +1,7 @@
 use noodles_core::Position;
 
-use super::{Cigar, Name, QualityScores, RecordBuf, Sequence};
-use crate::record::{Data, Flags, MappingQuality};
+use super::{Cigar, Data, Name, QualityScores, RecordBuf, Sequence};
+use crate::record::{Flags, MappingQuality};
 
 /// An alignment record builder.
 #[derive(Debug)]
@@ -243,8 +243,10 @@ impl Builder {
     /// ```
     /// use noodles_sam::{
     ///     self as sam,
-    ///     alignment::{record::data::field::tag, record_buf::data::field::Value},
-    ///     record::Data,
+    ///     alignment::{
+    ///         record::data::field::tag,
+    ///         record_buf::{data::field::Value, Data},
+    ///     },
     /// };
     ///
     /// let data: Data = [(tag::ALIGNMENT_HIT_COUNT, Value::from(1))]

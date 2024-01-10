@@ -25,7 +25,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::record::Data as DataBuf;
+    use crate::alignment::record_buf::Data as DataBuf;
 
     #[test]
     fn test_write_data() -> io::Result<()> {

@@ -379,7 +379,7 @@ where
             })
     }
 
-    fn read_tag_data(&mut self) -> io::Result<sam::record::Data> {
+    fn read_tag_data(&mut self) -> io::Result<sam::alignment::record_buf::Data> {
         use bam::record::codec::decoder::data::field::get_value;
 
         let tag_line = self.read_tag_line()?;

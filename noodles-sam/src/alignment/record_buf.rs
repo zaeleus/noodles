@@ -8,7 +8,8 @@ mod quality_scores;
 mod sequence;
 
 pub use self::{
-    builder::Builder, cigar::Cigar, name::Name, quality_scores::QualityScores, sequence::Sequence,
+    builder::Builder, cigar::Cigar, data::Data, name::Name, quality_scores::QualityScores,
+    sequence::Sequence,
 };
 
 use std::io;
@@ -41,7 +42,7 @@ pub struct RecordBuf {
     template_length: i32,
     sequence: Sequence,
     quality_scores: QualityScores,
-    data: record::Data,
+    data: Data,
 }
 
 impl RecordBuf {
@@ -388,7 +389,7 @@ impl RecordBuf {
     /// let record = sam::alignment::RecordBuf::default();
     /// assert!(record.data().is_empty());
     /// ```
-    pub fn data(&self) -> &record::Data {
+    pub fn data(&self) -> &Data {
         &self.data
     }
 
@@ -399,8 +400,10 @@ impl RecordBuf {
     /// ```
     /// use noodles_sam::{
     ///     self as sam,
-    ///     alignment::{record::data::field::tag, record_buf::data::field::Value},
-    ///     record::Data,
+    ///     alignment::{
+    ///         record::data::field::tag,
+    ///         record_buf::{data::field::Value, Data},
+    ///     },
     /// };
     ///
     /// let data: Data = [(tag::ALIGNMENT_HIT_COUNT, Value::from(1))]
@@ -412,7 +415,7 @@ impl RecordBuf {
     ///
     /// assert_eq!(record.data_mut(), &data);
     /// ```
-    pub fn data_mut(&mut self) -> &mut record::Data {
+    pub fn data_mut(&mut self) -> &mut Data {
         &mut self.data
     }
 
