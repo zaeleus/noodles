@@ -62,11 +62,11 @@ where
     put_mapping_quality(dst, mapping_quality);
 
     // bin
-    let alignment_end = record.alignment_end(header).transpose()?;
+    let alignment_end = record.alignment_end().transpose()?;
     put_bin(dst, alignment_start, alignment_end)?;
 
     // n_cigar_op
-    let cigar = overflowing_put_cigar_op_count(dst, header, record)?;
+    let cigar = overflowing_put_cigar_op_count(dst, record)?;
 
     // flag
     let flags = Flags::try_from(record.flags().as_ref())?;
@@ -102,14 +102,14 @@ where
     if let Some(cigar) = &cigar {
         put_cigar(dst, cigar)?;
     } else {
-        put_cigar(dst, &record.cigar(header))?;
+        put_cigar(dst, &record.cigar())?;
     }
 
     let sequence = record.sequence();
     let base_count = sequence.len();
 
     // seq
-    let read_length = record.cigar(header).read_length()?;
+    let read_length = record.cigar().read_length()?;
     put_sequence(dst, read_length, sequence)?;
 
     // qual
@@ -118,7 +118,7 @@ where
     put_data(dst, record.data())?;
 
     if cigar.is_some() {
-        data::field::put_cigar(dst, &record.cigar(header))?;
+        data::field::put_cigar(dst, &record.cigar())?;
     }
 
     Ok(())
@@ -164,18 +164,14 @@ where
     Ok(())
 }
 
-fn overflowing_put_cigar_op_count<B, R>(
-    dst: &mut B,
-    header: &sam::Header,
-    record: &R,
-) -> io::Result<Option<Cigar>>
+fn overflowing_put_cigar_op_count<B, R>(dst: &mut B, record: &R) -> io::Result<Option<Cigar>>
 where
     B: BufMut,
     R: Record + ?Sized,
 {
     use sam::alignment::record::cigar::{op::Kind, Op};
 
-    let cigar = record.cigar(header);
+    let cigar = record.cigar();
 
     if let Ok(op_count) = u16::try_from(cigar.len()) {
         dst.put_u16_le(op_count);

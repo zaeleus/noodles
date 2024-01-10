@@ -52,6 +52,8 @@
 
 ### Fixed
 
+  * bam/record: Discard skip length when matching overflowing CIGAR.
+
   * bam/record/codec/encoder: Use alignment span for `m` in overflowing CIGAR.
 
 ## 0.52.0 - 2023-12-14

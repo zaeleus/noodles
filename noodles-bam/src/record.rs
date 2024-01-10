@@ -171,7 +171,35 @@ impl Record {
     /// assert!(record.cigar().is_empty());
     /// ```
     pub fn cigar(&self) -> Cigar<'_> {
-        let src = &self.buf[self.bounds.cigar_range()];
+        use bytes::Buf;
+
+        use self::data::get_raw_cigar;
+
+        const SKIP: u8 = 3;
+        const SOFT_CLIP: u8 = 4;
+
+        fn decode_op(n: u32) -> (u8, usize) {
+            ((n & 0x0f) as u8, usize::try_from(n >> 4).unwrap())
+        }
+
+        let mut src = &self.buf[self.bounds.cigar_range()];
+
+        if src.len() == 2 * mem::size_of::<u32>() {
+            let k = self.sequence().len();
+
+            // SAFETY: `src` is 8 bytes.
+            let op_1 = decode_op(src.get_u32_le());
+            let op_2 = decode_op(src.get_u32_le());
+
+            if op_1 == (SOFT_CLIP, k) && matches!(op_2, (SKIP, _)) {
+                let mut data_src = &self.buf[self.bounds.data_range()];
+
+                if let Ok(Some(buf)) = get_raw_cigar(&mut data_src) {
+                    return Cigar::new(buf);
+                }
+            }
+        }
+
         Cigar::new(src)
     }
 
@@ -292,36 +320,7 @@ impl sam::alignment::Record for Record {
         Some(Box::new(mapping_quality))
     }
 
-    fn cigar(&self, _: &sam::Header) -> Box<dyn sam::alignment::record::Cigar + '_> {
-        use bytes::Buf;
-
-        use self::data::get_raw_cigar;
-
-        const SKIP: u8 = 3;
-        const SOFT_CLIP: u8 = 4;
-
-        fn decode_op(n: u32) -> (u8, usize) {
-            ((n & 0x0f) as u8, usize::try_from(n >> 4).unwrap())
-        }
-
-        let mut src = &self.buf[self.bounds.cigar_range()];
-
-        if src.len() == 2 * mem::size_of::<u32>() {
-            let k = self.sequence().len();
-
-            // SAFETY: `src` is 8 bytes.
-            let op_1 = decode_op(src.get_u32_le());
-            let op_2 = decode_op(src.get_u32_le());
-
-            if op_1 == (SOFT_CLIP, k) && matches!(op_2, (SKIP, _)) {
-                let mut data_src = &self.buf[self.bounds.data_range()];
-
-                if let Ok(Some(buf)) = get_raw_cigar(&mut data_src) {
-                    return Box::new(Cigar::new(buf));
-                }
-            }
-        }
-
+    fn cigar(&self) -> Box<dyn sam::alignment::record::Cigar + '_> {
         Box::new(self.cigar())
     }
 
@@ -617,8 +616,7 @@ mod tests {
 
         record.index()?;
 
-        let cigar = sam::alignment::Record::cigar(&record, &header);
-        assert_eq!(cigar.len(), BASE_COUNT);
+        assert_eq!(record.cigar().len(), BASE_COUNT);
 
         Ok(())
     }

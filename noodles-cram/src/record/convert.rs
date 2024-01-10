@@ -85,7 +85,7 @@ impl Record {
         };
 
         if !bam_flags.is_unmapped() {
-            let cigar = alignment_record_cigar_to_cigar_buf(record.cigar(header))?;
+            let cigar = alignment_record_cigar_to_cigar_buf(record.cigar())?;
             let features = Features::from_cigar(flags, &cigar, &bases, &quality_scores);
             builder = builder.set_features(features);
         }

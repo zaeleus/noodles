@@ -80,8 +80,10 @@ where
 
     write_mapping_quality(writer, mapping_quality)?;
 
+    let cigar = record.cigar();
+
     writer.write_all(DELIMITER)?;
-    write_cigar(writer, &record.cigar(header))?;
+    write_cigar(writer, &cigar)?;
 
     writer.write_all(DELIMITER)?;
     writer.write_all(mate_reference_sequence_name)?;
@@ -101,7 +103,7 @@ where
     let base_count = sequence.len();
 
     writer.write_all(DELIMITER)?;
-    let read_length = record.cigar(header).read_length()?;
+    let read_length = cigar.read_length()?;
     write_sequence(writer, read_length, sequence)?;
 
     writer.write_all(DELIMITER)?;

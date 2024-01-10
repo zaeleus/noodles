@@ -65,7 +65,7 @@ where
         if let Some(record) = self.next_record.take() {
             let (_, start, end) = alignment_context(self.header, &record)?;
             self.position = start;
-            pile_record(&mut self.window, start, end, self.header, &record)?;
+            pile_record(&mut self.window, start, end, &record)?;
             Ok(Some((start, end)))
         } else {
             Ok(None)
@@ -80,7 +80,7 @@ where
 
         if let Some(record) = self.next_record.take() {
             let (_, start, end) = alignment_context(self.header, &record)?;
-            pile_record(&mut self.window, start, end, self.header, &record)?;
+            pile_record(&mut self.window, start, end, &record)?;
             active_window_end = end.max(active_window_end);
         }
 
@@ -102,7 +102,7 @@ where
                 return Ok(Some((active_window_start, active_window_end)));
             }
 
-            pile_record(&mut self.window, start, end, self.header, &record)?;
+            pile_record(&mut self.window, start, end, &record)?;
             active_window_end = end.max(active_window_end);
         }
 
@@ -167,7 +167,7 @@ where
     match (
         record.reference_sequence_id(header),
         record.alignment_start(),
-        record.alignment_end(header),
+        record.alignment_end(),
     ) {
         (Some(id), Some(start), Some(end)) => {
             let id = usize::try_from(id.as_ref())?;
@@ -190,7 +190,6 @@ fn pile_record<R>(
     window: &mut VecDeque<u64>,
     start: Position,
     end: Position,
-    header: &Header,
     record: &R,
 ) -> io::Result<()>
 where
@@ -202,7 +201,7 @@ where
         window.resize(span, 0);
     }
 
-    let cigar = record.cigar(header);
+    let cigar = record.cigar();
     pile(window, start, start, &cigar)
 }
 

@@ -534,7 +534,7 @@ impl Record for RecordBuf {
         Some(Box::new(mapping_quality))
     }
 
-    fn cigar(&self, _: &Header) -> Box<dyn super::record::Cigar + '_> {
+    fn cigar(&self) -> Box<dyn super::record::Cigar + '_> {
         Box::new(self.cigar())
     }
 

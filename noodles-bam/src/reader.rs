@@ -342,9 +342,9 @@ where
     /// }
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn query<'a, I>(
-        &'a mut self,
-        header: &'a sam::Header,
+    pub fn query<I>(
+        &mut self,
+        header: &sam::Header,
         index: &I,
         region: &Region,
     ) -> io::Result<Query<'_, R>>
@@ -356,7 +356,6 @@ where
 
         Ok(Query::new(
             self.get_mut(),
-            header,
             chunks,
             reference_sequence_id,
             region.interval(),

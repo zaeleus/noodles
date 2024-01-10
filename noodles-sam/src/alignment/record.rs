@@ -49,7 +49,7 @@ pub trait Record {
     fn mapping_quality(&self) -> Option<Box<dyn MappingQuality + '_>>;
 
     /// Returns the CIGAR operations.
-    fn cigar(&self, header: &Header) -> Box<dyn Cigar + '_>;
+    fn cigar(&self) -> Box<dyn Cigar + '_>;
 
     /// Returns the mate reference sequence ID.
     fn mate_reference_sequence_id<'r, 'h: 'r>(
@@ -95,12 +95,12 @@ pub trait Record {
     }
 
     /// Returns the alignment span.
-    fn alignment_span(&self, header: &Header) -> io::Result<usize> {
-        self.cigar(header).alignment_span()
+    fn alignment_span(&self) -> io::Result<usize> {
+        self.cigar().alignment_span()
     }
 
     /// Calculates the end position.
-    fn alignment_end(&self, header: &Header) -> Option<io::Result<core::Position>> {
+    fn alignment_end(&self) -> Option<io::Result<core::Position>> {
         let alignment_start = self.alignment_start()?;
 
         let start = match core::Position::try_from(alignment_start.as_ref()) {
@@ -108,7 +108,7 @@ pub trait Record {
             Err(e) => return Some(Err(e)),
         };
 
-        let span = match self.alignment_span(header) {
+        let span = match self.alignment_span() {
             Ok(span) => span,
             Err(e) => return Some(Err(e)),
         };
@@ -142,8 +142,8 @@ impl Record for Box<dyn Record> {
         (**self).mapping_quality()
     }
 
-    fn cigar(&self, header: &Header) -> Box<dyn Cigar + '_> {
-        (**self).cigar(header)
+    fn cigar(&self) -> Box<dyn Cigar + '_> {
+        (**self).cigar()
     }
 
     fn mate_reference_sequence_id<'r, 'h: 'r>(
@@ -199,15 +199,13 @@ mod tests {
 
     #[test]
     fn test_alignment_end() -> io::Result<()> {
-        let header = Header::default();
-
         let src = b"*\t4\t*\t8\t255\t5M\t*\t0\t0\t*\t*";
         let mut reader = crate::Reader::new(&src[..]);
 
         let mut record = crate::lazy::Record::default();
         reader.read_lazy_record(&mut record)?;
 
-        let actual = record.alignment_end(&header).transpose()?;
+        let actual = record.alignment_end().transpose()?;
         let expected = core::Position::new(12);
         assert_eq!(actual, expected);
 

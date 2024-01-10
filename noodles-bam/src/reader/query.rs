@@ -3,7 +3,7 @@ use std::io::{self, Read, Seek};
 use noodles_bgzf as bgzf;
 use noodles_core::{region::Interval, Position};
 use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
-use noodles_sam::{self as sam, alignment::Record as _};
+use noodles_sam::alignment::Record as _;
 
 use super::Reader;
 use crate::Record;
@@ -16,7 +16,6 @@ where
     R: Read + Seek,
 {
     reader: Reader<csi::io::Query<'a, R>>,
-    header: &'a sam::Header,
     reference_sequence_id: usize,
     interval: Interval,
     record: Record,
@@ -28,14 +27,12 @@ where
 {
     pub(super) fn new(
         reader: &'a mut bgzf::Reader<R>,
-        header: &'a sam::Header,
         chunks: Vec<Chunk>,
         reference_sequence_id: usize,
         interval: Interval,
     ) -> Self {
         Self {
             reader: Reader::from(csi::io::Query::new(reader, chunks)),
-            header,
             reference_sequence_id,
             interval,
             record: Record::default(),
@@ -60,12 +57,7 @@ where
         loop {
             match self.next_record() {
                 Ok(Some(record)) => {
-                    match intersects(
-                        &record,
-                        self.header,
-                        self.reference_sequence_id,
-                        self.interval,
-                    ) {
+                    match intersects(&record, self.reference_sequence_id, self.interval) {
                         Ok(true) => return Some(Ok(record)),
                         Ok(false) => {}
                         Err(e) => return Some(Err(e)),
@@ -80,7 +72,6 @@ where
 
 fn intersects(
     record: &Record,
-    header: &sam::Header,
     reference_sequence_id: usize,
     region_interval: Interval,
 ) -> io::Result<bool> {
@@ -93,7 +84,7 @@ fn intersects(
             .alignment_start()
             .map(Position::try_from)
             .transpose()?,
-        record.alignment_end(header).transpose()?,
+        record.alignment_end().transpose()?,
     ) {
         (Some(id), Some(start), Some(end)) => {
             let alignment_interval = (start..=end).into();

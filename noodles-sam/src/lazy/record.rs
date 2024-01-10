@@ -328,7 +328,7 @@ impl crate::alignment::Record for Record {
         Some(Box::new(mapping_quality))
     }
 
-    fn cigar(&self, _: &Header) -> Box<dyn crate::alignment::record::Cigar + '_> {
+    fn cigar(&self) -> Box<dyn crate::alignment::record::Cigar + '_> {
         Box::new(self.cigar())
     }
 

@@ -307,7 +307,7 @@ impl sam::alignment::Record for Record {
         Some(Box::new(mapping_quality))
     }
 
-    fn cigar(&self, _: &sam::Header) -> Box<dyn sam::alignment::record::Cigar + '_> {
+    fn cigar(&self) -> Box<dyn sam::alignment::record::Cigar + '_> {
         Box::new(Cigar::new(
             &self.features,
             self.flags().is_unmapped(),
