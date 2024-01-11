@@ -18,9 +18,7 @@ impl TryFrom<&dyn Flags> for crate::record::Flags {
     type Error = io::Error;
 
     fn try_from(raw_flags: &dyn Flags) -> Result<Self, Self::Error> {
-        u16::try_from(raw_flags)
-            .map(Self::from)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        u16::try_from(raw_flags).map(Self::from)
     }
 }
 
