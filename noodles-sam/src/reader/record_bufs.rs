@@ -3,16 +3,16 @@ use std::io::{self, BufRead};
 use super::Reader;
 use crate::{alignment::RecordBuf, Header};
 
-/// An iterator over records of a SAM reader.
+/// An iterator over record buffers of a SAM reader.
 ///
 /// This is created by calling [`Reader::records`].
-pub struct Records<'a, R> {
+pub struct RecordBufs<'a, R> {
     inner: &'a mut Reader<R>,
     header: &'a Header,
     record: RecordBuf,
 }
 
-impl<'a, R> Records<'a, R>
+impl<'a, R> RecordBufs<'a, R>
 where
     R: BufRead,
 {
@@ -25,14 +25,14 @@ where
     }
 }
 
-impl<'a, R> Iterator for Records<'a, R>
+impl<'a, R> Iterator for RecordBufs<'a, R>
 where
     R: BufRead,
 {
     type Item = io::Result<RecordBuf>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.inner.read_record(self.header, &mut self.record) {
+        match self.inner.read_record_buf(self.header, &mut self.record) {
             Ok(0) => None,
             Ok(_) => Some(Ok(self.record.clone())),
             Err(e) => Some(Err(e)),

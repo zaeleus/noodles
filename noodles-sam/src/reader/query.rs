@@ -34,7 +34,7 @@ where
 
     fn next_record(&mut self) -> io::Result<Option<RecordBuf>> {
         self.reader
-            .read_record(self.header, &mut self.record)
+            .read_record_buf(self.header, &mut self.record)
             .map(|n| match n {
                 0 => None,
                 _ => Some(self.record.clone()),

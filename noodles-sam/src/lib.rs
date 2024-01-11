@@ -23,7 +23,7 @@
 //! let mut reader = sam::reader::Builder::default().build_from_path("sample.sam")?;
 //! let header = reader.read_header()?;
 //!
-//! for result in reader.records(&header) {
+//! for result in reader.record_bufs(&header) {
 //!     let record = result?;
 //!     // ...
 //! }

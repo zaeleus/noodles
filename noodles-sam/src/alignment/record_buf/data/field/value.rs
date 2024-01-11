@@ -228,7 +228,7 @@ impl From<Vec<f32>> for Value {
 }
 
 impl TryFrom<i64> for Value {
-    type Error = crate::reader::record::data::field::value::ParseError;
+    type Error = crate::reader::record_buf::data::field::value::ParseError;
 
     fn try_from(n: i64) -> Result<Self, Self::Error> {
         const MIN: i64 = i32::MIN as i64;
@@ -390,8 +390,8 @@ mod tests {
 
     #[test]
     fn test_try_from_i64_for_value(
-    ) -> Result<(), crate::reader::record::data::field::value::ParseError> {
-        use crate::reader::record::data::field::value::ParseError;
+    ) -> Result<(), crate::reader::record_buf::data::field::value::ParseError> {
+        use crate::reader::record_buf::data::field::value::ParseError;
 
         fn t(n: i64, expected: Value) -> Result<(), ParseError> {
             let actual = Value::try_from(n)?;

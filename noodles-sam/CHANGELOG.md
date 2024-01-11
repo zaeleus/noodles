@@ -50,6 +50,14 @@
   * sam/lazy/record/data/field/value: Replace `Array` with
     `crate::alignment::record::data::field::value::Array`.
 
+  * sam/reader: Rename record to record buf.
+
+    This changes the following:
+
+      * `Reader::read_record` => `Reader::read_record_buf`,
+      * `Reader::records` => `Reader::record_bufs`, and
+      * `Records` => `RecordBufs`.
+
   * sam/record: Rename `ReadName` to `Name`.
 
     This also changes accessors from `read_name` to `name`.

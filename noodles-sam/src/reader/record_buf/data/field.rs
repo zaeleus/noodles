@@ -57,7 +57,7 @@ impl fmt::Display for ParseError {
 }
 
 pub(super) fn parse_field(src: &mut &[u8]) -> Result<(Tag, Value), ParseError> {
-    use crate::reader::record::next_field;
+    use crate::reader::record_buf::next_field;
 
     let mut buf = next_field(src);
 

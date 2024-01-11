@@ -26,7 +26,7 @@ use self::{
 use super::read_line;
 use crate::{alignment::RecordBuf, Header};
 
-pub fn read_record<R>(
+pub fn read_record_buf<R>(
     reader: &mut R,
     buf: &mut Vec<u8>,
     header: &Header,
@@ -40,7 +40,7 @@ where
     match read_line(reader, buf)? {
         0 => Ok(0),
         n => {
-            parse_record(buf, header, record)
+            parse_record_buf(buf, header, record)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
             Ok(n)
@@ -118,7 +118,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(crate) fn parse_record(
+pub(crate) fn parse_record_buf(
     mut src: &[u8],
     header: &Header,
     record: &mut RecordBuf,
@@ -235,7 +235,7 @@ mod tests {
         let header = Header::default();
         let s = b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\tNH:i:1\tCO:Z:ndls";
         let mut record = RecordBuf::default();
-        parse_record(s, &header, &mut record)?;
+        parse_record_buf(s, &header, &mut record)?;
 
         let expected = RecordBuf::builder()
             .set_data(

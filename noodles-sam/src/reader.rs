@@ -3,10 +3,8 @@
 mod builder;
 mod header;
 mod query;
-pub(crate) mod record;
-mod records;
-
-pub use self::{builder::Builder, records::Records};
+pub(crate) mod record_buf;
+mod record_bufs;
 
 use std::io::{self, BufRead, Read, Seek};
 
@@ -14,6 +12,8 @@ use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
 
+use self::record_buf::read_record_buf;
+pub use self::{builder::Builder, record_bufs::RecordBufs};
 use super::{alignment::RecordBuf, header::ReferenceSequences, Header, Record};
 
 /// A SAM reader.
@@ -33,7 +33,7 @@ use super::{alignment::RecordBuf, header::ReferenceSequences, Header, Record};
 /// let mut reader = sam::reader::Builder::default().build_from_path("sample.sam")?;
 /// let header = reader.read_header()?;
 ///
-/// for result in reader.records(&header) {
+/// for result in reader.record_bufs(&header) {
 ///     let record = result?;
 ///     // ...
 /// }
@@ -165,14 +165,17 @@ where
     /// let header = reader.read_header()?;
     ///
     /// let mut record = RecordBuf::default();
-    /// reader.read_record(&header, &mut record)?;
+    /// reader.read_record_buf(&header, &mut record)?;
     ///
     /// assert_eq!(record, RecordBuf::default());
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn read_record(&mut self, header: &Header, record: &mut RecordBuf) -> io::Result<usize> {
-        use self::record::read_record;
-        read_record(&mut self.inner, &mut self.buf, header, record)
+    pub fn read_record_buf(
+        &mut self,
+        header: &Header,
+        record: &mut RecordBuf,
+    ) -> io::Result<usize> {
+        read_record_buf(&mut self.inner, &mut self.buf, header, record)
     }
 
     /// Returns an iterator over records starting from the current stream position.
@@ -191,13 +194,13 @@ where
     /// let mut reader = sam::Reader::new(&data[..]);
     /// let header = reader.read_header()?;
     ///
-    /// let mut records = reader.records(&header);
+    /// let mut records = reader.record_bufs(&header);
     /// assert!(records.next().is_some());
     /// assert!(records.next().is_none());
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn records<'a>(&'a mut self, header: &'a Header) -> Records<'a, R> {
-        Records::new(self, header)
+    pub fn record_bufs<'a>(&'a mut self, header: &'a Header) -> RecordBufs<'a, R> {
+        RecordBufs::new(self, header)
     }
 
     /// Reads a single record without eagerly decoding its fields.
@@ -356,7 +359,7 @@ where
             self.seek_to_first_record()?;
         }
 
-        Ok(self.records(header).filter(|result| {
+        Ok(self.record_bufs(header).filter(|result| {
             result
                 .as_ref()
                 .map(|record| record.flags().is_unmapped())
@@ -389,7 +392,7 @@ where
         &'a mut self,
         header: &'a Header,
     ) -> Box<dyn Iterator<Item = io::Result<Box<dyn crate::alignment::Record>>> + 'a> {
-        Box::new(self.records(header).map(|result| {
+        Box::new(self.record_bufs(header).map(|result| {
             result.map(|record| Box::new(record) as Box<dyn crate::alignment::Record>)
         }))
     }

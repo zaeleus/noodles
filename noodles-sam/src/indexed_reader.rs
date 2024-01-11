@@ -10,7 +10,7 @@ use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
 
-use super::{alignment::RecordBuf, reader::Records, Header, Reader, Record};
+use super::{alignment::RecordBuf, reader::RecordBufs, Header, Reader, Record};
 
 /// An indexed SAM reader.
 pub struct IndexedReader<R> {
@@ -54,13 +54,17 @@ where
     }
 
     /// Reads a single SAM record.
-    pub fn read_record(&mut self, header: &Header, record: &mut RecordBuf) -> io::Result<usize> {
-        self.inner.read_record(header, record)
+    pub fn read_record_buf(
+        &mut self,
+        header: &Header,
+        record: &mut RecordBuf,
+    ) -> io::Result<usize> {
+        self.inner.read_record_buf(header, record)
     }
 
     /// Returns an iterator over records starting from the current stream position.
-    pub fn records<'a>(&'a mut self, header: &'a Header) -> Records<'a, bgzf::Reader<R>> {
-        self.inner.records(header)
+    pub fn record_bufs<'a>(&'a mut self, header: &'a Header) -> RecordBufs<'a, bgzf::Reader<R>> {
+        self.inner.record_bufs(header)
     }
 
     /// Reads a single record without eagerly decoding its fields.
