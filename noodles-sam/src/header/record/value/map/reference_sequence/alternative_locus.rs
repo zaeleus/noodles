@@ -57,7 +57,7 @@ impl FromStr for AlternativeLocus {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use crate::record::reference_sequence_name::is_valid_name;
+        use super::name::is_valid_name;
 
         match s {
             "" => Err(ParseError::Empty),

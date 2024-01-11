@@ -54,7 +54,7 @@ impl FromStr for AlternativeNames {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use crate::record::reference_sequence_name::is_valid_name;
+        use super::name::is_valid_name;
 
         if s.is_empty() {
             return Err(ParseError::Empty);

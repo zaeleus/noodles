@@ -10,7 +10,7 @@ use crate::header::{
         map::{
             self,
             reference_sequence::{
-                alternative_locus, alternative_names, md5_checksum, molecule_topology, tag,
+                alternative_locus, alternative_names, md5_checksum, molecule_topology, name, tag,
                 AlternativeLocus, AlternativeNames, Md5Checksum, MoleculeTopology, Name, Tag,
             },
             tag::Other,
@@ -27,7 +27,7 @@ pub enum ParseError {
     InvalidTag(super::field::tag::ParseError),
     InvalidValue(value::ParseError),
     MissingName,
-    InvalidName(crate::record::reference_sequence_name::ParseError),
+    InvalidName(name::ParseError),
     MissingLength,
     InvalidLength(length::ParseError),
     InvalidAlternativeLocus(alternative_locus::ParseError),
