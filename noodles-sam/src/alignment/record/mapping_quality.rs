@@ -14,7 +14,7 @@ impl TryFrom<&dyn MappingQuality> for u8 {
     }
 }
 
-impl TryFrom<&dyn MappingQuality> for crate::record::MappingQuality {
+impl TryFrom<&dyn MappingQuality> for crate::alignment::record_buf::MappingQuality {
     type Error = io::Error;
 
     fn try_from(raw_mapping_quality: &dyn MappingQuality) -> Result<Self, Self::Error> {

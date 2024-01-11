@@ -5,7 +5,7 @@
 use std::{env, fmt, io};
 
 use noodles_bam as bam;
-use noodles_sam::{alignment::RecordBuf, record::MappingQuality};
+use noodles_sam::alignment::{record_buf::MappingQuality, RecordBuf};
 
 const MIN_HQ_MAPPING_QUALITY: MappingQuality = match MappingQuality::new(5) {
     Some(mapping_quality) => mapping_quality,

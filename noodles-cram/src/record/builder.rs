@@ -1,7 +1,9 @@
 use noodles_core::Position;
 use noodles_sam as sam;
 
-use super::{Data, Features, Flags, Name, NextMateFlags, QualityScores, Record, Sequence};
+use super::{
+    Data, Features, Flags, MappingQuality, Name, NextMateFlags, QualityScores, Record, Sequence,
+};
 
 /// A CRAM record builder.
 pub struct Builder {
@@ -21,7 +23,7 @@ pub struct Builder {
     tags: Data,
     bases: Sequence,
     features: Features,
-    mapping_quality: Option<sam::record::MappingQuality>,
+    mapping_quality: Option<MappingQuality>,
     quality_scores: QualityScores,
 }
 
@@ -126,7 +128,7 @@ impl Builder {
     }
 
     /// Sets the mapping quality.
-    pub fn set_mapping_quality(mut self, mapping_quality: sam::record::MappingQuality) -> Self {
+    pub fn set_mapping_quality(mut self, mapping_quality: MappingQuality) -> Self {
         self.mapping_quality = Some(mapping_quality);
         self
     }

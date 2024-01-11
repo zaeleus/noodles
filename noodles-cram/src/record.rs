@@ -18,7 +18,7 @@ use std::io;
 use noodles_core::Position;
 use noodles_sam::{
     self as sam,
-    alignment::record_buf::{Data, Name, QualityScores, Sequence},
+    alignment::record_buf::{Data, MappingQuality, Name, QualityScores, Sequence},
     header::record::value::{
         map::{self, ReferenceSequence},
         Map,
@@ -44,7 +44,7 @@ pub struct Record {
     pub(crate) tags: Data,
     pub(crate) bases: Sequence,
     pub(crate) features: Features,
-    pub(crate) mapping_quality: Option<sam::record::MappingQuality>,
+    pub(crate) mapping_quality: Option<MappingQuality>,
     pub(crate) quality_scores: QualityScores,
 }
 
@@ -219,7 +219,7 @@ impl Record {
     }
 
     /// Returns the mapping quality.
-    pub fn mapping_quality(&self) -> Option<sam::record::MappingQuality> {
+    pub fn mapping_quality(&self) -> Option<MappingQuality> {
         self.mapping_quality
     }
 

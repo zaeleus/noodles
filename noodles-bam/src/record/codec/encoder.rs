@@ -21,10 +21,9 @@ use noodles_core::Position;
 use noodles_sam::{
     self as sam,
     alignment::{
-        record_buf::{Cigar, Flags},
+        record_buf::{Cigar, Flags, MappingQuality},
         Record,
     },
-    record::MappingQuality,
 };
 
 use self::{position::put_position, reference_sequence_id::put_reference_sequence_id};
@@ -271,15 +270,12 @@ mod tests {
 
     #[test]
     fn test_encode_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::{
-            alignment::{
-                record::{
-                    cigar::{op::Kind, Op},
-                    data::field::tag,
-                },
-                record_buf::{data::field::Value, Name, QualityScores, Sequence},
+        use sam::alignment::{
+            record::{
+                cigar::{op::Kind, Op},
+                data::field::tag,
             },
-            record::MappingQuality,
+            record_buf::{data::field::Value, Name, QualityScores, Sequence},
         };
 
         let mut buf = Vec::new();

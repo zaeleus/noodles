@@ -4,19 +4,19 @@ mod builder;
 mod cigar;
 pub mod data;
 mod flags;
+pub mod mapping_quality;
 mod name;
 mod quality_scores;
 mod sequence;
-
-pub use self::{
-    builder::Builder, cigar::Cigar, data::Data, flags::Flags, name::Name,
-    quality_scores::QualityScores, sequence::Sequence,
-};
 
 use std::io;
 
 use noodles_core::Position;
 
+pub use self::{
+    builder::Builder, cigar::Cigar, data::Data, flags::Flags, mapping_quality::MappingQuality,
+    name::Name, quality_scores::QualityScores, sequence::Sequence,
+};
 use super::Record;
 use crate::{
     header::{
@@ -26,7 +26,7 @@ use crate::{
         },
         ReferenceSequences,
     },
-    record, Header,
+    Header,
 };
 
 /// An alignment record.
@@ -36,7 +36,7 @@ pub struct RecordBuf {
     flags: Flags,
     reference_sequence_id: Option<usize>,
     alignment_start: Option<Position>,
-    mapping_quality: Option<record::MappingQuality>,
+    mapping_quality: Option<MappingQuality>,
     cigar: Cigar,
     mate_reference_sequence_id: Option<usize>,
     mate_alignment_start: Option<Position>,
@@ -181,7 +181,7 @@ impl RecordBuf {
     /// let record = sam::alignment::RecordBuf::default();
     /// assert!(record.mapping_quality().is_none());
     /// ```
-    pub fn mapping_quality(&self) -> Option<record::MappingQuality> {
+    pub fn mapping_quality(&self) -> Option<MappingQuality> {
         self.mapping_quality
     }
 
@@ -190,12 +190,12 @@ impl RecordBuf {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::MappingQuality};
+    /// use noodles_sam::{self as sam, alignment::record_buf::MappingQuality};
     /// let mut record = sam::alignment::RecordBuf::default();
     /// *record.mapping_quality_mut() = Some(MappingQuality::MIN);
     /// assert_eq!(record.mapping_quality(), Some(MappingQuality::MIN));
     /// ```
-    pub fn mapping_quality_mut(&mut self) -> &mut Option<record::MappingQuality> {
+    pub fn mapping_quality_mut(&mut self) -> &mut Option<MappingQuality> {
         &mut self.mapping_quality
     }
 

@@ -431,7 +431,7 @@ impl TryFrom<Record> for sam::alignment::RecordBuf {
         if let Some(mapping_quality) = lazy_record.mapping_quality() {
             // SAFETY: `mapping_quality` cannot be missing.
             let mapping_quality =
-                sam::record::MappingQuality::new(u8::from(mapping_quality)).unwrap();
+                sam::alignment::record_buf::MappingQuality::new(u8::from(mapping_quality)).unwrap();
             builder = builder.set_mapping_quality(mapping_quality);
         }
 

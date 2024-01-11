@@ -85,7 +85,8 @@ impl Record {
         }
 
         if let Some(mapping_quality) = record.mapping_quality() {
-            let mapping_quality = sam::record::MappingQuality::try_from(mapping_quality.as_ref())?;
+            let mapping_quality =
+                sam::alignment::record_buf::MappingQuality::try_from(mapping_quality.as_ref())?;
             builder = builder.set_mapping_quality(mapping_quality);
         }
 

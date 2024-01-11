@@ -1,7 +1,6 @@
 use noodles_core::Position;
 
-use super::{Cigar, Data, Flags, Name, QualityScores, RecordBuf, Sequence};
-use crate::record::MappingQuality;
+use super::{Cigar, Data, Flags, MappingQuality, Name, QualityScores, RecordBuf, Sequence};
 
 /// An alignment record builder.
 #[derive(Debug)]
@@ -101,7 +100,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::MappingQuality};
+    /// use noodles_sam::{self as sam, alignment::record_buf::MappingQuality};
     ///
     /// let record = sam::alignment::RecordBuf::builder()
     ///     .set_mapping_quality(MappingQuality::MIN)

@@ -723,7 +723,9 @@ where
             })
     }
 
-    fn read_mapping_quality(&mut self) -> io::Result<Option<sam::record::MappingQuality>> {
+    fn read_mapping_quality(
+        &mut self,
+    ) -> io::Result<Option<sam::alignment::record_buf::MappingQuality>> {
         self.compression_header
             .data_series_encoding_map()
             .mapping_qualities_encoding()
@@ -737,7 +739,7 @@ where
             .and_then(|n| {
                 u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             })
-            .map(sam::record::MappingQuality::new)
+            .map(sam::alignment::record_buf::MappingQuality::new)
     }
 
     fn read_unmapped_read(

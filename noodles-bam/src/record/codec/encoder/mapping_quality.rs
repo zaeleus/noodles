@@ -1,5 +1,5 @@
 use bytes::BufMut;
-use noodles_sam::record::MappingQuality;
+use noodles_sam::alignment::record_buf::MappingQuality;
 
 pub fn put_mapping_quality<B>(dst: &mut B, mapping_quality: Option<MappingQuality>)
 where

@@ -1,11 +1,11 @@
-//! SAM record mapping quality.
+//! Alignment record mapping quality.
 
 use std::{error, fmt, io};
 
 // § 1.4.5 "_MAPQ_" (2023): "A value 255 indicates that the mapping quality is not available."
 const MISSING: u8 = 255;
 
-/// A SAM record mapping quality.
+/// An alignment record mapping quality.
 ///
 /// Mapping quality ranges from 0 to 254 (inclusive), where higher is better.
 ///
@@ -20,12 +20,12 @@ impl MappingQuality {
     /// The maximum mapping quality (254).
     pub const MAX: Self = Self(254);
 
-    /// Creates a mapping quality if the given value is not missing.
+    /// Creates a mapping quality.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::MappingQuality;
+    /// use noodles_sam::alignment::record_buf::MappingQuality;
     /// assert!(MappingQuality::new(8).is_some());
     /// assert!(MappingQuality::new(255).is_none());
     /// ```
@@ -42,7 +42,7 @@ impl MappingQuality {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::MappingQuality;
+    /// use noodles_sam::alignment::record_buf::MappingQuality;
     /// let mapping_quality = MappingQuality::new(8).unwrap();
     /// assert_eq!(mapping_quality.get(), 8);
     /// ```
@@ -57,22 +57,16 @@ impl crate::alignment::record::MappingQuality for MappingQuality {
     }
 }
 
-/// An error returned when a raw SAM record mapping quality fails to parse.
+/// An error returned when a raw alignment record mapping quality fails to convert.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
+pub enum TryFromIntError {
     /// The value is missing.
     Missing,
 }
 
-impl error::Error for ParseError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match self {
-            Self::Missing => None,
-        }
-    }
-}
+impl error::Error for TryFromIntError {}
 
-impl fmt::Display for ParseError {
+impl fmt::Display for TryFromIntError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Missing => write!(f, "missing value: {MISSING}"),
@@ -81,10 +75,10 @@ impl fmt::Display for ParseError {
 }
 
 impl TryFrom<u8> for MappingQuality {
-    type Error = ParseError;
+    type Error = TryFromIntError;
 
     fn try_from(n: u8) -> Result<Self, Self::Error> {
-        Self::new(n).ok_or(ParseError::Missing)
+        Self::new(n).ok_or(TryFromIntError::Missing)
     }
 }
 
@@ -104,7 +98,7 @@ mod tests {
         assert_eq!(MappingQuality::try_from(8), Ok(MappingQuality(8)));
         assert_eq!(MappingQuality::try_from(13), Ok(MappingQuality(13)));
         assert_eq!(MappingQuality::try_from(144), Ok(MappingQuality(144)));
-        assert_eq!(MappingQuality::try_from(255), Err(ParseError::Missing));
+        assert_eq!(MappingQuality::try_from(255), Err(TryFromIntError::Missing));
     }
 
     #[test]

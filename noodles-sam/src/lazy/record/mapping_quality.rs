@@ -33,7 +33,7 @@ impl<'a> TryFrom<MappingQuality<'a>> for u8 {
     }
 }
 
-impl<'a> TryFrom<MappingQuality<'a>> for crate::record::MappingQuality {
+impl<'a> TryFrom<MappingQuality<'a>> for crate::alignment::record_buf::MappingQuality {
     type Error = io::Error;
 
     fn try_from(raw_mapping_quality: MappingQuality<'a>) -> Result<Self, Self::Error> {

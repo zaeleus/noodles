@@ -22,8 +22,10 @@ use self::{
     template_length::write_template_length,
 };
 use crate::{
-    alignment::{record_buf::Flags, Record},
-    record::MappingQuality,
+    alignment::{
+        record_buf::{Flags, MappingQuality},
+        Record,
+    },
     Header,
 };
 
