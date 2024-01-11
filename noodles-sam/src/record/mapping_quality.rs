@@ -2,8 +2,8 @@
 
 use std::{error, fmt, io};
 
-/// The raw value of a missing mapping quality.
-pub const MISSING: u8 = 255;
+// § 1.4.5 "_MAPQ_" (2023): "A value 255 indicates that the mapping quality is not available."
+const MISSING: u8 = 255;
 
 /// A SAM record mapping quality.
 ///

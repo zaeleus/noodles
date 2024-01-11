@@ -788,6 +788,8 @@ where
         &mut self,
         mapping_quality: Option<sam::record::MappingQuality>,
     ) -> io::Result<()> {
+        const MISSING: u8 = 0xff;
+
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -799,17 +801,8 @@ where
                 )
             })?;
 
-        let mapping_quality = i32::from(
-            mapping_quality
-                .map(u8::from)
-                .unwrap_or(sam::record::mapping_quality::MISSING),
-        );
-
-        encoding.encode(
-            self.core_data_writer,
-            self.external_data_writers,
-            mapping_quality,
-        )
+        let n = i32::from(mapping_quality.map(u8::from).unwrap_or(MISSING));
+        encoding.encode(self.core_data_writer, self.external_data_writers, n)
     }
 
     fn write_unmapped_read(&mut self, record: &Record) -> io::Result<()> {
