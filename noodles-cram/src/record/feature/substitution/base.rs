@@ -1,7 +1,5 @@
 use std::{error, fmt};
 
-use noodles_sam as sam;
-
 /// A substitution base.
 #[derive(Clone, Copy, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub enum Base {
@@ -29,23 +27,6 @@ impl fmt::Display for TryFromError {
 
 impl error::Error for TryFromError {}
 
-impl TryFrom<sam::record::sequence::Base> for Base {
-    type Error = TryFromError;
-
-    fn try_from(base: sam::record::sequence::Base) -> Result<Self, Self::Error> {
-        use sam::record::sequence::Base as SamBase;
-
-        match base {
-            SamBase::A => Ok(Self::A),
-            SamBase::C => Ok(Self::C),
-            SamBase::G => Ok(Self::G),
-            SamBase::T => Ok(Self::T),
-            SamBase::N => Ok(Self::N),
-            _ => Err(TryFromError),
-        }
-    }
-}
-
 impl TryFrom<u8> for Base {
     type Error = TryFromError;
 
@@ -57,20 +38,6 @@ impl TryFrom<u8> for Base {
             b'T' => Ok(Self::T),
             b'N' => Ok(Self::N),
             _ => Err(TryFromError),
-        }
-    }
-}
-
-impl From<Base> for sam::record::sequence::Base {
-    fn from(base: Base) -> Self {
-        use sam::record::sequence::Base as SamBase;
-
-        match base {
-            Base::A => SamBase::A,
-            Base::C => SamBase::C,
-            Base::G => SamBase::G,
-            Base::T => SamBase::T,
-            Base::N => SamBase::N,
         }
     }
 }
@@ -89,23 +56,11 @@ impl From<Base> for u8 {
 
 #[cfg(test)]
 mod tests {
-    use sam::record::sequence::Base as SamBase;
-
     use super::*;
 
     #[test]
     fn test_default() {
         assert_eq!(Base::default(), Base::N);
-    }
-
-    #[test]
-    fn test_try_from_sam_record_sequence_base_for_base() {
-        assert_eq!(Base::try_from(SamBase::A), Ok(Base::A));
-        assert_eq!(Base::try_from(SamBase::C), Ok(Base::C));
-        assert_eq!(Base::try_from(SamBase::G), Ok(Base::G));
-        assert_eq!(Base::try_from(SamBase::T), Ok(Base::T));
-        assert_eq!(Base::try_from(SamBase::N), Ok(Base::N));
-        assert_eq!(Base::try_from(SamBase::U), Err(TryFromError));
     }
 
     #[test]
@@ -116,15 +71,6 @@ mod tests {
         assert_eq!(Base::try_from(b'T'), Ok(Base::T));
         assert_eq!(Base::try_from(b'N'), Ok(Base::N));
         assert_eq!(Base::try_from(b'U'), Err(TryFromError));
-    }
-
-    #[test]
-    fn test_from_base_for_sam_record_sequence_base() {
-        assert_eq!(SamBase::from(Base::A), SamBase::A);
-        assert_eq!(SamBase::from(Base::C), SamBase::C);
-        assert_eq!(SamBase::from(Base::G), SamBase::G);
-        assert_eq!(SamBase::from(Base::T), SamBase::T);
-        assert_eq!(SamBase::from(Base::N), SamBase::N);
     }
 
     #[test]
