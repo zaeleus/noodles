@@ -7,7 +7,10 @@
 
 use std::{env, io, path::PathBuf};
 
-use noodles_sam::{self as sam, alignment::RecordBuf};
+use noodles_sam::{
+    self as sam,
+    alignment::{io::Write, RecordBuf},
+};
 
 const UNMAPPED: &str = "*";
 
@@ -32,7 +35,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for result in records {
         let record = result?;
-        writer.write_record(&header, &record)?;
+        writer.write_alignment_record(&header, &record)?;
     }
 
     Ok(())

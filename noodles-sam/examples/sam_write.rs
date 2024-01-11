@@ -8,7 +8,7 @@ use std::{io, num::NonZeroUsize};
 
 use noodles_sam::{
     self as sam,
-    alignment::RecordBuf,
+    alignment::{io::Write, RecordBuf},
     header::record::value::{
         map::{Program, ReferenceSequence},
         Map,
@@ -40,7 +40,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     writer.write_header(&header)?;
 
     let record = RecordBuf::default();
-    writer.write_record(&header, &record)?;
+    writer.write_alignment_record(&header, &record)?;
 
     Ok(())
 }

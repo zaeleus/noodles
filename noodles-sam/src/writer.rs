@@ -8,7 +8,7 @@ use std::io::{self, Write};
 
 pub use self::builder::Builder;
 pub(crate) use self::record::write_record;
-use super::{alignment::RecordBuf, Header};
+use super::{Header, Record};
 
 /// A SAM writer.
 ///
@@ -23,14 +23,14 @@ use super::{alignment::RecordBuf, Header};
 ///
 /// ```
 /// # use std::io;
-/// use noodles_sam::{self as sam, alignment::RecordBuf};
+/// use noodles_sam as sam;
 ///
 /// let mut writer = sam::Writer::new(Vec::new());
 ///
 /// let header = sam::Header::builder().add_comment("noodles-sam").build();
 /// writer.write_header(&header)?;
 ///
-/// let record = RecordBuf::default();
+/// let record = sam::Record::default();
 /// writer.write_record(&header, &record)?;
 ///
 /// let expected = b"@CO\tnoodles-sam
@@ -128,18 +128,18 @@ where
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_sam::{self as sam, alignment::RecordBuf};
+    /// use noodles_sam as sam;
     ///
     /// let mut writer = sam::Writer::new(Vec::new());
     ///
     /// let header = sam::Header::default();
-    /// let record = RecordBuf::default();
+    /// let record = sam::Record::default();
     /// writer.write_record(&header, &record)?;
     ///
     /// assert_eq!(writer.get_ref(), b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\n");
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn write_record(&mut self, header: &Header, record: &RecordBuf) -> io::Result<()> {
+    pub fn write_record(&mut self, header: &Header, record: &Record) -> io::Result<()> {
         write_record(&mut self.inner, header, record)
     }
 }

@@ -6,7 +6,7 @@ use std::{env, io};
 
 use noodles_sam::{
     self as sam,
-    alignment::{record::data::field::tag, RecordBuf},
+    alignment::{io::Write, record::data::field::tag, RecordBuf},
 };
 
 fn is_unique_record(record: &RecordBuf) -> io::Result<bool> {
@@ -37,7 +37,7 @@ fn main() -> io::Result<()> {
         let record = result?;
 
         if is_unique_record(&record)? {
-            writer.write_record(&header, &record)?;
+            writer.write_alignment_record(&header, &record)?;
         }
     }
 
