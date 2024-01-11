@@ -1,9 +1,10 @@
 use noodles_core::Position;
-use noodles_sam as sam;
-
-use super::{
-    Data, Features, Flags, MappingQuality, Name, NextMateFlags, QualityScores, Record, Sequence,
+use noodles_sam::{
+    self as sam,
+    alignment::record_buf::{Data, MappingQuality, Name, QualityScores, Sequence},
 };
+
+use super::{Features, Flags, NextMateFlags, Record};
 
 /// A CRAM record builder.
 pub struct Builder {
