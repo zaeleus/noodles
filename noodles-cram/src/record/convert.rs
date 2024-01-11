@@ -19,17 +19,14 @@ impl Record {
         let mut flags = Flags::default();
 
         if let Some(reference_sequence_id) = record.reference_sequence_id(header) {
-            let id = reference_sequence_id.try_to_usize()?;
+            let id = usize::try_from(reference_sequence_id.as_ref())?;
             builder = builder.set_reference_sequence_id(id);
         }
 
         builder = builder.set_read_length(record.sequence().len());
 
         if let Some(alignment_start) = record.alignment_start() {
-            let position = alignment_start.try_to_usize().and_then(|n| {
-                Position::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-            })?;
-
+            let position = Position::try_from(alignment_start.as_ref())?;
             builder = builder.set_alignment_start(position);
         }
 
@@ -47,15 +44,12 @@ impl Record {
         // next mate bit flags
 
         if let Some(mate_reference_sequence_id) = record.mate_reference_sequence_id(header) {
-            let id = mate_reference_sequence_id.try_to_usize()?;
+            let id = usize::try_from(mate_reference_sequence_id.as_ref())?;
             builder = builder.set_next_fragment_reference_sequence_id(id);
         }
 
         if let Some(mate_alignment_start) = record.mate_alignment_start() {
-            let position = mate_alignment_start.try_to_usize().and_then(|n| {
-                Position::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-            })?;
-
+            let position = Position::try_from(mate_alignment_start.as_ref())?;
             builder = builder.set_next_mate_alignment_start(position);
         }
 
@@ -91,11 +85,7 @@ impl Record {
         }
 
         if let Some(mapping_quality) = record.mapping_quality() {
-            let mapping_quality = mapping_quality.try_to_u8().and_then(|n| {
-                sam::record::MappingQuality::try_from(n)
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-            })?;
-
+            let mapping_quality = sam::record::MappingQuality::try_from(mapping_quality.as_ref())?;
             builder = builder.set_mapping_quality(mapping_quality);
         }
 
