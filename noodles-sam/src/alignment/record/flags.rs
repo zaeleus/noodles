@@ -14,7 +14,7 @@ impl TryFrom<&dyn Flags> for u16 {
     }
 }
 
-impl TryFrom<&dyn Flags> for crate::record::Flags {
+impl TryFrom<&dyn Flags> for crate::alignment::record_buf::Flags {
     type Error = io::Error;
 
     fn try_from(raw_flags: &dyn Flags) -> Result<Self, Self::Error> {
@@ -42,9 +42,12 @@ mod tests {
             }
         }
 
-        let flags = crate::record::Flags::UNMAPPED;
+        let flags = crate::alignment::record_buf::Flags::UNMAPPED;
         let raw_flags: &dyn Flags = &T(u16::from(flags));
-        assert_eq!(crate::record::Flags::try_from(raw_flags)?, flags);
+        assert_eq!(
+            crate::alignment::record_buf::Flags::try_from(raw_flags)?,
+            flags
+        );
 
         Ok(())
     }

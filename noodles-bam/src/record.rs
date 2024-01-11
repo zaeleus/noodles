@@ -87,7 +87,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record_buf::Flags;
     /// let record = bam::Record::default();
     /// assert_eq!(Flags::from(record.flags()), Flags::UNMAPPED);
     /// ```
@@ -415,7 +415,7 @@ impl TryFrom<Record> for sam::alignment::RecordBuf {
             builder = builder.set_name(name.into());
         }
 
-        let flags = sam::record::Flags::from(lazy_record.flags());
+        let flags = sam::alignment::record_buf::Flags::from(lazy_record.flags());
         builder = builder.set_flags(flags);
 
         if let Some(reference_sequence_id) = lazy_record.reference_sequence_id() {
@@ -569,11 +569,10 @@ mod tests {
                     cigar::{op::Kind, Op},
                     data::field::tag,
                 },
-                record_buf::{data::field::Value, Cigar, Sequence},
+                record_buf::{data::field::Value, Cigar, Flags, Sequence},
                 RecordBuf,
             },
             header::record::value::{map::ReferenceSequence, Map},
-            record::Flags,
         };
 
         use crate::record::codec::encode;

@@ -20,8 +20,11 @@ use bytes::BufMut;
 use noodles_core::Position;
 use noodles_sam::{
     self as sam,
-    alignment::{record_buf::Cigar, Record},
-    record::{Flags, MappingQuality},
+    alignment::{
+        record_buf::{Cigar, Flags},
+        Record,
+    },
+    record::MappingQuality,
 };
 
 use self::{position::put_position, reference_sequence_id::put_reference_sequence_id};
@@ -190,7 +193,7 @@ where
     }
 }
 
-fn put_flags<B>(dst: &mut B, flags: sam::record::Flags)
+fn put_flags<B>(dst: &mut B, flags: Flags)
 where
     B: BufMut,
 {
@@ -235,7 +238,6 @@ mod tests {
     use sam::{
         alignment::RecordBuf,
         header::record::value::{map::ReferenceSequence, Map},
-        record::Flags,
     };
 
     use super::*;

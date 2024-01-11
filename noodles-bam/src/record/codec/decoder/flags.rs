@@ -1,7 +1,7 @@
 use std::{error, fmt, mem};
 
 use bytes::Buf;
-use noodles_sam::record::Flags;
+use noodles_sam::alignment::record_buf::Flags;
 
 /// An error when raw BAM record flags fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]

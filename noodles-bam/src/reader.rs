@@ -389,6 +389,8 @@ where
     where
         I: BinningIndex,
     {
+        use sam::alignment::record_buf::Flags;
+
         if let Some(pos) = index.last_first_record_start_position() {
             self.seek(pos)?;
         } else {
@@ -398,7 +400,7 @@ where
         Ok(self.records().filter(|result| {
             result
                 .as_ref()
-                .map(|record| sam::record::Flags::from(record.flags()).is_unmapped())
+                .map(|record| Flags::from(record.flags()).is_unmapped())
                 .unwrap_or(true)
         }))
     }

@@ -221,19 +221,19 @@ fn calculate_template_size(record: &Record, mate: &Record) -> i32 {
 }
 
 fn set_mate_chunk(
-    record_bam_bit_flags: &mut sam::record::Flags,
+    record_bam_bit_flags: &mut sam::alignment::record_buf::Flags,
     record_next_fragment_reference_sequence_id: &mut Option<usize>,
     record_next_mate_alignment_start: &mut Option<Position>,
-    mate_bam_bit_flags: sam::record::Flags,
+    mate_bam_bit_flags: sam::alignment::record_buf::Flags,
     mate_reference_sequence_id: Option<usize>,
     mate_alignment_start: Option<Position>,
 ) {
     if mate_bam_bit_flags.is_reverse_complemented() {
-        *record_bam_bit_flags |= sam::record::Flags::MATE_REVERSE_COMPLEMENTED;
+        *record_bam_bit_flags |= sam::alignment::record_buf::Flags::MATE_REVERSE_COMPLEMENTED;
     }
 
     if mate_bam_bit_flags.is_unmapped() {
-        *record_bam_bit_flags |= sam::record::Flags::MATE_UNMAPPED;
+        *record_bam_bit_flags |= sam::alignment::record_buf::Flags::MATE_UNMAPPED;
     }
 
     *record_next_fragment_reference_sequence_id = mate_reference_sequence_id;
@@ -507,7 +507,7 @@ mod tests {
 
     #[test]
     fn test_calculate_template_size() -> Result<(), noodles_core::position::TryFromIntError> {
-        use sam::record::Flags;
+        use sam::alignment::record_buf::Flags;
 
         // --> -->
         let record = Record::builder()
@@ -627,7 +627,7 @@ mod tests {
 
         let mut records = [Record::builder()
             .set_id(1)
-            .set_bam_flags(sam::record::Flags::default())
+            .set_bam_flags(sam::alignment::record_buf::Flags::default())
             .set_reference_sequence_id(0)
             .set_read_length(2)
             .set_alignment_start(Position::MIN)
@@ -661,7 +661,7 @@ mod tests {
         let mut records = [
             Record::builder()
                 .set_id(1)
-                .set_bam_flags(sam::record::Flags::empty())
+                .set_bam_flags(sam::alignment::record_buf::Flags::empty())
                 .set_read_length(2)
                 .set_features(Features::from(vec![Feature::Scores(
                     Position::try_from(1)?,

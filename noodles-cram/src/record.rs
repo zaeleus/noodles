@@ -29,7 +29,7 @@ use noodles_sam::{
 #[derive(Clone, Debug, PartialEq)]
 pub struct Record {
     pub(crate) id: u64,
-    pub(crate) bam_bit_flags: sam::record::Flags,
+    pub(crate) bam_bit_flags: sam::alignment::record_buf::Flags,
     pub(crate) cram_bit_flags: Flags,
     pub(crate) reference_sequence_id: Option<usize>,
     pub(crate) read_length: usize,
@@ -61,12 +61,12 @@ impl Record {
     /// Returns the BAM flags.
     ///
     /// This is also called the BAM bit flags.
-    pub fn bam_flags(&self) -> sam::record::Flags {
+    pub fn bam_flags(&self) -> sam::alignment::record_buf::Flags {
         self.bam_bit_flags
     }
 
     /// Returns the SAM flags.
-    pub fn flags(&self) -> sam::record::Flags {
+    pub fn flags(&self) -> sam::alignment::record_buf::Flags {
         self.bam_bit_flags
     }
 

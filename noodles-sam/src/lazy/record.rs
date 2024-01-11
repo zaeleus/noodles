@@ -55,7 +55,7 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::Flags};
+    /// use noodles_sam::{self as sam, alignment::record_buf::Flags};
     /// let record = sam::lazy::Record::default();
     /// assert_eq!(Flags::try_from(record.flags())?, Flags::UNMAPPED);
     /// # Ok::<_, lexical_core::Error>(())

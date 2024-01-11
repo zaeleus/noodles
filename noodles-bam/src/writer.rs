@@ -207,7 +207,7 @@ where
 #[cfg(test)]
 mod tests {
     use sam::alignment::{
-        record_buf::{QualityScores, Sequence},
+        record_buf::{Flags, QualityScores, Sequence},
         RecordBuf,
     };
 
@@ -229,7 +229,7 @@ mod tests {
         reader.read_record_buf(&header, &mut record)?;
 
         assert!(record.name().is_none());
-        assert_eq!(record.flags(), sam::record::Flags::UNMAPPED);
+        assert_eq!(record.flags(), Flags::UNMAPPED);
         assert!(record.reference_sequence_id().is_none());
         assert!(record.alignment_start().is_none());
         assert!(record.mapping_quality().is_none());

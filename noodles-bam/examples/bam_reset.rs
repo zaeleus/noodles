@@ -11,8 +11,7 @@ use std::{
 use noodles_bam as bam;
 use noodles_sam::{
     self as sam,
-    alignment::{io::Write, RecordBuf},
-    record::Flags,
+    alignment::{io::Write, record_buf::Flags, RecordBuf},
 };
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

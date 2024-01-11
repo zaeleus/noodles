@@ -13,7 +13,7 @@ impl Record {
     {
         let mut builder = Self::builder();
 
-        let bam_flags = record.flags().try_to_u16().map(sam::record::Flags::from)?;
+        let bam_flags = sam::alignment::record_buf::Flags::try_from(record.flags().as_ref())?;
         builder = builder.set_bam_flags(bam_flags);
 
         let mut flags = Flags::default();

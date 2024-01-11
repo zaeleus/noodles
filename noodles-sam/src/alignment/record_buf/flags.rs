@@ -8,7 +8,6 @@ bitflags::bitflags! {
         const SEGMENTED = 0x01;
         /// Each segment in the read is properly aligned (`0x02`).
         const PROPERLY_ALIGNED = 0x02;
-
         /// Read is unmapped (`Ox04`).
         const UNMAPPED = 0x04;
         /// The mate is unmapped (`0x08`).
@@ -17,12 +16,10 @@ bitflags::bitflags! {
         const REVERSE_COMPLEMENTED = 0x10;
         /// The sequence of the mate is reverse complemented (`0x20`).
         const MATE_REVERSE_COMPLEMENTED = 0x20;
-
         /// First segment in the read (`0x40`).
         const FIRST_SEGMENT = 0x40;
         /// Last segment in the read (`0x80`).
         const LAST_SEGMENT = 0x80;
-
         /// Secondary read (`0x0100`).
         const SECONDARY = 0x0100;
         /// Read failed quality checks (`0x0200`).
@@ -40,7 +37,7 @@ impl Flags {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record_buf::Flags;
     /// assert!(Flags::SEGMENTED.is_segmented());
     /// assert!(!Flags::UNMAPPED.is_segmented());
     /// ```
@@ -53,7 +50,7 @@ impl Flags {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record_buf::Flags;
     /// assert!(Flags::PROPERLY_ALIGNED.is_properly_aligned());
     /// assert!(!Flags::UNMAPPED.is_properly_aligned());
     /// ```
@@ -66,7 +63,7 @@ impl Flags {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record_buf::Flags;
     /// assert!(Flags::UNMAPPED.is_unmapped());
     /// assert!(!Flags::SEGMENTED.is_unmapped());
     /// ```
@@ -79,7 +76,7 @@ impl Flags {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record_buf::Flags;
     /// assert!(Flags::MATE_UNMAPPED.is_mate_unmapped());
     /// assert!(!Flags::UNMAPPED.is_mate_unmapped());
     /// ```
@@ -88,23 +85,24 @@ impl Flags {
     }
 
     /// Returns whether the `REVERSE_COMPLEMENTED` flag is set.
+    ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record_buf::Flags;
     /// assert!(Flags::REVERSE_COMPLEMENTED.is_reverse_complemented());
     /// assert!(!Flags::UNMAPPED.is_reverse_complemented());
     /// ```
-
     pub fn is_reverse_complemented(self) -> bool {
         self.contains(Self::REVERSE_COMPLEMENTED)
     }
 
     /// Returns whether the `MATE_REVERSE_COMPLEMENTED` flag is set.
+    ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record_buf::Flags;
     /// assert!(Flags::MATE_REVERSE_COMPLEMENTED.is_mate_reverse_complemented());
     /// assert!(!Flags::UNMAPPED.is_mate_reverse_complemented());
     /// ```
@@ -117,7 +115,7 @@ impl Flags {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record_buf::Flags;
     /// assert!(Flags::FIRST_SEGMENT.is_first_segment());
     /// assert!(!Flags::UNMAPPED.is_first_segment());
     /// ```
@@ -130,7 +128,7 @@ impl Flags {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record_buf::Flags;
     /// assert!(Flags::LAST_SEGMENT.is_last_segment());
     /// assert!(!Flags::UNMAPPED.is_last_segment());
     /// ```
@@ -143,7 +141,7 @@ impl Flags {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record_buf::Flags;
     /// assert!(Flags::SECONDARY.is_secondary());
     /// assert!(!Flags::UNMAPPED.is_secondary());
     /// ```
@@ -156,11 +154,10 @@ impl Flags {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record_buf::Flags;
     /// assert!(Flags::QC_FAIL.is_qc_fail());
     /// assert!(!Flags::UNMAPPED.is_qc_fail());
     /// ```
-
     pub fn is_qc_fail(self) -> bool {
         self.contains(Self::QC_FAIL)
     }
@@ -170,7 +167,7 @@ impl Flags {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record_buf::Flags;
     /// assert!(Flags::DUPLICATE.is_duplicate());
     /// assert!(!Flags::UNMAPPED.is_duplicate());
     /// ```
@@ -183,7 +180,7 @@ impl Flags {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record_buf::Flags;
     /// assert!(Flags::SUPPLEMENTARY.is_supplementary());
     /// assert!(!Flags::UNMAPPED.is_supplementary());
     /// ```
@@ -252,11 +249,11 @@ mod tests {
 
     #[test]
     fn test_from_u16_for_flags() {
-        assert_eq!(Flags::from(0x40), Flags::FIRST_SEGMENT);
+        assert_eq!(Flags::from(0x04), Flags::UNMAPPED);
     }
 
     #[test]
     fn test_from_flags_for_u16() {
-        assert_eq!(u16::from(Flags::FIRST_SEGMENT), 0x40);
+        assert_eq!(u16::from(Flags::UNMAPPED), 0x04);
     }
 }

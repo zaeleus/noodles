@@ -3,13 +3,14 @@
 mod builder;
 mod cigar;
 pub mod data;
+mod flags;
 mod name;
 mod quality_scores;
 mod sequence;
 
 pub use self::{
-    builder::Builder, cigar::Cigar, data::Data, name::Name, quality_scores::QualityScores,
-    sequence::Sequence,
+    builder::Builder, cigar::Cigar, data::Data, flags::Flags, name::Name,
+    quality_scores::QualityScores, sequence::Sequence,
 };
 
 use std::io;
@@ -32,7 +33,7 @@ use crate::{
 #[derive(Clone, Debug, PartialEq)]
 pub struct RecordBuf {
     name: Option<Name>,
-    flags: record::Flags,
+    flags: Flags,
     reference_sequence_id: Option<usize>,
     alignment_start: Option<Position>,
     mapping_quality: Option<record::MappingQuality>,
@@ -94,11 +95,11 @@ impl RecordBuf {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::Flags};
+    /// use noodles_sam::{self as sam, alignment::record_buf::Flags};
     /// let record = sam::alignment::RecordBuf::default();
     /// assert_eq!(record.flags(), Flags::UNMAPPED);
     /// ```
-    pub fn flags(&self) -> record::Flags {
+    pub fn flags(&self) -> Flags {
         self.flags
     }
 
@@ -107,12 +108,12 @@ impl RecordBuf {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::Flags};
+    /// use noodles_sam::{self as sam, alignment::record_buf::Flags};
     /// let mut record = sam::alignment::RecordBuf::default();
     /// *record.flags_mut() = Flags::empty();
     /// assert!(record.flags().is_empty());
     /// ```
-    pub fn flags_mut(&mut self) -> &mut record::Flags {
+    pub fn flags_mut(&mut self) -> &mut Flags {
         &mut self.flags
     }
 

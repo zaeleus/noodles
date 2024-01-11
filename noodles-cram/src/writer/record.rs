@@ -103,7 +103,10 @@ where
         Ok(())
     }
 
-    fn write_bam_bit_flags(&mut self, bam_flags: sam::record::Flags) -> io::Result<()> {
+    fn write_bam_bit_flags(
+        &mut self,
+        bam_flags: sam::alignment::record_buf::Flags,
+    ) -> io::Result<()> {
         let bam_bit_flags = i32::from(u16::from(bam_flags));
 
         self.compression_header

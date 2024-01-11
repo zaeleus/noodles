@@ -24,7 +24,7 @@ impl From<Flags> for u16 {
     }
 }
 
-impl From<Flags> for sam::record::Flags {
+impl From<Flags> for sam::alignment::record_buf::Flags {
     fn from(flags: Flags) -> Self {
         Self::from(flags.0)
     }
