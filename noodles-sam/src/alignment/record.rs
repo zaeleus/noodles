@@ -202,7 +202,7 @@ mod tests {
         let src = b"*\t4\t*\t8\t255\t5M\t*\t0\t0\t*\t*";
         let mut reader = crate::Reader::new(&src[..]);
 
-        let mut record = crate::lazy::Record::default();
+        let mut record = crate::Record::default();
         reader.read_lazy_record(&mut record)?;
 
         let actual = record.alignment_end().transpose()?;

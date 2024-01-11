@@ -10,7 +10,7 @@ use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
 
-use super::{alignment::RecordBuf, lazy, reader::Records, Header, Reader};
+use super::{alignment::RecordBuf, reader::Records, Header, Reader, Record};
 
 /// An indexed SAM reader.
 pub struct IndexedReader<R> {
@@ -64,7 +64,7 @@ where
     }
 
     /// Reads a single record without eagerly decoding its fields.
-    pub fn read_lazy_record(&mut self, record: &mut lazy::Record) -> io::Result<usize> {
+    pub fn read_lazy_record(&mut self, record: &mut Record) -> io::Result<usize> {
         self.inner.read_lazy_record(record)
     }
 

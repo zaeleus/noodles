@@ -14,7 +14,7 @@ use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
 
-use super::{alignment::RecordBuf, header::ReferenceSequences, lazy, Header};
+use super::{alignment::RecordBuf, header::ReferenceSequences, Header, Record};
 
 /// A SAM reader.
 ///
@@ -224,11 +224,11 @@ where
     /// let mut reader = sam::Reader::new(&data[..]);
     /// reader.read_header()?;
     ///
-    /// let mut record = sam::lazy::Record::default();
+    /// let mut record = sam::Record::default();
     /// reader.read_lazy_record(&mut record)?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn read_lazy_record(&mut self, record: &mut lazy::Record) -> io::Result<usize> {
+    pub fn read_lazy_record(&mut self, record: &mut Record) -> io::Result<usize> {
         read_lazy_record(&mut self.inner, record)
     }
 }
@@ -395,7 +395,7 @@ where
     }
 }
 
-fn read_lazy_record<R>(reader: &mut R, record: &mut lazy::Record) -> io::Result<usize>
+fn read_lazy_record<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
 where
     R: BufRead,
 {
@@ -539,7 +539,7 @@ mod tests {
     fn test_read_lazy_record() -> io::Result<()> {
         let mut src = &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*"[..];
 
-        let mut record = lazy::Record::default();
+        let mut record = Record::default();
         read_lazy_record(&mut src, &mut record)?;
 
         assert_eq!(record.buf, b"*4*0255**00**");
