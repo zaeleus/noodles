@@ -1,8 +1,8 @@
 use std::{error, fmt};
 
-use crate::record::{
-    data::field::value::base_modifications::{group::UnmodifiedBase, Group},
-    Sequence,
+use crate::{
+    alignment::record_buf::Sequence,
+    record::data::field::value::base_modifications::{group::UnmodifiedBase, Group},
 };
 
 mod modifications;
@@ -133,12 +133,10 @@ fn decode_positions(
     sequence: &Sequence,
     unmodified_base: UnmodifiedBase,
 ) -> Result<Vec<usize>, ParseError> {
-    use crate::record::sequence::Base;
-
     let mut positions = Vec::with_capacity(skip_counts.len());
 
     let mut iter: Box<dyn Iterator<Item = usize>> = if is_reverse_complemented {
-        let unmodified_base = Base::from(unmodified_base.complement());
+        let unmodified_base = u8::from(unmodified_base.complement());
 
         Box::new(
             sequence
@@ -150,7 +148,7 @@ fn decode_positions(
                 .map(|(i, _)| i),
         )
     } else {
-        let unmodified_base = Base::from(unmodified_base);
+        let unmodified_base = u8::from(unmodified_base);
 
         Box::new(
             sequence
@@ -175,13 +173,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_group() -> Result<(), crate::record::sequence::ParseError> {
+    fn test_parse_group() {
         use crate::record::data::field::value::base_modifications::group::{
             modification, Status, Strand, UnmodifiedBase,
         };
 
         let is_reverse_complemented = false;
-        let sequence = "CACCCGATGACCGGCT".parse()?;
+        let sequence = Sequence::from(b"CACCCGATGACCGGCT".to_vec());
 
         let mut src = &b"C+m,1,3,0;"[..];
         let actual = parse_group(&mut src, is_reverse_complemented, &sequence);
@@ -239,8 +237,6 @@ mod tests {
             parse_group(&mut src, is_reverse_complemented, &sequence),
             Err(ParseError::InvalidSkipCount(_))
         ));
-
-        Ok(())
     }
 
     #[test]

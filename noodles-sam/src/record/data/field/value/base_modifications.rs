@@ -5,7 +5,7 @@ mod parser;
 
 pub use self::group::Group;
 
-use crate::record::Sequence;
+use crate::alignment::record_buf::Sequence;
 
 /// Base modifications.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -17,16 +17,19 @@ impl BaseModifications {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::value::{
-    ///     base_modifications::{
-    ///         group::{modification, Strand, UnmodifiedBase},
-    ///         Group,
+    /// use noodles_sam::{
+    ///     alignment::record_buf::Sequence,
+    ///     record::data::field::value::{
+    ///         base_modifications::{
+    ///             group::{modification, Strand, UnmodifiedBase},
+    ///             Group,
+    ///         },
+    ///         BaseModifications,
     ///     },
-    ///     BaseModifications,
     /// };
     ///
     /// let is_reverse_complemented = false;
-    /// let sequence = "CACCCGATGACCGGCT".parse()?;
+    /// let sequence = Sequence::from(b"CACCCGATGACCGGCT".to_vec());
     /// let base_modifications = BaseModifications::parse(
     ///     "C+m,1,3,0;",
     ///     is_reverse_complemented,

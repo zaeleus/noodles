@@ -71,15 +71,15 @@ impl TryFrom<u8> for UnmodifiedBase {
     }
 }
 
-impl From<UnmodifiedBase> for crate::record::sequence::Base {
+impl From<UnmodifiedBase> for u8 {
     fn from(unmodified_base: UnmodifiedBase) -> Self {
         match unmodified_base {
-            UnmodifiedBase::A => Self::A,
-            UnmodifiedBase::C => Self::C,
-            UnmodifiedBase::G => Self::G,
-            UnmodifiedBase::T => Self::T,
-            UnmodifiedBase::U => Self::U,
-            UnmodifiedBase::N => Self::N,
+            UnmodifiedBase::A => b'A',
+            UnmodifiedBase::C => b'C',
+            UnmodifiedBase::G => b'G',
+            UnmodifiedBase::T => b'T',
+            UnmodifiedBase::U => b'U',
+            UnmodifiedBase::N => b'N',
         }
     }
 }
@@ -115,14 +115,12 @@ mod tests {
     }
 
     #[test]
-    fn test_from_unmodified_base_for_crate_sam_record_sequence_base() {
-        use crate::record::sequence::Base;
-
-        assert_eq!(Base::from(UnmodifiedBase::A), Base::A);
-        assert_eq!(Base::from(UnmodifiedBase::C), Base::C);
-        assert_eq!(Base::from(UnmodifiedBase::G), Base::G);
-        assert_eq!(Base::from(UnmodifiedBase::T), Base::T);
-        assert_eq!(Base::from(UnmodifiedBase::U), Base::U);
-        assert_eq!(Base::from(UnmodifiedBase::N), Base::N);
+    fn test_from_unmodified_base_for_u8() {
+        assert_eq!(u8::from(UnmodifiedBase::A), b'A');
+        assert_eq!(u8::from(UnmodifiedBase::C), b'C');
+        assert_eq!(u8::from(UnmodifiedBase::G), b'G');
+        assert_eq!(u8::from(UnmodifiedBase::T), b'T');
+        assert_eq!(u8::from(UnmodifiedBase::U), b'U');
+        assert_eq!(u8::from(UnmodifiedBase::N), b'N');
     }
 }

@@ -4,7 +4,7 @@ use std::{error, fmt};
 
 use self::group::parse_group;
 use super::BaseModifications;
-use crate::record::Sequence;
+use crate::alignment::record_buf::Sequence;
 
 /// An error returned when base modifications fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -58,7 +58,7 @@ mod tests {
         };
 
         let is_reverse_complemented = false;
-        let sequence = "CACCCGATGACCGGCT".parse()?;
+        let sequence = Sequence::from(b"CACCCGATGACCGGCT".to_vec());
         let actual = parse("C+m,1,3,0;G-o,2;", is_reverse_complemented, &sequence);
 
         let expected = BaseModifications(vec![
