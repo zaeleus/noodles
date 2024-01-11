@@ -9,6 +9,11 @@
   * cram/record/features: Add features to CIGAR operations iterator
     (`Features::cigar`).
 
+### Changed
+
+  * cram/record/convert: Change `Record::try_from_alignment_record` to accept
+    `&sam::alignment::Record`.
+
 ### Removed
 
   * cram/record/builder: Remove deprecated methods.

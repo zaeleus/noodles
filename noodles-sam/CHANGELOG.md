@@ -68,9 +68,6 @@
 
     `op` is moved to `alignment::record::cigar::op`.
 
-  * sam/record/convert: Change `Record::try_from_alignment_record` to accept
-    `&sam::alignment::Record`.
-
   * sam/record/data/field: Replace `Value` with
     `crate::alignment::record::data::field::Value`.
 
