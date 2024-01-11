@@ -3,6 +3,7 @@
 mod builder;
 mod header;
 mod query;
+mod record;
 mod record_buf;
 mod record_bufs;
 mod records;
@@ -17,8 +18,8 @@ use noodles_core::Region;
 use noodles_csi::BinningIndex;
 use noodles_sam::{self as sam, alignment::RecordBuf, header::ReferenceSequences};
 
-use self::record_buf::{read_raw_record, read_record_buf};
 pub use self::{builder::Builder, query::Query, record_bufs::RecordBufs, records::Records};
+use self::{record::read_record, record_buf::read_record_buf};
 use super::Record;
 
 /// A BAM reader.
@@ -186,7 +187,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        let block_size = match read_raw_record(&mut self.inner, &mut record.buf)? {
+        let block_size = match read_record(&mut self.inner, &mut record.buf)? {
             0 => return Ok(0),
             n => n,
         };
