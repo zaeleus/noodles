@@ -6,15 +6,15 @@ use std::{env, io};
 
 use noodles_sam::{
     self as sam,
-    alignment::{io::Write, record::data::field::tag, RecordBuf},
+    alignment::record::{data::field::tag, Data},
 };
 
-fn is_unique_record(record: &RecordBuf) -> io::Result<bool> {
-    match record.data().get(&tag::ALIGNMENT_HIT_COUNT) {
+fn is_unique_record(record: &sam::Record) -> io::Result<bool> {
+    match record.data().get(&tag::ALIGNMENT_HIT_COUNT).transpose()? {
         Some(value) => value.as_int().map(|hits| hits == 1).ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidData,
-                format!("expected integer, got {value:?}"),
+                format!("expected an integer, got {:?}", value.ty()),
             )
         }),
         None => Ok(false),
@@ -33,11 +33,11 @@ fn main() -> io::Result<()> {
 
     writer.write_header(&header)?;
 
-    for result in reader.record_bufs(&header) {
+    for result in reader.records() {
         let record = result?;
 
         if is_unique_record(&record)? {
-            writer.write_alignment_record(&header, &record)?;
+            writer.write_record(&header, &record)?;
         }
     }
 

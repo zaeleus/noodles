@@ -6,7 +6,7 @@
 
 use std::{env, io};
 
-use noodles_sam::{self as sam, alignment::io::Write};
+use noodles_sam as sam;
 
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
@@ -21,9 +21,9 @@ fn main() -> io::Result<()> {
 
     writer.write_header(&header)?;
 
-    for result in reader.record_bufs(&header) {
+    for result in reader.records() {
         let record = result?;
-        writer.write_alignment_record(&header, &record)?;
+        writer.write_record(&header, &record)?;
     }
 
     Ok(())
