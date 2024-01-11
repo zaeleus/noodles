@@ -228,11 +228,11 @@ where
     /// reader.read_header()?;
     ///
     /// let mut record = sam::Record::default();
-    /// reader.read_lazy_record(&mut record)?;
+    /// reader.read_record(&mut record)?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn read_lazy_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        read_lazy_record(&mut self.inner, record)
+    pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+        read_record(&mut self.inner, record)
     }
 }
 
@@ -398,7 +398,7 @@ where
     }
 }
 
-fn read_lazy_record<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
+fn read_record<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
 where
     R: BufRead,
 {
@@ -539,11 +539,11 @@ mod tests {
     }
 
     #[test]
-    fn test_read_lazy_record() -> io::Result<()> {
+    fn test_read_record() -> io::Result<()> {
         let mut src = &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*"[..];
 
         let mut record = Record::default();
-        read_lazy_record(&mut src, &mut record)?;
+        read_record(&mut src, &mut record)?;
 
         assert_eq!(record.buf, b"*4*0255**00**");
 

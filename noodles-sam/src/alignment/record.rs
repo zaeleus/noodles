@@ -203,7 +203,7 @@ mod tests {
         let mut reader = crate::Reader::new(&src[..]);
 
         let mut record = crate::Record::default();
-        reader.read_lazy_record(&mut record)?;
+        reader.read_record(&mut record)?;
 
         let actual = record.alignment_end().transpose()?;
         let expected = core::Position::new(12);
