@@ -1,4 +1,4 @@
-use noodles_sam::{self as sam, record::sequence::Base};
+use noodles_sam as sam;
 
 /// A raw BAM record sequence.
 #[derive(Debug, Eq, PartialEq)]
@@ -25,29 +25,7 @@ impl<'a> Sequence<'a> {
     }
 
     /// Returns an iterator over the bases in the sequence.
-    pub fn iter(&self) -> impl Iterator<Item = Base> + '_ {
-        fn decode_base(n: u8) -> Base {
-            match n & 0x0f {
-                0 => Base::Eq,
-                1 => Base::A,
-                2 => Base::C,
-                3 => Base::M,
-                4 => Base::G,
-                5 => Base::R,
-                6 => Base::S,
-                7 => Base::V,
-                8 => Base::T,
-                9 => Base::W,
-                10 => Base::Y,
-                11 => Base::H,
-                12 => Base::K,
-                13 => Base::D,
-                14 => Base::B,
-                15 => Base::N,
-                _ => unreachable!(),
-            }
-        }
-
+    pub fn iter(&self) -> impl Iterator<Item = u8> + '_ {
         self.src
             .iter()
             .flat_map(|&b| [decode_base(b >> 4), decode_base(b)])
@@ -65,34 +43,7 @@ impl<'a> sam::alignment::record::Sequence for Sequence<'a> {
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = u8> + '_> {
-        fn decode_base(n: u8) -> u8 {
-            match n & 0x0f {
-                0 => b'=',
-                1 => b'A',
-                2 => b'C',
-                3 => b'M',
-                4 => b'G',
-                5 => b'R',
-                6 => b'S',
-                7 => b'V',
-                8 => b'T',
-                9 => b'W',
-                10 => b'Y',
-                11 => b'H',
-                12 => b'K',
-                13 => b'D',
-                14 => b'B',
-                15 => b'N',
-                _ => unreachable!(),
-            }
-        }
-
-        Box::new(
-            self.src
-                .iter()
-                .flat_map(|&b| [decode_base(b >> 4), decode_base(b)])
-                .take(self.base_count),
-        )
+        Box::new(self.iter())
     }
 }
 
@@ -108,24 +59,44 @@ impl<'a> From<Sequence<'a>> for sam::alignment::record_buf::Sequence {
     }
 }
 
+fn decode_base(n: u8) -> u8 {
+    match n & 0x0f {
+        0 => b'=',
+        1 => b'A',
+        2 => b'C',
+        3 => b'M',
+        4 => b'G',
+        5 => b'R',
+        6 => b'S',
+        7 => b'V',
+        8 => b'T',
+        9 => b'W',
+        10 => b'Y',
+        11 => b'H',
+        12 => b'K',
+        13 => b'D',
+        14 => b'B',
+        15 => b'N',
+        _ => unreachable!(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_iter() {
-        use sam::record::sequence::Base;
-
         let sequence = Sequence::new(&[], 0);
         assert!(sequence.iter().next().is_none());
 
         let sequence = Sequence::new(&[0x12, 0x40], 3);
         let actual: Vec<_> = sequence.iter().collect();
-        assert_eq!(actual, [Base::A, Base::C, Base::G]);
+        assert_eq!(actual, b"ACG");
 
         let sequence = Sequence::new(&[0x12, 0x48], 4);
         let actual: Vec<_> = sequence.iter().collect();
-        assert_eq!(actual, [Base::A, Base::C, Base::G, Base::T]);
+        assert_eq!(actual, b"ACGT");
     }
 
     #[test]
@@ -137,7 +108,7 @@ mod tests {
         }
 
         t(&[], 0, &[]);
-        t(&[0x12, 0x40], 3, &[b'A', b'C', b'G']);
-        t(&[0x12, 0x48], 4, &[b'A', b'C', b'G', b'T']);
+        t(&[0x12, 0x40], 3, b"ACG");
+        t(&[0x12, 0x48], 4, b"ACGT");
     }
 }
