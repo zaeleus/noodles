@@ -10,16 +10,16 @@
     The alignment record buffer is renamed to `RecordBuf`. This also introduces
     traits for all fields.
 
-  * sam/lazy/record: Add wrappers for read name (`lazy::record::ReadName`) and
-    template length (`lazy::record::TemplateLength`).
-
-  * sam/lazy/record: Add method to get reference sequence ID
-    (`lazy::Record::reference_sequence_id`) and mate reference sequence ID
-    (`lazy::Record::mate_reference_sequence_id`). .
-
-  * sam/lazy/record/data/field/value/array: Add values wrapper (`Values`).
-
   * sam/reader: Add records iterator (`Reader::records`).
+
+  * sam/record: Add wrappers for read name (`record::ReadName`) and template
+    length (`record::TemplateLength`).
+
+  * sam/record: Add method to get reference sequence ID
+    (`Record::reference_sequence_id`) and mate reference sequence ID
+    (`Record::mate_reference_sequence_id`). .
+
+  * sam/record/data/field/value/array: Add values wrapper (`Values`).
 
 ### Changed
 
@@ -46,12 +46,6 @@
   * sam/alignment/record_buf: Change quality scores to raw scores
     (`record_buf::QualityScores`).
 
-  * sam/lazy/record/data/field: Replace `Value` with
-    `crate::alignment::record::data::field::Value`.
-
-  * sam/lazy/record/data/field/value: Replace `Array` with
-    `crate::alignment::record::data::field::value::Array`.
-
   * sam/reader: Rename record to record buf and lazy record to record.
 
     This changes the following:
@@ -76,6 +70,12 @@
 
   * sam/record/convert: Change `Record::try_from_alignment_record` to accept
     `&sam::alignment::Record`.
+
+  * sam/record/data/field: Replace `Value` with
+    `crate::alignment::record::data::field::Value`.
+
+  * sam/record/data/field/value: Replace `Array` with
+    `crate::alignment::record::data::field::value::Array`.
 
 ## 0.49.0 - 2023-12-14
 
