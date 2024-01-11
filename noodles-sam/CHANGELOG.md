@@ -61,6 +61,11 @@
       * `Records` => `RecordBufs`, and
       * `Reader::read_lazy_record` => `Reader::read_record`.
 
+  * sam/reader: Return an iterator over sam::Record from queries
+    (`Reader::query` and `Reader::query_unmapped`).
+
+    `Reader::query_unmapped` no longer needs a reference to the header.
+
   * sam/record: Rename `ReadName` to `Name`.
 
     This also changes accessors from `read_name` to `name`.

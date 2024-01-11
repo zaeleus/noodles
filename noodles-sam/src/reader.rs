@@ -324,7 +324,7 @@ where
         header: &'a Header,
         index: &I,
         region: &Region,
-    ) -> io::Result<impl Iterator<Item = io::Result<RecordBuf>> + 'a>
+    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'a>
     where
         I: BinningIndex,
     {
@@ -334,7 +334,8 @@ where
         let chunks = index.query(reference_sequence_id, region.interval())?;
 
         Ok(FilterByRegion::new(
-            Query::new(self.get_mut(), header, chunks),
+            Query::new(self.get_mut(), chunks),
+            header,
             reference_sequence_id,
             region.interval(),
         ))
@@ -352,10 +353,10 @@ where
     ///     .map(bgzf::Reader::new)
     ///     .map(sam::Reader::new)?;
     ///
-    /// let header = reader.read_header()?;
+    /// reader.read_header()?;
     ///
     /// let index = csi::read("sample.sam.gz.csi")?;
-    /// let query = reader.query_unmapped(&header, &index)?;
+    /// let query = reader.query_unmapped(&index)?;
     ///
     /// for result in query {
     ///     let record = result?;
@@ -363,25 +364,39 @@ where
     /// }
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn query_unmapped<'a, I>(
-        &'a mut self,
-        header: &'a Header,
+    pub fn query_unmapped<I>(
+        &mut self,
         index: &I,
-    ) -> io::Result<impl Iterator<Item = io::Result<RecordBuf>> + 'a>
+    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + '_>
     where
         I: BinningIndex,
     {
+        use crate::alignment::record_buf::Flags;
+
         if let Some(pos) = index.last_first_record_start_position() {
             self.seek(pos)?;
         } else {
             self.seek_to_first_record()?;
         }
 
-        Ok(self.record_bufs(header).filter(|result| {
-            result
-                .as_ref()
-                .map(|record| record.flags().is_unmapped())
-                .unwrap_or(true)
+        let mut record = Record::default();
+
+        Ok(iter::from_fn(move || loop {
+            match self.read_record(&mut record) {
+                Ok(0) => return None,
+                Ok(_) => {
+                    let result = Flags::try_from(record.flags())
+                        .map(|flags| flags.is_unmapped())
+                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e));
+
+                    match result {
+                        Ok(true) => return Some(Ok(record.clone())),
+                        Ok(false) => {}
+                        Err(e) => return Some(Err(e)),
+                    }
+                }
+                Err(e) => return Some(Err(e)),
+            }
         }))
     }
 }
