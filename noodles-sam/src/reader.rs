@@ -7,7 +7,10 @@ mod record;
 pub(crate) mod record_buf;
 mod record_bufs;
 
-use std::io::{self, BufRead, Read, Seek};
+use std::{
+    io::{self, BufRead, Read, Seek},
+    iter,
+};
 
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
@@ -234,6 +237,20 @@ where
     /// ```
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         read_record(&mut self.inner, record)
+    }
+
+    /// Returns an iterator over records.
+    ///
+    /// The stream is expected to be directly after the reference sequences or at the start of
+    /// another record.
+    pub fn records(&mut self) -> impl Iterator<Item = io::Result<Record>> + '_ {
+        let mut record = Record::default();
+
+        iter::from_fn(move || match self.read_record(&mut record) {
+            Ok(0) => None,
+            Ok(_) => Some(Ok(record.clone())),
+            Err(e) => Some(Err(e)),
+        })
     }
 }
 

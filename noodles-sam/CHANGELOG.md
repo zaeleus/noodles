@@ -19,6 +19,8 @@
 
   * sam/lazy/record/data/field/value/array: Add values wrapper (`Values`).
 
+  * sam/reader: Add records iterator (`Reader::records`).
+
 ### Changed
 
   * sam: Move `AlignmentReader` and `AlignmentWriter` to `alignment::io::Read`
