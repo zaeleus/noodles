@@ -344,7 +344,6 @@ impl RecordBuf {
     /// *record.sequence_mut() = sequence.clone();
     ///
     /// assert_eq!(record.sequence(), &sequence);
-    /// Ok::<_, sam::record::sequence::ParseError>(())
     /// ```
     pub fn sequence_mut(&mut self) -> &mut Sequence {
         &mut self.sequence

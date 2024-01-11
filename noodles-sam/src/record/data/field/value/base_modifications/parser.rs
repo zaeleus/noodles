@@ -51,7 +51,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse() -> Result<(), crate::record::sequence::ParseError> {
+    fn test_parse() {
         use crate::record::data::field::value::base_modifications::{
             group::{modification, Strand, UnmodifiedBase},
             Group,
@@ -79,7 +79,5 @@ mod tests {
         ]);
 
         assert_eq!(actual, Ok(expected));
-
-        Ok(())
     }
 }
