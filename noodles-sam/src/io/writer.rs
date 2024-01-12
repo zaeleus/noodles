@@ -8,7 +8,7 @@ use std::io::{self, Write};
 
 pub use self::builder::Builder;
 pub(crate) use self::record::write_record;
-use super::{Header, Record};
+use crate::{Header, Record};
 
 /// A SAM writer.
 ///
@@ -25,7 +25,7 @@ use super::{Header, Record};
 /// # use std::io;
 /// use noodles_sam as sam;
 ///
-/// let mut writer = sam::Writer::new(Vec::new());
+/// let mut writer = sam::io::Writer::new(Vec::new());
 ///
 /// let header = sam::Header::builder().add_comment("noodles-sam").build();
 /// writer.write_header(&header)?;
@@ -57,7 +57,7 @@ where
     ///
     /// ```
     /// use noodles_sam as sam;
-    /// let writer = sam::Writer::new(Vec::new());
+    /// let writer = sam::io::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
         Self { inner }
@@ -69,7 +69,7 @@ where
     ///
     /// ```
     /// use noodles_sam as sam;
-    /// let writer = sam::Writer::new(Vec::new());
+    /// let writer = sam::io::Writer::new(Vec::new());
     /// assert!(writer.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &W {
@@ -82,7 +82,7 @@ where
     ///
     /// ```
     /// use noodles_sam as sam;
-    /// let mut writer = sam::Writer::new(Vec::new());
+    /// let mut writer = sam::io::Writer::new(Vec::new());
     /// assert!(writer.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut W {
@@ -95,7 +95,7 @@ where
     ///
     /// ```
     /// use noodles_sam as sam;
-    /// let writer = sam::Writer::new(Vec::new());
+    /// let writer = sam::io::Writer::new(Vec::new());
     /// assert!(writer.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> W {
@@ -112,7 +112,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_sam as sam;
-    /// let mut writer = sam::Writer::new(Vec::new());
+    /// let mut writer = sam::io::Writer::new(Vec::new());
     /// let header = sam::Header::builder().add_comment("noodles-sam").build();
     /// writer.write_header(&header)?;
     /// assert_eq!(writer.get_ref(), b"@CO\tnoodles-sam\n");
@@ -130,7 +130,7 @@ where
     /// # use std::io;
     /// use noodles_sam as sam;
     ///
-    /// let mut writer = sam::Writer::new(Vec::new());
+    /// let mut writer = sam::io::Writer::new(Vec::new());
     ///
     /// let header = sam::Header::default();
     /// let record = sam::Record::default();

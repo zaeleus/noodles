@@ -21,7 +21,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let header = reader.read_header()?;
 
     let stdout = BufWriter::new(io::stdout().lock());
-    let mut writer = sam::Writer::new(stdout);
+    let mut writer = sam::io::Writer::new(stdout);
 
     let mut new_header = header.clone();
     *new_header.header_mut() = Some(Default::default());

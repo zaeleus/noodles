@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use noodles_core::Position;
 
-use crate::writer::num;
+use crate::io::writer::num;
 
 // § 1.4 "The alignment section: mandatory fields" (2021-06-03): `[0, 2^31-1]`.
 const MAX_POSITION_VALUE: usize = (1 << 31) - 1;

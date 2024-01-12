@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use crate::writer::num;
+use crate::io::writer::num;
 
 pub(super) fn write_template_length<W>(writer: &mut W, template_length: i32) -> io::Result<()>
 where

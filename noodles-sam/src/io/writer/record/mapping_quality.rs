@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use crate::{alignment::record_buf::MappingQuality, writer::num};
+use crate::{alignment::record_buf::MappingQuality, io::writer::num};
 
 pub(super) fn write_mapping_quality<W>(
     writer: &mut W,

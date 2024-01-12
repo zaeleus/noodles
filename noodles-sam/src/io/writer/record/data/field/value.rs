@@ -3,7 +3,7 @@ mod array;
 use std::io::{self, Write};
 
 use self::array::write_array;
-use crate::{alignment::record::data::field::Value, writer::num};
+use crate::{alignment::record::data::field::Value, io::writer::num};
 
 pub fn write_value<W>(writer: &mut W, value: &Value) -> io::Result<()>
 where

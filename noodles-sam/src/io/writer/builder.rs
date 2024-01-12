@@ -21,7 +21,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{io::CompressionMethod, writer::Builder};
+    /// use noodles_sam::io::{writer::Builder, CompressionMethod};
     /// let builder = Builder::default().set_compression_method(CompressionMethod::Bgzf);
     /// ```
     pub fn set_compression_method(mut self, compression_method: CompressionMethod) -> Self {
@@ -36,8 +36,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```no_run
-    /// use noodles_sam as sam;
-    /// let writer = sam::writer::Builder::default().build_from_path("sample.sam")?;
+    /// use noodles_sam::io::writer::Builder;
+    /// let writer = Builder::default().build_from_path("sample.sam")?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn build_from_path<P>(mut self, dst: P) -> io::Result<Writer<Box<dyn Write>>>
@@ -65,8 +65,8 @@ impl Builder {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_sam as sam;
-    /// let writer = sam::writer::Builder::default().build_from_writer(io::sink());
+    /// use noodles_sam::io::writer::Builder;
+    /// let writer = Builder::default().build_from_writer(io::sink());
     /// ```
     pub fn build_from_writer<'w, W>(self, writer: W) -> Writer<Box<dyn Write + 'w>>
     where

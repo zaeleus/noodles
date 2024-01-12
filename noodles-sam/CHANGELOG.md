@@ -26,7 +26,8 @@
   * sam: Move `AlignmentReader` and `AlignmentWriter` to `alignment::io::Read`
     and `alignment::io::Write`, respectively.
 
-  * sam: Move readers (`Reader` and `IndexedReader`) to `io` module.
+  * sam: Move readers (`Reader` and `IndexedReader`) and writer (`Writer`) to
+    `io` module.
 
   * sam/alignment: Rename `Record` to `RecordBuf`.
 

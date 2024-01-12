@@ -5,7 +5,7 @@ use crate::{
         cigar::{op::Kind, Op},
         Cigar,
     },
-    writer::num,
+    io::writer::num,
 };
 
 pub fn write_cigar<W, C>(writer: &mut W, cigar: &C) -> io::Result<()>

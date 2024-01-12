@@ -35,7 +35,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let header = reader.read_header()?;
 
     let stdout = io::stdout().lock();
-    let mut writer = sam::Writer::new(BufWriter::new(stdout));
+    let mut writer = sam::io::Writer::new(BufWriter::new(stdout));
 
     let query = reader.query(&header, &region)?;
 

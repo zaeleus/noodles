@@ -37,9 +37,8 @@ pub mod alignment;
 pub mod header;
 pub mod io;
 pub mod record;
-pub mod writer;
 
-pub use self::{header::Header, record::Record, writer::Writer};
+pub use self::{header::Header, record::Record};
 
 #[cfg(feature = "async")]
 pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};

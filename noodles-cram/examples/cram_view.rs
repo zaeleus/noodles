@@ -33,7 +33,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let header = reader.read_header()?;
 
     let stdout = io::stdout().lock();
-    let mut writer = sam::Writer::new(BufWriter::new(stdout));
+    let mut writer = sam::io::Writer::new(BufWriter::new(stdout));
 
     for result in reader.records(&header) {
         let record = result.and_then(|record| record.try_into_alignment_record(&header))?;

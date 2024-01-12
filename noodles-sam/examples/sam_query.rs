@@ -28,7 +28,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     let stdout = io::stdout().lock();
-    let mut writer = sam::Writer::new(stdout);
+    let mut writer = sam::io::Writer::new(stdout);
 
     for result in records {
         let record = result?;

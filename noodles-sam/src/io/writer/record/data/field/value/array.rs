@@ -5,7 +5,7 @@ use std::io::{self, Write};
 use self::subtype::write_subtype;
 use crate::{
     alignment::record::data::field::value::{array::Subtype, Array},
-    writer::num,
+    io::writer::num,
 };
 
 pub(super) fn write_array<W>(writer: &mut W, array: &Array) -> io::Result<()>

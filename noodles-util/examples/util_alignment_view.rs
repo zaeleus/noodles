@@ -41,7 +41,7 @@ fn main() -> io::Result<()> {
     let header = reader.read_header()?;
 
     let stdout = io::stdout().lock();
-    let mut writer = sam::Writer::new(BufWriter::new(stdout));
+    let mut writer = sam::io::Writer::new(BufWriter::new(stdout));
 
     writer.write_header(&header)?;
 

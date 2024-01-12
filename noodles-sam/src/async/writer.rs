@@ -141,7 +141,7 @@ where
         header: &Header,
         record: &RecordBuf,
     ) -> io::Result<()> {
-        use crate::writer::write_record;
+        use crate::io::writer::write_record;
 
         let mut buf = Vec::new();
         write_record(&mut buf, header, record)?;

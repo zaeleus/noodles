@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use crate::{alignment::record_buf::Flags, writer::num};
+use crate::{alignment::record_buf::Flags, io::writer::num};
 
 pub(super) fn write_flags<W>(writer: &mut W, flags: Flags) -> io::Result<()>
 where
