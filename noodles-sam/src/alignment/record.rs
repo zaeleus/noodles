@@ -198,14 +198,18 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_alignment_end() -> io::Result<()> {
-        let src = b"*\t4\t*\t8\t255\t5M\t*\t0\t0\t*\t*";
-        let mut reader = crate::io::Reader::new(&src[..]);
+    fn test_alignment_end() -> Result<(), Box<dyn std::error::Error>> {
+        use crate::alignment::{
+            record::cigar::{op::Kind, Op},
+            RecordBuf,
+        };
 
-        let mut record = crate::Record::default();
-        reader.read_record(&mut record)?;
+        let record = RecordBuf::builder()
+            .set_alignment_start(core::Position::try_from(8)?)
+            .set_cigar([Op::new(Kind::Match, 5)].into_iter().collect())
+            .build();
 
-        let actual = record.alignment_end().transpose()?;
+        let actual = Record::alignment_end(&record).transpose()?;
         let expected = core::Position::new(12);
         assert_eq!(actual, expected);
 
