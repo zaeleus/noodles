@@ -20,7 +20,7 @@
 //! ```no_run
 //! use noodles_sam as sam;
 //!
-//! let mut reader = sam::reader::Builder::default().build_from_path("sample.sam")?;
+//! let mut reader = sam::io::reader::Builder::default().build_from_path("sample.sam")?;
 //! let header = reader.read_header()?;
 //!
 //! for result in reader.record_bufs(&header) {
@@ -35,15 +35,11 @@ mod r#async;
 
 pub mod alignment;
 pub mod header;
-pub mod indexed_reader;
 pub mod io;
-pub mod reader;
 pub mod record;
 pub mod writer;
 
-pub use self::{
-    header::Header, indexed_reader::IndexedReader, reader::Reader, record::Record, writer::Writer,
-};
+pub use self::{header::Header, record::Record, writer::Writer};
 
 #[cfg(feature = "async")]
 pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};

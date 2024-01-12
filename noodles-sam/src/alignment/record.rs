@@ -200,7 +200,7 @@ mod tests {
     #[test]
     fn test_alignment_end() -> io::Result<()> {
         let src = b"*\t4\t*\t8\t255\t5M\t*\t0\t0\t*\t*";
-        let mut reader = crate::Reader::new(&src[..]);
+        let mut reader = crate::io::Reader::new(&src[..]);
 
         let mut record = crate::Record::default();
         reader.read_record(&mut record)?;

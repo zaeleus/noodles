@@ -15,7 +15,7 @@ use noodles_sam::{self as sam, alignment::Record};
 /// An indexed alignment reader.
 pub enum IndexedReader<R> {
     /// SAM.
-    Sam(sam::IndexedReader<R>),
+    Sam(sam::io::IndexedReader<R>),
     /// BAM.
     Bam(bam::io::IndexedReader<bgzf::Reader<R>>),
     /// CRAM.

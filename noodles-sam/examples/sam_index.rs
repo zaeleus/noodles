@@ -30,7 +30,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut reader = File::open(src)
         .map(bgzf::Reader::new)
-        .map(sam::Reader::new)?;
+        .map(sam::io::Reader::new)?;
 
     let header = reader.read_header()?;
 

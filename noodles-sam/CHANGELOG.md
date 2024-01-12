@@ -10,7 +10,7 @@
     The alignment record buffer is renamed to `RecordBuf`. This also introduces
     traits for all fields.
 
-  * sam/reader: Add records iterator (`Reader::records`).
+  * sam/io/reader: Add records iterator (`Reader::records`).
 
   * sam/record: Add wrappers for read name (`record::ReadName`) and template
     length (`record::TemplateLength`).
@@ -25,6 +25,8 @@
 
   * sam: Move `AlignmentReader` and `AlignmentWriter` to `alignment::io::Read`
     and `alignment::io::Write`, respectively.
+
+  * sam: Move readers (`Reader` and `IndexedReader`) to `io` module.
 
   * sam/alignment: Rename `Record` to `RecordBuf`.
 
@@ -46,7 +48,7 @@
   * sam/alignment/record_buf: Change quality scores to raw scores
     (`record_buf::QualityScores`).
 
-  * sam/reader: Rename record to record buf and lazy record to record.
+  * sam/io/reader: Rename record to record buf and lazy record to record.
 
     This changes the following:
 
@@ -55,7 +57,7 @@
       * `Records` => `RecordBufs`, and
       * `Reader::read_lazy_record` => `Reader::read_record`.
 
-  * sam/reader: Return an iterator over sam::Record from queries
+  * sam/io/reader: Return an iterator over sam::Record from queries
     (`Reader::query` and `Reader::query_unmapped`).
 
     `Reader::query_unmapped` no longer needs a reference to the header.

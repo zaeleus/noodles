@@ -154,9 +154,11 @@ impl Builder {
                 io::ErrorKind::InvalidData,
                 "source not bgzip-compressed",
             )),
-            (Format::Sam, Some(CompressionMethod::Bgzf)) => sam::indexed_reader::Builder::default()
-                .build_from_path(src)
-                .map(IndexedReader::Sam),
+            (Format::Sam, Some(CompressionMethod::Bgzf)) => {
+                sam::io::indexed_reader::Builder::default()
+                    .build_from_path(src)
+                    .map(IndexedReader::Sam)
+            }
             (Format::Bam, Some(CompressionMethod::Bgzf)) => {
                 bam::io::indexed_reader::Builder::default()
                     .build_from_path(src)
@@ -218,7 +220,7 @@ impl Builder {
                 "source not bgzip-compressed",
             )),
             (Format::Sam, Some(CompressionMethod::Bgzf)) => {
-                let mut builder = sam::indexed_reader::Builder::default();
+                let mut builder = sam::io::indexed_reader::Builder::default();
 
                 if let Some(Index::Csi(index)) = self.index {
                     builder = builder.set_index(index);

@@ -197,7 +197,7 @@ async fn read_record<R>(
 where
     R: AsyncBufRead + Unpin,
 {
-    use crate::reader::record_buf::parse_record_buf;
+    use crate::io::reader::record_buf::parse_record_buf;
 
     buf.clear();
 

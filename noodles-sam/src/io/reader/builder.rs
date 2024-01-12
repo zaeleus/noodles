@@ -21,7 +21,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{io::CompressionMethod, reader::Builder};
+    /// use noodles_sam::io::{reader::Builder, CompressionMethod};
     /// let builder = Builder::default().set_compression_method(CompressionMethod::Bgzf);
     /// ```
     pub fn set_compression_method(mut self, compression_method: CompressionMethod) -> Self {

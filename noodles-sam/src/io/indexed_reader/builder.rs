@@ -22,7 +22,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_csi as csi;
-    /// use noodles_sam::indexed_reader::Builder;
+    /// use noodles_sam::io::indexed_reader::Builder;
     ///
     /// let index = csi::Index::default();
     /// let builder = Builder::default().set_index(index);
@@ -40,7 +40,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```no_run
-    /// use noodles_sam::indexed_reader::Builder;
+    /// use noodles_sam::io::indexed_reader::Builder;
     /// let reader = Builder::default().build_from_path("sample.sam.gz")?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
@@ -67,7 +67,7 @@ impl Builder {
     /// ```
     /// # use std::io;
     /// use noodles_csi as csi;
-    /// use noodles_sam::indexed_reader::Builder;
+    /// use noodles_sam::io::indexed_reader::Builder;
     ///
     /// let index = csi::Index::default();
     /// let reader = Builder::default().set_index(index).build_from_reader(io::empty())?;

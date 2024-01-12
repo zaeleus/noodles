@@ -1,6 +1,6 @@
 use std::{io, iter};
 
-use crate::{alignment::record::cigar::Op, reader::record_buf::cigar::op};
+use crate::{alignment::record::cigar::Op, io::reader::record_buf::cigar::op};
 
 /// Raw SAM record CIGAR operations.
 #[derive(Debug, Eq, PartialEq)]
@@ -18,7 +18,7 @@ impl<'a> Cigar<'a> {
 
     /// Returns an iterator over CIGAR operations.
     pub fn iter(&self) -> impl Iterator<Item = Result<Op, op::ParseError>> + '_ {
-        use crate::reader::record_buf::cigar::op::parse_op;
+        use crate::io::reader::record_buf::cigar::op::parse_op;
 
         let mut src = self.0;
 
@@ -68,7 +68,7 @@ impl<'a> TryFrom<Cigar<'a>> for crate::alignment::record_buf::Cigar {
     type Error = io::Error;
 
     fn try_from(Cigar(src): Cigar<'a>) -> Result<Self, Self::Error> {
-        use crate::reader::record_buf::parse_cigar;
+        use crate::io::reader::record_buf::parse_cigar;
 
         let mut cigar = Self::default();
 

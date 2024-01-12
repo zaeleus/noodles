@@ -17,7 +17,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = args.nth(1).map(PathBuf::from).expect("missing src");
     let raw_region = args.next().expect("missing region");
 
-    let mut reader = sam::indexed_reader::Builder::default().build_from_path(src)?;
+    let mut reader = sam::io::indexed_reader::Builder::default().build_from_path(src)?;
     let header = reader.read_header()?;
 
     let records: Box<dyn Iterator<Item = io::Result<sam::Record>>> = if raw_region == UNMAPPED {

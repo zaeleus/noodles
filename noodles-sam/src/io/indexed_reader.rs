@@ -2,15 +2,15 @@
 
 mod builder;
 
-pub use self::builder::Builder;
-
 use std::io::{self, Read, Seek};
 
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
 
-use super::{alignment::RecordBuf, reader::RecordBufs, Header, Reader, Record};
+pub use self::builder::Builder;
+use super::{reader::RecordBufs, Reader};
+use crate::{alignment::RecordBuf, Header, Record};
 
 /// An indexed SAM reader.
 pub struct IndexedReader<R> {

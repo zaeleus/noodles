@@ -18,7 +18,7 @@ use noodles_csi::BinningIndex;
 
 pub use self::{builder::Builder, record_bufs::RecordBufs};
 use self::{record::read_record, record_buf::read_record_buf};
-use super::{alignment::RecordBuf, header::ReferenceSequences, Header, Record};
+use crate::{alignment::RecordBuf, header::ReferenceSequences, Header, Record};
 
 /// A SAM reader.
 ///
@@ -34,7 +34,7 @@ use super::{alignment::RecordBuf, header::ReferenceSequences, Header, Record};
 /// ```no_run
 /// use noodles_sam as sam;
 ///
-/// let mut reader = sam::reader::Builder::default().build_from_path("sample.sam")?;
+/// let mut reader = sam::io::reader::Builder::default().build_from_path("sample.sam")?;
 /// let header = reader.read_header()?;
 ///
 /// for result in reader.record_bufs(&header) {
@@ -64,7 +64,7 @@ where
     /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
     /// ";
     ///
-    /// let reader = sam::Reader::new(&data[..]);
+    /// let reader = sam::io::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
         Self::from(inner)
@@ -77,7 +77,7 @@ where
     /// ```
     /// use noodles_sam as sam;
     /// let data = [];
-    /// let reader = sam::Reader::new(&data[..]);
+    /// let reader = sam::io::Reader::new(&data[..]);
     /// assert!(reader.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &R {
@@ -91,7 +91,7 @@ where
     /// ```
     /// use noodles_sam as sam;
     /// let data = [];
-    /// let mut reader = sam::Reader::new(&data[..]);
+    /// let mut reader = sam::io::Reader::new(&data[..]);
     /// assert!(reader.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
@@ -105,7 +105,7 @@ where
     /// ```
     /// use noodles_sam as sam;
     /// let data = [];
-    /// let reader = sam::Reader::new(&data[..]);
+    /// let reader = sam::io::Reader::new(&data[..]);
     /// assert!(reader.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> R {
@@ -128,7 +128,7 @@ where
     /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
     /// ";
     ///
-    /// let mut reader = sam::Reader::new(&data[..]);
+    /// let mut reader = sam::io::Reader::new(&data[..]);
     /// let actual = reader.read_header()?;
     ///
     /// let expected = sam::Header::builder()
@@ -165,7 +165,7 @@ where
     /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
     /// ";
     ///
-    /// let mut reader = sam::Reader::new(&data[..]);
+    /// let mut reader = sam::io::Reader::new(&data[..]);
     /// let header = reader.read_header()?;
     ///
     /// let mut record = RecordBuf::default();
@@ -195,7 +195,7 @@ where
     /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
     /// ";
     ///
-    /// let mut reader = sam::Reader::new(&data[..]);
+    /// let mut reader = sam::io::Reader::new(&data[..]);
     /// let header = reader.read_header()?;
     ///
     /// let mut records = reader.record_bufs(&header);
@@ -228,7 +228,7 @@ where
     /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
     /// ";
     ///
-    /// let mut reader = sam::Reader::new(&data[..]);
+    /// let mut reader = sam::io::Reader::new(&data[..]);
     /// reader.read_header()?;
     ///
     /// let mut record = sam::Record::default();
@@ -273,7 +273,7 @@ where
     ///
     /// let mut reader = File::open("sample.sam.gz")
     ///     .map(bgzf::Reader::new)
-    ///     .map(sam::Reader::new)?;
+    ///     .map(sam::io::Reader::new)?;
     ///
     /// let virtual_position = bgzf::VirtualPosition::from(102334155);
     /// reader.seek(virtual_position)?;
@@ -305,7 +305,7 @@ where
     ///
     /// let mut reader = File::open("sample.sam.gz")
     ///     .map(bgzf::Reader::new)
-    ///     .map(sam::Reader::new)?;
+    ///     .map(sam::io::Reader::new)?;
     ///
     /// let header = reader.read_header()?;
     ///
@@ -351,7 +351,7 @@ where
     ///
     /// let mut reader = File::open("sample.sam.gz")
     ///     .map(bgzf::Reader::new)
-    ///     .map(sam::Reader::new)?;
+    ///     .map(sam::io::Reader::new)?;
     ///
     /// reader.read_header()?;
     ///

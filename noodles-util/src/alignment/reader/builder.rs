@@ -128,11 +128,11 @@ impl Builder {
         let inner: Box<dyn sam::alignment::io::Read<_>> = match (format, compression_method) {
             (Format::Sam, None) => {
                 let inner: Box<dyn BufRead> = Box::new(reader);
-                Box::new(sam::Reader::from(inner))
+                Box::new(sam::io::Reader::from(inner))
             }
             (Format::Sam, Some(CompressionMethod::Bgzf)) => {
                 let inner: Box<dyn BufRead> = Box::new(bgzf::Reader::new(reader));
-                Box::new(sam::Reader::from(inner))
+                Box::new(sam::io::Reader::from(inner))
             }
             (Format::Bam, None) => {
                 let inner: Box<dyn BufRead> = Box::new(reader);
