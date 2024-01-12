@@ -23,3 +23,10 @@ impl From<MappingQuality> for u8 {
         mapping_quality.0
     }
 }
+
+impl From<MappingQuality> for sam::alignment::record_buf::MappingQuality {
+    fn from(mapping_quality: MappingQuality) -> Self {
+        // SAFETY: `mapping_quality` cannot be 255.
+        Self::new(mapping_quality.0).unwrap()
+    }
+}
