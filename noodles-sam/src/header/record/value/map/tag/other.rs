@@ -11,9 +11,15 @@ use super::{ParseError, Standard, LENGTH};
 #[derive(Clone, Copy, Debug)]
 pub struct Other<S>(pub(super) [u8; LENGTH], pub(super) PhantomData<S>);
 
+impl<S> AsRef<[u8; LENGTH]> for Other<S> {
+    fn as_ref(&self) -> &[u8; LENGTH] {
+        &self.0
+    }
+}
+
 impl<S> Borrow<[u8; LENGTH]> for Other<S> {
     fn borrow(&self) -> &[u8; LENGTH] {
-        &self.0
+        self.as_ref()
     }
 }
 
