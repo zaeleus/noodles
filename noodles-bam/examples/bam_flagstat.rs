@@ -5,7 +5,7 @@
 use std::{env, fmt, io};
 
 use noodles_bam as bam;
-use noodles_sam::alignment::{record_buf::MappingQuality, RecordBuf};
+use noodles_sam::alignment::record_buf::{Flags, MappingQuality};
 
 const MIN_HQ_MAPPING_QUALITY: MappingQuality = match MappingQuality::new(5) {
     Some(mapping_quality) => mapping_quality,
@@ -32,8 +32,8 @@ struct Counts {
     mate_reference_sequence_id_mismatch_hq: u64,
 }
 
-fn count(counts: &mut Counts, record: &RecordBuf) {
-    let flags = record.flags();
+fn count(counts: &mut Counts, record: &bam::Record) {
+    let flags = Flags::from(record.flags());
 
     counts.read += 1;
 
@@ -86,6 +86,7 @@ fn count(counts: &mut Counts, record: &RecordBuf) {
 
                         if record
                             .mapping_quality()
+                            .map(MappingQuality::from)
                             .map(|mapq| mapq >= MIN_HQ_MAPPING_QUALITY)
                             .unwrap_or(true)
                         {
@@ -197,15 +198,17 @@ fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
     let mut reader = bam::reader::Builder.build_from_path(src)?;
-    let header = reader.read_header()?;
+    reader.read_header()?;
 
     let mut qc_pass_counts = Counts::default();
     let mut qc_fail_counts = Counts::default();
 
-    for result in reader.record_bufs(&header) {
+    for result in reader.records() {
         let record = result?;
 
-        if record.flags().is_qc_fail() {
+        let flags = Flags::from(record.flags());
+
+        if flags.is_qc_fail() {
             count(&mut qc_fail_counts, &record);
         } else {
             count(&mut qc_pass_counts, &record);

@@ -16,7 +16,7 @@ fn main() -> io::Result<()> {
     let stdout = io::stdout().lock();
     let mut writer = sam::Writer::new(stdout);
 
-    for result in reader.record_bufs(&header) {
+    for result in reader.records() {
         let record = result?;
         writer.write_alignment_record(&header, &record)?;
     }

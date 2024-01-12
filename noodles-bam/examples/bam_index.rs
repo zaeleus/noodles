@@ -9,8 +9,12 @@
 use std::{env, io};
 
 use noodles_bam::{self as bam, bai};
+use noodles_core::Position;
 use noodles_csi::binning_index::{index::reference_sequence::bin::Chunk, Indexer};
-use noodles_sam::{self as sam, alignment::RecordBuf};
+use noodles_sam::{
+    self as sam,
+    alignment::{record_buf::Flags, Record as _},
+};
 
 fn is_coordinate_sorted(header: &sam::Header) -> bool {
     use sam::header::record::value::map::header::SortOrder;
@@ -22,6 +26,22 @@ fn is_coordinate_sorted(header: &sam::Header) -> bool {
     }
 
     false
+}
+
+fn alignment_context(
+    record: &bam::Record,
+) -> io::Result<(Option<usize>, Option<Position>, Option<Position>)> {
+    Ok((
+        record
+            .reference_sequence_id()
+            .map(usize::try_from)
+            .transpose()?,
+        record
+            .alignment_start()
+            .map(Position::try_from)
+            .transpose()?,
+        record.alignment_end().transpose()?,
+    ))
 }
 
 fn main() -> io::Result<()> {
@@ -37,22 +57,19 @@ fn main() -> io::Result<()> {
         ));
     }
 
-    let mut record = RecordBuf::default();
+    let mut record = bam::Record::default();
 
     let mut builder = Indexer::default();
     let mut start_position = reader.virtual_position();
 
-    while reader.read_record_buf(&header, &mut record)? != 0 {
+    while reader.read_record(&mut record)? != 0 {
         let end_position = reader.virtual_position();
         let chunk = Chunk::new(start_position, end_position);
 
-        let alignment_context = match (
-            record.reference_sequence_id(),
-            record.alignment_start(),
-            record.alignment_end(),
-        ) {
+        let alignment_context = match alignment_context(&record)? {
             (Some(id), Some(start), Some(end)) => {
-                let is_mapped = !record.flags().is_unmapped();
+                let flags = Flags::from(record.flags());
+                let is_mapped = !flags.is_unmapped();
                 Some((id, start, end, is_mapped))
             }
             _ => None,
