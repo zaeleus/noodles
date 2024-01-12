@@ -22,3 +22,18 @@ pub enum Array<'a> {
     /// A single-precision floating-point array (`B:f`).
     Float(Box<dyn Values<'a, f32> + 'a>),
 }
+
+impl<'a> Array<'a> {
+    /// Returns the array value type.
+    pub fn subtype(&self) -> Subtype {
+        match self {
+            Array::Int8(_) => Subtype::Int8,
+            Array::UInt8(_) => Subtype::UInt8,
+            Array::Int16(_) => Subtype::Int16,
+            Array::UInt16(_) => Subtype::UInt16,
+            Array::Int32(_) => Subtype::Int32,
+            Array::UInt32(_) => Subtype::UInt32,
+            Array::Float(_) => Subtype::Float,
+        }
+    }
+}
