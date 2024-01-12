@@ -20,6 +20,18 @@ pub enum Tag<S> {
     Other(Other<S>),
 }
 
+impl<S> AsRef<[u8; LENGTH]> for Tag<S>
+where
+    S: Standard,
+{
+    fn as_ref(&self) -> &[u8; LENGTH] {
+        match self {
+            Self::Standard(tag) => tag.as_ref(),
+            Self::Other(tag) => tag.as_ref(),
+        }
+    }
+}
+
 impl<S> fmt::Display for Tag<S>
 where
     S: Standard,
