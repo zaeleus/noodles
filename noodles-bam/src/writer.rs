@@ -212,7 +212,7 @@ mod tests {
     };
 
     use super::*;
-    use crate::Reader;
+    use crate::io::Reader;
 
     #[test]
     fn test_write_alignment_record() -> Result<(), Box<dyn std::error::Error>> {

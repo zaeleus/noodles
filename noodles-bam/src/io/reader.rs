@@ -1,4 +1,4 @@
-//! BAM reader and iterators.
+//! BAM reader.
 
 mod builder;
 mod header;
@@ -20,7 +20,7 @@ use noodles_sam::{self as sam, alignment::RecordBuf, header::ReferenceSequences}
 
 pub use self::{builder::Builder, query::Query, record_bufs::RecordBufs, records::Records};
 use self::{record::read_record, record_buf::read_record_buf};
-use super::Record;
+use crate::Record;
 
 /// A BAM reader.
 ///
@@ -40,7 +40,7 @@ use super::Record;
 /// # use std::{fs::File, io};
 /// use noodles_bam as bam;
 ///
-/// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
+/// let mut reader = File::open("sample.bam").map(bam::io::Reader::new)?;
 /// let header = reader.read_header()?;
 ///
 /// for result in reader.record_bufs(&header) {
@@ -65,7 +65,7 @@ where
     /// ```
     /// use noodles_bam as bam;
     /// let data = [];
-    /// let reader = bam::Reader::from(&data[..]);
+    /// let reader = bam::io::Reader::from(&data[..]);
     /// assert!(reader.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &R {
@@ -79,7 +79,7 @@ where
     /// ```
     /// use noodles_bam as bam;
     /// let data = [];
-    /// let mut reader = bam::Reader::from(&data[..]);
+    /// let mut reader = bam::io::Reader::from(&data[..]);
     /// assert!(reader.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
@@ -93,7 +93,7 @@ where
     /// ```
     /// use noodles_bam as bam;
     /// let data = [];
-    /// let reader = bam::Reader::from(&data[..]);
+    /// let reader = bam::io::Reader::from(&data[..]);
     /// assert!(reader.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> R {
@@ -114,7 +114,7 @@ where
     /// ```no_run
     /// # use std::{fs::File, io};
     /// use noodles_bam as bam;
-    /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
+    /// let mut reader = File::open("sample.bam").map(bam::io::Reader::new)?;
     /// let header = reader.read_header()?;
     /// # Ok::<(), io::Error>(())
     /// ```
@@ -145,7 +145,7 @@ where
     /// use noodles_bam as bam;
     /// use noodles_sam::alignment::RecordBuf;
     ///
-    /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
+    /// let mut reader = File::open("sample.bam").map(bam::io::Reader::new)?;
     /// let header = reader.read_header()?;
     ///
     /// let mut record = RecordBuf::default();
@@ -179,7 +179,7 @@ where
     /// # use std::{fs::File, io};
     /// use noodles_bam as bam;
     ///
-    /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
+    /// let mut reader = File::open("sample.bam").map(bam::io::Reader::new)?;
     /// reader.read_header()?;
     ///
     /// let mut record = bam::Record::default();
@@ -208,7 +208,7 @@ where
     /// # use std::{fs::File, io};
     /// use noodles_bam as bam;
     ///
-    /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
+    /// let mut reader = File::open("sample.bam").map(bam::io::Reader::new)?;
     /// let header = reader.read_header()?;
     ///
     /// for result in reader.record_bufs(&header) {
@@ -232,7 +232,7 @@ where
     /// # use std::{fs::File, io};
     /// use noodles_bam as bam;
     ///
-    /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
+    /// let mut reader = File::open("sample.bam").map(bam::io::Reader::new)?;
     /// reader.read_header()?;
     ///
     /// for result in reader.records() {
@@ -259,7 +259,7 @@ where
     /// ```
     /// use noodles_bam as bam;
     /// let data = [];
-    /// let reader = bam::Reader::new(&data[..]);
+    /// let reader = bam::io::Reader::new(&data[..]);
     /// ```
     pub fn new(reader: R) -> Self {
         Self::from(bgzf::Reader::new(reader))
@@ -274,7 +274,7 @@ where
     /// use noodles_bam as bam;
     ///
     /// let data = Vec::new();
-    /// let reader = bam::Reader::new(&data[..]);
+    /// let reader = bam::io::Reader::new(&data[..]);
     /// let virtual_position = reader.virtual_position();
     ///
     /// assert_eq!(virtual_position.compressed(), 0);
@@ -300,7 +300,7 @@ where
     /// # use std::io::{self, Cursor};
     /// use noodles_bam as bam;
     /// use noodles_bgzf as bgzf;
-    /// let mut reader = bam::Reader::new(Cursor::new(Vec::new()));
+    /// let mut reader = bam::io::Reader::new(Cursor::new(Vec::new()));
     /// let virtual_position = bgzf::VirtualPosition::default();
     /// reader.seek(virtual_position)?;
     /// # Ok::<(), io::Error>(())
@@ -327,7 +327,7 @@ where
     /// # use std::fs::File;
     /// use noodles_bam::{self as bam, bai};
     ///
-    /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
+    /// let mut reader = File::open("sample.bam").map(bam::io::Reader::new)?;
     /// let header = reader.read_header()?;
     ///
     /// let index = bai::read("sample.bam.bai")?;
@@ -368,7 +368,7 @@ where
     /// # use std::{fs::File, io};
     /// use noodles_bam::{self as bam, bai};
     ///
-    /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
+    /// let mut reader = File::open("sample.bam").map(bam::io::Reader::new)?;
     /// reader.read_header()?;
     ///
     /// let index = bai::read("sample.bam.bai")?;

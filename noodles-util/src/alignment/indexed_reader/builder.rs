@@ -157,9 +157,11 @@ impl Builder {
             (Format::Sam, Some(CompressionMethod::Bgzf)) => sam::indexed_reader::Builder::default()
                 .build_from_path(src)
                 .map(IndexedReader::Sam),
-            (Format::Bam, Some(CompressionMethod::Bgzf)) => bam::indexed_reader::Builder::default()
-                .build_from_path(src)
-                .map(IndexedReader::Bam),
+            (Format::Bam, Some(CompressionMethod::Bgzf)) => {
+                bam::io::indexed_reader::Builder::default()
+                    .build_from_path(src)
+                    .map(IndexedReader::Bam)
+            }
             (Format::Cram, None) => cram::indexed_reader::Builder::default()
                 .set_reference_sequence_repository(self.reference_sequence_repository)
                 .build_from_path(src)
@@ -225,7 +227,7 @@ impl Builder {
                 builder.build_from_reader(reader).map(IndexedReader::Sam)
             }
             (Format::Bam, Some(CompressionMethod::Bgzf)) => {
-                let mut builder = bam::indexed_reader::Builder::default();
+                let mut builder = bam::io::indexed_reader::Builder::default();
 
                 if let Some(Index::Csi(index)) = self.index {
                     builder = builder.set_index(index);

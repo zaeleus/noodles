@@ -13,7 +13,7 @@
 //! # use std::io;
 //! use noodles_bam as bam;
 //!
-//! let mut reader = bam::reader::Builder::default().build_from_path("sample.bam")?;
+//! let mut reader = bam::io::reader::Builder::default().build_from_path("sample.bam")?;
 //! let header = reader.read_header()?;
 //!
 //! for result in reader.record_bufs(&header) {
@@ -31,7 +31,7 @@
 //! # use std::fs::File;
 //! use noodles_bam as bam;
 //!
-//! let mut reader = bam::indexed_reader::Builder::default().build_from_path("sample.bam")?;
+//! let mut reader = bam::io::indexed_reader::Builder::default().build_from_path("sample.bam")?;
 //! let header = reader.read_header()?;
 //!
 //! let region = "sq0:5-8".parse()?;
@@ -48,12 +48,11 @@
 mod r#async;
 
 pub mod bai;
-pub mod indexed_reader;
-pub mod reader;
+pub mod io;
 pub mod record;
 pub mod writer;
 
-pub use self::{indexed_reader::IndexedReader, reader::Reader, record::Record, writer::Writer};
+pub use self::{record::Record, writer::Writer};
 
 #[cfg(feature = "async")]
 pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};

@@ -23,7 +23,7 @@ use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};
 
 use self::{query::query, record::read_record};
 use crate::{
-    reader::{bytes_with_nul_to_string, resolve_region},
+    io::reader::{bytes_with_nul_to_string, resolve_region},
     Record, MAGIC_NUMBER,
 };
 

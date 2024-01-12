@@ -2,8 +2,6 @@
 
 mod builder;
 
-pub use self::builder::Builder;
-
 use std::io::{self, Read, Seek};
 
 use noodles_bgzf as bgzf;
@@ -11,10 +9,12 @@ use noodles_core::Region;
 use noodles_csi::BinningIndex;
 use noodles_sam::{self as sam, alignment::RecordBuf};
 
+pub use self::builder::Builder;
 use super::{
     reader::{Query, RecordBufs, Records},
-    Reader, Record,
+    Reader,
 };
+use crate::Record;
 
 /// An indexed BAM reader.
 pub struct IndexedReader<R> {

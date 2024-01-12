@@ -23,7 +23,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{bai, indexed_reader::Builder};
+    /// use noodles_bam::{bai, io::indexed_reader::Builder};
     /// let index = bai::Index::default();
     /// let builder = Builder::default().set_index(index);
     /// ```
@@ -43,7 +43,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```no_run
-    /// use noodles_bam::indexed_reader::Builder;
+    /// use noodles_bam::io::indexed_reader::Builder;
     /// let reader = Builder::default().build_from_path("sample.bam")?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
@@ -68,7 +68,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{bai, indexed_reader::Builder};
+    /// use noodles_bam::{bai, io::indexed_reader::Builder};
     /// let index = bai::Index::default();
     /// let data = [];
     /// let builder = Builder::default().set_index(index).build_from_reader(&data[..])?;

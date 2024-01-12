@@ -136,11 +136,11 @@ impl Builder {
             }
             (Format::Bam, None) => {
                 let inner: Box<dyn BufRead> = Box::new(reader);
-                Box::new(bam::Reader::from(inner))
+                Box::new(bam::io::Reader::from(inner))
             }
             (Format::Bam, Some(CompressionMethod::Bgzf)) => {
                 let inner: Box<dyn BufRead> = Box::new(bgzf::Reader::new(reader));
-                Box::new(bam::Reader::from(inner))
+                Box::new(bam::io::Reader::from(inner))
             }
             (Format::Cram, None) => {
                 let inner: Box<dyn BufRead> = Box::new(reader);

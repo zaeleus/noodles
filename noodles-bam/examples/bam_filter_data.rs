@@ -24,7 +24,7 @@ fn main() -> io::Result<()> {
     let mut args = env::args().skip(1);
     let src = args.next().expect("missing src");
 
-    let mut reader = bam::reader::Builder.build_from_path(src)?;
+    let mut reader = bam::io::reader::Builder.build_from_path(src)?;
     let header = reader.read_header()?;
 
     let stdout = io::stdout().lock();

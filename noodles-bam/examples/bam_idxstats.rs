@@ -13,7 +13,7 @@ use noodles_bam as bam;
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).map(PathBuf::from).expect("missing src");
 
-    let mut reader = bam::indexed_reader::Builder::default().build_from_path(src)?;
+    let mut reader = bam::io::indexed_reader::Builder::default().build_from_path(src)?;
     let header = reader.read_header()?;
 
     let index = reader.index();

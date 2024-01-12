@@ -18,7 +18,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```no_run
-    /// use noodles_bam::reader::Builder;
+    /// use noodles_bam::io::reader::Builder;
     /// let reader = Builder::default().build_from_path("sample.bam")?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
@@ -36,7 +36,7 @@ impl Builder {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_bam::reader::Builder;
+    /// use noodles_bam::io::reader::Builder;
     /// let reader = Builder::default().build_from_reader(io::empty());
     /// ```
     pub fn build_from_reader<R>(self, reader: R) -> Reader<bgzf::Reader<R>>
