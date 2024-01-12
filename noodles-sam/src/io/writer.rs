@@ -1,12 +1,14 @@
 //! SAM writer.
 
 mod builder;
+mod header;
 mod num;
 mod record;
 
 use std::io::{self, Write};
 
 pub use self::builder::Builder;
+use self::header::write_header;
 pub(crate) use self::record::write_record;
 use crate::{Header, Record};
 
@@ -119,7 +121,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_header(&mut self, header: &Header) -> io::Result<()> {
-        write!(self.inner, "{header}")
+        write_header(&mut self.inner, header)
     }
 
     /// Writes a SAM record.
