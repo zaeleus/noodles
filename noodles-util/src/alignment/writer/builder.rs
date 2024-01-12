@@ -164,8 +164,8 @@ impl Builder {
             (Format::Sam, Some(CompressionMethod::Bgzf)) => {
                 Box::new(sam::Writer::new(bgzf::Writer::new(writer)))
             }
-            (Format::Bam, None) => Box::new(bam::Writer::from(writer)),
-            (Format::Bam, Some(CompressionMethod::Bgzf)) => Box::new(bam::Writer::new(writer)),
+            (Format::Bam, None) => Box::new(bam::io::Writer::from(writer)),
+            (Format::Bam, Some(CompressionMethod::Bgzf)) => Box::new(bam::io::Writer::new(writer)),
             (Format::Cram, None) => Box::new(
                 cram::writer::Builder::default()
                     .set_reference_sequence_repository(self.reference_sequence_repository)

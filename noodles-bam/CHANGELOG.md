@@ -19,7 +19,10 @@
 
     Use `bam::Record` instead of `bam::lazy::Record`.
 
-  * bam/reader: Rename "record" to "record buf" and "lazy record" to "record".
+  * bam: Move readers (`Reader` and `IndexedReader`) and writer (`Writer`) to
+    `io` module.
+
+  * bam/io/reader: Rename "record" to "record buf" and "lazy record" to "record".
 
     This changes the following:
 
@@ -30,7 +33,7 @@
       * `Reader::lazy_records` => `Reader::records`, and
       * `LazyRecords` => `Records`.
 
-  * bam/reader: Return an iterator over `bam::Record` for queries
+  * bam/io/reader: Return an iterator over `bam::Record` for queries
     (`Reader::query` and `Reader::query_unmapped`).
 
     `Reader::query_unmapped` no longer needs a reference to the header.

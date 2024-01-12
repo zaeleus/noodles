@@ -15,7 +15,7 @@ fn main() -> io::Result<()> {
         .and_then(|mut reader| reader.read_header())?;
 
     let stdout = io::stdout().lock();
-    let mut writer = bam::Writer::new(stdout);
+    let mut writer = bam::io::Writer::new(stdout);
 
     writer.write_header(&header)?;
 

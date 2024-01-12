@@ -12,7 +12,7 @@ use noodles_sam as sam;
 
 use std::{collections::HashMap, env, fs::File, io, str};
 
-type Writers = HashMap<Vec<u8>, bam::Writer<bgzf::Writer<File>>>;
+type Writers = HashMap<Vec<u8>, bam::io::Writer<bgzf::Writer<File>>>;
 
 fn build_writers(read_groups: &sam::header::ReadGroups) -> io::Result<Writers> {
     read_groups
@@ -21,7 +21,7 @@ fn build_writers(read_groups: &sam::header::ReadGroups) -> io::Result<Writers> {
         .map(|(i, id)| {
             let dst = format!("out_{i}.bam");
 
-            bam::writer::Builder
+            bam::io::writer::Builder
                 .build_from_path(dst)
                 .map(|writer| (id.as_bytes().into(), writer))
         })

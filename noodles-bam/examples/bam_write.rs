@@ -14,7 +14,7 @@ use noodles_sam::{
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let stdout = io::stdout().lock();
-    let mut writer = bam::Writer::new(stdout);
+    let mut writer = bam::io::Writer::new(stdout);
 
     let header = sam::Header::builder()
         .set_header(Default::default())

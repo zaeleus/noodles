@@ -17,7 +17,7 @@ fn main() -> io::Result<()> {
     header.add_comment("a comment added by noodles-bam");
 
     let stdout = io::stdout().lock();
-    let mut writer = bam::Writer::new(stdout);
+    let mut writer = bam::io::Writer::new(stdout);
 
     writer.write_header(&header)?;
 

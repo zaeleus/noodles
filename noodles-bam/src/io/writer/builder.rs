@@ -15,7 +15,7 @@ impl Builder {
     ///
     /// ```no_run
     /// use noodles_bam as bam;
-    /// let writer = bam::writer::Builder::default().build_from_path("out.bam")?;
+    /// let writer = bam::io::writer::Builder::default().build_from_path("out.bam")?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn build_from_path<P>(self, dst: P) -> io::Result<Writer<bgzf::Writer<File>>>

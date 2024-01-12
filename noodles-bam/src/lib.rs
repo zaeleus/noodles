@@ -50,9 +50,8 @@ mod r#async;
 pub mod bai;
 pub mod io;
 pub mod record;
-pub mod writer;
 
-pub use self::{record::Record, writer::Writer};
+pub use self::record::Record;
 
 #[cfg(feature = "async")]
 pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};

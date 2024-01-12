@@ -3,15 +3,14 @@
 mod builder;
 mod header;
 
-pub use self::builder::Builder;
-
 use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf as bgzf;
 use noodles_sam::{self as sam, alignment::io::Write as _};
 
-use super::Record;
+pub use self::builder::Builder;
+use crate::Record;
 
 /// A BAM writer.
 ///
@@ -22,7 +21,7 @@ use super::Record;
 /// use noodles_bam as bam;
 /// use noodles_sam as sam;
 ///
-/// let mut writer = bam::Writer::new(io::sink());
+/// let mut writer = bam::io::Writer::new(io::sink());
 ///
 /// let header = sam::Header::default();
 /// writer.write_header(&header)?;
@@ -46,7 +45,7 @@ where
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// let writer = bam::Writer::from(Vec::new());
+    /// let writer = bam::io::Writer::from(Vec::new());
     /// assert!(writer.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &W {
@@ -59,7 +58,7 @@ where
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// let mut writer = bam::Writer::from(Vec::new());
+    /// let mut writer = bam::io::Writer::from(Vec::new());
     /// assert!(writer.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut W {
@@ -72,7 +71,7 @@ where
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// let writer = bam::Writer::from(Vec::new());
+    /// let writer = bam::io::Writer::from(Vec::new());
     /// assert!(writer.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> W {
@@ -91,7 +90,7 @@ where
     /// use noodles_bam as bam;
     /// use noodles_sam as sam;
     ///
-    /// let mut writer = bam::Writer::new(io::sink());
+    /// let mut writer = bam::io::Writer::new(io::sink());
     ///
     /// let header = sam::Header::builder().add_comment("noodles-bam").build();
     /// writer.write_header(&header)?;
@@ -113,7 +112,7 @@ where
     ///
     /// let header = sam::Header::default();
     ///
-    /// let mut writer = bam::Writer::new(io::sink());
+    /// let mut writer = bam::io::Writer::new(io::sink());
     /// writer.write_header(&header)?;
     ///
     /// let record = bam::Record::default();
@@ -138,7 +137,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bam as bam;
-    /// let writer = bam::Writer::new(io::sink());
+    /// let writer = bam::io::Writer::new(io::sink());
     /// ```
     pub fn new(writer: W) -> Self {
         Self::from(bgzf::Writer::new(writer))
@@ -154,7 +153,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bam as bam;
-    /// let mut writer = bam::Writer::new(io::sink());
+    /// let mut writer = bam::io::Writer::new(io::sink());
     /// writer.try_finish()?;
     /// # Ok::<(), io::Error>(())
     /// ```
@@ -185,7 +184,7 @@ where
         header: &sam::Header,
         record: &dyn sam::alignment::Record,
     ) -> io::Result<()> {
-        use super::record::codec::encode;
+        use crate::record::codec::encode;
 
         self.buf.clear();
         encode(&mut self.buf, header, record)?;
