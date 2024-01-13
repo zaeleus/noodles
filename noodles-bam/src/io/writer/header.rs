@@ -27,14 +27,20 @@ where
 
     writer.write_all(MAGIC_NUMBER)?;
 
-    let text = header.to_string();
+    let text = serialize_header(header)?;
     let l_text =
         i32::try_from(text.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_i32::<LittleEndian>(l_text)?;
 
-    writer.write_all(text.as_bytes())?;
+    writer.write_all(&text)?;
 
     Ok(())
+}
+
+fn serialize_header(header: &sam::Header) -> io::Result<Vec<u8>> {
+    let mut writer = sam::io::Writer::new(Vec::new());
+    writer.write_header(header)?;
+    Ok(writer.into_inner())
 }
 
 pub fn write_reference_sequences<W>(
