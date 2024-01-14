@@ -21,7 +21,7 @@ where
 
     validate_reference_sequences(header.reference_sequences())?;
 
-    let header_data = header.to_string().into_bytes();
+    let header_data = serialize_header(header)?;
     let header_data_len = i32::try_from(header_data.len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
@@ -53,6 +53,12 @@ fn validate_reference_sequences(
     }
 
     Ok(())
+}
+
+fn serialize_header(header: &sam::Header) -> io::Result<Vec<u8>> {
+    let mut writer = sam::io::Writer::new(Vec::new());
+    writer.write_header(header)?;
+    Ok(writer.into_inner())
 }
 
 #[cfg(test)]
