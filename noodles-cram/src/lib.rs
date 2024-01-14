@@ -15,11 +15,9 @@ mod indexer;
 pub mod io;
 mod num;
 pub mod record;
-pub mod writer;
 
 pub use self::{
     data_container::DataContainer, file_definition::FileDefinition, indexer::index, record::Record,
-    writer::Writer,
 };
 
 #[cfg(feature = "async")]

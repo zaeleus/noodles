@@ -3,7 +3,7 @@ use std::io::{self, Write};
 use byteorder::WriteBytesExt;
 
 use super::{Flags, Model, RangeCoder};
-use crate::writer::num::write_uint7;
+use crate::io::writer::num::write_uint7;
 
 pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     use crate::codecs::rans_nx16::encode::pack;

@@ -21,11 +21,11 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_cram as cram;
+    /// use noodles_cram::io::writer::Builder;
     /// use noodles_fasta as fasta;
     ///
     /// let repository = fasta::Repository::default();
-    /// let builder = cram::writer::Builder::default()
+    /// let builder = Builder::default()
     ///     .set_reference_sequence_repository(repository);
     /// ```
     pub fn set_reference_sequence_repository(
@@ -45,8 +45,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_cram as cram;
-    /// let builder = cram::writer::Builder::default().preserve_read_names(false);
+    /// use noodles_cram::io::writer::Builder;
+    /// let builder = Builder::default().preserve_read_names(false);
     /// ```
     pub fn preserve_read_names(mut self, value: bool) -> Self {
         self.options.preserve_read_names = value;
@@ -62,8 +62,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_cram as cram;
-    /// let builder = cram::writer::Builder::default()
+    /// use noodles_cram::io::writer::Builder;
+    /// let builder = Builder::default()
     ///     .encode_alignment_start_positions_as_deltas(false);
     /// ```
     pub fn encode_alignment_start_positions_as_deltas(mut self, value: bool) -> Self {
@@ -76,10 +76,10 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_cram::{self as cram, data_container::BlockContentEncoderMap};
+    /// use noodles_cram::{data_container::BlockContentEncoderMap, io::writer::Builder};
     ///
     /// let block_content_encoder_map = BlockContentEncoderMap::default();
-    /// let builder = cram::writer::Builder::default()
+    /// let builder = Builder::default()
     ///     .set_block_content_encoder_map(block_content_encoder_map);
     /// ```
     pub fn set_block_content_encoder_map(mut self, map: BlockContentEncoderMap) -> Self {
@@ -92,8 +92,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_cram as cram;
-    /// let writer = cram::writer::Builder::default().build_with_writer(Vec::new());
+    /// use noodles_cram::io::writer::Builder;
+    /// let writer = Builder::default().build_with_writer(Vec::new());
     /// ```
     pub fn build_with_writer<W>(mut self, writer: W) -> Writer<W>
     where

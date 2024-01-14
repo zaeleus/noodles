@@ -4,7 +4,7 @@ use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 use super::{slice, CompressionHeader, DataContainer, Slice};
-use crate::{writer::Options, Record};
+use crate::{io::writer::Options, Record};
 
 const MAX_SLICE_COUNT: usize = 1;
 

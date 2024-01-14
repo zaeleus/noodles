@@ -11,9 +11,9 @@ use crate::{
     huffman::CanonicalHuffmanDecoder,
     io::{
         reader::{num::get_itf8, record::ExternalDataReaders},
+        writer::num::write_itf8,
         BitReader, BitWriter,
     },
-    writer::num::write_itf8,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]

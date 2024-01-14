@@ -8,7 +8,7 @@ use crate::{
         block::{CompressionMethod, ContentType},
         Block,
     },
-    writer::num::write_itf8,
+    io::writer::num::write_itf8,
 };
 
 pub fn write_block<W>(writer: &mut W, block: &Block) -> io::Result<()>

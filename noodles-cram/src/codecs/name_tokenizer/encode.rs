@@ -7,7 +7,7 @@ use std::{
 use byteorder::{LittleEndian, WriteBytesExt};
 
 use super::Type;
-use crate::writer::num::write_uint7;
+use crate::io::writer::num::write_uint7;
 
 const NUL: u8 = 0x00;
 

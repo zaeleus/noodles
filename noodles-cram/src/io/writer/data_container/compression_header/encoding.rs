@@ -11,7 +11,7 @@ use crate::{
         },
         Encoding,
     },
-    writer::num::write_itf8,
+    io::writer::num::write_itf8,
 };
 
 pub fn write_encoding_for_byte_codec<W>(writer: &mut W, encoding: &Encoding<Byte>) -> io::Result<()>

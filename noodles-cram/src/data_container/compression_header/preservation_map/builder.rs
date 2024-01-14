@@ -1,5 +1,5 @@
 use super::{substitution_matrix, tag_ids_dictionary, PreservationMap};
-use crate::{writer::Options, Record};
+use crate::{io::writer::Options, Record};
 
 #[derive(Debug)]
 pub struct Builder {

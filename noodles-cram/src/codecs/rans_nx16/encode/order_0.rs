@@ -5,7 +5,7 @@ use std::{
 
 use byteorder::{LittleEndian, WriteBytesExt};
 
-use crate::writer::num::write_uint7;
+use crate::io::writer::num::write_uint7;
 
 pub fn encode(src: &[u8], n: usize) -> io::Result<(Vec<u32>, Vec<u8>)> {
     use super::{

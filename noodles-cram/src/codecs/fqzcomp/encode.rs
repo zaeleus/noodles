@@ -3,7 +3,7 @@ use std::io::{self, Write};
 use byteorder::{LittleEndian, WriteBytesExt};
 
 use super::{parameter, parameters, Models};
-use crate::{codecs::aac::RangeCoder, writer::num::write_uint7};
+use crate::{codecs::aac::RangeCoder, io::writer::num::write_uint7};
 
 pub fn encode(lens: &[usize], src: &[u8]) -> io::Result<Vec<u8>> {
     let mut dst = Vec::new();

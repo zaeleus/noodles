@@ -68,7 +68,7 @@ mod tests {
             Map,
         };
 
-        use crate::{codecs::gzip, writer::num::write_itf8};
+        use crate::{codecs::gzip, io::writer::num::write_itf8};
 
         let header_header = Map::<map::Header>::new(Version::new(1, 6));
         let header = sam::Header::builder().set_header(header_header).build();

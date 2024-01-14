@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 
-use crate::writer::num::write_itf8;
+use crate::io::writer::num::write_itf8;
 
 use super::{
     build_cumulative_frequencies, normalize, normalize_frequencies, update, BASE, LOWER_BOUND,

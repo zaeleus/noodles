@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use crate::writer::num::write_uint7;
+use crate::io::writer::num::write_uint7;
 
 pub fn encode(src: &[u8]) -> io::Result<(Vec<u8>, Vec<u8>)> {
     let mut scores = [0; 256];

@@ -175,7 +175,7 @@ mod tests {
     use super::*;
 
     fn build_data(data_series_encoding_map: &DataSeriesEncodingMap) -> io::Result<Bytes> {
-        use crate::writer::data_container::compression_header::data_series_encoding_map::write_data_series_encoding_map;
+        use crate::io::writer::data_container::compression_header::data_series_encoding_map::write_data_series_encoding_map;
 
         let mut buf = Vec::new();
         write_data_series_encoding_map(&mut buf, data_series_encoding_map)?;

@@ -11,7 +11,8 @@
 
 ### Changed
 
-  * cram: Move readers (`Reader` and `IndexedReader`) to `io` module.
+  * cram: Move readers (`Reader` and `IndexedReader`) and writer (`Writer`) to
+    `io` module.
 
   * cram/record/convert: Change `Record::try_from_alignment_record` to accept
     `&sam::alignment::Record`.

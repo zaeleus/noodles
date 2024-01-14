@@ -3,7 +3,7 @@ use std::io::{self, Write};
 use crate::{
     container::block,
     data_container::{slice, ReferenceSequenceContext},
-    writer::num::{write_itf8, write_ltf8},
+    io::writer::num::{write_itf8, write_ltf8},
 };
 
 pub fn write_header<W>(writer: &mut W, header: &slice::Header) -> io::Result<()>

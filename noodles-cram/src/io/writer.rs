@@ -19,7 +19,7 @@ use std::{
 use noodles_fasta as fasta;
 use noodles_sam::{self as sam, header::ReferenceSequences};
 
-use super::{file_definition::Version, DataContainer, FileDefinition, Record, MAGIC_NUMBER};
+use crate::{file_definition::Version, DataContainer, FileDefinition, Record, MAGIC_NUMBER};
 
 /// A CRAM writer.
 ///
@@ -32,7 +32,7 @@ use super::{file_definition::Version, DataContainer, FileDefinition, Record, MAG
 /// use noodles_cram as cram;
 /// use noodles_sam as sam;
 ///
-/// let mut writer = cram::Writer::new(Vec::new());
+/// let mut writer = cram::io::Writer::new(Vec::new());
 ///
 /// let header = sam::Header::default();
 /// writer.write_header(&header)?;
@@ -65,7 +65,7 @@ where
     ///
     /// ```
     /// use noodles_cram as cram;
-    /// let writer = cram::Writer::new(Vec::new());
+    /// let writer = cram::io::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
         Builder::default().build_with_writer(inner)
@@ -77,7 +77,7 @@ where
     ///
     /// ```
     /// use noodles_cram as cram;
-    /// let writer = cram::Writer::new(Vec::new());
+    /// let writer = cram::io::Writer::new(Vec::new());
     /// assert!(writer.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &W {
@@ -98,7 +98,7 @@ where
     /// use noodles_sam as sam;
     ///
     /// let header = sam::Header::default();
-    /// let mut writer = cram::Writer::new(Vec::new());
+    /// let mut writer = cram::io::Writer::new(Vec::new());
     /// writer.try_finish(&header)?;
     /// # Ok::<(), io::Error>(())
     /// ```
@@ -118,7 +118,7 @@ where
     /// # use std::io;
     /// use noodles_cram as cram;
     ///
-    /// let mut writer = cram::Writer::new(Vec::new());
+    /// let mut writer = cram::io::Writer::new(Vec::new());
     /// writer.write_file_definition()?;
     ///
     /// assert_eq!(writer.get_ref(), &[
@@ -151,7 +151,7 @@ where
     /// use noodles_cram as cram;
     /// use noodles_sam as sam;
     ///
-    /// let mut writer = cram::Writer::new(Vec::new());
+    /// let mut writer = cram::io::Writer::new(Vec::new());
     /// writer.write_file_definition()?;
     ///
     /// let header = sam::Header::default();
@@ -183,7 +183,7 @@ where
     /// use noodles_cram as cram;
     /// use noodles_sam as sam;
     ///
-    /// let mut writer = cram::Writer::new(io::sink());
+    /// let mut writer = cram::io::Writer::new(io::sink());
     ///
     /// let header = sam::Header::builder().add_comment("noodles-cram").build();
     /// writer.write_header(&header)?;
@@ -203,7 +203,7 @@ where
     /// use noodles_cram as cram;
     /// use noodles_sam as sam;
     ///
-    /// let mut writer = cram::Writer::new(Vec::new());
+    /// let mut writer = cram::io::Writer::new(Vec::new());
     ///
     /// let header = sam::Header::default();
     /// writer.write_header(&header)?;
@@ -215,7 +215,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_record(&mut self, header: &sam::Header, mut record: Record) -> io::Result<()> {
-        use super::data_container::builder::AddRecordError;
+        use crate::data_container::builder::AddRecordError;
 
         loop {
             match self.data_container_builder.add_record(record) {

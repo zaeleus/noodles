@@ -13,7 +13,8 @@ use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 pub use self::builder::Builder;
 use crate::{
-    file_definition::Version, writer::Options, DataContainer, FileDefinition, Record, MAGIC_NUMBER,
+    file_definition::Version, io::writer::Options, DataContainer, FileDefinition, Record,
+    MAGIC_NUMBER,
 };
 
 /// An async CRAM writer.
@@ -140,7 +141,7 @@ where
     /// ```
     pub async fn write_file_header(&mut self, header: &sam::Header) -> io::Result<()> {
         use self::header_container::write_header_container;
-        use crate::writer::add_missing_reference_sequence_checksums;
+        use crate::io::writer::add_missing_reference_sequence_checksums;
 
         let mut header = header.clone();
 

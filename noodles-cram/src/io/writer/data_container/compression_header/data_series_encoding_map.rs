@@ -8,7 +8,7 @@ use crate::{
     data_container::compression_header::{
         data_series_encoding_map::DataSeries, DataSeriesEncodingMap,
     },
-    writer::num::write_itf8,
+    io::writer::num::write_itf8,
 };
 
 pub(crate) fn write_data_series_encoding_map<W>(

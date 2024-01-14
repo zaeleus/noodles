@@ -8,7 +8,7 @@ use std::io::{self, Write};
 use byteorder::WriteBytesExt;
 
 use super::Flags;
-use crate::writer::num::write_uint7;
+use crate::io::writer::num::write_uint7;
 
 pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     let mut src = src.to_vec();

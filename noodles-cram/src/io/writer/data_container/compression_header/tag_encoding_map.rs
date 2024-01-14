@@ -1,7 +1,7 @@
 use std::io::{self, Write};
 
 use super::write_encoding_for_byte_array_codec;
-use crate::{data_container::compression_header::TagEncodingMap, writer::num::write_itf8};
+use crate::{data_container::compression_header::TagEncodingMap, io::writer::num::write_itf8};
 
 pub fn write_tag_encoding_map<W>(
     writer: &mut W,

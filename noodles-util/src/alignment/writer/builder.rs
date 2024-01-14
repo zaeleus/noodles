@@ -6,10 +6,9 @@ use std::{
     path::Path,
 };
 
-use cram::data_container::BlockContentEncoderMap;
 use noodles_bam as bam;
 use noodles_bgzf as bgzf;
-use noodles_cram as cram;
+use noodles_cram::{self as cram, data_container::BlockContentEncoderMap};
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
@@ -167,7 +166,7 @@ impl Builder {
             (Format::Bam, None) => Box::new(bam::io::Writer::from(writer)),
             (Format::Bam, Some(CompressionMethod::Bgzf)) => Box::new(bam::io::Writer::new(writer)),
             (Format::Cram, None) => Box::new(
-                cram::writer::Builder::default()
+                cram::io::writer::Builder::default()
                     .set_reference_sequence_repository(self.reference_sequence_repository)
                     .set_block_content_encoder_map(self.block_content_encoder_map)
                     .build_with_writer(writer),

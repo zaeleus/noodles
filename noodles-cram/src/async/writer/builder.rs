@@ -3,7 +3,7 @@ use tokio::io::AsyncWrite;
 
 use super::Writer;
 use crate::{
-    data_container::BlockContentEncoderMap, file_definition::Version, writer::Options,
+    data_container::BlockContentEncoderMap, file_definition::Version, io::writer::Options,
     DataContainer,
 };
 
@@ -63,7 +63,7 @@ impl Builder {
     where
         W: AsyncWrite + Unpin,
     {
-        use crate::writer::builder::uses_cram_3_1_codecs;
+        use crate::io::writer::builder::uses_cram_3_1_codecs;
 
         if uses_cram_3_1_codecs(&self.options.block_content_encoder_map) {
             self.options.version = Version::new(3, 1);

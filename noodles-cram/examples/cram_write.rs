@@ -70,7 +70,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let header = build_header(&reference_sequences)?;
 
     let repository = fasta::Repository::new(reference_sequences);
-    let mut writer = cram::writer::Builder::default()
+    let mut writer = cram::io::writer::Builder::default()
         .set_reference_sequence_repository(repository)
         .build_with_writer(stdout);
 
