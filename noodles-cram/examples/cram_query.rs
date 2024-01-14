@@ -7,7 +7,6 @@
 use std::{
     env,
     io::{self, BufWriter, Write},
-    path::PathBuf,
 };
 
 use noodles_cram as cram;
@@ -17,7 +16,7 @@ use noodles_sam::{self as sam, alignment::io::Write as _};
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = env::args().skip(1);
 
-    let src = args.next().map(PathBuf::from).expect("missing src");
+    let src = args.next().expect("missing src");
     let region = args.next().expect("missing region").parse()?;
     let fasta_src = args.next();
 
