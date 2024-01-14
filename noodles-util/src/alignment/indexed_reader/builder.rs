@@ -164,7 +164,7 @@ impl Builder {
                     .build_from_path(src)
                     .map(IndexedReader::Bam)
             }
-            (Format::Cram, None) => cram::indexed_reader::Builder::default()
+            (Format::Cram, None) => cram::io::indexed_reader::Builder::default()
                 .set_reference_sequence_repository(self.reference_sequence_repository)
                 .build_from_path(src)
                 .map(IndexedReader::Cram),
@@ -238,7 +238,7 @@ impl Builder {
                 builder.build_from_reader(reader).map(IndexedReader::Bam)
             }
             (Format::Cram, None) => {
-                let mut builder = cram::indexed_reader::Builder::default()
+                let mut builder = cram::io::indexed_reader::Builder::default()
                     .set_reference_sequence_repository(self.reference_sequence_repository);
 
                 if let Some(Index::Crai(index)) = self.index {

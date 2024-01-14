@@ -6,7 +6,7 @@ use noodles_core::Position;
 use crate::{
     container::block,
     data_container::{slice, ReferenceSequenceContext},
-    reader::num::{get_itf8, get_ltf8},
+    io::reader::num::{get_itf8, get_ltf8},
 };
 
 pub fn get_header<B>(src: &mut B) -> io::Result<slice::Header>

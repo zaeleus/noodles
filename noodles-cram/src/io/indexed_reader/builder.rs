@@ -23,7 +23,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_cram::indexed_reader::Builder;
+    /// use noodles_cram::io::indexed_reader::Builder;
     /// use noodles_fasta as fasta;
     ///
     /// let reference_sequence_repository = fasta::Repository::default();
@@ -43,7 +43,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_cram::{crai, indexed_reader::Builder};
+    /// use noodles_cram::{crai, io::indexed_reader::Builder};
     /// let index = crai::Index::default();
     /// let builder = Builder::default().set_index(index);
     /// ```
@@ -59,7 +59,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```no_run
-    /// use noodles_cram::indexed_reader::Builder;
+    /// use noodles_cram::io::indexed_reader::Builder;
     /// let builder = Builder::default().build_from_path("sample.cram")?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
@@ -84,7 +84,7 @@ impl Builder {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_cram::{crai, indexed_reader::Builder};
+    /// use noodles_cram::{crai, io::indexed_reader::Builder};
     ///
     /// let index = crai::Index::default();
     /// let builder = Builder::default()
@@ -96,7 +96,7 @@ impl Builder {
     where
         R: Read,
     {
-        let inner = crate::reader::Builder::default()
+        let inner = crate::io::reader::Builder::default()
             .set_reference_sequence_repository(self.reference_sequence_repository)
             .build_from_reader(reader);
 

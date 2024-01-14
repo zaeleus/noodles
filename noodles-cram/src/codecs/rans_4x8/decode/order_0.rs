@@ -2,7 +2,7 @@ use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use crate::reader::num::read_itf8;
+use crate::io::reader::num::read_itf8;
 
 use super::{rans_advance_step, rans_get_cumulative_freq, rans_renorm};
 

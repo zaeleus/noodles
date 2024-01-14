@@ -9,7 +9,7 @@ use crate::{
     data_container::compression_header::{
         data_series_encoding_map::DataSeries, DataSeriesEncodingMap,
     },
-    reader::num::get_itf8,
+    io::reader::num::get_itf8,
 };
 
 pub(super) fn get_data_series_encoding_map(src: &mut Bytes) -> io::Result<DataSeriesEncodingMap> {

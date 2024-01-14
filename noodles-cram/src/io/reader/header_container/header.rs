@@ -3,7 +3,7 @@ use std::io::{self, Read};
 use byteorder::{LittleEndian, ReadBytesExt};
 use flate2::CrcReader;
 
-use crate::reader::num::{read_itf8, read_ltf8};
+use crate::io::reader::num::{read_itf8, read_ltf8};
 
 pub(super) fn read_header<R>(reader: &mut R) -> io::Result<usize>
 where

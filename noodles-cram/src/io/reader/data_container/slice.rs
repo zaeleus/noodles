@@ -9,7 +9,7 @@ use bytes::Bytes;
 use crate::{
     container::{block::ContentType, Block},
     data_container::{slice, Slice},
-    reader::container::read_block,
+    io::reader::container::read_block,
 };
 
 pub fn read_slice(src: &mut Bytes) -> io::Result<Slice> {

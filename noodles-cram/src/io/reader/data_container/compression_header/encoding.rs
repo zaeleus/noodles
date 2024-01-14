@@ -11,7 +11,7 @@ use crate::{
         },
         Encoding,
     },
-    reader::num::get_itf8,
+    io::reader::num::get_itf8,
 };
 
 pub fn get_encoding_for_byte_codec(src: &mut Bytes) -> io::Result<Encoding<Byte>> {

@@ -12,7 +12,7 @@ pub async fn read_header<R>(reader: &mut R) -> io::Result<Option<Header>>
 where
     R: AsyncRead + Unpin,
 {
-    use crate::reader::data_container::header::{build_reference_sequence_context, is_eof};
+    use crate::io::reader::data_container::header::{build_reference_sequence_context, is_eof};
 
     let mut crc_reader = CrcReader::new(reader);
 

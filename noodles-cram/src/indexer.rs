@@ -5,7 +5,7 @@ use noodles_core::Position;
 use super::{
     crai,
     data_container::{slice, CompressionHeader, Slice},
-    Reader,
+    io::Reader,
 };
 
 /// Indexes a CRAM file.

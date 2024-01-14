@@ -4,7 +4,7 @@ use bytes::{Buf, Bytes};
 
 use super::get_encoding_for_byte_array_codec;
 use crate::{
-    container::block, data_container::compression_header::TagEncodingMap, reader::num::get_itf8,
+    container::block, data_container::compression_header::TagEncodingMap, io::reader::num::get_itf8,
 };
 
 pub fn get_tag_encoding_map(src: &mut Bytes) -> io::Result<TagEncodingMap> {

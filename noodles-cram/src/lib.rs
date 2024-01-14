@@ -11,17 +11,15 @@ pub mod crai;
 pub mod data_container;
 pub mod file_definition;
 mod huffman;
-pub mod indexed_reader;
 mod indexer;
-pub(crate) mod io;
+pub mod io;
 mod num;
-pub mod reader;
 pub mod record;
 pub mod writer;
 
 pub use self::{
-    data_container::DataContainer, file_definition::FileDefinition, indexed_reader::IndexedReader,
-    indexer::index, reader::Reader, record::Record, writer::Writer,
+    data_container::DataContainer, file_definition::FileDefinition, indexer::index, record::Record,
+    writer::Writer,
 };
 
 #[cfg(feature = "async")]

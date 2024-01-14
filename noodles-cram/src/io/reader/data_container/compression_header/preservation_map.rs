@@ -8,7 +8,7 @@ use crate::{
         preservation_map::{tag_ids_dictionary, Key},
         PreservationMap, SubstitutionMatrix, TagIdsDictionary,
     },
-    reader::num::get_itf8,
+    io::reader::num::get_itf8,
 };
 
 pub(super) fn get_preservation_map(src: &mut Bytes) -> io::Result<PreservationMap> {

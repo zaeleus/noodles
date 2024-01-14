@@ -25,7 +25,7 @@ where
 }
 
 fn read_raw_sam_header_from_block(src: &mut Bytes) -> io::Result<String> {
-    use crate::reader::container::read_block;
+    use crate::io::reader::container::read_block;
 
     let block = read_block(src)?;
     read_raw_sam_header(&block)

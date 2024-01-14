@@ -6,7 +6,7 @@ use tokio::io::{self, AsyncRead, AsyncReadExt};
 use self::header::read_header;
 use crate::{
     data_container::DataContainer,
-    reader::data_container::{read_compression_header_from_block, read_slice},
+    io::reader::data_container::{read_compression_header_from_block, read_slice},
 };
 
 pub async fn read_data_container<R>(

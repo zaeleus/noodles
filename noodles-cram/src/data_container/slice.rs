@@ -62,7 +62,7 @@ impl Slice {
     /// use noodles_cram as cram;
     ///
     /// let data = [];
-    /// let mut reader = cram::Reader::new(&data[..]);
+    /// let mut reader = cram::io::Reader::new(&data[..]);
     /// reader.read_header()?;
     ///
     /// while let Some(container) = reader.read_data_container()? {
@@ -74,7 +74,7 @@ impl Slice {
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn records(&self, compression_header: &CompressionHeader) -> io::Result<Vec<Record>> {
-        use crate::reader::record::ExternalDataReaders;
+        use crate::io::reader::record::ExternalDataReaders;
 
         let core_data_reader = self
             .core_data_block
@@ -88,7 +88,7 @@ impl Slice {
             external_data_readers.insert(block.content_id(), reader);
         }
 
-        let mut record_reader = crate::reader::record::Reader::new(
+        let mut record_reader = crate::io::reader::record::Reader::new(
             compression_header,
             core_data_reader,
             external_data_readers,

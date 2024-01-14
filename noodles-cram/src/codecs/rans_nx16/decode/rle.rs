@@ -2,7 +2,7 @@ use std::io::{self, Read};
 
 use byteorder::ReadBytesExt;
 
-use crate::reader::num::read_uint7;
+use crate::io::reader::num::read_uint7;
 
 pub fn decode<R>(
     mut src: &[u8],

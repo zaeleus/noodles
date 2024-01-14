@@ -11,7 +11,7 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use super::Flags;
-use crate::reader::num::read_uint7;
+use crate::io::reader::num::read_uint7;
 
 pub fn decode<R>(reader: &mut R, mut len: usize) -> io::Result<Vec<u8>>
 where

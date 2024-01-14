@@ -11,10 +11,10 @@ use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 use super::{
-    crai,
     reader::{Query, Records},
-    DataContainer, FileDefinition, Reader,
+    Reader,
 };
+use crate::{crai, DataContainer, FileDefinition};
 
 /// An indexed CRAM reader.
 pub struct IndexedReader<R> {

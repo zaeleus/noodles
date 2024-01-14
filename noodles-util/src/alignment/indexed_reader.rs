@@ -19,7 +19,7 @@ pub enum IndexedReader<R> {
     /// BAM.
     Bam(bam::io::IndexedReader<bgzf::Reader<R>>),
     /// CRAM.
-    Cram(cram::IndexedReader<R>),
+    Cram(cram::io::IndexedReader<R>),
 }
 
 impl<R> IndexedReader<R>

@@ -12,7 +12,7 @@ use noodles_cram as cram;
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = cram::reader::Builder::default().build_from_path(src)?;
+    let mut reader = cram::io::reader::Builder::default().build_from_path(src)?;
     reader.read_header()?;
 
     let mut n = 0;

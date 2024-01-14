@@ -9,8 +9,10 @@ use crate::{
     container::block,
     data_container::compression_header::encoding::{Decode, Encode},
     huffman::CanonicalHuffmanDecoder,
-    io::{BitReader, BitWriter},
-    reader::{num::get_itf8, record::ExternalDataReaders},
+    io::{
+        reader::{num::get_itf8, record::ExternalDataReaders},
+        BitReader, BitWriter,
+    },
     writer::num::write_itf8,
 };
 

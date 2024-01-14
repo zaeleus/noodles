@@ -18,8 +18,9 @@ use noodles_core::Region;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
-use super::{crai, file_definition::Version, FileDefinition, MAGIC_NUMBER};
-use crate::data_container::DataContainer;
+use crate::{
+    crai, data_container::DataContainer, file_definition::Version, FileDefinition, MAGIC_NUMBER,
+};
 
 /// A CRAM reader.
 ///
@@ -33,7 +34,7 @@ use crate::data_container::DataContainer;
 /// use noodles_cram as cram;
 /// use noodles_fasta as fasta;
 ///
-/// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
+/// let mut reader = File::open("sample.cram").map(cram::io::Reader::new)?;
 /// let header = reader.read_header()?;
 ///
 /// for result in reader.records(&header) {
@@ -60,7 +61,7 @@ where
     /// ```no_run
     /// # use std::{fs::File, io};
     /// use noodles_cram as cram;
-    /// let mut reader = File::open("sample.bam").map(cram::Reader::new)?;
+    /// let mut reader = File::open("sample.bam").map(cram::io::Reader::new)?;
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn new(inner: R) -> Self {
@@ -74,7 +75,7 @@ where
     /// ```
     /// use noodles_cram as cram;
     /// let data = [];
-    /// let reader = cram::Reader::new(&data[..]);
+    /// let reader = cram::io::Reader::new(&data[..]);
     /// assert!(reader.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &R {
@@ -88,7 +89,7 @@ where
     /// ```
     /// use noodles_cram as cram;
     /// let data = [];
-    /// let mut reader = cram::Reader::new(&data[..]);
+    /// let mut reader = cram::io::Reader::new(&data[..]);
     /// assert!(reader.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
@@ -102,7 +103,7 @@ where
     /// ```
     /// use noodles_cram as cram;
     /// let data = [];
-    /// let reader = cram::Reader::new(&data[..]);
+    /// let reader = cram::io::Reader::new(&data[..]);
     /// assert!(reader.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> R {
@@ -124,7 +125,7 @@ where
     /// ```no_run
     /// # use std::{fs::File, io};
     /// use noodles_cram as cram;
-    /// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
+    /// let mut reader = File::open("sample.cram").map(cram::io::Reader::new)?;
     /// let file_definition = reader.read_file_definition()?;
     /// # Ok::<(), io::Error>(())
     /// ```
@@ -148,7 +149,7 @@ where
     /// # use std::{fs::File, io};
     /// use noodles_cram as cram;
     ///
-    /// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
+    /// let mut reader = File::open("sample.cram").map(cram::io::Reader::new)?;
     /// reader.read_file_definition()?;
     ///
     /// let header = reader.read_file_header()?;
@@ -171,7 +172,7 @@ where
     /// ```no_run
     /// # use std::{fs::File, io};
     /// use noodles_cram as cram;
-    /// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
+    /// let mut reader = File::open("sample.cram").map(cram::io::Reader::new)?;
     /// let header = reader.read_header()?;
     /// # Ok::<(), io::Error>(())
     /// ```
@@ -198,7 +199,7 @@ where
     /// # use std::{fs::File, io};
     /// use noodles_cram as cram;
     ///
-    /// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
+    /// let mut reader = File::open("sample.cram").map(cram::io::Reader::new)?;
     /// reader.read_header()?;
     ///
     /// while let Some(container) = reader.read_data_container()? {
@@ -223,7 +224,7 @@ where
     /// use noodles_cram as cram;
     /// use noodles_fasta as fasta;
     ///
-    /// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
+    /// let mut reader = File::open("sample.cram").map(cram::io::Reader::new)?;
     /// let header = reader.read_header()?;
     ///
     /// for result in reader.records(&header) {
@@ -252,7 +253,7 @@ where
     /// use std::io::SeekFrom;
     /// use noodles_cram as cram;
     ///
-    /// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
+    /// let mut reader = File::open("sample.cram").map(cram::io::Reader::new)?;
     /// reader.seek(SeekFrom::Start(17711))?;
     /// # Ok::<(), io::Error>(())
     /// ```
@@ -268,7 +269,7 @@ where
     /// # use std::io::{self, Cursor};
     /// use noodles_cram as cram;
     /// let data = Cursor::new(Vec::new());
-    /// let mut reader = cram::Reader::new(data);
+    /// let mut reader = cram::io::Reader::new(data);
     /// let position = reader.position()?;
     /// assert_eq!(position, 0);
     /// # Ok::<(), io::Error>(())
@@ -286,7 +287,7 @@ where
     /// use noodles_cram::{self as cram, crai};
     /// use noodles_fasta as fasta;
     ///
-    /// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
+    /// let mut reader = File::open("sample.cram").map(cram::io::Reader::new)?;
     ///
     /// let header = reader.read_header()?;
     /// let index = crai::read("sample.cram.crai")?;

@@ -8,7 +8,7 @@ use super::{
     parameters::{self, fqz_decode_params, Parameters},
     Models,
 };
-use crate::{codecs::aac::RangeCoder, reader::num::read_uint7};
+use crate::{codecs::aac::RangeCoder, io::reader::num::read_uint7};
 
 pub fn decode<R>(reader: &mut R) -> io::Result<Vec<u8>>
 where

@@ -12,8 +12,7 @@ use std::{
 
 use crate::{
     container::block,
-    io::{BitReader, BitWriter},
-    reader::record::ExternalDataReaders,
+    io::{reader::record::ExternalDataReaders, BitReader, BitWriter},
 };
 
 pub trait Decode {

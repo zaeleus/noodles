@@ -9,7 +9,7 @@ use noodles_core::Position;
 
 use crate::{
     data_container::{Header, ReferenceSequenceContext},
-    reader::num::{read_itf8, read_ltf8},
+    io::reader::num::{read_itf8, read_ltf8},
 };
 
 // § 9 "End of file container" (2022-04-12)

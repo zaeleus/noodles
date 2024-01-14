@@ -7,8 +7,7 @@ use crate::{
     container::block,
     data_container::compression_header::encoding::{Decode, Encode},
     huffman::CanonicalHuffmanDecoder,
-    io::{BitReader, BitWriter},
-    reader::record::ExternalDataReaders,
+    io::{reader::record::ExternalDataReaders, BitReader, BitWriter},
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]

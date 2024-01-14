@@ -2,7 +2,7 @@ use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use crate::reader::num::read_uint7;
+use crate::io::reader::num::read_uint7;
 
 pub fn decode<R>(reader: &mut R, output: &mut [u8], n: u32) -> io::Result<()>
 where

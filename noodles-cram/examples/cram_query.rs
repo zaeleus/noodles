@@ -28,7 +28,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(fasta::Repository::new)
         .unwrap_or_default();
 
-    let mut reader = cram::indexed_reader::Builder::default()
+    let mut reader = cram::io::indexed_reader::Builder::default()
         .set_reference_sequence_repository(reference_sequence_repository)
         .build_from_path(src)?;
 

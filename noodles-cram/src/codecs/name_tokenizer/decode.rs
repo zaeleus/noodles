@@ -5,7 +5,7 @@ use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use super::Type;
 use crate::{
     codecs::{aac, rans_nx16},
-    reader::num::read_uint7,
+    io::reader::num::read_uint7,
 };
 
 pub fn decode<R>(reader: &mut R) -> io::Result<Vec<u8>>

@@ -3,7 +3,7 @@ use std::io::{self, Read};
 use byteorder::ReadBytesExt;
 
 use super::{Flags, Model, RangeCoder};
-use crate::reader::num::read_uint7;
+use crate::io::reader::num::read_uint7;
 
 pub fn decode<R>(reader: &mut R, mut len: usize) -> io::Result<Vec<u8>>
 where
