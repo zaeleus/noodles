@@ -1,3 +1,5 @@
+use std::str;
+
 use noodles_core::{region::Interval, Region};
 use serde::{
     ser::{self, SerializeMap, SerializeSeq},
@@ -37,7 +39,8 @@ impl<'a> Serialize for HtsgetRegion<'a> {
     {
         let mut map = serializer.serialize_map(None)?;
 
-        map.serialize_entry("referenceName", self.0.name())?;
+        let name = str::from_utf8(self.0.name()).map_err(ser::Error::custom)?;
+        map.serialize_entry("referenceName", name)?;
 
         let (resolved_start, resolved_end) = resolve_interval(self.0.interval());
 

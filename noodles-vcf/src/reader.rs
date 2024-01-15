@@ -464,7 +464,7 @@ where
     Ok(len)
 }
 
-pub(crate) fn resolve_region<I>(index: &I, region: &Region) -> io::Result<(usize, String)>
+pub(crate) fn resolve_region<I>(index: &I, region: &Region) -> io::Result<(usize, Vec<u8>)>
 where
     I: BinningIndex,
 {
@@ -472,9 +472,12 @@ where
         .header()
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing tabix header"))?;
 
+    let region_name = str::from_utf8(region.name())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
     let i = header
         .reference_sequence_names()
-        .get_index_of(region.name())
+        .get_index_of(region_name)
         .ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,

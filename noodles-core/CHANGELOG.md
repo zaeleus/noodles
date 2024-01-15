@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * core/region: Change name to a byte string (`Vec<u8>`).
+
 ## 0.13.0 - 2023-12-14
 
 ### Changed

@@ -11,7 +11,7 @@ pub use self::{builder::Builder, query::Query, records::Records};
 
 use std::{
     io::{self, BufRead, Read, Seek},
-    iter,
+    iter, str,
 };
 
 use byteorder::ReadBytesExt;
@@ -398,14 +398,15 @@ pub(crate) fn resolve_region(
     contig_string_map: &ContigStringMap,
     region: &Region,
 ) -> io::Result<usize> {
-    contig_string_map
-        .get_index_of(region.name())
-        .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidInput,
-                format!("region does not exist in contigs: {region:?}"),
-            )
-        })
+    let region_name = str::from_utf8(region.name())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+    contig_string_map.get_index_of(region_name).ok_or_else(|| {
+        io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!("region does not exist in contigs: {region:?}"),
+        )
+    })
 }
 
 #[cfg(test)]

@@ -23,7 +23,7 @@ where
 
     chunks: vec::IntoIter<Chunk>,
 
-    reference_sequence_name: String,
+    reference_sequence_name: Vec<u8>,
     interval: Interval,
 
     state: State,
@@ -34,7 +34,7 @@ where
 pub fn query<'r, R>(
     reader: &'r mut Reader<bgzf::AsyncReader<R>>,
     chunks: Vec<Chunk>,
-    reference_sequence_name: String,
+    reference_sequence_name: Vec<u8>,
     interval: Interval,
     header: &'r Header,
 ) -> impl Stream<Item = io::Result<Record>> + 'r

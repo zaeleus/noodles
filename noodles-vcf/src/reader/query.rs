@@ -15,7 +15,7 @@ where
     R: Read + Seek,
 {
     reader: Reader<csi::io::Query<'r, R>>,
-    reference_sequence_name: String,
+    reference_sequence_name: Vec<u8>,
     interval: Interval,
     header: &'h Header,
     record: Record,
@@ -28,7 +28,7 @@ where
     pub(super) fn new(
         reader: &'r mut bgzf::Reader<R>,
         chunks: Vec<Chunk>,
-        reference_sequence_name: String,
+        reference_sequence_name: Vec<u8>,
         interval: Interval,
         header: &'h Header,
     ) -> Self {
@@ -76,7 +76,7 @@ where
 
 pub(crate) fn intersects(
     record: &Record,
-    reference_sequence_name: &str,
+    reference_sequence_name: &[u8],
     region_interval: Interval,
 ) -> io::Result<bool> {
     use noodles_core::Position;
@@ -96,5 +96,5 @@ pub(crate) fn intersects(
 
     let record_interval = Interval::from(start..=end);
 
-    Ok(name == reference_sequence_name && record_interval.intersects(region_interval))
+    Ok(name.as_bytes() == reference_sequence_name && record_interval.intersects(region_interval))
 }

@@ -243,11 +243,14 @@ where
 
         let index_record = index
             .iter()
-            .find(|record| record.name() == region.name())
+            .find(|record| record.name().as_bytes() == region.name())
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidInput,
-                    format!("invalid reference sequence name: {}", region.name()),
+                    format!(
+                        "invalid reference sequence name: {}",
+                        String::from_utf8_lossy(region.name())
+                    ),
                 )
             })?;
 

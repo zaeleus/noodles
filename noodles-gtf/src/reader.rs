@@ -1,6 +1,6 @@
 use std::{
     io::{self, BufRead, Read, Seek},
-    iter,
+    iter, str,
 };
 
 use noodles_bgzf as bgzf;
@@ -149,9 +149,12 @@ where
             .header()
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing index header"))?;
 
+        let region_name = str::from_utf8(region.name())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
         let reference_sequence_id = header
             .reference_sequence_names()
-            .get_index_of(region.name())
+            .get_index_of(region_name)
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidInput,

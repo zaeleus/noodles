@@ -50,7 +50,7 @@ fn intersects<R>(record: &R, region: &Region) -> bool
 where
     R: IndexedRecord,
 {
-    record.indexed_reference_sequence_name() == region.name()
+    record.indexed_reference_sequence_name().as_bytes() == region.name()
         && record.indexed_interval().intersects(region.interval())
 }
 

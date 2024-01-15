@@ -5,6 +5,7 @@
 use std::{
     env,
     io::{self, BufWriter, Write},
+    str,
 };
 
 use noodles_bam as bam;
@@ -29,7 +30,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let stdout = io::stdout().lock();
     let mut writer = BufWriter::new(stdout);
 
-    let reference_sequence_name = region.name();
+    let reference_sequence_name =
+        str::from_utf8(region.name()).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     for result in pileup {
         let (position, depth) = result?;
