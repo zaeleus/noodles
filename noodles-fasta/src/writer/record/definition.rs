@@ -27,11 +27,11 @@ where
     writer.write_all(&[PREFIX])
 }
 
-fn write_name<W>(writer: &mut W, name: &str) -> io::Result<()>
+fn write_name<W>(writer: &mut W, name: &[u8]) -> io::Result<()>
 where
     W: Write,
 {
-    writer.write_all(name.as_bytes())
+    writer.write_all(name)
 }
 
 fn write_separator<W>(writer: &mut W) -> io::Result<()>
@@ -41,11 +41,11 @@ where
     writer.write_all(&[SEPARATOR])
 }
 
-fn write_description<W>(writer: &mut W, description: &str) -> io::Result<()>
+fn write_description<W>(writer: &mut W, description: &[u8]) -> io::Result<()>
 where
     W: Write,
 {
-    writer.write_all(description.as_bytes())
+    writer.write_all(description)
 }
 
 #[cfg(test)]
@@ -66,7 +66,7 @@ mod tests {
         t(&mut buf, &Definition::new("sq0", None), b">sq0")?;
         t(
             &mut buf,
-            &Definition::new("sq0", Some(String::from("LN:8"))),
+            &Definition::new("sq0", Some(Vec::from("LN:8"))),
             b">sq0 LN:8",
         )?;
 

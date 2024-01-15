@@ -42,7 +42,7 @@
 //!
 //! for result in reader.records() {
 //!     let record = result?;
-//!     println!("{}\t{}", record.name(), record.sequence().len());
+//!     // ...
 //! }
 //! # Ok::<(), io::Error>(())
 //! ```

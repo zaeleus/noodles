@@ -1,6 +1,6 @@
 //! Prints the reference sequence names and lengths of all the records in a FASTA file.
 
-use std::{env, io};
+use std::{env, io, str};
 
 use noodles_fasta as fasta;
 
@@ -12,7 +12,12 @@ fn main() -> io::Result<()> {
     for result in reader.records() {
         let record = result?;
 
-        println!("{}\t{}", record.name(), record.sequence().len());
+        let name = str::from_utf8(record.name())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+        let length = record.sequence().len();
+
+        println!("{name}\t{length}");
     }
 
     Ok(())

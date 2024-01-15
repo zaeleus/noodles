@@ -243,7 +243,7 @@ where
 
         let index_record = index
             .iter()
-            .find(|record| record.name().as_bytes() == region.name())
+            .find(|record| record.name() == region.name())
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidInput,

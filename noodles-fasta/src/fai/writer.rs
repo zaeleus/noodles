@@ -64,10 +64,11 @@ fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
 where
     W: Write,
 {
+    writer.write_all(record.name())?;
+
     writeln!(
         writer,
-        "{name}\t{length}\t{offset}\t{line_bases}\t{line_width}",
-        name = record.name(),
+        "\t{length}\t{offset}\t{line_bases}\t{line_width}",
         length = record.length(),
         offset = record.offset(),
         line_bases = record.line_bases(),

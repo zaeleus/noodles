@@ -33,7 +33,7 @@ impl<R> Adapter for IndexedReader<R>
 where
     R: BufRead + Seek,
 {
-    fn get(&mut self, name: &str) -> Option<io::Result<Record>> {
+    fn get(&mut self, name: &[u8]) -> Option<io::Result<Record>> {
         let region = Region::new(name, ..);
         Some(self.reader.query(&region))
     }

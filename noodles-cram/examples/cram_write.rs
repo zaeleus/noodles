@@ -5,7 +5,7 @@
 //!
 //! Verify the output by piping to `samtools view --no-PG --with-header`.
 
-use std::{io, num::NonZeroUsize};
+use std::{io, num::NonZeroUsize, str};
 
 use noodles_core::Position;
 use noodles_cram as cram;
@@ -52,7 +52,7 @@ fn build_header(
         .add_comment("an example CRAM written by noodles-cram");
 
     for record in reference_sequence_records {
-        let name = record.name().parse()?;
+        let name = str::from_utf8(record.name())?.parse()?;
         let length = NonZeroUsize::try_from(record.sequence().len())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
         let reference_sequence = Map::<ReferenceSequence>::new(length);

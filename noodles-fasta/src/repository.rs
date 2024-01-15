@@ -11,7 +11,7 @@ use super::record::Sequence;
 
 struct AdapterCache {
     adapter: Box<dyn Adapter>,
-    cache: HashMap<String, Sequence>,
+    cache: HashMap<Vec<u8>, Sequence>,
 }
 
 /// A caching sequence repository.
@@ -30,7 +30,7 @@ impl Repository {
     }
 
     /// Returns the sequence of the given name.
-    pub fn get(&self, name: &str) -> Option<io::Result<Sequence>> {
+    pub fn get(&self, name: &[u8]) -> Option<io::Result<Sequence>> {
         {
             let lock = self.0.read().unwrap();
 
@@ -106,10 +106,10 @@ mod tests {
         let repository = Repository::new(vec![sq0.clone()]);
 
         assert_eq!(
-            repository.get("sq0").transpose()?,
+            repository.get(b"sq0").transpose()?,
             Some(sq0.sequence().clone())
         );
-        assert_eq!(repository.get("sq1").transpose()?, None);
+        assert_eq!(repository.get(b"sq1").transpose()?, None);
 
         Ok(())
     }

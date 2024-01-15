@@ -58,9 +58,9 @@ impl Record {
     /// let sequence = Sequence::from(b"ACGT".to_vec());
     /// let record = fasta::Record::new(definition, sequence);
     ///
-    /// assert_eq!(record.name(), "sq0");
+    /// assert_eq!(record.name(), b"sq0");
     /// ```
-    pub fn name(&self) -> &str {
+    pub fn name(&self) -> &[u8] {
         self.definition.name()
     }
 
@@ -71,13 +71,13 @@ impl Record {
     /// ```
     /// use noodles_fasta::{self as fasta, record::{Definition, Sequence}};
     ///
-    /// let definition = Definition::new("sq0", Some(String::from("LN:4")));
+    /// let definition = Definition::new("sq0", Some(Vec::from("LN:4")));
     /// let sequence = Sequence::from(b"ACGT".to_vec());
     /// let record = fasta::Record::new(definition, sequence);
     ///
-    /// assert_eq!(record.description(), Some("LN:4"));
+    /// assert_eq!(record.description(), Some(&b"LN:4"[..]));
     /// ```
-    pub fn description(&self) -> Option<&str> {
+    pub fn description(&self) -> Option<&[u8]> {
         self.definition.description()
     }
 

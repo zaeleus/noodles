@@ -16,7 +16,7 @@ impl Empty {
 }
 
 impl Adapter for Empty {
-    fn get(&mut self, _: &str) -> Option<io::Result<Record>> {
+    fn get(&mut self, _: &[u8]) -> Option<io::Result<Record>> {
         None
     }
 }
@@ -28,6 +28,6 @@ mod tests {
     #[test]
     fn test_get() {
         let mut adapter = Empty::new();
-        assert!(adapter.get("sq0").is_none());
+        assert!(adapter.get(b"sq0").is_none());
     }
 }

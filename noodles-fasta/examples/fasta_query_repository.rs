@@ -13,7 +13,7 @@ fn main() -> io::Result<()> {
     let repository = fasta::Repository::new(adapter);
 
     let sequence = repository
-        .get(&name)
+        .get(name.as_bytes())
         .transpose()?
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid name"))?;
 

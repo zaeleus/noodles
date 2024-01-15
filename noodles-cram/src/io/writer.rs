@@ -312,7 +312,7 @@ pub(crate) fn add_missing_reference_sequence_checksums(
     for (name, reference_sequence) in reference_sequences {
         if reference_sequence.md5_checksum().is_none() {
             let sequence = reference_sequence_repository
-                .get(name)
+                .get(name.as_bytes())
                 .transpose()?
                 .expect("missing reference sequence");
 

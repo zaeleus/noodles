@@ -313,7 +313,7 @@ fn resolve_bases(
                 .expect("invalid slice reference sequence ID");
 
             let sequence = reference_sequence_repository
-                .get(reference_sequence_name)
+                .get(reference_sequence_name.as_bytes())
                 .transpose()?
                 .expect("invalid slice reference sequence name");
 
@@ -385,7 +385,7 @@ fn resolve_bases(
                     .expect("invalid reference sequence ID");
 
                 let sequence = reference_sequence_repository
-                    .get(reference_sequence_name)
+                    .get(reference_sequence_name.as_bytes())
                     .transpose()?
                     .expect("invalid reference sequence name");
 

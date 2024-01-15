@@ -10,7 +10,7 @@ const MAX_FIELDS: usize = 5;
 /// A FASTA index record.
 #[derive(Debug, Default, Eq, PartialEq)]
 pub struct Record {
-    name: String,
+    name: Vec<u8>,
     length: u64,
     offset: u64,
     line_bases: u64,
@@ -28,7 +28,7 @@ impl Record {
     /// ```
     pub fn new<N>(name: N, length: u64, offset: u64, line_bases: u64, line_width: u64) -> Self
     where
-        N: Into<String>,
+        N: Into<Vec<u8>>,
     {
         Self {
             name: name.into(),
@@ -46,9 +46,9 @@ impl Record {
     /// ```
     /// use noodles_fasta::fai;
     /// let record = fai::Record::new("sq0", 8, 4, 80, 81);
-    /// assert_eq!(record.name(), "sq0");
+    /// assert_eq!(record.name(), b"sq0");
     /// ```
-    pub fn name(&self) -> &str {
+    pub fn name(&self) -> &[u8] {
         &self.name
     }
 

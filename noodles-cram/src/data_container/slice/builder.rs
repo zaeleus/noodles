@@ -107,7 +107,7 @@ impl Builder {
                     .expect("invalid reference sequence ID");
 
                 let reference_sequence = reference_sequence_repostitory
-                    .get(reference_sequence_name)
+                    .get(reference_sequence_name.as_bytes())
                     .expect("missing reference sequence")
                     .expect("invalid reference sequence");
 

@@ -1,6 +1,9 @@
 //! FASTA record definition and components.
 
-use std::{error, fmt, str::FromStr};
+use std::{
+    error, fmt,
+    str::{self, FromStr},
+};
 
 const PREFIX: char = '>';
 
@@ -10,8 +13,8 @@ const PREFIX: char = '>';
 /// description.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Definition {
-    name: String,
-    description: Option<String>,
+    name: Vec<u8>,
+    description: Option<Vec<u8>>,
 }
 
 impl Definition {
@@ -23,9 +26,9 @@ impl Definition {
     /// use noodles_fasta::record::Definition;
     /// let definition = Definition::new("sq0", None);
     /// ```
-    pub fn new<N>(name: N, description: Option<String>) -> Self
+    pub fn new<N>(name: N, description: Option<Vec<u8>>) -> Self
     where
-        N: Into<String>,
+        N: Into<Vec<u8>>,
     {
         Self {
             name: name.into(),
@@ -40,9 +43,9 @@ impl Definition {
     /// ```
     /// use noodles_fasta::record::Definition;
     /// let definition = Definition::new("sq0", None);
-    /// assert_eq!(definition.name(), "sq0");
+    /// assert_eq!(definition.name(), b"sq0");
     /// ```
-    pub fn name(&self) -> &str {
+    pub fn name(&self) -> &[u8] {
         &self.name
     }
 
@@ -56,19 +59,21 @@ impl Definition {
     /// let definition = Definition::new("sq0", None);
     /// assert_eq!(definition.description(), None);
     ///
-    /// let definition = Definition::new("sq0", Some(String::from("LN:13")));
-    /// assert_eq!(definition.description(), Some("LN:13"));
+    /// let definition = Definition::new("sq0", Some(Vec::from("LN:13")));
+    /// assert_eq!(definition.description(), Some(&b"LN:13"[..]));
     /// ```
-    pub fn description(&self) -> Option<&str> {
+    pub fn description(&self) -> Option<&[u8]> {
         self.description.as_deref()
     }
 }
 
 impl fmt::Display for Definition {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}{}", PREFIX, self.name())?;
+        let name = str::from_utf8(self.name()).map_err(|_| fmt::Error)?;
+        write!(f, "{PREFIX}{name}")?;
 
-        if let Some(description) = self.description() {
+        if let Some(buf) = self.description() {
+            let description = str::from_utf8(buf).map_err(|_| fmt::Error)?;
             write!(f, " {description}")?;
         }
 
@@ -132,7 +137,7 @@ mod tests {
         let definition = Definition::new("sq0", None);
         assert_eq!(definition.to_string(), ">sq0");
 
-        let definition = Definition::new("sq0", Some(String::from("LN:13")));
+        let definition = Definition::new("sq0", Some(Vec::from("LN:13")));
         assert_eq!(definition.to_string(), ">sq0 LN:13");
     }
 
@@ -142,7 +147,7 @@ mod tests {
 
         assert_eq!(
             ">sq0  LN:13".parse(),
-            Ok(Definition::new("sq0", Some(String::from("LN:13"))))
+            Ok(Definition::new("sq0", Some(Vec::from("LN:13"))))
         );
 
         assert_eq!("".parse::<Definition>(), Err(ParseError::Empty));

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * fasta/record/definition: Change fields to byte strings.
+
 ## 0.31.0 - 2023-12-14
 
 ### Changed
