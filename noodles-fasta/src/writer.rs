@@ -1,12 +1,13 @@
 //! FASTA writer.
 
 mod builder;
-
-pub use self::builder::Builder;
+mod record;
 
 use std::io::{self, Write};
 
-use super::{record::Sequence, Record};
+pub use self::builder::Builder;
+use self::record::write_record;
+use super::Record;
 
 /// A FASTA writer.
 pub struct Writer<W> {
@@ -66,26 +67,8 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        writeln!(self.inner, "{}", record.definition())?;
-        write_record_sequence(&mut self.inner, record.sequence(), self.line_base_count)?;
-        Ok(())
+        write_record(&mut self.inner, record, self.line_base_count)
     }
-}
-
-fn write_record_sequence<W>(
-    writer: &mut W,
-    sequence: &Sequence,
-    line_bases: usize,
-) -> io::Result<()>
-where
-    W: Write,
-{
-    for bases in sequence.as_ref().chunks(line_bases) {
-        writer.write_all(bases)?;
-        writeln!(writer)?;
-    }
-
-    Ok(())
 }
 
 #[cfg(test)]
@@ -96,30 +79,5 @@ mod tests {
     fn test_new() {
         let writer = Writer::new(Vec::new());
         assert_eq!(writer.line_base_count, 80);
-    }
-
-    #[test]
-    fn test_write_record_sequence() -> io::Result<()> {
-        let mut writer = Vec::new();
-        let sequence = Sequence::from(b"AC".to_vec());
-        write_record_sequence(&mut writer, &sequence, 4)?;
-        assert_eq!(writer, b"AC\n");
-
-        writer.clear();
-        let sequence = Sequence::from(b"ACGT".to_vec());
-        write_record_sequence(&mut writer, &sequence, 4)?;
-        assert_eq!(writer, b"ACGT\n");
-
-        writer.clear();
-        let sequence = Sequence::from(b"ACGTACGT".to_vec());
-        write_record_sequence(&mut writer, &sequence, 4)?;
-        assert_eq!(writer, b"ACGT\nACGT\n");
-
-        writer.clear();
-        let sequence = Sequence::from(b"ACGTACGTAC".to_vec());
-        write_record_sequence(&mut writer, &sequence, 4)?;
-        assert_eq!(writer, b"ACGT\nACGT\nAC\n");
-
-        Ok(())
     }
 }
