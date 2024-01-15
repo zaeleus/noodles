@@ -1,8 +1,9 @@
+mod definition;
 mod sequence;
 
 use std::io::{self, Write};
 
-use self::sequence::write_sequence;
+use self::{definition::write_definition, sequence::write_sequence};
 use crate::Record;
 
 pub(super) fn write_record<W>(
@@ -13,7 +14,18 @@ pub(super) fn write_record<W>(
 where
     W: Write,
 {
-    writeln!(writer, "{}", record.definition())?;
+    write_definition(writer, record.definition())?;
+    write_newline(writer)?;
+
     write_sequence(writer, record.sequence(), line_base_count)?;
+
     Ok(())
+}
+
+fn write_newline<W>(writer: &mut W) -> io::Result<()>
+where
+    W: Write,
+{
+    const NEWLINE: u8 = b'\n';
+    writer.write_all(&[NEWLINE])
 }
