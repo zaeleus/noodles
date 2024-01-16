@@ -22,5 +22,5 @@ pub enum Record {
     /// A program (`PG`) record.
     Program(Vec<u8>, Map<Program>),
     /// A comment (`CO`) record.
-    Comment(String),
+    Comment(Vec<u8>),
 }

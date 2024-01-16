@@ -77,7 +77,7 @@ pub struct Parser {
     reference_sequences: ReferenceSequences,
     read_groups: ReadGroups,
     programs: Programs,
-    comments: Vec<String>,
+    comments: Vec<Vec<u8>>,
 }
 
 impl Parser {

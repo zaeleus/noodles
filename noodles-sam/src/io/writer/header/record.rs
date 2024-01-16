@@ -68,7 +68,7 @@ where
     Ok(())
 }
 
-pub(super) fn write_comment<W>(writer: &mut W, comment: &str) -> io::Result<()>
+pub(super) fn write_comment<W>(writer: &mut W, comment: &[u8]) -> io::Result<()>
 where
     W: Write,
 {

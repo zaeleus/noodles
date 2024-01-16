@@ -13,7 +13,7 @@ pub struct Builder {
     reference_sequences: ReferenceSequences,
     read_groups: ReadGroups,
     programs: Programs,
-    comments: Vec<String>,
+    comments: Vec<Vec<u8>>,
 }
 
 impl Builder {
@@ -167,11 +167,11 @@ impl Builder {
     /// let header = sam::Header::builder().add_comment("noodles-sam").build();
     /// let comments = header.comments();
     /// assert_eq!(comments.len(), 1);
-    /// assert_eq!(&comments[0], "noodles-sam");
+    /// assert_eq!(&comments[0], b"noodles-sam");
     /// ```
-    pub fn add_comment<S>(mut self, comment: S) -> Self
+    pub fn add_comment<C>(mut self, comment: C) -> Self
     where
-        S: Into<String>,
+        C: Into<Vec<u8>>,
     {
         self.comments.push(comment.into());
         self
@@ -247,7 +247,7 @@ mod tests {
 
         let comments = header.comments();
         assert_eq!(comments.len(), 1);
-        assert_eq!(&comments[0], "written by noodles-sam");
+        assert_eq!(&comments[0], b"written by noodles-sam");
 
         Ok(())
     }

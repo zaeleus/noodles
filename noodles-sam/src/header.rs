@@ -112,7 +112,7 @@ pub struct Header {
     reference_sequences: ReferenceSequences,
     read_groups: ReadGroups,
     programs: Programs,
-    comments: Vec<String>,
+    comments: Vec<Vec<u8>>,
 }
 
 impl Header {
@@ -321,9 +321,9 @@ impl Header {
     /// use noodles_sam as sam;
     /// let header = sam::Header::builder().add_comment("noodles-sam").build();
     /// let comments = header.comments();
-    /// assert_eq!(header.comments(), [String::from("noodles-sam")]);
+    /// assert_eq!(header.comments(), [Vec::from("noodles-sam")]);
     /// ```
-    pub fn comments(&self) -> &[String] {
+    pub fn comments(&self) -> &[Vec<u8>] {
         &self.comments
     }
 
@@ -336,10 +336,10 @@ impl Header {
     /// ```
     /// use noodles_sam as sam;
     /// let mut header = sam::Header::default();
-    /// header.comments_mut().push(String::from("noodles-sam"));
-    /// assert_eq!(header.comments(), [String::from("noodles-sam")]);
+    /// header.comments_mut().push(Vec::from("noodles-sam"));
+    /// assert_eq!(header.comments(), [Vec::from("noodles-sam")]);
     /// ```
-    pub fn comments_mut(&mut self) -> &mut Vec<String> {
+    pub fn comments_mut(&mut self) -> &mut Vec<Vec<u8>> {
         &mut self.comments
     }
 
@@ -351,11 +351,11 @@ impl Header {
     /// use noodles_sam as sam;
     /// let mut header = sam::Header::default();
     /// header.add_comment("noodles-sam");
-    /// assert_eq!(header.comments(), [String::from("noodles-sam")]);
+    /// assert_eq!(header.comments(), [Vec::from("noodles-sam")]);
     /// ```
-    pub fn add_comment<S>(&mut self, comment: S)
+    pub fn add_comment<C>(&mut self, comment: C)
     where
-        S: Into<String>,
+        C: Into<Vec<u8>>,
     {
         self.comments.push(comment.into());
     }
@@ -436,7 +436,8 @@ impl fmt::Display for Header {
             writeln!(f, "{}{}\tID:{}{}", PREFIX, Kind::Program, id, program)?;
         }
 
-        for comment in &self.comments {
+        for buf in &self.comments {
+            let comment = str::from_utf8(buf).map_err(|_| fmt::Error)?;
             writeln!(f, "{}{}\t{}", PREFIX, Kind::Comment, comment)?;
         }
 

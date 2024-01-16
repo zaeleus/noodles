@@ -52,6 +52,8 @@
   * sam/header: Change `ReferenceSequences`, `ReadGroup`, and `Program` keys to
     byte strings (`Vec<u8>`).
 
+  * sam/header: Change `Comments` to a list of byte strings (`Vec<Vec<u8>>`).
+
   * sam/io/reader: Rename record to record buf and lazy record to record.
 
     This changes the following:
