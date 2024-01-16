@@ -157,7 +157,7 @@ fn try_insert<V>(
     value: V,
 ) -> Result<(), ParseError>
 where
-    V: Into<String>,
+    V: Into<Vec<u8>>,
 {
     if other_fields.insert(tag, value.into()).is_some() && !ctx.allow_duplicate_tags() {
         Err(ParseError::DuplicateTag(Tag::Other(tag)))

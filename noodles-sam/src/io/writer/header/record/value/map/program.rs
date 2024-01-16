@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use super::{write_field, write_other_fields};
+use super::{fmt_display_field, write_other_fields};
 use crate::header::record::value::{
     map::{program::tag, Program},
     Map,
@@ -18,23 +18,23 @@ where
     writer.write_all(id)?;
 
     if let Some(name) = program.name() {
-        write_field(writer, tag::NAME, name)?;
+        fmt_display_field(writer, tag::NAME, name)?;
     }
 
     if let Some(command_line) = program.command_line() {
-        write_field(writer, tag::COMMAND_LINE, command_line)?;
+        fmt_display_field(writer, tag::COMMAND_LINE, command_line)?;
     }
 
     if let Some(previous_id) = program.previous_id() {
-        write_field(writer, tag::PREVIOUS_ID, previous_id)?;
+        fmt_display_field(writer, tag::PREVIOUS_ID, previous_id)?;
     }
 
     if let Some(description) = program.description() {
-        write_field(writer, tag::DESCRIPTION, description)?;
+        fmt_display_field(writer, tag::DESCRIPTION, description)?;
     }
 
     if let Some(version) = program.version() {
-        write_field(writer, tag::VERSION, version)?;
+        fmt_display_field(writer, tag::VERSION, version)?;
     }
 
     write_other_fields(writer, program.other_fields())?;

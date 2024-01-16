@@ -59,13 +59,13 @@ where
     /// };
     ///
     /// let header = Map::<Header>::builder()
-    ///     .insert(nd, String::from("noodles"))
+    ///     .insert(nd, Vec::from("noodles"))
     ///     .build()?;
     ///
-    /// assert_eq!(header.other_fields().get(b"nd"), Some(&String::from("noodles")));
+    /// assert_eq!(header.other_fields().get(b"nd"), Some(&Vec::from("noodles")));
     /// # Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
     /// ```
-    pub fn insert(mut self, key: tag::Other<I::StandardTag>, value: String) -> Self {
+    pub fn insert(mut self, key: tag::Other<I::StandardTag>, value: Vec<u8>) -> Self {
         self.other_fields.insert(key, value);
         self
     }

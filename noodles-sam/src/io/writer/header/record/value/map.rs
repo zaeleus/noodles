@@ -16,7 +16,22 @@ use crate::header::record::value::map::OtherFields;
 
 const SEPARATOR: u8 = b':';
 
-fn write_field<W, K, V>(writer: &mut W, tag: K, value: V) -> io::Result<()>
+fn write_field<W, K>(writer: &mut W, tag: K, value: &[u8]) -> io::Result<()>
+where
+    W: Write,
+    K: AsRef<[u8; 2]>,
+{
+    use crate::io::writer::header::record::write_delimiter;
+
+    write_delimiter(writer)?;
+    writer.write_all(tag.as_ref())?;
+    write_separator(writer)?;
+    writer.write_all(value)?;
+
+    Ok(())
+}
+
+fn fmt_display_field<W, K, V>(writer: &mut W, tag: K, value: V) -> io::Result<()>
 where
     W: Write,
     K: AsRef<[u8; 2]>,
@@ -28,6 +43,7 @@ where
     writer.write_all(tag.as_ref())?;
     write_separator(writer)?;
     write!(writer, "{value}")?;
+
     Ok(())
 }
 

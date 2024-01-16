@@ -12,11 +12,11 @@ pub use self::{
     reference_sequence::ReferenceSequence, tag::Tag,
 };
 
-use std::fmt;
+use std::{fmt, str};
 
 use indexmap::IndexMap;
 
-pub(crate) type OtherFields<S> = IndexMap<tag::Other<S>, String>;
+pub(crate) type OtherFields<S> = IndexMap<tag::Other<S>, Vec<u8>>;
 
 /// An inner SAM header record map value.
 pub trait Inner: Sized {
@@ -59,7 +59,7 @@ where
     /// use noodles_sam::header::record::value::{map::{tag, Header}, Map};
     /// let mut map = Map::<Header>::new(Default::default());
     /// let nd = tag::Other::try_from([b'n', b'd'])?;
-    /// map.other_fields_mut().insert(nd, String::from("noodles"));
+    /// map.other_fields_mut().insert(nd, Vec::from("noodles"));
     /// # Ok::<_, tag::ParseError>(())
     /// ```
     pub fn other_fields_mut(&mut self) -> &mut OtherFields<I::StandardTag> {
@@ -85,7 +85,8 @@ fn fmt_display_other_fields<S>(
 ) -> fmt::Result {
     const DELIMITER: char = '\t';
 
-    for (key, value) in other_fields {
+    for (key, value_buf) in other_fields {
+        let value = str::from_utf8(value_buf).map_err(|_| fmt::Error)?;
         write!(f, "{DELIMITER}{key}:{value}")?;
     }
 
