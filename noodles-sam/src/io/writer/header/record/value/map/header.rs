@@ -1,5 +1,8 @@
+mod version;
+
 use std::io::{self, Write};
 
+use self::version::write_version_field;
 use super::{write_field, write_other_fields};
 use crate::header::record::value::{
     map::{header::tag, Header},
@@ -10,7 +13,7 @@ pub(crate) fn write_header<W>(writer: &mut W, header: &Map<Header>) -> io::Resul
 where
     W: Write,
 {
-    write_field(writer, tag::VERSION, header.version())?;
+    write_version_field(writer, header.version())?;
 
     if let Some(sort_order) = header.sort_order() {
         write_field(writer, tag::SORT_ORDER, sort_order)?;
