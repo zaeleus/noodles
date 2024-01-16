@@ -148,11 +148,11 @@ impl Builder {
     ///
     /// let programs = header.programs();
     /// assert_eq!(programs.len(), 1);
-    /// assert!(programs.contains_key("noodles-sam"));
+    /// assert!(programs.contains_key(&b"noodles-sam"[..]));
     /// ```
     pub fn add_program<I>(mut self, id: I, map: Map<Program>) -> Self
     where
-        I: Into<String>,
+        I: Into<Vec<u8>>,
     {
         self.programs.insert(id.into(), map);
         self

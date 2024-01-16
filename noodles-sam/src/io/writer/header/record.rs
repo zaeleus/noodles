@@ -57,7 +57,7 @@ where
     Ok(())
 }
 
-pub(super) fn write_program<W>(writer: &mut W, id: &str, program: &Map<Program>) -> io::Result<()>
+pub(super) fn write_program<W>(writer: &mut W, id: &[u8], program: &Map<Program>) -> io::Result<()>
 where
     W: Write,
 {

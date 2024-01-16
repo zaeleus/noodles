@@ -6,11 +6,16 @@ use crate::header::record::value::{
     Map,
 };
 
-pub(crate) fn write_program<W>(writer: &mut W, id: &str, program: &Map<Program>) -> io::Result<()>
+pub(crate) fn write_program<W>(writer: &mut W, id: &[u8], program: &Map<Program>) -> io::Result<()>
 where
     W: Write,
 {
-    write_field(writer, tag::ID, id)?;
+    use crate::io::writer::header::record::{value::map::write_separator, write_delimiter};
+
+    write_delimiter(writer)?;
+    writer.write_all(tag::ID.as_ref())?;
+    write_separator(writer)?;
+    writer.write_all(id)?;
 
     if let Some(name) = program.name() {
         write_field(writer, tag::NAME, name)?;

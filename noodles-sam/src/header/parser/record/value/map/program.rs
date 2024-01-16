@@ -72,7 +72,7 @@ impl fmt::Display for ParseError {
 pub(crate) fn parse_program(
     src: &mut &[u8],
     ctx: &Context,
-) -> Result<(String, Map<Program>), ParseError> {
+) -> Result<(Vec<u8>, Map<Program>), ParseError> {
     let mut id = None;
     let mut name = None;
     let mut command_line = None;
@@ -121,9 +121,9 @@ pub(crate) fn parse_program(
     ))
 }
 
-fn parse_id(src: &mut &[u8]) -> Result<String, ParseError> {
+fn parse_id(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
     parse_value(src)
-        .map(String::from)
+        .map(Vec::from)
         .map_err(ParseError::InvalidId)
 }
 
@@ -201,7 +201,7 @@ mod tests {
         let mut src = &b"\tID:pg0"[..];
         let ctx = Context::default();
         let actual = parse_program(&mut src, &ctx);
-        let expected = (String::from("pg0"), Map::<Program>::default());
+        let expected = (Vec::from("pg0"), Map::<Program>::default());
         assert_eq!(actual, Ok(expected));
     }
 

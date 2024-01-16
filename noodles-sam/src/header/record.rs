@@ -20,7 +20,7 @@ pub enum Record {
     /// A read group (`RG`) record.
     ReadGroup(Vec<u8>, Map<ReadGroup>),
     /// A program (`PG`) record.
-    Program(String, Map<Program>),
+    Program(Vec<u8>, Map<Program>),
     /// A comment (`CO`) record.
     Comment(String),
 }

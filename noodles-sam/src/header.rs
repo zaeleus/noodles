@@ -100,7 +100,7 @@ pub type ReferenceSequences = IndexMap<Vec<u8>, Map<ReferenceSequence>>;
 pub type ReadGroups = IndexMap<Vec<u8>, Map<ReadGroup>>;
 
 /// An ordered map of programs.
-pub type Programs = IndexMap<String, Map<Program>>;
+pub type Programs = IndexMap<Vec<u8>, Map<Program>>;
 
 /// A SAM header.
 ///
@@ -287,7 +287,7 @@ impl Header {
     ///
     /// let programs = header.programs();
     /// assert_eq!(programs.len(), 1);
-    /// assert!(programs.contains_key("noodles-sam"));
+    /// assert!(programs.contains_key(&b"noodles-sam"[..]));
     /// ```
     pub fn programs(&self) -> &Programs {
         &self.programs
@@ -303,11 +303,11 @@ impl Header {
     /// let mut header = sam::Header::default();
     ///
     /// let program = Map::<Program>::default();
-    /// header.programs_mut().insert(String::from("noodles-sam"), program);
+    /// header.programs_mut().insert(Vec::from("noodles-sam"), program);
     ///
     /// let programs = header.programs();
     /// assert_eq!(programs.len(), 1);
-    /// assert!(programs.contains_key("noodles-sam"));
+    /// assert!(programs.contains_key(&b"noodles-sam"[..]));
     /// ```
     pub fn programs_mut(&mut self) -> &mut Programs {
         &mut self.programs
@@ -431,7 +431,8 @@ impl fmt::Display for Header {
             writeln!(f, "{}{}\tID:{}{}", PREFIX, Kind::ReadGroup, id, read_group)?;
         }
 
-        for (id, program) in &self.programs {
+        for (id_buf, program) in &self.programs {
+            let id = str::from_utf8(id_buf).map_err(|_| fmt::Error)?;
             writeln!(f, "{}{}\tID:{}{}", PREFIX, Kind::Program, id, program)?;
         }
 
