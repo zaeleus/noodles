@@ -1,8 +1,9 @@
+mod length;
 mod name;
 
 use std::io::{self, Write};
 
-use self::name::write_name_field;
+use self::{length::write_length_field, name::write_name_field};
 use super::{write_field, write_other_fields};
 use crate::header::record::value::{
     map::{reference_sequence::tag, ReferenceSequence},
@@ -18,7 +19,7 @@ where
     W: Write,
 {
     write_name_field(writer, name)?;
-    write_field(writer, tag::LENGTH, reference_sequence.length())?;
+    write_length_field(writer, reference_sequence.length())?;
 
     if let Some(alternative_locus) = reference_sequence.alternative_locus() {
         write_field(writer, tag::ALTERNATIVE_LOCUS, alternative_locus)?;
