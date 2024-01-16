@@ -236,7 +236,7 @@ mod tests {
         use crate::header::record::value::map::{
             self,
             header::{SortOrder, Version},
-            Map, Program, ReadGroup, ReferenceSequence,
+            program, Map, Program, ReadGroup, ReferenceSequence,
         };
 
         const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
@@ -272,7 +272,9 @@ mod tests {
             .add_read_group("rg0", Map::<ReadGroup>::default())
             .add_program(
                 "pg0",
-                Map::<Program>::builder().set_name("noodles").build()?,
+                Map::<Program>::builder()
+                    .insert(program::tag::NAME, Vec::from("noodles"))
+                    .build()?,
             )
             .add_comment("ndls")
             .build();

@@ -9,7 +9,7 @@ use super::{ParseError, Standard, LENGTH};
 
 /// A nonstandard tag.
 #[derive(Clone, Copy, Debug)]
-pub struct Other<S>(pub(super) [u8; LENGTH], pub(super) PhantomData<S>);
+pub struct Other<S>(pub(crate) [u8; LENGTH], pub(crate) PhantomData<S>);
 
 impl<S> AsRef<[u8; LENGTH]> for Other<S> {
     fn as_ref(&self) -> &[u8; LENGTH] {

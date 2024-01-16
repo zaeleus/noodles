@@ -22,11 +22,6 @@ pub enum ParseError {
     InvalidValue(value::ParseError),
     MissingId,
     InvalidId(value::ParseError),
-    InvalidName(value::ParseError),
-    InvalidCommandLine(value::ParseError),
-    InvalidPreviousId(value::ParseError),
-    InvalidDescription(value::ParseError),
-    InvalidVersion(value::ParseError),
     InvalidOther(Other<tag::Standard>, value::ParseError),
     DuplicateTag(Tag),
 }
@@ -37,11 +32,6 @@ impl error::Error for ParseError {
             Self::InvalidField(e) => Some(e),
             Self::InvalidTag(e) => Some(e),
             Self::InvalidId(e) => Some(e),
-            Self::InvalidName(e) => Some(e),
-            Self::InvalidCommandLine(e) => Some(e),
-            Self::InvalidPreviousId(e) => Some(e),
-            Self::InvalidDescription(e) => Some(e),
-            Self::InvalidVersion(e) => Some(e),
             Self::InvalidOther(_, e) => Some(e),
             _ => None,
         }
@@ -56,13 +46,6 @@ impl fmt::Display for ParseError {
             Self::InvalidValue(_) => write!(f, "invalid value"),
             Self::MissingId => write!(f, "missing ID field"),
             Self::InvalidId(_) => write!(f, "invalid ID"),
-            Self::InvalidName(_) => write!(f, "invalid name ({})", tag::NAME),
-            Self::InvalidCommandLine(_) => {
-                write!(f, "invalid command line ({})", tag::COMMAND_LINE)
-            }
-            Self::InvalidPreviousId(_) => write!(f, "invalid previous ID ({})", tag::PREVIOUS_ID),
-            Self::InvalidDescription(_) => write!(f, "invalid description ({})", tag::DESCRIPTION),
-            Self::InvalidVersion(_) => write!(f, "invalid version ({})", tag::VERSION),
             Self::InvalidOther(tag, _) => write!(f, "invalid other ({tag})"),
             Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
         }
@@ -74,11 +57,6 @@ pub(crate) fn parse_program(
     ctx: &Context,
 ) -> Result<(Vec<u8>, Map<Program>), ParseError> {
     let mut id = None;
-    let mut name = None;
-    let mut command_line = None;
-    let mut previous_id = None;
-    let mut description = None;
-    let mut version = None;
 
     let mut other_fields = OtherFields::new();
 
@@ -89,16 +67,6 @@ pub(crate) fn parse_program(
 
         match tag {
             tag::ID => parse_id(src).and_then(|v| try_replace(&mut id, ctx, tag::ID, v))?,
-            tag::NAME => parse_name(src).and_then(|v| try_replace(&mut name, ctx, tag::NAME, v))?,
-            tag::COMMAND_LINE => parse_command_line(src)
-                .and_then(|v| try_replace(&mut command_line, ctx, tag::COMMAND_LINE, v))?,
-            tag::PREVIOUS_ID => parse_previous_id(src)
-                .and_then(|v| try_replace(&mut previous_id, ctx, tag::PREVIOUS_ID, v))?,
-            tag::DESCRIPTION => parse_description(src)
-                .and_then(|v| try_replace(&mut description, ctx, tag::DESCRIPTION, v))?,
-            tag::VERSION => {
-                parse_version(src).and_then(|v| try_replace(&mut version, ctx, tag::VERSION, v))?;
-            }
             Tag::Other(t) => parse_other(src, t)
                 .and_then(|value| try_insert(&mut other_fields, ctx, t, value))?,
         }
@@ -109,13 +77,7 @@ pub(crate) fn parse_program(
     Ok((
         id,
         Map {
-            inner: Program {
-                name,
-                command_line,
-                previous_id,
-                description,
-                version,
-            },
+            inner: Program,
             other_fields,
         },
     ))
@@ -125,36 +87,6 @@ fn parse_id(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
     parse_value(src)
         .map(Vec::from)
         .map_err(ParseError::InvalidId)
-}
-
-fn parse_name(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
-    parse_value(src)
-        .map(Vec::from)
-        .map_err(ParseError::InvalidName)
-}
-
-fn parse_command_line(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
-    parse_value(src)
-        .map(Vec::from)
-        .map_err(ParseError::InvalidCommandLine)
-}
-
-fn parse_previous_id(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
-    parse_value(src)
-        .map(Vec::from)
-        .map_err(ParseError::InvalidPreviousId)
-}
-
-fn parse_description(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
-    parse_value(src)
-        .map(Vec::from)
-        .map_err(ParseError::InvalidDescription)
-}
-
-fn parse_version(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
-    parse_value(src)
-        .map(Vec::from)
-        .map_err(ParseError::InvalidVersion)
 }
 
 fn parse_other(src: &mut &[u8], tag: Other<tag::Standard>) -> Result<String, ParseError> {
