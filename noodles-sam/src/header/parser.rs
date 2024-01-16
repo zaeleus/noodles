@@ -25,7 +25,7 @@ pub enum ParseError {
     /// A reference sequence name is duplicated.
     DuplicateReferenceSequenceName(Vec<u8>),
     /// A read group ID is duplicated.
-    DuplicateReadGroupId(String),
+    DuplicateReadGroupId(Vec<u8>),
     /// A program ID is duplicated.
     DuplicateProgramId(String),
     /// A comment record is invalid.
@@ -56,7 +56,10 @@ impl fmt::Display for ParseError {
                 let name = str::from_utf8(buf).map_err(|_| fmt::Error)?;
                 write!(f, "duplicate reference sequence name: {name}")
             }
-            Self::DuplicateReadGroupId(id) => write!(f, "duplicate read group ID: {id}"),
+            Self::DuplicateReadGroupId(buf) => {
+                let id = str::from_utf8(buf).map_err(|_| fmt::Error)?;
+                write!(f, "duplicate read group ID: {id}")
+            }
             Self::DuplicateProgramId(id) => write!(f, "duplicate program ID: {id}"),
             Self::InvalidComment => f.write_str("invalid comment record"),
         }
@@ -335,7 +338,7 @@ mod tests {
 
         assert_eq!(
             parse(s),
-            Err(ParseError::DuplicateReadGroupId(String::from("rg0")))
+            Err(ParseError::DuplicateReadGroupId(Vec::from("rg0")))
         );
     }
 

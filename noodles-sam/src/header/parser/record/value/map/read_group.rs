@@ -108,7 +108,7 @@ impl fmt::Display for ParseError {
 pub(crate) fn parse_read_group(
     src: &mut &[u8],
     ctx: &Context,
-) -> Result<(String, Map<ReadGroup>), ParseError> {
+) -> Result<(Vec<u8>, Map<ReadGroup>), ParseError> {
     let mut id = None;
     let mut barcode = None;
     let mut sequencing_center = None;
@@ -202,9 +202,9 @@ pub(crate) fn parse_read_group(
     ))
 }
 
-fn parse_id(src: &mut &[u8]) -> Result<String, ParseError> {
+fn parse_id(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
     parse_value(src)
-        .map(String::from)
+        .map(Vec::from)
         .map_err(ParseError::InvalidId)
 }
 
@@ -333,7 +333,7 @@ mod tests {
         let mut src = &b"\tID:rg0"[..];
         let ctx = Context::default();
         let actual = parse_read_group(&mut src, &ctx);
-        let expected = (String::from("rg0"), Map::<ReadGroup>::default());
+        let expected = (Vec::from("rg0"), Map::<ReadGroup>::default());
         assert_eq!(actual, Ok(expected));
     }
 

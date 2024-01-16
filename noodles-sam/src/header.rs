@@ -97,7 +97,7 @@ use self::record::value::{
 pub type ReferenceSequences = IndexMap<Vec<u8>, Map<ReferenceSequence>>;
 
 /// An ordered map of read groups.
-pub type ReadGroups = IndexMap<String, Map<ReadGroup>>;
+pub type ReadGroups = IndexMap<Vec<u8>, Map<ReadGroup>>;
 
 /// An ordered map of programs.
 pub type Programs = IndexMap<String, Map<Program>>;
@@ -245,7 +245,7 @@ impl Header {
     ///
     /// let read_groups = header.read_groups();
     /// assert_eq!(read_groups.len(), 1);
-    /// assert!(read_groups.contains_key("rg0"));
+    /// assert!(read_groups.contains_key(&b"rg0"[..]));
     /// ```
     pub fn read_groups(&self) -> &ReadGroups {
         &self.read_groups
@@ -265,11 +265,11 @@ impl Header {
     /// assert!(header.read_groups().is_empty());
     ///
     /// let read_group = Map::<ReadGroup>::default();
-    /// header.read_groups_mut().insert(String::from("rg0"), read_group);
+    /// header.read_groups_mut().insert(Vec::from("rg0"), read_group);
     ///
     /// let read_groups = header.read_groups();
     /// assert_eq!(read_groups.len(), 1);
-    /// assert!(read_groups.contains_key("rg0"));
+    /// assert!(read_groups.contains_key(&b"rg0"[..]));
     /// ```
     pub fn read_groups_mut(&mut self) -> &mut ReadGroups {
         &mut self.read_groups
@@ -426,7 +426,8 @@ impl fmt::Display for Header {
             )?;
         }
 
-        for (id, read_group) in &self.read_groups {
+        for (id_buf, read_group) in &self.read_groups {
+            let id = str::from_utf8(id_buf).map_err(|_| fmt::Error)?;
             writeln!(f, "{}{}\tID:{}{}", PREFIX, Kind::ReadGroup, id, read_group)?;
         }
 

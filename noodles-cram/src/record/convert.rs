@@ -247,9 +247,7 @@ fn get_read_group_id(
     };
 
     let read_group_name = match rg_value {
-        Value::String(s) => {
-            str::from_utf8(s).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
-        }
+        Value::String(s) => s,
         _ => {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidInput,
@@ -274,10 +272,10 @@ fn maybe_insert_read_group(
     if let Some(id) = read_group_id {
         let name = read_groups
             .get_index(id)
-            .map(|(name, _)| name.as_ref())
+            .map(|(name, _)| name)
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid read group ID"))?;
 
-        data.insert(tag::READ_GROUP, Value::from(name));
+        data.insert(tag::READ_GROUP, Value::String(name.clone()));
     }
 
     Ok(())

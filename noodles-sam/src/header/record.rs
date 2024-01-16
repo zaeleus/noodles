@@ -18,7 +18,7 @@ pub enum Record {
     /// A reference sequence (`SQ`) record.
     ReferenceSequence(Vec<u8>, Map<ReferenceSequence>),
     /// A read group (`RG`) record.
-    ReadGroup(String, Map<ReadGroup>),
+    ReadGroup(Vec<u8>, Map<ReadGroup>),
     /// A program (`PG`) record.
     Program(String, Map<Program>),
     /// A comment (`CO`) record.

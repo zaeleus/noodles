@@ -8,13 +8,18 @@ use crate::header::record::value::{
 
 pub(crate) fn write_read_group<W>(
     writer: &mut W,
-    id: &str,
+    id: &[u8],
     read_group: &Map<ReadGroup>,
 ) -> io::Result<()>
 where
     W: Write,
 {
-    write_field(writer, tag::ID, id)?;
+    use crate::io::writer::header::record::{value::map::write_separator, write_delimiter};
+
+    write_delimiter(writer)?;
+    writer.write_all(tag::ID.as_ref())?;
+    write_separator(writer)?;
+    writer.write_all(id)?;
 
     if let Some(barcode) = read_group.barcode() {
         write_field(writer, tag::BARCODE, barcode)?;

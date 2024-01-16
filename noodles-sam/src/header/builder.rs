@@ -125,11 +125,11 @@ impl Builder {
     ///
     /// let read_groups = header.read_groups();
     /// assert_eq!(read_groups.len(), 1);
-    /// assert!(read_groups.contains_key("rg0"));
+    /// assert!(read_groups.contains_key(&b"rg0"[..]));
     /// ```
     pub fn add_read_group<I>(mut self, id: I, map: Map<ReadGroup>) -> Self
     where
-        I: Into<String>,
+        I: Into<Vec<u8>>,
     {
         self.read_groups.insert(id.into(), map);
         self

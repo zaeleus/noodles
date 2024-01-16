@@ -23,17 +23,17 @@ fn build_writers(read_groups: &sam::header::ReadGroups) -> io::Result<Writers> {
 
             bam::io::writer::Builder
                 .build_from_path(dst)
-                .map(|writer| (id.as_bytes().into(), writer))
+                .map(|writer| (id.clone(), writer))
         })
         .collect::<Result<_, _>>()
 }
 
 fn write_headers(writers: &mut Writers, header: &sam::Header) -> io::Result<()> {
     for (id, read_group) in header.read_groups() {
-        let writer = writers.get_mut(id.as_bytes()).ok_or_else(|| {
+        let writer = writers.get_mut(id).ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidData,
-                format!("invalid read group: {id}"),
+                format!("invalid read group: {}", String::from_utf8_lossy(id)),
             )
         })?;
 
@@ -41,7 +41,7 @@ fn write_headers(writers: &mut Writers, header: &sam::Header) -> io::Result<()> 
 
         let read_groups = modified_header.read_groups_mut();
         read_groups.clear();
-        read_groups.insert(id.into(), read_group.clone());
+        read_groups.insert(id.clone(), read_group.clone());
 
         writer.write_header(&modified_header)?;
     }

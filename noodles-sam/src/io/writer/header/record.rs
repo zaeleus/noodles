@@ -44,7 +44,7 @@ where
 
 pub(super) fn write_read_group<W>(
     writer: &mut W,
-    id: &str,
+    id: &[u8],
     read_group: &Map<ReadGroup>,
 ) -> io::Result<()>
 where
