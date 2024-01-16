@@ -1,12 +1,15 @@
+mod version;
+
 use std::{error, fmt};
 
+use self::version::parse_version;
 use super::field::{consume_delimiter, consume_separator, parse_tag, parse_value, value};
 use crate::header::{
     parser::Context,
     record::value::{
         map::{
             self,
-            header::{tag, Tag, Version},
+            header::{tag, Tag},
             tag::Other,
             Header, OtherFields,
         },
@@ -63,7 +66,10 @@ pub(crate) fn parse_header(src: &mut &[u8], ctx: &Context) -> Result<Map<Header>
 
         match tag {
             tag::VERSION => {
-                parse_version(src).and_then(|v| try_replace(&mut version, ctx, tag::VERSION, v))?;
+                parse_value(src)
+                    .map_err(ParseError::InvalidValue)
+                    .and_then(parse_version)
+                    .and_then(|v| try_replace(&mut version, ctx, tag::VERSION, v))?;
             }
             Tag::Other(t) => parse_other(src, t)
                 .and_then(|value| try_insert(&mut other_fields, ctx, t, value))?,
@@ -76,26 +82,6 @@ pub(crate) fn parse_header(src: &mut &[u8], ctx: &Context) -> Result<Map<Header>
         inner: Header { version },
         other_fields,
     })
-}
-
-fn parse_version(src: &mut &[u8]) -> Result<Version, ParseError> {
-    const DELIMITER: u8 = b'.';
-
-    fn split_once(buf: &[u8], delimiter: u8) -> Option<(&[u8], &[u8])> {
-        let i = buf.iter().position(|&b| b == delimiter)?;
-        Some((&buf[..i], &buf[i + 1..]))
-    }
-
-    let buf = parse_value(src).map_err(ParseError::InvalidValue)?;
-
-    match split_once(buf, DELIMITER) {
-        Some((a, b)) => {
-            let major = lexical_core::parse(a).map_err(|_| ParseError::InvalidVersion)?;
-            let minor = lexical_core::parse(b).map_err(|_| ParseError::InvalidVersion)?;
-            Ok(Version::new(major, minor))
-        }
-        None => Err(ParseError::InvalidVersion),
-    }
 }
 
 fn parse_other(src: &mut &[u8], tag: Other<tag::Standard>) -> Result<Vec<u8>, ParseError> {
@@ -136,6 +122,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::header::record::value::map::header::Version;
 
     #[test]
     fn test_parse_header() {
