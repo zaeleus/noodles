@@ -20,7 +20,9 @@ async fn main() -> io::Result<()> {
         .map(sam::AsyncReader::new)?;
 
     let header = reader.read_header().await?;
-    print!("{header}");
+
+    let mut writer = sam::AsyncWriter::new(io::stdout());
+    writer.write_header(&header).await?;
 
     Ok(())
 }
