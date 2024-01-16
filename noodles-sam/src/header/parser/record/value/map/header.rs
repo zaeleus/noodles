@@ -24,7 +24,7 @@ pub enum ParseError {
     InvalidTag(super::field::tag::ParseError),
     InvalidValue(value::ParseError),
     MissingVersion,
-    InvalidVersion,
+    InvalidVersion(version::ParseError),
     InvalidOther(Other<tag::Standard>, value::ParseError),
     DuplicateTag(Tag),
 }
@@ -47,7 +47,7 @@ impl fmt::Display for ParseError {
             Self::InvalidTag(_) => write!(f, "invalid tag"),
             Self::InvalidValue(_) => write!(f, "invalid value"),
             Self::MissingVersion => write!(f, "missing version ({}) field", tag::VERSION),
-            Self::InvalidVersion => write!(f, "invalid version ({})", tag::VERSION),
+            Self::InvalidVersion(_) => write!(f, "invalid version ({})", tag::VERSION),
             Self::InvalidOther(tag, _) => write!(f, "invalid other ({tag})"),
             Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
         }
@@ -68,7 +68,7 @@ pub(crate) fn parse_header(src: &mut &[u8], ctx: &Context) -> Result<Map<Header>
             tag::VERSION => {
                 parse_value(src)
                     .map_err(ParseError::InvalidValue)
-                    .and_then(parse_version)
+                    .and_then(|buf| parse_version(buf).map_err(ParseError::InvalidVersion))
                     .and_then(|v| try_replace(&mut version, ctx, tag::VERSION, v))?;
             }
             Tag::Other(t) => parse_other(src, t)
