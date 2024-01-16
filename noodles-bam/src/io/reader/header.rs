@@ -7,10 +7,7 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_sam::{
     self as sam,
     header::{
-        record::value::{
-            map::{self, ReferenceSequence},
-            Map,
-        },
+        record::value::{map::ReferenceSequence, Map},
         ReferenceSequences,
     },
 };
@@ -144,9 +141,7 @@ where
     Ok(reference_sequences)
 }
 
-fn read_reference_sequence<R>(
-    reader: &mut R,
-) -> io::Result<(map::reference_sequence::Name, Map<ReferenceSequence>)>
+fn read_reference_sequence<R>(reader: &mut R) -> io::Result<(Vec<u8>, Map<ReferenceSequence>)>
 where
     R: Read,
 {
@@ -157,10 +152,7 @@ where
     let mut c_name = vec![0; l_name];
     reader.read_exact(&mut c_name)?;
 
-    let name = bytes_with_nul_to_string(&c_name).and_then(|name| {
-        name.parse()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    let name = bytes_with_nul_to_string(&c_name).map(|name| name.into_bytes())?;
 
     let l_ref = reader.read_u32::<LittleEndian>().and_then(|len| {
         usize::try_from(len)
@@ -199,6 +191,11 @@ mod tests {
 
     use super::*;
 
+    const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
+        Some(length) => length,
+        None => unreachable!(),
+    };
+
     #[test]
     fn test_read_magic() -> io::Result<()> {
         let data = b"BAM\x01";
@@ -223,7 +220,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_header() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_read_header() -> io::Result<()> {
         let mut data = Vec::new();
         data.put_slice(MAGIC_NUMBER); // magic
         data.put_u32_le(27); // l_text
@@ -238,10 +235,7 @@ mod tests {
 
         let expected = sam::Header::builder()
             .set_header(Map::<map::Header>::new(Version::new(1, 6)))
-            .add_reference_sequence(
-                "sq0".parse()?,
-                Map::<map::ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
-            )
+            .add_reference_sequence("sq0", Map::<map::ReferenceSequence>::new(SQ0_LN))
             .build();
 
         assert_eq!(actual, expected);
@@ -250,8 +244,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_header_with_trailing_nul_padding_in_text() -> Result<(), Box<dyn std::error::Error>>
-    {
+    fn test_read_header_with_trailing_nul_padding_in_text() -> io::Result<()> {
         let mut raw_header = b"@HD\tVN:1.6\n".to_vec();
         raw_header.resize(16384, 0);
 
@@ -269,10 +262,7 @@ mod tests {
 
         let expected = sam::Header::builder()
             .set_header(Map::<map::Header>::new(Version::new(1, 6)))
-            .add_reference_sequence(
-                "sq0".parse()?,
-                Map::<map::ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
-            )
+            .add_reference_sequence("sq0", Map::<map::ReferenceSequence>::new(SQ0_LN))
             .build();
 
         assert_eq!(actual, expected);
@@ -281,8 +271,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_header_with_missing_sam_header_reference_sequence_dictionary(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn test_read_header_with_missing_sam_header_reference_sequence_dictionary() -> io::Result<()> {
         let mut data = Vec::new();
         data.put_slice(MAGIC_NUMBER); // magic
         data.put_u32_le(11); // l_text
@@ -297,10 +286,7 @@ mod tests {
 
         let expected = sam::Header::builder()
             .set_header(Map::<map::Header>::new(Version::new(1, 6)))
-            .add_reference_sequence(
-                "sq0".parse()?,
-                Map::<map::ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
-            )
+            .add_reference_sequence("sq0", Map::<map::ReferenceSequence>::new(SQ0_LN))
             .build();
 
         assert_eq!(actual, expected);
@@ -320,12 +306,10 @@ mod tests {
         let mut reader = &data[..];
         let actual = read_reference_sequences(&mut reader)?;
 
-        let expected: ReferenceSequences = [(
-            "sq0".parse()?,
-            Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
-        )]
-        .into_iter()
-        .collect();
+        let expected: ReferenceSequences =
+            [(Vec::from("sq0"), Map::<ReferenceSequence>::new(SQ0_LN))]
+                .into_iter()
+                .collect();
 
         assert_eq!(actual, expected);
 

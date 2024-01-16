@@ -85,11 +85,11 @@ mod tests {
     }
 
     #[test]
-    fn test_read_header_with_multiple_buffer_fills() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_read_header_with_multiple_buffer_fills() -> io::Result<()> {
         use std::io::BufReader;
 
         const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
-            Some(ln) => ln,
+            Some(length) => length,
             None => unreachable!(),
         };
 
@@ -100,7 +100,7 @@ mod tests {
 
         let expected = crate::Header::builder()
             .set_header(Map::<map::Header>::new(Version::new(1, 6)))
-            .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(SQ0_LN))
+            .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(SQ0_LN))
             .build();
 
         assert_eq!(actual, expected);

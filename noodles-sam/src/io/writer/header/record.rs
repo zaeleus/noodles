@@ -29,7 +29,7 @@ where
 
 pub(super) fn write_reference_sequence<W>(
     writer: &mut W,
-    name: &str,
+    name: &[u8],
     reference_sequence: &Map<ReferenceSequence>,
 ) -> io::Result<()>
 where

@@ -278,17 +278,21 @@ mod tests {
             record_buf::{data::field::Value, Name, QualityScores, Sequence},
         };
 
+        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
+            Some(length) => length,
+            None => unreachable!(),
+        };
+
+        const SQ1_LN: NonZeroUsize = match NonZeroUsize::new(13) {
+            Some(length) => length,
+            None => unreachable!(),
+        };
+
         let mut buf = Vec::new();
 
         let header = sam::Header::builder()
-            .add_reference_sequence(
-                "sq0".parse()?,
-                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
-            )
-            .add_reference_sequence(
-                "sq1".parse()?,
-                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?),
-            )
+            .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(SQ0_LN))
+            .add_reference_sequence("sq1", Map::<ReferenceSequence>::new(SQ1_LN))
             .build();
 
         let record = RecordBuf::builder()
@@ -354,14 +358,14 @@ mod tests {
         const BASE_COUNT: usize = 65536;
 
         const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(131072) {
-            Some(n) => n,
+            Some(length) => length,
             None => unreachable!(),
         };
 
         let mut buf = Vec::new();
 
         let header = sam::Header::builder()
-            .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(SQ0_LN))
+            .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(SQ0_LN))
             .build();
 
         let cigar = Cigar::from(vec![Op::new(Kind::Match, 1); BASE_COUNT]);

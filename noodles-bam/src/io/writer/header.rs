@@ -5,10 +5,7 @@ use std::{
 };
 
 use byteorder::{LittleEndian, WriteBytesExt};
-use noodles_sam::{
-    self as sam,
-    header::{record::value::map, ReferenceSequences},
-};
+use noodles_sam::{self as sam, header::ReferenceSequences};
 
 pub(super) fn write_header<W>(writer: &mut W, header: &sam::Header) -> io::Result<()>
 where
@@ -63,13 +60,13 @@ where
 
 fn write_reference_sequence<W>(
     writer: &mut W,
-    reference_sequence_name: &map::reference_sequence::Name,
+    reference_sequence_name: &[u8],
     length: NonZeroUsize,
 ) -> io::Result<()>
 where
     W: Write,
 {
-    let c_name = CString::new(reference_sequence_name.as_bytes())
+    let c_name = CString::new(reference_sequence_name)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     let name = c_name.as_bytes_with_nul();
 
@@ -119,7 +116,7 @@ mod tests {
         use sam::header::record::value::{map::ReferenceSequence, Map};
 
         let reference_sequences = [(
-            "sq0".parse()?,
+            Vec::from("sq0"),
             Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
         )]
         .into_iter()
@@ -141,11 +138,14 @@ mod tests {
     }
 
     #[test]
-    fn test_write_reference_sequence() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_write_reference_sequence() -> io::Result<()> {
+        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
+            Some(length) => length,
+            None => unreachable!(),
+        };
+
         let mut buf = Vec::new();
-        let reference_sequence_name = "sq0".parse()?;
-        let length = NonZeroUsize::try_from(8)?;
-        write_reference_sequence(&mut buf, &reference_sequence_name, length)?;
+        write_reference_sequence(&mut buf, b"sq0", SQ0_LN)?;
 
         let expected = [
             0x04, 0x00, 0x00, 0x00, // l_name = 4

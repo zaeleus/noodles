@@ -12,10 +12,7 @@ use noodles_sam::{
     self as sam,
     alignment::RecordBuf,
     header::{
-        record::value::{
-            map::{self, ReferenceSequence},
-            Map,
-        },
+        record::value::{map::ReferenceSequence, Map},
         ReferenceSequences,
     },
 };
@@ -510,9 +507,7 @@ where
     Ok(reference_sequences)
 }
 
-async fn read_reference_sequence<R>(
-    reader: &mut R,
-) -> io::Result<(map::reference_sequence::Name, Map<ReferenceSequence>)>
+async fn read_reference_sequence<R>(reader: &mut R) -> io::Result<(Vec<u8>, Map<ReferenceSequence>)>
 where
     R: AsyncRead + Unpin,
 {
@@ -523,10 +518,7 @@ where
     let mut c_name = vec![0; l_name];
     reader.read_exact(&mut c_name).await?;
 
-    let name = bytes_with_nul_to_string(&c_name).and_then(|name| {
-        name.parse()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    let name = bytes_with_nul_to_string(&c_name).map(|name| name.into_bytes())?;
 
     let l_ref = reader.read_u32_le().await.and_then(|len| {
         usize::try_from(len)
@@ -581,7 +573,12 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_read_reference_sequences() -> Result<(), Box<dyn std::error::Error>> {
+    async fn test_read_reference_sequences() -> io::Result<()> {
+        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
+            Some(length) => length,
+            None => unreachable!(),
+        };
+
         let data = [
             0x01, 0x00, 0x00, 0x00, // n_ref = 1
             0x04, 0x00, 0x00, 0x00, // ref[0].l_name = 4
@@ -592,12 +589,10 @@ mod tests {
         let mut reader = &data[..];
         let actual = read_reference_sequences(&mut reader).await?;
 
-        let expected: ReferenceSequences = [(
-            "sq0".parse()?,
-            Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
-        )]
-        .into_iter()
-        .collect();
+        let expected: ReferenceSequences =
+            [(Vec::from("sq0"), Map::<ReferenceSequence>::new(SQ0_LN))]
+                .into_iter()
+                .collect();
 
         assert_eq!(actual, expected);
 

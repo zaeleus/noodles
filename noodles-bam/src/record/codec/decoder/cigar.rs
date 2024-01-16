@@ -180,11 +180,13 @@ mod tests {
             header::record::value::{map::ReferenceSequence, Map},
         };
 
+        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
+            Some(length) => length,
+            None => unreachable!(),
+        };
+
         let header = sam::Header::builder()
-            .add_reference_sequence(
-                "sq0".parse()?,
-                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
-            )
+            .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(SQ0_LN))
             .build();
 
         let mut record = RecordBuf::builder()

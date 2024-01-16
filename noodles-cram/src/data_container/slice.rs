@@ -313,7 +313,7 @@ fn resolve_bases(
                 .expect("invalid slice reference sequence ID");
 
             let sequence = reference_sequence_repository
-                .get(reference_sequence_name.as_bytes())
+                .get(reference_sequence_name)
                 .transpose()?
                 .expect("invalid slice reference sequence name");
 
@@ -385,7 +385,7 @@ fn resolve_bases(
                     .expect("invalid reference sequence ID");
 
                 let sequence = reference_sequence_repository
-                    .get(reference_sequence_name.as_bytes())
+                    .get(reference_sequence_name)
                     .transpose()?
                     .expect("invalid reference sequence name");
 
@@ -588,7 +588,7 @@ mod tests {
             record::{Feature, Features},
         };
 
-        const SQ0_LENGTH: NonZeroUsize = match NonZeroUsize::new(8) {
+        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
             Some(length) => length,
             None => unreachable!(),
         };
@@ -604,10 +604,7 @@ mod tests {
         )]);
 
         let header = sam::Header::builder()
-            .add_reference_sequence(
-                "sq0".parse()?,
-                Map::<map::ReferenceSequence>::new(SQ0_LENGTH),
-            )
+            .add_reference_sequence("sq0", Map::<map::ReferenceSequence>::new(SQ0_LN))
             .build();
 
         let compression_header = CompressionHeader::builder().build();

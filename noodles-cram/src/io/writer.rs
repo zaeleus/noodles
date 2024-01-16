@@ -312,7 +312,7 @@ pub(crate) fn add_missing_reference_sequence_checksums(
     for (name, reference_sequence) in reference_sequences {
         if reference_sequence.md5_checksum().is_none() {
             let sequence = reference_sequence_repository
-                .get(name.as_bytes())
+                .get(name)
                 .transpose()?
                 .expect("missing reference sequence");
 
@@ -336,6 +336,16 @@ mod tests {
         use fasta::record::{Definition, Sequence};
         use sam::header::record::value::{map::ReferenceSequence, Map};
 
+        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
+            Some(length) => length,
+            None => unreachable!(),
+        };
+
+        const SQ1_LN: NonZeroUsize = match NonZeroUsize::new(13) {
+            Some(length) => length,
+            None => unreachable!(),
+        };
+
         let reference_sequences = vec![
             fasta::Record::new(
                 Definition::new("sq0", None),
@@ -353,14 +363,11 @@ mod tests {
         let repository = fasta::Repository::new(reference_sequences);
 
         let mut header = sam::Header::builder()
+            .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(SQ0_LN))
             .add_reference_sequence(
-                "sq0".parse()?,
-                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
-            )
-            .add_reference_sequence(
-                "sq1".parse()?,
+                "sq1",
                 Map::<ReferenceSequence>::builder()
-                    .set_length(NonZeroUsize::try_from(13)?)
+                    .set_length(SQ1_LN)
                     .set_md5_checksum(sq1_md5_checksum)
                     .build()?,
             )
@@ -368,10 +375,10 @@ mod tests {
 
         add_missing_reference_sequence_checksums(&repository, header.reference_sequences_mut())?;
 
-        let sq0 = header.reference_sequences().get("sq0");
+        let sq0 = header.reference_sequences().get(&b"sq0"[..]);
         assert_eq!(sq0.and_then(|rs| rs.md5_checksum()), Some(sq0_md5_checksum));
 
-        let sq1 = header.reference_sequences().get("sq1");
+        let sq1 = header.reference_sequences().get(&b"sq1"[..]);
         assert_eq!(sq1.and_then(|rs| rs.md5_checksum()), Some(sq1_md5_checksum));
 
         Ok(())

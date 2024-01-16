@@ -51,7 +51,7 @@ impl Builder {
     /// };
     ///
     /// let reference_sequences = [(
-    ///     "sq0".parse()?,
+    ///     Vec::from("sq0"),
     ///     Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?),
     /// )]
     /// .into_iter()
@@ -63,7 +63,7 @@ impl Builder {
     ///
     /// let reference_sequences = header.reference_sequences();
     /// assert_eq!(reference_sequences.len(), 1);
-    /// assert!(reference_sequences.contains_key("sq0"));
+    /// assert!(reference_sequences.contains_key(&b"sq0"[..]));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_reference_sequences(mut self, reference_sequences: ReferenceSequences) -> Self {
@@ -85,22 +85,27 @@ impl Builder {
     ///
     /// let header = sam::Header::builder()
     ///     .add_reference_sequence(
-    ///         "sq0".parse()?,
+    ///         "sq0",
     ///         Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?),
     ///     )
     ///     .build();
     ///
     /// let reference_sequences = header.reference_sequences();
     /// assert_eq!(reference_sequences.len(), 1);
-    /// assert!(reference_sequences.contains_key("sq0"));
+    /// assert!(reference_sequences.contains_key(&b"sq0"[..]));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn add_reference_sequence(
+    pub fn add_reference_sequence<N>(
         mut self,
-        name: map::reference_sequence::Name,
+        name: N,
         reference_sequence: Map<ReferenceSequence>,
-    ) -> Self {
-        self.reference_sequences.insert(name, reference_sequence);
+    ) -> Self
+    where
+        N: Into<Vec<u8>>,
+    {
+        self.reference_sequences
+            .insert(name.into(), reference_sequence);
+
         self
     }
 
@@ -213,15 +218,15 @@ mod tests {
 
         let header = Builder::default()
             .add_reference_sequence(
-                "sq0".parse()?,
+                "sq0",
                 Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
             )
             .add_reference_sequence(
-                "sq1".parse()?,
+                "sq1",
                 Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?),
             )
             .add_reference_sequence(
-                "sq2".parse()?,
+                "sq2",
                 Map::<ReferenceSequence>::new(NonZeroUsize::try_from(21)?),
             )
             .add_read_group("rg0", Map::<ReadGroup>::default())
@@ -232,9 +237,9 @@ mod tests {
 
         let reference_sequences = header.reference_sequences();
         assert_eq!(reference_sequences.len(), 3);
-        assert!(reference_sequences.contains_key("sq0"));
-        assert!(reference_sequences.contains_key("sq1"));
-        assert!(reference_sequences.contains_key("sq2"));
+        assert!(reference_sequences.contains_key(&b"sq0"[..]));
+        assert!(reference_sequences.contains_key(&b"sq1"[..]));
+        assert!(reference_sequences.contains_key(&b"sq2"[..]));
 
         assert_eq!(header.read_groups().len(), 2);
 

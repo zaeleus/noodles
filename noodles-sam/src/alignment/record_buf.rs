@@ -20,10 +20,7 @@ pub use self::{
 use super::Record;
 use crate::{
     header::{
-        record::value::{
-            map::{self, ReferenceSequence},
-            Map,
-        },
+        record::value::{map::ReferenceSequence, Map},
         ReferenceSequences,
     },
     Header,
@@ -432,12 +429,7 @@ impl RecordBuf {
     pub fn reference_sequence<'a>(
         &self,
         header: &'a Header,
-    ) -> Option<
-        io::Result<(
-            &'a map::reference_sequence::Name,
-            &'a Map<ReferenceSequence>,
-        )>,
-    > {
+    ) -> Option<io::Result<(&'a [u8], &'a Map<ReferenceSequence>)>> {
         get_reference_sequence(header.reference_sequences(), self.reference_sequence_id())
     }
 
@@ -454,12 +446,7 @@ impl RecordBuf {
     pub fn mate_reference_sequence<'a>(
         &self,
         header: &'a Header,
-    ) -> Option<
-        io::Result<(
-            &'a map::reference_sequence::Name,
-            &'a Map<ReferenceSequence>,
-        )>,
-    > {
+    ) -> Option<io::Result<(&'a [u8], &'a Map<ReferenceSequence>)>> {
         get_reference_sequence(
             header.reference_sequences(),
             self.mate_reference_sequence_id(),
@@ -577,10 +564,13 @@ impl Default for RecordBuf {
 fn get_reference_sequence(
     reference_sequences: &ReferenceSequences,
     reference_sequence_id: Option<usize>,
-) -> Option<io::Result<(&map::reference_sequence::Name, &Map<ReferenceSequence>)>> {
+) -> Option<io::Result<(&[u8], &Map<ReferenceSequence>)>> {
     reference_sequence_id.map(|id| {
-        reference_sequences.get_index(id).ok_or_else(|| {
-            io::Error::new(io::ErrorKind::InvalidData, "invalid reference sequence ID")
-        })
+        reference_sequences
+            .get_index(id)
+            .map(|(name, map)| (name.as_ref(), map))
+            .ok_or_else(|| {
+                io::Error::new(io::ErrorKind::InvalidData, "invalid reference sequence ID")
+            })
     })
 }

@@ -9,7 +9,7 @@ pub(crate) use self::context::Context;
 use self::record::parse_record;
 use super::{
     record::value::{
-        map::{self, header::Version, reference_sequence},
+        map::{self, header::Version},
         Map,
     },
     Header, Programs, ReadGroups, Record, ReferenceSequences,
@@ -23,7 +23,7 @@ pub enum ParseError {
     /// The record is invalid.
     InvalidRecord(record::ParseError),
     /// A reference sequence name is duplicated.
-    DuplicateReferenceSequenceName(reference_sequence::Name),
+    DuplicateReferenceSequenceName(Vec<u8>),
     /// A read group ID is duplicated.
     DuplicateReadGroupId(String),
     /// A program ID is duplicated.
@@ -52,7 +52,8 @@ impl fmt::Display for ParseError {
                 )
             }
             Self::InvalidRecord(_) => f.write_str("invalid record"),
-            Self::DuplicateReferenceSequenceName(name) => {
+            Self::DuplicateReferenceSequenceName(buf) => {
+                let name = str::from_utf8(buf).map_err(|_| fmt::Error)?;
                 write!(f, "duplicate reference sequence name: {name}")
             }
             Self::DuplicateReadGroupId(id) => write!(f, "duplicate read group ID: {id}"),
@@ -238,6 +239,16 @@ mod tests {
             Map, Program, ReadGroup, ReferenceSequence,
         };
 
+        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
+            Some(length) => length,
+            None => unreachable!(),
+        };
+
+        const SQ1_LN: NonZeroUsize = match NonZeroUsize::new(13) {
+            Some(length) => length,
+            None => unreachable!(),
+        };
+
         let s = "\
 @HD\tVN:1.6\tSO:coordinate
 @SQ\tSN:sq0\tLN:8
@@ -256,14 +267,8 @@ mod tests {
                     .set_sort_order(SortOrder::Coordinate)
                     .build()?,
             )
-            .add_reference_sequence(
-                "sq0".parse()?,
-                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
-            )
-            .add_reference_sequence(
-                "sq1".parse()?,
-                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?),
-            )
+            .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(SQ0_LN))
+            .add_reference_sequence("sq1", Map::<ReferenceSequence>::new(SQ1_LN))
             .add_read_group("rg0", Map::<ReadGroup>::default())
             .add_program(
                 "pg0",
@@ -309,8 +314,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_with_duplicate_reference_sequence_names(
-    ) -> Result<(), reference_sequence::name::ParseError> {
+    fn test_parse_with_duplicate_reference_sequence_names() {
         let s = "\
 @SQ\tSN:sq0\tLN:8
 @SQ\tSN:sq0\tLN:8
@@ -318,10 +322,8 @@ mod tests {
 
         assert_eq!(
             parse(s),
-            Err(ParseError::DuplicateReferenceSequenceName("sq0".parse()?))
+            Err(ParseError::DuplicateReferenceSequenceName(Vec::from("sq0")))
         );
-
-        Ok(())
     }
 
     #[test]

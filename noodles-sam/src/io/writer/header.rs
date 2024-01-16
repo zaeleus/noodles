@@ -14,7 +14,7 @@ where
     }
 
     for (name, reference_sequence) in header.reference_sequences() {
-        write_reference_sequence(writer, name.as_ref(), reference_sequence)?;
+        write_reference_sequence(writer, name, reference_sequence)?;
     }
 
     for (id, read_group) in header.read_groups() {
@@ -48,11 +48,11 @@ mod tests {
         let header = Header::builder()
             .set_header(Map::<map::Header>::new(Version::new(1, 6)))
             .add_reference_sequence(
-                "sq0".parse()?,
+                "sq0",
                 Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
             )
             .add_reference_sequence(
-                "sq1".parse()?,
+                "sq1",
                 Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?),
             )
             .add_read_group("rg0", Map::<ReadGroup>::default())

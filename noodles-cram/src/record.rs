@@ -19,10 +19,7 @@ use noodles_core::Position;
 use noodles_sam::{
     self as sam,
     alignment::record_buf::{Data, MappingQuality, Name, QualityScores, Sequence},
-    header::record::value::{
-        map::{self, ReferenceSequence},
-        Map,
-    },
+    header::record::value::{map::ReferenceSequence, Map},
 };
 
 /// A CRAM record.
@@ -86,15 +83,10 @@ impl Record {
     }
 
     /// Returns the associated reference sequence.
-    pub fn reference_sequence<'rs>(
+    pub fn reference_sequence<'h>(
         &self,
-        reference_sequences: &'rs sam::header::ReferenceSequences,
-    ) -> Option<
-        io::Result<(
-            &'rs map::reference_sequence::Name,
-            &'rs Map<ReferenceSequence>,
-        )>,
-    > {
+        reference_sequences: &'h sam::header::ReferenceSequences,
+    ) -> Option<io::Result<(&'h [u8], &'h Map<ReferenceSequence>)>> {
         get_reference_sequence(reference_sequences, self.reference_sequence_id())
     }
 
@@ -149,15 +141,10 @@ impl Record {
     }
 
     /// Returns the associated mate reference sequence.
-    pub fn mate_reference_sequence<'rs>(
+    pub fn mate_reference_sequence<'h>(
         &self,
-        reference_sequences: &'rs sam::header::ReferenceSequences,
-    ) -> Option<
-        io::Result<(
-            &'rs map::reference_sequence::Name,
-            &'rs Map<ReferenceSequence>,
-        )>,
-    > {
+        reference_sequences: &'h sam::header::ReferenceSequences,
+    ) -> Option<io::Result<(&'h [u8], &'h Map<ReferenceSequence>)>> {
         get_reference_sequence(
             reference_sequences,
             self.next_fragment_reference_sequence_id(),
@@ -361,11 +348,14 @@ pub(crate) fn calculate_alignment_span(read_length: usize, features: &Features) 
 fn get_reference_sequence(
     reference_sequences: &sam::header::ReferenceSequences,
     reference_sequence_id: Option<usize>,
-) -> Option<io::Result<(&map::reference_sequence::Name, &Map<ReferenceSequence>)>> {
+) -> Option<io::Result<(&[u8], &Map<ReferenceSequence>)>> {
     reference_sequence_id.map(|id| {
-        reference_sequences.get_index(id).ok_or_else(|| {
-            io::Error::new(io::ErrorKind::InvalidData, "invalid reference sequence ID")
-        })
+        reference_sequences
+            .get_index(id)
+            .map(|(name, map)| (name.as_ref(), map))
+            .ok_or_else(|| {
+                io::Error::new(io::ErrorKind::InvalidData, "invalid reference sequence ID")
+            })
     })
 }
 

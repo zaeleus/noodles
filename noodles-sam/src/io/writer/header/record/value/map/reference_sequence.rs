@@ -11,7 +11,7 @@ use crate::header::record::value::{
 
 pub(crate) fn write_reference_sequence<W>(
     writer: &mut W,
-    name: &str,
+    name: &[u8],
     reference_sequence: &Map<ReferenceSequence>,
 ) -> io::Result<()>
 where

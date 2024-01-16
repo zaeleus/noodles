@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use crate::header::record::value::map::reference_sequence::tag;
 
-pub(super) fn write_name_field<W>(writer: &mut W, name: &str) -> io::Result<()>
+pub(super) fn write_name_field<W>(writer: &mut W, name: &[u8]) -> io::Result<()>
 where
     W: Write,
 {
@@ -11,7 +11,7 @@ where
     write_delimiter(writer)?;
     writer.write_all(tag::NAME.as_ref())?;
     write_separator(writer)?;
-    writer.write_all(name.as_bytes())?;
+    writer.write_all(name)?;
 
     Ok(())
 }

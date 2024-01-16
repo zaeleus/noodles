@@ -54,11 +54,11 @@
 //! let header = sam::Header::builder()
 //!     .set_header(Default::default())
 //!     .add_reference_sequence(
-//!         "sq0".parse()?,
+//!         "sq0",
 //!         Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
 //!     )
 //!     .add_reference_sequence(
-//!         "sq1".parse()?,
+//!         "sq1",
 //!         Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?),
 //!     )
 //!     .build();
@@ -81,7 +81,10 @@ pub use self::{
     record::Record,
 };
 
-use std::{fmt, str::FromStr};
+use std::{
+    fmt,
+    str::{self, FromStr},
+};
 
 use indexmap::IndexMap;
 
@@ -91,7 +94,7 @@ use self::record::value::{
 };
 
 /// A reference sequence dictionary.
-pub type ReferenceSequences = IndexMap<map::reference_sequence::Name, Map<ReferenceSequence>>;
+pub type ReferenceSequences = IndexMap<Vec<u8>, Map<ReferenceSequence>>;
 
 /// An ordered map of read groups.
 pub type ReadGroups = IndexMap<String, Map<ReadGroup>>;
@@ -182,14 +185,14 @@ impl Header {
     ///
     /// let header = sam::Header::builder()
     ///     .add_reference_sequence(
-    ///         "sq0".parse()?,
+    ///         "sq0",
     ///         Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?)
     ///     )
     ///     .build();
     ///
     /// let reference_sequences = header.reference_sequences();
     /// assert_eq!(reference_sequences.len(), 1);
-    /// assert!(reference_sequences.contains_key("sq0"));
+    /// assert!(reference_sequences.contains_key(&b"sq0"[..]));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn reference_sequences(&self) -> &ReferenceSequences {
@@ -213,13 +216,13 @@ impl Header {
     /// let mut header = sam::Header::default();
     ///
     /// header.reference_sequences_mut().insert(
-    ///     "sq0".parse()?,
+    ///     Vec::from("sq0"),
     ///     Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?),
     /// );
     ///
     /// let reference_sequences = header.reference_sequences();
     /// assert_eq!(reference_sequences.len(), 1);
-    /// assert!(reference_sequences.contains_key("sq0"));
+    /// assert!(reference_sequences.contains_key(&b"sq0"[..]));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn reference_sequences_mut(&mut self) -> &mut ReferenceSequences {
@@ -410,7 +413,9 @@ impl fmt::Display for Header {
             writeln!(f, "{}{}\t{}", PREFIX, Kind::Header, header)?;
         }
 
-        for (name, reference_sequence) in &self.reference_sequences {
+        for (name_buf, reference_sequence) in &self.reference_sequences {
+            let name = str::from_utf8(name_buf).map_err(|_| fmt::Error)?;
+
             writeln!(
                 f,
                 "{}{}\tSN:{}{}",
@@ -472,21 +477,25 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_fmt() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_fmt() {
         use std::num::NonZeroUsize;
 
         use super::record::value::map::header::Version;
 
+        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
+            Some(length) => length,
+            None => unreachable!(),
+        };
+
+        const SQ1_LN: NonZeroUsize = match NonZeroUsize::new(13) {
+            Some(length) => length,
+            None => unreachable!(),
+        };
+
         let header = Header::builder()
             .set_header(Map::<map::Header>::new(Version::new(1, 6)))
-            .add_reference_sequence(
-                "sq0".parse()?,
-                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
-            )
-            .add_reference_sequence(
-                "sq1".parse()?,
-                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?),
-            )
+            .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(SQ0_LN))
+            .add_reference_sequence("sq1", Map::<ReferenceSequence>::new(SQ1_LN))
             .add_read_group("rg0", Map::<ReadGroup>::default())
             .add_read_group("rg1", Map::<ReadGroup>::default())
             .add_program("pg0", Map::<Program>::default())
@@ -509,7 +518,5 @@ mod tests {
 ";
 
         assert_eq!(actual, expected);
-
-        Ok(())
     }
 }

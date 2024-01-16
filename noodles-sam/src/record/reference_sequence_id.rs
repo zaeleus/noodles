@@ -1,4 +1,4 @@
-use std::{io, str};
+use std::io;
 
 use super::ReferenceSequenceName;
 use crate::{alignment::record::ReferenceSequenceId as _, Header};
@@ -24,12 +24,9 @@ impl<'h, 'n> ReferenceSequenceId<'h, 'n> {
 
 impl<'h, 'n> crate::alignment::record::ReferenceSequenceId for ReferenceSequenceId<'h, 'n> {
     fn try_to_usize(&self) -> io::Result<usize> {
-        let name = str::from_utf8(self.reference_sequence_name.as_ref())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
         self.header
             .reference_sequences()
-            .get_index_of(name)
+            .get_index_of(self.reference_sequence_name.as_ref())
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,

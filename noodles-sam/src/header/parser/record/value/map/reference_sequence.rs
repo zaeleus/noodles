@@ -10,8 +10,8 @@ use crate::header::{
         map::{
             self,
             reference_sequence::{
-                alternative_locus, alternative_names, md5_checksum, molecule_topology, name, tag,
-                AlternativeLocus, AlternativeNames, Md5Checksum, MoleculeTopology, Name, Tag,
+                alternative_locus, alternative_names, md5_checksum, molecule_topology, tag,
+                AlternativeLocus, AlternativeNames, Md5Checksum, MoleculeTopology, Tag,
             },
             tag::Other,
             OtherFields, ReferenceSequence,
@@ -27,7 +27,6 @@ pub enum ParseError {
     InvalidTag(super::field::tag::ParseError),
     InvalidValue(value::ParseError),
     MissingName,
-    InvalidName(name::ParseError),
     MissingLength,
     InvalidLength(length::ParseError),
     InvalidAlternativeLocus(alternative_locus::ParseError),
@@ -47,7 +46,6 @@ impl error::Error for ParseError {
         match self {
             Self::InvalidField(e) => Some(e),
             Self::InvalidTag(e) => Some(e),
-            Self::InvalidName(e) => Some(e),
             Self::InvalidLength(e) => Some(e),
             Self::InvalidAlternativeLocus(e) => Some(e),
             Self::InvalidAlternativeNames(e) => Some(e),
@@ -70,7 +68,6 @@ impl fmt::Display for ParseError {
             Self::InvalidTag(_) => write!(f, "invalid tag"),
             Self::InvalidValue(_) => write!(f, "invalid value"),
             Self::MissingName => write!(f, "missing name ({})", tag::NAME),
-            Self::InvalidName(_) => write!(f, "invalid name ({})", tag::NAME),
             Self::MissingLength => write!(f, "missing length ({})", tag::LENGTH),
             Self::InvalidLength(_) => write!(f, "invalid length ({})", tag::LENGTH),
             Self::InvalidAlternativeLocus(_) => {
@@ -98,7 +95,7 @@ impl fmt::Display for ParseError {
 pub(crate) fn parse_reference_sequence(
     src: &mut &[u8],
     ctx: &Context,
-) -> Result<(Name, Map<ReferenceSequence>), ParseError> {
+) -> Result<(Vec<u8>, Map<ReferenceSequence>), ParseError> {
     let mut name = None;
     let mut length = None;
     let mut alternative_locus = None;
@@ -168,10 +165,10 @@ pub(crate) fn parse_reference_sequence(
     ))
 }
 
-fn parse_name(src: &mut &[u8]) -> Result<Name, ParseError> {
+fn parse_name(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
     parse_value(src)
+        .map(Vec::from)
         .map_err(ParseError::InvalidValue)
-        .and_then(|s| s.parse().map_err(ParseError::InvalidName))
 }
 
 fn parse_alternative_locus(src: &mut &[u8]) -> Result<AlternativeLocus, ParseError> {
@@ -265,7 +262,7 @@ mod tests {
 
     #[test]
     fn test_parse_header() -> Result<(), map::reference_sequence::name::ParseError> {
-        const LN: NonZeroUsize = match NonZeroUsize::new(8) {
+        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
             Some(length) => length,
             None => unreachable!(),
         };
@@ -274,9 +271,7 @@ mod tests {
         let ctx = Context::default();
         let actual = parse_reference_sequence(&mut src, &ctx);
 
-        let name = "sq0".parse()?;
-        let map = Map::<ReferenceSequence>::new(LN);
-        let expected = (name, map);
+        let expected = (Vec::from("sq0"), Map::<ReferenceSequence>::new(SQ0_LN));
 
         assert_eq!(actual, Ok(expected));
 

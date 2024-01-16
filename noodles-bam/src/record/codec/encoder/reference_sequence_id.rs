@@ -42,11 +42,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_put_reference_sequence_id() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_put_reference_sequence_id() -> io::Result<()> {
         use sam::header::record::value::{map::ReferenceSequence, Map};
 
         const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
-            Some(ln) => ln,
+            Some(length) => length,
             None => unreachable!(),
         };
 
@@ -74,7 +74,7 @@ mod tests {
         )?;
 
         let header = sam::Header::builder()
-            .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(SQ0_LN))
+            .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(SQ0_LN))
             .build();
         let reference_sequence_id = Some(0);
         t(

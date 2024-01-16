@@ -587,7 +587,7 @@ mod tests {
         let mut buf = Vec::new();
 
         let header = sam::Header::builder()
-            .add_reference_sequence("sq0".parse()?, Map::<ReferenceSequence>::new(SQ0_LN))
+            .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(SQ0_LN))
             .build();
 
         let cigar = Cigar::from(vec![Op::new(Kind::Match, 1); BASE_COUNT]);

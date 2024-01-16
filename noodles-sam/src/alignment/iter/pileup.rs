@@ -310,10 +310,7 @@ mod tests {
         .collect();
 
         let header = Header::builder()
-            .add_reference_sequence(
-                "sq0".parse()?,
-                Map::<ReferenceSequence>::new(NonZeroUsize::MAX),
-            )
+            .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(NonZeroUsize::MAX))
             .build();
 
         let pileup = Pileup::new(&header, records.into_iter());

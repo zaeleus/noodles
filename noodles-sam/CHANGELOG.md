@@ -49,6 +49,8 @@
   * sam/alignment/record_buf: Change quality scores to raw scores
     (`record_buf::QualityScores`).
 
+  * sam/header: Change `ReferenceSequences` key to a byte string (`Vec<u8>`).
+
   * sam/io/reader: Rename record to record buf and lazy record to record.
 
     This changes the following:
