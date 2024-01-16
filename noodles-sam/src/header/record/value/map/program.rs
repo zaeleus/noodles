@@ -5,8 +5,6 @@ pub(crate) mod tag;
 
 pub(crate) use self::tag::Tag;
 
-use std::fmt;
-
 use self::builder::Builder;
 use super::{Inner, Map};
 
@@ -91,51 +89,5 @@ impl Map<Program> {
     /// ```
     pub fn version(&self) -> Option<&str> {
         self.inner.version.as_deref()
-    }
-}
-
-impl fmt::Display for Map<Program> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if let Some(name) = self.name() {
-            write!(f, "\t{}:{name}", tag::NAME)?;
-        }
-
-        if let Some(command_line) = self.command_line() {
-            write!(f, "\t{}:{command_line}", tag::COMMAND_LINE)?;
-        }
-
-        if let Some(previous_id) = self.previous_id() {
-            write!(f, "\t{}:{previous_id}", tag::PREVIOUS_ID)?;
-        }
-
-        if let Some(description) = self.description() {
-            write!(f, "\t{}:{description}", tag::DESCRIPTION)?;
-        }
-
-        if let Some(version) = self.version() {
-            write!(f, "\t{}:{version}", tag::VERSION)?;
-        }
-
-        super::fmt_display_other_fields(f, self.other_fields())?;
-
-        Ok(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::header::record::value::map::builder::BuildError;
-
-    #[test]
-    fn test_fmt() -> Result<(), BuildError> {
-        let program = Map::<Program>::builder()
-            .set_name("noodles-sam")
-            .set_version("0.23.0")
-            .build()?;
-
-        assert_eq!(program.to_string(), "\tPN:noodles-sam\tVN:0.23.0");
-
-        Ok(())
     }
 }

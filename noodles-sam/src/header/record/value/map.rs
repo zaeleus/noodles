@@ -12,8 +12,6 @@ pub use self::{
     reference_sequence::ReferenceSequence, tag::Tag,
 };
 
-use std::{fmt, str};
-
 use indexmap::IndexMap;
 
 pub(crate) type OtherFields<S> = IndexMap<tag::Other<S>, Vec<u8>>;
@@ -77,18 +75,4 @@ where
             other_fields: OtherFields::new(),
         }
     }
-}
-
-fn fmt_display_other_fields<S>(
-    f: &mut fmt::Formatter<'_>,
-    other_fields: &OtherFields<S>,
-) -> fmt::Result {
-    const DELIMITER: char = '\t';
-
-    for (key, value_buf) in other_fields {
-        let value = str::from_utf8(value_buf).map_err(|_| fmt::Error)?;
-        write!(f, "{DELIMITER}{key}:{value}")?;
-    }
-
-    Ok(())
 }

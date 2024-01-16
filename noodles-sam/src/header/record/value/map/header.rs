@@ -12,8 +12,6 @@ pub use self::{
     version::Version,
 };
 
-use std::fmt;
-
 use self::builder::Builder;
 use super::{Inner, Map, OtherFields};
 
@@ -171,32 +169,9 @@ impl Map<Header> {
     }
 }
 
-impl fmt::Display for Map<Header> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}:{}", tag::VERSION, self.version())?;
-
-        if let Some(sort_order) = self.sort_order() {
-            write!(f, "\t{}:{sort_order}", tag::SORT_ORDER)?;
-        }
-
-        if let Some(group_order) = self.group_order() {
-            write!(f, "\t{}:{group_order}", tag::GROUP_ORDER)?;
-        }
-
-        if let Some(subsort_order) = self.subsort_order() {
-            write!(f, "\t{}:{subsort_order}", tag::SUBSORT_ORDER)?;
-        }
-
-        super::fmt_display_other_fields(f, self.other_fields())?;
-
-        Ok(())
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::header::record::value::map::builder::BuildError;
 
     #[test]
     fn test_default() {
@@ -206,18 +181,5 @@ mod tests {
         assert!(header.group_order().is_none());
         assert!(header.subsort_order().is_none());
         assert!(header.other_fields().is_empty());
-    }
-
-    #[test]
-    fn test_fmt() -> Result<(), BuildError> {
-        let header = Map::<Header>::builder()
-            .set_version(Version::new(1, 6))
-            .set_sort_order(SortOrder::Unsorted)
-            .set_group_order(GroupOrder::Query)
-            .build()?;
-
-        assert_eq!(header.to_string(), "VN:1.6\tSO:unsorted\tGO:query");
-
-        Ok(())
     }
 }

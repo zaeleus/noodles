@@ -7,8 +7,6 @@ pub(crate) mod tag;
 pub use self::platform::Platform;
 pub(crate) use self::tag::Tag;
 
-use std::fmt;
-
 use self::builder::Builder;
 use super::{Inner, Map};
 
@@ -206,87 +204,5 @@ impl Map<ReadGroup> {
     /// ```
     pub fn sample(&self) -> Option<&str> {
         self.inner.sample.as_deref()
-    }
-}
-
-impl fmt::Display for Map<ReadGroup> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if let Some(barcode) = self.barcode() {
-            write!(f, "\t{}:{barcode}", tag::BARCODE)?;
-        }
-
-        if let Some(sequencing_center) = self.sequencing_center() {
-            write!(f, "\t{}:{sequencing_center}", tag::SEQUENCING_CENTER)?;
-        }
-
-        if let Some(description) = self.description() {
-            write!(f, "\t{}:{description}", tag::DESCRIPTION)?;
-        }
-
-        if let Some(produced_at) = self.produced_at() {
-            write!(f, "\t{}:{produced_at}", tag::PRODUCED_AT)?;
-        }
-
-        if let Some(flow_order) = self.flow_order() {
-            write!(f, "\t{}:{flow_order}", tag::FLOW_ORDER)?;
-        }
-
-        if let Some(key_sequence) = self.key_sequence() {
-            write!(f, "\t{}:{key_sequence}", tag::KEY_SEQUENCE)?;
-        }
-
-        if let Some(library) = self.library() {
-            write!(f, "\t{}:{library}", tag::LIBRARY)?;
-        }
-
-        if let Some(program) = self.program() {
-            write!(f, "\t{}:{program}", tag::PROGRAM)?;
-        }
-
-        if let Some(predicted_median_insert_size) = self.predicted_median_insert_size() {
-            write!(
-                f,
-                "\t{}:{predicted_median_insert_size}",
-                tag::PREDICTED_MEDIAN_INSERT_SIZE
-            )?;
-        }
-
-        if let Some(platform) = self.platform() {
-            write!(f, "\t{}:{platform}", tag::PLATFORM)?;
-        }
-
-        if let Some(platform_model) = self.platform_model() {
-            write!(f, "\t{}:{platform_model}", tag::PLATFORM_MODEL)?;
-        }
-
-        if let Some(platform_unit) = self.platform_unit() {
-            write!(f, "\t{}:{platform_unit}", tag::PLATFORM_UNIT)?;
-        }
-
-        if let Some(sample) = self.sample() {
-            write!(f, "\t{}:{sample}", tag::SAMPLE)?;
-        }
-
-        super::fmt_display_other_fields(f, self.other_fields())?;
-
-        Ok(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::header::record::value::map::builder::BuildError;
-
-    #[test]
-    fn test_fmt() -> Result<(), BuildError> {
-        let read_group = Map::<ReadGroup>::builder()
-            .set_program("noodles")
-            .set_platform(Platform::Illumina)
-            .build()?;
-
-        assert_eq!(read_group.to_string(), "\tPG:noodles\tPL:ILLUMINA");
-
-        Ok(())
     }
 }

@@ -8,7 +8,7 @@ pub mod molecule_topology;
 pub mod name;
 pub(crate) mod tag;
 
-use std::{fmt, num::NonZeroUsize};
+use std::num::NonZeroUsize;
 
 pub(crate) use self::tag::Tag;
 pub use self::{
@@ -250,70 +250,5 @@ impl Map<ReferenceSequence> {
     /// ```
     pub fn uri(&self) -> Option<&str> {
         self.inner.uri.as_deref()
-    }
-}
-
-impl fmt::Display for Map<ReferenceSequence> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "\t{}:{}", tag::LENGTH, self.length())?;
-
-        if let Some(alternative_locus) = self.alternative_locus() {
-            write!(f, "\t{}:{alternative_locus}", tag::ALTERNATIVE_LOCUS)?;
-        }
-
-        if let Some(alternative_names) = self.alternative_names() {
-            write!(f, "\t{}:{alternative_names}", tag::ALTERNATIVE_NAMES)?;
-        }
-
-        if let Some(assembly_id) = self.assembly_id() {
-            write!(f, "\t{}:{assembly_id}", tag::ASSEMBLY_ID)?;
-        }
-
-        if let Some(description) = self.description() {
-            write!(f, "\t{}:{description}", tag::DESCRIPTION)?;
-        }
-
-        if let Some(md5_checksum) = self.md5_checksum() {
-            write!(f, "\t{}:{md5_checksum}", tag::MD5_CHECKSUM)?;
-        }
-
-        if let Some(species) = self.species() {
-            write!(f, "\t{}:{species}", tag::SPECIES)?;
-        }
-
-        if let Some(molecule_topology) = self.molecule_topology() {
-            write!(f, "\t{}:{molecule_topology}", tag::MOLECULE_TOPOLOGY)?;
-        }
-
-        if let Some(uri) = self.uri() {
-            write!(f, "\t{}:{uri}", tag::URI)?;
-        }
-
-        super::fmt_display_other_fields(f, self.other_fields())?;
-
-        Ok(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_fmt() -> Result<(), Box<dyn std::error::Error>> {
-        let reference_sequence = Map::<ReferenceSequence>::builder()
-            .set_length(NonZeroUsize::try_from(13)?)
-            .set_md5_checksum(Md5Checksum::from([
-                0xd7, 0xeb, 0xa3, 0x11, 0x42, 0x1b, 0xbc, 0x9d, 0x3a, 0xda, 0x44, 0x70, 0x9d, 0xd6,
-                0x15, 0x34,
-            ]))
-            .build()?;
-
-        assert_eq!(
-            reference_sequence.to_string(),
-            "\tLN:13\tM5:d7eba311421bbc9d3ada44709dd61534"
-        );
-
-        Ok(())
     }
 }

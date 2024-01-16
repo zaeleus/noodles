@@ -81,10 +81,7 @@ pub use self::{
     record::Record,
 };
 
-use std::{
-    fmt,
-    str::{self, FromStr},
-};
+use std::str::{self, FromStr};
 
 use indexmap::IndexMap;
 
@@ -403,48 +400,6 @@ impl Header {
     }
 }
 
-impl fmt::Display for Header {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use self::record::Kind;
-
-        const PREFIX: char = '@';
-
-        if let Some(header) = self.header() {
-            writeln!(f, "{}{}\t{}", PREFIX, Kind::Header, header)?;
-        }
-
-        for (name_buf, reference_sequence) in &self.reference_sequences {
-            let name = str::from_utf8(name_buf).map_err(|_| fmt::Error)?;
-
-            writeln!(
-                f,
-                "{}{}\tSN:{}{}",
-                PREFIX,
-                Kind::ReferenceSequence,
-                name,
-                reference_sequence
-            )?;
-        }
-
-        for (id_buf, read_group) in &self.read_groups {
-            let id = str::from_utf8(id_buf).map_err(|_| fmt::Error)?;
-            writeln!(f, "{}{}\tID:{}{}", PREFIX, Kind::ReadGroup, id, read_group)?;
-        }
-
-        for (id_buf, program) in &self.programs {
-            let id = str::from_utf8(id_buf).map_err(|_| fmt::Error)?;
-            writeln!(f, "{}{}\tID:{}{}", PREFIX, Kind::Program, id, program)?;
-        }
-
-        for buf in &self.comments {
-            let comment = str::from_utf8(buf).map_err(|_| fmt::Error)?;
-            writeln!(f, "{}{}\t{}", PREFIX, Kind::Comment, comment)?;
-        }
-
-        Ok(())
-    }
-}
-
 impl FromStr for Header {
     type Err = ParseError;
 
@@ -472,54 +427,5 @@ impl FromStr for Header {
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         parser::parse(s)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_fmt() {
-        use std::num::NonZeroUsize;
-
-        use super::record::value::map::header::Version;
-
-        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
-            Some(length) => length,
-            None => unreachable!(),
-        };
-
-        const SQ1_LN: NonZeroUsize = match NonZeroUsize::new(13) {
-            Some(length) => length,
-            None => unreachable!(),
-        };
-
-        let header = Header::builder()
-            .set_header(Map::<map::Header>::new(Version::new(1, 6)))
-            .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(SQ0_LN))
-            .add_reference_sequence("sq1", Map::<ReferenceSequence>::new(SQ1_LN))
-            .add_read_group("rg0", Map::<ReadGroup>::default())
-            .add_read_group("rg1", Map::<ReadGroup>::default())
-            .add_program("pg0", Map::<Program>::default())
-            .add_program("pg1", Map::<Program>::default())
-            .add_comment("noodles")
-            .add_comment("sam")
-            .build();
-
-        let actual = header.to_string();
-        let expected = "\
-@HD\tVN:1.6
-@SQ\tSN:sq0\tLN:8
-@SQ\tSN:sq1\tLN:13
-@RG\tID:rg0
-@RG\tID:rg1
-@PG\tID:pg0
-@PG\tID:pg1
-@CO\tnoodles
-@CO\tsam
-";
-
-        assert_eq!(actual, expected);
     }
 }
