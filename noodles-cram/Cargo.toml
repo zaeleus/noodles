@@ -20,6 +20,7 @@ byteorder.workspace = true
 bytes.workspace = true
 bzip2 = "0.4.4"
 flate2.workspace = true
+indexmap.workspace = true
 md-5 = "0.10.0"
 noodles-bam = { path = "../noodles-bam", version = "0.52.0" }
 noodles-core = { path = "../noodles-core", version = "0.13.0" }

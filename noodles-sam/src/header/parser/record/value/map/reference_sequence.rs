@@ -9,10 +9,7 @@ use crate::header::{
     record::value::{
         map::{
             self,
-            reference_sequence::{
-                alternative_locus, alternative_names, md5_checksum, molecule_topology, tag,
-                AlternativeLocus, AlternativeNames, Md5Checksum, MoleculeTopology, Tag,
-            },
+            reference_sequence::{tag, Tag},
             tag::Other,
             OtherFields, ReferenceSequence,
         },
@@ -29,14 +26,6 @@ pub enum ParseError {
     MissingName,
     MissingLength,
     InvalidLength(length::ParseError),
-    InvalidAlternativeLocus(alternative_locus::ParseError),
-    InvalidAlternativeNames(alternative_names::ParseError),
-    InvalidAssemblyId(value::ParseError),
-    InvalidDescription(value::ParseError),
-    InvalidMd5Checksum(md5_checksum::ParseError),
-    InvalidSpecies(value::ParseError),
-    InvalidMoleculeTopology(molecule_topology::ParseError),
-    InvalidUri(value::ParseError),
     InvalidOther(Other<tag::Standard>, value::ParseError),
     DuplicateTag(Tag),
 }
@@ -47,14 +36,6 @@ impl error::Error for ParseError {
             Self::InvalidField(e) => Some(e),
             Self::InvalidTag(e) => Some(e),
             Self::InvalidLength(e) => Some(e),
-            Self::InvalidAlternativeLocus(e) => Some(e),
-            Self::InvalidAlternativeNames(e) => Some(e),
-            Self::InvalidAssemblyId(e) => Some(e),
-            Self::InvalidDescription(e) => Some(e),
-            Self::InvalidMd5Checksum(e) => Some(e),
-            Self::InvalidSpecies(e) => Some(e),
-            Self::InvalidMoleculeTopology(e) => Some(e),
-            Self::InvalidUri(e) => Some(e),
             Self::InvalidOther(_, e) => Some(e),
             _ => None,
         }
@@ -70,22 +51,6 @@ impl fmt::Display for ParseError {
             Self::MissingName => write!(f, "missing name ({})", tag::NAME),
             Self::MissingLength => write!(f, "missing length ({})", tag::LENGTH),
             Self::InvalidLength(_) => write!(f, "invalid length ({})", tag::LENGTH),
-            Self::InvalidAlternativeLocus(_) => {
-                write!(f, "invalid alternative locus ({})", tag::ALTERNATIVE_LOCUS)
-            }
-            Self::InvalidAlternativeNames(_) => {
-                write!(f, "invalid alternative names ({})", tag::ALTERNATIVE_NAMES)
-            }
-            Self::InvalidAssemblyId(_) => write!(f, "invalid assembly ID ({})", tag::ASSEMBLY_ID),
-            Self::InvalidDescription(_) => write!(f, "invalid description ({})", tag::DESCRIPTION),
-            Self::InvalidMd5Checksum(_) => {
-                write!(f, "invalid MD5 checksum ({})", tag::MD5_CHECKSUM)
-            }
-            Self::InvalidSpecies(_) => write!(f, "invalid species ({})", tag::SPECIES),
-            Self::InvalidMoleculeTopology(_) => {
-                write!(f, "invalid molecule topology ({})", tag::MOLECULE_TOPOLOGY)
-            }
-            Self::InvalidUri(_) => write!(f, "invalid URI ({})", tag::URI),
             Self::InvalidOther(tag, _) => write!(f, "invalid other ({tag})"),
             Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
         }
@@ -98,14 +63,6 @@ pub(crate) fn parse_reference_sequence(
 ) -> Result<(Vec<u8>, Map<ReferenceSequence>), ParseError> {
     let mut name = None;
     let mut length = None;
-    let mut alternative_locus = None;
-    let mut alternative_names = None;
-    let mut assembly_id = None;
-    let mut description = None;
-    let mut md5_checksum = None;
-    let mut species = None;
-    let mut molecule_topology = None;
-    let mut uri = None;
 
     let mut other_fields = OtherFields::new();
 
@@ -119,25 +76,6 @@ pub(crate) fn parse_reference_sequence(
             tag::LENGTH => parse_length(src)
                 .map_err(ParseError::InvalidLength)
                 .and_then(|v| try_replace(&mut length, ctx, tag::LENGTH, v))?,
-            tag::ALTERNATIVE_LOCUS => parse_alternative_locus(src).and_then(|v| {
-                try_replace(&mut alternative_locus, ctx, tag::ALTERNATIVE_LOCUS, v)
-            })?,
-            tag::ALTERNATIVE_NAMES => parse_alternative_names(src).and_then(|v| {
-                try_replace(&mut alternative_names, ctx, tag::ALTERNATIVE_NAMES, v)
-            })?,
-            tag::ASSEMBLY_ID => parse_assembly_id(src)
-                .and_then(|v| try_replace(&mut assembly_id, ctx, tag::ASSEMBLY_ID, v))?,
-            tag::DESCRIPTION => parse_description(src)
-                .and_then(|v| try_replace(&mut description, ctx, tag::DESCRIPTION, v))?,
-            tag::MD5_CHECKSUM => parse_md5_checksum(src)
-                .and_then(|v| try_replace(&mut md5_checksum, ctx, tag::MD5_CHECKSUM, v))?,
-            tag::SPECIES => {
-                parse_species(src).and_then(|v| try_replace(&mut species, ctx, tag::SPECIES, v))?;
-            }
-            tag::MOLECULE_TOPOLOGY => parse_molecule_topology(src).and_then(|v| {
-                try_replace(&mut molecule_topology, ctx, tag::MOLECULE_TOPOLOGY, v)
-            })?,
-            tag::URI => parse_uri(src).and_then(|v| try_replace(&mut uri, ctx, tag::URI, v))?,
             Tag::Other(t) => parse_other(src, t)
                 .and_then(|value| try_insert(&mut other_fields, ctx, t, value))?,
         }
@@ -149,17 +87,7 @@ pub(crate) fn parse_reference_sequence(
     Ok((
         name,
         Map {
-            inner: ReferenceSequence {
-                length,
-                alternative_locus,
-                alternative_names,
-                assembly_id,
-                description,
-                md5_checksum,
-                species,
-                molecule_topology,
-                uri,
-            },
+            inner: ReferenceSequence { length },
             other_fields,
         },
     ))
@@ -169,54 +97,6 @@ fn parse_name(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
     parse_value(src)
         .map(Vec::from)
         .map_err(ParseError::InvalidValue)
-}
-
-fn parse_alternative_locus(src: &mut &[u8]) -> Result<AlternativeLocus, ParseError> {
-    parse_value(src)
-        .map_err(ParseError::InvalidValue)
-        .and_then(|s| s.parse().map_err(ParseError::InvalidAlternativeLocus))
-}
-
-fn parse_alternative_names(src: &mut &[u8]) -> Result<AlternativeNames, ParseError> {
-    parse_value(src)
-        .map_err(ParseError::InvalidValue)
-        .and_then(|s| s.parse().map_err(ParseError::InvalidAlternativeNames))
-}
-
-fn parse_assembly_id(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
-    parse_value(src)
-        .map(Vec::from)
-        .map_err(ParseError::InvalidAssemblyId)
-}
-
-fn parse_description(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
-    parse_value(src)
-        .map(Vec::from)
-        .map_err(ParseError::InvalidDescription)
-}
-
-fn parse_md5_checksum(src: &mut &[u8]) -> Result<Md5Checksum, ParseError> {
-    parse_value(src)
-        .map_err(ParseError::InvalidValue)
-        .and_then(|s| s.parse().map_err(ParseError::InvalidMd5Checksum))
-}
-
-fn parse_species(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
-    parse_value(src)
-        .map(Vec::from)
-        .map_err(ParseError::InvalidSpecies)
-}
-
-fn parse_molecule_topology(src: &mut &[u8]) -> Result<MoleculeTopology, ParseError> {
-    parse_value(src)
-        .map_err(ParseError::InvalidValue)
-        .and_then(|s| s.parse().map_err(ParseError::InvalidMoleculeTopology))
-}
-
-fn parse_uri(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
-    parse_value(src)
-        .map(Vec::from)
-        .map_err(ParseError::InvalidUri)
 }
 
 fn parse_other(src: &mut &[u8], tag: Other<tag::Standard>) -> Result<String, ParseError> {

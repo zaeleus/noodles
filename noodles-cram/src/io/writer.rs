@@ -305,12 +305,16 @@ pub(crate) fn add_missing_reference_sequence_checksums(
     reference_sequence_repository: &fasta::Repository,
     reference_sequences: &mut ReferenceSequences,
 ) -> io::Result<()> {
-    use sam::header::record::value::map::reference_sequence::Md5Checksum;
+    use indexmap::map::Entry;
+    use sam::header::record::value::map::reference_sequence::{tag, Md5Checksum};
 
     use crate::data_container::slice::builder::calculate_normalized_sequence_digest;
 
     for (name, reference_sequence) in reference_sequences {
-        if reference_sequence.md5_checksum().is_none() {
+        if let Entry::Vacant(entry) = reference_sequence
+            .other_fields_mut()
+            .entry(tag::MD5_CHECKSUM)
+        {
             let sequence = reference_sequence_repository
                 .get(name)
                 .transpose()?
@@ -318,7 +322,7 @@ pub(crate) fn add_missing_reference_sequence_checksums(
 
             let checksum = calculate_normalized_sequence_digest(&sequence[..]);
 
-            *reference_sequence.md5_checksum_mut() = Some(Md5Checksum::from(checksum));
+            entry.insert(Md5Checksum::from(checksum).to_string().into_bytes());
         }
     }
 
@@ -334,7 +338,10 @@ mod tests {
         use std::num::NonZeroUsize;
 
         use fasta::record::{Definition, Sequence};
-        use sam::header::record::value::{map::ReferenceSequence, Map};
+        use sam::header::record::value::{
+            map::{reference_sequence::tag, ReferenceSequence},
+            Map,
+        };
 
         const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
             Some(length) => length,
@@ -357,8 +364,8 @@ mod tests {
             ),
         ];
 
-        let sq0_md5_checksum = "be19336b7e15968f7ac7dc82493d9cd8".parse()?;
-        let sq1_md5_checksum = "d80f22a19aeeb623b3e4f746c762f21d".parse()?;
+        let sq0_md5_checksum = Vec::from("be19336b7e15968f7ac7dc82493d9cd8");
+        let sq1_md5_checksum = Vec::from("d80f22a19aeeb623b3e4f746c762f21d");
 
         let repository = fasta::Repository::new(reference_sequences);
 
@@ -368,7 +375,7 @@ mod tests {
                 "sq1",
                 Map::<ReferenceSequence>::builder()
                     .set_length(SQ1_LN)
-                    .set_md5_checksum(sq1_md5_checksum)
+                    .insert(tag::MD5_CHECKSUM, sq1_md5_checksum.clone())
                     .build()?,
             )
             .build();
@@ -376,10 +383,16 @@ mod tests {
         add_missing_reference_sequence_checksums(&repository, header.reference_sequences_mut())?;
 
         let sq0 = header.reference_sequences().get(&b"sq0"[..]);
-        assert_eq!(sq0.and_then(|rs| rs.md5_checksum()), Some(sq0_md5_checksum));
+        assert_eq!(
+            sq0.and_then(|rs| rs.other_fields().get(&tag::MD5_CHECKSUM)),
+            Some(&sq0_md5_checksum)
+        );
 
         let sq1 = header.reference_sequences().get(&b"sq1"[..]);
-        assert_eq!(sq1.and_then(|rs| rs.md5_checksum()), Some(sq1_md5_checksum));
+        assert_eq!(
+            sq1.and_then(|rs| rs.other_fields().get(&tag::MD5_CHECKSUM)),
+            Some(&sq1_md5_checksum)
+        );
 
         Ok(())
     }

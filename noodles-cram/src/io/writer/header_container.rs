@@ -43,8 +43,13 @@ where
 fn validate_reference_sequences(
     reference_sequences: &sam::header::ReferenceSequences,
 ) -> io::Result<()> {
+    use sam::header::record::value::map::reference_sequence::tag;
+
     for reference_sequence in reference_sequences.values() {
-        if reference_sequence.md5_checksum().is_none() {
+        if !reference_sequence
+            .other_fields()
+            .contains_key(&tag::MD5_CHECKSUM)
+        {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidInput,
                 "header reference sequence record is missing MD5 checksum",
@@ -135,7 +140,7 @@ mod tests {
         use std::num::NonZeroUsize;
 
         use sam::header::record::value::{
-            map::{reference_sequence::Md5Checksum, ReferenceSequence},
+            map::{reference_sequence::tag, ReferenceSequence},
             Map,
         };
 
@@ -149,10 +154,10 @@ mod tests {
                 "sq0",
                 Map::<ReferenceSequence>::builder()
                     .set_length(SQ0_LN)
-                    .set_md5_checksum(Md5Checksum::from([
-                        0xd7, 0xeb, 0xa3, 0x11, 0x42, 0x1b, 0xbc, 0x9d, 0x3a, 0xda, 0x44, 0x70,
-                        0x9d, 0xd6, 0x15, 0x34,
-                    ]))
+                    .insert(
+                        tag::MD5_CHECKSUM,
+                        Vec::from("d7eba311421bbc9d3ada44709dd61534"),
+                    )
                     .build()?,
             )
             .build();
