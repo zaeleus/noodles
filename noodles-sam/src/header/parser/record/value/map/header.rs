@@ -79,23 +79,28 @@ pub(crate) fn parse_header(src: &mut &[u8], ctx: &Context) -> Result<Map<Header>
 }
 
 fn parse_version(src: &mut &[u8]) -> Result<Version, ParseError> {
-    const DELIMITER: char = '.';
+    const DELIMITER: u8 = b'.';
 
-    let s = parse_value(src).map_err(ParseError::InvalidValue)?;
+    fn split_once(buf: &[u8], delimiter: u8) -> Option<(&[u8], &[u8])> {
+        let i = buf.iter().position(|&b| b == delimiter)?;
+        Some((&buf[..i], &buf[i + 1..]))
+    }
 
-    match s.split_once(DELIMITER) {
+    let buf = parse_value(src).map_err(ParseError::InvalidValue)?;
+
+    match split_once(buf, DELIMITER) {
         Some((a, b)) => {
-            let major = a.parse().map_err(|_| ParseError::InvalidVersion)?;
-            let minor = b.parse().map_err(|_| ParseError::InvalidVersion)?;
+            let major = lexical_core::parse(a).map_err(|_| ParseError::InvalidVersion)?;
+            let minor = lexical_core::parse(b).map_err(|_| ParseError::InvalidVersion)?;
             Ok(Version::new(major, minor))
         }
         None => Err(ParseError::InvalidVersion),
     }
 }
 
-fn parse_other(src: &mut &[u8], tag: Other<tag::Standard>) -> Result<String, ParseError> {
+fn parse_other(src: &mut &[u8], tag: Other<tag::Standard>) -> Result<Vec<u8>, ParseError> {
     parse_value(src)
-        .map(String::from)
+        .map(Vec::from)
         .map_err(|e| ParseError::InvalidOther(tag, e))
 }
 

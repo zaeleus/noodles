@@ -89,9 +89,9 @@ fn parse_id(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
         .map_err(ParseError::InvalidId)
 }
 
-fn parse_other(src: &mut &[u8], tag: Other<tag::Standard>) -> Result<String, ParseError> {
+fn parse_other(src: &mut &[u8], tag: Other<tag::Standard>) -> Result<Vec<u8>, ParseError> {
     parse_value(src)
-        .map(String::from)
+        .map(Vec::from)
         .map_err(|e| ParseError::InvalidOther(tag, e))
 }
 
