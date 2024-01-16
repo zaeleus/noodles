@@ -6,7 +6,7 @@ use crate::header::{
     record::value::{
         map::{
             self,
-            header::{tag, version, Tag, Version},
+            header::{tag, Tag, Version},
             tag::Other,
             Header, OtherFields,
         },
@@ -21,7 +21,7 @@ pub enum ParseError {
     InvalidTag(super::field::tag::ParseError),
     InvalidValue(value::ParseError),
     MissingVersion,
-    InvalidVersion(version::ParseError),
+    InvalidVersion,
     InvalidOther(Other<tag::Standard>, value::ParseError),
     DuplicateTag(Tag),
 }
@@ -31,7 +31,6 @@ impl error::Error for ParseError {
         match self {
             Self::InvalidField(e) => Some(e),
             Self::InvalidTag(e) => Some(e),
-            Self::InvalidVersion(e) => Some(e),
             Self::InvalidOther(_, e) => Some(e),
             _ => None,
         }
@@ -45,7 +44,7 @@ impl fmt::Display for ParseError {
             Self::InvalidTag(_) => write!(f, "invalid tag"),
             Self::InvalidValue(_) => write!(f, "invalid value"),
             Self::MissingVersion => write!(f, "missing version ({}) field", tag::VERSION),
-            Self::InvalidVersion(_) => write!(f, "invalid version ({})", tag::VERSION),
+            Self::InvalidVersion => write!(f, "invalid version ({})", tag::VERSION),
             Self::InvalidOther(tag, _) => write!(f, "invalid other ({tag})"),
             Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
         }
@@ -80,9 +79,18 @@ pub(crate) fn parse_header(src: &mut &[u8], ctx: &Context) -> Result<Map<Header>
 }
 
 fn parse_version(src: &mut &[u8]) -> Result<Version, ParseError> {
-    parse_value(src)
-        .map_err(ParseError::InvalidValue)
-        .and_then(|s| s.parse().map_err(ParseError::InvalidVersion))
+    const DELIMITER: char = '.';
+
+    let s = parse_value(src).map_err(ParseError::InvalidValue)?;
+
+    match s.split_once(DELIMITER) {
+        Some((a, b)) => {
+            let major = a.parse().map_err(|_| ParseError::InvalidVersion)?;
+            let minor = b.parse().map_err(|_| ParseError::InvalidVersion)?;
+            Ok(Version::new(major, minor))
+        }
+        None => Err(ParseError::InvalidVersion),
+    }
 }
 
 fn parse_other(src: &mut &[u8], tag: Other<tag::Standard>) -> Result<String, ParseError> {
