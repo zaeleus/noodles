@@ -208,51 +208,51 @@ fn parse_id(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
         .map_err(ParseError::InvalidId)
 }
 
-fn parse_barcode(src: &mut &[u8]) -> Result<String, ParseError> {
+fn parse_barcode(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
     parse_value(src)
-        .map(String::from)
+        .map(Vec::from)
         .map_err(ParseError::InvalidBarcode)
 }
 
-fn parse_sequencing_center(src: &mut &[u8]) -> Result<String, ParseError> {
+fn parse_sequencing_center(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
     parse_value(src)
-        .map(String::from)
+        .map(Vec::from)
         .map_err(ParseError::InvalidSequencingCenter)
 }
 
-fn parse_description(src: &mut &[u8]) -> Result<String, ParseError> {
+fn parse_description(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
     parse_value(src)
-        .map(String::from)
+        .map(Vec::from)
         .map_err(ParseError::InvalidDescription)
 }
 
-fn parse_produced_at(src: &mut &[u8]) -> Result<String, ParseError> {
+fn parse_produced_at(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
     parse_value(src)
-        .map(String::from)
+        .map(Vec::from)
         .map_err(ParseError::InvalidProducedAt)
 }
 
-fn parse_flow_order(src: &mut &[u8]) -> Result<String, ParseError> {
+fn parse_flow_order(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
     parse_value(src)
-        .map(String::from)
+        .map(Vec::from)
         .map_err(ParseError::InvalidFlowOrder)
 }
 
-fn parse_key_sequence(src: &mut &[u8]) -> Result<String, ParseError> {
+fn parse_key_sequence(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
     parse_value(src)
-        .map(String::from)
+        .map(Vec::from)
         .map_err(ParseError::InvalidKeySequence)
 }
 
-fn parse_library(src: &mut &[u8]) -> Result<String, ParseError> {
+fn parse_library(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
     parse_value(src)
-        .map(String::from)
+        .map(Vec::from)
         .map_err(ParseError::InvalidLibrary)
 }
 
-fn parse_program(src: &mut &[u8]) -> Result<String, ParseError> {
+fn parse_program(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
     parse_value(src)
-        .map(String::from)
+        .map(Vec::from)
         .map_err(ParseError::InvalidProgram)
 }
 
@@ -271,21 +271,21 @@ fn parse_platform(src: &mut &[u8]) -> Result<Platform, ParseError> {
         .and_then(|s| s.parse().map_err(ParseError::InvalidPlatform))
 }
 
-fn parse_platform_model(src: &mut &[u8]) -> Result<String, ParseError> {
+fn parse_platform_model(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
     parse_value(src)
-        .map(String::from)
+        .map(Vec::from)
         .map_err(ParseError::InvalidPlatformModel)
 }
 
-fn parse_platform_unit(src: &mut &[u8]) -> Result<String, ParseError> {
+fn parse_platform_unit(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
     parse_value(src)
-        .map(String::from)
+        .map(Vec::from)
         .map_err(ParseError::InvalidPlatformUnit)
 }
 
-fn parse_sample(src: &mut &[u8]) -> Result<String, ParseError> {
+fn parse_sample(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
     parse_value(src)
-        .map(String::from)
+        .map(Vec::from)
         .map_err(ParseError::InvalidSample)
 }
 

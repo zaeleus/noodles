@@ -4,11 +4,11 @@ use crate::header::record::value::map::{self, builder::BuildError};
 /// A SAM header program builder.
 #[derive(Debug, Default)]
 pub struct Builder {
-    name: Option<String>,
-    command_line: Option<String>,
-    previous_id: Option<String>,
-    description: Option<String>,
-    version: Option<String>,
+    name: Option<Vec<u8>>,
+    command_line: Option<Vec<u8>>,
+    previous_id: Option<Vec<u8>>,
+    description: Option<Vec<u8>>,
+    version: Option<Vec<u8>>,
 }
 
 impl map::Builder<Program> {
@@ -23,12 +23,12 @@ impl map::Builder<Program> {
     ///     .set_name("noodles")
     ///     .build()?;
     ///
-    /// assert_eq!(program.name(), Some("noodles"));
+    /// assert_eq!(program.name(), Some(&b"noodles"[..]));
     /// Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
     /// ```
     pub fn set_name<I>(mut self, name: I) -> Self
     where
-        I: Into<String>,
+        I: Into<Vec<u8>>,
     {
         self.inner.name = Some(name.into());
         self
@@ -45,12 +45,12 @@ impl map::Builder<Program> {
     ///     .set_command_line("cargo run")
     ///     .build()?;
     ///
-    /// assert_eq!(program.command_line(), Some("cargo run"));
+    /// assert_eq!(program.command_line(), Some(&b"cargo run"[..]));
     /// Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
     /// ```
     pub fn set_command_line<I>(mut self, command_line: I) -> Self
     where
-        I: Into<String>,
+        I: Into<Vec<u8>>,
     {
         self.inner.command_line = Some(command_line.into());
         self
@@ -67,12 +67,12 @@ impl map::Builder<Program> {
     ///     .set_previous_id("pg0")
     ///     .build()?;
     ///
-    /// assert_eq!(program.previous_id(), Some("pg0"));
+    /// assert_eq!(program.previous_id(), Some(&b"pg0"[..]));
     /// Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
     /// ```
     pub fn set_previous_id<I>(mut self, previous_id: I) -> Self
     where
-        I: Into<String>,
+        I: Into<Vec<u8>>,
     {
         self.inner.previous_id = Some(previous_id.into());
         self
@@ -89,12 +89,12 @@ impl map::Builder<Program> {
     ///     .set_description("noodles")
     ///     .build()?;
     ///
-    /// assert_eq!(program.description(), Some("noodles"));
+    /// assert_eq!(program.description(), Some(&b"noodles"[..]));
     /// Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
     /// ```
     pub fn set_description<I>(mut self, description: I) -> Self
     where
-        I: Into<String>,
+        I: Into<Vec<u8>>,
     {
         self.inner.description = Some(description.into());
         self
@@ -111,12 +111,12 @@ impl map::Builder<Program> {
     ///     .set_version("0.1.0")
     ///     .build()?;
     ///
-    /// assert_eq!(program.version(), Some("0.1.0"));
+    /// assert_eq!(program.version(), Some(&b"0.1.0"[..]));
     /// Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
     /// ```
     pub fn set_version<I>(mut self, version: I) -> Self
     where
-        I: Into<String>,
+        I: Into<Vec<u8>>,
     {
         self.inner.version = Some(version.into());
         self

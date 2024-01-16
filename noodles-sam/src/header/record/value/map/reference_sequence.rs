@@ -30,12 +30,12 @@ pub struct ReferenceSequence {
     pub(crate) length: NonZeroUsize,
     pub(crate) alternative_locus: Option<AlternativeLocus>,
     pub(crate) alternative_names: Option<AlternativeNames>,
-    pub(crate) assembly_id: Option<String>,
-    pub(crate) description: Option<String>,
+    pub(crate) assembly_id: Option<Vec<u8>>,
+    pub(crate) description: Option<Vec<u8>>,
     pub(crate) md5_checksum: Option<Md5Checksum>,
-    pub(crate) species: Option<String>,
+    pub(crate) species: Option<Vec<u8>>,
     pub(crate) molecule_topology: Option<MoleculeTopology>,
-    pub(crate) uri: Option<String>,
+    pub(crate) uri: Option<Vec<u8>>,
 }
 
 impl Inner for ReferenceSequence {
@@ -149,7 +149,7 @@ impl Map<ReferenceSequence> {
     /// assert!(reference_sequence.assembly_id().is_none());
     /// # Ok::<_, std::num::TryFromIntError>(())
     /// ```
-    pub fn assembly_id(&self) -> Option<&str> {
+    pub fn assembly_id(&self) -> Option<&[u8]> {
         self.inner.assembly_id.as_deref()
     }
 
@@ -164,7 +164,7 @@ impl Map<ReferenceSequence> {
     /// assert!(reference_sequence.description().is_none());
     /// # Ok::<_, std::num::TryFromIntError>(())
     /// ```
-    pub fn description(&self) -> Option<&str> {
+    pub fn description(&self) -> Option<&[u8]> {
         self.inner.description.as_deref()
     }
 
@@ -218,7 +218,7 @@ impl Map<ReferenceSequence> {
     /// assert!(reference_sequence.species().is_none());
     /// # Ok::<_, std::num::TryFromIntError>(())
     /// ```
-    pub fn species(&self) -> Option<&str> {
+    pub fn species(&self) -> Option<&[u8]> {
         self.inner.species.as_deref()
     }
 
@@ -248,7 +248,7 @@ impl Map<ReferenceSequence> {
     /// assert!(reference_sequence.uri().is_none());
     /// # Ok::<_, std::num::TryFromIntError>(())
     /// ```
-    pub fn uri(&self) -> Option<&str> {
+    pub fn uri(&self) -> Option<&[u8]> {
         self.inner.uri.as_deref()
     }
 }

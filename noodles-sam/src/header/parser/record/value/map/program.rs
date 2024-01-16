@@ -127,33 +127,33 @@ fn parse_id(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
         .map_err(ParseError::InvalidId)
 }
 
-fn parse_name(src: &mut &[u8]) -> Result<String, ParseError> {
+fn parse_name(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
     parse_value(src)
-        .map(String::from)
+        .map(Vec::from)
         .map_err(ParseError::InvalidName)
 }
 
-fn parse_command_line(src: &mut &[u8]) -> Result<String, ParseError> {
+fn parse_command_line(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
     parse_value(src)
-        .map(String::from)
+        .map(Vec::from)
         .map_err(ParseError::InvalidCommandLine)
 }
 
-fn parse_previous_id(src: &mut &[u8]) -> Result<String, ParseError> {
+fn parse_previous_id(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
     parse_value(src)
-        .map(String::from)
+        .map(Vec::from)
         .map_err(ParseError::InvalidPreviousId)
 }
 
-fn parse_description(src: &mut &[u8]) -> Result<String, ParseError> {
+fn parse_description(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
     parse_value(src)
-        .map(String::from)
+        .map(Vec::from)
         .map_err(ParseError::InvalidDescription)
 }
 
-fn parse_version(src: &mut &[u8]) -> Result<String, ParseError> {
+fn parse_version(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
     parse_value(src)
-        .map(String::from)
+        .map(Vec::from)
         .map_err(ParseError::InvalidVersion)
 }
 

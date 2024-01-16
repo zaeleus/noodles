@@ -11,12 +11,12 @@ pub struct Builder {
     length: Option<NonZeroUsize>,
     alternative_locus: Option<AlternativeLocus>,
     alternative_names: Option<AlternativeNames>,
-    assembly_id: Option<String>,
-    description: Option<String>,
+    assembly_id: Option<Vec<u8>>,
+    description: Option<Vec<u8>>,
     md5_checksum: Option<Md5Checksum>,
-    species: Option<String>,
+    species: Option<Vec<u8>>,
     molecule_topology: Option<MoleculeTopology>,
-    uri: Option<String>,
+    uri: Option<Vec<u8>>,
 }
 
 impl map::Builder<ReferenceSequence> {
@@ -112,12 +112,12 @@ impl map::Builder<ReferenceSequence> {
     ///     .set_assembly_id("ref")
     ///     .build()?;
     ///
-    /// assert_eq!(reference_sequence.assembly_id(), Some("ref"));
+    /// assert_eq!(reference_sequence.assembly_id(), Some(&b"ref"[..]));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_assembly_id<I>(mut self, assembly_id: I) -> Self
     where
-        I: Into<String>,
+        I: Into<Vec<u8>>,
     {
         self.inner.assembly_id = Some(assembly_id.into());
         self
@@ -137,12 +137,12 @@ impl map::Builder<ReferenceSequence> {
     ///     .set_description("noodles")
     ///     .build()?;
     ///
-    /// assert_eq!(reference_sequence.description(), Some("noodles"));
+    /// assert_eq!(reference_sequence.description(), Some(&b"noodles"[..]));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_description<I>(mut self, description: I) -> Self
     where
-        I: Into<String>,
+        I: Into<Vec<u8>>,
     {
         self.inner.description = Some(description.into());
         self
@@ -193,12 +193,12 @@ impl map::Builder<ReferenceSequence> {
     ///     .set_species("human")
     ///     .build()?;
     ///
-    /// assert_eq!(reference_sequence.species(), Some("human"));
+    /// assert_eq!(reference_sequence.species(), Some(&b"human"[..]));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_species<I>(mut self, species: I) -> Self
     where
-        I: Into<String>,
+        I: Into<Vec<u8>>,
     {
         self.inner.species = Some(species.into());
         self
@@ -243,12 +243,12 @@ impl map::Builder<ReferenceSequence> {
     ///     .set_uri("file:///tmp/ref.fasta")
     ///     .build()?;
     ///
-    /// assert_eq!(reference_sequence.uri(), Some("file:///tmp/ref.fasta"));
+    /// assert_eq!(reference_sequence.uri(), Some(&b"file:///tmp/ref.fasta"[..]));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_uri<I>(mut self, uri: I) -> Self
     where
-        I: Into<String>,
+        I: Into<Vec<u8>>,
     {
         self.inner.uri = Some(uri.into());
         self

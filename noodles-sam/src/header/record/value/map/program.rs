@@ -13,11 +13,11 @@ use super::{Inner, Map};
 /// A program describes any program that created, viewed, or mutated a SAM file.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Program {
-    pub(crate) name: Option<String>,
-    pub(crate) command_line: Option<String>,
-    pub(crate) previous_id: Option<String>,
-    pub(crate) description: Option<String>,
-    pub(crate) version: Option<String>,
+    pub(crate) name: Option<Vec<u8>>,
+    pub(crate) command_line: Option<Vec<u8>>,
+    pub(crate) previous_id: Option<Vec<u8>>,
+    pub(crate) description: Option<Vec<u8>>,
+    pub(crate) version: Option<Vec<u8>>,
 }
 
 impl Inner for Program {
@@ -35,7 +35,7 @@ impl Map<Program> {
     /// let program = Map::<Program>::default();
     /// assert!(program.name().is_none());
     /// ```
-    pub fn name(&self) -> Option<&str> {
+    pub fn name(&self) -> Option<&[u8]> {
         self.inner.name.as_deref()
     }
 
@@ -48,7 +48,7 @@ impl Map<Program> {
     /// let program = Map::<Program>::default();
     /// assert!(program.command_line().is_none());
     /// ```
-    pub fn command_line(&self) -> Option<&str> {
+    pub fn command_line(&self) -> Option<&[u8]> {
         self.inner.command_line.as_deref()
     }
 
@@ -61,7 +61,7 @@ impl Map<Program> {
     /// let program = Map::<Program>::default();
     /// assert!(program.previous_id().is_none());
     /// ```
-    pub fn previous_id(&self) -> Option<&str> {
+    pub fn previous_id(&self) -> Option<&[u8]> {
         self.inner.previous_id.as_deref()
     }
 
@@ -74,7 +74,7 @@ impl Map<Program> {
     /// let program = Map::<Program>::default();
     /// assert!(program.description().is_none());
     /// ```
-    pub fn description(&self) -> Option<&str> {
+    pub fn description(&self) -> Option<&[u8]> {
         self.inner.description.as_deref()
     }
 
@@ -87,7 +87,7 @@ impl Map<Program> {
     /// let program = Map::<Program>::default();
     /// assert!(program.version().is_none());
     /// ```
-    pub fn version(&self) -> Option<&str> {
+    pub fn version(&self) -> Option<&[u8]> {
         self.inner.version.as_deref()
     }
 }

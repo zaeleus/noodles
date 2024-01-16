@@ -16,19 +16,19 @@ use super::{Inner, Map};
 /// instrument.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct ReadGroup {
-    pub(crate) barcode: Option<String>,
-    pub(crate) sequencing_center: Option<String>,
-    pub(crate) description: Option<String>,
-    pub(crate) produced_at: Option<String>,
-    pub(crate) flow_order: Option<String>,
-    pub(crate) key_sequence: Option<String>,
-    pub(crate) library: Option<String>,
-    pub(crate) program: Option<String>,
+    pub(crate) barcode: Option<Vec<u8>>,
+    pub(crate) sequencing_center: Option<Vec<u8>>,
+    pub(crate) description: Option<Vec<u8>>,
+    pub(crate) produced_at: Option<Vec<u8>>,
+    pub(crate) flow_order: Option<Vec<u8>>,
+    pub(crate) key_sequence: Option<Vec<u8>>,
+    pub(crate) library: Option<Vec<u8>>,
+    pub(crate) program: Option<Vec<u8>>,
     pub(crate) predicted_median_insert_size: Option<i32>,
     pub(crate) platform: Option<Platform>,
-    pub(crate) platform_model: Option<String>,
-    pub(crate) platform_unit: Option<String>,
-    pub(crate) sample: Option<String>,
+    pub(crate) platform_model: Option<Vec<u8>>,
+    pub(crate) platform_unit: Option<Vec<u8>>,
+    pub(crate) sample: Option<Vec<u8>>,
 }
 
 impl Inner for ReadGroup {
@@ -46,7 +46,7 @@ impl Map<ReadGroup> {
     /// let read_group = Map::<ReadGroup>::default();
     /// assert!(read_group.barcode().is_none());
     /// ```
-    pub fn barcode(&self) -> Option<&str> {
+    pub fn barcode(&self) -> Option<&[u8]> {
         self.inner.barcode.as_deref()
     }
 
@@ -59,7 +59,7 @@ impl Map<ReadGroup> {
     /// let read_group = Map::<ReadGroup>::default();
     /// assert!(read_group.sequencing_center().is_none());
     /// ```
-    pub fn sequencing_center(&self) -> Option<&str> {
+    pub fn sequencing_center(&self) -> Option<&[u8]> {
         self.inner.sequencing_center.as_deref()
     }
 
@@ -72,7 +72,7 @@ impl Map<ReadGroup> {
     /// let read_group = Map::<ReadGroup>::default();
     /// assert!(read_group.description().is_none());
     /// ```
-    pub fn description(&self) -> Option<&str> {
+    pub fn description(&self) -> Option<&[u8]> {
         self.inner.description.as_deref()
     }
 
@@ -85,7 +85,7 @@ impl Map<ReadGroup> {
     /// let read_group = Map::<ReadGroup>::default();
     /// assert!(read_group.produced_at().is_none());
     /// ```
-    pub fn produced_at(&self) -> Option<&str> {
+    pub fn produced_at(&self) -> Option<&[u8]> {
         self.inner.produced_at.as_deref()
     }
 
@@ -98,7 +98,7 @@ impl Map<ReadGroup> {
     /// let read_group = Map::<ReadGroup>::default();
     /// assert!(read_group.flow_order().is_none());
     /// ```
-    pub fn flow_order(&self) -> Option<&str> {
+    pub fn flow_order(&self) -> Option<&[u8]> {
         self.inner.flow_order.as_deref()
     }
 
@@ -111,7 +111,7 @@ impl Map<ReadGroup> {
     /// let read_group = Map::<ReadGroup>::default();
     /// assert!(read_group.key_sequence().is_none());
     /// ```
-    pub fn key_sequence(&self) -> Option<&str> {
+    pub fn key_sequence(&self) -> Option<&[u8]> {
         self.inner.key_sequence.as_deref()
     }
 
@@ -124,7 +124,7 @@ impl Map<ReadGroup> {
     /// let read_group = Map::<ReadGroup>::default();
     /// assert!(read_group.library().is_none());
     /// ```
-    pub fn library(&self) -> Option<&str> {
+    pub fn library(&self) -> Option<&[u8]> {
         self.inner.library.as_deref()
     }
 
@@ -137,7 +137,7 @@ impl Map<ReadGroup> {
     /// let read_group = Map::<ReadGroup>::default();
     /// assert!(read_group.program().is_none());
     /// ```
-    pub fn program(&self) -> Option<&str> {
+    pub fn program(&self) -> Option<&[u8]> {
         self.inner.program.as_deref()
     }
 
@@ -176,7 +176,7 @@ impl Map<ReadGroup> {
     /// let read_group = Map::<ReadGroup>::default();
     /// assert!(read_group.platform_model().is_none());
     /// ```
-    pub fn platform_model(&self) -> Option<&str> {
+    pub fn platform_model(&self) -> Option<&[u8]> {
         self.inner.platform_model.as_deref()
     }
 
@@ -189,7 +189,7 @@ impl Map<ReadGroup> {
     /// let read_group = Map::<ReadGroup>::default();
     /// assert!(read_group.platform_unit().is_none());
     /// ```
-    pub fn platform_unit(&self) -> Option<&str> {
+    pub fn platform_unit(&self) -> Option<&[u8]> {
         self.inner.platform_unit.as_deref()
     }
 
@@ -202,7 +202,7 @@ impl Map<ReadGroup> {
     /// let read_group = Map::<ReadGroup>::default();
     /// assert!(read_group.sample().is_none());
     /// ```
-    pub fn sample(&self) -> Option<&str> {
+    pub fn sample(&self) -> Option<&[u8]> {
         self.inner.sample.as_deref()
     }
 }

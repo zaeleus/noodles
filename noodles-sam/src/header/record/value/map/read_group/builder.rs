@@ -4,19 +4,19 @@ use crate::header::record::value::map::{self, builder::BuildError};
 /// A SAM header reference read group.
 #[derive(Debug, Default)]
 pub struct Builder {
-    barcode: Option<String>,
-    sequencing_center: Option<String>,
-    description: Option<String>,
-    produced_at: Option<String>,
-    flow_order: Option<String>,
-    key_sequence: Option<String>,
-    library: Option<String>,
-    program: Option<String>,
+    barcode: Option<Vec<u8>>,
+    sequencing_center: Option<Vec<u8>>,
+    description: Option<Vec<u8>>,
+    produced_at: Option<Vec<u8>>,
+    flow_order: Option<Vec<u8>>,
+    key_sequence: Option<Vec<u8>>,
+    library: Option<Vec<u8>>,
+    program: Option<Vec<u8>>,
     predicted_median_insert_size: Option<i32>,
     platform: Option<Platform>,
-    platform_model: Option<String>,
-    platform_unit: Option<String>,
-    sample: Option<String>,
+    platform_model: Option<Vec<u8>>,
+    platform_unit: Option<Vec<u8>>,
+    sample: Option<Vec<u8>>,
 }
 
 impl map::Builder<ReadGroup> {
@@ -31,12 +31,12 @@ impl map::Builder<ReadGroup> {
     ///     .set_barcode("ACGT")
     ///     .build()?;
     ///
-    /// assert_eq!(read_group.barcode(), Some("ACGT"));
+    /// assert_eq!(read_group.barcode(), Some(&b"ACGT"[..]));
     /// # Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
     /// ```
     pub fn set_barcode<I>(mut self, barcode: I) -> Self
     where
-        I: Into<String>,
+        I: Into<Vec<u8>>,
     {
         self.inner.barcode = Some(barcode.into());
         self
@@ -53,12 +53,12 @@ impl map::Builder<ReadGroup> {
     ///     .set_sequencing_center("sc0")
     ///     .build()?;
     ///
-    /// assert_eq!(read_group.sequencing_center(), Some("sc0"));
+    /// assert_eq!(read_group.sequencing_center(), Some(&b"sc0"[..]));
     /// # Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
     /// ```
     pub fn set_sequencing_center<I>(mut self, sequencing_center: I) -> Self
     where
-        I: Into<String>,
+        I: Into<Vec<u8>>,
     {
         self.inner.sequencing_center = Some(sequencing_center.into());
         self
@@ -75,12 +75,12 @@ impl map::Builder<ReadGroup> {
     ///     .set_description("noodles")
     ///     .build()?;
     ///
-    /// assert_eq!(read_group.description(), Some("noodles"));
+    /// assert_eq!(read_group.description(), Some(&b"noodles"[..]));
     /// # Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
     /// ```
     pub fn set_description<I>(mut self, description: I) -> Self
     where
-        I: Into<String>,
+        I: Into<Vec<u8>>,
     {
         self.inner.description = Some(description.into());
         self
@@ -97,12 +97,12 @@ impl map::Builder<ReadGroup> {
     ///     .set_produced_at("2020-08-19T20:00:00Z")
     ///     .build()?;
     ///
-    /// assert_eq!(read_group.produced_at(), Some("2020-08-19T20:00:00Z"));
+    /// assert_eq!(read_group.produced_at(), Some(&b"2020-08-19T20:00:00Z"[..]));
     /// # Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
     /// ```
     pub fn set_produced_at<I>(mut self, produced_at: I) -> Self
     where
-        I: Into<String>,
+        I: Into<Vec<u8>>,
     {
         self.inner.produced_at = Some(produced_at.into());
         self
@@ -119,12 +119,12 @@ impl map::Builder<ReadGroup> {
     ///     .set_flow_order("*")
     ///     .build()?;
     ///
-    /// assert_eq!(read_group.flow_order(), Some("*"));
+    /// assert_eq!(read_group.flow_order(), Some(&b"*"[..]));
     /// # Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
     /// ```
     pub fn set_flow_order<I>(mut self, flow_order: I) -> Self
     where
-        I: Into<String>,
+        I: Into<Vec<u8>>,
     {
         self.inner.flow_order = Some(flow_order.into());
         self
@@ -141,12 +141,12 @@ impl map::Builder<ReadGroup> {
     ///     .set_key_sequence("ACGT")
     ///     .build()?;
     ///
-    /// assert_eq!(read_group.key_sequence(), Some("ACGT"));
+    /// assert_eq!(read_group.key_sequence(), Some(&b"ACGT"[..]));
     /// # Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
     /// ```
     pub fn set_key_sequence<I>(mut self, key_sequence: I) -> Self
     where
-        I: Into<String>,
+        I: Into<Vec<u8>>,
     {
         self.inner.key_sequence = Some(key_sequence.into());
         self
@@ -163,12 +163,12 @@ impl map::Builder<ReadGroup> {
     ///     .set_library("sample0")
     ///     .build()?;
     ///
-    /// assert_eq!(read_group.library(), Some("sample0"));
+    /// assert_eq!(read_group.library(), Some(&b"sample0"[..]));
     /// # Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
     /// ```
     pub fn set_library<I>(mut self, library: I) -> Self
     where
-        I: Into<String>,
+        I: Into<Vec<u8>>,
     {
         self.inner.library = Some(library.into());
         self
@@ -185,12 +185,12 @@ impl map::Builder<ReadGroup> {
     ///     .set_program("noodles")
     ///     .build()?;
     ///
-    /// assert_eq!(read_group.program(), Some("noodles"));
+    /// assert_eq!(read_group.program(), Some(&b"noodles"[..]));
     /// # Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
     /// ```
     pub fn set_program<I>(mut self, program: I) -> Self
     where
-        I: Into<String>,
+        I: Into<Vec<u8>>,
     {
         self.inner.program = Some(program.into());
         self
@@ -248,12 +248,12 @@ impl map::Builder<ReadGroup> {
     ///     .set_platform_model("noodles")
     ///     .build()?;
     ///
-    /// assert_eq!(read_group.platform_model(), Some("noodles"));
+    /// assert_eq!(read_group.platform_model(), Some(&b"noodles"[..]));
     /// # Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
     /// ```
     pub fn set_platform_model<I>(mut self, platform_model: I) -> Self
     where
-        I: Into<String>,
+        I: Into<Vec<u8>>,
     {
         self.inner.platform_model = Some(platform_model.into());
         self
@@ -270,12 +270,12 @@ impl map::Builder<ReadGroup> {
     ///     .set_platform_unit("NDLS000.1")
     ///     .build()?;
     ///
-    /// assert_eq!(read_group.platform_unit(), Some("NDLS000.1"));
+    /// assert_eq!(read_group.platform_unit(), Some(&b"NDLS000.1"[..]));
     /// # Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
     /// ```
     pub fn set_platform_unit<I>(mut self, platform_unit: I) -> Self
     where
-        I: Into<String>,
+        I: Into<Vec<u8>>,
     {
         self.inner.platform_unit = Some(platform_unit.into());
         self
@@ -292,12 +292,12 @@ impl map::Builder<ReadGroup> {
     ///     .set_sample("sample0")
     ///     .build()?;
     ///
-    /// assert_eq!(read_group.sample(), Some("sample0"));
+    /// assert_eq!(read_group.sample(), Some(&b"sample0"[..]));
     /// # Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
     /// ```
     pub fn set_sample<I>(mut self, sample: I) -> Self
     where
-        I: Into<String>,
+        I: Into<Vec<u8>>,
     {
         self.inner.sample = Some(sample.into());
         self

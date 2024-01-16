@@ -183,15 +183,15 @@ fn parse_alternative_names(src: &mut &[u8]) -> Result<AlternativeNames, ParseErr
         .and_then(|s| s.parse().map_err(ParseError::InvalidAlternativeNames))
 }
 
-fn parse_assembly_id(src: &mut &[u8]) -> Result<String, ParseError> {
+fn parse_assembly_id(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
     parse_value(src)
-        .map(String::from)
+        .map(Vec::from)
         .map_err(ParseError::InvalidAssemblyId)
 }
 
-fn parse_description(src: &mut &[u8]) -> Result<String, ParseError> {
+fn parse_description(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
     parse_value(src)
-        .map(String::from)
+        .map(Vec::from)
         .map_err(ParseError::InvalidDescription)
 }
 
@@ -201,9 +201,9 @@ fn parse_md5_checksum(src: &mut &[u8]) -> Result<Md5Checksum, ParseError> {
         .and_then(|s| s.parse().map_err(ParseError::InvalidMd5Checksum))
 }
 
-fn parse_species(src: &mut &[u8]) -> Result<String, ParseError> {
+fn parse_species(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
     parse_value(src)
-        .map(String::from)
+        .map(Vec::from)
         .map_err(ParseError::InvalidSpecies)
 }
 
@@ -213,9 +213,9 @@ fn parse_molecule_topology(src: &mut &[u8]) -> Result<MoleculeTopology, ParseErr
         .and_then(|s| s.parse().map_err(ParseError::InvalidMoleculeTopology))
 }
 
-fn parse_uri(src: &mut &[u8]) -> Result<String, ParseError> {
+fn parse_uri(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
     parse_value(src)
-        .map(String::from)
+        .map(Vec::from)
         .map_err(ParseError::InvalidUri)
 }
 
