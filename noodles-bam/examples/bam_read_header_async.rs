@@ -24,7 +24,8 @@ async fn main() -> io::Result<()> {
             .set_reference_sequences(reference_sequences)
             .build();
 
-        print!("{header}");
+        let mut writer = sam::AsyncWriter::new(io::stdout());
+        writer.write_header(&header).await?;
     } else {
         print!("{raw_header}");
     }
