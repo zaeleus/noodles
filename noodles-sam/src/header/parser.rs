@@ -235,7 +235,7 @@ mod tests {
 
         use crate::header::record::value::map::{
             self,
-            header::{SortOrder, Version},
+            header::{self, Version},
             program, Map, Program, ReadGroup, ReferenceSequence,
         };
 
@@ -264,7 +264,7 @@ mod tests {
             .set_header(
                 Map::<map::Header>::builder()
                     .set_version(Version::new(1, 6))
-                    .set_sort_order(SortOrder::Coordinate)
+                    .insert(header::tag::SORT_ORDER, Vec::from("coordinate"))
                     .build()?,
             )
             .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(SQ0_LN))

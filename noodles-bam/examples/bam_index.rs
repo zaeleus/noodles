@@ -17,15 +17,13 @@ use noodles_sam::{
 };
 
 fn is_coordinate_sorted(header: &sam::Header) -> bool {
-    use sam::header::record::value::map::header::SortOrder;
+    use sam::header::record::value::map::header::tag;
 
-    if let Some(hdr) = header.header() {
-        if let Some(sort_order) = hdr.sort_order() {
-            return sort_order == SortOrder::Coordinate;
-        }
-    }
-
-    false
+    header
+        .header()
+        .and_then(|hdr| hdr.other_fields().get(&tag::SORT_ORDER))
+        .map(|sort_order| sort_order == b"coordinate")
+        .unwrap_or_default()
 }
 
 fn alignment_context(

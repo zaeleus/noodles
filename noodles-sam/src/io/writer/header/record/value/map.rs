@@ -3,10 +3,7 @@ mod program;
 mod read_group;
 mod reference_sequence;
 
-use std::{
-    fmt,
-    io::{self, Write},
-};
+use std::io::{self, Write};
 
 pub(crate) use self::{
     header::write_header, program::write_program, read_group::write_read_group,
@@ -27,22 +24,6 @@ where
     writer.write_all(tag.as_ref())?;
     write_separator(writer)?;
     writer.write_all(value)?;
-
-    Ok(())
-}
-
-fn fmt_display_field<W, K, V>(writer: &mut W, tag: K, value: V) -> io::Result<()>
-where
-    W: Write,
-    K: AsRef<[u8; 2]>,
-    V: fmt::Display,
-{
-    use crate::io::writer::header::record::write_delimiter;
-
-    write_delimiter(writer)?;
-    writer.write_all(tag.as_ref())?;
-    write_separator(writer)?;
-    write!(writer, "{value}")?;
 
     Ok(())
 }
