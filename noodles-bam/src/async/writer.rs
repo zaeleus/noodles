@@ -234,14 +234,20 @@ where
 
     writer.write_all(MAGIC_NUMBER).await?;
 
-    let text = header.to_string();
+    let text = serialize_header(header)?;
     let l_text =
         u32::try_from(text.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32_le(l_text).await?;
 
-    writer.write_all(text.as_bytes()).await?;
+    writer.write_all(&text).await?;
 
     Ok(())
+}
+
+fn serialize_header(header: &sam::Header) -> io::Result<Vec<u8>> {
+    let mut writer = sam::io::Writer::new(Vec::new());
+    writer.write_header(header)?;
+    Ok(writer.into_inner())
 }
 
 async fn write_reference_sequences<W>(
