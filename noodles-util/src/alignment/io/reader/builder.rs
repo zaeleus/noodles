@@ -240,7 +240,7 @@ mod tests {
 
         let mut writer = bgzf::Writer::new(Vec::new());
         writer.write_all(b"BAM\x01")?;
-        let src = dbg!(writer.finish())?;
+        let src = writer.finish()?;
         t(&src, Format::Bam, Some(CompressionMethod::Bgzf));
 
         // An incomplete gzip stream. See #179.
