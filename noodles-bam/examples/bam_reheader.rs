@@ -21,10 +21,7 @@ fn main() -> io::Result<()> {
 
     writer.write_header(&header)?;
 
-    for result in reader.records() {
-        let record = result?;
-        writer.write_record(&header, &record)?;
-    }
+    io::copy(reader.get_mut(), writer.get_mut())?;
 
     Ok(())
 }

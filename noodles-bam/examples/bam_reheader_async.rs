@@ -6,7 +6,6 @@
 
 use std::env;
 
-use futures::TryStreamExt;
 use noodles_bam as bam;
 use noodles_sam as sam;
 use tokio::{fs::File, io};
@@ -27,11 +26,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .write_reference_sequences(header.reference_sequences())
         .await?;
 
-    let mut records = reader.records(&header);
-
-    while let Some(record) = records.try_next().await? {
-        writer.write_record(&header, &record).await?;
-    }
+    io::copy(reader.get_mut(), writer.get_mut()).await?;
 
     writer.shutdown().await?;
 
