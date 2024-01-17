@@ -1,5 +1,7 @@
 use std::{error, fmt};
 
+use bstr::BString;
+
 /// An error returned when a SAM header record comment value fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -17,7 +19,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(super) fn parse_comment(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
+pub(super) fn parse_comment(src: &mut &[u8]) -> Result<BString, ParseError> {
     consume_delimiter(src)?;
     let (buf, rest) = src.split_at(src.len());
     *src = rest;
@@ -44,7 +46,7 @@ mod tests {
     #[test]
     fn test_parse_comment() {
         let mut src = &b"\tnoodles"[..];
-        assert_eq!(parse_comment(&mut src), Ok(Vec::from("noodles")));
+        assert_eq!(parse_comment(&mut src), Ok(BString::from("noodles")));
 
         let mut src = &b"noodles"[..];
         assert_eq!(parse_comment(&mut src), Err(ParseError::InvalidDelimiter));

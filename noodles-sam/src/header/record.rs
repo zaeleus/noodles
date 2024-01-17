@@ -23,5 +23,5 @@ pub enum Record {
     /// A program (`PG`) record.
     Program(BString, Map<Program>),
     /// A comment (`CO`) record.
-    Comment(Vec<u8>),
+    Comment(BString),
 }

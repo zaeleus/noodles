@@ -110,7 +110,7 @@ pub struct Header {
     reference_sequences: ReferenceSequences,
     read_groups: ReadGroups,
     programs: Programs,
-    comments: Vec<Vec<u8>>,
+    comments: Vec<BString>,
 }
 
 impl Header {
@@ -316,12 +316,13 @@ impl Header {
     /// # Examples
     ///
     /// ```
+    /// use bstr::BString;
     /// use noodles_sam as sam;
     /// let header = sam::Header::builder().add_comment("noodles-sam").build();
     /// let comments = header.comments();
-    /// assert_eq!(header.comments(), [Vec::from("noodles-sam")]);
+    /// assert_eq!(header.comments(), [BString::from("noodles-sam")]);
     /// ```
-    pub fn comments(&self) -> &[Vec<u8>] {
+    pub fn comments(&self) -> &[BString] {
         &self.comments
     }
 
@@ -332,12 +333,13 @@ impl Header {
     /// # Examples
     ///
     /// ```
+    /// use bstr::BString;
     /// use noodles_sam as sam;
     /// let mut header = sam::Header::default();
-    /// header.comments_mut().push(Vec::from("noodles-sam"));
-    /// assert_eq!(header.comments(), [Vec::from("noodles-sam")]);
+    /// header.comments_mut().push(BString::from("noodles-sam"));
+    /// assert_eq!(header.comments(), [BString::from("noodles-sam")]);
     /// ```
-    pub fn comments_mut(&mut self) -> &mut Vec<Vec<u8>> {
+    pub fn comments_mut(&mut self) -> &mut Vec<BString> {
         &mut self.comments
     }
 
@@ -346,14 +348,15 @@ impl Header {
     /// # Examples
     ///
     /// ```
+    /// use bstr::BString;
     /// use noodles_sam as sam;
     /// let mut header = sam::Header::default();
     /// header.add_comment("noodles-sam");
-    /// assert_eq!(header.comments(), [Vec::from("noodles-sam")]);
+    /// assert_eq!(header.comments(), [BString::from("noodles-sam")]);
     /// ```
     pub fn add_comment<C>(&mut self, comment: C)
     where
-        C: Into<Vec<u8>>,
+        C: Into<BString>,
     {
         self.comments.push(comment.into());
     }
