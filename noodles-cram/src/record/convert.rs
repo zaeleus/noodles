@@ -257,7 +257,7 @@ fn get_read_group_id(
     };
 
     read_groups
-        .get_index_of(read_group_name.as_slice())
+        .get_index_of(read_group_name)
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid read group name"))
         .map(Some)
 }
@@ -272,10 +272,10 @@ fn maybe_insert_read_group(
     if let Some(id) = read_group_id {
         let name = read_groups
             .get_index(id)
-            .map(|(name, _)| name.clone())
+            .map(|(name, _)| name)
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid read group ID"))?;
 
-        data.insert(Tag::READ_GROUP, Value::String(name.into()));
+        data.insert(Tag::READ_GROUP, Value::String(name.clone()));
     }
 
     Ok(())

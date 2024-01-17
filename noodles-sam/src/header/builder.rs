@@ -131,7 +131,7 @@ impl Builder {
     /// ```
     pub fn add_read_group<I>(mut self, id: I, map: Map<ReadGroup>) -> Self
     where
-        I: Into<Vec<u8>>,
+        I: Into<BString>,
     {
         self.read_groups.insert(id.into(), map);
         self

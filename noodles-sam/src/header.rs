@@ -95,7 +95,7 @@ use self::record::value::{
 pub type ReferenceSequences = IndexMap<Vec<u8>, Map<ReferenceSequence>>;
 
 /// An ordered map of read groups.
-pub type ReadGroups = IndexMap<Vec<u8>, Map<ReadGroup>>;
+pub type ReadGroups = IndexMap<BString, Map<ReadGroup>>;
 
 /// An ordered map of programs.
 pub type Programs = IndexMap<BString, Map<Program>>;
@@ -263,7 +263,7 @@ impl Header {
     /// assert!(header.read_groups().is_empty());
     ///
     /// let read_group = Map::<ReadGroup>::default();
-    /// header.read_groups_mut().insert(Vec::from("rg0"), read_group);
+    /// header.read_groups_mut().insert(String::from("rg0").into(), read_group);
     ///
     /// let read_groups = header.read_groups();
     /// assert_eq!(read_groups.len(), 1);

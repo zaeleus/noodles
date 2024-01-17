@@ -6,16 +6,16 @@
 //!
 //! This is similar to the outputs of `samtools split <src>`.
 
-use bstr::BStr;
+use bstr::{BStr, ByteSlice};
 use noodles_bam as bam;
 use noodles_bgzf as bgzf;
 use noodles_sam as sam;
 
 use std::{collections::HashMap, env, fs::File, io, str};
 
-type Writers = HashMap<Vec<u8>, bam::io::Writer<bgzf::Writer<File>>>;
+type Writers<'h> = HashMap<&'h BStr, bam::io::Writer<bgzf::Writer<File>>>;
 
-fn build_writers(read_groups: &sam::header::ReadGroups) -> io::Result<Writers> {
+fn build_writers(read_groups: &sam::header::ReadGroups) -> io::Result<Writers<'_>> {
     read_groups
         .keys()
         .enumerate()
@@ -24,14 +24,14 @@ fn build_writers(read_groups: &sam::header::ReadGroups) -> io::Result<Writers> {
 
             bam::io::writer::Builder
                 .build_from_path(dst)
-                .map(|writer| (id.clone(), writer))
+                .map(|writer| (id.as_ref(), writer))
         })
         .collect::<Result<_, _>>()
 }
 
-fn write_headers(writers: &mut Writers, header: &sam::Header) -> io::Result<()> {
+fn write_headers(writers: &mut Writers<'_>, header: &sam::Header) -> io::Result<()> {
     for (id, read_group) in header.read_groups() {
-        let writer = writers.get_mut(id).ok_or_else(|| {
+        let writer = writers.get_mut(id.as_bstr()).ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidData,
                 format!("invalid read group: {}", String::from_utf8_lossy(id)),

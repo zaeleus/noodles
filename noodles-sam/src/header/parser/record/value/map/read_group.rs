@@ -57,7 +57,7 @@ impl fmt::Display for ParseError {
 pub(crate) fn parse_read_group(
     src: &mut &[u8],
     ctx: &Context,
-) -> Result<(Vec<u8>, Map<ReadGroup>), ParseError> {
+) -> Result<(BString, Map<ReadGroup>), ParseError> {
     let mut id = None;
 
     let mut other_fields = OtherFields::new();
@@ -77,7 +77,7 @@ pub(crate) fn parse_read_group(
     let id = id.ok_or(ParseError::MissingId)?;
 
     Ok((
-        id.to_vec(),
+        id.into(),
         Map {
             inner: ReadGroup,
             other_fields,
@@ -131,7 +131,7 @@ mod tests {
         let mut src = &b"\tID:rg0"[..];
         let ctx = Context::default();
         let actual = parse_read_group(&mut src, &ctx);
-        let expected = (Vec::from("rg0"), Map::<ReadGroup>::default());
+        let expected = (BString::from("rg0"), Map::<ReadGroup>::default());
         assert_eq!(actual, Ok(expected));
     }
 
