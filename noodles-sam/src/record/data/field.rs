@@ -62,18 +62,16 @@ mod tests {
 
     #[test]
     fn test_parse_field() -> io::Result<()> {
-        use crate::alignment::record::data::field::tag;
-
         let mut src = &b"NH:i:1"[..];
         assert!(matches!(
             parse_field(&mut src)?,
-            (tag::ALIGNMENT_HIT_COUNT, Value::Int32(1))
+            (Tag::ALIGNMENT_HIT_COUNT, Value::Int32(1))
         ));
 
         let mut src = &b"NH:i:1\t"[..];
         assert!(matches!(
             parse_field(&mut src)?,
-            (tag::ALIGNMENT_HIT_COUNT, Value::Int32(1))
+            (Tag::ALIGNMENT_HIT_COUNT, Value::Int32(1))
         ));
 
         let mut src = &b""[..];

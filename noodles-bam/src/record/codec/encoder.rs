@@ -273,7 +273,7 @@ mod tests {
         use sam::alignment::{
             record::{
                 cigar::{op::Kind, Op},
-                data::field::tag,
+                data::field::Tag,
             },
             record_buf::{data::field::Value, Name, QualityScores, Sequence},
         };
@@ -312,7 +312,7 @@ mod tests {
             .set_sequence(Sequence::from(b"ACGT".to_vec()))
             .set_quality_scores(QualityScores::from(vec![45, 35, 43, 50]))
             .set_data(
-                [(tag::ALIGNMENT_HIT_COUNT, Value::from(1))]
+                [(Tag::ALIGNMENT_HIT_COUNT, Value::from(1))]
                     .into_iter()
                     .collect(),
             )
@@ -350,7 +350,7 @@ mod tests {
         use sam::alignment::{
             record::{
                 cigar::{op::Kind, Op},
-                data::field::tag,
+                data::field::Tag,
             },
             record_buf::{data::field::Value, Sequence},
         };
@@ -378,7 +378,7 @@ mod tests {
             .set_cigar(cigar)
             .set_sequence(sequence)
             .set_data(
-                [(tag::ALIGNMENT_HIT_COUNT, Value::from(1))]
+                [(Tag::ALIGNMENT_HIT_COUNT, Value::from(1))]
                     .into_iter()
                     .collect(),
             )

@@ -5,7 +5,7 @@ pub mod field;
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::alignment::record::{data::field::tag, Data};
+use noodles_sam::alignment::record::{data::field::Tag, Data};
 
 use self::field::put_field;
 
@@ -17,7 +17,7 @@ where
     for result in data.iter() {
         let (tag, value) = result?;
 
-        if &tag == tag::CIGAR.as_ref() {
+        if &tag == Tag::CIGAR.as_ref() {
             continue;
         }
 
@@ -47,14 +47,14 @@ mod tests {
         let data = DataBuf::default();
         t(&mut buf, &data, &[])?;
 
-        let data = [(tag::ALIGNMENT_HIT_COUNT, Value::from(1))]
+        let data = [(Tag::ALIGNMENT_HIT_COUNT, Value::from(1))]
             .into_iter()
             .collect();
         t(&mut buf, &data, &[b'N', b'H', b'C', 0x01])?;
 
         let data = [
-            (tag::ALIGNMENT_HIT_COUNT, Value::from(1)),
-            (tag::READ_GROUP, Value::from("rg0")),
+            (Tag::ALIGNMENT_HIT_COUNT, Value::from(1)),
+            (Tag::READ_GROUP, Value::from("rg0")),
         ]
         .into_iter()
         .collect();

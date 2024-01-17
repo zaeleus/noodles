@@ -349,7 +349,7 @@ mod tests {
 
     #[test]
     fn test_write_alignment_record_with_data() -> io::Result<()> {
-        use sam::alignment::{record::data::field::tag, record_buf::data::field::Value};
+        use sam::alignment::{record::data::field::Tag, record_buf::data::field::Value};
 
         let mut writer = Writer::new(Vec::new());
 
@@ -357,8 +357,8 @@ mod tests {
         let sam_record = RecordBuf::builder()
             .set_data(
                 [
-                    (tag::READ_GROUP, Value::from("rg0")),
-                    (tag::ALIGNMENT_HIT_COUNT, Value::UInt8(1)),
+                    (Tag::READ_GROUP, Value::from("rg0")),
+                    (Tag::ALIGNMENT_HIT_COUNT, Value::UInt8(1)),
                 ]
                 .into_iter()
                 .collect(),
@@ -376,11 +376,11 @@ mod tests {
         let bam_data = record.data();
         let mut fields = bam_data.iter();
 
-        assert_eq!(fields.next(), Some((tag::READ_GROUP, &Value::from("rg0"))));
+        assert_eq!(fields.next(), Some((Tag::READ_GROUP, &Value::from("rg0"))));
 
         assert_eq!(
             fields.next(),
-            Some((tag::ALIGNMENT_HIT_COUNT, &Value::UInt8(1)))
+            Some((Tag::ALIGNMENT_HIT_COUNT, &Value::UInt8(1)))
         );
 
         assert!(fields.next().is_none());

@@ -46,10 +46,8 @@ mod tests {
 
     #[test]
     fn test_get_tag() {
-        use noodles_sam::alignment::record::data::field::tag;
-
         let data = [b'N', b'H'];
         let mut reader = &data[..];
-        assert_eq!(get_tag(&mut reader), Ok(tag::ALIGNMENT_HIT_COUNT));
+        assert_eq!(get_tag(&mut reader), Ok(Tag::ALIGNMENT_HIT_COUNT));
     }
 }

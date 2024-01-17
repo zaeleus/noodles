@@ -59,8 +59,8 @@ impl Record {
         // distance to next fragment
 
         if !data.is_empty() {
-            use sam::alignment::record::data::field::tag;
-            data.remove(&tag::READ_GROUP);
+            use sam::alignment::record::data::field::Tag;
+            data.remove(&Tag::READ_GROUP);
             builder = builder.set_tags(data);
         }
 
@@ -240,9 +240,9 @@ fn get_read_group_id(
     read_groups: &sam::header::ReadGroups,
     data: &sam::alignment::record_buf::Data,
 ) -> io::Result<Option<usize>> {
-    use sam::alignment::{record::data::field::tag, record_buf::data::field::Value};
+    use sam::alignment::{record::data::field::Tag, record_buf::data::field::Value};
 
-    let Some(rg_value) = data.get(&tag::READ_GROUP) else {
+    let Some(rg_value) = data.get(&Tag::READ_GROUP) else {
         return Ok(None);
     };
 
@@ -267,7 +267,7 @@ fn maybe_insert_read_group(
     read_groups: &sam::header::ReadGroups,
     read_group_id: Option<usize>,
 ) -> io::Result<()> {
-    use sam::alignment::{record::data::field::tag, record_buf::data::field::Value};
+    use sam::alignment::{record::data::field::Tag, record_buf::data::field::Value};
 
     if let Some(id) = read_group_id {
         let name = read_groups
@@ -275,7 +275,7 @@ fn maybe_insert_read_group(
             .map(|(name, _)| name)
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid read group ID"))?;
 
-        data.insert(tag::READ_GROUP, Value::String(name.clone()));
+        data.insert(Tag::READ_GROUP, Value::String(name.clone()));
     }
 
     Ok(())

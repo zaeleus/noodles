@@ -173,8 +173,6 @@ mod tests {
 
     #[test]
     fn test_get_preservation_map() -> io::Result<()> {
-        use noodles_sam::alignment::record::data::field::tag;
-
         let mut data = Bytes::from_static(&[
             0x18, // data.len = 24
             0x05, // map.len = 5
@@ -199,7 +197,7 @@ mod tests {
             false,
             SubstitutionMatrix::default(),
             TagIdsDictionary::from(vec![vec![tag_ids_dictionary::Key::new(
-                tag::COMMENT,
+                Tag::COMMENT,
                 Type::String,
             )]]),
         );

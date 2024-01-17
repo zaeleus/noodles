@@ -58,15 +58,15 @@ mod tests {
 
     #[test]
     fn test_parse_data() -> Result<(), ParseError> {
-        use crate::alignment::{record::data::field::tag, record_buf::data::field::Value};
+        use crate::alignment::record_buf::data::field::Value;
 
         let mut data = Data::default();
 
         parse_data(b"", &mut data)?;
         assert!(data.is_empty());
 
-        let nh = (tag::ALIGNMENT_HIT_COUNT, Value::from(1u8));
-        let co = (tag::COMMENT, Value::from("ndls"));
+        let nh = (Tag::ALIGNMENT_HIT_COUNT, Value::from(1u8));
+        let co = (Tag::COMMENT, Value::from("ndls"));
 
         data.clear();
         parse_data(b"NH:i:1", &mut data)?;
@@ -81,7 +81,7 @@ mod tests {
         data.clear();
         assert_eq!(
             parse_data(b"NH:i:1\tNH:i:1", &mut data),
-            Err(ParseError::DuplicateTag(tag::ALIGNMENT_HIT_COUNT))
+            Err(ParseError::DuplicateTag(Tag::ALIGNMENT_HIT_COUNT))
         );
 
         data.clear();

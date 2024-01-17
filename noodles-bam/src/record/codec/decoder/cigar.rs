@@ -79,7 +79,7 @@ where
 // § 4.2.2 "`N_CIGAR_OP` field" (2022-08-22)
 pub(super) fn resolve(header: &sam::Header, record: &mut RecordBuf) -> Result<(), DecodeError> {
     use sam::alignment::{
-        record::data::field::tag,
+        record::data::field::Tag,
         record_buf::data::field::{value::Array, Value},
     };
 
@@ -94,7 +94,7 @@ pub(super) fn resolve(header: &sam::Header, record: &mut RecordBuf) -> Result<()
             let m = reference_sequence.length().get();
 
             if *op_0 == Op::new(Kind::SoftClip, k) && *op_1 == Op::new(Kind::Skip, m) {
-                if let Some((_, value)) = record.data_mut().remove(&tag::CIGAR) {
+                if let Some((_, value)) = record.data_mut().remove(&Tag::CIGAR) {
                     let data = match value {
                         Value::Array(Array::UInt32(values)) => values,
                         _ => return Err(DecodeError::InvalidDataType),
@@ -171,7 +171,7 @@ mod tests {
 
         use sam::{
             alignment::{
-                record::{cigar::Op, data::field::tag},
+                record::{cigar::Op, data::field::Tag},
                 record_buf::{
                     data::field::{value::Array, Value},
                     Sequence,
@@ -198,7 +198,7 @@ mod tests {
             )
             .set_sequence(Sequence::from(b"ACGT".to_vec()))
             .set_data(
-                [(tag::CIGAR, Value::Array(Array::UInt32(vec![0x40])))]
+                [(Tag::CIGAR, Value::Array(Array::UInt32(vec![0x40])))]
                     .into_iter()
                     .collect(),
             )
@@ -209,7 +209,7 @@ mod tests {
         let expected = [Op::new(Kind::Match, 4)].into_iter().collect();
 
         assert_eq!(record.cigar(), &expected);
-        assert!(record.data().get(&tag::CIGAR).is_none());
+        assert!(record.data().get(&Tag::CIGAR).is_none());
 
         Ok(())
     }

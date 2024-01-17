@@ -242,12 +242,12 @@ impl Builder {
     /// use noodles_sam::{
     ///     self as sam,
     ///     alignment::{
-    ///         record::data::field::tag,
+    ///         record::data::field::Tag,
     ///         record_buf::{data::field::Value, Data},
     ///     },
     /// };
     ///
-    /// let data: Data = [(tag::ALIGNMENT_HIT_COUNT, Value::from(1))]
+    /// let data: Data = [(Tag::ALIGNMENT_HIT_COUNT, Value::from(1))]
     ///     .into_iter()
     ///     .collect();
     ///

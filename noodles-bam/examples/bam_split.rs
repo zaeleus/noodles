@@ -50,9 +50,9 @@ fn write_headers(writers: &mut Writers, header: &sam::Header) -> io::Result<()> 
 }
 
 fn get_read_group(data: &dyn sam::alignment::record::Data) -> Option<io::Result<&[u8]>> {
-    use sam::alignment::record::data::field::{tag, Type, Value};
+    use sam::alignment::record::data::field::{Tag, Type, Value};
 
-    data.get(&tag::READ_GROUP).map(|result| {
+    data.get(&Tag::READ_GROUP).map(|result| {
         result.and_then(|value| match value {
             Value::String(s) => Ok(s),
             _ => Err(io::Error::new(

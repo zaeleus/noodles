@@ -45,7 +45,7 @@ impl Builder {
 #[cfg(test)]
 mod tests {
     use noodles_sam::alignment::{
-        record::data::field::{tag, Type},
+        record::data::field::{Tag, Type},
         record_buf::data::field::Value,
     };
 
@@ -56,21 +56,21 @@ mod tests {
         let mut builder = Builder::default();
 
         let mut record = Record::default();
-        record.tags.insert(tag::ALIGNMENT_HIT_COUNT, Value::Int8(1));
+        record.tags.insert(Tag::ALIGNMENT_HIT_COUNT, Value::Int8(1));
         builder.update(&record);
 
         let mut record = Record::default();
-        record.tags.insert(tag::ALIGNMENT_HIT_COUNT, Value::Int8(1));
+        record.tags.insert(Tag::ALIGNMENT_HIT_COUNT, Value::Int8(1));
         builder.update(&record);
 
         let mut record = Record::default();
-        record.tags.insert(tag::COMMENT, Value::from("noodles"));
+        record.tags.insert(Tag::COMMENT, Value::from("noodles"));
         builder.update(&record);
 
         let actual = builder.build();
 
-        let nh = block::ContentId::from(Key::new(tag::ALIGNMENT_HIT_COUNT, Type::Int8));
-        let co = block::ContentId::from(Key::new(tag::COMMENT, Type::String));
+        let nh = block::ContentId::from(Key::new(Tag::ALIGNMENT_HIT_COUNT, Type::Int8));
+        let co = block::ContentId::from(Key::new(Tag::COMMENT, Type::String));
 
         let expected = [
             (

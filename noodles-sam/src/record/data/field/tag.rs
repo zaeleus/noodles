@@ -24,10 +24,8 @@ mod tests {
 
     #[test]
     fn test_parse_tag() -> io::Result<()> {
-        use crate::alignment::record::data::field::tag;
-
         let mut src = &b"NH"[..];
-        assert_eq!(parse_tag(&mut src)?, tag::ALIGNMENT_HIT_COUNT);
+        assert_eq!(parse_tag(&mut src)?, Tag::ALIGNMENT_HIT_COUNT);
         Ok(())
     }
 }

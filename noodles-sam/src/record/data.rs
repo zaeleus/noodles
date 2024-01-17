@@ -71,8 +71,6 @@ mod tests {
 
     #[test]
     fn test_iter() -> io::Result<()> {
-        use crate::alignment::record::data::field::tag;
-
         let data = Data::new(b"");
         assert!(data.iter().next().is_none());
 
@@ -82,7 +80,7 @@ mod tests {
         assert_eq!(actual.len(), 1);
 
         let (actual_tag, actual_value) = &actual[0];
-        assert_eq!(actual_tag, &tag::ALIGNMENT_HIT_COUNT);
+        assert_eq!(actual_tag, &Tag::ALIGNMENT_HIT_COUNT);
         assert!(matches!(actual_value, Value::Int32(1)));
 
         Ok(())

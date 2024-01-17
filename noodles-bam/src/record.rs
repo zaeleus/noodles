@@ -567,7 +567,7 @@ mod tests {
             alignment::{
                 record::{
                     cigar::{op::Kind, Op},
-                    data::field::tag,
+                    data::field::Tag,
                 },
                 record_buf::{data::field::Value, Cigar, Flags, Sequence},
                 RecordBuf,
@@ -600,7 +600,7 @@ mod tests {
             .set_cigar(cigar)
             .set_sequence(sequence)
             .set_data(
-                [(tag::ALIGNMENT_HIT_COUNT, Value::from(1))]
+                [(Tag::ALIGNMENT_HIT_COUNT, Value::from(1))]
                     .into_iter()
                     .collect(),
             )

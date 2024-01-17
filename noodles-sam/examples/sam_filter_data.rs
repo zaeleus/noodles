@@ -6,11 +6,11 @@ use std::{env, io};
 
 use noodles_sam::{
     self as sam,
-    alignment::record::{data::field::tag, Data},
+    alignment::record::{data::field::Tag, Data},
 };
 
 fn is_unique_record(record: &sam::Record) -> io::Result<bool> {
-    match record.data().get(&tag::ALIGNMENT_HIT_COUNT).transpose()? {
+    match record.data().get(&Tag::ALIGNMENT_HIT_COUNT).transpose()? {
         Some(value) => value.as_int().map(|hits| hits == 1).ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidData,

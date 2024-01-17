@@ -29,13 +29,13 @@ mod tests {
 
     #[test]
     fn test_write_data() -> io::Result<()> {
-        use crate::alignment::{record::data::field::tag, record_buf::data::field::Value};
+        use crate::alignment::{record::data::field::Tag, record_buf::data::field::Value};
 
         let mut buf = Vec::new();
 
         let data: DataBuf = [
-            (tag::ALIGNMENT_HIT_COUNT, Value::from(1)),
-            (tag::COMMENT, Value::from("noodles")),
+            (Tag::ALIGNMENT_HIT_COUNT, Value::from(1)),
+            (Tag::COMMENT, Value::from("noodles")),
         ]
         .into_iter()
         .collect();

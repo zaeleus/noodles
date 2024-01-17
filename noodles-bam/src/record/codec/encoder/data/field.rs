@@ -7,12 +7,9 @@ mod value;
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::{
-    self as sam,
-    alignment::record::{
-        data::field::{value::array::Subtype, Tag, Type, Value},
-        Cigar,
-    },
+use noodles_sam::alignment::record::{
+    data::field::{value::array::Subtype, Tag, Type, Value},
+    Cigar,
 };
 
 pub use self::value::put_value;
@@ -33,9 +30,7 @@ where
     B: BufMut,
     C: Cigar,
 {
-    use sam::alignment::record::data::field::tag;
-
-    put_tag(dst, tag::CIGAR);
+    put_tag(dst, Tag::CIGAR);
     put_type(dst, Type::Array);
     value::array::put_header(dst, Subtype::UInt32, cigar.len())?;
     crate::record::codec::encoder::put_cigar(dst, cigar)?;
@@ -48,10 +43,8 @@ mod tests {
 
     #[test]
     fn test_put_field() -> io::Result<()> {
-        use sam::alignment::record::data::field::tag;
-
         let mut buf = Vec::new();
-        let (tag, value) = (tag::ALIGNMENT_HIT_COUNT, Value::UInt8(1));
+        let (tag, value) = (Tag::ALIGNMENT_HIT_COUNT, Value::UInt8(1));
         put_field(&mut buf, tag, &value)?;
         assert_eq!(buf, [b'N', b'H', b'C', 0x01]);
         Ok(())

@@ -46,11 +46,11 @@ impl Data {
     ///
     /// ```
     /// use noodles_sam::alignment::{
-    ///     record::data::field::tag,
+    ///     record::data::field::Tag,
     ///     record_buf::{data::field::Value, Data},
     /// };
     ///
-    /// let nh = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
+    /// let nh = (Tag::ALIGNMENT_HIT_COUNT, Value::from(1));
     /// let mut data: Data = [nh].into_iter().collect();
     /// assert_eq!(data.len(), 1);
     /// data.clear();
@@ -66,15 +66,15 @@ impl Data {
     ///
     /// ```
     /// use noodles_sam::alignment::{
-    ///     record::data::field::tag,
+    ///     record::data::field::Tag,
     ///     record_buf::{data::field::Value, Data},
     /// };
     ///
-    /// let (tag, value) = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
+    /// let (tag, value) = (Tag::ALIGNMENT_HIT_COUNT, Value::from(1));
     /// let data: Data = [(tag, value.clone())].into_iter().collect();
     ///
     /// assert_eq!(data.get(&tag), Some(&value));
-    /// assert!(data.get(&tag::READ_GROUP).is_none());
+    /// assert!(data.get(&Tag::READ_GROUP).is_none());
     /// ```
     pub fn get<K>(&self, tag: &K) -> Option<&Value>
     where
@@ -92,15 +92,15 @@ impl Data {
     ///
     /// ```
     /// use noodles_sam::alignment::{
-    ///     record::data::field::tag,
+    ///     record::data::field::Tag,
     ///     record_buf::{data::field::Value, Data},
     /// };
     ///
-    /// let nh = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
+    /// let nh = (Tag::ALIGNMENT_HIT_COUNT, Value::from(1));
     /// let data: Data = [nh].into_iter().collect();
     ///
-    /// assert_eq!(data.get_index_of(&tag::ALIGNMENT_HIT_COUNT), Some(0));
-    /// assert!(data.get_index_of(&tag::READ_GROUP).is_none());
+    /// assert_eq!(data.get_index_of(&Tag::ALIGNMENT_HIT_COUNT), Some(0));
+    /// assert!(data.get_index_of(&Tag::READ_GROUP).is_none());
     /// ```
     pub fn get_index_of<K>(&self, tag: &K) -> Option<usize>
     where
@@ -115,11 +115,11 @@ impl Data {
     ///
     /// ```
     /// use noodles_sam::alignment::{
-    ///     record::data::field::tag,
+    ///     record::data::field::Tag,
     ///     record_buf::{data::field::Value, Data},
     /// };
     ///
-    /// let (tag, value) = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
+    /// let (tag, value) = (Tag::ALIGNMENT_HIT_COUNT, Value::from(1));
     /// let data: Data = [(tag, value.clone())].into_iter().collect();
     ///
     /// let mut fields = data.iter();
@@ -136,15 +136,15 @@ impl Data {
     ///
     /// ```
     /// use noodles_sam::alignment::{
-    ///     record::data::field::tag,
+    ///     record::data::field::Tag,
     ///     record_buf::{data::field::Value, Data},
     /// };
     ///
-    /// let nh = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
+    /// let nh = (Tag::ALIGNMENT_HIT_COUNT, Value::from(1));
     /// let data: Data = [nh].into_iter().collect();
     ///
     /// let mut keys = data.keys();
-    /// assert_eq!(keys.next(), Some(tag::ALIGNMENT_HIT_COUNT));
+    /// assert_eq!(keys.next(), Some(Tag::ALIGNMENT_HIT_COUNT));
     /// assert!(keys.next().is_none());
     /// ```
     pub fn keys(&self) -> impl Iterator<Item = Tag> + '_ {
@@ -157,11 +157,11 @@ impl Data {
     ///
     /// ```
     /// use noodles_sam::alignment::{
-    ///     record::data::field::tag,
+    ///     record::data::field::Tag,
     ///     record_buf::{data::field::Value, Data},
     /// };
     ///
-    /// let (tag, value) = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
+    /// let (tag, value) = (Tag::ALIGNMENT_HIT_COUNT, Value::from(1));
     /// let data: Data = [(tag, value.clone())].into_iter().collect();
     ///
     /// let mut values = data.values();
@@ -183,12 +183,12 @@ impl Data {
     ///
     /// ```
     /// use noodles_sam::alignment::{
-    ///     record::data::field::tag,
+    ///     record::data::field::Tag,
     ///     record_buf::{data::field::Value, Data},
     /// };
     ///
     /// let mut data = Data::default();
-    /// data.insert(tag::ALIGNMENT_HIT_COUNT, Value::from(1));
+    /// data.insert(Tag::ALIGNMENT_HIT_COUNT, Value::from(1));
     /// ```
     pub fn insert(&mut self, tag: Tag, value: Value) -> Option<(Tag, Value)> {
         let field = (tag, value);
@@ -213,17 +213,17 @@ impl Data {
     ///
     /// ```
     /// use noodles_sam::alignment::{
-    ///     record::data::field::tag,
+    ///     record::data::field::Tag,
     ///     record_buf::{data::field::Value, Data},
     /// };
     ///
-    /// let nh = (tag::ALIGNMENT_HIT_COUNT, Value::from(1));
-    /// let rg = (tag::READ_GROUP, Value::from("rg0"));
-    /// let md = (tag::ALIGNMENT_SCORE, Value::from(98));
+    /// let nh = (Tag::ALIGNMENT_HIT_COUNT, Value::from(1));
+    /// let rg = (Tag::READ_GROUP, Value::from("rg0"));
+    /// let md = (Tag::ALIGNMENT_SCORE, Value::from(98));
     /// let mut data: Data = [nh.clone(), rg.clone(), md.clone()].into_iter().collect();
     ///
-    /// assert_eq!(data.remove(&tag::ALIGNMENT_HIT_COUNT), Some(nh));
-    /// assert!(data.remove(&tag::COMMENT).is_none());
+    /// assert_eq!(data.remove(&Tag::ALIGNMENT_HIT_COUNT), Some(nh));
+    /// assert!(data.remove(&Tag::COMMENT).is_none());
     ///
     /// let expected = [md, rg].into_iter().collect();
     /// assert_eq!(data, expected);
@@ -387,23 +387,22 @@ impl FromIterator<(Tag, Value)> for Data {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::alignment::record::data::field::tag;
 
     #[test]
     fn test_remove_with_multiple_removes() {
         let zz = Tag::new(b'z', b'z');
 
         let mut data: Data = [
-            (tag::ALIGNMENT_HIT_COUNT, Value::from(2)),
-            (tag::EDIT_DISTANCE, Value::from(1)),
+            (Tag::ALIGNMENT_HIT_COUNT, Value::from(2)),
+            (Tag::EDIT_DISTANCE, Value::from(1)),
             (zz, Value::from(0)),
         ]
         .into_iter()
         .collect();
 
-        data.remove(&tag::EDIT_DISTANCE);
+        data.remove(&Tag::EDIT_DISTANCE);
         data.remove(&zz);
-        data.remove(&tag::ALIGNMENT_HIT_COUNT);
+        data.remove(&Tag::ALIGNMENT_HIT_COUNT);
 
         assert!(data.is_empty());
     }
@@ -411,15 +410,15 @@ mod tests {
     #[test]
     fn test_from_iterator() {
         let actual: Data = [
-            (tag::READ_GROUP, Value::from("rg0")),
-            (tag::ALIGNMENT_HIT_COUNT, Value::from(1)),
+            (Tag::READ_GROUP, Value::from("rg0")),
+            (Tag::ALIGNMENT_HIT_COUNT, Value::from(1)),
         ]
         .into_iter()
         .collect();
 
         let expected: Data = [
-            (tag::READ_GROUP, Value::from("rg0")),
-            (tag::ALIGNMENT_HIT_COUNT, Value::from(1)),
+            (Tag::READ_GROUP, Value::from("rg0")),
+            (Tag::ALIGNMENT_HIT_COUNT, Value::from(1)),
         ]
         .into_iter()
         .collect();

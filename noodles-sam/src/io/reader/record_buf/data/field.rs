@@ -92,18 +92,16 @@ mod tests {
 
     #[test]
     fn test_parse_field() {
-        use crate::alignment::record::data::field::tag;
-
         let mut src = &b"NH:i:1\tCO:Z:ndls"[..];
 
         assert_eq!(
             parse_field(&mut src),
-            Ok((tag::ALIGNMENT_HIT_COUNT, Value::from(1)))
+            Ok((Tag::ALIGNMENT_HIT_COUNT, Value::from(1)))
         );
 
         assert_eq!(
             parse_field(&mut src),
-            Ok((tag::COMMENT, Value::from("ndls")))
+            Ok((Tag::COMMENT, Value::from("ndls")))
         );
 
         assert!(src.is_empty());

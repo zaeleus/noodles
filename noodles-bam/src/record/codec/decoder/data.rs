@@ -61,12 +61,11 @@ where
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
 
     #[test]
     fn test_get_data() -> Result<(), DecodeError> {
-        use noodles_sam::alignment::{record::data::field::tag, record_buf::data::field::Value};
+        use noodles_sam::alignment::record_buf::data::field::Value;
 
         fn t(mut src: &[u8], actual: &mut Data, expected: &Data) -> Result<(), DecodeError> {
             get_data(&mut src, actual)?;
@@ -79,7 +78,7 @@ mod tests {
         let expected = Data::default();
         t(&[], &mut buf, &expected)?;
 
-        let expected = [(tag::ALIGNMENT_HIT_COUNT, Value::UInt8(1))]
+        let expected = [(Tag::ALIGNMENT_HIT_COUNT, Value::UInt8(1))]
             .into_iter()
             .collect();
 
@@ -90,8 +89,8 @@ mod tests {
         )?;
 
         let expected = [
-            (tag::ALIGNMENT_HIT_COUNT, Value::UInt8(1)),
-            (tag::READ_GROUP, Value::from("rg0")),
+            (Tag::ALIGNMENT_HIT_COUNT, Value::UInt8(1)),
+            (Tag::READ_GROUP, Value::from("rg0")),
         ]
         .into_iter()
         .collect();
@@ -112,7 +111,7 @@ mod tests {
         let mut src = &data[..];
         assert_eq!(
             get_data(&mut src, &mut buf),
-            Err(DecodeError::DuplicateTag(tag::ALIGNMENT_HIT_COUNT))
+            Err(DecodeError::DuplicateTag(Tag::ALIGNMENT_HIT_COUNT))
         );
 
         Ok(())

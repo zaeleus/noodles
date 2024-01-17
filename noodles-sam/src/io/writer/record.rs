@@ -125,13 +125,13 @@ mod tests {
 
     #[test]
     fn test_write_record_with_data() -> io::Result<()> {
-        use crate::alignment::{record::data::field::tag, record_buf::data::field::Value};
+        use crate::alignment::{record::data::field::Tag, record_buf::data::field::Value};
 
         let mut buf = Vec::new();
 
         let header = Header::default();
 
-        let data = [(tag::READ_GROUP, Value::from("rg0"))]
+        let data = [(Tag::READ_GROUP, Value::from("rg0"))]
             .into_iter()
             .collect();
         let record = RecordBuf::builder().set_data(data).build();

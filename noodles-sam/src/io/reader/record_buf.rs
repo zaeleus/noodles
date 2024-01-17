@@ -232,7 +232,7 @@ mod tests {
 
     #[test]
     fn test_parse_with_data() -> Result<(), ParseError> {
-        use crate::alignment::{record::data::field::tag, record_buf::data::field::Value};
+        use crate::alignment::{record::data::field::Tag, record_buf::data::field::Value};
 
         let header = Header::default();
         let s = b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\tNH:i:1\tCO:Z:ndls";
@@ -242,8 +242,8 @@ mod tests {
         let expected = RecordBuf::builder()
             .set_data(
                 [
-                    (tag::ALIGNMENT_HIT_COUNT, Value::from(1)),
-                    (tag::COMMENT, Value::from("ndls")),
+                    (Tag::ALIGNMENT_HIT_COUNT, Value::from(1)),
+                    (Tag::COMMENT, Value::from("ndls")),
                 ]
                 .into_iter()
                 .collect(),

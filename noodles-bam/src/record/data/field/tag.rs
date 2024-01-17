@@ -14,10 +14,8 @@ mod tests {
 
     #[test]
     fn test_decode_tag() -> io::Result<()> {
-        use noodles_sam::alignment::record::data::field::tag;
-
         let mut src = &[b'N', b'H'][..];
-        assert_eq!(decode_tag(&mut src)?, tag::ALIGNMENT_HIT_COUNT);
+        assert_eq!(decode_tag(&mut src)?, Tag::ALIGNMENT_HIT_COUNT);
         Ok(())
     }
 }

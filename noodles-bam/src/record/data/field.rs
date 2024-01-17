@@ -25,12 +25,10 @@ mod tests {
 
     #[test]
     fn test_decode_field() -> io::Result<()> {
-        use noodles_sam::alignment::record::data::field::tag;
-
         let mut src = &[b'N', b'H', b'C', 0x01][..];
         assert!(matches!(
             decode_field(&mut src)?,
-            (tag::ALIGNMENT_HIT_COUNT, Value::UInt8(1))
+            (Tag::ALIGNMENT_HIT_COUNT, Value::UInt8(1))
         ));
 
         let mut src = &[][..];

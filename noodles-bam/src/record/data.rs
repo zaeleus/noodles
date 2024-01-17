@@ -93,7 +93,7 @@ impl<'a> TryFrom<Data<'a>> for sam::alignment::record_buf::Data {
 }
 
 pub(super) fn get_raw_cigar<'a>(src: &mut &'a [u8]) -> io::Result<Option<&'a [u8]>> {
-    use noodles_sam::alignment::record::data::field::{tag, Type};
+    use noodles_sam::alignment::record::data::field::Type;
 
     use self::field::{
         decode_tag, decode_type, decode_value,
@@ -115,7 +115,7 @@ pub(super) fn get_raw_cigar<'a>(src: &mut &'a [u8]) -> io::Result<Option<&'a [u8
     }
 
     while !src.is_empty() {
-        if let Some((tag::CIGAR, buf)) = get_array_field(src)? {
+        if let Some((Tag::CIGAR, buf)) = get_array_field(src)? {
             return Ok(Some(buf));
         }
     }
@@ -125,18 +125,16 @@ pub(super) fn get_raw_cigar<'a>(src: &mut &'a [u8]) -> io::Result<Option<&'a [u8
 
 #[cfg(test)]
 mod tests {
-    use sam::alignment::record::data::field::tag;
-
     use super::*;
 
     #[test]
     fn test_get() -> io::Result<()> {
         let data = Data::new(&[b'N', b'H', b'C', 0x01]);
 
-        assert!(data.get(&tag::ALIGNMENT_HIT_COUNT).is_some());
+        assert!(data.get(&Tag::ALIGNMENT_HIT_COUNT).is_some());
         assert!(data.get(&[b'N', b'H']).is_some());
 
-        assert!(data.get(&tag::COMMENT).is_none());
+        assert!(data.get(&Tag::COMMENT).is_none());
 
         Ok(())
     }
@@ -152,7 +150,7 @@ mod tests {
         assert_eq!(actual.len(), 1);
 
         let (actual_tag, actual_value) = &actual[0];
-        assert_eq!(actual_tag, &tag::ALIGNMENT_HIT_COUNT);
+        assert_eq!(actual_tag, &Tag::ALIGNMENT_HIT_COUNT);
         assert!(matches!(actual_value, Value::UInt8(1)));
 
         Ok(())
