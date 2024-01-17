@@ -6,6 +6,7 @@ pub use self::array::Array;
 use super::Type;
 
 /// An alignment record data field value.
+#[derive(Debug)]
 pub enum Value<'a> {
     /// A character (`A`).
     Character(u8),
