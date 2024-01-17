@@ -1,9 +1,11 @@
 //! Alignment record data field tag.
 
-use std::borrow::Borrow;
+use std::{borrow::Borrow, fmt};
+
+use bstr::ByteSlice;
 
 /// An alignment record data field tag.
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Tag([u8; 2]);
 
 impl Tag {
@@ -212,6 +214,14 @@ impl Tag {
     }
 }
 
+impl fmt::Debug for Tag {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_tuple("Tag")
+            .field(&self.as_ref().as_bstr())
+            .finish()
+    }
+}
+
 impl AsRef<[u8; 2]> for Tag {
     fn as_ref(&self) -> &[u8; 2] {
         &self.0
@@ -239,5 +249,15 @@ impl PartialEq<[u8; 2]> for Tag {
 impl From<Tag> for [u8; 2] {
     fn from(tag: Tag) -> Self {
         tag.0
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_fmt_debug() {
+        assert_eq!(format!("{:?}", Tag::ALIGNMENT_HIT_COUNT), r#"Tag("NH")"#);
     }
 }
