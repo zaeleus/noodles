@@ -84,6 +84,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use bstr::BString;
+
     use super::*;
 
     #[test]
@@ -116,7 +118,7 @@ mod tests {
         use sam::header::record::value::{map::ReferenceSequence, Map};
 
         let reference_sequences = [(
-            Vec::from("sq0"),
+            BString::from("sq0"),
             Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
         )]
         .into_iter()

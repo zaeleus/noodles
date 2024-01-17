@@ -92,7 +92,7 @@ use self::record::value::{
 };
 
 /// A reference sequence dictionary.
-pub type ReferenceSequences = IndexMap<Vec<u8>, Map<ReferenceSequence>>;
+pub type ReferenceSequences = IndexMap<BString, Map<ReferenceSequence>>;
 
 /// An ordered map of read groups.
 pub type ReadGroups = IndexMap<BString, Map<ReadGroup>>;
@@ -214,7 +214,7 @@ impl Header {
     /// let mut header = sam::Header::default();
     ///
     /// header.reference_sequences_mut().insert(
-    ///     Vec::from("sq0"),
+    ///     String::from("sq0").into(),
     ///     Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?),
     /// );
     ///

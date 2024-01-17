@@ -3,6 +3,7 @@ mod record;
 
 use std::num::NonZeroUsize;
 
+use bstr::BString;
 use bytes::BytesMut;
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
@@ -507,7 +508,7 @@ where
     Ok(reference_sequences)
 }
 
-async fn read_reference_sequence<R>(reader: &mut R) -> io::Result<(Vec<u8>, Map<ReferenceSequence>)>
+async fn read_reference_sequence<R>(reader: &mut R) -> io::Result<(BString, Map<ReferenceSequence>)>
 where
     R: AsyncRead + Unpin,
 {
@@ -518,7 +519,7 @@ where
     let mut c_name = vec![0; l_name];
     reader.read_exact(&mut c_name).await?;
 
-    let name = bytes_with_nul_to_string(&c_name).map(|name| name.into_bytes())?;
+    let name = bytes_with_nul_to_string(&c_name).map(BString::from)?;
 
     let l_ref = reader.read_u32_le().await.and_then(|len| {
         usize::try_from(len)
@@ -590,7 +591,7 @@ mod tests {
         let actual = read_reference_sequences(&mut reader).await?;
 
         let expected: ReferenceSequences =
-            [(Vec::from("sq0"), Map::<ReferenceSequence>::new(SQ0_LN))]
+            [(BString::from("sq0"), Map::<ReferenceSequence>::new(SQ0_LN))]
                 .into_iter()
                 .collect();
 

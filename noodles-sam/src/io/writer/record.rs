@@ -41,7 +41,9 @@ where
     const MISSING: &[u8] = b"*";
 
     let reference_sequence = record.reference_sequence(header).transpose()?;
-    let reference_sequence_name = reference_sequence.map(|(name, _)| name).unwrap_or(MISSING);
+    let reference_sequence_name = reference_sequence
+        .map(|(name, _)| name.as_ref())
+        .unwrap_or(MISSING);
 
     let mate_reference_sequence_name = record
         .mate_reference_sequence(header)

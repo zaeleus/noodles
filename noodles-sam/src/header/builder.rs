@@ -44,6 +44,7 @@ impl Builder {
     /// ```
     /// use std::num::NonZeroUsize;
     ///
+    /// use bstr::BString;
     /// use noodles_sam::{
     ///     self as sam,
     ///     header::record::value::{
@@ -53,7 +54,7 @@ impl Builder {
     /// };
     ///
     /// let reference_sequences = [(
-    ///     Vec::from("sq0"),
+    ///     BString::from("sq0"),
     ///     Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?),
     /// )]
     /// .into_iter()
@@ -103,7 +104,7 @@ impl Builder {
         reference_sequence: Map<ReferenceSequence>,
     ) -> Self
     where
-        N: Into<Vec<u8>>,
+        N: Into<BString>,
     {
         self.reference_sequences
             .insert(name.into(), reference_sequence);

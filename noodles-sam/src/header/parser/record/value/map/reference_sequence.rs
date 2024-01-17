@@ -62,7 +62,7 @@ impl fmt::Display for ParseError {
 pub(crate) fn parse_reference_sequence(
     src: &mut &[u8],
     ctx: &Context,
-) -> Result<(Vec<u8>, Map<ReferenceSequence>), ParseError> {
+) -> Result<(BString, Map<ReferenceSequence>), ParseError> {
     let mut name = None;
     let mut length = None;
 
@@ -87,7 +87,7 @@ pub(crate) fn parse_reference_sequence(
     let length = length.ok_or(ParseError::MissingLength)?;
 
     Ok((
-        name.to_vec(),
+        name.into(),
         Map {
             inner: ReferenceSequence { length },
             other_fields,
@@ -149,7 +149,7 @@ mod tests {
         let ctx = Context::default();
         let actual = parse_reference_sequence(&mut src, &ctx);
 
-        let expected = (Vec::from("sq0"), Map::<ReferenceSequence>::new(SQ0_LN));
+        let expected = (BString::from("sq0"), Map::<ReferenceSequence>::new(SQ0_LN));
 
         assert_eq!(actual, Ok(expected));
 

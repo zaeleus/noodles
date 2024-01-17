@@ -13,6 +13,7 @@ mod template_length;
 
 use std::io;
 
+use bstr::BStr;
 use noodles_core as core;
 
 pub use self::{
@@ -76,7 +77,7 @@ pub trait Record {
     fn reference_sequence<'h>(
         &self,
         header: &'h Header,
-    ) -> Option<io::Result<(&'h [u8], &'h Map<ReferenceSequence>)>> {
+    ) -> Option<io::Result<(&'h BStr, &'h Map<ReferenceSequence>)>> {
         get_reference_sequence(
             header.reference_sequences(),
             self.reference_sequence_id(header),
@@ -87,7 +88,7 @@ pub trait Record {
     fn mate_reference_sequence<'h>(
         &self,
         header: &'h Header,
-    ) -> Option<io::Result<(&'h [u8], &'h Map<ReferenceSequence>)>> {
+    ) -> Option<io::Result<(&'h BStr, &'h Map<ReferenceSequence>)>> {
         get_reference_sequence(
             header.reference_sequences(),
             self.mate_reference_sequence_id(header),
@@ -177,7 +178,7 @@ impl Record for Box<dyn Record> {
 fn get_reference_sequence<'r, 'h: 'r>(
     reference_sequences: &'h ReferenceSequences,
     reference_sequence_id: Option<Box<dyn ReferenceSequenceId + 'r>>,
-) -> Option<io::Result<(&'h [u8], &'h Map<ReferenceSequence>)>> {
+) -> Option<io::Result<(&'h BStr, &'h Map<ReferenceSequence>)>> {
     let reference_sequence_id = reference_sequence_id?;
 
     let id = match reference_sequence_id.try_to_usize() {

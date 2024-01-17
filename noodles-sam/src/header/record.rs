@@ -17,7 +17,7 @@ pub enum Record {
     /// A header (`HD`) record.
     Header(Map<map::Header>),
     /// A reference sequence (`SQ`) record.
-    ReferenceSequence(Vec<u8>, Map<ReferenceSequence>),
+    ReferenceSequence(BString, Map<ReferenceSequence>),
     /// A read group (`RG`) record.
     ReadGroup(BString, Map<ReadGroup>),
     /// A program (`PG`) record.

@@ -24,7 +24,7 @@ pub enum ParseError {
     /// The record is invalid.
     InvalidRecord(record::ParseError),
     /// A reference sequence name is duplicated.
-    DuplicateReferenceSequenceName(Vec<u8>),
+    DuplicateReferenceSequenceName(BString),
     /// A read group ID is duplicated.
     DuplicateReadGroupId(BString),
     /// A program ID is duplicated.
@@ -47,8 +47,7 @@ impl fmt::Display for ParseError {
         match self {
             Self::UnexpectedHeader => write!(f, "unexpected header (HD) record"),
             Self::InvalidRecord(_) => f.write_str("invalid record"),
-            Self::DuplicateReferenceSequenceName(buf) => {
-                let name = str::from_utf8(buf).map_err(|_| fmt::Error)?;
+            Self::DuplicateReferenceSequenceName(name) => {
                 write!(f, "duplicate reference sequence name: {name}")
             }
             Self::DuplicateReadGroupId(id) => write!(f, "duplicate read group ID: {id}"),
@@ -319,7 +318,9 @@ mod tests {
 
         assert_eq!(
             parse(s),
-            Err(ParseError::DuplicateReferenceSequenceName(Vec::from("sq0")))
+            Err(ParseError::DuplicateReferenceSequenceName(BString::from(
+                "sq0"
+            )))
         );
     }
 

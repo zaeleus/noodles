@@ -3,6 +3,7 @@ use std::{
     num::NonZeroUsize,
 };
 
+use bstr::BString;
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_sam::{
     self as sam,
@@ -141,7 +142,7 @@ where
     Ok(reference_sequences)
 }
 
-fn read_reference_sequence<R>(reader: &mut R) -> io::Result<(Vec<u8>, Map<ReferenceSequence>)>
+fn read_reference_sequence<R>(reader: &mut R) -> io::Result<(BString, Map<ReferenceSequence>)>
 where
     R: Read,
 {
@@ -152,7 +153,7 @@ where
     let mut c_name = vec![0; l_name];
     reader.read_exact(&mut c_name)?;
 
-    let name = bytes_with_nul_to_string(&c_name).map(|name| name.into_bytes())?;
+    let name = bytes_with_nul_to_string(&c_name).map(BString::from)?;
 
     let l_ref = reader.read_u32::<LittleEndian>().and_then(|len| {
         usize::try_from(len)
@@ -307,7 +308,7 @@ mod tests {
         let actual = read_reference_sequences(&mut reader)?;
 
         let expected: ReferenceSequences =
-            [(Vec::from("sq0"), Map::<ReferenceSequence>::new(SQ0_LN))]
+            [(BString::from("sq0"), Map::<ReferenceSequence>::new(SQ0_LN))]
                 .into_iter()
                 .collect();
 
