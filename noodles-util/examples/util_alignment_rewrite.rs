@@ -27,7 +27,7 @@ fn main() -> io::Result<()> {
 
     let header = reader.read_header()?;
 
-    let mut writer = alignment::writer::Builder::default()
+    let mut writer = alignment::io::writer::Builder::default()
         .set_reference_sequence_repository(repository)
         .build_from_path(dst)?;
 

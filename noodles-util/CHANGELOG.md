@@ -4,7 +4,8 @@
 
 ### Changed
 
-  * util/alignment: Move readers (`Reader` and `IndexedReader`) to `io` module.
+  * util/alignment: Move readers (`Reader` and `IndexedReader`) and writer
+    (`Writer`) to `io` module.
 
   * util/alignment/io/indexed_reader: Change `IndexedReader::query` to return
     an iterator over `io::Result<Box<dyn sam::alignment::Record>>`.
@@ -12,7 +13,7 @@
   * util/alignment/io/reader: Change `Reader::records` to return an iterator
     over `io::Result<Box<dyn sam::alignment::Record>>`.
 
-  * util/alignment/writer: Change `Writer::write_record` to accept
+  * util/alignment/io/writer: Change `Writer::write_record` to accept
     `&sam::alignment::Record`.
 
 ## 0.32.0 - 2023-12-14

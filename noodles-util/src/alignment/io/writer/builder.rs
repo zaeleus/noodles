@@ -33,7 +33,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_util::alignment::{self, io::CompressionMethod};
-    /// let builder = alignment::writer::Builder::default()
+    /// let builder = alignment::io::writer::Builder::default()
     ///     .set_compression_method(Some(CompressionMethod::Bgzf));
     /// ```
     pub fn set_compression_method(mut self, compression_method: Option<CompressionMethod>) -> Self {
@@ -49,7 +49,8 @@ impl Builder {
     ///
     /// ```
     /// use noodles_util::alignment::{self, io::Format};
-    /// let builder = alignment::writer::Builder::default().set_format(Format::Sam);
+    /// let builder = alignment::io::writer::Builder::default()
+    ///     .set_format(Format::Sam);
     /// ```
     pub fn set_format(mut self, format: Format) -> Self {
         self.format = Some(format);
@@ -68,7 +69,7 @@ impl Builder {
     ///
     /// let repository = fasta::Repository::default();
     ///
-    /// let builder = alignment::writer::Builder::default()
+    /// let builder = alignment::io::writer::Builder::default()
     ///     .set_reference_sequence_repository(repository);
     /// ```
     pub fn set_reference_sequence_repository(
@@ -90,7 +91,7 @@ impl Builder {
     /// use noodles_cram::data_container::BlockContentEncoderMap;
     /// use noodles_util::alignment::{self, io::Format};
     ///
-    /// let builder = alignment::writer::Builder::default()
+    /// let builder = alignment::io::writer::Builder::default()
     ///     .set_block_content_encoder_map(BlockContentEncoderMap::default());
     /// ```
     pub fn set_block_content_encoder_map(
@@ -110,7 +111,8 @@ impl Builder {
     /// ```no_run
     /// # use std::io;
     /// use noodles_util::alignment::{self, io::Format};
-    /// let writer = alignment::writer::Builder::default().build_from_path("out.sam")?;
+    /// let writer = alignment::io::writer::Builder::default()
+    ///     .build_from_path("out.sam")?;
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn build_from_path<P>(mut self, src: P) -> io::Result<Writer>
@@ -142,7 +144,8 @@ impl Builder {
     /// ```
     /// # use std::io;
     /// use noodles_util::alignment::{self, io::Format};
-    /// let writer = alignment::writer::Builder::default().build_from_writer(io::sink());
+    /// let writer = alignment::io::writer::Builder::default()
+    ///     .build_from_writer(io::sink());
     /// ```
     pub fn build_from_writer<W>(self, writer: W) -> io::Result<Writer>
     where

@@ -23,7 +23,7 @@ impl Writer {
     /// use noodles_sam as sam;
     /// use noodles_util::alignment::{self, io::Format};
     ///
-    /// let mut writer = alignment::writer::Builder::default()
+    /// let mut writer = alignment::io::writer::Builder::default()
     ///     .set_format(Format::Bam)
     ///     .build_from_writer(io::sink())?;
     ///
@@ -44,7 +44,7 @@ impl Writer {
     /// use noodles_sam::{self as sam, alignment::RecordBuf};
     /// use noodles_util::alignment::{self, io::Format};
     ///
-    /// let mut writer = alignment::writer::Builder::default()
+    /// let mut writer = alignment::io::writer::Builder::default()
     ///     .set_format(Format::Sam)
     ///     .build_from_writer(io::sink())?;
     ///
@@ -71,7 +71,7 @@ impl Writer {
     /// use noodles_sam as sam;
     /// use noodles_util::alignment::{self, io::Format};
     ///
-    /// let mut writer = alignment::writer::Builder::default()
+    /// let mut writer = alignment::io::writer::Builder::default()
     ///     .set_format(Format::Sam)
     ///     .build_from_writer(io::sink())?;
     ///
