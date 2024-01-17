@@ -5,10 +5,12 @@ use std::{
     marker::PhantomData,
 };
 
+use bstr::ByteSlice;
+
 use super::{ParseError, Standard, LENGTH};
 
 /// A nonstandard tag.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy)]
 pub struct Other<S>(pub(crate) [u8; LENGTH], pub(crate) PhantomData<S>);
 
 impl<S> AsRef<[u8; LENGTH]> for Other<S> {
@@ -46,6 +48,14 @@ impl<S> PartialEq<[u8; LENGTH]> for Other<S> {
 
 impl<S> Eq for Other<S> {}
 
+impl<S> fmt::Debug for Other<S> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_tuple("Other")
+            .field(&self.as_ref().as_bstr())
+            .finish()
+    }
+}
+
 impl<S> fmt::Display for Other<S> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         char::from(self.0[0]).fmt(f)?;
@@ -71,5 +81,18 @@ where
             Tag::Standard(_) => Err(ParseError::Invalid),
             Tag::Other(tag) => Ok(tag),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_fmt_debug() {
+        use crate::header::record::value::map::header;
+
+        let tag: Other<header::tag::Standard> = Other([b'n', b'd'], PhantomData);
+        assert_eq!(format!("{tag:?}"), r#"Other("nd")"#);
     }
 }
