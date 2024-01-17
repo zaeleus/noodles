@@ -4,6 +4,8 @@ pub mod field;
 
 use std::{io, mem};
 
+use bstr::ByteSlice;
+
 use self::field::Value;
 use crate::alignment::record::data::field::Tag;
 
@@ -304,8 +306,8 @@ fn value_buf_to_value(value: &Value) -> crate::alignment::record::data::field::V
         Value::Int32(n) => crate::alignment::record::data::field::Value::Int32(*n),
         Value::UInt32(n) => crate::alignment::record::data::field::Value::UInt32(*n),
         Value::Float(n) => crate::alignment::record::data::field::Value::Float(*n),
-        Value::String(s) => crate::alignment::record::data::field::Value::String(s),
-        Value::Hex(s) => crate::alignment::record::data::field::Value::Hex(s),
+        Value::String(s) => crate::alignment::record::data::field::Value::String(s.as_bstr()),
+        Value::Hex(s) => crate::alignment::record::data::field::Value::Hex(s.as_bstr()),
         Value::Array(Array::Int8(values)) => crate::alignment::record::data::field::Value::Array(
             crate::alignment::record::data::field::value::Array::Int8(Box::new(Values::new(
                 values.as_ref(),

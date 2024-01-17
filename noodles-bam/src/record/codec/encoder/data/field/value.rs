@@ -42,6 +42,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use bstr::ByteSlice;
+
     use super::*;
 
     #[test]
@@ -68,13 +70,13 @@ mod tests {
 
         t(
             &mut buf,
-            &Value::String(b"ndls"),
+            &Value::String(b"ndls".as_bstr()),
             &[b'n', b'd', b'l', b's', 0x00],
         )?;
 
         t(
             &mut buf,
-            &Value::Hex(b"CAFE"),
+            &Value::Hex(b"CAFE".as_bstr()),
             &[b'C', b'A', b'F', b'E', 0x00],
         )?;
 

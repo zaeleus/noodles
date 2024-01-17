@@ -7,6 +7,8 @@ pub mod hex;
 
 use std::io;
 
+use bstr::{BStr, ByteSlice};
+
 use self::array::parse_array;
 pub use self::{base_modifications::BaseModifications, character::Character, hex::Hex};
 use super::Type;
@@ -50,19 +52,13 @@ fn parse_float_value<'a>(src: &mut &'a [u8]) -> io::Result<Value<'a>> {
     Ok(Value::Float(n))
 }
 
-fn parse_string<'a>(src: &mut &'a [u8]) -> &'a [u8] {
+fn parse_string<'a>(src: &mut &'a [u8]) -> &'a BStr {
     const DELIMITER: u8 = b'\t';
 
-    let i = src
-        .iter()
-        .position(|&b| b == DELIMITER)
-        .unwrap_or(src.len());
-
+    let i = src.as_bstr().find_byte(DELIMITER).unwrap_or(src.len());
     let (buf, rest) = src.split_at(i);
-
     *src = rest;
-
-    buf
+    buf.as_bstr()
 }
 
 fn parse_string_value<'a>(src: &mut &'a [u8]) -> Value<'a> {
@@ -101,13 +97,13 @@ mod tests {
         let mut src = &b"ndls"[..];
         assert!(matches!(
             parse_value(&mut src, Type::String)?,
-            Value::String(b"ndls")
+            Value::String(s) if s == "ndls"
         ));
 
         let mut src = &b"CAFE"[..];
         assert!(matches!(
             parse_value(&mut src, Type::Hex)?,
-            Value::Hex(b"CAFE")
+            Value::Hex(s) if s == "CAFE"
         ));
 
         let mut src = &b"C,0"[..];

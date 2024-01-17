@@ -15,6 +15,7 @@ async = ["dep:futures", "dep:tokio", "noodles-bgzf/async"]
 
 [dependencies]
 bit-vec.workspace = true
+bstr.workspace = true
 byteorder.workspace = true
 bytes.workspace = true
 futures = { workspace = true, optional = true, features = ["std"] }

@@ -2,6 +2,8 @@
 
 pub mod array;
 
+use bstr::BStr;
+
 pub use self::array::Array;
 use super::Type;
 
@@ -25,9 +27,9 @@ pub enum Value<'a> {
     /// A single-precision floating-point (`f`).
     Float(f32),
     /// A string (`Z`).
-    String(&'a [u8]),
+    String(&'a BStr),
     /// A hex string (`H`).
-    Hex(&'a [u8]),
+    Hex(&'a BStr),
     /// An array (`B`).
     Array(Array<'a>),
 }

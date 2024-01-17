@@ -6,6 +6,7 @@
 //!
 //! This is similar to the outputs of `samtools split <src>`.
 
+use bstr::BStr;
 use noodles_bam as bam;
 use noodles_bgzf as bgzf;
 use noodles_sam as sam;
@@ -49,7 +50,7 @@ fn write_headers(writers: &mut Writers, header: &sam::Header) -> io::Result<()> 
     Ok(())
 }
 
-fn get_read_group(data: &dyn sam::alignment::record::Data) -> Option<io::Result<&[u8]>> {
+fn get_read_group(data: &dyn sam::alignment::record::Data) -> Option<io::Result<&BStr>> {
     use sam::alignment::record::data::field::{Tag, Type, Value};
 
     data.get(&Tag::READ_GROUP).map(|result| {

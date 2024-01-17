@@ -2,8 +2,9 @@
 
 pub mod array;
 
-use std::io::{self, BufRead};
+use std::io;
 
+use bstr::{BStr, ByteSlice};
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_sam::alignment::record::data::field::{Type, Value};
 
@@ -57,20 +58,19 @@ fn decode_f32<'a>(src: &mut &'a [u8]) -> io::Result<Value<'a>> {
     src.read_f32::<LittleEndian>().map(Value::Float)
 }
 
-fn decode_string<'a>(src: &mut &'a [u8]) -> io::Result<&'a [u8]> {
+fn decode_string<'a>(src: &mut &'a [u8]) -> io::Result<&'a BStr> {
     const NUL: u8 = 0x00;
 
     let len = src
-        .iter()
-        .position(|&b| b == NUL)
+        .as_bstr()
+        .find_byte(NUL)
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "string not NUL terminated"))?;
 
-    let buf = &src[..len];
+    let (buf, rest) = src.split_at(len);
 
-    // +1 for the terminator.
-    src.consume(len + 1);
+    *src = &rest[1..];
 
-    Ok(buf)
+    Ok(buf.as_bstr())
 }
 
 fn decode_hex<'a>(src: &mut &'a [u8]) -> io::Result<Value<'a>> {
@@ -93,8 +93,8 @@ mod tests {
         assert_eq!(Value::Int32(0).ty(), Type::Int32);
         assert_eq!(Value::UInt32(0).ty(), Type::UInt32);
         assert_eq!(Value::Float(0.0).ty(), Type::Float);
-        assert_eq!(Value::String(b"ndls").ty(), Type::String);
-        assert_eq!(Value::Hex(b"CAFE").ty(), Type::Hex);
+        assert_eq!(Value::String(b"ndls".as_bstr()).ty(), Type::String);
+        assert_eq!(Value::Hex(b"CAFE".as_bstr()).ty(), Type::Hex);
         assert_eq!(
             Value::Array(Array::UInt8(Box::new(array::Values::new(&[0])))).ty(),
             Type::Array
@@ -154,13 +154,13 @@ mod tests {
         let mut src = &[b'n', b'd', b'l', b's', 0x00][..];
         assert!(matches!(
             decode_value(&mut src, Type::String)?,
-            Value::String(b"ndls")
+            Value::String(s) if s == "ndls"
         ));
 
         let mut src = &[b'C', b'A', b'F', b'E', 0x00][..];
         assert!(matches!(
             decode_value(&mut src, Type::Hex)?,
-            Value::Hex(b"CAFE")
+            Value::Hex(s) if s == "CAFE"
         ));
 
         let mut src = &[b'C', 0x01, 0x00, 0x00, 0x00, 0x00][..];
