@@ -2,9 +2,11 @@ mod header;
 mod program;
 mod read_group;
 mod reference_sequence;
+mod tag;
 
 use std::io::{self, Write};
 
+use self::tag::write_tag;
 pub(crate) use self::{
     header::write_header, program::write_program, read_group::write_read_group,
     reference_sequence::write_reference_sequence,
@@ -21,7 +23,7 @@ where
     use crate::io::writer::header::record::write_delimiter;
 
     write_delimiter(writer)?;
-    writer.write_all(tag.as_ref())?;
+    write_tag(writer, *tag.as_ref())?;
     write_separator(writer)?;
     writer.write_all(value)?;
 
