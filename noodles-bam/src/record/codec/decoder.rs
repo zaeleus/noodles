@@ -140,7 +140,7 @@ where
         .map_err(DecodeError::InvalidQualityScores)?;
     get_data(src, record.data_mut()).map_err(DecodeError::InvalidData)?;
 
-    cigar::resolve(header, record).map_err(DecodeError::InvalidCigar)?;
+    cigar::resolve(record).map_err(DecodeError::InvalidCigar)?;
 
     Ok(())
 }

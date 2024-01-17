@@ -77,36 +77,28 @@ where
 }
 
 // § 4.2.2 "`N_CIGAR_OP` field" (2022-08-22)
-pub(super) fn resolve(header: &sam::Header, record: &mut RecordBuf) -> Result<(), DecodeError> {
+pub(super) fn resolve(record: &mut RecordBuf) -> Result<(), DecodeError> {
     use sam::alignment::{
         record::data::field::Tag,
         record_buf::data::field::{value::Array, Value},
     };
 
     if let [op_0, op_1] = record.cigar().as_ref() {
-        let rs = record
-            .reference_sequence(header)
-            .transpose()
-            .map_err(|_| DecodeError::InvalidReferenceSequence)?;
+        let k = record.sequence().len();
 
-        if let Some((_, reference_sequence)) = rs {
-            let k = record.sequence().len();
-            let m = reference_sequence.length().get();
+        if *op_0 == Op::new(Kind::SoftClip, k) && op_1.kind() == Kind::Skip {
+            if let Some((_, value)) = record.data_mut().remove(&Tag::CIGAR) {
+                let data = match value {
+                    Value::Array(Array::UInt32(values)) => values,
+                    _ => return Err(DecodeError::InvalidDataType),
+                };
 
-            if *op_0 == Op::new(Kind::SoftClip, k) && *op_1 == Op::new(Kind::Skip, m) {
-                if let Some((_, value)) = record.data_mut().remove(&Tag::CIGAR) {
-                    let data = match value {
-                        Value::Array(Array::UInt32(values)) => values,
-                        _ => return Err(DecodeError::InvalidDataType),
-                    };
+                let cigar = record.cigar_mut().as_mut();
+                cigar.clear();
 
-                    let cigar = record.cigar_mut().as_mut();
-                    cigar.clear();
-
-                    for n in data {
-                        let op = decode_op(n).map_err(DecodeError::InvalidOp)?;
-                        cigar.push(op);
-                    }
+                for n in data {
+                    let op = decode_op(n).map_err(DecodeError::InvalidOp)?;
+                    cigar.push(op);
                 }
             }
         }
@@ -167,27 +159,13 @@ mod tests {
 
     #[test]
     fn test_resolve() -> Result<(), Box<dyn std::error::Error>> {
-        use std::num::NonZeroUsize;
-
-        use sam::{
-            alignment::{
-                record::{cigar::Op, data::field::Tag},
-                record_buf::{
-                    data::field::{value::Array, Value},
-                    Sequence,
-                },
+        use sam::alignment::{
+            record::{cigar::Op, data::field::Tag},
+            record_buf::{
+                data::field::{value::Array, Value},
+                Sequence,
             },
-            header::record::value::{map::ReferenceSequence, Map},
         };
-
-        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
-            Some(length) => length,
-            None => unreachable!(),
-        };
-
-        let header = sam::Header::builder()
-            .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(SQ0_LN))
-            .build();
 
         let mut record = RecordBuf::builder()
             .set_reference_sequence_id(0)
@@ -204,7 +182,7 @@ mod tests {
             )
             .build();
 
-        resolve(&header, &mut record)?;
+        resolve(&mut record)?;
 
         let expected = [Op::new(Kind::Match, 4)].into_iter().collect();
 
