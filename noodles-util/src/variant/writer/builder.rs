@@ -54,7 +54,7 @@ impl Builder {
     ///
     /// ```no_run
     /// # use std::io;
-    /// use noodles_util::variant::{self, Format};
+    /// use noodles_util::variant;
     /// let writer = variant::writer::Builder::default().build_from_path("out.vcf.gz")?;
     /// # Ok::<_, io::Error>(())
     /// ```
