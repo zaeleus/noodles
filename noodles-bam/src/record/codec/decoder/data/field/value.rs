@@ -2,6 +2,7 @@ mod array;
 
 use std::{error, fmt, mem, string};
 
+use bstr::{BString, ByteSlice};
 use bytes::Buf;
 use noodles_sam::{
     alignment::{record::data::field::Type, record_buf::data::field::Value},
@@ -158,7 +159,7 @@ where
     Ok(Value::Float(src.get_f32_le()))
 }
 
-fn get_string<B>(src: &mut B) -> Result<Vec<u8>, DecodeError>
+fn get_string<B>(src: &mut B) -> Result<BString, DecodeError>
 where
     B: Buf,
 {
@@ -166,15 +167,15 @@ where
 
     let len = src
         .chunk()
-        .iter()
-        .position(|&b| b == NUL)
+        .as_bstr()
+        .find_byte(NUL)
         .ok_or(DecodeError::StringNotNulTerminated)?;
 
     let mut buf = vec![0; len];
     src.copy_to_slice(&mut buf);
     src.advance(1); // Discard the NUL terminator.
 
-    Ok(buf)
+    Ok(buf.into())
 }
 
 fn get_hex<B>(src: &mut B) -> Result<Value, DecodeError>
@@ -214,7 +215,7 @@ mod tests {
         t(
             &[b'C', b'A', b'F', b'E', 0x00],
             Type::Hex,
-            Value::Hex(b"CAFE".to_vec()),
+            Value::Hex(b"CAFE".into()),
         )?;
 
         t(

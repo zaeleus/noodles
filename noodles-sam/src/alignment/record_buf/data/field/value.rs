@@ -2,6 +2,8 @@
 
 mod array;
 
+use bstr::BString;
+
 pub use self::array::Array;
 use crate::alignment::record::data::field::Type;
 
@@ -25,9 +27,9 @@ pub enum Value {
     /// A single-precision floating-point (`f`).
     Float(f32),
     /// A string (`Z`).
-    String(Vec<u8>),
+    String(BString),
     /// A hex string (`H`).
-    Hex(Vec<u8>),
+    Hex(BString),
     /// An array (`B`).
     Array(Array),
 }
@@ -181,7 +183,7 @@ impl From<&str> for Value {
 
 impl From<String> for Value {
     fn from(s: String) -> Self {
-        Self::String(s.into_bytes())
+        Self::String(s.into())
     }
 }
 
@@ -260,7 +262,7 @@ mod tests {
         assert_eq!(Value::Int32(0).ty(), Type::Int32);
         assert_eq!(Value::Float(0.0).ty(), Type::Float);
         assert_eq!(Value::from("noodles").ty(), Type::String);
-        assert_eq!(Value::Hex(b"CAFE".to_vec()).ty(), Type::Hex);
+        assert_eq!(Value::Hex(b"CAFE".into()).ty(), Type::Hex);
         assert_eq!(Value::Array(Array::UInt8(vec![0])).ty(), Type::Array);
     }
 

@@ -114,7 +114,7 @@ fn parse_string(src: &[u8]) -> Result<Value, ParseError> {
 
 fn parse_hex(src: &[u8]) -> Result<Value, ParseError> {
     Hex::try_from(src)
-        .map(|hex| hex.to_string().into_bytes())
+        .map(|hex| hex.to_string().into())
         .map(Value::Hex)
         .map_err(ParseError::InvalidHex)
 }
@@ -169,7 +169,7 @@ mod tests {
             Err(ParseError::InvalidString)
         );
 
-        t(b"CAFE", Type::Hex, Value::Hex(b"CAFE".to_vec()));
+        t(b"CAFE", Type::Hex, Value::Hex(b"CAFE".into()));
         assert!(matches!(
             parse_value(&mut &b"cafe"[..], Type::Hex),
             Err(ParseError::InvalidHex(_))
