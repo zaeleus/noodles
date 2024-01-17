@@ -8,23 +8,33 @@ use std::{
     str,
 };
 
-use noodles_bam as bam;
 use noodles_core::Region;
-use noodles_sam as sam;
+use noodles_fasta as fasta;
 use noodles_sam::alignment::iter::Depth;
+use noodles_util::alignment;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = env::args().skip(1);
+
     let src = args.next().expect("missing src");
     let region: Region = args.next().expect("missing region").parse()?;
+    let fasta_src = args.next();
 
-    let mut reader = bam::io::indexed_reader::Builder::default().build_from_path(src)?;
+    let mut builder = alignment::indexed_reader::Builder::default();
+
+    if let Some(fasta_src) = fasta_src {
+        let repository = fasta::indexed_reader::Builder::default()
+            .build_from_path(fasta_src)
+            .map(fasta::repository::adapters::IndexedReader::new)
+            .map(fasta::Repository::new)?;
+
+        builder = builder.set_reference_sequence_repository(repository);
+    }
+
+    let mut reader = builder.build_from_path(src)?;
     let header = reader.read_header()?;
 
-    let query = reader
-        .query(&header, &region)?
-        .map(|result| result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>));
-
+    let query = reader.query(&header, &region)?;
     let pileup = Depth::new(&header, query);
 
     let stdout = io::stdout().lock();

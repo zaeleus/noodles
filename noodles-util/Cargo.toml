@@ -44,6 +44,10 @@ noodles-vcf = { path = "../noodles-vcf", version = "0.48.0", optional = true }
 all-features = true
 
 [[example]]
+name = "util_alignment_depth"
+required-features = ["alignment"]
+
+[[example]]
 name = "util_alignment_query"
 required-features = ["alignment"]
 
