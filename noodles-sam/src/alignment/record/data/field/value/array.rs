@@ -3,6 +3,8 @@
 mod subtype;
 mod values;
 
+use std::fmt;
+
 pub use self::{subtype::Subtype, values::Values};
 
 /// An alignment record data field array value.
@@ -34,6 +36,20 @@ impl<'a> Array<'a> {
             Array::Int32(_) => Subtype::Int32,
             Array::UInt32(_) => Subtype::UInt32,
             Array::Float(_) => Subtype::Float,
+        }
+    }
+}
+
+impl<'a> fmt::Debug for Array<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Int8(values) => f.debug_list().entries(values.iter()).finish(),
+            Self::UInt8(values) => f.debug_list().entries(values.iter()).finish(),
+            Self::Int16(values) => f.debug_list().entries(values.iter()).finish(),
+            Self::UInt16(values) => f.debug_list().entries(values.iter()).finish(),
+            Self::Int32(values) => f.debug_list().entries(values.iter()).finish(),
+            Self::UInt32(values) => f.debug_list().entries(values.iter()).finish(),
+            Self::Float(values) => f.debug_list().entries(values.iter()).finish(),
         }
     }
 }
