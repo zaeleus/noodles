@@ -322,7 +322,7 @@ pub(crate) fn add_missing_reference_sequence_checksums(
 
             let checksum = calculate_normalized_sequence_digest(&sequence[..]);
 
-            entry.insert(Md5Checksum::from(checksum).to_string().into_bytes());
+            entry.insert(Md5Checksum::from(checksum).to_string().into());
         }
     }
 
@@ -331,6 +331,8 @@ pub(crate) fn add_missing_reference_sequence_checksums(
 
 #[cfg(test)]
 mod tests {
+    use bstr::BString;
+
     use super::*;
 
     #[test]
@@ -364,8 +366,8 @@ mod tests {
             ),
         ];
 
-        let sq0_md5_checksum = Vec::from("be19336b7e15968f7ac7dc82493d9cd8");
-        let sq1_md5_checksum = Vec::from("d80f22a19aeeb623b3e4f746c762f21d");
+        let sq0_md5_checksum = BString::from("be19336b7e15968f7ac7dc82493d9cd8");
+        let sq1_md5_checksum = BString::from("d80f22a19aeeb623b3e4f746c762f21d");
 
         let repository = fasta::Repository::new(reference_sequences);
 

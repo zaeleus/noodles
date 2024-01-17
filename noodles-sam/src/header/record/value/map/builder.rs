@@ -2,6 +2,8 @@
 
 use std::{error, fmt};
 
+use bstr::BString;
+
 use super::{tag, Map, OtherFields};
 
 /// An error returned when a SAM header record map value fails to build.
@@ -51,6 +53,7 @@ where
     /// # Examples
     ///
     /// ```
+    /// use bstr::BString;
     /// use noodles_sam::header::record::value::{map::{Header, Tag}, Map};
     ///
     /// let nd = match Tag::try_from([b'n', b'd']) {
@@ -58,15 +61,16 @@ where
     ///     _ => unreachable!(),
     /// };
     ///
-    /// let header = Map::<Header>::builder()
-    ///     .insert(nd, Vec::from("noodles"))
-    ///     .build()?;
+    /// let header = Map::<Header>::builder().insert(nd, "noodles").build()?;
     ///
-    /// assert_eq!(header.other_fields().get(b"nd"), Some(&Vec::from("noodles")));
+    /// assert_eq!(header.other_fields().get(b"nd"), Some(&BString::from("noodles")));
     /// # Ok::<_, noodles_sam::header::record::value::map::builder::BuildError>(())
     /// ```
-    pub fn insert(mut self, key: tag::Other<I::StandardTag>, value: Vec<u8>) -> Self {
-        self.other_fields.insert(key, value);
+    pub fn insert<V>(mut self, key: tag::Other<I::StandardTag>, value: V) -> Self
+    where
+        V: Into<BString>,
+    {
+        self.other_fields.insert(key, value.into());
         self
     }
 

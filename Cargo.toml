@@ -29,6 +29,7 @@ rust-version = "1.70.0"
 [workspace.dependencies]
 bit-vec = "0.6.1"
 bitflags = "2.0.2"
+bstr = "1.9.0"
 byteorder = "1.2.3"
 bytes = "1.0.1"
 flate2 = "1.0.1"

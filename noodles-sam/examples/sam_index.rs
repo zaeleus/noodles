@@ -21,7 +21,7 @@ fn is_coordinate_sorted(header: &sam::Header) -> bool {
     header
         .header()
         .and_then(|hdr| hdr.other_fields().get(&tag::SORT_ORDER))
-        .map(|sort_order| sort_order == b"coordinate")
+        .map(|sort_order| sort_order == "coordinate")
         .unwrap_or_default()
 }
 

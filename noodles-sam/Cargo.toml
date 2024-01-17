@@ -15,6 +15,7 @@ async = ["dep:futures", "dep:tokio", "noodles-bgzf/async"]
 
 [dependencies]
 bitflags.workspace = true
+bstr.workspace = true
 indexmap.workspace = true
 lexical-core = "0.8.5"
 memchr.workspace = true

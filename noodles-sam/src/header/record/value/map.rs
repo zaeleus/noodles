@@ -12,9 +12,10 @@ pub use self::{
     reference_sequence::ReferenceSequence, tag::Tag,
 };
 
+use bstr::BString;
 use indexmap::IndexMap;
 
-pub(crate) type OtherFields<S> = IndexMap<tag::Other<S>, Vec<u8>>;
+pub(crate) type OtherFields<S> = IndexMap<tag::Other<S>, BString>;
 
 /// An inner SAM header record map value.
 pub trait Inner: Sized {
@@ -54,10 +55,11 @@ where
     /// # Example
     ///
     /// ```
+    /// use bstr::BString;
     /// use noodles_sam::header::record::value::{map::{tag, Header}, Map};
     /// let mut map = Map::<Header>::new(Default::default());
     /// let nd = tag::Other::try_from([b'n', b'd'])?;
-    /// map.other_fields_mut().insert(nd, Vec::from("noodles"));
+    /// map.other_fields_mut().insert(nd, BString::from("noodles"));
     /// # Ok::<_, tag::ParseError>(())
     /// ```
     pub fn other_fields_mut(&mut self) -> &mut OtherFields<I::StandardTag> {

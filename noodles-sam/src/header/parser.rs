@@ -264,7 +264,7 @@ mod tests {
             .set_header(
                 Map::<map::Header>::builder()
                     .set_version(Version::new(1, 6))
-                    .insert(header::tag::SORT_ORDER, Vec::from("coordinate"))
+                    .insert(header::tag::SORT_ORDER, "coordinate")
                     .build()?,
             )
             .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(SQ0_LN))
@@ -273,7 +273,7 @@ mod tests {
             .add_program(
                 "pg0",
                 Map::<Program>::builder()
-                    .insert(program::tag::NAME, Vec::from("noodles"))
+                    .insert(program::tag::NAME, "noodles")
                     .build()?,
             )
             .add_comment("ndls")

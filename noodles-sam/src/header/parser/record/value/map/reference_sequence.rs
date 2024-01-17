@@ -2,6 +2,8 @@ mod length;
 
 use std::{error, fmt};
 
+use bstr::{BStr, BString};
+
 use self::length::parse_length;
 use super::field::{consume_delimiter, consume_separator, parse_tag, parse_value, value};
 use crate::header::{
@@ -85,7 +87,7 @@ pub(crate) fn parse_reference_sequence(
     let length = length.ok_or(ParseError::MissingLength)?;
 
     Ok((
-        name,
+        name.to_vec(),
         Map {
             inner: ReferenceSequence { length },
             other_fields,
@@ -93,16 +95,12 @@ pub(crate) fn parse_reference_sequence(
     ))
 }
 
-fn parse_name(src: &mut &[u8]) -> Result<Vec<u8>, ParseError> {
-    parse_value(src)
-        .map(Vec::from)
-        .map_err(ParseError::InvalidValue)
+fn parse_name<'a>(src: &mut &'a [u8]) -> Result<&'a BStr, ParseError> {
+    parse_value(src).map_err(ParseError::InvalidValue)
 }
 
-fn parse_other(src: &mut &[u8], tag: Other<tag::Standard>) -> Result<Vec<u8>, ParseError> {
-    parse_value(src)
-        .map(Vec::from)
-        .map_err(|e| ParseError::InvalidOther(tag, e))
+fn parse_other<'a>(src: &mut &'a [u8], tag: Other<tag::Standard>) -> Result<&'a BStr, ParseError> {
+    parse_value(src).map_err(|e| ParseError::InvalidOther(tag, e))
 }
 
 fn try_replace<T>(
@@ -125,7 +123,7 @@ fn try_insert<V>(
     value: V,
 ) -> Result<(), ParseError>
 where
-    V: Into<Vec<u8>>,
+    V: Into<BString>,
 {
     if other_fields.insert(tag, value.into()).is_some() && !ctx.allow_duplicate_tags() {
         Err(ParseError::DuplicateTag(Tag::Other(tag)))
