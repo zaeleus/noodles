@@ -13,7 +13,7 @@ use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 use super::Writer;
-use crate::alignment::{CompressionMethod, Format};
+use crate::alignment::io::{CompressionMethod, Format};
 
 /// An alignment writer builder.
 #[derive(Default)]
@@ -32,7 +32,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_util::alignment::{self, CompressionMethod};
+    /// use noodles_util::alignment::{self, io::CompressionMethod};
     /// let builder = alignment::writer::Builder::default()
     ///     .set_compression_method(Some(CompressionMethod::Bgzf));
     /// ```
@@ -48,7 +48,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_util::alignment::{self, Format};
+    /// use noodles_util::alignment::{self, io::Format};
     /// let builder = alignment::writer::Builder::default().set_format(Format::Sam);
     /// ```
     pub fn set_format(mut self, format: Format) -> Self {
@@ -64,7 +64,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_fasta as fasta;
-    /// use noodles_util::alignment::{self, Format};
+    /// use noodles_util::alignment::{self, io::Format};
     ///
     /// let repository = fasta::Repository::default();
     ///
@@ -88,7 +88,7 @@ impl Builder {
     /// ```
     /// # use std::io;
     /// use noodles_cram::data_container::BlockContentEncoderMap;
-    /// use noodles_util::alignment::{self, Format};
+    /// use noodles_util::alignment::{self, io::Format};
     ///
     /// let builder = alignment::writer::Builder::default()
     ///     .set_block_content_encoder_map(BlockContentEncoderMap::default());
@@ -109,7 +109,7 @@ impl Builder {
     ///
     /// ```no_run
     /// # use std::io;
-    /// use noodles_util::alignment::{self, Format};
+    /// use noodles_util::alignment::{self, io::Format};
     /// let writer = alignment::writer::Builder::default().build_from_path("out.sam")?;
     /// # Ok::<_, io::Error>(())
     /// ```
@@ -141,7 +141,7 @@ impl Builder {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_util::alignment::{self, Format};
+    /// use noodles_util::alignment::{self, io::Format};
     /// let writer = alignment::writer::Builder::default().build_from_writer(io::sink());
     /// ```
     pub fn build_from_writer<W>(self, writer: W) -> io::Result<Writer>

@@ -15,7 +15,7 @@ use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 use super::IndexedReader;
-use crate::alignment::{
+use crate::alignment::io::{
     reader::builder::{detect_compression_method, detect_format},
     CompressionMethod, Format,
 };
@@ -64,8 +64,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_util::alignment::{self, CompressionMethod};
-    /// let builder = alignment::indexed_reader::Builder::default()
+    /// use noodles_util::alignment::{self, io::CompressionMethod};
+    /// let builder = alignment::io::indexed_reader::Builder::default()
     ///     .set_compression_method(Some(CompressionMethod::Bgzf));
     /// ```
     pub fn set_compression_method(mut self, compression_method: Option<CompressionMethod>) -> Self {
@@ -80,8 +80,9 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_util::alignment::{self, Format};
-    /// let builder = alignment::indexed_reader::Builder::default().set_format(Format::Sam);
+    /// use noodles_util::alignment::{self, io::Format};
+    /// let builder = alignment::io::indexed_reader::Builder::default()
+    ///     .set_format(Format::Sam);
     /// ```
     pub fn set_format(mut self, format: Format) -> Self {
         self.format = Some(format);
@@ -110,7 +111,8 @@ impl Builder {
     /// use noodles_util::alignment;
     ///
     /// let index = bai::Index::default();
-    /// let builder = alignment::indexed_reader::Builder::default().set_index(index);
+    /// let builder = alignment::io::indexed_reader::Builder::default()
+    ///     .set_index(index);
     /// ```
     pub fn set_index<I>(mut self, index: I) -> Self
     where
@@ -130,7 +132,8 @@ impl Builder {
     ///
     /// ```no_run
     /// use noodles_util::alignment;
-    /// let reader = alignment::indexed_reader::Builder::default().build_from_path("sample.bam")?;
+    /// let reader = alignment::io::indexed_reader::Builder::default()
+    ///     .build_from_path("sample.bam")?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn build_from_path<P>(self, src: P) -> io::Result<IndexedReader<File>>
@@ -193,7 +196,7 @@ impl Builder {
     /// let data = writer.finish()?;
     ///
     /// let index = bai::Index::default();
-    /// let reader = alignment::indexed_reader::Builder::default()
+    /// let reader = alignment::io::indexed_reader::Builder::default()
     ///     .set_index(index)
     ///     .build_from_reader(&data[..])?;
     /// # Ok::<_, std::io::Error>(())

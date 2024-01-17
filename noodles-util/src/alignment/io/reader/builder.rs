@@ -11,7 +11,7 @@ use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 use super::Reader;
-use crate::alignment::{CompressionMethod, Format};
+use crate::alignment::io::{CompressionMethod, Format};
 
 /// An alignment reader builder.
 #[derive(Default)]
@@ -30,8 +30,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_util::alignment::{self, CompressionMethod};
-    /// let builder = alignment::reader::Builder::default()
+    /// use noodles_util::alignment::{self, io::CompressionMethod};
+    /// let builder = alignment::io::reader::Builder::default()
     ///     .set_compression_method(Some(CompressionMethod::Bgzf));
     /// ```
     pub fn set_compression_method(mut self, compression_method: Option<CompressionMethod>) -> Self {
@@ -46,8 +46,9 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_util::alignment::{self, Format};
-    /// let builder = alignment::reader::Builder::default().set_format(Format::Sam);
+    /// use noodles_util::alignment::{self, io::Format};
+    /// let builder = alignment::io::reader::Builder::default()
+    ///     .set_format(Format::Sam);
     /// ```
     pub fn set_format(mut self, format: Format) -> Self {
         self.format = Some(format);
@@ -60,11 +61,11 @@ impl Builder {
     ///
     /// ```
     /// use noodles_fasta as fasta;
-    /// use noodles_util::alignment::{self, Format};
+    /// use noodles_util::alignment::{self, io::Format};
     ///
     /// let repository = fasta::Repository::default();
     ///
-    /// let builder = alignment::reader::Builder::default()
+    /// let builder = alignment::io::reader::Builder::default()
     ///     .set_reference_sequence_repository(repository);
     /// ```
     pub fn set_reference_sequence_repository(
@@ -85,7 +86,8 @@ impl Builder {
     /// ```no_run
     /// # use std::io;
     /// use noodles_util::alignment;
-    /// let reader = alignment::reader::Builder::default().build_from_path("sample.bam")?;
+    /// let reader = alignment::io::reader::Builder::default()
+    ///     .build_from_path("sample.bam")?;
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn build_from_path<P>(self, path: P) -> io::Result<Reader<Box<dyn BufRead>>>
@@ -106,7 +108,8 @@ impl Builder {
     /// ```
     /// # use std::io;
     /// use noodles_util::alignment;
-    /// let reader = alignment::reader::Builder::default().build_from_reader(io::empty())?;
+    /// let reader = alignment::io::reader::Builder::default()
+    ///     .build_from_reader(io::empty())?;
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn build_from_reader<R>(self, reader: R) -> io::Result<Reader<Box<dyn BufRead>>>

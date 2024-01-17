@@ -20,7 +20,7 @@ fn main() -> io::Result<()> {
     let src = args.next().expect("missing src");
     let fasta_src = args.next();
 
-    let mut builder = alignment::reader::Builder::default();
+    let mut builder = alignment::io::reader::Builder::default();
 
     if let Some(fasta_src) = fasta_src {
         let repository = fasta::indexed_reader::Builder::default()

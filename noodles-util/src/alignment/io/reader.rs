@@ -33,7 +33,7 @@ where
     /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
     /// ");
     ///
-    /// let mut reader = alignment::reader::Builder::default().build_from_reader(data)?;
+    /// let mut reader = alignment::io::reader::Builder::default().build_from_reader(data)?;
     /// let actual = reader.read_header()?;
     ///
     /// let expected = sam::Header::builder()
@@ -60,7 +60,7 @@ where
     /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
     /// ");
     ///
-    /// let mut reader = alignment::reader::Builder::default().build_from_reader(data)?;
+    /// let mut reader = alignment::io::reader::Builder::default().build_from_reader(data)?;
     /// let header = reader.read_header()?;
     ///
     /// let mut records = reader.records(&header);

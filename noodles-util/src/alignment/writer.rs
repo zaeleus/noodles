@@ -21,7 +21,7 @@ impl Writer {
     /// ```
     /// # use std::io;
     /// use noodles_sam as sam;
-    /// use noodles_util::alignment::{self, Format};
+    /// use noodles_util::alignment::{self, io::Format};
     ///
     /// let mut writer = alignment::writer::Builder::default()
     ///     .set_format(Format::Bam)
@@ -42,7 +42,7 @@ impl Writer {
     /// ```
     /// # use std::io;
     /// use noodles_sam::{self as sam, alignment::RecordBuf};
-    /// use noodles_util::alignment::{self, Format};
+    /// use noodles_util::alignment::{self, io::Format};
     ///
     /// let mut writer = alignment::writer::Builder::default()
     ///     .set_format(Format::Sam)
@@ -69,7 +69,7 @@ impl Writer {
     /// ```
     /// # use std::io;
     /// use noodles_sam as sam;
-    /// use noodles_util::alignment::{self, Format};
+    /// use noodles_util::alignment::{self, io::Format};
     ///
     /// let mut writer = alignment::writer::Builder::default()
     ///     .set_format(Format::Sam)
