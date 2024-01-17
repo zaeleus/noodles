@@ -14,9 +14,6 @@ use crate::variant::{
     CompressionMethod, Format,
 };
 
-#[allow(deprecated)]
-use crate::variant::Compression;
-
 /// An indexed variant reader builder.
 #[derive(Default)]
 pub struct Builder {
@@ -26,13 +23,6 @@ pub struct Builder {
 }
 
 impl Builder {
-    /// Sets the compression method of the input.
-    #[allow(deprecated)]
-    #[deprecated(since = "0.20.0", note = "Use `Self::set_compression_method` instead.")]
-    pub fn set_compression(self, compression: Option<Compression>) -> Self {
-        self.set_compression_method(compression)
-    }
-
     /// Sets the compression method of the input.
     ///
     /// By default, the compression method is autodetected on build. This can be used to override

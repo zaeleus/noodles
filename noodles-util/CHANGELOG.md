@@ -16,6 +16,12 @@
   * util/alignment/io/writer: Change `Writer::write_record` to accept
     `&sam::alignment::Record`.
 
+### Removed
+
+  * util/variant: Remove `Compression`.
+
+    This was deprecated in noodles-util 0.20.0 Use `CompressionMethod` instead.
+
 ## 0.32.0 - 2023-12-14
 
 ### Changed

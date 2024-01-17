@@ -10,7 +10,3 @@ pub use self::{
     compression_method::CompressionMethod, format::Format, indexed_reader::IndexedReader,
     reader::Reader, writer::Writer,
 };
-
-/// A variant compression method.
-#[deprecated(since = "0.20.0", note = "Use `CompressionMethod` instead.")]
-pub type Compression = CompressionMethod;

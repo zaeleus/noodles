@@ -9,8 +9,6 @@ use noodles_bgzf as bgzf;
 use noodles_vcf as vcf;
 
 use super::Writer;
-#[allow(deprecated)]
-use crate::variant::Compression;
 use crate::variant::{CompressionMethod, Format};
 
 /// A variant writer builder.
@@ -21,13 +19,6 @@ pub struct Builder {
 }
 
 impl Builder {
-    /// Sets the compression method of the output.
-    #[allow(deprecated)]
-    #[deprecated(since = "0.20.0", note = "Use `Self::set_compression_method` instead.")]
-    pub fn set_compression(self, compression: Option<Compression>) -> Self {
-        self.set_compression_method(compression)
-    }
-
     /// Sets the compression method of the output.
     ///
     /// # Examples
@@ -94,7 +85,7 @@ impl Builder {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_util::variant::{self, Compression, Format};
+    /// use noodles_util::variant;
     /// let writer = variant::writer::Builder::default().build_from_writer(io::sink());
     /// ```
     pub fn build_from_writer<W>(self, writer: W) -> Writer

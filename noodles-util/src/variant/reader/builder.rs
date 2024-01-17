@@ -9,8 +9,6 @@ use noodles_bgzf as bgzf;
 use noodles_vcf::{self as vcf, VariantReader};
 
 use super::Reader;
-#[allow(deprecated)]
-use crate::variant::Compression;
 use crate::variant::{CompressionMethod, Format};
 
 /// A variant reader builder.
@@ -21,13 +19,6 @@ pub struct Builder {
 }
 
 impl Builder {
-    /// Sets the compression method of the input.
-    #[allow(deprecated)]
-    #[deprecated(since = "0.20.0", note = "Use `Self::set_compression_method` instead.")]
-    pub fn set_compression(self, compression: Option<Compression>) -> Self {
-        self.set_compression_method(compression)
-    }
-
     /// Sets the compression method of the input.
     ///
     /// By default, the compression method is autodetected on build. This can be used to override

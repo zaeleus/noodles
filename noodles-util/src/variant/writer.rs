@@ -21,11 +21,11 @@ impl Writer {
     /// ```
     /// # use std::io;
     /// use noodles_vcf as vcf;
-    /// use noodles_util::variant::{self, Compression, Format};
+    /// use noodles_util::variant::{self, CompressionMethod, Format};
     ///
     /// let mut writer = variant::writer::Builder::default()
     ///     .set_format(Format::Bcf)
-    ///     .set_compression(Some(Compression::Bgzf))
+    ///     .set_compression_method(Some(CompressionMethod::Bgzf))
     ///     .build_from_writer(io::sink());
     ///
     /// let header = vcf::Header::default();
@@ -47,7 +47,7 @@ impl Writer {
     ///
     /// let mut writer = variant::writer::Builder::default()
     ///     .set_format(Format::Vcf)
-    ///     .set_compression(None)
+    ///     .set_compression_method(None)
     ///     .build_from_writer(io::sink());
     ///
     /// let header = vcf::Header::default();
