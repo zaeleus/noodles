@@ -57,7 +57,7 @@ impl fmt::Display for ParseError {
 pub(crate) fn parse_program(
     src: &mut &[u8],
     ctx: &Context,
-) -> Result<(Vec<u8>, Map<Program>), ParseError> {
+) -> Result<(BString, Map<Program>), ParseError> {
     let mut id = None;
 
     let mut other_fields = OtherFields::new();
@@ -77,7 +77,7 @@ pub(crate) fn parse_program(
     let id = id.ok_or(ParseError::MissingId)?;
 
     Ok((
-        id.to_vec(),
+        id.into(),
         Map {
             inner: Program,
             other_fields,
@@ -131,7 +131,7 @@ mod tests {
         let mut src = &b"\tID:pg0"[..];
         let ctx = Context::default();
         let actual = parse_program(&mut src, &ctx);
-        let expected = (Vec::from("pg0"), Map::<Program>::default());
+        let expected = (BString::from("pg0"), Map::<Program>::default());
         assert_eq!(actual, Ok(expected));
     }
 

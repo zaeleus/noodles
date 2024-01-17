@@ -3,6 +3,7 @@ mod record;
 
 use std::{error, fmt, hash::Hash, str};
 
+use bstr::BString;
 use indexmap::IndexMap;
 
 pub(crate) use self::context::Context;
@@ -27,7 +28,7 @@ pub enum ParseError {
     /// A read group ID is duplicated.
     DuplicateReadGroupId(Vec<u8>),
     /// A program ID is duplicated.
-    DuplicateProgramId(Vec<u8>),
+    DuplicateProgramId(BString),
     /// A comment record is invalid.
     InvalidComment,
 }
@@ -54,10 +55,7 @@ impl fmt::Display for ParseError {
                 let id = str::from_utf8(buf).map_err(|_| fmt::Error)?;
                 write!(f, "duplicate read group ID: {id}")
             }
-            Self::DuplicateProgramId(buf) => {
-                let id = str::from_utf8(buf).map_err(|_| fmt::Error)?;
-                write!(f, "duplicate program ID: {id}")
-            }
+            Self::DuplicateProgramId(id) => write!(f, "duplicate program ID: {id}"),
             Self::InvalidComment => f.write_str("invalid comment record"),
         }
     }
@@ -349,7 +347,7 @@ mod tests {
 ";
         assert_eq!(
             parse(s),
-            Err(ParseError::DuplicateProgramId(Vec::from("pg0")))
+            Err(ParseError::DuplicateProgramId(BString::from("pg0")))
         );
     }
 

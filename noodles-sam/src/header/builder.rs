@@ -1,3 +1,5 @@
+use bstr::BString;
+
 use super::{
     record::value::{
         map::{self, Program, ReadGroup, ReferenceSequence},
@@ -152,7 +154,7 @@ impl Builder {
     /// ```
     pub fn add_program<I>(mut self, id: I, map: Map<Program>) -> Self
     where
-        I: Into<Vec<u8>>,
+        I: Into<BString>,
     {
         self.programs.insert(id.into(), map);
         self

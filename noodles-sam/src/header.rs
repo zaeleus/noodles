@@ -83,6 +83,7 @@ pub use self::{
 
 use std::str::{self, FromStr};
 
+use bstr::BString;
 use indexmap::IndexMap;
 
 use self::record::value::{
@@ -97,7 +98,7 @@ pub type ReferenceSequences = IndexMap<Vec<u8>, Map<ReferenceSequence>>;
 pub type ReadGroups = IndexMap<Vec<u8>, Map<ReadGroup>>;
 
 /// An ordered map of programs.
-pub type Programs = IndexMap<Vec<u8>, Map<Program>>;
+pub type Programs = IndexMap<BString, Map<Program>>;
 
 /// A SAM header.
 ///
@@ -300,7 +301,7 @@ impl Header {
     /// let mut header = sam::Header::default();
     ///
     /// let program = Map::<Program>::default();
-    /// header.programs_mut().insert(Vec::from("noodles-sam"), program);
+    /// header.programs_mut().insert(String::from("noodles-sam").into(), program);
     ///
     /// let programs = header.programs();
     /// assert_eq!(programs.len(), 1);
