@@ -6,11 +6,10 @@
 
 use std::env;
 
-use futures::TryStreamExt;
 use noodles_sam as sam;
 use tokio::{
     fs::File,
-    io::{self, BufReader},
+    io::{self, AsyncWriteExt, BufReader},
 };
 
 #[tokio::main]
@@ -28,11 +27,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut writer = sam::AsyncWriter::new(io::stdout());
     writer.write_header(&header).await?;
 
-    let mut records = reader.records(&header);
+    io::copy(reader.get_mut(), writer.get_mut()).await?;
 
-    while let Some(record) = records.try_next().await? {
-        writer.write_record(&header, &record).await?;
-    }
+    writer.get_mut().shutdown().await?;
 
     Ok(())
 }
