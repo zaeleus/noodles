@@ -45,7 +45,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, alignment::record_buf::Flags};
+    /// use noodles_sam::{self as sam, alignment::record::Flags};
     ///
     /// let record = sam::alignment::RecordBuf::builder()
     ///     .set_flags(Flags::empty())

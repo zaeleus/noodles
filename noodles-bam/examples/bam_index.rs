@@ -13,7 +13,7 @@ use noodles_core::Position;
 use noodles_csi::binning_index::{index::reference_sequence::bin::Chunk, Indexer};
 use noodles_sam::{
     self as sam,
-    alignment::{record_buf::Flags, Record as _},
+    alignment::{record::Flags, Record as _},
 };
 
 fn is_coordinate_sorted(header: &sam::Header) -> bool {

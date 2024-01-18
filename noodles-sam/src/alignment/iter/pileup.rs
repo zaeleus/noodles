@@ -3,7 +3,7 @@ use std::{collections::VecDeque, io};
 use noodles_core::Position;
 
 use crate::{
-    alignment::{record_buf::Flags, Record},
+    alignment::{record::Flags, Record},
     Header,
 };
 

@@ -106,7 +106,7 @@ where
         Ok(())
     }
 
-    fn read_bam_bit_flags(&mut self) -> io::Result<sam::alignment::record_buf::Flags> {
+    fn read_bam_bit_flags(&mut self) -> io::Result<sam::alignment::record::Flags> {
         self.compression_header
             .data_series_encoding_map()
             .bam_bit_flags_encoding()
@@ -114,7 +114,7 @@ where
             .and_then(|n| {
                 u16::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             })
-            .map(sam::alignment::record_buf::Flags::from)
+            .map(sam::alignment::record::Flags::from)
     }
 
     fn read_cram_bit_flags(&mut self) -> io::Result<Flags> {
@@ -258,7 +258,7 @@ where
     fn read_mate_data(
         &mut self,
         record: &mut Record,
-        mut bam_flags: sam::alignment::record_buf::Flags,
+        mut bam_flags: sam::alignment::record::Flags,
         flags: Flags,
     ) -> io::Result<()> {
         if flags.is_detached() {
@@ -266,11 +266,11 @@ where
             record.next_mate_bit_flags = next_mate_bit_flags;
 
             if next_mate_bit_flags.is_on_negative_strand() {
-                bam_flags |= sam::alignment::record_buf::Flags::MATE_REVERSE_COMPLEMENTED;
+                bam_flags |= sam::alignment::record::Flags::MATE_REVERSE_COMPLEMENTED;
             }
 
             if next_mate_bit_flags.is_unmapped() {
-                bam_flags |= sam::alignment::record_buf::Flags::MATE_UNMAPPED;
+                bam_flags |= sam::alignment::record::Flags::MATE_UNMAPPED;
             }
 
             record.bam_bit_flags = bam_flags;

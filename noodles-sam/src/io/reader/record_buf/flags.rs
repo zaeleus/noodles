@@ -1,6 +1,6 @@
 use std::{error, fmt};
 
-use crate::alignment::record_buf::Flags;
+use crate::alignment::record::Flags;
 
 /// An error when raw SAM record flags fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]

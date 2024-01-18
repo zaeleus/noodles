@@ -3,7 +3,6 @@
 mod builder;
 mod cigar;
 pub mod data;
-mod flags;
 pub mod mapping_quality;
 mod name;
 mod quality_scores;
@@ -14,10 +13,10 @@ use std::io;
 use noodles_core::Position;
 
 pub use self::{
-    builder::Builder, cigar::Cigar, data::Data, flags::Flags, mapping_quality::MappingQuality,
-    name::Name, quality_scores::QualityScores, sequence::Sequence,
+    builder::Builder, cigar::Cigar, data::Data, mapping_quality::MappingQuality, name::Name,
+    quality_scores::QualityScores, sequence::Sequence,
 };
-use super::Record;
+use super::{record::Flags, Record};
 use crate::{
     header::{
         record::value::{map::ReferenceSequence, Map},
@@ -92,7 +91,7 @@ impl RecordBuf {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, alignment::record_buf::Flags};
+    /// use noodles_sam::{self as sam, alignment::record::Flags};
     /// let record = sam::alignment::RecordBuf::default();
     /// assert_eq!(record.flags(), Flags::UNMAPPED);
     /// ```
@@ -105,7 +104,7 @@ impl RecordBuf {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, alignment::record_buf::Flags};
+    /// use noodles_sam::{self as sam, alignment::record::Flags};
     /// let mut record = sam::alignment::RecordBuf::default();
     /// *record.flags_mut() = Flags::empty();
     /// assert!(record.flags().is_empty());

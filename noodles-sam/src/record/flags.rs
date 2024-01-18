@@ -31,7 +31,7 @@ impl<'a> TryFrom<Flags<'a>> for u16 {
     }
 }
 
-impl<'a> TryFrom<Flags<'a>> for crate::alignment::record_buf::Flags {
+impl<'a> TryFrom<Flags<'a>> for crate::alignment::record::Flags {
     type Error = lexical_core::Error;
 
     fn try_from(flags: Flags<'a>) -> Result<Self, Self::Error> {

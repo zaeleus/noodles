@@ -87,7 +87,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::alignment::record_buf::Flags;
+    /// use noodles_sam::alignment::record::Flags;
     /// let record = bam::Record::default();
     /// assert_eq!(Flags::from(record.flags()), Flags::UNMAPPED);
     /// ```
@@ -298,8 +298,8 @@ impl sam::alignment::Record for Record {
         Some(Box::new(name))
     }
 
-    fn flags(&self) -> io::Result<sam::alignment::record_buf::Flags> {
-        Ok(sam::alignment::record_buf::Flags::from(self.flags()))
+    fn flags(&self) -> io::Result<sam::alignment::record::Flags> {
+        Ok(sam::alignment::record::Flags::from(self.flags()))
     }
 
     fn reference_sequence_id<'r, 'h: 'r>(
@@ -412,7 +412,7 @@ impl TryFrom<Record> for sam::alignment::RecordBuf {
             builder = builder.set_name(name.into());
         }
 
-        let flags = sam::alignment::record_buf::Flags::from(lazy_record.flags());
+        let flags = sam::alignment::record::Flags::from(lazy_record.flags());
         builder = builder.set_flags(flags);
 
         if let Some(reference_sequence_id) = lazy_record.reference_sequence_id() {
@@ -565,8 +565,9 @@ mod tests {
                 record::{
                     cigar::{op::Kind, Op},
                     data::field::Tag,
+                    Flags,
                 },
-                record_buf::{data::field::Value, Cigar, Flags, Sequence},
+                record_buf::{data::field::Value, Cigar, Sequence},
                 RecordBuf,
             },
             header::record::value::{map::ReferenceSequence, Map},

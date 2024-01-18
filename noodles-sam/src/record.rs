@@ -57,7 +57,7 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, alignment::record_buf::Flags};
+    /// use noodles_sam::{self as sam, alignment::record::Flags};
     /// let record = sam::Record::default();
     /// assert_eq!(Flags::try_from(record.flags())?, Flags::UNMAPPED);
     /// # Ok::<_, lexical_core::Error>(())
@@ -308,8 +308,8 @@ impl crate::alignment::Record for Record {
         Some(Box::new(read_name))
     }
 
-    fn flags(&self) -> io::Result<crate::alignment::record_buf::Flags> {
-        crate::alignment::record_buf::Flags::try_from(self.flags())
+    fn flags(&self) -> io::Result<crate::alignment::record::Flags> {
+        crate::alignment::record::Flags::try_from(self.flags())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 

@@ -74,7 +74,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     writer.write_file_header(&header).await?;
 
     let record = sam::alignment::RecordBuf::builder()
-        .set_flags(sam::alignment::record_buf::Flags::empty())
+        .set_flags(sam::alignment::record::Flags::empty())
         .set_reference_sequence_id(1)
         .set_alignment_start(Position::MIN)
         .set_cigar([Op::new(Kind::Match, 4)].into_iter().collect())

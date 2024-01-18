@@ -21,8 +21,8 @@ use noodles_core::Position;
 use noodles_sam::{
     self as sam,
     alignment::{
-        record_buf::{Cigar, Flags},
-        Record,
+        record_buf::Cigar,
+        {record::Flags, Record},
     },
 };
 

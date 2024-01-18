@@ -371,7 +371,7 @@ where
     where
         I: BinningIndex,
     {
-        use crate::alignment::record_buf::Flags;
+        use crate::alignment::record::Flags;
 
         if let Some(pos) = index.last_first_record_start_position() {
             self.seek(pos)?;

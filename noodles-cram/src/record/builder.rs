@@ -9,7 +9,7 @@ use super::{Features, Flags, NextMateFlags, Record};
 /// A CRAM record builder.
 pub struct Builder {
     id: u64,
-    bam_flags: sam::alignment::record_buf::Flags,
+    bam_flags: sam::alignment::record::Flags,
     flags: Flags,
     reference_sequence_id: Option<usize>,
     read_length: usize,
@@ -36,7 +36,7 @@ impl Builder {
     }
 
     /// Sets the BAM flags.
-    pub fn set_bam_flags(mut self, bam_flags: sam::alignment::record_buf::Flags) -> Self {
+    pub fn set_bam_flags(mut self, bam_flags: sam::alignment::record::Flags) -> Self {
         self.bam_flags = bam_flags;
         self
     }
@@ -169,7 +169,7 @@ impl Default for Builder {
     fn default() -> Self {
         Self {
             id: 0,
-            bam_flags: sam::alignment::record_buf::Flags::UNMAPPED,
+            bam_flags: sam::alignment::record::Flags::UNMAPPED,
             flags: Flags::default(),
             reference_sequence_id: None,
             read_length: 0,
@@ -199,10 +199,7 @@ mod tests {
         let builder = Builder::default();
 
         assert_eq!(builder.id, 0);
-        assert_eq!(
-            builder.bam_flags,
-            sam::alignment::record_buf::Flags::UNMAPPED
-        );
+        assert_eq!(builder.bam_flags, sam::alignment::record::Flags::UNMAPPED);
         assert_eq!(builder.flags, Flags::default());
         assert!(builder.reference_sequence_id.is_none());
         assert_eq!(builder.read_length, 0);

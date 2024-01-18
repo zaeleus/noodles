@@ -3,6 +3,7 @@
 pub mod cigar;
 pub mod data;
 pub mod fields;
+mod flags;
 
 use std::io;
 
@@ -10,6 +11,7 @@ use bstr::BStr;
 use noodles_core as core;
 
 use self::fields::{Cigar, Data, Name, QualityScores, Sequence};
+pub use self::flags::Flags;
 use crate::{
     header::{
         record::value::{map::ReferenceSequence, Map},
@@ -24,7 +26,7 @@ pub trait Record {
     fn name(&self) -> Option<Box<dyn Name + '_>>;
 
     /// Returns the flags.
-    fn flags(&self) -> io::Result<super::record_buf::Flags>;
+    fn flags(&self) -> io::Result<Flags>;
 
     /// Returns the reference sequence ID.
     fn reference_sequence_id<'r, 'h: 'r>(&'r self, header: &'h Header)
@@ -113,7 +115,7 @@ impl Record for Box<dyn Record> {
         (**self).name()
     }
 
-    fn flags(&self) -> io::Result<super::record_buf::Flags> {
+    fn flags(&self) -> io::Result<Flags> {
         (**self).flags()
     }
 

@@ -387,7 +387,7 @@ where
     where
         I: BinningIndex,
     {
-        use sam::alignment::record_buf::Flags;
+        use sam::alignment::record::Flags;
 
         if let Some(pos) = index.last_first_record_start_position() {
             self.seek(pos)?;

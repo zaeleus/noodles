@@ -206,7 +206,8 @@ where
 #[cfg(test)]
 mod tests {
     use sam::alignment::{
-        record_buf::{Flags, QualityScores, Sequence},
+        record::Flags,
+        record_buf::{QualityScores, Sequence},
         RecordBuf,
     };
 
