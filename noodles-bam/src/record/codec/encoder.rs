@@ -21,7 +21,7 @@ use noodles_core::Position;
 use noodles_sam::{
     self as sam,
     alignment::{
-        record_buf::{Cigar, Flags, MappingQuality},
+        record_buf::{Cigar, Flags},
         Record,
     },
 };
@@ -37,30 +37,18 @@ where
     B: BufMut,
     R: Record + ?Sized,
 {
-    let reference_sequence_id = record
-        .reference_sequence_id(header)
-        .map(|id| id.try_to_usize())
-        .transpose()?;
-
     // ref_id
+    let reference_sequence_id = record.reference_sequence_id(header).transpose()?;
     put_reference_sequence_id(dst, header, reference_sequence_id)?;
 
-    let alignment_start = record
-        .alignment_start()
-        .map(|position| Position::try_from(position.as_ref()))
-        .transpose()?;
-
     // pos
+    let alignment_start = record.alignment_start().transpose()?;
     put_position(dst, alignment_start)?;
 
     put_l_read_name(dst, record.name())?;
 
-    let mapping_quality = record
-        .mapping_quality()
-        .map(|mapping_quality| MappingQuality::try_from(mapping_quality.as_ref()))
-        .transpose()?;
-
     // mapq
+    let mapping_quality = record.mapping_quality().transpose()?;
     put_mapping_quality(dst, mapping_quality);
 
     // bin
@@ -71,31 +59,23 @@ where
     let cigar = overflowing_put_cigar_op_count(dst, record)?;
 
     // flag
-    let flags = Flags::try_from(record.flags().as_ref())?;
+    let flags = record.flags()?;
     put_flags(dst, flags);
 
     let l_seq = u32::try_from(record.sequence().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     dst.put_u32_le(l_seq);
 
-    let mate_reference_sequence_id = record
-        .mate_reference_sequence_id(header)
-        .map(|id| id.try_to_usize())
-        .transpose()?;
-
     // next_ref_id
+    let mate_reference_sequence_id = record.mate_reference_sequence_id(header).transpose()?;
     put_reference_sequence_id(dst, header, mate_reference_sequence_id)?;
 
-    let mate_alignment_start = record
-        .mate_alignment_start()
-        .map(|position| Position::try_from(position.as_ref()))
-        .transpose()?;
-
     // next_pos
+    let mate_alignment_start = record.mate_alignment_start().transpose()?;
     put_position(dst, mate_alignment_start)?;
 
     // tlen
-    let template_length = record.template_length().try_to_i32()?;
+    let template_length = record.template_length()?;
     put_template_length(dst, template_length);
 
     // read_name
@@ -275,7 +255,7 @@ mod tests {
                 cigar::{op::Kind, Op},
                 data::field::Tag,
             },
-            record_buf::{data::field::Value, Name, QualityScores, Sequence},
+            record_buf::{data::field::Value, MappingQuality, Name, QualityScores, Sequence},
         };
 
         const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {

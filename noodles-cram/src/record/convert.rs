@@ -1,6 +1,5 @@
 use std::{io, str};
 
-use noodles_core::Position;
 use noodles_sam as sam;
 
 use super::{Features, Flags, QualityScores, Record, Sequence};
@@ -13,21 +12,19 @@ impl Record {
     {
         let mut builder = Self::builder();
 
-        let bam_flags = sam::alignment::record_buf::Flags::try_from(record.flags().as_ref())?;
+        let bam_flags = record.flags()?;
         builder = builder.set_bam_flags(bam_flags);
 
         let mut flags = Flags::default();
 
-        if let Some(reference_sequence_id) = record.reference_sequence_id(header) {
-            let id = usize::try_from(reference_sequence_id.as_ref())?;
-            builder = builder.set_reference_sequence_id(id);
+        if let Some(reference_sequence_id) = record.reference_sequence_id(header).transpose()? {
+            builder = builder.set_reference_sequence_id(reference_sequence_id);
         }
 
         builder = builder.set_read_length(record.sequence().len());
 
-        if let Some(alignment_start) = record.alignment_start() {
-            let position = Position::try_from(alignment_start.as_ref())?;
-            builder = builder.set_alignment_start(position);
+        if let Some(alignment_start) = record.alignment_start().transpose()? {
+            builder = builder.set_alignment_start(alignment_start);
         }
 
         let mut data = alignment_record_data_to_data_buf(record.data())?;
@@ -43,17 +40,17 @@ impl Record {
 
         // next mate bit flags
 
-        if let Some(mate_reference_sequence_id) = record.mate_reference_sequence_id(header) {
-            let id = usize::try_from(mate_reference_sequence_id.as_ref())?;
-            builder = builder.set_next_fragment_reference_sequence_id(id);
+        if let Some(mate_reference_sequence_id) =
+            record.mate_reference_sequence_id(header).transpose()?
+        {
+            builder = builder.set_next_fragment_reference_sequence_id(mate_reference_sequence_id);
         }
 
-        if let Some(mate_alignment_start) = record.mate_alignment_start() {
-            let position = Position::try_from(mate_alignment_start.as_ref())?;
-            builder = builder.set_next_mate_alignment_start(position);
+        if let Some(mate_alignment_start) = record.mate_alignment_start().transpose()? {
+            builder = builder.set_next_mate_alignment_start(mate_alignment_start);
         }
 
-        let template_length = record.template_length().try_to_i32()?;
+        let template_length = record.template_length()?;
         builder = builder.set_template_size(template_length);
 
         // distance to next fragment
@@ -84,9 +81,7 @@ impl Record {
             builder = builder.set_features(features);
         }
 
-        if let Some(mapping_quality) = record.mapping_quality() {
-            let mapping_quality =
-                sam::alignment::record_buf::MappingQuality::try_from(mapping_quality.as_ref())?;
+        if let Some(mapping_quality) = record.mapping_quality().transpose()? {
             builder = builder.set_mapping_quality(mapping_quality);
         }
 

@@ -13,7 +13,9 @@ mod reference_sequence_name;
 mod sequence;
 mod template_length;
 
-use std::fmt;
+use std::{fmt, io};
+
+use noodles_core as core;
 
 use self::bounds::Bounds;
 pub use self::{
@@ -306,26 +308,25 @@ impl crate::alignment::Record for Record {
         Some(Box::new(read_name))
     }
 
-    fn flags(&self) -> Box<dyn crate::alignment::record::Flags + '_> {
-        Box::new(self.flags())
+    fn flags(&self) -> io::Result<crate::alignment::record_buf::Flags> {
+        crate::alignment::record_buf::Flags::try_from(self.flags())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
     fn reference_sequence_id<'r, 'h: 'r>(
         &'r self,
         header: &'h Header,
-    ) -> Option<Box<dyn crate::alignment::record::ReferenceSequenceId + 'r>> {
-        let reference_sequence_id = self.reference_sequence_id(header)?;
-        Some(Box::new(reference_sequence_id))
+    ) -> Option<io::Result<usize>> {
+        self.reference_sequence_id(header).map(usize::try_from)
     }
 
-    fn alignment_start(&self) -> Option<Box<dyn crate::alignment::record::Position + '_>> {
-        let alignment_start = self.alignment_start()?;
-        Some(Box::new(alignment_start))
+    fn alignment_start(&self) -> Option<io::Result<core::Position>> {
+        self.alignment_start().map(core::Position::try_from)
     }
 
-    fn mapping_quality(&self) -> Option<Box<dyn crate::alignment::record::MappingQuality + '_>> {
-        let mapping_quality = self.mapping_quality()?;
-        Some(Box::new(mapping_quality))
+    fn mapping_quality(&self) -> Option<io::Result<crate::alignment::record_buf::MappingQuality>> {
+        self.mapping_quality()
+            .map(crate::alignment::record_buf::MappingQuality::try_from)
     }
 
     fn cigar(&self) -> Box<dyn crate::alignment::record::Cigar + '_> {
@@ -335,18 +336,16 @@ impl crate::alignment::Record for Record {
     fn mate_reference_sequence_id<'r, 'h: 'r>(
         &'r self,
         header: &'h Header,
-    ) -> Option<Box<dyn crate::alignment::record::ReferenceSequenceId + 'r>> {
-        let mate_reference_sequence_id = self.mate_reference_sequence_id(header)?;
-        Some(Box::new(mate_reference_sequence_id))
+    ) -> Option<io::Result<usize>> {
+        self.mate_reference_sequence_id(header).map(usize::try_from)
     }
 
-    fn mate_alignment_start(&self) -> Option<Box<dyn crate::alignment::record::Position + '_>> {
-        let mate_alignment_start = self.mate_alignment_start()?;
-        Some(Box::new(mate_alignment_start))
+    fn mate_alignment_start(&self) -> Option<io::Result<core::Position>> {
+        self.mate_alignment_start().map(core::Position::try_from)
     }
 
-    fn template_length(&self) -> Box<dyn crate::alignment::record::TemplateLength + '_> {
-        Box::new(self.template_length())
+    fn template_length(&self) -> io::Result<i32> {
+        i32::try_from(self.template_length())
     }
 
     fn sequence(&self) -> Box<dyn crate::alignment::record::Sequence + '_> {

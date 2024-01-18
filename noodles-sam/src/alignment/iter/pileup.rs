@@ -53,7 +53,7 @@ where
         if self.next_record.is_none() {
             for result in &mut self.records {
                 let record = result?;
-                let flags = Flags::try_from(record.flags().as_ref())?;
+                let flags = record.flags()?;
 
                 if filter(flags) {
                     continue;
@@ -88,7 +88,7 @@ where
         }
 
         while let Some(record) = self.records.next().transpose()? {
-            let flags = Flags::try_from(record.flags().as_ref())?;
+            let flags = record.flags()?;
 
             if filter(flags) {
                 continue;
@@ -168,16 +168,11 @@ where
     R: Record,
 {
     match (
-        record.reference_sequence_id(header),
-        record.alignment_start(),
-        record.alignment_end(),
+        record.reference_sequence_id(header).transpose()?,
+        record.alignment_start().transpose()?,
+        record.alignment_end().transpose()?,
     ) {
-        (Some(id), Some(start), Some(end)) => {
-            let id = usize::try_from(id.as_ref())?;
-            let start = Position::try_from(start.as_ref())?;
-            let end = end?;
-            Ok((id, start, end))
-        }
+        (Some(id), Some(start), Some(end)) => Ok((id, start, end)),
         _ => Err(io::Error::new(
             io::ErrorKind::InvalidData,
             "missing reference sequence ID or alignment start",

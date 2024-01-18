@@ -15,19 +15,11 @@ pub use self::{
 
 use std::io::{self, Write};
 
-use noodles_core::Position;
-
 use self::{
     flags::write_flags, mapping_quality::write_mapping_quality, name::write_name,
     template_length::write_template_length,
 };
-use crate::{
-    alignment::{
-        record_buf::{Flags, MappingQuality},
-        Record,
-    },
-    Header,
-};
+use crate::{alignment::Record, Header};
 
 const MISSING: u8 = b'*';
 
@@ -62,26 +54,18 @@ where
     write_name(writer, record.name())?;
 
     writer.write_all(DELIMITER)?;
-    let flags = Flags::try_from(record.flags().as_ref())?;
+    let flags = record.flags()?;
     write_flags(writer, flags)?;
 
     writer.write_all(DELIMITER)?;
     writer.write_all(reference_sequence_name)?;
 
     writer.write_all(DELIMITER)?;
-    let alignment_start = record
-        .alignment_start()
-        .map(|position| Position::try_from(position.as_ref()))
-        .transpose()?;
+    let alignment_start = record.alignment_start().transpose()?;
     write_position(writer, alignment_start)?;
 
     writer.write_all(DELIMITER)?;
-
-    let mapping_quality = record
-        .mapping_quality()
-        .map(|mapping_quality| MappingQuality::try_from(mapping_quality.as_ref()))
-        .transpose()?;
-
+    let mapping_quality = record.mapping_quality().transpose()?;
     write_mapping_quality(writer, mapping_quality)?;
 
     let cigar = record.cigar();
@@ -93,14 +77,11 @@ where
     writer.write_all(mate_reference_sequence_name)?;
 
     writer.write_all(DELIMITER)?;
-    let mate_alignment_start = record
-        .mate_alignment_start()
-        .map(|position| Position::try_from(position.as_ref()))
-        .transpose()?;
+    let mate_alignment_start = record.mate_alignment_start().transpose()?;
     write_position(writer, mate_alignment_start)?;
 
     writer.write_all(DELIMITER)?;
-    let template_length = i32::try_from(record.template_length().as_ref())?;
+    let template_length = record.template_length()?;
     write_template_length(writer, template_length)?;
 
     let sequence = record.sequence();

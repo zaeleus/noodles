@@ -272,26 +272,23 @@ impl sam::alignment::Record for Record {
         Some(Box::new(name))
     }
 
-    fn flags(&self) -> Box<dyn sam::alignment::record::Flags + '_> {
-        Box::new(self.flags())
+    fn flags(&self) -> io::Result<sam::alignment::record_buf::Flags> {
+        Ok(self.flags())
     }
 
     fn reference_sequence_id<'r, 'h: 'r>(
         &'r self,
         _: &'h sam::Header,
-    ) -> Option<Box<dyn sam::alignment::record::ReferenceSequenceId + 'r>> {
-        let reference_sequence_id = self.reference_sequence_id()?;
-        Some(Box::new(reference_sequence_id))
+    ) -> Option<io::Result<usize>> {
+        self.reference_sequence_id().map(Ok)
     }
 
-    fn alignment_start(&self) -> Option<Box<dyn sam::alignment::record::Position + '_>> {
-        let alignment_start = self.alignment_start()?;
-        Some(Box::new(alignment_start))
+    fn alignment_start(&self) -> Option<io::Result<Position>> {
+        self.alignment_start().map(Ok)
     }
 
-    fn mapping_quality(&self) -> Option<Box<dyn sam::alignment::record::MappingQuality + '_>> {
-        let mapping_quality = self.mapping_quality()?;
-        Some(Box::new(mapping_quality))
+    fn mapping_quality(&self) -> Option<io::Result<MappingQuality>> {
+        self.mapping_quality().map(Ok)
     }
 
     fn cigar(&self) -> Box<dyn sam::alignment::record::Cigar + '_> {
@@ -305,18 +302,16 @@ impl sam::alignment::Record for Record {
     fn mate_reference_sequence_id<'r, 'h: 'r>(
         &'r self,
         _: &'h sam::Header,
-    ) -> Option<Box<dyn sam::alignment::record::ReferenceSequenceId + 'r>> {
-        let mate_reference_sequence_id = self.next_fragment_reference_sequence_id()?;
-        Some(Box::new(mate_reference_sequence_id))
+    ) -> Option<io::Result<usize>> {
+        self.next_fragment_reference_sequence_id().map(Ok)
     }
 
-    fn mate_alignment_start(&self) -> Option<Box<dyn sam::alignment::record::Position + '_>> {
-        let mate_alignment_start = self.next_mate_alignment_start()?;
-        Some(Box::new(mate_alignment_start))
+    fn mate_alignment_start(&self) -> Option<io::Result<Position>> {
+        self.next_mate_alignment_start().map(Ok)
     }
 
-    fn template_length(&self) -> Box<dyn sam::alignment::record::TemplateLength + '_> {
-        Box::new(self.template_length())
+    fn template_length(&self) -> io::Result<i32> {
+        Ok(self.template_length())
     }
 
     fn sequence(&self) -> Box<dyn sam::alignment::record::Sequence + '_> {

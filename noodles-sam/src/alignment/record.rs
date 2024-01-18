@@ -35,19 +35,17 @@ pub trait Record {
     fn name(&self) -> Option<Box<dyn Name + '_>>;
 
     /// Returns the flags.
-    fn flags(&self) -> Box<dyn Flags + '_>;
+    fn flags(&self) -> io::Result<super::record_buf::Flags>;
 
     /// Returns the reference sequence ID.
-    fn reference_sequence_id<'r, 'h: 'r>(
-        &'r self,
-        header: &'h Header,
-    ) -> Option<Box<dyn ReferenceSequenceId + 'r>>;
+    fn reference_sequence_id<'r, 'h: 'r>(&'r self, header: &'h Header)
+        -> Option<io::Result<usize>>;
 
     /// Returns the alignment start.
-    fn alignment_start(&self) -> Option<Box<dyn Position + '_>>;
+    fn alignment_start(&self) -> Option<io::Result<core::Position>>;
 
     /// Returns the mapping quality.
-    fn mapping_quality(&self) -> Option<Box<dyn MappingQuality + '_>>;
+    fn mapping_quality(&self) -> Option<io::Result<super::record_buf::MappingQuality>>;
 
     /// Returns the CIGAR operations.
     fn cigar(&self) -> Box<dyn Cigar + '_>;
@@ -56,13 +54,13 @@ pub trait Record {
     fn mate_reference_sequence_id<'r, 'h: 'r>(
         &'r self,
         header: &'h Header,
-    ) -> Option<Box<dyn ReferenceSequenceId + 'r>>;
+    ) -> Option<io::Result<usize>>;
 
     /// Returns the mate alignment start.
-    fn mate_alignment_start(&self) -> Option<Box<dyn Position + '_>>;
+    fn mate_alignment_start(&self) -> Option<io::Result<core::Position>>;
 
     /// Returns the template length.
-    fn template_length(&self) -> Box<dyn TemplateLength + '_>;
+    fn template_length(&self) -> io::Result<i32>;
 
     /// Returns the sequence.
     fn sequence(&self) -> Box<dyn Sequence + '_>;
@@ -78,10 +76,12 @@ pub trait Record {
         &self,
         header: &'h Header,
     ) -> Option<io::Result<(&'h BStr, &'h Map<ReferenceSequence>)>> {
-        get_reference_sequence(
-            header.reference_sequences(),
-            self.reference_sequence_id(header),
-        )
+        let reference_sequence_id = match self.reference_sequence_id(header).transpose() {
+            Ok(reference_sequence_id) => reference_sequence_id,
+            Err(e) => return Some(Err(e)),
+        };
+
+        get_reference_sequence(header.reference_sequences(), reference_sequence_id)
     }
 
     /// Returns the associated mate reference sequence.
@@ -89,10 +89,12 @@ pub trait Record {
         &self,
         header: &'h Header,
     ) -> Option<io::Result<(&'h BStr, &'h Map<ReferenceSequence>)>> {
-        get_reference_sequence(
-            header.reference_sequences(),
-            self.mate_reference_sequence_id(header),
-        )
+        let mate_reference_sequence_id = match self.mate_reference_sequence_id(header).transpose() {
+            Ok(id) => id,
+            Err(e) => return Some(Err(e)),
+        };
+
+        get_reference_sequence(header.reference_sequences(), mate_reference_sequence_id)
     }
 
     /// Returns the alignment span.
@@ -102,10 +104,8 @@ pub trait Record {
 
     /// Calculates the end position.
     fn alignment_end(&self) -> Option<io::Result<core::Position>> {
-        let alignment_start = self.alignment_start()?;
-
-        let start = match core::Position::try_from(alignment_start.as_ref()) {
-            Ok(position) => position,
+        let start = match self.alignment_start().transpose() {
+            Ok(position) => position?,
             Err(e) => return Some(Err(e)),
         };
 
@@ -124,22 +124,22 @@ impl Record for Box<dyn Record> {
         (**self).name()
     }
 
-    fn flags(&self) -> Box<dyn Flags + '_> {
+    fn flags(&self) -> io::Result<super::record_buf::Flags> {
         (**self).flags()
     }
 
     fn reference_sequence_id<'r, 'h: 'r>(
         &'r self,
         header: &'h Header,
-    ) -> Option<Box<dyn ReferenceSequenceId + 'r>> {
+    ) -> Option<io::Result<usize>> {
         (**self).reference_sequence_id(header)
     }
 
-    fn alignment_start(&self) -> Option<Box<dyn Position + '_>> {
+    fn alignment_start(&self) -> Option<io::Result<core::Position>> {
         (**self).alignment_start()
     }
 
-    fn mapping_quality(&self) -> Option<Box<dyn MappingQuality + '_>> {
+    fn mapping_quality(&self) -> Option<io::Result<super::record_buf::MappingQuality>> {
         (**self).mapping_quality()
     }
 
@@ -150,15 +150,15 @@ impl Record for Box<dyn Record> {
     fn mate_reference_sequence_id<'r, 'h: 'r>(
         &'r self,
         header: &'h Header,
-    ) -> Option<Box<dyn ReferenceSequenceId + 'r>> {
+    ) -> Option<io::Result<usize>> {
         (**self).mate_reference_sequence_id(header)
     }
 
-    fn mate_alignment_start(&self) -> Option<Box<dyn Position + '_>> {
+    fn mate_alignment_start(&self) -> Option<io::Result<core::Position>> {
         (**self).mate_alignment_start()
     }
 
-    fn template_length(&self) -> Box<dyn TemplateLength + '_> {
+    fn template_length(&self) -> io::Result<i32> {
         (**self).template_length()
     }
 
@@ -177,14 +177,9 @@ impl Record for Box<dyn Record> {
 
 fn get_reference_sequence<'r, 'h: 'r>(
     reference_sequences: &'h ReferenceSequences,
-    reference_sequence_id: Option<Box<dyn ReferenceSequenceId + 'r>>,
+    reference_sequence_id: Option<usize>,
 ) -> Option<io::Result<(&'h BStr, &'h Map<ReferenceSequence>)>> {
-    let reference_sequence_id = reference_sequence_id?;
-
-    let id = match reference_sequence_id.try_to_usize() {
-        Ok(id) => id,
-        Err(e) => return Some(Err(e)),
-    };
+    let id = reference_sequence_id?;
 
     let result = reference_sequences
         .get_index(id)
