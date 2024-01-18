@@ -1,28 +1,20 @@
 //! BAM record.
 
 mod bounds;
-mod cigar;
 pub mod codec;
-pub mod data;
-mod flags;
-mod mapping_quality;
-mod name;
-mod position;
-mod quality_scores;
-mod reference_sequence_id;
-mod sequence;
-mod template_length;
+pub mod fields;
 
 use std::{fmt, io, mem};
 
 use noodles_core as core;
 use noodles_sam as sam;
 
-use self::bounds::Bounds;
-pub use self::{
-    cigar::Cigar, data::Data, flags::Flags, mapping_quality::MappingQuality, name::Name,
-    position::Position, quality_scores::QualityScores, reference_sequence_id::ReferenceSequenceId,
-    sequence::Sequence, template_length::TemplateLength,
+use self::{
+    bounds::Bounds,
+    fields::{
+        Cigar, Data, Fields, Flags, MappingQuality, Name, Position, QualityScores,
+        ReferenceSequenceId, Sequence, TemplateLength,
+    },
 };
 
 /// A BAM record.
@@ -43,9 +35,7 @@ impl Record {
     /// assert!(record.reference_sequence_id().is_none());
     /// ```
     pub fn reference_sequence_id(&self) -> Option<ReferenceSequenceId> {
-        let src = &self.buf[bounds::REFERENCE_SEQUENCE_ID_RANGE];
-        // SAFETY: `src` is 4 bytes.
-        get_reference_sequence_id(src.try_into().unwrap())
+        self.fields().reference_sequence_id()
     }
 
     /// Returns the alignment start.
@@ -58,9 +48,7 @@ impl Record {
     /// assert!(record.alignment_start().is_none());
     /// ```
     pub fn alignment_start(&self) -> Option<Position> {
-        let src = &self.buf[bounds::ALIGNMENT_START_RANGE];
-        // SAFETY: `src` is 4 bytes.
-        get_position(src.try_into().unwrap())
+        self.fields().alignment_start()
     }
 
     /// Returns the mapping quality.
@@ -73,12 +61,7 @@ impl Record {
     /// assert!(record.mapping_quality().is_none());
     /// ```
     pub fn mapping_quality(&self) -> Option<MappingQuality> {
-        const MISSING: u8 = 255;
-
-        match self.buf[bounds::MAPPING_QUALITY_INDEX] {
-            MISSING => None,
-            n => Some(MappingQuality::new(n)),
-        }
+        self.fields().mapping_quality()
     }
 
     /// Returns the flags.
@@ -92,10 +75,7 @@ impl Record {
     /// assert_eq!(Flags::from(record.flags()), Flags::UNMAPPED);
     /// ```
     pub fn flags(&self) -> Flags {
-        let src = &self.buf[bounds::FLAGS_RANGE];
-        // SAFETY: `src` is 2 bytes.
-        let n = u16::from_le_bytes(src.try_into().unwrap());
-        Flags::new(n)
+        self.fields().flags()
     }
 
     /// Returns the mate reference sequence ID.
@@ -108,9 +88,7 @@ impl Record {
     /// assert!(record.mate_reference_sequence_id().is_none());
     /// ```
     pub fn mate_reference_sequence_id(&self) -> Option<ReferenceSequenceId> {
-        let src = &self.buf[bounds::MATE_REFERENCE_SEQUENCE_ID_RANGE];
-        // SAFETY: `src` is 4 bytes.
-        get_reference_sequence_id(src.try_into().unwrap())
+        self.fields().mate_reference_sequence_id()
     }
 
     /// Returns the mate alignment start.
@@ -123,8 +101,7 @@ impl Record {
     /// assert!(record.mate_alignment_start().is_none());
     /// ```
     pub fn mate_alignment_start(&self) -> Option<Position> {
-        let src = &self.buf[bounds::MATE_ALIGNMENT_START_RANGE];
-        get_position(src.try_into().unwrap())
+        self.fields().mate_alignment_start()
     }
 
     /// Returns the template length.
@@ -137,10 +114,7 @@ impl Record {
     /// assert_eq!(i32::from(record.template_length()), 0);
     /// ```
     pub fn template_length(&self) -> TemplateLength {
-        let src = &self.buf[bounds::TEMPLATE_LENGTH_RANGE];
-        // SAFETY: `src` is 4 bytes.
-        let n = i32::from_le_bytes(src.try_into().unwrap());
-        TemplateLength::new(n)
+        self.fields().template_length()
     }
 
     /// Returns the read name.
@@ -153,12 +127,7 @@ impl Record {
     /// assert!(record.name().is_none());
     /// ```
     pub fn name(&self) -> Option<Name> {
-        const MISSING: &[u8] = &[b'*', 0x00];
-
-        match &self.buf[self.bounds.name_range()] {
-            MISSING => None,
-            buf => Some(Name::new(buf)),
-        }
+        self.fields().name()
     }
 
     /// Returns the CIGAR operations.
@@ -171,36 +140,7 @@ impl Record {
     /// assert!(record.cigar().is_empty());
     /// ```
     pub fn cigar(&self) -> Cigar<'_> {
-        use bytes::Buf;
-
-        use self::data::get_raw_cigar;
-
-        const SKIP: u8 = 3;
-        const SOFT_CLIP: u8 = 4;
-
-        fn decode_op(n: u32) -> (u8, usize) {
-            ((n & 0x0f) as u8, usize::try_from(n >> 4).unwrap())
-        }
-
-        let mut src = &self.buf[self.bounds.cigar_range()];
-
-        if src.len() == 2 * mem::size_of::<u32>() {
-            let k = self.sequence().len();
-
-            // SAFETY: `src` is 8 bytes.
-            let op_1 = decode_op(src.get_u32_le());
-            let op_2 = decode_op(src.get_u32_le());
-
-            if op_1 == (SOFT_CLIP, k) && matches!(op_2, (SKIP, _)) {
-                let mut data_src = &self.buf[self.bounds.data_range()];
-
-                if let Ok(Some(buf)) = get_raw_cigar(&mut data_src) {
-                    return Cigar::new(buf);
-                }
-            }
-        }
-
-        Cigar::new(src)
+        self.fields().cigar()
     }
 
     /// Returns the sequence.
@@ -213,10 +153,7 @@ impl Record {
     /// assert!(record.sequence().is_empty());
     /// ```
     pub fn sequence(&self) -> Sequence<'_> {
-        let src = &self.buf[self.bounds.sequence_range()];
-        let quality_scores_range = self.bounds.quality_scores_range();
-        let base_count = quality_scores_range.end - quality_scores_range.start;
-        Sequence::new(src, base_count)
+        self.fields().sequence()
     }
 
     /// Returns the quality scores.
@@ -229,8 +166,7 @@ impl Record {
     /// assert!(record.quality_scores().is_empty());
     /// ```
     pub fn quality_scores(&self) -> QualityScores<'_> {
-        let src = &self.buf[self.bounds.quality_scores_range()];
-        QualityScores::new(src)
+        self.fields().quality_scores()
     }
 
     /// Returns the data.
@@ -243,30 +179,15 @@ impl Record {
     /// assert!(record.data().is_empty());
     /// ```
     pub fn data(&self) -> Data<'_> {
-        let src = &self.buf[self.bounds.data_range()];
-        Data::new(src)
+        self.fields().data()
+    }
+
+    fn fields(&self) -> Fields<'_> {
+        Fields::new(&self.buf, &self.bounds)
     }
 
     pub(crate) fn index(&mut self) -> io::Result<()> {
         index(&self.buf[..], &mut self.bounds)
-    }
-}
-
-fn get_reference_sequence_id(src: [u8; 4]) -> Option<ReferenceSequenceId> {
-    const UNMAPPED: i32 = -1;
-
-    match i32::from_le_bytes(src) {
-        UNMAPPED => None,
-        n => Some(ReferenceSequenceId::new(n)),
-    }
-}
-
-fn get_position(src: [u8; 4]) -> Option<Position> {
-    const MISSING: i32 = -1;
-
-    match i32::from_le_bytes(src) {
-        MISSING => None,
-        n => Some(Position::new(n)),
     }
 }
 
