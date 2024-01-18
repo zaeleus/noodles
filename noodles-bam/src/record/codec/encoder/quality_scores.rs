@@ -1,7 +1,7 @@
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::{self as sam, alignment::record::QualityScores};
+use noodles_sam::alignment::record::QualityScores;
 
 pub fn put_quality_scores<B, S>(dst: &mut B, base_count: usize, quality_scores: S) -> io::Result<()>
 where
@@ -39,12 +39,11 @@ fn is_valid<I>(mut scores: I) -> bool
 where
     I: Iterator<Item = u8>,
 {
-    use sam::record::quality_scores::Score;
+    // § 4.2.3 "SEQ and QUAL encoding" (2023-05-24): "Base qualities are stored as bytes in the
+    // rnage [0, 93]..."
+    const MAX_SCORE: u8 = 93;
 
-    const MIN_SCORE: u8 = Score::MIN.get();
-    const MAX_SCORE: u8 = Score::MAX.get();
-
-    scores.all(|score| (MIN_SCORE..=MAX_SCORE).contains(&score))
+    scores.all(|score| score <= MAX_SCORE)
 }
 
 #[cfg(test)]

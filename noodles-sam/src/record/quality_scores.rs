@@ -1,9 +1,5 @@
 //! Raw SAM record quality scores.
 
-pub mod score;
-
-pub use self::score::Score;
-
 /// Raw SAM record quality scores.
 #[derive(Debug, Eq, PartialEq)]
 pub struct QualityScores<'a>(&'a [u8]);
