@@ -324,9 +324,9 @@ impl crate::alignment::Record for Record {
         self.alignment_start().map(core::Position::try_from)
     }
 
-    fn mapping_quality(&self) -> Option<io::Result<crate::alignment::record_buf::MappingQuality>> {
+    fn mapping_quality(&self) -> Option<io::Result<crate::alignment::record::MappingQuality>> {
         self.mapping_quality()
-            .map(crate::alignment::record_buf::MappingQuality::try_from)
+            .map(crate::alignment::record::MappingQuality::try_from)
     }
 
     fn cigar(&self) -> Box<dyn crate::alignment::record::fields::Cigar + '_> {

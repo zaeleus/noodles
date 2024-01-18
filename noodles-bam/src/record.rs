@@ -313,9 +313,9 @@ impl sam::alignment::Record for Record {
         self.alignment_start().map(core::Position::try_from)
     }
 
-    fn mapping_quality(&self) -> Option<io::Result<sam::alignment::record_buf::MappingQuality>> {
+    fn mapping_quality(&self) -> Option<io::Result<sam::alignment::record::MappingQuality>> {
         self.mapping_quality()
-            .map(sam::alignment::record_buf::MappingQuality::from)
+            .map(sam::alignment::record::MappingQuality::from)
             .map(Ok)
     }
 
@@ -428,7 +428,7 @@ impl TryFrom<Record> for sam::alignment::RecordBuf {
         if let Some(mapping_quality) = lazy_record.mapping_quality() {
             // SAFETY: `mapping_quality` cannot be missing.
             let mapping_quality =
-                sam::alignment::record_buf::MappingQuality::new(u8::from(mapping_quality)).unwrap();
+                sam::alignment::record::MappingQuality::new(u8::from(mapping_quality)).unwrap();
             builder = builder.set_mapping_quality(mapping_quality);
         }
 

@@ -18,7 +18,10 @@ use std::io;
 use noodles_core::Position;
 use noodles_sam::{
     self as sam,
-    alignment::record_buf::{Data, MappingQuality, Name, QualityScores, Sequence},
+    alignment::{
+        record::MappingQuality,
+        record_buf::{Data, Name, QualityScores, Sequence},
+    },
     header::record::value::{map::ReferenceSequence, Map},
 };
 

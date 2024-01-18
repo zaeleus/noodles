@@ -254,8 +254,9 @@ mod tests {
             record::{
                 cigar::{op::Kind, Op},
                 data::field::Tag,
+                MappingQuality,
             },
-            record_buf::{data::field::Value, MappingQuality, Name, QualityScores, Sequence},
+            record_buf::{data::field::Value, Name, QualityScores, Sequence},
         };
 
         const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {

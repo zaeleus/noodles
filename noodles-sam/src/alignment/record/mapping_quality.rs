@@ -25,7 +25,7 @@ impl MappingQuality {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::alignment::record_buf::MappingQuality;
+    /// use noodles_sam::alignment::record::MappingQuality;
     /// assert!(MappingQuality::new(8).is_some());
     /// assert!(MappingQuality::new(255).is_none());
     /// ```
@@ -42,7 +42,7 @@ impl MappingQuality {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::alignment::record_buf::MappingQuality;
+    /// use noodles_sam::alignment::record::MappingQuality;
     /// let mapping_quality = MappingQuality::new(8).unwrap();
     /// assert_eq!(mapping_quality.get(), 8);
     /// ```

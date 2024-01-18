@@ -4,6 +4,7 @@ pub mod cigar;
 pub mod data;
 pub mod fields;
 mod flags;
+pub mod mapping_quality;
 
 use std::io;
 
@@ -11,7 +12,7 @@ use bstr::BStr;
 use noodles_core as core;
 
 use self::fields::{Cigar, Data, Name, QualityScores, Sequence};
-pub use self::flags::Flags;
+pub use self::{flags::Flags, mapping_quality::MappingQuality};
 use crate::{
     header::{
         record::value::{map::ReferenceSequence, Map},
@@ -36,7 +37,7 @@ pub trait Record {
     fn alignment_start(&self) -> Option<io::Result<core::Position>>;
 
     /// Returns the mapping quality.
-    fn mapping_quality(&self) -> Option<io::Result<super::record_buf::MappingQuality>>;
+    fn mapping_quality(&self) -> Option<io::Result<MappingQuality>>;
 
     /// Returns the CIGAR operations.
     fn cigar(&self) -> Box<dyn Cigar + '_>;
@@ -130,7 +131,7 @@ impl Record for Box<dyn Record> {
         (**self).alignment_start()
     }
 
-    fn mapping_quality(&self) -> Option<io::Result<super::record_buf::MappingQuality>> {
+    fn mapping_quality(&self) -> Option<io::Result<MappingQuality>> {
         (**self).mapping_quality()
     }
 

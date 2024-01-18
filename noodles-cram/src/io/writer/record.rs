@@ -783,7 +783,7 @@ where
 
     fn write_mapping_quality(
         &mut self,
-        mapping_quality: Option<sam::alignment::record_buf::MappingQuality>,
+        mapping_quality: Option<sam::alignment::record::MappingQuality>,
     ) -> io::Result<()> {
         const MISSING: u8 = 0xff;
 

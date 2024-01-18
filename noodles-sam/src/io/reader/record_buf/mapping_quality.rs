@@ -1,6 +1,6 @@
 use std::{error, fmt};
 
-use crate::alignment::record_buf::MappingQuality;
+use crate::alignment::record::MappingQuality;
 
 /// An error when a raw SAM record mapping quality fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]

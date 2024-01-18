@@ -100,7 +100,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, alignment::record_buf::MappingQuality};
+    /// use noodles_sam::{self as sam, alignment::record::MappingQuality};
     ///
     /// let record = sam::alignment::RecordBuf::builder()
     ///     .set_mapping_quality(MappingQuality::MIN)

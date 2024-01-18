@@ -3,7 +3,6 @@
 mod builder;
 mod cigar;
 pub mod data;
-pub mod mapping_quality;
 mod name;
 mod quality_scores;
 mod sequence;
@@ -13,10 +12,13 @@ use std::io;
 use noodles_core::Position;
 
 pub use self::{
-    builder::Builder, cigar::Cigar, data::Data, mapping_quality::MappingQuality, name::Name,
-    quality_scores::QualityScores, sequence::Sequence,
+    builder::Builder, cigar::Cigar, data::Data, name::Name, quality_scores::QualityScores,
+    sequence::Sequence,
 };
-use super::{record::Flags, Record};
+use super::{
+    record::{Flags, MappingQuality},
+    Record,
+};
 use crate::{
     header::{
         record::value::{map::ReferenceSequence, Map},
@@ -186,7 +188,7 @@ impl RecordBuf {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, alignment::record_buf::MappingQuality};
+    /// use noodles_sam::{self as sam, alignment::record::MappingQuality};
     /// let mut record = sam::alignment::RecordBuf::default();
     /// *record.mapping_quality_mut() = Some(MappingQuality::MIN);
     /// assert_eq!(record.mapping_quality(), Some(MappingQuality::MIN));

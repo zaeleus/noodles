@@ -1,7 +1,7 @@
 use std::{error, fmt, mem};
 
 use bytes::Buf;
-use noodles_sam::alignment::record_buf::MappingQuality;
+use noodles_sam::alignment::record::MappingQuality;
 
 /// An error when a raw BAM record mapping quality fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
