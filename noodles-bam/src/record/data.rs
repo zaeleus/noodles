@@ -2,7 +2,7 @@
 
 pub mod field;
 
-use std::{borrow::Borrow, io, iter};
+use std::{borrow::Borrow, fmt, io, iter};
 
 use noodles_sam::{
     self as sam,
@@ -54,6 +54,19 @@ impl<'a> Data<'a> {
                 Some(decode_field(&mut src))
             }
         })
+    }
+}
+
+impl<'a> fmt::Debug for Data<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut formatter = f.debug_map();
+
+        for result in self.iter() {
+            let (tag, value) = result.map_err(|_| fmt::Error)?;
+            formatter.entry(&tag, &value);
+        }
+
+        formatter.finish()
     }
 }
 
