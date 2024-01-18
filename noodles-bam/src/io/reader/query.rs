@@ -1,7 +1,7 @@
 use std::io::{self, Read, Seek};
 
 use noodles_bgzf as bgzf;
-use noodles_core::{region::Interval, Position};
+use noodles_core::region::Interval;
 use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
 use noodles_sam::alignment::Record as _;
 
@@ -76,14 +76,8 @@ fn intersects(
     region_interval: Interval,
 ) -> io::Result<bool> {
     match (
-        record
-            .reference_sequence_id()
-            .map(usize::try_from)
-            .transpose()?,
-        record
-            .alignment_start()
-            .map(Position::try_from)
-            .transpose()?,
+        record.reference_sequence_id().transpose()?,
+        record.alignment_start().transpose()?,
         record.alignment_end().transpose()?,
     ) {
         (Some(id), Some(start), Some(end)) => {

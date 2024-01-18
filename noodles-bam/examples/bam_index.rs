@@ -11,10 +11,7 @@ use std::{env, io};
 use noodles_bam::{self as bam, bai};
 use noodles_core::Position;
 use noodles_csi::binning_index::{index::reference_sequence::bin::Chunk, Indexer};
-use noodles_sam::{
-    self as sam,
-    alignment::{record::Flags, Record as _},
-};
+use noodles_sam::{self as sam, alignment::Record as _};
 
 fn is_coordinate_sorted(header: &sam::Header) -> bool {
     use sam::header::record::value::map::header::tag;
@@ -30,14 +27,8 @@ fn alignment_context(
     record: &bam::Record,
 ) -> io::Result<(Option<usize>, Option<Position>, Option<Position>)> {
     Ok((
-        record
-            .reference_sequence_id()
-            .map(usize::try_from)
-            .transpose()?,
-        record
-            .alignment_start()
-            .map(Position::try_from)
-            .transpose()?,
+        record.reference_sequence_id().transpose()?,
+        record.alignment_start().transpose()?,
         record.alignment_end().transpose()?,
     ))
 }
@@ -66,8 +57,7 @@ fn main() -> io::Result<()> {
 
         let alignment_context = match alignment_context(&record)? {
             (Some(id), Some(start), Some(end)) => {
-                let flags = Flags::from(record.flags());
-                let is_mapped = !flags.is_unmapped();
+                let is_mapped = !record.flags().is_unmapped();
                 Some((id, start, end, is_mapped))
             }
             _ => None,

@@ -5,7 +5,7 @@
 use std::{env, fmt, io};
 
 use noodles_bam as bam;
-use noodles_sam::alignment::record::{Flags, MappingQuality};
+use noodles_sam::alignment::record::MappingQuality;
 
 const MIN_HQ_MAPPING_QUALITY: MappingQuality = match MappingQuality::new(5) {
     Some(mapping_quality) => mapping_quality,
@@ -32,8 +32,8 @@ struct Counts {
     mate_reference_sequence_id_mismatch_hq: u64,
 }
 
-fn count(counts: &mut Counts, record: &bam::Record) {
-    let flags = Flags::from(record.flags());
+fn count(counts: &mut Counts, record: &bam::Record) -> io::Result<()> {
+    let flags = record.flags();
 
     counts.read += 1;
 
@@ -81,7 +81,11 @@ fn count(counts: &mut Counts, record: &bam::Record) {
                 } else {
                     counts.mate_mapped += 1;
 
-                    if record.mate_reference_sequence_id() != record.reference_sequence_id() {
+                    let reference_sequence_id = record.reference_sequence_id().transpose()?;
+                    let mate_reference_sequence_id =
+                        record.mate_reference_sequence_id().transpose()?;
+
+                    if mate_reference_sequence_id != reference_sequence_id {
                         counts.mate_reference_sequence_id_mismatch += 1;
 
                         if record
@@ -97,6 +101,8 @@ fn count(counts: &mut Counts, record: &bam::Record) {
             }
         }
     }
+
+    Ok(())
 }
 
 struct PercentageFormat(u64, u64);
@@ -206,12 +212,10 @@ fn main() -> io::Result<()> {
     for result in reader.records() {
         let record = result?;
 
-        let flags = Flags::from(record.flags());
-
-        if flags.is_qc_fail() {
-            count(&mut qc_fail_counts, &record);
+        if record.flags().is_qc_fail() {
+            count(&mut qc_fail_counts, &record)?;
         } else {
-            count(&mut qc_pass_counts, &record);
+            count(&mut qc_pass_counts, &record)?;
         }
     }
 

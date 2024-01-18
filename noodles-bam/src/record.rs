@@ -6,15 +6,15 @@ pub mod fields;
 
 use std::{fmt, io, mem};
 
-use noodles_core as core;
-use noodles_sam as sam;
+use noodles_core::Position;
+use noodles_sam::{
+    self as sam,
+    alignment::record::{Flags, MappingQuality},
+};
 
 use self::{
     bounds::Bounds,
-    fields::{
-        Cigar, Data, Fields, Flags, MappingQuality, Name, Position, QualityScores,
-        ReferenceSequenceId, Sequence, TemplateLength,
-    },
+    fields::{Cigar, Data, Fields, Name, QualityScores, Sequence},
 };
 
 /// A BAM record.
@@ -34,8 +34,8 @@ impl Record {
     /// let record = bam::Record::default();
     /// assert!(record.reference_sequence_id().is_none());
     /// ```
-    pub fn reference_sequence_id(&self) -> Option<ReferenceSequenceId> {
-        self.fields().reference_sequence_id()
+    pub fn reference_sequence_id(&self) -> Option<io::Result<usize>> {
+        self.fields().reference_sequence_id().map(usize::try_from)
     }
 
     /// Returns the alignment start.
@@ -47,8 +47,8 @@ impl Record {
     /// let record = bam::Record::default();
     /// assert!(record.alignment_start().is_none());
     /// ```
-    pub fn alignment_start(&self) -> Option<Position> {
-        self.fields().alignment_start()
+    pub fn alignment_start(&self) -> Option<io::Result<Position>> {
+        self.fields().alignment_start().map(Position::try_from)
     }
 
     /// Returns the mapping quality.
@@ -61,7 +61,9 @@ impl Record {
     /// assert!(record.mapping_quality().is_none());
     /// ```
     pub fn mapping_quality(&self) -> Option<MappingQuality> {
-        self.fields().mapping_quality()
+        self.fields()
+            .mapping_quality()
+            .map(sam::alignment::record::MappingQuality::from)
     }
 
     /// Returns the flags.
@@ -75,7 +77,7 @@ impl Record {
     /// assert_eq!(Flags::from(record.flags()), Flags::UNMAPPED);
     /// ```
     pub fn flags(&self) -> Flags {
-        self.fields().flags()
+        Flags::from(self.fields().flags())
     }
 
     /// Returns the mate reference sequence ID.
@@ -87,8 +89,10 @@ impl Record {
     /// let record = bam::Record::default();
     /// assert!(record.mate_reference_sequence_id().is_none());
     /// ```
-    pub fn mate_reference_sequence_id(&self) -> Option<ReferenceSequenceId> {
-        self.fields().mate_reference_sequence_id()
+    pub fn mate_reference_sequence_id(&self) -> Option<io::Result<usize>> {
+        self.fields()
+            .mate_reference_sequence_id()
+            .map(usize::try_from)
     }
 
     /// Returns the mate alignment start.
@@ -100,8 +104,8 @@ impl Record {
     /// let record = bam::Record::default();
     /// assert!(record.mate_alignment_start().is_none());
     /// ```
-    pub fn mate_alignment_start(&self) -> Option<Position> {
-        self.fields().mate_alignment_start()
+    pub fn mate_alignment_start(&self) -> Option<io::Result<Position>> {
+        self.fields().mate_alignment_start().map(Position::try_from)
     }
 
     /// Returns the template length.
@@ -113,8 +117,8 @@ impl Record {
     /// let record = bam::Record::default();
     /// assert_eq!(i32::from(record.template_length()), 0);
     /// ```
-    pub fn template_length(&self) -> TemplateLength {
-        self.fields().template_length()
+    pub fn template_length(&self) -> i32 {
+        i32::from(self.fields().template_length())
     }
 
     /// Returns the read name.
@@ -220,24 +224,22 @@ impl sam::alignment::Record for Record {
     }
 
     fn flags(&self) -> io::Result<sam::alignment::record::Flags> {
-        Ok(sam::alignment::record::Flags::from(self.flags()))
+        Ok(self.flags())
     }
 
     fn reference_sequence_id<'r, 'h: 'r>(
         &'r self,
         _: &'h sam::Header,
     ) -> Option<io::Result<usize>> {
-        self.reference_sequence_id().map(usize::try_from)
+        self.reference_sequence_id()
     }
 
-    fn alignment_start(&self) -> Option<io::Result<core::Position>> {
-        self.alignment_start().map(core::Position::try_from)
+    fn alignment_start(&self) -> Option<io::Result<Position>> {
+        self.alignment_start()
     }
 
     fn mapping_quality(&self) -> Option<io::Result<sam::alignment::record::MappingQuality>> {
-        self.mapping_quality()
-            .map(sam::alignment::record::MappingQuality::from)
-            .map(Ok)
+        self.mapping_quality().map(Ok)
     }
 
     fn cigar(&self) -> Box<dyn sam::alignment::record::fields::Cigar + '_> {
@@ -248,15 +250,15 @@ impl sam::alignment::Record for Record {
         &'r self,
         _: &'h sam::Header,
     ) -> Option<io::Result<usize>> {
-        self.mate_reference_sequence_id().map(usize::try_from)
+        self.mate_reference_sequence_id()
     }
 
-    fn mate_alignment_start(&self) -> Option<io::Result<core::Position>> {
-        self.mate_alignment_start().map(core::Position::try_from)
+    fn mate_alignment_start(&self) -> Option<io::Result<Position>> {
+        self.mate_alignment_start()
     }
 
     fn template_length(&self) -> io::Result<i32> {
-        Ok(i32::from(self.template_length()))
+        Ok(self.template_length())
     }
 
     fn sequence(&self) -> Box<dyn sam::alignment::record::fields::Sequence + '_> {
@@ -333,40 +335,33 @@ impl TryFrom<Record> for sam::alignment::RecordBuf {
             builder = builder.set_name(name.into());
         }
 
-        let flags = sam::alignment::record::Flags::from(lazy_record.flags());
-        builder = builder.set_flags(flags);
+        builder = builder.set_flags(lazy_record.flags());
 
-        if let Some(reference_sequence_id) = lazy_record.reference_sequence_id() {
-            let id = usize::try_from(reference_sequence_id)?;
-            builder = builder.set_reference_sequence_id(id);
+        if let Some(reference_sequence_id) = lazy_record.reference_sequence_id().transpose()? {
+            builder = builder.set_reference_sequence_id(reference_sequence_id);
         }
 
-        if let Some(alignment_start) = lazy_record.alignment_start() {
-            let start = core::Position::try_from(alignment_start)?;
-            builder = builder.set_alignment_start(start);
+        if let Some(alignment_start) = lazy_record.alignment_start().transpose()? {
+            builder = builder.set_alignment_start(alignment_start);
         }
 
         if let Some(mapping_quality) = lazy_record.mapping_quality() {
-            // SAFETY: `mapping_quality` cannot be missing.
-            let mapping_quality =
-                sam::alignment::record::MappingQuality::new(u8::from(mapping_quality)).unwrap();
             builder = builder.set_mapping_quality(mapping_quality);
         }
 
         builder = builder.set_cigar(lazy_record.cigar().try_into()?);
 
-        if let Some(mate_reference_sequence_id) = lazy_record.mate_reference_sequence_id() {
-            let id = usize::try_from(mate_reference_sequence_id)?;
-            builder = builder.set_mate_reference_sequence_id(id);
+        if let Some(mate_reference_sequence_id) =
+            lazy_record.mate_reference_sequence_id().transpose()?
+        {
+            builder = builder.set_mate_reference_sequence_id(mate_reference_sequence_id);
         }
 
-        if let Some(mate_alignment_start) = lazy_record.mate_alignment_start() {
-            let start = core::Position::try_from(mate_alignment_start)?;
-            builder = builder.set_mate_alignment_start(start);
+        if let Some(mate_alignment_start) = lazy_record.mate_alignment_start().transpose()? {
+            builder = builder.set_mate_alignment_start(mate_alignment_start);
         }
 
-        let template_length = i32::from(lazy_record.template_length());
-        builder = builder.set_template_length(template_length);
+        builder = builder.set_template_length(lazy_record.template_length());
 
         builder = builder
             .set_sequence(lazy_record.sequence().into())
@@ -480,7 +475,6 @@ mod tests {
     fn test_cigar_with_oversized_cigar() -> Result<(), Box<dyn std::error::Error>> {
         use std::num::NonZeroUsize;
 
-        use noodles_core::Position;
         use noodles_sam::{
             alignment::{
                 record::{
