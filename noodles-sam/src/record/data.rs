@@ -2,7 +2,7 @@
 
 pub mod field;
 
-use std::{io, iter};
+use std::{fmt, io, iter};
 
 use self::field::parse_field;
 use crate::alignment::record::data::field::{Tag, Value};
@@ -31,6 +31,19 @@ impl<'a> Data<'a> {
                 Some(parse_field(&mut src))
             }
         })
+    }
+}
+
+impl<'a> fmt::Debug for Data<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut formatter = f.debug_map();
+
+        for result in self.iter() {
+            let (tag, value) = result.map_err(|_| fmt::Error)?;
+            formatter.entry(&tag, &value);
+        }
+
+        formatter.finish()
     }
 }
 
