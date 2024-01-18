@@ -1,7 +1,7 @@
 use std::io;
 
 use super::ReferenceSequenceName;
-use crate::{alignment::record::ReferenceSequenceId as _, Header};
+use crate::{alignment::record::fields::ReferenceSequenceId as _, Header};
 
 /// A raw SAM record reference sequence ID.
 #[derive(Debug, Eq, PartialEq)]
@@ -22,7 +22,7 @@ impl<'h, 'n> ReferenceSequenceId<'h, 'n> {
     }
 }
 
-impl<'h, 'n> crate::alignment::record::ReferenceSequenceId for ReferenceSequenceId<'h, 'n> {
+impl<'h, 'n> crate::alignment::record::fields::ReferenceSequenceId for ReferenceSequenceId<'h, 'n> {
     fn try_to_usize(&self) -> io::Result<usize> {
         self.header
             .reference_sequences()

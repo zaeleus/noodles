@@ -1,6 +1,6 @@
 use std::io;
 
-use crate::alignment::record::MappingQuality as _;
+use crate::alignment::record::fields::MappingQuality as _;
 
 /// Raw SAM record mapping quality.
 #[derive(Debug, Eq, PartialEq)]
@@ -12,7 +12,7 @@ impl<'a> MappingQuality<'a> {
     }
 }
 
-impl<'a> crate::alignment::record::MappingQuality for MappingQuality<'a> {
+impl<'a> crate::alignment::record::fields::MappingQuality for MappingQuality<'a> {
     fn try_to_u8(&self) -> io::Result<u8> {
         lexical_core::parse(self.as_ref())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))

@@ -1,7 +1,7 @@
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::alignment::record::QualityScores;
+use noodles_sam::alignment::record::fields::QualityScores;
 
 pub fn put_quality_scores<B, S>(dst: &mut B, base_count: usize, quality_scores: S) -> io::Result<()>
 where

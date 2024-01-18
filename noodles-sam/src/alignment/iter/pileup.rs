@@ -210,7 +210,7 @@ fn pile<C>(
     cigar: &C,
 ) -> io::Result<()>
 where
-    C: crate::alignment::record::Cigar,
+    C: crate::alignment::record::fields::Cigar,
 {
     use crate::alignment::record::cigar::op::Kind;
 

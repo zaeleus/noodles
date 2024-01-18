@@ -20,7 +20,7 @@ impl<'a> QualityScores<'a> {
     }
 }
 
-impl<'a> crate::alignment::record::QualityScores for QualityScores<'a> {
+impl<'a> crate::alignment::record::fields::QualityScores for QualityScores<'a> {
     fn is_empty(&self) -> bool {
         self.is_empty()
     }

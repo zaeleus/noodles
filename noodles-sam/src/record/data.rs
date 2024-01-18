@@ -47,7 +47,7 @@ impl<'a> fmt::Debug for Data<'a> {
     }
 }
 
-impl<'a> crate::alignment::record::Data for Data<'a> {
+impl<'a> crate::alignment::record::fields::Data for Data<'a> {
     fn is_empty(&self) -> bool {
         self.is_empty()
     }

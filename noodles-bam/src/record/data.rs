@@ -70,7 +70,7 @@ impl<'a> fmt::Debug for Data<'a> {
     }
 }
 
-impl<'a> sam::alignment::record::Data for Data<'a> {
+impl<'a> sam::alignment::record::fields::Data for Data<'a> {
     fn is_empty(&self) -> bool {
         self.is_empty()
     }

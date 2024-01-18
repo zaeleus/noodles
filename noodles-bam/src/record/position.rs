@@ -1,7 +1,7 @@
 use std::io;
 
 use noodles_core as core;
-use noodles_sam::{self as sam, alignment::record::Position as _};
+use noodles_sam::{self as sam, alignment::record::fields::Position as _};
 
 /// A raw BAM record position.
 #[derive(Debug, Eq, PartialEq)]
@@ -13,7 +13,7 @@ impl Position {
     }
 }
 
-impl sam::alignment::record::Position for Position {
+impl sam::alignment::record::fields::Position for Position {
     fn try_to_usize(&self) -> io::Result<usize> {
         usize::try_from(self.0)
             .map(|n| n + 1)

@@ -303,7 +303,7 @@ impl fmt::Debug for Record {
 }
 
 impl crate::alignment::Record for Record {
-    fn name(&self) -> Option<Box<dyn crate::alignment::record::Name + '_>> {
+    fn name(&self) -> Option<Box<dyn crate::alignment::record::fields::Name + '_>> {
         let read_name = self.read_name()?;
         Some(Box::new(read_name))
     }
@@ -329,7 +329,7 @@ impl crate::alignment::Record for Record {
             .map(crate::alignment::record_buf::MappingQuality::try_from)
     }
 
-    fn cigar(&self) -> Box<dyn crate::alignment::record::Cigar + '_> {
+    fn cigar(&self) -> Box<dyn crate::alignment::record::fields::Cigar + '_> {
         Box::new(self.cigar())
     }
 
@@ -348,15 +348,15 @@ impl crate::alignment::Record for Record {
         i32::try_from(self.template_length())
     }
 
-    fn sequence(&self) -> Box<dyn crate::alignment::record::Sequence + '_> {
+    fn sequence(&self) -> Box<dyn crate::alignment::record::fields::Sequence + '_> {
         Box::new(self.sequence())
     }
 
-    fn quality_scores(&self) -> Box<dyn crate::alignment::record::QualityScores + '_> {
+    fn quality_scores(&self) -> Box<dyn crate::alignment::record::fields::QualityScores + '_> {
         Box::new(self.quality_scores())
     }
 
-    fn data(&self) -> Box<dyn crate::alignment::record::Data + '_> {
+    fn data(&self) -> Box<dyn crate::alignment::record::fields::Data + '_> {
         Box::new(self.data())
     }
 }

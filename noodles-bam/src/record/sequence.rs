@@ -33,7 +33,7 @@ impl<'a> Sequence<'a> {
     }
 }
 
-impl<'a> sam::alignment::record::Sequence for Sequence<'a> {
+impl<'a> sam::alignment::record::fields::Sequence for Sequence<'a> {
     fn is_empty(&self) -> bool {
         self.is_empty()
     }
@@ -102,7 +102,8 @@ mod tests {
     #[test]
     fn test_sam_alignment_record_sequence_iter() {
         fn t(src: &[u8], base_count: usize, expected: &[u8]) {
-            let sequence: &dyn sam::alignment::record::Sequence = &Sequence::new(src, base_count);
+            let sequence: &dyn sam::alignment::record::fields::Sequence =
+                &Sequence::new(src, base_count);
             let actual: Vec<_> = sequence.iter().collect();
             assert_eq!(actual, expected);
         }

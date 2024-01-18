@@ -12,7 +12,7 @@ impl MappingQuality {
     }
 }
 
-impl sam::alignment::record::MappingQuality for MappingQuality {
+impl sam::alignment::record::fields::MappingQuality for MappingQuality {
     fn try_to_u8(&self) -> io::Result<u8> {
         Ok(self.0)
     }

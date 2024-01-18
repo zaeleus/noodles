@@ -245,7 +245,7 @@ impl Data {
     }
 }
 
-impl crate::alignment::record::Data for &Data {
+impl crate::alignment::record::fields::Data for &Data {
     fn is_empty(&self) -> bool {
         Data::is_empty(self)
     }
@@ -268,7 +268,7 @@ impl crate::alignment::record::Data for &Data {
     }
 }
 
-impl crate::alignment::record::Data for Data {
+impl crate::alignment::record::fields::Data for Data {
     fn is_empty(&self) -> bool {
         self.is_empty()
     }

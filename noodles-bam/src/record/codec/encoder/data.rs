@@ -5,7 +5,7 @@ pub mod field;
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::alignment::record::{data::field::Tag, Data};
+use noodles_sam::alignment::record::{data::field::Tag, fields::Data};
 
 use self::field::put_field;
 

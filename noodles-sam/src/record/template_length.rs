@@ -1,6 +1,6 @@
 use std::io;
 
-use crate::alignment::record::TemplateLength as _;
+use crate::alignment::record::fields::TemplateLength as _;
 
 /// Raw SAM record template length.
 #[derive(Debug, Eq, PartialEq)]
@@ -12,7 +12,7 @@ impl<'a> TemplateLength<'a> {
     }
 }
 
-impl<'a> crate::alignment::record::TemplateLength for TemplateLength<'a> {
+impl<'a> crate::alignment::record::fields::TemplateLength for TemplateLength<'a> {
     fn try_to_i32(&self) -> io::Result<i32> {
         lexical_core::parse(self.as_ref())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
