@@ -1,32 +1,21 @@
 //! SAM record.
 
 mod bounds;
-mod cigar;
 pub mod data;
-mod flags;
-mod mapping_quality;
-mod position;
-pub mod quality_scores;
-mod read_name;
-mod reference_sequence_id;
-mod reference_sequence_name;
-mod sequence;
-mod template_length;
+pub mod fields;
 
 use std::{fmt, io};
 
 use noodles_core as core;
 
-use self::bounds::Bounds;
-pub use self::{
-    cigar::Cigar, data::Data, flags::Flags, mapping_quality::MappingQuality, position::Position,
-    quality_scores::QualityScores, read_name::ReadName, reference_sequence_id::ReferenceSequenceId,
-    reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
-    template_length::TemplateLength,
+use self::{
+    bounds::Bounds,
+    fields::{
+        Cigar, Data, Fields, Flags, MappingQuality, Position, QualityScores, ReadName,
+        ReferenceSequenceId, ReferenceSequenceName, Sequence, TemplateLength,
+    },
 };
 use crate::Header;
-
-const MISSING: &[u8] = b"*";
 
 /// A SAM record.
 #[derive(Clone, Eq, PartialEq)]
@@ -46,10 +35,7 @@ impl Record {
     /// assert!(record.read_name().is_none());
     /// ```
     pub fn read_name(&self) -> Option<ReadName<'_>> {
-        match &self.buf[self.bounds.read_name_range()] {
-            MISSING => None,
-            buf => Some(ReadName::new(buf)),
-        }
+        self.fields().read_name()
     }
 
     /// Returns the flags.
@@ -63,8 +49,7 @@ impl Record {
     /// # Ok::<_, lexical_core::Error>(())
     /// ```
     pub fn flags(&self) -> Flags<'_> {
-        let src = &self.buf[self.bounds.flags_range()];
-        Flags::new(src)
+        self.fields().flags()
     }
 
     /// Returns the reference sequence ID.
@@ -77,14 +62,11 @@ impl Record {
     /// let record = sam::Record::default();
     /// assert!(record.reference_sequence_id(&header).is_none());
     /// ```
-    pub fn reference_sequence_id<'r, 'h>(
+    pub fn reference_sequence_id<'r, 'h: 'r>(
         &'r self,
         header: &'h Header,
     ) -> Option<ReferenceSequenceId<'h, 'r>> {
-        self.reference_sequence_name()
-            .map(|reference_sequence_name| {
-                ReferenceSequenceId::new(header, reference_sequence_name)
-            })
+        self.fields().reference_sequence_id(header)
     }
 
     /// Returns the reference sequence name.
@@ -97,10 +79,7 @@ impl Record {
     /// assert!(record.reference_sequence_name().is_none());
     /// ```
     pub fn reference_sequence_name(&self) -> Option<ReferenceSequenceName<'_>> {
-        match &self.buf[self.bounds.reference_sequence_name_range()] {
-            MISSING => None,
-            buf => Some(ReferenceSequenceName::new(buf)),
-        }
+        self.fields().reference_sequence_name()
     }
 
     /// Returns the alignment start.
@@ -114,12 +93,7 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn alignment_start(&self) -> Option<Position<'_>> {
-        const MISSING: &[u8] = b"0";
-
-        match &self.buf[self.bounds.alignment_start_range()] {
-            MISSING => None,
-            buf => Some(Position::new(buf)),
-        }
+        self.fields().alignment_start()
     }
 
     /// Returns the mapping quality.
@@ -132,12 +106,7 @@ impl Record {
     /// assert!(record.mapping_quality().is_none());
     /// ```
     pub fn mapping_quality(&self) -> Option<MappingQuality<'_>> {
-        const MISSING: &[u8] = b"255";
-
-        match &self.buf[self.bounds.mapping_quality_range()] {
-            MISSING => None,
-            buf => Some(MappingQuality::new(buf)),
-        }
+        self.fields().mapping_quality()
     }
 
     /// Returns the CIGAR operations.
@@ -150,10 +119,7 @@ impl Record {
     /// assert!(record.cigar().is_empty());
     /// ```
     pub fn cigar(&self) -> Cigar<'_> {
-        match &self.buf[self.bounds.cigar_range()] {
-            MISSING => Cigar::new(b""),
-            buf => Cigar::new(buf),
-        }
+        self.fields().cigar()
     }
 
     /// Returns the mate reference sequence ID.
@@ -166,14 +132,11 @@ impl Record {
     /// let record = sam::Record::default();
     /// assert!(record.mate_reference_sequence_id(&header).is_none());
     /// ```
-    pub fn mate_reference_sequence_id<'r, 'h>(
+    pub fn mate_reference_sequence_id<'r, 'h: 'r>(
         &'r self,
         header: &'h Header,
     ) -> Option<ReferenceSequenceId<'h, 'r>> {
-        self.mate_reference_sequence_name()
-            .map(|mate_reference_sequence_name| {
-                ReferenceSequenceId::new(header, mate_reference_sequence_name)
-            })
+        self.fields().mate_reference_sequence_id(header)
     }
 
     /// Returns the mate reference sequence name.
@@ -186,13 +149,7 @@ impl Record {
     /// assert!(record.mate_reference_sequence_name().is_none());
     /// ```
     pub fn mate_reference_sequence_name(&self) -> Option<ReferenceSequenceName<'_>> {
-        const EQ: &[u8] = b"=";
-
-        match &self.buf[self.bounds.mate_reference_sequence_name_range()] {
-            MISSING => None,
-            EQ => self.reference_sequence_name(),
-            buf => Some(ReferenceSequenceName::new(buf)),
-        }
+        self.fields().mate_reference_sequence_name()
     }
 
     /// Returns the mate alignment start.
@@ -206,12 +163,7 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn mate_alignment_start(&self) -> Option<Position<'_>> {
-        const MISSING: &[u8] = b"0";
-
-        match &self.buf[self.bounds.mate_alignment_start_range()] {
-            MISSING => None,
-            buf => Some(Position::new(buf)),
-        }
+        self.fields().mate_alignment_start()
     }
 
     /// Returns the template length.
@@ -225,8 +177,7 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn template_length(&self) -> TemplateLength<'_> {
-        let buf = &self.buf[self.bounds.template_length_range()];
-        TemplateLength::new(buf)
+        self.fields().template_length()
     }
 
     /// Returns the sequence.
@@ -239,12 +190,7 @@ impl Record {
     /// assert!(record.sequence().is_empty());
     /// ```
     pub fn sequence(&self) -> Sequence<'_> {
-        let buf = match &self.buf[self.bounds.sequence_range()] {
-            MISSING => b"",
-            buf => buf,
-        };
-
-        Sequence::new(buf)
+        self.fields().sequence()
     }
 
     /// Returns the quality scores.
@@ -257,12 +203,7 @@ impl Record {
     /// assert!(record.quality_scores().is_empty());
     /// ```
     pub fn quality_scores(&self) -> QualityScores<'_> {
-        let buf = match &self.buf[self.bounds.quality_scores_range()] {
-            MISSING => b"",
-            buf => buf,
-        };
-
-        QualityScores::new(buf)
+        self.fields().quality_scores()
     }
 
     /// Returns the data.
@@ -275,8 +216,11 @@ impl Record {
     /// assert!(record.data().is_empty());
     /// ```
     pub fn data(&self) -> Data<'_> {
-        let buf = &self.buf[self.bounds.data_range()];
-        Data::new(buf)
+        self.fields().data()
+    }
+
+    fn fields(&self) -> Fields<'_> {
+        Fields::new(&self.buf, &self.bounds)
     }
 }
 
