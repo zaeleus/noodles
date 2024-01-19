@@ -5,6 +5,7 @@ mod mapping_quality;
 mod name;
 mod position;
 mod quality_scores;
+mod reference_sequence_name;
 mod sequence;
 mod template_length;
 
@@ -16,7 +17,10 @@ pub use self::{
 use std::io::{self, Write};
 
 use self::{
-    flags::write_flags, mapping_quality::write_mapping_quality, name::write_name,
+    flags::write_flags,
+    mapping_quality::write_mapping_quality,
+    name::write_name,
+    reference_sequence_name::{write_mate_reference_sequence_name, write_reference_sequence_name},
     template_length::write_template_length,
 };
 use crate::{alignment::Record, Header};
@@ -29,27 +33,6 @@ where
     R: Record + ?Sized,
 {
     const DELIMITER: &[u8] = b"\t";
-    const EQ: &[u8] = b"=";
-    const MISSING: &[u8] = b"*";
-
-    let reference_sequence = record.reference_sequence(header).transpose()?;
-    let reference_sequence_name = reference_sequence
-        .map(|(name, _)| name.as_ref())
-        .unwrap_or(MISSING);
-
-    let mate_reference_sequence_name = record
-        .mate_reference_sequence(header)
-        .transpose()?
-        .map(|(mate_reference_sequence_name, _)| {
-            if let Some((reference_sequence_name, _)) = reference_sequence {
-                if mate_reference_sequence_name == reference_sequence_name {
-                    return EQ;
-                }
-            }
-
-            mate_reference_sequence_name
-        })
-        .unwrap_or(MISSING);
 
     write_name(writer, record.name())?;
 
@@ -58,7 +41,13 @@ where
     write_flags(writer, flags)?;
 
     writer.write_all(DELIMITER)?;
-    writer.write_all(reference_sequence_name)?;
+
+    let reference_sequence_name = record
+        .reference_sequence(header)
+        .transpose()?
+        .map(|(name, _)| name.as_ref());
+
+    write_reference_sequence_name(writer, reference_sequence_name)?;
 
     writer.write_all(DELIMITER)?;
     let alignment_start = record.alignment_start().transpose()?;
@@ -74,7 +63,17 @@ where
     write_cigar(writer, &cigar)?;
 
     writer.write_all(DELIMITER)?;
-    writer.write_all(mate_reference_sequence_name)?;
+
+    let mate_reference_sequence_name = record
+        .mate_reference_sequence(header)
+        .transpose()?
+        .map(|(name, _)| name.as_ref());
+
+    write_mate_reference_sequence_name(
+        writer,
+        reference_sequence_name,
+        mate_reference_sequence_name,
+    )?;
 
     writer.write_all(DELIMITER)?;
     let mate_alignment_start = record.mate_alignment_start().transpose()?;
