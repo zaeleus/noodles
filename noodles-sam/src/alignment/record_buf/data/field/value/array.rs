@@ -1,5 +1,7 @@
 //! Alignment record data field array value buffer.
 
+use std::io;
+
 use crate::alignment::record::data::field::value::array::Subtype;
 
 /// An alignment record data field array value buffer.
@@ -43,6 +45,41 @@ impl Array {
             Self::UInt32(_) => Subtype::UInt32,
             Self::Float(_) => Subtype::Float,
         }
+    }
+}
+
+impl<'a> From<&'a Array> for crate::alignment::record::data::field::value::Array<'a> {
+    fn from(array_buf: &'a Array) -> Self {
+        match array_buf {
+            Array::Int8(values) => Self::Int8(Box::new(Values::new(values))),
+            Array::UInt8(values) => Self::UInt8(Box::new(Values::new(values))),
+            Array::Int16(values) => Self::Int16(Box::new(Values::new(values))),
+            Array::UInt16(values) => Self::UInt16(Box::new(Values::new(values))),
+            Array::Int32(values) => Self::Int32(Box::new(Values::new(values))),
+            Array::UInt32(values) => Self::UInt32(Box::new(Values::new(values))),
+            Array::Float(values) => Self::Float(Box::new(Values::new(values))),
+        }
+    }
+}
+
+struct Values<'a, N>(&'a [N]);
+
+impl<'a, N> Values<'a, N> {
+    fn new(values: &'a [N]) -> Self {
+        Self(values)
+    }
+}
+
+impl<'a, N> crate::alignment::record::data::field::value::array::Values<'a, N> for Values<'a, N>
+where
+    N: Copy,
+{
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<N>> + '_> {
+        Box::new(self.0.iter().copied().map(Ok))
     }
 }
 
