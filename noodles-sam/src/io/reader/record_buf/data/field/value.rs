@@ -1,6 +1,6 @@
 mod array;
 
-use std::{error, fmt, str};
+use std::{error, fmt};
 
 use self::array::parse_array;
 use crate::alignment::{record::data::field::Type, record_buf::data::field::Value};
@@ -97,9 +97,7 @@ fn parse_float(src: &[u8]) -> Result<Value, ParseError> {
 
 fn parse_string(src: &[u8]) -> Result<Value, ParseError> {
     if src.iter().all(|n| matches!(n, b' '..=b'~')) {
-        str::from_utf8(src)
-            .map(|s| Value::String(s.into()))
-            .map_err(|_| ParseError::InvalidString)
+        Ok(Value::String(src.into()))
     } else {
         Err(ParseError::InvalidString)
     }
