@@ -55,12 +55,12 @@ mod tests {
         assert_eq!(buf, b"*");
 
         buf.clear();
-        let sequence = SequenceBuf::from(b"ACGT".to_vec());
+        let sequence = SequenceBuf::from(b"ACGT");
         write_sequence(&mut buf, 4, &sequence)?;
         assert_eq!(buf, b"ACGT");
 
         buf.clear();
-        let sequence = SequenceBuf::from(b"ACGT".to_vec());
+        let sequence = SequenceBuf::from(b"ACGT");
         write_sequence(&mut buf, 0, &sequence)?;
         assert_eq!(buf, b"ACGT");
 

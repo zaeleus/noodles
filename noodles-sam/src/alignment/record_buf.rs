@@ -336,7 +336,7 @@ impl RecordBuf {
     /// ```
     /// use noodles_sam::{self as sam, alignment::record_buf::Sequence};
     ///
-    /// let sequence = Sequence::from(b"ACGT".to_vec());
+    /// let sequence = Sequence::from(b"ACGT");
     ///
     /// let mut record = sam::alignment::RecordBuf::default();
     /// *record.sequence_mut() = sequence.clone();

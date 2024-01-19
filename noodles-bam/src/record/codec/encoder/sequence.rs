@@ -77,19 +77,15 @@ mod tests {
         let mut buf = Vec::new();
 
         t(&mut buf, &SequenceBuf::default(), &[])?;
-        t(&mut buf, &SequenceBuf::from(b"ACG".to_vec()), &[0x12, 0x40])?;
-        t(
-            &mut buf,
-            &SequenceBuf::from(b"ACGT".to_vec()),
-            &[0x12, 0x48],
-        )?;
+        t(&mut buf, &SequenceBuf::from(b"ACG"), &[0x12, 0x40])?;
+        t(&mut buf, &SequenceBuf::from(b"ACGT"), &[0x12, 0x48])?;
 
         buf.clear();
         put_sequence(&mut buf, 2, &SequenceBuf::default())?;
         assert!(buf.is_empty());
 
         buf.clear();
-        let sequence = SequenceBuf::from(b"A".to_vec());
+        let sequence = SequenceBuf::from(b"A");
         assert!(matches!(
             put_sequence(&mut buf, 2, &sequence),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput,

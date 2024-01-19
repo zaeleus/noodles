@@ -201,7 +201,7 @@ impl Builder {
     /// ```
     /// use noodles_sam::{self as sam, alignment::record_buf::Sequence};
     ///
-    /// let sequence = Sequence::from(b"ACGT".to_vec());
+    /// let sequence = Sequence::from(b"ACGT");
     ///
     /// let record = sam::alignment::RecordBuf::builder()
     ///     .set_sequence(sequence.clone())

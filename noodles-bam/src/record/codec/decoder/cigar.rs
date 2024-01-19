@@ -174,7 +174,7 @@ mod tests {
                     .into_iter()
                     .collect(),
             )
-            .set_sequence(Sequence::from(b"ACGT".to_vec()))
+            .set_sequence(Sequence::from(b"ACGT"))
             .set_data(
                 [(Tag::CIGAR, Value::Array(Array::UInt32(vec![0x40])))]
                     .into_iter()

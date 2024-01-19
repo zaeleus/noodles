@@ -30,6 +30,18 @@ impl AsMut<Vec<u8>> for Sequence {
     }
 }
 
+impl From<&[u8]> for Sequence {
+    fn from(buf: &[u8]) -> Self {
+        Self::from(Vec::from(buf))
+    }
+}
+
+impl<const N: usize> From<&[u8; N]> for Sequence {
+    fn from(buf: &[u8; N]) -> Self {
+        Self::from(buf.as_slice())
+    }
+}
+
 impl From<Vec<u8>> for Sequence {
     fn from(bases: Vec<u8>) -> Self {
         Self(bases)

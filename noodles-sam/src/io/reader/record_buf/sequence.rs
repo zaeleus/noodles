@@ -40,7 +40,7 @@ mod tests {
 
         sequence.as_mut().clear();
         parse_sequence(b"ACGT", &mut sequence)?;
-        let expected = Sequence::from(b"ACGT".to_vec());
+        let expected = Sequence::from(b"ACGT");
         assert_eq!(sequence, expected);
 
         sequence.as_mut().clear();

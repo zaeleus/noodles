@@ -118,16 +118,8 @@ mod tests {
         let mut sequence = Sequence::default();
 
         t(&[], &mut sequence, &Sequence::default())?;
-        t(
-            &[0x12, 0x40],
-            &mut sequence,
-            &Sequence::from(b"ACG".to_vec()),
-        )?;
-        t(
-            &[0x12, 0x48],
-            &mut sequence,
-            &Sequence::from(b"ACGT".to_vec()),
-        )?;
+        t(&[0x12, 0x40], &mut sequence, &Sequence::from(b"ACG"))?;
+        t(&[0x12, 0x48], &mut sequence, &Sequence::from(b"ACGT"))?;
 
         sequence.as_mut().clear();
         let mut src = &b""[..];

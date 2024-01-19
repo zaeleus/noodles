@@ -179,7 +179,7 @@ mod tests {
         };
 
         let is_reverse_complemented = false;
-        let sequence = Sequence::from(b"CACCCGATGACCGGCT".to_vec());
+        let sequence = Sequence::from(b"CACCCGATGACCGGCT");
 
         let mut src = &b"C+m,1,3,0;"[..];
         let actual = parse_group(&mut src, is_reverse_complemented, &sequence);

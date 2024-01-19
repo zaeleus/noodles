@@ -282,7 +282,7 @@ mod tests {
             .set_mate_reference_sequence_id(1)
             .set_mate_alignment_start(Position::try_from(22)?)
             .set_template_length(144)
-            .set_sequence(Sequence::from(b"ACGT".to_vec()))
+            .set_sequence(Sequence::from(b"ACGT"))
             .set_quality_scores(QualityScores::from(vec![45, 35, 43, 50]))
             .set_data(
                 [(Tag::ALIGNMENT_HIT_COUNT, Value::from(1))]

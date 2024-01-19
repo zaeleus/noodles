@@ -252,7 +252,7 @@ mod tests {
         let header = sam::Header::default();
 
         let mut record = RecordBuf::builder()
-            .set_sequence(Sequence::from(b"AT".to_vec()))
+            .set_sequence(Sequence::from(b"AT"))
             .build();
 
         *record.quality_scores_mut() = QualityScores::from(vec![45, 35, 43, 50]);
@@ -270,7 +270,7 @@ mod tests {
         let header = sam::Header::default();
 
         let mut record = RecordBuf::builder()
-            .set_sequence(Sequence::from(b"ATCG".to_vec()))
+            .set_sequence(Sequence::from(b"ATCG"))
             .build();
 
         *record.quality_scores_mut() = QualityScores::from(vec![45, 35]);
@@ -302,7 +302,7 @@ mod tests {
         let header = sam::Header::default();
 
         let record = RecordBuf::builder()
-            .set_sequence(Sequence::from(b"ATCG".to_vec()))
+            .set_sequence(Sequence::from(b"ATCG"))
             .build();
 
         writer.write_alignment_record(&header, &record)?;
@@ -313,7 +313,7 @@ mod tests {
         let mut record = RecordBuf::default();
         reader.read_record_buf(&header, &mut record)?;
 
-        let expected = Sequence::from(b"ATCG".to_vec());
+        let expected = Sequence::from(b"ATCG");
         assert_eq!(record.sequence(), &expected);
 
         assert!(record.quality_scores().is_empty());
@@ -328,7 +328,7 @@ mod tests {
 
         let header = sam::Header::default();
         let sam_record = RecordBuf::builder()
-            .set_sequence(Sequence::from(b"ATCG".to_vec()))
+            .set_sequence(Sequence::from(b"ATCG"))
             .set_quality_scores(QualityScores::from(vec![45, 35, 43, 50]))
             .build();
 
@@ -340,7 +340,7 @@ mod tests {
         let mut record = RecordBuf::default();
         reader.read_record_buf(&header, &mut record)?;
 
-        let expected = Sequence::from(b"ATCG".to_vec());
+        let expected = Sequence::from(b"ATCG");
         assert_eq!(record.sequence(), &expected);
 
         assert_eq!(record.quality_scores(), sam_record.quality_scores());

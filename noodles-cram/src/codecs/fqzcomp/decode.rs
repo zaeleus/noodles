@@ -254,7 +254,7 @@ mod tests {
 
     #[test]
     fn test_reverse_qualities() {
-        let mut data = b"ndlsndlsndls".to_vec();
+        let mut data = Vec::from(b"ndlsndlsndls");
         let len = data.len();
         let rev_len = vec![(false, 4), (true, 4), (false, 4)];
 

@@ -29,7 +29,7 @@ impl BaseModifications {
     /// };
     ///
     /// let is_reverse_complemented = false;
-    /// let sequence = Sequence::from(b"CACCCGATGACCGGCT".to_vec());
+    /// let sequence = Sequence::from(b"CACCCGATGACCGGCT");
     /// let base_modifications = BaseModifications::parse(
     ///     "C+m,1,3,0;",
     ///     is_reverse_complemented,

@@ -80,7 +80,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .set_reference_sequence_id(1)
         .set_alignment_start(Position::MIN)
         .set_cigar([Op::new(Kind::Match, 4)].into_iter().collect())
-        .set_sequence(Sequence::from(b"TTCA".to_vec()))
+        .set_sequence(Sequence::from(b"TTCA"))
         .set_quality_scores(QualityScores::from(vec![45, 35, 43, 50]))
         .build();
 

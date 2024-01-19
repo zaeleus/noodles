@@ -44,7 +44,7 @@ mod tests {
         };
 
         // reference sequence = "ACAGGAATAANNNNNN"
-        let bases: Sequence = Sequence::from(b"TCTGGCGTGT".to_vec());
+        let bases: Sequence = Sequence::from(b"TCTGGCGTGT");
 
         let record = Record::builder()
             .set_alignment_start(Position::try_from(1)?)

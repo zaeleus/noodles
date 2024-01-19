@@ -157,58 +157,58 @@ mod tests {
             Ok::<_, io::Error>(())
         };
 
-        t(&Features::default(), &Sequence::from(b"ACGT".to_vec()))?;
+        t(&Features::default(), &Sequence::from(b"ACGT"))?;
         t(
             &Features::from(vec![Feature::Bases(
                 Position::try_from(1)?,
                 vec![b'T', b'G'],
             )]),
-            &Sequence::from(b"TGGT".to_vec()),
+            &Sequence::from(b"TGGT"),
         )?;
         t(
             &Features::from(vec![Feature::ReadBase(Position::try_from(2)?, b'Y', 0)]),
-            &Sequence::from(b"AYGT".to_vec()),
+            &Sequence::from(b"AYGT"),
         )?;
         t(
             &Features::from(vec![Feature::Substitution(
                 Position::try_from(2)?,
                 substitution::Value::Code(1),
             )]),
-            &Sequence::from(b"AGGT".to_vec()),
+            &Sequence::from(b"AGGT"),
         )?;
         t(
             &Features::from(vec![Feature::Insertion(
                 Position::try_from(2)?,
                 vec![b'G', b'G'],
             )]),
-            &Sequence::from(b"AGGC".to_vec()),
+            &Sequence::from(b"AGGC"),
         )?;
         t(
             &Features::from(vec![Feature::Deletion(Position::try_from(2)?, 2)]),
-            &Sequence::from(b"ATAC".to_vec()),
+            &Sequence::from(b"ATAC"),
         )?;
         t(
             &Features::from(vec![Feature::InsertBase(Position::try_from(2)?, b'G')]),
-            &Sequence::from(b"AGCG".to_vec()),
+            &Sequence::from(b"AGCG"),
         )?;
         t(
             &Features::from(vec![Feature::ReferenceSkip(Position::try_from(2)?, 2)]),
-            &Sequence::from(b"ATAC".to_vec()),
+            &Sequence::from(b"ATAC"),
         )?;
         t(
             &Features::from(vec![Feature::SoftClip(
                 Position::try_from(3)?,
                 vec![b'G', b'G'],
             )]),
-            &Sequence::from(b"ACGG".to_vec()),
+            &Sequence::from(b"ACGG"),
         )?;
         t(
             &Features::from(vec![Feature::Padding(Position::try_from(1)?, 2)]),
-            &Sequence::from(b"ACGT".to_vec()),
+            &Sequence::from(b"ACGT"),
         )?;
         t(
             &Features::from(vec![Feature::HardClip(Position::try_from(1)?, 2)]),
-            &Sequence::from(b"ACGT".to_vec()),
+            &Sequence::from(b"ACGT"),
         )?;
 
         let features = Features::from(vec![Feature::Substitution(
@@ -249,7 +249,7 @@ mod tests {
             4,
             &mut actual,
         )?;
-        let expected = Sequence::from(b"NNNN".to_vec());
+        let expected = Sequence::from(b"NNNN");
 
         assert_eq!(actual, expected);
 
