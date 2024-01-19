@@ -2,6 +2,7 @@
 
 mod cigar;
 pub mod data;
+mod flags;
 mod mapping_quality;
 mod name;
 mod position;
@@ -20,13 +21,12 @@ use bytes::BufMut;
 use noodles_core::Position;
 use noodles_sam::{
     self as sam,
-    alignment::{
-        record_buf::Cigar,
-        {record::Flags, Record},
-    },
+    alignment::{record_buf::Cigar, Record},
 };
 
-use self::{position::put_position, reference_sequence_id::put_reference_sequence_id};
+use self::{
+    flags::put_flags, position::put_position, reference_sequence_id::put_reference_sequence_id,
+};
 
 // § 4.2.1 "BIN field calculation" (2021-06-03): "Note unmapped reads with `POS` 0 (which
 // becomes -1 in BAM) therefore use `reg2bin(-1, 0)` which is computed as 4680."
@@ -172,14 +172,6 @@ where
     }
 }
 
-fn put_flags<B>(dst: &mut B, flags: Flags)
-where
-    B: BufMut,
-{
-    let flag = u16::from(flags);
-    dst.put_u16_le(flag);
-}
-
 fn put_template_length<B>(dst: &mut B, template_length: i32)
 where
     B: BufMut,
@@ -254,7 +246,7 @@ mod tests {
             record::{
                 cigar::{op::Kind, Op},
                 data::field::Tag,
-                MappingQuality,
+                Flags, MappingQuality,
             },
             record_buf::{data::field::Value, Name, QualityScores, Sequence},
         };
@@ -332,6 +324,7 @@ mod tests {
             record::{
                 cigar::{op::Kind, Op},
                 data::field::Tag,
+                Flags,
             },
             record_buf::{data::field::Value, Sequence},
         };
