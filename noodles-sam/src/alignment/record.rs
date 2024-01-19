@@ -167,10 +167,10 @@ impl Record for Box<dyn Record> {
     }
 }
 
-fn get_reference_sequence<'r, 'h: 'r>(
-    reference_sequences: &'h ReferenceSequences,
+fn get_reference_sequence(
+    reference_sequences: &ReferenceSequences,
     reference_sequence_id: Option<usize>,
-) -> Option<io::Result<(&'h BStr, &'h Map<ReferenceSequence>)>> {
+) -> Option<io::Result<(&BStr, &Map<ReferenceSequence>)>> {
     let id = reference_sequence_id?;
 
     let result = reference_sequences
