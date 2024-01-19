@@ -3,10 +3,7 @@ mod array;
 use std::{error, fmt, str};
 
 use self::array::parse_array;
-use crate::{
-    alignment::{record::data::field::Type, record_buf::data::field::Value},
-    record::data::field::value::{hex, Hex},
-};
+use crate::alignment::{record::data::field::Type, record_buf::data::field::Value};
 
 /// An error when a raw SAM record data field value fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -26,7 +23,7 @@ pub enum ParseError {
     /// The string is invalid.
     InvalidString,
     /// The hex is invalid.
-    InvalidHex(hex::ParseError),
+    InvalidHex,
     /// The array is invalid.
     InvalidArray(array::ParseError),
 }
@@ -36,7 +33,6 @@ impl error::Error for ParseError {
         match self {
             Self::InvalidInteger(e) => Some(e),
             Self::InvalidFloat(e) => Some(e),
-            Self::InvalidHex(e) => Some(e),
             Self::InvalidArray(e) => Some(e),
             _ => None,
         }
@@ -57,7 +53,7 @@ impl fmt::Display for ParseError {
             Self::InvalidIntegerValue => write!(f, "invalid integer value"),
             Self::InvalidFloat(_) => write!(f, "invalid float"),
             Self::InvalidString => write!(f, "invalid string"),
-            Self::InvalidHex(_) => write!(f, "invalid hex"),
+            Self::InvalidHex => write!(f, "invalid hex"),
             Self::InvalidArray(_) => write!(f, "invalid array"),
         }
     }
@@ -110,10 +106,19 @@ fn parse_string(src: &[u8]) -> Result<Value, ParseError> {
 }
 
 fn parse_hex(src: &[u8]) -> Result<Value, ParseError> {
-    Hex::try_from(src)
-        .map(|hex| hex.to_string().into())
-        .map(Value::Hex)
-        .map_err(ParseError::InvalidHex)
+    fn is_even(n: usize) -> bool {
+        n % 2 == 0
+    }
+
+    fn is_upper_ascii_hexdigit(n: u8) -> bool {
+        matches!(n, b'0'..=b'9' | b'A'..=b'F')
+    }
+
+    if is_even(src.len()) && src.iter().copied().all(is_upper_ascii_hexdigit) {
+        Ok(Value::Hex(src.into()))
+    } else {
+        Err(ParseError::InvalidHex)
+    }
 }
 
 #[cfg(test)]
@@ -167,18 +172,18 @@ mod tests {
         );
 
         t(b"CAFE", Type::Hex, Value::Hex(b"CAFE".into()));
-        assert!(matches!(
+        assert_eq!(
             parse_value(&mut &b"cafe"[..], Type::Hex),
-            Err(ParseError::InvalidHex(_))
-        ));
-        assert!(matches!(
+            Err(ParseError::InvalidHex)
+        );
+        assert_eq!(
             parse_value(&mut &b"CAFE0"[..], Type::Hex),
-            Err(ParseError::InvalidHex(_))
-        ));
-        assert!(matches!(
+            Err(ParseError::InvalidHex)
+        );
+        assert_eq!(
             parse_value(&mut &b"NDLS"[..], Type::Hex),
-            Err(ParseError::InvalidHex(_))
-        ));
+            Err(ParseError::InvalidHex)
+        );
 
         t(b"C,0", Type::Array, Value::Array(Array::UInt8(vec![0])));
 
