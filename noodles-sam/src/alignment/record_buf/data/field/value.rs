@@ -252,6 +252,24 @@ impl TryFrom<i64> for Value {
     }
 }
 
+impl<'a> From<&'a Value> for crate::alignment::record::data::field::Value<'a> {
+    fn from(value_buf: &'a Value) -> Self {
+        match value_buf {
+            Value::Character(c) => Self::Character(*c),
+            Value::Int8(n) => Self::Int8(*n),
+            Value::UInt8(n) => Self::UInt8(*n),
+            Value::Int16(n) => Self::Int16(*n),
+            Value::UInt16(n) => Self::UInt16(*n),
+            Value::Int32(n) => Self::Int32(*n),
+            Value::UInt32(n) => Self::UInt32(*n),
+            Value::Float(n) => Self::Float(*n),
+            Value::String(s) => Self::String(s.as_ref()),
+            Value::Hex(s) => Self::Hex(s.as_ref()),
+            Value::Array(array) => Self::Array(array.into()),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
