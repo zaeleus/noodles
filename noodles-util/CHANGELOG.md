@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added
+
+  * util/alignment: Add `iter` module from `noodles_sam::alignment`.
+
+    This includes a pileup iterator to calculate sequence depth.
+
 ### Changed
 
   * util/alignment: Move readers (`Reader` and `IndexedReader`) and writer

@@ -1,7 +1,6 @@
 //! Alignment record and fields.
 
 pub mod io;
-pub mod iter;
 pub mod record;
 pub mod record_buf;
 

@@ -1,8 +1,8 @@
 use std::{collections::VecDeque, io};
 
 use noodles_core::Position;
-
-use crate::{
+use noodles_sam::{
+    self as sam,
     alignment::{record::Flags, Record},
     Header,
 };
@@ -210,9 +210,9 @@ fn pile<C>(
     cigar: &C,
 ) -> io::Result<()>
 where
-    C: crate::alignment::record::fields::Cigar,
+    C: sam::alignment::record::fields::Cigar,
 {
-    use crate::alignment::record::cigar::op::Kind;
+    use sam::alignment::record::cigar::op::Kind;
 
     let offset = usize::from(offset) - 1;
     let start = usize::from(start) - 1;
@@ -244,11 +244,11 @@ mod tests {
     use std::num::NonZeroUsize;
 
     use super::*;
-    use crate::alignment::RecordBuf;
+    use sam::alignment::RecordBuf;
 
     #[test]
     fn test_next() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::{
+        use sam::{
             alignment::record::cigar::{op::Kind, Op},
             header::record::value::{map::ReferenceSequence, Map},
         };

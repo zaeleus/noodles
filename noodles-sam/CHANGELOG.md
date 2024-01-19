@@ -85,6 +85,12 @@
   * sam/record/data/field/value: Replace `Array` with
     `crate::alignment::record::data::field::value::Array`.
 
+### Removed
+
+  * sam/alignment: Removed `iter`.
+
+    This is moved to noodles-util
+
 ## 0.49.0 - 2023-12-14
 
 ### Added

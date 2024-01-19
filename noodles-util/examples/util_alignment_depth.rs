@@ -10,8 +10,7 @@ use std::{
 
 use noodles_core::Region;
 use noodles_fasta as fasta;
-use noodles_sam::alignment::iter::Depth;
-use noodles_util::alignment;
+use noodles_util::{alignment, iter::Depth};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = env::args().skip(1);
