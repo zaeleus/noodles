@@ -73,7 +73,7 @@
 
   * sam/record: Rename `ReadName` to `Name`.
 
-    This also changes accessors from `read_name` to `name`.
+    This also changes `Record::read_name` to `Record::name`.
 
   * sam/record/cigar: Move `Cigar` to `alignment::record_buf::Cigar`.
 

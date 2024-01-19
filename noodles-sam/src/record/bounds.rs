@@ -2,7 +2,7 @@ use std::ops::{Range, RangeFrom};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct Bounds {
-    pub(crate) read_name_end: usize,
+    pub(crate) name_end: usize,
     pub(crate) flags_end: usize,
     pub(crate) reference_sequence_name_end: usize,
     pub(crate) alignment_start_end: usize,
@@ -16,12 +16,12 @@ pub(crate) struct Bounds {
 }
 
 impl Bounds {
-    pub fn read_name_range(&self) -> Range<usize> {
-        0..self.read_name_end
+    pub fn name_range(&self) -> Range<usize> {
+        0..self.name_end
     }
 
     pub fn flags_range(&self) -> Range<usize> {
-        self.read_name_end..self.flags_end
+        self.name_end..self.flags_end
     }
 
     pub fn reference_sequence_name_range(&self) -> Range<usize> {

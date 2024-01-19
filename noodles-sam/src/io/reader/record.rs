@@ -12,7 +12,7 @@ where
     let mut len = 0;
 
     len += read_field(reader, &mut record.buf)?;
-    record.bounds.read_name_end = record.buf.len();
+    record.bounds.name_end = record.buf.len();
 
     len += read_field(reader, &mut record.buf)?;
     record.bounds.flags_end = record.buf.len();
@@ -98,7 +98,7 @@ mod tests {
 
         assert_eq!(record.buf, b"*4*0255**00**");
 
-        assert_eq!(record.bounds.read_name_end, 1);
+        assert_eq!(record.bounds.name_end, 1);
         assert_eq!(record.bounds.flags_end, 2);
         assert_eq!(record.bounds.reference_sequence_name_end, 3);
         assert_eq!(record.bounds.alignment_start_end, 4);

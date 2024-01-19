@@ -1,20 +1,20 @@
-/// A raw SAM record read name.
+/// A raw SAM record name.
 #[derive(Debug, Eq, PartialEq)]
-pub struct ReadName<'a>(&'a [u8]);
+pub struct Name<'a>(&'a [u8]);
 
-impl<'a> ReadName<'a> {
+impl<'a> Name<'a> {
     pub(super) fn new(buf: &'a [u8]) -> Self {
         Self(buf)
     }
 }
 
-impl<'a> crate::alignment::record::fields::Name for ReadName<'a> {
+impl<'a> crate::alignment::record::fields::Name for Name<'a> {
     fn as_bytes(&self) -> &[u8] {
         self.as_ref()
     }
 }
 
-impl<'a> AsRef<[u8]> for ReadName<'a> {
+impl<'a> AsRef<[u8]> for Name<'a> {
     fn as_ref(&self) -> &[u8] {
         self.0
     }

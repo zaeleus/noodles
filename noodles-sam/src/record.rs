@@ -10,7 +10,7 @@ use noodles_core::Position;
 
 use self::{
     bounds::Bounds,
-    fields::{Cigar, Data, Fields, QualityScores, ReadName, ReferenceSequenceName, Sequence},
+    fields::{Cigar, Data, Fields, Name, QualityScores, ReferenceSequenceName, Sequence},
 };
 use crate::{
     alignment::record::{Flags, MappingQuality},
@@ -25,17 +25,17 @@ pub struct Record {
 }
 
 impl Record {
-    /// Returns the read name.
+    /// Returns the name.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_sam as sam;
     /// let record = sam::Record::default();
-    /// assert!(record.read_name().is_none());
+    /// assert!(record.name().is_none());
     /// ```
-    pub fn read_name(&self) -> Option<ReadName<'_>> {
-        self.fields().read_name()
+    pub fn name(&self) -> Option<Name<'_>> {
+        self.fields().name()
     }
 
     /// Returns the flags.
@@ -228,7 +228,7 @@ impl Record {
 impl fmt::Debug for Record {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Record")
-            .field("read_name", &self.read_name())
+            .field("name", &self.name())
             .field("flags", &self.flags())
             .field("reference_sequence_name", &self.reference_sequence_name())
             .field("alignment_start", &self.alignment_start())
@@ -249,8 +249,8 @@ impl fmt::Debug for Record {
 
 impl crate::alignment::Record for Record {
     fn name(&self) -> Option<Box<dyn crate::alignment::record::fields::Name + '_>> {
-        let read_name = self.read_name()?;
-        Some(Box::new(read_name))
+        let name = self.name()?;
+        Some(Box::new(name))
     }
 
     fn flags(&self) -> io::Result<Flags> {
@@ -309,7 +309,7 @@ impl Default for Record {
         let buf = b"*4*0255**00**".to_vec();
 
         let bounds = Bounds {
-            read_name_end: 1,
+            name_end: 1,
             flags_end: 2,
             reference_sequence_name_end: 3,
             alignment_start_end: 4,

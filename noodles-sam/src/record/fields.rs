@@ -4,17 +4,17 @@ mod cigar;
 mod data;
 mod flags;
 mod mapping_quality;
+mod name;
 mod position;
 mod quality_scores;
-mod read_name;
 mod reference_sequence_id;
 mod reference_sequence_name;
 mod sequence;
 mod template_length;
 
 pub use self::{
-    cigar::Cigar, data::Data, flags::Flags, mapping_quality::MappingQuality, position::Position,
-    quality_scores::QualityScores, read_name::ReadName, reference_sequence_id::ReferenceSequenceId,
+    cigar::Cigar, data::Data, flags::Flags, mapping_quality::MappingQuality, name::Name,
+    position::Position, quality_scores::QualityScores, reference_sequence_id::ReferenceSequenceId,
     reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
     template_length::TemplateLength,
 };
@@ -33,10 +33,10 @@ impl<'a> Fields<'a> {
         Self { buf, bounds }
     }
 
-    pub fn read_name(&self) -> Option<ReadName<'a>> {
-        match &self.buf[self.bounds.read_name_range()] {
+    pub fn name(&self) -> Option<Name<'a>> {
+        match &self.buf[self.bounds.name_range()] {
             MISSING => None,
-            buf => Some(ReadName::new(buf)),
+            buf => Some(Name::new(buf)),
         }
     }
 
