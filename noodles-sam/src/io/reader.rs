@@ -371,8 +371,6 @@ where
     where
         I: BinningIndex,
     {
-        use crate::alignment::record::Flags;
-
         if let Some(pos) = index.last_first_record_start_position() {
             self.seek(pos)?;
         } else {
@@ -385,9 +383,7 @@ where
             match self.read_record(&mut record) {
                 Ok(0) => return None,
                 Ok(_) => {
-                    let result = Flags::try_from(record.flags())
-                        .map(|flags| flags.is_unmapped())
-                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e));
+                    let result = record.flags().map(|flags| flags.is_unmapped());
 
                     match result {
                         Ok(true) => return Some(Ok(record.clone())),

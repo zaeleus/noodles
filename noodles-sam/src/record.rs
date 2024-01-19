@@ -6,16 +6,16 @@ pub mod fields;
 
 use std::{fmt, io};
 
-use noodles_core as core;
+use noodles_core::Position;
 
 use self::{
     bounds::Bounds,
-    fields::{
-        Cigar, Data, Fields, Flags, MappingQuality, Position, QualityScores, ReadName,
-        ReferenceSequenceId, ReferenceSequenceName, Sequence, TemplateLength,
-    },
+    fields::{Cigar, Data, Fields, QualityScores, ReadName, ReferenceSequenceName, Sequence},
 };
-use crate::Header;
+use crate::{
+    alignment::record::{Flags, MappingQuality},
+    Header,
+};
 
 /// A SAM record.
 #[derive(Clone, Eq, PartialEq)]
@@ -45,11 +45,12 @@ impl Record {
     /// ```
     /// use noodles_sam::{self as sam, alignment::record::Flags};
     /// let record = sam::Record::default();
-    /// assert_eq!(Flags::try_from(record.flags())?, Flags::UNMAPPED);
-    /// # Ok::<_, lexical_core::Error>(())
+    /// assert_eq!(record.flags()?, Flags::UNMAPPED);
+    /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn flags(&self) -> Flags<'_> {
-        self.fields().flags()
+    pub fn flags(&self) -> io::Result<Flags> {
+        Flags::try_from(self.fields().flags())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
     /// Returns the reference sequence ID.
@@ -62,11 +63,10 @@ impl Record {
     /// let record = sam::Record::default();
     /// assert!(record.reference_sequence_id(&header).is_none());
     /// ```
-    pub fn reference_sequence_id<'r, 'h: 'r>(
-        &'r self,
-        header: &'h Header,
-    ) -> Option<ReferenceSequenceId<'h, 'r>> {
-        self.fields().reference_sequence_id(header)
+    pub fn reference_sequence_id(&self, header: &Header) -> Option<io::Result<usize>> {
+        self.fields()
+            .reference_sequence_id(header)
+            .map(usize::try_from)
     }
 
     /// Returns the reference sequence name.
@@ -92,8 +92,8 @@ impl Record {
     /// assert!(record.alignment_start().is_none());
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn alignment_start(&self) -> Option<Position<'_>> {
-        self.fields().alignment_start()
+    pub fn alignment_start(&self) -> Option<io::Result<Position>> {
+        self.fields().alignment_start().map(Position::try_from)
     }
 
     /// Returns the mapping quality.
@@ -105,8 +105,10 @@ impl Record {
     /// let record = sam::Record::default();
     /// assert!(record.mapping_quality().is_none());
     /// ```
-    pub fn mapping_quality(&self) -> Option<MappingQuality<'_>> {
-        self.fields().mapping_quality()
+    pub fn mapping_quality(&self) -> Option<io::Result<MappingQuality>> {
+        self.fields()
+            .mapping_quality()
+            .map(MappingQuality::try_from)
     }
 
     /// Returns the CIGAR operations.
@@ -132,11 +134,10 @@ impl Record {
     /// let record = sam::Record::default();
     /// assert!(record.mate_reference_sequence_id(&header).is_none());
     /// ```
-    pub fn mate_reference_sequence_id<'r, 'h: 'r>(
-        &'r self,
-        header: &'h Header,
-    ) -> Option<ReferenceSequenceId<'h, 'r>> {
-        self.fields().mate_reference_sequence_id(header)
+    pub fn mate_reference_sequence_id(&self, header: &Header) -> Option<io::Result<usize>> {
+        self.fields()
+            .mate_reference_sequence_id(header)
+            .map(usize::try_from)
     }
 
     /// Returns the mate reference sequence name.
@@ -162,8 +163,8 @@ impl Record {
     /// assert!(record.mate_alignment_start().is_none());
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn mate_alignment_start(&self) -> Option<Position<'_>> {
-        self.fields().mate_alignment_start()
+    pub fn mate_alignment_start(&self) -> Option<io::Result<Position>> {
+        self.fields().mate_alignment_start().map(Position::try_from)
     }
 
     /// Returns the template length.
@@ -173,11 +174,11 @@ impl Record {
     /// ```
     /// use noodles_sam as sam;
     /// let record = sam::Record::default();
-    /// assert_eq!(i32::try_from(record.template_length())?, 0);
+    /// assert_eq!(record.template_length()?, 0);
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn template_length(&self) -> TemplateLength<'_> {
-        self.fields().template_length()
+    pub fn template_length(&self) -> io::Result<i32> {
+        i32::try_from(self.fields().template_length())
     }
 
     /// Returns the sequence.
@@ -252,25 +253,23 @@ impl crate::alignment::Record for Record {
         Some(Box::new(read_name))
     }
 
-    fn flags(&self) -> io::Result<crate::alignment::record::Flags> {
-        crate::alignment::record::Flags::try_from(self.flags())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    fn flags(&self) -> io::Result<Flags> {
+        self.flags()
     }
 
     fn reference_sequence_id<'r, 'h: 'r>(
         &'r self,
         header: &'h Header,
     ) -> Option<io::Result<usize>> {
-        self.reference_sequence_id(header).map(usize::try_from)
+        self.reference_sequence_id(header)
     }
 
-    fn alignment_start(&self) -> Option<io::Result<core::Position>> {
-        self.alignment_start().map(core::Position::try_from)
+    fn alignment_start(&self) -> Option<io::Result<Position>> {
+        self.alignment_start()
     }
 
-    fn mapping_quality(&self) -> Option<io::Result<crate::alignment::record::MappingQuality>> {
+    fn mapping_quality(&self) -> Option<io::Result<MappingQuality>> {
         self.mapping_quality()
-            .map(crate::alignment::record::MappingQuality::try_from)
     }
 
     fn cigar(&self) -> Box<dyn crate::alignment::record::fields::Cigar + '_> {
@@ -281,15 +280,15 @@ impl crate::alignment::Record for Record {
         &'r self,
         header: &'h Header,
     ) -> Option<io::Result<usize>> {
-        self.mate_reference_sequence_id(header).map(usize::try_from)
+        self.mate_reference_sequence_id(header)
     }
 
-    fn mate_alignment_start(&self) -> Option<io::Result<core::Position>> {
-        self.mate_alignment_start().map(core::Position::try_from)
+    fn mate_alignment_start(&self) -> Option<io::Result<Position>> {
+        self.mate_alignment_start()
     }
 
     fn template_length(&self) -> io::Result<i32> {
-        i32::try_from(self.template_length())
+        self.template_length()
     }
 
     fn sequence(&self) -> Box<dyn crate::alignment::record::fields::Sequence + '_> {
