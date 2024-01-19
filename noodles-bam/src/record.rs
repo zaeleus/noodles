@@ -2,7 +2,7 @@
 
 mod bounds;
 pub mod codec;
-pub mod fields;
+pub mod field;
 
 use std::{fmt, io, mem};
 
@@ -14,7 +14,7 @@ use noodles_sam::{
 
 use self::{
     bounds::Bounds,
-    fields::{Cigar, Data, Fields, Name, QualityScores, Sequence},
+    field::{Cigar, Data, Fields, Name, QualityScores, Sequence},
 };
 
 /// A BAM record.
