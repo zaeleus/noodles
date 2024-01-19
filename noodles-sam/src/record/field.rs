@@ -1,4 +1,4 @@
-//! SAM record fields.
+//! SAM record field.
 
 mod cigar;
 mod data;

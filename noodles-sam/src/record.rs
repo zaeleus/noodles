@@ -2,7 +2,7 @@
 
 mod bounds;
 pub mod data;
-pub mod fields;
+pub mod field;
 
 use std::{fmt, io};
 
@@ -10,7 +10,7 @@ use noodles_core::Position;
 
 use self::{
     bounds::Bounds,
-    fields::{Cigar, Data, Fields, Name, QualityScores, ReferenceSequenceName, Sequence},
+    field::{Cigar, Data, Fields, Name, QualityScores, ReferenceSequenceName, Sequence},
 };
 use crate::{
     alignment::record::{Flags, MappingQuality},
