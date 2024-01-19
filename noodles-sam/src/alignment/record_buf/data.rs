@@ -408,23 +408,4 @@ mod tests {
 
         assert!(data.is_empty());
     }
-
-    #[test]
-    fn test_from_iterator() {
-        let actual: Data = [
-            (Tag::READ_GROUP, Value::from("rg0")),
-            (Tag::ALIGNMENT_HIT_COUNT, Value::from(1)),
-        ]
-        .into_iter()
-        .collect();
-
-        let expected: Data = [
-            (Tag::READ_GROUP, Value::from("rg0")),
-            (Tag::ALIGNMENT_HIT_COUNT, Value::from(1)),
-        ]
-        .into_iter()
-        .collect();
-
-        assert_eq!(expected, actual);
-    }
 }
