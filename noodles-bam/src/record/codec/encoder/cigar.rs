@@ -3,7 +3,7 @@ use std::io;
 use bytes::BufMut;
 use noodles_sam::alignment::record::{
     cigar::{op::Kind, Op},
-    fields::Cigar,
+    field::Cigar,
 };
 
 pub fn put_cigar<B, C>(dst: &mut B, cigar: &C) -> io::Result<()>

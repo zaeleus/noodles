@@ -241,7 +241,7 @@ impl<'a> Cigar<'a> {
     }
 }
 
-impl<'a> sam::alignment::record::fields::Cigar for Cigar<'a> {
+impl<'a> sam::alignment::record::field::Cigar for Cigar<'a> {
     fn is_empty(&self) -> bool {
         self.is_unmapped
     }
@@ -270,7 +270,7 @@ impl<'a> sam::alignment::record::fields::Cigar for Cigar<'a> {
 }
 
 impl sam::alignment::Record for Record {
-    fn name(&self) -> Option<Box<dyn sam::alignment::record::fields::Name + '_>> {
+    fn name(&self) -> Option<Box<dyn sam::alignment::record::field::Name + '_>> {
         let name = self.name()?;
         Some(Box::new(name))
     }
@@ -294,7 +294,7 @@ impl sam::alignment::Record for Record {
         self.mapping_quality().map(Ok)
     }
 
-    fn cigar(&self) -> Box<dyn sam::alignment::record::fields::Cigar + '_> {
+    fn cigar(&self) -> Box<dyn sam::alignment::record::field::Cigar + '_> {
         Box::new(Cigar::new(
             &self.features,
             self.flags().is_unmapped(),
@@ -317,15 +317,15 @@ impl sam::alignment::Record for Record {
         Ok(self.template_length())
     }
 
-    fn sequence(&self) -> Box<dyn sam::alignment::record::fields::Sequence + '_> {
+    fn sequence(&self) -> Box<dyn sam::alignment::record::field::Sequence + '_> {
         Box::new(self.sequence())
     }
 
-    fn quality_scores(&self) -> Box<dyn sam::alignment::record::fields::QualityScores + '_> {
+    fn quality_scores(&self) -> Box<dyn sam::alignment::record::field::QualityScores + '_> {
         Box::new(self.quality_scores())
     }
 
-    fn data(&self) -> Box<dyn sam::alignment::record::fields::Data + '_> {
+    fn data(&self) -> Box<dyn sam::alignment::record::field::Data + '_> {
         Box::new(self.data())
     }
 }

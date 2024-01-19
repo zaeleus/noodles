@@ -32,7 +32,7 @@ impl<'a> Cigar<'a> {
     }
 }
 
-impl<'a> crate::alignment::record::fields::Cigar for Cigar<'a> {
+impl<'a> crate::alignment::record::field::Cigar for Cigar<'a> {
     fn is_empty(&self) -> bool {
         self.is_empty()
     }

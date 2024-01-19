@@ -12,7 +12,7 @@ impl TemplateLength {
     }
 }
 
-impl sam::alignment::record::fields::TemplateLength for TemplateLength {
+impl sam::alignment::record::field::TemplateLength for TemplateLength {
     fn try_to_i32(&self) -> io::Result<i32> {
         Ok(self.0)
     }

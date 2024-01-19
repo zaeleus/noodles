@@ -3,7 +3,7 @@ mod field;
 use std::io::{self, Write};
 
 use self::field::write_field;
-use crate::alignment::record::fields::Data;
+use crate::alignment::record::field::Data;
 
 pub fn write_data<W, D>(writer: &mut W, data: D) -> io::Result<()>
 where

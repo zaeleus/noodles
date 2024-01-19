@@ -6,7 +6,7 @@ use std::{env, io};
 
 use noodles_sam::{
     self as sam,
-    alignment::record::{data::field::Tag, fields::Data},
+    alignment::record::{data::field::Tag, field::Data},
 };
 
 fn is_unique_record(record: &sam::Record) -> io::Result<bool> {

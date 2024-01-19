@@ -2,7 +2,7 @@
 
 pub mod cigar;
 pub mod data;
-pub mod fields;
+pub mod field;
 mod flags;
 pub mod mapping_quality;
 
@@ -11,7 +11,7 @@ use std::io;
 use bstr::BStr;
 use noodles_core as core;
 
-use self::fields::{Cigar, Data, Name, QualityScores, Sequence};
+use self::field::{Cigar, Data, Name, QualityScores, Sequence};
 pub use self::{flags::Flags, mapping_quality::MappingQuality};
 use crate::{
     header::{

@@ -12,7 +12,7 @@ impl Flags {
     }
 }
 
-impl sam::alignment::record::fields::Flags for Flags {
+impl sam::alignment::record::field::Flags for Flags {
     fn try_to_u16(&self) -> io::Result<u16> {
         Ok(self.0)
     }

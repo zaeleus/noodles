@@ -1,7 +1,7 @@
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::alignment::record::fields::Sequence;
+use noodles_sam::alignment::record::field::Sequence;
 
 pub fn put_sequence<B, S>(dst: &mut B, read_length: usize, sequence: S) -> io::Result<()>
 where

@@ -51,7 +51,7 @@ impl MappingQuality {
     }
 }
 
-impl crate::alignment::record::fields::MappingQuality for MappingQuality {
+impl crate::alignment::record::field::MappingQuality for MappingQuality {
     fn try_to_u8(&self) -> io::Result<u8> {
         Ok(self.get())
     }

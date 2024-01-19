@@ -1,6 +1,6 @@
 use std::io;
 
-use noodles_sam::{self as sam, alignment::record::fields::ReferenceSequenceId as _};
+use noodles_sam::{self as sam, alignment::record::field::ReferenceSequenceId as _};
 
 /// A raw BAM record reference sequence ID.
 #[derive(Debug, Eq, PartialEq)]
@@ -12,7 +12,7 @@ impl ReferenceSequenceId {
     }
 }
 
-impl sam::alignment::record::fields::ReferenceSequenceId for ReferenceSequenceId {
+impl sam::alignment::record::field::ReferenceSequenceId for ReferenceSequenceId {
     fn try_to_usize(&self) -> io::Result<usize> {
         usize::try_from(self.0).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }

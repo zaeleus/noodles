@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use crate::alignment::record::fields::Name;
+use crate::alignment::record::field::Name;
 
 const MAX_LENGTH: usize = 254;
 const MISSING: &[u8] = b"*";

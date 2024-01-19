@@ -8,7 +8,7 @@ impl<'a> Name<'a> {
     }
 }
 
-impl<'a> crate::alignment::record::fields::Name for Name<'a> {
+impl<'a> crate::alignment::record::field::Name for Name<'a> {
     fn as_bytes(&self) -> &[u8] {
         self.as_ref()
     }

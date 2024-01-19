@@ -1,7 +1,7 @@
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::alignment::record::fields::Name;
+use noodles_sam::alignment::record::field::Name;
 
 const MAX_LENGTH: usize = 254;
 pub(super) const MISSING: &[u8] = b"*";

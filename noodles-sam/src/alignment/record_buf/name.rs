@@ -38,7 +38,7 @@ impl From<Name> for Vec<u8> {
     }
 }
 
-impl crate::alignment::record::fields::Name for &Name {
+impl crate::alignment::record::field::Name for &Name {
     fn as_bytes(&self) -> &[u8] {
         self.as_ref()
     }

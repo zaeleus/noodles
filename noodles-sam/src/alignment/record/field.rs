@@ -1,4 +1,4 @@
-//! Alignment record fields.
+//! Alignment record field.
 
 mod cigar;
 mod data;
