@@ -5,7 +5,7 @@ use std::{error, fmt, str};
 use self::array::parse_array;
 use crate::{
     alignment::{record::data::field::Type, record_buf::data::field::Value},
-    record::data::field::value::{hex, Character, Hex},
+    record::data::field::value::{hex, Hex},
 };
 
 /// An error when a raw SAM record data field value fails to parse.
@@ -81,10 +81,7 @@ fn parse_char(src: &[u8]) -> Result<Value, ParseError> {
     let (n, rest) = src.split_first().ok_or(ParseError::UnexpectedEof)?;
 
     if rest.is_empty() {
-        Character::try_from(*n)
-            .map(u8::from)
-            .map(Value::Character)
-            .map_err(|_| ParseError::InvalidCharacter)
+        Ok(Value::Character(*n))
     } else {
         Err(ParseError::InvalidCharacter)
     }

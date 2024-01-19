@@ -4,10 +4,7 @@ use std::{error, fmt, mem, string};
 
 use bstr::{BString, ByteSlice};
 use bytes::Buf;
-use noodles_sam::{
-    alignment::{record::data::field::Type, record_buf::data::field::Value},
-    record::data::field::value::{character, Character},
-};
+use noodles_sam::alignment::{record::data::field::Type, record_buf::data::field::Value};
 
 use self::array::get_array;
 
@@ -16,8 +13,6 @@ use self::array::get_array;
 pub enum DecodeError {
     /// Unexpected EOF.
     UnexpectedEof,
-    /// The character is invalid.
-    InvalidCharacter(character::ParseError),
     /// The string is not NUL terminated.
     StringNotNulTerminated,
     /// The string is invalid.
@@ -29,7 +24,6 @@ pub enum DecodeError {
 impl error::Error for DecodeError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
-            Self::InvalidCharacter(e) => Some(e),
             Self::InvalidString(e) => Some(e),
             Self::InvalidArray(e) => Some(e),
             _ => None,
@@ -41,7 +35,6 @@ impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnexpectedEof => write!(f, "unexpected EOF"),
-            Self::InvalidCharacter(_) => write!(f, "invalid character"),
             Self::StringNotNulTerminated => write!(f, "string is not NUL terminated"),
             Self::InvalidString(_) => write!(f, "invalid string"),
             Self::InvalidArray(_) => write!(f, "invalid array"),
@@ -76,10 +69,7 @@ where
         return Err(DecodeError::UnexpectedEof);
     }
 
-    Character::try_from(src.get_u8())
-        .map(u8::from)
-        .map(Value::Character)
-        .map_err(DecodeError::InvalidCharacter)
+    Ok(Value::Character(src.get_u8()))
 }
 
 fn get_i8<B>(src: &mut B) -> Result<Value, DecodeError>
