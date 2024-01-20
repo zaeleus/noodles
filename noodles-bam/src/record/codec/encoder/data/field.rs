@@ -9,7 +9,7 @@ use std::io;
 use bytes::BufMut;
 use noodles_sam::alignment::record::{
     data::field::{value::array::Subtype, Tag, Type, Value},
-    field::Cigar,
+    Cigar,
 };
 
 pub use self::value::put_value;

@@ -39,7 +39,7 @@ impl<'a> Cigar<'a> {
     }
 }
 
-impl<'a> sam::alignment::record::field::Cigar for Cigar<'a> {
+impl<'a> sam::alignment::record::Cigar for Cigar<'a> {
     fn is_empty(&self) -> bool {
         self.is_empty()
     }

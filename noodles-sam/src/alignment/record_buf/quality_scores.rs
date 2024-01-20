@@ -57,7 +57,7 @@ impl From<QualityScores> for Vec<u8> {
     }
 }
 
-impl crate::alignment::record::field::QualityScores for &QualityScores {
+impl crate::alignment::record::QualityScores for &QualityScores {
     fn is_empty(&self) -> bool {
         self.0.is_empty()
     }

@@ -109,7 +109,7 @@ where
 fn put_l_read_name<B, N>(dst: &mut B, name: Option<N>) -> io::Result<()>
 where
     B: BufMut,
-    N: sam::alignment::record::field::Name,
+    N: sam::alignment::record::Name,
 {
     use std::mem;
 

@@ -245,7 +245,7 @@ impl fmt::Debug for Record {
 }
 
 impl crate::alignment::Record for Record {
-    fn name(&self) -> Option<Box<dyn crate::alignment::record::field::Name + '_>> {
+    fn name(&self) -> Option<Box<dyn crate::alignment::record::Name + '_>> {
         let name = self.name()?;
         Some(Box::new(name))
     }
@@ -269,7 +269,7 @@ impl crate::alignment::Record for Record {
         self.mapping_quality()
     }
 
-    fn cigar(&self) -> Box<dyn crate::alignment::record::field::Cigar + '_> {
+    fn cigar(&self) -> Box<dyn crate::alignment::record::Cigar + '_> {
         Box::new(self.cigar())
     }
 
@@ -288,15 +288,15 @@ impl crate::alignment::Record for Record {
         self.template_length()
     }
 
-    fn sequence(&self) -> Box<dyn crate::alignment::record::field::Sequence + '_> {
+    fn sequence(&self) -> Box<dyn crate::alignment::record::Sequence + '_> {
         Box::new(self.sequence())
     }
 
-    fn quality_scores(&self) -> Box<dyn crate::alignment::record::field::QualityScores + '_> {
+    fn quality_scores(&self) -> Box<dyn crate::alignment::record::QualityScores + '_> {
         Box::new(self.quality_scores())
     }
 
-    fn data(&self) -> Box<dyn crate::alignment::record::field::Data + '_> {
+    fn data(&self) -> Box<dyn crate::alignment::record::Data + '_> {
         Box::new(self.data())
     }
 }

@@ -76,7 +76,7 @@ impl Record {
         };
 
         if !bam_flags.is_unmapped() {
-            let cigar = alignment_record_cigar_to_cigar_buf(record.cigar())?;
+            let cigar = record.cigar().iter().collect::<Result<_, _>>()?;
             let features = Features::from_cigar(flags, &cigar, &bases, &quality_scores);
             builder = builder.set_features(features);
         }
@@ -157,16 +157,9 @@ impl Record {
     }
 }
 
-fn alignment_record_cigar_to_cigar_buf<C>(cigar: C) -> io::Result<sam::alignment::record_buf::Cigar>
-where
-    C: sam::alignment::record::field::Cigar,
-{
-    cigar.iter().collect()
-}
-
 fn alignment_record_data_to_data_buf<D>(data: D) -> io::Result<sam::alignment::record_buf::Data>
 where
-    D: sam::alignment::record::field::Data,
+    D: sam::alignment::record::Data,
 {
     use sam::alignment::{
         record::data::field::{value::Array, Value},

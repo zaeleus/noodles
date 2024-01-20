@@ -495,7 +495,7 @@ impl RecordBuf {
 }
 
 impl Record for RecordBuf {
-    fn name(&self) -> Option<Box<dyn super::record::field::Name + '_>> {
+    fn name(&self) -> Option<Box<dyn super::record::Name + '_>> {
         let name = self.name()?;
         Some(Box::new(name))
     }
@@ -516,7 +516,7 @@ impl Record for RecordBuf {
         self.mapping_quality().map(Ok)
     }
 
-    fn cigar(&self) -> Box<dyn super::record::field::Cigar + '_> {
+    fn cigar(&self) -> Box<dyn super::record::Cigar + '_> {
         Box::new(self.cigar())
     }
 
@@ -535,15 +535,15 @@ impl Record for RecordBuf {
         Ok(self.template_length())
     }
 
-    fn sequence(&self) -> Box<dyn super::record::field::Sequence + '_> {
+    fn sequence(&self) -> Box<dyn super::record::Sequence + '_> {
         Box::new(self.sequence())
     }
 
-    fn quality_scores(&self) -> Box<dyn super::record::field::QualityScores + '_> {
+    fn quality_scores(&self) -> Box<dyn super::record::QualityScores + '_> {
         Box::new(self.quality_scores())
     }
 
-    fn data(&self) -> Box<dyn super::record::field::Data + '_> {
+    fn data(&self) -> Box<dyn super::record::Data + '_> {
         Box::new(self.data())
     }
 }

@@ -72,7 +72,7 @@ impl Cigar {
     }
 }
 
-impl crate::alignment::record::field::Cigar for Cigar {
+impl crate::alignment::record::Cigar for Cigar {
     fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
@@ -86,7 +86,7 @@ impl crate::alignment::record::field::Cigar for Cigar {
     }
 }
 
-impl crate::alignment::record::field::Cigar for &Cigar {
+impl crate::alignment::record::Cigar for &Cigar {
     fn is_empty(&self) -> bool {
         (*self).is_empty()
     }

@@ -3,7 +3,7 @@ use std::io::{self, Write};
 use crate::{
     alignment::record::{
         cigar::{op::Kind, Op},
-        field::Cigar,
+        Cigar,
     },
     io::writer::num,
 };

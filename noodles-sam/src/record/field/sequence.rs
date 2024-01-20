@@ -24,7 +24,7 @@ impl<'a> AsRef<[u8]> for Sequence<'a> {
     }
 }
 
-impl<'a> crate::alignment::record::field::Sequence for Sequence<'a> {
+impl<'a> crate::alignment::record::Sequence for Sequence<'a> {
     fn is_empty(&self) -> bool {
         self.is_empty()
     }
@@ -51,7 +51,7 @@ mod tests {
     #[test]
     fn test_crate_alignment_record_sequence_iter() {
         fn t(src: &[u8]) {
-            let sequence: &dyn crate::alignment::record::field::Sequence = &Sequence::new(src);
+            let sequence: &dyn crate::alignment::record::Sequence = &Sequence::new(src);
             let actual: Vec<_> = sequence.iter().collect();
             assert_eq!(actual, src);
         }

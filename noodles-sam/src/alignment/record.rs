@@ -2,17 +2,21 @@
 
 pub mod cigar;
 pub mod data;
-pub mod field;
 mod flags;
 pub mod mapping_quality;
+mod name;
+mod quality_scores;
+mod sequence;
 
 use std::io;
 
 use bstr::BStr;
 use noodles_core as core;
 
-use self::field::{Cigar, Data, Name, QualityScores, Sequence};
-pub use self::{flags::Flags, mapping_quality::MappingQuality};
+pub use self::{
+    cigar::Cigar, data::Data, flags::Flags, mapping_quality::MappingQuality, name::Name,
+    quality_scores::QualityScores, sequence::Sequence,
+};
 use crate::{
     header::{
         record::value::{map::ReferenceSequence, Map},

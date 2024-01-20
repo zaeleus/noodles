@@ -74,7 +74,7 @@ impl From<Sequence> for Vec<u8> {
     }
 }
 
-impl crate::alignment::record::field::Sequence for &Sequence {
+impl crate::alignment::record::Sequence for &Sequence {
     fn is_empty(&self) -> bool {
         self.0.is_empty()
     }

@@ -220,7 +220,7 @@ impl fmt::Debug for Record {
 }
 
 impl sam::alignment::Record for Record {
-    fn name(&self) -> Option<Box<dyn sam::alignment::record::field::Name + '_>> {
+    fn name(&self) -> Option<Box<dyn sam::alignment::record::Name + '_>> {
         let name = self.name()?;
         Some(Box::new(name))
     }
@@ -244,7 +244,7 @@ impl sam::alignment::Record for Record {
         self.mapping_quality().map(Ok)
     }
 
-    fn cigar(&self) -> Box<dyn sam::alignment::record::field::Cigar + '_> {
+    fn cigar(&self) -> Box<dyn sam::alignment::record::Cigar + '_> {
         Box::new(self.cigar())
     }
 
@@ -263,15 +263,15 @@ impl sam::alignment::Record for Record {
         Ok(self.template_length())
     }
 
-    fn sequence(&self) -> Box<dyn sam::alignment::record::field::Sequence + '_> {
+    fn sequence(&self) -> Box<dyn sam::alignment::record::Sequence + '_> {
         Box::new(self.sequence())
     }
 
-    fn quality_scores(&self) -> Box<dyn sam::alignment::record::field::QualityScores + '_> {
+    fn quality_scores(&self) -> Box<dyn sam::alignment::record::QualityScores + '_> {
         Box::new(self.quality_scores())
     }
 
-    fn data(&self) -> Box<dyn sam::alignment::record::field::Data + '_> {
+    fn data(&self) -> Box<dyn sam::alignment::record::Data + '_> {
         Box::new(self.data())
     }
 }

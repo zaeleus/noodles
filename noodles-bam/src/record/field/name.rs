@@ -18,7 +18,7 @@ impl<'a> Name<'a> {
     }
 }
 
-impl<'a> sam::alignment::record::field::Name for Name<'a> {
+impl<'a> sam::alignment::record::Name for Name<'a> {
     fn as_bytes(&self) -> &[u8] {
         self.as_bytes()
     }
