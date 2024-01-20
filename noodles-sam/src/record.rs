@@ -1,16 +1,22 @@
 //! SAM record.
 
 mod bounds;
+mod cigar;
 pub mod data;
-pub mod field;
+pub mod fields;
+mod name;
+mod quality_scores;
+mod reference_sequence_name;
+mod sequence;
 
 use std::{fmt, io};
 
 use noodles_core::Position;
 
-use self::{
-    bounds::Bounds,
-    field::{Cigar, Data, Fields, Name, QualityScores, ReferenceSequenceName, Sequence},
+use self::{bounds::Bounds, fields::Fields};
+pub use self::{
+    cigar::Cigar, data::Data, name::Name, quality_scores::QualityScores,
+    reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
 };
 use crate::{
     alignment::record::{Flags, MappingQuality},

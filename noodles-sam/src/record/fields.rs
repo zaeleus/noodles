@@ -1,22 +1,11 @@
 //! SAM record field.
 
-mod cigar;
-mod data;
-mod name;
-mod quality_scores;
-mod reference_sequence_name;
-mod sequence;
-
 use std::io;
 
 use lexical_core::FromLexical;
 use noodles_core::Position;
 
-pub use self::{
-    cigar::Cigar, data::Data, name::Name, quality_scores::QualityScores,
-    reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
-};
-use super::Bounds;
+use super::{Bounds, Cigar, Data, Name, QualityScores, ReferenceSequenceName, Sequence};
 use crate::Header;
 
 const MISSING: &[u8] = b"*";
