@@ -1,6 +1,6 @@
 //! Alignment record mapping quality.
 
-use std::{error, fmt, io};
+use std::{error, fmt};
 
 // § 1.4.5 "_MAPQ_" (2023): "A value 255 indicates that the mapping quality is not available."
 const MISSING: u8 = 255;
@@ -48,12 +48,6 @@ impl MappingQuality {
     /// ```
     pub const fn get(&self) -> u8 {
         self.0
-    }
-}
-
-impl crate::alignment::record::field::MappingQuality for MappingQuality {
-    fn try_to_u8(&self) -> io::Result<u8> {
-        Ok(self.get())
     }
 }
 
