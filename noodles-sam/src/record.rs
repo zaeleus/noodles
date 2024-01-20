@@ -49,8 +49,7 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn flags(&self) -> io::Result<Flags> {
-        Flags::try_from(self.fields().flags())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        self.fields().flags().map(Flags::from)
     }
 
     /// Returns the reference sequence ID.
@@ -64,9 +63,7 @@ impl Record {
     /// assert!(record.reference_sequence_id(&header).is_none());
     /// ```
     pub fn reference_sequence_id(&self, header: &Header) -> Option<io::Result<usize>> {
-        self.fields()
-            .reference_sequence_id(header)
-            .map(usize::try_from)
+        self.fields().reference_sequence_id(header)
     }
 
     /// Returns the reference sequence name.
@@ -93,7 +90,7 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn alignment_start(&self) -> Option<io::Result<Position>> {
-        self.fields().alignment_start().map(Position::try_from)
+        self.fields().alignment_start()
     }
 
     /// Returns the mapping quality.
@@ -106,9 +103,11 @@ impl Record {
     /// assert!(record.mapping_quality().is_none());
     /// ```
     pub fn mapping_quality(&self) -> Option<io::Result<MappingQuality>> {
-        self.fields()
-            .mapping_quality()
-            .map(MappingQuality::try_from)
+        match self.fields().mapping_quality().transpose() {
+            Ok(Some(n)) => MappingQuality::new(n).map(Ok),
+            Ok(None) => None,
+            Err(e) => Some(Err(e)),
+        }
     }
 
     /// Returns the CIGAR operations.
@@ -135,9 +134,7 @@ impl Record {
     /// assert!(record.mate_reference_sequence_id(&header).is_none());
     /// ```
     pub fn mate_reference_sequence_id(&self, header: &Header) -> Option<io::Result<usize>> {
-        self.fields()
-            .mate_reference_sequence_id(header)
-            .map(usize::try_from)
+        self.fields().mate_reference_sequence_id(header)
     }
 
     /// Returns the mate reference sequence name.
@@ -164,7 +161,7 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn mate_alignment_start(&self) -> Option<io::Result<Position>> {
-        self.fields().mate_alignment_start().map(Position::try_from)
+        self.fields().mate_alignment_start()
     }
 
     /// Returns the template length.
@@ -178,7 +175,7 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn template_length(&self) -> io::Result<i32> {
-        i32::try_from(self.fields().template_length())
+        self.fields().template_length()
     }
 
     /// Returns the sequence.

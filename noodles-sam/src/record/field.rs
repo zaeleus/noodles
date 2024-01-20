@@ -2,21 +2,19 @@
 
 mod cigar;
 mod data;
-mod flags;
-mod mapping_quality;
 mod name;
-mod position;
 mod quality_scores;
-mod reference_sequence_id;
 mod reference_sequence_name;
 mod sequence;
-mod template_length;
+
+use std::io;
+
+use lexical_core::FromLexical;
+use noodles_core::Position;
 
 pub use self::{
-    cigar::Cigar, data::Data, flags::Flags, mapping_quality::MappingQuality, name::Name,
-    position::Position, quality_scores::QualityScores, reference_sequence_id::ReferenceSequenceId,
+    cigar::Cigar, data::Data, name::Name, quality_scores::QualityScores,
     reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
-    template_length::TemplateLength,
 };
 use super::Bounds;
 use crate::Header;
@@ -40,18 +38,15 @@ impl<'a> Fields<'a> {
         }
     }
 
-    pub fn flags(&self) -> Flags<'a> {
+    pub fn flags(&self) -> io::Result<u16> {
         let src = &self.buf[self.bounds.flags_range()];
-        Flags::new(src)
+        lexical_core::parse(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
-    pub fn reference_sequence_id<'h: 'a>(
-        &self,
-        header: &'h Header,
-    ) -> Option<ReferenceSequenceId<'h, 'a>> {
+    pub fn reference_sequence_id<'h: 'a>(&self, header: &'h Header) -> Option<io::Result<usize>> {
         self.reference_sequence_name()
             .map(|reference_sequence_name| {
-                ReferenceSequenceId::new(header, reference_sequence_name)
+                get_reference_sequence_id(header, reference_sequence_name.as_ref())
             })
     }
 
@@ -62,21 +57,21 @@ impl<'a> Fields<'a> {
         }
     }
 
-    pub fn alignment_start(&self) -> Option<Position<'a>> {
+    pub fn alignment_start(&self) -> Option<io::Result<Position>> {
         const MISSING: &[u8] = b"0";
 
         match &self.buf[self.bounds.alignment_start_range()] {
             MISSING => None,
-            buf => Some(Position::new(buf)),
+            buf => Some(parse_position(buf)),
         }
     }
 
-    pub fn mapping_quality(&self) -> Option<MappingQuality<'a>> {
+    pub fn mapping_quality(&self) -> Option<io::Result<u8>> {
         const MISSING: &[u8] = b"255";
 
         match &self.buf[self.bounds.mapping_quality_range()] {
             MISSING => None,
-            buf => Some(MappingQuality::new(buf)),
+            buf => Some(parse_int(buf)),
         }
     }
 
@@ -87,13 +82,10 @@ impl<'a> Fields<'a> {
         }
     }
 
-    pub fn mate_reference_sequence_id<'h: 'a>(
-        &self,
-        header: &'h Header,
-    ) -> Option<ReferenceSequenceId<'h, 'a>> {
+    pub fn mate_reference_sequence_id(&self, header: &Header) -> Option<io::Result<usize>> {
         self.mate_reference_sequence_name()
             .map(|mate_reference_sequence_name| {
-                ReferenceSequenceId::new(header, mate_reference_sequence_name)
+                get_reference_sequence_id(header, mate_reference_sequence_name.as_ref())
             })
     }
 
@@ -107,18 +99,18 @@ impl<'a> Fields<'a> {
         }
     }
 
-    pub fn mate_alignment_start(&self) -> Option<Position<'a>> {
+    pub fn mate_alignment_start(&self) -> Option<io::Result<Position>> {
         const MISSING: &[u8] = b"0";
 
         match &self.buf[self.bounds.mate_alignment_start_range()] {
             MISSING => None,
-            buf => Some(Position::new(buf)),
+            buf => Some(parse_position(buf)),
         }
     }
 
-    pub fn template_length(&self) -> TemplateLength<'a> {
+    pub fn template_length(&self) -> io::Result<i32> {
         let buf = &self.buf[self.bounds.template_length_range()];
-        TemplateLength::new(buf)
+        parse_int(buf)
     }
 
     pub fn sequence(&self) -> Sequence<'a> {
@@ -143,4 +135,26 @@ impl<'a> Fields<'a> {
         let buf = &self.buf[self.bounds.data_range()];
         Data::new(buf)
     }
+}
+
+fn get_reference_sequence_id(header: &Header, reference_sequence_name: &[u8]) -> io::Result<usize> {
+    header
+        .reference_sequences()
+        .get_index_of(reference_sequence_name)
+        .ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                "invalid reference sequence name",
+            )
+        })
+}
+
+fn parse_position(buf: &[u8]) -> io::Result<Position> {
+    parse_int::<usize>(buf).and_then(|n| {
+        Position::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })
+}
+
+fn parse_int<N: FromLexical>(buf: &[u8]) -> io::Result<N> {
+    lexical_core::parse(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
