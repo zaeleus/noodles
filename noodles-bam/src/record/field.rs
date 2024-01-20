@@ -2,21 +2,14 @@
 
 mod cigar;
 pub mod data;
-mod flags;
-mod mapping_quality;
 mod name;
-mod position;
 mod quality_scores;
-mod reference_sequence_id;
 mod sequence;
-mod template_length;
 
 use std::mem;
 
 pub use self::{
-    cigar::Cigar, data::Data, flags::Flags, mapping_quality::MappingQuality, name::Name,
-    position::Position, quality_scores::QualityScores, reference_sequence_id::ReferenceSequenceId,
-    sequence::Sequence, template_length::TemplateLength,
+    cigar::Cigar, data::Data, name::Name, quality_scores::QualityScores, sequence::Sequence,
 };
 use super::{bounds, Bounds};
 
@@ -30,50 +23,49 @@ impl<'a> Fields<'a> {
         Self { buf, bounds }
     }
 
-    pub(super) fn reference_sequence_id(&self) -> Option<ReferenceSequenceId> {
+    pub(super) fn reference_sequence_id(&self) -> Option<i32> {
         let src = &self.buf[bounds::REFERENCE_SEQUENCE_ID_RANGE];
         // SAFETY: `src` is 4 bytes.
         get_reference_sequence_id(src.try_into().unwrap())
     }
 
-    pub(super) fn alignment_start(&self) -> Option<Position> {
+    // N.B. this is 0-based.
+    pub(super) fn alignment_start(&self) -> Option<i32> {
         let src = &self.buf[bounds::ALIGNMENT_START_RANGE];
         // SAFETY: `src` is 4 bytes.
         get_position(src.try_into().unwrap())
     }
 
-    pub(super) fn mapping_quality(&self) -> Option<MappingQuality> {
+    pub(super) fn mapping_quality(&self) -> Option<u8> {
         const MISSING: u8 = 255;
 
         match self.buf[bounds::MAPPING_QUALITY_INDEX] {
             MISSING => None,
-            n => Some(MappingQuality::new(n)),
+            n => Some(n),
         }
     }
 
-    pub(super) fn flags(&self) -> Flags {
+    pub(super) fn flags(&self) -> u16 {
         let src = &self.buf[bounds::FLAGS_RANGE];
         // SAFETY: `src` is 2 bytes.
-        let n = u16::from_le_bytes(src.try_into().unwrap());
-        Flags::new(n)
+        u16::from_le_bytes(src.try_into().unwrap())
     }
 
-    pub(super) fn mate_reference_sequence_id(&self) -> Option<ReferenceSequenceId> {
+    pub(super) fn mate_reference_sequence_id(&self) -> Option<i32> {
         let src = &self.buf[bounds::MATE_REFERENCE_SEQUENCE_ID_RANGE];
         // SAFETY: `src` is 4 bytes.
         get_reference_sequence_id(src.try_into().unwrap())
     }
 
-    pub(super) fn mate_alignment_start(&self) -> Option<Position> {
+    pub(super) fn mate_alignment_start(&self) -> Option<i32> {
         let src = &self.buf[bounds::MATE_ALIGNMENT_START_RANGE];
         get_position(src.try_into().unwrap())
     }
 
-    pub(super) fn template_length(&self) -> TemplateLength {
+    pub(super) fn template_length(&self) -> i32 {
         let src = &self.buf[bounds::TEMPLATE_LENGTH_RANGE];
         // SAFETY: `src` is 4 bytes.
-        let n = i32::from_le_bytes(src.try_into().unwrap());
-        TemplateLength::new(n)
+        i32::from_le_bytes(src.try_into().unwrap())
     }
 
     pub(super) fn name(&self) -> Option<Name<'a>> {
@@ -136,20 +128,20 @@ impl<'a> Fields<'a> {
     }
 }
 
-fn get_reference_sequence_id(src: [u8; 4]) -> Option<ReferenceSequenceId> {
+fn get_reference_sequence_id(src: [u8; 4]) -> Option<i32> {
     const UNMAPPED: i32 = -1;
 
     match i32::from_le_bytes(src) {
         UNMAPPED => None,
-        n => Some(ReferenceSequenceId::new(n)),
+        n => Some(n),
     }
 }
 
-fn get_position(src: [u8; 4]) -> Option<Position> {
+fn get_position(src: [u8; 4]) -> Option<i32> {
     const MISSING: i32 = -1;
 
     match i32::from_le_bytes(src) {
         MISSING => None,
-        n => Some(Position::new(n)),
+        n => Some(n),
     }
 }

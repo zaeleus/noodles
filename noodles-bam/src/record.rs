@@ -35,7 +35,9 @@ impl Record {
     /// assert!(record.reference_sequence_id().is_none());
     /// ```
     pub fn reference_sequence_id(&self) -> Option<io::Result<usize>> {
-        self.fields().reference_sequence_id().map(usize::try_from)
+        self.fields()
+            .reference_sequence_id()
+            .map(try_to_reference_sequence_id)
     }
 
     /// Returns the alignment start.
@@ -48,7 +50,7 @@ impl Record {
     /// assert!(record.alignment_start().is_none());
     /// ```
     pub fn alignment_start(&self) -> Option<io::Result<Position>> {
-        self.fields().alignment_start().map(Position::try_from)
+        self.fields().alignment_start().map(try_to_position)
     }
 
     /// Returns the mapping quality.
@@ -63,7 +65,7 @@ impl Record {
     pub fn mapping_quality(&self) -> Option<MappingQuality> {
         self.fields()
             .mapping_quality()
-            .map(sam::alignment::record::MappingQuality::from)
+            .and_then(MappingQuality::new)
     }
 
     /// Returns the flags.
@@ -92,7 +94,7 @@ impl Record {
     pub fn mate_reference_sequence_id(&self) -> Option<io::Result<usize>> {
         self.fields()
             .mate_reference_sequence_id()
-            .map(usize::try_from)
+            .map(try_to_reference_sequence_id)
     }
 
     /// Returns the mate alignment start.
@@ -105,7 +107,7 @@ impl Record {
     /// assert!(record.mate_alignment_start().is_none());
     /// ```
     pub fn mate_alignment_start(&self) -> Option<io::Result<Position>> {
-        self.fields().mate_alignment_start().map(Position::try_from)
+        self.fields().mate_alignment_start().map(try_to_position)
     }
 
     /// Returns the template length.
@@ -118,7 +120,7 @@ impl Record {
     /// assert_eq!(i32::from(record.template_length()), 0);
     /// ```
     pub fn template_length(&self) -> i32 {
-        i32::from(self.fields().template_length())
+        self.fields().template_length()
     }
 
     /// Returns the read name.
@@ -402,6 +404,17 @@ fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
     } else {
         Ok(())
     }
+}
+
+fn try_to_reference_sequence_id(n: i32) -> io::Result<usize> {
+    usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+}
+
+fn try_to_position(n: i32) -> io::Result<Position> {
+    usize::try_from(n)
+        .map(|m| m + 1)
+        .and_then(Position::try_from)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 #[cfg(test)]
