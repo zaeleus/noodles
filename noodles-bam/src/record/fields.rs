@@ -1,17 +1,8 @@
 //! BAM record field.
 
-mod cigar;
-pub mod data;
-mod name;
-mod quality_scores;
-mod sequence;
-
 use std::mem;
 
-pub use self::{
-    cigar::Cigar, data::Data, name::Name, quality_scores::QualityScores, sequence::Sequence,
-};
-use super::{bounds, Bounds};
+use super::{bounds, Bounds, Cigar, Data, Name, QualityScores, Sequence};
 
 pub(super) struct Fields<'a> {
     buf: &'a [u8],
@@ -80,7 +71,7 @@ impl<'a> Fields<'a> {
     pub(super) fn cigar(&self) -> Cigar<'a> {
         use bytes::Buf;
 
-        use self::data::get_raw_cigar;
+        use super::data::get_raw_cigar;
 
         const SKIP: u8 = 3;
         const SOFT_CLIP: u8 = 4;

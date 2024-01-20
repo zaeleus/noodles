@@ -1,8 +1,13 @@
 //! BAM record.
 
 mod bounds;
+mod cigar;
 pub mod codec;
-pub mod field;
+pub mod data;
+pub mod fields;
+mod name;
+mod quality_scores;
+mod sequence;
 
 use std::{fmt, io, mem};
 
@@ -12,9 +17,9 @@ use noodles_sam::{
     alignment::record::{Flags, MappingQuality},
 };
 
-use self::{
-    bounds::Bounds,
-    field::{Cigar, Data, Fields, Name, QualityScores, Sequence},
+use self::{bounds::Bounds, fields::Fields};
+pub use self::{
+    cigar::Cigar, data::Data, name::Name, quality_scores::QualityScores, sequence::Sequence,
 };
 
 /// A BAM record.
