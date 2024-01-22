@@ -42,10 +42,39 @@ impl Bounds {
     }
 
     pub fn info_range(&self) -> Range<usize> {
-        self.quality_score_end..self.filters_end
+        self.filters_end..self.info_end
     }
 
     pub fn genotypes_range(&self) -> RangeFrom<usize> {
         self.info_end..
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_correct_ranges() {
+        let bounds = Bounds {
+            chromosome_end: 3,
+            position_end: 4,
+            ids_end: 5,
+            reference_bases_end: 6,
+            alternate_bases_end: 7,
+            quality_score_end: 8,
+            filters_end: 9,
+            info_end: 10,
+        };
+
+        assert_eq!(bounds.chromosome_range(), 0..3);
+        assert_eq!(bounds.position_range(), 3..4);
+        assert_eq!(bounds.ids_range(), 4..5);
+        assert_eq!(bounds.reference_bases_range(), 5..6);
+        assert_eq!(bounds.alternate_bases_range(), 6..7);
+        assert_eq!(bounds.quality_score_range(), 7..8);
+        assert_eq!(bounds.filters_range(), 8..9);
+        assert_eq!(bounds.info_range(), 9..10);
+        assert_eq!(bounds.genotypes_range(), 10..);
     }
 }
