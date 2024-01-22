@@ -43,7 +43,7 @@ use crate::Record;
 /// let mut reader = File::open("sample.bam").map(bam::io::Reader::new)?;
 /// let header = reader.read_header()?;
 ///
-/// for result in reader.record_bufs(&header) {
+/// for result in reader.records() {
 ///     let record = result?;
 ///     // ...
 /// }

@@ -16,7 +16,7 @@
 //! let mut reader = bam::io::reader::Builder::default().build_from_path("sample.bam")?;
 //! let header = reader.read_header()?;
 //!
-//! for result in reader.record_bufs(&header) {
+//! for result in reader.records() {
 //!     let record = result?;
 //!     // ...
 //! }
