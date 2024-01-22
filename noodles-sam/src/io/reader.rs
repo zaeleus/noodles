@@ -37,7 +37,7 @@ use crate::{alignment::RecordBuf, header::ReferenceSequences, Header, Record};
 /// let mut reader = sam::io::reader::Builder::default().build_from_path("sample.sam")?;
 /// let header = reader.read_header()?;
 ///
-/// for result in reader.record_bufs(&header) {
+/// for result in reader.records() {
 ///     let record = result?;
 ///     // ...
 /// }
