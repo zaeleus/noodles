@@ -14,54 +14,80 @@ where
 
     let mut len = 0;
 
-    len += read_field(reader, &mut record.buf)?;
+    len += read_required_field(reader, &mut record.buf)?;
     record.bounds.chromosome_end = record.buf.len();
 
-    len += read_field(reader, &mut record.buf)?;
+    len += read_required_field(reader, &mut record.buf)?;
     record.bounds.position_end = record.buf.len();
 
-    len += read_field(reader, &mut record.buf)?;
+    len += read_required_field(reader, &mut record.buf)?;
     record.bounds.ids_end = record.buf.len();
 
-    len += read_field(reader, &mut record.buf)?;
+    len += read_required_field(reader, &mut record.buf)?;
     record.bounds.reference_bases_end = record.buf.len();
 
-    len += read_field(reader, &mut record.buf)?;
+    len += read_required_field(reader, &mut record.buf)?;
     record.bounds.alternate_bases_end = record.buf.len();
 
-    len += read_field(reader, &mut record.buf)?;
+    len += read_required_field(reader, &mut record.buf)?;
     record.bounds.quality_score_end = record.buf.len();
 
-    len += read_field(reader, &mut record.buf)?;
+    len += read_required_field(reader, &mut record.buf)?;
     record.bounds.filters_end = record.buf.len();
 
-    len += read_field(reader, &mut record.buf)?;
+    let (n, is_eol) = read_last_required_field(reader, &mut record.buf)?;
+    len += n;
     record.bounds.info_end = record.buf.len();
 
-    len += read_line(reader, &mut record.buf)?;
+    if !is_eol {
+        len += read_line(reader, &mut record.buf)?;
+    }
 
     Ok(len)
 }
 
-fn read_field<R>(reader: &mut R, dst: &mut String) -> io::Result<usize>
+fn read_required_field<R>(reader: &mut R, dst: &mut String) -> io::Result<usize>
 where
     R: BufRead,
 {
-    const DELIMITER: u8 = b'\t';
+    let (len, is_eol) = read_field(reader, dst)?;
 
-    let mut is_delimiter = false;
+    if is_eol {
+        Err(io::Error::new(io::ErrorKind::InvalidData, "unexpected EOL"))
+    } else {
+        Ok(len)
+    }
+}
+
+fn read_last_required_field<R>(reader: &mut R, dst: &mut String) -> io::Result<(usize, bool)>
+where
+    R: BufRead,
+{
+    read_field(reader, dst)
+}
+
+fn read_field<R>(reader: &mut R, dst: &mut String) -> io::Result<(usize, bool)>
+where
+    R: BufRead,
+{
+    use memchr::memchr2;
+
+    const DELIMITER: u8 = b'\t';
+    const LINE_FEED: u8 = b'\n';
+
+    let mut r#match = None;
     let mut len = 0;
 
     loop {
         let src = reader.fill_buf()?;
 
-        if is_delimiter || src.is_empty() {
+        if r#match.is_some() || src.is_empty() {
             break;
         }
 
-        let (buf, n) = match src.iter().position(|&b| b == DELIMITER) {
+        let (buf, n) = match memchr2(DELIMITER, LINE_FEED, src) {
             Some(i) => {
-                is_delimiter = true;
+                r#match = Some(src[i]);
                 (&src[..i], i + 1)
             }
             None => (src, src.len()),
@@ -75,7 +101,9 @@ where
         reader.consume(n);
     }
 
-    Ok(len)
+    let is_eol = matches!(r#match, Some(LINE_FEED));
+
+    Ok((len, is_eol))
 }
 
 #[cfg(test)]
@@ -84,7 +112,7 @@ mod tests {
 
     #[test]
     fn test_read_lazy_record() -> io::Result<()> {
-        let mut src = &b"sq0\t1\t.\tA\t.\t.\tPASS\t."[..];
+        let mut src = &b"sq0\t1\t.\tA\t.\t.\tPASS\t.\n"[..];
 
         let mut record = lazy::Record::default();
         read_lazy_record(&mut src, &mut record)?;
@@ -99,6 +127,12 @@ mod tests {
         assert_eq!(record.bounds.quality_score_end, 8);
         assert_eq!(record.bounds.filters_end, 12);
         assert_eq!(record.bounds.info_end, 13);
+
+        let mut src = &b"\n"[..];
+        assert!(matches!(
+            read_lazy_record(&mut src, &mut record),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData,
+        ));
 
         Ok(())
     }

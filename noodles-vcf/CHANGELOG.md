@@ -4,8 +4,11 @@
 
 ### Fixed
 
-  * vcf/lazy/record/bounds: Fix range for info field ([#224]).
+  * vcf/lazy/record/bounds: Fix range for info field ([#223]).
 
+  * vcf/reader/lazy_record: Disallow newlines to appear in fields ([#224]).
+
+[#223]: https://github.com/zaeleus/noodles/pull/223
 [#224]: https://github.com/zaeleus/noodles/pull/224
 
 ## 0.48.0 - 2023-12-14
