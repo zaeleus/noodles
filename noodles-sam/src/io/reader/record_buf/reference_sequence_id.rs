@@ -1,4 +1,6 @@
-use std::{error, fmt, str};
+use std::{error, fmt};
+
+use bstr::BString;
 
 use crate::Header;
 
@@ -6,7 +8,7 @@ use crate::Header;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The reference sequence is not in the reference sequence dictionary.
-    MissingReferenceSequenceDictionaryEntry(Vec<u8>),
+    MissingReferenceSequenceDictionaryEntry(BString),
 }
 
 impl error::Error for ParseError {}
@@ -14,9 +16,7 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::MissingReferenceSequenceDictionaryEntry(buf) => {
-                let name = str::from_utf8(buf).map_err(|_| fmt::Error)?;
-
+            Self::MissingReferenceSequenceDictionaryEntry(name) => {
                 write!(f, "missing reference sequence dictionary entry: {name}")
             }
         }
@@ -63,14 +63,14 @@ mod tests {
         assert_eq!(
             parse_reference_sequence_id(&header, b"*"),
             Err(ParseError::MissingReferenceSequenceDictionaryEntry(
-                Vec::from("*")
+                BString::from("*")
             ))
         );
 
         assert_eq!(
             parse_reference_sequence_id(&header, b"sq2"),
             Err(ParseError::MissingReferenceSequenceDictionaryEntry(
-                Vec::from("sq2")
+                BString::from("sq2")
             ))
         );
     }
