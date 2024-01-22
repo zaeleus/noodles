@@ -139,7 +139,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_header() -> Result<(), map::reference_sequence::name::ParseError> {
+    fn test_parse_header() {
         const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
             Some(length) => length,
             None => unreachable!(),
@@ -152,8 +152,6 @@ mod tests {
         let expected = (BString::from("sq0"), Map::<ReferenceSequence>::new(SQ0_LN));
 
         assert_eq!(actual, Ok(expected));
-
-        Ok(())
     }
 
     #[test]

@@ -47,10 +47,7 @@ impl Builder {
     /// use bstr::BString;
     /// use noodles_sam::{
     ///     self as sam,
-    ///     header::record::value::{
-    ///         map::{reference_sequence::Name, ReferenceSequence},
-    ///         Map,
-    ///     }
+    ///     header::record::value::{map::ReferenceSequence, Map},
     /// };
     ///
     /// let reference_sequences = [(
@@ -67,7 +64,7 @@ impl Builder {
     /// let reference_sequences = header.reference_sequences();
     /// assert_eq!(reference_sequences.len(), 1);
     /// assert!(reference_sequences.contains_key(&b"sq0"[..]));
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// # Ok::<(), std::num::TryFromIntError>(())
     /// ```
     pub fn set_reference_sequences(mut self, reference_sequences: ReferenceSequences) -> Self {
         self.reference_sequences = reference_sequences;

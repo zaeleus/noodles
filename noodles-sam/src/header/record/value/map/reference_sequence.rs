@@ -3,13 +3,12 @@
 mod builder;
 pub mod md5_checksum;
 pub mod molecule_topology;
-pub mod name;
 pub mod tag;
 
 use std::num::NonZeroUsize;
 
+pub use self::md5_checksum::Md5Checksum;
 pub(crate) use self::tag::Tag;
-pub use self::{md5_checksum::Md5Checksum, name::Name};
 
 use self::builder::Builder;
 use super::{Inner, Map, OtherFields};
