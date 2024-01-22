@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * vcf/lazy/record/bounds: Fix range for info field ([#224]).
+
+[#224]: https://github.com/zaeleus/noodles/pull/224
+
 ## 0.48.0 - 2023-12-14
 
 ### Changed
