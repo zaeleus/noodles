@@ -4,7 +4,6 @@ mod builder;
 pub mod platform;
 pub mod tag;
 
-pub use self::platform::Platform;
 pub(crate) use self::tag::Tag;
 
 use self::builder::Builder;
