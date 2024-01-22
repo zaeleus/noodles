@@ -1,7 +1,5 @@
 //! SAM header record reference sequence map value.
 
-pub mod alternative_locus;
-pub mod alternative_names;
 mod builder;
 pub mod md5_checksum;
 pub mod molecule_topology;
@@ -11,10 +9,7 @@ pub mod tag;
 use std::num::NonZeroUsize;
 
 pub(crate) use self::tag::Tag;
-pub use self::{
-    alternative_locus::AlternativeLocus, alternative_names::AlternativeNames,
-    md5_checksum::Md5Checksum, molecule_topology::MoleculeTopology, name::Name,
-};
+pub use self::{md5_checksum::Md5Checksum, name::Name};
 
 use self::builder::Builder;
 use super::{Inner, Map, OtherFields};
