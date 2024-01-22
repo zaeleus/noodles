@@ -16,12 +16,12 @@ use noodles_csi::{
 use noodles_sam::{self as sam, alignment::RecordBuf};
 
 fn is_coordinate_sorted(header: &sam::Header) -> bool {
-    use sam::header::record::value::map::header::tag;
+    use sam::header::record::value::map::header::{sort_order, tag};
 
     header
         .header()
         .and_then(|hdr| hdr.other_fields().get(&tag::SORT_ORDER))
-        .map(|sort_order| sort_order == "coordinate")
+        .map(|sort_order| sort_order == sort_order::COORDINATE)
         .unwrap_or_default()
 }
 

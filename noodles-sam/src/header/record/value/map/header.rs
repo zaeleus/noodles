@@ -3,14 +3,10 @@
 mod builder;
 pub mod group_order;
 pub mod sort_order;
-pub mod subsort_order;
 pub mod tag;
 pub mod version;
 
-pub use self::{
-    group_order::GroupOrder, sort_order::SortOrder, subsort_order::SubsortOrder, tag::Tag,
-    version::Version,
-};
+pub use self::{tag::Tag, version::Version};
 
 use self::builder::Builder;
 use super::{Inner, Map, OtherFields};
