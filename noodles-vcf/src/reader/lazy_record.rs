@@ -6,7 +6,7 @@ use std::{
 use super::read_line;
 use crate::lazy;
 
-pub(super) fn read_lazy_record<R>(reader: &mut R, record: &mut lazy::Record) -> io::Result<usize>
+pub(crate) fn read_lazy_record<R>(reader: &mut R, record: &mut lazy::Record) -> io::Result<usize>
 where
     R: BufRead,
 {

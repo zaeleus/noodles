@@ -2,7 +2,7 @@
 
 mod builder;
 mod header;
-mod lazy_record;
+pub(crate) mod lazy_record;
 pub(crate) mod query;
 pub mod record;
 mod records;
