@@ -36,7 +36,7 @@ use crate::{
 /// use noodles_bam as bam;
 /// use tokio::fs::File;
 ///
-/// let mut reader = File::open("sample.bam").await.map(bam::AsyncReader::new)?;
+/// let mut reader = File::open("sample.bam").await.map(bam::r#async::io::Reader::new)?;
 /// let header = reader.read_header().await?.parse()?;
 /// reader.read_reference_sequences().await?;
 ///
@@ -64,7 +64,7 @@ where
     /// ```
     /// use noodles_bam as bam;
     /// let data = [];
-    /// let reader = bam::AsyncReader::from(&data[..]);
+    /// let reader = bam::r#async::io::Reader::from(&data[..]);
     /// assert!(reader.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &R {
@@ -78,7 +78,7 @@ where
     /// ```
     /// use noodles_bam as bam;
     /// let data = [];
-    /// let mut reader = bam::AsyncReader::from(&data[..]);
+    /// let mut reader = bam::r#async::io::Reader::from(&data[..]);
     /// assert!(reader.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
@@ -92,7 +92,7 @@ where
     /// ```
     /// use noodles_bam as bam;
     /// let data = [];
-    /// let reader = bam::AsyncReader::from(&data[..]);
+    /// let reader = bam::r#async::io::Reader::from(&data[..]);
     /// assert!(reader.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> R {
@@ -118,7 +118,7 @@ where
     /// use noodles_bam as bam;
     /// use tokio::fs::File;
     ///
-    /// let mut reader = File::open("sample.bam").await.map(bam::AsyncReader::new)?;
+    /// let mut reader = File::open("sample.bam").await.map(bam::r#async::io::Reader::new)?;
     /// let header = reader.read_header().await?;
     /// # Ok(())
     /// # }
@@ -149,7 +149,7 @@ where
     /// use noodles_bam as bam;
     /// use tokio::fs::File;
     ///
-    /// let mut reader = File::open("sample.bam").await.map(bam::AsyncReader::new)?;
+    /// let mut reader = File::open("sample.bam").await.map(bam::r#async::io::Reader::new)?;
     /// reader.read_header().await?;
     /// let reference_sequences = reader.read_reference_sequences().await?;
     /// # Ok(())
@@ -183,7 +183,7 @@ where
     /// use noodles_sam::alignment::RecordBuf;
     /// use tokio::fs::File;
     ///
-    /// let mut reader = File::open("sample.bam").await.map(bam::AsyncReader::new)?;
+    /// let mut reader = File::open("sample.bam").await.map(bam::r#async::io::Reader::new)?;
     /// let header = reader.read_header().await?.parse()?;
     /// reader.read_reference_sequences().await?;
     ///
@@ -223,7 +223,7 @@ where
     /// use noodles_bam as bam;
     /// use tokio::fs::File;
     ///
-    /// let mut reader = File::open("sample.bam").await.map(bam::AsyncReader::new)?;
+    /// let mut reader = File::open("sample.bam").await.map(bam::r#async::io::Reader::new)?;
     /// reader.read_header().await?;
     /// reader.read_reference_sequences().await?;
     ///
@@ -264,7 +264,7 @@ where
     /// use noodles_bam as bam;
     /// use tokio::fs::File;
     ///
-    /// let mut reader = File::open("sample.bam").await.map(bam::AsyncReader::new)?;
+    /// let mut reader = File::open("sample.bam").await.map(bam::r#async::io::Reader::new)?;
     /// let header = reader.read_header().await?.parse()?;
     /// reader.read_reference_sequences().await?;
     ///
@@ -309,7 +309,7 @@ where
     /// use noodles_bam as bam;
     /// use tokio::fs::File;
     ///
-    /// let mut reader = File::open("sample.bam").await.map(bam::AsyncReader::new)?;
+    /// let mut reader = File::open("sample.bam").await.map(bam::r#async::io::Reader::new)?;
     /// reader.read_header().await?;
     /// reader.read_reference_sequences().await?;
     ///
@@ -345,7 +345,7 @@ where
     /// ```
     /// use noodles_bam as bam;
     /// let data = [];
-    /// let reader = bam::AsyncReader::new(&data[..]);
+    /// let reader = bam::r#async::io::Reader::new(&data[..]);
     /// ```
     pub fn new(reader: R) -> Self {
         Self::from(bgzf::AsyncReader::new(reader))
@@ -360,7 +360,7 @@ where
     /// use noodles_bgzf as bgzf;
     ///
     /// let data = Vec::new();
-    /// let reader = bam::AsyncReader::new(&data[..]);
+    /// let reader = bam::r#async::io::Reader::new(&data[..]);
     /// let virtual_position = reader.virtual_position();
     ///
     /// assert_eq!(reader.virtual_position(), bgzf::VirtualPosition::from(0));
@@ -389,7 +389,7 @@ where
     /// use noodles_bgzf as bgzf;
     ///
     /// let data = [];
-    /// let mut reader = bam::AsyncReader::new(Cursor::new(data));
+    /// let mut reader = bam::r#async::io::Reader::new(Cursor::new(data));
     ///
     /// let virtual_position = bgzf::VirtualPosition::default();
     /// reader.seek(virtual_position).await?;

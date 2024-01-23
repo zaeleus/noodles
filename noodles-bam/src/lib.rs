@@ -45,7 +45,7 @@
 //! ```
 
 #[cfg(feature = "async")]
-mod r#async;
+pub mod r#async;
 
 pub mod bai;
 pub mod io;
@@ -54,6 +54,6 @@ pub mod record;
 pub use self::record::Record;
 
 #[cfg(feature = "async")]
-pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};
+pub use self::r#async::{io::Reader as AsyncReader, Writer as AsyncWriter};
 
 static MAGIC_NUMBER: &[u8] = b"BAM\x01";
