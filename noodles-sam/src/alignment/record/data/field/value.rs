@@ -2,6 +2,8 @@
 
 pub mod array;
 
+use std::io;
+
 use bstr::BStr;
 
 pub use self::array::Array;
@@ -81,6 +83,26 @@ impl<'a> Value<'a> {
             Self::Int32(n) => Some(i64::from(*n)),
             Self::UInt32(n) => Some(i64::from(*n)),
             _ => None,
+        }
+    }
+}
+
+impl<'a> TryFrom<Value<'a>> for crate::alignment::record_buf::data::field::Value {
+    type Error = io::Error;
+
+    fn try_from(value: Value<'a>) -> Result<Self, Self::Error> {
+        match value {
+            Value::Character(b) => Ok(Self::Character(b)),
+            Value::Int8(n) => Ok(Self::Int8(n)),
+            Value::UInt8(n) => Ok(Self::UInt8(n)),
+            Value::Int16(n) => Ok(Self::Int16(n)),
+            Value::UInt16(n) => Ok(Self::UInt16(n)),
+            Value::Int32(n) => Ok(Self::Int32(n)),
+            Value::UInt32(n) => Ok(Self::UInt32(n)),
+            Value::Float(n) => Ok(Self::Float(n)),
+            Value::String(s) => Ok(Self::String(s.into())),
+            Value::Hex(s) => Ok(Self::Hex(s.into())),
+            Value::Array(array) => array.try_into().map(Self::Array),
         }
     }
 }
