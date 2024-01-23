@@ -24,11 +24,23 @@ where
     }
 }
 
-pub fn write_character<W>(writer: &mut W, c: u8) -> io::Result<()>
+fn write_character<W>(writer: &mut W, b: u8) -> io::Result<()>
 where
     W: Write,
 {
-    writer.write_all(&[c])
+    if is_valid_character(b) {
+        writer.write_all(&[b])
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid character",
+        ))
+    }
+}
+
+// § 1.5 "The alignment section: optional fields" (2023-05-24): "`[!-~]`".
+fn is_valid_character(b: u8) -> bool {
+    b.is_ascii_graphic()
 }
 
 #[cfg(test)]
@@ -68,5 +80,11 @@ mod tests {
         )?;
 
         Ok(())
+    }
+
+    #[test]
+    fn test_is_valid_character() {
+        assert!(is_valid_character(b'n'));
+        assert!(!is_valid_character(b'\t'));
     }
 }
