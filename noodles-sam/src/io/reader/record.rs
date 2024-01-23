@@ -7,46 +7,51 @@ pub(super) fn read_record<R>(reader: &mut R, record: &mut Record) -> io::Result<
 where
     R: BufRead,
 {
-    record.buf.clear();
+    let fields = record.fields_mut();
+
+    let buf = &mut fields.buf;
+    buf.clear();
+
+    let bounds = &mut fields.bounds;
 
     let mut len = 0;
 
-    len += read_required_field(reader, &mut record.buf)?;
-    record.bounds.name_end = record.buf.len();
+    len += read_required_field(reader, buf)?;
+    bounds.name_end = buf.len();
 
-    len += read_required_field(reader, &mut record.buf)?;
-    record.bounds.flags_end = record.buf.len();
+    len += read_required_field(reader, buf)?;
+    bounds.flags_end = buf.len();
 
-    len += read_required_field(reader, &mut record.buf)?;
-    record.bounds.reference_sequence_name_end = record.buf.len();
+    len += read_required_field(reader, buf)?;
+    bounds.reference_sequence_name_end = buf.len();
 
-    len += read_required_field(reader, &mut record.buf)?;
-    record.bounds.alignment_start_end = record.buf.len();
+    len += read_required_field(reader, buf)?;
+    bounds.alignment_start_end = buf.len();
 
-    len += read_required_field(reader, &mut record.buf)?;
-    record.bounds.mapping_quality_end = record.buf.len();
+    len += read_required_field(reader, buf)?;
+    bounds.mapping_quality_end = buf.len();
 
-    len += read_required_field(reader, &mut record.buf)?;
-    record.bounds.cigar_end = record.buf.len();
+    len += read_required_field(reader, buf)?;
+    bounds.cigar_end = buf.len();
 
-    len += read_required_field(reader, &mut record.buf)?;
-    record.bounds.mate_reference_sequence_name_end = record.buf.len();
+    len += read_required_field(reader, buf)?;
+    bounds.mate_reference_sequence_name_end = buf.len();
 
-    len += read_required_field(reader, &mut record.buf)?;
-    record.bounds.mate_alignment_start_end = record.buf.len();
+    len += read_required_field(reader, buf)?;
+    bounds.mate_alignment_start_end = buf.len();
 
-    len += read_required_field(reader, &mut record.buf)?;
-    record.bounds.template_length_end = record.buf.len();
+    len += read_required_field(reader, buf)?;
+    bounds.template_length_end = buf.len();
 
-    len += read_required_field(reader, &mut record.buf)?;
-    record.bounds.sequence_end = record.buf.len();
+    len += read_required_field(reader, buf)?;
+    bounds.sequence_end = buf.len();
 
-    let (n, is_eol) = read_last_required_field(reader, &mut record.buf)?;
+    let (n, is_eol) = read_last_required_field(reader, buf)?;
     len += n;
-    record.bounds.quality_scores_end = record.buf.len();
+    bounds.quality_scores_end = buf.len();
 
     if !is_eol {
-        len += read_line(reader, &mut record.buf)?;
+        len += read_line(reader, buf)?;
     }
 
     Ok(len)
@@ -124,14 +129,14 @@ mod tests {
         let mut src = &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\n"[..];
         let mut record = Record::default();
         read_record(&mut src, &mut record)?;
-        assert_eq!(record.buf, b"*4*0255**00**");
-        assert_eq!(record.bounds, Bounds::default());
+        assert_eq!(record.fields().buf, b"*4*0255**00**");
+        assert_eq!(record.fields().bounds, Bounds::default());
 
         let mut src = &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\r\n"[..];
         let mut record = Record::default();
         read_record(&mut src, &mut record)?;
-        assert_eq!(record.buf, b"*4*0255**00**");
-        assert_eq!(record.bounds, Bounds::default());
+        assert_eq!(record.fields().buf, b"*4*0255**00**");
+        assert_eq!(record.fields().bounds, Bounds::default());
 
         let mut src = &b"\n"[..];
         assert!(matches!(

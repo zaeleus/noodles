@@ -10,17 +10,14 @@ use crate::Header;
 
 const MISSING: &[u8] = b"*";
 
-pub(super) struct Fields<'a> {
-    buf: &'a [u8],
-    bounds: &'a Bounds,
+#[derive(Clone, Eq, PartialEq)]
+pub(crate) struct Fields {
+    pub(crate) buf: Vec<u8>,
+    pub(crate) bounds: Bounds,
 }
 
-impl<'a> Fields<'a> {
-    pub(super) fn new(buf: &'a [u8], bounds: &'a Bounds) -> Self {
-        Self { buf, bounds }
-    }
-
-    pub fn name(&self) -> Option<Name<'a>> {
+impl Fields {
+    pub fn name(&self) -> Option<Name<'_>> {
         match &self.buf[self.bounds.name_range()] {
             MISSING => None,
             buf => Some(Name::new(buf)),
@@ -32,14 +29,14 @@ impl<'a> Fields<'a> {
         lexical_core::parse(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
-    pub fn reference_sequence_id<'h: 'a>(&self, header: &'h Header) -> Option<io::Result<usize>> {
+    pub fn reference_sequence_id(&self, header: &Header) -> Option<io::Result<usize>> {
         self.reference_sequence_name()
             .map(|reference_sequence_name| {
                 get_reference_sequence_id(header, reference_sequence_name.as_ref())
             })
     }
 
-    pub fn reference_sequence_name(&self) -> Option<ReferenceSequenceName<'a>> {
+    pub fn reference_sequence_name(&self) -> Option<ReferenceSequenceName<'_>> {
         match &self.buf[self.bounds.reference_sequence_name_range()] {
             MISSING => None,
             buf => Some(ReferenceSequenceName::new(buf)),
@@ -64,7 +61,7 @@ impl<'a> Fields<'a> {
         }
     }
 
-    pub fn cigar(&self) -> Cigar<'a> {
+    pub fn cigar(&self) -> Cigar<'_> {
         match &self.buf[self.bounds.cigar_range()] {
             MISSING => Cigar::new(b""),
             buf => Cigar::new(buf),
@@ -78,7 +75,7 @@ impl<'a> Fields<'a> {
             })
     }
 
-    pub fn mate_reference_sequence_name(&self) -> Option<ReferenceSequenceName<'a>> {
+    pub fn mate_reference_sequence_name(&self) -> Option<ReferenceSequenceName<'_>> {
         const EQ: &[u8] = b"=";
 
         match &self.buf[self.bounds.mate_reference_sequence_name_range()] {
@@ -102,7 +99,7 @@ impl<'a> Fields<'a> {
         parse_int(buf)
     }
 
-    pub fn sequence(&self) -> Sequence<'a> {
+    pub fn sequence(&self) -> Sequence<'_> {
         let buf = match &self.buf[self.bounds.sequence_range()] {
             MISSING => b"",
             buf => buf,
@@ -111,7 +108,7 @@ impl<'a> Fields<'a> {
         Sequence::new(buf)
     }
 
-    pub fn quality_scores(&self) -> QualityScores<'a> {
+    pub fn quality_scores(&self) -> QualityScores<'_> {
         let buf = match &self.buf[self.bounds.quality_scores_range()] {
             MISSING => b"",
             buf => buf,
@@ -120,9 +117,18 @@ impl<'a> Fields<'a> {
         QualityScores::new(buf)
     }
 
-    pub fn data(&self) -> Data<'a> {
+    pub fn data(&self) -> Data<'_> {
         let buf = &self.buf[self.bounds.data_range()];
         Data::new(buf)
+    }
+}
+
+impl Default for Fields {
+    fn default() -> Self {
+        Self {
+            buf: Vec::from(b"*4*0255**00**"),
+            bounds: Bounds::default(),
+        }
     }
 }
 
