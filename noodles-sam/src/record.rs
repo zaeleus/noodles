@@ -13,7 +13,8 @@ use std::{fmt, io};
 
 use noodles_core::Position;
 
-use self::{bounds::Bounds, fields::Fields};
+pub(crate) use self::bounds::Bounds;
+use self::fields::Fields;
 pub use self::{
     cigar::Cigar, data::Data, name::Name, quality_scores::QualityScores,
     reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
@@ -309,22 +310,9 @@ impl crate::alignment::Record for Record {
 
 impl Default for Record {
     fn default() -> Self {
-        let buf = b"*4*0255**00**".to_vec();
-
-        let bounds = Bounds {
-            name_end: 1,
-            flags_end: 2,
-            reference_sequence_name_end: 3,
-            alignment_start_end: 4,
-            mapping_quality_end: 7,
-            cigar_end: 8,
-            mate_reference_sequence_name_end: 9,
-            mate_alignment_start_end: 10,
-            template_length_end: 11,
-            sequence_end: 12,
-            quality_scores_end: 13,
-        };
-
-        Self { buf, bounds }
+        Self {
+            buf: Vec::from(b"*4*0255**00**"),
+            bounds: Bounds::default(),
+        }
     }
 }

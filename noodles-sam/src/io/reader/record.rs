@@ -116,6 +116,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::record::Bounds;
 
     #[test]
     fn test_read_record() -> io::Result<()> {
@@ -125,18 +126,7 @@ mod tests {
         read_record(&mut src, &mut record)?;
 
         assert_eq!(record.buf, b"*4*0255**00**");
-
-        assert_eq!(record.bounds.name_end, 1);
-        assert_eq!(record.bounds.flags_end, 2);
-        assert_eq!(record.bounds.reference_sequence_name_end, 3);
-        assert_eq!(record.bounds.alignment_start_end, 4);
-        assert_eq!(record.bounds.mapping_quality_end, 7);
-        assert_eq!(record.bounds.cigar_end, 8);
-        assert_eq!(record.bounds.mate_reference_sequence_name_end, 9);
-        assert_eq!(record.bounds.mate_alignment_start_end, 10);
-        assert_eq!(record.bounds.template_length_end, 11);
-        assert_eq!(record.bounds.sequence_end, 12);
-        assert_eq!(record.bounds.quality_scores_end, 13);
+        assert_eq!(record.bounds, Bounds::default());
 
         let mut src = &b"\n"[..];
         assert!(matches!(

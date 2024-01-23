@@ -64,3 +64,21 @@ impl Bounds {
         self.quality_scores_end..
     }
 }
+
+impl Default for Bounds {
+    fn default() -> Self {
+        Self {
+            name_end: 1,
+            flags_end: 2,
+            reference_sequence_name_end: 3,
+            alignment_start_end: 4,
+            mapping_quality_end: 7,
+            cigar_end: 8,
+            mate_reference_sequence_name_end: 9,
+            mate_alignment_start_end: 10,
+            template_length_end: 11,
+            sequence_end: 12,
+            quality_scores_end: 13,
+        }
+    }
+}
