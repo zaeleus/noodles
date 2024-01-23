@@ -187,12 +187,14 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        let block_size = match read_record(&mut self.inner, &mut record.buf)? {
+        let fields = record.fields_mut();
+
+        let block_size = match read_record(&mut self.inner, &mut fields.buf)? {
             0 => return Ok(0),
             n => n,
         };
 
-        record.index()?;
+        fields.index()?;
 
         Ok(block_size)
     }

@@ -240,10 +240,12 @@ where
             n => n,
         };
 
-        record.buf.resize(block_size, 0);
-        self.inner.read_exact(&mut record.buf).await?;
+        let fields = record.fields_mut();
 
-        record.index()?;
+        fields.buf.resize(block_size, 0);
+        self.inner.read_exact(&mut fields.buf).await?;
+
+        fields.index()?;
 
         Ok(block_size)
     }

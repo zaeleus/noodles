@@ -9,7 +9,7 @@ mod name;
 mod quality_scores;
 mod sequence;
 
-use std::{fmt, io, mem};
+use std::{fmt, io};
 
 use noodles_core::Position;
 use noodles_sam::{
@@ -17,19 +17,21 @@ use noodles_sam::{
     alignment::record::{Flags, MappingQuality},
 };
 
-use self::{bounds::Bounds, fields::Fields};
+use self::bounds::Bounds;
+pub(crate) use self::fields::Fields;
 pub use self::{
     cigar::Cigar, data::Data, name::Name, quality_scores::QualityScores, sequence::Sequence,
 };
 
 /// A BAM record.
-#[derive(Clone, Eq, PartialEq)]
-pub struct Record {
-    pub(crate) buf: Vec<u8>,
-    bounds: Bounds,
-}
+#[derive(Clone, Default, Eq, PartialEq)]
+pub struct Record(Fields);
 
 impl Record {
+    pub(crate) fn fields_mut(&mut self) -> &mut Fields {
+        &mut self.0
+    }
+
     /// Returns the reference sequence ID.
     ///
     /// # Examples
@@ -40,7 +42,7 @@ impl Record {
     /// assert!(record.reference_sequence_id().is_none());
     /// ```
     pub fn reference_sequence_id(&self) -> Option<io::Result<usize>> {
-        self.fields()
+        self.0
             .reference_sequence_id()
             .map(try_to_reference_sequence_id)
     }
@@ -55,7 +57,7 @@ impl Record {
     /// assert!(record.alignment_start().is_none());
     /// ```
     pub fn alignment_start(&self) -> Option<io::Result<Position>> {
-        self.fields().alignment_start().map(try_to_position)
+        self.0.alignment_start().map(try_to_position)
     }
 
     /// Returns the mapping quality.
@@ -68,9 +70,7 @@ impl Record {
     /// assert!(record.mapping_quality().is_none());
     /// ```
     pub fn mapping_quality(&self) -> Option<MappingQuality> {
-        self.fields()
-            .mapping_quality()
-            .and_then(MappingQuality::new)
+        self.0.mapping_quality().and_then(MappingQuality::new)
     }
 
     /// Returns the flags.
@@ -84,7 +84,7 @@ impl Record {
     /// assert_eq!(Flags::from(record.flags()), Flags::UNMAPPED);
     /// ```
     pub fn flags(&self) -> Flags {
-        Flags::from(self.fields().flags())
+        Flags::from(self.0.flags())
     }
 
     /// Returns the mate reference sequence ID.
@@ -97,7 +97,7 @@ impl Record {
     /// assert!(record.mate_reference_sequence_id().is_none());
     /// ```
     pub fn mate_reference_sequence_id(&self) -> Option<io::Result<usize>> {
-        self.fields()
+        self.0
             .mate_reference_sequence_id()
             .map(try_to_reference_sequence_id)
     }
@@ -112,7 +112,7 @@ impl Record {
     /// assert!(record.mate_alignment_start().is_none());
     /// ```
     pub fn mate_alignment_start(&self) -> Option<io::Result<Position>> {
-        self.fields().mate_alignment_start().map(try_to_position)
+        self.0.mate_alignment_start().map(try_to_position)
     }
 
     /// Returns the template length.
@@ -125,7 +125,7 @@ impl Record {
     /// assert_eq!(i32::from(record.template_length()), 0);
     /// ```
     pub fn template_length(&self) -> i32 {
-        self.fields().template_length()
+        self.0.template_length()
     }
 
     /// Returns the read name.
@@ -138,7 +138,7 @@ impl Record {
     /// assert!(record.name().is_none());
     /// ```
     pub fn name(&self) -> Option<Name> {
-        self.fields().name()
+        self.0.name()
     }
 
     /// Returns the CIGAR operations.
@@ -151,7 +151,7 @@ impl Record {
     /// assert!(record.cigar().is_empty());
     /// ```
     pub fn cigar(&self) -> Cigar<'_> {
-        self.fields().cigar()
+        self.0.cigar()
     }
 
     /// Returns the sequence.
@@ -164,7 +164,7 @@ impl Record {
     /// assert!(record.sequence().is_empty());
     /// ```
     pub fn sequence(&self) -> Sequence<'_> {
-        self.fields().sequence()
+        self.0.sequence()
     }
 
     /// Returns the quality scores.
@@ -177,7 +177,7 @@ impl Record {
     /// assert!(record.quality_scores().is_empty());
     /// ```
     pub fn quality_scores(&self) -> QualityScores<'_> {
-        self.fields().quality_scores()
+        self.0.quality_scores()
     }
 
     /// Returns the data.
@@ -190,15 +190,7 @@ impl Record {
     /// assert!(record.data().is_empty());
     /// ```
     pub fn data(&self) -> Data<'_> {
-        self.fields().data()
-    }
-
-    fn fields(&self) -> Fields<'_> {
-        Fields::new(&self.buf, &self.bounds)
-    }
-
-    pub(crate) fn index(&mut self) -> io::Result<()> {
-        index(&self.buf[..], &mut self.bounds)
+        self.0.data()
     }
 }
 
@@ -281,66 +273,6 @@ impl sam::alignment::Record for Record {
     }
 }
 
-impl Default for Record {
-    fn default() -> Self {
-        let buf = vec![
-            0xff, 0xff, 0xff, 0xff, // ref_id = -1
-            0xff, 0xff, 0xff, 0xff, // pos = -1
-            0x02, // l_read_name = 2
-            0xff, // mapq = 255
-            0x48, 0x12, // bin = 4680
-            0x00, 0x00, // n_cigar_op = 0
-            0x04, 0x00, // flag = 4
-            0x00, 0x00, 0x00, 0x00, // l_seq = 0
-            0xff, 0xff, 0xff, 0xff, // next_ref_id = -1
-            0xff, 0xff, 0xff, 0xff, // next_pos = -1
-            0x00, 0x00, 0x00, 0x00, // tlen = 0
-            b'*', 0x00, // read_name = "*\x00"
-        ];
-
-        let bounds = Bounds {
-            name_end: buf.len(),
-            cigar_end: buf.len(),
-            sequence_end: buf.len(),
-            quality_scores_end: buf.len(),
-        };
-
-        Self { buf, bounds }
-    }
-}
-
-fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
-    const MIN_BUF_LENGTH: usize = bounds::TEMPLATE_LENGTH_RANGE.end;
-
-    if buf.len() < MIN_BUF_LENGTH {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
-
-    let read_name_len = usize::from(buf[bounds::NAME_LENGTH_INDEX]);
-    bounds.name_end = bounds::TEMPLATE_LENGTH_RANGE.end + read_name_len;
-
-    let src = &buf[bounds::CIGAR_OP_COUNT_RANGE];
-    // SAFETY: `src` is 2 bytes.
-    let cigar_op_count = usize::from(u16::from_le_bytes(src.try_into().unwrap()));
-    let cigar_len = mem::size_of::<u32>() * cigar_op_count;
-    bounds.cigar_end = bounds.name_end + cigar_len;
-
-    let src = &buf[bounds::READ_LENGTH_RANGE];
-    // SAFETY: `src` is 4 bytes.
-    let base_count = usize::try_from(u32::from_le_bytes(src.try_into().unwrap()))
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-    let sequence_len = (base_count + 1) / 2;
-    bounds.sequence_end = bounds.cigar_end + sequence_len;
-
-    bounds.quality_scores_end = bounds.sequence_end + base_count;
-
-    if buf.len() < bounds.quality_scores_end {
-        Err(io::Error::from(io::ErrorKind::UnexpectedEof))
-    } else {
-        Ok(())
-    }
-}
-
 fn try_to_reference_sequence_id(n: i32) -> io::Result<usize> {
     usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
@@ -355,42 +287,6 @@ fn try_to_position(n: i32) -> io::Result<Position> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    static DATA: &[u8] = &[
-        0xff, 0xff, 0xff, 0xff, // ref_id = -1
-        0xff, 0xff, 0xff, 0xff, // pos = -1
-        0x02, // l_read_name = 2
-        0xff, // mapq = 255
-        0x48, 0x12, // bin = 4680
-        0x01, 0x00, // n_cigar_op = 1
-        0x04, 0x00, // flag = 4
-        0x04, 0x00, 0x00, 0x00, // l_seq = 0
-        0xff, 0xff, 0xff, 0xff, // next_ref_id = -1
-        0xff, 0xff, 0xff, 0xff, // next_pos = -1
-        0x00, 0x00, 0x00, 0x00, // tlen = 0
-        b'*', 0x00, // read_name = "*\x00"
-        0x40, 0x00, 0x00, 0x00, // cigar = 4M
-        0x12, 0x48, // sequence = ACGT
-        b'N', b'D', b'L', b'S', // quality scores
-    ];
-
-    #[test]
-    fn test_index() -> io::Result<()> {
-        let mut record = Record::default();
-
-        record.buf.clear();
-        record.buf.extend(DATA);
-
-        record.index()?;
-
-        assert_eq!(record.bounds.name_range(), 32..34);
-        assert_eq!(record.bounds.cigar_range(), 34..38);
-        assert_eq!(record.bounds.sequence_range(), 38..40);
-        assert_eq!(record.bounds.quality_scores_range(), 40..44);
-        assert_eq!(record.bounds.data_range(), 44..);
-
-        Ok(())
-    }
 
     #[test]
     fn test_cigar_with_oversized_cigar() -> Result<(), Box<dyn std::error::Error>> {
@@ -442,13 +338,7 @@ mod tests {
 
         encode(&mut buf, &header, &record)?;
 
-        let mut record = Record {
-            buf,
-            ..Default::default()
-        };
-
-        record.index()?;
-
+        let record = Fields::try_from(buf).map(Record)?;
         assert_eq!(record.cigar().len(), BASE_COUNT);
 
         Ok(())
