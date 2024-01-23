@@ -281,29 +281,6 @@ impl sam::alignment::Record for Record {
     }
 }
 
-impl AsRef<[u8]> for Record {
-    fn as_ref(&self) -> &[u8] {
-        &self.buf
-    }
-}
-
-impl TryFrom<Vec<u8>> for Record {
-    type Error = io::Error;
-
-    fn try_from(buf: Vec<u8>) -> Result<Self, Self::Error> {
-        let mut bounds = Bounds {
-            name_end: 0,
-            cigar_end: 0,
-            sequence_end: 0,
-            quality_scores_end: 0,
-        };
-
-        index(&buf, &mut bounds)?;
-
-        Ok(Record { buf, bounds })
-    }
-}
-
 impl Default for Record {
     fn default() -> Self {
         let buf = vec![
@@ -452,21 +429,6 @@ mod tests {
         record.buf.extend(DATA);
 
         record.index()?;
-
-        assert_eq!(record.bounds.name_range(), 32..34);
-        assert_eq!(record.bounds.cigar_range(), 34..38);
-        assert_eq!(record.bounds.sequence_range(), 38..40);
-        assert_eq!(record.bounds.quality_scores_range(), 40..44);
-        assert_eq!(record.bounds.data_range(), 44..);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_try_from_vec_u8_for_record() -> io::Result<()> {
-        let record = Record::try_from(DATA.to_vec())?;
-
-        assert_eq!(record.buf, DATA);
 
         assert_eq!(record.bounds.name_range(), 32..34);
         assert_eq!(record.bounds.cigar_range(), 34..38);
