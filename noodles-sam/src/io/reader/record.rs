@@ -80,6 +80,7 @@ where
 
     const DELIMITER: u8 = b'\t';
     const LINE_FEED: u8 = b'\n';
+    const CARRIAGE_RETURN: u8 = b'\r';
 
     let mut r#match = None;
     let mut len = 0;
@@ -91,20 +92,20 @@ where
             break;
         }
 
-        let n = match memchr2(DELIMITER, LINE_FEED, src) {
+        let (mut buf, n) = match memchr2(DELIMITER, LINE_FEED, src) {
             Some(i) => {
-                dst.extend(&src[..i]);
                 r#match = Some(src[i]);
-                i + 1
+                (&src[..i], i + 1)
             }
-            None => {
-                dst.extend(src);
-                src.len()
-            }
+            None => (src, src.len()),
         };
 
-        len += n;
+        if let [head @ .., CARRIAGE_RETURN] = buf {
+            buf = head;
+        }
 
+        dst.extend(buf);
+        len += n;
         reader.consume(n);
     }
 
@@ -121,10 +122,14 @@ mod tests {
     #[test]
     fn test_read_record() -> io::Result<()> {
         let mut src = &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\n"[..];
-
         let mut record = Record::default();
         read_record(&mut src, &mut record)?;
+        assert_eq!(record.buf, b"*4*0255**00**");
+        assert_eq!(record.bounds, Bounds::default());
 
+        let mut src = &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\r\n"[..];
+        let mut record = Record::default();
+        read_record(&mut src, &mut record)?;
         assert_eq!(record.buf, b"*4*0255**00**");
         assert_eq!(record.bounds, Bounds::default());
 
