@@ -50,13 +50,9 @@ impl Bounds {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_correct_ranges() {
-        let bounds = Bounds {
+impl Default for Bounds {
+    fn default() -> Self {
+        Self {
             chromosome_end: 3,
             position_end: 4,
             ids_end: 5,
@@ -65,8 +61,17 @@ mod tests {
             quality_score_end: 8,
             filters_end: 9,
             info_end: 10,
-        };
+        }
+    }
+}
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_ranges() {
+        let bounds = Bounds::default();
         assert_eq!(bounds.chromosome_range(), 0..3);
         assert_eq!(bounds.position_range(), 3..4);
         assert_eq!(bounds.ids_range(), 4..5);

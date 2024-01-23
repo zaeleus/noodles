@@ -8,7 +8,7 @@ mod info;
 
 use std::fmt;
 
-use self::bounds::Bounds;
+pub(crate) use self::bounds::Bounds;
 pub use self::{filters::Filters, genotypes::Genotypes, ids::Ids, info::Info};
 
 const MISSING: &str = ".";
@@ -114,19 +114,9 @@ impl fmt::Debug for Record {
 
 impl Default for Record {
     fn default() -> Self {
-        let buf = String::from("sq01.A....");
-
-        let bounds = Bounds {
-            chromosome_end: 3,
-            position_end: 4,
-            ids_end: 5,
-            reference_bases_end: 6,
-            alternate_bases_end: 7,
-            quality_score_end: 8,
-            filters_end: 9,
-            info_end: 10,
-        };
-
-        Self { buf, bounds }
+        Self {
+            buf: String::from("sq01.A...."),
+            bounds: Bounds::default(),
+        }
     }
 }

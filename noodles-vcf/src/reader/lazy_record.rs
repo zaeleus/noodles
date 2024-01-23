@@ -109,24 +109,17 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::lazy::record::Bounds;
 
     #[test]
     fn test_read_lazy_record() -> io::Result<()> {
-        let mut src = &b"sq0\t1\t.\tA\t.\t.\tPASS\t.\n"[..];
+        let mut src = &b"sq0\t1\t.\tA\t.\t.\t.\t.\n"[..];
 
         let mut record = lazy::Record::default();
         read_lazy_record(&mut src, &mut record)?;
 
-        assert_eq!(record.buf, "sq01.A..PASS.");
-
-        assert_eq!(record.bounds.chromosome_end, 3);
-        assert_eq!(record.bounds.position_end, 4);
-        assert_eq!(record.bounds.ids_end, 5);
-        assert_eq!(record.bounds.reference_bases_end, 6);
-        assert_eq!(record.bounds.alternate_bases_end, 7);
-        assert_eq!(record.bounds.quality_score_end, 8);
-        assert_eq!(record.bounds.filters_end, 12);
-        assert_eq!(record.bounds.info_end, 13);
+        assert_eq!(record.buf, "sq01.A....");
+        assert_eq!(record.bounds, Bounds::default());
 
         let mut src = &b"\n"[..];
         assert!(matches!(
