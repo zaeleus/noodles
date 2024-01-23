@@ -40,3 +40,24 @@ impl Bounds {
         self.quality_scores_end..
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_ranges() {
+        let bounds = Bounds {
+            name_end: 34,
+            cigar_end: 38,
+            sequence_end: 40,
+            quality_scores_end: 42,
+        };
+
+        assert_eq!(bounds.name_range(), 32..34);
+        assert_eq!(bounds.cigar_range(), 34..38);
+        assert_eq!(bounds.sequence_range(), 38..40);
+        assert_eq!(bounds.quality_scores_range(), 40..42);
+        assert_eq!(bounds.data_range(), 42..);
+    }
+}
