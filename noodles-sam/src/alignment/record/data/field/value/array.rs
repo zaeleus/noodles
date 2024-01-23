@@ -3,7 +3,7 @@
 mod subtype;
 mod values;
 
-use std::fmt;
+use std::{fmt, io};
 
 pub use self::{subtype::Subtype, values::Values};
 
@@ -50,6 +50,22 @@ impl<'a> fmt::Debug for Array<'a> {
             Self::Int32(values) => f.debug_list().entries(values.iter()).finish(),
             Self::UInt32(values) => f.debug_list().entries(values.iter()).finish(),
             Self::Float(values) => f.debug_list().entries(values.iter()).finish(),
+        }
+    }
+}
+
+impl<'a> TryFrom<Array<'a>> for crate::alignment::record_buf::data::field::value::Array {
+    type Error = io::Error;
+
+    fn try_from(array: Array<'a>) -> Result<Self, Self::Error> {
+        match array {
+            Array::Int8(values) => values.iter().collect::<Result<_, _>>().map(Self::Int8),
+            Array::UInt8(values) => values.iter().collect::<Result<_, _>>().map(Self::UInt8),
+            Array::Int16(values) => values.iter().collect::<Result<_, _>>().map(Self::Int16),
+            Array::UInt16(values) => values.iter().collect::<Result<_, _>>().map(Self::UInt16),
+            Array::Int32(values) => values.iter().collect::<Result<_, _>>().map(Self::Int32),
+            Array::UInt32(values) => values.iter().collect::<Result<_, _>>().map(Self::UInt32),
+            Array::Float(values) => values.iter().collect::<Result<_, _>>().map(Self::Float),
         }
     }
 }
