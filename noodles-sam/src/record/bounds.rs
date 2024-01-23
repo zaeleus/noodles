@@ -82,3 +82,25 @@ impl Default for Bounds {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_ranges() {
+        let bounds = Bounds::default();
+        assert_eq!(bounds.name_range(), 0..1);
+        assert_eq!(bounds.flags_range(), 1..2);
+        assert_eq!(bounds.reference_sequence_name_range(), 2..3);
+        assert_eq!(bounds.alignment_start_range(), 3..4);
+        assert_eq!(bounds.mapping_quality_range(), 4..7);
+        assert_eq!(bounds.cigar_range(), 7..8);
+        assert_eq!(bounds.mate_reference_sequence_name_range(), 8..9);
+        assert_eq!(bounds.mate_alignment_start_range(), 9..10);
+        assert_eq!(bounds.template_length_range(), 10..11);
+        assert_eq!(bounds.sequence_range(), 11..12);
+        assert_eq!(bounds.quality_scores_range(), 12..13);
+        assert_eq!(bounds.data_range(), 13..);
+    }
+}
