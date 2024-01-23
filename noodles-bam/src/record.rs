@@ -309,53 +309,6 @@ impl Default for Record {
     }
 }
 
-impl TryFrom<Record> for sam::alignment::RecordBuf {
-    type Error = io::Error;
-
-    fn try_from(lazy_record: Record) -> Result<Self, Self::Error> {
-        let mut builder = Self::builder();
-
-        if let Some(name) = lazy_record.name() {
-            builder = builder.set_name(name.into());
-        }
-
-        builder = builder.set_flags(lazy_record.flags());
-
-        if let Some(reference_sequence_id) = lazy_record.reference_sequence_id().transpose()? {
-            builder = builder.set_reference_sequence_id(reference_sequence_id);
-        }
-
-        if let Some(alignment_start) = lazy_record.alignment_start().transpose()? {
-            builder = builder.set_alignment_start(alignment_start);
-        }
-
-        if let Some(mapping_quality) = lazy_record.mapping_quality() {
-            builder = builder.set_mapping_quality(mapping_quality);
-        }
-
-        builder = builder.set_cigar(lazy_record.cigar().try_into()?);
-
-        if let Some(mate_reference_sequence_id) =
-            lazy_record.mate_reference_sequence_id().transpose()?
-        {
-            builder = builder.set_mate_reference_sequence_id(mate_reference_sequence_id);
-        }
-
-        if let Some(mate_alignment_start) = lazy_record.mate_alignment_start().transpose()? {
-            builder = builder.set_mate_alignment_start(mate_alignment_start);
-        }
-
-        builder = builder.set_template_length(lazy_record.template_length());
-
-        builder = builder
-            .set_sequence(lazy_record.sequence().into())
-            .set_quality_scores(lazy_record.quality_scores().into())
-            .set_data(lazy_record.data().try_into()?);
-
-        Ok(builder.build())
-    }
-}
-
 fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
     const MIN_BUF_LENGTH: usize = bounds::TEMPLATE_LENGTH_RANGE.end;
 
@@ -435,18 +388,6 @@ mod tests {
         assert_eq!(record.bounds.sequence_range(), 38..40);
         assert_eq!(record.bounds.quality_scores_range(), 40..44);
         assert_eq!(record.bounds.data_range(), 44..);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_try_from_record_for_sam_alignment_record() -> io::Result<()> {
-        let lazy_record = Record::default();
-        let actual = sam::alignment::RecordBuf::try_from(lazy_record)?;
-
-        let expected = sam::alignment::RecordBuf::default();
-
-        assert_eq!(actual, expected);
 
         Ok(())
     }
