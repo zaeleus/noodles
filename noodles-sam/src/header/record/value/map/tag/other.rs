@@ -71,11 +71,7 @@ where
     type Error = ParseError;
 
     fn try_from(buf: [u8; LENGTH]) -> Result<Self, Self::Error> {
-        use super::{is_valid_tag, Tag};
-
-        if !is_valid_tag(buf) {
-            return Err(ParseError::Invalid);
-        }
+        use super::Tag;
 
         match Tag::from(buf) {
             Tag::Standard(_) => Err(ParseError::Invalid),

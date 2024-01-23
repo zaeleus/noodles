@@ -105,19 +105,10 @@ where
             Err(ParseError::LengthMismatch { actual: s.len() })
         } else {
             // SAFETY: `s` is 2 bytes.
-            let raw_tag = s.as_bytes().try_into().unwrap();
-
-            if is_valid_tag(raw_tag) {
-                Ok(Self::from(raw_tag))
-            } else {
-                Err(ParseError::Invalid)
-            }
+            let raw_tag: [u8; LENGTH] = s.as_bytes().try_into().unwrap();
+            Ok(Self::from(raw_tag))
         }
     }
-}
-
-fn is_valid_tag(b: [u8; LENGTH]) -> bool {
-    b[0].is_ascii_alphabetic() && b[1].is_ascii_alphanumeric()
 }
 
 #[cfg(test)]
@@ -162,7 +153,6 @@ mod tests {
             "V".parse::<Tag<TestTag>>(),
             Err(ParseError::LengthMismatch { actual: 1 })
         );
-        assert_eq!("0V".parse::<Tag<TestTag>>(), Err(ParseError::Invalid));
         assert_eq!(
             "VER".parse::<Tag<TestTag>>(),
             Err(ParseError::LengthMismatch { actual: 3 })
