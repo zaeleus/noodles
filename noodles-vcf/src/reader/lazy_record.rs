@@ -74,6 +74,7 @@ where
 
     const DELIMITER: u8 = b'\t';
     const LINE_FEED: u8 = b'\n';
+    const CARRIAGE_RETURN: u8 = b'\r';
 
     let mut r#match = None;
     let mut len = 0;
@@ -85,13 +86,17 @@ where
             break;
         }
 
-        let (buf, n) = match memchr2(DELIMITER, LINE_FEED, src) {
+        let (mut buf, n) = match memchr2(DELIMITER, LINE_FEED, src) {
             Some(i) => {
                 r#match = Some(src[i]);
                 (&src[..i], i + 1)
             }
             None => (src, src.len()),
         };
+
+        if let [head @ .., CARRIAGE_RETURN] = buf {
+            buf = head;
+        }
 
         let s = str::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
         dst.push_str(s);
@@ -114,10 +119,14 @@ mod tests {
     #[test]
     fn test_read_lazy_record() -> io::Result<()> {
         let mut src = &b"sq0\t1\t.\tA\t.\t.\t.\t.\n"[..];
-
         let mut record = lazy::Record::default();
         read_lazy_record(&mut src, &mut record)?;
+        assert_eq!(record.buf, "sq01.A....");
+        assert_eq!(record.bounds, Bounds::default());
 
+        let mut src = &b"sq0\t1\t.\tA\t.\t.\t.\t.\r\n"[..];
+        let mut record = lazy::Record::default();
+        read_lazy_record(&mut src, &mut record)?;
         assert_eq!(record.buf, "sq01.A....");
         assert_eq!(record.bounds, Bounds::default());
 
