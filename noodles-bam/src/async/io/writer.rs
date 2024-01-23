@@ -20,7 +20,7 @@ where
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// let writer = bam::AsyncWriter::from(Vec::new());
+    /// let writer = bam::r#async::io::Writer::from(Vec::new());
     /// assert!(writer.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &W {
@@ -33,7 +33,7 @@ where
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// let mut writer = bam::AsyncWriter::from(Vec::new());
+    /// let mut writer = bam::r#async::io::Writer::from(Vec::new());
     /// assert!(writer.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut W {
@@ -46,7 +46,7 @@ where
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// let writer = bam::AsyncWriter::from(Vec::new());
+    /// let writer = bam::r#async::io::Writer::from(Vec::new());
     /// assert!(writer.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> W {
@@ -63,7 +63,7 @@ where
     /// # #[tokio::main]
     /// # async fn main() -> io::Result<()> {
     /// use noodles_bam as bam;
-    /// let mut writer = bam::AsyncWriter::new(Vec::new());
+    /// let mut writer = bam::r#async::io::Writer::new(Vec::new());
     /// writer.shutdown().await?;
     /// # Ok(())
     /// # }
@@ -84,7 +84,7 @@ where
     /// use noodles_bam as bam;
     /// use noodles_sam as sam;
     ///
-    /// let mut writer = bam::AsyncWriter::new(Vec::new());
+    /// let mut writer = bam::r#async::io::Writer::new(Vec::new());
     ///
     /// let header = sam::Header::builder().add_comment("noodles-bam").build();
     /// writer.write_header(&header).await?;
@@ -110,7 +110,7 @@ where
     ///     header::record::value::{map::ReferenceSequence, Map},
     /// };
     ///
-    /// let mut writer = bam::AsyncWriter::new(Vec::new());
+    /// let mut writer = bam::r#async::io::Writer::new(Vec::new());
     ///
     /// let header = sam::Header::builder()
     ///     .add_reference_sequence(
@@ -144,7 +144,7 @@ where
     /// use noodles_bam as bam;
     /// use noodles_sam::{self as sam, alignment::RecordBuf};
     ///
-    /// let mut writer = bam::AsyncWriter::new(Vec::new());
+    /// let mut writer = bam::r#async::io::Writer::new(Vec::new());
     ///
     /// let header = sam::Header::default();
     /// let record = RecordBuf::default();
@@ -183,7 +183,7 @@ where
     /// use noodles_bam as bam;
     /// use noodles_sam::{self as sam, alignment::RecordBuf};
     ///
-    /// let mut writer = bam::AsyncWriter::new(Vec::new());
+    /// let mut writer = bam::r#async::io::Writer::new(Vec::new());
     ///
     /// let header = sam::Header::default();
     /// let record = RecordBuf::default();
@@ -210,7 +210,7 @@ where
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// let writer = bam::AsyncWriter::new(Vec::new());
+    /// let writer = bam::r#async::io::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
         Self::from(bgzf::AsyncWriter::new(inner))
