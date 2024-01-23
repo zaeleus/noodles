@@ -1,8 +1,9 @@
 mod array;
+mod character;
 
 use std::io::{self, Write};
 
-use self::array::write_array;
+use self::{array::write_array, character::write_character};
 use crate::{alignment::record::data::field::Value, io::writer::num};
 
 pub fn write_value<W>(writer: &mut W, value: &Value) -> io::Result<()>
@@ -22,25 +23,6 @@ where
         Value::Hex(s) => writer.write_all(s),
         Value::Array(array) => write_array(writer, array),
     }
-}
-
-fn write_character<W>(writer: &mut W, b: u8) -> io::Result<()>
-where
-    W: Write,
-{
-    if is_valid_character(b) {
-        writer.write_all(&[b])
-    } else {
-        Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "invalid character",
-        ))
-    }
-}
-
-// § 1.5 "The alignment section: optional fields" (2023-05-24): "`[!-~]`".
-fn is_valid_character(b: u8) -> bool {
-    b.is_ascii_graphic()
 }
 
 #[cfg(test)]
@@ -80,11 +62,5 @@ mod tests {
         )?;
 
         Ok(())
-    }
-
-    #[test]
-    fn test_is_valid_character() {
-        assert!(is_valid_character(b'n'));
-        assert!(!is_valid_character(b'\t'));
     }
 }
