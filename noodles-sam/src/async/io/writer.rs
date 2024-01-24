@@ -67,6 +67,9 @@ where
 
     /// Writes a SAM header.
     ///
+    /// The SAM header is optional, though recommended to include. A call to this method can be
+    /// omitted if it is empty.
+    ///
     /// # Examples
     ///
     /// ```

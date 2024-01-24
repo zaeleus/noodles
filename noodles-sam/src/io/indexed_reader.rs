@@ -53,7 +53,7 @@ where
         self.inner.read_header()
     }
 
-    /// Reads a single SAM record.
+    /// Reads a record into an alignment record buffer.
     pub fn read_record_buf(
         &mut self,
         header: &Header,
@@ -62,12 +62,13 @@ where
         self.inner.read_record_buf(header, record)
     }
 
-    /// Returns an iterator over records starting from the current stream position.
+    /// Returns an iterator over alignment record buffers starting from the current stream
+    /// position.
     pub fn record_bufs<'a>(&'a mut self, header: &'a Header) -> RecordBufs<'a, bgzf::Reader<R>> {
         self.inner.record_bufs(header)
     }
 
-    /// Reads a single record without eagerly decoding its fields.
+    /// Reads a record.
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         self.inner.read_record(record)
     }
@@ -83,8 +84,6 @@ where
     R: Read + Seek,
 {
     /// Returns an iterator over records that intersect the given region.
-    ///
-    /// To query for unmapped records, use [`Self::query_unmapped`].
     pub fn query<'a>(
         &'a mut self,
         header: &'a Header,

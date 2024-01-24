@@ -28,7 +28,7 @@ use crate::{
     Header,
 };
 
-/// An alignment record.
+/// An alignment record buffer.
 #[derive(Clone, Debug, PartialEq)]
 pub struct RecordBuf {
     name: Option<Name>,
@@ -58,7 +58,7 @@ impl RecordBuf {
         Builder::default()
     }
 
-    /// Returns the read name.
+    /// Returns the name.
     ///
     /// # Examples
     ///
@@ -71,7 +71,7 @@ impl RecordBuf {
         self.name.as_ref()
     }
 
-    /// Returns a mutable reference to the read name.
+    /// Returns a mutable reference to the name.
     ///
     /// # Examples
     ///

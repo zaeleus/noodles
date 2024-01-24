@@ -2,6 +2,7 @@ use std::io;
 
 use crate::alignment::record::cigar::Op;
 
+/// An iterator adapter that simplifies CIGAR operations.
 pub struct TrySimplify<I> {
     iter: I,
     prev_op: Option<Op>,

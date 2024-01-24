@@ -102,15 +102,15 @@ where
         read_header(&mut self.inner).await
     }
 
-    /// Reads a single SAM record.
+    /// Reads a record into an alignment record buffer.
     ///
     /// This reads a line from the underlying stream until a newline is reached and parses that
     /// line into the given record.
     ///
     /// The stream is expected to be directly after the header or at the start of another record.
     ///
-    /// It is more ergonomic to read records using a stream (see [`Self::records`]), but using this
-    /// method allows control of the line buffer and whether the raw record should be parsed.
+    /// It is more ergonomic to read records using an iterator (see [`Self::records`]), but using
+    /// this method allows control of the record buffer.
     ///
     /// If successful, the number of bytes read is returned. If the number of bytes read is 0, the
     /// stream reached EOF.
@@ -144,7 +144,8 @@ where
         read_record_buf(&mut self.inner, &mut self.buf, header, record).await
     }
 
-    /// Returns an (async) stream over records starting from the current (input) stream position.
+    /// Returns an (async) stream over alignment record buffers starting from the current (input)
+    /// stream position.
     ///
     /// The (input) stream is expected to be directly after the header or at the start of another
     /// record.

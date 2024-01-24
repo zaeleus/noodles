@@ -2,7 +2,7 @@ use std::io;
 
 use crate::{alignment::Record, Header};
 
-/// An alignment format writer.
+/// An alignment writer.
 ///
 /// A call to [`Self::finish`] must be made before the writer is dropped.
 pub trait Write {
@@ -12,6 +12,6 @@ pub trait Write {
     /// Writes an alignment record.
     fn write_alignment_record(&mut self, header: &Header, record: &dyn Record) -> io::Result<()>;
 
-    /// Shuts down an alignment format writer.
+    /// Shuts down an alignment writer.
     fn finish(&mut self, header: &Header) -> io::Result<()>;
 }

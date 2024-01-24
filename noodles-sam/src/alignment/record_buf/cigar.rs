@@ -1,10 +1,10 @@
-//! Alignment record CIGAR operations.
+//! Alignment record CIGAR operations buffer.
 
 use std::io;
 
 use crate::alignment::record::cigar::Op;
 
-/// Alignment record CIGAR operations.
+/// An alignment record CIGAR operations buffer.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Cigar(Vec<Op>);
 

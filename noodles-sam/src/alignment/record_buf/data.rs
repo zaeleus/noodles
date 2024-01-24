@@ -38,7 +38,7 @@ impl Data {
         self.0.is_empty()
     }
 
-    /// Removes all fields from the data map.
+    /// Removes all fields from the map.
     ///
     /// This does not affect the internal capacity.
     ///
@@ -172,7 +172,7 @@ impl Data {
         self.0.iter().map(|(_, value)| value)
     }
 
-    /// Inserts a field into the data map.
+    /// Inserts a field into the map.
     ///
     /// This uses the field tag as the key and field as the value.
     ///

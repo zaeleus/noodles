@@ -1,7 +1,9 @@
 //! Alignment record CIGAR operations.
 
-pub mod iter;
 pub mod op;
+
+#[doc(hidden)]
+pub mod iter;
 
 use std::io;
 

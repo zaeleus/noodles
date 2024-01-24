@@ -1,4 +1,4 @@
-//! SAM reader and iterators.
+//! SAM reader.
 
 mod builder;
 mod header;
@@ -17,7 +17,7 @@ use noodles_core::Region;
 use noodles_csi::BinningIndex;
 
 pub use self::{builder::Builder, record_bufs::RecordBufs};
-use self::{record::read_record, record_buf::read_record_buf};
+use self::{header::read_header, record::read_record, record_buf::read_record_buf};
 use crate::{alignment::RecordBuf, header::ReferenceSequences, Header, Record};
 
 /// A SAM reader.
@@ -139,11 +139,10 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_header(&mut self) -> io::Result<Header> {
-        use self::header::read_header;
         read_header(&mut self.inner)
     }
 
-    /// Reads a single SAM record.
+    /// Reads a record into an alignment record buffer.
     ///
     /// This reads a line from the underlying stream until a newline is reached and parses that
     /// line into the given record.
@@ -182,7 +181,8 @@ where
         read_record_buf(&mut self.inner, &mut self.buf, header, record)
     }
 
-    /// Returns an iterator over records starting from the current stream position.
+    /// Returns an iterator over alignment record buffers starting from the current stream
+    /// position.
     ///
     /// The stream is expected to be directly after the header or at the start of another record.
     ///
@@ -207,11 +207,11 @@ where
         RecordBufs::new(self, header)
     }
 
-    /// Reads a single record without eagerly decoding its fields.
+    /// Reads a record.
     ///
     /// This reads SAM fields from the underlying stream into the given record's buffer until a
     /// newline is reached. No fields are decoded, meaning the record is not necessarily valid.
-    /// However, the structure of the byte stream is guaranteed to be record-like.
+    /// However, the structure of the buffer is guaranteed to be record-like.
     ///
     /// The stream is expected to be directly after the header or at the start of another record.
     ///
