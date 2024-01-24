@@ -23,7 +23,7 @@ where
     /// ```
     /// use noodles_sam as sam;
     /// let data = [];
-    /// let reader = sam::AsyncReader::new(&data[..]);
+    /// let reader = sam::r#async::io::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
         Self {
@@ -39,7 +39,7 @@ where
     /// ```
     /// use noodles_sam as sam;
     /// let data = [];
-    /// let reader = sam::AsyncReader::new(&data[..]);
+    /// let reader = sam::r#async::io::Reader::new(&data[..]);
     /// assert!(reader.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &R {
@@ -53,7 +53,7 @@ where
     /// ```
     /// use noodles_sam as sam;
     /// let data = [];
-    /// let mut reader = sam::AsyncReader::new(&data[..]);
+    /// let mut reader = sam::r#async::io::Reader::new(&data[..]);
     /// assert!(reader.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
@@ -67,7 +67,7 @@ where
     /// ```
     /// use noodles_sam as sam;
     /// let data = [];
-    /// let reader = sam::AsyncReader::new(&data[..]);
+    /// let reader = sam::r#async::io::Reader::new(&data[..]);
     /// assert!(reader.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> R {
@@ -93,7 +93,7 @@ where
     /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
     /// ";
     ///
-    /// let mut reader = sam::AsyncReader::new(&data[..]);
+    /// let mut reader = sam::r#async::io::Reader::new(&data[..]);
     /// let header = reader.read_header().await?;
     /// # Ok(())
     /// # }
@@ -126,7 +126,7 @@ where
     /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
     /// ";
     ///
-    /// let mut reader = sam::AsyncReader::new(&data[..]);
+    /// let mut reader = sam::r#async::io::Reader::new(&data[..]);
     /// let header = reader.read_header().await?;
     ///
     /// let mut record = RecordBuf::default();
@@ -161,7 +161,7 @@ where
     /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
     /// ";
     ///
-    /// let mut reader = sam::AsyncReader::new(&data[..]);
+    /// let mut reader = sam::r#async::io::Reader::new(&data[..]);
     /// let header = reader.read_header().await?;
     ///
     /// let mut records = reader.records(&header);
