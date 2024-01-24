@@ -20,9 +20,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut writer = bam::AsyncWriter::new(io::stdout());
     writer.write_header(&header).await?;
-    writer
-        .write_reference_sequences(header.reference_sequences())
-        .await?;
 
     io::copy(reader.get_mut(), writer.get_mut()).await?;
 

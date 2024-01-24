@@ -22,17 +22,19 @@
   * bam: Move readers (`Reader` and `IndexedReader`) and writer (`Writer`) to
     `io` module.
 
+  * bam/async/io: Consider binary reference sequences as part of the
+    header.
+
+    When reading, if the SAM header has a reference sequence dictionary, it
+    must match the binary reference sequences; otherwise, the binary reference
+    sequences are added to the SAM header.
+
+    When writing, binary reference sequences are written from the SAM header.
+
   * bam/async/io/reader: Change `Reader::read_header` to return a parsed header
     (`sam::Header`).
 
     This no longer returns a raw string.
-
-  * bam/async/io/reader: Consider binary reference sequences as part of the
-    header.
-
-    If the SAM header has a reference sequence dictionary, it must match the
-    binary reference sequences; otherwise, the binary reference sequences are
-    added to the SAM header.
 
   * bam/io/reader: Rename "record" to "record buf" and "lazy record" to "record".
 
@@ -68,10 +70,11 @@
 
 ### Removed
 
-  * bam/async/io/reader: Remove `Reader::read_reference_sequences`.
+  * bam/async/io: Remove `Reader::read_reference_sequences` and
+    `Writer::write_reference_sequences`.
 
-    This is now considered as part of the header when calling
-    `Reader::read_header`.
+    These are now considered as part of the header when calling reading or
+    writing.
 
 
 ## 0.52.0 - 2023-12-14

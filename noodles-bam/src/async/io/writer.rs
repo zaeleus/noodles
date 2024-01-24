@@ -88,50 +88,13 @@ where
     ///
     /// let mut writer = bam::r#async::io::Writer::new(Vec::new());
     ///
-    /// let header = sam::Header::builder().add_comment("noodles-bam").build();
+    /// let header = sam::Header::default();
     /// writer.write_header(&header).await?;
     /// # Ok(())
     /// # }
     /// ```
     pub async fn write_header(&mut self, header: &sam::Header) -> io::Result<()> {
         write_header(&mut self.inner, header).await
-    }
-
-    /// Writes the binary reference sequences after the SAM header.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use std::num::NonZeroUsize;
-    ///
-    /// use noodles_bam as bam;
-    /// use noodles_sam::{
-    ///     self as sam,
-    ///     header::record::value::{map::ReferenceSequence, Map},
-    /// };
-    ///
-    /// let mut writer = bam::r#async::io::Writer::new(Vec::new());
-    ///
-    /// let header = sam::Header::builder()
-    ///     .add_reference_sequence(
-    ///         "sq0",
-    ///         Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?)
-    ///     )
-    ///     .add_comment("noodles-bam")
-    ///     .build();
-    ///
-    /// writer.write_header(&header).await?;
-    /// writer.write_reference_sequences(header.reference_sequences()).await?;
-    /// # Ok(())
-    /// # }
-    /// ```
-    pub async fn write_reference_sequences(
-        &mut self,
-        reference_sequences: &sam::header::ReferenceSequences,
-    ) -> io::Result<()> {
-        write_reference_sequences(&mut self.inner, reference_sequences).await
     }
 
     /// Writes a BAM record.
@@ -238,6 +201,8 @@ where
     writer.write_u32_le(l_text).await?;
 
     writer.write_all(&text).await?;
+
+    write_reference_sequences(writer, header.reference_sequences()).await?;
 
     Ok(())
 }

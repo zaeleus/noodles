@@ -23,9 +23,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .build();
 
     writer.write_header(&header).await?;
-    writer
-        .write_reference_sequences(header.reference_sequences())
-        .await?;
 
     let record = RecordBuf::default();
     writer.write_alignment_record(&header, &record).await?;
