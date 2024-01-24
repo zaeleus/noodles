@@ -1,8 +1,10 @@
 use std::{ffi::CString, num::NonZeroUsize};
 
 use noodles_bgzf as bgzf;
-use noodles_sam::{self as sam, alignment::RecordBuf};
+use noodles_sam as sam;
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
+
+use crate::Record;
 
 /// An async BAM writer.
 pub struct Writer<W> {
@@ -142,21 +144,17 @@ where
     /// # #[tokio::main]
     /// # async fn main() -> io::Result<()> {
     /// use noodles_bam as bam;
-    /// use noodles_sam::{self as sam, alignment::RecordBuf};
+    /// use noodles_sam as sam;
     ///
     /// let mut writer = bam::r#async::io::Writer::new(Vec::new());
     ///
     /// let header = sam::Header::default();
-    /// let record = RecordBuf::default();
+    /// let record = bam::Record::default();
     /// writer.write_record(&header, &record).await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn write_record(
-        &mut self,
-        header: &sam::Header,
-        record: &RecordBuf,
-    ) -> io::Result<()> {
+    pub async fn write_record(&mut self, header: &sam::Header, record: &Record) -> io::Result<()> {
         self.write_alignment_record(header, record).await
     }
 
