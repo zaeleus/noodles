@@ -70,7 +70,7 @@ where
     }
 }
 
-fn intersects(
+pub(crate) fn intersects(
     record: &Record,
     reference_sequence_id: usize,
     region_interval: Interval,

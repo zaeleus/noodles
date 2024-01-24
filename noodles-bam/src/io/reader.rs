@@ -2,7 +2,7 @@
 
 mod builder;
 pub(crate) mod header;
-mod query;
+pub(crate) mod query;
 mod record;
 mod record_buf;
 mod record_bufs;

@@ -381,12 +381,12 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn query<'a, I>(
-        &'a mut self,
-        header: &'a sam::Header,
+    pub fn query<I>(
+        &mut self,
+        header: &sam::Header,
         index: &I,
         region: &Region,
-    ) -> io::Result<impl Stream<Item = io::Result<RecordBuf>> + '_>
+    ) -> io::Result<impl Stream<Item = io::Result<Record>> + '_>
     where
         I: BinningIndex,
     {
@@ -395,7 +395,6 @@ where
 
         Ok(query(
             self,
-            header,
             chunks,
             reference_sequence_id,
             region.interval(),
