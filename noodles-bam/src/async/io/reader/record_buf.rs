@@ -1,10 +1,8 @@
-//! Async BAM record field readers.
-
 use bytes::BytesMut;
 use noodles_sam::{self as sam, alignment::RecordBuf};
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
-pub(super) async fn read_record<R>(
+pub(super) async fn read_record_buf<R>(
     reader: &mut R,
     header: &sam::Header,
     buf: &mut BytesMut,
@@ -57,7 +55,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_read_record() -> io::Result<()> {
+    async fn test_read_record_buf() -> io::Result<()> {
         let data = [
             0x22, 0x00, 0x00, 0x00, // block_size = 34
             0xff, 0xff, 0xff, 0xff, // ref_id = -1
@@ -78,7 +76,7 @@ mod tests {
         let header = sam::Header::default();
         let mut buf = BytesMut::new();
         let mut record = RecordBuf::default();
-        let block_size = read_record(&mut reader, &header, &mut buf, &mut record).await?;
+        let block_size = read_record_buf(&mut reader, &header, &mut buf, &mut record).await?;
 
         assert_eq!(block_size, 34);
         assert_eq!(record, RecordBuf::default());

@@ -1,6 +1,6 @@
 mod header;
 mod query;
-mod record;
+mod record_buf;
 
 use bytes::BytesMut;
 use futures::{stream, Stream};
@@ -13,7 +13,7 @@ use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};
 use self::{
     header::{read_header, read_reference_sequences},
     query::query,
-    record::read_record,
+    record_buf::{read_block_size, read_record_buf},
 };
 use crate::{io::reader::resolve_region, Record, MAGIC_NUMBER};
 
@@ -180,16 +180,16 @@ where
     /// reader.read_reference_sequences().await?;
     ///
     /// let mut record = RecordBuf::default();
-    /// reader.read_record(&header, &mut record).await?;
+    /// reader.read_record_buf(&header, &mut record).await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_record(
+    pub async fn read_record_buf(
         &mut self,
         header: &sam::Header,
         record: &mut RecordBuf,
     ) -> io::Result<usize> {
-        read_record(&mut self.inner, header, &mut self.buf, record).await
+        read_record_buf(&mut self.inner, header, &mut self.buf, record).await
     }
 
     /// Reads a single record without eagerly decoding its fields.
@@ -225,8 +225,6 @@ where
     /// # }
     /// ```
     pub async fn read_lazy_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        use self::record::read_block_size;
-
         let block_size = match read_block_size(&mut self.inner).await? {
             0 => return Ok(0),
             n => n,
@@ -275,7 +273,7 @@ where
         Box::pin(stream::try_unfold(
             (&mut self.inner, &mut self.buf, RecordBuf::default()),
             move |(reader, buf, mut record)| async move {
-                read_record(reader, header, buf, &mut record)
+                read_record_buf(reader, header, buf, &mut record)
                     .await
                     .map(|n| match n {
                         0 => None,
