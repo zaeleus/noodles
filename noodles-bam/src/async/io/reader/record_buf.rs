@@ -1,11 +1,12 @@
-use bytes::BytesMut;
 use noodles_sam::{self as sam, alignment::RecordBuf};
-use tokio::io::{self, AsyncRead, AsyncReadExt};
+use tokio::io::{self, AsyncRead};
+
+use super::read_record;
 
 pub(super) async fn read_record_buf<R>(
     reader: &mut R,
     header: &sam::Header,
-    buf: &mut BytesMut,
+    buf: &mut Vec<u8>,
     record: &mut RecordBuf,
 ) -> io::Result<usize>
 where
@@ -13,46 +14,20 @@ where
 {
     use crate::record::codec::decode;
 
-    let block_size = match read_block_size(reader).await? {
+    let block_size = match read_record(reader, buf).await? {
         0 => return Ok(0),
         n => n,
     };
 
-    buf.resize(block_size, Default::default());
-    reader.read_exact(buf).await?;
-
-    decode(buf, header, record).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let mut src = &buf[..];
+    decode(&mut src, header, record).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     Ok(block_size)
-}
-
-pub(super) async fn read_block_size<R>(reader: &mut R) -> io::Result<usize>
-where
-    R: AsyncRead + Unpin,
-{
-    match reader.read_u32_le().await {
-        Ok(bs) => usize::try_from(bs).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-        Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => Ok(0),
-        Err(e) => Err(e),
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[tokio::test]
-    async fn test_read_block_size() -> io::Result<()> {
-        let data = [0x08, 0x00, 0x00, 0x00];
-        let mut reader = &data[..];
-        assert_eq!(read_block_size(&mut reader).await?, 8);
-
-        let data = [];
-        let mut reader = &data[..];
-        assert_eq!(read_block_size(&mut reader).await?, 0);
-
-        Ok(())
-    }
 
     #[tokio::test]
     async fn test_read_record_buf() -> io::Result<()> {
@@ -74,7 +49,7 @@ mod tests {
 
         let mut reader = &data[..];
         let header = sam::Header::default();
-        let mut buf = BytesMut::new();
+        let mut buf = Vec::new();
         let mut record = RecordBuf::default();
         let block_size = read_record_buf(&mut reader, &header, &mut buf, &mut record).await?;
 

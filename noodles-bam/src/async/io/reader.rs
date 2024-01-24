@@ -1,8 +1,8 @@
 mod header;
 mod query;
+mod record;
 mod record_buf;
 
-use bytes::BytesMut;
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
@@ -10,11 +10,7 @@ use noodles_csi::BinningIndex;
 use noodles_sam::{self as sam, alignment::RecordBuf};
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};
 
-use self::{
-    header::read_header,
-    query::query,
-    record_buf::{read_block_size, read_record_buf},
-};
+use self::{header::read_header, query::query, record::read_record, record_buf::read_record_buf};
 use crate::{io::reader::resolve_region, Record, MAGIC_NUMBER};
 
 /// An async BAM reader.
@@ -41,7 +37,7 @@ use crate::{io::reader::resolve_region, Record, MAGIC_NUMBER};
 /// ```
 pub struct Reader<R> {
     inner: R,
-    buf: BytesMut,
+    buf: Vec<u8>,
 }
 
 impl<R> Reader<R>
@@ -189,15 +185,12 @@ where
     /// # }
     /// ```
     pub async fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        let block_size = match read_block_size(&mut self.inner).await? {
+        let fields = record.fields_mut();
+
+        let block_size = match read_record(&mut self.inner, &mut fields.buf).await? {
             0 => return Ok(0),
             n => n,
         };
-
-        let fields = record.fields_mut();
-
-        fields.buf.resize(block_size, 0);
-        self.inner.read_exact(&mut fields.buf).await?;
 
         fields.index()?;
 
@@ -406,7 +399,7 @@ impl<R> From<R> for Reader<R> {
     fn from(inner: R) -> Self {
         Self {
             inner,
-            buf: BytesMut::new(),
+            buf: Vec::new(),
         }
     }
 }
