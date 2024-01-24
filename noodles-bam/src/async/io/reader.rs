@@ -7,11 +7,11 @@ use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
-use noodles_sam::{self as sam, alignment::RecordBuf, header::ReferenceSequences};
+use noodles_sam::{self as sam, alignment::RecordBuf};
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};
 
 use self::{
-    header::{read_header, read_reference_sequences},
+    header::read_header,
     query::query,
     record_buf::{read_block_size, read_record_buf},
 };
@@ -23,14 +23,13 @@ use crate::{io::reader::resolve_region, Record, MAGIC_NUMBER};
 ///
 /// ```no_run
 /// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # async fn main() -> std::io::Result<()> {
 /// use futures::TryStreamExt;
 /// use noodles_bam as bam;
 /// use tokio::fs::File;
 ///
 /// let mut reader = File::open("sample.bam").await.map(bam::r#async::io::Reader::new)?;
-/// let header = reader.read_header().await?.parse()?;
-/// reader.read_reference_sequences().await?;
+/// let header = reader.read_header().await?;
 ///
 /// let mut records = reader.record_bufs(&header);
 ///
@@ -93,12 +92,12 @@ where
 
     /// Reads the raw SAM header.
     ///
-    /// The BAM magic number is also checked.
+    /// This verifies the BAM magic number, reads and parses the raw SAM header, and reads the
+    /// binary reference sequences. If the SAM header has a reference sequence dictionary, it must
+    /// match the binary reference sequences; otherwise, the binary reference sequences are added
+    /// to the SAM header.
     ///
     /// The position of the stream is expected to be at the start.
-    ///
-    /// This returns the raw SAM header as a [`String`]. It can subsequently be parsed as a
-    /// [`noodles_sam::Header`].
     ///
     /// # Examples
     ///
@@ -115,40 +114,9 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_header(&mut self) -> io::Result<String> {
+    pub async fn read_header(&mut self) -> io::Result<sam::Header> {
         read_magic(&mut self.inner).await?;
         read_header(&mut self.inner).await
-    }
-
-    /// Reads the binary reference sequences after the SAM header.
-    ///
-    /// This is not the same as the `@SQ` records in the SAM header. A BAM has a list of reference
-    /// sequences containing name and length tuples after the SAM header and before the list of
-    /// records.
-    ///
-    /// The position of the stream is expected to be directly after the header.
-    ///
-    /// This returns a reference sequence dictionary ([`noodles_sam::header::ReferenceSequences`]),
-    /// which can be used to build a minimal [`noodles_sam::Header`] if the SAM header is empty.
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// # use std::io;
-    /// #
-    /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
-    /// use noodles_bam as bam;
-    /// use tokio::fs::File;
-    ///
-    /// let mut reader = File::open("sample.bam").await.map(bam::r#async::io::Reader::new)?;
-    /// reader.read_header().await?;
-    /// let reference_sequences = reader.read_reference_sequences().await?;
-    /// # Ok(())
-    /// # }
-    /// ```
-    pub async fn read_reference_sequences(&mut self) -> io::Result<ReferenceSequences> {
-        read_reference_sequences(&mut self.inner).await
     }
 
     /// Reads a single record.
@@ -170,14 +138,13 @@ where
     ///
     /// ```no_run
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # async fn main() -> std::io::Result<()> {
     /// use noodles_bam as bam;
     /// use noodles_sam::alignment::RecordBuf;
     /// use tokio::fs::File;
     ///
     /// let mut reader = File::open("sample.bam").await.map(bam::r#async::io::Reader::new)?;
-    /// let header = reader.read_header().await?.parse()?;
-    /// reader.read_reference_sequences().await?;
+    /// let header = reader.read_header().await?;
     ///
     /// let mut record = RecordBuf::default();
     /// reader.read_record_buf(&header, &mut record).await?;
@@ -217,7 +184,6 @@ where
     ///
     /// let mut reader = File::open("sample.bam").await.map(bam::r#async::io::Reader::new)?;
     /// reader.read_header().await?;
-    /// reader.read_reference_sequences().await?;
     ///
     /// let mut record = bam::Record::default();
     /// reader.read_record(&mut record).await?;
@@ -249,14 +215,13 @@ where
     ///
     /// ```no_run
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # async fn main() -> std::io::Result<()> {
     /// use futures::TryStreamExt;
     /// use noodles_bam as bam;
     /// use tokio::fs::File;
     ///
     /// let mut reader = File::open("sample.bam").await.map(bam::r#async::io::Reader::new)?;
-    /// let header = reader.read_header().await?.parse()?;
-    /// reader.read_reference_sequences().await?;
+    /// let header = reader.read_header().await?;
     ///
     /// let mut records = reader.record_bufs(&header);
     ///
@@ -301,7 +266,6 @@ where
     ///
     /// let mut reader = File::open("sample.bam").await.map(bam::r#async::io::Reader::new)?;
     /// reader.read_header().await?;
-    /// reader.read_reference_sequences().await?;
     ///
     /// let mut records = reader.records();
     ///
@@ -404,7 +368,7 @@ where
     /// use tokio::fs::File;
     ///
     /// let mut reader = File::open("sample.bam").await.map(bam::AsyncReader::new)?;
-    /// let header = reader.read_header().await?.parse()?;
+    /// let header = reader.read_header().await?;
     ///
     /// let index = bai::r#async::read("sample.bam.bai").await?;
     /// let region = "sq0:8-13".parse()?;

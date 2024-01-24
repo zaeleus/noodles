@@ -20,7 +20,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut reader = File::open(&src).await.map(bam::AsyncReader::new)?;
 
-    let header = reader.read_header().await?.parse()?;
+    let header = reader.read_header().await?;
     let index = bai::r#async::read(src.with_extension("bam.bai")).await?;
     let mut query = reader.query(&header, &index, &region)?;
 

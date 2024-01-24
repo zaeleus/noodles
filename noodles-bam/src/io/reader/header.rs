@@ -166,7 +166,7 @@ where
     Ok((name, reference_sequence))
 }
 
-fn reference_sequences_eq(
+pub(crate) fn reference_sequences_eq(
     header_reference_sequences: &ReferenceSequences,
     binary_reference_sequences: &ReferenceSequences,
 ) -> bool {

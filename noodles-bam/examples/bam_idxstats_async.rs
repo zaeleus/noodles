@@ -10,7 +10,6 @@ use std::{env, path::PathBuf, str};
 
 use noodles_bam::{self as bam, bai};
 use noodles_csi::{binning_index::ReferenceSequence, BinningIndex};
-use noodles_sam as sam;
 use tokio::{fs::File, io};
 
 #[tokio::main]
@@ -18,7 +17,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).map(PathBuf::from).expect("missing src");
 
     let mut reader = File::open(&src).await.map(bam::AsyncReader::new)?;
-    let header: sam::Header = reader.read_header().await?.parse()?;
+    let header = reader.read_header().await?;
 
     let index = bai::r#async::read(src.with_extension("bam.bai")).await?;
 

@@ -1,7 +1,7 @@
 //! BAM reader.
 
 mod builder;
-mod header;
+pub(crate) mod header;
 mod query;
 mod record;
 mod record_buf;

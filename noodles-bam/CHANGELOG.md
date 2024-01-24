@@ -22,6 +22,18 @@
   * bam: Move readers (`Reader` and `IndexedReader`) and writer (`Writer`) to
     `io` module.
 
+  * bam/async/io/reader: Change `Reader::read_header` to return a parsed header
+    (`sam::Header`).
+
+    This no longer returns a raw string.
+
+  * bam/async/io/reader: Consider binary reference sequences as part of the
+    header.
+
+    If the SAM header has a reference sequence dictionary, it must match the
+    binary reference sequences; otherwise, the binary reference sequences are
+    added to the SAM header.
+
   * bam/io/reader: Rename "record" to "record buf" and "lazy record" to "record".
 
     This changes the following:
@@ -53,6 +65,14 @@
   * bam/record: Discard skip length when matching overflowing CIGAR.
 
   * bam/record/codec/encoder: Use alignment span for `m` in overflowing CIGAR.
+
+### Removed
+
+  * bam/async/io/reader: Remove `Reader::read_reference_sequences`.
+
+    This is now considered as part of the header when calling
+    `Reader::read_header`.
+
 
 ## 0.52.0 - 2023-12-14
 
