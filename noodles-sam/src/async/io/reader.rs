@@ -130,18 +130,18 @@ where
     /// let header = reader.read_header().await?;
     ///
     /// let mut record = RecordBuf::default();
-    /// reader.read_record(&header, &mut record).await?;
+    /// reader.read_record_buf(&header, &mut record).await?;
     ///
     /// assert_eq!(record, RecordBuf::default());
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_record(
+    pub async fn read_record_buf(
         &mut self,
         header: &Header,
         record: &mut RecordBuf,
     ) -> io::Result<usize> {
-        read_record(&mut self.inner, &mut self.buf, header, record).await
+        read_record_buf(&mut self.inner, &mut self.buf, header, record).await
     }
 
     /// Returns an (async) stream over records starting from the current (input) stream position.
@@ -164,7 +164,7 @@ where
     /// let mut reader = sam::r#async::io::Reader::new(&data[..]);
     /// let header = reader.read_header().await?;
     ///
-    /// let mut records = reader.records(&header);
+    /// let mut records = reader.record_bufs(&header);
     ///
     /// while let Some(record) = records.try_next().await? {
     ///     // ...
@@ -172,14 +172,14 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn records<'a>(
+    pub fn record_bufs<'a>(
         &'a mut self,
         header: &'a Header,
     ) -> impl Stream<Item = io::Result<RecordBuf>> + 'a {
         Box::pin(stream::try_unfold(
             (self, RecordBuf::default()),
             |(reader, mut record)| async {
-                match reader.read_record(header, &mut record).await? {
+                match reader.read_record_buf(header, &mut record).await? {
                     0 => Ok(None),
                     _ => Ok(Some((record.clone(), (reader, record)))),
                 }
@@ -188,7 +188,7 @@ where
     }
 }
 
-async fn read_record<R>(
+async fn read_record_buf<R>(
     reader: &mut R,
     buf: &mut Vec<u8>,
     header: &Header,
