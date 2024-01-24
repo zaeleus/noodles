@@ -20,7 +20,7 @@ where
     ///
     /// ```
     /// use noodles_sam as sam;
-    /// let writer = sam::AsyncWriter::new(Vec::new());
+    /// let writer = sam::r#async::io::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
         Self { inner }
@@ -32,7 +32,7 @@ where
     ///
     /// ```
     /// use noodles_sam as sam;
-    /// let writer = sam::AsyncWriter::new(Vec::new());
+    /// let writer = sam::r#async::io::Writer::new(Vec::new());
     /// assert!(writer.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &W {
@@ -45,7 +45,7 @@ where
     ///
     /// ```
     /// use noodles_sam as sam;
-    /// let mut writer = sam::AsyncWriter::new(Vec::new());
+    /// let mut writer = sam::r#async::io::Writer::new(Vec::new());
     /// assert!(writer.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut W {
@@ -58,7 +58,7 @@ where
     ///
     /// ```
     /// use noodles_sam as sam;
-    /// let writer = sam::AsyncWriter::new(Vec::new());
+    /// let writer = sam::r#async::io::Writer::new(Vec::new());
     /// assert!(writer.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> W {
@@ -76,7 +76,7 @@ where
     /// # async fn main() -> io::Result<()> {
     /// use noodles_sam as sam;
     ///
-    /// let mut writer = sam::AsyncWriter::new(Vec::new());
+    /// let mut writer = sam::r#async::io::Writer::new(Vec::new());
     ///
     /// let header = sam::Header::builder().add_comment("noodles-sam").build();
     /// writer.write_header(&header).await?;
@@ -102,7 +102,7 @@ where
     /// # async fn main() -> io::Result<()> {
     /// use noodles_sam::{self as sam, alignment::RecordBuf};
     ///
-    /// let mut writer = sam::AsyncWriter::new(Vec::new());
+    /// let mut writer = sam::r#async::io::Writer::new(Vec::new());
     ///
     /// let header = sam::Header::default();
     /// let record = RecordBuf::default();
@@ -127,7 +127,7 @@ where
     /// # async fn main() -> io::Result<()> {
     /// use noodles_sam::{self as sam, alignment::RecordBuf};
     ///
-    /// let mut writer = sam::AsyncWriter::new(Vec::new());
+    /// let mut writer = sam::r#async::io::Writer::new(Vec::new());
     ///
     /// let header = sam::Header::default();
     /// let record = RecordBuf::default();
