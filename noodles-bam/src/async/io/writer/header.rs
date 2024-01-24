@@ -80,7 +80,62 @@ where
 
 #[cfg(test)]
 mod tests {
+    use bstr::BString;
+
     use super::*;
+
+    const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
+        Some(length) => length,
+        None => unreachable!(),
+    };
+
+    #[tokio::test]
+    async fn test_write_raw_header() -> io::Result<()> {
+        use sam::header::record::value::{
+            map::{self, header::Version},
+            Map,
+        };
+
+        let header = sam::Header::builder()
+            .set_header(Map::<map::Header>::new(Version::new(1, 6)))
+            .build();
+
+        let mut buf = Vec::new();
+        write_raw_header(&mut buf, &header).await?;
+
+        let mut expected = vec![
+            b'B', b'A', b'M', 0x01, // magic
+            0x0b, 0x00, 0x00, 0x00, // l_text = 11
+        ];
+        expected.extend_from_slice(b"@HD\tVN:1.6\n"); // text
+
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_write_reference_sequences() -> io::Result<()> {
+        use sam::header::record::value::{map::ReferenceSequence, Map};
+
+        let reference_sequences = [(BString::from("sq0"), Map::<ReferenceSequence>::new(SQ0_LN))]
+            .into_iter()
+            .collect();
+
+        let mut buf = Vec::new();
+        write_reference_sequences(&mut buf, &reference_sequences).await?;
+
+        let expected = [
+            0x01, 0x00, 0x00, 0x00, // n_ref = 1
+            0x04, 0x00, 0x00, 0x00, // ref[0].l_name = 4
+            b's', b'q', b'0', 0x00, // ref[0].name = b"sq0\x00"
+            0x08, 0x00, 0x00, 0x00, // ref[0].l_ref = 8
+        ];
+
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
 
     #[tokio::test]
     async fn test_write_reference_sequence() -> io::Result<()> {

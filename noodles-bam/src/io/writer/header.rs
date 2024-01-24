@@ -88,6 +88,11 @@ mod tests {
 
     use super::*;
 
+    const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
+        Some(length) => length,
+        None => unreachable!(),
+    };
+
     #[test]
     fn test_write_raw_header() -> Result<(), Box<dyn std::error::Error>> {
         use sam::header::record::value::{
@@ -114,15 +119,12 @@ mod tests {
     }
 
     #[test]
-    fn test_write_reference_sequences() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_write_reference_sequences() -> io::Result<()> {
         use sam::header::record::value::{map::ReferenceSequence, Map};
 
-        let reference_sequences = [(
-            BString::from("sq0"),
-            Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
-        )]
-        .into_iter()
-        .collect();
+        let reference_sequences = [(BString::from("sq0"), Map::<ReferenceSequence>::new(SQ0_LN))]
+            .into_iter()
+            .collect();
 
         let mut buf = Vec::new();
         write_reference_sequences(&mut buf, &reference_sequences)?;
@@ -141,11 +143,6 @@ mod tests {
 
     #[test]
     fn test_write_reference_sequence() -> io::Result<()> {
-        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
-            Some(length) => length,
-            None => unreachable!(),
-        };
-
         let mut buf = Vec::new();
         write_reference_sequence(&mut buf, b"sq0", SQ0_LN)?;
 
