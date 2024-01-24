@@ -220,11 +220,11 @@ where
     /// reader.read_reference_sequences().await?;
     ///
     /// let mut record = bam::Record::default();
-    /// reader.read_lazy_record(&mut record).await?;
+    /// reader.read_record(&mut record).await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_lazy_record(&mut self, record: &mut Record) -> io::Result<usize> {
+    pub async fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         let block_size = match read_block_size(&mut self.inner).await? {
             0 => return Ok(0),
             n => n,
@@ -303,7 +303,7 @@ where
     /// reader.read_header().await?;
     /// reader.read_reference_sequences().await?;
     ///
-    /// let mut records = reader.lazy_records();
+    /// let mut records = reader.records();
     ///
     /// while let Some(record) = records.try_next().await? {
     ///     // ...
@@ -311,11 +311,11 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn lazy_records(&mut self) -> impl Stream<Item = io::Result<Record>> + '_ {
+    pub fn records(&mut self) -> impl Stream<Item = io::Result<Record>> + '_ {
         Box::pin(stream::try_unfold(
             (self, Record::default()),
             |(this, mut record)| async {
-                this.read_lazy_record(&mut record).await.map(|n| match n {
+                this.read_record(&mut record).await.map(|n| match n {
                     0 => None,
                     _ => Some((record.clone(), (this, record))),
                 })
