@@ -1,9 +1,10 @@
 mod array;
 mod character;
+mod string;
 
 use std::io::{self, Write};
 
-use self::{array::write_array, character::write_character};
+use self::{array::write_array, character::write_character, string::write_string};
 use crate::{alignment::record::data::field::Value, io::writer::num};
 
 pub fn write_value<W>(writer: &mut W, value: &Value) -> io::Result<()>
@@ -19,7 +20,7 @@ where
         Value::Int32(n) => num::write_i32(writer, *n),
         Value::UInt32(n) => num::write_u32(writer, *n),
         Value::Float(n) => num::write_f32(writer, *n),
-        Value::String(s) => writer.write_all(s),
+        Value::String(s) => write_string(writer, s),
         Value::Hex(s) => writer.write_all(s),
         Value::Array(array) => write_array(writer, array),
     }
