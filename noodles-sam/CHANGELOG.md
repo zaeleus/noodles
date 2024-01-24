@@ -10,6 +10,8 @@
     The alignment record buffer is renamed to `RecordBuf`. This also introduces
     traits for all fields.
 
+  * sam/async/io/reader: Add record reader (`Reader::read_record`).
+
   * sam/io/reader: Add records iterator (`Reader::records`).
 
   * sam/record: Add wrappers for read name (`record::ReadName`) and template

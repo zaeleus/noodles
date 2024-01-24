@@ -3,7 +3,7 @@ use std::io::{self, BufRead};
 use super::read_line;
 use crate::Record;
 
-pub(super) fn read_record<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
+pub(crate) fn read_record<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
 where
     R: BufRead,
 {

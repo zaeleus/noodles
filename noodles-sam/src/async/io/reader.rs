@@ -1,11 +1,12 @@
 mod header;
+mod record;
 mod record_buf;
 
 use futures::{stream, Stream};
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt};
 
-use self::{header::read_header, record_buf::read_record_buf};
-use crate::{alignment::RecordBuf, Header};
+use self::{header::read_header, record::read_record, record_buf::read_record_buf};
+use crate::{alignment::RecordBuf, Header, Record};
 
 /// An async SAM reader.
 pub struct Reader<R> {
@@ -187,6 +188,42 @@ where
                 }
             },
         ))
+    }
+
+    /// Reads a record.
+    ///
+    /// This reads SAM fields from the underlying stream into the given record's buffer until a
+    /// newline is reached. No fields are decoded, meaning the record is not necessarily valid.
+    /// However, the structure of the buffer is guaranteed to be record-like.
+    ///
+    /// The stream is expected to be directly after the header or at the start of another record.
+    ///
+    /// If successful, the number of bytes read is returned. If the number of bytes read is 0, the
+    /// stream reached EOF.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[tokio::main]
+    /// # async fn main() -> std::io::Result<()> {
+    /// use noodles_sam as sam;
+    ///
+    /// let data = b"@HD\tVN:1.6
+    /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
+    /// ";
+    ///
+    /// let mut reader = sam::r#async::io::Reader::new(&data[..]);
+    /// let header = reader.read_header().await?;
+    ///
+    /// let mut record = sam::Record::default();
+    /// reader.read_record(&mut record).await?;
+    ///
+    /// assert_eq!(record, sam::Record::default());
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+        read_record(&mut self.inner, &mut self.buf, record).await
     }
 }
 
