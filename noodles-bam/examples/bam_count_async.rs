@@ -16,7 +16,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let header = reader.read_header().await?.parse()?;
     reader.read_reference_sequences().await?;
 
-    let mut records = reader.records(&header);
+    let mut records = reader.record_bufs(&header);
     let mut n = 0;
 
     while records.try_next().await?.is_some() {

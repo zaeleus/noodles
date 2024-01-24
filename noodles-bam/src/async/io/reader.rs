@@ -32,7 +32,7 @@ use crate::{io::reader::resolve_region, Record, MAGIC_NUMBER};
 /// let header = reader.read_header().await?.parse()?;
 /// reader.read_reference_sequences().await?;
 ///
-/// let mut records = reader.records(&header);
+/// let mut records = reader.record_bufs(&header);
 ///
 /// while let Some(record) = records.try_next().await? {
 ///     // ...
@@ -258,7 +258,7 @@ where
     /// let header = reader.read_header().await?.parse()?;
     /// reader.read_reference_sequences().await?;
     ///
-    /// let mut records = reader.records(&header);
+    /// let mut records = reader.record_bufs(&header);
     ///
     /// while let Some(record) = records.try_next().await? {
     ///     // ...
@@ -266,7 +266,7 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn records<'a>(
+    pub fn record_bufs<'a>(
         &'a mut self,
         header: &'a sam::Header,
     ) -> impl Stream<Item = io::Result<RecordBuf>> + '_ {
