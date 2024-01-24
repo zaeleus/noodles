@@ -47,7 +47,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     writer.write_header(&header).await?;
 
     let record = RecordBuf::default();
-    writer.write_record(&header, &record).await?;
+    writer.write_alignment_record(&header, &record).await?;
 
     Ok(())
 }
