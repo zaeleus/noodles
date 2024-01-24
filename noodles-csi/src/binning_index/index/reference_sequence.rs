@@ -47,7 +47,8 @@ where
 
     /// Returns the list of bins in the reference sequence.
     ///
-    /// This list does not include the metadata pseudo-bin. Use [`Self::metadata`] instead.
+    /// This list does not include the metadata pseudo-bin. Use
+    /// [`binning_index::ReferenceSequence::metadata`] instead.
     ///
     /// # Examples
     ///
