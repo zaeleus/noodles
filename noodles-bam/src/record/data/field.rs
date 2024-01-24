@@ -1,4 +1,4 @@
-//! Raw BAM record data field.
+//! BAM record data field.
 
 mod tag;
 mod ty;

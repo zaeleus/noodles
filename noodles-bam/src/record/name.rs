@@ -1,6 +1,6 @@
 use noodles_sam as sam;
 
-/// A raw BAM record name.
+/// A BAM record name.
 #[derive(Debug, Eq, PartialEq)]
 pub struct Name<'a>(&'a [u8]);
 

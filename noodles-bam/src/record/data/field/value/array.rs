@@ -1,4 +1,4 @@
-//! Raw BAM record data field array value.
+//! BAM record data field array value.
 
 mod subtype;
 mod values;

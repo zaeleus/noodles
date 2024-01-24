@@ -24,12 +24,7 @@ use crate::Record;
 
 /// A BAM reader.
 ///
-/// A BAM file is an encoded and compressed version of a SAM file. While a SAM file has a header
-/// and a list of records, a BAM is comprised of three parts:
-///
-///   1. a SAM header,
-///   2. a list of reference sequences, and
-///   3. a list of encoded SAM records.
+/// The BAM format is an encoded and compressed version of a SAM format.
 ///
 /// The reader reads records sequentially but can use virtual positions to seek to offsets from the
 /// start of a seekable stream.
@@ -123,10 +118,10 @@ where
         read_header(&mut self.inner)
     }
 
-    /// Reads a single record.
+    /// Reads a record into an alignment record buffer.
     ///
     /// The record block size (`bs`) is read from the underlying stream and `bs` bytes are read
-    /// into an internal buffer. This buffer is used to populate the given record.
+    /// into an internal buffer. This buffer is then used to decode fields into the given record.
     ///
     /// The stream is expected to be directly after the reference sequences or at the start of
     /// another record.
@@ -161,11 +156,11 @@ where
         read_record_buf(&mut self.inner, header, &mut self.buf, record)
     }
 
-    /// Reads a single record without eagerly decoding its fields.
+    /// Reads a record.
     ///
     /// The record block size (`bs`) is read from the underlying stream and `bs` bytes are read
-    /// into the lazy record's buffer. No fields are decoded, meaning the record is not necessarily
-    /// valid. However, the structure of the byte stream is guaranteed to be record-like.
+    /// into the record's buffer. No fields are decoded, meaning the record is not necessarily
+    /// valid. However, the structure of the buffer is guaranteed to be record-like.
     ///
     /// The stream is expected to be directly after the reference sequences or at the start of
     /// another record.
@@ -199,7 +194,8 @@ where
         Ok(block_size)
     }
 
-    /// Returns an iterator over records starting from the current stream position.
+    /// Returns an iterator over alignment record buffers starting from the current stream
+    /// position.
     ///
     /// The stream is expected to be directly after the reference sequences or at the start of
     /// another record.
@@ -223,7 +219,7 @@ where
         RecordBufs::new(self, header)
     }
 
-    /// Returns an iterator over lazy records.
+    /// Returns an iterator over records.
     ///
     /// The stream is expected to be directly after the reference sequences or at the start of
     /// another record.

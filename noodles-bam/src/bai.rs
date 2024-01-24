@@ -10,7 +10,7 @@
 //!
 //! When reading entire BAM files sequentially, a BAM index is not necessary.
 //!
-//! [querying]: crate::Reader::query
+//! [querying]: crate::io::Reader::query
 //!
 //! # Examples
 //!

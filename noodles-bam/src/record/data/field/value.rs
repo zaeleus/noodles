@@ -1,4 +1,4 @@
-//! Raw BAM record data field value.
+//! BAM record data field value.
 
 pub mod array;
 

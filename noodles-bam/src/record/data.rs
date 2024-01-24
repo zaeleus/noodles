@@ -1,4 +1,4 @@
-//! Raw BAM record data.
+//! BAM record data.
 
 pub mod field;
 
@@ -11,7 +11,7 @@ use noodles_sam::{
 
 use self::field::decode_field;
 
-/// Raw BAM record data.
+/// BAM record data.
 pub struct Data<'a>(&'a [u8]);
 
 impl<'a> Data<'a> {

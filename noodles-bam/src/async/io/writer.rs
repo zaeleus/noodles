@@ -77,6 +77,9 @@ where
 
     /// Writes a SAM header.
     ///
+    /// This writes the BAM magic number, the raw SAM header, and a copy of the reference sequence
+    /// dictionary as binary reference sequences.
+    ///
     /// # Examples
     ///
     /// ```
@@ -167,6 +170,8 @@ where
     W: AsyncWrite + Unpin,
 {
     /// Creates an async BAM writer with a default compression level.
+    ///
+    /// The given stream is wrapped in a BGZF encoder.
     ///
     /// # Examples
     ///

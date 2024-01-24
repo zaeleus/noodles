@@ -90,7 +90,7 @@ where
         self.inner
     }
 
-    /// Reads the raw SAM header.
+    /// Reads the SAM header.
     ///
     /// This verifies the BAM magic number, reads and parses the raw SAM header, and reads the
     /// binary reference sequences. If the SAM header has a reference sequence dictionary, it must
@@ -119,17 +119,16 @@ where
         read_header(&mut self.inner).await
     }
 
-    /// Reads a single record.
+    /// Reads a record into an alignment record buffer.
     ///
-    /// The record block size (`bs`) is read from the underlying stream, and `bs` bytes are read
-    /// into the given record buffer.
+    /// The record block size (`bs`) is read from the underlying stream and `bs` bytes are read
+    /// into an internal buffer. This buffer is then used to decode fields into the given record.
     ///
     /// The stream is expected to be directly after the reference sequences or at the start of
     /// another record.
     ///
     /// It is more ergonomic to read records using a stream (see [`Self::records`] and
-    /// [`Self::query`]), but using this method directly allows the reuse of a single [`RecordBuf`]
-    /// buffer.
+    /// [`Self::query`]), but using this method directly allows the reuse of a [`RecordBuf`].
     ///
     /// If successful, the record block size is returned. If a block size of 0 is returned, the
     /// stream reached EOF.
@@ -159,12 +158,11 @@ where
         read_record_buf(&mut self.inner, header, &mut self.buf, record).await
     }
 
-    /// Reads a single record without eagerly decoding its fields.
+    /// Reads a record.
     ///
-    /// The record block size (`bs`) is read from the underlying (input) stream and `bs` bytes are
-    /// read into the lazy record's buffer. No fields are decoded, meaning the record is not
-    /// necessarily valid. However, the structure of the byte stream is guaranteed to be
-    /// record-like.
+    /// The record block size (`bs`) is read from the underlying stream and `bs` bytes are read
+    /// into the record's buffer. No fields are decoded, meaning the record is not necessarily
+    /// valid. However, the structure of the buffer is guaranteed to be record-like.
     ///
     /// The stream is expected to be directly after the reference sequences or at the start of
     /// another record.
@@ -206,7 +204,8 @@ where
         Ok(block_size)
     }
 
-    /// Returns an (async) stream over records starting from the current (input) stream position.
+    /// Returns an (async) stream over alignment record buffers starting from the current (input)
+    /// stream position.
     ///
     /// The (input) stream is expected to be directly after the reference sequences or at the start
     /// of another record.
@@ -248,7 +247,7 @@ where
         ))
     }
 
-    /// Returns a stream over lazy records.
+    /// Returns a stream over records.
     ///
     /// The (input) stream is expected to be directly after the reference sequences or at the start
     /// of another record.
@@ -293,6 +292,8 @@ where
     R: AsyncRead + Unpin,
 {
     /// Creates an async BAM reader.
+    ///
+    /// The given reader must be a raw BGZF stream, as the underlying reader wraps it in a decoder.
     ///
     /// # Examples
     ///

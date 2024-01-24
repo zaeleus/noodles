@@ -1,6 +1,6 @@
 use noodles_sam as sam;
 
-/// Raw BAM record quality scores.
+/// BAM record quality scores.
 #[derive(Debug, Eq, PartialEq)]
 pub struct QualityScores<'a>(&'a [u8]);
 

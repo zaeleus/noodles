@@ -4,7 +4,7 @@ use noodles_sam::{self as sam, alignment::record::cigar::Op};
 
 const CHUNK_SIZE: usize = mem::size_of::<u32>();
 
-/// Raw BAM record CIGAR operations.
+/// BAM record CIGAR operations.
 #[derive(Debug, Eq, PartialEq)]
 pub struct Cigar<'a>(&'a [u8]);
 

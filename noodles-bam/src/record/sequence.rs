@@ -4,7 +4,7 @@ use noodles_sam as sam;
 
 use self::iter::Iter;
 
-/// A raw BAM record sequence.
+/// A BAM record sequence.
 #[derive(Debug, Eq, PartialEq)]
 pub struct Sequence<'a> {
     src: &'a [u8],
