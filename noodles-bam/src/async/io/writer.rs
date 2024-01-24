@@ -157,18 +157,7 @@ where
         header: &sam::Header,
         record: &RecordBuf,
     ) -> io::Result<()> {
-        use crate::record::codec::encode;
-
-        self.buf.clear();
-        encode(&mut self.buf, header, record)?;
-
-        let block_size = u32::try_from(self.buf.len())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-        self.inner.write_u32_le(block_size).await?;
-
-        self.inner.write_all(&self.buf).await?;
-
-        Ok(())
+        self.write_alignment_record(header, record).await
     }
 
     /// Writes an alignment record.
@@ -194,9 +183,20 @@ where
     pub async fn write_alignment_record(
         &mut self,
         header: &sam::Header,
-        record: &RecordBuf,
+        record: &dyn sam::alignment::Record,
     ) -> io::Result<()> {
-        self.write_record(header, record).await
+        use crate::record::codec::encode;
+
+        self.buf.clear();
+        encode(&mut self.buf, header, record)?;
+
+        let block_size = u32::try_from(self.buf.len())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        self.inner.write_u32_le(block_size).await?;
+
+        self.inner.write_all(&self.buf).await?;
+
+        Ok(())
     }
 }
 
