@@ -89,7 +89,7 @@
 
   * sam/alignment: Removed `iter`.
 
-    This is moved to noodles-util
+    This is moved to noodles-util.
 
 ## 0.49.0 - 2023-12-14
 
