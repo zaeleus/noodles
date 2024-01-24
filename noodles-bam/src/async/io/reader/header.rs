@@ -48,7 +48,7 @@ where
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     }
 
-    discard_passing(&mut header_reader).await?;
+    discard_padding(&mut header_reader).await?;
 
     Ok(parser.finish())
 }
@@ -85,7 +85,7 @@ where
     }
 }
 
-async fn discard_passing<R>(reader: &mut R) -> io::Result<()>
+async fn discard_padding<R>(reader: &mut R) -> io::Result<()>
 where
     R: AsyncBufRead + Unpin,
 {
