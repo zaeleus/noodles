@@ -7,7 +7,7 @@ use std::io::{self, Write};
 
 pub use self::builder::Builder;
 use self::record::write_record;
-use super::{Header, Record, VariantWriter};
+use crate::{Header, Record, VariantWriter};
 
 /// A VCF writer.
 ///
@@ -21,7 +21,7 @@ use super::{Header, Record, VariantWriter};
 ///     record::Position,
 /// };
 ///
-/// let mut writer = vcf::Writer::new(Vec::new());
+/// let mut writer = vcf::io::Writer::new(Vec::new());
 ///
 /// let header = vcf::Header::builder()
 ///     .add_contig("sq0".parse()?, Map::<Contig>::new())
@@ -61,7 +61,7 @@ where
     ///
     /// ```
     /// use noodles_vcf as vcf;
-    /// let writer = vcf::Writer::new(Vec::new());
+    /// let writer = vcf::io::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
         Self { inner }
@@ -73,7 +73,7 @@ where
     ///
     /// ```
     /// use noodles_vcf as vcf;
-    /// let writer = vcf::Writer::new(Vec::new());
+    /// let writer = vcf::io::Writer::new(Vec::new());
     /// assert!(writer.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &W {
@@ -86,7 +86,7 @@ where
     ///
     /// ```
     /// use noodles_vcf as vcf;
-    /// let mut writer = vcf::Writer::new(Vec::new());
+    /// let mut writer = vcf::io::Writer::new(Vec::new());
     /// assert!(writer.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut W {
@@ -99,7 +99,7 @@ where
     ///
     /// ```
     /// use noodles_vcf as vcf;
-    /// let writer = vcf::Writer::new(Vec::new());
+    /// let writer = vcf::io::Writer::new(Vec::new());
     /// assert!(writer.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> W {
@@ -114,7 +114,7 @@ where
     /// # use std::io;
     /// use noodles_vcf as vcf;
     ///
-    /// let mut writer = vcf::Writer::new(Vec::new());
+    /// let mut writer = vcf::io::Writer::new(Vec::new());
     ///
     /// let header = vcf::Header::default();
     /// writer.write_header(&header)?;
@@ -139,7 +139,7 @@ where
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
-    /// let mut writer = vcf::Writer::new(Vec::new());
+    /// let mut writer = vcf::io::Writer::new(Vec::new());
     /// writer.write_record(&header, &record)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```

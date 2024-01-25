@@ -30,11 +30,10 @@ pub mod lazy;
 pub mod record;
 mod variant_reader;
 mod variant_writer;
-pub mod writer;
 
 pub use self::{
     header::Header, indexer::index, record::Record, variant_reader::VariantReader,
-    variant_writer::VariantWriter, writer::Writer,
+    variant_writer::VariantWriter,
 };
 
 #[cfg(feature = "async")]

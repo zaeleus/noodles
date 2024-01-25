@@ -1,5 +1,3 @@
-//! Creates a new VCF file.
-//!
 //! This writes a VCF header and one (sparse) record to stdout.
 //!
 //! Verify the output by piping to `bcftools view --no-version`.
@@ -14,7 +12,7 @@ use noodles_vcf::{
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let stdout = io::stdout().lock();
-    let mut writer = vcf::Writer::new(stdout);
+    let mut writer = vcf::io::Writer::new(stdout);
 
     let header = vcf::Header::builder()
         .add_contig("sq0".parse()?, Map::<Contig>::new())
