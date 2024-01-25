@@ -24,7 +24,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_util::variant::{io::CompressionMethod, writer::Builder};
+    /// use noodles_util::variant::io::{writer::Builder, CompressionMethod};
     /// let builder = Builder::default().set_compression_method(Some(CompressionMethod::Bgzf));
     /// ```
     pub fn set_compression_method(mut self, compression_method: Option<CompressionMethod>) -> Self {
@@ -37,7 +37,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_util::variant::{io::Format, writer::Builder};
+    /// use noodles_util::variant::io::{writer::Builder, Format};
     /// let builder = Builder::default().set_format(Format::Vcf);
     /// ```
     pub fn set_format(mut self, format: Format) -> Self {
@@ -53,7 +53,7 @@ impl Builder {
     ///
     /// ```no_run
     /// # use std::io;
-    /// use noodles_util::variant::writer::Builder;
+    /// use noodles_util::variant::io::writer::Builder;
     /// let writer = Builder::default().build_from_path("out.vcf.gz")?;
     /// # Ok::<_, io::Error>(())
     /// ```
@@ -84,7 +84,7 @@ impl Builder {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_util::variant::writer::Builder;
+    /// use noodles_util::variant::io::writer::Builder;
     /// let writer = Builder::default().build_from_writer(io::sink());
     /// ```
     pub fn build_from_writer<W>(self, writer: W) -> Writer
