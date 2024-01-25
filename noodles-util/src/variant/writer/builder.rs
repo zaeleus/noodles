@@ -9,7 +9,7 @@ use noodles_bgzf as bgzf;
 use noodles_vcf as vcf;
 
 use super::Writer;
-use crate::variant::{CompressionMethod, Format};
+use crate::variant::io::{CompressionMethod, Format};
 
 /// A variant writer builder.
 #[derive(Default)]
@@ -24,9 +24,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_util::variant::{self, CompressionMethod};
-    /// let builder = variant::writer::Builder::default()
-    ///     .set_compression_method(Some(CompressionMethod::Bgzf));
+    /// use noodles_util::variant::{io::CompressionMethod, writer::Builder};
+    /// let builder = Builder::default().set_compression_method(Some(CompressionMethod::Bgzf));
     /// ```
     pub fn set_compression_method(mut self, compression_method: Option<CompressionMethod>) -> Self {
         self.compression_method = Some(compression_method);
@@ -38,8 +37,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_util::variant::{self, Format};
-    /// let builder = variant::writer::Builder::default().set_format(Format::Vcf);
+    /// use noodles_util::variant::{io::Format, writer::Builder};
+    /// let builder = Builder::default().set_format(Format::Vcf);
     /// ```
     pub fn set_format(mut self, format: Format) -> Self {
         self.format = Some(format);
@@ -54,8 +53,8 @@ impl Builder {
     ///
     /// ```no_run
     /// # use std::io;
-    /// use noodles_util::variant;
-    /// let writer = variant::writer::Builder::default().build_from_path("out.vcf.gz")?;
+    /// use noodles_util::variant::writer::Builder;
+    /// let writer = Builder::default().build_from_path("out.vcf.gz")?;
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn build_from_path<P>(mut self, src: P) -> io::Result<Writer>
@@ -85,8 +84,8 @@ impl Builder {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_util::variant;
-    /// let writer = variant::writer::Builder::default().build_from_writer(io::sink());
+    /// use noodles_util::variant::writer::Builder;
+    /// let writer = Builder::default().build_from_writer(io::sink());
     /// ```
     pub fn build_from_writer<W>(self, writer: W) -> Writer
     where

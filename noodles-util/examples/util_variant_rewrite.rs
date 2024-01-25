@@ -12,7 +12,7 @@ fn main() -> io::Result<()> {
     let src = args.next().expect("missing src");
     let dst = args.next().expect("missing dst");
 
-    let mut reader = variant::reader::Builder::default().build_from_path(src)?;
+    let mut reader = variant::io::reader::Builder::default().build_from_path(src)?;
 
     let header = reader.read_header()?;
 

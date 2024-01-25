@@ -13,7 +13,7 @@ use noodles_vcf as vcf;
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let builder = variant::reader::Builder::default();
+    let builder = variant::io::reader::Builder::default();
 
     let mut reader = if src == "-" {
         let stdin = io::stdin().lock();

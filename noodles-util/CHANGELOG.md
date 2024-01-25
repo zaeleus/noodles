@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+  * util/variant: Move readers (`Reader` and `IndexedReader`) to `io` module.
+
 ### Fixed
 
   * util/alignment/io/indexed_reader: Use format record iterators in records
