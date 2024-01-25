@@ -6,11 +6,11 @@ pub use self::builder::Builder;
 
 use std::io::{self, BufRead};
 
-use noodles_vcf::{self as vcf, Record, VariantReader};
+use noodles_vcf::{self as vcf, Record};
 
 /// A variant reader.
 pub struct Reader<R> {
-    inner: Box<dyn VariantReader<R>>,
+    inner: Box<dyn vcf::variant::io::Read<R>>,
 }
 
 impl<R> Reader<R>

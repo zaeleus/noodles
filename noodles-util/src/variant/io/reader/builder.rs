@@ -6,7 +6,7 @@ use std::{
 
 use noodles_bcf as bcf;
 use noodles_bgzf as bgzf;
-use noodles_vcf::{self as vcf, VariantReader};
+use noodles_vcf as vcf;
 
 use super::Reader;
 use crate::variant::io::{CompressionMethod, Format};
@@ -100,7 +100,7 @@ impl Builder {
             None => detect_format(&mut reader, compression_method)?,
         };
 
-        let inner: Box<dyn VariantReader<_>> = match (format, compression_method) {
+        let inner: Box<dyn vcf::variant::io::Read<_>> = match (format, compression_method) {
             (Format::Vcf, None) => {
                 let inner: Box<dyn BufRead> = Box::new(reader);
                 Box::new(vcf::io::Reader::new(inner))

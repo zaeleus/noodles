@@ -1,9 +1,9 @@
 use std::io;
 
-use super::{Header, Record};
+use crate::{Header, Record};
 
 /// A variant format reader.
-pub trait VariantReader<R> {
+pub trait Read<R> {
     /// Reads a VCF header.
     fn read_variant_header(&mut self) -> io::Result<Header>;
 

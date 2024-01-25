@@ -22,7 +22,7 @@ use noodles_core::Region;
 use noodles_csi::BinningIndex;
 
 use self::header::read_header;
-use crate::{Header, Record, VariantReader};
+use crate::{Header, Record};
 
 /// A VCF reader.
 ///
@@ -350,7 +350,7 @@ where
     }
 }
 
-impl<R> VariantReader<R> for Reader<R>
+impl<R> crate::variant::io::Read<R> for Reader<R>
 where
     R: BufRead,
 {
