@@ -23,7 +23,7 @@ use crate::{header::string_maps::ContigStringMap, lazy};
 /// use noodles_bcf as bcf;
 /// use tokio::fs::File;
 ///
-/// let mut reader = File::open("sample.bcf").await.map(bcf::AsyncReader::new)?;
+/// let mut reader = File::open("sample.bcf").await.map(bcf::r#async::io::Reader::new)?;
 /// reader.read_file_format().await?;
 /// reader.read_header().await?;
 ///
@@ -51,7 +51,7 @@ where
     /// ```
     /// use noodles_bcf as bcf;
     /// let data = [];
-    /// let reader = bcf::AsyncReader::from(&data[..]);
+    /// let reader = bcf::r#async::io::Reader::from(&data[..]);
     /// assert!(reader.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &R {
@@ -65,7 +65,7 @@ where
     /// ```
     /// use noodles_bcf as bcf;
     /// let data = [];
-    /// let mut reader = bcf::AsyncReader::from(&data[..]);
+    /// let mut reader = bcf::r#async::io::Reader::from(&data[..]);
     /// assert!(reader.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
@@ -79,7 +79,7 @@ where
     /// ```
     /// use noodles_bcf as bcf;
     /// let data = [];
-    /// let reader = bcf::AsyncReader::from(&data[..]);
+    /// let reader = bcf::r#async::io::Reader::from(&data[..]);
     /// assert!(reader.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> R {
@@ -103,7 +103,7 @@ where
     /// # async fn main() -> io::Result<()> {
     /// use noodles_bcf as bcf;
     /// use tokio::fs::File;
-    /// let mut reader = File::open("sample.bcf").await.map(bcf::AsyncReader::new)?;
+    /// let mut reader = File::open("sample.bcf").await.map(bcf::r#async::io::Reader::new)?;
     /// let (major, minor) = reader.read_file_format().await?;
     /// # Ok(())
     /// # }
@@ -130,7 +130,7 @@ where
     /// use noodles_bcf as bcf;
     /// use tokio::fs::File;
     ///
-    /// let mut reader = File::open("sample.bcf").await.map(bcf::AsyncReader::new)?;
+    /// let mut reader = File::open("sample.bcf").await.map(bcf::r#async::io::Reader::new)?;
     /// reader.read_file_format().await?;
     ///
     /// let header = reader.read_header().await?;
@@ -159,7 +159,7 @@ where
     /// use noodles_bcf as bcf;
     /// use tokio::fs::File;
     ///
-    /// let mut reader = File::open("sample.bcf").await.map(bcf::AsyncReader::new)?;
+    /// let mut reader = File::open("sample.bcf").await.map(bcf::r#async::io::Reader::new)?;
     /// reader.read_file_format().await?;
     /// reader.read_header().await?;
     ///
@@ -189,7 +189,7 @@ where
     /// use noodles_bcf as bcf;
     /// use tokio::fs::File;
     ///
-    /// let mut reader = File::open("sample.bcf").await.map(bcf::AsyncReader::new)?;
+    /// let mut reader = File::open("sample.bcf").await.map(bcf::r#async::io::Reader::new)?;
     /// reader.read_file_format().await?;
     /// reader.read_header().await?;
     ///
@@ -227,7 +227,7 @@ where
     /// ```
     /// use noodles_bcf as bcf;
     /// let data = [];
-    /// let reader = bcf::AsyncReader::new(&data[..]);
+    /// let reader = bcf::r#async::io::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
         Self::from(bgzf::AsyncReader::new(inner))
@@ -242,7 +242,7 @@ where
     /// use noodles_bgzf as bgzf;
     ///
     /// let data = Vec::new();
-    /// let reader = bcf::AsyncReader::new(&data[..]);
+    /// let reader = bcf::r#async::io::Reader::new(&data[..]);
     /// let virtual_position = reader.virtual_position();
     ///
     /// assert_eq!(reader.virtual_position(), bgzf::VirtualPosition::from(0));
@@ -271,7 +271,7 @@ where
     /// use noodles_bgzf as bgzf;
     ///
     /// let data = [];
-    /// let mut reader = bcf::AsyncReader::new(Cursor::new(data));
+    /// let mut reader = bcf::r#async::io::Reader::new(Cursor::new(data));
     ///
     /// let virtual_position = bgzf::VirtualPosition::default();
     /// reader.seek(virtual_position).await?;
@@ -295,7 +295,7 @@ where
     /// use noodles_csi as csi;
     /// use tokio::fs::File;
     ///
-    /// let mut reader = File::open("sample.bcf").await.map(bcf::AsyncReader::new)?;
+    /// let mut reader = File::open("sample.bcf").await.map(bcf::r#async::io::Reader::new)?;
     /// reader.read_file_format().await?;
     ///
     /// let string_maps: StringMaps = reader.read_header().await?.parse()?;
