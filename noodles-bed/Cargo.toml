@@ -1,6 +1,6 @@
 [package]
 name = "noodles-bed"
-version = "0.11.0"
+version = "0.12.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
@@ -11,4 +11,4 @@ repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-bed"
 
 [dependencies]
-noodles-core = { path = "../noodles-core", version = "0.13.0" }
+noodles-core = { path = "../noodles-core", version = "0.14.0" }

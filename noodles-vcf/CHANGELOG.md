@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## 0.49.0 - 2024-01-25
+
+### Changed
+
+  * vcf: Sync dependencies.
 
 ### Fixed
 
