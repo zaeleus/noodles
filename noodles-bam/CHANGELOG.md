@@ -36,7 +36,8 @@
 
     This no longer returns a raw string.
 
-  * bam/io/reader: Rename "record" to "record buf" and "lazy record" to "record".
+  * bam/io/reader: Rename "record" to "record buf" and "lazy record" to
+    "record".
 
     This changes the following:
 
@@ -75,7 +76,6 @@
 
     These are now considered as part of the header when calling reading or
     writing.
-
 
 ## 0.52.0 - 2023-12-14
 
