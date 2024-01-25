@@ -12,7 +12,7 @@ use noodles_vcf as vcf;
 
 pub use self::builder::Builder;
 use self::{header::write_header, record::write_record};
-use super::header::StringMaps;
+use crate::header::StringMaps;
 
 const MAJOR: u8 = 2;
 const MINOR: u8 = 2;
@@ -33,7 +33,7 @@ where
     ///
     /// ```
     /// use noodles_bcf as bcf;
-    /// let writer = bcf::Writer::from(Vec::new());
+    /// let writer = bcf::io::Writer::from(Vec::new());
     /// assert!(writer.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &W {
@@ -46,7 +46,7 @@ where
     ///
     /// ```
     /// use noodles_bcf as bcf;
-    /// let mut writer = bcf::Writer::from(Vec::new());
+    /// let mut writer = bcf::io::Writer::from(Vec::new());
     /// assert!(writer.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut W {
@@ -59,7 +59,7 @@ where
     ///
     /// ```
     /// use noodles_bcf as bcf;
-    /// let mut writer = bcf::Writer::from(Vec::new());
+    /// let mut writer = bcf::io::Writer::from(Vec::new());
     /// assert!(writer.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> W {
@@ -75,7 +75,7 @@ where
     /// use noodles_bcf as bcf;
     /// use noodles_vcf as vcf;
     ///
-    /// let mut writer = bcf::Writer::new(io::sink());
+    /// let mut writer = bcf::io::Writer::new(io::sink());
     ///
     /// let header = vcf::Header::default();
     /// writer.write_header(&header)?;
@@ -103,7 +103,7 @@ where
     ///     record::Position,
     /// };
     ///
-    /// let mut writer = bcf::Writer::new(io::sink());
+    /// let mut writer = bcf::io::Writer::new(io::sink());
     ///
     /// let header = vcf::Header::builder()
     ///     .add_contig("sq0".parse()?, Map::<Contig>::new())
@@ -138,7 +138,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bcf as bcf;
-    /// let writer = bcf::Writer::new(io::sink());
+    /// let writer = bcf::io::Writer::new(io::sink());
     /// ```
     pub fn new(writer: W) -> Self {
         Self::from(bgzf::Writer::new(writer))
@@ -154,7 +154,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bcf as bcf;
-    /// let mut writer = bcf::Writer::new(io::sink());
+    /// let mut writer = bcf::io::Writer::new(io::sink());
     /// writer.try_finish()?;
     /// # Ok::<(), io::Error>(())
     /// ```
@@ -193,7 +193,7 @@ fn write_file_format<W>(writer: &mut W) -> io::Result<()>
 where
     W: Write,
 {
-    use super::MAGIC_NUMBER;
+    use crate::MAGIC_NUMBER;
 
     writer.write_all(MAGIC_NUMBER)?;
     writer.write_u8(MAJOR)?;

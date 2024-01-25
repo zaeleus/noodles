@@ -107,8 +107,8 @@ impl Builder {
             (Format::Vcf, Some(CompressionMethod::Bgzf)) => {
                 Box::new(vcf::io::Writer::new(bgzf::Writer::new(writer)))
             }
-            (Format::Bcf, None) => Box::new(bcf::Writer::from(writer)),
-            (Format::Bcf, Some(CompressionMethod::Bgzf)) => Box::new(bcf::Writer::new(writer)),
+            (Format::Bcf, None) => Box::new(bcf::io::Writer::from(writer)),
+            (Format::Bcf, Some(CompressionMethod::Bgzf)) => Box::new(bcf::io::Writer::new(writer)),
         };
 
         Writer { inner }

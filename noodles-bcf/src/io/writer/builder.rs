@@ -21,7 +21,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bcf::{io::CompressionMethod, writer::Builder};
+    /// use noodles_bcf::io::{writer::Builder, CompressionMethod};
     /// let builder = Builder::default().set_compression_method(CompressionMethod::Bgzf);
     /// ```
     pub fn set_compression_method(mut self, compression_method: CompressionMethod) -> Self {
@@ -34,7 +34,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```no_run
-    /// use noodles_bcf::writer::Builder;
+    /// use noodles_bcf::io::writer::Builder;
     /// let writer = Builder::default().build_from_path("out.bam")?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
@@ -52,7 +52,7 @@ impl Builder {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_bcf::writer::Builder;
+    /// use noodles_bcf::io::writer::Builder;
     /// let writer = Builder::default().build_from_writer(io::sink());
     /// ```
     pub fn build_from_writer<'w, W>(self, writer: W) -> Writer<Box<dyn Write + 'w>>
