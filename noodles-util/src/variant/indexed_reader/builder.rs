@@ -110,7 +110,7 @@ impl Builder {
 
         match (format, compression_method) {
             (Format::Vcf, Some(CompressionMethod::Bgzf)) => {
-                let mut builder = vcf::indexed_reader::Builder::default();
+                let mut builder = vcf::io::indexed_reader::Builder::default();
 
                 if let Some(index) = self.index {
                     builder = builder.set_index(index);
@@ -175,7 +175,7 @@ impl Builder {
 
         match (format, compression) {
             (Format::Vcf, Some(CompressionMethod::Bgzf)) => {
-                let mut builder = vcf::indexed_reader::Builder::default();
+                let mut builder = vcf::io::indexed_reader::Builder::default();
 
                 if let Some(index) = self.index {
                     builder = builder.set_index(index);

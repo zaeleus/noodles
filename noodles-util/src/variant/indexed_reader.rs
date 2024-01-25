@@ -14,7 +14,7 @@ use noodles_vcf::{self as vcf, Record};
 /// An indexed variant reader.
 pub enum IndexedReader<R> {
     /// VCF.
-    Vcf(vcf::IndexedReader<R>),
+    Vcf(vcf::io::IndexedReader<R>),
     /// BCF.
     Bcf(bcf::IndexedReader<bgzf::Reader<R>>),
 }

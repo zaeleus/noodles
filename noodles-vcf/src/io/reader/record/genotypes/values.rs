@@ -4,7 +4,7 @@ use std::{error, fmt};
 
 use self::value::parse_value;
 use crate::{
-    reader::record::MISSING,
+    io::reader::record::MISSING,
     record::genotypes::{sample::Value, Keys},
     Header,
 };

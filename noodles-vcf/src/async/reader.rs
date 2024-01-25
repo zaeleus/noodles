@@ -8,7 +8,7 @@ use noodles_csi::BinningIndex;
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncSeek};
 
 use self::{header::read_header, query::query};
-use crate::{lazy, reader::resolve_region, Header, Record};
+use crate::{io::reader::resolve_region, lazy, Header, Record};
 
 const LINE_FEED: char = '\n';
 const CARRIAGE_RETURN: char = '\r';
@@ -179,7 +179,7 @@ where
     /// # }
     /// ```
     pub async fn read_record(&mut self, header: &Header, record: &mut Record) -> io::Result<usize> {
-        use crate::reader::parse_record;
+        use crate::io::reader::parse_record;
 
         self.buf.clear();
 
@@ -425,7 +425,7 @@ where
     }
 
     let mut buf = buf.as_bytes();
-    crate::reader::lazy_record::read_lazy_record(&mut buf, record)
+    crate::io::reader::lazy_record::read_lazy_record(&mut buf, record)
 }
 
 #[cfg(test)]

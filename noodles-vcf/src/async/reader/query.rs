@@ -7,7 +7,7 @@ use noodles_csi::binning_index::index::reference_sequence::bin::Chunk;
 use tokio::io::{self, AsyncRead, AsyncSeek};
 
 use super::Reader;
-use crate::{reader::query::intersects, Header, Record};
+use crate::{io::reader::query::intersects, Header, Record};
 
 enum State {
     Seek,

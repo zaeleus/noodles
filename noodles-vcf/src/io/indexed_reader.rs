@@ -12,9 +12,9 @@ use noodles_csi::BinningIndex;
 
 use super::{
     reader::{Query, Records},
-    Header, Reader, Record,
+    Reader,
 };
-use crate::lazy;
+use crate::{lazy, Header, Record};
 
 /// An indexed VCF reader.
 pub struct IndexedReader<R> {

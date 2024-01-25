@@ -21,7 +21,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{io::CompressionMethod, reader::Builder};
+    /// use noodles_vcf::io::{reader::Builder, CompressionMethod};
     /// let builder = Builder::default().set_compression_method(CompressionMethod::Bgzf);
     /// ```
     pub fn set_compression_method(mut self, compression_method: CompressionMethod) -> Self {
@@ -37,7 +37,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```no_run
-    /// use noodles_vcf::reader::Builder;
+    /// use noodles_vcf::io::reader::Builder;
     /// let reader = Builder::default().build_from_path("sample.vcf")?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
@@ -64,7 +64,7 @@ impl Builder {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_vcf::reader::Builder;
+    /// use noodles_vcf::io::reader::Builder;
     /// let reader = Builder::default().build_from_reader(io::empty())?;
     /// # Ok::<_, io::Error>(())
     /// ```
