@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * vcf: Move readers (`Reader` and `IndexedReader`) to `io` module.
+
 ## 0.51.0 - 2024-03-28
 
 ### Changed

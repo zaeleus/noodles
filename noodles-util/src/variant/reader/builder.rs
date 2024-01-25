@@ -104,11 +104,11 @@ impl Builder {
         let inner: Box<dyn VariantReader<_>> = match (format, compression_method) {
             (Format::Vcf, None) => {
                 let inner: Box<dyn BufRead> = Box::new(reader);
-                Box::new(vcf::Reader::new(inner))
+                Box::new(vcf::io::Reader::new(inner))
             }
             (Format::Vcf, Some(CompressionMethod::Bgzf)) => {
                 let inner: Box<dyn BufRead> = Box::new(bgzf::Reader::new(reader));
-                Box::new(vcf::Reader::new(inner))
+                Box::new(vcf::io::Reader::new(inner))
             }
             (Format::Bcf, None) => {
                 let inner: Box<dyn BufRead> = Box::new(reader);

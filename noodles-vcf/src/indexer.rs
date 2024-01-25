@@ -5,7 +5,7 @@ use noodles_core::Position;
 use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
 use noodles_tabix as tabix;
 
-use super::{Reader, Record};
+use super::{io::Reader, Record};
 
 /// Indexes a bgzipped-compressed VCF file.
 ///

@@ -1,8 +1,8 @@
 use super::Record;
-use crate::{reader::record::ParseError, Header};
+use crate::{io::reader::record::ParseError, Header};
 
 pub fn parse(s: &str, header: &Header) -> Result<Record, ParseError> {
-    use crate::reader::parse_record;
+    use crate::io::reader::parse_record;
 
     let mut record = Record::default();
     parse_record(s, header, &mut record)?;

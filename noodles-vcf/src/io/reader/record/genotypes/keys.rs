@@ -1,7 +1,7 @@
 use std::{error, fmt};
 
 use crate::{
-    reader::record::MISSING,
+    io::reader::record::MISSING,
     record::genotypes::{
         keys::{key, Key},
         Keys,

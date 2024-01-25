@@ -2,7 +2,7 @@ use std::{error, fmt, num, str};
 
 use crate::{
     header::{record::value::map::format::Type, Number},
-    reader::record::MISSING,
+    io::reader::record::MISSING,
     record::{
         genotypes::sample::{value::Array, Value},
         value,

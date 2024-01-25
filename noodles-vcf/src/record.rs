@@ -21,7 +21,7 @@ pub use self::{
 
 use std::{error, fmt, num, str::FromStr};
 
-use super::{reader::record::ParseError, Header};
+use super::{io::reader::record::ParseError, Header};
 
 pub(crate) const MISSING_FIELD: &str = ".";
 pub(crate) const FIELD_DELIMITER: char = '\t';
@@ -58,7 +58,7 @@ impl Record {
     /// let s = "sq0\t8\t.\tA\t.\t.\tPASS\t.";
     /// let header = vcf::Header::default();
     /// let record = vcf::Record::try_from_str(s, &header)?;
-    /// # Ok::<_, vcf::reader::record::ParseError>(())
+    /// # Ok::<_, vcf::io::reader::record::ParseError>(())
     /// ```
     #[deprecated(since = "0.27.0", note = "Use `TryFrom<(&Header, &str)>` instead.")]
     pub fn try_from_str(s: &str, header: &Header) -> Result<Self, ParseError> {

@@ -22,7 +22,7 @@ use noodles_core::Region;
 use noodles_csi::BinningIndex;
 
 use self::header::read_header;
-use super::{Header, Record, VariantReader};
+use crate::{Header, Record, VariantReader};
 
 /// A VCF reader.
 ///
@@ -38,7 +38,7 @@ use super::{Header, Record, VariantReader};
 /// ```no_run
 /// use noodles_vcf as vcf;
 ///
-/// let mut reader = vcf::reader::Builder::default().build_from_path("sample.vcf")?;
+/// let mut reader = vcf::io::reader::Builder::default().build_from_path("sample.vcf")?;
 /// let header = reader.read_header()?;
 ///
 /// for result in reader.records(&header) {
@@ -69,7 +69,7 @@ where
     /// sq0\t1\t.\tA\t.\t.\tPASS\t.
     /// ";
     ///
-    /// let reader = vcf::Reader::new(&data[..]);
+    /// let reader = vcf::io::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
         Self {
@@ -85,7 +85,7 @@ where
     /// ```
     /// use noodles_vcf as vcf;
     /// let data = [];
-    /// let reader = vcf::Reader::new(&data[..]);
+    /// let reader = vcf::io::Reader::new(&data[..]);
     /// assert!(reader.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &R {
@@ -99,7 +99,7 @@ where
     /// ```
     /// use noodles_vcf as vcf;
     /// let data = [];
-    /// let mut reader = vcf::Reader::new(&data[..]);
+    /// let mut reader = vcf::io::Reader::new(&data[..]);
     /// assert!(reader.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
@@ -113,7 +113,7 @@ where
     /// ```
     /// use noodles_vcf as vcf;
     /// let data = [];
-    /// let reader = vcf::Reader::new(&data[..]);
+    /// let reader = vcf::io::Reader::new(&data[..]);
     /// assert!(reader.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> R {
@@ -138,7 +138,7 @@ where
     /// sq0\t1\t.\tA\t.\t.\tPASS\t.
     /// ";
     ///
-    /// let mut reader = vcf::Reader::new(&data[..]);
+    /// let mut reader = vcf::io::Reader::new(&data[..]);
     /// let header = reader.read_header()?;
     /// # Ok::<(), io::Error>(())
     /// ```
@@ -169,7 +169,7 @@ where
     /// sq0\t1\t.\tA\t.\t.\tPASS\t.
     /// ";
     ///
-    /// let mut reader = vcf::Reader::new(&data[..]);
+    /// let mut reader = vcf::io::Reader::new(&data[..]);
     /// let header = reader.read_header()?;
     ///
     /// let mut record = vcf::Record::default();
@@ -204,7 +204,7 @@ where
     /// sq0\t1\t.\tA\t.\t.\tPASS\t.
     /// ";
     ///
-    /// let mut reader = vcf::Reader::new(&data[..]);
+    /// let mut reader = vcf::io::Reader::new(&data[..]);
     /// let header = reader.read_header()?;
     ///
     /// let mut records = reader.records(&header);
@@ -237,7 +237,7 @@ where
     /// sq0\t1\t.\tA\t.\t.\tPASS\t.
     /// ";
     ///
-    /// let mut reader = vcf::Reader::new(&data[..]);
+    /// let mut reader = vcf::io::Reader::new(&data[..]);
     /// reader.read_header()?;
     ///
     /// let mut record = vcf::lazy::Record::default();
@@ -263,7 +263,7 @@ where
     /// use noodles_vcf as vcf;
     ///
     /// let data = Vec::new();
-    /// let reader = vcf::Reader::new(bgzf::Reader::new(&data[..]));
+    /// let reader = vcf::io::Reader::new(bgzf::Reader::new(&data[..]));
     /// let virtual_position = reader.virtual_position();
     ///
     /// assert_eq!(virtual_position.compressed(), 0);
@@ -291,7 +291,7 @@ where
     /// use noodles_vcf as vcf;
     ///
     /// let data = Cursor::new(Vec::new());
-    /// let mut reader = vcf::Reader::new(bgzf::Reader::new(data));
+    /// let mut reader = vcf::io::Reader::new(bgzf::Reader::new(data));
     ///
     /// let virtual_position = bgzf::VirtualPosition::default();
     /// reader.seek(virtual_position)?;
@@ -314,7 +314,7 @@ where
     ///
     /// let mut reader = File::open("sample.vcf.gz")
     ///     .map(bgzf::Reader::new)
-    ///     .map(vcf::Reader::new)?;
+    ///     .map(vcf::io::Reader::new)?;
     ///
     /// let header = reader.read_header()?;
     ///

@@ -23,7 +23,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_tabix as tabix;
-    /// use noodles_vcf::indexed_reader::Builder;
+    /// use noodles_vcf::io::indexed_reader::Builder;
     ///
     /// let index = tabix::Index::default();
     /// let builder = Builder::default().set_index(index);
@@ -41,7 +41,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```no_run
-    /// use noodles_vcf::indexed_reader::Builder;
+    /// use noodles_vcf::io::indexed_reader::Builder;
     /// let reader = Builder::default().build_from_path("sample.vcf.gz")?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
@@ -68,7 +68,7 @@ impl Builder {
     /// ```
     /// # use std::io;
     /// use noodles_tabix as tabix;
-    /// use noodles_vcf::indexed_reader::Builder;
+    /// use noodles_vcf::io::indexed_reader::Builder;
     ///
     /// let index = tabix::Index::default();
     /// let reader = Builder::default()
