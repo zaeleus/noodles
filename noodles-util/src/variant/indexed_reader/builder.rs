@@ -119,7 +119,7 @@ impl Builder {
                 builder.build_from_path(src).map(IndexedReader::Vcf)
             }
             (Format::Bcf, Some(CompressionMethod::Bgzf)) => {
-                let mut builder = bcf::indexed_reader::Builder::default();
+                let mut builder = bcf::io::indexed_reader::Builder::default();
 
                 if let Some(index) = self.index {
                     builder = builder.set_index(index);
@@ -184,7 +184,7 @@ impl Builder {
                 builder.build_from_reader(reader).map(IndexedReader::Vcf)
             }
             (Format::Bcf, Some(CompressionMethod::Bgzf)) => {
-                let mut builder = bcf::indexed_reader::Builder::default();
+                let mut builder = bcf::io::indexed_reader::Builder::default();
 
                 if let Some(index) = self.index {
                     builder = builder.set_index(index);

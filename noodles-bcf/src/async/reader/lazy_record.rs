@@ -9,7 +9,7 @@ pub(super) async fn read_lazy_record<R>(
 where
     R: AsyncRead + Unpin,
 {
-    use crate::reader::lazy_record::read_site;
+    use crate::io::reader::lazy_record::read_site;
 
     let l_shared = match reader.read_u32_le().await {
         Ok(n) => usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
@@ -48,7 +48,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_read_lazy_record() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::reader::lazy_record::tests::{DATA, RAW_HEADER};
+        use crate::io::reader::lazy_record::tests::{DATA, RAW_HEADER};
 
         let header = RAW_HEADER.parse()?;
         let string_maps: StringMaps = RAW_HEADER.parse()?;

@@ -12,11 +12,10 @@ use noodles_csi::BinningIndex;
 use noodles_vcf as vcf;
 
 use super::{
-    header::StringMaps,
-    lazy,
     reader::{Query, Records},
     Reader,
 };
+use crate::{header::StringMaps, lazy};
 
 /// An indexed BCF reader.
 pub struct IndexedReader<R> {
