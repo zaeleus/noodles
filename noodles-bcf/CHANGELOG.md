@@ -4,7 +4,8 @@
 
 ### Changed
 
-  * bcf: Move readers (`Reader` and `IndexedReader`) to `io` module.
+  * bcf: Move readers (`Reader` and `IndexedReader`) to writer (`Writer`) to
+    `io` module.
 
 ## 0.48.0 - 2024-03-28
 

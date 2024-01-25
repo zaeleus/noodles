@@ -208,7 +208,7 @@ mod tests {
 
     #[test]
     fn test_build_from_reader() -> io::Result<()> {
-        let mut writer = bcf::Writer::new(Vec::new());
+        let mut writer = bcf::io::Writer::new(Vec::new());
         let header = vcf::Header::default();
         writer.write_header(&header)?;
         writer.try_finish()?;

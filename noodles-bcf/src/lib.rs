@@ -9,9 +9,6 @@ pub mod header;
 pub mod io;
 pub mod lazy;
 pub(crate) mod record;
-pub mod writer;
-
-pub use self::writer::Writer;
 
 #[cfg(feature = "async")]
 pub use self::r#async::Reader as AsyncReader;

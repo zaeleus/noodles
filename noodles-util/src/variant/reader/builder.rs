@@ -215,12 +215,12 @@ mod tests {
         let src = writer.finish()?;
         t(&src, Some(CompressionMethod::Bgzf), Format::Vcf);
 
-        let mut writer = bcf::Writer::from(Vec::new());
+        let mut writer = bcf::io::Writer::from(Vec::new());
         writer.write_header(&header)?;
         let src = writer.into_inner();
         t(&src, None, Format::Bcf);
 
-        let mut writer = bcf::Writer::new(Vec::new());
+        let mut writer = bcf::io::Writer::new(Vec::new());
         writer.write_header(&header)?;
         let src = writer.into_inner().finish()?;
         t(&src, Some(CompressionMethod::Bgzf), Format::Bcf);
