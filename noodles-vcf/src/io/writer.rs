@@ -1,12 +1,13 @@
 //! VCF writer.
 
 mod builder;
+mod header;
 mod record;
 
 use std::io::{self, Write};
 
 pub use self::builder::Builder;
-use self::record::write_record;
+use self::{header::write_header, record::write_record};
 use crate::{Header, Record};
 
 /// A VCF writer.
@@ -121,7 +122,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_header(&mut self, header: &Header) -> io::Result<()> {
-        write!(self.inner, "{header}")
+        write_header(&mut self.inner, header)
     }
 
     /// Writes a VCF record.
@@ -165,22 +166,6 @@ where
 mod tests {
     use super::*;
     use crate::record::Position;
-
-    #[test]
-    fn test_write_header() -> io::Result<()> {
-        let mut writer = Writer::new(Vec::new());
-
-        let header = Header::default();
-        writer.write_header(&header)?;
-
-        let expected = b"##fileformat=VCFv4.4
-#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
-";
-
-        assert_eq!(writer.get_ref().as_slice(), &expected[..]);
-
-        Ok(())
-    }
 
     #[test]
     fn test_write_record() -> Result<(), Box<dyn std::error::Error>> {
