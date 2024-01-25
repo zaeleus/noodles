@@ -10,7 +10,7 @@ use noodles_vcf as vcf;
 
 /// A variant writer.
 pub struct Writer {
-    inner: Box<dyn vcf::VariantWriter>,
+    inner: Box<dyn vcf::variant::io::Write>,
 }
 
 impl Writer {

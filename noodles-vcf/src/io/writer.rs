@@ -7,7 +7,7 @@ use std::io::{self, Write};
 
 pub use self::builder::Builder;
 use self::record::write_record;
-use crate::{Header, Record, VariantWriter};
+use crate::{Header, Record};
 
 /// A VCF writer.
 ///
@@ -148,7 +148,7 @@ where
     }
 }
 
-impl<W> VariantWriter for Writer<W>
+impl<W> crate::variant::io::Write for Writer<W>
 where
     W: Write,
 {
