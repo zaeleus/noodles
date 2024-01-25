@@ -22,7 +22,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let header = reader.read_header().await?;
 
-    let mut writer = vcf::AsyncWriter::new(io::stdout());
+    let mut writer = vcf::r#async::io::Writer::new(io::stdout());
     writer.write_header(&header).await?;
 
     let mut records = reader.records(&header);

@@ -25,7 +25,7 @@ where
     ///
     /// ```
     /// use noodles_vcf as vcf;
-    /// let writer = vcf::AsyncWriter::new(Vec::new());
+    /// let writer = vcf::r#async::io::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
         Self { inner }
@@ -37,7 +37,7 @@ where
     ///
     /// ```
     /// use noodles_vcf as vcf;
-    /// let writer = vcf::AsyncWriter::new(Vec::new());
+    /// let writer = vcf::r#async::io::Writer::new(Vec::new());
     /// assert!(writer.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &W {
@@ -50,7 +50,7 @@ where
     ///
     /// ```
     /// use noodles_vcf as vcf;
-    /// let mut writer = vcf::AsyncWriter::new(Vec::new());
+    /// let mut writer = vcf::r#async::io::Writer::new(Vec::new());
     /// assert!(writer.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut W {
@@ -63,7 +63,7 @@ where
     ///
     /// ```
     /// use noodles_vcf as vcf;
-    /// let writer = vcf::AsyncWriter::new(Vec::new());
+    /// let writer = vcf::r#async::io::Writer::new(Vec::new());
     /// assert!(writer.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> W {
@@ -80,7 +80,7 @@ where
     /// # #[tokio::main]
     /// # async fn main() -> io::Result<()> {
     /// use noodles_vcf as vcf;
-    /// let mut writer = vcf::AsyncWriter::new(Vec::new());
+    /// let mut writer = vcf::r#async::io::Writer::new(Vec::new());
     /// writer.shutdown().await?;
     /// # Ok(())
     /// # }
@@ -100,7 +100,7 @@ where
     /// # async fn main() -> io::Result<()> {
     /// use noodles_vcf as vcf;
     ///
-    /// let mut writer = vcf::AsyncWriter::new(Vec::new());
+    /// let mut writer = vcf::r#async::io::Writer::new(Vec::new());
     ///
     /// let header = vcf::Header::default();
     /// writer.write_header(&header).await?;
@@ -127,7 +127,7 @@ where
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
-    /// let mut writer = vcf::AsyncWriter::new(Vec::new());
+    /// let mut writer = vcf::r#async::io::Writer::new(Vec::new());
     /// writer.write_record(&record).await?;
     /// # Ok(())
     /// # }
