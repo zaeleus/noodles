@@ -16,7 +16,7 @@ pub enum IndexedReader<R> {
     /// VCF.
     Vcf(vcf::io::IndexedReader<R>),
     /// BCF.
-    Bcf(bcf::IndexedReader<bgzf::Reader<R>>),
+    Bcf(bcf::io::IndexedReader<bgzf::Reader<R>>),
 }
 
 impl<R> IndexedReader<R>

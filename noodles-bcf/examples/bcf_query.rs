@@ -18,7 +18,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = args.nth(1).expect("missing src");
     let raw_region = args.next().expect("missing region");
 
-    let mut reader = bcf::indexed_reader::Builder::default().build_from_path(src)?;
+    let mut reader = bcf::io::indexed_reader::Builder::default().build_from_path(src)?;
     let header = reader.read_header()?;
 
     let region = raw_region.parse()?;

@@ -21,7 +21,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bcf::{io::CompressionMethod, reader::Builder};
+    /// use noodles_bcf::io::{reader::Builder, CompressionMethod};
     /// let builder = Builder::default().set_compression_method(CompressionMethod::Bgzf);
     /// ```
     pub fn set_compression_method(mut self, compression_method: CompressionMethod) -> Self {
@@ -34,7 +34,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```no_run
-    /// use noodles_bcf::reader::Builder;
+    /// use noodles_bcf::io::reader::Builder;
     /// let reader = Builder::default().build_from_path("sample.bcf")?;
     /// # Ok::<_, std::io::Error>(())
     /// ````
@@ -52,7 +52,7 @@ impl Builder {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_bcf::reader::Builder;
+    /// use noodles_bcf::io::reader::Builder;
     /// let reader = Builder::default().build_from_reader(io::empty());
     /// ```
     pub fn build_from_reader<'r, R>(self, reader: R) -> io::Result<Reader<Box<dyn Read + 'r>>>

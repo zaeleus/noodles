@@ -21,8 +21,10 @@ use noodles_csi::BinningIndex;
 use noodles_vcf as vcf;
 
 use self::{header::read_header, lazy_record::read_lazy_record, record::read_record};
-use super::lazy;
-use crate::header::string_maps::{ContigStringMap, StringMaps};
+use crate::{
+    header::string_maps::{ContigStringMap, StringMaps},
+    lazy,
+};
 
 /// A BCF reader.
 ///
@@ -44,7 +46,7 @@ where
     /// ```
     /// use noodles_bcf as bcf;
     /// let data = [];
-    /// let reader = bcf::Reader::from(&data[..]);
+    /// let reader = bcf::io::Reader::from(&data[..]);
     /// assert!(reader.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &R {
@@ -58,7 +60,7 @@ where
     /// ```
     /// use noodles_bcf as bcf;
     /// let data = [];
-    /// let mut reader = bcf::Reader::from(&data[..]);
+    /// let mut reader = bcf::io::Reader::from(&data[..]);
     /// assert!(reader.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
@@ -72,7 +74,7 @@ where
     /// ```
     /// use noodles_bcf as bcf;
     /// let data = [];
-    /// let reader = bcf::Reader::from(&data[..]);
+    /// let reader = bcf::io::Reader::from(&data[..]);
     /// assert!(reader.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> R {
@@ -100,7 +102,7 @@ where
     /// ```no_run
     /// # use std::{fs::File, io};
     /// use noodles_bcf as bcf;
-    /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
+    /// let mut reader = File::open("sample.bcf").map(bcf::io::Reader::new)?;
     /// let header = reader.read_header()?;
     /// # Ok::<(), io::Error>(())
     /// ```
@@ -129,7 +131,7 @@ where
     /// use noodles_bcf as bcf;
     /// use noodles_vcf as vcf;
     ///
-    /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
+    /// let mut reader = File::open("sample.bcf").map(bcf::io::Reader::new)?;
     /// let header = reader.read_header()?;
     ///
     /// let mut record = vcf::Record::default();
@@ -166,7 +168,7 @@ where
     /// # use std::{fs::File, io};
     /// use noodles_bcf as bcf;
     ///
-    /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
+    /// let mut reader = File::open("sample.bcf").map(bcf::io::Reader::new)?;
     /// reader.read_header()?;
     ///
     /// let mut record = bcf::lazy::Record::default();
@@ -188,7 +190,7 @@ where
     /// # use std::{fs::File, io};
     /// use noodles_bcf as bcf;
     ///
-    /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
+    /// let mut reader = File::open("sample.bcf").map(bcf::io::Reader::new)?;
     /// let header = reader.read_header()?;
     ///
     /// for result in reader.records(&header) {
@@ -210,7 +212,7 @@ where
     /// # use std::{fs::File, io};
     /// use noodles_bcf as bcf;
     ///
-    /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
+    /// let mut reader = File::open("sample.bcf").map(bcf::io::Reader::new)?;
     /// reader.read_header()?;
     ///
     /// for result in reader.lazy_records() {
@@ -241,7 +243,7 @@ where
     /// ```
     /// use noodles_bcf as bcf;
     /// let data = [];
-    /// let reader = bcf::Reader::new(&data[..]);
+    /// let reader = bcf::io::Reader::new(&data[..]);
     /// ```
     pub fn new(reader: R) -> Self {
         Self::from(bgzf::Reader::new(reader))
@@ -256,7 +258,7 @@ where
     /// use noodles_bcf as bcf;
     ///
     /// let data = Vec::new();
-    /// let reader = bcf::Reader::new(&data[..]);
+    /// let reader = bcf::io::Reader::new(&data[..]);
     /// let virtual_position = reader.virtual_position();
     ///
     /// assert_eq!(virtual_position.compressed(), 0);
@@ -283,7 +285,7 @@ where
     /// use noodles_bcf as bcf;
     /// use noodles_bgzf as bgzf;
     ///
-    /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
+    /// let mut reader = File::open("sample.bcf").map(bcf::io::Reader::new)?;
     ///
     /// let virtual_position = bgzf::VirtualPosition::from(102334155);
     /// reader.seek(virtual_position)?;
@@ -303,7 +305,7 @@ where
     /// use noodles_core::Region;
     /// use noodles_csi as csi;
     ///
-    /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
+    /// let mut reader = File::open("sample.bcf").map(bcf::io::Reader::new)?;
     /// let header = reader.read_header()?;
     ///
     /// let index = csi::read("sample.bcf.csi")?;
