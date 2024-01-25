@@ -1,3 +1,3 @@
-mod reader;
+//! Async BCF.
 
-pub use self::reader::Reader;
+pub mod io;

@@ -19,7 +19,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = args.nth(1).map(PathBuf::from).expect("missing src");
     let raw_region = args.next().expect("missing region");
 
-    let mut reader = File::open(&src).await.map(bcf::AsyncReader::new)?;
+    let mut reader = File::open(&src).await.map(bcf::r#async::io::Reader::new)?;
     reader.read_file_format().await?;
     let raw_header = reader.read_header().await?;
 

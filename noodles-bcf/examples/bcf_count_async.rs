@@ -12,7 +12,7 @@ use tokio::{fs::File, io};
 async fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = File::open(src).await.map(bcf::AsyncReader::new)?;
+    let mut reader = File::open(src).await.map(bcf::r#async::io::Reader::new)?;
     reader.read_file_format().await?;
     reader.read_header().await?;
 
