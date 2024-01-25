@@ -8,18 +8,17 @@
     record.
 
     The alignment record buffer is renamed to `RecordBuf`. This also introduces
-    traits for all fields.
+    traits for field buffers.
 
   * sam/async/io/reader: Add record reader (`Reader::read_record`).
 
   * sam/io/reader: Add records iterator (`Reader::records`).
 
-  * sam/record: Add wrappers for read name (`record::ReadName`) and template
-    length (`record::TemplateLength`).
+  * sam/record: Add wrapper for name (`record::Name`).
 
   * sam/record: Add method to get reference sequence ID
     (`Record::reference_sequence_id`) and mate reference sequence ID
-    (`Record::mate_reference_sequence_id`). .
+    (`Record::mate_reference_sequence_id`).
 
   * sam/record/data/field/value/array: Add values wrapper (`Values`).
 
@@ -39,10 +38,6 @@
   * sam/alignment/io/write: Change `Write::write_record` to accept `&dyn
     crate::alignment::Record`.
 
-  * sam/alignment/iter/pileup: Work with `Record` objects.
-
-    Instantiating `Pileup` now requires a `Header`.
-
   * sam/alignment/record_buf: Change name to raw buffer (`record_buf::Name`).
 
   * sam/alignment/record_buf: Change sequence to raw bases
@@ -52,12 +47,12 @@
     (`record_buf::QualityScores`).
 
   * sam/header: Change `ReferenceSequences`, `ReadGroup`, and `Program` keys to
-    byte strings (`Vec<u8>`).
+    byte strings (`BString`).
 
-  * sam/header: Change `Comments` to a list of byte strings (`Vec<Vec<u8>>`).
+  * sam/header: Change `Comments` to a list of byte strings (`Vec<BString>`).
 
   * sam/header/record/value/map: Change `OtherFields` values to byte strings
-    (`Vec<u8>`).
+    (`BString`).
 
   * sam/io/reader: Rename record to record buf and lazy record to record.
 
@@ -68,7 +63,7 @@
       * `Records` => `RecordBufs`, and
       * `Reader::read_lazy_record` => `Reader::read_record`.
 
-  * sam/io/reader: Return an iterator over sam::Record from queries
+  * sam/io/reader: Return an iterator over `sam::Record` from queries
     (`Reader::query` and `Reader::query_unmapped`).
 
     `Reader::query_unmapped` no longer needs a reference to the header.
@@ -77,15 +72,15 @@
 
     This also changes `Record::read_name` to `Record::name`.
 
-  * sam/record/cigar: Move `Cigar` to `alignment::record_buf::Cigar`.
+  * sam/record: Move scalar values to `alignment::record` module.
 
-    `op` is moved to `alignment::record::cigar::op`.
+    Replace usages of, e.g., `sam::record::Flag` with
+    `sam::alignment::record::Flag`.
 
-  * sam/record/data/field: Replace `Value` with
-    `crate::alignment::record::data::field::Value`.
+  * sam/record: Move buffers to `alignment::record_buf` module.
 
-  * sam/record/data/field/value: Replace `Array` with
-    `crate::alignment::record::data::field::value::Array`.
+    Replace usages of, e.g., `sam::record::Cigar` with
+    `sam::alignment::record_buf::Cigar`.
 
 ### Removed
 
