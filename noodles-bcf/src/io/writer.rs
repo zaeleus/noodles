@@ -172,7 +172,7 @@ impl<W> From<W> for Writer<W> {
     }
 }
 
-impl<W> vcf::VariantWriter for Writer<W>
+impl<W> vcf::variant::io::Write for Writer<W>
 where
     W: Write,
 {

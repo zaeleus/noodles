@@ -4,7 +4,8 @@
 
 ### Changed
 
-  * vcf: Move `VariantReader` to `variant::io::Read`.
+  * vcf: Move `VariantReader` and `VariantWriter` to
+    `variant::io::Read` and `variant::io::Write`, respectively.
 
   * vcf: Move readers (`Reader` and `IndexedReader`) and writer (`Writer`) to
     `io` module.
