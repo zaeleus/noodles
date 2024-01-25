@@ -4,7 +4,8 @@
 
 ### Changed
 
-  * util/variant: Move readers (`Reader` and `IndexedReader`) to `io` module.
+  * util/variant: Move readers (`Reader` and `IndexedReader`) and writer
+    (`Writer`) to `io` module.
 
 ## 0.38.0 - 2024-03-12
 

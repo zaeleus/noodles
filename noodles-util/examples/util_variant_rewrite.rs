@@ -16,7 +16,7 @@ fn main() -> io::Result<()> {
 
     let header = reader.read_header()?;
 
-    let mut writer = variant::writer::Builder::default().build_from_path(dst)?;
+    let mut writer = variant::io::writer::Builder::default().build_from_path(dst)?;
 
     writer.write_header(&header)?;
 
