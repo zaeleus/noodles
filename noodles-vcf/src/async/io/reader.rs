@@ -34,7 +34,7 @@ const CARRIAGE_RETURN: char = '\r';
 /// let mut reader = File::open("sample.vcf")
 ///     .await
 ///     .map(BufReader::new)
-///     .map(vcf::AsyncReader::new)?;
+///     .map(vcf::r#async::io::Reader::new)?;
 ///
 /// let header = reader.read_header().await?;
 ///
@@ -62,7 +62,7 @@ where
     /// ```
     /// use noodles_vcf as vcf;
     /// let data = [];
-    /// let reader = vcf::AsyncReader::new(&data[..]);
+    /// let reader = vcf::r#async::io::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
         Self {
@@ -78,7 +78,7 @@ where
     /// ```
     /// use noodles_vcf as vcf;
     /// let data = [];
-    /// let reader = vcf::AsyncReader::new(&data[..]);
+    /// let reader = vcf::r#async::io::Reader::new(&data[..]);
     /// assert!(reader.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &R {
@@ -92,7 +92,7 @@ where
     /// ```
     /// use noodles_vcf as vcf;
     /// let data = [];
-    /// let mut reader = vcf::AsyncReader::new(&data[..]);
+    /// let mut reader = vcf::r#async::io::Reader::new(&data[..]);
     /// assert!(reader.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
@@ -106,7 +106,7 @@ where
     /// ```
     /// use noodles_vcf as vcf;
     /// let data = [];
-    /// let reader = vcf::AsyncReader::new(&data[..]);
+    /// let reader = vcf::r#async::io::Reader::new(&data[..]);
     /// assert!(reader.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> R {
@@ -134,7 +134,7 @@ where
     /// sq0\t1\t.\tA\t.\t.\tPASS\t.
     /// ";
     ///
-    /// let mut reader = vcf::AsyncReader::new(&data[..]);
+    /// let mut reader = vcf::r#async::io::Reader::new(&data[..]);
     /// let header = reader.read_header().await?;
     /// # Ok(())
     /// # }
@@ -170,7 +170,7 @@ where
     /// sq0\t1\t.\tA\t.\t.\tPASS\t.
     /// ";
     ///
-    /// let mut reader = vcf::AsyncReader::new(&data[..]);
+    /// let mut reader = vcf::r#async::io::Reader::new(&data[..]);
     /// let header = reader.read_header().await?;
     ///
     /// let mut record = vcf::Record::default();
@@ -217,7 +217,7 @@ where
     /// sq0\t1\t.\tA\t.\t.\tPASS\t.
     /// ";
     ///
-    /// let mut reader = vcf::AsyncReader::new(&data[..]);
+    /// let mut reader = vcf::r#async::io::Reader::new(&data[..]);
     /// reader.read_header().await?;
     ///
     /// let mut record = vcf::lazy::Record::default();
@@ -249,7 +249,7 @@ where
     /// sq0\t1\t.\tA\t.\t.\tPASS\t.
     /// ";
     ///
-    /// let mut reader = vcf::AsyncReader::new(&data[..]);
+    /// let mut reader = vcf::r#async::io::Reader::new(&data[..]);
     /// let header = reader.read_header().await?;
     ///
     /// let mut records = reader.records(&header);
@@ -292,7 +292,7 @@ where
     /// use noodles_vcf as vcf;
     ///
     /// let data = [];
-    /// let reader = vcf::AsyncReader::new(bgzf::AsyncReader::new(&data[..]));
+    /// let reader = vcf::r#async::io::Reader::new(bgzf::AsyncReader::new(&data[..]));
     ///
     /// assert_eq!(reader.virtual_position(), bgzf::VirtualPosition::default());
     /// # Ok::<(), io::Error>(())
@@ -321,7 +321,7 @@ where
     /// use noodles_vcf as vcf;
     ///
     /// let data = Cursor::new([]);
-    /// let mut reader = vcf::AsyncReader::new(bgzf::AsyncReader::new(data));
+    /// let mut reader = vcf::r#async::io::Reader::new(bgzf::AsyncReader::new(data));
     ///
     /// let virtual_position = bgzf::VirtualPosition::default();
     /// reader.seek(virtual_position).await?;
@@ -352,7 +352,7 @@ where
     /// let mut reader = File::open("sample.vcf.gz")
     ///     .await
     ///     .map(bgzf::AsyncReader::new)
-    ///     .map(vcf::AsyncReader::new)?;
+    ///     .map(vcf::r#async::io::Reader::new)?;
     ///
     /// let header = reader.read_header().await?;
     ///

@@ -21,7 +21,7 @@
 //! ```
 
 #[cfg(feature = "async")]
-mod r#async;
+pub mod r#async;
 
 pub mod header;
 mod indexer;
@@ -33,4 +33,4 @@ pub mod variant;
 pub use self::{header::Header, indexer::index, record::Record};
 
 #[cfg(feature = "async")]
-pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};
+pub use self::r#async::{io::Reader as AsyncReader, Writer as AsyncWriter};

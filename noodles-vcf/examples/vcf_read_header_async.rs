@@ -20,7 +20,7 @@ async fn main() -> io::Result<()> {
     let mut reader = File::open(src)
         .await
         .map(BufReader::new)
-        .map(vcf::AsyncReader::new)?;
+        .map(vcf::r#async::io::Reader::new)?;
 
     let header = reader.read_header().await?;
     print!("{header}");
