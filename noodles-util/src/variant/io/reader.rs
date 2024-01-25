@@ -23,9 +23,7 @@ where
     ///
     /// ```
     /// # use std::io::{self, Cursor};
-    /// use noodles_vcf::{
-    ///     self as vcf,
-    /// };
+    /// use noodles_vcf as vcf;
     /// use noodles_util::variant;
     ///
     /// let data = Cursor::new(b"##fileformat=VCFv4.4
@@ -33,7 +31,7 @@ where
     /// sq0\t1\t.\tA\t.\t.\tPASS\t.
     /// ");
     ///
-    /// let mut reader = variant::reader::Builder::default().build_from_reader(data)?;
+    /// let mut reader = variant::io::reader::Builder::default().build_from_reader(data)?;
     /// let actual = reader.read_header()?;
     ///
     /// let expected = vcf::Header::builder().build();
@@ -59,7 +57,7 @@ where
     /// sq0\t1\t.\tA\t.\t.\tPASS\t.
     /// ");
     ///
-    /// let mut reader = variant::reader::Builder::default().build_from_reader(data)?;
+    /// let mut reader = variant::io::reader::Builder::default().build_from_reader(data)?;
     /// let header = reader.read_header()?;
     ///
     /// let mut records = reader.records(&header);

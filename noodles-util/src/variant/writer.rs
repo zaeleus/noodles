@@ -21,7 +21,7 @@ impl Writer {
     /// ```
     /// # use std::io;
     /// use noodles_vcf as vcf;
-    /// use noodles_util::variant::{self, CompressionMethod, Format};
+    /// use noodles_util::variant::{self, io::{CompressionMethod, Format}};
     ///
     /// let mut writer = variant::writer::Builder::default()
     ///     .set_format(Format::Bcf)
@@ -43,7 +43,7 @@ impl Writer {
     /// ```
     /// # use std::io;
     /// use noodles_vcf::{self as vcf, Record};
-    /// use noodles_util::variant::{self, Format};
+    /// use noodles_util::variant::{self, io::Format};
     ///
     /// let mut writer = variant::writer::Builder::default()
     ///     .set_format(Format::Vcf)

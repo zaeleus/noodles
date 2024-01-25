@@ -9,7 +9,7 @@ use noodles_bgzf as bgzf;
 use noodles_vcf::{self as vcf, VariantReader};
 
 use super::Reader;
-use crate::variant::{CompressionMethod, Format};
+use crate::variant::io::{CompressionMethod, Format};
 
 /// A variant reader builder.
 #[derive(Default)]
@@ -27,9 +27,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_util::variant::{self, CompressionMethod};
-    /// let builder = variant::reader::Builder::default()
-    ///     .set_compression_method(Some(CompressionMethod::Bgzf));
+    /// use noodles_util::variant::io::{reader::Builder, CompressionMethod};
+    /// let builder = Builder::default().set_compression_method(Some(CompressionMethod::Bgzf));
     /// ```
     pub fn set_compression_method(mut self, compression: Option<CompressionMethod>) -> Self {
         self.compression_method = Some(compression);
@@ -43,8 +42,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_util::variant::{self, Format};
-    /// let builder = variant::reader::Builder::default().set_format(Format::Vcf);
+    /// use noodles_util::variant::io::{reader::Builder, Format};
+    /// let builder = Builder::default().set_format(Format::Vcf);
     /// ```
     pub fn set_format(mut self, format: Format) -> Self {
         self.format = Some(format);
@@ -60,8 +59,8 @@ impl Builder {
     ///
     /// ```no_run
     /// # use std::io;
-    /// use noodles_util::variant;
-    /// let reader = variant::reader::Builder::default().build_from_path("sample.vcf")?;
+    /// use noodles_util::variant::io::reader::Builder;
+    /// let reader = Builder::default().build_from_path("sample.vcf")?;
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn build_from_path<P>(self, path: P) -> io::Result<Reader<Box<dyn BufRead>>>
@@ -81,8 +80,8 @@ impl Builder {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_util::variant;
-    /// let reader = variant::reader::Builder::default().build_from_reader(io::empty())?;
+    /// use noodles_util::variant::io::reader::Builder;
+    /// let reader = Builder::default().build_from_reader(io::empty())?;
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn build_from_reader<R>(self, reader: R) -> io::Result<Reader<Box<dyn BufRead>>>

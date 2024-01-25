@@ -9,7 +9,7 @@ use noodles_csi::BinningIndex;
 use noodles_vcf as vcf;
 
 use super::IndexedReader;
-use crate::variant::{
+use crate::variant::io::{
     reader::builder::{detect_compression_method, detect_format},
     CompressionMethod, Format,
 };
@@ -31,9 +31,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_util::variant::{self, CompressionMethod};
-    /// let builder = variant::indexed_reader::Builder::default()
-    ///     .set_compression_method(Some(CompressionMethod::Bgzf));
+    /// use noodles_util::variant::io::{indexed_reader::Builder, CompressionMethod};
+    /// let builder = Builder::default().set_compression_method(Some(CompressionMethod::Bgzf));
     /// ```
     pub fn set_compression_method(mut self, compression_method: Option<CompressionMethod>) -> Self {
         self.compression_method = Some(compression_method);
@@ -47,8 +46,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_util::variant::{self, Format};
-    /// let builder = variant::indexed_reader::Builder::default().set_format(Format::Vcf);
+    /// use noodles_util::variant::io::{indexed_reader::Builder, Format};
+    /// let builder = Builder::default().set_format(Format::Vcf);
     /// ```
     pub fn set_format(mut self, format: Format) -> Self {
         self.format = Some(format);
@@ -65,10 +64,10 @@ impl Builder {
     ///
     /// ```
     /// use noodles_csi as csi;
-    /// use noodles_util::variant;
+    /// use noodles_util::variant::io::indexed_reader::Builder;
     ///
     /// let index = csi::Index::default();
-    /// let builder = variant::indexed_reader::Builder::default().set_index(index);
+    /// let builder = Builder::default().set_index(index);
     /// ```
     pub fn set_index<I>(mut self, index: I) -> Self
     where
@@ -88,8 +87,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```no_run
-    /// use noodles_util::variant;
-    /// let reader = variant::indexed_reader::Builder::default().build_from_path("sample.vcf.gz")?;
+    /// use noodles_util::variant::io::indexed_reader::Builder;
+    /// let reader = Builder::default().build_from_path("sample.vcf.gz")?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn build_from_path<P>(self, src: P) -> io::Result<IndexedReader<File>>
@@ -145,14 +144,14 @@ impl Builder {
     /// # use std::io::{self, Write};
     /// use noodles_bgzf as bgzf;
     /// use noodles_csi as csi;
-    /// use noodles_util::variant;
+    /// use noodles_util::variant::io::indexed_reader::Builder;
     ///
     /// let mut writer = bgzf::Writer::new(Vec::new());
     /// writer.write_all(b"BCF")?;
     /// let data = writer.finish()?;
     ///
     /// let index = csi::Index::default();
-    /// let reader = variant::indexed_reader::Builder::default()
+    /// let reader = Builder::default()
     ///     .set_index(index)
     ///     .build_from_reader(&data[..])?;
     /// # Ok::<_, io::Error>(())
