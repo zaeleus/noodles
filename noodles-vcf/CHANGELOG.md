@@ -4,7 +4,8 @@
 
 ### Changed
 
-  * vcf: Move readers (`Reader` and `IndexedReader`) to `io` module.
+  * vcf: Move readers (`Reader` and `IndexedReader`) and writer (`Writer`) to
+    `io` module.
 
 ## 0.50.0 - 2024-03-12
 
