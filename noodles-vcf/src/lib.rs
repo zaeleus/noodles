@@ -28,13 +28,10 @@ mod indexer;
 pub mod io;
 pub mod lazy;
 pub mod record;
-mod variant_reader;
+pub mod variant;
 mod variant_writer;
 
-pub use self::{
-    header::Header, indexer::index, record::Record, variant_reader::VariantReader,
-    variant_writer::VariantWriter,
-};
+pub use self::{header::Header, indexer::index, record::Record, variant_writer::VariantWriter};
 
 #[cfg(feature = "async")]
 pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};

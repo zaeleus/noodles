@@ -351,7 +351,7 @@ impl<R> From<R> for Reader<R> {
     }
 }
 
-impl<R> vcf::VariantReader<R> for Reader<R>
+impl<R> vcf::variant::io::Read<R> for Reader<R>
 where
     R: BufRead,
 {
