@@ -13,7 +13,7 @@ use tokio::io;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut writer = vcf::AsyncWriter::new(io::stdout());
+    let mut writer = vcf::r#async::io::Writer::new(io::stdout());
 
     let header = vcf::Header::builder()
         .add_contig("sq0".parse()?, Map::<Contig>::new())
