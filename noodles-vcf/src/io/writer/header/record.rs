@@ -44,7 +44,7 @@ where
     W: Write,
 {
     write_record(writer, &record::key::FILE_FORMAT, |w| {
-        write!(w, "{file_format}")
+        value::write_file_format(w, file_format)
     })
 }
 
