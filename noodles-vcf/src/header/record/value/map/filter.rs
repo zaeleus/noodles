@@ -4,8 +4,6 @@ pub(crate) mod tag;
 
 pub use self::tag::Tag;
 
-use std::fmt;
-
 use indexmap::IndexMap;
 
 use super::{builder, Described, Indexed, Inner, Map};
@@ -85,19 +83,6 @@ impl Map<Filter> {
     }
 }
 
-impl fmt::Display for Map<Filter> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        super::fmt_display_description_field(f, self.description())?;
-        super::fmt_display_other_fields(f, self.other_fields())?;
-
-        if let Some(idx) = self.idx() {
-            super::fmt_display_idx_field(f, idx)?;
-        }
-
-        Ok(())
-    }
-}
-
 impl builder::Inner<Filter> for builder::DescribedIndexed {
     fn build(self) -> Result<Filter, builder::BuildError> {
         let description = self
@@ -108,17 +93,5 @@ impl builder::Inner<Filter> for builder::DescribedIndexed {
             description,
             idx: self.idx,
         })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_fmt() {
-        let map = Map::<Filter>::pass();
-        let expected = r#",Description="All filters passed""#;
-        assert_eq!(map.to_string(), expected);
     }
 }

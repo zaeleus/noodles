@@ -204,13 +204,15 @@ mod tests {
         }
 
         let header = vcf::Header::default();
-        let raw_header = header.to_string();
+        let mut writer = vcf::io::Writer::new(Vec::new());
+        writer.write_header(&header)?;
+        let raw_header = writer.into_inner();
 
-        let src = raw_header.as_bytes();
+        let src = &raw_header;
         t(src, None, Format::Vcf);
 
         let mut writer = bgzf::Writer::new(Vec::new());
-        writer.write_all(raw_header.as_bytes())?;
+        writer.write_all(&raw_header)?;
         let src = writer.finish()?;
         t(&src, Some(CompressionMethod::Bgzf), Format::Vcf);
 

@@ -13,8 +13,6 @@ use self::value::{
 };
 use super::{parser::record::ParseError, FileFormat};
 
-pub(crate) const PREFIX: &str = "##";
-
 /// A VCF header record.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Record {

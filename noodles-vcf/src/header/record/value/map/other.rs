@@ -4,8 +4,6 @@ pub(crate) mod tag;
 
 pub use self::tag::Tag;
 
-use std::fmt;
-
 use super::{builder, Inner, Map};
 
 /// An inner VCF header other map value.
@@ -38,24 +36,8 @@ impl Map<Other> {
         Self::default()
     }
 
+    #[allow(dead_code)]
     pub(crate) fn id_tag(&self) -> &Tag {
         &self.inner.id_tag
-    }
-}
-
-impl fmt::Display for Map<Other> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        super::fmt_display_other_fields(f, self.other_fields())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_fmt() {
-        let map = Map::<Other>::new();
-        assert!(map.to_string().is_empty());
     }
 }
