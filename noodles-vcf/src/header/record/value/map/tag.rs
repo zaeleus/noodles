@@ -4,10 +4,10 @@ use std::{fmt, marker::PhantomData, str::FromStr};
 
 pub use self::other::Other;
 
-pub(super) const ID: &str = "ID";
-pub(super) const NUMBER: &str = "Number";
-pub(super) const TYPE: &str = "Type";
-pub(super) const DESCRIPTION: &str = "Description";
+pub(crate) const ID: &str = "ID";
+pub(crate) const NUMBER: &str = "Number";
+pub(crate) const TYPE: &str = "Type";
+pub(crate) const DESCRIPTION: &str = "Description";
 pub(super) const IDX: &str = "IDX";
 
 pub trait Standard: AsRef<str> + FromStr {}
