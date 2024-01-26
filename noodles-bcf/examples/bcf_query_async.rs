@@ -20,7 +20,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let raw_region = args.next().expect("missing region");
 
     let mut reader = File::open(&src).await.map(bcf::r#async::io::Reader::new)?;
-    reader.read_file_format().await?;
 
     let header = reader.read_header().await?;
     let string_maps = reader.string_maps().clone();

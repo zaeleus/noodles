@@ -14,6 +14,13 @@
     attached to the reader. Use `Reader::string_maps` to get a reference to the
     string maps.
 
+### Removed
+
+  * bcf/async/io/reader: Remove `Reader::read_file_format`.
+
+    `Reader::read_header` now includes checking the magic number and reading
+    the file format version.
+
 ## 0.48.0 - 2024-03-28
 
 ### Changed
