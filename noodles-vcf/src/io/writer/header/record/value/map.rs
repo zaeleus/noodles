@@ -14,7 +14,7 @@ pub(crate) use self::{
 };
 use crate::{
     header::{
-        record::value::map::{tag, OtherFields},
+        record::value::map::{self, tag, OtherFields},
         Number,
     },
     io::writer::header::record::write_separator,
@@ -28,6 +28,24 @@ where
 {
     write_prefix(writer)?;
     write_id_field(writer, id)?;
+    f(writer)?;
+    write_suffix(writer)?;
+    Ok(())
+}
+
+pub(crate) fn write_other_map<W, I, F>(
+    writer: &mut W,
+    id_tag: &map::other::Tag,
+    id: I,
+    f: F,
+) -> io::Result<()>
+where
+    W: Write,
+    I: AsRef<str>,
+    F: Fn(&mut W) -> io::Result<()>,
+{
+    write_prefix(writer)?;
+    write_value_field(writer, id_tag, id)?;
     f(writer)?;
     write_suffix(writer)?;
     Ok(())
