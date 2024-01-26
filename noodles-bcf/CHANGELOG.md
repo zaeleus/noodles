@@ -7,6 +7,13 @@
   * bcf: Move readers (`Reader` and `IndexedReader`) to writer (`Writer`) to
     `io` module.
 
+  * bcf/async/io/reader: Change `Reader::read_header` to return a parsed header
+    (`vcf::Header`).
+
+    This no longer returns a raw string. `StringMaps` are also parsed and
+    attached to the reader. Use `Reader::string_maps` to get a reference to the
+    string maps.
+
 ## 0.48.0 - 2024-03-28
 
 ### Changed

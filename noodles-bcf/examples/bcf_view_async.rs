@@ -10,15 +10,14 @@ use noodles_vcf as vcf;
 use tokio::{fs::File, io};
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
     let mut reader = File::open(src).await.map(bcf::r#async::io::Reader::new)?;
     reader.read_file_format().await?;
 
-    let raw_header = reader.read_header().await?;
-    let header = raw_header.parse()?;
-    let string_maps = raw_header.parse()?;
+    let header = reader.read_header().await?;
+    let string_maps = reader.string_maps().clone();
 
     let mut records = reader.lazy_records();
 
