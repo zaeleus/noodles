@@ -8,7 +8,7 @@ pub use self::{key::Key, value::Value};
 use std::str::FromStr;
 
 use self::value::{
-    map::{self, AlternativeAllele, Contig, Filter, Format, Info},
+    map::{AlternativeAllele, Contig, Filter, Format, Info},
     Map,
 };
 use super::{parser::record::ParseError, FileFormat};
@@ -22,7 +22,7 @@ pub enum Record {
         Map<AlternativeAllele>,
     ),
     /// A `contig` record.
-    Contig(map::contig::Name, Map<Contig>),
+    Contig(String, Map<Contig>),
     /// A `fileformat` record.
     FileFormat(FileFormat),
     /// A `FILTER` record.

@@ -22,10 +22,7 @@ pub enum Entry<'a> {
         &'a Map<AlternativeAllele>,
     ),
     /// A `contig` entry.
-    Contig(
-        &'a crate::header::record::value::map::contig::Name,
-        &'a Map<Contig>,
-    ),
+    Contig(&'a str, &'a Map<Contig>),
     /// A nonstadard entry.
     Other,
     /// A header entry.

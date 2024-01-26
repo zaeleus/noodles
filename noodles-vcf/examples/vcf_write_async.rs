@@ -16,7 +16,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut writer = vcf::r#async::io::Writer::new(io::stdout());
 
     let header = vcf::Header::builder()
-        .add_contig("sq0".parse()?, Map::<Contig>::new())
+        .add_contig("sq0", Map::<Contig>::new())
         .build();
 
     writer.write_header(&header).await?;

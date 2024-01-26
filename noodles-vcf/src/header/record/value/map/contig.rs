@@ -1,10 +1,9 @@
 //! Inner VCF header contig map value.
 
 mod builder;
-pub mod name;
 pub(crate) mod tag;
 
-pub use self::{name::Name, tag::Tag};
+pub use self::tag::Tag;
 
 use super::{Indexed, Inner, Map};
 

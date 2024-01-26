@@ -48,7 +48,7 @@ impl StringMaps {
     ///     .add_info(info::field::key::TOTAL_DEPTH, Map::<Info>::from(&info::field::key::TOTAL_DEPTH))
     ///     .add_filter("q10", Map::<Filter>::new("Quality below 10"))
     ///     .add_format(genotypes::keys::key::READ_DEPTH, Map::<Format>::from(&genotypes::keys::key::READ_DEPTH))
-    ///     .add_contig("sq0".parse()?, Map::<Contig>::new())
+    ///     .add_contig("sq0", Map::<Contig>::new())
     ///     .build();
     ///
     /// let string_maps = StringMaps::try_from(&header)?;
@@ -84,7 +84,7 @@ impl StringMaps {
     ///     .add_info(info::field::key::TOTAL_DEPTH, Map::<Info>::from(&info::field::key::TOTAL_DEPTH))
     ///     .add_filter("q10", Map::<Filter>::new("Quality below 10"))
     ///     .add_format(genotypes::keys::key::READ_DEPTH, Map::<Format>::from(&genotypes::keys::key::READ_DEPTH))
-    ///     .add_contig("sq0".parse()?, Map::<Contig>::new())
+    ///     .add_contig("sq0", Map::<Contig>::new())
     ///     .build();
     ///
     /// let string_maps = StringMaps::try_from(&header)?;
@@ -104,7 +104,7 @@ impl StringMaps {
 
     pub(crate) fn insert_entry(&mut self, entry: &Entry<'_>) -> Result<(), ParseError> {
         match entry {
-            Entry::Contig(id, contig) => insert(self.contigs_mut(), id.as_ref(), contig.idx()),
+            Entry::Contig(id, contig) => insert(self.contigs_mut(), id, contig.idx()),
             Entry::Filter(id, filter) => insert(self.strings_mut(), id, filter.idx()),
             Entry::Format(id, format) => insert(self.strings_mut(), id.as_ref(), format.idx()),
             Entry::Info(id, info) => insert(self.strings_mut(), id.as_ref(), info.idx()),
@@ -420,9 +420,9 @@ mod tests {
         let del = Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion));
 
         let header = vcf::Header::builder()
-            .add_contig("sq0".parse()?, Map::<Contig>::new())
-            .add_contig("sq1".parse()?, Map::<Contig>::new())
-            .add_contig("sq2".parse()?, Map::<Contig>::new())
+            .add_contig("sq0", Map::<Contig>::new())
+            .add_contig("sq1", Map::<Contig>::new())
+            .add_contig("sq2", Map::<Contig>::new())
             .add_info(
                 info::field::key::SAMPLES_WITH_DATA_COUNT,
                 Map::<Info>::from(&info::field::key::SAMPLES_WITH_DATA_COUNT),

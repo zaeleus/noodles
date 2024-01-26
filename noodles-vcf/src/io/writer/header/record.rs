@@ -9,7 +9,7 @@ use crate::{
         record::{
             self,
             value::{
-                map::{contig::Name, AlternativeAllele, Contig, Filter, Format, Info},
+                map::{AlternativeAllele, Contig, Filter, Format, Info},
                 Collection, Map,
             },
         },
@@ -98,7 +98,7 @@ where
     })
 }
 
-pub(super) fn write_contig<W>(writer: &mut W, id: &Name, contig: &Map<Contig>) -> io::Result<()>
+pub(super) fn write_contig<W>(writer: &mut W, id: &str, contig: &Map<Contig>) -> io::Result<()>
 where
     W: Write,
 {

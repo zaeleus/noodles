@@ -15,7 +15,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut writer = vcf::io::Writer::new(stdout);
 
     let header = vcf::Header::builder()
-        .add_contig("sq0".parse()?, Map::<Contig>::new())
+        .add_contig("sq0", Map::<Contig>::new())
         .build();
 
     writer.write_header(&header)?;

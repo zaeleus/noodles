@@ -25,7 +25,7 @@ use crate::{Header, Record};
 /// let mut writer = vcf::io::Writer::new(Vec::new());
 ///
 /// let header = vcf::Header::builder()
-///     .add_contig("sq0".parse()?, Map::<Contig>::new())
+///     .add_contig("sq0", Map::<Contig>::new())
 ///     .build();
 ///
 /// writer.write_header(&header)?;
