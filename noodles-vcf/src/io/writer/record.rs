@@ -67,7 +67,7 @@ mod tests {
     #[test]
     fn test_write_record() -> Result<(), Box<dyn std::error::Error>> {
         let record = Record::builder()
-            .set_chromosome("sq0".parse()?)
+            .set_chromosome("sq0")
             .set_position(Position::from(1))
             .set_reference_bases("A".parse()?)
             .build()?;

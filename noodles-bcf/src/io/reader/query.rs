@@ -96,7 +96,7 @@ fn intersects(
 
     let id = string_maps
         .contigs()
-        .get_index_of(&chromosome.to_string())
+        .get_index_of(chromosome)
         .ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,

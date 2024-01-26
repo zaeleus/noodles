@@ -55,7 +55,7 @@ mod tests {
         let string_maps = StringMaps::try_from(&header)?;
 
         let record = vcf::Record::builder()
-            .set_chromosome("sq0".parse()?)
+            .set_chromosome("sq0")
             .set_position(vcf::record::Position::from(1))
             .set_reference_bases("A".parse()?)
             .build()?;

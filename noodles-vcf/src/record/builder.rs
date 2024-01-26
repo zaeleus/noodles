@@ -3,14 +3,14 @@
 use std::{error, fmt};
 
 use super::{
-    reference_bases::Base, AlternateBases, Chromosome, Filters, Genotypes, Ids, Info, Position,
-    QualityScore, Record, ReferenceBases,
+    reference_bases::Base, AlternateBases, Filters, Genotypes, Ids, Info, Position, QualityScore,
+    Record, ReferenceBases,
 };
 
 /// A VCF record builder.
 #[derive(Debug, Default, PartialEq)]
 pub struct Builder {
-    chromosome: Option<Chromosome>,
+    chromosome: Option<String>,
     position: Option<Position>,
     ids: Ids,
     reference_bases: Vec<Base>,
@@ -50,19 +50,22 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, record::{Chromosome, Position}};
+    /// use noodles_vcf::{self as vcf, record::Position};
     ///
     /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
-    /// assert_eq!(record.chromosome(), &Chromosome::Name(String::from("sq0")));
+    /// assert_eq!(record.chromosome(), "sq0");
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_chromosome(mut self, chromosome: Chromosome) -> Self {
-        self.chromosome = Some(chromosome);
+    pub fn set_chromosome<C>(mut self, chromosome: C) -> Self
+    where
+        C: Into<String>,
+    {
+        self.chromosome = Some(chromosome.into());
         self
     }
 
@@ -74,7 +77,7 @@ impl Builder {
     /// use noodles_vcf::{self as vcf, record::Position};
     ///
     /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(8))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
@@ -95,7 +98,7 @@ impl Builder {
     /// use noodles_vcf::{self as vcf, record::Position};
     ///
     /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_ids("nd0".parse()?)
     ///     .set_reference_bases("A".parse()?)
@@ -120,7 +123,7 @@ impl Builder {
     /// };
     ///
     /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
@@ -148,7 +151,7 @@ impl Builder {
     /// };
     ///
     /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .add_reference_base(Base::A)
     ///     .build()?;
@@ -175,7 +178,7 @@ impl Builder {
     /// };
     ///
     /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .set_alternate_bases("C".parse()?)
@@ -200,7 +203,7 @@ impl Builder {
     /// use noodles_vcf::{self as vcf, record::{Position, QualityScore}};
     ///
     /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .set_quality_score(QualityScore::try_from(13.0)?)
@@ -222,7 +225,7 @@ impl Builder {
     /// use noodles_vcf::{self as vcf, record::{Filters, Position}};
     ///
     /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .set_filters(Filters::Pass)
@@ -247,7 +250,7 @@ impl Builder {
     /// };
     ///
     /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .set_alternate_bases("C".parse()?)
@@ -284,7 +287,7 @@ impl Builder {
     /// );
     ///
     /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .set_genotypes(genotypes.clone())
@@ -350,13 +353,13 @@ mod tests {
         assert_eq!(result, Err(BuildError::MissingChromosome));
 
         let result = Builder::default()
-            .set_chromosome("sq0".parse()?)
+            .set_chromosome("sq0")
             .set_reference_bases("A".parse()?)
             .build();
         assert_eq!(result, Err(BuildError::MissingPosition));
 
         let result = Builder::default()
-            .set_chromosome("sq0".parse()?)
+            .set_chromosome("sq0")
             .set_position(Position::from(1))
             .build();
         assert_eq!(result, Err(BuildError::MissingReferenceBases));

@@ -22,7 +22,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     writer.write_header(&header).await?;
 
     let record = vcf::Record::builder()
-        .set_chromosome("sq0".parse()?)
+        .set_chromosome("sq0")
         .set_position(Position::from(1))
         .set_reference_bases("A".parse()?)
         .build()?;

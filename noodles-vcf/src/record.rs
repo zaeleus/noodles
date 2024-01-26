@@ -2,7 +2,6 @@
 
 pub mod alternate_bases;
 pub mod builder;
-pub mod chromosome;
 pub mod filters;
 pub mod genotypes;
 pub mod ids;
@@ -14,8 +13,8 @@ pub mod reference_bases;
 pub(crate) mod value;
 
 pub use self::{
-    alternate_bases::AlternateBases, builder::Builder, chromosome::Chromosome, filters::Filters,
-    genotypes::Genotypes, ids::Ids, info::Info, position::Position, quality_score::QualityScore,
+    alternate_bases::AlternateBases, builder::Builder, filters::Filters, genotypes::Genotypes,
+    ids::Ids, info::Info, position::Position, quality_score::QualityScore,
     reference_bases::ReferenceBases,
 };
 
@@ -36,7 +35,7 @@ pub(crate) const FIELD_DELIMITER: char = '\t';
 /// a number of genotype fields.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Record {
-    chromosome: Chromosome,
+    chromosome: String,
     position: Position,
     ids: Ids,
     reference_bases: ReferenceBases,
@@ -86,18 +85,18 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, record::{Chromosome, Position}};
+    /// use noodles_vcf::{self as vcf, record::Position};
     ///
     /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
-    /// assert_eq!(record.chromosome(), &Chromosome::Name(String::from("sq0")));
+    /// assert_eq!(record.chromosome(), "sq0");
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn chromosome(&self) -> &Chromosome {
+    pub fn chromosome(&self) -> &str {
         &self.chromosome
     }
 
@@ -106,20 +105,20 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, record::{Chromosome, Position}};
+    /// use noodles_vcf::{self as vcf, record::Position};
     ///
     /// let mut record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
-    /// *record.chromosome_mut() = "sq1".parse()?;
+    /// *record.chromosome_mut() = String::from("sq1");
     ///
-    /// assert_eq!(record.chromosome().to_string(), "sq1");
+    /// assert_eq!(record.chromosome(), "sq1");
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn chromosome_mut(&mut self) -> &mut Chromosome {
+    pub fn chromosome_mut(&mut self) -> &mut String {
         &mut self.chromosome
     }
 
@@ -137,7 +136,7 @@ impl Record {
     /// use noodles_vcf::{self as vcf, record::Position};
     ///
     /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(8))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
@@ -161,7 +160,7 @@ impl Record {
     /// use noodles_vcf::{self as vcf, record::Position};
     ///
     /// let mut record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(8))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
@@ -183,7 +182,7 @@ impl Record {
     /// use noodles_vcf::{self as vcf, record::Position};
     ///
     /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_ids("nd0".parse()?)
     ///     .set_reference_bases("A".parse()?)
@@ -204,7 +203,7 @@ impl Record {
     /// use noodles_vcf::{self as vcf, record::{Ids, Position}};
     ///
     /// let mut record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
@@ -232,7 +231,7 @@ impl Record {
     /// };
     ///
     /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
@@ -260,7 +259,7 @@ impl Record {
     /// };
     ///
     /// let mut record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
@@ -288,7 +287,7 @@ impl Record {
     /// };
     ///
     /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .set_alternate_bases("C".parse()?)
@@ -315,7 +314,7 @@ impl Record {
     /// };
     ///
     /// let mut record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
@@ -344,7 +343,7 @@ impl Record {
     /// use noodles_vcf::{self as vcf, record::{Position, QualityScore}};
     ///
     /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .set_quality_score(QualityScore::try_from(13.0)?)
@@ -365,7 +364,7 @@ impl Record {
     /// use noodles_vcf::{self as vcf, record::{Position, QualityScore}};
     ///
     /// let mut record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
@@ -390,7 +389,7 @@ impl Record {
     /// use noodles_vcf::{self as vcf, record::{Filters, Position}};
     ///
     /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .set_filters(Filters::Pass)
@@ -411,7 +410,7 @@ impl Record {
     /// use noodles_vcf::{self as vcf, record::{Filters, Position}};
     ///
     /// let mut record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
@@ -436,7 +435,7 @@ impl Record {
     /// };
     ///
     /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .set_alternate_bases("C".parse()?)
@@ -466,7 +465,7 @@ impl Record {
     /// };
     ///
     /// let mut record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .set_alternate_bases("C".parse()?)
@@ -505,7 +504,7 @@ impl Record {
     ///     .build();
     ///
     /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .set_genotypes(Genotypes::parse("GT:GQ\t0|0:13", &header)?)
@@ -541,7 +540,7 @@ impl Record {
     /// );
     ///
     /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .set_genotypes(genotypes.clone())
@@ -568,7 +567,7 @@ impl Record {
     /// };
     ///
     /// let mut record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
@@ -594,7 +593,7 @@ impl Default for Record {
         use self::reference_bases::Base;
 
         Self {
-            chromosome: Chromosome::Name(String::from(".")),
+            chromosome: String::from("."),
             position: Position::from(1),
             ids: Ids::default(),
             // SAFETY: `[N]` is a valid list of reference bases.
@@ -659,10 +658,10 @@ impl Record {
     /// ## From the `END` INFO field value
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, record::{Chromosome, Position}};
+    /// use noodles_vcf::{self as vcf, record::Position};
     ///
     /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("ACGT".parse()?)
     ///     .set_info("END=8".parse()?)
@@ -675,10 +674,10 @@ impl Record {
     /// ## Calculated using the start position and reference bases length
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, record::{Chromosome, Position}};
+    /// use noodles_vcf::{self as vcf, record::Position};
     ///
     /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("ACGT".parse()?)
     ///     .build()?;
@@ -734,7 +733,7 @@ mod tests {
         let actual = Record::default();
 
         let expected = Record::builder()
-            .set_chromosome(".".parse()?)
+            .set_chromosome(".")
             .set_position(Position::from(1))
             .set_reference_bases("N".parse()?)
             .build()?;
@@ -749,7 +748,7 @@ mod tests {
         use crate::record::info::field::key;
 
         let record = Record::builder()
-            .set_chromosome("sq0".parse()?)
+            .set_chromosome("sq0")
             .set_position(Position::from(1))
             .set_reference_bases("A".parse()?)
             .set_info([(key::END_POSITION, None)].into_iter().collect())
@@ -758,7 +757,7 @@ mod tests {
         assert_eq!(record.end(), Ok(Position::from(1)));
 
         let record = Record::builder()
-            .set_chromosome("sq0".parse()?)
+            .set_chromosome("sq0")
             .set_position(Position::from(1))
             .set_reference_bases("A".parse()?)
             .set_info(
@@ -774,7 +773,7 @@ mod tests {
         );
 
         let record = Record::builder()
-            .set_chromosome("sq0".parse()?)
+            .set_chromosome("sq0")
             .set_position(Position::from(usize::MAX))
             .set_reference_bases("ACGT".parse()?)
             .build()?;

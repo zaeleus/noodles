@@ -121,7 +121,7 @@ where
     /// use noodles_vcf::{self as vcf, record::Position};
     ///
     /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;

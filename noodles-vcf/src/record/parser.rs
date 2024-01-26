@@ -15,14 +15,13 @@ mod tests {
 
     #[test]
     fn test_parse() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::record::{alternate_bases::Allele, reference_bases::Base, Chromosome, Filters};
+        use crate::record::{alternate_bases::Allele, reference_bases::Base, Filters};
 
         let header = Header::default();
         let s = "chr1\t13\tnd0\tATCG\tA\t5.8\tPASS\tSVTYPE=DEL";
         let record = parse(s, &header)?;
 
-        assert!(matches!(record.chromosome(), Chromosome::Name(name) if name == "chr1"));
-
+        assert_eq!(record.chromosome(), "chr1");
         assert_eq!(usize::from(record.position()), 13);
 
         let ids = "nd0".parse()?;
