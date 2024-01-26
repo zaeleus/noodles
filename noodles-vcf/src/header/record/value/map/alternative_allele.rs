@@ -5,8 +5,6 @@ pub(crate) mod tag;
 
 pub use self::tag::Tag;
 
-use std::{error, fmt};
-
 use super::{Described, Inner, Map, OtherFields};
 
 /// An inner VCF header alternative allele map value.
@@ -56,36 +54,6 @@ impl Map<AlternativeAllele> {
                 description: description.into(),
             },
             other_fields: OtherFields::new(),
-        }
-    }
-}
-
-/// An error returned when a raw ALT record fails to parse.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
-    /// A field is missing.
-    MissingField(Tag),
-    /// A tag is duplicated.
-    DuplicateTag(Tag),
-    /// The ID is invalid.
-    InvalidId(crate::record::alternate_bases::allele::symbol::ParseError),
-}
-
-impl error::Error for ParseError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match self {
-            Self::InvalidId(e) => Some(e),
-            _ => None,
-        }
-    }
-}
-
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::MissingField(tag) => write!(f, "missing field: {tag}"),
-            Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
-            Self::InvalidId(_) => write!(f, "invalid ID"),
         }
     }
 }
