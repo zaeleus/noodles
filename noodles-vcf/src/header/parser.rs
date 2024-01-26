@@ -148,7 +148,7 @@ pub enum ParseError {
     /// An alternative allele ID is duplicated.
     DuplicateAlternativeAlleleId(crate::record::alternate_bases::allele::Symbol),
     /// A contig ID is duplicated.
-    DuplicateContigId(super::record::value::map::contig::Name),
+    DuplicateContigId(String),
     /// A record has an invalid value.
     InvalidRecordValue(super::record::value::collection::AddError),
     /// The header is missing.
@@ -326,7 +326,7 @@ fn try_insert_alternative_allele(
 
 fn try_insert_contig(
     contigs: &mut Contigs,
-    id: super::record::value::map::contig::Name,
+    id: String,
     contig: Map<Contig>,
 ) -> Result<Entry<'_>, ParseError> {
     use indexmap::map::Entry;
@@ -444,18 +444,9 @@ mod tests {
                 "source".parse()?,
                 Value::String(String::from("noodles-vcf")),
             )?
-            .add_contig(
-                "sq0".parse()?,
-                Map::<Contig>::builder().set_length(8).build()?,
-            )
-            .add_contig(
-                "sq1".parse()?,
-                Map::<Contig>::builder().set_length(13).build()?,
-            )
-            .add_contig(
-                "sq2".parse()?,
-                Map::<Contig>::builder().set_length(21).build()?,
-            )
+            .add_contig("sq0", Map::<Contig>::builder().set_length(8).build()?)
+            .add_contig("sq1", Map::<Contig>::builder().set_length(13).build()?)
+            .add_contig("sq2", Map::<Contig>::builder().set_length(21).build()?)
             .add_info(
                 info::field::key::SAMPLES_WITH_DATA_COUNT,
                 Map::<Info>::from(&info::field::key::SAMPLES_WITH_DATA_COUNT),

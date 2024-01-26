@@ -106,7 +106,7 @@ where
     /// let mut writer = bcf::io::Writer::new(io::sink());
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_contig("sq0".parse()?, Map::<Contig>::new())
+    ///     .add_contig("sq0", Map::<Contig>::new())
     ///     .build();
     ///
     /// writer.write_header(&header)?;

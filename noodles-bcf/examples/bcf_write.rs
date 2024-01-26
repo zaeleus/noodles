@@ -22,7 +22,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let header = vcf::Header::builder()
         .add_filter("PASS", Map::<Filter>::pass())
-        .add_contig("sq0".parse()?, Map::<Contig>::new())
+        .add_contig("sq0", Map::<Contig>::new())
         .build();
 
     writer.write_header(&header)?;

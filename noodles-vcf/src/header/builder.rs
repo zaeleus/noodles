@@ -168,24 +168,21 @@ impl Builder {
     /// ```
     /// use noodles_vcf::{self as vcf, header::record::value::{map::Contig, Map}};
     ///
-    /// let id = "sq0".parse()?;
     /// let contig = Map::<Contig>::new();
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_contig(id, contig.clone())
+    ///     .add_contig("sq0", contig.clone())
     ///     .build();
     ///
     /// let contigs = header.contigs();
     /// assert_eq!(contigs.len(), 1);
     /// assert_eq!(&contigs[0], &contig);
-    /// # Ok::<_, vcf::header::record::value::map::contig::name::ParseError>(())
     /// ```
-    pub fn add_contig(
-        mut self,
-        id: super::record::value::map::contig::Name,
-        contig: Map<Contig>,
-    ) -> Self {
-        self.contigs.insert(id, contig);
+    pub fn add_contig<I>(mut self, id: I, contig: Map<Contig>) -> Self
+    where
+        I: Into<String>,
+    {
+        self.contigs.insert(id.into(), contig);
         self
     }
 
@@ -349,8 +346,8 @@ mod tests {
                 Map::<Format>::from(&format_key::GENOTYPE),
             )
             .add_alternative_allele(del, Map::<AlternativeAllele>::new("Deletion"))
-            .add_contig("sq0".parse()?, Map::<Contig>::new())
-            .add_contig("sq1".parse()?, Map::<Contig>::new())
+            .add_contig("sq0", Map::<Contig>::new())
+            .add_contig("sq1", Map::<Contig>::new())
             .add_sample_name("sample0")
             .insert(key.clone(), value.clone())?
             .insert(key.clone(), value)?

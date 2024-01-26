@@ -3,10 +3,7 @@ use std::{error, fmt, num};
 use crate::header::record::value::{
     map::{
         self,
-        contig::{
-            name::{self, Name},
-            tag, Tag,
-        },
+        contig::{tag, Tag},
         Contig, OtherFields,
     },
     Map,
@@ -17,7 +14,6 @@ enum ParseErrorKind {
     InvalidMap(super::ParseError),
     InvalidField(super::field::ParseError),
     MissingId,
-    InvalidId(name::ParseError),
     InvalidLength(num::ParseIntError),
     InvalidIdx(num::ParseIntError),
     DuplicateTag(Tag),
@@ -26,17 +22,17 @@ enum ParseErrorKind {
 /// An error returned when a VCF header record contig map value fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ParseError {
-    id: Option<Name>,
+    id: Option<String>,
     kind: ParseErrorKind,
 }
 
 impl ParseError {
-    fn new(id: Option<Name>, kind: ParseErrorKind) -> Self {
+    fn new(id: Option<String>, kind: ParseErrorKind) -> Self {
         Self { id, kind }
     }
 
-    pub(crate) fn id(&self) -> Option<&Name> {
-        self.id.as_ref()
+    pub(crate) fn id(&self) -> Option<&str> {
+        self.id.as_deref()
     }
 }
 
@@ -45,7 +41,6 @@ impl error::Error for ParseError {
         match &self.kind {
             ParseErrorKind::InvalidMap(e) => Some(e),
             ParseErrorKind::InvalidField(e) => Some(e),
-            ParseErrorKind::InvalidId(e) => Some(e),
             ParseErrorKind::InvalidLength(e) => Some(e),
             ParseErrorKind::InvalidIdx(e) => Some(e),
             _ => None,
@@ -59,7 +54,6 @@ impl fmt::Display for ParseError {
             ParseErrorKind::InvalidMap(_) => write!(f, "invalid map"),
             ParseErrorKind::InvalidField(_) => write!(f, "invalid field"),
             ParseErrorKind::MissingId => write!(f, "missing ID"),
-            ParseErrorKind::InvalidId(_) => write!(f, "invalid ID"),
             ParseErrorKind::InvalidLength(_) => write!(f, "invalid length"),
             ParseErrorKind::InvalidIdx(_) => write!(f, "invalid IDX"),
             ParseErrorKind::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
@@ -67,7 +61,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub fn parse_contig(src: &mut &[u8]) -> Result<(Name, Map<Contig>), ParseError> {
+pub fn parse_contig(src: &mut &[u8]) -> Result<(String, Map<Contig>), ParseError> {
     super::consume_prefix(src).map_err(|e| ParseError::new(None, ParseErrorKind::InvalidMap(e)))?;
 
     let mut id = None;
@@ -82,9 +76,7 @@ pub fn parse_contig(src: &mut &[u8]) -> Result<(Name, Map<Contig>), ParseError> 
         .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidField(e)))?
     {
         match Tag::from(raw_key) {
-            tag::ID => {
-                parse_id(&raw_value, &id).and_then(|v| try_replace(&mut id, &None, tag::ID, v))?;
-            }
+            tag::ID => try_replace(&mut id, &None, tag::ID, raw_value.into())?,
             tag::LENGTH => parse_length(&raw_value, &id)
                 .and_then(|v| try_replace(&mut length, &id, tag::LENGTH, v))?,
             tag::MD5 => try_replace(&mut md5, &id, tag::MD5, raw_value.into())?,
@@ -115,24 +107,19 @@ pub fn parse_contig(src: &mut &[u8]) -> Result<(Name, Map<Contig>), ParseError> 
     ))
 }
 
-fn parse_id(s: &str, id: &Option<Name>) -> Result<Name, ParseError> {
-    s.parse()
-        .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidId(e)))
-}
-
-fn parse_length(s: &str, id: &Option<Name>) -> Result<usize, ParseError> {
+fn parse_length(s: &str, id: &Option<String>) -> Result<usize, ParseError> {
     s.parse()
         .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidLength(e)))
 }
 
-fn parse_idx(s: &str, id: &Option<Name>) -> Result<usize, ParseError> {
+fn parse_idx(s: &str, id: &Option<String>) -> Result<usize, ParseError> {
     s.parse()
         .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidIdx(e)))
 }
 
 fn try_replace<T>(
     option: &mut Option<T>,
-    id: &Option<Name>,
+    id: &Option<String>,
     tag: Tag,
     value: T,
 ) -> Result<(), ParseError> {
@@ -148,7 +135,7 @@ fn try_replace<T>(
 
 fn try_insert(
     other_fields: &mut OtherFields<tag::Standard>,
-    id: &Option<Name>,
+    id: &Option<String>,
     tag: map::tag::Other<tag::Standard>,
     value: String,
 ) -> Result<(), ParseError> {
@@ -174,15 +161,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_contig() -> Result<(), name::ParseError> {
+    fn test_parse_contig() {
         let mut src = &br#"<ID=sq0>"#[..];
 
-        let id = "sq0".parse()?;
+        let id = String::from("sq0");
         let map = Map::<Contig>::new();
         let expected = (id, map);
 
         assert_eq!(parse_contig(&mut src), Ok(expected));
-
-        Ok(())
     }
 }

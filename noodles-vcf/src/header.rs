@@ -16,7 +16,7 @@ use std::{hash::Hash, str::FromStr};
 use indexmap::{IndexMap, IndexSet};
 
 use self::record::value::{
-    map::{contig, AlternativeAllele, Contig, Filter, Format, Info},
+    map::{AlternativeAllele, Contig, Filter, Format, Info},
     Map,
 };
 
@@ -34,7 +34,7 @@ pub type AlternativeAlleles =
     IndexMap<crate::record::alternate_bases::allele::Symbol, Map<AlternativeAllele>>;
 
 /// VCF header contig records.
-pub type Contigs = IndexMap<contig::Name, Map<Contig>>;
+pub type Contigs = IndexMap<String, Map<Contig>>;
 
 /// VCF header sample names.
 pub type SampleNames = IndexSet<String>;
@@ -314,17 +314,15 @@ impl Header {
     /// ```
     /// use noodles_vcf::{self as vcf, header::record::value::{map::Contig, Map}};
     ///
-    /// let id = "sq0".parse()?;
     /// let contig = Map::<Contig>::new();
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_contig(id, contig.clone())
+    ///     .add_contig("sq0", contig.clone())
     ///     .build();
     ///
     /// let contigs = header.contigs();
     /// assert_eq!(contigs.len(), 1);
     /// assert_eq!(&contigs[0], &contig);
-    /// # Ok::<_, vcf::header::record::value::map::contig::name::ParseError>(())
     /// ```
     pub fn contigs(&self) -> &Contigs {
         &self.contigs
@@ -339,14 +337,12 @@ impl Header {
     ///
     /// let mut header = vcf::Header::default();
     ///
-    /// let id = "sq0".parse()?;
     /// let contig = Map::<Contig>::new();
-    /// header.contigs_mut().insert(id, contig.clone());
+    /// header.contigs_mut().insert(String::from("sq0"), contig.clone());
     ///
     /// let contigs = header.contigs();
     /// assert_eq!(contigs.len(), 1);
     /// assert_eq!(&contigs[0], &contig);
-    /// # Ok::<_, vcf::header::record::value::map::contig::name::ParseError>(())
     /// ```
     pub fn contigs_mut(&mut self) -> &mut Contigs {
         &mut self.contigs
