@@ -29,7 +29,6 @@ use crate::{
 /// use tokio::fs::File;
 ///
 /// let mut reader = File::open("sample.bcf").await.map(bcf::r#async::io::Reader::new)?;
-/// reader.read_file_format().await?;
 /// reader.read_header().await?;
 ///
 /// let mut records = reader.lazy_records();
@@ -99,40 +98,12 @@ where
         &self.string_maps
     }
 
-    /// Reads the BCF file format.
+    /// Reads the VCF header.
     ///
-    /// The BCF magic number is also checked.
+    /// The BCF magic number is checked, and the file format version is discarded.
     ///
     /// The position of the stream is expected to be at the start.
     ///
-    /// This returns the major and minor format versions as a tuple.
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// # use std::io;
-    /// #
-    /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
-    /// use noodles_bcf as bcf;
-    /// use tokio::fs::File;
-    /// let mut reader = File::open("sample.bcf").await.map(bcf::r#async::io::Reader::new)?;
-    /// let (major, minor) = reader.read_file_format().await?;
-    /// # Ok(())
-    /// # }
-    /// ```
-    pub async fn read_file_format(&mut self) -> io::Result<(u8, u8)> {
-        read_magic(&mut self.inner).await?;
-        read_format_version(&mut self.inner).await
-    }
-
-    /// Reads the raw VCF header.
-    ///
-    /// The position of the stream is expected to be directly after the file format.
-    ///
-    /// This returns the raw VCF header as a [`String`]. It can subsequently be parsed as a
-    /// [`noodles_vcf::Header`].
-    ///
     /// # Examples
     ///
     /// ```no_run
@@ -144,13 +115,13 @@ where
     /// use tokio::fs::File;
     ///
     /// let mut reader = File::open("sample.bcf").await.map(bcf::r#async::io::Reader::new)?;
-    /// reader.read_file_format().await?;
-    ///
     /// let header = reader.read_header().await?;
     /// # Ok(())
     /// # }
     /// ```
     pub async fn read_header(&mut self) -> io::Result<vcf::Header> {
+        read_magic(&mut self.inner).await?;
+        read_format_version(&mut self.inner).await?;
         let (header, string_maps) = read_header(&mut self.inner).await?;
         self.string_maps = string_maps;
         Ok(header)
@@ -175,7 +146,6 @@ where
     /// use tokio::fs::File;
     ///
     /// let mut reader = File::open("sample.bcf").await.map(bcf::r#async::io::Reader::new)?;
-    /// reader.read_file_format().await?;
     /// reader.read_header().await?;
     ///
     /// let mut record = bcf::lazy::Record::default();
@@ -205,7 +175,6 @@ where
     /// use tokio::fs::File;
     ///
     /// let mut reader = File::open("sample.bcf").await.map(bcf::r#async::io::Reader::new)?;
-    /// reader.read_file_format().await?;
     /// reader.read_header().await?;
     ///
     /// let mut records = reader.lazy_records();
@@ -311,7 +280,6 @@ where
     /// use tokio::fs::File;
     ///
     /// let mut reader = File::open("sample.bcf").await.map(bcf::r#async::io::Reader::new)?;
-    /// reader.read_file_format().await?;
     /// reader.read_header().await?;
     ///
     /// let string_maps = reader.string_maps().clone();
