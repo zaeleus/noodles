@@ -6,10 +6,14 @@ use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
+use noodles_vcf as vcf;
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};
 
 use self::{header::read_header, lazy_record::read_lazy_record, query::query};
-use crate::{header::string_maps::ContigStringMap, lazy};
+use crate::{
+    header::{string_maps::ContigStringMap, StringMaps},
+    lazy,
+};
 
 /// An async BCF reader.
 ///
@@ -39,6 +43,7 @@ use crate::{header::string_maps::ContigStringMap, lazy};
 pub struct Reader<R> {
     inner: R,
     buf: Vec<u8>,
+    string_maps: StringMaps,
 }
 
 impl<R> Reader<R>
@@ -85,6 +90,13 @@ where
     /// ```
     pub fn into_inner(self) -> R {
         self.inner
+    }
+
+    /// Returns the string maps.
+    ///
+    /// This is only built after reading the header using [`Self::read_header`].
+    pub fn string_maps(&self) -> &StringMaps {
+        &self.string_maps
     }
 
     /// Reads the BCF file format.
@@ -138,8 +150,10 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_header(&mut self) -> io::Result<String> {
-        read_header(&mut self.inner).await
+    pub async fn read_header(&mut self) -> io::Result<vcf::Header> {
+        let (header, string_maps) = read_header(&mut self.inner).await?;
+        self.string_maps = string_maps;
+        Ok(header)
     }
 
     /// Reads a single record without decoding (most of) its feilds.
@@ -291,15 +305,16 @@ where
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures::TryStreamExt;
-    /// use noodles_bcf::{self as bcf, header::StringMaps};
+    /// use noodles_bcf as bcf;
     /// use noodles_core::Region;
     /// use noodles_csi as csi;
     /// use tokio::fs::File;
     ///
     /// let mut reader = File::open("sample.bcf").await.map(bcf::r#async::io::Reader::new)?;
     /// reader.read_file_format().await?;
+    /// reader.read_header().await?;
     ///
-    /// let string_maps: StringMaps = reader.read_header().await?.parse()?;
+    /// let string_maps = reader.string_maps().clone();
     ///
     /// let index = csi::r#async::read("sample.bcf.csi").await?;
     /// let region = "sq0:8-13".parse()?;
@@ -339,6 +354,7 @@ impl<R> From<R> for Reader<R> {
         Self {
             inner,
             buf: Vec::new(),
+            string_maps: StringMaps::default(),
         }
     }
 }

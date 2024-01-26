@@ -7,7 +7,7 @@
 use std::{env, path::PathBuf};
 
 use futures::TryStreamExt;
-use noodles_bcf::{self as bcf, header::StringMaps};
+use noodles_bcf as bcf;
 use noodles_csi as csi;
 use noodles_vcf as vcf;
 use tokio::{fs::File, io};
@@ -21,10 +21,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut reader = File::open(&src).await.map(bcf::r#async::io::Reader::new)?;
     reader.read_file_format().await?;
-    let raw_header = reader.read_header().await?;
 
-    let header: vcf::Header = raw_header.parse()?;
-    let string_maps: StringMaps = raw_header.parse()?;
+    let header = reader.read_header().await?;
+    let string_maps = reader.string_maps().clone();
 
     let index = csi::r#async::read(src.with_extension("bcf.csi")).await?;
 

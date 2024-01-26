@@ -1,6 +1,26 @@
+use noodles_vcf as vcf;
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
-pub(super) async fn read_header<R>(reader: &mut R) -> io::Result<String>
+use crate::header::StringMaps;
+
+pub(super) async fn read_header<R>(reader: &mut R) -> io::Result<(vcf::Header, StringMaps)>
+where
+    R: AsyncRead + Unpin,
+{
+    let raw_header = read_raw_header(reader).await?;
+
+    let header = raw_header
+        .parse()
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+    let string_maps = raw_header
+        .parse()
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+    Ok((header, string_maps))
+}
+
+async fn read_raw_header<R>(reader: &mut R) -> io::Result<String>
 where
     R: AsyncRead + Unpin,
 {
@@ -32,14 +52,14 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn test_read_header() -> io::Result<()> {
+    async fn test_read_raw_header() -> io::Result<()> {
         let data = [
             0x08, 0x00, 0x00, 0x00, // l_text = 8
             0x6e, 0x6f, 0x6f, 0x64, 0x6c, 0x65, 0x73, 0x00, // text = b"noodles\x00"
         ];
 
         let mut reader = &data[..];
-        assert_eq!(read_header(&mut reader).await?, "noodles");
+        assert_eq!(read_raw_header(&mut reader).await?, "noodles");
 
         Ok(())
     }
