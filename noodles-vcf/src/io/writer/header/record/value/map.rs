@@ -4,10 +4,12 @@ mod filter;
 mod format;
 mod info;
 mod meta;
+mod number;
 mod other;
 
 use std::io::{self, Write};
 
+use self::number::write_number;
 pub(crate) use self::{
     alternative_allele::write_alternative_allele, contig::write_contig, filter::write_filter,
     format::write_format, info::write_info, meta::write_meta, other::write_other,
@@ -70,7 +72,9 @@ where
     use crate::header::record::value::map::tag::NUMBER;
 
     write_delimiter(writer)?;
-    write_value_field(writer, NUMBER, number.to_string())?;
+    write_key(writer, NUMBER)?;
+    write_separator(writer)?;
+    write_number(writer, number)?;
 
     Ok(())
 }
