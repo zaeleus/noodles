@@ -2,8 +2,6 @@ use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 use crate::{Header, Record};
 
-const LINE_FEED: u8 = b'\n';
-
 /// An async VCF writer.
 ///
 /// If the inner writer is buffered, a call to [`Self::shutdown`] must be made before the writer is
@@ -134,9 +132,9 @@ where
     /// # }
     /// ```
     pub async fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        let raw_record = record.to_string();
-        self.inner.write_all(raw_record.as_bytes()).await?;
-        self.inner.write_u8(LINE_FEED).await?;
+        let mut writer = crate::io::Writer::new(Vec::new());
+        writer.write_record(&Header::default(), record)?;
+        self.inner.write_all(writer.get_ref()).await?;
         Ok(())
     }
 }
