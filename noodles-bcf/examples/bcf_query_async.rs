@@ -10,7 +10,7 @@ use futures::TryStreamExt;
 use noodles_bcf::{self as bcf, header::StringMaps};
 use noodles_csi as csi;
 use noodles_vcf as vcf;
-use tokio::fs::File;
+use tokio::{fs::File, io};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -31,10 +31,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let region = raw_region.parse()?;
     let mut query = reader.query(string_maps.contigs(), &index, &region)?;
 
+    let mut writer = vcf::r#async::io::Writer::new(io::stdout());
+
     while let Some(record) = query.try_next().await? {
         let vcf_record = record.try_into_vcf_record(&header, &string_maps)?;
-        println!("{vcf_record}");
+        writer.write_record(&vcf_record).await?;
     }
+
+    writer.shutdown().await?;
 
     Ok(())
 }

@@ -709,55 +709,6 @@ impl Record {
     }
 }
 
-impl fmt::Display for Record {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{chrom}\t{pos}",
-            chrom = self.chromosome(),
-            pos = self.position()
-        )?;
-
-        if self.ids().is_empty() {
-            write!(f, "\t{MISSING_FIELD}")?;
-        } else {
-            write!(f, "\t{id}", id = self.ids())?;
-        }
-
-        write!(f, "\t{ref}", r#ref = self.reference_bases())?;
-
-        if self.alternate_bases().is_empty() {
-            write!(f, "\t{MISSING_FIELD}")?;
-        } else {
-            write!(f, "\t{alt}", alt = self.alternate_bases())?;
-        }
-
-        if let Some(qual) = self.quality_score() {
-            write!(f, "\t{qual}")?;
-        } else {
-            write!(f, "\t{MISSING_FIELD}")?;
-        }
-
-        if let Some(filter) = self.filters() {
-            write!(f, "\t{filter}")?;
-        } else {
-            write!(f, "\t{MISSING_FIELD}")?;
-        }
-
-        if self.info().is_empty() {
-            write!(f, "\t{MISSING_FIELD}")?;
-        } else {
-            write!(f, "\t{info}", info = self.info())?;
-        }
-
-        if !self.genotypes().is_empty() {
-            write!(f, "\t{}", self.genotypes())?;
-        }
-
-        Ok(())
-    }
-}
-
 impl FromStr for Record {
     type Err = ParseError;
 
@@ -829,36 +780,6 @@ mod tests {
             .build()?;
 
         assert_eq!(record.end(), Err(EndError::PositionOverflow(usize::MAX, 4)));
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_fmt() -> Result<(), Box<dyn std::error::Error>> {
-        let record = Record::builder()
-            .set_chromosome("sq0".parse()?)
-            .set_position(Position::from(1))
-            .set_reference_bases("A".parse()?)
-            .build()?;
-
-        assert_eq!(record.to_string(), "sq0\t1\t.\tA\t.\t.\t.\t.");
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_fmt_with_format() -> Result<(), Box<dyn std::error::Error>> {
-        let record = Record::builder()
-            .set_chromosome("sq0".parse()?)
-            .set_position(Position::from(1))
-            .set_reference_bases("A".parse()?)
-            .set_genotypes("GT:GQ\t0|0:13".parse()?)
-            .build()?;
-
-        assert_eq!(
-            record.to_string(),
-            "sq0\t1\t.\tA\t.\t.\t.\t.\tGT:GQ\t0|0:13"
-        );
 
         Ok(())
     }

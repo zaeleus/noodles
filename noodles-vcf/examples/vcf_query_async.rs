@@ -10,7 +10,7 @@ use futures::TryStreamExt;
 use noodles_bgzf as bgzf;
 use noodles_tabix as tabix;
 use noodles_vcf as vcf;
-use tokio::fs::File;
+use tokio::{fs::File, io};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -29,9 +29,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let index = tabix::r#async::read(src.with_extension("gz.tbi")).await?;
     let mut query = reader.query(&header, &index, &region)?;
 
+    let mut writer = vcf::r#async::io::Writer::new(io::stdout());
+
     while let Some(record) = query.try_next().await? {
-        println!("{record}");
+        writer.write_record(&record).await?;
     }
+
+    writer.shutdown().await?;
 
     Ok(())
 }
