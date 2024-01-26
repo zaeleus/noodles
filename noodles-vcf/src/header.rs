@@ -2,7 +2,6 @@
 
 mod builder;
 pub mod file_format;
-mod fmt;
 mod number;
 pub mod parser;
 pub mod record;
@@ -521,124 +520,6 @@ impl Default for Header {
     }
 }
 
-impl std::fmt::Display for Header {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        use record::value::map;
-
-        const META: &str = "META";
-
-        writeln!(
-            f,
-            "{}{}={}",
-            record::PREFIX,
-            record::key::FILE_FORMAT,
-            self.file_format()
-        )?;
-
-        for (id, info) in self.infos() {
-            writeln!(
-                f,
-                "{}{}=<{}={}{}>",
-                record::PREFIX,
-                record::key::INFO,
-                map::info::tag::ID,
-                id,
-                info
-            )?;
-        }
-
-        for (id, filter) in self.filters() {
-            writeln!(
-                f,
-                "{}{}=<{}={}{}>",
-                record::PREFIX,
-                record::key::FILTER,
-                map::filter::tag::ID,
-                id,
-                filter
-            )?;
-        }
-
-        for (id, format) in self.formats() {
-            writeln!(
-                f,
-                "{}{}=<{}={}{}>",
-                record::PREFIX,
-                record::key::FORMAT,
-                map::format::tag::ID,
-                id,
-                format
-            )?;
-        }
-
-        for (id, alternative_allele) in self.alternative_alleles() {
-            writeln!(
-                f,
-                "{}{}=<{}={}{}>",
-                record::PREFIX,
-                record::key::ALTERNATIVE_ALLELE,
-                map::alternative_allele::tag::ID,
-                id,
-                alternative_allele
-            )?;
-        }
-
-        for (id, contig) in self.contigs() {
-            writeln!(
-                f,
-                "{}{}=<{}={}{}>",
-                record::PREFIX,
-                record::key::CONTIG,
-                map::contig::tag::ID,
-                id,
-                contig
-            )?;
-        }
-
-        for (key, collection) in &self.other_records {
-            match collection {
-                record::value::Collection::Unstructured(vs) => {
-                    for v in vs {
-                        writeln!(f, "{}{}={}", record::PREFIX, key, v)?;
-                    }
-                }
-                record::value::Collection::Structured(maps) => {
-                    for (id, map) in maps {
-                        if key.as_ref() == META {
-                            fmt::write_meta_record(f, id, map)?;
-                            writeln!(f)?;
-                        } else {
-                            writeln!(
-                                f,
-                                "{}{}=<{}={}{}>",
-                                record::PREFIX,
-                                key,
-                                map.id_tag(),
-                                id,
-                                map
-                            )?;
-                        }
-                    }
-                }
-            }
-        }
-
-        f.write_str("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO")?;
-
-        if !self.sample_names().is_empty() {
-            f.write_str("\tFORMAT")?;
-
-            for sample_name in self.sample_names() {
-                write!(f, "\t{sample_name}")?;
-            }
-        }
-
-        f.write_str("\n")?;
-
-        Ok(())
-    }
-}
-
 impl FromStr for Header {
     type Err = ParseError;
 
@@ -655,47 +536,6 @@ mod tests {
     fn test_default() {
         let header = Header::default();
         assert_eq!(header.file_format(), FileFormat::default());
-    }
-
-    #[test]
-    fn test_fmt() -> Result<(), Box<dyn std::error::Error>> {
-        let header = Header::builder()
-            .set_file_format(FileFormat::new(4, 3))
-            .add_filter("PASS", Map::<Filter>::pass())
-            .insert("fileDate".parse()?, record::Value::from("20200514"))?
-            .build();
-
-        let expected = r#"##fileformat=VCFv4.3
-##FILTER=<ID=PASS,Description="All filters passed">
-##fileDate=20200514
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
-"#;
-
-        assert_eq!(header.to_string(), expected);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_fmt_with_genotypes() {
-        let header = Header::builder().add_sample_name("sample0").build();
-        let expected = "\
-##fileformat=VCFv4.4
-#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tsample0
-";
-        assert_eq!(header.to_string(), expected);
-
-        let header = Header::builder()
-            .add_sample_name("sample0")
-            .add_sample_name("sample1")
-            .build();
-
-        let expected = "\
-##fileformat=VCFv4.4
-#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tsample0\tsample1
-";
-
-        assert_eq!(header.to_string(), expected);
     }
 
     #[test]

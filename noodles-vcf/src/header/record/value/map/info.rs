@@ -6,8 +6,6 @@ pub(crate) mod ty;
 
 pub use self::{tag::Tag, ty::Type};
 
-use std::fmt;
-
 use super::{builder, Described, Indexed, Inner, Map, OtherFields, Typed};
 use crate::{
     header::{FileFormat, Number},
@@ -102,20 +100,6 @@ impl Map<Info> {
     }
 }
 
-impl fmt::Display for Map<Info> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        super::fmt_display_type_fields(f, self.number(), self.ty())?;
-        super::fmt_display_description_field(f, self.description())?;
-        super::fmt_display_other_fields(f, self.other_fields())?;
-
-        if let Some(idx) = self.idx() {
-            super::fmt_display_idx_field(f, idx)?;
-        }
-
-        Ok(())
-    }
-}
-
 impl From<&Key> for Map<Info> {
     fn from(key: &Key) -> Self {
         Self::from((FileFormat::default(), key))
@@ -157,18 +141,5 @@ impl builder::Inner<Info> for builder::TypedDescribedIndexed<Info> {
             description,
             idx: self.idx,
         })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::record::info::field::key;
-
-    #[test]
-    fn test_fmt() {
-        let map = Map::<Info>::from(&key::SAMPLES_WITH_DATA_COUNT);
-        let expected = r#",Number=1,Type=Integer,Description="Number of samples with data""#;
-        assert_eq!(map.to_string(), expected);
     }
 }

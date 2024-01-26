@@ -6,8 +6,6 @@ pub(crate) mod tag;
 
 pub use self::{name::Name, tag::Tag};
 
-use std::fmt;
-
 use super::{Indexed, Inner, Map};
 
 /// An inner VCF header contig map value.
@@ -135,49 +133,5 @@ impl Map<Contig> {
     /// ```
     pub fn url_mut(&mut self) -> &mut Option<String> {
         &mut self.inner.url
-    }
-}
-
-impl fmt::Display for Map<Contig> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if let Some(length) = self.length() {
-            write!(f, ",{tag}={length}", tag = tag::LENGTH)?;
-        }
-
-        if let Some(md5) = self.md5() {
-            write!(f, ",{tag}={md5}", tag = tag::MD5)?;
-        }
-
-        if let Some(url) = self.url() {
-            write!(f, ",{tag}={url}", tag = tag::URL)?;
-        }
-
-        super::fmt_display_other_fields(f, self.other_fields())?;
-
-        if let Some(idx) = self.idx() {
-            super::fmt_display_idx_field(f, idx)?;
-        }
-
-        Ok(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::header::record::value::map::builder::BuildError;
-
-    #[test]
-    fn test_fmt() -> Result<(), BuildError> {
-        let map = Map::<Contig>::builder()
-            .set_length(8)
-            .set_md5("d7eba311421bbc9d3ada44709dd61534")
-            .set_url("https://example.com/reference.fa")
-            .build()?;
-
-        let expected = r#",length=8,md5=d7eba311421bbc9d3ada44709dd61534,URL=https://example.com/reference.fa"#;
-        assert_eq!(map.to_string(), expected);
-
-        Ok(())
     }
 }

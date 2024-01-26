@@ -14,7 +14,7 @@ pub use self::{
     format::Format, info::Info, other::Other,
 };
 
-use std::fmt::{self, Display};
+use std::fmt;
 
 use indexmap::IndexMap;
 
@@ -34,7 +34,7 @@ pub trait Inner: Sized {
 /// An inner VCF header map value with number and type fields.
 pub trait Typed: Inner {
     /// The type type.
-    type Type: Display;
+    type Type: fmt::Display;
 
     /// Returns the cardinality of the field value.
     fn number(&self) -> Number;
@@ -176,40 +176,4 @@ where
     pub fn idx_mut(&mut self) -> &mut Option<usize> {
         self.inner.idx_mut()
     }
-}
-
-fn fmt_display_type_fields<T>(f: &mut fmt::Formatter<'_>, number: Number, ty: T) -> fmt::Result
-where
-    T: Display,
-{
-    write!(f, ",{}={}", tag::NUMBER, number)?;
-    write!(f, ",{}={}", tag::TYPE, ty)?;
-    Ok(())
-}
-
-fn fmt_display_description_field(f: &mut fmt::Formatter<'_>, description: &str) -> fmt::Result {
-    use crate::header::fmt::write_escaped_string;
-
-    write!(f, ",{}=", tag::DESCRIPTION)?;
-    write_escaped_string(f, description)?;
-
-    Ok(())
-}
-
-fn fmt_display_other_fields<S>(
-    f: &mut fmt::Formatter<'_>,
-    other_fields: &OtherFields<S>,
-) -> fmt::Result {
-    use crate::header::fmt::write_escaped_string;
-
-    for (key, value) in other_fields {
-        write!(f, ",{key}=")?;
-        write_escaped_string(f, value)?;
-    }
-
-    Ok(())
-}
-
-fn fmt_display_idx_field(f: &mut fmt::Formatter<'_>, idx: usize) -> fmt::Result {
-    write!(f, ",{}={}", tag::IDX, idx)
 }

@@ -60,14 +60,6 @@ impl Map<AlternativeAllele> {
     }
 }
 
-impl fmt::Display for Map<AlternativeAllele> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        super::fmt_display_description_field(f, self.description())?;
-        super::fmt_display_other_fields(f, self.other_fields())?;
-        Ok(())
-    }
-}
-
 /// An error returned when a raw ALT record fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -95,17 +87,5 @@ impl fmt::Display for ParseError {
             Self::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
             Self::InvalidId(_) => write!(f, "invalid ID"),
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_fmt() {
-        let map = Map::<AlternativeAllele>::new("Deletion");
-        let expected = r#",Description="Deletion""#;
-        assert_eq!(map.to_string(), expected);
     }
 }

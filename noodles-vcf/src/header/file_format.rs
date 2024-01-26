@@ -65,12 +65,6 @@ impl Default for FileFormat {
     }
 }
 
-impl fmt::Display for FileFormat {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}{}{}{}", PREFIX, self.major(), DELIMITER, self.minor())
-    }
-}
-
 /// An error returned when a raw VCF header file format fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -144,12 +138,6 @@ mod tests {
         let file_format = FileFormat::default();
         assert_eq!(file_format.major(), MAJOR_VERSION);
         assert_eq!(file_format.minor(), MINOR_VERSION);
-    }
-
-    #[test]
-    fn test_fmt() {
-        let file_format = FileFormat::new(4, 3);
-        assert_eq!(file_format.to_string(), "VCFv4.3");
     }
 
     #[test]
