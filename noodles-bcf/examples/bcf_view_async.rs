@@ -20,11 +20,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let header = raw_header.parse()?;
     let string_maps = raw_header.parse()?;
 
-    print!("{raw_header}");
-
     let mut records = reader.lazy_records();
 
     let mut writer = vcf::r#async::io::Writer::new(io::stdout());
+    writer.write_header(&header).await?;
 
     while let Some(record) = records.try_next().await? {
         let vcf_record = record.try_into_vcf_record(&header, &string_maps)?;
