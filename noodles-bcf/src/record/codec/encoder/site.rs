@@ -60,27 +60,22 @@ where
 fn write_chrom<W>(
     writer: &mut W,
     contig_string_map: &ContigStringMap,
-    chromosome: &vcf::record::Chromosome,
+    chromosome: &str,
 ) -> io::Result<()>
 where
     W: Write,
 {
-    use vcf::record::Chromosome;
-
-    let chrom = match chromosome {
-        Chromosome::Name(name) => contig_string_map
-            .get_index_of(name)
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    format!("chromosome not in string map: {name}"),
-                )
-            })
-            .and_then(|i| {
-                i32::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-            })?,
-        Chromosome::Symbol(_) => todo!("unhandled chromosome: {:?}", chromosome),
-    };
+    let chrom = contig_string_map
+        .get_index_of(chromosome)
+        .ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!("chromosome not in string map: {chromosome}"),
+            )
+        })
+        .and_then(|i| {
+            i32::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+        })?;
 
     writer.write_i32::<LittleEndian>(chrom)
 }
@@ -250,12 +245,10 @@ mod tests {
 
     #[test]
     fn test_write_chrom() -> Result<(), Box<dyn std::error::Error>> {
-        use vcf::record::Chromosome;
-
         fn t(
             buf: &mut Vec<u8>,
             contig_string_map: &ContigStringMap,
-            chromosome: &Chromosome,
+            chromosome: &str,
             expected: &[u8],
         ) -> io::Result<()> {
             buf.clear();
@@ -273,14 +266,14 @@ mod tests {
         t(
             &mut buf,
             &contig_string_map,
-            &"sq0".parse()?,
+            "sq0",
             &[0x00, 0x00, 0x00, 0x00],
         )?;
 
         t(
             &mut buf,
             &contig_string_map,
-            &"sq1".parse()?,
+            "sq1",
             &[0x01, 0x00, 0x00, 0x00],
         )?;
 

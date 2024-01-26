@@ -31,7 +31,7 @@ use crate::{Header, Record};
 /// writer.write_header(&header)?;
 ///
 /// let record = vcf::Record::builder()
-///     .set_chromosome("sq0".parse()?)
+///     .set_chromosome("sq0")
 ///     .set_position(Position::from(1))
 ///     .set_reference_bases("A".parse()?)
 ///     .build()?;
@@ -135,7 +135,7 @@ where
     /// let header = vcf::Header::default();
     ///
     /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
@@ -172,7 +172,7 @@ mod tests {
         let header = Header::default();
 
         let record = Record::builder()
-            .set_chromosome("sq0".parse()?)
+            .set_chromosome("sq0")
             .set_position(Position::from(1))
             .set_reference_bases("A".parse()?)
             .build()?;
@@ -204,7 +204,7 @@ mod tests {
         );
 
         let record = Record::builder()
-            .set_chromosome("sq0".parse()?)
+            .set_chromosome("sq0")
             .set_position(Position::from(1))
             .set_reference_bases("A".parse()?)
             .set_genotypes(genotypes)

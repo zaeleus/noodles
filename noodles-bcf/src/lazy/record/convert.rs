@@ -22,7 +22,7 @@ impl Record {
     ///
     /// let actual = record.try_into_vcf_record(&header, &string_maps)?;
     /// let expected = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
@@ -38,12 +38,7 @@ impl Record {
         let chromosome = string_maps
             .contigs()
             .get_index(self.chromosome_id())
-            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid chrom"))
-            .and_then(|chrom| {
-                chrom
-                    .parse()
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-            })?;
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid chrom"))?;
 
         let filters = self
             .filters()
