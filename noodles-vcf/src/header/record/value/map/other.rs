@@ -36,7 +36,6 @@ impl Map<Other> {
         Self::default()
     }
 
-    #[allow(dead_code)]
     pub(crate) fn id_tag(&self) -> &Tag {
         &self.inner.id_tag
     }

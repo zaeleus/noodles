@@ -126,7 +126,7 @@ where
         Collection::Structured(maps) => {
             for (id, map) in maps {
                 write_record(writer, key, |w| {
-                    value::write_map(w, id, |x| {
+                    value::write_other_map(w, map.id_tag(), id, |x| {
                         if key.as_ref() == META {
                             value::map::write_meta(x, map)
                         } else {
