@@ -108,8 +108,9 @@ where
     /// # }
     /// ```
     pub async fn write_header(&mut self, header: &Header) -> io::Result<()> {
-        let raw_header = header.to_string();
-        self.inner.write_all(raw_header.as_bytes()).await
+        let mut writer = crate::io::Writer::new(Vec::new());
+        writer.write_header(header)?;
+        self.inner.write_all(writer.get_ref()).await
     }
 
     /// Writes a VCF record.
