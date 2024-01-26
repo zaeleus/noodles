@@ -10,7 +10,7 @@ pub(super) fn write_header<W>(writer: &mut W, header: &vcf::Header) -> io::Resul
 where
     W: Write,
 {
-    let raw_header = header.to_string();
+    let raw_header = serialize_header(header)?;
     let c_raw_header =
         CString::new(raw_header).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
@@ -22,6 +22,12 @@ where
     writer.write_all(text)?;
 
     Ok(())
+}
+
+fn serialize_header(header: &vcf::Header) -> io::Result<Vec<u8>> {
+    let mut writer = vcf::io::Writer::new(Vec::new());
+    writer.write_header(header)?;
+    Ok(writer.into_inner())
 }
 
 #[cfg(test)]
