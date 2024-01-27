@@ -3,8 +3,8 @@
 use std::{error, fmt};
 
 use super::{
-    reference_bases::Base, AlternateBases, Filters, Genotypes, Ids, Info, Position, QualityScore,
-    Record, ReferenceBases,
+    reference_bases::Base, AlternateBases, Filters, Genotypes, Ids, Info, Position, Record,
+    ReferenceBases,
 };
 
 /// A VCF record builder.
@@ -15,7 +15,7 @@ pub struct Builder {
     ids: Ids,
     reference_bases: Vec<Base>,
     alternate_bases: AlternateBases,
-    quality_score: Option<QualityScore>,
+    quality_score: Option<f32>,
     filters: Option<Filters>,
     info: Info,
     genotypes: Genotypes,
@@ -200,19 +200,19 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, record::{Position, QualityScore}};
+    /// use noodles_vcf::{self as vcf, record::Position};
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
-    ///     .set_quality_score(QualityScore::try_from(13.0)?)
+    ///     .set_quality_score(13.0)
     ///     .build()?;
     ///
-    /// assert_eq!(record.quality_score().map(f32::from), Some(13.0));
+    /// assert_eq!(record.quality_score(), Some(13.0));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_quality_score(mut self, quality_score: QualityScore) -> Self {
+    pub fn set_quality_score(mut self, quality_score: f32) -> Self {
         self.quality_score = Some(quality_score);
         self
     }

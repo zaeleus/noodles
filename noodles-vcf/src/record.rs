@@ -8,14 +8,12 @@ pub mod ids;
 pub mod info;
 mod parser;
 pub mod position;
-pub mod quality_score;
 pub mod reference_bases;
 pub(crate) mod value;
 
 pub use self::{
     alternate_bases::AlternateBases, builder::Builder, filters::Filters, genotypes::Genotypes,
-    ids::Ids, info::Info, position::Position, quality_score::QualityScore,
-    reference_bases::ReferenceBases,
+    ids::Ids, info::Info, position::Position, reference_bases::ReferenceBases,
 };
 
 use std::{error, fmt, num, str::FromStr};
@@ -40,7 +38,7 @@ pub struct Record {
     ids: Ids,
     reference_bases: ReferenceBases,
     alternate_bases: AlternateBases,
-    quality_score: Option<QualityScore>,
+    quality_score: Option<f32>,
     filters: Option<Filters>,
     info: Info,
     genotypes: Genotypes,
@@ -340,19 +338,19 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, record::{Position, QualityScore}};
+    /// use noodles_vcf::{self as vcf, record::Position};
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
-    ///     .set_quality_score(QualityScore::try_from(13.0)?)
+    ///     .set_quality_score(13.0)
     ///     .build()?;
     ///
-    /// assert_eq!(record.quality_score().map(f32::from), Some(13.0));
+    /// assert_eq!(record.quality_score(), Some(13.0));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn quality_score(&self) -> Option<QualityScore> {
+    pub fn quality_score(&self) -> Option<f32> {
         self.quality_score
     }
 
@@ -361,7 +359,7 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, record::{Position, QualityScore}};
+    /// use noodles_vcf::{self as vcf, record::Position};
     ///
     /// let mut record = vcf::Record::builder()
     ///     .set_chromosome("sq0")
@@ -369,12 +367,12 @@ impl Record {
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
-    /// *record.quality_score_mut() = QualityScore::try_from(13.0).map(Some)?;
+    /// *record.quality_score_mut() = Some(13.0);
     ///
-    /// assert_eq!(record.quality_score().map(f32::from), Some(13.0));
+    /// assert_eq!(record.quality_score(), Some(13.0));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn quality_score_mut(&mut self) -> &mut Option<QualityScore> {
+    pub fn quality_score_mut(&mut self) -> &mut Option<f32> {
         &mut self.quality_score
     }
 
