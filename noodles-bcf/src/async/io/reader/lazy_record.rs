@@ -40,7 +40,7 @@ mod tests {
     use noodles_vcf::record::{
         genotypes::{self, sample::Value as GenotypeFieldValue, Keys},
         info::{self, field::Value as InfoFieldValue},
-        Filters as VcfFilters, Genotypes as VcfGenotypes, Ids, Position, QualityScore,
+        Filters as VcfFilters, Genotypes as VcfGenotypes, Ids, Position,
     };
 
     use super::*;
@@ -61,10 +61,7 @@ mod tests {
         assert_eq!(record.chromosome_id(), 1);
         assert_eq!(record.position(), Position::from(101));
         assert_eq!(record.rlen(), 1);
-        assert_eq!(
-            record.quality_score(),
-            QualityScore::try_from(30.1).map(Some)?
-        );
+        assert_eq!(record.quality_score(), Some(30.1));
         assert_eq!(record.ids(), &"rs123".parse::<Ids>()?);
         assert_eq!(record.reference_bases(), &"A".parse()?);
         assert_eq!(record.alternate_bases(), &"C".parse()?);

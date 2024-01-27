@@ -22,7 +22,7 @@ pub struct Record {
     pub(crate) chrom: ChromosomeId,
     pub(crate) pos: vcf::record::Position,
     pub(crate) rlen: usize,
-    pub(crate) qual: Option<vcf::record::QualityScore>,
+    pub(crate) qual: Option<f32>,
     pub(crate) id: vcf::record::Ids,
     pub(crate) r#ref: vcf::record::ReferenceBases,
     pub(crate) alt: vcf::record::AlternateBases,
@@ -102,7 +102,7 @@ impl Record {
     /// let record = bcf::lazy::Record::default();
     /// assert!(record.quality_score().is_none());
     /// ```
-    pub fn quality_score(&self) -> Option<vcf::record::QualityScore> {
+    pub fn quality_score(&self) -> Option<f32> {
         self.qual
     }
 
