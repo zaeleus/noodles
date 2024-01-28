@@ -192,9 +192,8 @@ where
     write_value(writer, ref_value)?;
 
     if !alternate_bases.is_empty() {
-        for allele in alternate_bases.iter() {
-            let alt = allele.to_string();
-            let alt_value = Some(Value::String(Some(&alt)));
+        for alt in alternate_bases.as_ref().iter() {
+            let alt_value = Some(Value::String(Some(alt)));
             write_value(writer, alt_value)?;
         }
     }
@@ -470,14 +469,14 @@ mod tests {
         t(
             &mut buf,
             &"A".parse()?,
-            &"G".parse()?,
+            &AlternateBases::from(vec![String::from("G")]),
             &[0x17, b'A', 0x17, b'G'],
         )?;
 
         t(
             &mut buf,
             &"A".parse()?,
-            &"G,T".parse()?,
+            &AlternateBases::from(vec![String::from("G"), String::from("T")]),
             &[0x17, b'A', 0x17, b'G', 0x17, b'T'],
         )?;
 
