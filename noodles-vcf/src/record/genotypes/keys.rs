@@ -7,25 +7,13 @@ pub use self::key::Key;
 use std::{
     error, fmt,
     ops::{Deref, DerefMut},
-    str::FromStr,
 };
 
 use indexmap::IndexSet;
 
-use crate::header;
-
-const DELIMITER: char = ':';
-
 /// A VCF record genotypes keys, i.e., `FORMAT`.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Keys(IndexSet<Key>);
-
-impl Keys {
-    /// Parses raw VCF record genotypes keys.
-    pub fn try_from_str(s: &str, formats: &header::Formats) -> Result<Self, ParseError> {
-        parse(s, formats)
-    }
-}
 
 impl Deref for Keys {
     type Target = IndexSet<Key>;
@@ -69,31 +57,6 @@ impl fmt::Display for ParseError {
             Self::InvalidKey(_) => f.write_str("invalid key"),
             Self::InvalidFormat(_) => f.write_str("invalid format"),
         }
-    }
-}
-
-impl FromStr for Keys {
-    type Err = ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        parse(s, &header::Formats::default())
-    }
-}
-
-fn parse(s: &str, formats: &header::Formats) -> Result<Keys, ParseError> {
-    if s.is_empty() {
-        Err(ParseError::Empty)
-    } else {
-        s.split(DELIMITER)
-            .map(
-                |raw_key| match formats.keys().find(|k| k.as_ref() == raw_key) {
-                    Some(k) => Ok(k.clone()),
-                    None => raw_key.parse(),
-                },
-            )
-            .collect::<Result<Vec<_>, _>>()
-            .map_err(ParseError::InvalidKey)
-            .and_then(|keys| Keys::try_from(keys).map_err(ParseError::InvalidFormat))
     }
 }
 
@@ -150,28 +113,6 @@ impl TryFrom<Vec<Key>> for Keys {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_from_str() {
-        assert_eq!(
-            "GT".parse(),
-            Ok(Keys([key::GENOTYPE].into_iter().collect()))
-        );
-        assert_eq!(
-            "GT:GQ".parse(),
-            Ok(Keys(
-                [key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY]
-                    .into_iter()
-                    .collect()
-            ))
-        );
-
-        assert_eq!("".parse::<Keys>(), Err(ParseError::Empty));
-        assert!(matches!(
-            "GQ:GT".parse::<Keys>(),
-            Err(ParseError::InvalidFormat(_))
-        ));
-    }
 
     #[test]
     fn test_try_from_vec_key_for_format() {
