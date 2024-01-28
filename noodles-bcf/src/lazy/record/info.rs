@@ -126,8 +126,8 @@ impl Info {
     /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_info(key::ALLELE_COUNT, Map::<map::Info>::from(&key::ALLELE_COUNT))
-    ///     .add_info(key::TOTAL_DEPTH, Map::<map::Info>::from(&key::TOTAL_DEPTH))
+    ///     .add_info(key::ALLELE_COUNT, Map::<map::Info>::from(key::ALLELE_COUNT))
+    ///     .add_info(key::TOTAL_DEPTH, Map::<map::Info>::from(key::TOTAL_DEPTH))
     ///     .build();
     ///
     /// let string_maps = StringMaps::try_from(&header)?;
@@ -151,12 +151,12 @@ impl Info {
         &self,
         header: &vcf::Header,
         string_string_map: &StringStringMap,
-        key: &vcf::record::info::field::Key,
+        key: &str,
     ) -> Option<io::Result<Option<vcf::record::info::field::Value>>> {
         for result in self.iter(header, string_string_map) {
             match result {
                 Ok((k, v)) => {
-                    if &k == key {
+                    if k == key {
                         return Some(Ok(v));
                     }
                 }
@@ -181,8 +181,8 @@ impl Info {
     /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_info(key::ALLELE_COUNT, Map::<map::Info>::from(&key::ALLELE_COUNT))
-    ///     .add_info(key::TOTAL_DEPTH, Map::<map::Info>::from(&key::TOTAL_DEPTH))
+    ///     .add_info(key::ALLELE_COUNT, Map::<map::Info>::from(key::ALLELE_COUNT))
+    ///     .add_info(key::TOTAL_DEPTH, Map::<map::Info>::from(key::TOTAL_DEPTH))
     ///     .build();
     ///
     /// let string_maps = StringMaps::try_from(&header)?;
@@ -197,12 +197,12 @@ impl Info {
     ///
     /// assert_eq!(
     ///     fields.next().transpose()?,
-    ///     Some((key::ALLELE_COUNT, Some(Value::Integer(5))))
+    ///     Some((String::from(key::ALLELE_COUNT), Some(Value::Integer(5))))
     /// );
     ///
     /// assert_eq!(
     ///     fields.next().transpose()?,
-    ///     Some((key::TOTAL_DEPTH, Some(Value::Integer(8))))
+    ///     Some((String::from(key::TOTAL_DEPTH), Some(Value::Integer(8))))
     /// );
     ///
     /// assert!(fields.next().is_none());
@@ -212,12 +212,8 @@ impl Info {
         &'a self,
         header: &'a vcf::Header,
         string_string_map: &'a StringStringMap,
-    ) -> impl Iterator<
-        Item = io::Result<(
-            vcf::record::info::field::Key,
-            Option<vcf::record::info::field::Value>,
-        )>,
-    > + 'a {
+    ) -> impl Iterator<Item = io::Result<(String, Option<vcf::record::info::field::Value>)>> + 'a
+    {
         use crate::record::codec::decoder::info::read_field;
 
         let mut reader = &self.buf[..];
@@ -242,8 +238,8 @@ impl Info {
     /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_info(key::ALLELE_COUNT, Map::<map::Info>::from(&key::ALLELE_COUNT))
-    ///     .add_info(key::TOTAL_DEPTH, Map::<map::Info>::from(&key::TOTAL_DEPTH))
+    ///     .add_info(key::ALLELE_COUNT, Map::<map::Info>::from(key::ALLELE_COUNT))
+    ///     .add_info(key::TOTAL_DEPTH, Map::<map::Info>::from(key::TOTAL_DEPTH))
     ///     .build();
     ///
     /// let string_maps = StringMaps::try_from(&header)?;

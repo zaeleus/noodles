@@ -35,7 +35,7 @@ where
 fn write_info_field<W>(
     writer: &mut W,
     string_string_map: &StringStringMap,
-    key: &vcf::record::info::field::Key,
+    key: &str,
     value: Option<&vcf::record::info::field::Value>,
 ) -> io::Result<()>
 where
@@ -49,13 +49,13 @@ where
 fn write_info_field_key<W>(
     writer: &mut W,
     string_string_map: &StringStringMap,
-    key: &vcf::record::info::field::Key,
+    key: &str,
 ) -> io::Result<()>
 where
     W: Write,
 {
     string_string_map
-        .get_index_of(key.as_ref())
+        .get_index_of(key)
         .ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,

@@ -26,7 +26,7 @@ pub enum ParseError {
         expected: (Number, crate::header::record::value::map::format::Type),
     },
     InfoDefinitionMismatch {
-        id: crate::record::info::field::Key,
+        id: String,
         actual: (Number, crate::header::record::value::map::info::Type),
         expected: (Number, crate::header::record::value::map::info::Type),
     },
@@ -227,7 +227,7 @@ fn validate_format_definition(
 
 fn validate_info_definition(
     file_format: FileFormat,
-    id: &crate::record::info::field::Key,
+    id: &str,
     actual_number: Number,
     actual_type: crate::header::record::value::map::info::Type,
 ) -> Result<(), ParseError> {
@@ -236,7 +236,7 @@ fn validate_info_definition(
     if let Some((expected_number, expected_type, _)) = definition(file_format, id) {
         if actual_number != expected_number || actual_type != expected_type {
             return Err(ParseError::InfoDefinitionMismatch {
-                id: id.clone(),
+                id: id.into(),
                 actual: (actual_number, actual_type),
                 expected: (expected_number, expected_type),
             });

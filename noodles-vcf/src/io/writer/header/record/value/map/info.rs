@@ -24,7 +24,7 @@ mod tests {
         let mut buf = Vec::new();
 
         buf.clear();
-        let map = Map::<Info>::from(&key::SAMPLES_WITH_DATA_COUNT);
+        let map = Map::<Info>::from(key::SAMPLES_WITH_DATA_COUNT);
         write_info(&mut buf, &map)?;
         assert_eq!(
             buf,
@@ -32,7 +32,7 @@ mod tests {
         );
 
         buf.clear();
-        let mut map = Map::<Info>::from(&key::SAMPLES_WITH_DATA_COUNT);
+        let mut map = Map::<Info>::from(key::SAMPLES_WITH_DATA_COUNT);
         map.other_fields_mut()
             .insert("noodles".parse()?, String::from("vcf"));
         write_info(&mut buf, &map)?;

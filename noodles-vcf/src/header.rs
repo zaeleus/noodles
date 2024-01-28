@@ -21,7 +21,7 @@ use self::record::value::{
 };
 
 /// VCF header info records.
-pub type Infos = IndexMap<crate::record::info::field::Key, Map<Info>>;
+pub type Infos = IndexMap<String, Map<Info>>;
 
 /// VCF header filter records.
 pub type Filters = IndexMap<String, Map<Filter>>;
@@ -118,7 +118,7 @@ impl Header {
     /// };
     ///
     /// let id = key::SAMPLES_WITH_DATA_COUNT;
-    /// let info = Map::<Info>::from(&id);
+    /// let info = Map::<Info>::from(id);
     ///
     /// let header = vcf::Header::builder()
     ///     .add_info(id, info.clone())
@@ -146,8 +146,8 @@ impl Header {
     /// let mut header = vcf::Header::default();
     ///
     /// let id = key::SAMPLES_WITH_DATA_COUNT;
-    /// let info = Map::<Info>::from(&id);
-    /// header.infos_mut().insert(id, info.clone());
+    /// let info = Map::<Info>::from(id);
+    /// header.infos_mut().insert(id.into(), info.clone());
     ///
     /// let infos = header.infos();
     /// assert_eq!(infos.len(), 1);

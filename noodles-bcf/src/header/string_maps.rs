@@ -45,7 +45,7 @@ impl StringMaps {
     /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_info(info::field::key::TOTAL_DEPTH, Map::<Info>::from(&info::field::key::TOTAL_DEPTH))
+    ///     .add_info(info::field::key::TOTAL_DEPTH, Map::<Info>::from(info::field::key::TOTAL_DEPTH))
     ///     .add_filter("q10", Map::<Filter>::new("Quality below 10"))
     ///     .add_format(genotypes::keys::key::READ_DEPTH, Map::<Format>::from(&genotypes::keys::key::READ_DEPTH))
     ///     .add_contig("sq0", Map::<Contig>::new())
@@ -81,7 +81,7 @@ impl StringMaps {
     /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_info(info::field::key::TOTAL_DEPTH, Map::<Info>::from(&info::field::key::TOTAL_DEPTH))
+    ///     .add_info(info::field::key::TOTAL_DEPTH, Map::<Info>::from(info::field::key::TOTAL_DEPTH))
     ///     .add_filter("q10", Map::<Filter>::new("Quality below 10"))
     ///     .add_format(genotypes::keys::key::READ_DEPTH, Map::<Format>::from(&genotypes::keys::key::READ_DEPTH))
     ///     .add_contig("sq0", Map::<Contig>::new())
@@ -107,7 +107,7 @@ impl StringMaps {
             Entry::Contig(id, contig) => insert(self.contigs_mut(), id, contig.idx()),
             Entry::Filter(id, filter) => insert(self.strings_mut(), id, filter.idx()),
             Entry::Format(id, format) => insert(self.strings_mut(), id.as_ref(), format.idx()),
-            Entry::Info(id, info) => insert(self.strings_mut(), id.as_ref(), info.idx()),
+            Entry::Info(id, info) => insert(self.strings_mut(), id, info.idx()),
             _ => Ok(()),
         }
     }
@@ -417,11 +417,11 @@ mod tests {
             .add_contig("sq2", Map::<Contig>::new())
             .add_info(
                 info::field::key::SAMPLES_WITH_DATA_COUNT,
-                Map::<Info>::from(&info::field::key::SAMPLES_WITH_DATA_COUNT),
+                Map::<Info>::from(info::field::key::SAMPLES_WITH_DATA_COUNT),
             )
             .add_info(
                 info::field::key::TOTAL_DEPTH,
-                Map::<Info>::from(&info::field::key::TOTAL_DEPTH),
+                Map::<Info>::from(info::field::key::TOTAL_DEPTH),
             )
             .add_filter("PASS", Map::<Filter>::pass())
             .add_filter("q10", Map::<Filter>::new("Quality below 10"))
@@ -494,7 +494,7 @@ mod tests {
         };
 
         let ns = {
-            let mut map = Map::<Info>::from(&info::field::key::SAMPLES_WITH_DATA_COUNT);
+            let mut map = Map::<Info>::from(info::field::key::SAMPLES_WITH_DATA_COUNT);
             *map.idx_mut() = Some(1);
             map
         };

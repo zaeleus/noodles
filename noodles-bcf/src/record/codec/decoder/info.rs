@@ -31,7 +31,7 @@ pub fn read_info(
 #[derive(Debug, Eq, PartialEq)]
 pub enum DecodeError {
     InvalidField(field::DecodeError),
-    DuplicateKey(vcf::record::info::field::Key),
+    DuplicateKey(String),
 }
 
 impl error::Error for DecodeError {

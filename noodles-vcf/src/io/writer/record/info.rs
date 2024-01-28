@@ -21,7 +21,7 @@ where
                 writer.write_all(DELIMITER)?;
             }
 
-            writer.write_all(key.as_ref().as_bytes())?;
+            writer.write_all(key.as_bytes())?;
 
             match value {
                 Some(Value::Flag) => {}
@@ -135,14 +135,20 @@ mod tests {
         let info = Info::default();
         t(&mut buf, &info, b".")?;
 
-        let info = [(key::SAMPLES_WITH_DATA_COUNT, Some(Value::from(2)))]
-            .into_iter()
-            .collect();
+        let info = [(
+            String::from(key::SAMPLES_WITH_DATA_COUNT),
+            Some(Value::from(2)),
+        )]
+        .into_iter()
+        .collect();
         t(&mut buf, &info, b"NS=2")?;
 
         let info = [
-            (key::SAMPLES_WITH_DATA_COUNT, Some(Value::from(2))),
-            (key::IS_IN_DB_SNP, Some(Value::Flag)),
+            (
+                String::from(key::SAMPLES_WITH_DATA_COUNT),
+                Some(Value::from(2)),
+            ),
+            (String::from(key::IS_IN_DB_SNP), Some(Value::Flag)),
         ]
         .into_iter()
         .collect();

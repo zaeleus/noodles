@@ -4,28 +4,25 @@ use std::{error, fmt};
 
 use self::value::parse_value;
 use crate::{
-    header::record::value::map::info::Type,
+    header::{record::value::map::info::Type, Number},
     io::reader::record::MISSING,
-    record::info::field::{key, Key, Value},
+    record::info::field::Value,
     Header,
 };
 
 /// An error when a raw VCF record info field fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
-    /// A key is invalid.
-    InvalidKey(key::ParseError),
     /// A value is missing.
-    MissingValue(Key),
+    MissingValue(String),
     /// A value is invalid.
-    InvalidValue(Key, value::ParseError),
+    InvalidValue(String, value::ParseError),
 }
 
 impl ParseError {
     /// Returns the key of the field that caused the failure.
-    pub fn key(&self) -> Option<&Key> {
+    pub fn key(&self) -> Option<&str> {
         match self {
-            Self::InvalidKey(_) => None,
             Self::MissingValue(key) => Some(key),
             Self::InvalidValue(key, _) => Some(key),
         }
@@ -35,7 +32,6 @@ impl ParseError {
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
-            Self::InvalidKey(e) => Some(e),
             Self::InvalidValue(_, e) => Some(e),
             _ => None,
         }
@@ -45,14 +41,13 @@ impl error::Error for ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ParseError::InvalidKey(_) => write!(f, "invalid key"),
             ParseError::MissingValue(_) => write!(f, "missing value"),
             ParseError::InvalidValue(..) => write!(f, "invalid value"),
         }
     }
 }
 
-pub(super) fn parse_field(header: &Header, s: &str) -> Result<(Key, Option<Value>), ParseError> {
+pub(super) fn parse_field(header: &Header, s: &str) -> Result<(String, Option<Value>), ParseError> {
     use crate::header::record::value::map::info::definition::definition;
 
     const MAX_COMPONENTS: usize = 2;
@@ -60,50 +55,51 @@ pub(super) fn parse_field(header: &Header, s: &str) -> Result<(Key, Option<Value
 
     let mut components = s.splitn(MAX_COMPONENTS, SEPARATOR);
 
-    let raw_key = components.next().unwrap_or_default();
-    let key = Key::try_from((header.file_format(), raw_key)).map_err(ParseError::InvalidKey)?;
+    let key = components.next().unwrap_or_default();
 
-    let (number, ty) = header
+    let definition = header
         .infos()
-        .get(&key)
+        .get(key)
         .map(|info| (info.number(), info.ty()))
-        .or_else(|| definition(header.file_format(), &key).map(|(n, t, _)| (n, t)))
-        .unwrap_or_default();
+        .or_else(|| definition(header.file_format(), key).map(|(n, t, _)| (n, t)));
 
     let raw_value = components.next();
 
-    let value = if matches!(ty, Type::Flag) {
-        match raw_value.unwrap_or_default() {
-            MISSING => None,
-            t => parse_value(number, ty, t)
-                .map(Some)
-                .map_err(|e| ParseError::InvalidValue(key.clone(), e))?,
-        }
-    } else if matches!(key, Key::Other(_)) {
-        match raw_value {
-            Some(MISSING) => None,
-            Some(t) => parse_value(number, ty, t)
-                .map(Some)
-                .map_err(|e| ParseError::InvalidValue(key.clone(), e))?,
-            None => Some(Value::Flag),
-        }
-    } else if let Some(t) = raw_value {
-        match t {
-            MISSING => None,
-            _ => parse_value(number, ty, t)
-                .map(Some)
-                .map_err(|e| ParseError::InvalidValue(key.clone(), e))?,
+    let value = if let Some((number, ty)) = definition {
+        if matches!(ty, Type::Flag) {
+            match raw_value.unwrap_or_default() {
+                MISSING => None,
+                t => parse_value(number, ty, t)
+                    .map(Some)
+                    .map_err(|e| ParseError::InvalidValue(key.into(), e))?,
+            }
+        } else if let Some(t) = raw_value {
+            match t {
+                MISSING => None,
+                _ => parse_value(number, ty, t)
+                    .map(Some)
+                    .map_err(|e| ParseError::InvalidValue(key.into(), e))?,
+            }
+        } else {
+            return Err(ParseError::MissingValue(key.into()));
         }
     } else {
-        return Err(ParseError::MissingValue(key));
+        match raw_value {
+            Some(MISSING) => None,
+            Some(t) => parse_value(Number::Count(1), Type::String, t)
+                .map(Some)
+                .map_err(|e| ParseError::InvalidValue(key.into(), e))?,
+            None => Some(Value::Flag),
+        }
     };
 
-    Ok((key, value))
+    Ok((key.into(), value))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::record::info::field::key;
 
     #[test]
     fn test_parse_field() {
@@ -111,22 +107,20 @@ mod tests {
 
         assert_eq!(
             parse_field(&header, "NS=2"),
-            Ok((key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(2))))
+            Ok((
+                String::from(key::SAMPLES_WITH_DATA_COUNT),
+                Some(Value::Integer(2))
+            ))
         );
 
         assert!(matches!(
-            parse_field(&header, "."),
-            Err(ParseError::InvalidKey(_))
-        ));
-
-        assert!(matches!(
             parse_field(&header, "NS="),
-            Err(ParseError::InvalidValue(key::SAMPLES_WITH_DATA_COUNT, _))
+            Err(ParseError::InvalidValue(s, _)) if s == key::SAMPLES_WITH_DATA_COUNT
         ));
 
         assert!(matches!(
             parse_field(&header, "NS=ndls"),
-            Err(ParseError::InvalidValue(key::SAMPLES_WITH_DATA_COUNT, _))
+            Err(ParseError::InvalidValue(s, _)) if s == key::SAMPLES_WITH_DATA_COUNT
         ));
     }
 }
