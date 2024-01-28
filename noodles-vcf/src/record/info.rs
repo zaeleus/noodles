@@ -2,11 +2,9 @@
 
 pub mod field;
 
-use std::{fmt, hash::Hash};
+use std::hash::Hash;
 
 use indexmap::IndexMap;
-
-const DELIMITER: char = ';';
 
 /// VCF record information fields (`INFO`).
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -235,26 +233,6 @@ impl AsMut<IndexMap<String, Option<field::Value>>> for Info {
     }
 }
 
-impl fmt::Display for Info {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for (i, (key, value)) in self.0.iter().enumerate() {
-            if i > 0 {
-                write!(f, "{DELIMITER}")?;
-            }
-
-            key.fmt(f)?;
-
-            match value {
-                None => f.write_str("=.")?,
-                Some(field::Value::Flag) => {}
-                Some(v) => write!(f, "={v}")?,
-            }
-        }
-
-        Ok(())
-    }
-}
-
 impl Extend<(String, Option<field::Value>)> for Info {
     fn extend<T: IntoIterator<Item = (String, Option<field::Value>)>>(&mut self, iter: T) {
         self.0.extend(iter);
@@ -272,34 +250,6 @@ impl FromIterator<(String, Option<field::Value>)> for Info {
 #[cfg(test)]
 mod tests {
     use super::{field::key, *};
-
-    #[test]
-    fn test_fmt() {
-        let info = Info::default();
-        assert!(info.to_string().is_empty());
-
-        let info: Info = [(
-            String::from(key::SAMPLES_WITH_DATA_COUNT),
-            Some(field::Value::from(2)),
-        )]
-        .into_iter()
-        .collect();
-        assert_eq!(info.to_string(), "NS=2");
-
-        let info: Info = [
-            (
-                String::from(key::SAMPLES_WITH_DATA_COUNT),
-                Some(field::Value::from(2)),
-            ),
-            (
-                String::from(key::ALLELE_FREQUENCIES),
-                Some(field::Value::from(vec![Some(0.333), Some(0.667)])),
-            ),
-        ]
-        .into_iter()
-        .collect();
-        assert_eq!(info.to_string(), "NS=2;AF=0.333,0.667");
-    }
 
     #[test]
     fn test_extend() {
