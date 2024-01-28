@@ -11,7 +11,7 @@ pub enum Entry<'a> {
     /// A `fileformat` entry.
     FileFormat(FileFormat),
     /// An `INFO` entry.
-    Info(&'a crate::record::info::field::Key, &'a Map<Info>),
+    Info(&'a str, &'a Map<Info>),
     /// A `FILTER` entry.
     Filter(&'a str, &'a Map<Filter>),
     /// A `FORMAT` entry.

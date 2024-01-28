@@ -83,17 +83,17 @@ mod tests {
             .try_into_vcf_record_info(&header, string_maps.strings())?;
 
         let expected = [
-            ("HM3".parse()?, Some(InfoFieldValue::Flag)),
+            (String::from("HM3"), Some(InfoFieldValue::Flag)),
             (
-                info::field::key::ALLELE_COUNT,
+                String::from(info::field::key::ALLELE_COUNT),
                 Some(InfoFieldValue::from(3)),
             ),
             (
-                info::field::key::TOTAL_ALLELE_COUNT,
+                String::from(info::field::key::TOTAL_ALLELE_COUNT),
                 Some(InfoFieldValue::from(6)),
             ),
             (
-                info::field::key::ANCESTRAL_ALLELE,
+                String::from(info::field::key::ANCESTRAL_ALLELE),
                 Some(InfoFieldValue::from("C")),
             ),
         ]

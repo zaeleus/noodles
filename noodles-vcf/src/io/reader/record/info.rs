@@ -3,10 +3,7 @@ mod field;
 use std::{error, fmt};
 
 use self::field::parse_field;
-use crate::{
-    record::{info::field::Key, Info},
-    Header,
-};
+use crate::{record::Info, Header};
 
 /// An error when raw VCF record info fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -16,7 +13,7 @@ pub enum ParseError {
     /// A field is invalid.
     InvalidField(field::ParseError),
     /// A key is duplicated.
-    DuplicateKey(Key),
+    DuplicateKey(String),
 }
 
 impl error::Error for ParseError {
@@ -85,16 +82,22 @@ mod tests {
 
         info.clear();
         parse_info(&header, "NS=2", &mut info)?;
-        let expected = [(key::SAMPLES_WITH_DATA_COUNT, Some(Value::from(2)))]
-            .into_iter()
-            .collect();
+        let expected = [(
+            String::from(key::SAMPLES_WITH_DATA_COUNT),
+            Some(Value::from(2)),
+        )]
+        .into_iter()
+        .collect();
         assert_eq!(info, expected);
 
         info.clear();
         parse_info(&header, "NS=2;AA=T", &mut info)?;
         let expected = [
-            (key::SAMPLES_WITH_DATA_COUNT, Some(Value::from(2))),
-            (key::ANCESTRAL_ALLELE, Some(Value::from("T"))),
+            (
+                String::from(key::SAMPLES_WITH_DATA_COUNT),
+                Some(Value::from(2)),
+            ),
+            (String::from(key::ANCESTRAL_ALLELE), Some(Value::from("T"))),
         ]
         .into_iter()
         .collect();
@@ -104,7 +107,9 @@ mod tests {
 
         assert_eq!(
             parse_info(&header, "NS=2;NS=2", &mut info),
-            Err(ParseError::DuplicateKey(key::SAMPLES_WITH_DATA_COUNT))
+            Err(ParseError::DuplicateKey(String::from(
+                key::SAMPLES_WITH_DATA_COUNT
+            )))
         );
 
         Ok(())

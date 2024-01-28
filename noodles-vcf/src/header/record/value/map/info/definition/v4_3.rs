@@ -1,175 +1,173 @@
 use crate::{
     header::{record::value::map::info::Type, Number},
-    record::info::field::key::Standard,
+    record::info::field::key,
 };
 
-pub(super) fn definition(key: Standard) -> Option<(Number, Type, &'static str)> {
+pub(super) fn definition(key: &str) -> Option<(Number, Type, &'static str)> {
     match key {
-        Standard::AncestralAllele => Some((Number::Count(1), Type::String, "Ancestral allele")),
-        Standard::AlleleCount => Some((
+        key::ANCESTRAL_ALLELE => Some((Number::Count(1), Type::String, "Ancestral allele")),
+        key::ALLELE_COUNT => Some((
             Number::A,
             Type::Integer,
             "Allele count in genotypes, for each ALT allele, in the same order as listed",
         )),
-        Standard::TotalReadDepths => {
+        key::TOTAL_READ_DEPTHS => {
             Some((Number::R, Type::Integer, "Total read depth for each allele"))
         }
-        Standard::ForwardStrandReadDepths => Some((
+        key::FORWARD_STRAND_READ_DEPTHS => Some((
             Number::R,
             Type::Integer,
             "Read depth for each allele on the forward strand",
         )),
-        Standard::ReverseStrandReadDepths => Some((
+        key::REVERSE_STRAND_READ_DEPTHS => Some((
             Number::R,
             Type::Integer,
             "Read depth for each allele on the reverse strand",
         )),
-        Standard::AlleleFrequencies => Some((
+        key::ALLELE_FREQUENCIES => Some((
             Number::A,
             Type::Float,
             "Allele frequency for each ALT allele in the same order as listed",
         )),
-        Standard::TotalAlleleCount => Some((
+        key::TOTAL_ALLELE_COUNT => Some((
             Number::Count(1),
             Type::Integer,
             "Total number of alleles in called genotypes",
         )),
-        Standard::BaseQuality => Some((Number::Count(1), Type::Float, "RMS base quality")),
-        Standard::Cigar => Some((
+        key::BASE_QUALITY => Some((Number::Count(1), Type::Float, "RMS base quality")),
+        key::CIGAR => Some((
             Number::A,
             Type::String,
             "Cigar string describing how to align an alternate allele to the reference allele",
         )),
-        Standard::IsInDbSnp => Some((Number::Count(0), Type::Flag, "dbSNP membership")),
-        Standard::TotalDepth => Some((
+        key::IS_IN_DB_SNP => Some((Number::Count(0), Type::Flag, "dbSNP membership")),
+        key::TOTAL_DEPTH => Some((
             Number::Count(1),
             Type::Integer,
             "Combined depth across samples",
         )),
-        Standard::IsInHapMap2 => Some((Number::Count(0), Type::Flag, "HapMap2 membership")),
-        Standard::IsInHapMap3 => Some((Number::Count(0), Type::Flag, "HapMap3 membership")),
-        Standard::MappingQuality => Some((Number::Count(1), Type::Float, "RMS mapping quality")),
-        Standard::ZeroMappingQualityCount => {
+        key::IS_IN_HAP_MAP_2 => Some((Number::Count(0), Type::Flag, "HapMap2 membership")),
+        key::IS_IN_HAP_MAP_3 => Some((Number::Count(0), Type::Flag, "HapMap3 membership")),
+        key::MAPPING_QUALITY => Some((Number::Count(1), Type::Float, "RMS mapping quality")),
+        key::ZERO_MAPPING_QUALITY_COUNT => {
             Some((Number::Count(1), Type::Integer, "Number of MAPQ == 0 reads"))
         }
-        Standard::SamplesWithDataCount => Some((
+        key::SAMPLES_WITH_DATA_COUNT => Some((
             Number::Count(1),
             Type::Integer,
             "Number of samples with data",
         )),
-        Standard::StrandBias => Some((Number::Count(4), Type::Integer, "Strand bias")),
-        Standard::IsSomaticMutation => Some((Number::Count(0), Type::Flag, "Somatic mutation")),
-        Standard::IsValidated => Some((
+        key::STRAND_BIAS => Some((Number::Count(4), Type::Integer, "Strand bias")),
+        key::IS_SOMATIC_MUTATION => Some((Number::Count(0), Type::Flag, "Somatic mutation")),
+        key::IS_VALIDATED => Some((
             Number::Count(0),
             Type::Flag,
             "Validated by follow-up experiment",
         )),
-        Standard::IsIn1000Genomes => {
-            Some((Number::Count(0), Type::Flag, "1000 Genomes membership"))
-        }
+        key::IS_IN_1000_GENOMES => Some((Number::Count(0), Type::Flag, "1000 Genomes membership")),
 
-        Standard::IsImprecise => Some((
+        key::IS_IMPRECISE => Some((
             Number::Count(0),
             Type::Flag,
             "Imprecise structural variation",
         )),
-        Standard::IsNovel => Some((
+        key::IS_NOVEL => Some((
             Number::Count(0),
             Type::Flag,
             "Indicates a novel structural variation",
         )),
-        Standard::EndPosition => Some((
+        key::END_POSITION => Some((
             Number::Count(1),
             Type::Integer,
             "End position of the variant described in this record",
         )),
-        Standard::SvType => Some((Number::Count(1), Type::String, "Type of structural variant")),
-        Standard::SvLengths => Some((
+        key::SV_TYPE => Some((Number::Count(1), Type::String, "Type of structural variant")),
+        key::SV_LENGTHS => Some((
             Number::Unknown,
             Type::Integer,
             "Difference in length between REF and ALT alleles",
         )),
-        Standard::PositionConfidenceIntervals => Some((
+        key::POSITION_CONFIDENCE_INTERVALS => Some((
             Number::Count(2),
             Type::Integer,
             "Confidence interval around POS for imprecise variants",
         )),
-        Standard::EndConfidenceIntervals => Some((
+        key::END_CONFIDENCE_INTERVALS => Some((
             Number::Count(2),
             Type::Integer,
             "Confidence interval around END for imprecise variants",
         )),
-        Standard::MicrohomologyLengths => Some((
+        key::MICROHOMOLOGY_LENGTHS => Some((
             Number::Unknown,
             Type::Integer,
             "Length of base pair identical micro-homology at event breakpoints",
         )),
-        Standard::MicrohomologySequences => Some((
+        key::MICROHOMOLOGY_SEQUENCES => Some((
             Number::Unknown,
             Type::String,
             "Sequence of base pair identical micro-homology at event breakpoints",
         )),
-        Standard::BreakpointIds => Some((
+        key::BREAKPOINT_IDS => Some((
             Number::Unknown,
             Type::String,
             "ID of the assembled alternate allele in the assembly file",
         )),
-        Standard::MobileElementInfo => Some((
+        key::MOBILE_ELEMENT_INFO => Some((
             Number::Count(4),
             Type::String,
             "Mobile element info of the form NAME,START,END,POLARITY",
         )),
-        Standard::MobileElementTransductionInfo => Some((
+        key::MOBILE_ELEMENT_TRANSDUCTION_INFO => Some((
             Number::Count(4),
             Type::String,
             "Mobile element transduction info of the form CHR,START,END,POLARITY",
         )),
-        Standard::DbvId => Some((
+        key::DBV_ID => Some((
             Number::Count(1),
             Type::String,
             "ID of this element in Database of Genomic Variation",
         )),
-        Standard::DbVarId => Some((
+        key::DB_VAR_ID => Some((
             Number::Count(1),
             Type::String,
             "ID of this element in DBVAR",
         )),
-        Standard::DbRipId => Some((
+        key::DB_RIP_ID => Some((
             Number::Count(1),
             Type::String,
             "ID of this element in DBRIP",
         )),
-        Standard::MateBreakendIds => Some((Number::Unknown, Type::String, "ID of mate breakends")),
-        Standard::PartnerBreakendId => {
+        key::MATE_BREAKEND_IDS => Some((Number::Unknown, Type::String, "ID of mate breakends")),
+        key::PARTNER_BREAKEND_ID => {
             Some((Number::Count(1), Type::String, "ID of partner breakend"))
         }
-        Standard::BreakendEventId => Some((
+        key::BREAKEND_EVENT_ID => Some((
             Number::Count(1),
             Type::String,
             "ID of event associated to breakend",
         )),
-        Standard::BreakendConfidenceIntervals => Some((
+        key::BREAKEND_CONFIDENCE_INTERVALS => Some((
             Number::Count(2),
             Type::Integer,
             "Confidence interval around the inserted material between breakends",
         )),
-        Standard::AdjacentReadDepths => {
+        key::ADJACENT_READ_DEPTHS => {
             Some((Number::Unknown, Type::Integer, "Read Depth of adjacency"))
         }
-        Standard::BreakendCopyNumber => Some((
+        key::BREAKEND_COPY_NUMBER => Some((
             Number::Count(1),
             Type::Integer,
             "Copy number of segment containing breakend",
         )),
-        Standard::AdjacentCopyNumber => {
+        key::ADJACENT_COPY_NUMBER => {
             Some((Number::Unknown, Type::Integer, "Copy number of adjacency"))
         }
-        Standard::CopyNumberConfidenceIntervals => Some((
+        key::COPY_NUMBER_CONFIDENCE_INTERVALS => Some((
             Number::Count(2),
             Type::Integer,
             "Confidence interval around copy number for the segment",
         )),
-        Standard::AdjacentCopyNumberConfidenceIntervals => Some((
+        key::ADJACENT_COPY_NUMBER_CONFIDENCE_INTERVALS => Some((
             Number::Unknown,
             Type::Integer,
             "Confidence interval around copy number for the adjacency",

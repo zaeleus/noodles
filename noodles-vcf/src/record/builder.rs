@@ -219,9 +219,11 @@ impl Builder {
     ///     .build()?;
     ///
     /// let expected = [
-    ///     (key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(3))),
-    ///     (key::ALLELE_FREQUENCIES, Some(Value::from(vec![Some(0.5)]))),
-    /// ].into_iter().collect();
+    ///     (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(3))),
+    ///     (String::from(key::ALLELE_FREQUENCIES), Some(Value::from(vec![Some(0.5)]))),
+    /// ]
+    /// .into_iter()
+    /// .collect();
     ///
     /// assert_eq!(record.info(), &expected);
     /// # Ok::<(), Box<dyn std::error::Error>>(())

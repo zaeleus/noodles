@@ -140,7 +140,7 @@ pub enum ParseError {
     /// A record is invalid.
     InvalidRecord(record::ParseError),
     /// An info ID is duplicated.
-    DuplicateInfoId(crate::record::info::field::Key),
+    DuplicateInfoId(String),
     /// A filter ID is duplicated.
     DuplicateFilterId(String),
     /// A format ID is duplicated.
@@ -222,7 +222,7 @@ fn parse_file_format(src: &[u8]) -> Result<FileFormat, ParseError> {
 
 fn try_insert_info(
     infos: &mut Infos,
-    id: crate::record::info::field::Key,
+    id: String,
     info: Map<Info>,
 ) -> Result<Entry<'_>, ParseError> {
     use indexmap::map::Entry;
@@ -449,7 +449,7 @@ mod tests {
             .add_contig("sq2", Map::<Contig>::builder().set_length(21).build()?)
             .add_info(
                 info::field::key::SAMPLES_WITH_DATA_COUNT,
-                Map::<Info>::from(&info::field::key::SAMPLES_WITH_DATA_COUNT),
+                Map::<Info>::from(info::field::key::SAMPLES_WITH_DATA_COUNT),
             )
             .add_filter("q10", Map::<Filter>::new("Quality below 10"))
             .add_format(

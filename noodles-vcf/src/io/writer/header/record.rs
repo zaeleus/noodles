@@ -45,11 +45,7 @@ where
     })
 }
 
-pub(super) fn write_info<W>(
-    writer: &mut W,
-    id: &crate::record::info::field::Key,
-    info: &Map<Info>,
-) -> io::Result<()>
+pub(super) fn write_info<W>(writer: &mut W, id: &str, info: &Map<Info>) -> io::Result<()>
 where
     W: Write,
 {

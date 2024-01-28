@@ -27,7 +27,7 @@ pub enum Record {
     /// A `FORMAT` record.
     Format(crate::record::genotypes::keys::Key, Map<Format>),
     /// An `INFO` record.
-    Info(crate::record::info::field::Key, Map<Info>),
+    Info(String, Map<Info>),
     /// A nonstadard record.
     Other(key::Other, Value),
 }

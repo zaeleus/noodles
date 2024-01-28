@@ -56,7 +56,7 @@ impl Builder {
     /// };
     ///
     /// let id = key::SAMPLES_WITH_DATA_COUNT;
-    /// let info = Map::<Info>::from(&id);
+    /// let info = Map::<Info>::from(id);
     ///
     /// let header = vcf::Header::builder()
     ///     .add_info(id, info.clone())
@@ -66,8 +66,11 @@ impl Builder {
     /// assert_eq!(infos.len(), 1);
     /// assert_eq!(&infos[0], &info);
     /// ```
-    pub fn add_info(mut self, id: crate::record::info::field::Key, info: Map<Info>) -> Self {
-        self.infos.insert(id, info);
+    pub fn add_info<I>(mut self, id: I, info: Map<Info>) -> Self
+    where
+        I: Into<String>,
+    {
+        self.infos.insert(id.into(), info);
         self
     }
 
@@ -331,7 +334,7 @@ mod tests {
             .set_file_format(FileFormat::new(4, 3))
             .add_info(
                 info_key::SAMPLES_WITH_DATA_COUNT,
-                Map::<Info>::from(&info_key::SAMPLES_WITH_DATA_COUNT),
+                Map::<Info>::from(info_key::SAMPLES_WITH_DATA_COUNT),
             )
             .add_filter("q10", Map::<Filter>::new("Quality below 10"))
             .add_format(

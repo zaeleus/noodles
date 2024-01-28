@@ -6,14 +6,13 @@ use std::{error, fmt, hash::Hash, str::FromStr};
 
 use indexmap::IndexMap;
 
-use self::field::Key;
 use crate::header;
 
 const DELIMITER: char = ';';
 
 /// VCF record information fields (`INFO`).
 #[derive(Clone, Debug, Default, PartialEq)]
-pub struct Info(IndexMap<Key, Option<field::Value>>);
+pub struct Info(IndexMap<String, Option<field::Value>>);
 
 impl Info {
     /// Parses raw VCF record info.
@@ -56,8 +55,8 @@ impl Info {
     /// ```
     /// use noodles_vcf::record::{info::field::{key, Value}, Info};
     ///
-    /// let ns = (key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(2)));
-    /// let dp = (key::TOTAL_DEPTH, Some(Value::Integer(13)));
+    /// let ns = (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(2)));
+    /// let dp = (String::from(key::TOTAL_DEPTH), Some(Value::Integer(13)));
     /// let mut info: Info = [ns, dp].into_iter().collect();
     /// assert!(!info.is_empty());
     ///
@@ -75,16 +74,16 @@ impl Info {
     /// ```
     /// use noodles_vcf::record::{info::field::{key, Value}, Info};
     ///
-    /// let ns = (key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(2)));
-    /// let dp = (key::TOTAL_DEPTH, Some(Value::Integer(13)));
+    /// let ns = (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(2)));
+    /// let dp = (String::from(key::TOTAL_DEPTH), Some(Value::Integer(13)));
     /// let info: Info = [ns, dp.clone()].into_iter().collect();
     ///
-    /// assert_eq!(info.get(&key::TOTAL_DEPTH), Some(Some(&Value::Integer(13))));
-    /// assert!(info.get(&key::ALLELE_FREQUENCIES).is_none());
+    /// assert_eq!(info.get(key::TOTAL_DEPTH), Some(Some(&Value::Integer(13))));
+    /// assert!(info.get(key::ALLELE_FREQUENCIES).is_none());
     /// ```
     pub fn get<K>(&self, key: &K) -> Option<Option<&field::Value>>
     where
-        K: Hash + indexmap::Equivalent<Key>,
+        K: Hash + indexmap::Equivalent<String> + ?Sized,
     {
         self.0.get(key).map(|value| value.as_ref())
     }
@@ -96,19 +95,19 @@ impl Info {
     /// ```
     /// use noodles_vcf::record::{info::field::{key, Value}, Info};
     ///
-    /// let ns = (key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(2)));
-    /// let dp = (key::TOTAL_DEPTH, Some(Value::Integer(13)));
+    /// let ns = (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(2)));
+    /// let dp = (String::from(key::TOTAL_DEPTH), Some(Value::Integer(13)));
     /// let mut info: Info = [ns, dp].into_iter().collect();
     ///
-    /// if let Some(value) = info.get_mut(&key::TOTAL_DEPTH) {
+    /// if let Some(value) = info.get_mut(key::TOTAL_DEPTH) {
     ///     *value = Some(Value::Integer(8));
     /// }
     ///
-    /// assert_eq!(info.get(&key::TOTAL_DEPTH), Some(Some(&Value::Integer(8))));
+    /// assert_eq!(info.get(key::TOTAL_DEPTH), Some(Some(&Value::Integer(8))));
     /// ```
     pub fn get_mut<K>(&mut self, key: &K) -> Option<&mut Option<field::Value>>
     where
-        K: Hash + indexmap::Equivalent<Key>,
+        K: Hash + indexmap::Equivalent<String> + ?Sized,
     {
         self.0.get_mut(key)
     }
@@ -120,18 +119,18 @@ impl Info {
     /// ```
     /// use noodles_vcf::record::{info::field::{key, Value}, Info};
     ///
-    /// let ns = (key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(2)));
-    /// let dp = (key::TOTAL_DEPTH, Some(Value::Integer(13)));
+    /// let ns = (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(2)));
+    /// let dp = (String::from(key::TOTAL_DEPTH), Some(Value::Integer(13)));
     /// let info: Info = [ns, dp].into_iter().collect();
     ///
     /// assert_eq!(
     ///     info.get_index(1),
-    ///     Some((&key::TOTAL_DEPTH, Some(&Value::Integer(13))))
+    ///     Some((&String::from(key::TOTAL_DEPTH), Some(&Value::Integer(13))))
     /// );
     ///
     /// assert!(info.get_index(5).is_none());
     /// ```
-    pub fn get_index(&self, i: usize) -> Option<(&Key, Option<&field::Value>)> {
+    pub fn get_index(&self, i: usize) -> Option<(&String, Option<&field::Value>)> {
         self.0
             .get_index(i)
             .map(|(key, value)| (key, value.as_ref()))
@@ -144,8 +143,8 @@ impl Info {
     /// ```
     /// use noodles_vcf::record::{info::field::{key, Value}, Info};
     ///
-    /// let ns = (key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(2)));
-    /// let dp = (key::TOTAL_DEPTH, Some(Value::Integer(13)));
+    /// let ns = (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(2)));
+    /// let dp = (String::from(key::TOTAL_DEPTH), Some(Value::Integer(13)));
     /// let mut info: Info = [ns, dp].into_iter().collect();
     ///
     /// if let Some((_, value)) = info.get_index_mut(1) {
@@ -154,10 +153,10 @@ impl Info {
     ///
     /// assert_eq!(
     ///     info.get_index(1),
-    ///     Some((&key::TOTAL_DEPTH, Some(&Value::Integer(8))))
+    ///     Some((&String::from(key::TOTAL_DEPTH), Some(&Value::Integer(8))))
     /// );
     /// ```
-    pub fn get_index_mut(&mut self, i: usize) -> Option<(&Key, &mut Option<field::Value>)> {
+    pub fn get_index_mut(&mut self, i: usize) -> Option<(&String, &mut Option<field::Value>)> {
         self.0.get_index_mut(i)
     }
 
@@ -171,18 +170,18 @@ impl Info {
     /// ```
     /// use noodles_vcf::record::{info::field::{key, Value}, Info};
     ///
-    /// let ns = (key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(2)));
+    /// let ns = (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(2)));
     /// let mut info: Info = [ns].into_iter().collect();
     /// assert_eq!(info.len(), 1);
     ///
-    /// info.insert(key::TOTAL_DEPTH, Some(Value::Integer(13)));
+    /// info.insert(String::from(key::TOTAL_DEPTH), Some(Value::Integer(13)));
     ///
     /// assert_eq!(info.len(), 2);
-    /// assert_eq!(info.get(&key::TOTAL_DEPTH), Some(Some(&Value::Integer(13))));
+    /// assert_eq!(info.get(key::TOTAL_DEPTH), Some(Some(&Value::Integer(13))));
     /// ```
     pub fn insert(
         &mut self,
-        key: Key,
+        key: String,
         value: Option<field::Value>,
     ) -> Option<Option<field::Value>> {
         self.0.insert(key, value)
@@ -195,17 +194,17 @@ impl Info {
     /// ```
     /// use noodles_vcf::record::{info::field::{key, Value}, Info};
     ///
-    /// let ns = (key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(2)));
-    /// let dp = (key::TOTAL_DEPTH, Some(Value::Integer(13)));
+    /// let ns = (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(2)));
+    /// let dp = (String::from(key::TOTAL_DEPTH), Some(Value::Integer(13)));
     /// let info: Info = [ns, dp].into_iter().collect();
     ///
     /// let mut keys = info.keys();
     ///
-    /// assert_eq!(keys.next(), Some(&key::SAMPLES_WITH_DATA_COUNT));
-    /// assert_eq!(keys.next(), Some(&key::TOTAL_DEPTH));
+    /// assert_eq!(keys.next(), Some(&String::from(key::SAMPLES_WITH_DATA_COUNT)));
+    /// assert_eq!(keys.next(), Some(&String::from(key::TOTAL_DEPTH)));
     /// assert!(keys.next().is_none());
     /// ```
-    pub fn keys(&self) -> impl Iterator<Item = &Key> {
+    pub fn keys(&self) -> impl Iterator<Item = &String> {
         self.0.keys()
     }
 
@@ -216,8 +215,8 @@ impl Info {
     /// ```
     /// use noodles_vcf::record::{info::field::{key, Value}, Info};
     ///
-    /// let ns = (key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(2)));
-    /// let dp = (key::TOTAL_DEPTH, Some(Value::Integer(13)));
+    /// let ns = (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(2)));
+    /// let dp = (String::from(key::TOTAL_DEPTH), Some(Value::Integer(13)));
     /// let info: Info = [ns, dp].into_iter().collect();
     ///
     /// let mut values = info.values();
@@ -231,14 +230,14 @@ impl Info {
     }
 }
 
-impl AsRef<IndexMap<Key, Option<field::Value>>> for Info {
-    fn as_ref(&self) -> &IndexMap<Key, Option<field::Value>> {
+impl AsRef<IndexMap<String, Option<field::Value>>> for Info {
+    fn as_ref(&self) -> &IndexMap<String, Option<field::Value>> {
         &self.0
     }
 }
 
-impl AsMut<IndexMap<Key, Option<field::Value>>> for Info {
-    fn as_mut(&mut self) -> &mut IndexMap<Key, Option<field::Value>> {
+impl AsMut<IndexMap<String, Option<field::Value>>> for Info {
+    fn as_mut(&mut self) -> &mut IndexMap<String, Option<field::Value>> {
         &mut self.0
     }
 }
@@ -294,14 +293,14 @@ impl fmt::Display for ParseError {
     }
 }
 
-impl Extend<(Key, Option<field::Value>)> for Info {
-    fn extend<T: IntoIterator<Item = (Key, Option<field::Value>)>>(&mut self, iter: T) {
+impl Extend<(String, Option<field::Value>)> for Info {
+    fn extend<T: IntoIterator<Item = (String, Option<field::Value>)>>(&mut self, iter: T) {
         self.0.extend(iter);
     }
 }
 
-impl FromIterator<(Key, Option<field::Value>)> for Info {
-    fn from_iter<T: IntoIterator<Item = (Key, Option<field::Value>)>>(iter: T) -> Self {
+impl FromIterator<(String, Option<field::Value>)> for Info {
+    fn from_iter<T: IntoIterator<Item = (String, Option<field::Value>)>>(iter: T) -> Self {
         let mut info = Self::default();
         info.extend(iter);
         info
@@ -342,7 +341,7 @@ pub enum TryFromFieldsError {
     /// A key is duplicated.
     ///
     /// § 1.6.1 Fixed fields (2021-01-13): "Duplicate keys are not allowed."
-    DuplicateKey(Key),
+    DuplicateKey(String),
 }
 
 impl error::Error for TryFromFieldsError {}
@@ -364,15 +363,21 @@ mod tests {
         let info = Info::default();
         assert!(info.to_string().is_empty());
 
-        let info: Info = [(key::SAMPLES_WITH_DATA_COUNT, Some(field::Value::from(2)))]
-            .into_iter()
-            .collect();
+        let info: Info = [(
+            String::from(key::SAMPLES_WITH_DATA_COUNT),
+            Some(field::Value::from(2)),
+        )]
+        .into_iter()
+        .collect();
         assert_eq!(info.to_string(), "NS=2");
 
         let info: Info = [
-            (key::SAMPLES_WITH_DATA_COUNT, Some(field::Value::from(2))),
             (
-                key::ALLELE_FREQUENCIES,
+                String::from(key::SAMPLES_WITH_DATA_COUNT),
+                Some(field::Value::from(2)),
+            ),
+            (
+                String::from(key::ALLELE_FREQUENCIES),
                 Some(field::Value::from(vec![Some(0.333), Some(0.667)])),
             ),
         ]
@@ -385,12 +390,18 @@ mod tests {
     fn test_extend() {
         let mut info = Info::default();
 
-        let fields = [(key::SAMPLES_WITH_DATA_COUNT, Some(field::Value::from(2)))];
+        let fields = [(
+            String::from(key::SAMPLES_WITH_DATA_COUNT),
+            Some(field::Value::from(2)),
+        )];
         info.extend(fields);
 
-        let expected = [(key::SAMPLES_WITH_DATA_COUNT, Some(field::Value::from(2)))]
-            .into_iter()
-            .collect();
+        let expected = [(
+            String::from(key::SAMPLES_WITH_DATA_COUNT),
+            Some(field::Value::from(2)),
+        )]
+        .into_iter()
+        .collect();
 
         assert_eq!(info, expected);
     }
@@ -404,10 +415,6 @@ mod tests {
         assert_eq!(actual.len(), 2);
 
         assert_eq!("".parse::<Info>(), Err(ParseError::Empty));
-        assert!(matches!(
-            ".".parse::<Info>(),
-            Err(ParseError::InvalidField(_))
-        ));
         assert!(matches!(
             "NS=ndls".parse::<Info>(),
             Err(ParseError::InvalidField(_))

@@ -418,9 +418,11 @@ impl Record {
     ///     .build()?;
     ///
     /// let expected = [
-    ///     (key::SAMPLES_WITH_DATA_COUNT, Some(Value::from(3))),
-    ///     (key::ALLELE_FREQUENCIES, Some(Value::from(vec![Some(0.5)]))),
-    /// ].into_iter().collect();
+    ///     (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::from(3))),
+    ///     (String::from(key::ALLELE_FREQUENCIES), Some(Value::from(vec![Some(0.5)]))),
+    /// ]
+    /// .into_iter()
+    /// .collect();
     ///
     /// assert_eq!(record.info(), &expected);
     /// # Ok::<_, Box<dyn std::error::Error>>(())
@@ -446,13 +448,15 @@ impl Record {
     ///     .set_info("NS=3;AF=0.5".parse()?)
     ///     .build()?;
     ///
-    /// record.info_mut().insert(key::TOTAL_DEPTH, Some(Value::Integer(13)));
+    /// record.info_mut().insert(String::from(key::TOTAL_DEPTH), Some(Value::Integer(13)));
     ///
     /// let expected = [
-    ///     (key::SAMPLES_WITH_DATA_COUNT, Some(Value::Integer(3))),
-    ///     (key::ALLELE_FREQUENCIES, Some(Value::from(vec![Some(0.5)]))),
-    ///     (key::TOTAL_DEPTH, Some(Value::Integer(13))),
-    /// ].into_iter().collect();
+    ///     (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(3))),
+    ///     (String::from(key::ALLELE_FREQUENCIES), Some(Value::from(vec![Some(0.5)]))),
+    ///     (String::from(key::TOTAL_DEPTH), Some(Value::Integer(13))),
+    /// ]
+    /// .into_iter()
+    /// .collect();
     ///
     /// assert_eq!(record.info(), &expected);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
@@ -665,7 +669,7 @@ impl Record {
     pub fn end(&self) -> Result<Position, EndError> {
         use self::info::field::{key, Value};
 
-        let end = if let Some(Some(value)) = self.info().get(&key::END_POSITION) {
+        let end = if let Some(Some(value)) = self.info().get(key::END_POSITION) {
             match value {
                 Value::Integer(n) => usize::try_from(*n).map_err(EndError::InvalidPosition)?,
                 _ => return Err(EndError::InvalidInfoEndPositionFieldValue),
@@ -732,7 +736,11 @@ mod tests {
             .set_chromosome("sq0")
             .set_position(Position::from(1))
             .set_reference_bases("A")
-            .set_info([(key::END_POSITION, None)].into_iter().collect())
+            .set_info(
+                [(String::from(key::END_POSITION), None)]
+                    .into_iter()
+                    .collect(),
+            )
             .build()?;
 
         assert_eq!(record.end(), Ok(Position::from(1)));
@@ -742,9 +750,12 @@ mod tests {
             .set_position(Position::from(1))
             .set_reference_bases("A")
             .set_info(
-                [(key::END_POSITION, Some(info::field::Value::Flag))]
-                    .into_iter()
-                    .collect(),
+                [(
+                    String::from(key::END_POSITION),
+                    Some(info::field::Value::Flag),
+                )]
+                .into_iter()
+                .collect(),
             )
             .build()?;
 
