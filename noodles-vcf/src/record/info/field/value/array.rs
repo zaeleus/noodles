@@ -1,6 +1,7 @@
 use std::fmt;
 
-use super::{DELIMITER, MISSING_VALUE};
+const DELIMITER: char = ',';
+const MISSING: char = '.';
 
 /// A VCF record info field array value.
 #[derive(Clone, Debug, PartialEq)]
@@ -27,7 +28,7 @@ impl fmt::Display for Array {
                     if let Some(v) = value {
                         write!(f, "{v}")?;
                     } else {
-                        f.write_str(MISSING_VALUE)?;
+                        write!(f, "{MISSING}")?;
                     }
                 }
 
@@ -42,7 +43,7 @@ impl fmt::Display for Array {
                     if let Some(v) = value {
                         write!(f, "{v}")?;
                     } else {
-                        f.write_str(MISSING_VALUE)?;
+                        write!(f, "{MISSING}")?;
                     }
                 }
 
@@ -57,7 +58,7 @@ impl fmt::Display for Array {
                     if let Some(v) = value {
                         write!(f, "{v}")?;
                     } else {
-                        f.write_str(MISSING_VALUE)?;
+                        write!(f, "{MISSING}")?;
                     }
                 }
 
@@ -72,7 +73,7 @@ impl fmt::Display for Array {
                     if let Some(v) = value {
                         write!(f, "{v}")?;
                     } else {
-                        f.write_str(MISSING_VALUE)?;
+                        write!(f, "{MISSING}")?;
                     }
                 }
 

@@ -2,11 +2,9 @@
 
 pub mod field;
 
-use std::{error, fmt, hash::Hash, str::FromStr};
+use std::{fmt, hash::Hash};
 
 use indexmap::IndexMap;
-
-use crate::header;
 
 const DELIMITER: char = ';';
 
@@ -15,11 +13,6 @@ const DELIMITER: char = ';';
 pub struct Info(IndexMap<String, Option<field::Value>>);
 
 impl Info {
-    /// Parses raw VCF record info.
-    pub fn try_from_str(s: &str, infos: &header::Infos) -> Result<Self, ParseError> {
-        parse(s, infos)
-    }
-
     /// Returns the number of info fields.
     ///
     /// # Examples
@@ -262,37 +255,6 @@ impl fmt::Display for Info {
     }
 }
 
-/// An error returned when a raw VCF information fails to parse.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
-    /// The input is empty.
-    Empty,
-    /// The input is invalid.
-    Invalid(TryFromFieldsError),
-    /// A field is invalid.
-    InvalidField(field::ParseError),
-}
-
-impl error::Error for ParseError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match self {
-            Self::Empty => None,
-            Self::Invalid(e) => Some(e),
-            Self::InvalidField(e) => Some(e),
-        }
-    }
-}
-
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Empty => f.write_str("empty input"),
-            Self::Invalid(_) => f.write_str("invalid input"),
-            Self::InvalidField(_) => f.write_str("invalid field"),
-        }
-    }
-}
-
 impl Extend<(String, Option<field::Value>)> for Info {
     fn extend<T: IntoIterator<Item = (String, Option<field::Value>)>>(&mut self, iter: T) {
         self.0.extend(iter);
@@ -304,53 +266,6 @@ impl FromIterator<(String, Option<field::Value>)> for Info {
         let mut info = Self::default();
         info.extend(iter);
         info
-    }
-}
-
-impl FromStr for Info {
-    type Err = ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Self::try_from_str(s, &header::Infos::default())
-    }
-}
-
-fn parse(s: &str, infos: &header::Infos) -> Result<Info, ParseError> {
-    match s {
-        "" => Err(ParseError::Empty),
-        _ => {
-            let mut info = Info::default();
-
-            for raw_field in s.split(DELIMITER) {
-                let (key, value) =
-                    field::parse(raw_field, infos).map_err(ParseError::InvalidField)?;
-
-                if info.insert(key.clone(), value).is_some() {
-                    return Err(ParseError::Invalid(TryFromFieldsError::DuplicateKey(key)));
-                }
-            }
-
-            Ok(info)
-        }
-    }
-}
-
-/// An error returned when VCF info fields fail to convert.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum TryFromFieldsError {
-    /// A key is duplicated.
-    ///
-    /// § 1.6.1 Fixed fields (2021-01-13): "Duplicate keys are not allowed."
-    DuplicateKey(String),
-}
-
-impl error::Error for TryFromFieldsError {}
-
-impl fmt::Display for TryFromFieldsError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::DuplicateKey(key) => write!(f, "duplicate key: {key}"),
-        }
     }
 }
 
@@ -404,22 +319,5 @@ mod tests {
         .collect();
 
         assert_eq!(info, expected);
-    }
-
-    #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        let actual: Info = "NS=2".parse()?;
-        assert_eq!(actual.len(), 1);
-
-        let actual: Info = "NS=2;AF=0.333,0.667".parse()?;
-        assert_eq!(actual.len(), 2);
-
-        assert_eq!("".parse::<Info>(), Err(ParseError::Empty));
-        assert!(matches!(
-            "NS=ndls".parse::<Info>(),
-            Err(ParseError::InvalidField(_))
-        ));
-
-        Ok(())
     }
 }
