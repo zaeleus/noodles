@@ -1,15 +1,12 @@
 use std::{error, fmt};
 
-use crate::{
-    header::record::value::{
-        map::{
-            self,
-            alternative_allele::{tag, Tag},
-            AlternativeAllele, OtherFields,
-        },
-        Map,
+use crate::header::record::value::{
+    map::{
+        self,
+        alternative_allele::{tag, Tag},
+        AlternativeAllele, OtherFields,
     },
-    record::alternate_bases::allele::{symbol, Symbol},
+    Map,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -17,7 +14,6 @@ enum ParseErrorKind {
     InvalidMap(super::ParseError),
     InvalidField(super::field::ParseError),
     MissingId,
-    InvalidId(symbol::ParseError),
     MissingDescription,
     DuplicateTag(Tag),
 }
@@ -25,17 +21,17 @@ enum ParseErrorKind {
 /// An error returned when a VCF header record alternative allele map value fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ParseError {
-    id: Option<Symbol>,
+    id: Option<String>,
     kind: ParseErrorKind,
 }
 
 impl ParseError {
-    fn new(id: Option<Symbol>, kind: ParseErrorKind) -> Self {
+    fn new(id: Option<String>, kind: ParseErrorKind) -> Self {
         Self { id, kind }
     }
 
-    pub(crate) fn id(&self) -> Option<&Symbol> {
-        self.id.as_ref()
+    pub(crate) fn id(&self) -> Option<&str> {
+        self.id.as_deref()
     }
 }
 
@@ -44,7 +40,6 @@ impl error::Error for ParseError {
         match &self.kind {
             ParseErrorKind::InvalidMap(e) => Some(e),
             ParseErrorKind::InvalidField(e) => Some(e),
-            ParseErrorKind::InvalidId(e) => Some(e),
             _ => None,
         }
     }
@@ -56,7 +51,6 @@ impl fmt::Display for ParseError {
             ParseErrorKind::InvalidMap(_) => write!(f, "invalid map"),
             ParseErrorKind::InvalidField(_) => write!(f, "invalid field"),
             ParseErrorKind::MissingId => write!(f, "missing ID"),
-            ParseErrorKind::InvalidId(_) => write!(f, "invalid ID"),
             ParseErrorKind::MissingDescription => write!(f, "missing description"),
             ParseErrorKind::DuplicateTag(tag) => write!(f, "duplicate tag: {tag}"),
         }
@@ -65,7 +59,7 @@ impl fmt::Display for ParseError {
 
 pub fn parse_alternative_allele(
     src: &mut &[u8],
-) -> Result<(Symbol, Map<AlternativeAllele>), ParseError> {
+) -> Result<(String, Map<AlternativeAllele>), ParseError> {
     super::consume_prefix(src).map_err(|e| ParseError::new(None, ParseErrorKind::InvalidMap(e)))?;
 
     let mut id = None;
@@ -76,9 +70,7 @@ pub fn parse_alternative_allele(
         .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidField(e)))?
     {
         match Tag::from(raw_key) {
-            tag::ID => {
-                parse_id(&raw_value, &id).and_then(|v| try_replace(&mut id, &None, tag::ID, v))?;
-            }
+            tag::ID => try_replace(&mut id, &None, tag::ID, raw_value.into())?,
             tag::DESCRIPTION => {
                 try_replace(&mut description, &id, tag::DESCRIPTION, raw_value.into())?;
             }
@@ -102,14 +94,9 @@ pub fn parse_alternative_allele(
     ))
 }
 
-fn parse_id(s: &str, id: &Option<Symbol>) -> Result<Symbol, ParseError> {
-    s.parse()
-        .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidId(e)))
-}
-
 fn try_replace<T>(
     option: &mut Option<T>,
-    id: &Option<Symbol>,
+    id: &Option<String>,
     tag: Tag,
     value: T,
 ) -> Result<(), ParseError> {
@@ -125,7 +112,7 @@ fn try_replace<T>(
 
 fn try_insert(
     other_fields: &mut OtherFields<tag::Standard>,
-    id: &Option<Symbol>,
+    id: &Option<String>,
     tag: map::tag::Other<tag::Standard>,
     value: String,
 ) -> Result<(), ParseError> {
@@ -152,11 +139,9 @@ mod tests {
 
     #[test]
     fn test_parse_filter() {
-        use symbol::{structural_variant::Type, StructuralVariant};
-
         let mut src = &br#"<ID=DEL,Description="Deletion">"#[..];
 
-        let id = Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion));
+        let id = String::from("DEL");
         let map = Map::<AlternativeAllele>::new("Deletion");
         let expected = (id, map);
 

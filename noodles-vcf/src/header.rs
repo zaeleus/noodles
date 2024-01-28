@@ -30,8 +30,7 @@ pub type Filters = IndexMap<String, Map<Filter>>;
 pub type Formats = IndexMap<crate::record::genotypes::keys::Key, Map<Format>>;
 
 /// VCF header alternative allele records.
-pub type AlternativeAlleles =
-    IndexMap<crate::record::alternate_bases::allele::Symbol, Map<AlternativeAllele>>;
+pub type AlternativeAlleles = IndexMap<String, Map<AlternativeAllele>>;
 
 /// VCF header contig records.
 pub type Contigs = IndexMap<String, Map<Contig>>;
@@ -258,17 +257,12 @@ impl Header {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::record::value::{map::AlternativeAllele, Map},
-    ///     record::alternate_bases::allele::{
-    ///         symbol::{structural_variant::Type, StructuralVariant},
-    ///         Symbol,
-    ///     },
     /// };
     ///
-    /// let id = Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion));
     /// let alt = Map::<AlternativeAllele>::new("Deletion");
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_alternative_allele(id, alt.clone())
+    ///     .add_alternative_allele("DEL", alt.clone())
     ///     .build();
     ///
     /// let alternative_alleles = header.alternative_alleles();
@@ -287,17 +281,12 @@ impl Header {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::record::value::{map::AlternativeAllele, Map},
-    ///     record::alternate_bases::allele::{
-    ///         symbol::{structural_variant::Type, StructuralVariant},
-    ///         Symbol,
-    ///     },
     /// };
     ///
     /// let mut header = vcf::Header::default();
     ///
-    /// let id = Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion));
     /// let alt = Map::<AlternativeAllele>::new("Deletion");
-    /// header.alternative_alleles_mut().insert(id, alt.clone());
+    /// header.alternative_alleles_mut().insert(String::from("DEL"), alt.clone());
     ///
     /// let alternative_alleles = header.alternative_alleles();
     /// assert_eq!(alternative_alleles.len(), 1);

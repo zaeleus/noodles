@@ -146,7 +146,7 @@ pub enum ParseError {
     /// A format ID is duplicated.
     DuplicateFormatId(crate::record::genotypes::keys::Key),
     /// An alternative allele ID is duplicated.
-    DuplicateAlternativeAlleleId(crate::record::alternate_bases::allele::Symbol),
+    DuplicateAlternativeAlleleId(String),
     /// A contig ID is duplicated.
     DuplicateContigId(String),
     /// A record has an invalid value.
@@ -300,7 +300,7 @@ fn try_insert_format(
 
 fn try_insert_alternative_allele(
     alternative_alleles: &mut AlternativeAlleles,
-    id: crate::record::alternate_bases::allele::Symbol,
+    id: String,
     alternative_allele: Map<AlternativeAllele>,
 ) -> Result<Entry<'_>, ParseError> {
     use indexmap::map::Entry;
@@ -456,7 +456,7 @@ mod tests {
                 genotypes::keys::key::GENOTYPE,
                 Map::<Format>::from(&genotypes::keys::key::GENOTYPE),
             )
-            .add_alternative_allele("DEL".parse()?, Map::<AlternativeAllele>::new("Deletion"))
+            .add_alternative_allele("DEL", Map::<AlternativeAllele>::new("Deletion"))
             .insert(
                 "META".parse()?,
                 Value::Map(

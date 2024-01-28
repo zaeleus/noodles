@@ -141,23 +141,27 @@ impl Builder {
     ///     },
     /// };
     ///
-    /// let id = Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion));
     /// let alt = Map::<AlternativeAllele>::new("Deletion");
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_alternative_allele(id, alt.clone())
+    ///     .add_alternative_allele("DEL", alt.clone())
     ///     .build();
     ///
     /// let alternative_alleles = header.alternative_alleles();
     /// assert_eq!(alternative_alleles.len(), 1);
     /// assert_eq!(&alternative_alleles[0], &alt);
     /// ```
-    pub fn add_alternative_allele(
+    pub fn add_alternative_allele<I>(
         mut self,
-        id: crate::record::alternate_bases::allele::Symbol,
+        id: I,
         alternative_allele: Map<AlternativeAllele>,
-    ) -> Self {
-        self.alternative_alleles.insert(id, alternative_allele);
+    ) -> Self
+    where
+        I: Into<String>,
+    {
+        self.alternative_alleles
+            .insert(id.into(), alternative_allele);
+
         self
     }
 
@@ -319,15 +323,8 @@ mod tests {
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
         use crate::{
             header,
-            record::{
-                alternate_bases::allele, genotypes::keys::key as format_key,
-                info::field::key as info_key,
-            },
+            record::{genotypes::keys::key as format_key, info::field::key as info_key},
         };
-
-        let del = allele::Symbol::StructuralVariant(allele::symbol::StructuralVariant::from(
-            allele::symbol::structural_variant::Type::Deletion,
-        ));
 
         let (key, value) = (
             "fileDate".parse::<header::record::key::Other>()?,
@@ -345,7 +342,7 @@ mod tests {
                 format_key::GENOTYPE,
                 Map::<Format>::from(&format_key::GENOTYPE),
             )
-            .add_alternative_allele(del, Map::<AlternativeAllele>::new("Deletion"))
+            .add_alternative_allele("DEL", Map::<AlternativeAllele>::new("Deletion"))
             .add_contig("sq0", Map::<Contig>::new())
             .add_contig("sq1", Map::<Contig>::new())
             .add_sample_name("sample0")

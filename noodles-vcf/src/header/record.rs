@@ -17,10 +17,7 @@ use super::{parser::record::ParseError, FileFormat};
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Record {
     /// An `ALT` record.
-    AlternativeAllele(
-        crate::record::alternate_bases::allele::Symbol,
-        Map<AlternativeAllele>,
-    ),
+    AlternativeAllele(String, Map<AlternativeAllele>),
     /// A `contig` record.
     Contig(String, Map<Contig>),
     /// A `fileformat` record.
