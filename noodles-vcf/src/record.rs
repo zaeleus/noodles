@@ -479,26 +479,26 @@ impl Record {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{record::value::{map::Format, Map}},
-    ///     record::{genotypes::{keys::key, Keys}, Genotypes, Position},
+    ///     record::{
+    ///         genotypes::{keys::key, sample::Value, Keys},
+    ///         Genotypes, Position,
+    ///     },
     /// };
     ///
-    /// let header = vcf::Header::builder()
-    ///     .add_format(key::GENOTYPE, Map::<Format>::from(&key::GENOTYPE))
-    ///     .add_format(key::CONDITIONAL_GENOTYPE_QUALITY, Map::<Format>::from(&key::CONDITIONAL_GENOTYPE_QUALITY))
-    ///     .build();
+    /// let keys = Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?;
+    /// let genotypes = Genotypes::new(
+    ///     keys.clone(),
+    ///     vec![vec![Some(Value::from("0|0")), Some(Value::from(13))]],
+    /// );
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A")
-    ///     .set_genotypes(Genotypes::parse("GT:GQ\t0|0:13", &header)?)
+    ///     .set_genotypes(genotypes)
     ///     .build()?;
     ///
-    /// assert_eq!(record.format(), &Keys::try_from(vec![
-    ///     key::GENOTYPE,
-    ///     key::CONDITIONAL_GENOTYPE_QUALITY,
-    /// ])?);
+    /// assert_eq!(record.format(), &keys);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn format(&self) -> &genotypes::Keys {
@@ -513,12 +513,12 @@ impl Record {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     record::{
-    ///         genotypes::{sample::Value, Genotypes},
-    ///         Position,
+    ///         genotypes::{keys::key, sample::Value, Keys},
+    ///         Genotypes, Position,
     ///     },
     /// };
     ///
-    /// let keys = "GT:GQ".parse()?;
+    /// let keys = Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?;
     /// let genotypes = Genotypes::new(
     ///     keys,
     ///     vec![vec![Some(Value::from("0|0")), Some(Value::from(13))]],
@@ -546,8 +546,8 @@ impl Record {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     record::{
-    ///         genotypes::{sample::Value, Genotypes},
-    ///         Position,
+    ///         genotypes::{keys::key, sample::Value, Keys},
+    ///         Genotypes, Position,
     ///     },
     /// };
     ///
@@ -557,7 +557,7 @@ impl Record {
     ///     .set_reference_bases("A")
     ///     .build()?;
     ///
-    /// let keys = "GT:GQ".parse()?;
+    /// let keys = Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?;
     /// let genotypes = Genotypes::new(
     ///     keys,
     ///     vec![vec![Some(Value::from("0|0")), Some(Value::from(13))]],

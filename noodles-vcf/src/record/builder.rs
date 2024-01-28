@@ -240,10 +240,13 @@ impl Builder {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     record::{genotypes::sample::Value, Genotypes, Position},
+    ///     record::{
+    ///         genotypes::{keys::key, sample::Value, Keys},
+    ///         Genotypes, Position
+    ///     },
     /// };
     ///
-    /// let keys = "GT:GQ".parse()?;
+    /// let keys = Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?;
     /// let genotypes = Genotypes::new(
     ///     keys,
     ///     vec![vec![Some(Value::from("0|0")), Some(Value::from(13))]],

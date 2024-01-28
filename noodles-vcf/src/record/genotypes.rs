@@ -5,17 +5,9 @@ pub mod sample;
 
 pub use self::{keys::Keys, sample::Sample};
 
-use std::{error, fmt, str::FromStr};
+use std::{error, fmt};
 
 use self::sample::Value;
-use super::FIELD_DELIMITER;
-use crate::{
-    header::{
-        record::value::{map::Format, Map},
-        Formats,
-    },
-    Header,
-};
 
 /// VCF record genotypes.
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -25,41 +17,6 @@ pub struct Genotypes {
 }
 
 impl Genotypes {
-    /// Parses VCF record genotypes with a VCF header as context.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::{
-    ///     self as vcf,
-    ///     header::record::value::{map::Format, Map},
-    ///     record::{
-    ///         genotypes::{keys::key, sample::Value, Keys},
-    ///         Genotypes,
-    ///     },
-    /// };
-    ///
-    /// let header = vcf::Header::builder()
-    ///     .add_format(key::GENOTYPE, Map::<Format>::from(&key::GENOTYPE))
-    ///     .build();
-    ///
-    /// let actual = Genotypes::parse("GT:GQ\t0|0:13", &header)?;
-    ///
-    /// let expected = Genotypes::new(
-    ///     Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?,
-    ///     vec![vec![
-    ///         Some(Value::String(String::from("0|0"))),
-    ///         Some(Value::Integer(13)),
-    ///     ]],
-    /// );
-    ///
-    /// assert_eq!(actual, expected);
-    /// # Ok::<_, Box<dyn std::error::Error>>(())
-    /// ```
-    pub fn parse(s: &str, header: &Header) -> Result<Genotypes, ParseError> {
-        parse(s, header)
-    }
-
     /// Creates VCF record genotypes.
     ///
     /// # Examples
@@ -179,71 +136,6 @@ impl fmt::Display for ParseError {
     }
 }
 
-impl FromStr for Genotypes {
-    type Err = ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        parse(s, &Header::default())
-    }
-}
-
-fn parse(s: &str, header: &Header) -> Result<Genotypes, ParseError> {
-    if s.is_empty() {
-        return Err(ParseError::Empty);
-    }
-
-    let (format, rest) = s.split_once(FIELD_DELIMITER).ok_or(ParseError::Invalid)?;
-
-    let keys = format.parse().map_err(ParseError::InvalidKeys)?;
-
-    let values = rest
-        .split(FIELD_DELIMITER)
-        .map(|t| parse_values(t, header.formats(), &keys))
-        .collect::<Result<_, _>>()
-        .map_err(ParseError::InvalidValues)?;
-
-    Ok(Genotypes::new(keys, values))
-}
-
-fn parse_values(
-    s: &str,
-    formats: &Formats,
-    keys: &Keys,
-) -> Result<Vec<Option<Value>>, sample::ParseError> {
-    if s.is_empty() {
-        return Err(sample::ParseError::Empty);
-    } else if s == "." {
-        return Ok(Vec::new());
-    }
-
-    let mut values = Vec::with_capacity(keys.len());
-    let mut raw_values = s.split(':');
-
-    for (key, raw_value) in keys.iter().zip(&mut raw_values) {
-        let value = if let Some(format) = formats.get(key) {
-            parse_value(format, raw_value).map_err(sample::ParseError::InvalidValue)?
-        } else {
-            let format = Map::<Format>::from(key);
-            parse_value(&format, raw_value).map_err(sample::ParseError::InvalidValue)?
-        };
-
-        values.push(value);
-    }
-
-    if raw_values.next().is_some() {
-        Err(sample::ParseError::UnexpectedValue)
-    } else {
-        Ok(values)
-    }
-}
-
-fn parse_value(format: &Map<Format>, s: &str) -> Result<Option<Value>, sample::value::ParseError> {
-    match s {
-        "." => Ok(None),
-        _ => sample::Value::from_str_format(s, format).map(Some),
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -251,17 +143,16 @@ mod tests {
 
     #[test]
     fn test_genotypes() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::header::record::value::{map::Format, Map};
-
-        let header = crate::Header::builder()
-            .add_format(key::GENOTYPE, Map::<Format>::from(&key::GENOTYPE))
-            .add_format(
-                key::CONDITIONAL_GENOTYPE_QUALITY,
-                Map::<Format>::from(&key::CONDITIONAL_GENOTYPE_QUALITY),
-            )
-            .build();
-
-        let genotypes = Genotypes::parse("GT:GQ\t0|0:7\t./.:20\t1/1:1\t.", &header)?;
+        let keys = Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?;
+        let genotypes = Genotypes::new(
+            keys,
+            vec![
+                vec![Some(Value::from("0|0")), Some(Value::from(7))],
+                vec![Some(Value::from("./.")), Some(Value::from(20))],
+                vec![Some(Value::from("1/1")), Some(Value::from(1))],
+                vec![],
+            ],
+        );
 
         let actual = genotypes.genotypes();
         let expected = Ok(vec![
@@ -272,28 +163,6 @@ mod tests {
         ]);
 
         assert_eq!(actual, expected);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_from_str() -> Result<(), super::keys::TryFromKeyVectorError> {
-        let expected = Genotypes::new(
-            Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?,
-            vec![vec![Some(Value::from("0|0")), Some(Value::from(13))]],
-        );
-        assert_eq!("GT:GQ\t0|0:13".parse(), Ok(expected));
-
-        assert_eq!("".parse::<Genotypes>(), Err(ParseError::Empty));
-        assert_eq!("GT:GQ".parse::<Genotypes>(), Err(ParseError::Invalid));
-        assert!(matches!(
-            "\t".parse::<Genotypes>(),
-            Err(ParseError::InvalidKeys(_))
-        ));
-        assert!(matches!(
-            "GQ\tndls".parse::<Genotypes>(),
-            Err(ParseError::InvalidValues(_))
-        ));
 
         Ok(())
     }
