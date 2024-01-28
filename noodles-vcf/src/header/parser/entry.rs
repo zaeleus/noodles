@@ -17,10 +17,7 @@ pub enum Entry<'a> {
     /// A `FORMAT` entry.
     Format(&'a crate::record::genotypes::keys::Key, &'a Map<Format>),
     /// An `ALT` entry.
-    AlternativeAllele(
-        &'a crate::record::alternate_bases::allele::Symbol,
-        &'a Map<AlternativeAllele>,
-    ),
+    AlternativeAllele(&'a str, &'a Map<AlternativeAllele>),
     /// A `contig` entry.
     Contig(&'a str, &'a Map<Contig>),
     /// A nonstadard entry.

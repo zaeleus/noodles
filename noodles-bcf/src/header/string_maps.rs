@@ -408,16 +408,8 @@ mod tests {
                 map::{AlternativeAllele, Contig, Filter, Format, Info},
                 Map,
             },
-            record::{
-                alternate_bases::allele::{
-                    symbol::{structural_variant::Type, StructuralVariant},
-                    Symbol,
-                },
-                genotypes, info,
-            },
+            record::{genotypes, info},
         };
-
-        let del = Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion));
 
         let header = vcf::Header::builder()
             .add_contig("sq0", Map::<Contig>::new())
@@ -441,7 +433,7 @@ mod tests {
                 genotypes::keys::key::READ_DEPTH,
                 Map::<Format>::from(&genotypes::keys::key::READ_DEPTH),
             )
-            .add_alternative_allele(del, Map::<AlternativeAllele>::new("Deletion"))
+            .add_alternative_allele("DEL", Map::<AlternativeAllele>::new("Deletion"))
             .build();
 
         let actual = StringMaps::try_from(&header)?;

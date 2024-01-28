@@ -4,18 +4,15 @@ mod value;
 use std::io::{self, Write};
 
 use self::key::write_key;
-use crate::{
-    header::{
-        record::{
-            self,
-            value::{
-                map::{AlternativeAllele, Contig, Filter, Format, Info},
-                Collection, Map,
-            },
+use crate::header::{
+    record::{
+        self,
+        value::{
+            map::{AlternativeAllele, Contig, Filter, Format, Info},
+            Collection, Map,
         },
-        FileFormat,
     },
-    record::alternate_bases::allele::Symbol,
+    FileFormat,
 };
 
 fn write_record<W, K, F>(writer: &mut W, key: K, f: F) -> io::Result<()>
@@ -85,14 +82,14 @@ where
 
 pub(super) fn write_alternative_allele<W>(
     writer: &mut W,
-    id: &Symbol,
+    id: &str,
     alternative_allele: &Map<AlternativeAllele>,
 ) -> io::Result<()>
 where
     W: Write,
 {
     write_record(writer, &record::key::ALTERNATIVE_ALLELE, |w| {
-        value::write_map(w, id.to_string(), |x| {
+        value::write_map(w, id, |x| {
             value::map::write_alternative_allele(x, alternative_allele)
         })
     })
