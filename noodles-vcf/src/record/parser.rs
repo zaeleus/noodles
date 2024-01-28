@@ -15,7 +15,7 @@ mod tests {
 
     #[test]
     fn test_parse() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::record::{reference_bases::Base, Filters};
+        use crate::record::Filters;
 
         let header = Header::default();
         let s = "chr1\t13\tnd0\tATCG\tA\t5.8\tPASS\tSVTYPE=DEL";
@@ -27,8 +27,7 @@ mod tests {
         let ids = "nd0".parse()?;
         assert_eq!(record.ids(), &ids);
 
-        let reference_bases = [Base::A, Base::T, Base::C, Base::G];
-        assert_eq!(&record.reference_bases()[..], &reference_bases[..]);
+        assert_eq!(record.reference_bases(), "ATCG");
 
         let alternate_bases = [String::from("A")];
         assert_eq!(record.alternate_bases().as_ref(), alternate_bases);

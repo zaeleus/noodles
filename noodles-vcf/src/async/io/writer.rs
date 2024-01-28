@@ -123,7 +123,7 @@ where
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
-    ///     .set_reference_bases("A".parse()?)
+    ///     .set_reference_bases("A")
     ///     .build()?;
     ///
     /// let mut writer = vcf::r#async::io::Writer::new(Vec::new());

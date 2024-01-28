@@ -1,14 +1,11 @@
 use std::io;
 
-use noodles_vcf::record::{AlternateBases, ReferenceBases};
+use noodles_vcf::record::AlternateBases;
 
 use super::read_value;
 use crate::lazy::record::Value;
 
-pub(crate) fn read_ref_alt(
-    src: &mut &[u8],
-    len: usize,
-) -> io::Result<(ReferenceBases, AlternateBases)> {
+pub(crate) fn read_ref_alt(src: &mut &[u8], len: usize) -> io::Result<(String, AlternateBases)> {
     let mut alleles = Vec::with_capacity(len);
 
     for _ in 0..len {
@@ -29,10 +26,7 @@ pub(crate) fn read_ref_alt(
     let reference_bases = raw_reference_bases
         .first()
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing reference bases"))
-        .and_then(|s| {
-            s.parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-        })?;
+        .map(|&s| s.into())?;
 
     let alternate_bases = raw_alternate_bases
         .iter()

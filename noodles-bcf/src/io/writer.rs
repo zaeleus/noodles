@@ -114,7 +114,7 @@ where
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(8))
-    ///     .set_reference_bases("A".parse()?)
+    ///     .set_reference_bases("A")
     ///     .build()?;
     ///
     /// writer.write_record(&header, &record)?;

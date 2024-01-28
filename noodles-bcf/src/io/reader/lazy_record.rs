@@ -169,7 +169,7 @@ pub(crate) mod tests {
         assert_eq!(record.rlen(), 1);
         assert_eq!(record.quality_score(), Some(30.1));
         assert_eq!(record.ids(), &"rs123".parse::<Ids>()?);
-        assert_eq!(record.reference_bases(), &"A".parse()?);
+        assert_eq!(record.reference_bases(), "A");
         assert_eq!(
             record.alternate_bases(),
             &AlternateBases::from(vec![String::from("C")])
