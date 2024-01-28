@@ -2,7 +2,7 @@
 
 mod array;
 
-use std::{fmt, str};
+use std::str;
 
 pub use self::array::Array;
 
@@ -21,19 +21,6 @@ pub enum Value {
     String(String),
     /// An array.
     Array(Array),
-}
-
-impl fmt::Display for Value {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Integer(n) => write!(f, "{n}"),
-            Self::Float(n) => write!(f, "{n}"),
-            Self::Flag => Ok(()),
-            Self::Character(c) => write!(f, "{c}"),
-            Self::String(s) => write!(f, "{s}"),
-            Self::Array(array) => write!(f, "{array}"),
-        }
-    }
 }
 
 impl From<i32> for Value {
@@ -87,66 +74,5 @@ impl From<Vec<Option<char>>> for Value {
 impl From<Vec<Option<String>>> for Value {
     fn from(values: Vec<Option<String>>) -> Self {
         Self::Array(Array::String(values))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_fmt() {
-        let value = Value::from(2);
-        assert_eq!(value.to_string(), "2");
-
-        let value = Value::from(0.333);
-        assert_eq!(value.to_string(), "0.333");
-
-        assert_eq!(Value::Flag.to_string(), "");
-
-        let value = Value::from('n');
-        assert_eq!(value.to_string(), "n");
-
-        let value = Value::from("noodles");
-        assert_eq!(value.to_string(), "noodles");
-
-        let value = Value::from(vec![Some(2)]);
-        assert_eq!(value.to_string(), "2");
-
-        let value = Value::from(vec![Some(2), Some(5)]);
-        assert_eq!(value.to_string(), "2,5");
-
-        let value = Value::from(vec![Some(2), None]);
-        assert_eq!(value.to_string(), "2,.");
-
-        let value = Value::from(vec![Some(0.333)]);
-        assert_eq!(value.to_string(), "0.333");
-
-        let value = Value::from(vec![Some(0.333), Some(0.667)]);
-        assert_eq!(value.to_string(), "0.333,0.667");
-
-        let value = Value::from(vec![Some(0.333), None]);
-        assert_eq!(value.to_string(), "0.333,.");
-
-        let value = Value::from(vec![Some('n')]);
-        assert_eq!(value.to_string(), "n");
-
-        let value = Value::from(vec![Some('n'), Some('d'), Some('l'), Some('s')]);
-        assert_eq!(value.to_string(), "n,d,l,s");
-
-        let value = Value::from(vec![Some('n'), Some('d'), Some('l'), None]);
-        assert_eq!(value.to_string(), "n,d,l,.");
-
-        let value = Value::from(vec![Some(String::from("noodles"))]);
-        assert_eq!(value.to_string(), "noodles");
-
-        let value = Value::from(vec![
-            Some(String::from("noodles")),
-            Some(String::from("vcf")),
-        ]);
-        assert_eq!(value.to_string(), "noodles,vcf");
-
-        let value = Value::from(vec![Some(String::from("noodles")), None]);
-        assert_eq!(value.to_string(), "noodles,.");
     }
 }
