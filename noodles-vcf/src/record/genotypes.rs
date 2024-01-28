@@ -5,11 +5,7 @@ pub mod sample;
 
 pub use self::{keys::Keys, sample::Sample};
 
-use std::{
-    error,
-    fmt::{self, Write},
-    str::FromStr,
-};
+use std::{error, fmt, str::FromStr};
 
 use self::sample::Value;
 use super::FIELD_DELIMITER;
@@ -149,32 +145,6 @@ impl Genotypes {
     }
 }
 
-impl fmt::Display for Genotypes {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}{}", self.keys(), FIELD_DELIMITER)?;
-
-        for (i, sample) in self.values().enumerate() {
-            if i > 0 {
-                f.write_char(FIELD_DELIMITER)?;
-            }
-
-            for (j, value) in sample.values().iter().enumerate() {
-                if j > 0 {
-                    ':'.fmt(f)?;
-                }
-
-                if let Some(v) = value {
-                    write!(f, "{v}")?;
-                } else {
-                    '.'.fmt(f)?;
-                }
-            }
-        }
-
-        Ok(())
-    }
-}
-
 /// An error returned when raw VCF record genotypes fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -302,18 +272,6 @@ mod tests {
         ]);
 
         assert_eq!(actual, expected);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_fmt() -> Result<(), super::keys::TryFromKeyVectorError> {
-        let genotypes = Genotypes::new(
-            Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?,
-            vec![vec![Some(Value::from("0|0")), Some(Value::from(13))]],
-        );
-
-        assert_eq!(genotypes.to_string(), "GT:GQ\t0|0:13");
 
         Ok(())
     }
