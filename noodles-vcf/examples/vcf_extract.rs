@@ -7,7 +7,10 @@ use std::{
     io::{self, BufWriter, Write},
 };
 
-use noodles_vcf::{self as vcf, record::genotypes::keys::key};
+use noodles_vcf::{
+    self as vcf,
+    record::genotypes::{keys::key, sample::Value},
+};
 
 const MISSING: &str = ".";
 
@@ -50,12 +53,22 @@ fn main() -> io::Result<()> {
             .iter()
             .zip(record.genotypes().values())
         {
-            let gt = sample
+            let value = sample
                 .get(&key::GENOTYPE)
                 .expect("missing GT field")
                 .expect("missing GT value");
 
-            write!(writer, "\t{sample_name}={gt}")?;
+            write!(writer, "\t{sample_name}=")?;
+
+            match value {
+                Value::String(gt) => write!(writer, "{gt}")?,
+                _ => {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        format!("expected GT to be a string, got {value:?}"),
+                    ));
+                }
+            }
         }
 
         writeln!(writer)?;

@@ -36,18 +36,6 @@ pub enum Value {
     Array(Array),
 }
 
-impl fmt::Display for Value {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Integer(n) => write!(f, "{n}"),
-            Self::Float(n) => write!(f, "{n}"),
-            Self::Character(c) => write!(f, "{c}"),
-            Self::String(s) => write!(f, "{s}"),
-            Self::Array(array) => write!(f, "{array}"),
-        }
-    }
-}
-
 /// An error returned when a raw VCF record genotype field value fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -274,60 +262,6 @@ fn parse_string_array(s: &str) -> Result<Value, ParseError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_fmt() {
-        let value = Value::from(2);
-        assert_eq!(value.to_string(), "2");
-
-        let value = Value::from(0.333);
-        assert_eq!(value.to_string(), "0.333");
-
-        let value = Value::from('n');
-        assert_eq!(value.to_string(), "n");
-
-        let value = Value::from("noodles");
-        assert_eq!(value.to_string(), "noodles");
-
-        let value = Value::from(vec![Some(2)]);
-        assert_eq!(value.to_string(), "2");
-
-        let value = Value::from(vec![Some(2), Some(5)]);
-        assert_eq!(value.to_string(), "2,5");
-
-        let value = Value::from(vec![Some(2), None]);
-        assert_eq!(value.to_string(), "2,.");
-
-        let value = Value::from(vec![Some(0.333)]);
-        assert_eq!(value.to_string(), "0.333");
-
-        let value = Value::from(vec![Some(0.333), Some(0.667)]);
-        assert_eq!(value.to_string(), "0.333,0.667");
-
-        let value = Value::from(vec![Some(0.333), None]);
-        assert_eq!(value.to_string(), "0.333,.");
-
-        let value = Value::from(vec![Some('n')]);
-        assert_eq!(value.to_string(), "n");
-
-        let value = Value::from(vec![Some('n'), Some('d'), Some('l'), Some('s')]);
-        assert_eq!(value.to_string(), "n,d,l,s");
-
-        let value = Value::from(vec![Some('n'), Some('d'), Some('l'), None]);
-        assert_eq!(value.to_string(), "n,d,l,.");
-
-        let value = Value::from(vec![Some(String::from("noodles"))]);
-        assert_eq!(value.to_string(), "noodles");
-
-        let value = Value::from(vec![
-            Some(String::from("noodles")),
-            Some(String::from("vcf")),
-        ]);
-        assert_eq!(value.to_string(), "noodles,vcf");
-
-        let value = Value::from(vec![Some(String::from("noodles")), None]);
-        assert_eq!(value.to_string(), "noodles,.");
-    }
 
     #[test]
     fn test_parse_with_integer() {

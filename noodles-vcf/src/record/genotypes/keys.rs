@@ -12,7 +12,7 @@ use std::{
 
 use indexmap::IndexSet;
 
-use crate::{header, record::MISSING_FIELD};
+use crate::header;
 
 const DELIMITER: char = ':';
 
@@ -38,24 +38,6 @@ impl Deref for Keys {
 impl DerefMut for Keys {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
-    }
-}
-
-impl fmt::Display for Keys {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.is_empty() {
-            f.write_str(MISSING_FIELD)
-        } else {
-            for (i, key) in self.iter().enumerate() {
-                if i > 0 {
-                    write!(f, "{DELIMITER}")?;
-                }
-
-                f.write_str(key.as_ref())?;
-            }
-
-            Ok(())
-        }
     }
 }
 
@@ -168,27 +150,6 @@ impl TryFrom<Vec<Key>> for Keys {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_fmt() {
-        let keys = Keys::default();
-        assert_eq!(keys.to_string(), ".");
-
-        let keys = Keys([key::GENOTYPE].into_iter().collect());
-        assert_eq!(keys.to_string(), "GT");
-
-        let keys = Keys(
-            [
-                key::GENOTYPE,
-                key::CONDITIONAL_GENOTYPE_QUALITY,
-                key::READ_DEPTH,
-                key::HAPLOTYPE_QUALITY,
-            ]
-            .into_iter()
-            .collect(),
-        );
-        assert_eq!(keys.to_string(), "GT:GQ:DP:HQ");
-    }
 
     #[test]
     fn test_from_str() {
