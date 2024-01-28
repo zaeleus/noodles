@@ -135,10 +135,6 @@ impl Builder {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::record::value::{map::AlternativeAllele, Map},
-    ///     record::alternate_bases::allele::{
-    ///         symbol::{structural_variant::Type, StructuralVariant},
-    ///         Symbol,
-    ///     },
     /// };
     ///
     /// let alt = Map::<AlternativeAllele>::new("Deletion");

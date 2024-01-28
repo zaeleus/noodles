@@ -151,7 +151,7 @@ pub(crate) mod tests {
                 Keys,
             },
             info::{self, field::Value as InfoFieldValue},
-            Filters as VcfFilters, Genotypes as VcfGenotypes, Ids, Position,
+            AlternateBases, Filters as VcfFilters, Genotypes as VcfGenotypes, Ids, Position,
         };
 
         use crate::header::StringMaps;
@@ -170,7 +170,10 @@ pub(crate) mod tests {
         assert_eq!(record.quality_score(), Some(30.1));
         assert_eq!(record.ids(), &"rs123".parse::<Ids>()?);
         assert_eq!(record.reference_bases(), &"A".parse()?);
-        assert_eq!(record.alternate_bases(), &"C".parse()?);
+        assert_eq!(
+            record.alternate_bases(),
+            &AlternateBases::from(vec![String::from("C")])
+        );
 
         assert_eq!(
             record

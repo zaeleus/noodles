@@ -34,15 +34,7 @@ impl Map<AlternativeAllele> {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     header::record::value::{map::AlternativeAllele, Map},
-    ///     record::alternate_bases::allele::{
-    ///         symbol::{structural_variant::Type, StructuralVariant},
-    ///         Symbol,
-    ///     },
-    /// };
-    ///
-    /// let id = Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion));
+    /// use noodles_vcf::header::record::value::{map::AlternativeAllele, Map};
     /// let map = Map::<AlternativeAllele>::new("Deletion");
     /// ```
     pub fn new<D>(description: D) -> Self

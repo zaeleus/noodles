@@ -9,6 +9,8 @@ use std::{
 
 use noodles_vcf::{self as vcf, record::genotypes::keys::key};
 
+const MISSING: &str = ".";
+
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
@@ -23,12 +25,25 @@ fn main() -> io::Result<()> {
 
         write!(
             writer,
-            "{chrom}\t{pos}\t{ref}\t{alt}",
+            "{chrom}\t{pos}\t{ref}",
             chrom = record.chromosome(),
             pos = record.position(),
             ref = record.reference_bases(),
-            alt = record.alternate_bases(),
         )?;
+
+        write!(writer, "\t")?;
+
+        if record.alternate_bases().is_empty() {
+            write!(writer, "{MISSING}")?;
+        } else {
+            for (i, allele) in record.alternate_bases().as_ref().iter().enumerate() {
+                if i > 0 {
+                    write!(writer, ",")?;
+                }
+
+                write!(writer, "{allele}")?;
+            }
+        }
 
         for (sample_name, sample) in header
             .sample_names()

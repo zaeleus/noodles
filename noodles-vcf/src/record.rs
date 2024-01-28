@@ -281,20 +281,19 @@ impl Record {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     record::{alternate_bases::Allele, reference_bases::Base, AlternateBases, Position},
+    ///     record::{reference_bases::Base, AlternateBases, Position},
     /// };
+    ///
+    /// let alternate_bases = AlternateBases::from(vec![String::from("C")]);
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
-    ///     .set_alternate_bases("C".parse()?)
+    ///     .set_alternate_bases(alternate_bases.clone())
     ///     .build()?;
     ///
-    /// assert_eq!(
-    ///     record.alternate_bases(),
-    ///     &AlternateBases::from(vec![Allele::Bases(vec![Base::C])]),
-    /// );
+    /// assert_eq!(record.alternate_bases(), &alternate_bases);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn alternate_bases(&self) -> &AlternateBases {
@@ -308,7 +307,7 @@ impl Record {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     record::{alternate_bases::Allele, reference_bases::Base, AlternateBases, Position},
+    ///     record::{reference_bases::Base, AlternateBases, Position},
     /// };
     ///
     /// let mut record = vcf::Record::builder()
@@ -317,12 +316,10 @@ impl Record {
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
-    /// *record.alternate_bases_mut() = "C".parse()?;
+    /// let alternate_bases = AlternateBases::from(vec![String::from("C")]);
+    /// *record.alternate_bases_mut() = alternate_bases.clone();
     ///
-    /// assert_eq!(
-    ///     record.alternate_bases(),
-    ///     &AlternateBases::from(vec![Allele::Bases(vec![Base::C])]),
-    /// );
+    /// assert_eq!(record.alternate_bases(), &alternate_bases);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn alternate_bases_mut(&mut self) -> &mut AlternateBases {
@@ -436,7 +433,6 @@ impl Record {
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
-    ///     .set_alternate_bases("C".parse()?)
     ///     .set_info("NS=3;AF=0.5".parse()?)
     ///     .build()?;
     ///
@@ -466,7 +462,6 @@ impl Record {
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
-    ///     .set_alternate_bases("C".parse()?)
     ///     .set_info("NS=3;AF=0.5".parse()?)
     ///     .build()?;
     ///

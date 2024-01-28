@@ -37,7 +37,13 @@ where
     if record.alternate_bases().is_empty() {
         writer.write_all(MISSING)?;
     } else {
-        write!(writer, "{}", record.alternate_bases())?;
+        for (i, allele) in record.alternate_bases().as_ref().iter().enumerate() {
+            if i > 0 {
+                write!(writer, ",")?;
+            }
+
+            write!(writer, "{allele}")?;
+        }
     }
 
     writer.write_all(DELIMITER)?;
