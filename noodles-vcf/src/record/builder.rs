@@ -211,21 +211,21 @@ impl Builder {
     ///     record::{info::field::{key, Value}, Info, Position},
     /// };
     ///
-    /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0")
-    ///     .set_position(Position::from(1))
-    ///     .set_reference_bases("A")
-    ///     .set_info("NS=3;AF=0.5".parse()?)
-    ///     .build()?;
-    ///
-    /// let expected = [
+    /// let info: Info = [
     ///     (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(3))),
     ///     (String::from(key::ALLELE_FREQUENCIES), Some(Value::from(vec![Some(0.5)]))),
     /// ]
     /// .into_iter()
     /// .collect();
     ///
-    /// assert_eq!(record.info(), &expected);
+    /// let record = vcf::Record::builder()
+    ///     .set_chromosome("sq0")
+    ///     .set_position(Position::from(1))
+    ///     .set_reference_bases("A")
+    ///     .set_info(info.clone())
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.info(), &info);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_info(mut self, info: Info) -> Self {

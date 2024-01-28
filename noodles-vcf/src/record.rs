@@ -410,21 +410,21 @@ impl Record {
     ///     record::{info::field::{key, Value}, Info, Position},
     /// };
     ///
-    /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0")
-    ///     .set_position(Position::from(1))
-    ///     .set_reference_bases("A")
-    ///     .set_info("NS=3;AF=0.5".parse()?)
-    ///     .build()?;
-    ///
-    /// let expected = [
+    /// let info: Info = [
     ///     (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::from(3))),
     ///     (String::from(key::ALLELE_FREQUENCIES), Some(Value::from(vec![Some(0.5)]))),
     /// ]
     /// .into_iter()
     /// .collect();
     ///
-    /// assert_eq!(record.info(), &expected);
+    /// let record = vcf::Record::builder()
+    ///     .set_chromosome("sq0")
+    ///     .set_position(Position::from(1))
+    ///     .set_reference_bases("A")
+    ///     .set_info(info.clone())
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.info(), &info);
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn info(&self) -> &Info {
@@ -441,11 +441,18 @@ impl Record {
     ///     record::{info::field::{key, Value}, Info, Position},
     /// };
     ///
+    /// let info: Info = [
+    ///     (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::from(3))),
+    ///     (String::from(key::ALLELE_FREQUENCIES), Some(Value::from(vec![Some(0.5)]))),
+    /// ]
+    /// .into_iter()
+    /// .collect();
+    ///
     /// let mut record = vcf::Record::builder()
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A")
-    ///     .set_info("NS=3;AF=0.5".parse()?)
+    ///     .set_info(info)
     ///     .build()?;
     ///
     /// record.info_mut().insert(String::from(key::TOTAL_DEPTH), Some(Value::Integer(13)));
@@ -639,13 +646,20 @@ impl Record {
     /// ## From the `END` INFO field value
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, record::Position};
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     record::{info::field::{key, Value}, Position},
+    /// };
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("ACGT")
-    ///     .set_info("END=8".parse()?)
+    ///     .set_info(
+    ///         [(String::from(key::END_POSITION), Some(Value::from(8)))]
+    ///             .into_iter()
+    ///             .collect(),
+    ///     )
     ///     .build()?;
     ///
     /// assert_eq!(record.end(), Ok(Position::from(8)));
