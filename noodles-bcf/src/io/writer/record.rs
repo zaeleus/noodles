@@ -57,7 +57,7 @@ mod tests {
         let record = vcf::Record::builder()
             .set_chromosome("sq0")
             .set_position(vcf::record::Position::from(1))
-            .set_reference_bases("A".parse()?)
+            .set_reference_bases("A")
             .build()?;
 
         let mut buf = Vec::new();

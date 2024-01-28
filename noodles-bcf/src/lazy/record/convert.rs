@@ -24,7 +24,7 @@ impl Record {
     /// let expected = vcf::Record::builder()
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
-    ///     .set_reference_bases("A".parse()?)
+    ///     .set_reference_bases("N")
     ///     .build()?;
     ///
     /// assert_eq!(actual, expected);
@@ -56,7 +56,7 @@ impl Record {
             .set_chromosome(chromosome)
             .set_position(self.position())
             .set_ids(self.ids().clone())
-            .set_reference_bases(self.reference_bases().clone())
+            .set_reference_bases(self.reference_bases())
             .set_alternate_bases(self.alternate_bases().clone())
             .set_info(info)
             .set_genotypes(genotypes);

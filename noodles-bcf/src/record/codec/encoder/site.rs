@@ -181,14 +181,14 @@ where
 
 pub(crate) fn write_ref_alt<W>(
     writer: &mut W,
-    reference_bases: &vcf::record::ReferenceBases,
+    reference_bases: &str,
     alternate_bases: &vcf::record::AlternateBases,
 ) -> io::Result<()>
 where
     W: Write,
 {
-    let r#ref = reference_bases.to_string();
-    let ref_value = Some(Value::String(Some(&r#ref)));
+    let r#ref = reference_bases;
+    let ref_value = Some(Value::String(Some(r#ref)));
     write_value(writer, ref_value)?;
 
     if !alternate_bases.is_empty() {
@@ -443,11 +443,11 @@ mod tests {
 
     #[test]
     fn test_write_ref_alt() -> Result<(), Box<dyn std::error::Error>> {
-        use vcf::record::{AlternateBases, ReferenceBases};
+        use vcf::record::AlternateBases;
 
         fn t(
             buf: &mut Vec<u8>,
-            reference_bases: &ReferenceBases,
+            reference_bases: &str,
             alternate_bases: &AlternateBases,
             expected: &[u8],
         ) -> io::Result<()> {
@@ -459,23 +459,18 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        t(
-            &mut buf,
-            &"A".parse()?,
-            &AlternateBases::default(),
-            &[0x17, b'A'],
-        )?;
+        t(&mut buf, "A", &AlternateBases::default(), &[0x17, b'A'])?;
 
         t(
             &mut buf,
-            &"A".parse()?,
+            "A",
             &AlternateBases::from(vec![String::from("G")]),
             &[0x17, b'A', 0x17, b'G'],
         )?;
 
         t(
             &mut buf,
-            &"A".parse()?,
+            "A",
             &AlternateBases::from(vec![String::from("G"), String::from("T")]),
             &[0x17, b'A', 0x17, b'G', 0x17, b'T'],
         )?;

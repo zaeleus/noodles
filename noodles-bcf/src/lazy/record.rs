@@ -24,7 +24,7 @@ pub struct Record {
     pub(crate) rlen: usize,
     pub(crate) qual: Option<f32>,
     pub(crate) id: vcf::record::Ids,
-    pub(crate) r#ref: vcf::record::ReferenceBases,
+    pub(crate) r#ref: String,
     pub(crate) alt: vcf::record::AlternateBases,
     pub(crate) filter: Filters,
     pub(crate) info: Info,
@@ -119,7 +119,7 @@ impl Record {
         &self.id
     }
 
-    pub(crate) fn reference_bases(&self) -> &vcf::record::ReferenceBases {
+    pub(crate) fn reference_bases(&self) -> &str {
         &self.r#ref
     }
 
@@ -169,15 +169,13 @@ impl Record {
 
 impl Default for Record {
     fn default() -> Self {
-        use vcf::record::reference_bases::Base;
-
         Self {
             chrom: 0,
             pos: vcf::record::Position::from(1),
             rlen: 1,
             qual: None,
             id: vcf::record::Ids::default(),
-            r#ref: vcf::record::ReferenceBases::try_from(vec![Base::A]).unwrap(),
+            r#ref: String::from("N"),
             alt: vcf::record::AlternateBases::default(),
             filter: Filters::default(),
             info: Info::default(),

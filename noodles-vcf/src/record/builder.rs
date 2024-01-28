@@ -2,10 +2,7 @@
 
 use std::{error, fmt};
 
-use super::{
-    reference_bases::Base, AlternateBases, Filters, Genotypes, Ids, Info, Position, Record,
-    ReferenceBases,
-};
+use super::{AlternateBases, Filters, Genotypes, Ids, Info, Position, Record};
 
 /// A VCF record builder.
 #[derive(Debug, Default, PartialEq)]
@@ -13,7 +10,7 @@ pub struct Builder {
     chromosome: Option<String>,
     position: Option<Position>,
     ids: Ids,
-    reference_bases: Vec<Base>,
+    reference_bases: String,
     alternate_bases: AlternateBases,
     quality_score: Option<f32>,
     filters: Option<Filters>,
@@ -55,11 +52,11 @@ impl Builder {
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
-    ///     .set_reference_bases("A".parse()?)
+    ///     .set_reference_bases("A")
     ///     .build()?;
     ///
     /// assert_eq!(record.chromosome(), "sq0");
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// # Ok::<_, vcf::record::builder::BuildError>(())
     /// ```
     pub fn set_chromosome<C>(mut self, chromosome: C) -> Self
     where
@@ -79,11 +76,11 @@ impl Builder {
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(8))
-    ///     .set_reference_bases("A".parse()?)
+    ///     .set_reference_bases("A")
     ///     .build()?;
     ///
     /// assert_eq!(usize::from(record.position()), 8);
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// # Ok::<_, vcf::record::builder::BuildError>(())
     /// ```
     pub fn set_position(mut self, position: Position) -> Self {
         self.position = Some(position);
@@ -101,7 +98,7 @@ impl Builder {
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_ids("nd0".parse()?)
-    ///     .set_reference_bases("A".parse()?)
+    ///     .set_reference_bases("A")
     ///     .build()?;
     ///
     /// assert_eq!(*record.ids(), "nd0".parse()?);
@@ -117,53 +114,22 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     self as vcf,
-    ///     record::{reference_bases::Base, Position, ReferenceBases},
-    /// };
+    /// use noodles_vcf::{self as vcf, record::Position};
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
-    ///     .set_reference_bases("A".parse()?)
+    ///     .set_reference_bases("A")
     ///     .build()?;
     ///
-    /// assert_eq!(
-    ///     record.reference_bases(),
-    ///     &ReferenceBases::try_from(vec![Base::A])?,
-    /// );
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// assert_eq!(record.reference_bases(), "A");
+    /// # Ok::<_, vcf::record::builder::BuildError>(())
     /// ```
-    pub fn set_reference_bases(mut self, reference_bases: ReferenceBases) -> Self {
-        self.reference_bases.clear();
-        self.reference_bases.extend(reference_bases.iter());
-        self
-    }
-
-    /// Adds a base to reference bases.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::{
-    ///     self as vcf,
-    ///     record::{reference_bases::Base, Position, ReferenceBases},
-    /// };
-    ///
-    /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0")
-    ///     .set_position(Position::from(1))
-    ///     .add_reference_base(Base::A)
-    ///     .build()?;
-    ///
-    /// assert_eq!(
-    ///     record.reference_bases(),
-    ///     &ReferenceBases::try_from(vec![Base::A])?,
-    /// );
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
-    /// ```
-    pub fn add_reference_base(mut self, reference_base: Base) -> Self {
-        self.reference_bases.push(reference_base);
+    pub fn set_reference_bases<B>(mut self, reference_bases: B) -> Self
+    where
+        B: Into<String>,
+    {
+        self.reference_bases = reference_bases.into();
         self
     }
 
@@ -172,22 +138,19 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     self as vcf,
-    ///     record::{reference_bases::Base, AlternateBases, Position},
-    /// };
+    /// use noodles_vcf::{self as vcf, record::{AlternateBases, Position}};
     ///
     /// let alternate_bases = AlternateBases::from(vec![String::from("C")]);
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
-    ///     .set_reference_bases("A".parse()?)
+    ///     .set_reference_bases("A")
     ///     .set_alternate_bases(alternate_bases.clone())
     ///     .build()?;
     ///
     /// assert_eq!(record.alternate_bases(), &alternate_bases);
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// # Ok::<_, vcf::record::builder::BuildError>(())
     /// ```
     pub fn set_alternate_bases(mut self, alternate_bases: AlternateBases) -> Self {
         self.alternate_bases = alternate_bases;
@@ -204,12 +167,12 @@ impl Builder {
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
-    ///     .set_reference_bases("A".parse()?)
+    ///     .set_reference_bases("A")
     ///     .set_quality_score(13.0)
     ///     .build()?;
     ///
     /// assert_eq!(record.quality_score(), Some(13.0));
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// # Ok::<_, vcf::record::builder::BuildError>(())
     /// ```
     pub fn set_quality_score(mut self, quality_score: f32) -> Self {
         self.quality_score = Some(quality_score);
@@ -226,12 +189,12 @@ impl Builder {
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
-    ///     .set_reference_bases("A".parse()?)
+    ///     .set_reference_bases("A")
     ///     .set_filters(Filters::Pass)
     ///     .build()?;
     ///
     /// assert_eq!(record.filters(), Some(&Filters::Pass));
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// # Ok::<_, vcf::record::builder::BuildError>(())
     /// ```
     pub fn set_filters(mut self, filters: Filters) -> Self {
         self.filters = Some(filters);
@@ -251,7 +214,7 @@ impl Builder {
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
-    ///     .set_reference_bases("A".parse()?)
+    ///     .set_reference_bases("A")
     ///     .set_info("NS=3;AF=0.5".parse()?)
     ///     .build()?;
     ///
@@ -287,7 +250,7 @@ impl Builder {
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
-    ///     .set_reference_bases("A".parse()?)
+    ///     .set_reference_bases("A")
     ///     .set_genotypes(genotypes.clone())
     ///     .build()?;
     ///
@@ -312,8 +275,11 @@ impl Builder {
             chromosome: self.chromosome.ok_or(BuildError::MissingChromosome)?,
             position: self.position.ok_or(BuildError::MissingPosition)?,
             ids: self.ids,
-            reference_bases: ReferenceBases::try_from(self.reference_bases)
-                .map_err(|_| BuildError::MissingReferenceBases)?,
+            reference_bases: if self.reference_bases.is_empty() {
+                return Err(BuildError::MissingReferenceBases);
+            } else {
+                self.reference_bases
+            },
             alternate_bases: self.alternate_bases,
             quality_score: self.quality_score,
             filters: self.filters,
@@ -346,13 +312,13 @@ mod tests {
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
         let result = Builder::default()
             .set_position(Position::from(1))
-            .set_reference_bases("A".parse()?)
+            .set_reference_bases("A")
             .build();
         assert_eq!(result, Err(BuildError::MissingChromosome));
 
         let result = Builder::default()
             .set_chromosome("sq0")
-            .set_reference_bases("A".parse()?)
+            .set_reference_bases("A")
             .build();
         assert_eq!(result, Err(BuildError::MissingPosition));
 
