@@ -6,7 +6,6 @@ pub mod filters;
 pub mod genotypes;
 pub mod ids;
 pub mod info;
-mod parser;
 pub mod position;
 pub(crate) mod value;
 
@@ -15,9 +14,7 @@ pub use self::{
     ids::Ids, info::Info, position::Position,
 };
 
-use std::{error, fmt, num, str::FromStr};
-
-use super::{io::reader::record::ParseError, Header};
+use std::{error, fmt, num};
 
 pub(crate) const MISSING_FIELD: &str = ".";
 pub(crate) const FIELD_DELIMITER: char = '\t';
@@ -44,23 +41,6 @@ pub struct Record {
 }
 
 impl Record {
-    /// Parses a raw VCF record using a VCF header as context.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf as vcf;
-    ///
-    /// let s = "sq0\t8\t.\tA\t.\t.\tPASS\t.";
-    /// let header = vcf::Header::default();
-    /// let record = vcf::Record::try_from_str(s, &header)?;
-    /// # Ok::<_, vcf::io::reader::record::ParseError>(())
-    /// ```
-    #[deprecated(since = "0.27.0", note = "Use `TryFrom<(&Header, &str)>` instead.")]
-    pub fn try_from_str(s: &str, header: &Header) -> Result<Self, ParseError> {
-        Self::try_from((header, s))
-    }
-
     /// Returns a builder to create a record from each of its fields.
     ///
     /// # Examples
@@ -713,22 +693,6 @@ impl Record {
         };
 
         Ok(Position::from(end))
-    }
-}
-
-impl FromStr for Record {
-    type Err = ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Self::try_from((&Header::default(), s))
-    }
-}
-
-impl TryFrom<(&Header, &str)> for Record {
-    type Error = ParseError;
-
-    fn try_from((header, s): (&Header, &str)) -> Result<Self, Self::Error> {
-        parser::parse(s, header)
     }
 }
 

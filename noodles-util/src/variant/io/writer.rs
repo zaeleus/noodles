@@ -53,8 +53,7 @@ impl Writer {
     /// let header = vcf::Header::default();
     /// writer.write_header(&header)?;
     ///
-    /// let s = "sq0\t8\t.\tA\t.\t.\tPASS\t.";
-    /// let record = Record::try_from_str(s, &header)?;
+    /// let record = vcf::Record::default();
     /// writer.write_record(&header, &record)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
