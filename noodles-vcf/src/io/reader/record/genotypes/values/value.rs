@@ -2,11 +2,8 @@ use std::{error, fmt, num, str};
 
 use crate::{
     header::{record::value::map::format::Type, Number},
-    io::reader::record::MISSING,
-    record::{
-        genotypes::sample::{value::Array, Value},
-        value,
-    },
+    io::reader::record::{value, MISSING},
+    record::genotypes::sample::{value::Array, Value},
 };
 
 const DELIMITER: char = ',';

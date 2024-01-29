@@ -7,7 +7,6 @@ pub mod genotypes;
 pub mod ids;
 pub mod info;
 pub mod position;
-pub(crate) mod value;
 
 pub use self::{
     alternate_bases::AlternateBases, builder::Builder, filters::Filters, genotypes::Genotypes,
