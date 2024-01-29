@@ -1,7 +1,7 @@
 use std::{error, fmt, num};
 
 use super::read_value;
-use crate::lazy::record::value::Type;
+use crate::record::codec::value::Type;
 
 pub fn read_type(src: &mut &[u8]) -> Result<Option<Type>, DecodeError> {
     let encoding = get_u8(src)?;

@@ -2,15 +2,15 @@ use std::{error, fmt, str};
 
 use noodles_vcf::record::genotypes::sample::Value;
 
-use crate::{
-    lazy::record::value::{Float, Int16, Int32, Int8, Type},
-    record::codec::decoder::{
+use crate::record::codec::{
+    decoder::{
         raw_value::{
             self, read_f32, read_f32s, read_i16, read_i16s, read_i32, read_i32s, read_i8, read_i8s,
             read_string,
         },
         value::{read_type, ty},
     },
+    value::{Float, Int16, Int32, Int8, Type},
 };
 
 pub(super) fn read_values(

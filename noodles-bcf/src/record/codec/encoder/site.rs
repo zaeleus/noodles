@@ -11,7 +11,7 @@ use crate::{
         string_maps::{ContigStringMap, StringStringMap},
         StringMaps,
     },
-    lazy::record::value::{Float, Value},
+    record::codec::value::{Float, Value},
 };
 
 use self::info::write_info;

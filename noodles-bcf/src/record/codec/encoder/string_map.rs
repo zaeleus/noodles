@@ -4,7 +4,7 @@ use std::{
 };
 
 use super::value::write_value;
-use crate::lazy::record::{
+use crate::record::codec::{
     value::{Array, Int16, Int32, Int8},
     Value,
 };

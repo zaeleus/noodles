@@ -16,7 +16,7 @@ use noodles_vcf::{
 use super::{string_map::write_string_map_index, value::write_type};
 use crate::{
     header::string_maps::StringStringMap,
-    lazy::record::value::{Float, Int16, Int32, Int8, Type},
+    record::codec::value::{Float, Int16, Int32, Int8, Type},
 };
 
 const NUL: u8 = 0x00;

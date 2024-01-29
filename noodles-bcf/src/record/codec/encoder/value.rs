@@ -6,7 +6,7 @@ use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 
-use crate::lazy::record::value::{Array, Float, Int16, Int32, Int8, Type, Value};
+use crate::record::codec::value::{Array, Float, Int16, Int32, Int8, Type, Value};
 
 pub fn write_value<W>(writer: &mut W, value: Option<Value<'_>>) -> io::Result<()>
 where

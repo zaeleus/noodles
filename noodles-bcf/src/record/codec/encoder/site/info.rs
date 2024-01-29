@@ -7,11 +7,11 @@ use noodles_vcf as vcf;
 
 use crate::{
     header::string_maps::StringStringMap,
-    lazy::record::{
+    record::codec::{
+        encoder::{string_map::write_string_map_index, value::write_value},
         value::{Array, Float, Int16, Int32, Int8},
         Value,
     },
-    record::codec::encoder::{string_map::write_string_map_index, value::write_value},
 };
 
 const MISSING_VALUE: char = '.';
