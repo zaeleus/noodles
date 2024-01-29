@@ -2,7 +2,7 @@ use std::{error, fmt, num};
 
 use crate::{
     header::string_maps::StringMap,
-    lazy::record::{
+    record::codec::{
         value::{Array, Int16, Int32, Int8},
         Value,
     },

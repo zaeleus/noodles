@@ -3,7 +3,7 @@ use std::io;
 use noodles_vcf::record::AlternateBases;
 
 use super::read_value;
-use crate::lazy::record::Value;
+use crate::record::codec::Value;
 
 pub(crate) fn read_ref_alt(src: &mut &[u8], len: usize) -> io::Result<(String, AlternateBases)> {
     let mut alleles = Vec::with_capacity(len);

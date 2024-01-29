@@ -3,7 +3,7 @@ pub mod ty;
 use std::{error, fmt, str};
 
 pub use self::ty::read_type;
-use crate::lazy::record::{
+use crate::record::codec::{
     value::{Array, Float, Int16, Int32, Int8, Type},
     Value,
 };

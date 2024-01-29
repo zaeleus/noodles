@@ -3,7 +3,7 @@ use std::io;
 use noodles_vcf::record::Ids;
 
 use super::read_value;
-use crate::lazy::record::Value;
+use crate::record::codec::Value;
 
 pub fn read_id(src: &mut &[u8]) -> io::Result<Ids> {
     match read_value(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))? {

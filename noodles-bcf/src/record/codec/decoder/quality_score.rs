@@ -3,7 +3,7 @@ use std::io;
 use byteorder::{LittleEndian, ReadBytesExt};
 
 pub(crate) fn read_qual(src: &mut &[u8]) -> io::Result<Option<f32>> {
-    use crate::lazy::record::value::Float;
+    use crate::record::codec::value::Float;
 
     match src.read_f32::<LittleEndian>().map(Float::from)? {
         Float::Value(n) => Ok(Some(n)),

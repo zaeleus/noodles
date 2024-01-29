@@ -8,12 +8,10 @@ use noodles_vcf::{
     },
 };
 
-use crate::{
-    lazy::record::{
-        value::{Array, Float, Int16, Int32, Int8},
-        Value,
-    },
-    record::codec::decoder::value,
+use crate::record::codec::{
+    decoder::value,
+    value::{Array, Float, Int16, Int32, Int8},
+    Value,
 };
 
 pub(super) fn read_value(
