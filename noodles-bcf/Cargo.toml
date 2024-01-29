@@ -11,7 +11,7 @@ repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-bcf"
 
 [features]
-async = ["dep:futures", "dep:tokio", "noodles-bgzf/async", "noodles-csi/async"]
+async = ["dep:futures", "dep:tokio", "noodles-bgzf/async", "noodles-csi/async", "noodles-vcf/async"]
 
 [dependencies]
 byteorder.workspace = true
