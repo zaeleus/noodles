@@ -9,6 +9,7 @@ mod info;
 mod position;
 mod quality_score;
 mod reference_bases;
+mod value;
 
 use std::{error, fmt};
 
