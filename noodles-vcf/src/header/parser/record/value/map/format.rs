@@ -1,19 +1,16 @@
 use std::{error, fmt, num};
 
-use crate::{
-    header::{
-        number,
-        record::value::{
-            map::{
-                self,
-                format::{tag, ty, Tag, Type},
-                Format, OtherFields,
-            },
-            Map,
+use crate::header::{
+    number,
+    record::value::{
+        map::{
+            self,
+            format::{tag, ty, Tag, Type},
+            Format, OtherFields,
         },
-        FileFormat, Number,
+        Map,
     },
-    record::genotypes::keys::{key, Key},
+    FileFormat, Number,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -21,7 +18,6 @@ pub enum ParseErrorKind {
     InvalidMap(super::ParseError),
     InvalidField(super::field::ParseError),
     MissingId,
-    InvalidId(key::ParseError),
     MissingNumber,
     InvalidNumber(number::ParseError),
     MissingType,
@@ -34,16 +30,16 @@ pub enum ParseErrorKind {
 /// An error returned when a VCF header record format map value fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ParseError {
-    id: Option<Key>,
+    id: Option<String>,
     kind: ParseErrorKind,
 }
 
 impl ParseError {
-    fn new(id: Option<Key>, kind: ParseErrorKind) -> Self {
+    fn new(id: Option<String>, kind: ParseErrorKind) -> Self {
         Self { id, kind }
     }
 
-    pub(crate) fn id(&self) -> Option<&Key> {
+    pub(crate) fn id(&self) -> Option<&String> {
         self.id.as_ref()
     }
 }
@@ -53,7 +49,6 @@ impl error::Error for ParseError {
         match &self.kind {
             ParseErrorKind::InvalidMap(e) => Some(e),
             ParseErrorKind::InvalidField(e) => Some(e),
-            ParseErrorKind::InvalidId(e) => Some(e),
             ParseErrorKind::InvalidNumber(e) => Some(e),
             ParseErrorKind::InvalidType(e) => Some(e),
             ParseErrorKind::InvalidIdx(e) => Some(e),
@@ -68,7 +63,6 @@ impl fmt::Display for ParseError {
             ParseErrorKind::InvalidMap(_) => write!(f, "invalid map"),
             ParseErrorKind::InvalidField(_) => write!(f, "invalid field"),
             ParseErrorKind::MissingId => write!(f, "missing ID"),
-            ParseErrorKind::InvalidId(_) => write!(f, "invalid ID"),
             ParseErrorKind::MissingNumber => write!(f, "missing number"),
             ParseErrorKind::InvalidNumber(_) => write!(f, "invalid number"),
             ParseErrorKind::MissingType => write!(f, "missing type"),
@@ -82,8 +76,8 @@ impl fmt::Display for ParseError {
 
 pub fn parse_format(
     src: &mut &[u8],
-    file_format: FileFormat,
-) -> Result<(Key, Map<Format>), ParseError> {
+    _file_format: FileFormat,
+) -> Result<(String, Map<Format>), ParseError> {
     super::consume_prefix(src).map_err(|e| ParseError::new(None, ParseErrorKind::InvalidMap(e)))?;
 
     let mut id = None;
@@ -98,8 +92,7 @@ pub fn parse_format(
         .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidField(e)))?
     {
         match Tag::from(raw_key) {
-            tag::ID => parse_id(&raw_value, file_format, &id)
-                .and_then(|v| try_replace(&mut id, &None, tag::ID, v))?,
+            tag::ID => try_replace(&mut id, &None, tag::ID, raw_value.into())?,
             tag::NUMBER => parse_number(&raw_value, &id)
                 .and_then(|v| try_replace(&mut number, &id, tag::NUMBER, v))?,
             tag::TYPE => {
@@ -140,29 +133,24 @@ pub fn parse_format(
     ))
 }
 
-fn parse_id(s: &str, file_format: FileFormat, id: &Option<Key>) -> Result<Key, ParseError> {
-    Key::try_from((file_format, s))
-        .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidId(e)))
-}
-
-fn parse_number(s: &str, id: &Option<Key>) -> Result<Number, ParseError> {
+fn parse_number(s: &str, id: &Option<String>) -> Result<Number, ParseError> {
     s.parse()
         .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidNumber(e)))
 }
 
-fn parse_type(s: &str, id: &Option<Key>) -> Result<Type, ParseError> {
+fn parse_type(s: &str, id: &Option<String>) -> Result<Type, ParseError> {
     s.parse()
         .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidType(e)))
 }
 
-fn parse_idx(s: &str, id: &Option<Key>) -> Result<usize, ParseError> {
+fn parse_idx(s: &str, id: &Option<String>) -> Result<usize, ParseError> {
     s.parse()
         .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidIdx(e)))
 }
 
 fn try_replace<T>(
     option: &mut Option<T>,
-    id: &Option<Key>,
+    id: &Option<String>,
     tag: Tag,
     value: T,
 ) -> Result<(), ParseError> {
@@ -178,7 +166,7 @@ fn try_replace<T>(
 
 fn try_insert(
     other_fields: &mut OtherFields<tag::Standard>,
-    id: &Option<Key>,
+    id: &Option<String>,
     tag: map::tag::Other<tag::Standard>,
     value: String,
 ) -> Result<(), ParseError> {
@@ -202,6 +190,7 @@ fn try_insert(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::record::genotypes::keys::key;
 
     #[test]
     fn test_parse_format() {
@@ -209,8 +198,8 @@ mod tests {
         let file_format = FileFormat::new(4, 4);
 
         let id = key::GENOTYPE;
-        let map = Map::<Format>::from(&id);
-        let expected = (id, map);
+        let map = Map::<Format>::from(id);
+        let expected = (String::from(id), map);
 
         assert_eq!(parse_format(&mut src, file_format), Ok(expected));
     }

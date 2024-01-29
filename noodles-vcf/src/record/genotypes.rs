@@ -52,7 +52,7 @@ impl Genotypes {
     /// let genotypes = Genotypes::default();
     /// assert!(genotypes.keys().is_empty());
     ///
-    /// let keys = Keys::try_from(vec![key::GENOTYPE])?;
+    /// let keys = Keys::try_from(vec![String::from(key::GENOTYPE)])?;
     /// let genotypes = Genotypes::new(keys.clone(), Vec::new());
     /// assert_eq!(genotypes.keys(), &keys);
     /// # Ok::<_, noodles_vcf::record::genotypes::keys::TryFromKeyVectorError>(())
@@ -68,7 +68,7 @@ impl Genotypes {
     /// ```
     /// use noodles_vcf::record::{genotypes::{keys::key, Keys}, Genotypes};
     ///
-    /// let keys = Keys::try_from(vec![key::GENOTYPE])?;
+    /// let keys = Keys::try_from(vec![String::from(key::GENOTYPE)])?;
     ///
     /// let mut genotypes = Genotypes::default();
     /// *genotypes.keys_mut() = keys.clone();
@@ -143,7 +143,10 @@ mod tests {
 
     #[test]
     fn test_genotypes() -> Result<(), Box<dyn std::error::Error>> {
-        let keys = Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?;
+        let keys = Keys::try_from(vec![
+            String::from(key::GENOTYPE),
+            String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
+        ])?;
         let genotypes = Genotypes::new(
             keys,
             vec![

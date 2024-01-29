@@ -196,7 +196,10 @@ mod tests {
         let header = Header::default();
 
         let genotypes = Genotypes::new(
-            Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?,
+            Keys::try_from(vec![
+                String::from(key::GENOTYPE),
+                String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
+            ])?,
             vec![vec![
                 Some(Value::String(String::from("0|0"))),
                 Some(Value::Integer(13)),

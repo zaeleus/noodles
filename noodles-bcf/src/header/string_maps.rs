@@ -47,7 +47,7 @@ impl StringMaps {
     /// let header = vcf::Header::builder()
     ///     .add_info(info::field::key::TOTAL_DEPTH, Map::<Info>::from(info::field::key::TOTAL_DEPTH))
     ///     .add_filter("q10", Map::<Filter>::new("Quality below 10"))
-    ///     .add_format(genotypes::keys::key::READ_DEPTH, Map::<Format>::from(&genotypes::keys::key::READ_DEPTH))
+    ///     .add_format(genotypes::keys::key::READ_DEPTH, Map::<Format>::from(genotypes::keys::key::READ_DEPTH))
     ///     .add_contig("sq0", Map::<Contig>::new())
     ///     .build();
     ///
@@ -83,7 +83,7 @@ impl StringMaps {
     /// let header = vcf::Header::builder()
     ///     .add_info(info::field::key::TOTAL_DEPTH, Map::<Info>::from(info::field::key::TOTAL_DEPTH))
     ///     .add_filter("q10", Map::<Filter>::new("Quality below 10"))
-    ///     .add_format(genotypes::keys::key::READ_DEPTH, Map::<Format>::from(&genotypes::keys::key::READ_DEPTH))
+    ///     .add_format(genotypes::keys::key::READ_DEPTH, Map::<Format>::from(genotypes::keys::key::READ_DEPTH))
     ///     .add_contig("sq0", Map::<Contig>::new())
     ///     .build();
     ///
@@ -106,7 +106,7 @@ impl StringMaps {
         match entry {
             Entry::Contig(id, contig) => insert(self.contigs_mut(), id, contig.idx()),
             Entry::Filter(id, filter) => insert(self.strings_mut(), id, filter.idx()),
-            Entry::Format(id, format) => insert(self.strings_mut(), id.as_ref(), format.idx()),
+            Entry::Format(id, format) => insert(self.strings_mut(), id, format.idx()),
             Entry::Info(id, info) => insert(self.strings_mut(), id, info.idx()),
             _ => Ok(()),
         }
@@ -427,11 +427,11 @@ mod tests {
             .add_filter("q10", Map::<Filter>::new("Quality below 10"))
             .add_format(
                 genotypes::keys::key::GENOTYPE,
-                Map::<Format>::from(&genotypes::keys::key::GENOTYPE),
+                Map::<Format>::from(genotypes::keys::key::GENOTYPE),
             )
             .add_format(
                 genotypes::keys::key::READ_DEPTH,
-                Map::<Format>::from(&genotypes::keys::key::READ_DEPTH),
+                Map::<Format>::from(genotypes::keys::key::READ_DEPTH),
             )
             .add_alternative_allele("DEL", Map::<AlternativeAllele>::new("Deletion"))
             .build();

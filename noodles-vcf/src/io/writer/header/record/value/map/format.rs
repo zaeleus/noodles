@@ -24,12 +24,12 @@ mod tests {
         let mut buf = Vec::new();
 
         buf.clear();
-        let map = Map::<Format>::from(&key::GENOTYPE);
+        let map = Map::<Format>::from(key::GENOTYPE);
         write_format(&mut buf, &map)?;
         assert_eq!(buf, br#",Number=1,Type=String,Description="Genotype""#);
 
         buf.clear();
-        let mut map = Map::<Format>::from(&key::GENOTYPE);
+        let mut map = Map::<Format>::from(key::GENOTYPE);
         map.other_fields_mut()
             .insert("noodles".parse()?, String::from("vcf"));
         write_format(&mut buf, &map)?;

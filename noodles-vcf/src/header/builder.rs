@@ -111,7 +111,7 @@ impl Builder {
     /// };
     ///
     /// let id = key::GENOTYPE;
-    /// let format = Map::<Format>::from(&id);
+    /// let format = Map::<Format>::from(id);
     ///
     /// let header = vcf::Header::builder()
     ///     .add_format(id, format.clone())
@@ -121,12 +121,11 @@ impl Builder {
     /// assert_eq!(formats.len(), 1);
     /// assert_eq!(&formats[0], &format);
     /// ```
-    pub fn add_format(
-        mut self,
-        id: crate::record::genotypes::keys::Key,
-        format: Map<Format>,
-    ) -> Self {
-        self.formats.insert(id, format);
+    pub fn add_format<I>(mut self, id: I, format: Map<Format>) -> Self
+    where
+        I: Into<String>,
+    {
+        self.formats.insert(id.into(), format);
         self
     }
 
@@ -339,7 +338,7 @@ mod tests {
             .add_filter("q10", Map::<Filter>::new("Quality below 10"))
             .add_format(
                 format_key::GENOTYPE,
-                Map::<Format>::from(&format_key::GENOTYPE),
+                Map::<Format>::from(format_key::GENOTYPE),
             )
             .add_alternative_allele("DEL", Map::<AlternativeAllele>::new("Deletion"))
             .add_contig("sq0", Map::<Contig>::new())

@@ -36,7 +36,7 @@ where
             writer.write_all(DELIMITER)?;
         }
 
-        writer.write_all(key.as_ref().as_bytes())?;
+        writer.write_all(key.as_bytes())?;
     }
 
     Ok(())
@@ -157,13 +157,16 @@ mod tests {
         let mut buf = Vec::new();
 
         let genotypes = Genotypes::new(
-            Keys::try_from(vec![key::GENOTYPE])?,
+            Keys::try_from(vec![String::from(key::GENOTYPE)])?,
             vec![vec![Some(Value::from("0|0"))]],
         );
         t(&mut buf, &genotypes, b"GT\t0|0")?;
 
         let genotypes = Genotypes::new(
-            Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?,
+            Keys::try_from(vec![
+                String::from(key::GENOTYPE),
+                String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
+            ])?,
             vec![
                 vec![Some(Value::from("0|0")), Some(Value::from(13))],
                 vec![Some(Value::from("0/1")), Some(Value::from(8))],

@@ -144,7 +144,7 @@ pub enum ParseError {
     /// A filter ID is duplicated.
     DuplicateFilterId(String),
     /// A format ID is duplicated.
-    DuplicateFormatId(crate::record::genotypes::keys::Key),
+    DuplicateFormatId(String),
     /// An alternative allele ID is duplicated.
     DuplicateAlternativeAlleleId(String),
     /// A contig ID is duplicated.
@@ -274,7 +274,7 @@ fn try_insert_filter(
 
 fn try_insert_format(
     formats: &mut Formats,
-    id: crate::record::genotypes::keys::Key,
+    id: String,
     format: Map<Format>,
 ) -> Result<Entry<'_>, ParseError> {
     use indexmap::map::Entry;
@@ -454,7 +454,7 @@ mod tests {
             .add_filter("q10", Map::<Filter>::new("Quality below 10"))
             .add_format(
                 genotypes::keys::key::GENOTYPE,
-                Map::<Format>::from(&genotypes::keys::key::GENOTYPE),
+                Map::<Format>::from(genotypes::keys::key::GENOTYPE),
             )
             .add_alternative_allele("DEL", Map::<AlternativeAllele>::new("Deletion"))
             .insert(
@@ -607,9 +607,9 @@ mod tests {
 
         assert_eq!(
             Parser::default().parse(s),
-            Err(ParseError::DuplicateFormatId(
+            Err(ParseError::DuplicateFormatId(String::from(
                 crate::record::genotypes::keys::key::GENOTYPE
-            ))
+            )))
         );
 
         let s = r#"##fileformat=VCFv4.3

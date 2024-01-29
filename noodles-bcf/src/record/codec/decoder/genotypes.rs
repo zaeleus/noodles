@@ -29,13 +29,13 @@ pub fn read_genotypes(
     for _ in 0..format_count {
         let key = read_key(src, formats, string_map).map_err(DecodeError::InvalidKey)?;
 
-        let values = if key == &key::GENOTYPE {
+        let values = if key == key::GENOTYPE {
             read_genotype_values(src, sample_count).map_err(DecodeError::InvalidValues)?
         } else {
             read_values(src, sample_count).map_err(DecodeError::InvalidValues)?
         };
 
-        keys.push(key.clone());
+        keys.push(key.into());
 
         for (sample, value) in samples.iter_mut().zip(values) {
             sample.push(value);

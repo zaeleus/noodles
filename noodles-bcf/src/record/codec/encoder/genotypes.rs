@@ -8,7 +8,7 @@ use noodles_vcf::{
     self as vcf,
     header::record::value::{map::Format, Map},
     record::genotypes::{
-        keys::{key, Key},
+        keys::key,
         sample::{value::Array, Value},
     },
 };
@@ -53,7 +53,7 @@ where
             io::Error::new(io::ErrorKind::InvalidData, "missing FORMAT header record")
         })?;
 
-        if key == &key::GENOTYPE {
+        if key == key::GENOTYPE {
             write_genotype_genotype_field_values(writer, &values)?;
         } else {
             write_genotype_field_values(writer, format, &values)?;
@@ -66,7 +66,7 @@ where
 pub fn write_genotype_field_key<W>(
     writer: &mut W,
     string_map: &StringStringMap,
-    key: &Key,
+    key: &str,
 ) -> io::Result<()>
 where
     W: Write,
@@ -789,9 +789,9 @@ mod tests {
         let header = vcf::Header::builder()
             .add_format(
                 key::CONDITIONAL_GENOTYPE_QUALITY,
-                Map::from(&key::CONDITIONAL_GENOTYPE_QUALITY),
+                Map::from(key::CONDITIONAL_GENOTYPE_QUALITY),
             )
-            .add_format(key::READ_DEPTH, Map::from(&key::READ_DEPTH))
+            .add_format(key::READ_DEPTH, Map::from(key::READ_DEPTH))
             .add_sample_name("sample0")
             .add_sample_name("sample1")
             .build();
@@ -800,8 +800,8 @@ mod tests {
 
         let genotypes = vcf::record::Genotypes::new(
             vcf::record::genotypes::Keys::try_from(vec![
-                key::CONDITIONAL_GENOTYPE_QUALITY,
-                key::READ_DEPTH,
+                String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
+                String::from(key::READ_DEPTH),
             ])?,
             vec![
                 vec![Some(Value::from(13)), Some(Value::from(5))],

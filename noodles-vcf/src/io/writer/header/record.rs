@@ -63,11 +63,7 @@ where
     })
 }
 
-pub(super) fn write_format<W>(
-    writer: &mut W,
-    id: &crate::record::genotypes::keys::Key,
-    format: &Map<Format>,
-) -> io::Result<()>
+pub(super) fn write_format<W>(writer: &mut W, id: &str, format: &Map<Format>) -> io::Result<()>
 where
     W: Write,
 {

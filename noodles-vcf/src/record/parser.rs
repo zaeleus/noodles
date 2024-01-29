@@ -51,13 +51,16 @@ mod tests {
         let s = "chr1\t13\tnd0\tATCG\tA\t5.8\tPASS\tSVTYPE=DEL\tGT:GQ\t0|1:13";
         let record = parse(s, &header)?;
 
-        let keys = Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?;
+        let actual = record.genotypes();
+
+        let keys = Keys::try_from(vec![
+            String::from(key::GENOTYPE),
+            String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
+        ])?;
         let values = vec![vec![
             Some(Value::String(String::from("0|1"))),
             Some(Value::Integer(13)),
         ]];
-
-        let actual = record.genotypes();
         let expected = Genotypes::new(keys, values);
 
         assert_eq!(actual, &expected);

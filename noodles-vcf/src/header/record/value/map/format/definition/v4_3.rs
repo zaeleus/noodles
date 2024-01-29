@@ -1,86 +1,86 @@
 use crate::{
     header::{record::value::map::format::Type, Number},
-    record::genotypes::keys::key::Standard,
+    record::genotypes::keys::key,
 };
 
-pub(super) fn definition(key: Standard) -> Option<(Number, Type, &'static str)> {
+pub(super) fn definition(key: &str) -> Option<(Number, Type, &'static str)> {
     match key {
-        Standard::ReadDepths => Some((Number::R, Type::Integer, "Read depth for each allele")),
-        Standard::ForwardStrandReadDepths => Some((
+        key::READ_DEPTHS => Some((Number::R, Type::Integer, "Read depth for each allele")),
+        key::FORWARD_STRAND_READ_DEPTHS => Some((
             Number::R,
             Type::Integer,
             "Read depth for each allele on the forward strand",
         )),
-        Standard::ReverseStrandReadDepths => Some((
+        key::REVERSE_STRAND_READ_DEPTHS => Some((
             Number::R,
             Type::Integer,
             "Read depth for each allele on the reverse strand",
         )),
-        Standard::ReadDepth => Some((Number::Count(1), Type::Integer, "Read depth")),
-        Standard::ExpectedAlternateAlleleCounts => {
+        key::READ_DEPTH => Some((Number::Count(1), Type::Integer, "Read depth")),
+        key::EXPECTED_ALTERNATE_ALLELE_COUNTS => {
             Some((Number::A, Type::Integer, "Expected alternate allele counts"))
         }
-        Standard::Filter => Some((
+        key::FILTER => Some((
             Number::Count(1),
             Type::String,
             r#"Filter indicating if this genotype was "called""#,
         )),
-        Standard::GenotypeLikelihoods => Some((Number::G, Type::Float, "Genotype likelihoods")),
-        Standard::GenotypePosteriorProbabilities => {
+        key::GENOTYPE_LIKELIHOODS => Some((Number::G, Type::Float, "Genotype likelihoods")),
+        key::GENOTYPE_POSTERIOR_PROBABILITIES => {
             Some((Number::G, Type::Float, "Genotype posterior probabilities"))
         }
-        Standard::ConditionalGenotypeQuality => Some((
+        key::CONDITIONAL_GENOTYPE_QUALITY => Some((
             Number::Count(1),
             Type::Integer,
             "Conditional genotype quality",
         )),
-        Standard::Genotype => Some((Number::Count(1), Type::String, "Genotype")),
-        Standard::HaplotypeQuality => Some((Number::Count(2), Type::Integer, "Haplotype quality")),
-        Standard::MappingQuality => Some((Number::Count(1), Type::Integer, "RMS mapping quality")),
-        Standard::RoundedGenotypeLikelihoods => Some((
+        key::GENOTYPE => Some((Number::Count(1), Type::String, "Genotype")),
+        key::HAPLOTYPE_QUALITY => Some((Number::Count(2), Type::Integer, "Haplotype quality")),
+        key::MAPPING_QUALITY => Some((Number::Count(1), Type::Integer, "RMS mapping quality")),
+        key::ROUNDED_GENOTYPE_LIKELIHOODS => Some((
             Number::G,
             Type::Integer,
             "Phred-scaled genotype likelihoods rounded to the closest integer",
         )),
-        Standard::RoundedGenotypePosteriorProbabilities => Some((
+        key::ROUNDED_GENOTYPE_POSTERIOR_PROBABILITIES => Some((
             Number::G,
             Type::Integer,
             "Phred-scaled genotype posterior probabilities rounded to the closest integer",
         )),
-        Standard::PhasingQuality => Some((Number::Count(1), Type::Integer, "Phasing quality")),
-        Standard::PhaseSet => Some((Number::Count(1), Type::Integer, "Phase set")),
+        key::PHASING_QUALITY => Some((Number::Count(1), Type::Integer, "Phasing quality")),
+        key::PHASE_SET => Some((Number::Count(1), Type::Integer, "Phase set")),
 
-        Standard::GenotypeCopyNumber => Some((
+        key::GENOTYPE_COPY_NUMBER => Some((
             Number::Count(1),
             Type::Integer,
             "Copy number genotype for imprecise events",
         )),
-        Standard::GenotypeCopyNumberQuality => Some((
+        key::GENOTYPE_COPY_NUMBER_QUALITY => Some((
             Number::Count(1),
             Type::Float,
             "Copy number genotype quality for imprecise events",
         )),
-        Standard::GenotypeCopyNumberLikelihoods => Some((
+        key::GENOTYPE_COPY_NUMBER_LIKELIHOODS => Some((
             Number::G,
             Type::Float,
             "Copy number genotype likelihood for imprecise events",
         )),
-        Standard::GenotypeCopyNumberPosteriorProbabilities => Some((
+        key::GENOTYPE_COPY_NUMBER_POSTERIOR_PROBABILITIES => Some((
             Number::G,
             Type::Float,
             "Copy number posterior probabilities",
         )),
-        Standard::NovelVariantQualityScore => Some((
+        key::NOVEL_VARIANT_QUALITY_SCORE => Some((
             Number::Count(1),
             Type::Integer,
             "Phred style probability score that the variant is novel",
         )),
-        Standard::HaplotypeId => Some((
+        key::HAPLOTYPE_ID => Some((
             Number::Count(1),
             Type::Integer,
             "Unique haplotype identifier",
         )),
-        Standard::AncestralHaplotypeId => Some((
+        key::ANCESTRAL_HAPLOTYPE_ID => Some((
             Number::Count(1),
             Type::Integer,
             "Unique identifier of ancestral haplotype",

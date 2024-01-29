@@ -7,10 +7,7 @@ pub(crate) mod ty;
 pub use self::{tag::Tag, ty::Type};
 
 use super::{builder, Described, Indexed, Inner, Map, OtherFields, Typed};
-use crate::{
-    header::{FileFormat, Number},
-    record::genotypes::keys::Key,
-};
+use crate::header::{FileFormat, Number};
 
 /// An inner VCF header format map value.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -96,14 +93,14 @@ impl Map<Format> {
     }
 }
 
-impl From<&Key> for Map<Format> {
-    fn from(key: &Key) -> Self {
+impl From<&str> for Map<Format> {
+    fn from(key: &str) -> Self {
         Self::from((FileFormat::default(), key))
     }
 }
 
-impl From<(FileFormat, &Key)> for Map<Format> {
-    fn from((file_format, key): (FileFormat, &Key)) -> Self {
+impl From<(FileFormat, &str)> for Map<Format> {
+    fn from((file_format, key): (FileFormat, &str)) -> Self {
         let (number, ty, description) =
             definition::definition(file_format, key).unwrap_or_default();
 

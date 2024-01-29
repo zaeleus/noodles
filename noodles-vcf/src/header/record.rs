@@ -25,7 +25,7 @@ pub enum Record {
     /// A `FILTER` record.
     Filter(String, Map<Filter>),
     /// A `FORMAT` record.
-    Format(crate::record::genotypes::keys::Key, Map<Format>),
+    Format(String, Map<Format>),
     /// An `INFO` record.
     Info(String, Map<Info>),
     /// A nonstadard record.
