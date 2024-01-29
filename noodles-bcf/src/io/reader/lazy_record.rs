@@ -216,11 +216,11 @@ pub(crate) mod tests {
 
         let expected = VcfGenotypes::new(
             Keys::try_from(vec![
-                genotypes::keys::key::GENOTYPE,
-                genotypes::keys::key::CONDITIONAL_GENOTYPE_QUALITY,
-                genotypes::keys::key::READ_DEPTH,
-                genotypes::keys::key::READ_DEPTHS,
-                genotypes::keys::key::ROUNDED_GENOTYPE_LIKELIHOODS,
+                String::from(genotypes::keys::key::GENOTYPE),
+                String::from(genotypes::keys::key::CONDITIONAL_GENOTYPE_QUALITY),
+                String::from(genotypes::keys::key::READ_DEPTH),
+                String::from(genotypes::keys::key::READ_DEPTHS),
+                String::from(genotypes::keys::key::ROUNDED_GENOTYPE_LIKELIHOODS),
             ])?,
             vec![
                 vec![

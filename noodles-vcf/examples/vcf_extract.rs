@@ -54,7 +54,7 @@ fn main() -> io::Result<()> {
             .zip(record.genotypes().values())
         {
             let value = sample
-                .get(&key::GENOTYPE)
+                .get(key::GENOTYPE)
                 .expect("missing GT field")
                 .expect("missing GT value");
 

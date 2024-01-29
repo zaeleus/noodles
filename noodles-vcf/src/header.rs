@@ -27,7 +27,7 @@ pub type Infos = IndexMap<String, Map<Info>>;
 pub type Filters = IndexMap<String, Map<Filter>>;
 
 /// VCF header format records.
-pub type Formats = IndexMap<crate::record::genotypes::keys::Key, Map<Format>>;
+pub type Formats = IndexMap<String, Map<Format>>;
 
 /// VCF header alternative allele records.
 pub type AlternativeAlleles = IndexMap<String, Map<AlternativeAllele>>;
@@ -210,7 +210,7 @@ impl Header {
     /// };
     ///
     /// let id = key::GENOTYPE;
-    /// let format = Map::<Format>::from(&id);
+    /// let format = Map::<Format>::from(id);
     ///
     /// let header = vcf::Header::builder()
     ///     .add_format(id, format.clone())
@@ -238,8 +238,8 @@ impl Header {
     /// let mut header = vcf::Header::default();
     ///
     /// let id = key::GENOTYPE;
-    /// let format = Map::<Format>::from(&id);
-    /// header.formats_mut().insert(id, format.clone());
+    /// let format = Map::<Format>::from(id);
+    /// header.formats_mut().insert(id.into(), format.clone());
     ///
     /// let formats = header.formats();
     /// assert_eq!(formats.len(), 1);

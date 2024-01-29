@@ -21,7 +21,7 @@ pub enum ParseError {
     InvalidOtherString(key::Other, string::ParseError),
     InvalidOtherMap(key::Other, map::other::ParseError),
     FormatDefinitionMismatch {
-        id: crate::record::genotypes::keys::Key,
+        id: String,
         actual: (Number, crate::header::record::value::map::format::Type),
         expected: (Number, crate::header::record::value::map::format::Type),
     },
@@ -206,7 +206,7 @@ pub(super) fn parse_value(
 
 fn validate_format_definition(
     file_format: FileFormat,
-    id: &crate::record::genotypes::keys::Key,
+    id: &str,
     actual_number: Number,
     actual_type: crate::header::record::value::map::format::Type,
 ) -> Result<(), ParseError> {
@@ -215,7 +215,7 @@ fn validate_format_definition(
     if let Some((expected_number, expected_type, _)) = definition(file_format, id) {
         if actual_number != expected_number || actual_type != expected_type {
             return Err(ParseError::FormatDefinitionMismatch {
-                id: id.clone(),
+                id: id.into(),
                 actual: (actual_number, actual_type),
                 expected: (expected_number, expected_type),
             });

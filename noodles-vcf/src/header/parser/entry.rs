@@ -15,7 +15,7 @@ pub enum Entry<'a> {
     /// A `FILTER` entry.
     Filter(&'a str, &'a Map<Filter>),
     /// A `FORMAT` entry.
-    Format(&'a crate::record::genotypes::keys::Key, &'a Map<Format>),
+    Format(&'a str, &'a Map<Format>),
     /// An `ALT` entry.
     AlternativeAllele(&'a str, &'a Map<AlternativeAllele>),
     /// A `contig` entry.

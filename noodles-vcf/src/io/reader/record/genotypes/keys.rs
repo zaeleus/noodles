@@ -2,10 +2,7 @@ use std::{error, fmt};
 
 use crate::{
     io::reader::record::MISSING,
-    record::genotypes::{
-        keys::{key, Key},
-        Keys,
-    },
+    record::genotypes::{keys::key, Keys},
     Header,
 };
 
@@ -14,30 +11,20 @@ use crate::{
 pub enum ParseError {
     /// The input is empty.
     Empty,
-    /// A key is invalid.
-    InvalidKey(key::ParseError),
     /// The genotype key (`GT`) position is invalid.
     ///
     /// The genotype key must be first, if present.
     InvalidGenotypeKeyPosition,
     /// A key is duplicated.
-    DuplicateKey(Key),
+    DuplicateKey(String),
 }
 
-impl error::Error for ParseError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match self {
-            Self::InvalidKey(e) => Some(e),
-            _ => None,
-        }
-    }
-}
+impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => write!(f, "empty input"),
-            Self::InvalidKey(_) => write!(f, "invalid key"),
             Self::InvalidGenotypeKeyPosition => write!(f, "invalid genotype key position"),
             Self::DuplicateKey(key) => write!(f, "duplicate key: {key}"),
         }
@@ -58,9 +45,7 @@ pub(super) fn parse_keys(header: &Header, s: &str, keys: &mut Keys) -> Result<()
     for (i, raw_key) in s.split(DELIMITER).enumerate() {
         let key = match header.formats().get_full(raw_key) {
             Some((_, k, _)) => k.clone(),
-            None => {
-                Key::try_from((header.file_format(), raw_key)).map_err(ParseError::InvalidKey)?
-            }
+            None => raw_key.into(),
         };
 
         if key == key::GENOTYPE {
@@ -96,17 +81,20 @@ mod tests {
 
         keys.clear();
         parse_keys(&header, "GT", &mut keys)?;
-        let expected = Keys::try_from(vec![key::GENOTYPE])?;
+        let expected = Keys::try_from(vec![String::from(key::GENOTYPE)])?;
         assert_eq!(keys, expected);
 
         keys.clear();
         parse_keys(&header, "GQ", &mut keys)?;
-        let expected = Keys::try_from(vec![key::CONDITIONAL_GENOTYPE_QUALITY])?;
+        let expected = Keys::try_from(vec![String::from(key::CONDITIONAL_GENOTYPE_QUALITY)])?;
         assert_eq!(keys, expected);
 
         keys.clear();
         parse_keys(&header, "GT:GQ", &mut keys)?;
-        let expected = Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?;
+        let expected = Keys::try_from(vec![
+            String::from(key::GENOTYPE),
+            String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
+        ])?;
         assert_eq!(keys, expected);
 
         keys.clear();
@@ -121,7 +109,7 @@ mod tests {
         keys.clear();
         assert_eq!(
             parse_keys(&header, "GT:GT", &mut keys),
-            Err(ParseError::DuplicateKey(key::GENOTYPE))
+            Err(ParseError::DuplicateKey(String::from(key::GENOTYPE)))
         );
 
         Ok(())

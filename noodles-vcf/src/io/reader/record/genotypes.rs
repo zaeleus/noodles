@@ -93,7 +93,7 @@ mod tests {
         let header = Header::builder().add_sample_name("sample0").build();
         parse_genotypes(&header, "GT\t0|0", &mut genotypes)?;
         let expected = Genotypes::new(
-            Keys::try_from(vec![key::GENOTYPE])?,
+            Keys::try_from(vec![String::from(key::GENOTYPE)])?,
             vec![vec![Some(Value::from("0|0"))]],
         );
         assert_eq!(genotypes, expected);
@@ -104,7 +104,7 @@ mod tests {
             .build();
         parse_genotypes(&header, "GQ\t8\t13", &mut genotypes)?;
         let expected = Genotypes::new(
-            Keys::try_from(vec![key::CONDITIONAL_GENOTYPE_QUALITY])?,
+            Keys::try_from(vec![String::from(key::CONDITIONAL_GENOTYPE_QUALITY)])?,
             vec![vec![Some(Value::from(8))], vec![Some(Value::from(13))]],
         );
         assert_eq!(genotypes, expected);

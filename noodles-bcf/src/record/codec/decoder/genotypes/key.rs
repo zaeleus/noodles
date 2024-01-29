@@ -1,6 +1,6 @@
 use std::{error, fmt};
 
-use noodles_vcf::{self as vcf, record::genotypes::keys::Key};
+use noodles_vcf as vcf;
 
 use crate::{
     header::string_maps::StringStringMap,
@@ -11,13 +11,13 @@ pub(super) fn read_key<'h>(
     src: &mut &[u8],
     formats: &'h vcf::header::Formats,
     string_map: &StringStringMap,
-) -> Result<&'h Key, DecodeError> {
+) -> Result<&'h str, DecodeError> {
     read_string_map_entry(src, string_map)
         .map_err(DecodeError::InvalidStringMap)
         .and_then(|raw_key| {
             formats
                 .get_key_value(raw_key)
-                .map(|(k, _)| k)
+                .map(|(k, _)| k.as_ref())
                 .ok_or(DecodeError::MissingKey)
         })
 }
@@ -57,7 +57,7 @@ mod tests {
         // Some(Type::Int8(Some(Int8::Value(1))))
         let mut src = &[0x11, 0x01][..];
 
-        let formats = [(key::GENOTYPE, Map::from(&key::GENOTYPE))]
+        let formats = [(String::from(key::GENOTYPE), Map::from(key::GENOTYPE))]
             .into_iter()
             .collect();
 
@@ -65,9 +65,6 @@ mod tests {
         string_map.insert("PASS".into());
         string_map.insert("GT".into());
 
-        assert_eq!(
-            read_key(&mut src, &formats, &string_map),
-            Ok(&key::GENOTYPE),
-        );
+        assert_eq!(read_key(&mut src, &formats, &string_map), Ok(key::GENOTYPE),);
     }
 }

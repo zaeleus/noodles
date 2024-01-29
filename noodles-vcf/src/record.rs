@@ -485,7 +485,10 @@ impl Record {
     ///     },
     /// };
     ///
-    /// let keys = Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?;
+    /// let keys = Keys::try_from(vec![
+    ///     String::from(key::GENOTYPE),
+    ///     String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
+    /// ])?;
     /// let genotypes = Genotypes::new(
     ///     keys.clone(),
     ///     vec![vec![Some(Value::from("0|0")), Some(Value::from(13))]],
@@ -518,7 +521,10 @@ impl Record {
     ///     },
     /// };
     ///
-    /// let keys = Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?;
+    /// let keys = Keys::try_from(vec![
+    ///     String::from(key::GENOTYPE),
+    ///     String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
+    /// ])?;
     /// let genotypes = Genotypes::new(
     ///     keys,
     ///     vec![vec![Some(Value::from("0|0")), Some(Value::from(13))]],
@@ -557,7 +563,10 @@ impl Record {
     ///     .set_reference_bases("A")
     ///     .build()?;
     ///
-    /// let keys = Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?;
+    /// let keys = Keys::try_from(vec![
+    ///     String::from(key::GENOTYPE),
+    ///     String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
+    /// ])?;
     /// let genotypes = Genotypes::new(
     ///     keys,
     ///     vec![vec![Some(Value::from("0|0")), Some(Value::from(13))]],

@@ -97,17 +97,20 @@ mod tests {
         let header = Header::default();
         let mut values = Vec::new();
 
-        let keys = Keys::try_from(vec![key::GENOTYPE])?;
+        let keys = Keys::try_from(vec![String::from(key::GENOTYPE)])?;
         values.clear();
         parse_values(&header, &keys, ".", &mut values)?;
         assert!(values.is_empty());
 
-        let keys = Keys::try_from(vec![key::GENOTYPE])?;
+        let keys = Keys::try_from(vec![String::from(key::GENOTYPE)])?;
         values.clear();
         parse_values(&header, &keys, "0|0", &mut values)?;
         assert_eq!(values, vec![Some(Value::from("0|0"))]);
 
-        let keys = Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?;
+        let keys = Keys::try_from(vec![
+            String::from(key::GENOTYPE),
+            String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
+        ])?;
         values.clear();
         parse_values(&header, &keys, "0|0:13", &mut values)?;
         assert_eq!(
@@ -115,24 +118,30 @@ mod tests {
             vec![Some(Value::from("0|0")), Some(Value::from(13)),]
         );
 
-        let keys = Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?;
+        let keys = Keys::try_from(vec![
+            String::from(key::GENOTYPE),
+            String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
+        ])?;
         values.clear();
         parse_values(&header, &keys, "0|0:.", &mut values)?;
         assert_eq!(values, vec![Some(Value::from("0|0")), None]);
 
-        let keys = Keys::try_from(vec![key::GENOTYPE, key::CONDITIONAL_GENOTYPE_QUALITY])?;
+        let keys = Keys::try_from(vec![
+            String::from(key::GENOTYPE),
+            String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
+        ])?;
         values.clear();
         parse_values(&header, &keys, "0|0", &mut values)?;
         assert_eq!(values, vec![Some(Value::from("0|0"))]);
 
-        let keys = Keys::try_from(vec![key::GENOTYPE])?;
+        let keys = Keys::try_from(vec![String::from(key::GENOTYPE)])?;
         values.clear();
         assert_eq!(
             parse_values(&header, &keys, "", &mut values),
             Err(ParseError::Empty)
         );
 
-        let keys = Keys::try_from(vec![key::GENOTYPE])?;
+        let keys = Keys::try_from(vec![String::from(key::GENOTYPE)])?;
         values.clear();
         assert_eq!(
             parse_values(&header, &keys, "0|0:13", &mut values),
