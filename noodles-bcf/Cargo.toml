@@ -25,7 +25,7 @@ futures = { workspace = true, optional = true, features = ["std"] }
 tokio = { workspace = true, optional = true, features = ["io-util"] }
 
 [dev-dependencies]
-tokio = { workspace = true, features = ["fs", "macros", "rt-multi-thread"] }
+tokio = { workspace = true, features = ["fs", "io-std", "macros", "rt-multi-thread"] }
 
 [package.metadata.docs.rs]
 features = ["async"]
