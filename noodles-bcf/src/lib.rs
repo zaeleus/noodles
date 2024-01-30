@@ -7,8 +7,9 @@ pub mod r#async;
 
 pub mod header;
 pub mod io;
-pub mod lazy;
-pub(crate) mod record;
+pub mod record;
+
+pub use self::record::Record;
 
 #[cfg(feature = "async")]
 pub use self::r#async::io::Reader as AsyncReader;

@@ -7,6 +7,10 @@
   * bcf: Move readers (`Reader` and `IndexedReader`) to writer (`Writer`) to
     `io` module.
 
+  * bcf: Move lazy record to record.
+
+    Use `bcf::Record` instead of `bcf::lazy::Record`.
+
   * bcf/async/io/reader: Change `Reader::read_header` to return a parsed header
     (`vcf::Header`).
 

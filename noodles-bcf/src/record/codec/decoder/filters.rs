@@ -1,6 +1,6 @@
 use std::io;
 
-use crate::lazy::record::Filters;
+use crate::record::Filters;
 
 pub(crate) fn read_filter(reader: &mut &[u8], filters: &mut Filters) -> io::Result<()> {
     use super::string_map::read_string_map_indices;

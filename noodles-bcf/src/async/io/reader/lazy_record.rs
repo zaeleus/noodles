@@ -1,10 +1,10 @@
-use crate::lazy;
+use crate::Record;
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 pub(super) async fn read_lazy_record<R>(
     reader: &mut R,
     buf: &mut Vec<u8>,
-    record: &mut lazy::Record,
+    record: &mut Record,
 ) -> io::Result<usize>
 where
     R: AsyncRead + Unpin,
@@ -55,7 +55,7 @@ mod tests {
 
         let mut reader = &DATA[..];
         let mut buf = Vec::new();
-        let mut record = lazy::Record::default();
+        let mut record = Record::default();
         read_lazy_record(&mut reader, &mut buf, &mut record).await?;
 
         assert_eq!(record.chromosome_id(), 1);

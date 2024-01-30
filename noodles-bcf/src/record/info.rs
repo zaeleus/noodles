@@ -21,7 +21,7 @@ impl Info {
     /// use noodles_bcf as bcf;
     /// use noodles_vcf as vcf;
     ///
-    /// let bcf_info = bcf::lazy::record::Info::default();
+    /// let bcf_info = bcf::record::Info::default();
     /// let header = vcf::Header::default();
     /// let string_maps = bcf::header::StringMaps::default();
     ///
@@ -56,7 +56,7 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bcf::lazy::record::Info;
+    /// use noodles_bcf::record::Info;
     ///
     /// let data = vec![
     ///     0x11, 0x01, 0x11, 0x05, // AC=5
@@ -74,7 +74,7 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bcf::lazy::record::Info;
+    /// use noodles_bcf::record::Info;
     /// let info = Info::default();
     /// assert_eq!(info.len(), 0);
     /// ```
@@ -87,7 +87,7 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bcf::lazy::record::Info;
+    /// use noodles_bcf::record::Info;
     /// let info = Info::default();
     /// assert!(info.is_empty());
     /// ```
@@ -102,7 +102,7 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bcf::lazy::record::Info;
+    /// use noodles_bcf::record::Info;
     /// let mut info = Info::default();
     /// info.clear();
     /// assert!(info.is_empty());
@@ -118,7 +118,7 @@ impl Info {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_bcf::{header::StringMaps, lazy::record::Info};
+    /// use noodles_bcf::{header::StringMaps, record::Info};
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::record::value::{map, Map},
@@ -173,7 +173,7 @@ impl Info {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_bcf::{header::StringMaps, lazy::record::Info};
+    /// use noodles_bcf::{header::StringMaps, record::Info};
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::record::value::{map, Map},
@@ -230,7 +230,7 @@ impl Info {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_bcf::{header::StringMaps, lazy::record::Info};
+    /// use noodles_bcf::{header::StringMaps, record::Info};
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::record::value::{map, Map},

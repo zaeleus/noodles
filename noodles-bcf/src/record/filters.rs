@@ -15,7 +15,7 @@ impl Filters {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_bcf::{header::StringMaps, lazy::record::Filters};
+    /// use noodles_bcf::{header::StringMaps, record::Filters};
     ///
     /// let bcf_filters = Filters::default();
     /// let string_maps = StringMaps::default();
@@ -55,7 +55,7 @@ impl Filters {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bcf::lazy::record::Filters;
+    /// use noodles_bcf::record::Filters;
     /// let filters = Filters::default();
     /// assert_eq!(filters.len(), 0);
     /// ```
@@ -68,7 +68,7 @@ impl Filters {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bcf::lazy::record::Filters;
+    /// use noodles_bcf::record::Filters;
     /// let filters = Filters::default();
     /// assert!(filters.is_empty());
     /// ```
@@ -83,7 +83,7 @@ impl Filters {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bcf::lazy::record::Filters;
+    /// use noodles_bcf::record::Filters;
     /// let mut filters = Filters::default();
     /// filters.clear();
     /// assert!(filters.is_empty());
