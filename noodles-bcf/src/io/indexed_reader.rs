@@ -64,8 +64,8 @@ where
     }
 
     /// Reads a single record without eagerly decoding (most of) its fields.
-    pub fn read_lazy_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        self.inner.read_lazy_record(record)
+    pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+        self.inner.read_record(record)
     }
 
     /// Returns an iterator over records starting from the current stream position.
@@ -74,8 +74,8 @@ where
     }
 
     /// Returns an iterator over lazy records starting from the current stream position.
-    pub fn lazy_records(&mut self) -> impl Iterator<Item = io::Result<Record>> + '_ {
-        self.inner.lazy_records()
+    pub fn records(&mut self) -> impl Iterator<Item = io::Result<Record>> + '_ {
+        self.inner.records()
     }
 
     /// Returns the associated index.

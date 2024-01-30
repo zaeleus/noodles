@@ -18,7 +18,7 @@ async fn main() -> io::Result<()> {
     let header = reader.read_header().await?;
     let string_maps = reader.string_maps().clone();
 
-    let mut records = reader.lazy_records();
+    let mut records = reader.records();
 
     let mut writer = vcf::r#async::io::Writer::new(io::stdout());
     writer.write_header(&header).await?;

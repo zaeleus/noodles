@@ -1,7 +1,7 @@
 use crate::Record;
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
-pub(super) async fn read_lazy_record<R>(
+pub(super) async fn read_record<R>(
     reader: &mut R,
     buf: &mut Vec<u8>,
     record: &mut Record,
@@ -9,7 +9,7 @@ pub(super) async fn read_lazy_record<R>(
 where
     R: AsyncRead + Unpin,
 {
-    use crate::io::reader::lazy_record::read_site;
+    use crate::io::reader::record::read_site;
 
     let l_shared = match reader.read_u32_le().await {
         Ok(n) => usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
@@ -47,8 +47,8 @@ mod tests {
     use crate::header::StringMaps;
 
     #[tokio::test]
-    async fn test_read_lazy_record() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::io::reader::lazy_record::tests::{DATA, RAW_HEADER};
+    async fn test_read_record() -> Result<(), Box<dyn std::error::Error>> {
+        use crate::io::reader::record::tests::{DATA, RAW_HEADER};
 
         let header = RAW_HEADER.parse()?;
         let string_maps: StringMaps = RAW_HEADER.parse()?;
@@ -56,7 +56,7 @@ mod tests {
         let mut reader = &DATA[..];
         let mut buf = Vec::new();
         let mut record = Record::default();
-        read_lazy_record(&mut reader, &mut buf, &mut record).await?;
+        read_record(&mut reader, &mut buf, &mut record).await?;
 
         assert_eq!(record.chromosome_id(), 1);
         assert_eq!(record.position(), Position::from(101));

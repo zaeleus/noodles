@@ -9,11 +9,7 @@ use crate::{
     Record,
 };
 
-pub fn read_lazy_record<R>(
-    reader: &mut R,
-    buf: &mut Vec<u8>,
-    record: &mut Record,
-) -> io::Result<usize>
+pub fn read_record<R>(reader: &mut R, buf: &mut Vec<u8>, record: &mut Record) -> io::Result<usize>
 where
     R: Read,
 {
@@ -145,7 +141,7 @@ pub(crate) mod tests {
     ];
 
     #[test]
-    fn test_read_lazy_record() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_read_record() -> Result<(), Box<dyn std::error::Error>> {
         use noodles_vcf::record::{
             genotypes::{
                 self,
@@ -164,7 +160,7 @@ pub(crate) mod tests {
         let mut reader = &DATA[..];
         let mut buf = Vec::new();
         let mut record = Record::default();
-        read_lazy_record(&mut reader, &mut buf, &mut record)?;
+        read_record(&mut reader, &mut buf, &mut record)?;
 
         assert_eq!(record.chromosome_id(), 1);
         assert_eq!(record.position(), Position::from(101));

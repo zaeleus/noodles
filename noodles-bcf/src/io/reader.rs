@@ -2,8 +2,8 @@
 
 mod builder;
 mod header;
-pub(crate) mod lazy_record;
 pub(crate) mod query;
+pub(crate) mod record;
 pub(crate) mod record_buf;
 mod record_bufs;
 
@@ -20,7 +20,7 @@ use noodles_core::Region;
 use noodles_csi::BinningIndex;
 use noodles_vcf as vcf;
 
-use self::{header::read_header, lazy_record::read_lazy_record, record_buf::read_record_buf};
+use self::{header::read_header, record::read_record, record_buf::read_record_buf};
 use crate::{
     header::string_maps::{ContigStringMap, StringMaps},
     Record,
@@ -154,8 +154,8 @@ where
     ///
     /// The stream is expected to be directly after the header or at the start of another record.
     ///
-    /// It is more ergnomic to read records using an iterator (see [`Self::lazy_records`]), but
-    /// using this method directly allows the reuse of a single [`Record`] buffer.
+    /// It is more ergnomic to read records using an iterator (see [`Self::records`]), but using
+    /// this method directly allows the reuse of a single [`Record`] buffer.
     ///
     /// If successful, the record size is returned. If a record size of 0 is returned, the stream
     /// reached EOF.
@@ -170,11 +170,11 @@ where
     /// reader.read_header()?;
     ///
     /// let mut record = bcf::Record::default();
-    /// reader.read_lazy_record(&mut record)?;
+    /// reader.read_record(&mut record)?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn read_lazy_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        read_lazy_record(&mut self.inner, &mut self.buf, record)
+    pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+        read_record(&mut self.inner, &mut self.buf, record)
     }
 
     /// Returns an iterator over records starting from the current stream position.
@@ -213,16 +213,16 @@ where
     /// let mut reader = File::open("sample.bcf").map(bcf::io::Reader::new)?;
     /// reader.read_header()?;
     ///
-    /// for result in reader.lazy_records() {
+    /// for result in reader.records() {
     ///     let record = result?;
     ///     println!("{:?}", record);
     /// }
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn lazy_records(&mut self) -> impl Iterator<Item = io::Result<Record>> + '_ {
+    pub fn records(&mut self) -> impl Iterator<Item = io::Result<Record>> + '_ {
         let mut record = Record::default();
 
-        iter::from_fn(move || match self.read_lazy_record(&mut record) {
+        iter::from_fn(move || match self.read_record(&mut record) {
             Ok(0) => None,
             Ok(_) => Some(Ok(record.clone())),
             Err(e) => Some(Err(e)),
