@@ -85,7 +85,7 @@ where
 {
     let mut record = Record::default();
 
-    reader.read_lazy_record(&mut record).await.map(|n| match n {
+    reader.read_record(&mut record).await.map(|n| match n {
         0 => None,
         _ => Some(record),
     })

@@ -22,8 +22,10 @@
 
     This changes the following:
 
-      * `Reader::read_record` => `Reader::read_record_buf` and
-      * `Reader::records` => `Reader::record_bufs`.
+      * `Reader::read_record` => `Reader::read_record_buf`,
+      * `Reader::records` => `Reader::record_bufs`,
+      * `Reader::read_lazy_record` => `Reader::read_record`, and
+      * `Reader::lazy_records` => `Reader::records`.
 
 ### Removed
 

@@ -1,6 +1,6 @@
 mod header;
-mod lazy_record;
 mod query;
+mod record;
 
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
@@ -9,7 +9,7 @@ use noodles_csi::BinningIndex;
 use noodles_vcf as vcf;
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};
 
-use self::{header::read_header, lazy_record::read_lazy_record, query::query};
+use self::{header::read_header, query::query, record::read_record};
 use crate::{
     header::{string_maps::ContigStringMap, StringMaps},
     Record,
@@ -31,7 +31,7 @@ use crate::{
 /// let mut reader = File::open("sample.bcf").await.map(bcf::r#async::io::Reader::new)?;
 /// reader.read_header().await?;
 ///
-/// let mut records = reader.lazy_records();
+/// let mut records = reader.records();
 ///
 /// while let Some(record) = records.try_next().await? {
 ///     // ...
@@ -131,7 +131,7 @@ where
     ///
     /// The stream is expected to be directly after the header or at the start of another record.
     ///
-    /// It is more ergonomic to read records using a stream (see [`Self::lazy_records`]), but using
+    /// It is more ergonomic to read records using a stream (see [`Self::records`]), but using
     /// this method directly allows the reuse of a single [`Record`] buffer.
     ///
     /// If successful, the record size is returned. If a record size of 0 is returned, the stream
@@ -149,12 +149,12 @@ where
     /// reader.read_header().await?;
     ///
     /// let mut record = bcf::Record::default();
-    /// reader.read_lazy_record(&mut record).await?;
+    /// reader.read_record(&mut record).await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_lazy_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        read_lazy_record(&mut self.inner, &mut self.buf, record).await
+    pub async fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+        read_record(&mut self.inner, &mut self.buf, record).await
     }
 
     /// Returns an (async) stream over lazy records starting from the current (input) stream
@@ -177,7 +177,7 @@ where
     /// let mut reader = File::open("sample.bcf").await.map(bcf::r#async::io::Reader::new)?;
     /// reader.read_header().await?;
     ///
-    /// let mut records = reader.lazy_records();
+    /// let mut records = reader.records();
     ///
     /// while let Some(record) = records.try_next().await? {
     ///     // ...
@@ -185,11 +185,11 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn lazy_records(&mut self) -> impl Stream<Item = io::Result<Record>> + '_ {
+    pub fn records(&mut self) -> impl Stream<Item = io::Result<Record>> + '_ {
         Box::pin(stream::try_unfold(
             (&mut self.inner, Vec::new(), Record::default()),
             |(mut reader, mut buf, mut record)| async {
-                read_lazy_record(&mut reader, &mut buf, &mut record)
+                read_record(&mut reader, &mut buf, &mut record)
                     .await
                     .map(|n| match n {
                         0 => None,
