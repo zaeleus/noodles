@@ -18,7 +18,7 @@ impl Record {
     /// let header: vcf::Header = raw_header.parse()?;
     /// let string_maps = raw_header.parse()?;
     ///
-    /// let record = bcf::lazy::Record::default();
+    /// let record = bcf::Record::default();
     ///
     /// let actual = record.try_into_vcf_record(&header, &string_maps)?;
     /// let expected = vcf::Record::builder()

@@ -2,15 +2,17 @@ use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use crate::lazy;
-use crate::record::codec::decoder::{
-    read_chrom, read_filter, read_id, read_pos, read_qual, read_ref_alt, read_rlen,
+use crate::{
+    record::codec::decoder::{
+        read_chrom, read_filter, read_id, read_pos, read_qual, read_ref_alt, read_rlen,
+    },
+    Record,
 };
 
 pub fn read_lazy_record<R>(
     reader: &mut R,
     buf: &mut Vec<u8>,
-    record: &mut lazy::Record,
+    record: &mut Record,
 ) -> io::Result<usize>
 where
     R: Read,
@@ -39,7 +41,7 @@ where
     Ok(l_shared + l_indiv)
 }
 
-pub(crate) fn read_site(src: &mut &[u8], record: &mut lazy::Record) -> io::Result<(usize, usize)> {
+pub(crate) fn read_site(src: &mut &[u8], record: &mut Record) -> io::Result<(usize, usize)> {
     record.chrom = read_chrom(src)?;
     record.pos = read_pos(src)?;
 
@@ -161,7 +163,7 @@ pub(crate) mod tests {
 
         let mut reader = &DATA[..];
         let mut buf = Vec::new();
-        let mut record = lazy::Record::default();
+        let mut record = Record::default();
         read_lazy_record(&mut reader, &mut buf, &mut record)?;
 
         assert_eq!(record.chromosome_id(), 1);

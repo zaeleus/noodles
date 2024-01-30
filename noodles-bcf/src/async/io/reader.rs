@@ -12,7 +12,7 @@ use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};
 use self::{header::read_header, lazy_record::read_lazy_record, query::query};
 use crate::{
     header::{string_maps::ContigStringMap, StringMaps},
-    lazy,
+    Record,
 };
 
 /// An async BCF reader.
@@ -132,7 +132,7 @@ where
     /// The stream is expected to be directly after the header or at the start of another record.
     ///
     /// It is more ergonomic to read records using a stream (see [`Self::lazy_records`]), but using
-    /// this method directly allows the reuse of a single [`lazy::Record`] buffer.
+    /// this method directly allows the reuse of a single [`Record`] buffer.
     ///
     /// If successful, the record size is returned. If a record size of 0 is returned, the stream
     /// reached EOF.
@@ -148,12 +148,12 @@ where
     /// let mut reader = File::open("sample.bcf").await.map(bcf::r#async::io::Reader::new)?;
     /// reader.read_header().await?;
     ///
-    /// let mut record = bcf::lazy::Record::default();
+    /// let mut record = bcf::Record::default();
     /// reader.read_lazy_record(&mut record).await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_lazy_record(&mut self, record: &mut lazy::Record) -> io::Result<usize> {
+    pub async fn read_lazy_record(&mut self, record: &mut Record) -> io::Result<usize> {
         read_lazy_record(&mut self.inner, &mut self.buf, record).await
     }
 
@@ -185,9 +185,9 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn lazy_records(&mut self) -> impl Stream<Item = io::Result<lazy::Record>> + '_ {
+    pub fn lazy_records(&mut self) -> impl Stream<Item = io::Result<Record>> + '_ {
         Box::pin(stream::try_unfold(
-            (&mut self.inner, Vec::new(), lazy::Record::default()),
+            (&mut self.inner, Vec::new(), Record::default()),
             |(mut reader, mut buf, mut record)| async {
                 read_lazy_record(&mut reader, &mut buf, &mut record)
                     .await
@@ -299,7 +299,7 @@ where
         contig_string_map: &ContigStringMap,
         index: &I,
         region: &Region,
-    ) -> io::Result<impl Stream<Item = io::Result<lazy::Record>> + '_>
+    ) -> io::Result<impl Stream<Item = io::Result<Record>> + '_>
     where
         I: BinningIndex,
     {

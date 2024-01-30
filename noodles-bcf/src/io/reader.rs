@@ -23,7 +23,7 @@ use noodles_vcf as vcf;
 use self::{header::read_header, lazy_record::read_lazy_record, record::read_record};
 use crate::{
     header::string_maps::{ContigStringMap, StringMaps},
-    lazy,
+    Record,
 };
 
 /// A BCF reader.
@@ -157,7 +157,7 @@ where
     /// The stream is expected to be directly after the header or at the start of another record.
     ///
     /// It is more ergnomic to read records using an iterator (see [`Self::lazy_records`]), but
-    /// using this method directly allows the reuse of a single [`lazy::Record`] buffer.
+    /// using this method directly allows the reuse of a single [`Record`] buffer.
     ///
     /// If successful, the record size is returned. If a record size of 0 is returned, the stream
     /// reached EOF.
@@ -171,11 +171,11 @@ where
     /// let mut reader = File::open("sample.bcf").map(bcf::io::Reader::new)?;
     /// reader.read_header()?;
     ///
-    /// let mut record = bcf::lazy::Record::default();
+    /// let mut record = bcf::Record::default();
     /// reader.read_lazy_record(&mut record)?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn read_lazy_record(&mut self, record: &mut lazy::Record) -> io::Result<usize> {
+    pub fn read_lazy_record(&mut self, record: &mut Record) -> io::Result<usize> {
         read_lazy_record(&mut self.inner, &mut self.buf, record)
     }
 
@@ -221,8 +221,8 @@ where
     /// }
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn lazy_records(&mut self) -> impl Iterator<Item = io::Result<lazy::Record>> + '_ {
-        let mut record = lazy::Record::default();
+    pub fn lazy_records(&mut self) -> impl Iterator<Item = io::Result<Record>> + '_ {
+        let mut record = Record::default();
 
         iter::from_fn(move || match self.read_lazy_record(&mut record) {
             Ok(0) => None,

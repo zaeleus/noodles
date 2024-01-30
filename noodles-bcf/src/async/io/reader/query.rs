@@ -7,7 +7,7 @@ use noodles_csi::binning_index::index::reference_sequence::bin::Chunk;
 use tokio::io::{self, AsyncRead, AsyncSeek};
 
 use super::Reader;
-use crate::lazy::{self, record::ChromosomeId};
+use crate::{record::ChromosomeId, Record};
 
 enum State {
     Seek,
@@ -34,7 +34,7 @@ pub fn query<R>(
     chunks: Vec<Chunk>,
     chromosome_id: ChromosomeId,
     interval: Interval,
-) -> impl Stream<Item = io::Result<lazy::Record>> + '_
+) -> impl Stream<Item = io::Result<Record>> + '_
 where
     R: AsyncRead + AsyncSeek + Unpin,
 {
@@ -79,13 +79,11 @@ where
     }))
 }
 
-async fn next_record<R>(
-    reader: &mut Reader<bgzf::AsyncReader<R>>,
-) -> io::Result<Option<lazy::Record>>
+async fn next_record<R>(reader: &mut Reader<bgzf::AsyncReader<R>>) -> io::Result<Option<Record>>
 where
     R: AsyncRead + AsyncSeek + Unpin,
 {
-    let mut record = lazy::Record::default();
+    let mut record = Record::default();
 
     reader.read_lazy_record(&mut record).await.map(|n| match n {
         0 => None,
@@ -94,7 +92,7 @@ where
 }
 
 fn intersects(
-    record: &lazy::Record,
+    record: &Record,
     chromosome_id: usize,
     region_interval: Interval,
 ) -> io::Result<bool> {

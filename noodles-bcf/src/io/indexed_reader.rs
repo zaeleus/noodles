@@ -15,7 +15,7 @@ use super::{
     reader::{Query, Records},
     Reader,
 };
-use crate::{header::StringMaps, lazy};
+use crate::{header::StringMaps, Record};
 
 /// An indexed BCF reader.
 pub struct IndexedReader<R> {
@@ -64,7 +64,7 @@ where
     }
 
     /// Reads a single record without eagerly decoding (most of) its fields.
-    pub fn read_lazy_record(&mut self, record: &mut lazy::Record) -> io::Result<usize> {
+    pub fn read_lazy_record(&mut self, record: &mut Record) -> io::Result<usize> {
         self.inner.read_lazy_record(record)
     }
 
@@ -74,7 +74,7 @@ where
     }
 
     /// Returns an iterator over lazy records starting from the current stream position.
-    pub fn lazy_records(&mut self) -> impl Iterator<Item = io::Result<lazy::Record>> + '_ {
+    pub fn lazy_records(&mut self) -> impl Iterator<Item = io::Result<Record>> + '_ {
         self.inner.lazy_records()
     }
 

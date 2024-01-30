@@ -20,7 +20,7 @@ pub(crate) use self::{
     position::read_pos, quality_score::read_qual,
 };
 pub use self::{genotypes::read_genotypes, info::read_info, value::read_value};
-use crate::{header::StringMaps, lazy};
+use crate::{header::StringMaps, record::Filters};
 
 pub fn read_site(
     src: &mut &[u8],
@@ -60,7 +60,7 @@ pub fn read_site(
     *record.reference_bases_mut() = r#ref;
     *record.alternate_bases_mut() = alt;
 
-    let mut filters = lazy::record::Filters::default();
+    let mut filters = Filters::default();
     read_filter(src, &mut filters)?;
     *record.filters_mut() = filters.try_into_vcf_record_filters(string_maps.strings())?;
 
