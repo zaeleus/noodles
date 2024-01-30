@@ -90,12 +90,10 @@ where
 
     /// Reads the VCF header.
     ///
-    /// The BCF magic number is checked, and the file format version is discarded.
+    /// This verifies the BCF magic number, discards the file format version, and reads and parses
+    /// the raw VCF header. Associated string maps are also built from the raw header.
     ///
     /// The position of the stream is expected to be at the start.
-    ///
-    /// This returns both the parsed VCF header and the associated string maps built from the raw
-    /// header.
     ///
     /// # Examples
     ///
