@@ -14,7 +14,7 @@ fn main() -> io::Result<()> {
 
     let mut n = 0;
 
-    for result in reader.records(&header) {
+    for result in reader.record_bufs(&header) {
         let _ = result?;
         n += 1;
     }

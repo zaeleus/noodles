@@ -47,9 +47,9 @@ where
     }
 
     fn next_record(&mut self) -> io::Result<Option<vcf::Record>> {
-        use super::read_record;
+        use super::read_record_buf;
 
-        read_record(
+        read_record_buf(
             &mut self.reader,
             self.header,
             self.string_maps,
