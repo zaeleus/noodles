@@ -41,7 +41,7 @@ fn read_i8s_value<'a>(src: &mut &'a [u8], len: usize) -> Result<Option<Value<'a>
     use super::raw_value::read_i8s;
 
     let values = read_i8s(src, len).map_err(DecodeError::InvalidRawValue)?;
-    Ok(Some(Value::Array(Array::Int8(values))))
+    Ok(Some(Value::Array(Array::Int8(Box::new(values)))))
 }
 
 fn read_i16_value<'a>(src: &mut &'a [u8]) -> Result<Option<Value<'a>>, DecodeError> {
@@ -55,7 +55,7 @@ fn read_i16s_value<'a>(src: &mut &'a [u8], len: usize) -> Result<Option<Value<'a
     use super::raw_value::read_i16s;
 
     let values = read_i16s(src, len).map_err(DecodeError::InvalidRawValue)?;
-    Ok(Some(Value::Array(Array::Int16(values))))
+    Ok(Some(Value::Array(Array::Int16(Box::new(values)))))
 }
 
 fn read_i32_value<'a>(src: &mut &'a [u8]) -> Result<Option<Value<'a>>, DecodeError> {
@@ -69,7 +69,7 @@ fn read_i32s_value<'a>(src: &mut &'a [u8], len: usize) -> Result<Option<Value<'a
     use super::raw_value::read_i32s;
 
     let values = read_i32s(src, len).map_err(DecodeError::InvalidRawValue)?;
-    Ok(Some(Value::Array(Array::Int32(values))))
+    Ok(Some(Value::Array(Array::Int32(Box::new(values)))))
 }
 
 fn read_f32_value<'a>(src: &mut &'a [u8]) -> Result<Option<Value<'a>>, DecodeError> {
@@ -83,7 +83,7 @@ fn read_f32s_value<'a>(src: &mut &'a [u8], len: usize) -> Result<Option<Value<'a
     use super::raw_value::read_f32s;
 
     let values = read_f32s(src, len).map_err(DecodeError::InvalidRawValue)?;
-    Ok(Some(Value::Array(Array::Float(values))))
+    Ok(Some(Value::Array(Array::Float(Box::new(values)))))
 }
 
 fn read_string_value<'a>(src: &mut &'a [u8], len: usize) -> Result<Option<Value<'a>>, DecodeError> {
@@ -124,54 +124,109 @@ impl fmt::Display for DecodeError {
 
 #[cfg(test)]
 mod tests {
+    use std::io;
+
     use super::*;
 
     #[test]
-    fn test_read_value() {
-        fn t(mut src: &[u8], expected: Option<Value<'_>>) {
-            assert_eq!(read_value(&mut src), Ok(expected));
+    fn test_read_value() -> io::Result<()> {
+        let mut src = &[0x00][..];
+        assert!(matches!(read_value(&mut src), Ok(None)));
+
+        let mut src = &[0x01][..];
+        assert!(matches!(read_value(&mut src), Ok(Some(Value::Int8(None)))));
+
+        let mut src = &[0x11, 0x05][..];
+        assert!(matches!(
+            read_value(&mut src),
+            Ok(Some(Value::Int8(Some(Int8::Value(5)))))
+        ));
+
+        let mut src = &[0x31, 0x05, 0x08, 0x0d][..];
+        match read_value(&mut src) {
+            Ok(Some(Value::Array(Array::Int8(values)))) => {
+                assert_eq!(values.iter().collect::<Result<Vec<_>, _>>()?, [5, 8, 13]);
+            }
+            _ => panic!(),
         }
 
-        t(&[0x00], None);
-        t(&[0x01], Some(Value::Int8(None)));
-        t(&[0x11, 0x05], Some(Value::Int8(Some(Int8::Value(5)))));
+        let mut src = &[0x02][..];
+        assert!(matches!(read_value(&mut src), Ok(Some(Value::Int16(None)))));
 
-        let src = &[0x31, 0x05, 0x08, 0x0d];
-        t(src, Some(Value::Array(Array::Int8(vec![5, 8, 13]))));
+        let mut src = &[0x12, 0x79, 0x01][..];
+        assert!(matches!(
+            read_value(&mut src),
+            Ok(Some(Value::Int16(Some(Int16::Value(377)))))
+        ));
 
-        t(&[0x02], Some(Value::Int16(None)));
+        let mut src = &[0x32, 0x79, 0x01, 0x62, 0x02, 0xdb, 0x03][..];
+        match read_value(&mut src) {
+            Ok(Some(Value::Array(Array::Int16(values)))) => {
+                assert_eq!(
+                    values.iter().collect::<Result<Vec<_>, _>>()?,
+                    [377, 610, 987]
+                );
+            }
+            _ => panic!(),
+        }
 
-        let src = &[0x12, 0x79, 0x01];
-        t(src, Some(Value::Int16(Some(Int16::Value(377)))));
+        let mut src = &[0x03][..];
+        assert!(matches!(read_value(&mut src), Ok(Some(Value::Int32(None)))));
 
-        let src = &[0x32, 0x79, 0x01, 0x62, 0x02, 0xdb, 0x03];
-        t(src, Some(Value::Array(Array::Int16(vec![377, 610, 987]))));
+        let mut src = &[0x13, 0x11, 0x25, 0x01, 0x00][..];
+        assert!(matches!(
+            read_value(&mut src),
+            Ok(Some(Value::Int32(Some(Int32::Value(75025)))))
+        ));
 
-        t(&[0x03], Some(Value::Int32(None)));
-
-        let src = &[0x13, 0x11, 0x25, 0x01, 0x00];
-        t(src, Some(Value::Int32(Some(Int32::Value(75025)))));
-
-        let src = &[
+        let mut src = &[
             0x33, 0x11, 0x25, 0x01, 0x00, 0x31, 0xda, 0x01, 0x00, 0x42, 0xff, 0x02, 0x00,
-        ];
-        t(
-            src,
-            Some(Value::Array(Array::Int32(vec![75025, 121393, 196418]))),
-        );
+        ][..];
+        match read_value(&mut src) {
+            Ok(Some(Value::Array(Array::Int32(values)))) => {
+                assert_eq!(
+                    values.iter().collect::<Result<Vec<_>, _>>()?,
+                    [75025, 121393, 196418]
+                );
+            }
+            _ => panic!(),
+        }
 
-        t(&[0x05], Some(Value::Float(None)));
+        let mut src = &[0x05][..];
+        assert!(matches!(read_value(&mut src), Ok(Some(Value::Float(None)))));
 
-        let src = &[0x15, 0x00, 0x00, 0x00, 0x00];
-        t(src, Some(Value::Float(Some(Float::from(0.0)))));
+        let mut src = &[0x15, 0x00, 0x00, 0x00, 0x00][..];
+        assert!(matches!(
+            read_value(&mut src),
+            Ok(Some(Value::Float(Some(n)))) if n == Float::from(0.0)
+        ));
 
-        let src = &[0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3f];
-        t(src, Some(Value::Array(Array::Float(vec![0.0, 0.5]))));
+        let mut src = &[0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3f][..];
+        match read_value(&mut src) {
+            Ok(Some(Value::Array(Array::Float(values)))) => {
+                assert_eq!(values.iter().collect::<Result<Vec<_>, _>>()?, [0.0, 0.5]);
+            }
+            _ => panic!(),
+        }
 
-        t(&[0x07], Some(Value::String(None)));
-        t(&[0x17, b'n'], Some(Value::String(Some("n"))));
+        let mut src = &[0x07][..];
+        assert!(matches!(
+            read_value(&mut src),
+            Ok(Some(Value::String(None)))
+        ));
 
-        let src = &[0x47, b'n', b'd', b'l', b's'];
-        t(src, Some(Value::String(Some("ndls"))));
+        let mut src = &[0x17, b'n'][..];
+        assert!(matches!(
+            read_value(&mut src),
+            Ok(Some(Value::String(Some("n"))))
+        ));
+
+        let mut src = &[0x47, b'n', b'd', b'l', b's'][..];
+        assert!(matches!(
+            read_value(&mut src),
+            Ok(Some(Value::String(Some("ndls"))))
+        ));
+
+        Ok(())
     }
 }

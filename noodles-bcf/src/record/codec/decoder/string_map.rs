@@ -24,11 +24,22 @@ pub fn read_string_map_indices(src: &mut &[u8]) -> Result<Vec<usize>, DecodeErro
 
     let indices = match value {
         Some(Value::Int8(Some(Int8::Value(i)))) => vec![i32::from(i)],
-        Some(Value::Array(Array::Int8(indices))) => indices.into_iter().map(i32::from).collect(),
+        Some(Value::Array(Array::Int8(values))) => values
+            .iter()
+            .map(|result| result.map(i32::from))
+            .collect::<Result<_, _>>()
+            .map_err(|_| DecodeError::UnexpectedEof)?,
         Some(Value::Int16(Some(Int16::Value(i)))) => vec![i32::from(i)],
-        Some(Value::Array(Array::Int16(indices))) => indices.into_iter().map(i32::from).collect(),
+        Some(Value::Array(Array::Int16(values))) => values
+            .iter()
+            .map(|result| result.map(i32::from))
+            .collect::<Result<_, _>>()
+            .map_err(|_| DecodeError::UnexpectedEof)?,
         Some(Value::Int32(Some(Int32::Value(i)))) => vec![i],
-        Some(Value::Array(Array::Int32(indices))) => indices,
+        Some(Value::Array(Array::Int32(values))) => values
+            .iter()
+            .collect::<Result<_, _>>()
+            .map_err(|_| DecodeError::UnexpectedEof)?,
         None => Vec::new(),
         _ => return Err(DecodeError::InvalidIndexValue),
     };
@@ -50,6 +61,7 @@ pub fn read_string_map_entry<'m>(
 #[allow(clippy::enum_variant_names)]
 #[derive(Debug, Eq, PartialEq)]
 pub enum DecodeError {
+    UnexpectedEof,
     InvalidValue(super::value::DecodeError),
     InvalidIndex(num::TryFromIntError),
     InvalidIndexValue,
@@ -69,6 +81,7 @@ impl error::Error for DecodeError {
 impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::UnexpectedEof => write!(f, "unexpected EOF"),
             Self::InvalidValue(_) => write!(f, "invalid value"),
             Self::InvalidIndex(_) => write!(f, "invalid index"),
             Self::InvalidIndexValue => write!(f, "invalid index value"),
