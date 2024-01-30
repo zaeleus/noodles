@@ -147,59 +147,57 @@ fn write_int8_array_value<W>(writer: &mut W, values: &[Option<i32>]) -> io::Resu
 where
     W: Write,
 {
-    let mut vs = Vec::with_capacity(values.len());
+    let vs: Vec<_> = values
+        .iter()
+        .map(|value| {
+            let v = match value {
+                Some(n) => i8::try_from(*n)
+                    .map(Int8::from)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
+                None => Int8::Missing,
+            };
 
-    for value in values {
-        let v = match value {
-            Some(n) => i8::try_from(*n)
-                .map(Int8::from)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
-            None => Int8::Missing,
-        };
+            match v {
+                Int8::Value(n) => Ok(n),
+                Int8::Missing => Ok(i8::from(v)),
+                _ => todo!("unhandled i16 array value: {:?}", v),
+            }
+        })
+        .collect::<Result<_, io::Error>>()?;
 
-        let n = match v {
-            Int8::Value(n) => n,
-            Int8::Missing => i8::from(v),
-            _ => todo!("unhandled i16 array value: {:?}", v),
-        };
-
-        vs.push(n);
-    }
-
-    value::write_value(writer, Some(Value::Array(Array::Int8(vs))))
+    value::write_value(writer, Some(Value::Array(Array::Int8(Box::new(vs)))))
 }
 
 fn write_int16_array_value<W>(writer: &mut W, values: &[Option<i32>]) -> io::Result<()>
 where
     W: Write,
 {
-    let mut vs = Vec::with_capacity(values.len());
+    let vs: Vec<_> = values
+        .iter()
+        .map(|value| {
+            let v = match value {
+                Some(n) => i16::try_from(*n)
+                    .map(Int16::from)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
+                None => Int16::Missing,
+            };
 
-    for value in values {
-        let v = match value {
-            Some(n) => i16::try_from(*n)
-                .map(Int16::from)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
-            None => Int16::Missing,
-        };
+            match v {
+                Int16::Value(n) => Ok(n),
+                Int16::Missing => Ok(i16::from(v)),
+                _ => todo!("unhandled i16 array value: {:?}", v),
+            }
+        })
+        .collect::<Result<_, io::Error>>()?;
 
-        let n = match v {
-            Int16::Value(n) => n,
-            Int16::Missing => i16::from(v),
-            _ => todo!("unhandled i16 array value: {:?}", v),
-        };
-
-        vs.push(n);
-    }
-
-    value::write_value(writer, Some(Value::Array(Array::Int16(vs))))
+    value::write_value(writer, Some(Value::Array(Array::Int16(Box::new(vs)))))
 }
 
 fn write_int32_array_value<W>(writer: &mut W, values: &[Option<i32>]) -> io::Result<()>
 where
     W: Write,
 {
-    let vs = values
+    let vs: Vec<_> = values
         .iter()
         .map(|value| value.map(Int32::from).unwrap_or(Int32::Missing))
         .map(|value| match value {
@@ -209,14 +207,14 @@ where
         })
         .collect();
 
-    value::write_value(writer, Some(Value::Array(Array::Int32(vs))))
+    value::write_value(writer, Some(Value::Array(Array::Int32(Box::new(vs)))))
 }
 
 fn write_float_array_value<W>(writer: &mut W, values: &[Option<f32>]) -> io::Result<()>
 where
     W: Write,
 {
-    let vs = values
+    let vs: Vec<_> = values
         .iter()
         .map(|value| value.map(Float::from).unwrap_or(Float::Missing))
         .map(|value| match value {
@@ -226,7 +224,7 @@ where
         })
         .collect();
 
-    value::write_value(writer, Some(Value::Array(Array::Float(vs))))
+    value::write_value(writer, Some(Value::Array(Array::Float(Box::new(vs)))))
 }
 
 fn write_character_array_value<W>(writer: &mut W, values: &[Option<char>]) -> io::Result<()>

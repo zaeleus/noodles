@@ -40,14 +40,16 @@ fn read_integer_value(
         }
         Some(Value::Array(Array::Int8(values))) => Ok(Some(vcf::record::info::field::Value::from(
             values
-                .into_iter()
-                .map(Int8::from)
-                .map(|value| match value {
-                    Int8::Value(n) => Some(i32::from(n)),
-                    Int8::Missing => None,
-                    _ => todo!("unhandled i8 array value: {:?}", value),
+                .iter()
+                .map(|result| {
+                    result.map(Int8::from).map(|value| match value {
+                        Int8::Value(n) => Some(i32::from(n)),
+                        Int8::Missing => None,
+                        _ => todo!("unhandled i8 array value: {:?}", value),
+                    })
                 })
-                .collect::<Vec<_>>(),
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|_| DecodeError::UnexpectedEof)?,
         ))),
         Some(Value::Int16(Some(Int16::Value(n)))) => {
             Ok(Some(vcf::record::info::field::Value::from(i32::from(n))))
@@ -55,14 +57,16 @@ fn read_integer_value(
         Some(Value::Array(Array::Int16(values))) => {
             Ok(Some(vcf::record::info::field::Value::from(
                 values
-                    .into_iter()
-                    .map(Int16::from)
-                    .map(|value| match value {
-                        Int16::Value(n) => Some(i32::from(n)),
-                        Int16::Missing => None,
-                        _ => todo!("unhandled i16 array value: {:?}", value),
+                    .iter()
+                    .map(|result| {
+                        result.map(Int16::from).map(|value| match value {
+                            Int16::Value(n) => Some(i32::from(n)),
+                            Int16::Missing => None,
+                            _ => todo!("unhandled i16 array value: {:?}", value),
+                        })
                     })
-                    .collect::<Vec<_>>(),
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|_| DecodeError::UnexpectedEof)?,
             )))
         }
         Some(Value::Int32(Some(Int32::Value(n)))) => {
@@ -71,14 +75,16 @@ fn read_integer_value(
         Some(Value::Array(Array::Int32(values))) => {
             Ok(Some(vcf::record::info::field::Value::from(
                 values
-                    .into_iter()
-                    .map(Int32::from)
-                    .map(|value| match value {
-                        Int32::Value(n) => Some(n),
-                        Int32::Missing => None,
-                        _ => todo!("unhandled i32 array value: {:?}", value),
+                    .iter()
+                    .map(|result| {
+                        result.map(Int32::from).map(|value| match value {
+                            Int32::Value(n) => Some(n),
+                            Int32::Missing => None,
+                            _ => todo!("unhandled i32 array value: {:?}", value),
+                        })
                     })
-                    .collect::<Vec<_>>(),
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|_| DecodeError::UnexpectedEof)?,
             )))
         }
         v => Err(type_mismatch_error(v, Type::Integer)),
@@ -107,14 +113,16 @@ fn read_float_value(
         Some(Value::Array(Array::Float(values))) => {
             Ok(Some(vcf::record::info::field::Value::from(
                 values
-                    .into_iter()
-                    .map(Float::from)
-                    .map(|value| match value {
-                        Float::Value(n) => Some(n),
-                        Float::Missing => None,
-                        _ => todo!("unhandled float array value: {:?}", value),
+                    .iter()
+                    .map(|result| {
+                        result.map(Float::from).map(|value| match value {
+                            Float::Value(n) => Some(n),
+                            Float::Missing => None,
+                            _ => todo!("unhandled float array value: {:?}", value),
+                        })
                     })
-                    .collect::<Vec<_>>(),
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|_| DecodeError::UnexpectedEof)?,
             )))
         }
         v => Err(type_mismatch_error(v, Type::Float)),
@@ -174,6 +182,7 @@ fn type_mismatch_error(value: Option<Value>, expected: Type) -> DecodeError {
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum DecodeError {
+    UnexpectedEof,
     InvalidValue(value::DecodeError),
     TypeMismatch {
         actual: Option<Type>,
@@ -194,6 +203,7 @@ impl error::Error for DecodeError {
 impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::UnexpectedEof => write!(f, "unexpected EOF"),
             Self::InvalidValue(_) => write!(f, "invalid value"),
             Self::TypeMismatch { actual, expected } => {
                 write!(f, "type mismatch: expected {expected:?}, got {actual:?}")

@@ -123,29 +123,33 @@ where
         Array::Int8(values) => {
             write_type(writer, Some(Type::Int8(values.len())))?;
 
-            for &value in values {
-                writer.write_i8(value)?;
+            for result in values.iter() {
+                let n = result?;
+                writer.write_i8(n)?;
             }
         }
         Array::Int16(values) => {
             write_type(writer, Some(Type::Int16(values.len())))?;
 
-            for &value in values {
-                writer.write_i16::<LittleEndian>(value)?;
+            for result in values.iter() {
+                let n = result?;
+                writer.write_i16::<LittleEndian>(n)?;
             }
         }
         Array::Int32(values) => {
             write_type(writer, Some(Type::Int32(values.len())))?;
 
-            for &value in values {
-                writer.write_i32::<LittleEndian>(value)?;
+            for result in values.iter() {
+                let n = result?;
+                writer.write_i32::<LittleEndian>(n)?;
             }
         }
         Array::Float(values) => {
             write_type(writer, Some(Type::Float(values.len())))?;
 
-            for &value in values {
-                writer.write_f32::<LittleEndian>(value)?;
+            for result in values.iter() {
+                let n = result?;
+                writer.write_f32::<LittleEndian>(n)?;
             }
         }
     }
@@ -204,20 +208,25 @@ mod tests {
         assert_eq!(buf, [0x47, 0x6e, 0x64, 0x6c, 0x73]);
 
         buf.clear();
-        write_value(&mut buf, Some(Value::Array(Array::Int8(vec![5, 8, 13]))))?;
+        write_value(
+            &mut buf,
+            Some(Value::Array(Array::Int8(Box::new(vec![5, 8, 13])))),
+        )?;
         assert_eq!(buf, [0x31, 0x05, 0x08, 0x0d]);
 
         buf.clear();
         write_value(
             &mut buf,
-            Some(Value::Array(Array::Int16(vec![377, 610, 987]))),
+            Some(Value::Array(Array::Int16(Box::new(vec![377, 610, 987])))),
         )?;
         assert_eq!(buf, [0x32, 0x79, 0x01, 0x62, 0x02, 0xdb, 0x03]);
 
         buf.clear();
         write_value(
             &mut buf,
-            Some(Value::Array(Array::Int32(vec![75025, 121393, 196418]))),
+            Some(Value::Array(Array::Int32(Box::new(vec![
+                75025, 121393, 196418,
+            ])))),
         )?;
         assert_eq!(
             buf,
@@ -225,7 +234,10 @@ mod tests {
         );
 
         buf.clear();
-        write_value(&mut buf, Some(Value::Array(Array::Float(vec![0.0, 0.5]))))?;
+        write_value(
+            &mut buf,
+            Some(Value::Array(Array::Float(Box::new(vec![0.0, 0.5])))),
+        )?;
         assert_eq!(buf, [0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3f]);
 
         Ok(())
