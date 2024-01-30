@@ -4,10 +4,10 @@ mod builder;
 mod header;
 pub(crate) mod lazy_record;
 pub(crate) mod query;
-pub(crate) mod record;
-mod records;
+pub(crate) mod record_buf;
+mod record_bufs;
 
-pub use self::{builder::Builder, query::Query, records::Records};
+pub use self::{builder::Builder, query::Query, record_bufs::RecordBufs};
 
 use std::{
     io::{self, BufRead, Read, Seek},
@@ -20,7 +20,7 @@ use noodles_core::Region;
 use noodles_csi::BinningIndex;
 use noodles_vcf as vcf;
 
-use self::{header::read_header, lazy_record::read_lazy_record, record::read_record};
+use self::{header::read_header, lazy_record::read_lazy_record, record_buf::read_record_buf};
 use crate::{
     header::string_maps::{ContigStringMap, StringMaps},
     Record,
@@ -133,15 +133,15 @@ where
     /// let header = reader.read_header()?;
     ///
     /// let mut record = vcf::Record::default();
-    /// reader.read_record(&header, &mut record)?;
+    /// reader.read_record_buf(&header, &mut record)?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn read_record(
+    pub fn read_record_buf(
         &mut self,
         header: &vcf::Header,
         record: &mut vcf::Record,
     ) -> io::Result<usize> {
-        read_record(
+        read_record_buf(
             &mut self.inner,
             header,
             &self.string_maps,
@@ -191,13 +191,13 @@ where
     /// let mut reader = File::open("sample.bcf").map(bcf::io::Reader::new)?;
     /// let header = reader.read_header()?;
     ///
-    /// for result in reader.records(&header) {
+    /// for result in reader.record_bufs(&header) {
     ///     let record = result?;
     ///     // ...
     /// }
     /// # Ok::<(), io::Error>(())
-    pub fn records<'r, 'h>(&'r mut self, header: &'h vcf::Header) -> Records<'r, 'h, R> {
-        Records::new(self, header)
+    pub fn record_bufs<'r, 'h>(&'r mut self, header: &'h vcf::Header) -> RecordBufs<'r, 'h, R> {
+        RecordBufs::new(self, header)
     }
 
     /// Returns an iterator over lazy records starting from the current stream position.
@@ -361,7 +361,7 @@ where
         &'r mut self,
         header: &'h vcf::Header,
     ) -> Box<dyn Iterator<Item = io::Result<vcf::Record>> + 'r> {
-        Box::new(self.records(header))
+        Box::new(self.record_bufs(header))
     }
 }
 

@@ -38,7 +38,7 @@ where
     ) -> impl Iterator<Item = io::Result<Record>> + '_ {
         let records: Box<dyn Iterator<Item = io::Result<Record>>> = match self {
             Self::Vcf(reader) => Box::new(reader.records(header)),
-            Self::Bcf(reader) => Box::new(reader.records(header)),
+            Self::Bcf(reader) => Box::new(reader.record_bufs(header)),
         };
 
         records

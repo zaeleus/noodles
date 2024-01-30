@@ -5,7 +5,7 @@ use noodles_vcf as vcf;
 
 use crate::header::StringMaps;
 
-pub(super) fn read_record<R>(
+pub(super) fn read_record_buf<R>(
     reader: &mut R,
     header: &vcf::Header,
     string_maps: &StringMaps,

@@ -7,7 +7,7 @@ use super::Reader;
 /// An iterator over records of a BCF reader.
 ///
 /// This is created by calling [`Reader::records`].
-pub struct Records<'r, 'h, R>
+pub struct RecordBufs<'r, 'h, R>
 where
     R: Read,
 {
@@ -16,7 +16,7 @@ where
     record: vcf::Record,
 }
 
-impl<'r, 'h, R> Records<'r, 'h, R>
+impl<'r, 'h, R> RecordBufs<'r, 'h, R>
 where
     R: Read,
 {
@@ -29,14 +29,14 @@ where
     }
 }
 
-impl<'r, 'h, R> Iterator for Records<'r, 'h, R>
+impl<'r, 'h, R> Iterator for RecordBufs<'r, 'h, R>
 where
     R: Read,
 {
     type Item = io::Result<vcf::Record>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.reader.read_record(self.header, &mut self.record) {
+        match self.reader.read_record_buf(self.header, &mut self.record) {
             Ok(0) => None,
             Ok(_) => Some(Ok(self.record.clone())),
             Err(e) => Some(Err(e)),

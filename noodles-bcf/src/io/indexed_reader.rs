@@ -12,7 +12,7 @@ use noodles_csi::BinningIndex;
 use noodles_vcf as vcf;
 
 use super::{
-    reader::{Query, Records},
+    reader::{Query, RecordBufs},
     Reader,
 };
 use crate::{header::StringMaps, Record};
@@ -55,12 +55,12 @@ where
     }
 
     /// Reads a single record.
-    pub fn read_record(
+    pub fn read_record_buf(
         &mut self,
         header: &vcf::Header,
         record: &mut vcf::Record,
     ) -> io::Result<usize> {
-        self.inner.read_record(header, record)
+        self.inner.read_record_buf(header, record)
     }
 
     /// Reads a single record without eagerly decoding (most of) its fields.
@@ -69,8 +69,8 @@ where
     }
 
     /// Returns an iterator over records starting from the current stream position.
-    pub fn records<'r, 'h>(&'r mut self, header: &'h vcf::Header) -> Records<'r, 'h, R> {
-        self.inner.records(header)
+    pub fn record_bufs<'r, 'h>(&'r mut self, header: &'h vcf::Header) -> RecordBufs<'r, 'h, R> {
+        self.inner.record_bufs(header)
     }
 
     /// Returns an iterator over lazy records starting from the current stream position.

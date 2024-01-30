@@ -18,6 +18,13 @@
     attached to the reader. Use `Reader::string_maps` to get a reference to the
     string maps.
 
+  * bcf/io/reader: Rename record to record buf.
+
+    This changes the following:
+
+      * `Reader::read_record` => `Reader::read_record_buf` and
+      * `Reader::records` => `Reader::record_bufs`.
+
 ### Removed
 
   * bcf/async/io/reader: Remove `Reader::read_file_format`.
