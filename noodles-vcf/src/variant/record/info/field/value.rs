@@ -2,6 +2,8 @@
 
 pub mod array;
 
+use std::io;
+
 pub use self::array::Array;
 
 /// A variant record info field value.
@@ -18,4 +20,19 @@ pub enum Value<'a> {
     String(&'a str),
     /// An array.
     Array(Array<'a>),
+}
+
+impl<'a> TryFrom<Value<'a>> for crate::record::info::field::Value {
+    type Error = io::Error;
+
+    fn try_from(value: Value<'a>) -> Result<Self, Self::Error> {
+        match value {
+            Value::Integer(n) => Ok(Self::Integer(n)),
+            Value::Float(n) => Ok(Self::Float(n)),
+            Value::Flag => Ok(Self::Flag),
+            Value::Character(c) => Ok(Self::Character(c)),
+            Value::String(s) => Ok(Self::String(s.into())),
+            Value::Array(array) => array.try_into().map(Self::Array),
+        }
+    }
 }

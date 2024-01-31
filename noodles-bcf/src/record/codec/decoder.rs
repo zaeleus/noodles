@@ -3,7 +3,7 @@ mod chromosome_id;
 mod filters;
 mod genotypes;
 mod ids;
-pub mod info;
+mod info;
 mod position;
 mod quality_score;
 mod raw_value;
@@ -15,11 +15,12 @@ use std::io;
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_vcf as vcf;
 
+use self::info::read_info;
 pub(crate) use self::{
     bases::read_ref_alt, chromosome_id::read_chrom, filters::read_filter, ids::read_id,
-    position::read_pos, quality_score::read_qual,
+    position::read_pos, quality_score::read_qual, string_map::read_string_map_entry,
 };
-pub use self::{genotypes::read_genotypes, info::read_info, value::read_value};
+pub use self::{genotypes::read_genotypes, value::read_value};
 use crate::{header::StringMaps, record::Filters};
 
 pub fn read_site(

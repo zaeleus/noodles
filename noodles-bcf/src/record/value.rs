@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use std::{io, mem, str};
 
 pub(crate) mod array;
@@ -150,7 +148,10 @@ mod tests {
         let mut src = &[0x31, 0x05, 0x08, 0x0d][..];
         match read_value(&mut src) {
             Ok(Some(Value::Array(Array::Int8(values)))) => {
-                assert_eq!(values.iter().collect::<Vec<_>>(), [5, 8, 13]);
+                assert_eq!(
+                    values.iter().collect::<Vec<_>>(),
+                    [Int8::from(5), Int8::from(8), Int8::from(13)]
+                );
             }
             _ => panic!(),
         }
@@ -167,7 +168,10 @@ mod tests {
         let mut src = &[0x32, 0x79, 0x01, 0x62, 0x02, 0xdb, 0x03][..];
         match read_value(&mut src) {
             Ok(Some(Value::Array(Array::Int16(values)))) => {
-                assert_eq!(values.iter().collect::<Vec<_>>(), [377, 610, 987]);
+                assert_eq!(
+                    values.iter().collect::<Vec<_>>(),
+                    [Int16::from(377), Int16::from(610), Int16::from(987)]
+                );
             }
             _ => panic!(),
         }
@@ -186,7 +190,10 @@ mod tests {
         ][..];
         match read_value(&mut src) {
             Ok(Some(Value::Array(Array::Int32(values)))) => {
-                assert_eq!(values.iter().collect::<Vec<_>>(), [75025, 121393, 196418]);
+                assert_eq!(
+                    values.iter().collect::<Vec<_>>(),
+                    [Int32::from(75025), Int32::from(121393), Int32::from(196418)]
+                );
             }
             _ => panic!(),
         }
@@ -203,7 +210,10 @@ mod tests {
         let mut src = &[0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3f][..];
         match read_value(&mut src) {
             Ok(Some(Value::Array(Array::Float(values)))) => {
-                assert_eq!(values.iter().collect::<Vec<_>>(), [0.0, 0.5]);
+                assert_eq!(
+                    values.iter().collect::<Vec<_>>(),
+                    [Float::from(0.0), Float::from(0.5)]
+                );
             }
             _ => panic!(),
         }
