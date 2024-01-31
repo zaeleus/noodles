@@ -5,6 +5,7 @@ mod convert;
 mod filters;
 mod genotypes;
 mod info;
+mod value;
 
 use std::io;
 
