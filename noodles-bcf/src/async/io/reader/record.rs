@@ -37,10 +37,12 @@ where
 
 #[cfg(test)]
 mod tests {
-    use noodles_vcf::record::{
-        genotypes::{self, sample::Value as GenotypeFieldValue, Keys},
-        info::{self, field::Value as InfoFieldValue},
-        AlternateBases, Filters as VcfFilters, Genotypes as VcfGenotypes, Ids, Position,
+    use noodles_vcf::{
+        record::{
+            genotypes::{self, sample::Value as GenotypeFieldValue, Keys},
+            info, AlternateBases, Filters as VcfFilters, Genotypes as VcfGenotypes, Ids, Position,
+        },
+        variant::record::info::field::Value as InfoFieldValue,
     };
 
     use super::*;
@@ -78,29 +80,33 @@ mod tests {
 
         // info
 
-        let actual = record
-            .info()
-            .try_into_vcf_record_info(&header, string_maps.strings())?;
-
-        let expected = [
-            (String::from("HM3"), Some(InfoFieldValue::Flag)),
-            (
-                String::from(info::field::key::ALLELE_COUNT),
-                Some(InfoFieldValue::from(3)),
-            ),
-            (
-                String::from(info::field::key::TOTAL_ALLELE_COUNT),
-                Some(InfoFieldValue::from(6)),
-            ),
-            (
-                String::from(info::field::key::ANCESTRAL_ALLELE),
-                Some(InfoFieldValue::from("C")),
-            ),
-        ]
-        .into_iter()
-        .collect();
-
-        assert_eq!(actual, expected);
+        let mut iter = record.info().iter(&header, string_maps.strings());
+        assert!(matches!(
+            iter.next(),
+            Some(Ok(("HM3", Some(InfoFieldValue::Flag))))
+        ));
+        assert!(matches!(
+            iter.next(),
+            Some(Ok((
+                info::field::key::ALLELE_COUNT,
+                Some(InfoFieldValue::Integer(3))
+            )))
+        ));
+        assert!(matches!(
+            iter.next(),
+            Some(Ok((
+                info::field::key::TOTAL_ALLELE_COUNT,
+                Some(InfoFieldValue::Integer(6))
+            )))
+        ));
+        assert!(matches!(
+            iter.next(),
+            Some(Ok((
+                info::field::key::ANCESTRAL_ALLELE,
+                Some(InfoFieldValue::String("C"))
+            )))
+        ));
+        assert!(iter.next().is_none());
 
         // genotypes
 

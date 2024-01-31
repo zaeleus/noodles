@@ -11,6 +11,7 @@ use std::io;
 
 use noodles_vcf as vcf;
 
+pub(crate) use self::value::Value;
 pub use self::{filters::Filters, genotypes::Genotypes, info::Info};
 
 /// A chromosome ID.
