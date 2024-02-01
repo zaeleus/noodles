@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bam/record/codec/encoder: Allow unsupported bin IDs to overflow ([#229]).
+
+[#229]: https://github.com/zaeleus/noodles/issues/229
+
 ## 0.53.0 - 2024-01-25
 
 ### Added
