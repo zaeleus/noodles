@@ -94,8 +94,11 @@ pub trait Record {
     }
 
     /// Returns the alignment span.
-    fn alignment_span(&self) -> io::Result<usize> {
-        self.cigar().alignment_span()
+    fn alignment_span(&self) -> io::Result<Option<usize>> {
+        self.cigar().alignment_span().map(|span| match span {
+            0 => None,
+            _ => Some(span),
+        })
     }
 
     /// Calculates the end position.
@@ -105,13 +108,14 @@ pub trait Record {
             Err(e) => return Some(Err(e)),
         };
 
-        let span = match self.alignment_span() {
-            Ok(span) => span,
-            Err(e) => return Some(Err(e)),
-        };
-
-        let end = usize::from(start) + span - 1;
-        core::Position::new(end).map(Ok)
+        match self.alignment_span() {
+            Ok(Some(span)) => {
+                let end = usize::from(start) + span - 1;
+                core::Position::new(end).map(Ok)
+            }
+            Ok(None) => Some(Ok(start)),
+            Err(e) => Some(Err(e)),
+        }
     }
 }
 

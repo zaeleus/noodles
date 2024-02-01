@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/alignment/record: Return a missing alignment span if there are no CIGAR
+    operations that consume the reference sequence.
+
 ## 0.50.0 - 2024-01-25
 
 ### Added

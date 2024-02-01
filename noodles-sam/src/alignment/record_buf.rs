@@ -462,10 +462,13 @@ impl RecordBuf {
     /// ```
     /// use noodles_sam as sam;
     /// let record = sam::alignment::RecordBuf::default();
-    /// assert_eq!(record.alignment_span(), 0);
+    /// assert!(record.alignment_span().is_none());
     /// ```
-    pub fn alignment_span(&self) -> usize {
-        self.cigar().alignment_span()
+    pub fn alignment_span(&self) -> Option<usize> {
+        match self.cigar().alignment_span() {
+            0 => None,
+            span => Some(span),
+        }
     }
 
     /// Calculates the end position.
@@ -488,10 +491,14 @@ impl RecordBuf {
     /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
     pub fn alignment_end(&self) -> Option<Position> {
-        self.alignment_start().and_then(|alignment_start| {
-            let end = usize::from(alignment_start) + self.alignment_span() - 1;
-            Position::new(end)
-        })
+        self.alignment_start()
+            .and_then(|start| match self.alignment_span() {
+                Some(span) => {
+                    let end = usize::from(start) + span - 1;
+                    Position::new(end)
+                }
+                None => Some(start),
+            })
     }
 }
 
