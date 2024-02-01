@@ -9,7 +9,7 @@ use crate::{
     Record,
 };
 
-pub fn read_record<R>(reader: &mut R, buf: &mut Vec<u8>, record: &mut Record) -> io::Result<usize>
+pub fn read_record<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
 where
     R: Read,
 {
@@ -23,14 +23,19 @@ where
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    buf.resize(l_shared, Default::default());
-    reader.read_exact(buf)?;
+    let site_buf = record.fields_mut().site_buf_mut();
+    site_buf.resize(l_shared, 0);
+    reader.read_exact(site_buf)?;
+
+    let buf = site_buf.clone();
     let mut buf_reader = &buf[..];
     let (n_fmt, n_sample) = read_site(&mut buf_reader, record)?;
 
-    let genotypes = record.genotypes.as_mut();
-    genotypes.resize(l_indiv, Default::default());
-    reader.read_exact(genotypes)?;
+    let samples_buf = record.fields_mut().samples_buf_mut();
+    samples_buf.resize(l_indiv, 0);
+    reader.read_exact(samples_buf)?;
+
+    *record.genotypes.as_mut() = samples_buf.clone();
     record.genotypes.set_format_count(n_fmt);
     record.genotypes.set_sample_count(n_sample);
 
@@ -158,14 +163,13 @@ pub(crate) mod tests {
         let string_maps: StringMaps = RAW_HEADER.parse()?;
 
         let mut reader = &DATA[..];
-        let mut buf = Vec::new();
         let mut record = Record::default();
-        read_record(&mut reader, &mut buf, &mut record)?;
+        read_record(&mut reader, &mut record)?;
 
-        assert_eq!(record.chromosome_id(), 1);
-        assert_eq!(record.position(), Position::from(101));
-        assert_eq!(record.rlen(), 1);
-        assert_eq!(record.quality_score(), Some(30.1));
+        assert_eq!(record.chromosome_id()?, 1);
+        assert_eq!(record.position()?, Position::from(101));
+        assert_eq!(record.rlen()?, 1);
+        assert_eq!(record.quality_score()?, Some(30.1));
         assert_eq!(record.ids(), &"rs123".parse::<Ids>()?);
         assert_eq!(record.reference_bases(), "A");
         assert_eq!(

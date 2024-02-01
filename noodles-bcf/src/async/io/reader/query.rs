@@ -96,10 +96,11 @@ fn intersects(
     chromosome_id: usize,
     region_interval: Interval,
 ) -> io::Result<bool> {
-    let id = record.chromosome_id();
+    let id = record.chromosome_id()?;
 
-    let start = Position::try_from(usize::from(record.position()))
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let start = record.position().map(usize::from).and_then(|n| {
+        Position::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
 
     let end = record.end().map(usize::from).and_then(|n| {
         Position::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))

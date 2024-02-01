@@ -37,7 +37,7 @@ impl Record {
     ) -> io::Result<vcf::Record> {
         let chromosome = string_maps
             .contigs()
-            .get_index(self.chromosome_id())
+            .get_index(self.chromosome_id()?)
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid chrom"))?;
 
         let filters = self
@@ -54,14 +54,14 @@ impl Record {
 
         let mut builder = vcf::Record::builder()
             .set_chromosome(chromosome)
-            .set_position(self.position())
+            .set_position(self.position()?)
             .set_ids(self.ids().clone())
             .set_reference_bases(self.reference_bases())
             .set_alternate_bases(self.alternate_bases().clone())
             .set_info(info)
             .set_genotypes(genotypes);
 
-        if let Some(quality_score) = self.quality_score() {
+        if let Some(quality_score) = self.quality_score()? {
             builder = builder.set_quality_score(quality_score);
         }
 
