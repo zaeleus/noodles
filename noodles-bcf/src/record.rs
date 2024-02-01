@@ -2,6 +2,7 @@
 
 pub(crate) mod codec;
 mod convert;
+mod fields;
 mod filters;
 mod genotypes;
 mod info;
@@ -11,6 +12,7 @@ use std::io;
 
 use noodles_vcf as vcf;
 
+use self::fields::Fields;
 pub(crate) use self::value::Value;
 pub use self::{filters::Filters, genotypes::Genotypes, info::Info};
 
@@ -20,6 +22,7 @@ pub type ChromosomeId = usize;
 /// A BCF record.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Record {
+    fields: Fields,
     pub(crate) chrom: ChromosomeId,
     pub(crate) pos: vcf::record::Position,
     pub(crate) rlen: usize,
@@ -33,6 +36,10 @@ pub struct Record {
 }
 
 impl Record {
+    pub(crate) fn fields_mut(&mut self) -> &mut Fields {
+        &mut self.fields
+    }
+
     /// Returns the chromosome ID of the record.
     ///
     /// The chromosome ID represents an index in the contig string map, which associates an ID (by
@@ -45,10 +52,12 @@ impl Record {
     /// ```
     /// use noodles_bcf as bcf;
     /// let record = bcf::Record::default();
-    /// assert_eq!(record.chromosome_id(), 0);
+    /// assert_eq!(record.chromosome_id()?, 0);
+    /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn chromosome_id(&self) -> ChromosomeId {
-        self.chrom
+    pub fn chromosome_id(&self) -> io::Result<usize> {
+        let n = self.fields.reference_sequence_id();
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
     /// Returns the start position of this record.
@@ -61,14 +70,21 @@ impl Record {
     /// ```
     /// use noodles_bcf as bcf;
     /// let record = bcf::Record::default();
-    /// assert_eq!(usize::from(record.position()), 1);
+    /// assert_eq!(record.position().map(usize::from)?, 1);
+    /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn position(&self) -> vcf::record::Position {
-        self.pos
+    pub fn position(&self) -> io::Result<vcf::record::Position> {
+        let n = self.fields.position();
+
+        usize::try_from(n)
+            .map(|m| m + 1)
+            .map(vcf::record::Position::from)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
-    pub(crate) fn rlen(&self) -> usize {
-        self.rlen
+    pub(crate) fn rlen(&self) -> io::Result<usize> {
+        let n = self.fields.span();
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
     /// Returns the end position of this record.
@@ -87,8 +103,8 @@ impl Record {
     pub fn end(&self) -> io::Result<vcf::record::Position> {
         use vcf::record::Position;
 
-        let start = usize::from(self.position());
-        let len = self.rlen();
+        let start = self.position().map(usize::from)?;
+        let len = self.rlen()?;
         let end = start + len - 1;
 
         Ok(Position::from(end))
@@ -101,10 +117,11 @@ impl Record {
     /// ```
     /// use noodles_bcf as bcf;
     /// let record = bcf::Record::default();
-    /// assert!(record.quality_score().is_none());
+    /// assert!(record.quality_score()?.is_none());
+    /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn quality_score(&self) -> Option<f32> {
-        self.qual
+    pub fn quality_score(&self) -> io::Result<Option<f32>> {
+        self.fields.quality_score()
     }
 
     /// Returns the IDs.
@@ -171,6 +188,7 @@ impl Record {
 impl Default for Record {
     fn default() -> Self {
         Self {
+            fields: Fields::default(),
             chrom: 0,
             pos: vcf::record::Position::from(1),
             rlen: 1,

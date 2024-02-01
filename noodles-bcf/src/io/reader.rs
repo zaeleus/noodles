@@ -174,7 +174,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        read_record(&mut self.inner, &mut self.buf, record)
+        read_record(&mut self.inner, record)
     }
 
     /// Returns an iterator over records starting from the current stream position.
