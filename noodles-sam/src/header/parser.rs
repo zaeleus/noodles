@@ -181,7 +181,7 @@ where
             Ok(())
         }
         Entry::Occupied(e) => {
-            let (k, _) = e.remove_entry();
+            let (k, _) = e.swap_remove_entry();
             Err(f(k))
         }
     }
