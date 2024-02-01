@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 #![warn(missing_docs)]
 
 //! **noodles-vcf** handles the reading and writing of the VCF format.
