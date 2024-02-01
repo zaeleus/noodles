@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.34.0 - 2024-02-01
+
+### Changed
+
+  * util: Sync dependencies.
+
 ## 0.33.0 - 2024-01-25
 
 ### Added
