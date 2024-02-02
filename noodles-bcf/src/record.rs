@@ -142,11 +142,29 @@ impl Record {
         self.fields.ids()
     }
 
-    pub(crate) fn reference_bases(&self) -> ReferenceBases<'_> {
+    /// Returns the reference bases.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf as bcf;
+    /// let record = bcf::Record::default();
+    /// assert_eq!(record.reference_bases().as_ref(), b"N");
+    /// ```
+    pub fn reference_bases(&self) -> ReferenceBases<'_> {
         self.fields.reference_bases()
     }
 
-    pub(crate) fn alternate_bases(&self) -> AlternateBases<'_> {
+    /// Returns the alternate bases.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf as bcf;
+    /// let record = bcf::Record::default();
+    /// assert!(record.alternate_bases().is_empty());
+    /// ```
+    pub fn alternate_bases(&self) -> AlternateBases<'_> {
         self.fields.alternate_bases()
     }
 
