@@ -40,6 +40,10 @@ impl Record {
             .get_index(self.chromosome_id()?)
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid chrom"))?;
 
+        let raw_reference_bases = self.reference_bases();
+        let reference_bases = str::from_utf8(raw_reference_bases.as_ref())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
         let filters = self
             .filters()
             .try_into_vcf_record_filters(string_maps.strings())?;
@@ -55,7 +59,7 @@ impl Record {
         let mut builder = vcf::Record::builder()
             .set_chromosome(chromosome)
             .set_position(self.position()?)
-            .set_reference_bases(self.reference_bases())
+            .set_reference_bases(reference_bases)
             .set_alternate_bases(self.alternate_bases().clone())
             .set_info(info)
             .set_genotypes(genotypes);

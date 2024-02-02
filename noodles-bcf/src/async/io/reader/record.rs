@@ -63,7 +63,7 @@ mod tests {
         assert_eq!(record.rlen()?, 1);
         assert_eq!(record.quality_score()?, Some(30.1));
         assert_eq!(record.ids().as_ref(), b"rs123");
-        assert_eq!(record.reference_bases(), "A");
+        assert_eq!(record.reference_bases().as_ref(), b"A");
         assert_eq!(
             record.alternate_bases(),
             &AlternateBases::from(vec![String::from("C")])

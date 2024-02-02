@@ -10,10 +10,15 @@ pub(super) const FORMAT_KEY_COUNT_INDEX: usize = 23;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(super) struct Bounds {
     pub(super) ids_range: Range<usize>,
+    pub(super) reference_bases_range: Range<usize>,
 }
 
 impl Bounds {
     pub(super) fn ids_range(&self) -> Range<usize> {
         self.ids_range.clone()
+    }
+
+    pub(super) fn reference_bases_range(&self) -> Range<usize> {
+        self.reference_bases_range.clone()
     }
 }

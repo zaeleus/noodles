@@ -7,6 +7,7 @@ mod filters;
 mod genotypes;
 mod ids;
 mod info;
+mod reference_bases;
 mod value;
 
 use std::io;
@@ -15,7 +16,9 @@ use noodles_vcf as vcf;
 
 use self::fields::Fields;
 pub(crate) use self::value::Value;
-pub use self::{filters::Filters, genotypes::Genotypes, ids::Ids, info::Info};
+pub use self::{
+    filters::Filters, genotypes::Genotypes, ids::Ids, info::Info, reference_bases::ReferenceBases,
+};
 
 /// A chromosome ID.
 pub type ChromosomeId = usize;
@@ -137,8 +140,8 @@ impl Record {
         self.fields.ids()
     }
 
-    pub(crate) fn reference_bases(&self) -> &str {
-        &self.r#ref
+    pub(crate) fn reference_bases(&self) -> ReferenceBases<'_> {
+        self.fields.reference_bases()
     }
 
     pub(crate) fn alternate_bases(&self) -> &vcf::record::AlternateBases {
