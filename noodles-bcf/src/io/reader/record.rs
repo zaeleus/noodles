@@ -29,20 +29,16 @@ where
 
     let buf = site_buf.clone();
     let mut buf_reader = &buf[..];
-    let (n_fmt, n_sample) = read_site(&mut buf_reader, record)?;
+    read_site(&mut buf_reader, record)?;
 
     let samples_buf = record.fields_mut().samples_buf_mut();
     samples_buf.resize(l_indiv, 0);
     reader.read_exact(samples_buf)?;
 
-    *record.genotypes.as_mut() = samples_buf.clone();
-    record.genotypes.set_format_count(n_fmt);
-    record.genotypes.set_sample_count(n_sample);
-
     Ok(l_shared + l_indiv)
 }
 
-pub(crate) fn read_site(src: &mut &[u8], record: &mut Record) -> io::Result<(usize, usize)> {
+pub(crate) fn read_site(src: &mut &[u8], record: &mut Record) -> io::Result<()> {
     record.chrom = read_chrom(src)?;
     record.pos = read_pos(src)?;
 
@@ -53,10 +49,7 @@ pub(crate) fn read_site(src: &mut &[u8], record: &mut Record) -> io::Result<(usi
     let n_info = src.read_u16::<LittleEndian>().map(usize::from)?;
     let n_allele = src.read_u16::<LittleEndian>().map(usize::from)?;
 
-    let n_fmt_sample = src.read_u32::<LittleEndian>()?;
-    let n_fmt = usize::from((n_fmt_sample >> 24) as u8);
-    let n_sample = usize::try_from(n_fmt_sample & 0xffffff)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let _n_fmt_sample = src.read_u32::<LittleEndian>()?;
 
     record.id = read_id(src)?;
 
@@ -71,7 +64,7 @@ pub(crate) fn read_site(src: &mut &[u8], record: &mut Record) -> io::Result<(usi
     src.read_to_end(info)?;
     record.info.set_field_count(n_info);
 
-    Ok((n_fmt, n_sample))
+    Ok(())
 }
 
 #[cfg(test)]
@@ -213,7 +206,7 @@ pub(crate) mod tests {
         // genotypes
 
         let actual = record
-            .genotypes()
+            .genotypes()?
             .try_into_vcf_record_genotypes(&header, string_maps.strings())?;
 
         let expected = VcfGenotypes::new(

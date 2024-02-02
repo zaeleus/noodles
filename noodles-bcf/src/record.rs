@@ -32,7 +32,6 @@ pub struct Record {
     pub(crate) alt: vcf::record::AlternateBases,
     pub(crate) filter: Filters,
     pub(crate) info: Info,
-    pub(crate) genotypes: Genotypes,
 }
 
 impl Record {
@@ -178,10 +177,11 @@ impl Record {
     /// ```
     /// use noodles_bcf as bcf;
     /// let record = bcf::Record::default();
-    /// assert!(record.genotypes().is_empty());
+    /// assert!(record.genotypes()?.is_empty());
+    /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn genotypes(&self) -> &Genotypes {
-        &self.genotypes
+    pub fn genotypes(&self) -> io::Result<Genotypes<'_>> {
+        self.fields.genotypes()
     }
 }
 
@@ -198,7 +198,6 @@ impl Default for Record {
             alt: vcf::record::AlternateBases::default(),
             filter: Filters::default(),
             info: Info::default(),
-            genotypes: Genotypes::default(),
         }
     }
 }

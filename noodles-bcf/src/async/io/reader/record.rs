@@ -23,15 +23,11 @@ where
 
     let buf = site_buf.clone();
     let mut buf_reader = &buf[..];
-    let (n_fmt, n_sample) = read_site(&mut buf_reader, record)?;
+    read_site(&mut buf_reader, record)?;
 
     let samples_buf = record.fields_mut().samples_buf_mut();
     samples_buf.resize(l_indiv, 0);
     reader.read_exact(samples_buf).await?;
-
-    *record.genotypes.as_mut() = samples_buf.clone();
-    record.genotypes.set_format_count(n_fmt);
-    record.genotypes.set_sample_count(n_sample);
 
     Ok(l_shared + l_indiv)
 }
@@ -111,7 +107,7 @@ mod tests {
         // genotypes
 
         let actual = record
-            .genotypes()
+            .genotypes()?
             .try_into_vcf_record_genotypes(&header, string_maps.strings())?;
 
         let expected = VcfGenotypes::new(
