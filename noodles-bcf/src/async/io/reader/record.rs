@@ -25,6 +25,8 @@ where
     let mut buf_reader = &buf[..];
     read_site(&mut buf_reader, record)?;
 
+    record.fields_mut().index()?;
+
     let samples_buf = record.fields_mut().samples_buf_mut();
     samples_buf.resize(l_indiv, 0);
     reader.read_exact(samples_buf).await?;
@@ -37,7 +39,7 @@ mod tests {
     use noodles_vcf::{
         record::{
             genotypes::{self, sample::Value as GenotypeFieldValue, Keys},
-            info, AlternateBases, Filters as VcfFilters, Genotypes as VcfGenotypes, Ids, Position,
+            info, AlternateBases, Filters as VcfFilters, Genotypes as VcfGenotypes, Position,
         },
         variant::record::info::field::Value as InfoFieldValue,
     };
@@ -60,7 +62,7 @@ mod tests {
         assert_eq!(record.position()?, Position::from(101));
         assert_eq!(record.rlen()?, 1);
         assert_eq!(record.quality_score()?, Some(30.1));
-        assert_eq!(record.ids(), &"rs123".parse::<Ids>()?);
+        assert_eq!(record.ids().as_ref(), b"rs123");
         assert_eq!(record.reference_bases(), "A");
         assert_eq!(
             record.alternate_bases(),

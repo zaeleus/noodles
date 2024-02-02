@@ -1,4 +1,4 @@
-use std::io;
+use std::{io, str};
 
 use noodles_vcf as vcf;
 
@@ -55,11 +55,21 @@ impl Record {
         let mut builder = vcf::Record::builder()
             .set_chromosome(chromosome)
             .set_position(self.position()?)
-            .set_ids(self.ids().clone())
             .set_reference_bases(self.reference_bases())
             .set_alternate_bases(self.alternate_bases().clone())
             .set_info(info)
             .set_genotypes(genotypes);
+
+        if !self.ids().is_empty() {
+            let ids = str::from_utf8(self.ids().as_ref())
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+                .and_then(|s| {
+                    s.parse()
+                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+                })?;
+
+            builder = builder.set_ids(ids);
+        }
 
         if let Some(quality_score) = self.quality_score()? {
             builder = builder.set_quality_score(quality_score);

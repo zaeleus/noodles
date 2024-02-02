@@ -3,8 +3,8 @@ use std::{io, mem, str};
 pub(crate) mod array;
 mod ty;
 
-pub(crate) use self::{array::Array, ty::Type};
-use self::{array::Values, ty::read_type};
+use self::array::Values;
+pub(crate) use self::{array::Array, ty::read_type, ty::Type};
 use super::codec::value::{Float, Int16, Int32, Int8};
 
 pub(crate) enum Value<'a> {
