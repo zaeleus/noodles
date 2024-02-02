@@ -3,7 +3,7 @@ mod bounds;
 use std::io;
 
 use self::bounds::Bounds;
-use super::{Genotypes, Ids};
+use super::{Genotypes, Ids, ReferenceBases};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct Fields {
@@ -73,6 +73,11 @@ impl Fields {
         Ids::new(src)
     }
 
+    pub(super) fn reference_bases(&self) -> ReferenceBases<'_> {
+        let src = &self.site_buf[self.bounds.reference_bases_range()];
+        ReferenceBases::new(src)
+    }
+
     pub(super) fn genotypes(&self) -> io::Result<Genotypes<'_>> {
         self.sample_count().map(|sample_count| {
             Genotypes::new(&self.samples_buf, sample_count, self.format_key_count())
@@ -89,22 +94,34 @@ fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
 
     const IDS_START_INDEX: usize = bounds::FORMAT_KEY_COUNT_INDEX + 1;
 
+    // [start, end)
+    fn consume_string(buf: &mut &[u8], offset: usize) -> io::Result<(usize, usize)> {
+        let prev_buf_len = buf.len();
+
+        let Some(Type::String(len)) = read_type(buf)? else {
+            return Err(io::Error::from(io::ErrorKind::InvalidData));
+        };
+
+        let start = offset + (prev_buf_len - buf.len());
+        let end = start + len;
+
+        *buf = &buf[len..];
+
+        Ok((start, end))
+    }
+
     let mut i = IDS_START_INDEX;
 
     let Some(mut buf) = buf.get(i..) else {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     };
 
-    let prev_buf_len = buf.len();
+    let (start, end) = consume_string(&mut buf, i)?;
+    bounds.ids_range = start..end;
+    i = end;
 
-    let Some(Type::String(len)) = read_type(&mut buf)? else {
-        return Err(io::Error::from(io::ErrorKind::InvalidData));
-    };
-
-    i += prev_buf_len - buf.len();
-    let start = i;
-    i += len;
-    bounds.ids_range = start..i;
+    let (start, end) = consume_string(&mut buf, i)?;
+    bounds.reference_bases_range = start..end;
 
     Ok(())
 }
@@ -121,11 +138,14 @@ impl Default for Fields {
             0x00, 0x00, 0x00, // n_sample = 0
             0x00, // n_fmt = 0
             0x07, // ids = []
-            0x17, 0x4e, // ref = N
+            0x17, b'N', // ref = N
             0x00, // filters = []
         ];
 
-        let bounds = Bounds { ids_range: 24..24 };
+        let bounds = Bounds {
+            ids_range: 24..24,
+            reference_bases_range: 26..27,
+        };
 
         Self {
             site_buf,
