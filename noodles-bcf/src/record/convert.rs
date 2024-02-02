@@ -44,6 +44,12 @@ impl Record {
         let reference_bases = str::from_utf8(raw_reference_bases.as_ref())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
+        let alternate_bases: Vec<_> = self
+            .alternate_bases()
+            .iter()
+            .map(|result| result.map(|value| value.map(String::from).unwrap_or(String::from("."))))
+            .collect::<io::Result<_>>()?;
+
         let filters = self
             .filters()
             .try_into_vcf_record_filters(string_maps.strings())?;
@@ -60,7 +66,7 @@ impl Record {
             .set_chromosome(chromosome)
             .set_position(self.position()?)
             .set_reference_bases(reference_bases)
-            .set_alternate_bases(self.alternate_bases().clone())
+            .set_alternate_bases(alternate_bases.into())
             .set_info(info)
             .set_genotypes(genotypes);
 
