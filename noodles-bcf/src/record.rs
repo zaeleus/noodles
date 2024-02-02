@@ -1,5 +1,6 @@
 //! BCF record.
 
+mod alternate_bases;
 pub(crate) mod codec;
 mod convert;
 mod fields;
@@ -17,7 +18,8 @@ use noodles_vcf as vcf;
 use self::fields::Fields;
 pub(crate) use self::value::Value;
 pub use self::{
-    filters::Filters, genotypes::Genotypes, ids::Ids, info::Info, reference_bases::ReferenceBases,
+    alternate_bases::AlternateBases, filters::Filters, genotypes::Genotypes, ids::Ids, info::Info,
+    reference_bases::ReferenceBases,
 };
 
 /// A chromosome ID.
@@ -144,8 +146,8 @@ impl Record {
         self.fields.reference_bases()
     }
 
-    pub(crate) fn alternate_bases(&self) -> &vcf::record::AlternateBases {
-        &self.alt
+    pub(crate) fn alternate_bases(&self) -> AlternateBases<'_> {
+        self.fields.alternate_bases()
     }
 
     /// Returns the filters.

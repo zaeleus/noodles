@@ -39,7 +39,7 @@ mod tests {
     use noodles_vcf::{
         record::{
             genotypes::{self, sample::Value as GenotypeFieldValue, Keys},
-            info, AlternateBases, Filters as VcfFilters, Genotypes as VcfGenotypes, Position,
+            info, Filters as VcfFilters, Genotypes as VcfGenotypes, Position,
         },
         variant::record::info::field::Value as InfoFieldValue,
     };
@@ -65,8 +65,11 @@ mod tests {
         assert_eq!(record.ids().as_ref(), b"rs123");
         assert_eq!(record.reference_bases().as_ref(), b"A");
         assert_eq!(
-            record.alternate_bases(),
-            &AlternateBases::from(vec![String::from("C")])
+            record
+                .alternate_bases()
+                .iter()
+                .collect::<Result<Vec<_>, _>>()?,
+            [Some("C")]
         );
 
         assert_eq!(

@@ -3,7 +3,7 @@ mod bounds;
 use std::io;
 
 use self::bounds::Bounds;
-use super::{Genotypes, Ids, ReferenceBases};
+use super::{AlternateBases, Genotypes, Ids, ReferenceBases};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct Fields {
@@ -57,6 +57,12 @@ impl Fields {
         }
     }
 
+    fn allele_count(&self) -> usize {
+        let src = &self.site_buf[bounds::ALLELE_COUNT_RANGE];
+        // SAFETY: `src` is 2 bytes.
+        usize::from(u16::from_le_bytes(src.try_into().unwrap()))
+    }
+
     fn sample_count(&self) -> io::Result<usize> {
         let src = &self.site_buf[bounds::SAMPLE_COUNT_RANGE];
         let n = u32::from_le_bytes([src[0], src[1], src[2], 0x00]);
@@ -76,6 +82,12 @@ impl Fields {
     pub(super) fn reference_bases(&self) -> ReferenceBases<'_> {
         let src = &self.site_buf[self.bounds.reference_bases_range()];
         ReferenceBases::new(src)
+    }
+
+    pub(super) fn alternate_bases(&self) -> AlternateBases<'_> {
+        let src = &self.site_buf[self.bounds.alternate_bases_range()];
+        let len = self.allele_count() - 1;
+        AlternateBases::new(src, len)
     }
 
     pub(super) fn genotypes(&self) -> io::Result<Genotypes<'_>> {
@@ -110,11 +122,16 @@ fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
         Ok((start, end))
     }
 
-    let mut i = IDS_START_INDEX;
-
-    let Some(mut buf) = buf.get(i..) else {
+    if buf.len() < IDS_START_INDEX {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    };
+    }
+
+    let src = &buf[bounds::ALLELE_COUNT_RANGE];
+    // SAFETY: `src` is 2 bytes.
+    let allele_count = usize::from(u16::from_le_bytes(src.try_into().unwrap()));
+
+    let mut i = IDS_START_INDEX;
+    let mut buf = &buf[i..];
 
     let (start, end) = consume_string(&mut buf, i)?;
     bounds.ids_range = start..end;
@@ -122,6 +139,14 @@ fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
 
     let (start, end) = consume_string(&mut buf, i)?;
     bounds.reference_bases_range = start..end;
+    i = end;
+
+    for _ in 0..(allele_count - 1) {
+        let (_, end) = consume_string(&mut buf, i)?;
+        i = end;
+    }
+
+    bounds.alternate_bases_end = i;
 
     Ok(())
 }
@@ -145,6 +170,7 @@ impl Default for Fields {
         let bounds = Bounds {
             ids_range: 24..24,
             reference_bases_range: 26..27,
+            alternate_bases_end: 27,
         };
 
         Self {

@@ -4,6 +4,7 @@ pub(super) const REFERENCE_SEQUENCE_ID_RANGE: Range<usize> = 0..4;
 pub(super) const POSITION_RANGE: Range<usize> = 4..8;
 pub(super) const SPAN_RANGE: Range<usize> = 8..12;
 pub(super) const QUALITY_SCORE_RANGE: Range<usize> = 12..16;
+pub(super) const ALLELE_COUNT_RANGE: Range<usize> = 18..20;
 pub(super) const SAMPLE_COUNT_RANGE: Range<usize> = 20..23;
 pub(super) const FORMAT_KEY_COUNT_INDEX: usize = 23;
 
@@ -11,6 +12,7 @@ pub(super) const FORMAT_KEY_COUNT_INDEX: usize = 23;
 pub(super) struct Bounds {
     pub(super) ids_range: Range<usize>,
     pub(super) reference_bases_range: Range<usize>,
+    pub(super) alternate_bases_end: usize,
 }
 
 impl Bounds {
@@ -20,5 +22,9 @@ impl Bounds {
 
     pub(super) fn reference_bases_range(&self) -> Range<usize> {
         self.reference_bases_range.clone()
+    }
+
+    pub(super) fn alternate_bases_range(&self) -> Range<usize> {
+        self.reference_bases_range.end..self.alternate_bases_end
     }
 }
