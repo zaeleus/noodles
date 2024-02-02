@@ -6,13 +6,21 @@ use crate::header::string_maps::StringStringMap;
 
 /// BCF record genotypes.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub struct Genotypes {
-    buf: Vec<u8>,
-    format_count: usize,
+pub struct Genotypes<'a> {
+    buf: &'a [u8],
     sample_count: usize,
+    format_count: usize,
 }
 
-impl Genotypes {
+impl<'a> Genotypes<'a> {
+    pub(super) fn new(buf: &'a [u8], sample_count: usize, format_count: usize) -> Self {
+        Self {
+            buf,
+            sample_count,
+            format_count,
+        }
+    }
+
     /// Converts BCF record genotypes to VCF record genotypes.
     ///
     /// # Examples
@@ -42,7 +50,7 @@ impl Genotypes {
             return Ok(vcf::record::Genotypes::default());
         }
 
-        let mut reader = &self.buf[..];
+        let mut reader = self.buf;
 
         let genotypes = read_genotypes(
             &mut reader,
@@ -82,24 +90,6 @@ impl Genotypes {
         self.len() == 0
     }
 
-    /// Removes all genotype fields.
-    ///
-    /// This does not affect the capacity of the buffer.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bcf::record::Genotypes;
-    /// let mut genotypes = Genotypes::default();
-    /// genotypes.clear();
-    /// assert!(genotypes.is_empty());
-    /// ```
-    pub fn clear(&mut self) {
-        self.buf.clear();
-        self.set_format_count(0);
-        self.set_sample_count(0);
-    }
-
     /// Returns the number of fields per sample.
     ///
     /// # Examples
@@ -112,24 +102,10 @@ impl Genotypes {
     pub fn format_count(&self) -> usize {
         self.format_count
     }
-
-    pub(crate) fn set_format_count(&mut self, format_count: usize) {
-        self.format_count = format_count;
-    }
-
-    pub(crate) fn set_sample_count(&mut self, sample_count: usize) {
-        self.sample_count = sample_count;
-    }
 }
 
-impl AsRef<[u8]> for Genotypes {
+impl<'a> AsRef<[u8]> for Genotypes<'a> {
     fn as_ref(&self) -> &[u8] {
-        &self.buf
-    }
-}
-
-impl AsMut<Vec<u8>> for Genotypes {
-    fn as_mut(&mut self) -> &mut Vec<u8> {
-        &mut self.buf
+        self.buf
     }
 }

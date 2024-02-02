@@ -49,7 +49,7 @@ impl Record {
             .try_into_vcf_record_info(header, string_maps.strings())?;
 
         let genotypes = self
-            .genotypes()
+            .genotypes()?
             .try_into_vcf_record_genotypes(header, string_maps.strings())?;
 
         let mut builder = vcf::Record::builder()

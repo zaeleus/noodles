@@ -3,6 +3,7 @@ mod bounds;
 use std::io;
 
 use self::bounds::Bounds;
+use super::Genotypes;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct Fields {
@@ -54,6 +55,23 @@ impl Fields {
                 "invalid quality score",
             )),
         }
+    }
+
+    fn sample_count(&self) -> io::Result<usize> {
+        let src = &self.site_buf[bounds::SAMPLE_COUNT_RANGE];
+        let n = u32::from_le_bytes([src[0], src[1], src[2], 0x00]);
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    }
+
+    fn format_key_count(&self) -> usize {
+        let n = self.site_buf[bounds::FORMAT_KEY_COUNT_INDEX];
+        usize::from(n)
+    }
+
+    pub(super) fn genotypes(&self) -> io::Result<Genotypes<'_>> {
+        self.sample_count().map(|sample_count| {
+            Genotypes::new(&self.samples_buf, sample_count, self.format_key_count())
+        })
     }
 }
 
