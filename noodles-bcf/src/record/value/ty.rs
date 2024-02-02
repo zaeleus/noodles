@@ -3,7 +3,7 @@ use std::io;
 use super::read_value;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum Type {
+pub(crate) enum Type {
     Int8(usize),
     Int16(usize),
     Int32(usize),
@@ -13,7 +13,7 @@ pub enum Type {
 
 const MAX_TYPE_LEN: usize = 0x0f;
 
-pub(super) fn read_type(src: &mut &[u8]) -> io::Result<Option<Type>> {
+pub(crate) fn read_type(src: &mut &[u8]) -> io::Result<Option<Type>> {
     let encoding = get_u8(src)?;
     let mut len = usize::from(encoding >> 4);
 

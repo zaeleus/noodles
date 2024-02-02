@@ -5,6 +5,7 @@ mod convert;
 mod fields;
 mod filters;
 mod genotypes;
+mod ids;
 mod info;
 mod value;
 
@@ -14,7 +15,7 @@ use noodles_vcf as vcf;
 
 use self::fields::Fields;
 pub(crate) use self::value::Value;
-pub use self::{filters::Filters, genotypes::Genotypes, info::Info};
+pub use self::{filters::Filters, genotypes::Genotypes, ids::Ids, info::Info};
 
 /// A chromosome ID.
 pub type ChromosomeId = usize;
@@ -132,8 +133,8 @@ impl Record {
     /// let record = bcf::Record::default();
     /// assert!(record.ids().is_empty());
     /// ```
-    pub fn ids(&self) -> &vcf::record::Ids {
-        &self.id
+    pub fn ids(&self) -> Ids<'_> {
+        self.fields.ids()
     }
 
     pub(crate) fn reference_bases(&self) -> &str {

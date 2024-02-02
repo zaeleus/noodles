@@ -3,7 +3,7 @@ mod bounds;
 use std::io;
 
 use self::bounds::Bounds;
-use super::Genotypes;
+use super::{Genotypes, Ids};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct Fields {
@@ -68,31 +68,69 @@ impl Fields {
         usize::from(n)
     }
 
+    pub(super) fn ids(&self) -> Ids<'_> {
+        let src = &self.site_buf[self.bounds.ids_range()];
+        Ids::new(src)
+    }
+
     pub(super) fn genotypes(&self) -> io::Result<Genotypes<'_>> {
         self.sample_count().map(|sample_count| {
             Genotypes::new(&self.samples_buf, sample_count, self.format_key_count())
         })
     }
+
+    pub(crate) fn index(&mut self) -> io::Result<()> {
+        index(&self.site_buf, &mut self.bounds)
+    }
+}
+
+fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
+    use super::value::{read_type, Type};
+
+    const IDS_START_INDEX: usize = bounds::FORMAT_KEY_COUNT_INDEX + 1;
+
+    let mut i = IDS_START_INDEX;
+
+    let Some(mut buf) = buf.get(i..) else {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    };
+
+    let prev_buf_len = buf.len();
+
+    let Some(Type::String(len)) = read_type(&mut buf)? else {
+        return Err(io::Error::from(io::ErrorKind::InvalidData));
+    };
+
+    i += prev_buf_len - buf.len();
+    let start = i;
+    i += len;
+    bounds.ids_range = start..i;
+
+    Ok(())
 }
 
 impl Default for Fields {
     fn default() -> Self {
+        let site_buf = vec![
+            0x00, 0x00, 0x00, 0x00, // chrom = 0
+            0x00, 0x00, 0x00, 0x00, // pos = 0 (0-based)
+            0x01, 0x00, 0x00, 0x00, // rlen = 1
+            0x01, 0x00, 0x80, 0x7f, // qual = None
+            0x00, 0x00, // n_info = 0
+            0x01, 0x00, // n_allele = 1
+            0x00, 0x00, 0x00, // n_sample = 0
+            0x00, // n_fmt = 0
+            0x07, // ids = []
+            0x17, 0x4e, // ref = N
+            0x00, // filters = []
+        ];
+
+        let bounds = Bounds { ids_range: 24..24 };
+
         Self {
-            site_buf: vec![
-                0x00, 0x00, 0x00, 0x00, // chrom = 0
-                0x00, 0x00, 0x00, 0x00, // pos = 0 (0-based)
-                0x01, 0x00, 0x00, 0x00, // rlen = 1
-                0x01, 0x00, 0x80, 0x7f, // qual = None
-                0x00, 0x00, // n_info = 0
-                0x01, 0x00, // n_allele = 1
-                0x00, 0x00, 0x00, // n_sample = 0
-                0x00, // n_fmt = 0
-                0x07, // ids = []
-                0x17, 0x4e, // ref = N
-                0x00, // filters = []
-            ],
+            site_buf,
             samples_buf: Vec::new(),
-            bounds: Bounds,
+            bounds,
         }
     }
 }
