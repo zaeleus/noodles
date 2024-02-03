@@ -82,7 +82,8 @@ mod tests {
 
         // info
 
-        let mut iter = record.info().iter(&header, string_maps.strings());
+        let info = record.info();
+        let mut iter = info.iter(&header, string_maps.strings());
         assert!(matches!(
             iter.next(),
             Some(Ok(("HM3", Some(InfoFieldValue::Flag))))

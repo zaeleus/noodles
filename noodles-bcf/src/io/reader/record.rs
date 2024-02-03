@@ -48,7 +48,7 @@ pub(crate) fn read_site(src: &mut &[u8], record: &mut Record) -> io::Result<()> 
 
     record.qual = read_qual(src)?;
 
-    let n_info = src.read_u16::<LittleEndian>().map(usize::from)?;
+    let _n_info = src.read_u16::<LittleEndian>().map(usize::from)?;
     let n_allele = src.read_u16::<LittleEndian>().map(usize::from)?;
 
     let _n_fmt_sample = src.read_u32::<LittleEndian>()?;
@@ -60,11 +60,6 @@ pub(crate) fn read_site(src: &mut &[u8], record: &mut Record) -> io::Result<()> 
     record.alt = alt;
 
     read_filter(src)?;
-
-    let info = record.info.as_mut();
-    info.clear();
-    src.read_to_end(info)?;
-    record.info.set_field_count(n_info);
 
     Ok(())
 }

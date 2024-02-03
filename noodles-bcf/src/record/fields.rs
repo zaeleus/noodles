@@ -3,7 +3,7 @@ mod bounds;
 use std::{io, mem};
 
 use self::bounds::Bounds;
-use super::{AlternateBases, Filters, Genotypes, Ids, ReferenceBases};
+use super::{AlternateBases, Filters, Genotypes, Ids, Info, ReferenceBases};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct Fields {
@@ -57,6 +57,12 @@ impl Fields {
         }
     }
 
+    fn info_field_count(&self) -> usize {
+        let src = &self.site_buf[bounds::INFO_FIELD_COUNT_RANGE];
+        // SAFETY: `src` is 2 bytes.
+        usize::from(u16::from_le_bytes(src.try_into().unwrap()))
+    }
+
     fn allele_count(&self) -> usize {
         let src = &self.site_buf[bounds::ALLELE_COUNT_RANGE];
         // SAFETY: `src` is 2 bytes.
@@ -93,6 +99,11 @@ impl Fields {
     pub(super) fn filters(&self) -> Filters<'_> {
         let src = &self.site_buf[self.bounds.filters_range()];
         Filters::new(src)
+    }
+
+    pub(super) fn info(&self) -> Info<'_> {
+        let src = &self.site_buf[self.bounds.info_range()];
+        Info::new(src, self.info_field_count())
     }
 
     pub(super) fn genotypes(&self) -> io::Result<Genotypes<'_>> {
