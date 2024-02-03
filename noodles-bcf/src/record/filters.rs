@@ -1,106 +1,82 @@
-use std::io;
+use std::{io, iter};
 
-use noodles_vcf as vcf;
-
-use crate::header::string_maps::StringStringMap;
+use super::value::{read_type, Type};
+use crate::header::string_maps::StringMaps;
 
 /// BCF record filters.
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub struct Filters(Vec<usize>);
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Filters<'a>(&'a [u8]);
 
-impl Filters {
-    /// Converts BCF record filters to VCF record filters.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io;
-    /// use noodles_bcf::{header::StringMaps, record::Filters};
-    ///
-    /// let bcf_filters = Filters::default();
-    /// let string_maps = StringMaps::default();
-    /// let vcf_filters = bcf_filters.try_into_vcf_record_filters(string_maps.strings())?;
-    ///
-    /// assert!(vcf_filters.is_none());
-    /// # Ok::<_, io::Error>(())
-    /// ```
-    pub fn try_into_vcf_record_filters(
-        &self,
-        string_string_map: &StringStringMap,
-    ) -> io::Result<Option<vcf::record::Filters>> {
-        let raw_filters: Vec<_> = self
-            .0
-            .iter()
-            .map(|&i| {
-                string_string_map.get_index(i).ok_or_else(|| {
+impl<'a> Filters<'a> {
+    pub(super) fn new(src: &'a [u8]) -> Self {
+        Self(src)
+    }
+
+    /// Returns whether there are any filters.
+    pub fn is_empty(&self) -> io::Result<bool> {
+        self.len().map(|len| len == 0)
+    }
+
+    /// Returns the number of filters.
+    pub fn len(&self) -> io::Result<usize> {
+        let mut src = self.as_ref();
+
+        match read_type(&mut src)? {
+            None => Ok(0),
+            Some(Type::Int8(len)) => Ok(len),
+            Some(Type::Int16(len)) => Ok(len),
+            Some(Type::Int32(len)) => Ok(len),
+            _ => Err(io::Error::new(io::ErrorKind::InvalidData, "invalid type")),
+        }
+    }
+
+    /// Returns an iterator over filters.
+    pub fn iter<'s: 'a>(
+        &'a self,
+        string_maps: &'s StringMaps,
+    ) -> io::Result<Box<dyn Iterator<Item = io::Result<&'s str>> + 'a>> {
+        Ok(Box::new(self.indices()?.map(|result| {
+            result.and_then(|i| {
+                string_maps.strings().get_index(i).ok_or_else(|| {
                     io::Error::new(
                         io::ErrorKind::InvalidInput,
                         format!("invalid string map index: {i}"),
                     )
                 })
             })
-            .collect::<Result<_, _>>()?;
+        })))
+    }
 
-        if raw_filters.is_empty() {
-            Ok(None)
-        } else {
-            vcf::record::Filters::try_from_iter(raw_filters)
-                .map(Some)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+    fn indices(&self) -> io::Result<Box<dyn Iterator<Item = io::Result<usize>> + '_>> {
+        fn invalid_value_error() -> io::Error {
+            io::Error::new(io::ErrorKind::InvalidData, "invalid value")
         }
-    }
 
-    /// Returns the number of filters.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bcf::record::Filters;
-    /// let filters = Filters::default();
-    /// assert_eq!(filters.len(), 0);
-    /// ```
-    pub fn len(&self) -> usize {
-        self.0.len()
-    }
+        let mut src = self.as_ref();
 
-    /// Returns whether there are any filters.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bcf::record::Filters;
-    /// let filters = Filters::default();
-    /// assert!(filters.is_empty());
-    /// ```
-    pub fn is_empty(&self) -> bool {
-        self.len() == 0
-    }
+        let iter: Box<dyn Iterator<Item = io::Result<usize>>> = match read_type(&mut src)? {
+            None => Box::new(iter::empty()),
+            Some(Type::Int8(_)) => Box::new(
+                src.iter()
+                    .map(|&n| usize::try_from(n as i8).map_err(|_| invalid_value_error())),
+            ),
+            Some(Type::Int16(_)) => Box::new(
+                src.iter()
+                    .map(|&n| usize::try_from(n as i16).map_err(|_| invalid_value_error())),
+            ),
+            Some(Type::Int32(_)) => Box::new(
+                src.iter()
+                    .map(|&n| usize::try_from(n as i32).map_err(|_| invalid_value_error())),
+            ),
+            _ => return Err(io::Error::new(io::ErrorKind::InvalidData, "invalid type")),
+        };
 
-    /// Removes all filter IDs from the filters list.
-    ///
-    /// This does not affect the capacity of the list.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bcf::record::Filters;
-    /// let mut filters = Filters::default();
-    /// filters.clear();
-    /// assert!(filters.is_empty());
-    /// ```
-    pub fn clear(&mut self) {
-        self.0.clear();
+        Ok(iter)
     }
 }
 
-impl AsRef<[usize]> for Filters {
-    fn as_ref(&self) -> &[usize] {
-        &self.0
-    }
-}
-
-impl AsMut<Vec<usize>> for Filters {
-    fn as_mut(&mut self) -> &mut Vec<usize> {
-        &mut self.0
+impl<'a> AsRef<[u8]> for Filters<'a> {
+    fn as_ref(&self) -> &[u8] {
+        self.0
     }
 }

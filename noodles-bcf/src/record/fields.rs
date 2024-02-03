@@ -1,9 +1,9 @@
 mod bounds;
 
-use std::io;
+use std::{io, mem};
 
 use self::bounds::Bounds;
-use super::{AlternateBases, Genotypes, Ids, ReferenceBases};
+use super::{AlternateBases, Filters, Genotypes, Ids, ReferenceBases};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct Fields {
@@ -90,6 +90,11 @@ impl Fields {
         AlternateBases::new(src, len)
     }
 
+    pub(super) fn filters(&self) -> Filters<'_> {
+        let src = &self.site_buf[self.bounds.filters_range()];
+        Filters::new(src)
+    }
+
     pub(super) fn genotypes(&self) -> io::Result<Genotypes<'_>> {
         self.sample_count().map(|sample_count| {
             Genotypes::new(&self.samples_buf, sample_count, self.format_key_count())
@@ -122,6 +127,25 @@ fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
         Ok((start, end))
     }
 
+    fn consume_integers(buf: &mut &[u8], offset: usize) -> io::Result<usize> {
+        let prev_buf_len = buf.len();
+
+        let len = match read_type(buf)? {
+            None => 0,
+            Some(Type::Int8(n)) => mem::size_of::<i8>() * n,
+            Some(Type::Int16(n)) => mem::size_of::<i16>() * n,
+            Some(Type::Int32(n)) => mem::size_of::<i32>() * n,
+            _ => return Err(io::Error::from(io::ErrorKind::InvalidData)),
+        };
+
+        let start = offset + (prev_buf_len - buf.len());
+        let end = start + len;
+
+        *buf = &buf[len..];
+
+        Ok(end)
+    }
+
     if buf.len() < IDS_START_INDEX {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
@@ -148,6 +172,9 @@ fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
 
     bounds.alternate_bases_end = i;
 
+    let end = consume_integers(&mut buf, i)?;
+    bounds.filters_end = end;
+
     Ok(())
 }
 
@@ -171,6 +198,7 @@ impl Default for Fields {
             ids_range: 24..24,
             reference_bases_range: 26..27,
             alternate_bases_end: 27,
+            filters_end: 28,
         };
 
         Self {

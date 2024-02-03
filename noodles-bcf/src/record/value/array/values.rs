@@ -18,6 +18,12 @@ impl<'a, N> Values<'a, N> {
     }
 }
 
+impl<'a, N> AsRef<[u8]> for Values<'a, N> {
+    fn as_ref(&self) -> &[u8] {
+        self.src
+    }
+}
+
 impl<'a> Values<'a, i8> {
     pub(crate) fn iter(&self) -> impl Iterator<Item = Int8> + '_ {
         self.src.iter().map(|&n| Int8::from(n as i8))

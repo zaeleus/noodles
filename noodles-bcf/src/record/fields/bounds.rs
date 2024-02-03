@@ -13,6 +13,7 @@ pub(super) struct Bounds {
     pub(super) ids_range: Range<usize>,
     pub(super) reference_bases_range: Range<usize>,
     pub(super) alternate_bases_end: usize,
+    pub(super) filters_end: usize,
 }
 
 impl Bounds {
@@ -26,5 +27,9 @@ impl Bounds {
 
     pub(super) fn alternate_bases_range(&self) -> Range<usize> {
         self.reference_bases_range.end..self.alternate_bases_end
+    }
+
+    pub(super) fn filters_range(&self) -> Range<usize> {
+        self.alternate_bases_end..self.filters_end
     }
 }

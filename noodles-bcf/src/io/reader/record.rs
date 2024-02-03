@@ -59,7 +59,7 @@ pub(crate) fn read_site(src: &mut &[u8], record: &mut Record) -> io::Result<()> 
     record.r#ref = r#ref;
     record.alt = alt;
 
-    read_filter(src, &mut record.filter)?;
+    read_filter(src)?;
 
     let info = record.info.as_mut();
     info.clear();
@@ -149,7 +149,7 @@ pub(crate) mod tests {
                 Keys,
             },
             info::{self, field::Value as InfoFieldValue},
-            Filters as VcfFilters, Genotypes as VcfGenotypes, Position,
+            Genotypes as VcfGenotypes, Position,
         };
 
         use crate::header::StringMaps;
@@ -178,8 +178,9 @@ pub(crate) mod tests {
         assert_eq!(
             record
                 .filters()
-                .try_into_vcf_record_filters(string_maps.strings())?,
-            Some(VcfFilters::Pass),
+                .iter(&string_maps)?
+                .collect::<io::Result<Vec<_>>>()?,
+            ["PASS"],
         );
 
         // info

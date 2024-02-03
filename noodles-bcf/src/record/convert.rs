@@ -50,10 +50,6 @@ impl Record {
             .map(|result| result.map(|value| value.map(String::from).unwrap_or(String::from("."))))
             .collect::<io::Result<_>>()?;
 
-        let filters = self
-            .filters()
-            .try_into_vcf_record_filters(string_maps.strings())?;
-
         let info = self
             .info()
             .try_into_vcf_record_info(header, string_maps.strings())?;
@@ -85,7 +81,15 @@ impl Record {
             builder = builder.set_quality_score(quality_score);
         }
 
-        if let Some(filters) = filters {
+        if !self.filters().is_empty()? {
+            let raw_filters: Vec<_> = self
+                .filters()
+                .iter(string_maps)?
+                .collect::<io::Result<_>>()?;
+
+            let filters = vcf::record::Filters::try_from_iter(raw_filters)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
             builder = builder.set_filters(filters);
         }
 

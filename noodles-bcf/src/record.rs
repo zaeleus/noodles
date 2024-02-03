@@ -36,7 +36,6 @@ pub struct Record {
     pub(crate) id: vcf::record::Ids,
     pub(crate) r#ref: String,
     pub(crate) alt: vcf::record::AlternateBases,
-    pub(crate) filter: Filters,
     pub(crate) info: Info,
 }
 
@@ -175,10 +174,11 @@ impl Record {
     /// ```
     /// use noodles_bcf as bcf;
     /// let record = bcf::Record::default();
-    /// assert!(record.filters().is_empty());
+    /// assert!(record.filters().is_empty()?);
+    /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn filters(&self) -> &Filters {
-        &self.filter
+    pub fn filters(&self) -> Filters<'_> {
+        self.fields.filters()
     }
 
     /// Returns the info.
@@ -220,7 +220,6 @@ impl Default for Record {
             id: vcf::record::Ids::default(),
             r#ref: String::from("N"),
             alt: vcf::record::AlternateBases::default(),
-            filter: Filters::default(),
             info: Info::default(),
         }
     }
