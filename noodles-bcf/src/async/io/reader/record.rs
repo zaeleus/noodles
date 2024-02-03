@@ -39,7 +39,7 @@ mod tests {
     use noodles_vcf::{
         record::{
             genotypes::{self, sample::Value as GenotypeFieldValue, Keys},
-            info, Filters as VcfFilters, Genotypes as VcfGenotypes, Position,
+            info, Genotypes as VcfGenotypes, Position,
         },
         variant::record::info::field::Value as InfoFieldValue,
     };
@@ -75,8 +75,9 @@ mod tests {
         assert_eq!(
             record
                 .filters()
-                .try_into_vcf_record_filters(string_maps.strings())?,
-            Some(VcfFilters::Pass),
+                .iter(&string_maps)?
+                .collect::<io::Result<Vec<_>>>()?,
+            ["PASS"],
         );
 
         // info

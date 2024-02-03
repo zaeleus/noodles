@@ -21,7 +21,7 @@ pub(crate) use self::{
     position::read_pos, quality_score::read_qual, string_map::read_string_map_entry,
 };
 pub use self::{genotypes::read_genotypes, value::read_value};
-use crate::{header::StringMaps, record::Filters};
+use crate::header::StringMaps;
 
 pub fn read_site(
     src: &mut &[u8],
@@ -61,9 +61,27 @@ pub fn read_site(
     *record.reference_bases_mut() = r#ref;
     *record.alternate_bases_mut() = alt;
 
-    let mut filters = Filters::default();
-    read_filter(src, &mut filters)?;
-    *record.filters_mut() = filters.try_into_vcf_record_filters(string_maps.strings())?;
+    let filter_ids = read_filter(src)?;
+
+    let raw_filters: Vec<_> = filter_ids
+        .into_iter()
+        .map(|i| {
+            string_maps.strings().get_index(i).ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("invalid string map index: {i}"),
+                )
+            })
+        })
+        .collect::<io::Result<_>>()?;
+
+    *record.filters_mut() = if raw_filters.is_empty() {
+        None
+    } else {
+        vcf::record::Filters::try_from_iter(raw_filters)
+            .map(Some)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
+    };
 
     read_info(
         src,
