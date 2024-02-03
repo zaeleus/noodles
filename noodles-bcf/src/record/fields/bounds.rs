@@ -1,9 +1,10 @@
-use std::ops::Range;
+use std::ops::{Range, RangeFrom};
 
 pub(super) const REFERENCE_SEQUENCE_ID_RANGE: Range<usize> = 0..4;
 pub(super) const POSITION_RANGE: Range<usize> = 4..8;
 pub(super) const SPAN_RANGE: Range<usize> = 8..12;
 pub(super) const QUALITY_SCORE_RANGE: Range<usize> = 12..16;
+pub(super) const INFO_FIELD_COUNT_RANGE: Range<usize> = 16..18;
 pub(super) const ALLELE_COUNT_RANGE: Range<usize> = 18..20;
 pub(super) const SAMPLE_COUNT_RANGE: Range<usize> = 20..23;
 pub(super) const FORMAT_KEY_COUNT_INDEX: usize = 23;
@@ -31,5 +32,9 @@ impl Bounds {
 
     pub(super) fn filters_range(&self) -> Range<usize> {
         self.alternate_bases_end..self.filters_end
+    }
+
+    pub(super) fn info_range(&self) -> RangeFrom<usize> {
+        self.filters_end..
     }
 }

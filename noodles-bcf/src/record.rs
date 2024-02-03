@@ -36,7 +36,6 @@ pub struct Record {
     pub(crate) id: vcf::record::Ids,
     pub(crate) r#ref: String,
     pub(crate) alt: vcf::record::AlternateBases,
-    pub(crate) info: Info,
 }
 
 impl Record {
@@ -190,8 +189,8 @@ impl Record {
     /// let record = bcf::Record::default();
     /// assert!(record.info().is_empty());
     /// ```
-    pub fn info(&self) -> &Info {
-        &self.info
+    pub fn info(&self) -> Info<'_> {
+        self.fields.info()
     }
 
     /// Returns the genotypes.
@@ -220,7 +219,6 @@ impl Default for Record {
             id: vcf::record::Ids::default(),
             r#ref: String::from("N"),
             alt: vcf::record::AlternateBases::default(),
-            info: Info::default(),
         }
     }
 }
