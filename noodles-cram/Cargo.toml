@@ -1,6 +1,6 @@
 [package]
 name = "noodles-cram"
-version = "0.53.0"
+version = "0.53.1"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
@@ -23,7 +23,7 @@ bzip2 = "0.4.4"
 flate2.workspace = true
 indexmap.workspace = true
 md-5 = "0.10.0"
-noodles-bam = { path = "../noodles-bam", version = "0.54.0" }
+noodles-bam = { path = "../noodles-bam", version = "0.54.1" }
 noodles-core = { path = "../noodles-core", version = "0.14.0" }
 noodles-fasta = { path = "../noodles-fasta", version = "0.32.0" }
 noodles-sam = { path = "../noodles-sam", version = "0.51.0" }

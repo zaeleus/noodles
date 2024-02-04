@@ -1,6 +1,6 @@
 [package]
 name = "noodles-bam"
-version = "0.54.0"
+version = "0.54.1"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
