@@ -26,21 +26,12 @@ pub use self::{
 pub type ChromosomeId = usize;
 
 /// A BCF record.
-#[derive(Clone, Debug, PartialEq)]
-pub struct Record {
-    fields: Fields,
-    pub(crate) chrom: ChromosomeId,
-    pub(crate) pos: vcf::record::Position,
-    pub(crate) rlen: usize,
-    pub(crate) qual: Option<f32>,
-    pub(crate) id: vcf::record::Ids,
-    pub(crate) r#ref: String,
-    pub(crate) alt: vcf::record::AlternateBases,
-}
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct Record(Fields);
 
 impl Record {
     pub(crate) fn fields_mut(&mut self) -> &mut Fields {
-        &mut self.fields
+        &mut self.0
     }
 
     /// Returns the chromosome ID of the record.
@@ -59,7 +50,7 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn chromosome_id(&self) -> io::Result<usize> {
-        let n = self.fields.reference_sequence_id();
+        let n = self.0.reference_sequence_id();
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
@@ -77,7 +68,7 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn position(&self) -> io::Result<vcf::record::Position> {
-        let n = self.fields.position();
+        let n = self.0.position();
 
         usize::try_from(n)
             .map(|m| m + 1)
@@ -86,7 +77,7 @@ impl Record {
     }
 
     pub(crate) fn rlen(&self) -> io::Result<usize> {
-        let n = self.fields.span();
+        let n = self.0.span();
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
@@ -124,7 +115,7 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn quality_score(&self) -> io::Result<Option<f32>> {
-        self.fields.quality_score()
+        self.0.quality_score()
     }
 
     /// Returns the IDs.
@@ -137,7 +128,7 @@ impl Record {
     /// assert!(record.ids().is_empty());
     /// ```
     pub fn ids(&self) -> Ids<'_> {
-        self.fields.ids()
+        self.0.ids()
     }
 
     /// Returns the reference bases.
@@ -150,7 +141,7 @@ impl Record {
     /// assert_eq!(record.reference_bases().as_ref(), b"N");
     /// ```
     pub fn reference_bases(&self) -> ReferenceBases<'_> {
-        self.fields.reference_bases()
+        self.0.reference_bases()
     }
 
     /// Returns the alternate bases.
@@ -163,7 +154,7 @@ impl Record {
     /// assert!(record.alternate_bases().is_empty());
     /// ```
     pub fn alternate_bases(&self) -> AlternateBases<'_> {
-        self.fields.alternate_bases()
+        self.0.alternate_bases()
     }
 
     /// Returns the filters.
@@ -177,7 +168,7 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn filters(&self) -> Filters<'_> {
-        self.fields.filters()
+        self.0.filters()
     }
 
     /// Returns the info.
@@ -190,7 +181,7 @@ impl Record {
     /// assert!(record.info().is_empty());
     /// ```
     pub fn info(&self) -> Info<'_> {
-        self.fields.info()
+        self.0.info()
     }
 
     /// Returns the genotypes.
@@ -204,21 +195,6 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn genotypes(&self) -> io::Result<Genotypes<'_>> {
-        self.fields.genotypes()
-    }
-}
-
-impl Default for Record {
-    fn default() -> Self {
-        Self {
-            fields: Fields::default(),
-            chrom: 0,
-            pos: vcf::record::Position::from(1),
-            rlen: 1,
-            qual: None,
-            id: vcf::record::Ids::default(),
-            r#ref: String::from("N"),
-            alt: vcf::record::AlternateBases::default(),
-        }
+        self.0.genotypes()
     }
 }
