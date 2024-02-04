@@ -5,8 +5,6 @@ pub(super) async fn read_record<R>(reader: &mut R, record: &mut Record) -> io::R
 where
     R: AsyncRead + Unpin,
 {
-    use crate::io::reader::record::read_site;
-
     let l_shared = match reader.read_u32_le().await {
         Ok(n) => usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
         Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(0),
@@ -20,10 +18,6 @@ where
     let site_buf = record.fields_mut().site_buf_mut();
     site_buf.resize(l_shared, 0);
     reader.read_exact(site_buf).await?;
-
-    let buf = site_buf.clone();
-    let mut buf_reader = &buf[..];
-    read_site(&mut buf_reader, record)?;
 
     record.fields_mut().index()?;
 

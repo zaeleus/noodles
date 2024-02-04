@@ -2,12 +2,7 @@ use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use crate::{
-    record::codec::decoder::{
-        read_chrom, read_filter, read_id, read_pos, read_qual, read_ref_alt, read_rlen,
-    },
-    Record,
-};
+use crate::Record;
 
 pub fn read_record<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
 where
@@ -27,10 +22,6 @@ where
     site_buf.resize(l_shared, 0);
     reader.read_exact(site_buf)?;
 
-    let buf = site_buf.clone();
-    let mut buf_reader = &buf[..];
-    read_site(&mut buf_reader, record)?;
-
     record.fields_mut().index()?;
 
     let samples_buf = record.fields_mut().samples_buf_mut();
@@ -38,30 +29,6 @@ where
     reader.read_exact(samples_buf)?;
 
     Ok(l_shared + l_indiv)
-}
-
-pub(crate) fn read_site(src: &mut &[u8], record: &mut Record) -> io::Result<()> {
-    record.chrom = read_chrom(src)?;
-    record.pos = read_pos(src)?;
-
-    record.rlen = read_rlen(src)?;
-
-    record.qual = read_qual(src)?;
-
-    let _n_info = src.read_u16::<LittleEndian>().map(usize::from)?;
-    let n_allele = src.read_u16::<LittleEndian>().map(usize::from)?;
-
-    let _n_fmt_sample = src.read_u32::<LittleEndian>()?;
-
-    record.id = read_id(src)?;
-
-    let (r#ref, alt) = read_ref_alt(src, n_allele)?;
-    record.r#ref = r#ref;
-    record.alt = alt;
-
-    read_filter(src)?;
-
-    Ok(())
 }
 
 #[cfg(test)]
