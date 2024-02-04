@@ -66,25 +66,25 @@ impl Fields {
     }
 
     pub(super) fn cigar(&self) -> Cigar<'_> {
-        use bytes::Buf;
-
         use super::data::get_raw_cigar;
 
         const SKIP: u8 = 3;
         const SOFT_CLIP: u8 = 4;
 
-        fn decode_op(n: u32) -> (u8, usize) {
+        fn decode_op(buf: &[u8]) -> (u8, usize) {
+            // SAFETY: `buf` is 4 bytes.
+            let n = u32::from_le_bytes(buf.try_into().unwrap());
             ((n & 0x0f) as u8, usize::try_from(n >> 4).unwrap())
         }
 
-        let mut src = &self.buf[self.bounds.cigar_range()];
+        let src = &self.buf[self.bounds.cigar_range()];
 
         if src.len() == 2 * mem::size_of::<u32>() {
             let k = self.sequence().len();
 
             // SAFETY: `src` is 8 bytes.
-            let op_1 = decode_op(src.get_u32_le());
-            let op_2 = decode_op(src.get_u32_le());
+            let op_1 = decode_op(&src[0..4]);
+            let op_2 = decode_op(&src[4..8]);
 
             if op_1 == (SOFT_CLIP, k) && matches!(op_2, (SKIP, _)) {
                 let mut data_src = &self.buf[self.bounds.data_range()];
@@ -239,6 +239,70 @@ mod tests {
         0x12, 0x48, // sequence = ACGT
         b'N', b'D', b'L', b'S', // quality scores
     ];
+
+    #[test]
+    fn test_cigar() -> io::Result<()> {
+        let fields = Fields::try_from(Vec::from(DATA))?;
+        let cigar = fields.cigar();
+        assert_eq!(cigar.as_ref(), &DATA[34..38]);
+        Ok(())
+    }
+
+    #[test]
+    fn test_cigar_with_2_cigar_ops() -> io::Result<()> {
+        let data = [
+            0xff, 0xff, 0xff, 0xff, // ref_id = -1
+            0xff, 0xff, 0xff, 0xff, // pos = -1
+            0x02, // l_read_name = 2
+            0xff, // mapq = 255
+            0x48, 0x12, // bin = 4680
+            0x02, 0x00, // n_cigar_op = 2
+            0x04, 0x00, // flag = 4
+            0x04, 0x00, 0x00, 0x00, // l_seq = 0
+            0xff, 0xff, 0xff, 0xff, // next_ref_id = -1
+            0xff, 0xff, 0xff, 0xff, // next_pos = -1
+            0x00, 0x00, 0x00, 0x00, // tlen = 0
+            b'*', 0x00, // read_name = "*\x00"
+            0x20, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, // cigar = 2M2M
+            0x12, 0x48, // sequence = ACGT
+            b'N', b'D', b'L', b'S', // quality scores
+        ];
+
+        let fields = Fields::try_from(Vec::from(&data))?;
+        let cigar = fields.cigar();
+        assert_eq!(cigar.as_ref(), &data[34..42]);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_cigar_with_overflowing_cigar() -> io::Result<()> {
+        let data = [
+            0xff, 0xff, 0xff, 0xff, // ref_id = -1
+            0xff, 0xff, 0xff, 0xff, // pos = -1
+            0x02, // l_read_name = 2
+            0xff, // mapq = 255
+            0x48, 0x12, // bin = 4680
+            0x02, 0x00, // n_cigar_op = 2
+            0x04, 0x00, // flag = 4
+            0x04, 0x00, 0x00, 0x00, // l_seq = 0
+            0xff, 0xff, 0xff, 0xff, // next_ref_id = -1
+            0xff, 0xff, 0xff, 0xff, // next_pos = -1
+            0x00, 0x00, 0x00, 0x00, // tlen = 0
+            b'*', 0x00, // read_name = "*\x00"
+            0x44, 0x00, 0x00, 0x00, 0x23, 0x00, 0x00, 0x00, // cigar = 2S2N
+            0x12, 0x48, // sequence = ACGT
+            b'N', b'D', b'L', b'S', // quality scores
+            b'C', b'G', b'B', b'I', 0x01, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00,
+            0x00, // data["CG"] = [4M]
+        ];
+
+        let fields = Fields::try_from(Vec::from(&data))?;
+        let cigar = fields.cigar();
+        assert_eq!(cigar.as_ref(), &data[56..]);
+
+        Ok(())
+    }
 
     #[test]
     fn test_index() -> io::Result<()> {

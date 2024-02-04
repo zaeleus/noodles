@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * bam/record/fields: Fix consuming CIGAR operations buffer when there are 2
+    operations ([#230]).
+
+[#230]: https://github.com/zaeleus/noodles/issues/230
+
 ## 0.54.0 - 2024-02-01
 
 ### Changed
