@@ -1,4 +1,4 @@
-//! Alignment record and fields.
+//! Alignment record.
 
 pub mod io;
 pub mod record;
