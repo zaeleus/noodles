@@ -6,13 +6,13 @@ use crate::header::string_maps::StringStringMap;
 
 /// BCF record genotypes.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub struct Genotypes<'a> {
+pub struct Samples<'a> {
     buf: &'a [u8],
     sample_count: usize,
     format_count: usize,
 }
 
-impl<'a> Genotypes<'a> {
+impl<'a> Samples<'a> {
     pub(super) fn new(buf: &'a [u8], sample_count: usize, format_count: usize) -> Self {
         Self {
             buf,
@@ -27,10 +27,10 @@ impl<'a> Genotypes<'a> {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_bcf::{header::string_maps::StringMap, record::Genotypes};
+    /// use noodles_bcf::{header::string_maps::StringMap, record::Samples};
     /// use noodles_vcf as vcf;
     ///
-    /// let bcf_genotypes = Genotypes::default();
+    /// let bcf_genotypes = Samples::default();
     ///
     /// let header = vcf::Header::default();
     /// let string_maps = StringMap::default();
@@ -69,9 +69,9 @@ impl<'a> Genotypes<'a> {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bcf::record::Genotypes;
-    /// let genotypes = Genotypes::default();
-    /// assert_eq!(genotypes.len(), 0);
+    /// use noodles_bcf::record::Samples;
+    /// let samples = Samples::default();
+    /// assert_eq!(samples.len(), 0);
     /// ```
     pub fn len(&self) -> usize {
         self.sample_count
@@ -82,9 +82,9 @@ impl<'a> Genotypes<'a> {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bcf::record::Genotypes;
-    /// let genotypes = Genotypes::default();
-    /// assert!(genotypes.is_empty());
+    /// use noodles_bcf::record::Samples;
+    /// let samples = Samples::default();
+    /// assert!(samples.is_empty());
     /// ```
     pub fn is_empty(&self) -> bool {
         self.len() == 0
@@ -95,16 +95,16 @@ impl<'a> Genotypes<'a> {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bcf::record::Genotypes;
-    /// let genotypes = Genotypes::default();
-    /// assert_eq!(genotypes.format_count(), 0);
+    /// use noodles_bcf::record::Samples;
+    /// let samples = Samples::default();
+    /// assert_eq!(samples.format_count(), 0);
     /// ```
     pub fn format_count(&self) -> usize {
         self.format_count
     }
 }
 
-impl<'a> AsRef<[u8]> for Genotypes<'a> {
+impl<'a> AsRef<[u8]> for Samples<'a> {
     fn as_ref(&self) -> &[u8] {
         self.buf
     }

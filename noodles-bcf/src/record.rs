@@ -5,10 +5,10 @@ pub(crate) mod codec;
 mod convert;
 mod fields;
 mod filters;
-mod genotypes;
 mod ids;
 mod info;
 mod reference_bases;
+mod samples;
 mod value;
 
 use std::io;
@@ -18,8 +18,8 @@ use noodles_vcf as vcf;
 use self::fields::Fields;
 pub(crate) use self::value::Value;
 pub use self::{
-    alternate_bases::AlternateBases, filters::Filters, genotypes::Genotypes, ids::Ids, info::Info,
-    reference_bases::ReferenceBases,
+    alternate_bases::AlternateBases, filters::Filters, ids::Ids, info::Info,
+    reference_bases::ReferenceBases, samples::Samples,
 };
 
 /// A chromosome ID.
@@ -184,17 +184,17 @@ impl Record {
         self.0.info()
     }
 
-    /// Returns the genotypes.
+    /// Returns the samples.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_bcf as bcf;
     /// let record = bcf::Record::default();
-    /// assert!(record.genotypes()?.is_empty());
+    /// assert!(record.samples()?.is_empty());
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn genotypes(&self) -> io::Result<Genotypes<'_>> {
-        self.0.genotypes()
+    pub fn samples(&self) -> io::Result<Samples<'_>> {
+        self.0.samples()
     }
 }

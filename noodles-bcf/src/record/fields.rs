@@ -3,7 +3,7 @@ mod bounds;
 use std::{io, mem};
 
 use self::bounds::Bounds;
-use super::{AlternateBases, Filters, Genotypes, Ids, Info, ReferenceBases};
+use super::{AlternateBases, Filters, Ids, Info, ReferenceBases, Samples};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct Fields {
@@ -106,9 +106,9 @@ impl Fields {
         Info::new(src, self.info_field_count())
     }
 
-    pub(super) fn genotypes(&self) -> io::Result<Genotypes<'_>> {
+    pub(super) fn samples(&self) -> io::Result<Samples<'_>> {
         self.sample_count().map(|sample_count| {
-            Genotypes::new(&self.samples_buf, sample_count, self.format_key_count())
+            Samples::new(&self.samples_buf, sample_count, self.format_key_count())
         })
     }
 
