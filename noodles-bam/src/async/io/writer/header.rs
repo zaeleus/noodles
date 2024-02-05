@@ -139,11 +139,6 @@ mod tests {
 
     #[tokio::test]
     async fn test_write_reference_sequence() -> io::Result<()> {
-        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
-            Some(length) => length,
-            None => unreachable!(),
-        };
-
         let mut buf = Vec::new();
         write_reference_sequence(&mut buf, b"sq0", SQ0_LN).await?;
 
