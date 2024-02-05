@@ -408,7 +408,6 @@ mod tests {
         const WINDOW_SIZE: usize = 1 << MIN_SHIFT;
         let start =
             Position::try_from((MAX_POSITION + 1) + (WINDOW_SIZE * (U16_SIZE - MAX_BIN_ID)))?;
-        dbg!(start);
         let end = start;
         assert_eq!(region_to_bin(start, end), 0);
 
