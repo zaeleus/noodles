@@ -1,4 +1,4 @@
-//! BAM record field.
+//! BAM record fields.
 
 use std::{io, mem};
 
