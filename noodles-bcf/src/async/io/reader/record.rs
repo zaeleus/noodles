@@ -108,7 +108,7 @@ mod tests {
         // genotypes
 
         let actual = record
-            .genotypes()?
+            .samples()?
             .try_into_vcf_record_genotypes(&header, string_maps.strings())?;
 
         let expected = VcfGenotypes::new(
