@@ -155,17 +155,19 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, record::Position};
+    /// use noodles_vcf::{self as vcf, record::{Ids, Position}};
+    ///
+    /// let ids: Ids = [String::from("nd0")].into_iter().collect();
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
-    ///     .set_ids("nd0".parse()?)
+    ///     .set_ids(ids.clone())
     ///     .set_reference_bases("A")
     ///     .build()?;
     ///
-    /// assert_eq!(*record.ids(), "nd0".parse()?);
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// assert_eq!(record.ids(), &ids);
+    /// # Ok::<(), vcf::record::builder::BuildError>(())
     /// ```
     pub fn ids(&self) -> &Ids {
         &self.ids
@@ -184,11 +186,11 @@ impl Record {
     ///     .set_reference_bases("A")
     ///     .build()?;
     ///
-    /// let ids: Ids = "nd0".parse()?;
+    /// let ids: Ids = [String::from("nd0")].into_iter().collect();
     /// *record.ids_mut() = ids.clone();
     ///
     /// assert_eq!(record.ids(), &ids);
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// # Ok::<(), vcf::record::builder::BuildError>(())
     /// ```
     pub fn ids_mut(&mut self) -> &mut Ids {
         &mut self.ids

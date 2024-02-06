@@ -92,17 +92,19 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, record::Position};
+    /// use noodles_vcf::{self as vcf, record::{Ids, Position}};
+    ///
+    /// let ids: Ids = [String::from("nd0")].into_iter().collect();
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
-    ///     .set_ids("nd0".parse()?)
+    ///     .set_ids(ids.clone())
     ///     .set_reference_bases("A")
     ///     .build()?;
     ///
-    /// assert_eq!(*record.ids(), "nd0".parse()?);
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// assert_eq!(record.ids(), &ids);
+    /// # Ok::<(), vcf::record::builder::BuildError>(())
     /// ```
     pub fn set_ids(mut self, ids: Ids) -> Self {
         self.ids = ids;

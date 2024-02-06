@@ -431,10 +431,16 @@ mod tests {
         let mut buf = Vec::new();
 
         t(&mut buf, &Ids::default(), &[0x07])?;
-        t(&mut buf, &"nd0".parse()?, &[0x37, b'n', b'd', b'0'])?;
         t(
             &mut buf,
-            &"nd0;nd1".parse()?,
+            &[String::from("nd0")].into_iter().collect(),
+            &[0x37, b'n', b'd', b'0'],
+        )?;
+        t(
+            &mut buf,
+            &[String::from("nd0"), String::from("nd1")]
+                .into_iter()
+                .collect(),
             &[0x77, b'n', b'd', b'0', b';', b'n', b'd', b'1'],
         )?;
 
