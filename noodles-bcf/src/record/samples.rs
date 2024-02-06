@@ -1,3 +1,4 @@
+mod sample;
 mod series;
 
 use std::{io, iter};
@@ -5,7 +6,7 @@ use std::{io, iter};
 use noodles_vcf as vcf;
 
 use self::series::read_series;
-pub use self::series::Series;
+pub use self::{sample::Sample, series::Series};
 use crate::header::string_maps::StringStringMap;
 
 /// BCF record genotypes.
@@ -105,6 +106,15 @@ impl<'a> Samples<'a> {
     /// ```
     pub fn format_count(&self) -> usize {
         self.format_count
+    }
+
+    /// Returns a sample at the given index.
+    pub fn get_index(&self, i: usize) -> Option<Sample<'_>> {
+        if i < self.sample_count {
+            Some(Sample::new(self, i))
+        } else {
+            None
+        }
     }
 
     /// Returns an iterator over series.
