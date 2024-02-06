@@ -169,12 +169,20 @@ pub(crate) fn write_id<W>(writer: &mut W, ids: &vcf::record::Ids) -> io::Result<
 where
     W: Write,
 {
+    const DELIMITER: &str = ";";
+
     if ids.is_empty() {
         let value = Some(Value::String(None));
         write_value(writer, value)
     } else {
-        let s = ids.to_string();
+        let s = ids
+            .iter()
+            .map(|id| id.as_ref())
+            .collect::<Vec<_>>()
+            .join(DELIMITER);
+
         let value = Some(Value::String(Some(&s)));
+
         write_value(writer, value)
     }
 }
