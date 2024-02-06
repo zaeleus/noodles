@@ -129,6 +129,11 @@ impl<'a> Samples<'a> {
             }
         })
     }
+
+    /// Returns an iterator over samples.
+    pub fn iter(&self) -> impl Iterator<Item = Sample<'_>> {
+        (0..self.len()).map(|i| Sample::new(self, i))
+    }
 }
 
 impl<'a> AsRef<[u8]> for Samples<'a> {
