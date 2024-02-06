@@ -3,7 +3,7 @@ mod id;
 use std::{error, fmt};
 
 use self::id::parse_id;
-use crate::record::{ids::Id, Ids};
+use crate::record::Ids;
 
 /// An error when raw VCF record IDs fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -13,7 +13,7 @@ pub enum ParseError {
     /// An ID is invalid.
     InvalidId(id::ParseError),
     /// An ID is duplicated.
-    DuplicateId(Id),
+    DuplicateId(String),
 }
 
 impl error::Error for ParseError {
@@ -45,7 +45,7 @@ pub(super) fn parse_ids(s: &str, ids: &mut Ids) -> Result<(), ParseError> {
     for raw_id in s.split(DELIMITER) {
         let id = parse_id(raw_id).map_err(ParseError::InvalidId)?;
 
-        if let Some(id) = ids.replace(id) {
+        if let Some(id) = ids.replace(id.into()) {
             return Err(ParseError::DuplicateId(id));
         }
     }
@@ -59,10 +59,8 @@ mod tests {
 
     #[test]
     fn test_parse_ids() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::record::ids::Id;
-
-        let id0: Id = "nd0".parse()?;
-        let id1: Id = "nd1".parse()?;
+        let id0 = String::from("nd0");
+        let id1 = String::from("nd1");
 
         let mut ids = Ids::default();
 

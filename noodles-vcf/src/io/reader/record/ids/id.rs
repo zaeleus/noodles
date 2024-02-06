@@ -1,7 +1,5 @@
 use std::{error, fmt};
 
-use crate::record::ids::Id;
-
 /// An error when a raw VCF record ID fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -22,11 +20,11 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(super) fn parse_id(s: &str) -> Result<Id, ParseError> {
+pub(super) fn parse_id(s: &str) -> Result<&str, ParseError> {
     if s.is_empty() {
         Err(ParseError::Empty)
     } else if is_valid_id(s) {
-        Ok(Id(s.into()))
+        Ok(s)
     } else {
         Err(ParseError::Invalid)
     }
@@ -41,12 +39,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_id() -> Result<(), crate::record::ids::id::ParseError> {
-        assert_eq!(parse_id("nd0"), Ok("nd0".parse()?));
+    fn test_parse_id() {
+        assert_eq!(parse_id("nd0"), Ok("nd0"));
 
         assert_eq!(parse_id(""), Err(ParseError::Empty));
         assert_eq!(parse_id("nd 0"), Err(ParseError::Invalid));
-
-        Ok(())
     }
 }

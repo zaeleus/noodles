@@ -1,9 +1,5 @@
 //! VCF record IDs.
 
-pub mod id;
-
-pub use self::id::Id;
-
 use std::{error, fmt, ops::Deref, ops::DerefMut, str::FromStr};
 
 use indexmap::IndexSet;
@@ -12,10 +8,10 @@ const DELIMITER: char = ';';
 
 /// VCF record IDs (`ID`).
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub struct Ids(IndexSet<Id>);
+pub struct Ids(IndexSet<String>);
 
 impl Deref for Ids {
-    type Target = IndexSet<Id>;
+    type Target = IndexSet<String>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -49,25 +45,15 @@ pub enum ParseError {
     Empty,
     /// The list of IDs has a duplicate.
     DuplicateId(String),
-    /// An ID is invalid.
-    InvalidId(id::ParseError),
 }
 
-impl error::Error for ParseError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match self {
-            Self::InvalidId(e) => Some(e),
-            _ => None,
-        }
-    }
-}
+impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
             Self::DuplicateId(id) => write!(f, "duplicate ID: {id}"),
-            Self::InvalidId(_) => f.write_str("invalid ID"),
         }
     }
 }
@@ -83,9 +69,7 @@ impl FromStr for Ids {
         let mut ids = IndexSet::new();
 
         for raw_id in s.split(DELIMITER) {
-            let id = raw_id.parse().map_err(ParseError::InvalidId)?;
-
-            if !ids.insert(id) {
+            if !ids.insert(raw_id.into()) {
                 return Err(ParseError::DuplicateId(raw_id.into()));
             }
         }
@@ -94,14 +78,14 @@ impl FromStr for Ids {
     }
 }
 
-impl Extend<Id> for Ids {
-    fn extend<T: IntoIterator<Item = Id>>(&mut self, iter: T) {
+impl Extend<String> for Ids {
+    fn extend<T: IntoIterator<Item = String>>(&mut self, iter: T) {
         self.0.extend(iter);
     }
 }
 
-impl FromIterator<Id> for Ids {
-    fn from_iter<T: IntoIterator<Item = Id>>(iter: T) -> Self {
+impl FromIterator<String> for Ids {
+    fn from_iter<T: IntoIterator<Item = String>>(iter: T) -> Self {
         let mut ids = Self::default();
         ids.extend(iter);
         ids
@@ -113,25 +97,23 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_fmt() -> Result<(), id::ParseError> {
+    fn test_fmt() {
         assert!(Ids::default().to_string().is_empty());
 
-        let id0: Id = "nd0".parse()?;
-        let id1: Id = "nd1".parse()?;
+        let id0 = String::from("nd0");
+        let id1 = String::from("nd1");
 
         let ids: Ids = [id0.clone()].into_iter().collect();
         assert_eq!(ids.to_string(), "nd0");
 
         let ids: Ids = [id0, id1].into_iter().collect();
         assert_eq!(ids.to_string(), "nd0;nd1");
-
-        Ok(())
     }
 
     #[test]
-    fn test_from_str() -> Result<(), id::ParseError> {
-        let id0: Id = "nd0".parse()?;
-        let id1: Id = "nd1".parse()?;
+    fn test_from_str() {
+        let id0 = String::from("nd0");
+        let id1 = String::from("nd1");
 
         let expected: Ids = [id0.clone()].into_iter().collect();
         assert_eq!("nd0".parse(), Ok(expected));
@@ -144,24 +126,5 @@ mod tests {
             "nd0;nd0".parse::<Ids>(),
             Err(ParseError::DuplicateId(String::from("nd0")))
         );
-        assert!(matches!(".".parse::<Ids>(), Err(ParseError::InvalidId(_))));
-        assert!(matches!(
-            "nd 0".parse::<Ids>(),
-            Err(ParseError::InvalidId(_))
-        ));
-        assert!(matches!(
-            ";nd0".parse::<Ids>(),
-            Err(ParseError::InvalidId(_))
-        ));
-        assert!(matches!(
-            "nd0;;nd1".parse::<Ids>(),
-            Err(ParseError::InvalidId(_))
-        ));
-        assert!(matches!(
-            "nd0;".parse::<Ids>(),
-            Err(ParseError::InvalidId(_))
-        ));
-
-        Ok(())
     }
 }
