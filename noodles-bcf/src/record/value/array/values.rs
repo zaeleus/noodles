@@ -44,6 +44,21 @@ impl<'a> vcf::variant::record::info::field::value::array::Values<'a, i32> for Va
     }
 }
 
+impl<'a> vcf::variant::record::samples::series::value::array::Values<'a, i32> for Values<'a, i8> {
+    fn len(&self) -> usize {
+        self.src.len()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<i32>>> + '_> {
+        Box::new(self.iter().filter_map(|value| match value {
+            Int8::Value(n) => Some(Ok(Some(i32::from(n)))),
+            Int8::Missing => Some(Ok(None)),
+            Int8::EndOfVector => None,
+            Int8::Reserved(_) => Some(Err(io::Error::from(io::ErrorKind::InvalidData))),
+        }))
+    }
+}
+
 impl<'a> Values<'a, i16> {
     pub(crate) fn iter(&self) -> impl Iterator<Item = Int16> + '_ {
         self.src.chunks_exact(mem::size_of::<i16>()).map(|chunk| {
@@ -64,6 +79,21 @@ impl<'a> vcf::variant::record::info::field::value::array::Values<'a, i32> for Va
             Int16::Value(n) => Ok(Some(i32::from(n))),
             Int16::Missing => Ok(None),
             _ => Err(io::Error::from(io::ErrorKind::InvalidData)),
+        }))
+    }
+}
+
+impl<'a> vcf::variant::record::samples::series::value::array::Values<'a, i32> for Values<'a, i16> {
+    fn len(&self) -> usize {
+        self.src.len() / mem::size_of::<i16>()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<i32>>> + '_> {
+        Box::new(self.iter().filter_map(|value| match value {
+            Int16::Value(n) => Some(Ok(Some(i32::from(n)))),
+            Int16::Missing => Some(Ok(None)),
+            Int16::EndOfVector => None,
+            Int16::Reserved(_) => Some(Err(io::Error::from(io::ErrorKind::InvalidData))),
         }))
     }
 }
@@ -92,6 +122,21 @@ impl<'a> vcf::variant::record::info::field::value::array::Values<'a, i32> for Va
     }
 }
 
+impl<'a> vcf::variant::record::samples::series::value::array::Values<'a, i32> for Values<'a, i32> {
+    fn len(&self) -> usize {
+        self.src.len() / mem::size_of::<i32>()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<i32>>> + '_> {
+        Box::new(self.iter().filter_map(|value| match value {
+            Int32::Value(n) => Some(Ok(Some(n))),
+            Int32::Missing => Some(Ok(None)),
+            Int32::EndOfVector => None,
+            Int32::Reserved(_) => Some(Err(io::Error::from(io::ErrorKind::InvalidData))),
+        }))
+    }
+}
+
 impl<'a> Values<'a, f32> {
     pub(crate) fn iter(&self) -> impl Iterator<Item = Float> + '_ {
         self.src.chunks_exact(mem::size_of::<f32>()).map(|chunk| {
@@ -112,6 +157,21 @@ impl<'a> vcf::variant::record::info::field::value::array::Values<'a, f32> for Va
             Float::Value(n) => Ok(Some(n)),
             Float::Missing => Ok(None),
             _ => Err(io::Error::from(io::ErrorKind::InvalidData)),
+        }))
+    }
+}
+
+impl<'a> vcf::variant::record::samples::series::value::array::Values<'a, f32> for Values<'a, f32> {
+    fn len(&self) -> usize {
+        self.src.len() / mem::size_of::<f32>()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<f32>>> + '_> {
+        Box::new(self.iter().filter_map(|value| match value {
+            Float::Value(n) => Some(Ok(Some(n))),
+            Float::Missing => Some(Ok(None)),
+            Float::EndOfVector => None,
+            Float::Reserved(_) => Some(Err(io::Error::from(io::ErrorKind::InvalidData))),
         }))
     }
 }
