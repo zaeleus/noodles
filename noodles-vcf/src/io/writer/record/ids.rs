@@ -42,10 +42,12 @@ mod tests {
         let ids = Ids::default();
         t(&mut buf, &ids, b".")?;
 
-        let ids = "id0".parse()?;
+        let ids = [String::from("id0")].into_iter().collect();
         t(&mut buf, &ids, b"id0")?;
 
-        let ids = "id0;id1".parse()?;
+        let ids = [String::from("id0"), String::from("id1")]
+            .into_iter()
+            .collect();
         t(&mut buf, &ids, b"id0;id1")?;
 
         Ok(())

@@ -67,12 +67,11 @@ impl Record {
             .set_genotypes(genotypes);
 
         if !self.ids().is_empty() {
+            const DELIMITER: char = ';';
+
             let ids = str::from_utf8(self.ids().as_ref())
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-                .and_then(|s| {
-                    s.parse()
-                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-                })?;
+                .map(|s| s.split(DELIMITER).map(String::from).collect())?;
 
             builder = builder.set_ids(ids);
         }
