@@ -1,21 +1,25 @@
-use std::io;
+mod series;
+
+use std::{io, iter};
 
 use noodles_vcf as vcf;
 
+use self::series::read_series;
+pub use self::series::Series;
 use crate::header::string_maps::StringStringMap;
 
 /// BCF record genotypes.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Samples<'a> {
-    buf: &'a [u8],
+    src: &'a [u8],
     sample_count: usize,
     format_count: usize,
 }
 
 impl<'a> Samples<'a> {
-    pub(super) fn new(buf: &'a [u8], sample_count: usize, format_count: usize) -> Self {
+    pub(super) fn new(src: &'a [u8], sample_count: usize, format_count: usize) -> Self {
         Self {
-            buf,
+            src,
             sample_count,
             format_count,
         }
@@ -50,7 +54,7 @@ impl<'a> Samples<'a> {
             return Ok(vcf::record::Genotypes::default());
         }
 
-        let mut reader = self.buf;
+        let mut reader = self.src;
 
         let genotypes = read_genotypes(
             &mut reader,
@@ -102,10 +106,23 @@ impl<'a> Samples<'a> {
     pub fn format_count(&self) -> usize {
         self.format_count
     }
+
+    /// Returns an iterator over series.
+    pub fn series(&self) -> impl Iterator<Item = io::Result<Series<'_>>> {
+        let mut src = self.src;
+
+        iter::from_fn(move || {
+            if src.is_empty() {
+                None
+            } else {
+                Some(read_series(&mut src, self.sample_count))
+            }
+        })
+    }
 }
 
 impl<'a> AsRef<[u8]> for Samples<'a> {
     fn as_ref(&self) -> &[u8] {
-        self.buf
+        self.src
     }
 }
