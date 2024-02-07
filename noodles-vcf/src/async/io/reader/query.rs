@@ -94,7 +94,7 @@ where
     let mut record = RecordBuf::default();
 
     reader
-        .read_record(header, &mut record)
+        .read_record_buf(header, &mut record)
         .await
         .map(|n| match n {
             0 => None,
