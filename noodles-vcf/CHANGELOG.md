@@ -23,6 +23,12 @@
       * `Records` => `RecordBufs`, and
       * `Reader::read_lazy_record` => `Reader::read_record`.
 
+### Removed
+
+  * vcf/variant/record_buf/samples: Remove `Samples::genotypes`.
+
+    Use `Samples::select(key::GENOTYPE)` to get the raw value instead.
+
 ## 0.51.0 - 2024-03-28
 
 ### Changed

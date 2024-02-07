@@ -6,7 +6,7 @@ pub use self::value::Value;
 
 use std::{error, fmt, hash::Hash};
 
-use super::{keys::key, Keys};
+use super::Keys;
 
 /// A VCF record genotype sample.
 #[derive(Debug, PartialEq)]
@@ -39,16 +39,6 @@ impl<'g> Sample<'g> {
         self.keys
             .get_index_of(key)
             .and_then(|i| self.values.get(i).map(|value| value.as_ref()))
-    }
-
-    /// Returns the VCF record genotypes genotype value.
-    ///
-    /// This is a convenience method to return a parsed version of the genotype (`GT`) field value.
-    pub fn genotype(&self) -> Option<Result<value::Genotype, GenotypeError>> {
-        self.get(key::GENOTYPE).map(|value| match value {
-            Some(Value::String(s)) => s.parse().map_err(GenotypeError::InvalidValue),
-            _ => Err(GenotypeError::InvalidValueType(value.cloned())),
-        })
     }
 }
 
@@ -110,34 +100,5 @@ impl fmt::Display for GenotypeError {
             Self::InvalidValue(_) => f.write_str("invalid value"),
             Self::InvalidValueType(value) => write!(f, "invalid String, got {value:?}"),
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_genotype(
-    ) -> Result<(), crate::variant::record_buf::samples::keys::TryFromKeyVectorError> {
-        let keys = Keys::try_from(vec![String::from(key::GENOTYPE)])?;
-
-        let values = vec![Some(Value::from("ndls"))];
-        let sample = Sample::new(&keys, &values);
-
-        assert!(matches!(
-            sample.genotype(),
-            Some(Err(GenotypeError::InvalidValue(_)))
-        ));
-
-        let values = vec![Some(Value::from(0))];
-        let sample = Sample::new(&keys, &values);
-
-        assert!(matches!(
-            sample.genotype(),
-            Some(Err(GenotypeError::InvalidValueType(_)))
-        ));
-
-        Ok(())
     }
 }
