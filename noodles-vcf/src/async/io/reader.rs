@@ -8,7 +8,7 @@ use noodles_csi::BinningIndex;
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncSeek};
 
 use self::{header::read_header, query::query};
-use crate::{io::reader::resolve_region, lazy, variant::RecordBuf, Header};
+use crate::{io::reader::resolve_region, variant::RecordBuf, Header, Record};
 
 const LINE_FEED: char = '\n';
 const CARRIAGE_RETURN: char = '\r';
@@ -224,12 +224,12 @@ where
     /// let mut reader = vcf::r#async::io::Reader::new(&data[..]);
     /// reader.read_header().await?;
     ///
-    /// let mut record = vcf::lazy::Record::default();
+    /// let mut record = vcf::Record::default();
     /// reader.read_lazy_record(&mut record).await?;
     /// # Ok::<_, std::io::Error>(())
     /// # }
     /// ```
-    pub async fn read_lazy_record(&mut self, record: &mut lazy::Record) -> io::Result<usize> {
+    pub async fn read_lazy_record(&mut self, record: &mut Record) -> io::Result<usize> {
         read_lazy_record(&mut self.inner, &mut self.buf, record).await
     }
 
@@ -417,7 +417,7 @@ where
 async fn read_lazy_record<R>(
     reader: &mut R,
     buf: &mut String,
-    record: &mut lazy::Record,
+    record: &mut Record,
 ) -> io::Result<usize>
 where
     R: AsyncBufRead + Unpin,
@@ -459,7 +459,7 @@ mod tests {
         let mut src = &b"sq0\t1\t.\tA\t.\t.\tPASS\t.\n"[..];
         let mut buf = String::new();
 
-        let mut record = lazy::Record::default();
+        let mut record = Record::default();
         read_lazy_record(&mut src, &mut buf, &mut record).await?;
 
         assert_eq!(record.buf, "sq01.A..PASS.");
