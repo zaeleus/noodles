@@ -45,7 +45,7 @@ impl Filters {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::Filters;
+    /// use noodles_vcf::variant::record_buf::Filters;
     ///
     /// let filters = Filters::try_from_iter(["PASS"])?;
     /// assert_eq!(filters, Filters::Pass);
@@ -56,7 +56,7 @@ impl Filters {
     ///     String::from("s50"),
     /// ].into_iter().collect()));
     ///
-    /// # Ok::<(), noodles_vcf::record::filters::TryFromIteratorError>(())
+    /// # Ok::<(), noodles_vcf::variant::record_buf::filters::TryFromIteratorError>(())
     /// ```
     pub fn try_from_iter<I, V>(iter: I) -> Result<Self, TryFromIteratorError>
     where

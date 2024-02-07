@@ -2,7 +2,7 @@ use std::{error, fmt, mem};
 
 use indexmap::IndexSet;
 
-use crate::record::Filters;
+use crate::variant::record_buf::Filters;
 
 /// An error when raw VCF record filters fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]

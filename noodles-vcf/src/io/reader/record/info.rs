@@ -3,7 +3,7 @@ mod field;
 use std::{error, fmt};
 
 use self::field::parse_field;
-use crate::{record::Info, Header};
+use crate::{variant::record_buf::Info, Header};
 
 /// An error when raw VCF record info fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -75,7 +75,7 @@ mod tests {
 
     #[test]
     fn test_parse_info() -> Result<(), ParseError> {
-        use crate::record::info::field::{key, Value};
+        use crate::variant::record_buf::info::field::{key, Value};
 
         let header = Header::default();
         let mut info = Info::default();

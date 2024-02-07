@@ -5,7 +5,7 @@ use noodles_core::region::Interval;
 use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
 
 use super::Reader;
-use crate::{Header, Record};
+use crate::{variant::RecordBuf, Header};
 
 /// An iterator over records of a VCF reader that intersects a given region.
 ///
@@ -18,7 +18,7 @@ where
     reference_sequence_name: Vec<u8>,
     interval: Interval,
     header: &'h Header,
-    record: Record,
+    record: RecordBuf,
 }
 
 impl<'r, 'h, R> Query<'r, 'h, R>
@@ -37,11 +37,11 @@ where
             reference_sequence_name,
             interval,
             header,
-            record: Record::default(),
+            record: RecordBuf::default(),
         }
     }
 
-    fn next_record(&mut self) -> io::Result<Option<Record>> {
+    fn next_record(&mut self) -> io::Result<Option<RecordBuf>> {
         self.reader
             .read_record(self.header, &mut self.record)
             .map(|n| match n {
@@ -55,7 +55,7 @@ impl<'r, 'h, R> Iterator for Query<'r, 'h, R>
 where
     R: Read + Seek,
 {
-    type Item = io::Result<Record>;
+    type Item = io::Result<RecordBuf>;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
@@ -75,7 +75,7 @@ where
 }
 
 pub(crate) fn intersects(
-    record: &Record,
+    record: &RecordBuf,
     reference_sequence_name: &[u8],
     region_interval: Interval,
 ) -> io::Result<bool> {

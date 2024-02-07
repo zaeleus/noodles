@@ -377,8 +377,10 @@ fn parse_header(src: &[u8], sample_names: &mut SampleNames) -> Result<(), ParseE
     ];
     static FORMAT_HEADER: &str = "FORMAT";
 
+    const DELIMITER: char = '\t';
+
     let line = str::from_utf8(src).map_err(ParseError::InvalidUtf8)?;
-    let mut fields = line.split(crate::record::FIELD_DELIMITER);
+    let mut fields = line.split(DELIMITER);
 
     for &expected in HEADERS.iter() {
         if let Some(actual) = fields.next() {
@@ -416,7 +418,7 @@ mod tests {
     fn test_from_str() -> Result<(), Box<dyn std::error::Error>> {
         use crate::{
             header::record::{value::map::Other, Value},
-            record::{info, samples},
+            variant::record_buf::{info, samples},
         };
 
         let s = r#"##fileformat=VCFv4.3
@@ -608,7 +610,7 @@ mod tests {
         assert_eq!(
             Parser::default().parse(s),
             Err(ParseError::DuplicateFormatId(String::from(
-                crate::record::samples::keys::key::GENOTYPE
+                crate::variant::record_buf::samples::keys::key::GENOTYPE
             )))
         );
 

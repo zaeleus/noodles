@@ -18,7 +18,7 @@ pub enum Array<'a> {
     String(Box<dyn Values<'a, &'a str> + 'a>),
 }
 
-impl<'a> TryFrom<Array<'a>> for crate::record::info::field::value::Array {
+impl<'a> TryFrom<Array<'a>> for crate::variant::record_buf::info::field::value::Array {
     type Error = io::Error;
 
     fn try_from(array: Array<'a>) -> Result<Self, Self::Error> {

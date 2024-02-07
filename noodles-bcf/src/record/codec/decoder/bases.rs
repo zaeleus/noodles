@@ -1,6 +1,6 @@
 use std::io;
 
-use noodles_vcf::record::AlternateBases;
+use noodles_vcf::variant::record_buf::AlternateBases;
 
 use super::read_value;
 use crate::record::codec::Value;

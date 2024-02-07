@@ -27,7 +27,7 @@ pub fn read_site(
     src: &mut &[u8],
     header: &vcf::Header,
     string_maps: &StringMaps,
-    record: &mut vcf::Record,
+    record: &mut vcf::variant::RecordBuf,
 ) -> io::Result<(usize, usize)> {
     let chrom = read_chrom(src)?;
 
@@ -78,7 +78,7 @@ pub fn read_site(
     *record.filters_mut() = if raw_filters.is_empty() {
         None
     } else {
-        vcf::record::Filters::try_from_iter(raw_filters)
+        vcf::variant::record_buf::Filters::try_from_iter(raw_filters)
             .map(Some)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
     };

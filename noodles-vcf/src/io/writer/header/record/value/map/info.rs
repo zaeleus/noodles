@@ -17,7 +17,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::record::info::field::key;
+    use crate::variant::record_buf::info::field::key;
 
     #[test]
     fn test_write_info() -> Result<(), Box<dyn std::error::Error>> {

@@ -18,7 +18,7 @@ use self::{
     ids::parse_ids, info::parse_info, position::parse_position, quality_score::parse_quality_score,
     reference_bases::parse_reference_bases, samples::parse_samples,
 };
-use crate::{Header, Record};
+use crate::{variant::RecordBuf, Header};
 
 const MISSING: &str = ".";
 
@@ -77,7 +77,7 @@ impl fmt::Display for ParseError {
 pub(crate) fn parse_record(
     mut s: &str,
     header: &Header,
-    record: &mut Record,
+    record: &mut RecordBuf,
 ) -> Result<(), ParseError> {
     let field = next_field(&mut s);
     parse_chromosome(field, record.chromosome_mut());

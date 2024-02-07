@@ -1,7 +1,7 @@
 use std::io::{self, Write};
 
 use super::MISSING;
-use crate::record::Ids;
+use crate::variant::record_buf::Ids;
 
 pub(super) fn write_ids<W>(writer: &mut W, ids: &Ids) -> io::Result<()>
 where

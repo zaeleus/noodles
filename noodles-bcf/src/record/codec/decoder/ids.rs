@@ -1,6 +1,6 @@
 use std::io;
 
-use noodles_vcf::record::Ids;
+use noodles_vcf::variant::record_buf::Ids;
 
 use super::read_value;
 use crate::record::codec::Value;

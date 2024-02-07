@@ -5,7 +5,7 @@ use std::{error, fmt};
 
 use noodles_vcf::{
     self as vcf,
-    record::{samples::Keys, Samples},
+    variant::record_buf::{samples::Keys, Samples},
 };
 
 use self::{
@@ -21,7 +21,7 @@ pub fn read_samples(
     sample_count: usize,
     format_count: usize,
 ) -> Result<Samples, DecodeError> {
-    use vcf::record::samples::keys::key;
+    use vcf::variant::record_buf::samples::keys::key;
 
     let mut keys = Vec::with_capacity(format_count);
     let mut samples = vec![Vec::new(); sample_count];
@@ -52,7 +52,7 @@ pub fn read_samples(
 pub enum DecodeError {
     InvalidKey(key::DecodeError),
     InvalidValues(values::DecodeError),
-    InvalidKeys(vcf::record::samples::keys::TryFromKeyVectorError),
+    InvalidKeys(vcf::variant::record_buf::samples::keys::TryFromKeyVectorError),
 }
 
 impl error::Error for DecodeError {

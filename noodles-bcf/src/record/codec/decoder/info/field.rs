@@ -14,7 +14,7 @@ pub(crate) fn read_field(
     src: &mut &[u8],
     infos: &vcf::header::Infos,
     string_map: &StringStringMap,
-) -> Result<(String, Option<vcf::record::info::field::Value>), DecodeError> {
+) -> Result<(String, Option<vcf::variant::record_buf::info::field::Value>), DecodeError> {
     let raw_key = read_string_map_entry(src, string_map).map_err(DecodeError::InvalidStringMap)?;
 
     let (key, info) = infos

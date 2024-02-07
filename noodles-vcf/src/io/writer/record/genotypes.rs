@@ -1,7 +1,7 @@
 use std::io::{self, Write};
 
 use super::MISSING;
-use crate::record::{
+use crate::variant::record_buf::{
     samples::{
         sample::{value::Array, Value},
         Keys, Sample,
@@ -145,7 +145,7 @@ mod tests {
 
     #[test]
     fn test_write_genotypes() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::record::samples::keys::key;
+        use crate::variant::record_buf::samples::keys::key;
 
         fn t(buf: &mut Vec<u8>, genotypes: &Samples, expected: &[u8]) -> io::Result<()> {
             buf.clear();

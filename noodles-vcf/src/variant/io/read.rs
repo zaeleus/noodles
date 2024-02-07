@@ -1,6 +1,6 @@
 use std::io;
 
-use crate::{Header, Record};
+use crate::{variant::RecordBuf, Header};
 
 /// A variant format reader.
 pub trait Read<R> {
@@ -11,5 +11,5 @@ pub trait Read<R> {
     fn variant_records<'r, 'h: 'r>(
         &'r mut self,
         header: &'h Header,
-    ) -> Box<dyn Iterator<Item = io::Result<Record>> + 'r>;
+    ) -> Box<dyn Iterator<Item = io::Result<RecordBuf>> + 'r>;
 }

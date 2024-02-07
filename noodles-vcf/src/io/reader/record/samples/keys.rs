@@ -2,7 +2,7 @@ use std::{error, fmt};
 
 use crate::{
     io::reader::record::MISSING,
-    record::samples::{keys::key, Keys},
+    variant::record_buf::samples::{keys::key, Keys},
     Header,
 };
 

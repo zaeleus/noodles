@@ -1,6 +1,6 @@
 use crate::{
     header::{record::value::map::format::Type, Number},
-    record::samples::keys::key,
+    variant::record_buf::samples::keys::key,
 };
 
 pub(super) fn definition(key: &str) -> Option<(Number, Type, &'static str)> {

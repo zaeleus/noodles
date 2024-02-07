@@ -36,8 +36,8 @@ impl<'a> Info<'a> {
         &'a self,
         header: &'h vcf::Header,
         string_string_map: &'h StringStringMap,
-    ) -> io::Result<vcf::record::Info> {
-        let mut info = vcf::record::Info::default();
+    ) -> io::Result<vcf::variant::record_buf::Info> {
+        let mut info = vcf::variant::record_buf::Info::default();
 
         for result in self.iter(header, string_string_map) {
             let (key, value) = result?;

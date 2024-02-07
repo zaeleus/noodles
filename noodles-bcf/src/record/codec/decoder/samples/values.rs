@@ -1,6 +1,6 @@
 use std::{error, fmt, str};
 
-use noodles_vcf::record::samples::sample::Value;
+use noodles_vcf::variant::record_buf::samples::sample::Value;
 
 use crate::record::codec::{
     decoder::{

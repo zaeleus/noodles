@@ -118,7 +118,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_genotype() -> Result<(), crate::record::samples::keys::TryFromKeyVectorError> {
+    fn test_genotype(
+    ) -> Result<(), crate::variant::record_buf::samples::keys::TryFromKeyVectorError> {
         let keys = Keys::try_from(vec![String::from(key::GENOTYPE)])?;
 
         let values = vec![Some(Value::from("ndls"))];

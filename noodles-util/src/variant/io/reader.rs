@@ -6,7 +6,7 @@ pub use self::builder::Builder;
 
 use std::io::{self, BufRead};
 
-use noodles_vcf::{self as vcf, Record};
+use noodles_vcf::{self as vcf, variant::RecordBuf};
 
 /// A variant reader.
 pub struct Reader<R> {
@@ -69,7 +69,7 @@ where
     pub fn records<'a>(
         &'a mut self,
         header: &'a vcf::Header,
-    ) -> impl Iterator<Item = io::Result<Record>> + 'a {
+    ) -> impl Iterator<Item = io::Result<RecordBuf>> + 'a {
         self.inner.variant_records(header)
     }
 }

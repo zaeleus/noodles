@@ -22,7 +22,7 @@ pub enum Value<'a> {
     Array(Array<'a>),
 }
 
-impl<'a> TryFrom<Value<'a>> for crate::record::info::field::Value {
+impl<'a> TryFrom<Value<'a>> for crate::variant::record_buf::info::field::Value {
     type Error = io::Error;
 
     fn try_from(value: Value<'a>) -> Result<Self, Self::Error> {

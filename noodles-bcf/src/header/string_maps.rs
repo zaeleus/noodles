@@ -41,7 +41,7 @@ impl StringMaps {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::record::value::{map::{Contig, Filter, Format, Info}, Map},
-    ///     record::{info, samples},
+    ///     variant::record_buf::{info, samples},
     /// };
     ///
     /// let header = vcf::Header::builder()
@@ -77,7 +77,7 @@ impl StringMaps {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::record::value::{map::{Contig, Filter, Format, Info}, Map},
-    ///     record::{info, samples},
+    ///     variant::record_buf::{info, samples},
     /// };
     ///
     /// let header = vcf::Header::builder()
@@ -408,7 +408,7 @@ mod tests {
                 map::{AlternativeAllele, Contig, Filter, Format, Info},
                 Map,
             },
-            record::{info, samples},
+            variant::record_buf::{info, samples},
         };
 
         let header = vcf::Header::builder()
@@ -490,7 +490,7 @@ mod tests {
                 map::{Filter, Info},
                 Map,
             },
-            record::info,
+            variant::record_buf::info,
         };
 
         let ns = {

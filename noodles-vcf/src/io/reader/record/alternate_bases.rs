@@ -1,6 +1,6 @@
 use std::{error, fmt};
 
-use crate::record::AlternateBases;
+use crate::variant::record_buf::AlternateBases;
 
 /// An error when raw VCF record alternate bases fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]

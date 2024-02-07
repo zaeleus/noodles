@@ -18,7 +18,7 @@ use byteorder::ReadBytesExt;
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
-use noodles_vcf as vcf;
+use noodles_vcf::{self as vcf, variant::RecordBuf};
 
 use self::{header::read_header, record::read_record, record_buf::read_record_buf};
 use crate::{
@@ -132,14 +132,14 @@ where
     /// let mut reader = File::open("sample.bcf").map(bcf::io::Reader::new)?;
     /// let header = reader.read_header()?;
     ///
-    /// let mut record = vcf::Record::default();
+    /// let mut record = vcf::variant::RecordBuf::default();
     /// reader.read_record_buf(&header, &mut record)?;
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_record_buf(
         &mut self,
         header: &vcf::Header,
-        record: &mut vcf::Record,
+        record: &mut RecordBuf,
     ) -> io::Result<usize> {
         read_record_buf(
             &mut self.inner,
@@ -360,7 +360,7 @@ where
     fn variant_records<'r, 'h: 'r>(
         &'r mut self,
         header: &'h vcf::Header,
-    ) -> Box<dyn Iterator<Item = io::Result<vcf::Record>> + 'r> {
+    ) -> Box<dyn Iterator<Item = io::Result<RecordBuf>> + 'r> {
         Box::new(self.record_bufs(header))
     }
 }

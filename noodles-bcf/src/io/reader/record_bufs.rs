@@ -1,6 +1,6 @@
 use std::io::{self, Read};
 
-use noodles_vcf as vcf;
+use noodles_vcf::{self as vcf, variant::RecordBuf};
 
 use super::Reader;
 
@@ -13,7 +13,7 @@ where
 {
     reader: &'r mut Reader<R>,
     header: &'h vcf::Header,
-    record: vcf::Record,
+    record: RecordBuf,
 }
 
 impl<'r, 'h, R> RecordBufs<'r, 'h, R>
@@ -24,7 +24,7 @@ where
         Self {
             reader,
             header,
-            record: vcf::Record::default(),
+            record: RecordBuf::default(),
         }
     }
 }
@@ -33,7 +33,7 @@ impl<'r, 'h, R> Iterator for RecordBufs<'r, 'h, R>
 where
     R: Read,
 {
-    type Item = io::Result<vcf::Record>;
+    type Item = io::Result<RecordBuf>;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.reader.read_record_buf(self.header, &mut self.record) {

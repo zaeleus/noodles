@@ -42,7 +42,7 @@ impl Writer {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_vcf::{self as vcf, Record};
+    /// use noodles_vcf as vcf;
     /// use noodles_util::variant::{self, io::Format};
     ///
     /// let mut writer = variant::io::writer::Builder::default()
@@ -53,11 +53,15 @@ impl Writer {
     /// let header = vcf::Header::default();
     /// writer.write_header(&header)?;
     ///
-    /// let record = vcf::Record::default();
+    /// let record = vcf::variant::RecordBuf::default();
     /// writer.write_record(&header, &record)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn write_record(&mut self, header: &vcf::Header, record: &vcf::Record) -> io::Result<()> {
+    pub fn write_record(
+        &mut self,
+        header: &vcf::Header,
+        record: &vcf::variant::RecordBuf,
+    ) -> io::Result<()> {
         self.inner.write_variant_record(header, record)
     }
 }

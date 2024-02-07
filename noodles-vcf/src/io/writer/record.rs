@@ -11,11 +11,11 @@ use self::{
     chromosome::write_chromosome, filters::write_filters, genotypes::write_genotypes,
     ids::write_ids, info::write_info, quality_score::write_quality_score,
 };
-use crate::Record;
+use crate::variant::RecordBuf;
 
 const MISSING: &[u8] = b".";
 
-pub(super) fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
+pub(super) fn write_record<W>(writer: &mut W, record: &RecordBuf) -> io::Result<()>
 where
     W: Write,
 {
@@ -68,11 +68,11 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::record::Position;
+    use crate::variant::record_buf::Position;
 
     #[test]
     fn test_write_record() -> Result<(), Box<dyn std::error::Error>> {
-        let record = Record::builder()
+        let record = RecordBuf::builder()
             .set_chromosome("sq0")
             .set_position(Position::from(1))
             .set_reference_bases("A")

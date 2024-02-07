@@ -7,7 +7,7 @@ use noodles_csi::binning_index::index::reference_sequence::bin::Chunk;
 use tokio::io::{self, AsyncRead, AsyncSeek};
 
 use super::Reader;
-use crate::{io::reader::query::intersects, Header, Record};
+use crate::{io::reader::query::intersects, variant::RecordBuf, Header};
 
 enum State {
     Seek,
@@ -37,7 +37,7 @@ pub fn query<'r, R>(
     reference_sequence_name: Vec<u8>,
     interval: Interval,
     header: &'r Header,
-) -> impl Stream<Item = io::Result<Record>> + 'r
+) -> impl Stream<Item = io::Result<RecordBuf>> + 'r
 where
     R: AsyncRead + AsyncSeek + Unpin,
 {
@@ -87,11 +87,11 @@ where
 async fn next_record<R>(
     reader: &mut Reader<bgzf::AsyncReader<R>>,
     header: &Header,
-) -> io::Result<Option<Record>>
+) -> io::Result<Option<RecordBuf>>
 where
     R: AsyncRead + Unpin,
 {
-    let mut record = Record::default();
+    let mut record = RecordBuf::default();
 
     reader
         .read_record(header, &mut record)

@@ -12,7 +12,7 @@ pub(super) fn write_field<W>(
     writer: &mut W,
     string_string_map: &StringStringMap,
     key: &str,
-    value: Option<&vcf::record::info::field::Value>,
+    value: Option<&vcf::variant::record_buf::info::field::Value>,
 ) -> io::Result<()>
 where
     W: Write,

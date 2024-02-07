@@ -22,7 +22,7 @@ pub fn write_site<W>(
     writer: &mut W,
     header: &vcf::Header,
     string_maps: &StringMaps,
-    record: &vcf::Record,
+    record: &vcf::variant::RecordBuf,
 ) -> io::Result<()>
 where
     W: Write,
@@ -80,7 +80,10 @@ where
     writer.write_i32::<LittleEndian>(chrom)
 }
 
-pub(crate) fn write_pos<W>(writer: &mut W, position: vcf::record::Position) -> io::Result<()>
+pub(crate) fn write_pos<W>(
+    writer: &mut W,
+    position: vcf::variant::record_buf::Position,
+) -> io::Result<()>
 where
     W: Write,
 {
@@ -93,8 +96,8 @@ where
 
 pub(crate) fn write_rlen<W>(
     writer: &mut W,
-    start: vcf::record::Position,
-    end: vcf::record::Position,
+    start: vcf::variant::record_buf::Position,
+    end: vcf::variant::record_buf::Position,
 ) -> io::Result<()>
 where
     W: Write,
@@ -165,7 +168,7 @@ where
     Ok(())
 }
 
-pub(crate) fn write_id<W>(writer: &mut W, ids: &vcf::record::Ids) -> io::Result<()>
+pub(crate) fn write_id<W>(writer: &mut W, ids: &vcf::variant::record_buf::Ids) -> io::Result<()>
 where
     W: Write,
 {
@@ -190,7 +193,7 @@ where
 pub(crate) fn write_ref_alt<W>(
     writer: &mut W,
     reference_bases: &str,
-    alternate_bases: &vcf::record::AlternateBases,
+    alternate_bases: &vcf::variant::record_buf::AlternateBases,
 ) -> io::Result<()>
 where
     W: Write,
@@ -212,12 +215,12 @@ where
 fn write_filter<W>(
     writer: &mut W,
     string_string_map: &StringStringMap,
-    filters: Option<&vcf::record::Filters>,
+    filters: Option<&vcf::variant::record_buf::Filters>,
 ) -> io::Result<()>
 where
     W: Write,
 {
-    use vcf::record::Filters;
+    use vcf::variant::record_buf::Filters;
 
     use crate::record::codec::encoder::string_map::write_string_map_indices;
 
@@ -283,7 +286,7 @@ mod tests {
 
     #[test]
     fn test_write_pos() -> Result<(), Box<dyn std::error::Error>> {
-        use vcf::record::Position;
+        use vcf::variant::record_buf::Position;
 
         fn t(buf: &mut Vec<u8>, position: Position, expected: &[u8]) -> io::Result<()> {
             buf.clear();
@@ -313,7 +316,7 @@ mod tests {
 
     #[test]
     fn test_write_rlen() -> Result<(), Box<dyn std::error::Error>> {
-        use vcf::record::Position;
+        use vcf::variant::record_buf::Position;
 
         fn t(buf: &mut Vec<u8>, start: Position, end: Position, expected: &[u8]) -> io::Result<()> {
             buf.clear();
@@ -427,7 +430,7 @@ mod tests {
 
     #[test]
     fn test_write_id() -> Result<(), Box<dyn std::error::Error>> {
-        use vcf::record::Ids;
+        use vcf::variant::record_buf::Ids;
 
         fn t(buf: &mut Vec<u8>, ids: &Ids, expected: &[u8]) -> io::Result<()> {
             buf.clear();
@@ -457,7 +460,7 @@ mod tests {
 
     #[test]
     fn test_write_ref_alt() -> Result<(), Box<dyn std::error::Error>> {
-        use vcf::record::AlternateBases;
+        use vcf::variant::record_buf::AlternateBases;
 
         fn t(
             buf: &mut Vec<u8>,
@@ -496,7 +499,7 @@ mod tests {
     fn test_write_filter() -> Result<(), Box<dyn std::error::Error>> {
         use vcf::{
             header::record::value::{map::Filter, Map},
-            record::Filters,
+            variant::record_buf::Filters,
         };
 
         fn t(

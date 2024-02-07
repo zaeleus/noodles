@@ -6,7 +6,7 @@ use self::value::parse_value;
 use crate::{
     header::{record::value::map::info::Type, Number},
     io::reader::record::MISSING,
-    record::info::field::Value,
+    variant::record_buf::info::field::Value,
     Header,
 };
 
@@ -99,7 +99,7 @@ pub(super) fn parse_field(header: &Header, s: &str) -> Result<(String, Option<Va
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::record::info::field::key;
+    use crate::variant::record_buf::info::field::key;
 
     #[test]
     fn test_parse_field() {
