@@ -145,13 +145,6 @@ impl Samples {
             Series::new(name, &self.values[..], i)
         })
     }
-
-    /// Returns the VCF record genotype value.
-    pub fn genotypes(&self) -> Result<Vec<Option<sample::value::Genotype>>, sample::GenotypeError> {
-        self.values()
-            .map(|sample| sample.genotype().transpose())
-            .collect()
-    }
 }
 
 /// An error returned when raw VCF record genotypes fail to parse.
@@ -185,39 +178,5 @@ impl fmt::Display for ParseError {
             Self::InvalidKeys(_) => f.write_str("invalid keys"),
             Self::InvalidValues(_) => f.write_str("invalid values"),
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{keys::key, *};
-
-    #[test]
-    fn test_genotypes() -> Result<(), Box<dyn std::error::Error>> {
-        let keys = Keys::try_from(vec![
-            String::from(key::GENOTYPE),
-            String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
-        ])?;
-        let genotypes = Samples::new(
-            keys,
-            vec![
-                vec![Some(Value::from("0|0")), Some(Value::from(7))],
-                vec![Some(Value::from("./.")), Some(Value::from(20))],
-                vec![Some(Value::from("1/1")), Some(Value::from(1))],
-                vec![],
-            ],
-        );
-
-        let actual = genotypes.genotypes();
-        let expected = Ok(vec![
-            Some("0|0".parse()?),
-            Some("./.".parse()?),
-            Some("1/1".parse()?),
-            None,
-        ]);
-
-        assert_eq!(actual, expected);
-
-        Ok(())
     }
 }
