@@ -178,7 +178,7 @@ fn try_insert(
             Ok(())
         }
         Entry::Occupied(entry) => {
-            let (t, _) = entry.remove_entry();
+            let (t, _) = entry.swap_remove_entry();
             Err(ParseError::new(
                 id.clone(),
                 ParseErrorKind::DuplicateTag(Tag::Other(t)),

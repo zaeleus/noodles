@@ -60,7 +60,7 @@ pub(super) fn parse_info(header: &Header, s: &str, info: &mut Info) -> Result<()
                 entry.insert(value);
             }
             Entry::Occupied(entry) => {
-                let (k, _) = entry.remove_entry();
+                let (k, _) = entry.swap_remove_entry();
                 return Err(ParseError::DuplicateKey(k));
             }
         }

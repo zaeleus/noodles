@@ -240,7 +240,7 @@ fn try_insert_info(
                 .unwrap())
         }
         Entry::Occupied(entry) => {
-            let (id, _) = entry.remove_entry();
+            let (id, _) = entry.swap_remove_entry();
             Err(ParseError::DuplicateInfoId(id))
         }
     }
@@ -266,7 +266,7 @@ fn try_insert_filter(
                 .unwrap())
         }
         Entry::Occupied(entry) => {
-            let (id, _) = entry.remove_entry();
+            let (id, _) = entry.swap_remove_entry();
             Err(ParseError::DuplicateFilterId(id))
         }
     }
@@ -292,7 +292,7 @@ fn try_insert_format(
                 .unwrap())
         }
         Entry::Occupied(entry) => {
-            let (id, _) = entry.remove_entry();
+            let (id, _) = entry.swap_remove_entry();
             Err(ParseError::DuplicateFormatId(id))
         }
     }
@@ -318,7 +318,7 @@ fn try_insert_alternative_allele(
                 .unwrap())
         }
         Entry::Occupied(entry) => {
-            let (id, _) = entry.remove_entry();
+            let (id, _) = entry.swap_remove_entry();
             Err(ParseError::DuplicateAlternativeAlleleId(id))
         }
     }
@@ -344,7 +344,7 @@ fn try_insert_contig(
                 .unwrap())
         }
         Entry::Occupied(entry) => {
-            let (id, _) = entry.remove_entry();
+            let (id, _) = entry.swap_remove_entry();
             Err(ParseError::DuplicateContigId(id))
         }
     }
