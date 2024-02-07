@@ -225,12 +225,12 @@ where
     /// reader.read_header().await?;
     ///
     /// let mut record = vcf::Record::default();
-    /// reader.read_lazy_record(&mut record).await?;
+    /// reader.read_record(&mut record).await?;
     /// # Ok::<_, std::io::Error>(())
     /// # }
     /// ```
-    pub async fn read_lazy_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        read_lazy_record(&mut self.inner, &mut self.buf, record).await
+    pub async fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+        read_record(&mut self.inner, &mut self.buf, record).await
     }
 
     /// Returns an (async) stream over records starting from the current (input) stream position.
@@ -414,11 +414,7 @@ where
     }
 }
 
-async fn read_lazy_record<R>(
-    reader: &mut R,
-    buf: &mut String,
-    record: &mut Record,
-) -> io::Result<usize>
+async fn read_record<R>(reader: &mut R, buf: &mut String, record: &mut Record) -> io::Result<usize>
 where
     R: AsyncBufRead + Unpin,
 {
@@ -455,12 +451,12 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_read_lazy_record() -> io::Result<()> {
+    async fn test_read_record() -> io::Result<()> {
         let mut src = &b"sq0\t1\t.\tA\t.\t.\tPASS\t.\n"[..];
         let mut buf = String::new();
 
         let mut record = Record::default();
-        read_lazy_record(&mut src, &mut buf, &mut record).await?;
+        read_record(&mut src, &mut buf, &mut record).await?;
 
         assert_eq!(record.buf, "sq01.A..PASS.");
 
@@ -475,7 +471,7 @@ mod tests {
 
         let mut src = &b"\n"[..];
         assert!(matches!(
-            read_lazy_record(&mut src, &mut buf, &mut record).await,
+            read_record(&mut src, &mut buf, &mut record).await,
             Err(e) if e.kind() == io::ErrorKind::InvalidData,
         ));
 
