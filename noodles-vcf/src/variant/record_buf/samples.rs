@@ -101,6 +101,39 @@ impl Samples {
             .map(|values| Sample::new(&self.keys, values))
     }
 
+    /// Returns a series with the given column name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::variant::record_buf::{
+    ///     samples::{keys::key, sample::Value, Keys},
+    ///     Samples,
+    /// };
+    ///
+    /// let keys = Keys::try_from(vec![String::from(key::GENOTYPE)])?;
+    /// let samples = Samples::new(
+    ///     keys,
+    ///     vec![
+    ///         vec![Some(Value::from("0|0"))],
+    ///         vec![Some(Value::from("1/1"))],
+    ///         vec![],
+    ///     ],
+    /// );
+    ///
+    /// let series = samples.select(key::GENOTYPE).expect("missing genotype column");
+    /// assert_eq!(series.get(0), Some(Some(&Value::from("0|0"))));
+    /// assert_eq!(series.get(1), Some(Some(&Value::from("1/1"))));
+    /// assert_eq!(series.get(2), Some(None));
+    /// assert_eq!(series.get(3), None);
+    /// # Ok::<_, noodles_vcf::variant::record_buf::samples::keys::TryFromKeyVectorError>(())
+    /// ```
+    pub fn select(&self, name: &str) -> Option<Series<'_>> {
+        self.keys()
+            .get_full(name)
+            .map(|(i, name)| Series::new(name, &self.values[..], i))
+    }
+
     /// Returns an iterator over series.
     pub fn series(&self) -> impl Iterator<Item = Series<'_>> {
         let column_names = self.keys();
