@@ -8,7 +8,7 @@ use noodles_csi::BinningIndex;
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncSeek};
 
 use self::{header::read_header, query::query};
-use crate::{io::reader::resolve_region, lazy, Header, Record};
+use crate::{io::reader::resolve_region, lazy, variant::RecordBuf, Header};
 
 const LINE_FEED: char = '\n';
 const CARRIAGE_RETURN: char = '\r';
@@ -173,12 +173,16 @@ where
     /// let mut reader = vcf::r#async::io::Reader::new(&data[..]);
     /// let header = reader.read_header().await?;
     ///
-    /// let mut record = vcf::Record::default();
+    /// let mut record = vcf::variant::RecordBuf::default();
     /// reader.read_record(&header, &mut record).await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_record(&mut self, header: &Header, record: &mut Record) -> io::Result<usize> {
+    pub async fn read_record(
+        &mut self,
+        header: &Header,
+        record: &mut RecordBuf,
+    ) -> io::Result<usize> {
         use crate::io::reader::parse_record;
 
         self.buf.clear();
@@ -263,9 +267,9 @@ where
     pub fn records<'r, 'h: 'r>(
         &'r mut self,
         header: &'h Header,
-    ) -> impl Stream<Item = io::Result<Record>> + 'r {
+    ) -> impl Stream<Item = io::Result<RecordBuf>> + 'r {
         Box::pin(stream::try_unfold(self, move |reader| async move {
-            let mut record = Record::default();
+            let mut record = RecordBuf::default();
 
             reader
                 .read_record(header, &mut record)
@@ -371,7 +375,7 @@ where
         header: &'r Header,
         index: &I,
         region: &Region,
-    ) -> io::Result<impl Stream<Item = io::Result<Record>> + 'r>
+    ) -> io::Result<impl Stream<Item = io::Result<RecordBuf>> + 'r>
     where
         I: BinningIndex,
     {

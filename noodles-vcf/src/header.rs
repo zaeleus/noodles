@@ -114,7 +114,7 @@ impl Header {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::record::value::{map::Info, Map},
-    ///     record::info::field::key,
+    ///     variant::record_buf::info::field::key,
     /// };
     ///
     /// let id = key::SAMPLES_WITH_DATA_COUNT;
@@ -140,7 +140,7 @@ impl Header {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::record::value::{map::Info, Map},
-    ///     record::info::field::key,
+    ///     variant::record_buf::info::field::key,
     /// };
     ///
     /// let mut header = vcf::Header::default();
@@ -206,7 +206,7 @@ impl Header {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::record::value::{map::Format, Map},
-    ///     record::samples::keys::key,
+    ///     variant::record_buf::samples::keys::key,
     /// };
     ///
     /// let id = key::GENOTYPE;
@@ -232,7 +232,7 @@ impl Header {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::record::value::{map::Format, Map},
-    ///     record::samples::keys::key,
+    ///     variant::record_buf::samples::keys::key,
     /// };
     ///
     /// let mut header = vcf::Header::default();

@@ -1,6 +1,6 @@
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
-use crate::{Header, Record};
+use crate::{variant::RecordBuf, Header};
 
 /// An async VCF writer.
 ///
@@ -118,9 +118,9 @@ where
     /// ```
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use noodles_vcf::{self as vcf, record::Position};
+    /// use noodles_vcf::{self as vcf, variant::record_buf::Position};
     ///
-    /// let record = vcf::Record::builder()
+    /// let record = vcf::variant::RecordBuf::builder()
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A")
@@ -131,7 +131,7 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn write_record(&mut self, record: &Record) -> io::Result<()> {
+    pub async fn write_record(&mut self, record: &RecordBuf) -> io::Result<()> {
         let mut writer = crate::io::Writer::new(Vec::new());
         writer.write_record(&Header::default(), record)?;
         self.inner.write_all(writer.get_ref()).await?;

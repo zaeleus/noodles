@@ -9,7 +9,7 @@ pub fn write_record<W>(
     writer: &mut W,
     header: &vcf::Header,
     string_maps: &StringMaps,
-    record: &vcf::Record,
+    record: &vcf::variant::RecordBuf,
 ) -> io::Result<()>
 where
     W: Write,
@@ -46,7 +46,10 @@ mod tests {
 
     #[test]
     fn test_write_record() -> Result<(), Box<dyn std::error::Error>> {
-        use vcf::header::record::value::{map::Contig, Map};
+        use vcf::{
+            header::record::value::{map::Contig, Map},
+            variant::record_buf::Position,
+        };
 
         let header = vcf::Header::builder()
             .add_contig("sq0", Map::<Contig>::new())
@@ -54,9 +57,9 @@ mod tests {
 
         let string_maps = StringMaps::try_from(&header)?;
 
-        let record = vcf::Record::builder()
+        let record = vcf::variant::RecordBuf::builder()
             .set_chromosome("sq0")
-            .set_position(vcf::record::Position::from(1))
+            .set_position(Position::from(1))
             .set_reference_bases("A")
             .build()?;
 

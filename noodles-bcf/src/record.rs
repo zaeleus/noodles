@@ -67,12 +67,12 @@ impl Record {
     /// assert_eq!(record.position().map(usize::from)?, 1);
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn position(&self) -> io::Result<vcf::record::Position> {
+    pub fn position(&self) -> io::Result<vcf::variant::record_buf::Position> {
         let n = self.0.position();
 
         usize::try_from(n)
             .map(|m| m + 1)
-            .map(vcf::record::Position::from)
+            .map(vcf::variant::record_buf::Position::from)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
@@ -94,8 +94,8 @@ impl Record {
     /// assert_eq!(record.end().map(usize::from)?, 1);
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn end(&self) -> io::Result<vcf::record::Position> {
-        use vcf::record::Position;
+    pub fn end(&self) -> io::Result<vcf::variant::record_buf::Position> {
+        use vcf::variant::record_buf::Position;
 
         let start = self.position().map(usize::from)?;
         let len = self.rlen()?;

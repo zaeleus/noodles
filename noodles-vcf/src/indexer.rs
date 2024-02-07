@@ -5,7 +5,7 @@ use noodles_core::Position;
 use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
 use noodles_tabix as tabix;
 
-use super::{io::Reader, Record};
+use super::{io::Reader, variant::RecordBuf};
 
 /// Indexes a bgzipped-compressed VCF file.
 ///
@@ -24,7 +24,7 @@ where
     let mut indexer = tabix::index::Indexer::default();
     indexer.set_header(csi::binning_index::index::header::Builder::vcf().build());
 
-    let mut record = Record::default();
+    let mut record = RecordBuf::default();
     let mut start_position = reader.get_ref().virtual_position();
 
     while reader.read_record(&header, &mut record)? != 0 {

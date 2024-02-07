@@ -3,7 +3,7 @@ mod id;
 use std::{error, fmt};
 
 use self::id::parse_id;
-use crate::record::Ids;
+use crate::variant::record_buf::Ids;
 
 /// An error when raw VCF record IDs fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]

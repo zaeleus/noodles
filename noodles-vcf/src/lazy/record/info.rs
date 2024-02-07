@@ -54,7 +54,7 @@ mod tests {
 
     #[test]
     fn test_iter() {
-        use crate::record::info::field::key;
+        use crate::variant::record_buf::info::field::key;
 
         let header = Header::default();
 

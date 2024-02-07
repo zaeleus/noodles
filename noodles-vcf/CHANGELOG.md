@@ -10,6 +10,8 @@
   * vcf: Move readers (`Reader` and `IndexedReader`) and writer (`Writer`) to
     `io` module.
 
+  * vcf: Move `Record` to `variant::RecordBuf`.
+
 ## 0.50.0 - 2024-03-12
 
 ### Changed

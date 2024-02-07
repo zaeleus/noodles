@@ -100,7 +100,7 @@ where
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::record::value::{map::Contig, Map},
-    ///     record::Position,
+    ///     variant::record_buf::Position,
     /// };
     ///
     /// let mut writer = bcf::io::Writer::new(io::sink());
@@ -111,7 +111,7 @@ where
     ///
     /// writer.write_header(&header)?;
     ///
-    /// let record = vcf::Record::builder()
+    /// let record = vcf::variant::RecordBuf::builder()
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(8))
     ///     .set_reference_bases("A")
@@ -120,7 +120,11 @@ where
     /// writer.write_record(&header, &record)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn write_record(&mut self, header: &vcf::Header, record: &vcf::Record) -> io::Result<()> {
+    pub fn write_record(
+        &mut self,
+        header: &vcf::Header,
+        record: &vcf::variant::RecordBuf,
+    ) -> io::Result<()> {
         write_record(&mut self.inner, header, &self.string_maps, record)
     }
 }
@@ -183,7 +187,7 @@ where
     fn write_variant_record(
         &mut self,
         header: &vcf::Header,
-        record: &vcf::Record,
+        record: &vcf::variant::RecordBuf,
     ) -> io::Result<()> {
         write_record(&mut self.inner, header, &self.string_maps, record)
     }

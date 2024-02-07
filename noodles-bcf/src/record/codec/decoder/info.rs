@@ -12,7 +12,7 @@ pub fn read_info(
     infos: &vcf::header::Infos,
     string_string_map: &StringStringMap,
     len: usize,
-    info: &mut vcf::record::Info,
+    info: &mut vcf::variant::record_buf::Info,
 ) -> Result<(), DecodeError> {
     info.clear();
 

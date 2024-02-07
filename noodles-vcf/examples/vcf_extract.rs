@@ -9,7 +9,7 @@ use std::{
 
 use noodles_vcf::{
     self as vcf,
-    record::samples::{keys::key, sample::Value},
+    variant::record_buf::samples::{keys::key, sample::Value},
 };
 
 const MISSING: &str = ".";

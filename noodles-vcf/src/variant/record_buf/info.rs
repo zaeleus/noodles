@@ -16,7 +16,7 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::Info;
+    /// use noodles_vcf::variant::record_buf::Info;
     /// let info = Info::default();
     /// assert_eq!(info.len(), 0);
     /// ```
@@ -29,7 +29,7 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::Info;
+    /// use noodles_vcf::variant::record_buf::Info;
     /// let info = Info::default();
     /// assert!(info.is_empty());
     /// ```
@@ -44,7 +44,10 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::{info::field::{key, Value}, Info};
+    /// use noodles_vcf::variant::record_buf::{
+    ///     info::field::{key, Value},
+    ///     Info,
+    /// };
     ///
     /// let ns = (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(2)));
     /// let dp = (String::from(key::TOTAL_DEPTH), Some(Value::Integer(13)));
@@ -63,7 +66,10 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::{info::field::{key, Value}, Info};
+    /// use noodles_vcf::variant::record_buf::{
+    ///     info::field::{key, Value},
+    ///     Info,
+    /// };
     ///
     /// let ns = (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(2)));
     /// let dp = (String::from(key::TOTAL_DEPTH), Some(Value::Integer(13)));
@@ -84,7 +90,10 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::{info::field::{key, Value}, Info};
+    /// use noodles_vcf::variant::record_buf::{
+    ///     info::field::{key, Value},
+    ///     Info,
+    /// };
     ///
     /// let ns = (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(2)));
     /// let dp = (String::from(key::TOTAL_DEPTH), Some(Value::Integer(13)));
@@ -108,7 +117,10 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::{info::field::{key, Value}, Info};
+    /// use noodles_vcf::variant::record_buf::{
+    ///     info::field::{key, Value},
+    ///     Info,
+    /// };
     ///
     /// let ns = (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(2)));
     /// let dp = (String::from(key::TOTAL_DEPTH), Some(Value::Integer(13)));
@@ -132,7 +144,10 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::{info::field::{key, Value}, Info};
+    /// use noodles_vcf::variant::record_buf::{
+    ///     info::field::{key, Value},
+    ///     Info,
+    /// };
     ///
     /// let ns = (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(2)));
     /// let dp = (String::from(key::TOTAL_DEPTH), Some(Value::Integer(13)));
@@ -159,7 +174,10 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::{info::field::{key, Value}, Info};
+    /// use noodles_vcf::variant::record_buf::{
+    ///     info::field::{key, Value},
+    ///     Info,
+    /// };
     ///
     /// let ns = (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(2)));
     /// let mut info: Info = [ns].into_iter().collect();
@@ -183,7 +201,10 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::{info::field::{key, Value}, Info};
+    /// use noodles_vcf::variant::record_buf::{
+    ///     info::field::{key, Value},
+    ///     Info,
+    /// };
     ///
     /// let ns = (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(2)));
     /// let dp = (String::from(key::TOTAL_DEPTH), Some(Value::Integer(13)));
@@ -204,7 +225,10 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::{info::field::{key, Value}, Info};
+    /// use noodles_vcf::variant::record_buf::{
+    ///     info::field::{key, Value},
+    ///     Info,
+    /// };
     ///
     /// let ns = (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(2)));
     /// let dp = (String::from(key::TOTAL_DEPTH), Some(Value::Integer(13)));

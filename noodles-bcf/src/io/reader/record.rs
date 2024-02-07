@@ -104,7 +104,7 @@ pub(crate) mod tests {
 
     #[test]
     fn test_read_record() -> Result<(), Box<dyn std::error::Error>> {
-        use noodles_vcf::record::{
+        use noodles_vcf::variant::record_buf::{
             info::{self, field::Value as InfoFieldValue},
             samples::{
                 self,

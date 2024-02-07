@@ -3,7 +3,7 @@ use std::io::{self, Read, Seek};
 use noodles_bgzf as bgzf;
 use noodles_core::{region::Interval, Position};
 use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
-use noodles_vcf as vcf;
+use noodles_vcf::{self as vcf, variant::RecordBuf};
 
 use crate::header::StringMaps;
 
@@ -20,7 +20,7 @@ where
     chromosome_id: usize,
     interval: Interval,
     buf: Vec<u8>,
-    record: vcf::Record,
+    record: RecordBuf,
 }
 
 impl<'r, 'h, R> Query<'r, 'h, R>
@@ -42,11 +42,11 @@ where
             chromosome_id,
             interval,
             buf: Vec::new(),
-            record: vcf::Record::default(),
+            record: RecordBuf::default(),
         }
     }
 
-    fn next_record(&mut self) -> io::Result<Option<vcf::Record>> {
+    fn next_record(&mut self) -> io::Result<Option<RecordBuf>> {
         use super::read_record_buf;
 
         read_record_buf(
@@ -67,7 +67,7 @@ impl<'r, 'h, R> Iterator for Query<'r, 'h, R>
 where
     R: Read + Seek,
 {
-    type Item = io::Result<vcf::Record>;
+    type Item = io::Result<RecordBuf>;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
@@ -88,7 +88,7 @@ where
 
 fn intersects(
     string_maps: &StringMaps,
-    record: &vcf::Record,
+    record: &RecordBuf,
     chromosome_id: usize,
     region_interval: Interval,
 ) -> io::Result<bool> {

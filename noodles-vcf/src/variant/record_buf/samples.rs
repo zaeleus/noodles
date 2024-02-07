@@ -22,7 +22,7 @@ impl Samples {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::{samples::Keys, Samples};
+    /// use noodles_vcf::variant::record_buf::{samples::Keys, Samples};
     /// let genotypes = Samples::new(Keys::default(), Vec::new());
     /// ```
     pub fn new(keys: Keys, values: Vec<Vec<Option<Value>>>) -> Self {
@@ -34,7 +34,7 @@ impl Samples {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::Samples;
+    /// use noodles_vcf::variant::record_buf::Samples;
     /// let samples = Samples::default();
     /// assert!(samples.is_empty());
     /// ```
@@ -47,7 +47,10 @@ impl Samples {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::{samples::{keys::key, Keys}, Samples};
+    /// use noodles_vcf::variant::record_buf::{
+    ///     samples::{keys::key, Keys},
+    ///     Samples,
+    /// };
     ///
     /// let samples = Samples::default();
     /// assert!(samples.keys().is_empty());
@@ -55,7 +58,7 @@ impl Samples {
     /// let keys = Keys::try_from(vec![String::from(key::GENOTYPE)])?;
     /// let samples = Samples::new(keys.clone(), Vec::new());
     /// assert_eq!(samples.keys(), &keys);
-    /// # Ok::<_, noodles_vcf::record::samples::keys::TryFromKeyVectorError>(())
+    /// # Ok::<_, noodles_vcf::variant::record_buf::samples::keys::TryFromKeyVectorError>(())
     /// ```
     pub fn keys(&self) -> &Keys {
         &self.keys
@@ -66,7 +69,10 @@ impl Samples {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::{samples::{keys::key, Keys}, Samples};
+    /// use noodles_vcf::variant::record_buf::{
+    ///     samples::{keys::key, Keys},
+    ///     Samples,
+    /// };
     ///
     /// let keys = Keys::try_from(vec![String::from(key::GENOTYPE)])?;
     ///
@@ -74,7 +80,7 @@ impl Samples {
     /// *samples.keys_mut() = keys.clone();
     ///
     /// assert_eq!(samples.keys(), &keys);
-    /// # Ok::<_, noodles_vcf::record::samples::keys::TryFromKeyVectorError>(())
+    /// # Ok::<_, noodles_vcf::variant::record_buf::samples::keys::TryFromKeyVectorError>(())
     /// ```
     pub fn keys_mut(&mut self) -> &mut Keys {
         &mut self.keys

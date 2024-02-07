@@ -1,6 +1,6 @@
 use std::{error, fmt, num};
 
-use crate::record::Position;
+use crate::variant::record_buf::Position;
 
 /// An error when a raw VCF record position fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]

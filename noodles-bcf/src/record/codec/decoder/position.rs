@@ -1,7 +1,7 @@
 use std::io;
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use noodles_vcf::record::Position;
+use noodles_vcf::variant::record_buf::Position;
 
 pub fn read_pos(src: &mut &[u8]) -> io::Result<Position> {
     src.read_i32::<LittleEndian>().and_then(|n| {

@@ -17,7 +17,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::record::samples::keys::key;
+    use crate::variant::record_buf::samples::keys::key;
 
     #[test]
     fn test_write_format() -> Result<(), Box<dyn std::error::Error>> {

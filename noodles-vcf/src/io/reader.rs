@@ -22,7 +22,7 @@ use noodles_core::Region;
 use noodles_csi::BinningIndex;
 
 use self::header::read_header;
-use crate::{Header, Record};
+use crate::{variant::RecordBuf, Header};
 
 /// A VCF reader.
 ///
@@ -172,11 +172,11 @@ where
     /// let mut reader = vcf::io::Reader::new(&data[..]);
     /// let header = reader.read_header()?;
     ///
-    /// let mut record = vcf::Record::default();
+    /// let mut record = vcf::variant::RecordBuf::default();
     /// reader.read_record(&header, &mut record)?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn read_record(&mut self, header: &Header, record: &mut Record) -> io::Result<usize> {
+    pub fn read_record(&mut self, header: &Header, record: &mut RecordBuf) -> io::Result<usize> {
         self.buf.clear();
 
         match read_line(&mut self.inner, &mut self.buf)? {
@@ -361,7 +361,7 @@ where
     fn variant_records<'r, 'h: 'r>(
         &'r mut self,
         header: &'h Header,
-    ) -> Box<dyn Iterator<Item = io::Result<crate::Record>> + 'r> {
+    ) -> Box<dyn Iterator<Item = io::Result<RecordBuf>> + 'r> {
         Box::new(self.records(header))
     }
 }
@@ -435,7 +435,7 @@ sq0\t1\t.\tA\t.\t.\tPASS\t.
         let mut reader = Reader::new(DATA);
         let header = reader.read_header()?;
 
-        let mut record = Record::default();
+        let mut record = RecordBuf::default();
 
         let bytes_read = reader.read_record(&header, &mut record)?;
         assert_eq!(bytes_read, 21);

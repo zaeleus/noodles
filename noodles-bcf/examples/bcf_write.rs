@@ -13,7 +13,7 @@ use noodles_vcf::{
         map::{Contig, Filter},
         Map,
     },
-    record::Position,
+    variant::record_buf::Position,
 };
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -27,7 +27,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     writer.write_header(&header)?;
 
-    let record = vcf::Record::builder()
+    let record = vcf::variant::RecordBuf::builder()
         .set_chromosome("sq0")
         .set_position(Position::from(1))
         .set_reference_bases("A")

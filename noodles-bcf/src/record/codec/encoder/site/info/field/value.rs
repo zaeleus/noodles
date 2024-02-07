@@ -16,12 +16,12 @@ const DELIMITER: char = ',';
 
 pub(super) fn write_value<W>(
     writer: &mut W,
-    value: Option<&vcf::record::info::field::Value>,
+    value: Option<&vcf::variant::record_buf::info::field::Value>,
 ) -> io::Result<()>
 where
     W: Write,
 {
-    use vcf::record::info::field;
+    use vcf::variant::record_buf::info::field;
 
     match value {
         Some(field::Value::Integer(n)) => write_integer_value(writer, *n),
@@ -272,7 +272,7 @@ mod test {
 
     #[test]
     fn test_write_value_with_integer_value() -> io::Result<()> {
-        use vcf::record::info::field;
+        use vcf::variant::record_buf::info::field;
 
         fn t(buf: &mut Vec<u8>, value: &field::Value, expected: &[u8]) -> io::Result<()> {
             buf.clear();
@@ -328,7 +328,7 @@ mod test {
 
     #[test]
     fn test_write_value_with_float_value() -> io::Result<()> {
-        use vcf::record::info::field;
+        use vcf::variant::record_buf::info::field;
 
         let mut buf = Vec::new();
         let value = field::Value::from(0.0);
@@ -343,7 +343,7 @@ mod test {
 
     #[test]
     fn test_write_value_with_flag_value() -> io::Result<()> {
-        use vcf::record::info::field;
+        use vcf::variant::record_buf::info::field;
 
         let mut buf = Vec::new();
         let value = field::Value::Flag;
@@ -358,7 +358,7 @@ mod test {
 
     #[test]
     fn test_write_value_with_character_value() -> io::Result<()> {
-        use vcf::record::info::field;
+        use vcf::variant::record_buf::info::field;
 
         let mut buf = Vec::new();
         let value = field::Value::from('n');
@@ -373,7 +373,7 @@ mod test {
 
     #[test]
     fn test_write_value_with_string_value() -> io::Result<()> {
-        use vcf::record::info::field;
+        use vcf::variant::record_buf::info::field;
 
         let mut buf = Vec::new();
         let value = field::Value::from("ndls");
@@ -388,7 +388,7 @@ mod test {
 
     #[test]
     fn test_write_value_with_integer_array_value() -> io::Result<()> {
-        use vcf::record::info::field;
+        use vcf::variant::record_buf::info::field;
 
         fn t(buf: &mut Vec<u8>, value: Option<&field::Value>, expected: &[u8]) -> io::Result<()> {
             buf.clear();
@@ -500,7 +500,7 @@ mod test {
 
     #[test]
     fn test_write_value_with_float_array_value() -> io::Result<()> {
-        use vcf::record::info::field;
+        use vcf::variant::record_buf::info::field;
 
         fn t(buf: &mut Vec<u8>, value: Option<&field::Value>, expected: &[u8]) -> io::Result<()> {
             buf.clear();
@@ -530,7 +530,7 @@ mod test {
 
     #[test]
     fn test_write_value_with_character_array_value() -> io::Result<()> {
-        use vcf::record::info::field;
+        use vcf::variant::record_buf::info::field;
 
         fn t(buf: &mut Vec<u8>, value: Option<&field::Value>, expected: &[u8]) -> io::Result<()> {
             buf.clear();
@@ -560,7 +560,7 @@ mod test {
 
     #[test]
     fn test_write_value_with_string_array_value() -> io::Result<()> {
-        use vcf::record::info::field;
+        use vcf::variant::record_buf::info::field;
 
         fn t(buf: &mut Vec<u8>, value: Option<&field::Value>, expected: &[u8]) -> io::Result<()> {
             buf.clear();

@@ -1,6 +1,6 @@
 use std::iter;
 
-use crate::record::MISSING_FIELD;
+use crate::variant::record_buf::MISSING_FIELD;
 
 /// Raw VCF record IDs.
 #[derive(Debug, Eq, PartialEq)]

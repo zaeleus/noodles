@@ -10,7 +10,7 @@ use crate::header::string_maps::StringStringMap;
 pub fn write_info<W>(
     writer: &mut W,
     string_string_map: &StringStringMap,
-    info: &vcf::record::Info,
+    info: &vcf::variant::record_buf::Info,
 ) -> io::Result<()>
 where
     W: Write,

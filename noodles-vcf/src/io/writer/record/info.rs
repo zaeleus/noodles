@@ -1,7 +1,7 @@
 use std::io::{self, Write};
 
 use super::MISSING;
-use crate::record::{
+use crate::variant::record_buf::{
     info::field::{value::Array, Value},
     Info,
 };
@@ -121,7 +121,7 @@ mod tests {
 
     #[test]
     fn test_write_info() -> io::Result<()> {
-        use crate::record::info::field::key;
+        use crate::variant::record_buf::info::field::key;
 
         fn t(buf: &mut Vec<u8>, info: &Info, expected: &[u8]) -> io::Result<()> {
             buf.clear();

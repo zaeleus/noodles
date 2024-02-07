@@ -48,11 +48,11 @@ impl<'a> Samples<'a> {
         &self,
         header: &vcf::Header,
         string_map: &StringStringMap,
-    ) -> io::Result<vcf::record::Samples> {
+    ) -> io::Result<vcf::variant::record_buf::Samples> {
         use crate::record::codec::decoder::read_samples;
 
         if self.is_empty() {
-            return Ok(vcf::record::Samples::default());
+            return Ok(vcf::variant::record_buf::Samples::default());
         }
 
         let mut reader = self.src;

@@ -3,7 +3,8 @@ mod sample;
 use std::iter;
 
 pub use self::sample::Sample;
-use crate::record::FIELD_DELIMITER;
+
+const DELIMITER: char = '\t';
 
 /// Raw VCF record genotypes.
 #[derive(Debug, Eq, PartialEq)]
@@ -21,7 +22,7 @@ impl<'a> Genotypes<'a> {
 
     /// Returns an iterator over keys.
     pub fn keys(&self) -> impl Iterator<Item = &str> + '_ {
-        let (mut src, _) = self.0.split_once(FIELD_DELIMITER).unwrap_or_default();
+        let (mut src, _) = self.0.split_once(DELIMITER).unwrap_or_default();
 
         iter::from_fn(move || {
             if src.is_empty() {
@@ -34,7 +35,7 @@ impl<'a> Genotypes<'a> {
 
     /// Returns an iterator over samples.
     pub fn samples(&self) -> impl Iterator<Item = Option<Sample<'_>>> + '_ {
-        let (_, mut src) = self.0.split_once(FIELD_DELIMITER).unwrap_or_default();
+        let (_, mut src) = self.0.split_once(DELIMITER).unwrap_or_default();
 
         iter::from_fn(move || {
             if src.is_empty() {

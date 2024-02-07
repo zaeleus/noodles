@@ -52,7 +52,7 @@ impl Builder {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::record::value::{map::Info, Map},
-    ///     record::info::field::key,
+    ///     variant::record_buf::info::field::key,
     /// };
     ///
     /// let id = key::SAMPLES_WITH_DATA_COUNT;
@@ -107,7 +107,7 @@ impl Builder {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::record::value::{map::Format, Map},
-    ///     record::samples::keys::key,
+    ///     variant::record_buf::samples::keys::key,
     /// };
     ///
     /// let id = key::GENOTYPE;
@@ -321,7 +321,7 @@ mod tests {
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
         use crate::{
             header,
-            record::{info::field::key as info_key, samples::keys::key as format_key},
+            variant::record_buf::{info::field::key as info_key, samples::keys::key as format_key},
         };
 
         let (key, value) = (

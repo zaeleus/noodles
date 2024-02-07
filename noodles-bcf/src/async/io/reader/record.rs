@@ -30,13 +30,13 @@ where
 
 #[cfg(test)]
 mod tests {
-    use noodles_vcf::{
-        record::{
+    use noodles_vcf::variant::{
+        record::info::field::Value as InfoFieldValue,
+        record_buf::{
             info,
             samples::{self, sample::Value as GenotypeFieldValue, Keys},
             Position, Samples as VcfGenotypes,
         },
-        variant::record::info::field::Value as InfoFieldValue,
     };
 
     use super::*;

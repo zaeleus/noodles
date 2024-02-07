@@ -12,7 +12,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_bcf as bcf;
-    /// use noodles_vcf::{self as vcf, record::Position};
+    /// use noodles_vcf::{self as vcf, variant::record_buf::Position};
     ///
     /// let raw_header = "##fileformat=VCFv4.3\n##contig=<ID=sq0>\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
     /// let header: vcf::Header = raw_header.parse()?;
@@ -21,7 +21,7 @@ impl Record {
     /// let record = bcf::Record::default();
     ///
     /// let actual = record.try_into_vcf_record(&header, &string_maps)?;
-    /// let expected = vcf::Record::builder()
+    /// let expected = vcf::variant::RecordBuf::builder()
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("N")
@@ -34,7 +34,7 @@ impl Record {
         &self,
         header: &vcf::Header,
         string_maps: &StringMaps,
-    ) -> io::Result<vcf::Record> {
+    ) -> io::Result<vcf::variant::RecordBuf> {
         let chromosome = string_maps
             .contigs()
             .get_index(self.chromosome_id()?)
@@ -58,7 +58,7 @@ impl Record {
             .samples()?
             .try_into_vcf_record_samples(header, string_maps.strings())?;
 
-        let mut builder = vcf::Record::builder()
+        let mut builder = vcf::variant::RecordBuf::builder()
             .set_chromosome(chromosome)
             .set_position(self.position()?)
             .set_reference_bases(reference_bases)
@@ -86,7 +86,7 @@ impl Record {
                 .iter(string_maps)?
                 .collect::<io::Result<_>>()?;
 
-            let filters = vcf::record::Filters::try_from_iter(raw_filters)
+            let filters = vcf::variant::record_buf::Filters::try_from_iter(raw_filters)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
             builder = builder.set_filters(filters);
