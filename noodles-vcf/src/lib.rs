@@ -26,10 +26,10 @@ pub mod r#async;
 pub mod header;
 mod indexer;
 pub mod io;
-pub mod lazy;
+pub mod record;
 pub mod variant;
 
-pub use self::{header::Header, indexer::index};
+pub use self::{header::Header, indexer::index, record::Record};
 
 #[cfg(feature = "async")]
 pub use self::r#async::io::{Reader as AsyncReader, Writer as AsyncWriter};

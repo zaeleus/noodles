@@ -10,7 +10,6 @@ mod records;
 use self::lazy_record::read_lazy_record;
 pub(crate) use self::record::parse_record;
 pub use self::{builder::Builder, query::Query, records::Records};
-use crate::lazy;
 
 use std::{
     io::{self, BufRead, Read, Seek},
@@ -22,7 +21,7 @@ use noodles_core::Region;
 use noodles_csi::BinningIndex;
 
 use self::header::read_header;
-use crate::{variant::RecordBuf, Header};
+use crate::{variant::RecordBuf, Header, Record};
 
 /// A VCF reader.
 ///
@@ -240,11 +239,11 @@ where
     /// let mut reader = vcf::io::Reader::new(&data[..]);
     /// reader.read_header()?;
     ///
-    /// let mut record = vcf::lazy::Record::default();
+    /// let mut record = vcf::Record::default();
     /// reader.read_lazy_record(&mut record)?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn read_lazy_record(&mut self, record: &mut lazy::Record) -> io::Result<usize> {
+    pub fn read_lazy_record(&mut self, record: &mut Record) -> io::Result<usize> {
         read_lazy_record(&mut self.inner, record)
     }
 }

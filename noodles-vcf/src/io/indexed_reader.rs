@@ -14,7 +14,7 @@ use super::{
     reader::{Query, Records},
     Reader,
 };
-use crate::{lazy, variant::RecordBuf, Header};
+use crate::{variant::RecordBuf, Header, Record};
 
 /// An indexed VCF reader.
 pub struct IndexedReader<R> {
@@ -71,7 +71,7 @@ where
     }
 
     /// Reads a single record without eagerly parsing its fields.
-    pub fn read_lazy_record(&mut self, record: &mut lazy::Record) -> io::Result<usize> {
+    pub fn read_lazy_record(&mut self, record: &mut Record) -> io::Result<usize> {
         self.inner.read_lazy_record(record)
     }
 

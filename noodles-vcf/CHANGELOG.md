@@ -12,6 +12,8 @@
 
   * vcf: Move `Record` to `variant::RecordBuf`.
 
+  * vcf: Move `lazy::Record` to `Record`.
+
 ## 0.51.0 - 2024-03-28
 
 ### Changed
