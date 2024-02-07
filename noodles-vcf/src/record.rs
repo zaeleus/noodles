@@ -2,14 +2,14 @@
 
 mod bounds;
 mod filters;
-mod genotypes;
 mod ids;
 mod info;
+mod samples;
 
 use std::fmt;
 
 pub(crate) use self::bounds::Bounds;
-pub use self::{filters::Filters, genotypes::Genotypes, ids::Ids, info::Info};
+pub use self::{filters::Filters, ids::Ids, info::Info, samples::Samples};
 
 const MISSING: &str = ".";
 
@@ -76,7 +76,7 @@ impl Record {
     }
 
     /// Returns the genotypes.
-    pub fn genotypes(&self) -> Genotypes<'_> {
+    pub fn genotypes(&self) -> Samples<'_> {
         const DELIMITER: char = '\t';
 
         let buf = &self.buf[self.bounds.genotypes_range()];
@@ -89,9 +89,9 @@ impl Record {
         };
 
         if buf.is_empty() || is_missing() {
-            Genotypes::new("")
+            Samples::new("")
         } else {
-            Genotypes::new(buf)
+            Samples::new(buf)
         }
     }
 }
