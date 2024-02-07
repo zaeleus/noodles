@@ -8,9 +8,9 @@ const DELIMITER: char = '\t';
 
 /// Raw VCF record genotypes.
 #[derive(Debug, Eq, PartialEq)]
-pub struct Genotypes<'a>(&'a str);
+pub struct Samples<'a>(&'a str);
 
-impl<'a> Genotypes<'a> {
+impl<'a> Samples<'a> {
     pub(super) fn new(buf: &'a str) -> Self {
         Self(buf)
     }
@@ -47,7 +47,7 @@ impl<'a> Genotypes<'a> {
     }
 }
 
-impl<'a> AsRef<str> for Genotypes<'a> {
+impl<'a> AsRef<str> for Samples<'a> {
     fn as_ref(&self) -> &str {
         self.0
     }
@@ -99,16 +99,16 @@ mod tests {
 
     #[test]
     fn test_is_empty() {
-        assert!(Genotypes::new("").is_empty());
-        assert!(!Genotypes::new("GT:GQ\t0|0:13").is_empty());
+        assert!(Samples::new("").is_empty());
+        assert!(!Samples::new("GT:GQ\t0|0:13").is_empty());
     }
 
     #[test]
     fn test_keys() {
-        let genotypes = Genotypes::new("");
+        let genotypes = Samples::new("");
         assert!(genotypes.keys().next().is_none());
 
-        let genotypes = Genotypes::new("GT:GQ\t0|0:13");
+        let genotypes = Samples::new("GT:GQ\t0|0:13");
         let actual: Vec<_> = genotypes.keys().collect();
         let expected = ["GT", "GQ"];
         assert_eq!(actual, expected);
@@ -116,10 +116,10 @@ mod tests {
 
     #[test]
     fn test_samples() {
-        let genotypes = Genotypes::new("");
+        let genotypes = Samples::new("");
         assert!(genotypes.samples().next().is_none());
 
-        let genotypes = Genotypes::new("GT:GQ\t0|0:13\t.");
+        let genotypes = Samples::new("GT:GQ\t0|0:13\t.");
         let actual: Vec<_> = genotypes.samples().collect();
         let expected = [Some(Sample::new("0|0:13")), None];
         assert_eq!(actual, expected);
