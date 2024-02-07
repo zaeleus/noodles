@@ -2,8 +2,9 @@
 
 pub mod keys;
 pub mod sample;
+mod series;
 
-pub use self::{keys::Keys, sample::Sample};
+pub use self::{keys::Keys, sample::Sample, series::Series};
 
 use std::{error, fmt};
 
@@ -98,6 +99,18 @@ impl Samples {
         self.values
             .get(i)
             .map(|values| Sample::new(&self.keys, values))
+    }
+
+    /// Returns an iterator over series.
+    pub fn series(&self) -> impl Iterator<Item = Series<'_>> {
+        let column_names = self.keys();
+        let column_count = column_names.len();
+
+        (0..column_count).map(|i| {
+            // SAFETY: `i` is < `column_count`.
+            let name = column_names.get_index(i).unwrap();
+            Series::new(name, &self.values[..], i)
+        })
     }
 
     /// Returns the VCF record genotype value.
