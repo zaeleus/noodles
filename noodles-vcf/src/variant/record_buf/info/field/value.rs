@@ -9,7 +9,7 @@ pub use self::array::Array;
 /// A VCF record info field value.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Value {
-    /// An 32-bit integer.
+    /// A 32-bit integer.
     Integer(i32),
     /// A single-precision floating-point.
     Float(f32),
