@@ -1,6 +1,6 @@
 //! VCF record position.
 
-use std::{cmp::Ordering, fmt, num, str::FromStr};
+use std::{cmp::Ordering, fmt};
 
 use noodles_core as core;
 
@@ -11,17 +11,6 @@ pub struct Position(usize);
 impl fmt::Display for Position {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
-    }
-}
-
-/// An error returned when a raw VCF record position fails to parse.
-pub type ParseError = num::ParseIntError;
-
-impl FromStr for Position {
-    type Err = ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        s.parse().map(Self)
     }
 }
 
@@ -68,23 +57,6 @@ mod tests {
         assert_eq!(Position(0).to_string(), "0");
         assert_eq!(Position(8).to_string(), "8");
         assert_eq!(Position(13).to_string(), "13");
-    }
-
-    #[test]
-    fn test_from_str() {
-        use std::num::IntErrorKind;
-
-        assert_eq!("0".parse(), Ok(Position(0)));
-        assert_eq!("8".parse(), Ok(Position(8)));
-        assert_eq!("13".parse(), Ok(Position(13)));
-
-        assert!(matches!("".parse::<Position>(), Err(e) if e.kind() == &IntErrorKind::Empty));
-        assert!(
-            matches!("ndls".parse::<Position>(), Err(e) if e.kind() == &IntErrorKind::InvalidDigit)
-        );
-        assert!(
-            matches!("-1".parse::<Position>(), Err(e) if e.kind() == &IntErrorKind::InvalidDigit)
-        );
     }
 
     #[test]
