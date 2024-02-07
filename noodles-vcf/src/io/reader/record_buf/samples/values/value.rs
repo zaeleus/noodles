@@ -2,7 +2,7 @@ use std::{error, fmt, num, str};
 
 use crate::{
     header::{record::value::map::format::Type, Number},
-    io::reader::record::{value, MISSING},
+    io::reader::record_buf::{value, MISSING},
     variant::record_buf::samples::sample::{value::Array, Value},
 };
 

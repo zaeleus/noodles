@@ -4,12 +4,12 @@ mod builder;
 mod header;
 pub(crate) mod lazy_record;
 pub(crate) mod query;
-pub mod record;
-mod records;
+pub mod record_buf;
+mod record_bufs;
 
 use self::lazy_record::read_lazy_record;
-pub(crate) use self::record::parse_record;
-pub use self::{builder::Builder, query::Query, records::Records};
+pub(crate) use self::record_buf::parse_record_buf;
+pub use self::{builder::Builder, query::Query, record_bufs::RecordBufs};
 
 use std::{
     io::{self, BufRead, Read, Seek},
@@ -40,7 +40,7 @@ use crate::{variant::RecordBuf, Header, Record};
 /// let mut reader = vcf::io::reader::Builder::default().build_from_path("sample.vcf")?;
 /// let header = reader.read_header()?;
 ///
-/// for result in reader.records(&header) {
+/// for result in reader.record_bufs(&header) {
 ///     let record = result?;
 ///     println!("{:?}", record);
 /// }
@@ -172,16 +172,20 @@ where
     /// let header = reader.read_header()?;
     ///
     /// let mut record = vcf::variant::RecordBuf::default();
-    /// reader.read_record(&header, &mut record)?;
+    /// reader.read_record_buf(&header, &mut record)?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn read_record(&mut self, header: &Header, record: &mut RecordBuf) -> io::Result<usize> {
+    pub fn read_record_buf(
+        &mut self,
+        header: &Header,
+        record: &mut RecordBuf,
+    ) -> io::Result<usize> {
         self.buf.clear();
 
         match read_line(&mut self.inner, &mut self.buf)? {
             0 => Ok(0),
             n => {
-                parse_record(&self.buf, header, record)
+                parse_record_buf(&self.buf, header, record)
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
                 Ok(n)
@@ -206,13 +210,13 @@ where
     /// let mut reader = vcf::io::Reader::new(&data[..]);
     /// let header = reader.read_header()?;
     ///
-    /// let mut records = reader.records(&header);
+    /// let mut records = reader.record_bufs(&header);
     /// assert!(records.next().is_some());
     /// assert!(records.next().is_none());
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn records<'r, 'h: 'r>(&'r mut self, header: &'h Header) -> Records<'r, 'h, R> {
-        Records::new(self, header)
+    pub fn record_bufs<'r, 'h: 'r>(&'r mut self, header: &'h Header) -> RecordBufs<'r, 'h, R> {
+        RecordBufs::new(self, header)
     }
 
     /// Reads a single record without eagerly parsing its fields.
@@ -361,7 +365,7 @@ where
         &'r mut self,
         header: &'h Header,
     ) -> Box<dyn Iterator<Item = io::Result<RecordBuf>> + 'r> {
-        Box::new(self.records(header))
+        Box::new(self.record_bufs(header))
     }
 }
 
@@ -436,10 +440,10 @@ sq0\t1\t.\tA\t.\t.\tPASS\t.
 
         let mut record = RecordBuf::default();
 
-        let bytes_read = reader.read_record(&header, &mut record)?;
+        let bytes_read = reader.read_record_buf(&header, &mut record)?;
         assert_eq!(bytes_read, 21);
 
-        let bytes_read = reader.read_record(&header, &mut record)?;
+        let bytes_read = reader.read_record_buf(&header, &mut record)?;
         assert_eq!(bytes_read, 0);
 
         Ok(())

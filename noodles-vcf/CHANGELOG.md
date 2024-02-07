@@ -14,6 +14,14 @@
 
   * vcf: Move `lazy::Record` to `Record`.
 
+  * vcf/io/reader: Rename record to record buf.
+
+    This changes the following:
+
+      * `Reader::read_record` => `Reader::read_record_buf`,
+      * `Reader::records` => `Reader::record_bufs`, and
+      * `Records` => `RecordBufs`.
+
 ## 0.51.0 - 2024-03-28
 
 ### Changed

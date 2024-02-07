@@ -37,7 +37,7 @@ where
         header: &'h vcf::Header,
     ) -> impl Iterator<Item = io::Result<RecordBuf>> + '_ {
         let records: Box<dyn Iterator<Item = io::Result<RecordBuf>>> = match self {
-            Self::Vcf(reader) => Box::new(reader.records(header)),
+            Self::Vcf(reader) => Box::new(reader.record_bufs(header)),
             Self::Bcf(reader) => Box::new(reader.record_bufs(header)),
         };
 

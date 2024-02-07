@@ -13,7 +13,7 @@
 //! let mut reader = vcf::io::reader::Builder::default().build_from_path("sample.vcf")?;
 //! let header = reader.read_header()?;
 //!
-//! for result in reader.records(&header) {
+//! for result in reader.record_bufs(&header) {
 //!     let record = result?;
 //!     println!("{:?}", record);
 //! }

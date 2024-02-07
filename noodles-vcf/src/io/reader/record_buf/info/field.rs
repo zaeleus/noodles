@@ -5,7 +5,7 @@ use std::{error, fmt};
 use self::value::parse_value;
 use crate::{
     header::{record::value::map::info::Type, Number},
-    io::reader::record::MISSING,
+    io::reader::record_buf::MISSING,
     variant::record_buf::info::field::Value,
     Header,
 };
