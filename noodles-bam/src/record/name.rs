@@ -1,7 +1,10 @@
+use std::fmt;
+
+use bstr::ByteSlice;
 use noodles_sam as sam;
 
 /// A BAM record name.
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Eq, PartialEq)]
 pub struct Name<'a>(&'a [u8]);
 
 impl<'a> Name<'a> {
@@ -27,6 +30,14 @@ impl<'a> sam::alignment::record::Name for Name<'a> {
 impl<'a> AsRef<[u8]> for Name<'a> {
     fn as_ref(&self) -> &[u8] {
         self.0
+    }
+}
+
+impl<'a> fmt::Debug for Name<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_tuple("Name")
+            .field(&self.as_bytes().as_bstr())
+            .finish()
     }
 }
 
