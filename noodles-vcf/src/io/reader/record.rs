@@ -6,7 +6,7 @@ use std::{
 use super::read_line;
 use crate::Record;
 
-pub(crate) fn read_lazy_record<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
+pub(crate) fn read_record<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
 where
     R: BufRead,
 {
@@ -120,19 +120,19 @@ mod tests {
     fn test_read_lazy_record() -> io::Result<()> {
         let mut src = &b"sq0\t1\t.\tA\t.\t.\t.\t.\n"[..];
         let mut record = Record::default();
-        read_lazy_record(&mut src, &mut record)?;
+        read_record(&mut src, &mut record)?;
         assert_eq!(record.buf, "sq01.A....");
         assert_eq!(record.bounds, Bounds::default());
 
         let mut src = &b"sq0\t1\t.\tA\t.\t.\t.\t.\r\n"[..];
         let mut record = Record::default();
-        read_lazy_record(&mut src, &mut record)?;
+        read_record(&mut src, &mut record)?;
         assert_eq!(record.buf, "sq01.A....");
         assert_eq!(record.bounds, Bounds::default());
 
         let mut src = &b"\n"[..];
         assert!(matches!(
-            read_lazy_record(&mut src, &mut record),
+            read_record(&mut src, &mut record),
             Err(e) if e.kind() == io::ErrorKind::InvalidData,
         ));
 

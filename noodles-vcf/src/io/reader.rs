@@ -2,12 +2,12 @@
 
 mod builder;
 mod header;
-pub(crate) mod lazy_record;
 pub(crate) mod query;
+pub(crate) mod record;
 pub mod record_buf;
 mod record_bufs;
 
-use self::lazy_record::read_lazy_record;
+use self::record::read_record;
 pub(crate) use self::record_buf::parse_record_buf;
 pub use self::{builder::Builder, query::Query, record_bufs::RecordBufs};
 
@@ -244,11 +244,11 @@ where
     /// reader.read_header()?;
     ///
     /// let mut record = vcf::Record::default();
-    /// reader.read_lazy_record(&mut record)?;
+    /// reader.read_record(&mut record)?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn read_lazy_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        read_lazy_record(&mut self.inner, record)
+    pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+        read_record(&mut self.inner, record)
     }
 }
 
