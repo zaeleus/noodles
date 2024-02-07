@@ -1,6 +1,5 @@
 //! BAM record.
 
-mod bounds;
 mod cigar;
 pub mod codec;
 pub mod data;
@@ -17,7 +16,6 @@ use noodles_sam::{
     alignment::record::{Flags, MappingQuality},
 };
 
-use self::bounds::Bounds;
 pub(crate) use self::fields::Fields;
 pub use self::{
     cigar::Cigar, data::Data, name::Name, quality_scores::QualityScores, sequence::Sequence,

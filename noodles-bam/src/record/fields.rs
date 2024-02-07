@@ -1,8 +1,11 @@
 //! BAM record fields.
 
+mod bounds;
+
 use std::{io, mem};
 
-use super::{bounds, Bounds, Cigar, Data, Name, QualityScores, Sequence};
+use self::bounds::Bounds;
+use super::{Cigar, Data, Name, QualityScores, Sequence};
 
 #[derive(Clone, Eq, PartialEq)]
 pub(crate) struct Fields {
