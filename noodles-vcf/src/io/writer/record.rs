@@ -55,9 +55,9 @@ where
     writer.write_all(DELIMITER)?;
     write_info(writer, record.info())?;
 
-    if !record.genotypes().is_empty() {
+    if !record.samples().is_empty() {
         writer.write_all(DELIMITER)?;
-        write_genotypes(writer, record.genotypes())?;
+        write_genotypes(writer, record.samples())?;
     }
 
     writer.write_all(b"\n")?;

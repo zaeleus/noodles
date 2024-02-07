@@ -5,7 +5,7 @@ use std::{error, fmt};
 use self::value::parse_value;
 use crate::{
     io::reader::record::MISSING,
-    record::genotypes::{sample::Value, Keys},
+    record::samples::{sample::Value, Keys},
     Header,
 };
 
@@ -92,7 +92,7 @@ mod tests {
 
     #[test]
     fn test_parse_values() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::record::genotypes::keys::key;
+        use crate::record::samples::keys::key;
 
         let header = Header::default();
         let mut values = Vec::new();

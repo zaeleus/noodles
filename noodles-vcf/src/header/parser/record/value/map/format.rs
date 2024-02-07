@@ -190,7 +190,7 @@ fn try_insert(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::record::genotypes::keys::key;
+    use crate::record::samples::keys::key;
 
     #[test]
     fn test_parse_format() {

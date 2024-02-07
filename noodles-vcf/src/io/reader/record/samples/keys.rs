@@ -2,7 +2,7 @@ use std::{error, fmt};
 
 use crate::{
     io::reader::record::MISSING,
-    record::genotypes::{keys::key, Keys},
+    record::samples::{keys::key, Keys},
     Header,
 };
 

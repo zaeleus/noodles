@@ -5,7 +5,7 @@ use std::{error, fmt};
 
 use self::{keys::parse_keys, values::parse_values};
 use super::next_field;
-use crate::{record::Genotypes, Header};
+use crate::{record::Samples, Header};
 
 /// An error when raw VCF record genotypes fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -40,10 +40,10 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(super) fn parse_genotypes(
+pub(super) fn parse_samples(
     header: &Header,
     mut s: &str,
-    genotypes: &mut Genotypes,
+    genotypes: &mut Samples,
 ) -> Result<(), ParseError> {
     genotypes.keys.clear();
 
@@ -81,18 +81,18 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_genotypes() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::record::genotypes::{keys::key, sample::Value, Keys};
+    fn test_parse_samples() -> Result<(), Box<dyn std::error::Error>> {
+        use crate::record::samples::{keys::key, sample::Value, Keys};
 
-        let mut genotypes = Genotypes::default();
+        let mut genotypes = Samples::default();
 
         let header = Header::default();
-        parse_genotypes(&header, "", &mut genotypes)?;
+        parse_samples(&header, "", &mut genotypes)?;
         assert!(genotypes.is_empty());
 
         let header = Header::builder().add_sample_name("sample0").build();
-        parse_genotypes(&header, "GT\t0|0", &mut genotypes)?;
-        let expected = Genotypes::new(
+        parse_samples(&header, "GT\t0|0", &mut genotypes)?;
+        let expected = Samples::new(
             Keys::try_from(vec![String::from(key::GENOTYPE)])?,
             vec![vec![Some(Value::from("0|0"))]],
         );
@@ -102,8 +102,8 @@ mod tests {
             .add_sample_name("sample0")
             .add_sample_name("sample1")
             .build();
-        parse_genotypes(&header, "GQ\t8\t13", &mut genotypes)?;
-        let expected = Genotypes::new(
+        parse_samples(&header, "GQ\t8\t13", &mut genotypes)?;
+        let expected = Samples::new(
             Keys::try_from(vec![String::from(key::CONDITIONAL_GENOTYPE_QUALITY)])?,
             vec![vec![Some(Value::from(8))], vec![Some(Value::from(13))]],
         );
@@ -111,24 +111,24 @@ mod tests {
 
         let header = Header::default();
         assert_eq!(
-            parse_genotypes(&header, "GT\t0|0", &mut genotypes),
+            parse_samples(&header, "GT\t0|0", &mut genotypes),
             Err(ParseError::UnexpectedInput)
         );
 
         let header = Header::builder().add_sample_name("sample0").build();
 
         assert!(matches!(
-            parse_genotypes(&header, "\t0|0", &mut genotypes),
+            parse_samples(&header, "\t0|0", &mut genotypes),
             Err(ParseError::InvalidKeys(_))
         ));
 
         assert!(matches!(
-            parse_genotypes(&header, "GT:GQ", &mut genotypes),
+            parse_samples(&header, "GT:GQ", &mut genotypes),
             Err(ParseError::InvalidValues(_))
         ));
 
         assert!(matches!(
-            parse_genotypes(&header, "GQ\tndls", &mut genotypes),
+            parse_samples(&header, "GQ\tndls", &mut genotypes),
             Err(ParseError::InvalidValues(_))
         ));
 

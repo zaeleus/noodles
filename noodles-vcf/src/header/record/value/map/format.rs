@@ -71,7 +71,7 @@ impl Map<Format> {
     /// ```
     /// use noodles_vcf::{
     ///     header::{record::value::{map::{format::Type, Format}, Map}, Number},
-    ///     record::genotypes::keys::key,
+    ///     record::samples::keys::key,
     /// };
     ///
     /// let id = key::GENOTYPE;

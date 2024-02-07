@@ -26,7 +26,7 @@ impl<'a> Samples<'a> {
         }
     }
 
-    /// Converts BCF record genotypes to VCF record genotypes.
+    /// Converts BCF record samples to VCF record samples.
     ///
     /// # Examples
     ///
@@ -39,25 +39,25 @@ impl<'a> Samples<'a> {
     ///
     /// let header = vcf::Header::default();
     /// let string_maps = StringMap::default();
-    /// let vcf_genotypes = bcf_genotypes.try_into_vcf_record_genotypes(&header, &string_maps)?;
+    /// let vcf_genotypes = bcf_genotypes.try_into_vcf_record_samples(&header, &string_maps)?;
     ///
     /// assert!(vcf_genotypes.is_empty());
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn try_into_vcf_record_genotypes(
+    pub fn try_into_vcf_record_samples(
         &self,
         header: &vcf::Header,
         string_map: &StringStringMap,
-    ) -> io::Result<vcf::record::Genotypes> {
-        use crate::record::codec::decoder::read_genotypes;
+    ) -> io::Result<vcf::record::Samples> {
+        use crate::record::codec::decoder::read_samples;
 
         if self.is_empty() {
-            return Ok(vcf::record::Genotypes::default());
+            return Ok(vcf::record::Samples::default());
         }
 
         let mut reader = self.src;
 
-        let genotypes = read_genotypes(
+        let genotypes = read_samples(
             &mut reader,
             header.formats(),
             string_map,

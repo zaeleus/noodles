@@ -54,9 +54,9 @@ impl Record {
             .info()
             .try_into_vcf_record_info(header, string_maps.strings())?;
 
-        let genotypes = self
+        let samples = self
             .samples()?
-            .try_into_vcf_record_genotypes(header, string_maps.strings())?;
+            .try_into_vcf_record_samples(header, string_maps.strings())?;
 
         let mut builder = vcf::Record::builder()
             .set_chromosome(chromosome)
@@ -64,7 +64,7 @@ impl Record {
             .set_reference_bases(reference_bases)
             .set_alternate_bases(alternate_bases.into())
             .set_info(info)
-            .set_genotypes(genotypes);
+            .set_samples(samples);
 
         if !self.ids().is_empty() {
             const DELIMITER: char = ';';

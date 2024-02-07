@@ -3,7 +3,7 @@ use std::{error, fmt, num, str};
 use crate::{
     header::{record::value::map::format::Type, Number},
     io::reader::record::{value, MISSING},
-    record::genotypes::sample::{value::Array, Value},
+    record::samples::sample::{value::Array, Value},
 };
 
 const DELIMITER: char = ',';

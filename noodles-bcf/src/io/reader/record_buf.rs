@@ -15,7 +15,7 @@ pub(super) fn read_record_buf<R>(
 where
     R: Read,
 {
-    use crate::record::codec::decoder::{read_genotypes, read_site};
+    use crate::record::codec::decoder::{read_samples, read_site};
 
     let l_shared = match reader.read_u32::<LittleEndian>() {
         Ok(n) => usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
@@ -36,7 +36,7 @@ where
     reader.read_exact(buf)?;
     let mut src = &buf[..];
 
-    *record.genotypes_mut() = read_genotypes(
+    *record.samples_mut() = read_samples(
         &mut src,
         header.formats(),
         string_maps.strings(),

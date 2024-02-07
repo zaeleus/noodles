@@ -2,14 +2,14 @@ use std::io::{self, Write};
 
 use super::MISSING;
 use crate::record::{
-    genotypes::{
+    samples::{
         sample::{value::Array, Value},
         Keys, Sample,
     },
-    Genotypes,
+    Samples,
 };
 
-pub(super) fn write_genotypes<W>(writer: &mut W, genotypes: &Genotypes) -> io::Result<()>
+pub(super) fn write_genotypes<W>(writer: &mut W, genotypes: &Samples) -> io::Result<()>
 where
     W: Write,
 {
@@ -145,9 +145,9 @@ mod tests {
 
     #[test]
     fn test_write_genotypes() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::record::genotypes::keys::key;
+        use crate::record::samples::keys::key;
 
-        fn t(buf: &mut Vec<u8>, genotypes: &Genotypes, expected: &[u8]) -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, genotypes: &Samples, expected: &[u8]) -> io::Result<()> {
             buf.clear();
             write_genotypes(buf, genotypes)?;
             assert_eq!(buf, expected);
@@ -156,13 +156,13 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        let genotypes = Genotypes::new(
+        let genotypes = Samples::new(
             Keys::try_from(vec![String::from(key::GENOTYPE)])?,
             vec![vec![Some(Value::from("0|0"))]],
         );
         t(&mut buf, &genotypes, b"GT\t0|0")?;
 
-        let genotypes = Genotypes::new(
+        let genotypes = Samples::new(
             Keys::try_from(vec![
                 String::from(key::GENOTYPE),
                 String::from(key::CONDITIONAL_GENOTYPE_QUALITY),

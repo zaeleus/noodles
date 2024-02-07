@@ -22,20 +22,20 @@ where
     let l_shared = u32::try_from(site_buf.len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-    let mut genotypes_buf = Vec::new();
-    let genotypes = record.genotypes();
+    let mut samples_buf = Vec::new();
+    let samples = record.samples();
 
-    if !genotypes.is_empty() {
-        write_genotypes(&mut genotypes_buf, header, string_maps.strings(), genotypes)?;
+    if !samples.is_empty() {
+        write_genotypes(&mut samples_buf, header, string_maps.strings(), samples)?;
     };
 
-    let l_indiv = u32::try_from(genotypes_buf.len())
+    let l_indiv = u32::try_from(samples_buf.len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     writer.write_u32::<LittleEndian>(l_shared)?;
     writer.write_u32::<LittleEndian>(l_indiv)?;
     writer.write_all(&site_buf)?;
-    writer.write_all(&genotypes_buf)?;
+    writer.write_all(&samples_buf)?;
 
     Ok(())
 }

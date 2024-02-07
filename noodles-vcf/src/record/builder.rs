@@ -2,7 +2,7 @@
 
 use std::{error, fmt};
 
-use super::{AlternateBases, Filters, Genotypes, Ids, Info, Position, Record};
+use super::{AlternateBases, Filters, Ids, Info, Position, Record, Samples};
 
 /// A VCF record builder.
 #[derive(Debug, Default, PartialEq)]
@@ -15,7 +15,7 @@ pub struct Builder {
     quality_score: Option<f32>,
     filters: Option<Filters>,
     info: Info,
-    genotypes: Genotypes,
+    samples: Samples,
 }
 
 /// An error returned when a VCF record fails to build.
@@ -243,8 +243,8 @@ impl Builder {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     record::{
-    ///         genotypes::{keys::key, sample::Value, Keys},
-    ///         Genotypes, Position
+    ///         samples::{keys::key, sample::Value, Keys},
+    ///         Position, Samples,
     ///     },
     /// };
     ///
@@ -253,7 +253,7 @@ impl Builder {
     ///     String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
     /// ])?;
     ///
-    /// let genotypes = Genotypes::new(
+    /// let samples = Samples::new(
     ///     keys,
     ///     vec![vec![Some(Value::from("0|0")), Some(Value::from(13))]],
     /// );
@@ -262,14 +262,14 @@ impl Builder {
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A")
-    ///     .set_genotypes(genotypes.clone())
+    ///     .set_samples(samples.clone())
     ///     .build()?;
     ///
-    /// assert_eq!(record.genotypes(), &genotypes);
+    /// assert_eq!(record.samples(), &samples);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_genotypes(mut self, genotypes: Genotypes) -> Self {
-        self.genotypes = genotypes;
+    pub fn set_samples(mut self, samples: Samples) -> Self {
+        self.samples = samples;
         self
     }
 
@@ -295,7 +295,7 @@ impl Builder {
             quality_score: self.quality_score,
             filters: self.filters,
             info: self.info,
-            genotypes: self.genotypes,
+            samples: self.samples,
         })
     }
 }
@@ -316,7 +316,7 @@ mod tests {
         assert!(record.quality_score.is_none());
         assert!(record.filters.is_none());
         assert!(record.info.is_empty());
-        assert!(record.genotypes.is_empty());
+        assert!(record.samples.is_empty());
     }
 
     #[test]

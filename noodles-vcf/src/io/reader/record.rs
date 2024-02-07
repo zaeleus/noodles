@@ -3,20 +3,20 @@
 mod alternate_bases;
 mod chromosome;
 mod filters;
-mod genotypes;
 mod ids;
 mod info;
 mod position;
 mod quality_score;
 mod reference_bases;
+mod samples;
 mod value;
 
 use std::{error, fmt};
 
 use self::{
     alternate_bases::parse_alternate_bases, chromosome::parse_chromosome, filters::parse_filters,
-    genotypes::parse_genotypes, ids::parse_ids, info::parse_info, position::parse_position,
-    quality_score::parse_quality_score, reference_bases::parse_reference_bases,
+    ids::parse_ids, info::parse_info, position::parse_position, quality_score::parse_quality_score,
+    reference_bases::parse_reference_bases, samples::parse_samples,
 };
 use crate::{Header, Record};
 
@@ -40,8 +40,8 @@ pub enum ParseError {
     InvalidFilters(filters::ParseError),
     /// The info is invalid.
     InvalidInfo(info::ParseError),
-    /// The genotypes are invalid.
-    InvalidGenotypes(genotypes::ParseError),
+    /// The samples are invalid.
+    InvalidSamples(samples::ParseError),
 }
 
 impl error::Error for ParseError {
@@ -54,7 +54,7 @@ impl error::Error for ParseError {
             Self::InvalidQualityScore(e) => Some(e),
             Self::InvalidFilters(e) => Some(e),
             Self::InvalidInfo(e) => Some(e),
-            Self::InvalidGenotypes(e) => Some(e),
+            Self::InvalidSamples(e) => Some(e),
         }
     }
 }
@@ -69,7 +69,7 @@ impl fmt::Display for ParseError {
             Self::InvalidQualityScore(_) => write!(f, "invalid quality score"),
             Self::InvalidFilters(_) => write!(f, "invalid filters"),
             Self::InvalidInfo(_) => write!(f, "invalid info"),
-            Self::InvalidGenotypes(_) => write!(f, "invalid genotypes"),
+            Self::InvalidSamples(_) => write!(f, "invalid samples"),
         }
     }
 }
@@ -124,7 +124,7 @@ pub(crate) fn parse_record(
         parse_info(header, field, record.info_mut()).map_err(ParseError::InvalidInfo)?;
     }
 
-    parse_genotypes(header, s, record.genotypes_mut()).map_err(ParseError::InvalidGenotypes)?;
+    parse_samples(header, s, record.samples_mut()).map_err(ParseError::InvalidSamples)?;
 
     Ok(())
 }

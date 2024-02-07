@@ -7,7 +7,7 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_vcf::{
     self as vcf,
     header::record::value::{map::Format, Map},
-    record::genotypes::{
+    record::samples::{
         keys::key,
         sample::{value::Array, Value},
     },
@@ -27,7 +27,7 @@ pub fn write_genotypes<W>(
     writer: &mut W,
     header: &vcf::Header,
     string_string_map: &StringStringMap,
-    genotypes: &vcf::record::Genotypes,
+    genotypes: &vcf::record::Samples,
 ) -> io::Result<()>
 where
     W: Write,
@@ -783,7 +783,7 @@ mod tests {
     fn test_write_genotypes() -> Result<(), Box<dyn std::error::Error>> {
         use vcf::{
             header::record::value::Map,
-            record::genotypes::{keys::key, sample::Value},
+            record::samples::{keys::key, sample::Value},
         };
 
         let header = vcf::Header::builder()
@@ -798,8 +798,8 @@ mod tests {
 
         let string_maps = StringMaps::try_from(&header)?;
 
-        let genotypes = vcf::record::Genotypes::new(
-            vcf::record::genotypes::Keys::try_from(vec![
+        let genotypes = vcf::record::Samples::new(
+            vcf::record::samples::Keys::try_from(vec![
                 String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
                 String::from(key::READ_DEPTH),
             ])?,

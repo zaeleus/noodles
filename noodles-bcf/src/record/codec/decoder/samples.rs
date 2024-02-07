@@ -5,7 +5,7 @@ use std::{error, fmt};
 
 use noodles_vcf::{
     self as vcf,
-    record::{genotypes::Keys, Genotypes},
+    record::{samples::Keys, Samples},
 };
 
 use self::{
@@ -14,14 +14,14 @@ use self::{
 };
 use crate::header::string_maps::StringStringMap;
 
-pub fn read_genotypes(
+pub fn read_samples(
     src: &mut &[u8],
     formats: &vcf::header::Formats,
     string_map: &StringStringMap,
     sample_count: usize,
     format_count: usize,
-) -> Result<Genotypes, DecodeError> {
-    use vcf::record::genotypes::keys::key;
+) -> Result<Samples, DecodeError> {
+    use vcf::record::samples::keys::key;
 
     let mut keys = Vec::with_capacity(format_count);
     let mut samples = vec![Vec::new(); sample_count];
@@ -44,7 +44,7 @@ pub fn read_genotypes(
 
     let keys = Keys::try_from(keys).map_err(DecodeError::InvalidKeys)?;
 
-    Ok(Genotypes::new(keys, samples))
+    Ok(Samples::new(keys, samples))
 }
 
 #[allow(clippy::enum_variant_names)]
@@ -52,7 +52,7 @@ pub fn read_genotypes(
 pub enum DecodeError {
     InvalidKey(key::DecodeError),
     InvalidValues(values::DecodeError),
-    InvalidKeys(vcf::record::genotypes::keys::TryFromKeyVectorError),
+    InvalidKeys(vcf::record::samples::keys::TryFromKeyVectorError),
 }
 
 impl error::Error for DecodeError {
