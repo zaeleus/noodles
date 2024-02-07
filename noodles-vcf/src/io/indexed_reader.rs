@@ -75,8 +75,8 @@ where
     }
 
     /// Reads a single record without eagerly parsing its fields.
-    pub fn read_lazy_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        self.inner.read_lazy_record(record)
+    pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+        self.inner.read_record(record)
     }
 
     /// Returns the associated index.

@@ -429,7 +429,7 @@ where
     }
 
     let mut buf = buf.as_bytes();
-    crate::io::reader::lazy_record::read_lazy_record(&mut buf, record)
+    crate::io::reader::record::read_record(&mut buf, record)
 }
 
 #[cfg(test)]
