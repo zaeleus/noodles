@@ -38,7 +38,7 @@ const CARRIAGE_RETURN: char = '\r';
 ///
 /// let header = reader.read_header().await?;
 ///
-/// let mut records = reader.records(&header);
+/// let mut records = reader.record_bufs(&header);
 ///
 /// while let Some(record) = records.try_next().await? {
 ///     // ...
@@ -174,11 +174,11 @@ where
     /// let header = reader.read_header().await?;
     ///
     /// let mut record = vcf::variant::RecordBuf::default();
-    /// reader.read_record(&header, &mut record).await?;
+    /// reader.read_record_buf(&header, &mut record).await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_record(
+    pub async fn read_record_buf(
         &mut self,
         header: &Header,
         record: &mut RecordBuf,
@@ -256,7 +256,7 @@ where
     /// let mut reader = vcf::r#async::io::Reader::new(&data[..]);
     /// let header = reader.read_header().await?;
     ///
-    /// let mut records = reader.records(&header);
+    /// let mut records = reader.record_bufs(&header);
     ///
     /// while let Some(record) = records.try_next().await? {
     ///     // ...
@@ -264,7 +264,7 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn records<'r, 'h: 'r>(
+    pub fn record_bufs<'r, 'h: 'r>(
         &'r mut self,
         header: &'h Header,
     ) -> impl Stream<Item = io::Result<RecordBuf>> + 'r {
@@ -272,7 +272,7 @@ where
             let mut record = RecordBuf::default();
 
             reader
-                .read_record(header, &mut record)
+                .read_record_buf(header, &mut record)
                 .await
                 .map(|n| match n {
                     0 => None,
