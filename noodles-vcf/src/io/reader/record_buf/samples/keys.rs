@@ -1,7 +1,7 @@
 use std::{error, fmt};
 
 use crate::{
-    io::reader::record::MISSING,
+    io::reader::record_buf::MISSING,
     variant::record_buf::samples::{keys::key, Keys},
     Header,
 };

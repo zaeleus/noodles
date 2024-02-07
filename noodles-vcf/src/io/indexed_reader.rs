@@ -11,7 +11,7 @@ use noodles_core::Region;
 use noodles_csi::BinningIndex;
 
 use super::{
-    reader::{Query, Records},
+    reader::{Query, RecordBufs},
     Reader,
 };
 use crate::{variant::RecordBuf, Header, Record};
@@ -58,16 +58,20 @@ where
     }
 
     /// Reads a single raw VCF record.
-    pub fn read_record(&mut self, header: &Header, record: &mut RecordBuf) -> io::Result<usize> {
-        self.inner.read_record(header, record)
+    pub fn read_record_buf(
+        &mut self,
+        header: &Header,
+        record: &mut RecordBuf,
+    ) -> io::Result<usize> {
+        self.inner.read_record_buf(header, record)
     }
 
     /// Returns an iterator over records starting from the current stream position.
-    pub fn records<'r, 'h: 'r>(
+    pub fn record_bufs<'r, 'h: 'r>(
         &'r mut self,
         header: &'h Header,
-    ) -> Records<'r, 'h, bgzf::Reader<R>> {
-        self.inner.records(header)
+    ) -> RecordBufs<'r, 'h, bgzf::Reader<R>> {
+        self.inner.record_bufs(header)
     }
 
     /// Reads a single record without eagerly parsing its fields.

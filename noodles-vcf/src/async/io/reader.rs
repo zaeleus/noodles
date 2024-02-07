@@ -183,14 +183,14 @@ where
         header: &Header,
         record: &mut RecordBuf,
     ) -> io::Result<usize> {
-        use crate::io::reader::parse_record;
+        use crate::io::reader::parse_record_buf;
 
         self.buf.clear();
 
         match read_line(&mut self.inner, &mut self.buf).await? {
             0 => Ok(0),
             n => {
-                parse_record(&self.buf, header, record)
+                parse_record_buf(&self.buf, header, record)
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
                 Ok(n)

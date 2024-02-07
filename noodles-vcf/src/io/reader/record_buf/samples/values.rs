@@ -4,7 +4,7 @@ use std::{error, fmt};
 
 use self::value::parse_value;
 use crate::{
-    io::reader::record::MISSING,
+    io::reader::record_buf::MISSING,
     variant::record_buf::samples::{sample::Value, Keys},
     Header,
 };

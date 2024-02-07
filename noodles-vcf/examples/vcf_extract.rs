@@ -23,7 +23,7 @@ fn main() -> io::Result<()> {
     let stdout = io::stdout().lock();
     let mut writer = BufWriter::new(stdout);
 
-    for result in reader.records(&header) {
+    for result in reader.record_bufs(&header) {
         let record = result?;
 
         write!(

@@ -74,7 +74,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(crate) fn parse_record(
+pub(crate) fn parse_record_buf(
     mut s: &str,
     header: &Header,
     record: &mut RecordBuf,
