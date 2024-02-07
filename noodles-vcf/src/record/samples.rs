@@ -11,19 +11,19 @@ use self::sample::Value;
 
 /// VCF record genotypes.
 #[derive(Clone, Debug, Default, PartialEq)]
-pub struct Genotypes {
+pub struct Samples {
     pub(crate) keys: Keys,
     pub(crate) values: Vec<Vec<Option<Value>>>,
 }
 
-impl Genotypes {
+impl Samples {
     /// Creates VCF record genotypes.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::{genotypes::Keys, Genotypes};
-    /// let genotypes = Genotypes::new(Keys::default(), Vec::new());
+    /// use noodles_vcf::record::{samples::Keys, Samples};
+    /// let genotypes = Samples::new(Keys::default(), Vec::new());
     /// ```
     pub fn new(keys: Keys, values: Vec<Vec<Option<Value>>>) -> Self {
         Self { keys, values }
@@ -34,47 +34,47 @@ impl Genotypes {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::Genotypes;
-    /// let genotypes = Genotypes::default();
-    /// assert!(genotypes.is_empty());
+    /// use noodles_vcf::record::Samples;
+    /// let samples = Samples::default();
+    /// assert!(samples.is_empty());
     /// ```
     pub fn is_empty(&self) -> bool {
         self.values.is_empty()
     }
 
-    /// Returns the genotypes keys.
+    /// Returns the keys.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::{genotypes::{keys::key, Keys}, Genotypes};
+    /// use noodles_vcf::record::{samples::{keys::key, Keys}, Samples};
     ///
-    /// let genotypes = Genotypes::default();
-    /// assert!(genotypes.keys().is_empty());
+    /// let samples = Samples::default();
+    /// assert!(samples.keys().is_empty());
     ///
     /// let keys = Keys::try_from(vec![String::from(key::GENOTYPE)])?;
-    /// let genotypes = Genotypes::new(keys.clone(), Vec::new());
-    /// assert_eq!(genotypes.keys(), &keys);
-    /// # Ok::<_, noodles_vcf::record::genotypes::keys::TryFromKeyVectorError>(())
+    /// let samples = Samples::new(keys.clone(), Vec::new());
+    /// assert_eq!(samples.keys(), &keys);
+    /// # Ok::<_, noodles_vcf::record::samples::keys::TryFromKeyVectorError>(())
     /// ```
     pub fn keys(&self) -> &Keys {
         &self.keys
     }
 
-    /// Returns a mutable reference to the genotypes keys.
+    /// Returns a mutable reference to the keys.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::{genotypes::{keys::key, Keys}, Genotypes};
+    /// use noodles_vcf::record::{samples::{keys::key, Keys}, Samples};
     ///
     /// let keys = Keys::try_from(vec![String::from(key::GENOTYPE)])?;
     ///
-    /// let mut genotypes = Genotypes::default();
-    /// *genotypes.keys_mut() = keys.clone();
+    /// let mut samples = Samples::default();
+    /// *samples.keys_mut() = keys.clone();
     ///
-    /// assert_eq!(genotypes.keys(), &keys);
-    /// # Ok::<_, noodles_vcf::record::genotypes::keys::TryFromKeyVectorError>(())
+    /// assert_eq!(samples.keys(), &keys);
+    /// # Ok::<_, noodles_vcf::record::samples::keys::TryFromKeyVectorError>(())
     /// ```
     pub fn keys_mut(&mut self) -> &mut Keys {
         &mut self.keys
@@ -138,8 +138,7 @@ impl fmt::Display for ParseError {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::record::genotypes::keys::key;
+    use super::{keys::key, *};
 
     #[test]
     fn test_genotypes() -> Result<(), Box<dyn std::error::Error>> {
@@ -147,7 +146,7 @@ mod tests {
             String::from(key::GENOTYPE),
             String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
         ])?;
-        let genotypes = Genotypes::new(
+        let genotypes = Samples::new(
             keys,
             vec![
                 vec![Some(Value::from("0|0")), Some(Value::from(7))],

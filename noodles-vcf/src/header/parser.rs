@@ -416,7 +416,7 @@ mod tests {
     fn test_from_str() -> Result<(), Box<dyn std::error::Error>> {
         use crate::{
             header::record::{value::map::Other, Value},
-            record::{genotypes, info},
+            record::{info, samples},
         };
 
         let s = r#"##fileformat=VCFv4.3
@@ -453,8 +453,8 @@ mod tests {
             )
             .add_filter("q10", Map::<Filter>::new("Quality below 10"))
             .add_format(
-                genotypes::keys::key::GENOTYPE,
-                Map::<Format>::from(genotypes::keys::key::GENOTYPE),
+                samples::keys::key::GENOTYPE,
+                Map::<Format>::from(samples::keys::key::GENOTYPE),
             )
             .add_alternative_allele("DEL", Map::<AlternativeAllele>::new("Deletion"))
             .insert(
@@ -608,7 +608,7 @@ mod tests {
         assert_eq!(
             Parser::default().parse(s),
             Err(ParseError::DuplicateFormatId(String::from(
-                crate::record::genotypes::keys::key::GENOTYPE
+                crate::record::samples::keys::key::GENOTYPE
             )))
         );
 

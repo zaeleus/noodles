@@ -189,13 +189,13 @@ mod tests {
     #[test]
     fn test_write_record_with_format() -> Result<(), Box<dyn std::error::Error>> {
         use crate::record::{
-            genotypes::{keys::key, sample::Value, Keys},
-            Genotypes,
+            samples::{keys::key, sample::Value, Keys},
+            Samples,
         };
 
         let header = Header::default();
 
-        let genotypes = Genotypes::new(
+        let samples = Samples::new(
             Keys::try_from(vec![
                 String::from(key::GENOTYPE),
                 String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
@@ -210,7 +210,7 @@ mod tests {
             .set_chromosome("sq0")
             .set_position(Position::from(1))
             .set_reference_bases("A")
-            .set_genotypes(genotypes)
+            .set_samples(samples)
             .build()?;
 
         let mut writer = Writer::new(Vec::new());

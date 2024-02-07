@@ -3,14 +3,14 @@
 pub mod alternate_bases;
 pub mod builder;
 pub mod filters;
-pub mod genotypes;
 pub mod ids;
 pub mod info;
 pub mod position;
+pub mod samples;
 
 pub use self::{
-    alternate_bases::AlternateBases, builder::Builder, filters::Filters, genotypes::Genotypes,
-    ids::Ids, info::Info, position::Position,
+    alternate_bases::AlternateBases, builder::Builder, filters::Filters, ids::Ids, info::Info,
+    position::Position, samples::Samples,
 };
 
 use std::{error, fmt, num};
@@ -36,7 +36,7 @@ pub struct Record {
     quality_score: Option<f32>,
     filters: Option<Filters>,
     info: Info,
-    genotypes: Genotypes,
+    samples: Samples,
 }
 
 impl Record {
@@ -461,8 +461,8 @@ impl Record {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     record::{
-    ///         genotypes::{keys::key, sample::Value, Keys},
-    ///         Genotypes, Position,
+    ///         samples::{keys::key, sample::Value, Keys},
+    ///         Position, Samples,
     ///     },
     /// };
     ///
@@ -470,7 +470,7 @@ impl Record {
     ///     String::from(key::GENOTYPE),
     ///     String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
     /// ])?;
-    /// let genotypes = Genotypes::new(
+    /// let samples = Samples::new(
     ///     keys.clone(),
     ///     vec![vec![Some(Value::from("0|0")), Some(Value::from(13))]],
     /// );
@@ -479,14 +479,14 @@ impl Record {
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A")
-    ///     .set_genotypes(genotypes)
+    ///     .set_samples(samples)
     ///     .build()?;
     ///
     /// assert_eq!(record.format(), &keys);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn format(&self) -> &genotypes::Keys {
-        self.genotypes.keys()
+    pub fn format(&self) -> &samples::Keys {
+        self.samples.keys()
     }
 
     /// Returns the genotypes of the record.
@@ -497,8 +497,8 @@ impl Record {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     record::{
-    ///         genotypes::{keys::key, sample::Value, Keys},
-    ///         Genotypes, Position,
+    ///         samples::{keys::key, sample::Value, Keys},
+    ///         Position, Samples,
     ///     },
     /// };
     ///
@@ -506,7 +506,7 @@ impl Record {
     ///     String::from(key::GENOTYPE),
     ///     String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
     /// ])?;
-    /// let genotypes = Genotypes::new(
+    /// let samples = Samples::new(
     ///     keys,
     ///     vec![vec![Some(Value::from("0|0")), Some(Value::from(13))]],
     /// );
@@ -515,14 +515,14 @@ impl Record {
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A")
-    ///     .set_genotypes(genotypes.clone())
+    ///     .set_samples(samples.clone())
     ///     .build()?;
     ///
-    /// assert_eq!(record.genotypes(), &genotypes);
+    /// assert_eq!(record.samples(), &samples);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn genotypes(&self) -> &Genotypes {
-        &self.genotypes
+    pub fn samples(&self) -> &Samples {
+        &self.samples
     }
 
     /// Returns a mutable reference to the genotypes of the record.
@@ -533,8 +533,8 @@ impl Record {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     record::{
-    ///         genotypes::{keys::key, sample::Value, Keys},
-    ///         Genotypes, Position,
+    ///         samples::{keys::key, sample::Value, Keys},
+    ///         Position, Samples
     ///     },
     /// };
     ///
@@ -548,18 +548,18 @@ impl Record {
     ///     String::from(key::GENOTYPE),
     ///     String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
     /// ])?;
-    /// let genotypes = Genotypes::new(
+    /// let samples = Samples::new(
     ///     keys,
     ///     vec![vec![Some(Value::from("0|0")), Some(Value::from(13))]],
     /// );
     ///
-    /// *record.genotypes_mut() = genotypes.clone();
+    /// *record.samples_mut() = samples.clone();
     ///
-    /// assert_eq!(record.genotypes(), &genotypes);
+    /// assert_eq!(record.samples(), &samples);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn genotypes_mut(&mut self) -> &mut Genotypes {
-        &mut self.genotypes
+    pub fn samples_mut(&mut self) -> &mut Samples {
+        &mut self.samples
     }
 }
 
@@ -574,7 +574,7 @@ impl Default for Record {
             quality_score: None,
             filters: None,
             info: Info::default(),
-            genotypes: Genotypes::default(),
+            samples: Samples::default(),
         }
     }
 }

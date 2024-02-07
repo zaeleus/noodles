@@ -105,13 +105,13 @@ pub(crate) mod tests {
     #[test]
     fn test_read_record() -> Result<(), Box<dyn std::error::Error>> {
         use noodles_vcf::record::{
-            genotypes::{
+            info::{self, field::Value as InfoFieldValue},
+            samples::{
                 self,
                 sample::{value::Array, Value as GenotypeFieldValue},
                 Keys,
             },
-            info::{self, field::Value as InfoFieldValue},
-            Genotypes as VcfGenotypes, Position,
+            Position, Samples as VcfGenotypes,
         };
 
         use crate::header::StringMaps;
@@ -175,15 +175,15 @@ pub(crate) mod tests {
 
         let actual = record
             .samples()?
-            .try_into_vcf_record_genotypes(&header, string_maps.strings())?;
+            .try_into_vcf_record_samples(&header, string_maps.strings())?;
 
         let expected = VcfGenotypes::new(
             Keys::try_from(vec![
-                String::from(genotypes::keys::key::GENOTYPE),
-                String::from(genotypes::keys::key::CONDITIONAL_GENOTYPE_QUALITY),
-                String::from(genotypes::keys::key::READ_DEPTH),
-                String::from(genotypes::keys::key::READ_DEPTHS),
-                String::from(genotypes::keys::key::ROUNDED_GENOTYPE_LIKELIHOODS),
+                String::from(samples::keys::key::GENOTYPE),
+                String::from(samples::keys::key::CONDITIONAL_GENOTYPE_QUALITY),
+                String::from(samples::keys::key::READ_DEPTH),
+                String::from(samples::keys::key::READ_DEPTHS),
+                String::from(samples::keys::key::ROUNDED_GENOTYPE_LIKELIHOODS),
             ])?,
             vec![
                 vec![

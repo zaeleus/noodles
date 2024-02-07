@@ -52,7 +52,7 @@ mod tests {
 
     #[test]
     fn test_read_key() {
-        use vcf::{header::record::value::Map, record::genotypes::keys::key};
+        use vcf::{header::record::value::Map, record::samples::keys::key};
 
         // Some(Type::Int8(Some(Int8::Value(1))))
         let mut src = &[0x11, 0x01][..];

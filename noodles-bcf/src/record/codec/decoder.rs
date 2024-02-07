@@ -1,12 +1,12 @@
 mod bases;
 mod chromosome_id;
 mod filters;
-mod genotypes;
 mod ids;
 mod info;
 mod position;
 mod quality_score;
 mod raw_value;
+mod samples;
 mod string_map;
 mod value;
 
@@ -20,7 +20,7 @@ pub(crate) use self::{
     bases::read_ref_alt, chromosome_id::read_chrom, filters::read_filter, ids::read_id,
     position::read_pos, quality_score::read_qual, string_map::read_string_map_entry,
 };
-pub use self::{genotypes::read_genotypes, value::read_value};
+pub use self::{samples::read_samples, value::read_value};
 use crate::header::StringMaps;
 
 pub fn read_site(

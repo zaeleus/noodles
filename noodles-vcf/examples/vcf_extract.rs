@@ -9,7 +9,7 @@ use std::{
 
 use noodles_vcf::{
     self as vcf,
-    record::genotypes::{keys::key, sample::Value},
+    record::samples::{keys::key, sample::Value},
 };
 
 const MISSING: &str = ".";
@@ -48,11 +48,7 @@ fn main() -> io::Result<()> {
             }
         }
 
-        for (sample_name, sample) in header
-            .sample_names()
-            .iter()
-            .zip(record.genotypes().values())
-        {
+        for (sample_name, sample) in header.sample_names().iter().zip(record.samples().values()) {
             let value = sample
                 .get(key::GENOTYPE)
                 .expect("missing GT field")

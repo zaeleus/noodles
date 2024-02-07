@@ -46,7 +46,7 @@ where
     write_n_fmt_sample(
         writer,
         header.sample_names().len(),
-        record.genotypes().keys().len(),
+        record.samples().keys().len(),
     )?;
 
     write_id(writer, record.ids())?;

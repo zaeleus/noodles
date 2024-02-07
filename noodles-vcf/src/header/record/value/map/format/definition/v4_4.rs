@@ -1,6 +1,6 @@
 use crate::{
     header::{record::value::map::format::Type, Number},
-    record::genotypes::keys::key,
+    record::samples::keys::key,
 };
 
 pub(super) fn definition(key: &str) -> Option<(Number, Type, &'static str)> {
