@@ -1,5 +1,8 @@
+mod header;
+
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
+use self::header::write_header;
 use crate::{Header, Record};
 
 /// An async SAM writer.
@@ -89,9 +92,7 @@ where
     /// # }
     /// ```
     pub async fn write_header(&mut self, header: &Header) -> io::Result<()> {
-        let mut writer = crate::io::Writer::new(Vec::new());
-        writer.write_header(header)?;
-        self.inner.write_all(writer.get_ref()).await
+        write_header(&mut self.inner, header).await
     }
 
     /// Writes a SAM record.
