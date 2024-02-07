@@ -1,11 +1,11 @@
-use std::{io, mem};
+use std::{fmt, io, mem};
 
 use noodles_sam::{self as sam, alignment::record::cigar::Op};
 
 const CHUNK_SIZE: usize = mem::size_of::<u32>();
 
 /// BAM record CIGAR operations.
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Eq, PartialEq)]
 pub struct Cigar<'a>(&'a [u8]);
 
 impl<'a> Cigar<'a> {
@@ -56,6 +56,12 @@ impl<'a> sam::alignment::record::Cigar for Cigar<'a> {
 impl<'a> AsRef<[u8]> for Cigar<'a> {
     fn as_ref(&self) -> &[u8] {
         self.0
+    }
+}
+
+impl<'a> fmt::Debug for Cigar<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_list().entries(self.iter()).finish()
     }
 }
 
