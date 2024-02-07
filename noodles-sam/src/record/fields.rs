@@ -1,11 +1,14 @@
 //! SAM record field.
 
+mod bounds;
+
 use std::io;
 
 use lexical_core::FromLexical;
 use noodles_core::Position;
 
-use super::{Bounds, Cigar, Data, Name, QualityScores, ReferenceSequenceName, Sequence};
+pub(crate) use self::bounds::Bounds;
+use super::{Cigar, Data, Name, QualityScores, ReferenceSequenceName, Sequence};
 use crate::Header;
 
 const MISSING: &[u8] = b"*";

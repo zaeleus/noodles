@@ -122,7 +122,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::record::Bounds;
+    use crate::record::fields::Bounds;
 
     #[test]
     fn test_read_record() -> io::Result<()> {

@@ -1,6 +1,5 @@
 //! SAM record.
 
-mod bounds;
 mod cigar;
 pub mod data;
 pub mod fields;
@@ -13,7 +12,7 @@ use std::{fmt, io};
 
 use noodles_core::Position;
 
-pub(crate) use self::{bounds::Bounds, fields::Fields};
+pub(crate) use self::fields::Fields;
 pub use self::{
     cigar::Cigar, data::Data, name::Name, quality_scores::QualityScores,
     reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
