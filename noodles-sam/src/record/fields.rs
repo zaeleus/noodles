@@ -129,7 +129,7 @@ impl Fields {
 impl Default for Fields {
     fn default() -> Self {
         Self {
-            buf: Vec::from(b"*4*0255**00**"),
+            buf: Vec::from(*b"*4*0255**00**"),
             bounds: Bounds::default(),
         }
     }
