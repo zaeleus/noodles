@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * sam/async/io/reader: Add records stream (`Reader::records`).
+
 ## 0.51.0 - 2024-02-01
 
 ### Changed

@@ -225,6 +225,43 @@ where
     pub async fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         read_record(&mut self.inner, &mut self.buf, record).await
     }
+
+    /// Returns an (async) stream over records.
+    ///
+    /// The (input) stream is expected to be directly after the header or at the start of a record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use tokio::io;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> io::Result<()> {
+    /// use futures::TryStreamExt;
+    /// use noodles_sam as sam;
+    ///
+    /// let mut reader = sam::r#async::io::Reader::new(io::empty());
+    /// let header = reader.read_header().await?;
+    ///
+    /// let mut records = reader.records();
+    ///
+    /// while let Some(record) = records.try_next().await? {
+    ///     // ...
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn records(&mut self) -> impl Stream<Item = io::Result<Record>> + '_ {
+        Box::pin(stream::try_unfold(
+            (self, Record::default()),
+            |(reader, mut record)| async {
+                match reader.read_record(&mut record).await? {
+                    0 => Ok(None),
+                    _ => Ok(Some((record.clone(), (reader, record)))),
+                }
+            },
+        ))
+    }
 }
 
 async fn read_line<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
