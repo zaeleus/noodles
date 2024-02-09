@@ -2,7 +2,7 @@ use std::vec;
 
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
-use noodles_core::{region::Interval, Position};
+use noodles_core::region::Interval;
 use noodles_csi::binning_index::index::reference_sequence::bin::Chunk;
 use tokio::io::{self, AsyncRead, AsyncSeek};
 
@@ -98,13 +98,11 @@ fn intersects(
 ) -> io::Result<bool> {
     let id = record.chromosome_id()?;
 
-    let start = record.position().map(usize::from).and_then(|n| {
-        Position::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    let Some(start) = record.position().transpose()? else {
+        return Ok(false);
+    };
 
-    let end = record.end().map(usize::from).and_then(|n| {
-        Position::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    let end = record.end()?;
 
     let record_interval = Interval::from(start..=end);
 

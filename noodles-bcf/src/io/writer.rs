@@ -97,10 +97,10 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bcf::{self as bcf, header::StringMaps};
+    /// use noodles_core::Position;
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::record::value::{map::Contig, Map},
-    ///     variant::record_buf::Position,
     /// };
     ///
     /// let mut writer = bcf::io::Writer::new(io::sink());
@@ -113,7 +113,7 @@ where
     ///
     /// let record = vcf::variant::RecordBuf::builder()
     ///     .set_chromosome("sq0")
-    ///     .set_position(Position::from(8))
+    ///     .set_position(Position::MIN)
     ///     .set_reference_bases("A")
     ///     .build();
     ///

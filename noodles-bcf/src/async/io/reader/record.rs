@@ -30,12 +30,13 @@ where
 
 #[cfg(test)]
 mod tests {
+    use noodles_core::Position;
     use noodles_vcf::variant::{
         record::info::field::Value as InfoFieldValue,
         record_buf::{
             info,
             samples::{self, sample::Value as GenotypeFieldValue, Keys},
-            Position, Samples as VcfGenotypes,
+            Samples as VcfGenotypes,
         },
     };
 
@@ -54,7 +55,10 @@ mod tests {
         read_record(&mut reader, &mut record).await?;
 
         assert_eq!(record.chromosome_id()?, 1);
-        assert_eq!(record.position()?, Position::from(101));
+        assert_eq!(
+            record.position().transpose()?,
+            Some(Position::try_from(101)?)
+        );
         assert_eq!(record.rlen()?, 1);
         assert_eq!(record.quality_score()?, Some(30.1));
         assert_eq!(record.ids().as_ref(), b"rs123");

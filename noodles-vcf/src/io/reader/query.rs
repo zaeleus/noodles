@@ -79,20 +79,15 @@ pub(crate) fn intersects(
     reference_sequence_name: &[u8],
     region_interval: Interval,
 ) -> io::Result<bool> {
-    use noodles_core::Position;
-
     let name = record.chromosome().to_string();
 
-    let start = Position::try_from(usize::from(record.position()))
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let Some(start) = record.position() else {
+        return Ok(false);
+    };
 
     let end = record
         .end()
-        .map(usize::from)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        .and_then(|n| {
-            Position::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })?;
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     let record_interval = Interval::from(start..=end);
 

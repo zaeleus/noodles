@@ -118,11 +118,12 @@ where
     /// ```
     /// # #[tokio::main]
     /// # async fn main() -> tokio::io::Result<()> {
-    /// use noodles_vcf::{self as vcf, variant::record_buf::Position};
+    /// use noodles_core::Position;
+    /// use noodles_vcf as vcf;
     ///
     /// let record = vcf::variant::RecordBuf::builder()
     ///     .set_chromosome("sq0")
-    ///     .set_position(Position::from(1))
+    ///     .set_position(Position::MIN)
     ///     .set_reference_bases("A")
     ///     .build();
     ///

@@ -1,12 +1,14 @@
 //! VCF record builder.
 
-use super::{AlternateBases, Filters, Ids, Info, Position, RecordBuf, Samples};
+use noodles_core::Position;
+
+use super::{AlternateBases, Filters, Ids, Info, RecordBuf, Samples};
 
 /// A VCF record builder.
 #[derive(Debug, PartialEq)]
 pub struct Builder {
     chromosome: String,
-    position: Position,
+    position: Option<Position>,
     ids: Ids,
     reference_bases: String,
     alternate_bases: AlternateBases,
@@ -43,16 +45,17 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, variant::record_buf::Position};
+    /// use noodles_core::Position;
+    /// use noodles_vcf as vcf;
     ///
     /// let record = vcf::variant::RecordBuf::builder()
-    ///     .set_position(Position::from(8))
+    ///     .set_position(Position::MIN)
     ///     .build();
     ///
-    /// assert_eq!(usize::from(record.position()), 8);
+    /// assert_eq!(record.position(), Some(Position::MIN));
     /// ```
     pub fn set_position(mut self, position: Position) -> Self {
-        self.position = position;
+        self.position = Some(position);
         self
     }
 
@@ -246,7 +249,7 @@ impl Default for Builder {
     fn default() -> Self {
         Self {
             chromosome: String::new(),
-            position: Position::from(1),
+            position: Some(Position::MIN),
             ids: Ids::default(),
             reference_bases: String::new(),
             alternate_bases: AlternateBases::default(),
@@ -267,7 +270,7 @@ mod tests {
         let record = Builder::default();
 
         assert!(record.chromosome.is_empty());
-        assert_eq!(record.position, Position::from(1));
+        assert_eq!(record.position, Some(Position::MIN));
         assert!(record.ids.is_empty());
         assert!(record.reference_bases.is_empty());
         assert!(record.alternate_bases.is_empty());

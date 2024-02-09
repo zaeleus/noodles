@@ -4,10 +4,10 @@
 //!
 //! Verify the output by piping to `bcftools view --no-version`.
 
+use noodles_core::Position;
 use noodles_vcf::{
     self as vcf,
     header::record::value::{map::Contig, Map},
-    variant::record_buf::Position,
 };
 use tokio::io;
 
@@ -23,7 +23,7 @@ async fn main() -> io::Result<()> {
 
     let record = vcf::variant::RecordBuf::builder()
         .set_chromosome("sq0")
-        .set_position(Position::from(1))
+        .set_position(Position::MIN)
         .set_reference_bases("A")
         .build();
 

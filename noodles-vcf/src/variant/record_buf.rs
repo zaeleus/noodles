@@ -5,12 +5,13 @@ pub mod builder;
 pub mod filters;
 pub mod ids;
 pub mod info;
-pub mod position;
 pub mod samples;
+
+use noodles_core::Position;
 
 pub use self::{
     alternate_bases::AlternateBases, builder::Builder, filters::Filters, ids::Ids, info::Info,
-    position::Position, samples::Samples,
+    samples::Samples,
 };
 
 use std::{error, fmt, num};
@@ -28,7 +29,7 @@ pub(crate) const MISSING_FIELD: &str = ".";
 #[derive(Clone, Debug, PartialEq)]
 pub struct RecordBuf {
     chromosome: String,
-    position: Position,
+    position: Option<Position>,
     ids: Ids,
     reference_bases: String,
     alternate_bases: AlternateBases,
@@ -96,15 +97,16 @@ impl RecordBuf {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, variant::record_buf::Position};
+    /// use noodles_core::Position;
+    /// use noodles_vcf as vcf;
     ///
     /// let record = vcf::variant::RecordBuf::builder()
-    ///     .set_position(Position::from(8))
+    ///     .set_position(Position::MIN)
     ///     .build();
     ///
-    /// assert_eq!(usize::from(record.position()), 8);
+    /// assert_eq!(record.position(), Some(Position::MIN));
     /// ```
-    pub fn position(&self) -> Position {
+    pub fn position(&self) -> Option<Position> {
         self.position
     }
 
@@ -117,17 +119,14 @@ impl RecordBuf {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, variant::record_buf::Position};
+    /// use noodles_core::Position;
+    /// use noodles_vcf as vcf;
     ///
-    /// let mut record = vcf::variant::RecordBuf::builder()
-    ///     .set_position(Position::from(8))
-    ///     .build();
-    ///
-    /// *record.position_mut() = Position::from(13);
-    ///
-    /// assert_eq!(usize::from(record.position()), 13);
+    /// let mut record = vcf::variant::RecordBuf::default();
+    /// *record.position_mut() = Some(Position::MIN);
+    /// assert_eq!(record.position(), Some(Position::MIN));
     /// ```
-    pub fn position_mut(&mut self) -> &mut Position {
+    pub fn position_mut(&mut self) -> &mut Option<Position> {
         &mut self.position
     }
 
@@ -283,12 +282,9 @@ impl RecordBuf {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, variant::record_buf::{Filters, Position}};
+    /// use noodles_vcf::{self as vcf, variant::record_buf::Filters};
     ///
     /// let record = vcf::variant::RecordBuf::builder()
-    ///     .set_chromosome("sq0")
-    ///     .set_position(Position::from(1))
-    ///     .set_reference_bases("A")
     ///     .set_filters(Filters::Pass)
     ///     .build();
     ///
@@ -303,16 +299,10 @@ impl RecordBuf {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, variant::record_buf::{Filters, Position}};
+    /// use noodles_vcf::{self as vcf, variant::record_buf::Filters};
     ///
-    /// let mut record = vcf::variant::RecordBuf::builder()
-    ///     .set_chromosome("sq0")
-    ///     .set_position(Position::from(1))
-    ///     .set_reference_bases("A")
-    ///     .build();
-    ///
+    /// let mut record = vcf::variant::RecordBuf::default();
     /// *record.filters_mut() = Some(Filters::Pass);
-    ///
     /// assert_eq!(record.filters(), Some(&Filters::Pass));
     /// ```
     pub fn filters_mut(&mut self) -> &mut Option<Filters> {
@@ -326,7 +316,10 @@ impl RecordBuf {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     variant::record_buf::{info::field::{key, Value}, Info, Position},
+    ///     variant::record_buf::{
+    ///         info::field::{key, Value},
+    ///         Info,
+    ///     },
     /// };
     ///
     /// let info: Info = [
@@ -337,14 +330,10 @@ impl RecordBuf {
     /// .collect();
     ///
     /// let record = vcf::variant::RecordBuf::builder()
-    ///     .set_chromosome("sq0")
-    ///     .set_position(Position::from(1))
-    ///     .set_reference_bases("A")
     ///     .set_info(info.clone())
     ///     .build();
     ///
     /// assert_eq!(record.info(), &info);
-    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn info(&self) -> &Info {
         &self.info
@@ -357,7 +346,10 @@ impl RecordBuf {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     variant::record_buf::{info::field::{key, Value}, Info, Position},
+    ///     variant::record_buf::{
+    ///         info::field::{key, Value},
+    ///         Info,
+    ///     },
     /// };
     ///
     /// let info: Info = [
@@ -368,9 +360,6 @@ impl RecordBuf {
     /// .collect();
     ///
     /// let mut record = vcf::variant::RecordBuf::builder()
-    ///     .set_chromosome("sq0")
-    ///     .set_position(Position::from(1))
-    ///     .set_reference_bases("A")
     ///     .set_info(info)
     ///     .build();
     ///
@@ -385,7 +374,6 @@ impl RecordBuf {
     /// .collect();
     ///
     /// assert_eq!(record.info(), &expected);
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn info_mut(&mut self) -> &mut Info {
         &mut self.info
@@ -400,7 +388,7 @@ impl RecordBuf {
     ///     self as vcf,
     ///     variant::record_buf::{
     ///         samples::{keys::key, sample::Value, Keys},
-    ///         Position, Samples,
+    ///         Samples,
     ///     },
     /// };
     ///
@@ -414,9 +402,6 @@ impl RecordBuf {
     /// );
     ///
     /// let record = vcf::variant::RecordBuf::builder()
-    ///     .set_chromosome("sq0")
-    ///     .set_position(Position::from(1))
-    ///     .set_reference_bases("A")
     ///     .set_samples(samples)
     ///     .build();
     ///
@@ -436,7 +421,7 @@ impl RecordBuf {
     ///     self as vcf,
     ///     variant::record_buf::{
     ///         samples::{keys::key, sample::Value, Keys},
-    ///         Position, Samples,
+    ///         Samples,
     ///     },
     /// };
     ///
@@ -450,9 +435,6 @@ impl RecordBuf {
     /// );
     ///
     /// let record = vcf::variant::RecordBuf::builder()
-    ///     .set_chromosome("sq0")
-    ///     .set_position(Position::from(1))
-    ///     .set_reference_bases("A")
     ///     .set_samples(samples.clone())
     ///     .build();
     ///
@@ -472,15 +454,11 @@ impl RecordBuf {
     ///     self as vcf,
     ///     variant::record_buf::{
     ///         samples::{keys::key, sample::Value, Keys},
-    ///         Position, Samples
+    ///         Samples
     ///     },
     /// };
     ///
-    /// let mut record = vcf::variant::RecordBuf::builder()
-    ///     .set_chromosome("sq0")
-    ///     .set_position(Position::from(1))
-    ///     .set_reference_bases("A")
-    ///     .build();
+    /// let mut record = vcf::variant::RecordBuf::default();
     ///
     /// let keys = Keys::try_from(vec![
     ///     String::from(key::GENOTYPE),
@@ -505,7 +483,7 @@ impl Default for RecordBuf {
     fn default() -> Self {
         Self {
             chromosome: String::from("."),
-            position: Position::from(1),
+            position: Some(Position::MIN),
             ids: Ids::default(),
             reference_bases: String::from("N"),
             alternate_bases: AlternateBases::default(),
@@ -530,7 +508,7 @@ pub enum EndError {
         actual: usize,
     },
     /// The calculation of the end position overflowed.
-    PositionOverflow(usize, usize),
+    PositionOverflow(Position, usize),
 }
 
 impl error::Error for EndError {
@@ -574,14 +552,15 @@ impl RecordBuf {
     /// ## From the `END` INFO field value
     ///
     /// ```
+    /// use noodles_core::Position;
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     variant::record_buf::{info::field::{key, Value}, Position},
+    ///     variant::record_buf::info::field::{key, Value},
     /// };
     ///
     /// let record = vcf::variant::RecordBuf::builder()
     ///     .set_chromosome("sq0")
-    ///     .set_position(Position::from(1))
+    ///     .set_position(Position::MIN)
     ///     .set_reference_bases("ACGT")
     ///     .set_info(
     ///         [(String::from(key::END_POSITION), Some(Value::from(8)))]
@@ -590,34 +569,37 @@ impl RecordBuf {
     ///     )
     ///     .build();
     ///
-    /// assert_eq!(record.end(), Ok(Position::from(8)));
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// assert_eq!(record.end(), Ok(Position::try_from(8)?));
+    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
     ///
     /// ## Calculated using the start position and reference bases length
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, variant::record_buf::Position};
+    /// use noodles_core::Position;
+    /// use noodles_vcf as vcf;
     ///
     /// let record = vcf::variant::RecordBuf::builder()
     ///     .set_chromosome("sq0")
-    ///     .set_position(Position::from(1))
+    ///     .set_position(Position::MIN)
     ///     .set_reference_bases("ACGT")
     ///     .build();
     ///
-    /// assert_eq!(record.end(), Ok(Position::from(4)));
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// assert_eq!(record.end(), Ok(Position::try_from(4)?));
+    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
     pub fn end(&self) -> Result<Position, EndError> {
         use self::info::field::{key, Value};
 
-        let end = if let Some(Some(value)) = self.info().get(key::END_POSITION) {
+        if let Some(Some(value)) = self.info().get(key::END_POSITION) {
             match value {
-                Value::Integer(n) => usize::try_from(*n).map_err(EndError::InvalidPosition)?,
+                Value::Integer(n) => usize::try_from(*n)
+                    .and_then(Position::try_from)
+                    .map_err(EndError::InvalidPosition),
                 _ => return Err(EndError::InvalidInfoEndPositionFieldValue),
             }
         } else {
-            let start = usize::from(self.position());
+            let start = self.position().unwrap_or(Position::MIN);
             let reference_bases = self.reference_bases();
 
             let len = if reference_bases.is_empty() {
@@ -628,10 +610,8 @@ impl RecordBuf {
 
             start
                 .checked_add(len - 1)
-                .ok_or(EndError::PositionOverflow(start, len))?
-        };
-
-        Ok(Position::from(end))
+                .ok_or(EndError::PositionOverflow(start, len))
+        }
     }
 }
 
@@ -645,7 +625,7 @@ mod tests {
 
         let expected = RecordBuf::builder()
             .set_chromosome(".")
-            .set_position(Position::from(1))
+            .set_position(Position::MIN)
             .set_reference_bases("N")
             .build();
 
@@ -660,7 +640,7 @@ mod tests {
 
         let record = RecordBuf::builder()
             .set_chromosome("sq0")
-            .set_position(Position::from(1))
+            .set_position(Position::MIN)
             .set_reference_bases("A")
             .set_info(
                 [(String::from(key::END_POSITION), None)]
@@ -669,11 +649,11 @@ mod tests {
             )
             .build();
 
-        assert_eq!(record.end(), Ok(Position::from(1)));
+        assert_eq!(record.end(), Ok(Position::MIN));
 
         let record = RecordBuf::builder()
             .set_chromosome("sq0")
-            .set_position(Position::from(1))
+            .set_position(Position::MIN)
             .set_reference_bases("A")
             .set_info(
                 [(
@@ -692,11 +672,14 @@ mod tests {
 
         let record = RecordBuf::builder()
             .set_chromosome("sq0")
-            .set_position(Position::from(usize::MAX))
+            .set_position(Position::MAX)
             .set_reference_bases("ACGT")
             .build();
 
-        assert_eq!(record.end(), Err(EndError::PositionOverflow(usize::MAX, 4)));
+        assert_eq!(
+            record.end(),
+            Err(EndError::PositionOverflow(Position::MAX, 4))
+        );
 
         Ok(())
     }

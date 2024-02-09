@@ -30,7 +30,7 @@ fn main() -> io::Result<()> {
             writer,
             "{chrom}\t{pos}\t{ref}",
             chrom = record.chromosome(),
-            pos = record.position(),
+            pos = record.position().map(usize::from).unwrap_or_default(),
             ref = record.reference_bases(),
         )?;
 

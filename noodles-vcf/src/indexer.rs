@@ -1,7 +1,6 @@
 use std::{fs::File, io, path::Path};
 
 use noodles_bgzf as bgzf;
-use noodles_core::Position;
 use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
 use noodles_tabix as tabix;
 
@@ -32,15 +31,12 @@ where
         let chunk = Chunk::new(start_position, end_position);
 
         let reference_sequence_name = record.chromosome().to_string();
-        let start = Position::try_from(usize::from(record.position()))
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let start = record
+            .position()
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing position"))?;
         let end = record
             .end()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            .and_then(|position| {
-                Position::try_from(usize::from(position))
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            })?;
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         indexer.add_record(&reference_sequence_name, start, end, chunk)?;
 

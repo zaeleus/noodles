@@ -7,13 +7,13 @@
 use std::io;
 
 use noodles_bcf as bcf;
+use noodles_core::Position;
 use noodles_vcf::{
     self as vcf,
     header::record::value::{
         map::{Contig, Filter},
         Map,
     },
-    variant::record_buf::Position,
 };
 
 fn main() -> io::Result<()> {
@@ -29,7 +29,7 @@ fn main() -> io::Result<()> {
 
     let record = vcf::variant::RecordBuf::builder()
         .set_chromosome("sq0")
-        .set_position(Position::from(1))
+        .set_position(Position::MIN)
         .set_reference_bases("A")
         .build();
 

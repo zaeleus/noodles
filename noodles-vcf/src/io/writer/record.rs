@@ -24,7 +24,8 @@ where
     write_chromosome(writer, record.chromosome())?;
 
     writer.write_all(DELIMITER)?;
-    write!(writer, "{}", record.position())?;
+    let position = record.position().map(usize::from).unwrap_or_default();
+    write!(writer, "{}", position)?;
 
     writer.write_all(DELIMITER)?;
     write_ids(writer, record.ids())?;
@@ -67,14 +68,15 @@ where
 
 #[cfg(test)]
 mod tests {
+    use noodles_core::Position;
+
     use super::*;
-    use crate::variant::record_buf::Position;
 
     #[test]
     fn test_write_record() -> io::Result<()> {
         let record = RecordBuf::builder()
             .set_chromosome("sq0")
-            .set_position(Position::from(1))
+            .set_position(Position::MIN)
             .set_reference_bases("A")
             .build();
 

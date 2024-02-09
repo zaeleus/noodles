@@ -3,6 +3,7 @@ mod info;
 use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
+use noodles_core::Position;
 use noodles_vcf as vcf;
 
 use super::value::write_value;
@@ -80,28 +81,34 @@ where
     writer.write_i32::<LittleEndian>(chrom)
 }
 
-pub(crate) fn write_pos<W>(
-    writer: &mut W,
-    position: vcf::variant::record_buf::Position,
-) -> io::Result<()>
+pub(crate) fn write_pos<W>(writer: &mut W, position: Option<Position>) -> io::Result<()>
 where
     W: Write,
 {
-    let pos = i32::try_from(usize::from(position))
-        .map(|n| n - 1)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    const TELOMERE_START: i32 = -1;
+
+    let pos = match position {
+        Some(position) => i32::try_from(usize::from(position))
+            .map(|n| n - 1)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
+        None => TELOMERE_START,
+    };
 
     writer.write_i32::<LittleEndian>(pos)
 }
 
 pub(crate) fn write_rlen<W>(
     writer: &mut W,
-    start: vcf::variant::record_buf::Position,
-    end: vcf::variant::record_buf::Position,
+    start: Option<Position>,
+    end: Position,
 ) -> io::Result<()>
 where
     W: Write,
 {
+    let Some(start) = start else {
+        todo!();
+    };
+
     if start > end {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,
@@ -286,9 +293,7 @@ mod tests {
 
     #[test]
     fn test_write_pos() -> Result<(), Box<dyn std::error::Error>> {
-        use vcf::variant::record_buf::Position;
-
-        fn t(buf: &mut Vec<u8>, position: Position, expected: &[u8]) -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, position: Option<Position>, expected: &[u8]) -> io::Result<()> {
             buf.clear();
             write_pos(buf, position)?;
             assert_eq!(buf, expected);
@@ -297,17 +302,17 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        t(&mut buf, Position::from(0), &[0xff, 0xff, 0xff, 0xff])?;
-        t(&mut buf, Position::from(1), &[0x00, 0x00, 0x00, 0x00])?;
+        t(&mut buf, None, &[0xff, 0xff, 0xff, 0xff])?;
+        t(&mut buf, Some(Position::MIN), &[0x00, 0x00, 0x00, 0x00])?;
         t(
             &mut buf,
-            Position::from((1 << 31) - 1),
+            Some(Position::try_from((1 << 31) - 1)?),
             &[0xfe, 0xff, 0xff, 0x7f],
         )?;
 
         buf.clear();
         assert!(matches!(
-            write_pos(&mut buf, Position::from(1 << 32)),
+            write_pos(&mut buf, Some(Position::try_from(1 << 32)?)),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
@@ -316,9 +321,12 @@ mod tests {
 
     #[test]
     fn test_write_rlen() -> Result<(), Box<dyn std::error::Error>> {
-        use vcf::variant::record_buf::Position;
-
-        fn t(buf: &mut Vec<u8>, start: Position, end: Position, expected: &[u8]) -> io::Result<()> {
+        fn t(
+            buf: &mut Vec<u8>,
+            start: Option<Position>,
+            end: Position,
+            expected: &[u8],
+        ) -> io::Result<()> {
             buf.clear();
             write_rlen(buf, start, end)?;
             assert_eq!(buf, expected);
@@ -329,14 +337,14 @@ mod tests {
 
         t(
             &mut buf,
-            Position::from(8),
-            Position::from(13),
+            Some(Position::try_from(8)?),
+            Position::try_from(13)?,
             &[0x06, 0x00, 0x00, 0x00],
         )?;
 
         buf.clear();
         assert!(matches!(
-            write_rlen(&mut buf, Position::from(13), Position::from(8)),
+            write_rlen(&mut buf, Some(Position::try_from(13)?), Position::try_from(8)?),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput,
         ));
 
