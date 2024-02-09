@@ -10,7 +10,7 @@ use noodles_vcf::{
     variant::record_buf::Position,
 };
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> io::Result<()> {
     let stdout = io::stdout().lock();
     let mut writer = vcf::io::Writer::new(stdout);
 
@@ -24,7 +24,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .set_chromosome("sq0")
         .set_position(Position::from(1))
         .set_reference_bases("A")
-        .build()?;
+        .build();
 
     writer.write_record(&header, &record)?;
 

@@ -115,10 +115,10 @@ where
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(8))
     ///     .set_reference_bases("A")
-    ///     .build()?;
+    ///     .build();
     ///
     /// writer.write_record(&header, &record)?;
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// # Ok::<_, io::Error>(())
     /// ```
     pub fn write_record(
         &mut self,

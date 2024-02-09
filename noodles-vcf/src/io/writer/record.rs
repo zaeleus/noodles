@@ -71,12 +71,12 @@ mod tests {
     use crate::variant::record_buf::Position;
 
     #[test]
-    fn test_write_record() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_write_record() -> io::Result<()> {
         let record = RecordBuf::builder()
             .set_chromosome("sq0")
             .set_position(Position::from(1))
             .set_reference_bases("A")
-            .build()?;
+            .build();
 
         let mut buf = Vec::new();
         write_record(&mut buf, &record)?;
