@@ -1,7 +1,7 @@
 use std::io::{self, Read, Seek};
 
 use noodles_bgzf as bgzf;
-use noodles_core::{region::Interval, Position};
+use noodles_core::region::Interval;
 use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
 use noodles_vcf::{self as vcf, variant::RecordBuf};
 
@@ -104,16 +104,13 @@ fn intersects(
             )
         })?;
 
-    let start = Position::try_from(usize::from(record.position()))
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let Some(start) = record.position() else {
+        return Ok(false);
+    };
 
     let end = record
         .end()
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        .map(usize::from)
-        .and_then(|n| {
-            Position::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })?;
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     let record_interval = Interval::from(start..=end);
 

@@ -46,10 +46,8 @@ mod tests {
 
     #[test]
     fn test_write_record() -> Result<(), Box<dyn std::error::Error>> {
-        use vcf::{
-            header::record::value::{map::Contig, Map},
-            variant::record_buf::Position,
-        };
+        use noodles_core::Position;
+        use vcf::header::record::value::{map::Contig, Map};
 
         let header = vcf::Header::builder()
             .add_contig("sq0", Map::<Contig>::new())
@@ -59,7 +57,7 @@ mod tests {
 
         let record = vcf::variant::RecordBuf::builder()
             .set_chromosome("sq0")
-            .set_position(Position::from(1))
+            .set_position(Position::MIN)
             .set_reference_bases("A")
             .build();
 

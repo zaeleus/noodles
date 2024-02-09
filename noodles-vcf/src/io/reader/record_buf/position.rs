@@ -1,6 +1,6 @@
 use std::{error, fmt, num};
 
-use crate::variant::record_buf::Position;
+use noodles_core::{position, Position};
 
 /// An error when a raw VCF record position fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -8,7 +8,7 @@ pub enum ParseError {
     /// The input is empty.
     Empty,
     /// The input is invalid.
-    Invalid(num::ParseIntError),
+    Invalid(position::ParseError),
 }
 
 impl error::Error for ParseError {
@@ -38,8 +38,14 @@ impl From<num::ParseIntError> for ParseError {
     }
 }
 
-pub(super) fn parse_position(s: &str) -> Result<Position, ParseError> {
-    s.parse::<usize>().map(Position::from).map_err(|e| e.into())
+pub(super) fn parse_position(s: &str) -> Result<Option<Position>, ParseError> {
+    const TELOMERE_START: &str = "0";
+
+    match s {
+        "" => Err(ParseError::Empty),
+        TELOMERE_START => Ok(None),
+        _ => s.parse().map(Some).map_err(ParseError::Invalid),
+    }
 }
 
 #[cfg(test)]
@@ -48,8 +54,8 @@ mod tests {
 
     #[test]
     fn test_parse_position() {
-        assert_eq!(parse_position("0"), Ok(Position::from(0)));
-        assert_eq!(parse_position("8"), Ok(Position::from(8)));
+        assert_eq!(parse_position("0"), Ok(None));
+        assert_eq!(parse_position("1"), Ok(Some(Position::MIN)));
 
         assert_eq!(parse_position(""), Err(ParseError::Empty));
         assert!(matches!(parse_position("."), Err(ParseError::Invalid(_))));

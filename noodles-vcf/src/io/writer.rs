@@ -16,10 +16,10 @@ use crate::{variant::RecordBuf, Header};
 ///
 /// ```
 /// # use std::io;
+/// use noodles_core::Position;
 /// use noodles_vcf::{
 ///     self as vcf,
 ///     header::record::value::{map::Contig, Map},
-///     variant::record_buf::Position,
 /// };
 ///
 /// let mut writer = vcf::io::Writer::new(Vec::new());
@@ -32,7 +32,7 @@ use crate::{variant::RecordBuf, Header};
 ///
 /// let record = vcf::variant::RecordBuf::builder()
 ///     .set_chromosome("sq0")
-///     .set_position(Position::from(1))
+///     .set_position(Position::MIN)
 ///     .set_reference_bases("A")
 ///     .build();
 ///
@@ -130,13 +130,14 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, variant::record_buf::Position};
+    /// use noodles_core::Position;
+    /// use noodles_vcf as vcf;
     ///
     /// let header = vcf::Header::default();
     ///
     /// let record = vcf::variant::RecordBuf::builder()
     ///     .set_chromosome("sq0")
-    ///     .set_position(Position::from(1))
+    ///     .set_position(Position::MIN)
     ///     .set_reference_bases("A")
     ///     .build();
     ///
@@ -164,8 +165,9 @@ where
 
 #[cfg(test)]
 mod tests {
+    use noodles_core::Position;
+
     use super::*;
-    use crate::variant::record_buf::Position;
 
     #[test]
     fn test_write_record() -> io::Result<()> {
@@ -173,7 +175,7 @@ mod tests {
 
         let record = RecordBuf::builder()
             .set_chromosome("sq0")
-            .set_position(Position::from(1))
+            .set_position(Position::MIN)
             .set_reference_bases("A")
             .build();
 
@@ -208,7 +210,7 @@ mod tests {
 
         let record = RecordBuf::builder()
             .set_chromosome("sq0")
-            .set_position(Position::from(1))
+            .set_position(Position::MIN)
             .set_reference_bases("A")
             .set_samples(samples)
             .build();

@@ -13,7 +13,7 @@ mod value;
 
 use std::io;
 
-use noodles_vcf as vcf;
+use noodles_core::Position;
 
 use self::fields::Fields;
 pub(crate) use self::value::Value;
@@ -63,17 +63,18 @@ impl Record {
     ///
     /// ```
     /// use noodles_bcf as bcf;
+    /// use noodles_core::Position;
     /// let record = bcf::Record::default();
-    /// assert_eq!(record.position().map(usize::from)?, 1);
+    /// assert_eq!(record.position().transpose()?, Some(Position::MIN));
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn position(&self) -> io::Result<vcf::variant::record_buf::Position> {
-        let n = self.0.position();
-
-        usize::try_from(n)
-            .map(|m| m + 1)
-            .map(vcf::variant::record_buf::Position::from)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    pub fn position(&self) -> Option<io::Result<Position>> {
+        self.0.position().map(|n| {
+            usize::try_from(n)
+                .map(|m| m + 1)
+                .and_then(Position::try_from)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })
     }
 
     pub(crate) fn rlen(&self) -> io::Result<usize> {
@@ -88,20 +89,25 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
     /// use noodles_bcf as bcf;
+    /// use noodles_core::Position;
     /// let record = bcf::Record::default();
-    /// assert_eq!(record.end().map(usize::from)?, 1);
-    /// # Ok::<(), io::Error>(())
+    /// assert_eq!(record.end()?, Position::MIN);
+    /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn end(&self) -> io::Result<vcf::variant::record_buf::Position> {
-        use vcf::variant::record_buf::Position;
+    pub fn end(&self) -> io::Result<Position> {
+        let Some(start) = self.position().transpose()? else {
+            todo!();
+        };
 
-        let start = self.position().map(usize::from)?;
         let len = self.rlen()?;
-        let end = start + len - 1;
 
-        Ok(Position::from(end))
+        start.checked_add(len - 1).ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                "calculation of the end position overflowed",
+            )
+        })
     }
 
     /// Returns the quality score.

@@ -28,10 +28,16 @@ impl Fields {
     }
 
     // N.B. this is 0-based.
-    pub(super) fn position(&self) -> i32 {
+    pub(super) fn position(&self) -> Option<i32> {
+        const TELOMERE_START: i32 = -1;
+
         let src = &self.site_buf[bounds::POSITION_RANGE];
+
         // SAFETY: `src` is 4 bytes.
-        i32::from_le_bytes(src.try_into().unwrap())
+        match i32::from_le_bytes(src.try_into().unwrap()) {
+            TELOMERE_START => None,
+            n => Some(n),
+        }
     }
 
     pub(super) fn span(&self) -> i32 {

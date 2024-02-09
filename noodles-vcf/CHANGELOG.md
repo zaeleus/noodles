@@ -25,6 +25,11 @@
 
 ### Removed
 
+  * vcf/variant/record_buf: Remove `Position`.
+
+    Record positions are replaced with `Option<core::Position>`, where
+    `None` represents telomere start.
+
   * vcf/variant/record_buf/samples: Remove `Samples::genotypes`.
 
     Use `Samples::select(key::GENOTYPE)` to get the raw value instead.

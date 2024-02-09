@@ -12,7 +12,8 @@ impl Record {
     ///
     /// ```
     /// use noodles_bcf as bcf;
-    /// use noodles_vcf::{self as vcf, variant::record_buf::Position};
+    /// use noodles_core::Position;
+    /// use noodles_vcf as vcf;
     ///
     /// let raw_header = "##fileformat=VCFv4.3\n##contig=<ID=sq0>\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
     /// let header: vcf::Header = raw_header.parse()?;
@@ -23,7 +24,7 @@ impl Record {
     /// let actual = record.try_into_vcf_record(&header, &string_maps)?;
     /// let expected = vcf::variant::RecordBuf::builder()
     ///     .set_chromosome("sq0")
-    ///     .set_position(Position::from(1))
+    ///     .set_position(Position::MIN)
     ///     .set_reference_bases("N")
     ///     .build();
     ///
@@ -60,11 +61,14 @@ impl Record {
 
         let mut builder = vcf::variant::RecordBuf::builder()
             .set_chromosome(chromosome)
-            .set_position(self.position()?)
             .set_reference_bases(reference_bases)
             .set_alternate_bases(alternate_bases.into())
             .set_info(info)
             .set_samples(samples);
+
+        if let Some(position) = self.position().transpose()? {
+            builder = builder.set_position(position);
+        }
 
         if !self.ids().is_empty() {
             const DELIMITER: char = ';';
