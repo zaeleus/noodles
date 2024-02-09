@@ -25,7 +25,7 @@ impl Record {
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("N")
-    ///     .build()?;
+    ///     .build();
     ///
     /// assert_eq!(actual, expected);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
@@ -92,8 +92,6 @@ impl Record {
             builder = builder.set_filters(filters);
         }
 
-        builder
-            .build()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+        Ok(builder.build())
     }
 }

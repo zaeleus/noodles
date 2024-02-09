@@ -117,14 +117,14 @@ where
     ///
     /// ```
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_vcf::{self as vcf, variant::record_buf::Position};
     ///
     /// let record = vcf::variant::RecordBuf::builder()
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A")
-    ///     .build()?;
+    ///     .build();
     ///
     /// let mut writer = vcf::r#async::io::Writer::new(Vec::new());
     /// writer.write_record(&record).await?;

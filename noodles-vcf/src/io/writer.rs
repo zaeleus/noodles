@@ -34,7 +34,7 @@ use crate::{variant::RecordBuf, Header};
 ///     .set_chromosome("sq0")
 ///     .set_position(Position::from(1))
 ///     .set_reference_bases("A")
-///     .build()?;
+///     .build();
 ///
 /// writer.write_record(&header, &record);
 ///
@@ -45,7 +45,7 @@ use crate::{variant::RecordBuf, Header};
 /// ";
 ///
 /// assert_eq!(&writer.get_ref()[..], &expected[..]);
-/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// # Ok::<_, std::io::Error>(())
 /// ```
 #[derive(Debug)]
 pub struct Writer<W> {
@@ -138,11 +138,11 @@ where
     ///     .set_chromosome("sq0")
     ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A")
-    ///     .build()?;
+    ///     .build();
     ///
     /// let mut writer = vcf::io::Writer::new(Vec::new());
     /// writer.write_record(&header, &record)?;
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn write_record(&mut self, _: &Header, record: &RecordBuf) -> io::Result<()> {
         write_record(&mut self.inner, record)
@@ -168,14 +168,14 @@ mod tests {
     use crate::variant::record_buf::Position;
 
     #[test]
-    fn test_write_record() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_write_record() -> io::Result<()> {
         let header = Header::default();
 
         let record = RecordBuf::builder()
             .set_chromosome("sq0")
             .set_position(Position::from(1))
             .set_reference_bases("A")
-            .build()?;
+            .build();
 
         let mut writer = Writer::new(Vec::new());
         writer.write_record(&header, &record)?;
@@ -211,7 +211,7 @@ mod tests {
             .set_position(Position::from(1))
             .set_reference_bases("A")
             .set_samples(samples)
-            .build()?;
+            .build();
 
         let mut writer = Writer::new(Vec::new());
         writer.write_record(&header, &record)?;

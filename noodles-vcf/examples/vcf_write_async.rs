@@ -12,7 +12,7 @@ use noodles_vcf::{
 use tokio::io;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> io::Result<()> {
     let mut writer = vcf::r#async::io::Writer::new(io::stdout());
 
     let header = vcf::Header::builder()
@@ -25,7 +25,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .set_chromosome("sq0")
         .set_position(Position::from(1))
         .set_reference_bases("A")
-        .build()?;
+        .build();
 
     writer.write_record(&record).await?;
 

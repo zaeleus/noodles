@@ -61,7 +61,7 @@ mod tests {
             .set_chromosome("sq0")
             .set_position(Position::from(1))
             .set_reference_bases("A")
-            .build()?;
+            .build();
 
         let mut buf = Vec::new();
         write_record(&mut buf, &header, &string_maps, &record)?;
