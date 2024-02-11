@@ -3,13 +3,14 @@ mod filters;
 mod genotypes;
 mod ids;
 mod info;
+mod position;
 mod quality_score;
 
 use std::io::{self, Write};
 
 use self::{
     chromosome::write_chromosome, filters::write_filters, genotypes::write_genotypes,
-    ids::write_ids, info::write_info, quality_score::write_quality_score,
+    ids::write_ids, info::write_info, position::write_position, quality_score::write_quality_score,
 };
 use crate::variant::RecordBuf;
 
@@ -24,8 +25,7 @@ where
     write_chromosome(writer, record.chromosome())?;
 
     writer.write_all(DELIMITER)?;
-    let position = record.position().map(usize::from).unwrap_or_default();
-    write!(writer, "{}", position)?;
+    write_position(writer, record.position())?;
 
     writer.write_all(DELIMITER)?;
     write_ids(writer, record.ids())?;
