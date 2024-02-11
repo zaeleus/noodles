@@ -1,3 +1,4 @@
+mod alternate_bases;
 mod chromosome;
 mod filters;
 mod genotypes;
@@ -9,8 +10,9 @@ mod quality_score;
 use std::io::{self, Write};
 
 use self::{
-    chromosome::write_chromosome, filters::write_filters, genotypes::write_genotypes,
-    ids::write_ids, info::write_info, position::write_position, quality_score::write_quality_score,
+    alternate_bases::write_alternate_bases, chromosome::write_chromosome, filters::write_filters,
+    genotypes::write_genotypes, ids::write_ids, info::write_info, position::write_position,
+    quality_score::write_quality_score,
 };
 use crate::variant::RecordBuf;
 
@@ -34,18 +36,7 @@ where
     write!(writer, "{}", record.reference_bases())?;
 
     writer.write_all(DELIMITER)?;
-
-    if record.alternate_bases().is_empty() {
-        writer.write_all(MISSING)?;
-    } else {
-        for (i, allele) in record.alternate_bases().as_ref().iter().enumerate() {
-            if i > 0 {
-                write!(writer, ",")?;
-            }
-
-            write!(writer, "{allele}")?;
-        }
-    }
+    write_alternate_bases(writer, record.alternate_bases())?;
 
     writer.write_all(DELIMITER)?;
     write_quality_score(writer, record.quality_score())?;
