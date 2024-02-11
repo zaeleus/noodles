@@ -24,3 +24,30 @@ where
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_write_alternate_bases() -> io::Result<()> {
+        let mut buf = Vec::new();
+
+        buf.clear();
+        let alternate_bases = AlternateBases::default();
+        write_alternate_bases(&mut buf, &alternate_bases)?;
+        assert_eq!(buf, b".");
+
+        buf.clear();
+        let alternate_bases = AlternateBases::from(vec![String::from("C")]);
+        write_alternate_bases(&mut buf, &alternate_bases)?;
+        assert_eq!(buf, b"C");
+
+        buf.clear();
+        let alternate_bases = AlternateBases::from(vec![String::from("C"), String::from("GT")]);
+        write_alternate_bases(&mut buf, &alternate_bases)?;
+        assert_eq!(buf, b"C,GT");
+
+        Ok(())
+    }
+}
