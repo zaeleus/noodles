@@ -2,7 +2,7 @@
 
 mod values;
 
-use std::io;
+use std::{fmt, io};
 
 pub use self::values::Values;
 
@@ -16,6 +16,17 @@ pub enum Array<'a> {
     Character(Box<dyn Values<'a, char> + 'a>),
     /// A string array.
     String(Box<dyn Values<'a, &'a str> + 'a>),
+}
+
+impl<'a> fmt::Debug for Array<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Integer(values) => f.debug_list().entries(values.iter()).finish(),
+            Self::Float(values) => f.debug_list().entries(values.iter()).finish(),
+            Self::Character(values) => f.debug_list().entries(values.iter()).finish(),
+            Self::String(values) => f.debug_list().entries(values.iter()).finish(),
+        }
+    }
 }
 
 impl<'a> TryFrom<Array<'a>> for crate::variant::record_buf::info::field::value::Array {
