@@ -1,8 +1,9 @@
+mod keys;
 mod sample;
 
 use std::iter;
 
-pub use self::sample::Sample;
+pub use self::{keys::Keys, sample::Sample};
 
 const DELIMITER: char = '\t';
 
@@ -20,17 +21,10 @@ impl<'a> Samples<'a> {
         self.0.is_empty()
     }
 
-    /// Returns an iterator over keys.
-    pub fn keys(&self) -> impl Iterator<Item = &str> + '_ {
-        let (mut src, _) = self.0.split_once(DELIMITER).unwrap_or_default();
-
-        iter::from_fn(move || {
-            if src.is_empty() {
-                None
-            } else {
-                Some(parse_key(&mut src))
-            }
-        })
+    /// Returns the keys.
+    pub fn keys(&self) -> Keys<'_> {
+        let (src, _) = self.0.split_once(DELIMITER).unwrap_or_default();
+        Keys::new(src)
     }
 
     /// Returns an iterator over samples.
@@ -50,23 +44,6 @@ impl<'a> Samples<'a> {
 impl<'a> AsRef<str> for Samples<'a> {
     fn as_ref(&self) -> &str {
         self.0
-    }
-}
-
-fn parse_key<'a>(src: &mut &'a str) -> &'a str {
-    const DELIMITER: u8 = b':';
-
-    match src.as_bytes().iter().position(|&b| b == DELIMITER) {
-        Some(i) => {
-            let (buf, rest) = src.split_at(i);
-            *src = &rest[1..];
-            buf
-        }
-        None => {
-            let (buf, rest) = src.split_at(src.len());
-            *src = rest;
-            buf
-        }
     }
 }
 
@@ -101,17 +78,6 @@ mod tests {
     fn test_is_empty() {
         assert!(Samples::new("").is_empty());
         assert!(!Samples::new("GT:GQ\t0|0:13").is_empty());
-    }
-
-    #[test]
-    fn test_keys() {
-        let genotypes = Samples::new("");
-        assert!(genotypes.keys().next().is_none());
-
-        let genotypes = Samples::new("GT:GQ\t0|0:13");
-        let actual: Vec<_> = genotypes.keys().collect();
-        let expected = ["GT", "GQ"];
-        assert_eq!(actual, expected);
     }
 
     #[test]
