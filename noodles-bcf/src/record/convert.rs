@@ -51,7 +51,16 @@ impl Record {
             .map(|result| result.map(|value| value.map(String::from).unwrap_or(String::from("."))))
             .collect::<io::Result<_>>()?;
 
-        let info = self.info().try_into_vcf_record_info(header, string_maps)?;
+        let info = self
+            .info()
+            .iter(header, string_maps)
+            .map(|result| {
+                result.and_then(|(key, value)| {
+                    let v = value.map(|v| v.try_into()).transpose()?;
+                    Ok((key.into(), v))
+                })
+            })
+            .collect::<io::Result<_>>()?;
 
         let samples = self
             .samples()?
