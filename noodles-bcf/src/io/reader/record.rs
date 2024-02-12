@@ -153,7 +153,7 @@ pub(crate) mod tests {
 
         let actual = record
             .info()
-            .try_into_vcf_record_info(&header, string_maps.strings())?;
+            .try_into_vcf_record_info(&header, &string_maps)?;
 
         let expected = [
             (String::from("HM3"), Some(InfoFieldValue::Flag)),

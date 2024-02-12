@@ -5,7 +5,7 @@ use std::io;
 use noodles_vcf::{self as vcf, variant::record::info::field::Value};
 
 use self::field::read_field;
-use crate::header::string_maps::StringStringMap;
+use crate::header::StringMaps;
 
 /// BCF record info.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -28,18 +28,18 @@ impl<'a> Info<'a> {
     /// let header = vcf::Header::default();
     /// let string_maps = bcf::header::StringMaps::default();
     ///
-    /// let vcf_info = bcf_info.try_into_vcf_record_info(&header, string_maps.strings())?;
+    /// let vcf_info = bcf_info.try_into_vcf_record_info(&header, &string_maps)?;
     /// assert!(vcf_info.is_empty());
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn try_into_vcf_record_info<'h: 'a>(
         &'a self,
         header: &'h vcf::Header,
-        string_string_map: &'h StringStringMap,
+        string_maps: &'h StringMaps,
     ) -> io::Result<vcf::variant::record_buf::Info> {
         let mut info = vcf::variant::record_buf::Info::default();
 
-        for result in self.iter(header, string_string_map) {
+        for result in self.iter(header, string_maps) {
             let (key, value) = result?;
             let value = value.map(|v| v.try_into()).transpose()?;
             info.insert(key.into(), value);
@@ -66,10 +66,10 @@ impl<'a> Info<'a> {
     pub fn get<'h: 'a>(
         &'a self,
         header: &'h vcf::Header,
-        string_string_map: &'h StringStringMap,
+        string_maps: &'h StringMaps,
         key: &str,
     ) -> Option<io::Result<Option<Value<'a>>>> {
-        for result in self.iter(header, string_string_map) {
+        for result in self.iter(header, string_maps) {
             match result {
                 Ok((k, v)) => {
                     if k == key {
@@ -87,12 +87,12 @@ impl<'a> Info<'a> {
     pub fn iter<'h: 'a>(
         &'a self,
         header: &'h vcf::Header,
-        string_string_map: &'h StringStringMap,
+        string_maps: &'h StringMaps,
     ) -> impl Iterator<Item = io::Result<(&'a str, Option<Value<'a>>)>> + 'a {
         let mut src = self.as_ref();
 
         (0..self.len()).map(move |_| {
-            read_field(&mut src, header, string_string_map)
+            read_field(&mut src, header, string_maps.strings())
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })
     }
