@@ -51,9 +51,7 @@ impl Record {
             .map(|result| result.map(|value| value.map(String::from).unwrap_or(String::from("."))))
             .collect::<io::Result<_>>()?;
 
-        let info = self
-            .info()
-            .try_into_vcf_record_info(header, string_maps.strings())?;
+        let info = self.info().try_into_vcf_record_info(header, string_maps)?;
 
         let samples = self
             .samples()?
