@@ -18,6 +18,15 @@ impl<'a> Sample<'a> {
         Self { src, keys }
     }
 
+    /// Returns the value at the given index.
+    pub fn get_index<'h: 'a>(
+        &self,
+        header: &'h Header,
+        i: usize,
+    ) -> Option<Option<io::Result<Value<'_>>>> {
+        self.values(header).nth(i)
+    }
+
     pub fn values<'h: 'a>(
         &self,
         header: &'h Header,
