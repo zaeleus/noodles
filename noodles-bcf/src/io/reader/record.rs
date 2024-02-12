@@ -105,14 +105,17 @@ pub(crate) mod tests {
     #[test]
     fn test_read_record() -> Result<(), Box<dyn std::error::Error>> {
         use noodles_core::Position;
-        use noodles_vcf::variant::record_buf::{
-            info::{self, field::Value as InfoFieldValue},
-            samples::{
-                self,
-                sample::{value::Array, Value as GenotypeFieldValue},
-                Keys,
+        use noodles_vcf::{
+            self as vcf,
+            variant::record_buf::{
+                info::{self, field::Value as InfoFieldValue},
+                samples::{
+                    self,
+                    sample::{value::Array, Value as GenotypeFieldValue},
+                    Keys,
+                },
+                Samples as VcfGenotypes,
             },
-            Samples as VcfGenotypes,
         };
 
         use crate::header::StringMaps;
@@ -150,10 +153,16 @@ pub(crate) mod tests {
         );
 
         // info
-
-        let actual = record
+        let actual: vcf::variant::record_buf::Info = record
             .info()
-            .try_into_vcf_record_info(&header, &string_maps)?;
+            .iter(&header, &string_maps)
+            .map(|result| {
+                result.and_then(|(key, value)| {
+                    let v = value.map(|v| v.try_into()).transpose()?;
+                    Ok((key.into(), v))
+                })
+            })
+            .collect::<io::Result<_>>()?;
 
         let expected = [
             (String::from("HM3"), Some(InfoFieldValue::Flag)),

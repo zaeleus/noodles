@@ -15,39 +15,6 @@ pub struct Info<'a> {
 }
 
 impl<'a> Info<'a> {
-    /// Converts BCF record info to VCF record info.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io;
-    /// use noodles_bcf as bcf;
-    /// use noodles_vcf as vcf;
-    ///
-    /// let bcf_info = bcf::record::Info::default();
-    /// let header = vcf::Header::default();
-    /// let string_maps = bcf::header::StringMaps::default();
-    ///
-    /// let vcf_info = bcf_info.try_into_vcf_record_info(&header, &string_maps)?;
-    /// assert!(vcf_info.is_empty());
-    /// # Ok::<_, io::Error>(())
-    /// ```
-    pub fn try_into_vcf_record_info<'h: 'a>(
-        &'a self,
-        header: &'h vcf::Header,
-        string_maps: &'h StringMaps,
-    ) -> io::Result<vcf::variant::record_buf::Info> {
-        let mut info = vcf::variant::record_buf::Info::default();
-
-        for result in self.iter(header, string_maps) {
-            let (key, value) = result?;
-            let value = value.map(|v| v.try_into()).transpose()?;
-            info.insert(key.into(), value);
-        }
-
-        Ok(info)
-    }
-
     pub(super) fn new(src: &'a [u8], field_count: usize) -> Self {
         Self { src, field_count }
     }
