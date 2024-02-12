@@ -596,7 +596,7 @@ impl RecordBuf {
                 Value::Integer(n) => usize::try_from(*n)
                     .and_then(Position::try_from)
                     .map_err(EndError::InvalidPosition),
-                _ => return Err(EndError::InvalidInfoEndPositionFieldValue),
+                _ => Err(EndError::InvalidInfoEndPositionFieldValue),
             }
         } else {
             let start = self.position().unwrap_or(Position::MIN);
