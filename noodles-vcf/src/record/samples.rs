@@ -28,7 +28,7 @@ impl<'a> Samples<'a> {
     }
 
     /// Returns an iterator over samples.
-    pub fn samples(&self) -> impl Iterator<Item = Option<Sample<'_>>> + '_ {
+    pub fn iter(&self) -> impl Iterator<Item = Option<Sample<'_>>> + '_ {
         let (_, mut src) = self.0.split_once(DELIMITER).unwrap_or_default();
 
         iter::from_fn(move || {
@@ -81,12 +81,12 @@ mod tests {
     }
 
     #[test]
-    fn test_samples() {
+    fn test_iter() {
         let samples = Samples::new("");
-        assert!(samples.samples().next().is_none());
+        assert!(samples.iter().next().is_none());
 
         let samples = Samples::new("GT:GQ\t0|0:13\t.");
-        let actual: Vec<_> = samples.samples().collect();
+        let actual: Vec<_> = samples.iter().collect();
         let expected = [Some(Sample::new("0|0:13", samples.keys())), None];
         assert_eq!(actual, expected);
     }
