@@ -35,7 +35,7 @@ impl<'a> Samples<'a> {
             if src.is_empty() {
                 None
             } else {
-                Some(parse_sample(&mut src))
+                Some(parse_sample(&mut src, self.keys()))
             }
         })
     }
@@ -47,7 +47,7 @@ impl<'a> AsRef<str> for Samples<'a> {
     }
 }
 
-fn parse_sample<'a>(src: &mut &'a str) -> Option<Sample<'a>> {
+fn parse_sample<'a>(src: &mut &'a str, keys: Keys<'a>) -> Option<Sample<'a>> {
     const DELIMITER: u8 = b'\t';
     const MISSING: &str = ".";
 
@@ -66,7 +66,7 @@ fn parse_sample<'a>(src: &mut &'a str) -> Option<Sample<'a>> {
 
     match buf {
         MISSING => None,
-        _ => Some(Sample::new(buf)),
+        _ => Some(Sample::new(buf, keys)),
     }
 }
 
@@ -82,12 +82,12 @@ mod tests {
 
     #[test]
     fn test_samples() {
-        let genotypes = Samples::new("");
-        assert!(genotypes.samples().next().is_none());
+        let samples = Samples::new("");
+        assert!(samples.samples().next().is_none());
 
-        let genotypes = Samples::new("GT:GQ\t0|0:13\t.");
-        let actual: Vec<_> = genotypes.samples().collect();
-        let expected = [Some(Sample::new("0|0:13")), None];
+        let samples = Samples::new("GT:GQ\t0|0:13\t.");
+        let actual: Vec<_> = samples.samples().collect();
+        let expected = [Some(Sample::new("0|0:13", samples.keys())), None];
         assert_eq!(actual, expected);
     }
 }
