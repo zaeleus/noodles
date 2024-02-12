@@ -7,6 +7,7 @@ use std::io;
 pub use self::array::Array;
 
 /// A variant record info field value.
+#[derive(Debug)]
 pub enum Value<'a> {
     /// A 32-bit integer.
     Integer(i32),
