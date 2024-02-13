@@ -15,7 +15,7 @@ const MISSING: &str = ".";
 
 impl<'a> Values<'a, i32> for &'a str {
     fn len(&self) -> usize {
-        (*self).len()
+        count(self)
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<i32>>> + '_> {
@@ -33,7 +33,7 @@ impl<'a> Values<'a, i32> for &'a str {
 
 impl<'a> Values<'a, f32> for &'a str {
     fn len(&self) -> usize {
-        (*self).len()
+        count(self)
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<f32>>> + '_> {
@@ -51,7 +51,7 @@ impl<'a> Values<'a, f32> for &'a str {
 
 impl<'a> Values<'a, char> for &'a str {
     fn len(&self) -> usize {
-        (*self).len()
+        count(self)
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<char>>> + '_> {
@@ -71,7 +71,7 @@ impl<'a> Values<'a, char> for &'a str {
 
 impl<'a> Values<'a, &'a str> for &'a str {
     fn len(&self) -> usize {
-        (*self).len()
+        count(self)
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<&'a str>>> + '_> {
@@ -83,5 +83,15 @@ impl<'a> Values<'a, &'a str> for &'a str {
                 })
                 .map(Ok),
         )
+    }
+}
+
+fn count(s: &str) -> usize {
+    const DELIMITER: u8 = b',';
+
+    if s.is_empty() {
+        0
+    } else {
+        s.as_bytes().iter().filter(|&&b| b == DELIMITER).count()
     }
 }
