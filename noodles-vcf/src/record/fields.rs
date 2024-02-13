@@ -1,5 +1,9 @@
 mod bounds;
 
+use std::io;
+
+use noodles_core::Position;
+
 pub(crate) use self::bounds::Bounds;
 use super::{Filters, Ids, Info, Samples};
 
@@ -16,8 +20,20 @@ impl Fields {
         &self.buf[self.bounds.chromosome_range()]
     }
 
-    pub(super) fn position(&self) -> &str {
-        &self.buf[self.bounds.position_range()]
+    pub(super) fn position(&self) -> Option<io::Result<Position>> {
+        const TELOMERE_START: &str = "0";
+
+        match &self.buf[self.bounds.position_range()] {
+            TELOMERE_START => None,
+            src => Some(
+                src.parse::<usize>()
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                    .and_then(|n| {
+                        Position::try_from(n)
+                            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                    }),
+            ),
+        }
     }
 
     pub(super) fn ids(&self) -> Ids<'_> {

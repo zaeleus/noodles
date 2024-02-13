@@ -6,7 +6,9 @@ mod ids;
 mod info;
 mod samples;
 
-use std::fmt;
+use std::{fmt, io};
+
+use noodles_core::Position;
 
 use self::fields::Fields;
 pub use self::{filters::Filters, ids::Ids, info::Info, samples::Samples};
@@ -31,7 +33,7 @@ impl Record {
     }
 
     /// Returns the position.
-    pub fn position(&self) -> &str {
+    pub fn position(&self) -> Option<io::Result<Position>> {
         self.0.position()
     }
 
