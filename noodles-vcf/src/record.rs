@@ -1,7 +1,6 @@
 //! Lazily-evaluated VCF record and fields.
 
-mod bounds;
-mod fields;
+pub(crate) mod fields;
 mod filters;
 mod ids;
 mod info;
@@ -9,7 +8,6 @@ mod samples;
 
 use std::fmt;
 
-pub(crate) use self::bounds::Bounds;
 use self::fields::Fields;
 pub use self::{filters::Filters, ids::Ids, info::Info, samples::Samples};
 
