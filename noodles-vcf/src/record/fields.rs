@@ -5,7 +5,7 @@ use std::io;
 use noodles_core::Position;
 
 pub(crate) use self::bounds::Bounds;
-use super::{Filters, Ids, Info, Samples};
+use super::{AlternateBases, Filters, Ids, Info, Samples};
 
 #[derive(Clone, Eq, PartialEq)]
 pub(crate) struct Fields {
@@ -45,8 +45,13 @@ impl Fields {
         &self.buf[self.bounds.reference_bases_range()]
     }
 
-    pub(super) fn alternate_bases(&self) -> &str {
-        &self.buf[self.bounds.alternate_bases_range()]
+    pub(super) fn alternate_bases(&self) -> AlternateBases {
+        let src = match &self.buf[self.bounds.alternate_bases_range()] {
+            MISSING => "",
+            buf => buf,
+        };
+
+        AlternateBases::new(src)
     }
 
     pub(super) fn quality_score(&self) -> Option<&str> {
