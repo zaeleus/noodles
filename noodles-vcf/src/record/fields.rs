@@ -1,4 +1,7 @@
-use super::{Bounds, Filters, Ids, Info, Samples};
+mod bounds;
+
+pub(crate) use self::bounds::Bounds;
+use super::{Filters, Ids, Info, Samples};
 
 #[derive(Clone, Eq, PartialEq)]
 pub(crate) struct Fields {
