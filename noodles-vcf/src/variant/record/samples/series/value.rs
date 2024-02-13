@@ -5,6 +5,7 @@ pub mod array;
 pub use self::array::Array;
 
 /// A variant record samples value.
+#[derive(Debug)]
 pub enum Value<'a> {
     /// A 32-bit integer.
     Integer(i32),
