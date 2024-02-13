@@ -1,5 +1,6 @@
 //! Lazily-evaluated VCF record and fields.
 
+mod alternate_bases;
 pub(crate) mod fields;
 mod filters;
 mod ids;
@@ -11,7 +12,9 @@ use std::{fmt, io};
 use noodles_core::Position;
 
 use self::fields::Fields;
-pub use self::{filters::Filters, ids::Ids, info::Info, samples::Samples};
+pub use self::{
+    alternate_bases::AlternateBases, filters::Filters, ids::Ids, info::Info, samples::Samples,
+};
 
 /// An immutable, lazily-evaluated VCF record.
 #[derive(Clone, Default, Eq, PartialEq)]
@@ -48,7 +51,7 @@ impl Record {
     }
 
     /// Returns the alternate bases.
-    pub fn alternate_bases(&self) -> &str {
+    pub fn alternate_bases(&self) -> AlternateBases<'_> {
         self.0.alternate_bases()
     }
 
