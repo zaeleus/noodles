@@ -23,14 +23,14 @@ impl<'a> Sample<'a> {
         &self,
         header: &'h Header,
         i: usize,
-    ) -> Option<Option<io::Result<Value<'_>>>> {
+    ) -> Option<Option<io::Result<Value<'a>>>> {
         self.values(header).nth(i)
     }
 
     pub fn values<'h: 'a>(
         &self,
         header: &'h Header,
-    ) -> impl Iterator<Item = Option<io::Result<Value<'_>>>> + '_ {
+    ) -> impl Iterator<Item = Option<io::Result<Value<'a>>>> + '_ {
         self.iter(header)
             .map(|result| result.map(|(_, value)| value).transpose())
     }
@@ -39,7 +39,7 @@ impl<'a> Sample<'a> {
     pub fn iter<'h: 'a>(
         &self,
         header: &'h Header,
-    ) -> impl Iterator<Item = io::Result<(&str, Option<Value<'_>>)>> + '_ {
+    ) -> impl Iterator<Item = io::Result<(&str, Option<Value<'a>>)>> + '_ {
         const DELIMITER: char = ':';
 
         self.keys

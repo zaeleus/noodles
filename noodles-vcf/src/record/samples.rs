@@ -1,9 +1,10 @@
 mod keys;
 mod sample;
+mod series;
 
 use std::iter;
 
-pub use self::{keys::Keys, sample::Sample};
+pub use self::{keys::Keys, sample::Sample, series::Series};
 
 const DELIMITER: char = '\t';
 
@@ -22,13 +23,21 @@ impl<'a> Samples<'a> {
     }
 
     /// Returns the keys.
-    pub fn keys(&self) -> Keys<'_> {
+    pub fn keys(&self) -> Keys<'a> {
         let (src, _) = self.0.split_once(DELIMITER).unwrap_or_default();
         Keys::new(src)
     }
 
+    /// Returns an iterator over series.
+    pub fn series(&'a self) -> impl Iterator<Item = Series<'a>> + '_ {
+        self.keys()
+            .iter()
+            .enumerate()
+            .map(|(i, key)| Series::new(key, self, i))
+    }
+
     /// Returns an iterator over samples.
-    pub fn iter(&self) -> impl Iterator<Item = Option<Sample<'_>>> + '_ {
+    pub fn iter(&self) -> impl Iterator<Item = Option<Sample<'a>>> + '_ {
         let (_, mut src) = self.0.split_once(DELIMITER).unwrap_or_default();
 
         iter::from_fn(move || {
