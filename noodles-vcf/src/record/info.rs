@@ -19,6 +19,26 @@ impl<'a> Info<'a> {
         self.0.is_empty()
     }
 
+    /// Returns the value with the given key.
+    pub fn get<'h: 'a>(
+        &'a self,
+        header: &'h Header,
+        key: &str,
+    ) -> Option<io::Result<Option<Value<'a>>>> {
+        for result in self.iter(header) {
+            match result {
+                Ok((k, v)) => {
+                    if k == key {
+                        return Some(Ok(v));
+                    }
+                }
+                Err(e) => return Some(Err(e)),
+            }
+        }
+
+        None
+    }
+
     /// Returns an iterator over all fields.
     pub fn iter<'h: 'a>(
         &'a self,
