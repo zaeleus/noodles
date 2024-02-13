@@ -10,37 +10,42 @@ pub(crate) fn read_record<R>(reader: &mut R, record: &mut Record) -> io::Result<
 where
     R: BufRead,
 {
-    record.buf.clear();
+    let fields = record.fields_mut();
+
+    let buf = &mut fields.buf;
+    buf.clear();
+
+    let bounds = &mut fields.bounds;
 
     let mut len = 0;
 
-    len += read_required_field(reader, &mut record.buf)?;
-    record.bounds.chromosome_end = record.buf.len();
+    len += read_required_field(reader, buf)?;
+    bounds.chromosome_end = buf.len();
 
-    len += read_required_field(reader, &mut record.buf)?;
-    record.bounds.position_end = record.buf.len();
+    len += read_required_field(reader, buf)?;
+    bounds.position_end = buf.len();
 
-    len += read_required_field(reader, &mut record.buf)?;
-    record.bounds.ids_end = record.buf.len();
+    len += read_required_field(reader, buf)?;
+    bounds.ids_end = buf.len();
 
-    len += read_required_field(reader, &mut record.buf)?;
-    record.bounds.reference_bases_end = record.buf.len();
+    len += read_required_field(reader, buf)?;
+    bounds.reference_bases_end = buf.len();
 
-    len += read_required_field(reader, &mut record.buf)?;
-    record.bounds.alternate_bases_end = record.buf.len();
+    len += read_required_field(reader, buf)?;
+    bounds.alternate_bases_end = buf.len();
 
-    len += read_required_field(reader, &mut record.buf)?;
-    record.bounds.quality_score_end = record.buf.len();
+    len += read_required_field(reader, buf)?;
+    bounds.quality_score_end = buf.len();
 
-    len += read_required_field(reader, &mut record.buf)?;
-    record.bounds.filters_end = record.buf.len();
+    len += read_required_field(reader, buf)?;
+    bounds.filters_end = buf.len();
 
-    let (n, is_eol) = read_last_required_field(reader, &mut record.buf)?;
+    let (n, is_eol) = read_last_required_field(reader, buf)?;
     len += n;
-    record.bounds.info_end = record.buf.len();
+    bounds.info_end = buf.len();
 
     if !is_eol {
-        len += read_line(reader, &mut record.buf)?;
+        len += read_line(reader, buf)?;
     }
 
     Ok(len)
@@ -121,14 +126,14 @@ mod tests {
         let mut src = &b"sq0\t1\t.\tA\t.\t.\t.\t.\n"[..];
         let mut record = Record::default();
         read_record(&mut src, &mut record)?;
-        assert_eq!(record.buf, "sq01.A....");
-        assert_eq!(record.bounds, Bounds::default());
+        assert_eq!(record.fields().buf, "sq01.A....");
+        assert_eq!(record.fields().bounds, Bounds::default());
 
         let mut src = &b"sq0\t1\t.\tA\t.\t.\t.\t.\r\n"[..];
         let mut record = Record::default();
         read_record(&mut src, &mut record)?;
-        assert_eq!(record.buf, "sq01.A....");
-        assert_eq!(record.bounds, Bounds::default());
+        assert_eq!(record.fields().buf, "sq01.A....");
+        assert_eq!(record.fields().bounds, Bounds::default());
 
         let mut src = &b"\n"[..];
         assert!(matches!(

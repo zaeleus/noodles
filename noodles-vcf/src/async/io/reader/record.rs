@@ -32,16 +32,16 @@ mod tests {
         let mut record = Record::default();
         read_record(&mut src, &mut buf, &mut record).await?;
 
-        assert_eq!(record.buf, "sq01.A..PASS.");
+        assert_eq!(record.fields().buf, "sq01.A..PASS.");
 
-        assert_eq!(record.bounds.chromosome_end, 3);
-        assert_eq!(record.bounds.position_end, 4);
-        assert_eq!(record.bounds.ids_end, 5);
-        assert_eq!(record.bounds.reference_bases_end, 6);
-        assert_eq!(record.bounds.alternate_bases_end, 7);
-        assert_eq!(record.bounds.quality_score_end, 8);
-        assert_eq!(record.bounds.filters_end, 12);
-        assert_eq!(record.bounds.info_end, 13);
+        assert_eq!(record.fields().bounds.chromosome_end, 3);
+        assert_eq!(record.fields().bounds.position_end, 4);
+        assert_eq!(record.fields().bounds.ids_end, 5);
+        assert_eq!(record.fields().bounds.reference_bases_end, 6);
+        assert_eq!(record.fields().bounds.alternate_bases_end, 7);
+        assert_eq!(record.fields().bounds.quality_score_end, 8);
+        assert_eq!(record.fields().bounds.filters_end, 12);
+        assert_eq!(record.fields().bounds.info_end, 13);
 
         let mut src = &b"\n"[..];
         assert!(matches!(
