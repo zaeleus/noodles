@@ -1,6 +1,7 @@
 mod filters;
 mod ids;
 mod info;
+mod reference_sequence_id;
 
 use std::io::{self, Write};
 
@@ -8,10 +9,13 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_core::Position;
 use noodles_vcf as vcf;
 
-use self::{filters::write_filters, ids::write_ids, info::write_info};
+use self::{
+    filters::write_filters, ids::write_ids, info::write_info,
+    reference_sequence_id::write_reference_sequence_id,
+};
 use super::value::write_value;
 use crate::{
-    header::{string_maps::ContigStringMap, StringMaps},
+    header::StringMaps,
     record::codec::value::{Float, Value},
 };
 
@@ -26,7 +30,7 @@ pub fn write_site<W>(
 where
     W: Write,
 {
-    write_chrom(
+    write_reference_sequence_id(
         writer,
         string_maps.contigs(),
         record.reference_sequence_name(),
@@ -58,29 +62,6 @@ where
     write_info(writer, string_maps.strings(), record.info())?;
 
     Ok(())
-}
-
-fn write_chrom<W>(
-    writer: &mut W,
-    contig_string_map: &ContigStringMap,
-    chromosome: &str,
-) -> io::Result<()>
-where
-    W: Write,
-{
-    let chrom = contig_string_map
-        .get_index_of(chromosome)
-        .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidInput,
-                format!("chromosome not in string map: {chromosome}"),
-            )
-        })
-        .and_then(|i| {
-            i32::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-        })?;
-
-    writer.write_i32::<LittleEndian>(chrom)
 }
 
 pub(crate) fn write_pos<W>(writer: &mut W, position: Option<Position>) -> io::Result<()>
@@ -202,43 +183,6 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_write_chrom() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(
-            buf: &mut Vec<u8>,
-            contig_string_map: &ContigStringMap,
-            chromosome: &str,
-            expected: &[u8],
-        ) -> io::Result<()> {
-            buf.clear();
-            write_chrom(buf, contig_string_map, chromosome)?;
-            assert_eq!(buf, expected);
-            Ok(())
-        }
-
-        let mut buf = Vec::new();
-
-        let mut contig_string_map = ContigStringMap::default();
-        contig_string_map.insert("sq0".into());
-        contig_string_map.insert("sq1".into());
-
-        t(
-            &mut buf,
-            &contig_string_map,
-            "sq0",
-            &[0x00, 0x00, 0x00, 0x00],
-        )?;
-
-        t(
-            &mut buf,
-            &contig_string_map,
-            "sq1",
-            &[0x01, 0x00, 0x00, 0x00],
-        )?;
-
-        Ok(())
-    }
 
     #[test]
     fn test_write_pos() -> Result<(), Box<dyn std::error::Error>> {
