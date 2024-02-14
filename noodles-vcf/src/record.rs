@@ -30,8 +30,8 @@ impl Record {
         &mut self.0
     }
 
-    /// Returns the chromosome.
-    pub fn chromosome(&self) -> &str {
+    /// Returns the reference sequence name.
+    pub fn reference_sequence_name(&self) -> &str {
         self.0.reference_sequence_name()
     }
 
@@ -79,7 +79,7 @@ impl Record {
 impl fmt::Debug for Record {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Record")
-            .field("chromosome", &self.chromosome())
+            .field("reference_sequence_name", &self.reference_sequence_name())
             .field("position", &self.position())
             .field("ids", &self.ids())
             .field("reference_bases", &self.reference_bases())
