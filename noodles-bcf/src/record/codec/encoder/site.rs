@@ -1,6 +1,7 @@
 mod filters;
 mod ids;
 mod info;
+mod position;
 mod reference_sequence_id;
 
 use std::io::{self, Write};
@@ -10,7 +11,7 @@ use noodles_core::Position;
 use noodles_vcf as vcf;
 
 use self::{
-    filters::write_filters, ids::write_ids, info::write_info,
+    filters::write_filters, ids::write_ids, info::write_info, position::write_position,
     reference_sequence_id::write_reference_sequence_id,
 };
 use super::value::write_value;
@@ -35,7 +36,8 @@ where
         string_maps.contigs(),
         record.reference_sequence_name(),
     )?;
-    write_pos(writer, record.position())?;
+
+    write_position(writer, record.position())?;
 
     let end = record
         .end()
@@ -62,22 +64,6 @@ where
     write_info(writer, string_maps.strings(), record.info())?;
 
     Ok(())
-}
-
-pub(crate) fn write_pos<W>(writer: &mut W, position: Option<Position>) -> io::Result<()>
-where
-    W: Write,
-{
-    const TELOMERE_START: i32 = -1;
-
-    let pos = match position {
-        Some(position) => i32::try_from(usize::from(position))
-            .map(|n| n - 1)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
-        None => TELOMERE_START,
-    };
-
-    writer.write_i32::<LittleEndian>(pos)
 }
 
 pub(crate) fn write_rlen<W>(
@@ -183,34 +169,6 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_write_pos() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(buf: &mut Vec<u8>, position: Option<Position>, expected: &[u8]) -> io::Result<()> {
-            buf.clear();
-            write_pos(buf, position)?;
-            assert_eq!(buf, expected);
-            Ok(())
-        }
-
-        let mut buf = Vec::new();
-
-        t(&mut buf, None, &[0xff, 0xff, 0xff, 0xff])?;
-        t(&mut buf, Some(Position::MIN), &[0x00, 0x00, 0x00, 0x00])?;
-        t(
-            &mut buf,
-            Some(Position::try_from((1 << 31) - 1)?),
-            &[0xfe, 0xff, 0xff, 0x7f],
-        )?;
-
-        buf.clear();
-        assert!(matches!(
-            write_pos(&mut buf, Some(Position::try_from(1 << 32)?)),
-            Err(e) if e.kind() == io::ErrorKind::InvalidInput
-        ));
-
-        Ok(())
-    }
 
     #[test]
     fn test_write_rlen() -> Result<(), Box<dyn std::error::Error>> {
