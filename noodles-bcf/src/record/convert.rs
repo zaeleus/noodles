@@ -38,7 +38,7 @@ impl Record {
     ) -> io::Result<vcf::variant::RecordBuf> {
         let chromosome = string_maps
             .contigs()
-            .get_index(self.chromosome_id()?)
+            .get_index(self.reference_sequence_id()?)
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid chrom"))?;
 
         let raw_reference_bases = self.reference_bases();

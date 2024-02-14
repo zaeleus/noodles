@@ -127,7 +127,7 @@ pub(crate) mod tests {
         let mut record = Record::default();
         read_record(&mut reader, &mut record)?;
 
-        assert_eq!(record.chromosome_id()?, 1);
+        assert_eq!(record.reference_sequence_id()?, 1);
         assert_eq!(
             record.position().transpose()?,
             Some(Position::try_from(101)?)
