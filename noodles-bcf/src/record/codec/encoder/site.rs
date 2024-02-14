@@ -1,3 +1,4 @@
+mod filters;
 mod ids;
 mod info;
 
@@ -7,13 +8,10 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_core::Position;
 use noodles_vcf as vcf;
 
-use self::{ids::write_ids, info::write_info};
+use self::{filters::write_filters, ids::write_ids, info::write_info};
 use super::value::write_value;
 use crate::{
-    header::{
-        string_maps::{ContigStringMap, StringStringMap},
-        StringMaps,
-    },
+    header::{string_maps::ContigStringMap, StringMaps},
     record::codec::value::{Float, Value},
 };
 
@@ -56,7 +54,7 @@ where
 
     write_ids(writer, record.ids())?;
     write_ref_alt(writer, record.reference_bases(), record.alternate_bases())?;
-    write_filter(writer, string_maps.strings(), record.filters())?;
+    write_filters(writer, string_maps.strings(), record.filters())?;
     write_info(writer, string_maps.strings(), record.info())?;
 
     Ok(())
@@ -199,37 +197,6 @@ where
     }
 
     Ok(())
-}
-
-fn write_filter<W>(
-    writer: &mut W,
-    string_string_map: &StringStringMap,
-    filters: Option<&vcf::variant::record_buf::Filters>,
-) -> io::Result<()>
-where
-    W: Write,
-{
-    use vcf::variant::record_buf::Filters;
-
-    use crate::record::codec::encoder::string_map::write_string_map_indices;
-
-    let indices = match filters {
-        None => Vec::new(),
-        Some(Filters::Pass) => vec![0],
-        Some(Filters::Fail(ids)) => ids
-            .iter()
-            .map(|id| {
-                string_string_map.get_index_of(id).ok_or_else(|| {
-                    io::Error::new(
-                        io::ErrorKind::InvalidInput,
-                        format!("filter missing from string map: {id}"),
-                    )
-                })
-            })
-            .collect::<Result<_, _>>()?,
-    };
-
-    write_string_map_indices(writer, &indices)
 }
 
 #[cfg(test)]
@@ -419,36 +386,6 @@ mod tests {
     }
 
     #[test]
-    fn test_write_id() -> Result<(), Box<dyn std::error::Error>> {
-        use vcf::variant::record_buf::Ids;
-
-        fn t(buf: &mut Vec<u8>, ids: &Ids, expected: &[u8]) -> io::Result<()> {
-            buf.clear();
-            write_ids(buf, ids)?;
-            assert_eq!(buf, expected);
-            Ok(())
-        }
-
-        let mut buf = Vec::new();
-
-        t(&mut buf, &Ids::default(), &[0x07])?;
-        t(
-            &mut buf,
-            &[String::from("nd0")].into_iter().collect(),
-            &[0x37, b'n', b'd', b'0'],
-        )?;
-        t(
-            &mut buf,
-            &[String::from("nd0"), String::from("nd1")]
-                .into_iter()
-                .collect(),
-            &[0x77, b'n', b'd', b'0', b';', b'n', b'd', b'1'],
-        )?;
-
-        Ok(())
-    }
-
-    #[test]
     fn test_write_ref_alt() -> Result<(), Box<dyn std::error::Error>> {
         use vcf::variant::record_buf::AlternateBases;
 
@@ -480,67 +417,6 @@ mod tests {
             "A",
             &AlternateBases::from(vec![String::from("G"), String::from("T")]),
             &[0x17, b'A', 0x17, b'G', 0x17, b'T'],
-        )?;
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_write_filter() -> Result<(), Box<dyn std::error::Error>> {
-        use vcf::{
-            header::record::value::{map::Filter, Map},
-            variant::record_buf::Filters,
-        };
-
-        fn t(
-            buf: &mut Vec<u8>,
-            string_map: &StringStringMap,
-            filters: Option<&Filters>,
-            expected: &[u8],
-        ) -> io::Result<()> {
-            buf.clear();
-            write_filter(buf, string_map, filters)?;
-            assert_eq!(buf, expected);
-            Ok(())
-        }
-
-        let header = vcf::Header::builder()
-            .add_filter("PASS", Map::<Filter>::pass())
-            .add_filter(
-                "s50",
-                Map::<Filter>::new("Less than 50% of samples have data"),
-            )
-            .add_filter("q10", Map::<Filter>::new("Quality below 10"))
-            .build();
-
-        let string_maps = StringMaps::try_from(&header)?;
-
-        let mut buf = Vec::new();
-
-        t(&mut buf, string_maps.strings(), None, &[0x00])?;
-
-        let filters = Filters::Pass;
-        t(
-            &mut buf,
-            string_maps.strings(),
-            Some(&filters),
-            &[0x11, 0x00],
-        )?;
-
-        let filters = Filters::try_from_iter(["q10"])?;
-        t(
-            &mut buf,
-            string_maps.strings(),
-            Some(&filters),
-            &[0x11, 0x02],
-        )?;
-
-        let filters = Filters::try_from_iter(["q10", "s50"])?;
-        t(
-            &mut buf,
-            string_maps.strings(),
-            Some(&filters),
-            &[0x21, 0x02, 0x01],
         )?;
 
         Ok(())
