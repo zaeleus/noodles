@@ -185,11 +185,12 @@ where
 {
     const DELIMITER: &str = ";";
 
-    if ids.is_empty() {
+    if ids.as_ref().is_empty() {
         let value = Some(Value::String(None));
         write_value(writer, value)
     } else {
         let s = ids
+            .as_ref()
             .iter()
             .map(|id| id.as_ref())
             .collect::<Vec<_>>()

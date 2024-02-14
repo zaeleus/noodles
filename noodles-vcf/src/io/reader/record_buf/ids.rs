@@ -45,7 +45,7 @@ pub(super) fn parse_ids(s: &str, ids: &mut Ids) -> Result<(), ParseError> {
     for raw_id in s.split(DELIMITER) {
         let id = parse_id(raw_id).map_err(ParseError::InvalidId)?;
 
-        if let Some(id) = ids.replace(id.into()) {
+        if let Some(id) = ids.as_mut().replace(id.into()) {
             return Err(ParseError::DuplicateId(id));
         }
     }
@@ -64,44 +64,44 @@ mod tests {
 
         let mut ids = Ids::default();
 
-        ids.clear();
+        ids.as_mut().clear();
         parse_ids("nd0", &mut ids)?;
         let expected = [id0.clone()].into_iter().collect();
         assert_eq!(ids, expected);
 
-        ids.clear();
+        ids.as_mut().clear();
         parse_ids("nd0;nd1", &mut ids)?;
         let expected = [id0.clone(), id1].into_iter().collect();
         assert_eq!(ids, expected);
 
-        ids.clear();
+        ids.as_mut().clear();
         assert_eq!(parse_ids("", &mut ids), Err(ParseError::Empty));
 
-        ids.clear();
+        ids.as_mut().clear();
         assert!(matches!(
             parse_ids("nd 0", &mut ids),
             Err(ParseError::InvalidId(_))
         ));
 
-        ids.clear();
+        ids.as_mut().clear();
         assert!(matches!(
             parse_ids(";nd0", &mut ids),
             Err(ParseError::InvalidId(_))
         ));
 
-        ids.clear();
+        ids.as_mut().clear();
         assert!(matches!(
             parse_ids("nd0;;nd1", &mut ids),
             Err(ParseError::InvalidId(_))
         ));
 
-        ids.clear();
+        ids.as_mut().clear();
         assert!(matches!(
             parse_ids("nd0;", &mut ids),
             Err(ParseError::InvalidId(_))
         ));
 
-        ids.clear();
+        ids.as_mut().clear();
         assert_eq!(
             parse_ids("nd0;nd0", &mut ids),
             Err(ParseError::DuplicateId(id0))
