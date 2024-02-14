@@ -20,7 +20,7 @@ where
     let mut len = 0;
 
     len += read_required_field(reader, buf)?;
-    bounds.chromosome_end = buf.len();
+    bounds.reference_sequence_name_end = buf.len();
 
     len += read_required_field(reader, buf)?;
     bounds.position_end = buf.len();
