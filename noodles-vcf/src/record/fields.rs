@@ -17,7 +17,7 @@ const MISSING: &str = ".";
 
 impl Fields {
     pub(super) fn reference_sequence_name(&self) -> &str {
-        &self.buf[self.bounds.chromosome_range()]
+        &self.buf[self.bounds.reference_sequence_name_range()]
     }
 
     pub(super) fn position(&self) -> Option<io::Result<Position>> {

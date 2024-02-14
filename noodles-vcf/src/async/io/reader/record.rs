@@ -34,7 +34,7 @@ mod tests {
 
         assert_eq!(record.fields().buf, "sq01.A..PASS.");
 
-        assert_eq!(record.fields().bounds.chromosome_end, 3);
+        assert_eq!(record.fields().bounds.reference_sequence_name_end, 3);
         assert_eq!(record.fields().bounds.position_end, 4);
         assert_eq!(record.fields().bounds.ids_end, 5);
         assert_eq!(record.fields().bounds.reference_bases_end, 6);

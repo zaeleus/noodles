@@ -2,7 +2,7 @@ use std::ops::{Range, RangeFrom};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Bounds {
-    pub chromosome_end: usize,
+    pub reference_sequence_name_end: usize,
     pub position_end: usize,
     pub ids_end: usize,
     pub reference_bases_end: usize,
@@ -13,12 +13,12 @@ pub struct Bounds {
 }
 
 impl Bounds {
-    pub fn chromosome_range(&self) -> Range<usize> {
-        0..self.chromosome_end
+    pub fn reference_sequence_name_range(&self) -> Range<usize> {
+        0..self.reference_sequence_name_end
     }
 
     pub fn position_range(&self) -> Range<usize> {
-        self.chromosome_end..self.position_end
+        self.reference_sequence_name_end..self.position_end
     }
 
     pub fn ids_range(&self) -> Range<usize> {
@@ -53,7 +53,7 @@ impl Bounds {
 impl Default for Bounds {
     fn default() -> Self {
         Self {
-            chromosome_end: 3,
+            reference_sequence_name_end: 3,
             position_end: 4,
             ids_end: 5,
             reference_bases_end: 6,
@@ -72,7 +72,7 @@ mod tests {
     #[test]
     fn test_ranges() {
         let bounds = Bounds::default();
-        assert_eq!(bounds.chromosome_range(), 0..3);
+        assert_eq!(bounds.reference_sequence_name_range(), 0..3);
         assert_eq!(bounds.position_range(), 3..4);
         assert_eq!(bounds.ids_range(), 4..5);
         assert_eq!(bounds.reference_bases_range(), 5..6);
