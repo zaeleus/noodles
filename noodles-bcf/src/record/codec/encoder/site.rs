@@ -2,6 +2,7 @@ mod filters;
 mod ids;
 mod info;
 mod position;
+mod quality_score;
 mod reference_sequence_id;
 
 use std::io::{self, Write};
@@ -12,13 +13,10 @@ use noodles_vcf as vcf;
 
 use self::{
     filters::write_filters, ids::write_ids, info::write_info, position::write_position,
-    reference_sequence_id::write_reference_sequence_id,
+    quality_score::write_quality_score, reference_sequence_id::write_reference_sequence_id,
 };
 use super::value::write_value;
-use crate::{
-    header::StringMaps,
-    record::codec::value::{Float, Value},
-};
+use crate::{header::StringMaps, record::codec::value::Value};
 
 const MAX_SAMPLE_NAME_COUNT: u32 = (1 << 24) - 1;
 
@@ -44,7 +42,7 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_rlen(writer, record.position(), end)?;
 
-    write_qual(writer, record.quality_score())?;
+    write_quality_score(writer, record.quality_score())?;
 
     let n_info = u16::try_from(record.info().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -89,14 +87,6 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     writer.write_i32::<LittleEndian>(rlen)
-}
-
-pub(crate) fn write_qual<W>(writer: &mut W, quality_score: Option<f32>) -> io::Result<()>
-where
-    W: Write,
-{
-    let float = quality_score.map(Float::from).unwrap_or(Float::Missing);
-    writer.write_f32::<LittleEndian>(f32::from(float))
 }
 
 pub(crate) fn write_n_allele<W>(writer: &mut W, alternate_base_count: usize) -> io::Result<()>
@@ -198,24 +188,6 @@ mod tests {
             write_rlen(&mut buf, Some(Position::try_from(13)?), Position::try_from(8)?),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput,
         ));
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_write_qual() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(buf: &mut Vec<u8>, quality_score: Option<f32>, expected: &[u8]) -> io::Result<()> {
-            buf.clear();
-            write_qual(buf, quality_score)?;
-            assert_eq!(buf, expected);
-            Ok(())
-        }
-
-        let mut buf = Vec::new();
-
-        t(&mut buf, None, &[0x01, 0x00, 0x80, 0x7f])?;
-        t(&mut buf, Some(0.0), &[0x00, 0x00, 0x00, 0x00])?;
-        t(&mut buf, Some(8.0), &[0x00, 0x00, 0x00, 0x41])?;
 
         Ok(())
     }
