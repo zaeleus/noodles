@@ -86,7 +86,7 @@ pub(crate) fn parse_record_buf(
     let field = next_field(&mut s);
     *record.position_mut() = parse_position(field).map_err(ParseError::InvalidPosition)?;
 
-    record.ids_mut().clear();
+    record.ids_mut().as_mut().clear();
     let field = next_field(&mut s);
     if field != MISSING {
         parse_ids(field, record.ids_mut()).map_err(ParseError::InvalidIds)?;

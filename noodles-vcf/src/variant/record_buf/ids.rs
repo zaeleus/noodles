@@ -1,23 +1,19 @@
 //! VCF record IDs.
 
-use std::{ops::Deref, ops::DerefMut};
-
 use indexmap::IndexSet;
 
 /// VCF record IDs (`ID`).
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Ids(IndexSet<String>);
 
-impl Deref for Ids {
-    type Target = IndexSet<String>;
-
-    fn deref(&self) -> &Self::Target {
+impl AsRef<IndexSet<String>> for Ids {
+    fn as_ref(&self) -> &IndexSet<String> {
         &self.0
     }
 }
 
-impl DerefMut for Ids {
-    fn deref_mut(&mut self) -> &mut Self::Target {
+impl AsMut<IndexSet<String>> for Ids {
+    fn as_mut(&mut self) -> &mut IndexSet<String> {
         &mut self.0
     }
 }
@@ -33,5 +29,19 @@ impl FromIterator<String> for Ids {
         let mut ids = Self::default();
         ids.extend(iter);
         ids
+    }
+}
+
+impl crate::variant::record::Ids for Ids {
+    fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = &str> + '_> {
+        Box::new(self.0.iter().map(|id| id.as_ref()))
     }
 }

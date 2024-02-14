@@ -9,10 +9,10 @@ where
 {
     const DELIMITER: &[u8] = b";";
 
-    if ids.is_empty() {
+    if ids.as_ref().is_empty() {
         writer.write_all(MISSING)?;
     } else {
-        for (i, id) in ids.iter().enumerate() {
+        for (i, id) in ids.as_ref().iter().enumerate() {
             if i > 0 {
                 writer.write_all(DELIMITER)?;
             }

@@ -271,7 +271,7 @@ mod tests {
 
         assert!(record.reference_sequence_name.is_empty());
         assert_eq!(record.position, Some(Position::MIN));
-        assert!(record.ids.is_empty());
+        assert!(record.ids.as_ref().is_empty());
         assert!(record.reference_bases.is_empty());
         assert!(record.alternate_bases.is_empty());
         assert!(record.quality_score.is_none());
