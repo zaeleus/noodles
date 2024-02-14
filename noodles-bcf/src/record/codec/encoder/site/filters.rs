@@ -1,0 +1,103 @@
+use std::io::{self, Write};
+
+use noodles_vcf as vcf;
+
+use crate::header::string_maps::StringStringMap;
+
+pub(super) fn write_filters<W>(
+    writer: &mut W,
+    string_string_map: &StringStringMap,
+    filters: Option<&vcf::variant::record_buf::Filters>,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    use vcf::variant::record_buf::Filters;
+
+    use crate::record::codec::encoder::string_map::write_string_map_indices;
+
+    let indices = match filters {
+        None => Vec::new(),
+        Some(Filters::Pass) => vec![0],
+        Some(Filters::Fail(ids)) => ids
+            .iter()
+            .map(|id| {
+                string_string_map.get_index_of(id).ok_or_else(|| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        format!("filter missing from string map: {id}"),
+                    )
+                })
+            })
+            .collect::<Result<_, _>>()?,
+    };
+
+    write_string_map_indices(writer, &indices)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::header::StringMaps;
+
+    #[test]
+    fn test_write_filters() -> Result<(), Box<dyn std::error::Error>> {
+        use vcf::{
+            header::record::value::{map::Filter, Map},
+            variant::record_buf::Filters,
+        };
+
+        fn t(
+            buf: &mut Vec<u8>,
+            string_map: &StringStringMap,
+            filters: Option<&Filters>,
+            expected: &[u8],
+        ) -> io::Result<()> {
+            buf.clear();
+            write_filters(buf, string_map, filters)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
+        let header = vcf::Header::builder()
+            .add_filter("PASS", Map::<Filter>::pass())
+            .add_filter(
+                "s50",
+                Map::<Filter>::new("Less than 50% of samples have data"),
+            )
+            .add_filter("q10", Map::<Filter>::new("Quality below 10"))
+            .build();
+
+        let string_maps = StringMaps::try_from(&header)?;
+
+        let mut buf = Vec::new();
+
+        t(&mut buf, string_maps.strings(), None, &[0x00])?;
+
+        let filters = Filters::Pass;
+        t(
+            &mut buf,
+            string_maps.strings(),
+            Some(&filters),
+            &[0x11, 0x00],
+        )?;
+
+        let filters = Filters::try_from_iter(["q10"])?;
+        t(
+            &mut buf,
+            string_maps.strings(),
+            Some(&filters),
+            &[0x11, 0x02],
+        )?;
+
+        let filters = Filters::try_from_iter(["q10", "s50"])?;
+        t(
+            &mut buf,
+            string_maps.strings(),
+            Some(&filters),
+            &[0x21, 0x02, 0x01],
+        )?;
+
+        Ok(())
+    }
+}
