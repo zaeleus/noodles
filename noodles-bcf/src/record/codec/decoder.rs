@@ -34,11 +34,8 @@ pub fn read_site(
     *record.chromosome_mut() = string_maps
         .contigs()
         .get_index(chrom)
-        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid chrom"))
-        .and_then(|s| {
-            s.parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-        })?;
+        .map(String::from)
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid chrom"))?;
 
     *record.position_mut() = read_pos(src)?;
 
