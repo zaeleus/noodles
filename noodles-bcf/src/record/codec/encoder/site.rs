@@ -1,3 +1,4 @@
+mod ids;
 mod info;
 
 use std::io::{self, Write};
@@ -6,6 +7,7 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_core::Position;
 use noodles_vcf as vcf;
 
+use self::{ids::write_ids, info::write_info};
 use super::value::write_value;
 use crate::{
     header::{
@@ -14,8 +16,6 @@ use crate::{
     },
     record::codec::value::{Float, Value},
 };
-
-use self::info::write_info;
 
 const MAX_SAMPLE_NAME_COUNT: u32 = (1 << 24) - 1;
 
@@ -54,7 +54,7 @@ where
         record.samples().keys().len(),
     )?;
 
-    write_id(writer, record.ids())?;
+    write_ids(writer, record.ids())?;
     write_ref_alt(writer, record.reference_bases(), record.alternate_bases())?;
     write_filter(writer, string_maps.strings(), record.filters())?;
     write_info(writer, string_maps.strings(), record.info())?;
@@ -177,29 +177,6 @@ where
     writer.write_u32::<LittleEndian>(n_fmt_sample)?;
 
     Ok(())
-}
-
-pub(crate) fn write_id<W>(writer: &mut W, ids: &vcf::variant::record_buf::Ids) -> io::Result<()>
-where
-    W: Write,
-{
-    const DELIMITER: &str = ";";
-
-    if ids.as_ref().is_empty() {
-        let value = Some(Value::String(None));
-        write_value(writer, value)
-    } else {
-        let s = ids
-            .as_ref()
-            .iter()
-            .map(|id| id.as_ref())
-            .collect::<Vec<_>>()
-            .join(DELIMITER);
-
-        let value = Some(Value::String(Some(&s)));
-
-        write_value(writer, value)
-    }
 }
 
 pub(crate) fn write_ref_alt<W>(
@@ -447,7 +424,7 @@ mod tests {
 
         fn t(buf: &mut Vec<u8>, ids: &Ids, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            write_id(buf, ids)?;
+            write_ids(buf, ids)?;
             assert_eq!(buf, expected);
             Ok(())
         }
