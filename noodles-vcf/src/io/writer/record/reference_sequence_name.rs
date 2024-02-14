@@ -1,16 +1,19 @@
 use std::io::{self, Write};
 
-pub(super) fn write_chromosome<W>(writer: &mut W, chromosome: &str) -> io::Result<()>
+pub(super) fn write_reference_sequence_name<W>(
+    writer: &mut W,
+    reference_sequence_name: &str,
+) -> io::Result<()>
 where
     W: Write,
 {
     const SYMBOL_PREFIX: char = '<';
     const SYMBOL_SUFFIX: char = '>';
 
-    if let Some(s) = chromosome.strip_prefix(SYMBOL_PREFIX) {
+    if let Some(s) = reference_sequence_name.strip_prefix(SYMBOL_PREFIX) {
         if let Some(s) = s.strip_suffix(SYMBOL_SUFFIX) {
             if is_valid(s) {
-                return writer.write_all(chromosome.as_bytes());
+                return writer.write_all(reference_sequence_name.as_bytes());
             } else {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
@@ -20,8 +23,8 @@ where
         }
     }
 
-    if is_valid(chromosome) {
-        writer.write_all(chromosome.as_bytes())
+    if is_valid(reference_sequence_name) {
+        writer.write_all(reference_sequence_name.as_bytes())
     } else {
         Err(io::Error::new(io::ErrorKind::InvalidInput, "invalid name"))
     }
@@ -52,10 +55,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_chromosome() -> io::Result<()> {
-        fn t(buf: &mut Vec<u8>, chromosome: &str, expected: &[u8]) -> io::Result<()> {
+    fn test_write_reference_sequence_name() -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, reference_sequence_name: &str, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            write_chromosome(buf, chromosome)?;
+            write_reference_sequence_name(buf, reference_sequence_name)?;
             assert_eq!(buf, expected);
             Ok(())
         }
@@ -67,13 +70,13 @@ mod tests {
 
         buf.clear();
         assert!(matches!(
-            write_chromosome(&mut buf, "sq 0"),
+            write_reference_sequence_name(&mut buf, "sq 0"),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
         buf.clear();
         assert!(matches!(
-            write_chromosome(&mut buf, "<sq 0>"),
+            write_reference_sequence_name(&mut buf, "<sq 0>"),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 

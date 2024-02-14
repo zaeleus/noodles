@@ -7,7 +7,7 @@ use super::{AlternateBases, Filters, Ids, Info, RecordBuf, Samples};
 /// A VCF record builder.
 #[derive(Debug, PartialEq)]
 pub struct Builder {
-    chromosome: String,
+    reference_sequence_name: String,
     position: Option<Position>,
     ids: Ids,
     reference_bases: String,
@@ -19,7 +19,7 @@ pub struct Builder {
 }
 
 impl Builder {
-    /// Sets the chromosome.
+    /// Sets the reference sequence name.
     ///
     /// # Examples
     ///
@@ -27,16 +27,16 @@ impl Builder {
     /// use noodles_vcf as vcf;
     ///
     /// let record = vcf::variant::RecordBuf::builder()
-    ///     .set_chromosome("sq0")
+    ///     .set_reference_sequence_name("sq0")
     ///     .build();
     ///
-    /// assert_eq!(record.chromosome(), "sq0");
+    /// assert_eq!(record.reference_sequence_name(), "sq0");
     /// ```
-    pub fn set_chromosome<C>(mut self, chromosome: C) -> Self
+    pub fn set_reference_sequence_name<N>(mut self, reference_sequence_name: N) -> Self
     where
-        C: Into<String>,
+        N: Into<String>,
     {
-        self.chromosome = chromosome.into();
+        self.reference_sequence_name = reference_sequence_name.into();
         self
     }
 
@@ -232,7 +232,7 @@ impl Builder {
     /// ```
     pub fn build(self) -> RecordBuf {
         RecordBuf {
-            chromosome: self.chromosome,
+            reference_sequence_name: self.reference_sequence_name,
             position: self.position,
             ids: self.ids,
             reference_bases: self.reference_bases,
@@ -248,7 +248,7 @@ impl Builder {
 impl Default for Builder {
     fn default() -> Self {
         Self {
-            chromosome: String::new(),
+            reference_sequence_name: String::new(),
             position: Some(Position::MIN),
             ids: Ids::default(),
             reference_bases: String::new(),
@@ -269,7 +269,7 @@ mod tests {
     fn test_default() {
         let record = Builder::default();
 
-        assert!(record.chromosome.is_empty());
+        assert!(record.reference_sequence_name.is_empty());
         assert_eq!(record.position, Some(Position::MIN));
         assert!(record.ids.is_empty());
         assert!(record.reference_bases.is_empty());

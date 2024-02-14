@@ -31,7 +31,7 @@ use crate::{variant::RecordBuf, Header};
 /// writer.write_header(&header)?;
 ///
 /// let record = vcf::variant::RecordBuf::builder()
-///     .set_chromosome("sq0")
+///     .set_reference_sequence_name("sq0")
 ///     .set_position(Position::MIN)
 ///     .set_reference_bases("A")
 ///     .build();
@@ -136,7 +136,7 @@ where
     /// let header = vcf::Header::default();
     ///
     /// let record = vcf::variant::RecordBuf::builder()
-    ///     .set_chromosome("sq0")
+    ///     .set_reference_sequence_name("sq0")
     ///     .set_position(Position::MIN)
     ///     .set_reference_bases("A")
     ///     .build();
@@ -174,7 +174,7 @@ mod tests {
         let header = Header::default();
 
         let record = RecordBuf::builder()
-            .set_chromosome("sq0")
+            .set_reference_sequence_name("sq0")
             .set_position(Position::MIN)
             .set_reference_bases("A")
             .build();
@@ -209,7 +209,7 @@ mod tests {
         );
 
         let record = RecordBuf::builder()
-            .set_chromosome("sq0")
+            .set_reference_sequence_name("sq0")
             .set_position(Position::MIN)
             .set_reference_bases("A")
             .set_samples(samples)

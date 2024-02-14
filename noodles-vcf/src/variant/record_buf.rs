@@ -28,7 +28,7 @@ pub(crate) const MISSING_FIELD: &str = ".";
 /// a number of genotype fields.
 #[derive(Clone, Debug, PartialEq)]
 pub struct RecordBuf {
-    chromosome: String,
+    reference_sequence_name: String,
     position: Option<Position>,
     ids: Ids,
     reference_bases: String,
@@ -52,7 +52,7 @@ impl RecordBuf {
         Builder::default()
     }
 
-    /// Returns the chromosome of the record.
+    /// Returns the reference sequence name.
     ///
     /// # Examples
     ///
@@ -60,16 +60,16 @@ impl RecordBuf {
     /// use noodles_vcf as vcf;
     ///
     /// let record = vcf::variant::RecordBuf::builder()
-    ///     .set_chromosome("sq0")
+    ///     .set_reference_sequence_name("sq0")
     ///     .build();
     ///
-    /// assert_eq!(record.chromosome(), "sq0");
+    /// assert_eq!(record.reference_sequence_name(), "sq0");
     /// ```
-    pub fn chromosome(&self) -> &str {
-        &self.chromosome
+    pub fn reference_sequence_name(&self) -> &str {
+        &self.reference_sequence_name
     }
 
-    /// Returns a mutable reference to the chromosome.
+    /// Returns a mutable reference to the reference sequence name.
     ///
     /// # Examples
     ///
@@ -77,22 +77,22 @@ impl RecordBuf {
     /// use noodles_vcf as vcf;
     ///
     /// let mut record = vcf::variant::RecordBuf::builder()
-    ///     .set_chromosome("sq0")
+    ///     .set_reference_sequence_name("sq0")
     ///     .build();
     ///
-    /// *record.chromosome_mut() = String::from("sq1");
+    /// *record.reference_sequence_name_mut() = String::from("sq1");
     ///
-    /// assert_eq!(record.chromosome(), "sq1");
+    /// assert_eq!(record.reference_sequence_name(), "sq1");
     /// ```
-    pub fn chromosome_mut(&mut self) -> &mut String {
-        &mut self.chromosome
+    pub fn reference_sequence_name_mut(&mut self) -> &mut String {
+        &mut self.reference_sequence_name
     }
 
     /// Returns the start position of the reference bases or indicates a telomeric breakend.
     ///
     /// This field is overloaded. If the record represents a telomere, the telomeric breakends are
-    /// set to 0 and _n_ + 1, where _n_ is the length of the chromosome. Otherwise, it is a 1-based
-    /// start position of the reference bases.
+    /// set to 0 and _n_ + 1, where _n_ is the length of the reference sequence. Otherwise, it is a
+    /// 1-based start position of the reference bases.
     ///
     /// # Examples
     ///
@@ -113,8 +113,8 @@ impl RecordBuf {
     /// Returns a mutable reference to the start position of the reference bases.
     ///
     /// This field is overloaded. If the record represents a telomere, the telomeric breakends are
-    /// set to 0 and _n_ + 1, where _n_ is the length of the chromosome. Otherwise, it is a 1-based
-    /// start position of the reference bases.
+    /// set to 0 and _n_ + 1, where _n_ is the length of the reference sequence. Otherwise, it is a
+    /// 1-based start position of the reference bases.
     ///
     /// # Examples
     ///
@@ -482,7 +482,7 @@ impl RecordBuf {
 impl Default for RecordBuf {
     fn default() -> Self {
         Self {
-            chromosome: String::from("."),
+            reference_sequence_name: String::from("."),
             position: Some(Position::MIN),
             ids: Ids::default(),
             reference_bases: String::from("N"),
@@ -559,7 +559,7 @@ impl RecordBuf {
     /// };
     ///
     /// let record = vcf::variant::RecordBuf::builder()
-    ///     .set_chromosome("sq0")
+    ///     .set_reference_sequence_name("sq0")
     ///     .set_position(Position::MIN)
     ///     .set_reference_bases("ACGT")
     ///     .set_info(
@@ -580,7 +580,7 @@ impl RecordBuf {
     /// use noodles_vcf as vcf;
     ///
     /// let record = vcf::variant::RecordBuf::builder()
-    ///     .set_chromosome("sq0")
+    ///     .set_reference_sequence_name("sq0")
     ///     .set_position(Position::MIN)
     ///     .set_reference_bases("ACGT")
     ///     .build();
@@ -624,7 +624,7 @@ mod tests {
         let actual = RecordBuf::default();
 
         let expected = RecordBuf::builder()
-            .set_chromosome(".")
+            .set_reference_sequence_name(".")
             .set_position(Position::MIN)
             .set_reference_bases("N")
             .build();
@@ -639,7 +639,7 @@ mod tests {
         use super::info::field::key;
 
         let record = RecordBuf::builder()
-            .set_chromosome("sq0")
+            .set_reference_sequence_name("sq0")
             .set_position(Position::MIN)
             .set_reference_bases("A")
             .set_info(
@@ -652,7 +652,7 @@ mod tests {
         assert_eq!(record.end(), Ok(Position::MIN));
 
         let record = RecordBuf::builder()
-            .set_chromosome("sq0")
+            .set_reference_sequence_name("sq0")
             .set_position(Position::MIN)
             .set_reference_bases("A")
             .set_info(
@@ -671,7 +671,7 @@ mod tests {
         );
 
         let record = RecordBuf::builder()
-            .set_chromosome("sq0")
+            .set_reference_sequence_name("sq0")
             .set_position(Position::MAX)
             .set_reference_bases("ACGT")
             .build();

@@ -112,7 +112,7 @@ where
     /// writer.write_header(&header)?;
     ///
     /// let record = vcf::variant::RecordBuf::builder()
-    ///     .set_chromosome("sq0")
+    ///     .set_reference_sequence_name("sq0")
     ///     .set_position(Position::MIN)
     ///     .set_reference_bases("A")
     ///     .build();

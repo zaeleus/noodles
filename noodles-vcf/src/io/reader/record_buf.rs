@@ -1,22 +1,23 @@
 //! VCF record reader.
 
 mod alternate_bases;
-mod chromosome;
 mod filters;
 mod ids;
 mod info;
 mod position;
 mod quality_score;
 mod reference_bases;
+mod reference_sequence_name;
 mod samples;
 mod value;
 
 use std::{error, fmt};
 
 use self::{
-    alternate_bases::parse_alternate_bases, chromosome::parse_chromosome, filters::parse_filters,
-    ids::parse_ids, info::parse_info, position::parse_position, quality_score::parse_quality_score,
-    reference_bases::parse_reference_bases, samples::parse_samples,
+    alternate_bases::parse_alternate_bases, filters::parse_filters, ids::parse_ids,
+    info::parse_info, position::parse_position, quality_score::parse_quality_score,
+    reference_bases::parse_reference_bases, reference_sequence_name::parse_reference_sequence_name,
+    samples::parse_samples,
 };
 use crate::{variant::RecordBuf, Header};
 
@@ -80,7 +81,7 @@ pub(crate) fn parse_record_buf(
     record: &mut RecordBuf,
 ) -> Result<(), ParseError> {
     let field = next_field(&mut s);
-    parse_chromosome(field, record.chromosome_mut());
+    parse_reference_sequence_name(field, record.reference_sequence_name_mut());
 
     let field = next_field(&mut s);
     *record.position_mut() = parse_position(field).map_err(ParseError::InvalidPosition)?;

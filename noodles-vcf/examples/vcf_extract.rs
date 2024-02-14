@@ -29,7 +29,7 @@ fn main() -> io::Result<()> {
         write!(
             writer,
             "{chrom}\t{pos}\t{ref}",
-            chrom = record.chromosome(),
+            chrom = record.reference_sequence_name(),
             pos = record.position().map(usize::from).unwrap_or_default(),
             ref = record.reference_bases(),
         )?;

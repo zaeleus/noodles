@@ -92,7 +92,7 @@ fn intersects(
     chromosome_id: usize,
     region_interval: Interval,
 ) -> io::Result<bool> {
-    let chromosome = record.chromosome();
+    let chromosome = record.reference_sequence_name();
 
     let id = string_maps
         .contigs()

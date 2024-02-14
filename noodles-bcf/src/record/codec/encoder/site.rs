@@ -28,7 +28,11 @@ pub fn write_site<W>(
 where
     W: Write,
 {
-    write_chrom(writer, string_maps.contigs(), record.chromosome())?;
+    write_chrom(
+        writer,
+        string_maps.contigs(),
+        record.reference_sequence_name(),
+    )?;
     write_pos(writer, record.position())?;
 
     let end = record

@@ -31,7 +31,7 @@ pub fn read_site(
 ) -> io::Result<(usize, usize)> {
     let chrom = read_chrom(src)?;
 
-    *record.chromosome_mut() = string_maps
+    *record.reference_sequence_name_mut() = string_maps
         .contigs()
         .get_index(chrom)
         .map(String::from)
