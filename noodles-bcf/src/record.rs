@@ -22,9 +22,6 @@ pub use self::{
     reference_bases::ReferenceBases, samples::Samples,
 };
 
-/// A chromosome ID.
-pub type ChromosomeId = usize;
-
 /// A BCF record.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Record(Fields);
@@ -34,22 +31,23 @@ impl Record {
         &mut self.0
     }
 
-    /// Returns the chromosome ID of the record.
+    /// Returns the reference sequence ID of the record.
     ///
-    /// The chromosome ID represents an index in the contig string map, which associates an ID (by
-    /// position) with a contig record in the VCF header (by name). That is, to get the associated
-    /// contig record in the VCF header, the contig string map must first be queried by position to
-    /// find the chromosome name, and then the contigs in the VCF header can be queried by name.
+    /// The reference sequence ID represents an index in the contig string map, which associates an
+    /// ID (by position) with a contig record in the VCF header (by name). That is, to get the
+    /// associated contig record in the VCF header, the contig string map must first be queried by
+    /// position to find the chromosome name, and then the contigs in the VCF header can be queried
+    /// by name.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_bcf as bcf;
     /// let record = bcf::Record::default();
-    /// assert_eq!(record.chromosome_id()?, 0);
+    /// assert_eq!(record.reference_sequence_id()?, 0);
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn chromosome_id(&self) -> io::Result<usize> {
+    pub fn reference_sequence_id(&self) -> io::Result<usize> {
         let n = self.0.reference_sequence_id();
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }

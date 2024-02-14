@@ -7,7 +7,7 @@ use noodles_csi::binning_index::index::reference_sequence::bin::Chunk;
 use tokio::io::{self, AsyncRead, AsyncSeek};
 
 use super::Reader;
-use crate::{record::ChromosomeId, Record};
+use crate::Record;
 
 enum State {
     Seek,
@@ -23,7 +23,7 @@ where
 
     chunks: vec::IntoIter<Chunk>,
 
-    chromosome_id: ChromosomeId,
+    reference_sequence_id: usize,
     interval: Interval,
 
     state: State,
@@ -32,7 +32,7 @@ where
 pub fn query<R>(
     reader: &mut Reader<bgzf::AsyncReader<R>>,
     chunks: Vec<Chunk>,
-    chromosome_id: ChromosomeId,
+    chromosome_id: usize,
     interval: Interval,
 ) -> impl Stream<Item = io::Result<Record>> + '_
 where
@@ -43,7 +43,7 @@ where
 
         chunks: chunks.into_iter(),
 
-        chromosome_id,
+        reference_sequence_id: chromosome_id,
         interval,
 
         state: State::Seek,
@@ -67,7 +67,7 @@ where
                             ctx.state = State::Seek;
                         }
 
-                        if intersects(&record, ctx.chromosome_id, ctx.interval)? {
+                        if intersects(&record, ctx.reference_sequence_id, ctx.interval)? {
                             return Ok(Some((record, ctx)));
                         }
                     }
@@ -96,7 +96,7 @@ fn intersects(
     chromosome_id: usize,
     region_interval: Interval,
 ) -> io::Result<bool> {
-    let id = record.chromosome_id()?;
+    let id = record.reference_sequence_id()?;
 
     let Some(start) = record.position().transpose()? else {
         return Ok(false);
