@@ -79,7 +79,7 @@ pub(crate) fn intersects(
     reference_sequence_name: &[u8],
     region_interval: Interval,
 ) -> io::Result<bool> {
-    let name = record.chromosome().to_string();
+    let name = record.reference_sequence_name().to_string();
 
     let Some(start) = record.position() else {
         return Ok(false);

@@ -23,7 +23,7 @@ impl Record {
     ///
     /// let actual = record.try_into_vcf_record(&header, &string_maps)?;
     /// let expected = vcf::variant::RecordBuf::builder()
-    ///     .set_chromosome("sq0")
+    ///     .set_reference_sequence_name("sq0")
     ///     .set_position(Position::MIN)
     ///     .set_reference_bases("N")
     ///     .build();
@@ -67,7 +67,7 @@ impl Record {
             .try_into_vcf_record_samples(header, string_maps.strings())?;
 
         let mut builder = vcf::variant::RecordBuf::builder()
-            .set_chromosome(chromosome)
+            .set_reference_sequence_name(chromosome)
             .set_reference_bases(reference_bases)
             .set_alternate_bases(alternate_bases.into())
             .set_info(info)

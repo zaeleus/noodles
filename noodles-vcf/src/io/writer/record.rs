@@ -1,18 +1,18 @@
 mod alternate_bases;
-mod chromosome;
 mod filters;
 mod genotypes;
 mod ids;
 mod info;
 mod position;
 mod quality_score;
+mod reference_sequence_name;
 
 use std::io::{self, Write};
 
 use self::{
-    alternate_bases::write_alternate_bases, chromosome::write_chromosome, filters::write_filters,
-    genotypes::write_genotypes, ids::write_ids, info::write_info, position::write_position,
-    quality_score::write_quality_score,
+    alternate_bases::write_alternate_bases, filters::write_filters, genotypes::write_genotypes,
+    ids::write_ids, info::write_info, position::write_position, quality_score::write_quality_score,
+    reference_sequence_name::write_reference_sequence_name,
 };
 use crate::variant::RecordBuf;
 
@@ -24,7 +24,7 @@ where
 {
     const DELIMITER: &[u8] = b"\t";
 
-    write_chromosome(writer, record.chromosome())?;
+    write_reference_sequence_name(writer, record.reference_sequence_name())?;
 
     writer.write_all(DELIMITER)?;
     write_position(writer, record.position())?;
@@ -66,7 +66,7 @@ mod tests {
     #[test]
     fn test_write_record() -> io::Result<()> {
         let record = RecordBuf::builder()
-            .set_chromosome("sq0")
+            .set_reference_sequence_name("sq0")
             .set_position(Position::MIN)
             .set_reference_bases("A")
             .build();

@@ -30,7 +30,7 @@ where
         let end_position = reader.get_ref().virtual_position();
         let chunk = Chunk::new(start_position, end_position);
 
-        let reference_sequence_name = record.chromosome().to_string();
+        let reference_sequence_name = record.reference_sequence_name().to_string();
         let start = record
             .position()
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing position"))?;
