@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/record/cigar: Increase the visibility of `Cigar::new`.
+
 ## 0.52.0 - 2024-02-08
 
 ### Added

@@ -7,7 +7,15 @@ use crate::{alignment::record::cigar::Op, io::reader::record_buf::cigar::op};
 pub struct Cigar<'a>(&'a [u8]);
 
 impl<'a> Cigar<'a> {
-    pub(super) fn new(src: &'a [u8]) -> Self {
+    /// Creates SAM record CIGAR operations.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::Cigar;
+    /// let cigar = Cigar::new(b"8M13N");
+    /// ```
+    pub fn new(src: &'a [u8]) -> Self {
         Self(src)
     }
 
