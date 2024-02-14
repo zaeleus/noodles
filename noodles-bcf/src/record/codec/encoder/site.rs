@@ -1,3 +1,4 @@
+mod bases;
 mod filters;
 mod ids;
 mod info;
@@ -12,11 +13,11 @@ use noodles_core::Position;
 use noodles_vcf as vcf;
 
 use self::{
-    filters::write_filters, ids::write_ids, info::write_info, position::write_position,
-    quality_score::write_quality_score, reference_sequence_id::write_reference_sequence_id,
+    bases::write_bases, filters::write_filters, ids::write_ids, info::write_info,
+    position::write_position, quality_score::write_quality_score,
+    reference_sequence_id::write_reference_sequence_id,
 };
-use super::value::write_value;
-use crate::{header::StringMaps, record::codec::value::Value};
+use crate::header::StringMaps;
 
 const MAX_SAMPLE_NAME_COUNT: u32 = (1 << 24) - 1;
 
@@ -57,7 +58,7 @@ where
     )?;
 
     write_ids(writer, record.ids())?;
-    write_ref_alt(writer, record.reference_bases(), record.alternate_bases())?;
+    write_bases(writer, record.reference_bases(), record.alternate_bases())?;
     write_filters(writer, string_maps.strings(), record.filters())?;
     write_info(writer, string_maps.strings(), record.info())?;
 
@@ -130,28 +131,6 @@ where
 
     let n_fmt_sample = u32::from(n_fmt) << 24 | n_sample;
     writer.write_u32::<LittleEndian>(n_fmt_sample)?;
-
-    Ok(())
-}
-
-pub(crate) fn write_ref_alt<W>(
-    writer: &mut W,
-    reference_bases: &str,
-    alternate_bases: &vcf::variant::record_buf::AlternateBases,
-) -> io::Result<()>
-where
-    W: Write,
-{
-    let r#ref = reference_bases;
-    let ref_value = Some(Value::String(Some(r#ref)));
-    write_value(writer, ref_value)?;
-
-    if !alternate_bases.is_empty() {
-        for alt in alternate_bases.as_ref().iter() {
-            let alt_value = Some(Value::String(Some(alt)));
-            write_value(writer, alt_value)?;
-        }
-    }
 
     Ok(())
 }
@@ -255,43 +234,6 @@ mod tests {
             write_n_fmt_sample(&mut buf, 0, 1 << 8),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_write_ref_alt() -> Result<(), Box<dyn std::error::Error>> {
-        use vcf::variant::record_buf::AlternateBases;
-
-        fn t(
-            buf: &mut Vec<u8>,
-            reference_bases: &str,
-            alternate_bases: &AlternateBases,
-            expected: &[u8],
-        ) -> io::Result<()> {
-            buf.clear();
-            write_ref_alt(buf, reference_bases, alternate_bases)?;
-            assert_eq!(buf, expected);
-            Ok(())
-        }
-
-        let mut buf = Vec::new();
-
-        t(&mut buf, "A", &AlternateBases::default(), &[0x17, b'A'])?;
-
-        t(
-            &mut buf,
-            "A",
-            &AlternateBases::from(vec![String::from("G")]),
-            &[0x17, b'A', 0x17, b'G'],
-        )?;
-
-        t(
-            &mut buf,
-            "A",
-            &AlternateBases::from(vec![String::from("G"), String::from("T")]),
-            &[0x17, b'A', 0x17, b'G', 0x17, b'T'],
-        )?;
 
         Ok(())
     }
