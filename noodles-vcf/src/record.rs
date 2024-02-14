@@ -70,8 +70,8 @@ impl Record {
         self.0.info()
     }
 
-    /// Returns the genotypes.
-    pub fn genotypes(&self) -> Samples<'_> {
+    /// Returns the samples.
+    pub fn samples(&self) -> Samples<'_> {
         self.0.samples()
     }
 }
@@ -87,7 +87,7 @@ impl fmt::Debug for Record {
             .field("quality_score", &self.quality_score())
             .field("filters", &self.filters())
             .field("info", &self.info())
-            .field("genotypes", &self.genotypes())
+            .field("samples", &self.samples())
             .finish()
     }
 }
