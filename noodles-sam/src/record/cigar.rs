@@ -20,11 +20,42 @@ impl<'a> Cigar<'a> {
     }
 
     /// Returns whether there are any CIGAR operations.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::Cigar;
+    ///
+    /// let cigar = Cigar::new(b"");
+    /// assert!(cigar.is_empty());
+    ///
+    /// let cigar = Cigar::new(b"8M13N");
+    /// assert!(!cigar.is_empty());
+    /// ```
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
     /// Returns an iterator over CIGAR operations.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{
+    ///     alignment::record::cigar::{op::Kind, Op},
+    ///     record::Cigar,
+    /// };
+    ///
+    /// let cigar = Cigar::new(b"");
+    /// assert!(cigar.iter().next().is_none());
+    ///
+    /// let cigar = Cigar::new(b"8M13N");
+    /// let mut iter = cigar.iter();
+    /// assert_eq!(iter.next().transpose()?, Some(Op::new(Kind::Match, 8)));
+    /// assert_eq!(iter.next().transpose()?, Some(Op::new(Kind::Skip, 13)));
+    /// assert!(iter.next().is_none());
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
     pub fn iter(&self) -> impl Iterator<Item = Result<Op, op::ParseError>> + '_ {
         use crate::io::reader::record_buf::cigar::op::parse_op;
 
@@ -86,25 +117,5 @@ impl<'a> TryFrom<Cigar<'a>> for crate::alignment::record_buf::Cigar {
         }
 
         Ok(cigar)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::alignment::record::cigar::op::Kind;
-
-    use super::*;
-
-    #[test]
-    fn test_iter() -> Result<(), op::ParseError> {
-        let cigar = Cigar::new(b"");
-        assert!(cigar.iter().next().is_none());
-
-        let cigar = Cigar::new(b"8M13N");
-        let actual: Vec<_> = cigar.iter().collect::<Result<_, _>>()?;
-        let expected = [Op::new(Kind::Match, 8), Op::new(Kind::Skip, 13)];
-        assert_eq!(actual, expected);
-
-        Ok(())
     }
 }
