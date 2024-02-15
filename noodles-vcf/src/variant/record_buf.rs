@@ -16,8 +16,6 @@ pub use self::{
 
 use std::{error, fmt, num};
 
-pub(crate) const MISSING_FIELD: &str = ".";
-
 /// A VCF record.
 ///
 /// A VCF record has 8 required fields: chromosome (`CHROM`), position (`POS`), IDs (`ID`),
