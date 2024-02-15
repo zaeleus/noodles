@@ -1,9 +1,9 @@
-use std::{io, iter};
+use std::{fmt, io, iter};
 
 use crate::{alignment::record::cigar::Op, io::reader::record_buf::cigar::op};
 
 /// Raw SAM record CIGAR operations.
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Eq, PartialEq)]
 pub struct Cigar<'a>(&'a [u8]);
 
 impl<'a> Cigar<'a> {
@@ -68,6 +68,12 @@ impl<'a> Cigar<'a> {
                 Some(parse_op(&mut src))
             }
         })
+    }
+}
+
+impl<'a> fmt::Debug for Cigar<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_list().entries(self.iter()).finish()
     }
 }
 
