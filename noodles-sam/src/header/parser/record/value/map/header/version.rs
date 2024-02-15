@@ -2,7 +2,7 @@ use std::{error, fmt};
 
 use crate::header::record::value::map::header::Version;
 
-pub(super) fn parse_version(src: &[u8]) -> Result<Version, ParseError> {
+pub(crate) fn parse_version(src: &[u8]) -> Result<Version, ParseError> {
     const DELIMITER: u8 = b'.';
 
     fn split_once(buf: &[u8], delimiter: u8) -> Option<(&[u8], &[u8])> {

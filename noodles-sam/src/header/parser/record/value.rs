@@ -1,5 +1,5 @@
 mod comment;
-mod map;
+pub(crate) mod map;
 
 use std::{error, fmt};
 

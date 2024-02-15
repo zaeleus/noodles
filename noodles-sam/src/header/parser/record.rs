@@ -1,5 +1,5 @@
 mod kind;
-mod value;
+pub(crate) mod value;
 
 use std::{error, fmt};
 

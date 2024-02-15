@@ -151,16 +151,16 @@ impl Parser {
 }
 
 fn extract_version(src: &[u8]) -> Option<Version> {
+    use self::record::value::map::header::parse_version;
+
     const RECORD_PREFIX: &[u8] = b"@HD\t";
     const DELIMITER: u8 = b'\t';
     const FIELD_PREFIX: &[u8] = b"VN:";
 
     if let Some(raw_value) = src.strip_prefix(RECORD_PREFIX) {
         for raw_field in raw_value.split(|&b| b == DELIMITER) {
-            if let Some(raw_version) = raw_field.strip_prefix(FIELD_PREFIX) {
-                return str::from_utf8(raw_version)
-                    .ok()
-                    .and_then(|s| s.parse().ok());
+            if let Some(s) = raw_field.strip_prefix(FIELD_PREFIX) {
+                return parse_version(s).ok();
             }
         }
     }

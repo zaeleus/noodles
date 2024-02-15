@@ -4,7 +4,7 @@ use std::{error, fmt};
 
 use bstr::{BStr, BString};
 
-use self::version::parse_version;
+pub(crate) use self::version::parse_version;
 use super::field::{consume_delimiter, consume_separator, parse_tag, parse_value, value};
 use crate::header::{
     parser::Context,
