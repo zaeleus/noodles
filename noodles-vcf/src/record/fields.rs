@@ -37,7 +37,11 @@ impl Fields {
     }
 
     pub(super) fn ids(&self) -> Ids<'_> {
-        let src = &self.buf[self.bounds.ids_range()];
+        let src = match &self.buf[self.bounds.ids_range()] {
+            MISSING => "",
+            buf => buf,
+        };
+
         Ids::new(src)
     }
 

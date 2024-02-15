@@ -1,7 +1,5 @@
 use std::iter;
 
-use crate::variant::record_buf::MISSING_FIELD;
-
 /// Raw VCF record IDs.
 #[derive(Debug, Eq, PartialEq)]
 pub struct Ids<'a>(&'a str);
@@ -13,7 +11,7 @@ impl<'a> Ids<'a> {
 
     /// Returns whether there are any IDs.
     pub fn is_empty(&self) -> bool {
-        self.0 == MISSING_FIELD
+        self.0.is_empty()
     }
 
     /// Returns an iterator over all IDs.
@@ -40,14 +38,14 @@ mod tests {
 
     #[test]
     fn test_is_empty() {
-        assert!(Ids::new(".").is_empty());
+        assert!(Ids::new("").is_empty());
         assert!(!Ids::new("nd0").is_empty());
         assert!(!Ids::new("nd0;nd1").is_empty());
     }
 
     #[test]
     fn test_iter() {
-        let ids = Ids::new(".");
+        let ids = Ids::new("");
         assert!(ids.iter().next().is_none());
 
         let ids = Ids::new("nd0;nd1");
