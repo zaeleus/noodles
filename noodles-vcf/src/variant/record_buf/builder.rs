@@ -277,7 +277,7 @@ mod tests {
         assert!(record.alternate_bases.is_empty());
         assert!(record.quality_score.is_none());
         assert!(record.filters.is_none());
-        assert!(record.info.is_empty());
+        assert!(record.info.as_ref().is_empty());
         assert!(record.samples.is_empty());
     }
 }
