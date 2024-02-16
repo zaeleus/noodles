@@ -264,6 +264,7 @@ impl Default for Builder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::variant::record::AlternateBases as _;
 
     #[test]
     fn test_default() {

@@ -1,7 +1,7 @@
 use std::io::{self, Write};
 
 use super::MISSING;
-use crate::variant::record_buf::AlternateBases;
+use crate::variant::{record::AlternateBases as _, record_buf::AlternateBases};
 
 pub(super) fn write_alternate_bases<W>(
     writer: &mut W,
