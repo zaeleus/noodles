@@ -13,10 +13,12 @@ where
     const DELIMITER: &[u8] = b";";
     const SEPARATOR: &[u8] = b"=";
 
+    let info = info.as_ref();
+
     if info.is_empty() {
         writer.write_all(MISSING)?;
     } else {
-        for (i, (key, value)) in info.as_ref().iter().enumerate() {
+        for (i, (key, value)) in info.iter().enumerate() {
             if i > 0 {
                 writer.write_all(DELIMITER)?;
             }

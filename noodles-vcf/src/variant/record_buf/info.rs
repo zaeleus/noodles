@@ -13,32 +13,6 @@ use self::field::Value;
 pub struct Info(IndexMap<String, Option<Value>>);
 
 impl Info {
-    /// Returns the number of info fields.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::variant::record_buf::Info;
-    /// let info = Info::default();
-    /// assert_eq!(info.len(), 0);
-    /// ```
-    pub fn len(&self) -> usize {
-        self.0.len()
-    }
-
-    /// Returns whether there are any info fields.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::variant::record_buf::Info;
-    /// let info = Info::default();
-    /// assert!(info.is_empty());
-    /// ```
-    pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
     /// Removes all fields from the info map.
     ///
     /// This does not affect the capacity of the map.
@@ -46,9 +20,9 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::variant::record_buf::{
-    ///     info::field::{key, Value},
-    ///     Info,
+    /// use noodles_vcf::variant::{
+    ///     record::Info as _,
+    ///     record_buf::{info::field::{key, Value}, Info },
     /// };
     ///
     /// let ns = (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(2)));
@@ -176,9 +150,9 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::variant::record_buf::{
-    ///     info::field::{key, Value},
-    ///     Info,
+    /// use noodles_vcf::variant::{
+    ///     record::Info as _,
+    ///     record_buf::{info::field::{key, Value}, Info},
     /// };
     ///
     /// let ns = (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(2)));
@@ -266,6 +240,34 @@ impl FromIterator<(String, Option<Value>)> for Info {
         let mut info = Self::default();
         info.extend(iter);
         info
+    }
+}
+
+impl crate::variant::record::Info for Info {
+    fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    fn iter<'a, 'h: 'a>(
+        &'a self,
+        _: &'h crate::Header,
+    ) -> Box<
+        dyn Iterator<
+                Item = std::io::Result<(
+                    &'a str,
+                    Option<crate::variant::record::info::field::Value<'a>>,
+                )>,
+            > + 'a,
+    > {
+        Box::new(
+            self.0
+                .iter()
+                .map(|(key, value)| Ok((key.as_ref(), value.as_ref().map(|v| v.into())))),
+        )
     }
 }
 

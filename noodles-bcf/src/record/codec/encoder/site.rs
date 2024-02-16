@@ -45,7 +45,7 @@ where
 
     write_quality_score(writer, record.quality_score())?;
 
-    let n_info = u16::try_from(record.info().len())
+    let n_info = u16::try_from(record.info().as_ref().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u16::<LittleEndian>(n_info)?;
 
