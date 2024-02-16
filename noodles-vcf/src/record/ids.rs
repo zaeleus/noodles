@@ -8,14 +8,24 @@ impl<'a> Ids<'a> {
     pub(super) fn new(buf: &'a str) -> Self {
         Self(buf)
     }
+}
 
-    /// Returns whether there are any IDs.
-    pub fn is_empty(&self) -> bool {
+impl<'a> AsRef<str> for Ids<'a> {
+    fn as_ref(&self) -> &str {
+        self.0
+    }
+}
+
+impl<'a> crate::variant::record::Ids for Ids<'a> {
+    fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
-    /// Returns an iterator over all IDs.
-    pub fn iter(&self) -> Box<dyn Iterator<Item = &str> + '_> {
+    fn len(&self) -> usize {
+        self.iter().count()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = &str> + '_> {
         const DELIMITER: char = ';';
 
         if self.is_empty() {
@@ -26,21 +36,23 @@ impl<'a> Ids<'a> {
     }
 }
 
-impl<'a> AsRef<str> for Ids<'a> {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::variant::record::Ids as _;
 
     #[test]
     fn test_is_empty() {
         assert!(Ids::new("").is_empty());
         assert!(!Ids::new("nd0").is_empty());
         assert!(!Ids::new("nd0;nd1").is_empty());
+    }
+
+    #[test]
+    fn test_len() {
+        assert_eq!(Ids::new("").len(), 0);
+        assert_eq!(Ids::new("nd0").len(), 1);
+        assert_eq!(Ids::new("nd0;nd1").len(), 2);
     }
 
     #[test]
