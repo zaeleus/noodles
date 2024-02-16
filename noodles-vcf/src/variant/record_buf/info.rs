@@ -6,9 +6,11 @@ use std::hash::Hash;
 
 use indexmap::IndexMap;
 
+use self::field::Value;
+
 /// VCF record information fields (`INFO`).
 #[derive(Clone, Debug, Default, PartialEq)]
-pub struct Info(IndexMap<String, Option<field::Value>>);
+pub struct Info(IndexMap<String, Option<Value>>);
 
 impl Info {
     /// Returns the number of info fields.
@@ -78,7 +80,7 @@ impl Info {
     /// assert_eq!(info.get(key::TOTAL_DEPTH), Some(Some(&Value::Integer(13))));
     /// assert!(info.get(key::ALLELE_FREQUENCIES).is_none());
     /// ```
-    pub fn get<K>(&self, key: &K) -> Option<Option<&field::Value>>
+    pub fn get<K>(&self, key: &K) -> Option<Option<&Value>>
     where
         K: Hash + indexmap::Equivalent<String> + ?Sized,
     {
@@ -105,7 +107,7 @@ impl Info {
     ///
     /// assert_eq!(info.get(key::TOTAL_DEPTH), Some(Some(&Value::Integer(8))));
     /// ```
-    pub fn get_mut<K>(&mut self, key: &K) -> Option<&mut Option<field::Value>>
+    pub fn get_mut<K>(&mut self, key: &K) -> Option<&mut Option<Value>>
     where
         K: Hash + indexmap::Equivalent<String> + ?Sized,
     {
@@ -133,7 +135,7 @@ impl Info {
     ///
     /// assert!(info.get_index(5).is_none());
     /// ```
-    pub fn get_index(&self, i: usize) -> Option<(&String, Option<&field::Value>)> {
+    pub fn get_index(&self, i: usize) -> Option<(&String, Option<&Value>)> {
         self.0
             .get_index(i)
             .map(|(key, value)| (key, value.as_ref()))
@@ -162,7 +164,7 @@ impl Info {
     ///     Some((&String::from(key::TOTAL_DEPTH), Some(&Value::Integer(8))))
     /// );
     /// ```
-    pub fn get_index_mut(&mut self, i: usize) -> Option<(&String, &mut Option<field::Value>)> {
+    pub fn get_index_mut(&mut self, i: usize) -> Option<(&String, &mut Option<Value>)> {
         self.0.get_index_mut(i)
     }
 
@@ -188,11 +190,7 @@ impl Info {
     /// assert_eq!(info.len(), 2);
     /// assert_eq!(info.get(key::TOTAL_DEPTH), Some(Some(&Value::Integer(13))));
     /// ```
-    pub fn insert(
-        &mut self,
-        key: String,
-        value: Option<field::Value>,
-    ) -> Option<Option<field::Value>> {
+    pub fn insert(&mut self, key: String, value: Option<Value>) -> Option<Option<Value>> {
         self.0.insert(key, value)
     }
 
@@ -240,31 +238,31 @@ impl Info {
     /// assert_eq!(values.next(), Some(Some(&Value::Integer(13))));
     /// assert!(values.next().is_none());
     /// ```
-    pub fn values(&self) -> impl Iterator<Item = Option<&field::Value>> {
+    pub fn values(&self) -> impl Iterator<Item = Option<&Value>> {
         self.0.values().map(|value| value.as_ref())
     }
 }
 
-impl AsRef<IndexMap<String, Option<field::Value>>> for Info {
-    fn as_ref(&self) -> &IndexMap<String, Option<field::Value>> {
+impl AsRef<IndexMap<String, Option<Value>>> for Info {
+    fn as_ref(&self) -> &IndexMap<String, Option<Value>> {
         &self.0
     }
 }
 
-impl AsMut<IndexMap<String, Option<field::Value>>> for Info {
-    fn as_mut(&mut self) -> &mut IndexMap<String, Option<field::Value>> {
+impl AsMut<IndexMap<String, Option<Value>>> for Info {
+    fn as_mut(&mut self) -> &mut IndexMap<String, Option<Value>> {
         &mut self.0
     }
 }
 
-impl Extend<(String, Option<field::Value>)> for Info {
-    fn extend<T: IntoIterator<Item = (String, Option<field::Value>)>>(&mut self, iter: T) {
+impl Extend<(String, Option<Value>)> for Info {
+    fn extend<T: IntoIterator<Item = (String, Option<Value>)>>(&mut self, iter: T) {
         self.0.extend(iter);
     }
 }
 
-impl FromIterator<(String, Option<field::Value>)> for Info {
-    fn from_iter<T: IntoIterator<Item = (String, Option<field::Value>)>>(iter: T) -> Self {
+impl FromIterator<(String, Option<Value>)> for Info {
+    fn from_iter<T: IntoIterator<Item = (String, Option<Value>)>>(iter: T) -> Self {
         let mut info = Self::default();
         info.extend(iter);
         info
@@ -281,13 +279,13 @@ mod tests {
 
         let fields = [(
             String::from(key::SAMPLES_WITH_DATA_COUNT),
-            Some(field::Value::from(2)),
+            Some(Value::from(2)),
         )];
         info.extend(fields);
 
         let expected = [(
             String::from(key::SAMPLES_WITH_DATA_COUNT),
-            Some(field::Value::from(2)),
+            Some(Value::from(2)),
         )]
         .into_iter()
         .collect();
