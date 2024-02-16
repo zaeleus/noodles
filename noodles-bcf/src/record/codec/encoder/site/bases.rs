@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use noodles_vcf as vcf;
+use noodles_vcf::{self as vcf, variant::record::AlternateBases};
 
 use crate::record::codec::{encoder::value::write_value, Value};
 

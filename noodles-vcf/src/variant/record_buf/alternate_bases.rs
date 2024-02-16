@@ -4,15 +4,17 @@
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct AlternateBases(Vec<String>);
 
-impl AlternateBases {
-    /// Return whether there are any alternate alleles.
-    pub fn is_empty(&self) -> bool {
+impl crate::variant::record::AlternateBases for AlternateBases {
+    fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
-    /// Returns the number of alternate alleles.
-    pub fn len(&self) -> usize {
+    fn len(&self) -> usize {
         self.0.len()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = &str> + '_> {
+        Box::new(self.0.iter().map(|allele| allele.as_ref()))
     }
 }
 
