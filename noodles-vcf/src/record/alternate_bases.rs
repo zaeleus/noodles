@@ -1,5 +1,7 @@
 use std::fmt;
 
+use crate::variant::record::AlternateBases as _;
+
 /// VCF record alternate bases.
 pub struct AlternateBases<'a>(&'a str);
 
@@ -8,25 +10,6 @@ const DELIMITER: char = ',';
 impl<'a> AlternateBases<'a> {
     pub(super) fn new(src: &'a str) -> Self {
         Self(src)
-    }
-
-    /// Returns whether there are any alternate bases.
-    pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
-    /// Returns the number of alternate bases.
-    pub fn len(&self) -> usize {
-        if self.is_empty() {
-            0
-        } else {
-            self.iter().count()
-        }
-    }
-
-    /// Returns an iterator over alternate bases.
-    pub fn iter(&self) -> impl Iterator<Item = &'a str> + '_ {
-        self.0.split(DELIMITER)
     }
 }
 
@@ -39,5 +22,23 @@ impl<'a> fmt::Debug for AlternateBases<'a> {
 impl<'a> AsRef<str> for AlternateBases<'a> {
     fn as_ref(&self) -> &str {
         self.0
+    }
+}
+
+impl<'a> crate::variant::record::AlternateBases for AlternateBases<'a> {
+    fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        if self.is_empty() {
+            0
+        } else {
+            self.iter().count()
+        }
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = &str> + '_> {
+        Box::new(self.0.split(DELIMITER))
     }
 }
