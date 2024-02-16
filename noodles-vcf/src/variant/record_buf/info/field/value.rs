@@ -76,3 +76,16 @@ impl From<Vec<Option<String>>> for Value {
         Self::Array(Array::String(values))
     }
 }
+
+impl<'a> From<&'a Value> for crate::variant::record::info::field::Value<'a> {
+    fn from(value_buf: &'a Value) -> Self {
+        match value_buf {
+            Value::Integer(n) => Self::Integer(*n),
+            Value::Float(n) => Self::Float(*n),
+            Value::Flag => Self::Flag,
+            Value::Character(c) => Self::Character(*c),
+            Value::String(s) => Self::String(s.as_ref()),
+            Value::Array(array) => Self::Array(array.into()),
+        }
+    }
+}
