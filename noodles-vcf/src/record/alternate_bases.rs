@@ -1,4 +1,4 @@
-use std::{fmt, iter};
+use std::{fmt, io, iter};
 
 use crate::variant::record::AlternateBases as _;
 
@@ -38,11 +38,11 @@ impl<'a> crate::variant::record::AlternateBases for AlternateBases<'a> {
         }
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = &str> + '_> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<&str>> + '_> {
         if self.is_empty() {
             Box::new(iter::empty())
         } else {
-            Box::new(self.0.split(DELIMITER))
+            Box::new(self.0.split(DELIMITER).map(Ok))
         }
     }
 }
@@ -66,19 +66,20 @@ mod tests {
     }
 
     #[test]
-    fn test_iter() {
+    fn test_iter() -> io::Result<()> {
         let alternate_bases = AlternateBases::new("");
         assert!(alternate_bases.iter().next().is_none());
 
         let alternate_bases = AlternateBases::new("A");
-        let mut iter = alternate_bases.iter();
-        assert_eq!(iter.next(), Some("A"));
-        assert!(iter.next().is_none());
+        let actual: Vec<_> = alternate_bases.iter().collect::<io::Result<_>>()?;
+        let expected = ["A"];
+        assert_eq!(actual, expected);
 
         let alternate_bases = AlternateBases::new("A,C");
-        let mut iter = alternate_bases.iter();
-        assert_eq!(iter.next(), Some("A"));
-        assert_eq!(iter.next(), Some("C"));
-        assert!(iter.next().is_none());
+        let actual: Vec<_> = alternate_bases.iter().collect::<io::Result<_>>()?;
+        let expected = ["A", "C"];
+        assert_eq!(actual, expected);
+
+        Ok(())
     }
 }

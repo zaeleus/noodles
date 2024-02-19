@@ -1,3 +1,5 @@
+use std::io;
+
 /// Variant record alternate bases.
 pub trait AlternateBases {
     /// Returns whether there are any alternate bases.
@@ -7,5 +9,5 @@ pub trait AlternateBases {
     fn len(&self) -> usize;
 
     /// Returns an iterator over alternate bases.
-    fn iter(&self) -> Box<dyn Iterator<Item = &str> + '_>;
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<&str>> + '_>;
 }

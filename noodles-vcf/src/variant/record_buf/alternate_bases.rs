@@ -1,5 +1,7 @@
 //! VCF record alternate bases.
 
+use std::io;
+
 /// VCF record alternate bases (`ALT`).
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct AlternateBases(Vec<String>);
@@ -13,8 +15,8 @@ impl crate::variant::record::AlternateBases for AlternateBases {
         self.0.len()
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = &str> + '_> {
-        Box::new(self.0.iter().map(|allele| allele.as_ref()))
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<&str>> + '_> {
+        Box::new(self.0.iter().map(|allele| allele.as_ref()).map(Ok))
     }
 }
 
