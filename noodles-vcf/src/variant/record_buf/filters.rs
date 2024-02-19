@@ -85,25 +85,6 @@ impl Filters {
     }
 }
 
-impl fmt::Display for Filters {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Pass => f.write_str(PASS_STATUS),
-            Self::Fail(ids) => {
-                for (i, id) in ids.iter().enumerate() {
-                    if i > 0 {
-                        write!(f, "{DELIMITER}")?;
-                    }
-
-                    f.write_str(id)?;
-                }
-
-                Ok(())
-            }
-        }
-    }
-}
-
 /// An error returned when a raw VCF filter fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -183,19 +164,6 @@ mod tests {
             Filters::try_from_iter(["q 10"]),
             Err(TryFromIteratorError::InvalidFilter(String::from("q 10")))
         );
-    }
-
-    #[test]
-    fn test_fmt() -> Result<(), TryFromIteratorError> {
-        assert_eq!(Filters::Pass.to_string(), "PASS");
-
-        let filters = Filters::try_from_iter(["q10"])?;
-        assert_eq!(filters.to_string(), "q10");
-
-        let filters = Filters::try_from_iter(["q10", "s50"])?;
-        assert_eq!(filters.to_string(), "q10;s50");
-
-        Ok(())
     }
 
     #[test]
