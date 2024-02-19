@@ -107,14 +107,17 @@ pub(crate) mod tests {
         use noodles_core::Position;
         use noodles_vcf::{
             self as vcf,
-            variant::record_buf::{
-                info::{self, field::Value as InfoFieldValue},
-                samples::{
-                    self,
-                    sample::{value::Array, Value as GenotypeFieldValue},
-                    Keys,
+            variant::{
+                record::AlternateBases,
+                record_buf::{
+                    info::{self, field::Value as InfoFieldValue},
+                    samples::{
+                        self,
+                        sample::{value::Array, Value as GenotypeFieldValue},
+                        Keys,
+                    },
+                    Samples as VcfGenotypes,
                 },
-                Samples as VcfGenotypes,
             },
         };
 
@@ -140,8 +143,8 @@ pub(crate) mod tests {
             record
                 .alternate_bases()
                 .iter()
-                .collect::<Result<Vec<_>, _>>()?,
-            [Some("C")]
+                .collect::<io::Result<Vec<_>>>()?,
+            ["C"]
         );
 
         assert_eq!(

@@ -154,6 +154,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_bcf as bcf;
+    /// use noodles_vcf::variant::record::AlternateBases;
     /// let record = bcf::Record::default();
     /// assert!(record.alternate_bases().is_empty());
     /// ```

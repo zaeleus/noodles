@@ -32,7 +32,7 @@ where
 mod tests {
     use noodles_core::Position;
     use noodles_vcf::variant::{
-        record::info::field::Value as InfoFieldValue,
+        record::{info::field::Value as InfoFieldValue, AlternateBases},
         record_buf::{
             info,
             samples::{self, sample::Value as GenotypeFieldValue, Keys},
@@ -67,8 +67,8 @@ mod tests {
             record
                 .alternate_bases()
                 .iter()
-                .collect::<Result<Vec<_>, _>>()?,
-            [Some("C")]
+                .collect::<io::Result<Vec<_>>>()?,
+            ["C"]
         );
 
         assert_eq!(

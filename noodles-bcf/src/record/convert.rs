@@ -1,6 +1,6 @@
 use std::{io, str};
 
-use noodles_vcf as vcf;
+use noodles_vcf::{self as vcf, variant::record::AlternateBases};
 
 use super::Record;
 use crate::header::StringMaps;
@@ -48,7 +48,7 @@ impl Record {
         let alternate_bases: Vec<_> = self
             .alternate_bases()
             .iter()
-            .map(|result| result.map(|value| value.map(String::from).unwrap_or(String::from("."))))
+            .map(|result| result.map(String::from))
             .collect::<io::Result<_>>()?;
 
         let info = self
