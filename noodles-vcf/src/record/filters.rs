@@ -1,3 +1,5 @@
+use std::iter;
+
 /// Raw VCF record filters.
 #[derive(Debug, Eq, PartialEq)]
 pub struct Filters<'a>(&'a str);
@@ -5,12 +7,6 @@ pub struct Filters<'a>(&'a str);
 impl<'a> Filters<'a> {
     pub(super) fn new(buf: &'a str) -> Self {
         Self(buf)
-    }
-
-    /// Returns an iterator over all filters.
-    pub fn iter(&self) -> impl Iterator<Item = &str> {
-        const DELIMITER: char = ';';
-        self.0.split(DELIMITER)
     }
 }
 
@@ -20,12 +16,36 @@ impl<'a> AsRef<str> for Filters<'a> {
     }
 }
 
+impl<'a> crate::variant::record::Filters for Filters<'a> {
+    fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        self.iter().count()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = &str> + '_> {
+        const DELIMITER: char = ';';
+
+        if self.is_empty() {
+            Box::new(iter::empty())
+        } else {
+            Box::new(self.0.split(DELIMITER))
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::variant::record::Filters as _;
 
     #[test]
     fn test_iter() {
+        let filters = Filters::new("");
+        assert!(filters.iter().next().is_none());
+
         let filters = Filters::new("PASS");
         let actual: Vec<_> = filters.iter().collect();
         assert_eq!(actual, ["PASS"]);
