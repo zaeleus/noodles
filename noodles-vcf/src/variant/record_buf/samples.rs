@@ -6,8 +6,6 @@ mod series;
 
 pub use self::{keys::Keys, sample::Sample, series::Series};
 
-use std::{error, fmt};
-
 use self::sample::Value;
 
 /// VCF record genotypes.
@@ -144,39 +142,5 @@ impl Samples {
             let name = column_names.get_index(i).unwrap();
             Series::new(name, &self.values[..], i)
         })
-    }
-}
-
-/// An error returned when raw VCF record genotypes fail to parse.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
-    /// The input is empty.
-    Empty,
-    /// The input is invalid.
-    Invalid,
-    /// A key is invalid.
-    InvalidKeys(keys::ParseError),
-    /// A value is invalid.
-    InvalidValues(sample::ParseError),
-}
-
-impl error::Error for ParseError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match self {
-            Self::InvalidKeys(e) => Some(e),
-            Self::InvalidValues(e) => Some(e),
-            _ => None,
-        }
-    }
-}
-
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Empty => f.write_str("empty input"),
-            Self::Invalid => f.write_str("invalid input"),
-            Self::InvalidKeys(_) => f.write_str("invalid keys"),
-            Self::InvalidValues(_) => f.write_str("invalid values"),
-        }
     }
 }
