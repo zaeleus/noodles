@@ -1,11 +1,10 @@
 //! VCF record filters.
 
-use std::{error, fmt, str::FromStr};
+use std::{error, fmt};
 
 use indexmap::IndexSet;
 
 const PASS_STATUS: &str = "PASS";
-const DELIMITER: char = ';';
 
 /// VCF record filters (`FILTER`).
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -85,38 +84,6 @@ impl Filters {
     }
 }
 
-/// An error returned when a raw VCF filter fails to parse.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
-    /// The input is empty.
-    Empty,
-    /// The filters are invalid.
-    InvalidFilters(TryFromIteratorError),
-}
-
-impl error::Error for ParseError {}
-
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Empty => f.write_str("empty input"),
-            Self::InvalidFilters(e) => write!(f, "invalid filters: {e}"),
-        }
-    }
-}
-
-impl FromStr for Filters {
-    type Err = ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "" => Err(ParseError::Empty),
-            PASS_STATUS => Ok(Self::Pass),
-            _ => Self::try_from_iter(s.split(DELIMITER)).map_err(ParseError::InvalidFilters),
-        }
-    }
-}
-
 fn is_valid_filter(s: &str) -> bool {
     match s {
         "" | "0" => false,
@@ -163,63 +130,6 @@ mod tests {
         assert_eq!(
             Filters::try_from_iter(["q 10"]),
             Err(TryFromIteratorError::InvalidFilter(String::from("q 10")))
-        );
-    }
-
-    #[test]
-    fn test_from_str() {
-        assert_eq!("PASS".parse(), Ok(Filters::Pass));
-
-        assert_eq!(
-            "q10".parse(),
-            Ok(Filters::Fail([String::from("q10")].into_iter().collect()))
-        );
-
-        assert_eq!(
-            "q10;s50".parse(),
-            Ok(Filters::Fail(
-                [String::from("q10"), String::from("s50")]
-                    .into_iter()
-                    .collect()
-            ))
-        );
-
-        assert_eq!("".parse::<Filters>(), Err(ParseError::Empty));
-        assert_eq!(
-            "q10;q10".parse::<Filters>(),
-            Err(ParseError::InvalidFilters(
-                TryFromIteratorError::DuplicateFilter(String::from("q10"))
-            ))
-        );
-        assert_eq!(
-            "0".parse::<Filters>(),
-            Err(ParseError::InvalidFilters(
-                TryFromIteratorError::InvalidFilter(String::from("0"))
-            ))
-        );
-        assert_eq!(
-            "q 10".parse::<Filters>(),
-            Err(ParseError::InvalidFilters(
-                TryFromIteratorError::InvalidFilter(String::from("q 10"))
-            ))
-        );
-        assert_eq!(
-            ";q10".parse::<Filters>(),
-            Err(ParseError::InvalidFilters(
-                TryFromIteratorError::InvalidFilter(String::from(""))
-            ))
-        );
-        assert_eq!(
-            "q10;;s50".parse::<Filters>(),
-            Err(ParseError::InvalidFilters(
-                TryFromIteratorError::InvalidFilter(String::from(""))
-            ))
-        );
-        assert_eq!(
-            "q10;".parse::<Filters>(),
-            Err(ParseError::InvalidFilters(
-                TryFromIteratorError::InvalidFilter(String::from(""))
-            ))
         );
     }
 }
