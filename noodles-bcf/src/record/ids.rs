@@ -36,3 +36,33 @@ impl<'a> AsRef<[u8]> for Ids<'a> {
         self.0
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_is_empty() {
+        assert!(Ids::new(b"").is_empty());
+        assert!(!Ids::new(b"nd0").is_empty());
+        assert!(!Ids::new(b"nd0;nd1").is_empty());
+    }
+
+    #[test]
+    fn test_len() {
+        assert_eq!(Ids::new(b"").len(), 0);
+        assert_eq!(Ids::new(b"nd0").len(), 1);
+        assert_eq!(Ids::new(b"nd0;nd1").len(), 2);
+    }
+
+    #[test]
+    fn test_iter() {
+        let ids = Ids::new(b"");
+        assert!(ids.iter().next().is_none());
+
+        let ids = Ids::new(b"nd0;nd1");
+        let actual: Vec<_> = ids.iter().collect();
+        let expected = [b"nd0", b"nd1"];
+        assert_eq!(actual, expected);
+    }
+}
