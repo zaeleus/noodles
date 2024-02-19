@@ -42,6 +42,20 @@ mod tests {
     use crate::variant::record::Filters as _;
 
     #[test]
+    fn test_is_empty() {
+        assert!(Filters::new("").is_empty());
+        assert!(!Filters::new("PASS").is_empty());
+        assert!(!Filters::new("q10;s50").is_empty());
+    }
+
+    #[test]
+    fn test_len() {
+        assert_eq!(Filters::new("").len(), 0);
+        assert_eq!(Filters::new("PASS").len(), 1);
+        assert_eq!(Filters::new("q10;s50").len(), 2);
+    }
+
+    #[test]
     fn test_iter() {
         let filters = Filters::new("");
         assert!(filters.iter().next().is_none());
