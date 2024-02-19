@@ -128,6 +128,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_bcf as bcf;
+    /// use noodles_vcf::variant::record::Ids;
     /// let record = bcf::Record::default();
     /// assert!(record.ids().is_empty());
     /// ```
