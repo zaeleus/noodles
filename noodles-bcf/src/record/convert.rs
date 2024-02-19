@@ -1,6 +1,9 @@
 use std::{io, str};
 
-use noodles_vcf::{self as vcf, variant::record::AlternateBases};
+use noodles_vcf::{
+    self as vcf,
+    variant::record::{AlternateBases, Ids},
+};
 
 use super::Record;
 use crate::header::StringMaps;
