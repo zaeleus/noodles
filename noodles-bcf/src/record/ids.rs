@@ -1,8 +1,8 @@
+use std::iter;
+
 /// BCF record IDs.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Ids<'a>(&'a [u8]);
-
-const DELIMITER: u8 = b';';
 
 impl<'a> Ids<'a> {
     pub(super) fn new(src: &'a [u8]) -> Self {
@@ -16,10 +16,17 @@ impl<'a> Ids<'a> {
 
     /// Returns the number of IDs.
     pub fn len(&self) -> usize {
+        self.iter().count()
+    }
+
+    /// Returns an iterator over IDs.
+    pub fn iter(&self) -> Box<dyn Iterator<Item = &[u8]> + '_> {
+        const DELIMITER: u8 = b';';
+
         if self.is_empty() {
-            0
+            Box::new(iter::empty())
         } else {
-            self.0.iter().filter(|&&b| b == DELIMITER).count()
+            Box::new(self.0.split(|&b| b == DELIMITER))
         }
     }
 }
