@@ -1,6 +1,6 @@
 //! VCF record filters.
 
-use std::{error, fmt};
+use std::{error, fmt, iter};
 
 use indexmap::IndexSet;
 
@@ -88,6 +88,29 @@ fn is_valid_filter(s: &str) -> bool {
     match s {
         "" | "0" => false,
         _ => s.chars().all(|c| !c.is_ascii_whitespace()),
+    }
+}
+
+impl crate::variant::record::Filters for Filters {
+    fn is_empty(&self) -> bool {
+        match self {
+            Self::Pass => false,
+            Self::Fail(filters) => filters.is_empty(),
+        }
+    }
+
+    fn len(&self) -> usize {
+        match self {
+            Self::Pass => 1,
+            Self::Fail(filters) => filters.len(),
+        }
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = &str> + '_> {
+        match self {
+            Self::Pass => Box::new(iter::once(PASS_STATUS)),
+            Self::Fail(filters) => Box::new(filters.iter().map(|filter| filter.as_ref())),
+        }
     }
 }
 
