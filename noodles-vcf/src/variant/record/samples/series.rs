@@ -12,5 +12,5 @@ pub trait Series {
     fn name(&self) -> &str;
 
     /// Returns an iterator over values.
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Value<'_>>> + '_>;
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<Value<'_>>>> + '_>;
 }
