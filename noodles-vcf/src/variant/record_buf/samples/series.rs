@@ -1,3 +1,5 @@
+use std::io;
+
 use super::sample::Value;
 
 /// A variant record samples buffer series.
@@ -12,11 +14,6 @@ impl<'a> Series<'a> {
         Self { name, values, i }
     }
 
-    /// Returns the name.
-    pub fn name(&self) -> &str {
-        self.name
-    }
-
     /// Returns the value at the given index.
     pub fn get(&self, i: usize) -> Option<Option<&Value>> {
         self.values
@@ -25,11 +22,29 @@ impl<'a> Series<'a> {
     }
 }
 
+impl<'a> crate::variant::record::samples::Series for Series<'a> {
+    fn name(&self) -> &str {
+        self.name
+    }
+
+    fn iter(
+        &self,
+    ) -> Box<
+        dyn Iterator<Item = io::Result<Option<crate::variant::record::samples::series::Value<'_>>>>
+            + '_,
+    > {
+        Box::new(self.values.iter().map(|sample| {
+            Ok(sample
+                .get(self.i)
+                .and_then(|value| value.as_ref().map(|v| v.into())))
+        }))
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::variant::record_buf::samples::keys::key;
-
     use super::*;
+    use crate::variant::{record::samples::Series as _, record_buf::samples::keys::key};
 
     #[test]
     fn test_name() {
