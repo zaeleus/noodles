@@ -42,38 +42,6 @@ impl<'g> Sample<'g> {
     }
 }
 
-/// An error returned when a raw VCF genotype fails to parse.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
-    /// The input is empty.
-    Empty,
-    /// A value is invalid.
-    InvalidValue(value::ParseError),
-    /// The genotype field value is unexpected.
-    ///
-    /// There are fewer keys than values.
-    UnexpectedValue,
-}
-
-impl error::Error for ParseError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match self {
-            Self::InvalidValue(e) => Some(e),
-            _ => None,
-        }
-    }
-}
-
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Empty => f.write_str("empty input"),
-            Self::InvalidValue(_) => f.write_str("invalid value"),
-            Self::UnexpectedValue => f.write_str("unexpected value"),
-        }
-    }
-}
-
 /// An error returned when a genotype (`GT`) field value fails to parse.
 #[derive(Clone, Debug, PartialEq)]
 pub enum GenotypeError {
