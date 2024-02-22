@@ -4,7 +4,14 @@
 
 ### Changed
 
-  * fasta/repository/adapter: Add `Send` constraint to `Adapter` ([#234]).
+  * fasta/repository/adapter: Add `Send` and `Sync` constraints to `Adapter`.
+
+### Fixed
+
+  * fasta/repository: Make `Repository` thread-safe ([#234]).
+
+  `Repository` was intended to allow concurrent access, which is why the
+  adapter has a readers-writer lock.
 
 [#234]: https://github.com/zaeleus/noodles/issues/234
 
