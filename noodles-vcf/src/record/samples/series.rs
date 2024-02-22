@@ -3,37 +3,49 @@ use std::io;
 use super::Samples;
 use crate::{variant::record::samples::series::Value, Header};
 
-pub struct Series<'a> {
-    name: &'a str,
-    samples: &'a Samples<'a>,
+pub struct Series<'r> {
+    name: &'r str,
+    samples: &'r Samples<'r>,
     i: usize,
 }
 
-impl<'a> Series<'a> {
-    pub(super) fn new(name: &'a str, samples: &'a Samples<'a>, i: usize) -> Self {
+impl<'r> Series<'r> {
+    pub(super) fn new(name: &'r str, samples: &'r Samples<'r>, i: usize) -> Self {
         Self { name, samples, i }
     }
 
-    /// Returns the name.
-    pub fn name(&self) -> &str {
-        self.name
-    }
-
     /// Returns the value at the given index.
-    pub fn get<'h: 'a>(
+    pub fn get<'h: 'r>(
         &self,
         header: &'h Header,
         i: usize,
-    ) -> Option<Option<io::Result<Value<'a>>>> {
+    ) -> Option<Option<io::Result<Value<'r>>>> {
         let sample = self.samples.iter().nth(i)??;
         sample.get_index(header, self.i)
+    }
+}
+
+impl<'r> crate::variant::record::samples::Series for Series<'r> {
+    fn name(&self) -> &str {
+        self.name
+    }
+
+    fn iter<'a, 'h: 'a>(
+        &'a self,
+        header: &'h Header,
+    ) -> Box<dyn Iterator<Item = io::Result<Option<Value<'a>>>> + 'a> {
+        Box::new(self.samples.iter().map(|sample| {
+            sample
+                .and_then(|s| s.get_index(header, self.i)?)
+                .transpose()
+        }))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::variant::record_buf::samples::keys::key;
+    use crate::variant::{record::samples::Series as _, record_buf::samples::keys::key};
 
     #[test]
     fn test_name() {

@@ -5,6 +5,7 @@ pub mod value;
 use std::io;
 
 pub use self::value::Value;
+use crate::Header;
 
 /// A variant record samples series.
 pub trait Series {
@@ -12,5 +13,8 @@ pub trait Series {
     fn name(&self) -> &str;
 
     /// Returns an iterator over values.
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<Value<'_>>>> + '_>;
+    fn iter<'a, 'h: 'a>(
+        &'a self,
+        header: &'h Header,
+    ) -> Box<dyn Iterator<Item = io::Result<Option<Value<'a>>>> + 'a>;
 }
