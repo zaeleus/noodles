@@ -11,8 +11,8 @@ pub trait Samples {
     fn is_empty(&self) -> bool;
 
     /// Returns an iterator over series.
-    fn series(&self) -> Box<dyn Iterator<Item = Box<dyn Series>> + '_>;
+    fn series(&self) -> Box<dyn Iterator<Item = Box<dyn Series + '_>> + '_>;
 
     /// Returns an iterator over samples.
-    fn samples(&self) -> Box<dyn Iterator<Item = Box<dyn Sample>> + '_>;
+    fn samples(&self) -> Box<dyn Iterator<Item = Box<dyn Sample + '_>> + '_>;
 }
