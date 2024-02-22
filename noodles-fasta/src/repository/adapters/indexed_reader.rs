@@ -31,7 +31,7 @@ where
 
 impl<R> Adapter for IndexedReader<R>
 where
-    R: BufRead + Seek,
+    R: BufRead + Seek + Send,
 {
     fn get(&mut self, name: &[u8]) -> Option<io::Result<Record>> {
         let region = Region::new(name, ..);

@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * fasta/repository/adapter: Add `Send` constraint to `Adapter` ([#234]).
+
+[#234]: https://github.com/zaeleus/noodles/issues/234
+
 ## 0.32.0 - 2024-01-25
 
 ### Changed
