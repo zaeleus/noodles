@@ -1,16 +1,17 @@
 use std::io;
 
 use super::sample::Value;
+use crate::Header;
 
 /// A variant record samples buffer series.
-pub struct Series<'a> {
-    name: &'a str,
-    values: &'a [Vec<Option<Value>>],
+pub struct Series<'s> {
+    name: &'s str,
+    values: &'s [Vec<Option<Value>>],
     i: usize,
 }
 
-impl<'a> Series<'a> {
-    pub(super) fn new(name: &'a str, values: &'a [Vec<Option<Value>>], i: usize) -> Self {
+impl<'s> Series<'s> {
+    pub(super) fn new(name: &'s str, values: &'s [Vec<Option<Value>>], i: usize) -> Self {
         Self { name, values, i }
     }
 
@@ -22,16 +23,17 @@ impl<'a> Series<'a> {
     }
 }
 
-impl<'a> crate::variant::record::samples::Series for Series<'a> {
+impl<'s> crate::variant::record::samples::Series for Series<'s> {
     fn name(&self) -> &str {
         self.name
     }
 
-    fn iter(
-        &self,
+    fn iter<'a, 'h: 'a>(
+        &'a self,
+        _: &'h Header,
     ) -> Box<
-        dyn Iterator<Item = io::Result<Option<crate::variant::record::samples::series::Value<'_>>>>
-            + '_,
+        dyn Iterator<Item = io::Result<Option<crate::variant::record::samples::series::Value<'a>>>>
+            + 'a,
     > {
         Box::new(self.values.iter().map(|sample| {
             Ok(sample
