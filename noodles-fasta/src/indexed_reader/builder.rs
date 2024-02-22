@@ -8,7 +8,7 @@ use std::{
 use noodles_bgzf as bgzf;
 
 use super::IndexedReader;
-use crate::{fai, io::BufReadSeek};
+use crate::fai;
 
 /// An indexed FASTA reader builder.
 #[derive(Default)]
@@ -40,7 +40,7 @@ impl Builder {
     /// let reader = Builder::default().build_from_path("reference.fa")?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn build_from_path<P>(self, src: P) -> io::Result<IndexedReader<Box<dyn BufReadSeek>>>
+    pub fn build_from_path<P>(self, src: P) -> io::Result<IndexedReader<crate::io::BufReader<File>>>
     where
         P: AsRef<Path>,
     {
@@ -54,11 +54,13 @@ impl Builder {
             }
         };
 
-        let reader: Box<dyn BufReadSeek> = match src.extension().and_then(|ext| ext.to_str()) {
+        let reader = match src.extension().and_then(|ext| ext.to_str()) {
             Some("gz" | "bgz") => bgzf::indexed_reader::Builder::default()
                 .build_from_path(src)
-                .map(Box::new)?,
-            _ => File::open(src).map(BufReader::new).map(Box::new)?,
+                .map(crate::io::BufReader::Bgzf)?,
+            _ => File::open(src)
+                .map(BufReader::new)
+                .map(crate::io::BufReader::Uncompressed)?,
         };
 
         Ok(IndexedReader::new(reader, index))
