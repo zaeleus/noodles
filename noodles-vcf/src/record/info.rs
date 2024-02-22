@@ -7,24 +7,19 @@ use crate::{variant::record::info::field::Value, Header};
 
 /// Raw VCF record info.
 #[derive(Debug, Eq, PartialEq)]
-pub struct Info<'a>(&'a str);
+pub struct Info<'r>(&'r str);
 
-impl<'a> Info<'a> {
-    pub(super) fn new(buf: &'a str) -> Self {
+impl<'r> Info<'r> {
+    pub(super) fn new(buf: &'r str) -> Self {
         Self(buf)
     }
 
-    /// Returns whether there are any info fields.
-    pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
     /// Returns the value with the given key.
-    pub fn get<'h: 'a>(
-        &'a self,
+    pub fn get<'h: 'r>(
+        &'r self,
         header: &'h Header,
         key: &str,
-    ) -> Option<io::Result<Option<Value<'a>>>> {
+    ) -> Option<io::Result<Option<Value<'r>>>> {
         for result in self.iter(header) {
             match result {
                 Ok((k, v)) => {
@@ -40,10 +35,10 @@ impl<'a> Info<'a> {
     }
 
     /// Returns an iterator over all fields.
-    pub fn iter<'h: 'a>(
-        &'a self,
+    pub fn iter<'h: 'r>(
+        &'r self,
         header: &'h Header,
-    ) -> impl Iterator<Item = io::Result<(&'a str, Option<Value<'a>>)>> + 'a {
+    ) -> impl Iterator<Item = io::Result<(&'r str, Option<Value<'r>>)>> + 'r {
         let mut src = self.0;
 
         iter::from_fn(move || {
@@ -56,15 +51,46 @@ impl<'a> Info<'a> {
     }
 }
 
-impl<'a> AsRef<str> for Info<'a> {
+impl<'r> AsRef<str> for Info<'r> {
     fn as_ref(&self) -> &str {
         self.0
+    }
+}
+
+impl<'r> crate::variant::record::Info for Info<'r> {
+    fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        const DELIMITER: u8 = b';';
+
+        if self.is_empty() {
+            0
+        } else {
+            let n = self
+                .0
+                .as_bytes()
+                .iter()
+                .filter(|&&b| b == DELIMITER)
+                .count();
+
+            n + 1
+        }
+    }
+
+    fn iter<'a, 'h: 'a>(
+        &'a self,
+        header: &'h Header,
+    ) -> Box<dyn Iterator<Item = io::Result<(&'a str, Option<Value<'a>>)>> + 'a> {
+        Box::new(self.iter(header))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::variant::record::Info as _;
 
     #[test]
     fn test_is_empty() {
