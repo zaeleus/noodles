@@ -61,7 +61,7 @@ impl Record {
     }
 
     /// Returns the filters.
-    pub fn filters(&self) -> Option<Filters<'_>> {
+    pub fn filters(&self) -> Filters<'_> {
         self.0.filters()
     }
 

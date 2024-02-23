@@ -65,11 +65,13 @@ impl Fields {
         }
     }
 
-    pub(super) fn filters(&self) -> Option<Filters<'_>> {
-        match &self.buf[self.bounds.filters_range()] {
-            MISSING => None,
-            src => Some(Filters::new(src)),
-        }
+    pub(super) fn filters(&self) -> Filters<'_> {
+        let src = match &self.buf[self.bounds.filters_range()] {
+            MISSING => "",
+            buf => buf,
+        };
+
+        Filters::new(src)
     }
 
     pub(super) fn info(&self) -> Info<'_> {
