@@ -1,4 +1,4 @@
-use std::io;
+use std::{io, iter};
 
 use super::Keys;
 use crate::{
@@ -39,13 +39,19 @@ impl<'s> Sample<'s> {
     pub fn iter<'h: 's>(
         &self,
         header: &'h Header,
-    ) -> impl Iterator<Item = io::Result<(&str, Option<Value<'s>>)>> + '_ {
+    ) -> Box<dyn Iterator<Item = io::Result<(&str, Option<Value<'s>>)>> + '_> {
         const DELIMITER: char = ':';
 
-        self.keys
-            .iter()
-            .zip(self.src.split(DELIMITER))
-            .map(|(key, s)| parse_value(s, header, key).map(|value| (key, value)))
+        if self.as_ref().is_empty() {
+            Box::new(iter::empty())
+        } else {
+            Box::new(
+                self.keys
+                    .iter()
+                    .zip(self.src.split(DELIMITER))
+                    .map(|(key, s)| parse_value(s, header, key).map(|value| (key, value))),
+            )
+        }
     }
 }
 

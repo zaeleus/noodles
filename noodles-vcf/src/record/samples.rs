@@ -37,7 +37,7 @@ impl<'a> Samples<'a> {
     }
 
     /// Returns an iterator over samples.
-    pub fn iter(&self) -> impl Iterator<Item = Option<Sample<'a>>> + '_ {
+    pub fn iter(&self) -> impl Iterator<Item = Sample<'a>> + '_ {
         let (_, mut src) = self.0.split_once(DELIMITER).unwrap_or_default();
 
         iter::from_fn(move || {
@@ -56,7 +56,7 @@ impl<'a> AsRef<str> for Samples<'a> {
     }
 }
 
-fn parse_sample<'a>(src: &mut &'a str, keys: Keys<'a>) -> Option<Sample<'a>> {
+fn parse_sample<'a>(src: &mut &'a str, keys: Keys<'a>) -> Sample<'a> {
     const DELIMITER: u8 = b'\t';
     const MISSING: &str = ".";
 
@@ -73,9 +73,10 @@ fn parse_sample<'a>(src: &mut &'a str, keys: Keys<'a>) -> Option<Sample<'a>> {
         }
     };
 
-    match buf {
-        MISSING => None,
-        _ => Some(Sample::new(buf, keys)),
+    if buf == MISSING {
+        Sample::new("", keys)
+    } else {
+        Sample::new(buf, keys)
     }
 }
 
@@ -96,7 +97,10 @@ mod tests {
 
         let samples = Samples::new("GT:GQ\t0|0:13\t.");
         let actual: Vec<_> = samples.iter().collect();
-        let expected = [Some(Sample::new("0|0:13", samples.keys())), None];
+        let expected = [
+            Sample::new("0|0:13", samples.keys()),
+            Sample::new("", samples.keys()),
+        ];
         assert_eq!(actual, expected);
     }
 }
