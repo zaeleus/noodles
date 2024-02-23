@@ -56,7 +56,7 @@ impl Record {
     }
 
     /// Returns the quality score.
-    pub fn quality_score(&self) -> Option<&str> {
+    pub fn quality_score(&self) -> Option<io::Result<f32>> {
         self.0.quality_score()
     }
 
