@@ -8,38 +8,38 @@ use crate::{
 
 /// A VCF record samples sample.
 #[derive(Debug, Eq, PartialEq)]
-pub struct Sample<'a> {
-    src: &'a str,
-    keys: Keys<'a>,
+pub struct Sample<'s> {
+    src: &'s str,
+    keys: Keys<'s>,
 }
 
-impl<'a> Sample<'a> {
-    pub(super) fn new(src: &'a str, keys: Keys<'a>) -> Self {
+impl<'s> Sample<'s> {
+    pub(super) fn new(src: &'s str, keys: Keys<'s>) -> Self {
         Self { src, keys }
     }
 
     /// Returns the value at the given index.
-    pub fn get_index<'h: 'a>(
+    pub fn get_index<'h: 's>(
         &self,
         header: &'h Header,
         i: usize,
-    ) -> Option<Option<io::Result<Value<'a>>>> {
+    ) -> Option<Option<io::Result<Value<'s>>>> {
         self.values(header).nth(i)
     }
 
-    pub fn values<'h: 'a>(
+    pub fn values<'h: 's>(
         &self,
         header: &'h Header,
-    ) -> impl Iterator<Item = Option<io::Result<Value<'a>>>> + '_ {
+    ) -> impl Iterator<Item = Option<io::Result<Value<'s>>>> + '_ {
         self.iter(header)
             .map(|result| result.map(|(_, value)| value).transpose())
     }
 
     /// Returns an iterator over fields.
-    pub fn iter<'h: 'a>(
+    pub fn iter<'h: 's>(
         &self,
         header: &'h Header,
-    ) -> impl Iterator<Item = io::Result<(&str, Option<Value<'a>>)>> + '_ {
+    ) -> impl Iterator<Item = io::Result<(&str, Option<Value<'s>>)>> + '_ {
         const DELIMITER: char = ':';
 
         self.keys
@@ -52,6 +52,15 @@ impl<'a> Sample<'a> {
 impl<'a> AsRef<str> for Sample<'a> {
     fn as_ref(&self) -> &str {
         self.src
+    }
+}
+
+impl<'r> crate::variant::record::samples::Sample for Sample<'r> {
+    fn iter<'a, 'h: 'a>(
+        &'a self,
+        header: &'h Header,
+    ) -> Box<dyn Iterator<Item = io::Result<(&str, Option<Value<'a>>)>> + 'a> {
+        Box::new(self.iter(header))
     }
 }
 

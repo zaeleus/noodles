@@ -6,6 +6,7 @@ use std::{hash::Hash, io};
 
 pub use self::value::Value;
 use super::Keys;
+use crate::Header;
 
 /// A VCF record genotype sample.
 #[derive(Debug, PartialEq)]
@@ -42,15 +43,16 @@ impl<'g> Sample<'g> {
 }
 
 impl<'g> crate::variant::record::samples::Sample for Sample<'g> {
-    fn iter(
-        &self,
+    fn iter<'a, 'h: 'a>(
+        &'a self,
+        _: &'h Header,
     ) -> Box<
         dyn Iterator<
                 Item = io::Result<(
                     &str,
-                    Option<crate::variant::record::samples::series::Value<'_>>,
+                    Option<crate::variant::record::samples::series::Value<'a>>,
                 )>,
-            > + '_,
+            > + 'a,
     > {
         Box::new(
             self.keys
