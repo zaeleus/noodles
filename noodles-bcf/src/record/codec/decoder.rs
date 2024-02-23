@@ -60,7 +60,7 @@ pub fn read_site(
 
     let filter_ids = read_filter(src)?;
 
-    let filters: vcf::variant::record_buf::Filters = filter_ids
+    *record.filters_mut() = filter_ids
         .into_iter()
         .map(|i| {
             string_maps
@@ -75,12 +75,6 @@ pub fn read_site(
                 })
         })
         .collect::<io::Result<_>>()?;
-
-    *record.filters_mut() = if filters.as_ref().is_empty() {
-        None
-    } else {
-        Some(filters)
-    };
 
     read_info(
         src,

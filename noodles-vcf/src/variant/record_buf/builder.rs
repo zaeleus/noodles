@@ -13,7 +13,7 @@ pub struct Builder {
     reference_bases: String,
     alternate_bases: AlternateBases,
     quality_score: Option<f32>,
-    filters: Option<Filters>,
+    filters: Filters,
     info: Info,
     samples: Samples,
 }
@@ -149,10 +149,10 @@ impl Builder {
     ///     .set_filters(Filters::pass())
     ///     .build();
     ///
-    /// assert!(record.filters().map(|filters| filters.is_pass()).unwrap_or_default());
+    /// assert!(record.filters().is_pass());
     /// ```
     pub fn set_filters(mut self, filters: Filters) -> Self {
-        self.filters = Some(filters);
+        self.filters = filters;
         self
     }
 
@@ -254,7 +254,7 @@ impl Default for Builder {
             reference_bases: String::new(),
             alternate_bases: AlternateBases::default(),
             quality_score: None,
-            filters: None,
+            filters: Filters::default(),
             info: Info::default(),
             samples: Samples::default(),
         }
@@ -276,7 +276,7 @@ mod tests {
         assert!(record.reference_bases.is_empty());
         assert!(record.alternate_bases.is_empty());
         assert!(record.quality_score.is_none());
-        assert!(record.filters.is_none());
+        assert!(record.filters.as_ref().is_empty());
         assert!(record.info.as_ref().is_empty());
         assert!(record.samples.is_empty());
     }

@@ -32,7 +32,7 @@ pub struct RecordBuf {
     reference_bases: String,
     alternate_bases: AlternateBases,
     quality_score: Option<f32>,
-    filters: Option<Filters>,
+    filters: Filters,
     info: Info,
     samples: Samples,
 }
@@ -286,10 +286,10 @@ impl RecordBuf {
     ///     .set_filters(Filters::pass())
     ///     .build();
     ///
-    /// assert!(record.filters().map(|filters| filters.is_pass()).unwrap_or_default());
+    /// assert!(record.filters().is_pass());
     /// ```
-    pub fn filters(&self) -> Option<&Filters> {
-        self.filters.as_ref()
+    pub fn filters(&self) -> &Filters {
+        &self.filters
     }
 
     /// Returns a mutable reference to the filters.
@@ -300,10 +300,10 @@ impl RecordBuf {
     /// use noodles_vcf::{self as vcf, variant::record_buf::Filters};
     ///
     /// let mut record = vcf::variant::RecordBuf::default();
-    /// *record.filters_mut() = Some(Filters::pass());
-    /// assert!(record.filters().map(|filters| filters.is_pass()).unwrap_or_default());
+    /// *record.filters_mut() = Filters::pass();
+    /// assert!(record.filters().is_pass());
     /// ```
-    pub fn filters_mut(&mut self) -> &mut Option<Filters> {
+    pub fn filters_mut(&mut self) -> &mut Filters {
         &mut self.filters
     }
 
@@ -486,7 +486,7 @@ impl Default for RecordBuf {
             reference_bases: String::from("N"),
             alternate_bases: AlternateBases::default(),
             quality_score: None,
-            filters: None,
+            filters: Filters::default(),
             info: Info::default(),
             samples: Samples::default(),
         }
