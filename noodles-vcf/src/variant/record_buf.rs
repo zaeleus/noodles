@@ -613,6 +613,44 @@ impl RecordBuf {
     }
 }
 
+impl super::Record for RecordBuf {
+    fn reference_sequence_name(&self) -> &str {
+        self.reference_sequence_name()
+    }
+
+    fn position(&self) -> Option<std::io::Result<Position>> {
+        self.position().map(Ok)
+    }
+
+    fn ids(&self) -> Box<dyn super::record::Ids + '_> {
+        Box::new(self.ids())
+    }
+
+    fn reference_bases(&self) -> &str {
+        self.reference_bases()
+    }
+
+    fn alternate_bases(&self) -> Box<dyn super::record::AlternateBases + '_> {
+        Box::new(self.alternate_bases())
+    }
+
+    fn quality_score(&self) -> Option<std::io::Result<f32>> {
+        self.quality_score().map(Ok)
+    }
+
+    fn filters(&self) -> Box<dyn super::record::Filters + '_> {
+        Box::new(self.filters())
+    }
+
+    fn info(&self) -> Box<dyn super::record::Info + '_> {
+        Box::new(self.info())
+    }
+
+    fn samples(&self) -> Box<dyn super::record::Samples + '_> {
+        Box::new(self.samples())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

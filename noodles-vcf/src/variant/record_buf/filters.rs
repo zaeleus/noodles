@@ -62,3 +62,17 @@ impl crate::variant::record::Filters for Filters {
         Box::new(self.0.iter().map(|filter| filter.as_ref()))
     }
 }
+
+impl crate::variant::record::Filters for &Filters {
+    fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = &str> + '_> {
+        Box::new(self.0.iter().map(|filter| filter.as_ref()))
+    }
+}

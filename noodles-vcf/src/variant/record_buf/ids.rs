@@ -45,3 +45,17 @@ impl crate::variant::record::Ids for Ids {
         Box::new(self.0.iter().map(|id| id.as_ref()))
     }
 }
+
+impl crate::variant::record::Ids for &Ids {
+    fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = &str> + '_> {
+        Box::new(self.0.iter().map(|id| id.as_ref()))
+    }
+}

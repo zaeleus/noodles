@@ -271,6 +271,34 @@ impl crate::variant::record::Info for Info {
     }
 }
 
+impl crate::variant::record::Info for &Info {
+    fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    fn iter<'a, 'h: 'a>(
+        &'a self,
+        _: &'h crate::Header,
+    ) -> Box<
+        dyn Iterator<
+                Item = std::io::Result<(
+                    &'a str,
+                    Option<crate::variant::record::info::field::Value<'a>>,
+                )>,
+            > + 'a,
+    > {
+        Box::new(
+            self.0
+                .iter()
+                .map(|(key, value)| Ok((key.as_ref(), value.as_ref().map(|v| v.into())))),
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{field::key, *};

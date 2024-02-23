@@ -168,3 +168,27 @@ impl crate::variant::record::Samples for Samples {
         )
     }
 }
+
+impl crate::variant::record::Samples for &Samples {
+    fn is_empty(&self) -> bool {
+        self.values.is_empty()
+    }
+
+    fn series(
+        &self,
+    ) -> Box<dyn Iterator<Item = Box<dyn crate::variant::record::samples::Series + '_>> + '_> {
+        Box::new(
+            Samples::series(self)
+                .map(|series| Box::new(series) as Box<dyn crate::variant::record::samples::Series>),
+        )
+    }
+
+    fn samples(
+        &self,
+    ) -> Box<dyn Iterator<Item = Box<dyn crate::variant::record::samples::Sample + '_>> + '_> {
+        Box::new(
+            self.values()
+                .map(|sample| Box::new(sample) as Box<dyn crate::variant::record::samples::Sample>),
+        )
+    }
+}
