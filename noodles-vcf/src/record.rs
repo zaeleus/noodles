@@ -91,3 +91,41 @@ impl fmt::Debug for Record {
             .finish()
     }
 }
+
+impl crate::variant::Record for Record {
+    fn reference_sequence_name(&self) -> &str {
+        self.reference_sequence_name()
+    }
+
+    fn position(&self) -> Option<io::Result<Position>> {
+        self.position()
+    }
+
+    fn ids(&self) -> Box<dyn crate::variant::record::Ids + '_> {
+        Box::new(self.ids())
+    }
+
+    fn reference_bases(&self) -> &str {
+        self.reference_bases()
+    }
+
+    fn alternate_bases(&self) -> Box<dyn crate::variant::record::AlternateBases + '_> {
+        Box::new(self.alternate_bases())
+    }
+
+    fn quality_score(&self) -> Option<io::Result<f32>> {
+        self.quality_score()
+    }
+
+    fn filters(&self) -> Box<dyn crate::variant::record::Filters + '_> {
+        Box::new(self.filters())
+    }
+
+    fn info(&self) -> Box<dyn crate::variant::record::Info + '_> {
+        Box::new(self.info())
+    }
+
+    fn samples(&self) -> Box<dyn crate::variant::record::Samples + '_> {
+        Box::new(self.samples())
+    }
+}
