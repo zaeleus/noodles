@@ -6,7 +6,7 @@ const PASS: &str = "PASS";
 
 /// VCF record filters (`FILTER`).
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub struct Filters(pub(crate) IndexSet<String>);
+pub struct Filters(IndexSet<String>);
 
 impl Filters {
     /// Creates a PASS filter.
@@ -60,11 +60,5 @@ impl crate::variant::record::Filters for Filters {
 
     fn iter(&self) -> Box<dyn Iterator<Item = &str> + '_> {
         Box::new(self.0.iter().map(|filter| filter.as_ref()))
-    }
-}
-
-impl From<Filters> for IndexSet<String> {
-    fn from(filters: Filters) -> Self {
-        filters.0
     }
 }

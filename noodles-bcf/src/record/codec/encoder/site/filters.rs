@@ -7,28 +7,24 @@ use crate::header::string_maps::StringStringMap;
 pub(super) fn write_filters<W>(
     writer: &mut W,
     string_string_map: &StringStringMap,
-    filters: Option<&vcf::variant::record_buf::Filters>,
+    filters: &vcf::variant::record_buf::Filters,
 ) -> io::Result<()>
 where
     W: Write,
 {
     use crate::record::codec::encoder::string_map::write_string_map_indices;
 
-    let indices = match filters {
-        None => Vec::new(),
-        Some(filters) if filters.is_pass() => vec![0],
-        Some(filters) => filters
-            .iter()
-            .map(|id| {
-                string_string_map.get_index_of(id).ok_or_else(|| {
-                    io::Error::new(
-                        io::ErrorKind::InvalidInput,
-                        format!("filter missing from string map: {id}"),
-                    )
-                })
+    let indices: Vec<_> = filters
+        .iter()
+        .map(|id| {
+            string_string_map.get_index_of(id).ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("filter missing from string map: {id}"),
+                )
             })
-            .collect::<Result<_, _>>()?,
-    };
+        })
+        .collect::<Result<_, _>>()?;
 
     write_string_map_indices(writer, &indices)
 }
@@ -48,7 +44,7 @@ mod tests {
         fn t(
             buf: &mut Vec<u8>,
             string_map: &StringStringMap,
-            filters: Option<&Filters>,
+            filters: &Filters,
             expected: &[u8],
         ) -> io::Result<()> {
             buf.clear();
@@ -70,23 +66,14 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        t(&mut buf, string_maps.strings(), None, &[0x00])?;
+        let filters = Filters::default();
+        t(&mut buf, string_maps.strings(), &filters, &[0x00])?;
 
         let filters = Filters::pass();
-        t(
-            &mut buf,
-            string_maps.strings(),
-            Some(&filters),
-            &[0x11, 0x00],
-        )?;
+        t(&mut buf, string_maps.strings(), &filters, &[0x11, 0x00])?;
 
         let filters = [String::from("q10")].into_iter().collect();
-        t(
-            &mut buf,
-            string_maps.strings(),
-            Some(&filters),
-            &[0x11, 0x02],
-        )?;
+        t(&mut buf, string_maps.strings(), &filters, &[0x11, 0x02])?;
 
         let filters = [String::from("q10"), String::from("s50")]
             .into_iter()
@@ -94,7 +81,7 @@ mod tests {
         t(
             &mut buf,
             string_maps.strings(),
-            Some(&filters),
+            &filters,
             &[0x21, 0x02, 0x01],
         )?;
 

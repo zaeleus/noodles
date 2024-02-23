@@ -113,9 +113,7 @@ pub(crate) fn parse_record_buf(
 
     let field = next_field(&mut s);
     match field {
-        MISSING => {
-            record.filters_mut().take();
-        }
+        MISSING => record.filters_mut().as_mut().clear(),
         _ => parse_filters(field, record.filters_mut()).map_err(ParseError::InvalidFilters)?,
     }
 
