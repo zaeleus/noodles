@@ -23,23 +23,23 @@ pub trait Record {
     fn position(&self) -> Option<io::Result<Position>>;
 
     /// Returns the IDs.
-    fn ids(&self) -> Box<dyn Ids>;
+    fn ids(&self) -> Box<dyn Ids + '_>;
 
     /// Returns the reference bases.
     fn reference_bases(&self) -> &str;
 
     /// Returns the alternate bases.
-    fn alternate_bases(&self) -> Box<dyn AlternateBases>;
+    fn alternate_bases(&self) -> Box<dyn AlternateBases + '_>;
 
     /// Returns the quality scores.
     fn quality_score(&self) -> Option<io::Result<f32>>;
 
     /// Returns the filters.
-    fn filters(&self) -> Box<dyn Filters>;
+    fn filters(&self) -> Box<dyn Filters + '_>;
 
     /// Return the info fields.
-    fn info(&self) -> Box<dyn Info>;
+    fn info(&self) -> Box<dyn Info + '_>;
 
     /// Returns the samples.
-    fn samples(&self) -> Box<dyn Samples>;
+    fn samples(&self) -> Box<dyn Samples + '_>;
 }
