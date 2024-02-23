@@ -146,10 +146,10 @@ impl Builder {
     /// use noodles_vcf::{self as vcf, variant::record_buf::Filters};
     ///
     /// let record = vcf::variant::RecordBuf::builder()
-    ///     .set_filters(Filters::Pass)
+    ///     .set_filters(Filters::pass())
     ///     .build();
     ///
-    /// assert_eq!(record.filters(), Some(&Filters::Pass));
+    /// assert!(record.filters().map(|filters| filters.is_pass()).unwrap_or_default());
     /// ```
     pub fn set_filters(mut self, filters: Filters) -> Self {
         self.filters = Some(filters);

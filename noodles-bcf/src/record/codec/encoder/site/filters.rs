@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use noodles_vcf as vcf;
+use noodles_vcf::{self as vcf, variant::record::Filters as _};
 
 use crate::header::string_maps::StringStringMap;
 
@@ -12,14 +12,12 @@ pub(super) fn write_filters<W>(
 where
     W: Write,
 {
-    use vcf::variant::record_buf::Filters;
-
     use crate::record::codec::encoder::string_map::write_string_map_indices;
 
     let indices = match filters {
         None => Vec::new(),
-        Some(Filters::Pass) => vec![0],
-        Some(Filters::Fail(ids)) => ids
+        Some(filters) if filters.is_pass() => vec![0],
+        Some(filters) => filters
             .iter()
             .map(|id| {
                 string_string_map.get_index_of(id).ok_or_else(|| {
@@ -74,7 +72,7 @@ mod tests {
 
         t(&mut buf, string_maps.strings(), None, &[0x00])?;
 
-        let filters = Filters::Pass;
+        let filters = Filters::pass();
         t(
             &mut buf,
             string_maps.strings(),
@@ -82,7 +80,7 @@ mod tests {
             &[0x11, 0x00],
         )?;
 
-        let filters = Filters::try_from_iter(["q10"])?;
+        let filters = [String::from("q10")].into_iter().collect();
         t(
             &mut buf,
             string_maps.strings(),
@@ -90,7 +88,9 @@ mod tests {
             &[0x11, 0x02],
         )?;
 
-        let filters = Filters::try_from_iter(["q10", "s50"])?;
+        let filters = [String::from("q10"), String::from("s50")]
+            .into_iter()
+            .collect();
         t(
             &mut buf,
             string_maps.strings(),

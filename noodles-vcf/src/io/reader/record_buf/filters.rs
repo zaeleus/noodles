@@ -34,13 +34,14 @@ pub(super) fn parse_filters(s: &str, filters: &mut Option<Filters>) -> Result<()
     if s.is_empty() {
         return Err(ParseError::Empty);
     } else if s == PASS {
-        *filters = Some(Filters::Pass);
+        *filters = Some(Filters::pass());
         return Ok(());
     }
 
     let mut set = match mem::take(filters) {
-        Some(Filters::Pass) | None => IndexSet::new(),
-        Some(Filters::Fail(mut set)) => {
+        None => IndexSet::new(),
+        Some(filters) => {
+            let mut set: IndexSet<String> = filters.into();
             set.clear();
             set
         }
@@ -54,7 +55,7 @@ pub(super) fn parse_filters(s: &str, filters: &mut Option<Filters>) -> Result<()
         }
     }
 
-    *filters = Some(Filters::Fail(set));
+    *filters = Some(Filters(set));
 
     Ok(())
 }
@@ -75,22 +76,19 @@ mod tests {
         let mut filters = None;
 
         parse_filters("PASS", &mut filters)?;
-        assert_eq!(filters, Some(Filters::Pass));
+        assert_eq!(filters, Some(Filters::pass()));
 
         parse_filters("q10", &mut filters)?;
-        assert_eq!(
-            filters,
-            Some(Filters::Fail([String::from("q10")].into_iter().collect()))
-        );
+        assert_eq!(filters, Some([String::from("q10")].into_iter().collect()));
 
         parse_filters("q10;s50", &mut filters)?;
         assert_eq!(
             filters,
-            Some(Filters::Fail(
+            Some(
                 [String::from("q10"), String::from("s50")]
                     .into_iter()
                     .collect()
-            ))
+            )
         );
 
         assert_eq!(parse_filters("", &mut filters), Err(ParseError::Empty));
