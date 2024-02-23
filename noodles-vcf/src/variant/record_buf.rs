@@ -283,10 +283,10 @@ impl RecordBuf {
     /// use noodles_vcf::{self as vcf, variant::record_buf::Filters};
     ///
     /// let record = vcf::variant::RecordBuf::builder()
-    ///     .set_filters(Filters::Pass)
+    ///     .set_filters(Filters::pass())
     ///     .build();
     ///
-    /// assert_eq!(record.filters(), Some(&Filters::Pass));
+    /// assert!(record.filters().map(|filters| filters.is_pass()).unwrap_or_default());
     /// ```
     pub fn filters(&self) -> Option<&Filters> {
         self.filters.as_ref()
@@ -300,8 +300,8 @@ impl RecordBuf {
     /// use noodles_vcf::{self as vcf, variant::record_buf::Filters};
     ///
     /// let mut record = vcf::variant::RecordBuf::default();
-    /// *record.filters_mut() = Some(Filters::Pass);
-    /// assert_eq!(record.filters(), Some(&Filters::Pass));
+    /// *record.filters_mut() = Some(Filters::pass());
+    /// assert!(record.filters().map(|filters| filters.is_pass()).unwrap_or_default());
     /// ```
     pub fn filters_mut(&mut self) -> &mut Option<Filters> {
         &mut self.filters

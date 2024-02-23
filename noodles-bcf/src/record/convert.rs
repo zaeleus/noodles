@@ -95,13 +95,11 @@ impl Record {
         }
 
         if !self.filters().is_empty()? {
-            let raw_filters: Vec<_> = self
+            let filters = self
                 .filters()
                 .iter(string_maps)?
+                .map(|filter| filter.map(String::from))
                 .collect::<io::Result<_>>()?;
-
-            let filters = vcf::variant::record_buf::Filters::try_from_iter(raw_filters)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
             builder = builder.set_filters(filters);
         }

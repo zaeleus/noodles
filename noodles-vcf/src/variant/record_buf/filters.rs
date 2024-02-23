@@ -1,158 +1,70 @@
 //! VCF record filters.
 
-use std::{error, fmt, iter};
-
 use indexmap::IndexSet;
 
-const PASS_STATUS: &str = "PASS";
+const PASS: &str = "PASS";
 
 /// VCF record filters (`FILTER`).
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum Filters {
-    /// Pass (`PASS`).
-    Pass,
-    /// A list of filters that caused the record to fail.
-    Fail(IndexSet<String>),
-}
-
-/// An error returned when raw VCF filters fail to convert.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum TryFromIteratorError {
-    /// The input is empty.
-    Empty,
-    /// A filter is duplicated.
-    DuplicateFilter(String),
-    /// A filter is invalid.
-    InvalidFilter(String),
-}
-
-impl error::Error for TryFromIteratorError {}
-
-impl fmt::Display for TryFromIteratorError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Empty => f.write_str("empty input"),
-            Self::DuplicateFilter(filter) => write!(f, "duplicate filter: {filter}"),
-            Self::InvalidFilter(s) => write!(f, "invalid filter: {s}"),
-        }
-    }
-}
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct Filters(pub(crate) IndexSet<String>);
 
 impl Filters {
-    /// Performs a conversion from a string iterator to a set of filters.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::variant::record_buf::Filters;
-    ///
-    /// let filters = Filters::try_from_iter(["PASS"])?;
-    /// assert_eq!(filters, Filters::Pass);
-    ///
-    /// let filters = Filters::try_from_iter(["q10", "s50"])?;
-    /// assert_eq!(filters, Filters::Fail([
-    ///     String::from("q10"),
-    ///     String::from("s50"),
-    /// ].into_iter().collect()));
-    ///
-    /// # Ok::<(), noodles_vcf::variant::record_buf::filters::TryFromIteratorError>(())
-    /// ```
-    pub fn try_from_iter<I, V>(iter: I) -> Result<Self, TryFromIteratorError>
-    where
-        I: IntoIterator<Item = V>,
-        V: AsRef<str>,
-    {
-        let mut filters = IndexSet::new();
+    /// Creates a PASS filter.
+    pub fn pass() -> Self {
+        [String::from(PASS)].into_iter().collect()
+    }
 
-        for value in iter {
-            let s = value.as_ref();
-
-            if !filters.insert(s.into()) {
-                return Err(TryFromIteratorError::DuplicateFilter(s.into()));
-            } else if !is_valid_filter(s) {
-                return Err(TryFromIteratorError::InvalidFilter(s.into()));
-            }
-        }
-
-        if filters.is_empty() {
-            Err(TryFromIteratorError::Empty)
-        } else if filters.len() == 1 && filters.contains(PASS_STATUS) {
-            Ok(Self::Pass)
-        } else {
-            Ok(Self::Fail(filters))
-        }
+    /// Returns whether this is a PASS filter.
+    pub fn is_pass(&self) -> bool {
+        self.0
+            .first()
+            .map(|filter| filter == PASS)
+            .unwrap_or_default()
     }
 }
 
-fn is_valid_filter(s: &str) -> bool {
-    match s {
-        "" | "0" => false,
-        _ => s.chars().all(|c| !c.is_ascii_whitespace()),
+impl AsRef<IndexSet<String>> for Filters {
+    fn as_ref(&self) -> &IndexSet<String> {
+        &self.0
+    }
+}
+
+impl AsMut<IndexSet<String>> for Filters {
+    fn as_mut(&mut self) -> &mut IndexSet<String> {
+        &mut self.0
+    }
+}
+
+impl Extend<String> for Filters {
+    fn extend<T: IntoIterator<Item = String>>(&mut self, iter: T) {
+        self.0.extend(iter)
+    }
+}
+
+impl FromIterator<String> for Filters {
+    fn from_iter<T: IntoIterator<Item = String>>(iter: T) -> Self {
+        let mut filters = Self::default();
+        filters.extend(iter);
+        filters
     }
 }
 
 impl crate::variant::record::Filters for Filters {
     fn is_empty(&self) -> bool {
-        match self {
-            Self::Pass => false,
-            Self::Fail(filters) => filters.is_empty(),
-        }
+        self.0.is_empty()
     }
 
     fn len(&self) -> usize {
-        match self {
-            Self::Pass => 1,
-            Self::Fail(filters) => filters.len(),
-        }
+        self.0.len()
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = &str> + '_> {
-        match self {
-            Self::Pass => Box::new(iter::once(PASS_STATUS)),
-            Self::Fail(filters) => Box::new(filters.iter().map(|filter| filter.as_ref())),
-        }
+        Box::new(self.0.iter().map(|filter| filter.as_ref()))
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_try_from_iter() {
-        assert_eq!(Filters::try_from_iter(["PASS"]), Ok(Filters::Pass));
-        assert_eq!(
-            Filters::try_from_iter(["q10"]),
-            Ok(Filters::Fail([String::from("q10")].into_iter().collect()))
-        );
-        assert_eq!(
-            Filters::try_from_iter(["q10", "s50"]),
-            Ok(Filters::Fail(
-                [String::from("q10"), String::from("s50")]
-                    .into_iter()
-                    .collect()
-            ))
-        );
-
-        assert_eq!(
-            Filters::try_from_iter(&[] as &[&str]),
-            Err(TryFromIteratorError::Empty)
-        );
-        assert_eq!(
-            Filters::try_from_iter(["q10", "q10"]),
-            Err(TryFromIteratorError::DuplicateFilter(String::from("q10")))
-        );
-        assert_eq!(
-            Filters::try_from_iter([""]),
-            Err(TryFromIteratorError::InvalidFilter(String::from("")))
-        );
-        assert_eq!(
-            Filters::try_from_iter(["0"]),
-            Err(TryFromIteratorError::InvalidFilter(String::from("0")))
-        );
-        assert_eq!(
-            Filters::try_from_iter(["q 10"]),
-            Err(TryFromIteratorError::InvalidFilter(String::from("q 10")))
-        );
+impl From<Filters> for IndexSet<String> {
+    fn from(filters: Filters) -> Self {
+        filters.0
     }
 }

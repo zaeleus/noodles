@@ -60,24 +60,26 @@ pub fn read_site(
 
     let filter_ids = read_filter(src)?;
 
-    let raw_filters: Vec<_> = filter_ids
+    let filters: vcf::variant::record_buf::Filters = filter_ids
         .into_iter()
         .map(|i| {
-            string_maps.strings().get_index(i).ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    format!("invalid string map index: {i}"),
-                )
-            })
+            string_maps
+                .strings()
+                .get_index(i)
+                .map(String::from)
+                .ok_or_else(|| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        format!("invalid string map index: {i}"),
+                    )
+                })
         })
         .collect::<io::Result<_>>()?;
 
-    *record.filters_mut() = if raw_filters.is_empty() {
+    *record.filters_mut() = if filters.as_ref().is_empty() {
         None
     } else {
-        vcf::variant::record_buf::Filters::try_from_iter(raw_filters)
-            .map(Some)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
+        Some(filters)
     };
 
     read_info(
