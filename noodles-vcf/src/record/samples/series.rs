@@ -20,7 +20,7 @@ impl<'r> Series<'r> {
         header: &'h Header,
         i: usize,
     ) -> Option<Option<io::Result<Value<'r>>>> {
-        let sample = self.samples.iter().nth(i)??;
+        let sample = self.samples.iter().nth(i)?;
         sample.get_index(header, self.i)
     }
 }
@@ -34,11 +34,14 @@ impl<'r> crate::variant::record::samples::Series for Series<'r> {
         &'a self,
         header: &'h Header,
     ) -> Box<dyn Iterator<Item = io::Result<Option<Value<'a>>>> + 'a> {
-        Box::new(self.samples.iter().map(|sample| {
-            sample
-                .and_then(|s| s.get_index(header, self.i)?)
-                .transpose()
-        }))
+        Box::new(
+            self.samples
+                .iter()
+                .map(|sample| match sample.get_index(header, self.i) {
+                    Some(value) => value.transpose(),
+                    None => Ok(None),
+                }),
+        )
     }
 }
 
