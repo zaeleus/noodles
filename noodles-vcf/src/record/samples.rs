@@ -56,6 +56,30 @@ impl<'a> AsRef<str> for Samples<'a> {
     }
 }
 
+impl<'a> crate::variant::record::Samples for Samples<'a> {
+    fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    fn series(
+        &self,
+    ) -> Box<dyn Iterator<Item = Box<dyn crate::variant::record::samples::Series + '_>> + '_> {
+        Box::new(
+            self.series()
+                .map(|series| Box::new(series) as Box<dyn crate::variant::record::samples::Series>),
+        )
+    }
+
+    fn samples(
+        &self,
+    ) -> Box<dyn Iterator<Item = Box<dyn crate::variant::record::samples::Sample + '_>> + '_> {
+        Box::new(
+            self.iter()
+                .map(|sample| Box::new(sample) as Box<dyn crate::variant::record::samples::Sample>),
+        )
+    }
+}
+
 fn parse_sample<'a>(src: &mut &'a str, keys: Keys<'a>) -> Sample<'a> {
     const DELIMITER: u8 = b'\t';
     const MISSING: &str = ".";
