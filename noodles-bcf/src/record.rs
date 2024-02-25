@@ -21,6 +21,7 @@ pub use self::{
     alternate_bases::AlternateBases, filters::Filters, ids::Ids, info::Info,
     reference_bases::ReferenceBases, samples::Samples,
 };
+use crate::header::StringMaps;
 
 /// A BCF record.
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -50,6 +51,37 @@ impl Record {
     pub fn reference_sequence_id(&self) -> io::Result<usize> {
         let n = self.0.reference_sequence_id();
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    }
+
+    /// Returns the reference sequence name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf::{self as bcf, header::StringMaps};
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     header::record::value::{map::Contig, Map},
+    /// };
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_contig("sq0", Map::<Contig>::new())
+    ///     .build();
+    /// let string_maps = StringMaps::try_from(&header)?;
+    ///
+    /// let record = bcf::Record::default();
+    /// assert_eq!(record.reference_sequence_name(&string_maps)?, "sq0");
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn reference_sequence_name<'h>(&self, string_maps: &'h StringMaps) -> io::Result<&'h str> {
+        self.reference_sequence_id().and_then(|i| {
+            string_maps.contigs().get_index(i).ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "missing reference sequence name in contig string map",
+                )
+            })
+        })
     }
 
     /// Returns the start position of this record.
