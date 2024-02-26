@@ -40,7 +40,7 @@ where
     I: Iterator<Item = u8>,
 {
     // § 4.2.3 "SEQ and QUAL encoding" (2023-05-24): "Base qualities are stored as bytes in the
-    // rnage [0, 93]..."
+    // range [0, 93]..."
     const MAX_SCORE: u8 = 93;
 
     scores.all(|score| score <= MAX_SCORE)
