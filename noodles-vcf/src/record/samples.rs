@@ -70,7 +70,7 @@ impl<'a> crate::variant::record::Samples for Samples<'a> {
         )
     }
 
-    fn samples(
+    fn iter(
         &self,
     ) -> Box<dyn Iterator<Item = Box<dyn crate::variant::record::samples::Sample + '_>> + '_> {
         Box::new(
