@@ -1,12 +1,11 @@
 use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use noodles_vcf::{self as vcf, header::StringMaps, variant::RecordBuf};
+use noodles_vcf::{self as vcf, variant::RecordBuf};
 
 pub(super) fn read_record_buf<R>(
     reader: &mut R,
     header: &vcf::Header,
-    string_maps: &StringMaps,
     buf: &mut Vec<u8>,
     record: &mut RecordBuf,
 ) -> io::Result<usize>
@@ -24,6 +23,8 @@ where
     let l_indiv = reader.read_u32::<LittleEndian>().and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
+
+    let string_maps = header.string_maps();
 
     buf.resize(l_shared, 0);
     reader.read_exact(buf)?;

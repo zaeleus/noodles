@@ -9,7 +9,7 @@ use std::io::{self, Read, Seek};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
-use noodles_vcf::{self as vcf, header::StringMaps, variant::RecordBuf};
+use noodles_vcf::{self as vcf, variant::RecordBuf};
 
 use super::{
     reader::{Query, RecordBufs},
@@ -40,13 +40,6 @@ where
     /// Returns the underlying reader.
     pub fn into_inner(self) -> R {
         self.inner.into_inner()
-    }
-
-    /// Returns the string maps.
-    ///
-    /// This is only built after reading the header using [`Self::read_header`].
-    pub fn string_maps(&self) -> &StringMaps {
-        self.inner.string_maps()
     }
 
     /// Reads the VCF header.

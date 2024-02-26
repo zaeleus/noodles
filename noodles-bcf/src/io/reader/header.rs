@@ -3,7 +3,7 @@ use std::io::{self, BufRead, BufReader, Read};
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_vcf::{self as vcf, header::StringMaps};
 
-pub(super) fn read_header<R>(reader: &mut R) -> io::Result<(vcf::Header, StringMaps)>
+pub(super) fn read_header<R>(reader: &mut R) -> io::Result<vcf::Header>
 where
     R: Read,
 {
@@ -27,11 +27,13 @@ where
 
     discard_padding(&mut header_reader)?;
 
-    let header = parser
+    let mut header = parser
         .finish()
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    Ok((header, string_maps))
+    *header.string_maps_mut() = string_maps;
+
+    Ok(header)
 }
 
 fn read_line<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<usize>
@@ -101,16 +103,13 @@ mod tests {
         data.push(NUL);
 
         let mut reader = &data[..];
-        let (actual_header, actual_string_maps) = read_header(&mut reader)?;
+        let actual = read_header(&mut reader)?;
 
-        let expected_header = vcf::Header::builder()
+        let expected = vcf::Header::builder()
             .set_file_format(FileFormat::new(4, 3))
             .build();
 
-        let expected_string_maps = StringMaps::default();
-
-        assert_eq!(actual_header, expected_header);
-        assert_eq!(actual_string_maps, expected_string_maps);
+        assert_eq!(actual, expected);
 
         Ok(())
     }
