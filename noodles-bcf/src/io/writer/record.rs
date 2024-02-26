@@ -12,7 +12,7 @@ pub fn write_record<W>(
 where
     W: Write,
 {
-    use crate::record::codec::encoder::{genotypes::write_genotypes, site::write_site};
+    use crate::record::codec::encoder::{samples::write_samples, site::write_site};
 
     let mut site_buf = Vec::new();
     write_site(&mut site_buf, header, string_maps, record)?;
@@ -24,7 +24,7 @@ where
     let samples = record.samples();
 
     if !samples.is_empty() {
-        write_genotypes(&mut samples_buf, header, string_maps.strings(), samples)?;
+        write_samples(&mut samples_buf, header, string_maps.strings(), samples)?;
     };
 
     let l_indiv = u32::try_from(samples_buf.len())
