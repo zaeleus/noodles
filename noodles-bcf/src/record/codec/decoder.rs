@@ -75,14 +75,8 @@ pub fn read_site(
         })
         .collect::<io::Result<_>>()?;
 
-    read_info(
-        src,
-        header.infos(),
-        string_maps.strings(),
-        n_info,
-        record.info_mut(),
-    )
-    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    read_info(src, header, n_info, record.info_mut())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     Ok((n_fmt, n_sample))
 }

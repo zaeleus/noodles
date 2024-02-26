@@ -2,19 +2,20 @@ mod value;
 
 use std::{error, fmt};
 
-use noodles_vcf::{self as vcf, header::string_maps::StringStringMap};
+use noodles_vcf as vcf;
 
 use self::value::read_value;
 use crate::record::codec::decoder::string_map::{self, read_string_map_entry};
 
 pub(crate) fn read_field(
     src: &mut &[u8],
-    infos: &vcf::header::Infos,
-    string_map: &StringStringMap,
+    header: &vcf::Header,
 ) -> Result<(String, Option<vcf::variant::record_buf::info::field::Value>), DecodeError> {
-    let raw_key = read_string_map_entry(src, string_map).map_err(DecodeError::InvalidStringMap)?;
+    let raw_key = read_string_map_entry(src, header.string_maps().strings())
+        .map_err(DecodeError::InvalidStringMap)?;
 
-    let (key, info) = infos
+    let (key, info) = header
+        .infos()
         .get_key_value(raw_key)
         .ok_or(DecodeError::MissingInfoMapEntry)?;
 

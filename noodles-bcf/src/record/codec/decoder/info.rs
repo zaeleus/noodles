@@ -2,22 +2,20 @@ mod field;
 
 use std::{error, fmt};
 
-use noodles_vcf::{self as vcf, header::string_maps::StringStringMap};
+use noodles_vcf as vcf;
 
 pub(crate) use self::field::read_field;
 
 pub fn read_info(
     src: &mut &[u8],
-    infos: &vcf::header::Infos,
-    string_string_map: &StringStringMap,
+    header: &vcf::Header,
     len: usize,
     info: &mut vcf::variant::record_buf::Info,
 ) -> Result<(), DecodeError> {
     info.clear();
 
     for _ in 0..len {
-        let (key, value) =
-            read_field(src, infos, string_string_map).map_err(DecodeError::InvalidField)?;
+        let (key, value) = read_field(src, header).map_err(DecodeError::InvalidField)?;
 
         if info.insert(key.clone(), value).is_some() {
             return Err(DecodeError::DuplicateKey(key));
