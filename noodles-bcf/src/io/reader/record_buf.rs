@@ -24,12 +24,10 @@ where
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let string_maps = header.string_maps();
-
     buf.resize(l_shared, 0);
     reader.read_exact(buf)?;
     let mut src = &buf[..];
-    let (n_fmt, n_sample) = read_site(&mut src, header, string_maps, record)?;
+    let (n_fmt, n_sample) = read_site(&mut src, header, record)?;
 
     buf.resize(l_indiv, 0);
     reader.read_exact(buf)?;

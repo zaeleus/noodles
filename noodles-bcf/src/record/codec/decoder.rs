@@ -13,7 +13,7 @@ mod value;
 use std::io;
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use noodles_vcf::{self as vcf, header::StringMaps};
+use noodles_vcf as vcf;
 
 use self::info::read_info;
 pub(crate) use self::{
@@ -25,12 +25,12 @@ pub use self::{samples::read_samples, value::read_value};
 pub fn read_site(
     src: &mut &[u8],
     header: &vcf::Header,
-    string_maps: &StringMaps,
     record: &mut vcf::variant::RecordBuf,
 ) -> io::Result<(usize, usize)> {
     let chrom = read_chrom(src)?;
 
-    *record.reference_sequence_name_mut() = string_maps
+    *record.reference_sequence_name_mut() = header
+        .string_maps()
         .contigs()
         .get_index(chrom)
         .map(String::from)
@@ -62,7 +62,8 @@ pub fn read_site(
     *record.filters_mut() = filter_ids
         .into_iter()
         .map(|i| {
-            string_maps
+            header
+                .string_maps()
                 .strings()
                 .get_index(i)
                 .map(String::from)
