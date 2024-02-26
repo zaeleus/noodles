@@ -13,6 +13,7 @@ pub use self::{
     alternate_bases::AlternateBases, builder::Builder, filters::Filters, ids::Ids, info::Info,
     samples::Samples,
 };
+use crate::Header;
 
 use std::{error, fmt, num};
 
@@ -614,7 +615,7 @@ impl RecordBuf {
 }
 
 impl super::Record for RecordBuf {
-    fn reference_sequence_name(&self) -> &str {
+    fn reference_sequence_name(&self, _: &Header) -> &str {
         self.reference_sequence_name()
     }
 
