@@ -13,11 +13,12 @@ use noodles_core::Position;
 pub use self::{
     alternate_bases::AlternateBases, filters::Filters, ids::Ids, info::Info, samples::Samples,
 };
+use crate::Header;
 
 /// A variant record.
 pub trait Record {
     /// Returns the reference sequence name.
-    fn reference_sequence_name(&self) -> &str;
+    fn reference_sequence_name(&self, header: &Header) -> &str;
 
     /// Returns the position.
     fn position(&self) -> Option<io::Result<Position>>;

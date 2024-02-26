@@ -15,6 +15,7 @@ use self::fields::Fields;
 pub use self::{
     alternate_bases::AlternateBases, filters::Filters, ids::Ids, info::Info, samples::Samples,
 };
+use super::Header;
 
 /// An immutable, lazily-evaluated VCF record.
 #[derive(Clone, Default, Eq, PartialEq)]
@@ -93,7 +94,7 @@ impl fmt::Debug for Record {
 }
 
 impl crate::variant::Record for Record {
-    fn reference_sequence_name(&self) -> &str {
+    fn reference_sequence_name(&self, _: &Header) -> &str {
         self.reference_sequence_name()
     }
 
