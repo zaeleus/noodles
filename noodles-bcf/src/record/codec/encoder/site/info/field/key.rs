@@ -1,9 +1,8 @@
 use std::io::{self, Write};
 
-use crate::{
-    header::string_maps::StringStringMap,
-    record::codec::encoder::string_map::write_string_map_index,
-};
+use noodles_vcf::header::string_maps::StringStringMap;
+
+use crate::record::codec::encoder::string_map::write_string_map_index;
 
 pub(super) fn write_key<W>(
     writer: &mut W,

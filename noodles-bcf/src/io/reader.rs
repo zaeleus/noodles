@@ -18,13 +18,14 @@ use byteorder::ReadBytesExt;
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
-use noodles_vcf::{self as vcf, variant::RecordBuf};
+use noodles_vcf::{
+    self as vcf,
+    header::string_maps::{ContigStringMap, StringMaps},
+    variant::RecordBuf,
+};
 
 use self::{header::read_header, record::read_record, record_buf::read_record_buf};
-use crate::{
-    header::string_maps::{ContigStringMap, StringMaps},
-    Record,
-};
+use crate::Record;
 
 /// A BCF reader.
 ///
@@ -299,7 +300,7 @@ where
     ///
     /// ```no_run
     /// # use std::fs::File;
-    /// use noodles_bcf::{self as bcf, header::StringMaps};
+    /// use noodles_bcf as bcf;
     /// use noodles_core::Region;
     /// use noodles_csi as csi;
     ///

@@ -2,10 +2,9 @@ mod field;
 
 use std::io::{self, Write};
 
-use noodles_vcf as vcf;
+use noodles_vcf::{self as vcf, header::string_maps::StringStringMap};
 
 use self::field::write_field;
-use crate::header::string_maps::StringStringMap;
 
 pub fn write_info<W>(
     writer: &mut W,

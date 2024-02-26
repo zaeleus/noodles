@@ -1,7 +1,5 @@
-use noodles_vcf as vcf;
+use noodles_vcf::{self as vcf, header::StringMaps};
 use tokio::io::{self, AsyncRead, AsyncReadExt};
-
-use crate::header::StringMaps;
 
 pub(super) async fn read_header<R>(reader: &mut R) -> io::Result<(vcf::Header, StringMaps)>
 where

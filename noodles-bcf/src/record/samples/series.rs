@@ -1,11 +1,11 @@
 use std::{io, mem, ops::Range, str};
 
-use noodles_vcf::variant::record::samples::series::{value::Array, Value};
-
-use crate::{
+use noodles_vcf::{
     header::StringMaps,
-    record::value::{array::Values, read_type, read_value, Type},
+    variant::record::samples::series::{value::Array, Value},
 };
+
+use crate::record::value::{array::Values, read_type, read_value, Type};
 
 pub struct Series<'a> {
     id: usize,

@@ -5,10 +5,11 @@ pub mod file_format;
 mod number;
 pub mod parser;
 pub mod record;
+pub mod string_maps;
 
 pub use self::{
     builder::Builder, file_format::FileFormat, number::Number, parser::ParseError, parser::Parser,
-    record::Record,
+    record::Record, string_maps::StringMaps,
 };
 
 use std::{hash::Hash, str::FromStr};

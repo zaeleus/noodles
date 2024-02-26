@@ -107,6 +107,7 @@ pub(crate) mod tests {
         use noodles_core::Position;
         use noodles_vcf::{
             self as vcf,
+            header::StringMaps,
             variant::{
                 record::AlternateBases,
                 record_buf::{
@@ -120,8 +121,6 @@ pub(crate) mod tests {
                 },
             },
         };
-
-        use crate::header::StringMaps;
 
         let header = RAW_HEADER.parse()?;
         let string_maps: StringMaps = RAW_HEADER.parse()?;

@@ -1,8 +1,8 @@
 use std::io::{self, Write};
 
-use noodles_vcf::{self as vcf, variant::record::Filters as _};
-
-use crate::header::string_maps::StringStringMap;
+use noodles_vcf::{
+    self as vcf, header::string_maps::StringStringMap, variant::record::Filters as _,
+};
 
 pub(super) fn write_filters<W>(
     writer: &mut W,
@@ -31,8 +31,9 @@ where
 
 #[cfg(test)]
 mod tests {
+    use noodles_vcf::header::StringMaps;
+
     use super::*;
-    use crate::header::StringMaps;
 
     #[test]
     fn test_write_filters() -> Result<(), Box<dyn std::error::Error>> {

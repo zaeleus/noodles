@@ -17,7 +17,7 @@ impl StringMap {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bcf::header::string_maps::StringMap;
+    /// use noodles_vcf::header::string_maps::StringMap;
     /// let string_map = StringMap::default();
     /// assert!(string_map.get_index(0).is_none());
     /// ```
@@ -30,7 +30,7 @@ impl StringMap {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bcf::header::string_maps::StringMap;
+    /// use noodles_vcf::header::string_maps::StringMap;
     /// let string_map = StringMap::default();
     /// assert!(string_map.get_index_of("PASS").is_none());
     /// ```
@@ -43,7 +43,8 @@ impl StringMap {
             .and_then(|i| self.get_index(i).map(|entry| (i, entry)))
     }
 
-    pub(crate) fn insert(&mut self, value: String) -> Option<String> {
+    #[doc(hidden)]
+    pub fn insert(&mut self, value: String) -> Option<String> {
         self.insert_full(value).1
     }
 

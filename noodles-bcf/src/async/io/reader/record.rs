@@ -31,17 +31,19 @@ where
 #[cfg(test)]
 mod tests {
     use noodles_core::Position;
-    use noodles_vcf::variant::{
-        record::{info::field::Value as InfoFieldValue, AlternateBases},
-        record_buf::{
-            info,
-            samples::{self, sample::Value as GenotypeFieldValue, Keys},
-            Samples as VcfGenotypes,
+    use noodles_vcf::{
+        header::StringMaps,
+        variant::{
+            record::{info::field::Value as InfoFieldValue, AlternateBases},
+            record_buf::{
+                info,
+                samples::{self, sample::Value as GenotypeFieldValue, Keys},
+                Samples as VcfGenotypes,
+            },
         },
     };
 
     use super::*;
-    use crate::header::StringMaps;
 
     #[tokio::test]
     async fn test_read_record() -> Result<(), Box<dyn std::error::Error>> {

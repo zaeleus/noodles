@@ -2,11 +2,11 @@ use std::{io, str};
 
 use noodles_vcf::{
     self as vcf,
+    header::StringMaps,
     variant::record::{AlternateBases, Ids},
 };
 
 use super::Record;
-use crate::header::StringMaps;
 
 impl Record {
     /// Converts a VCF record to a BCF record.

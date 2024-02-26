@@ -8,11 +8,10 @@ use std::io::{self, Write};
 
 use byteorder::WriteBytesExt;
 use noodles_bgzf as bgzf;
-use noodles_vcf as vcf;
+use noodles_vcf::{self as vcf, header::StringMaps};
 
 pub use self::builder::Builder;
 use self::{header::write_header, record::write_record};
-use crate::header::StringMaps;
 
 const MAJOR: u8 = 2;
 const MINOR: u8 = 2;
@@ -96,7 +95,7 @@ where
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_bcf::{self as bcf, header::StringMaps};
+    /// use noodles_bcf as bcf;
     /// use noodles_core::Position;
     /// use noodles_vcf::{
     ///     self as vcf,

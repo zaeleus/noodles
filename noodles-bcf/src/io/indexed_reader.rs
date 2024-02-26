@@ -9,13 +9,13 @@ use std::io::{self, Read, Seek};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
-use noodles_vcf::{self as vcf, variant::RecordBuf};
+use noodles_vcf::{self as vcf, header::StringMaps, variant::RecordBuf};
 
 use super::{
     reader::{Query, RecordBufs},
     Reader,
 };
-use crate::{header::StringMaps, Record};
+use crate::Record;
 
 /// An indexed BCF reader.
 pub struct IndexedReader<R> {

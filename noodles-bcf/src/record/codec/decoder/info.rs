@@ -2,10 +2,9 @@ mod field;
 
 use std::{error, fmt};
 
-use noodles_vcf as vcf;
+use noodles_vcf::{self as vcf, header::string_maps::StringStringMap};
 
 pub(crate) use self::field::read_field;
-use crate::header::string_maps::StringStringMap;
 
 pub fn read_info(
     src: &mut &[u8],

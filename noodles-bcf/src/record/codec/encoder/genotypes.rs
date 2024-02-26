@@ -6,7 +6,10 @@ use std::{
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_vcf::{
     self as vcf,
-    header::record::value::{map::Format, Map},
+    header::{
+        record::value::{map::Format, Map},
+        string_maps::StringStringMap,
+    },
     variant::record_buf::samples::{
         keys::key,
         sample::{value::Array, Value},
@@ -14,10 +17,7 @@ use noodles_vcf::{
 };
 
 use super::{string_map::write_string_map_index, value::write_type};
-use crate::{
-    header::string_maps::StringStringMap,
-    record::codec::value::{Float, Int16, Int32, Int8, Type},
-};
+use crate::record::codec::value::{Float, Int16, Int32, Int8, Type};
 
 const NUL: u8 = 0x00;
 const DELIMITER: char = ',';
@@ -774,10 +774,9 @@ fn encode_genotype_genotype_field_values(genotype: &str) -> io::Result<Vec<i8>> 
 
 #[cfg(test)]
 mod tests {
-    use noodles_vcf::header::{record::value::map::format, Number};
+    use noodles_vcf::header::{record::value::map::format, Number, StringMaps};
 
     use super::*;
-    use crate::header::StringMaps;
 
     #[test]
     fn test_write_genotypes() -> Result<(), Box<dyn std::error::Error>> {

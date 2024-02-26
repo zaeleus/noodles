@@ -1,9 +1,7 @@
 use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
-use noodles_vcf as vcf;
-
-use crate::header::StringMaps;
+use noodles_vcf::{self as vcf, header::StringMaps};
 
 pub fn write_record<W>(
     writer: &mut W,

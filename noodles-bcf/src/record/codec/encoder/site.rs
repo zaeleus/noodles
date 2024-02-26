@@ -10,14 +10,13 @@ use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_core::Position;
-use noodles_vcf::{self as vcf, variant::record::AlternateBases};
+use noodles_vcf::{self as vcf, header::StringMaps, variant::record::AlternateBases};
 
 use self::{
     bases::write_bases, filters::write_filters, ids::write_ids, info::write_info,
     position::write_position, quality_score::write_quality_score,
     reference_sequence_id::write_reference_sequence_id,
 };
-use crate::header::StringMaps;
 
 const MAX_SAMPLE_NAME_COUNT: u32 = (1 << 24) - 1;
 

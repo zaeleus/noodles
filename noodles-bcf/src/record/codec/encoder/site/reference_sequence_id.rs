@@ -1,8 +1,8 @@
 use std::io::{self, Write};
 
-use byteorder::{LittleEndian, WriteBytesExt};
+use noodles_vcf::header::string_maps::ContigStringMap;
 
-use crate::header::string_maps::ContigStringMap;
+use byteorder::{LittleEndian, WriteBytesExt};
 
 pub(super) fn write_reference_sequence_id<W>(
     writer: &mut W,
