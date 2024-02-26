@@ -1,3 +1,5 @@
+mod key;
+
 use std::{
     cmp,
     io::{self, Write},
@@ -10,20 +12,18 @@ use noodles_vcf::{
         record::value::{map::Format, Map},
         string_maps::StringStringMap,
     },
-    variant::record_buf::samples::{
-        keys::key,
-        sample::{value::Array, Value},
-    },
+    variant::record_buf::samples::sample::{value::Array, Value},
 };
 
-use super::{string_map::write_string_map_index, value::write_type};
+use self::key::write_key;
+use super::value::write_type;
 use crate::record::codec::value::{Float, Int16, Int32, Int8, Type};
 
 const NUL: u8 = 0x00;
 const DELIMITER: char = ',';
 const MISSING_VALUE: char = '.';
 
-pub fn write_genotypes<W>(
+pub fn write_samples<W>(
     writer: &mut W,
     header: &vcf::Header,
     string_string_map: &StringStringMap,
@@ -32,10 +32,12 @@ pub fn write_genotypes<W>(
 where
     W: Write,
 {
+    use noodles_vcf::variant::record_buf::samples::keys::key;
+
     let keys = genotypes.keys();
 
     for (i, key) in keys.iter().enumerate() {
-        write_genotype_field_key(writer, string_string_map, key)?;
+        write_key(writer, string_string_map, key)?;
 
         let mut values = Vec::with_capacity(keys.len());
 
@@ -54,35 +56,16 @@ where
         })?;
 
         if key == key::GENOTYPE {
-            write_genotype_genotype_field_values(writer, &values)?;
+            write_sample_genotype_field_values(writer, &values)?;
         } else {
-            write_genotype_field_values(writer, format, &values)?;
+            write_sample_field_values(writer, format, &values)?;
         }
     }
 
     Ok(())
 }
 
-pub fn write_genotype_field_key<W>(
-    writer: &mut W,
-    string_map: &StringStringMap,
-    key: &str,
-) -> io::Result<()>
-where
-    W: Write,
-{
-    string_map
-        .get_index_of(key.as_ref())
-        .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidInput,
-                format!("genotype key not in string map: {key:?}"),
-            )
-        })
-        .and_then(|i| write_string_map_index(writer, i))
-}
-
-pub fn write_genotype_field_values<W>(
+pub fn write_sample_field_values<W>(
     writer: &mut W,
     format: &Map<Format>,
     values: &[Option<&Value>],
@@ -94,28 +77,25 @@ where
 
     match format.ty() {
         format::Type::Integer => match format.number() {
-            Number::Count(1) => write_genotype_field_integer_values(writer, values),
-            _ => write_genotype_field_integer_array_values(writer, values),
+            Number::Count(1) => write_sample_field_integer_values(writer, values),
+            _ => write_sample_field_integer_array_values(writer, values),
         },
         format::Type::Float => match format.number() {
-            Number::Count(1) => write_genotype_field_float_values(writer, values),
-            _ => write_genotype_field_float_array_values(writer, values),
+            Number::Count(1) => write_sample_field_float_values(writer, values),
+            _ => write_sample_field_float_array_values(writer, values),
         },
         format::Type::Character => match format.number() {
-            Number::Count(1) => write_genotype_field_character_values(writer, values),
-            _ => write_genotype_field_character_array_values(writer, values),
+            Number::Count(1) => write_sample_field_character_values(writer, values),
+            _ => write_sample_field_character_array_values(writer, values),
         },
         format::Type::String => match format.number() {
-            Number::Count(1) => write_genotype_field_string_values(writer, values),
-            _ => write_genotype_field_string_array_values(writer, values),
+            Number::Count(1) => write_sample_field_string_values(writer, values),
+            _ => write_sample_field_string_array_values(writer, values),
         },
     }
 }
 
-fn write_genotype_field_integer_values<W>(
-    writer: &mut W,
-    values: &[Option<&Value>],
-) -> io::Result<()>
+fn write_sample_field_integer_values<W>(writer: &mut W, values: &[Option<&Value>]) -> io::Result<()>
 where
     W: Write,
 {
@@ -133,20 +113,20 @@ where
 
     if min >= i32::from(Int8::MIN_VALUE) {
         if max <= i32::from(Int8::MAX_VALUE) {
-            write_genotype_field_int8_values(writer, values)
+            write_sample_field_int8_values(writer, values)
         } else if max <= i32::from(Int16::MAX_VALUE) {
-            write_genotype_field_int16_values(writer, values)
+            write_sample_field_int16_values(writer, values)
         } else {
-            write_genotype_field_int32_values(writer, values)
+            write_sample_field_int32_values(writer, values)
         }
     } else if min >= i32::from(Int16::MIN_VALUE) {
         if max <= i32::from(Int16::MAX_VALUE) {
-            write_genotype_field_int16_values(writer, values)
+            write_sample_field_int16_values(writer, values)
         } else {
-            write_genotype_field_int32_values(writer, values)
+            write_sample_field_int32_values(writer, values)
         }
     } else if min >= Int32::MIN_VALUE {
-        write_genotype_field_int32_values(writer, values)
+        write_sample_field_int32_values(writer, values)
     } else {
         Err(io::Error::new(
             io::ErrorKind::InvalidInput,
@@ -155,7 +135,7 @@ where
     }
 }
 
-fn write_genotype_field_int8_values<W>(writer: &mut W, values: &[Option<&Value>]) -> io::Result<()>
+fn write_sample_field_int8_values<W>(writer: &mut W, values: &[Option<&Value>]) -> io::Result<()>
 where
     W: Write,
 {
@@ -181,7 +161,7 @@ where
     Ok(())
 }
 
-fn write_genotype_field_int16_values<W>(writer: &mut W, values: &[Option<&Value>]) -> io::Result<()>
+fn write_sample_field_int16_values<W>(writer: &mut W, values: &[Option<&Value>]) -> io::Result<()>
 where
     W: Write,
 {
@@ -207,7 +187,7 @@ where
     Ok(())
 }
 
-fn write_genotype_field_int32_values<W>(writer: &mut W, values: &[Option<&Value>]) -> io::Result<()>
+fn write_sample_field_int32_values<W>(writer: &mut W, values: &[Option<&Value>]) -> io::Result<()>
 where
     W: Write,
 {
@@ -231,7 +211,7 @@ where
     Ok(())
 }
 
-fn write_genotype_field_integer_array_values<W>(
+fn write_sample_field_integer_array_values<W>(
     writer: &mut W,
     values: &[Option<&Value>],
 ) -> io::Result<()>
@@ -264,20 +244,20 @@ where
 
     if min >= i32::from(Int8::MIN_VALUE) {
         if max <= i32::from(Int8::MAX_VALUE) {
-            write_genotype_field_int8_array_values(writer, values, max_len)
+            write_sample_field_int8_array_values(writer, values, max_len)
         } else if max <= i32::from(Int16::MAX_VALUE) {
-            write_genotype_field_int16_array_values(writer, values, max_len)
+            write_sample_field_int16_array_values(writer, values, max_len)
         } else {
-            write_genotype_field_int32_array_values(writer, values, max_len)
+            write_sample_field_int32_array_values(writer, values, max_len)
         }
     } else if min >= i32::from(Int16::MIN_VALUE) {
         if max <= i32::from(Int16::MAX_VALUE) {
-            write_genotype_field_int16_array_values(writer, values, max_len)
+            write_sample_field_int16_array_values(writer, values, max_len)
         } else {
-            write_genotype_field_int32_array_values(writer, values, max_len)
+            write_sample_field_int32_array_values(writer, values, max_len)
         }
     } else if min >= Int32::MIN_VALUE {
-        write_genotype_field_int32_array_values(writer, values, max_len)
+        write_sample_field_int32_array_values(writer, values, max_len)
     } else {
         Err(io::Error::new(
             io::ErrorKind::InvalidInput,
@@ -286,7 +266,7 @@ where
     }
 }
 
-fn write_genotype_field_int8_array_values<W>(
+fn write_sample_field_int8_array_values<W>(
     writer: &mut W,
     values: &[Option<&Value>],
     max_len: usize,
@@ -333,7 +313,7 @@ where
     Ok(())
 }
 
-fn write_genotype_field_int16_array_values<W>(
+fn write_sample_field_int16_array_values<W>(
     writer: &mut W,
     values: &[Option<&Value>],
     max_len: usize,
@@ -380,7 +360,7 @@ where
     Ok(())
 }
 
-fn write_genotype_field_int32_array_values<W>(
+fn write_sample_field_int32_array_values<W>(
     writer: &mut W,
     values: &[Option<&Value>],
     max_len: usize,
@@ -426,7 +406,7 @@ where
     Ok(())
 }
 
-fn write_genotype_field_float_values<W>(writer: &mut W, values: &[Option<&Value>]) -> io::Result<()>
+fn write_sample_field_float_values<W>(writer: &mut W, values: &[Option<&Value>]) -> io::Result<()>
 where
     W: Write,
 {
@@ -450,7 +430,7 @@ where
     Ok(())
 }
 
-fn write_genotype_field_float_array_values<W>(
+fn write_sample_field_float_array_values<W>(
     writer: &mut W,
     values: &[Option<&Value>],
 ) -> io::Result<()>
@@ -500,7 +480,7 @@ where
     Ok(())
 }
 
-fn write_genotype_field_character_values<W>(
+fn write_sample_field_character_values<W>(
     writer: &mut W,
     values: &[Option<&Value>],
 ) -> io::Result<()>
@@ -527,10 +507,10 @@ where
 
     let string_values_as_ref: Vec<_> = string_values.iter().map(|v| v.as_ref()).collect();
 
-    write_genotype_field_string_values(writer, &string_values_as_ref)
+    write_sample_field_string_values(writer, &string_values_as_ref)
 }
 
-fn write_genotype_field_character_array_values<W>(
+fn write_sample_field_character_array_values<W>(
     writer: &mut W,
     values: &[Option<&Value>],
 ) -> io::Result<()>
@@ -570,13 +550,10 @@ where
 
     let string_values_as_ref: Vec<_> = string_values.iter().map(|v| v.as_ref()).collect();
 
-    write_genotype_field_string_values(writer, &string_values_as_ref)
+    write_sample_field_string_values(writer, &string_values_as_ref)
 }
 
-fn write_genotype_field_string_values<W>(
-    writer: &mut W,
-    values: &[Option<&Value>],
-) -> io::Result<()>
+fn write_sample_field_string_values<W>(writer: &mut W, values: &[Option<&Value>]) -> io::Result<()>
 where
     W: Write,
 {
@@ -622,7 +599,7 @@ where
     Ok(())
 }
 
-fn write_genotype_field_string_array_values<W>(
+fn write_sample_field_string_array_values<W>(
     writer: &mut W,
     values: &[Option<&Value>],
 ) -> io::Result<()>
@@ -686,7 +663,7 @@ where
     Ok(())
 }
 
-fn write_genotype_genotype_field_values<W>(
+fn write_sample_genotype_field_values<W>(
     writer: &mut W,
     values: &[Option<&Value>],
 ) -> io::Result<()>
@@ -779,7 +756,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_genotypes() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_write_samples() -> Result<(), Box<dyn std::error::Error>> {
         use vcf::{
             header::record::value::Map,
             variant::record_buf::samples::{keys::key, sample::Value},
@@ -809,7 +786,7 @@ mod tests {
         );
 
         let mut buf = Vec::new();
-        write_genotypes(&mut buf, &header, string_maps.strings(), &genotypes)?;
+        write_samples(&mut buf, &header, string_maps.strings(), &genotypes)?;
 
         let expected = [
             0x11, // string string map index type = Some(Type::Int(1))
@@ -830,8 +807,8 @@ mod tests {
     }
 
     #[test]
-    fn test_write_genotype_field_values_with_integer_values(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn test_write_sample_field_values_with_integer_values() -> Result<(), Box<dyn std::error::Error>>
+    {
         fn t(
             buf: &mut Vec<u8>,
             format: &Map<Format>,
@@ -839,7 +816,7 @@ mod tests {
             expected: &[u8],
         ) -> io::Result<()> {
             buf.clear();
-            write_genotype_field_values(buf, format, values)?;
+            write_sample_field_values(buf, format, values)?;
             assert_eq!(buf, expected);
             Ok(())
         }
@@ -855,7 +832,7 @@ mod tests {
         ];
         buf.clear();
         assert!(matches!(
-            write_genotype_field_values(&mut buf, &key, &values),
+            write_sample_field_values(&mut buf, &key, &values),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
@@ -1000,7 +977,7 @@ mod tests {
     }
 
     #[test]
-    fn test_write_genotype_field_values_with_integer_array_values(
+    fn test_write_sample_field_values_with_integer_array_values(
     ) -> Result<(), Box<dyn std::error::Error>> {
         fn t(
             buf: &mut Vec<u8>,
@@ -1009,7 +986,7 @@ mod tests {
             expected: &[u8],
         ) -> io::Result<()> {
             buf.clear();
-            write_genotype_field_values(buf, format, values)?;
+            write_sample_field_values(buf, format, values)?;
             assert_eq!(buf, expected);
             Ok(())
         }
@@ -1024,7 +1001,7 @@ mod tests {
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
         buf.clear();
         assert!(matches!(
-            write_genotype_field_values(&mut buf, &format, &values),
+            write_sample_field_values(&mut buf, &format, &values),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
@@ -1179,14 +1156,14 @@ mod tests {
     }
 
     #[test]
-    fn test_write_genotype_field_values_with_float_values() -> Result<(), Box<dyn std::error::Error>>
+    fn test_write_sample_field_values_with_float_values() -> Result<(), Box<dyn std::error::Error>>
     {
         let format = Map::<Format>::new(Number::Count(1), format::Type::Float, String::new());
 
         let values = [Some(&Value::Float(0.0)), Some(&Value::Float(1.0)), None];
 
         let mut buf = Vec::new();
-        write_genotype_field_values(&mut buf, &format, &values)?;
+        write_sample_field_values(&mut buf, &format, &values)?;
 
         let expected = [
             0x15, // Some(Type::Float(1))
@@ -1201,7 +1178,7 @@ mod tests {
     }
 
     #[test]
-    fn test_write_genotype_field_values_with_float_array_values(
+    fn test_write_sample_field_values_with_float_array_values(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let format = Map::<Format>::new(Number::Count(2), format::Type::Float, String::new());
 
@@ -1211,7 +1188,7 @@ mod tests {
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
 
         let mut buf = Vec::new();
-        write_genotype_field_values(&mut buf, &format, &values)?;
+        write_sample_field_values(&mut buf, &format, &values)?;
 
         let expected = [
             0x25, // Some(Type::Float(2))
@@ -1227,7 +1204,7 @@ mod tests {
     }
 
     #[test]
-    fn test_write_genotype_field_values_with_character_values(
+    fn test_write_sample_field_values_with_character_values(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let format = Map::<Format>::new(Number::Count(1), format::Type::Character, String::new());
 
@@ -1238,7 +1215,7 @@ mod tests {
         ];
 
         let mut buf = Vec::new();
-        write_genotype_field_values(&mut buf, &format, &values)?;
+        write_sample_field_values(&mut buf, &format, &values)?;
 
         let expected = [
             0x17, // Some(Type::String(1))
@@ -1253,7 +1230,7 @@ mod tests {
     }
 
     #[test]
-    fn test_write_genotype_field_values_with_character_array_values(
+    fn test_write_sample_field_values_with_character_array_values(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let format = Map::<Format>::new(Number::Count(2), format::Type::Character, String::new());
 
@@ -1263,7 +1240,7 @@ mod tests {
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
 
         let mut buf = Vec::new();
-        write_genotype_field_values(&mut buf, &format, &values)?;
+        write_sample_field_values(&mut buf, &format, &values)?;
 
         let expected = [
             0x37, // Some(Type::String(1))
@@ -1279,8 +1256,8 @@ mod tests {
     }
 
     #[test]
-    fn test_write_genotype_field_values_with_string_values(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn test_write_sample_field_values_with_string_values() -> Result<(), Box<dyn std::error::Error>>
+    {
         let format = Map::<Format>::new(Number::Count(1), format::Type::String, String::new());
 
         let value_0 = Value::from("n");
@@ -1289,7 +1266,7 @@ mod tests {
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
 
         let mut buf = Vec::new();
-        write_genotype_field_values(&mut buf, &format, &values)?;
+        write_sample_field_values(&mut buf, &format, &values)?;
 
         let expected = [
             0x47, // Some(Type::String(4))
@@ -1305,7 +1282,7 @@ mod tests {
     }
 
     #[test]
-    fn test_write_genotype_field_values_with_string_array_values(
+    fn test_write_sample_field_values_with_string_array_values(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let format = Map::<Format>::new(Number::Count(2), format::Type::String, String::new());
 
@@ -1315,7 +1292,7 @@ mod tests {
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
 
         let mut buf = Vec::new();
-        write_genotype_field_values(&mut buf, &format, &values)?;
+        write_sample_field_values(&mut buf, &format, &values)?;
 
         let expected = [
             0x67, // Some(Type::String(6))
@@ -1331,14 +1308,14 @@ mod tests {
     }
 
     #[test]
-    fn test_write_genotype_genotype_field_values() -> io::Result<()> {
+    fn test_write_sample_genotype_field_values() -> io::Result<()> {
         let value_0 = Value::from("0/1");
         let value_1 = Value::from("1/1");
         let value_2 = Value::from("0/0");
         let values = [Some(&value_0), Some(&value_1), Some(&value_2)];
 
         let mut buf = Vec::new();
-        write_genotype_genotype_field_values(&mut buf, &values)?;
+        write_sample_genotype_field_values(&mut buf, &values)?;
 
         let expected = [
             0x21, // Some(Type::Int8(2))
@@ -1353,13 +1330,13 @@ mod tests {
     }
 
     #[test]
-    fn test_write_genotype_genotype_field_values_with_padding() -> io::Result<()> {
+    fn test_write_sample_genotype_field_values_with_padding() -> io::Result<()> {
         let value_0 = Value::from("0");
         let value_1 = Value::from("0/1");
         let values = [Some(&value_0), Some(&value_1)];
 
         let mut buf = Vec::new();
-        write_genotype_genotype_field_values(&mut buf, &values)?;
+        write_sample_genotype_field_values(&mut buf, &values)?;
 
         let expected = [
             0x21, // Some(Type::Int8(2))
