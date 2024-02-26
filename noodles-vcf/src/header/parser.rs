@@ -19,7 +19,7 @@ use super::{
         Map,
     },
     AlternativeAlleles, Contigs, Filters, Formats, Header, Infos, OtherRecords, Record,
-    SampleNames,
+    SampleNames, StringMaps,
 };
 
 #[derive(Debug, Default, Eq, PartialEq)]
@@ -119,6 +119,7 @@ impl Parser {
                 contigs: self.contigs,
                 sample_names: self.sample_names,
                 other_records: self.other_records,
+                string_maps: StringMaps::default(),
             }),
         }
     }

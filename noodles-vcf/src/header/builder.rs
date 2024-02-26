@@ -7,7 +7,7 @@ use super::{
         },
     },
     AlternativeAlleles, Contigs, FileFormat, Filters, Formats, Header, Infos, OtherRecords,
-    SampleNames,
+    SampleNames, StringMaps,
 };
 
 use indexmap::IndexMap;
@@ -296,6 +296,7 @@ impl Builder {
             contigs: self.contigs,
             sample_names: self.sample_names,
             other_records: self.other_records,
+            string_maps: StringMaps::default(),
         }
     }
 }
