@@ -187,9 +187,7 @@ pub(crate) mod tests {
 
         // genotypes
 
-        let actual = record
-            .samples()?
-            .try_into_vcf_record_samples(&header, header.string_maps().strings())?;
+        let actual = record.samples()?.try_into_vcf_record_samples(&header)?;
 
         let expected = VcfGenotypes::new(
             Keys::try_from(vec![
