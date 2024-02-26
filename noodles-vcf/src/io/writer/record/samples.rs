@@ -9,7 +9,7 @@ use crate::variant::record_buf::{
     Samples,
 };
 
-pub(super) fn write_genotypes<W>(writer: &mut W, genotypes: &Samples) -> io::Result<()>
+pub(super) fn write_samples<W>(writer: &mut W, genotypes: &Samples) -> io::Result<()>
 where
     W: Write,
 {
@@ -144,12 +144,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_genotypes() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_write_samples() -> Result<(), Box<dyn std::error::Error>> {
         use crate::variant::record_buf::samples::keys::key;
 
         fn t(buf: &mut Vec<u8>, genotypes: &Samples, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            write_genotypes(buf, genotypes)?;
+            write_samples(buf, genotypes)?;
             assert_eq!(buf, expected);
             Ok(())
         }

@@ -1,18 +1,18 @@
 mod alternate_bases;
 mod filters;
-mod genotypes;
 mod ids;
 mod info;
 mod position;
 mod quality_score;
 mod reference_sequence_name;
+mod samples;
 
 use std::io::{self, Write};
 
 use self::{
-    alternate_bases::write_alternate_bases, filters::write_filters, genotypes::write_genotypes,
-    ids::write_ids, info::write_info, position::write_position, quality_score::write_quality_score,
-    reference_sequence_name::write_reference_sequence_name,
+    alternate_bases::write_alternate_bases, filters::write_filters, ids::write_ids,
+    info::write_info, position::write_position, quality_score::write_quality_score,
+    reference_sequence_name::write_reference_sequence_name, samples::write_samples,
 };
 use crate::variant::RecordBuf;
 
@@ -49,7 +49,7 @@ where
 
     if !record.samples().is_empty() {
         writer.write_all(DELIMITER)?;
-        write_genotypes(writer, record.samples())?;
+        write_samples(writer, record.samples())?;
     }
 
     writer.write_all(b"\n")?;
