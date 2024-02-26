@@ -14,5 +14,5 @@ pub trait Samples {
     fn series(&self) -> Box<dyn Iterator<Item = Box<dyn Series + '_>> + '_>;
 
     /// Returns an iterator over samples.
-    fn samples(&self) -> Box<dyn Iterator<Item = Box<dyn Sample + '_>> + '_>;
+    fn iter(&self) -> Box<dyn Iterator<Item = Box<dyn Sample + '_>> + '_>;
 }
