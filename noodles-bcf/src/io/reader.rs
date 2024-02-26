@@ -18,11 +18,7 @@ use byteorder::ReadBytesExt;
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
-use noodles_vcf::{
-    self as vcf,
-    header::string_maps::{ContigStringMap, StringMaps},
-    variant::RecordBuf,
-};
+use noodles_vcf::{self as vcf, header::string_maps::ContigStringMap, variant::RecordBuf};
 
 use self::{header::read_header, record::read_record, record_buf::read_record_buf};
 use crate::Record;
@@ -33,7 +29,6 @@ use crate::Record;
 pub struct Reader<R> {
     inner: R,
     buf: Vec<u8>,
-    string_maps: StringMaps,
 }
 
 impl<R> Reader<R>
@@ -82,13 +77,6 @@ where
         self.inner
     }
 
-    /// Returns the string maps.
-    ///
-    /// This is only built after reading the header using [`Self::read_header`].
-    pub fn string_maps(&self) -> &StringMaps {
-        &self.string_maps
-    }
-
     /// Reads the VCF header.
     ///
     /// This verifies the BCF magic number, discards the file format version, and reads and parses
@@ -108,9 +96,7 @@ where
     pub fn read_header(&mut self) -> io::Result<vcf::Header> {
         read_magic(&mut self.inner)?;
         read_format_version(&mut self.inner)?;
-        let (header, string_maps) = read_header(&mut self.inner)?;
-        self.string_maps = string_maps;
-        Ok(header)
+        read_header(&mut self.inner)
     }
 
     /// Reads a single record.
@@ -142,13 +128,7 @@ where
         header: &vcf::Header,
         record: &mut RecordBuf,
     ) -> io::Result<usize> {
-        read_record_buf(
-            &mut self.inner,
-            header,
-            &self.string_maps,
-            &mut self.buf,
-            record,
-        )
+        read_record_buf(&mut self.inner, header, &mut self.buf, record)
     }
 
     /// Reads a single record without eagerly decoding (most of) its fields.
@@ -326,13 +306,12 @@ where
     where
         I: BinningIndex,
     {
-        let reference_sequence_id = resolve_region(self.string_maps.contigs(), region)?;
+        let reference_sequence_id = resolve_region(header.string_maps().contigs(), region)?;
         let chunks = index.query(reference_sequence_id, region.interval())?;
 
         Ok(Query::new(
             &mut self.inner,
             header,
-            &self.string_maps,
             chunks,
             reference_sequence_id,
             region.interval(),
@@ -345,7 +324,6 @@ impl<R> From<R> for Reader<R> {
         Self {
             inner,
             buf: Vec::new(),
-            string_maps: StringMaps::default(),
         }
     }
 }

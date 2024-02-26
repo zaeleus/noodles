@@ -3,7 +3,7 @@ use std::io::{self, Read, Seek};
 use noodles_bgzf as bgzf;
 use noodles_core::region::Interval;
 use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
-use noodles_vcf::{self as vcf, header::StringMaps, variant::RecordBuf};
+use noodles_vcf::{self as vcf, variant::RecordBuf};
 
 /// An iterator over records of a BCF reader that intersects a given region.
 ///
@@ -14,7 +14,6 @@ where
 {
     reader: csi::io::Query<'r, R>,
     header: &'h vcf::Header,
-    string_maps: &'r StringMaps,
     chromosome_id: usize,
     interval: Interval,
     buf: Vec<u8>,
@@ -28,7 +27,6 @@ where
     pub(super) fn new(
         reader: &'r mut bgzf::Reader<R>,
         header: &'h vcf::Header,
-        string_maps: &'r StringMaps,
         chunks: Vec<Chunk>,
         chromosome_id: usize,
         interval: Interval,
@@ -36,7 +34,6 @@ where
         Self {
             reader: csi::io::Query::new(reader, chunks),
             header,
-            string_maps,
             chromosome_id,
             interval,
             buf: Vec::new(),
@@ -50,7 +47,6 @@ where
         read_record_buf(
             &mut self.reader,
             self.header,
-            self.string_maps,
             &mut self.buf,
             &mut self.record,
         )
@@ -71,7 +67,7 @@ where
         loop {
             match self.next_record() {
                 Ok(Some(record)) => {
-                    match intersects(self.string_maps, &record, self.chromosome_id, self.interval) {
+                    match intersects(self.header, &record, self.chromosome_id, self.interval) {
                         Ok(true) => return Some(Ok(record)),
                         Ok(false) => {}
                         Err(e) => return Some(Err(e)),
@@ -85,14 +81,15 @@ where
 }
 
 fn intersects(
-    string_maps: &StringMaps,
+    header: &vcf::Header,
     record: &RecordBuf,
     chromosome_id: usize,
     region_interval: Interval,
 ) -> io::Result<bool> {
     let chromosome = record.reference_sequence_name();
 
-    let id = string_maps
+    let id = header
+        .string_maps()
         .contigs()
         .get_index_of(chromosome)
         .ok_or_else(|| {
