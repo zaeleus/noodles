@@ -1,11 +1,8 @@
 use std::{error, fmt};
 
-use noodles_vcf as vcf;
+use noodles_vcf::{self as vcf, header::string_maps::StringStringMap};
 
-use crate::{
-    header::string_maps::StringStringMap,
-    record::codec::decoder::string_map::{self, read_string_map_entry},
-};
+use crate::record::codec::decoder::string_map::{self, read_string_map_entry};
 
 pub(super) fn read_key<'h>(
     src: &mut &[u8],

@@ -1,7 +1,8 @@
 use std::{io, iter};
 
+use noodles_vcf::header::string_maps::StringMaps;
+
 use super::value::{read_type, Type};
-use crate::header::string_maps::StringMaps;
 
 /// BCF record filters.
 #[derive(Clone, Debug, Eq, PartialEq)]

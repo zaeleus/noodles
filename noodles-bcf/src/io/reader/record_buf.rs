@@ -1,9 +1,7 @@
 use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use noodles_vcf::{self as vcf, variant::RecordBuf};
-
-use crate::header::StringMaps;
+use noodles_vcf::{self as vcf, header::StringMaps, variant::RecordBuf};
 
 pub(super) fn read_record_buf<R>(
     reader: &mut R,

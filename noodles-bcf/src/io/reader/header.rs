@@ -1,9 +1,7 @@
 use std::io::{self, BufRead, BufReader, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use noodles_vcf as vcf;
-
-use crate::header::StringMaps;
+use noodles_vcf::{self as vcf, header::StringMaps};
 
 pub(super) fn read_header<R>(reader: &mut R) -> io::Result<(vcf::Header, StringMaps)>
 where

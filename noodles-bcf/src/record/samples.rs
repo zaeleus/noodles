@@ -3,11 +3,10 @@ mod series;
 
 use std::{io, iter};
 
-use noodles_vcf as vcf;
+use noodles_vcf::{self as vcf, header::string_maps::StringStringMap};
 
 use self::series::read_series;
 pub use self::{sample::Sample, series::Series};
-use crate::header::string_maps::StringStringMap;
 
 /// BCF record genotypes.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -32,13 +31,13 @@ impl<'a> Samples<'a> {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_bcf::{header::string_maps::StringMap, record::Samples};
-    /// use noodles_vcf as vcf;
+    /// use noodles_bcf::record::Samples;
+    /// use noodles_vcf::{self as vcf, header::string_maps::StringStringMap};
     ///
     /// let bcf_genotypes = Samples::default();
     ///
     /// let header = vcf::Header::default();
-    /// let string_maps = StringMap::default();
+    /// let string_maps = StringStringMap::default();
     /// let vcf_genotypes = bcf_genotypes.try_into_vcf_record_samples(&header, &string_maps)?;
     ///
     /// assert!(vcf_genotypes.is_empty());

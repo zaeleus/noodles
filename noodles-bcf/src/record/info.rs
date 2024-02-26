@@ -2,10 +2,9 @@ mod field;
 
 use std::io;
 
-use noodles_vcf::{self as vcf, variant::record::info::field::Value};
+use noodles_vcf::{self as vcf, header::StringMaps, variant::record::info::field::Value};
 
 use self::field::read_field;
-use crate::header::StringMaps;
 
 /// BCF record info.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]

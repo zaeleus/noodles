@@ -1,11 +1,10 @@
 use std::{error, fmt, num};
 
-use crate::{
-    header::string_maps::StringMap,
-    record::codec::{
-        value::{Array, Int16, Int32, Int8},
-        Value,
-    },
+use noodles_vcf::header::string_maps::StringMap;
+
+use crate::record::codec::{
+    value::{Array, Int16, Int32, Int8},
+    Value,
 };
 
 use super::value::read_value;

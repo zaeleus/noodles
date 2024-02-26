@@ -5,6 +5,7 @@ use std::{error, fmt};
 
 use noodles_vcf::{
     self as vcf,
+    header::string_maps::StringStringMap,
     variant::record_buf::{samples::Keys, Samples},
 };
 
@@ -12,7 +13,6 @@ use self::{
     key::read_key,
     values::{read_genotype_values, read_values},
 };
-use crate::header::string_maps::StringStringMap;
 
 pub fn read_samples(
     src: &mut &[u8],

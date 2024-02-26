@@ -1,9 +1,8 @@
 use std::io;
 
-use noodles_vcf::variant::record::samples::series::Value;
+use noodles_vcf::{header::StringMaps, variant::record::samples::series::Value};
 
 use super::Samples;
-use crate::header::StringMaps;
 
 /// A BCF record sample.
 pub struct Sample<'a> {

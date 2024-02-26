@@ -4,15 +4,14 @@ mod string_map;
 
 use std::str::{FromStr, Lines};
 
-use noodles_vcf::{
-    self as vcf,
+pub use self::string_map::StringMap;
+use crate::{
     header::{
         parser::{parse_record, Entry},
-        ParseError, Record,
+        FileFormat, ParseError, Record,
     },
+    Header,
 };
-
-pub use self::string_map::StringMap;
 
 /// An indexed map of VCF strings (FILTER, FORMAT, and INFO).
 pub type StringStringMap = StringMap;
@@ -37,10 +36,12 @@ impl StringMaps {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bcf::header::StringMaps;
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::record::value::{map::{Contig, Filter, Format, Info}, Map},
+    ///     header::{
+    ///         record::value::{map::{Contig, Filter, Format, Info}, Map},
+    ///         StringMaps,
+    ///     },
     ///     variant::record_buf::{info, samples},
     /// };
     ///
@@ -73,10 +74,12 @@ impl StringMaps {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bcf::header::StringMaps;
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::record::value::{map::{Contig, Filter, Format, Info}, Map},
+    ///     header::{
+    ///         record::value::{map::{Contig, Filter, Format, Info}, Map},
+    ///         StringMaps,
+    ///     },
     ///     variant::record_buf::{info, samples},
     /// };
     ///
@@ -102,7 +105,8 @@ impl StringMaps {
         &mut self.contig_string_map
     }
 
-    pub(crate) fn insert_entry(&mut self, entry: &Entry<'_>) -> Result<(), ParseError> {
+    #[doc(hidden)]
+    pub fn insert_entry(&mut self, entry: &Entry<'_>) -> Result<(), ParseError> {
         match entry {
             Entry::Contig(id, contig) => insert(self.contigs_mut(), id, contig.idx()),
             Entry::Filter(id, filter) => insert(self.strings_mut(), id, filter.idx()),
@@ -167,7 +171,7 @@ impl FromStr for StringMaps {
     }
 }
 
-fn parse_file_format(lines: &mut Lines<'_>) -> Result<vcf::header::FileFormat, ParseError> {
+fn parse_file_format(lines: &mut Lines<'_>) -> Result<FileFormat, ParseError> {
     let record = lines
         .next()
         .ok_or(ParseError::MissingFileFormat)
@@ -200,10 +204,10 @@ fn insert(string_map: &mut StringMap, id: &str, idx: Option<usize>) -> Result<()
     Ok(())
 }
 
-impl TryFrom<&vcf::Header> for StringMaps {
+impl TryFrom<&Header> for StringMaps {
     type Error = ParseError;
 
-    fn try_from(header: &vcf::Header) -> Result<Self, Self::Error> {
+    fn try_from(header: &Header) -> Result<Self, Self::Error> {
         let mut string_maps = StringMaps::default();
 
         for (id, contig) in header.contigs() {
@@ -403,7 +407,7 @@ mod tests {
 
     #[test]
     fn test_try_from_vcf_header_for_string_maps() -> Result<(), Box<dyn std::error::Error>> {
-        use vcf::{
+        use crate::{
             header::record::value::{
                 map::{AlternativeAllele, Contig, Filter, Format, Info},
                 Map,
@@ -411,7 +415,7 @@ mod tests {
             variant::record_buf::{info, samples},
         };
 
-        let header = vcf::Header::builder()
+        let header = Header::builder()
             .add_contig("sq0", Map::<Contig>::new())
             .add_contig("sq1", Map::<Contig>::new())
             .add_contig("sq2", Map::<Contig>::new())
@@ -485,7 +489,7 @@ mod tests {
     #[test]
     fn test_try_from_vcf_header_for_string_maps_with_idx() -> Result<(), Box<dyn std::error::Error>>
     {
-        use vcf::{
+        use crate::{
             header::record::value::{
                 map::{Filter, Info},
                 Map,
@@ -499,7 +503,7 @@ mod tests {
             map
         };
 
-        let header = vcf::Header::builder()
+        let header = Header::builder()
             .add_filter(
                 "PASS",
                 Map::<Filter>::builder()
@@ -562,8 +566,6 @@ mod tests {
 
     #[test]
     fn test_parse_file_format() {
-        use vcf::header::FileFormat;
-
         let s = "##fileformat=VCFv4.3\n";
         let mut lines = s.lines();
         assert_eq!(parse_file_format(&mut lines), Ok(FileFormat::new(4, 3)));

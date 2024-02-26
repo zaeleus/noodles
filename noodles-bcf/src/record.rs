@@ -14,6 +14,7 @@ mod value;
 use std::io;
 
 use noodles_core::Position;
+use noodles_vcf::header::StringMaps;
 
 use self::fields::Fields;
 pub(crate) use self::value::Value;
@@ -21,7 +22,6 @@ pub use self::{
     alternate_bases::AlternateBases, filters::Filters, ids::Ids, info::Info,
     reference_bases::ReferenceBases, samples::Samples,
 };
-use crate::header::StringMaps;
 
 /// A BCF record.
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -58,10 +58,10 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bcf::{self as bcf, header::StringMaps};
+    /// use noodles_bcf as bcf;
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::record::value::{map::Contig, Map},
+    ///     header::{record::value::{map::Contig, Map}, StringMaps},
     /// };
     ///
     /// let header = vcf::Header::builder()

@@ -13,7 +13,7 @@ mod value;
 use std::io;
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use noodles_vcf as vcf;
+use noodles_vcf::{self as vcf, header::StringMaps};
 
 use self::info::read_info;
 pub(crate) use self::{
@@ -21,7 +21,6 @@ pub(crate) use self::{
     position::read_pos, quality_score::read_qual, string_map::read_string_map_entry,
 };
 pub use self::{samples::read_samples, value::read_value};
-use crate::header::StringMaps;
 
 pub fn read_site(
     src: &mut &[u8],
