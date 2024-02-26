@@ -32,9 +32,9 @@ where
 mod tests {
     use noodles_core::Position;
     use noodles_vcf::{
-        header::StringMaps,
+        self as vcf,
         variant::{
-            record::{info::field::Value as InfoFieldValue, AlternateBases},
+            record::{info::field::Value as InfoFieldValue, AlternateBases, Info},
             record_buf::{
                 info,
                 samples::{self, sample::Value as GenotypeFieldValue, Keys},
@@ -49,8 +49,8 @@ mod tests {
     async fn test_read_record() -> Result<(), Box<dyn std::error::Error>> {
         use crate::io::reader::record::tests::{DATA, RAW_HEADER};
 
-        let header = RAW_HEADER.parse()?;
-        let string_maps: StringMaps = RAW_HEADER.parse()?;
+        let mut header: vcf::Header = RAW_HEADER.parse()?;
+        *header.string_maps_mut() = RAW_HEADER.parse()?;
 
         let mut reader = &DATA[..];
         let mut record = Record::default();
@@ -76,7 +76,7 @@ mod tests {
         assert_eq!(
             record
                 .filters()
-                .iter(&string_maps)?
+                .iter(header.string_maps())?
                 .collect::<io::Result<Vec<_>>>()?,
             ["PASS"],
         );
@@ -84,7 +84,7 @@ mod tests {
         // info
 
         let info = record.info();
-        let mut iter = info.iter(&header, &string_maps);
+        let mut iter = info.iter(&header);
         assert!(matches!(
             iter.next(),
             Some(Ok(("HM3", Some(InfoFieldValue::Flag))))
@@ -116,7 +116,7 @@ mod tests {
 
         let actual = record
             .samples()?
-            .try_into_vcf_record_samples(&header, string_maps.strings())?;
+            .try_into_vcf_record_samples(&header, header.string_maps().strings())?;
 
         let expected = VcfGenotypes::new(
             Keys::try_from(vec![

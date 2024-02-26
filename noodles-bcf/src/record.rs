@@ -215,6 +215,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_bcf as bcf;
+    /// use noodles_vcf::variant::record::Info;
     /// let record = bcf::Record::default();
     /// assert!(record.info().is_empty());
     /// ```

@@ -3,7 +3,7 @@ use std::{io, str};
 use noodles_vcf::{
     self as vcf,
     header::StringMaps,
-    variant::record::{AlternateBases, Ids},
+    variant::record::{AlternateBases, Ids, Info},
 };
 
 use super::Record;
@@ -56,7 +56,7 @@ impl Record {
 
         let info = self
             .info()
-            .iter(header, string_maps)
+            .iter(header)
             .map(|result| {
                 result.and_then(|(key, value)| {
                     let v = value.map(|v| v.try_into()).transpose()?;

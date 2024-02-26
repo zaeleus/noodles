@@ -107,9 +107,8 @@ pub(crate) mod tests {
         use noodles_core::Position;
         use noodles_vcf::{
             self as vcf,
-            header::StringMaps,
             variant::{
-                record::AlternateBases,
+                record::{AlternateBases, Info},
                 record_buf::{
                     info::{self, field::Value as InfoFieldValue},
                     samples::{
@@ -122,8 +121,8 @@ pub(crate) mod tests {
             },
         };
 
-        let header = RAW_HEADER.parse()?;
-        let string_maps: StringMaps = RAW_HEADER.parse()?;
+        let mut header: vcf::Header = RAW_HEADER.parse()?;
+        *header.string_maps_mut() = RAW_HEADER.parse()?;
 
         let mut reader = &DATA[..];
         let mut record = Record::default();
@@ -149,7 +148,7 @@ pub(crate) mod tests {
         assert_eq!(
             record
                 .filters()
-                .iter(&string_maps)?
+                .iter(header.string_maps())?
                 .collect::<io::Result<Vec<_>>>()?,
             ["PASS"],
         );
@@ -157,7 +156,7 @@ pub(crate) mod tests {
         // info
         let actual: vcf::variant::record_buf::Info = record
             .info()
-            .iter(&header, &string_maps)
+            .iter(&header)
             .map(|result| {
                 result.and_then(|(key, value)| {
                     let v = value.map(|v| v.try_into()).transpose()?;
@@ -190,7 +189,7 @@ pub(crate) mod tests {
 
         let actual = record
             .samples()?
-            .try_into_vcf_record_samples(&header, string_maps.strings())?;
+            .try_into_vcf_record_samples(&header, header.string_maps().strings())?;
 
         let expected = VcfGenotypes::new(
             Keys::try_from(vec![
