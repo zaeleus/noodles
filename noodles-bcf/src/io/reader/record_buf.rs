@@ -35,14 +35,8 @@ where
     reader.read_exact(buf)?;
     let mut src = &buf[..];
 
-    *record.samples_mut() = read_samples(
-        &mut src,
-        header.formats(),
-        string_maps.strings(),
-        n_sample,
-        n_fmt,
-    )
-    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    *record.samples_mut() = read_samples(&mut src, header, n_sample, n_fmt)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     Ok(l_shared + l_indiv)
 }

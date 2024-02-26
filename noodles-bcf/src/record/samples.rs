@@ -3,7 +3,7 @@ mod series;
 
 use std::{io, iter};
 
-use noodles_vcf::{self as vcf, header::string_maps::StringStringMap};
+use noodles_vcf as vcf;
 
 use self::series::read_series;
 pub use self::{sample::Sample, series::Series};
@@ -32,21 +32,19 @@ impl<'a> Samples<'a> {
     /// ```
     /// # use std::io;
     /// use noodles_bcf::record::Samples;
-    /// use noodles_vcf::{self as vcf, header::string_maps::StringStringMap};
+    /// use noodles_vcf as vcf;
     ///
-    /// let bcf_genotypes = Samples::default();
+    /// let bcf_samples = Samples::default();
     ///
     /// let header = vcf::Header::default();
-    /// let string_maps = StringStringMap::default();
-    /// let vcf_genotypes = bcf_genotypes.try_into_vcf_record_samples(&header, &string_maps)?;
+    /// let vcf_samples = bcf_samples.try_into_vcf_record_samples(&header)?;
     ///
-    /// assert!(vcf_genotypes.is_empty());
+    /// assert!(vcf_samples.is_empty());
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn try_into_vcf_record_samples(
         &self,
         header: &vcf::Header,
-        string_map: &StringStringMap,
     ) -> io::Result<vcf::variant::record_buf::Samples> {
         use crate::record::codec::decoder::read_samples;
 
@@ -56,14 +54,8 @@ impl<'a> Samples<'a> {
 
         let mut reader = self.src;
 
-        let genotypes = read_samples(
-            &mut reader,
-            header.formats(),
-            string_map,
-            self.len(),
-            self.format_count(),
-        )
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let genotypes = read_samples(&mut reader, header, self.len(), self.format_count())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         Ok(genotypes)
     }

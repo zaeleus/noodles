@@ -5,7 +5,6 @@ use std::{error, fmt};
 
 use noodles_vcf::{
     self as vcf,
-    header::string_maps::StringStringMap,
     variant::record_buf::{samples::Keys, Samples},
 };
 
@@ -16,8 +15,7 @@ use self::{
 
 pub fn read_samples(
     src: &mut &[u8],
-    formats: &vcf::header::Formats,
-    string_map: &StringStringMap,
+    header: &vcf::Header,
     sample_count: usize,
     format_count: usize,
 ) -> Result<Samples, DecodeError> {
@@ -27,7 +25,7 @@ pub fn read_samples(
     let mut samples = vec![Vec::new(); sample_count];
 
     for _ in 0..format_count {
-        let key = read_key(src, formats, string_map).map_err(DecodeError::InvalidKey)?;
+        let key = read_key(src, header).map_err(DecodeError::InvalidKey)?;
 
         let values = if key == key::GENOTYPE {
             read_genotype_values(src, sample_count).map_err(DecodeError::InvalidValues)?

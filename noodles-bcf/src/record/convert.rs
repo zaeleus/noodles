@@ -65,9 +65,7 @@ impl Record {
             })
             .collect::<io::Result<_>>()?;
 
-        let samples = self
-            .samples()?
-            .try_into_vcf_record_samples(header, string_maps.strings())?;
+        let samples = self.samples()?.try_into_vcf_record_samples(header)?;
 
         let mut builder = vcf::variant::RecordBuf::builder()
             .set_reference_sequence_name(chromosome)
