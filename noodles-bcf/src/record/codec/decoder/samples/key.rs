@@ -62,6 +62,6 @@ mod tests {
         string_map.insert("PASS".into());
         string_map.insert("GT".into());
 
-        assert_eq!(read_key(&mut src, &formats, &string_map), Ok(key::GENOTYPE),);
+        assert_eq!(read_key(&mut src, &formats, &string_map), Ok(key::GENOTYPE));
     }
 }
