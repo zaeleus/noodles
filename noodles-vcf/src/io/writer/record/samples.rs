@@ -1,10 +1,13 @@
+mod keys;
+
 use std::io::{self, Write};
 
+use self::keys::write_keys;
 use super::MISSING;
 use crate::variant::record_buf::{
     samples::{
         sample::{value::Array, Value},
-        Keys, Sample,
+        Sample,
     },
     Samples,
 };
@@ -20,23 +23,6 @@ where
     for sample in genotypes.values() {
         writer.write_all(DELIMITER)?;
         write_sample(writer, &sample)?;
-    }
-
-    Ok(())
-}
-
-fn write_keys<W>(writer: &mut W, keys: &Keys) -> io::Result<()>
-where
-    W: Write,
-{
-    const DELIMITER: &[u8] = b":";
-
-    for (i, key) in keys.iter().enumerate() {
-        if i > 0 {
-            writer.write_all(DELIMITER)?;
-        }
-
-        writer.write_all(key.as_bytes())?;
     }
 
     Ok(())
@@ -145,7 +131,7 @@ mod tests {
 
     #[test]
     fn test_write_samples() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::variant::record_buf::samples::keys::key;
+        use crate::variant::record_buf::samples::{keys::key, Keys};
 
         fn t(buf: &mut Vec<u8>, genotypes: &Samples, expected: &[u8]) -> io::Result<()> {
             buf.clear();
