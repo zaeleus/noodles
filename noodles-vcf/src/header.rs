@@ -53,6 +53,7 @@ pub struct Header {
     contigs: Contigs,
     sample_names: SampleNames,
     other_records: OtherRecords,
+    string_maps: StringMaps,
 }
 
 impl Header {
@@ -497,6 +498,16 @@ impl Header {
             });
 
         collection.add(value)
+    }
+
+    #[doc(hidden)]
+    pub fn string_maps(&self) -> &StringMaps {
+        &self.string_maps
+    }
+
+    #[doc(hidden)]
+    pub fn string_maps_mut(&mut self) -> &mut StringMaps {
+        &mut self.string_maps
     }
 }
 
