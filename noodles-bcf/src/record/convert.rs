@@ -2,7 +2,6 @@ use std::{io, str};
 
 use noodles_vcf::{
     self as vcf,
-    header::StringMaps,
     variant::record::{AlternateBases, Ids, Info},
 };
 
@@ -19,12 +18,12 @@ impl Record {
     /// use noodles_vcf as vcf;
     ///
     /// let raw_header = "##fileformat=VCFv4.3\n##contig=<ID=sq0>\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
-    /// let header: vcf::Header = raw_header.parse()?;
-    /// let string_maps = raw_header.parse()?;
+    /// let mut header: vcf::Header = raw_header.parse()?;
+    /// *header.string_maps_mut() = raw_header.parse()?;
     ///
     /// let record = bcf::Record::default();
     ///
-    /// let actual = record.try_into_vcf_record(&header, &string_maps)?;
+    /// let actual = record.try_into_vcf_record(&header)?;
     /// let expected = vcf::variant::RecordBuf::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_position(Position::MIN)
@@ -34,12 +33,9 @@ impl Record {
     /// assert_eq!(actual, expected);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn try_into_vcf_record(
-        &self,
-        header: &vcf::Header,
-        string_maps: &StringMaps,
-    ) -> io::Result<vcf::variant::RecordBuf> {
-        let chromosome = string_maps
+    pub fn try_into_vcf_record(&self, header: &vcf::Header) -> io::Result<vcf::variant::RecordBuf> {
+        let chromosome = header
+            .string_maps()
             .contigs()
             .get_index(self.reference_sequence_id()?)
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid chrom"))?;
