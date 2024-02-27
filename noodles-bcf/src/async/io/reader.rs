@@ -6,10 +6,7 @@ use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
-use noodles_vcf::{
-    self as vcf,
-    header::{string_maps::ContigStringMap, StringMaps},
-};
+use noodles_vcf::{self as vcf, header::StringMaps};
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};
 
 use self::{header::read_header, query::query, record::read_record};
@@ -279,13 +276,11 @@ where
     /// use tokio::fs::File;
     ///
     /// let mut reader = File::open("sample.bcf").await.map(bcf::r#async::io::Reader::new)?;
-    /// reader.read_header().await?;
-    ///
-    /// let string_maps = reader.string_maps().clone();
+    /// let header = reader.read_header().await?;
     ///
     /// let index = csi::r#async::read("sample.bcf.csi").await?;
     /// let region = "sq0:8-13".parse()?;
-    /// let mut query = reader.query(string_maps.contigs(), &index, &region)?;
+    /// let mut query = reader.query(&header, &index, &region)?;
     ///
     /// while let Some(record) = query.try_next().await? {
     ///     // ...
@@ -295,7 +290,7 @@ where
     /// ```
     pub fn query<I>(
         &mut self,
-        contig_string_map: &ContigStringMap,
+        header: &vcf::Header,
         index: &I,
         region: &Region,
     ) -> io::Result<impl Stream<Item = io::Result<Record>> + '_>
@@ -304,7 +299,7 @@ where
     {
         use crate::io::reader::resolve_region;
 
-        let reference_sequence_id = resolve_region(contig_string_map, region)?;
+        let reference_sequence_id = resolve_region(header.string_maps().contigs(), region)?;
         let chunks = index.query(reference_sequence_id, region.interval())?;
 
         Ok(query(
