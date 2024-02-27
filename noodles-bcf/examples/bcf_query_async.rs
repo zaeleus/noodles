@@ -20,14 +20,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let raw_region = args.next().expect("missing region");
 
     let mut reader = File::open(&src).await.map(bcf::r#async::io::Reader::new)?;
-
     let header = reader.read_header().await?;
-    let string_maps = reader.string_maps().clone();
 
     let index = csi::r#async::read(src.with_extension("bcf.csi")).await?;
 
     let region = raw_region.parse()?;
-    let mut query = reader.query(string_maps.contigs(), &index, &region)?;
+    let mut query = reader.query(&header, &index, &region)?;
 
     let mut writer = vcf::r#async::io::Writer::new(io::stdout());
 
