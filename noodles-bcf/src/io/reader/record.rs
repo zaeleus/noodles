@@ -148,7 +148,7 @@ pub(crate) mod tests {
         assert_eq!(
             record
                 .filters()
-                .iter(header.string_maps())?
+                .iter(&header)?
                 .collect::<io::Result<Vec<_>>>()?,
             ["PASS"],
         );
