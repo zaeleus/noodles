@@ -7,13 +7,13 @@ use noodles_vcf::{
 
 use crate::record::value::{array::Values, read_type, read_value, Type};
 
-pub struct Series<'a> {
+pub struct Series<'r> {
     id: usize,
     ty: Type,
-    src: &'a [u8],
+    src: &'r [u8],
 }
 
-impl<'a> Series<'a> {
+impl<'r> Series<'r> {
     pub fn name<'h>(&self, header: &'h vcf::Header) -> io::Result<&'h str> {
         header
             .string_maps()
@@ -22,7 +22,17 @@ impl<'a> Series<'a> {
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid string map ID"))
     }
 
-    pub fn get(&self, i: usize) -> Option<Option<Value<'a>>> {
+    fn len(&self) -> usize {
+        match self.ty {
+            Type::Int8(len) => len,
+            Type::Int16(len) => len,
+            Type::Int32(len) => len,
+            Type::Float(len) => len,
+            Type::String(len) => len,
+        }
+    }
+
+    pub fn get(&self, i: usize) -> Option<Option<Value<'r>>> {
         match self.ty {
             Type::Int8(len) => get_int8_value(self.src, len, i),
             Type::Int16(len) => get_int16_value(self.src, len, i),
@@ -30,6 +40,26 @@ impl<'a> Series<'a> {
             Type::Float(len) => get_float_value(self.src, len, i),
             Type::String(len) => get_string_value(self.src, len, i),
         }
+    }
+}
+
+impl<'r> vcf::variant::record::samples::Series for Series<'r> {
+    fn name<'a, 'h: 'a>(&'a self, header: &'h vcf::Header) -> io::Result<&'a str> {
+        header
+            .string_maps()
+            .strings()
+            .get_index(self.id)
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid string map ID"))
+    }
+
+    fn iter<'a, 'h: 'a>(
+        &'a self,
+        _: &'h vcf::Header,
+    ) -> Box<dyn Iterator<Item = io::Result<Option<Value<'a>>>> + 'a> {
+        Box::new((0..self.len()).map(|i| {
+            self.get(i)
+                .ok_or_else(|| io::Error::from(io::ErrorKind::InvalidData))
+        }))
     }
 }
 
