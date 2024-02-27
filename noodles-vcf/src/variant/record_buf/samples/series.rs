@@ -24,8 +24,8 @@ impl<'s> Series<'s> {
 }
 
 impl<'s> crate::variant::record::samples::Series for Series<'s> {
-    fn name(&self) -> &str {
-        self.name
+    fn name<'a, 'h: 'a>(&'a self, _: &'h Header) -> io::Result<&'a str> {
+        Ok(self.name)
     }
 
     fn iter<'a, 'h: 'a>(
@@ -50,8 +50,12 @@ mod tests {
 
     #[test]
     fn test_name() {
+        let header = Header::default();
         let series = Series::new(key::GENOTYPE, &[], 0);
-        assert_eq!(series.name(), key::GENOTYPE);
+        assert!(matches!(
+            series.name(&header),
+            Ok(name) if name == key::GENOTYPE
+        ));
     }
 
     #[test]

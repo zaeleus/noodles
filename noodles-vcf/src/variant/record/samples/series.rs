@@ -10,7 +10,7 @@ use crate::Header;
 /// A variant record samples series.
 pub trait Series {
     /// Returns the name.
-    fn name(&self) -> &str;
+    fn name<'a, 'h: 'a>(&'a self, header: &'h Header) -> io::Result<&'a str>;
 
     /// Returns an iterator over values.
     fn iter<'a, 'h: 'a>(
