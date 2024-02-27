@@ -6,7 +6,7 @@ use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
-use noodles_vcf::{self as vcf, header::StringMaps};
+use noodles_vcf as vcf;
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};
 
 use self::{header::read_header, query::query, record::read_record};
@@ -38,7 +38,6 @@ use crate::Record;
 /// ```
 pub struct Reader<R> {
     inner: R,
-    string_maps: StringMaps,
 }
 
 impl<R> Reader<R>
@@ -87,13 +86,6 @@ where
         self.inner
     }
 
-    /// Returns the string maps.
-    ///
-    /// This is only built after reading the header using [`Self::read_header`].
-    pub fn string_maps(&self) -> &StringMaps {
-        &self.string_maps
-    }
-
     /// Reads the VCF header.
     ///
     /// The BCF magic number is checked, and the file format version is discarded.
@@ -118,9 +110,7 @@ where
     pub async fn read_header(&mut self) -> io::Result<vcf::Header> {
         read_magic(&mut self.inner).await?;
         read_format_version(&mut self.inner).await?;
-        let (header, string_maps) = read_header(&mut self.inner).await?;
-        self.string_maps = string_maps;
-        Ok(header)
+        read_header(&mut self.inner).await
     }
 
     /// Reads a single record without decoding (most of) its feilds.
@@ -313,10 +303,7 @@ where
 
 impl<R> From<R> for Reader<R> {
     fn from(inner: R) -> Self {
-        Self {
-            inner,
-            string_maps: StringMaps::default(),
-        }
+        Self { inner }
     }
 }
 
