@@ -5,22 +5,23 @@ use noodles_vcf::{self as vcf, variant::record::samples::series::Value};
 use super::Samples;
 
 /// A BCF record sample.
-pub struct Sample<'a> {
-    samples: &'a Samples<'a>,
+pub struct Sample<'r> {
+    samples: &'r Samples<'r>,
     i: usize,
 }
 
-impl<'a> Sample<'a> {
-    pub(super) fn new(samples: &'a Samples<'a>, i: usize) -> Self {
+impl<'r> Sample<'r> {
+    pub(super) fn new(samples: &'r Samples<'r>, i: usize) -> Self {
         Self { samples, i }
     }
+}
 
-    /// Returns an iterator over fields.
-    pub fn iter<'h>(
-        &self,
+impl<'r> vcf::variant::record::samples::Sample for Sample<'r> {
+    fn iter<'a, 'h: 'a>(
+        &'a self,
         header: &'h vcf::Header,
-    ) -> impl Iterator<Item = io::Result<(&'h str, Option<Value<'_>>)>> {
-        self.samples.series().map(|result| {
+    ) -> Box<dyn Iterator<Item = io::Result<(&'a str, Option<Value<'a>>)>> + 'a> {
+        Box::new(self.samples.series().map(|result| {
             result.and_then(|series| {
                 let name = series.name(header)?;
 
@@ -30,6 +31,6 @@ impl<'a> Sample<'a> {
 
                 Ok((name, value))
             })
-        })
+        }))
     }
 }
