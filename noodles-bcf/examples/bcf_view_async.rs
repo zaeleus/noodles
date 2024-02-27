@@ -14,9 +14,7 @@ async fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
     let mut reader = File::open(src).await.map(bcf::r#async::io::Reader::new)?;
-
     let header = reader.read_header().await?;
-    let string_maps = reader.string_maps().clone();
 
     let mut records = reader.records();
 
@@ -24,7 +22,7 @@ async fn main() -> io::Result<()> {
     writer.write_header(&header).await?;
 
     while let Some(record) = records.try_next().await? {
-        let vcf_record = record.try_into_vcf_record(&header, &string_maps)?;
+        let vcf_record = record.try_into_vcf_record(&header)?;
         writer.write_record(&vcf_record).await?;
     }
 
