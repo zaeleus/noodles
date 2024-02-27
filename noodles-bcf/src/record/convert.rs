@@ -95,7 +95,7 @@ impl Record {
         if !self.filters().is_empty()? {
             let filters = self
                 .filters()
-                .iter(string_maps)?
+                .iter(header)?
                 .map(|filter| filter.map(String::from))
                 .collect::<io::Result<_>>()?;
 

@@ -1,6 +1,6 @@
 use std::{io, iter};
 
-use noodles_vcf::header::string_maps::StringMaps;
+use noodles_vcf as vcf;
 
 use super::value::{read_type, Type};
 
@@ -32,13 +32,13 @@ impl<'a> Filters<'a> {
     }
 
     /// Returns an iterator over filters.
-    pub fn iter<'s: 'a>(
+    pub fn iter<'h: 'a>(
         &'a self,
-        string_maps: &'s StringMaps,
-    ) -> io::Result<Box<dyn Iterator<Item = io::Result<&'s str>> + 'a>> {
+        header: &'h vcf::Header,
+    ) -> io::Result<Box<dyn Iterator<Item = io::Result<&'h str>> + 'a>> {
         Ok(Box::new(self.indices()?.map(|result| {
             result.and_then(|i| {
-                string_maps.strings().get_index(i).ok_or_else(|| {
+                header.string_maps().strings().get_index(i).ok_or_else(|| {
                     io::Error::new(
                         io::ErrorKind::InvalidInput,
                         format!("invalid string map index: {i}"),
