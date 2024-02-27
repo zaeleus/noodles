@@ -1,7 +1,7 @@
 use std::{io, mem, ops::Range, str};
 
 use noodles_vcf::{
-    header::StringMaps,
+    self as vcf,
     variant::record::samples::series::{value::Array, Value},
 };
 
@@ -14,8 +14,9 @@ pub struct Series<'a> {
 }
 
 impl<'a> Series<'a> {
-    pub fn name<'h>(&self, string_maps: &'h StringMaps) -> io::Result<&'h str> {
-        string_maps
+    pub fn name<'h>(&self, header: &'h vcf::Header) -> io::Result<&'h str> {
+        header
+            .string_maps()
             .strings()
             .get_index(self.id)
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid string map ID"))
