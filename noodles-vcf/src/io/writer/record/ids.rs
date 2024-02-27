@@ -1,18 +1,19 @@
 use std::io::{self, Write};
 
 use super::MISSING;
-use crate::variant::record_buf::Ids;
+use crate::variant::record::Ids;
 
-pub(super) fn write_ids<W>(writer: &mut W, ids: &Ids) -> io::Result<()>
+pub(super) fn write_ids<W, I>(writer: &mut W, ids: I) -> io::Result<()>
 where
     W: Write,
+    I: Ids,
 {
     const DELIMITER: &[u8] = b";";
 
-    if ids.as_ref().is_empty() {
+    if ids.is_empty() {
         writer.write_all(MISSING)?;
     } else {
-        for (i, id) in ids.as_ref().iter().enumerate() {
+        for (i, id) in ids.iter().enumerate() {
             if i > 0 {
                 writer.write_all(DELIMITER)?;
             }
@@ -27,10 +28,11 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::variant::record_buf::Ids as IdsBuf;
 
     #[test]
     fn test_write_ids() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(buf: &mut Vec<u8>, ids: &Ids, expected: &[u8]) -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, ids: &IdsBuf, expected: &[u8]) -> io::Result<()> {
             buf.clear();
             write_ids(buf, ids)?;
             assert_eq!(buf, expected);
@@ -39,7 +41,7 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        let ids = Ids::default();
+        let ids = IdsBuf::default();
         t(&mut buf, &ids, b".")?;
 
         let ids = [String::from("id0")].into_iter().collect();
