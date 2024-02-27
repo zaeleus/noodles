@@ -1,6 +1,6 @@
 use std::io;
 
-use noodles_vcf::{header::StringMaps, variant::record::samples::series::Value};
+use noodles_vcf::{self as vcf, variant::record::samples::series::Value};
 
 use super::Samples;
 
@@ -18,11 +18,11 @@ impl<'a> Sample<'a> {
     /// Returns an iterator over fields.
     pub fn iter<'h>(
         &self,
-        string_maps: &'h StringMaps,
+        header: &'h vcf::Header,
     ) -> impl Iterator<Item = io::Result<(&'h str, Option<Value<'_>>)>> {
         self.samples.series().map(|result| {
             result.and_then(|series| {
-                let name = series.name(string_maps)?;
+                let name = series.name(header)?;
 
                 let value = series
                     .get(self.i)
