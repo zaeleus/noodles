@@ -1,21 +1,21 @@
-use noodles_vcf::{self as vcf, header::StringMaps};
+use noodles_vcf as vcf;
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
-pub(super) async fn read_header<R>(reader: &mut R) -> io::Result<(vcf::Header, StringMaps)>
+pub(super) async fn read_header<R>(reader: &mut R) -> io::Result<vcf::Header>
 where
     R: AsyncRead + Unpin,
 {
     let raw_header = read_raw_header(reader).await?;
 
-    let header = raw_header
+    let mut header: vcf::Header = raw_header
         .parse()
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    let string_maps = raw_header
+    *header.string_maps_mut() = raw_header
         .parse()
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    Ok((header, string_maps))
+    Ok(header)
 }
 
 async fn read_raw_header<R>(reader: &mut R) -> io::Result<String>
