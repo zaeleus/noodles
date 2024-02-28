@@ -1,24 +1,28 @@
 use std::io::{self, Write};
 
 use super::MISSING;
-use crate::variant::record_buf::{
-    info::field::{value::Array, Value},
-    Info,
+use crate::{
+    variant::record::{
+        info::field::{value::Array, Value},
+        Info,
+    },
+    Header,
 };
 
-pub(super) fn write_info<W>(writer: &mut W, info: &Info) -> io::Result<()>
+pub(super) fn write_info<W, I>(writer: &mut W, header: &Header, info: I) -> io::Result<()>
 where
     W: Write,
+    I: Info,
 {
     const DELIMITER: &[u8] = b";";
     const SEPARATOR: &[u8] = b"=";
 
-    let info = info.as_ref();
-
     if info.is_empty() {
         writer.write_all(MISSING)?;
     } else {
-        for (i, (key, value)) in info.iter().enumerate() {
+        for (i, result) in info.iter(header).enumerate() {
+            let (key, value) = result?;
+
             if i > 0 {
                 writer.write_all(DELIMITER)?;
             }
@@ -29,7 +33,7 @@ where
                 Some(Value::Flag) => {}
                 Some(v) => {
                     writer.write_all(SEPARATOR)?;
-                    write_value(writer, v)?;
+                    write_value(writer, &v)?;
                 }
                 None => {
                     writer.write_all(SEPARATOR)?;
@@ -55,12 +59,12 @@ where
         Value::Character(c) => write!(writer, "{c}"),
         Value::String(s) => writer.write_all(s.as_bytes()),
         Value::Array(Array::Integer(values)) => {
-            for (i, v) in values.iter().enumerate() {
+            for (i, result) in values.iter().enumerate() {
                 if i > 0 {
                     writer.write_all(DELIMITER)?;
                 }
 
-                if let Some(n) = v {
+                if let Some(n) = result? {
                     write!(writer, "{n}")?;
                 } else {
                     writer.write_all(MISSING)?;
@@ -70,12 +74,12 @@ where
             Ok(())
         }
         Value::Array(Array::Float(values)) => {
-            for (i, v) in values.iter().enumerate() {
+            for (i, result) in values.iter().enumerate() {
                 if i > 0 {
                     writer.write_all(DELIMITER)?;
                 }
 
-                if let Some(n) = v {
+                if let Some(n) = result? {
                     write!(writer, "{n}")?;
                 } else {
                     writer.write_all(MISSING)?;
@@ -85,12 +89,12 @@ where
             Ok(())
         }
         Value::Array(Array::Character(values)) => {
-            for (i, v) in values.iter().enumerate() {
+            for (i, result) in values.iter().enumerate() {
                 if i > 0 {
                     writer.write_all(DELIMITER)?;
                 }
 
-                if let Some(c) = v {
+                if let Some(c) = result? {
                     write!(writer, "{c}")?;
                 } else {
                     writer.write_all(MISSING)?;
@@ -100,12 +104,12 @@ where
             Ok(())
         }
         Value::Array(Array::String(values)) => {
-            for (i, v) in values.iter().enumerate() {
+            for (i, result) in values.iter().enumerate() {
                 if i > 0 {
                     writer.write_all(DELIMITER)?;
                 }
 
-                if let Some(s) = v {
+                if let Some(s) = result? {
                     writer.write_all(s.as_bytes())?;
                 } else {
                     writer.write_all(MISSING)?;
@@ -123,39 +127,48 @@ mod tests {
 
     #[test]
     fn test_write_info() -> io::Result<()> {
-        use crate::variant::record_buf::info::field::key;
+        use crate::variant::record_buf::{
+            info::field::{key, Value as ValueBuf},
+            Info as InfoBuf,
+        };
 
-        fn t(buf: &mut Vec<u8>, info: &Info, expected: &[u8]) -> io::Result<()> {
+        fn t(
+            buf: &mut Vec<u8>,
+            header: &Header,
+            info: &InfoBuf,
+            expected: &[u8],
+        ) -> io::Result<()> {
             buf.clear();
-            write_info(buf, info)?;
+            write_info(buf, header, info)?;
             assert_eq!(buf, expected);
             Ok(())
         }
 
+        let header = Header::default();
         let mut buf = Vec::new();
 
-        let info = Info::default();
-        t(&mut buf, &info, b".")?;
+        let info = InfoBuf::default();
+        t(&mut buf, &header, &info, b".")?;
 
         let info = [(
             String::from(key::SAMPLES_WITH_DATA_COUNT),
-            Some(Value::from(2)),
+            Some(ValueBuf::from(2)),
         )]
         .into_iter()
         .collect();
-        t(&mut buf, &info, b"NS=2")?;
+        t(&mut buf, &header, &info, b"NS=2")?;
 
         let info = [
             (
                 String::from(key::SAMPLES_WITH_DATA_COUNT),
-                Some(Value::from(2)),
+                Some(ValueBuf::from(2)),
             ),
-            (String::from(key::IS_IN_DB_SNP), Some(Value::Flag)),
+            (String::from(key::IS_IN_DB_SNP), Some(ValueBuf::Flag)),
         ]
         .into_iter()
         .collect();
 
-        t(&mut buf, &info, b"NS=2;DB")?;
+        t(&mut buf, &header, &info, b"NS=2;DB")?;
 
         Ok(())
     }

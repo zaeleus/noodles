@@ -145,8 +145,8 @@ where
     /// writer.write_record(&header, &record)?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn write_record(&mut self, _: &Header, record: &RecordBuf) -> io::Result<()> {
-        write_record(&mut self.inner, record)
+    pub fn write_record(&mut self, header: &Header, record: &RecordBuf) -> io::Result<()> {
+        write_record(&mut self.inner, header, record)
     }
 }
 

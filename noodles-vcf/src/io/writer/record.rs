@@ -14,11 +14,11 @@ use self::{
     info::write_info, position::write_position, quality_score::write_quality_score,
     reference_sequence_name::write_reference_sequence_name, samples::write_samples,
 };
-use crate::variant::RecordBuf;
+use crate::{variant::RecordBuf, Header};
 
 const MISSING: &[u8] = b".";
 
-pub(super) fn write_record<W>(writer: &mut W, record: &RecordBuf) -> io::Result<()>
+pub(super) fn write_record<W>(writer: &mut W, header: &Header, record: &RecordBuf) -> io::Result<()>
 where
     W: Write,
 {
@@ -45,7 +45,7 @@ where
     write_filters(writer, record.filters())?;
 
     writer.write_all(DELIMITER)?;
-    write_info(writer, record.info())?;
+    write_info(writer, header, record.info())?;
 
     if !record.samples().is_empty() {
         writer.write_all(DELIMITER)?;
@@ -71,8 +71,9 @@ mod tests {
             .set_reference_bases("A")
             .build();
 
+        let header = Header::default();
         let mut buf = Vec::new();
-        write_record(&mut buf, &record)?;
+        write_record(&mut buf, &header, &record)?;
         assert_eq!(buf, b"sq0\t1\t.\tA\t.\t.\t.\t.\n");
 
         Ok(())
