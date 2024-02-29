@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Deprecated
+
+  * sam/alignment/record/flags: Rename `PROPERLY_ALIGNED` to
+    `PROPERLY_SEGMENTED` ([#236]).
+
+[#236]: https://github.com/zaeleus/noodles/issues/236
+
 ## 0.53.0 - 2024-02-15
 
 ### Changed

@@ -72,7 +72,7 @@ fn count(counts: &mut Counts, record: &bam::Record) -> io::Result<()> {
             }
 
             if !flags.is_unmapped() {
-                if flags.is_properly_aligned() {
+                if flags.is_properly_segmented() {
                     counts.proper_pair += 1;
                 }
 
