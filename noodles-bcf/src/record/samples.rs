@@ -3,7 +3,7 @@ mod series;
 
 use std::{io, iter};
 
-use noodles_vcf as vcf;
+use noodles_vcf::{self as vcf, variant::record::Samples as _};
 
 use self::series::read_series;
 pub use self::{sample::Sample, series::Series};
@@ -60,32 +60,6 @@ impl<'a> Samples<'a> {
         Ok(genotypes)
     }
 
-    /// Returns the number of samples.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bcf::record::Samples;
-    /// let samples = Samples::default();
-    /// assert_eq!(samples.len(), 0);
-    /// ```
-    pub fn len(&self) -> usize {
-        self.sample_count
-    }
-
-    /// Returns whether there are any samples.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bcf::record::Samples;
-    /// let samples = Samples::default();
-    /// assert!(samples.is_empty());
-    /// ```
-    pub fn is_empty(&self) -> bool {
-        self.len() == 0
-    }
-
     /// Returns the number of fields per sample.
     ///
     /// # Examples
@@ -123,12 +97,41 @@ impl<'a> Samples<'a> {
 
     /// Returns an iterator over samples.
     pub fn iter(&self) -> impl Iterator<Item = Sample<'_>> {
-        (0..self.len()).map(|i| Sample::new(self, i))
+        (0..self.sample_count).map(|i| Sample::new(self, i))
     }
 }
 
 impl<'a> AsRef<[u8]> for Samples<'a> {
     fn as_ref(&self) -> &[u8] {
         self.src
+    }
+}
+
+impl<'a> vcf::variant::record::Samples for Samples<'a> {
+    fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    fn len(&self) -> usize {
+        self.sample_count
+    }
+
+    fn series(
+        &self,
+    ) -> Box<
+        dyn Iterator<Item = io::Result<Box<dyn vcf::variant::record::samples::Series + '_>>> + '_,
+    > {
+        Box::new(self.series().map(|result| {
+            result.map(|series| Box::new(series) as Box<dyn vcf::variant::record::samples::Series>)
+        }))
+    }
+
+    fn iter(
+        &self,
+    ) -> Box<dyn Iterator<Item = Box<dyn vcf::variant::record::samples::Sample + '_>> + '_> {
+        Box::new(
+            self.iter()
+                .map(|sample| Box::new(sample) as Box<dyn vcf::variant::record::samples::Sample>),
+        )
     }
 }
