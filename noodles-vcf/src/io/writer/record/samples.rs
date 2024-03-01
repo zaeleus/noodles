@@ -9,19 +9,15 @@ use crate::{
     Header,
 };
 
-pub(super) fn write_samples<W>(
-    writer: &mut W,
-    header: &Header,
-    genotypes: &Samples,
-) -> io::Result<()>
+pub(super) fn write_samples<W>(writer: &mut W, header: &Header, samples: &Samples) -> io::Result<()>
 where
     W: Write,
 {
     const DELIMITER: &[u8] = b"\t";
 
-    write_keys(writer, genotypes.keys())?;
+    write_keys(writer, samples.keys())?;
 
-    for sample in genotypes.iter() {
+    for sample in samples.iter() {
         writer.write_all(DELIMITER)?;
         write_sample(writer, header, sample)?;
     }
