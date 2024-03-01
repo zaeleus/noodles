@@ -12,6 +12,13 @@ pub trait Series {
     /// Returns the name.
     fn name<'a, 'h: 'a>(&'a self, header: &'h Header) -> io::Result<&'a str>;
 
+    /// Return the value at the given index.
+    fn get<'a, 'h: 'a>(
+        &'a self,
+        header: &'h Header,
+        i: usize,
+    ) -> Option<Option<io::Result<Value<'a>>>>;
+
     /// Returns an iterator over values.
     fn iter<'a, 'h: 'a>(
         &'a self,

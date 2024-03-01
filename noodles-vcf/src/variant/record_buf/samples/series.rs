@@ -28,6 +28,18 @@ impl<'s> crate::variant::record::samples::Series for Series<'s> {
         Ok(self.name)
     }
 
+    fn get<'a, 'h: 'a>(
+        &'a self,
+        _: &'h Header,
+        i: usize,
+    ) -> Option<Option<io::Result<crate::variant::record::samples::series::Value<'a>>>> {
+        self.values.get(i).map(|sample| {
+            sample
+                .get(self.i)
+                .and_then(|value| value.as_ref().map(|v| Ok(v.into())))
+        })
+    }
+
     fn iter<'a, 'h: 'a>(
         &'a self,
         _: &'h Header,

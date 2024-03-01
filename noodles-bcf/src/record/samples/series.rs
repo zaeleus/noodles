@@ -52,6 +52,26 @@ impl<'r> vcf::variant::record::samples::Series for Series<'r> {
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid string map ID"))
     }
 
+    fn get<'a, 'h: 'a>(
+        &'a self,
+        _: &'h vcf::Header,
+        i: usize,
+    ) -> Option<Option<io::Result<Value<'a>>>> {
+        let value = match self.ty {
+            Type::Int8(len) => get_int8_value(self.src, len, i),
+            Type::Int16(len) => get_int16_value(self.src, len, i),
+            Type::Int32(len) => get_int32_value(self.src, len, i),
+            Type::Float(len) => get_float_value(self.src, len, i),
+            Type::String(len) => get_string_value(self.src, len, i),
+        };
+
+        match value {
+            Some(Some(value)) => Some(Some(Ok(value))),
+            Some(None) => Some(None),
+            None => None,
+        }
+    }
+
     fn iter<'a, 'h: 'a>(
         &'a self,
         _: &'h vcf::Header,
