@@ -13,21 +13,20 @@ impl<'r> Series<'r> {
     pub(super) fn new(name: &'r str, samples: &'r Samples<'r>, i: usize) -> Self {
         Self { name, samples, i }
     }
-
-    /// Returns the value at the given index.
-    pub fn get<'h: 'r>(
-        &self,
-        header: &'h Header,
-        i: usize,
-    ) -> Option<Option<io::Result<Value<'r>>>> {
-        let sample = self.samples.iter().nth(i)?;
-        sample.get_index(header, self.i)
-    }
 }
 
 impl<'r> crate::variant::record::samples::Series for Series<'r> {
     fn name<'a, 'h: 'a>(&'a self, _: &'h Header) -> io::Result<&'a str> {
         Ok(self.name)
+    }
+
+    fn get<'a, 'h: 'a>(
+        &'a self,
+        header: &'h Header,
+        i: usize,
+    ) -> Option<Option<io::Result<Value<'a>>>> {
+        let sample = self.samples.iter().nth(i)?;
+        sample.get_index(header, self.i)
     }
 
     fn iter<'a, 'h: 'a>(
