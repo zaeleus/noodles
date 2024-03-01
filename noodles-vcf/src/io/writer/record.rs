@@ -49,7 +49,7 @@ where
 
     if !record.samples().is_empty() {
         writer.write_all(DELIMITER)?;
-        write_samples(writer, record.samples())?;
+        write_samples(writer, header, record.samples())?;
     }
 
     writer.write_all(b"\n")?;
