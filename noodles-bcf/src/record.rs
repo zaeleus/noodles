@@ -229,6 +229,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_bcf as bcf;
+    /// use noodles_vcf::variant::record::Samples;
     /// let record = bcf::Record::default();
     /// assert!(record.samples()?.is_empty());
     /// # Ok::<_, std::io::Error>(())

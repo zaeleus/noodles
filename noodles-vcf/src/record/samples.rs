@@ -2,7 +2,7 @@ mod keys;
 mod sample;
 mod series;
 
-use std::iter;
+use std::{io, iter};
 
 pub use self::{keys::Keys, sample::Sample, series::Series};
 
@@ -67,10 +67,13 @@ impl<'a> crate::variant::record::Samples for Samples<'a> {
 
     fn series(
         &self,
-    ) -> Box<dyn Iterator<Item = Box<dyn crate::variant::record::samples::Series + '_>> + '_> {
+    ) -> Box<
+        dyn Iterator<Item = io::Result<Box<dyn crate::variant::record::samples::Series + '_>>> + '_,
+    > {
         Box::new(
             self.series()
-                .map(|series| Box::new(series) as Box<dyn crate::variant::record::samples::Series>),
+                .map(|series| Box::new(series) as Box<dyn crate::variant::record::samples::Series>)
+                .map(Ok),
         )
     }
 

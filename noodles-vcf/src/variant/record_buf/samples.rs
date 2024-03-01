@@ -4,9 +4,10 @@ pub mod keys;
 pub mod sample;
 mod series;
 
-pub use self::{keys::Keys, sample::Sample, series::Series};
+use std::io;
 
 use self::sample::Value;
+pub use self::{keys::Keys, sample::Sample, series::Series};
 
 /// VCF record genotypes.
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -156,10 +157,13 @@ impl crate::variant::record::Samples for Samples {
 
     fn series(
         &self,
-    ) -> Box<dyn Iterator<Item = Box<dyn crate::variant::record::samples::Series + '_>> + '_> {
+    ) -> Box<
+        dyn Iterator<Item = io::Result<Box<dyn crate::variant::record::samples::Series + '_>>> + '_,
+    > {
         Box::new(
             self.series()
-                .map(|series| Box::new(series) as Box<dyn crate::variant::record::samples::Series>),
+                .map(|series| Box::new(series) as Box<dyn crate::variant::record::samples::Series>)
+                .map(Ok),
         )
     }
 
@@ -184,10 +188,13 @@ impl crate::variant::record::Samples for &Samples {
 
     fn series(
         &self,
-    ) -> Box<dyn Iterator<Item = Box<dyn crate::variant::record::samples::Series + '_>> + '_> {
+    ) -> Box<
+        dyn Iterator<Item = io::Result<Box<dyn crate::variant::record::samples::Series + '_>>> + '_,
+    > {
         Box::new(
             Samples::series(self)
-                .map(|series| Box::new(series) as Box<dyn crate::variant::record::samples::Series>),
+                .map(|series| Box::new(series) as Box<dyn crate::variant::record::samples::Series>)
+                .map(Ok),
         )
     }
 
