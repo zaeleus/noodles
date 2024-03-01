@@ -150,6 +150,10 @@ impl crate::variant::record::Samples for Samples {
         self.values.is_empty()
     }
 
+    fn len(&self) -> usize {
+        self.values.len()
+    }
+
     fn series(
         &self,
     ) -> Box<dyn Iterator<Item = Box<dyn crate::variant::record::samples::Series + '_>> + '_> {
@@ -172,6 +176,10 @@ impl crate::variant::record::Samples for Samples {
 impl crate::variant::record::Samples for &Samples {
     fn is_empty(&self) -> bool {
         self.values.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        self.values.len()
     }
 
     fn series(
