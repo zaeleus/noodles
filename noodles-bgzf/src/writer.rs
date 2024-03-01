@@ -46,7 +46,7 @@ pub(crate) static BGZF_EOF: &[u8] = &[
 ];
 
 #[cfg(feature = "libdeflate")]
-type CompressionLevelImpl = libdeflater::CompressionLvl;
+pub(crate) type CompressionLevelImpl = libdeflater::CompressionLvl;
 #[cfg(not(feature = "libdeflate"))]
 type CompressionLevelImpl = flate2::Compression;
 

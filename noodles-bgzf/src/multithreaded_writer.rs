@@ -1,3 +1,7 @@
+//! Multithreaded BGZF writer.
+
+mod builder;
+
 use std::{
     io::{self, Write},
     num::NonZeroUsize,
@@ -7,7 +11,11 @@ use std::{
 use bytes::{BufMut, Bytes, BytesMut};
 use crossbeam_channel::{Receiver, Sender};
 
-use super::gz;
+pub use self::builder::Builder;
+use super::{
+    gz,
+    writer::{CompressionLevel, CompressionLevelImpl},
+};
 
 type BufferedTx = Sender<io::Result<Vec<u8>>>;
 type BufferedRx = Receiver<io::Result<Vec<u8>>>;
@@ -28,8 +36,7 @@ pub struct MultithreadedWriter {
 }
 
 impl MultithreadedWriter {
-    /// Creates a multithreaded BGZF writer.
-    pub fn with_worker_count<W>(worker_count: NonZeroUsize, inner: W) -> Self
+    fn new<W>(compression_level: CompressionLevel, worker_count: NonZeroUsize, inner: W) -> Self
     where
         W: Write + Send + 'static,
     {
@@ -37,7 +44,7 @@ impl MultithreadedWriter {
         let (deflate_tx, deflate_rx) = crossbeam_channel::bounded(worker_count.get());
 
         let writer_handle = spawn_writer(inner, write_rx);
-        let deflater_handles = spawn_deflaters(worker_count, deflate_rx);
+        let deflater_handles = spawn_deflaters(compression_level, worker_count, deflate_rx);
 
         Self {
             writer_handle: Some(writer_handle),
@@ -46,6 +53,14 @@ impl MultithreadedWriter {
             write_tx: Some(write_tx),
             deflate_tx: Some(deflate_tx),
         }
+    }
+
+    /// Creates a multithreaded BGZF writer.
+    pub fn with_worker_count<W>(worker_count: NonZeroUsize, inner: W) -> Self
+    where
+        W: Write + Send + 'static,
+    {
+        Self::new(CompressionLevel::default(), worker_count, inner)
     }
 
     /// Finishes the output stream by flushing any remaining buffers.
@@ -135,14 +150,23 @@ where
     })
 }
 
-fn spawn_deflaters(worker_count: NonZeroUsize, deflate_rx: DeflateRx) -> Vec<JoinHandle<()>> {
+fn spawn_deflaters<L>(
+    compression_level: L,
+    worker_count: NonZeroUsize,
+    deflate_rx: DeflateRx,
+) -> Vec<JoinHandle<()>>
+where
+    L: Into<CompressionLevelImpl>,
+{
+    let compression_level = compression_level.into();
+
     (0..worker_count.get())
         .map(|_| {
             let deflate_rx = deflate_rx.clone();
 
             thread::spawn(move || {
                 while let Ok((src, buffered_tx)) = deflate_rx.recv() {
-                    let result = compress(&src);
+                    let result = compress(&src, compression_level);
                     buffered_tx.send(result).ok();
                 }
             })
@@ -150,12 +174,12 @@ fn spawn_deflaters(worker_count: NonZeroUsize, deflate_rx: DeflateRx) -> Vec<Joi
         .collect()
 }
 
-fn compress(src: &[u8]) -> io::Result<Vec<u8>> {
+fn compress(src: &[u8], compression_level: CompressionLevelImpl) -> io::Result<Vec<u8>> {
     use super::{writer::deflate_data, BGZF_HEADER_SIZE};
 
     let mut dst = Vec::new();
 
-    let (cdata, crc32, _) = deflate_data(src, Default::default())?;
+    let (cdata, crc32, _) = deflate_data(src, compression_level)?;
 
     let block_size = BGZF_HEADER_SIZE + cdata.len() + gz::TRAILER_SIZE;
     put_header(&mut dst, block_size)?;

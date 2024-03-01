@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bgzf/multithreaded_writer: Add builder ([#238]).
+
+    This also adds the ability to set the compression level.
+
+[#238]: https://github.com/zaeleus/noodles/issues/238
+
 ## 0.26.0 - 2023-12-14
 
 ### Changed

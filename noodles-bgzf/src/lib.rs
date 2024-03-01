@@ -42,7 +42,7 @@ mod gz;
 pub mod gzi;
 pub mod indexed_reader;
 mod multithreaded_reader;
-mod multithreaded_writer;
+pub mod multithreaded_writer;
 pub mod reader;
 pub mod virtual_position;
 pub mod writer;
