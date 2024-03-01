@@ -10,6 +10,9 @@ pub trait Samples {
     /// Returns whether there are any samples.
     fn is_empty(&self) -> bool;
 
+    /// Returns the number of samples.
+    fn len(&self) -> usize;
+
     /// Returns an iterator over series.
     fn series(&self) -> Box<dyn Iterator<Item = Box<dyn Series + '_>> + '_>;
 
