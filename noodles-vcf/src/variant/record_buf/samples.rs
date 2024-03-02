@@ -8,6 +8,7 @@ use std::io;
 
 use self::sample::Value;
 pub use self::{keys::Keys, sample::Sample, series::Series};
+use crate::Header;
 
 /// VCF record genotypes.
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -155,6 +156,13 @@ impl crate::variant::record::Samples for Samples {
         self.values.len()
     }
 
+    fn column_names<'a, 'h: 'a>(
+        &'a self,
+        _: &'h Header,
+    ) -> Box<dyn Iterator<Item = io::Result<&'a str>> + 'a> {
+        Box::new(self.keys.iter().map(|key| Ok(key.as_str())))
+    }
+
     fn series(
         &self,
     ) -> Box<
@@ -184,6 +192,13 @@ impl crate::variant::record::Samples for &Samples {
 
     fn len(&self) -> usize {
         self.values.len()
+    }
+
+    fn column_names<'a, 'h: 'a>(
+        &'a self,
+        _: &'h Header,
+    ) -> Box<dyn Iterator<Item = io::Result<&'a str>> + 'a> {
+        Box::new(self.keys.iter().map(|key| Ok(key.as_str())))
     }
 
     fn series(
