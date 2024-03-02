@@ -5,15 +5,16 @@ mod series;
 use std::{io, iter};
 
 pub use self::{keys::Keys, sample::Sample, series::Series};
+use crate::Header;
 
 const DELIMITER: char = '\t';
 
 /// Raw VCF record genotypes.
 #[derive(Debug, Eq, PartialEq)]
-pub struct Samples<'a>(&'a str);
+pub struct Samples<'r>(&'r str);
 
-impl<'a> Samples<'a> {
-    pub(super) fn new(buf: &'a str) -> Self {
+impl<'r> Samples<'r> {
+    pub(super) fn new(buf: &'r str) -> Self {
         Self(buf)
     }
 
@@ -23,13 +24,13 @@ impl<'a> Samples<'a> {
     }
 
     /// Returns the keys.
-    pub fn keys(&self) -> Keys<'a> {
+    pub fn keys(&self) -> Keys<'r> {
         let (src, _) = self.0.split_once(DELIMITER).unwrap_or_default();
         Keys::new(src)
     }
 
     /// Returns an iterator over series.
-    pub fn series(&'a self) -> impl Iterator<Item = Series<'a>> + '_ {
+    pub fn series(&'r self) -> impl Iterator<Item = Series<'r>> + '_ {
         self.keys()
             .iter()
             .enumerate()
@@ -37,7 +38,7 @@ impl<'a> Samples<'a> {
     }
 
     /// Returns an iterator over samples.
-    pub fn iter(&self) -> impl Iterator<Item = Sample<'a>> + '_ {
+    pub fn iter(&self) -> impl Iterator<Item = Sample<'r>> + '_ {
         let (_, mut src) = self.0.split_once(DELIMITER).unwrap_or_default();
 
         iter::from_fn(move || {
@@ -56,13 +57,20 @@ impl<'a> AsRef<str> for Samples<'a> {
     }
 }
 
-impl<'a> crate::variant::record::Samples for Samples<'a> {
+impl<'r> crate::variant::record::Samples for Samples<'r> {
     fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
     fn len(&self) -> usize {
         self.iter().count()
+    }
+
+    fn column_names<'a, 'h: 'a>(
+        &'a self,
+        _: &'h Header,
+    ) -> Box<dyn Iterator<Item = io::Result<&'a str>> + 'a> {
+        Box::new(self.keys().iter().map(Ok))
     }
 
     fn series(
@@ -87,7 +95,7 @@ impl<'a> crate::variant::record::Samples for Samples<'a> {
     }
 }
 
-fn parse_sample<'a>(src: &mut &'a str, keys: Keys<'a>) -> Sample<'a> {
+fn parse_sample<'r>(src: &mut &'r str, keys: Keys<'r>) -> Sample<'r> {
     const DELIMITER: u8 = b'\t';
     const MISSING: &str = ".";
 

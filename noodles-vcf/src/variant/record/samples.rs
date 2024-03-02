@@ -6,6 +6,7 @@ pub mod series;
 use std::io;
 
 pub use self::{sample::Sample, series::Series};
+use crate::Header;
 
 /// Variant record samples.
 pub trait Samples {
@@ -14,6 +15,12 @@ pub trait Samples {
 
     /// Returns the number of samples.
     fn len(&self) -> usize;
+
+    /// Returns the column names.
+    fn column_names<'a, 'h: 'a>(
+        &'a self,
+        header: &'h Header,
+    ) -> Box<dyn Iterator<Item = io::Result<&'a str>> + 'a>;
 
     /// Returns an iterator over series.
     fn series(&self) -> Box<dyn Iterator<Item = io::Result<Box<dyn Series + '_>>> + '_>;

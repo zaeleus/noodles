@@ -10,14 +10,14 @@ pub use self::{sample::Sample, series::Series};
 
 /// BCF record genotypes.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub struct Samples<'a> {
-    src: &'a [u8],
+pub struct Samples<'r> {
+    src: &'r [u8],
     sample_count: usize,
     format_count: usize,
 }
 
-impl<'a> Samples<'a> {
-    pub(super) fn new(src: &'a [u8], sample_count: usize, format_count: usize) -> Self {
+impl<'r> Samples<'r> {
+    pub(super) fn new(src: &'r [u8], sample_count: usize, format_count: usize) -> Self {
         Self {
             src,
             sample_count,
@@ -101,19 +101,29 @@ impl<'a> Samples<'a> {
     }
 }
 
-impl<'a> AsRef<[u8]> for Samples<'a> {
+impl<'r> AsRef<[u8]> for Samples<'r> {
     fn as_ref(&self) -> &[u8] {
         self.src
     }
 }
 
-impl<'a> vcf::variant::record::Samples for Samples<'a> {
+impl<'r> vcf::variant::record::Samples for Samples<'r> {
     fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
     fn len(&self) -> usize {
         self.sample_count
+    }
+
+    fn column_names<'a, 'h: 'a>(
+        &'a self,
+        header: &'h vcf::Header,
+    ) -> Box<dyn Iterator<Item = io::Result<&'a str>> + 'a> {
+        Box::new(
+            self.series()
+                .map(|result| result.and_then(|series| series.name(header))),
+        )
     }
 
     fn series(
