@@ -1,14 +1,12 @@
 use std::io::{self, Write};
 
 use super::MISSING;
-use crate::{
-    variant::{record::Filters as _, record_buf::Filters},
-    Header,
-};
+use crate::{variant::record::Filters, Header};
 
-pub(super) fn write_filters<W>(writer: &mut W, header: &Header, filters: &Filters) -> io::Result<()>
+pub(super) fn write_filters<W, F>(writer: &mut W, header: &Header, filters: F) -> io::Result<()>
 where
     W: Write,
+    F: Filters,
 {
     const DELIMITER: &[u8] = b";";
 
@@ -32,13 +30,14 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::variant::record_buf::Filters as FiltersBuf;
 
     #[test]
     fn test_write_filters() -> io::Result<()> {
         fn t(
             buf: &mut Vec<u8>,
             header: &Header,
-            filters: &Filters,
+            filters: &FiltersBuf,
             expected: &[u8],
         ) -> io::Result<()> {
             buf.clear();
@@ -50,8 +49,8 @@ mod tests {
         let header = Header::default();
         let mut buf = Vec::new();
 
-        t(&mut buf, &header, &Filters::default(), b".")?;
-        t(&mut buf, &header, &Filters::pass(), b"PASS")?;
+        t(&mut buf, &header, &FiltersBuf::default(), b".")?;
+        t(&mut buf, &header, &FiltersBuf::pass(), b"PASS")?;
 
         let filters = [String::from("q10")].into_iter().collect();
         t(&mut buf, &header, &filters, b"q10")?;
