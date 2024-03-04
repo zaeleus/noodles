@@ -7,6 +7,8 @@ pub mod ids;
 pub mod info;
 pub mod samples;
 
+use std::io;
+
 use noodles_core::Position;
 
 pub use self::{
@@ -615,8 +617,8 @@ impl RecordBuf {
 }
 
 impl super::Record for RecordBuf {
-    fn reference_sequence_name(&self, _: &Header) -> &str {
-        self.reference_sequence_name()
+    fn reference_sequence_name<'a, 'h: 'a>(&'a self, _: &'h Header) -> io::Result<&'a str> {
+        Ok(self.reference_sequence_name())
     }
 
     fn position(&self) -> Option<std::io::Result<Position>> {
@@ -647,8 +649,8 @@ impl super::Record for RecordBuf {
         Box::new(self.info())
     }
 
-    fn samples(&self) -> Box<dyn super::record::Samples + '_> {
-        Box::new(self.samples())
+    fn samples(&self) -> io::Result<Box<dyn super::record::Samples + '_>> {
+        Ok(Box::new(self.samples()))
     }
 }
 
