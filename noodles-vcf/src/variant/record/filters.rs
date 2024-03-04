@@ -30,3 +30,20 @@ pub trait Filters {
         }
     }
 }
+
+impl Filters for Box<dyn Filters + '_> {
+    fn is_empty(&self) -> bool {
+        (**self).is_empty()
+    }
+
+    fn len(&self) -> usize {
+        (**self).len()
+    }
+
+    fn iter<'a, 'h: 'a>(
+        &'a self,
+        header: &'h Header,
+    ) -> Box<dyn Iterator<Item = io::Result<&'a str>> + 'a> {
+        (**self).iter(header)
+    }
+}

@@ -3,7 +3,7 @@ use std::io::{self, Write};
 use super::MISSING;
 use crate::variant::record::AlternateBases;
 
-pub(super) fn write_alternate_bases<W, B>(writer: &mut W, alternate_bases: &B) -> io::Result<()>
+pub(super) fn write_alternate_bases<W, B>(writer: &mut W, alternate_bases: B) -> io::Result<()>
 where
     W: Write,
     B: AlternateBases,
