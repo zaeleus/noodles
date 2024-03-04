@@ -1,14 +1,15 @@
 use std::io::{self, Write};
 
-use crate::variant::record_buf::samples::Keys;
-
-pub(super) fn write_keys<W>(writer: &mut W, keys: &Keys) -> io::Result<()>
+pub(super) fn write_keys<'a, W, I>(writer: &mut W, keys: I) -> io::Result<()>
 where
     W: Write,
+    I: Iterator<Item = io::Result<&'a str>>,
 {
     const DELIMITER: &[u8] = b":";
 
-    for (i, key) in keys.iter().enumerate() {
+    for (i, result) in keys.enumerate() {
+        let key = result?;
+
         if i > 0 {
             writer.write_all(DELIMITER)?;
         }
