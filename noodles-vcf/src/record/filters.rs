@@ -1,37 +1,43 @@
-use std::iter;
+use std::{io, iter};
+
+use crate::Header;
 
 /// Raw VCF record filters.
 #[derive(Debug, Eq, PartialEq)]
-pub struct Filters<'a>(&'a str);
+pub struct Filters<'r>(&'r str);
 
-impl<'a> Filters<'a> {
-    pub(super) fn new(buf: &'a str) -> Self {
+impl<'r> Filters<'r> {
+    pub(super) fn new(buf: &'r str) -> Self {
         Self(buf)
     }
 }
 
-impl<'a> AsRef<str> for Filters<'a> {
+impl<'r> AsRef<str> for Filters<'r> {
     fn as_ref(&self) -> &str {
         self.0
     }
 }
 
-impl<'a> crate::variant::record::Filters for Filters<'a> {
+impl<'r> crate::variant::record::Filters for Filters<'r> {
     fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
     fn len(&self) -> usize {
-        self.iter().count()
+        let header = Header::default();
+        self.iter(&header).count()
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = &str> + '_> {
+    fn iter<'a, 'h: 'a>(
+        &'a self,
+        _: &'h Header,
+    ) -> Box<dyn Iterator<Item = io::Result<&'a str>> + 'a> {
         const DELIMITER: char = ';';
 
         if self.is_empty() {
             Box::new(iter::empty())
         } else {
-            Box::new(self.0.split(DELIMITER))
+            Box::new(self.0.split(DELIMITER).map(Ok))
         }
     }
 }
@@ -56,16 +62,20 @@ mod tests {
     }
 
     #[test]
-    fn test_iter() {
+    fn test_iter() -> io::Result<()> {
+        let header = Header::default();
+
         let filters = Filters::new("");
-        assert!(filters.iter().next().is_none());
+        assert!(filters.iter(&header).next().is_none());
 
         let filters = Filters::new("PASS");
-        let actual: Vec<_> = filters.iter().collect();
+        let actual: Vec<_> = filters.iter(&header).collect::<io::Result<_>>()?;
         assert_eq!(actual, ["PASS"]);
 
         let filters = Filters::new("q10;s50");
-        let actual: Vec<_> = filters.iter().collect();
+        let actual: Vec<_> = filters.iter(&header).collect::<io::Result<_>>()?;
         assert_eq!(actual, ["q10", "s50"]);
+
+        Ok(())
     }
 }

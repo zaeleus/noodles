@@ -34,7 +34,7 @@ mod tests {
     use noodles_vcf::{
         self as vcf,
         variant::{
-            record::{info::field::Value as InfoFieldValue, AlternateBases, Info},
+            record::{info::field::Value as InfoFieldValue, AlternateBases, Filters, Info},
             record_buf::{
                 info,
                 samples::{self, sample::Value as GenotypeFieldValue, Keys},
@@ -76,7 +76,7 @@ mod tests {
         assert_eq!(
             record
                 .filters()
-                .iter(&header)?
+                .iter(&header)
                 .collect::<io::Result<Vec<_>>>()?,
             ["PASS"],
         );

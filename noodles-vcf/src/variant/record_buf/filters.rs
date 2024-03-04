@@ -1,6 +1,10 @@
 //! VCF record filters.
 
+use std::io;
+
 use indexmap::IndexSet;
+
+use crate::Header;
 
 const PASS: &str = "PASS";
 
@@ -58,8 +62,11 @@ impl crate::variant::record::Filters for Filters {
         self.0.len()
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = &str> + '_> {
-        Box::new(self.0.iter().map(|filter| filter.as_ref()))
+    fn iter<'a, 'h: 'a>(
+        &'a self,
+        _: &'h Header,
+    ) -> Box<dyn Iterator<Item = io::Result<&'a str>> + 'a> {
+        Box::new(self.0.iter().map(|filter| Ok(filter.as_ref())))
     }
 }
 
@@ -72,7 +79,10 @@ impl crate::variant::record::Filters for &Filters {
         self.0.len()
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = &str> + '_> {
-        Box::new(self.0.iter().map(|filter| filter.as_ref()))
+    fn iter<'a, 'h: 'a>(
+        &'a self,
+        _: &'h Header,
+    ) -> Box<dyn Iterator<Item = io::Result<&'a str>> + 'a> {
+        Box::new(self.0.iter().map(|filter| Ok(filter.as_ref())))
     }
 }

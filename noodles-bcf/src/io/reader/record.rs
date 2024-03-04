@@ -108,7 +108,7 @@ pub(crate) mod tests {
         use noodles_vcf::{
             self as vcf,
             variant::{
-                record::{AlternateBases, Info},
+                record::{AlternateBases, Filters, Info},
                 record_buf::{
                     info::{self, field::Value as InfoFieldValue},
                     samples::{
@@ -148,7 +148,7 @@ pub(crate) mod tests {
         assert_eq!(
             record
                 .filters()
-                .iter(&header)?
+                .iter(&header)
                 .collect::<io::Result<Vec<_>>>()?,
             ["PASS"],
         );

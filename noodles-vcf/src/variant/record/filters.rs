@@ -1,3 +1,7 @@
+use std::io;
+
+use crate::Header;
+
 /// Variant record filters.
 pub trait Filters {
     /// Returns whether there are any filters.
@@ -7,18 +11,22 @@ pub trait Filters {
     fn len(&self) -> usize;
 
     /// Returns an iterator over filters.
-    fn iter(&self) -> Box<dyn Iterator<Item = &str> + '_>;
+    fn iter<'a, 'h: 'a>(
+        &'a self,
+        header: &'h Header,
+    ) -> Box<dyn Iterator<Item = io::Result<&'a str>> + 'a>;
 
     /// Returns whether this is a `PASS` filter.
-    fn is_pass(&self) -> bool {
+    fn is_pass(&self, header: &Header) -> io::Result<bool> {
         const PASS: &str = "PASS";
 
-        let mut filters = self.iter();
+        let mut filters = self.iter(header);
 
-        if let Some(filter) = filters.next() {
-            filter == PASS && filters.next().is_none()
+        if let Some(result) = filters.next() {
+            let filter = result?;
+            Ok(filter == PASS && filters.next().is_none())
         } else {
-            false
+            Ok(false)
         }
     }
 }
