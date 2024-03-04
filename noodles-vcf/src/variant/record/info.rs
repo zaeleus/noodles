@@ -21,3 +21,20 @@ pub trait Info {
         header: &'h Header,
     ) -> Box<dyn Iterator<Item = io::Result<(&'a str, Option<Value<'a>>)>> + 'a>;
 }
+
+impl Info for Box<dyn Info + '_> {
+    fn is_empty(&self) -> bool {
+        (**self).is_empty()
+    }
+
+    fn len(&self) -> usize {
+        (**self).len()
+    }
+
+    fn iter<'a, 'h: 'a>(
+        &'a self,
+        header: &'h Header,
+    ) -> Box<dyn Iterator<Item = io::Result<(&'a str, Option<Value<'a>>)>> + 'a> {
+        (**self).iter(header)
+    }
+}

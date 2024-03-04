@@ -14,20 +14,23 @@ use self::{
     info::write_info, position::write_position, quality_score::write_quality_score,
     reference_sequence_name::write_reference_sequence_name, samples::write_samples,
 };
-use crate::{variant::RecordBuf, Header};
+use crate::{variant::Record, Header};
 
 const MISSING: &[u8] = b".";
 
-pub(super) fn write_record<W>(writer: &mut W, header: &Header, record: &RecordBuf) -> io::Result<()>
+pub(super) fn write_record<W, R>(writer: &mut W, header: &Header, record: &R) -> io::Result<()>
 where
     W: Write,
+    R: Record + ?Sized,
 {
     const DELIMITER: &[u8] = b"\t";
 
-    write_reference_sequence_name(writer, record.reference_sequence_name())?;
+    let reference_sequence_name = record.reference_sequence_name(header)?;
+    write_reference_sequence_name(writer, reference_sequence_name)?;
 
     writer.write_all(DELIMITER)?;
-    write_position(writer, record.position())?;
+    let position = record.position().transpose()?;
+    write_position(writer, position)?;
 
     writer.write_all(DELIMITER)?;
     write_ids(writer, record.ids())?;
@@ -39,7 +42,8 @@ where
     write_alternate_bases(writer, record.alternate_bases())?;
 
     writer.write_all(DELIMITER)?;
-    write_quality_score(writer, record.quality_score())?;
+    let quality_score = record.quality_score().transpose()?;
+    write_quality_score(writer, quality_score)?;
 
     writer.write_all(DELIMITER)?;
     write_filters(writer, header, record.filters())?;
@@ -47,9 +51,11 @@ where
     writer.write_all(DELIMITER)?;
     write_info(writer, header, record.info())?;
 
-    if !record.samples().is_empty() {
+    let samples = record.samples()?;
+
+    if !samples.is_empty() {
         writer.write_all(DELIMITER)?;
-        write_samples(writer, header, record.samples())?;
+        write_samples(writer, header, samples)?;
     }
 
     writer.write_all(b"\n")?;
@@ -62,6 +68,7 @@ mod tests {
     use noodles_core::Position;
 
     use super::*;
+    use crate::variant::RecordBuf;
 
     #[test]
     fn test_write_record() -> io::Result<()> {

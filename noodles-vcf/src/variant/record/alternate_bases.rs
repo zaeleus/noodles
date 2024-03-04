@@ -11,3 +11,17 @@ pub trait AlternateBases {
     /// Returns an iterator over alternate bases.
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<&str>> + '_>;
 }
+
+impl AlternateBases for Box<dyn AlternateBases + '_> {
+    fn is_empty(&self) -> bool {
+        (**self).is_empty()
+    }
+
+    fn len(&self) -> usize {
+        (**self).len()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<&str>> + '_> {
+        (**self).iter()
+    }
+}
