@@ -19,3 +19,25 @@ where
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_write_keys() -> io::Result<()> {
+        let mut buf = Vec::new();
+
+        buf.clear();
+        let keys = [Ok("GT")];
+        write_keys(&mut buf, keys.into_iter())?;
+        assert_eq!(buf, b"GT");
+
+        buf.clear();
+        let keys = [Ok("GT"), Ok("GQ")];
+        write_keys(&mut buf, keys.into_iter())?;
+        assert_eq!(buf, b"GT:GQ");
+
+        Ok(())
+    }
+}
