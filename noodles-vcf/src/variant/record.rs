@@ -18,7 +18,7 @@ use crate::Header;
 /// A variant record.
 pub trait Record {
     /// Returns the reference sequence name.
-    fn reference_sequence_name(&self, header: &Header) -> &str;
+    fn reference_sequence_name<'a, 'h: 'a>(&'a self, header: &'h Header) -> io::Result<&'a str>;
 
     /// Returns the position.
     fn position(&self) -> Option<io::Result<Position>>;
@@ -42,5 +42,5 @@ pub trait Record {
     fn info(&self) -> Box<dyn Info + '_>;
 
     /// Returns the samples.
-    fn samples(&self) -> Box<dyn Samples + '_>;
+    fn samples(&self) -> io::Result<Box<dyn Samples + '_>>;
 }

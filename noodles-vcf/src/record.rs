@@ -94,8 +94,8 @@ impl fmt::Debug for Record {
 }
 
 impl crate::variant::Record for Record {
-    fn reference_sequence_name(&self, _: &Header) -> &str {
-        self.reference_sequence_name()
+    fn reference_sequence_name<'a, 'h: 'a>(&'a self, _: &'h Header) -> io::Result<&'a str> {
+        Ok(self.reference_sequence_name())
     }
 
     fn position(&self) -> Option<io::Result<Position>> {
@@ -126,7 +126,7 @@ impl crate::variant::Record for Record {
         Box::new(self.info())
     }
 
-    fn samples(&self) -> Box<dyn crate::variant::record::Samples + '_> {
-        Box::new(self.samples())
+    fn samples(&self) -> io::Result<Box<dyn crate::variant::record::Samples + '_>> {
+        Ok(Box::new(self.samples()))
     }
 }

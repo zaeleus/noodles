@@ -11,10 +11,10 @@ mod reference_bases;
 mod samples;
 mod value;
 
-use std::io;
+use std::{io, str};
 
 use noodles_core::Position;
-use noodles_vcf::header::StringMaps;
+use noodles_vcf::{self as vcf, header::StringMaps};
 
 use self::fields::Fields;
 pub(crate) use self::value::Value;
@@ -236,5 +236,47 @@ impl Record {
     /// ```
     pub fn samples(&self) -> io::Result<Samples<'_>> {
         self.0.samples()
+    }
+}
+
+impl vcf::variant::Record for Record {
+    fn reference_sequence_name<'a, 'h: 'a>(
+        &'a self,
+        header: &'h vcf::Header,
+    ) -> io::Result<&'a str> {
+        self.reference_sequence_name(header.string_maps())
+    }
+
+    fn position(&self) -> Option<io::Result<Position>> {
+        self.position()
+    }
+
+    fn ids(&self) -> Box<dyn vcf::variant::record::Ids + '_> {
+        Box::new(self.ids())
+    }
+
+    fn reference_bases(&self) -> &str {
+        todo!()
+    }
+
+    fn alternate_bases(&self) -> Box<dyn vcf::variant::record::AlternateBases + '_> {
+        Box::new(self.alternate_bases())
+    }
+
+    fn quality_score(&self) -> Option<io::Result<f32>> {
+        self.quality_score().transpose()
+    }
+
+    fn filters(&self) -> Box<dyn vcf::variant::record::Filters + '_> {
+        Box::new(self.filters())
+    }
+
+    fn info(&self) -> Box<dyn vcf::variant::record::Info + '_> {
+        Box::new(self.info())
+    }
+
+    fn samples(&self) -> io::Result<Box<dyn vcf::variant::record::Samples + '_>> {
+        self.samples()
+            .map(|samples| Box::new(samples) as Box<dyn vcf::variant::record::Samples>)
     }
 }
