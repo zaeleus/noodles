@@ -15,7 +15,7 @@ where
 {
     const DELIMITER: &[u8] = b"\t";
 
-    write_keys(writer, samples.keys())?;
+    write_keys(writer, samples.column_names(header))?;
 
     for sample in samples.iter() {
         writer.write_all(DELIMITER)?;
