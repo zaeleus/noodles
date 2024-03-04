@@ -42,7 +42,7 @@ where
     write_quality_score(writer, record.quality_score())?;
 
     writer.write_all(DELIMITER)?;
-    write_filters(writer, record.filters())?;
+    write_filters(writer, header, record.filters())?;
 
     writer.write_all(DELIMITER)?;
     write_info(writer, header, record.info())?;

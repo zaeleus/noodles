@@ -201,9 +201,9 @@ impl Record {
     ///
     /// ```
     /// use noodles_bcf as bcf;
+    /// use noodles_vcf::variant::record::Filters;
     /// let record = bcf::Record::default();
-    /// assert!(record.filters().is_empty()?);
-    /// # Ok::<_, std::io::Error>(())
+    /// assert!(record.filters().is_empty());
     /// ```
     pub fn filters(&self) -> Filters<'_> {
         self.0.filters()

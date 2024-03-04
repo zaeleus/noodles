@@ -2,7 +2,7 @@ use std::{io, str};
 
 use noodles_vcf::{
     self as vcf,
-    variant::record::{AlternateBases, Ids, Info},
+    variant::record::{AlternateBases, Filters, Ids, Info},
 };
 
 use super::Record;
@@ -88,10 +88,10 @@ impl Record {
             builder = builder.set_quality_score(quality_score);
         }
 
-        if !self.filters().is_empty()? {
+        if !self.filters().is_empty() {
             let filters = self
                 .filters()
-                .iter(header)?
+                .iter(header)
                 .map(|filter| filter.map(String::from))
                 .collect::<io::Result<_>>()?;
 
