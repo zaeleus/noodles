@@ -4,14 +4,12 @@ mod sample;
 use std::io::{self, Write};
 
 use self::{keys::write_keys, sample::write_sample};
-use crate::{
-    variant::{record::Samples as _, record_buf::Samples},
-    Header,
-};
+use crate::{variant::record::Samples, Header};
 
-pub(super) fn write_samples<W>(writer: &mut W, header: &Header, samples: &Samples) -> io::Result<()>
+pub(super) fn write_samples<W, S>(writer: &mut W, header: &Header, samples: S) -> io::Result<()>
 where
     W: Write,
+    S: Samples,
 {
     const DELIMITER: &[u8] = b"\t";
 
@@ -28,6 +26,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::variant::record_buf::Samples as SamplesBuf;
 
     #[test]
     fn test_write_samples() -> Result<(), Box<dyn std::error::Error>> {
@@ -36,7 +35,7 @@ mod tests {
         fn t(
             buf: &mut Vec<u8>,
             header: &Header,
-            genotypes: &Samples,
+            genotypes: &SamplesBuf,
             expected: &[u8],
         ) -> io::Result<()> {
             buf.clear();
@@ -48,13 +47,13 @@ mod tests {
         let header = Header::default();
         let mut buf = Vec::new();
 
-        let genotypes = Samples::new(
+        let genotypes = SamplesBuf::new(
             Keys::try_from(vec![String::from(key::GENOTYPE)])?,
             vec![vec![Some(Value::from("0|0"))]],
         );
         t(&mut buf, &header, &genotypes, b"GT\t0|0")?;
 
-        let genotypes = Samples::new(
+        let genotypes = SamplesBuf::new(
             Keys::try_from(vec![
                 String::from(key::GENOTYPE),
                 String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
