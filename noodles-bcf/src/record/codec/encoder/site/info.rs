@@ -2,20 +2,23 @@ mod field;
 
 use std::io::{self, Write};
 
-use noodles_vcf::{self as vcf, header::string_maps::StringStringMap};
+use noodles_vcf::{self as vcf, header::StringMaps, variant::record::Info};
 
 use self::field::write_field;
 
-pub fn write_info<W>(
+pub fn write_info<W, I>(
     writer: &mut W,
-    string_string_map: &StringStringMap,
-    info: &vcf::variant::record_buf::Info,
+    header: &vcf::Header,
+    string_maps: &StringMaps,
+    info: I,
 ) -> io::Result<()>
 where
     W: Write,
+    I: Info,
 {
-    for (key, value) in info.as_ref() {
-        write_field(writer, string_string_map, key, value.as_ref())?;
+    for result in info.iter(header) {
+        let (key, value) = result?;
+        write_field(writer, string_maps.strings(), key, value)?;
     }
 
     Ok(())

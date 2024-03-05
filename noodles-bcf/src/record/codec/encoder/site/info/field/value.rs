@@ -3,7 +3,7 @@ use std::{
     io::{self, Write},
 };
 
-use noodles_vcf as vcf;
+use noodles_vcf::variant::record::info::field::{self, value::array::Values};
 
 use crate::record::codec::{
     encoder::value,
@@ -14,23 +14,18 @@ use crate::record::codec::{
 const MISSING_VALUE: char = '.';
 const DELIMITER: char = ',';
 
-pub(super) fn write_value<W>(
-    writer: &mut W,
-    value: Option<&vcf::variant::record_buf::info::field::Value>,
-) -> io::Result<()>
+pub(super) fn write_value<W>(writer: &mut W, value: Option<field::Value<'_>>) -> io::Result<()>
 where
     W: Write,
 {
-    use vcf::variant::record_buf::info::field;
-
     match value {
-        Some(field::Value::Integer(n)) => write_integer_value(writer, *n),
-        Some(field::Value::Float(n)) => write_float_value(writer, *n),
+        Some(field::Value::Integer(n)) => write_integer_value(writer, n),
+        Some(field::Value::Float(n)) => write_float_value(writer, n),
         Some(field::Value::Flag) => write_flag_value(writer),
-        Some(field::Value::Character(c)) => write_character_value(writer, *c),
+        Some(field::Value::Character(c)) => write_character_value(writer, c),
         Some(field::Value::String(s)) => write_string_value(writer, s),
         Some(field::Value::Array(field::value::Array::Integer(values))) => {
-            write_array_value(writer, values)
+            write_integer_array_value(writer, values)
         }
         Some(field::Value::Array(field::value::Array::Float(values))) => {
             write_float_array_value(writer, values)
@@ -100,11 +95,14 @@ where
     value::write_value(writer, Some(Value::String(Some(s))))
 }
 
-fn write_array_value<W>(writer: &mut W, values: &[Option<i32>]) -> io::Result<()>
+fn write_integer_array_value<W>(
+    writer: &mut W,
+    values: Box<dyn Values<'_, i32> + '_>,
+) -> io::Result<()>
 where
     W: Write,
 {
-    if values.is_empty() {
+    if values.len() == 0 {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,
             "info field integer array cannot be empty",
@@ -113,7 +111,8 @@ where
 
     let (mut min, mut max) = (i32::MAX, i32::MIN);
 
-    for value in values {
+    for result in values.iter() {
+        let value = result?;
         let n = value.unwrap_or_default();
         min = cmp::min(min, n);
         max = cmp::max(max, n);
@@ -143,15 +142,18 @@ where
     }
 }
 
-fn write_int8_array_value<W>(writer: &mut W, values: &[Option<i32>]) -> io::Result<()>
+fn write_int8_array_value<W>(
+    writer: &mut W,
+    values: Box<dyn Values<'_, i32> + '_>,
+) -> io::Result<()>
 where
     W: Write,
 {
     let vs: Vec<_> = values
         .iter()
-        .map(|value| {
-            let v = match value {
-                Some(n) => i8::try_from(*n)
+        .map(|result| {
+            let v = match result? {
+                Some(n) => i8::try_from(n)
                     .map(Int8::from)
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
                 None => Int8::Missing,
@@ -163,20 +165,23 @@ where
                 _ => todo!("unhandled i16 array value: {:?}", v),
             }
         })
-        .collect::<Result<_, io::Error>>()?;
+        .collect::<io::Result<_>>()?;
 
     value::write_value(writer, Some(Value::Array(Array::Int8(Box::new(vs)))))
 }
 
-fn write_int16_array_value<W>(writer: &mut W, values: &[Option<i32>]) -> io::Result<()>
+fn write_int16_array_value<W>(
+    writer: &mut W,
+    values: Box<dyn Values<'_, i32> + '_>,
+) -> io::Result<()>
 where
     W: Write,
 {
     let vs: Vec<_> = values
         .iter()
-        .map(|value| {
-            let v = match value {
-                Some(n) => i16::try_from(*n)
+        .map(|result| {
+            let v = match result? {
+                Some(n) => i16::try_from(n)
                     .map(Int16::from)
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
                 None => Int16::Missing,
@@ -188,75 +193,99 @@ where
                 _ => todo!("unhandled i16 array value: {:?}", v),
             }
         })
-        .collect::<Result<_, io::Error>>()?;
+        .collect::<io::Result<_>>()?;
 
     value::write_value(writer, Some(Value::Array(Array::Int16(Box::new(vs)))))
 }
 
-fn write_int32_array_value<W>(writer: &mut W, values: &[Option<i32>]) -> io::Result<()>
+fn write_int32_array_value<W>(
+    writer: &mut W,
+    values: Box<dyn Values<'_, i32> + '_>,
+) -> io::Result<()>
 where
     W: Write,
 {
     let vs: Vec<_> = values
         .iter()
-        .map(|value| value.map(Int32::from).unwrap_or(Int32::Missing))
-        .map(|value| match value {
-            Int32::Value(n) => n,
-            Int32::Missing => i32::from(value),
-            _ => todo!("unhandled i32 array value: {:?}", value),
+        .map(|result| {
+            let v = match result? {
+                Some(n) => Int32::from(n),
+                None => Int32::Missing,
+            };
+
+            match v {
+                Int32::Value(n) => Ok(n),
+                Int32::Missing => Ok(i32::from(v)),
+                _ => todo!("unhandled i32 array value: {:?}", v),
+            }
         })
-        .collect();
+        .collect::<io::Result<_>>()?;
 
     value::write_value(writer, Some(Value::Array(Array::Int32(Box::new(vs)))))
 }
 
-fn write_float_array_value<W>(writer: &mut W, values: &[Option<f32>]) -> io::Result<()>
+fn write_float_array_value<W>(
+    writer: &mut W,
+    values: Box<dyn Values<'_, f32> + '_>,
+) -> io::Result<()>
 where
     W: Write,
 {
     let vs: Vec<_> = values
         .iter()
-        .map(|value| value.map(Float::from).unwrap_or(Float::Missing))
-        .map(|value| match value {
-            Float::Value(n) => n,
-            Float::Missing => f32::from(value),
-            _ => todo!("unhandled f32 array value: {:?}", value),
+        .map(|result| {
+            let v = match result? {
+                Some(n) => Float::from(n),
+                None => Float::Missing,
+            };
+
+            match v {
+                Float::Value(n) => Ok(n),
+                Float::Missing => Ok(f32::from(v)),
+                _ => todo!("unhandled f32 array value: {:?}", v),
+            }
         })
-        .collect();
+        .collect::<io::Result<_>>()?;
 
     value::write_value(writer, Some(Value::Array(Array::Float(Box::new(vs)))))
 }
 
-fn write_character_array_value<W>(writer: &mut W, values: &[Option<char>]) -> io::Result<()>
+fn write_character_array_value<W>(
+    writer: &mut W,
+    values: Box<dyn Values<'_, char> + '_>,
+) -> io::Result<()>
 where
     W: Write,
 {
     let mut s = String::new();
 
-    for (i, value) in values.iter().enumerate() {
+    for (i, result) in values.iter().enumerate() {
         if i > 0 {
             s.push(DELIMITER);
         }
 
-        let c = value.unwrap_or(MISSING_VALUE);
+        let c = result?.unwrap_or(MISSING_VALUE);
         s.push(c);
     }
 
     value::write_value(writer, Some(Value::String(Some(&s))))
 }
 
-fn write_string_array_value<W>(writer: &mut W, values: &[Option<String>]) -> io::Result<()>
+fn write_string_array_value<W>(
+    writer: &mut W,
+    values: Box<dyn Values<'_, &str> + '_>,
+) -> io::Result<()>
 where
     W: Write,
 {
     let mut s = String::new();
 
-    for (i, value) in values.iter().enumerate() {
+    for (i, result) in values.iter().enumerate() {
         if i > 0 {
             s.push(DELIMITER);
         }
 
-        if let Some(t) = value {
+        if let Some(t) = result? {
             s.push_str(t);
         } else {
             s.push(MISSING_VALUE);
@@ -267,60 +296,60 @@ where
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
+    use noodles_vcf::variant::record_buf::info::field::Value as ValueBuf;
+
     use super::*;
 
     #[test]
     fn test_write_value_with_integer_value() -> io::Result<()> {
-        use vcf::variant::record_buf::info::field;
-
-        fn t(buf: &mut Vec<u8>, value: &field::Value, expected: &[u8]) -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, value: &ValueBuf, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            write_value(buf, Some(value))?;
+            write_value(buf, Some(value.into()))?;
             assert_eq!(buf, expected);
             Ok(())
         }
 
         let mut buf = Vec::new();
 
-        let value = field::Value::from(-2147483641);
+        let value = ValueBuf::from(-2147483641);
         buf.clear();
         assert!(matches!(
-            write_value(&mut buf, Some(&value)),
+            write_value(&mut buf, Some((&value).into())),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
-        let value = field::Value::from(-2147483640);
+        let value = ValueBuf::from(-2147483640);
         t(&mut buf, &value, &[0x13, 0x08, 0x00, 0x00, 0x80])?;
 
-        let value = field::Value::from(-32761);
+        let value = ValueBuf::from(-32761);
         t(&mut buf, &value, &[0x13, 0x07, 0x80, 0xff, 0xff])?;
 
-        let value = field::Value::from(-32760);
+        let value = ValueBuf::from(-32760);
         t(&mut buf, &value, &[0x12, 0x08, 0x80])?;
 
-        let value = field::Value::from(-121);
+        let value = ValueBuf::from(-121);
         t(&mut buf, &value, &[0x12, 0x87, 0xff])?;
 
-        let value = field::Value::from(-120);
+        let value = ValueBuf::from(-120);
         t(&mut buf, &value, &[0x11, 0x88])?;
 
-        let value = field::Value::from(0);
+        let value = ValueBuf::from(0);
         t(&mut buf, &value, &[0x11, 0x00])?;
 
-        let value = field::Value::from(127);
+        let value = ValueBuf::from(127);
         t(&mut buf, &value, &[0x11, 0x7f])?;
 
-        let value = field::Value::from(128);
+        let value = ValueBuf::from(128);
         t(&mut buf, &value, &[0x12, 0x80, 0x00])?;
 
-        let value = field::Value::from(32767);
+        let value = ValueBuf::from(32767);
         t(&mut buf, &value, &[0x12, 0xff, 0x7f])?;
 
-        let value = field::Value::from(32768);
+        let value = ValueBuf::from(32768);
         t(&mut buf, &value, &[0x13, 0x00, 0x80, 0x00, 0x00])?;
 
-        let value = field::Value::from(2147483647);
+        let value = ValueBuf::from(2147483647);
         t(&mut buf, &value, &[0x13, 0xff, 0xff, 0xff, 0x7f])?;
 
         Ok(())
@@ -328,11 +357,9 @@ mod test {
 
     #[test]
     fn test_write_value_with_float_value() -> io::Result<()> {
-        use vcf::variant::record_buf::info::field;
-
         let mut buf = Vec::new();
-        let value = field::Value::from(0.0);
-        write_value(&mut buf, Some(&value))?;
+        let value = ValueBuf::from(0.0);
+        write_value(&mut buf, Some((&value).into()))?;
 
         let expected = [0x15, 0x00, 0x00, 0x00, 0x00];
 
@@ -343,11 +370,9 @@ mod test {
 
     #[test]
     fn test_write_value_with_flag_value() -> io::Result<()> {
-        use vcf::variant::record_buf::info::field;
-
         let mut buf = Vec::new();
-        let value = field::Value::Flag;
-        write_value(&mut buf, Some(&value))?;
+        let value = ValueBuf::Flag;
+        write_value(&mut buf, Some((&value).into()))?;
 
         let expected = [0x00];
 
@@ -358,11 +383,9 @@ mod test {
 
     #[test]
     fn test_write_value_with_character_value() -> io::Result<()> {
-        use vcf::variant::record_buf::info::field;
-
         let mut buf = Vec::new();
-        let value = field::Value::from('n');
-        write_value(&mut buf, Some(&value))?;
+        let value = ValueBuf::Character('n');
+        write_value(&mut buf, Some((&value).into()))?;
 
         let expected = [0x17, 0x6e];
 
@@ -373,11 +396,9 @@ mod test {
 
     #[test]
     fn test_write_value_with_string_value() -> io::Result<()> {
-        use vcf::variant::record_buf::info::field;
-
         let mut buf = Vec::new();
-        let value = field::Value::from("ndls");
-        write_value(&mut buf, Some(&value))?;
+        let value = ValueBuf::String(String::from("ndls"));
+        write_value(&mut buf, Some((&value).into()))?;
 
         let expected = [0x47, 0x6e, 0x64, 0x6c, 0x73];
 
@@ -388,110 +409,108 @@ mod test {
 
     #[test]
     fn test_write_value_with_integer_array_value() -> io::Result<()> {
-        use vcf::variant::record_buf::info::field;
-
-        fn t(buf: &mut Vec<u8>, value: Option<&field::Value>, expected: &[u8]) -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, value: Option<ValueBuf>, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            write_value(buf, value)?;
+            write_value(buf, value.as_ref().map(|v| v.into()))?;
             assert_eq!(buf, expected);
             Ok(())
         }
 
         let mut buf = Vec::new();
 
-        let value = field::Value::from(vec![Some(-2147483641), Some(-2147483640)]);
+        let value = ValueBuf::from(vec![Some(-2147483641), Some(-2147483640)]);
         buf.clear();
         assert!(matches!(
-            write_value(&mut buf, Some(&value)),
+            write_value(&mut buf, Some((&value).into())),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
-        let value = field::Value::from(vec![Some(-2147483640), Some(-2147483639)]);
+        let value = ValueBuf::from(vec![Some(-2147483640), Some(-2147483639)]);
         t(
             &mut buf,
-            Some(&value),
+            Some(value),
             &[0x23, 0x08, 0x00, 0x00, 0x80, 0x09, 0x00, 0x00, 0x80],
         )?;
-        let value = field::Value::from(vec![Some(-2147483640), None]);
+        let value = ValueBuf::from(vec![Some(-2147483640), None]);
         t(
             &mut buf,
-            Some(&value),
+            Some(value),
             &[0x23, 0x08, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x80],
         )?;
 
-        let value = field::Value::from(vec![Some(-32761), Some(-32760)]);
+        let value = ValueBuf::from(vec![Some(-32761), Some(-32760)]);
         t(
             &mut buf,
-            Some(&value),
+            Some(value),
             &[0x23, 0x07, 0x80, 0xff, 0xff, 0x08, 0x80, 0xff, 0xff],
         )?;
-        let value = field::Value::from(vec![Some(-32761), None]);
+        let value = ValueBuf::from(vec![Some(-32761), None]);
         t(
             &mut buf,
-            Some(&value),
+            Some(value),
             &[0x23, 0x07, 0x80, 0xff, 0xff, 0x00, 0x00, 0x00, 0x80],
         )?;
 
-        let value = field::Value::from(vec![Some(-32760), Some(-32759)]);
-        t(&mut buf, Some(&value), &[0x22, 0x08, 0x80, 0x09, 0x80])?;
-        let value = field::Value::from(vec![Some(-32760), None]);
-        t(&mut buf, Some(&value), &[0x22, 0x08, 0x80, 0x00, 0x80])?;
+        let value = ValueBuf::from(vec![Some(-32760), Some(-32759)]);
+        t(&mut buf, Some(value), &[0x22, 0x08, 0x80, 0x09, 0x80])?;
+        let value = ValueBuf::from(vec![Some(-32760), None]);
+        t(&mut buf, Some(value), &[0x22, 0x08, 0x80, 0x00, 0x80])?;
 
-        let value = field::Value::from(vec![Some(-121), Some(-120)]);
-        t(&mut buf, Some(&value), &[0x22, 0x87, 0xff, 0x88, 0xff])?;
-        let value = field::Value::from(vec![Some(-121), None]);
-        t(&mut buf, Some(&value), &[0x22, 0x87, 0xff, 0x00, 0x80])?;
+        let value = ValueBuf::from(vec![Some(-121), Some(-120)]);
+        t(&mut buf, Some(value), &[0x22, 0x87, 0xff, 0x88, 0xff])?;
+        let value = ValueBuf::from(vec![Some(-121), None]);
+        t(&mut buf, Some(value), &[0x22, 0x87, 0xff, 0x00, 0x80])?;
 
-        let value = field::Value::from(vec![Some(-120), Some(-119)]);
-        t(&mut buf, Some(&value), &[0x21, 0x88, 0x89])?;
-        let value = field::Value::from(vec![Some(-120), None]);
-        t(&mut buf, Some(&value), &[0x21, 0x88, 0x80])?;
+        let value = ValueBuf::from(vec![Some(-120), Some(-119)]);
+        t(&mut buf, Some(value), &[0x21, 0x88, 0x89])?;
+        let value = ValueBuf::from(vec![Some(-120), None]);
+        t(&mut buf, Some(value), &[0x21, 0x88, 0x80])?;
 
-        let value = field::Value::from(vec![None, Some(0), Some(1)]);
-        t(&mut buf, Some(&value), &[0x31, 0x80, 0x00, 0x01])?;
-        let value = field::Value::from(vec![Some(-1), Some(0), Some(1)]);
-        t(&mut buf, Some(&value), &[0x31, 0xff, 0x00, 0x01])?;
-        let value = field::Value::from(vec![Some(-1), Some(0), None]);
-        t(&mut buf, Some(&value), &[0x31, 0xff, 0x00, 0x80])?;
+        let value = ValueBuf::from(vec![None, Some(0), Some(1)]);
+        t(&mut buf, Some(value), &[0x31, 0x80, 0x00, 0x01])?;
+        let value = ValueBuf::from(vec![Some(-1), Some(0), Some(1)]);
+        t(&mut buf, Some(value), &[0x31, 0xff, 0x00, 0x01])?;
+        let value = ValueBuf::from(vec![Some(-1), Some(0), None]);
+        t(&mut buf, Some(value), &[0x31, 0xff, 0x00, 0x80])?;
 
-        let value = field::Value::from(vec![Some(126), Some(127)]);
-        t(&mut buf, Some(&value), &[0x21, 0x7e, 0x7f])?;
-        let value = field::Value::from(vec![None, Some(127)]);
-        t(&mut buf, Some(&value), &[0x21, 0x80, 0x7f])?;
+        let value = ValueBuf::from(vec![Some(126), Some(127)]);
+        t(&mut buf, Some(value), &[0x21, 0x7e, 0x7f])?;
+        let value = ValueBuf::from(vec![None, Some(127)]);
+        t(&mut buf, Some(value), &[0x21, 0x80, 0x7f])?;
 
-        let value = field::Value::from(vec![Some(127), Some(128)]);
-        t(&mut buf, Some(&value), &[0x22, 0x7f, 0x00, 0x80, 0x00])?;
-        let value = field::Value::from(vec![None, Some(128)]);
-        t(&mut buf, Some(&value), &[0x22, 0x00, 0x80, 0x80, 0x00])?;
+        let value = ValueBuf::from(vec![Some(127), Some(128)]);
+        t(&mut buf, Some(value), &[0x22, 0x7f, 0x00, 0x80, 0x00])?;
+        let value = ValueBuf::from(vec![None, Some(128)]);
+        t(&mut buf, Some(value), &[0x22, 0x00, 0x80, 0x80, 0x00])?;
 
-        let value = field::Value::from(vec![Some(32766), Some(32767)]);
-        t(&mut buf, Some(&value), &[0x22, 0xfe, 0x7f, 0xff, 0x7f])?;
-        let value = field::Value::from(vec![None, Some(32767)]);
-        t(&mut buf, Some(&value), &[0x22, 0x00, 0x80, 0xff, 0x7f])?;
+        let value = ValueBuf::from(vec![Some(32766), Some(32767)]);
+        t(&mut buf, Some(value), &[0x22, 0xfe, 0x7f, 0xff, 0x7f])?;
+        let value = ValueBuf::from(vec![None, Some(32767)]);
+        t(&mut buf, Some(value), &[0x22, 0x00, 0x80, 0xff, 0x7f])?;
 
-        let value = field::Value::from(vec![Some(32767), Some(32768)]);
+        let value = ValueBuf::from(vec![Some(32767), Some(32768)]);
         t(
             &mut buf,
-            Some(&value),
+            Some(value),
             &[0x23, 0xff, 0x7f, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00],
         )?;
-        let value = field::Value::from(vec![None, Some(32768)]);
+        let value = ValueBuf::from(vec![None, Some(32768)]);
         t(
             &mut buf,
-            Some(&value),
+            Some(value),
             &[0x23, 0x00, 0x00, 0x00, 0x80, 0x00, 0x80, 0x00, 0x00],
         )?;
 
-        let value = field::Value::from(vec![Some(2147483646), Some(2147483647)]);
+        let value = ValueBuf::from(vec![Some(2147483646), Some(2147483647)]);
         t(
             &mut buf,
-            Some(&value),
+            Some(value),
             &[0x23, 0xfe, 0xff, 0xff, 0x7f, 0xff, 0xff, 0xff, 0x7f],
         )?;
-        let value = field::Value::from(vec![None, Some(2147483647)]);
+        let value = ValueBuf::from(vec![None, Some(2147483647)]);
         t(
             &mut buf,
-            Some(&value),
+            Some(value),
             &[0x23, 0x00, 0x00, 0x00, 0x80, 0xff, 0xff, 0xff, 0x7f],
         )?;
 
@@ -500,28 +519,26 @@ mod test {
 
     #[test]
     fn test_write_value_with_float_array_value() -> io::Result<()> {
-        use vcf::variant::record_buf::info::field;
-
-        fn t(buf: &mut Vec<u8>, value: Option<&field::Value>, expected: &[u8]) -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, value: Option<ValueBuf>, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            write_value(buf, value)?;
+            write_value(buf, value.as_ref().map(|v| v.into()))?;
             assert_eq!(buf, expected);
             Ok(())
         }
 
         let mut buf = Vec::new();
 
-        let value = field::Value::from(vec![Some(0.0), Some(1.0)]);
+        let value = ValueBuf::from(vec![Some(0.0), Some(1.0)]);
         t(
             &mut buf,
-            Some(&value),
+            Some(value),
             &[0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f],
         )?;
 
-        let value = field::Value::from(vec![Some(0.0), None]);
+        let value = ValueBuf::from(vec![Some(0.0), None]);
         t(
             &mut buf,
-            Some(&value),
+            Some(value),
             &[0x25, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x80, 0x7f],
         )?;
 
@@ -530,28 +547,26 @@ mod test {
 
     #[test]
     fn test_write_value_with_character_array_value() -> io::Result<()> {
-        use vcf::variant::record_buf::info::field;
-
-        fn t(buf: &mut Vec<u8>, value: Option<&field::Value>, expected: &[u8]) -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, value: Option<ValueBuf>, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            write_value(buf, value)?;
+            write_value(buf, value.as_ref().map(|v| v.into()))?;
             assert_eq!(buf, expected);
             Ok(())
         }
 
         let mut buf = Vec::new();
 
-        let value = field::Value::from(vec![Some('n'), Some('d'), Some('l'), Some('s')]);
+        let value = ValueBuf::from(vec![Some('n'), Some('d'), Some('l'), Some('s')]);
         t(
             &mut buf,
-            Some(&value),
+            Some(value),
             &[0x77, 0x6e, 0x2c, 0x64, 0x2c, 0x6c, 0x2c, 0x73],
         )?;
 
-        let value = field::Value::from(vec![Some('n'), Some('d'), Some('l'), None]);
+        let value = ValueBuf::from(vec![Some('n'), Some('d'), Some('l'), None]);
         t(
             &mut buf,
-            Some(&value),
+            Some(value),
             &[0x77, 0x6e, 0x2c, 0x64, 0x2c, 0x6c, 0x2c, 0x2e],
         )?;
 
@@ -560,26 +575,20 @@ mod test {
 
     #[test]
     fn test_write_value_with_string_array_value() -> io::Result<()> {
-        use vcf::variant::record_buf::info::field;
-
-        fn t(buf: &mut Vec<u8>, value: Option<&field::Value>, expected: &[u8]) -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, value: Option<ValueBuf>, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            write_value(buf, value)?;
+            write_value(buf, value.as_ref().map(|v| v.into()))?;
             assert_eq!(buf, expected);
             Ok(())
         }
 
         let mut buf = Vec::new();
 
-        let value = field::Value::from(vec![Some(String::from("nd")), Some(String::from("ls"))]);
-        t(
-            &mut buf,
-            Some(&value),
-            &[0x57, 0x6e, 0x64, 0x2c, 0x6c, 0x73],
-        )?;
+        let value = ValueBuf::from(vec![Some(String::from("nd")), Some(String::from("ls"))]);
+        t(&mut buf, Some(value), &[0x57, 0x6e, 0x64, 0x2c, 0x6c, 0x73])?;
 
-        let value = field::Value::from(vec![Some(String::from("nd")), None]);
-        t(&mut buf, Some(&value), &[0x47, 0x6e, 0x64, 0x2c, 0x2e])?;
+        let value = ValueBuf::from(vec![Some(String::from("nd")), None]);
+        t(&mut buf, Some(value), &[0x47, 0x6e, 0x64, 0x2c, 0x2e])?;
 
         Ok(())
     }
