@@ -1,28 +1,22 @@
 use std::io::{self, Write};
 
-use noodles_vcf as vcf;
+use noodles_vcf::variant::record::Ids;
 
 use crate::record::codec::{encoder::value::write_value, Value};
 
-pub(super) fn write_ids<W>(writer: &mut W, ids: &vcf::variant::record_buf::Ids) -> io::Result<()>
+pub(super) fn write_ids<W, I>(writer: &mut W, ids: I) -> io::Result<()>
 where
     W: Write,
+    I: Ids,
 {
     const DELIMITER: &str = ";";
 
-    if ids.as_ref().is_empty() {
+    if ids.is_empty() {
         let value = Some(Value::String(None));
         write_value(writer, value)
     } else {
-        let s = ids
-            .as_ref()
-            .iter()
-            .map(|id| id.as_ref())
-            .collect::<Vec<_>>()
-            .join(DELIMITER);
-
+        let s = ids.iter().collect::<Vec<_>>().join(DELIMITER);
         let value = Some(Value::String(Some(&s)));
-
         write_value(writer, value)
     }
 }
@@ -33,9 +27,9 @@ mod tests {
 
     #[test]
     fn test_write_ids() -> Result<(), Box<dyn std::error::Error>> {
-        use vcf::variant::record_buf::Ids;
+        use noodles_vcf::variant::record_buf::Ids as IdsBuf;
 
-        fn t(buf: &mut Vec<u8>, ids: &Ids, expected: &[u8]) -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, ids: &IdsBuf, expected: &[u8]) -> io::Result<()> {
             buf.clear();
             write_ids(buf, ids)?;
             assert_eq!(buf, expected);
@@ -44,7 +38,7 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        t(&mut buf, &Ids::default(), &[0x07])?;
+        t(&mut buf, &IdsBuf::default(), &[0x07])?;
         t(
             &mut buf,
             &[String::from("nd0")].into_iter().collect(),
