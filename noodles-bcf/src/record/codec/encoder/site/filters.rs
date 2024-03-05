@@ -1,14 +1,15 @@
 use std::io::{self, Write};
 
-use noodles_vcf::{self as vcf, variant::record::Filters as _};
+use noodles_vcf::{self as vcf, variant::record::Filters};
 
-pub(super) fn write_filters<W>(
+pub(super) fn write_filters<W, F>(
     writer: &mut W,
     header: &vcf::Header,
-    filters: &vcf::variant::record_buf::Filters,
+    filters: F,
 ) -> io::Result<()>
 where
     W: Write,
+    F: Filters,
 {
     use crate::record::codec::encoder::string_map::write_string_map_indices;
 
