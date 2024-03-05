@@ -1,23 +1,25 @@
 use std::io::{self, Write};
 
-use noodles_vcf::{self as vcf, variant::record::AlternateBases};
+use noodles_vcf::variant::record::AlternateBases;
 
 use crate::record::codec::{encoder::value::write_value, Value};
 
-pub(super) fn write_bases<W>(
+pub(super) fn write_bases<W, B>(
     writer: &mut W,
     reference_bases: &str,
-    alternate_bases: &vcf::variant::record_buf::AlternateBases,
+    alternate_bases: &B,
 ) -> io::Result<()>
 where
     W: Write,
+    B: AlternateBases,
 {
     let r#ref = reference_bases;
     let ref_value = Some(Value::String(Some(r#ref)));
     write_value(writer, ref_value)?;
 
     if !alternate_bases.is_empty() {
-        for alt in alternate_bases.as_ref().iter() {
+        for result in alternate_bases.iter() {
+            let alt = result?;
             let alt_value = Some(Value::String(Some(alt)));
             write_value(writer, alt_value)?;
         }
@@ -32,12 +34,12 @@ mod tests {
 
     #[test]
     fn test_write_bases() -> Result<(), Box<dyn std::error::Error>> {
-        use vcf::variant::record_buf::AlternateBases;
+        use noodles_vcf::variant::record_buf::AlternateBases as AlternateBasesBuf;
 
         fn t(
             buf: &mut Vec<u8>,
             reference_bases: &str,
-            alternate_bases: &AlternateBases,
+            alternate_bases: &AlternateBasesBuf,
             expected: &[u8],
         ) -> io::Result<()> {
             buf.clear();
@@ -48,19 +50,19 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        t(&mut buf, "A", &AlternateBases::default(), &[0x17, b'A'])?;
+        t(&mut buf, "A", &AlternateBasesBuf::default(), &[0x17, b'A'])?;
 
         t(
             &mut buf,
             "A",
-            &AlternateBases::from(vec![String::from("G")]),
+            &AlternateBasesBuf::from(vec![String::from("G")]),
             &[0x17, b'A', 0x17, b'G'],
         )?;
 
         t(
             &mut buf,
             "A",
-            &AlternateBases::from(vec![String::from("G"), String::from("T")]),
+            &AlternateBasesBuf::from(vec![String::from("G"), String::from("T")]),
             &[0x17, b'A', 0x17, b'G', 0x17, b'T'],
         )?;
 
