@@ -5,6 +5,13 @@ use crate::Header;
 
 /// Variant record samples sample.
 pub trait Sample {
+    /// Returns the value at the given index.
+    fn get_index<'a, 'h: 'a>(
+        &'a self,
+        header: &'h Header,
+        i: usize,
+    ) -> Option<io::Result<Option<Value<'a>>>>;
+
     /// Returns an iterator over fields.
     fn iter<'a, 'h: 'a>(
         &'a self,
@@ -13,6 +20,14 @@ pub trait Sample {
 }
 
 impl Sample for Box<dyn Sample + '_> {
+    fn get_index<'a, 'h: 'a>(
+        &'a self,
+        header: &'h Header,
+        i: usize,
+    ) -> Option<io::Result<Option<Value<'a>>>> {
+        (**self).get_index(header, i)
+    }
+
     fn iter<'a, 'h: 'a>(
         &'a self,
         header: &'h Header,

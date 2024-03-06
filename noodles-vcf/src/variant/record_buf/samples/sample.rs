@@ -43,6 +43,16 @@ impl<'g> Sample<'g> {
 }
 
 impl<'g> crate::variant::record::samples::Sample for Sample<'g> {
+    fn get_index<'a, 'h: 'a>(
+        &'a self,
+        _: &'h Header,
+        i: usize,
+    ) -> Option<io::Result<Option<crate::variant::record::samples::series::Value<'a>>>> {
+        self.values
+            .get(i)
+            .map(|value| Ok(value.as_ref().map(|v| v.into())))
+    }
+
     fn iter<'a, 'h: 'a>(
         &'a self,
         _: &'h Header,

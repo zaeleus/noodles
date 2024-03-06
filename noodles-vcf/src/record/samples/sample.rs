@@ -62,6 +62,16 @@ impl<'a> AsRef<str> for Sample<'a> {
 }
 
 impl<'r> crate::variant::record::samples::Sample for Sample<'r> {
+    fn get_index<'a, 'h: 'a>(
+        &'a self,
+        header: &'h Header,
+        i: usize,
+    ) -> Option<io::Result<Option<Value<'a>>>> {
+        self.iter(header)
+            .nth(i)
+            .map(|result| result.map(|(_, value)| value))
+    }
+
     fn iter<'a, 'h: 'a>(
         &'a self,
         header: &'h Header,
