@@ -43,4 +43,41 @@ pub trait Record {
 
     /// Returns the samples.
     fn samples(&self) -> io::Result<Box<dyn Samples + '_>>;
+
+    /// Returns or calculates the end.
+    fn end(&self, header: &Header) -> io::Result<Position> {
+        use self::info::field::Value;
+        use super::record_buf::info::field::key;
+
+        if let Some(Some(value)) = self.info().get(header, key::END_POSITION).transpose()? {
+            match value {
+                Value::Integer(n) => {
+                    usize::try_from(n)
+                        .and_then(Position::try_from)
+                        .map_err(|_| {
+                            io::Error::new(io::ErrorKind::InvalidData, "invalid INFO END position")
+                        })
+                }
+                _ => Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "invalid INFO END position value",
+                )),
+            }
+        } else {
+            let start = self.position().transpose()?.unwrap_or(Position::MIN);
+            let reference_bases = self.reference_bases();
+
+            if reference_bases.is_empty() {
+                Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "invalid reference bases length",
+                ))
+            } else {
+                let len = reference_bases.len();
+                start
+                    .checked_add(len - 1)
+                    .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "position overflow"))
+            }
+        }
+    }
 }
