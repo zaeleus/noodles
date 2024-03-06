@@ -2,11 +2,12 @@
 
 pub mod field;
 
-use std::hash::Hash;
+use std::{hash::Hash, io};
 
 use indexmap::IndexMap;
 
 use self::field::Value;
+use crate::Header;
 
 /// VCF record information fields (`INFO`).
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -252,12 +253,31 @@ impl crate::variant::record::Info for Info {
         self.0.len()
     }
 
+    fn get<'a, 'h: 'a>(
+        &'a self,
+        header: &'h Header,
+        key: &str,
+    ) -> Option<io::Result<Option<crate::variant::record::info::field::Value<'a>>>> {
+        for result in self.iter(header) {
+            match result {
+                Ok((k, value)) => {
+                    if k == key {
+                        return Some(Ok(value));
+                    }
+                }
+                Err(e) => return Some(Err(e)),
+            }
+        }
+
+        None
+    }
+
     fn iter<'a, 'h: 'a>(
         &'a self,
-        _: &'h crate::Header,
+        _: &'h Header,
     ) -> Box<
         dyn Iterator<
-                Item = std::io::Result<(
+                Item = io::Result<(
                     &'a str,
                     Option<crate::variant::record::info::field::Value<'a>>,
                 )>,
@@ -280,12 +300,20 @@ impl crate::variant::record::Info for &Info {
         self.0.len()
     }
 
+    fn get<'a, 'h: 'a>(
+        &'a self,
+        header: &'h Header,
+        key: &str,
+    ) -> Option<io::Result<Option<crate::variant::record::info::field::Value<'a>>>> {
+        crate::variant::record::Info::get(*self, header, key)
+    }
+
     fn iter<'a, 'h: 'a>(
         &'a self,
-        _: &'h crate::Header,
+        _: &'h Header,
     ) -> Box<
         dyn Iterator<
-                Item = std::io::Result<(
+                Item = io::Result<(
                     &'a str,
                     Option<crate::variant::record::info::field::Value<'a>>,
                 )>,

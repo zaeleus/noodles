@@ -57,6 +57,14 @@ impl<'r> vcf::variant::record::Info for Info<'r> {
         self.field_count
     }
 
+    fn get<'a, 'h: 'a>(
+        &'a self,
+        header: &'h vcf::Header,
+        key: &str,
+    ) -> Option<io::Result<Option<Value<'a>>>> {
+        self.get(header, key)
+    }
+
     fn iter<'a, 'h: 'a>(
         &'a self,
         header: &'h vcf::Header,
