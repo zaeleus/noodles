@@ -10,7 +10,11 @@ use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_core::Position;
-use noodles_vcf::{self as vcf, header::StringMaps, variant::record::AlternateBases};
+use noodles_vcf::{
+    self as vcf,
+    header::StringMaps,
+    variant::{record::AlternateBases, Record},
+};
 
 use self::{
     bases::write_bases, filters::write_filters, ids::write_ids, info::write_info,
@@ -20,29 +24,29 @@ use self::{
 
 const MAX_SAMPLE_NAME_COUNT: u32 = (1 << 24) - 1;
 
-pub fn write_site<W>(
+pub fn write_site<W, R>(
     writer: &mut W,
     header: &vcf::Header,
     string_maps: &StringMaps,
-    record: &vcf::variant::RecordBuf,
+    record: &R,
 ) -> io::Result<()>
 where
     W: Write,
+    R: Record,
 {
-    write_reference_sequence_id(
-        writer,
-        string_maps.contigs(),
-        record.reference_sequence_name(),
-    )?;
+    let reference_sequence_name = record.reference_sequence_name(header)?;
+    write_reference_sequence_id(writer, string_maps.contigs(), reference_sequence_name)?;
 
-    write_position(writer, record.position())?;
+    let position = record.position().transpose()?;
+    write_position(writer, position)?;
 
     let end = record
-        .end()
+        .end(header)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_rlen(writer, record.position(), end)?;
+    write_rlen(writer, position, end)?;
 
-    write_quality_score(writer, record.quality_score())?;
+    let quality_score = record.quality_score().transpose()?;
+    write_quality_score(writer, quality_score)?;
 
     let n_info = u16::try_from(record.info().as_ref().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -50,10 +54,11 @@ where
 
     write_n_allele(writer, record.alternate_bases().len())?;
 
+    let samples = record.samples()?;
     write_n_fmt_sample(
         writer,
         header.sample_names().len(),
-        record.samples().keys().len(),
+        samples.column_names(header).count(),
     )?;
 
     write_ids(writer, record.ids())?;
