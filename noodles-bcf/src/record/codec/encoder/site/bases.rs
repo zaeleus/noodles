@@ -7,7 +7,7 @@ use crate::record::codec::{encoder::value::write_value, Value};
 pub(super) fn write_bases<W, B>(
     writer: &mut W,
     reference_bases: &str,
-    alternate_bases: &B,
+    alternate_bases: B,
 ) -> io::Result<()>
 where
     W: Write,

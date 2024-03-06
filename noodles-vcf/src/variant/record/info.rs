@@ -15,6 +15,13 @@ pub trait Info {
     /// Returns the number of fields.
     fn len(&self) -> usize;
 
+    /// Returns the value of the given key.
+    fn get<'a, 'h: 'a>(
+        &'a self,
+        header: &'h Header,
+        key: &str,
+    ) -> Option<io::Result<Option<Value<'a>>>>;
+
     /// Returns an iterator over fields.
     fn iter<'a, 'h: 'a>(
         &'a self,
@@ -29,6 +36,14 @@ impl Info for Box<dyn Info + '_> {
 
     fn len(&self) -> usize {
         (**self).len()
+    }
+
+    fn get<'a, 'h: 'a>(
+        &'a self,
+        header: &'h Header,
+        key: &str,
+    ) -> Option<io::Result<Option<Value<'a>>>> {
+        (**self).get(header, key)
     }
 
     fn iter<'a, 'h: 'a>(

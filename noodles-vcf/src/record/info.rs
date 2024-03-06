@@ -79,6 +79,14 @@ impl<'r> crate::variant::record::Info for Info<'r> {
         }
     }
 
+    fn get<'a, 'h: 'a>(
+        &'a self,
+        header: &'h Header,
+        key: &str,
+    ) -> Option<io::Result<Option<Value<'a>>>> {
+        self.get(header, key)
+    }
+
     fn iter<'a, 'h: 'a>(
         &'a self,
         header: &'h Header,
