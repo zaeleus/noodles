@@ -3,38 +3,35 @@ mod values;
 
 use std::io::{self, Write};
 
-use noodles_vcf::{self as vcf, header::string_maps::StringStringMap};
+use noodles_vcf::{self as vcf, header::StringMaps, variant::record::Samples};
 
 use self::{
     key::write_key,
     values::{write_genotype_values, write_values},
 };
 
-pub fn write_samples<W>(
+pub fn write_samples<W, S>(
     writer: &mut W,
     header: &vcf::Header,
-    string_string_map: &StringStringMap,
-    genotypes: &vcf::variant::record_buf::Samples,
+    string_maps: &StringMaps,
+    samples: S,
 ) -> io::Result<()>
 where
     W: Write,
+    S: Samples,
 {
     use noodles_vcf::variant::record_buf::samples::keys::key;
 
-    let keys = genotypes.keys();
+    for (i, result) in samples.column_names(header).enumerate() {
+        let key = result?;
 
-    for (i, key) in keys.iter().enumerate() {
-        write_key(writer, string_string_map, key)?;
+        write_key(writer, string_maps.strings(), key)?;
 
-        let mut values = Vec::with_capacity(keys.len());
+        let rows: Vec<_> = samples.iter().collect();
+        let mut values = Vec::new();
 
-        for sample in genotypes.values() {
-            let value = sample
-                .values()
-                .get(i)
-                .map(|v| v.as_ref())
-                .unwrap_or_default();
-
+        for sample in rows.iter() {
+            let value = sample.get_index(header, i).transpose()?.unwrap_or_default();
             values.push(value);
         }
 
@@ -47,6 +44,8 @@ where
         } else {
             write_values(writer, format, &values)?;
         }
+
+        drop(values);
     }
 
     Ok(())
@@ -89,7 +88,7 @@ mod tests {
         );
 
         let mut buf = Vec::new();
-        write_samples(&mut buf, &header, string_maps.strings(), &genotypes)?;
+        write_samples(&mut buf, &header, &string_maps, &genotypes)?;
 
         let expected = [
             0x11, // string string map index type = Some(Type::Int(1))

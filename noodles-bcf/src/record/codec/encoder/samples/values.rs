@@ -6,7 +6,7 @@ use std::{
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_vcf::{
     header::record::value::{map::Format, Map},
-    variant::record_buf::samples::sample::{value::Array, Value},
+    variant::record::samples::series::{value::Array, Value},
 };
 
 use crate::record::codec::{
@@ -21,7 +21,7 @@ const NUL: u8 = 0x00;
 pub(super) fn write_values<W>(
     writer: &mut W,
     format: &Map<Format>,
-    values: &[Option<&Value>],
+    values: &[Option<Value<'_>>],
 ) -> io::Result<()>
 where
     W: Write,
@@ -48,7 +48,7 @@ where
     }
 }
 
-fn write_integer_values<W>(writer: &mut W, values: &[Option<&Value>]) -> io::Result<()>
+fn write_integer_values<W>(writer: &mut W, values: &[Option<Value<'_>>]) -> io::Result<()>
 where
     W: Write,
 {
@@ -88,7 +88,7 @@ where
     }
 }
 
-fn write_int8_values<W>(writer: &mut W, values: &[Option<&Value>]) -> io::Result<()>
+fn write_int8_values<W>(writer: &mut W, values: &[Option<Value<'_>>]) -> io::Result<()>
 where
     W: Write,
 {
@@ -114,7 +114,7 @@ where
     Ok(())
 }
 
-fn write_int16_values<W>(writer: &mut W, values: &[Option<&Value>]) -> io::Result<()>
+fn write_int16_values<W>(writer: &mut W, values: &[Option<Value<'_>>]) -> io::Result<()>
 where
     W: Write,
 {
@@ -140,7 +140,7 @@ where
     Ok(())
 }
 
-fn write_int32_values<W>(writer: &mut W, values: &[Option<&Value>]) -> io::Result<()>
+fn write_int32_values<W>(writer: &mut W, values: &[Option<Value<'_>>]) -> io::Result<()>
 where
     W: Write,
 {
@@ -164,7 +164,7 @@ where
     Ok(())
 }
 
-fn write_integer_array_values<W>(writer: &mut W, values: &[Option<&Value>]) -> io::Result<()>
+fn write_integer_array_values<W>(writer: &mut W, values: &[Option<Value<'_>>]) -> io::Result<()>
 where
     W: Write,
 {
@@ -176,7 +176,8 @@ where
             Some(Value::Array(Array::Integer(vs))) => {
                 max_len = cmp::max(max_len, vs.len());
 
-                for v in vs {
+                for result in vs.iter() {
+                    let v = result?;
                     let n = v.unwrap_or_default();
                     min = cmp::min(min, n);
                     max = cmp::max(max, n);
@@ -218,7 +219,7 @@ where
 
 fn write_int8_array_values<W>(
     writer: &mut W,
-    values: &[Option<&Value>],
+    values: &[Option<Value<'_>>],
     max_len: usize,
 ) -> io::Result<()>
 where
@@ -229,9 +230,11 @@ where
     for value in values {
         let len = match value {
             Some(Value::Array(Array::Integer(vs))) => {
-                for v in vs {
+                for result in vs.iter() {
+                    let v = result?;
+
                     let n = match v {
-                        Some(n) => i8::try_from(*n)
+                        Some(n) => i8::try_from(n)
                             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
                         None => i8::from(Int8::Missing),
                     };
@@ -265,7 +268,7 @@ where
 
 fn write_int16_array_values<W>(
     writer: &mut W,
-    values: &[Option<&Value>],
+    values: &[Option<Value<'_>>],
     max_len: usize,
 ) -> io::Result<()>
 where
@@ -276,9 +279,11 @@ where
     for value in values {
         let len = match value {
             Some(Value::Array(Array::Integer(vs))) => {
-                for v in vs {
+                for result in vs.iter() {
+                    let v = result?;
+
                     let n = match v {
-                        Some(n) => i16::try_from(*n)
+                        Some(n) => i16::try_from(n)
                             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
                         None => i16::from(Int16::Missing),
                     };
@@ -312,7 +317,7 @@ where
 
 fn write_int32_array_values<W>(
     writer: &mut W,
-    values: &[Option<&Value>],
+    values: &[Option<Value<'_>>],
     max_len: usize,
 ) -> io::Result<()>
 where
@@ -323,9 +328,11 @@ where
     for value in values {
         let len = match value {
             Some(Value::Array(Array::Integer(vs))) => {
-                for v in vs {
+                for result in vs.iter() {
+                    let v = result?;
+
                     let n = match v {
-                        Some(n) => *n,
+                        Some(n) => n,
                         None => i32::from(Int32::Missing),
                     };
 
@@ -356,7 +363,7 @@ where
     Ok(())
 }
 
-fn write_float_values<W>(writer: &mut W, values: &[Option<&Value>]) -> io::Result<()>
+fn write_float_values<W>(writer: &mut W, values: &[Option<Value<'_>>]) -> io::Result<()>
 where
     W: Write,
 {
@@ -380,7 +387,7 @@ where
     Ok(())
 }
 
-fn write_float_array_values<W>(writer: &mut W, values: &[Option<&Value>]) -> io::Result<()>
+fn write_float_array_values<W>(writer: &mut W, values: &[Option<Value<'_>>]) -> io::Result<()>
 where
     W: Write,
 {
@@ -398,7 +405,8 @@ where
     for value in values {
         let len = match value {
             Some(Value::Array(Array::Float(vs))) => {
-                for v in vs {
+                for result in vs.iter() {
+                    let v = result?;
                     let raw_value = v.unwrap_or(f32::from(Float::Missing));
                     writer.write_f32::<LittleEndian>(raw_value)?;
                 }
@@ -427,19 +435,19 @@ where
     Ok(())
 }
 
-fn write_character_values<W>(writer: &mut W, values: &[Option<&Value>]) -> io::Result<()>
+fn write_character_values<W>(writer: &mut W, values: &[Option<Value<'_>>]) -> io::Result<()>
 where
     W: Write,
 {
-    let mut string_values = Vec::with_capacity(values.len());
+    let mut raw_strings = Vec::with_capacity(values.len());
 
     for value in values {
         match value {
             Some(Value::Character(c)) => {
-                let string_value = Value::String(String::from(*c));
-                string_values.push(Some(string_value));
+                let s = String::from(*c);
+                raw_strings.push(Some(s));
             }
-            None => string_values.push(None),
+            None => raw_strings.push(None),
             v => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
@@ -449,37 +457,39 @@ where
         }
     }
 
-    let string_values_as_ref: Vec<_> = string_values.iter().map(|v| v.as_ref()).collect();
+    let string_values: Vec<_> = raw_strings
+        .iter()
+        .map(|s| s.as_ref().map(|t| Value::String(t.as_ref())))
+        .collect();
 
-    write_string_values(writer, &string_values_as_ref)
+    write_string_values(writer, &string_values)
 }
 
-fn write_character_array_values<W>(writer: &mut W, values: &[Option<&Value>]) -> io::Result<()>
+fn write_character_array_values<W>(writer: &mut W, values: &[Option<Value<'_>>]) -> io::Result<()>
 where
     W: Write,
 {
-    let mut string_values = Vec::with_capacity(values.len());
+    let mut raw_strings = Vec::with_capacity(values.len());
 
     for value in values {
         match value {
             Some(Value::Array(Array::Character(cs))) => {
                 let mut s = String::new();
 
-                for (i, c) in cs.iter().enumerate() {
+                for (i, result) in cs.iter().enumerate() {
                     if i > 0 {
                         s.push(DELIMITER);
                     }
 
-                    match c {
-                        Some(d) => s.push(*d),
+                    match result? {
+                        Some(c) => s.push(c),
                         None => s.push(MISSING),
                     }
                 }
 
-                let string_value = Value::String(s);
-                string_values.push(Some(string_value));
+                raw_strings.push(Some(s));
             }
-            None => string_values.push(None),
+            None => raw_strings.push(None),
             v => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
@@ -489,12 +499,15 @@ where
         }
     }
 
-    let string_values_as_ref: Vec<_> = string_values.iter().map(|v| v.as_ref()).collect();
+    let string_values: Vec<_> = raw_strings
+        .iter()
+        .map(|s| s.as_ref().map(|t| Value::String(t.as_ref())))
+        .collect();
 
-    write_string_values(writer, &string_values_as_ref)
+    write_string_values(writer, &string_values)
 }
 
-fn write_string_values<W>(writer: &mut W, values: &[Option<&Value>]) -> io::Result<()>
+fn write_string_values<W>(writer: &mut W, values: &[Option<Value<'_>>]) -> io::Result<()>
 where
     W: Write,
 {
@@ -540,7 +553,7 @@ where
     Ok(())
 }
 
-fn write_string_array_values<W>(writer: &mut W, values: &[Option<&Value>]) -> io::Result<()>
+fn write_string_array_values<W>(writer: &mut W, values: &[Option<Value<'_>>]) -> io::Result<()>
 where
     W: Write,
 {
@@ -551,12 +564,12 @@ where
             Some(Value::Array(Array::String(vs))) => {
                 let mut s = String::new();
 
-                for (i, v) in vs.iter().enumerate() {
+                for (i, result) in vs.iter().enumerate() {
                     if i > 0 {
                         s.push(DELIMITER);
                     }
 
-                    match v {
+                    match result? {
                         Some(t) => s.push_str(t),
                         None => s.push(MISSING),
                     }
@@ -601,7 +614,10 @@ where
     Ok(())
 }
 
-pub(super) fn write_genotype_values<W>(writer: &mut W, values: &[Option<&Value>]) -> io::Result<()>
+pub(super) fn write_genotype_values<W>(
+    writer: &mut W,
+    values: &[Option<Value<'_>>],
+) -> io::Result<()>
 where
     W: Write,
 {
@@ -686,7 +702,10 @@ fn encode_genotype_values(genotype: &str) -> io::Result<Vec<i8>> {
 
 #[cfg(test)]
 mod tests {
-    use noodles_vcf::header::{record::value::map::format, Number};
+    use noodles_vcf::{
+        header::{record::value::map::format, Number},
+        variant::record_buf::samples::sample::Value as ValueBuf,
+    };
 
     use super::*;
 
@@ -695,7 +714,7 @@ mod tests {
         fn t(
             buf: &mut Vec<u8>,
             format: &Map<Format>,
-            values: &[Option<&Value>],
+            values: &[Option<Value<'_>>],
             expected: &[u8],
         ) -> io::Result<()> {
             buf.clear();
@@ -709,8 +728,8 @@ mod tests {
         let mut buf = Vec::new();
 
         let values = [
-            Some(&Value::Integer(-2147483641)),
-            Some(&Value::Integer(-2147483640)),
+            Some(Value::Integer(-2147483641)),
+            Some(Value::Integer(-2147483640)),
             None,
         ];
         buf.clear();
@@ -720,8 +739,8 @@ mod tests {
         ));
 
         let values = [
-            Some(&Value::Integer(-2147483640)),
-            Some(&Value::Integer(-2147483639)),
+            Some(Value::Integer(-2147483640)),
+            Some(Value::Integer(-2147483639)),
             None,
         ];
         let expected = [
@@ -733,8 +752,8 @@ mod tests {
         t(&mut buf, &key, &values, &expected)?;
 
         let values = [
-            Some(&Value::Integer(-32761)),
-            Some(&Value::Integer(-32760)),
+            Some(Value::Integer(-32761)),
+            Some(Value::Integer(-32760)),
             None,
         ];
         let expected = [
@@ -746,8 +765,8 @@ mod tests {
         t(&mut buf, &key, &values, &expected)?;
 
         let values = [
-            Some(&Value::Integer(-32760)),
-            Some(&Value::Integer(-32759)),
+            Some(Value::Integer(-32760)),
+            Some(Value::Integer(-32759)),
             None,
         ];
         let expected = [
@@ -758,11 +777,7 @@ mod tests {
         ];
         t(&mut buf, &key, &values, &expected)?;
 
-        let values = [
-            Some(&Value::Integer(-121)),
-            Some(&Value::Integer(-120)),
-            None,
-        ];
+        let values = [Some(Value::Integer(-121)), Some(Value::Integer(-120)), None];
         let expected = [
             0x12, // Some(Type::Int16(1))
             0x87, 0xff, // Some(-121)
@@ -771,11 +786,7 @@ mod tests {
         ];
         t(&mut buf, &key, &values, &expected)?;
 
-        let values = [
-            Some(&Value::Integer(-120)),
-            Some(&Value::Integer(-119)),
-            None,
-        ];
+        let values = [Some(Value::Integer(-120)), Some(Value::Integer(-119)), None];
         let expected = [
             0x11, // Some(Type::Int8(1))
             0x88, // Some(-120)
@@ -785,9 +796,9 @@ mod tests {
         t(&mut buf, &key, &values, &expected)?;
 
         let values = [
-            Some(&Value::Integer(-1)),
-            Some(&Value::Integer(0)),
-            Some(&Value::Integer(1)),
+            Some(Value::Integer(-1)),
+            Some(Value::Integer(0)),
+            Some(Value::Integer(1)),
             None,
         ];
         let expected = [
@@ -799,7 +810,7 @@ mod tests {
         ];
         t(&mut buf, &key, &values, &expected)?;
 
-        let values = [Some(&Value::Integer(126)), Some(&Value::Integer(127)), None];
+        let values = [Some(Value::Integer(126)), Some(Value::Integer(127)), None];
         let expected = [
             0x11, // Some(Type::Int8(1))
             0x7e, // Some(126)
@@ -808,7 +819,7 @@ mod tests {
         ];
         t(&mut buf, &key, &values, &expected)?;
 
-        let values = [Some(&Value::Integer(127)), Some(&Value::Integer(128)), None];
+        let values = [Some(Value::Integer(127)), Some(Value::Integer(128)), None];
         let expected = [
             0x12, // Some(Type::Int16(1))
             0x7f, 0x00, // Some(127)
@@ -818,8 +829,8 @@ mod tests {
         t(&mut buf, &key, &values, &expected)?;
 
         let values = [
-            Some(&Value::Integer(32766)),
-            Some(&Value::Integer(32767)),
+            Some(Value::Integer(32766)),
+            Some(Value::Integer(32767)),
             None,
         ];
         let expected = [
@@ -831,8 +842,8 @@ mod tests {
         t(&mut buf, &key, &values, &expected)?;
 
         let values = [
-            Some(&Value::Integer(32767)),
-            Some(&Value::Integer(32768)),
+            Some(Value::Integer(32767)),
+            Some(Value::Integer(32768)),
             None,
         ];
         let expected = [
@@ -844,8 +855,8 @@ mod tests {
         t(&mut buf, &key, &values, &expected)?;
 
         let values = [
-            Some(&Value::Integer(2147483646)),
-            Some(&Value::Integer(2147483647)),
+            Some(Value::Integer(2147483646)),
+            Some(Value::Integer(2147483647)),
             None,
         ];
         let expected = [
@@ -864,7 +875,7 @@ mod tests {
         fn t(
             buf: &mut Vec<u8>,
             format: &Map<Format>,
-            values: &[Option<&Value>],
+            values: &[Option<Value>],
             expected: &[u8],
         ) -> io::Result<()> {
             buf.clear();
@@ -877,20 +888,30 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        let value_0 = Value::from(vec![Some(-2147483641), Some(-2147483640)]);
-        let value_1 = Value::from(vec![Some(-2147483639), None]);
-        let value_2 = Value::from(vec![Some(-2147483638)]);
-        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        let value_0 = ValueBuf::from(vec![Some(-2147483641), Some(-2147483640)]);
+        let value_1 = ValueBuf::from(vec![Some(-2147483639), None]);
+        let value_2 = ValueBuf::from(vec![Some(-2147483638)]);
+        let values = [
+            Some((&value_0).into()),
+            Some((&value_1).into()),
+            Some((&value_2).into()),
+            None,
+        ];
         buf.clear();
         assert!(matches!(
             write_values(&mut buf, &format, &values),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
-        let value_0 = Value::from(vec![Some(-2147483640), Some(-2147483639)]);
-        let value_1 = Value::from(vec![Some(-2147483638), None]);
-        let value_2 = Value::from(vec![Some(-2147483637)]);
-        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        let value_0 = ValueBuf::from(vec![Some(-2147483640), Some(-2147483639)]);
+        let value_1 = ValueBuf::from(vec![Some(-2147483638), None]);
+        let value_2 = ValueBuf::from(vec![Some(-2147483637)]);
+        let values = [
+            Some((&value_0).into()),
+            Some((&value_1).into()),
+            Some((&value_2).into()),
+            None,
+        ];
         #[rustfmt::skip]
         let expected = [
             0x23, // Some(Type::Int32(2))
@@ -901,10 +922,15 @@ mod tests {
         ];
         t(&mut buf, &format, &values, &expected)?;
 
-        let value_0 = Value::from(vec![Some(-32761), Some(-32760)]);
-        let value_1 = Value::from(vec![Some(-32759), None]);
-        let value_2 = Value::from(vec![Some(-32758)]);
-        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        let value_0 = ValueBuf::from(vec![Some(-32761), Some(-32760)]);
+        let value_1 = ValueBuf::from(vec![Some(-32759), None]);
+        let value_2 = ValueBuf::from(vec![Some(-32758)]);
+        let values = [
+            Some((&value_0).into()),
+            Some((&value_1).into()),
+            Some((&value_2).into()),
+            None,
+        ];
         #[rustfmt::skip]
         let expected = [
             0x23, // Some(Type::Int32(2))
@@ -915,10 +941,15 @@ mod tests {
         ];
         t(&mut buf, &format, &values, &expected)?;
 
-        let value_0 = Value::from(vec![Some(-32760), Some(-32759)]);
-        let value_1 = Value::from(vec![Some(-32758), None]);
-        let value_2 = Value::from(vec![Some(-32757)]);
-        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        let value_0 = ValueBuf::from(vec![Some(-32760), Some(-32759)]);
+        let value_1 = ValueBuf::from(vec![Some(-32758), None]);
+        let value_2 = ValueBuf::from(vec![Some(-32757)]);
+        let values = [
+            Some((&value_0).into()),
+            Some((&value_1).into()),
+            Some((&value_2).into()),
+            None,
+        ];
         let expected = [
             0x22, // Some(Type::Int16(2))
             0x08, 0x80, 0x09, 0x80, // Some([Some(-32760), Some(-32759)])
@@ -928,10 +959,15 @@ mod tests {
         ];
         t(&mut buf, &format, &values, &expected)?;
 
-        let value_0 = Value::from(vec![Some(-121), Some(-120)]);
-        let value_1 = Value::from(vec![Some(-119), None]);
-        let value_2 = Value::from(vec![Some(-118)]);
-        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        let value_0 = ValueBuf::from(vec![Some(-121), Some(-120)]);
+        let value_1 = ValueBuf::from(vec![Some(-119), None]);
+        let value_2 = ValueBuf::from(vec![Some(-118)]);
+        let values = [
+            Some((&value_0).into()),
+            Some((&value_1).into()),
+            Some((&value_2).into()),
+            None,
+        ];
         let expected = [
             0x22, // Some(Type::Int16(2))
             0x87, 0xff, 0x88, 0xff, // Some([Some(-121), Some(-120)])
@@ -941,10 +977,15 @@ mod tests {
         ];
         t(&mut buf, &format, &values, &expected)?;
 
-        let value_0 = Value::from(vec![Some(-120), Some(-119)]);
-        let value_1 = Value::from(vec![Some(-118), None]);
-        let value_2 = Value::from(vec![Some(-117)]);
-        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        let value_0 = ValueBuf::from(vec![Some(-120), Some(-119)]);
+        let value_1 = ValueBuf::from(vec![Some(-118), None]);
+        let value_2 = ValueBuf::from(vec![Some(-117)]);
+        let values = [
+            Some((&value_0).into()),
+            Some((&value_1).into()),
+            Some((&value_2).into()),
+            None,
+        ];
         let expected = [
             0x21, // Some(Type::Int8(2))
             0x88, 0x89, // Some([Some(-120), Some(-119)])
@@ -954,10 +995,15 @@ mod tests {
         ];
         t(&mut buf, &format, &values, &expected)?;
 
-        let value_0 = Value::from(vec![Some(-1), Some(0)]);
-        let value_1 = Value::from(vec![Some(1), None]);
-        let value_2 = Value::from(vec![Some(2)]);
-        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        let value_0 = ValueBuf::from(vec![Some(-1), Some(0)]);
+        let value_1 = ValueBuf::from(vec![Some(1), None]);
+        let value_2 = ValueBuf::from(vec![Some(2)]);
+        let values = [
+            Some((&value_0).into()),
+            Some((&value_1).into()),
+            Some((&value_2).into()),
+            None,
+        ];
         let expected = [
             0x21, // Some(Type::Int8(2))
             0xff, 0x00, // Some([Some(-1), Some(0)])
@@ -967,10 +1013,15 @@ mod tests {
         ];
         t(&mut buf, &format, &values, &expected)?;
 
-        let value_0 = Value::from(vec![Some(124), Some(125)]);
-        let value_1 = Value::from(vec![Some(126), None]);
-        let value_2 = Value::from(vec![Some(127)]);
-        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        let value_0 = ValueBuf::from(vec![Some(124), Some(125)]);
+        let value_1 = ValueBuf::from(vec![Some(126), None]);
+        let value_2 = ValueBuf::from(vec![Some(127)]);
+        let values = [
+            Some((&value_0).into()),
+            Some((&value_1).into()),
+            Some((&value_2).into()),
+            None,
+        ];
         let expected = [
             0x21, // Some(Type::Int8(2))
             0x7c, 0x7d, // Some([Some(124), Some(125)])
@@ -980,10 +1031,15 @@ mod tests {
         ];
         t(&mut buf, &format, &values, &expected)?;
 
-        let value_0 = Value::from(vec![Some(125), Some(126)]);
-        let value_1 = Value::from(vec![Some(127), None]);
-        let value_2 = Value::from(vec![Some(128)]);
-        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        let value_0 = ValueBuf::from(vec![Some(125), Some(126)]);
+        let value_1 = ValueBuf::from(vec![Some(127), None]);
+        let value_2 = ValueBuf::from(vec![Some(128)]);
+        let values = [
+            Some((&value_0).into()),
+            Some((&value_1).into()),
+            Some((&value_2).into()),
+            None,
+        ];
         let expected = [
             0x22, // Some(Type::Int16(2))
             0x7d, 0x00, 0x7e, 0x00, // Some([Some(125), Some(126)])
@@ -993,10 +1049,15 @@ mod tests {
         ];
         t(&mut buf, &format, &values, &expected)?;
 
-        let value_0 = Value::from(vec![Some(32764), Some(32765)]);
-        let value_1 = Value::from(vec![Some(32766), None]);
-        let value_2 = Value::from(vec![Some(32767)]);
-        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        let value_0 = ValueBuf::from(vec![Some(32764), Some(32765)]);
+        let value_1 = ValueBuf::from(vec![Some(32766), None]);
+        let value_2 = ValueBuf::from(vec![Some(32767)]);
+        let values = [
+            Some((&value_0).into()),
+            Some((&value_1).into()),
+            Some((&value_2).into()),
+            None,
+        ];
         let expected = [
             0x22, // Some(Type::Int16(2))
             0xfc, 0x7f, 0xfd, 0x7f, // Some([Some(32764), Some(32765)])
@@ -1006,10 +1067,15 @@ mod tests {
         ];
         t(&mut buf, &format, &values, &expected)?;
 
-        let value_0 = Value::from(vec![Some(32765), Some(32766)]);
-        let value_1 = Value::from(vec![Some(32767), None]);
-        let value_2 = Value::from(vec![Some(32768)]);
-        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        let value_0 = ValueBuf::from(vec![Some(32765), Some(32766)]);
+        let value_1 = ValueBuf::from(vec![Some(32767), None]);
+        let value_2 = ValueBuf::from(vec![Some(32768)]);
+        let values = [
+            Some((&value_0).into()),
+            Some((&value_1).into()),
+            Some((&value_2).into()),
+            None,
+        ];
         #[rustfmt::skip]
         let expected = [
             0x23, // Some(Type::Int32(2))
@@ -1020,10 +1086,15 @@ mod tests {
         ];
         t(&mut buf, &format, &values, &expected)?;
 
-        let value_0 = Value::from(vec![Some(2147483644), Some(2147483645)]);
-        let value_1 = Value::from(vec![Some(2147483646), None]);
-        let value_2 = Value::from(vec![Some(2147483647)]);
-        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        let value_0 = ValueBuf::from(vec![Some(2147483644), Some(2147483645)]);
+        let value_1 = ValueBuf::from(vec![Some(2147483646), None]);
+        let value_2 = ValueBuf::from(vec![Some(2147483647)]);
+        let values = [
+            Some((&value_0).into()),
+            Some((&value_1).into()),
+            Some((&value_2).into()),
+            None,
+        ];
         #[rustfmt::skip]
         let expected = [
             0x23, // Some(Type::Int32(2))
@@ -1041,7 +1112,7 @@ mod tests {
     fn test_write_values_with_float_values() -> Result<(), Box<dyn std::error::Error>> {
         let format = Map::<Format>::new(Number::Count(1), format::Type::Float, String::new());
 
-        let values = [Some(&Value::Float(0.0)), Some(&Value::Float(1.0)), None];
+        let values = [Some(Value::Float(0.0)), Some(Value::Float(1.0)), None];
 
         let mut buf = Vec::new();
         write_values(&mut buf, &format, &values)?;
@@ -1062,10 +1133,15 @@ mod tests {
     fn test_write_values_with_float_array_values() -> Result<(), Box<dyn std::error::Error>> {
         let format = Map::<Format>::new(Number::Count(2), format::Type::Float, String::new());
 
-        let value_0 = Value::from(vec![Some(0.0), Some(1.0)]);
-        let value_1 = Value::from(vec![Some(0.0), None]);
-        let value_2 = Value::from(vec![Some(0.0)]);
-        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        let value_0 = ValueBuf::from(vec![Some(0.0), Some(1.0)]);
+        let value_1 = ValueBuf::from(vec![Some(0.0), None]);
+        let value_2 = ValueBuf::from(vec![Some(0.0)]);
+        let values = [
+            Some((&value_0).into()),
+            Some((&value_1).into()),
+            Some((&value_2).into()),
+            None,
+        ];
 
         let mut buf = Vec::new();
         write_values(&mut buf, &format, &values)?;
@@ -1088,8 +1164,8 @@ mod tests {
         let format = Map::<Format>::new(Number::Count(1), format::Type::Character, String::new());
 
         let values = [
-            Some(&Value::Character('n')),
-            Some(&Value::Character('d')),
+            Some(Value::Character('n')),
+            Some(Value::Character('d')),
             None,
         ];
 
@@ -1112,10 +1188,15 @@ mod tests {
     fn test_write_values_with_character_array_values() -> Result<(), Box<dyn std::error::Error>> {
         let format = Map::<Format>::new(Number::Count(2), format::Type::Character, String::new());
 
-        let value_0 = Value::from(vec![Some('n'), Some('d')]);
-        let value_1 = Value::from(vec![Some('l'), None]);
-        let value_2 = Value::from(vec![Some('s')]);
-        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        let value_0 = ValueBuf::from(vec![Some('n'), Some('d')]);
+        let value_1 = ValueBuf::from(vec![Some('l'), None]);
+        let value_2 = ValueBuf::from(vec![Some('s')]);
+        let values = [
+            Some((&value_0).into()),
+            Some((&value_1).into()),
+            Some((&value_2).into()),
+            None,
+        ];
 
         let mut buf = Vec::new();
         write_values(&mut buf, &format, &values)?;
@@ -1137,10 +1218,15 @@ mod tests {
     fn test_write_values_with_string_values() -> Result<(), Box<dyn std::error::Error>> {
         let format = Map::<Format>::new(Number::Count(1), format::Type::String, String::new());
 
-        let value_0 = Value::from("n");
-        let value_1 = Value::from("ndl");
-        let value_2 = Value::from("ndls");
-        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        let value_0 = ValueBuf::from("n");
+        let value_1 = ValueBuf::from("ndl");
+        let value_2 = ValueBuf::from("ndls");
+        let values = [
+            Some((&value_0).into()),
+            Some((&value_1).into()),
+            Some((&value_2).into()),
+            None,
+        ];
 
         let mut buf = Vec::new();
         write_values(&mut buf, &format, &values)?;
@@ -1162,10 +1248,15 @@ mod tests {
     fn test_write_values_with_string_array_values() -> Result<(), Box<dyn std::error::Error>> {
         let format = Map::<Format>::new(Number::Count(2), format::Type::String, String::new());
 
-        let value_0 = Value::from(vec![Some(String::from("n")), Some(String::from("nd"))]);
-        let value_1 = Value::from(vec![Some(String::from("ndls")), None]);
-        let value_2 = Value::from(vec![Some(String::from("nd"))]);
-        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        let value_0 = ValueBuf::from(vec![Some(String::from("n")), Some(String::from("nd"))]);
+        let value_1 = ValueBuf::from(vec![Some(String::from("ndls")), None]);
+        let value_2 = ValueBuf::from(vec![Some(String::from("nd"))]);
+        let values = [
+            Some((&value_0).into()),
+            Some((&value_1).into()),
+            Some((&value_2).into()),
+            None,
+        ];
 
         let mut buf = Vec::new();
         write_values(&mut buf, &format, &values)?;
@@ -1185,10 +1276,14 @@ mod tests {
 
     #[test]
     fn test_write_genotype_values() -> io::Result<()> {
-        let value_0 = Value::from("0/1");
-        let value_1 = Value::from("1/1");
-        let value_2 = Value::from("0/0");
-        let values = [Some(&value_0), Some(&value_1), Some(&value_2)];
+        let value_0 = ValueBuf::from("0/1");
+        let value_1 = ValueBuf::from("1/1");
+        let value_2 = ValueBuf::from("0/0");
+        let values = [
+            Some((&value_0).into()),
+            Some((&value_1).into()),
+            Some((&value_2).into()),
+        ];
 
         let mut buf = Vec::new();
         write_genotype_values(&mut buf, &values)?;
@@ -1207,9 +1302,9 @@ mod tests {
 
     #[test]
     fn test_write_genotype_values_with_padding() -> io::Result<()> {
-        let value_0 = Value::from("0");
-        let value_1 = Value::from("0/1");
-        let values = [Some(&value_0), Some(&value_1)];
+        let value_0 = ValueBuf::from("0");
+        let value_1 = ValueBuf::from("0/1");
+        let values = [Some((&value_0).into()), Some((&value_1).into())];
 
         let mut buf = Vec::new();
         write_genotype_values(&mut buf, &values)?;

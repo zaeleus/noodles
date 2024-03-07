@@ -24,7 +24,7 @@ where
     let samples = record.samples();
 
     if !samples.is_empty() {
-        write_samples(&mut samples_buf, header, string_maps.strings(), samples)?;
+        write_samples(&mut samples_buf, header, string_maps, samples)?;
     };
 
     let l_indiv = u32::try_from(samples_buf.len())
