@@ -32,7 +32,7 @@ pub fn write_site<W, R>(
 ) -> io::Result<()>
 where
     W: Write,
-    R: Record,
+    R: Record + ?Sized,
 {
     let reference_sequence_name = record.reference_sequence_name(header)?;
     write_reference_sequence_id(writer, string_maps.contigs(), reference_sequence_name)?;

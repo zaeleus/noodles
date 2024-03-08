@@ -8,7 +8,7 @@ use std::io::{self, Write};
 
 use byteorder::WriteBytesExt;
 use noodles_bgzf as bgzf;
-use noodles_vcf::{self as vcf, header::StringMaps};
+use noodles_vcf::{self as vcf, header::StringMaps, variant::Record};
 
 pub use self::builder::Builder;
 use self::{header::write_header, record::write_record};
@@ -186,7 +186,7 @@ where
     fn write_variant_record(
         &mut self,
         header: &vcf::Header,
-        record: &vcf::variant::RecordBuf,
+        record: &dyn Record,
     ) -> io::Result<()> {
         write_record(&mut self.inner, header, &self.string_maps, record)
     }

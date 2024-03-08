@@ -1,6 +1,6 @@
 use std::io;
 
-use crate::{variant::RecordBuf, Header};
+use crate::{variant::Record, Header};
 
 /// A variant format writer.
 pub trait Write {
@@ -8,5 +8,5 @@ pub trait Write {
     fn write_variant_header(&mut self, header: &Header) -> io::Result<()>;
 
     /// Writes a variant record.
-    fn write_variant_record(&mut self, header: &Header, record: &RecordBuf) -> io::Result<()>;
+    fn write_variant_record(&mut self, header: &Header, record: &dyn Record) -> io::Result<()>;
 }

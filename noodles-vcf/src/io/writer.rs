@@ -8,7 +8,10 @@ use std::io::{self, Write};
 
 pub use self::builder::Builder;
 use self::{header::write_header, record::write_record};
-use crate::{variant::RecordBuf, Header};
+use crate::{
+    variant::{Record, RecordBuf},
+    Header,
+};
 
 /// A VCF writer.
 ///
@@ -158,8 +161,8 @@ where
         self.write_header(header)
     }
 
-    fn write_variant_record(&mut self, header: &Header, record: &RecordBuf) -> io::Result<()> {
-        self.write_record(header, record)
+    fn write_variant_record(&mut self, header: &Header, record: &dyn Record) -> io::Result<()> {
+        write_record(&mut self.inner, header, record)
     }
 }
 

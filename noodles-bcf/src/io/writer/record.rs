@@ -11,7 +11,7 @@ pub fn write_record<W, R>(
 ) -> io::Result<()>
 where
     W: Write,
-    R: Record,
+    R: Record + ?Sized,
 {
     use crate::record::codec::encoder::{samples::write_samples, site::write_site};
 
