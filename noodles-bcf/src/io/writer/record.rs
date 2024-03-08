@@ -1,16 +1,17 @@
 use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
-use noodles_vcf::{self as vcf, header::StringMaps};
+use noodles_vcf::{self as vcf, header::StringMaps, variant::Record};
 
-pub fn write_record<W>(
+pub fn write_record<W, R>(
     writer: &mut W,
     header: &vcf::Header,
     string_maps: &StringMaps,
-    record: &vcf::variant::RecordBuf,
+    record: &R,
 ) -> io::Result<()>
 where
     W: Write,
+    R: Record,
 {
     use crate::record::codec::encoder::{samples::write_samples, site::write_site};
 
@@ -21,7 +22,7 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     let mut samples_buf = Vec::new();
-    let samples = record.samples();
+    let samples = record.samples()?;
 
     if !samples.is_empty() {
         write_samples(&mut samples_buf, header, string_maps, samples)?;
