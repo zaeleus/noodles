@@ -81,3 +81,33 @@ pub trait Record {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_end() -> Result<(), Box<dyn std::error::Error>> {
+        use crate::variant::{
+            record_buf::info::field::{key, Value},
+            RecordBuf,
+        };
+
+        let header = Header::default();
+
+        let record = RecordBuf::builder()
+            .set_info(
+                [(String::from(key::END_POSITION), Some(Value::from(8)))]
+                    .into_iter()
+                    .collect(),
+            )
+            .build();
+
+        assert_eq!(Record::end(&record, &header)?, Position::try_from(8)?);
+
+        let record = RecordBuf::builder().set_reference_bases("ACGT").build();
+        assert_eq!(Record::end(&record, &header)?, Position::try_from(4)?);
+
+        Ok(())
+    }
+}
