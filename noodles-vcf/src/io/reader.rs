@@ -13,7 +13,7 @@ pub use self::{builder::Builder, query::Query, record_bufs::RecordBufs};
 
 use std::{
     io::{self, BufRead, Read, Seek},
-    str,
+    iter, str,
 };
 
 use noodles_bgzf as bgzf;
@@ -249,6 +249,39 @@ where
     /// ```
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         read_record(&mut self.inner, record)
+    }
+
+    /// Returns an iterator over records.
+    ///
+    /// The stream is expected to be directly after the header or at the start of another record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    ///
+    /// const DATA: &[u8] = b"##fileformat=VCFv4.3
+    /// #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
+    /// sq0\t1\t.\tA\t.\t.\tPASS\t.
+    /// ";
+    ///
+    /// let mut reader = vcf::io::Reader::new(DATA);
+    /// reader.read_header()?;
+    ///
+    /// for result in reader.records() {
+    ///     let record = result?;
+    ///     // ...
+    /// }
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
+    pub fn records(&mut self) -> impl Iterator<Item = io::Result<Record>> + '_ {
+        let mut record = Record::default();
+
+        iter::from_fn(move || match self.read_record(&mut record) {
+            Ok(0) => None,
+            Ok(_) => Some(Ok(record.clone())),
+            Err(e) => Some(Err(e)),
+        })
     }
 }
 
