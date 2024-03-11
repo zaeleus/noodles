@@ -141,4 +141,38 @@ where
         self.inner.write_all(writer.get_ref()).await?;
         Ok(())
     }
+
+    /// Writes a variant record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[tokio::main]
+    /// # async fn main() -> tokio::io::Result<()> {
+    /// use noodles_core::Position;
+    /// use noodles_vcf as vcf;
+    ///
+    /// let header = vcf::Header::default();
+    ///
+    /// let record = vcf::variant::RecordBuf::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_position(Position::MIN)
+    ///     .set_reference_bases("A")
+    ///     .build();
+    ///
+    /// let mut writer = vcf::r#async::io::Writer::new(Vec::new());
+    /// writer.write_variant_record(&header, &record).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn write_variant_record(
+        &mut self,
+        header: &Header,
+        record: &dyn crate::variant::Record,
+    ) -> io::Result<()> {
+        let mut writer = crate::io::Writer::new(Vec::new());
+        writer.write_variant_record(header, record)?;
+        self.inner.write_all(writer.get_ref()).await?;
+        Ok(())
+    }
 }
