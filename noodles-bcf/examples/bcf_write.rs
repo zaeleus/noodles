@@ -14,6 +14,7 @@ use noodles_vcf::{
         map::{Contig, Filter},
         Map,
     },
+    variant::io::Write,
 };
 
 fn main() -> io::Result<()> {
@@ -33,7 +34,7 @@ fn main() -> io::Result<()> {
         .set_reference_bases("A")
         .build();
 
-    writer.write_record(&header, &record)?;
+    writer.write_variant_record(&header, &record)?;
 
     Ok(())
 }
