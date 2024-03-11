@@ -10,7 +10,7 @@ use std::{
 };
 
 use noodles_bcf as bcf;
-use noodles_vcf as vcf;
+use noodles_vcf::{self as vcf, variant::io::Write};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = env::args();
@@ -29,7 +29,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for result in query {
         let record = result?;
-        writer.write_record(&header, &record)?;
+        writer.write_variant_record(&header, &record)?;
     }
 
     Ok(())

@@ -8,6 +8,7 @@ use noodles_core::Position;
 use noodles_vcf::{
     self as vcf,
     header::record::value::{map::Contig, Map},
+    variant::io::Write,
 };
 
 fn main() -> io::Result<()> {
@@ -26,7 +27,7 @@ fn main() -> io::Result<()> {
         .set_reference_bases("A")
         .build();
 
-    writer.write_record(&header, &record)?;
+    writer.write_variant_record(&header, &record)?;
 
     Ok(())
 }

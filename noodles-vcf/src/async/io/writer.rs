@@ -1,6 +1,9 @@
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
-use crate::{variant::RecordBuf, Header};
+use crate::{
+    variant::{io::Write, RecordBuf},
+    Header,
+};
 
 /// An async VCF writer.
 ///
@@ -134,7 +137,7 @@ where
     /// ```
     pub async fn write_record(&mut self, record: &RecordBuf) -> io::Result<()> {
         let mut writer = crate::io::Writer::new(Vec::new());
-        writer.write_record(&Header::default(), record)?;
+        writer.write_variant_record(&Header::default(), record)?;
         self.inner.write_all(writer.get_ref()).await?;
         Ok(())
     }
