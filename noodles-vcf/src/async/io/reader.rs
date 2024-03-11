@@ -234,6 +234,46 @@ where
         read_record(&mut self.inner, &mut self.buf, record).await
     }
 
+    /// Returns a stream over records.
+    ///
+    /// The (input) stream is expected to be directly after the header or at the start of another
+    /// record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[tokio::main]
+    /// # async fn main() -> std::io::Result<()> {
+    /// use futures::TryStreamExt;
+    /// use noodles_vcf as vcf;
+    ///
+    /// const DATA: &[u8] = b"##fileformat=VCFv4.3
+    /// #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
+    /// sq0\t1\t.\tA\t.\t.\tPASS\t.
+    /// ";
+    ///
+    /// let mut reader = vcf::r#async::io::Reader::new(DATA);
+    /// let header = reader.read_header().await?;
+    ///
+    /// let mut records = reader.records();
+    ///
+    /// while let Some(record) = records.try_next().await? {
+    ///     // ...
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn records(&mut self) -> impl Stream<Item = io::Result<Record>> + '_ {
+        Box::pin(stream::try_unfold(self, move |reader| async move {
+            let mut record = Record::default();
+
+            reader.read_record(&mut record).await.map(|n| match n {
+                0 => None,
+                _ => Some((record, reader)),
+            })
+        }))
+    }
+
     /// Returns an (async) stream over records starting from the current (input) stream position.
     ///
     /// The (input) stream is expected to be directly after the header or at the start of another
