@@ -8,10 +8,7 @@ use std::io::{self, Write};
 
 pub use self::builder::Builder;
 use self::{header::write_header, record::write_record};
-use crate::{
-    variant::{Record, RecordBuf},
-    Header,
-};
+use crate::{Header, Record};
 
 /// A VCF writer.
 ///
@@ -23,6 +20,7 @@ use crate::{
 /// use noodles_vcf::{
 ///     self as vcf,
 ///     header::record::value::{map::Contig, Map},
+///     variant::io::Write,
 /// };
 ///
 /// let mut writer = vcf::io::Writer::new(Vec::new());
@@ -39,7 +37,7 @@ use crate::{
 ///     .set_reference_bases("A")
 ///     .build();
 ///
-/// writer.write_record(&header, &record);
+/// writer.write_variant_record(&header, &record);
 ///
 /// let expected = b"##fileformat=VCFv4.4
 /// ###contig=<ID=sq0>
@@ -136,19 +134,16 @@ where
     /// use noodles_core::Position;
     /// use noodles_vcf as vcf;
     ///
-    /// let header = vcf::Header::default();
-    ///
-    /// let record = vcf::variant::RecordBuf::builder()
-    ///     .set_reference_sequence_name("sq0")
-    ///     .set_position(Position::MIN)
-    ///     .set_reference_bases("A")
-    ///     .build();
-    ///
     /// let mut writer = vcf::io::Writer::new(Vec::new());
+    ///
+    /// let header = vcf::Header::default();
+    /// let record = vcf::Record::default();
     /// writer.write_record(&header, &record)?;
+    ///
+    /// assert_eq!(writer.get_ref(), b"sq0\t1\t.\tA\t.\t.\t.\t.\n");
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn write_record(&mut self, header: &Header, record: &RecordBuf) -> io::Result<()> {
+    pub fn write_record(&mut self, header: &Header, record: &Record) -> io::Result<()> {
         write_record(&mut self.inner, header, record)
     }
 }
@@ -161,7 +156,11 @@ where
         self.write_header(header)
     }
 
-    fn write_variant_record(&mut self, header: &Header, record: &dyn Record) -> io::Result<()> {
+    fn write_variant_record(
+        &mut self,
+        header: &Header,
+        record: &dyn crate::variant::Record,
+    ) -> io::Result<()> {
         write_record(&mut self.inner, header, record)
     }
 }
@@ -171,9 +170,10 @@ mod tests {
     use noodles_core::Position;
 
     use super::*;
+    use crate::variant::{io::Write, RecordBuf};
 
     #[test]
-    fn test_write_record() -> io::Result<()> {
+    fn test_write_variant_record() -> io::Result<()> {
         let header = Header::default();
 
         let record = RecordBuf::builder()
@@ -183,7 +183,7 @@ mod tests {
             .build();
 
         let mut writer = Writer::new(Vec::new());
-        writer.write_record(&header, &record)?;
+        writer.write_variant_record(&header, &record)?;
 
         let expected = b"sq0\t1\t.\tA\t.\t.\t.\t.\n";
         assert_eq!(writer.get_ref(), expected);
@@ -219,7 +219,7 @@ mod tests {
             .build();
 
         let mut writer = Writer::new(Vec::new());
-        writer.write_record(&header, &record)?;
+        writer.write_variant_record(&header, &record)?;
 
         let expected = b"sq0\t1\t.\tA\t.\t.\t.\t.\tGT:GQ\t0|0:13\n";
         assert_eq!(writer.get_ref(), expected);

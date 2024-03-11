@@ -8,7 +8,7 @@ use std::{
 };
 
 use noodles_bcf as bcf;
-use noodles_vcf as vcf;
+use noodles_vcf::{self as vcf, variant::io::Write};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");
@@ -23,7 +23,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for result in reader.record_bufs(&header) {
         let record = result?;
-        writer.write_record(&header, &record)?;
+        writer.write_variant_record(&header, &record)?;
     }
 
     Ok(())

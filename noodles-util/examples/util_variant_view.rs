@@ -8,7 +8,7 @@ use std::{
 };
 
 use noodles_util::variant;
-use noodles_vcf as vcf;
+use noodles_vcf::{self as vcf, variant::io::Write};
 
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
@@ -31,7 +31,7 @@ fn main() -> io::Result<()> {
 
     for result in reader.records(&header) {
         let record = result?;
-        writer.write_record(&header, &record)?;
+        writer.write_variant_record(&header, &record)?;
     }
 
     Ok(())
