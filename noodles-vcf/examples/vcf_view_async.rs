@@ -25,10 +25,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut writer = vcf::r#async::io::Writer::new(io::stdout());
     writer.write_header(&header).await?;
 
-    let mut records = reader.record_bufs(&header);
+    let mut records = reader.records();
 
     while let Some(record) = records.try_next().await? {
-        writer.write_variant_record(&header, &record).await?;
+        writer.write_record(&header, &record).await?;
     }
 
     Ok(())

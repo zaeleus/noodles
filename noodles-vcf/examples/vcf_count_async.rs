@@ -17,9 +17,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(BufReader::new)
         .map(vcf::r#async::io::Reader::new)?;
 
-    let header = reader.read_header().await?;
+    reader.read_header().await?;
 
-    let mut records = reader.record_bufs(&header);
+    let mut records = reader.records();
     let mut n = 0;
 
     while records.try_next().await?.is_some() {

@@ -9,7 +9,7 @@ use std::{
     io::{self, BufWriter},
 };
 
-use noodles_vcf::{self as vcf, variant::io::Write};
+use noodles_vcf as vcf;
 
 fn add_comment(header: &mut vcf::Header) -> Result<(), Box<dyn std::error::Error>> {
     use vcf::header::record::Value;
@@ -35,9 +35,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     writer.write_header(&header)?;
 
-    for result in reader.record_bufs(&header) {
+    for result in reader.records() {
         let record = result?;
-        writer.write_variant_record(&header, &record)?;
+        writer.write_record(&header, &record)?;
     }
 
     Ok(())
