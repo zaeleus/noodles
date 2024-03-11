@@ -123,14 +123,15 @@ where
     ///
     /// let mut writer = vcf::r#async::io::Writer::new(Vec::new());
     ///
+    /// let header = vcf::Header::default();
     /// let record = vcf::Record::default();
-    /// writer.write_record(&record).await?;
+    /// writer.write_record(&header, &record).await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn write_record(&mut self, record: &Record) -> io::Result<()> {
+    pub async fn write_record(&mut self, header: &Header, record: &Record) -> io::Result<()> {
         let mut writer = crate::io::Writer::new(Vec::new());
-        writer.write_record(&Header::default(), record)?;
+        writer.write_record(header, record)?;
         self.inner.write_all(writer.get_ref()).await?;
         Ok(())
     }
