@@ -11,7 +11,7 @@ repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-htsget"
 
 [dependencies]
-base64 = "0.21.0"
+base64 = "0.22.0"
 bytes.workspace = true
 futures = { workspace = true, features = ["std"] }
 noodles-core = { path = "../noodles-core", version = "0.14.0" }
