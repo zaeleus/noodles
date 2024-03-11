@@ -27,7 +27,7 @@ async fn main() -> io::Result<()> {
         .set_reference_bases("A")
         .build();
 
-    writer.write_record(&record).await?;
+    writer.write_variant_record(&header, &record).await?;
 
     writer.shutdown().await?;
 
