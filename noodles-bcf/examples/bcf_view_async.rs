@@ -23,7 +23,7 @@ async fn main() -> io::Result<()> {
 
     while let Some(record) = records.try_next().await? {
         let vcf_record = record.try_into_vcf_record(&header)?;
-        writer.write_record(&vcf_record).await?;
+        writer.write_variant_record(&header, &vcf_record).await?;
     }
 
     writer.shutdown().await?;

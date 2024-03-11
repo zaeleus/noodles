@@ -32,7 +32,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut writer = vcf::r#async::io::Writer::new(io::stdout());
 
     while let Some(record) = query.try_next().await? {
-        writer.write_record(&record).await?;
+        writer.write_variant_record(&header, &record).await?;
     }
 
     writer.shutdown().await?;

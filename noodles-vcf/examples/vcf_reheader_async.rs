@@ -42,7 +42,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut records = reader.record_bufs(&header);
 
     while let Some(record) = records.try_next().await? {
-        writer.write_record(&record).await?;
+        writer.write_variant_record(&header, &record).await?;
     }
 
     Ok(())
