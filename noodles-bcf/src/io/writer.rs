@@ -8,10 +8,11 @@ use std::io::{self, Write};
 
 use byteorder::WriteBytesExt;
 use noodles_bgzf as bgzf;
-use noodles_vcf::{self as vcf, header::StringMaps, variant::Record};
+use noodles_vcf::{self as vcf, header::StringMaps};
 
 pub use self::builder::Builder;
 use self::{header::write_header, record::write_record};
+use crate::Record;
 
 const MAJOR: u8 = 2;
 const MINOR: u8 = 2;
@@ -99,31 +100,26 @@ where
     /// use noodles_core::Position;
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::record::value::{map::Contig, Map},
+    ///     header::{
+    ///         record::value::{map::Contig, Map},
+    ///         StringMaps,
+    ///     },
     /// };
     ///
     /// let mut writer = bcf::io::Writer::new(io::sink());
     ///
-    /// let header = vcf::Header::builder()
+    /// let mut header = vcf::Header::builder()
     ///     .add_contig("sq0", Map::<Contig>::new())
     ///     .build();
+    /// *header.string_maps_mut() = StringMaps::try_from(&header)?;
     ///
     /// writer.write_header(&header)?;
     ///
-    /// let record = vcf::variant::RecordBuf::builder()
-    ///     .set_reference_sequence_name("sq0")
-    ///     .set_position(Position::MIN)
-    ///     .set_reference_bases("A")
-    ///     .build();
-    ///
+    /// let record = bcf::Record::default();
     /// writer.write_record(&header, &record)?;
-    /// # Ok::<_, io::Error>(())
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn write_record(
-        &mut self,
-        header: &vcf::Header,
-        record: &vcf::variant::RecordBuf,
-    ) -> io::Result<()> {
+    pub fn write_record(&mut self, header: &vcf::Header, record: &Record) -> io::Result<()> {
         write_record(&mut self.inner, header, &self.string_maps, record)
     }
 }
@@ -186,7 +182,7 @@ where
     fn write_variant_record(
         &mut self,
         header: &vcf::Header,
-        record: &dyn Record,
+        record: &dyn vcf::variant::Record,
     ) -> io::Result<()> {
         write_record(&mut self.inner, header, &self.string_maps, record)
     }
