@@ -106,8 +106,8 @@ impl crate::variant::Record for Record {
         Box::new(self.ids())
     }
 
-    fn reference_bases(&self) -> &str {
-        self.reference_bases()
+    fn reference_bases(&self) -> Box<dyn crate::variant::record::ReferenceBases + '_> {
+        Box::new(self.reference_bases())
     }
 
     fn alternate_bases(&self) -> Box<dyn crate::variant::record::AlternateBases + '_> {

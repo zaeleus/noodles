@@ -255,8 +255,8 @@ impl vcf::variant::Record for Record {
         Box::new(self.ids())
     }
 
-    fn reference_bases(&self) -> &str {
-        "TODO"
+    fn reference_bases(&self) -> Box<dyn vcf::variant::record::ReferenceBases + '_> {
+        Box::new(self.reference_bases())
     }
 
     fn alternate_bases(&self) -> Box<dyn vcf::variant::record::AlternateBases + '_> {
