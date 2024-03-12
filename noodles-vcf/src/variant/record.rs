@@ -29,7 +29,7 @@ pub trait Record {
     fn ids(&self) -> Box<dyn Ids + '_>;
 
     /// Returns the reference bases.
-    fn reference_bases(&self) -> &str;
+    fn reference_bases(&self) -> Box<dyn ReferenceBases + '_>;
 
     /// Returns the alternate bases.
     fn alternate_bases(&self) -> Box<dyn AlternateBases + '_>;

@@ -1,19 +1,25 @@
-use std::io::{self, Write};
+use std::{
+    io::{self, Write},
+    str,
+};
 
-use noodles_vcf::variant::record::AlternateBases;
+use noodles_vcf::variant::record::{AlternateBases, ReferenceBases};
 
 use crate::record::codec::{encoder::value::write_value, Value};
 
-pub(super) fn write_bases<W, B>(
+pub(super) fn write_bases<W, R, A>(
     writer: &mut W,
-    reference_bases: &str,
-    alternate_bases: B,
+    reference_bases: R,
+    alternate_bases: A,
 ) -> io::Result<()>
 where
     W: Write,
-    B: AlternateBases,
+    R: ReferenceBases,
+    A: AlternateBases,
 {
-    let r#ref = reference_bases;
+    let raw_bases: Vec<_> = reference_bases.iter().collect::<io::Result<_>>()?;
+    let r#ref =
+        str::from_utf8(&raw_bases).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     let ref_value = Some(Value::String(Some(r#ref)));
     write_value(writer, ref_value)?;
 

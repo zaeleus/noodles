@@ -629,8 +629,8 @@ impl super::Record for RecordBuf {
         Box::new(self.ids())
     }
 
-    fn reference_bases(&self) -> &str {
-        self.reference_bases()
+    fn reference_bases(&self) -> Box<dyn super::record::ReferenceBases + '_> {
+        Box::new(self.reference_bases())
     }
 
     fn alternate_bases(&self) -> Box<dyn super::record::AlternateBases + '_> {

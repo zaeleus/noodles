@@ -36,7 +36,11 @@ where
     write_ids(writer, record.ids())?;
 
     writer.write_all(DELIMITER)?;
-    write!(writer, "{}", record.reference_bases())?;
+
+    for result in record.reference_bases().iter() {
+        let base = result?;
+        writer.write_all(&[base])?;
+    }
 
     writer.write_all(DELIMITER)?;
     write_alternate_bases(writer, record.alternate_bases())?;
