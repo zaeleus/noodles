@@ -4,6 +4,7 @@ mod alternate_bases;
 mod filters;
 mod ids;
 pub mod info;
+mod reference_bases;
 pub mod samples;
 
 use std::io;
@@ -11,7 +12,8 @@ use std::io;
 use noodles_core::Position;
 
 pub use self::{
-    alternate_bases::AlternateBases, filters::Filters, ids::Ids, info::Info, samples::Samples,
+    alternate_bases::AlternateBases, filters::Filters, ids::Ids, info::Info,
+    reference_bases::ReferenceBases, samples::Samples,
 };
 use crate::Header;
 
