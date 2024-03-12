@@ -66,7 +66,7 @@ impl<'a> Values<'a, i16> {
 
 impl<'a> sam::alignment::record::data::field::value::array::Values<'a, i16> for Values<'a, i16> {
     fn len(&self) -> usize {
-        self.src.len() * mem::size_of::<i16>()
+        self.src.len() / mem::size_of::<i16>()
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<i16>> + '_> {
@@ -88,7 +88,7 @@ impl<'a> Values<'a, u16> {
 
 impl<'a> sam::alignment::record::data::field::value::array::Values<'a, u16> for Values<'a, u16> {
     fn len(&self) -> usize {
-        self.src.len() * mem::size_of::<u16>()
+        self.src.len() / mem::size_of::<u16>()
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<u16>> + '_> {
@@ -110,7 +110,7 @@ impl<'a> Values<'a, i32> {
 
 impl<'a> sam::alignment::record::data::field::value::array::Values<'a, i32> for Values<'a, i32> {
     fn len(&self) -> usize {
-        self.src.len() * mem::size_of::<i32>()
+        self.src.len() / mem::size_of::<i32>()
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<i32>> + '_> {
@@ -132,7 +132,7 @@ impl<'a> Values<'a, u32> {
 
 impl<'a> sam::alignment::record::data::field::value::array::Values<'a, u32> for Values<'a, u32> {
     fn len(&self) -> usize {
-        self.src.len() * mem::size_of::<u32>()
+        self.src.len() / mem::size_of::<u32>()
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<u32>> + '_> {
@@ -154,10 +154,57 @@ impl<'a> Values<'a, f32> {
 
 impl<'a> sam::alignment::record::data::field::value::array::Values<'a, f32> for Values<'a, f32> {
     fn len(&self) -> usize {
-        self.src.len() * mem::size_of::<f32>()
+        self.src.len() / mem::size_of::<f32>()
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<f32>> + '_> {
         Box::new(self.iter())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use noodles_sam::alignment::record::data::field::value::array::Values as _;
+
+    use super::*;
+
+    #[test]
+    fn test_len() {
+        assert_eq!(Values::<'_, i8>::new(&[]).len(), 0);
+        assert_eq!(Values::<'_, i8>::new(&[0x00]).len(), 1);
+        assert_eq!(Values::<'_, i8>::new(&[0x00, 0x00]).len(), 2);
+
+        assert_eq!(Values::<'_, u8>::new(&[]).len(), 0);
+        assert_eq!(Values::<'_, u8>::new(&[0x00]).len(), 1);
+        assert_eq!(Values::<'_, u8>::new(&[0x00, 0x00]).len(), 2);
+
+        assert_eq!(Values::<'_, i16>::new(&[]).len(), 0);
+        assert_eq!(Values::<'_, i16>::new(&[0x00, 0x00]).len(), 1);
+        assert_eq!(Values::<'_, i16>::new(&[0x00, 0x00, 0x00, 0x00]).len(), 2);
+
+        assert_eq!(Values::<'_, u16>::new(&[]).len(), 0);
+        assert_eq!(Values::<'_, u16>::new(&[0x00, 0x00]).len(), 1);
+        assert_eq!(Values::<'_, u16>::new(&[0x00, 0x00, 0x00, 0x00]).len(), 2);
+
+        assert_eq!(Values::<'_, i32>::new(&[]).len(), 0);
+        assert_eq!(Values::<'_, i32>::new(&[0x00, 0x00, 0x00, 0x00]).len(), 1);
+        assert_eq!(
+            Values::<'_, i32>::new(&[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]).len(),
+            2
+        );
+
+        assert_eq!(Values::<'_, u32>::new(&[]).len(), 0);
+        assert_eq!(Values::<'_, u32>::new(&[0x00, 0x00, 0x00, 0x00]).len(), 1);
+        assert_eq!(
+            Values::<'_, u32>::new(&[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]).len(),
+            2
+        );
+
+        assert_eq!(Values::<'_, f32>::new(&[]).len(), 0);
+        assert_eq!(Values::<'_, f32>::new(&[0x00, 0x00, 0x00, 0x00]).len(), 1);
+        assert_eq!(
+            Values::<'_, f32>::new(&[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]).len(),
+            2
+        );
     }
 }

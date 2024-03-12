@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * bam/record/data/field/value/array/values: Fix value count calculation
+    ([#244]).
+
+[#244]: https://github.com/zaeleus/noodles/issues/244
+
 ## 0.56.0 - 2024-02-15
 
 ### Changed
