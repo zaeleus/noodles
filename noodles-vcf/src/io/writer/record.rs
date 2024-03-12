@@ -4,6 +4,7 @@ mod ids;
 mod info;
 mod position;
 mod quality_score;
+mod reference_bases;
 mod reference_sequence_name;
 mod samples;
 
@@ -12,7 +13,8 @@ use std::io::{self, Write};
 use self::{
     alternate_bases::write_alternate_bases, filters::write_filters, ids::write_ids,
     info::write_info, position::write_position, quality_score::write_quality_score,
-    reference_sequence_name::write_reference_sequence_name, samples::write_samples,
+    reference_bases::write_reference_bases, reference_sequence_name::write_reference_sequence_name,
+    samples::write_samples,
 };
 use crate::{variant::Record, Header};
 
@@ -36,11 +38,7 @@ where
     write_ids(writer, record.ids())?;
 
     writer.write_all(DELIMITER)?;
-
-    for result in record.reference_bases().iter() {
-        let base = result?;
-        writer.write_all(&[base])?;
-    }
+    write_reference_bases(writer, record.reference_bases())?;
 
     writer.write_all(DELIMITER)?;
     write_alternate_bases(writer, record.alternate_bases())?;
