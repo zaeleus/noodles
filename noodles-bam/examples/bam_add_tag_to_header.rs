@@ -13,10 +13,10 @@ use noodles_sam::header::record::value::{
 };
 use noodles_sam::Header;
 
-const NAME: &str = "bam_add_tag";
-const VERSION: &str = env!("CARGO_PKG_VERSION");
-
 fn add_pg(mut header: Header) -> Header {
+    const NAME: &str = "bam_add_tag";
+    const VERSION: &str = env!("CARGO_PKG_VERSION");
+
     // standard PG tags PN, VN, PP, CL
     let pn = match Tag::try_from([b'P', b'N']) {
         Ok(Tag::Other(tag)) => tag,
@@ -39,8 +39,8 @@ fn add_pg(mut header: Header) -> Header {
 
     let program = Map::<Program>::builder().insert(pn, NAME);
 
-    let program = if let Some(last_pg) = header.programs().iter().last() {
-        program.insert(pp, last_pg.0.clone())
+    let program = if let Some(last_pg) = header.programs().keys().last() {
+        program.insert(pp, last_pg.clone())
     } else {
         program
     };
