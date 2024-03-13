@@ -17,6 +17,25 @@ impl<'r> Sample<'r> {
 }
 
 impl<'r> vcf::variant::record::samples::Sample for Sample<'r> {
+    fn get<'a, 'h: 'a>(
+        &'a self,
+        header: &'h vcf::Header,
+        key: &str,
+    ) -> Option<io::Result<Option<Value<'a>>>> {
+        for result in self.iter(header) {
+            match result {
+                Ok((k, v)) => {
+                    if k == key {
+                        return Some(Ok(v));
+                    }
+                }
+                Err(e) => return Some(Err(e)),
+            }
+        }
+
+        None
+    }
+
     fn get_index<'a, 'h: 'a>(
         &'a self,
         header: &'h vcf::Header,
