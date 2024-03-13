@@ -10,8 +10,11 @@ use std::{
 use noodles_vcf::{
     self as vcf,
     variant::{
-        record::AlternateBases,
-        record_buf::samples::{keys::key, sample::Value},
+        record::{
+            samples::{series::Value, Sample},
+            AlternateBases,
+        },
+        record_buf::samples::keys::key,
     },
 };
 
@@ -26,14 +29,16 @@ fn main() -> io::Result<()> {
     let stdout = io::stdout().lock();
     let mut writer = BufWriter::new(stdout);
 
-    for result in reader.record_bufs(&header) {
+    for result in reader.records() {
         let record = result?;
+
+        let position = record.position().transpose()?;
 
         write!(
             writer,
             "{chrom}\t{pos}\t{ref}",
             chrom = record.reference_sequence_name(),
-            pos = record.position().map(usize::from).unwrap_or_default(),
+            pos = position.map(usize::from).unwrap_or_default(),
             ref = record.reference_bases(),
         )?;
 
@@ -42,18 +47,20 @@ fn main() -> io::Result<()> {
         if record.alternate_bases().is_empty() {
             write!(writer, "{MISSING}")?;
         } else {
-            for (i, allele) in record.alternate_bases().as_ref().iter().enumerate() {
+            for (i, result) in record.alternate_bases().iter().enumerate() {
                 if i > 0 {
                     write!(writer, ",")?;
                 }
 
+                let allele = result?;
                 write!(writer, "{allele}")?;
             }
         }
 
-        for (sample_name, sample) in header.sample_names().iter().zip(record.samples().values()) {
+        for (sample_name, sample) in header.sample_names().iter().zip(record.samples().iter()) {
             let value = sample
-                .get(key::GENOTYPE)
+                .get(&header, key::GENOTYPE)
+                .transpose()?
                 .expect("missing GT field")
                 .expect("missing GT value");
 
