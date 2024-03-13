@@ -18,6 +18,15 @@ pub struct Builder {
 
 impl Builder {
     /// Sets an index.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf::io::indexed_reader::Builder;
+    /// use noodles_csi as csi;
+    /// let index = csi::Index::default();
+    /// let builder = Builder::default().set_index(index);
+    /// ```
     pub fn set_index<I>(mut self, index: I) -> Self
     where
         I: BinningIndex + 'static,
@@ -27,6 +36,14 @@ impl Builder {
     }
 
     /// Builds an indexed BCF reader from a path.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use noodles_bcf::io::indexed_reader::Builder;
+    /// let reader = Builder::default().build_from_path("sample.bcf")?;
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
     pub fn build_from_path<P>(self, src: P) -> io::Result<IndexedReader<bgzf::Reader<File>>>
     where
         P: AsRef<Path>,
@@ -44,6 +61,17 @@ impl Builder {
     }
 
     /// Builds an indexed BCF reader from a reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bcf::io::indexed_reader::Builder;
+    /// use noodles_csi as csi;
+    /// let index = csi::Index::default();
+    /// let reader = Builder::default().set_index(index).build_from_reader(io::empty());
+    /// # Ok::<_, io::Error>(())
+    /// ```
     pub fn build_from_reader<R>(self, reader: R) -> io::Result<IndexedReader<bgzf::Reader<R>>>
     where
         R: Read,
