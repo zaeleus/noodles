@@ -190,7 +190,7 @@ fn try_insert(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::variant::record_buf::info::field::key;
+    use crate::variant::record::info::field::key;
 
     #[test]
     fn test_parse_info() {

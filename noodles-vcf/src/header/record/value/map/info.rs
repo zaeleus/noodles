@@ -71,7 +71,7 @@ impl Map<Info> {
     /// ```
     /// use noodles_vcf::{
     ///     header::{record::value::{map::{info::Type, Info}, Map}, Number},
-    ///     variant::record_buf::info::field::key,
+    ///     variant::record::info::field::key,
     /// };
     ///
     /// let id = key::SAMPLES_WITH_DATA_COUNT;

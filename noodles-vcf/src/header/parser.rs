@@ -419,7 +419,8 @@ mod tests {
     fn test_from_str() -> Result<(), Box<dyn std::error::Error>> {
         use crate::{
             header::record::{value::map::Other, Value},
-            variant::record_buf::{info, samples},
+            variant::record::info,
+            variant::record_buf::samples,
         };
 
         let s = r#"##fileformat=VCFv4.3

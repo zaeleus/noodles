@@ -163,9 +163,9 @@ impl Builder {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     variant::record_buf::{
-    ///         info::field::{key, Value},
-    ///         Info,
+    ///     variant::{
+    ///         record::info::field::key,
+    ///         record_buf::{info::field::Value, Info},
     ///     },
     /// };
     ///

@@ -116,7 +116,7 @@ impl Header {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::record::value::{map::Info, Map},
-    ///     variant::record_buf::info::field::key,
+    ///     variant::record::info::field::key,
     /// };
     ///
     /// let id = key::SAMPLES_WITH_DATA_COUNT;
@@ -142,7 +142,7 @@ impl Header {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::record::value::{map::Info, Map},
-    ///     variant::record_buf::info::field::key,
+    ///     variant::record::info::field::key,
     /// };
     ///
     /// let mut header = vcf::Header::default();

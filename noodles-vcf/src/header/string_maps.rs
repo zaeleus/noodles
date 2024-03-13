@@ -42,7 +42,7 @@ impl StringMaps {
     ///         record::value::{map::{Contig, Filter, Format, Info}, Map},
     ///         StringMaps,
     ///     },
-    ///     variant::record_buf::{info, samples},
+    ///     variant::{record::info, record_buf::samples},
     /// };
     ///
     /// let header = vcf::Header::builder()
@@ -80,7 +80,7 @@ impl StringMaps {
     ///         record::value::{map::{Contig, Filter, Format, Info}, Map},
     ///         StringMaps,
     ///     },
-    ///     variant::record_buf::{info, samples},
+    ///     variant::{record::info, record_buf::samples},
     /// };
     ///
     /// let header = vcf::Header::builder()
@@ -412,7 +412,8 @@ mod tests {
                 map::{AlternativeAllele, Contig, Filter, Format, Info},
                 Map,
             },
-            variant::record_buf::{info, samples},
+            variant::record::info,
+            variant::record_buf::samples,
         };
 
         let header = Header::builder()
@@ -494,7 +495,7 @@ mod tests {
                 map::{Filter, Info},
                 Map,
             },
-            variant::record_buf::info,
+            variant::record::info,
         };
 
         let ns = {

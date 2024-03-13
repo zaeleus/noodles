@@ -317,9 +317,9 @@ impl RecordBuf {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     variant::record_buf::{
-    ///         info::field::{key, Value},
-    ///         Info,
+    ///     variant::{
+    ///         record::info::field::key,
+    ///         record_buf::{info::field::Value, Info},
     ///     },
     /// };
     ///
@@ -347,10 +347,10 @@ impl RecordBuf {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     variant::record_buf::{
-    ///         info::field::{key, Value},
-    ///         Info,
-    ///     },
+    ///     variant::{
+    ///         record::info::field::key,
+    ///         record_buf::{info::field::Value, Info},
+    ///     }
     /// };
     ///
     /// let info: Info = [
@@ -556,7 +556,7 @@ impl RecordBuf {
     /// use noodles_core::Position;
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     variant::record_buf::info::field::{key, Value},
+    ///     variant::{record::info::field::key, record_buf::info::field::Value},
     /// };
     ///
     /// let record = vcf::variant::RecordBuf::builder()
@@ -590,7 +590,8 @@ impl RecordBuf {
     /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
     pub fn end(&self) -> Result<Position, EndError> {
-        use self::info::field::{key, Value};
+        use self::info::field::Value;
+        use super::record::info::field::key;
 
         if let Some(Some(value)) = self.info().get(key::END_POSITION) {
             match value {
@@ -675,7 +676,7 @@ mod tests {
 
     #[test]
     fn test_end() -> Result<(), Box<dyn std::error::Error>> {
-        use super::info::field::key;
+        use crate::variant::record::info::field::key;
 
         let record = RecordBuf::builder()
             .set_reference_sequence_name("sq0")

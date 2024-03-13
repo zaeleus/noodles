@@ -22,8 +22,8 @@ impl Info {
     ///
     /// ```
     /// use noodles_vcf::variant::{
-    ///     record::Info as _,
-    ///     record_buf::{info::field::{key, Value}, Info },
+    ///     record::{info::field::key, Info as _},
+    ///     record_buf::{info::field::Value, Info},
     /// };
     ///
     /// let ns = (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(2)));
@@ -43,9 +43,9 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::variant::record_buf::{
-    ///     info::field::{key, Value},
-    ///     Info,
+    /// use noodles_vcf::variant::{
+    ///     record::info::field::key,
+    ///     record_buf::{info::field::Value, Info},
     /// };
     ///
     /// let ns = (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(2)));
@@ -67,9 +67,9 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::variant::record_buf::{
-    ///     info::field::{key, Value},
-    ///     Info,
+    /// use noodles_vcf::variant::{
+    ///     record::info::field::key,
+    ///     record_buf::{info::field::Value, Info},
     /// };
     ///
     /// let ns = (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(2)));
@@ -94,9 +94,9 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::variant::record_buf::{
-    ///     info::field::{key, Value},
-    ///     Info,
+    /// use noodles_vcf::variant::{
+    ///     record::info::field::key,
+    ///     record_buf::{info::field::Value, Info},
     /// };
     ///
     /// let ns = (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(2)));
@@ -121,9 +121,9 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::variant::record_buf::{
-    ///     info::field::{key, Value},
-    ///     Info,
+    /// use noodles_vcf::variant::{
+    ///     record::info::field::key,
+    ///     record_buf::{info::field::Value, Info},
     /// };
     ///
     /// let ns = (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(2)));
@@ -152,8 +152,8 @@ impl Info {
     ///
     /// ```
     /// use noodles_vcf::variant::{
-    ///     record::Info as _,
-    ///     record_buf::{info::field::{key, Value}, Info},
+    ///     record::{info::field::key, Info as _},
+    ///     record_buf::{info::field::Value, Info},
     /// };
     ///
     /// let ns = (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(2)));
@@ -174,9 +174,9 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::variant::record_buf::{
-    ///     info::field::{key, Value},
-    ///     Info,
+    /// use noodles_vcf::variant::{
+    ///     record::info::field::key,
+    ///     record_buf::{info::field::Value, Info},
     /// };
     ///
     /// let ns = (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(2)));
@@ -198,9 +198,9 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::variant::record_buf::{
-    ///     info::field::{key, Value},
-    ///     Info,
+    /// use noodles_vcf::variant::{
+    ///     record::info::field::key,
+    ///     record_buf::{info::field::Value, Info},
     /// };
     ///
     /// let ns = (String::from(key::SAMPLES_WITH_DATA_COUNT), Some(Value::Integer(2)));
@@ -329,7 +329,8 @@ impl crate::variant::record::Info for &Info {
 
 #[cfg(test)]
 mod tests {
-    use super::{field::key, *};
+    use super::*;
+    use crate::variant::record::info::field::key;
 
     #[test]
     fn test_extend() {

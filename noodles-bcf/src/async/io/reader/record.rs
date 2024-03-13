@@ -34,9 +34,11 @@ mod tests {
     use noodles_vcf::{
         self as vcf,
         variant::{
-            record::{info::field::Value as InfoFieldValue, AlternateBases, Filters, Info},
+            record::{
+                info::{self, field::Value as InfoFieldValue},
+                AlternateBases, Filters, Info,
+            },
             record_buf::{
-                info,
                 samples::{self, sample::Value as GenotypeFieldValue, Keys},
                 Samples as VcfGenotypes,
             },
