@@ -14,7 +14,7 @@ use noodles_sam::header::record::value::{
 use noodles_sam::Header;
 
 fn add_pg(mut header: Header) -> Header {
-    const NAME: &str = "bam_add_tag";
+    const NAME: &str = "bam_add_tag_to_header";
     const VERSION: &str = env!("CARGO_PKG_VERSION");
 
     // standard PG tags PN, VN, PP, CL
