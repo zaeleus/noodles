@@ -75,7 +75,7 @@ mod tests {
 
     #[test]
     fn test_parse_info() -> Result<(), ParseError> {
-        use crate::variant::record_buf::info::field::{key, Value};
+        use crate::variant::{record::info::field::key, record_buf::info::field::Value};
 
         let header = Header::default();
         let mut info = Info::default();

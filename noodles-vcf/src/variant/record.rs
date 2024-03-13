@@ -48,8 +48,7 @@ pub trait Record {
 
     /// Returns or calculates the end.
     fn end(&self, header: &Header) -> io::Result<Position> {
-        use self::info::field::Value;
-        use super::record_buf::info::field::key;
+        use self::info::field::{key, Value};
 
         if let Some(Some(value)) = self.info().get(header, key::END_POSITION).transpose()? {
             match value {
@@ -90,10 +89,7 @@ mod tests {
 
     #[test]
     fn test_end() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::variant::{
-            record_buf::info::field::{key, Value},
-            RecordBuf,
-        };
+        use crate::variant::{record::info::field::key, record_buf::info::field::Value, RecordBuf};
 
         let header = Header::default();
 

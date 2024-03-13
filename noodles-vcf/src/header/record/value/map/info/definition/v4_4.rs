@@ -1,6 +1,6 @@
 use crate::{
     header::{record::value::map::info::Type, Number},
-    variant::record_buf::info::field::key,
+    variant::record::info::field::key,
 };
 
 pub(super) fn definition(key: &str) -> Option<(Number, Type, &'static str)> {

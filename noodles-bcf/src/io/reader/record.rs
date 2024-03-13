@@ -108,9 +108,9 @@ pub(crate) mod tests {
         use noodles_vcf::{
             self as vcf,
             variant::{
-                record::{AlternateBases, Filters, Info},
+                record::{info, AlternateBases, Filters, Info},
                 record_buf::{
-                    info::{self, field::Value as InfoFieldValue},
+                    info::field::Value as InfoFieldValue,
                     samples::{
                         self,
                         sample::{value::Array, Value as GenotypeFieldValue},

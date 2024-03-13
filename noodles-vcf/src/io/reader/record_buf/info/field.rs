@@ -99,7 +99,7 @@ pub(super) fn parse_field(header: &Header, s: &str) -> Result<(String, Option<Va
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::variant::record_buf::info::field::key;
+    use crate::variant::record::info::field::key;
 
     #[test]
     fn test_parse_field() {

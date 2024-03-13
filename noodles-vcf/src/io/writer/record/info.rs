@@ -127,9 +127,9 @@ mod tests {
 
     #[test]
     fn test_write_info() -> io::Result<()> {
-        use crate::variant::record_buf::{
-            info::field::{key, Value as ValueBuf},
-            Info as InfoBuf,
+        use crate::variant::{
+            record::info::field::key,
+            record_buf::{info::field::Value as ValueBuf, Info as InfoBuf},
         };
 
         fn t(
