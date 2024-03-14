@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bam/io/reader/record: Disallow partial block sizes.
+
+    A partial block size previously would return EOF. This is now more strict,
+    requiring a complete block size or EOF.
+
 ## 0.57.0 - 2024-03-12
 
 ### Changed

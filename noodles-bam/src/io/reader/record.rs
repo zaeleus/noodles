@@ -1,6 +1,7 @@
-use std::io::{self, Read};
-
-use byteorder::{LittleEndian, ReadBytesExt};
+use std::{
+    io::{self, Read},
+    mem,
+};
 
 pub(super) fn read_record<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
 where
@@ -21,10 +22,37 @@ fn read_block_size<R>(reader: &mut R) -> io::Result<usize>
 where
     R: Read,
 {
-    match reader.read_u32::<LittleEndian>() {
-        Ok(n) => usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-        Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => Ok(0),
-        Err(e) => Err(e),
+    let mut buf = [0; mem::size_of::<u32>()];
+    read_exact_or_eof(reader, &mut buf)?;
+    let n = u32::from_le_bytes(buf);
+    usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+}
+
+fn read_exact_or_eof<R>(reader: &mut R, mut buf: &mut [u8]) -> io::Result<()>
+where
+    R: Read,
+{
+    let mut bytes_read = 0;
+
+    while !buf.is_empty() {
+        match reader.read(buf) {
+            Ok(0) => break,
+            Ok(n) => {
+                buf = &mut buf[n..];
+                bytes_read += n;
+            }
+            Err(ref e) if e.kind() == io::ErrorKind::Interrupted => {}
+            Err(e) => return Err(e),
+        }
+    }
+
+    if bytes_read > 0 && !buf.is_empty() {
+        Err(io::Error::new(
+            io::ErrorKind::UnexpectedEof,
+            "failed to fill whole buffer",
+        ))
+    } else {
+        Ok(())
     }
 }
 
@@ -41,6 +69,13 @@ mod tests {
         let data = [];
         let mut reader = &data[..];
         assert_eq!(read_block_size(&mut reader)?, 0);
+
+        let data = [0x08];
+        let mut reader = &data[..];
+        assert!(matches!(
+            read_block_size(&mut reader),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
 
         Ok(())
     }
