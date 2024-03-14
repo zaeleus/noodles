@@ -8,6 +8,8 @@ use flate2::Crc;
 
 use crate::{gz, Block, BGZF_HEADER_SIZE};
 
+const MIN_FRAME_SIZE: usize = BGZF_HEADER_SIZE + gz::TRAILER_SIZE;
+
 pub enum Inner<R> {
     Single(single::Reader<R>),
     Multi(multi::Reader<R>),
@@ -63,7 +65,6 @@ pub(crate) fn read_frame_into<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Resul
 where
     R: Read,
 {
-    const MIN_FRAME_SIZE: usize = BGZF_HEADER_SIZE + gz::TRAILER_SIZE;
     const BSIZE_POSITION: usize = 16;
 
     buf.resize(BGZF_HEADER_SIZE, 0);
@@ -90,7 +91,14 @@ where
     Ok(Some(()))
 }
 
-fn split_frame(buf: &[u8]) -> (&[u8], &[u8], &[u8]) {
+fn split_frame(buf: &[u8]) -> io::Result<(&[u8], &[u8], &[u8])> {
+    if buf.len() < MIN_FRAME_SIZE {
+        return Err(io::Error::new(
+            io::ErrorKind::UnexpectedEof,
+            "invalid frame size",
+        ));
+    }
+
     let header = &buf[..BGZF_HEADER_SIZE];
 
     let n = buf.len() - gz::TRAILER_SIZE;
@@ -98,7 +106,7 @@ fn split_frame(buf: &[u8]) -> (&[u8], &[u8], &[u8]) {
 
     let trailer = &buf[n..];
 
-    (header, cdata, trailer)
+    Ok((header, cdata, trailer))
 }
 
 fn parse_header(src: &[u8]) -> io::Result<()> {
@@ -167,7 +175,7 @@ pub fn parse_frame(src: &[u8]) -> io::Result<Block> {
 }
 
 pub(crate) fn parse_frame_into(src: &[u8], block: &mut Block) -> io::Result<()> {
-    let (header, cdata, trailer) = split_frame(src);
+    let (header, cdata, trailer) = split_frame(src)?;
 
     parse_header(header)?;
     let (crc32, r#isize) = parse_trailer(trailer)?;

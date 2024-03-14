@@ -32,6 +32,19 @@ impl Decoder for BlockCodec {
 
         Ok(Some(src.split_to(block_size).freeze()))
     }
+
+    fn decode_eof(&mut self, buf: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
+        match self.decode(buf)? {
+            Some(frame) => Ok(Some(frame)),
+            None => {
+                if buf.is_empty() {
+                    Ok(None)
+                } else {
+                    Ok(Some(buf.split().freeze()))
+                }
+            }
+        }
+    }
 }
 
 impl Encoder<GzData> for BlockCodec {

@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bgzf/async/block_codec: Allow final frame to be incomplete ([#243]).
+
+    The final frame of an input stream is now allowed to be incomplete,
+    allowing for decoding up to a known end position in the stream. Frame size
+    validation now occurs from the inflater.
+
+[#243]: https://github.com/zaeleus/noodles/issues/243
+
 ## 0.27.0 - 2024-03-12
 
 ### Added
