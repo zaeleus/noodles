@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/io/writer/header/record/value/map: Add value validation.
+
 ## 0.54.0 - 2024-03-12
 
 ### Deprecated

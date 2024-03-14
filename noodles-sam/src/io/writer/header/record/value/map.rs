@@ -25,7 +25,7 @@ where
     write_delimiter(writer)?;
     write_tag(writer, *tag.as_ref())?;
     write_separator(writer)?;
-    writer.write_all(value)?;
+    write_value(writer, value)?;
 
     Ok(())
 }
@@ -46,4 +46,32 @@ where
     W: Write,
 {
     writer.write_all(&[SEPARATOR])
+}
+
+fn write_value<W>(writer: &mut W, value: &[u8]) -> io::Result<()>
+where
+    W: Write,
+{
+    if is_valid_value(value) {
+        writer.write_all(value)
+    } else {
+        Err(io::Error::new(io::ErrorKind::InvalidInput, "invalid value"))
+    }
+}
+
+fn is_valid_value(buf: &[u8]) -> bool {
+    // § 1.3 "The header section" (2023-05-24): `[ -~]+`.
+    !buf.is_empty() && buf.iter().all(|&b| matches!(b, b' '..=b'~'))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_is_valid_value() {
+        assert!(is_valid_value(b"sq0"));
+        assert!(!is_valid_value(&[0x00]));
+        assert!(!is_valid_value(b"sq\t0"));
+    }
 }
