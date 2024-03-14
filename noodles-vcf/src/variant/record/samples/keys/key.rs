@@ -1,4 +1,4 @@
-//! VCF record genotypes key.
+//! Variant record samples key.
 
 /// Read depth for each allele (`AD`).
 pub const READ_DEPTHS: &str = "AD";

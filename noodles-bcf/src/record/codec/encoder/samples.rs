@@ -20,7 +20,7 @@ where
     W: Write,
     S: Samples,
 {
-    use noodles_vcf::variant::record_buf::samples::keys::key;
+    use noodles_vcf::variant::record::samples::keys::key;
 
     for (i, result) in samples.column_names(header).enumerate() {
         let key = result?;
@@ -61,7 +61,7 @@ mod tests {
     fn test_write_samples() -> Result<(), Box<dyn std::error::Error>> {
         use vcf::{
             header::record::value::Map,
-            variant::record_buf::samples::{keys::key, sample::Value},
+            variant::{record::samples::keys::key, record_buf::samples::sample::Value},
         };
 
         let header = vcf::Header::builder()

@@ -36,10 +36,10 @@ mod tests {
         variant::{
             record::{
                 info::{self, field::Value as InfoFieldValue},
-                AlternateBases, Filters, Info,
+                samples, AlternateBases, Filters, Info,
             },
             record_buf::{
-                samples::{self, sample::Value as GenotypeFieldValue, Keys},
+                samples::{sample::Value as GenotypeFieldValue, Keys},
                 Samples as VcfGenotypes,
             },
         },

@@ -9,12 +9,9 @@ use std::{
 
 use noodles_vcf::{
     self as vcf,
-    variant::{
-        record::{
-            samples::{series::Value, Sample},
-            AlternateBases,
-        },
-        record_buf::samples::keys::key,
+    variant::record::{
+        samples::{keys::key, series::Value, Sample},
+        AlternateBases,
     },
 };
 

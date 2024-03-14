@@ -51,7 +51,7 @@ mod tests {
     fn test_read_key() -> Result<(), vcf::header::ParseError> {
         use vcf::{
             header::{record::value::Map, StringMaps},
-            variant::record_buf::samples::keys::key,
+            variant::record::samples::keys::key,
         };
 
         // Some(Type::Int8(Some(Int8::Value(1))))
