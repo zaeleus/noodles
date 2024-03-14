@@ -387,9 +387,9 @@ impl RecordBuf {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     variant::record_buf::{
-    ///         samples::{keys::key, sample::Value, Keys},
-    ///         Samples,
+    ///     variant::{
+    ///         record::samples::keys::key,
+    ///         record_buf::{samples::{sample::Value, Keys}, Samples},
     ///     },
     /// };
     ///
@@ -420,9 +420,9 @@ impl RecordBuf {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     variant::record_buf::{
-    ///         samples::{keys::key, sample::Value, Keys},
-    ///         Samples,
+    ///     variant::{
+    ///         record::samples::keys::key,
+    ///         record_buf::{samples::{sample::Value, Keys}, Samples},
     ///     },
     /// };
     ///
@@ -453,9 +453,9 @@ impl RecordBuf {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     variant::record_buf::{
-    ///         samples::{keys::key, sample::Value, Keys},
-    ///         Samples
+    ///     variant::{
+    ///         record::samples::keys::key,
+    ///         record_buf::{samples::{sample::Value, Keys}, Samples},
     ///     },
     /// };
     ///

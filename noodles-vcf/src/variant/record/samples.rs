@@ -1,5 +1,6 @@
 //! Variant record samples.
 
+pub mod keys;
 mod sample;
 pub mod series;
 

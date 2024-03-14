@@ -208,7 +208,7 @@ impl Header {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::record::value::{map::Format, Map},
-    ///     variant::record_buf::samples::keys::key,
+    ///     variant::record::samples::keys::key,
     /// };
     ///
     /// let id = key::GENOTYPE;
@@ -234,7 +234,7 @@ impl Header {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     header::record::value::{map::Format, Map},
-    ///     variant::record_buf::samples::keys::key,
+    ///     variant::record::samples::keys::key,
     /// };
     ///
     /// let mut header = vcf::Header::default();

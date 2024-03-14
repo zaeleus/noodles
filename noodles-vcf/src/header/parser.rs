@@ -419,8 +419,7 @@ mod tests {
     fn test_from_str() -> Result<(), Box<dyn std::error::Error>> {
         use crate::{
             header::record::{value::map::Other, Value},
-            variant::record::info,
-            variant::record_buf::samples,
+            variant::record::{info, samples},
         };
 
         let s = r#"##fileformat=VCFv4.3
@@ -612,7 +611,7 @@ mod tests {
         assert_eq!(
             Parser::default().parse(s),
             Err(ParseError::DuplicateFormatId(String::from(
-                crate::variant::record_buf::samples::keys::key::GENOTYPE
+                crate::variant::record::samples::keys::key::GENOTYPE
             )))
         );
 

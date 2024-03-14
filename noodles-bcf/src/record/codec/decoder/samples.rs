@@ -19,7 +19,7 @@ pub fn read_samples(
     sample_count: usize,
     format_count: usize,
 ) -> Result<Samples, DecodeError> {
-    use vcf::variant::record_buf::samples::keys::key;
+    use vcf::variant::record::samples::keys::key;
 
     let mut keys = Vec::with_capacity(format_count);
     let mut samples = vec![Vec::new(); sample_count];

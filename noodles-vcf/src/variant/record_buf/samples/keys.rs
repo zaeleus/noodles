@@ -1,13 +1,13 @@
 //! VCF record genotypes keys.
 
-pub mod key;
-
 use std::{
     error, fmt,
     ops::{Deref, DerefMut},
 };
 
 use indexmap::IndexSet;
+
+use crate::variant::record::samples::keys::key;
 
 /// A VCF record genotypes keys, i.e., `FORMAT`.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]

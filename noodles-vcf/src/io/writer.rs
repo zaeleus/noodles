@@ -193,9 +193,12 @@ mod tests {
 
     #[test]
     fn test_write_record_with_format() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::variant::record_buf::{
-            samples::{keys::key, sample::Value, Keys},
-            Samples,
+        use crate::variant::{
+            record::samples::keys::key,
+            record_buf::{
+                samples::{sample::Value, Keys},
+                Samples,
+            },
         };
 
         let header = Header::default();

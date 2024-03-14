@@ -47,7 +47,7 @@ impl<'r> crate::variant::record::samples::Series for Series<'r> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::variant::{record::samples::Series as _, record_buf::samples::keys::key};
+    use crate::variant::record::{samples::keys::key, samples::Series as _};
 
     #[test]
     fn test_name() {

@@ -48,9 +48,9 @@ impl Samples {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::variant::record_buf::{
-    ///     samples::{keys::key, Keys},
-    ///     Samples,
+    /// use noodles_vcf::variant::{
+    ///     record::samples::keys::key,
+    ///     record_buf::{samples::Keys, Samples},
     /// };
     ///
     /// let samples = Samples::default();
@@ -70,9 +70,9 @@ impl Samples {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::variant::record_buf::{
-    ///     samples::{keys::key, Keys},
-    ///     Samples,
+    /// use noodles_vcf::variant::{
+    ///     record::samples::keys::key,
+    ///     record_buf::{samples::Keys, Samples},
     /// };
     ///
     /// let keys = Keys::try_from(vec![String::from(key::GENOTYPE)])?;
@@ -106,9 +106,9 @@ impl Samples {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::variant::record_buf::{
-    ///     samples::{keys::key, sample::Value, Keys},
-    ///     Samples,
+    /// use noodles_vcf::variant::{
+    ///     record::samples::keys::key,
+    ///     record_buf::{samples::{sample::Value, Keys}, Samples},
     /// };
     ///
     /// let keys = Keys::try_from(vec![String::from(key::GENOTYPE)])?;

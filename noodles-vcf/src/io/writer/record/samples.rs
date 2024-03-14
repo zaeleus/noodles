@@ -30,7 +30,10 @@ mod tests {
 
     #[test]
     fn test_write_samples() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::variant::record_buf::samples::{keys::key, sample::Value, Keys};
+        use crate::variant::{
+            record::samples::keys::key,
+            record_buf::samples::{sample::Value, Keys},
+        };
 
         fn t(
             buf: &mut Vec<u8>,
