@@ -8,7 +8,7 @@ use std::{env, io};
 
 use noodles_bam as bam;
 use noodles_sam::header::record::value::{
-    map::{Program, Tag},
+    map::{program::tag, Program},
     Map,
 };
 use noodles_sam::Header;
@@ -17,37 +17,20 @@ fn add_pg(mut header: Header) -> Header {
     const NAME: &str = "bam_add_tag_to_header";
     const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-    // standard PG tags PN, VN, PP, CL
-    let pn = match Tag::try_from([b'P', b'N']) {
-        Ok(Tag::Other(tag)) => tag,
-        _ => unreachable!(),
-    };
-    let vn = match Tag::try_from([b'V', b'N']) {
-        Ok(Tag::Other(tag)) => tag,
-        _ => unreachable!(),
-    };
-    let pp = match Tag::try_from([b'P', b'P']) {
-        Ok(Tag::Other(tag)) => tag,
-        _ => unreachable!(),
-    };
-    let cl = match Tag::try_from([b'C', b'L']) {
-        Ok(Tag::Other(tag)) => tag,
-        _ => unreachable!(),
-    };
     // the command-line to insert into the CL tag
     let cmd_str = env::args().collect::<Vec<_>>().join(" ");
 
-    let program = Map::<Program>::builder().insert(pn, NAME);
+    let program = Map::<Program>::builder().insert(tag::NAME, NAME);
 
     let program = if let Some(last_pg) = header.programs().keys().last() {
-        program.insert(pp, last_pg.clone())
+        program.insert(tag::PREVIOUS_PROGRAM_ID, last_pg.clone())
     } else {
         program
     };
 
     let program = program
-        .insert(vn, VERSION)
-        .insert(cl, cmd_str)
+        .insert(tag::VERSION, VERSION)
+        .insert(tag::COMMAND_LINE, cmd_str)
         .build()
         .unwrap();
     header.programs_mut().insert(NAME.into(), program);
