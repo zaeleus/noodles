@@ -1,7 +1,7 @@
 //! BCF writer.
 
 mod builder;
-mod header;
+pub(crate) mod header;
 mod record;
 
 use std::io::{self, Write};
@@ -11,11 +11,12 @@ use noodles_bgzf as bgzf;
 use noodles_vcf::{self as vcf, header::StringMaps};
 
 pub use self::builder::Builder;
-use self::{header::write_header, record::write_record};
+use self::header::write_header;
+pub(crate) use self::record::write_record;
 use crate::Record;
 
-const MAJOR: u8 = 2;
-const MINOR: u8 = 2;
+pub(crate) const MAJOR: u8 = 2;
+pub(crate) const MINOR: u8 = 2;
 
 /// A BCF writer.
 pub struct Writer<W> {
