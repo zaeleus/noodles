@@ -2,6 +2,7 @@
 
 pub mod alternate_bases;
 pub mod builder;
+mod convert;
 pub mod filters;
 pub mod ids;
 pub mod info;
