@@ -2,7 +2,7 @@
 
 mod values;
 
-use std::fmt;
+use std::{fmt, io};
 
 pub use self::values::Values;
 
@@ -25,6 +25,26 @@ impl<'a> fmt::Debug for Array<'a> {
             Self::Float(values) => f.debug_list().entries(values.iter()).finish(),
             Self::Character(values) => f.debug_list().entries(values.iter()).finish(),
             Self::String(values) => f.debug_list().entries(values.iter()).finish(),
+        }
+    }
+}
+
+impl<'a> TryFrom<Array<'a>> for crate::variant::record_buf::samples::sample::value::Array {
+    type Error = io::Error;
+
+    fn try_from(array: Array<'a>) -> Result<Self, Self::Error> {
+        match array {
+            Array::Integer(values) => values.iter().collect::<io::Result<_>>().map(Self::Integer),
+            Array::Float(values) => values.iter().collect::<io::Result<_>>().map(Self::Float),
+            Array::Character(values) => values
+                .iter()
+                .collect::<io::Result<_>>()
+                .map(Self::Character),
+            Array::String(values) => values
+                .iter()
+                .map(|result| result.map(|value| value.map(String::from)))
+                .collect::<io::Result<_>>()
+                .map(Self::String),
         }
     }
 }
