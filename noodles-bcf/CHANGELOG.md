@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * bcf/async/io: Add async writer (`r#async::io::Writer`).
+
 ### Changed
 
   * bcf: Move readers (`Reader` and `IndexedReader`) to writer (`Writer`) to
