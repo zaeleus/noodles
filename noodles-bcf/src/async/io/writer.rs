@@ -19,6 +19,24 @@ where
     W: AsyncWrite + Unpin,
 {
     /// Writes a VCF header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use tokio::io;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> io::Result<()> {
+    /// use noodles_bcf as bcf;
+    /// use noodles_vcf as vcf;
+    ///
+    /// let mut writer = bcf::r#async::io::Writer::new(io::sink());
+    ///
+    /// let header = vcf::Header::default();
+    /// writer.write_header(&header).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn write_header(&mut self, header: &vcf::Header) -> io::Result<()> {
         write_file_format(&mut self.inner).await?;
 
@@ -29,11 +47,66 @@ where
     }
 
     /// Writes a record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use tokio::io;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use noodles_bcf as bcf;
+    /// use noodles_vcf::{self as vcf, header::StringMaps};
+    ///
+    /// let mut writer = bcf::r#async::io::Writer::new(io::sink());
+    ///
+    /// let mut header = vcf::Header::builder()
+    ///     .add_contig("sq0", Default::default())
+    ///     .build();
+    /// *header.string_maps_mut() = StringMaps::try_from(&header)?;
+    ///
+    /// writer.write_header(&header).await?;
+    ///
+    /// let record = bcf::Record::default();
+    /// writer.write_record(&header, &record).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn write_record(&mut self, header: &vcf::Header, record: &Record) -> io::Result<()> {
         self.write_variant_record(header, record).await
     }
 
     /// Writes a variant record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use tokio::io;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> io::Result<()> {
+    /// use noodles_bcf as bcf;
+    /// use noodles_core::Position;
+    /// use noodles_vcf as vcf;
+    ///
+    /// let mut writer = bcf::r#async::io::Writer::new(io::sink());
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_contig("sq0", Default::default())
+    ///     .build();
+    ///
+    /// writer.write_header(&header).await?;
+    ///
+    /// let record = vcf::variant::RecordBuf::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_position(Position::MIN)
+    ///     .set_reference_bases("A")
+    ///     .build();
+    ///
+    /// writer.write_variant_record(&header, &record).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn write_variant_record(
         &mut self,
         header: &vcf::Header,
