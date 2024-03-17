@@ -18,6 +18,48 @@ impl<W> Writer<W>
 where
     W: AsyncWrite + Unpin,
 {
+    /// Returns a reference to the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use tokio::io;
+    /// use noodles_bcf as bcf;
+    /// let writer = bcf::r#async::io::Writer::from(io::sink());
+    /// let _inner = writer.get_ref();
+    /// ```
+    pub fn get_ref(&self) -> &W {
+        &self.inner
+    }
+
+    /// Returns a mutable reference to the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use tokio::io;
+    /// use noodles_bcf as bcf;
+    /// let mut writer = bcf::r#async::io::Writer::from(io::sink());
+    /// let _inner = writer.get_mut();
+    /// ```
+    pub fn get_mut(&mut self) -> &mut W {
+        &mut self.inner
+    }
+
+    /// Returns the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use tokio::io;
+    /// use noodles_bcf as bcf;
+    /// let writer = bcf::r#async::io::Writer::from(io::sink());
+    /// let _inner = writer.into_inner();
+    /// ```
+    pub fn into_inner(self) -> W {
+        self.inner
+    }
+
     /// Writes a VCF header.
     ///
     /// # Examples
