@@ -396,9 +396,13 @@ where
 
     fn variant_records<'r, 'h: 'r>(
         &'r mut self,
-        header: &'h Header,
-    ) -> Box<dyn Iterator<Item = io::Result<RecordBuf>> + 'r> {
-        Box::new(self.record_bufs(header))
+        _: &'h Header,
+    ) -> Box<dyn Iterator<Item = io::Result<Box<dyn crate::variant::Record>>> + 'r> {
+        Box::new(
+            self.records().map(|result| {
+                result.map(|record| Box::new(record) as Box<dyn crate::variant::Record>)
+            }),
+        )
     }
 }
 
