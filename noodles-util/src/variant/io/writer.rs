@@ -60,7 +60,7 @@ impl Writer {
     pub fn write_record(
         &mut self,
         header: &vcf::Header,
-        record: &vcf::variant::RecordBuf,
+        record: &dyn vcf::variant::Record,
     ) -> io::Result<()> {
         self.inner.write_variant_record(header, record)
     }

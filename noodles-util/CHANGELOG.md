@@ -7,6 +7,9 @@
   * util/variant: Move readers (`Reader` and `IndexedReader`) and writer
     (`Writer`) to `io` module.
 
+  * util/variant/io/writer: Change `Writer::write_record` to accept `&dyn
+    vcf::variant::Record`.
+
 ## 0.38.0 - 2024-03-12
 
 ### Changed
