@@ -6,6 +6,14 @@
 
   * bcf/async/io: Add async writer (`r#async::io::Writer`).
 
+  * bcf/record: Add reference sequence name getter
+    (`Record::reference_sequence_name`).
+
+  * bcf/record: Add `Samples` wrapper.
+
+    This allows reading of the samples without converting to
+    `vcf::variant::record_buf::Samples`.
+
 ### Changed
 
   * bcf: Move readers (`Reader` and `IndexedReader`) to writer (`Writer`) to
@@ -18,9 +26,9 @@
   * bcf/async/io/reader: Change `Reader::read_header` to return a parsed header
     (`vcf::Header`).
 
-    This no longer returns a raw string. `StringMaps` are also parsed and
-    attached to the reader. Use `Reader::string_maps` to get a reference to the
-    string maps.
+    This no longer returns a raw string. String maps are also parsed and
+    attached to the reader. Use `Reader::string_maps` to get a reference to
+    the string maps.
 
   * bcf/io/reader: Rename record to record buf.
 
@@ -31,12 +39,22 @@
       * `Reader::read_lazy_record` => `Reader::read_record`, and
       * `Reader::lazy_records` => `Reader::records`.
 
+  * bcf/record: Rename chromosome to reference sequence name and genotypes to
+    samples.
+
+  * bcf/record :Increase the visibilities of the bases methods
+    (`Record::reference_bases` and `Record::alternate_bases`).
+
 ### Removed
 
   * bcf/async/io/reader: Remove `Reader::read_file_format`.
 
     `Reader::read_header` now includes checking the magic number and reading
     the file format version.
+
+  * bcf/header: Remove `StringMaps`.
+
+    This is moved to noodles-vcf.
 
 ## 0.48.0 - 2024-03-28
 
