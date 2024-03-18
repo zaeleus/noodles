@@ -2,10 +2,21 @@
 
 ## Unreleased
 
+### Added
+
+  * vcf/header: Add string maps (`StringMaps`).
+
+    This is moved from noodles-bcf.
+
+  * vcf/variant: Add `Record` trait to represent an opaque variant record.
+
+    The variant record buffer is renamed to `RecordBuf`. This also introduces
+    traits for field buffers.
+
 ### Changed
 
-  * vcf: Move `VariantReader` and `VariantWriter` to
-    `variant::io::Read` and `variant::io::Write`, respectively.
+  * vcf: Move `VariantReader` and `VariantWriter` to `variant::io::Read` and
+    `variant::io::Write`, respectively.
 
   * vcf: Move readers (`Reader` and `IndexedReader`) and writer (`Writer`) to
     `io` module.
@@ -14,7 +25,7 @@
 
   * vcf: Move `lazy::Record` to `Record`.
 
-  * vcf/io/reader: Rename record to record buf and  lazy record to record.
+  * vcf/io/reader: Rename record to record buf and lazy record to record.
 
     This changes the following:
 
@@ -23,6 +34,37 @@
       * `Records` => `RecordBufs`, and
       * `Reader::read_lazy_record` => `Reader::read_record`.
 
+  * vcf/variant/io/write: Change `Write::write_record` to accept `&dyn
+    crate::variant::Record`.
+
+  * vcf/variant/record/info/field/key: Replace `Key` with a string.
+
+  * vcf/variant/record/samples/keys/key: Replace `Key` with a string.
+
+  * vcf/variant/record_buf: Rename chromosome to reference sequence name and
+    genotypes to samples.
+
+  * vcf/variant/record_buf: Simplify fields.
+
+    This changes the following:
+
+      * IDs => set of strings,
+      * reference bases => string,
+      * alternate bases => list of strings, and
+      * filters => set of strings.
+
+  * vcf/variant/record_buf/builder: Remove validation on build
+    (`Builder::build`).
+
+    The record builder no longer checks whether a valid reference sequence
+    name, position, or references bases is set.
+
+  * vcf/variant/record_buf/samples: Samples can now be accessed by row or
+    column.
+
+    Samples are now represented like a data frame. They can be accessed per
+    sample or per series.
+
 ### Removed
 
   * vcf/variant/record_buf: Remove `Position`.
@@ -30,9 +72,13 @@
     Record positions are replaced with `Option<core::Position>`, where
     `None` represents telomere start.
 
+  * vcf/variant/record_buf: Remove `QualityScores`.
+
+    Quality scores are replaced with `f32`.
+
   * vcf/variant/record_buf/samples: Remove `Samples::genotypes`.
 
-    Use `Samples::select(key::GENOTYPE)` to get the raw value instead.
+    Use `Samples::select(key::GENOTYPE)` to get the raw values instead.
 
 ## 0.51.0 - 2024-03-28
 
