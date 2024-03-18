@@ -2,7 +2,6 @@
 
 mod alternate_bases;
 pub(crate) mod codec;
-mod convert;
 mod fields;
 mod filters;
 mod ids;

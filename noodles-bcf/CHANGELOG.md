@@ -56,6 +56,10 @@
 
     This is moved to noodles-vcf.
 
+  * bcf/record: Remove `Record::try_into_vcf_record`.
+
+    Use `vcf::variant::RecordBuf::try_from_variant_record` instead.
+
 ## 0.48.0 - 2024-03-28
 
 ### Changed
