@@ -10,7 +10,7 @@ mod reference_bases;
 mod samples;
 mod value;
 
-use std::{io, str};
+use std::{fmt, io, str};
 
 use noodles_core::Position;
 use noodles_vcf::{self as vcf, header::StringMaps};
@@ -23,7 +23,7 @@ pub use self::{
 };
 
 /// A BCF record.
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Default, PartialEq)]
 pub struct Record(Fields);
 
 impl Record {
@@ -235,6 +235,22 @@ impl Record {
     /// ```
     pub fn samples(&self) -> io::Result<Samples<'_>> {
         self.0.samples()
+    }
+}
+
+impl fmt::Debug for Record {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Record")
+            .field("reference_sequence_id", &self.reference_sequence_id())
+            .field("position", &self.position())
+            .field("ids", &self.ids())
+            .field("reference_bases", &self.reference_bases())
+            .field("alternate_bases", &self.alternate_bases())
+            .field("quality_score", &self.quality_score())
+            .field("filters", &self.filters())
+            .field("info", &self.info())
+            .field("samples", &self.samples())
+            .finish()
     }
 }
 
