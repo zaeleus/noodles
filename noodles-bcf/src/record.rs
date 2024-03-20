@@ -7,7 +7,7 @@ mod filters;
 mod ids;
 mod info;
 mod reference_bases;
-mod samples;
+pub mod samples;
 mod value;
 
 use std::{fmt, io, str};

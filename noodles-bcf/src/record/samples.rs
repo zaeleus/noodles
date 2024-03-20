@@ -1,5 +1,7 @@
+//! BCF record samples.
+
 mod sample;
-mod series;
+pub mod series;
 
 use std::{io, iter};
 
