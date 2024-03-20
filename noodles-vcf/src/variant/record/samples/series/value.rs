@@ -1,10 +1,11 @@
 //! Variant record samples value.
 
 pub mod array;
+mod genotype;
 
 use std::io;
 
-pub use self::array::Array;
+pub use self::{array::Array, genotype::Genotype};
 
 /// A variant record samples value.
 #[derive(Debug)]
