@@ -6,7 +6,7 @@ mod parser;
 pub use self::{allele::Allele, parser::ParseError};
 
 use std::{
-    error, fmt,
+    error, fmt, io,
     ops::{Deref, DerefMut},
     str::FromStr,
 };
@@ -68,6 +68,32 @@ impl fmt::Display for TryFromAllelesError {
             Self::Empty => f.write_str("empty input"),
             Self::InvalidFirstAllelePhasing => f.write_str("invalid first allele phasing"),
         }
+    }
+}
+
+impl TryFrom<&dyn crate::variant::record::samples::series::value::Genotype> for Genotype {
+    type Error = io::Error;
+
+    fn try_from(
+        genotype: &dyn crate::variant::record::samples::series::value::Genotype,
+    ) -> Result<Self, Self::Error> {
+        use self::allele::Phasing;
+
+        genotype
+            .iter()
+            .map(|result| {
+                result.map(|(position, raw_phasing)| {
+                    let phasing = match raw_phasing {
+                        b'/' => Phasing::Unphased,
+                        b'|' => Phasing::Phased,
+                        _ => unreachable!(),
+                    };
+
+                    Allele::new(position, phasing)
+                })
+            })
+            .collect::<io::Result<_>>()
+            .map(Self)
     }
 }
 
