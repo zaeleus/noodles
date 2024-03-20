@@ -3,6 +3,7 @@
 pub mod allele;
 mod parser;
 
+use self::allele::Phasing;
 pub use self::{allele::Allele, parser::ParseError};
 
 use std::{
@@ -77,8 +78,6 @@ impl TryFrom<&dyn crate::variant::record::samples::series::value::Genotype> for 
     fn try_from(
         genotype: &dyn crate::variant::record::samples::series::value::Genotype,
     ) -> Result<Self, Self::Error> {
-        use self::allele::Phasing;
-
         genotype
             .iter()
             .map(|result| {
@@ -97,14 +96,25 @@ impl TryFrom<&dyn crate::variant::record::samples::series::value::Genotype> for 
     }
 }
 
+impl crate::variant::record::samples::series::value::Genotype for &Genotype {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Option<usize>, u8)>> + '_> {
+        Box::new(self.0.iter().map(|allele| {
+            let raw_phasing = match allele.phasing() {
+                Phasing::Unphased => b'|',
+                Phasing::Phased => b'/',
+            };
+
+            Ok((allele.position(), raw_phasing))
+        }))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_from_str() {
-        use allele::Phasing;
-
         assert_eq!(
             "0/1".parse(),
             Ok(Genotype(vec![
