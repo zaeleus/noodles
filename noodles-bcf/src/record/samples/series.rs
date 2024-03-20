@@ -1,3 +1,7 @@
+//! BCF record samples series.
+
+pub mod value;
+
 use std::{io, mem, ops::Range, str};
 
 use noodles_vcf::{
@@ -7,6 +11,7 @@ use noodles_vcf::{
 
 use crate::record::value::{array::Values, read_type, read_value, Type};
 
+/// A BCF record samples series.
 pub struct Series<'r> {
     id: usize,
     ty: Type,
@@ -14,6 +19,7 @@ pub struct Series<'r> {
 }
 
 impl<'r> Series<'r> {
+    /// Returns the name.
     pub fn name<'h>(&self, header: &'h vcf::Header) -> io::Result<&'h str> {
         header
             .string_maps()
@@ -32,6 +38,7 @@ impl<'r> Series<'r> {
         }
     }
 
+    /// Returns the value at the given index.
     pub fn get(&self, i: usize) -> Option<Option<Value<'r>>> {
         match self.ty {
             Type::Int8(len) => get_int8_value(self.src, len, i),
