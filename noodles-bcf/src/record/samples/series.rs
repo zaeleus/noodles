@@ -155,7 +155,7 @@ fn read_string_map_index(src: &mut &[u8]) -> io::Result<usize> {
 
 fn range<N>(i: usize, len: usize) -> Range<usize> {
     let size = mem::size_of::<N>();
-    let start = size * i;
+    let start = size * i * len;
     let end = start + size * len;
     start..end
 }
@@ -259,6 +259,7 @@ fn get_string_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>
 fn get_genotype_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
     use self::value::Genotype;
 
-    let src = src.get(range::<i8>(i, len))?;
+    dbg!(src, i, len);
+    let src = src.get(dbg!(range::<i8>(i, len)))?;
     Some(Some(Value::Genotype(Box::new(Genotype::new(src)))))
 }
