@@ -13,6 +13,11 @@
     The variant record buffer is renamed to `RecordBuf`. This also introduces
     traits for field buffers.
 
+  * vcf/variant/record_buf/samples/series/value: Add `Genotype` value.
+
+    When decoding, samples genotype values (`GT`) can now be specialized as a
+    list of allele position-phasing pairs.
+
 ### Changed
 
   * vcf: Move `VariantReader` and `VariantWriter` to `variant::io::Read` and

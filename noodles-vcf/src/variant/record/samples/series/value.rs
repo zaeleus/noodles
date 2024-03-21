@@ -18,6 +18,8 @@ pub enum Value<'a> {
     Character(char),
     /// A string.
     String(&'a str),
+    /// A genotype.
+    Genotype(Box<dyn Genotype + 'a>),
     /// An array.
     Array(Array<'a>),
 }
@@ -31,6 +33,7 @@ impl<'a> TryFrom<Value<'a>> for crate::variant::record_buf::samples::sample::Val
             Value::Float(n) => Ok(Self::Float(n)),
             Value::Character(c) => Ok(Self::Character(c)),
             Value::String(s) => Ok(Self::String(s.into())),
+            Value::Genotype(genotype) => genotype.as_ref().try_into().map(Self::Genotype),
             Value::Array(array) => array.try_into().map(Self::Array),
         }
     }
