@@ -85,7 +85,7 @@ impl<'r> Samples<'r> {
     }
 
     /// Returns an iterator over series.
-    pub fn series(&self) -> impl Iterator<Item = io::Result<Series<'_>>> {
+    pub fn series(&'r self) -> impl Iterator<Item = io::Result<Series<'r>>> + 'r {
         let mut src = self.src;
 
         iter::from_fn(move || {
