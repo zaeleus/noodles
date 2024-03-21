@@ -39,13 +39,31 @@ impl<'r> Series<'r> {
     }
 
     /// Returns the value at the given index.
-    pub fn get(&self, i: usize) -> Option<Option<Value<'r>>> {
-        match self.ty {
-            Type::Int8(len) => get_int8_value(self.src, len, i),
+    pub fn get(&self, header: &vcf::Header, i: usize) -> Option<Option<io::Result<Value<'r>>>> {
+        use noodles_vcf::variant::record::samples::keys::key;
+
+        let value = match self.ty {
+            Type::Int8(len) => {
+                let mut v = get_int8_value(self.src, len, i)?;
+
+                match self.name(header) {
+                    Ok(key::GENOTYPE) => v = get_genotype_value(self.src, len, i)?,
+                    Ok(_) => {}
+                    Err(e) => return Some(Some(Err(e))),
+                }
+
+                Some(v)
+            }
             Type::Int16(len) => get_int16_value(self.src, len, i),
             Type::Int32(len) => get_int32_value(self.src, len, i),
             Type::Float(len) => get_float_value(self.src, len, i),
             Type::String(len) => get_string_value(self.src, len, i),
+        };
+
+        match value {
+            Some(Some(value)) => Some(Some(Ok(value))),
+            Some(None) => Some(None),
+            None => None,
         }
     }
 }
@@ -61,11 +79,23 @@ impl<'r> vcf::variant::record::samples::Series for Series<'r> {
 
     fn get<'a, 'h: 'a>(
         &'a self,
-        _: &'h vcf::Header,
+        header: &'h vcf::Header,
         i: usize,
     ) -> Option<Option<io::Result<Value<'a>>>> {
+        use noodles_vcf::variant::record::samples::keys::key;
+
         let value = match self.ty {
-            Type::Int8(len) => get_int8_value(self.src, len, i),
+            Type::Int8(len) => {
+                let mut v = get_int8_value(self.src, len, i)?;
+
+                match self.name(header) {
+                    Ok(key::GENOTYPE) => v = get_genotype_value(self.src, len, i)?,
+                    Ok(_) => {}
+                    Err(e) => return Some(Some(Err(e))),
+                }
+
+                Some(v)
+            }
             Type::Int16(len) => get_int16_value(self.src, len, i),
             Type::Int32(len) => get_int32_value(self.src, len, i),
             Type::Float(len) => get_float_value(self.src, len, i),
@@ -81,11 +111,12 @@ impl<'r> vcf::variant::record::samples::Series for Series<'r> {
 
     fn iter<'a, 'h: 'a>(
         &'a self,
-        _: &'h vcf::Header,
+        header: &'h vcf::Header,
     ) -> Box<dyn Iterator<Item = io::Result<Option<Value<'a>>>> + 'a> {
         Box::new((0..self.len()).map(|i| {
-            self.get(i)
-                .ok_or_else(|| io::Error::from(io::ErrorKind::InvalidData))
+            self.get(header, i)
+                .ok_or_else(|| io::Error::from(io::ErrorKind::InvalidData))?
+                .transpose()
         }))
     }
 }
@@ -223,4 +254,11 @@ fn get_string_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>
         .unwrap(); // TODO
 
     Some(Some(Value::String(s)))
+}
+
+fn get_genotype_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+    use self::value::Genotype;
+
+    let src = src.get(range::<i8>(i, len))?;
+    Some(Some(Value::Genotype(Box::new(Genotype::new(src)))))
 }

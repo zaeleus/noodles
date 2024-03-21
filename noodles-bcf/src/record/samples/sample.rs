@@ -50,13 +50,16 @@ impl<'r> vcf::variant::record::samples::Sample for Sample<'r> {
         &'a self,
         header: &'h vcf::Header,
     ) -> Box<dyn Iterator<Item = io::Result<(&'a str, Option<Value<'a>>)>> + 'a> {
-        Box::new(self.samples.series().map(|result| {
+        let series = self.samples.series();
+
+        Box::new(series.map(|result| {
             result.and_then(|series| {
                 let name = series.name(header)?;
 
                 let value = series
-                    .get(self.i)
-                    .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing value"))?;
+                    .get(header, self.i)
+                    .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing value"))?
+                    .transpose()?;
 
                 Ok((name, value))
             })

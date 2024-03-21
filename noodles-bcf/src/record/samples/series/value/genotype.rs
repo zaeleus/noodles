@@ -8,8 +8,7 @@ use crate::record::codec::value::Int8;
 pub struct Genotype<'a>(&'a [u8]);
 
 impl<'a> Genotype<'a> {
-    #[cfg(test)]
-    fn new(src: &'a [u8]) -> Self {
+    pub(crate) fn new(src: &'a [u8]) -> Self {
         Self(src)
     }
 
