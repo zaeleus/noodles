@@ -5,7 +5,7 @@ pub mod series;
 
 use std::{io, iter};
 
-use noodles_vcf::{self as vcf, variant::record::Samples as _};
+use noodles_vcf as vcf;
 
 use self::series::read_series;
 pub use self::{sample::Sample, series::Series};
@@ -25,41 +25,6 @@ impl<'r> Samples<'r> {
             sample_count,
             format_count,
         }
-    }
-
-    /// Converts BCF record samples to VCF record samples.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io;
-    /// use noodles_bcf::record::Samples;
-    /// use noodles_vcf as vcf;
-    ///
-    /// let bcf_samples = Samples::default();
-    ///
-    /// let header = vcf::Header::default();
-    /// let vcf_samples = bcf_samples.try_into_vcf_record_samples(&header)?;
-    ///
-    /// assert!(vcf_samples.is_empty());
-    /// # Ok::<_, io::Error>(())
-    /// ```
-    pub fn try_into_vcf_record_samples(
-        &self,
-        header: &vcf::Header,
-    ) -> io::Result<vcf::variant::record_buf::Samples> {
-        use crate::record::codec::decoder::read_samples;
-
-        if self.is_empty() {
-            return Ok(vcf::variant::record_buf::Samples::default());
-        }
-
-        let mut reader = self.src;
-
-        let genotypes = read_samples(&mut reader, header, self.len(), self.format_count())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-        Ok(genotypes)
     }
 
     /// Returns the number of fields per sample.

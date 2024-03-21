@@ -108,11 +108,21 @@ pub(crate) mod tests {
         use noodles_vcf::{
             self as vcf,
             variant::{
-                record::{info, samples, AlternateBases, Filters, Info},
+                record::{
+                    info,
+                    samples::{self, Sample},
+                    AlternateBases, Filters, Info, Samples,
+                },
                 record_buf::{
                     info::field::Value as InfoFieldValue,
                     samples::{
-                        sample::{value::Array, Value as GenotypeFieldValue},
+                        sample::{
+                            value::{
+                                genotype::{allele::Phasing, Allele},
+                                Array, Genotype,
+                            },
+                            Value as GenotypeFieldValue,
+                        },
                         Keys,
                     },
                     Samples as VcfGenotypes,
@@ -186,7 +196,28 @@ pub(crate) mod tests {
 
         // genotypes
 
-        let actual = record.samples()?.try_into_vcf_record_samples(&header)?;
+        let samples = record.samples()?;
+
+        let column_names: Vec<_> = samples
+            .column_names(&header)
+            .map(|result| result.map(String::from))
+            .collect::<io::Result<_>>()?;
+        let keys = Keys::try_from(column_names)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+        let values = samples
+            .iter()
+            .map(|sample| {
+                sample
+                    .iter(&header)
+                    .map(|result| {
+                        result.and_then(|(_, value)| value.map(|v| v.try_into()).transpose())
+                    })
+                    .collect()
+            })
+            .collect::<io::Result<_>>()?;
+
+        let actual = VcfGenotypes::new(keys, values);
 
         let expected = VcfGenotypes::new(
             Keys::try_from(vec![
@@ -198,7 +229,10 @@ pub(crate) mod tests {
             ])?,
             vec![
                 vec![
-                    Some(GenotypeFieldValue::String(String::from("0/0"))),
+                    Some(GenotypeFieldValue::Genotype(Genotype::try_from(vec![
+                        Allele::new(Some(0), Phasing::Unphased),
+                        Allele::new(Some(0), Phasing::Unphased),
+                    ])?)),
                     Some(GenotypeFieldValue::Integer(10)),
                     Some(GenotypeFieldValue::Integer(32)),
                     Some(GenotypeFieldValue::Array(Array::Integer(vec![
@@ -212,7 +246,10 @@ pub(crate) mod tests {
                     ]))),
                 ],
                 vec![
-                    Some(GenotypeFieldValue::String(String::from("0/1"))),
+                    Some(GenotypeFieldValue::Genotype(Genotype::try_from(vec![
+                        Allele::new(Some(0), Phasing::Unphased),
+                        Allele::new(Some(1), Phasing::Unphased),
+                    ])?)),
                     Some(GenotypeFieldValue::Integer(10)),
                     Some(GenotypeFieldValue::Integer(48)),
                     Some(GenotypeFieldValue::Array(Array::Integer(vec![
@@ -226,7 +263,10 @@ pub(crate) mod tests {
                     ]))),
                 ],
                 vec![
-                    Some(GenotypeFieldValue::String(String::from("1/1"))),
+                    Some(GenotypeFieldValue::Genotype(Genotype::try_from(vec![
+                        Allele::new(Some(1), Phasing::Unphased),
+                        Allele::new(Some(1), Phasing::Unphased),
+                    ])?)),
                     Some(GenotypeFieldValue::Integer(10)),
                     Some(GenotypeFieldValue::Integer(64)),
                     Some(GenotypeFieldValue::Array(Array::Integer(vec![
