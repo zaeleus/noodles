@@ -18,6 +18,8 @@ pub enum Value {
     Character(char),
     /// A string.
     String(String),
+    /// A genotype.
+    Genotype(Genotype),
     /// An array.
     Array(Array),
 }
@@ -83,6 +85,7 @@ impl<'a> From<&'a Value> for crate::variant::record::samples::series::Value<'a> 
             Value::Float(n) => Self::Float(*n),
             Value::Character(c) => Self::Character(*c),
             Value::String(s) => Self::String(s.as_ref()),
+            Value::Genotype(genotype) => Self::Genotype(Box::new(genotype)),
             Value::Array(array) => Self::Array(array.into()),
         }
     }

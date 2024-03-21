@@ -3,7 +3,10 @@ use std::io::{self, Write};
 use crate::{
     io::writer::record::MISSING,
     variant::record::samples::{
-        series::{value::Array, Value},
+        series::{
+            value::{Array, Genotype},
+            Value,
+        },
         Sample,
     },
     Header,
@@ -41,8 +44,32 @@ where
         Value::Float(n) => write!(writer, "{n}"),
         Value::Character(c) => write!(writer, "{c}"),
         Value::String(s) => writer.write_all(s.as_bytes()),
+        Value::Genotype(genotype) => write_genotype(writer, genotype.as_ref()),
         Value::Array(array) => write_array_value(writer, array),
     }
+}
+
+fn write_genotype<W>(writer: &mut W, genotype: &dyn Genotype) -> io::Result<()>
+where
+    W: Write,
+{
+    const MISSING: u8 = b'.';
+
+    for (i, result) in genotype.iter().enumerate() {
+        let (position, phasing) = result?;
+
+        if i > 0 {
+            writer.write_all(&[phasing])?;
+        }
+
+        if let Some(n) = position {
+            write!(writer, "{n}")?;
+        } else {
+            writer.write_all(&[MISSING])?;
+        }
+    }
+
+    Ok(())
 }
 
 fn write_array_value<W>(writer: &mut W, array: &Array) -> io::Result<()>
