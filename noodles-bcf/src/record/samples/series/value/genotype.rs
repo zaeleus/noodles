@@ -1,4 +1,6 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, io};
+
+use noodles_vcf as vcf;
 
 use crate::record::codec::value::Int8;
 
@@ -56,6 +58,12 @@ impl<'a> Genotype<'a> {
 impl Debug for Genotype<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_list().entries(self.iter()).finish()
+    }
+}
+
+impl vcf::variant::record::samples::series::value::Genotype for Genotype<'_> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Option<usize>, u8)>> + '_> {
+        Box::new(self.iter().map(Ok))
     }
 }
 
