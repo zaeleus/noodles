@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use crate::record::codec::value::Int8;
 
 /// A BCF record samples series genotype value.
@@ -48,6 +50,12 @@ impl<'a> Genotype<'a> {
 
                 (position, phasing)
             })
+    }
+}
+
+impl Debug for Genotype<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_list().entries(self.iter()).finish()
     }
 }
 
