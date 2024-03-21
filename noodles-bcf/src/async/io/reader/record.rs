@@ -36,10 +36,20 @@ mod tests {
         variant::{
             record::{
                 info::{self, field::Value as InfoFieldValue},
-                samples, AlternateBases, Filters, Info,
+                samples::{self, Sample},
+                AlternateBases, Filters, Info, Samples,
             },
             record_buf::{
-                samples::{sample::Value as GenotypeFieldValue, Keys},
+                samples::{
+                    sample::{
+                        value::{
+                            genotype::{allele::Phasing, Allele},
+                            Genotype,
+                        },
+                        Value as GenotypeFieldValue,
+                    },
+                    Keys,
+                },
                 Samples as VcfGenotypes,
             },
         },
@@ -116,7 +126,28 @@ mod tests {
 
         // genotypes
 
-        let actual = record.samples()?.try_into_vcf_record_samples(&header)?;
+        let samples = record.samples()?;
+
+        let column_names: Vec<_> = samples
+            .column_names(&header)
+            .map(|result| result.map(String::from))
+            .collect::<io::Result<_>>()?;
+        let keys = Keys::try_from(column_names)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+        let values = samples
+            .iter()
+            .map(|sample| {
+                sample
+                    .iter(&header)
+                    .map(|result| {
+                        result.and_then(|(_, value)| value.map(|v| v.try_into()).transpose())
+                    })
+                    .collect()
+            })
+            .collect::<io::Result<_>>()?;
+
+        let actual = VcfGenotypes::new(keys, values);
 
         let expected = VcfGenotypes::new(
             Keys::try_from(vec![
@@ -128,21 +159,30 @@ mod tests {
             ])?,
             vec![
                 vec![
-                    Some(GenotypeFieldValue::from("0/0")),
+                    Some(GenotypeFieldValue::Genotype(Genotype::try_from(vec![
+                        Allele::new(Some(0), Phasing::Unphased),
+                        Allele::new(Some(0), Phasing::Unphased),
+                    ])?)),
                     Some(GenotypeFieldValue::from(10)),
                     Some(GenotypeFieldValue::from(32)),
                     Some(GenotypeFieldValue::from(vec![Some(32), Some(0)])),
                     Some(GenotypeFieldValue::from(vec![Some(0), Some(10), Some(100)])),
                 ],
                 vec![
-                    Some(GenotypeFieldValue::from("0/1")),
+                    Some(GenotypeFieldValue::Genotype(Genotype::try_from(vec![
+                        Allele::new(Some(0), Phasing::Unphased),
+                        Allele::new(Some(1), Phasing::Unphased),
+                    ])?)),
                     Some(GenotypeFieldValue::from(10)),
                     Some(GenotypeFieldValue::from(48)),
                     Some(GenotypeFieldValue::from(vec![Some(32), Some(16)])),
                     Some(GenotypeFieldValue::from(vec![Some(10), Some(0), Some(100)])),
                 ],
                 vec![
-                    Some(GenotypeFieldValue::from("1/1")),
+                    Some(GenotypeFieldValue::Genotype(Genotype::try_from(vec![
+                        Allele::new(Some(1), Phasing::Unphased),
+                        Allele::new(Some(1), Phasing::Unphased),
+                    ])?)),
                     Some(GenotypeFieldValue::from(10)),
                     Some(GenotypeFieldValue::from(64)),
                     Some(GenotypeFieldValue::from(vec![Some(0), Some(64)])),
