@@ -174,15 +174,15 @@ fn parse_integer_array_value(src: &str) -> io::Result<Value<'_>> {
 }
 
 fn parse_float_array_value(src: &str) -> io::Result<Value<'_>> {
-    Ok(Value::Array(Array::Integer(Box::new(src))))
+    Ok(Value::Array(Array::Float(Box::new(src))))
 }
 
 fn parse_character_array_value(src: &str) -> io::Result<Value<'_>> {
-    Ok(Value::Array(Array::Integer(Box::new(src))))
+    Ok(Value::Array(Array::Character(Box::new(src))))
 }
 
 fn parse_string_array_value(src: &str) -> io::Result<Value<'_>> {
-    Ok(Value::Array(Array::Integer(Box::new(src))))
+    Ok(Value::Array(Array::String(Box::new(src))))
 }
 
 #[cfg(test)]
