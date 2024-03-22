@@ -5,7 +5,6 @@ use std::{io, iter};
 pub struct Genotype<'a>(&'a str);
 
 impl<'a> Genotype<'a> {
-    #[cfg(test)]
     pub(crate) fn new(src: &'a str) -> Self {
         Self(src)
     }

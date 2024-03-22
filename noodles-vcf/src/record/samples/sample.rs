@@ -101,15 +101,20 @@ impl<'r> crate::variant::record::samples::Sample for Sample<'r> {
 }
 
 fn parse_value<'a>(src: &'a str, header: &Header, key: &str) -> io::Result<Option<Value<'a>>> {
-    use crate::header::{
-        record::value::map::format::{definition::definition, Type},
-        Number,
+    use crate::{
+        header::{
+            record::value::map::format::{definition::definition, Type},
+            Number,
+        },
+        variant::record::samples::keys::key,
     };
 
     const MISSING: &str = ".";
 
     if src == MISSING {
         return Ok(None);
+    } else if key == key::GENOTYPE {
+        return parse_genotype_value(src).map(Some);
     }
 
     let (number, ty) = header
@@ -170,6 +175,12 @@ fn parse_string_value(src: &str) -> io::Result<Value<'_>> {
     Ok(Value::String(src))
 }
 
+fn parse_genotype_value(src: &str) -> io::Result<Value<'_>> {
+    use super::series::value::Genotype;
+
+    Ok(Value::Genotype(Box::new(Genotype::new(src))))
+}
+
 fn parse_integer_array_value(src: &str) -> io::Result<Value<'_>> {
     Ok(Value::Array(Array::Integer(Box::new(src))))
 }
@@ -193,30 +204,27 @@ mod tests {
     #[test]
     fn test_values() {
         let header = Header::default();
+
         let keys = Keys::new("GT:GQ");
         let sample = Sample::new("0|0:.", keys);
         let mut iter = sample.values(&header);
 
-        assert!(matches!(
-            iter.next(),
-            Some(Some(Ok(Value::String(s)))) if s == "0|0"
-        ));
-
+        assert!(matches!(iter.next(), Some(Some(Ok(Value::Genotype(_))))));
         assert!(matches!(iter.next(), Some(None)));
-
         assert!(iter.next().is_none());
     }
 
     #[test]
     fn test_iter() {
         let header = Header::default();
+
         let keys = Keys::new("GT:GQ");
         let sample = Sample::new("0|0:.", keys);
         let mut iter = sample.iter(&header);
 
         assert!(matches!(
             iter.next(),
-            Some(Ok(("GT", Some(Value::String(s))))) if s == "0|0"
+            Some(Ok(("GT", Some(Value::Genotype(_)))))
         ));
 
         assert!(matches!(iter.next(), Some(Ok(("GQ", None)))));
