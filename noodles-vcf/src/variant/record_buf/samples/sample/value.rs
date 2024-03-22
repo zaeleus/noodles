@@ -54,6 +54,12 @@ impl From<String> for Value {
     }
 }
 
+impl From<Genotype> for Value {
+    fn from(genotype: Genotype) -> Self {
+        Self::Genotype(genotype)
+    }
+}
+
 impl From<Vec<Option<i32>>> for Value {
     fn from(values: Vec<Option<i32>>) -> Self {
         Self::Array(Array::Integer(values))
