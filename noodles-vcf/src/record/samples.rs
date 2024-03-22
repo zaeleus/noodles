@@ -1,6 +1,8 @@
+//! VCF record samples.
+
 mod keys;
 mod sample;
-mod series;
+pub mod series;
 
 use std::{io, iter};
 
