@@ -1,8 +1,13 @@
+//! VCF record samples series.
+
+pub mod value;
+
 use std::io;
 
 use super::Samples;
 use crate::{variant::record::samples::series::Value, Header};
 
+/// VCF record samples series.
 pub struct Series<'r> {
     name: &'r str,
     samples: &'r Samples<'r>,

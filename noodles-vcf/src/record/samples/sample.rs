@@ -27,6 +27,7 @@ impl<'s> Sample<'s> {
         self.values(header).nth(i)
     }
 
+    /// Returns an iterator over values.
     pub fn values<'h: 's>(
         &self,
         header: &'h Header,

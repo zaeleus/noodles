@@ -5,7 +5,7 @@ pub(crate) mod fields;
 mod filters;
 mod ids;
 mod info;
-mod samples;
+pub mod samples;
 
 use std::{fmt, io};
 
