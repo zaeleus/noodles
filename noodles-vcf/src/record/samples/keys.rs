@@ -24,20 +24,15 @@ impl<'a> Keys<'a> {
 }
 
 fn parse_key<'a>(src: &mut &'a str) -> &'a str {
-    const DELIMITER: u8 = b':';
+    const DELIMITER: char = ':';
 
-    match src.as_bytes().iter().position(|&b| b == DELIMITER) {
-        Some(i) => {
-            let (buf, rest) = src.split_at(i);
-            *src = &rest[1..];
-            buf
-        }
-        None => {
-            let (buf, rest) = src.split_at(src.len());
-            *src = rest;
-            buf
-        }
-    }
+    let (buf, rest) = src
+        .split_once(DELIMITER)
+        .unwrap_or_else(|| src.split_at(src.len()));
+
+    *src = rest;
+
+    buf
 }
 
 #[cfg(test)]
