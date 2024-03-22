@@ -3,7 +3,10 @@ use std::{error, fmt, num, str};
 use crate::{
     header::{record::value::map::format::Type, Number},
     io::reader::record_buf::{value, MISSING},
-    variant::record_buf::samples::sample::{value::Array, Value},
+    variant::record_buf::samples::sample::{
+        value::{genotype, Array},
+        Value,
+    },
 };
 
 const DELIMITER: char = ',';
@@ -22,6 +25,8 @@ pub enum ParseError {
     InvalidCharacter,
     /// The string value is invalid.
     InvalidString(str::Utf8Error),
+    /// The genotype value is invalid.
+    InvalidGenotype(genotype::ParseError),
 }
 
 impl error::Error for ParseError {
@@ -30,6 +35,7 @@ impl error::Error for ParseError {
             Self::InvalidInteger(e) => Some(e),
             Self::InvalidFloat(e) => Some(e),
             Self::InvalidString(e) => Some(e),
+            Self::InvalidGenotype(e) => Some(e),
             _ => None,
         }
     }
@@ -45,6 +51,7 @@ impl fmt::Display for ParseError {
             ParseError::InvalidFloat(_) => write!(f, "invalid float"),
             ParseError::InvalidCharacter => write!(f, "invalid character"),
             ParseError::InvalidString(_) => write!(f, "invalid string"),
+            ParseError::InvalidGenotype(_) => write!(f, "invalid genotype"),
         }
     }
 }
@@ -61,6 +68,12 @@ pub(super) fn parse_value(number: Number, ty: Type, s: &str) -> Result<Value, Pa
         (_, Type::Character) => parse_char_array(s),
         (_, Type::String) => parse_string_array(s),
     }
+}
+
+pub(super) fn parse_genotype_value(s: &str) -> Result<Value, ParseError> {
+    s.parse()
+        .map(Value::Genotype)
+        .map_err(ParseError::InvalidGenotype)
 }
 
 fn parse_i32(s: &str) -> Result<Value, ParseError> {

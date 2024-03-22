@@ -84,7 +84,16 @@ mod tests {
     fn test_parse_samples() -> Result<(), Box<dyn std::error::Error>> {
         use crate::variant::{
             record::samples::keys::key,
-            record_buf::samples::{sample::Value, Keys},
+            record_buf::samples::{
+                sample::{
+                    value::{
+                        genotype::{allele::Phasing, Allele},
+                        Genotype,
+                    },
+                    Value,
+                },
+                Keys,
+            },
         };
 
         let mut genotypes = Samples::default();
@@ -97,7 +106,10 @@ mod tests {
         parse_samples(&header, "GT\t0|0", &mut genotypes)?;
         let expected = Samples::new(
             Keys::try_from(vec![String::from(key::GENOTYPE)])?,
-            vec![vec![Some(Value::from("0|0"))]],
+            vec![vec![Some(Value::Genotype(Genotype::try_from(vec![
+                Allele::new(Some(0), Phasing::Phased),
+                Allele::new(Some(0), Phasing::Phased),
+            ])?))]],
         );
         assert_eq!(genotypes, expected);
 
