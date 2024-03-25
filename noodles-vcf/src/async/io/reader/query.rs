@@ -72,7 +72,12 @@ where
                             ctx.state = State::Seek;
                         }
 
-                        if intersects(&record, &ctx.reference_sequence_name, ctx.interval)? {
+                        if intersects(
+                            ctx.header,
+                            &record,
+                            &ctx.reference_sequence_name,
+                            ctx.interval,
+                        )? {
                             return Ok(Some((record, ctx)));
                         }
                     }

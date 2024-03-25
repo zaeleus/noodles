@@ -81,6 +81,10 @@
 
     Quality scores are replaced with `f32`.
 
+  * vcf/variant/record_buf: Remove `RecordBuf::end`.
+
+    Use `Record::end` instead.
+
   * vcf/variant/record_buf/samples: Remove `Samples::genotypes`.
 
     Use `Samples::select(key::GENOTYPE)` to get the raw values instead.

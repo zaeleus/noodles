@@ -3,7 +3,10 @@ use std::io::{self, Read, Seek};
 use noodles_bgzf as bgzf;
 use noodles_core::region::Interval;
 use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
-use noodles_vcf::{self as vcf, variant::RecordBuf};
+use noodles_vcf::{
+    self as vcf,
+    variant::{Record, RecordBuf},
+};
 
 /// An iterator over records of a BCF reader that intersects a given region.
 ///
@@ -103,10 +106,7 @@ fn intersects(
         return Ok(false);
     };
 
-    let end = record
-        .end()
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
+    let end = record.end(header)?;
     let record_interval = Interval::from(start..=end);
 
     Ok(id == chromosome_id && record_interval.intersects(region_interval))
