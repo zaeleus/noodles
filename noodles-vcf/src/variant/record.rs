@@ -53,7 +53,7 @@ pub trait Record {
     ///
     /// [variant start position]: `Self::position`
     /// [reference bases length]: `ReferenceBases::len`
-    fn end(&self, header: &Header) -> io::Result<Position> {
+    fn variant_end(&self, header: &Header) -> io::Result<Position> {
         use self::info::field::{key, Value};
 
         if let Some(Some(value)) = self.info().get(header, key::END_POSITION).transpose()? {
@@ -94,7 +94,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_end() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_variant_end() -> Result<(), Box<dyn std::error::Error>> {
         use crate::variant::{record::info::field::key, record_buf::info::field::Value, RecordBuf};
 
         let header = Header::default();
@@ -107,10 +107,16 @@ mod tests {
             )
             .build();
 
-        assert_eq!(Record::end(&record, &header)?, Position::try_from(8)?);
+        assert_eq!(
+            Record::variant_end(&record, &header)?,
+            Position::try_from(8)?
+        );
 
         let record = RecordBuf::builder().set_reference_bases("ACGT").build();
-        assert_eq!(Record::end(&record, &header)?, Position::try_from(4)?);
+        assert_eq!(
+            Record::variant_end(&record, &header)?,
+            Position::try_from(4)?
+        );
 
         Ok(())
     }

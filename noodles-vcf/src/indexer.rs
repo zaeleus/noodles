@@ -37,7 +37,7 @@ where
         let start = record
             .variant_start()
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing position"))?;
-        let end = record.end(&header)?;
+        let end = record.variant_end(&header)?;
 
         indexer.add_record(&reference_sequence_name, start, end, chunk)?;
 

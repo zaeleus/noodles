@@ -39,7 +39,8 @@
       * `Records` => `RecordBufs`, and
       * `Reader::read_lazy_record` => `Reader::read_record`.
 
-  * vcf/record: Rename position to variant start.
+  * vcf/record: Rename position and end to variant start and variant end,
+    respectively.
 
   * vcf/variant/io/write: Change `Write::write_record` to accept `&dyn
     crate::variant::Record`.
