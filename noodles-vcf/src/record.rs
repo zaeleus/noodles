@@ -1,4 +1,4 @@
-//! Lazily-evaluated VCF record and fields.
+//! VCF record.
 
 mod alternate_bases;
 pub(crate) mod fields;
@@ -17,7 +17,7 @@ pub use self::{
 };
 use super::Header;
 
-/// An immutable, lazily-evaluated VCF record.
+/// A VCF record.
 #[derive(Clone, Default, Eq, PartialEq)]
 pub struct Record(Fields);
 
