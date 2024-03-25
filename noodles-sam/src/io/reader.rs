@@ -244,6 +244,25 @@ where
     ///
     /// The stream is expected to be directly after the reference sequences or at the start of
     /// another record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam as sam;
+    ///
+    /// let data = b"@HD\tVN:1.6
+    /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
+    /// ";
+    ///
+    /// let mut reader = sam::io::Reader::new(&data[..]);
+    /// reader.read_header()?;
+    ///
+    /// for result in reader.records() {
+    ///     let record = result?;
+    ///     // ...
+    /// }
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
     pub fn records(&mut self) -> impl Iterator<Item = io::Result<Record>> + '_ {
         let mut record = Record::default();
 
