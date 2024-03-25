@@ -4,7 +4,10 @@ use noodles_bgzf as bgzf;
 use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
 use noodles_tabix as tabix;
 
-use super::{io::Reader, variant::RecordBuf};
+use super::{
+    io::Reader,
+    variant::{Record, RecordBuf},
+};
 
 /// Indexes a bgzipped-compressed VCF file.
 ///
@@ -34,9 +37,7 @@ where
         let start = record
             .position()
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing position"))?;
-        let end = record
-            .end()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let end = record.end(&header)?;
 
         indexer.add_record(&reference_sequence_name, start, end, chunk)?;
 

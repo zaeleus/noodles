@@ -18,8 +18,6 @@ pub use self::{
 };
 use crate::Header;
 
-use std::{error, fmt, num};
-
 /// A VCF record.
 ///
 /// A VCF record has 8 required fields: chromosome (`CHROM`), position (`POS`), IDs (`ID`),
@@ -497,127 +495,6 @@ impl Default for RecordBuf {
     }
 }
 
-/// An error returned when the end position is invalid.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum EndError {
-    /// The position is invalid.
-    InvalidPosition(num::TryFromIntError),
-    /// The INFO end position (`END`) field value type is invalid.
-    InvalidInfoEndPositionFieldValue,
-    /// The reference bases length is invalid.
-    InvalidReferenceBasesLength {
-        /// The actual length.
-        actual: usize,
-    },
-    /// The calculation of the end position overflowed.
-    PositionOverflow(Position, usize),
-}
-
-impl error::Error for EndError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match self {
-            Self::InvalidPosition(e) => Some(e),
-            _ => None,
-        }
-    }
-}
-
-impl fmt::Display for EndError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::InvalidPosition(_) => f.write_str("invalid position"),
-            Self::InvalidInfoEndPositionFieldValue => {
-                write!(f, "invalid INFO end position (`END`) field value type")
-            }
-            Self::InvalidReferenceBasesLength { actual } => write!(
-                f,
-                "invalid reference base length: expected > 0, got {actual}"
-            ),
-            Self::PositionOverflow(start, len) => write!(
-                f,
-                "calculation of the end position overflowed: {start} + {len}",
-            ),
-        }
-    }
-}
-
-impl RecordBuf {
-    /// Returns or calculates the end position on the reference sequence.
-    ///
-    /// If available, this returns the value of the `END` INFO field. Otherwise, it is calculated
-    /// using the start position and reference bases length.
-    ///
-    /// The end position is 1-based, inclusive.
-    ///
-    /// # Examples
-    ///
-    /// ## From the `END` INFO field value
-    ///
-    /// ```
-    /// use noodles_core::Position;
-    /// use noodles_vcf::{
-    ///     self as vcf,
-    ///     variant::{record::info::field::key, record_buf::info::field::Value},
-    /// };
-    ///
-    /// let record = vcf::variant::RecordBuf::builder()
-    ///     .set_reference_sequence_name("sq0")
-    ///     .set_position(Position::MIN)
-    ///     .set_reference_bases("ACGT")
-    ///     .set_info(
-    ///         [(String::from(key::END_POSITION), Some(Value::from(8)))]
-    ///             .into_iter()
-    ///             .collect(),
-    ///     )
-    ///     .build();
-    ///
-    /// assert_eq!(record.end(), Ok(Position::try_from(8)?));
-    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
-    /// ```
-    ///
-    /// ## Calculated using the start position and reference bases length
-    ///
-    /// ```
-    /// use noodles_core::Position;
-    /// use noodles_vcf as vcf;
-    ///
-    /// let record = vcf::variant::RecordBuf::builder()
-    ///     .set_reference_sequence_name("sq0")
-    ///     .set_position(Position::MIN)
-    ///     .set_reference_bases("ACGT")
-    ///     .build();
-    ///
-    /// assert_eq!(record.end(), Ok(Position::try_from(4)?));
-    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
-    /// ```
-    pub fn end(&self) -> Result<Position, EndError> {
-        use self::info::field::Value;
-        use super::record::info::field::key;
-
-        if let Some(Some(value)) = self.info().get(key::END_POSITION) {
-            match value {
-                Value::Integer(n) => usize::try_from(*n)
-                    .and_then(Position::try_from)
-                    .map_err(EndError::InvalidPosition),
-                _ => Err(EndError::InvalidInfoEndPositionFieldValue),
-            }
-        } else {
-            let start = self.position().unwrap_or(Position::MIN);
-            let reference_bases = self.reference_bases();
-
-            let len = if reference_bases.is_empty() {
-                return Err(EndError::InvalidReferenceBasesLength { actual: 0 });
-            } else {
-                reference_bases.len()
-            };
-
-            start
-                .checked_add(len - 1)
-                .ok_or(EndError::PositionOverflow(start, len))
-        }
-    }
-}
-
 impl super::Record for RecordBuf {
     fn reference_sequence_name<'a, 'h: 'a>(&'a self, _: &'h Header) -> io::Result<&'a str> {
         Ok(self.reference_sequence_name())
@@ -671,56 +548,6 @@ mod tests {
             .build();
 
         assert_eq!(actual, expected);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_end() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::variant::record::info::field::key;
-
-        let record = RecordBuf::builder()
-            .set_reference_sequence_name("sq0")
-            .set_position(Position::MIN)
-            .set_reference_bases("A")
-            .set_info(
-                [(String::from(key::END_POSITION), None)]
-                    .into_iter()
-                    .collect(),
-            )
-            .build();
-
-        assert_eq!(record.end(), Ok(Position::MIN));
-
-        let record = RecordBuf::builder()
-            .set_reference_sequence_name("sq0")
-            .set_position(Position::MIN)
-            .set_reference_bases("A")
-            .set_info(
-                [(
-                    String::from(key::END_POSITION),
-                    Some(info::field::Value::Flag),
-                )]
-                .into_iter()
-                .collect(),
-            )
-            .build();
-
-        assert_eq!(
-            record.end(),
-            Err(EndError::InvalidInfoEndPositionFieldValue)
-        );
-
-        let record = RecordBuf::builder()
-            .set_reference_sequence_name("sq0")
-            .set_position(Position::MAX)
-            .set_reference_bases("ACGT")
-            .build();
-
-        assert_eq!(
-            record.end(),
-            Err(EndError::PositionOverflow(Position::MAX, 4))
-        );
 
         Ok(())
     }
