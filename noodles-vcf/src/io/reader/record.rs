@@ -23,7 +23,7 @@ where
     bounds.reference_sequence_name_end = buf.len();
 
     len += read_required_field(reader, buf)?;
-    bounds.position_end = buf.len();
+    bounds.variant_start_end = buf.len();
 
     len += read_required_field(reader, buf)?;
     bounds.ids_end = buf.len();

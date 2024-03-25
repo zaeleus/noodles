@@ -29,7 +29,7 @@ fn main() -> io::Result<()> {
     for result in reader.records() {
         let record = result?;
 
-        let position = record.position().transpose()?;
+        let position = record.variant_start().transpose()?;
 
         write!(
             writer,

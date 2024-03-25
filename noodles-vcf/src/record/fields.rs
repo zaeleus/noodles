@@ -20,10 +20,10 @@ impl Fields {
         &self.buf[self.bounds.reference_sequence_name_range()]
     }
 
-    pub(super) fn position(&self) -> Option<io::Result<Position>> {
+    pub(super) fn variant_start(&self) -> Option<io::Result<Position>> {
         const TELOMERE_START: &str = "0";
 
-        match &self.buf[self.bounds.position_range()] {
+        match &self.buf[self.bounds.variant_start_range()] {
             TELOMERE_START => None,
             src => Some(
                 src.parse::<usize>()
