@@ -18,14 +18,7 @@ pub use self::{
 };
 use crate::Header;
 
-/// A VCF record.
-///
-/// A VCF record has 8 required fields: chromosome (`CHROM`), position (`POS`), IDs (`ID`),
-/// reference bases (`REF`), alternate bases (`ALT`), quality score (`QUAL`), filters (`FILTER`),
-/// and information (`INFO`).
-///
-/// Additionally, each record can have genotype information. This adds the extra `FORMAT` field and
-/// a number of genotype fields.
+/// A variant record buffer.
 #[derive(Clone, Debug, PartialEq)]
 pub struct RecordBuf {
     reference_sequence_name: String,
