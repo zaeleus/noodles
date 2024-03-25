@@ -22,8 +22,8 @@ pub trait Record {
     /// Returns the reference sequence name.
     fn reference_sequence_name<'a, 'h: 'a>(&'a self, header: &'h Header) -> io::Result<&'a str>;
 
-    /// Returns the position.
-    fn position(&self) -> Option<io::Result<Position>>;
+    /// Returns the variant start position.
+    fn variant_start(&self) -> Option<io::Result<Position>>;
 
     /// Returns the IDs.
     fn ids(&self) -> Box<dyn Ids + '_>;
@@ -71,7 +71,7 @@ pub trait Record {
                 )),
             }
         } else {
-            let start = self.position().transpose()?.unwrap_or(Position::MIN);
+            let start = self.variant_start().transpose()?.unwrap_or(Position::MIN);
             let reference_bases = self.reference_bases();
 
             if reference_bases.is_empty() {

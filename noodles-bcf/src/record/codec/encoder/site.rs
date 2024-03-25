@@ -37,7 +37,7 @@ where
     let reference_sequence_name = record.reference_sequence_name(header)?;
     write_reference_sequence_id(writer, string_maps.contigs(), reference_sequence_name)?;
 
-    let position = record.position().transpose()?;
+    let position = record.variant_start().transpose()?;
     write_position(writer, position)?;
 
     let end = record

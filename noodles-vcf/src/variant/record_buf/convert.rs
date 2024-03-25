@@ -14,7 +14,7 @@ impl RecordBuf {
         let mut record_buf = RecordBuf::default();
 
         *record_buf.reference_sequence_name_mut() = record.reference_sequence_name(header)?.into();
-        *record_buf.position_mut() = record.position().transpose()?;
+        *record_buf.variant_start_mut() = record.variant_start().transpose()?;
         *record_buf.ids_mut() = record.ids().iter().map(String::from).collect();
 
         let raw_reference_bases: Vec<_> =

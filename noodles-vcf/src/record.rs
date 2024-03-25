@@ -98,7 +98,7 @@ impl crate::variant::Record for Record {
         Ok(self.reference_sequence_name())
     }
 
-    fn position(&self) -> Option<io::Result<Position>> {
+    fn variant_start(&self) -> Option<io::Result<Position>> {
         self.position()
     }
 

@@ -35,7 +35,7 @@ where
 
         let reference_sequence_name = record.reference_sequence_name().to_string();
         let start = record
-            .position()
+            .variant_start()
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing position"))?;
         let end = record.end(&header)?;
 

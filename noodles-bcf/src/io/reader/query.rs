@@ -102,7 +102,7 @@ fn intersects(
             )
         })?;
 
-    let Some(start) = record.position() else {
+    let Some(start) = record.variant_start() else {
         return Ok(false);
     };
 

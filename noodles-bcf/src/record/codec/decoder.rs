@@ -36,7 +36,7 @@ pub fn read_site(
         .map(String::from)
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid chrom"))?;
 
-    *record.position_mut() = read_pos(src)?;
+    *record.variant_start_mut() = read_pos(src)?;
 
     // TODO
     read_rlen(src)?;

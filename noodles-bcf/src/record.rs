@@ -262,7 +262,7 @@ impl vcf::variant::Record for Record {
         self.reference_sequence_name(header.string_maps())
     }
 
-    fn position(&self) -> Option<io::Result<Position>> {
+    fn variant_start(&self) -> Option<io::Result<Position>> {
         self.position()
     }
 

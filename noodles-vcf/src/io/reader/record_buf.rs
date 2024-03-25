@@ -84,7 +84,7 @@ pub(crate) fn parse_record_buf(
     parse_reference_sequence_name(field, record.reference_sequence_name_mut());
 
     let field = next_field(&mut s);
-    *record.position_mut() = parse_position(field).map_err(ParseError::InvalidPosition)?;
+    *record.variant_start_mut() = parse_position(field).map_err(ParseError::InvalidPosition)?;
 
     record.ids_mut().as_mut().clear();
     let field = next_field(&mut s);
