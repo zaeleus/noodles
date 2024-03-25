@@ -46,7 +46,13 @@ pub trait Record {
     /// Returns the samples.
     fn samples(&self) -> io::Result<Box<dyn Samples + '_>>;
 
-    /// Returns or calculates the end.
+    /// Returns or calculates the variant end position.
+    ///
+    /// If available, this returns the value of the `END` INFO field. Otherwise, it is calculated
+    /// using the [variant start position] and [reference bases length].
+    ///
+    /// [variant start position]: `Self::position`
+    /// [reference bases length]: `ReferenceBases::len`
     fn end(&self, header: &Header) -> io::Result<Position> {
         use self::info::field::{key, Value};
 
