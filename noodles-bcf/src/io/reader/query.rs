@@ -106,7 +106,7 @@ fn intersects(
         return Ok(false);
     };
 
-    let end = record.end(header)?;
+    let end = record.variant_end(header)?;
     let record_interval = Interval::from(start..=end);
 
     Ok(id == chromosome_id && record_interval.intersects(region_interval))

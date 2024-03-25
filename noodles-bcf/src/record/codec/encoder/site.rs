@@ -41,7 +41,7 @@ where
     write_position(writer, position)?;
 
     let end = record
-        .end(header)
+        .variant_end(header)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_rlen(writer, position, end)?;
 
