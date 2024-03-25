@@ -36,9 +36,9 @@ impl Record {
         self.0.reference_sequence_name()
     }
 
-    /// Returns the position.
-    pub fn position(&self) -> Option<io::Result<Position>> {
-        self.0.position()
+    /// Returns the variant start position.
+    pub fn variant_start(&self) -> Option<io::Result<Position>> {
+        self.0.variant_start()
     }
 
     /// Returns the IDs.
@@ -81,7 +81,7 @@ impl fmt::Debug for Record {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Record")
             .field("reference_sequence_name", &self.reference_sequence_name())
-            .field("position", &self.position())
+            .field("variant_start", &self.variant_start())
             .field("ids", &self.ids())
             .field("reference_bases", &self.reference_bases())
             .field("alternate_bases", &self.alternate_bases())
@@ -99,7 +99,7 @@ impl crate::variant::Record for Record {
     }
 
     fn variant_start(&self) -> Option<io::Result<Position>> {
-        self.position()
+        self.variant_start()
     }
 
     fn ids(&self) -> Box<dyn crate::variant::record::Ids + '_> {

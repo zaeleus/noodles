@@ -3,7 +3,7 @@ use std::ops::{Range, RangeFrom};
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Bounds {
     pub reference_sequence_name_end: usize,
-    pub position_end: usize,
+    pub variant_start_end: usize,
     pub ids_end: usize,
     pub reference_bases_end: usize,
     pub alternate_bases_end: usize,
@@ -17,12 +17,12 @@ impl Bounds {
         0..self.reference_sequence_name_end
     }
 
-    pub fn position_range(&self) -> Range<usize> {
-        self.reference_sequence_name_end..self.position_end
+    pub fn variant_start_range(&self) -> Range<usize> {
+        self.reference_sequence_name_end..self.variant_start_end
     }
 
     pub fn ids_range(&self) -> Range<usize> {
-        self.position_end..self.ids_end
+        self.variant_start_end..self.ids_end
     }
 
     pub fn reference_bases_range(&self) -> Range<usize> {
@@ -54,7 +54,7 @@ impl Default for Bounds {
     fn default() -> Self {
         Self {
             reference_sequence_name_end: 3,
-            position_end: 4,
+            variant_start_end: 4,
             ids_end: 5,
             reference_bases_end: 6,
             alternate_bases_end: 7,
@@ -73,7 +73,7 @@ mod tests {
     fn test_ranges() {
         let bounds = Bounds::default();
         assert_eq!(bounds.reference_sequence_name_range(), 0..3);
-        assert_eq!(bounds.position_range(), 3..4);
+        assert_eq!(bounds.variant_start_range(), 3..4);
         assert_eq!(bounds.ids_range(), 4..5);
         assert_eq!(bounds.reference_bases_range(), 5..6);
         assert_eq!(bounds.alternate_bases_range(), 6..7);
