@@ -45,7 +45,7 @@ pub(super) fn parse_samples(
     mut s: &str,
     genotypes: &mut Samples,
 ) -> Result<(), ParseError> {
-    genotypes.keys.clear();
+    genotypes.keys.as_mut().clear();
 
     let sample_count = header.sample_names().len();
 
@@ -84,15 +84,12 @@ mod tests {
     fn test_parse_samples() -> Result<(), Box<dyn std::error::Error>> {
         use crate::variant::{
             record::samples::keys::key,
-            record_buf::samples::{
-                sample::{
-                    value::{
-                        genotype::{allele::Phasing, Allele},
-                        Genotype,
-                    },
-                    Value,
+            record_buf::samples::sample::{
+                value::{
+                    genotype::{allele::Phasing, Allele},
+                    Genotype,
                 },
-                Keys,
+                Value,
             },
         };
 
@@ -105,7 +102,7 @@ mod tests {
         let header = Header::builder().add_sample_name("sample0").build();
         parse_samples(&header, "GT\t0|0", &mut genotypes)?;
         let expected = Samples::new(
-            Keys::try_from(vec![String::from(key::GENOTYPE)])?,
+            [String::from(key::GENOTYPE)].into_iter().collect(),
             vec![vec![Some(Value::Genotype(Genotype::try_from(vec![
                 Allele::new(Some(0), Phasing::Phased),
                 Allele::new(Some(0), Phasing::Phased),
@@ -119,7 +116,9 @@ mod tests {
             .build();
         parse_samples(&header, "GQ\t8\t13", &mut genotypes)?;
         let expected = Samples::new(
-            Keys::try_from(vec![String::from(key::CONDITIONAL_GENOTYPE_QUALITY)])?,
+            [String::from(key::CONDITIONAL_GENOTYPE_QUALITY)]
+                .into_iter()
+                .collect(),
             vec![vec![Some(Value::from(8))], vec![Some(Value::from(13))]],
         );
         assert_eq!(genotypes, expected);

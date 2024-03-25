@@ -58,8 +58,9 @@
 
       * IDs => set of strings,
       * reference bases => string,
-      * alternate bases => list of strings, and
-      * filters => set of strings.
+      * alternate bases => list of strings,
+      * filters => set of strings, and
+      * samples keys => set of strings.
 
   * vcf/variant/record_buf/builder: Remove validation on build
     (`Builder::build`).

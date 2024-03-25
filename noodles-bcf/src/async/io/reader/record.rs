@@ -40,15 +40,12 @@ mod tests {
                 AlternateBases, Filters, Info, Samples,
             },
             record_buf::{
-                samples::{
-                    sample::{
-                        value::{
-                            genotype::{allele::Phasing, Allele},
-                            Genotype,
-                        },
-                        Value as GenotypeFieldValue,
+                samples::sample::{
+                    value::{
+                        genotype::{allele::Phasing, Allele},
+                        Genotype,
                     },
-                    Keys,
+                    Value as GenotypeFieldValue,
                 },
                 Samples as VcfGenotypes,
             },
@@ -128,12 +125,10 @@ mod tests {
 
         let samples = record.samples()?;
 
-        let column_names: Vec<_> = samples
+        let keys = samples
             .column_names(&header)
             .map(|result| result.map(String::from))
             .collect::<io::Result<_>>()?;
-        let keys = Keys::try_from(column_names)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         let values = samples
             .iter()
@@ -150,13 +145,15 @@ mod tests {
         let actual = VcfGenotypes::new(keys, values);
 
         let expected = VcfGenotypes::new(
-            Keys::try_from(vec![
+            [
                 String::from(samples::keys::key::GENOTYPE),
                 String::from(samples::keys::key::CONDITIONAL_GENOTYPE_QUALITY),
                 String::from(samples::keys::key::READ_DEPTH),
                 String::from(samples::keys::key::READ_DEPTHS),
                 String::from(samples::keys::key::ROUNDED_GENOTYPE_LIKELIHOODS),
-            ])?,
+            ]
+            .into_iter()
+            .collect(),
             vec![
                 vec![
                     Some(GenotypeFieldValue::Genotype(Genotype::try_from(vec![

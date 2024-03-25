@@ -381,10 +381,10 @@ impl RecordBuf {
     ///     },
     /// };
     ///
-    /// let keys = Keys::try_from(vec![
+    /// let keys: Keys = [
     ///     String::from(key::GENOTYPE),
     ///     String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
-    /// ])?;
+    /// ].into_iter().collect();
     /// let samples = Samples::new(
     ///     keys.clone(),
     ///     vec![vec![Some(Value::from("0|0")), Some(Value::from(13))]],
@@ -395,7 +395,6 @@ impl RecordBuf {
     ///     .build();
     ///
     /// assert_eq!(record.format(), &keys);
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn format(&self) -> &samples::Keys {
         self.samples.keys()
@@ -410,14 +409,14 @@ impl RecordBuf {
     ///     self as vcf,
     ///     variant::{
     ///         record::samples::keys::key,
-    ///         record_buf::{samples::{sample::Value, Keys}, Samples},
+    ///         record_buf::{samples::sample::Value, Samples},
     ///     },
     /// };
     ///
-    /// let keys = Keys::try_from(vec![
+    /// let keys = [
     ///     String::from(key::GENOTYPE),
     ///     String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
-    /// ])?;
+    /// ].into_iter().collect();
     /// let samples = Samples::new(
     ///     keys,
     ///     vec![vec![Some(Value::from("0|0")), Some(Value::from(13))]],
@@ -428,7 +427,6 @@ impl RecordBuf {
     ///     .build();
     ///
     /// assert_eq!(record.samples(), &samples);
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn samples(&self) -> &Samples {
         &self.samples
@@ -443,16 +441,16 @@ impl RecordBuf {
     ///     self as vcf,
     ///     variant::{
     ///         record::samples::keys::key,
-    ///         record_buf::{samples::{sample::Value, Keys}, Samples},
+    ///         record_buf::{samples::sample::Value, Samples},
     ///     },
     /// };
     ///
     /// let mut record = vcf::variant::RecordBuf::default();
     ///
-    /// let keys = Keys::try_from(vec![
+    /// let keys = [
     ///     String::from(key::GENOTYPE),
     ///     String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
-    /// ])?;
+    /// ].into_iter().collect();
     /// let samples = Samples::new(
     ///     keys,
     ///     vec![vec![Some(Value::from("0|0")), Some(Value::from(13))]],
@@ -461,7 +459,6 @@ impl RecordBuf {
     /// *record.samples_mut() = samples.clone();
     ///
     /// assert_eq!(record.samples(), &samples);
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn samples_mut(&mut self) -> &mut Samples {
         &mut self.samples

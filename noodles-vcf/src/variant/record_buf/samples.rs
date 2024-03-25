@@ -54,12 +54,11 @@ impl Samples {
     /// };
     ///
     /// let samples = Samples::default();
-    /// assert!(samples.keys().is_empty());
+    /// assert!(samples.keys().as_ref().is_empty());
     ///
-    /// let keys = Keys::try_from(vec![String::from(key::GENOTYPE)])?;
+    /// let keys: Keys = [String::from(key::GENOTYPE)].into_iter().collect();
     /// let samples = Samples::new(keys.clone(), Vec::new());
     /// assert_eq!(samples.keys(), &keys);
-    /// # Ok::<_, noodles_vcf::variant::record_buf::samples::keys::TryFromKeyVectorError>(())
     /// ```
     pub fn keys(&self) -> &Keys {
         &self.keys
@@ -75,13 +74,12 @@ impl Samples {
     ///     record_buf::{samples::Keys, Samples},
     /// };
     ///
-    /// let keys = Keys::try_from(vec![String::from(key::GENOTYPE)])?;
+    /// let keys: Keys = [String::from(key::GENOTYPE)].into_iter().collect();
     ///
     /// let mut samples = Samples::default();
     /// *samples.keys_mut() = keys.clone();
     ///
     /// assert_eq!(samples.keys(), &keys);
-    /// # Ok::<_, noodles_vcf::variant::record_buf::samples::keys::TryFromKeyVectorError>(())
     /// ```
     pub fn keys_mut(&mut self) -> &mut Keys {
         &mut self.keys
@@ -108,10 +106,10 @@ impl Samples {
     /// ```
     /// use noodles_vcf::variant::{
     ///     record::samples::keys::key,
-    ///     record_buf::{samples::{sample::Value, Keys}, Samples},
+    ///     record_buf::{samples::sample::Value, Samples},
     /// };
     ///
-    /// let keys = Keys::try_from(vec![String::from(key::GENOTYPE)])?;
+    /// let keys = [String::from(key::GENOTYPE)].into_iter().collect();
     /// let samples = Samples::new(
     ///     keys,
     ///     vec![
@@ -126,10 +124,10 @@ impl Samples {
     /// assert_eq!(series.get(1), Some(Some(&Value::from("1/1"))));
     /// assert_eq!(series.get(2), Some(None));
     /// assert_eq!(series.get(3), None);
-    /// # Ok::<_, noodles_vcf::variant::record_buf::samples::keys::TryFromKeyVectorError>(())
     /// ```
     pub fn select(&self, name: &str) -> Option<Series<'_>> {
         self.keys()
+            .as_ref()
             .get_full(name)
             .map(|(i, name)| Series::new(name, &self.values[..], i))
     }
@@ -137,11 +135,11 @@ impl Samples {
     /// Returns an iterator over series.
     pub fn series(&self) -> impl Iterator<Item = Series<'_>> {
         let column_names = self.keys();
-        let column_count = column_names.len();
+        let column_count = column_names.as_ref().len();
 
         (0..column_count).map(|i| {
             // SAFETY: `i` is < `column_count`.
-            let name = column_names.get_index(i).unwrap();
+            let name = column_names.as_ref().get_index(i).unwrap();
             Series::new(name, &self.values[..], i)
         })
     }
@@ -160,7 +158,7 @@ impl crate::variant::record::Samples for Samples {
         &'a self,
         _: &'h Header,
     ) -> Box<dyn Iterator<Item = io::Result<&'a str>> + 'a> {
-        Box::new(self.keys.iter().map(|key| Ok(key.as_str())))
+        Box::new(self.keys.as_ref().iter().map(|key| Ok(key.as_str())))
     }
 
     fn series(
@@ -198,7 +196,7 @@ impl crate::variant::record::Samples for &Samples {
         &'a self,
         _: &'h Header,
     ) -> Box<dyn Iterator<Item = io::Result<&'a str>> + 'a> {
-        Box::new(self.keys.iter().map(|key| Ok(key.as_str())))
+        Box::new(self.keys.as_ref().iter().map(|key| Ok(key.as_str())))
     }
 
     fn series(

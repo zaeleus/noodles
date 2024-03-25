@@ -195,19 +195,18 @@ mod tests {
     fn test_write_record_with_format() -> Result<(), Box<dyn std::error::Error>> {
         use crate::variant::{
             record::samples::keys::key,
-            record_buf::{
-                samples::{sample::Value, Keys},
-                Samples,
-            },
+            record_buf::{samples::sample::Value, Samples},
         };
 
         let header = Header::default();
 
         let samples = Samples::new(
-            Keys::try_from(vec![
+            [
                 String::from(key::GENOTYPE),
                 String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
-            ])?,
+            ]
+            .into_iter()
+            .collect(),
             vec![vec![
                 Some(Value::String(String::from("0|0"))),
                 Some(Value::Integer(13)),

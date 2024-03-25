@@ -37,6 +37,7 @@ impl<'g> Sample<'g> {
         K: Hash + indexmap::Equivalent<String> + ?Sized,
     {
         self.keys
+            .as_ref()
             .get_index_of(key)
             .and_then(|i| self.values.get(i).map(|value| value.as_ref()))
     }
@@ -49,6 +50,7 @@ impl<'g> crate::variant::record::samples::Sample for Sample<'g> {
         key: &str,
     ) -> Option<io::Result<Option<crate::variant::record::samples::series::Value<'a>>>> {
         self.keys
+            .as_ref()
             .get_index_of(key)
             .and_then(|i| self.get_index(header, i))
     }
@@ -76,6 +78,7 @@ impl<'g> crate::variant::record::samples::Sample for Sample<'g> {
     > {
         Box::new(
             self.keys
+                .as_ref()
                 .iter()
                 .zip(self.values)
                 .map(|(key, value)| Ok((key.as_ref(), value.as_ref().map(|v| v.into())))),

@@ -9,7 +9,7 @@ impl RecordBuf {
     where
         R: Record,
     {
-        use super::{samples::Keys, Samples};
+        use super::Samples;
 
         let mut record_buf = RecordBuf::default();
 
@@ -50,12 +50,10 @@ impl RecordBuf {
 
         let samples = record.samples()?;
 
-        let column_names: Vec<_> = samples
+        let keys = samples
             .column_names(header)
             .map(|result| result.map(String::from))
             .collect::<io::Result<_>>()?;
-        let keys = Keys::try_from(column_names)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         let values = samples
             .iter()

@@ -200,10 +200,10 @@ impl Builder {
     ///     },
     /// };
     ///
-    /// let keys = Keys::try_from(vec![
+    /// let keys: Keys = [
     ///     String::from(key::GENOTYPE),
     ///     String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
-    /// ])?;
+    /// ].into_iter().collect();
     ///
     /// let samples = Samples::new(
     ///     keys,
@@ -215,7 +215,6 @@ impl Builder {
     ///     .build();
     ///
     /// assert_eq!(record.samples(), &samples);
-    /// # Ok::<_, vcf::variant::record_buf::samples::keys::TryFromKeyVectorError>(())
     /// ```
     pub fn set_samples(mut self, samples: Samples) -> Self {
         self.samples = samples;

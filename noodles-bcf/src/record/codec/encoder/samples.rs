@@ -77,10 +77,12 @@ mod tests {
         let string_maps = StringMaps::try_from(&header)?;
 
         let genotypes = vcf::variant::record_buf::Samples::new(
-            vcf::variant::record_buf::samples::Keys::try_from(vec![
+            [
                 String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
                 String::from(key::READ_DEPTH),
-            ])?,
+            ]
+            .into_iter()
+            .collect(),
             vec![
                 vec![Some(Value::from(13)), Some(Value::from(5))],
                 vec![Some(Value::from(8))],

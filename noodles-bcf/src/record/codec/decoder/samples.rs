@@ -3,10 +3,7 @@ mod values;
 
 use std::{error, fmt};
 
-use noodles_vcf::{
-    self as vcf,
-    variant::record_buf::{samples::Keys, Samples},
-};
+use noodles_vcf::{self as vcf, variant::record_buf::Samples};
 
 use self::{
     key::read_key,
@@ -40,9 +37,7 @@ pub fn read_samples(
         }
     }
 
-    let keys = Keys::try_from(keys).map_err(DecodeError::InvalidKeys)?;
-
-    Ok(Samples::new(keys, samples))
+    Ok(Samples::new(keys.into_iter().collect(), samples))
 }
 
 #[allow(clippy::enum_variant_names)]
@@ -50,7 +45,6 @@ pub fn read_samples(
 pub enum DecodeError {
     InvalidKey(key::DecodeError),
     InvalidValues(values::DecodeError),
-    InvalidKeys(vcf::variant::record_buf::samples::keys::TryFromKeyVectorError),
 }
 
 impl error::Error for DecodeError {
@@ -58,7 +52,6 @@ impl error::Error for DecodeError {
         match self {
             Self::InvalidKey(e) => Some(e),
             Self::InvalidValues(e) => Some(e),
-            Self::InvalidKeys(e) => Some(e),
         }
     }
 }
@@ -68,7 +61,6 @@ impl fmt::Display for DecodeError {
         match self {
             Self::InvalidKey(_) => write!(f, "invalid key"),
             Self::InvalidValues(_) => write!(f, "invalid values"),
-            Self::InvalidKeys(_) => write!(f, "invalid keys"),
         }
     }
 }
