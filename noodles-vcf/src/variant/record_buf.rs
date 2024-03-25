@@ -29,7 +29,7 @@ use crate::Header;
 #[derive(Clone, Debug, PartialEq)]
 pub struct RecordBuf {
     reference_sequence_name: String,
-    position: Option<Position>,
+    variant_start: Option<Position>,
     ids: Ids,
     reference_bases: String,
     alternate_bases: AlternateBases,
@@ -88,11 +88,9 @@ impl RecordBuf {
         &mut self.reference_sequence_name
     }
 
-    /// Returns the start position of the reference bases or indicates a telomeric breakend.
+    /// Returns the variant start position.
     ///
-    /// This field is overloaded. If the record represents a telomere, the telomeric breakends are
-    /// set to 0 and _n_ + 1, where _n_ is the length of the reference sequence. Otherwise, it is a
-    /// 1-based start position of the reference bases.
+    /// If the record represents the start of a telomeric breakend, this returns `None`.
     ///
     /// # Examples
     ///
@@ -101,20 +99,18 @@ impl RecordBuf {
     /// use noodles_vcf as vcf;
     ///
     /// let record = vcf::variant::RecordBuf::builder()
-    ///     .set_position(Position::MIN)
+    ///     .set_variant_start(Position::MIN)
     ///     .build();
     ///
-    /// assert_eq!(record.position(), Some(Position::MIN));
+    /// assert_eq!(record.variant_start(), Some(Position::MIN));
     /// ```
-    pub fn position(&self) -> Option<Position> {
-        self.position
+    pub fn variant_start(&self) -> Option<Position> {
+        self.variant_start
     }
 
-    /// Returns a mutable reference to the start position of the reference bases.
+    /// Returns a mutable reference to the variant start position.
     ///
-    /// This field is overloaded. If the record represents a telomere, the telomeric breakends are
-    /// set to 0 and _n_ + 1, where _n_ is the length of the reference sequence. Otherwise, it is a
-    /// 1-based start position of the reference bases.
+    /// If the record represents the start of a telomeric breakend, this returns `None`.
     ///
     /// # Examples
     ///
@@ -123,11 +119,11 @@ impl RecordBuf {
     /// use noodles_vcf as vcf;
     ///
     /// let mut record = vcf::variant::RecordBuf::default();
-    /// *record.position_mut() = Some(Position::MIN);
-    /// assert_eq!(record.position(), Some(Position::MIN));
+    /// *record.variant_start_mut() = Some(Position::MIN);
+    /// assert_eq!(record.variant_start(), Some(Position::MIN));
     /// ```
-    pub fn position_mut(&mut self) -> &mut Option<Position> {
-        &mut self.position
+    pub fn variant_start_mut(&mut self) -> &mut Option<Position> {
+        &mut self.variant_start
     }
 
     /// Returns a list of IDs of the record.
@@ -483,7 +479,7 @@ impl Default for RecordBuf {
     fn default() -> Self {
         Self {
             reference_sequence_name: String::from("."),
-            position: Some(Position::MIN),
+            variant_start: Some(Position::MIN),
             ids: Ids::default(),
             reference_bases: String::from("N"),
             alternate_bases: AlternateBases::default(),
@@ -500,8 +496,8 @@ impl super::Record for RecordBuf {
         Ok(self.reference_sequence_name())
     }
 
-    fn position(&self) -> Option<std::io::Result<Position>> {
-        self.position().map(Ok)
+    fn variant_start(&self) -> Option<std::io::Result<Position>> {
+        self.variant_start().map(Ok)
     }
 
     fn ids(&self) -> Box<dyn super::record::Ids + '_> {
@@ -543,7 +539,7 @@ mod tests {
 
         let expected = RecordBuf::builder()
             .set_reference_sequence_name(".")
-            .set_position(Position::MIN)
+            .set_variant_start(Position::MIN)
             .set_reference_bases("N")
             .build();
 

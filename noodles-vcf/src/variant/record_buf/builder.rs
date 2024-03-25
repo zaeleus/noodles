@@ -8,7 +8,7 @@ use super::{AlternateBases, Filters, Ids, Info, RecordBuf, Samples};
 #[derive(Debug, PartialEq)]
 pub struct Builder {
     reference_sequence_name: String,
-    position: Option<Position>,
+    variant_start: Option<Position>,
     ids: Ids,
     reference_bases: String,
     alternate_bases: AlternateBases,
@@ -40,7 +40,7 @@ impl Builder {
         self
     }
 
-    /// Sets the start position.
+    /// Sets the variant start position.
     ///
     /// # Examples
     ///
@@ -49,13 +49,13 @@ impl Builder {
     /// use noodles_vcf as vcf;
     ///
     /// let record = vcf::variant::RecordBuf::builder()
-    ///     .set_position(Position::MIN)
+    ///     .set_variant_start(Position::MIN)
     ///     .build();
     ///
-    /// assert_eq!(record.position(), Some(Position::MIN));
+    /// assert_eq!(record.variant_start(), Some(Position::MIN));
     /// ```
-    pub fn set_position(mut self, position: Position) -> Self {
-        self.position = Some(position);
+    pub fn set_variant_start(mut self, position: Position) -> Self {
+        self.variant_start = Some(position);
         self
     }
 
@@ -233,7 +233,7 @@ impl Builder {
     pub fn build(self) -> RecordBuf {
         RecordBuf {
             reference_sequence_name: self.reference_sequence_name,
-            position: self.position,
+            variant_start: self.variant_start,
             ids: self.ids,
             reference_bases: self.reference_bases,
             alternate_bases: self.alternate_bases,
@@ -249,7 +249,7 @@ impl Default for Builder {
     fn default() -> Self {
         Self {
             reference_sequence_name: String::new(),
-            position: Some(Position::MIN),
+            variant_start: Some(Position::MIN),
             ids: Ids::default(),
             reference_bases: String::new(),
             alternate_bases: AlternateBases::default(),
@@ -271,7 +271,7 @@ mod tests {
         let record = Builder::default();
 
         assert!(record.reference_sequence_name.is_empty());
-        assert_eq!(record.position, Some(Position::MIN));
+        assert_eq!(record.variant_start, Some(Position::MIN));
         assert!(record.ids.as_ref().is_empty());
         assert!(record.reference_bases.is_empty());
         assert!(record.alternate_bases.is_empty());

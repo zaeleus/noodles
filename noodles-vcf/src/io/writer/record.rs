@@ -31,7 +31,7 @@ where
     write_reference_sequence_name(writer, reference_sequence_name)?;
 
     writer.write_all(DELIMITER)?;
-    let position = record.position().transpose()?;
+    let position = record.variant_start().transpose()?;
     write_position(writer, position)?;
 
     writer.write_all(DELIMITER)?;
@@ -76,7 +76,7 @@ mod tests {
     fn test_write_record() -> io::Result<()> {
         let record = RecordBuf::builder()
             .set_reference_sequence_name("sq0")
-            .set_position(Position::MIN)
+            .set_variant_start(Position::MIN)
             .set_reference_bases("A")
             .build();
 

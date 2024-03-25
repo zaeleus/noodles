@@ -90,7 +90,7 @@ pub(crate) fn intersects(
 ) -> io::Result<bool> {
     let name = record.reference_sequence_name().to_string();
 
-    let Some(start) = record.position() else {
+    let Some(start) = record.variant_start() else {
         return Ok(false);
     };
 

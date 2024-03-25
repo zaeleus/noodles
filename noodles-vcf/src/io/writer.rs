@@ -33,7 +33,7 @@ use crate::{Header, Record};
 ///
 /// let record = vcf::variant::RecordBuf::builder()
 ///     .set_reference_sequence_name("sq0")
-///     .set_position(Position::MIN)
+///     .set_variant_start(Position::MIN)
 ///     .set_reference_bases("A")
 ///     .build();
 ///
@@ -178,7 +178,7 @@ mod tests {
 
         let record = RecordBuf::builder()
             .set_reference_sequence_name("sq0")
-            .set_position(Position::MIN)
+            .set_variant_start(Position::MIN)
             .set_reference_bases("A")
             .build();
 
@@ -216,7 +216,7 @@ mod tests {
 
         let record = RecordBuf::builder()
             .set_reference_sequence_name("sq0")
-            .set_position(Position::MIN)
+            .set_variant_start(Position::MIN)
             .set_reference_bases("A")
             .set_samples(samples)
             .build();
