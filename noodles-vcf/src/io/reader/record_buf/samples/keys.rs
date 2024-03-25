@@ -52,7 +52,7 @@ pub(super) fn parse_keys(header: &Header, s: &str, keys: &mut Keys) -> Result<()
             gt_position = Some(i);
         }
 
-        if let Some(key) = keys.replace(key) {
+        if let Some(key) = keys.as_mut().replace(key) {
             return Err(ParseError::DuplicateKey(key));
         }
     }
@@ -75,38 +75,42 @@ mod tests {
         let header = Header::default();
         let mut keys = Keys::default();
 
-        keys.clear();
+        keys.as_mut().clear();
         parse_keys(&header, ".", &mut keys)?;
         assert_eq!(keys, Keys::default());
 
-        keys.clear();
+        keys.as_mut().clear();
         parse_keys(&header, "GT", &mut keys)?;
-        let expected = Keys::try_from(vec![String::from(key::GENOTYPE)])?;
+        let expected = [String::from(key::GENOTYPE)].into_iter().collect();
         assert_eq!(keys, expected);
 
-        keys.clear();
+        keys.as_mut().clear();
         parse_keys(&header, "GQ", &mut keys)?;
-        let expected = Keys::try_from(vec![String::from(key::CONDITIONAL_GENOTYPE_QUALITY)])?;
+        let expected = [String::from(key::CONDITIONAL_GENOTYPE_QUALITY)]
+            .into_iter()
+            .collect();
         assert_eq!(keys, expected);
 
-        keys.clear();
+        keys.as_mut().clear();
         parse_keys(&header, "GT:GQ", &mut keys)?;
-        let expected = Keys::try_from(vec![
+        let expected = [
             String::from(key::GENOTYPE),
             String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
-        ])?;
+        ]
+        .into_iter()
+        .collect();
         assert_eq!(keys, expected);
 
-        keys.clear();
+        keys.as_mut().clear();
         assert_eq!(parse_keys(&header, "", &mut keys), Err(ParseError::Empty));
 
-        keys.clear();
+        keys.as_mut().clear();
         assert_eq!(
             parse_keys(&header, "GQ:GT", &mut keys),
             Err(ParseError::InvalidGenotypeKeyPosition)
         );
 
-        keys.clear();
+        keys.as_mut().clear();
         assert_eq!(
             parse_keys(&header, "GT:GT", &mut keys),
             Err(ParseError::DuplicateKey(String::from(key::GENOTYPE)))

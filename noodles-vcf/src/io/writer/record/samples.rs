@@ -30,10 +30,7 @@ mod tests {
 
     #[test]
     fn test_write_samples() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::variant::{
-            record::samples::keys::key,
-            record_buf::samples::{sample::Value, Keys},
-        };
+        use crate::variant::{record::samples::keys::key, record_buf::samples::sample::Value};
 
         fn t(
             buf: &mut Vec<u8>,
@@ -51,16 +48,18 @@ mod tests {
         let mut buf = Vec::new();
 
         let genotypes = SamplesBuf::new(
-            Keys::try_from(vec![String::from(key::GENOTYPE)])?,
+            [String::from(key::GENOTYPE)].into_iter().collect(),
             vec![vec![Some(Value::from("0|0"))]],
         );
         t(&mut buf, &header, &genotypes, b"GT\t0|0")?;
 
         let genotypes = SamplesBuf::new(
-            Keys::try_from(vec![
+            [
                 String::from(key::GENOTYPE),
                 String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
-            ])?,
+            ]
+            .into_iter()
+            .collect(),
             vec![
                 vec![Some(Value::from("0|0")), Some(Value::from(13))],
                 vec![Some(Value::from("0/1")), Some(Value::from(8))],
