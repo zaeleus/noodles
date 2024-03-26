@@ -7,8 +7,9 @@
   * util/variant: Move readers (`Reader` and `IndexedReader`) and writer
     (`Writer`) to `io` module.
 
-  * util/variant/io/indexed_reader: Changed `IndexedReader::query` to return an
-    iterator over `io::Result<Box<dyn vcf::variant::Record>>`.
+  * util/variant/io/indexed_reader: Change iterators (`IndexedReader::records`
+    and IndexedReader::query`) to return an iterator over
+    `vcf::variant::Record` trait objects.
 
   * util/variant/io/reader: Change `Reader::records` to return an iterator
     over `vcf::variant::Record` trait objects.

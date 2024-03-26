@@ -9,10 +9,7 @@ use std::io::{self, Read, Seek};
 use noodles_bcf as bcf;
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
-use noodles_vcf::{
-    self as vcf,
-    variant::{Record, RecordBuf},
-};
+use noodles_vcf::{self as vcf, variant::Record};
 
 /// An indexed variant reader.
 pub enum IndexedReader<R> {
@@ -37,11 +34,18 @@ where
     /// Returns an iterator over records starting from the current stream position.
     pub fn records<'r, 'h: 'r>(
         &'r mut self,
-        header: &'h vcf::Header,
-    ) -> impl Iterator<Item = io::Result<RecordBuf>> + '_ {
-        let records: Box<dyn Iterator<Item = io::Result<RecordBuf>>> = match self {
-            Self::Vcf(reader) => Box::new(reader.record_bufs(header)),
-            Self::Bcf(reader) => Box::new(reader.record_bufs(header)),
+    ) -> impl Iterator<Item = io::Result<Box<dyn Record>>> + '_ {
+        let records: Box<dyn Iterator<Item = io::Result<Box<dyn Record>>>> = match self {
+            Self::Vcf(reader) => Box::new(
+                reader
+                    .records()
+                    .map(|result| result.map(|record| Box::new(record) as Box<dyn Record>)),
+            ),
+            Self::Bcf(reader) => Box::new(
+                reader
+                    .records()
+                    .map(|result| result.map(|record| Box::new(record) as Box<dyn Record>)),
+            ),
         };
 
         records
