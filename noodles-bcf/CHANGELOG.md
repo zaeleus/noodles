@@ -39,6 +39,9 @@
       * `Reader::read_lazy_record` => `Reader::read_record`, and
       * `Reader::lazy_records` => `Reader::records`.
 
+  * bcf/io/reader: Return an iterator over `bcf::Record` for queries
+    (`Reader::query`).
+
   * bcf/record: Rename chromosome to reference sequence name, position to
     variant start, and genotypes to samples.
 

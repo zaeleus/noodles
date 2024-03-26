@@ -3,10 +3,10 @@ use std::io::{self, Read, Seek};
 use noodles_bgzf as bgzf;
 use noodles_core::region::Interval;
 use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
-use noodles_vcf::{
-    self as vcf,
-    variant::{Record, RecordBuf},
-};
+use noodles_vcf::{self as vcf, variant::Record as _};
+
+use super::read_record;
+use crate::Record;
 
 /// An iterator over records of a BCF reader that intersects a given region.
 ///
@@ -19,8 +19,7 @@ where
     header: &'h vcf::Header,
     chromosome_id: usize,
     interval: Interval,
-    buf: Vec<u8>,
-    record: RecordBuf,
+    record: Record,
 }
 
 impl<'r, 'h, R> Query<'r, 'h, R>
@@ -39,21 +38,12 @@ where
             header,
             chromosome_id,
             interval,
-            buf: Vec::new(),
-            record: RecordBuf::default(),
+            record: Record::default(),
         }
     }
 
-    fn next_record(&mut self) -> io::Result<Option<RecordBuf>> {
-        use super::read_record_buf;
-
-        read_record_buf(
-            &mut self.reader,
-            self.header,
-            &mut self.buf,
-            &mut self.record,
-        )
-        .map(|n| match n {
+    fn next_record(&mut self) -> io::Result<Option<Record>> {
+        read_record(&mut self.reader, &mut self.record).map(|n| match n {
             0 => None,
             _ => Some(self.record.clone()),
         })
@@ -64,7 +54,7 @@ impl<'r, 'h, R> Iterator for Query<'r, 'h, R>
 where
     R: Read + Seek,
 {
-    type Item = io::Result<RecordBuf>;
+    type Item = io::Result<Record>;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
@@ -85,11 +75,11 @@ where
 
 fn intersects(
     header: &vcf::Header,
-    record: &RecordBuf,
+    record: &Record,
     chromosome_id: usize,
     region_interval: Interval,
 ) -> io::Result<bool> {
-    let chromosome = record.reference_sequence_name();
+    let chromosome = record.reference_sequence_name(header.string_maps())?;
 
     let id = header
         .string_maps()
@@ -102,7 +92,7 @@ fn intersects(
             )
         })?;
 
-    let Some(start) = record.variant_start() else {
+    let Some(start) = record.variant_start().transpose()? else {
         return Ok(false);
     };
 

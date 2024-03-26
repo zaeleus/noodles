@@ -59,7 +59,9 @@ where
             Self::Vcf(reader) => Box::new(reader.query(header, region)?.map(|result| {
                 result.and_then(|record| RecordBuf::try_from_variant_record(header, &record))
             })),
-            Self::Bcf(reader) => reader.query(header, region).map(Box::new)?,
+            Self::Bcf(reader) => Box::new(reader.query(header, region)?.map(|result| {
+                result.and_then(|record| RecordBuf::try_from_variant_record(header, &record))
+            })),
         };
 
         Ok(records)
