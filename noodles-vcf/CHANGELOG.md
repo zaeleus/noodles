@@ -39,6 +39,9 @@
       * `Records` => `RecordBufs`, and
       * `Reader::read_lazy_record` => `Reader::read_record`.
 
+  * vcf/io/reader: Return an iterator over `vcf::Record` for queries
+    (`Reader::query`).
+
   * vcf/variant/record: Rename position and end to variant start and variant
     end, respectively.
 

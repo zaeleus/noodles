@@ -416,7 +416,7 @@ where
         header: &'r Header,
         index: &I,
         region: &Region,
-    ) -> io::Result<impl Stream<Item = io::Result<RecordBuf>> + 'r>
+    ) -> io::Result<impl Stream<Item = io::Result<Record>> + 'r>
     where
         I: BinningIndex,
     {
