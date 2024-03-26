@@ -39,8 +39,8 @@
       * `Reader::read_lazy_record` => `Reader::read_record`, and
       * `Reader::lazy_records` => `Reader::records`.
 
-  * bcf/record: Rename chromosome to reference sequence name and genotypes to
-    samples.
+  * bcf/record: Rename chromosome to reference sequence name, position to
+    variant start, and genotypes to samples.
 
   * bcf/record :Increase the visibilities of the bases methods
     (`Record::reference_bases` and `Record::alternate_bases`).
