@@ -30,7 +30,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for result in query {
         let record = result?;
-        writer.write_variant_record(&header, &record)?;
+        writer.write_variant_record(&header, record.as_ref())?;
     }
 
     Ok(())
