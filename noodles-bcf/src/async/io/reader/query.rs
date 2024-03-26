@@ -98,7 +98,7 @@ fn intersects(
 ) -> io::Result<bool> {
     let id = record.reference_sequence_id()?;
 
-    let Some(start) = record.position().transpose()? else {
+    let Some(start) = record.variant_start().transpose()? else {
         return Ok(false);
     };
 

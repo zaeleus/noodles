@@ -28,7 +28,7 @@ impl Fields {
     }
 
     // N.B. this is 0-based.
-    pub(super) fn position(&self) -> Option<i32> {
+    pub(super) fn variant_start(&self) -> Option<i32> {
         const TELOMERE_START: i32 = -1;
 
         let src = &self.site_buf[bounds::POSITION_RANGE];

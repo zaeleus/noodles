@@ -83,7 +83,7 @@ impl Record {
         })
     }
 
-    /// Returns the start position of this record.
+    /// Returns the variant start position.
     ///
     /// Despite the BCF format using 0-based positions, this normalizes the value as a 1-based
     /// position.
@@ -94,11 +94,11 @@ impl Record {
     /// use noodles_bcf as bcf;
     /// use noodles_core::Position;
     /// let record = bcf::Record::default();
-    /// assert_eq!(record.position().transpose()?, Some(Position::MIN));
+    /// assert_eq!(record.variant_start().transpose()?, Some(Position::MIN));
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn position(&self) -> Option<io::Result<Position>> {
-        self.0.position().map(|n| {
+    pub fn variant_start(&self) -> Option<io::Result<Position>> {
+        self.0.variant_start().map(|n| {
             usize::try_from(n)
                 .map(|m| m + 1)
                 .and_then(Position::try_from)
@@ -125,7 +125,7 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn end(&self) -> io::Result<Position> {
-        let Some(start) = self.position().transpose()? else {
+        let Some(start) = self.variant_start().transpose()? else {
             todo!();
         };
 
@@ -242,7 +242,7 @@ impl fmt::Debug for Record {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Record")
             .field("reference_sequence_id", &self.reference_sequence_id())
-            .field("position", &self.position())
+            .field("position", &self.variant_start())
             .field("ids", &self.ids())
             .field("reference_bases", &self.reference_bases())
             .field("alternate_bases", &self.alternate_bases())
@@ -263,7 +263,7 @@ impl vcf::variant::Record for Record {
     }
 
     fn variant_start(&self) -> Option<io::Result<Position>> {
-        self.position()
+        self.variant_start()
     }
 
     fn ids(&self) -> Box<dyn vcf::variant::record::Ids + '_> {

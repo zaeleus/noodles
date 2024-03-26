@@ -67,7 +67,7 @@ mod tests {
 
         assert_eq!(record.reference_sequence_id()?, 1);
         assert_eq!(
-            record.position().transpose()?,
+            record.variant_start().transpose()?,
             Some(Position::try_from(101)?)
         );
         assert_eq!(record.rlen()?, 1);
