@@ -9,7 +9,10 @@ use std::io::{self, Read, Seek};
 use noodles_bcf as bcf;
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
-use noodles_vcf::{self as vcf, variant::RecordBuf};
+use noodles_vcf::{
+    self as vcf,
+    variant::{Record, RecordBuf},
+};
 
 /// An indexed variant reader.
 pub enum IndexedReader<R> {
@@ -54,14 +57,18 @@ where
         &'r mut self,
         header: &'h vcf::Header,
         region: &Region,
-    ) -> io::Result<impl Iterator<Item = io::Result<RecordBuf>> + '_> {
-        let records: Box<dyn Iterator<Item = io::Result<RecordBuf>>> = match self {
-            Self::Vcf(reader) => Box::new(reader.query(header, region)?.map(|result| {
-                result.and_then(|record| RecordBuf::try_from_variant_record(header, &record))
-            })),
-            Self::Bcf(reader) => Box::new(reader.query(header, region)?.map(|result| {
-                result.and_then(|record| RecordBuf::try_from_variant_record(header, &record))
-            })),
+    ) -> io::Result<impl Iterator<Item = io::Result<Box<dyn Record>>> + '_> {
+        let records: Box<dyn Iterator<Item = io::Result<Box<dyn Record>>>> = match self {
+            Self::Vcf(reader) => Box::new(
+                reader
+                    .query(header, region)?
+                    .map(|result| result.map(|record| Box::new(record) as Box<dyn Record>)),
+            ),
+            Self::Bcf(reader) => Box::new(
+                reader
+                    .query(header, region)?
+                    .map(|result| result.map(|record| Box::new(record) as Box<dyn Record>)),
+            ),
         };
 
         Ok(records)
