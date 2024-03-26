@@ -79,6 +79,11 @@ where
         self.inner.read_record(record)
     }
 
+    /// Returns an iterator over records.
+    pub fn records(&mut self) -> impl Iterator<Item = io::Result<Record>> + '_ {
+        self.inner.records()
+    }
+
     /// Returns the associated index.
     pub fn index(&self) -> &dyn BinningIndex {
         &self.index
