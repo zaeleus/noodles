@@ -8,6 +8,8 @@
 
     This is moved from noodles-bcf.
 
+  * vcf/io/indexed_reader: Add `IndexedReader::records`.
+
   * vcf/variant: Add `Record` trait to represent an opaque variant record.
 
     The variant record buffer is renamed to `RecordBuf`. This also introduces
