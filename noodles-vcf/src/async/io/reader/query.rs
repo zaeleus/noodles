@@ -7,7 +7,7 @@ use noodles_csi::binning_index::index::reference_sequence::bin::Chunk;
 use tokio::io::{self, AsyncRead, AsyncSeek};
 
 use super::Reader;
-use crate::{io::reader::query::intersects, variant::RecordBuf, Header};
+use crate::{io::reader::query::intersects, Header, Record};
 
 enum State {
     Seek,
@@ -37,7 +37,7 @@ pub fn query<'r, R>(
     reference_sequence_name: Vec<u8>,
     interval: Interval,
     header: &'r Header,
-) -> impl Stream<Item = io::Result<RecordBuf>> + 'r
+) -> impl Stream<Item = io::Result<Record>> + 'r
 where
     R: AsyncRead + AsyncSeek + Unpin,
 {
@@ -66,7 +66,7 @@ where
                         None => State::Done,
                     };
                 }
-                State::Read(chunk_end) => match next_record(ctx.reader, ctx.header).await? {
+                State::Read(chunk_end) => match next_record(ctx.reader).await? {
                     Some(record) => {
                         if ctx.reader.virtual_position() >= chunk_end {
                             ctx.state = State::Seek;
@@ -89,20 +89,14 @@ where
     }))
 }
 
-async fn next_record<R>(
-    reader: &mut Reader<bgzf::AsyncReader<R>>,
-    header: &Header,
-) -> io::Result<Option<RecordBuf>>
+async fn next_record<R>(reader: &mut Reader<bgzf::AsyncReader<R>>) -> io::Result<Option<Record>>
 where
     R: AsyncRead + Unpin,
 {
-    let mut record = RecordBuf::default();
+    let mut record = Record::default();
 
-    reader
-        .read_record_buf(header, &mut record)
-        .await
-        .map(|n| match n {
-            0 => None,
-            _ => Some(record),
-        })
+    reader.read_record(&mut record).await.map(|n| match n {
+        0 => None,
+        _ => Some(record),
+    })
 }

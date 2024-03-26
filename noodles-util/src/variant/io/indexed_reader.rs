@@ -56,7 +56,9 @@ where
         region: &Region,
     ) -> io::Result<impl Iterator<Item = io::Result<RecordBuf>> + '_> {
         let records: Box<dyn Iterator<Item = io::Result<RecordBuf>>> = match self {
-            Self::Vcf(reader) => reader.query(header, region).map(Box::new)?,
+            Self::Vcf(reader) => Box::new(reader.query(header, region)?.map(|result| {
+                result.and_then(|record| RecordBuf::try_from_variant_record(header, &record))
+            })),
             Self::Bcf(reader) => reader.query(header, region).map(Box::new)?,
         };
 

@@ -5,10 +5,7 @@ use noodles_core::region::Interval;
 use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
 
 use super::Reader;
-use crate::{
-    variant::{Record, RecordBuf},
-    Header,
-};
+use crate::{variant::Record as _, Header, Record};
 
 /// An iterator over records of a VCF reader that intersects a given region.
 ///
@@ -21,7 +18,7 @@ where
     reference_sequence_name: Vec<u8>,
     interval: Interval,
     header: &'h Header,
-    record: RecordBuf,
+    record: Record,
 }
 
 impl<'r, 'h, R> Query<'r, 'h, R>
@@ -40,17 +37,15 @@ where
             reference_sequence_name,
             interval,
             header,
-            record: RecordBuf::default(),
+            record: Record::default(),
         }
     }
 
-    fn next_record(&mut self) -> io::Result<Option<RecordBuf>> {
-        self.reader
-            .read_record_buf(self.header, &mut self.record)
-            .map(|n| match n {
-                0 => None,
-                _ => Some(self.record.clone()),
-            })
+    fn next_record(&mut self) -> io::Result<Option<Record>> {
+        self.reader.read_record(&mut self.record).map(|n| match n {
+            0 => None,
+            _ => Some(self.record.clone()),
+        })
     }
 }
 
@@ -58,7 +53,7 @@ impl<'r, 'h, R> Iterator for Query<'r, 'h, R>
 where
     R: Read + Seek,
 {
-    type Item = io::Result<RecordBuf>;
+    type Item = io::Result<Record>;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
@@ -84,13 +79,13 @@ where
 
 pub(crate) fn intersects(
     header: &Header,
-    record: &RecordBuf,
+    record: &Record,
     reference_sequence_name: &[u8],
     region_interval: Interval,
 ) -> io::Result<bool> {
     let name = record.reference_sequence_name().to_string();
 
-    let Some(start) = record.variant_start() else {
+    let Some(start) = record.variant_start().transpose()? else {
         return Ok(false);
     };
 
