@@ -100,8 +100,8 @@ impl crate::variant::record::samples::series::value::Genotype for &Genotype {
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Option<usize>, u8)>> + '_> {
         Box::new(self.0.iter().map(|allele| {
             let raw_phasing = match allele.phasing() {
-                Phasing::Unphased => b'|',
-                Phasing::Phased => b'/',
+                Phasing::Unphased => b'/',
+                Phasing::Phased => b'|',
             };
 
             Ok((allele.position(), raw_phasing))
