@@ -63,7 +63,7 @@ where
 
     write_ids(writer, record.ids())?;
     write_bases(writer, record.reference_bases(), record.alternate_bases())?;
-    write_filters(writer, header, record.filters())?;
+    write_filters(writer, header, string_maps, record.filters())?;
     write_info(writer, header, string_maps, record.info())?;
 
     Ok(())
