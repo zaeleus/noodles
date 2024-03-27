@@ -6,7 +6,7 @@ use std::{
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_vcf::{
     header::record::value::{map::Format, Map},
-    variant::record::samples::series::{value::Array, Value},
+    variant::record::samples::series::{value::Array, value::Genotype, Value},
 };
 
 use crate::record::codec::{
@@ -621,20 +621,18 @@ pub(super) fn write_genotype_values<W>(
 where
     W: Write,
 {
-    let genotypes: Vec<_> = values
-        .iter()
-        .map(|v| match v {
-            Some(Value::String(s)) => Ok(s),
-            _ => Err(io::Error::from(io::ErrorKind::InvalidInput)),
-        })
-        .collect::<Result<_, _>>()?;
-
-    let mut raw_values = Vec::with_capacity(genotypes.len());
+    let mut raw_values = Vec::with_capacity(values.len());
     let mut max_len = 0;
 
-    for genotype in genotypes {
-        let raw_value = encode_genotype_values(genotype)?;
+    for value in values {
+        let raw_value = match value {
+            Some(Value::String(s)) => encode_genotype_str(s)?,
+            Some(Value::Genotype(genotype)) => encode_genotype(genotype.as_ref())?,
+            _ => return Err(io::Error::from(io::ErrorKind::InvalidInput)),
+        };
+
         max_len = cmp::max(max_len, raw_value.len());
+
         raw_values.push(raw_value);
     }
 
@@ -657,7 +655,7 @@ where
     Ok(())
 }
 
-fn encode_genotype_values(genotype: &str) -> io::Result<Vec<i8>> {
+fn encode_genotype_str(genotype: &str) -> io::Result<Vec<i8>> {
     const MISSING_ALLELE: &str = ".";
 
     fn is_phasing(c: char) -> bool {
@@ -698,6 +696,31 @@ fn encode_genotype_values(genotype: &str) -> io::Result<Vec<i8>> {
     values.push(i);
 
     Ok(values)
+}
+
+fn encode_genotype(genotype: &dyn Genotype) -> io::Result<Vec<i8>> {
+    fn encode(position: Option<usize>, phasing: u8) -> io::Result<i8> {
+        const PHASED: u8 = b'|';
+
+        let i = if let Some(position) = position {
+            i8::try_from(position).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
+        } else {
+            return Ok(0);
+        };
+
+        let mut n = (i + 1) << 1;
+
+        if phasing == PHASED {
+            n |= 0x01;
+        }
+
+        Ok(n)
+    }
+
+    genotype
+        .iter()
+        .map(|result| result.and_then(|(position, phasing)| encode(position, phasing)))
+        .collect()
 }
 
 #[cfg(test)]
@@ -1321,14 +1344,62 @@ mod tests {
     }
 
     #[test]
-    fn test_encode_genotype_genotype_field_values() -> io::Result<()> {
-        assert_eq!(encode_genotype_values("0/1")?, [0x02, 0x04]);
-        assert_eq!(encode_genotype_values("0|1")?, [0x02, 0x05]);
-        assert_eq!(encode_genotype_values("./.")?, [0x00, 0x00]);
-        assert_eq!(encode_genotype_values("0")?, [0x02]);
-        assert_eq!(encode_genotype_values("1")?, [0x04]);
-        assert_eq!(encode_genotype_values("0/1/2")?, [0x02, 0x04, 0x06]);
-        assert_eq!(encode_genotype_values("0/1|2")?, [0x02, 0x04, 0x07]);
+    fn test_encode_genotype_str() -> io::Result<()> {
+        assert_eq!(encode_genotype_str("0/1")?, [0x02, 0x04]);
+        assert_eq!(encode_genotype_str("0|1")?, [0x02, 0x05]);
+        assert_eq!(encode_genotype_str("./.")?, [0x00, 0x00]);
+        assert_eq!(encode_genotype_str("0")?, [0x02]);
+        assert_eq!(encode_genotype_str("1")?, [0x04]);
+        assert_eq!(encode_genotype_str("0/1/2")?, [0x02, 0x04, 0x06]);
+        assert_eq!(encode_genotype_str("0/1|2")?, [0x02, 0x04, 0x07]);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_encode_genotype() -> Result<(), Box<dyn std::error::Error>> {
+        use noodles_vcf::variant::record_buf::samples::sample::value::{
+            genotype::{allele::Phasing, Allele},
+            Genotype,
+        };
+
+        let genotype = &Genotype::try_from(vec![
+            Allele::new(Some(0), Phasing::Unphased),
+            Allele::new(Some(1), Phasing::Unphased),
+        ])?;
+        assert_eq!(encode_genotype(&genotype)?, [0x02, 0x04]);
+
+        let genotype = &Genotype::try_from(vec![
+            Allele::new(Some(0), Phasing::Phased),
+            Allele::new(Some(1), Phasing::Phased),
+        ])?;
+        assert_eq!(encode_genotype(&genotype)?, [0x03, 0x05]);
+
+        let genotype = &Genotype::try_from(vec![
+            Allele::new(None, Phasing::Unphased),
+            Allele::new(None, Phasing::Unphased),
+        ])?;
+        assert_eq!(encode_genotype(&genotype)?, [0x00, 0x00]);
+
+        let genotype = &Genotype::try_from(vec![Allele::new(Some(0), Phasing::Phased)])?;
+        assert_eq!(encode_genotype(&genotype)?, [0x03]);
+
+        let genotype = &Genotype::try_from(vec![Allele::new(Some(1), Phasing::Phased)])?;
+        assert_eq!(encode_genotype(&genotype)?, [0x05]);
+
+        let genotype = &Genotype::try_from(vec![
+            Allele::new(Some(0), Phasing::Unphased),
+            Allele::new(Some(1), Phasing::Unphased),
+            Allele::new(Some(2), Phasing::Unphased),
+        ])?;
+        assert_eq!(encode_genotype(&genotype)?, [0x02, 0x04, 0x06]);
+
+        let genotype = &Genotype::try_from(vec![
+            Allele::new(Some(0), Phasing::Unphased),
+            Allele::new(Some(1), Phasing::Unphased),
+            Allele::new(Some(2), Phasing::Phased),
+        ])?;
+        assert_eq!(encode_genotype(&genotype)?, [0x02, 0x04, 0x07]);
 
         Ok(())
     }
