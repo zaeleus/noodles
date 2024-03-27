@@ -83,12 +83,9 @@ mod tests {
     #[test]
     fn test_parse_samples() -> Result<(), Box<dyn std::error::Error>> {
         use crate::variant::{
-            record::samples::keys::key,
+            record::samples::{keys::key, series::value::genotype::Phasing},
             record_buf::samples::sample::{
-                value::{
-                    genotype::{allele::Phasing, Allele},
-                    Genotype,
-                },
+                value::{genotype::Allele, Genotype},
                 Value,
             },
         };

@@ -1,10 +1,8 @@
 //! VCF record genotype value allele.
 
-pub mod phasing;
-
-pub use self::phasing::Phasing;
-
 use std::{error, fmt, num, str::FromStr};
+
+use crate::variant::record::samples::series::value::genotype::Phasing;
 
 /// A VCF record genotype value allele.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -19,7 +17,11 @@ impl Allele {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::variant::record_buf::samples::sample::value::genotype::{allele::Phasing, Allele};
+    /// use noodles_vcf::variant::{
+    ///     record::samples::series::value::genotype::Phasing,
+    ///     record_buf::samples::sample::value::genotype::Allele,
+    /// };
+    ///
     /// let allele = Allele::new(Some(0), Phasing::Phased);
     /// ```
     pub fn new(position: Option<usize>, phasing: Phasing) -> Self {
@@ -31,7 +33,11 @@ impl Allele {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::variant::record_buf::samples::sample::value::genotype::{allele::Phasing, Allele};
+    /// use noodles_vcf::variant::{
+    ///     record::samples::series::value::genotype::Phasing,
+    ///     record_buf::samples::sample::value::genotype::Allele,
+    /// };
+    ///
     /// let allele = Allele::new(Some(0), Phasing::Phased);
     /// assert_eq!(allele.position(), Some(0));
     /// ```
@@ -44,7 +50,11 @@ impl Allele {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::variant::record_buf::samples::sample::value::genotype::{allele::Phasing, Allele};
+    /// use noodles_vcf::variant::{
+    ///     record::samples::series::value::genotype::Phasing,
+    ///     record_buf::samples::sample::value::genotype::Allele,
+    /// };
+    ///
     /// let mut allele = Allele::new(Some(0), Phasing::Phased);
     /// *allele.position_mut() = Some(1);
     /// assert_eq!(allele.position(), Some(1));
@@ -58,7 +68,11 @@ impl Allele {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::variant::record_buf::samples::sample::value::genotype::{allele::Phasing, Allele};
+    /// use noodles_vcf::variant::{
+    ///     record::samples::series::value::genotype::Phasing,
+    ///     record_buf::samples::sample::value::genotype::Allele,
+    /// };
+    ///
     /// let allele = Allele::new(Some(0), Phasing::Phased);
     /// assert_eq!(allele.phasing(), Phasing::Phased);
     /// ```
@@ -71,7 +85,11 @@ impl Allele {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::variant::record_buf::samples::sample::value::genotype::{allele::Phasing, Allele};
+    /// use noodles_vcf::variant::{
+    ///     record::samples::series::value::genotype::Phasing,
+    ///     record_buf::samples::sample::value::genotype::Allele,
+    /// };
+    ///
     /// let mut allele = Allele::new(Some(0), Phasing::Phased);
     /// *allele.phasing_mut() = Phasing::Unphased;
     /// assert_eq!(allele.phasing(), Phasing::Unphased);
@@ -89,15 +107,14 @@ pub enum ParseError {
     /// The position is invalid.
     InvalidPosition(num::ParseIntError),
     /// The phasing is invalid.
-    InvalidPhasing(phasing::ParseError),
+    InvalidPhasing,
 }
 
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
-            Self::Empty => None,
             Self::InvalidPosition(e) => Some(e),
-            Self::InvalidPhasing(e) => Some(e),
+            _ => None,
         }
     }
 }
@@ -107,7 +124,7 @@ impl fmt::Display for ParseError {
         match self {
             Self::Empty => f.write_str("empty input"),
             Self::InvalidPosition(_) => f.write_str("invalid position"),
-            Self::InvalidPhasing(_) => f.write_str("invalid phasing"),
+            Self::InvalidPhasing => f.write_str("invalid phasing"),
         }
     }
 }
@@ -120,10 +137,21 @@ impl FromStr for Allele {
             return Err(ParseError::Empty);
         }
 
-        let phasing = s[..1].parse().map_err(ParseError::InvalidPhasing)?;
+        let phasing = parse_phasing(&s[..1])?;
         let position = parse_position(&s[1..])?;
 
         Ok(Allele::new(position, phasing))
+    }
+}
+
+pub(super) fn parse_phasing(s: &str) -> Result<Phasing, ParseError> {
+    const PHASED: &str = "|";
+    const UNPHASED: &str = "/";
+
+    match s {
+        PHASED => Ok(Phasing::Phased),
+        UNPHASED => Ok(Phasing::Unphased),
+        _ => Err(ParseError::InvalidPhasing),
     }
 }
 
@@ -151,9 +179,6 @@ mod tests {
             "/ndls".parse::<Allele>(),
             Err(ParseError::InvalidPosition(_))
         ));
-        assert!(matches!(
-            ":0".parse::<Allele>(),
-            Err(ParseError::InvalidPhasing(_))
-        ));
+        assert_eq!(":0".parse::<Allele>(), Err(ParseError::InvalidPhasing));
     }
 }

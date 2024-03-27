@@ -1,7 +1,7 @@
 //! Variant record samples value.
 
 pub mod array;
-mod genotype;
+pub mod genotype;
 
 use std::io;
 

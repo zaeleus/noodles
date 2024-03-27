@@ -102,11 +102,8 @@ mod tests {
     #[test]
     fn test_parse_values() -> Result<(), Box<dyn std::error::Error>> {
         use crate::variant::{
-            record::samples::keys::key,
-            record_buf::samples::sample::value::{
-                genotype::{allele::Phasing, Allele},
-                Genotype,
-            },
+            record::samples::{keys::key, series::value::genotype::Phasing},
+            record_buf::samples::sample::value::{genotype::Allele, Genotype},
         };
 
         let header = Header::default();

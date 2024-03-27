@@ -1,9 +1,7 @@
 use std::{error, fmt};
 
-use super::{
-    allele::{self, Phasing},
-    Allele, Genotype,
-};
+use super::{allele, Allele, Genotype};
+use crate::variant::record::samples::series::value::genotype::Phasing;
 
 /// An error returned when a raw VCF record genotype value fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -95,18 +93,18 @@ fn is_phasing_indicator(c: char) -> bool {
 }
 
 fn parse_first_allele(s: &str) -> Result<(Option<usize>, Option<Phasing>), allele::ParseError> {
-    use super::allele::parse_position;
+    use super::allele::{parse_phasing, parse_position};
 
-    match s[..1].parse() {
+    match parse_phasing(&s[..1]) {
         Ok(phasing) => {
             let position = parse_position(&s[1..])?;
             Ok((position, Some(phasing)))
         }
-        Err(e) => {
+        Err(_) => {
             if let Ok(position) = parse_position(s) {
                 Ok((position, None))
             } else {
-                Err(allele::ParseError::InvalidPhasing(e))
+                Err(allele::ParseError::InvalidPhasing)
             }
         }
     }

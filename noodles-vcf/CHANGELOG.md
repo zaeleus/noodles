@@ -98,6 +98,12 @@
 
     Use `Samples::select(key::GENOTYPE)` to get the raw values instead.
 
+  * vcf/variant/record_buf/samples/sample/value/genotype/allele: Remove
+    `Phasing`.
+
+    Use `crate::variant::record::samples::series::value::genotype::Phasing`
+    instead.
+
 ## 0.51.0 - 2024-03-28
 
 ### Changed

@@ -3,8 +3,8 @@
 pub mod allele;
 mod parser;
 
-use self::allele::Phasing;
 pub use self::{allele::Allele, parser::ParseError};
+use crate::variant::record::samples::series::value::genotype::Phasing;
 
 use std::{
     error, fmt, io,
@@ -80,32 +80,19 @@ impl TryFrom<&dyn crate::variant::record::samples::series::value::Genotype> for 
     ) -> Result<Self, Self::Error> {
         genotype
             .iter()
-            .map(|result| {
-                result.map(|(position, raw_phasing)| {
-                    let phasing = match raw_phasing {
-                        b'/' => Phasing::Unphased,
-                        b'|' => Phasing::Phased,
-                        _ => unreachable!(),
-                    };
-
-                    Allele::new(position, phasing)
-                })
-            })
+            .map(|result| result.map(|(position, phasing)| Allele::new(position, phasing)))
             .collect::<io::Result<_>>()
             .map(Self)
     }
 }
 
 impl crate::variant::record::samples::series::value::Genotype for &Genotype {
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Option<usize>, u8)>> + '_> {
-        Box::new(self.0.iter().map(|allele| {
-            let raw_phasing = match allele.phasing() {
-                Phasing::Unphased => b'/',
-                Phasing::Phased => b'|',
-            };
-
-            Ok((allele.position(), raw_phasing))
-        }))
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Option<usize>, Phasing)>> + '_> {
+        Box::new(
+            self.0
+                .iter()
+                .map(|allele| Ok((allele.position(), allele.phasing()))),
+        )
     }
 }
 
@@ -179,8 +166,6 @@ mod tests {
 
     #[test]
     fn test_try_from_alleles_for_genotype() {
-        use allele::Phasing;
-
         let expected = Genotype(vec![
             Allele::new(Some(0), Phasing::Unphased),
             Allele::new(Some(1), Phasing::Unphased),

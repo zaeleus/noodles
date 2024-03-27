@@ -4,7 +4,7 @@ use crate::{
     io::writer::record::MISSING,
     variant::record::samples::{
         series::{
-            value::{Array, Genotype},
+            value::{genotype::Phasing, Array, Genotype},
             Value,
         },
         Sample,
@@ -59,7 +59,7 @@ where
         let (position, phasing) = result?;
 
         if i > 0 {
-            writer.write_all(&[phasing])?;
+            write_genotype_phasing(writer, phasing)?;
         }
 
         if let Some(n) = position {
@@ -70,6 +70,19 @@ where
     }
 
     Ok(())
+}
+
+fn write_genotype_phasing<W>(writer: &mut W, phasing: Phasing) -> io::Result<()>
+where
+    W: Write,
+{
+    const PHASED: u8 = b'/';
+    const UNPHASED: u8 = b'|';
+
+    match phasing {
+        Phasing::Phased => writer.write_all(&[PHASED]),
+        Phasing::Unphased => writer.write_all(&[UNPHASED]),
+    }
 }
 
 fn write_array_value<W>(writer: &mut W, array: &Array) -> io::Result<()>

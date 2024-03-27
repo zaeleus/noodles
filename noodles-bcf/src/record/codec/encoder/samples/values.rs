@@ -6,7 +6,11 @@ use std::{
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_vcf::{
     header::record::value::{map::Format, Map},
-    variant::record::samples::series::{value::Array, value::Genotype, Value},
+    variant::record::samples::series::{
+        value::Array,
+        value::{genotype::Phasing, Genotype},
+        Value,
+    },
 };
 
 use crate::record::codec::{
@@ -699,9 +703,7 @@ fn encode_genotype_str(genotype: &str) -> io::Result<Vec<i8>> {
 }
 
 fn encode_genotype(genotype: &dyn Genotype) -> io::Result<Vec<i8>> {
-    fn encode(position: Option<usize>, phasing: u8) -> io::Result<i8> {
-        const PHASED: u8 = b'|';
-
+    fn encode(position: Option<usize>, phasing: Phasing) -> io::Result<i8> {
         let i = if let Some(position) = position {
             i8::try_from(position).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
         } else {
@@ -710,7 +712,7 @@ fn encode_genotype(genotype: &dyn Genotype) -> io::Result<Vec<i8>> {
 
         let mut n = (i + 1) << 1;
 
-        if phasing == PHASED {
+        if phasing == Phasing::Phased {
             n |= 0x01;
         }
 
@@ -1358,9 +1360,9 @@ mod tests {
 
     #[test]
     fn test_encode_genotype() -> Result<(), Box<dyn std::error::Error>> {
-        use noodles_vcf::variant::record_buf::samples::sample::value::{
-            genotype::{allele::Phasing, Allele},
-            Genotype,
+        use noodles_vcf::variant::{
+            record::samples::series::value::genotype::Phasing,
+            record_buf::samples::sample::value::{genotype::Allele, Genotype},
         };
 
         let genotype = &Genotype::try_from(vec![

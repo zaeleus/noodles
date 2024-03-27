@@ -110,16 +110,13 @@ pub(crate) mod tests {
             variant::{
                 record::{
                     info,
-                    samples::{self, Sample},
+                    samples::{self, series::value::genotype::Phasing, Sample},
                     AlternateBases, Filters, Info, Samples,
                 },
                 record_buf::{
                     info::field::Value as InfoFieldValue,
                     samples::sample::{
-                        value::{
-                            genotype::{allele::Phasing, Allele},
-                            Array, Genotype,
-                        },
+                        value::{genotype::Allele, Array, Genotype},
                         Value as GenotypeFieldValue,
                     },
                     Samples as VcfGenotypes,
