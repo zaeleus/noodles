@@ -1,4 +1,4 @@
-use std::{error, fmt};
+use std::{error, fmt, num};
 
 /// An error when a raw VCF record quality score fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -6,15 +6,23 @@ pub enum ParseError {
     /// The input is empty.
     Empty,
     /// The input is invalid.
-    Invalid,
+    Invalid(num::ParseFloatError),
 }
-impl error::Error for ParseError {}
+
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Empty => None,
+            Self::Invalid(e) => Some(e),
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => write!(f, "empty input"),
-            Self::Invalid => write!(f, "invalid input"),
+            Self::Invalid(_) => write!(f, "invalid input"),
         }
     }
 }
@@ -24,7 +32,7 @@ pub(super) fn parse_quality_score(s: &str) -> Result<f32, ParseError> {
         return Err(ParseError::Empty);
     }
 
-    s.parse().map_err(|_| ParseError::Invalid)
+    s.parse().map_err(ParseError::Invalid)
 }
 
 #[cfg(test)]
@@ -37,7 +45,13 @@ mod tests {
         assert_eq!(parse_quality_score("1.0"), Ok(1.0));
 
         assert_eq!(parse_quality_score(""), Err(ParseError::Empty));
-        assert_eq!(parse_quality_score("."), Err(ParseError::Invalid));
-        assert_eq!(parse_quality_score("ndls"), Err(ParseError::Invalid));
+        assert!(matches!(
+            parse_quality_score("."),
+            Err(ParseError::Invalid(_))
+        ));
+        assert!(matches!(
+            parse_quality_score("ndls"),
+            Err(ParseError::Invalid(_))
+        ));
     }
 }
