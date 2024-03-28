@@ -1,11 +1,11 @@
+mod array;
+
 use std::io::{self, Write};
 
-use crate::{
-    io::writer::record::MISSING,
-    variant::record::samples::series::{
-        value::{genotype::Phasing, Array, Genotype},
-        Value,
-    },
+use self::array::write_array;
+use crate::variant::record::samples::series::{
+    value::{genotype::Phasing, Genotype},
+    Value,
 };
 
 pub(super) fn write_value<W>(writer: &mut W, value: &Value) -> io::Result<()>
@@ -18,7 +18,7 @@ where
         Value::Character(c) => write!(writer, "{c}"),
         Value::String(s) => writer.write_all(s.as_bytes()),
         Value::Genotype(genotype) => write_genotype(writer, genotype.as_ref()),
-        Value::Array(array) => write_array_value(writer, array),
+        Value::Array(array) => write_array(writer, array),
     }
 }
 
@@ -58,73 +58,10 @@ where
     }
 }
 
-fn write_array_value<W>(writer: &mut W, array: &Array) -> io::Result<()>
-where
-    W: Write,
-{
-    const DELIMITER: &[u8] = b",";
-
-    match array {
-        Array::Integer(values) => {
-            for (i, result) in values.iter().enumerate() {
-                if i > 0 {
-                    writer.write_all(DELIMITER)?;
-                }
-
-                if let Some(n) = result? {
-                    write!(writer, "{n}")?;
-                } else {
-                    writer.write_all(MISSING)?;
-                }
-            }
-        }
-        Array::Float(values) => {
-            for (i, result) in values.iter().enumerate() {
-                if i > 0 {
-                    writer.write_all(DELIMITER)?;
-                }
-
-                if let Some(n) = result? {
-                    write!(writer, "{n}")?;
-                } else {
-                    writer.write_all(MISSING)?;
-                }
-            }
-        }
-        Array::Character(values) => {
-            for (i, result) in values.iter().enumerate() {
-                if i > 0 {
-                    writer.write_all(DELIMITER)?;
-                }
-
-                if let Some(c) = result? {
-                    write!(writer, "{c}")?;
-                } else {
-                    writer.write_all(MISSING)?;
-                }
-            }
-        }
-        Array::String(values) => {
-            for (i, result) in values.iter().enumerate() {
-                if i > 0 {
-                    writer.write_all(DELIMITER)?;
-                }
-
-                if let Some(s) = result? {
-                    writer.write_all(s.as_bytes())?;
-                } else {
-                    writer.write_all(MISSING)?;
-                }
-            }
-        }
-    }
-
-    Ok(())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::variant::record::samples::series::value::Array;
 
     #[test]
     fn test_write_value() -> io::Result<()> {
