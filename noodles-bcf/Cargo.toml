@@ -1,6 +1,6 @@
 [package]
 name = "noodles-bcf"
-version = "0.47.0"
+version = "0.48.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
@@ -16,10 +16,10 @@ async = ["dep:futures", "dep:tokio", "noodles-bgzf/async", "noodles-csi/async"]
 [dependencies]
 byteorder.workspace = true
 indexmap.workspace = true
-noodles-bgzf = { path = "../noodles-bgzf", version = "0.27.0" }
+noodles-bgzf = { path = "../noodles-bgzf", version = "0.28.0" }
 noodles-core = { path = "../noodles-core", version = "0.14.0" }
-noodles-csi = { path = "../noodles-csi", version = "0.31.0" }
-noodles-vcf = { path = "../noodles-vcf", version = "0.50.0" }
+noodles-csi = { path = "../noodles-csi", version = "0.32.0" }
+noodles-vcf = { path = "../noodles-vcf", version = "0.51.0" }
 
 futures = { workspace = true, optional = true, features = ["std"] }
 tokio = { workspace = true, optional = true, features = ["io-util"] }
