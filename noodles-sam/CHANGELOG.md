@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * sam/alignment/record_buf/data: Add `Data::get_mut`.
+
 ## 0.55.0 - 2024-03-28
 
 ### Changed

@@ -86,6 +86,35 @@ impl Data {
             .map(|(_, v)| v)
     }
 
+    /// Returns a mutable reference to the value of the given tag.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::alignment::{
+    ///     record::data::field::Tag,
+    ///     record_buf::{data::field::Value, Data},
+    /// };
+    ///
+    /// let tag = Tag::ALIGNMENT_HIT_COUNT;
+    /// let mut data: Data = [(tag, Value::from(1))].into_iter().collect();
+    ///
+    /// if let Some(v) = data.get_mut(&tag) {
+    ///     *v = Value::from(2);
+    /// }
+    ///
+    /// assert_eq!(data.get(&tag), Some(&Value::from(2)));
+    /// ```
+    pub fn get_mut<K>(&mut self, tag: &K) -> Option<&mut Value>
+    where
+        K: indexmap::Equivalent<Tag>,
+    {
+        self.0
+            .iter_mut()
+            .find(|(t, _)| tag.equivalent(t))
+            .map(|(_, v)| v)
+    }
+
     /// Returns the index of the field of the given tag.
     ///
     /// # Examples
