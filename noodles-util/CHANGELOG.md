@@ -62,7 +62,7 @@
     over `io::Result<Box<dyn sam::alignment::Record>>`.
 
   * util/alignment/io/writer: Change `Writer::write_record` to accept
-    `&sam::alignment::Record`.
+    `&dyn sam::alignment::Record`.
 
 ### Removed
 
