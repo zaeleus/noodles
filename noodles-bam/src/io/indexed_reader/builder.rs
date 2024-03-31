@@ -71,7 +71,7 @@ impl Builder {
     /// use noodles_bam::{bai, io::indexed_reader::Builder};
     /// let index = bai::Index::default();
     /// let data = [];
-    /// let builder = Builder::default().set_index(index).build_from_reader(&data[..])?;
+    /// let reader = Builder::default().set_index(index).build_from_reader(&data[..])?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn build_from_reader<R>(self, reader: R) -> io::Result<IndexedReader<bgzf::Reader<R>>>
