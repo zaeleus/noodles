@@ -1,4 +1,4 @@
-//! VCF record genotype value allele.
+//! Variant record samples genotype value allele.
 
 use std::{error, fmt, num, str::FromStr};
 
@@ -12,7 +12,7 @@ pub struct Allele {
 }
 
 impl Allele {
-    /// Creates a VCF record genotype value allele.
+    /// Creates a variant record samples genotype value allele.
     ///
     /// # Examples
     ///

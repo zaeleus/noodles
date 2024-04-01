@@ -1,4 +1,4 @@
-//! VCF record info field value.
+//! Variant record info field value.
 
 mod array;
 
@@ -6,7 +6,7 @@ use std::str;
 
 pub use self::array::Array;
 
-/// A VCF record info field value.
+/// A variant record info field value.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Value {
     /// A 32-bit integer.

@@ -1,6 +1,6 @@
 use std::io;
 
-/// A VCF record genotype field array value.
+/// A variant record samples field array value.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Array {
     /// An array of 32-bit integers.

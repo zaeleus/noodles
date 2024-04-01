@@ -1,4 +1,4 @@
-//! VCF record genotypes and fields.
+//! Variant record samples.
 
 pub mod keys;
 pub mod sample;
@@ -10,7 +10,7 @@ use self::sample::Value;
 pub use self::{keys::Keys, sample::Sample, series::Series};
 use crate::Header;
 
-/// VCF record genotypes.
+/// A variant record samples buffer.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Samples {
     pub(crate) keys: Keys,
@@ -18,7 +18,7 @@ pub struct Samples {
 }
 
 impl Samples {
-    /// Creates VCF record genotypes.
+    /// Creates a variant record samples buffer.
     ///
     /// # Examples
     ///
@@ -85,21 +85,21 @@ impl Samples {
         &mut self.keys
     }
 
-    /// Returns genotypes samples.
+    /// Returns samples.
     pub fn values(&self) -> impl Iterator<Item = Sample<'_>> {
         self.values
             .iter()
             .map(|values| Sample::new(&self.keys, values))
     }
 
-    /// Returns the genotype values for the sample at the given index.
+    /// Returns the sample at the given index.
     pub fn get_index(&self, i: usize) -> Option<Sample<'_>> {
         self.values
             .get(i)
             .map(|values| Sample::new(&self.keys, values))
     }
 
-    /// Returns a series with the given column name.
+    /// Returns the series with the given column name.
     ///
     /// # Examples
     ///

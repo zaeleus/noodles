@@ -1,5 +1,3 @@
-//! VCF record filters.
-
 use std::io;
 
 use indexmap::IndexSet;
@@ -8,7 +6,7 @@ use crate::Header;
 
 const PASS: &str = "PASS";
 
-/// VCF record filters (`FILTER`).
+/// A variant record filters buffer.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Filters(IndexSet<String>);
 

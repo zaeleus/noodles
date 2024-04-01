@@ -1,4 +1,4 @@
-//! VCF record genotype value.
+//! Variant record samples genotype value.
 
 pub mod allele;
 mod parser;
@@ -12,7 +12,7 @@ use std::{
     str::FromStr,
 };
 
-/// A VCF record genotype value.
+/// A variant record samples genotype value.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Genotype(Vec<Allele>);
 

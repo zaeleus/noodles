@@ -1,8 +1,6 @@
-//! VCF record alternate bases.
-
 use std::io;
 
-/// VCF record alternate bases (`ALT`).
+/// A variant record alternate bases buffer.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct AlternateBases(Vec<String>);
 

@@ -1,10 +1,10 @@
-//! VCF record genotypes keys.
+//! Variant record genotypes keys.
 
 use indexmap::IndexSet;
 
 type Inner = IndexSet<String>;
 
-/// VCF record genotypes keys.
+/// A variant record samples keys buffer.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Keys(Inner);
 

@@ -1,4 +1,4 @@
-//! VCF record genotype field value.
+//! Variant record samples field value.
 
 mod array;
 pub mod genotype;
@@ -7,7 +7,7 @@ pub use self::{array::Array, genotype::Genotype};
 
 use std::str;
 
-/// A VCF record genotype field value.
+/// A variant record samples field value.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Value {
     /// A 32-bit integer.

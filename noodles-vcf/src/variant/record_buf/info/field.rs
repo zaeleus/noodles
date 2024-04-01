@@ -1,4 +1,4 @@
-//! VCF record info field.
+//! Variant record info field.
 
 pub mod value;
 

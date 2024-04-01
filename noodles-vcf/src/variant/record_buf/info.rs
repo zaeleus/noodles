@@ -1,4 +1,4 @@
-//! VCF record information and field.
+//! Variant record info fields.
 
 pub mod field;
 
@@ -9,7 +9,7 @@ use indexmap::IndexMap;
 use self::field::Value;
 use crate::Header;
 
-/// VCF record information fields (`INFO`).
+/// A variant record record info fields buffer.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Info(IndexMap<String, Option<Value>>);
 

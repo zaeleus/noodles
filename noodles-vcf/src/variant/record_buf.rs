@@ -1,9 +1,9 @@
 //! Variant record buffer.
 
-pub mod alternate_bases;
+mod alternate_bases;
 pub mod builder;
 mod convert;
-pub mod filters;
+mod filters;
 pub mod ids;
 pub mod info;
 pub mod samples;
