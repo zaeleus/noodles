@@ -12,11 +12,31 @@ pub struct Filters(IndexSet<String>);
 
 impl Filters {
     /// Creates a PASS filter.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::variant::record_buf::Filters;
+    /// let filters = Filters::pass();
+    /// assert!(filters.is_pass());
+    /// ```
     pub fn pass() -> Self {
         [String::from(PASS)].into_iter().collect()
     }
 
     /// Returns whether this is a PASS filter.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::variant::record_buf::Filters;
+    ///
+    /// let filters = Filters::pass();
+    /// assert!(filters.is_pass());
+    ///
+    /// let filters: Filters = [String::from("q10")].into_iter().collect();
+    /// assert!(!filters.is_pass());
+    /// ```
     pub fn is_pass(&self) -> bool {
         self.0
             .first()
