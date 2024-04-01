@@ -46,6 +46,13 @@ pub trait Record {
     /// Returns the samples.
     fn samples(&self) -> io::Result<Box<dyn Samples + '_>>;
 
+    /// Returns the variant span.
+    fn variant_span(&self, header: &Header) -> io::Result<usize> {
+        let start = self.variant_start().transpose()?.unwrap_or(Position::MIN);
+        let end = self.variant_end(header)?;
+        Ok(usize::from(end) - usize::from(start) + 1)
+    }
+
     /// Returns or calculates the variant end position.
     ///
     /// If available, this returns the value of the `END` INFO field. Otherwise, it is calculated
@@ -92,11 +99,30 @@ pub trait Record {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::variant::{record::info::field::key, record_buf::info::field::Value, RecordBuf};
+
+    #[test]
+    fn test_variant_span() -> io::Result<()> {
+        let header = Header::default();
+
+        let record = RecordBuf::builder()
+            .set_info(
+                [(String::from(key::END_POSITION), Some(Value::from(8)))]
+                    .into_iter()
+                    .collect(),
+            )
+            .build();
+
+        assert_eq!(record.variant_span(&header)?, 8);
+
+        let record = RecordBuf::builder().set_reference_bases("ACGT").build();
+        assert_eq!(record.variant_span(&header)?, 4);
+
+        Ok(())
+    }
 
     #[test]
     fn test_variant_end() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::variant::{record::info::field::key, record_buf::info::field::Value, RecordBuf};
-
         let header = Header::default();
 
         let record = RecordBuf::builder()
