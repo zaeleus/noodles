@@ -6,26 +6,20 @@ mod parser;
 pub use self::{allele::Allele, parser::ParseError};
 use crate::variant::record::samples::series::value::genotype::Phasing;
 
-use std::{
-    io,
-    ops::{Deref, DerefMut},
-    str::FromStr,
-};
+use std::{io, str::FromStr};
 
 /// A variant record samples genotype value.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Genotype(Vec<Allele>);
 
-impl Deref for Genotype {
-    type Target = [Allele];
-
-    fn deref(&self) -> &Self::Target {
+impl AsRef<[Allele]> for Genotype {
+    fn as_ref(&self) -> &[Allele] {
         &self.0
     }
 }
 
-impl DerefMut for Genotype {
-    fn deref_mut(&mut self) -> &mut Self::Target {
+impl AsMut<Vec<Allele>> for Genotype {
+    fn as_mut(&mut self) -> &mut Vec<Allele> {
         &mut self.0
     }
 }
