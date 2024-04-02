@@ -7,13 +7,13 @@ pub use self::{allele::Allele, parser::ParseError};
 use crate::variant::record::samples::series::value::genotype::Phasing;
 
 use std::{
-    error, fmt, io,
+    io,
     ops::{Deref, DerefMut},
     str::FromStr,
 };
 
 /// A variant record samples genotype value.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Genotype(Vec<Allele>);
 
 impl Deref for Genotype {
@@ -38,37 +38,17 @@ impl FromStr for Genotype {
     }
 }
 
-impl TryFrom<Vec<Allele>> for Genotype {
-    type Error = TryFromAllelesError;
-
-    fn try_from(alleles: Vec<Allele>) -> Result<Self, Self::Error> {
-        if alleles.is_empty() {
-            Err(TryFromAllelesError::Empty)
-        } else {
-            Ok(Self(alleles))
-        }
+impl Extend<Allele> for Genotype {
+    fn extend<T: IntoIterator<Item = Allele>>(&mut self, iter: T) {
+        self.0.extend(iter);
     }
 }
 
-/// An error returned when a VCF record genotype alleles fail to convert.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum TryFromAllelesError {
-    /// The list of alleles is empty.
-    Empty,
-    /// The phasing of the first allele is invalid.
-    ///
-    /// The first allele cannot have phasing information.
-    InvalidFirstAllelePhasing,
-}
-
-impl error::Error for TryFromAllelesError {}
-
-impl fmt::Display for TryFromAllelesError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Empty => f.write_str("empty input"),
-            Self::InvalidFirstAllelePhasing => f.write_str("invalid first allele phasing"),
-        }
+impl FromIterator<Allele> for Genotype {
+    fn from_iter<T: IntoIterator<Item = Allele>>(iter: T) -> Self {
+        let mut genotype = Self::default();
+        genotype.extend(iter);
+        genotype
     }
 }
 
@@ -162,19 +142,5 @@ mod tests {
             "0:1".parse::<Genotype>(),
             Err(ParseError::InvalidAllele(_))
         ));
-    }
-
-    #[test]
-    fn test_try_from_alleles_for_genotype() {
-        let expected = Genotype(vec![
-            Allele::new(Some(0), Phasing::Unphased),
-            Allele::new(Some(1), Phasing::Unphased),
-        ]);
-        assert_eq!(Genotype::try_from(expected.0.clone()), Ok(expected));
-
-        assert_eq!(
-            Genotype::try_from(Vec::new()),
-            Err(TryFromAllelesError::Empty)
-        );
     }
 }

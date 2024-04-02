@@ -103,7 +103,7 @@ mod tests {
     fn test_parse_values() -> Result<(), Box<dyn std::error::Error>> {
         use crate::variant::{
             record::samples::{keys::key, series::value::genotype::Phasing},
-            record_buf::samples::sample::value::{genotype::Allele, Genotype},
+            record_buf::samples::sample::value::genotype::Allele,
         };
 
         let header = Header::default();
@@ -119,10 +119,14 @@ mod tests {
         parse_values(&header, &keys, "0|0", &mut values)?;
         assert_eq!(
             values,
-            vec![Some(Value::Genotype(Genotype::try_from(vec![
-                Allele::new(Some(0), Phasing::Phased),
-                Allele::new(Some(0), Phasing::Phased)
-            ])?))]
+            vec![Some(Value::Genotype(
+                [
+                    Allele::new(Some(0), Phasing::Phased),
+                    Allele::new(Some(0), Phasing::Phased)
+                ]
+                .into_iter()
+                .collect()
+            ))]
         );
 
         let keys = [
@@ -136,10 +140,14 @@ mod tests {
         assert_eq!(
             values,
             vec![
-                Some(Value::Genotype(Genotype::try_from(vec![
-                    Allele::new(Some(0), Phasing::Phased),
-                    Allele::new(Some(0), Phasing::Phased)
-                ])?)),
+                Some(Value::Genotype(
+                    [
+                        Allele::new(Some(0), Phasing::Phased),
+                        Allele::new(Some(0), Phasing::Phased)
+                    ]
+                    .into_iter()
+                    .collect()
+                )),
                 Some(Value::from(13)),
             ]
         );
@@ -155,10 +163,14 @@ mod tests {
         assert_eq!(
             values,
             vec![
-                Some(Value::Genotype(Genotype::try_from(vec![
-                    Allele::new(Some(0), Phasing::Phased),
-                    Allele::new(Some(0), Phasing::Phased)
-                ])?)),
+                Some(Value::Genotype(
+                    [
+                        Allele::new(Some(0), Phasing::Phased),
+                        Allele::new(Some(0), Phasing::Phased)
+                    ]
+                    .into_iter()
+                    .collect()
+                )),
                 None
             ]
         );
@@ -173,10 +185,14 @@ mod tests {
         parse_values(&header, &keys, "0|0", &mut values)?;
         assert_eq!(
             values,
-            vec![Some(Value::Genotype(Genotype::try_from(vec![
-                Allele::new(Some(0), Phasing::Phased),
-                Allele::new(Some(0), Phasing::Phased)
-            ])?))]
+            vec![Some(Value::Genotype(
+                [
+                    Allele::new(Some(0), Phasing::Phased),
+                    Allele::new(Some(0), Phasing::Phased)
+                ]
+                .into_iter()
+                .collect()
+            ))]
         );
 
         let keys = [String::from(key::GENOTYPE)].into_iter().collect();

@@ -1362,45 +1362,59 @@ mod tests {
     fn test_encode_genotype() -> Result<(), Box<dyn std::error::Error>> {
         use noodles_vcf::variant::{
             record::samples::series::value::genotype::Phasing,
-            record_buf::samples::sample::value::{genotype::Allele, Genotype},
+            record_buf::samples::sample::value::genotype::Allele,
         };
 
-        let genotype = &Genotype::try_from(vec![
+        let genotype = &[
             Allele::new(Some(0), Phasing::Unphased),
             Allele::new(Some(1), Phasing::Unphased),
-        ])?;
+        ]
+        .into_iter()
+        .collect();
         assert_eq!(encode_genotype(&genotype)?, [0x02, 0x04]);
 
-        let genotype = &Genotype::try_from(vec![
+        let genotype = &[
             Allele::new(Some(0), Phasing::Phased),
             Allele::new(Some(1), Phasing::Phased),
-        ])?;
+        ]
+        .into_iter()
+        .collect();
         assert_eq!(encode_genotype(&genotype)?, [0x03, 0x05]);
 
-        let genotype = &Genotype::try_from(vec![
+        let genotype = &[
             Allele::new(None, Phasing::Unphased),
             Allele::new(None, Phasing::Unphased),
-        ])?;
+        ]
+        .into_iter()
+        .collect();
         assert_eq!(encode_genotype(&genotype)?, [0x00, 0x00]);
 
-        let genotype = &Genotype::try_from(vec![Allele::new(Some(0), Phasing::Phased)])?;
+        let genotype = &[Allele::new(Some(0), Phasing::Phased)]
+            .into_iter()
+            .collect();
         assert_eq!(encode_genotype(&genotype)?, [0x03]);
 
-        let genotype = &Genotype::try_from(vec![Allele::new(Some(1), Phasing::Phased)])?;
+        let genotype = &[Allele::new(Some(1), Phasing::Phased)]
+            .into_iter()
+            .collect();
         assert_eq!(encode_genotype(&genotype)?, [0x05]);
 
-        let genotype = &Genotype::try_from(vec![
+        let genotype = &[
             Allele::new(Some(0), Phasing::Unphased),
             Allele::new(Some(1), Phasing::Unphased),
             Allele::new(Some(2), Phasing::Unphased),
-        ])?;
+        ]
+        .into_iter()
+        .collect();
         assert_eq!(encode_genotype(&genotype)?, [0x02, 0x04, 0x06]);
 
-        let genotype = &Genotype::try_from(vec![
+        let genotype = &[
             Allele::new(Some(0), Phasing::Unphased),
             Allele::new(Some(1), Phasing::Unphased),
             Allele::new(Some(2), Phasing::Phased),
-        ])?;
+        ]
+        .into_iter()
+        .collect();
         assert_eq!(encode_genotype(&genotype)?, [0x02, 0x04, 0x07]);
 
         Ok(())

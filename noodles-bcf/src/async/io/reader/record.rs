@@ -40,10 +40,7 @@ mod tests {
                 AlternateBases, Filters, Info, Samples,
             },
             record_buf::{
-                samples::sample::{
-                    value::{genotype::Allele, Genotype},
-                    Value as GenotypeFieldValue,
-                },
+                samples::sample::{value::genotype::Allele, Value as GenotypeFieldValue},
                 Samples as VcfGenotypes,
             },
         },
@@ -153,30 +150,42 @@ mod tests {
             .collect(),
             vec![
                 vec![
-                    Some(GenotypeFieldValue::Genotype(Genotype::try_from(vec![
-                        Allele::new(Some(0), Phasing::Unphased),
-                        Allele::new(Some(0), Phasing::Unphased),
-                    ])?)),
+                    Some(GenotypeFieldValue::Genotype(
+                        [
+                            Allele::new(Some(0), Phasing::Unphased),
+                            Allele::new(Some(0), Phasing::Unphased),
+                        ]
+                        .into_iter()
+                        .collect(),
+                    )),
                     Some(GenotypeFieldValue::from(10)),
                     Some(GenotypeFieldValue::from(32)),
                     Some(GenotypeFieldValue::from(vec![Some(32), Some(0)])),
                     Some(GenotypeFieldValue::from(vec![Some(0), Some(10), Some(100)])),
                 ],
                 vec![
-                    Some(GenotypeFieldValue::Genotype(Genotype::try_from(vec![
-                        Allele::new(Some(0), Phasing::Unphased),
-                        Allele::new(Some(1), Phasing::Unphased),
-                    ])?)),
+                    Some(GenotypeFieldValue::Genotype(
+                        [
+                            Allele::new(Some(0), Phasing::Unphased),
+                            Allele::new(Some(1), Phasing::Unphased),
+                        ]
+                        .into_iter()
+                        .collect(),
+                    )),
                     Some(GenotypeFieldValue::from(10)),
                     Some(GenotypeFieldValue::from(48)),
                     Some(GenotypeFieldValue::from(vec![Some(32), Some(16)])),
                     Some(GenotypeFieldValue::from(vec![Some(10), Some(0), Some(100)])),
                 ],
                 vec![
-                    Some(GenotypeFieldValue::Genotype(Genotype::try_from(vec![
-                        Allele::new(Some(1), Phasing::Unphased),
-                        Allele::new(Some(1), Phasing::Unphased),
-                    ])?)),
+                    Some(GenotypeFieldValue::Genotype(
+                        [
+                            Allele::new(Some(1), Phasing::Unphased),
+                            Allele::new(Some(1), Phasing::Unphased),
+                        ]
+                        .into_iter()
+                        .collect(),
+                    )),
                     Some(GenotypeFieldValue::from(10)),
                     Some(GenotypeFieldValue::from(64)),
                     Some(GenotypeFieldValue::from(vec![Some(0), Some(64)])),

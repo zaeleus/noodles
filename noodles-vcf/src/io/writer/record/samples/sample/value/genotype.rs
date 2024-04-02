@@ -82,9 +82,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::variant::record_buf::samples::sample::value::{
-        genotype::Allele, Genotype as GenotypeBuf,
-    };
+    use crate::variant::record_buf::samples::sample::value::genotype::Allele;
 
     #[test]
     fn test_vcf_4_0_write_genotype() -> Result<(), Box<dyn std::error::Error>> {
@@ -95,40 +93,50 @@ mod tests {
         let mut buf = Vec::new();
 
         buf.clear();
-        let genotype = &GenotypeBuf::try_from(vec![Allele::new(Some(0), Phasing::Phased)])?;
+        let genotype = &[Allele::new(Some(0), Phasing::Phased)]
+            .into_iter()
+            .collect();
         write_genotype(&mut buf, &header, &genotype)?;
         assert_eq!(buf, b"0");
 
         buf.clear();
-        let genotype = &GenotypeBuf::try_from(vec![
+        let genotype = &[
             Allele::new(Some(0), Phasing::Unphased),
             Allele::new(Some(1), Phasing::Unphased),
-        ])?;
+        ]
+        .into_iter()
+        .collect();
         write_genotype(&mut buf, &header, &genotype)?;
         assert_eq!(buf, b"0/1");
 
         buf.clear();
-        let genotype = &GenotypeBuf::try_from(vec![
+        let genotype = &[
             Allele::new(Some(0), Phasing::Phased),
             Allele::new(Some(1), Phasing::Phased),
-        ])?;
+        ]
+        .into_iter()
+        .collect();
         write_genotype(&mut buf, &header, &genotype)?;
         assert_eq!(buf, b"0|1");
 
         buf.clear();
-        let genotype = &GenotypeBuf::try_from(vec![
+        let genotype = &[
             Allele::new(Some(0), Phasing::Unphased),
             Allele::new(Some(1), Phasing::Unphased),
             Allele::new(Some(2), Phasing::Phased),
-        ])?;
+        ]
+        .into_iter()
+        .collect();
         write_genotype(&mut buf, &header, &genotype)?;
         assert_eq!(buf, b"0/1|2");
 
         buf.clear();
-        let genotype = &GenotypeBuf::try_from(vec![
+        let genotype = &[
             Allele::new(None, Phasing::Unphased),
             Allele::new(None, Phasing::Unphased),
-        ])?;
+        ]
+        .into_iter()
+        .collect();
         write_genotype(&mut buf, &header, &genotype)?;
         assert_eq!(buf, b"./.");
 
@@ -144,40 +152,50 @@ mod tests {
         let mut buf = Vec::new();
 
         buf.clear();
-        let genotype = &GenotypeBuf::try_from(vec![Allele::new(Some(0), Phasing::Phased)])?;
+        let genotype = &[Allele::new(Some(0), Phasing::Phased)]
+            .into_iter()
+            .collect();
         write_genotype(&mut buf, &header, &genotype)?;
         assert_eq!(buf, b"|0");
 
         buf.clear();
-        let genotype = &GenotypeBuf::try_from(vec![
+        let genotype = &[
             Allele::new(Some(0), Phasing::Unphased),
             Allele::new(Some(1), Phasing::Unphased),
-        ])?;
+        ]
+        .into_iter()
+        .collect();
         write_genotype(&mut buf, &header, &genotype)?;
         assert_eq!(buf, b"/0/1");
 
         buf.clear();
-        let genotype = &GenotypeBuf::try_from(vec![
+        let genotype = &[
             Allele::new(Some(0), Phasing::Phased),
             Allele::new(Some(1), Phasing::Phased),
-        ])?;
+        ]
+        .into_iter()
+        .collect();
         write_genotype(&mut buf, &header, &genotype)?;
         assert_eq!(buf, b"|0|1");
 
         buf.clear();
-        let genotype = &GenotypeBuf::try_from(vec![
+        let genotype = &[
             Allele::new(Some(0), Phasing::Unphased),
             Allele::new(Some(1), Phasing::Unphased),
             Allele::new(Some(2), Phasing::Phased),
-        ])?;
+        ]
+        .into_iter()
+        .collect();
         write_genotype(&mut buf, &header, &genotype)?;
         assert_eq!(buf, b"/0/1|2");
 
         buf.clear();
-        let genotype = &GenotypeBuf::try_from(vec![
+        let genotype = &[
             Allele::new(None, Phasing::Unphased),
             Allele::new(None, Phasing::Unphased),
-        ])?;
+        ]
+        .into_iter()
+        .collect();
         write_genotype(&mut buf, &header, &genotype)?;
         assert_eq!(buf, b"/./.");
 

@@ -116,7 +116,7 @@ pub(crate) mod tests {
                 record_buf::{
                     info::field::Value as InfoFieldValue,
                     samples::sample::{
-                        value::{genotype::Allele, Array, Genotype},
+                        value::{genotype::Allele, Array},
                         Value as GenotypeFieldValue,
                     },
                     Samples as VcfGenotypes,
@@ -223,10 +223,14 @@ pub(crate) mod tests {
             .collect(),
             vec![
                 vec![
-                    Some(GenotypeFieldValue::Genotype(Genotype::try_from(vec![
-                        Allele::new(Some(0), Phasing::Unphased),
-                        Allele::new(Some(0), Phasing::Unphased),
-                    ])?)),
+                    Some(GenotypeFieldValue::Genotype(
+                        [
+                            Allele::new(Some(0), Phasing::Unphased),
+                            Allele::new(Some(0), Phasing::Unphased),
+                        ]
+                        .into_iter()
+                        .collect(),
+                    )),
                     Some(GenotypeFieldValue::Integer(10)),
                     Some(GenotypeFieldValue::Integer(32)),
                     Some(GenotypeFieldValue::Array(Array::Integer(vec![
@@ -240,10 +244,14 @@ pub(crate) mod tests {
                     ]))),
                 ],
                 vec![
-                    Some(GenotypeFieldValue::Genotype(Genotype::try_from(vec![
-                        Allele::new(Some(0), Phasing::Unphased),
-                        Allele::new(Some(1), Phasing::Unphased),
-                    ])?)),
+                    Some(GenotypeFieldValue::Genotype(
+                        [
+                            Allele::new(Some(0), Phasing::Unphased),
+                            Allele::new(Some(1), Phasing::Unphased),
+                        ]
+                        .into_iter()
+                        .collect(),
+                    )),
                     Some(GenotypeFieldValue::Integer(10)),
                     Some(GenotypeFieldValue::Integer(48)),
                     Some(GenotypeFieldValue::Array(Array::Integer(vec![
@@ -257,10 +265,14 @@ pub(crate) mod tests {
                     ]))),
                 ],
                 vec![
-                    Some(GenotypeFieldValue::Genotype(Genotype::try_from(vec![
-                        Allele::new(Some(1), Phasing::Unphased),
-                        Allele::new(Some(1), Phasing::Unphased),
-                    ])?)),
+                    Some(GenotypeFieldValue::Genotype(
+                        [
+                            Allele::new(Some(1), Phasing::Unphased),
+                            Allele::new(Some(1), Phasing::Unphased),
+                        ]
+                        .into_iter()
+                        .collect(),
+                    )),
                     Some(GenotypeFieldValue::Integer(10)),
                     Some(GenotypeFieldValue::Integer(64)),
                     Some(GenotypeFieldValue::Array(Array::Integer(vec![
