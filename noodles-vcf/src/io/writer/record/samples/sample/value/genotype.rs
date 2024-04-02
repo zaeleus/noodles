@@ -1,8 +1,29 @@
 use std::io::{self, Write};
 
-use crate::variant::record::samples::series::value::{genotype::Phasing, Genotype};
+use crate::{
+    header::FileFormat,
+    variant::record::samples::series::value::{genotype::Phasing, Genotype},
+    Header,
+};
 
-pub(super) fn write_genotype<W>(writer: &mut W, genotype: &dyn Genotype) -> io::Result<()>
+const VCF_4_4: FileFormat = FileFormat::new(4, 4);
+
+pub(super) fn write_genotype<W>(
+    writer: &mut W,
+    header: &Header,
+    genotype: &dyn Genotype,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    if header.file_format() < VCF_4_4 {
+        vcf_4_0_write_genotype(writer, genotype)
+    } else {
+        vcf_4_4_write_genotype(writer, genotype)
+    }
+}
+
+fn vcf_4_0_write_genotype<W>(writer: &mut W, genotype: &dyn Genotype) -> io::Result<()>
 where
     W: Write,
 {
@@ -13,6 +34,19 @@ where
             write_phasing(writer, phasing)?;
         }
 
+        write_position(writer, position)?;
+    }
+
+    Ok(())
+}
+
+fn vcf_4_4_write_genotype<W>(writer: &mut W, genotype: &dyn Genotype) -> io::Result<()>
+where
+    W: Write,
+{
+    for result in genotype.iter() {
+        let (position, phasing) = result?;
+        write_phasing(writer, phasing)?;
         write_position(writer, position)?;
     }
 
@@ -53,12 +87,16 @@ mod tests {
     };
 
     #[test]
-    fn test_write_genotype() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_vcf_4_0_write_genotype() -> Result<(), Box<dyn std::error::Error>> {
+        let header = Header::builder()
+            .set_file_format(FileFormat::new(4, 3))
+            .build();
+
         let mut buf = Vec::new();
 
         buf.clear();
         let genotype = &GenotypeBuf::try_from(vec![Allele::new(Some(0), Phasing::Phased)])?;
-        write_genotype(&mut buf, &genotype)?;
+        write_genotype(&mut buf, &header, &genotype)?;
         assert_eq!(buf, b"0");
 
         buf.clear();
@@ -66,7 +104,7 @@ mod tests {
             Allele::new(Some(0), Phasing::Unphased),
             Allele::new(Some(1), Phasing::Unphased),
         ])?;
-        write_genotype(&mut buf, &genotype)?;
+        write_genotype(&mut buf, &header, &genotype)?;
         assert_eq!(buf, b"0/1");
 
         buf.clear();
@@ -74,7 +112,7 @@ mod tests {
             Allele::new(Some(0), Phasing::Phased),
             Allele::new(Some(1), Phasing::Phased),
         ])?;
-        write_genotype(&mut buf, &genotype)?;
+        write_genotype(&mut buf, &header, &genotype)?;
         assert_eq!(buf, b"0|1");
 
         buf.clear();
@@ -83,7 +121,7 @@ mod tests {
             Allele::new(Some(1), Phasing::Unphased),
             Allele::new(Some(2), Phasing::Phased),
         ])?;
-        write_genotype(&mut buf, &genotype)?;
+        write_genotype(&mut buf, &header, &genotype)?;
         assert_eq!(buf, b"0/1|2");
 
         buf.clear();
@@ -91,8 +129,57 @@ mod tests {
             Allele::new(None, Phasing::Unphased),
             Allele::new(None, Phasing::Unphased),
         ])?;
-        write_genotype(&mut buf, &genotype)?;
+        write_genotype(&mut buf, &header, &genotype)?;
         assert_eq!(buf, b"./.");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_vcf_4_4_write_genotype() -> Result<(), Box<dyn std::error::Error>> {
+        let header = Header::builder()
+            .set_file_format(FileFormat::new(4, 4))
+            .build();
+
+        let mut buf = Vec::new();
+
+        buf.clear();
+        let genotype = &GenotypeBuf::try_from(vec![Allele::new(Some(0), Phasing::Phased)])?;
+        write_genotype(&mut buf, &header, &genotype)?;
+        assert_eq!(buf, b"|0");
+
+        buf.clear();
+        let genotype = &GenotypeBuf::try_from(vec![
+            Allele::new(Some(0), Phasing::Unphased),
+            Allele::new(Some(1), Phasing::Unphased),
+        ])?;
+        write_genotype(&mut buf, &header, &genotype)?;
+        assert_eq!(buf, b"/0/1");
+
+        buf.clear();
+        let genotype = &GenotypeBuf::try_from(vec![
+            Allele::new(Some(0), Phasing::Phased),
+            Allele::new(Some(1), Phasing::Phased),
+        ])?;
+        write_genotype(&mut buf, &header, &genotype)?;
+        assert_eq!(buf, b"|0|1");
+
+        buf.clear();
+        let genotype = &GenotypeBuf::try_from(vec![
+            Allele::new(Some(0), Phasing::Unphased),
+            Allele::new(Some(1), Phasing::Unphased),
+            Allele::new(Some(2), Phasing::Phased),
+        ])?;
+        write_genotype(&mut buf, &header, &genotype)?;
+        assert_eq!(buf, b"/0/1|2");
+
+        buf.clear();
+        let genotype = &GenotypeBuf::try_from(vec![
+            Allele::new(None, Phasing::Unphased),
+            Allele::new(None, Phasing::Unphased),
+        ])?;
+        write_genotype(&mut buf, &header, &genotype)?;
+        assert_eq!(buf, b"/./.");
 
         Ok(())
     }

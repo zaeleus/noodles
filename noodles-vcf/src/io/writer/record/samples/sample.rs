@@ -20,7 +20,7 @@ where
         }
 
         match value {
-            Some(v) => write_value(writer, &v)?,
+            Some(v) => write_value(writer, header, &v)?,
             None => writer.write_all(MISSING)?,
         }
     }

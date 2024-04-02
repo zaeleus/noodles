@@ -4,9 +4,9 @@ mod genotype;
 use std::io::{self, Write};
 
 use self::{array::write_array, genotype::write_genotype};
-use crate::variant::record::samples::series::Value;
+use crate::{variant::record::samples::series::Value, Header};
 
-pub(super) fn write_value<W>(writer: &mut W, value: &Value) -> io::Result<()>
+pub(super) fn write_value<W>(writer: &mut W, header: &Header, value: &Value) -> io::Result<()>
 where
     W: Write,
 {
@@ -15,7 +15,7 @@ where
         Value::Float(n) => write!(writer, "{n}"),
         Value::Character(c) => write!(writer, "{c}"),
         Value::String(s) => writer.write_all(s.as_bytes()),
-        Value::Genotype(genotype) => write_genotype(writer, genotype.as_ref()),
+        Value::Genotype(genotype) => write_genotype(writer, header, genotype.as_ref()),
         Value::Array(array) => write_array(writer, array),
     }
 }
@@ -54,70 +54,81 @@ mod tests {
             }
         }
 
-        fn t(buf: &mut Vec<u8>, value: &Value, expected: &[u8]) -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, header: &Header, value: &Value, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            write_value(buf, value)?;
+            write_value(buf, header, value)?;
             assert_eq!(buf, expected);
             Ok(())
         }
 
+        let header = Header::default();
         let mut buf = Vec::new();
 
-        t(&mut buf, &Value::Integer(8), b"8")?;
-        t(&mut buf, &Value::Float(0.333), b"0.333")?;
-        t(&mut buf, &Value::Character('n'), b"n")?;
-        t(&mut buf, &Value::String("noodles"), b"noodles")?;
+        t(&mut buf, &header, &Value::Integer(8), b"8")?;
+        t(&mut buf, &header, &Value::Float(0.333), b"0.333")?;
+        t(&mut buf, &header, &Value::Character('n'), b"n")?;
+        t(&mut buf, &header, &Value::String("noodles"), b"noodles")?;
 
         t(
             &mut buf,
+            &header,
             &Value::Array(Array::Integer(Box::new(Values(&[Some(8)])))),
             b"8",
         )?;
         t(
             &mut buf,
+            &header,
             &Value::Array(Array::Integer(Box::new(Values(&[Some(8), Some(13)])))),
             b"8,13",
         )?;
         t(
             &mut buf,
+            &header,
             &Value::Array(Array::Integer(Box::new(Values(&[Some(8), None])))),
             b"8,.",
         )?;
 
         t(
             &mut buf,
+            &header,
             &Value::Array(Array::Float(Box::new(Values(&[Some(0.333)])))),
             b"0.333",
         )?;
         t(
             &mut buf,
+            &header,
             &Value::Array(Array::Float(Box::new(Values(&[Some(0.333), Some(0.667)])))),
             b"0.333,0.667",
         )?;
         t(
             &mut buf,
+            &header,
             &Value::Array(Array::Float(Box::new(Values(&[Some(0.333), None])))),
             b"0.333,.",
         )?;
 
         t(
             &mut buf,
+            &header,
             &Value::Array(Array::Character(Box::new(Values(&[Some('n')])))),
             b"n",
         )?;
         t(
             &mut buf,
+            &header,
             &Value::Array(Array::Character(Box::new(Values(&[Some('n'), Some('d')])))),
             b"n,d",
         )?;
         t(
             &mut buf,
+            &header,
             &Value::Array(Array::Character(Box::new(Values(&[Some('n'), None])))),
             b"n,.",
         )?;
 
         t(
             &mut buf,
+            &header,
             &Value::Array(Array::String(Box::new(Values(&[Some(String::from(
                 "noodles",
             ))])))),
@@ -125,6 +136,7 @@ mod tests {
         )?;
         t(
             &mut buf,
+            &header,
             &Value::Array(Array::String(Box::new(Values(&[
                 Some(String::from("noodles")),
                 Some(String::from("vcf")),
@@ -133,6 +145,7 @@ mod tests {
         )?;
         t(
             &mut buf,
+            &header,
             &Value::Array(Array::String(Box::new(Values(&[
                 Some(String::from("noodles")),
                 None,
