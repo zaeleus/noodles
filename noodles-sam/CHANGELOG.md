@@ -6,6 +6,9 @@
 
   * sam/alignment/record_buf/data: Add `Data::get_mut`.
 
+  * sam/io/indexed_reader: Add records iterator
+    (`IndexedReader::records`).
+
 ### Changed
 
   * sam/io/writer/header/record/value/map/reference_sequence/name:
