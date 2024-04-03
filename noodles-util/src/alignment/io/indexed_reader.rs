@@ -43,12 +43,12 @@ where
         let records: Box<dyn Iterator<Item = io::Result<Box<dyn Record>>>> = match self {
             Self::Sam(reader) => Box::new(
                 reader
-                    .record_bufs(header)
+                    .records()
                     .map(|result| result.map(|record| Box::new(record) as Box<dyn Record>)),
             ),
             Self::Bam(reader) => Box::new(
                 reader
-                    .record_bufs(header)
+                    .records()
                     .map(|result| result.map(|record| Box::new(record) as Box<dyn Record>)),
             ),
             Self::Cram(reader) => Box::new(reader.records(header).map(|result| {

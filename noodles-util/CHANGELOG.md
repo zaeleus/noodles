@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * util/alignment/io/indexed_reader: Use format record iterators in records
+    iterator (`IndexedReader::records`).
+
 ## 0.39.0 - 2024-03-28
 
 ### Changed
