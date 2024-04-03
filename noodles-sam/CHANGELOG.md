@@ -6,6 +6,11 @@
 
   * sam/alignment/record_buf/data: Add `Data::get_mut`.
 
+### Changed
+
+  * sam/io/writer/header/record/value/map/reference_sequence/name:
+    Validate reference sequence names.
+
 ## 0.55.0 - 2024-03-28
 
 ### Changed

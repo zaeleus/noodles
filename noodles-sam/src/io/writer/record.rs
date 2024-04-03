@@ -36,13 +36,6 @@ where
 {
     const DELIMITER: &[u8] = b"\t";
 
-    if !has_valid_reference_sequence_names(header) {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            "invalid reference sequence names",
-        ));
-    }
-
     write_name(writer, record.name())?;
 
     writer.write_all(DELIMITER)?;
@@ -107,48 +100,6 @@ where
     writeln!(writer)?;
 
     Ok(())
-}
-
-fn has_valid_reference_sequence_names(header: &Header) -> bool {
-    //  § 1.2.1 "Character set restrictions" (2023-05-24): "...`[:rname:∧*=][:rname:]*`."
-    fn is_valid_name(name: &[u8]) -> bool {
-        let mut iter = name.iter().copied();
-
-        if let Some(b) = iter.next() {
-            if b == b'*' || b == b'=' || !is_valid_name_char(b) {
-                return false;
-            }
-
-            iter.all(is_valid_name_char)
-        } else {
-            false
-        }
-    }
-
-    fn is_valid_name_char(b: u8) -> bool {
-        b.is_ascii_graphic()
-            && !matches!(
-                b,
-                b'\\'
-                    | b','
-                    | b'"'
-                    | b'`'
-                    | b'\''
-                    | b'('
-                    | b')'
-                    | b'['
-                    | b']'
-                    | b'{'
-                    | b'}'
-                    | b'<'
-                    | b'>',
-            )
-    }
-
-    header
-        .reference_sequences()
-        .keys()
-        .all(|name| is_valid_name(name))
 }
 
 #[cfg(test)]
