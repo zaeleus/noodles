@@ -1,3 +1,5 @@
+//! SAM record writer.
+
 mod cigar;
 mod data;
 mod flags;
@@ -9,18 +11,18 @@ mod reference_sequence_name;
 mod sequence;
 mod template_length;
 
-pub use self::{
-    cigar::write_cigar, data::write_data, position::write_position,
-    quality_scores::write_quality_scores, sequence::write_sequence,
-};
-
 use std::io::{self, Write};
 
 use self::{
+    cigar::write_cigar,
+    data::write_data,
     flags::write_flags,
     mapping_quality::write_mapping_quality,
     name::write_name,
+    position::write_position,
+    quality_scores::write_quality_scores,
     reference_sequence_name::{write_mate_reference_sequence_name, write_reference_sequence_name},
+    sequence::write_sequence,
     template_length::write_template_length,
 };
 use crate::{alignment::Record, Header};

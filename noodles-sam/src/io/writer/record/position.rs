@@ -7,7 +7,7 @@ use crate::io::writer::num;
 // § 1.4 "The alignment section: mandatory fields" (2021-06-03): `[0, 2^31-1]`.
 const MAX_POSITION_VALUE: usize = (1 << 31) - 1;
 
-pub fn write_position<W>(writer: &mut W, position: Option<Position>) -> io::Result<()>
+pub(super) fn write_position<W>(writer: &mut W, position: Option<Position>) -> io::Result<()>
 where
     W: Write,
 {

@@ -5,7 +5,7 @@ use std::io::{self, Write};
 use self::field::write_field;
 use crate::alignment::record::Data;
 
-pub fn write_data<W, D>(writer: &mut W, data: D) -> io::Result<()>
+pub(super) fn write_data<W, D>(writer: &mut W, data: D) -> io::Result<()>
 where
     W: Write,
     D: Data,

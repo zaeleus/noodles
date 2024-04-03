@@ -8,7 +8,7 @@ use crate::{
     io::writer::num,
 };
 
-pub fn write_cigar<W, C>(writer: &mut W, cigar: &C) -> io::Result<()>
+pub(super) fn write_cigar<W, C>(writer: &mut W, cigar: &C) -> io::Result<()>
 where
     W: Write,
     C: Cigar,

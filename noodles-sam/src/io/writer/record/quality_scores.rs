@@ -3,7 +3,7 @@ use std::io::{self, Write};
 use super::MISSING;
 use crate::alignment::record::QualityScores;
 
-pub fn write_quality_scores<W, S>(
+pub(super) fn write_quality_scores<W, S>(
     writer: &mut W,
     base_count: usize,
     quality_scores: S,
