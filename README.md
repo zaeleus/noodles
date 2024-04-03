@@ -17,10 +17,10 @@ but keep in mind that the API is still considered experimental.
 noodles is split into multiple crates by file format. For convenience, a
 top-level meta crate named `noodles` can be added to your project's dependency
 list; and formats, listed as [features]. For example, to work with the BAM
-format, enable the `bam` feature.
+format, add the `noodles` crate and enable the `bam` feature.
 
-```toml
-noodles = { version = "0.67.0", features = ["bam"] }
+```sh
+cargo add noodles --features bam
 ```
 
 Each enabled feature can then be imported by its re-exported name, e.g.,
