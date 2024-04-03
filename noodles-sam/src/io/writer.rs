@@ -3,7 +3,7 @@
 mod builder;
 mod header;
 mod num;
-mod record;
+pub mod record;
 
 use std::io::{self, Write};
 

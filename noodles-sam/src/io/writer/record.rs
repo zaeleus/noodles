@@ -13,8 +13,8 @@ mod template_length;
 
 use std::io::{self, Write};
 
+pub use self::cigar::write_cigar;
 use self::{
-    cigar::write_cigar,
     data::write_data,
     flags::write_flags,
     mapping_quality::write_mapping_quality,
@@ -29,7 +29,7 @@ use crate::{alignment::Record, Header};
 
 const MISSING: u8 = b'*';
 
-pub fn write_record<W, R>(writer: &mut W, header: &Header, record: &R) -> io::Result<()>
+pub(crate) fn write_record<W, R>(writer: &mut W, header: &Header, record: &R) -> io::Result<()>
 where
     W: Write,
     R: Record + ?Sized,

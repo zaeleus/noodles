@@ -8,7 +8,31 @@ use crate::{
     io::writer::num,
 };
 
-pub(super) fn write_cigar<W, C>(writer: &mut W, cigar: &C) -> io::Result<()>
+/// Writes a SAM record CIGAR string.
+///
+/// # Examples
+///
+/// ```
+/// use noodles_sam::{
+///     alignment::{
+///         record::cigar::{op::Kind, Op},
+///         record_buf::Cigar,
+///     },
+///     io::writer::record::write_cigar,
+/// };
+///
+/// let mut buf = Vec::new();
+/// let cigar = Cigar::default();
+/// write_cigar(&mut buf, &cigar)?;
+/// assert_eq!(buf, b"*");
+///
+/// let mut buf = Vec::new();
+/// let cigar: Cigar = [Op::new(Kind::Match, 4)].into_iter().collect();
+/// write_cigar(&mut buf, &cigar)?;
+/// assert_eq!(buf, b"4M");
+/// Ok::<_, std::io::Error>(())
+/// ```
+pub fn write_cigar<W, C>(writer: &mut W, cigar: &C) -> io::Result<()>
 where
     W: Write,
     C: Cigar,

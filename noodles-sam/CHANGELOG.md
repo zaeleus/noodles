@@ -9,6 +9,10 @@
   * sam/io/indexed_reader: Add records iterator
     (`IndexedReader::records`).
 
+  * sam/io/writer/record: Add CIGAR operations writer (`write_cigar`) ([#247]).
+
+[#247]: https://github.com/zaeleus/noodles/issues/247
+
 ### Changed
 
   * sam/io/writer/header/record/value/map/reference_sequence/name:
