@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * vcf/io/writer/record/ids: Add validation.
+
 ## 0.52.0 - 2024-04-04
 
 ### Added

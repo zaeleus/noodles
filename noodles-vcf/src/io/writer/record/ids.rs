@@ -18,11 +18,24 @@ where
                 writer.write_all(DELIMITER)?;
             }
 
-            writer.write_all(id.as_bytes())?;
+            if is_valid(id) {
+                writer.write_all(id.as_bytes())?;
+            } else {
+                return Err(io::Error::new(io::ErrorKind::InvalidInput, "invalid ID"));
+            }
         }
     }
 
     Ok(())
+}
+
+// § 1.6.1.3 "Fixed fields: ID" (2023-08-23): "...no whitespace or semicolons permitted..."
+fn is_valid(s: &str) -> bool {
+    fn is_valid_char(c: char) -> bool {
+        !c.is_whitespace() && c != ';'
+    }
+
+    s.chars().all(is_valid_char)
 }
 
 #[cfg(test)]
@@ -52,6 +65,21 @@ mod tests {
             .collect();
         t(&mut buf, &ids, b"id0;id1")?;
 
+        buf.clear();
+        let ids = [String::from("id 0")].into_iter().collect();
+        assert!(matches!(
+            write_ids(&mut buf, &ids),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
         Ok(())
+    }
+
+    #[test]
+    fn test_is_valid() {
+        assert!(is_valid("id0"));
+
+        assert!(!is_valid("id 0"));
+        assert!(!is_valid("id0;"));
     }
 }
