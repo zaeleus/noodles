@@ -1,33 +1,62 @@
-use std::io::{self, Write};
+use std::{
+    error, fmt,
+    io::{self, Write},
+};
+
+/// An error returns when a reference sequence name fails to write.
+#[derive(Debug)]
+pub enum WriteError {
+    // I/O error.
+    Io(io::Error),
+    /// The reference sequence name is invalid.
+    InvalidReferenceSequenceName(String),
+}
+
+impl error::Error for WriteError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            WriteError::Io(e) => Some(e),
+            WriteError::InvalidReferenceSequenceName(_) => None,
+        }
+    }
+}
+
+impl fmt::Display for WriteError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            WriteError::Io(_) => write!(f, "I/O error"),
+            WriteError::InvalidReferenceSequenceName(s) => {
+                write!(f, "invalid reference sequence name: {s}")
+            }
+        }
+    }
+}
 
 pub(super) fn write_reference_sequence_name<W>(
     writer: &mut W,
     reference_sequence_name: &str,
-) -> io::Result<()>
+) -> Result<(), WriteError>
 where
     W: Write,
 {
-    const SYMBOL_PREFIX: char = '<';
-    const SYMBOL_SUFFIX: char = '>';
+    let name = strip_symbol_delimiters(reference_sequence_name).unwrap_or(reference_sequence_name);
 
-    if let Some(s) = reference_sequence_name.strip_prefix(SYMBOL_PREFIX) {
-        if let Some(s) = s.strip_suffix(SYMBOL_SUFFIX) {
-            if is_valid(s) {
-                return writer.write_all(reference_sequence_name.as_bytes());
-            } else {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    "invalid symbol",
-                ));
-            }
-        }
-    }
-
-    if is_valid(reference_sequence_name) {
-        writer.write_all(reference_sequence_name.as_bytes())
+    if is_valid(name) {
+        writer
+            .write_all(reference_sequence_name.as_bytes())
+            .map_err(WriteError::Io)
     } else {
-        Err(io::Error::new(io::ErrorKind::InvalidInput, "invalid name"))
+        Err(WriteError::InvalidReferenceSequenceName(
+            reference_sequence_name.into(),
+        ))
     }
+}
+
+fn strip_symbol_delimiters(s: &str) -> Option<&str> {
+    const PREFIX: char = '<';
+    const SUFFIX: char = '>';
+
+    s.strip_prefix(PREFIX).and_then(|t| t.strip_suffix(SUFFIX))
 }
 
 // § 1.4.7 "Contig field format" (2023-08-23): "`[0-9A-Za-z!#$%&+./:;?@^_|~-][0-9A-Za-z!#$%&*+./:;=?@^_|~-]*`".
@@ -55,8 +84,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_reference_sequence_name() -> io::Result<()> {
-        fn t(buf: &mut Vec<u8>, reference_sequence_name: &str, expected: &[u8]) -> io::Result<()> {
+    fn test_write_reference_sequence_name() -> Result<(), WriteError> {
+        fn t(
+            buf: &mut Vec<u8>,
+            reference_sequence_name: &str,
+            expected: &[u8],
+        ) -> Result<(), WriteError> {
             buf.clear();
             write_reference_sequence_name(buf, reference_sequence_name)?;
             assert_eq!(buf, expected);
@@ -71,16 +104,22 @@ mod tests {
         buf.clear();
         assert!(matches!(
             write_reference_sequence_name(&mut buf, "sq 0"),
-            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+            Err(WriteError::InvalidReferenceSequenceName(s)) if s == "sq 0"
         ));
 
         buf.clear();
         assert!(matches!(
             write_reference_sequence_name(&mut buf, "<sq 0>"),
-            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+            Err(WriteError::InvalidReferenceSequenceName(s)) if s == "<sq 0>"
         ));
 
         Ok(())
+    }
+
+    #[test]
+    fn test_strip_symbol_delimiters() {
+        assert!(strip_symbol_delimiters("sq0").is_none());
+        assert_eq!(strip_symbol_delimiters("<sq0>"), Some("sq0"));
     }
 
     #[test]

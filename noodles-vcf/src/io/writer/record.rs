@@ -28,7 +28,8 @@ where
     const DELIMITER: &[u8] = b"\t";
 
     let reference_sequence_name = record.reference_sequence_name(header)?;
-    write_reference_sequence_name(writer, reference_sequence_name)?;
+    write_reference_sequence_name(writer, reference_sequence_name)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     writer.write_all(DELIMITER)?;
     let position = record.variant_start().transpose()?;
