@@ -18,11 +18,27 @@ where
                 write!(writer, ",")?;
             }
 
-            write!(writer, "{bases}")?;
+            if is_valid(bases) {
+                write!(writer, "{bases}")?;
+            } else {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "invalid alternate bases",
+                ));
+            }
         }
     }
 
     Ok(())
+}
+
+// § 1.6.1.5 "Fixed fields: ALT" (2023-08-23): "...no whitespace, commas..."
+fn is_valid(s: &str) -> bool {
+    fn is_valid_char(c: char) -> bool {
+        !c.is_whitespace() && c != ','
+    }
+
+    s.chars().all(is_valid_char)
 }
 
 #[cfg(test)]
@@ -49,6 +65,29 @@ mod tests {
         write_alternate_bases(&mut buf, &alternate_bases)?;
         assert_eq!(buf, b"C,GT");
 
+        buf.clear();
+        let alternate_bases = AlternateBasesBuf::from(vec![String::from("C,")]);
+        assert!(matches!(
+            write_alternate_bases(&mut buf, &alternate_bases),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
         Ok(())
+    }
+
+    #[test]
+    fn test_is_valid() {
+        assert!(is_valid("C"));
+        assert!(is_valid("GT"));
+        assert!(is_valid("*"));
+        assert!(is_valid("."));
+        assert!(is_valid("<DEL>"));
+        assert!(is_valid("<*>"));
+        assert!(is_valid("<NON_REF>"));
+        assert!(is_valid("C[1:1["));
+        assert!(is_valid("]1:0]A"));
+
+        assert!(!is_valid("C,"));
+        assert!(!is_valid("G T"));
     }
 }

@@ -4,7 +4,8 @@
 
 ### Changed
 
-  * vcf/io/writer/record: Add validation for IDs and reference bases.
+  * vcf/io/writer/record: Add validation for IDs, reference bases, and
+    alternate bases.
 
 ## 0.52.0 - 2024-04-04
 
