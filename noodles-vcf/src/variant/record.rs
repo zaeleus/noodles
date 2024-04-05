@@ -58,7 +58,7 @@ pub trait Record {
     /// If available, this returns the value of the `END` INFO field. Otherwise, it is calculated
     /// using the [variant start position] and [reference bases length].
     ///
-    /// [variant start position]: `Self::position`
+    /// [variant start position]: `Self::variant_start`
     /// [reference bases length]: `ReferenceBases::len`
     fn variant_end(&self, header: &Header) -> io::Result<Position> {
         use self::info::field::{key, Value};
