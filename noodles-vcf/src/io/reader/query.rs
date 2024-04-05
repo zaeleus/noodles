@@ -83,7 +83,7 @@ pub(crate) fn intersects(
     reference_sequence_name: &[u8],
     region_interval: Interval,
 ) -> io::Result<bool> {
-    let name = record.reference_sequence_name().to_string();
+    let name = record.reference_sequence_name();
 
     let Some(start) = record.variant_start().transpose()? else {
         return Ok(false);
