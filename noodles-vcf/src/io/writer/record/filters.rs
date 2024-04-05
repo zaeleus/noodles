@@ -20,11 +20,27 @@ where
                 writer.write_all(DELIMITER)?;
             }
 
-            writer.write_all(id.as_bytes())?;
+            if is_valid(id) {
+                writer.write_all(id.as_bytes())?;
+            } else {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "invalid filter",
+                ));
+            }
         }
     }
 
     Ok(())
+}
+
+// § 1.6.1.7 "Fixed fields: FILTER" (2023-08-23): "...no whitespace or semicolons permitted..."
+fn is_valid(s: &str) -> bool {
+    fn is_valid_char(c: char) -> bool {
+        !c.is_whitespace() && c != ';'
+    }
+
+    s.chars().all(is_valid_char)
 }
 
 #[cfg(test)]
@@ -60,6 +76,22 @@ mod tests {
             .collect();
         t(&mut buf, &header, &filters, b"q10;s50")?;
 
+        buf.clear();
+        let filters = [String::from("q 10")].into_iter().collect();
+        assert!(matches!(
+            write_filters(&mut buf, &header, &filters),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
         Ok(())
+    }
+
+    #[test]
+    fn test_is_valid() {
+        assert!(is_valid("PASS"));
+        assert!(is_valid("q10"));
+
+        assert!(!is_valid("q 10"));
+        assert!(!is_valid("q10;"));
     }
 }
