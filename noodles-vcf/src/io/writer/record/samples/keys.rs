@@ -23,10 +23,40 @@ where
             writer.write_all(DELIMITER)?;
         }
 
-        writer.write_all(key.as_bytes())?;
+        write_key(writer, key)?;
     }
 
     Ok(())
+}
+
+fn write_key<W>(writer: &mut W, key: &str) -> io::Result<()>
+where
+    W: Write,
+{
+    if is_valid(key) {
+        writer.write_all(key.as_bytes())
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "invalid genotype field key",
+        ))
+    }
+}
+
+// § 1.6.2 "Genotype fields" (2023-08-23): "`^[A-Za-z_][0-9A-Za-z_.]*$`".
+fn is_valid(s: &str) -> bool {
+    fn is_valid_char(c: char) -> bool {
+        c.is_ascii_alphanumeric() || matches!(c, '_' | '.')
+    }
+
+    let mut chars = s.chars();
+
+    let is_valid_first_char = chars
+        .next()
+        .map(|c| c.is_ascii_alphabetic() || c == '_')
+        .unwrap_or_default();
+
+    is_valid_first_char && chars.all(is_valid_char)
 }
 
 #[cfg(test)]
@@ -60,5 +90,15 @@ mod tests {
         ));
 
         Ok(())
+    }
+
+    #[test]
+    fn test_is_valid() {
+        assert!(is_valid("GT"));
+        assert!(is_valid("PSL"));
+
+        assert!(!is_valid(""));
+        assert!(!is_valid("G T"));
+        assert!(!is_valid("1000G"));
     }
 }
