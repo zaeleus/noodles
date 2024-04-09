@@ -9,7 +9,32 @@ use std::io;
 pub use self::{sample::Sample, series::Series};
 use crate::Header;
 
+#[allow(clippy::tabs_in_doc_comments)]
 /// Variant record samples.
+///
+/// Variant record samples are described similarly to a data frame: rows and columns are samples
+/// and series, respectively.
+///
+/// Take, for example, the following samples in a VCF record.
+///
+/// ```text
+/// FORMAT	sample1	sample2	sample3
+/// GT:GQ:DP	0|0:21:1	1|0:34:2	1/1:55:5
+/// ```
+///
+/// This trait provides an interface over this data as a table.
+///
+/// ```text
+///           GT     GQ    DP
+///         +-----+-----+-----+
+/// sample1 | 0|0 |  21 |   1 |
+/// sample2 | 1|0 |  34 |   2 |
+/// sample3 | 1/1 |  55 |   5 |
+///         +-----+-----+-----+
+/// ```
+///
+/// A sample contains the values of a row (e.g., sample1 = ["0|0", 21, 1]); and a column, the
+/// values of a series (e.g., GT = ["0|0", "1|0", "1/1"]).
 pub trait Samples {
     /// Returns whether there are any samples.
     fn is_empty(&self) -> bool;
