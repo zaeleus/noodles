@@ -7,7 +7,8 @@
   * vcf/io/writer/record: Add validation for IDs, reference bases, alternate
     bases, and filters.
 
-  * vcf/io/writer/info/field/value/string: Percent-encode special characters.
+  * vcf/io/writer/record: Percent-encode special characters in info and sample
+    string values.
 
 ## 0.52.0 - 2024-04-04
 
