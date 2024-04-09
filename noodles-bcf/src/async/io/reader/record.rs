@@ -9,9 +9,7 @@ where
     R: AsyncRead + Unpin,
 {
     let l_shared = read_site_length(reader).await?;
-    let l_indiv = reader.read_u32_le().await.and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    let l_indiv = read_samples_length(reader).await?;
 
     let site_buf = record.fields_mut().site_buf_mut();
     site_buf.resize(l_shared, 0);
@@ -59,6 +57,16 @@ where
     } else {
         Ok(())
     }
+}
+
+async fn read_samples_length<R>(reader: &mut R) -> io::Result<usize>
+where
+    R: AsyncRead + Unpin,
+{
+    reader
+        .read_u32_le()
+        .await
+        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
 }
 
 #[cfg(test)]

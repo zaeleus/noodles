@@ -12,9 +12,7 @@ where
     R: Read,
 {
     let l_shared = read_site_length(reader)?;
-    let l_indiv = reader.read_u32::<LittleEndian>().and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    let l_indiv = read_samples_length(reader)?;
 
     let site_buf = record.fields_mut().site_buf_mut();
     site_buf.resize(l_shared, 0);
@@ -65,6 +63,15 @@ where
     } else {
         Ok(())
     }
+}
+
+fn read_samples_length<R>(reader: &mut R) -> io::Result<usize>
+where
+    R: Read,
+{
+    reader
+        .read_u32::<LittleEndian>()
+        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
 }
 
 #[cfg(test)]
