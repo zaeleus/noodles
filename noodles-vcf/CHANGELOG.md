@@ -5,7 +5,7 @@
 ### Changed
 
   * vcf/io/writer/record: Add validation for IDs, reference bases, alternate
-    bases, and filters.
+    bases, filters, and info and samples keys.
 
   * vcf/io/writer/record: Percent-encode special characters in info and sample
     string values.
