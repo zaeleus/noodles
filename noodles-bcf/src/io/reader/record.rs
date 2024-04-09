@@ -158,10 +158,7 @@ pub(crate) mod tests {
                 },
                 record_buf::{
                     info::field::Value as InfoFieldValue,
-                    samples::sample::{
-                        value::{genotype::Allele, Array},
-                        Value as GenotypeFieldValue,
-                    },
+                    samples::sample::{value::genotype::Allele, Value as GenotypeFieldValue},
                     Samples as VcfGenotypes,
                 },
             },
@@ -274,17 +271,10 @@ pub(crate) mod tests {
                         .into_iter()
                         .collect(),
                     )),
-                    Some(GenotypeFieldValue::Integer(10)),
-                    Some(GenotypeFieldValue::Integer(32)),
-                    Some(GenotypeFieldValue::Array(Array::Integer(vec![
-                        Some(32),
-                        Some(0),
-                    ]))),
-                    Some(GenotypeFieldValue::Array(Array::Integer(vec![
-                        Some(0),
-                        Some(10),
-                        Some(100),
-                    ]))),
+                    Some(GenotypeFieldValue::from(10)),
+                    Some(GenotypeFieldValue::from(32)),
+                    Some(GenotypeFieldValue::from(vec![Some(32), Some(0)])),
+                    Some(GenotypeFieldValue::from(vec![Some(0), Some(10), Some(100)])),
                 ],
                 vec![
                     Some(GenotypeFieldValue::Genotype(
@@ -295,17 +285,10 @@ pub(crate) mod tests {
                         .into_iter()
                         .collect(),
                     )),
-                    Some(GenotypeFieldValue::Integer(10)),
-                    Some(GenotypeFieldValue::Integer(48)),
-                    Some(GenotypeFieldValue::Array(Array::Integer(vec![
-                        Some(32),
-                        Some(16),
-                    ]))),
-                    Some(GenotypeFieldValue::Array(Array::Integer(vec![
-                        Some(10),
-                        Some(0),
-                        Some(100),
-                    ]))),
+                    Some(GenotypeFieldValue::from(10)),
+                    Some(GenotypeFieldValue::from(48)),
+                    Some(GenotypeFieldValue::from(vec![Some(32), Some(16)])),
+                    Some(GenotypeFieldValue::from(vec![Some(10), Some(0), Some(100)])),
                 ],
                 vec![
                     Some(GenotypeFieldValue::Genotype(
@@ -316,17 +299,10 @@ pub(crate) mod tests {
                         .into_iter()
                         .collect(),
                     )),
-                    Some(GenotypeFieldValue::Integer(10)),
-                    Some(GenotypeFieldValue::Integer(64)),
-                    Some(GenotypeFieldValue::Array(Array::Integer(vec![
-                        Some(0),
-                        Some(64),
-                    ]))),
-                    Some(GenotypeFieldValue::Array(Array::Integer(vec![
-                        Some(100),
-                        Some(10),
-                        Some(0),
-                    ]))),
+                    Some(GenotypeFieldValue::from(10)),
+                    Some(GenotypeFieldValue::from(64)),
+                    Some(GenotypeFieldValue::from(vec![Some(0), Some(64)])),
+                    Some(GenotypeFieldValue::from(vec![Some(100), Some(10), Some(0)])),
                 ],
             ],
         );
