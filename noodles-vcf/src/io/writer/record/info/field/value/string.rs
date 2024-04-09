@@ -1,23 +1,12 @@
 use std::io::{self, Write};
 
-use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
-
-// § 1.2 "Character encoding, non-printable characters and characters with special meaning" (2023-08-23)
-const PERCENT_ENCODE_SET: &AsciiSet = &CONTROLS
-    .add(b':')
-    .add(b';')
-    .add(b'=')
-    .add(b'%')
-    .add(b',')
-    .add(b'\r')
-    .add(b'\n')
-    .add(b'\t');
+use crate::io::writer::record::value::percent_encode;
 
 pub(super) fn write_string<W>(writer: &mut W, s: &str) -> io::Result<()>
 where
     W: Write,
 {
-    for t in utf8_percent_encode(s, PERCENT_ENCODE_SET) {
+    for t in percent_encode(s) {
         writer.write_all(t.as_bytes())?;
     }
 
