@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bcf/io/reader/record: Disallow partial site lengths.
+
+    A partial site length previously would return EOF. This is now more
+    strict, requiring a complete site length or EOF.
+
 ## 0.49.0 - 2024-04-04
 
 ### Added
