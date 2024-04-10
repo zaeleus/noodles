@@ -4,10 +4,7 @@ use noodles_bgzf as bgzf;
 use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
 use noodles_tabix as tabix;
 
-use super::{
-    io::Reader,
-    variant::{Record, RecordBuf},
-};
+use super::{io::Reader, variant::Record as _, Record};
 
 /// Indexes a bgzipped-compressed VCF file.
 ///
@@ -26,17 +23,20 @@ where
     let mut indexer = tabix::index::Indexer::default();
     indexer.set_header(csi::binning_index::index::header::Builder::vcf().build());
 
-    let mut record = RecordBuf::default();
+    let mut record = Record::default();
     let mut start_position = reader.get_ref().virtual_position();
 
-    while reader.read_record_buf(&header, &mut record)? != 0 {
+    while reader.read_record(&mut record)? != 0 {
         let end_position = reader.get_ref().virtual_position();
         let chunk = Chunk::new(start_position, end_position);
 
         let reference_sequence_name = record.reference_sequence_name().to_string();
+
         let start = record
             .variant_start()
+            .transpose()?
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing position"))?;
+
         let end = record.variant_end(&header)?;
 
         indexer.add_record(&reference_sequence_name, start, end, chunk)?;
