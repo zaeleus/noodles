@@ -36,7 +36,7 @@
 //! assert!(header.header().is_some());
 //! assert_eq!(header.reference_sequences().len(), 2);
 //! assert!(header.read_groups().is_empty());
-//! assert!(header.programs().is_empty());
+//! assert!(header.programs().as_ref().is_empty());
 //! assert!(header.comments().is_empty());
 //! # Ok::<(), sam::header::ParseError>(())
 //! ```
@@ -66,13 +66,14 @@
 //! assert!(header.header().is_some());
 //! assert_eq!(header.reference_sequences().len(), 2);
 //! assert!(header.read_groups().is_empty());
-//! assert!(header.programs().is_empty());
+//! assert!(header.programs().as_ref().is_empty());
 //! assert!(header.comments().is_empty());
 //! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
 
 mod builder;
 mod parser;
+mod programs;
 pub mod record;
 
 pub use self::{
@@ -86,8 +87,9 @@ use std::str::{self, FromStr};
 use bstr::BString;
 use indexmap::IndexMap;
 
+use self::programs::Programs;
 use self::record::value::{
-    map::{self, Program, ReadGroup, ReferenceSequence},
+    map::{self, ReadGroup, ReferenceSequence},
     Map,
 };
 
@@ -96,9 +98,6 @@ pub type ReferenceSequences = IndexMap<BString, Map<ReferenceSequence>>;
 
 /// An ordered map of read groups.
 pub type ReadGroups = IndexMap<BString, Map<ReadGroup>>;
-
-/// An ordered map of programs.
-pub type Programs = IndexMap<BString, Map<Program>>;
 
 /// A SAM header.
 ///
@@ -284,8 +283,8 @@ impl Header {
     /// let header = sam::Header::builder().add_program("noodles-sam", program).build();
     ///
     /// let programs = header.programs();
-    /// assert_eq!(programs.len(), 1);
-    /// assert!(programs.contains_key(&b"noodles-sam"[..]));
+    /// assert_eq!(programs.as_ref().len(), 1);
+    /// assert!(programs.as_ref().contains_key(&b"noodles-sam"[..]));
     /// ```
     pub fn programs(&self) -> &Programs {
         &self.programs
@@ -301,11 +300,14 @@ impl Header {
     /// let mut header = sam::Header::default();
     ///
     /// let program = Map::<Program>::default();
-    /// header.programs_mut().insert(String::from("noodles-sam").into(), program);
+    /// header
+    ///     .programs_mut()
+    ///     .as_mut()
+    ///     .insert(String::from("noodles-sam").into(), program);
     ///
     /// let programs = header.programs();
-    /// assert_eq!(programs.len(), 1);
-    /// assert!(programs.contains_key(&b"noodles-sam"[..]));
+    /// assert_eq!(programs.as_ref().len(), 1);
+    /// assert!(programs.as_ref().contains_key(&b"noodles-sam"[..]));
     /// ```
     pub fn programs_mut(&mut self) -> &mut Programs {
         &mut self.programs
@@ -378,7 +380,7 @@ impl Header {
         self.header.is_none()
             && self.reference_sequences.is_empty()
             && self.read_groups.is_empty()
-            && self.programs.is_empty()
+            && self.programs.as_ref().is_empty()
             && self.comments.is_empty()
     }
 
@@ -399,7 +401,7 @@ impl Header {
         self.header.take();
         self.reference_sequences.clear();
         self.read_groups.clear();
-        self.programs.clear();
+        self.programs.as_mut().clear();
         self.comments.clear();
     }
 }
@@ -425,7 +427,7 @@ impl FromStr for Header {
     /// assert!(header.header().is_some());
     /// assert_eq!(header.reference_sequences().len(), 2);
     /// assert!(header.read_groups().is_empty());
-    /// assert!(header.programs().is_empty());
+    /// assert!(header.programs().as_ref().is_empty());
     /// assert!(header.comments().is_empty());
     /// # Ok::<(), sam::header::ParseError>(())
     /// ```

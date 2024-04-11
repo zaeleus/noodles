@@ -147,14 +147,14 @@ impl Builder {
     ///     .build();
     ///
     /// let programs = header.programs();
-    /// assert_eq!(programs.len(), 1);
-    /// assert!(programs.contains_key(&b"noodles-sam"[..]));
+    /// assert_eq!(programs.as_ref().len(), 1);
+    /// assert!(programs.as_ref().contains_key(&b"noodles-sam"[..]));
     /// ```
     pub fn add_program<I>(mut self, id: I, map: Map<Program>) -> Self
     where
         I: Into<BString>,
     {
-        self.programs.insert(id.into(), map);
+        self.programs.as_mut().insert(id.into(), map);
         self
     }
 
@@ -208,7 +208,7 @@ mod tests {
         assert!(header.header.is_none());
         assert!(header.reference_sequences.is_empty());
         assert!(header.read_groups.is_empty());
-        assert!(header.programs.is_empty());
+        assert!(header.programs.as_ref().is_empty());
         assert!(header.comments.is_empty());
     }
 
@@ -243,7 +243,7 @@ mod tests {
 
         assert_eq!(header.read_groups().len(), 2);
 
-        assert_eq!(header.programs().len(), 1);
+        assert_eq!(header.programs().as_ref().len(), 1);
 
         let comments = header.comments();
         assert_eq!(comments.len(), 1);

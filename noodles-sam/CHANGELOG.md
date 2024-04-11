@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/header: Wrap `Programs`.
+
+    Use `AsRef` and `AsMut` to access the inner map.
+
 ## 0.56.0 - 2024-04-04
 
 ### Added

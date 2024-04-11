@@ -73,7 +73,7 @@ impl Parser {
         self.header.is_none()
             && self.reference_sequences.is_empty()
             && self.read_groups.is_empty()
-            && self.programs.is_empty()
+            && self.programs.as_ref().is_empty()
             && self.comments.is_empty()
     }
 
@@ -117,7 +117,7 @@ impl Parser {
                 ParseError::DuplicateReadGroupId,
             )?,
             Record::Program(id, program) => try_insert(
-                &mut self.programs,
+                self.programs.as_mut(),
                 id,
                 program,
                 ParseError::DuplicateProgramId,
@@ -205,7 +205,7 @@ where
 /// assert!(header.header().is_some());
 /// assert_eq!(header.reference_sequences().len(), 2);
 /// assert!(header.read_groups().is_empty());
-/// assert!(header.programs().is_empty());
+/// assert!(header.programs().as_ref().is_empty());
 /// assert!(header.comments().is_empty());
 /// # Ok::<(), sam::header::ParseError>(())
 /// ```
@@ -285,7 +285,7 @@ mod tests {
         assert!(header.header().is_none());
         assert!(header.reference_sequences().is_empty());
         assert!(header.read_groups().is_empty());
-        assert!(header.programs().is_empty());
+        assert!(header.programs().as_ref().is_empty());
         assert!(header.comments().is_empty());
 
         Ok(())

@@ -21,7 +21,7 @@ where
         write_read_group(writer, id, read_group)?;
     }
 
-    for (id, program) in header.programs() {
+    for (id, program) in header.programs().as_ref() {
         write_program(writer, id, program)?;
     }
 
