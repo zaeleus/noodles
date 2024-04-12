@@ -4,9 +4,12 @@
 
 ### Changed
 
-  * sam/header: Wrap `Programs`.
+  * sam/header: Wrap `Programs` ([#245]).
 
-    Use `AsRef` and `AsMut` to access the inner map.
+    SAM header programs are wrapped to represent them as program chains. Use
+    `AsRef` and `AsMut` to access the inner map.
+
+[#245]: https://github.com/zaeleus/noodles/pull/245
 
 ## 0.56.0 - 2024-04-04
 
