@@ -7,7 +7,35 @@ use super::record::value::map::{program::tag, Map, Program};
 
 type Inner = IndexMap<BString, Map<Program>>;
 
+#[allow(clippy::tabs_in_doc_comments)]
 /// SAM header programs.
+///
+/// SAM header programs are header records that form program chains. A program chain is a directed
+/// acyclic graph (DAG) starting at a root program and ending at a leaf program. Program edges are
+/// directed forward from a parent program to its linked program using the previous program ID
+/// (`PP`) field in the child program.
+///
+/// For example, take the following program records:
+///
+/// ```text
+/// @PG	ID:pg0
+/// @PG	ID:pg1	PP:pg0
+/// ```
+///
+/// This creates the program chain `pg0 -> pg1`.
+///
+/// There can exist more than one program chain in the SAM header programs, e.g.,
+///
+/// ```text
+/// @PG	ID:pg0
+/// @PG	ID:pg1
+/// @PG	ID:pg2
+/// @PG	ID:pg3	PP:pg0
+/// @PG	ID:pg4	PP:pg1
+/// @PG	ID:pg5	PP:pg4
+/// ```
+///
+/// This creates the program chains `pg0 -> pg3`, `pg1 -> pg4 -> pg5`, and `pg2`.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Programs(Inner);
 
