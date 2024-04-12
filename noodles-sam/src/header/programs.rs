@@ -1,6 +1,6 @@
 use std::io;
 
-use bstr::{BStr, BString};
+use bstr::{BStr, BString, ByteVec};
 use indexmap::{IndexMap, IndexSet};
 
 use super::record::value::map::{program::tag, Map, Program};
@@ -12,6 +12,74 @@ type Inner = IndexMap<BString, Map<Program>>;
 pub struct Programs(Inner);
 
 impl Programs {
+    /// Adds a program.
+    ///
+    /// If the program is the first program in the graph, this is similar to calling
+    /// `IndexMap::insert` on the inner graph. If no previous program is set, this attaches the
+    /// program to all program chains using leaf programs as the given program's previous program.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{
+    ///     self as sam,
+    ///     header::record::value::{map::{program::tag, Program}, Map},
+    /// };
+    ///
+    /// let mut header = sam::Header::default();
+    /// let programs = header.programs_mut();
+    ///
+    /// programs.add("pg0", Map::default())?;
+    /// programs.add("pg1", Map::default())?;
+    ///
+    /// let expected = sam::Header::builder()
+    ///     .add_program("pg0", Map::default())
+    ///     .add_program("pg1", Map::builder().insert(tag::PREVIOUS_PROGRAM_ID, "pg0").build()?)
+    ///     .build();
+    ///
+    /// assert_eq!(programs, expected.programs());
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn add<P>(&mut self, id_prefix: P, map: Map<Program>) -> io::Result<()>
+    where
+        P: Into<BString>,
+    {
+        const SEPARATOR: u8 = b'-';
+
+        let id_prefix = id_prefix.into();
+
+        if self.0.is_empty() {
+            self.0.insert(id_prefix, map);
+            return Ok(());
+        }
+
+        let previous_program_ids: Vec<BString> = self.leaves()?.map(|(id, _)| id.into()).collect();
+        let contains_prefix_id = self.0.contains_key(&id_prefix);
+
+        for (i, previous_program_id) in previous_program_ids.into_iter().enumerate() {
+            let mut id = id_prefix.clone();
+
+            if i > 0 || contains_prefix_id {
+                id.push_byte(SEPARATOR);
+                id.push_str(&previous_program_id);
+
+                if self.0.contains_key(&id) {
+                    return Err(io::Error::new(io::ErrorKind::InvalidInput, "duplicate ID"));
+                }
+            }
+
+            let mut map = map.clone();
+
+            map.other_fields_mut()
+                .entry(tag::PREVIOUS_PROGRAM_ID)
+                .or_insert(previous_program_id);
+
+            self.0.insert(id, map);
+        }
+
+        Ok(())
+    }
+
     /// Returns an iterator over root programs.
     ///
     /// A root program is a first program of a program chain.
@@ -129,6 +197,70 @@ impl AsMut<Inner> for Programs {
 mod tests {
     use super::*;
     use crate::Header;
+
+    #[test]
+    fn test_add() -> Result<(), Box<dyn std::error::Error>> {
+        let mut programs = Programs::default();
+        assert!(programs.as_ref().is_empty());
+
+        programs.add("pg0", Map::default())?;
+        let expected = Programs(
+            [(BString::from("pg0"), Map::default())]
+                .into_iter()
+                .collect(),
+        );
+        assert_eq!(programs, expected);
+
+        programs.add("pg1", Map::default())?;
+        let expected = Programs(
+            [
+                (BString::from("pg0"), Map::default()),
+                (
+                    BString::from("pg1"),
+                    Map::builder()
+                        .insert(tag::PREVIOUS_PROGRAM_ID, "pg0")
+                        .build()?,
+                ),
+            ]
+            .into_iter()
+            .collect(),
+        );
+        assert_eq!(programs, expected);
+
+        programs
+            .as_mut()
+            .insert(BString::from("pg2"), Map::default());
+        programs.add("pg3", Map::default())?;
+        let expected = Programs(
+            [
+                (BString::from("pg0"), Map::default()),
+                (
+                    BString::from("pg1"),
+                    Map::builder()
+                        .insert(tag::PREVIOUS_PROGRAM_ID, "pg0")
+                        .build()?,
+                ),
+                (BString::from("pg2"), Map::default()),
+                (
+                    BString::from("pg3"),
+                    Map::builder()
+                        .insert(tag::PREVIOUS_PROGRAM_ID, "pg2")
+                        .build()?,
+                ),
+                (
+                    BString::from("pg3-pg1"),
+                    Map::builder()
+                        .insert(tag::PREVIOUS_PROGRAM_ID, "pg1")
+                        .build()?,
+                ),
+            ]
+            .into_iter()
+            .collect(),
+        );
+        assert_eq!(programs, expected);
+
+        Ok(())
+    }
 
     #[test]
     fn test_leaves() -> Result<(), Box<dyn std::error::Error>> {
