@@ -9,6 +9,8 @@
     SAM header programs are wrapped to represent them as program chains. Use
     `AsRef` and `AsMut` to access the inner map.
 
+  * sam/io/writer/record/data/field/value/float: Add float validation.
+
 [#245]: https://github.com/zaeleus/noodles/pull/245
 
 ## 0.56.0 - 2024-04-04
