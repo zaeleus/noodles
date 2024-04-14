@@ -1,4 +1,4 @@
-use std::{error, fmt, str::FromStr};
+use std::{error, fmt, num, str::FromStr};
 
 /// A VCF number describing the cardinality of a field.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -39,16 +39,23 @@ pub enum ParseError {
     /// The input is empty.
     Empty,
     /// The input is invalid.
-    Invalid,
+    Invalid(num::ParseIntError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Empty => None,
+            Self::Invalid(e) => Some(e),
+        }
+    }
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
-            Self::Invalid => f.write_str("invalid input"),
+            Self::Invalid(_) => f.write_str("invalid input"),
         }
     }
 }
@@ -63,10 +70,7 @@ impl FromStr for Number {
             "R" => Ok(Self::R),
             "G" => Ok(Self::G),
             "." => Ok(Self::Unknown),
-            _ => match s.parse() {
-                Ok(n) => Ok(Self::Count(n)),
-                Err(_) => Err(ParseError::Invalid),
-            },
+            _ => s.parse().map(Self::Count).map_err(ParseError::Invalid),
         }
     }
 }
@@ -98,6 +102,9 @@ mod tests {
         assert_eq!(".".parse(), Ok(Number::Unknown));
 
         assert_eq!("".parse::<Number>(), Err(ParseError::Empty));
-        assert_eq!("Noodles".parse::<Number>(), Err(ParseError::Invalid));
+        assert!(matches!(
+            "Noodles".parse::<Number>(),
+            Err(ParseError::Invalid(_))
+        ));
     }
 }
