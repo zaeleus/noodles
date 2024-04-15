@@ -1,6 +1,6 @@
-//! Async CRAM I/O.
+//! Async CRAM.
 
-mod reader;
+pub mod io;
 pub mod writer;
 
-pub use self::{reader::Reader, writer::Writer};
+pub use self::writer::Writer;

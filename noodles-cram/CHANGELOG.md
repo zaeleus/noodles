@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * cram/async: Move reader (`Reader`) to `io` module.
+
+### Changed
+
 ## 0.59.0 - 2024-04-04
 
 ### Changed

@@ -1,6 +1,6 @@
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
-use crate::r#async::reader::{
+use crate::r#async::io::reader::{
     num::{read_itf8, read_ltf8},
     CrcReader,
 };

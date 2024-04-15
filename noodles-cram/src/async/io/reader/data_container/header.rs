@@ -2,7 +2,7 @@ use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::{
     data_container::Header,
-    r#async::reader::{
+    r#async::io::reader::{
         num::{read_itf8, read_ltf8},
         CrcReader,
     },

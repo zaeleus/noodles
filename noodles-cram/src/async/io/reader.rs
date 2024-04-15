@@ -33,7 +33,7 @@ where
     /// ```
     /// use noodles_cram as cram;
     /// let data = [];
-    /// let reader = cram::AsyncReader::new(&data[..]);
+    /// let reader = cram::r#async::io::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
         Self {
@@ -49,7 +49,7 @@ where
     /// ```
     /// use noodles_cram as cram;
     /// let data = [];
-    /// let reader = cram::AsyncReader::new(&data[..]);
+    /// let reader = cram::r#async::io::Reader::new(&data[..]);
     /// assert!(reader.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &R {
@@ -63,7 +63,7 @@ where
     /// ```
     /// use noodles_cram as cram;
     /// let data = [];
-    /// let mut reader = cram::AsyncReader::new(&data[..]);
+    /// let mut reader = cram::r#async::io::Reader::new(&data[..]);
     /// assert!(reader.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
@@ -77,7 +77,7 @@ where
     /// ```
     /// use noodles_cram as cram;
     /// let data = [];
-    /// let reader = cram::AsyncReader::new(&data[..]);
+    /// let reader = cram::r#async::io::Reader::new(&data[..]);
     /// assert!(reader.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> R {
@@ -99,7 +99,7 @@ where
     /// # async fn main() -> io::Result<()> {
     /// use noodles_cram as cram;
     /// use tokio::fs::File;
-    /// let mut reader = File::open("sample.cram").await.map(cram::AsyncReader::new)?;
+    /// let mut reader = File::open("sample.cram").await.map(cram::r#async::io::Reader::new)?;
     /// let file_definition = reader.read_file_definition().await?;
     /// # Ok(())
     /// # }
@@ -131,7 +131,7 @@ where
     /// use noodles_cram as cram;
     /// use tokio::fs::File;
     ///
-    /// let mut reader = File::open("sample.cram").await.map(cram::AsyncReader::new)?;
+    /// let mut reader = File::open("sample.cram").await.map(cram::r#async::io::Reader::new)?;
     /// reader.read_file_definition().await?;
     ///
     /// let header = reader.read_file_header().await?;
@@ -158,7 +158,7 @@ where
     /// use noodles_cram as cram;
     /// use tokio::fs::File;
     ///
-    /// let mut reader = File::open("sample.cram").await.map(cram::AsyncReader::new)?;
+    /// let mut reader = File::open("sample.cram").await.map(cram::r#async::io::Reader::new)?;
     /// reader.read_file_definition().await?;
     /// reader.read_file_header().await?;
     ///
@@ -188,7 +188,7 @@ where
     /// use noodles_fasta as fasta;
     /// use tokio::fs::File;
     ///
-    /// let mut reader = File::open("sample.cram").await.map(cram::AsyncReader::new)?;
+    /// let mut reader = File::open("sample.cram").await.map(cram::r#async::io::Reader::new)?;
     /// reader.read_file_definition().await?;
     ///
     /// let repository = fasta::Repository::default();
@@ -229,7 +229,7 @@ where
     /// # async fn main() -> io::Result<()> {
     /// use std::io::{Cursor, SeekFrom};
     /// use noodles_cram as cram;
-    /// let mut reader = cram::AsyncReader::new(Cursor::new(Vec::new()));
+    /// let mut reader = cram::r#async::io::Reader::new(Cursor::new(Vec::new()));
     /// reader.seek(SeekFrom::Start(0)).await?;
     /// # Ok(())
     /// # }
@@ -249,7 +249,7 @@ where
     /// # async fn main() -> io::Result<()> {
     /// use std::io::{Cursor, SeekFrom};
     /// use noodles_cram as cram;
-    /// let mut reader = cram::AsyncReader::new(Cursor::new(Vec::new()));
+    /// let mut reader = cram::r#async::io::Reader::new(Cursor::new(Vec::new()));
     /// assert_eq!(reader.position().await?, 0);
     /// # Ok(())
     /// # }
@@ -271,7 +271,7 @@ where
     /// use noodles_fasta as fasta;
     /// use tokio::fs::File;
     ///
-    /// let mut reader = File::open("sample.cram").await.map(cram::AsyncReader::new)?;
+    /// let mut reader = File::open("sample.cram").await.map(cram::r#async::io::Reader::new)?;
     /// reader.read_file_definition().await?;
     ///
     /// let repository = fasta::Repository::default();
