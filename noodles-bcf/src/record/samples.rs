@@ -49,6 +49,28 @@ impl<'r> Samples<'r> {
         }
     }
 
+    /// Returns the series with the given column name.
+    pub fn select<'h: 'r>(
+        &'r self,
+        header: &'h vcf::Header,
+        column_name: &str,
+    ) -> Option<io::Result<Series<'r>>> {
+        for result in self.series() {
+            let series = match result {
+                Ok(s) => s,
+                Err(e) => return Some(Err(e)),
+            };
+
+            match series.name(header) {
+                Ok(name) if name == column_name => return Some(Ok(series)),
+                Ok(_) => {}
+                Err(e) => return Some(Err(e)),
+            }
+        }
+
+        None
+    }
+
     /// Returns an iterator over series.
     pub fn series(&'r self) -> impl Iterator<Item = io::Result<Series<'r>>> + 'r {
         let mut src = self.src;
