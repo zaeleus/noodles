@@ -31,6 +31,15 @@ impl<'r> Samples<'r> {
         Keys::new(src)
     }
 
+    /// Returns the series with the given column name.
+    pub fn select(&'r self, column_name: &str) -> Option<Series<'r>> {
+        self.keys()
+            .iter()
+            .enumerate()
+            .find(|(_, key)| *key == column_name)
+            .map(|(i, key)| Series::new(key, self, i))
+    }
+
     /// Returns an iterator over series.
     pub fn series(&'r self) -> impl Iterator<Item = Series<'r>> + '_ {
         self.keys()
@@ -129,6 +138,17 @@ mod tests {
     fn test_is_empty() {
         assert!(Samples::new("").is_empty());
         assert!(!Samples::new("GT:GQ\t0|0:13").is_empty());
+    }
+
+    #[test]
+    fn test_select() {
+        use crate::variant::record::samples::keys::key;
+
+        let samples = Samples::new("");
+        assert!(samples.select(key::CONDITIONAL_GENOTYPE_QUALITY).is_none());
+
+        let samples = Samples::new("GT:GQ\t0|0:13\t.");
+        assert!(samples.select(key::CONDITIONAL_GENOTYPE_QUALITY).is_some());
     }
 
     #[test]
