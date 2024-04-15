@@ -48,6 +48,13 @@ pub trait Samples {
         header: &'h Header,
     ) -> Box<dyn Iterator<Item = io::Result<&'a str>> + 'a>;
 
+    /// Returns the series with the given column name.
+    fn select<'a, 'h: 'a>(
+        &'a self,
+        header: &'h Header,
+        column_name: &str,
+    ) -> Option<io::Result<Box<dyn Series + 'a>>>;
+
     /// Returns an iterator over series.
     fn series(&self) -> Box<dyn Iterator<Item = io::Result<Box<dyn Series + '_>>> + '_>;
 
@@ -69,6 +76,14 @@ impl Samples for Box<dyn Samples + '_> {
         header: &'h Header,
     ) -> Box<dyn Iterator<Item = io::Result<&'a str>> + 'a> {
         (**self).column_names(header)
+    }
+
+    fn select<'a, 'h: 'a>(
+        &'a self,
+        header: &'h Header,
+        column_name: &str,
+    ) -> Option<io::Result<Box<dyn Series + 'a>>> {
+        (**self).select(header, column_name)
     }
 
     fn series(&self) -> Box<dyn Iterator<Item = io::Result<Box<dyn Series + '_>>> + '_> {

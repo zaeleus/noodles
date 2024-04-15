@@ -115,6 +115,16 @@ impl<'r> vcf::variant::record::Samples for Samples<'r> {
         )
     }
 
+    fn select<'a, 'h: 'a>(
+        &'a self,
+        header: &'h vcf::Header,
+        column_name: &str,
+    ) -> Option<io::Result<Box<dyn vcf::variant::record::samples::Series + 'a>>> {
+        self.select(header, column_name).map(|result| {
+            result.map(|series| Box::new(series) as Box<dyn vcf::variant::record::samples::Series>)
+        })
+    }
+
     fn series(
         &self,
     ) -> Box<

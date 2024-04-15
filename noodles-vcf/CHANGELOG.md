@@ -4,7 +4,7 @@
 
 ### Added
 
-  * vcf/record/samples: Add series selector (`Samples::select`).
+  * vcf/variant/record/samples: Add series selector (`Samples::select`).
 
 ## 0.53.0 - 2024-04-11
 

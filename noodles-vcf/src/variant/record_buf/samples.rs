@@ -161,6 +161,16 @@ impl crate::variant::record::Samples for Samples {
         Box::new(self.keys.as_ref().iter().map(|key| Ok(key.as_str())))
     }
 
+    fn select<'a, 'h: 'a>(
+        &'a self,
+        _: &'h Header,
+        column_name: &str,
+    ) -> Option<io::Result<Box<dyn crate::variant::record::samples::Series + 'a>>> {
+        self.select(column_name)
+            .map(|series| Box::new(series) as Box<dyn crate::variant::record::samples::Series>)
+            .map(Ok)
+    }
+
     fn series(
         &self,
     ) -> Box<
@@ -197,6 +207,16 @@ impl crate::variant::record::Samples for &Samples {
         _: &'h Header,
     ) -> Box<dyn Iterator<Item = io::Result<&'a str>> + 'a> {
         Box::new(self.keys.as_ref().iter().map(|key| Ok(key.as_str())))
+    }
+
+    fn select<'a, 'h: 'a>(
+        &'a self,
+        _: &'h Header,
+        column_name: &str,
+    ) -> Option<io::Result<Box<dyn crate::variant::record::samples::Series + 'a>>> {
+        Samples::select(self, column_name)
+            .map(|series| Box::new(series) as Box<dyn crate::variant::record::samples::Series>)
+            .map(Ok)
     }
 
     fn series(

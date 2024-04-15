@@ -4,7 +4,7 @@
 
 ### Added
 
-  * bcf/record/samples: Add series selector (`Samples::select`).
+  * bcf/record/samples: Implement series selector (`Samples::select`).
 
 ## 0.50.0 - 2024-04-11
 
