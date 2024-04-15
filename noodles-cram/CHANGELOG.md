@@ -4,7 +4,7 @@
 
 ### Changed
 
-  * cram/async: Move reader (`Reader`) to `io` module.
+  * cram/async: Move reader (`Reader`) and writer (`Writer`) to `io` module.
 
 ### Changed
 

@@ -57,7 +57,7 @@ impl Builder {
     /// ```
     /// use noodles_cram as cram;
     /// use tokio::io;
-    /// let writer = cram::r#async::writer::Builder::default().build_with_writer(io::sink());
+    /// let writer = cram::r#async::io::writer::Builder::default().build_with_writer(io::sink());
     /// ```
     pub fn build_with_writer<W>(mut self, writer: W) -> Writer<W>
     where

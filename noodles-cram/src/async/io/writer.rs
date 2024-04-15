@@ -39,7 +39,7 @@ where
     /// ```
     /// use noodles_cram as cram;
     /// use tokio::io;
-    /// let writer = cram::AsyncWriter::new(io::sink());
+    /// let writer = cram::r#async::io::Writer::new(io::sink());
     /// ```
     pub fn new(inner: W) -> Self {
         Builder::default().build_with_writer(inner)
@@ -52,7 +52,7 @@ where
     /// ```
     /// use noodles_cram as cram;
     /// use tokio::io;
-    /// let writer = cram::AsyncWriter::new(io::sink());
+    /// let writer = cram::r#async::io::Writer::new(io::sink());
     /// let inner = writer.get_ref();
     /// ```
     pub fn get_ref(&self) -> &W {
@@ -70,7 +70,7 @@ where
     /// use noodles_cram as cram;
     /// use noodles_sam as sam;
     /// use tokio::io;
-    /// let mut writer = cram::AsyncWriter::new(io::sink());
+    /// let mut writer = cram::r#async::io::Writer::new(io::sink());
     /// let header = sam::Header::default();
     /// writer.shutdown(&header).await?;
     /// # Ok(())
@@ -93,7 +93,7 @@ where
     /// # async fn main() -> std::io::Result<()> {
     /// use noodles_cram as cram;
     ///
-    /// let mut writer = cram::AsyncWriter::new(Vec::new());
+    /// let mut writer = cram::r#async::io::Writer::new(Vec::new());
     /// writer.write_file_definition().await?;
     ///
     /// assert_eq!(writer.get_ref(), &[
@@ -129,7 +129,7 @@ where
     /// use noodles_sam as sam;
     /// use tokio::io;
     ///
-    /// let mut writer = cram::AsyncWriter::new(io::sink());
+    /// let mut writer = cram::r#async::io::Writer::new(io::sink());
     /// writer.write_file_definition().await?;
     ///
     /// let header = sam::Header::default();
@@ -165,7 +165,7 @@ where
     /// use noodles_sam as sam;
     /// use tokio::io;
     ///
-    /// let mut writer = cram::AsyncWriter::new(io::sink());
+    /// let mut writer = cram::r#async::io::Writer::new(io::sink());
     /// writer.write_file_definition().await?;
     ///
     /// let header = sam::Header::default();

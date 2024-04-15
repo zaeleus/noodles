@@ -21,6 +21,6 @@ pub use self::{
 };
 
 #[cfg(feature = "async")]
-pub use self::r#async::{io::Reader as AsyncReader, Writer as AsyncWriter};
+pub use self::r#async::io::{Reader as AsyncReader, Writer as AsyncWriter};
 
 static MAGIC_NUMBER: &[u8] = b"CRAM";
