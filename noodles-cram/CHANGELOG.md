@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * cram/io/writer/builder: Add `Builder::build_from_path`.
+
 ### Changed
 
   * cram/async: Move reader (`Reader`) and writer (`Writer`) to `io` module.

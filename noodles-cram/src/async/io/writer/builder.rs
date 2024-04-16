@@ -1,5 +1,10 @@
+use std::path::Path;
+
 use noodles_fasta as fasta;
-use tokio::io::AsyncWrite;
+use tokio::{
+    fs::File,
+    io::{self, AsyncWrite},
+};
 
 use super::Writer;
 use crate::{
@@ -48,6 +53,27 @@ impl Builder {
     pub fn set_block_content_encoder_map(mut self, map: BlockContentEncoderMap) -> Self {
         self.options.block_content_encoder_map = map;
         self
+    }
+
+    /// Builds an async CRAM writer from a path.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> tokio::io::Result<()> {
+    /// use noodles_cram::r#async::io::writer::Builder;
+    /// let writer = Builder::default().build_with_path("out.cram").await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn build_with_path<P>(self, dst: P) -> io::Result<Writer<File>>
+    where
+        P: AsRef<Path>,
+    {
+        File::create(dst)
+            .await
+            .map(|file| self.build_with_writer(file))
     }
 
     /// Builds an async CRAM writer from a writer.

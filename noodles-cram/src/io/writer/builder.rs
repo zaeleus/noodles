@@ -1,4 +1,8 @@
-use std::io::Write;
+use std::{
+    fs::File,
+    io::{self, Write},
+    path::Path,
+};
 
 use noodles_fasta as fasta;
 
@@ -87,7 +91,23 @@ impl Builder {
         self
     }
 
-    /// Builds a CRAM writer.
+    /// Builds a CRAM writer from a path.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use noodles_cram::io::writer::Builder;
+    /// let writer = Builder::default().build_with_path("out.cram")?;
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
+    pub fn build_with_path<P>(self, dst: P) -> io::Result<Writer<File>>
+    where
+        P: AsRef<Path>,
+    {
+        File::create(dst).map(|file| self.build_with_writer(file))
+    }
+
+    /// Builds a CRAM writer from a writer.
     ///
     /// # Examples
     ///
