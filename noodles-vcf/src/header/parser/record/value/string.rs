@@ -1,4 +1,8 @@
+pub mod file_format;
+
 use std::{error, fmt, str};
+
+pub use self::file_format::parse_file_format;
 
 /// An error returned when a VCF header record string value fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]

@@ -12,7 +12,7 @@ use crate::header::{
 /// An error returned when a VCF header record value fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
-    InvalidFileFormat,
+    InvalidFileFormat(string::file_format::ParseError),
     InvalidInfo(map::info::ParseError),
     InvalidFilter(map::filter::ParseError),
     InvalidFormat(map::format::ParseError),
@@ -35,6 +35,7 @@ pub enum ParseError {
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
+            Self::InvalidFileFormat(e) => Some(e),
             Self::InvalidInfo(e) => Some(e),
             Self::InvalidFilter(e) => Some(e),
             Self::InvalidFormat(e) => Some(e),
@@ -50,7 +51,7 @@ impl error::Error for ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidFileFormat => write!(f, "invalid fileformat"),
+            Self::InvalidFileFormat(_) => write!(f, "invalid fileformat"),
             Self::InvalidInfo(e) => {
                 write!(f, "invalid {}", key::INFO)?;
 
@@ -155,10 +156,9 @@ pub(super) fn parse_value(
     const PEDIGREE: &str = "PEDIGREE";
 
     match key {
-        key::FILE_FORMAT => parse_string(src)
-            .map_err(|_| ParseError::InvalidFileFormat)
-            .and_then(|s| s.parse().map_err(|_| ParseError::InvalidFileFormat))
-            .map(Record::FileFormat),
+        key::FILE_FORMAT => string::parse_file_format(src)
+            .map(Record::FileFormat)
+            .map_err(ParseError::InvalidFileFormat),
         key::INFO => {
             let (id, map) = map::parse_info(src, file_format).map_err(ParseError::InvalidInfo)?;
             validate_info_definition(file_format, &id, map.number(), map.ty())?;
