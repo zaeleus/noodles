@@ -6,6 +6,12 @@
 
   * vcf/variant/record/samples: Add series selector (`Samples::select`).
 
+### Removed
+
+  * vcf/header/file_format: Remove parser.
+
+    An internal parser is used when parsing fileformat header records.
+
 ## 0.53.0 - 2024-04-11
 
 ### Changed

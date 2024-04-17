@@ -13,7 +13,7 @@ pub use self::{
     builder::Builder, entry::Entry, file_format_option::FileFormatOption, record::parse_record,
 };
 use super::{
-    file_format::{self, FileFormat},
+    file_format::FileFormat,
     record::value::{
         map::{AlternativeAllele, Contig, Filter, Format, Info},
         Map,
@@ -136,8 +136,6 @@ pub enum ParseError {
     MissingFileFormat,
     /// The file format (`fileformat`) appears other than the first line.
     UnexpectedFileFormat,
-    /// The file format (`fileformat`) is invalid.
-    InvalidFileFormat(file_format::ParseError),
     /// A record is invalid.
     InvalidRecord(record::ParseError),
     /// An info ID is duplicated.
@@ -171,7 +169,6 @@ impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::InvalidUtf8(e) => Some(e),
-            Self::InvalidFileFormat(e) => Some(e),
             Self::InvalidRecord(e) => Some(e),
             Self::InvalidRecordValue(e) => Some(e),
             _ => None,
@@ -186,7 +183,6 @@ impl std::fmt::Display for ParseError {
             Self::InvalidUtf8(_) => f.write_str("invalid UTF-8"),
             Self::MissingFileFormat => f.write_str("missing fileformat"),
             Self::UnexpectedFileFormat => f.write_str("unexpected file format"),
-            Self::InvalidFileFormat(_) => f.write_str("invalid file format"),
             Self::InvalidRecord(_) => f.write_str("invalid record"),
             Self::DuplicateInfoId(id) => write!(f, "duplicate INFO ID: {id}"),
             Self::DuplicateFilterId(id) => write!(f, "duplicate FILTER ID: {id}"),
