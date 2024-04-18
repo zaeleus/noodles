@@ -31,16 +31,16 @@ use self::{
 pub enum DecodeError {
     /// The reference sequence ID is invalid.
     InvalidReferenceSequenceId(reference_sequence_id::DecodeError),
-    /// The position is invalid.
-    InvalidPosition(position::DecodeError),
+    /// The alignment start is invalid.
+    InvalidAlignmentStart(position::DecodeError),
     /// The mapping quality is invalid.
     InvalidMappingQuality(mapping_quality::DecodeError),
     /// The flags are invalid.
     InvalidFlags(flags::DecodeError),
     /// The mate reference sequence ID is invalid.
     InvalidMateReferenceSequenceId(reference_sequence_id::DecodeError),
-    /// The mate position is invalid.
-    InvalidMatePosition(position::DecodeError),
+    /// The mate alignment start is invalid.
+    InvalidMateAlignmentStart(position::DecodeError),
     /// The template length is invalid.
     InvalidTemplateLength(template_length::DecodeError),
     /// The name is invalid.
@@ -59,11 +59,11 @@ impl error::Error for DecodeError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::InvalidReferenceSequenceId(e) => Some(e),
-            Self::InvalidPosition(e) => Some(e),
+            Self::InvalidAlignmentStart(e) => Some(e),
             Self::InvalidMappingQuality(e) => Some(e),
             Self::InvalidFlags(e) => Some(e),
             Self::InvalidMateReferenceSequenceId(e) => Some(e),
-            Self::InvalidMatePosition(e) => Some(e),
+            Self::InvalidMateAlignmentStart(e) => Some(e),
             Self::InvalidTemplateLength(e) => Some(e),
             Self::InvalidName(e) => Some(e),
             Self::InvalidCigar(e) => Some(e),
@@ -78,13 +78,13 @@ impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidReferenceSequenceId(_) => write!(f, "invalid reference sequence ID"),
-            Self::InvalidPosition(_) => write!(f, "invalid position"),
+            Self::InvalidAlignmentStart(_) => write!(f, "invalid alignment start"),
             Self::InvalidMappingQuality(_) => write!(f, "invalid mapping quality"),
             Self::InvalidFlags(_) => write!(f, "invalid flags"),
             Self::InvalidMateReferenceSequenceId(_) => {
                 write!(f, "invalid mate reference sequence ID")
             }
-            Self::InvalidMatePosition(_) => write!(f, "invalid mate position"),
+            Self::InvalidMateAlignmentStart(_) => write!(f, "invalid mate alignment start"),
             Self::InvalidTemplateLength(_) => write!(f, "invalid template length"),
             Self::InvalidName(_) => write!(f, "invalid read name"),
             Self::InvalidCigar(_) => write!(f, "invalid CIGAR"),
@@ -108,7 +108,8 @@ where
     *record.reference_sequence_id_mut() =
         get_reference_sequence_id(src, n_ref).map_err(DecodeError::InvalidReferenceSequenceId)?;
 
-    *record.alignment_start_mut() = get_position(src).map_err(DecodeError::InvalidPosition)?;
+    *record.alignment_start_mut() =
+        get_position(src).map_err(DecodeError::InvalidAlignmentStart)?;
 
     let l_read_name = name::get_length(src).map_err(DecodeError::InvalidName)?;
 
@@ -128,7 +129,7 @@ where
         .map_err(DecodeError::InvalidMateReferenceSequenceId)?;
 
     *record.mate_alignment_start_mut() =
-        get_position(src).map_err(DecodeError::InvalidMatePosition)?;
+        get_position(src).map_err(DecodeError::InvalidMateAlignmentStart)?;
 
     *record.template_length_mut() =
         get_template_length(src).map_err(DecodeError::InvalidTemplateLength)?;
