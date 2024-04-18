@@ -15,7 +15,7 @@ pub(crate) use self::{
     quality_scores::put_quality_scores, sequence::put_sequence,
 };
 
-use std::io;
+use std::{error, fmt, io};
 
 use bytes::BufMut;
 use noodles_core::Position;
@@ -32,6 +32,33 @@ use self::{
 // becomes -1 in BAM) therefore use `reg2bin(-1, 0)` which is computed as 4680."
 pub(crate) const UNMAPPED_BIN: u16 = 4680;
 
+/// An error when a BAM record fails to encode.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum EncodeError {
+    /// The alignment start is invalid.
+    InvalidAlignmentStart(position::EncodeError),
+    /// The mate alignment start is invalid.
+    InvalidMateAlignmentStart(position::EncodeError),
+}
+
+impl error::Error for EncodeError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::InvalidAlignmentStart(e) => Some(e),
+            Self::InvalidMateAlignmentStart(e) => Some(e),
+        }
+    }
+}
+
+impl fmt::Display for EncodeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidAlignmentStart(_) => write!(f, "invalid alignment start"),
+            Self::InvalidMateAlignmentStart(_) => write!(f, "invalid mate alignment start"),
+        }
+    }
+}
+
 pub(crate) fn encode<B, R>(dst: &mut B, header: &sam::Header, record: &R) -> io::Result<()>
 where
     B: BufMut,
@@ -43,7 +70,9 @@ where
 
     // pos
     let alignment_start = record.alignment_start().transpose()?;
-    put_position(dst, alignment_start)?;
+    put_position(dst, alignment_start)
+        .map_err(EncodeError::InvalidAlignmentStart)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     put_l_read_name(dst, record.name())?;
 
@@ -72,7 +101,9 @@ where
 
     // next_pos
     let mate_alignment_start = record.mate_alignment_start().transpose()?;
-    put_position(dst, mate_alignment_start)?;
+    put_position(dst, mate_alignment_start)
+        .map_err(EncodeError::InvalidMateAlignmentStart)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     // tlen
     let template_length = record.template_length()?;
