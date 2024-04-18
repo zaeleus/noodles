@@ -10,8 +10,6 @@
 
   * cram/async: Move reader (`Reader`) and writer (`Writer`) to `io` module.
 
-### Changed
-
 ## 0.59.0 - 2024-04-04
 
 ### Changed
