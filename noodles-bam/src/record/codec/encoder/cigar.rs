@@ -1,10 +1,11 @@
+mod op;
+
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::alignment::record::{
-    cigar::{op::Kind, Op},
-    Cigar,
-};
+use noodles_sam::alignment::record::Cigar;
+
+use self::op::encode_op;
 
 pub fn put_cigar<B, C>(dst: &mut B, cigar: &C) -> io::Result<()>
 where
@@ -20,40 +21,12 @@ where
     Ok(())
 }
 
-fn encode_op(op: Op) -> io::Result<u32> {
-    const MAX_LENGTH: u32 = (1 << 28) - 1;
-
-    let len =
-        u32::try_from(op.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-    if len <= MAX_LENGTH {
-        let k = encode_kind(op.kind());
-        Ok(len << 4 | k)
-    } else {
-        Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            "invalid CIGAR op length",
-        ))
-    }
-}
-
-fn encode_kind(kind: Kind) -> u32 {
-    match kind {
-        Kind::Match => 0,
-        Kind::Insertion => 1,
-        Kind::Deletion => 2,
-        Kind::Skip => 3,
-        Kind::SoftClip => 4,
-        Kind::HardClip => 5,
-        Kind::Pad => 6,
-        Kind::SequenceMatch => 7,
-        Kind::SequenceMismatch => 8,
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use noodles_sam::alignment::record_buf::Cigar as CigarBuf;
+    use noodles_sam::alignment::{
+        record::cigar::{op::Kind, Op},
+        record_buf::Cigar as CigarBuf,
+    };
 
     use super::*;
 
@@ -83,30 +56,5 @@ mod tests {
         )?;
 
         Ok(())
-    }
-
-    #[test]
-    fn test_encode_op() -> io::Result<()> {
-        assert_eq!(encode_op(Op::new(Kind::Match, 1))?, 0x10);
-
-        assert!(matches!(
-            encode_op(Op::new(Kind::Match, 1 << 28)),
-            Err(e) if e.kind() == io::ErrorKind::InvalidInput,
-        ));
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_encode_kind() {
-        assert_eq!(encode_kind(Kind::Match), 0);
-        assert_eq!(encode_kind(Kind::Insertion), 1);
-        assert_eq!(encode_kind(Kind::Deletion), 2);
-        assert_eq!(encode_kind(Kind::Skip), 3);
-        assert_eq!(encode_kind(Kind::SoftClip), 4);
-        assert_eq!(encode_kind(Kind::HardClip), 5);
-        assert_eq!(encode_kind(Kind::Pad), 6);
-        assert_eq!(encode_kind(Kind::SequenceMatch), 7);
-        assert_eq!(encode_kind(Kind::SequenceMismatch), 8);
     }
 }
