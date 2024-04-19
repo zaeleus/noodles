@@ -14,7 +14,7 @@ where
 {
     for result in cigar.iter() {
         let op = result?;
-        let n = encode_op(op)?;
+        let n = encode_op(op).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
         dst.put_u32_le(n);
     }
 
