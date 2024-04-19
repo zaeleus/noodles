@@ -88,15 +88,14 @@ pub(super) fn resolve(record: &mut RecordBuf) -> Result<(), DecodeError> {
 
         if *op_0 == Op::new(Kind::SoftClip, k) && op_1.kind() == Kind::Skip {
             if let Some((_, value)) = record.data_mut().remove(&Tag::CIGAR) {
-                let data = match value {
-                    Value::Array(Array::UInt32(values)) => values,
-                    _ => return Err(DecodeError::InvalidDataType),
+                let Value::Array(Array::UInt32(values)) = value else {
+                    return Err(DecodeError::InvalidDataType);
                 };
 
                 let cigar = record.cigar_mut().as_mut();
                 cigar.clear();
 
-                for n in data {
+                for n in values {
                     let op = decode_op(n).map_err(DecodeError::InvalidOp)?;
                     cigar.push(op);
                 }
