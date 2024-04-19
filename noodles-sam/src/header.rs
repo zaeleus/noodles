@@ -16,7 +16,7 @@
 //! [header]: `record::value::map::Header`
 //! [reference sequence]: `ReferenceSequence`
 //! [read group]: `ReadGroup`
-//! [program]: `Program`
+//! [program]: `record::value::map::Program`
 //!
 //! # Examples
 //!
