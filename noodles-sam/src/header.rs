@@ -1,17 +1,16 @@
-//! SAM header and records.
+//! SAM header.
 //!
-//! A SAM header is a list of header records. There are 5 record types: [header] (`HD`), [reference
-//! sequence] (`SQ`), [read group] (`RG`), [program] (`PG`), and comment (`CO`).
+//! A SAM header is a list of header records. There are four map-like record types ([header]
+//! (`HD`), [reference sequence] (`SQ`), [read group] (`RG`), and [program] (`PG`)) and one string
+//! type (comment (`CO`)).
 //!
-//! Each record is effectively a map. It defines key-value pairs associated with that record type.
+//! Records are optional, which means an empty header is considered a valid SAM header.
 //!
-//! All records are optional, which means an empty header is considered a valid SAM header.
+//! If there is a header (`HD`) record, it must appear as the first record.
 //!
-//! If there is a header record, it must appear as the first record.
-//!
-//! Reference sequence, read group, program, and comment records are lists of records of the same
-//! type. Reference sequences must be ordered; whereas read groups, programs, and comments can be
-//! unordered. (`sam::Header` defines them to be ordered.)
+//! Reference sequence, read group, and program records are maps of records with unique
+//! identifiers. Comments are a list of strings. Reference sequences must be ordered; whereas read
+//! groups, programs, and comments can be unordered. (`sam::Header` defines them to be ordered.)
 //!
 //! [header]: `record::value::map::Header`
 //! [reference sequence]: `ReferenceSequence`
