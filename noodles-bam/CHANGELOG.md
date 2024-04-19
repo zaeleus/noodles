@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * bam/record/name: Trim trailing `NUL` when converting to an alignment record
+    name buffer ([#254]).
+
+[#254]: https://github.com/zaeleus/noodles/issues/254
+
 ## 0.59.0 - 2024-04-04
 
 ### Changed

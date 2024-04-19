@@ -43,7 +43,7 @@ impl<'a> fmt::Debug for Name<'a> {
 
 impl<'a> From<Name<'a>> for sam::alignment::record_buf::Name {
     fn from(name: Name<'a>) -> Self {
-        Self::from(name.as_ref())
+        Self::from(name.as_bytes())
     }
 }
 
@@ -58,5 +58,20 @@ mod tests {
 
         let name = Name::new(b"r0");
         assert_eq!(name.as_bytes(), b"r0");
+    }
+
+    #[test]
+    fn test_from_name_for_sam_alignment_record_buf_name() {
+        use noodles_sam::alignment::record_buf::Name as NameBuf;
+
+        let expected = NameBuf::from(b"r0");
+
+        let name = Name::new(b"r0\x00");
+        let actual = NameBuf::from(name);
+        assert_eq!(actual, expected);
+
+        let name = Name::new(b"r0");
+        let actual = NameBuf::from(name);
+        assert_eq!(actual, expected);
     }
 }
