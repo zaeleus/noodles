@@ -31,6 +31,9 @@
 //! # Ok::<(), io::Error>(())
 //! ```
 
+#[cfg(feature = "async")]
+pub mod r#async;
+
 pub mod directive;
 pub mod lazy;
 pub mod line;
@@ -39,3 +42,6 @@ pub mod record;
 mod writer;
 
 pub use self::{directive::Directive, line::Line, reader::Reader, record::Record, writer::Writer};
+
+#[cfg(feature = "async")]
+pub use self::r#async::Reader as AsyncReader;

@@ -10,9 +10,21 @@ homepage = "https://github.com/zaeleus/noodles"
 repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-gff"
 
+[features]
+async = ["dep:futures", "dep:tokio"]
+
 [dependencies]
 indexmap.workspace = true
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.29.0" }
 noodles-core = { path = "../noodles-core", version = "0.15.0" }
 noodles-csi = { path = "../noodles-csi", version = "0.34.0" }
 percent-encoding.workspace = true
+
+futures = { workspace = true, optional = true, features = ["std"] }
+tokio = { workspace = true, optional = true, features = ["io-util"] }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+
+[package.metadata.docs.rs]
+features = ["async"]

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * gff/async: Add an async reader (`gff::r#async::Reader`).
+
 ## 0.31.0 - 2024-05-08
 
 ### Changed
