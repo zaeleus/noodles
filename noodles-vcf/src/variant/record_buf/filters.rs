@@ -59,7 +59,7 @@ impl AsMut<IndexSet<String>> for Filters {
 
 impl Extend<String> for Filters {
     fn extend<T: IntoIterator<Item = String>>(&mut self, iter: T) {
-        self.0.extend(iter)
+        self.0.extend(iter);
     }
 }
 
