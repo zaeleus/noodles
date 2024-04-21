@@ -20,15 +20,15 @@ where
         Value::Int32(n) => dst.put_i32_le(*n),
         Value::UInt32(n) => dst.put_u32_le(*n),
         Value::Float(n) => dst.put_f32_le(*n),
-        Value::String(s) => put_string(dst, s)?,
-        Value::Hex(s) => put_string(dst, s)?,
+        Value::String(s) => put_string(dst, s),
+        Value::Hex(s) => put_string(dst, s),
         Value::Array(array) => put_array(dst, array)?,
     }
 
     Ok(())
 }
 
-fn put_string<B>(dst: &mut B, buf: &[u8]) -> io::Result<()>
+fn put_string<B>(dst: &mut B, buf: &[u8])
 where
     B: BufMut,
 {
@@ -36,8 +36,6 @@ where
 
     dst.put(buf);
     dst.put_u8(NUL);
-
-    Ok(())
 }
 
 #[cfg(test)]
