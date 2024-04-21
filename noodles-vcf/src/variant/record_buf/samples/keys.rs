@@ -22,7 +22,7 @@ impl AsMut<Inner> for Keys {
 
 impl Extend<String> for Keys {
     fn extend<T: IntoIterator<Item = String>>(&mut self, iter: T) {
-        self.0.extend(iter)
+        self.0.extend(iter);
     }
 }
 
