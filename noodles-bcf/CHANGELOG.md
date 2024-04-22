@@ -6,6 +6,12 @@
 
   * bcf/record/samples: Implement series selector (`Samples::select`).
 
+### Fixed
+
+  * bcf/io/reader/record: Return EOF when site length signals EOF ([#255]).
+
+[#255]: https://github.com/zaeleus/noodles/issues/255
+
 ## 0.50.0 - 2024-04-11
 
 ### Changed

@@ -11,7 +11,11 @@ pub fn read_record<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
 where
     R: Read,
 {
-    let l_shared = read_site_length(reader)?;
+    let l_shared = match read_site_length(reader)? {
+        0 => return Ok(0),
+        n => n,
+    };
+
     let l_indiv = read_samples_length(reader)?;
 
     let site_buf = record.fields_mut().site_buf_mut();
@@ -309,6 +313,15 @@ pub(crate) mod tests {
 
         assert_eq!(actual, expected);
 
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_record_at_eof() -> io::Result<()> {
+        let data = [];
+        let mut reader = &data[..];
+        let mut record = Record::default();
+        assert_eq!(read_record(&mut reader, &mut record)?, 0);
         Ok(())
     }
 

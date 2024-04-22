@@ -8,7 +8,11 @@ pub(super) async fn read_record<R>(reader: &mut R, record: &mut Record) -> io::R
 where
     R: AsyncRead + Unpin,
 {
-    let l_shared = read_site_length(reader).await?;
+    let l_shared = match read_site_length(reader).await? {
+        0 => return Ok(0),
+        n => n,
+    };
+
     let l_indiv = read_samples_length(reader).await?;
 
     let site_buf = record.fields_mut().site_buf_mut();
@@ -237,6 +241,15 @@ mod tests {
 
         assert_eq!(actual, expected);
 
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_read_record_at_eof() -> io::Result<()> {
+        let data = [];
+        let mut reader = &data[..];
+        let mut record = Record::default();
+        assert_eq!(read_record(&mut reader, &mut record).await?, 0);
         Ok(())
     }
 
