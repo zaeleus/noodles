@@ -1,5 +1,3 @@
-pub mod single;
-
 use std::io::{self, Read};
 
 use bytes::Buf;
@@ -8,39 +6,6 @@ use flate2::Crc;
 use crate::{gz, Block, BGZF_HEADER_SIZE};
 
 const MIN_FRAME_SIZE: usize = BGZF_HEADER_SIZE + gz::TRAILER_SIZE;
-
-pub enum Inner<R> {
-    Single(single::Reader<R>),
-}
-
-impl<R> Inner<R>
-where
-    R: Read,
-{
-    pub fn get_ref(&self) -> &R {
-        match self {
-            Self::Single(reader) => reader.get_ref(),
-        }
-    }
-
-    pub fn get_mut(&mut self) -> &mut R {
-        match self {
-            Self::Single(reader) => reader.get_mut(),
-        }
-    }
-
-    pub fn into_inner(self) -> R {
-        match self {
-            Self::Single(reader) => reader.into_inner(),
-        }
-    }
-
-    pub fn next_block(&mut self) -> io::Result<Option<Block>> {
-        match self {
-            Self::Single(reader) => reader.next_block(),
-        }
-    }
-}
 
 pub(crate) fn read_frame_into<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<Option<()>>
 where

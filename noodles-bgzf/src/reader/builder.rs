@@ -4,7 +4,7 @@ use std::{
     path::Path,
 };
 
-use super::{block, Reader};
+use super::Reader;
 use crate::Block;
 
 /// A BGZF reader builder.
@@ -44,7 +44,8 @@ impl Builder {
         R: Read,
     {
         Reader {
-            inner: block::Inner::Single(block::single::Reader::new(reader)),
+            inner: reader,
+            buf: Vec::new(),
             position: 0,
             block: Block::default(),
         }

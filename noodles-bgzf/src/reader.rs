@@ -27,7 +27,8 @@ use super::{gzi, Block, VirtualPosition};
 /// # Ok::<(), io::Error>(())
 /// ```
 pub struct Reader<R> {
-    inner: block::Inner<R>,
+    inner: R,
+    buf: Vec<u8>,
     position: u64,
     block: Block,
 }
@@ -60,7 +61,7 @@ where
     /// assert!(reader.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &R {
-        self.inner.get_ref()
+        &self.inner
     }
 
     /// Returns a mutable reference to the underlying reader.
@@ -74,7 +75,7 @@ where
     /// assert!(reader.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
-        self.inner.get_mut()
+        &mut self.inner
     }
 
     /// Unwraps and returns the underlying writer.
@@ -88,7 +89,7 @@ where
     /// assert!(reader.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> R {
-        self.inner.into_inner()
+        self.inner
     }
 
     /// Returns the current position of the stream.
@@ -120,7 +121,7 @@ where
     }
 
     fn read_block(&mut self) -> io::Result<()> {
-        while let Some(mut block) = self.inner.next_block()? {
+        while let Some(mut block) = self.next_block()? {
             block.set_position(self.position);
             self.position += block.size();
             self.block = block;
@@ -131,6 +132,16 @@ where
         }
 
         Ok(())
+    }
+
+    fn next_block(&mut self) -> io::Result<Option<Block>> {
+        use self::block::{parse_frame, read_frame_into};
+
+        if read_frame_into(&mut self.inner, &mut self.buf)?.is_some() {
+            parse_frame(&self.buf).map(Some)
+        } else {
+            Ok(None)
+        }
     }
 }
 
@@ -156,7 +167,7 @@ where
     pub fn seek(&mut self, pos: VirtualPosition) -> io::Result<VirtualPosition> {
         let (cpos, upos) = pos.into();
 
-        self.inner.get_mut().seek(SeekFrom::Start(cpos))?;
+        self.inner.seek(SeekFrom::Start(cpos))?;
         self.position = cpos;
 
         self.read_block()?;
@@ -190,7 +201,7 @@ where
         let record = index[i - 1];
 
         let cpos = record.0;
-        self.inner.get_mut().seek(SeekFrom::Start(cpos))?;
+        self.inner.seek(SeekFrom::Start(cpos))?;
         self.position = cpos;
 
         self.read_block()?;
