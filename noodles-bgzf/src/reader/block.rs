@@ -1,4 +1,3 @@
-pub mod multi;
 pub mod single;
 
 use std::io::{self, Read};
@@ -12,7 +11,6 @@ const MIN_FRAME_SIZE: usize = BGZF_HEADER_SIZE + gz::TRAILER_SIZE;
 
 pub enum Inner<R> {
     Single(single::Reader<R>),
-    Multi(multi::Reader<R>),
 }
 
 impl<R> Inner<R>
@@ -22,42 +20,25 @@ where
     pub fn get_ref(&self) -> &R {
         match self {
             Self::Single(reader) => reader.get_ref(),
-            Self::Multi(reader) => reader.get_ref(),
         }
     }
 
     pub fn get_mut(&mut self) -> &mut R {
         match self {
             Self::Single(reader) => reader.get_mut(),
-            Self::Multi(reader) => reader.get_mut(),
         }
     }
 
     pub fn into_inner(self) -> R {
         match self {
             Self::Single(reader) => reader.into_inner(),
-            Self::Multi(reader) => reader.into_inner(),
         }
     }
 
     pub fn next_block(&mut self) -> io::Result<Option<Block>> {
         match self {
             Self::Single(reader) => reader.next_block(),
-            Self::Multi(reader) => reader.next_block(),
         }
-    }
-}
-
-pub(crate) fn read_frame<R>(reader: &mut R) -> io::Result<Option<Vec<u8>>>
-where
-    R: Read,
-{
-    let mut buf = vec![0; BGZF_HEADER_SIZE];
-
-    if read_frame_into(reader, &mut buf)?.is_some() {
-        Ok(Some(buf))
-    } else {
-        Ok(None)
     }
 }
 
@@ -257,15 +238,16 @@ mod tests {
     }
 
     #[test]
-    fn test_read_frame() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_read_frame_into() -> Result<(), Box<dyn std::error::Error>> {
         let mut src = BGZF_EOF;
-        let buf = read_frame(&mut src)?.ok_or("invalid frame")?;
+        let mut buf = Vec::new();
+        read_frame_into(&mut src, &mut buf)?.ok_or("invalid frame")?;
         assert_eq!(buf, BGZF_EOF);
         Ok(())
     }
 
     #[test]
-    fn test_read_frame_with_invalid_block_size() {
+    fn test_read_frame_into_with_invalid_block_size() {
         let data = {
             let mut eof = BGZF_EOF.to_vec();
             // BSIZE = 0
@@ -275,6 +257,7 @@ mod tests {
         };
 
         let mut reader = &data[..];
-        assert!(read_frame(&mut reader).is_err());
+        let mut buf = Vec::new();
+        assert!(read_frame_into(&mut reader, &mut buf).is_err());
     }
 }

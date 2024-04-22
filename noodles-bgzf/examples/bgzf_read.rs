@@ -9,7 +9,7 @@ use noodles_bgzf as bgzf;
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = bgzf::reader::Builder::default().build_from_path(src)?;
+    let mut reader = bgzf::reader::Builder.build_from_path(src)?;
     let mut writer = io::stdout().lock();
     io::copy(&mut reader, &mut writer)?;
 

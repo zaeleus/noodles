@@ -2,7 +2,6 @@ use std::{
     ffi::{OsStr, OsString},
     fs::File,
     io::{self, Read},
-    num::NonZeroUsize,
     path::{Path, PathBuf},
 };
 
@@ -17,14 +16,6 @@ pub struct Builder {
 }
 
 impl Builder {
-    /// Sets the worker count.
-    ///
-    /// By default, the worker count is set to 1.
-    pub fn set_worker_count(mut self, worker_count: NonZeroUsize) -> Self {
-        self.reader_builder = self.reader_builder.set_worker_count(worker_count);
-        self
-    }
-
     /// Sets a GZ index.
     pub fn set_index(mut self, index: gzi::Index) -> Self {
         self.index = Some(index);
