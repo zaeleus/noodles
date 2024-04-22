@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## 0.60.0 - 2024-04-22
+
+### Changed
+
+  * bam: Sync dependencies.
 
 ### Fixed
 
