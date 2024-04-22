@@ -8,11 +8,6 @@ use std::{
 use super::{block, Reader};
 use crate::Block;
 
-const DEFAULT_WORKER_COUNT: NonZeroUsize = match NonZeroUsize::new(1) {
-    Some(worker_count) => worker_count,
-    None => unreachable!(),
-};
-
 /// A BGZF reader builder.
 #[derive(Debug)]
 pub struct Builder {
@@ -91,7 +86,7 @@ impl Builder {
 impl Default for Builder {
     fn default() -> Self {
         Self {
-            worker_count: DEFAULT_WORKER_COUNT,
+            worker_count: NonZeroUsize::MIN,
         }
     }
 }
