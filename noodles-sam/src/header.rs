@@ -86,7 +86,7 @@ use std::str::{self, FromStr};
 use bstr::BString;
 use indexmap::IndexMap;
 
-use self::programs::Programs;
+pub use self::programs::Programs;
 use self::record::value::{
     map::{self, ReadGroup, ReferenceSequence},
     Map,

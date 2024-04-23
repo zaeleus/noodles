@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/header: Increase the visibility of `Programs` ([#257]).
+
+[#257]: https://github.com/zaeleus/noodles/issues/257
+
 ## 0.57.0 - 2024-04-22
 
 ### Changed
