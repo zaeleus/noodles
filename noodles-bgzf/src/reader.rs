@@ -217,6 +217,16 @@ where
         self.consume(amt);
         Ok(amt)
     }
+
+    fn read_exact(&mut self, buf: &mut [u8]) -> io::Result<()> {
+        if let Some(src) = self.block.data().as_ref().get(..buf.len()) {
+            buf.copy_from_slice(src);
+            self.consume(src.len());
+            Ok(())
+        } else {
+            default_read_exact(self, buf)
+        }
+    }
 }
 
 impl<R> BufRead for Reader<R>
@@ -233,6 +243,29 @@ where
         }
 
         Ok(self.block.data().as_ref())
+    }
+}
+
+fn default_read_exact<R>(reader: &mut R, mut buf: &mut [u8]) -> io::Result<()>
+where
+    R: Read,
+{
+    while !buf.is_empty() {
+        match reader.read(buf) {
+            Ok(0) => break,
+            Ok(n) => buf = &mut buf[n..],
+            Err(ref e) if e.kind() == io::ErrorKind::Interrupted => {}
+            Err(e) => return Err(e),
+        }
+    }
+
+    if buf.is_empty() {
+        Ok(())
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::UnexpectedEof,
+            "failed to fill whole buffer",
+        ))
     }
 }
 
