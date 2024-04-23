@@ -121,10 +121,13 @@ where
     }
 
     fn read_block(&mut self) -> io::Result<()> {
-        while let Some(mut block) = self.next_block()? {
-            block.set_position(self.position);
-            self.position += block.size();
-            self.block = block;
+        use self::block::{parse_frame_into, read_frame_into};
+
+        while read_frame_into(&mut self.inner, &mut self.buf)?.is_some() {
+            parse_frame_into(&self.buf, &mut self.block)?;
+
+            self.block.set_position(self.position);
+            self.position += self.block.size();
 
             if self.block.data().len() > 0 {
                 break;
@@ -132,16 +135,6 @@ where
         }
 
         Ok(())
-    }
-
-    fn next_block(&mut self) -> io::Result<Option<Block>> {
-        use self::block::{parse_frame, read_frame_into};
-
-        if read_frame_into(&mut self.inner, &mut self.buf)?.is_some() {
-            parse_frame(&self.buf).map(Some)
-        } else {
-            Ok(None)
-        }
     }
 }
 
