@@ -7,7 +7,7 @@ pub use self::builder::Builder;
 
 use std::io::{self, BufRead, Read, Seek, SeekFrom};
 
-use super::{gzi, Block, VirtualPosition};
+use super::{gzi, Block, VirtualPosition, BGZF_MAX_ISIZE};
 
 /// A BGZF reader.
 ///
@@ -120,11 +120,14 @@ where
         self.block.virtual_position()
     }
 
-    fn read_block(&mut self) -> io::Result<()> {
-        use self::block::{parse_block, read_frame_into};
+    fn read_nonempty_block_with<F>(&mut self, mut f: F) -> io::Result<usize>
+    where
+        F: FnMut(&[u8], &mut Block) -> io::Result<()>,
+    {
+        use self::block::read_frame_into;
 
         while read_frame_into(&mut self.inner, &mut self.buf)?.is_some() {
-            parse_block(&self.buf, &mut self.block)?;
+            f(&self.buf, &mut self.block)?;
 
             self.block.set_position(self.position);
             self.position += self.block.size();
@@ -134,7 +137,17 @@ where
             }
         }
 
-        Ok(())
+        Ok(self.block.data().len())
+    }
+
+    fn read_block(&mut self) -> io::Result<usize> {
+        use self::block::parse_block;
+        self.read_nonempty_block_with(parse_block)
+    }
+
+    fn read_block_into_buf(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        use self::block::parse_block_into_buf;
+        self.read_nonempty_block_with(|src, block| parse_block_into_buf(src, block, buf))
     }
 }
 
@@ -212,10 +225,17 @@ where
     R: Read,
 {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        let mut src = self.fill_buf()?;
-        let amt = src.read(buf)?;
-        self.consume(amt);
-        Ok(amt)
+        // If a new block is about to be read and the given buffer is guaranteed to be larger than
+        // the next block, reading to the block buffer can be skipped. The uncompressed data is
+        // decoded into the given buffer to avoid having to subsequently recopy it from the block.
+        if !self.block.data().has_remaining() && buf.len() >= BGZF_MAX_ISIZE {
+            self.read_block_into_buf(buf)
+        } else {
+            let mut src = self.fill_buf()?;
+            let amt = src.read(buf)?;
+            self.consume(amt);
+            Ok(amt)
+        }
     }
 
     fn read_exact(&mut self, buf: &mut [u8]) -> io::Result<()> {

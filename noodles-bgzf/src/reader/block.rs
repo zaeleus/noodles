@@ -116,15 +116,20 @@ where
 
 pub(crate) fn parse_block(src: &[u8], block: &mut Block) -> io::Result<()> {
     let (block_size, cdata, crc32, r#isize) = parse_frame(src)?;
+    block_initialize(block, block_size, isize);
+    inflate(cdata, crc32, block.data_mut().as_mut())?;
+    Ok(())
+}
 
-    block.set_size(block_size);
-
-    let data = block.data_mut();
-    data.set_position(0);
-    data.resize(r#isize);
-
-    inflate(cdata, crc32, data.as_mut())?;
-
+pub(super) fn parse_block_into_buf(
+    src: &[u8],
+    block: &mut Block,
+    buf: &mut [u8],
+) -> io::Result<()> {
+    let (block_size, cdata, crc32, r#isize) = parse_frame(src)?;
+    block_initialize(block, block_size, isize);
+    block.data_mut().set_position(r#isize);
+    inflate(cdata, crc32, &mut buf[..r#isize])?;
     Ok(())
 }
 
@@ -138,6 +143,14 @@ fn parse_frame(src: &[u8]) -> io::Result<(u64, &[u8], u32, usize)> {
     let (crc32, r#isize) = parse_trailer(trailer)?;
 
     Ok((block_size, cdata, crc32, r#isize))
+}
+
+fn block_initialize(block: &mut Block, block_size: u64, r#isize: usize) {
+    block.set_size(block_size);
+
+    let data = block.data_mut();
+    data.set_position(0);
+    data.resize(r#isize);
 }
 
 fn inflate(src: &[u8], crc32: u32, dst: &mut [u8]) -> io::Result<()> {
