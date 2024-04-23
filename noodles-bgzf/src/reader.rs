@@ -121,10 +121,10 @@ where
     }
 
     fn read_block(&mut self) -> io::Result<()> {
-        use self::block::{parse_frame_into, read_frame_into};
+        use self::block::{parse_block, read_frame_into};
 
         while read_frame_into(&mut self.inner, &mut self.buf)?.is_some() {
-            parse_frame_into(&self.buf, &mut self.block)?;
+            parse_block(&self.buf, &mut self.block)?;
 
             self.block.set_position(self.position);
             self.position += self.block.size();

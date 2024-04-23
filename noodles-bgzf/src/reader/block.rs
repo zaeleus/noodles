@@ -114,20 +114,9 @@ where
     Ok((crc32, r#isize))
 }
 
-pub fn parse_frame(src: &[u8]) -> io::Result<Block> {
-    let mut block = Block::default();
-    parse_frame_into(src, &mut block)?;
-    Ok(block)
-}
+pub(crate) fn parse_block(src: &[u8], block: &mut Block) -> io::Result<()> {
+    let (block_size, cdata, crc32, r#isize) = parse_frame(src)?;
 
-pub(crate) fn parse_frame_into(src: &[u8], block: &mut Block) -> io::Result<()> {
-    let (header, cdata, trailer) = split_frame(src)?;
-
-    parse_header(header)?;
-    let (crc32, r#isize) = parse_trailer(trailer)?;
-
-    let block_size =
-        u64::try_from(src.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     block.set_size(block_size);
 
     let data = block.data_mut();
@@ -137,6 +126,18 @@ pub(crate) fn parse_frame_into(src: &[u8], block: &mut Block) -> io::Result<()> 
     inflate(cdata, crc32, data.as_mut())?;
 
     Ok(())
+}
+
+fn parse_frame(src: &[u8]) -> io::Result<(u64, &[u8], u32, usize)> {
+    let (header, cdata, trailer) = split_frame(src)?;
+
+    let block_size =
+        u64::try_from(src.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+    parse_header(header)?;
+    let (crc32, r#isize) = parse_trailer(trailer)?;
+
+    Ok((block_size, cdata, crc32, r#isize))
 }
 
 fn inflate(src: &[u8], crc32: u32, dst: &mut [u8]) -> io::Result<()> {

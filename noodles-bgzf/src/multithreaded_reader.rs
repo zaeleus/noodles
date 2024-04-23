@@ -175,7 +175,7 @@ where
 }
 
 fn spawn_inflaters(worker_count: NonZeroUsize, inflate_rx: InflateRx) -> Vec<JoinHandle<()>> {
-    use super::reader::block::parse_frame_into;
+    use super::reader::block::parse_block;
 
     (0..worker_count.get())
         .map(|_| {
@@ -183,7 +183,7 @@ fn spawn_inflaters(worker_count: NonZeroUsize, inflate_rx: InflateRx) -> Vec<Joi
 
             thread::spawn(move || {
                 while let Ok((mut buffer, buffered_tx)) = inflate_rx.recv() {
-                    let result = parse_frame_into(&buffer.buf, &mut buffer.block).map(|_| buffer);
+                    let result = parse_block(&buffer.buf, &mut buffer.block).map(|_| buffer);
                     buffered_tx.send(result).unwrap();
                 }
             })
