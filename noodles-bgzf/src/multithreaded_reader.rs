@@ -107,6 +107,16 @@ where
         }
     }
 
+    /// Returns a mutable reference to the underlying reader.
+    pub fn get_mut(&mut self) -> &mut R {
+        self.pause();
+
+        match self.state.as_mut() {
+            Some(State::Paused(inner)) => inner,
+            _ => panic!("invalid state"),
+        }
+    }
+
     fn resume(&mut self) {
         if matches!(self.state, Some(State::Running { .. })) {
             return;
@@ -135,6 +145,36 @@ where
             read_rx,
             recycle_tx,
         });
+    }
+
+    fn pause(&mut self) {
+        if matches!(self.state, Some(State::Paused(_))) {
+            return;
+        }
+
+        let State::Running {
+            reader_handle,
+            mut inflater_handles,
+            recycle_tx,
+            ..
+        } = self.state.take().unwrap()
+        else {
+            panic!("invalid state");
+        };
+
+        drop(recycle_tx);
+
+        for handle in inflater_handles.drain(..) {
+            handle.join().unwrap();
+        }
+
+        // Discard read errors.
+        let inner = match reader_handle.join().unwrap() {
+            Ok(inner) => inner,
+            Err(ReadError(inner, _)) => inner,
+        };
+
+        self.state = Some(State::Paused(inner));
     }
 
     fn read_block(&mut self) -> io::Result<()> {

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+  * bgzf/multithreaded_reader: Add accessor for the underlying reader
+    (`MultithreadedReader::get_mut`).
+
 ### Removed
 
   * bgzf/reader/block: Remove blocking multithreaded reader.
