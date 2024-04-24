@@ -7,6 +7,8 @@
   * bgzf/multithreaded_reader: Add accessor for the underlying reader
     (`MultithreadedReader::get_mut`).
 
+  * bgzf/virtual_position: Add `const` constructor (`VirtualPosition::new`).
+
 ### Removed
 
   * bgzf/reader/block: Remove blocking multithreaded reader.

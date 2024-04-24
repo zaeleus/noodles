@@ -40,6 +40,25 @@ impl VirtualPosition {
     /// The maximum value of a virtual position.
     pub const MAX: Self = Self(u64::MAX);
 
+    /// Creates a virtual position if the compressed position is valid.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf::VirtualPosition;
+    /// assert_eq!(VirtualPosition::new(0, 0), Some(VirtualPosition::MIN));
+    /// assert!(VirtualPosition::new(1 << 48, 0).is_none());
+    /// ```
+    pub const fn new(compressed_pos: u64, uncompressed_pos: u16) -> Option<Self> {
+        if compressed_pos <= MAX_COMPRESSED_POSITION {
+            // SAFETY: 0 <= `uncompressed_pos` <= `u64`
+            let virtual_pos = compressed_pos << COMPRESSED_POSITION_SHIFT | uncompressed_pos as u64;
+            Some(Self(virtual_pos))
+        } else {
+            None
+        }
+    }
+
     /// The position in the compressed BGZF stream.
     ///
     /// This is typically at the start of a block.
