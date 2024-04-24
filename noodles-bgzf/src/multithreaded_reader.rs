@@ -18,6 +18,15 @@ type ReadRx = Receiver<BufferedRx>;
 type RecycleTx = Sender<Buffer>;
 type RecycleRx = Receiver<Buffer>;
 
+enum State<R> {
+    Running {
+        reader_handle: JoinHandle<io::Result<R>>,
+        inflater_handles: Vec<JoinHandle<()>>,
+        read_rx: ReadRx,
+        recycle_tx: RecycleTx,
+    },
+}
+
 #[derive(Debug, Default)]
 struct Buffer {
     buf: Vec<u8>,
@@ -30,10 +39,7 @@ struct Buffer {
 /// differs from a [`super::Reader`] with > 1 worker by placing the inner reader on its own thread
 /// to read the raw frames asynchronously.
 pub struct MultithreadedReader<R> {
-    reader_handle: Option<JoinHandle<io::Result<R>>>,
-    inflater_handles: Vec<JoinHandle<()>>,
-    read_rx: ReadRx,
-    recycle_tx: Option<RecycleTx>,
+    state: Option<State<R>>,
     position: u64,
     buffer: Buffer,
 }
@@ -51,20 +57,26 @@ impl<R> MultithreadedReader<R> {
 
     /// Shuts down the reader and inflate workers.
     pub fn finish(&mut self) -> io::Result<R> {
-        self.recycle_tx.take();
+        let State::Running {
+            reader_handle,
+            mut inflater_handles,
+            recycle_tx,
+            ..
+        } = self.state.take().unwrap();
 
-        for handle in self.inflater_handles.drain(..) {
+        drop(recycle_tx);
+
+        for handle in inflater_handles.drain(..) {
             handle.join().unwrap();
         }
 
-        let handle = self.reader_handle.take().unwrap();
-        let inner = handle.join().unwrap()?;
-
-        Ok(inner)
+        reader_handle.join().unwrap()
     }
 
-    fn recv_buffer(&mut self) -> io::Result<Option<Buffer>> {
-        if let Ok(buffered_rx) = self.read_rx.recv() {
+    fn recv_buffer(&self) -> io::Result<Option<Buffer>> {
+        let State::Running { read_rx, .. } = self.state.as_ref().unwrap();
+
+        if let Ok(buffered_rx) = read_rx.recv() {
             if let Ok(buffer) = buffered_rx.recv() {
                 return buffer.map(Some);
             }
@@ -74,12 +86,14 @@ impl<R> MultithreadedReader<R> {
     }
 
     fn read_block(&mut self) -> io::Result<()> {
+        let State::Running { recycle_tx, .. } = self.state.as_ref().unwrap();
+
         while let Some(mut buffer) = self.recv_buffer()? {
             buffer.block.set_position(self.position);
             self.position += buffer.block.size();
 
             let prev_buffer = mem::replace(&mut self.buffer, buffer);
-            self.recycle_tx.as_ref().unwrap().send(prev_buffer).ok();
+            recycle_tx.send(prev_buffer).ok();
 
             if self.buffer.block.data().len() > 0 {
                 break;
@@ -108,10 +122,12 @@ where
         let inflater_handles = spawn_inflaters(worker_count, inflate_rx);
 
         Self {
-            reader_handle: Some(reader_handle),
-            inflater_handles,
-            read_rx,
-            recycle_tx: Some(recycle_tx),
+            state: Some(State::Running {
+                reader_handle,
+                inflater_handles,
+                read_rx,
+                recycle_tx,
+            }),
             position: 0,
             buffer: Buffer::default(),
         }
