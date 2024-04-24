@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+  * bgzf/reader/block: Remove blocking multithreaded reader.
+
+    This block reader was used when the worker count was set to > 1. However,
+    I/O was still performed on the current thread. In the case of sequential
+    reading, use `bgzf::MultithreadedReader` instead, which moves I/O to its
+    own thread.
+
 ## 0.28.0 - 2024-03-28
 
 ### Changed
