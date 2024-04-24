@@ -21,7 +21,7 @@ type RecycleRx = Receiver<Buffer>;
 enum State<R> {
     Paused(R),
     Running {
-        reader_handle: JoinHandle<io::Result<R>>,
+        reader_handle: JoinHandle<Result<R, ReadError<R>>>,
         inflater_handles: Vec<JoinHandle<()>>,
         read_rx: ReadRx,
         recycle_tx: RecycleTx,
@@ -75,7 +75,7 @@ impl<R> MultithreadedReader<R> {
             handle.join().unwrap();
         }
 
-        reader_handle.join().unwrap()
+        reader_handle.join().unwrap().map_err(|e| e.1)
     }
 
     fn recv_buffer(&self) -> io::Result<Option<Buffer>> {
@@ -195,12 +195,14 @@ where
     }
 }
 
+struct ReadError<R>(R, io::Error);
+
 fn spawn_reader<R>(
     mut reader: R,
     inflate_tx: InflateTx,
     read_tx: ReadTx,
     recycle_rx: RecycleRx,
-) -> JoinHandle<io::Result<R>>
+) -> JoinHandle<Result<R, ReadError<R>>>
 where
     R: Read + Send + 'static,
 {
@@ -208,8 +210,10 @@ where
 
     thread::spawn(move || {
         while let Ok(mut buffer) = recycle_rx.recv() {
-            if read_frame_into(&mut reader, &mut buffer.buf)?.is_none() {
-                break;
+            match read_frame_into(&mut reader, &mut buffer.buf) {
+                Ok(result) if result.is_none() => break,
+                Ok(_) => {}
+                Err(e) => return Err(ReadError(reader, e)),
             }
 
             let (buffered_tx, buffered_rx) = crossbeam_channel::bounded(1);
