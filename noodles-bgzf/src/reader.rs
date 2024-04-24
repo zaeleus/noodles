@@ -162,11 +162,11 @@ where
     ///
     /// # Examples
     ///
-    /// ```no_run
-    /// # use std::io::{self, Cursor};
+    /// ```
+    /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let mut reader = bgzf::Reader::new(Cursor::new(Vec::new()));
-    /// let virtual_position = bgzf::VirtualPosition::from(102334155);
+    /// let mut reader = bgzf::Reader::new(io::empty());
+    /// let virtual_position = bgzf::VirtualPosition::MIN;
     /// reader.seek(virtual_position)?;
     /// # Ok::<(), io::Error>(())
     /// ```
@@ -187,7 +187,7 @@ where
     ///
     /// # Examples
     ///
-    /// ```no_run
+    /// ```
     /// # use std::io;
     /// use noodles_bgzf as bgzf;
     /// let mut reader = bgzf::Reader::new(io::empty());
