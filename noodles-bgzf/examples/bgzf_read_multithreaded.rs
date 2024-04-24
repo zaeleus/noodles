@@ -12,11 +12,6 @@ use std::{
 
 use noodles_bgzf as bgzf;
 
-const DEFAULT_WORKER_COUNT: NonZeroUsize = match NonZeroUsize::new(1) {
-    Some(n) => n,
-    None => unreachable!(),
-};
-
 fn main() -> io::Result<()> {
     let mut args = env::args().skip(1);
 
@@ -24,7 +19,7 @@ fn main() -> io::Result<()> {
     let worker_count = args
         .next()
         .map(|s| s.parse().expect("invalid worker_count"))
-        .unwrap_or_else(|| thread::available_parallelism().unwrap_or(DEFAULT_WORKER_COUNT));
+        .unwrap_or_else(|| thread::available_parallelism().unwrap_or(NonZeroUsize::MIN));
 
     let mut reader = File::open(src)
         .map(BufReader::new)
