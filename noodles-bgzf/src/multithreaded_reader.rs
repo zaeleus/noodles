@@ -19,6 +19,7 @@ type RecycleTx = Sender<Buffer>;
 type RecycleRx = Receiver<Buffer>;
 
 enum State<R> {
+    Paused(R),
     Running {
         reader_handle: JoinHandle<io::Result<R>>,
         inflater_handles: Vec<JoinHandle<()>>,
@@ -40,6 +41,7 @@ struct Buffer {
 /// to read the raw frames asynchronously.
 pub struct MultithreadedReader<R> {
     state: Option<State<R>>,
+    worker_count: NonZeroUsize,
     position: u64,
     buffer: Buffer,
 }
@@ -62,7 +64,10 @@ impl<R> MultithreadedReader<R> {
             mut inflater_handles,
             recycle_tx,
             ..
-        } = self.state.take().unwrap();
+        } = self.state.take().unwrap()
+        else {
+            panic!("invalid state");
+        };
 
         drop(recycle_tx);
 
@@ -74,7 +79,9 @@ impl<R> MultithreadedReader<R> {
     }
 
     fn recv_buffer(&self) -> io::Result<Option<Buffer>> {
-        let State::Running { read_rx, .. } = self.state.as_ref().unwrap();
+        let State::Running { read_rx, .. } = self.state.as_ref().unwrap() else {
+            panic!("invalid state");
+        };
 
         if let Ok(buffered_rx) = read_rx.recv() {
             if let Ok(buffer) = buffered_rx.recv() {
@@ -84,9 +91,58 @@ impl<R> MultithreadedReader<R> {
 
         Ok(None)
     }
+}
+
+impl<R> MultithreadedReader<R>
+where
+    R: Read + Send + 'static,
+{
+    /// Creates a multithreaded BGZF reader.
+    pub fn with_worker_count(worker_count: NonZeroUsize, inner: R) -> Self {
+        Self {
+            state: Some(State::Paused(inner)),
+            worker_count,
+            position: 0,
+            buffer: Buffer::default(),
+        }
+    }
+
+    fn resume(&mut self) {
+        if matches!(self.state, Some(State::Running { .. })) {
+            return;
+        }
+
+        let Some(State::Paused(inner)) = self.state.take() else {
+            panic!("invalid state");
+        };
+
+        let worker_count = self.worker_count.get();
+
+        let (inflate_tx, inflate_rx) = crossbeam_channel::bounded(worker_count);
+        let (read_tx, read_rx) = crossbeam_channel::bounded(worker_count);
+        let (recycle_tx, recycle_rx) = crossbeam_channel::bounded(worker_count);
+
+        for _ in 0..worker_count {
+            recycle_tx.send(Buffer::default()).unwrap();
+        }
+
+        let reader_handle = spawn_reader(inner, inflate_tx, read_tx, recycle_rx);
+        let inflater_handles = spawn_inflaters(self.worker_count, inflate_rx);
+
+        self.state = Some(State::Running {
+            reader_handle,
+            inflater_handles,
+            read_rx,
+            recycle_tx,
+        });
+    }
 
     fn read_block(&mut self) -> io::Result<()> {
-        let State::Running { recycle_tx, .. } = self.state.as_ref().unwrap();
+        self.resume();
+
+        let State::Running { recycle_tx, .. } = self.state.as_ref().unwrap() else {
+            panic!("invalid state");
+        };
 
         while let Some(mut buffer) = self.recv_buffer()? {
             buffer.block.set_position(self.position);
@@ -104,43 +160,16 @@ impl<R> MultithreadedReader<R> {
     }
 }
 
-impl<R> MultithreadedReader<R>
-where
-    R: Read + Send + 'static,
-{
-    /// Creates a multithreaded BGZF reader.
-    pub fn with_worker_count(worker_count: NonZeroUsize, inner: R) -> Self {
-        let (inflate_tx, inflate_rx) = crossbeam_channel::bounded(worker_count.get());
-        let (read_tx, read_rx) = crossbeam_channel::bounded(worker_count.get());
-        let (recycle_tx, recycle_rx) = crossbeam_channel::bounded(worker_count.get());
-
-        for _ in 0..worker_count.get() {
-            recycle_tx.send(Buffer::default()).unwrap();
-        }
-
-        let reader_handle = spawn_reader(inner, inflate_tx, read_tx, recycle_rx);
-        let inflater_handles = spawn_inflaters(worker_count, inflate_rx);
-
-        Self {
-            state: Some(State::Running {
-                reader_handle,
-                inflater_handles,
-                read_rx,
-                recycle_tx,
-            }),
-            position: 0,
-            buffer: Buffer::default(),
-        }
-    }
-}
-
 impl<R> Drop for MultithreadedReader<R> {
     fn drop(&mut self) {
         let _ = self.finish();
     }
 }
 
-impl<R> Read for MultithreadedReader<R> {
+impl<R> Read for MultithreadedReader<R>
+where
+    R: Read + Send + 'static,
+{
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         let mut src = self.fill_buf()?;
         let amt = src.read(buf)?;
@@ -149,7 +178,10 @@ impl<R> Read for MultithreadedReader<R> {
     }
 }
 
-impl<R> BufRead for MultithreadedReader<R> {
+impl<R> BufRead for MultithreadedReader<R>
+where
+    R: Read + Send + 'static,
+{
     fn fill_buf(&mut self) -> io::Result<&[u8]> {
         if !self.buffer.block.data().has_remaining() {
             self.read_block()?;
