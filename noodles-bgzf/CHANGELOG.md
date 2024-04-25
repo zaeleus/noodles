@@ -12,6 +12,11 @@
 
   * bgzf/virtual_position: Add `const` constructor (`VirtualPosition::new`).
 
+### Changed
+
+  * bgzf/virtual_position: Make getters (`VirtualPosition::uncompressed` and
+    `VirtualPosition::compressed`) `const`.
+
 ### Removed
 
   * bgzf/reader/block: Remove blocking multithreaded reader.

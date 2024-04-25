@@ -72,7 +72,7 @@ impl VirtualPosition {
     /// let virtual_position = bgzf::VirtualPosition::from(3741638);
     /// assert_eq!(virtual_position.compressed(), 57);
     /// ```
-    pub fn compressed(self) -> u64 {
+    pub const fn compressed(self) -> u64 {
         self.0 >> COMPRESSED_POSITION_SHIFT
     }
 
@@ -87,7 +87,7 @@ impl VirtualPosition {
     /// let virtual_position = bgzf::VirtualPosition::from(3741638);
     /// assert_eq!(virtual_position.uncompressed(), 6086);
     /// ```
-    pub fn uncompressed(self) -> u16 {
+    pub const fn uncompressed(self) -> u16 {
         (self.0 & UNCOMPRESSED_POSITION_MASK) as u16
     }
 }
