@@ -1,5 +1,5 @@
 use std::{
-    io::{self, BufRead, Read},
+    io::{self, BufRead, Read, Seek, SeekFrom},
     mem,
     num::NonZeroUsize,
     thread::{self, JoinHandle},
@@ -200,6 +200,25 @@ where
     }
 }
 
+impl<R> MultithreadedReader<R>
+where
+    R: Read + Seek + Send + 'static,
+{
+    /// Seeks the stream to the given virtual position.
+    pub fn seek(&mut self, pos: VirtualPosition) -> io::Result<VirtualPosition> {
+        let (cpos, upos) = pos.into();
+
+        self.get_mut().seek(SeekFrom::Start(cpos))?;
+        self.position = cpos;
+
+        self.read_block()?;
+
+        self.buffer.block.data_mut().set_position(usize::from(upos));
+
+        Ok(pos)
+    }
+}
+
 impl<R> Drop for MultithreadedReader<R> {
     fn drop(&mut self) {
         let _ = self.finish();
@@ -281,4 +300,53 @@ fn spawn_inflaters(worker_count: NonZeroUsize, inflate_rx: InflateRx) -> Vec<Joi
             })
         })
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use std::io::Cursor;
+
+    use super::*;
+
+    #[test]
+    fn test_seek() -> Result<(), Box<dyn std::error::Error>> {
+        #[rustfmt::skip]
+        static DATA: &[u8] = &[
+            // block 0 (b"noodles")
+            0x1f, 0x8b, 0x08, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x06, 0x00, 0x42, 0x43,
+            0x02, 0x00, 0x22, 0x00, 0xcb, 0xcb, 0xcf, 0x4f, 0xc9, 0x49, 0x2d, 0x06, 0x00, 0xa1,
+            0x58, 0x2a, 0x80, 0x07, 0x00, 0x00, 0x00,
+            // EOF block
+            0x1f, 0x8b, 0x08, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x06, 0x00, 0x42, 0x43,
+            0x02, 0x00, 0x1b, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        ];
+
+        const EOF_VIRTUAL_POSITION: VirtualPosition = match VirtualPosition::new(63, 0) {
+            Some(pos) => pos,
+            None => unreachable!(),
+        };
+
+        const VIRUAL_POSITION: VirtualPosition = match VirtualPosition::new(0, 3) {
+            Some(pos) => pos,
+            None => unreachable!(),
+        };
+
+        let mut reader =
+            MultithreadedReader::with_worker_count(NonZeroUsize::MIN, Cursor::new(DATA));
+
+        let mut buf = Vec::new();
+        reader.read_to_end(&mut buf)?;
+
+        assert_eq!(reader.virtual_position(), EOF_VIRTUAL_POSITION);
+
+        reader.seek(VIRUAL_POSITION)?;
+
+        buf.clear();
+        reader.read_to_end(&mut buf)?;
+
+        assert_eq!(buf, b"dles");
+        assert_eq!(reader.virtual_position(), EOF_VIRTUAL_POSITION);
+
+        Ok(())
+    }
 }
