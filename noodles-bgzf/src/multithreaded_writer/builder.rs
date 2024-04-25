@@ -23,7 +23,7 @@ impl Builder {
     }
 
     /// Builds a multithreaded BGZF writer from a writer.
-    pub fn build_from_writer<W>(self, writer: W) -> MultithreadedWriter
+    pub fn build_from_writer<W>(self, writer: W) -> MultithreadedWriter<W>
     where
         W: Write + Send + 'static,
     {

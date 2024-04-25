@@ -27,19 +27,22 @@ type WriteRx = Receiver<BufferedRx>;
 /// A multithreaded BGZF writer.
 ///
 /// This is much more basic than [`super::Writer`] but uses a thread pool to compress block data.
-pub struct MultithreadedWriter {
-    writer_handle: Option<JoinHandle<io::Result<()>>>,
+pub struct MultithreadedWriter<W>
+where
+    W: Write + Send + 'static,
+{
+    writer_handle: Option<JoinHandle<io::Result<W>>>,
     deflater_handles: Vec<JoinHandle<()>>,
     buf: BytesMut,
     write_tx: Option<WriteTx>,
     deflate_tx: Option<DeflateTx>,
 }
 
-impl MultithreadedWriter {
-    fn new<W>(compression_level: CompressionLevel, worker_count: NonZeroUsize, inner: W) -> Self
-    where
-        W: Write + Send + 'static,
-    {
+impl<W> MultithreadedWriter<W>
+where
+    W: Write + Send + 'static,
+{
+    fn new(compression_level: CompressionLevel, worker_count: NonZeroUsize, inner: W) -> Self {
         let (write_tx, write_rx) = crossbeam_channel::bounded(worker_count.get());
         let (deflate_tx, deflate_rx) = crossbeam_channel::bounded(worker_count.get());
 
@@ -56,10 +59,7 @@ impl MultithreadedWriter {
     }
 
     /// Creates a multithreaded BGZF writer.
-    pub fn with_worker_count<W>(worker_count: NonZeroUsize, inner: W) -> Self
-    where
-        W: Write + Send + 'static,
-    {
+    pub fn with_worker_count(worker_count: NonZeroUsize, inner: W) -> Self {
         Self::new(CompressionLevel::default(), worker_count, inner)
     }
 
@@ -97,7 +97,10 @@ impl MultithreadedWriter {
     }
 }
 
-impl Drop for MultithreadedWriter {
+impl<W> Drop for MultithreadedWriter<W>
+where
+    W: Write + Send + 'static,
+{
     fn drop(&mut self) {
         if self.writer_handle.is_some() {
             let _ = self.finish();
@@ -105,7 +108,10 @@ impl Drop for MultithreadedWriter {
     }
 }
 
-impl Write for MultithreadedWriter {
+impl<W> Write for MultithreadedWriter<W>
+where
+    W: Write + Send + 'static,
+{
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         use std::cmp;
 
@@ -130,7 +136,7 @@ impl Write for MultithreadedWriter {
     }
 }
 
-fn spawn_writer<W>(mut writer: W, write_rx: WriteRx) -> JoinHandle<io::Result<()>>
+fn spawn_writer<W>(mut writer: W, write_rx: WriteRx) -> JoinHandle<io::Result<W>>
 where
     W: Write + Send + 'static,
 {
@@ -146,7 +152,7 @@ where
 
         writer.write_all(BGZF_EOF)?;
 
-        Ok(())
+        Ok(writer)
     })
 }
 
