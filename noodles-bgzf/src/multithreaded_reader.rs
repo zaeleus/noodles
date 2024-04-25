@@ -96,7 +96,12 @@ impl<R> MultithreadedReader<R>
 where
     R: Read + Send + 'static,
 {
-    /// Creates a multithreaded BGZF reader.
+    /// Creates a multithreaded BGZF reader with a worker count of 1.
+    pub fn new(inner: R) -> Self {
+        Self::with_worker_count(NonZeroUsize::MIN, inner)
+    }
+
+    /// Creates a multithreaded BGZF reader with a worker count.
     pub fn with_worker_count(worker_count: NonZeroUsize, inner: R) -> Self {
         Self {
             state: Some(State::Paused(inner)),

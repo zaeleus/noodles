@@ -4,10 +4,9 @@
 
 ### Added
 
-  * bgzf/multithreaded_reader: Add accessor for the underlying reader
-    (`MultithreadedReader::get_mut`).
-
-  * bgzf/multithreaded_reader: Implement seek by virtual position
+  * bgzf/multithreaded_reader: Add default constructor
+    (`MultithreadedReader::new`), accessor for the underlying reader
+    (`MultithreadedReader::get_mut`), and seek to virtual position
     (`MultithreadedReader::seek`).
 
   * bgzf/virtual_position: Add `const` constructor (`VirtualPosition::new`).
