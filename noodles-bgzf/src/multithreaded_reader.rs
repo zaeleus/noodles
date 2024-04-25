@@ -47,16 +47,44 @@ pub struct MultithreadedReader<R> {
 
 impl<R> MultithreadedReader<R> {
     /// Returns the current position of the stream.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bgzf as bgzf;
+    /// let reader = bgzf::MultithreadedReader::new(io::empty());
+    /// assert_eq!(reader.position(), 0);
+    /// ```
     pub fn position(&self) -> u64 {
         self.position
     }
 
     /// Returns the current virtual position of the stream.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bgzf as bgzf;
+    /// let reader = bgzf::MultithreadedReader::new(io::empty());
+    /// assert_eq!(reader.virtual_position(), bgzf::VirtualPosition::MIN);
+    /// ```
     pub fn virtual_position(&self) -> VirtualPosition {
         self.buffer.block.virtual_position()
     }
 
     /// Shuts down the reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bgzf as bgzf;
+    /// let mut reader = bgzf::MultithreadedReader::new(io::empty());
+    /// reader.finish()?;
+    /// # Ok::<_, io::Error>(())
+    /// ```
     pub fn finish(&mut self) -> io::Result<R> {
         match self.state.take().unwrap() {
             State::Paused(inner) => Ok(inner),
@@ -97,11 +125,28 @@ where
     R: Read + Send + 'static,
 {
     /// Creates a multithreaded BGZF reader with a worker count of 1.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bgzf as bgzf;
+    /// let reader = bgzf::MultithreadedReader::new(io::empty());
+    /// ```
     pub fn new(inner: R) -> Self {
         Self::with_worker_count(NonZeroUsize::MIN, inner)
     }
 
     /// Creates a multithreaded BGZF reader with a worker count.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use std::num::NonZeroUsize;
+    /// use noodles_bgzf as bgzf;
+    /// let reader = bgzf::MultithreadedReader::with_worker_count(NonZeroUsize::MIN, io::empty());
+    /// ```
     pub fn with_worker_count(worker_count: NonZeroUsize, inner: R) -> Self {
         Self {
             state: Some(State::Paused(inner)),
@@ -112,6 +157,15 @@ where
     }
 
     /// Returns a mutable reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bgzf as bgzf;
+    /// let mut reader = bgzf::MultithreadedReader::new(io::empty());
+    /// let _inner = reader.get_mut();
+    /// ```
     pub fn get_mut(&mut self) -> &mut R {
         self.pause();
 
@@ -209,6 +263,16 @@ where
     R: Read + Seek + Send + 'static,
 {
     /// Seeks the stream to the given virtual position.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bgzf as bgzf;
+    /// let mut reader = bgzf::MultithreadedReader::new(io::empty());
+    /// reader.seek(bgzf::VirtualPosition::MIN)?;
+    /// # Ok::<_, io::Error>(())
+    /// ```
     pub fn seek(&mut self, pos: VirtualPosition) -> io::Result<VirtualPosition> {
         let (cpos, upos) = pos.into();
 
