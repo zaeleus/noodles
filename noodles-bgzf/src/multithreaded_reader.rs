@@ -56,25 +56,25 @@ impl<R> MultithreadedReader<R> {
         self.buffer.block.virtual_position()
     }
 
-    /// Shuts down the reader and inflate workers.
+    /// Shuts down the reader.
     pub fn finish(&mut self) -> io::Result<R> {
-        let State::Running {
-            reader_handle,
-            mut inflater_handles,
-            recycle_tx,
-            ..
-        } = self.state.take().unwrap()
-        else {
-            panic!("invalid state");
-        };
+        match self.state.take().unwrap() {
+            State::Paused(inner) => Ok(inner),
+            State::Running {
+                reader_handle,
+                mut inflater_handles,
+                recycle_tx,
+                ..
+            } => {
+                drop(recycle_tx);
 
-        drop(recycle_tx);
+                for handle in inflater_handles.drain(..) {
+                    handle.join().unwrap();
+                }
 
-        for handle in inflater_handles.drain(..) {
-            handle.join().unwrap();
+                reader_handle.join().unwrap().map_err(|e| e.1)
+            }
         }
-
-        reader_handle.join().unwrap().map_err(|e| e.1)
     }
 
     fn recv_buffer(&self) -> io::Result<Option<Buffer>> {
@@ -225,7 +225,9 @@ where
 
 impl<R> Drop for MultithreadedReader<R> {
     fn drop(&mut self) {
-        let _ = self.finish();
+        if self.state.is_some() {
+            let _ = self.finish();
+        }
     }
 }
 
