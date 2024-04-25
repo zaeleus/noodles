@@ -13,6 +13,11 @@
 
 ### Changed
 
+  * bgzf/multithreaded_writer: Return inner writer on shut down
+    (`Multithreaded::finish`).
+
+    This adds generic type parameter `W` to `MultithreadedWriter`.
+
   * bgzf/virtual_position: Make getters (`VirtualPosition::uncompressed` and
     `VirtualPosition::compressed`) `const`.
 

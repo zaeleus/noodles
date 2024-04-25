@@ -66,7 +66,7 @@ where
     /// Finishes the output stream by flushing any remaining buffers.
     ///
     /// This shuts down the writer and deflater workers and appends the final BGZF EOF block.
-    pub fn finish(&mut self) -> io::Result<()> {
+    pub fn finish(&mut self) -> io::Result<W> {
         self.flush()?;
 
         self.deflate_tx.take();
@@ -77,11 +77,8 @@ where
 
         self.write_tx.take();
 
-        if let Some(handle) = self.writer_handle.take() {
-            handle.join().unwrap()?;
-        }
-
-        Ok(())
+        let handle = self.writer_handle.take().unwrap();
+        handle.join().unwrap()
     }
 
     fn send(&mut self) -> io::Result<()> {
