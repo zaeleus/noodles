@@ -36,9 +36,8 @@ struct Buffer {
 
 /// A multithreaded BGZF reader.
 ///
-/// This is a basic multithreaded BGZF reader that uses a thread pool to decompress block data. It
-/// differs from a [`super::Reader`] with > 1 worker by placing the inner reader on its own thread
-/// to read the raw frames asynchronously.
+/// This is a multithreaded BGZF reader that uses a thread pool to decompress block data. It places
+/// the inner reader on its own thread to read raw frames asynchronously.
 pub struct MultithreadedReader<R> {
     state: Option<State<R>>,
     worker_count: NonZeroUsize,
