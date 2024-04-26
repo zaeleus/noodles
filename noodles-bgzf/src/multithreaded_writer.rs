@@ -71,11 +71,28 @@ where
     }
 
     /// Creates a multithreaded BGZF writer with a default worker count.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bgzf as bgzf;
+    /// let writer = bgzf::MultithreadedWriter::new(io::sink());
+    /// ```
     pub fn new(inner: W) -> Self {
         Self::with_worker_count(NonZeroUsize::MIN, inner)
     }
 
     /// Creates a multithreaded BGZF writer with a worker count.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use std::num::NonZeroUsize;
+    /// use noodles_bgzf as bgzf;
+    /// let writer = bgzf::MultithreadedWriter::with_worker_count(NonZeroUsize::MIN, io::sink());
+    /// ```
     pub fn with_worker_count(worker_count: NonZeroUsize, inner: W) -> Self {
         Self::with_compression_level_and_worker_count(
             CompressionLevel::default(),
@@ -87,6 +104,16 @@ where
     /// Finishes the output stream by flushing any remaining buffers.
     ///
     /// This shuts down the writer and deflater workers and appends the final BGZF EOF block.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bgzf as bgzf;
+    /// let mut writer = bgzf::MultithreadedWriter::new(io::sink());
+    /// writer.finish()?;
+    /// # Ok::<_, io::Error>(())
+    /// ```
     pub fn finish(&mut self) -> io::Result<W> {
         self.flush()?;
 
