@@ -27,7 +27,11 @@ impl Builder {
     where
         W: Write + Send + 'static,
     {
-        MultithreadedWriter::new(self.compression_level, self.worker_count, writer)
+        MultithreadedWriter::with_compression_level_and_worker_count(
+            self.compression_level,
+            self.worker_count,
+            writer,
+        )
     }
 }
 

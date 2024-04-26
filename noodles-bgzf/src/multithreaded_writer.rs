@@ -42,7 +42,11 @@ impl<W> MultithreadedWriter<W>
 where
     W: Write + Send + 'static,
 {
-    fn new(compression_level: CompressionLevel, worker_count: NonZeroUsize, inner: W) -> Self {
+    fn with_compression_level_and_worker_count(
+        compression_level: CompressionLevel,
+        worker_count: NonZeroUsize,
+        inner: W,
+    ) -> Self {
         let (write_tx, write_rx) = crossbeam_channel::bounded(worker_count.get());
         let (deflate_tx, deflate_rx) = crossbeam_channel::bounded(worker_count.get());
 
@@ -58,9 +62,18 @@ where
         }
     }
 
-    /// Creates a multithreaded BGZF writer.
+    /// Creates a multithreaded BGZF writer with a default worker count.
+    pub fn new(inner: W) -> Self {
+        Self::with_worker_count(NonZeroUsize::MIN, inner)
+    }
+
+    /// Creates a multithreaded BGZF writer with a worker count.
     pub fn with_worker_count(worker_count: NonZeroUsize, inner: W) -> Self {
-        Self::new(CompressionLevel::default(), worker_count, inner)
+        Self::with_compression_level_and_worker_count(
+            CompressionLevel::default(),
+            worker_count,
+            inner,
+        )
     }
 
     /// Finishes the output stream by flushing any remaining buffers.

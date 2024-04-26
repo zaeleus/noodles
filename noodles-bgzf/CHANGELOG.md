@@ -9,6 +9,9 @@
     (`MultithreadedReader::get_mut`), and seek to virtual position
     (`MultithreadedReader::seek`).
 
+  * bgzf/multithreaded_writer: Add default constructor
+    (`MultithreadedWriter::new`).
+
   * bgzf/virtual_position: Add `const` constructor (`VirtualPosition::new`).
 
 ### Changed
