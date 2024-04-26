@@ -84,8 +84,9 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let writer = bgzf::Writer::new(Vec::new());
+    /// let writer = bgzf::Writer::new(io::sink());
     /// ```
     pub fn new(inner: W) -> Self {
         Builder::default().build_with_writer(inner)
@@ -96,9 +97,10 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let writer = bgzf::Writer::new(Vec::new());
-    /// assert!(writer.get_ref().is_empty());
+    /// let writer = bgzf::Writer::new(io::sink());
+    /// let _inner = writer.get_ref();
     /// ```
     pub fn get_ref(&self) -> &W {
         self.inner.as_ref().unwrap()
@@ -109,9 +111,10 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let writer = bgzf::Writer::new(Vec::new());
-    /// assert!(writer.into_inner().is_empty());
+    /// let writer = bgzf::Writer::new(io::sink());
+    /// let _inner = writer.into_inner();
     /// ```
     pub fn into_inner(mut self) -> W {
         self.inner.take().unwrap()
@@ -122,8 +125,9 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let writer = bgzf::Writer::new(Vec::new());
+    /// let writer = bgzf::Writer::new(io::sink());
     /// assert_eq!(writer.position(), 0);
     /// ```
     pub fn position(&self) -> u64 {
@@ -139,8 +143,9 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let writer = bgzf::Writer::new(Vec::new());
+    /// let writer = bgzf::Writer::new(io::sink());
     /// assert_eq!(writer.virtual_position(), bgzf::VirtualPosition::from(0));
     /// ```
     pub fn virtual_position(&self) -> VirtualPosition {
@@ -179,7 +184,7 @@ where
     /// # use std::io::{self, Write};
     /// use noodles_bgzf as bgzf;
     ///
-    /// let mut writer = bgzf::Writer::new(Vec::new());
+    /// let mut writer = bgzf::Writer::new(io::sink());
     /// writer.write_all(b"noodles-bgzf")?;
     ///
     /// writer.try_finish()?;
@@ -206,7 +211,7 @@ where
     /// # use std::io::{self, Write};
     /// use noodles_bgzf as bgzf;
     ///
-    /// let mut writer = bgzf::Writer::new(Vec::new());
+    /// let mut writer = bgzf::Writer::new(io::sink());
     /// writer.write_all(b"noodles-bgzf")?;
     ///
     /// let data = writer.finish()?;
