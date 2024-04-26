@@ -11,8 +11,6 @@ use std::{
     io::{self, Write},
 };
 
-use flate2::Crc;
-
 use super::{gz, VirtualPosition, BGZF_HEADER_SIZE, BGZF_MAX_ISIZE};
 
 // The max DEFLATE overhead for 65536 bytes of data at compression level 0.
@@ -153,8 +151,9 @@ where
 
     fn flush_block(&mut self) -> io::Result<()> {
         use self::frame::{write_header, write_trailer};
+        use crate::deflate;
 
-        let (cdata, crc32, r#isize) = deflate_data(&self.buf, self.compression_level)?;
+        let (cdata, crc32, r#isize) = deflate::encode(&self.buf, self.compression_level)?;
 
         let inner = self.inner.as_mut().unwrap();
         let block_size = BGZF_HEADER_SIZE + cdata.len() + gz::TRAILER_SIZE;
@@ -254,47 +253,6 @@ where
             self.flush_block()
         }
     }
-}
-
-#[cfg(feature = "libdeflate")]
-pub(crate) fn deflate_data(
-    src: &[u8],
-    compression_level: libdeflater::CompressionLvl,
-) -> io::Result<(Vec<u8>, u32, u32)> {
-    use libdeflater::Compressor;
-
-    let mut encoder = Compressor::new(compression_level);
-
-    let max_len = encoder.deflate_compress_bound(src.len());
-    let mut dst = vec![0; max_len];
-
-    let len = encoder
-        .deflate_compress(src, &mut dst)
-        .map_err(|_| io::Error::from(io::ErrorKind::InvalidInput))?;
-
-    dst.resize(len, 0);
-
-    let mut crc = Crc::new();
-    crc.update(src);
-
-    Ok((dst, crc.sum(), crc.amount()))
-}
-
-#[cfg(not(feature = "libdeflate"))]
-pub(crate) fn deflate_data(
-    src: &[u8],
-    compression_level: flate2::Compression,
-) -> io::Result<(Vec<u8>, u32, u32)> {
-    use flate2::write::DeflateEncoder;
-
-    let mut encoder = DeflateEncoder::new(Vec::new(), compression_level);
-    encoder.write_all(src)?;
-    let dst = encoder.finish()?;
-
-    let mut crc = Crc::new();
-    crc.update(src);
-
-    Ok((dst, crc.sum(), crc.amount()))
 }
 
 #[cfg(test)]

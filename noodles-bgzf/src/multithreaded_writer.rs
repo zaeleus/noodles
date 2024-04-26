@@ -213,11 +213,11 @@ where
 }
 
 fn compress(src: &[u8], compression_level: CompressionLevelImpl) -> io::Result<Vec<u8>> {
-    use super::{writer::deflate_data, BGZF_HEADER_SIZE};
+    use super::{deflate, BGZF_HEADER_SIZE};
 
     let mut dst = Vec::new();
 
-    let (cdata, crc32, _) = deflate_data(src, compression_level)?;
+    let (cdata, crc32, _) = deflate::encode(src, compression_level)?;
 
     let block_size = BGZF_HEADER_SIZE + cdata.len() + gz::TRAILER_SIZE;
     put_header(&mut dst, block_size)?;
