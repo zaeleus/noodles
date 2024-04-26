@@ -24,6 +24,15 @@ type DeflateRx = Receiver<(Bytes, BufferedTx)>;
 type WriteTx = Sender<BufferedRx>;
 type WriteRx = Receiver<BufferedRx>;
 
+enum State<W> {
+    Running {
+        writer_handle: JoinHandle<io::Result<W>>,
+        deflater_handles: Vec<JoinHandle<()>>,
+        write_tx: WriteTx,
+        deflate_tx: DeflateTx,
+    },
+}
+
 /// A multithreaded BGZF writer.
 ///
 /// This is much more basic than [`super::Writer`] but uses a thread pool to compress block data.
@@ -31,11 +40,8 @@ pub struct MultithreadedWriter<W>
 where
     W: Write + Send + 'static,
 {
-    writer_handle: Option<JoinHandle<io::Result<W>>>,
-    deflater_handles: Vec<JoinHandle<()>>,
+    state: Option<State<W>>,
     buf: BytesMut,
-    write_tx: Option<WriteTx>,
-    deflate_tx: Option<DeflateTx>,
 }
 
 impl<W> MultithreadedWriter<W>
@@ -54,11 +60,13 @@ where
         let deflater_handles = spawn_deflaters(compression_level, worker_count, deflate_rx);
 
         Self {
-            writer_handle: Some(writer_handle),
-            deflater_handles,
+            state: Some(State::Running {
+                writer_handle,
+                deflater_handles,
+                write_tx,
+                deflate_tx,
+            }),
             buf: BytesMut::new(),
-            write_tx: Some(write_tx),
-            deflate_tx: Some(deflate_tx),
         }
     }
 
@@ -82,26 +90,40 @@ where
     pub fn finish(&mut self) -> io::Result<W> {
         self.flush()?;
 
-        self.deflate_tx.take();
+        match self.state.take().unwrap() {
+            State::Running {
+                writer_handle,
+                mut deflater_handles,
+                write_tx,
+                deflate_tx,
+            } => {
+                drop(deflate_tx);
 
-        for handle in self.deflater_handles.drain(..) {
-            handle.join().unwrap();
+                for handle in deflater_handles.drain(..) {
+                    handle.join().unwrap();
+                }
+
+                drop(write_tx);
+
+                writer_handle.join().unwrap()
+            }
         }
-
-        self.write_tx.take();
-
-        let handle = self.writer_handle.take().unwrap();
-        handle.join().unwrap()
     }
 
     fn send(&mut self) -> io::Result<()> {
+        let State::Running {
+            write_tx,
+            deflate_tx,
+            ..
+        } = self.state.as_ref().unwrap();
+
         let (buffered_tx, buffered_rx) = crossbeam_channel::bounded(1);
 
-        self.write_tx.as_ref().unwrap().send(buffered_rx).unwrap();
+        write_tx.send(buffered_rx).unwrap();
 
         let src = self.buf.split().freeze();
         let message = (src, buffered_tx);
-        self.deflate_tx.as_ref().unwrap().send(message).unwrap();
+        deflate_tx.send(message).unwrap();
 
         Ok(())
     }
@@ -112,7 +134,7 @@ where
     W: Write + Send + 'static,
 {
     fn drop(&mut self) {
-        if self.writer_handle.is_some() {
+        if self.state.is_some() {
             let _ = self.finish();
         }
     }
