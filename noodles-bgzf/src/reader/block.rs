@@ -154,9 +154,9 @@ fn block_initialize(block: &mut Block, block_size: u64, r#isize: usize) {
 }
 
 fn inflate(src: &[u8], crc32: u32, dst: &mut [u8]) -> io::Result<()> {
-    use super::inflate_data;
+    use crate::deflate;
 
-    inflate_data(src, dst)?;
+    deflate::decode(src, dst)?;
 
     let mut crc = Crc::new();
     crc.update(dst);

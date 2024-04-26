@@ -38,6 +38,7 @@
 pub mod r#async;
 
 mod block;
+pub(crate) mod deflate;
 mod gz;
 pub mod gzi;
 pub mod indexed_reader;
