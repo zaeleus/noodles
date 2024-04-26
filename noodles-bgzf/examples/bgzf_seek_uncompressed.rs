@@ -16,16 +16,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = env::args().skip(1);
 
     let src = args.next().expect("missing src");
-    let raw_position = args.next().expect("missing position");
-    let raw_length = args.next().expect("missing length");
-
-    let pos = raw_position.parse()?;
-    let len = raw_length.parse()?;
+    let position = args.next().expect("missing position").parse()?;
+    let length = args.next().expect("missing length").parse()?;
 
     let mut reader = bgzf::indexed_reader::Builder::default().build_from_path(src)?;
-    reader.seek(SeekFrom::Start(pos))?;
+    reader.seek(SeekFrom::Start(position))?;
 
-    let mut buf = vec![0; len];
+    let mut buf = vec![0; length];
     reader.read_exact(&mut buf)?;
 
     let mut writer = io::stdout().lock();
