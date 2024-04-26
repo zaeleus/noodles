@@ -72,7 +72,7 @@ pub(crate) const BGZF_HEADER_SIZE: usize = gz::HEADER_SIZE + GZIP_XLEN_SIZE + BG
 
 #[cfg(test)]
 mod tests {
-    use std::io::{self, BufRead, Read, Write};
+    use std::io::{self, BufRead, Cursor, Read, Write};
 
     use super::*;
 
@@ -134,6 +134,27 @@ mod tests {
             .map(|x| VirtualPosition::try_from((0, *x)).unwrap())
             .collect();
         assert_eq!(virtual_positions, expected_virtual_positions);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_self_multithreaded() -> io::Result<()> {
+        let mut writer = MultithreadedWriter::new(Vec::new());
+
+        writer.write_all(b"noodles")?;
+        writer.flush()?;
+        writer.write_all(b"-")?;
+        writer.flush()?;
+        writer.write_all(b"bgzf")?;
+
+        let data = writer.finish().map(Cursor::new)?;
+        let mut reader = MultithreadedReader::new(data);
+
+        let mut buf = Vec::new();
+        reader.read_to_end(&mut buf)?;
+
+        assert_eq!(buf, b"noodles-bgzf");
 
         Ok(())
     }
