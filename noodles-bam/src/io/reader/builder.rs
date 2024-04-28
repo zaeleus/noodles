@@ -31,7 +31,6 @@ impl Builder {
 
     /// Builds a BAM reader from a reader.
     ///
-    ///
     /// # Examples
     ///
     /// ```
