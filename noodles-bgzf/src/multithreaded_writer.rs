@@ -9,7 +9,8 @@ use std::{
     thread::{self, JoinHandle},
 };
 
-use bytes::{BufMut, Bytes, BytesMut};
+use byteorder::{LittleEndian, WriteBytesExt};
+use bytes::{Bytes, BytesMut};
 use crossbeam_channel::{Receiver, Sender};
 
 pub use self::builder::Builder;
@@ -221,25 +222,40 @@ where
 }
 
 fn compress(src: &[u8], compression_level: CompressionLevelImpl) -> io::Result<Vec<u8>> {
-    use super::{deflate, BGZF_HEADER_SIZE};
-
-    let mut dst = Vec::new();
+    use super::deflate;
 
     let (cdata, crc32, _) = deflate::encode(src, compression_level)?;
 
-    let block_size = BGZF_HEADER_SIZE + cdata.len() + gz::TRAILER_SIZE;
-    put_header(&mut dst, block_size)?;
-
-    dst.extend(cdata);
-
-    put_trailer(&mut dst, crc32, src.len())?;
+    let mut dst = Vec::new();
+    write_frame(&mut dst, &cdata, crc32, src.len())?;
 
     Ok(dst)
 }
 
-fn put_header<B>(dst: &mut B, block_size: usize) -> io::Result<()>
+fn write_frame<W>(
+    writer: &mut W,
+    compressed_data: &[u8],
+    crc32: u32,
+    uncompressed_len: usize,
+) -> io::Result<()>
 where
-    B: BufMut,
+    W: Write,
+{
+    use super::BGZF_HEADER_SIZE;
+
+    let block_size = BGZF_HEADER_SIZE + compressed_data.len() + gz::TRAILER_SIZE;
+    write_header(writer, block_size)?;
+
+    writer.write_all(compressed_data)?;
+
+    write_trailer(writer, crc32, uncompressed_len)?;
+
+    Ok(())
+}
+
+fn write_header<W>(writer: &mut W, block_size: usize) -> io::Result<()>
+where
+    W: Write,
 {
     const BGZF_FLG: u8 = 0x04; // FEXTRA
     const BGZF_XFL: u8 = 0x00; // none
@@ -249,34 +265,34 @@ where
     const BGZF_SI2: u8 = b'C';
     const BGZF_SLEN: u16 = 2;
 
-    dst.put_slice(&gz::MAGIC_NUMBER);
-    dst.put_u8(gz::CompressionMethod::Deflate as u8);
-    dst.put_u8(BGZF_FLG);
-    dst.put_u32_le(gz::MTIME_NONE);
-    dst.put_u8(BGZF_XFL);
-    dst.put_u8(gz::OperatingSystem::Unknown as u8);
-    dst.put_u16_le(BGZF_XLEN);
+    writer.write_all(&gz::MAGIC_NUMBER)?;
+    writer.write_u8(gz::CompressionMethod::Deflate as u8)?;
+    writer.write_u8(BGZF_FLG)?;
+    writer.write_u32::<LittleEndian>(gz::MTIME_NONE)?;
+    writer.write_u8(BGZF_XFL)?;
+    writer.write_u8(gz::OperatingSystem::Unknown as u8)?;
+    writer.write_u16::<LittleEndian>(BGZF_XLEN)?;
 
-    dst.put_u8(BGZF_SI1);
-    dst.put_u8(BGZF_SI2);
-    dst.put_u16_le(BGZF_SLEN);
+    writer.write_u8(BGZF_SI1)?;
+    writer.write_u8(BGZF_SI2)?;
+    writer.write_u16::<LittleEndian>(BGZF_SLEN)?;
 
     let bsize = u16::try_from(block_size - 1)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    dst.put_u16_le(bsize);
+    writer.write_u16::<LittleEndian>(bsize)?;
 
     Ok(())
 }
 
-fn put_trailer<B>(dst: &mut B, crc32: u32, uncompressed_len: usize) -> io::Result<()>
+fn write_trailer<W>(writer: &mut W, crc32: u32, uncompressed_len: usize) -> io::Result<()>
 where
-    B: BufMut,
+    W: Write,
 {
-    dst.put_u32_le(crc32);
+    writer.write_u32::<LittleEndian>(crc32)?;
 
     let r#isize = u32::try_from(uncompressed_len)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    dst.put_u32_le(r#isize);
+    writer.write_u32::<LittleEndian>(r#isize)?;
 
     Ok(())
 }
