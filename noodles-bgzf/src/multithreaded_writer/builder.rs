@@ -1,5 +1,7 @@
 use std::{io::Write, num::NonZeroUsize};
 
+use bytes::BytesMut;
+
 use super::MultithreadedWriter;
 use crate::writer::CompressionLevel;
 
@@ -50,11 +52,26 @@ impl Builder {
     where
         W: Write + Send + 'static,
     {
-        MultithreadedWriter::with_compression_level_and_worker_count(
-            self.compression_level,
-            self.worker_count,
-            writer,
-        )
+        use super::{spawn_deflaters, spawn_writer, State};
+
+        let worker_count = self.worker_count.get();
+
+        let (write_tx, write_rx) = crossbeam_channel::bounded(worker_count);
+        let (deflate_tx, deflate_rx) = crossbeam_channel::bounded(worker_count);
+
+        let writer_handle = spawn_writer(writer, write_rx);
+        let deflater_handles =
+            spawn_deflaters(self.compression_level, self.worker_count, deflate_rx);
+
+        MultithreadedWriter {
+            state: Some(State::Running {
+                writer_handle,
+                deflater_handles,
+                write_tx,
+                deflate_tx,
+            }),
+            buf: BytesMut::new(),
+        }
     }
 }
 

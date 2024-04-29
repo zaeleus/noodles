@@ -12,10 +12,7 @@ use bytes::{BufMut, Bytes, BytesMut};
 use crossbeam_channel::{Receiver, Sender};
 
 pub use self::builder::Builder;
-use super::{
-    gz,
-    writer::{CompressionLevel, CompressionLevelImpl},
-};
+use super::{gz, writer::CompressionLevelImpl};
 
 type BufferedTx = Sender<io::Result<Vec<u8>>>;
 type BufferedRx = Receiver<io::Result<Vec<u8>>>;
@@ -48,28 +45,6 @@ impl<W> MultithreadedWriter<W>
 where
     W: Write + Send + 'static,
 {
-    fn with_compression_level_and_worker_count(
-        compression_level: CompressionLevel,
-        worker_count: NonZeroUsize,
-        inner: W,
-    ) -> Self {
-        let (write_tx, write_rx) = crossbeam_channel::bounded(worker_count.get());
-        let (deflate_tx, deflate_rx) = crossbeam_channel::bounded(worker_count.get());
-
-        let writer_handle = spawn_writer(inner, write_rx);
-        let deflater_handles = spawn_deflaters(compression_level, worker_count, deflate_rx);
-
-        Self {
-            state: Some(State::Running {
-                writer_handle,
-                deflater_handles,
-                write_tx,
-                deflate_tx,
-            }),
-            buf: BytesMut::new(),
-        }
-    }
-
     /// Creates a multithreaded BGZF writer with a default worker count.
     ///
     /// # Examples
@@ -80,7 +55,7 @@ where
     /// let writer = bgzf::MultithreadedWriter::new(io::sink());
     /// ```
     pub fn new(inner: W) -> Self {
-        Self::with_worker_count(NonZeroUsize::MIN, inner)
+        Builder::default().build_from_writer(inner)
     }
 
     /// Creates a multithreaded BGZF writer with a worker count.
@@ -94,11 +69,9 @@ where
     /// let writer = bgzf::MultithreadedWriter::with_worker_count(NonZeroUsize::MIN, io::sink());
     /// ```
     pub fn with_worker_count(worker_count: NonZeroUsize, inner: W) -> Self {
-        Self::with_compression_level_and_worker_count(
-            CompressionLevel::default(),
-            worker_count,
-            inner,
-        )
+        Builder::default()
+            .set_worker_count(worker_count)
+            .build_from_writer(inner)
     }
 
     /// Finishes the output stream by flushing any remaining buffers.
