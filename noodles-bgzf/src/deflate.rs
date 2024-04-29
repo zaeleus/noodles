@@ -53,6 +53,8 @@ pub(crate) fn encode(
     src: &[u8],
     compression_level: flate2::Compression,
 ) -> io::Result<(Vec<u8>, u32, u32)> {
+    use std::io::Write;
+
     use flate2::write::DeflateEncoder;
 
     let mut encoder = DeflateEncoder::new(Vec::new(), compression_level);
