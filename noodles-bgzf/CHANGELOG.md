@@ -18,6 +18,9 @@
     compression levels (`CompressionLevel::NONE`, `CompressionLevel::FAST`, and
     `CompressionLevel::BEST`).
 
+  * bgzf/writer/compression_level: Add `const` constructor
+    (`CompressionLevel::new`).
+
 ### Changed
 
   * bgzf/multithreaded_writer: Return inner writer on shut down

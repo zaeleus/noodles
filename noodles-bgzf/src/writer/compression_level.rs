@@ -21,6 +21,23 @@ impl CompressionLevel {
     /// A compression level optimized for compression rate.
     pub const BEST: Self = Self(MAX);
 
+    /// Creates a compression level.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf::writer::CompressionLevel;
+    /// assert_eq!(CompressionLevel::new(0), Some(CompressionLevel::NONE));
+    /// assert!(CompressionLevel::new(255).is_none());
+    /// ```
+    pub const fn new(n: u8) -> Option<Self> {
+        if n <= MAX {
+            Some(Self(n))
+        } else {
+            None
+        }
+    }
+
     /// Returns a compression level to disable compression.
     ///
     /// # Examples
