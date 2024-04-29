@@ -14,6 +14,10 @@
 
   * bgzf/virtual_position: Add `const` constructor (`VirtualPosition::new`).
 
+  * bgzf/writer/compression_level: Add associated constants for common
+    compression levels (`CompressionLevel::NONE`, `CompressionLevel::FAST`, and
+    `CompressionLevel::BEST`).
+
 ### Changed
 
   * bgzf/multithreaded_writer: Return inner writer on shut down

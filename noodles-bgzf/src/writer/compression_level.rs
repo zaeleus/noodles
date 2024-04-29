@@ -12,6 +12,15 @@ const MAX: u8 = 9;
 pub struct CompressionLevel(u8);
 
 impl CompressionLevel {
+    /// No compression.
+    pub const NONE: Self = Self(0);
+
+    /// A compression level optimized for speed.
+    pub const FAST: Self = Self(1);
+
+    /// A compression level optimized for compression rate.
+    pub const BEST: Self = Self(MAX);
+
     /// Returns a compression level to disable compression.
     ///
     /// # Examples
