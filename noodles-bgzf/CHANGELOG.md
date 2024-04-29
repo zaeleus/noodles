@@ -31,6 +31,15 @@
   * bgzf/virtual_position: Make getters (`VirtualPosition::uncompressed` and
     `VirtualPosition::compressed`) `const`.
 
+### Deprecated
+
+  * bgzf/writer/compression_level: Deprecate named constructors
+    (`CompressionLevel::none`, `CompressionLevel::fast`, and
+    `CompressionLevel::best`).
+
+    Use the compression level constants instead of the named constructors
+    ,e.g., `CompressionLevel::none()` => `CompressionLevel::NONE`.
+
 ### Removed
 
   * bgzf/reader/block: Remove blocking multithreaded reader.

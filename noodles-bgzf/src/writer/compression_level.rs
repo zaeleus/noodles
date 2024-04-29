@@ -46,6 +46,7 @@ impl CompressionLevel {
     /// use noodles_bgzf::writer::CompressionLevel;
     /// let compression_level = CompressionLevel::none();
     /// ```
+    #[deprecated(since = "0.29.0", note = "Use `CompressionLevel::NONE` instead.")]
     pub fn none() -> Self {
         Self(0)
     }
@@ -58,6 +59,7 @@ impl CompressionLevel {
     /// use noodles_bgzf::writer::CompressionLevel;
     /// let compression_level = CompressionLevel::fast();
     /// ```
+    #[deprecated(since = "0.29.0", note = "Use `CompressionLevel::FAST` instead.")]
     pub fn fast() -> Self {
         Self(1)
     }
@@ -70,6 +72,7 @@ impl CompressionLevel {
     /// use noodles_bgzf::writer::CompressionLevel;
     /// let compression_level = CompressionLevel::best();
     /// ```
+    #[deprecated(since = "0.29.0", note = "Use `CompressionLevel::BEST` instead.")]
     pub fn best() -> Self {
         Self(MAX)
     }
@@ -129,6 +132,7 @@ impl From<CompressionLevel> for flate2::Compression {
     }
 }
 
+#[allow(deprecated)]
 #[cfg(test)]
 mod tests {
     use super::*;
