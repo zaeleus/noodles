@@ -4,6 +4,7 @@ mod builder;
 
 use std::{
     io::{self, Write},
+    mem,
     num::NonZeroUsize,
     thread::{self, JoinHandle},
 };
@@ -28,6 +29,7 @@ enum State<W> {
         write_tx: WriteTx,
         deflate_tx: DeflateTx,
     },
+    Done,
 }
 
 /// A multithreaded BGZF writer.
@@ -37,7 +39,7 @@ pub struct MultithreadedWriter<W>
 where
     W: Write + Send + 'static,
 {
-    state: Option<State<W>>,
+    state: State<W>,
     buf: BytesMut,
 }
 
@@ -90,7 +92,9 @@ where
     pub fn finish(&mut self) -> io::Result<W> {
         self.flush()?;
 
-        match self.state.take().unwrap() {
+        let state = mem::replace(&mut self.state, State::Done);
+
+        match state {
             State::Running {
                 writer_handle,
                 mut deflater_handles,
@@ -107,6 +111,7 @@ where
 
                 writer_handle.join().unwrap()
             }
+            State::Done => panic!("invalid state"),
         }
     }
 
@@ -115,7 +120,10 @@ where
             write_tx,
             deflate_tx,
             ..
-        } = self.state.as_ref().unwrap();
+        } = &self.state
+        else {
+            panic!("invalid state");
+        };
 
         let (buffered_tx, buffered_rx) = crossbeam_channel::bounded(1);
 
@@ -134,7 +142,7 @@ where
     W: Write + Send + 'static,
 {
     fn drop(&mut self) {
-        if self.state.is_some() {
+        if !matches!(self.state, State::Done) {
             let _ = self.finish();
         }
     }

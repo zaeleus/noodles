@@ -64,12 +64,12 @@ impl Builder {
             spawn_deflaters(self.compression_level, self.worker_count, deflate_rx);
 
         MultithreadedWriter {
-            state: Some(State::Running {
+            state: State::Running {
                 writer_handle,
                 deflater_handles,
                 write_tx,
                 deflate_tx,
-            }),
+            },
             buf: BytesMut::new(),
         }
     }
