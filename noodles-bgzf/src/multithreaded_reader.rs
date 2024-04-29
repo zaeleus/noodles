@@ -104,20 +104,6 @@ impl<R> MultithreadedReader<R> {
             }
         }
     }
-
-    fn recv_buffer(&self) -> io::Result<Option<Buffer>> {
-        let State::Running { read_rx, .. } = self.state.as_ref().unwrap() else {
-            panic!("invalid state");
-        };
-
-        if let Ok(buffered_rx) = read_rx.recv() {
-            if let Ok(buffer) = buffered_rx.recv() {
-                return buffer.map(Some);
-            }
-        }
-
-        Ok(None)
-    }
 }
 
 impl<R> MultithreadedReader<R>
@@ -238,11 +224,16 @@ where
     fn read_block(&mut self) -> io::Result<()> {
         self.resume();
 
-        let State::Running { recycle_tx, .. } = self.state.as_ref().unwrap() else {
+        let State::Running {
+            read_rx,
+            recycle_tx,
+            ..
+        } = self.state.as_ref().unwrap()
+        else {
             panic!("invalid state");
         };
 
-        while let Some(mut buffer) = self.recv_buffer()? {
+        while let Some(mut buffer) = recv_buffer(read_rx)? {
             buffer.block.set_position(self.position);
             self.position += buffer.block.size();
 
@@ -322,6 +313,16 @@ where
     fn consume(&mut self, amt: usize) {
         self.buffer.block.data_mut().consume(amt);
     }
+}
+
+fn recv_buffer(read_rx: &ReadRx) -> io::Result<Option<Buffer>> {
+    if let Ok(buffered_rx) = read_rx.recv() {
+        if let Ok(buffer) = buffered_rx.recv() {
+            return buffer.map(Some);
+        }
+    }
+
+    Ok(None)
 }
 
 struct ReadError<R>(R, io::Error);
