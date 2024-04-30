@@ -52,26 +52,7 @@ pub struct Reader<R> {
     buf: String,
 }
 
-impl<R> Reader<R>
-where
-    R: AsyncBufRead + Unpin,
-{
-    /// Creates an async VCF reader.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf as vcf;
-    /// let data = [];
-    /// let reader = vcf::r#async::io::Reader::new(&data[..]);
-    /// ```
-    pub fn new(inner: R) -> Self {
-        Self {
-            inner,
-            buf: String::new(),
-        }
-    }
-
+impl<R> Reader<R> {
     /// Returns a reference to the underlying reader.
     ///
     /// # Examples
@@ -112,6 +93,27 @@ where
     /// ```
     pub fn into_inner(self) -> R {
         self.inner
+    }
+}
+
+impl<R> Reader<R>
+where
+    R: AsyncBufRead + Unpin,
+{
+    /// Creates an async VCF reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    /// let data = [];
+    /// let reader = vcf::r#async::io::Reader::new(&data[..]);
+    /// ```
+    pub fn new(inner: R) -> Self {
+        Self {
+            inner,
+            buf: String::new(),
+        }
     }
 
     /// Reads the VCF header.

@@ -22,21 +22,7 @@ pub struct IndexedReader<R> {
     index: Box<dyn BinningIndex>,
 }
 
-impl<R> IndexedReader<R>
-where
-    R: Read,
-{
-    /// Creates an indexed VCF reader.
-    pub fn new<I>(inner: R, index: I) -> Self
-    where
-        I: BinningIndex + 'static,
-    {
-        Self {
-            inner: Reader::new(bgzf::Reader::new(inner)),
-            index: Box::new(index),
-        }
-    }
-
+impl<R> IndexedReader<R> {
     /// Returns a reference to the underlying reader.
     pub fn get_ref(&self) -> &bgzf::Reader<R> {
         self.inner.get_ref()
@@ -50,6 +36,22 @@ where
     /// Returns the underlying reader.
     pub fn into_inner(self) -> bgzf::Reader<R> {
         self.inner.into_inner()
+    }
+}
+
+impl<R> IndexedReader<R>
+where
+    R: Read,
+{
+    /// Creates an indexed VCF reader.
+    pub fn new<I>(inner: R, index: I) -> Self
+    where
+        I: BinningIndex + 'static,
+    {
+        Self {
+            inner: Reader::new(bgzf::Reader::new(inner)),
+            index: Box::new(index),
+        }
     }
 
     /// Reads the VCF header.
