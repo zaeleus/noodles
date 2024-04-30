@@ -50,27 +50,7 @@ pub struct Reader<R> {
     buf: Vec<u8>,
 }
 
-impl<R> Reader<R>
-where
-    R: BufRead,
-{
-    /// Creates a SAM reader.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam as sam;
-    ///
-    /// let data = b"@HD\tVN:1.6
-    /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
-    /// ";
-    ///
-    /// let reader = sam::io::Reader::new(&data[..]);
-    /// ```
-    pub fn new(inner: R) -> Self {
-        Self::from(inner)
-    }
-
+impl<R> Reader<R> {
     /// Returns a reference to the underlying reader.
     ///
     /// # Examples
@@ -111,6 +91,28 @@ where
     /// ```
     pub fn into_inner(self) -> R {
         self.inner
+    }
+}
+
+impl<R> Reader<R>
+where
+    R: BufRead,
+{
+    /// Creates a SAM reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam as sam;
+    ///
+    /// let data = b"@HD\tVN:1.6
+    /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
+    /// ";
+    ///
+    /// let reader = sam::io::Reader::new(&data[..]);
+    /// ```
+    pub fn new(inner: R) -> Self {
+        Self::from(inner)
     }
 
     /// Reads the SAM header.

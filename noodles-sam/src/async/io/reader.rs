@@ -14,26 +14,7 @@ pub struct Reader<R> {
     buf: Vec<u8>,
 }
 
-impl<R> Reader<R>
-where
-    R: AsyncBufRead + Unpin,
-{
-    /// Creates an async SAM reader.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam as sam;
-    /// let data = [];
-    /// let reader = sam::r#async::io::Reader::new(&data[..]);
-    /// ```
-    pub fn new(inner: R) -> Self {
-        Self {
-            inner,
-            buf: Vec::new(),
-        }
-    }
-
+impl<R> Reader<R> {
     /// Returns a reference to the underlying reader.
     ///
     /// # Examples
@@ -74,6 +55,27 @@ where
     /// ```
     pub fn into_inner(self) -> R {
         self.inner
+    }
+}
+
+impl<R> Reader<R>
+where
+    R: AsyncBufRead + Unpin,
+{
+    /// Creates an async SAM reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam as sam;
+    /// let data = [];
+    /// let reader = sam::r#async::io::Reader::new(&data[..]);
+    /// ```
+    pub fn new(inner: R) -> Self {
+        Self {
+            inner,
+            buf: Vec::new(),
+        }
     }
 
     /// Reads the SAM header.
