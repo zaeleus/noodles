@@ -22,10 +22,7 @@ pub struct IndexedReader<R> {
     index: Box<dyn BinningIndex>,
 }
 
-impl<R> IndexedReader<R>
-where
-    R: Read,
-{
+impl<R> IndexedReader<R> {
     /// Returns a reference to the underlying reader.
     pub fn get_ref(&self) -> &R {
         self.inner.get_ref()
@@ -40,7 +37,12 @@ where
     pub fn into_inner(self) -> R {
         self.inner.into_inner()
     }
+}
 
+impl<R> IndexedReader<R>
+where
+    R: Read,
+{
     /// Reads the SAM header.
     pub fn read_header(&mut self) -> io::Result<sam::Header> {
         self.inner.read_header()

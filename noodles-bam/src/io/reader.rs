@@ -49,19 +49,16 @@ pub struct Reader<R> {
     buf: Vec<u8>,
 }
 
-impl<R> Reader<R>
-where
-    R: Read,
-{
+impl<R> Reader<R> {
     /// Returns a reference to the underlying reader.
     ///
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bam as bam;
-    /// let data = [];
-    /// let reader = bam::io::Reader::from(&data[..]);
-    /// assert!(reader.get_ref().is_empty());
+    /// let reader = bam::io::Reader::from(io::empty());
+    /// let _inner = reader.get_ref();
     /// ```
     pub fn get_ref(&self) -> &R {
         &self.inner
@@ -72,10 +69,10 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bam as bam;
-    /// let data = [];
-    /// let mut reader = bam::io::Reader::from(&data[..]);
-    /// assert!(reader.get_mut().is_empty());
+    /// let mut reader = bam::io::Reader::from(io::empty());
+    /// let _inner = reader.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
         &mut self.inner
@@ -86,15 +83,20 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bam as bam;
-    /// let data = [];
-    /// let reader = bam::io::Reader::from(&data[..]);
-    /// assert!(reader.into_inner().is_empty());
+    /// let reader = bam::io::Reader::from(io::empty());
+    /// let _inner = reader.into_inner();
     /// ```
     pub fn into_inner(self) -> R {
         self.inner
     }
+}
 
+impl<R> Reader<R>
+where
+    R: Read,
+{
     /// Reads the SAM header.
     ///
     /// This verifies the BAM magic number, reads and parses the raw SAM header, and reads the

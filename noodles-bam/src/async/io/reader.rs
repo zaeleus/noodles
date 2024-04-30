@@ -40,19 +40,16 @@ pub struct Reader<R> {
     buf: Vec<u8>,
 }
 
-impl<R> Reader<R>
-where
-    R: AsyncRead + Unpin,
-{
+impl<R> Reader<R> {
     /// Returns a reference to the underlying reader.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// let data = [];
-    /// let reader = bam::r#async::io::Reader::from(&data[..]);
-    /// assert!(reader.get_ref().is_empty());
+    /// use tokio::io;
+    /// let reader = bam::r#async::io::Reader::from(io::empty());
+    /// let _inner = reader.get_ref();
     /// ```
     pub fn get_ref(&self) -> &R {
         &self.inner
@@ -64,9 +61,9 @@ where
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// let data = [];
-    /// let mut reader = bam::r#async::io::Reader::from(&data[..]);
-    /// assert!(reader.get_mut().is_empty());
+    /// use tokio::io;
+    /// let mut reader = bam::r#async::io::Reader::from(io::empty());
+    /// let _inner = reader.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
         &mut self.inner
@@ -78,14 +75,19 @@ where
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// let data = [];
-    /// let reader = bam::r#async::io::Reader::from(&data[..]);
-    /// assert!(reader.into_inner().is_empty());
+    /// use tokio::io;
+    /// let reader = bam::r#async::io::Reader::from(io::empty());
+    /// let _inner = reader.into_inner();
     /// ```
     pub fn into_inner(self) -> R {
         self.inner
     }
+}
 
+impl<R> Reader<R>
+where
+    R: AsyncRead + Unpin,
+{
     /// Reads the SAM header.
     ///
     /// This verifies the BAM magic number, reads and parses the raw SAM header, and reads the
