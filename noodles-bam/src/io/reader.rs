@@ -262,26 +262,6 @@ where
     pub fn new(reader: R) -> Self {
         Self::from(bgzf::Reader::new(reader))
     }
-
-    /// Returns the current virtual position of the underlying BGZF reader.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io;
-    /// use noodles_bam as bam;
-    ///
-    /// let data = Vec::new();
-    /// let reader = bam::io::Reader::new(&data[..]);
-    /// let virtual_position = reader.virtual_position();
-    ///
-    /// assert_eq!(virtual_position.compressed(), 0);
-    /// assert_eq!(virtual_position.uncompressed(), 0);
-    /// # Ok::<(), io::Error>(())
-    /// ```
-    pub fn virtual_position(&self) -> bgzf::VirtualPosition {
-        self.inner.virtual_position()
-    }
 }
 
 impl<R> Reader<bgzf::Reader<R>>
@@ -312,7 +292,7 @@ where
     fn seek_to_first_record(&mut self) -> io::Result<bgzf::VirtualPosition> {
         self.seek(bgzf::VirtualPosition::default())?;
         self.read_header()?;
-        Ok(self.virtual_position())
+        Ok(self.get_ref().virtual_position())
     }
 
     /// Returns an iterator over records that intersect the given region.

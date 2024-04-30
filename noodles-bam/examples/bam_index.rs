@@ -49,10 +49,10 @@ fn main() -> io::Result<()> {
     let mut record = bam::Record::default();
 
     let mut builder = Indexer::default();
-    let mut start_position = reader.virtual_position();
+    let mut start_position = reader.get_ref().virtual_position();
 
     while reader.read_record(&mut record)? != 0 {
-        let end_position = reader.virtual_position();
+        let end_position = reader.get_ref().virtual_position();
         let chunk = Chunk::new(start_position, end_position);
 
         let alignment_context = match alignment_context(&record)? {
