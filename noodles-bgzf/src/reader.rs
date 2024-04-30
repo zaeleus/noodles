@@ -33,23 +33,7 @@ pub struct Reader<R> {
     block: Block,
 }
 
-impl<R> Reader<R>
-where
-    R: Read,
-{
-    /// Creates a BGZF reader.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bgzf as bgzf;
-    /// let data = [];
-    /// let reader = bgzf::Reader::new(&data[..]);
-    /// ```
-    pub fn new(inner: R) -> Self {
-        Builder.build_from_reader(inner)
-    }
-
+impl<R> Reader<R> {
     /// Returns a reference to the underlying reader.
     ///
     /// # Examples
@@ -90,6 +74,24 @@ where
     /// ```
     pub fn into_inner(self) -> R {
         self.inner
+    }
+}
+
+impl<R> Reader<R>
+where
+    R: Read,
+{
+    /// Creates a BGZF reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// let data = [];
+    /// let reader = bgzf::Reader::new(&data[..]);
+    /// ```
+    pub fn new(inner: R) -> Self {
+        Builder.build_from_reader(inner)
     }
 
     /// Returns the current position of the stream.

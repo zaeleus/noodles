@@ -14,26 +14,7 @@ pub struct IndexedReader<R> {
     index: gzi::Index,
 }
 
-impl<R> IndexedReader<R>
-where
-    R: Read,
-{
-    /// Creates an indexed BGZF reader.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io;
-    /// use noodles_bgzf::{self as bgzf, gzi};
-    /// let reader = bgzf::IndexedReader::new(io::empty(), gzi::Index::default());
-    /// ```
-    pub fn new(inner: R, index: gzi::Index) -> Self {
-        Self {
-            inner: Reader::new(inner),
-            index,
-        }
-    }
-
+impl<R> IndexedReader<R> {
     /// Returns a reference to the underlying reader.
     ///
     /// # Examples
@@ -74,6 +55,27 @@ where
     /// ```
     pub fn into_inner(self) -> R {
         self.inner.into_inner()
+    }
+}
+
+impl<R> IndexedReader<R>
+where
+    R: Read,
+{
+    /// Creates an indexed BGZF reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bgzf::{self as bgzf, gzi};
+    /// let reader = bgzf::IndexedReader::new(io::empty(), gzi::Index::default());
+    /// ```
+    pub fn new(inner: R, index: gzi::Index) -> Self {
+        Self {
+            inner: Reader::new(inner),
+            index,
+        }
     }
 
     /// Returns the current position of the stream.
