@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+  * vcf/io/reader: Remove `Reader::virtual_position`.
+
+    Get the virtual position from the inner reader instead.
+
 ## 0.54.0 - 2024-04-22
 
 ### Added
