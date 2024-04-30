@@ -8,6 +8,12 @@
 
 [#257]: https://github.com/zaeleus/noodles/issues/257
 
+### Removed
+
+  * sam/io/reader: Remove `Reader::seek`.
+
+    Use the inner reader instead.
+
 ## 0.57.0 - 2024-04-22
 
 ### Changed
