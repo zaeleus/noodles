@@ -4,7 +4,7 @@
 
 ### Added
 
-  * bgzf/io: Add read-related traits (`Read` and `BufRead`).
+  * bgzf/io: Add read-related traits (`Read`, `BufRead`, and `Seek`).
 
   * bgzf/multithreaded_reader: Add default constructor
     (`MultithreadedReader::new`), accessor for the underlying reader
