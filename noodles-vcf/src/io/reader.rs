@@ -291,28 +291,6 @@ impl<R> Reader<bgzf::Reader<R>>
 where
     R: Read + Seek,
 {
-    /// Seeks the underlying BGZF stream to the given virtual position.
-    ///
-    /// Virtual positions typically come from an associated index.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io::{self, Cursor};
-    /// use noodles_bgzf as bgzf;
-    /// use noodles_vcf as vcf;
-    ///
-    /// let data = Cursor::new(Vec::new());
-    /// let mut reader = vcf::io::Reader::new(bgzf::Reader::new(data));
-    ///
-    /// let virtual_position = bgzf::VirtualPosition::default();
-    /// reader.seek(virtual_position)?;
-    /// # Ok::<(), io::Error>(())
-    /// ```
-    pub fn seek(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
-        self.inner.seek(pos)
-    }
-
     /// Returns an iterator over records that intersects the given region.
     ///
     /// # Examples
