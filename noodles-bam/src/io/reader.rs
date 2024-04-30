@@ -268,29 +268,10 @@ impl<R> Reader<bgzf::Reader<R>>
 where
     R: Read + Seek,
 {
-    /// Seeks the underlying BGZF reader to the given virtual position.
-    ///
-    /// Virtual positions typically come from the associated BAM index file.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io::{self, Cursor};
-    /// use noodles_bam as bam;
-    /// use noodles_bgzf as bgzf;
-    /// let mut reader = bam::io::Reader::new(Cursor::new(Vec::new()));
-    /// let virtual_position = bgzf::VirtualPosition::default();
-    /// reader.seek(virtual_position)?;
-    /// # Ok::<(), io::Error>(())
-    /// ```
-    pub fn seek(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
-        self.inner.seek(pos)
-    }
-
     // Seeks to the first record by setting the cursor to the beginning of the stream and
     // (re)reading the header.
     fn seek_to_first_record(&mut self) -> io::Result<bgzf::VirtualPosition> {
-        self.seek(bgzf::VirtualPosition::default())?;
+        self.get_mut().seek(bgzf::VirtualPosition::default())?;
         self.read_header()?;
         Ok(self.get_ref().virtual_position())
     }
@@ -366,7 +347,7 @@ where
         I: BinningIndex,
     {
         if let Some(pos) = index.last_first_record_start_position() {
-            self.seek(pos)?;
+            self.get_mut().seek(pos)?;
         } else {
             self.seek_to_first_record()?;
         }

@@ -53,7 +53,7 @@ where
                 State::Seek => {
                     ctx.state = match ctx.chunks.next() {
                         Some(chunk) => {
-                            ctx.reader.seek(chunk.start()).await?;
+                            ctx.reader.get_mut().seek(chunk.start()).await?;
                             State::Read(chunk.end())
                         }
                         None => State::Done,

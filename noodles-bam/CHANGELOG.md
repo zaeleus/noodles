@@ -4,9 +4,9 @@
 
 ### Removed
 
-  * bam/io/reader: Remove `Reader::virtual_position`.
+  * bam/io/reader: Remove `Reader::virtual_position` and `Reader::seek`.
 
-    Get the virtual position from the inner reader instead.
+    Use the inner reader instead.
 
 ## 0.60.0 - 2024-04-22
 
