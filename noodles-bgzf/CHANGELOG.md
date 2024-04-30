@@ -4,6 +4,8 @@
 
 ### Added
 
+  * bgzf/io: Add `Read` trait.
+
   * bgzf/multithreaded_reader: Add default constructor
     (`MultithreadedReader::new`), accessor for the underlying reader
     (`MultithreadedReader::get_mut`), and seek to virtual position

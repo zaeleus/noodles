@@ -42,6 +42,7 @@ pub(crate) mod deflate;
 mod gz;
 pub mod gzi;
 pub mod indexed_reader;
+pub mod io;
 mod multithreaded_reader;
 pub mod multithreaded_writer;
 pub mod reader;
