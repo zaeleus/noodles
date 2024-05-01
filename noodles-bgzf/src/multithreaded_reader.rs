@@ -7,7 +7,7 @@ use std::{
 
 use crossbeam_channel::{Receiver, Sender};
 
-use crate::{Block, VirtualPosition};
+use crate::{gzi, Block, VirtualPosition};
 
 type BufferedTx = Sender<io::Result<Buffer>>;
 type BufferedRx = Receiver<io::Result<Buffer>>;
@@ -333,6 +333,39 @@ where
 }
 
 impl<R> crate::io::BufRead for MultithreadedReader<R> where R: Read + Send + 'static {}
+
+impl<R> crate::io::Seek for MultithreadedReader<R>
+where
+    R: Read + Send + Seek + 'static,
+{
+    fn seek_to_virtual_position(&mut self, pos: VirtualPosition) -> io::Result<VirtualPosition> {
+        self.seek(pos)
+    }
+
+    fn seek_with_index(&mut self, index: &gzi::Index, pos: SeekFrom) -> io::Result<u64> {
+        let SeekFrom::Start(pos) = pos else {
+            unimplemented!();
+        };
+
+        assert!(!index.is_empty());
+
+        let i = index.partition_point(|r| r.1 <= pos);
+        // SAFETY: `i` is > 0.
+        let record = index[i - 1];
+
+        let cpos = record.0;
+        self.get_mut().seek(SeekFrom::Start(cpos))?;
+        self.position = cpos;
+
+        self.read_block()?;
+
+        let upos = usize::try_from(pos - record.1)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        self.buffer.block.data_mut().set_position(upos);
+
+        Ok(pos)
+    }
+}
 
 fn recv_buffer(read_rx: &ReadRx) -> io::Result<Option<Buffer>> {
     if let Ok(buffered_rx) = read_rx.recv() {
