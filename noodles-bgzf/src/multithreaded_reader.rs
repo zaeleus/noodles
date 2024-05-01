@@ -332,6 +332,8 @@ where
     }
 }
 
+impl<R> crate::io::BufRead for MultithreadedReader<R> where R: Read + Send + 'static {}
+
 fn recv_buffer(read_rx: &ReadRx) -> io::Result<Option<Buffer>> {
     if let Ok(buffered_rx) = read_rx.recv() {
         if let Ok(buffer) = buffered_rx.recv() {
