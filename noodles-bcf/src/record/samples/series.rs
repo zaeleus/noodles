@@ -259,7 +259,6 @@ fn get_string_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>
 fn get_genotype_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
     use self::value::Genotype;
 
-    dbg!(src, i, len);
-    let src = src.get(dbg!(range::<i8>(i, len)))?;
+    let src = src.get(range::<i8>(i, len))?;
     Some(Some(Value::Genotype(Box::new(Genotype::new(src)))))
 }
