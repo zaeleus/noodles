@@ -7,9 +7,8 @@
   * bgzf/io: Add read-related traits (`Read`, `BufRead`, and `Seek`).
 
   * bgzf/multithreaded_reader: Add default constructor
-    (`MultithreadedReader::new`), accessor for the underlying reader
-    (`MultithreadedReader::get_mut`), and seek to virtual position
-    (`MultithreadedReader::seek`).
+    (`MultithreadedReader::new`) and accessor for the underlying reader
+    (`MultithreadedReader::get_mut`).
 
   * bgzf/multithreaded_writer: Add default constructor
     (`MultithreadedWriter::new`).

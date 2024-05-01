@@ -257,35 +257,6 @@ where
     }
 }
 
-impl<R> MultithreadedReader<R>
-where
-    R: Read + Seek + Send + 'static,
-{
-    /// Seeks the stream to the given virtual position.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io;
-    /// use noodles_bgzf as bgzf;
-    /// let mut reader = bgzf::MultithreadedReader::new(io::empty());
-    /// reader.seek(bgzf::VirtualPosition::MIN)?;
-    /// # Ok::<_, io::Error>(())
-    /// ```
-    pub fn seek(&mut self, pos: VirtualPosition) -> io::Result<VirtualPosition> {
-        let (cpos, upos) = pos.into();
-
-        self.get_mut().seek(SeekFrom::Start(cpos))?;
-        self.position = cpos;
-
-        self.read_block()?;
-
-        self.buffer.block.data_mut().set_position(usize::from(upos));
-
-        Ok(pos)
-    }
-}
-
 impl<R> Drop for MultithreadedReader<R> {
     fn drop(&mut self) {
         if !matches!(self.state, State::Done) {
@@ -339,7 +310,16 @@ where
     R: Read + Send + Seek + 'static,
 {
     fn seek_to_virtual_position(&mut self, pos: VirtualPosition) -> io::Result<VirtualPosition> {
-        self.seek(pos)
+        let (cpos, upos) = pos.into();
+
+        self.get_mut().seek(SeekFrom::Start(cpos))?;
+        self.position = cpos;
+
+        self.read_block()?;
+
+        self.buffer.block.data_mut().set_position(usize::from(upos));
+
+        Ok(pos)
     }
 
     fn seek_with_index(&mut self, index: &gzi::Index, pos: SeekFrom) -> io::Result<u64> {
@@ -432,7 +412,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_seek() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_seek_to_virtual_position() -> Result<(), Box<dyn std::error::Error>> {
+        use crate::io::Seek;
+
         #[rustfmt::skip]
         static DATA: &[u8] = &[
             // block 0 (b"noodles")
@@ -462,7 +444,7 @@ mod tests {
 
         assert_eq!(reader.virtual_position(), EOF_VIRTUAL_POSITION);
 
-        reader.seek(VIRUAL_POSITION)?;
+        reader.seek_to_virtual_position(VIRUAL_POSITION)?;
 
         buf.clear();
         reader.read_to_end(&mut buf)?;
