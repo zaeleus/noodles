@@ -268,6 +268,33 @@ where
     }
 }
 
+impl<R> crate::io::Read for Reader<R>
+where
+    R: Read,
+{
+    fn virtual_position(&self) -> VirtualPosition {
+        self.block.virtual_position()
+    }
+}
+
+impl<R> crate::io::BufRead for Reader<R> where R: Read {}
+
+impl<R> crate::io::Seek for Reader<R>
+where
+    R: Read + Seek,
+{
+    fn seek_to_virtual_position(&mut self, pos: VirtualPosition) -> io::Result<VirtualPosition> {
+        self.seek(pos)
+    }
+
+    fn seek_with_index(&mut self, index: &gzi::Index, pos: SeekFrom) -> io::Result<u64> {
+        match pos {
+            SeekFrom::Start(pos) => self.seek_by_uncompressed_position(index, pos),
+            _ => unimplemented!(),
+        }
+    }
+}
+
 fn default_read_exact<R>(reader: &mut R, mut buf: &mut [u8]) -> io::Result<()>
 where
     R: Read,

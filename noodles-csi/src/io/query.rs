@@ -1,5 +1,5 @@
 use std::{
-    io::{self, BufRead, Read, Seek},
+    io::{self, BufRead, Read},
     vec,
 };
 
@@ -18,24 +18,26 @@ enum State {
 ///
 /// This reader returns the uncompressed data between all the given chunks.
 pub struct Query<'r, R> {
-    reader: &'r mut bgzf::Reader<R>,
+    reader: &'r mut R,
     chunks: vec::IntoIter<Chunk>,
     state: State,
 }
 
-impl<'r, R> Query<'r, R>
-where
-    R: Read + Seek,
-{
+impl<'r, R> Query<'r, R> {
     /// Creates a query reader.
-    pub fn new(reader: &'r mut bgzf::Reader<R>, chunks: Vec<Chunk>) -> Self {
+    pub fn new(reader: &'r mut R, chunks: Vec<Chunk>) -> Self {
         Self {
             reader,
             chunks: chunks.into_iter(),
             state: State::Seek,
         }
     }
+}
 
+impl<'r, R> Query<'r, R>
+where
+    R: bgzf::io::BufRead + bgzf::io::Seek,
+{
     /// Creates an iterator that parses indexed records.
     pub fn indexed_records(self, header: &Header) -> IndexedRecords<Self> {
         IndexedRecords::new(self, header)
@@ -44,7 +46,7 @@ where
 
 impl<'r, R> Read for Query<'r, R>
 where
-    R: Read + Seek,
+    R: bgzf::io::BufRead + bgzf::io::Seek,
 {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         let mut src = self.fill_buf()?;
@@ -56,7 +58,7 @@ where
 
 impl<'r, R> BufRead for Query<'r, R>
 where
-    R: Read + Seek,
+    R: bgzf::io::BufRead + bgzf::io::Seek,
 {
     fn fill_buf(&mut self) -> io::Result<&[u8]> {
         loop {
@@ -64,7 +66,7 @@ where
                 State::Seek => {
                     self.state = match self.chunks.next() {
                         Some(chunk) => {
-                            self.reader.seek(chunk.start())?;
+                            self.reader.seek_to_virtual_position(chunk.start())?;
                             State::Read(chunk.end())
                         }
                         None => State::Done,

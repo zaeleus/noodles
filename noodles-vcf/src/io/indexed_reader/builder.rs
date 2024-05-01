@@ -5,6 +5,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use noodles_bgzf as bgzf;
 use noodles_csi::{self as csi, BinningIndex};
 use noodles_tabix as tabix;
 
@@ -45,7 +46,7 @@ impl Builder {
     /// let reader = Builder::default().build_from_path("sample.vcf.gz")?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn build_from_path<P>(self, src: P) -> io::Result<IndexedReader<File>>
+    pub fn build_from_path<P>(self, src: P) -> io::Result<IndexedReader<bgzf::Reader<File>>>
     where
         P: AsRef<Path>,
     {
@@ -76,7 +77,7 @@ impl Builder {
     ///     .build_from_reader(io::empty())?;
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn build_from_reader<R>(self, reader: R) -> io::Result<IndexedReader<R>>
+    pub fn build_from_reader<R>(self, reader: R) -> io::Result<IndexedReader<bgzf::Reader<R>>>
     where
         R: Read,
     {

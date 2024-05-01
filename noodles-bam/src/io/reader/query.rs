@@ -1,4 +1,4 @@
-use std::io::{self, Read, Seek};
+use std::io;
 
 use noodles_bgzf as bgzf;
 use noodles_core::region::Interval;
@@ -11,10 +11,7 @@ use crate::Record;
 /// An iterator over records of a BAM reader that intersects a given region.
 ///
 /// This is created by calling [`Reader::query`].
-pub struct Query<'a, R>
-where
-    R: Read + Seek,
-{
+pub struct Query<'a, R> {
     reader: Reader<csi::io::Query<'a, R>>,
     reference_sequence_id: usize,
     interval: Interval,
@@ -23,10 +20,10 @@ where
 
 impl<'a, R> Query<'a, R>
 where
-    R: Read + Seek,
+    R: bgzf::io::BufRead + bgzf::io::Seek,
 {
     pub(super) fn new(
-        reader: &'a mut bgzf::Reader<R>,
+        reader: &'a mut R,
         chunks: Vec<Chunk>,
         reference_sequence_id: usize,
         interval: Interval,
@@ -49,7 +46,7 @@ where
 
 impl<'a, R> Iterator for Query<'a, R>
 where
-    R: Read + Seek,
+    R: bgzf::io::BufRead + bgzf::io::Seek,
 {
     type Item = io::Result<Record>;
 

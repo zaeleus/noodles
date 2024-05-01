@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * csi/io/query: Allow a generic buffered, seekable BGZF reader
+    (`Query::new`).
+
 ## 0.32.0 - 2024-03-28
 
 ### Changed

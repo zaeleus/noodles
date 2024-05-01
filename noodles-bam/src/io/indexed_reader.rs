@@ -2,7 +2,7 @@
 
 mod builder;
 
-use std::io::{self, Read, Seek};
+use std::io::{self, Read};
 
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
@@ -95,9 +95,9 @@ where
     }
 }
 
-impl<R> IndexedReader<bgzf::Reader<R>>
+impl<R> IndexedReader<R>
 where
-    R: Read + Seek,
+    R: bgzf::io::BufRead + bgzf::io::Seek,
 {
     /// Returns an iterator over records that intersect the given region.
     pub fn query<'a>(

@@ -1,4 +1,4 @@
-use std::io::{self, Read, Seek};
+use std::io;
 
 use noodles_bgzf as bgzf;
 use noodles_core::region::Interval;
@@ -7,19 +7,16 @@ use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Ch
 use super::Reader;
 use crate::{alignment::Record as _, Header, Record};
 
-pub struct Query<'a, R>
-where
-    R: Read + Seek,
-{
+pub struct Query<'a, R> {
     reader: Reader<csi::io::Query<'a, R>>,
     record: Record,
 }
 
 impl<'a, R> Query<'a, R>
 where
-    R: Read + Seek,
+    R: bgzf::io::BufRead + bgzf::io::Seek,
 {
-    pub(super) fn new(reader: &'a mut bgzf::Reader<R>, chunks: Vec<Chunk>) -> Self {
+    pub(super) fn new(reader: &'a mut R, chunks: Vec<Chunk>) -> Self {
         Self {
             reader: Reader::new(csi::io::Query::new(reader, chunks)),
             record: Record::default(),
@@ -36,7 +33,7 @@ where
 
 impl<'a, R> Iterator for Query<'a, R>
 where
-    R: Read + Seek,
+    R: bgzf::io::BufRead + bgzf::io::Seek,
 {
     type Item = io::Result<Record>;
 

@@ -10,7 +10,7 @@ mod records;
 
 use std::{
     ffi::CStr,
-    io::{self, Read, Seek},
+    io::{self, Read},
 };
 
 use noodles_bgzf as bgzf;
@@ -266,15 +266,18 @@ where
     }
 }
 
-impl<R> Reader<bgzf::Reader<R>>
+impl<R> Reader<R>
 where
-    R: Read + Seek,
+    R: bgzf::io::BufRead + bgzf::io::Seek,
 {
     // Seeks to the first record by setting the cursor to the beginning of the stream and
     // (re)reading the header.
     fn seek_to_first_record(&mut self) -> io::Result<bgzf::VirtualPosition> {
-        self.get_mut().seek(bgzf::VirtualPosition::default())?;
+        self.get_mut()
+            .seek_to_virtual_position(bgzf::VirtualPosition::default())?;
+
         self.read_header()?;
+
         Ok(self.get_ref().virtual_position())
     }
 
@@ -349,7 +352,7 @@ where
         I: BinningIndex,
     {
         if let Some(pos) = index.last_first_record_start_position() {
-            self.get_mut().seek(pos)?;
+            self.get_mut().seek_to_virtual_position(pos)?;
         } else {
             self.seek_to_first_record()?;
         }

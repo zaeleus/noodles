@@ -12,7 +12,7 @@ pub(crate) use self::record_buf::parse_record_buf;
 pub use self::{builder::Builder, query::Query, record_bufs::RecordBufs};
 
 use std::{
-    io::{self, BufRead, Read, Seek},
+    io::{self, BufRead},
     iter, str,
 };
 
@@ -287,9 +287,9 @@ where
     }
 }
 
-impl<R> Reader<bgzf::Reader<R>>
+impl<R> Reader<R>
 where
-    R: Read + Seek,
+    R: bgzf::io::BufRead + bgzf::io::Seek,
 {
     /// Returns an iterator over records that intersects the given region.
     ///

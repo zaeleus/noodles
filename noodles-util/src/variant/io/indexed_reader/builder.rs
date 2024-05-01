@@ -5,6 +5,7 @@ use std::{
 };
 
 use noodles_bcf as bcf;
+use noodles_bgzf as bgzf;
 use noodles_csi::BinningIndex;
 use noodles_vcf as vcf;
 
@@ -91,7 +92,7 @@ impl Builder {
     /// let reader = Builder::default().build_from_path("sample.vcf.gz")?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn build_from_path<P>(self, src: P) -> io::Result<IndexedReader<File>>
+    pub fn build_from_path<P>(self, src: P) -> io::Result<IndexedReader<bgzf::Reader<File>>>
     where
         P: AsRef<Path>,
     {
@@ -156,7 +157,10 @@ impl Builder {
     ///     .build_from_reader(&data[..])?;
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn build_from_reader<R>(self, reader: R) -> io::Result<IndexedReader<BufReader<R>>>
+    pub fn build_from_reader<R>(
+        self,
+        reader: R,
+    ) -> io::Result<IndexedReader<bgzf::Reader<BufReader<R>>>>
     where
         R: Read,
     {

@@ -4,7 +4,7 @@ mod builder;
 
 pub use self::builder::Builder;
 
-use std::io::{self, Read, Seek};
+use std::io::{self, BufRead};
 
 use noodles_bcf as bcf;
 use noodles_bgzf as bgzf;
@@ -16,12 +16,12 @@ pub enum IndexedReader<R> {
     /// VCF.
     Vcf(vcf::io::IndexedReader<R>),
     /// BCF.
-    Bcf(bcf::io::IndexedReader<bgzf::Reader<R>>),
+    Bcf(bcf::io::IndexedReader<R>),
 }
 
 impl<R> IndexedReader<R>
 where
-    R: Read,
+    R: BufRead,
 {
     /// Reads the VCF header.
     pub fn read_header(&mut self) -> io::Result<vcf::Header> {
@@ -54,7 +54,7 @@ where
 
 impl<R> IndexedReader<R>
 where
-    R: Read + Seek,
+    R: bgzf::io::BufRead + bgzf::io::Seek,
 {
     /// Returns an iterator over records that intersects the given region.
     pub fn query<'r, 'h: 'r>(

@@ -273,7 +273,12 @@ where
     pub fn seek(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
         self.inner.seek(pos)
     }
+}
 
+impl<R> Reader<R>
+where
+    R: bgzf::io::BufRead + bgzf::io::Seek,
+{
     /// Returns an iterator over records that intersects the given region.
     ///
     /// # Examples
