@@ -323,6 +323,15 @@ where
     }
 }
 
+impl<R> crate::io::Read for MultithreadedReader<R>
+where
+    R: Read + Send + 'static,
+{
+    fn virtual_position(&self) -> VirtualPosition {
+        self.buffer.block.virtual_position()
+    }
+}
+
 fn recv_buffer(read_rx: &ReadRx) -> io::Result<Option<Buffer>> {
     if let Ok(buffered_rx) = read_rx.recv() {
         if let Ok(buffer) = buffered_rx.recv() {
