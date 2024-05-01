@@ -275,6 +275,18 @@ where
         self.consume(amt);
         Ok(amt)
     }
+
+    fn read_exact(&mut self, buf: &mut [u8]) -> io::Result<()> {
+        use super::reader::default_read_exact;
+
+        if let Some(src) = self.buffer.block.data().as_ref().get(..buf.len()) {
+            buf.copy_from_slice(src);
+            self.consume(src.len());
+            Ok(())
+        } else {
+            default_read_exact(self, buf)
+        }
+    }
 }
 
 impl<R> BufRead for MultithreadedReader<R>

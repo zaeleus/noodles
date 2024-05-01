@@ -295,7 +295,7 @@ where
     }
 }
 
-fn default_read_exact<R>(reader: &mut R, mut buf: &mut [u8]) -> io::Result<()>
+pub(crate) fn default_read_exact<R>(reader: &mut R, mut buf: &mut [u8]) -> io::Result<()>
 where
     R: Read,
 {
