@@ -91,11 +91,6 @@ where
             index: Box::new(index),
         }
     }
-
-    /// Returns the current virtual position of the underlying BGZF reader.
-    pub fn virtual_position(&self) -> bgzf::VirtualPosition {
-        self.inner.virtual_position()
-    }
 }
 
 impl<R> IndexedReader<R>

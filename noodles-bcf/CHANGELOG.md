@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+  * bcf/io/reader: Remove `Reader::virtual_position`.
+
+    Use the inner reader instead.
+
 ## 0.51.0 - 2024-04-22
 
 ### Added

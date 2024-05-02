@@ -202,24 +202,6 @@ where
     pub fn new(inner: R) -> Self {
         Self::from(bgzf::AsyncReader::new(inner))
     }
-
-    /// Returns the current virtual position of the underlying BGZF reader.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bcf as bcf;
-    /// use noodles_bgzf as bgzf;
-    ///
-    /// let data = Vec::new();
-    /// let reader = bcf::r#async::io::Reader::new(&data[..]);
-    /// let virtual_position = reader.virtual_position();
-    ///
-    /// assert_eq!(reader.virtual_position(), bgzf::VirtualPosition::from(0));
-    /// ```
-    pub fn virtual_position(&self) -> bgzf::VirtualPosition {
-        self.inner.virtual_position()
-    }
 }
 
 impl<R> Reader<bgzf::AsyncReader<R>>
