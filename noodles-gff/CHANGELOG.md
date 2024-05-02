@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.30.0 - 2024-05-02
+
+### Changed
+
+  * gff: Sync dependencies.
+
 ## 0.29.0 - 2024-03-28
 
 ### Changed

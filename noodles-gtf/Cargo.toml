@@ -1,6 +1,6 @@
 [package]
 name = "noodles-gtf"
-version = "0.25.0"
+version = "0.26.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
@@ -11,6 +11,6 @@ repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-gtf"
 
 [dependencies]
-noodles-bgzf = { path = "../noodles-bgzf", version = "0.28.0" }
+noodles-bgzf = { path = "../noodles-bgzf", version = "0.29.0" }
 noodles-core = { path = "../noodles-core", version = "0.14.0" }
-noodles-csi = { path = "../noodles-csi", version = "0.32.0" }
+noodles-csi = { path = "../noodles-csi", version = "0.33.0" }
