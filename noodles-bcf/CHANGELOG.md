@@ -4,7 +4,7 @@
 
 ### Removed
 
-  * bcf/io/reader: Remove `Reader::virtual_position`.
+  * bcf/io/reader: Remove `Reader::virtual_position` and `Reader::seek`.
 
     Use the inner reader instead.
 

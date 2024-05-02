@@ -10,7 +10,7 @@ mod record_bufs;
 pub use self::{builder::Builder, query::Query, record_bufs::RecordBufs};
 
 use std::{
-    io::{self, BufRead, Read, Seek},
+    io::{self, BufRead, Read},
     iter, str,
 };
 
@@ -226,32 +226,6 @@ where
     /// ```
     pub fn new(reader: R) -> Self {
         Self::from(bgzf::Reader::new(reader))
-    }
-}
-
-impl<R> Reader<bgzf::Reader<R>>
-where
-    R: Read + Seek,
-{
-    /// Seeks the underlying BGZF reader to the given virtual position.
-    ///
-    /// Virtual positions typically come from an associated BCF index file.
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// # use std::{fs::File, io};
-    /// use noodles_bcf as bcf;
-    /// use noodles_bgzf as bgzf;
-    ///
-    /// let mut reader = File::open("sample.bcf").map(bcf::io::Reader::new)?;
-    ///
-    /// let virtual_position = bgzf::VirtualPosition::from(102334155);
-    /// reader.seek(virtual_position)?;
-    /// # Ok::<(), io::Error>(())
-    /// ```
-    pub fn seek(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
-        self.inner.seek(pos)
     }
 }
 

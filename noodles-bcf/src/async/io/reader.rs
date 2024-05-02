@@ -208,32 +208,6 @@ impl<R> Reader<bgzf::AsyncReader<R>>
 where
     R: AsyncRead + AsyncSeek + Unpin,
 {
-    /// Seeks the underlying BGZF reader to the given virtual position.
-    ///
-    /// Virtual positions typically come from an associated index file.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io::{self, Cursor};
-    /// #
-    /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
-    /// use noodles_bcf as bcf;
-    /// use noodles_bgzf as bgzf;
-    ///
-    /// let data = [];
-    /// let mut reader = bcf::r#async::io::Reader::new(Cursor::new(data));
-    ///
-    /// let virtual_position = bgzf::VirtualPosition::default();
-    /// reader.seek(virtual_position).await?;
-    /// # Ok(())
-    /// # }
-    /// ```
-    pub async fn seek(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
-        self.inner.seek(pos).await
-    }
-
     /// Returns a stream over records that intersect the given region.
     ///
     /// # Examples
