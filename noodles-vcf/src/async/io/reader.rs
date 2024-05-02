@@ -327,30 +327,6 @@ where
 
 impl<R> Reader<bgzf::AsyncReader<R>>
 where
-    R: AsyncRead,
-{
-    /// Returns the current virtual position of the underlying BGZF reader.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io;
-    /// use noodles_bgzf as bgzf;
-    /// use noodles_vcf as vcf;
-    ///
-    /// let data = [];
-    /// let reader = vcf::r#async::io::Reader::new(bgzf::AsyncReader::new(&data[..]));
-    ///
-    /// assert_eq!(reader.virtual_position(), bgzf::VirtualPosition::default());
-    /// # Ok::<(), io::Error>(())
-    /// ```
-    pub fn virtual_position(&self) -> bgzf::VirtualPosition {
-        self.inner.virtual_position()
-    }
-}
-
-impl<R> Reader<bgzf::AsyncReader<R>>
-where
     R: AsyncRead + AsyncSeek + Unpin,
 {
     /// Returns a stream over records that intersects the given region.
