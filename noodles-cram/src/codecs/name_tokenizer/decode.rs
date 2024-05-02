@@ -269,6 +269,7 @@ fn decode_single_name(
 
     let m = n - dist;
 
+    #[allow(clippy::assigning_clones)]
     if ty == Type::Dup {
         names[n] = names[m].clone();
         tokens[n] = tokens[m].clone();
