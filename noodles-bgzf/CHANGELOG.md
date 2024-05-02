@@ -38,8 +38,8 @@
     (`CompressionLevel::none`, `CompressionLevel::fast`, and
     `CompressionLevel::best`).
 
-    Use the compression level constants instead of the named constructors
-    ,e.g., `CompressionLevel::none()` => `CompressionLevel::NONE`.
+    Use the compression level constants instead of the named constructors,
+    e.g., `CompressionLevel::none()` => `CompressionLevel::NONE`.
 
 ### Removed
 
