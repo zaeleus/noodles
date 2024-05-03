@@ -15,6 +15,14 @@ use std::{
 use super::Position;
 
 /// A genomic region.
+///
+/// A genomic region describes a region on a reference sequence. It consists of reference sequence
+/// name and an interval.
+///
+/// They are represented in text as `reference-sequence-name[:start[-end]]`, where the start and
+/// end positions are 1-based, inclusive. If no end position is given, it is assumed to span from
+/// the start to the end of the reference sequence. If no interval is given, it is assumed to span
+/// the entirety of the reference sequence.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Region {
     name: BString,
