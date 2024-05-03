@@ -10,7 +10,7 @@ use noodles_sam::{
 };
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt, BufReader};
 
-use crate::io::reader::{bytes_with_nul_to_string, header::reference_sequences_eq};
+use crate::io::reader::{bytes_with_nul_to_bstring, header::reference_sequences_eq};
 
 pub(super) async fn read_header<R>(reader: &mut R) -> io::Result<sam::Header>
 where
@@ -130,7 +130,7 @@ where
     let mut c_name = vec![0; l_name];
     reader.read_exact(&mut c_name).await?;
 
-    let name = bytes_with_nul_to_string(&c_name).map(BString::from)?;
+    let name = bytes_with_nul_to_bstring(&c_name)?;
 
     let l_ref = reader.read_u32_le().await.and_then(|len| {
         usize::try_from(len)

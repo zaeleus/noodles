@@ -13,6 +13,7 @@ use std::{
     io::{self, Read},
 };
 
+use bstr::BString;
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
@@ -395,15 +396,10 @@ where
     }
 }
 
-pub(crate) fn bytes_with_nul_to_string(buf: &[u8]) -> io::Result<String> {
+pub(crate) fn bytes_with_nul_to_bstring(buf: &[u8]) -> io::Result<BString> {
     CStr::from_bytes_with_nul(buf)
+        .map(|c_str| c_str.to_bytes().into())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        .and_then(|c_str| {
-            c_str
-                .to_str()
-                .map(|s| s.to_string())
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })
 }
 
 pub(crate) fn resolve_region(

@@ -13,7 +13,7 @@ use noodles_sam::{
     },
 };
 
-use super::bytes_with_nul_to_string;
+use super::bytes_with_nul_to_bstring;
 use crate::MAGIC_NUMBER;
 
 pub(super) fn read_header<R>(reader: &mut R) -> io::Result<sam::Header>
@@ -153,7 +153,7 @@ where
     let mut c_name = vec![0; l_name];
     reader.read_exact(&mut c_name)?;
 
-    let name = bytes_with_nul_to_string(&c_name).map(BString::from)?;
+    let name = bytes_with_nul_to_bstring(&c_name)?;
 
     let l_ref = reader.read_u32::<LittleEndian>().and_then(|len| {
         usize::try_from(len)
