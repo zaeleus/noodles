@@ -31,6 +31,14 @@ impl<'r> Samples<'r> {
         Keys::new(src)
     }
 
+    /// Returns the sample with the given sample name.
+    pub fn get(&self, header: &Header, sample_name: &str) -> Option<Sample<'r>> {
+        header
+            .sample_names()
+            .get_index_of(sample_name)
+            .and_then(|i| self.iter().nth(i))
+    }
+
     /// Returns the series with the given column name.
     pub fn select(&'r self, column_name: &str) -> Option<Series<'r>> {
         self.keys()
@@ -148,6 +156,23 @@ mod tests {
     fn test_is_empty() {
         assert!(Samples::new("").is_empty());
         assert!(!Samples::new("GT:GQ\t0|0:13").is_empty());
+    }
+
+    #[test]
+    fn test_get() {
+        let header = Header::builder()
+            .add_sample_name("sample0")
+            .add_sample_name("sample1")
+            .add_sample_name("sample2")
+            .build();
+
+        let samples = Samples::new("GT\t0|0\t1/1\t.");
+
+        let actual = samples.get(&header, "sample0");
+        let expected = Sample::new("0|0", samples.keys());
+        assert_eq!(actual, Some(expected));
+
+        assert!(samples.get(&header, "sample3").is_none());
     }
 
     #[test]
