@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * core/region: Wrap name as a `BString`.
+
+    This is nearly identical to its previous `Vec<u8>` type but allows for
+    better ergonomics.
+
 ## 0.14.0 - 2024-01-25
 
 ### Changed

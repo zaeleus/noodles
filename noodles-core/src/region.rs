@@ -2,12 +2,14 @@
 
 pub mod interval;
 
+use bstr::{BStr, BString};
+
 pub use self::interval::Interval;
 
 use std::{
     error, fmt,
     ops::{Bound, RangeBounds},
-    str::{self, FromStr},
+    str::FromStr,
 };
 
 use super::Position;
@@ -15,7 +17,7 @@ use super::Position;
 /// A genomic region.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Region {
-    name: Vec<u8>,
+    name: BString,
     interval: Interval,
 }
 
@@ -36,7 +38,7 @@ impl Region {
     /// ```
     pub fn new<N, I>(name: N, interval: I) -> Self
     where
-        N: Into<Vec<u8>>,
+        N: Into<BString>,
         I: Into<Interval>,
     {
         Self {
@@ -56,11 +58,11 @@ impl Region {
     /// let end = Position::try_from(8)?;
     /// let region = Region::new("sq0", start..=end);
     ///
-    /// assert_eq!(region.name(), b"sq0");
+    /// assert_eq!(region.name(), &b"sq0"[..]);
     /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
-    pub fn name(&self) -> &[u8] {
-        &self.name
+    pub fn name(&self) -> &BStr {
+        self.name.as_ref()
     }
 
     /// Returns the start position of the region (1-based).
@@ -121,8 +123,7 @@ impl Region {
 
 impl fmt::Display for Region {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let name = str::from_utf8(self.name()).map_err(|_| fmt::Error)?;
-        write!(f, "{name}")?;
+        write!(f, "{}", self.name())?;
 
         match (self.interval.start_bound(), self.interval.end_bound()) {
             (Bound::Unbounded, Bound::Unbounded) => {}

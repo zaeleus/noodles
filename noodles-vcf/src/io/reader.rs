@@ -410,7 +410,7 @@ where
             )
         })?;
 
-    Ok((i, region.name().into()))
+    Ok((i, region.name().to_vec()))
 }
 
 #[cfg(test)]
