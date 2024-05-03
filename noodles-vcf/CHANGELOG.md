@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * vcf/variant/record_buf/samples: Add conversion to inner fields (`(Keys,
+    Vec<Vec<Option<Value>>>)`).
+
 ## 0.55.0 - 2024-05-02
 
 ### Removed

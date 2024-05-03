@@ -240,3 +240,9 @@ impl crate::variant::record::Samples for &Samples {
         )
     }
 }
+
+impl From<Samples> for (Keys, Vec<Vec<Option<Value>>>) {
+    fn from(samples: Samples) -> Self {
+        (samples.keys, samples.values)
+    }
+}
