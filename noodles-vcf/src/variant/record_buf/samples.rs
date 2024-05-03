@@ -92,6 +92,45 @@ impl Samples {
             .map(|values| Sample::new(&self.keys, values))
     }
 
+    /// Returns the sample with the given sample name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     variant::{
+    ///         record::samples::keys::key,
+    ///         record_buf::{samples::sample::Value, Samples},
+    ///     },
+    /// };
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_sample_name("sample0")
+    ///     .add_sample_name("sample1")
+    ///     .add_sample_name("sample2")
+    ///     .build();
+    ///
+    /// let keys = [String::from(key::GENOTYPE)].into_iter().collect();
+    /// let samples = Samples::new(
+    ///     keys,
+    ///     vec![
+    ///         vec![Some(Value::from("0|0"))],
+    ///         vec![Some(Value::from("1/1"))],
+    ///         vec![],
+    ///     ],
+    /// );
+    ///
+    /// let sample = samples.get(&header, "sample0");
+    /// assert_eq!(sample.and_then(|s| s.values().get(0)), Some(&Some(Value::from("0|0"))));
+    /// ```
+    pub fn get(&self, header: &Header, sample_name: &str) -> Option<Sample<'_>> {
+        header
+            .sample_names()
+            .get_index_of(sample_name)
+            .and_then(|i| self.get_index(i))
+    }
+
     /// Returns the sample at the given index.
     pub fn get_index(&self, i: usize) -> Option<Sample<'_>> {
         self.values

@@ -7,6 +7,8 @@
   * vcf/variant/record_buf/samples: Add conversion to inner fields (`(Keys,
     Vec<Vec<Option<Value>>>)`).
 
+  * vcf/variant/record_buf/samples: Add lookup by sample name (`Samples::get`).
+
 ## 0.55.0 - 2024-05-02
 
 ### Removed
