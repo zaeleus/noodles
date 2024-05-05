@@ -25,11 +25,11 @@ use crate::{io::reader::resolve_region, Record, MAGIC_NUMBER};
 /// use tokio::fs::File;
 ///
 /// let mut reader = File::open("sample.bam").await.map(bam::r#async::io::Reader::new)?;
-/// let header = reader.read_header().await?;
+/// let _header = reader.read_header().await?;
 ///
-/// let mut records = reader.record_bufs(&header);
+/// let mut records = reader.records();
 ///
-/// while let Some(record) = records.try_next().await? {
+/// while let Some(_record) = records.try_next().await? {
 ///     // ...
 /// }
 /// # Ok(())
