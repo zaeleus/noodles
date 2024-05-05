@@ -9,6 +9,12 @@
     This is nearly identical to its previous `Vec<u8>` type but allows for
     better ergonomics.
 
+### Removed
+
+  * core: Remove `Error`.
+
+    This is unused.
+
 ## 0.14.0 - 2024-01-25
 
 ### Changed
