@@ -72,7 +72,8 @@ where
 {
     inner: Option<W>,
     position: u64,
-    buf: Vec<u8>,
+    staging_buf: Vec<u8>,
+    compression_buf: Vec<u8>,
     compression_level: CompressionLevelImpl,
 }
 
@@ -151,22 +152,23 @@ where
     /// ```
     pub fn virtual_position(&self) -> VirtualPosition {
         // SAFETY: The uncompressed buffer is guaranteed to be <= `MAX_UNCOMPRESSED_POSITION`.
-        let uncompressed_position = self.buf.len() as u16;
+        let uncompressed_position = self.staging_buf.len() as u16;
         VirtualPosition::try_from((self.position, uncompressed_position)).unwrap()
     }
 
     fn flush_block(&mut self) -> io::Result<()> {
         use crate::deflate;
 
-        let mut cdata = Vec::new();
-        let crc32 = deflate::encode(&self.buf, self.compression_level, &mut cdata)?;
+        let compressed_data = &mut self.compression_buf;
+        let crc32 = deflate::encode(&self.staging_buf, self.compression_level, compressed_data)?;
 
         let inner = self.inner.as_mut().unwrap();
-        let block_size = write_frame(inner, &cdata, crc32, self.buf.len())?;
+        let uncompressed_len = self.staging_buf.len();
+        let block_size = write_frame(inner, compressed_data, crc32, uncompressed_len)?;
 
         self.position += block_size as u64;
 
-        self.buf.clear();
+        self.staging_buf.clear();
 
         Ok(())
     }
@@ -237,11 +239,11 @@ where
     W: Write,
 {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        let max_write_len = cmp::min(MAX_BUF_SIZE - self.buf.len(), buf.len());
+        let max_write_len = cmp::min(MAX_BUF_SIZE - self.staging_buf.len(), buf.len());
 
-        self.buf.extend_from_slice(&buf[..max_write_len]);
+        self.staging_buf.extend_from_slice(&buf[..max_write_len]);
 
-        if self.buf.len() >= MAX_BUF_SIZE {
+        if self.staging_buf.len() >= MAX_BUF_SIZE {
             self.flush()?;
         }
 
@@ -249,7 +251,7 @@ where
     }
 
     fn flush(&mut self) -> io::Result<()> {
-        if self.buf.is_empty() {
+        if self.staging_buf.is_empty() {
             Ok(())
         } else {
             self.flush_block()

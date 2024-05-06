@@ -42,7 +42,8 @@ impl Builder {
         Writer {
             inner: Some(writer),
             position: 0,
-            buf: Vec::with_capacity(MAX_BUF_SIZE),
+            staging_buf: Vec::with_capacity(MAX_BUF_SIZE),
+            compression_buf: Vec::new(),
             compression_level: self.compression_level.into(),
         }
     }
