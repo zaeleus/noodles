@@ -11,6 +11,7 @@ use std::{
     io::{self, Write},
 };
 
+pub(crate) use self::frame::write_frame;
 use super::{gz, VirtualPosition, BGZF_HEADER_SIZE, BGZF_MAX_ISIZE};
 
 // The max DEFLATE overhead for 65536 bytes of data at compression level 0.
@@ -155,19 +156,15 @@ where
     }
 
     fn flush_block(&mut self) -> io::Result<()> {
-        use self::frame::{write_header, write_trailer};
         use crate::deflate;
 
         let mut cdata = Vec::new();
         let (crc32, _) = deflate::encode(&self.buf, self.compression_level, &mut cdata)?;
 
         let inner = self.inner.as_mut().unwrap();
+        write_frame(inner, &cdata, crc32, self.buf.len())?;
+
         let block_size = BGZF_HEADER_SIZE + cdata.len() + gz::TRAILER_SIZE;
-
-        write_header(inner, block_size)?;
-        inner.write_all(&cdata[..])?;
-        write_trailer(inner, crc32, self.buf.len())?;
-
         self.position += block_size as u64;
 
         self.buf.clear();

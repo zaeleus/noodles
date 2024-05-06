@@ -2,7 +2,26 @@ use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 
-use crate::gz;
+use crate::{gz, BGZF_HEADER_SIZE};
+
+pub(crate) fn write_frame<W>(
+    writer: &mut W,
+    compressed_data: &[u8],
+    crc32: u32,
+    uncompressed_len: usize,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    let block_size = BGZF_HEADER_SIZE + compressed_data.len() + gz::TRAILER_SIZE;
+    write_header(writer, block_size)?;
+
+    writer.write_all(compressed_data)?;
+
+    write_trailer(writer, crc32, uncompressed_len)?;
+
+    Ok(())
+}
 
 pub fn write_header<W>(writer: &mut W, block_size: usize) -> io::Result<()>
 where

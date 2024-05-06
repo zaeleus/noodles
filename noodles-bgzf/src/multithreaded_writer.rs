@@ -9,12 +9,11 @@ use std::{
     thread::{self, JoinHandle},
 };
 
-use byteorder::{LittleEndian, WriteBytesExt};
 use bytes::{Bytes, BytesMut};
 use crossbeam_channel::{Receiver, Sender};
 
 pub use self::builder::Builder;
-use super::{gz, writer::CompressionLevelImpl};
+use super::writer::CompressionLevelImpl;
 
 type FrameParts = (Vec<u8>, u32, usize);
 type BufferedTx = Sender<io::Result<FrameParts>>;
@@ -182,7 +181,7 @@ fn spawn_writer<W>(mut writer: W, write_rx: WriteRx) -> JoinHandle<io::Result<W>
 where
     W: Write + Send + 'static,
 {
-    use super::writer::BGZF_EOF;
+    use super::writer::{write_frame, BGZF_EOF};
 
     thread::spawn(move || {
         while let Ok(buffered_rx) = write_rx.recv() {
@@ -227,69 +226,4 @@ fn compress(src: &[u8], compression_level: CompressionLevelImpl) -> io::Result<F
     let mut dst = Vec::new();
     let (crc32, _) = deflate::encode(src, compression_level, &mut dst)?;
     Ok((dst, crc32, src.len()))
-}
-
-fn write_frame<W>(
-    writer: &mut W,
-    compressed_data: &[u8],
-    crc32: u32,
-    uncompressed_len: usize,
-) -> io::Result<()>
-where
-    W: Write,
-{
-    use super::BGZF_HEADER_SIZE;
-
-    let block_size = BGZF_HEADER_SIZE + compressed_data.len() + gz::TRAILER_SIZE;
-    write_header(writer, block_size)?;
-
-    writer.write_all(compressed_data)?;
-
-    write_trailer(writer, crc32, uncompressed_len)?;
-
-    Ok(())
-}
-
-fn write_header<W>(writer: &mut W, block_size: usize) -> io::Result<()>
-where
-    W: Write,
-{
-    const BGZF_FLG: u8 = 0x04; // FEXTRA
-    const BGZF_XFL: u8 = 0x00; // none
-    const BGZF_XLEN: u16 = 6;
-
-    const BGZF_SI1: u8 = b'B';
-    const BGZF_SI2: u8 = b'C';
-    const BGZF_SLEN: u16 = 2;
-
-    writer.write_all(&gz::MAGIC_NUMBER)?;
-    writer.write_u8(gz::CompressionMethod::Deflate as u8)?;
-    writer.write_u8(BGZF_FLG)?;
-    writer.write_u32::<LittleEndian>(gz::MTIME_NONE)?;
-    writer.write_u8(BGZF_XFL)?;
-    writer.write_u8(gz::OperatingSystem::Unknown as u8)?;
-    writer.write_u16::<LittleEndian>(BGZF_XLEN)?;
-
-    writer.write_u8(BGZF_SI1)?;
-    writer.write_u8(BGZF_SI2)?;
-    writer.write_u16::<LittleEndian>(BGZF_SLEN)?;
-
-    let bsize = u16::try_from(block_size - 1)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_u16::<LittleEndian>(bsize)?;
-
-    Ok(())
-}
-
-fn write_trailer<W>(writer: &mut W, crc32: u32, uncompressed_len: usize) -> io::Result<()>
-where
-    W: Write,
-{
-    writer.write_u32::<LittleEndian>(crc32)?;
-
-    let r#isize = u32::try_from(uncompressed_len)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_u32::<LittleEndian>(r#isize)?;
-
-    Ok(())
 }
