@@ -39,6 +39,11 @@ impl<'r> Samples<'r> {
             .and_then(|i| self.iter().nth(i))
     }
 
+    /// Returns the sample at the given index.
+    pub fn get_index(&self, i: usize) -> Option<Sample<'r>> {
+        self.iter().nth(i)
+    }
+
     /// Returns the series with the given column name.
     pub fn select(&'r self, column_name: &str) -> Option<Series<'r>> {
         self.keys()
@@ -173,6 +178,16 @@ mod tests {
         assert_eq!(actual, Some(expected));
 
         assert!(samples.get(&header, "sample3").is_none());
+    }
+
+    #[test]
+    fn test_get_index() {
+        let samples = Samples::new("GT\t0|0\t1/1\t.");
+        let actual = samples.get_index(0);
+        let expected = Sample::new("0|0", samples.keys());
+        assert_eq!(actual, Some(expected));
+
+        assert!(samples.get_index(3).is_none());
     }
 
     #[test]

@@ -4,7 +4,8 @@
 
 ### Added
 
-  * vcf/record/samples: Add lookup by sample name (`Samples::get`).
+  * vcf/record/samples: Add lookup by sample name (`Samples::get`) and index
+    (`Samples::get_index`).
 
   * vcf/variant/record_buf/samples: Add conversion to inner fields (`(Keys,
     Vec<Vec<Option<Value>>>)`).
