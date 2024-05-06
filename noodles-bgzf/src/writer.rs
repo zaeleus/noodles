@@ -162,9 +162,8 @@ where
         let (crc32, _) = deflate::encode(&self.buf, self.compression_level, &mut cdata)?;
 
         let inner = self.inner.as_mut().unwrap();
-        write_frame(inner, &cdata, crc32, self.buf.len())?;
+        let block_size = write_frame(inner, &cdata, crc32, self.buf.len())?;
 
-        let block_size = BGZF_HEADER_SIZE + cdata.len() + gz::TRAILER_SIZE;
         self.position += block_size as u64;
 
         self.buf.clear();

@@ -9,7 +9,7 @@ pub(crate) fn write_frame<W>(
     compressed_data: &[u8],
     crc32: u32,
     uncompressed_len: usize,
-) -> io::Result<()>
+) -> io::Result<usize>
 where
     W: Write,
 {
@@ -20,7 +20,7 @@ where
 
     write_trailer(writer, crc32, uncompressed_len)?;
 
-    Ok(())
+    Ok(block_size)
 }
 
 fn write_header<W>(writer: &mut W, block_size: usize) -> io::Result<()>
