@@ -159,14 +159,14 @@ where
         use crate::deflate;
 
         let mut cdata = Vec::new();
-        let (crc32, r#isize) = deflate::encode(&self.buf, self.compression_level, &mut cdata)?;
+        let (crc32, _) = deflate::encode(&self.buf, self.compression_level, &mut cdata)?;
 
         let inner = self.inner.as_mut().unwrap();
         let block_size = BGZF_HEADER_SIZE + cdata.len() + gz::TRAILER_SIZE;
 
         write_header(inner, block_size)?;
         inner.write_all(&cdata[..])?;
-        write_trailer(inner, crc32, r#isize)?;
+        write_trailer(inner, crc32, self.buf.len())?;
 
         self.position += block_size as u64;
 

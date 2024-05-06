@@ -35,12 +35,16 @@ where
     Ok(())
 }
 
-pub fn write_trailer<W>(writer: &mut W, checksum: u32, uncompressed_size: u32) -> io::Result<()>
+pub fn write_trailer<W>(writer: &mut W, checksum: u32, uncompressed_len: usize) -> io::Result<()>
 where
     W: Write,
 {
     writer.write_u32::<LittleEndian>(checksum)?;
-    writer.write_u32::<LittleEndian>(uncompressed_size)?;
+
+    let r#isize = u32::try_from(uncompressed_len)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_u32::<LittleEndian>(r#isize)?;
+
     Ok(())
 }
 
