@@ -224,6 +224,6 @@ where
 fn compress(src: &[u8], compression_level: CompressionLevelImpl) -> io::Result<FrameParts> {
     use super::deflate;
     let mut dst = Vec::new();
-    let (crc32, _) = deflate::encode(src, compression_level, &mut dst)?;
+    let crc32 = deflate::encode(src, compression_level, &mut dst)?;
     Ok((dst, crc32, src.len()))
 }

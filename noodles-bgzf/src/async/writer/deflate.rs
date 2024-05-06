@@ -13,7 +13,7 @@ use super::CompressionLevel;
 use crate::deflate;
 
 // (CDATA, CRC32, ISIZE)
-pub type GzData = (Vec<u8>, u32, u32);
+pub type GzData = (Vec<u8>, u32, usize);
 
 pin_project! {
     pub struct Deflate {
@@ -29,7 +29,7 @@ impl Deflate {
                 let mut dst = Vec::new();
 
                 deflate::encode(&data, compression_level, &mut dst)
-                    .map(|(crc32, uncompressed_len)| (dst, crc32, uncompressed_len))
+                    .map(|crc32| (dst, crc32, data.len()))
             }),
         }
     }

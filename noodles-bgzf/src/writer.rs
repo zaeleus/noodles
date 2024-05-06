@@ -159,7 +159,7 @@ where
         use crate::deflate;
 
         let mut cdata = Vec::new();
-        let (crc32, _) = deflate::encode(&self.buf, self.compression_level, &mut cdata)?;
+        let crc32 = deflate::encode(&self.buf, self.compression_level, &mut cdata)?;
 
         let inner = self.inner.as_mut().unwrap();
         let block_size = write_frame(inner, &cdata, crc32, self.buf.len())?;

@@ -52,7 +52,7 @@ impl Encoder<GzData> for BlockCodec {
 
     fn encode(
         &mut self,
-        (cdata, crc32, r#isize): GzData,
+        (cdata, crc32, uncompressed_len): GzData,
         dst: &mut BytesMut,
     ) -> Result<(), Self::Error> {
         let cdata_len = cdata.len();
@@ -62,7 +62,7 @@ impl Encoder<GzData> for BlockCodec {
 
         put_header(dst, block_size)?;
         dst.extend_from_slice(&cdata);
-        put_trailer(dst, crc32, r#isize);
+        put_trailer(dst, crc32, uncompressed_len)?;
 
         Ok(())
     }
@@ -96,9 +96,14 @@ fn put_header(dst: &mut BytesMut, block_size: usize) -> io::Result<()> {
     Ok(())
 }
 
-fn put_trailer(dst: &mut BytesMut, checksum: u32, uncompressed_size: u32) {
+fn put_trailer(dst: &mut BytesMut, checksum: u32, uncompressed_len: usize) -> io::Result<()> {
     dst.put_u32_le(checksum);
-    dst.put_u32_le(uncompressed_size);
+
+    let r#isize = u32::try_from(uncompressed_len)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    dst.put_u32_le(r#isize);
+
+    Ok(())
 }
 
 #[cfg(test)]

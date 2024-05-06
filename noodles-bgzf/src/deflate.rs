@@ -29,7 +29,7 @@ pub(crate) fn encode(
     src: &[u8],
     compression_level: libdeflater::CompressionLvl,
     dst: &mut Vec<u8>,
-) -> io::Result<(u32, u32)> {
+) -> io::Result<u32> {
     use libdeflater::Compressor;
 
     let mut encoder = Compressor::new(compression_level);
@@ -46,7 +46,7 @@ pub(crate) fn encode(
     let mut crc = Crc::new();
     crc.update(src);
 
-    Ok((crc.sum(), crc.amount()))
+    Ok(crc.sum())
 }
 
 #[cfg(not(feature = "libdeflate"))]
@@ -54,7 +54,7 @@ pub(crate) fn encode(
     src: &[u8],
     compression_level: flate2::Compression,
     dst: &mut Vec<u8>,
-) -> io::Result<(u32, u32)> {
+) -> io::Result<u32> {
     use std::io::Write;
 
     use flate2::write::DeflateEncoder;
@@ -68,5 +68,5 @@ pub(crate) fn encode(
     let mut crc = Crc::new();
     crc.update(src);
 
-    Ok((crc.sum(), crc.amount()))
+    Ok(crc.sum())
 }
