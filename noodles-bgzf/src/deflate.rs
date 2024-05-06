@@ -28,41 +28,45 @@ pub(crate) fn decode(src: &[u8], dst: &mut [u8]) -> io::Result<()> {
 pub(crate) fn encode(
     src: &[u8],
     compression_level: libdeflater::CompressionLvl,
-) -> io::Result<(Vec<u8>, u32, u32)> {
+    dst: &mut Vec<u8>,
+) -> io::Result<(u32, u32)> {
     use libdeflater::Compressor;
 
     let mut encoder = Compressor::new(compression_level);
 
     let max_len = encoder.deflate_compress_bound(src.len());
-    let mut dst = vec![0; max_len];
+    dst.resize(max_len, 0);
 
     let len = encoder
-        .deflate_compress(src, &mut dst)
+        .deflate_compress(src, dst)
         .map_err(|_| io::Error::from(io::ErrorKind::InvalidInput))?;
 
-    dst.resize(len, 0);
+    dst.truncate(len);
 
     let mut crc = Crc::new();
     crc.update(src);
 
-    Ok((dst, crc.sum(), crc.amount()))
+    Ok((crc.sum(), crc.amount()))
 }
 
 #[cfg(not(feature = "libdeflate"))]
 pub(crate) fn encode(
     src: &[u8],
     compression_level: flate2::Compression,
-) -> io::Result<(Vec<u8>, u32, u32)> {
+    dst: &mut Vec<u8>,
+) -> io::Result<(u32, u32)> {
     use std::io::Write;
 
     use flate2::write::DeflateEncoder;
 
-    let mut encoder = DeflateEncoder::new(Vec::new(), compression_level);
+    dst.clear();
+
+    let mut encoder = DeflateEncoder::new(dst, compression_level);
     encoder.write_all(src)?;
-    let dst = encoder.finish()?;
+    encoder.finish()?;
 
     let mut crc = Crc::new();
     crc.update(src);
 
-    Ok((dst, crc.sum(), crc.amount()))
+    Ok((crc.sum(), crc.amount()))
 }

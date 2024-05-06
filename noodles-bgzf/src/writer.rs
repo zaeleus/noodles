@@ -158,7 +158,8 @@ where
         use self::frame::{write_header, write_trailer};
         use crate::deflate;
 
-        let (cdata, crc32, r#isize) = deflate::encode(&self.buf, self.compression_level)?;
+        let mut cdata = Vec::new();
+        let (crc32, r#isize) = deflate::encode(&self.buf, self.compression_level, &mut cdata)?;
 
         let inner = self.inner.as_mut().unwrap();
         let block_size = BGZF_HEADER_SIZE + cdata.len() + gz::TRAILER_SIZE;

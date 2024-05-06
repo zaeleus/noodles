@@ -25,7 +25,12 @@ pin_project! {
 impl Deflate {
     pub fn new(data: BytesMut, compression_level: CompressionLevel) -> Self {
         Self {
-            handle: tokio::task::spawn_blocking(move || deflate::encode(&data, compression_level)),
+            handle: tokio::task::spawn_blocking(move || {
+                let mut dst = Vec::new();
+
+                deflate::encode(&data, compression_level, &mut dst)
+                    .map(|(crc32, uncompressed_len)| (dst, crc32, uncompressed_len))
+            }),
         }
     }
 }

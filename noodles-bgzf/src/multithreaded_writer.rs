@@ -224,8 +224,9 @@ where
 
 fn compress(src: &[u8], compression_level: CompressionLevelImpl) -> io::Result<FrameParts> {
     use super::deflate;
-    let (cdata, crc32, _) = deflate::encode(src, compression_level)?;
-    Ok((cdata, crc32, src.len()))
+    let mut dst = Vec::new();
+    let (crc32, _) = deflate::encode(src, compression_level, &mut dst)?;
+    Ok((dst, crc32, src.len()))
 }
 
 fn write_frame<W>(
