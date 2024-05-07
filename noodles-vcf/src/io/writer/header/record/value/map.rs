@@ -4,21 +4,16 @@ mod filter;
 mod format;
 mod info;
 mod meta;
-mod number;
 mod other;
 
 use std::io::{self, Write};
 
-use self::number::write_number;
 pub(crate) use self::{
     alternative_allele::write_alternative_allele, contig::write_contig, filter::write_filter,
     format::write_format, info::write_info, meta::write_meta, other::write_other,
 };
 use crate::{
-    header::{
-        record::value::map::{self, tag, OtherFields},
-        Number,
-    },
+    header::record::value::map::{self, tag, OtherFields},
     io::writer::header::record::write_separator,
 };
 
@@ -61,20 +56,6 @@ where
     use crate::header::record::value::map::tag::ID;
 
     write_value_field(writer, ID, id)?;
-
-    Ok(())
-}
-
-fn write_number_field<W>(writer: &mut W, number: Number) -> io::Result<()>
-where
-    W: Write,
-{
-    use crate::header::record::value::map::tag::NUMBER;
-
-    write_delimiter(writer)?;
-    write_key(writer, NUMBER)?;
-    write_separator(writer)?;
-    write_number(writer, number)?;
 
     Ok(())
 }

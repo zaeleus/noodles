@@ -1,7 +1,16 @@
+mod number;
+
 use std::io::{self, Write};
 
-use super::{write_description_field, write_number_field, write_other_fields, write_type_field};
-use crate::header::record::value::{map::Info, Map};
+use self::number::write_number;
+use super::{
+    write_delimiter, write_description_field, write_key, write_other_fields, write_separator,
+    write_type_field,
+};
+use crate::header::{
+    record::value::{map::Info, Map},
+    Number,
+};
 
 pub(crate) fn write_info<W>(writer: &mut W, info: &Map<Info>) -> io::Result<()>
 where
@@ -11,6 +20,20 @@ where
     write_type_field(writer, info.ty())?;
     write_description_field(writer, info.description())?;
     write_other_fields(writer, info.other_fields())?;
+    Ok(())
+}
+
+fn write_number_field<W>(writer: &mut W, number: Number) -> io::Result<()>
+where
+    W: Write,
+{
+    use crate::header::record::value::map::tag::NUMBER;
+
+    write_delimiter(writer)?;
+    write_key(writer, NUMBER)?;
+    write_separator(writer)?;
+    write_number(writer, number)?;
+
     Ok(())
 }
 

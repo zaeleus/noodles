@@ -6,16 +6,16 @@ pub(super) fn write_number<W>(writer: &mut W, number: Number) -> io::Result<()>
 where
     W: Write,
 {
-    const A: &[u8] = b"A";
-    const R: &[u8] = b"R";
-    const G: &[u8] = b"G";
+    const ALTERNATE_BASES: &[u8] = b"A";
+    const REFERENCE_ALTERNATE_BASES: &[u8] = b"R";
+    const SAMPLES: &[u8] = b"G";
     const UNKNOWN: &[u8] = b".";
 
     match number {
         Number::Count(n) => write!(writer, "{n}"),
-        Number::AlternateBases => writer.write_all(A),
-        Number::ReferenceAlternateBases => writer.write_all(R),
-        Number::Samples => writer.write_all(G),
+        Number::AlternateBases => writer.write_all(ALTERNATE_BASES),
+        Number::ReferenceAlternateBases => writer.write_all(REFERENCE_ALTERNATE_BASES),
+        Number::Samples => writer.write_all(SAMPLES),
         Number::Unknown => writer.write_all(UNKNOWN),
     }
 }
