@@ -1,7 +1,7 @@
 //! BGZF reader.
 
-pub(crate) mod block;
 mod builder;
+pub(crate) mod frame;
 
 pub use self::builder::Builder;
 
@@ -126,7 +126,7 @@ where
     where
         F: FnMut(&[u8], &mut Block) -> io::Result<()>,
     {
-        use self::block::read_frame_into;
+        use self::frame::read_frame_into;
 
         while read_frame_into(&mut self.inner, &mut self.buf)?.is_some() {
             f(&self.buf, &mut self.block)?;
@@ -143,12 +143,12 @@ where
     }
 
     fn read_block(&mut self) -> io::Result<usize> {
-        use self::block::parse_block;
+        use self::frame::parse_block;
         self.read_nonempty_block_with(parse_block)
     }
 
     fn read_block_into_buf(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        use self::block::parse_block_into_buf;
+        use self::frame::parse_block_into_buf;
         self.read_nonempty_block_with(|src, block| parse_block_into_buf(src, block, buf))
     }
 }

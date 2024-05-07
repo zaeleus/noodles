@@ -380,7 +380,7 @@ fn spawn_reader<R>(
 where
     R: Read + Send + 'static,
 {
-    use super::reader::block::read_frame_into;
+    use super::reader::frame::read_frame_into;
 
     thread::spawn(move || {
         while let Ok(mut buffer) = recycle_rx.recv() {
@@ -401,7 +401,7 @@ where
 }
 
 fn spawn_inflaters(worker_count: NonZeroUsize, inflate_rx: InflateRx) -> Vec<JoinHandle<()>> {
-    use super::reader::block::parse_block;
+    use super::reader::frame::parse_block;
 
     (0..worker_count.get())
         .map(|_| {
