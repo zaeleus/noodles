@@ -18,8 +18,6 @@ use std::fmt;
 
 use indexmap::IndexMap;
 
-use crate::header::Number;
-
 pub(crate) type OtherFields<S> = IndexMap<tag::Other<S>, String>;
 
 /// An inner VCF header map value.
@@ -33,14 +31,17 @@ pub trait Inner: Sized {
 
 /// An inner VCF header map value with number and type fields.
 pub trait Typed: Inner {
+    /// The number type.
+    type Number;
+
     /// The type type.
     type Type: fmt::Display;
 
     /// Returns the cardinality of the field value.
-    fn number(&self) -> Number;
+    fn number(&self) -> Self::Number;
 
     /// Returns a mutable reference to the number.
-    fn number_mut(&mut self) -> &mut Number;
+    fn number_mut(&mut self) -> &mut Self::Number;
 
     /// Returns the type of the field value.
     fn ty(&self) -> Self::Type;
@@ -128,12 +129,12 @@ where
     I: Typed,
 {
     /// Returns the cardinality of the field value.
-    pub fn number(&self) -> Number {
+    pub fn number(&self) -> I::Number {
         self.inner.number()
     }
 
     /// Returns a mutable reference to the number.
-    pub fn number_mut(&mut self) -> &mut Number {
+    pub fn number_mut(&mut self) -> &mut I::Number {
         self.inner.number_mut()
     }
 

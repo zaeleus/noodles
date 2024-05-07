@@ -24,6 +24,7 @@ impl Inner for Info {
 }
 
 impl Typed for Info {
+    type Number = Number;
     type Type = Type;
 
     fn number(&self) -> Number {

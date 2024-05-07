@@ -1,7 +1,6 @@
 use std::{error, fmt};
 
 use super::{tag, Map, OtherFields};
-use crate::header::Number;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum BuildError {
@@ -29,7 +28,7 @@ pub trait Typed<I>
 where
     I: super::Typed,
 {
-    fn set_number(self, number: Number) -> Self;
+    fn set_number(self, number: I::Number) -> Self;
     fn set_type(self, ty: I::Type) -> Self;
 }
 
@@ -88,7 +87,7 @@ where
     I::Builder: Typed<I>,
 {
     /// Sets the number.
-    pub fn set_number(mut self, number: Number) -> Self {
+    pub fn set_number(mut self, number: I::Number) -> Self {
         self.inner = self.inner.set_number(number);
         self
     }
@@ -155,7 +154,7 @@ pub struct TypedDescribedIndexed<I>
 where
     I: super::Typed + super::Described + super::Indexed,
 {
-    pub(super) number: Option<Number>,
+    pub(super) number: Option<I::Number>,
     pub(super) ty: Option<I::Type>,
     pub(super) description: Option<String>,
     pub(super) idx: Option<usize>,
@@ -165,7 +164,7 @@ impl<I> Typed<I> for TypedDescribedIndexed<I>
 where
     I: super::Typed + super::Described + super::Indexed,
 {
-    fn set_number(mut self, number: Number) -> Self {
+    fn set_number(mut self, number: I::Number) -> Self {
         self.number = Some(number);
         self
     }

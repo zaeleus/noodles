@@ -24,6 +24,7 @@ impl Inner for Format {
 }
 
 impl Typed for Format {
+    type Number = Number;
     type Type = Type;
 
     fn number(&self) -> Number {
