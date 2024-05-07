@@ -7,25 +7,25 @@ pub(super) fn definition(key: &str) -> Option<(Number, Type, &'static str)> {
     match key {
         key::ANCESTRAL_ALLELE => Some((Number::Count(1), Type::String, "Ancestral allele")),
         key::ALLELE_COUNT => Some((
-            Number::A,
+            Number::AlternateBases,
             Type::Integer,
             "Allele count in genotypes, for each ALT allele, in the same order as listed",
         )),
         key::TOTAL_READ_DEPTHS => {
-            Some((Number::R, Type::Integer, "Total read depth for each allele"))
+            Some((Number::ReferenceAlternateBases, Type::Integer, "Total read depth for each allele"))
         }
         key::FORWARD_STRAND_READ_DEPTHS => Some((
-            Number::R,
+            Number::ReferenceAlternateBases,
             Type::Integer,
             "Read depth for each allele on the forward strand",
         )),
         key::REVERSE_STRAND_READ_DEPTHS => Some((
-            Number::R,
+            Number::ReferenceAlternateBases,
             Type::Integer,
             "Read depth for each allele on the reverse strand",
         )),
         key::ALLELE_FREQUENCIES => Some((
-            Number::A,
+            Number::AlternateBases,
             Type::Float,
             "Allele frequency for each ALT allele in the same order as listed",
         )),
@@ -36,7 +36,7 @@ pub(super) fn definition(key: &str) -> Option<(Number, Type, &'static str)> {
         )),
         key::BASE_QUALITY => Some((Number::Count(1), Type::Float, "RMS base quality")),
         key::CIGAR => Some((
-            Number::A,
+            Number::AlternateBases,
             Type::String,
             "Cigar string describing how to align an alternate allele to the reference allele",
         )),
@@ -84,7 +84,7 @@ pub(super) fn definition(key: &str) -> Option<(Number, Type, &'static str)> {
             "End position of the longest variant described in this record",
         )),
         key::SV_TYPE => Some((Number::Count(1), Type::String, "Type of structural variant")),
-        key::SV_LENGTHS => Some((Number::A, Type::Integer, "Length of structural variant")),
+        key::SV_LENGTHS => Some((Number::AlternateBases, Type::Integer, "Length of structural variant")),
         key::POSITION_CONFIDENCE_INTERVALS => Some((
             Number::Unknown,
             Type::Integer,
@@ -96,17 +96,17 @@ pub(super) fn definition(key: &str) -> Option<(Number, Type, &'static str)> {
             "Confidence interval around END for symbolic structural variants",
         )),
         key::MICROHOMOLOGY_LENGTHS => Some((
-            Number::A,
+            Number::AlternateBases,
             Type::Integer,
             "Length of base pair identical micro-homology at breakpoints",
         )),
         key::MICROHOMOLOGY_SEQUENCES => Some((
-            Number::A,
+            Number::AlternateBases,
             Type::String,
             "Sequence of base pair identical micro-homology at breakpoints",
         )),
         key::BREAKPOINT_IDS => Some((
-            Number::A,
+            Number::AlternateBases,
             Type::String,
             "ID of the assembled alternate allele in the assembly file",
         )),
@@ -121,23 +121,23 @@ pub(super) fn definition(key: &str) -> Option<(Number, Type, &'static str)> {
             "Mobile element transduction info of the form CHR,START,END,POLARITY",
         )),
         key::DBV_ID => Some((
-            Number::A,
+            Number::AlternateBases,
             Type::String,
             "ID of this element in Database of Genomic Variation",
         )),
-        key::DB_VAR_ID => Some((Number::A, Type::String, "ID of this element in DBVAR")),
-        key::DB_RIP_ID => Some((Number::A, Type::String, "ID of this element in DBRIP")),
-        key::MATE_BREAKEND_IDS => Some((Number::A, Type::String, "ID of mate breakend")),
-        key::PARTNER_BREAKEND_ID => Some((Number::A, Type::String, "ID of partner breakend")),
-        key::BREAKEND_EVENT_ID => Some((Number::A, Type::String, "ID of associated event")),
-        key::EVENT_TYPE => Some((Number::A, Type::String, "Type of associated event")),
+        key::DB_VAR_ID => Some((Number::AlternateBases, Type::String, "ID of this element in DBVAR")),
+        key::DB_RIP_ID => Some((Number::AlternateBases, Type::String, "ID of this element in DBRIP")),
+        key::MATE_BREAKEND_IDS => Some((Number::AlternateBases, Type::String, "ID of mate breakend")),
+        key::PARTNER_BREAKEND_ID => Some((Number::AlternateBases, Type::String, "ID of partner breakend")),
+        key::BREAKEND_EVENT_ID => Some((Number::AlternateBases, Type::String, "ID of associated event")),
+        key::EVENT_TYPE => Some((Number::AlternateBases, Type::String, "Type of associated event")),
         key::BREAKEND_CONFIDENCE_INTERVALS => Some((
             Number::Unknown,
             Type::Integer,
             "Confidence interval for the SVLEN field",
         )),
         key::BREAKEND_COPY_NUMBER => {
-            Some((Number::A, Type::Float, "Copy number of CNV/breakpoint"))
+            Some((Number::AlternateBases, Type::Float, "Copy number of CNV/breakpoint"))
         }
         key::COPY_NUMBER_CONFIDENCE_INTERVALS => Some((
             Number::Unknown,
@@ -145,12 +145,12 @@ pub(super) fn definition(key: &str) -> Option<(Number, Type, &'static str)> {
             "Confidence interval around copy number",
         )),
         key::SV_CLAIM => Some((
-            Number::A,
+            Number::AlternateBases,
             Type::String,
             "Claim made by the structural variant call. Valid values are D, J, DJ for abundance, adjacency and both respectively",
         )),
         key::TOTAL_REPEAT_SEQUENCE_COUNTS => Some((
-            Number::A,
+            Number::AlternateBases,
             Type::Integer,
             "Total number of repeat sequences in this allele",
         )),

@@ -12,6 +12,15 @@
 
   * vcf/variant/record_buf/samples: Add lookup by sample name (`Samples::get`).
 
+### Changes
+
+  * vcf/header/number: Expand variant names.
+
+    Variants are renamed to descriptive names, i.e., `Number::A` =>
+    `Number::AlternateBases`, `Number::R` => `Number::ReferenceAlternateBases`,
+    and `Number::G` => `Number::Samples`. The single letter values are aliased
+    to the long names.
+
 ## 0.55.0 - 2024-05-02
 
 ### Removed

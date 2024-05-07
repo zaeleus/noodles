@@ -7,25 +7,27 @@ pub(super) fn definition(key: &str) -> Option<(Number, Type, &'static str)> {
     match key {
         key::ANCESTRAL_ALLELE => Some((Number::Count(1), Type::String, "Ancestral allele")),
         key::ALLELE_COUNT => Some((
-            Number::A,
+            Number::AlternateBases,
             Type::Integer,
             "Allele count in genotypes, for each ALT allele, in the same order as listed",
         )),
-        key::TOTAL_READ_DEPTHS => {
-            Some((Number::R, Type::Integer, "Total read depth for each allele"))
-        }
+        key::TOTAL_READ_DEPTHS => Some((
+            Number::ReferenceAlternateBases,
+            Type::Integer,
+            "Total read depth for each allele",
+        )),
         key::FORWARD_STRAND_READ_DEPTHS => Some((
-            Number::R,
+            Number::ReferenceAlternateBases,
             Type::Integer,
             "Read depth for each allele on the forward strand",
         )),
         key::REVERSE_STRAND_READ_DEPTHS => Some((
-            Number::R,
+            Number::ReferenceAlternateBases,
             Type::Integer,
             "Read depth for each allele on the reverse strand",
         )),
         key::ALLELE_FREQUENCIES => Some((
-            Number::A,
+            Number::AlternateBases,
             Type::Float,
             "Allele frequency for each ALT allele in the same order as listed",
         )),
@@ -36,7 +38,7 @@ pub(super) fn definition(key: &str) -> Option<(Number, Type, &'static str)> {
         )),
         key::BASE_QUALITY => Some((Number::Count(1), Type::Float, "RMS base quality")),
         key::CIGAR => Some((
-            Number::A,
+            Number::AlternateBases,
             Type::String,
             "Cigar string describing how to align an alternate allele to the reference allele",
         )),

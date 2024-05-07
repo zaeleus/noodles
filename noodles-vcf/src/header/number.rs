@@ -5,14 +5,25 @@ use std::{error, fmt, num, str::FromStr};
 pub enum Number {
     /// An explicit size.
     Count(usize),
-    /// The number of alternate alleles.
-    A,
-    /// The number of reference and alternate alleles.
-    R,
-    /// The number of genotypes.
-    G,
+    /// The number of alternate bases (`A`).
+    AlternateBases,
+    /// The number of reference and alternate bases (`R`).
+    ReferenceAlternateBases,
+    /// The number of samples (`G`).
+    Samples,
     /// The size is unknown.
     Unknown,
+}
+
+impl Number {
+    /// The number of alternate bases (`A`).
+    pub const A: Self = Self::AlternateBases;
+
+    /// The number of reference and alternate bases (`R`).
+    pub const R: Self = Self::ReferenceAlternateBases;
+
+    /// The number of samples (`G`).
+    pub const G: Self = Self::Samples;
 }
 
 impl Default for Number {
@@ -25,9 +36,9 @@ impl fmt::Display for Number {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Count(n) => write!(f, "{n}"),
-            Self::A => f.write_str("A"),
-            Self::R => f.write_str("R"),
-            Self::G => f.write_str("G"),
+            Self::AlternateBases => f.write_str("A"),
+            Self::ReferenceAlternateBases => f.write_str("R"),
+            Self::Samples => f.write_str("G"),
             Self::Unknown => f.write_str("."),
         }
     }
@@ -66,9 +77,9 @@ impl FromStr for Number {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "" => Err(ParseError::Empty),
-            "A" => Ok(Self::A),
-            "R" => Ok(Self::R),
-            "G" => Ok(Self::G),
+            "A" => Ok(Self::AlternateBases),
+            "R" => Ok(Self::ReferenceAlternateBases),
+            "G" => Ok(Self::Samples),
             "." => Ok(Self::Unknown),
             _ => s.parse().map(Self::Count).map_err(ParseError::Invalid),
         }
@@ -87,18 +98,18 @@ mod tests {
     #[test]
     fn test_fmt() {
         assert_eq!(Number::Count(1).to_string(), "1");
-        assert_eq!(Number::A.to_string(), "A");
-        assert_eq!(Number::R.to_string(), "R");
-        assert_eq!(Number::G.to_string(), "G");
+        assert_eq!(Number::AlternateBases.to_string(), "A");
+        assert_eq!(Number::ReferenceAlternateBases.to_string(), "R");
+        assert_eq!(Number::Samples.to_string(), "G");
         assert_eq!(Number::Unknown.to_string(), ".");
     }
 
     #[test]
     fn test_from_str() {
         assert_eq!("1".parse(), Ok(Number::Count(1)));
-        assert_eq!("A".parse(), Ok(Number::A));
-        assert_eq!("R".parse(), Ok(Number::R));
-        assert_eq!("G".parse(), Ok(Number::G));
+        assert_eq!("A".parse(), Ok(Number::AlternateBases));
+        assert_eq!("R".parse(), Ok(Number::ReferenceAlternateBases));
+        assert_eq!("G".parse(), Ok(Number::Samples));
         assert_eq!(".".parse(), Ok(Number::Unknown));
 
         assert_eq!("".parse::<Number>(), Err(ParseError::Empty));
