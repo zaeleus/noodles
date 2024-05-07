@@ -443,7 +443,7 @@ mod tests {
             None => unreachable!(),
         };
 
-        const VIRUAL_POSITION: VirtualPosition = match VirtualPosition::new(0, 3) {
+        const VIRTUAL_POSITION: VirtualPosition = match VirtualPosition::new(0, 3) {
             Some(pos) => pos,
             None => unreachable!(),
         };
@@ -456,7 +456,7 @@ mod tests {
 
         assert_eq!(reader.virtual_position(), EOF_VIRTUAL_POSITION);
 
-        reader.seek_to_virtual_position(VIRUAL_POSITION)?;
+        reader.seek_to_virtual_position(VIRTUAL_POSITION)?;
 
         buf.clear();
         reader.read_to_end(&mut buf)?;
