@@ -1,7 +1,8 @@
+mod number;
+
 use std::{error, fmt, num};
 
 use crate::header::{
-    number,
     record::value::{
         map::{
             self,
@@ -134,7 +135,7 @@ pub fn parse_format(
 }
 
 fn parse_number(s: &str, id: &Option<String>) -> Result<Number, ParseError> {
-    s.parse()
+    self::number::parse_number(s)
         .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidNumber(e)))
 }
 
