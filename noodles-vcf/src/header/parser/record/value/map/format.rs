@@ -1,4 +1,5 @@
 mod number;
+mod ty;
 
 use std::{error, fmt, num};
 
@@ -6,7 +7,7 @@ use crate::header::{
     record::value::{
         map::{
             self,
-            format::{tag, ty, Tag, Type},
+            format::{tag, Tag, Type},
             Format, OtherFields,
         },
         Map,
@@ -140,8 +141,7 @@ fn parse_number(s: &str, id: &Option<String>) -> Result<Number, ParseError> {
 }
 
 fn parse_type(s: &str, id: &Option<String>) -> Result<Type, ParseError> {
-    s.parse()
-        .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidType(e)))
+    self::ty::parse_type(s).map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidType(e)))
 }
 
 fn parse_idx(s: &str, id: &Option<String>) -> Result<usize, ParseError> {
