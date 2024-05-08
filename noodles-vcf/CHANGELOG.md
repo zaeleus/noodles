@@ -12,7 +12,7 @@
 
   * vcf/variant/record_buf/samples: Add lookup by sample name (`Samples::get`).
 
-### Changes
+### Changed
 
   * vcf/header/number: Expand variant names.
 
