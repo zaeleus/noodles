@@ -4,6 +4,7 @@ mod value;
 use std::io::{self, Write};
 
 use self::key::write_key;
+use super::write_newline;
 use crate::header::{
     record::{
         self,
@@ -33,6 +34,8 @@ where
     write_key(writer, key)?;
     write_separator(writer)?;
     f(writer)?;
+    write_newline(writer)?;
+
     Ok(())
 }
 
@@ -136,4 +139,36 @@ where
 {
     const SEPARATOR: u8 = b'=';
     writer.write_all(&[SEPARATOR])
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_write_other() -> Result<(), Box<dyn std::error::Error>> {
+        let mut buf = Vec::new();
+
+        let key = "comment".parse()?;
+
+        buf.clear();
+        let collection =
+            Collection::Unstructured(vec![String::from("noodles"), String::from("vcf")]);
+        write_other(&mut buf, &key, &collection)?;
+        assert_eq!(buf, b"##comment=noodles\n##comment=vcf\n");
+
+        buf.clear();
+        let collection = Collection::Structured(
+            [
+                (String::from("noodles"), Map::default()),
+                (String::from("vcf"), Map::default()),
+            ]
+            .into_iter()
+            .collect(),
+        );
+        write_other(&mut buf, &key, &collection)?;
+        assert_eq!(buf, b"##comment=<ID=noodles>\n##comment=<ID=vcf>\n");
+
+        Ok(())
+    }
 }

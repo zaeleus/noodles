@@ -13,40 +13,32 @@ where
     W: Write,
 {
     write_file_format(writer, header.file_format())?;
-    write_newline(writer)?;
 
     for (id, info) in header.infos() {
         write_info(writer, id, info)?;
-        write_newline(writer)?;
     }
 
     for (id, filter) in header.filters() {
         write_filter(writer, id, filter)?;
-        write_newline(writer)?;
     }
 
     for (id, format) in header.formats() {
         write_format(writer, id, format)?;
-        write_newline(writer)?;
     }
 
     for (id, alternative_allele) in header.alternative_alleles() {
         write_alternative_allele(writer, id, alternative_allele)?;
-        write_newline(writer)?;
     }
 
     for (id, contig) in header.contigs() {
         write_contig(writer, id, contig)?;
-        write_newline(writer)?;
     }
 
     for (key, collection) in header.other_records() {
         write_other(writer, key, collection)?;
-        write_newline(writer)?;
     }
 
     write_column_names(writer, header.sample_names())?;
-    write_newline(writer)?;
 
     Ok(())
 }
@@ -84,6 +76,8 @@ where
             writer.write_all(sample_name.as_bytes())?;
         }
     }
+
+    write_newline(writer)?;
 
     Ok(())
 }
@@ -123,14 +117,14 @@ mod tests {
         buf.clear();
         let sample_names = SampleNames::new();
         write_column_names(&mut buf, &sample_names)?;
-        assert_eq!(buf, b"#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO");
+        assert_eq!(buf, b"#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n");
 
         buf.clear();
         let sample_names = [String::from("sample0")].into_iter().collect();
         write_column_names(&mut buf, &sample_names)?;
         assert_eq!(
             buf,
-            b"#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tsample0"
+            b"#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tsample0\n"
         );
 
         Ok(())

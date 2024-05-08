@@ -21,6 +21,15 @@
     and `Number::G` => `Number::Samples`. The single letter values are aliased
     to the long names.
 
+### Fixed
+
+  * vcf/io/writer/header/record: Write newlines for records in other
+    collections ([#259]).
+
+    This only affected collections with more than one record.
+
+[#259]: https://github.com/zaeleus/noodles/issues/259
+
 ## 0.55.0 - 2024-05-02
 
 ### Removed
