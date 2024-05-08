@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.0 - 2024-05-08
+
+### Changed
+
+  * refget: Sync dependencies.
+
 ## 0.4.0 - 2024-04-04
 
 ### Changed

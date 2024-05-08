@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.0 - 2024-05-08
+
+### Changed
+
+  * htsget: Sync dependencies.
+
 ## 0.5.0 - 2024-04-04
 
 ### Changed

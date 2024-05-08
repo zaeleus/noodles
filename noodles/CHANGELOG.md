@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.72.0 - 2024-05-08
+
+  * [noodles-bam 0.62.0](https://github.com/zaeleus/noodles/blob/noodles-bam-0.62.0/noodles-bam/CHANGELOG.md)
+  * [noodles-bcf 0.53.0](https://github.com/zaeleus/noodles/blob/noodles-bcf-0.53.0/noodles-bcf/CHANGELOG.md)
+  * [noodles-bed 0.13.0](https://github.com/zaeleus/noodles/blob/noodles-bed-0.13.0/noodles-bed/CHANGELOG.md)
+  * [noodles-core 0.15.0](https://github.com/zaeleus/noodles/blob/noodles-core-0.15.0/noodles-core/CHANGELOG.md)
+  * [noodles-cram 0.62.0](https://github.com/zaeleus/noodles/blob/noodles-cram-0.62.0/noodles-cram/CHANGELOG.md)
+  * [noodles-csi 0.34.0](https://github.com/zaeleus/noodles/blob/noodles-csi-0.34.0/noodles-csi/CHANGELOG.md)
+  * [noodles-fasta 0.37.0](https://github.com/zaeleus/noodles/blob/noodles-fasta-0.37.0/noodles-fasta/CHANGELOG.md)
+  * [noodles-gff 0.31.0](https://github.com/zaeleus/noodles/blob/noodles-gff-0.31.0/noodles-gff/CHANGELOG.md)
+  * [noodles-gtf 0.27.0](https://github.com/zaeleus/noodles/blob/noodles-gtf-0.27.0/noodles-gtf/CHANGELOG.md)
+  * [noodles-htsget 0.6.0](https://github.com/zaeleus/noodles/blob/noodles-htsget-0.6.0/noodles-htsget/CHANGELOG.md)
+  * [noodles-refget 0.5.0](https://github.com/zaeleus/noodles/blob/noodles-refget-0.5.0/noodles-refget/CHANGELOG.md)
+  * [noodles-sam 0.59.0](https://github.com/zaeleus/noodles/blob/noodles-sam-0.59.0/noodles-sam/CHANGELOG.md)
+  * [noodles-tabix 0.40.0](https://github.com/zaeleus/noodles/blob/noodles-tabix-0.40.0/noodles-tabix/CHANGELOG.md)
+  * [noodles-util 0.44.0](https://github.com/zaeleus/noodles/blob/noodles-util-0.44.0/noodles-util/CHANGELOG.md)
+  * [noodles-vcf 0.56.0](https://github.com/zaeleus/noodles/blob/noodles-vcf-0.56.0/noodles-vcf/CHANGELOG.md)
+
 ## 0.71.0 - 2024-05-02
 
   * [noodles-bam 0.61.0](https://github.com/zaeleus/noodles/blob/noodles-bam-0.61.0/noodles-bam/CHANGELOG.md)

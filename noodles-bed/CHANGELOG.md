@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.13.0 - 2024-05-08
+
+### Changed
+
+  * bed: Sync dependencies.
+
 ## 0.12.0 - 2024-01-25
 
 ### Changed
