@@ -1,6 +1,6 @@
 use std::{error, fmt, num};
 
-use crate::header::Number;
+use crate::header::record::value::map::format::Number;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {

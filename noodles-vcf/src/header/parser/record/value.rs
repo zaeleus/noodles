@@ -22,8 +22,14 @@ pub enum ParseError {
     InvalidOtherMap(key::Other, map::other::ParseError),
     FormatDefinitionMismatch {
         id: String,
-        actual: (Number, crate::header::record::value::map::format::Type),
-        expected: (Number, crate::header::record::value::map::format::Type),
+        actual: (
+            crate::header::record::value::map::format::Number,
+            crate::header::record::value::map::format::Type,
+        ),
+        expected: (
+            crate::header::record::value::map::format::Number,
+            crate::header::record::value::map::format::Type,
+        ),
     },
     InfoDefinitionMismatch {
         id: String,
@@ -121,7 +127,7 @@ impl fmt::Display for ParseError {
 
                 write!(
                     f,
-                    "{} definition mismatch for ID={id}: expected Number={},Type={}, got Number={},Type={}",
+                    "{} definition mismatch for ID={id}: expected Number={:?},Type={}, got Number={:?},Type={}",
                     key::FORMAT,
                     expected_number, expected_type,
                     actual_number, actual_type,
@@ -207,7 +213,7 @@ pub(super) fn parse_value(
 fn validate_format_definition(
     file_format: FileFormat,
     id: &str,
-    actual_number: Number,
+    actual_number: crate::header::record::value::map::format::Number,
     actual_type: crate::header::record::value::map::format::Type,
 ) -> Result<(), ParseError> {
     use crate::header::record::value::map::format::definition::definition;

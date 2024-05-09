@@ -30,7 +30,7 @@ pub(super) fn write_values<W>(
 where
     W: Write,
 {
-    use noodles_vcf::header::{record::value::map::format, Number};
+    use noodles_vcf::header::record::value::map::format::{self, Number};
 
     match format.ty() {
         format::Type::Integer => match format.number() {
@@ -728,7 +728,7 @@ fn encode_genotype(genotype: &dyn Genotype) -> io::Result<Vec<i8>> {
 #[cfg(test)]
 mod tests {
     use noodles_vcf::{
-        header::{record::value::map::format, Number},
+        header::record::value::map::format::{self, Number},
         variant::record_buf::samples::sample::Value as ValueBuf,
     };
 

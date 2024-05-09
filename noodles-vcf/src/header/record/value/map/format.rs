@@ -1,13 +1,14 @@
 //! Inner VCF header FORMAT map value.
 
 pub(crate) mod definition;
+mod number;
 pub(crate) mod tag;
 pub(crate) mod ty;
 
-pub use self::{tag::Tag, ty::Type};
+pub use self::{number::Number, tag::Tag, ty::Type};
 
 use super::{builder, Described, Indexed, Inner, Map, OtherFields, Typed};
-use crate::header::{FileFormat, Number};
+use crate::header::FileFormat;
 
 /// An inner VCF header format map value.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -71,7 +72,7 @@ impl Map<Format> {
     ///
     /// ```
     /// use noodles_vcf::{
-    ///     header::{record::value::{map::{format::Type, Format}, Map}, Number},
+    ///     header::record::value::{map::{format::{Number, Type}, Format}, Map},
     ///     variant::record::samples::keys::key,
     /// };
     ///

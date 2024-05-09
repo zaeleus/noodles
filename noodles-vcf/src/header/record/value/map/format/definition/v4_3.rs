@@ -1,5 +1,5 @@
 use crate::{
-    header::{record::value::map::format::Type, Number},
+    header::record::value::map::format::{Number, Type},
     variant::record::samples::keys::key,
 };
 

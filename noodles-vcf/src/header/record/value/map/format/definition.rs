@@ -3,7 +3,10 @@
 mod v4_3;
 mod v4_4;
 
-use crate::header::{record::value::map::format::Type, FileFormat, Number};
+use crate::header::{
+    record::value::map::format::{Number, Type},
+    FileFormat,
+};
 
 pub(crate) fn definition(
     file_format: FileFormat,

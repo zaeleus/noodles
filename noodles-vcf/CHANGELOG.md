@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * vcf/header/record/value/map/format: Add `Number`.
+
+    This is now separated from the `Number` that info records use.
+
 ## 0.56.0 - 2024-05-08
 
 ### Added

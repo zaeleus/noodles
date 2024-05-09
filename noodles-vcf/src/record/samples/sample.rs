@@ -102,10 +102,7 @@ impl<'r> crate::variant::record::samples::Sample for Sample<'r> {
 
 fn parse_value<'a>(src: &'a str, header: &Header, key: &str) -> io::Result<Option<Value<'a>>> {
     use crate::{
-        header::{
-            record::value::map::format::{definition::definition, Type},
-            Number,
-        },
+        header::record::value::map::format::{definition::definition, Number, Type},
         variant::record::samples::keys::key,
     };
 
