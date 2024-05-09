@@ -6,10 +6,7 @@ mod frame;
 
 pub use self::{builder::Builder, compression_level::CompressionLevel};
 
-use std::{
-    cmp,
-    io::{self, Write},
-};
+use std::io::{self, Write};
 
 pub(crate) use self::frame::write_frame;
 use super::{gz, VirtualPosition, BGZF_HEADER_SIZE, BGZF_MAX_ISIZE};
@@ -221,6 +218,14 @@ where
         let inner = self.inner.take().unwrap();
         Ok(inner)
     }
+
+    fn remaining(&self) -> usize {
+        MAX_BUF_SIZE - self.staging_buf.len()
+    }
+
+    fn has_remaining(&self) -> bool {
+        self.staging_buf.len() < MAX_BUF_SIZE
+    }
 }
 
 impl<W> Drop for Writer<W>
@@ -239,15 +244,14 @@ where
     W: Write,
 {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        let max_write_len = cmp::min(MAX_BUF_SIZE - self.staging_buf.len(), buf.len());
+        let amt = self.remaining().min(buf.len());
+        self.staging_buf.extend(&buf[..amt]);
 
-        self.staging_buf.extend_from_slice(&buf[..max_write_len]);
-
-        if self.staging_buf.len() >= MAX_BUF_SIZE {
+        if !self.has_remaining() {
             self.flush()?;
         }
 
-        Ok(max_write_len)
+        Ok(amt)
     }
 
     fn flush(&mut self) -> io::Result<()> {

@@ -7,7 +7,6 @@ mod deflater;
 pub use self::builder::Builder;
 
 use std::{
-    cmp,
     pin::Pin,
     task::{Context, Poll},
 };
@@ -18,6 +17,7 @@ use pin_project_lite::pin_project;
 use tokio::io::{self, AsyncWrite};
 
 use self::{deflate::Deflate, deflater::Deflater};
+use crate::writer::MAX_BUF_SIZE;
 
 #[cfg(feature = "libdeflate")]
 type CompressionLevel = libdeflater::CompressionLvl;
@@ -64,6 +64,14 @@ where
     pub fn into_inner(self) -> W {
         self.sink.into_inner().into_inner()
     }
+
+    fn remaining(&self) -> usize {
+        MAX_BUF_SIZE - self.buf.len()
+    }
+
+    fn has_remaining(&self) -> bool {
+        self.buf.len() < MAX_BUF_SIZE
+    }
 }
 
 impl<W> AsyncWrite for Writer<W>
@@ -75,19 +83,16 @@ where
         cx: &mut Context<'_>,
         buf: &[u8],
     ) -> Poll<Result<usize, io::Error>> {
-        use crate::writer::MAX_BUF_SIZE;
-
-        if self.buf.len() >= MAX_BUF_SIZE {
+        if !self.has_remaining() {
             if let Err(e) = ready!(self.as_mut().poll_flush(cx)) {
                 return Poll::Ready(Err(e));
             }
         }
 
-        let n = cmp::min(MAX_BUF_SIZE - self.buf.len(), buf.len());
+        let amt = self.remaining().min(buf.len());
+        self.as_mut().buf.extend_from_slice(&buf[..amt]);
 
-        self.as_mut().buf.extend_from_slice(&buf[..n]);
-
-        Poll::Ready(Ok(n))
+        Poll::Ready(Ok(amt))
     }
 
     fn poll_flush(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), io::Error>> {

@@ -13,7 +13,7 @@ use bytes::{Bytes, BytesMut};
 use crossbeam_channel::{Receiver, Sender};
 
 pub use self::builder::Builder;
-use super::writer::CompressionLevelImpl;
+use super::writer::{CompressionLevelImpl, MAX_BUF_SIZE};
 
 type FrameParts = (Vec<u8>, u32, usize);
 type BufferedTx = Sender<io::Result<FrameParts>>;
@@ -116,6 +116,14 @@ where
         }
     }
 
+    fn remaining(&self) -> usize {
+        MAX_BUF_SIZE - self.buf.len()
+    }
+
+    fn has_remaining(&self) -> bool {
+        self.buf.len() < MAX_BUF_SIZE
+    }
+
     fn send(&mut self) -> io::Result<()> {
         let State::Running {
             write_tx,
@@ -154,14 +162,10 @@ where
     W: Write + Send + 'static,
 {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        use std::cmp;
-
-        use super::writer::MAX_BUF_SIZE;
-
-        let amt = cmp::min(MAX_BUF_SIZE - self.buf.len(), buf.len());
+        let amt = self.remaining().min(buf.len());
         self.buf.extend_from_slice(&buf[..amt]);
 
-        if self.buf.len() >= MAX_BUF_SIZE {
+        if !self.has_remaining() {
             self.flush()?;
         }
 
