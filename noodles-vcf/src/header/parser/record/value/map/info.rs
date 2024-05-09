@@ -7,12 +7,12 @@ use crate::header::{
     record::value::{
         map::{
             self,
-            info::{tag, Tag, Type},
+            info::{tag, Number, Tag, Type},
             Info, OtherFields,
         },
         Map,
     },
-    FileFormat, Number,
+    FileFormat,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]

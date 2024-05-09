@@ -1,7 +1,7 @@
 use std::{error, fmt, num, str};
 
 use crate::{
-    header::{record::value::map::info::Type, Number},
+    header::record::value::map::info::{Number, Type},
     io::reader::record_buf::{value, MISSING},
     variant::record_buf::info::field::{value::Array, Value},
 };

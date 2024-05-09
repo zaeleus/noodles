@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use crate::header::Number;
+use crate::header::record::value::map::info::Number;
 
 pub(super) fn write_number<W>(writer: &mut W, number: Number) -> io::Result<()>
 where

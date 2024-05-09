@@ -1,13 +1,14 @@
 //! Inner VCF header INFO map value.
 
 pub(crate) mod definition;
+mod number;
 pub(crate) mod tag;
 pub(crate) mod ty;
 
-pub use self::{tag::Tag, ty::Type};
+pub use self::{number::Number, tag::Tag, ty::Type};
 
 use super::{builder, Described, Indexed, Inner, Map, OtherFields, Typed};
-use crate::header::{FileFormat, Number};
+use crate::header::FileFormat;
 
 /// An inner VCF header info map value.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -71,7 +72,7 @@ impl Map<Info> {
     ///
     /// ```
     /// use noodles_vcf::{
-    ///     header::{record::value::{map::{info::Type, Info}, Map}, Number},
+    ///     header::record::value::{map::{info::{Number, Type}, Info}, Map},
     ///     variant::record::info::field::key,
     /// };
     ///

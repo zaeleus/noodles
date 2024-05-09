@@ -8,6 +8,13 @@
 
     This is now separated from the `Number` that info records use.
 
+### Changed
+
+  * vcf/header: Move `Number` to `crate::header::record::value::map::info`
+    module.
+
+    This is now only used for info records.
+
 ## 0.56.0 - 2024-05-08
 
 ### Added

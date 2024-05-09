@@ -6,7 +6,7 @@ use std::{error, fmt};
 use self::string::parse_string;
 use crate::header::{
     record::{key, Key, Value},
-    FileFormat, Number, Record,
+    FileFormat, Record,
 };
 
 /// An error returned when a VCF header record value fails to parse.
@@ -33,8 +33,14 @@ pub enum ParseError {
     },
     InfoDefinitionMismatch {
         id: String,
-        actual: (Number, crate::header::record::value::map::info::Type),
-        expected: (Number, crate::header::record::value::map::info::Type),
+        actual: (
+            crate::header::record::value::map::info::Number,
+            crate::header::record::value::map::info::Type,
+        ),
+        expected: (
+            crate::header::record::value::map::info::Number,
+            crate::header::record::value::map::info::Type,
+        ),
     },
 }
 
@@ -234,7 +240,7 @@ fn validate_format_definition(
 fn validate_info_definition(
     file_format: FileFormat,
     id: &str,
-    actual_number: Number,
+    actual_number: crate::header::record::value::map::info::Number,
     actual_type: crate::header::record::value::map::info::Type,
 ) -> Result<(), ParseError> {
     use crate::header::record::value::map::info::definition::definition;

@@ -219,7 +219,7 @@ impl fmt::Display for DecodeError {
 
 #[cfg(test)]
 mod tests {
-    use vcf::header::Number;
+    use vcf::header::record::value::map::info::Number;
 
     use super::*;
 

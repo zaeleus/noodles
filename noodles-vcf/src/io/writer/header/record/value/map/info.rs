@@ -7,12 +7,12 @@ use self::{number::write_number, ty::write_type};
 use super::{
     write_delimiter, write_description_field, write_key, write_other_fields, write_separator,
 };
-use crate::header::{
-    record::value::{
-        map::{info::Type, Info},
-        Map,
+use crate::header::record::value::{
+    map::{
+        info::{Number, Type},
+        Info,
     },
-    Number,
+    Map,
 };
 
 pub(crate) fn write_info<W>(writer: &mut W, info: &Map<Info>) -> io::Result<()>
