@@ -60,19 +60,6 @@ where
     Ok(())
 }
 
-fn write_type_field<W, T>(writer: &mut W, ty: T) -> io::Result<()>
-where
-    W: Write,
-    T: AsRef<str>,
-{
-    use crate::header::record::value::map::tag::TYPE;
-
-    write_delimiter(writer)?;
-    write_value_field(writer, TYPE, ty)?;
-
-    Ok(())
-}
-
 fn write_description_field<W>(writer: &mut W, description: &str) -> io::Result<()>
 where
     W: Write,

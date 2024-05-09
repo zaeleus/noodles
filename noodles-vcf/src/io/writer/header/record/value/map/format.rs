@@ -1,14 +1,17 @@
 mod number;
+mod ty;
 
 use std::io::{self, Write};
 
-use self::number::write_number;
+use self::{number::write_number, ty::write_type};
 use super::{
     write_delimiter, write_description_field, write_key, write_other_fields, write_separator,
-    write_type_field,
 };
 use crate::header::{
-    record::value::{map::Format, Map},
+    record::value::{
+        map::{format::Type, Format},
+        Map,
+    },
     Number,
 };
 
@@ -33,6 +36,20 @@ where
     write_key(writer, NUMBER)?;
     write_separator(writer)?;
     write_number(writer, number)?;
+
+    Ok(())
+}
+
+fn write_type_field<W>(writer: &mut W, ty: Type) -> io::Result<()>
+where
+    W: Write,
+{
+    use crate::header::record::value::map::tag::TYPE;
+
+    write_delimiter(writer)?;
+    write_key(writer, TYPE)?;
+    write_separator(writer)?;
+    write_type(writer, ty)?;
 
     Ok(())
 }
