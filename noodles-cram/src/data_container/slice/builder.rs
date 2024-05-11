@@ -231,7 +231,7 @@ fn write_records(
 
             Ok(builder.build())
         })
-        .collect::<Result<_, io::Error>>()?;
+        .collect::<io::Result<_>>()?;
 
     Ok((core_data_block, external_blocks))
 }
