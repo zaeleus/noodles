@@ -36,7 +36,7 @@ impl<'r> Samples<'r> {
         header
             .sample_names()
             .get_index_of(sample_name)
-            .and_then(|i| self.iter().nth(i))
+            .and_then(|i| self.get_index(i))
     }
 
     /// Returns the sample at the given index.
