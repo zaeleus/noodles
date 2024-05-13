@@ -10,9 +10,8 @@ use pin_project_lite::pin_project;
 use tokio::io::AsyncWrite;
 use tokio_util::codec::FramedWrite;
 
-use crate::r#async::BlockCodec;
-
 use super::Deflate;
+use crate::r#async::BlockCodec;
 
 pin_project! {
     pub struct Deflater<W> {

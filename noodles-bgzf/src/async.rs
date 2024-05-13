@@ -4,9 +4,8 @@ mod block_codec;
 pub mod reader;
 pub mod writer;
 
-pub use self::{reader::Reader, writer::Writer};
-
 use self::block_codec::BlockCodec;
+pub use self::{reader::Reader, writer::Writer};
 
 #[cfg(test)]
 mod tests {

@@ -3,9 +3,8 @@ use std::io;
 use bytes::{Buf, BufMut, Bytes, BytesMut};
 use tokio_util::codec::{Decoder, Encoder};
 
-use crate::{gz, BGZF_HEADER_SIZE};
-
 use super::writer::deflate::GzData;
+use crate::{gz, BGZF_HEADER_SIZE};
 
 pub struct BlockCodec;
 

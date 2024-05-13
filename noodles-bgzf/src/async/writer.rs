@@ -4,8 +4,6 @@ mod builder;
 pub(crate) mod deflate;
 mod deflater;
 
-pub use self::builder::Builder;
-
 use std::{
     pin::Pin,
     task::{Context, Poll},
@@ -16,6 +14,7 @@ use futures::{ready, sink::Buffer, Sink};
 use pin_project_lite::pin_project;
 use tokio::io::{self, AsyncWrite};
 
+pub use self::builder::Builder;
 use self::{deflate::Deflate, deflater::Deflater};
 use crate::writer::MAX_BUF_SIZE;
 

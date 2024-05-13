@@ -4,8 +4,6 @@ mod builder;
 mod inflate;
 mod inflater;
 
-pub use self::builder::Builder;
-
 use std::{
     cmp, io,
     num::NonZeroUsize,
@@ -17,9 +15,9 @@ use futures::{ready, stream::TryBuffered, Stream, TryStreamExt};
 use pin_project_lite::pin_project;
 use tokio::io::{AsyncBufRead, AsyncRead, AsyncSeek, ReadBuf};
 
-use crate::{Block, VirtualPosition};
-
+pub use self::builder::Builder;
 use self::inflater::Inflater;
+use crate::{Block, VirtualPosition};
 
 pin_project! {
     /// An async BGZF reader.
