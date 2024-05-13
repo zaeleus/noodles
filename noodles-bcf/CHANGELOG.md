@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bcf/record/samples: Add lookup by sample name (`Samples::get`).
+
 ## 0.53.0 - 2024-05-08
 
 ### Changed

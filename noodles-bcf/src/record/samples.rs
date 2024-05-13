@@ -40,8 +40,16 @@ impl<'r> Samples<'r> {
         self.format_count
     }
 
+    /// Returns the sample with the given sample name.
+    pub fn get(&'r self, header: &vcf::Header, sample_name: &str) -> Option<Sample<'r>> {
+        header
+            .sample_names()
+            .get_index_of(sample_name)
+            .and_then(|i| self.get_index(i))
+    }
+
     /// Returns a sample at the given index.
-    pub fn get_index(&self, i: usize) -> Option<Sample<'_>> {
+    pub fn get_index(&'r self, i: usize) -> Option<Sample<'r>> {
         if i < self.sample_count {
             Some(Sample::new(self, i))
         } else {
