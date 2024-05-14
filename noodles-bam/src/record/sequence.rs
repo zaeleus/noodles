@@ -1,11 +1,13 @@
 mod iter;
 
+use std::fmt::{self, Write};
+
 use noodles_sam as sam;
 
 use self::iter::Iter;
 
 /// A BAM record sequence.
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Eq, PartialEq)]
 pub struct Sequence<'a> {
     src: &'a [u8],
     base_count: usize,
@@ -54,8 +56,53 @@ impl<'a> AsRef<[u8]> for Sequence<'a> {
     }
 }
 
+impl<'a> fmt::Debug for Sequence<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        struct BasesFormat<'a>(&'a [u8], usize);
+
+        impl<'a> fmt::Debug for BasesFormat<'a> {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                use self::iter::decoded_bases;
+
+                f.write_char('"')?;
+
+                let BasesFormat(src, base_count) = *self;
+
+                for b in src.iter().copied().flat_map(decoded_bases).take(base_count) {
+                    f.write_char(char::from(b))?;
+                }
+
+                f.write_char('"')?;
+
+                Ok(())
+            }
+        }
+
+        f.debug_tuple("Sequence")
+            .field(&BasesFormat(self.src, self.base_count))
+            .finish()
+    }
+}
+
 impl<'a> From<Sequence<'a>> for sam::alignment::record_buf::Sequence {
     fn from(sequence: Sequence<'a>) -> Self {
         Self::from(sequence.as_ref().to_vec())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_debug_fmt() {
+        let sequence = Sequence::new(&[], 0);
+        assert_eq!(format!("{sequence:?}"), r#"Sequence("")"#);
+
+        let sequence = Sequence::new(&[0x12, 0x40], 3);
+        assert_eq!(format!("{sequence:?}"), r#"Sequence("ACG")"#);
+
+        let sequence = Sequence::new(&[0x12, 0x48], 4);
+        assert_eq!(format!("{sequence:?}"), r#"Sequence("ACGT")"#);
     }
 }
