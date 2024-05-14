@@ -35,8 +35,12 @@ pub(crate) const UNMAPPED_BIN: u16 = 4680;
 /// An error when a BAM record fails to encode.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum EncodeError {
+    /// The reference sequence ID is invalid.
+    InvalidReferenceSequenceId(reference_sequence_id::EncodeError),
     /// The alignment start is invalid.
     InvalidAlignmentStart(position::EncodeError),
+    /// The mate reference sequence ID is invalid.
+    InvalidMateReferenceSequenceId(reference_sequence_id::EncodeError),
     /// The mate alignment start is invalid.
     InvalidMateAlignmentStart(position::EncodeError),
 }
@@ -44,7 +48,9 @@ pub enum EncodeError {
 impl error::Error for EncodeError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
+            Self::InvalidReferenceSequenceId(e) => Some(e),
             Self::InvalidAlignmentStart(e) => Some(e),
+            Self::InvalidMateReferenceSequenceId(e) => Some(e),
             Self::InvalidMateAlignmentStart(e) => Some(e),
         }
     }
@@ -53,7 +59,11 @@ impl error::Error for EncodeError {
 impl fmt::Display for EncodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::InvalidReferenceSequenceId(_) => write!(f, "invalid reference sequence ID"),
             Self::InvalidAlignmentStart(_) => write!(f, "invalid alignment start"),
+            Self::InvalidMateReferenceSequenceId(_) => {
+                write!(f, "invalid mate reference sequence ID")
+            }
             Self::InvalidMateAlignmentStart(_) => write!(f, "invalid mate alignment start"),
         }
     }
@@ -66,7 +76,9 @@ where
 {
     // ref_id
     let reference_sequence_id = record.reference_sequence_id(header).transpose()?;
-    put_reference_sequence_id(dst, header, reference_sequence_id)?;
+    put_reference_sequence_id(dst, header, reference_sequence_id)
+        .map_err(EncodeError::InvalidReferenceSequenceId)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     // pos
     let alignment_start = record.alignment_start().transpose()?;
@@ -97,7 +109,9 @@ where
 
     // next_ref_id
     let mate_reference_sequence_id = record.mate_reference_sequence_id(header).transpose()?;
-    put_reference_sequence_id(dst, header, mate_reference_sequence_id)?;
+    put_reference_sequence_id(dst, header, mate_reference_sequence_id)
+        .map_err(EncodeError::InvalidMateReferenceSequenceId)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     // next_pos
     let mate_alignment_start = record.mate_alignment_start().transpose()?;
