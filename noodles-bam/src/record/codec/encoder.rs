@@ -1,5 +1,6 @@
 //! BAM record encoder.
 
+mod bin;
 mod cigar;
 pub mod data;
 mod flags;
@@ -18,19 +19,15 @@ pub(crate) use self::{
 use std::{error, fmt, io};
 
 use bytes::BufMut;
-use noodles_core::Position;
 use noodles_sam::{
     self as sam,
     alignment::{record_buf::Cigar, Record},
 };
 
 use self::{
-    flags::put_flags, position::put_position, reference_sequence_id::put_reference_sequence_id,
+    bin::put_bin, flags::put_flags, position::put_position,
+    reference_sequence_id::put_reference_sequence_id,
 };
-
-// § 4.2.1 "BIN field calculation" (2021-06-03): "Note unmapped reads with `POS` 0 (which
-// becomes -1 in BAM) therefore use `reg2bin(-1, 0)` which is computed as 4680."
-pub(crate) const UNMAPPED_BIN: u16 = 4680;
 
 /// An error when a BAM record fails to encode.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -173,18 +170,6 @@ where
     Ok(())
 }
 
-fn put_bin<B>(dst: &mut B, alignment_start: Option<Position>, alignment_end: Option<Position>)
-where
-    B: BufMut,
-{
-    let bin = match (alignment_start, alignment_end) {
-        (Some(start), Some(end)) => region_to_bin(start, end),
-        _ => UNMAPPED_BIN,
-    };
-
-    dst.put_u16_le(bin);
-}
-
 fn overflowing_put_cigar_op_count<B, R>(dst: &mut B, record: &R) -> io::Result<Option<Cigar>>
 where
     B: BufMut,
@@ -218,35 +203,12 @@ where
     dst.put_i32_le(template_length);
 }
 
-// § 5.3 "C source code for computing bin number and overlapping bins" (2021-06-03)
-#[allow(clippy::eq_op)]
-pub(crate) fn region_to_bin(alignment_start: Position, alignment_end: Position) -> u16 {
-    let start = usize::from(alignment_start) - 1;
-    let end = usize::from(alignment_end) - 1;
-
-    let bin = if start >> 14 == end >> 14 {
-        ((1 << 15) - 1) / 7 + (start >> 14)
-    } else if start >> 17 == end >> 17 {
-        ((1 << 12) - 1) / 7 + (start >> 17)
-    } else if start >> 20 == end >> 20 {
-        ((1 << 9) - 1) / 7 + (start >> 20)
-    } else if start >> 23 == end >> 23 {
-        ((1 << 6) - 1) / 7 + (start >> 23)
-    } else if start >> 26 == end >> 26 {
-        ((1 << 3) - 1) / 7 + (start >> 26)
-    } else {
-        0
-    };
-
-    // SAFETY: Truncate overflowing bin IDs.
-    bin as u16
-}
-
 #[cfg(test)]
 mod tests {
     use std::num::NonZeroUsize;
 
-    use sam::{
+    use noodles_core::Position;
+    use noodles_sam::{
         alignment::RecordBuf,
         header::record::value::{map::ReferenceSequence, Map},
     };
@@ -430,31 +392,6 @@ mod tests {
         }));
 
         assert_eq!(buf, expected);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_region_to_bin() -> Result<(), noodles_core::position::TryFromIntError> {
-        let start = Position::try_from(8)?;
-        let end = Position::try_from(13)?;
-        assert_eq!(region_to_bin(start, end), 4681);
-
-        let start = Position::try_from(63245986)?;
-        let end = Position::try_from(63245986)?;
-        assert_eq!(region_to_bin(start, end), 8541);
-
-        // https://github.com/zaeleus/noodles/issues/229
-        const DEPTH: usize = 5;
-        const MIN_SHIFT: usize = 14;
-        const MAX_POSITION: usize = 1 << (MIN_SHIFT + 3 * DEPTH);
-        const U16_SIZE: usize = 1 << 16;
-        const MAX_BIN_ID: usize = (1 << ((DEPTH + 1) * 3)) / 7;
-        const WINDOW_SIZE: usize = 1 << MIN_SHIFT;
-        let start =
-            Position::try_from((MAX_POSITION + 1) + (WINDOW_SIZE * (U16_SIZE - MAX_BIN_ID)))?;
-        let end = start;
-        assert_eq!(region_to_bin(start, end), 0);
 
         Ok(())
     }
