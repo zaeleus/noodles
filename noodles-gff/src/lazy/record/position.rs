@@ -1,6 +1,7 @@
 use noodles_core as core;
 
 /// Raw GFF record position.
+#[derive(Debug)]
 pub struct Position<'a>(&'a str);
 
 impl<'a> Position<'a> {
