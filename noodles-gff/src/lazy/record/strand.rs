@@ -1,6 +1,7 @@
 use std::io;
 
 /// Raw GFF record strand.
+#[derive(Debug)]
 pub struct Strand<'a>(&'a str);
 
 impl<'a> Strand<'a> {
