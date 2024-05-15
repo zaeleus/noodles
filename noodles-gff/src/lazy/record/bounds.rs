@@ -1,6 +1,6 @@
 use std::ops::{Range, RangeFrom};
 
-#[derive(Default)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub(crate) struct Bounds {
     pub(crate) reference_sequence_name_end: usize,
     pub(crate) source_end: usize,
