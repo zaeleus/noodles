@@ -14,10 +14,12 @@ where
     const DIRECTIVE_PREFIX: &str = "##";
 
     let prev_line = mem::replace(line, DEFAULT_LINE);
-    let mut buf = prev_line.into();
+    let mut buf: String = prev_line.into();
 
     match peek_line_type(reader)? {
         Some(LineType::Comment) => {
+            buf.clear();
+
             let n = read_line(reader, &mut buf)?;
 
             *line = if buf.starts_with(DIRECTIVE_PREFIX) {
@@ -130,4 +132,31 @@ where
     }
 
     Ok(len)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_read_lazy_line() -> io::Result<()> {
+        let mut line = lazy::Line::default();
+
+        let mut src = &b"##gff-version 3"[..];
+        read_lazy_line(&mut src, &mut line)?;
+        assert!(matches!(line, lazy::Line::Directive(ref s) if s == "##gff-version 3"));
+
+        let mut src = &b"#noodles"[..];
+        read_lazy_line(&mut src, &mut line)?;
+        assert!(matches!(line, lazy::Line::Comment(ref s) if s == "#noodles"));
+
+        let mut src = &b".\t.\t.\t1\t1\t.\t.\t.\t."[..];
+        read_lazy_line(&mut src, &mut line)?;
+        let lazy::Line::Record(record) = line else {
+            panic!("expected record");
+        };
+        assert_eq!(record.buf, "...11....");
+
+        Ok(())
+    }
 }

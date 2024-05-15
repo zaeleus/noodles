@@ -8,6 +8,10 @@
 
 [#262]: https://github.com/zaeleus/noodles/issues/262
 
+### Fixed
+
+  * gff/reader: Fix lazy reading consecutive comment or directive lines.
+
 ## 0.31.0 - 2024-05-08
 
 ### Changed
