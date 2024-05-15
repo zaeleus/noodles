@@ -131,6 +131,7 @@ where
 {
     const DELIMITER: u8 = b'\t';
     const LINE_FEED: u8 = b'\n';
+    const CARRIAGE_RETURN: u8 = b'\r';
 
     let mut r#match = None;
     let mut len = 0;
@@ -142,13 +143,17 @@ where
             break;
         }
 
-        let (buf, n) = match memchr2(DELIMITER, LINE_FEED, src) {
+        let (mut buf, n) = match memchr2(DELIMITER, LINE_FEED, src) {
             Some(i) => {
                 r#match = Some(src[i]);
                 (&src[..i], i + 1)
             }
             None => (src, src.len()),
         };
+
+        if let [head @ .., CARRIAGE_RETURN] = buf {
+            buf = head;
+        }
 
         let s = str::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
         dst.push_str(s);
@@ -185,6 +190,16 @@ mod tests {
         assert_eq!(line, lazy::Line::Comment(String::from("#noodles")));
 
         let mut src = &b".\t.\t.\t1\t1\t.\t.\t.\t.\n"[..];
+        read_lazy_line(&mut src, &mut line)?;
+        assert_eq!(
+            line,
+            lazy::Line::Record(lazy::Record {
+                buf: String::from("...11...."),
+                bounds: Bounds::default()
+            })
+        );
+
+        let mut src = &b".\t.\t.\t1\t1\t.\t.\t.\t.\r\n"[..];
         read_lazy_line(&mut src, &mut line)?;
         assert_eq!(
             line,
