@@ -3,6 +3,8 @@ mod bounds;
 mod position;
 mod strand;
 
+use core::fmt;
+
 pub(crate) use self::bounds::Bounds;
 use self::{attributes::Attributes, position::Position, strand::Strand};
 
@@ -65,6 +67,22 @@ impl Record {
             MISSING => Attributes::new(""),
             buf => Attributes::new(buf),
         }
+    }
+}
+
+impl fmt::Debug for Record {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Record")
+            .field("reference_sequence_name", &self.reference_sequence_name())
+            .field("source", &self.source())
+            .field("ty", &self.ty())
+            .field("start", &self.start())
+            .field("end", &self.end())
+            .field("score", &self.score())
+            .field("strand", &self.strand())
+            .field("phase", &self.phase())
+            .field("attributes", &self.attributes())
+            .finish()
     }
 }
 

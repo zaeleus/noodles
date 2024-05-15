@@ -8,8 +8,7 @@
 
   * gff/lazy/line: Implement `Clone`, `Eq`, and `PartialEq`.
 
-  * gff/lazy/record: Implement `Debug` for `Attributes`, `Position`, and
-    `Strand`.
+  * gff/lazy/record: Implement `Debug`.
 
 [#262]: https://github.com/zaeleus/noodles/issues/262
 
