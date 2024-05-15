@@ -1,7 +1,7 @@
 use super::Record;
 
 /// An immutable, lazily-evalulated GFF line.
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Line {
     /// A directive (`##`).
     Directive(String),

@@ -145,19 +145,21 @@ mod tests {
 
         let mut src = &b"##gff-version 3"[..];
         read_lazy_line(&mut src, &mut line)?;
-        assert!(matches!(line, lazy::Line::Directive(ref s) if s == "##gff-version 3"));
+        assert_eq!(line, lazy::Line::Directive(String::from("##gff-version 3")));
 
         let mut src = &b"#noodles"[..];
         read_lazy_line(&mut src, &mut line)?;
-        assert!(matches!(line, lazy::Line::Comment(ref s) if s == "#noodles"));
+        assert_eq!(line, lazy::Line::Comment(String::from("#noodles")));
 
         let mut src = &b".\t.\t.\t1\t1\t.\t.\t.\t."[..];
         read_lazy_line(&mut src, &mut line)?;
-        let lazy::Line::Record(record) = line else {
-            panic!("expected record");
-        };
-        assert_eq!(record.buf, "...11....");
-        assert_eq!(record.bounds, Bounds::default());
+        assert_eq!(
+            line,
+            lazy::Line::Record(lazy::Record {
+                buf: String::from("...11...."),
+                bounds: Bounds::default()
+            })
+        );
 
         Ok(())
     }

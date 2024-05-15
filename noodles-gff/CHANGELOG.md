@@ -6,9 +6,7 @@
 
   * gff/async: Add an async reader (`gff::r#async::Reader`) ([#262]).
 
-  * gff/lazy/line: Implement `Clone`, `Eq`, and `PartialEq`.
-
-  * gff/lazy/record: Implement `Debug`.
+  * gff/lazy/line: Implement `Clone`, `Debug`, `Eq`, and `PartialEq`.
 
 [#262]: https://github.com/zaeleus/noodles/issues/262
 
