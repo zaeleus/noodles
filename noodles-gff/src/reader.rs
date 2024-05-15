@@ -144,31 +144,7 @@ where
 
     /// Reads a single line without eagerly decoding it.
     pub fn read_lazy_line(&mut self, line: &mut lazy::Line) -> io::Result<usize> {
-        const DEFAULT_LINE: lazy::Line = lazy::Line::Comment(String::new());
-        const DIRECTIVE_PREFIX: &str = "##";
-
-        let prev_line = mem::replace(line, DEFAULT_LINE);
-        let mut buf = prev_line.into();
-
-        match peek_line_type(&mut self.inner)? {
-            Some(LineType::Comment) => {
-                let n = read_line(&mut self.inner, &mut buf)?;
-
-                *line = if buf.starts_with(DIRECTIVE_PREFIX) {
-                    lazy::Line::Directive(buf)
-                } else {
-                    lazy::Line::Comment(buf)
-                };
-
-                Ok(n)
-            }
-            Some(LineType::Record) => {
-                let (n, bounds) = read_lazy_record(&mut self.inner, &mut buf)?;
-                *line = lazy::Line::Record(lazy::Record { buf, bounds });
-                Ok(n)
-            }
-            None => Ok(0),
-        }
+        read_lazy_line(&mut self.inner, line)
     }
 
     /// Returns an iterator over records starting from the current stream position.
@@ -262,6 +238,37 @@ where
             Ok(n)
         }
         Err(e) => Err(e),
+    }
+}
+
+fn read_lazy_line<R>(reader: &mut R, line: &mut lazy::Line) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    const DEFAULT_LINE: lazy::Line = lazy::Line::Comment(String::new());
+    const DIRECTIVE_PREFIX: &str = "##";
+
+    let prev_line = mem::replace(line, DEFAULT_LINE);
+    let mut buf = prev_line.into();
+
+    match peek_line_type(reader)? {
+        Some(LineType::Comment) => {
+            let n = read_line(reader, &mut buf)?;
+
+            *line = if buf.starts_with(DIRECTIVE_PREFIX) {
+                lazy::Line::Directive(buf)
+            } else {
+                lazy::Line::Comment(buf)
+            };
+
+            Ok(n)
+        }
+        Some(LineType::Record) => {
+            let (n, bounds) = read_lazy_record(reader, &mut buf)?;
+            *line = lazy::Line::Record(lazy::Record { buf, bounds });
+            Ok(n)
+        }
+        None => Ok(0),
     }
 }
 
