@@ -1,4 +1,4 @@
-use std::{io, iter};
+use std::{fmt, io, iter};
 
 /// Raw GFF record attributes.
 pub struct Attributes<'a>(&'a str);
@@ -46,6 +46,19 @@ impl<'a> Attributes<'a> {
 impl<'a> AsRef<str> for Attributes<'a> {
     fn as_ref(&self) -> &str {
         self.0
+    }
+}
+
+impl<'a> fmt::Debug for Attributes<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut formatter = f.debug_map();
+
+        for result in self.iter() {
+            let (tag, value) = result.map_err(|_| fmt::Error)?;
+            formatter.entry(&tag, &value);
+        }
+
+        formatter.finish()
     }
 }
 
