@@ -70,54 +70,81 @@ where
     let mut len = 0;
     let mut bounds = lazy::record::Bounds::default();
 
-    len += read_field(reader, buf)?;
+    len += read_required_field(reader, buf)?;
     bounds.reference_sequence_name_end = buf.len();
 
-    len += read_field(reader, buf)?;
+    len += read_required_field(reader, buf)?;
     bounds.source_end = buf.len();
 
-    len += read_field(reader, buf)?;
+    len += read_required_field(reader, buf)?;
     bounds.type_end = buf.len();
 
-    len += read_field(reader, buf)?;
+    len += read_required_field(reader, buf)?;
     bounds.start_end = buf.len();
 
-    len += read_field(reader, buf)?;
+    len += read_required_field(reader, buf)?;
     bounds.end_end = buf.len();
 
-    len += read_field(reader, buf)?;
+    len += read_required_field(reader, buf)?;
     bounds.score_end = buf.len();
 
-    len += read_field(reader, buf)?;
+    len += read_required_field(reader, buf)?;
     bounds.strand_end = buf.len();
 
-    len += read_field(reader, buf)?;
+    len += read_required_field(reader, buf)?;
     bounds.phase_end = buf.len();
 
-    len += read_line(reader, buf)?;
+    len += read_last_required_field(reader, buf)?;
 
     Ok((len, bounds))
 }
 
-fn read_field<R>(reader: &mut R, dst: &mut String) -> io::Result<usize>
+fn read_required_field<R>(reader: &mut R, dst: &mut String) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    let (len, is_eol) = read_field(reader, dst)?;
+
+    if is_eol {
+        Err(io::Error::new(io::ErrorKind::InvalidData, "unexpected EOL"))
+    } else {
+        Ok(len)
+    }
+}
+
+fn read_last_required_field<R>(reader: &mut R, dst: &mut String) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    let (len, is_eol) = read_field(reader, dst)?;
+
+    if is_eol {
+        Ok(len)
+    } else {
+        Err(io::Error::new(io::ErrorKind::InvalidData, "expected EOL"))
+    }
+}
+
+fn read_field<R>(reader: &mut R, dst: &mut String) -> io::Result<(usize, bool)>
 where
     R: BufRead,
 {
     const DELIMITER: u8 = b'\t';
+    const LINE_FEED: u8 = b'\n';
 
-    let mut is_delimiter = false;
+    let mut r#match = None;
     let mut len = 0;
 
     loop {
         let src = reader.fill_buf()?;
 
-        if is_delimiter || src.is_empty() {
+        if r#match.is_some() || src.is_empty() {
             break;
         }
 
-        let (buf, n) = match src.iter().position(|&b| b == DELIMITER) {
+        let (buf, n) = match memchr2(DELIMITER, LINE_FEED, src) {
             Some(i) => {
-                is_delimiter = true;
+                r#match = Some(src[i]);
                 (&src[..i], i + 1)
             }
             None => (src, src.len()),
@@ -131,7 +158,13 @@ where
         reader.consume(n);
     }
 
-    Ok(len)
+    let is_eol = matches!(r#match, Some(LINE_FEED));
+
+    Ok((len, is_eol))
+}
+
+fn memchr2(needle1: u8, needle2: u8, haystack: &[u8]) -> Option<usize> {
+    haystack.iter().position(|&b| b == needle1 || b == needle2)
 }
 
 #[cfg(test)]
@@ -151,7 +184,7 @@ mod tests {
         read_lazy_line(&mut src, &mut line)?;
         assert_eq!(line, lazy::Line::Comment(String::from("#noodles")));
 
-        let mut src = &b".\t.\t.\t1\t1\t.\t.\t.\t."[..];
+        let mut src = &b".\t.\t.\t1\t1\t.\t.\t.\t.\n"[..];
         read_lazy_line(&mut src, &mut line)?;
         assert_eq!(
             line,
@@ -160,6 +193,12 @@ mod tests {
                 bounds: Bounds::default()
             })
         );
+
+        let mut src = &b"\n"[..];
+        assert!(matches!(
+            read_lazy_line(&mut src, &mut line),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
 
         Ok(())
     }

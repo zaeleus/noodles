@@ -14,6 +14,10 @@
 
   * gff/reader: Fix lazy reading consecutive comment or directive lines.
 
+  * gff/reader/lazy_line: Disallow newlines to appear in fields.
+
+    This previously allowed incomplete records to span over more than one line.
+
 ## 0.31.0 - 2024-05-08
 
 ### Changed
