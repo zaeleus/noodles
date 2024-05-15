@@ -1,72 +1,62 @@
 mod attributes;
 mod bounds;
+mod fields;
 mod position;
 mod strand;
 
 use core::fmt;
 
-pub(crate) use self::bounds::Bounds;
 use self::{attributes::Attributes, position::Position, strand::Strand};
-
-const MISSING: &str = ".";
+pub(crate) use self::{bounds::Bounds, fields::Fields};
 
 /// An immutable, lazily-evalulated GFF record.
-#[derive(Clone, Eq, PartialEq)]
-pub struct Record {
-    pub(crate) buf: String,
-    pub(crate) bounds: Bounds,
-}
+#[derive(Clone, Default, Eq, PartialEq)]
+pub struct Record(pub(crate) Fields);
 
 impl Record {
     /// Returns the reference sequence name.
     pub fn reference_sequence_name(&self) -> &str {
-        &self.buf[self.bounds.reference_sequence_name_range()]
+        self.0.reference_sequence_name()
     }
 
     /// Returns the source.
     pub fn source(&self) -> &str {
-        &self.buf[self.bounds.source_range()]
+        self.0.source()
     }
 
     /// Returns the feature type.
     pub fn ty(&self) -> &str {
-        &self.buf[self.bounds.type_range()]
+        self.0.ty()
     }
 
     /// Returns the start position.
     pub fn start(&self) -> Position<'_> {
-        let buf = &self.buf[self.bounds.start_range()];
-        Position::new(buf)
+        self.0.start()
     }
 
     /// Returns the end position.
     pub fn end(&self) -> Position<'_> {
-        let buf = &self.buf[self.bounds.end_range()];
-        Position::new(buf)
+        self.0.end()
     }
 
     /// Returns the score.
     pub fn score(&self) -> &str {
-        &self.buf[self.bounds.score_range()]
+        self.0.score()
     }
 
     /// Returns the strand.
     pub fn strand(&self) -> Strand<'_> {
-        let buf = &self.buf[self.bounds.strand_range()];
-        Strand::new(buf)
+        self.0.strand()
     }
 
     /// Returns the phase.
     pub fn phase(&self) -> &str {
-        &self.buf[self.bounds.phase_range()]
+        self.0.phase()
     }
 
     /// Returns the attributes.
     pub fn attributes(&self) -> Attributes<'_> {
-        match &self.buf[self.bounds.attributes_range()] {
-            MISSING => Attributes::new(""),
-            buf => Attributes::new(buf),
-        }
+        self.0.attributes()
     }
 }
 
@@ -86,17 +76,8 @@ impl fmt::Debug for Record {
     }
 }
 
-impl Default for Record {
-    fn default() -> Self {
-        Self {
-            buf: String::from("...11...."),
-            bounds: Bounds::default(),
-        }
-    }
-}
-
 impl From<Record> for String {
     fn from(record: Record) -> Self {
-        record.buf
+        record.0.buf
     }
 }

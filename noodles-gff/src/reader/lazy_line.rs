@@ -32,7 +32,8 @@ where
         }
         Some(LineType::Record) => {
             let (n, bounds) = read_lazy_record(reader, &mut buf)?;
-            *line = lazy::Line::Record(lazy::Record { buf, bounds });
+            let record = lazy::Record(lazy::record::Fields { buf, bounds });
+            *line = lazy::Line::Record(record);
             Ok(n)
         }
         None => Ok(0),
@@ -193,20 +194,20 @@ mod tests {
         read_lazy_line(&mut src, &mut line)?;
         assert_eq!(
             line,
-            lazy::Line::Record(lazy::Record {
+            lazy::Line::Record(lazy::Record(lazy::record::Fields {
                 buf: String::from("...11...."),
                 bounds: Bounds::default()
-            })
+            }))
         );
 
         let mut src = &b".\t.\t.\t1\t1\t.\t.\t.\t.\r\n"[..];
         read_lazy_line(&mut src, &mut line)?;
         assert_eq!(
             line,
-            lazy::Line::Record(lazy::Record {
+            lazy::Line::Record(lazy::Record(lazy::record::Fields {
                 buf: String::from("...11...."),
                 bounds: Bounds::default()
-            })
+            }))
         );
 
         let mut src = &b"\n"[..];
