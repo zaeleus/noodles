@@ -120,7 +120,7 @@ where
         read_lazy_line(&mut self.inner, &mut self.buf, line).await
     }
 
-    /// Returns an stream over lines.
+    /// Returns a stream over lines.
     ///
     /// # Examples
     ///
@@ -156,7 +156,7 @@ where
         ))
     }
 
-    /// Returns an stream over records.
+    /// Returns a stream over records.
     ///
     /// # Examples
     ///
