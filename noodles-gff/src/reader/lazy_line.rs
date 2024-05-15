@@ -62,14 +62,14 @@ where
 fn read_lazy_record<R>(
     reader: &mut R,
     buf: &mut String,
-) -> io::Result<(usize, lazy::record::Bounds)>
+) -> io::Result<(usize, lazy::record::fields::Bounds)>
 where
     R: BufRead,
 {
     buf.clear();
 
     let mut len = 0;
-    let mut bounds = lazy::record::Bounds::default();
+    let mut bounds = lazy::record::fields::Bounds::default();
 
     len += read_required_field(reader, buf)?;
     bounds.reference_sequence_name_end = buf.len();
@@ -176,7 +176,7 @@ fn memchr2(needle1: u8, needle2: u8, haystack: &[u8]) -> Option<usize> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::lazy::record::Bounds;
+    use crate::lazy::record::fields::Bounds;
 
     #[test]
     fn test_read_lazy_line() -> io::Result<()> {

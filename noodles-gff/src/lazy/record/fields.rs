@@ -1,4 +1,7 @@
-use super::{Attributes, Bounds, Position, Strand};
+mod bounds;
+
+pub(crate) use self::bounds::Bounds;
+use super::{Attributes, Position, Strand};
 
 #[derive(Clone, Eq, PartialEq)]
 pub(crate) struct Fields {

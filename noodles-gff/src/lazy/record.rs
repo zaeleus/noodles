@@ -1,13 +1,12 @@
 mod attributes;
-mod bounds;
-mod fields;
+pub(crate) mod fields;
 mod position;
 mod strand;
 
 use core::fmt;
 
+pub(crate) use self::fields::Fields;
 use self::{attributes::Attributes, position::Position, strand::Strand};
-pub(crate) use self::{bounds::Bounds, fields::Fields};
 
 /// An immutable, lazily-evalulated GFF record.
 #[derive(Clone, Default, Eq, PartialEq)]
