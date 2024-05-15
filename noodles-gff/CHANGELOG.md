@@ -4,7 +4,9 @@
 
 ### Added
 
-  * gff/async: Add an async reader (`gff::r#async::Reader`).
+  * gff/async: Add an async reader (`gff::r#async::Reader`) ([#262]).
+
+[#262]: https://github.com/zaeleus/noodles/issues/262
 
 ## 0.31.0 - 2024-05-08
 
