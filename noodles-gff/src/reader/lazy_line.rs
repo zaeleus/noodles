@@ -137,6 +137,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::lazy::record::Bounds;
 
     #[test]
     fn test_read_lazy_line() -> io::Result<()> {
@@ -156,6 +157,7 @@ mod tests {
             panic!("expected record");
         };
         assert_eq!(record.buf, "...11....");
+        assert_eq!(record.bounds, Bounds::default());
 
         Ok(())
     }

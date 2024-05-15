@@ -1,6 +1,6 @@
 use std::ops::{Range, RangeFrom};
 
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct Bounds {
     pub(crate) reference_sequence_name_end: usize,
     pub(crate) source_end: usize,
@@ -47,5 +47,20 @@ impl Bounds {
 
     pub fn attributes_range(&self) -> RangeFrom<usize> {
         self.phase_end..
+    }
+}
+
+impl Default for Bounds {
+    fn default() -> Self {
+        Self {
+            reference_sequence_name_end: 1,
+            source_end: 2,
+            type_end: 3,
+            start_end: 4,
+            end_end: 5,
+            score_end: 6,
+            strand_end: 7,
+            phase_end: 8,
+        }
     }
 }
