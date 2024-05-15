@@ -14,16 +14,43 @@ pub struct Reader<R> {
 
 impl<R> Reader<R> {
     /// Returns a reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gff as gff;
+    /// use tokio::io;
+    /// let reader = gff::r#async::Reader::new(io::empty());
+    /// let _inner = reader.get_ref();
+    /// ```
     pub fn get_ref(&self) -> &R {
         &self.inner
     }
 
     /// Returns a mutable reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gff as gff;
+    /// use tokio::io;
+    /// let mut reader = gff::r#async::Reader::new(io::empty());
+    /// let _inner = reader.get_mut();
+    /// ```
     pub fn get_mut(&mut self) -> &mut R {
         &mut self.inner
     }
 
     /// Unwraps and returns the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gff as gff;
+    /// use tokio::io;
+    /// let reader = gff::r#async::Reader::new(io::empty());
+    /// let _inner = reader.into_inner();
+    /// ```
     pub fn into_inner(self) -> R {
         self.inner
     }
@@ -34,6 +61,14 @@ where
     R: AsyncBufRead + Unpin,
 {
     /// Creates an async GFF reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gff as gff;
+    /// use tokio::io;
+    /// let reader = gff::r#async::Reader::new(io::empty());
+    /// ```
     pub fn new(inner: R) -> Self {
         Self {
             inner,
@@ -42,16 +77,70 @@ where
     }
 
     /// Reads a raw GFF line.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[tokio::main]
+    /// # async fn main() -> tokio::io::Result<()> {
+    /// use noodles_gff as gff;
+    ///
+    /// let data = b"##gff-version 3\n";
+    /// let mut reader = gff::r#async::Reader::new(&data[..]);
+    ///
+    /// let mut buf = String::new();
+    /// reader.read_line(&mut buf).await?;
+    /// assert_eq!(buf, "##gff-version 3");
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn read_line(&mut self, buf: &mut String) -> io::Result<usize> {
         read_line(&mut self.inner, buf).await
     }
 
     /// Reads a lazy line.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[tokio::main]
+    /// # async fn main() -> tokio::io::Result<()> {
+    /// use noodles_gff::{self as gff, lazy};
+    ///
+    /// let data = b"##gff-version 3\n";
+    /// let mut reader = gff::r#async::Reader::new(&data[..]);
+    ///
+    /// let mut line = lazy::Line::default();
+    /// reader.read_lazy_line(&mut line).await?;
+    /// assert_eq!(line, lazy::Line::Directive(String::from("##gff-version 3")));
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn read_lazy_line(&mut self, line: &mut lazy::Line) -> io::Result<usize> {
         read_lazy_line(&mut self.inner, &mut self.buf, line).await
     }
 
     /// Returns an stream over lines.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[tokio::main]
+    /// # async fn main() -> tokio::io::Result<()> {
+    /// use noodles_gff as gff;
+    /// use futures::TryStreamExt;
+    ///
+    /// let data = b"##gff-version 3\n";
+    /// let mut reader = gff::r#async::Reader::new(&data[..]);
+    /// let mut lines = reader.lines();
+    ///
+    /// let line = lines.try_next().await?;
+    /// assert!(matches!(line, Some(gff::Line::Directive(_))));
+    ///
+    /// assert!(lines.try_next().await?.is_none());
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn lines(&mut self) -> impl Stream<Item = io::Result<Line>> + '_ {
         Box::pin(stream::try_unfold(
             (self, String::new()),
@@ -68,6 +157,23 @@ where
     }
 
     /// Returns an stream over records.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[tokio::main]
+    /// # async fn main() -> tokio::io::Result<()> {
+    /// use noodles_gff as gff;
+    /// use futures::TryStreamExt;
+    ///
+    /// let data = b"##gff-version 3\n";
+    /// let mut reader = gff::r#async::Reader::new(&data[..]);
+    /// let mut records = reader.records();
+    ///
+    /// assert!(records.try_next().await?.is_none());
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn records(&mut self) -> impl Stream<Item = io::Result<Record>> + '_ {
         Box::pin(stream::try_unfold(self.lines(), |mut lines| async {
             loop {
