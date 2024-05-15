@@ -145,6 +145,29 @@ where
     }
 
     /// Reads a single line without eagerly decoding it.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_gff as gff;
+    ///
+    /// let data = b"##gff-version 3
+    /// sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id=ndls0;gene_name=gene0
+    /// ";
+    /// let mut reader = gff::Reader::new(&data[..]);
+    ///
+    /// let mut line = gff::lazy::Line::default();
+    ///
+    /// reader.read_lazy_line(&mut line)?;
+    /// assert!(matches!(line, gff::lazy::Line::Directive(_)));
+    ///
+    /// reader.read_lazy_line(&mut line)?;
+    /// assert!(matches!(line, gff::lazy::Line::Record(_)));
+    ///
+    /// assert_eq!(reader.read_lazy_line(&mut line)?, 0);
+    /// # Ok::<_, io::Error>(())
+    /// ```
     pub fn read_lazy_line(&mut self, line: &mut lazy::Line) -> io::Result<usize> {
         read_lazy_line(&mut self.inner, line)
     }
