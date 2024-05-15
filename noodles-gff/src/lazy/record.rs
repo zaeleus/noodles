@@ -9,6 +9,7 @@ use self::{attributes::Attributes, position::Position, strand::Strand};
 const MISSING: &str = ".";
 
 /// An immutable, lazily-evalulated GFF record.
+#[derive(Clone, Eq, PartialEq)]
 pub struct Record {
     pub(crate) buf: String,
     pub(crate) bounds: Bounds,
@@ -63,6 +64,15 @@ impl Record {
         match &self.buf[self.bounds.attributes_range()] {
             MISSING => Attributes::new(""),
             buf => Attributes::new(buf),
+        }
+    }
+}
+
+impl Default for Record {
+    fn default() -> Self {
+        Self {
+            buf: String::from("...11...."),
+            bounds: Bounds::default(),
         }
     }
 }
