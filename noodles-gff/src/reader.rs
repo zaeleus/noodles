@@ -241,7 +241,7 @@ where
     }
 }
 
-fn read_lazy_line<R>(reader: &mut R, line: &mut lazy::Line) -> io::Result<usize>
+pub(crate) fn read_lazy_line<R>(reader: &mut R, line: &mut lazy::Line) -> io::Result<usize>
 where
     R: BufRead,
 {

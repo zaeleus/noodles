@@ -1,11 +1,15 @@
+mod lazy_line;
+
 use futures::{stream, Stream, TryStreamExt};
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt};
 
-use crate::{Directive, Line, Record};
+use self::lazy_line::read_lazy_line;
+use crate::{lazy, Directive, Line, Record};
 
 /// An async GFF reader.
 pub struct Reader<R> {
     inner: R,
+    buf: String,
 }
 
 impl<R> Reader<R> {
@@ -31,12 +35,20 @@ where
 {
     /// Creates an async GFF reader.
     pub fn new(inner: R) -> Self {
-        Self { inner }
+        Self {
+            inner,
+            buf: String::new(),
+        }
     }
 
     /// Reads a raw GFF line.
     pub async fn read_line(&mut self, buf: &mut String) -> io::Result<usize> {
         read_line(&mut self.inner, buf).await
+    }
+
+    /// Reads a lazy line.
+    pub async fn read_lazy_line(&mut self, line: &mut lazy::Line) -> io::Result<usize> {
+        read_lazy_line(&mut self.inner, &mut self.buf, line).await
     }
 
     /// Returns an stream over lines.
