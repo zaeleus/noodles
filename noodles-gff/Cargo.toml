@@ -28,3 +28,7 @@ tokio = { workspace = true, features = ["fs", "macros", "rt-multi-thread"] }
 
 [package.metadata.docs.rs]
 features = ["async"]
+
+[[example]]
+name = "gff_count_async"
+required-features = ["async"]
