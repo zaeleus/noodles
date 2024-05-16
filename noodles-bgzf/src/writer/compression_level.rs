@@ -38,6 +38,18 @@ impl CompressionLevel {
         }
     }
 
+    /// Returns the inner value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf::writer::CompressionLevel;
+    /// assert_eq!(CompressionLevel::NONE.get(), 0);
+    /// ```
+    pub const fn get(&self) -> u8 {
+        self.0
+    }
+
     /// Returns a compression level to disable compression.
     ///
     /// # Examples

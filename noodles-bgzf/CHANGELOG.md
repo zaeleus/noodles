@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bgzf/writer/compression_level: Add a `const` getter
+    (`CompressionLevel::get`).
+
 ## 0.29.0 - 2024-05-02
 
 ### Added
