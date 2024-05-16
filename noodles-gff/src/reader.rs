@@ -18,9 +18,6 @@ use noodles_csi::{self as csi, BinningIndex};
 pub(crate) use self::lazy_line::read_lazy_line;
 use super::{lazy, Record};
 
-const LINE_FEED: char = '\n';
-const CARRIAGE_RETURN: char = '\r';
-
 /// A GFF reader.
 pub struct Reader<R> {
     inner: R,
@@ -256,6 +253,9 @@ fn read_line<R>(reader: &mut R, buf: &mut String) -> io::Result<usize>
 where
     R: BufRead,
 {
+    const LINE_FEED: char = '\n';
+    const CARRIAGE_RETURN: char = '\r';
+
     match reader.read_line(buf) {
         Ok(0) => Ok(0),
         Ok(n) => {
