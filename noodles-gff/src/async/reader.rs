@@ -145,6 +145,8 @@ where
         Box::pin(stream::try_unfold(
             (self, String::new()),
             |(reader, mut buf)| async {
+                buf.clear();
+
                 reader.read_line(&mut buf).await.and_then(|n| match n {
                     0 => Ok(None),
                     _ => match buf.parse() {
