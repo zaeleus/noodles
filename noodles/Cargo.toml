@@ -57,6 +57,7 @@ async = [
   "noodles-csi?/async",
   "noodles-fasta?/async",
   "noodles-fastq?/async",
+  "noodles-gff?/async",
   "noodles-sam?/async",
   "noodles-tabix?/async",
   "noodles-vcf?/async",
