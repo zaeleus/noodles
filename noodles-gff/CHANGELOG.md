@@ -8,6 +8,9 @@
 
   * gff/lazy/line: Implement `Clone`, `Debug`, `Eq`, and `PartialEq`.
 
+  * gff/reader: Add getter for a mutable reference to the underlying reader
+    (`Reader::get_mut`).
+
 [#262]: https://github.com/zaeleus/noodles/issues/262
 
 ### Fixed

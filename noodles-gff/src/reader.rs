@@ -41,6 +41,20 @@ impl<R> Reader<R> {
         &self.inner
     }
 
+    /// Returns a mutable reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_gff as gff;
+    /// let mut reader = gff::Reader::new(io::empty());
+    /// let _ = reader.get_mut();
+    /// ```
+    pub fn get_mut(&mut self) -> &mut R {
+        &mut self.inner
+    }
+
     /// Unwraps and returns the underlying reader.
     ///
     /// # Examples
