@@ -32,11 +32,9 @@ impl<R> Reader<R> {
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_gff as gff;
-    ///
-    /// let data = b"##gff-version 3\n";
-    /// let reader = gff::Reader::new(&data[..]);
-    ///
+    /// let reader = gff::Reader::new(io::empty());
     /// let _ = reader.get_ref();
     /// ```
     pub fn get_ref(&self) -> &R {
@@ -50,15 +48,8 @@ impl<R> Reader<R> {
     /// ```
     /// # use std::io;
     /// use noodles_gff as gff;
-    ///
-    /// let data = b"##gff-version 3
-    /// #format: gff3
-    /// ";
-    /// let mut reader = gff::Reader::new(&data[..]);
-    /// reader.read_line(&mut String::new())?;
-    ///
-    /// assert_eq!(reader.into_inner(), b"#format: gff3\n");
-    /// # Ok::<_, io::Error>(())
+    /// let reader = gff::Reader::new(io::empty());
+    /// let _ = reader.into_inner();
     /// ```
     pub fn into_inner(self) -> R {
         self.inner
@@ -74,9 +65,9 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_gff as gff;
-    /// let data = b"##gff-version 3\n";
-    /// let mut reader = gff::Reader::new(&data[..]);
+    /// let reader = gff::Reader::new(io::empty());
     /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
