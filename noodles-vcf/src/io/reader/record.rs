@@ -122,7 +122,7 @@ mod tests {
     use crate::record::fields::Bounds;
 
     #[test]
-    fn test_read_lazy_record() -> io::Result<()> {
+    fn test_read_record() -> io::Result<()> {
         let mut src = &b"sq0\t1\t.\tA\t.\t.\t.\t.\n"[..];
         let mut record = Record::default();
         read_record(&mut src, &mut record)?;
