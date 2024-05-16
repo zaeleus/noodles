@@ -1,4 +1,8 @@
+mod field;
+
 use std::{fmt, io, iter};
+
+use self::field::parse_field;
 
 /// Raw GFF record attributes.
 pub struct Attributes<'a>(&'a str);
@@ -60,25 +64,6 @@ impl<'a> fmt::Debug for Attributes<'a> {
 
         formatter.finish()
     }
-}
-
-fn parse_field<'a>(buf: &mut &'a str) -> io::Result<(&'a str, &'a str)> {
-    const DELIMITER: u8 = b';';
-    const SEPARATOR: char = '=';
-
-    let (raw_field, rest) = match buf.as_bytes().iter().position(|&b| b == DELIMITER) {
-        Some(i) => {
-            let (s, r) = buf.split_at(i);
-            (s, &r[1..])
-        }
-        None => buf.split_at(buf.len()),
-    };
-
-    *buf = rest;
-
-    raw_field
-        .split_once(SEPARATOR)
-        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid field"))
 }
 
 #[cfg(test)]
