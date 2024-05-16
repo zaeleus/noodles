@@ -26,23 +26,7 @@ pub struct Reader<R> {
     inner: R,
 }
 
-impl<R> Reader<R>
-where
-    R: BufRead,
-{
-    /// Creates a GFF reader.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_gff as gff;
-    /// let data = b"##gff-version 3\n";
-    /// let mut reader = gff::Reader::new(&data[..]);
-    /// ```
-    pub fn new(inner: R) -> Self {
-        Self { inner }
-    }
-
+impl<R> Reader<R> {
     /// Returns a reference to the underlying reader.
     ///
     /// # Examples
@@ -78,6 +62,24 @@ where
     /// ```
     pub fn into_inner(self) -> R {
         self.inner
+    }
+}
+
+impl<R> Reader<R>
+where
+    R: BufRead,
+{
+    /// Creates a GFF reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gff as gff;
+    /// let data = b"##gff-version 3\n";
+    /// let mut reader = gff::Reader::new(&data[..]);
+    /// ```
+    pub fn new(inner: R) -> Self {
+        Self { inner }
     }
 
     /// Reads a raw GFF line.
