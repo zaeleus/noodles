@@ -7,6 +7,8 @@
   * bgzf/writer/compression_level: Add a `const` getter
     (`CompressionLevel::get`).
 
+  * bgzf/writer/compression_level: Implement `Ord` + `PartialOrd`.
+
 ## 0.29.0 - 2024-05-02
 
 ### Added

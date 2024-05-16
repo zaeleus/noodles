@@ -8,7 +8,7 @@ const MAX: u8 = 12;
 const MAX: u8 = 9;
 
 /// A DEFLATE compression level.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct CompressionLevel(u8);
 
 impl CompressionLevel {
