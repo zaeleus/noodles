@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * gff/lazy/record/attributes: Tag the value type.
+
 ## 0.32.0 - 2024-05-16
 
 ### Added

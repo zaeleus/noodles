@@ -1,8 +1,8 @@
-mod field;
+pub mod field;
 
 use std::{fmt, io, iter};
 
-use self::field::parse_field;
+use self::field::{parse_field, Value};
 
 /// Raw GFF record attributes.
 pub struct Attributes<'a>(&'a str);
@@ -18,7 +18,7 @@ impl<'a> Attributes<'a> {
     }
 
     /// Returns the value of the given tag.
-    pub fn get(&self, tag: &str) -> Option<io::Result<&str>> {
+    pub fn get(&self, tag: &str) -> Option<io::Result<Value<'_>>> {
         for result in self.iter() {
             match result {
                 Ok((t, value)) => {
@@ -34,7 +34,7 @@ impl<'a> Attributes<'a> {
     }
 
     /// Returns an iterator over all tag-value pairs.
-    pub fn iter(&self) -> impl Iterator<Item = io::Result<(&str, &str)>> {
+    pub fn iter(&self) -> impl Iterator<Item = io::Result<(&str, Value<'_>)>> {
         let mut src = self.0;
 
         iter::from_fn(move || {
@@ -93,7 +93,10 @@ mod tests {
 
         let attributes = Attributes::new("gene_id=ndls0;gene_name=gene0");
         let actual: Vec<_> = attributes.iter().collect::<Result<_, _>>()?;
-        let expected = vec![("gene_id", "ndls0"), ("gene_name", "gene0")];
+        let expected = vec![
+            ("gene_id", Value::String("ndls0")),
+            ("gene_name", Value::String("gene0")),
+        ];
         assert_eq!(actual, expected);
 
         Ok(())
