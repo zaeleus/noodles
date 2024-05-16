@@ -1,15 +1,19 @@
+mod array;
+
+use self::array::Array;
+
 /// A raw GFF record attributes field value.
 #[derive(Debug, Eq, PartialEq)]
 pub enum Value<'a> {
     /// A string.
     String(&'a str),
     /// An array.
-    Array(&'a str),
+    Array(Array<'a>),
 }
 
 pub(super) fn parse_value(s: &str) -> Value<'_> {
     if is_array(s) {
-        Value::Array(s)
+        Value::Array(Array::new(s))
     } else {
         Value::String(s)
     }
@@ -27,7 +31,7 @@ mod tests {
     #[test]
     fn test_parse_value() {
         assert_eq!(parse_value("ndls"), Value::String("ndls"));
-        assert_eq!(parse_value("nd,ls"), Value::Array("nd,ls"));
+        assert_eq!(parse_value("nd,ls"), Value::Array(Array::new("nd,ls")));
     }
 
     #[test]
