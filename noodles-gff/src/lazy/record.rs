@@ -1,4 +1,6 @@
-mod attributes;
+//! Raw GFF record.
+
+pub mod attributes;
 pub(crate) mod fields;
 
 use core::fmt;
@@ -6,7 +8,7 @@ use std::io;
 
 use noodles_core::Position;
 
-use self::attributes::Attributes;
+pub use self::attributes::Attributes;
 pub(crate) use self::fields::Fields;
 use crate::record::Strand;
 

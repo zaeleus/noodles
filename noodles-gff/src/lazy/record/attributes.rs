@@ -1,3 +1,5 @@
+//! Raw GFF record attributes.
+
 pub mod field;
 
 use std::{fmt, io, iter};

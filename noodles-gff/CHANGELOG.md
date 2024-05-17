@@ -6,6 +6,8 @@
 
   * gff: Move reader (`Reader`) and writer (`Writer`) to `io` module.
 
+  * gff/lazy: Increase the visibility of `record` module.
+
   * gff/lazy/record: Parse positions (`Record::start` and `Record::end`) and
     strand (`Record::strand`).
 
