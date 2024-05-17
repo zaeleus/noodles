@@ -6,7 +6,8 @@
 
   * gff: Move reader (`Reader`) and writer (`Writer`) to `io` module.
 
-  * gff/lazy/record: Parse positions (`Record::start` and `Record::end`).
+  * gff/lazy/record: Parse positions (`Record::start` and `Record::end`) and
+    strand (`Record::strand`).
 
   * gff/lazy/record/attributes: Tag the value type.
 
@@ -15,6 +16,13 @@
   * gff: Deprecate `gff::Reader` and `gff::Writer`.
 
     Use `gff::io::Reader` and `gff::io::Writer`, respectively, instead.
+
+### Removed
+
+  * gff/lazy/record: Remove `Position` and `Strand` wrappers.
+
+    These fields are now parsed as `noodles_core::Position` and
+    `gff::record::Strand`, respectively.
 
 ## 0.32.0 - 2024-05-16
 

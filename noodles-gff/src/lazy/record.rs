@@ -1,14 +1,14 @@
 mod attributes;
 pub(crate) mod fields;
-mod strand;
 
 use core::fmt;
 use std::io;
 
 use noodles_core::Position;
 
+use self::attributes::Attributes;
 pub(crate) use self::fields::Fields;
-use self::{attributes::Attributes, strand::Strand};
+use crate::record::Strand;
 
 /// An immutable, lazily-evalulated GFF record.
 #[derive(Clone, Default, Eq, PartialEq)]
@@ -46,7 +46,7 @@ impl Record {
     }
 
     /// Returns the strand.
-    pub fn strand(&self) -> Strand<'_> {
+    pub fn strand(&self) -> io::Result<Strand> {
         self.0.strand()
     }
 

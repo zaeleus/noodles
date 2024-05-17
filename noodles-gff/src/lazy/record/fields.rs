@@ -5,7 +5,8 @@ use std::io;
 use noodles_core::Position;
 
 pub(crate) use self::bounds::Bounds;
-use super::{Attributes, Strand};
+use super::Attributes;
+use crate::record::Strand;
 
 #[derive(Clone, Eq, PartialEq)]
 pub(crate) struct Fields {
@@ -40,9 +41,9 @@ impl Fields {
         &self.buf[self.bounds.score_range()]
     }
 
-    pub fn strand(&self) -> Strand<'_> {
-        let buf = &self.buf[self.bounds.strand_range()];
-        Strand::new(buf)
+    pub fn strand(&self) -> io::Result<Strand> {
+        let src = &self.buf[self.bounds.strand_range()];
+        parse_strand(src)
     }
 
     pub fn phase(&self) -> &str {
@@ -69,6 +70,11 @@ impl Default for Fields {
 }
 
 fn parse_position(s: &str) -> io::Result<Position> {
+    s.parse()
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+}
+
+fn parse_strand(s: &str) -> io::Result<Strand> {
     s.parse()
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
