@@ -18,7 +18,7 @@ fn main() -> io::Result<()> {
         .map(gff::io::Reader::new)?;
 
     let stdout = io::stdout().lock();
-    let mut writer = gff::Writer::new(stdout);
+    let mut writer = gff::io::Writer::new(stdout);
 
     for result in reader.lines() {
         let line = result?;

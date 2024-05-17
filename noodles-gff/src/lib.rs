@@ -39,12 +39,14 @@ pub mod io;
 pub mod lazy;
 pub mod line;
 pub mod record;
-mod writer;
 
-pub use self::{directive::Directive, line::Line, record::Record, writer::Writer};
+pub use self::{directive::Directive, line::Line, record::Record};
 
 #[deprecated(since = "0.33.0", note = "Use `noodles_gff::io::Reader` instead.")]
 pub use self::io::Reader;
+
+#[deprecated(since = "0.33.0", note = "Use `noodles_gff::io::Writer` instead.")]
+pub use self::io::Writer;
 
 #[cfg(feature = "async")]
 pub use self::r#async::io::Reader as AsyncReader;

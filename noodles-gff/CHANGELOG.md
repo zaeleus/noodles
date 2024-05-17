@@ -4,15 +4,15 @@
 
 ### Changed
 
-  * gff: Move reader (`Reader`) to `io` module.
+  * gff: Move reader (`Reader`) and writer (`Writer`) to `io` module.
 
   * gff/lazy/record/attributes: Tag the value type.
 
 ### Deprecated
 
-  * gff: Deprecate `gff::Reader`.
+  * gff: Deprecate `gff::Reader` and `gff::Writer`.
 
-    Use `gff::io::Reader` instead.
+    Use `gff::io::Reader` and `gff::io::Writer`, respectively, instead.
 
 ## 0.32.0 - 2024-05-16
 

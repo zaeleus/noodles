@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use super::{Directive, Line, Record};
+use crate::{Directive, Line, Record};
 
 /// A GFF writer.
 pub struct Writer<W> {
@@ -17,7 +17,7 @@ where
     ///
     /// ```
     /// use noodles_gff as gff;
-    /// let writer = gff::Writer::new(Vec::new());
+    /// let writer = gff::io::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
         Self { inner }
@@ -29,7 +29,7 @@ where
     ///
     /// ```
     /// use noodles_gff as gff;
-    /// let writer = gff::Writer::new(Vec::new());
+    /// let writer = gff::io::Writer::new(Vec::new());
     /// assert!(writer.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &W {
@@ -45,7 +45,7 @@ where
     /// use noodles_gff as gff;
     /// use gff::line::Line;
     ///
-    /// let mut writer = gff::Writer::new(Vec::new());
+    /// let mut writer = gff::io::Writer::new(Vec::new());
     ///
     /// let version = Line::Directive(gff::Directive::GffVersion(Default::default()));
     /// writer.write_line(&version)?;
@@ -75,7 +75,7 @@ where
     /// # use std::io;
     /// use noodles_gff as gff;
     ///
-    /// let mut writer = gff::Writer::new(Vec::new());
+    /// let mut writer = gff::io::Writer::new(Vec::new());
     ///
     /// let version = gff::Directive::GffVersion(Default::default());
     /// writer.write_directive(&version)?;
@@ -95,7 +95,7 @@ where
     /// # use std::io;
     /// use noodles_gff as gff;
     ///
-    /// let mut writer = gff::Writer::new(Vec::new());
+    /// let mut writer = gff::io::Writer::new(Vec::new());
     ///
     /// let version = gff::Directive::GffVersion(Default::default());
     /// writer.write_directive(&version)?;
