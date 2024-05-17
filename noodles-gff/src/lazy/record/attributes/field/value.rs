@@ -11,6 +11,15 @@ pub enum Value<'a> {
     Array(Array<'a>),
 }
 
+impl<'a> AsRef<str> for Value<'a> {
+    fn as_ref(&self) -> &str {
+        match self {
+            Value::String(s) => s,
+            Value::Array(array) => array.as_ref(),
+        }
+    }
+}
+
 pub(super) fn parse_value(s: &str) -> Value<'_> {
     if is_array(s) {
         Value::Array(Array::new(s))

@@ -11,7 +11,9 @@
   * gff/lazy/record: Parse positions (`Record::start` and `Record::end`) and
     strand (`Record::strand`).
 
-  * gff/lazy/record/attributes: Tag the value type.
+  * gff/lazy/record/attributes: Tag the value type (`Value`).
+
+    The raw value can still be accessed via `AsRef<str>`.
 
 ### Deprecated
 

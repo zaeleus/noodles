@@ -16,6 +16,12 @@ impl<'a> Array<'a> {
     }
 }
 
+impl<'a> AsRef<str> for Array<'a> {
+    fn as_ref(&self) -> &str {
+        self.0
+    }
+}
+
 impl<'a> fmt::Debug for Array<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_list().entries(self.iter()).finish()
