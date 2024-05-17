@@ -1,12 +1,14 @@
 mod attributes;
 pub(crate) mod fields;
-mod position;
 mod strand;
 
 use core::fmt;
+use std::io;
+
+use noodles_core::Position;
 
 pub(crate) use self::fields::Fields;
-use self::{attributes::Attributes, position::Position, strand::Strand};
+use self::{attributes::Attributes, strand::Strand};
 
 /// An immutable, lazily-evalulated GFF record.
 #[derive(Clone, Default, Eq, PartialEq)]
@@ -29,12 +31,12 @@ impl Record {
     }
 
     /// Returns the start position.
-    pub fn start(&self) -> Position<'_> {
+    pub fn start(&self) -> io::Result<Position> {
         self.0.start()
     }
 
     /// Returns the end position.
-    pub fn end(&self) -> Position<'_> {
+    pub fn end(&self) -> io::Result<Position> {
         self.0.end()
     }
 

@@ -6,6 +6,8 @@
 
   * gff: Move reader (`Reader`) and writer (`Writer`) to `io` module.
 
+  * gff/lazy/record: Parse positions (`Record::start` and `Record::end`).
+
   * gff/lazy/record/attributes: Tag the value type.
 
 ### Deprecated

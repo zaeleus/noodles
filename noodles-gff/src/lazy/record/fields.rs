@@ -1,7 +1,11 @@
 mod bounds;
 
+use std::io;
+
+use noodles_core::Position;
+
 pub(crate) use self::bounds::Bounds;
-use super::{Attributes, Position, Strand};
+use super::{Attributes, Strand};
 
 #[derive(Clone, Eq, PartialEq)]
 pub(crate) struct Fields {
@@ -22,14 +26,14 @@ impl Fields {
         &self.buf[self.bounds.type_range()]
     }
 
-    pub fn start(&self) -> Position<'_> {
-        let buf = &self.buf[self.bounds.start_range()];
-        Position::new(buf)
+    pub fn start(&self) -> io::Result<Position> {
+        let src = &self.buf[self.bounds.start_range()];
+        parse_position(src)
     }
 
-    pub fn end(&self) -> Position<'_> {
-        let buf = &self.buf[self.bounds.end_range()];
-        Position::new(buf)
+    pub fn end(&self) -> io::Result<Position> {
+        let src = &self.buf[self.bounds.end_range()];
+        parse_position(src)
     }
 
     pub fn score(&self) -> &str {
@@ -62,4 +66,9 @@ impl Default for Fields {
             bounds: Bounds::default(),
         }
     }
+}
+
+fn parse_position(s: &str) -> io::Result<Position> {
+    s.parse()
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
