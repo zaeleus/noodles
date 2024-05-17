@@ -16,7 +16,7 @@ use noodles_core::Region;
 use noodles_csi::{self as csi, BinningIndex};
 
 pub(crate) use self::lazy_line::read_lazy_line;
-use super::{lazy, Record};
+use crate::{lazy, Record};
 
 /// A GFF reader.
 pub struct Reader<R> {
@@ -31,7 +31,7 @@ impl<R> Reader<R> {
     /// ```
     /// # use std::io;
     /// use noodles_gff as gff;
-    /// let reader = gff::Reader::new(io::empty());
+    /// let reader = gff::io::Reader::new(io::empty());
     /// let _ = reader.get_ref();
     /// ```
     pub fn get_ref(&self) -> &R {
@@ -45,7 +45,7 @@ impl<R> Reader<R> {
     /// ```
     /// # use std::io;
     /// use noodles_gff as gff;
-    /// let mut reader = gff::Reader::new(io::empty());
+    /// let mut reader = gff::io::Reader::new(io::empty());
     /// let _ = reader.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
@@ -59,7 +59,7 @@ impl<R> Reader<R> {
     /// ```
     /// # use std::io;
     /// use noodles_gff as gff;
-    /// let reader = gff::Reader::new(io::empty());
+    /// let reader = gff::io::Reader::new(io::empty());
     /// let _ = reader.into_inner();
     /// ```
     pub fn into_inner(self) -> R {
@@ -78,7 +78,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_gff as gff;
-    /// let reader = gff::Reader::new(io::empty());
+    /// let reader = gff::io::Reader::new(io::empty());
     /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
@@ -105,7 +105,7 @@ where
     /// let data = b"##gff-version 3
     /// sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id=ndls0;gene_name=gene0
     /// ";
-    /// let mut reader = gff::Reader::new(&data[..]);
+    /// let mut reader = gff::io::Reader::new(&data[..]);
     ///
     /// let mut buf = String::new();
     /// reader.read_line(&mut buf)?;
@@ -132,7 +132,7 @@ where
     /// let data = b"##gff-version 3
     /// sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id=ndls0;gene_name=gene0
     /// ";
-    /// let mut reader = gff::Reader::new(&data[..]);
+    /// let mut reader = gff::io::Reader::new(&data[..]);
     /// let mut lines = reader.lines();
     ///
     /// let line = lines.next().transpose()?;
@@ -159,7 +159,7 @@ where
     /// let data = b"##gff-version 3
     /// sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id=ndls0;gene_name=gene0
     /// ";
-    /// let mut reader = gff::Reader::new(&data[..]);
+    /// let mut reader = gff::io::Reader::new(&data[..]);
     ///
     /// let mut line = gff::lazy::Line::default();
     ///
@@ -190,7 +190,7 @@ where
     /// let data = b"##gff-version 3
     /// sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id=ndls0;gene_name=gene0
     /// ";
-    /// let mut reader = gff::Reader::new(&data[..]);
+    /// let mut reader = gff::io::Reader::new(&data[..]);
     /// let mut records = reader.records();
     ///
     /// assert!(records.next().transpose()?.is_some());

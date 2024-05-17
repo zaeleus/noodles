@@ -13,7 +13,9 @@ use noodles_gff::{self as gff, Directive, Line};
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = File::open(src).map(BufReader::new).map(gff::Reader::new)?;
+    let mut reader = File::open(src)
+        .map(BufReader::new)
+        .map(gff::io::Reader::new)?;
 
     let stdout = io::stdout().lock();
     let mut writer = gff::Writer::new(stdout);

@@ -19,7 +19,7 @@ async fn main() -> io::Result<()> {
     let mut reader = File::open(src)
         .await
         .map(BufReader::new)
-        .map(gff::r#async::Reader::new)?;
+        .map(gff::r#async::io::Reader::new)?;
 
     let mut records = reader.records();
     let mut n = 0;

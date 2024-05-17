@@ -17,5 +17,5 @@ where
     }
 
     let mut reader = buf.as_bytes();
-    crate::reader::read_lazy_line(&mut reader, line)
+    crate::io::reader::read_lazy_line(&mut reader, line)
 }

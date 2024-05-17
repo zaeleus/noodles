@@ -4,7 +4,15 @@
 
 ### Changed
 
+  * gff: Move reader (`Reader`) to `io` module.
+
   * gff/lazy/record/attributes: Tag the value type.
+
+### Deprecated
+
+  * gff: Deprecate `gff::Reader`.
+
+    Use `gff::io::Reader` instead.
 
 ## 0.32.0 - 2024-05-16
 

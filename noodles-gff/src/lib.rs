@@ -16,7 +16,7 @@
 //!
 //! let mut reader = File::open("annotations.gff3")
 //!     .map(BufReader::new)
-//!     .map(gff::Reader::new)?;
+//!     .map(gff::io::Reader::new)?;
 //!
 //! for result in reader.records() {
 //!     let record = result?;
@@ -35,13 +35,16 @@
 pub mod r#async;
 
 pub mod directive;
+pub mod io;
 pub mod lazy;
 pub mod line;
-pub mod reader;
 pub mod record;
 mod writer;
 
-pub use self::{directive::Directive, line::Line, reader::Reader, record::Record, writer::Writer};
+pub use self::{directive::Directive, line::Line, record::Record, writer::Writer};
+
+#[deprecated(since = "0.33.0", note = "Use `noodles_gff::io::Reader` instead.")]
+pub use self::io::Reader;
 
 #[cfg(feature = "async")]
-pub use self::r#async::Reader as AsyncReader;
+pub use self::r#async::io::Reader as AsyncReader;

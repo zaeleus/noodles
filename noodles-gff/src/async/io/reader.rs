@@ -20,7 +20,7 @@ impl<R> Reader<R> {
     /// ```
     /// use noodles_gff as gff;
     /// use tokio::io;
-    /// let reader = gff::r#async::Reader::new(io::empty());
+    /// let reader = gff::r#async::io::Reader::new(io::empty());
     /// let _inner = reader.get_ref();
     /// ```
     pub fn get_ref(&self) -> &R {
@@ -34,7 +34,7 @@ impl<R> Reader<R> {
     /// ```
     /// use noodles_gff as gff;
     /// use tokio::io;
-    /// let mut reader = gff::r#async::Reader::new(io::empty());
+    /// let mut reader = gff::r#async::io::Reader::new(io::empty());
     /// let _inner = reader.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
@@ -48,7 +48,7 @@ impl<R> Reader<R> {
     /// ```
     /// use noodles_gff as gff;
     /// use tokio::io;
-    /// let reader = gff::r#async::Reader::new(io::empty());
+    /// let reader = gff::r#async::io::Reader::new(io::empty());
     /// let _inner = reader.into_inner();
     /// ```
     pub fn into_inner(self) -> R {
@@ -67,7 +67,7 @@ where
     /// ```
     /// use noodles_gff as gff;
     /// use tokio::io;
-    /// let reader = gff::r#async::Reader::new(io::empty());
+    /// let reader = gff::r#async::io::Reader::new(io::empty());
     /// ```
     pub fn new(inner: R) -> Self {
         Self {
@@ -86,7 +86,7 @@ where
     /// use noodles_gff as gff;
     ///
     /// let data = b"##gff-version 3\n";
-    /// let mut reader = gff::r#async::Reader::new(&data[..]);
+    /// let mut reader = gff::r#async::io::Reader::new(&data[..]);
     ///
     /// let mut buf = String::new();
     /// reader.read_line(&mut buf).await?;
@@ -108,7 +108,7 @@ where
     /// use noodles_gff::{self as gff, lazy};
     ///
     /// let data = b"##gff-version 3\n";
-    /// let mut reader = gff::r#async::Reader::new(&data[..]);
+    /// let mut reader = gff::r#async::io::Reader::new(&data[..]);
     ///
     /// let mut line = lazy::Line::default();
     /// reader.read_lazy_line(&mut line).await?;
@@ -131,7 +131,7 @@ where
     /// use futures::TryStreamExt;
     ///
     /// let data = b"##gff-version 3\n";
-    /// let mut reader = gff::r#async::Reader::new(&data[..]);
+    /// let mut reader = gff::r#async::io::Reader::new(&data[..]);
     /// let mut lines = reader.lines();
     ///
     /// let line = lines.try_next().await?;
@@ -169,7 +169,7 @@ where
     /// use futures::TryStreamExt;
     ///
     /// let data = b"##gff-version 3\n";
-    /// let mut reader = gff::r#async::Reader::new(&data[..]);
+    /// let mut reader = gff::r#async::io::Reader::new(&data[..]);
     /// let mut records = reader.records();
     ///
     /// assert!(records.try_next().await?.is_none());
