@@ -207,6 +207,30 @@ where
     R: Read + Seek,
 {
     /// Returns an iterator over records that intersects the given region.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_csi as csi;
+    /// use noodles_gff as gff;
+    ///
+    /// let mut reader = File::open("annotations.gff3.gz")
+    ///     .map(bgzf::Reader::new)
+    ///     .map(gff::io::Reader::new)?;
+    ///
+    /// let index = csi::read("annotations.gff3.gz.csi")?;
+    /// let region = "sq0:8-13".parse()?;
+    /// let query = reader.query(&index, &region)?;
+    ///
+    /// for result in query {
+    ///     let record = result?;
+    ///     // ...
+    /// }
+    ///
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn query<'r, I>(
         &'r mut self,
         index: &I,
