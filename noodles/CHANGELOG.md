@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.74.0 - 2024-05-19
+
+  * [noodles-gff 0.33.0](https://github.com/zaeleus/noodles/blob/noodles-gff-0.33.0/noodles-gff/CHANGELOG.md)
+
 ## 0.73.0 - 2024-05-16
 
   * [noodles-bam 0.63.0](https://github.com/zaeleus/noodles/blob/noodles-bam-0.63.0/noodles-bam/CHANGELOG.md)
