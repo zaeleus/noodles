@@ -4,15 +4,15 @@
 
 ### Changed
 
-  * fasta: Move readers (`Reader` and `IndexedReader`) and writer (`Writer`) to
-    `io` module.
+  * fasta: Move readers (`Reader` and `IndexedReader`), writer (`Writer`), and
+    indexer (`index`) to `io` module.
 
 ### Deprecated
 
-  * fasta: Deprecate `fasta::Reader`, `fasta::IndexedReader`, and `fasta::Writer`.
+  * fasta: Deprecate `fasta::Reader`, `fasta::IndexedReader`, `fasta::Writer`,
+    and `fasta::index`.
 
-    Use `fasta::io::Reader`, `fasta::io::IndexedReader`, and
-    `fasta::io::Writer`, respectively, instead.
+    These are moved under the `fasta::io` module.
 
 ## 0.38.0 - 2024-05-16
 

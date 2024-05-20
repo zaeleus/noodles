@@ -8,9 +8,9 @@ use std::{
 
 use memchr::memchr;
 
-use super::{
+use super::reader::{read_line, DEFINITION_PREFIX};
+use crate::{
     fai::Record,
-    io::reader::{read_line, DEFINITION_PREFIX},
     record::definition::{Definition, ParseError},
 };
 

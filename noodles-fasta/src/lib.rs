@@ -51,7 +51,6 @@
 pub mod r#async;
 
 pub mod fai;
-mod indexer;
 pub mod io;
 pub mod record;
 pub mod repository;
@@ -70,6 +69,9 @@ pub use self::io::writer;
 
 pub use self::{record::Record, repository::Repository};
 
+#[deprecated(since = "0.39.0", note = "Use `noodles_fasta::io::index` instead.")]
+pub use self::io::index;
+
 #[deprecated(
     since = "0.39.0",
     note = "Use `noodles_fasta::io::IndexedReader` instead."
@@ -84,31 +86,3 @@ pub use self::io::Writer;
 
 #[cfg(feature = "async")]
 pub use self::r#async::io::Reader as AsyncReader;
-
-use std::{fs::File, io::BufReader, path::Path};
-
-use self::indexer::Indexer;
-
-/// Indexes a FASTA file.
-///
-/// # Examples
-///
-/// ```no_run
-/// # use std::io;
-/// use noodles_fasta as fasta;
-/// let index = fasta::index("reference.fa")?;
-/// # Ok::<(), io::Error>(())
-/// ```
-pub fn index<P>(src: P) -> std::io::Result<fai::Index>
-where
-    P: AsRef<Path>,
-{
-    let mut indexer = File::open(src).map(BufReader::new).map(Indexer::new)?;
-    let mut index = Vec::new();
-
-    while let Some(i) = indexer.index_record()? {
-        index.push(i);
-    }
-
-    Ok(index)
-}

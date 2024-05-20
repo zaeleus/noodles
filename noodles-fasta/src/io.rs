@@ -1,14 +1,20 @@
 //! FASTA I/O.
 
 pub mod indexed_reader;
+mod indexer;
 pub mod reader;
 pub mod writer;
 
-use std::io::{self, BufRead, Read, Seek, SeekFrom};
+use std::{
+    fs::File,
+    io::{self, BufRead, Read, Seek, SeekFrom},
+    path::Path,
+};
 
 use noodles_bgzf as bgzf;
 
-pub use self::{indexed_reader::IndexedReader, reader::Reader, writer::Writer};
+pub use self::{indexed_reader::IndexedReader, indexer::Indexer, reader::Reader, writer::Writer};
+use super::fai;
 
 /// A buffered FASTA reader.
 pub enum BufReader<R> {
@@ -59,4 +65,28 @@ where
             Self::Uncompressed(reader) => reader.seek(pos),
         }
     }
+}
+
+/// Indexes a FASTA file.
+///
+/// # Examples
+///
+/// ```no_run
+/// # use std::io;
+/// use noodles_fasta as fasta;
+/// let index = fasta::io::index("reference.fa")?;
+/// # Ok::<(), io::Error>(())
+/// ```
+pub fn index<P>(src: P) -> io::Result<fai::Index>
+where
+    P: AsRef<Path>,
+{
+    let mut indexer = File::open(src).map(io::BufReader::new).map(Indexer::new)?;
+    let mut index = Vec::new();
+
+    while let Some(i) = indexer.index_record()? {
+        index.push(i);
+    }
+
+    Ok(index)
 }
