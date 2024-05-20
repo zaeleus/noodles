@@ -23,7 +23,7 @@ fn main() -> io::Result<()> {
     let mut builder = alignment::io::reader::Builder::default();
 
     if let Some(fasta_src) = fasta_src {
-        let repository = fasta::indexed_reader::Builder::default()
+        let repository = fasta::io::indexed_reader::Builder::default()
             .build_from_path(fasta_src)
             .map(IndexedReader::new)
             .map(fasta::Repository::new)?;

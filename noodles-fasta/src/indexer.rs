@@ -10,7 +10,7 @@ use memchr::memchr;
 
 use super::{
     fai::Record,
-    reader::{read_line, DEFINITION_PREFIX},
+    io::reader::{read_line, DEFINITION_PREFIX},
     record::definition::{Definition, ParseError},
 };
 

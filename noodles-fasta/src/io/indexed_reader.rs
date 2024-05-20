@@ -8,7 +8,8 @@ use std::io::{self, BufRead, Seek};
 
 use noodles_core::Region;
 
-use super::{fai, Reader, Record};
+use super::Reader;
+use crate::{fai, Record};
 
 /// An indexed FASTA reader.
 pub struct IndexedReader<R> {

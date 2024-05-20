@@ -21,7 +21,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let fasta_src = args.next();
 
     let reference_sequence_repository = fasta_src
-        .map(|src| fasta::indexed_reader::Builder::default().build_from_path(src))
+        .map(|src| fasta::io::indexed_reader::Builder::default().build_from_path(src))
         .transpose()?
         .map(IndexedReader::new)
         .map(fasta::Repository::new)

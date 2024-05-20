@@ -13,7 +13,7 @@ use std::{
 
 use noodles_core::{region::Interval, Region};
 
-use super::{fai, Record};
+use crate::{fai, Record};
 
 pub(crate) const DEFINITION_PREFIX: u8 = b'>';
 
@@ -33,7 +33,7 @@ where
     /// ```
     /// use noodles_fasta as fasta;
     /// let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
-    /// let mut reader = fasta::Reader::new(&data[..]);
+    /// let mut reader = fasta::io::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
@@ -45,7 +45,7 @@ where
     ///
     /// ```
     /// use noodles_fasta as fasta;
-    /// let reader = fasta::Reader::new(&[][..]);
+    /// let reader = fasta::io::Reader::new(&[][..]);
     /// assert!(reader.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &R {
@@ -58,7 +58,7 @@ where
     ///
     /// ```
     /// use noodles_fasta as fasta;
-    /// let mut reader = fasta::Reader::new(&[][..]);
+    /// let mut reader = fasta::io::Reader::new(&[][..]);
     /// assert!(reader.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
@@ -71,7 +71,7 @@ where
     ///
     /// ```
     /// use noodles_fasta as fasta;
-    /// let reader = fasta::Reader::new(&[][..]);
+    /// let reader = fasta::io::Reader::new(&[][..]);
     /// assert!(reader.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> R {
@@ -96,7 +96,7 @@ where
     /// use noodles_fasta as fasta;
     ///
     /// let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
-    /// let mut reader = fasta::Reader::new(&data[..]);
+    /// let mut reader = fasta::io::Reader::new(&data[..]);
     ///
     /// let mut buf = String::new();
     /// reader.read_definition(&mut buf)?;
@@ -126,7 +126,7 @@ where
     /// use noodles_fasta as fasta;
     ///
     /// let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
-    /// let mut reader = fasta::Reader::new(&data[..]);
+    /// let mut reader = fasta::io::Reader::new(&data[..]);
     /// reader.read_definition(&mut String::new())?;
     ///
     /// let mut buf = Vec::new();
@@ -154,7 +154,7 @@ where
     /// use noodles_fasta as fasta;
     ///
     /// let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
-    /// let mut reader = fasta::Reader::new(&data[..]);
+    /// let mut reader = fasta::io::Reader::new(&data[..]);
     /// reader.read_definition(&mut String::new())?;
     ///
     /// let mut sequence_reader = reader.sequence_reader();
@@ -178,7 +178,7 @@ where
     /// use noodles_fasta::{self as fasta, record::{Definition, Sequence}};
     ///
     /// let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
-    /// let mut reader = fasta::Reader::new(&data[..]);
+    /// let mut reader = fasta::io::Reader::new(&data[..]);
     ///
     /// let mut records = reader.records();
     ///
@@ -220,7 +220,7 @@ where
     ///     fai::Record::new("sq2", 4, 25, 4, 5),
     /// ];
     ///
-    /// let mut reader = fasta::Reader::new(Cursor::new(data));
+    /// let mut reader = fasta::io::Reader::new(Cursor::new(data));
     ///
     /// let region = Region::new("sq1", ..);
     /// let record = reader.query(&index, &region)?;
@@ -239,7 +239,7 @@ where
     /// ```
     pub fn query(&mut self, index: &fai::Index, region: &Region) -> io::Result<Record> {
         use self::sequence::read_sequence_limit;
-        use super::record::{Definition, Sequence};
+        use crate::record::{Definition, Sequence};
 
         let index_record = index
             .iter()

@@ -14,7 +14,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = args.next().expect("missing src");
     let raw_region = args.next().expect("missing region");
 
-    let mut reader = fasta::indexed_reader::Builder::default().build_from_path(src)?;
+    let mut reader = fasta::io::indexed_reader::Builder::default().build_from_path(src)?;
 
     let region = raw_region.parse()?;
     let record = reader.query(&region)?;

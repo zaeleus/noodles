@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * fasta: Move readers (`Reader` and `IndexedReader`) to `io` module.
+
+### Deprecated
+
+  * fasta: Deprecate `fasta::Reader` and `fasta::IndexedReader`.
+
+    Use `fasta::io::Reader` and `fasta::io::IndexedReader`, respectively, instead.
+
 ## 0.38.0 - 2024-05-16
 
 ### Changed

@@ -38,7 +38,7 @@
 //!
 //! let mut reader = File::open("reference.fa")
 //!     .map(BufReader::new)
-//!     .map(fasta::Reader::new)?;
+//!     .map(fasta::io::Reader::new)?;
 //!
 //! for result in reader.records() {
 //!     let record = result?;
@@ -48,24 +48,37 @@
 //! ```
 
 #[cfg(feature = "async")]
-pub(crate) mod r#async;
+pub mod r#async;
 
 pub mod fai;
-pub mod indexed_reader;
 mod indexer;
 pub mod io;
-pub mod reader;
 pub mod record;
 pub mod repository;
 pub mod writer;
 
-pub use self::{
-    indexed_reader::IndexedReader, reader::Reader, record::Record, repository::Repository,
-    writer::Writer,
-};
+#[deprecated(
+    since = "0.39.0",
+    note = "Use `noodles_fasta::io::indexed_reader` instead."
+)]
+pub use self::io::indexed_reader;
+
+#[deprecated(since = "0.39.0", note = "Use `noodles_fasta::io::reader` instead.")]
+pub use self::io::reader;
+
+pub use self::{record::Record, repository::Repository, writer::Writer};
+
+#[deprecated(
+    since = "0.39.0",
+    note = "Use `noodles_fasta::io::IndexedReader` instead."
+)]
+pub use self::io::IndexedReader;
+
+#[deprecated(since = "0.39.0", note = "Use `noodles_fasta::io::Reader` instead.")]
+pub use self::io::Reader;
 
 #[cfg(feature = "async")]
-pub use self::r#async::Reader as AsyncReader;
+pub use self::r#async::io::Reader as AsyncReader;
 
 use std::{fs::File, io::BufReader, path::Path};
 

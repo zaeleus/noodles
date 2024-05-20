@@ -22,7 +22,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_fasta::{fai, indexed_reader::Builder};
+    /// use noodles_fasta::{fai, io::indexed_reader::Builder};
     /// let index = fai::Index::default();
     /// let builder = Builder::default().set_index(index);
     /// ```
@@ -36,7 +36,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```no_run
-    /// use noodles_fasta::indexed_reader::Builder;
+    /// use noodles_fasta::io::indexed_reader::Builder;
     /// let reader = Builder::default().build_from_path("reference.fa")?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
@@ -71,7 +71,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_fasta::{fai, indexed_reader::Builder};
+    /// use noodles_fasta::{fai, io::indexed_reader::Builder};
     ///
     /// let index = fai::Index::default();
     /// let data = [];

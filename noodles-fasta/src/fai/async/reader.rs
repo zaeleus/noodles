@@ -50,7 +50,7 @@ where
     /// # }
     /// ```
     pub async fn read_index(&mut self) -> io::Result<Index> {
-        use crate::r#async::reader::read_line;
+        use crate::r#async::io::reader::read_line;
 
         let mut buf = String::new();
         let mut index = Vec::new();

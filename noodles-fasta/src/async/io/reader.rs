@@ -18,7 +18,7 @@ where
     /// ```
     /// use noodles_fasta as fasta;
     /// let data = [];
-    /// let mut reader = fasta::AsyncReader::new(&data[..]);
+    /// let mut reader = fasta::r#async::io::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
@@ -36,7 +36,7 @@ where
     /// use noodles_fasta as fasta;
     ///
     /// let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
-    /// let mut reader = fasta::AsyncReader::new(&data[..]);
+    /// let mut reader = fasta::r#async::io::Reader::new(&data[..]);
     ///
     /// let mut buf = String::new();
     /// reader.read_definition(&mut buf).await?;
@@ -61,7 +61,7 @@ where
     /// use noodles_fasta as fasta;
     ///
     /// let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
-    /// let mut reader = fasta::AsyncReader::new(&data[..]);
+    /// let mut reader = fasta::r#async::io::Reader::new(&data[..]);
     /// reader.read_definition(&mut String::new()).await?;
     ///
     /// let mut buf = Vec::new();
@@ -92,7 +92,7 @@ where
 {
     use memchr::memchr;
 
-    use crate::reader::DEFINITION_PREFIX;
+    use crate::io::reader::DEFINITION_PREFIX;
 
     const LINE_FEED: u8 = b'\n';
     const CARRIAGE_RETURN: u8 = b'\r';

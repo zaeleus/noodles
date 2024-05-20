@@ -6,7 +6,7 @@ use crate::{repository::Adapter, Record};
 
 /// An indexed reader adapter.
 pub struct IndexedReader<R> {
-    reader: crate::IndexedReader<R>,
+    reader: crate::io::IndexedReader<R>,
 }
 
 impl<R> IndexedReader<R>
@@ -21,10 +21,10 @@ where
     /// # use std::io;
     /// use noodles_fasta::{self as fasta, repository::adapters::IndexedReader};
     /// let index = Vec::new();
-    /// let reader = fasta::IndexedReader::new(io::empty(), index);
+    /// let reader = fasta::io::IndexedReader::new(io::empty(), index);
     /// let adapter = IndexedReader::new(reader);
     /// ```
-    pub fn new(reader: crate::IndexedReader<R>) -> Self {
+    pub fn new(reader: crate::io::IndexedReader<R>) -> Self {
         Self { reader }
     }
 }

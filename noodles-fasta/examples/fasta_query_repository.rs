@@ -8,7 +8,7 @@ fn main() -> io::Result<()> {
     let src = args.next().expect("missing src");
     let name = args.next().expect("missing name");
 
-    let reader = fasta::indexed_reader::Builder::default().build_from_path(src)?;
+    let reader = fasta::io::indexed_reader::Builder::default().build_from_path(src)?;
     let adapter = IndexedReader::new(reader);
     let repository = fasta::Repository::new(adapter);
 

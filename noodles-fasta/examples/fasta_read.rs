@@ -7,7 +7,7 @@ use noodles_fasta as fasta;
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = fasta::reader::Builder.build_from_path(src)?;
+    let mut reader = fasta::io::reader::Builder.build_from_path(src)?;
 
     for result in reader.records() {
         let record = result?;
