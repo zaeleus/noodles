@@ -55,7 +55,6 @@ mod indexer;
 pub mod io;
 pub mod record;
 pub mod repository;
-pub mod writer;
 
 #[deprecated(
     since = "0.39.0",
@@ -66,7 +65,10 @@ pub use self::io::indexed_reader;
 #[deprecated(since = "0.39.0", note = "Use `noodles_fasta::io::reader` instead.")]
 pub use self::io::reader;
 
-pub use self::{record::Record, repository::Repository, writer::Writer};
+#[deprecated(since = "0.39.0", note = "Use `noodles_fasta::io::writer` instead.")]
+pub use self::io::writer;
+
+pub use self::{record::Record, repository::Repository};
 
 #[deprecated(
     since = "0.39.0",
@@ -76,6 +78,9 @@ pub use self::io::IndexedReader;
 
 #[deprecated(since = "0.39.0", note = "Use `noodles_fasta::io::Reader` instead.")]
 pub use self::io::Reader;
+
+#[deprecated(since = "0.39.0", note = "Use `noodles_fasta::io::Writer` instead.")]
+pub use self::io::Writer;
 
 #[cfg(feature = "async")]
 pub use self::r#async::io::Reader as AsyncReader;

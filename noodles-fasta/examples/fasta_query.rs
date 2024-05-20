@@ -20,7 +20,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let record = reader.query(&region)?;
 
     let stdout = io::stdout().lock();
-    let mut writer = fasta::Writer::new(stdout);
+    let mut writer = fasta::io::Writer::new(stdout);
 
     writer.write_record(&record)?;
 

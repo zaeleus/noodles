@@ -7,7 +7,7 @@ use std::io::{self, Write};
 
 pub use self::builder::Builder;
 use self::record::write_record;
-use super::Record;
+use crate::Record;
 
 /// A FASTA writer.
 pub struct Writer<W> {
@@ -25,7 +25,7 @@ where
     ///
     /// ```
     /// use noodles_fasta as fasta;
-    /// let writer = fasta::Writer::new(Vec::new());
+    /// let writer = fasta::io::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
         Builder::default().build_with_writer(inner)
@@ -37,7 +37,7 @@ where
     ///
     /// ```
     /// use noodles_fasta as fasta;
-    /// let writer = fasta::Writer::new(Vec::new());
+    /// let writer = fasta::io::Writer::new(Vec::new());
     /// assert!(writer.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &W {
@@ -55,7 +55,7 @@ where
     /// # use std::io;
     /// use noodles_fasta::{self as fasta, record::{Definition, Sequence}};
     ///
-    /// let mut writer = fasta::Writer::new(Vec::new());
+    /// let mut writer = fasta::io::Writer::new(Vec::new());
     ///
     /// let definition = Definition::new("sq0", None);
     /// let sequence = Sequence::from(b"ACGT".to_vec());

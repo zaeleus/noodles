@@ -2,12 +2,13 @@
 
 pub mod indexed_reader;
 pub mod reader;
+pub mod writer;
 
 use std::io::{self, BufRead, Read, Seek, SeekFrom};
 
 use noodles_bgzf as bgzf;
 
-pub use self::{indexed_reader::IndexedReader, reader::Reader};
+pub use self::{indexed_reader::IndexedReader, reader::Reader, writer::Writer};
 
 /// A buffered FASTA reader.
 pub enum BufReader<R> {

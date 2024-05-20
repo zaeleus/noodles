@@ -18,7 +18,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_fasta as fasta;
-    /// let builder = fasta::writer::Builder::default().set_line_base_count(100);
+    /// let builder = fasta::io::writer::Builder::default().set_line_base_count(100);
     /// ```
     pub fn set_line_base_count(mut self, line_base_count: usize) -> Self {
         self.line_base_count = line_base_count;
@@ -32,7 +32,7 @@ impl Builder {
     /// ```
     /// # use std::io;
     /// use noodles_fasta as fasta;
-    /// let writer = fasta::writer::Builder::default().build_with_writer(io::sink());
+    /// let writer = fasta::io::writer::Builder::default().build_with_writer(io::sink());
     /// ```
     pub fn build_with_writer<W>(self, writer: W) -> Writer<W>
     where
