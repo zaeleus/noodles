@@ -46,9 +46,8 @@ pub mod fai;
 mod indexer;
 pub mod io;
 pub mod record;
-mod writer;
 
-pub use self::{indexer::Indexer, record::Record, writer::Writer};
+pub use self::{indexer::Indexer, record::Record};
 
 #[deprecated(since = "0.11.0", note = "Use `noodles_fastq::io::reader` instead.")]
 pub use self::io::reader;
@@ -56,8 +55,11 @@ pub use self::io::reader;
 #[deprecated(since = "0.11.0", note = "Use `noodles_fastq::io::Reader` instead.")]
 pub use self::io::Reader;
 
+//#[deprecated(since = "0.11.0", note = "Use `noodles_fastq::io::Writer` instead.")]
+//pub use self::io::Writer;
+
 #[cfg(feature = "async")]
-pub use self::r#async::{io::Reader as AsyncReader, Writer as AsyncWriter};
+pub use self::r#async::io::{Reader as AsyncReader, Writer as AsyncWriter};
 
 use std::{fs::File, io::BufReader, path::Path};
 

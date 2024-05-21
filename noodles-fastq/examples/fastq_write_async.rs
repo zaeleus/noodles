@@ -7,7 +7,7 @@ use tokio::io;
 
 #[tokio::main]
 async fn main() -> io::Result<()> {
-    let mut writer = fastq::AsyncWriter::new(io::stdout());
+    let mut writer = fastq::r#async::io::Writer::new(io::stdout());
 
     let record = fastq::Record::new(Definition::new("r0", ""), "ACGT", "NDLS");
     writer.write_record(&record).await?;

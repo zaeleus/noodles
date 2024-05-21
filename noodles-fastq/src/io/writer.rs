@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use super::Record;
+use crate::Record;
 
 /// A FASTQ writer.
 pub struct Writer<W> {
@@ -17,7 +17,7 @@ where
     ///
     /// ```
     /// use noodles_fastq as fastq;
-    /// let writer = fastq::Writer::new(Vec::new());
+    /// let writer = fastq::io::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
         Self { inner }
@@ -29,7 +29,7 @@ where
     ///
     /// ```
     /// use noodles_fastq as fastq;
-    /// let writer = fastq::Writer::new(Vec::new());
+    /// let writer = fastq::io::Writer::new(Vec::new());
     /// assert!(writer.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &W {
@@ -44,7 +44,7 @@ where
     /// # use std::io;
     /// use noodles_fastq::{self as fastq, record::Definition};
     ///
-    /// let mut writer = fastq::Writer::new(Vec::new());
+    /// let mut writer = fastq::io::Writer::new(Vec::new());
     ///
     /// let record = fastq::Record::new(Definition::new("r0", ""), "ATCG", "NDLS");
     /// writer.write_record(&record)?;

@@ -8,7 +8,7 @@ use noodles_fastq::{self as fastq, record::Definition};
 
 fn main() -> io::Result<()> {
     let stdout = io::stdout().lock();
-    let mut writer = fastq::Writer::new(stdout);
+    let mut writer = fastq::io::Writer::new(stdout);
 
     let record = fastq::Record::new(Definition::new("r0", ""), "ACGT", "NDLS");
     writer.write_record(&record)?;
