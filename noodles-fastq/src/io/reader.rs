@@ -8,7 +8,7 @@ pub use self::records::Records;
 use std::io::{self, BufRead};
 
 use self::record::read_record;
-use super::Record;
+use crate::Record;
 
 /// A FASTQ reader.
 pub struct Reader<R> {
@@ -26,7 +26,7 @@ where
     /// ```
     /// use noodles_fastq as fastq;
     /// let data = b"@r0\nATCG\n+\nNDLS\n";
-    /// let reader = fastq::Reader::new(&data[..]);
+    /// let reader = fastq::io::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
@@ -39,7 +39,7 @@ where
     /// ```
     /// use noodles_fastq as fastq;
     /// let data = [];
-    /// let reader = fastq::Reader::new(&data[..]);
+    /// let reader = fastq::io::Reader::new(&data[..]);
     /// assert!(reader.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &R {
@@ -53,7 +53,7 @@ where
     /// ```
     /// use noodles_fastq as fastq;
     /// let data = [];
-    /// let mut reader = fastq::Reader::new(&data[..]);
+    /// let mut reader = fastq::io::Reader::new(&data[..]);
     /// assert!(reader.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
@@ -67,7 +67,7 @@ where
     /// ```
     /// use noodles_fastq as fastq;
     /// let data = [];
-    /// let reader = fastq::Reader::new(&data[..]);
+    /// let reader = fastq::io::Reader::new(&data[..]);
     /// assert!(reader.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> R {
@@ -91,7 +91,7 @@ where
     /// use noodles_fastq as fastq;
     ///
     /// let data = b"@r0\nATCG\n+\nNDLS\n";
-    /// let mut reader = fastq::Reader::new(&data[..]);
+    /// let mut reader = fastq::io::Reader::new(&data[..]);
     ///
     /// let mut record = fastq::Record::default();
     /// reader.read_record(&mut record)?;
@@ -116,7 +116,7 @@ where
     /// use noodles_fastq::{self as fastq, record::Definition};
     ///
     /// let data = b"@r0\nATCG\n+\nNDLS\n";
-    /// let mut reader = fastq::Reader::new(&data[..]);
+    /// let mut reader = fastq::io::Reader::new(&data[..]);
     ///
     /// let mut records = reader.records();
     ///

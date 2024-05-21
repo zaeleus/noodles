@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * fastq: Move reader (`Reader`) to `io` module.
+
+### Deprecated
+
+  * fastq: Deprecate `fastq::Reader`.
+
+    This is moved under the `io` module.
+
 ## 0.10.0 - 2023-12-14
 
 ### Changed

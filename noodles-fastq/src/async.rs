@@ -1,4 +1,6 @@
-mod reader;
+//! Async FASTQ.
+
+pub mod io;
 mod writer;
 
-pub use self::{reader::Reader, writer::Writer};
+pub use self::writer::Writer;

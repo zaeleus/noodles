@@ -13,7 +13,7 @@ fn main() -> io::Result<()> {
 
     let mut reader = File::open(src)
         .map(BufReader::new)
-        .map(fastq::Reader::new)?;
+        .map(fastq::io::Reader::new)?;
 
     let mut n = 0;
 

@@ -30,7 +30,7 @@
 //!
 //! let mut reader = File::open("sample.fq")
 //!     .map(BufReader::new)
-//!     .map(fastq::Reader::new)?;
+//!     .map(fastq::io::Reader::new)?;
 //!
 //! for result in reader.records() {
 //!     let record = result?;
@@ -40,24 +40,26 @@
 //! ```
 
 #[cfg(feature = "async")]
-mod r#async;
+pub mod r#async;
 
 pub mod fai;
 mod indexer;
-pub mod reader;
+pub mod io;
 pub mod record;
 mod writer;
 
-pub use self::{indexer::Indexer, reader::Reader, record::Record, writer::Writer};
+pub use self::{indexer::Indexer, record::Record, writer::Writer};
+
+#[deprecated(since = "0.11.0", note = "Use `noodles_fastq::io::reader` instead.")]
+pub use self::io::reader;
+
+#[deprecated(since = "0.11.0", note = "Use `noodles_fastq::io::Reader` instead.")]
+pub use self::io::Reader;
 
 #[cfg(feature = "async")]
-pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};
+pub use self::r#async::{io::Reader as AsyncReader, Writer as AsyncWriter};
 
-use std::{
-    fs::File,
-    io::{self, BufReader},
-    path::Path,
-};
+use std::{fs::File, io::BufReader, path::Path};
 
 /// Indexes a FASTQ file.
 ///
@@ -69,7 +71,7 @@ use std::{
 /// let index = fastq::index("sample.fastq")?;
 /// # Ok::<(), io::Error>(())
 /// ```
-pub fn index<P>(src: P) -> io::Result<fai::Index>
+pub fn index<P>(src: P) -> std::io::Result<fai::Index>
 where
     P: AsRef<Path>,
 {
