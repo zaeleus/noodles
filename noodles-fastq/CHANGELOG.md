@@ -4,11 +4,13 @@
 
 ### Changed
 
-  * fastq: Move reader (`Reader`) and writer (`Writer`) to `io` module.
+  * fastq: Move reader (`Reader`), writer (`Writer`), and indexer (`Indexer`)
+    to `io` module.
 
 ### Deprecated
 
-  * fastq: Deprecate `fastq::Reader` and `fastq::Writer`.
+  * fastq: Deprecate `fastq::Reader`, `fastq::Writer`, `fastq::Indexer`, and
+    `fasta::index`.
 
     These are moved under the `io` module.
 

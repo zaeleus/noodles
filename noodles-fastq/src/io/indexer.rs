@@ -24,7 +24,7 @@ where
     /// ```
     /// use noodles_fastq as fastq;
     /// let data = b"@r0\nACTG\n+\nNDLS\n";
-    /// let mut indexer = fastq::Indexer::new(&data[..]);
+    /// let mut indexer = fastq::io::Indexer::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
         Self {
@@ -43,7 +43,7 @@ where
     /// use noodles_fastq::{self as fastq, fai};
     ///
     /// let data = b"@r0\nACTG\n+\nNDLS\n";
-    /// let mut indexer = fastq::Indexer::new(&data[..]);
+    /// let mut indexer = fastq::io::Indexer::new(&data[..]);
     ///
     /// let actual = indexer.index_record()?;
     /// let expected = fai::Record::new("r0", 4, 4, 4, 5, 11);

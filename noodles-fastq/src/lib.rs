@@ -43,11 +43,16 @@
 pub mod r#async;
 
 pub mod fai;
-mod indexer;
 pub mod io;
 pub mod record;
 
-pub use self::{indexer::Indexer, record::Record};
+pub use self::record::Record;
+
+#[deprecated(since = "0.11.0", note = "Use `noodles_fastq::io::index` instead.")]
+pub use self::io::index;
+
+#[deprecated(since = "0.11.0", note = "Use `noodles_fastq::io::Indexer` instead.")]
+pub use self::io::Indexer;
 
 #[deprecated(since = "0.11.0", note = "Use `noodles_fastq::io::reader` instead.")]
 pub use self::io::reader;
@@ -60,29 +65,3 @@ pub use self::io::Reader;
 
 #[cfg(feature = "async")]
 pub use self::r#async::io::{Reader as AsyncReader, Writer as AsyncWriter};
-
-use std::{fs::File, io::BufReader, path::Path};
-
-/// Indexes a FASTQ file.
-///
-/// # Examples
-///
-/// ```no_run
-/// # use std::io;
-/// use noodles_fastq as fastq;
-/// let index = fastq::index("sample.fastq")?;
-/// # Ok::<(), io::Error>(())
-/// ```
-pub fn index<P>(src: P) -> std::io::Result<fai::Index>
-where
-    P: AsRef<Path>,
-{
-    let mut indexer = File::open(src).map(BufReader::new).map(Indexer::new)?;
-    let mut index = Vec::new();
-
-    while let Some(record) = indexer.index_record()? {
-        index.push(record);
-    }
-
-    Ok(index)
-}

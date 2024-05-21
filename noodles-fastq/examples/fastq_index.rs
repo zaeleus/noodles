@@ -11,7 +11,7 @@ use noodles_fastq::{self as fastq, fai};
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let index = fastq::index(src)?;
+    let index = fastq::io::index(src)?;
 
     let stdout = io::stdout().lock();
     let mut writer = fai::Writer::new(stdout);
