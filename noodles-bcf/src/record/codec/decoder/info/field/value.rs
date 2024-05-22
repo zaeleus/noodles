@@ -1,12 +1,6 @@
 use std::{error, fmt};
 
-use noodles_vcf::{
-    self as vcf,
-    header::record::value::{
-        map::{self, info::Type},
-        Map,
-    },
-};
+use noodles_vcf::{self as vcf, header::record::value::map::info::Type};
 
 use crate::record::codec::{
     decoder::value,
@@ -16,9 +10,9 @@ use crate::record::codec::{
 
 pub(super) fn read_value(
     src: &mut &[u8],
-    info: &Map<map::Info>,
+    ty: Type,
 ) -> Result<Option<vcf::variant::record_buf::info::field::Value>, DecodeError> {
-    match info.ty() {
+    match ty {
         Type::Integer => read_integer_value(src),
         Type::Flag => read_flag_value(src),
         Type::Float => read_float_value(src),
@@ -219,210 +213,175 @@ impl fmt::Display for DecodeError {
 
 #[cfg(test)]
 mod tests {
-    use vcf::header::record::value::map::info::Number;
-
     use super::*;
 
     #[test]
     fn test_read_value_with_integer_value() {
-        fn t(mut src: &[u8], info: &Map<map::Info>, expected_value: Option<i32>) {
-            let actual = read_value(&mut src, info);
+        fn t(mut src: &[u8], expected_value: Option<i32>) {
+            let actual = read_value(&mut src, Type::Integer);
             let expected = expected_value.map(vcf::variant::record_buf::info::field::Value::from);
             assert_eq!(actual, Ok(expected));
         }
 
-        let info = Map::<map::Info>::new(Number::Count(1), Type::Integer, String::new());
-
         // None
-        t(&[0x00], &info, None);
+        t(&[0x00], None);
 
         // Some(Value::Int8(None))
-        t(&[0x01], &info, None);
+        t(&[0x01], None);
         // Some(Value::Int8(Int8::Missing))
-        t(&[0x11, 0x80], &info, None);
+        t(&[0x11, 0x80], None);
         // Some(Value::Int8(Some(Int8::Value(8))))
-        t(&[0x11, 0x08], &info, Some(8));
+        t(&[0x11, 0x08], Some(8));
 
         // Some(Value::Int16(None))
-        t(&[0x02], &info, None);
+        t(&[0x02], None);
         // Some(Value::Int16(Int16::Missing))
-        t(&[0x12, 0x00, 0x80], &info, None);
+        t(&[0x12, 0x00, 0x80], None);
         // Some(Value::Int16(Some(Int16::Value(13))))
-        t(&[0x12, 0x0d, 0x00], &info, Some(13));
+        t(&[0x12, 0x0d, 0x00], Some(13));
 
         // Some(Value::Int32(None))
-        t(&[0x03], &info, None);
+        t(&[0x03], None);
         // Some(Value::Int32(Int32::Missing))
-        t(&[0x13, 0x00, 0x00, 0x00, 0x80], &info, None);
+        t(&[0x13, 0x00, 0x00, 0x00, 0x80], None);
         // Some(Value::Int32(Some(Int32::Value(21))))
-        t(&[0x13, 0x15, 0x00, 0x00, 0x00], &info, Some(21));
+        t(&[0x13, 0x15, 0x00, 0x00, 0x00], Some(21));
     }
 
     #[test]
     fn test_read_value_with_integer_array_value() {
-        fn t(mut src: &[u8], info: &Map<map::Info>, expected_value: Option<Vec<Option<i32>>>) {
-            let actual = read_value(&mut src, info);
+        fn t(mut src: &[u8], expected_value: Option<Vec<Option<i32>>>) {
+            let actual = read_value(&mut src, Type::Integer);
             let expected = expected_value.map(vcf::variant::record_buf::info::field::Value::from);
             assert_eq!(actual, Ok(expected));
         }
 
-        let info = Map::<map::Info>::new(Number::Count(2), Type::Integer, String::new());
-
         // Some(Value::IntegerArray([Some(8), Some(13)]))
-        t(&[0x21, 0x08, 0x0d], &info, Some(vec![Some(8), Some(13)]));
+        t(&[0x21, 0x08, 0x0d], Some(vec![Some(8), Some(13)]));
         // Some(Value::IntegerArray([Some(8), None]))
-        t(&[0x21, 0x08, 0x80], &info, Some(vec![Some(8), None]));
+        t(&[0x21, 0x08, 0x80], Some(vec![Some(8), None]));
 
         // Some(Value::IntegerArray([Some(21), Some(34)]))
         t(
             &[0x22, 0x15, 0x00, 0x22, 0x00],
-            &info,
             Some(vec![Some(21), Some(34)]),
         );
         // Some(Value::IntegerArray([Some(21), None]))
-        t(
-            &[0x22, 0x15, 0x00, 0x00, 0x80],
-            &info,
-            Some(vec![Some(21), None]),
-        );
+        t(&[0x22, 0x15, 0x00, 0x00, 0x80], Some(vec![Some(21), None]));
 
         // Some(Value::IntegerArray([Some(55), Some(89)]))
         t(
             &[0x23, 0x37, 0x00, 0x00, 0x00, 0x59, 0x00, 0x00, 0x00],
-            &info,
             Some(vec![Some(55), Some(89)]),
         );
         // Some(Value::IntegerArray([Some(55), None]))
         t(
             &[0x23, 0x37, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80],
-            &info,
             Some(vec![Some(55), None]),
         );
     }
 
     #[test]
     fn test_read_value_with_flag_value() {
-        fn t(mut src: &[u8], info: &Map<map::Info>) {
-            let actual = read_value(&mut src, info);
+        fn t(mut src: &[u8]) {
+            let actual = read_value(&mut src, Type::Flag);
             let expected = Some(vcf::variant::record_buf::info::field::Value::Flag);
             assert_eq!(actual, Ok(expected));
         }
 
-        let info = Map::<map::Info>::new(Number::Count(1), Type::Flag, String::new());
-
         // None
-        t(&[0x00], &info);
+        t(&[0x00]);
         // Some(Value::Int8(Some(Int8::Value(1))))
-        t(&[0x11, 0x01], &info);
+        t(&[0x11, 0x01]);
     }
 
     #[test]
     fn test_read_value_with_float_value() {
-        fn t(mut src: &[u8], info: &Map<map::Info>, expected_value: Option<f32>) {
-            let actual = read_value(&mut src, info);
+        fn t(mut src: &[u8], expected_value: Option<f32>) {
+            let actual = read_value(&mut src, Type::Float);
             let expected = expected_value.map(vcf::variant::record_buf::info::field::Value::from);
             assert_eq!(actual, Ok(expected));
         }
 
-        let info = Map::<map::Info>::new(Number::Count(1), Type::Float, String::new());
-
         // None
-        t(&[0x00], &info, None);
+        t(&[0x00], None);
         // Some(Value::Float(None))
-        t(&[0x05], &info, None);
+        t(&[0x05], None);
         // Some(Value::Float(Some(Float::Missing)))
-        t(&[0x15, 0x01, 0x00, 0x80, 0x7f], &info, None);
+        t(&[0x15, 0x01, 0x00, 0x80, 0x7f], None);
 
         // Some(Value::Float(Some(Float::Value(0.0))))
-        t(&[0x15, 0x00, 0x00, 0x00, 0x00], &info, Some(0.0));
+        t(&[0x15, 0x00, 0x00, 0x00, 0x00], Some(0.0));
     }
 
     #[test]
     fn test_read_value_with_float_array_value() {
-        fn t(mut src: &[u8], info: &Map<map::Info>, expected_value: Option<Vec<Option<f32>>>) {
-            let actual = read_value(&mut src, info);
+        fn t(mut src: &[u8], expected_value: Option<Vec<Option<f32>>>) {
+            let actual = read_value(&mut src, Type::Float);
             let expected = expected_value.map(vcf::variant::record_buf::info::field::Value::from);
             assert_eq!(actual, Ok(expected));
         }
 
-        let info = Map::<map::Info>::new(Number::Count(2), Type::Float, String::new());
-
         // Some(Value::FloatArray([0.0, 1.0]))
         t(
             &[0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f],
-            &info,
             Some(vec![Some(0.0), Some(1.0)]),
         );
         // Some(Value::FloatArray([0.0, None]))
         t(
             &[0x25, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x80, 0x7f],
-            &info,
             Some(vec![Some(0.0), None]),
         );
     }
 
     #[test]
     fn test_read_value_with_character_value() {
-        fn t(mut src: &[u8], info: &Map<map::Info>, expected_value: Option<char>) {
-            let actual = read_value(&mut src, info);
+        fn t(mut src: &[u8], expected_value: Option<char>) {
+            let actual = read_value(&mut src, Type::Character);
             let expected = expected_value.map(vcf::variant::record_buf::info::field::Value::from);
             assert_eq!(actual, Ok(expected));
         }
 
-        let info = Map::<map::Info>::new(Number::Count(1), Type::Character, String::new());
-
         // None
-        t(&[0x00], &info, None);
+        t(&[0x00], None);
         // Some(Value::String(None))
-        t(&[0x07], &info, None);
+        t(&[0x07], None);
 
         // Some(Value::String(Some(String::from("n"))))
-        t(&[0x17, 0x6e], &info, Some('n'));
+        t(&[0x17, 0x6e], Some('n'));
     }
 
     #[test]
     fn test_read_value_with_character_array_value() {
-        fn t(mut src: &[u8], info: &Map<map::Info>, expected_value: Option<Vec<Option<char>>>) {
-            let actual = read_value(&mut src, info);
+        fn t(mut src: &[u8], expected_value: Option<Vec<Option<char>>>) {
+            let actual = read_value(&mut src, Type::Character);
             let expected = expected_value.map(vcf::variant::record_buf::info::field::Value::from);
             assert_eq!(actual, Ok(expected));
         }
 
-        let info = Map::<map::Info>::new(Number::Count(2), Type::Character, String::new());
-
         // None
-        t(&[0x00], &info, None);
+        t(&[0x00], None);
 
         // Some(Value::String(Some(String::from("n,d"))))
-        t(
-            &[0x37, 0x6e, 0x2c, 0x64],
-            &info,
-            Some(vec![Some('n'), Some('d')]),
-        );
+        t(&[0x37, 0x6e, 0x2c, 0x64], Some(vec![Some('n'), Some('d')]));
         // Some(Value::String(Some(String::from("n,."))))
-        t(
-            &[0x37, 0x6e, 0x2c, 0x2e],
-            &info,
-            Some(vec![Some('n'), None]),
-        );
+        t(&[0x37, 0x6e, 0x2c, 0x2e], Some(vec![Some('n'), None]));
     }
 
     #[test]
     fn test_read_value_with_string_value() {
-        fn t(mut src: &[u8], info: &Map<map::Info>, expected_value: Option<&str>) {
-            let actual = read_value(&mut src, info);
+        fn t(mut src: &[u8], expected_value: Option<&str>) {
+            let actual = read_value(&mut src, Type::String);
             let expected = expected_value.map(vcf::variant::record_buf::info::field::Value::from);
             assert_eq!(actual, Ok(expected));
         }
 
-        let info = Map::<map::Info>::new(Number::Count(1), Type::String, String::new());
-
         // None
-        t(&[0x00], &info, None);
+        t(&[0x00], None);
 
         // Some(Value::String(None))
-        t(&[0x07], &info, None);
+        t(&[0x07], None);
         // Some(Value::String(Some(String::from("ndls"))))
-        t(&[0x47, 0x6e, 0x64, 0x6c, 0x73], &info, Some("ndls"));
+        t(&[0x47, 0x6e, 0x64, 0x6c, 0x73], Some("ndls"));
     }
 }
