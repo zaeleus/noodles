@@ -1,6 +1,6 @@
 use std::{error, fmt, str};
 
-use noodles_vcf::variant::record_buf::samples::sample::Value;
+use noodles_vcf::variant::record_buf::samples::sample::{value::genotype, Value};
 
 use crate::record::codec::{
     decoder::{
@@ -281,9 +281,10 @@ pub(super) fn read_genotype_values(
             1 => {
                 for _ in 0..sample_count {
                     let value = read_i8(src)
-                        .map(|v| parse_genotype_values(&[v]))
-                        .map(Value::from)
-                        .map_err(DecodeError::InvalidRawValue)?;
+                        .map_err(DecodeError::InvalidRawValue)
+                        .map(|v| parse_raw_genotype_values(&[v]))
+                        .and_then(|s| s.parse().map_err(DecodeError::InvalidGenotype))
+                        .map(Value::Genotype)?;
 
                     values.push(Some(value));
                 }
@@ -291,7 +292,9 @@ pub(super) fn read_genotype_values(
             _ => {
                 for _ in 0..sample_count {
                     let buf = read_i8s(src, len).map_err(DecodeError::InvalidRawValue)?;
-                    let value = Value::from(parse_genotype_values(&buf));
+                    let s = parse_raw_genotype_values(&buf);
+                    let genotype = s.parse().map_err(DecodeError::InvalidGenotype)?;
+                    let value = Value::Genotype(genotype);
                     values.push(Some(value));
                 }
             }
@@ -302,7 +305,8 @@ pub(super) fn read_genotype_values(
     Ok(values)
 }
 
-fn parse_genotype_values(values: &[i8]) -> String {
+// TODO: Parse into `Genotype` rather than a `String`.
+fn parse_raw_genotype_values(values: &[i8]) -> String {
     use std::fmt::Write;
 
     let mut genotype = String::new();
@@ -340,6 +344,7 @@ pub enum DecodeError {
     InvalidLength,
     InvalidRawValue(raw_value::DecodeError),
     InvalidString(str::Utf8Error),
+    InvalidGenotype(genotype::ParseError),
 }
 
 impl error::Error for DecodeError {
@@ -349,6 +354,7 @@ impl error::Error for DecodeError {
             Self::InvalidLength => None,
             Self::InvalidRawValue(e) => Some(e),
             Self::InvalidString(e) => Some(e),
+            Self::InvalidGenotype(e) => Some(e),
         }
     }
 }
@@ -360,6 +366,7 @@ impl fmt::Display for DecodeError {
             Self::InvalidLength => write!(f, "invalid length"),
             Self::InvalidRawValue(_) => write!(f, "invalid raw value"),
             Self::InvalidString(_) => write!(f, "invalid string"),
+            Self::InvalidGenotype(_) => write!(f, "invalid genotype"),
         }
     }
 }
@@ -535,17 +542,17 @@ mod tests {
     fn test_parse_genotype_genotype_field_values() {
         // Examples from § 6.3.3 Type encoding (2021-05-13)
 
-        assert_eq!(parse_genotype_values(&[0x02, 0x02]), "0/0");
-        assert_eq!(parse_genotype_values(&[0x02, 0x04]), "0/1");
-        assert_eq!(parse_genotype_values(&[0x04, 0x04]), "1/1");
-        assert_eq!(parse_genotype_values(&[0x02, 0x05]), "0|1");
-        assert_eq!(parse_genotype_values(&[0x00, 0x00]), "./.");
-        assert_eq!(parse_genotype_values(&[0x02]), "0");
-        assert_eq!(parse_genotype_values(&[0x04]), "1");
-        assert_eq!(parse_genotype_values(&[0x02, 0x04, 0x06]), "0/1/2");
-        assert_eq!(parse_genotype_values(&[0x02, 0x04, 0x07]), "0/1|2");
+        assert_eq!(parse_raw_genotype_values(&[0x02, 0x02]), "0/0");
+        assert_eq!(parse_raw_genotype_values(&[0x02, 0x04]), "0/1");
+        assert_eq!(parse_raw_genotype_values(&[0x04, 0x04]), "1/1");
+        assert_eq!(parse_raw_genotype_values(&[0x02, 0x05]), "0|1");
+        assert_eq!(parse_raw_genotype_values(&[0x00, 0x00]), "./.");
+        assert_eq!(parse_raw_genotype_values(&[0x02]), "0");
+        assert_eq!(parse_raw_genotype_values(&[0x04]), "1");
+        assert_eq!(parse_raw_genotype_values(&[0x02, 0x04, 0x06]), "0/1/2");
+        assert_eq!(parse_raw_genotype_values(&[0x02, 0x04, 0x07]), "0/1|2");
         assert_eq!(
-            parse_genotype_values(&[0x02, i8::from(Int8::EndOfVector)]),
+            parse_raw_genotype_values(&[0x02, i8::from(Int8::EndOfVector)]),
             "0"
         );
     }

@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bcf/record/codec/decoder/samples/values: Use type definition from header
+    when decoding values.
+
 ## 0.54.0 - 2024-05-16
 
 ### Changed
