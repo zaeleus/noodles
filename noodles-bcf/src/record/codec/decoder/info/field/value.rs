@@ -1,7 +1,8 @@
 use std::{error, fmt};
 
 use noodles_vcf::{
-    header::record::value::map::info::Type, variant::record_buf::info::field::Value as ValueBuf,
+    header::record::value::map::info::{Number, Type},
+    variant::record_buf::info::field::Value as ValueBuf,
 };
 
 use crate::record::codec::{
@@ -10,23 +11,55 @@ use crate::record::codec::{
     Value,
 };
 
-pub(super) fn read_value(src: &mut &[u8], ty: Type) -> Result<Option<ValueBuf>, DecodeError> {
-    match ty {
-        Type::Integer => read_integer_value(src),
-        Type::Flag => read_flag_value(src),
-        Type::Float => read_float_value(src),
-        Type::Character => read_character_value(src),
-        Type::String => read_string_value(src),
+pub(super) fn read_value(
+    src: &mut &[u8],
+    number: Number,
+    ty: Type,
+) -> Result<Option<ValueBuf>, DecodeError> {
+    let value = value::read_value(src).map_err(DecodeError::InvalidValue)?;
+
+    match (number, ty) {
+        (Number::Count(0), Type::Integer) => Err(DecodeError::InvalidNumberForType(number, ty)),
+        (Number::Count(1), Type::Integer) => resolve_integer_value(value),
+        (_, Type::Integer) => resolve_integer_array_value(value),
+
+        (Number::Count(0), Type::Flag) => resolve_flag_value(value),
+        (_, Type::Flag) => Err(DecodeError::InvalidNumberForType(number, ty)),
+
+        (Number::Count(0), Type::Float) => Err(DecodeError::InvalidNumberForType(number, ty)),
+        (Number::Count(1), Type::Float) => resolve_float_value(value),
+        (_, Type::Float) => resolve_float_array_value(value),
+
+        (Number::Count(0), Type::Character) => Err(DecodeError::InvalidNumberForType(number, ty)),
+        (Number::Count(1), Type::Character) => resolve_character_value(value),
+        (_, Type::Character) => resolve_character_array_value(value),
+
+        (_, Type::String) => resolve_string_value(value),
     }
 }
 
-fn read_integer_value(src: &mut &[u8]) -> Result<Option<ValueBuf>, DecodeError> {
-    match value::read_value(src).map_err(DecodeError::InvalidValue)? {
+fn resolve_integer_value(value: Option<Value<'_>>) -> Result<Option<ValueBuf>, DecodeError> {
+    match value {
         None
         | Some(Value::Int8(None | Some(Int8::Missing)))
         | Some(Value::Int16(None | Some(Int16::Missing)))
         | Some(Value::Int32(None | Some(Int32::Missing))) => Ok(None),
         Some(Value::Int8(Some(Int8::Value(n)))) => Ok(Some(ValueBuf::from(i32::from(n)))),
+        Some(Value::Int16(Some(Int16::Value(n)))) => Ok(Some(ValueBuf::from(i32::from(n)))),
+        Some(Value::Int32(Some(Int32::Value(n)))) => Ok(Some(ValueBuf::from(n))),
+        v => Err(type_mismatch_error(v, Type::Integer)),
+    }
+}
+
+fn resolve_integer_array_value(value: Option<Value<'_>>) -> Result<Option<ValueBuf>, DecodeError> {
+    match value {
+        None
+        | Some(Value::Int8(None | Some(Int8::Missing)))
+        | Some(Value::Int16(None | Some(Int16::Missing)))
+        | Some(Value::Int32(None | Some(Int32::Missing))) => Ok(None),
+        Some(Value::Int8(Some(Int8::Value(n)))) => {
+            Ok(Some(ValueBuf::from(vec![Some(i32::from(n))])))
+        }
         Some(Value::Array(Array::Int8(values))) => Ok(Some(ValueBuf::from(
             values
                 .iter()
@@ -40,7 +73,9 @@ fn read_integer_value(src: &mut &[u8]) -> Result<Option<ValueBuf>, DecodeError> 
                 .collect::<Result<Vec<_>, _>>()
                 .map_err(|_| DecodeError::UnexpectedEof)?,
         ))),
-        Some(Value::Int16(Some(Int16::Value(n)))) => Ok(Some(ValueBuf::from(i32::from(n)))),
+        Some(Value::Int16(Some(Int16::Value(n)))) => {
+            Ok(Some(ValueBuf::from(vec![Some(i32::from(n))])))
+        }
         Some(Value::Array(Array::Int16(values))) => Ok(Some(ValueBuf::from(
             values
                 .iter()
@@ -54,7 +89,7 @@ fn read_integer_value(src: &mut &[u8]) -> Result<Option<ValueBuf>, DecodeError> 
                 .collect::<Result<Vec<_>, _>>()
                 .map_err(|_| DecodeError::UnexpectedEof)?,
         ))),
-        Some(Value::Int32(Some(Int32::Value(n)))) => Ok(Some(ValueBuf::from(n))),
+        Some(Value::Int32(Some(Int32::Value(n)))) => Ok(Some(ValueBuf::from(vec![Some(n)]))),
         Some(Value::Array(Array::Int32(values))) => Ok(Some(ValueBuf::from(
             values
                 .iter()
@@ -72,17 +107,25 @@ fn read_integer_value(src: &mut &[u8]) -> Result<Option<ValueBuf>, DecodeError> 
     }
 }
 
-fn read_flag_value(src: &mut &[u8]) -> Result<Option<ValueBuf>, DecodeError> {
-    match value::read_value(src).map_err(DecodeError::InvalidValue)? {
+fn resolve_flag_value(value: Option<Value<'_>>) -> Result<Option<ValueBuf>, DecodeError> {
+    match value {
         None | Some(Value::Int8(Some(Int8::Value(1)))) => Ok(Some(ValueBuf::Flag)),
         v => Err(type_mismatch_error(v, Type::Flag)),
     }
 }
 
-fn read_float_value(src: &mut &[u8]) -> Result<Option<ValueBuf>, DecodeError> {
-    match value::read_value(src).map_err(DecodeError::InvalidValue)? {
+fn resolve_float_value(value: Option<Value<'_>>) -> Result<Option<ValueBuf>, DecodeError> {
+    match value {
         None | Some(Value::Float(None | Some(Float::Missing))) => Ok(None),
         Some(Value::Float(Some(Float::Value(n)))) => Ok(Some(ValueBuf::from(n))),
+        v => Err(type_mismatch_error(v, Type::Float)),
+    }
+}
+
+fn resolve_float_array_value(value: Option<Value<'_>>) -> Result<Option<ValueBuf>, DecodeError> {
+    match value {
+        None | Some(Value::Float(None | Some(Float::Missing))) => Ok(None),
+        Some(Value::Float(Some(Float::Value(n)))) => Ok(Some(ValueBuf::from(vec![Some(n)]))),
         Some(Value::Array(Array::Float(values))) => Ok(Some(ValueBuf::from(
             values
                 .iter()
@@ -100,11 +143,11 @@ fn read_float_value(src: &mut &[u8]) -> Result<Option<ValueBuf>, DecodeError> {
     }
 }
 
-fn read_character_value(src: &mut &[u8]) -> Result<Option<ValueBuf>, DecodeError> {
+fn resolve_character_value(value: Option<Value<'_>>) -> Result<Option<ValueBuf>, DecodeError> {
     const DELIMITER: char = ',';
     const MISSING_VALUE: char = '.';
 
-    match value::read_value(src).map_err(DecodeError::InvalidValue)? {
+    match value {
         None | Some(Value::String(None)) => Ok(None),
         Some(Value::String(Some(s))) => match s.len() {
             0 | 1 => s
@@ -127,8 +170,37 @@ fn read_character_value(src: &mut &[u8]) -> Result<Option<ValueBuf>, DecodeError
     }
 }
 
-fn read_string_value(src: &mut &[u8]) -> Result<Option<ValueBuf>, DecodeError> {
-    match value::read_value(src).map_err(DecodeError::InvalidValue)? {
+fn resolve_character_array_value(
+    value: Option<Value<'_>>,
+) -> Result<Option<ValueBuf>, DecodeError> {
+    const DELIMITER: char = ',';
+    const MISSING_VALUE: char = '.';
+
+    match value {
+        None | Some(Value::String(None)) => Ok(None),
+        Some(Value::String(Some(s))) => match s.len() {
+            0 | 1 => s
+                .chars()
+                .next()
+                .map(ValueBuf::from)
+                .map(|v| Ok(Some(v)))
+                .ok_or(DecodeError::MissingCharacter)?,
+            _ => Ok(Some(ValueBuf::from(
+                s.split(DELIMITER)
+                    .flat_map(|t| t.chars())
+                    .map(|c| match c {
+                        MISSING_VALUE => None,
+                        _ => Some(c),
+                    })
+                    .collect::<Vec<_>>(),
+            ))),
+        },
+        v => Err(type_mismatch_error(v, Type::Character)),
+    }
+}
+
+fn resolve_string_value(value: Option<Value<'_>>) -> Result<Option<ValueBuf>, DecodeError> {
+    match value {
         None | Some(Value::String(None)) => Ok(None),
         Some(Value::String(Some(s))) => Ok(Some(ValueBuf::from(s))),
         v => Err(type_mismatch_error(v, Type::String)),
@@ -149,6 +221,7 @@ fn type_mismatch_error(value: Option<Value>, expected: Type) -> DecodeError {
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum DecodeError {
+    InvalidNumberForType(Number, Type),
     UnexpectedEof,
     InvalidValue(value::DecodeError),
     TypeMismatch {
@@ -170,6 +243,9 @@ impl error::Error for DecodeError {
 impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::InvalidNumberForType(number, ty) => {
+                write!(f, "invalid number {number:?} for type {ty:?}")
+            }
             Self::UnexpectedEof => write!(f, "unexpected EOF"),
             Self::InvalidValue(_) => write!(f, "invalid value"),
             Self::TypeMismatch { actual, expected } => {
@@ -187,7 +263,7 @@ mod tests {
     #[test]
     fn test_read_value_with_integer_value() {
         fn t(mut src: &[u8], expected_value: Option<i32>) {
-            let actual = read_value(&mut src, Type::Integer);
+            let actual = read_value(&mut src, Number::Count(1), Type::Integer);
             let expected = expected_value.map(ValueBuf::from);
             assert_eq!(actual, Ok(expected));
         }
@@ -220,7 +296,7 @@ mod tests {
     #[test]
     fn test_read_value_with_integer_array_value() {
         fn t(mut src: &[u8], expected_value: Option<Vec<Option<i32>>>) {
-            let actual = read_value(&mut src, Type::Integer);
+            let actual = read_value(&mut src, Number::Count(2), Type::Integer);
             let expected = expected_value.map(ValueBuf::from);
             assert_eq!(actual, Ok(expected));
         }
@@ -253,7 +329,7 @@ mod tests {
     #[test]
     fn test_read_value_with_flag_value() {
         fn t(mut src: &[u8]) {
-            let actual = read_value(&mut src, Type::Flag);
+            let actual = read_value(&mut src, Number::Count(0), Type::Flag);
             let expected = Some(ValueBuf::Flag);
             assert_eq!(actual, Ok(expected));
         }
@@ -267,7 +343,7 @@ mod tests {
     #[test]
     fn test_read_value_with_float_value() {
         fn t(mut src: &[u8], expected_value: Option<f32>) {
-            let actual = read_value(&mut src, Type::Float);
+            let actual = read_value(&mut src, Number::Count(1), Type::Float);
             let expected = expected_value.map(ValueBuf::from);
             assert_eq!(actual, Ok(expected));
         }
@@ -286,7 +362,7 @@ mod tests {
     #[test]
     fn test_read_value_with_float_array_value() {
         fn t(mut src: &[u8], expected_value: Option<Vec<Option<f32>>>) {
-            let actual = read_value(&mut src, Type::Float);
+            let actual = read_value(&mut src, Number::Count(2), Type::Float);
             let expected = expected_value.map(ValueBuf::from);
             assert_eq!(actual, Ok(expected));
         }
@@ -306,7 +382,7 @@ mod tests {
     #[test]
     fn test_read_value_with_character_value() {
         fn t(mut src: &[u8], expected_value: Option<char>) {
-            let actual = read_value(&mut src, Type::Character);
+            let actual = read_value(&mut src, Number::Count(1), Type::Character);
             let expected = expected_value.map(ValueBuf::from);
             assert_eq!(actual, Ok(expected));
         }
@@ -323,7 +399,7 @@ mod tests {
     #[test]
     fn test_read_value_with_character_array_value() {
         fn t(mut src: &[u8], expected_value: Option<Vec<Option<char>>>) {
-            let actual = read_value(&mut src, Type::Character);
+            let actual = read_value(&mut src, Number::Count(2), Type::Character);
             let expected = expected_value.map(ValueBuf::from);
             assert_eq!(actual, Ok(expected));
         }
@@ -340,7 +416,7 @@ mod tests {
     #[test]
     fn test_read_value_with_string_value() {
         fn t(mut src: &[u8], expected_value: Option<&str>) {
-            let actual = read_value(&mut src, Type::String);
+            let actual = read_value(&mut src, Number::Count(1), Type::String);
             let expected = expected_value.map(ValueBuf::from);
             assert_eq!(actual, Ok(expected));
         }

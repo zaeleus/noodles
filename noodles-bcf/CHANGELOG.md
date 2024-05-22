@@ -4,8 +4,8 @@
 
 ### Changed
 
-  * bcf/record/codec/decoder/samples/values: Use type definition from header
-    when decoding values.
+  * bcf/record/codec/decoder: Resolve info field and samples series values
+    using header type definitions.
 
 ## 0.54.0 - 2024-05-16
 
