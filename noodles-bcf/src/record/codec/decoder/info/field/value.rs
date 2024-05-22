@@ -1,6 +1,8 @@
 use std::{error, fmt};
 
-use noodles_vcf::{self as vcf, header::record::value::map::info::Type};
+use noodles_vcf::{
+    header::record::value::map::info::Type, variant::record_buf::info::field::Value as ValueBuf,
+};
 
 use crate::record::codec::{
     decoder::value,
@@ -8,10 +10,7 @@ use crate::record::codec::{
     Value,
 };
 
-pub(super) fn read_value(
-    src: &mut &[u8],
-    ty: Type,
-) -> Result<Option<vcf::variant::record_buf::info::field::Value>, DecodeError> {
+pub(super) fn read_value(src: &mut &[u8], ty: Type) -> Result<Option<ValueBuf>, DecodeError> {
     match ty {
         Type::Integer => read_integer_value(src),
         Type::Flag => read_flag_value(src),
@@ -21,113 +20,87 @@ pub(super) fn read_value(
     }
 }
 
-fn read_integer_value(
-    src: &mut &[u8],
-) -> Result<Option<vcf::variant::record_buf::info::field::Value>, DecodeError> {
+fn read_integer_value(src: &mut &[u8]) -> Result<Option<ValueBuf>, DecodeError> {
     match value::read_value(src).map_err(DecodeError::InvalidValue)? {
         None
         | Some(Value::Int8(None | Some(Int8::Missing)))
         | Some(Value::Int16(None | Some(Int16::Missing)))
         | Some(Value::Int32(None | Some(Int32::Missing))) => Ok(None),
-        Some(Value::Int8(Some(Int8::Value(n)))) => Ok(Some(
-            vcf::variant::record_buf::info::field::Value::from(i32::from(n)),
-        )),
-        Some(Value::Array(Array::Int8(values))) => {
-            Ok(Some(vcf::variant::record_buf::info::field::Value::from(
-                values
-                    .iter()
-                    .map(|result| {
-                        result.map(Int8::from).map(|value| match value {
-                            Int8::Value(n) => Some(i32::from(n)),
-                            Int8::Missing => None,
-                            _ => todo!("unhandled i8 array value: {:?}", value),
-                        })
+        Some(Value::Int8(Some(Int8::Value(n)))) => Ok(Some(ValueBuf::from(i32::from(n)))),
+        Some(Value::Array(Array::Int8(values))) => Ok(Some(ValueBuf::from(
+            values
+                .iter()
+                .map(|result| {
+                    result.map(Int8::from).map(|value| match value {
+                        Int8::Value(n) => Some(i32::from(n)),
+                        Int8::Missing => None,
+                        _ => todo!("unhandled i8 array value: {:?}", value),
                     })
-                    .collect::<Result<Vec<_>, _>>()
-                    .map_err(|_| DecodeError::UnexpectedEof)?,
-            )))
-        }
-        Some(Value::Int16(Some(Int16::Value(n)))) => Ok(Some(
-            vcf::variant::record_buf::info::field::Value::from(i32::from(n)),
-        )),
-        Some(Value::Array(Array::Int16(values))) => {
-            Ok(Some(vcf::variant::record_buf::info::field::Value::from(
-                values
-                    .iter()
-                    .map(|result| {
-                        result.map(Int16::from).map(|value| match value {
-                            Int16::Value(n) => Some(i32::from(n)),
-                            Int16::Missing => None,
-                            _ => todo!("unhandled i16 array value: {:?}", value),
-                        })
+                })
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|_| DecodeError::UnexpectedEof)?,
+        ))),
+        Some(Value::Int16(Some(Int16::Value(n)))) => Ok(Some(ValueBuf::from(i32::from(n)))),
+        Some(Value::Array(Array::Int16(values))) => Ok(Some(ValueBuf::from(
+            values
+                .iter()
+                .map(|result| {
+                    result.map(Int16::from).map(|value| match value {
+                        Int16::Value(n) => Some(i32::from(n)),
+                        Int16::Missing => None,
+                        _ => todo!("unhandled i16 array value: {:?}", value),
                     })
-                    .collect::<Result<Vec<_>, _>>()
-                    .map_err(|_| DecodeError::UnexpectedEof)?,
-            )))
-        }
-        Some(Value::Int32(Some(Int32::Value(n)))) => {
-            Ok(Some(vcf::variant::record_buf::info::field::Value::from(n)))
-        }
-        Some(Value::Array(Array::Int32(values))) => {
-            Ok(Some(vcf::variant::record_buf::info::field::Value::from(
-                values
-                    .iter()
-                    .map(|result| {
-                        result.map(Int32::from).map(|value| match value {
-                            Int32::Value(n) => Some(n),
-                            Int32::Missing => None,
-                            _ => todo!("unhandled i32 array value: {:?}", value),
-                        })
+                })
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|_| DecodeError::UnexpectedEof)?,
+        ))),
+        Some(Value::Int32(Some(Int32::Value(n)))) => Ok(Some(ValueBuf::from(n))),
+        Some(Value::Array(Array::Int32(values))) => Ok(Some(ValueBuf::from(
+            values
+                .iter()
+                .map(|result| {
+                    result.map(Int32::from).map(|value| match value {
+                        Int32::Value(n) => Some(n),
+                        Int32::Missing => None,
+                        _ => todo!("unhandled i32 array value: {:?}", value),
                     })
-                    .collect::<Result<Vec<_>, _>>()
-                    .map_err(|_| DecodeError::UnexpectedEof)?,
-            )))
-        }
+                })
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|_| DecodeError::UnexpectedEof)?,
+        ))),
         v => Err(type_mismatch_error(v, Type::Integer)),
     }
 }
 
-fn read_flag_value(
-    src: &mut &[u8],
-) -> Result<Option<vcf::variant::record_buf::info::field::Value>, DecodeError> {
+fn read_flag_value(src: &mut &[u8]) -> Result<Option<ValueBuf>, DecodeError> {
     match value::read_value(src).map_err(DecodeError::InvalidValue)? {
-        None | Some(Value::Int8(Some(Int8::Value(1)))) => {
-            Ok(Some(vcf::variant::record_buf::info::field::Value::Flag))
-        }
+        None | Some(Value::Int8(Some(Int8::Value(1)))) => Ok(Some(ValueBuf::Flag)),
         v => Err(type_mismatch_error(v, Type::Flag)),
     }
 }
 
-fn read_float_value(
-    src: &mut &[u8],
-) -> Result<Option<vcf::variant::record_buf::info::field::Value>, DecodeError> {
+fn read_float_value(src: &mut &[u8]) -> Result<Option<ValueBuf>, DecodeError> {
     match value::read_value(src).map_err(DecodeError::InvalidValue)? {
         None | Some(Value::Float(None | Some(Float::Missing))) => Ok(None),
-        Some(Value::Float(Some(Float::Value(n)))) => {
-            Ok(Some(vcf::variant::record_buf::info::field::Value::from(n)))
-        }
-        Some(Value::Array(Array::Float(values))) => {
-            Ok(Some(vcf::variant::record_buf::info::field::Value::from(
-                values
-                    .iter()
-                    .map(|result| {
-                        result.map(Float::from).map(|value| match value {
-                            Float::Value(n) => Some(n),
-                            Float::Missing => None,
-                            _ => todo!("unhandled float array value: {:?}", value),
-                        })
+        Some(Value::Float(Some(Float::Value(n)))) => Ok(Some(ValueBuf::from(n))),
+        Some(Value::Array(Array::Float(values))) => Ok(Some(ValueBuf::from(
+            values
+                .iter()
+                .map(|result| {
+                    result.map(Float::from).map(|value| match value {
+                        Float::Value(n) => Some(n),
+                        Float::Missing => None,
+                        _ => todo!("unhandled float array value: {:?}", value),
                     })
-                    .collect::<Result<Vec<_>, _>>()
-                    .map_err(|_| DecodeError::UnexpectedEof)?,
-            )))
-        }
+                })
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|_| DecodeError::UnexpectedEof)?,
+        ))),
         v => Err(type_mismatch_error(v, Type::Float)),
     }
 }
 
-fn read_character_value(
-    src: &mut &[u8],
-) -> Result<Option<vcf::variant::record_buf::info::field::Value>, DecodeError> {
+fn read_character_value(src: &mut &[u8]) -> Result<Option<ValueBuf>, DecodeError> {
     const DELIMITER: char = ',';
     const MISSING_VALUE: char = '.';
 
@@ -137,10 +110,10 @@ fn read_character_value(
             0 | 1 => s
                 .chars()
                 .next()
-                .map(vcf::variant::record_buf::info::field::Value::from)
+                .map(ValueBuf::from)
                 .map(|v| Ok(Some(v)))
                 .ok_or(DecodeError::MissingCharacter)?,
-            _ => Ok(Some(vcf::variant::record_buf::info::field::Value::from(
+            _ => Ok(Some(ValueBuf::from(
                 s.split(DELIMITER)
                     .flat_map(|t| t.chars())
                     .map(|c| match c {
@@ -154,14 +127,10 @@ fn read_character_value(
     }
 }
 
-fn read_string_value(
-    src: &mut &[u8],
-) -> Result<Option<vcf::variant::record_buf::info::field::Value>, DecodeError> {
+fn read_string_value(src: &mut &[u8]) -> Result<Option<ValueBuf>, DecodeError> {
     match value::read_value(src).map_err(DecodeError::InvalidValue)? {
         None | Some(Value::String(None)) => Ok(None),
-        Some(Value::String(Some(s))) => {
-            Ok(Some(vcf::variant::record_buf::info::field::Value::from(s)))
-        }
+        Some(Value::String(Some(s))) => Ok(Some(ValueBuf::from(s))),
         v => Err(type_mismatch_error(v, Type::String)),
     }
 }
@@ -219,7 +188,7 @@ mod tests {
     fn test_read_value_with_integer_value() {
         fn t(mut src: &[u8], expected_value: Option<i32>) {
             let actual = read_value(&mut src, Type::Integer);
-            let expected = expected_value.map(vcf::variant::record_buf::info::field::Value::from);
+            let expected = expected_value.map(ValueBuf::from);
             assert_eq!(actual, Ok(expected));
         }
 
@@ -252,7 +221,7 @@ mod tests {
     fn test_read_value_with_integer_array_value() {
         fn t(mut src: &[u8], expected_value: Option<Vec<Option<i32>>>) {
             let actual = read_value(&mut src, Type::Integer);
-            let expected = expected_value.map(vcf::variant::record_buf::info::field::Value::from);
+            let expected = expected_value.map(ValueBuf::from);
             assert_eq!(actual, Ok(expected));
         }
 
@@ -285,7 +254,7 @@ mod tests {
     fn test_read_value_with_flag_value() {
         fn t(mut src: &[u8]) {
             let actual = read_value(&mut src, Type::Flag);
-            let expected = Some(vcf::variant::record_buf::info::field::Value::Flag);
+            let expected = Some(ValueBuf::Flag);
             assert_eq!(actual, Ok(expected));
         }
 
@@ -299,7 +268,7 @@ mod tests {
     fn test_read_value_with_float_value() {
         fn t(mut src: &[u8], expected_value: Option<f32>) {
             let actual = read_value(&mut src, Type::Float);
-            let expected = expected_value.map(vcf::variant::record_buf::info::field::Value::from);
+            let expected = expected_value.map(ValueBuf::from);
             assert_eq!(actual, Ok(expected));
         }
 
@@ -318,7 +287,7 @@ mod tests {
     fn test_read_value_with_float_array_value() {
         fn t(mut src: &[u8], expected_value: Option<Vec<Option<f32>>>) {
             let actual = read_value(&mut src, Type::Float);
-            let expected = expected_value.map(vcf::variant::record_buf::info::field::Value::from);
+            let expected = expected_value.map(ValueBuf::from);
             assert_eq!(actual, Ok(expected));
         }
 
@@ -338,7 +307,7 @@ mod tests {
     fn test_read_value_with_character_value() {
         fn t(mut src: &[u8], expected_value: Option<char>) {
             let actual = read_value(&mut src, Type::Character);
-            let expected = expected_value.map(vcf::variant::record_buf::info::field::Value::from);
+            let expected = expected_value.map(ValueBuf::from);
             assert_eq!(actual, Ok(expected));
         }
 
@@ -355,7 +324,7 @@ mod tests {
     fn test_read_value_with_character_array_value() {
         fn t(mut src: &[u8], expected_value: Option<Vec<Option<char>>>) {
             let actual = read_value(&mut src, Type::Character);
-            let expected = expected_value.map(vcf::variant::record_buf::info::field::Value::from);
+            let expected = expected_value.map(ValueBuf::from);
             assert_eq!(actual, Ok(expected));
         }
 
@@ -372,7 +341,7 @@ mod tests {
     fn test_read_value_with_string_value() {
         fn t(mut src: &[u8], expected_value: Option<&str>) {
             let actual = read_value(&mut src, Type::String);
-            let expected = expected_value.map(vcf::variant::record_buf::info::field::Value::from);
+            let expected = expected_value.map(ValueBuf::from);
             assert_eq!(actual, Ok(expected));
         }
 
