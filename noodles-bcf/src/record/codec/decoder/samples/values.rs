@@ -1,6 +1,9 @@
 use std::{error, fmt, str};
 
-use noodles_vcf::variant::record_buf::samples::sample::{value::genotype, Value};
+use noodles_vcf::{
+    header::record::value::map::format::{self, Number},
+    variant::record_buf::samples::sample::{value::genotype, Value},
+};
 
 use crate::record::codec::{
     decoder::{
@@ -15,30 +18,52 @@ use crate::record::codec::{
 
 pub(super) fn read_values(
     src: &mut &[u8],
+    number: Number,
+    ty: format::Type,
     sample_count: usize,
 ) -> Result<Vec<Option<Value>>, DecodeError> {
-    match read_type(src).map_err(DecodeError::InvalidType)? {
-        Some(Type::Int8(0)) => Err(DecodeError::InvalidLength),
-        Some(Type::Int8(1)) => read_int8_values(src, sample_count),
-        Some(Type::Int8(n)) => read_int8_array_values(src, sample_count, n),
-        Some(Type::Int16(0)) => Err(DecodeError::InvalidLength),
-        Some(Type::Int16(1)) => read_int16_values(src, sample_count),
-        Some(Type::Int16(n)) => read_int16_array_values(src, sample_count, n),
-        Some(Type::Int32(0)) => Err(DecodeError::InvalidLength),
-        Some(Type::Int32(1)) => read_int32_values(src, sample_count),
-        Some(Type::Int32(n)) => read_int32_array_values(src, sample_count, n),
-        Some(Type::Float(0)) => Err(DecodeError::InvalidLength),
-        Some(Type::Float(1)) => read_float_values(src, sample_count),
-        Some(Type::Float(n)) => read_float_array_values(src, sample_count, n),
-        Some(Type::String(n)) => read_string_values(src, sample_count, n),
-        ty => todo!("unhandled type: {ty:?}"),
+    let value_ty = read_type(src)
+        .map_err(DecodeError::InvalidType)?
+        .expect("unhandled type");
+
+    match (number, ty, value_ty) {
+        (Number::Count(0), _, _) => todo!("invalid number for type"),
+
+        (_, _, Type::Int8(0) | Type::Int16(0) | Type::Int32(0) | Type::Float(0)) => {
+            Err(DecodeError::InvalidLength)
+        }
+
+        (Number::Count(1), format::Type::Integer, Type::Int8(1)) => {
+            read_i8_values(src, sample_count)
+        }
+        (Number::Count(1), format::Type::Integer, Type::Int16(1)) => {
+            read_i16_values(src, sample_count)
+        }
+        (Number::Count(1), format::Type::Integer, Type::Int32(1)) => {
+            read_i32_values(src, sample_count)
+        }
+        (Number::Count(1), format::Type::Float, Type::Float(1)) => {
+            read_f32_values(src, sample_count)
+        }
+        (Number::Count(1), format::Type::Character, Type::String(_)) => todo!(),
+        (Number::Count(1), format::Type::String, Type::String(n)) => {
+            read_string_values(src, sample_count, n)
+        }
+
+        (_, format::Type::Integer, Type::Int8(n)) => read_i8_array_values(src, sample_count, n),
+        (_, format::Type::Integer, Type::Int16(n)) => read_i16_array_values(src, sample_count, n),
+        (_, format::Type::Integer, Type::Int32(n)) => read_i32_array_values(src, sample_count, n),
+        (_, format::Type::Float, Type::Float(n)) => read_f32_array_values(src, sample_count, n),
+        (_, format::Type::Character, Type::String(_)) => todo!(),
+        (_, format::Type::String, Type::String(n)) => {
+            read_string_array_values(src, sample_count, n)
+        }
+
+        _ => todo!("unhandled type"),
     }
 }
 
-fn read_int8_values(
-    src: &mut &[u8],
-    sample_count: usize,
-) -> Result<Vec<Option<Value>>, DecodeError> {
+fn read_i8_values(src: &mut &[u8], sample_count: usize) -> Result<Vec<Option<Value>>, DecodeError> {
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
@@ -56,7 +81,7 @@ fn read_int8_values(
     Ok(values)
 }
 
-fn read_int8_array_values(
+fn read_i8_array_values(
     src: &mut &[u8],
     sample_count: usize,
     len: usize,
@@ -87,7 +112,7 @@ fn read_int8_array_values(
     Ok(values)
 }
 
-fn read_int16_values(
+fn read_i16_values(
     src: &mut &[u8],
     sample_count: usize,
 ) -> Result<Vec<Option<Value>>, DecodeError> {
@@ -108,7 +133,7 @@ fn read_int16_values(
     Ok(values)
 }
 
-fn read_int16_array_values(
+fn read_i16_array_values(
     src: &mut &[u8],
     sample_count: usize,
     len: usize,
@@ -139,7 +164,7 @@ fn read_int16_array_values(
     Ok(values)
 }
 
-fn read_int32_values(
+fn read_i32_values(
     src: &mut &[u8],
     sample_count: usize,
 ) -> Result<Vec<Option<Value>>, DecodeError> {
@@ -160,7 +185,7 @@ fn read_int32_values(
     Ok(values)
 }
 
-fn read_int32_array_values(
+fn read_i32_array_values(
     src: &mut &[u8],
     sample_count: usize,
     len: usize,
@@ -191,7 +216,7 @@ fn read_int32_array_values(
     Ok(values)
 }
 
-fn read_float_values(
+fn read_f32_values(
     src: &mut &[u8],
     sample_count: usize,
 ) -> Result<Vec<Option<Value>>, DecodeError> {
@@ -212,7 +237,7 @@ fn read_float_values(
     Ok(values)
 }
 
-fn read_float_array_values(
+fn read_f32_array_values(
     src: &mut &[u8],
     sample_count: usize,
     len: usize,
@@ -262,6 +287,34 @@ fn read_string_values(
 
         let s = str::from_utf8(data).map_err(DecodeError::InvalidString)?;
         let value = Value::from(s);
+
+        values.push(Some(value));
+    }
+
+    Ok(values)
+}
+
+fn read_string_array_values(
+    src: &mut &[u8],
+    sample_count: usize,
+    len: usize,
+) -> Result<Vec<Option<Value>>, DecodeError> {
+    const NUL: u8 = 0x00;
+    const DELIMITER: char = ',';
+
+    let mut values = Vec::with_capacity(sample_count);
+
+    for _ in 0..sample_count {
+        let buf = read_string(src, len).map_err(DecodeError::InvalidRawValue)?;
+
+        let data = match buf.iter().position(|&b| b == NUL) {
+            Some(i) => &buf[..i],
+            None => buf,
+        };
+
+        let s = str::from_utf8(data).map_err(DecodeError::InvalidString)?;
+        let ss: Vec<Option<String>> = s.split(DELIMITER).map(String::from).map(Some).collect();
+        let value = Value::from(ss);
 
         values.push(Some(value));
     }
@@ -385,7 +438,7 @@ mod tests {
         ][..];
 
         assert_eq!(
-            read_values(&mut src, 3),
+            read_values(&mut src, Number::Count(1), format::Type::Integer, 3),
             Ok(vec![Some(Value::from(5)), Some(Value::from(8)), None])
         );
     }
@@ -401,7 +454,7 @@ mod tests {
         ][..];
 
         assert_eq!(
-            read_values(&mut src, 4),
+            read_values(&mut src, Number::Count(2), format::Type::Integer, 4),
             Ok(vec![
                 Some(Value::from(vec![Some(5), Some(8)])),
                 Some(Value::from(vec![Some(13), None])),
@@ -421,7 +474,7 @@ mod tests {
         ][..];
 
         assert_eq!(
-            read_values(&mut src, 3),
+            read_values(&mut src, Number::Count(1), format::Type::Integer, 3),
             Ok(vec![Some(Value::from(5)), Some(Value::from(8)), None])
         );
     }
@@ -437,7 +490,7 @@ mod tests {
         ][..];
 
         assert_eq!(
-            read_values(&mut src, 4),
+            read_values(&mut src, Number::Count(2), format::Type::Integer, 4),
             Ok(vec![
                 Some(Value::from(vec![Some(5), Some(8)])),
                 Some(Value::from(vec![Some(13), None])),
@@ -457,7 +510,7 @@ mod tests {
         ][..];
 
         assert_eq!(
-            read_values(&mut src, 3),
+            read_values(&mut src, Number::Count(1), format::Type::Integer, 3),
             Ok(vec![Some(Value::from(5)), Some(Value::from(8)), None])
         );
     }
@@ -473,7 +526,7 @@ mod tests {
         ][..];
 
         assert_eq!(
-            read_values(&mut src, 4),
+            read_values(&mut src, Number::Count(2), format::Type::Integer, 4),
             Ok(vec![
                 Some(Value::from(vec![Some(5), Some(8)])),
                 Some(Value::from(vec![Some(13), None])),
@@ -493,7 +546,7 @@ mod tests {
         ][..];
 
         assert_eq!(
-            read_values(&mut src, 3),
+            read_values(&mut src, Number::Count(1), format::Type::Float, 3),
             Ok(vec![Some(Value::from(0.0)), Some(Value::from(1.0)), None])
         );
     }
@@ -509,7 +562,7 @@ mod tests {
         ][..];
 
         assert_eq!(
-            read_values(&mut src, 4),
+            read_values(&mut src, Number::Count(2), format::Type::Float, 4),
             Ok(vec![
                 Some(Value::from(vec![Some(0.0), Some(1.0)])),
                 Some(Value::from(vec![Some(0.0), None])),
@@ -529,11 +582,36 @@ mod tests {
         ][..];
 
         assert_eq!(
-            read_values(&mut src, 3),
+            read_values(&mut src, Number::Count(1), format::Type::String, 3),
             Ok(vec![
                 Some(Value::from("n")),
                 Some(Value::from("ndl")),
                 Some(Value::from("ndls")),
+            ])
+        );
+    }
+
+    #[test]
+    fn test_read_values_with_string_array_values() {
+        let mut src = &[
+            0x47, // Some(Type::String(4))
+            b'n', 0x00, 0x00, 0x00, // "n"
+            b'n', b',', b'l', 0x00, // "n,l"
+            b'n', b',', b'l', b's', // "n,ls"
+        ][..];
+
+        assert_eq!(
+            read_values(&mut src, Number::Count(2), format::Type::String, 3),
+            Ok(vec![
+                Some(Value::from(vec![Some(String::from("n"))])),
+                Some(Value::from(vec![
+                    Some(String::from("n")),
+                    Some(String::from("l"))
+                ])),
+                Some(Value::from(vec![
+                    Some(String::from("n")),
+                    Some(String::from("ls"))
+                ])),
             ])
         );
     }

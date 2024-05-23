@@ -27,7 +27,13 @@ pub fn read_samples(
         let values = if key == key::GENOTYPE {
             read_genotype_values(src, sample_count).map_err(DecodeError::InvalidValues)?
         } else {
-            read_values(src, sample_count).map_err(DecodeError::InvalidValues)?
+            let (number, ty) = header
+                .formats()
+                .get(key)
+                .map(|format| (format.number(), format.ty()))
+                .ok_or_else(|| DecodeError::MissingTypeDefinition(key.into()))?;
+
+            read_values(src, number, ty, sample_count).map_err(DecodeError::InvalidValues)?
         };
 
         keys.push(key.into());
@@ -44,6 +50,7 @@ pub fn read_samples(
 #[derive(Debug, Eq, PartialEq)]
 pub enum DecodeError {
     InvalidKey(key::DecodeError),
+    MissingTypeDefinition(String),
     InvalidValues(values::DecodeError),
 }
 
@@ -51,6 +58,7 @@ impl error::Error for DecodeError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::InvalidKey(e) => Some(e),
+            Self::MissingTypeDefinition(_) => None,
             Self::InvalidValues(e) => Some(e),
         }
     }
@@ -60,6 +68,7 @@ impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidKey(_) => write!(f, "invalid key"),
+            Self::MissingTypeDefinition(key) => write!(f, "missing type definition: {key}"),
             Self::InvalidValues(_) => write!(f, "invalid values"),
         }
     }
