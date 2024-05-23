@@ -144,28 +144,19 @@ fn resolve_float_array_value(value: Option<Value<'_>>) -> Result<Option<ValueBuf
 }
 
 fn resolve_character_value(value: Option<Value<'_>>) -> Result<Option<ValueBuf>, DecodeError> {
-    const DELIMITER: char = ',';
-    const MISSING_VALUE: char = '.';
-
     match value {
         None | Some(Value::String(None)) => Ok(None),
-        Some(Value::String(Some(s))) => match s.len() {
-            0 | 1 => s
-                .chars()
-                .next()
-                .map(ValueBuf::from)
-                .map(|v| Ok(Some(v)))
-                .ok_or(DecodeError::MissingCharacter)?,
-            _ => Ok(Some(ValueBuf::from(
-                s.split(DELIMITER)
-                    .flat_map(|t| t.chars())
-                    .map(|c| match c {
-                        MISSING_VALUE => None,
-                        _ => Some(c),
-                    })
-                    .collect::<Vec<_>>(),
-            ))),
-        },
+        Some(Value::String(Some(s))) => {
+            let mut chars = s.chars();
+
+            let c = chars.next().ok_or(DecodeError::MissingCharacter)?;
+
+            if chars.next().is_some() {
+                Err(DecodeError::InvalidCharacter)
+            } else {
+                Ok(Some(ValueBuf::from(c)))
+            }
+        }
         v => Err(type_mismatch_error(v, Type::Character)),
     }
 }
@@ -178,23 +169,15 @@ fn resolve_character_array_value(
 
     match value {
         None | Some(Value::String(None)) => Ok(None),
-        Some(Value::String(Some(s))) => match s.len() {
-            0 | 1 => s
-                .chars()
-                .next()
-                .map(ValueBuf::from)
-                .map(|v| Ok(Some(v)))
-                .ok_or(DecodeError::MissingCharacter)?,
-            _ => Ok(Some(ValueBuf::from(
-                s.split(DELIMITER)
-                    .flat_map(|t| t.chars())
-                    .map(|c| match c {
-                        MISSING_VALUE => None,
-                        _ => Some(c),
-                    })
-                    .collect::<Vec<_>>(),
-            ))),
-        },
+        Some(Value::String(Some(s))) => Ok(Some(ValueBuf::from(
+            s.split(DELIMITER)
+                .flat_map(|t| t.chars())
+                .map(|c| match c {
+                    MISSING_VALUE => None,
+                    _ => Some(c),
+                })
+                .collect::<Vec<_>>(),
+        ))),
         v => Err(type_mismatch_error(v, Type::Character)),
     }
 }
@@ -229,6 +212,7 @@ pub enum DecodeError {
         expected: Type,
     },
     MissingCharacter,
+    InvalidCharacter,
 }
 
 impl error::Error for DecodeError {
@@ -252,6 +236,7 @@ impl fmt::Display for DecodeError {
                 write!(f, "type mismatch: expected {expected:?}, got {actual:?}")
             }
             Self::MissingCharacter => write!(f, "missing character"),
+            Self::InvalidCharacter => write!(f, "invalid character"),
         }
     }
 }
