@@ -4,8 +4,10 @@
 
 ### Changed
 
-  * bcf/record/codec/decoder: Resolve info field and samples series values
-    using header type definitions.
+  * bcf/record: Resolve info field and samples series values using header type
+    definitions ([#266]).
+
+[#266]: https://github.com/zaeleus/noodles/issues/266
 
 ## 0.54.0 - 2024-05-16
 

@@ -14,12 +14,13 @@ pub(super) fn read_field<'a, 'h: 'a>(
     let key = read_string_map_entry(src, header.string_maps().strings())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    let info = header
+    let (number, ty) = header
         .infos()
         .get(key)
+        .map(|info| (info.number(), info.ty()))
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing info map entry"))?;
 
-    let value = read_value(src, info.ty())?;
+    let value = read_value(src, number, ty)?;
 
     Ok((key, value))
 }

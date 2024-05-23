@@ -216,7 +216,7 @@ pub(crate) mod tests {
             (String::from("HM3"), Some(InfoFieldValue::Flag)),
             (
                 String::from(info::field::key::ALLELE_COUNT),
-                Some(InfoFieldValue::from(3)),
+                Some(InfoFieldValue::from(vec![Some(3)])),
             ),
             (
                 String::from(info::field::key::TOTAL_ALLELE_COUNT),

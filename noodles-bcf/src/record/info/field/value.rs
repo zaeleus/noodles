@@ -1,7 +1,8 @@
-use std::io;
+use std::{io, iter};
 
 use noodles_vcf::{
-    header::record::value::map::info::Type,
+    self as vcf,
+    header::record::value::map::info::{Number, Type},
     variant::record::info::field::{value::Array, Value},
 };
 
@@ -11,13 +12,32 @@ use crate::record::{
     Value as TypedValue,
 };
 
-pub(super) fn read_value<'a>(src: &mut &'a [u8], ty: Type) -> io::Result<Option<Value<'a>>> {
-    match ty {
-        Type::Integer => read_integer_value(src),
-        Type::Flag => read_flag_value(src),
-        Type::Float => read_float_value(src),
-        Type::Character => read_character_value(src),
-        Type::String => read_string_value(src),
+pub(super) fn read_value<'a>(
+    src: &mut &'a [u8],
+    number: Number,
+    ty: Type,
+) -> io::Result<Option<Value<'a>>> {
+    fn invalid_number_for_type_error() -> io::Error {
+        io::Error::new(io::ErrorKind::InvalidData, "invalid number for type")
+    }
+
+    match (number, ty) {
+        (Number::Count(0), Type::Integer) => Err(invalid_number_for_type_error()),
+        (Number::Count(1), Type::Integer) => read_integer_value(src),
+        (_, Type::Integer) => read_integer_array_value(src),
+
+        (Number::Count(0), Type::Flag) => read_flag_value(src),
+        (_, Type::Flag) => Err(invalid_number_for_type_error()),
+
+        (Number::Count(0), Type::Float) => Err(invalid_number_for_type_error()),
+        (Number::Count(1), Type::Float) => read_float_value(src),
+        (_, Type::Float) => read_float_array_value(src),
+
+        (Number::Count(0), Type::Character) => Err(invalid_number_for_type_error()),
+        (Number::Count(1), Type::Character) => read_character_value(src),
+        (_, Type::Character) => read_character_array_value(src),
+
+        (_, Type::String) => read_string_value(src),
     }
 }
 
@@ -28,6 +48,42 @@ fn read_integer_value<'a>(src: &mut &'a [u8]) -> io::Result<Option<Value<'a>>> {
         | Some(TypedValue::Int16(None | Some(Int16::Missing)))
         | Some(TypedValue::Int32(None | Some(Int32::Missing))) => Ok(None),
         Some(TypedValue::Int8(Some(Int8::Value(n)))) => Ok(Some(Value::Integer(i32::from(n)))),
+        Some(TypedValue::Int16(Some(Int16::Value(n)))) => Ok(Some(Value::Integer(i32::from(n)))),
+        Some(TypedValue::Int32(Some(Int32::Value(n)))) => Ok(Some(Value::Integer(n))),
+        v => Err(type_mismatch_error(v, Type::Integer)),
+    }
+}
+
+struct Once<T>(T);
+
+impl<T> Once<T> {
+    fn new(value: T) -> Self {
+        Self(value)
+    }
+}
+
+impl<'a, T> vcf::variant::record::info::field::value::array::Values<'a, T> for Once<T>
+where
+    T: Copy,
+{
+    fn len(&self) -> usize {
+        1
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<T>>> + '_> {
+        Box::new(iter::once(Ok(Some(self.0))))
+    }
+}
+
+fn read_integer_array_value<'a>(src: &mut &'a [u8]) -> io::Result<Option<Value<'a>>> {
+    match read_typed_value(src)? {
+        None
+        | Some(TypedValue::Int8(None | Some(Int8::Missing)))
+        | Some(TypedValue::Int16(None | Some(Int16::Missing)))
+        | Some(TypedValue::Int32(None | Some(Int32::Missing))) => Ok(None),
+        Some(TypedValue::Int8(Some(Int8::Value(n)))) => Ok(Some(Value::Array(Array::Integer(
+            Box::new(Once::new(i32::from(n))),
+        )))),
         Some(TypedValue::Int16(Some(Int16::Value(n)))) => Ok(Some(Value::Integer(i32::from(n)))),
         Some(TypedValue::Int32(Some(Int32::Value(n)))) => Ok(Some(Value::Integer(n))),
         Some(TypedValue::Array(TypedArray::Int8(values))) => {
@@ -54,6 +110,16 @@ fn read_float_value<'a>(src: &mut &'a [u8]) -> io::Result<Option<Value<'a>>> {
     match read_typed_value(src)? {
         None | Some(TypedValue::Float(None | Some(Float::Missing))) => Ok(None),
         Some(TypedValue::Float(Some(Float::Value(n)))) => Ok(Some(Value::Float(n))),
+        v => Err(type_mismatch_error(v, Type::Float)),
+    }
+}
+
+fn read_float_array_value<'a>(src: &mut &'a [u8]) -> io::Result<Option<Value<'a>>> {
+    match read_typed_value(src)? {
+        None | Some(TypedValue::Float(None | Some(Float::Missing))) => Ok(None),
+        Some(TypedValue::Float(Some(Float::Value(n)))) => {
+            Ok(Some(Value::Array(Array::Float(Box::new(Once::new(n))))))
+        }
         Some(TypedValue::Array(TypedArray::Float(values))) => {
             Ok(Some(Value::Array(Array::Float(Box::new(values)))))
         }
@@ -67,6 +133,23 @@ fn read_character_value<'a>(src: &mut &'a [u8]) -> io::Result<Option<Value<'a>>>
         Some(TypedValue::String(Some(s))) => match s.len() {
             0 => unreachable!(),
             1 => Ok(Some(Value::Character(s.chars().next().unwrap()))),
+            _ => Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "invalid character value length",
+            )),
+        },
+        v => Err(type_mismatch_error(v, Type::Character)),
+    }
+}
+
+fn read_character_array_value<'a>(src: &mut &'a [u8]) -> io::Result<Option<Value<'a>>> {
+    match read_typed_value(src)? {
+        None | Some(TypedValue::String(None)) => Ok(None),
+        Some(TypedValue::String(Some(s))) => match s.len() {
+            0 => unreachable!(),
+            1 => Ok(Some(Value::Array(Array::Character(Box::new(Once::new(
+                s.chars().next().unwrap(),
+            )))))),
             _ => Ok(Some(Value::Array(Array::Character(Box::new(s))))),
         },
         v => Err(type_mismatch_error(v, Type::Character)),
@@ -105,7 +188,7 @@ mod tests {
     #[test]
     fn test_read_value_with_integer_value() {
         fn t(mut src: &[u8], expected: Option<i32>) {
-            let result = read_value(&mut src, Type::Integer);
+            let result = read_value(&mut src, Number::Count(1), Type::Integer);
 
             if let Some(n) = expected {
                 assert!(matches!(result, Ok(Some(Value::Integer(m))) if m == n));
@@ -142,7 +225,7 @@ mod tests {
     #[test]
     fn test_read_value_with_integer_array_value() {
         fn t(mut src: &[u8], expected: &[Option<i32>]) {
-            match read_value(&mut src, Type::Integer) {
+            match read_value(&mut src, Number::Count(2), Type::Integer) {
                 Ok(Some(Value::Array(Array::Integer(values)))) => {
                     assert!(matches!(
                         values.iter().collect::<io::Result<Vec<_>>>(),
@@ -179,7 +262,7 @@ mod tests {
     fn test_read_value_with_flag_value() {
         fn t(mut src: &[u8]) {
             assert!(matches!(
-                read_value(&mut src, Type::Flag),
+                read_value(&mut src, Number::Count(0), Type::Flag),
                 Ok(Some(Value::Flag))
             ));
         }
@@ -193,7 +276,7 @@ mod tests {
     #[test]
     fn test_read_value_with_float_value() {
         fn t(mut src: &[u8], expected: Option<f32>) {
-            let result = read_value(&mut src, Type::Float);
+            let result = read_value(&mut src, Number::Count(1), Type::Float);
 
             if let Some(n) = expected {
                 assert!(matches!(result, Ok(Some(Value::Float(m))) if m == n));
@@ -216,7 +299,7 @@ mod tests {
     #[test]
     fn test_read_value_with_float_array_value() {
         fn t(mut src: &[u8], expected: &[Option<f32>]) {
-            match read_value(&mut src, Type::Float) {
+            match read_value(&mut src, Number::Count(2), Type::Float) {
                 Ok(Some(Value::Array(Array::Float(values)))) => {
                     assert!(matches!(
                         values.iter().collect::<io::Result<Vec<_>>>(),
@@ -242,7 +325,7 @@ mod tests {
     #[test]
     fn test_read_value_with_character_value() {
         fn t(mut src: &[u8], expected: Option<char>) {
-            let result = read_value(&mut src, Type::Character);
+            let result = read_value(&mut src, Number::Count(1), Type::Character);
 
             if let Some(c) = expected {
                 assert!(matches!(result, Ok(Some(Value::Character(d))) if d == c));
@@ -263,7 +346,7 @@ mod tests {
     #[test]
     fn test_read_value_with_character_array_value() {
         fn t(mut src: &[u8], expected: &[Option<char>]) {
-            match read_value(&mut src, Type::Character) {
+            match read_value(&mut src, Number::Count(2), Type::Character) {
                 Ok(Some(Value::Array(Array::Character(values)))) => {
                     assert!(matches!(
                         values.iter().collect::<io::Result<Vec<_>>>(),
@@ -283,7 +366,7 @@ mod tests {
     #[test]
     fn test_read_value_with_string_value() {
         fn t(mut src: &[u8], expected: Option<&str>) {
-            let result = read_value(&mut src, Type::String);
+            let result = read_value(&mut src, Number::Count(1), Type::String);
 
             if let Some(s) = expected {
                 assert!(matches!(result, Ok(Some(Value::String(t))) if t == s));

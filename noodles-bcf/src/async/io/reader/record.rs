@@ -80,11 +80,12 @@ mod tests {
         self as vcf,
         variant::{
             record::{
-                info::{self, field::Value as InfoFieldValue},
+                info,
                 samples::{self, series::value::genotype::Phasing, Sample},
                 AlternateBases, Filters, Info, Samples,
             },
             record_buf::{
+                info::field::Value as InfoFieldValue,
                 samples::sample::{value::genotype::Allele, Value as GenotypeFieldValue},
                 Samples as VcfGenotypes,
             },
@@ -131,34 +132,36 @@ mod tests {
 
         // info
 
-        let info = record.info();
-        let mut iter = info.iter(&header);
-        assert!(matches!(
-            iter.next(),
-            Some(Ok(("HM3", Some(InfoFieldValue::Flag))))
-        ));
-        assert!(matches!(
-            iter.next(),
-            Some(Ok((
-                info::field::key::ALLELE_COUNT,
-                Some(InfoFieldValue::Integer(3))
-            )))
-        ));
-        assert!(matches!(
-            iter.next(),
-            Some(Ok((
-                info::field::key::TOTAL_ALLELE_COUNT,
-                Some(InfoFieldValue::Integer(6))
-            )))
-        ));
-        assert!(matches!(
-            iter.next(),
-            Some(Ok((
-                info::field::key::ANCESTRAL_ALLELE,
-                Some(InfoFieldValue::String("C"))
-            )))
-        ));
-        assert!(iter.next().is_none());
+        let actual: vcf::variant::record_buf::Info = record
+            .info()
+            .iter(&header)
+            .map(|result| {
+                result.and_then(|(key, value)| {
+                    let v = value.map(|v| v.try_into()).transpose()?;
+                    Ok((key.into(), v))
+                })
+            })
+            .collect::<io::Result<_>>()?;
+
+        let expected = [
+            (String::from("HM3"), Some(InfoFieldValue::Flag)),
+            (
+                String::from(info::field::key::ALLELE_COUNT),
+                Some(InfoFieldValue::from(vec![Some(3)])),
+            ),
+            (
+                String::from(info::field::key::TOTAL_ALLELE_COUNT),
+                Some(InfoFieldValue::from(6)),
+            ),
+            (
+                String::from(info::field::key::ANCESTRAL_ALLELE),
+                Some(InfoFieldValue::from("C")),
+            ),
+        ]
+        .into_iter()
+        .collect();
+
+        assert_eq!(actual, expected);
 
         // genotypes
 
