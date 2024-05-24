@@ -282,9 +282,17 @@ fn get_string(src: &[u8], len: usize, i: usize) -> Option<&str> {
 }
 
 fn get_char_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+    const MISSING: char = '.';
+
     let s = get_string(src, len, i)?;
+
     // TODO
-    Some(Some(Value::Character(s.chars().next().unwrap())))
+    let c = s.chars().next().unwrap();
+
+    match c {
+        MISSING => Some(None),
+        _ => Some(Some(Value::Character(c))),
+    }
 }
 
 fn get_char_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
@@ -339,17 +347,21 @@ mod tests {
 
     #[test]
     fn test_get_with_character_value() {
-        fn t(series: &Series<'_>, header: &vcf::Header, i: usize, expected: char) {
-            match series.get(header, i).unwrap().unwrap().unwrap() {
-                Value::Character(actual) => assert_eq!(actual, expected),
-                _ => panic!(),
-            }
+        fn t(series: &Series<'_>, header: &vcf::Header, i: usize, expected: Option<char>) {
+            let actual = match series.get(header, i).unwrap().transpose().unwrap() {
+                Some(Value::Character(c)) => Some(c),
+                Some(_) => panic!(),
+                None => None,
+            };
+
+            assert_eq!(actual, expected);
         }
 
         let header = build_header_with_format(NAME, Number::Count(1), format::Type::Character);
         let id = header.string_maps().strings().get_index_of(NAME).unwrap();
         let src = &[
-            b'n', // "n"
+            b'n', // Some('n')
+            b'.', // None
         ];
 
         let series = Series {
@@ -358,9 +370,10 @@ mod tests {
             src,
         };
 
-        t(&series, &header, 0, 'n');
+        t(&series, &header, 0, Some('n'));
+        t(&series, &header, 1, None);
 
-        assert!(series.get(&header, 1).is_none());
+        assert!(series.get(&header, 2).is_none());
     }
 
     #[test]
