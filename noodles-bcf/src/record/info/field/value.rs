@@ -37,7 +37,9 @@ pub(super) fn read_value<'a>(
         (Number::Count(1), Type::Character) => read_character_value(src),
         (_, Type::Character) => read_character_array_value(src),
 
-        (_, Type::String) => read_string_value(src),
+        (Number::Count(0), Type::String) => Err(invalid_number_for_type_error()),
+        (Number::Count(1), Type::String) => read_string_value(src),
+        (_, Type::String) => read_string_array_value(src),
     }
 }
 
@@ -160,6 +162,14 @@ fn read_string_value<'a>(src: &mut &'a [u8]) -> io::Result<Option<Value<'a>>> {
     match read_typed_value(src)? {
         None | Some(TypedValue::String(None)) => Ok(None),
         Some(TypedValue::String(Some(s))) => Ok(Some(Value::String(s))),
+        v => Err(type_mismatch_error(v, Type::String)),
+    }
+}
+
+fn read_string_array_value<'a>(src: &mut &'a [u8]) -> io::Result<Option<Value<'a>>> {
+    match read_typed_value(src)? {
+        None | Some(TypedValue::String(None)) => Ok(None),
+        Some(TypedValue::String(Some(s))) => Ok(Some(Value::Array(Array::String(Box::new(s))))),
         v => Err(type_mismatch_error(v, Type::String)),
     }
 }
@@ -382,5 +392,23 @@ mod tests {
         t(&[0x07], None);
         // Some(Value::String(Some(String::from("ndls"))))
         t(&[0x47, 0x6e, 0x64, 0x6c, 0x73], Some("ndls"));
+    }
+
+    #[test]
+    fn test_read_value_with_string_array_value() {
+        fn t(mut src: &[u8], expected: &[Option<&str>]) {
+            match read_value(&mut src, Number::Count(2), Type::String) {
+                Ok(Some(Value::Array(Array::String(values)))) => {
+                    assert!(matches!(
+                        values.iter().collect::<io::Result<Vec<_>>>(),
+                        Ok(vs) if vs == expected
+                    ));
+                }
+                _ => panic!(),
+            }
+        }
+
+        // Some(Value::String(Some(String::from("n,ls"))))
+        t(&[0x47, 0x6e, 0x2c, 0x6c, 0x73], &[Some("n"), Some("ls")]);
     }
 }
