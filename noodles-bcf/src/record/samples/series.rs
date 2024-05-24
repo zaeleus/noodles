@@ -393,8 +393,9 @@ mod tests {
         let header = build_header_with_format(NAME, Number::Count(2), format::Type::Character);
         let id = header.string_maps().strings().get_index_of(NAME).unwrap();
         let src = &[
-            b'n', 0x00, 0x00, // "n"
-            b'n', b',', b'd', // "n,d"
+            b'n', b',', b'd', // [Some('n'), Some('d')]
+            b'n', b',', b'.', // [Some('n'), None]
+            b'n', 0x00, 0x00, // [Some('n')]
         ];
 
         let series = Series {
@@ -403,10 +404,11 @@ mod tests {
             src,
         };
 
-        t(&series, &header, 0, &[Some('n')]);
-        t(&series, &header, 1, &[Some('n'), Some('d')]);
+        t(&series, &header, 0, &[Some('n'), Some('d')]);
+        t(&series, &header, 1, &[Some('n'), None]);
+        t(&series, &header, 2, &[Some('n')]);
 
-        assert!(series.get(&header, 2).is_none());
+        assert!(series.get(&header, 3).is_none());
     }
 
     #[test]
