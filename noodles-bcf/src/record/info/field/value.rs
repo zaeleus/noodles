@@ -133,7 +133,6 @@ fn read_character_value<'a>(src: &mut &'a [u8]) -> io::Result<Option<Value<'a>>>
     match read_typed_value(src)? {
         None | Some(TypedValue::String(None)) => Ok(None),
         Some(TypedValue::String(Some(s))) => match s.len() {
-            0 => unreachable!(),
             1 => Ok(Some(Value::Character(s.chars().next().unwrap()))),
             _ => Err(io::Error::new(
                 io::ErrorKind::InvalidData,
@@ -147,13 +146,7 @@ fn read_character_value<'a>(src: &mut &'a [u8]) -> io::Result<Option<Value<'a>>>
 fn read_character_array_value<'a>(src: &mut &'a [u8]) -> io::Result<Option<Value<'a>>> {
     match read_typed_value(src)? {
         None | Some(TypedValue::String(None)) => Ok(None),
-        Some(TypedValue::String(Some(s))) => match s.len() {
-            0 => unreachable!(),
-            1 => Ok(Some(Value::Array(Array::Character(Box::new(Once::new(
-                s.chars().next().unwrap(),
-            )))))),
-            _ => Ok(Some(Value::Array(Array::Character(Box::new(s))))),
-        },
+        Some(TypedValue::String(Some(s))) => Ok(Some(Value::Array(Array::Character(Box::new(s))))),
         v => Err(type_mismatch_error(v, Type::Character)),
     }
 }
