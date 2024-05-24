@@ -84,7 +84,9 @@ impl<'r> Series<'r> {
             (Number::Count(1), format::Type::Float, Type::Float(len)) => {
                 get_f32_value(self.src, len, i)
             }
-            (Number::Count(1), format::Type::Character, Type::String(_)) => todo!(),
+            (Number::Count(1), format::Type::Character, Type::String(len)) => {
+                get_char_value(self.src, len, i)
+            }
             (Number::Count(1), format::Type::String, Type::String(len)) => {
                 get_string_value(self.src, len, i)
             }
@@ -277,6 +279,12 @@ fn get_string(src: &[u8], len: usize, i: usize) -> Option<&str> {
     )
 }
 
+fn get_char_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+    let s = get_string(src, len, i)?;
+    // TODO
+    Some(Some(Value::Character(s.chars().next().unwrap())))
+}
+
 fn get_string_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
     let s = get_string(src, len, i)?;
     Some(Some(Value::String(s)))
@@ -318,6 +326,34 @@ mod tests {
         *header.string_maps_mut() = StringMaps::try_from(&header).unwrap();
 
         header
+    }
+
+    #[test]
+    fn test_get_with_character_value() {
+        const NAME: &str = "value";
+
+        fn t(series: &Series<'_>, header: &vcf::Header, i: usize, expected: char) {
+            match series.get(header, i).unwrap().unwrap().unwrap() {
+                Value::Character(actual) => assert_eq!(actual, expected),
+                _ => panic!(),
+            }
+        }
+
+        let header = build_header_with_format(NAME, Number::Count(1), format::Type::Character);
+        let id = header.string_maps().strings().get_index_of(NAME).unwrap();
+        let src = &[
+            b'n', // "n"
+        ];
+
+        let series = Series {
+            id,
+            ty: Type::String(1),
+            src,
+        };
+
+        t(&series, &header, 0, 'n');
+
+        assert!(series.get(&header, 1).is_none());
     }
 
     #[test]
