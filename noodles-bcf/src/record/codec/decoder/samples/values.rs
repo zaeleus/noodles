@@ -45,7 +45,9 @@ pub(super) fn read_values(
         (Number::Count(1), format::Type::Float, Type::Float(1)) => {
             read_f32_values(src, sample_count)
         }
-        (Number::Count(1), format::Type::Character, Type::String(_)) => todo!(),
+        (Number::Count(1), format::Type::Character, Type::String(n)) => {
+            read_char_values(src, sample_count, n)
+        }
         (Number::Count(1), format::Type::String, Type::String(n)) => {
             read_string_values(src, sample_count, n)
         }
@@ -268,26 +270,53 @@ fn read_f32_array_values(
     Ok(values)
 }
 
+fn read_string_until_nul<'a>(src: &mut &'a [u8], len: usize) -> Result<&'a str, DecodeError> {
+    const NUL: u8 = 0x00;
+
+    let buf = read_string(src, len).map_err(DecodeError::InvalidRawValue)?;
+
+    let data = match buf.iter().position(|&b| b == NUL) {
+        Some(i) => &buf[..i],
+        None => buf,
+    };
+
+    str::from_utf8(data).map_err(DecodeError::InvalidString)
+}
+
+fn read_char_values(
+    src: &mut &[u8],
+    sample_count: usize,
+    len: usize,
+) -> Result<Vec<Option<Value>>, DecodeError> {
+    const MISSING: char = '.';
+
+    let mut values = Vec::with_capacity(sample_count);
+
+    for _ in 0..sample_count {
+        let s = read_string_until_nul(src, len)?;
+        let c = s.chars().next().unwrap();
+
+        let value = match c {
+            MISSING => None,
+            _ => Some(Value::from(c)),
+        };
+
+        values.push(value);
+    }
+
+    Ok(values)
+}
+
 fn read_string_values(
     src: &mut &[u8],
     sample_count: usize,
     len: usize,
 ) -> Result<Vec<Option<Value>>, DecodeError> {
-    const NUL: u8 = 0x00;
-
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
-        let buf = read_string(src, len).map_err(DecodeError::InvalidRawValue)?;
-
-        let data = match buf.iter().position(|&b| b == NUL) {
-            Some(i) => &buf[..i],
-            None => buf,
-        };
-
-        let s = str::from_utf8(data).map_err(DecodeError::InvalidString)?;
+        let s = read_string_until_nul(src, len)?;
         let value = Value::from(s);
-
         values.push(Some(value));
     }
 
@@ -570,6 +599,20 @@ mod tests {
                 Some(Value::from(vec![Some(0.0)])),
                 None,
             ])
+        );
+    }
+
+    #[test]
+    fn test_read_values_with_character_values() {
+        let mut src = &[
+            0x17, // Some(Type::String(1))
+            b'n', // Some('n')
+            b'.', // None
+        ][..];
+
+        assert_eq!(
+            read_values(&mut src, Number::Count(1), format::Type::Character, 2),
+            Ok(vec![Some(Value::from('n')), None])
         );
     }
 
