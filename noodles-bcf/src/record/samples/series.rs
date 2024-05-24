@@ -7,7 +7,10 @@ use std::{io, mem, ops::Range, str};
 use noodles_vcf::{
     self as vcf,
     header::record::value::map::format::{self, Number},
-    variant::record::samples::series::{value::Array, Value},
+    variant::record::samples::{
+        keys::key,
+        series::{value::Array, Value},
+    },
 };
 
 use crate::record::value::{array::Values, read_type, read_value, Type};
@@ -41,8 +44,6 @@ impl<'r> Series<'r> {
 
     /// Returns the value at the given index.
     pub fn get(&self, header: &vcf::Header, i: usize) -> Option<Option<io::Result<Value<'r>>>> {
-        use noodles_vcf::variant::record::samples::keys::key;
-
         let name = match self.name(header) {
             Ok(name) => name,
             Err(e) => return Some(Some(Err(e))),
@@ -93,7 +94,9 @@ impl<'r> Series<'r> {
             (_, format::Type::Integer, Type::Int32(len)) => get_i32_array_value(self.src, len, i),
             (_, format::Type::Float, Type::Float(len)) => get_f32_array_value(self.src, len, i),
             (_, format::Type::Character, Type::String(_)) => todo!(),
-            (_, format::Type::String, Type::String(_)) => todo!(),
+            (_, format::Type::String, Type::String(len)) => {
+                get_string_array_value(self.src, len, i)
+            }
 
             _ => todo!("unhandled type"),
         };
@@ -117,10 +120,10 @@ impl<'r> vcf::variant::record::samples::Series for Series<'r> {
 
     fn get<'a, 'h: 'a>(
         &'a self,
-        _header: &'h vcf::Header,
-        _i: usize,
+        header: &'h vcf::Header,
+        i: usize,
     ) -> Option<Option<io::Result<Value<'a>>>> {
-        todo!()
+        self.get(header, i)
     }
 
     fn iter<'a, 'h: 'a>(
@@ -257,7 +260,7 @@ fn get_f32_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<
     Some(Some(Value::Array(Array::Float(Box::new(values)))))
 }
 
-fn get_string_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+fn get_string(src: &[u8], len: usize, i: usize) -> Option<&str> {
     const NUL: u8 = 0x00;
 
     let src = src.get(range::<u8>(i, len))?;
@@ -267,15 +270,92 @@ fn get_string_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>
         None => src,
     };
 
-    let s = str::from_utf8(src)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        .unwrap(); // TODO
+    Some(
+        str::from_utf8(src)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            .unwrap(), // TODO
+    )
+}
 
+fn get_string_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+    let s = get_string(src, len, i)?;
     Some(Some(Value::String(s)))
+}
+
+fn get_string_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+    let s = get_string(src, len, i)?;
+    Some(Some(Value::Array(Array::String(Box::new(s)))))
 }
 
 fn get_genotype_value(src: &[u8], len: usize, i: usize) -> Option<Option<io::Result<Value<'_>>>> {
     use self::value::Genotype;
     let src = src.get(range::<i8>(i, len))?;
     Some(Some(Ok(Value::Genotype(Box::new(Genotype::new(src))))))
+}
+
+#[cfg(test)]
+mod tests {
+    use noodles_vcf::header::{record::value::Map, StringMaps};
+
+    use super::*;
+
+    fn build_header_with_format<I>(name: I, number: Number, ty: format::Type) -> vcf::Header
+    where
+        I: Into<String>,
+    {
+        let mut header = vcf::Header::builder()
+            .add_format(
+                name,
+                Map::builder()
+                    .set_number(number)
+                    .set_type(ty)
+                    .set_description("")
+                    .build()
+                    .unwrap(),
+            )
+            .build();
+
+        *header.string_maps_mut() = StringMaps::try_from(&header).unwrap();
+
+        header
+    }
+
+    #[test]
+    fn test_get_with_string_array_value() -> Result<(), Box<dyn std::error::Error>> {
+        const NAME: &str = "value";
+
+        fn t(series: &Series<'_>, header: &vcf::Header, i: usize, expected: &[Option<&str>]) {
+            match series.get(header, i).unwrap().unwrap().unwrap() {
+                Value::Array(Array::String(values)) => {
+                    assert_eq!(
+                        values.iter().collect::<Result<Vec<_>, _>>().unwrap(),
+                        expected,
+                    );
+                }
+                _ => panic!(),
+            }
+        }
+
+        let header = build_header_with_format(NAME, Number::Count(2), format::Type::String);
+        let id = header.string_maps().strings().get_index_of(NAME).unwrap();
+        let src = &[
+            b'n', 0x00, 0x00, 0x00, // "n"
+            b'n', b',', b'l', 0x00, // "n,l"
+            b'n', b',', b'l', b's', // "n,ls"
+        ];
+
+        let series = Series {
+            id,
+            ty: Type::String(4),
+            src,
+        };
+
+        t(&series, &header, 0, &[Some("n")]);
+        t(&series, &header, 1, &[Some("n"), Some("l")]);
+        t(&series, &header, 2, &[Some("n"), Some("ls")]);
+
+        assert!(series.get(&header, 3).is_none());
+
+        Ok(())
+    }
 }
