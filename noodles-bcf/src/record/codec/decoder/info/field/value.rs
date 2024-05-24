@@ -34,7 +34,9 @@ pub(super) fn read_value(
         (Number::Count(1), Type::Character) => resolve_character_value(value),
         (_, Type::Character) => resolve_character_array_value(value),
 
-        (_, Type::String) => resolve_string_value(value),
+        (Number::Count(0), Type::String) => Err(DecodeError::InvalidNumberForType(number, ty)),
+        (Number::Count(1), Type::String) => resolve_string_value(value),
+        (_, Type::String) => resolve_string_array_value(value),
     }
 }
 
@@ -186,6 +188,24 @@ fn resolve_string_value(value: Option<Value<'_>>) -> Result<Option<ValueBuf>, De
     match value {
         None | Some(Value::String(None)) => Ok(None),
         Some(Value::String(Some(s))) => Ok(Some(ValueBuf::from(s))),
+        v => Err(type_mismatch_error(v, Type::String)),
+    }
+}
+
+fn resolve_string_array_value(value: Option<Value<'_>>) -> Result<Option<ValueBuf>, DecodeError> {
+    const DELIMITER: char = ',';
+    const MISSING: &str = ".";
+
+    match value {
+        None | Some(Value::String(None)) => Ok(None),
+        Some(Value::String(Some(s))) => Ok(Some(ValueBuf::from(
+            s.split(DELIMITER)
+                .map(|t| match t {
+                    MISSING => None,
+                    _ => Some(t.into()),
+                })
+                .collect::<Vec<Option<String>>>(),
+        ))),
         v => Err(type_mismatch_error(v, Type::String)),
     }
 }
@@ -413,5 +433,25 @@ mod tests {
         t(&[0x07], None);
         // Some(Value::String(Some(String::from("ndls"))))
         t(&[0x47, 0x6e, 0x64, 0x6c, 0x73], Some("ndls"));
+    }
+
+    #[test]
+    fn test_read_value_with_string_array_value() {
+        fn t(mut src: &[u8], expected_value: Option<Vec<Option<String>>>) {
+            let actual = read_value(&mut src, Number::Count(2), Type::String);
+            let expected = expected_value.map(ValueBuf::from);
+            assert_eq!(actual, Ok(expected));
+        }
+
+        // None
+        t(&[0x00], None);
+
+        // Some(Value::String(None))
+        t(&[0x07], None);
+        // Some(Value::String(Some(String::from("ndls"))))
+        t(
+            &[0x47, 0x6e, 0x2c, 0x6c, 0x73],
+            Some(vec![Some(String::from("n")), Some(String::from("ls"))]),
+        );
     }
 }
