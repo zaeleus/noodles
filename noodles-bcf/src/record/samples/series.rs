@@ -95,7 +95,9 @@ impl<'r> Series<'r> {
             (_, format::Type::Integer, Type::Int16(len)) => get_i16_array_value(self.src, len, i),
             (_, format::Type::Integer, Type::Int32(len)) => get_i32_array_value(self.src, len, i),
             (_, format::Type::Float, Type::Float(len)) => get_f32_array_value(self.src, len, i),
-            (_, format::Type::Character, Type::String(_)) => todo!(),
+            (_, format::Type::Character, Type::String(len)) => {
+                get_char_array_value(self.src, len, i)
+            }
             (_, format::Type::String, Type::String(len)) => {
                 get_string_array_value(self.src, len, i)
             }
@@ -285,6 +287,11 @@ fn get_char_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>>
     Some(Some(Value::Character(s.chars().next().unwrap())))
 }
 
+fn get_char_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+    let s = get_string(src, len, i)?;
+    Some(Some(Value::Array(Array::Character(Box::new(s)))))
+}
+
 fn get_string_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
     let s = get_string(src, len, i)?;
     Some(Some(Value::String(s)))
@@ -306,6 +313,8 @@ mod tests {
     use noodles_vcf::header::{record::value::Map, StringMaps};
 
     use super::*;
+
+    const NAME: &str = "value";
 
     fn build_header_with_format<I>(name: I, number: Number, ty: format::Type) -> vcf::Header
     where
@@ -330,8 +339,6 @@ mod tests {
 
     #[test]
     fn test_get_with_character_value() {
-        const NAME: &str = "value";
-
         fn t(series: &Series<'_>, header: &vcf::Header, i: usize, expected: char) {
             match series.get(header, i).unwrap().unwrap().unwrap() {
                 Value::Character(actual) => assert_eq!(actual, expected),
@@ -357,9 +364,40 @@ mod tests {
     }
 
     #[test]
-    fn test_get_with_string_array_value() -> Result<(), Box<dyn std::error::Error>> {
-        const NAME: &str = "value";
+    fn test_get_with_character_array_value() {
+        fn t(series: &Series<'_>, header: &vcf::Header, i: usize, expected: &[Option<char>]) {
+            match series.get(header, i).unwrap().unwrap().unwrap() {
+                Value::Array(Array::Character(values)) => {
+                    assert_eq!(
+                        values.iter().collect::<Result<Vec<_>, _>>().unwrap(),
+                        expected,
+                    );
+                }
+                _ => panic!(),
+            }
+        }
 
+        let header = build_header_with_format(NAME, Number::Count(2), format::Type::Character);
+        let id = header.string_maps().strings().get_index_of(NAME).unwrap();
+        let src = &[
+            b'n', 0x00, 0x00, // "n"
+            b'n', b',', b'd', // "n,d"
+        ];
+
+        let series = Series {
+            id,
+            ty: Type::String(3),
+            src,
+        };
+
+        t(&series, &header, 0, &[Some('n')]);
+        t(&series, &header, 1, &[Some('n'), Some('d')]);
+
+        assert!(series.get(&header, 2).is_none());
+    }
+
+    #[test]
+    fn test_get_with_string_array_value() -> Result<(), Box<dyn std::error::Error>> {
         fn t(series: &Series<'_>, header: &vcf::Header, i: usize, expected: &[Option<&str>]) {
             match series.get(header, i).unwrap().unwrap().unwrap() {
                 Value::Array(Array::String(values)) => {
