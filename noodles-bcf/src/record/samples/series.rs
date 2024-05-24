@@ -6,7 +6,7 @@ use std::{io, mem, ops::Range, str};
 
 use noodles_vcf::{
     self as vcf,
-    header::record::value::map::format::Number,
+    header::record::value::map::format::{self, Number},
     variant::record::samples::series::{value::Array, Value},
 };
 
@@ -48,24 +48,54 @@ impl<'r> Series<'r> {
             Err(e) => return Some(Some(Err(e))),
         };
 
-        let number = header
+        if name == key::GENOTYPE {
+            match self.ty {
+                Type::Int8(len) => return get_genotype_value(self.src, len, i),
+                _ => todo!("unhandled type"),
+            }
+        }
+
+        let (number, ty) = header
             .formats()
             .get(name)
-            .map(|format| format.number())
+            .map(|format| (format.number(), format.ty()))
             .expect("missing type definition");
 
-        let value = match self.ty {
-            Type::Int8(len) => {
-                if name == key::GENOTYPE {
-                    get_genotype_value(self.src, len, i)
-                } else {
-                    get_int8_value(self.src, number, len, i)
-                }
+        let value = match (number, ty, self.ty) {
+            (Number::Count(0), _, _) => todo!("invalid number for type"),
+
+            (_, _, Type::Int8(0) | Type::Int16(0) | Type::Int32(0) | Type::Float(0)) => {
+                return Some(Some(Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "invalid length",
+                ))));
             }
-            Type::Int16(len) => get_int16_value(self.src, number, len, i),
-            Type::Int32(len) => get_int32_value(self.src, number, len, i),
-            Type::Float(len) => get_float_value(self.src, number, len, i),
-            Type::String(len) => get_string_value(self.src, len, i),
+
+            (Number::Count(1), format::Type::Integer, Type::Int8(len)) => {
+                get_i8_value(self.src, len, i)
+            }
+            (Number::Count(1), format::Type::Integer, Type::Int16(len)) => {
+                get_i16_value(self.src, len, i)
+            }
+            (Number::Count(1), format::Type::Integer, Type::Int32(len)) => {
+                get_i32_value(self.src, len, i)
+            }
+            (Number::Count(1), format::Type::Float, Type::Float(len)) => {
+                get_f32_value(self.src, len, i)
+            }
+            (Number::Count(1), format::Type::Character, Type::String(_)) => todo!(),
+            (Number::Count(1), format::Type::String, Type::String(len)) => {
+                get_string_value(self.src, len, i)
+            }
+
+            (_, format::Type::Integer, Type::Int8(len)) => get_i8_array_value(self.src, len, i),
+            (_, format::Type::Integer, Type::Int16(len)) => get_i16_array_value(self.src, len, i),
+            (_, format::Type::Integer, Type::Int32(len)) => get_i32_array_value(self.src, len, i),
+            (_, format::Type::Float, Type::Float(len)) => get_f32_array_value(self.src, len, i),
+            (_, format::Type::Character, Type::String(_)) => todo!(),
+            (_, format::Type::String, Type::String(_)) => todo!(),
+
+            _ => todo!("unhandled type"),
         };
 
         match value {
@@ -87,41 +117,10 @@ impl<'r> vcf::variant::record::samples::Series for Series<'r> {
 
     fn get<'a, 'h: 'a>(
         &'a self,
-        header: &'h vcf::Header,
-        i: usize,
+        _header: &'h vcf::Header,
+        _i: usize,
     ) -> Option<Option<io::Result<Value<'a>>>> {
-        use noodles_vcf::variant::record::samples::keys::key;
-
-        let name = match self.name(header) {
-            Ok(name) => name,
-            Err(e) => return Some(Some(Err(e))),
-        };
-
-        let number = header
-            .formats()
-            .get(name)
-            .map(|format| format.number())
-            .expect("missing type definition");
-
-        let value = match self.ty {
-            Type::Int8(len) => {
-                if name == key::GENOTYPE {
-                    get_genotype_value(self.src, len, i)
-                } else {
-                    get_int8_value(self.src, number, len, i)
-                }
-            }
-            Type::Int16(len) => get_int16_value(self.src, number, len, i),
-            Type::Int32(len) => get_int32_value(self.src, number, len, i),
-            Type::Float(len) => get_float_value(self.src, number, len, i),
-            Type::String(len) => get_string_value(self.src, len, i),
-        };
-
-        match value {
-            Some(Some(value)) => Some(Some(Ok(value))),
-            Some(None) => Some(None),
-            None => None,
-        }
+        todo!()
     }
 
     fn iter<'a, 'h: 'a>(
@@ -175,83 +174,87 @@ fn range<N>(i: usize, len: usize) -> Range<usize> {
     start..end
 }
 
-fn get_int8_value(src: &[u8], number: Number, len: usize, i: usize) -> Option<Option<Value<'_>>> {
+fn get_i8_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
     use crate::record::codec::value::Int8;
 
     let src = src.get(range::<i8>(i, len))?;
 
-    let value = if number == Number::Count(1) && len == 1 {
-        match Int8::from(src[0] as i8) {
-            Int8::Value(n) => Some(Value::Integer(i32::from(n))),
-            Int8::Missing => None,
-            Int8::EndOfVector | Int8::Reserved(_) => todo!(),
-        }
-    } else {
-        let values = Values::<'_, i8>::new(src);
-        Some(Value::Array(Array::Integer(Box::new(values))))
+    let value = match Int8::from(src[0] as i8) {
+        Int8::Value(n) => Some(Value::Integer(i32::from(n))),
+        Int8::Missing => None,
+        Int8::EndOfVector | Int8::Reserved(_) => todo!(),
     };
 
     Some(value)
 }
 
-fn get_int16_value(src: &[u8], number: Number, len: usize, i: usize) -> Option<Option<Value<'_>>> {
+fn get_i8_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+    let src = src.get(range::<i8>(i, len))?;
+    let values = Values::<'_, i8>::new(src);
+    Some(Some(Value::Array(Array::Integer(Box::new(values)))))
+}
+
+fn get_i16_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
     use crate::record::codec::value::Int16;
 
     let src = src.get(range::<i16>(i, len))?;
 
-    let value = if number == Number::Count(1) && len == 1 {
-        // SAFETY: `src` is 2 bytes.
-        match Int16::from(i16::from_le_bytes(src.try_into().unwrap())) {
-            Int16::Value(n) => Some(Value::Integer(i32::from(n))),
-            Int16::Missing => None,
-            Int16::EndOfVector | Int16::Reserved(_) => todo!(),
-        }
-    } else {
-        let values = Values::<'_, i16>::new(src);
-        Some(Value::Array(Array::Integer(Box::new(values))))
+    // SAFETY: `src` is 2 bytes.
+    let value = match Int16::from(i16::from_le_bytes(src.try_into().unwrap())) {
+        Int16::Value(n) => Some(Value::Integer(i32::from(n))),
+        Int16::Missing => None,
+        Int16::EndOfVector | Int16::Reserved(_) => todo!(),
     };
 
     Some(value)
 }
 
-fn get_int32_value(src: &[u8], number: Number, len: usize, i: usize) -> Option<Option<Value<'_>>> {
+fn get_i16_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+    let src = src.get(range::<i16>(i, len))?;
+    let values = Values::<'_, i16>::new(src);
+    Some(Some(Value::Array(Array::Integer(Box::new(values)))))
+}
+
+fn get_i32_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
     use crate::record::codec::value::Int32;
 
     let src = src.get(range::<i32>(i, len))?;
 
-    let value = if number == Number::Count(1) && len == 1 {
-        // SAFETY: `src` is 2 bytes.
-        match Int32::from(i32::from_le_bytes(src.try_into().unwrap())) {
-            Int32::Value(n) => Some(Value::Integer(n)),
-            Int32::Missing => None,
-            Int32::EndOfVector | Int32::Reserved(_) => todo!(),
-        }
-    } else {
-        let values = Values::<'_, i32>::new(src);
-        Some(Value::Array(Array::Integer(Box::new(values))))
+    // SAFETY: `src` is 2 bytes.
+    let value = match Int32::from(i32::from_le_bytes(src.try_into().unwrap())) {
+        Int32::Value(n) => Some(Value::Integer(n)),
+        Int32::Missing => None,
+        Int32::EndOfVector | Int32::Reserved(_) => todo!(),
     };
 
     Some(value)
 }
 
-fn get_float_value(src: &[u8], number: Number, len: usize, i: usize) -> Option<Option<Value<'_>>> {
+fn get_i32_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+    let src = src.get(range::<i32>(i, len))?;
+    let values = Values::<'_, i32>::new(src);
+    Some(Some(Value::Array(Array::Integer(Box::new(values)))))
+}
+
+fn get_f32_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
     use crate::record::codec::value::Float;
 
     let src = src.get(range::<f32>(i, len))?;
 
-    let value = if number == Number::Count(1) && len == 1 {
-        // SAFETY: `src` is 2 bytes.
-        match Float::from(f32::from_le_bytes(src.try_into().unwrap())) {
-            Float::Value(n) => Some(Value::Float(n)),
-            Float::Missing => None,
-            Float::EndOfVector | Float::Reserved(_) => todo!(),
-        }
-    } else {
-        let values = Values::<'_, f32>::new(src);
-        Some(Value::Array(Array::Float(Box::new(values))))
+    // SAFETY: `src` is 2 bytes.
+    let value = match Float::from(f32::from_le_bytes(src.try_into().unwrap())) {
+        Float::Value(n) => Some(Value::Float(n)),
+        Float::Missing => None,
+        Float::EndOfVector | Float::Reserved(_) => todo!(),
     };
 
     Some(value)
+}
+
+fn get_f32_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+    let src = src.get(range::<f32>(i, len))?;
+    let values = Values::<'_, f32>::new(src);
+    Some(Some(Value::Array(Array::Float(Box::new(values)))))
 }
 
 fn get_string_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
@@ -271,9 +274,8 @@ fn get_string_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>
     Some(Some(Value::String(s)))
 }
 
-fn get_genotype_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+fn get_genotype_value(src: &[u8], len: usize, i: usize) -> Option<Option<io::Result<Value<'_>>>> {
     use self::value::Genotype;
-
     let src = src.get(range::<i8>(i, len))?;
-    Some(Some(Value::Genotype(Box::new(Genotype::new(src)))))
+    Some(Some(Ok(Value::Genotype(Box::new(Genotype::new(src))))))
 }
