@@ -6,6 +6,7 @@ use std::{io, mem, ops::Range, str};
 
 use noodles_vcf::{
     self as vcf,
+    header::record::value::map::format::Number,
     variant::record::samples::series::{value::Array, Value},
 };
 
@@ -42,21 +43,28 @@ impl<'r> Series<'r> {
     pub fn get(&self, header: &vcf::Header, i: usize) -> Option<Option<io::Result<Value<'r>>>> {
         use noodles_vcf::variant::record::samples::keys::key;
 
+        let name = match self.name(header) {
+            Ok(name) => name,
+            Err(e) => return Some(Some(Err(e))),
+        };
+
+        let number = header
+            .formats()
+            .get(name)
+            .map(|format| format.number())
+            .expect("missing type definition");
+
         let value = match self.ty {
             Type::Int8(len) => {
-                let mut v = get_int8_value(self.src, len, i)?;
-
-                match self.name(header) {
-                    Ok(key::GENOTYPE) => v = get_genotype_value(self.src, len, i)?,
-                    Ok(_) => {}
-                    Err(e) => return Some(Some(Err(e))),
+                if name == key::GENOTYPE {
+                    get_genotype_value(self.src, len, i)
+                } else {
+                    get_int8_value(self.src, number, len, i)
                 }
-
-                Some(v)
             }
-            Type::Int16(len) => get_int16_value(self.src, len, i),
-            Type::Int32(len) => get_int32_value(self.src, len, i),
-            Type::Float(len) => get_float_value(self.src, len, i),
+            Type::Int16(len) => get_int16_value(self.src, number, len, i),
+            Type::Int32(len) => get_int32_value(self.src, number, len, i),
+            Type::Float(len) => get_float_value(self.src, number, len, i),
             Type::String(len) => get_string_value(self.src, len, i),
         };
 
@@ -84,21 +92,28 @@ impl<'r> vcf::variant::record::samples::Series for Series<'r> {
     ) -> Option<Option<io::Result<Value<'a>>>> {
         use noodles_vcf::variant::record::samples::keys::key;
 
+        let name = match self.name(header) {
+            Ok(name) => name,
+            Err(e) => return Some(Some(Err(e))),
+        };
+
+        let number = header
+            .formats()
+            .get(name)
+            .map(|format| format.number())
+            .expect("missing type definition");
+
         let value = match self.ty {
             Type::Int8(len) => {
-                let mut v = get_int8_value(self.src, len, i)?;
-
-                match self.name(header) {
-                    Ok(key::GENOTYPE) => v = get_genotype_value(self.src, len, i)?,
-                    Ok(_) => {}
-                    Err(e) => return Some(Some(Err(e))),
+                if name == key::GENOTYPE {
+                    get_genotype_value(self.src, len, i)
+                } else {
+                    get_int8_value(self.src, number, len, i)
                 }
-
-                Some(v)
             }
-            Type::Int16(len) => get_int16_value(self.src, len, i),
-            Type::Int32(len) => get_int32_value(self.src, len, i),
-            Type::Float(len) => get_float_value(self.src, len, i),
+            Type::Int16(len) => get_int16_value(self.src, number, len, i),
+            Type::Int32(len) => get_int32_value(self.src, number, len, i),
+            Type::Float(len) => get_float_value(self.src, number, len, i),
             Type::String(len) => get_string_value(self.src, len, i),
         };
 
@@ -160,12 +175,12 @@ fn range<N>(i: usize, len: usize) -> Range<usize> {
     start..end
 }
 
-fn get_int8_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+fn get_int8_value(src: &[u8], number: Number, len: usize, i: usize) -> Option<Option<Value<'_>>> {
     use crate::record::codec::value::Int8;
 
     let src = src.get(range::<i8>(i, len))?;
 
-    let value = if len == 1 {
+    let value = if number == Number::Count(1) && len == 1 {
         match Int8::from(src[0] as i8) {
             Int8::Value(n) => Some(Value::Integer(i32::from(n))),
             Int8::Missing => None,
@@ -179,12 +194,12 @@ fn get_int8_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>>
     Some(value)
 }
 
-fn get_int16_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+fn get_int16_value(src: &[u8], number: Number, len: usize, i: usize) -> Option<Option<Value<'_>>> {
     use crate::record::codec::value::Int16;
 
     let src = src.get(range::<i16>(i, len))?;
 
-    let value = if len == 1 {
+    let value = if number == Number::Count(1) && len == 1 {
         // SAFETY: `src` is 2 bytes.
         match Int16::from(i16::from_le_bytes(src.try_into().unwrap())) {
             Int16::Value(n) => Some(Value::Integer(i32::from(n))),
@@ -199,12 +214,12 @@ fn get_int16_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>
     Some(value)
 }
 
-fn get_int32_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+fn get_int32_value(src: &[u8], number: Number, len: usize, i: usize) -> Option<Option<Value<'_>>> {
     use crate::record::codec::value::Int32;
 
     let src = src.get(range::<i32>(i, len))?;
 
-    let value = if len == 1 {
+    let value = if number == Number::Count(1) && len == 1 {
         // SAFETY: `src` is 2 bytes.
         match Int32::from(i32::from_le_bytes(src.try_into().unwrap())) {
             Int32::Value(n) => Some(Value::Integer(n)),
@@ -219,12 +234,12 @@ fn get_int32_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>
     Some(value)
 }
 
-fn get_float_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+fn get_float_value(src: &[u8], number: Number, len: usize, i: usize) -> Option<Option<Value<'_>>> {
     use crate::record::codec::value::Float;
 
     let src = src.get(range::<f32>(i, len))?;
 
-    let value = if len == 1 {
+    let value = if number == Number::Count(1) && len == 1 {
         // SAFETY: `src` is 2 bytes.
         match Float::from(f32::from_le_bytes(src.try_into().unwrap())) {
             Float::Value(n) => Some(Value::Float(n)),
