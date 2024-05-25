@@ -56,7 +56,9 @@ pub(super) fn read_values(
         (_, format::Type::Integer, Type::Int16(n)) => read_i16_array_values(src, sample_count, n),
         (_, format::Type::Integer, Type::Int32(n)) => read_i32_array_values(src, sample_count, n),
         (_, format::Type::Float, Type::Float(n)) => read_f32_array_values(src, sample_count, n),
-        (_, format::Type::Character, Type::String(_)) => todo!(),
+        (_, format::Type::Character, Type::String(n)) => {
+            read_char_array_values(src, sample_count, n)
+        }
         (_, format::Type::String, Type::String(n)) => {
             read_string_array_values(src, sample_count, n)
         }
@@ -302,6 +304,34 @@ fn read_char_values(
         };
 
         values.push(value);
+    }
+
+    Ok(values)
+}
+
+fn read_char_array_values(
+    src: &mut &[u8],
+    sample_count: usize,
+    len: usize,
+) -> Result<Vec<Option<Value>>, DecodeError> {
+    const DELIMITER: char = ',';
+    const MISSING: char = '.';
+
+    let mut values = Vec::with_capacity(sample_count);
+
+    for _ in 0..sample_count {
+        let s = read_string_until_nul(src, len)?;
+
+        let value = Value::from(
+            s.split(DELIMITER)
+                .map(|t| match t.chars().next().unwrap() {
+                    MISSING => None,
+                    c => Some(c),
+                })
+                .collect::<Vec<_>>(),
+        );
+
+        values.push(Some(value));
     }
 
     Ok(values)
@@ -613,6 +643,25 @@ mod tests {
         assert_eq!(
             read_values(&mut src, Number::Count(1), format::Type::Character, 2),
             Ok(vec![Some(Value::from('n')), None])
+        );
+    }
+
+    #[test]
+    fn test_read_values_with_character_array_values() {
+        let mut src = &[
+            0x37, // Some(Type::String(3))
+            b'n', b',', b'd', // [Some('n'), Some('d')]
+            b'n', b',', b'.', // [Some('n'), None]
+            b'n', 0x00, 0x00, // [Some('n')]
+        ][..];
+
+        assert_eq!(
+            read_values(&mut src, Number::Count(2), format::Type::Character, 3),
+            Ok(vec![
+                Some(Value::from(vec![Some('n'), Some('d')])),
+                Some(Value::from(vec![Some('n'), None])),
+                Some(Value::from(vec![Some('n')])),
+            ])
         );
     }
 
