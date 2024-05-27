@@ -61,6 +61,7 @@ fn complement(b: u8) -> Result<u8, ComplementError> {
         b'H' => Ok(b'D'),
         b'V' => Ok(b'B'),
         b'N' => Ok(b'N'),
+
         b'a' => Ok(b't'),
         b'c' => Ok(b'g'),
         b'g' => Ok(b'c'),
@@ -113,6 +114,7 @@ mod tests {
         assert_eq!(complement(b'H'), Ok(b'D'));
         assert_eq!(complement(b'V'), Ok(b'B'));
         assert_eq!(complement(b'N'), Ok(b'N'));
+
         assert_eq!(complement(b'a'), Ok(b't'));
         assert_eq!(complement(b'c'), Ok(b'g'));
         assert_eq!(complement(b'g'), Ok(b'c'));
@@ -129,6 +131,7 @@ mod tests {
         assert_eq!(complement(b'h'), Ok(b'd'));
         assert_eq!(complement(b'v'), Ok(b'b'));
         assert_eq!(complement(b'n'), Ok(b'n'));
+
         assert_eq!(complement(b'X'), Err(ComplementError(b'X')));
     }
 }
