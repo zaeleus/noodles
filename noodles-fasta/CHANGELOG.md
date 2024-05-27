@@ -7,6 +7,10 @@
   * fasta: Move readers (`Reader` and `IndexedReader`), writer (`Writer`), and
     indexer (`index`) to `io` module.
 
+  * fasta/record/sequence/complement: Allow lowercase bases ([#267]).
+
+[#267]: https://github.com/zaeleus/noodles/pull/267
+
 ### Deprecated
 
   * fasta: Deprecate `fasta::Reader`, `fasta::IndexedReader`, `fasta::Writer`,
