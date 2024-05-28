@@ -1,8 +1,9 @@
 #![warn(missing_docs)]
 
-//! **noodles** attempts to provide correct implementations of libraries for handling various
-//! bioinformatics file formats. It currently supports BAM 1.6, BCF 2.2, BED, BGZF, CRAM 3.0/3.1,
-//! CSI, FASTA, FASTQ, GFF3, GTF 2.2, htsget 1.3, refget 2.0, SAM 1.6, tabix, and VCF 4.3/4.4.
+//! **noodles** attempts to provide specification-compliant (when applicable) implementations of
+//! libraries for handling various bioinformatics file formats. It currently supports BAM 1.6, BCF
+//! 2.2, BED, BGZF, CRAM 3.0/3.1, CSI, FASTA, FASTQ, GFF3, GTF 2.2, htsget 1.3, refget 2.0, SAM
+//! 1.6, tabix, and VCF 4.3/4.4.
 
 #[cfg(feature = "bam")]
 #[doc(inline)]
