@@ -93,23 +93,28 @@ async fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
-    writer.write_all(b"@").await?;
+    const NAME_PREFIX: &[u8] = b"@";
+    const DEFINITION_SEPARATOR: &[u8] = b" ";
+    const LINE_FEED: &[u8] = b"\n";
+
+    writer.write_all(NAME_PREFIX).await?;
     writer.write_all(record.name()).await?;
 
     if !record.description().is_empty() {
-        writer.write_all(b" ").await?;
+        writer.write_all(DEFINITION_SEPARATOR).await?;
         writer.write_all(record.description()).await?;
     }
 
-    writer.write_all(b"\n").await?;
+    writer.write_all(LINE_FEED).await?;
 
     writer.write_all(record.sequence()).await?;
-    writer.write_all(b"\n").await?;
+    writer.write_all(LINE_FEED).await?;
 
-    writer.write_all(b"+\n").await?;
+    writer.write_all(b"+").await?;
+    writer.write_all(LINE_FEED).await?;
 
     writer.write_all(record.quality_scores()).await?;
-    writer.write_all(b"\n").await?;
+    writer.write_all(LINE_FEED).await?;
 
     Ok(())
 }
