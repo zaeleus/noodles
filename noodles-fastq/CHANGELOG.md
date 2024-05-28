@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+  * fastq/async/io/reader: Add common methods to access the underlying reader:
+    `Reader::get_ref`, `Reader::get_mut`, and `Reader::into_inner`.
+
 ### Changed
 
   * fastq: Move reader (`Reader`), writer (`Writer`), and indexer (`Indexer`)
