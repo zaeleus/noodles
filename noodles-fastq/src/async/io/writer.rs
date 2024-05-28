@@ -38,6 +38,20 @@ where
         &self.inner
     }
 
+    /// Returns a mutable reference to the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fastq as fastq;
+    /// use tokio::io;
+    /// let mut writer = fastq::r#async::io::Writer::new(io::sink());
+    /// let _inner = writer.get_mut();
+    /// ```
+    pub fn get_mut(&mut self) -> &mut W {
+        &mut self.inner
+    }
+
     /// Returns the underlying writer.
     ///
     /// # Examples
