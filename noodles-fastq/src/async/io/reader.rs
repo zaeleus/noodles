@@ -21,8 +21,8 @@ where
     ///
     /// ```
     /// use noodles_fastq as fastq;
-    /// let data = [];
-    /// let reader = fastq::AsyncReader::new(&data[..]);
+    /// use tokio::io;
+    /// let reader = fastq::r#async::io::Reader::new(io::empty());
     /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
@@ -34,11 +34,11 @@ where
     ///
     /// ```
     /// # #[tokio::main]
-    /// # async fn main() -> std::io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_fastq as fastq;
     ///
     /// let data = b"@r0\nATCG\n+\nNDLS\n";
-    /// let mut reader = fastq::AsyncReader::new(&data[..]);
+    /// let mut reader = fastq::r#async::io::Reader::new(&data[..]);
     ///
     /// let mut record = fastq::Record::default();
     /// reader.read_record(&mut record).await?;
@@ -59,12 +59,12 @@ where
     ///
     /// ```
     /// # #[tokio::main]
-    /// # async fn main() -> std::io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use futures::TryStreamExt;
     /// use noodles_fastq as fastq;
     ///
     /// let data = b"@r0\nATCG\n+\nNDLS\n";
-    /// let mut reader = fastq::AsyncReader::new(&data[..]);
+    /// let mut reader = fastq::r#async::io::Reader::new(&data[..]);
     ///
     /// let mut records = reader.records();
     ///

@@ -17,7 +17,8 @@ where
     ///
     /// ```
     /// use noodles_fastq as fastq;
-    /// let writer = fastq::AsyncWriter::new(Vec::new());
+    /// use tokio::io;
+    /// let writer = fastq::r#async::io::Writer::new(io::sink());
     /// ```
     pub fn new(inner: W) -> Self {
         Self { inner }
@@ -29,8 +30,9 @@ where
     ///
     /// ```
     /// use noodles_fastq as fastq;
-    /// let writer = fastq::AsyncWriter::new(Vec::new());
-    /// assert!(writer.get_ref().is_empty());
+    /// use tokio::io;
+    /// let writer = fastq::r#async::io::Writer::new(io::sink());
+    /// let _inner = writer.get_ref();
     /// ```
     pub fn get_ref(&self) -> &W {
         &self.inner
@@ -42,8 +44,9 @@ where
     ///
     /// ```
     /// use noodles_fastq as fastq;
-    /// let writer = fastq::AsyncWriter::new(Vec::new());
-    /// assert!(writer.into_inner().is_empty());
+    /// use tokio::io;
+    /// let writer = fastq::r#async::io::Writer::new(io::sink());
+    /// let _inner = writer.into_inner();
     /// ```
     pub fn into_inner(self) -> W {
         self.inner
@@ -55,10 +58,10 @@ where
     ///
     /// ```
     /// # #[tokio::main]
-    /// # async fn main() -> std::io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_fastq::{self as fastq, record::Definition};
     ///
-    /// let mut writer = fastq::AsyncWriter::new(Vec::new());
+    /// let mut writer = fastq::r#async::io::Writer::new(Vec::new());
     ///
     /// let record = fastq::Record::new(Definition::new("r0", ""), "ATCG", "NDLS");
     /// writer.write_record(&record).await?;
