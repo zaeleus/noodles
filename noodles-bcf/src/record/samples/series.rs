@@ -301,8 +301,12 @@ fn get_char_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value
 }
 
 fn get_string_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
-    let s = get_string(src, len, i)?;
-    Some(Some(Value::String(s)))
+    const MISSING: &str = ".";
+
+    match get_string(src, len, i)? {
+        MISSING => Some(None),
+        s => Some(Some(Value::String(s))),
+    }
 }
 
 fn get_string_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
@@ -741,7 +745,7 @@ mod tests {
 
         t(&series, &header, 0, Some("n"));
         t(&series, &header, 1, Some("ndls"));
-        t(&series, &header, 2, Some(".")); // FIXME
+        t(&series, &header, 2, None);
 
         assert!(series.get(&header, 3).is_none());
     }
