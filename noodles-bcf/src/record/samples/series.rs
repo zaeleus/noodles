@@ -346,6 +346,306 @@ mod tests {
     }
 
     #[test]
+    fn test_get_with_int8_values() {
+        fn t(series: &Series<'_>, header: &vcf::Header, i: usize, expected: Option<i32>) {
+            let actual = match series.get(header, i).unwrap().transpose().unwrap() {
+                Some(Value::Integer(n)) => Some(n),
+                Some(_) => panic!(),
+                None => None,
+            };
+
+            assert_eq!(actual, expected);
+        }
+
+        let header = build_header_with_format(NAME, Number::Count(1), format::Type::Integer);
+        let id = header.string_maps().strings().get_index_of(NAME).unwrap();
+        let src = &[
+            0x05, // Some(5)
+            0x08, // Some(5)
+            0x80, // None
+        ];
+
+        let series = Series {
+            id,
+            ty: Type::Int8(1),
+            src,
+        };
+
+        t(&series, &header, 0, Some(5));
+        t(&series, &header, 1, Some(8));
+        t(&series, &header, 2, None);
+
+        assert!(series.get(&header, 3).is_none());
+    }
+
+    #[test]
+    fn test_get_with_int8_array_values() {
+        fn t(
+            series: &Series<'_>,
+            header: &vcf::Header,
+            i: usize,
+            expected: Option<&[Option<i32>]>,
+        ) {
+            let actual = match series.get(header, i).unwrap().transpose().unwrap() {
+                Some(Value::Array(Array::Integer(values))) => {
+                    Some(values.iter().collect::<Result<Vec<_>, _>>().unwrap())
+                }
+                Some(_) => panic!(),
+                None => None,
+            };
+
+            assert_eq!(actual.as_deref(), expected);
+        }
+
+        let header = build_header_with_format(NAME, Number::Count(2), format::Type::Integer);
+        let id = header.string_maps().strings().get_index_of(NAME).unwrap();
+        let src = &[
+            0x05, 0x08, // Some([Some(5), Some(8)])
+            0x0d, 0x80, // Some([Some(13), None])
+            0x15, 0x81, // Some([Some(21)])
+            0x80, 0x81, // None
+        ];
+
+        let series = Series {
+            id,
+            ty: Type::Int8(2),
+            src,
+        };
+
+        t(&series, &header, 0, Some(&[Some(5), Some(8)]));
+        t(&series, &header, 1, Some(&[Some(13), None]));
+        t(&series, &header, 2, Some(&[Some(21)]));
+        t(&series, &header, 3, Some(&[None])); // FIXME
+
+        assert!(series.get(&header, 4).is_none());
+    }
+
+    #[test]
+    fn test_get_with_int16_values() {
+        fn t(series: &Series<'_>, header: &vcf::Header, i: usize, expected: Option<i32>) {
+            let actual = match series.get(header, i).unwrap().transpose().unwrap() {
+                Some(Value::Integer(n)) => Some(n),
+                Some(_) => panic!(),
+                None => None,
+            };
+
+            assert_eq!(actual, expected);
+        }
+
+        let header = build_header_with_format(NAME, Number::Count(1), format::Type::Integer);
+        let id = header.string_maps().strings().get_index_of(NAME).unwrap();
+        let src = &[
+            0x05, 0x00, // Some(5)
+            0x08, 0x00, // Some(8)
+            0x00, 0x80, // None
+        ];
+
+        let series = Series {
+            id,
+            ty: Type::Int16(1),
+            src,
+        };
+
+        t(&series, &header, 0, Some(5));
+        t(&series, &header, 1, Some(8));
+        t(&series, &header, 2, None);
+
+        assert!(series.get(&header, 3).is_none());
+    }
+
+    #[test]
+    fn test_get_with_int16_array_values() {
+        fn t(
+            series: &Series<'_>,
+            header: &vcf::Header,
+            i: usize,
+            expected: Option<&[Option<i32>]>,
+        ) {
+            let actual = match series.get(header, i).unwrap().transpose().unwrap() {
+                Some(Value::Array(Array::Integer(values))) => {
+                    Some(values.iter().collect::<Result<Vec<_>, _>>().unwrap())
+                }
+                Some(_) => panic!(),
+                None => None,
+            };
+
+            assert_eq!(actual.as_deref(), expected);
+        }
+
+        let header = build_header_with_format(NAME, Number::Count(2), format::Type::Integer);
+        let id = header.string_maps().strings().get_index_of(NAME).unwrap();
+        let src = &[
+            0x05, 0x00, 0x08, 0x00, // Some([Some(5), Some(8)])
+            0x0d, 0x00, 0x00, 0x80, // Some([Some(13), None])
+            0x15, 0x00, 0x01, 0x80, // Some([Some(21)])
+            0x00, 0x80, 0x01, 0x80, // None
+        ];
+
+        let series = Series {
+            id,
+            ty: Type::Int16(2),
+            src,
+        };
+
+        t(&series, &header, 0, Some(&[Some(5), Some(8)]));
+        t(&series, &header, 1, Some(&[Some(13), None]));
+        t(&series, &header, 2, Some(&[Some(21)]));
+        t(&series, &header, 3, Some(&[None])); // FIXME
+
+        assert!(series.get(&header, 4).is_none());
+    }
+
+    #[test]
+    fn test_get_with_int32_values() {
+        fn t(series: &Series<'_>, header: &vcf::Header, i: usize, expected: Option<i32>) {
+            let actual = match series.get(header, i).unwrap().transpose().unwrap() {
+                Some(Value::Integer(n)) => Some(n),
+                Some(_) => panic!(),
+                None => None,
+            };
+
+            assert_eq!(actual, expected);
+        }
+
+        let header = build_header_with_format(NAME, Number::Count(1), format::Type::Integer);
+        let id = header.string_maps().strings().get_index_of(NAME).unwrap();
+        let src = &[
+            0x05, 0x00, 0x00, 0x00, // Some(5)
+            0x08, 0x00, 0x00, 0x00, // Some(8)
+            0x00, 0x00, 0x00, 0x80, // None
+        ];
+
+        let series = Series {
+            id,
+            ty: Type::Int32(1),
+            src,
+        };
+
+        t(&series, &header, 0, Some(5));
+        t(&series, &header, 1, Some(8));
+        t(&series, &header, 2, None);
+
+        assert!(series.get(&header, 3).is_none());
+    }
+
+    #[test]
+    fn test_get_with_int32_array_values() {
+        fn t(
+            series: &Series<'_>,
+            header: &vcf::Header,
+            i: usize,
+            expected: Option<&[Option<i32>]>,
+        ) {
+            let actual = match series.get(header, i).unwrap().transpose().unwrap() {
+                Some(Value::Array(Array::Integer(values))) => {
+                    Some(values.iter().collect::<Result<Vec<_>, _>>().unwrap())
+                }
+                Some(_) => panic!(),
+                None => None,
+            };
+
+            assert_eq!(actual.as_deref(), expected);
+        }
+
+        let header = build_header_with_format(NAME, Number::Count(2), format::Type::Integer);
+        let id = header.string_maps().strings().get_index_of(NAME).unwrap();
+        let src = &[
+            0x05, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, // Some([Some(5), Some(8)])
+            0x0d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, // Some([Some(13), None])
+            0x15, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x80, // Some([Some(21)])
+            0x00, 0x00, 0x00, 0x80, 0x01, 0x00, 0x00, 0x80, // None
+        ];
+
+        let series = Series {
+            id,
+            ty: Type::Int32(2),
+            src,
+        };
+
+        t(&series, &header, 0, Some(&[Some(5), Some(8)]));
+        t(&series, &header, 1, Some(&[Some(13), None]));
+        t(&series, &header, 2, Some(&[Some(21)]));
+        t(&series, &header, 3, Some(&[None])); // FIXME
+
+        assert!(series.get(&header, 4).is_none());
+    }
+
+    #[test]
+    fn test_get_with_float_values() {
+        fn t(series: &Series<'_>, header: &vcf::Header, i: usize, expected: Option<f32>) {
+            let actual = match series.get(header, i).unwrap().transpose().unwrap() {
+                Some(Value::Float(n)) => Some(n),
+                Some(_) => panic!(),
+                None => None,
+            };
+
+            assert_eq!(actual, expected);
+        }
+
+        let header = build_header_with_format(NAME, Number::Count(1), format::Type::Float);
+        let id = header.string_maps().strings().get_index_of(NAME).unwrap();
+        let src = &[
+            0x00, 0x00, 0x00, 0x00, // Some(0.0)
+            0x00, 0x00, 0x80, 0x3f, // Some(1.0)
+            0x01, 0x00, 0x80, 0x7f, // None
+        ];
+
+        let series = Series {
+            id,
+            ty: Type::Float(1),
+            src,
+        };
+
+        t(&series, &header, 0, Some(0.0));
+        t(&series, &header, 1, Some(1.0));
+        t(&series, &header, 2, None);
+
+        assert!(series.get(&header, 3).is_none());
+    }
+
+    #[test]
+    fn test_get_with_float_array_values() {
+        fn t(
+            series: &Series<'_>,
+            header: &vcf::Header,
+            i: usize,
+            expected: Option<&[Option<f32>]>,
+        ) {
+            let actual = match series.get(header, i).unwrap().transpose().unwrap() {
+                Some(Value::Array(Array::Float(values))) => {
+                    Some(values.iter().collect::<Result<Vec<_>, _>>().unwrap())
+                }
+                Some(_) => panic!(),
+                None => None,
+            };
+
+            assert_eq!(actual.as_deref(), expected);
+        }
+
+        let header = build_header_with_format(NAME, Number::Count(2), format::Type::Float);
+        let id = header.string_maps().strings().get_index_of(NAME).unwrap();
+        let src = &[
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f, // Some([Some(0.0), Some(1.0)])
+            0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x80, 0x7f, // Some([Some(0.0), None])
+            0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x80, 0x7f, // Some([Some(0.0)])
+            0x01, 0x00, 0x80, 0x7f, 0x02, 0x00, 0x80, 0x7f, // None
+        ];
+
+        let series = Series {
+            id,
+            ty: Type::Float(2),
+            src,
+        };
+
+        t(&series, &header, 0, Some(&[Some(0.0), Some(1.0)]));
+        t(&series, &header, 1, Some(&[Some(0.0), None]));
+        t(&series, &header, 2, Some(&[Some(0.0)]));
+        t(&series, &header, 3, Some(&[None])); // FIXME
+
+        assert!(series.get(&header, 4).is_none());
+    }
+
+    #[test]
     fn test_get_with_character_value() {
         fn t(series: &Series<'_>, header: &vcf::Header, i: usize, expected: Option<char>) {
             let actual = match series.get(header, i).unwrap().transpose().unwrap() {
@@ -361,6 +661,7 @@ mod tests {
         let id = header.string_maps().strings().get_index_of(NAME).unwrap();
         let src = &[
             b'n', // Some('n')
+            b'd', // Some('d')
             b'.', // None
         ];
 
@@ -371,9 +672,10 @@ mod tests {
         };
 
         t(&series, &header, 0, Some('n'));
-        t(&series, &header, 1, None);
+        t(&series, &header, 1, Some('d'));
+        t(&series, &header, 2, None);
 
-        assert!(series.get(&header, 2).is_none());
+        assert!(series.get(&header, 3).is_none());
     }
 
     #[test]
@@ -407,6 +709,39 @@ mod tests {
         t(&series, &header, 0, &[Some('n'), Some('d')]);
         t(&series, &header, 1, &[Some('n'), None]);
         t(&series, &header, 2, &[Some('n')]);
+
+        assert!(series.get(&header, 3).is_none());
+    }
+
+    #[test]
+    fn test_get_with_string_value() {
+        fn t(series: &Series<'_>, header: &vcf::Header, i: usize, expected: Option<&str>) {
+            let actual = match series.get(header, i).unwrap().transpose().unwrap() {
+                Some(Value::String(s)) => Some(s),
+                Some(_) => panic!(),
+                None => None,
+            };
+
+            assert_eq!(actual, expected);
+        }
+
+        let header = build_header_with_format(NAME, Number::Count(1), format::Type::String);
+        let id = header.string_maps().strings().get_index_of(NAME).unwrap();
+        let src = &[
+            b'n', 0x00, 0x00, 0x00, // Some("n")
+            b'n', b'd', b'l', b's', // Some("ndls")
+            b'.', 0x00, 0x00, 0x00, // None
+        ];
+
+        let series = Series {
+            id,
+            ty: Type::String(4),
+            src,
+        };
+
+        t(&series, &header, 0, Some("n"));
+        t(&series, &header, 1, Some("ndls"));
+        t(&series, &header, 2, Some(".")); // FIXME
 
         assert!(series.get(&header, 3).is_none());
     }
