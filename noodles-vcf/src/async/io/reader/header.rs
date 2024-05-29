@@ -4,9 +4,9 @@ use std::{
 };
 
 use pin_project_lite::pin_project;
-use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt, ReadBuf};
+use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, ReadBuf};
 
-use crate::Header;
+use crate::{header, Header};
 
 pin_project! {
     struct Reader<R> {
@@ -80,14 +80,51 @@ pub(super) async fn read_header<R>(reader: &mut R) -> io::Result<Header>
 where
     R: AsyncBufRead + Unpin,
 {
-    let mut s = String::new();
-    Reader::new(reader).read_to_string(&mut s).await?;
-    s.parse()
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+    let mut reader = Reader::new(reader);
+
+    let mut parser = header::Parser::default();
+    let mut buf = Vec::new();
+
+    while read_line(&mut reader, &mut buf).await? != 0 {
+        parser
+            .parse_partial(&buf)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    }
+
+    parser
+        .finish()
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+}
+
+async fn read_line<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<usize>
+where
+    R: AsyncBufRead + Unpin,
+{
+    const LINE_FEED: u8 = b'\n';
+    const CARRIAGE_RETURN: u8 = b'\r';
+
+    dst.clear();
+
+    match reader.read_until(LINE_FEED, dst).await? {
+        0 => Ok(0),
+        n => {
+            if dst.ends_with(&[LINE_FEED]) {
+                dst.pop();
+
+                if dst.ends_with(&[CARRIAGE_RETURN]) {
+                    dst.pop();
+                }
+            }
+
+            Ok(n)
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use tokio::io::AsyncReadExt;
+
     use super::*;
 
     #[tokio::test]
