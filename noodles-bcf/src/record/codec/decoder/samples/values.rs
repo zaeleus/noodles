@@ -365,6 +365,7 @@ fn read_string_array_values(
 ) -> Result<Vec<Option<Value>>, DecodeError> {
     const NUL: u8 = 0x00;
     const DELIMITER: char = ',';
+    const MISSING: &str = ".";
 
     let mut values = Vec::with_capacity(sample_count);
 
@@ -376,11 +377,19 @@ fn read_string_array_values(
             None => buf,
         };
 
-        let s = str::from_utf8(data).map_err(DecodeError::InvalidString)?;
-        let ss: Vec<Option<String>> = s.split(DELIMITER).map(String::from).map(Some).collect();
-        let value = Value::from(ss);
+        let value = match str::from_utf8(data).map_err(DecodeError::InvalidString)? {
+            MISSING => None,
+            s => Some(Value::from(
+                s.split(DELIMITER)
+                    .map(|t| match t {
+                        MISSING => None,
+                        _ => Some(t.into()),
+                    })
+                    .collect::<Vec<Option<String>>>(),
+            )),
+        };
 
-        values.push(Some(value));
+        values.push(value);
     }
 
     Ok(values)
@@ -692,24 +701,23 @@ mod tests {
     #[test]
     fn test_read_values_with_string_array_values() {
         let mut src = &[
-            0x47, // Some(Type::String(4))
-            b'n', 0x00, 0x00, 0x00, // "n"
-            b'n', b',', b'l', 0x00, // "n,l"
-            b'n', b',', b'l', b's', // "n,ls"
+            0x37, // Some(Type::String(3))
+            b'n', b',', b'd', // [Some("n"), Some("d")]
+            b'n', b',', b'.', // [Some("n"), None]
+            b'n', 0x00, 0x00, // [Some("n")]
+            b'.', 0x00, 0x00, // None
         ][..];
 
         assert_eq!(
-            read_values(&mut src, Number::Count(2), format::Type::String, 3),
+            read_values(&mut src, Number::Count(2), format::Type::String, 4),
             Ok(vec![
+                Some(Value::from(vec![
+                    Some(String::from("n")),
+                    Some(String::from("d"))
+                ])),
+                Some(Value::from(vec![Some(String::from("n")), None])),
                 Some(Value::from(vec![Some(String::from("n"))])),
-                Some(Value::from(vec![
-                    Some(String::from("n")),
-                    Some(String::from("l"))
-                ])),
-                Some(Value::from(vec![
-                    Some(String::from("n")),
-                    Some(String::from("ls"))
-                ])),
+                None,
             ])
         );
     }
