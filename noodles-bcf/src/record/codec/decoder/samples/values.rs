@@ -342,12 +342,17 @@ fn read_string_values(
     sample_count: usize,
     len: usize,
 ) -> Result<Vec<Option<Value>>, DecodeError> {
+    const MISSING: &str = ".";
+
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
-        let s = read_string_until_nul(src, len)?;
-        let value = Value::from(s);
-        values.push(Some(value));
+        let value = match read_string_until_nul(src, len)? {
+            MISSING => None,
+            s => Some(Value::from(s)),
+        };
+
+        values.push(value);
     }
 
     Ok(values)
@@ -669,17 +674,17 @@ mod tests {
     fn test_read_values_with_string_values() {
         let mut src = &[
             0x47, // Some(Type::String(4))
-            b'n', 0x00, 0x00, 0x00, // "n"
-            b'n', b'd', b'l', 0x00, // "ndl"
-            b'n', b'd', b'l', b's', // "ndls"
+            b'n', b'd', b'l', b's', // Some("ndls")
+            b'n', 0x00, 0x00, 0x00, // Some("n")
+            b'.', 0x00, 0x00, 0x00, // None
         ][..];
 
         assert_eq!(
             read_values(&mut src, Number::Count(1), format::Type::String, 3),
             Ok(vec![
-                Some(Value::from("n")),
-                Some(Value::from("ndl")),
                 Some(Value::from("ndls")),
+                Some(Value::from("n")),
+                None,
             ])
         );
     }
