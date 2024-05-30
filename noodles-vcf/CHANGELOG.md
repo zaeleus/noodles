@@ -13,7 +13,7 @@
   * vcf/io/writer/record/reference_bases: Resolve IUPAC ambiguity codes
     ([#268]).
 
-    Any occurrance of an IUPAC ambiguity code is resolved to its first single
+    Any occurrence of an IUPAC ambiguity code is resolved to its first single
     base specification. See _The Variant Call Format Specification: VCFv4.4 and
     BCFv2.2_ (2024-04-20) § 1.6.1.4 "Fixed fields: REF".
 
