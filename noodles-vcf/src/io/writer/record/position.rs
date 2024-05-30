@@ -7,7 +7,7 @@ where
     W: Write,
 {
     let n = position.map(usize::from).unwrap_or_default();
-    write!(writer, "{}", n)
+    write!(writer, "{n}")
 }
 
 #[cfg(test)]
