@@ -29,8 +29,7 @@
 ### Added
 
   * bed/record/score: Add a const constructor (`Score::new`), getter
-    (`Score::get`), and min (`Score::MIN`) and max (`Score::MAX`)
-    constants.
+    (`Score::get`), and min (`Score::MIN`) and max (`Score::MAX`) constants.
 
 ### Fixed
 
