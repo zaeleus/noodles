@@ -1,5 +1,6 @@
 use std::io::{self, Write};
 
+use super::write_newline;
 use crate::record::Sequence;
 
 pub(super) fn write_sequence<W>(
@@ -12,7 +13,7 @@ where
 {
     for bases in sequence.as_ref().chunks(line_bases) {
         writer.write_all(bases)?;
-        writeln!(writer)?;
+        write_newline(writer)?;
     }
 
     Ok(())
