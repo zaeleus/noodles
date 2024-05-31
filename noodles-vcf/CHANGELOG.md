@@ -10,6 +10,12 @@
     header line by line. This makes it so that it is no longer required to read
     the entire raw header into memory before parsing.
 
+  * vcf/io/writer/header/record/value: Disallow unstructured header records to
+    be empty or start with a structured header record marker (`<`).
+
+    See _The Variant Call Format Specification: VCFv4.4 and BCFv2.2_
+    (2024-04-20) § 1.4 "Meta-information lines".
+
   * vcf/io/writer/record/reference_bases: Resolve IUPAC ambiguity codes
     ([#268]).
 
