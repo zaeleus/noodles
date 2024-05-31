@@ -26,6 +26,6 @@ fn write_newline<W>(writer: &mut W) -> io::Result<()>
 where
     W: Write,
 {
-    const NEWLINE: u8 = b'\n';
-    writer.write_all(&[NEWLINE])
+    const LINE_FEED: u8 = b'\n';
+    writer.write_all(&[LINE_FEED])
 }
