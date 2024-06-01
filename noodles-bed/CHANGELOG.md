@@ -4,13 +4,13 @@
 
 ### Changed
 
-  * bed: Move reader (`Reader`) to `io` module.
+  * bed: Move reader (`Reader`) and writer (`Writer`) to `io` module.
 
 ### Deprecated
 
-  * bed: Deprecate `bed::Reader`.
+  * bed: Deprecate `bed::Reader` and `bed::Writer`.
 
-    Use `bed::io::Reader` instead.
+    Use `bed::io::Reader` and `bed::io::Writer`, respectively, instead.
 
 ## 0.13.0 - 2024-05-08
 

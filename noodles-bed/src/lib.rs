@@ -4,9 +4,11 @@
 
 pub mod io;
 pub mod record;
-mod writer;
 
-pub use self::{record::Record, writer::Writer};
+pub use self::record::Record;
 
 #[deprecated(since = "0.14.0", note = "Use `noodles_bed::io::Reader` instead.")]
 pub use self::io::Reader;
+
+#[deprecated(since = "0.14.0", note = "Use `noodles_bed::io::Writer` instead.")]
+pub use self::io::Writer;

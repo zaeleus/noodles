@@ -3,7 +3,7 @@ use std::{
     io::{self, Write},
 };
 
-use super::Record;
+use crate::Record;
 
 /// A BED writer.
 pub struct Writer<W> {
@@ -20,7 +20,7 @@ where
     ///
     /// ```
     /// use noodles_bed as bed;
-    /// let writer = bed::Writer::new(Vec::new());
+    /// let writer = bed::io::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
         Self { inner }
@@ -32,7 +32,7 @@ where
     ///
     /// ```
     /// use noodles_bed as bed;
-    /// let writer = bed::Writer::new(Vec::new());
+    /// let writer = bed::io::Writer::new(Vec::new());
     /// assert!(writer.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &W {
@@ -45,7 +45,7 @@ where
     ///
     /// ```
     /// use noodles_bed as bed;
-    /// let mut writer = bed::Writer::new(Vec::new());
+    /// let mut writer = bed::io::Writer::new(Vec::new());
     /// assert!(writer.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut W {
@@ -58,7 +58,7 @@ where
     ///
     /// ```
     /// use noodles_bed as bed;
-    /// let writer = bed::Writer::new(Vec::new());
+    /// let writer = bed::io::Writer::new(Vec::new());
     /// assert!(writer.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> W {
@@ -73,7 +73,7 @@ where
     /// use noodles_bed as bed;
     /// use noodles_core::Position;
     ///
-    /// let mut writer = bed::Writer::new(Vec::new());
+    /// let mut writer = bed::io::Writer::new(Vec::new());
     ///
     /// let record = bed::Record::<3>::builder()
     ///     .set_reference_sequence_name("sq0")
