@@ -4,7 +4,7 @@ use std::{
     str::FromStr,
 };
 
-use super::Record;
+use crate::Record;
 
 /// A BED reader.
 pub struct Reader<R> {
@@ -22,7 +22,7 @@ where
     /// ```
     /// use noodles_bed as bed;
     /// let data = [];
-    /// let reader = bed::Reader::new(&data[..]);
+    /// let reader = bed::io::Reader::new(&data[..]);
     /// assert!(reader.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &R {
@@ -36,7 +36,7 @@ where
     /// ```
     /// use noodles_bed as bed;
     /// let data = [];
-    /// let mut reader = bed::Reader::new(&data[..]);
+    /// let mut reader = bed::io::Reader::new(&data[..]);
     /// assert!(reader.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
@@ -50,7 +50,7 @@ where
     /// ```
     /// use noodles_bed as bed;
     /// let data = [];
-    /// let reader = bed::Reader::new(&data[..]);
+    /// let reader = bed::io::Reader::new(&data[..]);
     /// assert!(reader.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> R {
@@ -64,7 +64,7 @@ where
     /// ```
     /// use noodles_bed as bed;
     /// let data = [];
-    /// let reader = bed::Reader::new(&data[..]);
+    /// let reader = bed::io::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
@@ -79,7 +79,7 @@ where
     /// use noodles_bed as bed;
     ///
     /// let data = b"sq0\t8\t13\n";
-    /// let mut reader = bed::Reader::new(&data[..]);
+    /// let mut reader = bed::io::Reader::new(&data[..]);
     ///
     /// let mut buf = String::new();
     /// reader.read_line(&mut buf)?;
@@ -101,7 +101,7 @@ where
     /// use noodles_core::Position;
     ///
     /// let data = b"sq0\t7\t13\n# sq0\t20\t34\n";
-    /// let mut reader = bed::Reader::new(&data[..]);
+    /// let mut reader = bed::io::Reader::new(&data[..]);
     ///
     /// let mut records = reader.records::<3>();
     ///
@@ -114,7 +114,7 @@ where
     /// ```
     pub fn records<const N: u8>(&mut self) -> impl Iterator<Item = io::Result<Record<N>>> + '_
     where
-        Record<N>: FromStr<Err = super::record::ParseError>,
+        Record<N>: FromStr<Err = crate::record::ParseError>,
     {
         const COMMENT_PREFIX: char = '#';
 

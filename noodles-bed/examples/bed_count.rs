@@ -11,7 +11,10 @@ use noodles_bed as bed;
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = File::open(src).map(BufReader::new).map(bed::Reader::new)?;
+    let mut reader = File::open(src)
+        .map(BufReader::new)
+        .map(bed::io::Reader::new)?;
+
     let mut n = 0;
 
     for result in reader.records::<3>() {

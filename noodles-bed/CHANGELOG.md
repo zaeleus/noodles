@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bed: Move reader (`Reader`) to `io` module.
+
+### Deprecated
+
+  * bed: Deprecate `bed::Reader`.
+
+    Use `bed::io::Reader` instead.
+
 ## 0.13.0 - 2024-05-08
 
 ### Changed
