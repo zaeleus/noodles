@@ -1,6 +1,10 @@
 //! Validates and prints the records as BED3+ records in a BED file.
 
-use std::{env, fs::File, io::BufReader};
+use std::{
+    env,
+    fs::File,
+    io::{self, BufReader},
+};
 
 use noodles_bed as bed;
 
@@ -11,9 +15,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(BufReader::new)
         .map(bed::io::Reader::new)?;
 
+    let stdout = io::stdout().lock();
+    let mut writer = bed::io::Writer::new(stdout);
+
     for result in reader.records::<3>() {
         let record = result?;
-        println!("{record}");
+        writer.write_record(&record)?;
     }
 
     Ok(())
