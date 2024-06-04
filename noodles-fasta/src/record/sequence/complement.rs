@@ -2,6 +2,8 @@
 
 use std::{error, fmt, iter::FusedIterator, slice};
 
+use bstr::ByteSlice;
+
 /// An iterator that returns the complement of a sequence.
 pub struct Complement<'a> {
     iter: slice::Iter<'a, u8>,
@@ -21,7 +23,8 @@ impl error::Error for ComplementError {}
 
 impl fmt::Display for ComplementError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid base: {:04x?}", self.0)
+        let bytes = [self.0];
+        write!(f, "invalid base: {:?}", bytes.as_bstr())
     }
 }
 
