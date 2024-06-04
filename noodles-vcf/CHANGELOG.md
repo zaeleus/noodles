@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * vcf/header/parser/record/value: Parse other header record values that start
+    with a map prefix (`<`) as a string if there is no map identifier (i.e.,
+    `ID=`) when the input is VCF < 4.3 ([#241]).
+
+    This behavior is undefined in VCF < 4.3 and explicitly invalid in VCF >=
+    4.3.
+
+[#241]: https://github.com/zaeleus/noodles/issues/241
+
 ## 0.58.0 - 2024-05-31
 
 ### Changed

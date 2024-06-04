@@ -200,7 +200,7 @@ pub(super) fn parse_value(
                 map::other::parse_pedigree(src, file_format)
                     .map(Value::from)
                     .map_err(|e| ParseError::InvalidOtherMap(k.clone(), e))?
-            } else if map::is_map(src) {
+            } else if map::is_map(src, file_format) {
                 map::parse_other(src)
                     .map(Value::from)
                     .map_err(|e| ParseError::InvalidOtherMap(k.clone(), e))?
