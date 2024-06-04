@@ -101,6 +101,7 @@ where
 
 pub(super) fn write_other<W>(
     writer: &mut W,
+    file_format: FileFormat,
     key: &record::key::Other,
     collection: &Collection,
 ) -> io::Result<()>
@@ -112,7 +113,7 @@ where
     match collection {
         Collection::Unstructured(vs) => {
             for v in vs {
-                write_record(writer, key, |w| value::write_string(w, v))?;
+                write_record(writer, key, |w| value::write_string(w, file_format, v))?;
             }
         }
         Collection::Structured(maps) => {
@@ -149,12 +150,13 @@ mod tests {
     fn test_write_other() -> Result<(), Box<dyn std::error::Error>> {
         let mut buf = Vec::new();
 
+        let file_format = FileFormat::new(4, 4);
         let key = "comment".parse()?;
 
         buf.clear();
         let collection =
             Collection::Unstructured(vec![String::from("noodles"), String::from("vcf")]);
-        write_other(&mut buf, &key, &collection)?;
+        write_other(&mut buf, file_format, &key, &collection)?;
         assert_eq!(buf, b"##comment=noodles\n##comment=vcf\n");
 
         buf.clear();
@@ -166,7 +168,7 @@ mod tests {
             .into_iter()
             .collect(),
         );
-        write_other(&mut buf, &key, &collection)?;
+        write_other(&mut buf, file_format, &key, &collection)?;
         assert_eq!(buf, b"##comment=<ID=noodles>\n##comment=<ID=vcf>\n");
 
         Ok(())

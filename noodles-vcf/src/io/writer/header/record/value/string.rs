@@ -1,6 +1,10 @@
 use std::io::{self, Write};
 
-pub(crate) fn write_string<W>(writer: &mut W, s: &str) -> io::Result<()>
+use crate::header::FileFormat;
+
+const VCF_4_3: FileFormat = FileFormat::new(4, 3);
+
+pub(crate) fn write_string<W>(writer: &mut W, file_format: FileFormat, s: &str) -> io::Result<()>
 where
     W: Write,
 {
@@ -12,7 +16,7 @@ where
         s.chars().next().is_some_and(|c| c != LESS_THAN_SIGN)
     }
 
-    if is_valid(s) {
+    if file_format < VCF_4_3 || is_valid(s) {
         writer.write_all(s.as_bytes())
     } else {
         Err(io::Error::new(
@@ -28,18 +32,27 @@ mod tests {
 
     #[test]
     fn test_write_string() -> io::Result<()> {
+        const VCF_4_2: FileFormat = FileFormat::new(4, 2);
+
         let mut buf = Vec::new();
 
-        write_string(&mut buf, "ndls")?;
+        buf.clear();
+        write_string(&mut buf, VCF_4_3, "ndls")?;
         assert_eq!(buf, b"ndls");
 
+        buf.clear();
         assert!(matches!(
-            write_string(&mut buf, ""),
+            write_string(&mut buf, VCF_4_3, ""),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
+        buf.clear();
+        write_string(&mut buf, VCF_4_2, "<")?;
+        assert_eq!(buf, b"<");
+
+        buf.clear();
         assert!(matches!(
-            write_string(&mut buf, "<"),
+            write_string(&mut buf, VCF_4_3, "<"),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 

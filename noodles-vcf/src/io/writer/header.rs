@@ -12,7 +12,9 @@ pub(super) fn write_header<W>(writer: &mut W, header: &Header) -> io::Result<()>
 where
     W: Write,
 {
-    write_file_format(writer, header.file_format())?;
+    let file_format = header.file_format();
+
+    write_file_format(writer, file_format)?;
 
     for (id, info) in header.infos() {
         write_info(writer, id, info)?;
@@ -35,7 +37,7 @@ where
     }
 
     for (key, collection) in header.other_records() {
-        write_other(writer, key, collection)?;
+        write_other(writer, file_format, key, collection)?;
     }
 
     write_column_names(writer, header.sample_names())?;
