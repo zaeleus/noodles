@@ -96,6 +96,7 @@ mod tests {
         assert!(!is_map(b"", VCF_4_2));
 
         assert!(is_map(b"<ID=noodles>", VCF_4_3));
+        assert!(is_map(b"<noodles>", VCF_4_3));
         assert!(!is_map(b"noodles", VCF_4_3));
         assert!(!is_map(b"", VCF_4_3));
     }
