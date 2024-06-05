@@ -221,13 +221,15 @@ fn parse_values(
     id: &Option<String>,
     tag: &map::tag::Other<tag::Standard>,
 ) -> Result<String, ParseError> {
+    use memchr::memchr;
+
     const PREFIX: u8 = b'[';
     const SUFFIX: u8 = b']';
 
     let is_delimited = src.first().map(|&b| b == PREFIX).unwrap_or_default();
 
     if is_delimited {
-        if let Some(i) = src.iter().position(|&b| b == SUFFIX) {
+        if let Some(i) = memchr(SUFFIX, src) {
             let (buf, rest) = src.split_at(i + 1);
 
             let s = str::from_utf8(buf)

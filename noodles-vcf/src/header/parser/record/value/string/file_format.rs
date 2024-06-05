@@ -27,8 +27,8 @@ pub fn parse_file_format(mut src: &[u8]) -> Result<FileFormat, ParseError> {
     const DELIMITER: u8 = b'.';
 
     fn split_once(buf: &[u8], delimiter: u8) -> Option<(&[u8], &[u8])> {
-        let i = buf.iter().position(|&b| b == delimiter)?;
-        Some((&buf[..i], &buf[i + 1..]))
+        use memchr::memchr;
+        memchr(delimiter, buf).map(|i| (&buf[..i], &buf[i + 1..]))
     }
 
     src = src.strip_prefix(PREFIX).ok_or(ParseError::InvalidPrefix)?;

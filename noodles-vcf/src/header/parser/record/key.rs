@@ -30,21 +30,23 @@ impl fmt::Display for ParseError {
 }
 
 pub(super) fn parse_key(src: &mut &[u8]) -> Result<Key, ParseError> {
+    use memchr::memchr;
+
     const DELIMITER: u8 = b'=';
 
-    if let Some(i) = src.iter().position(|&b| b == DELIMITER) {
-        let (raw_key, rest) = src.split_at(i);
+    let Some(i) = memchr(DELIMITER, src) else {
+        return Err(ParseError::MissingDelimiter);
+    };
 
-        let key = str::from_utf8(raw_key)
-            .map(Key::from)
-            .map_err(ParseError::InvalidUtf8)?;
+    let (raw_key, rest) = src.split_at(i);
 
-        *src = &rest[1..];
+    let key = str::from_utf8(raw_key)
+        .map(Key::from)
+        .map_err(ParseError::InvalidUtf8)?;
 
-        Ok(key)
-    } else {
-        Err(ParseError::MissingDelimiter)
-    }
+    *src = &rest[1..];
+
+    Ok(key)
 }
 
 #[cfg(test)]

@@ -28,16 +28,18 @@ impl fmt::Display for ParseError {
 }
 
 pub fn parse_key<'a>(src: &mut &'a [u8]) -> Result<&'a str, ParseError> {
+    use memchr::memchr;
+
     const DELIMITER: u8 = b'=';
 
-    if let Some(i) = src.iter().position(|&b| b == DELIMITER) {
-        let (buf, rest) = src.split_at(i);
-        let key = str::from_utf8(buf).map_err(ParseError::InvalidUtf8)?;
-        *src = &rest[1..];
-        Ok(key)
-    } else {
-        Err(ParseError::UnexpectedEof)
-    }
+    let Some(i) = memchr(DELIMITER, src) else {
+        return Err(ParseError::UnexpectedEof);
+    };
+
+    let (buf, rest) = src.split_at(i);
+    let key = str::from_utf8(buf).map_err(ParseError::InvalidUtf8)?;
+    *src = &rest[1..];
+    Ok(key)
 }
 
 #[cfg(test)]
