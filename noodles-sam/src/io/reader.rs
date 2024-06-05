@@ -18,7 +18,7 @@ use noodles_csi::BinningIndex;
 
 pub(crate) use self::record::read_record;
 pub use self::{builder::Builder, record_bufs::RecordBufs};
-use self::{header::read_header, record_buf::read_record_buf};
+use self::{header::read_header, query::Query, record_buf::read_record_buf};
 use crate::{alignment::RecordBuf, header::ReferenceSequences, Header, Record};
 
 /// A SAM reader.
@@ -319,22 +319,21 @@ where
     /// }
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn query<'a, I>(
-        &'a mut self,
-        header: &'a Header,
+    pub fn query<'r, 'h: 'r, I>(
+        &'r mut self,
+        header: &'h Header,
         index: &I,
         region: &Region,
-    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'a>
+    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'r>
     where
         I: BinningIndex,
     {
-        use self::query::{FilterByRegion, Query};
-
         let reference_sequence_id = resolve_region(header.reference_sequences(), region)?;
         let chunks = index.query(reference_sequence_id, region.interval())?;
 
-        Ok(FilterByRegion::new(
-            Query::new(self.get_mut(), chunks),
+        Ok(Query::new(
+            self.get_mut(),
+            chunks,
             header,
             reference_sequence_id,
             region.interval(),

@@ -7,18 +7,30 @@ use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Ch
 use super::Reader;
 use crate::{alignment::Record as _, Header, Record};
 
-pub struct Query<'a, R> {
-    reader: Reader<csi::io::Query<'a, R>>,
+pub struct Query<'r, 'h, R> {
+    reader: Reader<csi::io::Query<'r, R>>,
+    header: &'h Header,
+    reference_sequence_id: usize,
+    interval: Interval,
     record: Record,
 }
 
-impl<'a, R> Query<'a, R>
+impl<'r, 'h, R> Query<'r, 'h, R>
 where
     R: bgzf::io::BufRead + bgzf::io::Seek,
 {
-    pub(super) fn new(reader: &'a mut R, chunks: Vec<Chunk>) -> Self {
+    pub(super) fn new(
+        reader: &'r mut R,
+        chunks: Vec<Chunk>,
+        header: &'h Header,
+        reference_sequence_id: usize,
+        interval: Interval,
+    ) -> Self {
         Self {
             reader: Reader::new(csi::io::Query::new(reader, chunks)),
+            header,
+            reference_sequence_id,
+            interval,
             record: Record::default(),
         }
     }
@@ -31,57 +43,17 @@ where
     }
 }
 
-impl<'a, R> Iterator for Query<'a, R>
+impl<'r, 'h, R> Iterator for Query<'r, 'h, R>
 where
     R: bgzf::io::BufRead + bgzf::io::Seek,
 {
     type Item = io::Result<Record>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.next_record() {
-            Ok(Some(record)) => Some(Ok(record)),
-            Ok(None) => None,
-            Err(e) => Some(Err(e)),
-        }
-    }
-}
-
-pub struct FilterByRegion<'h, I> {
-    records: I,
-    header: &'h Header,
-    reference_sequence_id: usize,
-    interval: Interval,
-}
-
-impl<'h, I> FilterByRegion<'h, I>
-where
-    I: Iterator<Item = io::Result<Record>>,
-{
-    pub fn new(
-        records: I,
-        header: &'h Header,
-        reference_sequence_id: usize,
-        interval: Interval,
-    ) -> Self {
-        Self {
-            records,
-            header,
-            reference_sequence_id,
-            interval,
-        }
-    }
-}
-
-impl<'h, I> Iterator for FilterByRegion<'h, I>
-where
-    I: Iterator<Item = io::Result<Record>>,
-{
-    type Item = io::Result<Record>;
-
-    fn next(&mut self) -> Option<Self::Item> {
         loop {
-            let record = match self.records.next()? {
-                Ok(record) => record,
+            let record = match self.next_record() {
+                Ok(Some(record)) => record,
+                Ok(None) => return None,
                 Err(e) => return Some(Err(e)),
             };
 
