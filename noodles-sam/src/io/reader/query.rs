@@ -34,13 +34,6 @@ where
             record: Record::default(),
         }
     }
-
-    fn next_record(&mut self) -> io::Result<Option<Record>> {
-        self.reader.read_record(&mut self.record).map(|n| match n {
-            0 => None,
-            _ => Some(self.record.clone()),
-        })
-    }
 }
 
 impl<'r, 'h, R> Iterator for Query<'r, 'h, R>
@@ -50,23 +43,16 @@ where
     type Item = io::Result<Record>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        loop {
-            let record = match self.next_record() {
-                Ok(Some(record)) => record,
-                Ok(None) => return None,
-                Err(e) => return Some(Err(e)),
-            };
-
-            match intersects(
-                self.header,
-                &record,
-                self.reference_sequence_id,
-                self.interval,
-            ) {
-                Ok(true) => return Some(Ok(record)),
-                Ok(false) => {}
-                Err(e) => return Some(Err(e)),
-            }
+        match next_record(
+            &mut self.reader,
+            &mut self.record,
+            self.header,
+            self.reference_sequence_id,
+            self.interval,
+        ) {
+            Ok(0) => None,
+            Ok(_) => Some(Ok(self.record.clone())),
+            Err(e) => Some(Err(e)),
         }
     }
 }
@@ -87,5 +73,27 @@ fn intersects(
             Ok(id == reference_sequence_id && region_interval.intersects(alignment_interval))
         }
         _ => Ok(false),
+    }
+}
+
+fn next_record<R>(
+    reader: &mut Reader<csi::io::Query<'_, R>>,
+    record: &mut Record,
+    header: &Header,
+    reference_sequence_id: usize,
+    interval: Interval,
+) -> io::Result<usize>
+where
+    R: bgzf::io::BufRead + bgzf::io::Seek,
+{
+    loop {
+        match reader.read_record(record)? {
+            0 => return Ok(0),
+            n => {
+                if intersects(header, record, reference_sequence_id, interval)? {
+                    return Ok(n);
+                }
+            }
+        }
     }
 }
