@@ -1,6 +1,6 @@
 [package]
 name = "noodles-bed"
-version = "0.13.0"
+version = "0.14.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
