@@ -37,13 +37,6 @@ where
             record: Record::default(),
         }
     }
-
-    fn next_record(&mut self) -> io::Result<Option<Record>> {
-        self.reader.read_record(&mut self.record).map(|n| match n {
-            0 => None,
-            _ => Some(self.record.clone()),
-        })
-    }
 }
 
 impl<'r, 'h, R> Iterator for Query<'r, 'h, R>
@@ -53,23 +46,16 @@ where
     type Item = io::Result<Record>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        loop {
-            match self.next_record() {
-                Ok(Some(record)) => {
-                    match intersects(
-                        self.header,
-                        &record,
-                        &self.reference_sequence_name,
-                        self.interval,
-                    ) {
-                        Ok(true) => return Some(Ok(record)),
-                        Ok(false) => {}
-                        Err(e) => return Some(Err(e)),
-                    }
-                }
-                Ok(None) => return None,
-                Err(e) => return Some(Err(e)),
-            }
+        match next_record(
+            &mut self.reader,
+            &mut self.record,
+            self.header,
+            &self.reference_sequence_name,
+            self.interval,
+        ) {
+            Ok(0) => None,
+            Ok(_) => Some(Ok(self.record.clone())),
+            Err(e) => Some(Err(e)),
         }
     }
 }
@@ -90,4 +76,26 @@ pub(crate) fn intersects(
     let record_interval = Interval::from(start..=end);
 
     Ok(name.as_bytes() == reference_sequence_name && record_interval.intersects(region_interval))
+}
+
+fn next_record<R>(
+    reader: &mut Reader<csi::io::Query<'_, R>>,
+    record: &mut Record,
+    header: &Header,
+    reference_sequence_name: &[u8],
+    interval: Interval,
+) -> io::Result<usize>
+where
+    R: bgzf::io::BufRead + bgzf::io::Seek,
+{
+    loop {
+        match reader.read_record(record)? {
+            0 => return Ok(0),
+            n => {
+                if intersects(header, record, reference_sequence_name, interval)? {
+                    return Ok(n);
+                }
+            }
+        }
+    }
 }
