@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * fasta/fai/writer: Add common methods to access the underlying writer
+    (`Writer::get_mut` and `Writer::into_inner`) ([#269]).
+
+[#269]: https://github.com/zaeleus/noodles/issues/269
+
 ## 0.39.0 - 2024-05-31
 
 ### Changed
