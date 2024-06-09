@@ -4,8 +4,7 @@
 
 ### Added
 
-  * fasta/fai/writer: Add common methods to access the underlying writer
-    (`Writer::get_mut` and `Writer::into_inner`) ([#269]).
+  * fasta/fai: Add common methods to access the underlying I/O ([#269]).
 
 [#269]: https://github.com/zaeleus/noodles/issues/269
 
