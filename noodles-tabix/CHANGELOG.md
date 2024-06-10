@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * tabix/reader: Add common methods to access the underlying reader.
+
 ## 0.41.0 - 2024-05-16
 
 ### Changed

@@ -38,6 +38,48 @@ where
         }
     }
 
+    /// Returns a reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_tabix as tabix;
+    /// use tokio::io;
+    /// let reader = tabix::r#async::Reader::new(io::empty());
+    /// let _inner = reader.get_ref();
+    /// ```
+    pub fn get_ref(&self) -> &bgzf::AsyncReader<R> {
+        &self.inner
+    }
+
+    /// Returns a mutable reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_tabix as tabix;
+    /// use tokio::io;
+    /// let mut reader = tabix::r#async::Reader::new(io::empty());
+    /// let _inner = reader.get_mut();
+    /// ```
+    pub fn get_mut(&mut self) -> &mut bgzf::AsyncReader<R> {
+        &mut self.inner
+    }
+
+    /// Returns the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_tabix as tabix;
+    /// use tokio::io;
+    /// let reader = tabix::r#async::Reader::new(io::empty());
+    /// let _inner = reader.into_inner();
+    /// ```
+    pub fn into_inner(self) -> bgzf::AsyncReader<R> {
+        self.inner
+    }
+
     /// Reads the tabix index.
     ///
     /// The position of the stream is expected to be at the beginning.
