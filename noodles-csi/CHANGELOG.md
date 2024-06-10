@@ -4,7 +4,14 @@
 
 ### Added
 
-  * csi/reader: Add common methods to access the underlying reader.
+  * csi: Add common methods to access the underlying I/O.
+
+### Changed
+
+  * csi/async/writer: `Writer::into_inner` now returns the inner BGZF writer
+    instead of `R`.
+
+    Use `writer.into_inner().into_inner()` to unwrap into `R`.
 
 ## 0.35.0 - 2024-05-16
 
