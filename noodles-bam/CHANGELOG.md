@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bam/bai/reader: Add common methods to access the underlying reader.
+
 ## 0.63.0 - 2024-05-16
 
 ### Changed

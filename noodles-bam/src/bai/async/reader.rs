@@ -9,11 +9,52 @@ use tokio::io::{self, AsyncRead, AsyncReadExt};
 use crate::bai::{Index, MAGIC_NUMBER};
 
 /// An async BAM index (BAI) reader.
-pub struct Reader<R>
-where
-    R: AsyncRead,
-{
+pub struct Reader<R> {
     inner: R,
+}
+
+impl<R> Reader<R> {
+    /// Returns a reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::bai;
+    /// use tokio::io;
+    /// let reader = bai::r#async::Reader::new(io::empty());
+    /// let _inner = reader.get_ref();
+    /// ```
+    pub fn get_ref(&self) -> &R {
+        &self.inner
+    }
+
+    /// Returns a mutable reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::bai;
+    /// use tokio::io;
+    /// let mut reader = bai::r#async::Reader::new(io::empty());
+    /// let _inner = reader.get_mut();
+    /// ```
+    pub fn get_mut(&mut self) -> &mut R {
+        &mut self.inner
+    }
+
+    /// Returns the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::bai;
+    /// use tokio::io;
+    /// let reader = bai::r#async::Reader::new(io::empty());
+    /// let _inner = reader.into_inner();
+    /// ```
+    pub fn into_inner(self) -> R {
+        self.inner
+    }
 }
 
 impl<R> Reader<R>
