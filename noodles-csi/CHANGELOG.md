@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * csi/reader: Add common methods to access the underlying reader.
+
 ## 0.35.0 - 2024-05-16
 
 ### Changed
