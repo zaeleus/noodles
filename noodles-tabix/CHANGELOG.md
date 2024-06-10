@@ -4,7 +4,19 @@
 
 ### Added
 
-  * tabix/reader: Add common methods to access the underlying reader.
+  * tabix: Add common methods to access the underlying I/O.
+
+### Changed
+
+  * tabix/async/writer: `Writer::into_inner` now returns the inner BGZF
+    writer instead of `R`.
+
+    Use `writer.into_inner().into_inner()` to unwrap into `R`.
+
+  * tabix/writer: `Writer::get_ref` now returns the inner BGZF writer
+    instead of `R`.
+
+    Use `writer.get_ref().get_ref()` to get `&R`.
 
 ## 0.41.0 - 2024-05-16
 

@@ -47,12 +47,41 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_tabix as tabix;
-    /// let writer = tabix::Writer::new(Vec::new());
-    /// assert!(writer.get_ref().is_empty());
+    /// let writer = tabix::Writer::new(io::sink());
+    /// let _inner = writer.get_ref();
     /// ```
-    pub fn get_ref(&self) -> &W {
-        self.inner.get_ref()
+    pub fn get_ref(&self) -> &bgzf::Writer<W> {
+        &self.inner
+    }
+
+    /// Returns a mutable reference to the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_tabix as tabix;
+    /// let mut writer = tabix::Writer::new(io::sink());
+    /// let _inner = writer.get_mut();
+    /// ```
+    pub fn get_mut(&mut self) -> &mut bgzf::Writer<W> {
+        &mut self.inner
+    }
+
+    /// Returns the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_tabix as tabix;
+    /// let writer = tabix::Writer::new(io::sink());
+    /// let _inner = writer.into_inner();
+    /// ```
+    pub fn into_inner(self) -> bgzf::Writer<W> {
+        self.inner
     }
 
     /// Attempts to finish the output stream.

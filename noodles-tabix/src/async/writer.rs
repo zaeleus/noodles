@@ -22,6 +22,50 @@ pub struct Writer<W> {
     inner: bgzf::AsyncWriter<W>,
 }
 
+impl<W> Writer<W> {
+    /// Returns a reference to the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_tabix as tabix;
+    /// use tokio::io;
+    /// let writer = tabix::r#async::Writer::new(io::sink());
+    /// let _inner = writer.get_ref();
+    /// ```
+    pub fn get_ref(&self) -> &bgzf::AsyncWriter<W> {
+        &self.inner
+    }
+
+    /// Returns a mutable reference to the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_tabix as tabix;
+    /// use tokio::io;
+    /// let mut writer = tabix::r#async::Writer::new(io::sink());
+    /// let _inner = writer.get_mut();
+    /// ```
+    pub fn get_mut(&mut self) -> &mut bgzf::AsyncWriter<W> {
+        &mut self.inner
+    }
+
+    /// Returns the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_tabix as tabix;
+    /// use tokio::io;
+    /// let writer = tabix::r#async::Writer::new(io::sink());
+    /// let _inner = writer.into_inner();
+    /// ```
+    pub fn into_inner(self) -> bgzf::AsyncWriter<W> {
+        self.inner
+    }
+}
+
 impl<W> Writer<W>
 where
     W: AsyncWrite + Unpin,
@@ -38,19 +82,6 @@ where
         Self {
             inner: bgzf::AsyncWriter::new(inner),
         }
-    }
-
-    /// Returns the underlying writer.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_tabix as tabix;
-    /// let writer = tabix::AsyncWriter::new(Vec::new());
-    /// assert!(writer.into_inner().is_empty());
-    /// ```
-    pub fn into_inner(self) -> W {
-        self.inner.into_inner()
     }
 
     /// Shuts down the output stream.
