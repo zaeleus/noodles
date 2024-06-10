@@ -4,7 +4,7 @@
 
 ### Added
 
-  * bam/bai/reader: Add common methods to access the underlying reader.
+  * bam/bai: Add common methods to access the underlying I/O.
 
 ## 0.63.0 - 2024-05-16
 
