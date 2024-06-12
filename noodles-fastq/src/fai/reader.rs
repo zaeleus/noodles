@@ -1,8 +1,5 @@
 use std::io::{self, BufRead};
 
-const LINE_FEED: char = '\n';
-const CARRIAGE_RETURN: char = '\r';
-
 /// A FASTQ index reader.
 #[derive(Debug)]
 pub struct Reader<R> {
@@ -61,6 +58,9 @@ fn read_line<R>(reader: &mut R, buf: &mut String) -> io::Result<usize>
 where
     R: BufRead,
 {
+    const LINE_FEED: char = '\n';
+    const CARRIAGE_RETURN: char = '\r';
+
     match reader.read_line(buf) {
         Ok(0) => Ok(0),
         Ok(n) => {
