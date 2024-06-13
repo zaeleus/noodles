@@ -13,9 +13,10 @@ impl<W> Writer<W> {
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_fasta::fai;
-    /// let mut writer = fai::Writer::new(Vec::new());
-    /// assert!(writer.get_ref().is_empty());
+    /// let writer = fai::Writer::new(io::sink());
+    /// let _inner = writer.get_ref();
     /// ```
     pub fn get_ref(&self) -> &W {
         &self.inner
@@ -26,9 +27,10 @@ impl<W> Writer<W> {
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_fasta::fai;
-    /// let mut writer = fai::Writer::new(Vec::new());
-    /// assert!(writer.get_mut().is_empty());
+    /// let mut writer = fai::Writer::new(io::sink());
+    /// let _inner = writer.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut W {
         &mut self.inner
@@ -39,9 +41,10 @@ impl<W> Writer<W> {
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_fasta::fai;
-    /// let mut writer = fai::Writer::new(Vec::new());
-    /// assert!(writer.into_inner().is_empty());
+    /// let writer = fai::Writer::new(io::sink());
+    /// let _inner = writer.into_inner();
     /// ```
     pub fn into_inner(self) -> W {
         self.inner
