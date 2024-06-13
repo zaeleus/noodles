@@ -4,7 +4,7 @@
 
 ### Added
 
-  * fastq/fai/reader: Add common methods to access the underlying reader.
+  * fastq/fai: Add common methods to access the underlying I/O.
 
 ## 0.11.0 - 2024-05-31
 

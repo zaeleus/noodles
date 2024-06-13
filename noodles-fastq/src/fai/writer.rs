@@ -7,6 +7,50 @@ pub struct Writer<W> {
     inner: W,
 }
 
+impl<W> Writer<W> {
+    /// Returns a reference to the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_fastq::fai;
+    /// let writer = fai::Writer::new(io::sink());
+    /// let _inner = writer.get_ref();
+    /// ```
+    pub fn get_ref(&self) -> &W {
+        &self.inner
+    }
+
+    /// Returns a mutable reference to the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_fastq::fai;
+    /// let mut writer = fai::Writer::new(io::sink());
+    /// let _inner = writer.get_mut();
+    /// ```
+    pub fn get_mut(&mut self) -> &mut W {
+        &mut self.inner
+    }
+
+    /// Returns the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_fastq::fai;
+    /// let writer = fai::Writer::new(io::sink());
+    /// let _inner = writer.into_inner();
+    /// ```
+    pub fn into_inner(self) -> W {
+        self.inner
+    }
+}
+
 impl<W> Writer<W>
 where
     W: Write,
@@ -21,19 +65,6 @@ where
     /// ```
     pub fn new(inner: W) -> Self {
         Self { inner }
-    }
-
-    /// Returns a reference to the underlying writer.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_fastq::fai;
-    /// let mut writer = fai::Writer::new(Vec::new());
-    /// assert!(writer.get_ref().is_empty());
-    /// ```
-    pub fn get_ref(&self) -> &W {
-        &self.inner
     }
 
     /// Writes a FASTQ index record.
