@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * fastq/fai/reader: Add common methods to access the underlying reader.
+
 ## 0.11.0 - 2024-05-31
 
 ### Added
