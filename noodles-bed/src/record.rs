@@ -973,7 +973,7 @@ where
 {
     fields
         .next()
-        .ok_or(ParseError::MissingName)
+        .ok_or(ParseError::MissingScore)
         .and_then(|s| match s {
             MISSING_NUMBER => Ok(None),
             _ => s.parse().map(Some).map_err(ParseError::InvalidScore),
