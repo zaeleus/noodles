@@ -2,10 +2,10 @@ use std::{
     future::Future,
     io,
     pin::Pin,
-    task::{Context, Poll},
+    task::{ready, Context, Poll},
 };
 
-use futures::{ready, Sink};
+use futures::Sink;
 use pin_project_lite::pin_project;
 use tokio::io::AsyncWrite;
 use tokio_util::codec::FramedWrite;

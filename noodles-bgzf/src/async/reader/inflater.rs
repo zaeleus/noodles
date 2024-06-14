@@ -1,10 +1,10 @@
 use std::{
     io,
     pin::Pin,
-    task::{Context, Poll},
+    task::{ready, Context, Poll},
 };
 
-use futures::{ready, Stream};
+use futures::Stream;
 use pin_project_lite::pin_project;
 use tokio::io::{AsyncRead, AsyncSeek, AsyncSeekExt, SeekFrom};
 use tokio_util::codec::FramedRead;

@@ -8,10 +8,10 @@ use std::{
     cmp, io,
     num::NonZeroUsize,
     pin::Pin,
-    task::{Context, Poll},
+    task::{ready, Context, Poll},
 };
 
-use futures::{ready, stream::TryBuffered, Stream, TryStreamExt};
+use futures::{stream::TryBuffered, Stream, TryStreamExt};
 use pin_project_lite::pin_project;
 use tokio::io::{AsyncBufRead, AsyncRead, AsyncSeek, ReadBuf};
 
