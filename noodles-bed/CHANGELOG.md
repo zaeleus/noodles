@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * bed/record: Fix parse error kind returned from an invalid score ([#270]).
+
+[#270]: https://github.com/zaeleus/noodles/pull/270
+
 ## 0.14.0 - 2024-06-06
 
 ### Changed
