@@ -1,10 +1,9 @@
 use std::{
     pin::Pin,
-    task::{Context, Poll},
+    task::{ready, Context, Poll},
 };
 
 use flate2::Crc;
-use futures::ready;
 use pin_project_lite::pin_project;
 use tokio::io::{self, AsyncRead, ReadBuf};
 
