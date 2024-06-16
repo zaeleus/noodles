@@ -215,7 +215,7 @@ where
     /// use noodles_bed::{self as bed, record::Name};
     /// use noodles_core::Position;
     ///
-    /// let name: Name = "ndls1".parse()?;
+    /// let name = Name::from("ndls1");
     ///
     /// let record = bed::Record::<4>::builder()
     ///     .set_reference_sequence_name("sq0")

@@ -278,7 +278,7 @@ where
     /// use noodles_bed::{self as bed, record::Name};
     /// use noodles_core::Position;
     ///
-    /// let name: Name = "ndls1".parse()?;
+    /// let name = Name::from("ndls1");
     ///
     /// let record = bed::Record::<4>::builder()
     ///     .set_reference_sequence_name("sq0")
@@ -548,12 +548,26 @@ fn format_bed_4_fields<const N: u8>(f: &mut fmt::Formatter<'_>, record: &Record<
 where
     Record<N>: BedN<3> + BedN<4>,
 {
+    fn is_valid_name(s: &str) -> bool {
+        const MAX_LENGTH: usize = 255;
+
+        fn is_valid_name_char(c: char) -> bool {
+            matches!(c, ' '..='~')
+        }
+
+        s.len() <= MAX_LENGTH && s.chars().all(is_valid_name_char)
+    }
+
     format_bed_3_fields(f, record)?;
 
     f.write_char(DELIMITER)?;
 
     if let Some(name) = record.name() {
-        write!(f, "{name}")
+        if is_valid_name(name) {
+            write!(f, "{name}")
+        } else {
+            Err(fmt::Error)
+        }
     } else {
         f.write_str(MISSING_STRING)
     }
@@ -679,8 +693,6 @@ pub enum ParseError {
     InvalidEndPosition(num::ParseIntError),
     /// The name is missing.
     MissingName,
-    /// The name is invalid.
-    InvalidName(name::ParseError),
     /// The score is missing.
     MissingScore,
     /// The score is invalid.
@@ -721,7 +733,6 @@ impl error::Error for ParseError {
             Self::InvalidEndPosition(e) | Self::InvalidThickEnd(e) | Self::InvalidBlockStart(e) => {
                 Some(e)
             }
-            Self::InvalidName(e) => Some(e),
             Self::InvalidScore(e) => Some(e),
             Self::InvalidStrand(e) => Some(e),
             Self::InvalidColor(e) => Some(e),
@@ -740,7 +751,6 @@ impl fmt::Display for ParseError {
             Self::MissingEndPosition => f.write_str("missing end position"),
             Self::InvalidEndPosition(_) => f.write_str("invalid end position"),
             Self::MissingName => f.write_str("missing name"),
-            Self::InvalidName(_) => f.write_str("invalid name"),
             Self::MissingScore => f.write_str("missing score"),
             Self::InvalidScore(_) => f.write_str("invalid score"),
             Self::MissingStrand => f.write_str("missing strand"),
@@ -960,11 +970,11 @@ where
 {
     fields
         .next()
-        .ok_or(ParseError::MissingName)
-        .and_then(|s| match s {
-            MISSING_STRING => Ok(None),
-            _ => s.parse().map(Some).map_err(ParseError::InvalidName),
+        .map(|s| match s {
+            MISSING_STRING => None,
+            _ => Some(Name::from(s)),
         })
+        .ok_or(ParseError::MissingName)
 }
 
 fn parse_score<'a, I>(fields: &mut I) -> Result<Option<Score>, ParseError>
@@ -1113,7 +1123,7 @@ mod tests {
         assert_eq!(record.to_string(), "sq0\t7\t13\t.");
 
         let mut standard_fields = StandardFields::new("sq0", start, end);
-        standard_fields.name = "ndls1".parse().map(Some)?;
+        standard_fields.name = Some(Name::from("ndls1"));
         let record: Record<4> = Record::new(standard_fields, OptionalFields::default());
         assert_eq!(record.to_string(), "sq0\t7\t13\tndls1");
 
@@ -1302,7 +1312,7 @@ mod tests {
         let start = Position::try_from(8)?;
         let end = Position::try_from(13)?;
         let mut standard_fields = StandardFields::new("sq0", start, end);
-        standard_fields.name = "ndls1".parse().map(Some)?;
+        standard_fields.name = Some(Name::from("ndls1"));
 
         let expected = Ok(Record::new(standard_fields, OptionalFields::default()));
 

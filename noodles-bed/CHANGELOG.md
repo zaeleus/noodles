@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Changed
+
+  * bed/record/name: Remove validation on parse ([#271]).
+
+    This allows for more relaxed input in memory and is checked on
+    serialization instead.
+
+[#271]: https://github.com/zaeleus/noodles/issues/271
+
 ### Fixed
 
   * bed/record: Fix parse error kind returned from an invalid score ([#270]).
