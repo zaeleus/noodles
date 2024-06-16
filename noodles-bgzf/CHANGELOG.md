@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bgzf/gzi/reader: Add common methods to access the underlying reader.
+
 ## 0.30.0 - 2024-05-16
 
 ### Added

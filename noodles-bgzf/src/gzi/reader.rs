@@ -9,6 +9,50 @@ pub struct Reader<R> {
     inner: R,
 }
 
+impl<R> Reader<R> {
+    /// Returns a reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bgzf::gzi;
+    /// let reader = gzi::Reader::new(io::empty());
+    /// let _inner = reader.get_ref();
+    /// ```
+    pub fn get_ref(&self) -> &R {
+        &self.inner
+    }
+
+    /// Returns a mutable reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bgzf::gzi;
+    /// let mut reader = gzi::Reader::new(io::empty());
+    /// let _inner = reader.get_mut();
+    /// ```
+    pub fn get_mut(&mut self) -> &mut R {
+        &mut self.inner
+    }
+
+    /// Returns the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bgzf::gzi;
+    /// let reader = gzi::Reader::new(io::empty());
+    /// let _inner = reader.into_inner();
+    /// ```
+    pub fn into_inner(self) -> R {
+        self.inner
+    }
+}
+
 impl<R> Reader<R>
 where
     R: Read,
