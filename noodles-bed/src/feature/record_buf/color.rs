@@ -38,7 +38,7 @@ impl Color {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bed::record::Color;
+    /// use noodles_bed::feature::record_buf::Color;
     /// let color = Color::new(250, 128, 114);
     /// ```
     pub const fn new(r: u8, g: u8, b: u8) -> Self {
@@ -50,7 +50,7 @@ impl Color {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bed::record::Color;
+    /// use noodles_bed::feature::record_buf::Color;
     /// let color = Color::new(250, 128, 114);
     /// assert_eq!(color.red(), 250);
     /// ```
@@ -63,7 +63,7 @@ impl Color {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bed::record::Color;
+    /// use noodles_bed::feature::record_buf::Color;
     /// let color = Color::new(250, 128, 114);
     /// assert_eq!(color.green(), 128);
     /// ```
@@ -76,7 +76,7 @@ impl Color {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bed::record::Color;
+    /// use noodles_bed::feature::record_buf::Color;
     /// let color = Color::new(250, 128, 114);
     /// assert_eq!(color.blue(), 114);
     /// ```

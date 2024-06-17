@@ -4,7 +4,7 @@ use std::{error, fmt};
 
 use noodles_core::Position;
 
-use super::{BedN, Block, Color, Name, OptionalFields, Record, Score, StandardFields, Strand};
+use super::{BedN, Block, Color, Name, OptionalFields, RecordBuf, Score, StandardFields, Strand};
 
 /// A BED record builder.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -78,7 +78,7 @@ where
     /// use noodles_bed as bed;
     /// use noodles_core::Position;
     ///
-    /// let record = bed::Record::<3>::builder()
+    /// let record = bed::feature::RecordBuf::<3>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(Position::try_from(13)?)
@@ -105,7 +105,7 @@ where
     ///
     /// let start_position = Position::try_from(8)?;
     ///
-    /// let record = bed::Record::<3>::builder()
+    /// let record = bed::feature::RecordBuf::<3>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(start_position)
     ///     .set_end_position(Position::try_from(13)?)
@@ -129,7 +129,7 @@ where
     ///
     /// let end_position = Position::try_from(13)?;
     ///
-    /// let record = bed::Record::<3>::builder()
+    /// let record = bed::feature::RecordBuf::<3>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(end_position)
@@ -148,12 +148,12 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_bed::{self as bed, record::OptionalFields};
+    /// use noodles_bed::{self as bed, feature::record_buf::OptionalFields};
     /// use noodles_core::Position;
     ///
     /// let optional_fields = OptionalFields::from(vec![String::from("n")]);
     ///
-    /// let record = bed::Record::<3>::builder()
+    /// let record = bed::feature::RecordBuf::<3>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(Position::try_from(13)?)
@@ -178,14 +178,14 @@ impl Builder<3> {
     /// use noodles_bed as bed;
     /// use noodles_core::Position;
     ///
-    /// let record = bed::Record::<3>::builder()
+    /// let record = bed::feature::RecordBuf::<3>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(Position::try_from(13)?)
     ///     .build()?;
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn build(self) -> Result<Record<3>, BuildError> {
+    pub fn build(self) -> Result<RecordBuf<3>, BuildError> {
         let reference_sequence_name = self
             .reference_sequence_name
             .ok_or(BuildError::MissingReferenceSequenceName)?;
@@ -199,7 +199,7 @@ impl Builder<3> {
         let standard_fields =
             StandardFields::new(reference_sequence_name, start_position, end_position);
 
-        Ok(Record::new(standard_fields, self.optional_fields))
+        Ok(RecordBuf::new(standard_fields, self.optional_fields))
     }
 }
 
@@ -212,12 +212,12 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_bed::{self as bed, record::Name};
+    /// use noodles_bed::{self as bed, feature::record_buf::Name};
     /// use noodles_core::Position;
     ///
     /// let name = Name::from("ndls1");
     ///
-    /// let record = bed::Record::<4>::builder()
+    /// let record = bed::feature::RecordBuf::<4>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(Position::try_from(13)?)
@@ -242,14 +242,14 @@ impl Builder<4> {
     /// use noodles_bed as bed;
     /// use noodles_core::Position;
     ///
-    /// let record = bed::Record::<4>::builder()
+    /// let record = bed::feature::RecordBuf::<4>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(Position::try_from(13)?)
     ///     .build()?;
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn build(self) -> Result<Record<4>, BuildError> {
+    pub fn build(self) -> Result<RecordBuf<4>, BuildError> {
         let reference_sequence_name = self
             .reference_sequence_name
             .ok_or(BuildError::MissingReferenceSequenceName)?;
@@ -264,7 +264,7 @@ impl Builder<4> {
             StandardFields::new(reference_sequence_name, start_position, end_position);
         standard_fields.name = self.name;
 
-        Ok(Record::new(standard_fields, self.optional_fields))
+        Ok(RecordBuf::new(standard_fields, self.optional_fields))
     }
 }
 
@@ -277,10 +277,10 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_bed::{self as bed, record::Score};
+    /// use noodles_bed::{self as bed, feature::record_buf::Score};
     /// use noodles_core::Position;
     ///
-    /// let record = bed::Record::<5>::builder()
+    /// let record = bed::feature::RecordBuf::<5>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(Position::try_from(13)?)
@@ -305,14 +305,14 @@ impl Builder<5> {
     /// use noodles_bed as bed;
     /// use noodles_core::Position;
     ///
-    /// let record = bed::Record::<5>::builder()
+    /// let record = bed::feature::RecordBuf::<5>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(Position::try_from(13)?)
     ///     .build()?;
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn build(self) -> Result<Record<5>, BuildError> {
+    pub fn build(self) -> Result<RecordBuf<5>, BuildError> {
         let reference_sequence_name = self
             .reference_sequence_name
             .ok_or(BuildError::MissingReferenceSequenceName)?;
@@ -328,7 +328,7 @@ impl Builder<5> {
         standard_fields.name = self.name;
         standard_fields.score = self.score;
 
-        Ok(Record::new(standard_fields, self.optional_fields))
+        Ok(RecordBuf::new(standard_fields, self.optional_fields))
     }
 }
 
@@ -341,10 +341,10 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_bed::{self as bed, record::Strand};
+    /// use noodles_bed::{self as bed, feature::record_buf::Strand};
     /// use noodles_core::Position;
     ///
-    /// let record = bed::Record::<6>::builder()
+    /// let record = bed::feature::RecordBuf::<6>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(Position::try_from(13)?)
@@ -369,14 +369,14 @@ impl Builder<6> {
     /// use noodles_bed as bed;
     /// use noodles_core::Position;
     ///
-    /// let record = bed::Record::<6>::builder()
+    /// let record = bed::feature::RecordBuf::<6>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(Position::try_from(13)?)
     ///     .build()?;
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn build(self) -> Result<Record<6>, BuildError> {
+    pub fn build(self) -> Result<RecordBuf<6>, BuildError> {
         let reference_sequence_name = self
             .reference_sequence_name
             .ok_or(BuildError::MissingReferenceSequenceName)?;
@@ -393,7 +393,7 @@ impl Builder<6> {
         standard_fields.score = self.score;
         standard_fields.strand = self.strand;
 
-        Ok(Record::new(standard_fields, self.optional_fields))
+        Ok(RecordBuf::new(standard_fields, self.optional_fields))
     }
 }
 
@@ -411,7 +411,7 @@ where
     ///
     /// let thick_start = Position::try_from(8)?;
     ///
-    /// let record = bed::Record::<7>::builder()
+    /// let record = bed::feature::RecordBuf::<7>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(Position::try_from(13)?)
@@ -436,14 +436,14 @@ impl Builder<7> {
     /// use noodles_bed as bed;
     /// use noodles_core::Position;
     ///
-    /// let record = bed::Record::<7>::builder()
+    /// let record = bed::feature::RecordBuf::<7>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(Position::try_from(13)?)
     ///     .build()?;
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn build(self) -> Result<Record<7>, BuildError> {
+    pub fn build(self) -> Result<RecordBuf<7>, BuildError> {
         let reference_sequence_name = self
             .reference_sequence_name
             .ok_or(BuildError::MissingReferenceSequenceName)?;
@@ -461,7 +461,7 @@ impl Builder<7> {
         standard_fields.strand = self.strand;
         standard_fields.thick_start = self.thick_start.unwrap_or(start_position);
 
-        Ok(Record::new(standard_fields, self.optional_fields))
+        Ok(RecordBuf::new(standard_fields, self.optional_fields))
     }
 }
 
@@ -479,7 +479,7 @@ where
     ///
     /// let thick_end = Position::try_from(13)?;
     ///
-    /// let record = bed::Record::<8>::builder()
+    /// let record = bed::feature::RecordBuf::<8>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(Position::try_from(13)?)
@@ -504,14 +504,14 @@ impl Builder<8> {
     /// use noodles_bed as bed;
     /// use noodles_core::Position;
     ///
-    /// let record = bed::Record::<8>::builder()
+    /// let record = bed::feature::RecordBuf::<8>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(Position::try_from(13)?)
     ///     .build()?;
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn build(self) -> Result<Record<8>, BuildError> {
+    pub fn build(self) -> Result<RecordBuf<8>, BuildError> {
         let reference_sequence_name = self
             .reference_sequence_name
             .ok_or(BuildError::MissingReferenceSequenceName)?;
@@ -530,7 +530,7 @@ impl Builder<8> {
         standard_fields.thick_start = self.thick_start.unwrap_or(start_position);
         standard_fields.thick_end = self.thick_end.unwrap_or(end_position);
 
-        Ok(Record::new(standard_fields, self.optional_fields))
+        Ok(RecordBuf::new(standard_fields, self.optional_fields))
     }
 }
 
@@ -543,12 +543,12 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_bed::{self as bed, record::Color};
+    /// use noodles_bed::{self as bed, feature::record_buf::Color};
     /// use noodles_core::Position;
     ///
     /// let thick_end = Position::try_from(13)?;
     ///
-    /// let record = bed::Record::<9>::builder()
+    /// let record = bed::feature::RecordBuf::<9>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(Position::try_from(13)?)
@@ -573,14 +573,14 @@ impl Builder<9> {
     /// use noodles_bed as bed;
     /// use noodles_core::Position;
     ///
-    /// let record = bed::Record::<9>::builder()
+    /// let record = bed::feature::RecordBuf::<9>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(Position::try_from(13)?)
     ///     .build()?;
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn build(self) -> Result<Record<9>, BuildError> {
+    pub fn build(self) -> Result<RecordBuf<9>, BuildError> {
         let reference_sequence_name = self
             .reference_sequence_name
             .ok_or(BuildError::MissingReferenceSequenceName)?;
@@ -600,7 +600,7 @@ impl Builder<9> {
         standard_fields.thick_end = self.thick_end.unwrap_or(end_position);
         standard_fields.color = self.color;
 
-        Ok(Record::new(standard_fields, self.optional_fields))
+        Ok(RecordBuf::new(standard_fields, self.optional_fields))
     }
 }
 
@@ -618,7 +618,7 @@ where
     ///
     /// let blocks = vec![(0, 2)];
     ///
-    /// let record = bed::Record::<12>::builder()
+    /// let record = bed::feature::RecordBuf::<12>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(Position::try_from(13)?)
@@ -643,14 +643,14 @@ impl Builder<12> {
     /// use noodles_bed as bed;
     /// use noodles_core::Position;
     ///
-    /// let record = bed::Record::<12>::builder()
+    /// let record = bed::feature::RecordBuf::<12>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(Position::try_from(13)?)
     ///     .build()?;
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn build(self) -> Result<Record<12>, BuildError> {
+    pub fn build(self) -> Result<RecordBuf<12>, BuildError> {
         let reference_sequence_name = self
             .reference_sequence_name
             .ok_or(BuildError::MissingReferenceSequenceName)?;
@@ -671,7 +671,7 @@ impl Builder<12> {
         standard_fields.color = self.color;
         standard_fields.blocks = self.blocks;
 
-        Ok(Record::new(standard_fields, self.optional_fields))
+        Ok(RecordBuf::new(standard_fields, self.optional_fields))
     }
 }
 

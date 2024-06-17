@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bed: Move `Record` to `feature::RecordBuf`.
+
 ## 0.15.0 - 2024-06-17
 
 ### Changed

@@ -109,7 +109,7 @@ mod optional_fields_tests {
 
 /// A BED record.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Record<const N: u8> {
+pub struct RecordBuf<const N: u8> {
     standard_fields: StandardFields,
     optional_fields: OptionalFields,
 }
@@ -117,51 +117,51 @@ pub struct Record<const N: u8> {
 /// A trait describing the number of standard fields in a BED record.
 pub trait BedN<const N: u8> {}
 
-impl BedN<3> for Record<3> {}
-impl BedN<3> for Record<4> {}
-impl BedN<3> for Record<5> {}
-impl BedN<3> for Record<6> {}
-impl BedN<3> for Record<7> {}
-impl BedN<3> for Record<8> {}
-impl BedN<3> for Record<9> {}
-impl BedN<3> for Record<12> {}
+impl BedN<3> for RecordBuf<3> {}
+impl BedN<3> for RecordBuf<4> {}
+impl BedN<3> for RecordBuf<5> {}
+impl BedN<3> for RecordBuf<6> {}
+impl BedN<3> for RecordBuf<7> {}
+impl BedN<3> for RecordBuf<8> {}
+impl BedN<3> for RecordBuf<9> {}
+impl BedN<3> for RecordBuf<12> {}
 
-impl BedN<4> for Record<4> {}
-impl BedN<4> for Record<5> {}
-impl BedN<4> for Record<6> {}
-impl BedN<4> for Record<7> {}
-impl BedN<4> for Record<8> {}
-impl BedN<4> for Record<9> {}
-impl BedN<4> for Record<12> {}
+impl BedN<4> for RecordBuf<4> {}
+impl BedN<4> for RecordBuf<5> {}
+impl BedN<4> for RecordBuf<6> {}
+impl BedN<4> for RecordBuf<7> {}
+impl BedN<4> for RecordBuf<8> {}
+impl BedN<4> for RecordBuf<9> {}
+impl BedN<4> for RecordBuf<12> {}
 
-impl BedN<5> for Record<5> {}
-impl BedN<5> for Record<6> {}
-impl BedN<5> for Record<7> {}
-impl BedN<5> for Record<8> {}
-impl BedN<5> for Record<9> {}
-impl BedN<5> for Record<12> {}
+impl BedN<5> for RecordBuf<5> {}
+impl BedN<5> for RecordBuf<6> {}
+impl BedN<5> for RecordBuf<7> {}
+impl BedN<5> for RecordBuf<8> {}
+impl BedN<5> for RecordBuf<9> {}
+impl BedN<5> for RecordBuf<12> {}
 
-impl BedN<6> for Record<6> {}
-impl BedN<6> for Record<7> {}
-impl BedN<6> for Record<8> {}
-impl BedN<6> for Record<9> {}
-impl BedN<6> for Record<12> {}
+impl BedN<6> for RecordBuf<6> {}
+impl BedN<6> for RecordBuf<7> {}
+impl BedN<6> for RecordBuf<8> {}
+impl BedN<6> for RecordBuf<9> {}
+impl BedN<6> for RecordBuf<12> {}
 
-impl BedN<7> for Record<7> {}
-impl BedN<7> for Record<8> {}
-impl BedN<7> for Record<9> {}
-impl BedN<7> for Record<12> {}
+impl BedN<7> for RecordBuf<7> {}
+impl BedN<7> for RecordBuf<8> {}
+impl BedN<7> for RecordBuf<9> {}
+impl BedN<7> for RecordBuf<12> {}
 
-impl BedN<8> for Record<8> {}
-impl BedN<8> for Record<9> {}
-impl BedN<8> for Record<12> {}
+impl BedN<8> for RecordBuf<8> {}
+impl BedN<8> for RecordBuf<9> {}
+impl BedN<8> for RecordBuf<12> {}
 
-impl BedN<9> for Record<9> {}
-impl BedN<9> for Record<12> {}
+impl BedN<9> for RecordBuf<9> {}
+impl BedN<9> for RecordBuf<12> {}
 
-impl BedN<12> for Record<12> {}
+impl BedN<12> for RecordBuf<12> {}
 
-impl<const N: u8> Record<N>
+impl<const N: u8> RecordBuf<N>
 where
     Self: BedN<3>,
 {
@@ -185,7 +185,7 @@ where
     /// use noodles_bed as bed;
     /// use noodles_core::Position;
     ///
-    /// let record = bed::Record::<3>::builder()
+    /// let record = bed::feature::RecordBuf::<3>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(Position::try_from(13)?)
@@ -208,7 +208,7 @@ where
     ///
     /// let start_position = Position::try_from(8)?;
     ///
-    /// let record = bed::Record::<3>::builder()
+    /// let record = bed::feature::RecordBuf::<3>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(start_position)
     ///     .set_end_position(Position::try_from(13)?)
@@ -231,7 +231,7 @@ where
     ///
     /// let end_position = Position::try_from(13)?;
     ///
-    /// let record = bed::Record::<3>::builder()
+    /// let record = bed::feature::RecordBuf::<3>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(end_position)
@@ -252,7 +252,7 @@ where
     /// use noodles_bed as bed;
     /// use noodles_core::Position;
     ///
-    /// let record = bed::Record::<3>::builder()
+    /// let record = bed::feature::RecordBuf::<3>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(Position::try_from(13)?)
@@ -266,7 +266,7 @@ where
     }
 }
 
-impl<const N: u8> Record<N>
+impl<const N: u8> RecordBuf<N>
 where
     Self: BedN<4>,
 {
@@ -275,12 +275,12 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_bed::{self as bed, record::Name};
+    /// use noodles_bed::{self as bed, feature::record_buf::Name};
     /// use noodles_core::Position;
     ///
     /// let name = Name::from("ndls1");
     ///
-    /// let record = bed::Record::<4>::builder()
+    /// let record = bed::feature::RecordBuf::<4>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(Position::try_from(13)?)
@@ -295,7 +295,7 @@ where
     }
 }
 
-impl<const N: u8> Record<N>
+impl<const N: u8> RecordBuf<N>
 where
     Self: BedN<5>,
 {
@@ -304,10 +304,10 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_bed::{self as bed, record::Score};
+    /// use noodles_bed::{self as bed, feature::record_buf::Score};
     /// use noodles_core::Position;
     ///
-    /// let record = bed::Record::<5>::builder()
+    /// let record = bed::feature::RecordBuf::<5>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(Position::try_from(13)?)
@@ -322,7 +322,7 @@ where
     }
 }
 
-impl<const N: u8> Record<N>
+impl<const N: u8> RecordBuf<N>
 where
     Self: BedN<6>,
 {
@@ -331,10 +331,10 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_bed::{self as bed, record::Strand};
+    /// use noodles_bed::{self as bed, feature::record_buf::Strand};
     /// use noodles_core::Position;
     ///
-    /// let record = bed::Record::<6>::builder()
+    /// let record = bed::feature::RecordBuf::<6>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(Position::try_from(13)?)
@@ -349,7 +349,7 @@ where
     }
 }
 
-impl<const N: u8> Record<N>
+impl<const N: u8> RecordBuf<N>
 where
     Self: BedN<7>,
 {
@@ -363,7 +363,7 @@ where
     ///
     /// let thick_start = Position::try_from(8)?;
     ///
-    /// let record = bed::Record::<7>::builder()
+    /// let record = bed::feature::RecordBuf::<7>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(Position::try_from(13)?)
@@ -378,7 +378,7 @@ where
     }
 }
 
-impl<const N: u8> Record<N>
+impl<const N: u8> RecordBuf<N>
 where
     Self: BedN<8>,
 {
@@ -392,7 +392,7 @@ where
     ///
     /// let thick_end = Position::try_from(13)?;
     ///
-    /// let record = bed::Record::<8>::builder()
+    /// let record = bed::feature::RecordBuf::<8>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(Position::try_from(13)?)
@@ -407,7 +407,7 @@ where
     }
 }
 
-impl<const N: u8> Record<N>
+impl<const N: u8> RecordBuf<N>
 where
     Self: BedN<9>,
 {
@@ -416,12 +416,12 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_bed::{self as bed, record::Color};
+    /// use noodles_bed::{self as bed, feature::record_buf::Color};
     /// use noodles_core::Position;
     ///
     /// let thick_end = Position::try_from(13)?;
     ///
-    /// let record = bed::Record::<9>::builder()
+    /// let record = bed::feature::RecordBuf::<9>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(Position::try_from(13)?)
@@ -436,7 +436,7 @@ where
     }
 }
 
-impl<const N: u8> Record<N>
+impl<const N: u8> RecordBuf<N>
 where
     Self: BedN<12>,
 {
@@ -450,7 +450,7 @@ where
     ///
     /// let blocks = vec![(0, 2)];
     ///
-    /// let record = bed::Record::<12>::builder()
+    /// let record = bed::feature::RecordBuf::<12>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(Position::try_from(13)?)
@@ -465,7 +465,7 @@ where
     }
 }
 
-impl fmt::Display for Record<3> {
+impl fmt::Display for RecordBuf<3> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         format_bed_3_fields(f, self)?;
         format_optional_fields(f, self.optional_fields())?;
@@ -473,7 +473,7 @@ impl fmt::Display for Record<3> {
     }
 }
 
-impl fmt::Display for Record<4> {
+impl fmt::Display for RecordBuf<4> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         format_bed_4_fields(f, self)?;
         format_optional_fields(f, self.optional_fields())?;
@@ -481,7 +481,7 @@ impl fmt::Display for Record<4> {
     }
 }
 
-impl fmt::Display for Record<5> {
+impl fmt::Display for RecordBuf<5> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         format_bed_5_fields(f, self)?;
         format_optional_fields(f, self.optional_fields())?;
@@ -489,7 +489,7 @@ impl fmt::Display for Record<5> {
     }
 }
 
-impl fmt::Display for Record<6> {
+impl fmt::Display for RecordBuf<6> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         format_bed_6_fields(f, self)?;
         format_optional_fields(f, self.optional_fields())?;
@@ -497,7 +497,7 @@ impl fmt::Display for Record<6> {
     }
 }
 
-impl fmt::Display for Record<7> {
+impl fmt::Display for RecordBuf<7> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         format_bed_7_fields(f, self)?;
         format_optional_fields(f, self.optional_fields())?;
@@ -505,7 +505,7 @@ impl fmt::Display for Record<7> {
     }
 }
 
-impl fmt::Display for Record<8> {
+impl fmt::Display for RecordBuf<8> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         format_bed_8_fields(f, self)?;
         format_optional_fields(f, self.optional_fields())?;
@@ -513,7 +513,7 @@ impl fmt::Display for Record<8> {
     }
 }
 
-impl fmt::Display for Record<9> {
+impl fmt::Display for RecordBuf<9> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         format_bed_9_fields(f, self)?;
         format_optional_fields(f, self.optional_fields())?;
@@ -521,7 +521,7 @@ impl fmt::Display for Record<9> {
     }
 }
 
-impl fmt::Display for Record<12> {
+impl fmt::Display for RecordBuf<12> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         format_bed_12_fields(f, self)?;
         format_optional_fields(f, self.optional_fields())?;
@@ -529,9 +529,12 @@ impl fmt::Display for Record<12> {
     }
 }
 
-fn format_bed_3_fields<const N: u8>(f: &mut fmt::Formatter<'_>, record: &Record<N>) -> fmt::Result
+fn format_bed_3_fields<const N: u8>(
+    f: &mut fmt::Formatter<'_>,
+    record: &RecordBuf<N>,
+) -> fmt::Result
 where
-    Record<N>: BedN<3>,
+    RecordBuf<N>: BedN<3>,
 {
     write!(
         f,
@@ -544,9 +547,12 @@ where
     )
 }
 
-fn format_bed_4_fields<const N: u8>(f: &mut fmt::Formatter<'_>, record: &Record<N>) -> fmt::Result
+fn format_bed_4_fields<const N: u8>(
+    f: &mut fmt::Formatter<'_>,
+    record: &RecordBuf<N>,
+) -> fmt::Result
 where
-    Record<N>: BedN<3> + BedN<4>,
+    RecordBuf<N>: BedN<3> + BedN<4>,
 {
     fn is_valid_name(s: &str) -> bool {
         const MAX_LENGTH: usize = 255;
@@ -573,9 +579,12 @@ where
     }
 }
 
-fn format_bed_5_fields<const N: u8>(f: &mut fmt::Formatter<'_>, record: &Record<N>) -> fmt::Result
+fn format_bed_5_fields<const N: u8>(
+    f: &mut fmt::Formatter<'_>,
+    record: &RecordBuf<N>,
+) -> fmt::Result
 where
-    Record<N>: BedN<3> + BedN<4> + BedN<5>,
+    RecordBuf<N>: BedN<3> + BedN<4> + BedN<5>,
 {
     format_bed_4_fields(f, record)?;
 
@@ -588,9 +597,12 @@ where
     }
 }
 
-fn format_bed_6_fields<const N: u8>(f: &mut fmt::Formatter<'_>, record: &Record<N>) -> fmt::Result
+fn format_bed_6_fields<const N: u8>(
+    f: &mut fmt::Formatter<'_>,
+    record: &RecordBuf<N>,
+) -> fmt::Result
 where
-    Record<N>: BedN<3> + BedN<4> + BedN<5> + BedN<6>,
+    RecordBuf<N>: BedN<3> + BedN<4> + BedN<5> + BedN<6>,
 {
     format_bed_5_fields(f, record)?;
 
@@ -603,27 +615,36 @@ where
     }
 }
 
-fn format_bed_7_fields<const N: u8>(f: &mut fmt::Formatter<'_>, record: &Record<N>) -> fmt::Result
+fn format_bed_7_fields<const N: u8>(
+    f: &mut fmt::Formatter<'_>,
+    record: &RecordBuf<N>,
+) -> fmt::Result
 where
-    Record<N>: BedN<3> + BedN<4> + BedN<5> + BedN<6> + BedN<7>,
+    RecordBuf<N>: BedN<3> + BedN<4> + BedN<5> + BedN<6> + BedN<7>,
 {
     format_bed_6_fields(f, record)?;
     f.write_char(DELIMITER)?;
     write!(f, "{}", usize::from(record.thick_start()) - 1)
 }
 
-fn format_bed_8_fields<const N: u8>(f: &mut fmt::Formatter<'_>, record: &Record<N>) -> fmt::Result
+fn format_bed_8_fields<const N: u8>(
+    f: &mut fmt::Formatter<'_>,
+    record: &RecordBuf<N>,
+) -> fmt::Result
 where
-    Record<N>: BedN<3> + BedN<4> + BedN<5> + BedN<6> + BedN<7> + BedN<8>,
+    RecordBuf<N>: BedN<3> + BedN<4> + BedN<5> + BedN<6> + BedN<7> + BedN<8>,
 {
     format_bed_7_fields(f, record)?;
     f.write_char(DELIMITER)?;
     write!(f, "{}", record.thick_end())
 }
 
-fn format_bed_9_fields<const N: u8>(f: &mut fmt::Formatter<'_>, record: &Record<N>) -> fmt::Result
+fn format_bed_9_fields<const N: u8>(
+    f: &mut fmt::Formatter<'_>,
+    record: &RecordBuf<N>,
+) -> fmt::Result
 where
-    Record<N>: BedN<3> + BedN<4> + BedN<5> + BedN<6> + BedN<7> + BedN<8> + BedN<9>,
+    RecordBuf<N>: BedN<3> + BedN<4> + BedN<5> + BedN<6> + BedN<7> + BedN<8> + BedN<9>,
 {
     format_bed_8_fields(f, record)?;
 
@@ -636,7 +657,7 @@ where
     }
 }
 
-fn format_bed_12_fields(f: &mut fmt::Formatter<'_>, record: &Record<12>) -> fmt::Result {
+fn format_bed_12_fields(f: &mut fmt::Formatter<'_>, record: &RecordBuf<12>) -> fmt::Result {
     format_bed_9_fields(f, record)?;
 
     let blocks = record.blocks();
@@ -771,7 +792,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-impl FromStr for Record<3> {
+impl FromStr for RecordBuf<3> {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -782,7 +803,7 @@ impl FromStr for Record<3> {
     }
 }
 
-impl FromStr for Record<4> {
+impl FromStr for RecordBuf<4> {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -793,7 +814,7 @@ impl FromStr for Record<4> {
     }
 }
 
-impl FromStr for Record<5> {
+impl FromStr for RecordBuf<5> {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -804,7 +825,7 @@ impl FromStr for Record<5> {
     }
 }
 
-impl FromStr for Record<6> {
+impl FromStr for RecordBuf<6> {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -815,7 +836,7 @@ impl FromStr for Record<6> {
     }
 }
 
-impl FromStr for Record<7> {
+impl FromStr for RecordBuf<7> {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -826,7 +847,7 @@ impl FromStr for Record<7> {
     }
 }
 
-impl FromStr for Record<8> {
+impl FromStr for RecordBuf<8> {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -837,7 +858,7 @@ impl FromStr for Record<8> {
     }
 }
 
-impl FromStr for Record<9> {
+impl FromStr for RecordBuf<9> {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -848,7 +869,7 @@ impl FromStr for Record<9> {
     }
 }
 
-impl FromStr for Record<12> {
+impl FromStr for RecordBuf<12> {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -1100,11 +1121,11 @@ mod tests {
         let end = Position::try_from(13)?;
 
         let standard_fields = StandardFields::new("sq0", start, end);
-        let record: Record<3> = Record::new(standard_fields, OptionalFields::default());
+        let record: RecordBuf<3> = RecordBuf::new(standard_fields, OptionalFields::default());
         assert_eq!(record.to_string(), "sq0\t7\t13");
 
         let standard_fields = StandardFields::new("sq0", start, end);
-        let record: Record<3> = Record::new(
+        let record: RecordBuf<3> = RecordBuf::new(
             standard_fields,
             OptionalFields::from(vec![String::from("ndls")]),
         );
@@ -1119,16 +1140,16 @@ mod tests {
         let end = Position::try_from(13)?;
 
         let standard_fields = StandardFields::new("sq0", start, end);
-        let record: Record<4> = Record::new(standard_fields, OptionalFields::default());
+        let record: RecordBuf<4> = RecordBuf::new(standard_fields, OptionalFields::default());
         assert_eq!(record.to_string(), "sq0\t7\t13\t.");
 
         let mut standard_fields = StandardFields::new("sq0", start, end);
         standard_fields.name = Some(Name::from("ndls1"));
-        let record: Record<4> = Record::new(standard_fields, OptionalFields::default());
+        let record: RecordBuf<4> = RecordBuf::new(standard_fields, OptionalFields::default());
         assert_eq!(record.to_string(), "sq0\t7\t13\tndls1");
 
         let standard_fields = StandardFields::new("sq0", start, end);
-        let record: Record<4> = Record::new(
+        let record: RecordBuf<4> = RecordBuf::new(
             standard_fields,
             OptionalFields::from(vec![String::from("ndls")]),
         );
@@ -1143,16 +1164,16 @@ mod tests {
         let end = Position::try_from(13)?;
 
         let standard_fields = StandardFields::new("sq0", start, end);
-        let record: Record<5> = Record::new(standard_fields, OptionalFields::default());
+        let record: RecordBuf<5> = RecordBuf::new(standard_fields, OptionalFields::default());
         assert_eq!(record.to_string(), "sq0\t7\t13\t.\t0");
 
         let mut standard_fields = StandardFields::new("sq0", start, end);
         standard_fields.score = Score::try_from(21).map(Some)?;
-        let record: Record<5> = Record::new(standard_fields, OptionalFields::default());
+        let record: RecordBuf<5> = RecordBuf::new(standard_fields, OptionalFields::default());
         assert_eq!(record.to_string(), "sq0\t7\t13\t.\t21");
 
         let standard_fields = StandardFields::new("sq0", start, end);
-        let record: Record<5> = Record::new(
+        let record: RecordBuf<5> = RecordBuf::new(
             standard_fields,
             OptionalFields::from(vec![String::from("ndls")]),
         );
@@ -1167,16 +1188,16 @@ mod tests {
         let end = Position::try_from(13)?;
 
         let standard_fields = StandardFields::new("sq0", start, end);
-        let record: Record<6> = Record::new(standard_fields, OptionalFields::default());
+        let record: RecordBuf<6> = RecordBuf::new(standard_fields, OptionalFields::default());
         assert_eq!(record.to_string(), "sq0\t7\t13\t.\t0\t.");
 
         let mut standard_fields = StandardFields::new("sq0", start, end);
         standard_fields.strand = Some(Strand::Forward);
-        let record: Record<6> = Record::new(standard_fields, OptionalFields::default());
+        let record: RecordBuf<6> = RecordBuf::new(standard_fields, OptionalFields::default());
         assert_eq!(record.to_string(), "sq0\t7\t13\t.\t0\t+");
 
         let standard_fields = StandardFields::new("sq0", start, end);
-        let record: Record<6> = Record::new(
+        let record: RecordBuf<6> = RecordBuf::new(
             standard_fields,
             OptionalFields::from(vec![String::from("ndls")]),
         );
@@ -1192,12 +1213,12 @@ mod tests {
 
         let mut standard_fields = StandardFields::new("sq0", start, end);
         standard_fields.thick_start = start;
-        let record: Record<7> = Record::new(standard_fields, OptionalFields::default());
+        let record: RecordBuf<7> = RecordBuf::new(standard_fields, OptionalFields::default());
         assert_eq!(record.to_string(), "sq0\t7\t13\t.\t0\t.\t7");
 
         let mut standard_fields = StandardFields::new("sq0", start, end);
         standard_fields.thick_start = start;
-        let record: Record<7> = Record::new(
+        let record: RecordBuf<7> = RecordBuf::new(
             standard_fields,
             OptionalFields::from(vec![String::from("ndls")]),
         );
@@ -1214,13 +1235,13 @@ mod tests {
         let mut standard_fields = StandardFields::new("sq0", start, end);
         standard_fields.thick_start = start;
         standard_fields.thick_end = end;
-        let record: Record<8> = Record::new(standard_fields, OptionalFields::default());
+        let record: RecordBuf<8> = RecordBuf::new(standard_fields, OptionalFields::default());
         assert_eq!(record.to_string(), "sq0\t7\t13\t.\t0\t.\t7\t13");
 
         let mut standard_fields = StandardFields::new("sq0", start, end);
         standard_fields.thick_start = start;
         standard_fields.thick_end = end;
-        let record: Record<8> = Record::new(
+        let record: RecordBuf<8> = RecordBuf::new(
             standard_fields,
             OptionalFields::from(vec![String::from("ndls")]),
         );
@@ -1237,20 +1258,20 @@ mod tests {
         let mut standard_fields = StandardFields::new("sq0", start, end);
         standard_fields.thick_start = start;
         standard_fields.thick_end = end;
-        let record: Record<9> = Record::new(standard_fields, OptionalFields::default());
+        let record: RecordBuf<9> = RecordBuf::new(standard_fields, OptionalFields::default());
         assert_eq!(record.to_string(), "sq0\t7\t13\t.\t0\t.\t7\t13\t0");
 
         let mut standard_fields = StandardFields::new("sq0", start, end);
         standard_fields.thick_start = start;
         standard_fields.thick_end = end;
         standard_fields.color = Some(Color::RED);
-        let record: Record<9> = Record::new(standard_fields, OptionalFields::default());
+        let record: RecordBuf<9> = RecordBuf::new(standard_fields, OptionalFields::default());
         assert_eq!(record.to_string(), "sq0\t7\t13\t.\t0\t.\t7\t13\t255,0,0");
 
         let mut standard_fields = StandardFields::new("sq0", start, end);
         standard_fields.thick_start = start;
         standard_fields.thick_end = end;
-        let record: Record<9> = Record::new(
+        let record: RecordBuf<9> = RecordBuf::new(
             standard_fields,
             OptionalFields::from(vec![String::from("ndls")]),
         );
@@ -1266,12 +1287,12 @@ mod tests {
 
         let mut standard_fields = StandardFields::new("sq0", start, end);
         standard_fields.blocks = vec![(0, 2)];
-        let record: Record<12> = Record::new(standard_fields, OptionalFields::default());
+        let record: RecordBuf<12> = RecordBuf::new(standard_fields, OptionalFields::default());
         assert_eq!(record.to_string(), "sq0\t7\t13\t.\t0\t.\t7\t13\t0\t1\t2\t0");
 
         let mut standard_fields = StandardFields::new("sq0", start, end);
         standard_fields.blocks = vec![(0, 2), (3, 1)];
-        let record: Record<12> = Record::new(standard_fields, OptionalFields::default());
+        let record: RecordBuf<12> = RecordBuf::new(standard_fields, OptionalFields::default());
         assert_eq!(
             record.to_string(),
             "sq0\t7\t13\t.\t0\t.\t7\t13\t0\t2\t2,1\t0,3"
@@ -1279,7 +1300,7 @@ mod tests {
 
         let mut standard_fields = StandardFields::new("sq0", start, end);
         standard_fields.blocks = vec![(0, 2)];
-        let record: Record<12> = Record::new(
+        let record: RecordBuf<12> = RecordBuf::new(
             standard_fields,
             OptionalFields::from(vec![String::from("ndls")]),
         );
@@ -1293,12 +1314,12 @@ mod tests {
 
     #[test]
     fn test_from_str_for_record_3() -> Result<(), noodles_core::position::TryFromIntError> {
-        let actual = "sq0\t7\t13".parse::<Record<3>>();
+        let actual = "sq0\t7\t13".parse::<RecordBuf<3>>();
 
         let start = Position::try_from(8)?;
         let end = Position::try_from(13)?;
         let standard_fields = StandardFields::new("sq0", start, end);
-        let expected = Ok(Record::new(standard_fields, OptionalFields::default()));
+        let expected = Ok(RecordBuf::new(standard_fields, OptionalFields::default()));
 
         assert_eq!(actual, expected);
 
@@ -1307,14 +1328,14 @@ mod tests {
 
     #[test]
     fn test_from_str_for_record_4() -> Result<(), Box<dyn std::error::Error>> {
-        let actual = "sq0\t7\t13\tndls1".parse::<Record<4>>();
+        let actual = "sq0\t7\t13\tndls1".parse::<RecordBuf<4>>();
 
         let start = Position::try_from(8)?;
         let end = Position::try_from(13)?;
         let mut standard_fields = StandardFields::new("sq0", start, end);
         standard_fields.name = Some(Name::from("ndls1"));
 
-        let expected = Ok(Record::new(standard_fields, OptionalFields::default()));
+        let expected = Ok(RecordBuf::new(standard_fields, OptionalFields::default()));
 
         assert_eq!(actual, expected);
 
@@ -1323,14 +1344,14 @@ mod tests {
 
     #[test]
     fn test_from_str_for_record_5() -> Result<(), Box<dyn std::error::Error>> {
-        let actual = "sq0\t7\t13\t.\t21".parse::<Record<5>>();
+        let actual = "sq0\t7\t13\t.\t21".parse::<RecordBuf<5>>();
 
         let start = Position::try_from(8)?;
         let end = Position::try_from(13)?;
         let mut standard_fields = StandardFields::new("sq0", start, end);
         standard_fields.score = Score::try_from(21).map(Some)?;
 
-        let expected = Ok(Record::new(standard_fields, OptionalFields::default()));
+        let expected = Ok(RecordBuf::new(standard_fields, OptionalFields::default()));
 
         assert_eq!(actual, expected);
 
@@ -1339,14 +1360,14 @@ mod tests {
 
     #[test]
     fn test_from_str_for_record_6() -> Result<(), noodles_core::position::TryFromIntError> {
-        let actual = "sq0\t7\t13\t.\t0\t+".parse::<Record<6>>();
+        let actual = "sq0\t7\t13\t.\t0\t+".parse::<RecordBuf<6>>();
 
         let start = Position::try_from(8)?;
         let end = Position::try_from(13)?;
         let mut standard_fields = StandardFields::new("sq0", start, end);
         standard_fields.strand = Some(Strand::Forward);
 
-        let expected = Ok(Record::new(standard_fields, OptionalFields::default()));
+        let expected = Ok(RecordBuf::new(standard_fields, OptionalFields::default()));
 
         assert_eq!(actual, expected);
 
@@ -1355,14 +1376,14 @@ mod tests {
 
     #[test]
     fn test_from_str_for_record_7() -> Result<(), noodles_core::position::TryFromIntError> {
-        let actual = "sq0\t7\t13\t.\t0\t.\t7".parse::<Record<7>>();
+        let actual = "sq0\t7\t13\t.\t0\t.\t7".parse::<RecordBuf<7>>();
 
         let start = Position::try_from(8)?;
         let end = Position::try_from(13)?;
         let mut standard_fields = StandardFields::new("sq0", start, end);
         standard_fields.thick_start = start;
 
-        let expected = Ok(Record::new(standard_fields, OptionalFields::default()));
+        let expected = Ok(RecordBuf::new(standard_fields, OptionalFields::default()));
 
         assert_eq!(actual, expected);
 
@@ -1371,7 +1392,7 @@ mod tests {
 
     #[test]
     fn test_from_str_for_record_8() -> Result<(), noodles_core::position::TryFromIntError> {
-        let actual = "sq0\t7\t13\t.\t0\t.\t7\t13".parse::<Record<8>>();
+        let actual = "sq0\t7\t13\t.\t0\t.\t7\t13".parse::<RecordBuf<8>>();
 
         let start = Position::try_from(8)?;
         let end = Position::try_from(13)?;
@@ -1379,7 +1400,7 @@ mod tests {
         standard_fields.thick_start = start;
         standard_fields.thick_end = end;
 
-        let expected = Ok(Record::new(standard_fields, OptionalFields::default()));
+        let expected = Ok(RecordBuf::new(standard_fields, OptionalFields::default()));
 
         assert_eq!(actual, expected);
 
@@ -1388,7 +1409,7 @@ mod tests {
 
     #[test]
     fn test_from_str_for_record_9() -> Result<(), noodles_core::position::TryFromIntError> {
-        let actual = "sq0\t7\t13\t.\t0\t.\t7\t13\t255,0,0".parse::<Record<9>>();
+        let actual = "sq0\t7\t13\t.\t0\t.\t7\t13\t255,0,0".parse::<RecordBuf<9>>();
 
         let start = Position::try_from(8)?;
         let end = Position::try_from(13)?;
@@ -1397,7 +1418,7 @@ mod tests {
         standard_fields.thick_end = end;
         standard_fields.color = Some(Color::RED);
 
-        let expected = Ok(Record::new(standard_fields, OptionalFields::default()));
+        let expected = Ok(RecordBuf::new(standard_fields, OptionalFields::default()));
 
         assert_eq!(actual, expected);
 
@@ -1406,7 +1427,7 @@ mod tests {
 
     #[test]
     fn test_from_str_for_record_12() -> Result<(), noodles_core::position::TryFromIntError> {
-        let actual = "sq0\t7\t13\t.\t0\t.\t7\t13\t0\t1\t2\t0".parse::<Record<12>>();
+        let actual = "sq0\t7\t13\t.\t0\t.\t7\t13\t0\t1\t2\t0".parse::<RecordBuf<12>>();
 
         let start = Position::try_from(8)?;
         let end = Position::try_from(13)?;
@@ -1415,7 +1436,7 @@ mod tests {
         standard_fields.thick_end = end;
         standard_fields.blocks = vec![(0, 2)];
 
-        let expected = Ok(Record::new(standard_fields, OptionalFields::default()));
+        let expected = Ok(RecordBuf::new(standard_fields, OptionalFields::default()));
 
         assert_eq!(actual, expected);
 
