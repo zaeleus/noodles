@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.57.0 - 2024-06-17
+
+### Changed
+
+  * bcf: Sync dependencies.
+
 ## 0.56.0 - 2024-06-06
 
 ### Changed
