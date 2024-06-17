@@ -4,7 +4,7 @@ use std::{
     str::FromStr,
 };
 
-use crate::Record;
+use crate::feature::RecordBuf;
 
 /// A BED reader.
 pub struct Reader<R> {
@@ -112,9 +112,9 @@ where
     /// assert!(records.next().is_none());
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn records<const N: u8>(&mut self) -> impl Iterator<Item = io::Result<Record<N>>> + '_
+    pub fn records<const N: u8>(&mut self) -> impl Iterator<Item = io::Result<RecordBuf<N>>> + '_
     where
-        Record<N>: FromStr<Err = crate::record::ParseError>,
+        RecordBuf<N>: FromStr<Err = crate::feature::record_buf::ParseError>,
     {
         const COMMENT_PREFIX: char = '#';
 

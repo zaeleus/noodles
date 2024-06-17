@@ -3,7 +3,7 @@ use std::{
     io::{self, Write},
 };
 
-use crate::Record;
+use crate::feature::RecordBuf;
 
 /// A BED writer.
 pub struct Writer<W> {
@@ -75,7 +75,7 @@ where
     ///
     /// let mut writer = bed::io::Writer::new(Vec::new());
     ///
-    /// let record = bed::Record::<3>::builder()
+    /// let record = bed::feature::RecordBuf::<3>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(Position::try_from(8)?)
     ///     .set_end_position(Position::try_from(13)?)
@@ -86,18 +86,18 @@ where
     /// assert_eq!(writer.get_ref(), b"sq0\t7\t13\n");
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn write_record<const N: u8>(&mut self, record: &Record<N>) -> io::Result<()>
+    pub fn write_record<const N: u8>(&mut self, record: &RecordBuf<N>) -> io::Result<()>
     where
-        Record<N>: fmt::Display,
+        RecordBuf<N>: fmt::Display,
     {
         write_record(&mut self.inner, record)
     }
 }
 
-fn write_record<W, const N: u8>(writer: &mut W, record: &Record<N>) -> io::Result<()>
+fn write_record<W, const N: u8>(writer: &mut W, record: &RecordBuf<N>) -> io::Result<()>
 where
     W: Write,
-    Record<N>: fmt::Display,
+    RecordBuf<N>: fmt::Display,
 {
     writeln!(writer, "{record}")
 }
@@ -109,7 +109,7 @@ mod tests {
     #[test]
     fn test_write_record() -> Result<(), Box<dyn std::error::Error>> {
         let mut buf = Vec::new();
-        let record: Record<3> = "sq0\t8\t13".parse()?;
+        let record: RecordBuf<3> = "sq0\t8\t13".parse()?;
         write_record(&mut buf, &record)?;
         assert_eq!(buf, b"sq0\t8\t13\n");
         Ok(())

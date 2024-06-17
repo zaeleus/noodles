@@ -21,7 +21,7 @@ impl Score {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bed::record::Score;
+    /// use noodles_bed::feature::record_buf::Score;
     ///
     /// assert!(Score::new(8).is_some());
     ///
@@ -41,7 +41,7 @@ impl Score {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bed::record::Score;
+    /// use noodles_bed::feature::record_buf::Score;
     /// let score = Score::new(8).unwrap();
     /// assert_eq!(score.get(), 8);
     /// ```
