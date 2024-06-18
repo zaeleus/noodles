@@ -4,6 +4,9 @@
 
 pub mod feature;
 pub mod io;
+mod record;
+
+pub use self::record::Record;
 
 #[deprecated(since = "0.14.0", note = "Use `noodles_bed::io::Reader` instead.")]
 pub use self::io::Reader;
