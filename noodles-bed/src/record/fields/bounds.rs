@@ -26,7 +26,7 @@ impl Bounds {
         let start = i
             .checked_sub(1)
             .and_then(|prev_i| self.other_fields_ends.get(prev_i).copied())
-            .unwrap_or_default();
+            .unwrap_or(self.feature_end_end);
 
         Some(start..end)
     }
