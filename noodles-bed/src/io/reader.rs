@@ -1,10 +1,13 @@
+mod record;
+
 use std::{
     io::{self, BufRead},
     iter,
     str::FromStr,
 };
 
-use crate::feature::RecordBuf;
+use self::record::read_record;
+use crate::{feature::RecordBuf, Record};
 
 /// A BED reader.
 pub struct Reader<R> {
@@ -140,6 +143,11 @@ where
                 Err(e) => return Some(Err(e)),
             }
         })
+    }
+
+    /// Reads a record.
+    pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+        read_record(&mut self.inner, record)
     }
 }
 
