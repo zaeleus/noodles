@@ -1,4 +1,4 @@
-mod fields;
+pub(crate) mod fields;
 
 use std::io;
 
@@ -8,7 +8,7 @@ use self::fields::Fields;
 
 /// A BED record.
 #[derive(Clone, Default, Eq, PartialEq)]
-pub struct Record(Fields);
+pub struct Record(pub(crate) Fields);
 
 impl Record {
     /// Returns the reference sequence name.
