@@ -55,6 +55,15 @@ impl Fields {
     }
 }
 
+impl Default for Fields {
+    fn default() -> Self {
+        Self {
+            buf: Vec::from(*b"sq001"),
+            bounds: Bounds::default(),
+        }
+    }
+}
+
 fn parse_int<N: FromLexical>(buf: &[u8]) -> io::Result<N> {
     lexical_core::parse(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
