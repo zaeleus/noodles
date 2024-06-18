@@ -5,12 +5,12 @@ use std::io;
 use lexical_core::FromLexical;
 use noodles_core::Position;
 
-use self::bounds::Bounds;
+pub(crate) use self::bounds::Bounds;
 
 #[derive(Clone, Eq, PartialEq)]
-pub struct Fields {
-    buf: Vec<u8>,
-    bounds: Bounds,
+pub(crate) struct Fields {
+    pub(crate) buf: Vec<u8>,
+    pub(crate) bounds: Bounds,
 }
 
 impl Fields {

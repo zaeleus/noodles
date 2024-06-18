@@ -1,11 +1,11 @@
 use std::ops::Range;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(super) struct Bounds {
-    reference_sequence_name_end: usize,
-    feature_start_end: usize,
-    feature_end_end: usize,
-    other_fields_ends: Vec<usize>,
+pub(crate) struct Bounds {
+    pub(crate) reference_sequence_name_end: usize,
+    pub(crate) feature_start_end: usize,
+    pub(crate) feature_end_end: usize,
+    pub(crate) other_fields_ends: Vec<usize>,
 }
 
 impl Bounds {
