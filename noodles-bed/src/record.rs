@@ -7,7 +7,7 @@ use noodles_core::Position;
 use self::fields::Fields;
 
 /// A BED record.
-#[derive(Default)]
+#[derive(Clone, Default, Eq, PartialEq)]
 pub struct Record(Fields);
 
 impl Record {

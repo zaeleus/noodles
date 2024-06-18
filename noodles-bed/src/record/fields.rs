@@ -7,6 +7,7 @@ use noodles_core::Position;
 
 use self::bounds::Bounds;
 
+#[derive(Clone, Eq, PartialEq)]
 pub struct Fields {
     buf: Vec<u8>,
     bounds: Bounds,

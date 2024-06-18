@@ -1,6 +1,6 @@
 use std::ops::Range;
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(super) struct Bounds {
     reference_sequence_name_end: usize,
     feature_start_end: usize,
