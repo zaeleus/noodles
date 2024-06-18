@@ -31,3 +31,14 @@ impl Bounds {
         Some(start..end)
     }
 }
+
+impl Default for Bounds {
+    fn default() -> Self {
+        Self {
+            reference_sequence_name_end: 3,
+            feature_start_end: 4,
+            feature_end_end: 5,
+            other_fields_ends: Vec::new(),
+        }
+    }
+}
