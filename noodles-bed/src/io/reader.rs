@@ -11,10 +11,7 @@ pub struct Reader<R> {
     inner: R,
 }
 
-impl<R> Reader<R>
-where
-    R: BufRead,
-{
+impl<R> Reader<R> {
     /// Returns a reference to the underlying reader.
     ///
     /// # Examples
@@ -56,7 +53,12 @@ where
     pub fn into_inner(self) -> R {
         self.inner
     }
+}
 
+impl<R> Reader<R>
+where
+    R: BufRead,
+{
     /// Creates a BED reader.
     ///
     /// # Examples
