@@ -11,4 +11,5 @@ repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-bed"
 
 [dependencies]
+lexical-core = "0.8.5"
 noodles-core = { path = "../noodles-core", version = "0.15.0" }
