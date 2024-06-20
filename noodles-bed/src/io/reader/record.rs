@@ -32,6 +32,11 @@ where
 
     loop {
         let (n, is_eol) = read_field(reader, dst)?;
+
+        if n == 0 {
+            break;
+        }
+
         len += n;
         bounds.other_fields_ends.push(dst.len());
 
