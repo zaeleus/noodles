@@ -2,6 +2,7 @@ pub(crate) mod fields;
 
 use std::{fmt, io};
 
+use bstr::ByteSlice;
 use noodles_core::Position;
 
 use self::fields::Fields;
@@ -50,7 +51,10 @@ impl Record {
 impl fmt::Debug for Record {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Record")
-            .field("reference_sequence_name", &self.reference_sequence_name())
+            .field(
+                "reference_sequence_name",
+                &self.reference_sequence_name().as_bstr(),
+            )
             .field("feature_start", &self.feature_start())
             .field("feature_end", &self.feature_end())
             .finish_non_exhaustive()
