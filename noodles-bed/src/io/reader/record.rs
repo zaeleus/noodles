@@ -65,6 +65,8 @@ fn read_field<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<(usize, bool)>
 where
     R: BufRead,
 {
+    use memchr::memchr2;
+
     const DELIMITER: u8 = b'\t';
     const LINE_FEED: u8 = b'\n';
     const CARRIAGE_RETURN: u8 = b'\r';
@@ -79,7 +81,7 @@ where
             break;
         }
 
-        let (mut buf, n) = match src.iter().position(|&b| matches!(b, DELIMITER | LINE_FEED)) {
+        let (mut buf, n) = match memchr2(DELIMITER, LINE_FEED, src) {
             Some(i) => {
                 r#match = Some(src[i]);
                 (&src[..i], i + 1)
