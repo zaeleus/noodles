@@ -42,17 +42,21 @@ impl Fields {
 
     pub(super) fn name(&self) -> Option<&[u8]> {
         const NAME_INDEX: usize = 0;
-        self.bounds.get(NAME_INDEX).map(|range| &self.buf[range])
+        self.get(NAME_INDEX)
     }
 
     pub(super) fn score(&self) -> Option<&[u8]> {
         const SCORE_INDEX: usize = 1;
-        self.bounds.get(SCORE_INDEX).map(|range| &self.buf[range])
+        self.get(SCORE_INDEX)
     }
 
     pub(super) fn strand(&self) -> Option<&[u8]> {
         const STRAND_INDEX: usize = 2;
-        self.bounds.get(STRAND_INDEX).map(|range| &self.buf[range])
+        self.get(STRAND_INDEX)
+    }
+
+    pub(super) fn get(&self, i: usize) -> Option<&[u8]> {
+        self.bounds.get(i).map(|range| &self.buf[range])
     }
 }
 
