@@ -40,6 +40,11 @@ impl Record {
     pub fn strand(&self) -> Option<&[u8]> {
         self.0.strand()
     }
+
+    /// Returns an other field at the given index.
+    pub fn get(&self, i: usize) -> Option<&[u8]> {
+        self.0.get(i)
+    }
 }
 
 impl fmt::Debug for Record {
