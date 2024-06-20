@@ -1,6 +1,6 @@
 use std::io::{self, BufRead};
 
-use crate::Record;
+use crate::{record::fields::Bounds, Record};
 
 pub(super) fn read_record<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
 where
@@ -14,6 +14,23 @@ where
     let bounds = &mut fields.bounds;
     bounds.other_fields_ends.clear();
 
+    let (mut len, is_eol) = read_required_fields(reader, dst, bounds)?;
+
+    if !is_eol {
+        len += read_other_fields(reader, dst, bounds)?;
+    }
+
+    Ok(len)
+}
+
+fn read_required_fields<R>(
+    reader: &mut R,
+    dst: &mut Vec<u8>,
+    bounds: &mut Bounds,
+) -> io::Result<(usize, bool)>
+where
+    R: BufRead,
+{
     let mut len = 0;
 
     len += read_required_field(reader, dst)?;
@@ -26,9 +43,14 @@ where
     len += n;
     bounds.feature_end_end = dst.len();
 
-    if is_eol {
-        return Ok(len);
-    }
+    Ok((len, is_eol))
+}
+
+fn read_other_fields<R>(reader: &mut R, dst: &mut Vec<u8>, bounds: &mut Bounds) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    let mut len = 0;
 
     loop {
         let (n, is_eol) = read_field(reader, dst)?;
@@ -106,7 +128,6 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::record::fields::Bounds;
 
     #[test]
     fn test_read_record() -> io::Result<()> {
