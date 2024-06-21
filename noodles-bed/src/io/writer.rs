@@ -1,3 +1,5 @@
+mod record;
+
 use std::{
     fmt,
     io::{self, Write},
