@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * fasta/async/io/reader: Add common methods to access the underlying reader.
+
 ## 0.40.0 - 2024-06-17
 
 ### Added
