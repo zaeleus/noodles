@@ -1,6 +1,7 @@
 //! FASTA reader and iterators.
 
 mod builder;
+mod definition;
 mod records;
 pub mod sequence;
 
@@ -13,6 +14,7 @@ use std::{
 
 use noodles_core::{region::Interval, Region};
 
+use self::definition::read_definition;
 use crate::{fai, Record};
 
 pub(crate) const DEFINITION_PREFIX: u8 = b'>';
@@ -105,7 +107,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_definition(&mut self, buf: &mut String) -> io::Result<usize> {
-        read_line(&mut self.inner, buf)
+        read_definition(&mut self.inner, buf)
     }
 
     /// Reads a sequence.
