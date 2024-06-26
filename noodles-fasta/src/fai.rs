@@ -3,11 +3,12 @@
 #[cfg(feature = "async")]
 mod r#async;
 
+mod index;
 mod reader;
 mod record;
 mod writer;
 
-pub use self::{reader::Reader, record::Record, writer::Writer};
+pub use self::{index::Index, reader::Reader, record::Record, writer::Writer};
 
 #[cfg(feature = "async")]
 pub use self::r#async::Reader as AsyncReader;
@@ -17,9 +18,6 @@ use std::{
     io::{self, BufReader},
     path::Path,
 };
-
-/// A FASTA index.
-pub type Index = Vec<Record>;
 
 /// Reads the entire contents of a FASTA index.
 ///
