@@ -1,7 +1,7 @@
 use super::Record;
 
 /// A FASTA index.
-#[derive(Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Index(Vec<Record>);
 
 impl AsRef<[Record]> for Index {
