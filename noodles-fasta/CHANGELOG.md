@@ -6,6 +6,8 @@
 
   * fasta/async/io/reader: Add common methods to access the underlying reader.
 
+  * fasta/fai/record: Implement `Clone`.
+
 ### Changed
 
   * fasta/fai/index: Add wrapper (`Index`).
