@@ -82,15 +82,15 @@ where
     /// let mut reader = fai::Reader::new(&data[..]);
     /// let index = reader.read_index()?;
     ///
-    /// assert_eq!(index, vec![
+    /// assert_eq!(index, fai::Index::from(vec![
     ///     fai::Record::new("sq0", 13, 5, 80, 81),
     ///     fai::Record::new("sq1", 21, 19, 80, 81),
-    /// ]);
+    /// ]));
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_index(&mut self) -> io::Result<Index> {
         let mut buf = String::new();
-        let mut index = Vec::new();
+        let mut records = Vec::new();
 
         loop {
             buf.clear();
@@ -102,13 +102,13 @@ where
                         .parse()
                         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-                    index.push(record);
+                    records.push(record);
                 }
                 Err(e) => return Err(e),
             }
         }
 
-        Ok(index)
+        Ok(Index::from(records))
     }
 }
 

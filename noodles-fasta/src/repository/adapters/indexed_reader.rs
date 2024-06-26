@@ -19,8 +19,8 @@ where
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_fasta::{self as fasta, repository::adapters::IndexedReader};
-    /// let index = Vec::new();
+    /// use noodles_fasta::{self as fasta, fai, repository::adapters::IndexedReader};
+    /// let index = fai::Index::default();
     /// let reader = fasta::io::IndexedReader::new(io::empty(), index);
     /// let adapter = IndexedReader::new(reader);
     /// ```

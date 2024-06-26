@@ -6,6 +6,12 @@
 
   * fasta/async/io/reader: Add common methods to access the underlying reader.
 
+### Changed
+
+  * fasta/fai/index: Add wrapper (`Index`).
+
+    Use `AsRef<Vec<Record>>` to get the list of records.
+
 ## 0.40.0 - 2024-06-17
 
 ### Added

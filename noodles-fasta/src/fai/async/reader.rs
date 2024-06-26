@@ -42,10 +42,10 @@ where
     ///
     /// let index = reader.read_index().await?;
     ///
-    /// assert_eq!(index, vec![
+    /// assert_eq!(index, fai::Index::from(vec![
     ///     fai::Record::new(String::from("sq0"), 13, 5, 80, 81),
     ///     fai::Record::new(String::from("sq1"), 21, 19, 80, 81),
-    /// ]);
+    /// ]));
     /// # Ok(())
     /// # }
     /// ```
@@ -53,7 +53,7 @@ where
         use crate::r#async::io::reader::read_line;
 
         let mut buf = String::new();
-        let mut index = Vec::new();
+        let mut records = Vec::new();
 
         loop {
             buf.clear();
@@ -65,11 +65,11 @@ where
                         .parse()
                         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-                    index.push(record);
+                    records.push(record);
                 }
             }
         }
 
-        Ok(index)
+        Ok(Index::from(records))
     }
 }

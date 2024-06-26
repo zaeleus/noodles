@@ -216,11 +216,11 @@ where
     /// use noodles_fasta::{self as fasta, fai, record::{Definition, Sequence}};
     ///
     /// let data = b">sq0\nNNNN\n>sq1\nACGT\n>sq2\nNNNN\n";
-    /// let index = vec![
+    /// let index = fai::Index::from(vec![
     ///     fai::Record::new("sq0", 4, 5, 4, 5),
     ///     fai::Record::new("sq1", 4, 15, 4, 5),
     ///     fai::Record::new("sq2", 4, 25, 4, 5),
-    /// ];
+    /// ]);
     ///
     /// let mut reader = fasta::io::Reader::new(Cursor::new(data));
     ///
@@ -244,6 +244,7 @@ where
         use crate::record::{Definition, Sequence};
 
         let index_record = index
+            .as_ref()
             .iter()
             .find(|record| record.name() == region.name())
             .ok_or_else(|| {

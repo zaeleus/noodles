@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use super::Record;
+use super::{Index, Record};
 
 /// A FASTA index writer.
 pub struct Writer<W> {
@@ -77,13 +77,13 @@ where
     ///
     /// let mut writer = fai::Writer::new(Vec::new());
     ///
-    /// let index = vec![fai::Record::new("sq0", 13, 5, 80, 81)];
+    /// let index = fai::Index::from(vec![fai::Record::new("sq0", 13, 5, 80, 81)]);
     /// writer.write_index(&index)?;
     ///
     /// assert_eq!(writer.get_ref(), b"sq0\t13\t5\t80\t81\n");
     /// # Ok::<(), io::Error>(())
-    pub fn write_index(&mut self, index: &[Record]) -> io::Result<()> {
-        for record in index {
+    pub fn write_index(&mut self, index: &Index) -> io::Result<()> {
+        for record in index.as_ref() {
             write_record(&mut self.inner, record)?;
         }
 
