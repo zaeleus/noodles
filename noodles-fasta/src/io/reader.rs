@@ -7,12 +7,9 @@ pub mod sequence;
 
 pub use self::{builder::Builder, records::Records};
 
-use std::{
-    io::{self, BufRead, Seek, SeekFrom},
-    ops::Range,
-};
+use std::io::{self, BufRead, Seek, SeekFrom};
 
-use noodles_core::{region::Interval, Region};
+use noodles_core::{Position, Region};
 
 use self::definition::read_definition;
 use crate::{fai, Record};
@@ -243,32 +240,18 @@ where
         use self::sequence::read_sequence_limit;
         use crate::record::{Definition, Sequence};
 
-        let index_record = index
-            .as_ref()
-            .iter()
-            .find(|record| record.name() == region.name())
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    format!(
-                        "invalid reference sequence name: {}",
-                        String::from_utf8_lossy(region.name())
-                    ),
-                )
-            })?;
-
-        let seq_len = index_record.length() as usize;
-        let range = interval_to_slice_range(region.interval(), seq_len);
-
-        let pos = index_record.offset()
-            + range.start as u64 / index_record.line_bases() * index_record.line_width()
-            + range.start as u64 % index_record.line_bases();
+        let pos = index.query(region)?;
         self.get_mut().seek(SeekFrom::Start(pos))?;
 
         let definition = Definition::new(region.to_string(), None);
 
+        let interval = region.interval();
+        let start = usize::from(interval.start().unwrap_or(Position::MIN));
+        let end = usize::from(interval.end().unwrap_or(Position::MAX));
+        let len = end - start + 1;
+
         let mut raw_sequence = Vec::new();
-        read_sequence_limit(&mut self.inner, range.len(), &mut raw_sequence)?;
+        read_sequence_limit(&mut self.inner, len, &mut raw_sequence)?;
 
         let sequence = Sequence::from(raw_sequence);
 
@@ -301,23 +284,6 @@ where
         }
         Err(e) => Err(e),
     }
-}
-
-// Shifts a 1-based interval to a 0-based range for slicing.
-fn interval_to_slice_range<I>(interval: I, len: usize) -> Range<usize>
-where
-    I: Into<Interval>,
-{
-    let interval = interval.into();
-
-    let start = interval
-        .start()
-        .map(|position| usize::from(position) - 1)
-        .unwrap_or(usize::MIN);
-
-    let end = interval.end().map(usize::from).unwrap_or(len);
-
-    start..end
 }
 
 #[cfg(test)]
@@ -358,23 +324,6 @@ mod tests {
         buf.clear();
         read_line(&mut reader, &mut buf)?;
         assert_eq!(buf, "noodles");
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_interval_to_slice_range() -> Result<(), noodles_core::position::TryFromIntError> {
-        use noodles_core::Position;
-
-        const LENGTH: usize = 21;
-
-        let start = Position::try_from(8)?;
-        let end = Position::try_from(13)?;
-
-        assert_eq!(interval_to_slice_range(start..=end, LENGTH), 7..13);
-        assert_eq!(interval_to_slice_range(start.., LENGTH), 7..21);
-        assert_eq!(interval_to_slice_range(..=end, LENGTH), 0..13);
-        assert_eq!(interval_to_slice_range(.., LENGTH), 0..21);
 
         Ok(())
     }
