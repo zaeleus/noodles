@@ -11,8 +11,7 @@ pub struct Index(Vec<Record>);
 impl Index {
     /// Returns start position of the given region.
     pub fn query(&self, region: &Region) -> io::Result<u64> {
-        let record = self
-            .as_ref()
+        self.as_ref()
             .iter()
             .find(|record| record.name() == region.name())
             .ok_or_else(|| {
@@ -20,22 +19,8 @@ impl Index {
                     io::ErrorKind::InvalidInput,
                     format!("invalid reference sequence name: {}", region.name(),),
                 )
-            })?;
-
-        let start = region
-            .interval()
-            .start()
-            .map(|position| usize::from(position) - 1)
-            .unwrap_or_default();
-
-        let start =
-            u64::try_from(start).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-        let pos = record.offset()
-            + start / record.line_bases() * record.line_width()
-            + start % record.line_bases();
-
-        Ok(pos)
+            })
+            .and_then(|record| record.query(region.interval()))
     }
 }
 

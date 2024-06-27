@@ -1,6 +1,8 @@
 mod field;
 
-use std::{error, fmt, str::FromStr};
+use std::{error, fmt, io, str::FromStr};
+
+use noodles_core::region::Interval;
 
 use self::field::Field;
 
@@ -117,6 +119,23 @@ impl Record {
     /// ```
     pub fn line_width(&self) -> u64 {
         self.line_width
+    }
+
+    /// Returns the start position of the given interval.
+    pub fn query(&self, interval: Interval) -> io::Result<u64> {
+        let start = interval
+            .start()
+            .map(|position| usize::from(position) - 1)
+            .unwrap_or_default();
+
+        let start =
+            u64::try_from(start).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+        let pos = self.offset()
+            + start / self.line_bases() * self.line_width()
+            + start % self.line_bases();
+
+        Ok(pos)
     }
 }
 
