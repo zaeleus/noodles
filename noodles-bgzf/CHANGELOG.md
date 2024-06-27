@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bgzf/async/reader: Add seeking to an uncompressed position
+    (`Reader::seek_by_uncompressed_position`) ([#273]).
+
+[#273]: https://github.com/zaeleus/noodles/issues/273
+
 ## 0.31.0 - 2024-06-17
 
 ### Added

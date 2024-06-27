@@ -17,7 +17,7 @@ use tokio::io::{AsyncBufRead, AsyncRead, AsyncSeek, ReadBuf};
 
 pub use self::builder::Builder;
 use self::inflater::Inflater;
-use crate::{Block, VirtualPosition};
+use crate::{gzi, Block, VirtualPosition};
 
 pin_project! {
     /// An async BGZF reader.
@@ -172,6 +172,48 @@ where
         };
 
         self.stream.replace(stream);
+
+        Ok(pos)
+    }
+
+    /// Seeks the stream to the given uncompressed position.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io::Cursor;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> tokio::io::Result<()> {
+    /// use noodles_bgzf as bgzf;
+    /// use tokio::io;
+    ///
+    /// let mut reader = bgzf::AsyncReader::new(Cursor::new(Vec::new()));
+    ///
+    /// let index = vec![(0, 0)];
+    /// reader.seek_by_uncompressed_position(&index, 0).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn seek_by_uncompressed_position(
+        &mut self,
+        index: &gzi::Index,
+        pos: u64,
+    ) -> io::Result<u64> {
+        assert!(!index.is_empty());
+
+        let i = index.partition_point(|r| r.1 <= pos);
+        // SAFETY: `i` is > 0.
+        let record = index[i - 1];
+
+        let cpos = record.0;
+        let upos = u16::try_from(pos - record.1)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+        let virtual_position = VirtualPosition::try_from((cpos, upos))
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+        self.seek(virtual_position).await?;
 
         Ok(pos)
     }
