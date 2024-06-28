@@ -122,6 +122,19 @@ impl Record {
     }
 
     /// Returns the start position of the given interval.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_core::{region::Interval, Position};
+    /// use noodles_fasta::fai;
+    ///
+    /// let record = fai::Record::new("sq0", 10946, 4, 80, 81);
+    /// let interval = Interval::from(..);
+    ///
+    /// assert_eq!(record.query(interval)?, 4);
+    /// Ok::<_, std::io::Error>(())
+    /// ```
     pub fn query(&self, interval: Interval) -> io::Result<u64> {
         let start = interval
             .start()
