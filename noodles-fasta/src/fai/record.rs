@@ -88,7 +88,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_fasta::fai;
-    /// let record = fai::Record::new("sq0", 10946, 4, 80, 81);
+    /// let record = fai::Record::new("sq0", 8, 4, 80, 81);
     /// assert_eq!(record.offset(), 4);
     /// ```
     pub fn offset(&self) -> u64 {
@@ -101,7 +101,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_fasta::fai;
-    /// let record = fai::Record::new("sq0", 10946, 4, 80, 81);
+    /// let record = fai::Record::new("sq0", 8, 4, 80, 81);
     /// assert_eq!(record.line_bases(), 80);
     /// ```
     pub fn line_bases(&self) -> u64 {
@@ -114,7 +114,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_fasta::fai;
-    /// let record = fai::Record::new("sq0", 10946, 4, 80, 81);
+    /// let record = fai::Record::new("sq0", 8, 4, 80, 81);
     /// assert_eq!(record.line_width(), 81);
     /// ```
     pub fn line_width(&self) -> u64 {
