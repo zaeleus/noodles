@@ -46,6 +46,15 @@ impl Record {
     pub fn get(&self, i: usize) -> Option<&[u8]> {
         self.0.get(i)
     }
+
+    /// Returns the number of fields.
+    ///
+    /// This is guaranteed to be >= 3.
+    #[allow(clippy::len_without_is_empty)]
+    pub fn len(&self) -> usize {
+        const MIN_FIELD_COUNT: usize = 3;
+        MIN_FIELD_COUNT + self.0.bounds.other_fields_ends.len()
+    }
 }
 
 impl fmt::Debug for Record {
