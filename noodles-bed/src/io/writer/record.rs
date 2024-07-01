@@ -35,3 +35,17 @@ where
     const SEPARATOR: u8 = b'\t';
     writer.write_all(&[SEPARATOR])
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_write_record() -> io::Result<()> {
+        let mut buf = Vec::new();
+        let record = Record::default();
+        write_record(&mut buf, &record)?;
+        assert_eq!(buf, b"sq0\t0\t1");
+        Ok(())
+    }
+}
