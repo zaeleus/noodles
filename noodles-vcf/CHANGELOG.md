@@ -10,6 +10,8 @@
     reference-alternate bases (`LR`), local samples (`LG`), ploidy (`P`), and
     base modifications (`M`).
 
+  * vcf/variant/record/samples/keys/key: Add VCF 4.5 format keys.
+
 ## 0.60.0 - 2024-06-17
 
 ### Changed

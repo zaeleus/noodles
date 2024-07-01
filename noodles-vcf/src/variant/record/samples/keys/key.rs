@@ -15,6 +15,11 @@ pub const READ_DEPTH: &str = "DP";
 /// Expected alternate allele counts (`EC`).
 pub const EXPECTED_ALTERNATE_ALLELE_COUNTS: &str = "EC";
 
+/// Length of <*> reference block (`LEN`).
+///
+/// Added in VCF 4.5.
+pub const LENGTH: &str = "LEN";
+
 /// Filter indicating if this genotype was "called" (`FT`).
 pub const FILTER: &str = "FT";
 
@@ -32,6 +37,57 @@ pub const GENOTYPE: &str = "GT";
 
 /// Haplotype quality (`HQ`).
 pub const HAPLOTYPE_QUALITY: &str = "HQ";
+
+/// Reserved (`LA`).
+///
+/// Added in VCF 4.5.
+pub const RESERVED_LA: &str = "LA";
+
+/// 1-based indices into ALT, indicating which alleles are relevant (local) for the current sample
+/// (`LAA`).
+///
+/// Added in VCF 4.5.
+pub const LOCAL_ALTERNATIVE_ALLELE: &str = "LAA";
+
+/// Local-allele representation of AD (`LAD`).
+///
+/// Added in VCF 4.5.
+pub const LOCAL_READ_DEPTHS: &str = "LAD";
+
+/// Local-allele representation of ADF (`LADF`).
+///
+/// Added in VCF 4.5.
+pub const LOCAL_FORWARD_STRAND_READ_DEPTHS: &str = "LADF";
+
+/// Local-allele representation of ADR (`LADR`).
+///
+/// Added in VCF 4.5.
+pub const LOCAL_REVERSE_STRAND_READ_DEPTHS: &str = "LADR";
+
+/// Local-allele representation of EC (`LEC`).
+///
+/// Added in VCF 4.5.
+pub const LOCAL_EXPECTED_ALTERNATE_ALLELE_COUNTS: &str = "LEC";
+
+/// Local-allele representation of GL (`LGL`).
+///
+/// Added in VCF 4.5.
+pub const LOCAL_GENOTYPE_LIKELIHOODS: &str = "LGL";
+
+/// Local-allele representation of GP (`LGP`).
+///
+/// Added in VCF 4.5.
+pub const LOCAL_GENOTYPE_POSTERIOR_PROBABILITIES: &str = "LGP";
+
+/// Local-allele representation of PL (`LPL`).
+///
+/// Added in VCF 4.5.
+pub const LOCAL_ROUNDED_GENOTYPE_LIKELIHOODS: &str = "LPL";
+
+/// Local-allele representation of PP (`LPP`).
+///
+/// Added in VCF 4.5.
+pub const LOCAL_ROUNDED_GENOTYPE_POSTERIOR_PROBABILITIES: &str = "LPP";
 
 /// RMS mapping quality (`MQ`).
 pub const MAPPING_QUALITY: &str = "MQ";
@@ -100,12 +156,23 @@ mod tests {
         assert_eq!(REVERSE_STRAND_READ_DEPTHS, "ADR");
         assert_eq!(READ_DEPTH, "DP");
         assert_eq!(EXPECTED_ALTERNATE_ALLELE_COUNTS, "EC");
+        assert_eq!(LENGTH, "LEN");
         assert_eq!(FILTER, "FT");
         assert_eq!(GENOTYPE_LIKELIHOODS, "GL");
         assert_eq!(GENOTYPE_POSTERIOR_PROBABILITIES, "GP");
         assert_eq!(CONDITIONAL_GENOTYPE_QUALITY, "GQ");
         assert_eq!(GENOTYPE, "GT");
         assert_eq!(HAPLOTYPE_QUALITY, "HQ");
+        assert_eq!(RESERVED_LA, "LA");
+        assert_eq!(LOCAL_ALTERNATIVE_ALLELE, "LAA");
+        assert_eq!(LOCAL_READ_DEPTHS, "LAD");
+        assert_eq!(LOCAL_FORWARD_STRAND_READ_DEPTHS, "LADF");
+        assert_eq!(LOCAL_REVERSE_STRAND_READ_DEPTHS, "LADR");
+        assert_eq!(LOCAL_EXPECTED_ALTERNATE_ALLELE_COUNTS, "LEC");
+        assert_eq!(LOCAL_GENOTYPE_LIKELIHOODS, "LGL");
+        assert_eq!(LOCAL_GENOTYPE_POSTERIOR_PROBABILITIES, "LGP");
+        assert_eq!(LOCAL_ROUNDED_GENOTYPE_LIKELIHOODS, "LPL");
+        assert_eq!(LOCAL_ROUNDED_GENOTYPE_POSTERIOR_PROBABILITIES, "LPP");
         assert_eq!(MAPPING_QUALITY, "MQ");
         assert_eq!(ROUNDED_GENOTYPE_LIKELIHOODS, "PL");
         assert_eq!(ROUNDED_GENOTYPE_POSTERIOR_PROBABILITIES, "PP");
