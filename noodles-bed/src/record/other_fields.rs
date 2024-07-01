@@ -1,3 +1,5 @@
+use std::iter;
+
 use super::Fields;
 
 /// BED record other fields.
@@ -21,5 +23,16 @@ impl<'a> OtherFields<'a> {
     /// Returns an other field at the given index.
     pub fn get(&self, i: usize) -> Option<&[u8]> {
         self.0.get(i)
+    }
+
+    /// Returns an iterator over other fields.
+    pub fn iter(&self) -> impl Iterator<Item = &[u8]> {
+        let mut i = 0;
+
+        iter::from_fn(move || {
+            let field = self.get(i)?;
+            i += 1;
+            Some(field)
+        })
     }
 }
