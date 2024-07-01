@@ -1,12 +1,13 @@
 mod feature_end;
 mod feature_start;
+mod other_fields;
 mod reference_sequence_name;
 
 use std::io::{self, Write};
 
 use self::{
     feature_end::write_feature_end, feature_start::write_feature_start,
-    reference_sequence_name::write_reference_sequence_name,
+    other_fields::write_other_fields, reference_sequence_name::write_reference_sequence_name,
 };
 use crate::Record;
 
@@ -24,6 +25,8 @@ where
     write_separator(writer)?;
     let feature_end = record.feature_end()?;
     write_feature_end(writer, feature_end)?;
+
+    write_other_fields(writer, record.other_fields())?;
 
     write_newline(writer)?;
 
