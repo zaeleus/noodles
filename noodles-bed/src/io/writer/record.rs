@@ -25,6 +25,8 @@ where
     let feature_end = record.feature_end()?;
     write_feature_end(writer, feature_end)?;
 
+    write_newline(writer)?;
+
     Ok(())
 }
 
@@ -36,6 +38,14 @@ where
     writer.write_all(&[SEPARATOR])
 }
 
+fn write_newline<W>(writer: &mut W) -> io::Result<()>
+where
+    W: Write,
+{
+    const LINE_FEED: u8 = b'\n';
+    writer.write_all(&[LINE_FEED])
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -45,7 +55,7 @@ mod tests {
         let mut buf = Vec::new();
         let record = Record::default();
         write_record(&mut buf, &record)?;
-        assert_eq!(buf, b"sq0\t0\t1");
+        assert_eq!(buf, b"sq0\t0\t1\n");
         Ok(())
     }
 }
