@@ -6,17 +6,17 @@ pub(super) fn write_number<W>(writer: &mut W, number: Number) -> io::Result<()>
 where
     W: Write,
 {
-    const ALTERNATE_BASES: &[u8] = b"A";
-    const REFERENCE_ALTERNATE_BASES: &[u8] = b"R";
-    const SAMPLES: &[u8] = b"G";
-    const UNKNOWN: &[u8] = b".";
-
     match number {
         Number::Count(n) => write!(writer, "{n}"),
-        Number::AlternateBases => writer.write_all(ALTERNATE_BASES),
-        Number::ReferenceAlternateBases => writer.write_all(REFERENCE_ALTERNATE_BASES),
-        Number::Samples => writer.write_all(SAMPLES),
-        Number::Unknown => writer.write_all(UNKNOWN),
+        Number::AlternateBases => writer.write_all(b"A"),
+        Number::ReferenceAlternateBases => writer.write_all(b"R"),
+        Number::Samples => writer.write_all(b"G"),
+        Number::LocalAlternateBases => writer.write_all(b"LA"),
+        Number::LocalReferenceAlternateBases => writer.write_all(b"LR"),
+        Number::LocalSamples => writer.write_all(b"LG"),
+        Number::Ploidy => writer.write_all(b"P"),
+        Number::BaseModifications => writer.write_all(b"M"),
+        Number::Unknown => writer.write_all(b"."),
     }
 }
 
@@ -39,6 +39,11 @@ mod tests {
         t(&mut buf, Number::AlternateBases, b"A")?;
         t(&mut buf, Number::ReferenceAlternateBases, b"R")?;
         t(&mut buf, Number::Samples, b"G")?;
+        t(&mut buf, Number::LocalAlternateBases, b"LA")?;
+        t(&mut buf, Number::LocalReferenceAlternateBases, b"LR")?;
+        t(&mut buf, Number::LocalSamples, b"LG")?;
+        t(&mut buf, Number::Ploidy, b"P")?;
+        t(&mut buf, Number::BaseModifications, b"M")?;
         t(&mut buf, Number::Unknown, b".")?;
 
         Ok(())

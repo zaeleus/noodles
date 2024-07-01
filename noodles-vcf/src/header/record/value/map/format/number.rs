@@ -9,6 +9,16 @@ pub enum Number {
     ReferenceAlternateBases,
     /// The number of samples (`G`).
     Samples,
+    /// The number of local alternate bases (`LA`).
+    LocalAlternateBases,
+    /// The number of local reference and alternate bases (`LR`).
+    LocalReferenceAlternateBases,
+    /// The number of local samples (`LG`).
+    LocalSamples,
+    /// The number of genotype alleles (`P`).
+    Ploidy,
+    /// The number of base modifications (`M`).
+    BaseModifications,
     /// The size is unknown.
     Unknown,
 }

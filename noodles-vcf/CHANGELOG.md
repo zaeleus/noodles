@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * vcf/header/record/value/map/format/number: Add VCF 4.5 format numbers.
+
+    VCF 4.5 introduces counts for local alternate bases (`LA`), local
+    reference-alternate bases (`LR`), local samples (`LG`), ploidy (`P`), and
+    base modifications (`M`).
+
 ## 0.60.0 - 2024-06-17
 
 ### Changed
