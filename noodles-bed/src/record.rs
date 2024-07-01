@@ -6,7 +6,8 @@ use std::{fmt, io};
 use bstr::ByteSlice;
 use noodles_core::Position;
 
-use self::{fields::Fields, other_fields::OtherFields};
+use self::fields::Fields;
+pub use self::other_fields::OtherFields;
 
 /// A BED record.
 #[derive(Clone, Default, Eq, PartialEq)]
