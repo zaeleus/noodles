@@ -1,11 +1,12 @@
 pub(crate) mod fields;
+mod other_fields;
 
 use std::{fmt, io};
 
 use bstr::ByteSlice;
 use noodles_core::Position;
 
-use self::fields::Fields;
+use self::{fields::Fields, other_fields::OtherFields};
 
 /// A BED record.
 #[derive(Clone, Default, Eq, PartialEq)]
@@ -42,9 +43,9 @@ impl Record {
         self.0.strand()
     }
 
-    /// Returns an other field at the given index.
-    pub fn get(&self, i: usize) -> Option<&[u8]> {
-        self.0.get(i)
+    /// Returns the other fields.
+    pub fn other_fields(&self) -> OtherFields<'_> {
+        OtherFields::new(&self.0)
     }
 
     /// Returns the number of fields.
@@ -53,7 +54,7 @@ impl Record {
     #[allow(clippy::len_without_is_empty)]
     pub fn len(&self) -> usize {
         const MIN_FIELD_COUNT: usize = 3;
-        MIN_FIELD_COUNT + self.0.bounds.other_fields_ends.len()
+        MIN_FIELD_COUNT + self.other_fields().len()
     }
 }
 
