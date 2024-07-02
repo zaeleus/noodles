@@ -25,7 +25,7 @@ impl Record {
     }
 
     /// Returns the feature end.
-    pub fn feature_end(&self) -> io::Result<Position> {
+    pub fn feature_end(&self) -> Option<io::Result<Position>> {
         self.0.feature_end()
     }
 

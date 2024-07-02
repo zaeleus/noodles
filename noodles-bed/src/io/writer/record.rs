@@ -23,7 +23,7 @@ where
     write_feature_start(writer, feature_start)?;
 
     write_separator(writer)?;
-    let feature_end = record.feature_end()?;
+    let feature_end = record.feature_end().transpose()?;
     write_feature_end(writer, feature_end)?;
 
     write_other_fields(writer, record.other_fields())?;
