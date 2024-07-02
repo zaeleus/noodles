@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bam: Update to bit-vec 0.7.0.
+
 ## 0.64.0 - 2024-06-17
 
 ### Added

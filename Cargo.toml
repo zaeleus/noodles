@@ -27,7 +27,7 @@ edition = "2021"
 rust-version = "1.70.0"
 
 [workspace.dependencies]
-bit-vec = "0.6.1"
+bit-vec = "0.7.0"
 bitflags = "2.0.2"
 bstr = { version = "1.9.0", default-features = false, features = ["std"] }
 byteorder = "1.2.3"
