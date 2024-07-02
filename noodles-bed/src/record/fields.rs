@@ -32,12 +32,17 @@ impl Fields {
         })
     }
 
-    pub(super) fn feature_end(&self) -> io::Result<Position> {
+    pub(super) fn feature_end(&self) -> Option<io::Result<Position>> {
+        const MISSING: &[u8] = b"0";
+
         let src = &self.buf[self.bounds.feature_end_range()];
 
-        parse_int::<usize>(src).and_then(|n| {
-            Position::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })
+        match src {
+            MISSING => None,
+            _ => Some(parse_int::<usize>(src).and_then(|n| {
+                Position::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })),
+        }
     }
 
     pub(super) fn name(&self) -> Option<&[u8]> {
