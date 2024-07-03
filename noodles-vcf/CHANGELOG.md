@@ -15,6 +15,15 @@
 
   * vcf/variant/record/samples/keys/key: Add VCF 4.5 format keys.
 
+### Changed
+
+  * vcf/header/record/value/map/format/definition/v4_4: Change phase set
+    definitions to use number `P`.
+
+    This was updated in [samtools/hts-specs@960c5fe].
+
+[samtools/hts-specs@960c5fe]: https://github.com/samtools/hts-specs@960c5fe8cc6e3715f1321fb4de82f4d3824d77f6
+
 ## 0.60.0 - 2024-06-17
 
 ### Changed
