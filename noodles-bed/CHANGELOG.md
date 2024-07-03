@@ -8,9 +8,9 @@
 
 ### Removed
 
-  * bed/feature/record_buf: Remove `fmt::Display`.
+  * bed/feature/record_buf: Remove `str::FromStr` and `fmt::Display`.
 
-    Use a BED record writer instead.
+    Use a BED record reader and writer, respectively, instead.
 
 ## 0.15.0 - 2024-06-17
 

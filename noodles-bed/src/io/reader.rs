@@ -1,13 +1,9 @@
 mod record;
 
-use std::{
-    io::{self, BufRead},
-    iter,
-    str::FromStr,
-};
+use std::io::{self, BufRead};
 
 use self::record::read_record;
-use crate::{feature::RecordBuf, Record};
+use crate::Record;
 
 /// A BED reader.
 pub struct Reader<R> {
@@ -94,55 +90,6 @@ where
     /// ```
     pub fn read_line(&mut self, buf: &mut String) -> io::Result<usize> {
         read_line(&mut self.inner, buf)
-    }
-
-    /// Returns an iterator over records starting from the current stream position.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io;
-    /// use noodles_bed as bed;
-    /// use noodles_core::Position;
-    ///
-    /// let data = b"sq0\t7\t13\n# sq0\t20\t34\n";
-    /// let mut reader = bed::io::Reader::new(&data[..]);
-    ///
-    /// let mut records = reader.records::<3>();
-    ///
-    /// let record = records.next().transpose()?;
-    /// assert_eq!(record.map(|r| r.start_position()), Position::new(8));
-    /// // ...
-    ///
-    /// assert!(records.next().is_none());
-    /// # Ok::<_, io::Error>(())
-    /// ```
-    pub fn records<const N: u8>(&mut self) -> impl Iterator<Item = io::Result<RecordBuf<N>>> + '_
-    where
-        RecordBuf<N>: FromStr<Err = crate::feature::record_buf::ParseError>,
-    {
-        const COMMENT_PREFIX: char = '#';
-
-        let mut buf = String::new();
-
-        iter::from_fn(move || loop {
-            buf.clear();
-
-            match self.read_line(&mut buf) {
-                Ok(0) => return None,
-                Ok(_) => {
-                    if buf.starts_with(COMMENT_PREFIX) {
-                        continue;
-                    } else {
-                        return Some(
-                            buf.parse()
-                                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-                        );
-                    }
-                }
-                Err(e) => return Some(Err(e)),
-            }
-        })
     }
 
     /// Reads a record.

@@ -15,10 +15,10 @@ fn main() -> io::Result<()> {
         .map(BufReader::new)
         .map(bed::io::Reader::new)?;
 
+    let mut record = bed::Record::default();
     let mut n = 0;
 
-    for result in reader.records::<3>() {
-        let _ = result?;
+    while reader.read_record(&mut record)? != 0 {
         n += 1;
     }
 
