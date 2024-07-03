@@ -6,6 +6,12 @@
 
   * bed: Move `Record` to `feature::RecordBuf`.
 
+### Removed
+
+  * bed/feature/record_buf: Remove `fmt::Display`.
+
+    Use a BED record writer instead.
+
 ## 0.15.0 - 2024-06-17
 
 ### Changed
