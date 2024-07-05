@@ -2,11 +2,10 @@
 
 pub mod builder;
 pub mod color;
-pub mod name;
 pub mod score;
 pub mod strand;
 
-pub use self::{builder::Builder, color::Color, name::Name, score::Score, strand::Strand};
+pub use self::{builder::Builder, color::Color, score::Score, strand::Strand};
 
 use noodles_core::Position;
 
