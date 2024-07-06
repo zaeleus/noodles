@@ -54,6 +54,21 @@ impl<const N: usize> RecordBuf<N> {
     pub const fn standard_field_count(&self) -> usize {
         self.standard_fields.len()
     }
+
+    /// Returns the reference sequence name.
+    pub fn reference_sequence_name(&self) -> &[u8] {
+        &self.standard_fields.reference_sequence_name
+    }
+
+    /// Returns the feature start.
+    pub fn feature_start(&self) -> Position {
+        self.standard_fields.feature_start
+    }
+
+    /// Returns the feature end.
+    pub fn feature_end(&self) -> Option<Position> {
+        self.standard_fields.feature_end
+    }
 }
 
 impl RecordBuf<4> {
