@@ -35,7 +35,7 @@ impl Record {
     }
 
     /// Returns the score.
-    pub fn score(&self) -> Option<&[u8]> {
+    pub fn score(&self) -> Option<io::Result<u16>> {
         self.0.score()
     }
 
