@@ -50,9 +50,9 @@ impl Fields {
         self.get(NAME_INDEX)
     }
 
-    pub(super) fn score(&self) -> Option<&[u8]> {
+    pub(super) fn score(&self) -> Option<io::Result<u16>> {
         const SCORE_INDEX: usize = 1;
-        self.get(SCORE_INDEX)
+        self.get(SCORE_INDEX).map(parse_int)
     }
 
     pub(super) fn strand(&self) -> Option<&[u8]> {
