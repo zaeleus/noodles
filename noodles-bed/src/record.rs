@@ -71,3 +71,17 @@ impl fmt::Debug for Record {
             .finish_non_exhaustive()
     }
 }
+
+impl crate::feature::Record for Record {
+    fn reference_sequence_name(&self) -> &[u8] {
+        self.reference_sequence_name()
+    }
+
+    fn feature_start(&self) -> io::Result<Position> {
+        self.feature_start()
+    }
+
+    fn feature_end(&self) -> Option<io::Result<Position>> {
+        self.feature_end()
+    }
+}
