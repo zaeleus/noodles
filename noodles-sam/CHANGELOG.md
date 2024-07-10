@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/record/quality_scores: Increase the visibility of the constructor
+    (`QualityScores::new`) ([#277]).
+
+[#277]: https://github.com/zaeleus/noodles/issues/277
+
 ## 0.61.0 - 2024-06-17
 
 ### Changed

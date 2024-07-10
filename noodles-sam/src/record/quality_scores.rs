@@ -5,7 +5,15 @@
 pub struct QualityScores<'a>(&'a [u8]);
 
 impl<'a> QualityScores<'a> {
-    pub(super) fn new(buf: &'a [u8]) -> Self {
+    /// Creates raw SAM record quality scores.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::QualityScores;
+    /// let quality_scores = QualityScores::new(b"NDLS");
+    /// ```
+    pub fn new(buf: &'a [u8]) -> Self {
         Self(buf)
     }
 
