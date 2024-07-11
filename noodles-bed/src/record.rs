@@ -8,6 +8,7 @@ use noodles_core::Position;
 
 use self::fields::Fields;
 pub use self::other_fields::OtherFields;
+use crate::feature::record_buf::Strand;
 
 /// A BED record.
 #[derive(Clone, Default, Eq, PartialEq)]
@@ -40,7 +41,7 @@ impl Record {
     }
 
     /// Returns the strand.
-    pub fn strand(&self) -> Option<&[u8]> {
+    pub fn strand(&self) -> Option<io::Result<Option<Strand>>> {
         self.0.strand()
     }
 

@@ -6,6 +6,7 @@ use lexical_core::FromLexical;
 use noodles_core::Position;
 
 pub(crate) use self::bounds::Bounds;
+use crate::feature::record_buf::Strand;
 
 #[derive(Clone, Eq, PartialEq)]
 pub(crate) struct Fields {
@@ -55,9 +56,9 @@ impl Fields {
         self.get(SCORE_INDEX).map(parse_int)
     }
 
-    pub(super) fn strand(&self) -> Option<&[u8]> {
+    pub(super) fn strand(&self) -> Option<io::Result<Option<Strand>>> {
         const STRAND_INDEX: usize = 2;
-        self.get(STRAND_INDEX)
+        self.get(STRAND_INDEX).map(parse_strand)
     }
 
     pub(super) fn get(&self, i: usize) -> Option<&[u8]> {
@@ -76,4 +77,33 @@ impl Default for Fields {
 
 fn parse_int<N: FromLexical>(buf: &[u8]) -> io::Result<N> {
     lexical_core::parse(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+}
+
+fn parse_strand(buf: &[u8]) -> io::Result<Option<Strand>> {
+    const MISSING: &[u8] = b".";
+    const FORWARD: &[u8] = b"+";
+    const REVERSE: &[u8] = b"-";
+
+    match buf {
+        MISSING => Ok(None),
+        FORWARD => Ok(Some(Strand::Forward)),
+        REVERSE => Ok(Some(Strand::Reverse)),
+        _ => Err(io::Error::new(io::ErrorKind::InvalidData, "invalid strand")),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_strand() -> io::Result<()> {
+        assert!(parse_strand(b".")?.is_none());
+        assert_eq!(parse_strand(b"+")?, Some(Strand::Forward));
+        assert_eq!(parse_strand(b"-")?, Some(Strand::Reverse));
+
+        assert!(matches!(parse_strand(b"n"), Err(e) if e.kind() == io::ErrorKind::InvalidData));
+
+        Ok(())
+    }
 }
