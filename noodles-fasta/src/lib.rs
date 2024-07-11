@@ -54,6 +54,7 @@ pub mod fai;
 pub mod io;
 pub mod record;
 pub mod repository;
+pub mod sequence;
 
 #[deprecated(
     since = "0.39.0",

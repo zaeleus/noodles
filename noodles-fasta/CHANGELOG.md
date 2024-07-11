@@ -8,6 +8,8 @@
 
   * fasta/fai/record: Implement `Clone`.
 
+  * fasta/sequence: Add `Record` trait.
+
 ### Changed
 
   * fasta/fai/index: Add wrapper (`Index`).
