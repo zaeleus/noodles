@@ -4,8 +4,10 @@ mod definition;
 
 pub use self::definition::Definition;
 
+use std::fmt;
+
 /// A FASTQ record.
-#[derive(Clone, Default, Debug, Eq, PartialEq)]
+#[derive(Clone, Default, Eq, PartialEq)]
 pub struct Record {
     definition: Definition,
     sequence: Vec<u8>,
@@ -162,6 +164,24 @@ impl Record {
         self.definition.clear();
         self.sequence.clear();
         self.quality_scores.clear();
+    }
+}
+
+impl fmt::Debug for Record {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use std::str;
+
+        let name = str::from_utf8(self.name());
+        let description = str::from_utf8(self.description());
+        let sequence = str::from_utf8(self.sequence());
+        let quality_scores = str::from_utf8(self.quality_scores());
+
+        f.debug_struct("Record")
+            .field("name", &name)
+            .field("description", &description)
+            .field("sequence", &sequence)
+            .field("quality_scores", &quality_scores)
+            .finish()
     }
 }
 
