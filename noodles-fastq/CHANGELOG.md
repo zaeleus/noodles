@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+  * fastq/record: Remove `fmt::Display`.
+
+    Write a record using `io::Writer` instead.
+
 ## 0.12.0 - 2024-06-17
 
 ### Added
