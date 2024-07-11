@@ -128,6 +128,9 @@ impl Record {
 
     /// Returns the quality scores of the record.
     ///
+    /// The encoding of these scores are considered to be unknown; and it is up to the caller to
+    /// decode them, if necessary.
+    ///
     /// # Examples
     ///
     /// ```
@@ -140,6 +143,9 @@ impl Record {
     }
 
     /// Returns a mutable reference to the quality scores.
+    ///
+    /// The encoding of these scores are considered to be unknown; and it is up to the caller to
+    /// encode/decode them, if necessary.
     ///
     /// # Examples
     ///
