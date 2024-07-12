@@ -18,11 +18,31 @@ impl<'a> QualityScores<'a> {
     }
 
     /// Returns whether there are any scores.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::QualityScores;
+    ///
+    /// let quality_scores = QualityScores::new(b"");
+    /// assert!(quality_scores.is_empty());
+    ///
+    /// let quality_scores = QualityScores::new(b"NDLS");
+    /// assert!(!quality_scores.is_empty());
+    /// ```
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
     /// Returns the number of scores.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::QualityScores;
+    /// let quality_scores = QualityScores::new(b"NDLS");
+    /// assert_eq!(quality_scores.len(), 4);
+    /// ```
     pub fn len(&self) -> usize {
         self.0.len()
     }
