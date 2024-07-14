@@ -1,6 +1,6 @@
 [package]
 name = "noodles-sam"
-version = "0.61.0"
+version = "0.62.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
@@ -19,9 +19,9 @@ bstr.workspace = true
 indexmap.workspace = true
 lexical-core = "0.8.5"
 memchr.workspace = true
-noodles-bgzf = { path = "../noodles-bgzf", version = "0.31.0" }
+noodles-bgzf = { path = "../noodles-bgzf", version = "0.32.0" }
 noodles-core = { path = "../noodles-core", version = "0.15.0" }
-noodles-csi = { path = "../noodles-csi", version = "0.36.0" }
+noodles-csi = { path = "../noodles-csi", version = "0.37.0" }
 
 futures = { workspace = true, optional = true, features = ["std"] }
 tokio = { workspace = true, optional = true, features = ["io-util"] }
