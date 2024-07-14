@@ -1,8 +1,4 @@
-mod field;
-
 use std::{error, fmt, str::FromStr};
-
-use self::field::Field;
 
 const FIELD_DELIMITER: char = '\t';
 const MAX_FIELDS: usize = 6;
@@ -148,9 +144,9 @@ pub enum ParseError {
     /// The input is empty.
     Empty,
     /// A field is missing.
-    Missing(Field),
+    Missing(&'static str),
     /// A field is invalid.
-    Invalid(Field, std::num::ParseIntError),
+    Invalid(&'static str, std::num::ParseIntError),
 }
 
 impl error::Error for ParseError {
@@ -182,12 +178,12 @@ impl FromStr for Record {
 
         let mut fields = s.splitn(MAX_FIELDS, FIELD_DELIMITER);
 
-        let name = parse_string(&mut fields, Field::Name)?;
-        let len = parse_u64(&mut fields, Field::Length)?;
-        let sequence_offset = parse_u64(&mut fields, Field::SequenceOffset)?;
-        let line_bases = parse_u64(&mut fields, Field::LineBases)?;
-        let line_width = parse_u64(&mut fields, Field::LineWidth)?;
-        let quality_scores_offset = parse_u64(&mut fields, Field::QualityScoresOffset)?;
+        let name = parse_string(&mut fields, "name")?;
+        let len = parse_u64(&mut fields, "length")?;
+        let sequence_offset = parse_u64(&mut fields, "sequence_offset")?;
+        let line_bases = parse_u64(&mut fields, "line_bases")?;
+        let line_width = parse_u64(&mut fields, "line_width")?;
+        let quality_scores_offset = parse_u64(&mut fields, "quality_scores_offset")?;
 
         Ok(Self {
             name,
@@ -200,7 +196,7 @@ impl FromStr for Record {
     }
 }
 
-fn parse_string<'a, I>(fields: &mut I, field: Field) -> Result<String, ParseError>
+fn parse_string<'a, I>(fields: &mut I, field: &'static str) -> Result<String, ParseError>
 where
     I: Iterator<Item = &'a str>,
 {
@@ -210,7 +206,7 @@ where
         .map(|s| s.into())
 }
 
-fn parse_u64<'a, I>(fields: &mut I, field: Field) -> Result<u64, ParseError>
+fn parse_u64<'a, I>(fields: &mut I, field: &'static str) -> Result<u64, ParseError>
 where
     I: Iterator<Item = &'a str>,
 {
@@ -232,15 +228,11 @@ mod tests {
         );
 
         assert_eq!("".parse::<Record>(), Err(ParseError::Empty));
-
-        assert_eq!(
-            "r0".parse::<Record>(),
-            Err(ParseError::Missing(Field::Length))
-        );
+        assert_eq!("r0".parse::<Record>(), Err(ParseError::Missing("length")));
 
         assert!(matches!(
             "r0\tnoodles".parse::<Record>(),
-            Err(ParseError::Invalid(Field::Length, _))
+            Err(ParseError::Invalid("length", _))
         ));
     }
 }
