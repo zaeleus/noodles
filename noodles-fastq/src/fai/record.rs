@@ -25,7 +25,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_fastq::fai;
-    /// let record = fai::Record::new("sq0", 8, 4, 8, 9, 15);
+    /// let record = fai::Record::new("r0", 8, 4, 8, 9, 15);
     /// ```
     pub fn new<N>(
         name: N,
@@ -54,8 +54,8 @@ impl Record {
     ///
     /// ```
     /// use noodles_fastq::fai;
-    /// let record = fai::Record::new("sq0", 8, 4, 8, 9, 15);
-    /// assert_eq!(record.name(), "sq0");
+    /// let record = fai::Record::new("r0", 8, 4, 8, 9, 15);
+    /// assert_eq!(record.name(), "r0");
     /// ```
     pub fn name(&self) -> &str {
         &self.name
@@ -67,7 +67,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_fastq::fai;
-    /// let record = fai::Record::new("sq0", 8, 4, 8, 9, 15);
+    /// let record = fai::Record::new("r0", 8, 4, 8, 9, 15);
     /// assert_eq!(record.len(), 8);
     /// ```
     #[allow(clippy::len_without_is_empty)]
@@ -82,7 +82,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_fastq::fai;
-    /// let record = fai::Record::new("sq0", 8, 4, 8, 9, 15);
+    /// let record = fai::Record::new("r0", 8, 4, 8, 9, 15);
     /// assert_eq!(record.length(), 8);
     /// ```
     pub fn length(&self) -> u64 {
@@ -95,7 +95,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_fastq::fai;
-    /// let record = fai::Record::new("sq0", 8, 4, 8, 9, 15);
+    /// let record = fai::Record::new("r0", 8, 4, 8, 9, 15);
     /// assert_eq!(record.sequence_offset(), 4);
     /// ```
     pub fn sequence_offset(&self) -> u64 {
@@ -108,7 +108,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_fastq::fai;
-    /// let record = fai::Record::new("sq0", 8, 4, 8, 9, 15);
+    /// let record = fai::Record::new("r0", 8, 4, 8, 9, 15);
     /// assert_eq!(record.line_bases(), 8);
     /// ```
     pub fn line_bases(&self) -> u64 {
@@ -121,7 +121,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_fastq::fai;
-    /// let record = fai::Record::new("sq0", 8, 4, 8, 9, 15);
+    /// let record = fai::Record::new("r0", 8, 4, 8, 9, 15);
     /// assert_eq!(record.line_width(), 9);
     /// ```
     pub fn line_width(&self) -> u64 {
@@ -134,7 +134,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_fastq::fai;
-    /// let record = fai::Record::new("sq0", 8, 4, 8, 9, 15);
+    /// let record = fai::Record::new("r0", 8, 4, 8, 9, 15);
     /// assert_eq!(record.quality_scores_offset(), 15);
     /// ```
     pub fn quality_scores_offset(&self) -> u64 {
