@@ -12,7 +12,7 @@ use self::{
 use crate::Record;
 
 #[allow(dead_code)]
-pub(super) fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
+pub(super) fn write_record<W, const N: usize>(writer: &mut W, record: &Record<N>) -> io::Result<()>
 where
     W: Write,
 {
@@ -56,7 +56,7 @@ mod tests {
     #[test]
     fn test_write_record() -> io::Result<()> {
         let mut buf = Vec::new();
-        let record = Record::default();
+        let record = Record::<3>::default();
         write_record(&mut buf, &record)?;
         assert_eq!(buf, b"sq0\t0\t1\n");
         Ok(())

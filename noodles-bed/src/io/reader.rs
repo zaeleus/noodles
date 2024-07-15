@@ -93,7 +93,7 @@ where
     }
 
     /// Reads a record.
-    pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+    pub fn read_record<const N: usize>(&mut self, record: &mut Record<N>) -> io::Result<usize> {
         read_record(&mut self.inner, record)
     }
 }
