@@ -26,7 +26,7 @@ where
     let feature_end = record.feature_end().transpose()?;
     write_feature_end(writer, feature_end)?;
 
-    write_other_fields(writer, record.other_fields())?;
+    write_other_fields(writer, &record.other_fields())?;
 
     write_newline(writer)?;
 
