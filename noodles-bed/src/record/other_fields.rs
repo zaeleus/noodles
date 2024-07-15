@@ -36,3 +36,17 @@ impl<'a> OtherFields<'a> {
         })
     }
 }
+
+impl<'a> crate::feature::record::OtherFields for OtherFields<'a> {
+    fn is_empty(&self) -> bool {
+        self.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        self.len()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = &[u8]> + '_> {
+        Box::new(self.iter())
+    }
+}
