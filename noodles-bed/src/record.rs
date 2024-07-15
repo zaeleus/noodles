@@ -12,9 +12,9 @@ use crate::feature::record_buf::Strand;
 
 /// A BED record.
 #[derive(Clone, Default, Eq, PartialEq)]
-pub struct Record(pub(crate) Fields);
+pub struct Record<const N: usize>(pub(crate) Fields);
 
-impl Record {
+impl<const N: usize> Record<N> {
     /// Returns the reference sequence name.
     pub fn reference_sequence_name(&self) -> &[u8] {
         self.0.reference_sequence_name()
@@ -58,9 +58,14 @@ impl Record {
         const MIN_FIELD_COUNT: usize = 3;
         MIN_FIELD_COUNT + self.other_fields().len()
     }
+
+    /// Returns the number of standard fields.
+    pub const fn standard_field_count(&self) -> usize {
+        N
+    }
 }
 
-impl fmt::Debug for Record {
+impl<const N: usize> fmt::Debug for Record<N> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Record")
             .field(
@@ -73,7 +78,7 @@ impl fmt::Debug for Record {
     }
 }
 
-impl crate::feature::Record for Record {
+impl<const N: usize> crate::feature::Record for Record<N> {
     fn reference_sequence_name(&self) -> &[u8] {
         self.reference_sequence_name()
     }

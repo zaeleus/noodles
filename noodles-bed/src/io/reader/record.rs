@@ -2,7 +2,10 @@ use std::io::{self, BufRead};
 
 use crate::{record::fields::Bounds, Record};
 
-pub(super) fn read_record<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
+pub(super) fn read_record<R, const N: usize>(
+    reader: &mut R,
+    record: &mut Record<N>,
+) -> io::Result<usize>
 where
     R: BufRead,
 {
@@ -131,7 +134,7 @@ mod tests {
 
     #[test]
     fn test_read_record() -> io::Result<()> {
-        let mut record = Record::default();
+        let mut record = Record::<3>::default();
 
         let mut src = &b"sq0\t0\t1\n"[..];
         read_record(&mut src, &mut record)?;
