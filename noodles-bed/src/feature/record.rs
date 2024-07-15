@@ -1,6 +1,12 @@
+//! Feature record.
+
+mod other_fields;
+
 use std::io;
 
 use noodles_core::Position;
+
+pub use self::other_fields::OtherFields;
 
 /// A feature record.
 pub trait Record {
