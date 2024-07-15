@@ -3,10 +3,10 @@ use std::iter;
 use super::Fields;
 
 /// BED record other fields.
-pub struct OtherFields<'a>(&'a Fields);
+pub struct OtherFields<'a, const N: usize>(&'a Fields<N>);
 
-impl<'a> OtherFields<'a> {
-    pub(super) fn new(fields: &'a Fields) -> Self {
+impl<'a, const N: usize> OtherFields<'a, N> {
+    pub(super) fn new(fields: &'a Fields<N>) -> Self {
         Self(fields)
     }
 
@@ -37,7 +37,7 @@ impl<'a> OtherFields<'a> {
     }
 }
 
-impl<'a> crate::feature::record::OtherFields for OtherFields<'a> {
+impl<'a, const N: usize> crate::feature::record::OtherFields for OtherFields<'a, N> {
     fn is_empty(&self) -> bool {
         self.is_empty()
     }

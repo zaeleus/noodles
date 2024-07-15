@@ -11,8 +11,8 @@ pub use self::other_fields::OtherFields;
 use crate::feature::record_buf::Strand;
 
 /// A BED record.
-#[derive(Clone, Default, Eq, PartialEq)]
-pub struct Record<const N: usize>(pub(crate) Fields);
+#[derive(Clone, Eq, PartialEq)]
+pub struct Record<const N: usize>(pub(crate) Fields<N>);
 
 impl<const N: usize> Record<N> {
     /// Returns the reference sequence name.
@@ -46,7 +46,7 @@ impl<const N: usize> Record<N> {
     }
 
     /// Returns the other fields.
-    pub fn other_fields(&self) -> OtherFields<'_> {
+    pub fn other_fields(&self) -> OtherFields<'_, N> {
         OtherFields::new(&self.0)
     }
 
@@ -75,6 +75,12 @@ impl<const N: usize> fmt::Debug for Record<N> {
             .field("feature_start", &self.feature_start())
             .field("feature_end", &self.feature_end())
             .finish_non_exhaustive()
+    }
+}
+
+impl Default for Record<3> {
+    fn default() -> Self {
+        Self(Fields::default())
     }
 }
 

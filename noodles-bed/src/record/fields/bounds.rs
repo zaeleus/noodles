@@ -1,24 +1,22 @@
 use std::ops::Range;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct Bounds {
-    pub(crate) reference_sequence_name_end: usize,
-    pub(crate) feature_start_end: usize,
-    pub(crate) feature_end_end: usize,
+pub(crate) struct Bounds<const N: usize> {
+    pub(crate) standard_fields_ends: [usize; N],
     pub(crate) other_fields_ends: Vec<usize>,
 }
 
-impl Bounds {
+impl<const N: usize> Bounds<N> {
     pub fn reference_sequence_name_range(&self) -> Range<usize> {
-        0..self.reference_sequence_name_end
+        0..self.standard_fields_ends[0]
     }
 
     pub fn feature_start_range(&self) -> Range<usize> {
-        self.reference_sequence_name_end..self.feature_start_end
+        self.standard_fields_ends[0]..self.standard_fields_ends[1]
     }
 
     pub fn feature_end_range(&self) -> Range<usize> {
-        self.feature_start_end..self.feature_end_end
+        self.standard_fields_ends[1]..self.standard_fields_ends[2]
     }
 
     pub fn get(&self, i: usize) -> Option<Range<usize>> {
@@ -27,18 +25,16 @@ impl Bounds {
         let start = i
             .checked_sub(1)
             .and_then(|prev_i| self.other_fields_ends.get(prev_i).copied())
-            .unwrap_or(self.feature_end_end);
+            .unwrap_or(self.standard_fields_ends[N - 1]);
 
         Some(start..end)
     }
 }
 
-impl Default for Bounds {
+impl Default for Bounds<3> {
     fn default() -> Self {
         Self {
-            reference_sequence_name_end: 3,
-            feature_start_end: 4,
-            feature_end_end: 5,
+            standard_fields_ends: [3, 4, 5],
             other_fields_ends: Vec::new(),
         }
     }
