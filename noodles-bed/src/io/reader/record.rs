@@ -9,6 +9,8 @@ pub(super) fn read_record<R, const N: usize>(
 where
     R: BufRead,
 {
+    let standard_field_count = record.standard_field_count();
+
     let fields = &mut record.0;
 
     let dst = &mut fields.buf;
@@ -17,7 +19,10 @@ where
     let bounds = &mut fields.bounds;
     bounds.other_fields_ends.clear();
 
-    let (mut len, is_eol) = read_required_fields(reader, dst, bounds)?;
+    let (mut len, is_eol) = match standard_field_count {
+        3 => read_required_fields_3(reader, dst, bounds)?,
+        _ => todo!(),
+    };
 
     if !is_eol {
         len += read_other_fields(reader, dst, bounds)?;
@@ -26,10 +31,10 @@ where
     Ok(len)
 }
 
-fn read_required_fields<R>(
+fn read_required_fields_3<R, const N: usize>(
     reader: &mut R,
     dst: &mut Vec<u8>,
-    bounds: &mut Bounds,
+    bounds: &mut Bounds<N>,
 ) -> io::Result<(usize, bool)>
 where
     R: BufRead,
@@ -37,19 +42,23 @@ where
     let mut len = 0;
 
     len += read_required_field(reader, dst)?;
-    bounds.reference_sequence_name_end = dst.len();
+    bounds.standard_fields_ends[0] = dst.len();
 
     len += read_required_field(reader, dst)?;
-    bounds.feature_start_end = dst.len();
+    bounds.standard_fields_ends[1] = dst.len();
 
     let (n, is_eol) = read_field(reader, dst)?;
     len += n;
-    bounds.feature_end_end = dst.len();
+    bounds.standard_fields_ends[2] = dst.len();
 
     Ok((len, is_eol))
 }
 
-fn read_other_fields<R>(reader: &mut R, dst: &mut Vec<u8>, bounds: &mut Bounds) -> io::Result<usize>
+fn read_other_fields<R, const N: usize>(
+    reader: &mut R,
+    dst: &mut Vec<u8>,
+    bounds: &mut Bounds<N>,
+) -> io::Result<usize>
 where
     R: BufRead,
 {

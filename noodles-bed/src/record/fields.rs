@@ -9,12 +9,12 @@ pub(crate) use self::bounds::Bounds;
 use crate::feature::record_buf::Strand;
 
 #[derive(Clone, Eq, PartialEq)]
-pub(crate) struct Fields {
+pub(crate) struct Fields<const N: usize> {
     pub(crate) buf: Vec<u8>,
-    pub(crate) bounds: Bounds,
+    pub(crate) bounds: Bounds<N>,
 }
 
-impl Fields {
+impl<const N: usize> Fields<N> {
     pub(super) fn reference_sequence_name(&self) -> &[u8] {
         &self.buf[self.bounds.reference_sequence_name_range()]
     }
@@ -66,7 +66,7 @@ impl Fields {
     }
 }
 
-impl Default for Fields {
+impl Default for Fields<3> {
     fn default() -> Self {
         Self {
             buf: Vec::from(*b"sq001"),
