@@ -99,6 +99,8 @@ impl Record {
     }
 
     /// Returns the alignment start.
+    ///
+    /// This position is 1-based, inclusive.
     pub fn alignment_start(&self) -> Option<Position> {
         self.alignment_start
     }
@@ -109,6 +111,8 @@ impl Record {
     }
 
     /// Returns the alignment end.
+    ///
+    /// This position is 1-based, inclusive.
     pub fn alignment_end(&self) -> Option<Position> {
         self.alignment_start().and_then(|alignment_start| {
             let end = usize::from(alignment_start) + self.alignment_span() - 1;

@@ -85,7 +85,7 @@ impl Record {
 
     /// Returns the start position.
     ///
-    /// This value is 1-based.
+    /// This position is 1-based, inclusive.
     ///
     /// # Examples
     ///
@@ -101,7 +101,7 @@ impl Record {
 
     /// Returns the end position.
     ///
-    /// This value is 1-based.
+    /// This position is 1-based, inclusive.
     ///
     /// # Examples
     ///

@@ -83,7 +83,8 @@ impl RecordBuf {
 
     /// Returns the variant start position.
     ///
-    /// If the record represents the start of a telomeric breakend, this returns `None`.
+    /// This position is 1-based, inclusive. If the record represents the start of a telomeric
+    /// breakend, this returns `None`.
     ///
     /// # Examples
     ///
@@ -103,7 +104,8 @@ impl RecordBuf {
 
     /// Returns a mutable reference to the variant start position.
     ///
-    /// If the record represents the start of a telomeric breakend, this returns `None`.
+    /// This position is 1-based, inclusive. If the record represents the start of a telomeric
+    /// breakend, this returns `None`.
     ///
     /// # Examples
     ///

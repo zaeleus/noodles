@@ -23,6 +23,8 @@ pub trait Record {
     fn reference_sequence_name<'a, 'h: 'a>(&'a self, header: &'h Header) -> io::Result<&'a str>;
 
     /// Returns the variant start position.
+    ///
+    /// This position is 1-based, inclusive.
     fn variant_start(&self) -> Option<io::Result<Position>>;
 
     /// Returns the IDs.
@@ -57,6 +59,8 @@ pub trait Record {
     ///
     /// If available, this returns the value of the `END` INFO field. Otherwise, it is calculated
     /// using the [variant start position] and [reference bases length].
+    ///
+    /// This position is 1-based, inclusive.
     ///
     /// [variant start position]: `Self::variant_start`
     /// [reference bases length]: `ReferenceBases::len`

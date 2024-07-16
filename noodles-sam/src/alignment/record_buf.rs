@@ -145,6 +145,8 @@ impl RecordBuf {
 
     /// Returns the alignment start.
     ///
+    /// This position is 1-based, inclusive.
+    ///
     /// # Examples
     ///
     /// ```
@@ -157,6 +159,8 @@ impl RecordBuf {
     }
 
     /// Returns a mutable reference to the alignment start.
+    ///
+    /// This position is 1-based, inclusive.
     ///
     /// # Examples
     ///
@@ -264,6 +268,8 @@ impl RecordBuf {
 
     /// Returns the mate alignment start.
     ///
+    /// This position is 1-based, inclusive.
+    ///
     /// # Examples
     ///
     /// ```
@@ -276,6 +282,8 @@ impl RecordBuf {
     }
 
     /// Returns a mutable reference to the mate alignment start.
+    ///
+    /// This position is 1-based, inclusive.
     ///
     /// # Examples
     ///

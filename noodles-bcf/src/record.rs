@@ -85,8 +85,7 @@ impl Record {
 
     /// Returns the variant start position.
     ///
-    /// Despite the BCF format using 0-based positions, this normalizes the value as a 1-based
-    /// position.
+    /// This position is 1-based, inclusive.
     ///
     /// # Examples
     ///
@@ -113,7 +112,7 @@ impl Record {
 
     /// Returns the end position of this record.
     ///
-    /// This value is 1-based.
+    /// This position is 1-based, inclusive.
     ///
     /// # Examples
     ///

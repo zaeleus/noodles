@@ -38,6 +38,8 @@ pub trait Record {
         -> Option<io::Result<usize>>;
 
     /// Returns the alignment start.
+    ///
+    /// This position is 1-based, inclusive.
     fn alignment_start(&self) -> Option<io::Result<core::Position>>;
 
     /// Returns the mapping quality.
@@ -53,6 +55,8 @@ pub trait Record {
     ) -> Option<io::Result<usize>>;
 
     /// Returns the mate alignment start.
+    ///
+    /// This position is 1-based, inclusive.
     fn mate_alignment_start(&self) -> Option<io::Result<core::Position>>;
 
     /// Returns the template length.
@@ -102,6 +106,8 @@ pub trait Record {
     }
 
     /// Calculates the end position.
+    ///
+    /// This position is 1-based, inclusive.
     fn alignment_end(&self) -> Option<io::Result<core::Position>> {
         let start = match self.alignment_start().transpose() {
             Ok(position) => position?,

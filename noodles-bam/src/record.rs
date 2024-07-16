@@ -47,6 +47,8 @@ impl Record {
 
     /// Returns the alignment start.
     ///
+    /// This position is 1-based, inclusive.
+    ///
     /// # Examples
     ///
     /// ```
@@ -101,6 +103,8 @@ impl Record {
     }
 
     /// Returns the mate alignment start.
+    ///
+    /// This position is 1-based, inclusive.
     ///
     /// # Examples
     ///
