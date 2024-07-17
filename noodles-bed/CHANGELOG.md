@@ -12,6 +12,10 @@
 
     Use a BED record reader and writer, respectively, instead.
 
+  * bed/io/reader: Remove `Reader::read_line`.
+
+    Read into a `Record<N>` buffer instead.
+
 ## 0.15.0 - 2024-06-17
 
 ### Changed
