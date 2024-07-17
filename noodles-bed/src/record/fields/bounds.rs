@@ -31,6 +31,12 @@ impl<const N: usize> Bounds<N> {
     }
 }
 
+impl Bounds<4> {
+    pub fn name_range(&self) -> Range<usize> {
+        self.standard_fields_ends[2]..self.standard_fields_ends[3]
+    }
+}
+
 impl Default for Bounds<3> {
     fn default() -> Self {
         Self {

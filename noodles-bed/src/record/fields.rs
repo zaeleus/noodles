@@ -46,11 +46,6 @@ impl<const N: usize> Fields<N> {
         }
     }
 
-    pub(super) fn name(&self) -> Option<&[u8]> {
-        const NAME_INDEX: usize = 0;
-        self.get(NAME_INDEX)
-    }
-
     pub(super) fn score(&self) -> Option<io::Result<u16>> {
         const SCORE_INDEX: usize = 1;
         self.get(SCORE_INDEX).map(parse_int)
@@ -63,6 +58,12 @@ impl<const N: usize> Fields<N> {
 
     pub(super) fn get(&self, i: usize) -> Option<&[u8]> {
         self.bounds.get(i).map(|range| &self.buf[range])
+    }
+}
+
+impl Fields<4> {
+    pub(super) fn name(&self) -> &[u8] {
+        &self.buf[self.bounds.name_range()]
     }
 }
 
