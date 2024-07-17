@@ -30,11 +30,6 @@ impl<const N: usize> Record<N> {
         self.0.feature_end()
     }
 
-    /// Returns the name.
-    pub fn name(&self) -> Option<&[u8]> {
-        self.0.name()
-    }
-
     /// Returns the score.
     pub fn score(&self) -> Option<io::Result<u16>> {
         self.0.score()
@@ -62,6 +57,13 @@ impl<const N: usize> Record<N> {
     /// Returns the number of standard fields.
     pub const fn standard_field_count(&self) -> usize {
         N
+    }
+}
+
+impl Record<4> {
+    /// Returns the name.
+    pub fn name(&self) -> &[u8] {
+        self.0.name()
     }
 }
 
