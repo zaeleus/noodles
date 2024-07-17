@@ -22,6 +22,7 @@ where
     let (mut len, is_eol) = match standard_field_count {
         3 => read_required_fields_3(reader, dst, bounds)?,
         4 => read_required_fields_4(reader, dst, bounds)?,
+        5 => read_required_fields_5(reader, dst, bounds)?,
         _ => todo!(),
     };
 
@@ -72,6 +73,27 @@ where
     let (n, is_eol) = read_field(reader, dst)?;
     len += n;
     bounds.standard_fields_ends[3] = dst.len();
+
+    Ok((len, is_eol))
+}
+
+fn read_required_fields_5<R, const N: usize>(
+    reader: &mut R,
+    dst: &mut Vec<u8>,
+    bounds: &mut Bounds<N>,
+) -> io::Result<(usize, bool)>
+where
+    R: BufRead,
+{
+    let (mut len, is_eof) = read_required_fields_4(reader, dst, bounds)?;
+
+    if is_eof {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
+
+    let (n, is_eol) = read_field(reader, dst)?;
+    len += n;
+    bounds.standard_fields_ends[4] = dst.len();
 
     Ok((len, is_eol))
 }
