@@ -47,6 +47,20 @@ impl Bounds<5> {
     }
 }
 
+impl Bounds<6> {
+    pub fn name_range(&self) -> Range<usize> {
+        self.standard_fields_ends[2]..self.standard_fields_ends[3]
+    }
+
+    pub fn score_range(&self) -> Range<usize> {
+        self.standard_fields_ends[3]..self.standard_fields_ends[4]
+    }
+
+    pub fn strand_range(&self) -> Range<usize> {
+        self.standard_fields_ends[4]..self.standard_fields_ends[5]
+    }
+}
+
 impl Default for Bounds<3> {
     fn default() -> Self {
         Self {
