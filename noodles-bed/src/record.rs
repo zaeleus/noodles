@@ -30,11 +30,6 @@ impl<const N: usize> Record<N> {
         self.0.feature_end()
     }
 
-    /// Returns the score.
-    pub fn score(&self) -> Option<io::Result<u16>> {
-        self.0.score()
-    }
-
     /// Returns the strand.
     pub fn strand(&self) -> Option<io::Result<Option<Strand>>> {
         self.0.strand()
@@ -64,6 +59,18 @@ impl Record<4> {
     /// Returns the name.
     pub fn name(&self) -> &[u8] {
         self.0.name()
+    }
+}
+
+impl Record<5> {
+    /// Returns the name.
+    pub fn name(&self) -> &[u8] {
+        self.0.name()
+    }
+
+    /// Returns the score.
+    pub fn score(&self) -> io::Result<u16> {
+        self.0.score()
     }
 }
 
