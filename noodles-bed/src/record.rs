@@ -90,6 +90,12 @@ impl Default for Record<4> {
     }
 }
 
+impl Default for Record<5> {
+    fn default() -> Self {
+        Self(Fields::default())
+    }
+}
+
 impl<const N: usize> crate::feature::Record for Record<N> {
     fn reference_sequence_name(&self) -> &[u8] {
         self.reference_sequence_name()
