@@ -58,6 +58,15 @@ impl Default for Bounds<5> {
     }
 }
 
+impl Default for Bounds<6> {
+    fn default() -> Self {
+        Self {
+            standard_fields_ends: [3, 4, 5, 6, 7, 8],
+            other_fields_ends: Vec::new(),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
