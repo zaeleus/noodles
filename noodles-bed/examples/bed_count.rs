@@ -13,9 +13,9 @@ fn main() -> io::Result<()> {
 
     let mut reader = File::open(src)
         .map(BufReader::new)
-        .map(bed::io::Reader::new)?;
+        .map(bed::io::Reader::<_, 3>::new)?;
 
-    let mut record = bed::Record::<3>::default();
+    let mut record = bed::Record::default();
     let mut n = 0;
 
     while reader.read_record(&mut record)? != 0 {
