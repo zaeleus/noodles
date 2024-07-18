@@ -2,15 +2,10 @@ use std::io::{self, BufRead};
 
 use crate::{record::fields::Bounds, Record};
 
-pub(super) fn read_record<R, const N: usize>(
-    reader: &mut R,
-    record: &mut Record<N>,
-) -> io::Result<usize>
+pub(super) fn read_record_3<R>(reader: &mut R, record: &mut Record<3>) -> io::Result<usize>
 where
     R: BufRead,
 {
-    let standard_field_count = record.standard_field_count();
-
     let fields = &mut record.0;
 
     let dst = &mut fields.buf;
@@ -19,29 +14,6 @@ where
     let bounds = &mut fields.bounds;
     bounds.other_fields_ends.clear();
 
-    let (mut len, is_eol) = match standard_field_count {
-        3 => read_required_fields_3(reader, dst, bounds)?,
-        4 => read_required_fields_4(reader, dst, bounds)?,
-        5 => read_required_fields_5(reader, dst, bounds)?,
-        6 => read_required_fields_6(reader, dst, bounds)?,
-        _ => todo!(),
-    };
-
-    if !is_eol {
-        len += read_other_fields(reader, dst, bounds)?;
-    }
-
-    Ok(len)
-}
-
-fn read_required_fields_3<R, const N: usize>(
-    reader: &mut R,
-    dst: &mut Vec<u8>,
-    bounds: &mut Bounds<N>,
-) -> io::Result<(usize, bool)>
-where
-    R: BufRead,
-{
     let mut len = 0;
 
     len += read_required_field(reader, dst)?;
@@ -54,70 +26,122 @@ where
     len += n;
     bounds.standard_fields_ends[2] = dst.len();
 
-    Ok((len, is_eol))
+    if !is_eol {
+        len += read_other_fields(reader, dst, bounds)?;
+    }
+
+    Ok(len)
 }
 
-fn read_required_fields_4<R, const N: usize>(
-    reader: &mut R,
-    dst: &mut Vec<u8>,
-    bounds: &mut Bounds<N>,
-) -> io::Result<(usize, bool)>
+pub(super) fn read_record_4<R>(reader: &mut R, record: &mut Record<4>) -> io::Result<usize>
 where
     R: BufRead,
 {
-    let (mut len, is_eof) = read_required_fields_3(reader, dst, bounds)?;
+    let fields = &mut record.0;
 
-    if is_eof {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
+    let dst = &mut fields.buf;
+    dst.clear();
+
+    let bounds = &mut fields.bounds;
+    bounds.other_fields_ends.clear();
+
+    let mut len = 0;
+
+    len += read_required_field(reader, dst)?;
+    bounds.standard_fields_ends[0] = dst.len();
+
+    len += read_required_field(reader, dst)?;
+    bounds.standard_fields_ends[1] = dst.len();
+
+    len += read_required_field(reader, dst)?;
+    bounds.standard_fields_ends[2] = dst.len();
 
     let (n, is_eol) = read_field(reader, dst)?;
     len += n;
     bounds.standard_fields_ends[3] = dst.len();
 
-    Ok((len, is_eol))
+    if !is_eol {
+        len += read_other_fields(reader, dst, bounds)?;
+    }
+
+    Ok(len)
 }
 
-fn read_required_fields_5<R, const N: usize>(
-    reader: &mut R,
-    dst: &mut Vec<u8>,
-    bounds: &mut Bounds<N>,
-) -> io::Result<(usize, bool)>
+pub(super) fn read_record_5<R>(reader: &mut R, record: &mut Record<5>) -> io::Result<usize>
 where
     R: BufRead,
 {
-    let (mut len, is_eof) = read_required_fields_4(reader, dst, bounds)?;
+    let fields = &mut record.0;
 
-    if is_eof {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
+    let dst = &mut fields.buf;
+    dst.clear();
+
+    let bounds = &mut fields.bounds;
+    bounds.other_fields_ends.clear();
+
+    let mut len = 0;
+
+    len += read_required_field(reader, dst)?;
+    bounds.standard_fields_ends[0] = dst.len();
+
+    len += read_required_field(reader, dst)?;
+    bounds.standard_fields_ends[1] = dst.len();
+
+    len += read_required_field(reader, dst)?;
+    bounds.standard_fields_ends[2] = dst.len();
+
+    len += read_required_field(reader, dst)?;
+    bounds.standard_fields_ends[3] = dst.len();
 
     let (n, is_eol) = read_field(reader, dst)?;
     len += n;
     bounds.standard_fields_ends[4] = dst.len();
 
-    Ok((len, is_eol))
+    if !is_eol {
+        len += read_other_fields(reader, dst, bounds)?;
+    }
+
+    Ok(len)
 }
 
-fn read_required_fields_6<R, const N: usize>(
-    reader: &mut R,
-    dst: &mut Vec<u8>,
-    bounds: &mut Bounds<N>,
-) -> io::Result<(usize, bool)>
+pub(super) fn read_record_6<R>(reader: &mut R, record: &mut Record<6>) -> io::Result<usize>
 where
     R: BufRead,
 {
-    let (mut len, is_eof) = read_required_fields_5(reader, dst, bounds)?;
+    let fields = &mut record.0;
 
-    if is_eof {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
+    let dst = &mut fields.buf;
+    dst.clear();
+
+    let bounds = &mut fields.bounds;
+    bounds.other_fields_ends.clear();
+
+    let mut len = 0;
+
+    len += read_required_field(reader, dst)?;
+    bounds.standard_fields_ends[0] = dst.len();
+
+    len += read_required_field(reader, dst)?;
+    bounds.standard_fields_ends[1] = dst.len();
+
+    len += read_required_field(reader, dst)?;
+    bounds.standard_fields_ends[2] = dst.len();
+
+    len += read_required_field(reader, dst)?;
+    bounds.standard_fields_ends[3] = dst.len();
+
+    len += read_required_field(reader, dst)?;
+    bounds.standard_fields_ends[4] = dst.len();
 
     let (n, is_eol) = read_field(reader, dst)?;
     len += n;
     bounds.standard_fields_ends[5] = dst.len();
 
-    Ok((len, is_eol))
+    if !is_eol {
+        len += read_other_fields(reader, dst, bounds)?;
+    }
+
+    Ok(len)
 }
 
 fn read_other_fields<R, const N: usize>(
@@ -208,21 +232,21 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_record() -> io::Result<()> {
-        let mut record = Record::<3>::default();
+    fn test_read_record_3() -> io::Result<()> {
+        let mut record = Record::default();
 
         let mut src = &b"sq0\t0\t1\n"[..];
-        read_record(&mut src, &mut record)?;
+        read_record_3(&mut src, &mut record)?;
         assert_eq!(record.0.buf, b"sq001");
         assert_eq!(record.0.bounds, Bounds::default());
 
         let mut src = &b"sq0\t0\t1\r\n"[..];
-        read_record(&mut src, &mut record)?;
+        read_record_3(&mut src, &mut record)?;
         assert_eq!(record.0.buf, b"sq001");
         assert_eq!(record.0.bounds, Bounds::default());
 
         let mut src = &b"sq0\t0\t1\t.\n"[..];
-        read_record(&mut src, &mut record)?;
+        read_record_3(&mut src, &mut record)?;
         assert_eq!(record.0.buf, b"sq001.");
         let mut bounds = Bounds::default();
         bounds.other_fields_ends.push(6);
