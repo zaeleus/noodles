@@ -30,6 +30,22 @@ impl<'a> Sequence<'a> {
         self.base_count
     }
 
+    /// Returns the base at the given index.
+    pub fn get(&self, i: usize) -> Option<u8> {
+        if i < self.len() {
+            let j = i / 2;
+            let b = self.src[j];
+
+            if i % 2 == 0 {
+                Some(decode_base(b >> 4))
+            } else {
+                Some(decode_base(b))
+            }
+        } else {
+            None
+        }
+    }
+
     /// Returns an iterator over the bases in the sequence.
     pub fn iter(&self) -> impl Iterator<Item = u8> + '_ {
         Iter::new(self.as_ref(), self.len())
@@ -115,6 +131,15 @@ fn decode_base(n: u8) -> u8 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_get() {
+        let sequence = Sequence::new(&[0x12, 0x40], 3);
+        assert_eq!(sequence.get(0), Some(b'A'));
+        assert_eq!(sequence.get(1), Some(b'C'));
+        assert_eq!(sequence.get(2), Some(b'G'));
+        assert!(sequence.get(3).is_none());
+    }
 
     #[test]
     fn test_debug_fmt() {

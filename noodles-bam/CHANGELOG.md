@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bam/record/sequence: Add get base at index (`Sequence::get`).
+
 ## 0.65.0 - 2024-07-14
 
 ### Changed
