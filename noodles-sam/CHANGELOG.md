@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * sam/alignment/record/sequence: Add get base by index (`Sequence::get`)
+    ([#283]).
+
+[#283]: https://github.com/zaeleus/noodles/issues/283
+
 ## 0.62.0 - 2024-07-14
 
 ### Changed

@@ -6,6 +6,9 @@ pub trait Sequence {
     /// Returns the number of bases.
     fn len(&self) -> usize;
 
+    /// Returns the base at the given index.
+    fn get(&self, i: usize) -> Option<u8>;
+
     /// Returns an iterator over bases.
     fn iter(&self) -> Box<dyn Iterator<Item = u8> + '_>;
 }
@@ -28,6 +31,10 @@ impl Sequence for Box<dyn Sequence + '_> {
         (**self).len()
     }
 
+    fn get(&self, i: usize) -> Option<u8> {
+        (**self).get(i)
+    }
+
     fn iter(&self) -> Box<dyn Iterator<Item = u8> + '_> {
         (**self).iter()
     }
@@ -48,6 +55,10 @@ mod tests {
 
             fn len(&self) -> usize {
                 self.0.len()
+            }
+
+            fn get(&self, i: usize) -> Option<u8> {
+                self.0.get(i).copied()
             }
 
             fn iter(&self) -> Box<dyn Iterator<Item = u8> + '_> {

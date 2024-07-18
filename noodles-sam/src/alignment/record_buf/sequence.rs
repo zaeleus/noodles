@@ -16,6 +16,11 @@ impl Sequence {
     pub fn len(&self) -> usize {
         self.0.len()
     }
+
+    /// Returns the base at the given index.
+    pub fn get(&self, i: usize) -> Option<u8> {
+        self.0.get(i).copied()
+    }
 }
 
 impl AsRef<[u8]> for Sequence {
@@ -81,6 +86,10 @@ impl crate::alignment::record::Sequence for &Sequence {
 
     fn len(&self) -> usize {
         self.0.len()
+    }
+
+    fn get(&self, i: usize) -> Option<u8> {
+        self.0.get(i).copied()
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = u8> + '_> {

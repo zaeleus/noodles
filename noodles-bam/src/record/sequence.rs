@@ -61,6 +61,10 @@ impl<'a> sam::alignment::record::Sequence for Sequence<'a> {
         self.len()
     }
 
+    fn get(&self, i: usize) -> Option<u8> {
+        self.get(i)
+    }
+
     fn iter(&self) -> Box<dyn Iterator<Item = u8> + '_> {
         Box::new(self.iter())
     }

@@ -12,6 +12,11 @@ impl<'a> Sequence<'a> {
         self.0.is_empty()
     }
 
+    /// Returns the base at the given index.
+    pub fn get(&self, i: usize) -> Option<u8> {
+        self.0.get(i).copied()
+    }
+
     /// Returns the number of bases in the sequence.
     pub fn len(&self) -> usize {
         self.0.len()
@@ -31,6 +36,10 @@ impl<'a> crate::alignment::record::Sequence for Sequence<'a> {
 
     fn len(&self) -> usize {
         self.len()
+    }
+
+    fn get(&self, i: usize) -> Option<u8> {
+        self.get(i)
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = u8> + '_> {
