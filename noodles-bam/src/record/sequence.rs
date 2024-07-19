@@ -48,7 +48,7 @@ impl<'a> Sequence<'a> {
 
     /// Returns an iterator over the bases in the sequence.
     pub fn iter(&self) -> impl Iterator<Item = u8> + '_ {
-        Iter::new(self.as_ref(), self.len())
+        Iter::new(self.as_ref(), 0, self.len())
     }
 }
 
