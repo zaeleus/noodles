@@ -24,7 +24,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut writer = sam::AsyncWriter::new(io::stdout());
 
-    let mut records = reader.record_bufs(&header);
+    let mut records = reader.records();
 
     while let Some(record) = records.try_next().await? {
         writer.write_alignment_record(&header, &record).await?;
