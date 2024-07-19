@@ -4,7 +4,8 @@
 
 ### Added
 
-  * bam/record/sequence: Add get base at index (`Sequence::get`).
+  * bam/record/sequence: Add get base at index (`Sequence::get`) and checked
+    split at (`Sequence::split_at_checked`).
 
 ## 0.65.0 - 2024-07-14
 

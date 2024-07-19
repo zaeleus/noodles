@@ -1,10 +1,12 @@
 mod iter;
+mod subsequence;
 
 use std::fmt::{self, Write};
 
 use noodles_sam as sam;
 
 use self::iter::Iter;
+pub use self::subsequence::Subsequence;
 
 /// A BAM record sequence.
 #[derive(Eq, PartialEq)]
@@ -41,6 +43,21 @@ impl<'a> Sequence<'a> {
             } else {
                 Some(decode_base(b))
             }
+        } else {
+            None
+        }
+    }
+
+    /// Splits the sequence into two subsequences at the given index.
+    ///
+    /// The left split contains bases from `[0, mid)`; and the right, `[mid, len)`. If `mid` is
+    /// > `len`, this returns `None`.
+    pub fn split_at_checked(&'a self, mid: usize) -> Option<(Subsequence<'a>, Subsequence<'a>)> {
+        if mid <= self.len() {
+            Some((
+                Subsequence::new(self.as_ref(), 0, mid),
+                Subsequence::new(self.as_ref(), mid, self.len()),
+            ))
         } else {
             None
         }
@@ -143,6 +160,24 @@ mod tests {
         assert_eq!(sequence.get(1), Some(b'C'));
         assert_eq!(sequence.get(2), Some(b'G'));
         assert!(sequence.get(3).is_none());
+    }
+
+    #[test]
+    fn test_split_at_checked() {
+        let src = [0x10];
+        let sequence = Sequence::new(&src, 1);
+
+        assert_eq!(
+            sequence.split_at_checked(0),
+            Some((Subsequence::new(&src, 0, 0), Subsequence::new(&src, 0, 1)))
+        );
+
+        assert_eq!(
+            sequence.split_at_checked(1),
+            Some((Subsequence::new(&src, 0, 1), Subsequence::new(&src, 1, 1)))
+        );
+
+        assert!(sequence.split_at_checked(2).is_none());
     }
 
     #[test]
