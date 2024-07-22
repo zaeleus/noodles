@@ -1,4 +1,4 @@
-use super::Iter;
+use super::{decode_base, Iter};
 
 /// A BAM record subsequence.
 #[derive(Debug, Eq, PartialEq)]
@@ -22,6 +22,24 @@ impl<'a> Subsequence<'a> {
     /// Returns the number of bases.
     pub fn len(&self) -> usize {
         self.end - self.start
+    }
+
+    /// Returns the base at the given index.
+    pub fn get(&self, i: usize) -> Option<u8> {
+        let j = self.start + i;
+
+        if j < self.end {
+            let k = j / 2;
+            let b = self.src[k];
+
+            if j % 2 == 0 {
+                Some(decode_base(b >> 4))
+            } else {
+                Some(decode_base(b))
+            }
+        } else {
+            None
+        }
     }
 
     /// Returns an iterator over the bases in the subsequence.
@@ -52,6 +70,15 @@ mod tests {
 
         let subsequence = Subsequence::new(SRC, 0, 2);
         assert_eq!(subsequence.len(), 2);
+    }
+
+    #[test]
+    fn test_get() {
+        let subsequence = Subsequence::new(SRC, 0, 0);
+        assert!(subsequence.get(0).is_none());
+
+        let subsequence = Subsequence::new(SRC, 1, 2);
+        assert_eq!(subsequence.get(0), Some(b'C'));
     }
 
     #[test]
