@@ -1,3 +1,5 @@
+use noodles_sam as sam;
+
 use super::{decode_base, Iter};
 
 /// A BAM record subsequence.
@@ -59,6 +61,24 @@ impl<'a> Subsequence<'a> {
     /// Returns an iterator over the bases in the subsequence.
     pub fn iter(&self) -> impl Iterator<Item = u8> + '_ {
         Iter::new(self.src, self.start, self.end)
+    }
+}
+
+impl<'a> sam::alignment::record::Sequence for Subsequence<'a> {
+    fn is_empty(&self) -> bool {
+        self.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        self.len()
+    }
+
+    fn get(&self, i: usize) -> Option<u8> {
+        self.get(i)
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = u8> + '_> {
+        Box::new(self.iter())
     }
 }
 
