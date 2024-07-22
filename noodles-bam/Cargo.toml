@@ -14,7 +14,6 @@ documentation = "https://docs.rs/noodles-bam"
 async = ["dep:futures", "dep:tokio", "noodles-bgzf/async"]
 
 [dependencies]
-bit-vec.workspace = true
 bstr.workspace = true
 byteorder.workspace = true
 bytes.workspace = true
