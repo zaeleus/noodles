@@ -4,6 +4,12 @@
 
 ### Changed
 
+  * csi: Update to bit-vec 0.8.0.
+
+## 0.37.0 - 2024-07-14
+
+### Changed
+
   * csi: Update to bit-vec 0.7.0.
 
 ## 0.36.0 - 2024-06-17

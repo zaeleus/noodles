@@ -14,7 +14,7 @@ documentation = "https://docs.rs/noodles-csi"
 async = ["dep:tokio", "noodles-bgzf/async"]
 
 [dependencies]
-bit-vec.workspace = true
+bit-vec = "0.7.0"
 byteorder.workspace = true
 indexmap.workspace = true
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.32.0" }
