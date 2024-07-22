@@ -5,7 +5,7 @@
 ### Added
 
   * sam/alignment/record/sequence: Add get base by index (`Sequence::get`)
-    ([#283]).
+    ([#283]) and checked split at (`Sequence::split_at_checked`).
 
 [#283]: https://github.com/zaeleus/noodles/issues/283
 

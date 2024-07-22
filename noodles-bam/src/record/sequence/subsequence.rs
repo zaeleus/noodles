@@ -77,6 +77,21 @@ impl<'a> sam::alignment::record::Sequence for Subsequence<'a> {
         self.get(i)
     }
 
+    fn split_at_checked(
+        &self,
+        mid: usize,
+    ) -> Option<(
+        Box<dyn sam::alignment::record::Sequence + '_>,
+        Box<dyn sam::alignment::record::Sequence + '_>,
+    )> {
+        self.split_at_checked(mid).map(|(left, right)| {
+            (
+                Box::new(left) as Box<dyn sam::alignment::record::Sequence + '_>,
+                Box::new(right) as Box<dyn sam::alignment::record::Sequence + '_>,
+            )
+        })
+    }
+
     fn iter(&self) -> Box<dyn Iterator<Item = u8> + '_> {
         Box::new(self.iter())
     }

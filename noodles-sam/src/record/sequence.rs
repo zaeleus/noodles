@@ -3,7 +3,7 @@
 pub struct Sequence<'a>(&'a [u8]);
 
 impl<'a> Sequence<'a> {
-    pub(super) fn new(buf: &'a [u8]) -> Self {
+    pub(crate) fn new(buf: &'a [u8]) -> Self {
         Self(buf)
     }
 
@@ -40,6 +40,24 @@ impl<'a> crate::alignment::record::Sequence for Sequence<'a> {
 
     fn get(&self, i: usize) -> Option<u8> {
         self.get(i)
+    }
+
+    fn split_at_checked(
+        &self,
+        mid: usize,
+    ) -> Option<(
+        Box<dyn crate::alignment::record::Sequence + '_>,
+        Box<dyn crate::alignment::record::Sequence + '_>,
+    )> {
+        if mid <= self.len() {
+            let (left, right) = self.0.split_at(mid);
+            Some((
+                Box::new(Sequence::new(left)),
+                Box::new(Sequence::new(right)),
+            ))
+        } else {
+            None
+        }
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = u8> + '_> {
