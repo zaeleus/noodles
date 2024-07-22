@@ -42,6 +42,20 @@ impl<'a> Subsequence<'a> {
         }
     }
 
+    /// Splits the subsequence into two subsequences at the given index.
+    pub fn split_at_checked(&self, mid: usize) -> Option<(Self, Self)> {
+        let mid = self.start + mid;
+
+        if mid <= self.end {
+            Some((
+                Self::new(self.src, self.start, mid),
+                Self::new(self.src, mid, self.end),
+            ))
+        } else {
+            None
+        }
+    }
+
     /// Returns an iterator over the bases in the subsequence.
     pub fn iter(&self) -> impl Iterator<Item = u8> + '_ {
         Iter::new(self.src, self.start, self.end)
@@ -79,6 +93,19 @@ mod tests {
 
         let subsequence = Subsequence::new(SRC, 1, 2);
         assert_eq!(subsequence.get(0), Some(b'C'));
+    }
+
+    #[test]
+    fn test_split_at_checked() {
+        let src = [0x12, 0x48];
+        let subsequence = Subsequence::new(&src, 1, 3);
+
+        assert_eq!(
+            subsequence.split_at_checked(1),
+            Some((Subsequence::new(&src, 1, 2), Subsequence::new(&src, 2, 3)))
+        );
+
+        assert!(subsequence.split_at_checked(4).is_none());
     }
 
     #[test]
