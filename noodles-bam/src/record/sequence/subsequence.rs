@@ -29,3 +29,37 @@ impl<'a> Subsequence<'a> {
         Iter::new(self.src, self.start, self.end)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const SRC: &[u8] = &[0x12];
+
+    #[test]
+    fn test_is_empty() {
+        let subsequence = Subsequence::new(SRC, 0, 0);
+        assert!(subsequence.is_empty());
+
+        let subsequence = Subsequence::new(SRC, 0, 2);
+        assert!(!subsequence.is_empty());
+    }
+
+    #[test]
+    fn test_len() {
+        let subsequence = Subsequence::new(SRC, 0, 0);
+        assert_eq!(subsequence.len(), 0);
+
+        let subsequence = Subsequence::new(SRC, 0, 2);
+        assert_eq!(subsequence.len(), 2);
+    }
+
+    #[test]
+    fn test_iter() {
+        let subsequence = Subsequence::new(SRC, 0, 0);
+        assert!(subsequence.iter().next().is_none());
+
+        let subsequence = Subsequence::new(SRC, 0, 2);
+        assert_eq!(subsequence.iter().collect::<Vec<_>>(), [b'A', b'C']);
+    }
+}
