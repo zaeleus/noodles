@@ -14,7 +14,6 @@ documentation = "https://docs.rs/noodles-tabix"
 async = ["dep:tokio", "noodles-bgzf/async"]
 
 [dependencies]
-bit-vec.workspace = true
 byteorder.workspace = true
 indexmap.workspace = true
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.32.0" }
