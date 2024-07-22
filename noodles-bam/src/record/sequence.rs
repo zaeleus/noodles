@@ -95,17 +95,15 @@ impl<'a> AsRef<[u8]> for Sequence<'a> {
 
 impl<'a> fmt::Debug for Sequence<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        struct BasesFormat<'a>(&'a [u8], usize);
+        struct BasesFormat<'a>(&'a Sequence<'a>);
 
         impl<'a> fmt::Debug for BasesFormat<'a> {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                use self::iter::decoded_bases;
-
                 f.write_char('"')?;
 
-                let BasesFormat(src, base_count) = *self;
+                let BasesFormat(sequence) = self;
 
-                for b in src.iter().copied().flat_map(decoded_bases).take(base_count) {
+                for b in sequence.iter() {
                     f.write_char(char::from(b))?;
                 }
 
@@ -115,9 +113,7 @@ impl<'a> fmt::Debug for Sequence<'a> {
             }
         }
 
-        f.debug_tuple("Sequence")
-            .field(&BasesFormat(self.src, self.base_count))
-            .finish()
+        f.debug_tuple("Sequence").field(&BasesFormat(self)).finish()
     }
 }
 
