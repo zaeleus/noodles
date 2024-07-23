@@ -13,10 +13,31 @@ use crate::variant::io::{CompressionMethod, Format};
 
 /// An async variant reader builder.
 #[derive(Default)]
-pub struct Builder;
+pub struct Builder {
+    compression_method: Option<Option<CompressionMethod>>,
+}
 
 impl Builder {
+    /// Sets the compression method of the input.
+    ///
+    /// By default, the compression method is autodetected on build. This can be used to override
+    /// it.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_util::variant::{r#async::io::reader::Builder, io::CompressionMethod};
+    /// let _builder = Builder::default().set_compression_method(Some(CompressionMethod::Bgzf));
+    /// ```
+    pub fn set_compression_method(mut self, compression: Option<CompressionMethod>) -> Self {
+        self.compression_method = Some(compression);
+        self
+    }
+
     /// Builds an async variant reader from a path.
+    ///
+    /// By default, the compression method will be autodetected. This can be overridden by using
+    /// [`Self::set_compression_method`].
     ///
     /// # Examples
     ///
@@ -41,6 +62,9 @@ impl Builder {
 
     /// Builds an async variant reader from a reader.
     ///
+    /// By default, the compression method will be autodetected. This can be overridden by using
+    /// [`Self::set_compression_method`].
+    ///
     /// # Examples
     ///
     /// ```
@@ -63,8 +87,13 @@ impl Builder {
 
         let mut reader = BufReader::new(reader);
 
-        let mut src = reader.fill_buf().await?;
-        let compression_method = detect_compression_method(&mut src)?;
+        let compression_method = match self.compression_method {
+            Some(compression_method) => compression_method,
+            None => {
+                let mut src = reader.fill_buf().await?;
+                detect_compression_method(&mut src)?
+            }
+        };
 
         let mut src = reader.fill_buf().await?;
         let format = detect_format(&mut src, compression_method)?;
