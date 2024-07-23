@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * util/variant: Add async reader (`variant::r#async::io::Reader`).
+
 ## 0.49.0 - 2024-07-14
 
 ### Changed
