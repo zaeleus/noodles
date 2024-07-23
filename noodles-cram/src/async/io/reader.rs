@@ -1,11 +1,12 @@
+//! Async CRAM reader.
+
+mod builder;
 mod crc_reader;
 mod data_container;
 mod header_container;
 mod num;
 mod query;
 mod records;
-
-pub use self::crc_reader::CrcReader;
 
 use bytes::BytesMut;
 use futures::Stream;
@@ -14,6 +15,8 @@ use noodles_fasta as fasta;
 use noodles_sam as sam;
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt, SeekFrom};
 
+pub use self::builder::Builder;
+use self::crc_reader::CrcReader;
 use crate::{crai, file_definition::Version, DataContainer, FileDefinition, Record};
 
 /// An async CRAM reader.

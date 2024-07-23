@@ -9,6 +9,8 @@
     This is a convenience method that reads the file definition and header and
     returns a parsed SAM header.
 
+  * cram/async/io/reader: Add builder (`Builder`).
+
 ## 0.66.0 - 2024-07-14
 
 ### Changed
