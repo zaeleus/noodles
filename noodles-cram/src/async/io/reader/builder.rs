@@ -1,6 +1,7 @@
 use std::path::Path;
 
 use bytes::BytesMut;
+use noodles_fasta as fasta;
 use tokio::{
     fs::File,
     io::{self, AsyncRead},
@@ -10,9 +11,32 @@ use super::Reader;
 
 /// An async CRAM reader builder.
 #[derive(Default)]
-pub struct Builder;
+pub struct Builder {
+    reference_sequence_repository: fasta::Repository,
+}
 
 impl Builder {
+    /// Sets the reference sequence repository.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram::r#async::io::reader::Builder;
+    /// use noodles_fasta as fasta;
+    ///
+    /// let reference_sequence_repository = fasta::Repository::default();
+    ///
+    /// let builder = Builder::default()
+    ///     .set_reference_sequence_repository(reference_sequence_repository);
+    /// ```
+    pub fn set_reference_sequence_repository(
+        mut self,
+        reference_sequence_repository: fasta::Repository,
+    ) -> Self {
+        self.reference_sequence_repository = reference_sequence_repository;
+        self
+    }
+
     /// Builds an async CRAM reader from a path.
     ///
     /// # Examples
@@ -22,7 +46,7 @@ impl Builder {
     /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_cram::r#async::io::reader::Builder;
     /// use tokio::fs::File;
-    /// let _reader = Builder.build_from_path("sample.cram").await?;
+    /// let _reader = Builder::default().build_from_path("sample.cram").await?;
     /// # Ok(())
     /// # }
     /// ```
@@ -42,7 +66,7 @@ impl Builder {
     /// ```
     /// use noodles_cram::r#async::io::reader::Builder;
     /// use tokio::io;
-    /// let _reader = Builder.build_from_reader(io::empty());
+    /// let _reader = Builder::default().build_from_reader(io::empty());
     /// ```
     pub fn build_from_reader<R>(self, reader: R) -> Reader<R>
     where
@@ -50,6 +74,7 @@ impl Builder {
     {
         Reader {
             inner: reader,
+            reference_sequence_repository: self.reference_sequence_repository,
             buf: BytesMut::new(),
         }
     }

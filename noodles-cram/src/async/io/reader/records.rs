@@ -1,39 +1,31 @@
 use std::vec;
 
 use futures::{stream, Stream};
-use noodles_fasta as fasta;
 use noodles_sam as sam;
 use tokio::io::{self, AsyncRead};
 
 use super::Reader;
 use crate::Record;
 
-struct Context<'a, R>
+struct Context<'r, 'h: 'r, R>
 where
     R: AsyncRead + Unpin,
 {
-    reader: &'a mut Reader<R>,
-
-    reference_sequence_repository: &'a fasta::Repository,
-    header: &'a sam::Header,
-
+    reader: &'r mut Reader<R>,
+    header: &'h sam::Header,
     records: vec::IntoIter<Record>,
 }
 
-pub fn records<'a, R>(
-    reader: &'a mut Reader<R>,
-    reference_sequence_repository: &'a fasta::Repository,
-    header: &'a sam::Header,
-) -> impl Stream<Item = io::Result<Record>> + 'a
+pub fn records<'r, 'h: 'r, R>(
+    reader: &'r mut Reader<R>,
+    header: &'h sam::Header,
+) -> impl Stream<Item = io::Result<Record>> + 'r
 where
     R: AsyncRead + Unpin,
 {
     let ctx = Context {
         reader,
-
-        reference_sequence_repository,
         header,
-
         records: Vec::new().into_iter(),
     };
 
@@ -51,7 +43,7 @@ where
     }))
 }
 
-async fn read_next_container<R>(ctx: &mut Context<'_, R>) -> Option<io::Result<Vec<Record>>>
+async fn read_next_container<R>(ctx: &mut Context<'_, '_, R>) -> Option<io::Result<Vec<Record>>>
 where
     R: AsyncRead + Unpin,
 {
@@ -69,7 +61,7 @@ where
 
             slice.records(compression_header).and_then(|mut records| {
                 slice.resolve_records(
-                    ctx.reference_sequence_repository,
+                    ctx.reader.reference_sequence_repository(),
                     ctx.header,
                     compression_header,
                     &mut records,

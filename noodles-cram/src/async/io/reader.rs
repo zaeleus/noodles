@@ -22,6 +22,7 @@ use crate::{crai, file_definition::Version, DataContainer, FileDefinition, Recor
 /// An async CRAM reader.
 pub struct Reader<R> {
     inner: R,
+    reference_sequence_repository: fasta::Repository,
     buf: BytesMut,
 }
 
@@ -39,7 +40,7 @@ where
     /// let reader = cram::r#async::io::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
-        Builder.build_from_reader(inner)
+        Builder::default().build_from_reader(inner)
     }
 
     /// Returns a reference to the underlying reader.
@@ -82,6 +83,10 @@ where
     /// ```
     pub fn into_inner(self) -> R {
         self.inner
+    }
+
+    fn reference_sequence_repository(&self) -> &fasta::Repository {
+        &self.reference_sequence_repository
     }
 
     /// Reads the CRAM file definition.
@@ -213,15 +218,13 @@ where
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures::TryStreamExt;
     /// use noodles_cram as cram;
-    /// use noodles_fasta as fasta;
     /// use tokio::fs::File;
     ///
     /// let mut reader = File::open("sample.cram").await.map(cram::r#async::io::Reader::new)?;
     /// reader.read_file_definition().await?;
     ///
-    /// let repository = fasta::Repository::default();
     /// let header = reader.read_file_header().await?.parse()?;
-    /// let mut records = reader.records(&repository, &header);
+    /// let mut records = reader.records(&header);
     ///
     /// while let Some(record) = records.try_next().await? {
     ///     // ...
@@ -229,14 +232,13 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn records<'a>(
-        &'a mut self,
-        reference_sequence_repository: &'a fasta::Repository,
-        header: &'a sam::Header,
-    ) -> impl Stream<Item = io::Result<Record>> + 'a {
+    pub fn records<'r, 'h: 'r>(
+        &'r mut self,
+        header: &'h sam::Header,
+    ) -> impl Stream<Item = io::Result<Record>> + 'r {
         use self::records::records;
 
-        records(self, reference_sequence_repository, header)
+        records(self, header)
     }
 }
 

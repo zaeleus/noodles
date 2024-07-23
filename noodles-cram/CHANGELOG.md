@@ -11,6 +11,15 @@
 
   * cram/async/io/reader: Add builder (`Builder`).
 
+### Changed
+
+  * cram/async/io/reader: Add a reference sequence repository as context.
+
+    `Reader::records` no longer accepts a reference sequence repository but
+    uses the one attached to the reader. Use
+    `cram::r#async::io::reader::Builder` to set the appropriate
+    `fasta::Repository`.
+
 ## 0.66.0 - 2024-07-14
 
 ### Changed
