@@ -39,10 +39,7 @@ where
     /// let reader = cram::r#async::io::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
-        Self {
-            inner,
-            buf: BytesMut::new(),
-        }
+        Builder.build_from_reader(inner)
     }
 
     /// Returns a reference to the underlying reader.
