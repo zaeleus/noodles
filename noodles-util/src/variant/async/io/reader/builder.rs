@@ -15,6 +15,7 @@ use crate::variant::io::{CompressionMethod, Format};
 #[derive(Default)]
 pub struct Builder {
     compression_method: Option<Option<CompressionMethod>>,
+    format: Option<Format>,
 }
 
 impl Builder {
@@ -34,10 +35,25 @@ impl Builder {
         self
     }
 
+    /// Sets the format of the input.
+    ///
+    /// By default, the format is autodetected on build. This can be used to override it.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_util::variant::{r#async::io::reader::Builder, io::Format};
+    /// let _builder = Builder::default().set_format(Format::Vcf);
+    /// ```
+    pub fn set_format(mut self, format: Format) -> Self {
+        self.format = Some(format);
+        self
+    }
+
     /// Builds an async variant reader from a path.
     ///
-    /// By default, the compression method will be autodetected. This can be overridden by using
-    /// [`Self::set_compression_method`].
+    /// By default, the format and compression method will be autodetected. This can be overridden
+    /// by using [`Self::set_format`] and [`Self::set_compression_method`].
     ///
     /// # Examples
     ///
@@ -62,8 +78,8 @@ impl Builder {
 
     /// Builds an async variant reader from a reader.
     ///
-    /// By default, the compression method will be autodetected. This can be overridden by using
-    /// [`Self::set_compression_method`].
+    /// By default, the format and compression method will be autodetected. This can be overridden
+    /// by using [`Self::set_format`] and [`Self::set_compression_method`].
     ///
     /// # Examples
     ///
@@ -95,8 +111,13 @@ impl Builder {
             }
         };
 
-        let mut src = reader.fill_buf().await?;
-        let format = detect_format(&mut src, compression_method)?;
+        let format = match self.format {
+            Some(format) => format,
+            None => {
+                let mut src = reader.fill_buf().await?;
+                detect_format(&mut src, compression_method)?
+            }
+        };
 
         let reader = match (format, compression_method) {
             (Format::Vcf, None) => {
