@@ -30,14 +30,13 @@ where
     /// ```
     /// # #[tokio::main]
     /// # async fn main() -> tokio::io::Result<()> {
-    /// use noodles_util::variant::r#async::io::Reader;
-    /// use noodles_vcf as vcf;
+    /// use noodles_util::variant::r#async::io::reader::Builder;
     ///
     /// let data = b"##fileformat=VCFv4.5
     /// #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
     /// ";
     ///
-    /// let mut reader = Reader::Vcf(vcf::r#async::io::Reader::new(&data[..]));
+    /// let mut reader = Builder::default().build_from_reader(&data[..]).await?;
     /// let _header = reader.read_header().await?;
     /// # Ok(())
     /// # }
@@ -57,14 +56,14 @@ where
     /// # #[tokio::main]
     /// # async fn main() -> tokio::io::Result<()> {
     /// use futures::TryStreamExt;
-    /// use noodles_util::variant::r#async::io::Reader;
+    /// use noodles_util::variant::r#async::io::reader::Builder;
     /// use noodles_vcf as vcf;
     ///
     /// let data = b"##fileformat=VCFv4.5
     /// #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
     /// ";
     ///
-    /// let mut reader = Reader::Vcf(vcf::r#async::io::Reader::new(&data[..]));
+    /// let mut reader = Builder::default().build_from_reader(&data[..]).await?;
     /// reader.read_header().await?;
     ///
     /// let mut records = reader.records();
