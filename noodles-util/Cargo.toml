@@ -51,7 +51,7 @@ futures = { workspace = true, optional = true, features = ["std"] }
 tokio = { workspace = true, optional = true, features = ["fs", "io-util"] }
 
 [dev-dependencies]
-tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+tokio = { workspace = true, features = ["io-std", "macros", "rt-multi-thread"] }
 
 [package.metadata.docs.rs]
 all-features = true
@@ -83,3 +83,7 @@ required-features = ["variant"]
 [[example]]
 name = "util_variant_view"
 required-features = ["variant"]
+
+[[example]]
+name = "util_variant_view_async"
+required-features = ["async", "variant"]
