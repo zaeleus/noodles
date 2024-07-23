@@ -24,6 +24,7 @@ async = [
   "dep:futures",
   "dep:tokio",
   "noodles-bcf?/async",
+  "noodles-bgzf?/async",
   "noodles-vcf?/async",
 ]
 variant = [

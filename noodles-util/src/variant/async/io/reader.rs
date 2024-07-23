@@ -1,11 +1,15 @@
 //! Async variant reader.
 
+mod builder;
+
 use std::pin::Pin;
 
 use futures::{Stream, StreamExt};
 use noodles_bcf as bcf;
 use noodles_vcf as vcf;
 use tokio::io::{self, AsyncBufRead};
+
+pub use self::builder::Builder;
 
 /// An async variant reader.
 pub enum Reader<R> {

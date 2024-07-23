@@ -1,5 +1,5 @@
 //! Async variant format I/O.
 
-mod reader;
+pub mod reader;
 
 pub use self::reader::Reader;
