@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * cram/async/io/reader: Add header reader (`Reader::read_header`).
+
+    This is a convenience method that reads the file definition and header and
+    returns a parsed SAM header.
+
 ## 0.66.0 - 2024-07-14
 
 ### Changed

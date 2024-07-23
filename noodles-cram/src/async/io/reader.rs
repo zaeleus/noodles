@@ -143,6 +143,34 @@ where
         read_header_container(&mut self.inner, &mut self.buf).await
     }
 
+    /// Reads the SAM header.
+    ///
+    /// This verifies the CRAM magic number, discards the file definition, and reads and parses the
+    /// file header as a SAM header.
+    ///
+    /// The position of the stream is expected to be at the start.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> tokio::io::Result<()> {
+    /// use noodles_cram as cram;
+    /// use tokio::fs::File;
+    /// let mut reader = File::open("sample.cram").await.map(cram::r#async::io::Reader::new)?;
+    /// let _header = reader.read_header().await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn read_header(&mut self) -> io::Result<sam::Header> {
+        self.read_file_definition().await?;
+
+        self.read_file_header().await.and_then(|s| {
+            s.parse()
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })
+    }
+
     /// Reads a data container.
     ///
     /// This returns `None` if the container header is the EOF container header, which signals the
