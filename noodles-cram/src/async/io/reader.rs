@@ -192,8 +192,7 @@ where
     /// use tokio::fs::File;
     ///
     /// let mut reader = File::open("sample.cram").await.map(cram::r#async::io::Reader::new)?;
-    /// reader.read_file_definition().await?;
-    /// reader.read_file_header().await?;
+    /// reader.read_header().await?;
     ///
     /// while let Some(container) = reader.read_data_container().await? {
     ///     // ...
@@ -215,15 +214,14 @@ where
     ///
     /// ```no_run
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use futures::TryStreamExt;
     /// use noodles_cram as cram;
     /// use tokio::fs::File;
     ///
     /// let mut reader = File::open("sample.cram").await.map(cram::r#async::io::Reader::new)?;
-    /// reader.read_file_definition().await?;
+    /// let header = reader.read_header().await?;
     ///
-    /// let header = reader.read_file_header().await?.parse()?;
     /// let mut records = reader.records(&header);
     ///
     /// while let Some(record) = records.try_next().await? {
@@ -302,10 +300,9 @@ where
     /// use tokio::fs::File;
     ///
     /// let mut reader = File::open("sample.cram").await.map(cram::r#async::io::Reader::new)?;
-    /// reader.read_file_definition().await?;
+    /// let header = reader.read_header().await?;
     ///
     /// let repository = fasta::Repository::default();
-    /// let header = reader.read_file_header().await?.parse()?;
     /// let index = crai::r#async::read("sample.cram.crai").await?;
     /// let region = "sq0:8-13".parse()?;
     /// let mut query = reader.query(&repository, &header, &index, &region)?;

@@ -25,9 +25,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .build_from_path(src)
         .await?;
 
-    reader.read_file_definition().await?;
-
-    let header = reader.read_file_header().await?.parse()?;
+    let header = reader.read_header().await?;
 
     let mut records = reader.records(&header);
 

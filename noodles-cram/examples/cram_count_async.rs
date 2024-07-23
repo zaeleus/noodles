@@ -15,8 +15,7 @@ async fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
     let mut reader = File::open(src).await.map(cram::AsyncReader::new)?;
-    reader.read_file_definition().await?;
-    reader.read_file_header().await?;
+    reader.read_header().await?;
 
     let mut n = 0;
 
