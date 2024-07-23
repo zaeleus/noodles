@@ -15,8 +15,8 @@
 
   * cram/async/io/reader: Add a reference sequence repository as context.
 
-    `Reader::records` no longer accepts a reference sequence repository but
-    uses the one attached to the reader. Use
+    `Reader::records` and `Reader::query` no longer accepts a reference
+    sequence repository but uses the one attached to the reader. Use
     `cram::r#async::io::reader::Builder` to set the appropriate
     `fasta::Repository`.
 

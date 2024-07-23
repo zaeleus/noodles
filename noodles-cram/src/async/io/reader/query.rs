@@ -2,20 +2,18 @@ use std::{io::SeekFrom, slice, vec};
 
 use futures::{stream, Stream};
 use noodles_core::region::Interval;
-use noodles_fasta as fasta;
 use noodles_sam as sam;
 use tokio::io::{self, AsyncRead, AsyncSeek};
 
 use super::Reader;
 use crate::{crai, Record};
 
-struct Context<'a, R> {
-    reader: &'a mut Reader<R>,
+struct Context<'r, 'h: 'r, 'i: 'r, R> {
+    reader: &'r mut Reader<R>,
 
-    reference_sequence_repository: &'a fasta::Repository,
-    header: &'a sam::Header,
+    header: &'h sam::Header,
 
-    index: slice::Iter<'a, crai::Record>,
+    index: slice::Iter<'i, crai::Record>,
 
     reference_sequence_id: usize,
     interval: Interval,
@@ -23,21 +21,19 @@ struct Context<'a, R> {
     records: vec::IntoIter<Record>,
 }
 
-pub(super) fn query<'a, R>(
-    reader: &'a mut Reader<R>,
-    reference_sequence_repository: &'a fasta::Repository,
-    header: &'a sam::Header,
-    index: &'a crai::Index,
+pub(super) fn query<'r, 'h: 'r, 'i: 'r, R>(
+    reader: &'r mut Reader<R>,
+    header: &'h sam::Header,
+    index: &'i crai::Index,
     reference_sequence_id: usize,
     interval: Interval,
-) -> impl Stream<Item = io::Result<Record>> + 'a
+) -> impl Stream<Item = io::Result<Record>> + 'r
 where
     R: AsyncRead + AsyncSeek + Unpin,
 {
     let ctx = Context {
         reader,
 
-        reference_sequence_repository,
         header,
 
         index: index.iter(),
@@ -70,7 +66,7 @@ where
     }))
 }
 
-async fn read_next_container<R>(ctx: &mut Context<'_, R>) -> Option<io::Result<()>>
+async fn read_next_container<R>(ctx: &mut Context<'_, '_, '_, R>) -> Option<io::Result<()>>
 where
     R: AsyncRead + AsyncSeek + Unpin,
 {
@@ -102,7 +98,7 @@ where
 
             slice.records(compression_header).and_then(|mut records| {
                 slice.resolve_records(
-                    ctx.reference_sequence_repository,
+                    ctx.reader.reference_sequence_repository(),
                     ctx.header,
                     compression_header,
                     &mut records,

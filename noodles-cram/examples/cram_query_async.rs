@@ -10,7 +10,7 @@ use futures::TryStreamExt;
 use noodles_cram::{self as cram, crai};
 use noodles_fasta::{self as fasta, repository::adapters::IndexedReader};
 use noodles_sam as sam;
-use tokio::{fs::File, io};
+use tokio::io;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -27,11 +27,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(fasta::Repository::new)
         .unwrap_or_default();
 
-    let mut reader = File::open(&src).await.map(cram::AsyncReader::new)?;
+    let mut reader = cram::r#async::io::reader::Builder::default()
+        .set_reference_sequence_repository(repository)
+        .build_from_path(&src)
+        .await?;
+
     let header = reader.read_header().await?;
 
     let index = crai::r#async::read(src.with_extension("cram.crai")).await?;
-    let mut query = reader.query(&repository, &header, &index, &region)?;
+    let mut query = reader.query(&header, &index, &region)?;
 
     let mut writer = sam::AsyncWriter::new(io::stdout());
 

@@ -296,16 +296,14 @@ where
     /// use futures::TryStreamExt;
     /// use noodles_core::Region;
     /// use noodles_cram::{self as cram, crai};
-    /// use noodles_fasta as fasta;
     /// use tokio::fs::File;
     ///
     /// let mut reader = File::open("sample.cram").await.map(cram::r#async::io::Reader::new)?;
     /// let header = reader.read_header().await?;
     ///
-    /// let repository = fasta::Repository::default();
     /// let index = crai::r#async::read("sample.cram.crai").await?;
     /// let region = "sq0:8-13".parse()?;
-    /// let mut query = reader.query(&repository, &header, &index, &region)?;
+    /// let mut query = reader.query(&header, &index, &region)?;
     ///
     /// while let Some(record) = query.try_next().await? {
     ///     // ...
@@ -313,13 +311,12 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn query<'a>(
-        &'a mut self,
-        reference_sequence_repository: &'a fasta::Repository,
-        header: &'a sam::Header,
-        index: &'a crai::Index,
+    pub fn query<'r, 'h: 'r, 'i: 'r>(
+        &'r mut self,
+        header: &'h sam::Header,
+        index: &'i crai::Index,
         region: &Region,
-    ) -> io::Result<impl Stream<Item = io::Result<Record>> + '_> {
+    ) -> io::Result<impl Stream<Item = io::Result<Record>> + 'r> {
         use self::query::query;
 
         let reference_sequence_id = header
@@ -334,7 +331,6 @@ where
 
         Ok(query(
             self,
-            reference_sequence_repository,
             header,
             index,
             reference_sequence_id,
