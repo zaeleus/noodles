@@ -114,7 +114,7 @@ impl Builder {
     }
 }
 
-fn detect_format_from_path_extension<P>(path: P) -> Option<Format>
+pub(crate) fn detect_format_from_path_extension<P>(path: P) -> Option<Format>
 where
     P: AsRef<Path>,
 {
@@ -131,7 +131,7 @@ where
     }
 }
 
-fn detect_compression_method_from_path_extension<P>(path: P) -> Option<CompressionMethod>
+pub(crate) fn detect_compression_method_from_path_extension<P>(path: P) -> Option<CompressionMethod>
 where
     P: AsRef<Path>,
 {

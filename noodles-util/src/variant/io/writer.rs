@@ -1,6 +1,6 @@
 //! Variant writer.
 
-mod builder;
+pub(crate) mod builder;
 
 pub use self::builder::Builder;
 

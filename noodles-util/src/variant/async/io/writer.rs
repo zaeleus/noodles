@@ -1,6 +1,12 @@
+//! Async variant writer.
+
+mod builder;
+
 use noodles_bcf as bcf;
 use noodles_vcf as vcf;
 use tokio::io::{self, AsyncWrite};
+
+pub use self::builder::Builder;
 
 /// An async variant writer.
 pub enum Writer<W> {
