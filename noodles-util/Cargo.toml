@@ -81,6 +81,10 @@ name = "util_variant_rewrite"
 required-features = ["variant"]
 
 [[example]]
+name = "util_variant_rewrite_async"
+required-features = ["async", "variant"]
+
+[[example]]
 name = "util_variant_view"
 required-features = ["variant"]
 
