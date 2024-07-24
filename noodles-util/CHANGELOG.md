@@ -4,7 +4,8 @@
 
 ### Added
 
-  * util/variant: Add async reader (`variant::r#async::io::Reader`).
+  * util/variant: Add async reader (`variant::r#async::io::Reader`) and writer
+    (`variant::r#async::io::Writer`).
 
 ## 0.49.0 - 2024-07-14
 
