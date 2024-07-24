@@ -15,6 +15,12 @@
 [#278]: https://github.com/zaeleus/noodles/issues/278
 [#283]: https://github.com/zaeleus/noodles/issues/283
 
+### Removed
+
+  * sam/record: Remove `ReferenceSequenceName`.
+
+    This is replaced with `&BStr`.
+
 ## 0.62.0 - 2024-07-14
 
 ### Changed

@@ -5,17 +5,16 @@ pub mod data;
 pub mod fields;
 mod name;
 mod quality_scores;
-mod reference_sequence_name;
 mod sequence;
 
 use std::{fmt, io};
 
+use bstr::BStr;
 use noodles_core::Position;
 
 pub(crate) use self::fields::Fields;
 pub use self::{
-    cigar::Cigar, data::Data, name::Name, quality_scores::QualityScores,
-    reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
+    cigar::Cigar, data::Data, name::Name, quality_scores::QualityScores, sequence::Sequence,
 };
 use crate::{
     alignment::record::{Flags, MappingQuality},
@@ -86,7 +85,7 @@ impl Record {
     /// let record = sam::Record::default();
     /// assert!(record.reference_sequence_name().is_none());
     /// ```
-    pub fn reference_sequence_name(&self) -> Option<ReferenceSequenceName<'_>> {
+    pub fn reference_sequence_name(&self) -> Option<&BStr> {
         self.0.reference_sequence_name()
     }
 
@@ -159,7 +158,7 @@ impl Record {
     /// let record = sam::Record::default();
     /// assert!(record.mate_reference_sequence_name().is_none());
     /// ```
-    pub fn mate_reference_sequence_name(&self) -> Option<ReferenceSequenceName<'_>> {
+    pub fn mate_reference_sequence_name(&self) -> Option<&BStr> {
         self.0.mate_reference_sequence_name()
     }
 

@@ -4,11 +4,12 @@ mod bounds;
 
 use std::io;
 
+use bstr::{BStr, ByteSlice};
 use lexical_core::FromLexical;
 use noodles_core::Position;
 
 pub(crate) use self::bounds::Bounds;
-use super::{Cigar, Data, Name, QualityScores, ReferenceSequenceName, Sequence};
+use super::{Cigar, Data, Name, QualityScores, Sequence};
 use crate::Header;
 
 const MISSING: &[u8] = b"*";
@@ -39,10 +40,10 @@ impl Fields {
             })
     }
 
-    pub fn reference_sequence_name(&self) -> Option<ReferenceSequenceName<'_>> {
+    pub fn reference_sequence_name(&self) -> Option<&BStr> {
         match &self.buf[self.bounds.reference_sequence_name_range()] {
             MISSING => None,
-            buf => Some(ReferenceSequenceName::new(buf)),
+            buf => Some(buf.as_bstr()),
         }
     }
 
@@ -78,13 +79,13 @@ impl Fields {
             })
     }
 
-    pub fn mate_reference_sequence_name(&self) -> Option<ReferenceSequenceName<'_>> {
+    pub fn mate_reference_sequence_name(&self) -> Option<&BStr> {
         const EQ: &[u8] = b"=";
 
         match &self.buf[self.bounds.mate_reference_sequence_name_range()] {
             MISSING => None,
             EQ => self.reference_sequence_name(),
-            buf => Some(ReferenceSequenceName::new(buf)),
+            buf => Some(buf.as_bstr()),
         }
     }
 
