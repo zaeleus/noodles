@@ -45,7 +45,6 @@ impl Builder {
     /// # #[tokio::main]
     /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_cram::r#async::io::reader::Builder;
-    /// use tokio::fs::File;
     /// let _reader = Builder::default().build_from_path("sample.cram").await?;
     /// # Ok(())
     /// # }
