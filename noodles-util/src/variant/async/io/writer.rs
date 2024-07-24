@@ -27,11 +27,11 @@ where
     /// ```
     /// # #[tokio::main]
     /// #  async fn main() -> tokio::io::Result<()> {
-    /// use noodles_util::variant::r#async::io::Writer;
+    /// use noodles_util::variant::r#async::io::writer::Builder;
     /// use noodles_vcf as vcf;
     /// use tokio::io;
     ///
-    /// let mut writer = Writer::Vcf(vcf::r#async::io::Writer::new(io::sink()));
+    /// let mut writer = Builder::default().build_from_writer(io::sink());
     ///
     /// let header = vcf::Header::default();
     /// writer.write_header(&header).await?;
@@ -52,11 +52,11 @@ where
     /// ```
     /// # #[tokio::main]
     /// #  async fn main() -> tokio::io::Result<()> {
-    /// use noodles_util::variant::r#async::io::Writer;
+    /// use noodles_util::variant::r#async::io::writer::Builder;
     /// use noodles_vcf as vcf;
     /// use tokio::io;
     ///
-    /// let mut writer = Writer::Vcf(vcf::r#async::io::Writer::new(io::sink()));
+    /// let mut writer = Builder::default().build_from_writer(io::sink());
     ///
     /// let header = vcf::Header::default();
     /// writer.write_header(&header).await?;
