@@ -7,6 +7,12 @@
   * sam/alignment/record/sequence: Add get base by index (`Sequence::get`)
     ([#283]) and checked split at (`Sequence::split_at_checked`).
 
+  * sam/record: Implement `TryFrom<&[u8]>` ([#278]).
+
+    This is a convenience implementation to allow constructing a single
+    `sam::Record` from a byte string.
+
+[#278]: https://github.com/zaeleus/noodles/issues/278
 [#283]: https://github.com/zaeleus/noodles/issues/283
 
 ## 0.62.0 - 2024-07-14

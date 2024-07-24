@@ -255,6 +255,19 @@ impl fmt::Debug for Record {
     }
 }
 
+impl TryFrom<&[u8]> for Record {
+    type Error = io::Error;
+
+    fn try_from(buf: &[u8]) -> Result<Self, Self::Error> {
+        use crate::io::Reader;
+
+        let mut reader = Reader::new(buf);
+        let mut record = Self::default();
+        reader.read_record(&mut record)?;
+        Ok(record)
+    }
+}
+
 impl crate::alignment::Record for Record {
     fn name(&self) -> Option<Box<dyn crate::alignment::record::Name + '_>> {
         let name = self.name()?;
