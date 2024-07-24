@@ -6,10 +6,7 @@ use crate::{variant::io::Write, Header, Record};
 ///
 /// If the inner writer is buffered, a call to [`Self::shutdown`] must be made before the writer is
 /// dropped.
-pub struct Writer<W>
-where
-    W: AsyncWrite,
-{
+pub struct Writer<W> {
     inner: W,
 }
 
