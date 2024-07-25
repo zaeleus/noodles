@@ -10,6 +10,9 @@ pub use self::other_fields::OtherFields;
 
 /// A feature record.
 pub trait Record {
+    /// Return the number of standard fields.
+    fn standard_field_count(&self) -> usize;
+
     /// Returns the reference sequence name.
     fn reference_sequence_name(&self) -> &[u8];
 
