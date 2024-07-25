@@ -139,4 +139,8 @@ impl<const N: usize> crate::feature::Record for Record<N> {
     fn feature_end(&self) -> Option<io::Result<Position>> {
         self.feature_end()
     }
+
+    fn other_fields(&self) -> Box<dyn crate::feature::record::OtherFields + '_> {
+        Box::new(self.other_fields())
+    }
 }

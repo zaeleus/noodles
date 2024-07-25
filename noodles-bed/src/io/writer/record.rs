@@ -11,7 +11,7 @@ use std::io::{self, Write};
 
 use self::{
     feature_end::write_feature_end, feature_start::write_feature_start,
-    reference_sequence_name::write_reference_sequence_name,
+    other_fields::write_other_fields, reference_sequence_name::write_reference_sequence_name,
 };
 use crate::feature::Record;
 
@@ -29,6 +29,8 @@ where
     write_separator(writer)?;
     let feature_end = record.feature_end().transpose()?;
     write_feature_end(writer, feature_end)?;
+
+    write_other_fields(writer, record.other_fields().as_ref())?;
 
     write_newline(writer)?;
 
