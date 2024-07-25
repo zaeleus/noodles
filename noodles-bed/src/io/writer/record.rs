@@ -11,13 +11,14 @@ use std::io::{self, Write};
 
 use self::{
     feature_end::write_feature_end, feature_start::write_feature_start,
-    other_fields::write_other_fields, reference_sequence_name::write_reference_sequence_name,
+    reference_sequence_name::write_reference_sequence_name,
 };
-use crate::Record;
+use crate::feature::Record;
 
-pub(super) fn write_record<W, const N: usize>(writer: &mut W, record: &Record<N>) -> io::Result<()>
+pub(super) fn write_record_3<W, R>(writer: &mut W, record: &R) -> io::Result<()>
 where
     W: Write,
+    R: Record,
 {
     write_reference_sequence_name(writer, record.reference_sequence_name())?;
 
@@ -28,8 +29,6 @@ where
     write_separator(writer)?;
     let feature_end = record.feature_end().transpose()?;
     write_feature_end(writer, feature_end)?;
-
-    write_other_fields(writer, &record.other_fields())?;
 
     write_newline(writer)?;
 
@@ -57,10 +56,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_record() -> io::Result<()> {
+    fn test_write_record_3() -> io::Result<()> {
         let mut buf = Vec::new();
-        let record = Record::<3>::default();
-        write_record(&mut buf, &record)?;
+        let record = crate::Record::<3>::default();
+        write_record_3(&mut buf, &record)?;
         assert_eq!(buf, b"sq0\t0\t1\n");
         Ok(())
     }
