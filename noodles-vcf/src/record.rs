@@ -93,6 +93,19 @@ impl fmt::Debug for Record {
     }
 }
 
+impl TryFrom<&[u8]> for Record {
+    type Error = io::Error;
+
+    fn try_from(buf: &[u8]) -> Result<Self, Self::Error> {
+        use crate::io::Reader;
+
+        let mut reader = Reader::new(buf);
+        let mut record = Self::default();
+        reader.read_record(&mut record)?;
+        Ok(record)
+    }
+}
+
 impl crate::variant::Record for Record {
     fn reference_sequence_name<'a, 'h: 'a>(&'a self, _: &'h Header) -> io::Result<&'a str> {
         Ok(self.reference_sequence_name())
