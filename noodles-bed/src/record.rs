@@ -124,6 +124,10 @@ impl Default for Record<6> {
 }
 
 impl<const N: usize> crate::feature::Record for Record<N> {
+    fn standard_field_count(&self) -> usize {
+        N
+    }
+
     fn reference_sequence_name(&self) -> &[u8] {
         self.reference_sequence_name()
     }
