@@ -1,7 +1,10 @@
+#![allow(dead_code)]
+
 mod feature_end;
 mod feature_start;
 mod other_fields;
 mod reference_sequence_name;
+mod score;
 
 use std::io::{self, Write};
 
@@ -11,7 +14,6 @@ use self::{
 };
 use crate::Record;
 
-#[allow(dead_code)]
 pub(super) fn write_record<W, const N: usize>(writer: &mut W, record: &Record<N>) -> io::Result<()>
 where
     W: Write,
