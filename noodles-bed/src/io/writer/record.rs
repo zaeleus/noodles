@@ -5,6 +5,7 @@ mod feature_start;
 mod other_fields;
 mod reference_sequence_name;
 mod score;
+mod strand;
 
 use std::io::{self, Write};
 
