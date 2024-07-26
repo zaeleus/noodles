@@ -52,14 +52,14 @@ impl<const N: usize> Record<N> {
 
 impl Record<4> {
     /// Returns the name.
-    pub fn name(&self) -> &BStr {
+    pub fn name(&self) -> Option<&BStr> {
         self.0.name()
     }
 }
 
 impl Record<5> {
     /// Returns the name.
-    pub fn name(&self) -> &BStr {
+    pub fn name(&self) -> Option<&BStr> {
         self.0.name()
     }
 
@@ -71,7 +71,7 @@ impl Record<5> {
 
 impl Record<6> {
     /// Returns the name.
-    pub fn name(&self) -> &BStr {
+    pub fn name(&self) -> Option<&BStr> {
         self.0.name()
     }
 
@@ -137,7 +137,7 @@ impl crate::feature::Record for Record<3> {
         self.feature_end()
     }
 
-    fn name(&self) -> Option<&BStr> {
+    fn name(&self) -> Option<Option<&BStr>> {
         None
     }
 
@@ -163,7 +163,7 @@ impl crate::feature::Record for Record<4> {
         self.feature_end()
     }
 
-    fn name(&self) -> Option<&BStr> {
+    fn name(&self) -> Option<Option<&BStr>> {
         Some(self.name())
     }
 

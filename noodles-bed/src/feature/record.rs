@@ -24,7 +24,7 @@ pub trait Record {
     fn feature_end(&self) -> Option<io::Result<Position>>;
 
     /// Returns the name.
-    fn name(&self) -> Option<&BStr>;
+    fn name(&self) -> Option<Option<&BStr>>;
 
     /// Returns the other fields.
     fn other_fields(&self) -> Box<dyn OtherFields + '_>;
