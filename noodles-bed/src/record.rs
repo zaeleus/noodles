@@ -145,6 +145,10 @@ impl crate::feature::Record for Record<3> {
         None
     }
 
+    fn strand(&self) -> Option<io::Result<Option<Strand>>> {
+        None
+    }
+
     fn other_fields(&self) -> Box<dyn crate::feature::record::OtherFields + '_> {
         Box::new(self.other_fields())
     }
@@ -172,6 +176,10 @@ impl crate::feature::Record for Record<4> {
     }
 
     fn score(&self) -> Option<io::Result<u16>> {
+        None
+    }
+
+    fn strand(&self) -> Option<io::Result<Option<Strand>>> {
         None
     }
 
@@ -203,6 +211,44 @@ impl crate::feature::Record for Record<5> {
 
     fn score(&self) -> Option<io::Result<u16>> {
         Some(self.score())
+    }
+
+    fn strand(&self) -> Option<io::Result<Option<Strand>>> {
+        None
+    }
+
+    fn other_fields(&self) -> Box<dyn crate::feature::record::OtherFields + '_> {
+        Box::new(self.other_fields())
+    }
+}
+
+impl crate::feature::Record for Record<6> {
+    fn standard_field_count(&self) -> usize {
+        6
+    }
+
+    fn reference_sequence_name(&self) -> &BStr {
+        self.reference_sequence_name()
+    }
+
+    fn feature_start(&self) -> io::Result<Position> {
+        self.feature_start()
+    }
+
+    fn feature_end(&self) -> Option<io::Result<Position>> {
+        self.feature_end()
+    }
+
+    fn name(&self) -> Option<Option<&BStr>> {
+        Some(self.name())
+    }
+
+    fn score(&self) -> Option<io::Result<u16>> {
+        Some(self.score())
+    }
+
+    fn strand(&self) -> Option<io::Result<Option<Strand>>> {
+        Some(self.strand())
     }
 
     fn other_fields(&self) -> Box<dyn crate::feature::record::OtherFields + '_> {

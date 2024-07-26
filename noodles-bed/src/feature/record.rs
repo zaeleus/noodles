@@ -8,6 +8,7 @@ use bstr::BStr;
 use noodles_core::Position;
 
 pub use self::other_fields::OtherFields;
+use super::record_buf::Strand;
 
 /// A feature record.
 pub trait Record {
@@ -28,6 +29,9 @@ pub trait Record {
 
     /// Returns the score.
     fn score(&self) -> Option<io::Result<u16>>;
+
+    /// Returns the strand.
+    fn strand(&self) -> Option<io::Result<Option<Strand>>>;
 
     /// Returns the other fields.
     fn other_fields(&self) -> Box<dyn OtherFields + '_>;
