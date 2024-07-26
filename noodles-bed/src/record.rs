@@ -15,19 +15,9 @@ use crate::feature::record_buf::Strand;
 pub struct Record<const N: usize>(pub(crate) Fields<N>);
 
 impl<const N: usize> Record<N> {
-    /// Returns the reference sequence name.
-    pub fn reference_sequence_name(&self) -> &BStr {
-        self.0.reference_sequence_name()
-    }
-
-    /// Returns the feature start.
-    pub fn feature_start(&self) -> io::Result<Position> {
-        self.0.feature_start()
-    }
-
-    /// Returns the feature end.
-    pub fn feature_end(&self) -> Option<io::Result<Position>> {
-        self.0.feature_end()
+    /// Returns the number of standard fields.
+    pub const fn standard_field_count(&self) -> usize {
+        N
     }
 
     /// Returns the other fields.
@@ -43,14 +33,41 @@ impl<const N: usize> Record<N> {
         const MIN_FIELD_COUNT: usize = 3;
         MIN_FIELD_COUNT + self.other_fields().len()
     }
+}
 
-    /// Returns the number of standard fields.
-    pub const fn standard_field_count(&self) -> usize {
-        N
+impl Record<3> {
+    /// Returns the reference sequence name.
+    pub fn reference_sequence_name(&self) -> &BStr {
+        self.0.reference_sequence_name()
+    }
+
+    /// Returns the feature start.
+    pub fn feature_start(&self) -> io::Result<Position> {
+        self.0.feature_start()
+    }
+
+    /// Returns the feature end.
+    pub fn feature_end(&self) -> Option<io::Result<Position>> {
+        self.0.feature_end()
     }
 }
 
 impl Record<4> {
+    /// Returns the reference sequence name.
+    pub fn reference_sequence_name(&self) -> &BStr {
+        self.0.reference_sequence_name()
+    }
+
+    /// Returns the feature start.
+    pub fn feature_start(&self) -> io::Result<Position> {
+        self.0.feature_start()
+    }
+
+    /// Returns the feature end.
+    pub fn feature_end(&self) -> Option<io::Result<Position>> {
+        self.0.feature_end()
+    }
+
     /// Returns the name.
     pub fn name(&self) -> Option<&BStr> {
         self.0.name()
@@ -58,6 +75,21 @@ impl Record<4> {
 }
 
 impl Record<5> {
+    /// Returns the reference sequence name.
+    pub fn reference_sequence_name(&self) -> &BStr {
+        self.0.reference_sequence_name()
+    }
+
+    /// Returns the feature start.
+    pub fn feature_start(&self) -> io::Result<Position> {
+        self.0.feature_start()
+    }
+
+    /// Returns the feature end.
+    pub fn feature_end(&self) -> Option<io::Result<Position>> {
+        self.0.feature_end()
+    }
+
     /// Returns the name.
     pub fn name(&self) -> Option<&BStr> {
         self.0.name()
@@ -70,6 +102,21 @@ impl Record<5> {
 }
 
 impl Record<6> {
+    /// Returns the reference sequence name.
+    pub fn reference_sequence_name(&self) -> &BStr {
+        self.0.reference_sequence_name()
+    }
+
+    /// Returns the feature start.
+    pub fn feature_start(&self) -> io::Result<Position> {
+        self.0.feature_start()
+    }
+
+    /// Returns the feature end.
+    pub fn feature_end(&self) -> Option<io::Result<Position>> {
+        self.0.feature_end()
+    }
+
     /// Returns the name.
     pub fn name(&self) -> Option<&BStr> {
         self.0.name()
@@ -86,7 +133,7 @@ impl Record<6> {
     }
 }
 
-impl<const N: usize> fmt::Debug for Record<N> {
+impl fmt::Debug for Record<3> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Record")
             .field("reference_sequence_name", &self.reference_sequence_name())
