@@ -3,7 +3,7 @@
 use bstr::BString;
 use noodles_core::Position;
 
-use super::{RecordBuf, StandardFields, Strand};
+use super::{OtherFields, RecordBuf, StandardFields, Strand};
 
 /// A feature record builder.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -14,7 +14,7 @@ pub struct Builder<const N: usize> {
     name: Option<Vec<u8>>,
     score: Option<u16>,
     strand: Option<Strand>,
-    other_fields: Vec<Option<Vec<u8>>>,
+    other_fields: OtherFields,
 }
 
 impl Builder<3> {
@@ -40,7 +40,7 @@ impl Builder<3> {
     }
 
     /// Sets the list of raw optional fields.
-    pub fn set_other_fields(mut self, other_fields: Vec<Option<Vec<u8>>>) -> Self {
+    pub fn set_other_fields(mut self, other_fields: OtherFields) -> Self {
         self.other_fields = other_fields;
         self
     }

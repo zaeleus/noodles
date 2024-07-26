@@ -2,12 +2,13 @@
 
 pub mod builder;
 pub mod color;
+mod other_fields;
 pub mod strand;
-
-pub use self::{builder::Builder, color::Color, strand::Strand};
 
 use bstr::{BStr, BString};
 use noodles_core::Position;
+
+pub use self::{builder::Builder, color::Color, other_fields::OtherFields, strand::Strand};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct StandardFields<const N: usize> {
@@ -42,7 +43,7 @@ impl<const N: usize> Default for StandardFields<N> {
 #[derive(Clone, Default, Debug, Eq, PartialEq)]
 pub struct RecordBuf<const N: usize> {
     standard_fields: StandardFields<N>,
-    other_fields: Vec<Option<Vec<u8>>>,
+    other_fields: OtherFields,
 }
 
 impl<const N: usize> RecordBuf<N> {
@@ -69,6 +70,11 @@ impl<const N: usize> RecordBuf<N> {
     /// Returns the feature end.
     pub fn feature_end(&self) -> Option<Position> {
         self.standard_fields.feature_end
+    }
+
+    /// Returns the other fields.
+    pub fn other_fields(&self) -> &OtherFields {
+        &self.other_fields
     }
 }
 
