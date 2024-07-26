@@ -26,6 +26,6 @@ impl crate::feature::record::OtherFields for OtherFields {
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = &BStr> + '_> {
-        todo!()
+        Box::new(self.0.iter().map(|buf| buf.as_ref()))
     }
 }
