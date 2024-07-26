@@ -28,13 +28,13 @@ impl Builder<3> {
     }
 
     /// Sets the feature start position (`chromStart`).
-    pub fn set_start_position(mut self, start_position: Position) -> Self {
+    pub fn set_feature_start(mut self, start_position: Position) -> Self {
         self.feature_start = Some(start_position);
         self
     }
 
     /// Sets the feature end position (`chromEnd`).
-    pub fn set_end_position(mut self, end_position: Position) -> Self {
+    pub fn set_feature_end(mut self, end_position: Position) -> Self {
         self.feature_end = Some(end_position);
         self
     }
