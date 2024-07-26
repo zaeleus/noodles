@@ -53,14 +53,16 @@ impl<const N: usize> Fields<N> {
 }
 
 impl Fields<4> {
-    pub(super) fn name(&self) -> &BStr {
-        self.buf[self.bounds.name_range()].as_bstr()
+    pub(super) fn name(&self) -> Option<&BStr> {
+        let src = &self.buf[self.bounds.name_range()];
+        parse_name(src)
     }
 }
 
 impl Fields<5> {
-    pub(super) fn name(&self) -> &BStr {
-        self.buf[self.bounds.name_range()].as_bstr()
+    pub(super) fn name(&self) -> Option<&BStr> {
+        let src = &self.buf[self.bounds.name_range()];
+        parse_name(src)
     }
 
     pub(super) fn score(&self) -> io::Result<u16> {
@@ -70,8 +72,9 @@ impl Fields<5> {
 }
 
 impl Fields<6> {
-    pub(super) fn name(&self) -> &BStr {
-        self.buf[self.bounds.name_range()].as_bstr()
+    pub(super) fn name(&self) -> Option<&BStr> {
+        let src = &self.buf[self.bounds.name_range()];
+        parse_name(src)
     }
 
     pub(super) fn score(&self) -> io::Result<u16> {
@@ -123,6 +126,15 @@ impl Default for Fields<6> {
 
 fn parse_int<N: FromLexical>(buf: &[u8]) -> io::Result<N> {
     lexical_core::parse(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+}
+
+fn parse_name(buf: &[u8]) -> Option<&BStr> {
+    const MISSING: &[u8] = b".";
+
+    match buf {
+        MISSING => None,
+        _ => Some(buf.as_bstr()),
+    }
 }
 
 fn parse_strand(buf: &[u8]) -> io::Result<Option<Strand>> {
