@@ -26,6 +26,9 @@ pub trait Record {
     /// Returns the name.
     fn name(&self) -> Option<Option<&BStr>>;
 
+    /// Returns the score.
+    fn score(&self) -> Option<io::Result<u16>>;
+
     /// Returns the other fields.
     fn other_fields(&self) -> Box<dyn OtherFields + '_>;
 }
