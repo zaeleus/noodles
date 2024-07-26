@@ -11,7 +11,7 @@ pub struct Builder<const N: usize> {
     reference_sequence_name: BString,
     feature_start: Option<Position>,
     feature_end: Option<Position>,
-    name: Option<Vec<u8>>,
+    name: Option<BString>,
     score: Option<u16>,
     strand: Option<Strand>,
     other_fields: OtherFields,
