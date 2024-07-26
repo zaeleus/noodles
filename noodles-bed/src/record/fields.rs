@@ -17,34 +17,18 @@ pub(crate) struct Fields<const N: usize> {
 
 impl<const N: usize> Fields<N> {
     pub(super) fn reference_sequence_name(&self) -> &BStr {
-        self.buf[self.bounds.reference_sequence_name_range()].as_bstr()
+        let src = &self.buf[self.bounds.reference_sequence_name_range()];
+        parse_reference_sequence_name(src)
     }
 
     pub(super) fn feature_start(&self) -> io::Result<Position> {
         let src = &self.buf[self.bounds.feature_start_range()];
-
-        parse_int::<usize>(src).and_then(|n| {
-            n.checked_add(1)
-                .ok_or_else(|| {
-                    io::Error::new(io::ErrorKind::InvalidData, "attempt to add with overflow")
-                })
-                .and_then(|m| {
-                    Position::try_from(m).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-                })
-        })
+        parse_feature_start(src)
     }
 
     pub(super) fn feature_end(&self) -> Option<io::Result<Position>> {
-        const MISSING: &[u8] = b"0";
-
         let src = &self.buf[self.bounds.feature_end_range()];
-
-        match src {
-            MISSING => None,
-            _ => Some(parse_int::<usize>(src).and_then(|n| {
-                Position::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            })),
-        }
+        parse_feature_end(src)
     }
 
     pub(super) fn get(&self, i: usize) -> Option<&[u8]> {
@@ -126,6 +110,33 @@ impl Default for Fields<6> {
 
 fn parse_int<N: FromLexical>(buf: &[u8]) -> io::Result<N> {
     lexical_core::parse(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+}
+
+fn parse_reference_sequence_name(buf: &[u8]) -> &BStr {
+    buf.as_bstr()
+}
+
+fn parse_feature_start(buf: &[u8]) -> io::Result<Position> {
+    parse_int::<usize>(buf).and_then(|n| {
+        n.checked_add(1)
+            .ok_or_else(|| {
+                io::Error::new(io::ErrorKind::InvalidData, "attempt to add with overflow")
+            })
+            .and_then(|m| {
+                Position::try_from(m).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })
+    })
+}
+
+fn parse_feature_end(buf: &[u8]) -> Option<io::Result<Position>> {
+    const MISSING: &[u8] = b"0";
+
+    match buf {
+        MISSING => None,
+        _ => Some(parse_int::<usize>(buf).and_then(|n| {
+            Position::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })),
+    }
 }
 
 fn parse_name(buf: &[u8]) -> Option<&BStr> {
