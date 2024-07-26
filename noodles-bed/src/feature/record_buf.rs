@@ -5,6 +5,8 @@ pub mod color;
 mod other_fields;
 pub mod strand;
 
+use std::io;
+
 use bstr::{BStr, BString};
 use noodles_core::Position;
 
@@ -80,6 +82,40 @@ impl RecordBuf<3> {
     }
 }
 
+impl super::Record for RecordBuf<3> {
+    fn standard_field_count(&self) -> usize {
+        self.standard_field_count()
+    }
+
+    fn reference_sequence_name(&self) -> &BStr {
+        self.reference_sequence_name()
+    }
+
+    fn feature_start(&self) -> io::Result<Position> {
+        Ok(self.feature_start())
+    }
+
+    fn feature_end(&self) -> Option<io::Result<Position>> {
+        self.feature_end().map(Ok)
+    }
+
+    fn name(&self) -> Option<Option<&BStr>> {
+        None
+    }
+
+    fn score(&self) -> Option<io::Result<u16>> {
+        None
+    }
+
+    fn strand(&self) -> Option<io::Result<Option<Strand>>> {
+        None
+    }
+
+    fn other_fields(&self) -> Box<dyn super::record::OtherFields + '_> {
+        Box::new(self.other_fields())
+    }
+}
+
 impl RecordBuf<4> {
     /// Returns the reference sequence name.
     pub fn reference_sequence_name(&self) -> &BStr {
@@ -99,6 +135,40 @@ impl RecordBuf<4> {
     /// Returns the name.
     pub fn name(&self) -> Option<&BStr> {
         self.standard_fields.name.as_ref().map(|name| name.as_ref())
+    }
+}
+
+impl super::Record for RecordBuf<4> {
+    fn standard_field_count(&self) -> usize {
+        self.standard_field_count()
+    }
+
+    fn reference_sequence_name(&self) -> &BStr {
+        self.reference_sequence_name()
+    }
+
+    fn feature_start(&self) -> io::Result<Position> {
+        Ok(self.feature_start())
+    }
+
+    fn feature_end(&self) -> Option<io::Result<Position>> {
+        self.feature_end().map(Ok)
+    }
+
+    fn name(&self) -> Option<Option<&BStr>> {
+        Some(self.name())
+    }
+
+    fn score(&self) -> Option<io::Result<u16>> {
+        None
+    }
+
+    fn strand(&self) -> Option<io::Result<Option<Strand>>> {
+        None
+    }
+
+    fn other_fields(&self) -> Box<dyn super::record::OtherFields + '_> {
+        Box::new(self.other_fields())
     }
 }
 
@@ -126,6 +196,40 @@ impl RecordBuf<5> {
     /// Returns the score.
     pub fn score(&self) -> u16 {
         self.standard_fields.score
+    }
+}
+
+impl super::Record for RecordBuf<5> {
+    fn standard_field_count(&self) -> usize {
+        self.standard_field_count()
+    }
+
+    fn reference_sequence_name(&self) -> &BStr {
+        self.reference_sequence_name()
+    }
+
+    fn feature_start(&self) -> io::Result<Position> {
+        Ok(self.feature_start())
+    }
+
+    fn feature_end(&self) -> Option<io::Result<Position>> {
+        self.feature_end().map(Ok)
+    }
+
+    fn name(&self) -> Option<Option<&BStr>> {
+        Some(self.name())
+    }
+
+    fn score(&self) -> Option<io::Result<u16>> {
+        Some(Ok(self.score()))
+    }
+
+    fn strand(&self) -> Option<io::Result<Option<Strand>>> {
+        None
+    }
+
+    fn other_fields(&self) -> Box<dyn super::record::OtherFields + '_> {
+        Box::new(self.other_fields())
     }
 }
 
@@ -158,5 +262,39 @@ impl RecordBuf<6> {
     /// Returns the strand.
     pub fn strand(&self) -> Option<Strand> {
         self.standard_fields.strand
+    }
+}
+
+impl super::Record for RecordBuf<6> {
+    fn standard_field_count(&self) -> usize {
+        self.standard_field_count()
+    }
+
+    fn reference_sequence_name(&self) -> &BStr {
+        self.reference_sequence_name()
+    }
+
+    fn feature_start(&self) -> io::Result<Position> {
+        Ok(self.feature_start())
+    }
+
+    fn feature_end(&self) -> Option<io::Result<Position>> {
+        self.feature_end().map(Ok)
+    }
+
+    fn name(&self) -> Option<Option<&BStr>> {
+        Some(self.name())
+    }
+
+    fn score(&self) -> Option<io::Result<u16>> {
+        Some(Ok(self.score()))
+    }
+
+    fn strand(&self) -> Option<io::Result<Option<Strand>>> {
+        Some(Ok(self.strand()))
+    }
+
+    fn other_fields(&self) -> Box<dyn super::record::OtherFields + '_> {
+        Box::new(self.other_fields())
     }
 }
