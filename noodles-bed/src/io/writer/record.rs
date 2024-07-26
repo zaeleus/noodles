@@ -2,6 +2,7 @@
 
 mod feature_end;
 mod feature_start;
+mod name;
 mod other_fields;
 mod reference_sequence_name;
 mod score;
