@@ -123,9 +123,9 @@ impl Default for Record<6> {
     }
 }
 
-impl<const N: usize> crate::feature::Record for Record<N> {
+impl crate::feature::Record for Record<3> {
     fn standard_field_count(&self) -> usize {
-        N
+        3
     }
 
     fn reference_sequence_name(&self) -> &[u8] {
@@ -138,6 +138,36 @@ impl<const N: usize> crate::feature::Record for Record<N> {
 
     fn feature_end(&self) -> Option<io::Result<Position>> {
         self.feature_end()
+    }
+
+    fn name(&self) -> Option<&[u8]> {
+        None
+    }
+
+    fn other_fields(&self) -> Box<dyn crate::feature::record::OtherFields + '_> {
+        Box::new(self.other_fields())
+    }
+}
+
+impl crate::feature::Record for Record<4> {
+    fn standard_field_count(&self) -> usize {
+        4
+    }
+
+    fn reference_sequence_name(&self) -> &[u8] {
+        self.reference_sequence_name()
+    }
+
+    fn feature_start(&self) -> io::Result<Position> {
+        self.feature_start()
+    }
+
+    fn feature_end(&self) -> Option<io::Result<Position>> {
+        self.feature_end()
+    }
+
+    fn name(&self) -> Option<&[u8]> {
+        Some(self.name())
     }
 
     fn other_fields(&self) -> Box<dyn crate::feature::record::OtherFields + '_> {
