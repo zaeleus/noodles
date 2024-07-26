@@ -1,4 +1,4 @@
-use bstr::BString;
+use bstr::{BStr, BString};
 
 /// Feature record other fields.
 #[derive(Clone, Default, Debug, Eq, PartialEq)]
@@ -25,7 +25,7 @@ impl crate::feature::record::OtherFields for OtherFields {
         self.0.len()
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = &[u8]> + '_> {
+    fn iter(&self) -> Box<dyn Iterator<Item = &BStr> + '_> {
         todo!()
     }
 }

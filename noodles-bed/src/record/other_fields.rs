@@ -1,5 +1,7 @@
 use std::iter;
 
+use bstr::{BStr, ByteSlice};
+
 use super::Fields;
 
 /// BED record other fields.
@@ -26,11 +28,11 @@ impl<'a, const N: usize> OtherFields<'a, N> {
     }
 
     /// Returns an iterator over other fields.
-    pub fn iter(&self) -> impl Iterator<Item = &[u8]> {
+    pub fn iter(&self) -> impl Iterator<Item = &BStr> {
         let mut i = 0;
 
         iter::from_fn(move || {
-            let field = self.get(i)?;
+            let field = self.get(i).map(|buf| buf.as_bstr())?;
             i += 1;
             Some(field)
         })
@@ -46,7 +48,7 @@ impl<'a, const N: usize> crate::feature::record::OtherFields for OtherFields<'a,
         self.len()
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = &[u8]> + '_> {
+    fn iter(&self) -> Box<dyn Iterator<Item = &BStr> + '_> {
         Box::new(self.iter())
     }
 }

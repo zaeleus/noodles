@@ -1,3 +1,5 @@
+use bstr::BStr;
+
 /// Feature record other fields.
 pub trait OtherFields {
     /// Returns whether there are any other fields.
@@ -7,5 +9,5 @@ pub trait OtherFields {
     fn len(&self) -> usize;
 
     /// Returns an iterator over other fields.
-    fn iter(&self) -> Box<dyn Iterator<Item = &[u8]> + '_>;
+    fn iter(&self) -> Box<dyn Iterator<Item = &BStr> + '_>;
 }
