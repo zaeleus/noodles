@@ -29,3 +29,17 @@ impl crate::feature::record::OtherFields for OtherFields {
         Box::new(self.0.iter().map(|buf| buf.as_ref()))
     }
 }
+
+impl crate::feature::record::OtherFields for &OtherFields {
+    fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = &BStr> + '_> {
+        Box::new(self.0.iter().map(|buf| buf.as_ref()))
+    }
+}
