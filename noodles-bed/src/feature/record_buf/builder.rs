@@ -1,5 +1,6 @@
 //! BED record builder.
 
+use bstr::BString;
 use noodles_core::Position;
 
 use super::{RecordBuf, StandardFields, Strand};
@@ -7,7 +8,7 @@ use super::{RecordBuf, StandardFields, Strand};
 /// A feature record builder.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Builder<const N: usize> {
-    reference_sequence_name: Vec<u8>,
+    reference_sequence_name: BString,
     feature_start: Option<Position>,
     feature_end: Option<Position>,
     name: Option<Vec<u8>>,
@@ -20,7 +21,7 @@ impl Builder<3> {
     /// Sets the reference sequence name (`chrom`).
     pub fn set_reference_sequence_name<M>(mut self, reference_sequence_name: M) -> Self
     where
-        M: Into<Vec<u8>>,
+        M: Into<BString>,
     {
         self.reference_sequence_name = reference_sequence_name.into();
         self

@@ -2,6 +2,7 @@ mod bounds;
 
 use std::io;
 
+use bstr::{BStr, ByteSlice};
 use lexical_core::FromLexical;
 use noodles_core::Position;
 
@@ -15,8 +16,8 @@ pub(crate) struct Fields<const N: usize> {
 }
 
 impl<const N: usize> Fields<N> {
-    pub(super) fn reference_sequence_name(&self) -> &[u8] {
-        &self.buf[self.bounds.reference_sequence_name_range()]
+    pub(super) fn reference_sequence_name(&self) -> &BStr {
+        self.buf[self.bounds.reference_sequence_name_range()].as_bstr()
     }
 
     pub(super) fn feature_start(&self) -> io::Result<Position> {
@@ -52,14 +53,14 @@ impl<const N: usize> Fields<N> {
 }
 
 impl Fields<4> {
-    pub(super) fn name(&self) -> &[u8] {
-        &self.buf[self.bounds.name_range()]
+    pub(super) fn name(&self) -> &BStr {
+        self.buf[self.bounds.name_range()].as_bstr()
     }
 }
 
 impl Fields<5> {
-    pub(super) fn name(&self) -> &[u8] {
-        &self.buf[self.bounds.name_range()]
+    pub(super) fn name(&self) -> &BStr {
+        self.buf[self.bounds.name_range()].as_bstr()
     }
 
     pub(super) fn score(&self) -> io::Result<u16> {
@@ -69,8 +70,8 @@ impl Fields<5> {
 }
 
 impl Fields<6> {
-    pub(super) fn name(&self) -> &[u8] {
-        &self.buf[self.bounds.name_range()]
+    pub(super) fn name(&self) -> &BStr {
+        self.buf[self.bounds.name_range()].as_bstr()
     }
 
     pub(super) fn score(&self) -> io::Result<u16> {
