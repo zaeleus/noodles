@@ -3,7 +3,7 @@ mod record;
 use std::io::{self, Write};
 
 use self::record::{write_record_3, write_record_4};
-use crate::feature::Record;
+use crate::Record;
 
 /// A BED writer.
 pub struct Writer<W> {
@@ -67,6 +67,24 @@ where
         Self { inner }
     }
 
+    /// Writes a record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed as bed;
+    /// let mut writer = bed::io::Writer::new(Vec::new());
+    /// let record = bed::Record::<3>::default();
+    /// writer.write_record(&record)?;
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
+    pub fn write_record<const N: usize>(&mut self, record: &Record<N>) -> io::Result<()>
+    where
+        Record<N>: crate::feature::Record,
+    {
+        self.write_feature_record(record)
+    }
+
     /// Writes a feature record.
     ///
     /// # Examples
@@ -80,7 +98,7 @@ where
     /// ```
     pub fn write_feature_record<R>(&mut self, record: &R) -> io::Result<()>
     where
-        R: Record,
+        R: crate::feature::Record,
     {
         match record.standard_field_count() {
             3 => write_record_3(&mut self.inner, record),
