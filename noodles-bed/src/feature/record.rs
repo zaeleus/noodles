@@ -22,6 +22,9 @@ pub trait Record {
     /// Returns the feature end.
     fn feature_end(&self) -> Option<io::Result<Position>>;
 
+    /// Returns the name.
+    fn name(&self) -> Option<&[u8]>;
+
     /// Returns the other fields.
     fn other_fields(&self) -> Box<dyn OtherFields + '_>;
 }
