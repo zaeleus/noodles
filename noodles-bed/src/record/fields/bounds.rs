@@ -7,18 +7,6 @@ pub(crate) struct Bounds<const N: usize> {
 }
 
 impl<const N: usize> Bounds<N> {
-    pub fn reference_sequence_name_range(&self) -> Range<usize> {
-        0..self.standard_fields_ends[0]
-    }
-
-    pub fn feature_start_range(&self) -> Range<usize> {
-        self.standard_fields_ends[0]..self.standard_fields_ends[1]
-    }
-
-    pub fn feature_end_range(&self) -> Range<usize> {
-        self.standard_fields_ends[1]..self.standard_fields_ends[2]
-    }
-
     pub fn get(&self, i: usize) -> Option<Range<usize>> {
         let end = self.other_fields_ends.get(i).copied()?;
 
@@ -31,13 +19,51 @@ impl<const N: usize> Bounds<N> {
     }
 }
 
+impl Bounds<3> {
+    pub fn reference_sequence_name_range(&self) -> Range<usize> {
+        0..self.standard_fields_ends[0]
+    }
+
+    pub fn feature_start_range(&self) -> Range<usize> {
+        self.standard_fields_ends[0]..self.standard_fields_ends[1]
+    }
+
+    pub fn feature_end_range(&self) -> Range<usize> {
+        self.standard_fields_ends[1]..self.standard_fields_ends[2]
+    }
+}
+
 impl Bounds<4> {
+    pub fn reference_sequence_name_range(&self) -> Range<usize> {
+        0..self.standard_fields_ends[0]
+    }
+
+    pub fn feature_start_range(&self) -> Range<usize> {
+        self.standard_fields_ends[0]..self.standard_fields_ends[1]
+    }
+
+    pub fn feature_end_range(&self) -> Range<usize> {
+        self.standard_fields_ends[1]..self.standard_fields_ends[2]
+    }
+
     pub fn name_range(&self) -> Range<usize> {
         self.standard_fields_ends[2]..self.standard_fields_ends[3]
     }
 }
 
 impl Bounds<5> {
+    pub fn reference_sequence_name_range(&self) -> Range<usize> {
+        0..self.standard_fields_ends[0]
+    }
+
+    pub fn feature_start_range(&self) -> Range<usize> {
+        self.standard_fields_ends[0]..self.standard_fields_ends[1]
+    }
+
+    pub fn feature_end_range(&self) -> Range<usize> {
+        self.standard_fields_ends[1]..self.standard_fields_ends[2]
+    }
+
     pub fn name_range(&self) -> Range<usize> {
         self.standard_fields_ends[2]..self.standard_fields_ends[3]
     }
@@ -48,6 +74,18 @@ impl Bounds<5> {
 }
 
 impl Bounds<6> {
+    pub fn reference_sequence_name_range(&self) -> Range<usize> {
+        0..self.standard_fields_ends[0]
+    }
+
+    pub fn feature_start_range(&self) -> Range<usize> {
+        self.standard_fields_ends[0]..self.standard_fields_ends[1]
+    }
+
+    pub fn feature_end_range(&self) -> Range<usize> {
+        self.standard_fields_ends[1]..self.standard_fields_ends[2]
+    }
+
     pub fn name_range(&self) -> Range<usize> {
         self.standard_fields_ends[2]..self.standard_fields_ends[3]
     }

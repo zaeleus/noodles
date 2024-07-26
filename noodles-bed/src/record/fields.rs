@@ -16,6 +16,29 @@ pub(crate) struct Fields<const N: usize> {
 }
 
 impl<const N: usize> Fields<N> {
+    pub(super) fn get(&self, i: usize) -> Option<&[u8]> {
+        self.bounds.get(i).map(|range| &self.buf[range])
+    }
+}
+
+impl Fields<3> {
+    pub(super) fn reference_sequence_name(&self) -> &BStr {
+        let src = &self.buf[self.bounds.reference_sequence_name_range()];
+        parse_reference_sequence_name(src)
+    }
+
+    pub(super) fn feature_start(&self) -> io::Result<Position> {
+        let src = &self.buf[self.bounds.feature_start_range()];
+        parse_feature_start(src)
+    }
+
+    pub(super) fn feature_end(&self) -> Option<io::Result<Position>> {
+        let src = &self.buf[self.bounds.feature_end_range()];
+        parse_feature_end(src)
+    }
+}
+
+impl Fields<4> {
     pub(super) fn reference_sequence_name(&self) -> &BStr {
         let src = &self.buf[self.bounds.reference_sequence_name_range()];
         parse_reference_sequence_name(src)
@@ -31,12 +54,6 @@ impl<const N: usize> Fields<N> {
         parse_feature_end(src)
     }
 
-    pub(super) fn get(&self, i: usize) -> Option<&[u8]> {
-        self.bounds.get(i).map(|range| &self.buf[range])
-    }
-}
-
-impl Fields<4> {
     pub(super) fn name(&self) -> Option<&BStr> {
         let src = &self.buf[self.bounds.name_range()];
         parse_name(src)
@@ -44,6 +61,21 @@ impl Fields<4> {
 }
 
 impl Fields<5> {
+    pub(super) fn reference_sequence_name(&self) -> &BStr {
+        let src = &self.buf[self.bounds.reference_sequence_name_range()];
+        parse_reference_sequence_name(src)
+    }
+
+    pub(super) fn feature_start(&self) -> io::Result<Position> {
+        let src = &self.buf[self.bounds.feature_start_range()];
+        parse_feature_start(src)
+    }
+
+    pub(super) fn feature_end(&self) -> Option<io::Result<Position>> {
+        let src = &self.buf[self.bounds.feature_end_range()];
+        parse_feature_end(src)
+    }
+
     pub(super) fn name(&self) -> Option<&BStr> {
         let src = &self.buf[self.bounds.name_range()];
         parse_name(src)
@@ -56,6 +88,21 @@ impl Fields<5> {
 }
 
 impl Fields<6> {
+    pub(super) fn reference_sequence_name(&self) -> &BStr {
+        let src = &self.buf[self.bounds.reference_sequence_name_range()];
+        parse_reference_sequence_name(src)
+    }
+
+    pub(super) fn feature_start(&self) -> io::Result<Position> {
+        let src = &self.buf[self.bounds.feature_start_range()];
+        parse_feature_start(src)
+    }
+
+    pub(super) fn feature_end(&self) -> Option<io::Result<Position>> {
+        let src = &self.buf[self.bounds.feature_end_range()];
+        parse_feature_end(src)
+    }
+
     pub(super) fn name(&self) -> Option<&BStr> {
         let src = &self.buf[self.bounds.name_range()];
         parse_name(src)
