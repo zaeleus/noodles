@@ -11,7 +11,7 @@ mod strand;
 use std::io::{self, Write};
 
 use self::{
-    feature_end::write_feature_end, feature_start::write_feature_start,
+    feature_end::write_feature_end, feature_start::write_feature_start, name::write_name,
     other_fields::write_other_fields, reference_sequence_name::write_reference_sequence_name,
 };
 use crate::feature::Record;
@@ -30,6 +30,34 @@ where
     write_separator(writer)?;
     let feature_end = record.feature_end().transpose()?;
     write_feature_end(writer, feature_end)?;
+
+    write_other_fields(writer, record.other_fields().as_ref())?;
+
+    write_newline(writer)?;
+
+    Ok(())
+}
+
+pub(super) fn write_record_4<W, R>(writer: &mut W, record: &R) -> io::Result<()>
+where
+    W: Write,
+    R: Record,
+{
+    write_reference_sequence_name(writer, record.reference_sequence_name())?;
+
+    write_separator(writer)?;
+    let feature_start = record.feature_start()?;
+    write_feature_start(writer, feature_start)?;
+
+    write_separator(writer)?;
+    let feature_end = record.feature_end().transpose()?;
+    write_feature_end(writer, feature_end)?;
+
+    write_separator(writer)?;
+    let name = record
+        .name()
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing name"))?;
+    write_name(writer, name)?;
 
     write_other_fields(writer, record.other_fields().as_ref())?;
 

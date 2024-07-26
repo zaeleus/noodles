@@ -1,6 +1,8 @@
 use std::io::{self, Write};
 
-pub(super) fn write_name<W>(writer: &mut W, name: Option<&[u8]>) -> io::Result<()>
+use bstr::BStr;
+
+pub(super) fn write_name<W>(writer: &mut W, name: Option<&BStr>) -> io::Result<()>
 where
     W: Write,
 {
@@ -28,6 +30,8 @@ fn is_valid(buf: &[u8]) -> bool {
 
 #[cfg(test)]
 mod tests {
+    use bstr::ByteSlice;
+
     use super::*;
 
     #[test]
@@ -39,12 +43,12 @@ mod tests {
         assert_eq!(buf, b".");
 
         buf.clear();
-        write_name(&mut buf, Some(b"r0"))?;
+        write_name(&mut buf, Some(b"r0".as_bstr()))?;
         assert_eq!(buf, b"r0");
 
         buf.clear();
         assert!(matches!(
-            write_name(&mut buf, Some("🍜".as_bytes())),
+            write_name(&mut buf, Some("🍜".as_bytes().as_bstr())),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
