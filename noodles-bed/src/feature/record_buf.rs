@@ -57,6 +57,30 @@ impl<const N: usize> RecordBuf<N> {
         self.standard_fields.len()
     }
 
+    /// Returns the other fields.
+    pub fn other_fields(&self) -> &OtherFields {
+        &self.other_fields
+    }
+}
+
+impl RecordBuf<3> {
+    /// Returns the reference sequence name.
+    pub fn reference_sequence_name(&self) -> &BStr {
+        self.standard_fields.reference_sequence_name.as_ref()
+    }
+
+    /// Returns the feature start.
+    pub fn feature_start(&self) -> Position {
+        self.standard_fields.feature_start
+    }
+
+    /// Returns the feature end.
+    pub fn feature_end(&self) -> Option<Position> {
+        self.standard_fields.feature_end
+    }
+}
+
+impl RecordBuf<4> {
     /// Returns the reference sequence name.
     pub fn reference_sequence_name(&self) -> &BStr {
         self.standard_fields.reference_sequence_name.as_ref()
@@ -72,13 +96,6 @@ impl<const N: usize> RecordBuf<N> {
         self.standard_fields.feature_end
     }
 
-    /// Returns the other fields.
-    pub fn other_fields(&self) -> &OtherFields {
-        &self.other_fields
-    }
-}
-
-impl RecordBuf<4> {
     /// Returns the name.
     pub fn name(&self) -> Option<&BStr> {
         self.standard_fields.name.as_ref().map(|name| name.as_ref())
@@ -86,6 +103,21 @@ impl RecordBuf<4> {
 }
 
 impl RecordBuf<5> {
+    /// Returns the reference sequence name.
+    pub fn reference_sequence_name(&self) -> &BStr {
+        self.standard_fields.reference_sequence_name.as_ref()
+    }
+
+    /// Returns the feature start.
+    pub fn feature_start(&self) -> Position {
+        self.standard_fields.feature_start
+    }
+
+    /// Returns the feature end.
+    pub fn feature_end(&self) -> Option<Position> {
+        self.standard_fields.feature_end
+    }
+
     /// Returns the name.
     pub fn name(&self) -> Option<&BStr> {
         self.standard_fields.name.as_ref().map(|name| name.as_ref())
@@ -98,6 +130,21 @@ impl RecordBuf<5> {
 }
 
 impl RecordBuf<6> {
+    /// Returns the reference sequence name.
+    pub fn reference_sequence_name(&self) -> &BStr {
+        self.standard_fields.reference_sequence_name.as_ref()
+    }
+
+    /// Returns the feature start.
+    pub fn feature_start(&self) -> Position {
+        self.standard_fields.feature_start
+    }
+
+    /// Returns the feature end.
+    pub fn feature_end(&self) -> Option<Position> {
+        self.standard_fields.feature_end
+    }
+
     /// Returns the name.
     pub fn name(&self) -> Option<&BStr> {
         self.standard_fields.name.as_ref().map(|name| name.as_ref())
