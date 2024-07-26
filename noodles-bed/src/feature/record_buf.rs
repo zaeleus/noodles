@@ -58,8 +58,8 @@ impl<const N: usize> RecordBuf<N> {
     }
 
     /// Returns the reference sequence name.
-    pub fn reference_sequence_name(&self) -> &[u8] {
-        &self.standard_fields.reference_sequence_name
+    pub fn reference_sequence_name(&self) -> &BStr {
+        self.standard_fields.reference_sequence_name.as_ref()
     }
 
     /// Returns the feature start.
