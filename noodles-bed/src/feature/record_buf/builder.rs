@@ -18,7 +18,7 @@ pub struct Builder<const N: usize> {
 }
 
 impl Builder<3> {
-    /// Sets the reference sequence name (`chrom`).
+    /// Sets the reference sequence name.
     pub fn set_reference_sequence_name<M>(mut self, reference_sequence_name: M) -> Self
     where
         M: Into<BString>,
@@ -27,13 +27,13 @@ impl Builder<3> {
         self
     }
 
-    /// Sets the feature start position (`chromStart`).
+    /// Sets the feature start position.
     pub fn set_feature_start(mut self, start_position: Position) -> Self {
         self.feature_start = Some(start_position);
         self
     }
 
-    /// Sets the feature end position (`chromEnd`).
+    /// Sets the feature end position.
     pub fn set_feature_end(mut self, end_position: Position) -> Self {
         self.feature_end = Some(end_position);
         self
