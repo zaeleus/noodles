@@ -6,14 +6,15 @@ pub mod strand;
 
 pub use self::{builder::Builder, color::Color, strand::Strand};
 
+use bstr::{BStr, BString};
 use noodles_core::Position;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct StandardFields<const N: usize> {
-    reference_sequence_name: Vec<u8>,
+    reference_sequence_name: BString,
     feature_start: Position,
     feature_end: Option<Position>,
-    name: Option<Vec<u8>>,
+    name: Option<BString>,
     score: u16,
     strand: Option<Strand>,
 }
@@ -27,7 +28,7 @@ impl<const N: usize> StandardFields<N> {
 impl<const N: usize> Default for StandardFields<N> {
     fn default() -> Self {
         Self {
-            reference_sequence_name: Vec::new(),
+            reference_sequence_name: BString::default(),
             feature_start: Position::MIN,
             feature_end: None,
             name: None,
@@ -73,15 +74,15 @@ impl<const N: usize> RecordBuf<N> {
 
 impl RecordBuf<4> {
     /// Returns the name.
-    pub fn name(&self) -> Option<&[u8]> {
-        self.standard_fields.name.as_deref()
+    pub fn name(&self) -> Option<&BStr> {
+        self.standard_fields.name.as_ref().map(|name| name.as_ref())
     }
 }
 
 impl RecordBuf<5> {
     /// Returns the name.
-    pub fn name(&self) -> Option<&[u8]> {
-        self.standard_fields.name.as_deref()
+    pub fn name(&self) -> Option<&BStr> {
+        self.standard_fields.name.as_ref().map(|name| name.as_ref())
     }
 
     /// Returns the score.
@@ -92,8 +93,8 @@ impl RecordBuf<5> {
 
 impl RecordBuf<6> {
     /// Returns the name.
-    pub fn name(&self) -> Option<&[u8]> {
-        self.standard_fields.name.as_deref()
+    pub fn name(&self) -> Option<&BStr> {
+        self.standard_fields.name.as_ref().map(|name| name.as_ref())
     }
 
     /// Returns the score.

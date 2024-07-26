@@ -3,7 +3,7 @@ mod other_fields;
 
 use std::{fmt, io};
 
-use bstr::ByteSlice;
+use bstr::BStr;
 use noodles_core::Position;
 
 use self::fields::Fields;
@@ -16,7 +16,7 @@ pub struct Record<const N: usize>(pub(crate) Fields<N>);
 
 impl<const N: usize> Record<N> {
     /// Returns the reference sequence name.
-    pub fn reference_sequence_name(&self) -> &[u8] {
+    pub fn reference_sequence_name(&self) -> &BStr {
         self.0.reference_sequence_name()
     }
 
@@ -52,14 +52,14 @@ impl<const N: usize> Record<N> {
 
 impl Record<4> {
     /// Returns the name.
-    pub fn name(&self) -> &[u8] {
+    pub fn name(&self) -> &BStr {
         self.0.name()
     }
 }
 
 impl Record<5> {
     /// Returns the name.
-    pub fn name(&self) -> &[u8] {
+    pub fn name(&self) -> &BStr {
         self.0.name()
     }
 
@@ -71,7 +71,7 @@ impl Record<5> {
 
 impl Record<6> {
     /// Returns the name.
-    pub fn name(&self) -> &[u8] {
+    pub fn name(&self) -> &BStr {
         self.0.name()
     }
 
@@ -89,10 +89,7 @@ impl Record<6> {
 impl<const N: usize> fmt::Debug for Record<N> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Record")
-            .field(
-                "reference_sequence_name",
-                &self.reference_sequence_name().as_bstr(),
-            )
+            .field("reference_sequence_name", &self.reference_sequence_name())
             .field("feature_start", &self.feature_start())
             .field("feature_end", &self.feature_end())
             .finish_non_exhaustive()
@@ -128,7 +125,7 @@ impl crate::feature::Record for Record<3> {
         3
     }
 
-    fn reference_sequence_name(&self) -> &[u8] {
+    fn reference_sequence_name(&self) -> &BStr {
         self.reference_sequence_name()
     }
 
@@ -140,7 +137,7 @@ impl crate::feature::Record for Record<3> {
         self.feature_end()
     }
 
-    fn name(&self) -> Option<&[u8]> {
+    fn name(&self) -> Option<&BStr> {
         None
     }
 
@@ -154,7 +151,7 @@ impl crate::feature::Record for Record<4> {
         4
     }
 
-    fn reference_sequence_name(&self) -> &[u8] {
+    fn reference_sequence_name(&self) -> &BStr {
         self.reference_sequence_name()
     }
 
@@ -166,7 +163,7 @@ impl crate::feature::Record for Record<4> {
         self.feature_end()
     }
 
-    fn name(&self) -> Option<&[u8]> {
+    fn name(&self) -> Option<&BStr> {
         Some(self.name())
     }
 
