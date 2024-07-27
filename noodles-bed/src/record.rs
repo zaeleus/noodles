@@ -139,6 +139,7 @@ impl fmt::Debug for Record<3> {
             .field("reference_sequence_name", &self.reference_sequence_name())
             .field("feature_start", &self.feature_start())
             .field("feature_end", &self.feature_end())
+            .field("other_fields", &self.other_fields())
             .finish_non_exhaustive()
     }
 }
@@ -150,6 +151,7 @@ impl fmt::Debug for Record<4> {
             .field("feature_start", &self.feature_start())
             .field("feature_end", &self.feature_end())
             .field("name", &self.name())
+            .field("other_fields", &self.other_fields())
             .finish_non_exhaustive()
     }
 }
