@@ -1,4 +1,4 @@
-use std::iter;
+use std::{fmt, iter};
 
 use bstr::{BStr, ByteSlice};
 
@@ -36,6 +36,12 @@ impl<'a, const N: usize> OtherFields<'a, N> {
             i += 1;
             Some(field)
         })
+    }
+}
+
+impl<'a, const N: usize> fmt::Debug for OtherFields<'a, N> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_list().entries(self.iter()).finish()
     }
 }
 
