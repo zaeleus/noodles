@@ -169,6 +169,20 @@ impl fmt::Debug for Record<5> {
     }
 }
 
+impl fmt::Debug for Record<6> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Record")
+            .field("reference_sequence_name", &self.reference_sequence_name())
+            .field("feature_start", &self.feature_start())
+            .field("feature_end", &self.feature_end())
+            .field("name", &self.name())
+            .field("score", &self.score())
+            .field("strand", &self.strand())
+            .field("other_fields", &self.other_fields())
+            .finish()
+    }
+}
+
 impl Default for Record<3> {
     fn default() -> Self {
         Self(Fields::default())
