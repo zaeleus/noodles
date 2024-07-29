@@ -2,7 +2,7 @@ mod record;
 
 use std::io::{self, Write};
 
-use self::record::{write_record_3, write_record_4, write_record_5};
+use self::record::{write_record_3, write_record_4, write_record_5, write_record_6};
 use crate::Record;
 
 /// A BED writer.
@@ -104,6 +104,7 @@ where
             3 => write_record_3(&mut self.inner, record),
             4 => write_record_4(&mut self.inner, record),
             5 => write_record_5(&mut self.inner, record),
+            6 => write_record_6(&mut self.inner, record),
             _ => todo!(),
         }
     }
