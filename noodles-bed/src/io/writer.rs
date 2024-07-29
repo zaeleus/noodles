@@ -2,7 +2,7 @@ mod record;
 
 use std::io::{self, Write};
 
-use self::record::{write_record_3, write_record_4};
+use self::record::{write_record_3, write_record_4, write_record_5};
 use crate::Record;
 
 /// A BED writer.
@@ -103,6 +103,7 @@ where
         match record.standard_field_count() {
             3 => write_record_3(&mut self.inner, record),
             4 => write_record_4(&mut self.inner, record),
+            5 => write_record_5(&mut self.inner, record),
             _ => todo!(),
         }
     }
