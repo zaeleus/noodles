@@ -24,15 +24,6 @@ impl<const N: usize> Record<N> {
     pub fn other_fields(&self) -> OtherFields<'_, N> {
         OtherFields::new(&self.0)
     }
-
-    /// Returns the number of fields.
-    ///
-    /// This is guaranteed to be >= 3.
-    #[allow(clippy::len_without_is_empty)]
-    pub fn len(&self) -> usize {
-        const MIN_FIELD_COUNT: usize = 3;
-        MIN_FIELD_COUNT + self.other_fields().len()
-    }
 }
 
 impl Record<3> {
