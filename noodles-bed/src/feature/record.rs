@@ -11,9 +11,11 @@ pub use self::other_fields::OtherFields;
 use super::record_buf::Strand;
 
 /// A feature record.
-pub trait Record {
+pub trait Record<const N: usize> {
     /// Return the number of standard fields.
-    fn standard_field_count(&self) -> usize;
+    fn standard_field_count(&self) -> usize {
+        N
+    }
 
     /// Returns the reference sequence name.
     fn reference_sequence_name(&self) -> &BStr;

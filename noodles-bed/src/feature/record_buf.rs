@@ -82,11 +82,7 @@ impl RecordBuf<3> {
     }
 }
 
-impl super::Record for RecordBuf<3> {
-    fn standard_field_count(&self) -> usize {
-        self.standard_field_count()
-    }
-
+impl super::Record<3> for RecordBuf<3> {
     fn reference_sequence_name(&self) -> &BStr {
         self.reference_sequence_name()
     }
@@ -138,11 +134,7 @@ impl RecordBuf<4> {
     }
 }
 
-impl super::Record for RecordBuf<4> {
-    fn standard_field_count(&self) -> usize {
-        self.standard_field_count()
-    }
-
+impl super::Record<4> for RecordBuf<4> {
     fn reference_sequence_name(&self) -> &BStr {
         self.reference_sequence_name()
     }
@@ -199,11 +191,7 @@ impl RecordBuf<5> {
     }
 }
 
-impl super::Record for RecordBuf<5> {
-    fn standard_field_count(&self) -> usize {
-        self.standard_field_count()
-    }
-
+impl super::Record<5> for RecordBuf<5> {
     fn reference_sequence_name(&self) -> &BStr {
         self.reference_sequence_name()
     }
@@ -265,11 +253,7 @@ impl RecordBuf<6> {
     }
 }
 
-impl super::Record for RecordBuf<6> {
-    fn standard_field_count(&self) -> usize {
-        self.standard_field_count()
-    }
-
+impl super::Record<6> for RecordBuf<6> {
     fn reference_sequence_name(&self) -> &BStr {
         self.reference_sequence_name()
     }
