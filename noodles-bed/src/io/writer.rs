@@ -80,7 +80,7 @@ where
     /// ```
     pub fn write_record<const N: usize>(&mut self, record: &Record<N>) -> io::Result<()>
     where
-        Record<N>: crate::feature::Record,
+        Record<N>: crate::feature::Record<N>,
     {
         self.write_feature_record(record)
     }
@@ -96,9 +96,9 @@ where
     /// writer.write_feature_record(&record)?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn write_feature_record<R>(&mut self, record: &R) -> io::Result<()>
+    pub fn write_feature_record<R, const N: usize>(&mut self, record: &R) -> io::Result<()>
     where
-        R: crate::feature::Record,
+        R: crate::feature::Record<N>,
     {
         match record.standard_field_count() {
             3 => write_record_3(&mut self.inner, record),

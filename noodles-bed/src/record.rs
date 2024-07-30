@@ -198,11 +198,7 @@ impl Default for Record<6> {
     }
 }
 
-impl crate::feature::Record for Record<3> {
-    fn standard_field_count(&self) -> usize {
-        3
-    }
-
+impl crate::feature::Record<3> for Record<3> {
     fn reference_sequence_name(&self) -> &BStr {
         self.reference_sequence_name()
     }
@@ -232,11 +228,7 @@ impl crate::feature::Record for Record<3> {
     }
 }
 
-impl crate::feature::Record for Record<4> {
-    fn standard_field_count(&self) -> usize {
-        4
-    }
-
+impl crate::feature::Record<4> for Record<4> {
     fn reference_sequence_name(&self) -> &BStr {
         self.reference_sequence_name()
     }
@@ -266,11 +258,7 @@ impl crate::feature::Record for Record<4> {
     }
 }
 
-impl crate::feature::Record for Record<5> {
-    fn standard_field_count(&self) -> usize {
-        5
-    }
-
+impl crate::feature::Record<5> for Record<5> {
     fn reference_sequence_name(&self) -> &BStr {
         self.reference_sequence_name()
     }
@@ -300,11 +288,7 @@ impl crate::feature::Record for Record<5> {
     }
 }
 
-impl crate::feature::Record for Record<6> {
-    fn standard_field_count(&self) -> usize {
-        6
-    }
-
+impl crate::feature::Record<6> for Record<6> {
     fn reference_sequence_name(&self) -> &BStr {
         self.reference_sequence_name()
     }
