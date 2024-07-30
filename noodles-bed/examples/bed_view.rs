@@ -16,7 +16,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(bed::io::Reader::<_, 3>::new)?;
 
     let stdout = io::stdout().lock();
-    let mut writer = bed::io::Writer::new(stdout);
+    let mut writer = bed::io::Writer::<_, 3>::new(stdout);
 
     let mut record = bed::Record::default();
 
