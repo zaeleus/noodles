@@ -5,6 +5,7 @@ use bstr::{BStr, ByteSlice};
 use super::Fields;
 
 /// BED record other fields.
+#[derive(Eq, PartialEq)]
 pub struct OtherFields<'a, const N: usize>(&'a Fields<N>);
 
 impl<'a, const N: usize> OtherFields<'a, N> {
