@@ -9,7 +9,7 @@ use noodles_core::Position;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let stdout = io::stdout().lock();
-    let mut writer = bed::io::Writer::new(stdout);
+    let mut writer = bed::io::Writer::<_, 3>::new(stdout);
 
     let record = RecordBuf::<3>::builder()
         .set_reference_sequence_name("sq0")

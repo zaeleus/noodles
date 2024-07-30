@@ -15,10 +15,10 @@ use self::{
 };
 use crate::feature::Record;
 
-pub(super) fn write_record_3<W, R, const N: usize>(writer: &mut W, record: &R) -> io::Result<()>
+pub(super) fn write_record_3<W, R>(writer: &mut W, record: &R) -> io::Result<()>
 where
     W: Write,
-    R: Record<N>,
+    R: Record<3>,
 {
     write_reference_sequence_name(writer, record.reference_sequence_name())?;
 
@@ -37,10 +37,10 @@ where
     Ok(())
 }
 
-pub(super) fn write_record_4<W, R, const N: usize>(writer: &mut W, record: &R) -> io::Result<()>
+pub(super) fn write_record_4<W, R>(writer: &mut W, record: &R) -> io::Result<()>
 where
     W: Write,
-    R: Record<N>,
+    R: Record<4>,
 {
     write_reference_sequence_name(writer, record.reference_sequence_name())?;
 
@@ -65,10 +65,10 @@ where
     Ok(())
 }
 
-pub(super) fn write_record_5<W, R, const N: usize>(writer: &mut W, record: &R) -> io::Result<()>
+pub(super) fn write_record_5<W, R>(writer: &mut W, record: &R) -> io::Result<()>
 where
     W: Write,
-    R: Record<N>,
+    R: Record<5>,
 {
     write_reference_sequence_name(writer, record.reference_sequence_name())?;
 
@@ -100,10 +100,10 @@ where
     Ok(())
 }
 
-pub(super) fn write_record_6<W, R, const N: usize>(writer: &mut W, record: &R) -> io::Result<()>
+pub(super) fn write_record_6<W, R>(writer: &mut W, record: &R) -> io::Result<()>
 where
     W: Write,
-    R: Record<N>,
+    R: Record<6>,
 {
     write_reference_sequence_name(writer, record.reference_sequence_name())?;
 
