@@ -16,9 +16,10 @@ impl<W, const N: usize> Writer<W, N> {
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bed as bed;
-    /// let writer = bed::io::Writer::<_, 3>::new(Vec::new());
-    /// assert!(writer.get_ref().is_empty());
+    /// let writer = bed::io::Writer::<_, 3>::new(io::sink());
+    /// let _inner = writer.get_ref();
     /// ```
     pub fn get_ref(&self) -> &W {
         &self.inner
@@ -29,9 +30,10 @@ impl<W, const N: usize> Writer<W, N> {
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bed as bed;
-    /// let mut writer = bed::io::Writer::<_, 3>::new(Vec::new());
-    /// assert!(writer.get_mut().is_empty());
+    /// let mut writer = bed::io::Writer::<_, 3>::new(io::sink());
+    /// let _inner = writer.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut W {
         &mut self.inner
@@ -42,9 +44,10 @@ impl<W, const N: usize> Writer<W, N> {
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bed as bed;
-    /// let writer = bed::io::Writer::<_, 3>::new(Vec::new());
-    /// assert!(writer.into_inner().is_empty());
+    /// let writer = bed::io::Writer::<_, 3>::new(io::sink());
+    /// let _inner = writer.into_inner();
     /// ```
     pub fn into_inner(self) -> W {
         self.inner
@@ -60,8 +63,9 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bed as bed;
-    /// let writer = bed::io::Writer::<_, 3>::new(Vec::new());
+    /// let writer = bed::io::Writer::<_, 3>::new(io::sink());
     /// ```
     pub fn new(inner: W) -> Self {
         Self { inner }
@@ -77,11 +81,12 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bed as bed;
-    /// let mut writer = bed::io::Writer::<_, 3>::new(Vec::new());
+    /// let mut writer = bed::io::Writer::<_, 3>::new(io::sink());
     /// let record = bed::Record::default();
     /// writer.write_record(&record)?;
-    /// # Ok::<_, std::io::Error>(())
+    /// # Ok::<_, io::Error>(())
     /// ```
     pub fn write_record(&mut self, record: &Record<3>) -> io::Result<()> {
         self.write_feature_record(record)
@@ -92,11 +97,12 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bed as bed;
-    /// let mut writer = bed::io::Writer::<_, 3>::new(Vec::new());
+    /// let mut writer = bed::io::Writer::<_, 3>::new(io::sink());
     /// let record = bed::Record::default();
     /// writer.write_feature_record(&record)?;
-    /// # Ok::<_, std::io::Error>(())
+    /// # Ok::<_, io::Error>(())
     /// ```
     pub fn write_feature_record<R>(&mut self, record: &R) -> io::Result<()>
     where
@@ -115,11 +121,12 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bed as bed;
-    /// let mut writer = bed::io::Writer::<_, 4>::new(Vec::new());
+    /// let mut writer = bed::io::Writer::<_, 4>::new(io::sink());
     /// let record = bed::Record::default();
     /// writer.write_record(&record)?;
-    /// # Ok::<_, std::io::Error>(())
+    /// # Ok::<_, io::Error>(())
     /// ```
     pub fn write_record(&mut self, record: &Record<4>) -> io::Result<()> {
         self.write_feature_record(record)
@@ -130,11 +137,12 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bed as bed;
-    /// let mut writer = bed::io::Writer::<_, 4>::new(Vec::new());
+    /// let mut writer = bed::io::Writer::<_, 4>::new(io::sink());
     /// let record = bed::Record::default();
     /// writer.write_feature_record(&record)?;
-    /// # Ok::<_, std::io::Error>(())
+    /// # Ok::<_, io::Error>(())
     /// ```
     pub fn write_feature_record<R>(&mut self, record: &R) -> io::Result<()>
     where
@@ -153,11 +161,12 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bed as bed;
-    /// let mut writer = bed::io::Writer::<_, 5>::new(Vec::new());
+    /// let mut writer = bed::io::Writer::<_, 5>::new(io::sink());
     /// let record = bed::Record::default();
     /// writer.write_record(&record)?;
-    /// # Ok::<_, std::io::Error>(())
+    /// # Ok::<_, io::Error>(())
     /// ```
     pub fn write_record(&mut self, record: &Record<5>) -> io::Result<()> {
         self.write_feature_record(record)
@@ -168,11 +177,12 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bed as bed;
-    /// let mut writer = bed::io::Writer::<_, 5>::new(Vec::new());
+    /// let mut writer = bed::io::Writer::<_, 5>::new(io::sink());
     /// let record = bed::Record::default();
     /// writer.write_feature_record(&record)?;
-    /// # Ok::<_, std::io::Error>(())
+    /// # Ok::<_, io::Error>(())
     /// ```
     pub fn write_feature_record<R>(&mut self, record: &R) -> io::Result<()>
     where
@@ -191,11 +201,12 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bed as bed;
-    /// let mut writer = bed::io::Writer::<_, 6>::new(Vec::new());
+    /// let mut writer = bed::io::Writer::<_, 6>::new(io::sink());
     /// let record = bed::Record::default();
     /// writer.write_record(&record)?;
-    /// # Ok::<_, std::io::Error>(())
+    /// # Ok::<_, io::Error>(())
     /// ```
     pub fn write_record(&mut self, record: &Record<6>) -> io::Result<()> {
         self.write_feature_record(record)
@@ -206,11 +217,12 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bed as bed;
-    /// let mut writer = bed::io::Writer::<_, 6>::new(Vec::new());
+    /// let mut writer = bed::io::Writer::<_, 6>::new(io::sink());
     /// let record = bed::Record::default();
     /// writer.write_feature_record(&record)?;
-    /// # Ok::<_, std::io::Error>(())
+    /// # Ok::<_, io::Error>(())
     /// ```
     pub fn write_feature_record<R>(&mut self, record: &R) -> io::Result<()>
     where
