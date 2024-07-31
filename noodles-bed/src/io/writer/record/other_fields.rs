@@ -1,5 +1,8 @@
+mod value;
+
 use std::io::{self, Write};
 
+use self::value::write_value;
 use super::write_separator;
 use crate::feature::record::OtherFields;
 
@@ -8,9 +11,9 @@ where
     W: Write,
     F: OtherFields + ?Sized,
 {
-    for field in other_fields.iter() {
+    for value in other_fields.iter() {
         write_separator(writer)?;
-        writer.write_all(field)?;
+        write_value(writer, value)?;
     }
 
     Ok(())

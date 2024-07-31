@@ -6,7 +6,7 @@ use noodles_core::Position;
 use super::{OtherFields, RecordBuf, StandardFields, Strand};
 
 /// A feature record builder.
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct Builder<const N: usize> {
     reference_sequence_name: BString,
     feature_start: Option<Position>,
