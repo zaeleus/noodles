@@ -1,26 +1,23 @@
 use std::io;
 
+use bstr::BStr;
 use bytes::BufMut;
-use noodles_sam::alignment::record::Name;
 
 const MAX_LENGTH: usize = 254;
 pub(super) const MISSING: &[u8] = b"*";
 
-pub fn put_name<B, N>(dst: &mut B, name: Option<N>) -> io::Result<()>
+pub fn put_name<B>(dst: &mut B, name: Option<&BStr>) -> io::Result<()>
 where
     B: BufMut,
-    N: Name,
 {
     const NUL: u8 = 0x00;
 
     if let Some(name) = name {
-        let buf = name.as_bytes();
-
-        if !is_valid(buf) {
+        if !is_valid(name) {
             return Err(io::Error::from(io::ErrorKind::InvalidInput));
         }
 
-        dst.put(buf);
+        dst.put(name.as_ref());
     } else {
         dst.put(MISSING);
     }
@@ -38,15 +35,15 @@ fn is_valid(buf: &[u8]) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::alignment::record_buf::Name as NameBuf;
+    use bstr::ByteSlice;
 
     use super::*;
 
     #[test]
     fn test_put_name() -> io::Result<()> {
-        fn t(buf: &mut Vec<u8>, name: Option<&NameBuf>, expected: &[u8]) -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, name: Option<&[u8]>, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            put_name(buf, name)?;
+            put_name(buf, name.map(|buf| buf.as_bstr()))?;
             assert_eq!(buf, expected);
             Ok(())
         }
@@ -54,7 +51,7 @@ mod tests {
         let mut buf = Vec::new();
 
         t(&mut buf, None, &[b'*', 0x00])?;
-        t(&mut buf, Some(&NameBuf::from(b"r0")), &[b'r', b'0', 0x00])?;
+        t(&mut buf, Some(b"r0"), &[b'r', b'0', 0x00])?;
 
         Ok(())
     }
@@ -63,9 +60,9 @@ mod tests {
     fn test_put_name_with_invalid_name() {
         fn t(raw_name: &[u8]) {
             let mut buf = Vec::new();
-            let name = NameBuf::from(raw_name);
+
             assert!(matches!(
-                put_name(&mut buf, Some(&name)),
+                put_name(&mut buf, Some(raw_name.as_bstr())),
                 Err(e) if e.kind() == io::ErrorKind::InvalidInput
             ));
         }

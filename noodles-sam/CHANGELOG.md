@@ -17,7 +17,9 @@
 
 ### Changed
 
-  * sam/alignment/record_buf/name: Change underlying type to `BString`.
+  * sam/alignment/record: Replace `Name` with `&BStr`.
+
+    Owned name fields are also changed to `BString`.
 
 ### Removed
 

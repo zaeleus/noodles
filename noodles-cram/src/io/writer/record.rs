@@ -4,6 +4,7 @@ use std::{
     io::{self, Write},
 };
 
+use bstr::BStr;
 use noodles_bam as bam;
 use noodles_core::Position;
 use noodles_sam as sam;
@@ -247,13 +248,10 @@ where
         )
     }
 
-    fn write_read_name(
-        &mut self,
-        name: Option<&sam::alignment::record_buf::Name>,
-    ) -> io::Result<()> {
+    fn write_read_name(&mut self, name: Option<&BStr>) -> io::Result<()> {
         const MISSING: &[u8] = &[b'*', 0x00];
 
-        let buf = name.map(|name| name.as_ref().as_ref()).unwrap_or(MISSING);
+        let buf = name.map(|name| name.as_ref()).unwrap_or(MISSING);
 
         self.compression_header
             .data_series_encoding_map()

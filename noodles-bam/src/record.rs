@@ -4,12 +4,12 @@ mod cigar;
 pub mod codec;
 pub mod data;
 pub mod fields;
-mod name;
 mod quality_scores;
 mod sequence;
 
 use std::{fmt, io};
 
+use bstr::BStr;
 use noodles_core::Position;
 use noodles_sam::{
     self as sam,
@@ -17,9 +17,7 @@ use noodles_sam::{
 };
 
 pub(crate) use self::fields::Fields;
-pub use self::{
-    cigar::Cigar, data::Data, name::Name, quality_scores::QualityScores, sequence::Sequence,
-};
+pub use self::{cigar::Cigar, data::Data, quality_scores::QualityScores, sequence::Sequence};
 
 /// A BAM record.
 #[derive(Clone, Default, Eq, PartialEq)]
@@ -139,7 +137,7 @@ impl Record {
     /// let record = bam::Record::default();
     /// assert!(record.name().is_none());
     /// ```
-    pub fn name(&self) -> Option<Name> {
+    pub fn name(&self) -> Option<&BStr> {
         self.0.name()
     }
 
@@ -219,9 +217,8 @@ impl fmt::Debug for Record {
 }
 
 impl sam::alignment::Record for Record {
-    fn name(&self) -> Option<Box<dyn sam::alignment::record::Name + '_>> {
-        let name = self.name()?;
-        Some(Box::new(name))
+    fn name(&self) -> Option<&BStr> {
+        self.name()
     }
 
     fn flags(&self) -> io::Result<sam::alignment::record::Flags> {

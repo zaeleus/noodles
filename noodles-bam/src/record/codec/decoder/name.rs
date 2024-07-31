@@ -3,8 +3,8 @@ use std::{
     num::{self, NonZeroUsize},
 };
 
+use bstr::BString;
 use bytes::Buf;
-use noodles_sam::alignment::record_buf::Name;
 
 const NUL: u8 = 0x00;
 
@@ -54,7 +54,7 @@ where
 
 pub(super) fn get_name<B>(
     src: &mut B,
-    name: &mut Option<Name>,
+    name: &mut Option<BString>,
     l_read_name: NonZeroUsize,
 ) -> Result<(), DecodeError>
 where
@@ -72,12 +72,11 @@ where
         src.advance(MISSING.len());
         None
     } else {
-        let mut name = name.take().unwrap_or(Name::from(b""));
-        let dst = name.as_mut();
+        let mut dst = name.take().unwrap_or_default();
 
         // SAFETY: len is guaranteed to be > 0.
         dst.resize(len - 1, 0);
-        src.copy_to_slice(dst);
+        src.copy_to_slice(&mut dst);
 
         let terminator = src.get_u8();
 
@@ -85,7 +84,7 @@ where
             return Err(DecodeError::MissingNulTerminator { actual: terminator });
         }
 
-        Some(name)
+        Some(dst)
     };
 
     Ok(())
@@ -114,7 +113,7 @@ mod tests {
 
     #[test]
     fn test_get_name() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(mut src: &[u8], expected: Option<Name>) -> Result<(), DecodeError> {
+        fn t(mut src: &[u8], expected: Option<BString>) -> Result<(), DecodeError> {
             let mut actual = None;
             let l_read_name = NonZeroUsize::try_from(src.len()).unwrap();
             get_name(&mut src, &mut actual, l_read_name)?;
@@ -123,10 +122,10 @@ mod tests {
         }
 
         t(&[b'*', 0x00], None)?;
-        t(&[b'r', b'1', 0x00], Some(Name::from(b"r1")))?;
+        t(&[b'r', b'1', 0x00], Some(BString::from(b"r1")))?;
 
         let src = [0xf0, 0x9f, 0x8d, 0x9c, 0x00]; // "🍜\x00"
-        t(&src, Some(Name::from(&src[0..4])))?;
+        t(&src, Some(BString::from(&src[0..4])))?;
 
         let data = [b'*'];
         let mut src = &data[..];

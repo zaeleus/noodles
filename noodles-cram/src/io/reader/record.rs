@@ -233,7 +233,7 @@ where
         Ok(())
     }
 
-    fn read_read_name(&mut self) -> io::Result<Option<sam::alignment::record_buf::Name>> {
+    fn read_read_name(&mut self) -> io::Result<Option<BString>> {
         const MISSING: &[u8] = &[b'*', 0x00];
 
         let buf = self
@@ -250,7 +250,7 @@ where
 
         let name = match &buf[..] {
             MISSING => None,
-            _ => Some(sam::alignment::record_buf::Name::from(BString::from(buf))),
+            _ => Some(BString::from(buf)),
         };
 
         Ok(name)

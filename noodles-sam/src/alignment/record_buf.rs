@@ -4,17 +4,16 @@ mod builder;
 mod cigar;
 mod convert;
 pub mod data;
-mod name;
 mod quality_scores;
 mod sequence;
 
 use std::io;
 
+use bstr::{BStr, BString};
 use noodles_core::Position;
 
 pub use self::{
-    builder::Builder, cigar::Cigar, data::Data, name::Name, quality_scores::QualityScores,
-    sequence::Sequence,
+    builder::Builder, cigar::Cigar, data::Data, quality_scores::QualityScores, sequence::Sequence,
 };
 use super::{
     record::{Flags, MappingQuality},
@@ -31,7 +30,7 @@ use crate::{
 /// An alignment record buffer.
 #[derive(Clone, Debug, PartialEq)]
 pub struct RecordBuf {
-    name: Option<Name>,
+    name: Option<BString>,
     flags: Flags,
     reference_sequence_id: Option<usize>,
     alignment_start: Option<Position>,
@@ -67,8 +66,8 @@ impl RecordBuf {
     /// let record = sam::alignment::RecordBuf::default();
     /// assert!(record.name().is_none());
     /// ```
-    pub fn name(&self) -> Option<&Name> {
-        self.name.as_ref()
+    pub fn name(&self) -> Option<&BStr> {
+        self.name.as_ref().map(|name| name.as_ref())
     }
 
     /// Returns a mutable reference to the name.
@@ -76,16 +75,17 @@ impl RecordBuf {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, alignment::record_buf::Name};
+    /// use bstr::{BString, ByteSlice};
+    /// use noodles_sam as sam;
     ///
-    /// let name = Name::from(b"r1");
+    /// let name = BString::from(b"r1");
     ///
     /// let mut record = sam::alignment::RecordBuf::default();
     /// *record.name_mut() = Some(name.clone());
     ///
-    /// assert_eq!(record.name(), Some(&name));
+    /// assert_eq!(record.name(), Some(name.as_bstr()));
     /// ```
-    pub fn name_mut(&mut self) -> &mut Option<Name> {
+    pub fn name_mut(&mut self) -> &mut Option<BString> {
         &mut self.name
     }
 
@@ -511,9 +511,8 @@ impl RecordBuf {
 }
 
 impl Record for RecordBuf {
-    fn name(&self) -> Option<Box<dyn super::record::Name + '_>> {
-        let name = self.name()?;
-        Some(Box::new(name))
+    fn name(&self) -> Option<&BStr> {
+        self.name()
     }
 
     fn flags(&self) -> io::Result<Flags> {

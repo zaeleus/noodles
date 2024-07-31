@@ -25,7 +25,7 @@ impl RecordBuf {
     {
         let mut record_buf = RecordBuf::default();
 
-        *record_buf.name_mut() = record.name().map(|field| field.as_bytes().into());
+        *record_buf.name_mut() = record.name().map(|name| name.into());
         *record_buf.flags_mut() = record.flags()?;
         *record_buf.reference_sequence_id_mut() =
             record.reference_sequence_id(header).transpose()?;

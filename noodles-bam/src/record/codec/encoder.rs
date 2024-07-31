@@ -18,6 +18,7 @@ pub(crate) use self::{
 
 use std::{error, fmt, io};
 
+use bstr::BStr;
 use bytes::BufMut;
 use noodles_sam::{
     self as sam,
@@ -148,10 +149,9 @@ where
     Ok(())
 }
 
-fn put_l_read_name<B, N>(dst: &mut B, name: Option<N>) -> io::Result<()>
+fn put_l_read_name<B>(dst: &mut B, name: Option<&BStr>) -> io::Result<()>
 where
     B: BufMut,
-    N: sam::alignment::record::Name,
 {
     use std::mem;
 
@@ -207,6 +207,7 @@ where
 mod tests {
     use std::num::NonZeroUsize;
 
+    use bstr::BString;
     use noodles_core::Position;
     use noodles_sam::{
         alignment::RecordBuf,
@@ -250,7 +251,7 @@ mod tests {
                 data::field::Tag,
                 Flags, MappingQuality,
             },
-            record_buf::{data::field::Value, Name, QualityScores, Sequence},
+            record_buf::{data::field::Value, QualityScores, Sequence},
         };
 
         const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
@@ -271,7 +272,7 @@ mod tests {
             .build();
 
         let record = RecordBuf::builder()
-            .set_name(Name::from(b"r0"))
+            .set_name(BString::from(b"r0"))
             .set_flags(Flags::SEGMENTED | Flags::FIRST_SEGMENT)
             .set_reference_sequence_id(1)
             .set_alignment_start(Position::try_from(9)?)

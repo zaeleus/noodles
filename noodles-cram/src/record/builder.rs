@@ -1,9 +1,10 @@
+use bstr::BString;
 use noodles_core::Position;
 use noodles_sam::{
     self as sam,
     alignment::{
         record::MappingQuality,
-        record_buf::{Data, Name, QualityScores, Sequence},
+        record_buf::{Data, QualityScores, Sequence},
     },
 };
 
@@ -18,7 +19,7 @@ pub struct Builder {
     read_length: usize,
     alignment_start: Option<Position>,
     read_group_id: Option<usize>,
-    name: Option<Name>,
+    name: Option<BString>,
     next_mate_flags: NextMateFlags,
     next_fragment_reference_sequence_id: Option<usize>,
     next_mate_alignment_start: Option<Position>,
@@ -75,7 +76,7 @@ impl Builder {
     }
 
     /// Sets the name.
-    pub fn set_name(mut self, name: Name) -> Self {
+    pub fn set_name(mut self, name: BString) -> Self {
         self.name = Some(name);
         self
     }

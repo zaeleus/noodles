@@ -8,7 +8,7 @@ use std::io;
 use bstr::BString;
 use noodles_core::Position;
 use noodles_fasta as fasta;
-use noodles_sam::{self as sam, alignment::record_buf::Name};
+use noodles_sam as sam;
 
 use super::{CompressionHeader, ReferenceSequenceContext};
 use crate::{
@@ -150,7 +150,7 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
 
         if record.name().is_none() {
             // SAFETY: `u64::to_string` is always a valid read name.
-            let name = Name::from(BString::from(record.id().to_string()));
+            let name = BString::from(record.id().to_string());
             record.name = Some(name);
         }
 
@@ -169,7 +169,7 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
             set_mate(record, mate);
 
             if mate.name().is_none() {
-                mate.name = record.name().cloned();
+                mate.name = record.name().map(|name| name.into());
             }
 
             j = mate_index;
@@ -432,6 +432,8 @@ fn resolve_quality_scores(records: &mut [Record]) {
 
 #[cfg(test)]
 mod tests {
+    use bstr::ByteSlice;
+
     use super::*;
     use crate::record::Flags;
 
@@ -465,9 +467,9 @@ mod tests {
 
         resolve_mates(&mut records)?;
 
-        let name_1 = Name::from(b"1");
+        let name_1 = b"1".as_bstr();
 
-        assert_eq!(records[0].name(), Some(&name_1));
+        assert_eq!(records[0].name(), Some(name_1));
         assert_eq!(
             records[0].next_fragment_reference_sequence_id(),
             records[1].reference_sequence_id()
@@ -478,7 +480,7 @@ mod tests {
         );
         assert_eq!(records[0].template_size(), 12);
 
-        assert_eq!(records[1].name(), Some(&name_1));
+        assert_eq!(records[1].name(), Some(name_1));
         assert_eq!(
             records[1].next_fragment_reference_sequence_id(),
             records[3].reference_sequence_id()
@@ -489,10 +491,10 @@ mod tests {
         );
         assert_eq!(records[1].template_size(), -12);
 
-        let name_3 = Name::from(b"3");
-        assert_eq!(records[2].name(), Some(&name_3));
+        let name_3 = b"3".as_bstr();
+        assert_eq!(records[2].name(), Some(name_3));
 
-        assert_eq!(records[3].name(), Some(&name_1));
+        assert_eq!(records[3].name(), Some(name_1));
         assert_eq!(
             records[3].next_fragment_reference_sequence_id(),
             records[0].reference_sequence_id()

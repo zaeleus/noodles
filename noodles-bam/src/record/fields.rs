@@ -4,8 +4,10 @@ mod bounds;
 
 use std::{io, mem};
 
+use bstr::{BStr, ByteSlice};
+
 use self::bounds::Bounds;
-use super::{Cigar, Data, Name, QualityScores, Sequence};
+use super::{Cigar, Data, QualityScores, Sequence};
 
 #[derive(Clone, Eq, PartialEq)]
 pub(crate) struct Fields {
@@ -59,12 +61,13 @@ impl Fields {
         i32::from_le_bytes(src.try_into().unwrap())
     }
 
-    pub(super) fn name(&self) -> Option<Name<'_>> {
-        const MISSING: &[u8] = &[b'*', 0x00];
+    pub(super) fn name(&self) -> Option<&BStr> {
+        const NUL: u8 = 0x00;
+        const MISSING: &[u8] = &[b'*', NUL];
 
         match &self.buf[self.bounds.name_range()] {
             MISSING => None,
-            buf => Some(Name::new(buf)),
+            buf => Some(buf.strip_suffix(&[NUL]).unwrap_or(buf).as_bstr()),
         }
     }
 
