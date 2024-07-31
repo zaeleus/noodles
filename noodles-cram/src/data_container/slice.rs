@@ -5,6 +5,7 @@ pub use self::{builder::Builder, header::Header};
 
 use std::io;
 
+use bstr::BString;
 use noodles_core::Position;
 use noodles_fasta as fasta;
 use noodles_sam::{self as sam, alignment::record_buf::Name};
@@ -149,7 +150,7 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
 
         if record.name().is_none() {
             // SAFETY: `u64::to_string` is always a valid read name.
-            let name = Name::from(record.id().to_string().into_bytes());
+            let name = Name::from(BString::from(record.id().to_string()));
             record.name = Some(name);
         }
 

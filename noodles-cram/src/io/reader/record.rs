@@ -4,6 +4,7 @@ pub use external_data_readers::ExternalDataReaders;
 
 use std::{error, fmt, io};
 
+use bstr::BString;
 use bytes::Buf;
 use noodles_bam as bam;
 use noodles_core::Position;
@@ -249,7 +250,7 @@ where
 
         let name = match &buf[..] {
             MISSING => None,
-            _ => Some(sam::alignment::record_buf::Name::from(buf)),
+            _ => Some(sam::alignment::record_buf::Name::from(BString::from(buf))),
         };
 
         Ok(name)

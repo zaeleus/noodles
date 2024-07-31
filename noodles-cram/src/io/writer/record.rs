@@ -253,7 +253,7 @@ where
     ) -> io::Result<()> {
         const MISSING: &[u8] = &[b'*', 0x00];
 
-        let buf = name.map(|name| name.as_ref()).unwrap_or(MISSING);
+        let buf = name.map(|name| name.as_ref().as_ref()).unwrap_or(MISSING);
 
         self.compression_header
             .data_series_encoding_map()

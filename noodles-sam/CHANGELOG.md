@@ -15,6 +15,10 @@
 [#278]: https://github.com/zaeleus/noodles/issues/278
 [#283]: https://github.com/zaeleus/noodles/issues/283
 
+### Changed
+
+  * sam/alignment/record_buf/name: Change underlying type to `BString`.
+
 ### Removed
 
   * sam/record: Remove `ReferenceSequenceName`.
