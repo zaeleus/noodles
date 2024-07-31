@@ -1,6 +1,6 @@
 //! Feature record.
 
-mod other_fields;
+pub mod other_fields;
 
 use std::io;
 

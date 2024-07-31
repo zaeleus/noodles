@@ -1,4 +1,10 @@
+//! Feature record other fields.
+
+mod value;
+
 use bstr::BStr;
+
+pub use self::value::Value;
 
 /// Feature record other fields.
 pub trait OtherFields {
