@@ -3,6 +3,7 @@ use std::{fmt, iter};
 use bstr::{BStr, ByteSlice};
 
 use super::Fields;
+use crate::feature::record::other_fields::Value;
 
 /// BED record other fields.
 #[derive(Eq, PartialEq)]
@@ -55,7 +56,7 @@ impl<'a, const N: usize> crate::feature::record::OtherFields for OtherFields<'a,
         self.len()
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = &BStr> + '_> {
-        Box::new(self.iter())
+    fn iter(&self) -> Box<dyn Iterator<Item = Value<'_>> + '_> {
+        Box::new(self.iter().map(Value::String))
     }
 }

@@ -2,8 +2,6 @@
 
 mod value;
 
-use bstr::BStr;
-
 pub use self::value::Value;
 
 /// Feature record other fields.
@@ -15,5 +13,5 @@ pub trait OtherFields {
     fn len(&self) -> usize;
 
     /// Returns an iterator over other fields.
-    fn iter(&self) -> Box<dyn Iterator<Item = &BStr> + '_>;
+    fn iter(&self) -> Box<dyn Iterator<Item = Value<'_>> + '_>;
 }

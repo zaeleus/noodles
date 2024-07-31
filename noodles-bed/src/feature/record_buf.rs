@@ -2,7 +2,7 @@
 
 pub mod builder;
 pub mod color;
-mod other_fields;
+pub mod other_fields;
 pub mod strand;
 
 use std::io;
@@ -42,7 +42,7 @@ impl<const N: usize> Default for StandardFields<N> {
 }
 
 /// A feature record buffer.
-#[derive(Clone, Default, Debug, Eq, PartialEq)]
+#[derive(Clone, Default, Debug, PartialEq)]
 pub struct RecordBuf<const N: usize> {
     standard_fields: StandardFields<N>,
     other_fields: OtherFields,
