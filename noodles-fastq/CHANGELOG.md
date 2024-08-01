@@ -7,6 +7,8 @@
   * fastq/io/reader/record/definition: Support horizontal tabs (`\t`) as a
     definition separator ([#287]).
 
+  * fastq/io/writer: Add builder.
+
 [#287]: https://github.com/zaeleus/noodles/issues/287
 
 ### Changed

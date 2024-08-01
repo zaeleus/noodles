@@ -2,7 +2,7 @@
 
 mod indexer;
 pub mod reader;
-mod writer;
+pub mod writer;
 
 use std::{fs::File, io::BufReader, path::Path};
 
