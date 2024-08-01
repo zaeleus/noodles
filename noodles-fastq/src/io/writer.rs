@@ -9,9 +9,12 @@ pub use self::builder::Builder;
 use self::record::write_record;
 use crate::Record;
 
+const DEFAULT_DEFINITION_SEPARATOR: u8 = b' ';
+
 /// A FASTQ writer.
 pub struct Writer<W> {
     inner: W,
+    definition_separator: u8,
 }
 
 impl<W> Writer<W>
@@ -27,7 +30,10 @@ where
     /// let writer = fastq::io::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
-        Self { inner }
+        Self {
+            inner,
+            definition_separator: DEFAULT_DEFINITION_SEPARATOR,
+        }
     }
 
     /// Returns a reference to the underlying writer.
@@ -60,6 +66,6 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        write_record(&mut self.inner, record)
+        write_record(&mut self.inner, self.definition_separator, record)
     }
 }

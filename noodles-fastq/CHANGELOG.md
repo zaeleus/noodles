@@ -9,6 +9,10 @@
 
   * fastq/io/writer: Add builder.
 
+  * fastq/io/writer: Support setting a custom definition separator ([#287]).
+
+    The default definition separator is space (` `).
+
 [#287]: https://github.com/zaeleus/noodles/issues/287
 
 ### Changed

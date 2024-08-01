@@ -4,13 +4,29 @@ use std::{
     path::Path,
 };
 
-use super::Writer;
+use super::{Writer, DEFAULT_DEFINITION_SEPARATOR};
 
 /// A FASTQ writer builder.
-#[derive(Default)]
-pub struct Builder;
+pub struct Builder {
+    definition_separator: u8,
+}
 
 impl Builder {
+    /// Sets the definition separator.
+    ///
+    /// By default, this is a space (` `).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fastq::io::writer::Builder;
+    /// let builder = Builder::default().set_definition_separator(b'\t');
+    /// ```
+    pub fn set_definition_separator(mut self, definition_separator: u8) -> Self {
+        self.definition_separator = definition_separator;
+        self
+    }
+
     /// Builds a FASTQ writer from a path.
     ///
     /// # Examples
@@ -42,6 +58,28 @@ impl Builder {
     where
         W: Write + 'static,
     {
-        Writer::new(Box::new(writer))
+        Writer {
+            inner: Box::new(writer),
+            definition_separator: self.definition_separator,
+        }
+    }
+}
+
+impl Default for Builder {
+    fn default() -> Self {
+        Self {
+            definition_separator: DEFAULT_DEFINITION_SEPARATOR,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_default() {
+        let builder = Builder::default();
+        assert_eq!(builder.definition_separator, b' ');
     }
 }
