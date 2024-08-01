@@ -15,6 +15,36 @@ pub enum Value {
     String(BString),
 }
 
+impl From<i64> for Value {
+    fn from(n: i64) -> Self {
+        Self::Int64(n)
+    }
+}
+
+impl From<u64> for Value {
+    fn from(n: u64) -> Self {
+        Self::UInt64(n)
+    }
+}
+
+impl From<f64> for Value {
+    fn from(n: f64) -> Self {
+        Self::Float64(n)
+    }
+}
+
+impl From<&str> for Value {
+    fn from(s: &str) -> Self {
+        Self::from(String::from(s))
+    }
+}
+
+impl From<String> for Value {
+    fn from(s: String) -> Self {
+        Self::String(s.into())
+    }
+}
+
 impl<'a> From<&'a Value> for crate::feature::record::other_fields::Value<'a> {
     fn from(value_buf: &'a Value) -> Self {
         match value_buf {
