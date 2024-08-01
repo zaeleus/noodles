@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added
+
+  * fastq/io/reader/record/definition: Support horizontal tabs (`\t`) as a
+    definition separator ([#287]).
+
+[#287]: https://github.com/zaeleus/noodles/issues/287
+
 ### Changed
 
   * fastq/record/definition: Change underlying types to byte strings

@@ -153,16 +153,18 @@ async fn read_name<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
 where
     R: AsyncBufRead + Unpin,
 {
-    use memchr::memchr;
+    use memchr::memchr2;
 
-    const DELIMITER: u8 = b' ';
     const NAME_PREFIX: u8 = b'@';
+
+    const HORIZONTAL_TAB: u8 = b'\t';
+    const SPACE: u8 = b' ';
 
     match reader.read_u8().await {
         Ok(NAME_PREFIX) => {
             let n = read_line(reader, record.name_mut()).await.map(|n| n + 1)?;
 
-            if let Some(i) = memchr(DELIMITER, record.name()) {
+            if let Some(i) = memchr2(SPACE, HORIZONTAL_TAB, record.name()) {
                 let description = record.name_mut().split_off(i + 1);
                 record.name_mut().pop();
                 *record.description_mut() = description.into();
@@ -261,6 +263,13 @@ dcba
         assert!(record.description().is_empty());
 
         let data = b"@r0 LN:4\n";
+        let mut reader = &data[..];
+        record.clear();
+        read_name(&mut reader, &mut record).await?;
+        assert_eq!(record.name(), &b"r0"[..]);
+        assert_eq!(record.description(), &b"LN:4"[..]);
+
+        let data = b"@r0\tLN:4\n";
         let mut reader = &data[..];
         record.clear();
         read_name(&mut reader, &mut record).await?;

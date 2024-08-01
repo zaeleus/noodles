@@ -7,10 +7,12 @@ pub(crate) fn read_definition<R>(reader: &mut R, definition: &mut Definition) ->
 where
     R: BufRead,
 {
-    use memchr::memchr2;
+    use memchr::memchr3;
 
-    const DELIMITER: u8 = b' ';
     const NAME_PREFIX: u8 = b'@';
+
+    const HORIZONTAL_TAB: u8 = b'\t';
+    const SPACE: u8 = b' ';
 
     match read_u8(reader) {
         Ok(prefix) => {
@@ -35,10 +37,10 @@ where
             break;
         }
 
-        let (matched_needle, n) = match memchr2(DELIMITER, LINE_FEED, src) {
+        let (matched_needle, n) = match memchr3(SPACE, HORIZONTAL_TAB, LINE_FEED, src) {
             Some(i) => {
                 let name_src = match src[i] {
-                    DELIMITER => &src[..i],
+                    SPACE | HORIZONTAL_TAB => &src[..i],
                     LINE_FEED => {
                         is_eol = true;
 
@@ -96,6 +98,13 @@ mod tests {
         assert!(definition.description().is_empty());
 
         let data = b"@r0 LN:4\n";
+        let mut reader = &data[..];
+        definition.clear();
+        read_definition(&mut reader, &mut definition)?;
+        assert_eq!(definition.name(), &b"r0"[..]);
+        assert_eq!(definition.description(), &b"LN:4"[..]);
+
+        let data = b"@r0\tLN:4\n";
         let mut reader = &data[..];
         definition.clear();
         read_definition(&mut reader, &mut definition)?;
