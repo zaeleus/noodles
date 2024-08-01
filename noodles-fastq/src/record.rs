@@ -2,9 +2,11 @@
 
 mod definition;
 
-pub use self::definition::Definition;
-
 use std::fmt;
+
+use bstr::{BStr, BString};
+
+pub use self::definition::Definition;
 
 /// A FASTQ record.
 #[derive(Clone, Default, Eq, PartialEq)]
@@ -52,9 +54,9 @@ impl Record {
     /// ```
     /// use noodles_fastq::{self as fastq, record::Definition};
     /// let record = fastq::Record::new(Definition::new("r0", ""), "AGCT", "NDLS");
-    /// assert_eq!(record.name(), b"r0");
+    /// assert_eq!(record.name(), &b"r0"[..]);
     /// ```
-    pub fn name(&self) -> &[u8] {
+    pub fn name(&self) -> &BStr {
         self.definition.name()
     }
 
@@ -63,12 +65,13 @@ impl Record {
     /// # Examples
     ///
     /// ```
+    /// use bstr::BString;
     /// use noodles_fastq::{self as fastq, record::Definition};
     /// let mut record = fastq::Record::new(Definition::new("r0", ""), "AGCT", "NDLS");
-    /// *record.name_mut() = b"r1".to_vec();
-    /// assert_eq!(record.name(), b"r1");
+    /// *record.name_mut() = BString::from(b"r1");
+    /// assert_eq!(record.name(), &b"r1"[..]);
     /// ```
-    pub fn name_mut(&mut self) -> &mut Vec<u8> {
+    pub fn name_mut(&mut self) -> &mut BString {
         self.definition.name_mut()
     }
 
@@ -81,7 +84,7 @@ impl Record {
     /// let record = fastq::Record::new(Definition::new("r0", ""), "AGCT", "NDLS");
     /// assert!(record.description().is_empty());
     /// ```
-    pub fn description(&self) -> &[u8] {
+    pub fn description(&self) -> &BStr {
         self.definition.description()
     }
 
@@ -90,12 +93,13 @@ impl Record {
     /// # Examples
     ///
     /// ```
+    /// use bstr::BString;
     /// use noodles_fastq::{self as fastq, record::Definition};
     /// let mut record = fastq::Record::new(Definition::new("r0", ""), "AGCT", "NDLS");
-    /// *record.description_mut() = b"LN=4".to_vec();
-    /// assert_eq!(record.description(), b"LN=4");
+    /// *record.description_mut() = BString::from(b"LN=4");
+    /// assert_eq!(record.description(), &b"LN=4"[..]);
     /// ```
-    pub fn description_mut(&mut self) -> &mut Vec<u8> {
+    pub fn description_mut(&mut self) -> &mut BString {
         self.definition.description_mut()
     }
 

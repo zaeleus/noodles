@@ -92,15 +92,15 @@ mod tests {
         let mut reader = &data[..];
         definition.clear();
         read_definition(&mut reader, &mut definition)?;
-        assert_eq!(definition.name(), b"r0");
+        assert_eq!(definition.name(), &b"r0"[..]);
         assert!(definition.description().is_empty());
 
         let data = b"@r0 LN:4\n";
         let mut reader = &data[..];
         definition.clear();
         read_definition(&mut reader, &mut definition)?;
-        assert_eq!(definition.name(), b"r0");
-        assert_eq!(definition.description(), b"LN:4");
+        assert_eq!(definition.name(), &b"r0"[..]);
+        assert_eq!(definition.description(), &b"LN:4"[..]);
 
         // https://github.com/zaeleus/noodles/issues/166
         let data = b"@\nA\r";

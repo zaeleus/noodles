@@ -96,7 +96,7 @@ where
     /// let mut record = fastq::Record::default();
     /// reader.read_record(&mut record)?;
     ///
-    /// assert_eq!(record.name(), b"r0");
+    /// assert_eq!(record.name(), &b"r0"[..]);
     /// assert_eq!(record.sequence(), b"ATCG");
     /// assert_eq!(record.quality_scores(), b"NDLS");
     /// Ok::<(), io::Error>(())

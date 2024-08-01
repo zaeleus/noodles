@@ -87,7 +87,7 @@ where
     /// let mut record = fastq::Record::default();
     /// reader.read_record(&mut record).await?;
     ///
-    /// assert_eq!(record.name(), b"r0");
+    /// assert_eq!(record.name(), &b"r0"[..]);
     /// assert_eq!(record.sequence(), b"ATCG");
     /// assert_eq!(record.quality_scores(), b"NDLS");
     /// # Ok(())
@@ -165,7 +165,7 @@ where
             if let Some(i) = memchr(DELIMITER, record.name()) {
                 let description = record.name_mut().split_off(i + 1);
                 record.name_mut().pop();
-                *record.description_mut() = description;
+                *record.description_mut() = description.into();
             }
 
             Ok(n)
@@ -257,15 +257,15 @@ dcba
         let mut reader = &data[..];
         record.clear();
         read_name(&mut reader, &mut record).await?;
-        assert_eq!(record.name(), b"r0");
+        assert_eq!(record.name(), &b"r0"[..]);
         assert!(record.description().is_empty());
 
         let data = b"@r0 LN:4\n";
         let mut reader = &data[..];
         record.clear();
         read_name(&mut reader, &mut record).await?;
-        assert_eq!(record.name(), b"r0");
-        assert_eq!(record.description(), b"LN:4");
+        assert_eq!(record.name(), &b"r0"[..]);
+        assert_eq!(record.description(), &b"LN:4"[..]);
 
         let data = b"r0\n";
         let mut reader = &data[..];
