@@ -13,6 +13,9 @@
 
     The default definition separator is space (` `).
 
+  * fastq/io/writer: Add additional methods to get the underlying writer
+    (`Writer::get_mut` and `Writer::into_inner`).
+
 [#287]: https://github.com/zaeleus/noodles/issues/287
 
 ### Changed
