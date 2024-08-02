@@ -7,6 +7,9 @@
   * fastq/io/reader/record/definition: Support horizontal tabs (`\t`) as a
     definition separator ([#287]).
 
+    The reader now splits the definition name and description on either a space
+    (` `) or horizontal tab (`\t`).
+
   * fastq/io/writer: Add builder.
 
   * fastq/io/writer: Support setting a custom definition separator ([#287]).
