@@ -12,7 +12,8 @@
 
   * fastq/io/writer: Add builder.
 
-  * fastq/io/writer: Support setting a custom definition separator ([#287]).
+  * fastq/io/writer: Support setting a custom definition separator
+    (`Builder::set_definition_separator`) ([#287]).
 
     The default definition separator is space (` `).
 
