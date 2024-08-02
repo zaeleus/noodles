@@ -34,7 +34,7 @@ impl Record {
         }
 
         if let Some(name) = record.name() {
-            builder = builder.set_name(name.into());
+            builder = builder.set_name(name);
         }
 
         // next mate bit flags

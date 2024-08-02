@@ -76,8 +76,11 @@ impl Builder {
     }
 
     /// Sets the name.
-    pub fn set_name(mut self, name: BString) -> Self {
-        self.name = Some(name);
+    pub fn set_name<N>(mut self, name: N) -> Self
+    where
+        N: Into<BString>,
+    {
+        self.name = Some(name.into());
         self
     }
 

@@ -20,6 +20,9 @@
     `cram::r#async::io::reader::Builder` to set the appropriate
     `fasta::Repository`.
 
+  * cram/record/builder: Change `set_name` parameter to be generic over
+    `Into<BString>`.
+
 ## 0.66.0 - 2024-07-14
 
 ### Changed
