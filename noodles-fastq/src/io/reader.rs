@@ -15,23 +15,7 @@ pub struct Reader<R> {
     inner: R,
 }
 
-impl<R> Reader<R>
-where
-    R: BufRead,
-{
-    /// Creates a FASTQ reader.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_fastq as fastq;
-    /// let data = b"@r0\nATCG\n+\nNDLS\n";
-    /// let reader = fastq::io::Reader::new(&data[..]);
-    /// ```
-    pub fn new(inner: R) -> Self {
-        Self { inner }
-    }
-
+impl<R> Reader<R> {
     /// Returns a reference to the underlying reader.
     ///
     /// # Examples
@@ -72,6 +56,24 @@ where
     /// ```
     pub fn into_inner(self) -> R {
         self.inner
+    }
+}
+
+impl<R> Reader<R>
+where
+    R: BufRead,
+{
+    /// Creates a FASTQ reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fastq as fastq;
+    /// let data = b"@r0\nATCG\n+\nNDLS\n";
+    /// let reader = fastq::io::Reader::new(&data[..]);
+    /// ```
+    pub fn new(inner: R) -> Self {
+        Self { inner }
     }
 
     /// Reads a FASTQ record.
