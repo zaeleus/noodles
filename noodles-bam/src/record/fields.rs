@@ -247,6 +247,39 @@ mod tests {
     ];
 
     #[test]
+    fn test_name() -> io::Result<()> {
+        let fields = Fields::try_from(Vec::from(DATA))?;
+        assert!(fields.name().is_none());
+        Ok(())
+    }
+
+    #[test]
+    fn test_name_with_name() -> io::Result<()> {
+        let data = vec![
+            0xff, 0xff, 0xff, 0xff, // ref_id = -1
+            0xff, 0xff, 0xff, 0xff, // pos = -1
+            0x02, // l_read_name = 3
+            0xff, // mapq = 255
+            0x48, 0x12, // bin = 4680
+            0x01, 0x00, // n_cigar_op = 1
+            0x04, 0x00, // flag = 4
+            0x04, 0x00, 0x00, 0x00, // l_seq = 0
+            0xff, 0xff, 0xff, 0xff, // next_ref_id = -1
+            0xff, 0xff, 0xff, 0xff, // next_pos = -1
+            0x00, 0x00, 0x00, 0x00, // tlen = 0
+            b'r', b'0', 0x00, // read_name = "r0\x00"
+            0x40, 0x00, 0x00, 0x00, // cigar = 4M
+            0x12, 0x48, // sequence = ACGT
+            b'N', b'D', b'L', b'S', // quality scores
+        ];
+
+        let fields = Fields::try_from(data)?;
+        assert_eq!(fields.name(), Some(b"r0".as_bstr()));
+
+        Ok(())
+    }
+
+    #[test]
     fn test_cigar() -> io::Result<()> {
         let fields = Fields::try_from(Vec::from(DATA))?;
         let cigar = fields.cigar();
