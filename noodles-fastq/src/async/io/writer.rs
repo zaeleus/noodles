@@ -7,23 +7,7 @@ pub struct Writer<W> {
     inner: W,
 }
 
-impl<W> Writer<W>
-where
-    W: AsyncWrite + Unpin,
-{
-    /// Creates an async FASTQ writer.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_fastq as fastq;
-    /// use tokio::io;
-    /// let writer = fastq::r#async::io::Writer::new(io::sink());
-    /// ```
-    pub fn new(inner: W) -> Self {
-        Self { inner }
-    }
-
+impl<W> Writer<W> {
     /// Returns a reference to the underlying writer.
     ///
     /// # Examples
@@ -64,6 +48,24 @@ where
     /// ```
     pub fn into_inner(self) -> W {
         self.inner
+    }
+}
+
+impl<W> Writer<W>
+where
+    W: AsyncWrite + Unpin,
+{
+    /// Creates an async FASTQ writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fastq as fastq;
+    /// use tokio::io;
+    /// let writer = fastq::r#async::io::Writer::new(io::sink());
+    /// ```
+    pub fn new(inner: W) -> Self {
+        Self { inner }
     }
 
     /// Writes a FASTQ record.
