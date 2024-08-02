@@ -1,8 +1,9 @@
 mod character;
+mod string;
 
 use std::io::{self, Write};
 
-use self::character::write_character;
+use self::{character::write_character, string::write_string};
 use crate::feature::record::other_fields::Value;
 
 pub(super) fn write_value<W>(writer: &mut W, value: Value<'_>) -> io::Result<()>
@@ -14,7 +15,7 @@ where
         Value::UInt64(n) => write!(writer, "{n}"),
         Value::Float64(n) => write!(writer, "{n}"),
         Value::Character(b) => write_character(writer, b),
-        Value::String(s) => writer.write_all(s),
+        Value::String(s) => write_string(writer, s),
     }
 }
 
