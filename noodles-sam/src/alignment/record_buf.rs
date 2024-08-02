@@ -75,15 +75,13 @@ impl RecordBuf {
     /// # Examples
     ///
     /// ```
-    /// use bstr::{BString, ByteSlice};
+    /// use bstr::ByteSlice;
     /// use noodles_sam as sam;
     ///
-    /// let name = BString::from(b"r1");
-    ///
     /// let mut record = sam::alignment::RecordBuf::default();
-    /// *record.name_mut() = Some(name.clone());
+    /// *record.name_mut() = Some("r1".into());
     ///
-    /// assert_eq!(record.name(), Some(name.as_bstr()));
+    /// assert_eq!(record.name(), Some(b"r1".as_bstr()));
     /// ```
     pub fn name_mut(&mut self) -> &mut Option<BString> {
         &mut self.name

@@ -207,7 +207,6 @@ where
 mod tests {
     use std::num::NonZeroUsize;
 
-    use bstr::BString;
     use noodles_core::Position;
     use noodles_sam::{
         alignment::RecordBuf,
@@ -272,7 +271,7 @@ mod tests {
             .build();
 
         let record = RecordBuf::builder()
-            .set_name(BString::from(b"r0"))
+            .set_name("r0")
             .set_flags(Flags::SEGMENTED | Flags::FIRST_SEGMENT)
             .set_reference_sequence_id(1)
             .set_alignment_start(Position::try_from(9)?)

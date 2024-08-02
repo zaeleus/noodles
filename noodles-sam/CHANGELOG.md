@@ -21,6 +21,9 @@
 
     Owned name fields are also changed to `BString`.
 
+  * sam/alignment/record_buf/builder: Change `set_name` to be generic over
+    `Into<BString>`.
+
 ### Removed
 
   * sam/record: Remove `ReferenceSequenceName`.

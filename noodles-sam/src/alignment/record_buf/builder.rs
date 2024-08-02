@@ -26,19 +26,20 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use bstr::{BString, ByteSlice};
+    /// use bstr::ByteSlice;
     /// use noodles_sam as sam;
     ///
-    /// let name = BString::from(b"r1");
-    ///
     /// let record = sam::alignment::RecordBuf::builder()
-    ///     .set_name(name.clone())
+    ///     .set_name("r1")
     ///     .build();
     ///
-    /// assert_eq!(record.name(), Some(name.as_bstr()));
+    /// assert_eq!(record.name(), Some(b"r1".as_bstr()));
     /// ```
-    pub fn set_name(mut self, name: BString) -> Self {
-        self.name = Some(name);
+    pub fn set_name<N>(mut self, name: N) -> Self
+    where
+        N: Into<BString>,
+    {
+        self.name = Some(name.into());
         self
     }
 
