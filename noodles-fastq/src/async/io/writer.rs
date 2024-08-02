@@ -95,15 +95,16 @@ async fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
+    use crate::io::writer::DEFAULT_DEFINITION_SEPARATOR;
+
     const NAME_PREFIX: &[u8] = b"@";
-    const DEFINITION_SEPARATOR: &[u8] = b" ";
     const LINE_FEED: &[u8] = b"\n";
 
     writer.write_all(NAME_PREFIX).await?;
     writer.write_all(record.name()).await?;
 
     if !record.description().is_empty() {
-        writer.write_all(DEFINITION_SEPARATOR).await?;
+        writer.write_all(&[DEFAULT_DEFINITION_SEPARATOR]).await?;
         writer.write_all(record.description()).await?;
     }
 

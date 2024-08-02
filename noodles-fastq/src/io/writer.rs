@@ -9,7 +9,7 @@ pub use self::builder::Builder;
 use self::record::write_record;
 use crate::Record;
 
-const DEFAULT_DEFINITION_SEPARATOR: u8 = b' ';
+pub(crate) const DEFAULT_DEFINITION_SEPARATOR: u8 = b' ';
 
 /// A FASTQ writer.
 pub struct Writer<W> {
