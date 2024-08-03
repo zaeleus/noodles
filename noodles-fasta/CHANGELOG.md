@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * fasta/io/writer: Add additional methods to get the underlying writer
+    (`Writer::get_mut` and `Writer::into_inner`).
+
 ## 0.41.0 - 2024-07-14
 
 ### Added
