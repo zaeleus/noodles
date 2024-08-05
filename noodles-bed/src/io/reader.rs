@@ -10,11 +10,11 @@ use self::record::{read_record_3, read_record_4, read_record_5, read_record_6};
 use crate::Record;
 
 /// A BED reader.
-pub struct Reader<R, const N: usize> {
+pub struct Reader<const N: usize, R> {
     inner: R,
 }
 
-impl<R, const N: usize> Reader<R, N> {
+impl<R, const N: usize> Reader<N, R> {
     /// Returns a reference to the underlying reader.
     ///
     /// # Examples
@@ -22,7 +22,7 @@ impl<R, const N: usize> Reader<R, N> {
     /// ```
     /// use noodles_bed as bed;
     /// let data = [];
-    /// let reader = bed::io::Reader::<_, 3>::new(&data[..]);
+    /// let reader = bed::io::Reader::<3, _>::new(&data[..]);
     /// assert!(reader.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &R {
@@ -36,7 +36,7 @@ impl<R, const N: usize> Reader<R, N> {
     /// ```
     /// use noodles_bed as bed;
     /// let data = [];
-    /// let mut reader = bed::io::Reader::<_, 3>::new(&data[..]);
+    /// let mut reader = bed::io::Reader::<3, _>::new(&data[..]);
     /// assert!(reader.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
@@ -50,7 +50,7 @@ impl<R, const N: usize> Reader<R, N> {
     /// ```
     /// use noodles_bed as bed;
     /// let data = [];
-    /// let reader = bed::io::Reader::<_, 3>::new(&data[..]);
+    /// let reader = bed::io::Reader::<3, _>::new(&data[..]);
     /// assert!(reader.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> R {
@@ -58,7 +58,7 @@ impl<R, const N: usize> Reader<R, N> {
     }
 }
 
-impl<R, const N: usize> Reader<R, N>
+impl<const N: usize, R> Reader<N, R>
 where
     R: BufRead,
 {
@@ -69,14 +69,14 @@ where
     /// ```
     /// use noodles_bed as bed;
     /// let data = [];
-    /// let reader = bed::io::Reader::<_, 3>::new(&data[..]);
+    /// let reader = bed::io::Reader::<3, _>::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
     }
 }
 
-impl<R> Reader<R, 3>
+impl<R> Reader<3, R>
 where
     R: BufRead,
 {
@@ -86,7 +86,7 @@ where
     }
 }
 
-impl<R> Reader<R, 4>
+impl<R> Reader<4, R>
 where
     R: BufRead,
 {
@@ -96,7 +96,7 @@ where
     }
 }
 
-impl<R> Reader<R, 5>
+impl<R> Reader<5, R>
 where
     R: BufRead,
 {
@@ -106,7 +106,7 @@ where
     }
 }
 
-impl<R> Reader<R, 6>
+impl<R> Reader<6, R>
 where
     R: BufRead,
 {
