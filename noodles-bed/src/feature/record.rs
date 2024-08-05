@@ -1,14 +1,14 @@
 //! Feature record.
 
 pub mod other_fields;
+mod strand;
 
 use std::io;
 
 use bstr::BStr;
 use noodles_core::Position;
 
-pub use self::other_fields::OtherFields;
-use super::record_buf::Strand;
+pub use self::{other_fields::OtherFields, strand::Strand};
 
 /// A feature record.
 pub trait Record<const N: usize> {
