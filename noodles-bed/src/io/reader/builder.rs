@@ -20,7 +20,7 @@ impl<const N: usize> Builder<N> {
     /// let reader = Builder::<3>::default().build_from_path("in.bed");
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn build_from_path<P>(self, src: P) -> io::Result<Reader<BufReader<File>, N>>
+    pub fn build_from_path<P>(self, src: P) -> io::Result<Reader<N, BufReader<File>>>
     where
         P: AsRef<Path>,
     {
@@ -36,7 +36,7 @@ impl<const N: usize> Builder<N> {
     /// use noodles_bed::io::reader::Builder;
     /// let reader = Builder::<3>::default().build_from_reader(io::empty());
     /// ```
-    pub fn build_from_reader<R>(self, reader: R) -> Reader<BufReader<R>, N>
+    pub fn build_from_reader<R>(self, reader: R) -> Reader<N, BufReader<R>>
     where
         R: Read,
     {
