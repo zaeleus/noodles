@@ -2,14 +2,14 @@
 
 pub mod builder;
 pub mod other_fields;
-pub mod strand;
 
 use std::io;
 
 use bstr::{BStr, BString};
 use noodles_core::Position;
 
-pub use self::{builder::Builder, other_fields::OtherFields, strand::Strand};
+pub use self::{builder::Builder, other_fields::OtherFields};
+use crate::feature::record::Strand;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct StandardFields<const N: usize> {

@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use crate::feature::record_buf::Strand;
+use crate::feature::record::Strand;
 
 pub(super) fn write_strand<W>(writer: &mut W, strand: Option<Strand>) -> io::Result<()>
 where

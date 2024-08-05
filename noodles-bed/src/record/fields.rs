@@ -7,7 +7,7 @@ use lexical_core::FromLexical;
 use noodles_core::Position;
 
 pub(crate) use self::bounds::Bounds;
-use crate::feature::record_buf::Strand;
+use crate::feature::record::Strand;
 
 #[derive(Clone, Eq, PartialEq)]
 pub(crate) struct Fields<const N: usize> {

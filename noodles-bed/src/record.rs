@@ -8,7 +8,7 @@ use noodles_core::Position;
 
 use self::fields::Fields;
 pub use self::other_fields::OtherFields;
-use crate::feature::record_buf::Strand;
+use crate::feature::record::Strand;
 
 /// A BED record.
 #[derive(Clone, Eq, PartialEq)]
