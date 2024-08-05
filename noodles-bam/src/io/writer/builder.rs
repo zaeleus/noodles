@@ -1,4 +1,8 @@
-use std::{fs::File, io, path::Path};
+use std::{
+    fs::File,
+    io::{self, Write},
+    path::Path,
+};
 
 use noodles_bgzf as bgzf;
 
@@ -23,5 +27,21 @@ impl Builder {
         P: AsRef<Path>,
     {
         File::create(dst).map(Writer::new)
+    }
+
+    /// Builds a BAM writer from a writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bam as bam;
+    /// let writer = bam::io::writer::Builder::default().build_from_writer(io::sink());
+    /// ```
+    pub fn build_from_writer<W>(self, writer: W) -> Writer<bgzf::Writer<W>>
+    where
+        W: Write,
+    {
+        Writer::new(writer)
     }
 }

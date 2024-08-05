@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bam/io/writer/builder: Add build from writer
+    (`Builder::build_from_writer`).
+
 ## 0.66.0 - 2024-08-04
 
 ### Added
