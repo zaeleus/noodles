@@ -6,11 +6,11 @@ use self::record::{write_record_3, write_record_4, write_record_5, write_record_
 use crate::Record;
 
 /// A BED writer.
-pub struct Writer<W, const N: usize> {
+pub struct Writer<const N: usize, W> {
     inner: W,
 }
 
-impl<W, const N: usize> Writer<W, N> {
+impl<const N: usize, W> Writer<N, W> {
     /// Returns a reference to the underlying writer.
     ///
     /// # Examples
@@ -18,7 +18,7 @@ impl<W, const N: usize> Writer<W, N> {
     /// ```
     /// # use std::io;
     /// use noodles_bed as bed;
-    /// let writer = bed::io::Writer::<_, 3>::new(io::sink());
+    /// let writer = bed::io::Writer::<3, _>::new(io::sink());
     /// let _inner = writer.get_ref();
     /// ```
     pub fn get_ref(&self) -> &W {
@@ -32,7 +32,7 @@ impl<W, const N: usize> Writer<W, N> {
     /// ```
     /// # use std::io;
     /// use noodles_bed as bed;
-    /// let mut writer = bed::io::Writer::<_, 3>::new(io::sink());
+    /// let mut writer = bed::io::Writer::<3, _>::new(io::sink());
     /// let _inner = writer.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut W {
@@ -46,7 +46,7 @@ impl<W, const N: usize> Writer<W, N> {
     /// ```
     /// # use std::io;
     /// use noodles_bed as bed;
-    /// let writer = bed::io::Writer::<_, 3>::new(io::sink());
+    /// let writer = bed::io::Writer::<3, _>::new(io::sink());
     /// let _inner = writer.into_inner();
     /// ```
     pub fn into_inner(self) -> W {
@@ -54,7 +54,7 @@ impl<W, const N: usize> Writer<W, N> {
     }
 }
 
-impl<W, const N: usize> Writer<W, N>
+impl<const N: usize, W> Writer<N, W>
 where
     W: Write,
 {
@@ -65,14 +65,14 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bed as bed;
-    /// let writer = bed::io::Writer::<_, 3>::new(io::sink());
+    /// let writer = bed::io::Writer::<3, _>::new(io::sink());
     /// ```
     pub fn new(inner: W) -> Self {
         Self { inner }
     }
 }
 
-impl<W> Writer<W, 3>
+impl<W> Writer<3, W>
 where
     W: Write,
 {
@@ -83,7 +83,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bed as bed;
-    /// let mut writer = bed::io::Writer::<_, 3>::new(io::sink());
+    /// let mut writer = bed::io::Writer::<3, _>::new(io::sink());
     /// let record = bed::Record::default();
     /// writer.write_record(&record)?;
     /// # Ok::<_, io::Error>(())
@@ -99,7 +99,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bed as bed;
-    /// let mut writer = bed::io::Writer::<_, 3>::new(io::sink());
+    /// let mut writer = bed::io::Writer::<3, _>::new(io::sink());
     /// let record = bed::Record::default();
     /// writer.write_feature_record(&record)?;
     /// # Ok::<_, io::Error>(())
@@ -112,7 +112,7 @@ where
     }
 }
 
-impl<W> Writer<W, 4>
+impl<W> Writer<4, W>
 where
     W: Write,
 {
@@ -123,7 +123,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bed as bed;
-    /// let mut writer = bed::io::Writer::<_, 4>::new(io::sink());
+    /// let mut writer = bed::io::Writer::<4, _>::new(io::sink());
     /// let record = bed::Record::default();
     /// writer.write_record(&record)?;
     /// # Ok::<_, io::Error>(())
@@ -139,7 +139,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bed as bed;
-    /// let mut writer = bed::io::Writer::<_, 4>::new(io::sink());
+    /// let mut writer = bed::io::Writer::<4, _>::new(io::sink());
     /// let record = bed::Record::default();
     /// writer.write_feature_record(&record)?;
     /// # Ok::<_, io::Error>(())
@@ -152,7 +152,7 @@ where
     }
 }
 
-impl<W> Writer<W, 5>
+impl<W> Writer<5, W>
 where
     W: Write,
 {
@@ -163,7 +163,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bed as bed;
-    /// let mut writer = bed::io::Writer::<_, 5>::new(io::sink());
+    /// let mut writer = bed::io::Writer::<5, _>::new(io::sink());
     /// let record = bed::Record::default();
     /// writer.write_record(&record)?;
     /// # Ok::<_, io::Error>(())
@@ -179,7 +179,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bed as bed;
-    /// let mut writer = bed::io::Writer::<_, 5>::new(io::sink());
+    /// let mut writer = bed::io::Writer::<5, _>::new(io::sink());
     /// let record = bed::Record::default();
     /// writer.write_feature_record(&record)?;
     /// # Ok::<_, io::Error>(())
@@ -192,7 +192,7 @@ where
     }
 }
 
-impl<W> Writer<W, 6>
+impl<W> Writer<6, W>
 where
     W: Write,
 {
@@ -203,7 +203,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bed as bed;
-    /// let mut writer = bed::io::Writer::<_, 6>::new(io::sink());
+    /// let mut writer = bed::io::Writer::<6, _>::new(io::sink());
     /// let record = bed::Record::default();
     /// writer.write_record(&record)?;
     /// # Ok::<_, io::Error>(())
@@ -219,7 +219,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bed as bed;
-    /// let mut writer = bed::io::Writer::<_, 6>::new(io::sink());
+    /// let mut writer = bed::io::Writer::<6, _>::new(io::sink());
     /// let record = bed::Record::default();
     /// writer.write_feature_record(&record)?;
     /// # Ok::<_, io::Error>(())
