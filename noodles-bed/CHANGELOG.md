@@ -16,6 +16,10 @@
 
     Use a BED record reader and writer, respectively, instead.
 
+  * bed/feature/record_buf: Remove `Color`.
+
+    This is no longer used.
+
   * bed/io/reader: Remove `Reader::read_line`.
 
     Read into a `Record<N>` buffer instead.

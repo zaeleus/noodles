@@ -1,7 +1,6 @@
 //! BED record and fields.
 
 pub mod builder;
-pub mod color;
 pub mod other_fields;
 pub mod strand;
 
@@ -10,7 +9,7 @@ use std::io;
 use bstr::{BStr, BString};
 use noodles_core::Position;
 
-pub use self::{builder::Builder, color::Color, other_fields::OtherFields, strand::Strand};
+pub use self::{builder::Builder, other_fields::OtherFields, strand::Strand};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct StandardFields<const N: usize> {
