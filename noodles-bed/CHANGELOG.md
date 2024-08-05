@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * bed/io/reader: Add builder (`Builder`).
+
 ### Changed
 
   * bed: Move `Record` to `feature::RecordBuf`.

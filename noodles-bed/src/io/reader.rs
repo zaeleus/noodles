@@ -1,5 +1,9 @@
+//! BED reader.
+
+mod builder;
 mod record;
 
+pub use self::builder::Builder;
 use std::io::{self, BufRead};
 
 use self::record::{read_record_3, read_record_4, read_record_5, read_record_6};
