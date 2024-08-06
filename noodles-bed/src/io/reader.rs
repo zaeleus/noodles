@@ -81,6 +81,17 @@ where
     R: BufRead,
 {
     /// Reads a BED3+ record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bed as bed;
+    /// let mut reader = bed::io::Reader::<3, _>::new(io::empty());
+    /// let mut record = bed::Record::default();
+    /// reader.read_record(&mut record)?;
+    /// # Ok::<_, io::Error>(())
+    /// ```
     pub fn read_record(&mut self, record: &mut Record<3>) -> io::Result<usize> {
         read_record_3(&mut self.inner, record)
     }
@@ -91,6 +102,17 @@ where
     R: BufRead,
 {
     /// Reads a BED4+ record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bed as bed;
+    /// let mut reader = bed::io::Reader::<4, _>::new(io::empty());
+    /// let mut record = bed::Record::default();
+    /// reader.read_record(&mut record)?;
+    /// # Ok::<_, io::Error>(())
+    /// ```
     pub fn read_record(&mut self, record: &mut Record<4>) -> io::Result<usize> {
         read_record_4(&mut self.inner, record)
     }
@@ -101,6 +123,17 @@ where
     R: BufRead,
 {
     /// Reads a BED5+ record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bed as bed;
+    /// let mut reader = bed::io::Reader::<5, _>::new(io::empty());
+    /// let mut record = bed::Record::default();
+    /// reader.read_record(&mut record)?;
+    /// # Ok::<_, io::Error>(())
+    /// ```
     pub fn read_record(&mut self, record: &mut Record<5>) -> io::Result<usize> {
         read_record_5(&mut self.inner, record)
     }
@@ -111,6 +144,17 @@ where
     R: BufRead,
 {
     /// Reads a BED6+ record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bed as bed;
+    /// let mut reader = bed::io::Reader::<6, _>::new(io::empty());
+    /// let mut record = bed::Record::default();
+    /// reader.read_record(&mut record)?;
+    /// # Ok::<_, io::Error>(())
+    /// ```
     pub fn read_record(&mut self, record: &mut Record<6>) -> io::Result<usize> {
         read_record_6(&mut self.inner, record)
     }
