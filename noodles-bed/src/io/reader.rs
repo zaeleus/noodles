@@ -20,10 +20,10 @@ impl<R, const N: usize> Reader<N, R> {
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bed as bed;
-    /// let data = [];
-    /// let reader = bed::io::Reader::<3, _>::new(&data[..]);
-    /// assert!(reader.get_ref().is_empty());
+    /// let reader = bed::io::Reader::<3, _>::new(io::empty());
+    /// let _inner = reader.get_ref();
     /// ```
     pub fn get_ref(&self) -> &R {
         &self.inner
@@ -34,10 +34,10 @@ impl<R, const N: usize> Reader<N, R> {
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bed as bed;
-    /// let data = [];
-    /// let mut reader = bed::io::Reader::<3, _>::new(&data[..]);
-    /// assert!(reader.get_mut().is_empty());
+    /// let mut reader = bed::io::Reader::<3, _>::new(io::empty());
+    /// let _inner = reader.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
         &mut self.inner
@@ -48,10 +48,10 @@ impl<R, const N: usize> Reader<N, R> {
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bed as bed;
-    /// let data = [];
-    /// let reader = bed::io::Reader::<3, _>::new(&data[..]);
-    /// assert!(reader.into_inner().is_empty());
+    /// let reader = bed::io::Reader::<3, _>::new(io::empty());
+    /// let _inner = reader.into_inner();
     /// ```
     pub fn into_inner(self) -> R {
         self.inner
@@ -67,9 +67,9 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bed as bed;
-    /// let data = [];
-    /// let reader = bed::io::Reader::<3, _>::new(&data[..]);
+    /// let reader = bed::io::Reader::<3, _>::new(io::empty());
     /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
