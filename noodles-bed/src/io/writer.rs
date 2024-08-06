@@ -1,7 +1,11 @@
+//! BED writer.
+
+mod builder;
 mod record;
 
 use std::io::{self, Write};
 
+pub use self::builder::Builder;
 use self::record::{write_record_3, write_record_4, write_record_5, write_record_6};
 use crate::Record;
 

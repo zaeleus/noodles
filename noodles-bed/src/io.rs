@@ -1,6 +1,6 @@
 //! BED I/O.
 
 pub mod reader;
-mod writer;
+pub mod writer;
 
 pub use self::{reader::Reader, writer::Writer};

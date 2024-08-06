@@ -4,7 +4,7 @@
 
 ### Added
 
-  * bed/io/reader: Add builder (`Builder`).
+  * bed/io: Add builders (`reader::Builder` and `writer::Builder`).
 
 ### Changed
 
