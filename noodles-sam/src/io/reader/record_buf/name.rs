@@ -1,6 +1,6 @@
 use std::{error, fmt};
 
-use crate::alignment::record_buf::Name;
+use bstr::BString;
 
 /// An error when a raw SAM record name fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -19,17 +19,16 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(super) fn parse_name(src: &[u8], name: &mut Option<Name>) -> Result<(), ParseError> {
+pub(super) fn parse_name(src: &[u8], name: &mut Option<BString>) -> Result<(), ParseError> {
     if src.is_empty() {
         return Err(ParseError::Empty);
     }
 
     if let Some(name) = name {
-        let buf = name.as_mut();
-        buf.clear();
-        buf.extend(src);
+        name.clear();
+        name.extend(src);
     } else {
-        *name = Some(Name::from(src));
+        *name = Some(BString::from(src));
     }
 
     Ok(())
@@ -44,7 +43,7 @@ mod tests {
         let mut name = None;
 
         parse_name(b"r0", &mut name)?;
-        assert_eq!(name, Some(Name::from(b"r0")));
+        assert_eq!(name, Some(BString::from(b"r0")));
 
         assert_eq!(parse_name(b"", &mut name), Err(ParseError::Empty));
 

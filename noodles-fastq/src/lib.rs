@@ -7,16 +7,16 @@
 //! a sequence, a plus line, and quality scores.
 //!
 //! The read name is prefixed with an `@` (at sign) character and includes an optional description,
-//! delimited by a space. The sequence is a list of bases encoded using IUPAC base symbols. The
-//! plus line is effectively a separator, sometimes repeating the read name and optional
-//! description, and is commonly discarded. The quality scores is list of Phred quality scores
-//! offset by 33 and is parallel to each base in the sequence. That is, each record can be
-//! described like the following:
+//! delimited by a space (` `) or horizontal tab (`\t`). The sequence is a list of bases encoded
+//! using IUPAC base symbols. The plus line is effectively a separator, sometimes repeating the
+//! read name and optional description, and is commonly discarded. The quality scores is list of
+//! Phred quality scores (commonly but not guaranteed to be offset by 33) and is parallel to each
+//! base in the sequence. That is, each record can be described like the following:
 //!
 //! ```text
-//! @<name>[ description]
+//! @<name>[< |\t>description]
 //! <sequence>
-//! +[<name>[ description]]
+//! +[<name>[< |\t>description]]
 //! <quality scores>
 //! ```
 //!

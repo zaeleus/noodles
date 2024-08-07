@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.62.0 - 2024-08-04
+
+### Added
+
+  * vcf/record: Implement `TryFrom<&[u8]>`.
+
+    This is a convenience implementation to allow constructing a single
+    `vcf::Record` from a byte string.
+
 ## 0.61.0 - 2024-07-14
 
 ### Added

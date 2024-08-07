@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.67.0 - 2024-08-04
 
 ### Added
 
@@ -19,6 +19,9 @@
     sequence repository but uses the one attached to the reader. Use
     `cram::r#async::io::reader::Builder` to set the appropriate
     `fasta::Repository`.
+
+  * cram/record/builder: Change `set_name` parameter to be generic over
+    `Into<BString>`.
 
 ## 0.66.0 - 2024-07-14
 

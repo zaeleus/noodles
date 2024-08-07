@@ -34,7 +34,6 @@ impl Record {
         }
 
         if let Some(name) = record.name() {
-            let name = sam::alignment::record_buf::Name::from(name.as_bytes());
             builder = builder.set_name(name);
         }
 

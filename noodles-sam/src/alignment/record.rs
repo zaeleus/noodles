@@ -4,7 +4,6 @@ pub mod cigar;
 pub mod data;
 mod flags;
 pub mod mapping_quality;
-mod name;
 mod quality_scores;
 mod sequence;
 
@@ -14,7 +13,7 @@ use bstr::BStr;
 use noodles_core as core;
 
 pub use self::{
-    cigar::Cigar, data::Data, flags::Flags, mapping_quality::MappingQuality, name::Name,
+    cigar::Cigar, data::Data, flags::Flags, mapping_quality::MappingQuality,
     quality_scores::QualityScores, sequence::Sequence,
 };
 use crate::{
@@ -28,7 +27,7 @@ use crate::{
 /// An alignment record.
 pub trait Record {
     /// Returns the name.
-    fn name(&self) -> Option<Box<dyn Name + '_>>;
+    fn name(&self) -> Option<&BStr>;
 
     /// Returns the flags.
     fn flags(&self) -> io::Result<Flags>;
@@ -126,7 +125,7 @@ pub trait Record {
 }
 
 impl Record for Box<dyn Record> {
-    fn name(&self) -> Option<Box<dyn Name + '_>> {
+    fn name(&self) -> Option<&BStr> {
         (**self).name()
     }
 

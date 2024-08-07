@@ -1,11 +1,12 @@
+use bstr::BString;
 use noodles_core::Position;
 
-use super::{Cigar, Data, Flags, MappingQuality, Name, QualityScores, RecordBuf, Sequence};
+use super::{Cigar, Data, Flags, MappingQuality, QualityScores, RecordBuf, Sequence};
 
 /// An alignment record builder.
 #[derive(Debug)]
 pub struct Builder {
-    name: Option<Name>,
+    name: Option<BString>,
     flags: Flags,
     reference_sequence_id: Option<usize>,
     alignment_start: Option<Position>,
@@ -25,18 +26,20 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, alignment::record_buf::Name};
-    ///
-    /// let name = Name::from(b"r1");
+    /// use bstr::ByteSlice;
+    /// use noodles_sam as sam;
     ///
     /// let record = sam::alignment::RecordBuf::builder()
-    ///     .set_name(name.clone())
+    ///     .set_name("r1")
     ///     .build();
     ///
-    /// assert_eq!(record.name(), Some(&name));
+    /// assert_eq!(record.name(), Some(b"r1".as_bstr()));
     /// ```
-    pub fn set_name(mut self, name: Name) -> Self {
-        self.name = Some(name);
+    pub fn set_name<N>(mut self, name: N) -> Self
+    where
+        N: Into<BString>,
+    {
+        self.name = Some(name.into());
         self
     }
 

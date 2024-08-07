@@ -15,12 +15,13 @@ pub use self::{
 
 use std::io;
 
+use bstr::{BStr, BString};
 use noodles_core::Position;
 use noodles_sam::{
     self as sam,
     alignment::{
         record::MappingQuality,
-        record_buf::{Data, Name, QualityScores, Sequence},
+        record_buf::{Data, QualityScores, Sequence},
     },
     header::record::value::{map::ReferenceSequence, Map},
 };
@@ -35,7 +36,7 @@ pub struct Record {
     pub(crate) read_length: usize,
     pub(crate) alignment_start: Option<Position>,
     pub(crate) read_group_id: Option<usize>,
-    pub(crate) name: Option<Name>,
+    pub(crate) name: Option<BString>,
     pub(crate) next_mate_bit_flags: NextMateFlags,
     pub(crate) next_fragment_reference_sequence_id: Option<usize>,
     pub(crate) next_mate_alignment_start: Option<Position>,
@@ -129,8 +130,8 @@ impl Record {
     }
 
     /// Returns the name.
-    pub fn name(&self) -> Option<&Name> {
-        self.name.as_ref()
+    pub fn name(&self) -> Option<&BStr> {
+        self.name.as_ref().map(|name| name.as_ref())
     }
 
     /// Returns the next mate flags.
@@ -274,9 +275,8 @@ impl<'a> sam::alignment::record::Cigar for Cigar<'a> {
 }
 
 impl sam::alignment::Record for Record {
-    fn name(&self) -> Option<Box<dyn sam::alignment::record::Name + '_>> {
-        let name = self.name()?;
-        Some(Box::new(name))
+    fn name(&self) -> Option<&BStr> {
+        self.name()
     }
 
     fn flags(&self) -> io::Result<sam::alignment::record::Flags> {

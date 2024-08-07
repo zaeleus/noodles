@@ -3,7 +3,6 @@
 mod cigar;
 pub mod data;
 pub mod fields;
-mod name;
 mod quality_scores;
 mod sequence;
 
@@ -13,9 +12,7 @@ use bstr::BStr;
 use noodles_core::Position;
 
 pub(crate) use self::fields::Fields;
-pub use self::{
-    cigar::Cigar, data::Data, name::Name, quality_scores::QualityScores, sequence::Sequence,
-};
+pub use self::{cigar::Cigar, data::Data, quality_scores::QualityScores, sequence::Sequence};
 use crate::{
     alignment::record::{Flags, MappingQuality},
     Header,
@@ -44,7 +41,7 @@ impl Record {
     /// let record = sam::Record::default();
     /// assert!(record.name().is_none());
     /// ```
-    pub fn name(&self) -> Option<Name<'_>> {
+    pub fn name(&self) -> Option<&BStr> {
         self.0.name()
     }
 
@@ -268,9 +265,8 @@ impl TryFrom<&[u8]> for Record {
 }
 
 impl crate::alignment::Record for Record {
-    fn name(&self) -> Option<Box<dyn crate::alignment::record::Name + '_>> {
-        let name = self.name()?;
-        Some(Box::new(name))
+    fn name(&self) -> Option<&BStr> {
+        self.name()
     }
 
     fn flags(&self) -> io::Result<Flags> {

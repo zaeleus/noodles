@@ -1,5 +1,6 @@
 use std::{collections::HashMap, io};
 
+use bstr::BString;
 use bytes::Bytes;
 use md5::{Digest, Md5};
 use noodles_fasta as fasta;
@@ -247,7 +248,7 @@ fn set_mates(records: &mut [Record]) {
         let flags = record.flags();
 
         if flags.is_segmented() && !flags.is_secondary() {
-            let name = record.name().cloned();
+            let name: Option<BString> = record.name().map(|name| name.into());
 
             if let Some(j) = indices.insert(name, i) {
                 let mid = i + 1;

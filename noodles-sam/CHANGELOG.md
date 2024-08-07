@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.63.0 - 2024-08-04
 
 ### Added
 
@@ -14,6 +14,15 @@
 
 [#278]: https://github.com/zaeleus/noodles/issues/278
 [#283]: https://github.com/zaeleus/noodles/issues/283
+
+### Changed
+
+  * sam/alignment/record: Replace `Name` with `&BStr`.
+
+    Owned name fields are also changed to `BString`.
+
+  * sam/alignment/record_buf/builder: Change `set_name` to be generic over
+    `Into<BString>`.
 
 ### Removed
 

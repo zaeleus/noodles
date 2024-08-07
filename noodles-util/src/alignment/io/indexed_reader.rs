@@ -27,6 +27,18 @@ where
     R: Read,
 {
     /// Reads the SAM header.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use noodles_util::alignment;
+    ///
+    /// let mut reader = alignment::io::indexed_reader::Builder::default()
+    ///     .build_from_path("sample.bam")?;
+    ///
+    /// let _header = reader.read_header()?;
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
     pub fn read_header(&mut self) -> io::Result<sam::Header> {
         match self {
             Self::Sam(reader) => reader.read_header(),
@@ -36,6 +48,23 @@ where
     }
 
     /// Returns an iterator over records starting from the current stream position.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use noodles_util::alignment;
+    ///
+    /// let mut reader = alignment::io::indexed_reader::Builder::default()
+    ///     .build_from_path("sample.bam")?;
+    ///
+    /// let header = reader.read_header()?;
+    ///
+    /// for result in reader.records(&header) {
+    ///     let record = result?;
+    ///     // ...
+    /// }
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
     pub fn records<'r, 'h: 'r>(
         &'r mut self,
         header: &'h sam::Header,
@@ -71,6 +100,26 @@ where
     R: Read + Seek,
 {
     /// Returns an iterator over records that intersects the given region.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use noodles_util::alignment;
+    ///
+    /// let mut reader = alignment::io::indexed_reader::Builder::default()
+    ///     .build_from_path("sample.bam")?;
+    ///
+    /// let header = reader.read_header()?;
+    ///
+    /// let region = "sq0:8-13".parse()?;
+    /// let query = reader.query(&header, &region)?;
+    ///
+    /// for result in query {
+    ///     let record = result?;
+    ///     // ...
+    /// }
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
     pub fn query<'r, 'h: 'r>(
         &'r mut self,
         header: &'h sam::Header,

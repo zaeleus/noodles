@@ -24,9 +24,10 @@ use std::{
     path::Path,
 };
 
+use bstr::BString;
 use noodles_bam as bam;
 
-fn read_names<P>(src: P) -> io::Result<HashSet<Vec<u8>>>
+fn read_names<P>(src: P) -> io::Result<HashSet<BString>>
 where
     P: AsRef<Path>,
 {
@@ -34,7 +35,7 @@ where
     let mut names = HashSet::new();
 
     for result in reader.lines() {
-        let name = result.map(|s| s.into_bytes())?;
+        let name = result.map(|s| s.into())?;
         names.insert(name);
     }
 
@@ -60,7 +61,7 @@ fn main() -> io::Result<()> {
         let record = result?;
 
         if let Some(name) = record.name() {
-            if names.contains(name.as_bytes()) {
+            if names.contains(name) {
                 writer.write_record(&header, &record)?;
             }
         }

@@ -7,23 +7,7 @@ pub struct Writer<W> {
     inner: W,
 }
 
-impl<W> Writer<W>
-where
-    W: AsyncWrite + Unpin,
-{
-    /// Creates an async FASTQ writer.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_fastq as fastq;
-    /// use tokio::io;
-    /// let writer = fastq::r#async::io::Writer::new(io::sink());
-    /// ```
-    pub fn new(inner: W) -> Self {
-        Self { inner }
-    }
-
+impl<W> Writer<W> {
     /// Returns a reference to the underlying writer.
     ///
     /// # Examples
@@ -65,6 +49,24 @@ where
     pub fn into_inner(self) -> W {
         self.inner
     }
+}
+
+impl<W> Writer<W>
+where
+    W: AsyncWrite + Unpin,
+{
+    /// Creates an async FASTQ writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fastq as fastq;
+    /// use tokio::io;
+    /// let writer = fastq::r#async::io::Writer::new(io::sink());
+    /// ```
+    pub fn new(inner: W) -> Self {
+        Self { inner }
+    }
 
     /// Writes a FASTQ record.
     ///
@@ -93,15 +95,16 @@ async fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
+    use crate::io::writer::DEFAULT_DEFINITION_SEPARATOR;
+
     const NAME_PREFIX: &[u8] = b"@";
-    const DEFINITION_SEPARATOR: &[u8] = b" ";
     const LINE_FEED: &[u8] = b"\n";
 
     writer.write_all(NAME_PREFIX).await?;
     writer.write_all(record.name()).await?;
 
     if !record.description().is_empty() {
-        writer.write_all(DEFINITION_SEPARATOR).await?;
+        writer.write_all(&[DEFAULT_DEFINITION_SEPARATOR]).await?;
         writer.write_all(record.description()).await?;
     }
 

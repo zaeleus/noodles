@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.14.0 - 2024-08-04
+
+### Added
+
+  * fastq/io/reader/record/definition: Support horizontal tabs (`\t`) as a
+    definition separator ([#287]).
+
+    The reader now splits the definition name and description on either a space
+    (` `) or horizontal tab (`\t`).
+
+  * fastq/io/writer: Add builder.
+
+  * fastq/io/writer: Support setting a custom definition separator
+    (`Builder::set_definition_separator`) ([#287]).
+
+    The default definition separator is space (` `).
+
+  * fastq/io/writer: Add additional methods to get the underlying writer
+    (`Writer::get_mut` and `Writer::into_inner`).
+
+[#287]: https://github.com/zaeleus/noodles/issues/287
+
+### Changed
+
+  * fastq/record/definition: Change underlying types to byte strings
+    (`BString`).
+
 ## 0.13.0 - 2024-07-14
 
 ### Removed

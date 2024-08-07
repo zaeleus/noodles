@@ -9,7 +9,7 @@ use lexical_core::FromLexical;
 use noodles_core::Position;
 
 pub(crate) use self::bounds::Bounds;
-use super::{Cigar, Data, Name, QualityScores, Sequence};
+use super::{Cigar, Data, QualityScores, Sequence};
 use crate::Header;
 
 const MISSING: &[u8] = b"*";
@@ -21,10 +21,10 @@ pub(crate) struct Fields {
 }
 
 impl Fields {
-    pub fn name(&self) -> Option<Name<'_>> {
+    pub fn name(&self) -> Option<&BStr> {
         match &self.buf[self.bounds.name_range()] {
             MISSING => None,
-            buf => Some(Name::new(buf)),
+            buf => Some(buf.as_bstr()),
         }
     }
 

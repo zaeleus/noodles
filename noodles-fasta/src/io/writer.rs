@@ -15,6 +15,50 @@ pub struct Writer<W> {
     line_base_count: usize,
 }
 
+impl<W> Writer<W> {
+    /// Returns a reference to the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_fasta as fasta;
+    /// let writer = fasta::io::Writer::new(io::sink());
+    /// let _inner = writer.get_ref();
+    /// ```
+    pub fn get_ref(&self) -> &W {
+        &self.inner
+    }
+
+    /// Returns a mutable reference to the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_fasta as fasta;
+    /// let mut writer = fasta::io::Writer::new(io::sink());
+    /// let _inner = writer.get_mut();
+    /// ```
+    pub fn get_mut(&mut self) -> &mut W {
+        &mut self.inner
+    }
+
+    /// Unwraps and returns the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_fasta as fasta;
+    /// let writer = fasta::io::Writer::new(io::sink());
+    /// let _inner = writer.into_inner();
+    /// ```
+    pub fn into_inner(self) -> W {
+        self.inner
+    }
+}
+
 impl<W> Writer<W>
 where
     W: Write,
@@ -29,19 +73,6 @@ where
     /// ```
     pub fn new(inner: W) -> Self {
         Builder::default().build_with_writer(inner)
-    }
-
-    /// Returns a reference to the underlying writer.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_fasta as fasta;
-    /// let writer = fasta::io::Writer::new(Vec::new());
-    /// assert!(writer.get_ref().is_empty());
-    /// ```
-    pub fn get_ref(&self) -> &W {
-        &self.inner
     }
 
     /// Writes a FASTA record.

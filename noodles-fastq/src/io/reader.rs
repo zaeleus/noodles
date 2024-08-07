@@ -15,6 +15,50 @@ pub struct Reader<R> {
     inner: R,
 }
 
+impl<R> Reader<R> {
+    /// Returns a reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_fastq as fastq;
+    /// let reader = fastq::io::Reader::new(io::empty());
+    /// let _inner = reader.get_ref();
+    /// ```
+    pub fn get_ref(&self) -> &R {
+        &self.inner
+    }
+
+    /// Returns a mutable reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_fastq as fastq;
+    /// let mut reader = fastq::io::Reader::new(io::empty());
+    /// let _inner = reader.get_mut();
+    /// ```
+    pub fn get_mut(&mut self) -> &mut R {
+        &mut self.inner
+    }
+
+    /// Unwraps and returns the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_fastq as fastq;
+    /// let reader = fastq::io::Reader::new(io::empty());
+    /// let _inner = reader.into_inner();
+    /// ```
+    pub fn into_inner(self) -> R {
+        self.inner
+    }
+}
+
 impl<R> Reader<R>
 where
     R: BufRead,
@@ -30,48 +74,6 @@ where
     /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
-    }
-
-    /// Returns a reference to the underlying reader.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_fastq as fastq;
-    /// let data = [];
-    /// let reader = fastq::io::Reader::new(&data[..]);
-    /// assert!(reader.get_ref().is_empty());
-    /// ```
-    pub fn get_ref(&self) -> &R {
-        &self.inner
-    }
-
-    /// Returns a mutable reference to the underlying reader.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_fastq as fastq;
-    /// let data = [];
-    /// let mut reader = fastq::io::Reader::new(&data[..]);
-    /// assert!(reader.get_mut().is_empty());
-    /// ```
-    pub fn get_mut(&mut self) -> &mut R {
-        &mut self.inner
-    }
-
-    /// Unwraps and returns the underlying reader.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_fastq as fastq;
-    /// let data = [];
-    /// let reader = fastq::io::Reader::new(&data[..]);
-    /// assert!(reader.into_inner().is_empty());
-    /// ```
-    pub fn into_inner(self) -> R {
-        self.inner
     }
 
     /// Reads a FASTQ record.
@@ -96,7 +98,7 @@ where
     /// let mut record = fastq::Record::default();
     /// reader.read_record(&mut record)?;
     ///
-    /// assert_eq!(record.name(), b"r0");
+    /// assert_eq!(record.name(), &b"r0"[..]);
     /// assert_eq!(record.sequence(), b"ATCG");
     /// assert_eq!(record.quality_scores(), b"NDLS");
     /// Ok::<(), io::Error>(())
