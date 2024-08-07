@@ -70,14 +70,29 @@ impl RecordBuf<3> {
         self.standard_fields.reference_sequence_name.as_ref()
     }
 
+    /// Returns a mutable reference to the reference sequence name.
+    pub fn reference_sequence_name_mut(&mut self) -> &mut BString {
+        &mut self.standard_fields.reference_sequence_name
+    }
+
     /// Returns the feature start.
     pub fn feature_start(&self) -> Position {
         self.standard_fields.feature_start
     }
 
+    /// Returns a mutable reference to the feature start.
+    pub fn feature_start_mut(&mut self) -> &mut Position {
+        &mut self.standard_fields.feature_start
+    }
+
     /// Returns the feature end.
     pub fn feature_end(&self) -> Option<Position> {
         self.standard_fields.feature_end
+    }
+
+    /// Returns a mutable reference to the feature end.
+    pub fn feature_end_mut(&mut self) -> &mut Option<Position> {
+        &mut self.standard_fields.feature_end
     }
 }
 
@@ -117,9 +132,19 @@ impl RecordBuf<4> {
         self.standard_fields.reference_sequence_name.as_ref()
     }
 
+    /// Returns a mutable reference to the reference sequence name.
+    pub fn reference_sequence_name_mut(&mut self) -> &mut BString {
+        &mut self.standard_fields.reference_sequence_name
+    }
+
     /// Returns the feature start.
     pub fn feature_start(&self) -> Position {
         self.standard_fields.feature_start
+    }
+
+    /// Returns a mutable reference to the feature start.
+    pub fn feature_start_mut(&mut self) -> &mut Position {
+        &mut self.standard_fields.feature_start
     }
 
     /// Returns the feature end.
@@ -127,9 +152,19 @@ impl RecordBuf<4> {
         self.standard_fields.feature_end
     }
 
+    /// Returns a mutable reference to the feature end.
+    pub fn feature_end_mut(&mut self) -> &mut Option<Position> {
+        &mut self.standard_fields.feature_end
+    }
+
     /// Returns the name.
     pub fn name(&self) -> Option<&BStr> {
         self.standard_fields.name.as_ref().map(|name| name.as_ref())
+    }
+
+    /// Returns a mutable reference to the name.
+    pub fn name_mut(&mut self) -> &mut Option<BString> {
+        &mut self.standard_fields.name
     }
 }
 
@@ -169,9 +204,19 @@ impl RecordBuf<5> {
         self.standard_fields.reference_sequence_name.as_ref()
     }
 
+    /// Returns a mutable reference to the reference sequence name.
+    pub fn reference_sequence_name_mut(&mut self) -> &mut BString {
+        &mut self.standard_fields.reference_sequence_name
+    }
+
     /// Returns the feature start.
     pub fn feature_start(&self) -> Position {
         self.standard_fields.feature_start
+    }
+
+    /// Returns a mutable reference to the feature start.
+    pub fn feature_start_mut(&mut self) -> &mut Position {
+        &mut self.standard_fields.feature_start
     }
 
     /// Returns the feature end.
@@ -179,14 +224,29 @@ impl RecordBuf<5> {
         self.standard_fields.feature_end
     }
 
+    /// Returns a mutable reference to the feature end.
+    pub fn feature_end_mut(&mut self) -> &mut Option<Position> {
+        &mut self.standard_fields.feature_end
+    }
+
     /// Returns the name.
     pub fn name(&self) -> Option<&BStr> {
         self.standard_fields.name.as_ref().map(|name| name.as_ref())
     }
 
+    /// Returns a mutable reference to the name.
+    pub fn name_mut(&mut self) -> &mut Option<BString> {
+        &mut self.standard_fields.name
+    }
+
     /// Returns the score.
     pub fn score(&self) -> u16 {
         self.standard_fields.score
+    }
+
+    /// Returns a mutable reference to the score.
+    pub fn score_mut(&mut self) -> &mut u16 {
+        &mut self.standard_fields.score
     }
 }
 
@@ -226,9 +286,19 @@ impl RecordBuf<6> {
         self.standard_fields.reference_sequence_name.as_ref()
     }
 
+    /// Returns a mutable reference to the reference sequence name.
+    pub fn reference_sequence_name_mut(&mut self) -> &mut BString {
+        &mut self.standard_fields.reference_sequence_name
+    }
+
     /// Returns the feature start.
     pub fn feature_start(&self) -> Position {
         self.standard_fields.feature_start
+    }
+
+    /// Returns a mutable reference to the feature start.
+    pub fn feature_start_mut(&mut self) -> &mut Position {
+        &mut self.standard_fields.feature_start
     }
 
     /// Returns the feature end.
@@ -236,9 +306,19 @@ impl RecordBuf<6> {
         self.standard_fields.feature_end
     }
 
+    /// Returns a mutable reference to the feature end.
+    pub fn feature_end_mut(&mut self) -> &mut Option<Position> {
+        &mut self.standard_fields.feature_end
+    }
+
     /// Returns the name.
     pub fn name(&self) -> Option<&BStr> {
         self.standard_fields.name.as_ref().map(|name| name.as_ref())
+    }
+
+    /// Returns a mutable reference to the name.
+    pub fn name_mut(&mut self) -> &mut Option<BString> {
+        &mut self.standard_fields.name
     }
 
     /// Returns the score.
@@ -246,9 +326,19 @@ impl RecordBuf<6> {
         self.standard_fields.score
     }
 
+    /// Returns a mutable reference to the score.
+    pub fn score_mut(&mut self) -> &mut u16 {
+        &mut self.standard_fields.score
+    }
+
     /// Returns the strand.
     pub fn strand(&self) -> Option<Strand> {
         self.standard_fields.strand
+    }
+
+    /// Returns a mutable reference to the strand.
+    pub fn strand_mut(&mut self) -> &mut Option<Strand> {
+        &mut self.standard_fields.strand
     }
 }
 
