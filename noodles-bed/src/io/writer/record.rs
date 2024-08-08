@@ -132,7 +132,7 @@ where
     let strand = record
         .strand()
         .transpose()?
-        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing score"))?;
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing strand"))?;
     write_strand(writer, strand)?;
 
     write_other_fields(writer, record.other_fields().as_ref())?;
@@ -168,6 +168,33 @@ mod tests {
         let record = crate::Record::<3>::default();
         write_record_3(&mut buf, &record)?;
         assert_eq!(buf, b"sq0\t0\t1\n");
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_record_4() -> io::Result<()> {
+        let mut buf = Vec::new();
+        let record = crate::Record::<4>::default();
+        write_record_4(&mut buf, &record)?;
+        assert_eq!(buf, b"sq0\t0\t1\t.\n");
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_record_5() -> io::Result<()> {
+        let mut buf = Vec::new();
+        let record = crate::Record::<5>::default();
+        write_record_5(&mut buf, &record)?;
+        assert_eq!(buf, b"sq0\t0\t1\t.\t0\n");
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_record_6() -> io::Result<()> {
+        let mut buf = Vec::new();
+        let record = crate::Record::<6>::default();
+        write_record_6(&mut buf, &record)?;
+        assert_eq!(buf, b"sq0\t0\t1\t.\t0\t.\n");
         Ok(())
     }
 }
