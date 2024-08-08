@@ -67,6 +67,8 @@ pub const IS_IMPRECISE: &str = "IMPRECISE";
 pub const IS_NOVEL: &str = "NOVEL";
 
 /// End position of the variant described in this record (`END`).
+///
+/// Deprecated in VCF 4.5.
 pub const END_POSITION: &str = "END";
 
 /// Type of structural variant (`SVTYPE`).

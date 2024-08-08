@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * vcf/header/record/value/map/info/definition: Add VCF 4.5 info definitions.
+
 ## 0.62.0 - 2024-08-04
 
 ### Added
