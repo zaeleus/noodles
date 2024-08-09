@@ -6,6 +6,11 @@
 
   * vcf/header/record/value/map/info/definition: Add VCF 4.5 info definitions.
 
+### Changed
+
+  * vcf/variant/record: Infer length using both reference bases length and
+    samples `LEN` values.
+
 ## 0.62.0 - 2024-08-04
 
 ### Added

@@ -83,30 +83,90 @@ pub trait Record {
             }
         } else {
             let start = self.variant_start().transpose()?.unwrap_or(Position::MIN);
-            let reference_bases = self.reference_bases();
 
-            if reference_bases.is_empty() {
-                Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    "invalid reference bases length",
-                ))
-            } else {
-                let len = reference_bases.len();
-                start
-                    .checked_add(len - 1)
-                    .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "position overflow"))
+            let mut max_len = reference_bases_len(&self.reference_bases())?;
+
+            let samples = self.samples()?;
+            if let Some(Some(len)) = samples_max_len(header, &samples).transpose()? {
+                max_len = max_len.max(len);
             }
+
+            start
+                .checked_add(max_len - 1)
+                .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "position overflow"))
         }
     }
+}
+
+fn reference_bases_len<B>(reference_bases: &B) -> io::Result<usize>
+where
+    B: ReferenceBases,
+{
+    if reference_bases.is_empty() {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid reference bases length",
+        ))
+    } else {
+        Ok(reference_bases.len())
+    }
+}
+
+fn samples_max_len<S>(header: &Header, samples: &S) -> Option<io::Result<Option<usize>>>
+where
+    S: Samples,
+{
+    use self::samples::{keys::key, series::Value};
+
+    let series = match samples.select(header, key::LENGTH)? {
+        Ok(series) => series,
+        Err(e) => return Some(Err(e)),
+    };
+
+    let mut max_len: Option<usize> = None;
+
+    for result in series.iter(header) {
+        let value = match result {
+            Ok(value) => value,
+            Err(e) => return Some(Err(e)),
+        };
+
+        match value {
+            Some(Value::Integer(n)) => {
+                let len = match usize::try_from(n) {
+                    Ok(len) => len,
+                    Err(_) => {
+                        return Some(Err(io::Error::new(
+                            io::ErrorKind::InvalidData,
+                            "invalid FORMAT LEN value",
+                        )))
+                    }
+                };
+
+                max_len = max_len.map(|n| n.max(len)).or(Some(len));
+            }
+            Some(_) => {
+                return Some(Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "invalid FORMAT LEN type",
+                )))
+            }
+            None => {}
+        }
+    }
+
+    Some(Ok(max_len))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::variant::{record::info::field::key, record_buf::info::field::Value, RecordBuf};
+    use crate::variant::RecordBuf;
 
     #[test]
     fn test_variant_span() -> io::Result<()> {
+        use crate::variant::{record::info::field::key, record_buf::info::field::Value};
+
         let header = Header::default();
 
         let record = RecordBuf::builder()
@@ -127,6 +187,8 @@ mod tests {
 
     #[test]
     fn test_variant_end() -> Result<(), Box<dyn std::error::Error>> {
+        use crate::variant::{record::info::field::key, record_buf::info::field::Value};
+
         let header = Header::default();
 
         let record = RecordBuf::builder()
@@ -146,6 +208,31 @@ mod tests {
         assert_eq!(
             Record::variant_end(&record, &header)?,
             Position::try_from(4)?
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_variant_end_with_samples_len() -> Result<(), Box<dyn std::error::Error>> {
+        use crate::variant::{
+            record::samples::keys::key,
+            record_buf::{samples::sample::Value, Samples},
+        };
+
+        let header = Header::default();
+
+        let keys = [String::from(key::LENGTH)].into_iter().collect();
+        let values = vec![vec![Some(Value::from(8))]];
+
+        let record = RecordBuf::builder()
+            .set_reference_bases("ACGT")
+            .set_samples(Samples::new(keys, values))
+            .build();
+
+        assert_eq!(
+            Record::variant_end(&record, &header)?,
+            Position::try_from(8)?
         );
 
         Ok(())
