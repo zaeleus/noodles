@@ -86,6 +86,10 @@ pub trait Record {
 
             let mut max_len = reference_bases_len(&self.reference_bases())?;
 
+            if let Some(Some(len)) = info_max_sv_len(header, &self.info()).transpose()? {
+                max_len = max_len.max(len);
+            }
+
             let samples = self.samples()?;
             if let Some(Some(len)) = samples_max_len(header, &samples).transpose()? {
                 max_len = max_len.max(len);
@@ -110,6 +114,52 @@ where
     } else {
         Ok(reference_bases.len())
     }
+}
+
+fn info_max_sv_len<I>(header: &Header, info: &I) -> Option<io::Result<Option<usize>>>
+where
+    I: Info,
+{
+    use self::info::field::{key, value::Array, Value};
+
+    let value = match info.get(header, key::SV_LENGTHS).transpose() {
+        Ok(value) => value??,
+        Err(e) => return Some(Err(e)),
+    };
+
+    let mut max_len: Option<usize> = None;
+
+    match value {
+        Value::Array(Array::Integer(values)) => {
+            for result in values.iter() {
+                match result {
+                    Ok(Some(n)) => {
+                        let len = match usize::try_from(n) {
+                            Ok(len) => len,
+                            Err(_) => {
+                                return Some(Err(io::Error::new(
+                                    io::ErrorKind::InvalidData,
+                                    "invalid INFO SVLEN value",
+                                )))
+                            }
+                        };
+
+                        max_len = max_len.map(|n| n.max(len)).or(Some(len));
+                    }
+                    Ok(None) => {}
+                    Err(e) => return Some(Err(e)),
+                }
+            }
+        }
+        _ => {
+            return Some(Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "invalid INFO SVLEN position value",
+            )))
+        }
+    }
+
+    Some(Ok(max_len))
 }
 
 fn samples_max_len<S>(header: &Header, samples: &S) -> Option<io::Result<Option<usize>>>
@@ -208,6 +258,32 @@ mod tests {
         assert_eq!(
             Record::variant_end(&record, &header)?,
             Position::try_from(4)?
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_variant_end_with_info_sv_len() -> Result<(), Box<dyn std::error::Error>> {
+        use crate::variant::{record::info::field::key, record_buf::info::field::Value};
+
+        let header = Header::default();
+
+        let record = RecordBuf::builder()
+            .set_reference_bases("ACGT")
+            .set_info(
+                [(
+                    String::from(key::SV_LENGTHS),
+                    Some(Value::from(vec![None, Some(5), Some(8)])),
+                )]
+                .into_iter()
+                .collect(),
+            )
+            .build();
+
+        assert_eq!(
+            Record::variant_end(&record, &header)?,
+            Position::try_from(8)?
         );
 
         Ok(())

@@ -8,8 +8,8 @@
 
 ### Changed
 
-  * vcf/variant/record: Infer length using both reference bases length and
-    samples `LEN` values.
+  * vcf/variant/record: Infer length using reference bases length, SV lengths,
+    and samples `LEN` values.
 
 ## 0.62.0 - 2024-08-04
 
