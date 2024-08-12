@@ -10,6 +10,8 @@
 
   * vcf/io/reader/record_buf: Remove pattern validations.
 
+  * vcf/io/reader/record_buf/samples/keys: Remove GT position validation.
+
   * vcf/variant/record: Infer length using reference bases length, SV lengths,
     and samples `LEN` values.
 

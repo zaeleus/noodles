@@ -1,20 +1,12 @@
 use std::{error, fmt};
 
-use crate::{
-    io::reader::record_buf::MISSING,
-    variant::{record::samples::keys::key, record_buf::samples::Keys},
-    Header,
-};
+use crate::{io::reader::record_buf::MISSING, variant::record_buf::samples::Keys, Header};
 
 /// An error when raw VCF record genotypes keys fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The input is empty.
     Empty,
-    /// The genotype key (`GT`) position is invalid.
-    ///
-    /// The genotype key must be first, if present.
-    InvalidGenotypeKeyPosition,
     /// A key is duplicated.
     DuplicateKey(String),
 }
@@ -25,7 +17,6 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => write!(f, "empty input"),
-            Self::InvalidGenotypeKeyPosition => write!(f, "invalid genotype key position"),
             Self::DuplicateKey(key) => write!(f, "duplicate key: {key}"),
         }
     }
@@ -40,26 +31,14 @@ pub(super) fn parse_keys(header: &Header, s: &str, keys: &mut Keys) -> Result<()
         return Ok(());
     }
 
-    let mut gt_position = None;
-
-    for (i, raw_key) in s.split(DELIMITER).enumerate() {
+    for raw_key in s.split(DELIMITER) {
         let key = match header.formats().get_full(raw_key) {
             Some((_, k, _)) => k.clone(),
             None => raw_key.into(),
         };
 
-        if key == key::GENOTYPE {
-            gt_position = Some(i);
-        }
-
         if let Some(key) = keys.as_mut().replace(key) {
             return Err(ParseError::DuplicateKey(key));
-        }
-    }
-
-    if let Some(i) = gt_position {
-        if i != 0 {
-            return Err(ParseError::InvalidGenotypeKeyPosition);
         }
     }
 
@@ -72,6 +51,8 @@ mod tests {
 
     #[test]
     fn test_parse_keys() -> Result<(), Box<dyn std::error::Error>> {
+        use crate::variant::record::samples::keys::key;
+
         let header = Header::default();
         let mut keys = Keys::default();
 
@@ -103,12 +84,6 @@ mod tests {
 
         keys.as_mut().clear();
         assert_eq!(parse_keys(&header, "", &mut keys), Err(ParseError::Empty));
-
-        keys.as_mut().clear();
-        assert_eq!(
-            parse_keys(&header, "GQ:GT", &mut keys),
-            Err(ParseError::InvalidGenotypeKeyPosition)
-        );
 
         keys.as_mut().clear();
         assert_eq!(
