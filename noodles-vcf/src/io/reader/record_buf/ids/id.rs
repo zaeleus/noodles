@@ -5,8 +5,6 @@ use std::{error, fmt};
 pub enum ParseError {
     /// The input is empty.
     Empty,
-    /// The input is invalid.
-    Invalid,
 }
 
 impl error::Error for ParseError {}
@@ -15,7 +13,6 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => write!(f, "empty input"),
-            Self::Invalid => write!(f, "invalid input"),
         }
     }
 }
@@ -23,15 +20,9 @@ impl fmt::Display for ParseError {
 pub(super) fn parse_id(s: &str) -> Result<&str, ParseError> {
     if s.is_empty() {
         Err(ParseError::Empty)
-    } else if is_valid_id(s) {
-        Ok(s)
     } else {
-        Err(ParseError::Invalid)
+        Ok(s)
     }
-}
-
-fn is_valid_id(s: &str) -> bool {
-    s.chars().all(|c| !c.is_whitespace())
 }
 
 #[cfg(test)]
@@ -41,8 +32,6 @@ mod tests {
     #[test]
     fn test_parse_id() {
         assert_eq!(parse_id("nd0"), Ok("nd0"));
-
         assert_eq!(parse_id(""), Err(ParseError::Empty));
-        assert_eq!(parse_id("nd 0"), Err(ParseError::Invalid));
     }
 }

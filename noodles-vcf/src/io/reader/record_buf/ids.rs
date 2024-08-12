@@ -79,12 +79,6 @@ mod tests {
 
         ids.as_mut().clear();
         assert!(matches!(
-            parse_ids("nd 0", &mut ids),
-            Err(ParseError::InvalidId(_))
-        ));
-
-        ids.as_mut().clear();
-        assert!(matches!(
             parse_ids(";nd0", &mut ids),
             Err(ParseError::InvalidId(_))
         ));
