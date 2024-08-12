@@ -8,6 +8,8 @@
 
 ### Changed
 
+  * vcf/io/reader/record_buf/filters: Remove validator.
+
   * vcf/variant/record: Infer length using reference bases length, SV lengths,
     and samples `LEN` values.
 
