@@ -65,22 +65,8 @@ pub trait Record {
     /// [variant start position]: `Self::variant_start`
     /// [reference bases length]: `ReferenceBases::len`
     fn variant_end(&self, header: &Header) -> io::Result<Position> {
-        use self::info::field::{key, Value};
-
-        if let Some(Some(value)) = self.info().get(header, key::END_POSITION).transpose()? {
-            match value {
-                Value::Integer(n) => {
-                    usize::try_from(n)
-                        .and_then(Position::try_from)
-                        .map_err(|_| {
-                            io::Error::new(io::ErrorKind::InvalidData, "invalid INFO END position")
-                        })
-                }
-                _ => Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    "invalid INFO END position value",
-                )),
-            }
+        if let Some(position) = info_end(header, &self.info()).transpose()? {
+            Ok(position)
         } else {
             let start = self.variant_start().transpose()?.unwrap_or(Position::MIN);
 
@@ -113,6 +99,32 @@ where
         ))
     } else {
         Ok(reference_bases.len())
+    }
+}
+
+fn info_end<I>(header: &Header, info: &I) -> Option<io::Result<Position>>
+where
+    I: Info,
+{
+    use self::info::field::{key, Value};
+
+    let value = match info.get(header, key::END_POSITION).transpose() {
+        Ok(value) => value??,
+        Err(e) => return Some(Err(e)),
+    };
+
+    match value {
+        Value::Integer(n) => Some(
+            usize::try_from(n)
+                .and_then(Position::try_from)
+                .map_err(|_| {
+                    io::Error::new(io::ErrorKind::InvalidData, "invalid INFO END position")
+                }),
+        ),
+        _ => Some(Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid INFO END position value",
+        ))),
     }
 }
 
