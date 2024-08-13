@@ -132,7 +132,7 @@ impl Builder {
             None => {
                 let mut src = reader.fill_buf().await?;
                 detect_compression_method(&mut src)?
-            },
+            }
         };
 
         let format = match self.format {
@@ -145,9 +145,13 @@ impl Builder {
 
         let reader: Box<dyn AsyncBufRead + Unpin> = match (format, compression_method) {
             (Format::Sam, None) => Box::new(reader),
-            (Format::Sam, Some(CompressionMethod::Bgzf)) => Box::new(bgzf::AsyncReader::new(reader)),
+            (Format::Sam, Some(CompressionMethod::Bgzf)) => {
+                Box::new(bgzf::AsyncReader::new(reader))
+            }
             (Format::Bam, None) => Box::new(reader),
-            (Format::Bam, Some(CompressionMethod::Bgzf)) => Box::new(bgzf::AsyncReader::new(reader)),
+            (Format::Bam, Some(CompressionMethod::Bgzf)) => {
+                Box::new(bgzf::AsyncReader::new(reader))
+            }
             (Format::Cram, None) => {
                 let inner: Box<dyn AsyncBufRead + Unpin> = Box::new(reader);
                 let inner = cram::r#async::io::reader::Builder::default()
@@ -165,7 +169,7 @@ impl Builder {
 
         let reader: Reader<Box<dyn AsyncBufRead + Unpin>> = match format {
             Format::Sam => Reader::Sam(sam::r#async::io::Reader::new(reader)),
-            Format::Bam => Reader::Bam(bam::r#async::io::Reader::new(reader)),
+            Format::Bam => Reader::Bam(bam::r#async::io::Reader::from(reader)),
             Format::Cram => unreachable!(), // Handled above
         };
 
