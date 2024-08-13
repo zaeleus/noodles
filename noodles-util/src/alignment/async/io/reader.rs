@@ -1,12 +1,16 @@
 //! Async alignment reader.
 //! todo add an example
 
+mod builder;
+
 use futures::{Stream, StreamExt};
 use noodles_bam as bam;
 use noodles_cram as cram;
 use noodles_sam as sam;
 use std::pin::Pin;
 use tokio::io::{self, AsyncBufRead};
+
+pub use self::builder::Builder;
 
 /// An async alignment reader.
 pub enum Reader<R> {
