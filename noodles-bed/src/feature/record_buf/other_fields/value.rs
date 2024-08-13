@@ -1,4 +1,4 @@
-use bstr::BString;
+use bstr::{BStr, BString};
 
 /// A feature record other field value buffer.
 #[derive(Clone, Debug, PartialEq)]
@@ -42,6 +42,18 @@ impl From<&str> for Value {
 impl From<String> for Value {
     fn from(s: String) -> Self {
         Self::String(s.into())
+    }
+}
+
+impl From<&BStr> for Value {
+    fn from(buf: &BStr) -> Self {
+        Self::from(BString::from(buf))
+    }
+}
+
+impl From<BString> for Value {
+    fn from(buf: BString) -> Self {
+        Self::String(buf)
     }
 }
 
