@@ -1,5 +1,3 @@
-//! BED record feature strand.
-
 /// A BED record feature strand.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Strand {
