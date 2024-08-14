@@ -28,3 +28,13 @@ impl Default for Number {
         Self::Count(1)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_default() {
+        assert_eq!(Number::default(), Number::Count(1));
+    }
+}
