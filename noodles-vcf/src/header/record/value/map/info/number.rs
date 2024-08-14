@@ -1,4 +1,4 @@
-use std::{error, fmt, num, str::FromStr};
+use std::fmt;
 
 /// A VCF number describing the cardinality of a field.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -44,48 +44,6 @@ impl fmt::Display for Number {
     }
 }
 
-/// An error returned when a VCF number fails to parse.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
-    /// The input is empty.
-    Empty,
-    /// The input is invalid.
-    Invalid(num::ParseIntError),
-}
-
-impl error::Error for ParseError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match self {
-            Self::Empty => None,
-            Self::Invalid(e) => Some(e),
-        }
-    }
-}
-
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Empty => f.write_str("empty input"),
-            Self::Invalid(_) => f.write_str("invalid input"),
-        }
-    }
-}
-
-impl FromStr for Number {
-    type Err = ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "" => Err(ParseError::Empty),
-            "A" => Ok(Self::AlternateBases),
-            "R" => Ok(Self::ReferenceAlternateBases),
-            "G" => Ok(Self::Samples),
-            "." => Ok(Self::Unknown),
-            _ => s.parse().map(Self::Count).map_err(ParseError::Invalid),
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -102,20 +60,5 @@ mod tests {
         assert_eq!(Number::ReferenceAlternateBases.to_string(), "R");
         assert_eq!(Number::Samples.to_string(), "G");
         assert_eq!(Number::Unknown.to_string(), ".");
-    }
-
-    #[test]
-    fn test_from_str() {
-        assert_eq!("1".parse(), Ok(Number::Count(1)));
-        assert_eq!("A".parse(), Ok(Number::AlternateBases));
-        assert_eq!("R".parse(), Ok(Number::ReferenceAlternateBases));
-        assert_eq!("G".parse(), Ok(Number::Samples));
-        assert_eq!(".".parse(), Ok(Number::Unknown));
-
-        assert_eq!("".parse::<Number>(), Err(ParseError::Empty));
-        assert!(matches!(
-            "Noodles".parse::<Number>(),
-            Err(ParseError::Invalid(_))
-        ));
     }
 }

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+  * vcf/header/record/value/map/info/number: Remove parser.
+
 ## 0.63.0 - 2024-08-04
 
 ### Added
