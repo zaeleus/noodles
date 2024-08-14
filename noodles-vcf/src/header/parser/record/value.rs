@@ -149,7 +149,7 @@ impl fmt::Display for ParseError {
 
                 write!(
                     f,
-                    "{} definition mismatch: ID={id}: expected Number={},Type={}, got Number={},Type={}",
+                    "{} definition mismatch: ID={id}: expected Number={:?},Type={}, got Number={:?},Type={}",
                     key::INFO,
                     expected_number, expected_type,
                     actual_number, actual_type,
