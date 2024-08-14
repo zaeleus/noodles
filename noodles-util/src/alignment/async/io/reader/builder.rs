@@ -83,7 +83,7 @@ impl Builder {
     /// ```no_run
     /// # #[tokio::main]
     /// # async fn main() -> tokio::io::Result<()> {
-    /// use noodles_util::alignment::async::io::reader::Builder;
+    /// use noodles_util::alignment::r#async::io::reader::Builder;
     /// use std::path::Path;
     /// let path = Path::new("sample.bam");
     /// let reader = Builder::default().build_from_path(path).await?;
@@ -111,7 +111,7 @@ impl Builder {
     /// ```
     /// # #[tokio::main]
     /// # async fn main() -> tokio::io::Result<()> {
-    /// use noodles_util::alignment::async::io::reader::Builder;
+    /// use noodles_util::alignment::r#async::io::reader::Builder;
     /// use tokio::io;
     /// let reader = Builder::default().build_from_reader(io::empty()).await?;
     /// # Ok(())

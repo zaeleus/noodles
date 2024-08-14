@@ -1,5 +1,6 @@
 //! Async alignment reader.
-//! todo add an example
+//!
+//! Constructing a [`Reader`] is best done via a builder using the [`Builder`] type.
 
 mod builder;
 
@@ -29,7 +30,23 @@ where
     /// Reads the SAM header
     ///
     /// # Examples
-    /// todo once Builder is implemented
+    ///
+    /// ```
+    /// # #[tokio::main]
+    /// # async fn main() -> tokio::io::Result<()> {
+    /// use noodles_util::alignment::r#async::io::reader::Builder;
+    ///
+    /// let data = b"@HD\tVN:1.6
+    /// @SQ\tSN:chr1\tLN:2489
+    /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
+    /// ";
+    ///
+    /// let mut reader = Builder::default().build_from_reader(&data[..]).await?;
+    /// let header = reader.read_header().await?;
+    ///
+    /// assert_eq!(header.reference_sequences().len(), 1);
+    /// # Ok(())
+    /// # }
     pub async fn read_header(&mut self) -> io::Result<sam::Header> {
         match self {
             Self::Sam(reader) => reader.read_header().await,
@@ -39,7 +56,37 @@ where
     }
 
     /// Returns an iterator over records starting from the current stream position.
-    /// todo add an example
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[tokio::main]
+    /// # async fn main() -> tokio::io::Result<()> {
+    /// use futures::TryStreamExt;
+    /// use noodles_util::alignment::r#async::io::reader::Builder;
+    /// use noodles_sam::alignment::Record;
+    ///
+    /// let data = b"@HD\tVN:1.6
+    /// @SQ\tSN:chr1\tLN:2489
+    /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
+    /// chr1\t0\tr1\t1\t60\t100M\t*\t0\t0\t*\t*
+    /// ";
+    ///
+    /// let mut reader = Builder::default().build_from_reader(&data[..]).await?;
+    /// let header = reader.read_header().await?;
+    /// let mut records = reader.records(&header);
+    ///
+    /// let mut num_unmapped = 0;
+    /// while let Some(record) = records.try_next().await? {
+    ///     let is_unmapped = record.flags().map(|f| f.is_unmapped())?;
+    ///     if is_unmapped {
+    ///        num_unmapped += 1;
+    ///    }
+    /// }
+    /// assert_eq!(num_unmapped, 1);
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn records<'r, 'h: 'r>(
         &'r mut self,
         header: &'h sam::Header,
