@@ -1,6 +1,4 @@
 //! Async alignment reader.
-//!
-//! Constructing a [`Reader`] is best done via a builder using the [`Builder`] type.
 
 mod builder;
 
@@ -28,7 +26,7 @@ impl<R> Reader<R>
 where
     R: AsyncBufRead + Unpin,
 {
-    /// Reads the SAM header
+    /// Reads the SAM header.
     ///
     /// # Examples
     ///

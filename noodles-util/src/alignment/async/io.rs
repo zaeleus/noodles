@@ -1,4 +1,4 @@
-//! Async alignment format I/O
+//! Async alignment format I/O.
 
 pub mod reader;
 
