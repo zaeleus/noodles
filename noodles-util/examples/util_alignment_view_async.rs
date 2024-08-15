@@ -5,13 +5,13 @@
 //! The result matches the output of `samtools view --no-PG --with-header [--reference <fasta-src>]
 //! <src>`.
 
-use futures::TryStreamExt;
 use std::env;
-use tokio::io::{self, BufWriter};
 
+use futures::TryStreamExt;
 use noodles_fasta::{self as fasta, repository::adapters::IndexedReader};
-use noodles_sam::r#async::io::Writer;
-use noodles_util::alignment::r#async::io::reader::Builder;
+use noodles_sam as sam;
+use noodles_util::alignment;
+use tokio::io::{self, AsyncWriteExt};
 
 #[tokio::main]
 async fn main() -> io::Result<()> {
@@ -20,7 +20,7 @@ async fn main() -> io::Result<()> {
     let src = args.next().expect("missing src");
     let fasta_src = args.next();
 
-    let mut builder = Builder::default();
+    let mut builder = alignment::r#async::io::reader::Builder::default();
 
     if let Some(fasta_src) = fasta_src {
         let repository = fasta::io::indexed_reader::Builder::default()
@@ -32,22 +32,21 @@ async fn main() -> io::Result<()> {
     }
 
     let mut reader = if src == "-" {
-        let stdin = io::stdin();
-        builder.build_from_reader(stdin).await?
+        builder.build_from_reader(io::stdin()).await?
     } else {
         builder.build_from_path(src).await?
     };
 
     let header = reader.read_header().await?;
 
-    let stdout = io::stdout();
-    let mut writer = Writer::new(BufWriter::new(stdout));
-
+    let mut writer = sam::r#async::io::Writer::new(io::stdout());
     writer.write_header(&header).await?;
 
     while let Some(record) = reader.records(&header).try_next().await? {
         writer.write_alignment_record(&header, &record).await?;
     }
+
+    writer.get_mut().shutdown().await?;
 
     Ok(())
 }
