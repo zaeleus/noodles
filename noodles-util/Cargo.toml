@@ -23,8 +23,11 @@ alignment = [
 async = [
   "dep:futures",
   "dep:tokio",
+  "noodles-bam?/async",
   "noodles-bcf?/async",
   "noodles-bgzf?/async",
+  "noodles-cram?/async",
+  "noodles-sam?/async",
   "noodles-vcf?/async",
 ]
 variant = [
@@ -71,6 +74,10 @@ required-features = ["alignment"]
 [[example]]
 name = "util_alignment_view"
 required-features = ["alignment"]
+
+[[example]]
+name = "util_alignment_view_async"
+required-features = ["alignment", "async"]
 
 [[example]]
 name = "util_variant_query"

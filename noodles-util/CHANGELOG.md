@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * util/alignment: Add async reader (`alignment::r#async::io::Reader`)
+    ([#286]).
+
+[#286]: https://github.com/zaeleus/noodles/issues/286
+
 ## 0.50.0 - 2024-08-04
 
 ### Added
