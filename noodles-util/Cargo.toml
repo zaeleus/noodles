@@ -23,12 +23,12 @@ alignment = [
 async = [
   "dep:futures",
   "dep:tokio",
+  "noodles-bam?/async",
   "noodles-bcf?/async",
   "noodles-bgzf?/async",
-  "noodles-vcf?/async",
-  "noodles-bam?/async",
   "noodles-cram?/async",
   "noodles-sam?/async",
+  "noodles-vcf?/async",
 ]
 variant = [
   "dep:noodles-bcf",
