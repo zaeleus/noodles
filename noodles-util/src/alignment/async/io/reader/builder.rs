@@ -28,9 +28,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_util::alignment::{self, io::CompressionMethod};
-    /// let builder = alignment::io::reader::Builder::default()
-    ///     .set_compression_method(Some(CompressionMethod::Bgzf));
+    /// use noodles_util::alignment::{r#async::io::reader::Builder, io::CompressionMethod};
+    /// let _builder = Builder::default().set_compression_method(Some(CompressionMethod::Bgzf));
     /// ```
     pub fn set_compression_method(mut self, compression_method: Option<CompressionMethod>) -> Self {
         self.compression_method = Some(compression_method);
@@ -44,9 +43,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_util::alignment::{self, io::Format};
-    /// let builder = alignment::io::reader::Builder::default()
-    ///     .set_format(Format::Sam);
+    /// use noodles_util::alignment::{r#async::io::reader::Builder, io::Format};
+    /// let _builder = Builder::default().set_format(Format::Sam);
     /// ```
     pub fn set_format(mut self, format: Format) -> Self {
         self.format = Some(format);
@@ -59,12 +57,9 @@ impl Builder {
     ///
     /// ```
     /// use noodles_fasta as fasta;
-    /// use noodles_util::alignment::{self, io::Format};
-    ///
+    /// use noodles_util::alignment::{r#async::io::reader::Builder, io::Format};
     /// let repository = fasta::Repository::default();
-    ///
-    /// let builder = alignment::io::reader::Builder::default()
-    ///     .set_reference_sequence_repository(repository);
+    /// let _builder = Builder::default().set_reference_sequence_repository(repository);
     /// ```
     pub fn set_reference_sequence_repository(
         mut self,
@@ -85,9 +80,7 @@ impl Builder {
     /// # #[tokio::main]
     /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_util::alignment::r#async::io::reader::Builder;
-    /// use std::path::Path;
-    /// let path = Path::new("sample.bam");
-    /// let reader = Builder::default().build_from_path(path).await?;
+    /// let _reader = Builder::default().build_from_path("sample.bam").await?;
     /// # Ok(())
     /// # }
     /// ```
