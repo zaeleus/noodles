@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use noodles_bam as bam;
 use noodles_bgzf as bgzf;
 use noodles_cram as cram;
@@ -89,7 +91,7 @@ impl Builder {
         src: P,
     ) -> io::Result<Reader<Box<dyn AsyncBufRead + Unpin>>>
     where
-        P: AsRef<std::path::Path>,
+        P: AsRef<Path>,
     {
         let file = File::open(src).await?;
         self.build_from_reader(file).await
