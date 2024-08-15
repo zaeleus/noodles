@@ -21,8 +21,6 @@ pub enum DecodeError {
     UnexpectedEof,
     /// An op is invalid.
     InvalidOp(op::DecodeError),
-    /// The reference sequence ID is invalid.
-    InvalidReferenceSequence,
     /// The `CG` data field type is invalid.
     InvalidDataType,
 }
@@ -41,7 +39,6 @@ impl fmt::Display for DecodeError {
         match self {
             Self::UnexpectedEof => write!(f, "unexpected EOF"),
             Self::InvalidOp(_) => write!(f, "invalid op"),
-            Self::InvalidReferenceSequence => write!(f, "invalid reference sequence"),
             Self::InvalidDataType => write!(f, "invalid CG data field type"),
         }
     }
