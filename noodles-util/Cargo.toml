@@ -76,6 +76,10 @@ name = "util_alignment_view"
 required-features = ["alignment"]
 
 [[example]]
+name = "util_alignment_view_async"
+required-features = ["alignment", "async"]
+
+[[example]]
 name = "util_variant_query"
 required-features = ["variant"]
 
