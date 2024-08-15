@@ -1,5 +1,3 @@
-use super::Reader;
-use crate::alignment::io::{CompressionMethod, Format};
 use noodles_bam as bam;
 use noodles_bgzf as bgzf;
 use noodles_cram as cram;
@@ -9,6 +7,9 @@ use tokio::{
     fs::File,
     io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, BufReader},
 };
+
+use super::Reader;
+use crate::alignment::io::{CompressionMethod, Format};
 
 /// An async alignment reader builder.
 #[derive(Default)]
@@ -125,6 +126,7 @@ impl Builder {
         R: AsyncRead + Unpin + 'static,
     {
         use crate::alignment::io::reader::builder::{detect_compression_method, detect_format};
+
         let mut reader = BufReader::new(reader);
 
         let compression_method = match self.compression_method {
