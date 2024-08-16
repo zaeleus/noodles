@@ -8,10 +8,10 @@ pub fn read_pos(src: &mut &[u8]) -> io::Result<Option<Position>> {
 
     match src.read_i32::<LittleEndian>()? {
         TELOMERE_START => Ok(None),
-        n => usize::try_from(n + 1)
-            .and_then(Position::try_from)
-            .map(Some)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+        n => usize::try_from(n)
+            .map(|m| m + 1)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            .map(Position::new),
     }
 }
 
@@ -36,6 +36,16 @@ mod tests {
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 
+        Ok(())
+    }
+
+    #[cfg(not(target_pointer_width = "16"))]
+    #[test]
+    fn test_read_pos_with_max_position() -> Result<(), Box<dyn std::error::Error>> {
+        let data = i32::MAX.to_le_bytes();
+        let mut src = &data[..];
+        let expected = Position::try_from(1 << 31)?;
+        assert_eq!(read_pos(&mut src)?, Some(expected));
         Ok(())
     }
 }

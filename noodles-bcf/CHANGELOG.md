@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * bcf/record/codec/decoder/position: Fix reading position at max position.
+
+    This would previously overflow and error instead of returning a properly
+    normalized `Position`.
+
 ## 0.59.0 - 2024-08-04
 
 ### Changed
