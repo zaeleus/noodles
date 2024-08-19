@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+  * sam/alignment/record: Transpose return type for `Record::alignment_span`.
+
 ### Removed
 
   * vcf/header/record/value/map/info/number: Remove parser (`fmt::FromStr`) and
