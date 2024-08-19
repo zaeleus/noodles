@@ -10,7 +10,7 @@ mod sequence;
 use std::io;
 
 use bstr::BStr;
-use noodles_core as core;
+use noodles_core::Position;
 
 pub use self::{
     cigar::Cigar, data::Data, flags::Flags, mapping_quality::MappingQuality,
@@ -39,7 +39,7 @@ pub trait Record {
     /// Returns the alignment start.
     ///
     /// This position is 1-based, inclusive.
-    fn alignment_start(&self) -> Option<io::Result<core::Position>>;
+    fn alignment_start(&self) -> Option<io::Result<Position>>;
 
     /// Returns the mapping quality.
     fn mapping_quality(&self) -> Option<io::Result<MappingQuality>>;
@@ -56,7 +56,7 @@ pub trait Record {
     /// Returns the mate alignment start.
     ///
     /// This position is 1-based, inclusive.
-    fn mate_alignment_start(&self) -> Option<io::Result<core::Position>>;
+    fn mate_alignment_start(&self) -> Option<io::Result<Position>>;
 
     /// Returns the template length.
     fn template_length(&self) -> io::Result<i32>;
@@ -107,7 +107,7 @@ pub trait Record {
     /// Calculates the end position.
     ///
     /// This position is 1-based, inclusive.
-    fn alignment_end(&self) -> Option<io::Result<core::Position>> {
+    fn alignment_end(&self) -> Option<io::Result<Position>> {
         let start = match self.alignment_start().transpose() {
             Ok(position) => position?,
             Err(e) => return Some(Err(e)),
@@ -116,7 +116,7 @@ pub trait Record {
         match self.alignment_span() {
             Ok(Some(span)) => {
                 let end = usize::from(start) + span - 1;
-                core::Position::new(end).map(Ok)
+                Position::new(end).map(Ok)
             }
             Ok(None) => Some(Ok(start)),
             Err(e) => Some(Err(e)),
@@ -140,7 +140,7 @@ impl Record for Box<dyn Record> {
         (**self).reference_sequence_id(header)
     }
 
-    fn alignment_start(&self) -> Option<io::Result<core::Position>> {
+    fn alignment_start(&self) -> Option<io::Result<Position>> {
         (**self).alignment_start()
     }
 
@@ -159,7 +159,7 @@ impl Record for Box<dyn Record> {
         (**self).mate_reference_sequence_id(header)
     }
 
-    fn mate_alignment_start(&self) -> Option<io::Result<core::Position>> {
+    fn mate_alignment_start(&self) -> Option<io::Result<Position>> {
         (**self).mate_alignment_start()
     }
 
@@ -206,12 +206,12 @@ mod tests {
         };
 
         let record = RecordBuf::builder()
-            .set_alignment_start(core::Position::try_from(8)?)
+            .set_alignment_start(Position::try_from(8)?)
             .set_cigar([Op::new(Kind::Match, 5)].into_iter().collect())
             .build();
 
         let actual = Record::alignment_end(&record).transpose()?;
-        let expected = core::Position::new(12);
+        let expected = Position::new(12);
         assert_eq!(actual, expected);
 
         Ok(())
