@@ -15,6 +15,13 @@
   * vcf/variant/record: Infer length using reference bases length, SV lengths,
     and samples `LEN` values.
 
+### Removed
+
+  * vcf/header/record/value/map/info/number: Remove parser (`fmt::FromStr`) and
+    formatter (`fmt::Display`).
+
+    This prevents coupling the domain model to a form of serialization.
+
 ## 0.62.0 - 2024-08-04
 
 ### Added

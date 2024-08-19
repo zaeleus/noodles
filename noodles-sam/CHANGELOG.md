@@ -6,13 +6,6 @@
 
   * sam/alignment/record: Transpose return type for `Record::alignment_span`.
 
-### Removed
-
-  * vcf/header/record/value/map/info/number: Remove parser (`fmt::FromStr`) and
-    formatter (`fmt::Display`).
-
-    This prevents coupling the domain model to a form of serialization.
-
 ## 0.63.0 - 2024-08-04
 
 ### Added
