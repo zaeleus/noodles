@@ -12,6 +12,6 @@ documentation = "https://docs.rs/noodles-bed"
 
 [dependencies]
 bstr.workspace = true
-lexical-core = "0.8.5"
+lexical-core.workspace = true
 memchr.workspace = true
 noodles-core = { path = "../noodles-core", version = "0.15.0" }
