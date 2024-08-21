@@ -290,7 +290,7 @@ impl FromStr for Record {
         const FIELD_DELIMITER: char = '\t';
         const MAX_FIELDS: usize = 9;
 
-        let mut fields = s.splitn(MAX_FIELDS, FIELD_DELIMITER);
+        let mut fields = s.trim_end().splitn(MAX_FIELDS, FIELD_DELIMITER);
 
         let reference_sequence_name = fields
             .next()
@@ -412,25 +412,26 @@ mod tests {
 
     #[test]
     fn test_from_str() -> Result<(), noodles_core::position::TryFromIntError> {
-        let s = "sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"g0\"; transcript_id \"t0\";";
+        let expected = Record {
+            reference_sequence_name: String::from("sq0"),
+            source: String::from("NOODLES"),
+            ty: String::from("gene"),
+            start: Position::try_from(8)?,
+            end: Position::try_from(13)?,
+            score: None,
+            strand: Some(Strand::Forward),
+            frame: None,
+            attributes: Attributes::from(vec![
+                Entry::new("gene_id", "g0"),
+                Entry::new("transcript_id", "t0"),
+            ]),
+        };
 
-        assert_eq!(
-            s.parse(),
-            Ok(Record {
-                reference_sequence_name: String::from("sq0"),
-                source: String::from("NOODLES"),
-                ty: String::from("gene"),
-                start: Position::try_from(8)?,
-                end: Position::try_from(13)?,
-                score: None,
-                strand: Some(Strand::Forward),
-                frame: None,
-                attributes: Attributes::from(vec![
-                    Entry::new("gene_id", "g0"),
-                    Entry::new("transcript_id", "t0"),
-                ])
-            })
-        );
+        let s = "sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"g0\"; transcript_id \"t0\";";
+        assert_eq!(s.parse(), Ok(expected.clone()));
+
+        let s = "sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"g0\"; transcript_id \"t0\"; ";
+        assert_eq!(s.parse(), Ok(expected));
 
         Ok(())
     }

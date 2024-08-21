@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * gtf/record: Ignore trailing whitespace when parsing ([#291]).
+
+[#291]: https://github.com/zaeleus/noodles/issues/291
+
 ## 0.30.0 - 2024-07-14
 
 ### Changed
