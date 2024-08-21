@@ -32,6 +32,8 @@ use crate::Record;
 ///
 /// # Examples
 ///
+/// ## Read from a file
+///
 /// ```no_run
 /// # use std::{fs::File, io};
 /// use noodles_bam as bam;
@@ -44,6 +46,37 @@ use crate::Record;
 ///     // ...
 /// }
 /// # Ok::<_, io::Error>(())
+/// ```
+///
+/// ## Use a custom BGZF decoder
+///
+/// [`Reader::new`] wraps the input stream with a default BGZF decoder. This can be swapped for a
+/// custom decoder, e.g., [`flate2::read::MultiGzDecoder`], [`noodles_bgzf::MultithreadedReader`],
+/// etc., using [`Reader::from`].
+///
+/// [`flate2::read::MultiGzDecoder`]: https://docs.rs/flate2/latest/flate2/read/struct.MultiGzDecoder.html
+///
+/// ### `flate2::read::MultiGzDecoder`
+///
+/// ```
+/// # use std::{fs::File, io};
+/// use flate2::read::MultiGzDecoder;
+/// use noodles_bam as bam;
+///
+/// let decoder = MultiGzDecoder::new(io::empty());
+/// let _reader = bam::io::Reader::from(decoder);
+/// ```
+///
+/// ### `noodles_bgzf::MultithreadedReader`
+///
+/// ```
+/// # use std::{fs::File, io, num::NonZeroUsize, thread};
+/// use noodles_bam as bam;
+/// use noodles_bgzf as bgzf;
+///
+/// let worker_count = thread::available_parallelism().unwrap_or(NonZeroUsize::MIN);
+/// let decoder = bgzf::MultithreadedReader::with_worker_count(worker_count, io::empty());
+/// let _reader = bam::io::Reader::from(decoder);
 /// ```
 pub struct Reader<R> {
     inner: R,

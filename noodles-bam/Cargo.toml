@@ -27,6 +27,7 @@ noodles-csi = { path = "../noodles-csi", version = "0.37.0" }
 noodles-sam = { path = "../noodles-sam", version = "0.63.0" }
 
 [dev-dependencies]
+flate2.workspace = true
 noodles-sam = { path = "../noodles-sam", version = "0.63.0", features = ["async"] }
 tokio = { workspace = true, features = ["io-std", "macros", "rt-multi-thread"] }
 
