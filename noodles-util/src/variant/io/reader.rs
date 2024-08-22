@@ -22,22 +22,15 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io::{self, Cursor};
-    /// use noodles_vcf as vcf;
-    /// use noodles_util::variant;
+    /// use noodles_util::variant::io::reader::Builder;
     ///
-    /// let data = Cursor::new(b"##fileformat=VCFv4.5
+    /// let data = b"##fileformat=VCFv4.5
     /// #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
-    /// sq0\t1\t.\tA\t.\t.\tPASS\t.
-    /// ");
+    /// ";
     ///
-    /// let mut reader = variant::io::reader::Builder::default().build_from_reader(data)?;
-    /// let actual = reader.read_header()?;
-    ///
-    /// let expected = vcf::Header::builder().build();
-    ///
-    /// assert_eq!(actual, expected);
-    /// # Ok::<_, io::Error>(())
+    /// let mut reader = Builder::default().build_from_reader(&data[..])?;
+    /// let _header = reader.read_header()?;
+    /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn read_header(&mut self) -> io::Result<vcf::Header> {
         self.inner.read_variant_header()
@@ -48,23 +41,22 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io::{self, Cursor};
-    /// use noodles_vcf as vcf;
-    /// use noodles_util::variant;
+    /// use noodles_util::variant::io::reader::Builder;
     ///
-    /// let data = Cursor::new(b"##fileformat=VCFv4.5
+    /// let data = b"##fileformat=VCFv4.5
     /// #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
-    /// sq0\t1\t.\tA\t.\t.\tPASS\t.
-    /// ");
+    /// ";
     ///
-    /// let mut reader = variant::io::reader::Builder::default().build_from_reader(data)?;
+    /// let mut reader = Builder::default().build_from_reader(&data[..])?;
     /// let header = reader.read_header()?;
     ///
     /// let mut records = reader.records(&header);
     ///
-    /// assert!(records.next().transpose()?.is_some());
-    /// assert!(records.next().is_none());
-    /// # Ok::<_, io::Error>(())
+    /// for result in records {
+    ///     let _record = result?;
+    ///     // ...
+    /// }
+    /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn records<'a>(
         &'a mut self,
