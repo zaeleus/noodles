@@ -19,13 +19,17 @@ use crate::{Header, Record};
 /// use noodles_core::Position;
 /// use noodles_vcf::{
 ///     self as vcf,
-///     header::record::value::{map::Contig, Map},
+///     header::{
+///         record::value::{map::Contig, Map},
+///         FileFormat,
+///     },
 ///     variant::io::Write,
 /// };
 ///
 /// let mut writer = vcf::io::Writer::new(Vec::new());
 ///
 /// let header = vcf::Header::builder()
+///     .set_file_format(FileFormat::new(4, 5))
 ///     .add_contig("sq0", Map::<Contig>::new())
 ///     .build();
 ///
@@ -39,7 +43,7 @@ use crate::{Header, Record};
 ///
 /// writer.write_variant_record(&header, &record);
 ///
-/// let expected = b"##fileformat=VCFv4.4
+/// let expected = b"##fileformat=VCFv4.5
 /// ###contig=<ID=sq0>
 /// #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
 /// sq0\t1\t.\tA\t.\t.\t.\t.

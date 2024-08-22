@@ -29,13 +29,19 @@ mod tests {
 
     #[tokio::test]
     async fn test_write_header() -> io::Result<()> {
+        use noodles_vcf::header::FileFormat;
+
         let mut buf = Vec::new();
-        let header = vcf::Header::default();
+
+        let header = vcf::Header::builder()
+            .set_file_format(FileFormat::new(4, 5))
+            .build();
+
         write_header(&mut buf, &header).await?;
 
         let mut expected = 61i32.to_le_bytes().to_vec();
 
-        let text = b"##fileformat=VCFv4.4\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n\0";
+        let text = b"##fileformat=VCFv4.5\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n\0";
         expected.extend_from_slice(text);
 
         assert_eq!(buf, expected);

@@ -8,6 +8,8 @@
 
 ### Changed
 
+  * vcf/header/file_format: Set defualt file format version for 4.5.
+
   * vcf/io/reader/record_buf: Remove pattern validations.
 
   * vcf/io/reader/record_buf/samples/keys: Remove GT position validation.

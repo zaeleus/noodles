@@ -94,16 +94,22 @@ where
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
 
     #[test]
     fn test_write_header() -> io::Result<()> {
+        use crate::header::FileFormat;
+
         let mut buf = Vec::new();
 
-        let header = Header::default();
+        let header = Header::builder()
+            .set_file_format(FileFormat::new(4, 5))
+            .build();
+
         write_header(&mut buf, &header)?;
 
-        let expected = b"##fileformat=VCFv4.4
+        let expected = b"##fileformat=VCFv4.5
 #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
 ";
 

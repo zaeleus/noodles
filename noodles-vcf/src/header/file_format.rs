@@ -8,7 +8,7 @@ pub struct FileFormat {
 }
 
 const MAJOR_VERSION: u32 = 4;
-const MINOR_VERSION: u32 = 4;
+const MINOR_VERSION: u32 = 5;
 
 impl FileFormat {
     /// Creates a file format.
@@ -17,7 +17,7 @@ impl FileFormat {
     ///
     /// ```
     /// use noodles_vcf::header::FileFormat;
-    /// let file_format = FileFormat::new(4, 3);
+    /// let file_format = FileFormat::new(4, 5);
     /// ```
     pub const fn new(major: u32, minor: u32) -> Self {
         Self { major, minor }
@@ -29,7 +29,7 @@ impl FileFormat {
     ///
     /// ```
     /// use noodles_vcf::header::FileFormat;
-    /// let file_format = FileFormat::new(4, 3);
+    /// let file_format = FileFormat::new(4, 5);
     /// assert_eq!(file_format.major(), 4);
     /// ```
     pub const fn major(&self) -> u32 {
@@ -42,8 +42,8 @@ impl FileFormat {
     ///
     /// ```
     /// use noodles_vcf::header::FileFormat;
-    /// let file_format = FileFormat::new(4, 3);
-    /// assert_eq!(file_format.minor(), 3);
+    /// let file_format = FileFormat::new(4, 5);
+    /// assert_eq!(file_format.minor(), 5);
     /// ```
     pub const fn minor(&self) -> u32 {
         self.minor
