@@ -57,7 +57,6 @@ where
     /// # async fn main() -> tokio::io::Result<()> {
     /// use futures::TryStreamExt;
     /// use noodles_util::variant::r#async::io::reader::Builder;
-    /// use noodles_vcf as vcf;
     ///
     /// let data = b"##fileformat=VCFv4.5
     /// #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
