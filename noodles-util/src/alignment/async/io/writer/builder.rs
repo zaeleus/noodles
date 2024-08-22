@@ -175,7 +175,6 @@ impl Builder {
                     "CRAM cannot be compressed with BGZF",
                 ));
             }
-
         };
 
         Ok(writer)
