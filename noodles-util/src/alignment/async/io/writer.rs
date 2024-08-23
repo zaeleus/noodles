@@ -10,7 +10,7 @@ use tokio::io::{self, AsyncWrite};
 pub use self::builder::Builder;
 
 /// An async alignment writer.
-pub enum Writer<W: tokio::io::AsyncWrite> {
+pub enum Writer<W: AsyncWrite> {
     /// SAM.
     Sam(sam::r#async::io::Writer<W>),
     /// BAM.
@@ -32,8 +32,7 @@ where
     /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_sam as sam;
     /// use noodles_util::alignment::r#async::io::writer::Builder;
-    /// use tokio::io;
-    /// use tokio::io::AsyncWriteExt;
+    /// use tokio::io::{self, AsyncWriteExt};
     ///
     /// let mut writer = Builder::default().build_from_writer(io::sink());
     ///
@@ -62,8 +61,7 @@ where
     /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_sam as sam;
     /// use noodles_util::alignment::r#async::io::writer::Builder;
-    /// use tokio::io;
-    /// use tokio::io::AsyncWriteExt;
+    /// use tokio::io::{self, AsyncWriteExt};
     ///
     /// let mut writer = Builder::default().build_from_writer(io::sink());
     ///
@@ -84,6 +82,34 @@ where
                 let record = cram::Record::try_from_alignment_record(header, record)?;
                 writer.write_record(header, record).await
             }
+        }
+    }
+
+    /// Shuts down the alignment format writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[tokio::main]
+    /// # async fn main() -> tokio::io::Result<()> {
+    /// use noodles_sam as sam;
+    /// use noodles_util::alignment::{self, io::Format};
+    /// use tokio::io;
+    ///
+    /// let mut writer = alignment::r#async::io::writer::Builder::default()
+    ///     .set_format(Format::Sam)
+    ///     .build_from_writer(io::sink()).await?;
+    ///
+    /// let header = sam::Header::default();
+    /// writer.finish(&header).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn finish(&mut self, header: &sam::Header) -> io::Result<()> {
+        match self {
+            Self::Sam(_) => Ok(()),
+            Self::Bam(writer) => writer.shutdown().await,
+            Self::Cram(writer) => writer.shutdown(header).await,
         }
     }
 }
