@@ -4,11 +4,42 @@
 
 ### Added
 
+  * bed: Add a record view (`Record`).
+
+  * bed/feature: Add `Record` trait to represent an opaque feature record.
+
+    noodles-bed now only supports BED3+, BED4+, BED5+, and BED6+. Records with
+    more standard fields should use BED6+, e.g., BED12 can be represented as
+    BED6+6.
+
+  * bed/feature/other_fields: Values can now be typed (`Value`).
+
+    This allows setting values other than strings.
+
   * bed/io: Add builders (`reader::Builder` and `writer::Builder`).
 
 ### Changed
 
   * bed: Move `Record` to `feature::RecordBuf`.
+
+  * bed/record: Represent a feature end of 0 as `None`.
+
+    This changes `Record::feature_end` from `Position` to `Option<Position>`,
+    which allows modeling features before the record's reference sequence.
+
+  * bed/feature: Move `record_buf::Strand` to `record::Strand`.
+
+    `Strand` is now a simple representation of the forward and reverse options.
+    It no longer parses or serializes the field.
+
+  * bed/io: `Reader` and `Writer` must be annotated with the number of expected
+    standard fields.
+
+    `Reader` and `Writer` now require the number of expected standard fields as
+    a const generic argument, e.g., for BED3+ records, use `Reader<3, _>` and
+    `Writer<3, _>`.
+
+    This also means that dynamically sized records are no longer supported.
 
 ### Removed
 
