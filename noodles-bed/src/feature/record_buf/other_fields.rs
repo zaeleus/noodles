@@ -20,6 +20,12 @@ impl AsMut<Vec<Value>> for OtherFields {
     }
 }
 
+impl From<Vec<Value>> for OtherFields {
+    fn from(values: Vec<Value>) -> Self {
+        Self(values)
+    }
+}
+
 impl crate::feature::record::OtherFields for OtherFields {
     fn is_empty(&self) -> bool {
         self.0.is_empty()
