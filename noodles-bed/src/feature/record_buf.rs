@@ -1,6 +1,7 @@
 //! BED record and fields.
 
 pub mod builder;
+mod convert;
 pub mod other_fields;
 
 use std::io;
