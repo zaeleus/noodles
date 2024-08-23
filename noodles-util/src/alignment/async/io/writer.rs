@@ -46,7 +46,10 @@ where
         match self {
             Self::Sam(writer) => writer.write_header(header).await,
             Self::Bam(writer) => writer.write_header(header).await,
-            Self::Cram(writer) => writer.write_file_header(header).await,
+            Self::Cram(writer) => {
+                writer.write_file_definition().await?;
+                writer.write_file_header(header).await
+            }
         }
     }
 
@@ -77,7 +80,10 @@ where
         match self {
             Self::Sam(writer) => writer.write_alignment_record(header, record).await,
             Self::Bam(writer) => writer.write_alignment_record(header, record).await,
-            Self::Cram(writer) => writer.write_record(header, record).await,
+            Self::Cram(writer) => {
+                let record = cram::Record::try_from_alignment_record(header, record)?;
+                writer.write_record(header, record).await
+            }
         }
     }
 }
