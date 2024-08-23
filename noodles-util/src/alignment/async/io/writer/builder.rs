@@ -110,6 +110,7 @@ impl Builder {
         File::create(src)
             .await
             .map(|file| self.build_from_writer(file))?
+            .await
     }
 
     /// Builds an async alignment writer from a writer.
@@ -124,11 +125,15 @@ impl Builder {
     /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_util::alignment::r#async::io::writer::Builder;
     /// use tokio::io;
+    ///
     /// let reader = Builder::default().build_from_writer(io::sink()).await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub fn build_from_writer<W>(self, writer: W) -> io::Result<Writer<Box<dyn AsyncWrite + Unpin>>>
+    pub async fn build_from_writer<W>(
+        self,
+        writer: W,
+    ) -> io::Result<Writer<Box<dyn AsyncWrite + Unpin>>>
     where
         W: AsyncWrite + Unpin + 'static,
     {

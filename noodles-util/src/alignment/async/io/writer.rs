@@ -34,7 +34,7 @@ where
     /// use noodles_util::alignment::r#async::io::writer::Builder;
     /// use tokio::io::{self, AsyncWriteExt};
     ///
-    /// let mut writer = Builder::default().build_from_writer(io::sink());
+    /// let mut writer = Builder::default().build_from_writer(io::sink()).await?;
     ///
     /// let header = sam::Header::default();
     /// writer.write_header(&header).await?;
@@ -63,10 +63,11 @@ where
     /// use noodles_util::alignment::r#async::io::writer::Builder;
     /// use tokio::io::{self, AsyncWriteExt};
     ///
-    /// let mut writer = Builder::default().build_from_writer(io::sink());
+    /// let mut writer = Builder::default().build_from_writer(io::sink()).await?;
     ///
+    /// let header = sam::Header::default();
     /// let record = sam::Record::default();
-    /// writer.write_record(&record).await?;
+    /// writer.write_record(&header, &record).await?;
     /// # Ok(())
     /// # }
     /// ```
