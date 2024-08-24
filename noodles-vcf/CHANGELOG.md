@@ -8,7 +8,7 @@
 
 ### Changed
 
-  * vcf/header/file_format: Set defualt file format version for 4.5.
+  * vcf/header/file_format: Set default file format version for 4.5.
 
   * vcf/io/reader/record_buf: Remove pattern validations.
 
