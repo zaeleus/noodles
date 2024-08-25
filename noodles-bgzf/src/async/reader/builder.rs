@@ -21,13 +21,9 @@ impl Builder {
     ///
     /// ```
     /// use std::num::NonZeroUsize;
-    ///
     /// use noodles_bgzf as bgzf;
-    ///
-    /// let worker_count = NonZeroUsize::try_from(1)?;
     /// let builder = bgzf::r#async::reader::Builder::default()
-    ///     .set_worker_count(worker_count);
-    /// # Ok::<_, std::num::TryFromIntError>(())
+    ///     .set_worker_count(NonZeroUsize::MIN);
     /// ```
     pub fn set_worker_count(mut self, worker_count: NonZeroUsize) -> Self {
         self.worker_count = Some(worker_count);
@@ -48,9 +44,9 @@ impl Builder {
     where
         R: AsyncRead,
     {
-        let worker_count = self.worker_count.unwrap_or_else(|| {
-            thread::available_parallelism().unwrap_or_else(|_| NonZeroUsize::new(1).unwrap())
-        });
+        let worker_count = self
+            .worker_count
+            .unwrap_or_else(|| thread::available_parallelism().unwrap_or(NonZeroUsize::MIN));
 
         Reader {
             stream: Some(Inflater::new(reader).try_buffered(worker_count.get())),
