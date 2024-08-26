@@ -59,7 +59,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_fasta as fasta;
-    /// use noodles_util::alignment::{r#async::io::writer::Builder, io::Format};
+    /// use noodles_util::alignment::r#async::io::writer::Builder;
     /// let repository = fasta::Repository::default();
     /// let builder = Builder::default().set_reference_sequence_repository(repository);
     /// ```
