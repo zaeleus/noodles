@@ -4,7 +4,8 @@
 
 ### Added
 
-  * util/alignment: Add async reader (`alignment::r#async::io::Reader`)
+  * util/alignment: Add async reader and writer
+    (`alignment::r#async::io::Reader` and `alignment::r#async::io::Writer`)
     ([#286]).
 
 [#286]: https://github.com/zaeleus/noodles/issues/286
