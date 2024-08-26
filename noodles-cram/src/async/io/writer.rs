@@ -161,7 +161,6 @@ where
     /// # #[tokio::main]
     /// # async fn main() -> std::io::Result<()> {
     /// use noodles_cram as cram;
-    /// use noodles_fasta as fasta;
     /// use noodles_sam as sam;
     /// use tokio::io;
     ///
