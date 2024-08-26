@@ -7,7 +7,14 @@
   * cram/async/io/writer: Add alignment record writer
     (`Writer::write_alignment_record`) ([#293]).
 
+  * cram/async/io/writer: Add SAM header writer (`Writer::write_header`)
+    ([#294]).
+
+    This is a convenience method that writes the file definition and SAM
+    header.
+
 [#293]: https://github.com/zaeleus/noodles/issues/293
+[#294]: https://github.com/zaeleus/noodles/issues/294
 
 ## 0.67.0 - 2024-08-04
 

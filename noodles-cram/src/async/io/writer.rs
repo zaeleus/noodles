@@ -153,6 +153,32 @@ where
         write_header_container(&mut self.inner, &header).await
     }
 
+    /// Writes a SAM header.
+    ///
+    /// This writes the CRAM magic number, the file definition, and file header using the given SAM
+    /// header.
+    ///
+    /// ```
+    /// # #[tokio::main]
+    /// # async fn main() -> tokio::io::Result<()> {
+    /// use noodles_cram as cram;
+    /// use noodles_sam as sam;
+    /// use tokio::io;
+    ///
+    /// let mut writer = cram::r#async::io::Writer::new(io::sink());
+    ///
+    /// let header = sam::Header::default();
+    /// writer.write_header(&header).await?;
+    ///
+    /// writer.shutdown(&header).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn write_header(&mut self, header: &sam::Header) -> io::Result<()> {
+        self.write_file_definition().await?;
+        self.write_file_header(header).await
+    }
+
     /// Writes a CRAM record.
     ///
     /// # Examples

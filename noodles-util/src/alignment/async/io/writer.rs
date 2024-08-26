@@ -45,10 +45,7 @@ where
         match self {
             Self::Sam(writer) => writer.write_header(header).await,
             Self::Bam(writer) => writer.write_header(header).await,
-            Self::Cram(writer) => {
-                writer.write_file_definition().await?;
-                writer.write_file_header(header).await
-            }
+            Self::Cram(writer) => writer.write_header(header).await,
         }
     }
 
