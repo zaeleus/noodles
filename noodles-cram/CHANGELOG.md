@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * cram/async/io/writer: Add alignment record writer
+    (`Writer::write_alignment_record`) ([#293]).
+
+[#293]: https://github.com/zaeleus/noodles/issues/293
+
 ## 0.67.0 - 2024-08-04
 
 ### Added

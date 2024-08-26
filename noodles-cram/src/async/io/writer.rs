@@ -205,6 +205,42 @@ where
         }
     }
 
+    /// Writes an alignment record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[tokio::main]
+    /// # async fn main() -> tokio::io::Result<()> {
+    /// use noodles_cram as cram;
+    /// use noodles_sam as sam;
+    /// use tokio::io;
+    ///
+    /// let mut writer = cram::r#async::io::Writer::new(io::sink());
+    /// writer.write_file_definition().await?;
+    ///
+    /// let header = sam::Header::default();
+    /// writer.write_file_header(&header).await?;
+    ///
+    /// let record = sam::Record::default();
+    /// writer.write_alignment_record(&header, &record).await?;
+    ///
+    /// writer.shutdown(&header).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn write_alignment_record<R>(
+        &mut self,
+        header: &sam::Header,
+        record: &R,
+    ) -> io::Result<()>
+    where
+        R: sam::alignment::Record + ?Sized,
+    {
+        let record = Record::try_from_alignment_record(header, record)?;
+        self.write_record(header, record).await
+    }
+
     async fn flush(&mut self, header: &sam::Header) -> io::Result<()> {
         use self::data_container::write_data_container;
 
