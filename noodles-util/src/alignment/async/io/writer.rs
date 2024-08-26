@@ -102,11 +102,11 @@ where
     ///     .build_from_writer(io::sink()).await?;
     ///
     /// let header = sam::Header::default();
-    /// writer.finish(&header).await?;
+    /// writer.shutdown(&header).await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn finish(&mut self, header: &sam::Header) -> io::Result<()> {
+    pub async fn shutdown(&mut self, header: &sam::Header) -> io::Result<()> {
         match self {
             Self::Sam(_) => Ok(()),
             Self::Bam(writer) => writer.shutdown().await,

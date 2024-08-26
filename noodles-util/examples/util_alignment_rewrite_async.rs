@@ -42,7 +42,7 @@ async fn main() -> io::Result<()> {
         writer.write_record(&header, &record).await?;
     }
 
-    writer.finish(&header).await?;
+    writer.shutdown(&header).await?;
 
     Ok(())
 }
