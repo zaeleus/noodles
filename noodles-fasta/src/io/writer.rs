@@ -72,7 +72,7 @@ where
     /// let writer = fasta::io::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
-        Builder::default().build_with_writer(inner)
+        Builder::default().build_from_writer(inner)
     }
 
     /// Writes a FASTA record.

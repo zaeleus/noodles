@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * fasta/io/writer/builder: Rename `Builder::build_with_writer`
+    to `Builder::build_from_writer`.
+
+### Deprecated
+
+  * fasta/io/writer/builder: Deprecate `Builder::build_with_writer`.
+
+    Use `Builder::build_from_writer` instead.
+
 ## 0.42.0 - 2024-08-04
 
 ### Added
