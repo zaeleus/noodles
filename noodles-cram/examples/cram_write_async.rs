@@ -68,7 +68,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let repository = fasta::Repository::new(reference_sequences);
     let mut writer = cram::r#async::io::writer::Builder::default()
         .set_reference_sequence_repository(repository)
-        .build_with_writer(io::stdout());
+        .build_from_writer(io::stdout());
 
     writer.write_file_definition().await?;
     writer.write_file_header(&header).await?;

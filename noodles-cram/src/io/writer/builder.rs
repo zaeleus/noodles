@@ -104,7 +104,7 @@ impl Builder {
     where
         P: AsRef<Path>,
     {
-        File::create(dst).map(|file| self.build_with_writer(file))
+        File::create(dst).map(|file| self.build_from_writer(file))
     }
 
     /// Builds a CRAM writer from a path.
@@ -122,9 +122,9 @@ impl Builder {
     ///
     /// ```
     /// use noodles_cram::io::writer::Builder;
-    /// let writer = Builder::default().build_with_writer(Vec::new());
+    /// let writer = Builder::default().build_from_writer(Vec::new());
     /// ```
-    pub fn build_with_writer<W>(mut self, writer: W) -> Writer<W>
+    pub fn build_from_writer<W>(mut self, writer: W) -> Writer<W>
     where
         W: Write,
     {
@@ -139,6 +139,15 @@ impl Builder {
             data_container_builder: DataContainer::builder(0),
             record_counter: 0,
         }
+    }
+
+    /// Builds a CRAM writer from a writer.
+    #[deprecated(since = "0.68.0", note = "Use `Builder::build_from_writer` instead.")]
+    pub fn build_with_writer<W>(self, writer: W) -> Writer<W>
+    where
+        W: Write,
+    {
+        self.build_from_writer(writer)
     }
 }
 

@@ -73,7 +73,7 @@ impl Builder {
     {
         File::create(dst)
             .await
-            .map(|file| self.build_with_writer(file))
+            .map(|file| self.build_from_writer(file))
     }
 
     /// Builds an async CRAM writer from a path.
@@ -92,9 +92,9 @@ impl Builder {
     /// ```
     /// use noodles_cram as cram;
     /// use tokio::io;
-    /// let writer = cram::r#async::io::writer::Builder::default().build_with_writer(io::sink());
+    /// let writer = cram::r#async::io::writer::Builder::default().build_from_writer(io::sink());
     /// ```
-    pub fn build_with_writer<W>(mut self, writer: W) -> Writer<W>
+    pub fn build_from_writer<W>(mut self, writer: W) -> Writer<W>
     where
         W: AsyncWrite + Unpin,
     {
@@ -111,5 +111,14 @@ impl Builder {
             data_container_builder: DataContainer::builder(0),
             record_counter: 0,
         }
+    }
+
+    /// Builds an async CRAM writer from a writer.
+    #[deprecated(since = "0.68.0", note = "Use `Builder::build_from_writer` instead.")]
+    pub fn build_with_writer<W>(self, writer: W) -> Writer<W>
+    where
+        W: AsyncWrite + Unpin,
+    {
+        self.build_from_writer(writer)
     }
 }

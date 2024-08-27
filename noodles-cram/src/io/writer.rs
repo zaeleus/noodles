@@ -68,7 +68,7 @@ where
     /// let writer = cram::io::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
-        Builder::default().build_with_writer(inner)
+        Builder::default().build_from_writer(inner)
     }
 
     /// Returns a reference to the underlying writer.

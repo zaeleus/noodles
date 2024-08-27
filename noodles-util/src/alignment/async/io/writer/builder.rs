@@ -171,7 +171,7 @@ impl Builder {
                 let inner: Box<dyn AsyncWrite + Unpin> = Box::new(writer);
                 let inner = cram::r#async::io::writer::Builder::default()
                     .set_reference_sequence_repository(self.reference_sequence_repository)
-                    .build_with_writer(inner);
+                    .build_from_writer(inner);
                 Writer::Cram(inner)
             }
             (Format::Cram, Some(CompressionMethod::Bgzf)) => {

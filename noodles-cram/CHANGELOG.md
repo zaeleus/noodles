@@ -18,16 +18,19 @@
 
 ### Changed
 
-  * cram/io/writer/builder: Rename `Builder::build_with_path` to
-    `Builder::build_from_path` ([#295]).
+  * cram/io/writer/builder: Rename `Builder::build_with_path` and
+    `Builder::build_with_writer` to `Builder::build_from_path` and
+    `Builder::build_from_writer`, respectively ([#295]).
 
 [#295]: https://github.com/zaeleus/noodles/issues/295
 
 ### Deprecated
 
-  * cram/io/writer/builder: Deprecate `Builder::build_with_path`.
+  * cram/io/writer/builder: Deprecate `Builder::build_with_path` and
+    `Builder::build_with_writer`.
 
-    Use `Builder::build_from_path` instead.
+    Use `Builder::build_from_path` and `Builder::build_from_writer`,
+    respectively, instead.
 
 ## 0.67.0 - 2024-08-04
 

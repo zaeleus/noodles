@@ -42,7 +42,7 @@ where
     /// let writer = cram::r#async::io::Writer::new(io::sink());
     /// ```
     pub fn new(inner: W) -> Self {
-        Builder::default().build_with_writer(inner)
+        Builder::default().build_from_writer(inner)
     }
 
     /// Returns a reference to the underlying writer.

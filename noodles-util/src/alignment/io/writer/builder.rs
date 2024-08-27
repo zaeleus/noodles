@@ -172,7 +172,7 @@ impl Builder {
                 cram::io::writer::Builder::default()
                     .set_reference_sequence_repository(self.reference_sequence_repository)
                     .set_block_content_encoder_map(self.block_content_encoder_map)
-                    .build_with_writer(writer),
+                    .build_from_writer(writer),
             ),
             (Format::Cram, Some(CompressionMethod::Bgzf)) => {
                 return Err(io::Error::new(
