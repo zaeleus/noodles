@@ -30,7 +30,7 @@ impl Builder {
         self
     }
 
-    /// Builds an async BGZF reader with an async reader.
+    /// Builds an async BGZF reader from an async reader.
     ///
     /// # Examples
     ///
@@ -38,9 +38,9 @@ impl Builder {
     /// # use tokio::io;
     /// use noodles_bgzf as bgzf;
     /// let reader = bgzf::r#async::reader::Builder::default()
-    ///     .build_with_reader(io::empty());
+    ///     .build_from_reader(io::empty());
     /// ```
-    pub fn build_with_reader<R>(self, reader: R) -> Reader<R>
+    pub fn build_from_reader<R>(self, reader: R) -> Reader<R>
     where
         R: AsyncRead,
     {
@@ -54,5 +54,14 @@ impl Builder {
             position: 0,
             worker_count,
         }
+    }
+
+    /// Builds an async BGZF reader from an async reader.
+    #[deprecated(since = "0.33.0", note = "Use `Builder::build_from_reader` instead.")]
+    pub fn build_with_reader<R>(self, reader: R) -> Reader<R>
+    where
+        R: AsyncRead,
+    {
+        self.build_from_reader(reader)
     }
 }

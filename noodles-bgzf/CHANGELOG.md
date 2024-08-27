@@ -4,10 +4,17 @@
 
 ### Changed
 
+  * bgzf/reader/builder: Rename `Builder::build_with_reader` to
+    `Builder::build_from_reader`.
+
   * bgzf/writer/builder: Rename `Builder::build_with_writer` to
     `Builder::build_from_writer`.
 
 ### Deprecated
+
+  * bgzf/async/reader/builder: Deprecate `Builder::build_with_reader`.
+
+    Use `Builder::build_from_reader` instead.
 
   * bgzf/writer/builder: Deprecate `Builder::build_with_writer`.
 

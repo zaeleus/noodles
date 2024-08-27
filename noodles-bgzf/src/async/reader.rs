@@ -47,7 +47,7 @@ where
     /// let reader = bgzf::AsyncReader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
-        Builder::default().build_with_reader(inner)
+        Builder::default().build_from_reader(inner)
     }
 
     /// Returns a reference to the underlying reader.
