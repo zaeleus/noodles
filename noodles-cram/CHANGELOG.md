@@ -16,6 +16,19 @@
 [#293]: https://github.com/zaeleus/noodles/issues/293
 [#294]: https://github.com/zaeleus/noodles/issues/294
 
+### Changed
+
+  * cram/io/writer/builder: Rename `Builder::build_with_path` to
+    `Builder::build_from_path` ([#295]).
+
+[#295]: https://github.com/zaeleus/noodles/issues/295
+
+### Deprecated
+
+  * cram/io/writer/builder: Deprecate `Builder::build_with_path`.
+
+    Use `Builder::build_from_path` instead.
+
 ## 0.67.0 - 2024-08-04
 
 ### Added

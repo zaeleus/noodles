@@ -63,17 +63,26 @@ impl Builder {
     /// # #[tokio::main]
     /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_cram::r#async::io::writer::Builder;
-    /// let writer = Builder::default().build_with_path("out.cram").await?;
+    /// let writer = Builder::default().build_from_path("out.cram").await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn build_with_path<P>(self, dst: P) -> io::Result<Writer<File>>
+    pub async fn build_from_path<P>(self, dst: P) -> io::Result<Writer<File>>
     where
         P: AsRef<Path>,
     {
         File::create(dst)
             .await
             .map(|file| self.build_with_writer(file))
+    }
+
+    /// Builds an async CRAM writer from a path.
+    #[deprecated(since = "0.68.0", note = "Use `Builder::build_from_path` instead.")]
+    pub async fn build_with_path<P>(self, dst: P) -> io::Result<Writer<File>>
+    where
+        P: AsRef<Path>,
+    {
+        self.build_from_path(dst).await
     }
 
     /// Builds an async CRAM writer from a writer.

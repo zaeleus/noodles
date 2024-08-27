@@ -97,14 +97,23 @@ impl Builder {
     ///
     /// ```no_run
     /// use noodles_cram::io::writer::Builder;
-    /// let writer = Builder::default().build_with_path("out.cram")?;
+    /// let writer = Builder::default().build_from_path("out.cram")?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn build_with_path<P>(self, dst: P) -> io::Result<Writer<File>>
+    pub fn build_from_path<P>(self, dst: P) -> io::Result<Writer<File>>
     where
         P: AsRef<Path>,
     {
         File::create(dst).map(|file| self.build_with_writer(file))
+    }
+
+    /// Builds a CRAM writer from a path.
+    #[deprecated(since = "0.68.0", note = "Use `Builder::build_from_path` instead.")]
+    pub fn build_with_path<P>(self, dst: P) -> io::Result<Writer<File>>
+    where
+        P: AsRef<Path>,
+    {
+        self.build_from_path(dst)
     }
 
     /// Builds a CRAM writer from a writer.
