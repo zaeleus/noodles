@@ -33,9 +33,9 @@ impl Builder {
     /// ```
     /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let writer = bgzf::writer::Builder::default().build_with_writer(io::sink());
+    /// let writer = bgzf::writer::Builder::default().build_from_writer(io::sink());
     /// ```
-    pub fn build_with_writer<W>(self, writer: W) -> Writer<W>
+    pub fn build_from_writer<W>(self, writer: W) -> Writer<W>
     where
         W: Write,
     {
@@ -46,5 +46,14 @@ impl Builder {
             compression_buf: Vec::new(),
             compression_level: self.compression_level.into(),
         }
+    }
+
+    /// Builds a BGZF writer from a writer.
+    #[deprecated(since = "0.33.0", note = "Use `Builder::build_from_writer` instead.")]
+    pub fn build_with_writer<W>(self, writer: W) -> Writer<W>
+    where
+        W: Write,
+    {
+        self.build_from_writer(writer)
     }
 }

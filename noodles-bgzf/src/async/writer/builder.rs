@@ -53,7 +53,7 @@ impl Builder {
         self
     }
 
-    /// Builds an async BGZF writer.
+    /// Builds an async BGZF writer from a writer.
     ///
     /// # Examples
     ///
@@ -61,9 +61,9 @@ impl Builder {
     /// # use tokio::io;
     /// use noodles_bgzf as bgzf;
     /// let writer = bgzf::r#async::writer::Builder::default()
-    ///     .build_with_writer(io::sink());
+    ///     .build_from_writer(io::sink());
     /// ```
-    pub fn build_with_writer<W>(self, writer: W) -> Writer<W>
+    pub fn build_from_writer<W>(self, writer: W) -> Writer<W>
     where
         W: AsyncWrite,
     {
@@ -79,5 +79,14 @@ impl Builder {
             eof_buf: Bytes::from_static(BGZF_EOF),
             compression_level: compression_level.into(),
         }
+    }
+
+    /// Builds an async BGZF writer.
+    #[deprecated(since = "0.33.0", note = "Use `Builder::build_from_writer` instead.")]
+    pub fn build_with_writer<W>(self, writer: W) -> Writer<W>
+    where
+        W: AsyncWrite,
+    {
+        self.build_from_writer(writer)
     }
 }

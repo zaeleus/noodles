@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bgzf/writer/builder: Rename `Builder::build_with_writer` to
+    `Builder::build_from_writer`.
+
+### Deprecated
+
+  * bgzf/writer/builder: Deprecate `Builder::build_with_writer`.
+
+    Use `Builder::build_from_writer` instead.
+
 ## 0.32.0 - 2024-07-14
 
 ### Added
