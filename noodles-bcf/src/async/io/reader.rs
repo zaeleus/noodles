@@ -113,7 +113,7 @@ where
         read_header(&mut self.inner).await
     }
 
-    /// Reads a single record without decoding (most of) its feilds.
+    /// Reads a single record without decoding (most of) its fields.
     ///
     /// The stream is expected to be directly after the header or at the start of another record.
     ///
