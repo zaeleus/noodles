@@ -5,7 +5,7 @@ mod builder;
 use noodles_bam as bam;
 use noodles_cram as cram;
 use noodles_sam as sam;
-use tokio::io::{self, AsyncWrite};
+use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 pub use self::builder::Builder;
 
@@ -102,7 +102,7 @@ where
     /// ```
     pub async fn shutdown(&mut self, header: &sam::Header) -> io::Result<()> {
         match self {
-            Self::Sam(_) => Ok(()),
+            Self::Sam(writer) => writer.get_mut().shutdown().await,
             Self::Bam(writer) => writer.shutdown().await,
             Self::Cram(writer) => writer.shutdown(header).await,
         }
