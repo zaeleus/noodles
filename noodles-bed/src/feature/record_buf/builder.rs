@@ -45,14 +45,14 @@ impl Builder<3> {
     }
 
     /// Sets the feature start position.
-    pub fn set_feature_start(mut self, start_position: Position) -> Self {
-        self.feature_start = Some(start_position);
+    pub fn set_feature_start(mut self, feature_start: Position) -> Self {
+        self.feature_start = Some(feature_start);
         self
     }
 
     /// Sets the feature end position.
-    pub fn set_feature_end(mut self, end_position: Position) -> Self {
-        self.feature_end = Some(end_position);
+    pub fn set_feature_end(mut self, feature_end: Position) -> Self {
+        self.feature_end = Some(feature_end);
         self
     }
 
@@ -74,14 +74,14 @@ impl Builder<4> {
     }
 
     /// Sets the feature start position.
-    pub fn set_feature_start(mut self, start_position: Position) -> Self {
-        self.feature_start = Some(start_position);
+    pub fn set_feature_start(mut self, feature_start: Position) -> Self {
+        self.feature_start = Some(feature_start);
         self
     }
 
     /// Sets the feature end position.
-    pub fn set_feature_end(mut self, end_position: Position) -> Self {
-        self.feature_end = Some(end_position);
+    pub fn set_feature_end(mut self, feature_end: Position) -> Self {
+        self.feature_end = Some(feature_end);
         self
     }
 
@@ -112,14 +112,14 @@ impl Builder<5> {
     }
 
     /// Sets the feature start position.
-    pub fn set_feature_start(mut self, start_position: Position) -> Self {
-        self.feature_start = Some(start_position);
+    pub fn set_feature_start(mut self, feature_start: Position) -> Self {
+        self.feature_start = Some(feature_start);
         self
     }
 
     /// Sets the feature end position.
-    pub fn set_feature_end(mut self, end_position: Position) -> Self {
-        self.feature_end = Some(end_position);
+    pub fn set_feature_end(mut self, feature_end: Position) -> Self {
+        self.feature_end = Some(feature_end);
         self
     }
 
@@ -156,14 +156,14 @@ impl Builder<6> {
     }
 
     /// Sets the feature start position.
-    pub fn set_feature_start(mut self, start_position: Position) -> Self {
-        self.feature_start = Some(start_position);
+    pub fn set_feature_start(mut self, feature_start: Position) -> Self {
+        self.feature_start = Some(feature_start);
         self
     }
 
     /// Sets the feature end position.
-    pub fn set_feature_end(mut self, end_position: Position) -> Self {
-        self.feature_end = Some(end_position);
+    pub fn set_feature_end(mut self, feature_end: Position) -> Self {
+        self.feature_end = Some(feature_end);
         self
     }
 
