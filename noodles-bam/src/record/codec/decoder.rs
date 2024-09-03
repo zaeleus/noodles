@@ -1,5 +1,6 @@
 //! BAM record decoder.
 
+mod bin;
 pub(crate) mod cigar;
 pub mod data;
 mod flags;
@@ -16,14 +17,14 @@ pub(crate) use self::{
     reference_sequence_id::get_reference_sequence_id, sequence::get_sequence,
 };
 
-use std::{error, fmt, mem};
+use std::{error, fmt};
 
 use bytes::Buf;
 use noodles_sam::{self as sam, alignment::RecordBuf};
 
 use self::{
-    flags::get_flags, mapping_quality::get_mapping_quality, name::get_name, position::get_position,
-    template_length::get_template_length,
+    bin::discard_bin, flags::get_flags, mapping_quality::get_mapping_quality, name::get_name,
+    position::get_position, template_length::get_template_length,
 };
 
 /// An error when a raw BAM record fails to parse.
@@ -35,6 +36,8 @@ pub enum DecodeError {
     InvalidAlignmentStart(position::DecodeError),
     /// The mapping quality is invalid.
     InvalidMappingQuality(mapping_quality::DecodeError),
+    /// The bin is invalid.
+    InvalidBin(bin::DecodeError),
     /// The flags are invalid.
     InvalidFlags(flags::DecodeError),
     /// The mate reference sequence ID is invalid.
@@ -61,6 +64,7 @@ impl error::Error for DecodeError {
             Self::InvalidReferenceSequenceId(e) => Some(e),
             Self::InvalidAlignmentStart(e) => Some(e),
             Self::InvalidMappingQuality(e) => Some(e),
+            Self::InvalidBin(e) => Some(e),
             Self::InvalidFlags(e) => Some(e),
             Self::InvalidMateReferenceSequenceId(e) => Some(e),
             Self::InvalidMateAlignmentStart(e) => Some(e),
@@ -80,6 +84,7 @@ impl fmt::Display for DecodeError {
             Self::InvalidReferenceSequenceId(_) => write!(f, "invalid reference sequence ID"),
             Self::InvalidAlignmentStart(_) => write!(f, "invalid alignment start"),
             Self::InvalidMappingQuality(_) => write!(f, "invalid mapping quality"),
+            Self::InvalidBin(_) => write!(f, "invalid bin"),
             Self::InvalidFlags(_) => write!(f, "invalid flags"),
             Self::InvalidMateReferenceSequenceId(_) => {
                 write!(f, "invalid mate reference sequence ID")
@@ -116,8 +121,7 @@ where
     *record.mapping_quality_mut() =
         get_mapping_quality(src).map_err(DecodeError::InvalidMappingQuality)?;
 
-    // Discard bin.
-    src.advance(mem::size_of::<u16>());
+    discard_bin(src).map_err(DecodeError::InvalidBin)?;
 
     let n_cigar_op = cigar::get_op_count(src).map_err(DecodeError::InvalidCigar)?;
 

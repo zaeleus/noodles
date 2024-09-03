@@ -7,6 +7,12 @@
   * bam/io/writer/builder: Add build from writer
     (`Builder::build_from_writer`).
 
+### Changed
+
+  * bam/record/codec/decoder: Remove panic when reading bin on EOF.
+
+    This now returns a `DecodeError` if the input reaches EOF.
+
 ## 0.66.0 - 2024-08-04
 
 ### Added
