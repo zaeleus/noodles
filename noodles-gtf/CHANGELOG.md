@@ -8,6 +8,15 @@
 
 [#291]: https://github.com/zaeleus/noodles/issues/291
 
+### Fixed
+
+  * gtf/record/attributes: Read string values as text between double quotes
+    ([#299]).
+
+    This allows the entry delimiter (`;`) to be used in string values.
+
+[#299]: https://github.com/zaeleus/noodles/issues/299
+
 ## 0.30.0 - 2024-07-14
 
 ### Changed

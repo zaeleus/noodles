@@ -3,7 +3,8 @@
 use std::{error, fmt, str::FromStr};
 
 const SEPARATOR: char = ' ';
-pub(super) const TERMINATOR: char = ';';
+const DOUBLE_QUOTES: char = '"';
+pub(super) const DELIMITER: char = ';';
 
 /// A GTF record attribute entry.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -88,27 +89,70 @@ impl fmt::Display for ParseError {
 impl FromStr for Entry {
     type Err = ParseError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(mut s: &str) -> Result<Self, Self::Err> {
         if s.is_empty() {
             Err(ParseError::Empty)
         } else {
-            parse_entry(s)
+            parse_entry(&mut s)
         }
     }
 }
 
-fn parse_entry(s: &str) -> Result<Entry, ParseError> {
-    match s.split_once(SEPARATOR) {
-        Some((k, v)) => {
-            let value = parse_value(v);
-            Ok(Entry::new(k, value))
-        }
-        None => Err(ParseError::Invalid),
+pub(super) fn parse_entry(s: &mut &str) -> Result<Entry, ParseError> {
+    let key = parse_key(s)?;
+    let value = parse_value(s)?;
+    discard_delimiter(s);
+    Ok(Entry::new(key, value))
+}
+
+fn parse_key<'a>(s: &mut &'a str) -> Result<&'a str, ParseError> {
+    let Some(i) = s.find(SEPARATOR) else {
+        return Err(ParseError::Invalid);
+    };
+
+    let (key, rest) = s.split_at(i);
+    *s = &rest[1..];
+
+    Ok(key)
+}
+
+fn parse_value<'a>(s: &mut &'a str) -> Result<&'a str, ParseError> {
+    if let Some(rest) = s.strip_prefix(DOUBLE_QUOTES) {
+        *s = rest;
+        parse_string(s)
+    } else {
+        parse_raw_value(s)
     }
 }
 
-fn parse_value(s: &str) -> String {
-    s.trim_matches('"').into()
+fn parse_string<'a>(s: &mut &'a str) -> Result<&'a str, ParseError> {
+    if let Some(i) = s.find(DOUBLE_QUOTES) {
+        let (t, rest) = s.split_at(i);
+        *s = &rest[1..];
+        Ok(t)
+    } else {
+        Err(ParseError::Invalid)
+    }
+}
+
+fn parse_raw_value<'a>(s: &mut &'a str) -> Result<&'a str, ParseError> {
+    if let Some(i) = s.find(DELIMITER) {
+        let (t, rest) = s.split_at(i);
+        *s = rest;
+        Ok(t)
+    } else {
+        Ok(s)
+    }
+}
+
+fn discard_delimiter(s: &mut &str) {
+    *s = s.trim_start();
+
+    if let Some(rest) = s.strip_prefix(DELIMITER) {
+        *s = rest;
+    }
+
+    *s = s.trim_start();
 }
 
 #[cfg(test)]
@@ -126,6 +170,10 @@ mod tests {
         assert_eq!(
             r#"gene_id "g0""#.parse::<Entry>(),
             Ok(Entry::new("gene_id", "g0"))
+        );
+        assert_eq!(
+            r#"gene_ids "g0;g1""#.parse::<Entry>(),
+            Ok(Entry::new("gene_ids", "g0;g1"))
         );
         assert_eq!(
             r#"gene_id """#.parse::<Entry>(),

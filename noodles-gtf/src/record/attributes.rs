@@ -36,7 +36,7 @@ impl fmt::Display for Attributes {
         for (i, entry) in self.0.iter().enumerate() {
             write!(f, "{entry}")?;
 
-            f.write_char(entry::TERMINATOR)?;
+            f.write_char(entry::DELIMITER)?;
 
             if i < self.0.len() - 1 {
                 f.write_char(DELIMITER)?;
@@ -80,17 +80,19 @@ impl fmt::Display for ParseError {
 impl FromStr for Attributes {
     type Err = ParseError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(mut s: &str) -> Result<Self, Self::Err> {
+        use self::entry::parse_entry;
+
         if s.is_empty() {
             return Err(ParseError::Empty);
         }
 
-        let s = s.strip_suffix(entry::TERMINATOR).unwrap_or(s);
+        let mut entries = Vec::new();
 
-        let entries = s
-            .split(entry::TERMINATOR)
-            .map(|t| t.trim().parse().map_err(ParseError::InvalidEntry))
-            .collect::<Result<_, _>>()?;
+        while !s.is_empty() {
+            let entry = parse_entry(&mut s).map_err(ParseError::InvalidEntry)?;
+            entries.push(entry);
+        }
 
         Ok(Self(entries))
     }
