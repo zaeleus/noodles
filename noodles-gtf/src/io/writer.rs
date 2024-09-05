@@ -7,22 +7,7 @@ pub struct Writer<W> {
     inner: W,
 }
 
-impl<W> Writer<W>
-where
-    W: Write,
-{
-    /// Creates a GTF writer.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_gtf as gtf;
-    /// let writer = gtf::io::Writer::new(Vec::new());
-    /// ```
-    pub fn new(inner: W) -> Self {
-        Self { inner }
-    }
-
+impl<W> Writer<W> {
     /// Returns a reference to the underlying writer.
     ///
     /// # Examples
@@ -63,6 +48,23 @@ where
     /// ```
     pub fn into_inner(self) -> W {
         self.inner
+    }
+}
+
+impl<W> Writer<W>
+where
+    W: Write,
+{
+    /// Creates a GTF writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gtf as gtf;
+    /// let writer = gtf::io::Writer::new(Vec::new());
+    /// ```
+    pub fn new(inner: W) -> Self {
+        Self { inner }
     }
 
     /// Writes a [`Line`].
