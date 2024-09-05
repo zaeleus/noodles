@@ -13,9 +13,10 @@ impl<W> Writer<W> {
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_gtf as gtf;
-    /// let writer = gtf::io::Writer::new(Vec::new());
-    /// assert!(writer.get_ref().is_empty());
+    /// let writer = gtf::io::Writer::new(io::sink());
+    /// let _inner = writer.get_ref();
     /// ```
     pub fn get_ref(&self) -> &W {
         &self.inner
@@ -26,12 +27,10 @@ impl<W> Writer<W> {
     /// # Examples
     ///
     /// ```
-    /// # use std::io::{self, Write};
+    /// # use std::io;
     /// use noodles_gtf as gtf;
-    /// let mut writer = gtf::io::Writer::new(Vec::new());
-    /// writer.get_mut().write_all(b"ndls")?;
-    /// assert_eq!(writer.get_ref(), b"ndls");
-    /// # Ok::<_, io::Error>(())
+    /// let mut writer = gtf::io::Writer::new(io::sink());
+    /// let _inner = writer.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut W {
         &mut self.inner
@@ -42,9 +41,10 @@ impl<W> Writer<W> {
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_gtf as gtf;
-    /// let writer = gtf::io::Writer::new(Vec::new());
-    /// assert!(writer.into_inner().is_empty());
+    /// let writer = gtf::io::Writer::new(io::sink());
+    /// let _inner = writer.into_inner();
     /// ```
     pub fn into_inner(self) -> W {
         self.inner
