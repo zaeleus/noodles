@@ -33,7 +33,7 @@ impl<'a> crate::variant::record::samples::series::value::Genotype for Genotype<'
 fn parse_first_allele(src: &mut &str) -> io::Result<(Option<usize>, Phasing)> {
     let mut buf = next_allele(src);
 
-    let phasing = if buf.starts_with(|c| matches!(c, '|' | '/')) {
+    let phasing = if buf.starts_with(['|', '/']) {
         let p = parse_phasing(&buf[..1])?;
         buf = &buf[1..];
         p
