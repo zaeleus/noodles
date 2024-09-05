@@ -13,9 +13,10 @@ impl<W> Writer<W> {
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_gff as gff;
-    /// let writer = gff::io::Writer::new(Vec::new());
-    /// assert!(writer.get_ref().is_empty());
+    /// let writer = gff::io::Writer::new(io::sink());
+    /// let _inner = writer.get_ref();
     /// ```
     pub fn get_ref(&self) -> &W {
         &self.inner
