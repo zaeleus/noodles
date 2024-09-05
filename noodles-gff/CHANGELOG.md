@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * gff/io/reader: Add missing common methods to access the underlying I/O:
+    `Reader::get_mut`, and `Reader::into_inner`.
+
 ## 0.36.0 - 2024-09-04
 
 ### Changed

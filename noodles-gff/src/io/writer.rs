@@ -21,6 +21,34 @@ impl<W> Writer<W> {
     pub fn get_ref(&self) -> &W {
         &self.inner
     }
+
+    /// Returns a mutable reference to the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_gff as gff;
+    /// let mut writer = gff::io::Writer::new(io::sink());
+    /// let _inner = writer.get_mut();
+    /// ```
+    pub fn get_mut(&mut self) -> &mut W {
+        &mut self.inner
+    }
+
+    /// Returns the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_gff as gff;
+    /// let writer = gff::io::Writer::new(io::sink());
+    /// let _inner = writer.into_inner();
+    /// ```
+    pub fn into_inner(self) -> W {
+        self.inner
+    }
 }
 
 impl<W> Writer<W>
