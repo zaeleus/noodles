@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+  * gtf/io/reader: Add common methods to access the underlying I/O:
+    `Reader::get_ref`, `Reader::get_mut`, and `Reader::into_inner`.
+
 ### Changed
 
   * gtf: Move reader (`Reader`) and writer (`Writer`) to `io` module.

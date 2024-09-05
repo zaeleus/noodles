@@ -14,6 +14,50 @@ pub struct Reader<R> {
     inner: R,
 }
 
+impl<R> Reader<R> {
+    /// Returns a reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_gtf as gtf;
+    /// let reader = gtf::io::Reader::new(io::empty());
+    /// let _ = reader.get_ref();
+    /// ```
+    pub fn get_ref(&self) -> &R {
+        &self.inner
+    }
+
+    /// Returns a mutable reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_gtf as gtf;
+    /// let mut reader = gtf::io::Reader::new(io::empty());
+    /// let _ = reader.get_mut();
+    /// ```
+    pub fn get_mut(&mut self) -> &mut R {
+        &mut self.inner
+    }
+
+    /// Unwraps and returns the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_gtf as gtf;
+    /// let reader = gtf::io::Reader::new(io::empty());
+    /// let _ = reader.into_inner();
+    /// ```
+    pub fn into_inner(self) -> R {
+        self.inner
+    }
+}
+
 impl<R> Reader<R>
 where
     R: BufRead,
