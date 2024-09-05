@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * gtf: Move reader (`Reader`) to `io` module.
+
+### Deprecated
+
+  * gtf: Deprecate `gtf::Reader`.
+
+    Use `gtf::io::Reader` instead.
+
 ## 0.31.0 - 2024-09-04
 
 ### Changed

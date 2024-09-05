@@ -7,7 +7,7 @@ use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::{self as csi, BinningIndex};
 
-use super::{Line, Record};
+use crate::{Line, Record};
 
 /// A GTF reader.
 pub struct Reader<R> {
@@ -25,7 +25,7 @@ where
     /// ```
     /// use noodles_gtf as gtf;
     /// let data = [];
-    /// let reader = gtf::Reader::new(&data[..]);
+    /// let reader = gtf::io::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
@@ -40,7 +40,7 @@ where
     /// use noodles_gtf as gtf;
     ///
     /// let data = b"sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"ndls0\"; transcript_id \"ndls0\";";
-    /// let mut reader = gtf::Reader::new(&data[..]);
+    /// let mut reader = gtf::io::Reader::new(&data[..]);
     ///
     /// let mut buf = String::new();
     /// reader.read_line(&mut buf)?;
@@ -66,7 +66,7 @@ where
     /// let data = b"##format: gtf
     /// sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"g0\"; transcript_id \"t0\";
     /// ";
-    /// let mut reader = gtf::Reader::new(&data[..]);
+    /// let mut reader = gtf::io::Reader::new(&data[..]);
     ///
     /// let mut lines = reader.lines();
     ///
@@ -108,7 +108,7 @@ where
     /// let data = b"##format: gtf
     /// sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"g0\"; transcript_id \"t0\";
     /// ";
-    /// let mut reader = gtf::Reader::new(&data[..]);
+    /// let mut reader = gtf::io::Reader::new(&data[..]);
     ///
     /// let mut records = reader.records();
     ///
