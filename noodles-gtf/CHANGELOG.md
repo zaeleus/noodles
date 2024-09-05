@@ -4,13 +4,13 @@
 
 ### Changed
 
-  * gtf: Move reader (`Reader`) to `io` module.
+  * gtf: Move reader (`Reader`) and writer (`Writer`) to `io` module.
 
 ### Deprecated
 
-  * gtf: Deprecate `gtf::Reader`.
+  * gtf: Deprecate `gtf::Reader` and `gtf::Writer`.
 
-    Use `gtf::io::Reader` instead.
+    Use `gtf::io::Reader` and `gtf::io::Writer`, respectively, instead.
 
 ## 0.31.0 - 2024-09-04
 

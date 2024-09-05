@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use super::{Line, Record};
+use crate::{Line, Record};
 
 /// A GTF writer.
 pub struct Writer<W> {
@@ -17,7 +17,7 @@ where
     ///
     /// ```
     /// use noodles_gtf as gtf;
-    /// let writer = gtf::Writer::new(Vec::new());
+    /// let writer = gtf::io::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
         Self { inner }
@@ -29,7 +29,7 @@ where
     ///
     /// ```
     /// use noodles_gtf as gtf;
-    /// let writer = gtf::Writer::new(Vec::new());
+    /// let writer = gtf::io::Writer::new(Vec::new());
     /// assert!(writer.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &W {
@@ -43,7 +43,7 @@ where
     /// ```
     /// # use std::io::{self, Write};
     /// use noodles_gtf as gtf;
-    /// let mut writer = gtf::Writer::new(Vec::new());
+    /// let mut writer = gtf::io::Writer::new(Vec::new());
     /// writer.get_mut().write_all(b"ndls")?;
     /// assert_eq!(writer.get_ref(), b"ndls");
     /// # Ok::<_, io::Error>(())
@@ -58,7 +58,7 @@ where
     ///
     /// ```
     /// use noodles_gtf as gtf;
-    /// let writer = gtf::Writer::new(Vec::new());
+    /// let writer = gtf::io::Writer::new(Vec::new());
     /// assert!(writer.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> W {
@@ -74,7 +74,7 @@ where
     /// use noodles_gtf as gtf;
     /// use gtf::line::Line;
     ///
-    /// let mut writer = gtf::Writer::new(Vec::new());
+    /// let mut writer = gtf::io::Writer::new(Vec::new());
     ///
     /// let version = Line::Comment(String::from("#format: gtf"));
     /// writer.write_line(&version)?;
@@ -104,7 +104,7 @@ where
     /// # use std::io;
     /// use noodles_gtf as gtf;
     ///
-    /// let mut writer = gtf::Writer::new(Vec::new());
+    /// let mut writer = gtf::io::Writer::new(Vec::new());
     ///
     /// let record = gtf::Record::default();
     /// writer.write_record(&record)?;
