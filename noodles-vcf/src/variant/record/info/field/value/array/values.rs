@@ -1,4 +1,4 @@
-use std::{borrow::Cow, io};
+use std::{borrow::Cow, io, iter};
 
 use crate::io::reader::record_buf::value::percent_decode;
 
@@ -21,15 +21,19 @@ impl<'a> Values<'a, i32> for &'a str {
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<i32>>> + '_> {
-        Box::new(self.split(DELIMITER).map(|s| {
-            match s {
-                MISSING => Ok(None),
-                _ => s
-                    .parse()
-                    .map(Some)
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-            }
-        }))
+        if self.is_empty() {
+            Box::new(iter::empty())
+        } else {
+            Box::new(self.split(DELIMITER).map(|s| {
+                match s {
+                    MISSING => Ok(None),
+                    _ => s
+                        .parse()
+                        .map(Some)
+                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+                }
+            }))
+        }
     }
 }
 
@@ -39,15 +43,19 @@ impl<'a> Values<'a, f32> for &'a str {
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<f32>>> + '_> {
-        Box::new(self.split(DELIMITER).map(|s| {
-            match s {
-                MISSING => Ok(None),
-                _ => s
-                    .parse()
-                    .map(Some)
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-            }
-        }))
+        if self.is_empty() {
+            Box::new(iter::empty())
+        } else {
+            Box::new(self.split(DELIMITER).map(|s| {
+                match s {
+                    MISSING => Ok(None),
+                    _ => s
+                        .parse()
+                        .map(Some)
+                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+                }
+            }))
+        }
     }
 }
 
@@ -59,15 +67,19 @@ impl<'a> Values<'a, char> for &'a str {
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<char>>> + '_> {
         const MISSING: char = '.';
 
-        Box::new(
-            self.split(DELIMITER)
-                .flat_map(|t| t.chars())
-                .map(|c| match c {
-                    MISSING => None,
-                    _ => Some(c),
-                })
-                .map(Ok),
-        )
+        if self.is_empty() {
+            Box::new(iter::empty())
+        } else {
+            Box::new(
+                self.split(DELIMITER)
+                    .flat_map(|t| t.chars())
+                    .map(|c| match c {
+                        MISSING => None,
+                        _ => Some(c),
+                    })
+                    .map(Ok),
+            )
+        }
     }
 }
 
@@ -77,14 +89,18 @@ impl<'a> Values<'a, Cow<'a, str>> for &'a str {
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<Cow<'a, str>>>> + '_> {
-        Box::new(self.split(DELIMITER).map(|s| {
-            match s {
-                MISSING => Ok(None),
-                _ => percent_decode(s)
-                    .map(Some)
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-            }
-        }))
+        if self.is_empty() {
+            Box::new(iter::empty())
+        } else {
+            Box::new(self.split(DELIMITER).map(|s| {
+                match s {
+                    MISSING => Ok(None),
+                    _ => percent_decode(s)
+                        .map(Some)
+                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+                }
+            }))
+        }
     }
 }
 
@@ -108,6 +124,9 @@ mod tests {
         let src = "";
         let values: Box<dyn Values<'_, Cow<'_, str>>> = Box::new(src);
         assert_eq!(values.len(), 0);
+
+        let mut iter = values.iter();
+        assert!(iter.next().transpose()?.is_none());
 
         let src = "a,b%3Bc";
         let values: Box<dyn Values<'_, Cow<'_, str>>> = Box::new(src);
