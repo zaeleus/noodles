@@ -2,7 +2,7 @@
 
 mod array;
 
-use std::str;
+use std::{borrow::Cow, str};
 
 pub use self::array::Array;
 
@@ -84,7 +84,7 @@ impl<'a> From<&'a Value> for crate::variant::record::info::field::Value<'a> {
             Value::Float(n) => Self::Float(*n),
             Value::Flag => Self::Flag,
             Value::Character(c) => Self::Character(*c),
-            Value::String(s) => Self::String(s.as_ref()),
+            Value::String(s) => Self::String(Cow::from(s.as_str())),
             Value::Array(array) => Self::Array(array.into()),
         }
     }

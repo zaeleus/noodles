@@ -1,4 +1,4 @@
-use std::{io, iter};
+use std::{borrow::Cow, io, iter};
 
 use noodles_vcf::{
     self as vcf,
@@ -154,7 +154,7 @@ fn read_character_array_value<'a>(src: &mut &'a [u8]) -> io::Result<Option<Value
 fn read_string_value<'a>(src: &mut &'a [u8]) -> io::Result<Option<Value<'a>>> {
     match read_typed_value(src)? {
         None | Some(TypedValue::String(None)) => Ok(None),
-        Some(TypedValue::String(Some(s))) => Ok(Some(Value::String(s))),
+        Some(TypedValue::String(Some(s))) => Ok(Some(Value::String(Cow::from(s)))),
         v => Err(type_mismatch_error(v, Type::String)),
     }
 }

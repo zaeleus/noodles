@@ -24,7 +24,7 @@ where
         Some(field::Value::Float(n)) => write_float_value(writer, n),
         Some(field::Value::Flag) => write_flag_value(writer),
         Some(field::Value::Character(c)) => write_character_value(writer, c),
-        Some(field::Value::String(s)) => write_string_value(writer, s),
+        Some(field::Value::String(s)) => write_string_value(writer, &s),
         Some(field::Value::Array(field::value::Array::Integer(values))) => {
             write_integer_array_value(writer, values)
         }

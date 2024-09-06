@@ -59,7 +59,11 @@ fn parse_character_value(src: &str) -> io::Result<Value<'_>> {
 }
 
 fn parse_string_value(src: &str) -> io::Result<Value<'_>> {
-    Ok(Value::String(src))
+    use crate::io::reader::record_buf::value::percent_decode;
+
+    percent_decode(src)
+        .map(Value::String)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 fn parse_integer_array_value(src: &str) -> io::Result<Value<'_>> {
@@ -76,4 +80,24 @@ fn parse_character_array_value(src: &str) -> io::Result<Value<'_>> {
 
 fn parse_string_array_value(src: &str) -> io::Result<Value<'_>> {
     Ok(Value::Array(Array::String(Box::new(src))))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_string_value() -> io::Result<()> {
+        assert!(matches!(
+            parse_string_value("")?,
+            Value::String(s) if s == ""
+        ));
+
+        assert!(matches!(
+            parse_string_value("a%3Bb")?,
+            Value::String(s) if s == "a;b"
+        ));
+
+        Ok(())
+    }
 }

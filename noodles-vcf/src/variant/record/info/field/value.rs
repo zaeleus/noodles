@@ -2,7 +2,7 @@
 
 pub mod array;
 
-use std::io;
+use std::{borrow::Cow, io};
 
 pub use self::array::Array;
 
@@ -18,7 +18,7 @@ pub enum Value<'a> {
     /// A character.
     Character(char),
     /// A string.
-    String(&'a str),
+    String(Cow<'a, str>),
     /// An array.
     Array(Array<'a>),
 }
