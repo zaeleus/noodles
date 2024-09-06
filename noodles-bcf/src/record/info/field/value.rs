@@ -186,6 +186,8 @@ fn type_mismatch_error(value: Option<TypedValue>, expected: Type) -> io::Error {
 
 #[cfg(test)]
 mod tests {
+    use std::borrow::Cow;
+
     use super::*;
 
     #[test]
@@ -392,6 +394,9 @@ mod tests {
         fn t(mut src: &[u8], expected: &[Option<&str>]) {
             match read_value(&mut src, Number::Count(2), Type::String) {
                 Ok(Some(Value::Array(Array::String(values)))) => {
+                    let expected: Vec<_> =
+                        expected.iter().map(|value| value.map(Cow::from)).collect();
+
                     assert!(matches!(
                         values.iter().collect::<io::Result<Vec<_>>>(),
                         Ok(vs) if vs == expected

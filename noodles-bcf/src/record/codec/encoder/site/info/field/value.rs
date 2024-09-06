@@ -1,4 +1,5 @@
 use std::{
+    borrow::Cow,
     cmp,
     io::{self, Write},
 };
@@ -273,7 +274,7 @@ where
 
 fn write_string_array_value<W>(
     writer: &mut W,
-    values: Box<dyn Values<'_, &str> + '_>,
+    values: Box<dyn Values<'_, Cow<'_, str>> + '_>,
 ) -> io::Result<()>
 where
     W: Write,
@@ -286,7 +287,7 @@ where
         }
 
         if let Some(t) = result? {
-            s.push_str(t);
+            s.push_str(&t);
         } else {
             s.push(MISSING_VALUE);
         }

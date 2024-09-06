@@ -9,7 +9,7 @@ mod quality_score;
 mod reference_bases;
 mod reference_sequence_name;
 mod samples;
-mod value;
+pub(crate) mod value;
 
 use std::{error, fmt};
 

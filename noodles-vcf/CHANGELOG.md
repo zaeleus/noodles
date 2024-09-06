@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Changed
+
+  * vcf/variant/record/info/field/value/array/values: Percent-decode string
+    values ([#300]).
+
+    This changes the values iterator item from `&str` to `Cow<'_, str>`.
+
+[#300]: https://github.com/zaeleus/noodles/issues/300
+
 ### Fixed
 
   * vcf/variant/record/info/field/value/array/values: Fix counting number of

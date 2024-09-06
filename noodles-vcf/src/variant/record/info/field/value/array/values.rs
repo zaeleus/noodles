@@ -1,4 +1,6 @@
-use std::io;
+use std::{borrow::Cow, io};
+
+use crate::io::reader::record_buf::value::percent_decode;
 
 /// Variant record info field array value values.
 #[allow(clippy::len_without_is_empty)]
@@ -69,20 +71,20 @@ impl<'a> Values<'a, char> for &'a str {
     }
 }
 
-impl<'a> Values<'a, &'a str> for &'a str {
+impl<'a> Values<'a, Cow<'a, str>> for &'a str {
     fn len(&self) -> usize {
         count(self)
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<&'a str>>> + '_> {
-        Box::new(
-            self.split(DELIMITER)
-                .map(|s| match s {
-                    MISSING => None,
-                    _ => Some(s),
-                })
-                .map(Ok),
-        )
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<Cow<'a, str>>>> + '_> {
+        Box::new(self.split(DELIMITER).map(|s| {
+            match s {
+                MISSING => Ok(None),
+                _ => percent_decode(s)
+                    .map(Some)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+            }
+        }))
     }
 }
 
@@ -102,13 +104,20 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_string_values() {
+    fn test_string_values() -> io::Result<()> {
         let src = "";
-        let values: Box<dyn Values<'_, &'_ str>> = Box::new(src);
+        let values: Box<dyn Values<'_, Cow<'_, str>>> = Box::new(src);
         assert_eq!(values.len(), 0);
 
-        let src = "a,b";
-        let values: Box<dyn Values<'_, &'_ str>> = Box::new(src);
+        let src = "a,b%3Bc";
+        let values: Box<dyn Values<'_, Cow<'_, str>>> = Box::new(src);
         assert_eq!(values.len(), 2);
+
+        let mut iter = values.iter();
+        assert_eq!(iter.next().transpose()?, Some(Some(Cow::from("a"))));
+        assert_eq!(iter.next().transpose()?, Some(Some(Cow::from("b;c"))));
+        assert!(iter.next().transpose()?.is_none());
+
+        Ok(())
     }
 }

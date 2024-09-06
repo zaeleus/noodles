@@ -1,4 +1,4 @@
-use std::io;
+use std::{borrow::Cow, io};
 
 /// A variant record info field array value.
 #[derive(Clone, Debug, PartialEq)]
@@ -45,14 +45,14 @@ where
     }
 }
 
-impl<'a> crate::variant::record::info::field::value::array::Values<'a, &'a str>
+impl<'a> crate::variant::record::info::field::value::array::Values<'a, Cow<'a, str>>
     for Values<'a, String>
 {
     fn len(&self) -> usize {
         self.0.len()
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<&'a str>>> + '_> {
-        Box::new(self.0.iter().map(|s| Ok(s.as_deref())))
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<Cow<'a, str>>>> + '_> {
+        Box::new(self.0.iter().map(|s| Ok(s.as_deref().map(Cow::from))))
     }
 }
