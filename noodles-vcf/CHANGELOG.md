@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * vcf/variant/record/info/field/value/array/values: Fix counting number of
+    values.
+
 ## 0.63.0 - 2024-09-04
 
 ### Added

@@ -92,6 +92,23 @@ fn count(s: &str) -> usize {
     if s.is_empty() {
         0
     } else {
-        s.as_bytes().iter().filter(|&&b| b == DELIMITER).count()
+        let n = s.as_bytes().iter().filter(|&&b| b == DELIMITER).count();
+        n + 1
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_string_values() {
+        let src = "";
+        let values: Box<dyn Values<'_, &'_ str>> = Box::new(src);
+        assert_eq!(values.len(), 0);
+
+        let src = "a,b";
+        let values: Box<dyn Values<'_, &'_ str>> = Box::new(src);
+        assert_eq!(values.len(), 2);
     }
 }
