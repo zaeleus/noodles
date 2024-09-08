@@ -65,20 +65,32 @@ impl<'a> Values<'a, char> for &'a str {
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<char>>> + '_> {
-        const MISSING: char = '.';
+        const MISSING: &str = ".";
 
         if self.is_empty() {
             Box::new(iter::empty())
         } else {
-            Box::new(
-                self.split(DELIMITER)
-                    .flat_map(|t| t.chars())
-                    .map(|c| match c {
-                        MISSING => None,
-                        _ => Some(c),
-                    })
-                    .map(Ok),
-            )
+            Box::new(self.split(DELIMITER).map(|s| {
+                match s {
+                    MISSING => Ok(None),
+                    _ => percent_decode(s)
+                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                        .and_then(|t| {
+                            let mut chars = t.chars();
+
+                            if let Some(c) = chars.next() {
+                                if chars.next().is_none() {
+                                    return Ok(Some(c));
+                                }
+                            }
+
+                            Err(io::Error::new(
+                                io::ErrorKind::InvalidData,
+                                "invalid character",
+                            ))
+                        }),
+                }
+            }))
         }
     }
 }
@@ -118,6 +130,28 @@ fn count(s: &str) -> usize {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_character_values() -> io::Result<()> {
+        let src = "";
+        let values: Box<dyn Values<'_, char>> = Box::new(src);
+        assert_eq!(values.len(), 0);
+
+        let mut iter = values.iter();
+        assert!(iter.next().transpose()?.is_none());
+
+        let src = "a,%3B,.";
+        let values: Box<dyn Values<'_, char>> = Box::new(src);
+        assert_eq!(values.len(), 3);
+
+        let mut iter = values.iter();
+        assert_eq!(iter.next().transpose()?, Some(Some('a')));
+        assert_eq!(iter.next().transpose()?, Some(Some(';')));
+        assert_eq!(iter.next().transpose()?, Some(None));
+        assert!(iter.next().transpose()?.is_none());
+
+        Ok(())
+    }
 
     #[test]
     fn test_string_values() -> io::Result<()> {
