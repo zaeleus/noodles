@@ -162,13 +162,14 @@ mod tests {
         let mut iter = values.iter();
         assert!(iter.next().transpose()?.is_none());
 
-        let src = "a,b%3Bc";
+        let src = "a,b%3Bc,.";
         let values: Box<dyn Values<'_, Cow<'_, str>>> = Box::new(src);
-        assert_eq!(values.len(), 2);
+        assert_eq!(values.len(), 3);
 
         let mut iter = values.iter();
         assert_eq!(iter.next().transpose()?, Some(Some(Cow::from("a"))));
         assert_eq!(iter.next().transpose()?, Some(Some(Cow::from("b;c"))));
+        assert_eq!(iter.next().transpose()?, Some(None));
         assert!(iter.next().transpose()?.is_none());
 
         Ok(())
