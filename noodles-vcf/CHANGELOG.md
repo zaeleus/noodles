@@ -4,7 +4,8 @@
 
 ### Changed
 
-  * vcf/record/info/field/value: Percent-decode string value ([#300]).
+  * vcf/record/info/field/value: Percent-decode character and string values
+    ([#300]).
 
     This changes the string values (`Value::String` and
     `Value::Array(Array::String)`) from `&str` to `Cow<'_, str>`.

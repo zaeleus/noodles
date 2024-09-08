@@ -2,6 +2,7 @@ use std::io;
 
 use crate::{
     header::record::value::map::info::{Number, Type},
+    io::reader::record_buf::value::percent_decode,
     variant::record::info::field::{value::Array, Value},
 };
 
@@ -44,7 +45,8 @@ fn parse_flag_value(src: &str) -> io::Result<Value<'_>> {
 }
 
 fn parse_character_value(src: &str) -> io::Result<Value<'_>> {
-    let mut chars = src.chars();
+    let s = percent_decode(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let mut chars = s.chars();
 
     if let Some(c) = chars.next() {
         if chars.next().is_none() {
@@ -85,6 +87,18 @@ fn parse_string_array_value(src: &str) -> io::Result<Value<'_>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_parse_character_value() -> io::Result<()> {
+        assert!(matches!(parse_character_value("a")?, Value::Character('a')));
+
+        assert!(matches!(
+            parse_character_value("%3B")?,
+            Value::Character(';')
+        ));
+
+        Ok(())
+    }
 
     #[test]
     fn test_parse_string_value() -> io::Result<()> {
