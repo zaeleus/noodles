@@ -1,6 +1,6 @@
 [package]
 name = "noodles"
-version = "0.80.0"
+version = "0.81.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
@@ -13,7 +13,7 @@ readme = "../README.md"
 
 [dependencies]
 noodles-bam = { path = "../noodles-bam", version = "0.67.0", optional = true }
-noodles-bcf = { path = "../noodles-bcf", version = "0.59.1", optional = true }
+noodles-bcf = { path = "../noodles-bcf", version = "0.60.0", optional = true }
 noodles-bed = { path = "../noodles-bed", version = "0.16.0", optional = true }
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.33.0", optional = true }
 noodles-core = { path = "../noodles-core", version = "0.15.0", optional = true }
@@ -21,13 +21,13 @@ noodles-cram = { path = "../noodles-cram", version = "0.68.0", optional = true }
 noodles-csi = { path = "../noodles-csi", version = "0.38.0", optional = true }
 noodles-fasta = { path = "../noodles-fasta", version = "0.43.0", optional = true }
 noodles-fastq = { path = "../noodles-fastq", version = "0.14.0", optional = true }
-noodles-gff = { path = "../noodles-gff", version = "0.36.0", optional = true }
-noodles-gtf = { path = "../noodles-gtf", version = "0.31.0", optional = true }
+noodles-gff = { path = "../noodles-gff", version = "0.37.0", optional = true }
+noodles-gtf = { path = "../noodles-gtf", version = "0.32.0", optional = true }
 noodles-htsget = { path = "../noodles-htsget", version = "0.6.0", optional = true }
 noodles-refget = { path = "../noodles-refget", version = "0.5.0", optional = true }
 noodles-sam = { path = "../noodles-sam", version = "0.64.0", optional = true }
 noodles-tabix = { path = "../noodles-tabix", version = "0.44.0", optional = true }
-noodles-vcf = { path = "../noodles-vcf", version = "0.63.0", optional = true }
+noodles-vcf = { path = "../noodles-vcf", version = "0.64.0", optional = true }
 
 [features]
 default = []
