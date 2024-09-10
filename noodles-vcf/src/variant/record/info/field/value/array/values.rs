@@ -132,6 +132,50 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_integer_values() -> io::Result<()> {
+        let src = "";
+        let values: Box<dyn Values<'_, i32>> = Box::new(src);
+        assert_eq!(values.len(), 0);
+
+        let mut iter = values.iter();
+        assert!(iter.next().transpose()?.is_none());
+
+        let src = "8,13,.";
+        let values: Box<dyn Values<'_, i32>> = Box::new(src);
+        assert_eq!(values.len(), 3);
+
+        let mut iter = values.iter();
+        assert_eq!(iter.next().transpose()?, Some(Some(8)));
+        assert_eq!(iter.next().transpose()?, Some(Some(13)));
+        assert_eq!(iter.next().transpose()?, Some(None));
+        assert!(iter.next().transpose()?.is_none());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_float_values() -> io::Result<()> {
+        let src = "";
+        let values: Box<dyn Values<'_, f32>> = Box::new(src);
+        assert_eq!(values.len(), 0);
+
+        let mut iter = values.iter();
+        assert!(iter.next().transpose()?.is_none());
+
+        let src = "8.0,13.0,.";
+        let values: Box<dyn Values<'_, f32>> = Box::new(src);
+        assert_eq!(values.len(), 3);
+
+        let mut iter = values.iter();
+        assert_eq!(iter.next().transpose()?, Some(Some(8.0)));
+        assert_eq!(iter.next().transpose()?, Some(Some(13.0)));
+        assert_eq!(iter.next().transpose()?, Some(None));
+        assert!(iter.next().transpose()?.is_none());
+
+        Ok(())
+    }
+
+    #[test]
     fn test_character_values() -> io::Result<()> {
         let src = "";
         let values: Box<dyn Values<'_, char>> = Box::new(src);
