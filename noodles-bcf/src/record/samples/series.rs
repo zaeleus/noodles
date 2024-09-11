@@ -663,6 +663,8 @@ mod tests {
 
         let header = build_header_with_format(NAME, Number::Count(1), format::Type::Character);
         let id = header.string_maps().strings().get_index_of(NAME).unwrap();
+
+        #[allow(clippy::byte_char_slices)]
         let src = &[
             b'n', // Some('n')
             b'd', // Some('d')
