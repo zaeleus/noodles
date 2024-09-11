@@ -23,6 +23,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::borrow::Cow;
+
     use super::*;
     use crate::variant::record::samples::series::value::Array;
 
@@ -43,15 +45,15 @@ mod tests {
             }
         }
 
-        impl<'a> crate::variant::record::samples::series::value::array::Values<'a, &'a str>
+        impl<'a> crate::variant::record::samples::series::value::array::Values<'a, Cow<'a, str>>
             for Values<'a, String>
         {
             fn len(&self) -> usize {
                 self.0.len()
             }
 
-            fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<&'a str>>> + '_> {
-                Box::new(self.0.iter().map(|s| Ok(s.as_deref())))
+            fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<Cow<'a, str>>>> + '_> {
+                Box::new(self.0.iter().map(|s| Ok(s.as_deref().map(Cow::from))))
             }
         }
 

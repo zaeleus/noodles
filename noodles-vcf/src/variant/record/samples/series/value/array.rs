@@ -2,7 +2,7 @@
 
 mod values;
 
-use std::{fmt, io};
+use std::{borrow::Cow, fmt, io};
 
 pub use self::values::Values;
 
@@ -15,7 +15,7 @@ pub enum Array<'a> {
     /// A character array.
     Character(Box<dyn Values<'a, char> + 'a>),
     /// A string array.
-    String(Box<dyn Values<'a, &'a str> + 'a>),
+    String(Box<dyn Values<'a, Cow<'a, str>> + 'a>),
 }
 
 impl<'a> fmt::Debug for Array<'a> {

@@ -574,7 +574,7 @@ where
                     }
 
                     match result? {
-                        Some(t) => s.push_str(t),
+                        Some(t) => s.push_str(&t),
                         None => s.push(MISSING),
                     }
                 }

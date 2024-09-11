@@ -322,6 +322,8 @@ fn get_genotype_value(src: &[u8], len: usize, i: usize) -> Option<Option<io::Res
 
 #[cfg(test)]
 mod tests {
+    use std::borrow::Cow;
+
     use noodles_vcf::header::{record::value::Map, StringMaps};
 
     use super::*;
@@ -755,6 +757,8 @@ mod tests {
     #[test]
     fn test_get_with_string_array_value() -> Result<(), Box<dyn std::error::Error>> {
         fn t(series: &Series<'_>, header: &vcf::Header, i: usize, expected: &[Option<&str>]) {
+            let expected: Vec<_> = expected.iter().map(|value| value.map(Cow::from)).collect();
+
             match series.get(header, i).unwrap().unwrap().unwrap() {
                 Value::Array(Array::String(values)) => {
                     assert_eq!(

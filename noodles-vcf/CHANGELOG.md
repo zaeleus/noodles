@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Changed
+
+  * vcf/variant/record/samples/series/value/array/values: Percent-decode string
+    values.
+
 ### Fixed
 
   * vcf/variant/record/samples/series/value/array/values: Fix counting number
