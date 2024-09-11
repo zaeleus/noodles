@@ -65,7 +65,7 @@ mod tests {
 
     #[test]
     fn test_as_ref_u8_2_array_for_standard() {
-        assert_eq!(Standard::Version.as_ref(), &[b'V', b'N']);
+        assert_eq!(Standard::Version.as_ref(), b"VN");
     }
 
     #[test]

@@ -84,7 +84,7 @@ mod tests {
         }
 
         t(&[]);
-        t(&[b'A', b'C', b'G']);
-        t(&[b'A', b'C', b'G', b'T']);
+        t(b"ACG");
+        t(b"ACGT");
     }
 }

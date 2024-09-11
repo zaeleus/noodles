@@ -94,7 +94,7 @@ mod tests {
 
     #[test]
     fn test_as_ref_u8_2_array_for_standard() {
-        assert_eq!(Standard::Id.as_ref(), &[b'I', b'D']);
+        assert_eq!(Standard::Id.as_ref(), b"ID");
     }
 
     #[test]

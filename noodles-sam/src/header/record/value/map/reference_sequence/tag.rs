@@ -86,8 +86,8 @@ mod tests {
 
     #[test]
     fn test_as_ref_u8_2_array_for_standard() {
-        assert_eq!(Standard::Name.as_ref(), &[b'S', b'N']);
-        assert_eq!(Standard::Length.as_ref(), &[b'L', b'N']);
+        assert_eq!(Standard::Name.as_ref(), b"SN");
+        assert_eq!(Standard::Length.as_ref(), b"LN");
     }
 
     #[test]

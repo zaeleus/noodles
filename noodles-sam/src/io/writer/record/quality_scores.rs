@@ -68,11 +68,11 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        t(&mut buf, 0, &QualityScoresBuf::default(), &[b'*'])?;
-        t(&mut buf, 4, &QualityScoresBuf::default(), &[b'*'])?;
+        t(&mut buf, 0, &QualityScoresBuf::default(), b"*")?;
+        t(&mut buf, 4, &QualityScoresBuf::default(), b"*")?;
 
         let quality_scores = QualityScoresBuf::from(vec![45, 35, 43, 50]);
-        t(&mut buf, 4, &quality_scores, &[b'N', b'D', b'L', b'S'])?;
+        t(&mut buf, 4, &quality_scores, b"NDLS")?;
 
         let quality_scores = QualityScoresBuf::from(vec![45, 35, 43, 50]);
         buf.clear();
