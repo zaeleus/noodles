@@ -2,6 +2,7 @@ use std::{io, iter};
 
 use super::Keys;
 use crate::{
+    io::reader::record_buf::value::percent_decode,
     variant::record::samples::series::{value::Array, Value},
     Header,
 };
@@ -154,7 +155,8 @@ fn parse_float_value(src: &str) -> io::Result<Value<'_>> {
 }
 
 fn parse_character_value(src: &str) -> io::Result<Value<'_>> {
-    let mut chars = src.chars();
+    let s = percent_decode(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let mut chars = s.chars();
 
     if let Some(c) = chars.next() {
         if chars.next().is_none() {
@@ -164,13 +166,11 @@ fn parse_character_value(src: &str) -> io::Result<Value<'_>> {
 
     Err(io::Error::new(
         io::ErrorKind::InvalidData,
-        "invalid character value",
+        "invalid character",
     ))
 }
 
 fn parse_string_value(src: &str) -> io::Result<Value<'_>> {
-    use crate::io::reader::record_buf::value::percent_decode;
-
     percent_decode(src)
         .map(Value::String)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))

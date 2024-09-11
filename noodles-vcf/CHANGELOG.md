@@ -4,8 +4,8 @@
 
 ### Changed
 
-  * vcf/variant/record/samples/series/value/array/values: Percent-decode
-    character and string values.
+  * vcf/variant/record/samples/series/value: Percent-decode character and
+    string values.
 
 ### Fixed
 
