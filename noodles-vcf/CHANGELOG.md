@@ -7,6 +7,11 @@
   * vcf/variant/record/samples/series/value/array/values: Fix counting number
     of values.
 
+  * vcf/variant/record/samples/series/value/array/values: Fix iterating over
+    empty lists.
+
+    This now immediately returns `None`.
+
 ## 0.64.0 - 2024-09-09
 
 ### Changed
