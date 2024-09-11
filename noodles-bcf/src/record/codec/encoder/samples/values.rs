@@ -1,4 +1,5 @@
 use std::{
+    borrow::Cow,
     cmp,
     io::{self, Write},
 };
@@ -463,7 +464,7 @@ where
 
     let string_values: Vec<_> = raw_strings
         .iter()
-        .map(|s| s.as_ref().map(|t| Value::String(t.as_ref())))
+        .map(|s| s.as_ref().map(|t| Value::String(Cow::from(t))))
         .collect();
 
     write_string_values(writer, &string_values)
@@ -505,7 +506,7 @@ where
 
     let string_values: Vec<_> = raw_strings
         .iter()
-        .map(|s| s.as_ref().map(|t| Value::String(t.as_ref())))
+        .map(|s| s.as_ref().map(|t| Value::String(Cow::from(t))))
         .collect();
 
     write_string_values(writer, &string_values)

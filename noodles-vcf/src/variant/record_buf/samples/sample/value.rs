@@ -5,7 +5,7 @@ pub mod genotype;
 
 pub use self::{array::Array, genotype::Genotype};
 
-use std::str;
+use std::{borrow::Cow, str};
 
 /// A variant record samples field value.
 #[derive(Clone, Debug, PartialEq)]
@@ -90,7 +90,7 @@ impl<'a> From<&'a Value> for crate::variant::record::samples::series::Value<'a> 
             Value::Integer(n) => Self::Integer(*n),
             Value::Float(n) => Self::Float(*n),
             Value::Character(c) => Self::Character(*c),
-            Value::String(s) => Self::String(s.as_ref()),
+            Value::String(s) => Self::String(Cow::from(s)),
             Value::Genotype(genotype) => Self::Genotype(Box::new(genotype)),
             Value::Array(array) => Self::Array(array.into()),
         }

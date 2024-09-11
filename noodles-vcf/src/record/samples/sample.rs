@@ -169,7 +169,11 @@ fn parse_character_value(src: &str) -> io::Result<Value<'_>> {
 }
 
 fn parse_string_value(src: &str) -> io::Result<Value<'_>> {
-    Ok(Value::String(src))
+    use crate::io::reader::record_buf::value::percent_decode;
+
+    percent_decode(src)
+        .map(Value::String)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 fn parse_genotype_value(src: &str) -> io::Result<Value<'_>> {

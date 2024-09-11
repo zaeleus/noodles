@@ -70,7 +70,12 @@ mod tests {
         t(&mut buf, &header, &Value::Integer(8), b"8")?;
         t(&mut buf, &header, &Value::Float(0.333), b"0.333")?;
         t(&mut buf, &header, &Value::Character('n'), b"n")?;
-        t(&mut buf, &header, &Value::String("noodles"), b"noodles")?;
+        t(
+            &mut buf,
+            &header,
+            &Value::String(Cow::from("noodles")),
+            b"noodles",
+        )?;
 
         t(
             &mut buf,

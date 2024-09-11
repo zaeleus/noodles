@@ -2,7 +2,7 @@
 
 pub mod value;
 
-use std::{io, mem, ops::Range, str};
+use std::{borrow::Cow, io, mem, ops::Range, str};
 
 use noodles_vcf::{
     self as vcf,
@@ -305,7 +305,7 @@ fn get_string_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>
 
     match get_string(src, len, i)? {
         MISSING => Some(None),
-        s => Some(Some(Value::String(s))),
+        s => Some(Some(Value::String(Cow::from(s)))),
     }
 }
 
@@ -322,8 +322,6 @@ fn get_genotype_value(src: &[u8], len: usize, i: usize) -> Option<Option<io::Res
 
 #[cfg(test)]
 mod tests {
-    use std::borrow::Cow;
-
     use noodles_vcf::header::{record::value::Map, StringMaps};
 
     use super::*;
@@ -730,7 +728,7 @@ mod tests {
                 None => None,
             };
 
-            assert_eq!(actual, expected);
+            assert_eq!(actual, expected.map(Cow::from));
         }
 
         let header = build_header_with_format(NAME, Number::Count(1), format::Type::String);
