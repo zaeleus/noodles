@@ -201,14 +201,14 @@ mod tests {
         let value_encoding = Encoding::new(Byte::External(block::ContentId::from(1)));
         t(
             &Encoding::new(ByteArray::ByteArrayLen(len_encoding, value_encoding)),
-            &[b'n', b'd', b'l', b's'],
+            b"ndls",
             &[],
             &[0x04, b'n', b'd', b'l', b's'],
         )?;
 
         t(
             &Encoding::new(ByteArray::ByteArrayStop(0x00, block::ContentId::from(1))),
-            &[b'n', b'd', b'l', b's'],
+            b"ndls",
             &[],
             &[b'n', b'd', b'l', b's', 0x00],
         )?;
