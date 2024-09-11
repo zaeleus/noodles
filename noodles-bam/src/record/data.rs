@@ -145,7 +145,7 @@ mod tests {
         let data = Data::new(&[b'N', b'H', b'C', 0x01]);
 
         assert!(data.get(&Tag::ALIGNMENT_HIT_COUNT).is_some());
-        assert!(data.get(&[b'N', b'H']).is_some());
+        assert!(data.get(b"NH").is_some());
 
         assert!(data.get(&Tag::COMMENT).is_none());
 

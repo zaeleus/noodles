@@ -32,12 +32,12 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        t(&mut buf, Subtype::Int8, &[b'c']);
-        t(&mut buf, Subtype::UInt8, &[b'C']);
-        t(&mut buf, Subtype::Int16, &[b's']);
-        t(&mut buf, Subtype::UInt16, &[b'S']);
-        t(&mut buf, Subtype::Int32, &[b'i']);
-        t(&mut buf, Subtype::UInt32, &[b'I']);
-        t(&mut buf, Subtype::Float, &[b'f']);
+        t(&mut buf, Subtype::Int8, b"c");
+        t(&mut buf, Subtype::UInt8, b"C");
+        t(&mut buf, Subtype::Int16, b"s");
+        t(&mut buf, Subtype::UInt16, b"S");
+        t(&mut buf, Subtype::Int32, b"i");
+        t(&mut buf, Subtype::UInt32, b"I");
+        t(&mut buf, Subtype::Float, b"f");
     }
 }

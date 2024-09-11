@@ -57,7 +57,7 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        t(&mut buf, &Value::Character(b'n'), &[b'n'])?;
+        t(&mut buf, &Value::Character(b'n'), b"n")?;
         t(&mut buf, &Value::Int8(1), &[0x01])?;
         t(&mut buf, &Value::UInt8(2), &[0x02])?;
         t(&mut buf, &Value::Int16(3), &[0x03, 0x00])?;

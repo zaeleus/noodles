@@ -189,7 +189,7 @@ mod tests {
             Ok(())
         }
 
-        t(&[b'n'], Type::Character, Value::Character(b'n'))?;
+        t(b"n", Type::Character, Value::Character(b'n'))?;
         t(&[0x00], Type::Int8, Value::Int8(0))?;
         t(&[0x00], Type::UInt8, Value::UInt8(0))?;
         t(&[0x00, 0x00], Type::Int16, Value::Int16(0))?;
