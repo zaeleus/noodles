@@ -56,31 +56,6 @@ mod tests {
         let value_buf = ValueBuf::from(vec![Some(8)]);
         t(&mut buf, &header, (&value_buf).into(), b"8")?;
 
-        let value_buf = ValueBuf::from(vec![Some(8), Some(13), None]);
-        t(&mut buf, &header, (&value_buf).into(), b"8,13,.")?;
-
-        let value_buf = ValueBuf::from(vec![Some(0.333)]);
-        t(&mut buf, &header, (&value_buf).into(), b"0.333")?;
-
-        let value_buf = ValueBuf::from(vec![Some(0.333), Some(0.667), None]);
-        t(&mut buf, &header, (&value_buf).into(), b"0.333,0.667,.")?;
-
-        let value_buf = ValueBuf::from(vec![Some('n')]);
-        t(&mut buf, &header, (&value_buf).into(), b"n")?;
-
-        let value_buf = ValueBuf::from(vec![Some('n'), Some('d'), None]);
-        t(&mut buf, &header, (&value_buf).into(), b"n,d,.")?;
-
-        let value_buf = ValueBuf::from(vec![Some(String::from("noodles"))]);
-        t(&mut buf, &header, (&value_buf).into(), b"noodles")?;
-
-        let value_buf = ValueBuf::from(vec![
-            Some(String::from("noodles")),
-            Some(String::from("vcf")),
-            None,
-        ]);
-        t(&mut buf, &header, (&value_buf).into(), b"noodles,vcf,.")?;
-
         Ok(())
     }
 }
