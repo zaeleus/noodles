@@ -29,40 +29,13 @@ mod tests {
     use std::borrow::Cow;
 
     use super::*;
-    use crate::variant::record::samples::series::value::Array;
+    use crate::variant::record_buf::samples::sample::Value as ValueBuf;
 
     #[test]
     fn test_write_value() -> io::Result<()> {
-        struct Values<'a, T>(&'a [Option<T>]);
-
-        impl<'a, T> crate::variant::record::samples::series::value::array::Values<'a, T> for Values<'a, T>
-        where
-            T: Copy,
-        {
-            fn len(&self) -> usize {
-                self.0.len()
-            }
-
-            fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<T>>> + '_> {
-                Box::new(self.0.iter().copied().map(Ok))
-            }
-        }
-
-        impl<'a> crate::variant::record::samples::series::value::array::Values<'a, Cow<'a, str>>
-            for Values<'a, String>
-        {
-            fn len(&self) -> usize {
-                self.0.len()
-            }
-
-            fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<Cow<'a, str>>>> + '_> {
-                Box::new(self.0.iter().map(|s| Ok(s.as_deref().map(Cow::from))))
-            }
-        }
-
-        fn t(buf: &mut Vec<u8>, header: &Header, value: &Value, expected: &[u8]) -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, header: &Header, value: Value, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            write_value(buf, header, value)?;
+            write_value(buf, header, &value)?;
             assert_eq!(buf, expected);
             Ok(())
         }
@@ -70,99 +43,43 @@ mod tests {
         let header = Header::default();
         let mut buf = Vec::new();
 
-        t(&mut buf, &header, &Value::Integer(8), b"8")?;
-        t(&mut buf, &header, &Value::Float(0.333), b"0.333")?;
-        t(&mut buf, &header, &Value::Character('n'), b"n")?;
+        t(&mut buf, &header, Value::Integer(8), b"8")?;
+        t(&mut buf, &header, Value::Float(0.333), b"0.333")?;
+        t(&mut buf, &header, Value::Character('n'), b"n")?;
         t(
             &mut buf,
             &header,
-            &Value::String(Cow::from("noodles")),
+            Value::String(Cow::from("noodles")),
             b"noodles",
         )?;
 
-        t(
-            &mut buf,
-            &header,
-            &Value::Array(Array::Integer(Box::new(Values(&[Some(8)])))),
-            b"8",
-        )?;
-        t(
-            &mut buf,
-            &header,
-            &Value::Array(Array::Integer(Box::new(Values(&[Some(8), Some(13)])))),
-            b"8,13",
-        )?;
-        t(
-            &mut buf,
-            &header,
-            &Value::Array(Array::Integer(Box::new(Values(&[Some(8), None])))),
-            b"8,.",
-        )?;
+        let value_buf = ValueBuf::from(vec![Some(8)]);
+        t(&mut buf, &header, (&value_buf).into(), b"8")?;
 
-        t(
-            &mut buf,
-            &header,
-            &Value::Array(Array::Float(Box::new(Values(&[Some(0.333)])))),
-            b"0.333",
-        )?;
-        t(
-            &mut buf,
-            &header,
-            &Value::Array(Array::Float(Box::new(Values(&[Some(0.333), Some(0.667)])))),
-            b"0.333,0.667",
-        )?;
-        t(
-            &mut buf,
-            &header,
-            &Value::Array(Array::Float(Box::new(Values(&[Some(0.333), None])))),
-            b"0.333,.",
-        )?;
+        let value_buf = ValueBuf::from(vec![Some(8), Some(13), None]);
+        t(&mut buf, &header, (&value_buf).into(), b"8,13,.")?;
 
-        t(
-            &mut buf,
-            &header,
-            &Value::Array(Array::Character(Box::new(Values(&[Some('n')])))),
-            b"n",
-        )?;
-        t(
-            &mut buf,
-            &header,
-            &Value::Array(Array::Character(Box::new(Values(&[Some('n'), Some('d')])))),
-            b"n,d",
-        )?;
-        t(
-            &mut buf,
-            &header,
-            &Value::Array(Array::Character(Box::new(Values(&[Some('n'), None])))),
-            b"n,.",
-        )?;
+        let value_buf = ValueBuf::from(vec![Some(0.333)]);
+        t(&mut buf, &header, (&value_buf).into(), b"0.333")?;
 
-        t(
-            &mut buf,
-            &header,
-            &Value::Array(Array::String(Box::new(Values(&[Some(String::from(
-                "noodles",
-            ))])))),
-            b"noodles",
-        )?;
-        t(
-            &mut buf,
-            &header,
-            &Value::Array(Array::String(Box::new(Values(&[
-                Some(String::from("noodles")),
-                Some(String::from("vcf")),
-            ])))),
-            b"noodles,vcf",
-        )?;
-        t(
-            &mut buf,
-            &header,
-            &Value::Array(Array::String(Box::new(Values(&[
-                Some(String::from("noodles")),
-                None,
-            ])))),
-            b"noodles,.",
-        )?;
+        let value_buf = ValueBuf::from(vec![Some(0.333), Some(0.667), None]);
+        t(&mut buf, &header, (&value_buf).into(), b"0.333,0.667,.")?;
+
+        let value_buf = ValueBuf::from(vec![Some('n')]);
+        t(&mut buf, &header, (&value_buf).into(), b"n")?;
+
+        let value_buf = ValueBuf::from(vec![Some('n'), Some('d'), None]);
+        t(&mut buf, &header, (&value_buf).into(), b"n,d,.")?;
+
+        let value_buf = ValueBuf::from(vec![Some(String::from("noodles"))]);
+        t(&mut buf, &header, (&value_buf).into(), b"noodles")?;
+
+        let value_buf = ValueBuf::from(vec![
+            Some(String::from("noodles")),
+            Some(String::from("vcf")),
+            None,
+        ]);
+        t(&mut buf, &header, (&value_buf).into(), b"noodles,vcf,.")?;
 
         Ok(())
     }
