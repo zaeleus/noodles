@@ -7,7 +7,8 @@
   * vcf/variant/record/samples/series/value: Percent-decode character and
     string values.
 
-  * vcf/io/writer/record/samples/sample/value/character: Percent-encode value.
+  * vcf/io/writer/record/samples/sample/value: Percent-encode character and
+    string values.
 
 ### Fixed
 

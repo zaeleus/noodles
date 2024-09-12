@@ -1,5 +1,6 @@
 use std::io::{self, Write};
 
+use super::write_string;
 use crate::{io::writer::record::MISSING, variant::record::samples::series::value::Array};
 
 pub(super) fn write_array<W>(writer: &mut W, array: &Array) -> io::Result<()>
@@ -55,7 +56,7 @@ where
                 }
 
                 if let Some(s) = result? {
-                    writer.write_all(s.as_bytes())?;
+                    write_string(writer, &s)?;
                 } else {
                     writer.write_all(MISSING)?;
                 }
@@ -105,10 +106,10 @@ mod tests {
 
         let array = ArrayBuf::String(vec![
             Some(String::from("noodles")),
-            Some(String::from("vcf")),
+            Some(String::from(";")),
             None,
         ]);
-        t(&mut buf, &array, b"noodles,vcf,.")?;
+        t(&mut buf, &array, b"noodles,%3B,.")?;
 
         Ok(())
     }
