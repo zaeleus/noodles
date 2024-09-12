@@ -1,10 +1,13 @@
 mod array;
+mod character;
 mod genotype;
 mod string;
 
 use std::io::{self, Write};
 
-use self::{array::write_array, genotype::write_genotype, string::write_string};
+use self::{
+    array::write_array, character::write_character, genotype::write_genotype, string::write_string,
+};
 use crate::{variant::record::samples::series::Value, Header};
 
 pub(super) fn write_value<W>(writer: &mut W, header: &Header, value: &Value) -> io::Result<()>
@@ -14,7 +17,7 @@ where
     match value {
         Value::Integer(n) => write!(writer, "{n}"),
         Value::Float(n) => write!(writer, "{n}"),
-        Value::Character(c) => write!(writer, "{c}"),
+        Value::Character(c) => write_character(writer, *c),
         Value::String(s) => write_string(writer, s),
         Value::Genotype(genotype) => write_genotype(writer, header, genotype.as_ref()),
         Value::Array(array) => write_array(writer, array),
