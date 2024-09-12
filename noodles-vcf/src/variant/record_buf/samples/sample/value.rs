@@ -3,9 +3,9 @@
 mod array;
 pub mod genotype;
 
-pub use self::{array::Array, genotype::Genotype};
-
 use std::{borrow::Cow, str};
+
+pub use self::{array::Array, genotype::Genotype};
 
 /// A variant record samples field value.
 #[derive(Clone, Debug, PartialEq)]
