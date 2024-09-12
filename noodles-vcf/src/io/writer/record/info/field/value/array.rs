@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use super::write_character;
+use super::{write_character, write_string};
 use crate::{io::writer::record::MISSING, variant::record::info::field::value::Array};
 
 pub(super) fn write_array<W>(writer: &mut W, array: &Array) -> io::Result<()>
@@ -62,7 +62,7 @@ where
                 }
 
                 if let Some(s) = result? {
-                    writer.write_all(s.as_bytes())?;
+                    write_string(writer, &s)?;
                 } else {
                     writer.write_all(MISSING)?;
                 }
@@ -115,7 +115,7 @@ mod tests {
             Some(String::from(":")),
             None,
         ]);
-        t(&mut buf, &array, b"noodles,:,.")?; // FIXME
+        t(&mut buf, &array, b"noodles,%3A,.")?;
 
         Ok(())
     }
