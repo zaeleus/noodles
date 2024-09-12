@@ -26,16 +26,19 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::borrow::Cow;
-
     use super::*;
     use crate::variant::record_buf::samples::sample::Value as ValueBuf;
 
     #[test]
     fn test_write_value() -> io::Result<()> {
-        fn t(buf: &mut Vec<u8>, header: &Header, value: Value, expected: &[u8]) -> io::Result<()> {
+        fn t(
+            buf: &mut Vec<u8>,
+            header: &Header,
+            value: &ValueBuf,
+            expected: &[u8],
+        ) -> io::Result<()> {
             buf.clear();
-            write_value(buf, header, &value)?;
+            write_value(buf, header, &Value::from(value))?;
             assert_eq!(buf, expected);
             Ok(())
         }
@@ -43,18 +46,11 @@ mod tests {
         let header = Header::default();
         let mut buf = Vec::new();
 
-        t(&mut buf, &header, Value::Integer(8), b"8")?;
-        t(&mut buf, &header, Value::Float(0.333), b"0.333")?;
-        t(&mut buf, &header, Value::Character('n'), b"n")?;
-        t(
-            &mut buf,
-            &header,
-            Value::String(Cow::from("noodles")),
-            b"noodles",
-        )?;
-
-        let value_buf = ValueBuf::from(vec![Some(8)]);
-        t(&mut buf, &header, (&value_buf).into(), b"8")?;
+        t(&mut buf, &header, &ValueBuf::from(8), b"8")?;
+        t(&mut buf, &header, &ValueBuf::from(0.333), b"0.333")?;
+        t(&mut buf, &header, &ValueBuf::from('n'), b"n")?;
+        t(&mut buf, &header, &ValueBuf::from("noodles"), b"noodles")?;
+        t(&mut buf, &header, &ValueBuf::from(vec![Some(8)]), b"8")?;
 
         Ok(())
     }
