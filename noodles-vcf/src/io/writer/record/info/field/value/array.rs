@@ -1,5 +1,6 @@
 use std::io::{self, Write};
 
+use super::write_character;
 use crate::{io::writer::record::MISSING, variant::record::info::field::value::Array};
 
 pub(super) fn write_array<W>(writer: &mut W, array: &Array) -> io::Result<()>
@@ -46,7 +47,7 @@ where
                 }
 
                 if let Some(c) = result? {
-                    write!(writer, "{c}")?;
+                    write_character(writer, c)?;
                 } else {
                     writer.write_all(MISSING)?;
                 }
@@ -104,7 +105,7 @@ mod tests {
         t(&mut buf, &array, b"n")?;
 
         let array = ArrayBuf::Character(vec![Some('n'), Some(':'), None]);
-        t(&mut buf, &array, b"n,:,.")?; // FIXME
+        t(&mut buf, &array, b"n,%3A,.")?;
 
         let array = ArrayBuf::String(vec![Some(String::from("noodles"))]);
         t(&mut buf, &array, b"noodles")?;
