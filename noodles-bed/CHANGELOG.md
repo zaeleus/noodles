@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bed: Update to lexical-core 1.0.0.
+
 ## 0.16.0 - 2024-09-04
 
 ### Added
