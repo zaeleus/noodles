@@ -18,7 +18,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = args.nth(1).map(PathBuf::from).expect("missing src");
     let region = args.next().expect("missing region").parse()?;
 
-    let mut reader = File::open(&src).await.map(bam::AsyncReader::new)?;
+    let mut reader = File::open(&src).await.map(bam::r#async::io::Reader::new)?;
 
     let header = reader.read_header().await?;
     let index = bai::r#async::read(src.with_extension("bam.bai")).await?;

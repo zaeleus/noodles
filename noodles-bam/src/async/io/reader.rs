@@ -335,7 +335,7 @@ where
     /// use noodles_sam as sam;
     /// use tokio::fs::File;
     ///
-    /// let mut reader = File::open("sample.bam").await.map(bam::AsyncReader::new)?;
+    /// let mut reader = File::open("sample.bam").await.map(bam::r#async::io::Reader::new)?;
     /// let header = reader.read_header().await?;
     ///
     /// let index = bai::r#async::read("sample.bam.bai").await?;
@@ -379,7 +379,7 @@ where
     /// use noodles_bam::{self as bam, bai};
     /// use tokio::fs::File;
     ///
-    /// let mut reader = File::open("sample.bam").await.map(bam::AsyncReader::new)?;
+    /// let mut reader = File::open("sample.bam").await.map(bam::r#async::io::Reader::new)?;
     ///
     /// let index = bai::r#async::read("sample.bam.bai").await?;
     /// let mut query = reader.query_unmapped(&index).await?;

@@ -16,7 +16,7 @@ use tokio::{
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = File::open(src).await.map(bam::AsyncReader::new)?;
+    let mut reader = File::open(src).await.map(bam::r#async::io::Reader::new)?;
     let header = reader.read_header().await?;
 
     let mut records = reader.record_bufs(&header);
