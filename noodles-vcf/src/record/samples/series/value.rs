@@ -26,7 +26,7 @@ pub(crate) fn parse_value<'a>(
     if src == MISSING {
         return Ok(None);
     } else if key == key::GENOTYPE {
-        return parse_genotype_value(src).map(Some);
+        return Ok(Some(parse_genotype_value(src)));
     }
 
     let (number, ty) = header
@@ -47,10 +47,10 @@ pub(crate) fn parse_value<'a>(
         (Number::Count(1), Type::Float) => parse_float_value(src)?,
         (Number::Count(1), Type::Character) => parse_character_value(src)?,
         (Number::Count(1), Type::String) => parse_string_value(src)?,
-        (_, Type::Integer) => parse_integer_array_value(src)?,
-        (_, Type::Float) => parse_float_array_value(src)?,
-        (_, Type::Character) => parse_character_array_value(src)?,
-        (_, Type::String) => parse_string_array_value(src)?,
+        (_, Type::Integer) => parse_integer_array_value(src),
+        (_, Type::Float) => parse_float_array_value(src),
+        (_, Type::Character) => parse_character_array_value(src),
+        (_, Type::String) => parse_string_array_value(src),
     };
 
     Ok(Some(value))
@@ -90,24 +90,24 @@ fn parse_string_value(src: &str) -> io::Result<Value<'_>> {
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
-fn parse_genotype_value(src: &str) -> io::Result<Value<'_>> {
-    Ok(Value::Genotype(Box::new(Genotype::new(src))))
+fn parse_genotype_value(src: &str) -> Value<'_> {
+    Value::Genotype(Box::new(Genotype::new(src)))
 }
 
-fn parse_integer_array_value(src: &str) -> io::Result<Value<'_>> {
-    Ok(Value::Array(Array::Integer(Box::new(src))))
+fn parse_integer_array_value(src: &str) -> Value<'_> {
+    Value::Array(Array::Integer(Box::new(src)))
 }
 
-fn parse_float_array_value(src: &str) -> io::Result<Value<'_>> {
-    Ok(Value::Array(Array::Float(Box::new(src))))
+fn parse_float_array_value(src: &str) -> Value<'_> {
+    Value::Array(Array::Float(Box::new(src)))
 }
 
-fn parse_character_array_value(src: &str) -> io::Result<Value<'_>> {
-    Ok(Value::Array(Array::Character(Box::new(src))))
+fn parse_character_array_value(src: &str) -> Value<'_> {
+    Value::Array(Array::Character(Box::new(src)))
 }
 
-fn parse_string_array_value(src: &str) -> io::Result<Value<'_>> {
-    Ok(Value::Array(Array::String(Box::new(src))))
+fn parse_string_array_value(src: &str) -> Value<'_> {
+    Value::Array(Array::String(Box::new(src)))
 }
 
 #[cfg(test)]
