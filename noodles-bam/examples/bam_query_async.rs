@@ -4,29 +4,38 @@
 //!
 //! The result matches the output of `samtools view <src> <region>`.
 
-use std::{env, path::PathBuf};
+use std::{env, path::PathBuf, pin::Pin};
 
-use futures::TryStreamExt;
+use futures::{Stream, TryStreamExt};
 use noodles_bam::{self as bam, bai};
 use noodles_sam as sam;
 use tokio::{fs::File, io};
 
+const UNMAPPED: &str = "*";
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut args = env::args();
+    let mut args = env::args().skip(1);
 
-    let src = args.nth(1).map(PathBuf::from).expect("missing src");
-    let region = args.next().expect("missing region").parse()?;
+    let src = args.next().map(PathBuf::from).expect("missing src");
+    let raw_region = args.next().expect("missing region");
 
     let mut reader = File::open(&src).await.map(bam::r#async::io::Reader::new)?;
-
     let header = reader.read_header().await?;
+
     let index = bai::r#async::read(src.with_extension("bam.bai")).await?;
-    let mut query = reader.query(&header, &index, &region)?;
+
+    let mut records: Pin<Box<dyn Stream<Item = io::Result<bam::Record>>>> =
+        if raw_region == UNMAPPED {
+            reader.query_unmapped(&index).await.map(Box::pin)?
+        } else {
+            let region = raw_region.parse()?;
+            reader.query(&header, &index, &region).map(Box::pin)?
+        };
 
     let mut writer = sam::r#async::io::Writer::new(io::stdout());
 
-    while let Some(record) = query.try_next().await? {
+    while let Some(record) = records.try_next().await? {
         writer.write_alignment_record(&header, &record).await?;
     }
 
