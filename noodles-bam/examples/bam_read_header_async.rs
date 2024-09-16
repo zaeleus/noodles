@@ -20,7 +20,7 @@ async fn main() -> io::Result<()> {
     let mut reader = File::open(src).await.map(bam::r#async::io::Reader::new)?;
     let header = reader.read_header().await?;
 
-    let mut writer = sam::AsyncWriter::new(io::stdout());
+    let mut writer = sam::r#async::io::Writer::new(io::stdout());
     writer.write_header(&header).await?;
 
     writer.get_mut().shutdown().await?;

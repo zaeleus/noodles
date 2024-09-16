@@ -19,12 +19,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut reader = File::open(src)
         .await
         .map(BufReader::new)
-        .map(sam::AsyncReader::new)?;
+        .map(sam::r#async::io::Reader::new)?;
 
     let mut header: sam::Header = reader.read_header().await?;
     header.add_comment("a comment added by noodles-sam");
 
-    let mut writer = sam::AsyncWriter::new(io::stdout());
+    let mut writer = sam::r#async::io::Writer::new(io::stdout());
     writer.write_header(&header).await?;
 
     io::copy(reader.get_mut(), writer.get_mut()).await?;

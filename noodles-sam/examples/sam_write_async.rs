@@ -33,7 +33,7 @@ const SQ2_LN: NonZeroUsize = match NonZeroUsize::new(21) {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut writer = sam::AsyncWriter::new(io::stdout());
+    let mut writer = sam::r#async::io::Writer::new(io::stdout());
 
     let header = sam::Header::builder()
         .set_header(Default::default())

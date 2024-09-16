@@ -18,11 +18,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut reader = File::open(src)
         .await
         .map(BufReader::new)
-        .map(sam::AsyncReader::new)?;
+        .map(sam::r#async::io::Reader::new)?;
 
     let header = reader.read_header().await?;
 
-    let mut writer = sam::AsyncWriter::new(io::stdout());
+    let mut writer = sam::r#async::io::Writer::new(io::stdout());
 
     let mut records = reader.records();
 

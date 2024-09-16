@@ -15,7 +15,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut reader = File::open(src)
         .await
         .map(BufReader::new)
-        .map(sam::AsyncReader::new)?;
+        .map(sam::r#async::io::Reader::new)?;
 
     let header = reader.read_header().await?;
 
