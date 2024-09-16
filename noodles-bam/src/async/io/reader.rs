@@ -3,7 +3,9 @@ mod query;
 mod record;
 mod record_buf;
 
-use futures::{stream, Stream};
+use std::future;
+
+use futures::{stream, Stream, StreamExt};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
@@ -306,7 +308,21 @@ impl<R> Reader<bgzf::AsyncReader<R>>
 where
     R: AsyncRead + AsyncSeek + Unpin,
 {
+    // Seeks to the first record by setting the cursor to the beginning of the stream and
+    // (re)reading the header.
+    async fn seek_to_first_record(&mut self) -> io::Result<bgzf::VirtualPosition> {
+        self.get_mut()
+            .seek(bgzf::VirtualPosition::default())
+            .await?;
+
+        self.read_header().await?;
+
+        Ok(self.get_ref().virtual_position())
+    }
+
     /// Returns a stream over records that intersect the given region.
+    ///
+    /// To query for unmapped records, use [`Self::query_unmapped`].
     ///
     /// # Examples
     ///
@@ -350,6 +366,51 @@ where
             reference_sequence_id,
             region.interval(),
         ))
+    }
+
+    /// Returns an iterator of unmapped records after querying for the unmapped region.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use futures::TryStreamExt;
+    /// use noodles_bam::{self as bam, bai};
+    /// use tokio::fs::File;
+    ///
+    /// let mut reader = File::open("sample.bam").await.map(bam::AsyncReader::new)?;
+    ///
+    /// let index = bai::r#async::read("sample.bam.bai").await?;
+    /// let mut query = reader.query_unmapped(&index).await?;
+    ///
+    /// while let Some(record) = query.try_next().await? {
+    ///     // ...
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn query_unmapped<I>(
+        &mut self,
+        index: &I,
+    ) -> io::Result<impl Stream<Item = io::Result<Record>> + '_>
+    where
+        I: BinningIndex,
+    {
+        if let Some(pos) = index.last_first_record_start_position() {
+            self.get_mut().seek(pos).await?;
+        } else {
+            self.seek_to_first_record().await?;
+        }
+
+        Ok(self.records().filter(|result| {
+            future::ready(
+                result
+                    .as_ref()
+                    .map(|record| record.flags().is_unmapped())
+                    .unwrap_or(true),
+            )
+        }))
     }
 }
 
