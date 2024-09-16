@@ -14,7 +14,7 @@ use tokio::{fs::File, io};
 async fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = File::open(src).await.map(cram::AsyncReader::new)?;
+    let mut reader = File::open(src).await.map(cram::r#async::io::Reader::new)?;
     reader.read_header().await?;
 
     let mut n = 0;
