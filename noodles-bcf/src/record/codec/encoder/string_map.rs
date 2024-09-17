@@ -1,7 +1,4 @@
-use std::{
-    cmp,
-    io::{self, Write},
-};
+use std::io::{self, Write};
 
 use super::value::write_value;
 use crate::record::codec::{
@@ -38,13 +35,10 @@ where
             None => unreachable!(),
         },
         _ => {
-            let mut max = i32::MIN;
-
-            for &i in indices {
-                let j =
-                    i32::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-                max = cmp::max(max, j);
-            }
+            // SAFETY: `indices` is non-empty.
+            let i = indices.iter().max().copied().unwrap();
+            let max =
+                i32::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
             if max <= i32::from(Int8::MAX_VALUE) {
                 let is: Vec<_> = indices.iter().map(|&i| i as i8).collect();
