@@ -2,7 +2,7 @@
 
 mod builder;
 mod header;
-mod query;
+pub(crate) mod query;
 mod record;
 pub(crate) mod record_buf;
 mod record_bufs;
@@ -449,7 +449,10 @@ where
     }
 }
 
-fn resolve_region(reference_sequences: &ReferenceSequences, region: &Region) -> io::Result<usize> {
+pub(crate) fn resolve_region(
+    reference_sequences: &ReferenceSequences,
+    region: &Region,
+) -> io::Result<usize> {
     reference_sequences
         .get_index_of(region.name())
         .ok_or_else(|| {

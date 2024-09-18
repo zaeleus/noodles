@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * sam/async/io/reader: Add query stream (`Reader::query`).
+
 ### Changed
 
   * sam: Update to lexical-core 1.0.0.

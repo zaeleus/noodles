@@ -57,7 +57,7 @@ where
     }
 }
 
-fn intersects(
+pub(crate) fn intersects(
     header: &Header,
     record: &Record,
     reference_sequence_id: usize,

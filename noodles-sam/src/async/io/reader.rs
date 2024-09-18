@@ -1,11 +1,15 @@
 mod header;
+mod query;
 mod record;
 mod record_buf;
 
 use futures::{stream, Stream};
-use tokio::io::{self, AsyncBufRead, AsyncBufReadExt};
+use noodles_bgzf as bgzf;
+use noodles_core::Region;
+use noodles_csi::BinningIndex;
+use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncSeek};
 
-use self::{header::read_header, record::read_record, record_buf::read_record_buf};
+use self::{header::read_header, query::query, record::read_record, record_buf::read_record_buf};
 use crate::{alignment::RecordBuf, Header, Record};
 
 /// An async SAM reader.
@@ -262,6 +266,64 @@ where
                     _ => Ok(Some((record.clone(), (reader, record)))),
                 }
             },
+        ))
+    }
+}
+
+impl<R> Reader<bgzf::AsyncReader<R>>
+where
+    R: AsyncRead + AsyncSeek + Unpin,
+{
+    /// Returns a stream over records that intersect the given region.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use futures::TryStreamExt;
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_csi as csi;
+    /// use noodles_sam as sam;
+    /// use tokio::fs::File;
+    ///
+    /// let mut reader = File::open("sample.sam")
+    ///     .await
+    ///     .map(bgzf::AsyncReader::new)
+    ///     .map(sam::r#async::io::Reader::new)?;
+    ///
+    /// let header = reader.read_header().await?;
+    ///
+    /// let index = csi::r#async::read("sample.sam.csi").await?;
+    /// let region = "sq0:8-13".parse()?;
+    /// let mut query = reader.query(&header, &index, &region)?;
+    ///
+    /// while let Some(record) = query.try_next().await? {
+    ///     // ...
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn query<'r, 'h: 'r, I>(
+        &'r mut self,
+        header: &'h Header,
+        index: &I,
+        region: &Region,
+    ) -> io::Result<impl Stream<Item = io::Result<Record>> + 'r>
+    where
+        I: BinningIndex,
+    {
+        use crate::io::reader::resolve_region;
+
+        let reference_sequence_id = resolve_region(header.reference_sequences(), region)?;
+        let chunks = index.query(reference_sequence_id, region.interval())?;
+
+        Ok(query(
+            self,
+            chunks,
+            header,
+            reference_sequence_id,
+            region.interval(),
         ))
     }
 }
