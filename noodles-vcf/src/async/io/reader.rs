@@ -353,7 +353,7 @@ where
     ///
     /// let header = reader.read_header().await?;
     ///
-    /// let index = tabix::read("sample.vcf.gz.tbi")?;
+    /// let index = tabix::r#async::read("sample.vcf.gz.tbi").await?;
     /// let region = "sq0:8-13".parse()?;
     /// let mut query = reader.query(&header, &index, &region)?;
     ///
