@@ -37,6 +37,10 @@ name = "sam_count_async"
 required-features = ["async"]
 
 [[example]]
+name = "sam_query_async"
+required-features = ["async"]
+
+[[example]]
 name = "sam_read_header_async"
 required-features = ["async"]
 
