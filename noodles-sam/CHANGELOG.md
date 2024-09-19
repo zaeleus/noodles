@@ -4,7 +4,8 @@
 
 ### Added
 
-  * sam/async/io/reader: Add query stream (`Reader::query`).
+  * sam/async/io/reader: Add query (`Reader::query`) and query unmapped
+    (`Reader::query_unmapped`) streams.
 
 ### Changed
 

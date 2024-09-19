@@ -3,7 +3,7 @@ mod query;
 mod record;
 mod record_buf;
 
-use futures::{stream, Stream};
+use futures::{stream, Stream, TryStreamExt};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
@@ -274,7 +274,21 @@ impl<R> Reader<bgzf::AsyncReader<R>>
 where
     R: AsyncRead + AsyncSeek + Unpin,
 {
+    // Seeks to the first record by setting the cursor to the beginning of the stream and
+    // (re)reading the header.
+    async fn seek_to_first_record(&mut self) -> io::Result<bgzf::VirtualPosition> {
+        self.get_mut()
+            .seek(bgzf::VirtualPosition::default())
+            .await?;
+
+        self.read_header().await?;
+
+        Ok(self.get_ref().virtual_position())
+    }
+
     /// Returns a stream over records that intersect the given region.
+    ///
+    /// To query for unmapped records, use [`Self::query_unmapped`].
     ///
     /// # Examples
     ///
@@ -325,6 +339,64 @@ where
             reference_sequence_id,
             region.interval(),
         ))
+    }
+
+    /// Returns an iterator of unmapped records after querying for the unmapped region.
+    ///
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use futures::TryStreamExt;
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_csi as csi;
+    /// use noodles_sam as sam;
+    /// use tokio::fs::File;
+    ///
+    /// let mut reader = File::open("sample.sam")
+    ///     .await
+    ///     .map(bgzf::AsyncReader::new)
+    ///     .map(sam::r#async::io::Reader::new)?;
+    ///
+    /// let index = csi::r#async::read("sample.sam.csi").await?;
+    /// let mut query = reader.query_unmapped(&index).await?;
+    ///
+    /// while let Some(record) = query.try_next().await? {
+    ///     // ...
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn query_unmapped<I>(
+        &mut self,
+        index: &I,
+    ) -> io::Result<impl Stream<Item = io::Result<Record>> + '_>
+    where
+        I: BinningIndex,
+    {
+        if let Some(pos) = index.last_first_record_start_position() {
+            self.get_mut().seek(pos).await?;
+        } else {
+            self.seek_to_first_record().await?;
+        }
+
+        Ok(Box::pin(stream::try_unfold(
+            self.records(),
+            |mut records| async {
+                loop {
+                    match records.try_next().await? {
+                        Some(record) => {
+                            if record.flags()?.is_unmapped() {
+                                return Ok(Some((record, records)));
+                            }
+                        }
+                        None => return Ok(None),
+                    }
+                }
+            },
+        )))
     }
 }
 
