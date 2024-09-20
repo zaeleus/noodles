@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## Added
+### Added
 
   * bam/async/io/reader: Add stream for querying unmapped records
     (`Reader::query_unmapped`).
