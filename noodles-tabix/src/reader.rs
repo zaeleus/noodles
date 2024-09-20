@@ -98,7 +98,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_index(&mut self) -> io::Result<Index> {
-        use csi::reader::index::read_header;
+        use csi::io::reader::index::read_header;
 
         read_magic(&mut self.inner)?;
 
@@ -160,7 +160,7 @@ fn read_bins<R>(reader: &mut R) -> io::Result<(IndexMap<usize, Bin>, Option<Meta
 where
     R: Read,
 {
-    use csi::reader::index::reference_sequences::{bins::read_chunks, read_metadata};
+    use csi::io::reader::index::reference_sequences::{bins::read_chunks, read_metadata};
 
     use super::index::DEPTH;
 

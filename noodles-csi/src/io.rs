@@ -5,10 +5,11 @@ mod indexed_reader;
 mod indexed_record;
 mod indexed_records;
 mod query;
+pub mod reader;
 
 pub use self::{
     filter_by_region::FilterByRegion, indexed_reader::IndexedReader, indexed_record::IndexedRecord,
-    indexed_records::IndexedRecords, query::Query,
+    indexed_records::IndexedRecords, query::Query, reader::Reader,
 };
 
 pub(crate) static MAGIC_NUMBER: &[u8] = b"CSI\x01";

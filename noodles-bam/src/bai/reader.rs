@@ -168,7 +168,7 @@ fn read_bins<R>(reader: &mut R) -> io::Result<(IndexMap<usize, Bin>, Option<Meta
 where
     R: Read,
 {
-    use csi::reader::index::reference_sequences::{bins::read_chunks, read_metadata};
+    use csi::io::reader::index::reference_sequences::{bins::read_chunks, read_metadata};
 
     use super::DEPTH;
 

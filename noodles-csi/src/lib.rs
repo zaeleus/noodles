@@ -7,14 +7,16 @@ pub mod r#async;
 
 pub mod binning_index;
 pub mod io;
-pub mod reader;
 mod writer;
 
-pub use self::{binning_index::BinningIndex, reader::Reader, writer::Writer};
+pub use self::{binning_index::BinningIndex, writer::Writer};
 
 use std::{fs::File, path::Path};
 
 use self::binning_index::index::reference_sequence::index::BinnedIndex;
+
+#[deprecated(since = "0.39.0", note = "Use `noodles_csi::io::Reader` instead.")]
+pub use self::io::Reader;
 
 #[cfg(feature = "async")]
 #[deprecated(

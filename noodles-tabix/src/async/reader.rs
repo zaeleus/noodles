@@ -157,7 +157,7 @@ where
 {
     use std::mem;
 
-    use csi::reader::index::read_header;
+    use csi::io::reader::index::read_header;
 
     const STATIC_FIELD_COUNT: usize = 6;
     const STATIC_HEADER_SIZE: usize = mem::size_of::<i32>() * STATIC_FIELD_COUNT;
