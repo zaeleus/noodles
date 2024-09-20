@@ -72,7 +72,7 @@ where
     ///
     /// ```
     /// use noodles_csi as csi;
-    /// let writer = csi::AsyncWriter::new(Vec::new());
+    /// let writer = csi::r#async::io::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
         Self {
@@ -90,7 +90,7 @@ where
     /// # #[tokio::main]
     /// # async fn main() -> io::Result<()> {
     /// use noodles_csi as csi;
-    /// let mut writer = csi::AsyncWriter::new(Vec::new());
+    /// let mut writer = csi::r#async::io::Writer::new(Vec::new());
     /// writer.shutdown().await?;
     /// # Ok(())
     /// # }
@@ -112,7 +112,7 @@ where
     ///
     /// let index = csi::Index::default();
     ///
-    /// let mut writer = csi::AsyncWriter::new(Vec::new());
+    /// let mut writer = csi::r#async::io::Writer::new(Vec::new());
     /// writer.write_index(&index).await?;
     /// # Ok(())
     /// # }

@@ -24,7 +24,11 @@ use self::binning_index::index::reference_sequence::index::BinnedIndex;
 pub use self::r#async::io::Reader as AsyncReader;
 
 #[cfg(feature = "async")]
-pub use self::r#async::Writer as AsyncWriter;
+#[deprecated(
+    since = "0.39.0",
+    note = "Use `noodles_csi::r#async::io::Writer` instead."
+)]
+pub use self::r#async::io::Writer as AsyncWriter;
 
 /// A coordinate-sorted index (CSI).
 pub type Index = binning_index::Index<BinnedIndex>;

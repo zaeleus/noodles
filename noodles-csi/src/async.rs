@@ -1,13 +1,11 @@
 //! Async CSI.
 
 pub mod io;
-mod writer;
 
 use std::path::Path;
 
 use tokio::fs::File;
 
-pub use self::writer::Writer;
 use super::Index;
 
 #[deprecated(
@@ -15,6 +13,12 @@ use super::Index;
     note = "Use `noodles_csi::r#async::io::Reader` instead."
 )]
 pub use self::io::Reader;
+
+#[deprecated(
+    since = "0.39.0",
+    note = "Use `noodles_csi::r#async::io::Writer` instead."
+)]
+pub use self::io::Writer;
 
 /// Reads the entire contents of a coordinate-sorted index (CSI).
 ///
