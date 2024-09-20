@@ -5,7 +5,7 @@ use std::io::{self, Write};
 use noodles_bgzf as bgzf;
 
 use self::index::write_index;
-use super::Index;
+use crate::Index;
 
 /// A CSI writer.
 pub struct Writer<W>
@@ -25,7 +25,7 @@ where
     ///
     /// ```
     /// use noodles_csi as csi;
-    /// let writer = csi::Writer::new(Vec::new());
+    /// let writer = csi::io::Writer::new(Vec::new());
     /// ```
     pub fn new(writer: W) -> Self {
         Self {
@@ -40,7 +40,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_csi as csi;
-    /// let writer = csi::Writer::new(io::sink());
+    /// let writer = csi::io::Writer::new(io::sink());
     /// let _inner = writer.get_ref();
     /// ```
     pub fn get_ref(&self) -> &bgzf::Writer<W> {
@@ -54,7 +54,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_csi as csi;
-    /// let mut writer = csi::Writer::new(io::sink());
+    /// let mut writer = csi::io::Writer::new(io::sink());
     /// let _inner = writer.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut bgzf::Writer<W> {
@@ -68,7 +68,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_csi as csi;
-    /// let writer = csi::Writer::new(io::sink());
+    /// let writer = csi::io::Writer::new(io::sink());
     /// let _inner = writer.into_inner();
     /// ```
     pub fn into_inner(self) -> bgzf::Writer<W> {
@@ -83,7 +83,7 @@ where
     /// # use std::io;
     /// use noodles_csi as csi;
     /// let index = csi::Index::default();
-    /// let mut writer = csi::Writer::new(Vec::new());
+    /// let mut writer = csi::io::Writer::new(Vec::new());
     /// writer.write_index(&index)?;
     /// # Ok::<(), io::Error>(())
     /// ```

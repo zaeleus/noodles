@@ -4,15 +4,15 @@
 
 ### Changed
 
-  * csi: Move reader (`Reader`) to `io` module.
+  * csi: Move reader (`Reader`) and writer (`Writer`) to `io` module.
 
   * csi/async: Move reader (`Reader`) and writer (`Writer`) to `io` module.
 
 ### Deprecated
 
-  * csi: Deprecate `Reader`.
+  * csi: Deprecate `Reader` and `Writer`.
 
-    Use `csi:::io::Reader` instead.
+    Use `csi:::io::Reader` and `csi::io::Writer`, respectively, instead.
 
   * csi: Deprecate `AsyncReader` and `AsyncWriter`.
 

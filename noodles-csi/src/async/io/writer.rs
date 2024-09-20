@@ -166,7 +166,7 @@ async fn write_aux<W>(writer: &mut W, header: Option<&Header>) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
-    use crate::writer::index::header::write_header as write_tabix_header;
+    use crate::io::writer::index::header::write_header as write_tabix_header;
 
     let mut aux = Vec::new();
 
