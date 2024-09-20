@@ -39,6 +39,7 @@ pub use self::io::Writer;
 pub use self::r#async::Reader as AsyncReader;
 
 #[cfg(feature = "async")]
+#[deprecated(since = "0.68.0", note = "Use `bai::r#async::io::Writer` instead.")]
 pub use self::r#async::Writer as AsyncWriter;
 
 use std::{

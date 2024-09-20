@@ -27,7 +27,7 @@ impl<W> Writer<W> {
     /// ```
     /// use noodles_bam::bai;
     /// use tokio::io;
-    /// let writer = bai::r#async::Writer::new(io::sink());
+    /// let writer = bai::r#async::io::Writer::new(io::sink());
     /// let _inner = writer.get_ref();
     /// ```
     pub fn get_ref(&self) -> &W {
@@ -41,7 +41,7 @@ impl<W> Writer<W> {
     /// ```
     /// use noodles_bam::bai;
     /// use tokio::io;
-    /// let mut writer = bai::r#async::Writer::new(io::sink());
+    /// let mut writer = bai::r#async::io::Writer::new(io::sink());
     /// let _inner = writer.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut W {
@@ -55,7 +55,7 @@ impl<W> Writer<W> {
     /// ```
     /// use noodles_bam::bai;
     /// use tokio::io;
-    /// let writer = bai::r#async::Writer::new(io::sink());
+    /// let writer = bai::r#async::io::Writer::new(io::sink());
     /// let _inner = writer.into_inner();
     /// ```
     pub fn into_inner(self) -> W {
@@ -73,7 +73,7 @@ where
     ///
     /// ```
     /// use noodles_bam::bai;
-    /// let writer = bai::AsyncWriter::new(Vec::new());
+    /// let writer = bai::r#async::io::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
         Self { inner }
@@ -89,7 +89,7 @@ where
     /// # #[tokio::main]
     /// # async fn main() -> io::Result<()> {
     /// use noodles_bam::bai;
-    /// let mut writer = bai::AsyncWriter::new(Vec::new());
+    /// let mut writer = bai::r#async::io::Writer::new(Vec::new());
     /// writer.shutdown().await?;
     /// # Ok(())
     /// # }
@@ -113,7 +113,7 @@ where
     ///
     /// let index = bai::Index::default();
     ///
-    /// let mut writer = bai::AsyncWriter::new(Vec::new());
+    /// let mut writer = bai::r#async::io::Writer::new(Vec::new());
     /// writer.write_index(&index).await?;
     /// # Ok(())
     /// # }
