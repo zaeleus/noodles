@@ -21,7 +21,7 @@ impl<R> Reader<R> {
     /// ```
     /// use noodles_bam::bai;
     /// use tokio::io;
-    /// let reader = bai::r#async::Reader::new(io::empty());
+    /// let reader = bai::r#async::io::Reader::new(io::empty());
     /// let _inner = reader.get_ref();
     /// ```
     pub fn get_ref(&self) -> &R {
@@ -35,7 +35,7 @@ impl<R> Reader<R> {
     /// ```
     /// use noodles_bam::bai;
     /// use tokio::io;
-    /// let mut reader = bai::r#async::Reader::new(io::empty());
+    /// let mut reader = bai::r#async::io::Reader::new(io::empty());
     /// let _inner = reader.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
@@ -49,7 +49,7 @@ impl<R> Reader<R> {
     /// ```
     /// use noodles_bam::bai;
     /// use tokio::io;
-    /// let reader = bai::r#async::Reader::new(io::empty());
+    /// let reader = bai::r#async::io::Reader::new(io::empty());
     /// let _inner = reader.into_inner();
     /// ```
     pub fn into_inner(self) -> R {
@@ -68,7 +68,7 @@ where
     /// ```
     /// use noodles_bam::bai;
     /// let data = [];
-    /// let reader = bai::AsyncReader::new(&data[..]);
+    /// let reader = bai::r#async::io::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
@@ -90,7 +90,7 @@ where
     ///
     /// let mut reader = File::open("sample.bam.bai")
     ///     .await
-    ///     .map(bai::AsyncReader::new)?;
+    ///     .map(bai::r#async::io::Reader::new)?;
     ///
     /// let index = reader.read_index().await?;
     /// # Ok(())

@@ -1,15 +1,18 @@
-//! Async BAM index (BAI) and fields.
+//! Async BAI.
 
-mod reader;
+pub mod io;
 mod writer;
 
-pub use self::{reader::Reader, writer::Writer};
+#[deprecated(since = "0.68.0", note = "Use `bai::r#async::io::Reader` instead.")]
+pub use self::io::Reader;
+
+pub use self::writer::Writer;
 
 use std::path::Path;
 
 use tokio::{
     fs::File,
-    io::{self, BufReader, BufWriter},
+    io::{BufReader, BufWriter},
 };
 
 use super::Index;
@@ -31,7 +34,7 @@ use super::Index;
 /// # Ok(())
 /// # }
 /// ```
-pub async fn read<P>(src: P) -> io::Result<Index>
+pub async fn read<P>(src: P) -> tokio::io::Result<Index>
 where
     P: AsRef<Path>,
 {
@@ -59,7 +62,7 @@ where
 /// # Ok(())
 /// # }
 /// ```
-pub async fn write<P>(dst: P, index: &Index) -> io::Result<()>
+pub async fn write<P>(dst: P, index: &Index) -> tokio::io::Result<()>
 where
     P: AsRef<Path>,
 {
