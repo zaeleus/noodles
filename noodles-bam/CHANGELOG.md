@@ -9,13 +9,13 @@
 
 ### Changed
 
-  * bam/bai: Move reader (`Reader`) to `io` module.
+  * bam/bai: Move reader (`Reader`) and writer (`Writer`) to `io` module.
 
 ### Deprecated
 
-  * bam/bai: Deprecate `Reader`.
+  * bam/bai: Deprecate `Reader` and `Writer`.
 
-    Use `bai::io::Reader` instead.
+    Use `bai::io::Reader` and `bai::io::Writer`, respectively, instead.
 
 ## 0.67.0 - 2024-09-04
 

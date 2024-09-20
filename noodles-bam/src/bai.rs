@@ -27,12 +27,12 @@
 pub mod r#async;
 
 pub mod io;
-mod writer;
-
-pub use self::writer::Writer;
 
 #[deprecated(since = "0.68.0", note = "Use `bai::io::Reader` instead.")]
 pub use self::io::Reader;
+
+#[deprecated(since = "0.68.0", note = "Use `bai::io::Writer` instead.")]
+pub use self::io::Writer;
 
 #[cfg(feature = "async")]
 pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};

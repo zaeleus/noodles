@@ -12,7 +12,7 @@ use noodles_csi::{
     BinningIndex,
 };
 
-use super::{Index, MAGIC_NUMBER};
+use crate::bai::{Index, MAGIC_NUMBER};
 
 /// A BAM index (BAI) writer.
 ///
@@ -25,7 +25,7 @@ use super::{Index, MAGIC_NUMBER};
 ///
 /// let index = bai::Index::default();
 ///
-/// let mut writer = File::create("sample.bam.bai").map(bai::Writer::new)?;
+/// let mut writer = File::create("sample.bam.bai").map(bai::io::Writer::new)?;
 /// writer.write_index(&index)?;
 /// # Ok::<(), io::Error>(())
 /// ```
@@ -41,7 +41,7 @@ impl<W> Writer<W> {
     /// ```
     /// # use std::io;
     /// use noodles_bam::bai;
-    /// let writer = bai::Writer::new(io::sink());
+    /// let writer = bai::io::Writer::new(io::sink());
     /// let _inner = writer.get_ref();
     /// ```
     pub fn get_ref(&self) -> &W {
@@ -55,7 +55,7 @@ impl<W> Writer<W> {
     /// ```
     /// # use std::io;
     /// use noodles_bam::bai;
-    /// let mut writer = bai::Writer::new(io::sink());
+    /// let mut writer = bai::io::Writer::new(io::sink());
     /// let _inner = writer.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut W {
@@ -69,7 +69,7 @@ impl<W> Writer<W> {
     /// ```
     /// # use std::io;
     /// use noodles_bam::bai;
-    /// let writer = bai::Writer::new(io::sink());
+    /// let writer = bai::io::Writer::new(io::sink());
     /// let _inner = writer.into_inner();
     /// ```
     pub fn into_inner(self) -> W {
@@ -87,7 +87,7 @@ where
     ///
     /// ```
     /// use noodles_bam::bai;
-    /// let writer = bai::Writer::new(Vec::new());
+    /// let writer = bai::io::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
         Self { inner }
@@ -103,7 +103,7 @@ where
     ///
     /// let index = bai::Index::default();
     ///
-    /// let mut writer = bai::Writer::new(Vec::new());
+    /// let mut writer = bai::io::Writer::new(Vec::new());
     /// writer.write_index(&index)?;
     /// # Ok::<(), io::Error>(())
     /// ```
@@ -199,7 +199,7 @@ fn write_metadata<W>(writer: &mut W, metadata: &Metadata) -> io::Result<()>
 where
     W: Write,
 {
-    use super::DEPTH;
+    use crate::bai::DEPTH;
 
     const METADATA_ID: usize = Bin::metadata_id(DEPTH);
     const METADATA_CHUNK_COUNT: usize = 2;
