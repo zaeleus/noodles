@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * csi/async: Move reader (`Reader`) to `io` module.
+
+### Deprecated
+
+  * csi: Deprecate `AsyncReader`.
+
+    Use `csi::r#async::io::Reader` instead.
+
 ## 0.38.0 - 2024-09-04
 
 ### Changed

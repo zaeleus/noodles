@@ -29,7 +29,7 @@ where
     /// ```
     /// use noodles_csi as csi;
     /// let data = [];
-    /// let reader = csi::AsyncReader::new(&data[..]);
+    /// let reader = csi::r#async::io::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
         Self {
@@ -44,7 +44,7 @@ where
     /// ```
     /// use noodles_csi as csi;
     /// use tokio::io;
-    /// let reader = csi::r#async::Reader::new(io::empty());
+    /// let reader = csi::r#async::io::Reader::new(io::empty());
     /// let _inner = reader.get_ref();
     /// ```
     pub fn get_ref(&self) -> &bgzf::AsyncReader<R> {
@@ -58,7 +58,7 @@ where
     /// ```
     /// use noodles_csi as csi;
     /// use tokio::io;
-    /// let mut reader = csi::r#async::Reader::new(io::empty());
+    /// let mut reader = csi::r#async::io::Reader::new(io::empty());
     /// let _inner = reader.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut bgzf::AsyncReader<R> {
@@ -72,7 +72,7 @@ where
     /// ```
     /// use noodles_csi as csi;
     /// use tokio::io;
-    /// let reader = csi::r#async::Reader::new(io::empty());
+    /// let reader = csi::r#async::io::Reader::new(io::empty());
     /// let _inner = reader.into_inner();
     /// ```
     pub fn into_inner(self) -> bgzf::AsyncReader<R> {
@@ -86,16 +86,14 @@ where
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_csi as csi;
     /// use tokio::fs::File;
     ///
     /// let mut reader = File::open("sample.bcf.csi")
     ///     .await
-    ///     .map(csi::AsyncReader::new)?;
+    ///     .map(csi::r#async::io::Reader::new)?;
     ///
     /// let index = reader.read_index().await?;
     /// # Ok(())

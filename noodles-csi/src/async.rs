@@ -1,15 +1,20 @@
-//! Async CSI index and fields.
+//! Async CSI.
 
-mod reader;
+pub mod io;
 mod writer;
-
-pub use self::{reader::Reader, writer::Writer};
 
 use std::path::Path;
 
-use tokio::{fs::File, io};
+use tokio::fs::File;
 
+pub use self::writer::Writer;
 use super::Index;
+
+#[deprecated(
+    since = "0.39.0",
+    note = "Use `noodles_csi::r#async::io::Reader` instead."
+)]
+pub use self::io::Reader;
 
 /// Reads the entire contents of a coordinate-sorted index (CSI).
 ///
@@ -28,7 +33,7 @@ use super::Index;
 /// # Ok(())
 /// # }
 /// ```
-pub async fn read<P>(src: P) -> io::Result<Index>
+pub async fn read<P>(src: P) -> tokio::io::Result<Index>
 where
     P: AsRef<Path>,
 {
@@ -54,7 +59,7 @@ where
 /// # Ok(())
 /// # }
 /// ```
-pub async fn write<P>(dst: P, index: &Index) -> io::Result<()>
+pub async fn write<P>(dst: P, index: &Index) -> tokio::io::Result<()>
 where
     P: AsRef<Path>,
 {

@@ -12,12 +12,19 @@ mod writer;
 
 pub use self::{binning_index::BinningIndex, reader::Reader, writer::Writer};
 
-#[cfg(feature = "async")]
-pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};
-
 use std::{fs::File, path::Path};
 
 use self::binning_index::index::reference_sequence::index::BinnedIndex;
+
+#[cfg(feature = "async")]
+#[deprecated(
+    since = "0.39.0",
+    note = "Use `noodles_csi::r#async::io::Reader` instead."
+)]
+pub use self::r#async::io::Reader as AsyncReader;
+
+#[cfg(feature = "async")]
+pub use self::r#async::Writer as AsyncWriter;
 
 /// A coordinate-sorted index (CSI).
 pub type Index = binning_index::Index<BinnedIndex>;
