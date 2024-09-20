@@ -11,7 +11,7 @@ use noodles_csi::{
     },
 };
 
-use super::{Index, MAGIC_NUMBER};
+use crate::bai::{Index, MAGIC_NUMBER};
 
 /// A BAM index (BAI) reader.
 ///
@@ -29,7 +29,7 @@ use super::{Index, MAGIC_NUMBER};
 /// ```no_run
 ///# use std::{fs::File, io};
 /// use noodles_bam::bai;
-/// let mut reader = File::open("sample.bam.bai").map(bai::Reader::new)?;
+/// let mut reader = File::open("sample.bam.bai").map(bai::io::Reader::new)?;
 /// let index = reader.read_index()?;
 /// # Ok::<(), io::Error>(())
 /// ```
@@ -45,7 +45,7 @@ impl<R> Reader<R> {
     /// ```
     /// # use std::io;
     /// use noodles_bam::bai;
-    /// let reader = bai::Reader::new(io::empty());
+    /// let reader = bai::io::Reader::new(io::empty());
     /// let _inner = reader.get_ref();
     /// ```
     pub fn get_ref(&self) -> &R {
@@ -59,7 +59,7 @@ impl<R> Reader<R> {
     /// ```
     /// # use std::io;
     /// use noodles_bam::bai;
-    /// let mut reader = bai::Reader::new(io::empty());
+    /// let mut reader = bai::io::Reader::new(io::empty());
     /// let _inner = reader.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
@@ -73,7 +73,7 @@ impl<R> Reader<R> {
     /// ```
     /// # use std::io;
     /// use noodles_bam::bai;
-    /// let reader = bai::Reader::new(io::empty());
+    /// let reader = bai::io::Reader::new(io::empty());
     /// let _inner = reader.into_inner();
     /// ```
     pub fn into_inner(self) -> R {
@@ -92,7 +92,7 @@ where
     /// ```no_run
     /// # use std::{fs::File, io};
     /// use noodles_bam::bai;
-    /// let reader = File::open("sample.bam.bai").map(bai::Reader::new)?;
+    /// let reader = File::open("sample.bam.bai").map(bai::io::Reader::new)?;
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn new(inner: R) -> Self {
@@ -108,7 +108,7 @@ where
     /// ```no_run
     /// # use std::{fs::File, io};
     /// use noodles_bam::bai;
-    /// let mut reader = File::open("sample.bam.bai").map(bai::Reader::new)?;
+    /// let mut reader = File::open("sample.bam.bai").map(bai::io::Reader::new)?;
     /// let index = reader.read_index()?;
     /// # Ok::<(), io::Error>(())
     /// ```
@@ -170,7 +170,7 @@ where
 {
     use csi::io::reader::index::reference_sequences::{bins::read_chunks, read_metadata};
 
-    use super::DEPTH;
+    use crate::bai::DEPTH;
 
     const METADATA_ID: usize = Bin::metadata_id(DEPTH);
 

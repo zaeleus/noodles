@@ -26,17 +26,20 @@
 #[cfg(feature = "async")]
 pub mod r#async;
 
-mod reader;
+pub mod io;
 mod writer;
 
-pub use self::{reader::Reader, writer::Writer};
+pub use self::writer::Writer;
+
+#[deprecated(since = "0.68.0", note = "Use `bai::io::Reader` instead.")]
+pub use self::io::Reader;
 
 #[cfg(feature = "async")]
 pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};
 
 use std::{
     fs::File,
-    io::{self, BufReader, BufWriter},
+    io::{BufReader, BufWriter},
     path::Path,
 };
 
@@ -61,7 +64,7 @@ pub type Index = binning_index::Index<LinearIndex>;
 /// let index = bai::read("sample.bam.bai")?;
 /// # Ok::<(), std::io::Error>(())
 /// ```
-pub fn read<P>(src: P) -> io::Result<Index>
+pub fn read<P>(src: P) -> std::io::Result<Index>
 where
     P: AsRef<Path>,
 {
@@ -82,7 +85,7 @@ where
 /// bai::write("sample.bam.bai", &index)?;
 /// # Ok::<(), std::io::Error>(())
 /// ```
-pub fn write<P>(dst: P, index: &Index) -> io::Result<()>
+pub fn write<P>(dst: P, index: &Index) -> std::io::Result<()>
 where
     P: AsRef<Path>,
 {

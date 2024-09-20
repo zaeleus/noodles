@@ -7,6 +7,16 @@
   * bam/async/io/reader: Add stream for querying unmapped records
     (`Reader::query_unmapped`).
 
+### Changed
+
+  * bam/bai: Move reader (`Reader`) to `io` module.
+
+### Deprecated
+
+  * bam/bai: Deprecate `Reader`.
+
+    Use `bai::io::Reader` instead.
+
 ## 0.67.0 - 2024-09-04
 
 ### Added
