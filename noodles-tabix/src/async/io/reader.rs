@@ -30,7 +30,7 @@ where
     /// ```
     /// use noodles_tabix as tabix;
     /// let data = [];
-    /// let reader = tabix::AsyncReader::new(&data[..]);
+    /// let reader = tabix::r#async::io::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
         Self {
@@ -45,7 +45,7 @@ where
     /// ```
     /// use noodles_tabix as tabix;
     /// use tokio::io;
-    /// let reader = tabix::r#async::Reader::new(io::empty());
+    /// let reader = tabix::r#async::io::Reader::new(io::empty());
     /// let _inner = reader.get_ref();
     /// ```
     pub fn get_ref(&self) -> &bgzf::AsyncReader<R> {
@@ -59,7 +59,7 @@ where
     /// ```
     /// use noodles_tabix as tabix;
     /// use tokio::io;
-    /// let mut reader = tabix::r#async::Reader::new(io::empty());
+    /// let mut reader = tabix::r#async::io::Reader::new(io::empty());
     /// let _inner = reader.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut bgzf::AsyncReader<R> {
@@ -73,7 +73,7 @@ where
     /// ```
     /// use noodles_tabix as tabix;
     /// use tokio::io;
-    /// let reader = tabix::r#async::Reader::new(io::empty());
+    /// let reader = tabix::r#async::io::Reader::new(io::empty());
     /// let _inner = reader.into_inner();
     /// ```
     pub fn into_inner(self) -> bgzf::AsyncReader<R> {
@@ -96,7 +96,7 @@ where
     ///
     /// let mut reader = File::open("sample.vcf.gz.tbi")
     ///     .await
-    ///     .map(tabix::AsyncReader::new)?;
+    ///     .map(tabix::r#async::io::Reader::new)?;
     ///
     /// let index = reader.read_index().await?;
     /// # Ok(())
