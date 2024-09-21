@@ -11,7 +11,7 @@ use noodles_csi::{
     },
 };
 
-use super::{Index, MAGIC_NUMBER};
+use crate::{Index, MAGIC_NUMBER};
 
 /// A tabix reader.
 ///
@@ -28,7 +28,7 @@ impl<R> Reader<R> {
     /// ```
     /// # use std::io;
     /// use noodles_tabix as tabix;
-    /// let reader = tabix::Reader::new(io::empty());
+    /// let reader = tabix::io::Reader::new(io::empty());
     /// let _inner = reader.get_ref();
     /// ```
     pub fn get_ref(&self) -> &bgzf::Reader<R> {
@@ -42,7 +42,7 @@ impl<R> Reader<R> {
     /// ```
     /// # use std::io;
     /// use noodles_tabix as tabix;
-    /// let mut reader = tabix::Reader::new(io::empty());
+    /// let mut reader = tabix::io::Reader::new(io::empty());
     /// let _inner = reader.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut bgzf::Reader<R> {
@@ -56,7 +56,7 @@ impl<R> Reader<R> {
     /// ```
     /// # use std::io;
     /// use noodles_tabix as tabix;
-    /// let reader = tabix::Reader::new(io::empty());
+    /// let reader = tabix::io::Reader::new(io::empty());
     /// let _inner = reader.into_inner();
     /// ```
     pub fn into_inner(self) -> bgzf::Reader<R> {
@@ -75,7 +75,7 @@ where
     /// ```no_run
     /// # use std::{fs::File, io};
     /// use noodles_tabix as tabix;;
-    /// let reader = File::open("sample.vcf.gz.tbi").map(tabix::Reader::new)?;
+    /// let reader = File::open("sample.vcf.gz.tbi").map(tabix::io::Reader::new)?;
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn new(reader: R) -> Self {
@@ -93,7 +93,7 @@ where
     /// ```no_run
     /// # use std::{fs::File, io};
     /// use noodles_tabix as tabix;;
-    /// let mut reader = File::open("sample.vcf.gz.tbi").map(tabix::Reader::new)?;
+    /// let mut reader = File::open("sample.vcf.gz.tbi").map(tabix::io::Reader::new)?;
     /// let index = reader.read_index()?;
     /// # Ok::<(), io::Error>(())
     /// ```
@@ -162,7 +162,7 @@ where
 {
     use csi::io::reader::index::reference_sequences::{bins::read_chunks, read_metadata};
 
-    use super::index::DEPTH;
+    use crate::index::DEPTH;
 
     const METADATA_ID: usize = Bin::metadata_id(DEPTH);
 

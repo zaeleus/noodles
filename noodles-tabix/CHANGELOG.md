@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * tabix: Move reader (`Reader`) to `io` module.
+
+### Deprecated
+
+  * tabix: Deprecate `Reader`.
+
+    Use `tabix::io::Reader` instead.
+
 ## 0.44.0 - 2024-09-04
 
 ### Changed
