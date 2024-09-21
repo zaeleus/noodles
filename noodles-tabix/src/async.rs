@@ -1,7 +1,6 @@
 //! Async tabix.
 
 pub mod io;
-mod writer;
 
 #[deprecated(
     since = "0.45.0",
@@ -9,7 +8,11 @@ mod writer;
 )]
 pub use self::io::Reader;
 
-pub use self::writer::Writer;
+#[deprecated(
+    since = "0.45.0",
+    note = "Use `noodles_tabix::r#async::io::Reader` instead."
+)]
+pub use self::io::Writer;
 
 use std::path::Path;
 

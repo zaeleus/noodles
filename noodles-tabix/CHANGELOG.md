@@ -6,7 +6,8 @@
 
   * tabix: Move reader (`Reader`) and writer (`Writer`) to `io` module.
 
-  * tabix/async: Move reader (`Reader`) to `io` module.
+  * tabix/async: Move reader (`Reader`) and writer (`Writer`) to `io`
+    module.
 
 ### Deprecated
 
@@ -14,9 +15,10 @@
 
     Use `tabix::io::Reader` and `tabix::io::Writer`, respectively, instead.
 
-  * tabix: Deprecate `AsyncReader`.
+  * tabix: Deprecate `AsyncReader` and `AsyncWriter`.
 
-    Use `tabix::r#async::io::Reader` instead.
+    Use `tabix::r#async::io::Reader` and `tabix::r#async::io::Writer`,
+    respectively, instead.
 
 ## 0.44.0 - 2024-09-04
 

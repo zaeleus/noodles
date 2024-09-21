@@ -30,7 +30,7 @@ impl<W> Writer<W> {
     /// ```
     /// use noodles_tabix as tabix;
     /// use tokio::io;
-    /// let writer = tabix::r#async::Writer::new(io::sink());
+    /// let writer = tabix::r#async::io::Writer::new(io::sink());
     /// let _inner = writer.get_ref();
     /// ```
     pub fn get_ref(&self) -> &bgzf::AsyncWriter<W> {
@@ -44,7 +44,7 @@ impl<W> Writer<W> {
     /// ```
     /// use noodles_tabix as tabix;
     /// use tokio::io;
-    /// let mut writer = tabix::r#async::Writer::new(io::sink());
+    /// let mut writer = tabix::r#async::io::Writer::new(io::sink());
     /// let _inner = writer.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut bgzf::AsyncWriter<W> {
@@ -58,7 +58,7 @@ impl<W> Writer<W> {
     /// ```
     /// use noodles_tabix as tabix;
     /// use tokio::io;
-    /// let writer = tabix::r#async::Writer::new(io::sink());
+    /// let writer = tabix::r#async::io::Writer::new(io::sink());
     /// let _inner = writer.into_inner();
     /// ```
     pub fn into_inner(self) -> bgzf::AsyncWriter<W> {
@@ -76,7 +76,7 @@ where
     ///
     /// ```
     /// use noodles_tabix as tabix;
-    /// let writer = tabix::AsyncWriter::new(Vec::new());
+    /// let writer = tabix::r#async::io::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
         Self {
@@ -92,7 +92,7 @@ where
     /// # #[tokio::main]
     /// # async fn main() -> std::io::Result<()> {
     /// use noodles_tabix as tabix;
-    /// let mut writer = tabix::AsyncWriter::new(Vec::new());
+    /// let mut writer = tabix::r#async::io::Writer::new(Vec::new());
     /// writer.shutdown().await?;
     /// # Ok(())
     /// # }
@@ -113,7 +113,7 @@ where
     ///
     /// let index = tabix::Index::builder().set_header(Header::default()).build();
     ///
-    /// let mut writer = tabix::AsyncWriter::new(Vec::new());
+    /// let mut writer = tabix::r#async::io::Writer::new(Vec::new());
     /// writer.write_index(&index).await?;
     /// # Ok(())
     /// # }
