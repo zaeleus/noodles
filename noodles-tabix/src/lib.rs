@@ -30,12 +30,12 @@ pub mod r#async;
 
 pub mod index;
 pub mod io;
-mod writer;
 
 #[deprecated(since = "0.45.0", note = "Use `noodles_tabix::io::Reader` instead.")]
 pub use self::io::Reader;
 
-pub use self::writer::Writer;
+#[deprecated(since = "0.45.0", note = "Use `noodles_tabix::io::Writer` instead.")]
+pub use self::io::Writer;
 
 #[cfg(feature = "async")]
 pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};

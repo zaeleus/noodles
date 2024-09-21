@@ -14,7 +14,7 @@ use noodles_csi::{
     BinningIndex,
 };
 
-use super::{Index, MAGIC_NUMBER};
+use crate::{Index, MAGIC_NUMBER};
 
 /// A tabix writer.
 pub struct Writer<W>
@@ -34,7 +34,7 @@ where
     ///
     /// ```
     /// use noodles_tabix as tabix;
-    /// let writer = tabix::Writer::new(Vec::new());
+    /// let writer = tabix::io::Writer::new(Vec::new());
     /// ```
     pub fn new(writer: W) -> Self {
         Self {
@@ -49,7 +49,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_tabix as tabix;
-    /// let writer = tabix::Writer::new(io::sink());
+    /// let writer = tabix::io::Writer::new(io::sink());
     /// let _inner = writer.get_ref();
     /// ```
     pub fn get_ref(&self) -> &bgzf::Writer<W> {
@@ -63,7 +63,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_tabix as tabix;
-    /// let mut writer = tabix::Writer::new(io::sink());
+    /// let mut writer = tabix::io::Writer::new(io::sink());
     /// let _inner = writer.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut bgzf::Writer<W> {
@@ -77,7 +77,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_tabix as tabix;
-    /// let writer = tabix::Writer::new(io::sink());
+    /// let writer = tabix::io::Writer::new(io::sink());
     /// let _inner = writer.into_inner();
     /// ```
     pub fn into_inner(self) -> bgzf::Writer<W> {
@@ -94,7 +94,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_tabix as tabix;
-    /// let mut writer = tabix::Writer::new(Vec::new());
+    /// let mut writer = tabix::io::Writer::new(Vec::new());
     /// writer.try_finish()?;
     /// # Ok::<(), io::Error>(())
     /// ```
@@ -110,7 +110,7 @@ where
     /// use noodles_csi::binning_index::index::Header;
     /// use noodles_tabix as tabix;
     ///
-    /// let mut writer = tabix::Writer::new(Vec::new());
+    /// let mut writer = tabix::io::Writer::new(Vec::new());
     /// let index = tabix::Index::builder().set_header(Header::default()).build();
     /// writer.write_index(&index)?;
     /// # Ok::<(), std::io::Error>(())
@@ -311,7 +311,7 @@ fn write_metadata<W>(writer: &mut W, metadata: &Metadata) -> io::Result<()>
 where
     W: Write,
 {
-    use super::index::DEPTH;
+    use crate::index::DEPTH;
 
     const METADATA_ID: usize = Bin::metadata_id(DEPTH);
     const METADATA_CHUNK_COUNT: usize = 2;

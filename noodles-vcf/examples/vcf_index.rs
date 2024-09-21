@@ -18,7 +18,7 @@ fn main() -> io::Result<()> {
     let index = vcf::index(src)?;
 
     let stdout = io::stdout().lock();
-    let mut writer = tabix::Writer::new(BufWriter::new(stdout));
+    let mut writer = tabix::io::Writer::new(BufWriter::new(stdout));
     writer.write_index(&index)?;
 
     Ok(())

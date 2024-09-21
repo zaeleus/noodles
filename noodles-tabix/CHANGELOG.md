@@ -4,13 +4,13 @@
 
 ### Changed
 
-  * tabix: Move reader (`Reader`) to `io` module.
+  * tabix: Move reader (`Reader`) and writer (`Writer`) to `io` module.
 
 ### Deprecated
 
-  * tabix: Deprecate `Reader`.
+  * tabix: Deprecate `Reader` and `Writer`.
 
-    Use `tabix::io::Reader` instead.
+    Use `tabix::io::Reader` and `tabix::io::Writer`, respectively, instead.
 
 ## 0.44.0 - 2024-09-04
 

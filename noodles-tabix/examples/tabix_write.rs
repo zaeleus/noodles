@@ -42,7 +42,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let index = indexer.build();
 
     let index_dst = format!("{DST}.tbi");
-    let mut writer = File::create(index_dst).map(tabix::Writer::new)?;
+    let mut writer = File::create(index_dst).map(tabix::io::Writer::new)?;
     writer.write_index(&index)?;
 
     Ok(())
