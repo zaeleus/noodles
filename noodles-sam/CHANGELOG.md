@@ -11,6 +11,13 @@
 
   * sam: Update to lexical-core 1.0.0.
 
+## Deprecated
+
+  * sam: Deprecated async re-exports (`AsyncReader` and `AsyncWriter`).
+
+    Use `sam::r#async::io::Reader` and `sam::r#async::io::Writer`
+    instead.
+
 ## 0.64.0 - 2024-09-04
 
 ### Changed
