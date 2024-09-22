@@ -54,6 +54,11 @@ pub mod record;
 pub use self::record::Record;
 
 #[cfg(feature = "async")]
-pub use self::r#async::io::{Reader as AsyncReader, Writer as AsyncWriter};
+#[deprecated(since = "0.68.0", note = "Use `bam::r#async::io::Reader` instead.")]
+pub use self::r#async::io::Reader as AsyncReader;
+
+#[cfg(feature = "async")]
+#[deprecated(since = "0.68.0", note = "Use `bam::r#async::io::Writer` instead.")]
+pub use self::r#async::io::Writer as AsyncWriter;
 
 static MAGIC_NUMBER: &[u8] = b"BAM\x01";

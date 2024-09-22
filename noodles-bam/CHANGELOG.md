@@ -15,6 +15,11 @@
 
 ### Deprecated
 
+  * bam: Deprecate async re-exports (`AsyncReader` and `AsyncWriter`).
+
+    Use `bam::r#async::io::Reader` and `bam::r#async::io::Writer`
+    instead.
+
   * bam/bai: Deprecate `Reader` and `Writer`.
 
     Use `bai::io::Reader` and `bai::io::Writer`, respectively, instead.
