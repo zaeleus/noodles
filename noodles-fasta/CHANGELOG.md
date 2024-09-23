@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * fasta/fai: Move reader (`Reader`) to `io` module.
+
+### Deprecated
+
+  * fasta/fai: Deprecate `Reader`.
+
+    Use `fai::io::Reader` instead.
+
 ## 0.43.0 - 2024-09-04
 
 ### Changed

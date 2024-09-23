@@ -1,6 +1,6 @@
 use std::io::{self, BufRead};
 
-use super::Index;
+use crate::fai::Index;
 
 /// A FASTA index reader.
 pub struct Reader<R> {
@@ -14,8 +14,8 @@ impl<R> Reader<R> {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_fasta as fasta;
-    /// let reader = fasta::Reader::new(io::empty());
+    /// use noodles_fasta::fai;
+    /// let reader = fai::io::Reader::new(io::empty());
     /// let _inner = reader.get_ref();
     /// ```
     pub fn get_ref(&self) -> &R {
@@ -28,8 +28,8 @@ impl<R> Reader<R> {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_fasta as fasta;
-    /// let mut reader = fasta::Reader::new(io::empty());
+    /// use noodles_fasta::fai;
+    /// let mut reader = fai::io::Reader::new(io::empty());
     /// let _inner = reader.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
@@ -42,8 +42,8 @@ impl<R> Reader<R> {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_fasta as fasta;
-    /// let reader = fasta::Reader::new(io::empty());
+    /// use noodles_fasta::fai;
+    /// let reader = fai::io::Reader::new(io::empty());
     /// let _inner = reader.into_inner();
     /// ```
     pub fn into_inner(self) -> R {
@@ -62,7 +62,7 @@ where
     /// ```
     /// use noodles_fasta::fai;
     /// let data = b"sq0\t13\t5\t80\t81\nsq1\t21\t19\t80\t81\n";
-    /// let mut reader = fai::Reader::new(&data[..]);
+    /// let mut reader = fai::io::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
@@ -79,7 +79,7 @@ where
     /// use noodles_fasta::fai;
     ///
     /// let data = b"sq0\t13\t5\t80\t81\nsq1\t21\t19\t80\t81\n";
-    /// let mut reader = fai::Reader::new(&data[..]);
+    /// let mut reader = fai::io::Reader::new(&data[..]);
     /// let index = reader.read_index()?;
     ///
     /// assert_eq!(index, fai::Index::from(vec![

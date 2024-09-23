@@ -4,20 +4,19 @@
 mod r#async;
 
 mod index;
-mod reader;
+pub mod io;
 mod record;
 mod writer;
 
-pub use self::{index::Index, reader::Reader, record::Record, writer::Writer};
+pub use self::{index::Index, record::Record, writer::Writer};
+
+#[deprecated(since = "0.44.0", note = "Use `fai::io::Reader` instead.")]
+pub use self::io::Reader;
 
 #[cfg(feature = "async")]
 pub use self::r#async::Reader as AsyncReader;
 
-use std::{
-    fs::File,
-    io::{self, BufReader},
-    path::Path,
-};
+use std::{fs::File, io::BufReader, path::Path};
 
 /// Reads the entire contents of a FASTA index.
 ///
@@ -32,7 +31,7 @@ use std::{
 /// let index = fai::read("reference.fa.fai")?;
 /// # Ok::<(), io::Error>(())
 /// ```
-pub fn read<P>(src: P) -> io::Result<Index>
+pub fn read<P>(src: P) -> std::io::Result<Index>
 where
     P: AsRef<Path>,
 {
