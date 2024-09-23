@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Deprecated
+
+  * cram: Deprecate async re-exports (`AsyncReader` and `AsyncWriter`).
+
+    Use `cram::r#async::io::Reader` and `cram::r#async::io::Writer` instead.
+
 ## 0.68.0 - 2024-09-04
 
 ### Added
