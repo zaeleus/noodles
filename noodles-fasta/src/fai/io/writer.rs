@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use super::{Index, Record};
+use crate::fai::{Index, Record};
 
 /// A FASTA index writer.
 pub struct Writer<W> {
@@ -15,7 +15,7 @@ impl<W> Writer<W> {
     /// ```
     /// # use std::io;
     /// use noodles_fasta::fai;
-    /// let writer = fai::Writer::new(io::sink());
+    /// let writer = fai::io::Writer::new(io::sink());
     /// let _inner = writer.get_ref();
     /// ```
     pub fn get_ref(&self) -> &W {
@@ -29,7 +29,7 @@ impl<W> Writer<W> {
     /// ```
     /// # use std::io;
     /// use noodles_fasta::fai;
-    /// let mut writer = fai::Writer::new(io::sink());
+    /// let mut writer = fai::io::Writer::new(io::sink());
     /// let _inner = writer.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut W {
@@ -43,7 +43,7 @@ impl<W> Writer<W> {
     /// ```
     /// # use std::io;
     /// use noodles_fasta::fai;
-    /// let writer = fai::Writer::new(io::sink());
+    /// let writer = fai::io::Writer::new(io::sink());
     /// let _inner = writer.into_inner();
     /// ```
     pub fn into_inner(self) -> W {
@@ -61,7 +61,7 @@ where
     ///
     /// ```
     /// use noodles_fasta::fai;
-    /// let mut writer = fai::Writer::new(Vec::new());
+    /// let mut writer = fai::io::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
         Self { inner }
@@ -75,7 +75,7 @@ where
     /// # use std::io;
     /// use noodles_fasta::fai;
     ///
-    /// let mut writer = fai::Writer::new(Vec::new());
+    /// let mut writer = fai::io::Writer::new(Vec::new());
     ///
     /// let index = fai::Index::from(vec![fai::Record::new("sq0", 13, 5, 80, 81)]);
     /// writer.write_index(&index)?;

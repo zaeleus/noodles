@@ -6,12 +6,14 @@ mod r#async;
 mod index;
 pub mod io;
 mod record;
-mod writer;
 
-pub use self::{index::Index, record::Record, writer::Writer};
+pub use self::{index::Index, record::Record};
 
 #[deprecated(since = "0.44.0", note = "Use `fai::io::Reader` instead.")]
 pub use self::io::Reader;
+
+#[deprecated(since = "0.44.0", note = "Use `fai::io::Writer` instead.")]
+pub use self::io::Writer;
 
 #[cfg(feature = "async")]
 pub use self::r#async::Reader as AsyncReader;

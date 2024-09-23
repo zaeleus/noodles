@@ -4,13 +4,13 @@
 
 ### Changed
 
-  * fasta/fai: Move reader (`Reader`) to `io` module.
+  * fasta/fai: Move reader (`Reader`) and writer (`Writer`) to `io` module.
 
 ### Deprecated
 
-  * fasta/fai: Deprecate `Reader`.
+  * fasta/fai: Deprecate `Reader` and `Writer`.
 
-    Use `fai::io::Reader` instead.
+    Use `fai::io::Reader` and `fai::io::Writer`, respectively, instead.
 
 ## 0.43.0 - 2024-09-04
 
