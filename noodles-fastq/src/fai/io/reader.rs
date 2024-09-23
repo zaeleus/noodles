@@ -14,7 +14,7 @@ impl<R> Reader<R> {
     /// ```
     /// # use std::io;
     /// use noodles_fastq::fai;
-    /// let reader = fai::Reader::new(io::empty());
+    /// let reader = fai::io::Reader::new(io::empty());
     /// let _inner = reader.get_ref();
     /// ```
     pub fn get_ref(&self) -> &R {
@@ -28,7 +28,7 @@ impl<R> Reader<R> {
     /// ```
     /// # use std::io;
     /// use noodles_fastq::fai;
-    /// let mut reader = fai::Reader::new(io::empty());
+    /// let mut reader = fai::io::Reader::new(io::empty());
     /// let _inner = reader.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
@@ -42,7 +42,7 @@ impl<R> Reader<R> {
     /// ```
     /// # use std::io;
     /// use noodles_fastq::fai;
-    /// let reader = fai::Reader::new(io::empty());
+    /// let reader = fai::io::Reader::new(io::empty());
     /// let _inner = reader.into_inner();
     /// ```
     pub fn into_inner(self) -> R {
@@ -61,7 +61,7 @@ where
     /// ```
     /// use noodles_fastq::fai;
     /// let data = b"r0\t4\t4\t4\t5\t11\n";
-    /// let mut reader = fai::Reader::new(&data[..]);
+    /// let mut reader = fai::io::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
@@ -85,7 +85,7 @@ where
     /// use noodles_fastq::fai;
     ///
     /// let data = b"r0\t4\t4\t4\t5\t11\n";
-    /// let mut reader = fai::Reader::new(&data[..]);
+    /// let mut reader = fai::io::Reader::new(&data[..]);
     ///
     /// let mut buf = String::new();
     /// reader.read_record(&mut buf)?;

@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * fastq/fai: Move reader (`Reader`) to `io` module.
+
+### Deprecated
+
+  * fastq/fai: Deprecate `Reader`.
+
+    Use `fai::io::Reader` instead.
+
 ## 0.14.0 - 2024-08-04
 
 ### Added

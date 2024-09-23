@@ -1,10 +1,13 @@
-//! FASTQ index (FAI) and fields.
+//! FASTQ index.
 
-mod reader;
+pub mod io;
 mod record;
 mod writer;
 
-pub use self::{reader::Reader, record::Record, writer::Writer};
+#[deprecated(since = "0.15.0", note = "Use `fai::io::Reader` instead.")]
+pub use self::io::Reader;
+
+pub use self::{record::Record, writer::Writer};
 
 /// A FASTQ index.
 pub type Index = Vec<Record>;
