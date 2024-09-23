@@ -1,7 +1,7 @@
 //! FASTA index (FAI) and fields.
 
 #[cfg(feature = "async")]
-mod r#async;
+pub mod r#async;
 
 mod index;
 pub mod io;
@@ -16,7 +16,8 @@ pub use self::io::Reader;
 pub use self::io::Writer;
 
 #[cfg(feature = "async")]
-pub use self::r#async::Reader as AsyncReader;
+#[deprecated(since = "0.44.0", note = "Use `fai::r#async::io::Reader` instead.")]
+pub use self::r#async::io::Reader as AsyncReader;
 
 use std::{fs::File, io::BufReader, path::Path};
 

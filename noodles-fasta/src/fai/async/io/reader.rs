@@ -18,7 +18,7 @@ where
     /// ```
     /// use noodles_fasta::fai;
     /// let data = [];
-    /// let mut reader = fai::AsyncReader::new(&data[..]);
+    /// let mut reader = fai::r#async::io::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
@@ -38,7 +38,7 @@ where
     /// use noodles_fasta::fai;
     ///
     /// let data = b"sq0\t13\t5\t80\t81\nsq1\t21\t19\t80\t81\n";
-    /// let mut reader = fai::AsyncReader::new(&data[..]);
+    /// let mut reader = fai::r#async::io::Reader::new(&data[..]);
     ///
     /// let index = reader.read_index().await?;
     ///
