@@ -4,7 +4,7 @@
 
 ### Changed
 
-  * vcf/io/writer/record/info/field/value/integer: Validate value.
+  * vcf/io/writer/record: Validate integer value.
 
     Integer values must now be > -2^31 + 7. See _The Variant Call Format
     Specification: VCFv4.5 and BCFv2.2_ (2024-06-28) § 1.3 "Data types".
