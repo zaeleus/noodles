@@ -157,7 +157,7 @@ impl Builder {
             (Format::Cram, Some(CompressionMethod::Bgzf)) => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
-                    "CRAM cannot be bgzip-compressed",
+                    "invalid format compression method: CRAM cannot be bgzip-compressed",
                 ))
             }
         };
