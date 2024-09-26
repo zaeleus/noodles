@@ -1,6 +1,6 @@
 [package]
 name = "noodles-util"
-version = "0.53.0"
+version = "0.53.1"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
@@ -40,15 +40,15 @@ variant = [
 
 [dependencies]
 flate2 = { workspace = true }
-noodles-bam = { path = "../noodles-bam", version = "0.67.0", optional = true }
-noodles-bcf = { path = "../noodles-bcf", version = "0.61.0", optional = true }
+noodles-bam = { path = "../noodles-bam", version = "0.68.0", optional = true }
+noodles-bcf = { path = "../noodles-bcf", version = "0.62.0", optional = true }
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.33.0", optional = true }
 noodles-core = { path = "../noodles-core", version = "0.15.0", optional = true }
-noodles-cram = { path = "../noodles-cram", version = "0.68.0", optional = true }
-noodles-csi = { path = "../noodles-csi", version = "0.38.0", optional = true }
-noodles-fasta = { path = "../noodles-fasta", version = "0.43.0", optional = true }
-noodles-sam = { path = "../noodles-sam", version = "0.64.0", optional = true }
-noodles-vcf = { path = "../noodles-vcf", version = "0.65.0", optional = true }
+noodles-cram = { path = "../noodles-cram", version = "0.69.0", optional = true }
+noodles-csi = { path = "../noodles-csi", version = "0.39.0", optional = true }
+noodles-fasta = { path = "../noodles-fasta", version = "0.44.0", optional = true }
+noodles-sam = { path = "../noodles-sam", version = "0.65.0", optional = true }
+noodles-vcf = { path = "../noodles-vcf", version = "0.66.0", optional = true }
 
 futures = { workspace = true, optional = true, features = ["std"] }
 tokio = { workspace = true, optional = true, features = ["fs", "io-util"] }
