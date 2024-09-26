@@ -158,19 +158,33 @@ impl Builder {
                 "source not bgzip-compressed",
             )),
             (Format::Sam, Some(CompressionMethod::Bgzf)) => {
-                sam::io::indexed_reader::Builder::default()
-                    .build_from_path(src)
-                    .map(IndexedReader::Sam)
+                let mut builder = sam::io::indexed_reader::Builder::default();
+
+                if let Some(Index::Csi(index)) = self.index {
+                    builder = builder.set_index(index);
+                }
+
+                builder.build_from_path(src).map(IndexedReader::Sam)
             }
             (Format::Bam, Some(CompressionMethod::Bgzf)) => {
-                bam::io::indexed_reader::Builder::default()
-                    .build_from_path(src)
-                    .map(IndexedReader::Bam)
+                let mut builder = bam::io::indexed_reader::Builder::default();
+
+                if let Some(Index::Csi(index)) = self.index {
+                    builder = builder.set_index(index);
+                }
+
+                builder.build_from_path(src).map(IndexedReader::Bam)
             }
-            (Format::Cram, None) => cram::io::indexed_reader::Builder::default()
-                .set_reference_sequence_repository(self.reference_sequence_repository)
-                .build_from_path(src)
-                .map(IndexedReader::Cram),
+            (Format::Cram, None) => {
+                let mut builder = cram::io::indexed_reader::Builder::default()
+                    .set_reference_sequence_repository(self.reference_sequence_repository);
+
+                if let Some(Index::Crai(index)) = self.index {
+                    builder = builder.set_index(index);
+                }
+
+                builder.build_from_path(src).map(IndexedReader::Cram)
+            }
             (Format::Cram, Some(CompressionMethod::Bgzf)) => Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 "CRAM cannot be bgzip-compressed",

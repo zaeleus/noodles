@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * util/alignment/io/indexed_reader/builder: Use custom index if set when
+    building from a path ([#303]).
+
+[#303]: https://github.com/zaeleus/noodles/issues/303
+
 ## 0.53.0 - 2024-09-12
 
 ### Changed
