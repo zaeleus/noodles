@@ -39,7 +39,7 @@ impl Decode for ByteArray {
         S: Buf,
     {
         match self {
-            ByteArray::ByteArrayLen(len_encoding, value_encoding) => {
+            Self::ByteArrayLen(len_encoding, value_encoding) => {
                 let len = len_encoding.decode(core_data_reader, external_data_readers)?;
 
                 let mut buf = vec![0; len as usize];
@@ -50,7 +50,7 @@ impl Decode for ByteArray {
 
                 Ok(buf)
             }
-            ByteArray::ByteArrayStop(stop_byte, block_content_id) => {
+            Self::ByteArrayStop(stop_byte, block_content_id) => {
                 let src = external_data_readers
                     .get_mut(block_content_id)
                     .ok_or_else(|| {
@@ -93,7 +93,7 @@ impl<'en> Encode<'en> for ByteArray {
         X: Write,
     {
         match self {
-            ByteArray::ByteArrayLen(len_encoding, value_encoding) => {
+            Self::ByteArrayLen(len_encoding, value_encoding) => {
                 let len = i32::try_from(value.len())
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
                 len_encoding.encode(core_data_writer, external_data_writers, len)?;
@@ -104,7 +104,7 @@ impl<'en> Encode<'en> for ByteArray {
 
                 Ok(())
             }
-            ByteArray::ByteArrayStop(stop_byte, block_content_id) => {
+            Self::ByteArrayStop(stop_byte, block_content_id) => {
                 let writer = external_data_writers
                     .get_mut(block_content_id)
                     .ok_or_else(|| {
