@@ -93,6 +93,13 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_alignment_span() -> Result<(), noodles_core::position::TryFromIntError> {
+        let context = Context::new(0, Position::try_from(8)?, Position::try_from(13)?);
+        assert_eq!(context.alignment_span(), 6);
+        Ok(())
+    }
+
+    #[test]
     fn test_update() -> Result<(), noodles_core::position::TryFromIntError> {
         let mut context =
             ReferenceSequenceContext::some(0, Position::try_from(8)?, Position::try_from(13)?);
