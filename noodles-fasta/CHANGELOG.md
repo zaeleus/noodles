@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+## Deprecated
+
+  * fasta: Deprecate async re-export (`AsyncReader`).
+
+    Use `fasta::r#async::io::Reader` instead.
+
 ## 0.44.0 - 2024-09-26
 
 ### Changed
