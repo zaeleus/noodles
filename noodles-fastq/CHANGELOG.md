@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+## Deprecated
+
+  * fasta: Deprecate async re-exports (`AsyncReader` and `AsyncWriter`).
+
+    Use `fastq::r#async::io::Reader` and `fastq::r#async::io::Writer` instead.
+
 ## 0.15.0 - 2024-09-26
 
 ### Changed

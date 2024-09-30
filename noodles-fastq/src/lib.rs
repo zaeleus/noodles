@@ -64,4 +64,14 @@ pub use self::io::Reader;
 //pub use self::io::Writer;
 
 #[cfg(feature = "async")]
-pub use self::r#async::io::{Reader as AsyncReader, Writer as AsyncWriter};
+#[deprecated(
+    since = "0.15.0",
+    note = "Use `noodles_fastq::r#async::io::Reader` instead."
+)]
+pub use self::r#async::io::Reader as AsyncReader;
+
+#[deprecated(
+    since = "0.15.0",
+    note = "Use `noodles_fastq::r#async::io::Writer` instead."
+)]
+pub use self::r#async::io::Writer as AsyncWriter;
