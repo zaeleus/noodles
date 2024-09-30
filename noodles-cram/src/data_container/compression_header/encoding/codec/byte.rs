@@ -30,7 +30,7 @@ impl Byte {
         S: Buf,
     {
         match self {
-            Byte::External(block_content_id) => {
+            Self::External(block_content_id) => {
                 let src = external_data_readers
                     .get_mut(block_content_id)
                     .ok_or_else(|| {
@@ -46,7 +46,7 @@ impl Byte {
 
                 src.copy_to_slice(dst);
             }
-            Byte::Huffman(..) => todo!(),
+            Self::Huffman(..) => todo!(),
         }
 
         Ok(())
@@ -66,7 +66,7 @@ impl Decode for Byte {
         S: Buf,
     {
         match self {
-            Byte::External(block_content_id) => {
+            Self::External(block_content_id) => {
                 let src = external_data_readers
                     .get_mut(block_content_id)
                     .ok_or_else(|| {
@@ -82,7 +82,7 @@ impl Decode for Byte {
 
                 Ok(src.get_u8())
             }
-            Byte::Huffman(alphabet, bit_lens) => {
+            Self::Huffman(alphabet, bit_lens) => {
                 if alphabet.len() == 1 {
                     Ok(alphabet[0] as u8)
                 } else {
@@ -108,7 +108,7 @@ impl<'en> Encode<'en> for Byte {
         X: io::Write,
     {
         match self {
-            Byte::External(block_content_id) => {
+            Self::External(block_content_id) => {
                 let writer = external_data_writers
                     .get_mut(block_content_id)
                     .ok_or_else(|| {
