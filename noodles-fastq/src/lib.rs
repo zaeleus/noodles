@@ -60,8 +60,8 @@ pub use self::io::reader;
 #[deprecated(since = "0.11.0", note = "Use `noodles_fastq::io::Reader` instead.")]
 pub use self::io::Reader;
 
-//#[deprecated(since = "0.11.0", note = "Use `noodles_fastq::io::Writer` instead.")]
-//pub use self::io::Writer;
+#[deprecated(since = "0.11.0", note = "Use `noodles_fastq::io::Writer` instead.")]
+pub use self::io::Writer;
 
 #[cfg(feature = "async")]
 #[deprecated(
