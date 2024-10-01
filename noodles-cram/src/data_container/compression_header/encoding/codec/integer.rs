@@ -47,7 +47,7 @@ impl Decode for Integer {
         S: Buf,
     {
         match self {
-            Integer::External(block_content_id) => {
+            Self::External(block_content_id) => {
                 let src = external_data_readers
                     .get_mut(block_content_id)
                     .ok_or_else(|| {
@@ -59,7 +59,7 @@ impl Decode for Integer {
 
                 get_itf8(src)
             }
-            Integer::Huffman(alphabet, bit_lens) => {
+            Self::Huffman(alphabet, bit_lens) => {
                 if alphabet.len() == 1 {
                     Ok(alphabet[0])
                 } else {
@@ -67,10 +67,8 @@ impl Decode for Integer {
                     decoder.decode(core_data_reader)
                 }
             }
-            Integer::Beta(offset, len) => {
-                core_data_reader.read_u32(*len).map(|i| (i as i32 - offset))
-            }
-            Integer::Gamma(offset) => {
+            Self::Beta(offset, len) => core_data_reader.read_u32(*len).map(|i| (i as i32 - offset)),
+            Self::Gamma(offset) => {
                 let mut n = 0;
 
                 while core_data_reader.read_bit()? == 0 {
@@ -101,7 +99,7 @@ impl<'en> Encode<'en> for Integer {
         X: Write,
     {
         match self {
-            Integer::External(block_content_id) => {
+            Self::External(block_content_id) => {
                 let writer = external_data_writers
                     .get_mut(block_content_id)
                     .ok_or_else(|| {
