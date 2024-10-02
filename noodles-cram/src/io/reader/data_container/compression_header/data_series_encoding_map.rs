@@ -33,115 +33,115 @@ pub(super) fn get_data_series_encoding_map(src: &mut Bytes) -> io::Result<DataSe
         builder = match key {
             DataSeries::BamBitFlags => {
                 let encoding = get_encoding_for_integer_codec(&mut buf)?;
-                builder.set_bam_bit_flags_encoding(encoding)
+                builder.set_bam_bit_flags(encoding)
             }
             DataSeries::CramBitFlags => {
                 let encoding = get_encoding_for_integer_codec(&mut buf)?;
-                builder.set_cram_bit_flags_encoding(encoding)
+                builder.set_cram_bit_flags(encoding)
             }
             DataSeries::ReferenceId => {
                 let encoding = get_encoding_for_integer_codec(&mut buf)?;
-                builder.set_reference_id_encoding(encoding)
+                builder.set_reference_id(encoding)
             }
             DataSeries::ReadLengths => {
                 let encoding = get_encoding_for_integer_codec(&mut buf)?;
-                builder.set_read_lengths_encoding(encoding)
+                builder.set_read_lengths(encoding)
             }
             DataSeries::InSeqPositions => {
                 let encoding = get_encoding_for_integer_codec(&mut buf)?;
-                builder.set_in_seq_positions_encoding(encoding)
+                builder.set_in_seq_positions(encoding)
             }
             DataSeries::ReadGroups => {
                 let encoding = get_encoding_for_integer_codec(&mut buf)?;
-                builder.set_read_groups_encoding(encoding)
+                builder.set_read_groups(encoding)
             }
             DataSeries::ReadNames => {
                 let encoding = get_encoding_for_byte_array_codec(&mut buf)?;
-                builder.set_read_names_encoding(encoding)
+                builder.set_read_names(encoding)
             }
             DataSeries::NextMateBitFlags => {
                 let encoding = get_encoding_for_integer_codec(&mut buf)?;
-                builder.set_next_mate_bit_flags_encoding(encoding)
+                builder.set_next_mate_bit_flags(encoding)
             }
             DataSeries::NextFragmentReferenceSequenceId => {
                 let encoding = get_encoding_for_integer_codec(&mut buf)?;
-                builder.set_next_fragment_reference_sequence_id_encoding(encoding)
+                builder.set_next_fragment_reference_sequence_id(encoding)
             }
             DataSeries::NextMateAlignmentStart => {
                 let encoding = get_encoding_for_integer_codec(&mut buf)?;
-                builder.set_next_mate_alignment_start_encoding(encoding)
+                builder.set_next_mate_alignment_start(encoding)
             }
             DataSeries::TemplateSize => {
                 let encoding = get_encoding_for_integer_codec(&mut buf)?;
-                builder.set_template_size_encoding(encoding)
+                builder.set_template_size(encoding)
             }
             DataSeries::DistanceToNextFragment => {
                 let encoding = get_encoding_for_integer_codec(&mut buf)?;
-                builder.set_distance_to_next_fragment_encoding(encoding)
+                builder.set_distance_to_next_fragment(encoding)
             }
             DataSeries::TagIds => {
                 let encoding = get_encoding_for_integer_codec(&mut buf)?;
-                builder.set_tag_ids_encoding(encoding)
+                builder.set_tag_ids(encoding)
             }
             DataSeries::NumberOfReadFeatures => {
                 let encoding = get_encoding_for_integer_codec(&mut buf)?;
-                builder.set_number_of_read_features_encoding(encoding)
+                builder.set_number_of_read_features(encoding)
             }
             DataSeries::ReadFeaturesCodes => {
                 let encoding = get_encoding_for_byte_codec(&mut buf)?;
-                builder.set_read_features_codes_encoding(encoding)
+                builder.set_read_features_codes(encoding)
             }
             DataSeries::InReadPositions => {
                 let encoding = get_encoding_for_integer_codec(&mut buf)?;
-                builder.set_in_read_positions_encoding(encoding)
+                builder.set_in_read_positions(encoding)
             }
             DataSeries::DeletionLengths => {
                 let encoding = get_encoding_for_integer_codec(&mut buf)?;
-                builder.set_deletion_lengths_encoding(encoding)
+                builder.set_deletion_lengths(encoding)
             }
             DataSeries::StretchesOfBases => {
                 let encoding = get_encoding_for_byte_array_codec(&mut buf)?;
-                builder.set_stretches_of_bases_encoding(encoding)
+                builder.set_stretches_of_bases(encoding)
             }
             DataSeries::StretchesOfQualityScores => {
                 let encoding = get_encoding_for_byte_array_codec(&mut buf)?;
-                builder.set_stretches_of_quality_scores_encoding(encoding)
+                builder.set_stretches_of_quality_scores(encoding)
             }
             DataSeries::BaseSubstitutionCodes => {
                 let encoding = get_encoding_for_byte_codec(&mut buf)?;
-                builder.set_base_substitution_codes_encoding(encoding)
+                builder.set_base_substitution_codes(encoding)
             }
             DataSeries::Insertion => {
                 let encoding = get_encoding_for_byte_array_codec(&mut buf)?;
-                builder.set_insertion_encoding(encoding)
+                builder.set_insertion(encoding)
             }
             DataSeries::ReferenceSkipLength => {
                 let encoding = get_encoding_for_integer_codec(&mut buf)?;
-                builder.set_reference_skip_length_encoding(encoding)
+                builder.set_reference_skip_length(encoding)
             }
             DataSeries::Padding => {
                 let encoding = get_encoding_for_integer_codec(&mut buf)?;
-                builder.set_padding_encoding(encoding)
+                builder.set_padding(encoding)
             }
             DataSeries::HardClip => {
                 let encoding = get_encoding_for_integer_codec(&mut buf)?;
-                builder.set_hard_clip_encoding(encoding)
+                builder.set_hard_clip(encoding)
             }
             DataSeries::SoftClip => {
                 let encoding = get_encoding_for_byte_array_codec(&mut buf)?;
-                builder.set_soft_clip_encoding(encoding)
+                builder.set_soft_clip(encoding)
             }
             DataSeries::MappingQualities => {
                 let encoding = get_encoding_for_integer_codec(&mut buf)?;
-                builder.set_mapping_qualities_encoding(encoding)
+                builder.set_mapping_qualities(encoding)
             }
             DataSeries::Bases => {
                 let encoding = get_encoding_for_byte_codec(&mut buf)?;
-                builder.set_bases_encoding(encoding)
+                builder.set_bases(encoding)
             }
             DataSeries::QualityScores => {
                 let encoding = get_encoding_for_byte_codec(&mut buf)?;
-                builder.set_quality_scores_encoding(encoding)
+                builder.set_quality_scores(encoding)
             }
             DataSeries::ReservedTc | DataSeries::ReservedTn => {
                 get_encoding_for_integer_codec(&mut buf)?;

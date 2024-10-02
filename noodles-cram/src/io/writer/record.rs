@@ -109,7 +109,7 @@ where
 
         self.compression_header
             .data_series_encoding_map()
-            .bam_bit_flags_encoding()
+            .bam_bit_flags()
             .encode(
                 self.core_data_writer,
                 self.external_data_writers,
@@ -122,7 +122,7 @@ where
 
         self.compression_header
             .data_series_encoding_map()
-            .cram_bit_flags_encoding()
+            .cram_bit_flags()
             .encode(
                 self.core_data_writer,
                 self.external_data_writers,
@@ -148,7 +148,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .reference_id_encoding()
+            .reference_id()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -173,7 +173,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .read_lengths_encoding();
+            .read_lengths();
 
         let len = i32::try_from(read_length)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
@@ -190,7 +190,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .in_seq_positions_encoding();
+            .in_seq_positions();
 
         let alignment_start_or_delta = if ap_data_series_delta {
             match (alignment_start, self.prev_alignment_start) {
@@ -233,7 +233,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .read_groups_encoding();
+            .read_groups();
 
         let read_group = if let Some(id) = read_group_id {
             i32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
@@ -255,7 +255,7 @@ where
 
         self.compression_header
             .data_series_encoding_map()
-            .read_names_encoding()
+            .read_names()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -293,7 +293,7 @@ where
 
         self.compression_header
             .data_series_encoding_map()
-            .next_mate_bit_flags_encoding()
+            .next_mate_bit_flags()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -316,7 +316,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .next_fragment_reference_sequence_id_encoding()
+            .next_fragment_reference_sequence_id()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -347,7 +347,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .next_mate_alignment_start_encoding()
+            .next_mate_alignment_start()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -368,7 +368,7 @@ where
     fn write_template_size(&mut self, template_size: i32) -> io::Result<()> {
         self.compression_header
             .data_series_encoding_map()
-            .template_size_encoding()
+            .template_size()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -389,7 +389,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .distance_to_next_fragment_encoding()
+            .distance_to_next_fragment()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -454,10 +454,7 @@ where
     }
 
     fn write_tag_line(&mut self, tag_line: usize) -> io::Result<()> {
-        let encoding = self
-            .compression_header
-            .data_series_encoding_map()
-            .tag_ids_encoding();
+        let encoding = self.compression_header.data_series_encoding_map().tag_ids();
 
         let n =
             i32::try_from(tag_line).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -491,7 +488,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .number_of_read_features_encoding()
+            .number_of_read_features()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -559,7 +556,7 @@ where
     fn write_feature_code(&mut self, code: feature::Code) -> io::Result<()> {
         self.compression_header
             .data_series_encoding_map()
-            .read_features_codes_encoding()
+            .read_features_codes()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -577,7 +574,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .in_read_positions_encoding()
+            .in_read_positions()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -594,7 +591,7 @@ where
     fn write_stretches_of_bases(&mut self, bases: &[u8]) -> io::Result<()> {
         self.compression_header
             .data_series_encoding_map()
-            .stretches_of_bases_encoding()
+            .stretches_of_bases()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -607,7 +604,7 @@ where
     fn write_stretches_of_quality_scores(&mut self, quality_scores: &[u8]) -> io::Result<()> {
         self.compression_header
             .data_series_encoding_map()
-            .stretches_of_quality_scores_encoding()
+            .stretches_of_quality_scores()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -626,7 +623,7 @@ where
     fn write_base(&mut self, base: u8) -> io::Result<()> {
         self.compression_header
             .data_series_encoding_map()
-            .bases_encoding()
+            .bases()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -639,7 +636,7 @@ where
     fn write_quality_score(&mut self, quality_score: u8) -> io::Result<()> {
         self.compression_header
             .data_series_encoding_map()
-            .quality_scores_encoding()
+            .quality_scores()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -657,7 +654,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .base_substitution_codes_encoding()
+            .base_substitution_codes()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -688,7 +685,7 @@ where
     fn write_insertion(&mut self, bases: &[u8]) -> io::Result<()> {
         self.compression_header
             .data_series_encoding_map()
-            .insertion_encoding()
+            .insertion()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -702,7 +699,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .deletion_lengths_encoding()
+            .deletion_lengths()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -719,7 +716,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .reference_skip_length_encoding()
+            .reference_skip_length()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -735,7 +732,7 @@ where
     fn write_soft_clip(&mut self, bases: &[u8]) -> io::Result<()> {
         self.compression_header
             .data_series_encoding_map()
-            .soft_clip_encoding()
+            .soft_clip()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -749,7 +746,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .padding_encoding()
+            .padding()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -766,7 +763,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .hard_clip_encoding()
+            .hard_clip()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -788,7 +785,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .mapping_qualities_encoding()
+            .mapping_qualities()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
