@@ -19,8 +19,8 @@ where
     W: Write,
 {
     match encoding.get() {
-        Byte::External(block_content_id) => write_external_codec(writer, *block_content_id),
-        Byte::Huffman(alphabet, bit_lens) => write_huffman_codec(writer, alphabet, bit_lens),
+        Byte::External { block_content_id } => write_external_codec(writer, *block_content_id),
+        Byte::Huffman { alphabet, bit_lens } => write_huffman_codec(writer, alphabet, bit_lens),
     }
 }
 
@@ -304,7 +304,9 @@ mod tests {
         let mut buf = Vec::new();
 
         let len_encoding = Encoding::new(Integer::External(block::ContentId::from(13)));
-        let value_encoding = Encoding::new(Byte::External(block::ContentId::from(21)));
+        let value_encoding = Encoding::new(Byte::External {
+            block_content_id: block::ContentId::from(21),
+        });
 
         write_byte_array_len_codec(&mut buf, &len_encoding, &value_encoding)?;
 

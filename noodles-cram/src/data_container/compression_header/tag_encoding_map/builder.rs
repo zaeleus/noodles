@@ -29,13 +29,13 @@ impl Builder {
         let mut map = HashMap::new();
 
         for key in self.keys {
-            let id = block::ContentId::from(key);
+            let block_content_id = block::ContentId::from(key);
 
-            let len_encoding = Encoding::new(Integer::External(id));
-            let value_encoding = Encoding::new(Byte::External(id));
+            let len_encoding = Encoding::new(Integer::External(block_content_id));
+            let value_encoding = Encoding::new(Byte::External { block_content_id });
             let encoding = Encoding::new(ByteArray::ByteArrayLen(len_encoding, value_encoding));
 
-            map.insert(id, encoding);
+            map.insert(block_content_id, encoding);
         }
 
         TagEncodingMap::from(map)
@@ -77,14 +77,18 @@ mod tests {
                 nh,
                 Encoding::new(ByteArray::ByteArrayLen(
                     Encoding::new(Integer::External(nh)),
-                    Encoding::new(Byte::External(nh)),
+                    Encoding::new(Byte::External {
+                        block_content_id: nh,
+                    }),
                 )),
             ),
             (
                 co,
                 Encoding::new(ByteArray::ByteArrayLen(
                     Encoding::new(Integer::External(co)),
-                    Encoding::new(Byte::External(co)),
+                    Encoding::new(Byte::External {
+                        block_content_id: co,
+                    }),
                 )),
             ),
         ]

@@ -12,10 +12,13 @@ use crate::{
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Byte {
-    // block_content_id
-    External(block::ContentId),
-    // alphabet, bit_lens
-    Huffman(Vec<i32>, Vec<u32>),
+    External {
+        block_content_id: block::ContentId,
+    },
+    Huffman {
+        alphabet: Vec<i32>,
+        bit_lens: Vec<u32>,
+    },
 }
 
 impl Byte {
@@ -30,7 +33,7 @@ impl Byte {
         S: Buf,
     {
         match self {
-            Self::External(block_content_id) => {
+            Self::External { block_content_id } => {
                 let src = external_data_readers
                     .get_mut(block_content_id)
                     .ok_or_else(|| {
@@ -46,7 +49,7 @@ impl Byte {
 
                 src.copy_to_slice(dst);
             }
-            Self::Huffman(..) => todo!(),
+            Self::Huffman { .. } => todo!(),
         }
 
         Ok(())
@@ -66,7 +69,7 @@ impl Decode for Byte {
         S: Buf,
     {
         match self {
-            Self::External(block_content_id) => {
+            Self::External { block_content_id } => {
                 let src = external_data_readers
                     .get_mut(block_content_id)
                     .ok_or_else(|| {
@@ -82,7 +85,7 @@ impl Decode for Byte {
 
                 Ok(src.get_u8())
             }
-            Self::Huffman(alphabet, bit_lens) => {
+            Self::Huffman { alphabet, bit_lens } => {
                 if alphabet.len() == 1 {
                     Ok(alphabet[0] as u8)
                 } else {
@@ -108,7 +111,7 @@ impl<'en> Encode<'en> for Byte {
         X: io::Write,
     {
         match self {
-            Self::External(block_content_id) => {
+            Self::External { block_content_id } => {
                 let writer = external_data_writers
                     .get_mut(block_content_id)
                     .ok_or_else(|| {
@@ -139,7 +142,9 @@ mod tests {
         let mut external_data_readers = ExternalDataReaders::new();
         external_data_readers.insert(block::ContentId::from(1), &external_data[..]);
 
-        let codec = Byte::External(block::ContentId::from(1));
+        let codec = Byte::External {
+            block_content_id: block::ContentId::from(1),
+        };
         let mut dst = vec![0; 4];
         codec.decode_exact(&mut core_data_reader, &mut external_data_readers, &mut dst)?;
 
@@ -166,10 +171,18 @@ mod tests {
         }
 
         t(
-            &Encoding::new(Byte::External(block::ContentId::from(1))),
+            &Encoding::new(Byte::External {
+                block_content_id: block::ContentId::from(1),
+            }),
             0x0d,
         )?;
-        t(&Encoding::new(Byte::Huffman(vec![0x4e], vec![0])), 0x4e)?;
+        t(
+            &Encoding::new(Byte::Huffman {
+                alphabet: vec![0x4e],
+                bit_lens: vec![0],
+            }),
+            0x4e,
+        )?;
 
         Ok(())
     }
@@ -199,7 +212,9 @@ mod tests {
         }
 
         t(
-            &Encoding::new(Byte::External(block::ContentId::from(1))),
+            &Encoding::new(Byte::External {
+                block_content_id: block::ContentId::from(1),
+            }),
             0x0d,
             &[],
             &[0x0d],

@@ -18,11 +18,11 @@ pub fn get_encoding_for_byte_codec(src: &mut Bytes) -> io::Result<Encoding<Byte>
     match get_kind(src)? {
         Kind::External => {
             let block_content_id = get_external_codec(src)?;
-            Ok(Encoding::new(Byte::External(block_content_id)))
+            Ok(Encoding::new(Byte::External { block_content_id }))
         }
         Kind::Huffman => {
             let (alphabet, bit_lens) = get_huffman_codec(src)?;
-            Ok(Encoding::new(Byte::Huffman(alphabet, bit_lens)))
+            Ok(Encoding::new(Byte::Huffman { alphabet, bit_lens }))
         }
         kind => Err(io::Error::new(
             io::ErrorKind::InvalidData,
@@ -325,7 +325,9 @@ mod tests {
         );
         assert_eq!(
             value_encoding,
-            Encoding::new(Byte::External(block::ContentId::from(21)))
+            Encoding::new(Byte::External {
+                block_content_id: block::ContentId::from(21)
+            })
         );
 
         Ok(())

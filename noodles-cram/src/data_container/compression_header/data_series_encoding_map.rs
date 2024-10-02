@@ -305,9 +305,9 @@ impl Default for DataSeriesEncodingMap {
             number_of_read_features_encoding: Some(Encoding::new(Integer::External(
                 block::ContentId::from(DataSeries::NumberOfReadFeatures),
             ))),
-            read_features_codes_encoding: Some(Encoding::new(Byte::External(
-                block::ContentId::from(DataSeries::ReadFeaturesCodes),
-            ))),
+            read_features_codes_encoding: Some(Encoding::new(Byte::External {
+                block_content_id: block::ContentId::from(DataSeries::ReadFeaturesCodes),
+            })),
             in_read_positions_encoding: Some(Encoding::new(Integer::External(
                 block::ContentId::from(DataSeries::InReadPositions),
             ))),
@@ -322,13 +322,13 @@ impl Default for DataSeriesEncodingMap {
                 Encoding::new(Integer::External(block::ContentId::from(
                     DataSeries::StretchesOfQualityScores,
                 ))),
-                Encoding::new(Byte::External(block::ContentId::from(
-                    DataSeries::StretchesOfQualityScores,
-                ))),
+                Encoding::new(Byte::External {
+                    block_content_id: block::ContentId::from(DataSeries::StretchesOfQualityScores),
+                }),
             ))),
-            base_substitution_codes_encoding: Some(Encoding::new(Byte::External(
-                block::ContentId::from(DataSeries::BaseSubstitutionCodes),
-            ))),
+            base_substitution_codes_encoding: Some(Encoding::new(Byte::External {
+                block_content_id: block::ContentId::from(DataSeries::BaseSubstitutionCodes),
+            })),
             insertion_encoding: Some(Encoding::new(ByteArray::ByteArrayStop(
                 0x00,
                 block::ContentId::from(DataSeries::Insertion),
@@ -349,12 +349,12 @@ impl Default for DataSeriesEncodingMap {
             mapping_qualities_encoding: Some(Encoding::new(Integer::External(
                 block::ContentId::from(DataSeries::MappingQualities),
             ))),
-            bases_encoding: Some(Encoding::new(Byte::External(block::ContentId::from(
-                DataSeries::Bases,
-            )))),
-            quality_scores_encoding: Some(Encoding::new(Byte::External(block::ContentId::from(
-                DataSeries::QualityScores,
-            )))),
+            bases_encoding: Some(Encoding::new(Byte::External {
+                block_content_id: block::ContentId::from(DataSeries::Bases),
+            })),
+            quality_scores_encoding: Some(Encoding::new(Byte::External {
+                block_content_id: block::ContentId::from(DataSeries::QualityScores),
+            })),
         }
     }
 }
