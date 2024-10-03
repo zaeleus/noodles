@@ -50,12 +50,14 @@ where
     W: Write,
 {
     match encoding.get() {
-        ByteArray::ByteArrayLen(len_encoding, value_encoding) => {
-            write_byte_array_len_codec(writer, len_encoding, value_encoding)
-        }
-        ByteArray::ByteArrayStop(stop_byte, block_content_id) => {
-            write_byte_array_stop_codec(writer, *stop_byte, *block_content_id)
-        }
+        ByteArray::ByteArrayLen {
+            len_encoding,
+            value_encoding,
+        } => write_byte_array_len_codec(writer, len_encoding, value_encoding),
+        ByteArray::ByteArrayStop {
+            stop_byte,
+            block_content_id,
+        } => write_byte_array_stop_codec(writer, *stop_byte, *block_content_id),
     }
 }
 

@@ -279,10 +279,10 @@ impl Default for DataSeriesEncodingMap {
             read_groups: Encoding::new(Integer::External(block::ContentId::from(
                 DataSeries::ReadGroups,
             ))),
-            read_names: Some(Encoding::new(ByteArray::ByteArrayStop(
-                0x00,
-                block::ContentId::from(DataSeries::ReadNames),
-            ))),
+            read_names: Some(Encoding::new(ByteArray::ByteArrayStop {
+                stop_byte: 0x00,
+                block_content_id: block::ContentId::from(DataSeries::ReadNames),
+            })),
             next_mate_bit_flags: Some(Encoding::new(Integer::External(block::ContentId::from(
                 DataSeries::NextMateBitFlags,
             )))),
@@ -311,25 +311,25 @@ impl Default for DataSeriesEncodingMap {
             deletion_lengths: Some(Encoding::new(Integer::External(block::ContentId::from(
                 DataSeries::DeletionLengths,
             )))),
-            stretches_of_bases: Some(Encoding::new(ByteArray::ByteArrayStop(
-                0x00,
-                block::ContentId::from(DataSeries::StretchesOfBases),
-            ))),
-            stretches_of_quality_scores: Some(Encoding::new(ByteArray::ByteArrayLen(
-                Encoding::new(Integer::External(block::ContentId::from(
+            stretches_of_bases: Some(Encoding::new(ByteArray::ByteArrayStop {
+                stop_byte: 0x00,
+                block_content_id: block::ContentId::from(DataSeries::StretchesOfBases),
+            })),
+            stretches_of_quality_scores: Some(Encoding::new(ByteArray::ByteArrayLen {
+                len_encoding: Encoding::new(Integer::External(block::ContentId::from(
                     DataSeries::StretchesOfQualityScores,
                 ))),
-                Encoding::new(Byte::External {
+                value_encoding: Encoding::new(Byte::External {
                     block_content_id: block::ContentId::from(DataSeries::StretchesOfQualityScores),
                 }),
-            ))),
+            })),
             base_substitution_codes: Some(Encoding::new(Byte::External {
                 block_content_id: block::ContentId::from(DataSeries::BaseSubstitutionCodes),
             })),
-            insertion: Some(Encoding::new(ByteArray::ByteArrayStop(
-                0x00,
-                block::ContentId::from(DataSeries::Insertion),
-            ))),
+            insertion: Some(Encoding::new(ByteArray::ByteArrayStop {
+                stop_byte: 0x00,
+                block_content_id: block::ContentId::from(DataSeries::Insertion),
+            })),
             reference_skip_length: Some(Encoding::new(Integer::External(block::ContentId::from(
                 DataSeries::ReferenceSkipLength,
             )))),
@@ -339,10 +339,10 @@ impl Default for DataSeriesEncodingMap {
             hard_clip: Some(Encoding::new(Integer::External(block::ContentId::from(
                 DataSeries::HardClip,
             )))),
-            soft_clip: Some(Encoding::new(ByteArray::ByteArrayStop(
-                0x00,
-                block::ContentId::from(DataSeries::SoftClip),
-            ))),
+            soft_clip: Some(Encoding::new(ByteArray::ByteArrayStop {
+                stop_byte: 0x00,
+                block_content_id: block::ContentId::from(DataSeries::SoftClip),
+            })),
             mapping_qualities: Some(Encoding::new(Integer::External(block::ContentId::from(
                 DataSeries::MappingQualities,
             )))),

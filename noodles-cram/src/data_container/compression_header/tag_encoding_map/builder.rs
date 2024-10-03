@@ -33,7 +33,10 @@ impl Builder {
 
             let len_encoding = Encoding::new(Integer::External(block_content_id));
             let value_encoding = Encoding::new(Byte::External { block_content_id });
-            let encoding = Encoding::new(ByteArray::ByteArrayLen(len_encoding, value_encoding));
+            let encoding = Encoding::new(ByteArray::ByteArrayLen {
+                len_encoding,
+                value_encoding,
+            });
 
             map.insert(block_content_id, encoding);
         }
@@ -75,21 +78,21 @@ mod tests {
         let expected = [
             (
                 nh,
-                Encoding::new(ByteArray::ByteArrayLen(
-                    Encoding::new(Integer::External(nh)),
-                    Encoding::new(Byte::External {
+                Encoding::new(ByteArray::ByteArrayLen {
+                    len_encoding: Encoding::new(Integer::External(nh)),
+                    value_encoding: Encoding::new(Byte::External {
                         block_content_id: nh,
                     }),
-                )),
+                }),
             ),
             (
                 co,
-                Encoding::new(ByteArray::ByteArrayLen(
-                    Encoding::new(Integer::External(co)),
-                    Encoding::new(Byte::External {
+                Encoding::new(ByteArray::ByteArrayLen {
+                    len_encoding: Encoding::new(Integer::External(co)),
+                    value_encoding: Encoding::new(Byte::External {
                         block_content_id: co,
                     }),
-                )),
+                }),
             ),
         ]
         .into_iter()

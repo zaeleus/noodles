@@ -73,18 +73,18 @@ pub fn get_encoding_for_byte_array_codec(src: &mut Bytes) -> io::Result<Encoding
         Kind::ByteArrayLen => {
             let (len_encoding, value_encoding) = get_byte_array_len_codec(src)?;
 
-            Ok(Encoding::new(ByteArray::ByteArrayLen(
+            Ok(Encoding::new(ByteArray::ByteArrayLen {
                 len_encoding,
                 value_encoding,
-            )))
+            }))
         }
         Kind::ByteArrayStop => {
             let (stop_byte, block_content_id) = get_byte_array_stop_codec(src)?;
 
-            Ok(Encoding::new(ByteArray::ByteArrayStop(
+            Ok(Encoding::new(ByteArray::ByteArrayStop {
                 stop_byte,
                 block_content_id,
-            )))
+            }))
         }
         kind => Err(io::Error::new(
             io::ErrorKind::InvalidData,

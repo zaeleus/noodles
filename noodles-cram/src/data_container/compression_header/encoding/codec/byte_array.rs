@@ -20,10 +20,14 @@ use crate::{
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ByteArray {
-    // len_encoding, value_encoding
-    ByteArrayLen(Encoding<Integer>, Encoding<Byte>),
-    // stop_byte, block_content_id
-    ByteArrayStop(u8, block::ContentId),
+    ByteArrayLen {
+        len_encoding: Encoding<Integer>,
+        value_encoding: Encoding<Byte>,
+    },
+    ByteArrayStop {
+        stop_byte: u8,
+        block_content_id: block::ContentId,
+    },
 }
 
 impl Decode for ByteArray {
@@ -39,7 +43,10 @@ impl Decode for ByteArray {
         S: Buf,
     {
         match self {
-            Self::ByteArrayLen(len_encoding, value_encoding) => {
+            Self::ByteArrayLen {
+                len_encoding,
+                value_encoding,
+            } => {
                 let len = len_encoding.decode(core_data_reader, external_data_readers)?;
 
                 let mut buf = vec![0; len as usize];
@@ -50,7 +57,10 @@ impl Decode for ByteArray {
 
                 Ok(buf)
             }
-            Self::ByteArrayStop(stop_byte, block_content_id) => {
+            Self::ByteArrayStop {
+                stop_byte,
+                block_content_id,
+            } => {
                 let src = external_data_readers
                     .get_mut(block_content_id)
                     .ok_or_else(|| {
@@ -93,7 +103,10 @@ impl<'en> Encode<'en> for ByteArray {
         X: Write,
     {
         match self {
-            Self::ByteArrayLen(len_encoding, value_encoding) => {
+            Self::ByteArrayLen {
+                len_encoding,
+                value_encoding,
+            } => {
                 let len = i32::try_from(value.len())
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
                 len_encoding.encode(core_data_writer, external_data_writers, len)?;
@@ -104,7 +117,10 @@ impl<'en> Encode<'en> for ByteArray {
 
                 Ok(())
             }
-            Self::ByteArrayStop(stop_byte, block_content_id) => {
+            Self::ByteArrayStop {
+                stop_byte,
+                block_content_id,
+            } => {
                 let writer = external_data_writers
                     .get_mut(block_content_id)
                     .ok_or_else(|| {
@@ -152,20 +168,26 @@ mod tests {
         let value_encoding = Encoding::new(Byte::External { block_content_id });
         t(
             &[0x04, 0x6e, 0x64, 0x6c, 0x73],
-            &Encoding::new(ByteArray::ByteArrayLen(len_encoding, value_encoding)),
+            &Encoding::new(ByteArray::ByteArrayLen {
+                len_encoding,
+                value_encoding,
+            }),
             b"ndls",
         )?;
 
         t(
             &[0x6e, 0x64, 0x6c, 0x73, 0x00],
-            &Encoding::new(ByteArray::ByteArrayStop(0x00, block::ContentId::from(1))),
+            &Encoding::new(ByteArray::ByteArrayStop {
+                stop_byte: 0x00,
+                block_content_id: block::ContentId::from(1),
+            }),
             b"ndls",
         )?;
 
         assert!(matches!(
             t(
                 &[0x6e, 0x64, 0x6c, 0x73],
-                &Encoding::new(ByteArray::ByteArrayStop(0x00, block::ContentId::from(1))),
+                &Encoding::new(ByteArray::ByteArrayStop{ stop_byte: 0x00, block_content_id: block::ContentId::from(1) }),
                 b""
             ),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
@@ -202,14 +224,20 @@ mod tests {
         let len_encoding = Encoding::new(Integer::External(block_content_id));
         let value_encoding = Encoding::new(Byte::External { block_content_id });
         t(
-            &Encoding::new(ByteArray::ByteArrayLen(len_encoding, value_encoding)),
+            &Encoding::new(ByteArray::ByteArrayLen {
+                len_encoding,
+                value_encoding,
+            }),
             b"ndls",
             &[],
             &[0x04, b'n', b'd', b'l', b's'],
         )?;
 
         t(
-            &Encoding::new(ByteArray::ByteArrayStop(0x00, block::ContentId::from(1))),
+            &Encoding::new(ByteArray::ByteArrayStop {
+                stop_byte: 0x00,
+                block_content_id: block::ContentId::from(1),
+            }),
             b"ndls",
             &[],
             &[b'n', b'd', b'l', b's', 0x00],
