@@ -32,13 +32,13 @@ where
     W: Write,
 {
     match encoding.get() {
-        Integer::External(block_content_id) => write_external_codec(writer, *block_content_id),
-        Integer::Golomb(offset, m) => write_golomb_codec(writer, *offset, *m),
-        Integer::Huffman(alphabet, bit_lens) => write_huffman_codec(writer, alphabet, bit_lens),
-        Integer::Beta(offset, len) => write_beta_codec(writer, *offset, *len),
-        Integer::Subexp(offset, k) => write_subexp_codec(writer, *offset, *k),
-        Integer::GolombRice(offset, log2_m) => write_golomb_rice_codec(writer, *offset, *log2_m),
-        Integer::Gamma(offset) => write_gamma_codec(writer, *offset),
+        Integer::External { block_content_id } => write_external_codec(writer, *block_content_id),
+        Integer::Golomb { offset, m } => write_golomb_codec(writer, *offset, *m),
+        Integer::Huffman { alphabet, bit_lens } => write_huffman_codec(writer, alphabet, bit_lens),
+        Integer::Beta { offset, len } => write_beta_codec(writer, *offset, *len),
+        Integer::Subexp { offset, k } => write_subexp_codec(writer, *offset, *k),
+        Integer::GolombRice { offset, log2_m } => write_golomb_rice_codec(writer, *offset, *log2_m),
+        Integer::Gamma { offset } => write_gamma_codec(writer, *offset),
     }
 }
 
@@ -305,7 +305,9 @@ mod tests {
     fn test_write_byte_array_len_codec() -> io::Result<()> {
         let mut buf = Vec::new();
 
-        let len_encoding = Encoding::new(Integer::External(block::ContentId::from(13)));
+        let len_encoding = Encoding::new(Integer::External {
+            block_content_id: block::ContentId::from(13),
+        });
         let value_encoding = Encoding::new(Byte::External {
             block_content_id: block::ContentId::from(21),
         });

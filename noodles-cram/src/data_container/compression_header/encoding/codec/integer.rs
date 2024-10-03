@@ -18,20 +18,32 @@ use crate::{
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Integer {
-    // block_content_id
-    External(block::ContentId),
-    // offset, m
-    Golomb(i32, i32),
-    // alphabet, bit_lens
-    Huffman(Vec<i32>, Vec<u32>),
-    // offset, len
-    Beta(i32, u32),
-    // offset, k
-    Subexp(i32, i32),
-    // offset, log2_m
-    GolombRice(i32, i32),
-    // offset
-    Gamma(i32),
+    External {
+        block_content_id: block::ContentId,
+    },
+    Golomb {
+        offset: i32,
+        m: i32,
+    },
+    Huffman {
+        alphabet: Vec<i32>,
+        bit_lens: Vec<u32>,
+    },
+    Beta {
+        offset: i32,
+        len: u32,
+    },
+    Subexp {
+        offset: i32,
+        k: i32,
+    },
+    GolombRice {
+        offset: i32,
+        log2_m: i32,
+    },
+    Gamma {
+        offset: i32,
+    },
 }
 
 impl Decode for Integer {
@@ -47,7 +59,7 @@ impl Decode for Integer {
         S: Buf,
     {
         match self {
-            Self::External(block_content_id) => {
+            Self::External { block_content_id } => {
                 let src = external_data_readers
                     .get_mut(block_content_id)
                     .ok_or_else(|| {
@@ -59,7 +71,7 @@ impl Decode for Integer {
 
                 get_itf8(src)
             }
-            Self::Huffman(alphabet, bit_lens) => {
+            Self::Huffman { alphabet, bit_lens } => {
                 if alphabet.len() == 1 {
                     Ok(alphabet[0])
                 } else {
@@ -67,8 +79,10 @@ impl Decode for Integer {
                     decoder.decode(core_data_reader)
                 }
             }
-            Self::Beta(offset, len) => core_data_reader.read_u32(*len).map(|i| (i as i32 - offset)),
-            Self::Gamma(offset) => {
+            Self::Beta { offset, len } => {
+                core_data_reader.read_u32(*len).map(|i| (i as i32 - offset))
+            }
+            Self::Gamma { offset } => {
                 let mut n = 0;
 
                 while core_data_reader.read_bit()? == 0 {
@@ -99,7 +113,7 @@ impl<'en> Encode<'en> for Integer {
         X: Write,
     {
         match self {
-            Self::External(block_content_id) => {
+            Self::External { block_content_id } => {
                 let writer = external_data_writers
                     .get_mut(block_content_id)
                     .ok_or_else(|| {
@@ -144,16 +158,25 @@ mod tests {
 
         t(
             None,
-            &Encoding::new(Integer::External(block::ContentId::from(1))),
+            &Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(1),
+            }),
             13,
         )?;
         t(
             None,
-            &Encoding::new(Integer::Huffman(vec![0x4e], vec![0])),
+            &Encoding::new(Integer::Huffman {
+                alphabet: vec![0x4e],
+                bit_lens: vec![0],
+            }),
             0x4e,
         )?;
-        t(None, &Encoding::new(Integer::Beta(1, 3)), 3)?;
-        t(Some(&[0b00011010]), &Encoding::new(Integer::Gamma(5)), 8)?;
+        t(None, &Encoding::new(Integer::Beta { offset: 1, len: 3 }), 3)?;
+        t(
+            Some(&[0b00011010]),
+            &Encoding::new(Integer::Gamma { offset: 5 }),
+            8,
+        )?;
 
         Ok(())
     }
@@ -183,7 +206,9 @@ mod tests {
         }
 
         t(
-            &Encoding::new(Integer::External(block::ContentId::from(1))),
+            &Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(1),
+            }),
             0x0d,
             &[],
             &[0x0d],

@@ -35,31 +35,31 @@ pub fn get_encoding_for_integer_codec(src: &mut Bytes) -> io::Result<Encoding<In
     match get_kind(src)? {
         Kind::External => {
             let block_content_id = get_external_codec(src)?;
-            Ok(Encoding::new(Integer::External(block_content_id)))
+            Ok(Encoding::new(Integer::External { block_content_id }))
         }
         Kind::Golomb => {
             let (offset, m) = get_golomb_codec(src)?;
-            Ok(Encoding::new(Integer::Golomb(offset, m)))
+            Ok(Encoding::new(Integer::Golomb { offset, m }))
         }
         Kind::Huffman => {
             let (alphabet, bit_lens) = get_huffman_codec(src)?;
-            Ok(Encoding::new(Integer::Huffman(alphabet, bit_lens)))
+            Ok(Encoding::new(Integer::Huffman { alphabet, bit_lens }))
         }
         Kind::Beta => {
             let (offset, len) = get_beta_codec(src)?;
-            Ok(Encoding::new(Integer::Beta(offset, len)))
+            Ok(Encoding::new(Integer::Beta { offset, len }))
         }
         Kind::Subexp => {
             let (offset, k) = get_subexp_codec(src)?;
-            Ok(Encoding::new(Integer::Subexp(offset, k)))
+            Ok(Encoding::new(Integer::Subexp { offset, k }))
         }
         Kind::GolombRice => {
             let (offset, log2_m) = get_golomb_rice_codec(src)?;
-            Ok(Encoding::new(Integer::GolombRice(offset, log2_m)))
+            Ok(Encoding::new(Integer::GolombRice { offset, log2_m }))
         }
         Kind::Gamma => {
             let offset = get_gamma_codec(src)?;
-            Ok(Encoding::new(Integer::Gamma(offset)))
+            Ok(Encoding::new(Integer::Gamma { offset }))
         }
         kind => Err(io::Error::new(
             io::ErrorKind::InvalidData,
@@ -321,7 +321,9 @@ mod tests {
 
         assert_eq!(
             len_encoding,
-            Encoding::new(Integer::External(block::ContentId::from(13)))
+            Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(13)
+            })
         );
         assert_eq!(
             value_encoding,

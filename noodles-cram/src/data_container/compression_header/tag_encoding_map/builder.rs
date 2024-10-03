@@ -31,7 +31,7 @@ impl Builder {
         for key in self.keys {
             let block_content_id = block::ContentId::from(key);
 
-            let len_encoding = Encoding::new(Integer::External(block_content_id));
+            let len_encoding = Encoding::new(Integer::External { block_content_id });
             let value_encoding = Encoding::new(Byte::External { block_content_id });
             let encoding = Encoding::new(ByteArray::ByteArrayLen {
                 len_encoding,
@@ -79,7 +79,9 @@ mod tests {
             (
                 nh,
                 Encoding::new(ByteArray::ByteArrayLen {
-                    len_encoding: Encoding::new(Integer::External(nh)),
+                    len_encoding: Encoding::new(Integer::External {
+                        block_content_id: nh,
+                    }),
                     value_encoding: Encoding::new(Byte::External {
                         block_content_id: nh,
                     }),
@@ -88,7 +90,9 @@ mod tests {
             (
                 co,
                 Encoding::new(ByteArray::ByteArrayLen {
-                    len_encoding: Encoding::new(Integer::External(co)),
+                    len_encoding: Encoding::new(Integer::External {
+                        block_content_id: co,
+                    }),
                     value_encoding: Encoding::new(Byte::External {
                         block_content_id: co,
                     }),

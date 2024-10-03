@@ -164,7 +164,7 @@ mod tests {
         }
 
         let block_content_id = block::ContentId::from(1);
-        let len_encoding = Encoding::new(Integer::External(block_content_id));
+        let len_encoding = Encoding::new(Integer::External { block_content_id });
         let value_encoding = Encoding::new(Byte::External { block_content_id });
         t(
             &[0x04, 0x6e, 0x64, 0x6c, 0x73],
@@ -221,7 +221,7 @@ mod tests {
         }
 
         let block_content_id = block::ContentId::from(1);
-        let len_encoding = Encoding::new(Integer::External(block_content_id));
+        let len_encoding = Encoding::new(Integer::External { block_content_id });
         let value_encoding = Encoding::new(Byte::External { block_content_id });
         t(
             &Encoding::new(ByteArray::ByteArrayLen {

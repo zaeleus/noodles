@@ -261,64 +261,66 @@ impl DataSeriesEncodingMap {
 impl Default for DataSeriesEncodingMap {
     fn default() -> Self {
         Self {
-            bam_flags: Encoding::new(Integer::External(block::ContentId::from(
-                DataSeries::BamFlags,
-            ))),
-            cram_flags: Encoding::new(Integer::External(block::ContentId::from(
-                DataSeries::CramFlags,
-            ))),
-            reference_sequence_ids: Some(Encoding::new(Integer::External(block::ContentId::from(
-                DataSeries::ReferenceSequenceIds,
-            )))),
-            read_lengths: Encoding::new(Integer::External(block::ContentId::from(
-                DataSeries::ReadLengths,
-            ))),
-            alignment_starts: Encoding::new(Integer::External(block::ContentId::from(
-                DataSeries::AlignmentStarts,
-            ))),
-            read_group_ids: Encoding::new(Integer::External(block::ContentId::from(
-                DataSeries::ReadGroupIds,
-            ))),
+            bam_flags: Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(DataSeries::BamFlags),
+            }),
+            cram_flags: Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(DataSeries::CramFlags),
+            }),
+            reference_sequence_ids: Some(Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(DataSeries::ReferenceSequenceIds),
+            })),
+            read_lengths: Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(DataSeries::ReadLengths),
+            }),
+            alignment_starts: Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(DataSeries::AlignmentStarts),
+            }),
+            read_group_ids: Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(DataSeries::ReadGroupIds),
+            }),
             names: Some(Encoding::new(ByteArray::ByteArrayStop {
                 stop_byte: 0x00,
                 block_content_id: block::ContentId::from(DataSeries::Names),
             })),
-            mate_flags: Some(Encoding::new(Integer::External(block::ContentId::from(
-                DataSeries::MateFlags,
-            )))),
-            mate_reference_sequence_ids: Some(Encoding::new(Integer::External(
-                block::ContentId::from(DataSeries::MateReferenceSequenceId),
-            ))),
-            mate_alignment_starts: Some(Encoding::new(Integer::External(block::ContentId::from(
-                DataSeries::MateAlignmentStart,
-            )))),
-            template_lengths: Some(Encoding::new(Integer::External(block::ContentId::from(
-                DataSeries::TemplateLengths,
-            )))),
-            mate_distances: Some(Encoding::new(Integer::External(block::ContentId::from(
-                DataSeries::MateDistances,
-            )))),
-            tag_set_ids: Encoding::new(Integer::External(block::ContentId::from(13))),
-            feature_counts: Some(Encoding::new(Integer::External(block::ContentId::from(
-                DataSeries::FeatureCounts,
-            )))),
+            mate_flags: Some(Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(DataSeries::MateFlags),
+            })),
+            mate_reference_sequence_ids: Some(Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(DataSeries::MateReferenceSequenceId),
+            })),
+            mate_alignment_starts: Some(Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(DataSeries::MateAlignmentStart),
+            })),
+            template_lengths: Some(Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(DataSeries::TemplateLengths),
+            })),
+            mate_distances: Some(Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(DataSeries::MateDistances),
+            })),
+            tag_set_ids: Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(13),
+            }),
+            feature_counts: Some(Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(DataSeries::FeatureCounts),
+            })),
             feature_codes: Some(Encoding::new(Byte::External {
                 block_content_id: block::ContentId::from(DataSeries::FeatureCodes),
             })),
-            feature_position_deltas: Some(Encoding::new(Integer::External(
-                block::ContentId::from(DataSeries::FeaturePositionDeltas),
-            ))),
-            deletion_lengths: Some(Encoding::new(Integer::External(block::ContentId::from(
-                DataSeries::DeletionLengths,
-            )))),
+            feature_position_deltas: Some(Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(DataSeries::FeaturePositionDeltas),
+            })),
+            deletion_lengths: Some(Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(DataSeries::DeletionLengths),
+            })),
             stretches_of_bases: Some(Encoding::new(ByteArray::ByteArrayStop {
                 stop_byte: 0x00,
                 block_content_id: block::ContentId::from(DataSeries::StretchesOfBases),
             })),
             stretches_of_quality_scores: Some(Encoding::new(ByteArray::ByteArrayLen {
-                len_encoding: Encoding::new(Integer::External(block::ContentId::from(
-                    DataSeries::StretchesOfQualityScores,
-                ))),
+                len_encoding: Encoding::new(Integer::External {
+                    block_content_id: block::ContentId::from(DataSeries::StretchesOfQualityScores),
+                }),
                 value_encoding: Encoding::new(Byte::External {
                     block_content_id: block::ContentId::from(DataSeries::StretchesOfQualityScores),
                 }),
@@ -330,22 +332,22 @@ impl Default for DataSeriesEncodingMap {
                 stop_byte: 0x00,
                 block_content_id: block::ContentId::from(DataSeries::InsertionBases),
             })),
-            reference_skip_lengths: Some(Encoding::new(Integer::External(block::ContentId::from(
-                DataSeries::ReferenceSkipLengths,
-            )))),
-            padding_lengths: Some(Encoding::new(Integer::External(block::ContentId::from(
-                DataSeries::PaddingLengths,
-            )))),
-            hard_clip_lengths: Some(Encoding::new(Integer::External(block::ContentId::from(
-                DataSeries::HardClipLengths,
-            )))),
+            reference_skip_lengths: Some(Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(DataSeries::ReferenceSkipLengths),
+            })),
+            padding_lengths: Some(Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(DataSeries::PaddingLengths),
+            })),
+            hard_clip_lengths: Some(Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(DataSeries::HardClipLengths),
+            })),
             soft_clip_bases: Some(Encoding::new(ByteArray::ByteArrayStop {
                 stop_byte: 0x00,
                 block_content_id: block::ContentId::from(DataSeries::SoftClipBases),
             })),
-            mapping_qualities: Some(Encoding::new(Integer::External(block::ContentId::from(
-                DataSeries::MappingQualities,
-            )))),
+            mapping_qualities: Some(Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(DataSeries::MappingQualities),
+            })),
             bases: Some(Encoding::new(Byte::External {
                 block_content_id: block::ContentId::from(DataSeries::Bases),
             })),
@@ -366,12 +368,24 @@ mod tests {
         assert_eq!(map.len(), 28);
 
         let map = DataSeriesEncodingMap::builder()
-            .set_bam_flags(Encoding::new(Integer::External(block::ContentId::from(1))))
-            .set_cram_flags(Encoding::new(Integer::External(block::ContentId::from(2))))
-            .set_read_lengths(Encoding::new(Integer::External(block::ContentId::from(4))))
-            .set_alignment_starts(Encoding::new(Integer::External(block::ContentId::from(5))))
-            .set_read_group_ids(Encoding::new(Integer::External(block::ContentId::from(6))))
-            .set_tag_set_ids(Encoding::new(Integer::External(block::ContentId::from(13))))
+            .set_bam_flags(Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(1),
+            }))
+            .set_cram_flags(Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(2),
+            }))
+            .set_read_lengths(Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(4),
+            }))
+            .set_alignment_starts(Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(5),
+            }))
+            .set_read_group_ids(Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(6),
+            }))
+            .set_tag_set_ids(Encoding::new(Integer::External {
+                block_content_id: block::ContentId::from(13),
+            }))
             .build()?;
 
         assert_eq!(map.len(), 6);
