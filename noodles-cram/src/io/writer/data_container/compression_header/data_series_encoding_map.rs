@@ -48,71 +48,71 @@ fn write_encodings<W>(
 where
     W: Write,
 {
-    write_key(writer, DataSeries::BamBitFlags)?;
-    write_encoding_for_integer_codec(writer, data_series_encoding_map.bam_bit_flags())?;
+    write_key(writer, DataSeries::BamFlags)?;
+    write_encoding_for_integer_codec(writer, data_series_encoding_map.bam_flags())?;
 
-    write_key(writer, DataSeries::CramBitFlags)?;
-    write_encoding_for_integer_codec(writer, data_series_encoding_map.cram_bit_flags())?;
+    write_key(writer, DataSeries::CramFlags)?;
+    write_encoding_for_integer_codec(writer, data_series_encoding_map.cram_flags())?;
 
-    if let Some(encoding) = data_series_encoding_map.reference_id() {
-        write_key(writer, DataSeries::ReferenceId)?;
+    if let Some(encoding) = data_series_encoding_map.reference_sequence_ids() {
+        write_key(writer, DataSeries::ReferenceSequenceIds)?;
         write_encoding_for_integer_codec(writer, encoding)?;
     }
 
     write_key(writer, DataSeries::ReadLengths)?;
     write_encoding_for_integer_codec(writer, data_series_encoding_map.read_lengths())?;
 
-    write_key(writer, DataSeries::InSeqPositions)?;
-    write_encoding_for_integer_codec(writer, data_series_encoding_map.in_seq_positions())?;
+    write_key(writer, DataSeries::AlignmentStarts)?;
+    write_encoding_for_integer_codec(writer, data_series_encoding_map.alignment_starts())?;
 
-    write_key(writer, DataSeries::ReadGroups)?;
-    write_encoding_for_integer_codec(writer, data_series_encoding_map.read_groups())?;
+    write_key(writer, DataSeries::ReadGroupIds)?;
+    write_encoding_for_integer_codec(writer, data_series_encoding_map.read_group_ids())?;
 
-    if let Some(encoding) = data_series_encoding_map.read_names() {
-        write_key(writer, DataSeries::ReadNames)?;
+    if let Some(encoding) = data_series_encoding_map.names() {
+        write_key(writer, DataSeries::Names)?;
         write_encoding_for_byte_array_codec(writer, encoding)?;
     }
 
-    if let Some(encoding) = data_series_encoding_map.next_mate_bit_flags() {
-        write_key(writer, DataSeries::NextMateBitFlags)?;
+    if let Some(encoding) = data_series_encoding_map.mate_flags() {
+        write_key(writer, DataSeries::MateFlags)?;
         write_encoding_for_integer_codec(writer, encoding)?;
     }
 
-    if let Some(encoding) = data_series_encoding_map.next_fragment_reference_sequence_id() {
-        write_key(writer, DataSeries::NextFragmentReferenceSequenceId)?;
+    if let Some(encoding) = data_series_encoding_map.mate_reference_sequence_ids() {
+        write_key(writer, DataSeries::MateReferenceSequenceId)?;
         write_encoding_for_integer_codec(writer, encoding)?;
     }
 
-    if let Some(encoding) = data_series_encoding_map.next_mate_alignment_start() {
-        write_key(writer, DataSeries::NextMateAlignmentStart)?;
+    if let Some(encoding) = data_series_encoding_map.mate_alignment_starts() {
+        write_key(writer, DataSeries::MateAlignmentStart)?;
         write_encoding_for_integer_codec(writer, encoding)?;
     }
 
-    if let Some(encoding) = data_series_encoding_map.template_size() {
-        write_key(writer, DataSeries::TemplateSize)?;
+    if let Some(encoding) = data_series_encoding_map.template_lengths() {
+        write_key(writer, DataSeries::TemplateLengths)?;
         write_encoding_for_integer_codec(writer, encoding)?;
     }
 
-    if let Some(encoding) = data_series_encoding_map.distance_to_next_fragment() {
-        write_key(writer, DataSeries::DistanceToNextFragment)?;
+    if let Some(encoding) = data_series_encoding_map.mate_distances() {
+        write_key(writer, DataSeries::MateDistances)?;
         write_encoding_for_integer_codec(writer, encoding)?;
     }
 
-    write_key(writer, DataSeries::TagIds)?;
-    write_encoding_for_integer_codec(writer, data_series_encoding_map.tag_ids())?;
+    write_key(writer, DataSeries::TagSetIds)?;
+    write_encoding_for_integer_codec(writer, data_series_encoding_map.tag_set_ids())?;
 
-    if let Some(encoding) = data_series_encoding_map.number_of_read_features() {
-        write_key(writer, DataSeries::NumberOfReadFeatures)?;
+    if let Some(encoding) = data_series_encoding_map.feature_counts() {
+        write_key(writer, DataSeries::FeatureCounts)?;
         write_encoding_for_integer_codec(writer, encoding)?;
     }
 
-    if let Some(encoding) = data_series_encoding_map.read_features_codes() {
-        write_key(writer, DataSeries::ReadFeaturesCodes)?;
+    if let Some(encoding) = data_series_encoding_map.feature_codes() {
+        write_key(writer, DataSeries::FeatureCodes)?;
         write_encoding_for_byte_codec(writer, encoding)?;
     }
 
-    if let Some(encoding) = data_series_encoding_map.in_read_positions() {
-        write_key(writer, DataSeries::InReadPositions)?;
+    if let Some(encoding) = data_series_encoding_map.feature_position_deltas() {
+        write_key(writer, DataSeries::FeaturePositionDeltas)?;
         write_encoding_for_integer_codec(writer, encoding)?;
     }
 
@@ -136,28 +136,28 @@ where
         write_encoding_for_byte_codec(writer, encoding)?;
     }
 
-    if let Some(encoding) = data_series_encoding_map.insertion() {
-        write_key(writer, DataSeries::Insertion)?;
+    if let Some(encoding) = data_series_encoding_map.insertion_bases() {
+        write_key(writer, DataSeries::InsertionBases)?;
         write_encoding_for_byte_array_codec(writer, encoding)?;
     }
 
-    if let Some(encoding) = data_series_encoding_map.reference_skip_length() {
-        write_key(writer, DataSeries::ReferenceSkipLength)?;
+    if let Some(encoding) = data_series_encoding_map.reference_skip_lengths() {
+        write_key(writer, DataSeries::ReferenceSkipLengths)?;
         write_encoding_for_integer_codec(writer, encoding)?;
     }
 
-    if let Some(encoding) = data_series_encoding_map.padding() {
-        write_key(writer, DataSeries::Padding)?;
+    if let Some(encoding) = data_series_encoding_map.padding_lengths() {
+        write_key(writer, DataSeries::PaddingLengths)?;
         write_encoding_for_integer_codec(writer, encoding)?;
     }
 
-    if let Some(encoding) = data_series_encoding_map.hard_clip() {
-        write_key(writer, DataSeries::HardClip)?;
+    if let Some(encoding) = data_series_encoding_map.hard_clip_lengths() {
+        write_key(writer, DataSeries::HardClipLengths)?;
         write_encoding_for_integer_codec(writer, encoding)?;
     }
 
-    if let Some(encoding) = data_series_encoding_map.soft_clip() {
-        write_key(writer, DataSeries::SoftClip)?;
+    if let Some(encoding) = data_series_encoding_map.soft_clip_bases() {
+        write_key(writer, DataSeries::SoftClipBases)?;
         write_encoding_for_byte_array_codec(writer, encoding)?;
     }
 

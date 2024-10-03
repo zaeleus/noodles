@@ -42,7 +42,7 @@ impl Builder {
     /// };
     ///
     /// let builder = BlockContentEncoderMap::builder()
-    ///     .set_data_series_encoder(DataSeries::BamBitFlags, None);
+    ///     .set_data_series_encoder(DataSeries::BamFlags, None);
     /// ```
     pub fn set_data_series_encoder(
         mut self,

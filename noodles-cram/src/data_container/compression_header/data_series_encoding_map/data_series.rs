@@ -3,31 +3,31 @@ use std::{error, fmt};
 use crate::container::block;
 
 pub static STANDARD_DATA_SERIES: &[DataSeries; 28] = &[
-    DataSeries::BamBitFlags,
-    DataSeries::CramBitFlags,
-    DataSeries::ReferenceId,
+    DataSeries::BamFlags,
+    DataSeries::CramFlags,
+    DataSeries::ReferenceSequenceIds,
     DataSeries::ReadLengths,
-    DataSeries::InSeqPositions,
-    DataSeries::ReadGroups,
-    DataSeries::ReadNames,
-    DataSeries::NextMateBitFlags,
-    DataSeries::NextFragmentReferenceSequenceId,
-    DataSeries::NextMateAlignmentStart,
-    DataSeries::TemplateSize,
-    DataSeries::DistanceToNextFragment,
-    DataSeries::TagIds,
-    DataSeries::NumberOfReadFeatures,
-    DataSeries::ReadFeaturesCodes,
-    DataSeries::InReadPositions,
+    DataSeries::AlignmentStarts,
+    DataSeries::ReadGroupIds,
+    DataSeries::Names,
+    DataSeries::MateFlags,
+    DataSeries::MateReferenceSequenceId,
+    DataSeries::MateAlignmentStart,
+    DataSeries::TemplateLengths,
+    DataSeries::MateDistances,
+    DataSeries::TagSetIds,
+    DataSeries::FeatureCounts,
+    DataSeries::FeatureCodes,
+    DataSeries::FeaturePositionDeltas,
     DataSeries::DeletionLengths,
     DataSeries::StretchesOfBases,
     DataSeries::StretchesOfQualityScores,
     DataSeries::BaseSubstitutionCodes,
-    DataSeries::Insertion,
-    DataSeries::ReferenceSkipLength,
-    DataSeries::Padding,
-    DataSeries::HardClip,
-    DataSeries::SoftClip,
+    DataSeries::InsertionBases,
+    DataSeries::ReferenceSkipLengths,
+    DataSeries::PaddingLengths,
+    DataSeries::HardClipLengths,
+    DataSeries::SoftClipBases,
     DataSeries::MappingQualities,
     DataSeries::Bases,
     DataSeries::QualityScores,
@@ -37,37 +37,37 @@ pub static STANDARD_DATA_SERIES: &[DataSeries; 28] = &[
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum DataSeries {
     /// BAM bit flags (`BF`).
-    BamBitFlags,
+    BamFlags,
     /// CRAM bit flags (`CF`).
-    CramBitFlags,
+    CramFlags,
     /// Reference ID (`RI`).
-    ReferenceId,
+    ReferenceSequenceIds,
     /// Read lengths (`RL`).
     ReadLengths,
     /// In-seq positions (`AP`).
-    InSeqPositions,
+    AlignmentStarts,
     /// Read groups (`RG`).
-    ReadGroups,
+    ReadGroupIds,
     /// Read names (`RN`).
-    ReadNames,
+    Names,
     /// Next mate bit flags (`MF`).
-    NextMateBitFlags,
+    MateFlags,
     /// Next fragment reference sequence ID (`NS`).
-    NextFragmentReferenceSequenceId,
+    MateReferenceSequenceId,
     /// Next mate alignment start (`NP`).
-    NextMateAlignmentStart,
+    MateAlignmentStart,
     /// Template size (`TS`).
-    TemplateSize,
+    TemplateLengths,
     /// Distance to next fragment (`NF`).
-    DistanceToNextFragment,
+    MateDistances,
     /// Tag IDs (`TL`).
-    TagIds,
+    TagSetIds,
     /// Number of read features (`FN`).
-    NumberOfReadFeatures,
+    FeatureCounts,
     /// Read features codes (`FC`).
-    ReadFeaturesCodes,
+    FeatureCodes,
     /// In-read positions (`FP`).
-    InReadPositions,
+    FeaturePositionDeltas,
     /// Deletion lengths (`DL`).
     DeletionLengths,
     /// Stretches of bases (`BB`).
@@ -77,15 +77,15 @@ pub enum DataSeries {
     /// Base substitution codes (`BS`).
     BaseSubstitutionCodes,
     /// Insertion (`IN`).
-    Insertion,
+    InsertionBases,
     /// Reference skip length (`RS`).
-    ReferenceSkipLength,
+    ReferenceSkipLengths,
     /// Padding (`PD`).
-    Padding,
+    PaddingLengths,
     /// Hard clip (`HC`).
-    HardClip,
+    HardClipLengths,
     /// Soft clip (`SC`).
-    SoftClip,
+    SoftClipBases,
     /// Mapping qualities (`MQ`).
     MappingQualities,
     /// Bases (`BA`).
@@ -118,31 +118,31 @@ impl TryFrom<[u8; 2]> for DataSeries {
 
     fn try_from(b: [u8; 2]) -> Result<Self, Self::Error> {
         match b {
-            [b'B', b'F'] => Ok(Self::BamBitFlags),
-            [b'C', b'F'] => Ok(Self::CramBitFlags),
-            [b'R', b'I'] => Ok(Self::ReferenceId),
+            [b'B', b'F'] => Ok(Self::BamFlags),
+            [b'C', b'F'] => Ok(Self::CramFlags),
+            [b'R', b'I'] => Ok(Self::ReferenceSequenceIds),
             [b'R', b'L'] => Ok(Self::ReadLengths),
-            [b'A', b'P'] => Ok(Self::InSeqPositions),
-            [b'R', b'G'] => Ok(Self::ReadGroups),
-            [b'R', b'N'] => Ok(Self::ReadNames),
-            [b'M', b'F'] => Ok(Self::NextMateBitFlags),
-            [b'N', b'S'] => Ok(Self::NextFragmentReferenceSequenceId),
-            [b'N', b'P'] => Ok(Self::NextMateAlignmentStart),
-            [b'T', b'S'] => Ok(Self::TemplateSize),
-            [b'N', b'F'] => Ok(Self::DistanceToNextFragment),
-            [b'T', b'L'] => Ok(Self::TagIds),
-            [b'F', b'N'] => Ok(Self::NumberOfReadFeatures),
-            [b'F', b'C'] => Ok(Self::ReadFeaturesCodes),
-            [b'F', b'P'] => Ok(Self::InReadPositions),
+            [b'A', b'P'] => Ok(Self::AlignmentStarts),
+            [b'R', b'G'] => Ok(Self::ReadGroupIds),
+            [b'R', b'N'] => Ok(Self::Names),
+            [b'M', b'F'] => Ok(Self::MateFlags),
+            [b'N', b'S'] => Ok(Self::MateReferenceSequenceId),
+            [b'N', b'P'] => Ok(Self::MateAlignmentStart),
+            [b'T', b'S'] => Ok(Self::TemplateLengths),
+            [b'N', b'F'] => Ok(Self::MateDistances),
+            [b'T', b'L'] => Ok(Self::TagSetIds),
+            [b'F', b'N'] => Ok(Self::FeatureCounts),
+            [b'F', b'C'] => Ok(Self::FeatureCodes),
+            [b'F', b'P'] => Ok(Self::FeaturePositionDeltas),
             [b'D', b'L'] => Ok(Self::DeletionLengths),
             [b'B', b'B'] => Ok(Self::StretchesOfBases),
             [b'Q', b'Q'] => Ok(Self::StretchesOfQualityScores),
             [b'B', b'S'] => Ok(Self::BaseSubstitutionCodes),
-            [b'I', b'N'] => Ok(Self::Insertion),
-            [b'R', b'S'] => Ok(Self::ReferenceSkipLength),
-            [b'P', b'D'] => Ok(Self::Padding),
-            [b'H', b'C'] => Ok(Self::HardClip),
-            [b'S', b'C'] => Ok(Self::SoftClip),
+            [b'I', b'N'] => Ok(Self::InsertionBases),
+            [b'R', b'S'] => Ok(Self::ReferenceSkipLengths),
+            [b'P', b'D'] => Ok(Self::PaddingLengths),
+            [b'H', b'C'] => Ok(Self::HardClipLengths),
+            [b'S', b'C'] => Ok(Self::SoftClipBases),
             [b'M', b'Q'] => Ok(Self::MappingQualities),
             [b'B', b'A'] => Ok(Self::Bases),
             [b'Q', b'S'] => Ok(Self::QualityScores),
@@ -156,31 +156,31 @@ impl TryFrom<[u8; 2]> for DataSeries {
 impl From<DataSeries> for [u8; 2] {
     fn from(data_series: DataSeries) -> Self {
         match data_series {
-            DataSeries::BamBitFlags => [b'B', b'F'],
-            DataSeries::CramBitFlags => [b'C', b'F'],
-            DataSeries::ReferenceId => [b'R', b'I'],
+            DataSeries::BamFlags => [b'B', b'F'],
+            DataSeries::CramFlags => [b'C', b'F'],
+            DataSeries::ReferenceSequenceIds => [b'R', b'I'],
             DataSeries::ReadLengths => [b'R', b'L'],
-            DataSeries::InSeqPositions => [b'A', b'P'],
-            DataSeries::ReadGroups => [b'R', b'G'],
-            DataSeries::ReadNames => [b'R', b'N'],
-            DataSeries::NextMateBitFlags => [b'M', b'F'],
-            DataSeries::NextFragmentReferenceSequenceId => [b'N', b'S'],
-            DataSeries::NextMateAlignmentStart => [b'N', b'P'],
-            DataSeries::TemplateSize => [b'T', b'S'],
-            DataSeries::DistanceToNextFragment => [b'N', b'F'],
-            DataSeries::TagIds => [b'T', b'L'],
-            DataSeries::NumberOfReadFeatures => [b'F', b'N'],
-            DataSeries::ReadFeaturesCodes => [b'F', b'C'],
-            DataSeries::InReadPositions => [b'F', b'P'],
+            DataSeries::AlignmentStarts => [b'A', b'P'],
+            DataSeries::ReadGroupIds => [b'R', b'G'],
+            DataSeries::Names => [b'R', b'N'],
+            DataSeries::MateFlags => [b'M', b'F'],
+            DataSeries::MateReferenceSequenceId => [b'N', b'S'],
+            DataSeries::MateAlignmentStart => [b'N', b'P'],
+            DataSeries::TemplateLengths => [b'T', b'S'],
+            DataSeries::MateDistances => [b'N', b'F'],
+            DataSeries::TagSetIds => [b'T', b'L'],
+            DataSeries::FeatureCounts => [b'F', b'N'],
+            DataSeries::FeatureCodes => [b'F', b'C'],
+            DataSeries::FeaturePositionDeltas => [b'F', b'P'],
             DataSeries::DeletionLengths => [b'D', b'L'],
             DataSeries::StretchesOfBases => [b'B', b'B'],
             DataSeries::StretchesOfQualityScores => [b'Q', b'Q'],
             DataSeries::BaseSubstitutionCodes => [b'B', b'S'],
-            DataSeries::Insertion => [b'I', b'N'],
-            DataSeries::ReferenceSkipLength => [b'R', b'S'],
-            DataSeries::Padding => [b'P', b'D'],
-            DataSeries::HardClip => [b'H', b'C'],
-            DataSeries::SoftClip => [b'S', b'C'],
+            DataSeries::InsertionBases => [b'I', b'N'],
+            DataSeries::ReferenceSkipLengths => [b'R', b'S'],
+            DataSeries::PaddingLengths => [b'P', b'D'],
+            DataSeries::HardClipLengths => [b'H', b'C'],
+            DataSeries::SoftClipBases => [b'S', b'C'],
             DataSeries::MappingQualities => [b'M', b'Q'],
             DataSeries::Bases => [b'B', b'A'],
             DataSeries::QualityScores => [b'Q', b'S'],
@@ -193,31 +193,31 @@ impl From<DataSeries> for [u8; 2] {
 impl From<DataSeries> for block::ContentId {
     fn from(data_series: DataSeries) -> Self {
         let id = match data_series {
-            DataSeries::BamBitFlags => 1,
-            DataSeries::CramBitFlags => 2,
-            DataSeries::ReferenceId => 3,
+            DataSeries::BamFlags => 1,
+            DataSeries::CramFlags => 2,
+            DataSeries::ReferenceSequenceIds => 3,
             DataSeries::ReadLengths => 4,
-            DataSeries::InSeqPositions => 5,
-            DataSeries::ReadGroups => 6,
-            DataSeries::ReadNames => 7,
-            DataSeries::NextMateBitFlags => 8,
-            DataSeries::NextFragmentReferenceSequenceId => 9,
-            DataSeries::NextMateAlignmentStart => 10,
-            DataSeries::TemplateSize => 11,
-            DataSeries::DistanceToNextFragment => 12,
-            DataSeries::TagIds => 13,
-            DataSeries::NumberOfReadFeatures => 14,
-            DataSeries::ReadFeaturesCodes => 15,
-            DataSeries::InReadPositions => 16,
+            DataSeries::AlignmentStarts => 5,
+            DataSeries::ReadGroupIds => 6,
+            DataSeries::Names => 7,
+            DataSeries::MateFlags => 8,
+            DataSeries::MateReferenceSequenceId => 9,
+            DataSeries::MateAlignmentStart => 10,
+            DataSeries::TemplateLengths => 11,
+            DataSeries::MateDistances => 12,
+            DataSeries::TagSetIds => 13,
+            DataSeries::FeatureCounts => 14,
+            DataSeries::FeatureCodes => 15,
+            DataSeries::FeaturePositionDeltas => 16,
             DataSeries::DeletionLengths => 17,
             DataSeries::StretchesOfBases => 18,
             DataSeries::StretchesOfQualityScores => 19,
             DataSeries::BaseSubstitutionCodes => 20,
-            DataSeries::Insertion => 21,
-            DataSeries::ReferenceSkipLength => 22,
-            DataSeries::Padding => 23,
-            DataSeries::HardClip => 24,
-            DataSeries::SoftClip => 25,
+            DataSeries::InsertionBases => 21,
+            DataSeries::ReferenceSkipLengths => 22,
+            DataSeries::PaddingLengths => 23,
+            DataSeries::HardClipLengths => 24,
+            DataSeries::SoftClipBases => 25,
             DataSeries::MappingQualities => 26,
             DataSeries::Bases => 27,
             DataSeries::QualityScores => 28,
@@ -235,18 +235,15 @@ mod tests {
 
     #[test]
     fn test_try_from_byte_array_for_data_series() {
-        assert_eq!(
-            DataSeries::try_from([b'B', b'F']),
-            Ok(DataSeries::BamBitFlags)
-        );
+        assert_eq!(DataSeries::try_from([b'B', b'F']), Ok(DataSeries::BamFlags));
         assert_eq!(
             DataSeries::try_from([b'C', b'F']),
-            Ok(DataSeries::CramBitFlags)
+            Ok(DataSeries::CramFlags)
         );
 
         assert_eq!(
             DataSeries::try_from([b'R', b'I']),
-            Ok(DataSeries::ReferenceId)
+            Ok(DataSeries::ReferenceSequenceIds)
         );
         assert_eq!(
             DataSeries::try_from([b'R', b'L']),
@@ -254,48 +251,48 @@ mod tests {
         );
         assert_eq!(
             DataSeries::try_from([b'A', b'P']),
-            Ok(DataSeries::InSeqPositions)
+            Ok(DataSeries::AlignmentStarts)
         );
         assert_eq!(
             DataSeries::try_from([b'R', b'G']),
-            Ok(DataSeries::ReadGroups)
+            Ok(DataSeries::ReadGroupIds)
         );
-        assert_eq!(
-            DataSeries::try_from([b'R', b'N']),
-            Ok(DataSeries::ReadNames)
-        );
+        assert_eq!(DataSeries::try_from([b'R', b'N']), Ok(DataSeries::Names));
         assert_eq!(
             DataSeries::try_from([b'M', b'F']),
-            Ok(DataSeries::NextMateBitFlags)
+            Ok(DataSeries::MateFlags)
         );
         assert_eq!(
             DataSeries::try_from([b'N', b'S']),
-            Ok(DataSeries::NextFragmentReferenceSequenceId)
+            Ok(DataSeries::MateReferenceSequenceId)
         );
         assert_eq!(
             DataSeries::try_from([b'N', b'P']),
-            Ok(DataSeries::NextMateAlignmentStart)
+            Ok(DataSeries::MateAlignmentStart)
         );
         assert_eq!(
             DataSeries::try_from([b'T', b'S']),
-            Ok(DataSeries::TemplateSize)
+            Ok(DataSeries::TemplateLengths)
         );
         assert_eq!(
             DataSeries::try_from([b'N', b'F']),
-            Ok(DataSeries::DistanceToNextFragment)
+            Ok(DataSeries::MateDistances)
         );
-        assert_eq!(DataSeries::try_from([b'T', b'L']), Ok(DataSeries::TagIds));
+        assert_eq!(
+            DataSeries::try_from([b'T', b'L']),
+            Ok(DataSeries::TagSetIds)
+        );
         assert_eq!(
             DataSeries::try_from([b'F', b'N']),
-            Ok(DataSeries::NumberOfReadFeatures)
+            Ok(DataSeries::FeatureCounts)
         );
         assert_eq!(
             DataSeries::try_from([b'F', b'C']),
-            Ok(DataSeries::ReadFeaturesCodes)
+            Ok(DataSeries::FeatureCodes)
         );
         assert_eq!(
             DataSeries::try_from([b'F', b'P']),
-            Ok(DataSeries::InReadPositions)
+            Ok(DataSeries::FeaturePositionDeltas)
         );
         assert_eq!(
             DataSeries::try_from([b'D', b'L']),
@@ -315,15 +312,24 @@ mod tests {
         );
         assert_eq!(
             DataSeries::try_from([b'I', b'N']),
-            Ok(DataSeries::Insertion)
+            Ok(DataSeries::InsertionBases)
         );
         assert_eq!(
             DataSeries::try_from([b'R', b'S']),
-            Ok(DataSeries::ReferenceSkipLength)
+            Ok(DataSeries::ReferenceSkipLengths)
         );
-        assert_eq!(DataSeries::try_from([b'P', b'D']), Ok(DataSeries::Padding));
-        assert_eq!(DataSeries::try_from([b'H', b'C']), Ok(DataSeries::HardClip));
-        assert_eq!(DataSeries::try_from([b'S', b'C']), Ok(DataSeries::SoftClip));
+        assert_eq!(
+            DataSeries::try_from([b'P', b'D']),
+            Ok(DataSeries::PaddingLengths)
+        );
+        assert_eq!(
+            DataSeries::try_from([b'H', b'C']),
+            Ok(DataSeries::HardClipLengths)
+        );
+        assert_eq!(
+            DataSeries::try_from([b'S', b'C']),
+            Ok(DataSeries::SoftClipBases)
+        );
         assert_eq!(
             DataSeries::try_from([b'M', b'Q']),
             Ok(DataSeries::MappingQualities)
@@ -350,34 +356,34 @@ mod tests {
 
     #[test]
     fn test_from_data_series_for_u8_array() {
-        assert_eq!(<[u8; 2]>::from(DataSeries::BamBitFlags), [b'B', b'F']);
-        assert_eq!(<[u8; 2]>::from(DataSeries::CramBitFlags), [b'C', b'F']);
-        assert_eq!(<[u8; 2]>::from(DataSeries::ReferenceId), [b'R', b'I']);
-        assert_eq!(<[u8; 2]>::from(DataSeries::ReadLengths), [b'R', b'L']);
-        assert_eq!(<[u8; 2]>::from(DataSeries::InSeqPositions), [b'A', b'P']);
-        assert_eq!(<[u8; 2]>::from(DataSeries::ReadGroups), [b'R', b'G']);
-        assert_eq!(<[u8; 2]>::from(DataSeries::ReadNames), [b'R', b'N']);
-        assert_eq!(<[u8; 2]>::from(DataSeries::NextMateBitFlags), [b'M', b'F']);
+        assert_eq!(<[u8; 2]>::from(DataSeries::BamFlags), [b'B', b'F']);
+        assert_eq!(<[u8; 2]>::from(DataSeries::CramFlags), [b'C', b'F']);
         assert_eq!(
-            <[u8; 2]>::from(DataSeries::NextFragmentReferenceSequenceId),
+            <[u8; 2]>::from(DataSeries::ReferenceSequenceIds),
+            [b'R', b'I']
+        );
+        assert_eq!(<[u8; 2]>::from(DataSeries::ReadLengths), [b'R', b'L']);
+        assert_eq!(<[u8; 2]>::from(DataSeries::AlignmentStarts), [b'A', b'P']);
+        assert_eq!(<[u8; 2]>::from(DataSeries::ReadGroupIds), [b'R', b'G']);
+        assert_eq!(<[u8; 2]>::from(DataSeries::Names), [b'R', b'N']);
+        assert_eq!(<[u8; 2]>::from(DataSeries::MateFlags), [b'M', b'F']);
+        assert_eq!(
+            <[u8; 2]>::from(DataSeries::MateReferenceSequenceId),
             [b'N', b'S']
         );
         assert_eq!(
-            <[u8; 2]>::from(DataSeries::NextMateAlignmentStart),
+            <[u8; 2]>::from(DataSeries::MateAlignmentStart),
             [b'N', b'P']
         );
-        assert_eq!(<[u8; 2]>::from(DataSeries::TemplateSize), [b'T', b'S']);
+        assert_eq!(<[u8; 2]>::from(DataSeries::TemplateLengths), [b'T', b'S']);
+        assert_eq!(<[u8; 2]>::from(DataSeries::MateDistances), [b'N', b'F']);
+        assert_eq!(<[u8; 2]>::from(DataSeries::TagSetIds), [b'T', b'L']);
+        assert_eq!(<[u8; 2]>::from(DataSeries::FeatureCounts), [b'F', b'N']);
+        assert_eq!(<[u8; 2]>::from(DataSeries::FeatureCodes), [b'F', b'C']);
         assert_eq!(
-            <[u8; 2]>::from(DataSeries::DistanceToNextFragment),
-            [b'N', b'F']
+            <[u8; 2]>::from(DataSeries::FeaturePositionDeltas),
+            [b'F', b'P']
         );
-        assert_eq!(<[u8; 2]>::from(DataSeries::TagIds), [b'T', b'L']);
-        assert_eq!(
-            <[u8; 2]>::from(DataSeries::NumberOfReadFeatures),
-            [b'F', b'N']
-        );
-        assert_eq!(<[u8; 2]>::from(DataSeries::ReadFeaturesCodes), [b'F', b'C']);
-        assert_eq!(<[u8; 2]>::from(DataSeries::InReadPositions), [b'F', b'P']);
         assert_eq!(<[u8; 2]>::from(DataSeries::DeletionLengths), [b'D', b'L']);
         assert_eq!(<[u8; 2]>::from(DataSeries::StretchesOfBases), [b'B', b'B']);
         assert_eq!(
@@ -388,14 +394,14 @@ mod tests {
             <[u8; 2]>::from(DataSeries::BaseSubstitutionCodes),
             [b'B', b'S']
         );
-        assert_eq!(<[u8; 2]>::from(DataSeries::Insertion), [b'I', b'N']);
+        assert_eq!(<[u8; 2]>::from(DataSeries::InsertionBases), [b'I', b'N']);
         assert_eq!(
-            <[u8; 2]>::from(DataSeries::ReferenceSkipLength),
+            <[u8; 2]>::from(DataSeries::ReferenceSkipLengths),
             [b'R', b'S']
         );
-        assert_eq!(<[u8; 2]>::from(DataSeries::Padding), [b'P', b'D']);
-        assert_eq!(<[u8; 2]>::from(DataSeries::HardClip), [b'H', b'C']);
-        assert_eq!(<[u8; 2]>::from(DataSeries::SoftClip), [b'S', b'C']);
+        assert_eq!(<[u8; 2]>::from(DataSeries::PaddingLengths), [b'P', b'D']);
+        assert_eq!(<[u8; 2]>::from(DataSeries::HardClipLengths), [b'H', b'C']);
+        assert_eq!(<[u8; 2]>::from(DataSeries::SoftClipBases), [b'S', b'C']);
         assert_eq!(<[u8; 2]>::from(DataSeries::MappingQualities), [b'M', b'Q']);
         assert_eq!(<[u8; 2]>::from(DataSeries::Bases), [b'B', b'A']);
         assert_eq!(<[u8; 2]>::from(DataSeries::QualityScores), [b'Q', b'S']);

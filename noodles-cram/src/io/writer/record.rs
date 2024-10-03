@@ -79,15 +79,15 @@ where
     }
 
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        self.write_bam_bit_flags(record.bam_flags())?;
-        self.write_cram_bit_flags(record.cram_flags())?;
+        self.write_bam_flags(record.bam_flags())?;
+        self.write_cram_flags(record.cram_flags())?;
 
         self.write_positional_data(record)?;
 
         let preservation_map = self.compression_header.preservation_map();
 
         if preservation_map.read_names_included() {
-            self.write_read_name(record.name())?;
+            self.write_name(record.name())?;
         }
 
         self.write_mate_data(record)?;
@@ -104,69 +104,60 @@ where
         Ok(())
     }
 
-    fn write_bam_bit_flags(&mut self, bam_flags: sam::alignment::record::Flags) -> io::Result<()> {
-        let bam_bit_flags = i32::from(u16::from(bam_flags));
+    fn write_bam_flags(&mut self, bam_flags: sam::alignment::record::Flags) -> io::Result<()> {
+        let n = i32::from(u16::from(bam_flags));
 
         self.compression_header
             .data_series_encoding_map()
-            .bam_bit_flags()
-            .encode(
-                self.core_data_writer,
-                self.external_data_writers,
-                bam_bit_flags,
-            )
+            .bam_flags()
+            .encode(self.core_data_writer, self.external_data_writers, n)
     }
 
-    fn write_cram_bit_flags(&mut self, flags: Flags) -> io::Result<()> {
-        let cram_bit_flags = i32::from(u8::from(flags));
+    fn write_cram_flags(&mut self, flags: Flags) -> io::Result<()> {
+        let n = i32::from(u8::from(flags));
 
         self.compression_header
             .data_series_encoding_map()
-            .cram_bit_flags()
-            .encode(
-                self.core_data_writer,
-                self.external_data_writers,
-                cram_bit_flags,
-            )
+            .cram_flags()
+            .encode(self.core_data_writer, self.external_data_writers, n)
     }
 
     fn write_positional_data(&mut self, record: &Record) -> io::Result<()> {
         if self.reference_sequence_context.is_many() {
-            self.write_reference_id(record.reference_sequence_id())?;
+            self.write_reference_sequence_id(record.reference_sequence_id())?;
         }
 
         self.write_read_length(record.read_length())?;
         self.write_alignment_start(record.alignment_start)?;
-        self.write_read_group(record.read_group_id())?;
+        self.write_read_group_id(record.read_group_id())?;
 
         Ok(())
     }
 
-    fn write_reference_id(&mut self, reference_sequence_id: Option<usize>) -> io::Result<()> {
+    fn write_reference_sequence_id(
+        &mut self,
+        reference_sequence_id: Option<usize>,
+    ) -> io::Result<()> {
         const UNMAPPED: i32 = -1;
 
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .reference_id()
+            .reference_sequence_ids()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::ReferenceId),
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::ReferenceSequenceIds),
                 )
             })?;
 
-        let reference_id = if let Some(id) = reference_sequence_id {
+        let n = if let Some(id) = reference_sequence_id {
             i32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
         } else {
             UNMAPPED
         };
 
-        encoding.encode(
-            self.core_data_writer,
-            self.external_data_writers,
-            reference_id,
-        )
+        encoding.encode(self.core_data_writer, self.external_data_writers, n)
     }
 
     fn write_read_length(&mut self, read_length: usize) -> io::Result<()> {
@@ -190,7 +181,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .in_seq_positions();
+            .alignment_starts();
 
         let alignment_start_or_delta = if ap_data_series_delta {
             match (alignment_start, self.prev_alignment_start) {
@@ -226,40 +217,36 @@ where
         )
     }
 
-    fn write_read_group(&mut self, read_group_id: Option<usize>) -> io::Result<()> {
+    fn write_read_group_id(&mut self, read_group_id: Option<usize>) -> io::Result<()> {
         // § 10.2 "CRAM positional data" (2021-10-15): "-1 for no group".
         const MISSING: i32 = -1;
 
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .read_groups();
+            .read_group_ids();
 
-        let read_group = if let Some(id) = read_group_id {
+        let n = if let Some(id) = read_group_id {
             i32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
         } else {
             MISSING
         };
 
-        encoding.encode(
-            self.core_data_writer,
-            self.external_data_writers,
-            read_group,
-        )
+        encoding.encode(self.core_data_writer, self.external_data_writers, n)
     }
 
-    fn write_read_name(&mut self, name: Option<&BStr>) -> io::Result<()> {
+    fn write_name(&mut self, name: Option<&BStr>) -> io::Result<()> {
         const MISSING: &[u8] = &[b'*', 0x00];
 
         let buf = name.map(|name| name.as_ref()).unwrap_or(MISSING);
 
         self.compression_header
             .data_series_encoding_map()
-            .read_names()
+            .names()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::ReadNames),
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::Names),
                 )
             })?
             .encode(self.core_data_writer, self.external_data_writers, buf)
@@ -272,7 +259,7 @@ where
             let preservation_map = self.compression_header.preservation_map();
 
             if !preservation_map.read_names_included() {
-                self.write_read_name(record.name())?;
+                self.write_name(record.name())?;
             }
 
             self.write_next_fragment_reference_sequence_id(
@@ -282,7 +269,7 @@ where
             self.write_next_mate_alignment_start(record.next_mate_alignment_start())?;
             self.write_template_size(record.template_size())?;
         } else if let Some(distance_to_next_fragment) = record.distance_to_next_fragment() {
-            self.write_distance_to_next_fragment(distance_to_next_fragment)?;
+            self.write_mate_distance(distance_to_next_fragment)?;
         }
 
         Ok(())
@@ -293,11 +280,11 @@ where
 
         self.compression_header
             .data_series_encoding_map()
-            .next_mate_bit_flags()
+            .mate_flags()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::NextMateBitFlags),
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::MateFlags),
                 )
             })?
             .encode(
@@ -316,12 +303,12 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .next_fragment_reference_sequence_id()
+            .mate_reference_sequence_ids()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
                     WriteRecordError::MissingDataSeriesEncoding(
-                        DataSeries::NextFragmentReferenceSequenceId,
+                        DataSeries::MateReferenceSequenceId,
                     ),
                 )
             })?;
@@ -347,11 +334,11 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .next_mate_alignment_start()
+            .mate_alignment_starts()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::NextMateAlignmentStart),
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::MateAlignmentStart),
                 )
             })?;
 
@@ -368,11 +355,11 @@ where
     fn write_template_size(&mut self, template_size: i32) -> io::Result<()> {
         self.compression_header
             .data_series_encoding_map()
-            .template_size()
+            .template_lengths()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::TemplateSize),
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::TemplateLengths),
                 )
             })?
             .encode(
@@ -382,23 +369,20 @@ where
             )
     }
 
-    fn write_distance_to_next_fragment(
-        &mut self,
-        distance_to_next_fragment: usize,
-    ) -> io::Result<()> {
+    fn write_mate_distance(&mut self, distance: usize) -> io::Result<()> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .distance_to_next_fragment()
+            .mate_distances()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::DistanceToNextFragment),
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::MateDistances),
                 )
             })?;
 
-        let n = i32::try_from(distance_to_next_fragment)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        let n =
+            i32::try_from(distance).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
         encoding.encode(self.core_data_writer, self.external_data_writers, n)
     }
@@ -415,7 +399,7 @@ where
             .map(|(tag, value)| tag_ids_dictionary::Key::new(tag, value.ty()))
             .collect();
 
-        let tag_line = tag_ids_dictionary
+        let tag_set_id = tag_ids_dictionary
             .iter()
             .enumerate()
             .find(|(_, k)| **k == keys)
@@ -427,7 +411,7 @@ where
                 )
             })?;
 
-        self.write_tag_line(tag_line)?;
+        self.write_tag_set_id(tag_set_id)?;
 
         let tag_encoding_map = self.compression_header.tag_encoding_map();
         let mut buf = Vec::new();
@@ -453,13 +437,14 @@ where
         Ok(())
     }
 
-    fn write_tag_line(&mut self, tag_line: usize) -> io::Result<()> {
-        let encoding = self.compression_header.data_series_encoding_map().tag_ids();
-
+    fn write_tag_set_id(&mut self, tag_line: usize) -> io::Result<()> {
         let n =
             i32::try_from(tag_line).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        encoding.encode(self.core_data_writer, self.external_data_writers, n)
+        self.compression_header
+            .data_series_encoding_map()
+            .tag_set_ids()
+            .encode(self.core_data_writer, self.external_data_writers, n)
     }
 
     fn write_mapped_read(&mut self, record: &Record) -> io::Result<()> {
@@ -488,11 +473,11 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .number_of_read_features()
+            .feature_counts()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::NumberOfReadFeatures),
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::FeatureCounts),
                 )
             })?;
 
@@ -556,11 +541,11 @@ where
     fn write_feature_code(&mut self, code: feature::Code) -> io::Result<()> {
         self.compression_header
             .data_series_encoding_map()
-            .read_features_codes()
+            .feature_codes()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::ReadFeaturesCodes),
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::FeatureCodes),
                 )
             })?
             .encode(
@@ -574,11 +559,11 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .in_read_positions()
+            .feature_position_deltas()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::InReadPositions),
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::FeaturePositionDeltas),
                 )
             })?;
 
@@ -685,11 +670,11 @@ where
     fn write_insertion(&mut self, bases: &[u8]) -> io::Result<()> {
         self.compression_header
             .data_series_encoding_map()
-            .insertion()
+            .insertion_bases()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::Insertion),
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::InsertionBases),
                 )
             })?
             .encode(self.core_data_writer, self.external_data_writers, bases)
@@ -716,11 +701,11 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .reference_skip_length()
+            .reference_skip_lengths()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::ReferenceSkipLength),
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::ReferenceSkipLengths),
                 )
             })?;
 
@@ -732,11 +717,11 @@ where
     fn write_soft_clip(&mut self, bases: &[u8]) -> io::Result<()> {
         self.compression_header
             .data_series_encoding_map()
-            .soft_clip()
+            .soft_clip_bases()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::SoftClip),
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::SoftClipBases),
                 )
             })?
             .encode(self.core_data_writer, self.external_data_writers, bases)
@@ -746,11 +731,11 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .padding()
+            .padding_lengths()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::Padding),
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::PaddingLengths),
                 )
             })?;
 
@@ -763,11 +748,11 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .hard_clip()
+            .hard_clip_lengths()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::HardClip),
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::HardClipLengths),
                 )
             })?;
 

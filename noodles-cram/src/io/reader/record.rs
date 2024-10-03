@@ -84,22 +84,22 @@ where
     }
 
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<()> {
-        let bam_bit_flags = self.read_bam_bit_flags()?;
-        record.bam_bit_flags = bam_bit_flags;
+        let bam_flags = self.read_bam_flags()?;
+        record.bam_bit_flags = bam_flags;
 
-        let cram_bit_flags = self.read_cram_bit_flags()?;
-        record.cram_bit_flags = cram_bit_flags;
+        let cram_flags = self.read_cram_flags()?;
+        record.cram_bit_flags = cram_flags;
 
         let read_length = self.read_positional_data(record)?;
-        self.read_read_names(record)?;
-        self.read_mate_data(record, bam_bit_flags, cram_bit_flags)?;
+        self.read_names(record)?;
+        self.read_mate_data(record, bam_flags, cram_flags)?;
 
         record.tags = self.read_tag_data()?;
 
-        if bam_bit_flags.is_unmapped() {
-            self.read_unmapped_read(record, cram_bit_flags, read_length)?;
+        if bam_flags.is_unmapped() {
+            self.read_unmapped_read(record, cram_flags, read_length)?;
         } else {
-            self.read_mapped_read(record, cram_bit_flags, read_length)?;
+            self.read_mapped_read(record, cram_flags, read_length)?;
         }
 
         self.prev_alignment_start = record.alignment_start;
@@ -107,10 +107,10 @@ where
         Ok(())
     }
 
-    fn read_bam_bit_flags(&mut self) -> io::Result<sam::alignment::record::Flags> {
+    fn read_bam_flags(&mut self) -> io::Result<sam::alignment::record::Flags> {
         self.compression_header
             .data_series_encoding_map()
-            .bam_bit_flags()
+            .bam_flags()
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| {
                 u16::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -118,10 +118,10 @@ where
             .map(sam::alignment::record::Flags::from)
     }
 
-    fn read_cram_bit_flags(&mut self) -> io::Result<Flags> {
+    fn read_cram_flags(&mut self) -> io::Result<Flags> {
         self.compression_header
             .data_series_encoding_map()
-            .cram_bit_flags()
+            .cram_flags()
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| {
                 u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -133,28 +133,28 @@ where
         record.reference_sequence_id = match self.reference_sequence_context {
             ReferenceSequenceContext::Some(context) => Some(context.reference_sequence_id()),
             ReferenceSequenceContext::None => None,
-            ReferenceSequenceContext::Many => self.read_reference_id()?,
+            ReferenceSequenceContext::Many => self.read_reference_sequence_id()?,
         };
 
         let read_length = self.read_read_length()?;
         record.read_length = read_length;
 
         record.alignment_start = self.read_alignment_start()?;
-        record.read_group_id = self.read_read_group()?;
+        record.read_group_id = self.read_read_group_id()?;
 
         Ok(read_length)
     }
 
-    fn read_reference_id(&mut self) -> io::Result<Option<usize>> {
+    fn read_reference_sequence_id(&mut self) -> io::Result<Option<usize>> {
         const UNMAPPED: i32 = -1;
 
         self.compression_header
             .data_series_encoding_map()
-            .reference_id()
+            .reference_sequence_ids()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::ReferenceId),
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::ReferenceSequenceIds),
                 )
             })?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
@@ -185,7 +185,7 @@ where
         let alignment_start_or_delta = self
             .compression_header
             .data_series_encoding_map()
-            .in_seq_positions()
+            .alignment_starts()
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)?;
 
         let alignment_start = if ap_data_series_delta {
@@ -206,13 +206,13 @@ where
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
-    fn read_read_group(&mut self) -> io::Result<Option<usize>> {
+    fn read_read_group_id(&mut self) -> io::Result<Option<usize>> {
         // § 10.2 "CRAM positional data" (2021-10-15): "-1 for no group".
         const MISSING: i32 = -1;
 
         self.compression_header
             .data_series_encoding_map()
-            .read_groups()
+            .read_group_ids()
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| match n {
                 MISSING => Ok(None),
@@ -222,28 +222,28 @@ where
             })
     }
 
-    fn read_read_names(&mut self, record: &mut Record) -> io::Result<()> {
+    fn read_names(&mut self, record: &mut Record) -> io::Result<()> {
         let preservation_map = self.compression_header.preservation_map();
 
         // Missing read names are generated when resolving mates.
         if preservation_map.read_names_included() {
-            record.name = self.read_read_name()?;
+            record.name = self.read_name()?;
         }
 
         Ok(())
     }
 
-    fn read_read_name(&mut self) -> io::Result<Option<BString>> {
+    fn read_name(&mut self) -> io::Result<Option<BString>> {
         const MISSING: &[u8] = &[b'*', 0x00];
 
         let buf = self
             .compression_header
             .data_series_encoding_map()
-            .read_names()
+            .names()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::ReadNames),
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::Names),
                 )
             })?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)?;
@@ -260,17 +260,17 @@ where
         &mut self,
         record: &mut Record,
         mut bam_flags: sam::alignment::record::Flags,
-        flags: Flags,
+        cram_flags: Flags,
     ) -> io::Result<()> {
-        if flags.is_detached() {
-            let next_mate_bit_flags = self.read_next_mate_bit_flags()?;
-            record.next_mate_bit_flags = next_mate_bit_flags;
+        if cram_flags.is_detached() {
+            let mate_flags = self.read_mate_flags()?;
+            record.next_mate_bit_flags = mate_flags;
 
-            if next_mate_bit_flags.is_on_negative_strand() {
+            if mate_flags.is_on_negative_strand() {
                 bam_flags |= sam::alignment::record::Flags::MATE_REVERSE_COMPLEMENTED;
             }
 
-            if next_mate_bit_flags.is_unmapped() {
+            if mate_flags.is_unmapped() {
                 bam_flags |= sam::alignment::record::Flags::MATE_UNMAPPED;
             }
 
@@ -279,29 +279,28 @@ where
             let preservation_map = self.compression_header.preservation_map();
 
             if !preservation_map.read_names_included() {
-                record.name = self.read_read_name()?;
+                record.name = self.read_name()?;
             }
 
-            record.next_fragment_reference_sequence_id =
-                self.read_next_fragment_reference_sequence_id()?;
+            record.next_fragment_reference_sequence_id = self.read_mate_reference_sequence_id()?;
 
-            record.next_mate_alignment_start = self.read_next_mate_alignment_start()?;
-            record.template_size = self.read_template_size()?;
-        } else if flags.has_mate_downstream() {
-            record.distance_to_next_fragment = self.read_distance_to_next_fragment().map(Some)?;
+            record.next_mate_alignment_start = self.read_mate_alignment_start()?;
+            record.template_size = self.read_template_length()?;
+        } else if cram_flags.has_mate_downstream() {
+            record.distance_to_next_fragment = self.read_mate_distance().map(Some)?;
         }
 
         Ok(())
     }
 
-    fn read_next_mate_bit_flags(&mut self) -> io::Result<NextMateFlags> {
+    fn read_mate_flags(&mut self) -> io::Result<NextMateFlags> {
         self.compression_header
             .data_series_encoding_map()
-            .next_mate_bit_flags()
+            .mate_flags()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::NextMateBitFlags),
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::MateFlags),
                 )
             })?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
@@ -311,18 +310,16 @@ where
             .map(NextMateFlags::from)
     }
 
-    fn read_next_fragment_reference_sequence_id(&mut self) -> io::Result<Option<usize>> {
+    fn read_mate_reference_sequence_id(&mut self) -> io::Result<Option<usize>> {
         const UNMAPPED: i32 = -1;
 
         self.compression_header
             .data_series_encoding_map()
-            .next_fragment_reference_sequence_id()
+            .mate_reference_sequence_ids()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(
-                        DataSeries::NextFragmentReferenceSequenceId,
-                    ),
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::MateReferenceSequenceId),
                 )
             })?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
@@ -334,14 +331,14 @@ where
             })
     }
 
-    fn read_next_mate_alignment_start(&mut self) -> io::Result<Option<Position>> {
+    fn read_mate_alignment_start(&mut self) -> io::Result<Option<Position>> {
         self.compression_header
             .data_series_encoding_map()
-            .next_mate_alignment_start()
+            .mate_alignment_starts()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::NextMateAlignmentStart),
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::MateAlignmentStart),
                 )
             })?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
@@ -351,27 +348,27 @@ where
             .map(Position::new)
     }
 
-    fn read_template_size(&mut self) -> io::Result<i32> {
+    fn read_template_length(&mut self) -> io::Result<i32> {
         self.compression_header
             .data_series_encoding_map()
-            .template_size()
+            .template_lengths()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::TemplateSize),
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::TemplateLengths),
                 )
             })?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
     }
 
-    fn read_distance_to_next_fragment(&mut self) -> io::Result<usize> {
+    fn read_mate_distance(&mut self) -> io::Result<usize> {
         self.compression_header
             .data_series_encoding_map()
-            .distance_to_next_fragment()
+            .mate_distances()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::DistanceToNextFragment),
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::MateDistances),
                 )
             })?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
@@ -383,13 +380,13 @@ where
     fn read_tag_data(&mut self) -> io::Result<sam::alignment::record_buf::Data> {
         use bam::record::codec::decoder::data::field::get_value;
 
-        let tag_line = self.read_tag_line()?;
+        let tag_set_id = self.read_tag_set_id()?;
 
         let tag_keys = self
             .compression_header
             .preservation_map()
             .tag_ids_dictionary()
-            .get(tag_line)
+            .get(tag_set_id)
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid tag line"))?;
 
         let tag_encoding_map = self.compression_header.tag_encoding_map();
@@ -420,10 +417,10 @@ where
         Ok(fields.into_iter().collect())
     }
 
-    fn read_tag_line(&mut self) -> io::Result<usize> {
+    fn read_tag_set_id(&mut self) -> io::Result<usize> {
         self.compression_header
             .data_series_encoding_map()
-            .tag_ids()
+            .tag_set_ids()
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| {
                 usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -433,10 +430,10 @@ where
     fn read_mapped_read(
         &mut self,
         record: &mut Record,
-        flags: Flags,
+        cram_flags: Flags,
         read_length: usize,
     ) -> io::Result<()> {
-        let feature_count = self.read_number_of_read_features()?;
+        let feature_count = self.read_feature_count()?;
 
         let mut prev_position = 0;
 
@@ -448,21 +445,21 @@ where
 
         record.mapping_quality = self.read_mapping_quality()?;
 
-        if flags.are_quality_scores_stored_as_array() {
+        if cram_flags.are_quality_scores_stored_as_array() {
             record.quality_scores = self.read_quality_scores_stored_as_array(read_length)?;
         }
 
         Ok(())
     }
 
-    fn read_number_of_read_features(&mut self) -> io::Result<usize> {
+    fn read_feature_count(&mut self) -> io::Result<usize> {
         self.compression_header
             .data_series_encoding_map()
-            .number_of_read_features()
+            .feature_counts()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::NumberOfReadFeatures),
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::FeatureCounts),
                 )
             })?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
@@ -476,7 +473,7 @@ where
 
         let code = self.read_feature_code()?;
 
-        let delta = self.read_feature_position()?;
+        let delta = self.read_feature_position_delta()?;
         let position = Position::try_from(prev_position + delta)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
@@ -499,7 +496,7 @@ where
                 Ok(Feature::Substitution(position, code))
             }
             Code::Insertion => {
-                let bases = self.read_insertion()?;
+                let bases = self.read_insertion_bases()?;
                 Ok(Feature::Insertion(position, bases))
             }
             Code::Deletion => {
@@ -519,15 +516,15 @@ where
                 Ok(Feature::ReferenceSkip(position, len))
             }
             Code::SoftClip => {
-                let bases = self.read_soft_clip()?;
+                let bases = self.read_soft_clip_bases()?;
                 Ok(Feature::SoftClip(position, bases))
             }
             Code::Padding => {
-                let len = self.read_padding()?;
+                let len = self.read_padding_length()?;
                 Ok(Feature::Padding(position, len))
             }
             Code::HardClip => {
-                let len = self.read_hard_clip()?;
+                let len = self.read_hard_clip_length()?;
                 Ok(Feature::HardClip(position, len))
             }
         }
@@ -536,11 +533,11 @@ where
     fn read_feature_code(&mut self) -> io::Result<feature::Code> {
         self.compression_header
             .data_series_encoding_map()
-            .read_features_codes()
+            .feature_codes()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::ReadFeaturesCodes),
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::FeatureCodes),
                 )
             })?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
@@ -550,14 +547,14 @@ where
             })
     }
 
-    fn read_feature_position(&mut self) -> io::Result<usize> {
+    fn read_feature_position_delta(&mut self) -> io::Result<usize> {
         self.compression_header
             .data_series_encoding_map()
-            .in_read_positions()
+            .feature_position_deltas()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::InReadPositions),
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::FeaturePositionDeltas),
                 )
             })?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
@@ -634,14 +631,14 @@ where
             .map(substitution::Value::Code)
     }
 
-    fn read_insertion(&mut self) -> io::Result<Vec<u8>> {
+    fn read_insertion_bases(&mut self) -> io::Result<Vec<u8>> {
         self.compression_header
             .data_series_encoding_map()
-            .insertion()
+            .insertion_bases()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::Insertion),
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::InsertionBases),
                 )
             })?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
@@ -666,11 +663,11 @@ where
     fn read_reference_skip_length(&mut self) -> io::Result<usize> {
         self.compression_header
             .data_series_encoding_map()
-            .reference_skip_length()
+            .reference_skip_lengths()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::ReferenceSkipLength),
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::ReferenceSkipLengths),
                 )
             })?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
@@ -679,27 +676,27 @@ where
             })
     }
 
-    fn read_soft_clip(&mut self) -> io::Result<Vec<u8>> {
+    fn read_soft_clip_bases(&mut self) -> io::Result<Vec<u8>> {
         self.compression_header
             .data_series_encoding_map()
-            .soft_clip()
+            .soft_clip_bases()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::SoftClip),
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::SoftClipBases),
                 )
             })?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
     }
 
-    fn read_padding(&mut self) -> io::Result<usize> {
+    fn read_padding_length(&mut self) -> io::Result<usize> {
         self.compression_header
             .data_series_encoding_map()
-            .padding()
+            .padding_lengths()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::Padding),
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::PaddingLengths),
                 )
             })?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
@@ -708,14 +705,14 @@ where
             })
     }
 
-    fn read_hard_clip(&mut self) -> io::Result<usize> {
+    fn read_hard_clip_length(&mut self) -> io::Result<usize> {
         self.compression_header
             .data_series_encoding_map()
-            .hard_clip()
+            .hard_clip_lengths()
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::HardClip),
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::HardClipLengths),
                 )
             })?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
@@ -746,7 +743,7 @@ where
     fn read_unmapped_read(
         &mut self,
         record: &mut Record,
-        flags: Flags,
+        cram_flags: Flags,
         read_length: usize,
     ) -> io::Result<()> {
         record.bases.as_mut().reserve(read_length);
@@ -756,7 +753,7 @@ where
             record.bases.as_mut().push(base);
         }
 
-        if flags.are_quality_scores_stored_as_array() {
+        if cram_flags.are_quality_scores_stored_as_array() {
             record.quality_scores = self.read_quality_scores_stored_as_array(read_length)?;
         }
 

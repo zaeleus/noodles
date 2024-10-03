@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * cram/data_container/compression_header/data_series_encoding_map/data_series:
+    Normalize names.
+
+    Data series names are now closer to how they're called in noodles rather
+    than how they are named in the CRAM specification (§ 8.4.2 "Compression
+    header block: Data series encodings" (2024-09-04)).
+
 ## 0.69.0 - 2024-09-26
 
 ### Deprecated
