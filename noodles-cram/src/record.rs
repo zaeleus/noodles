@@ -255,7 +255,7 @@ impl<'a> sam::alignment::record::Cigar for Cigar<'a> {
         if self.is_unmapped {
             0
         } else {
-            self.features.cigar(self.read_length).count()
+            self.iter().count()
         }
     }
 

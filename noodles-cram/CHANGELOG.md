@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Fixed
+
+  * cram/record: Fix number of CIGAR operations calculation.
+
+    This now returns the number of simplified operations rather than all
+    feature to CIGAR operation transformations.
+
 ### Changed
 
   * cram/data_container/compression_header/data_series_encoding_map/data_series:
