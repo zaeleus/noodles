@@ -87,11 +87,11 @@ where
         record.bam_bit_flags = self.read_bam_flags()?;
         record.cram_bit_flags = self.read_cram_flags()?;
 
-        self.read_positional_data(record)?;
+        self.read_positions(record)?;
         self.read_names(record)?;
-        self.read_mate_data(record)?;
+        self.read_mate(record)?;
 
-        record.tags = self.read_tag_data()?;
+        record.tags = self.read_tags()?;
 
         if record.bam_flags().is_unmapped() {
             self.read_unmapped_read(record)?;
@@ -126,7 +126,7 @@ where
             .map(Flags::from)
     }
 
-    fn read_positional_data(&mut self, record: &mut Record) -> io::Result<()> {
+    fn read_positions(&mut self, record: &mut Record) -> io::Result<()> {
         record.reference_sequence_id = match self.reference_sequence_context {
             ReferenceSequenceContext::Some(context) => Some(context.reference_sequence_id()),
             ReferenceSequenceContext::None => None,
@@ -253,7 +253,7 @@ where
         Ok(name)
     }
 
-    fn read_mate_data(&mut self, record: &mut Record) -> io::Result<()> {
+    fn read_mate(&mut self, record: &mut Record) -> io::Result<()> {
         if record.cram_flags().is_detached() {
             record.next_mate_bit_flags = self.read_mate_flags()?;
 
@@ -366,7 +366,7 @@ where
             })
     }
 
-    fn read_tag_data(&mut self) -> io::Result<sam::alignment::record_buf::Data> {
+    fn read_tags(&mut self) -> io::Result<sam::alignment::record_buf::Data> {
         use bam::record::codec::decoder::data::field::get_value;
 
         let tag_set_id = self.read_tag_set_id()?;
