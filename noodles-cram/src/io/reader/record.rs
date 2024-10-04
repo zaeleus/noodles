@@ -84,22 +84,19 @@ where
     }
 
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<()> {
-        let bam_flags = self.read_bam_flags()?;
-        record.bam_bit_flags = bam_flags;
+        record.bam_bit_flags = self.read_bam_flags()?;
+        record.cram_bit_flags = self.read_cram_flags()?;
 
-        let cram_flags = self.read_cram_flags()?;
-        record.cram_bit_flags = cram_flags;
-
-        let read_length = self.read_positional_data(record)?;
+        self.read_positional_data(record)?;
         self.read_names(record)?;
-        self.read_mate_data(record, bam_flags, cram_flags)?;
+        self.read_mate_data(record)?;
 
         record.tags = self.read_tag_data()?;
 
-        if bam_flags.is_unmapped() {
-            self.read_unmapped_read(record, cram_flags, read_length)?;
+        if record.bam_flags().is_unmapped() {
+            self.read_unmapped_read(record)?;
         } else {
-            self.read_mapped_read(record, cram_flags, read_length)?;
+            self.read_mapped_read(record)?;
         }
 
         self.prev_alignment_start = record.alignment_start;
@@ -129,7 +126,7 @@ where
             .map(Flags::from)
     }
 
-    fn read_positional_data(&mut self, record: &mut Record) -> io::Result<usize> {
+    fn read_positional_data(&mut self, record: &mut Record) -> io::Result<()> {
         record.reference_sequence_id = match self.reference_sequence_context {
             ReferenceSequenceContext::Some(context) => Some(context.reference_sequence_id()),
             ReferenceSequenceContext::None => None,
@@ -142,7 +139,7 @@ where
         record.alignment_start = self.read_alignment_start()?;
         record.read_group_id = self.read_read_group_id()?;
 
-        Ok(read_length)
+        Ok(())
     }
 
     fn read_reference_sequence_id(&mut self) -> io::Result<Option<usize>> {
@@ -256,25 +253,17 @@ where
         Ok(name)
     }
 
-    fn read_mate_data(
-        &mut self,
-        record: &mut Record,
-        mut bam_flags: sam::alignment::record::Flags,
-        cram_flags: Flags,
-    ) -> io::Result<()> {
-        if cram_flags.is_detached() {
-            let mate_flags = self.read_mate_flags()?;
-            record.next_mate_bit_flags = mate_flags;
+    fn read_mate_data(&mut self, record: &mut Record) -> io::Result<()> {
+        if record.cram_flags().is_detached() {
+            record.next_mate_bit_flags = self.read_mate_flags()?;
 
-            if mate_flags.is_on_negative_strand() {
-                bam_flags |= sam::alignment::record::Flags::MATE_REVERSE_COMPLEMENTED;
+            if record.next_mate_flags().is_on_negative_strand() {
+                record.bam_bit_flags |= sam::alignment::record::Flags::MATE_REVERSE_COMPLEMENTED;
             }
 
-            if mate_flags.is_unmapped() {
-                bam_flags |= sam::alignment::record::Flags::MATE_UNMAPPED;
+            if record.next_mate_flags().is_unmapped() {
+                record.bam_bit_flags |= sam::alignment::record::Flags::MATE_UNMAPPED;
             }
-
-            record.bam_bit_flags = bam_flags;
 
             let preservation_map = self.compression_header.preservation_map();
 
@@ -286,7 +275,7 @@ where
 
             record.next_mate_alignment_start = self.read_mate_alignment_start()?;
             record.template_size = self.read_template_length()?;
-        } else if cram_flags.has_mate_downstream() {
+        } else if record.cram_flags().has_mate_downstream() {
             record.distance_to_next_fragment = self.read_mate_distance().map(Some)?;
         }
 
@@ -427,12 +416,7 @@ where
             })
     }
 
-    fn read_mapped_read(
-        &mut self,
-        record: &mut Record,
-        cram_flags: Flags,
-        read_length: usize,
-    ) -> io::Result<()> {
+    fn read_mapped_read(&mut self, record: &mut Record) -> io::Result<()> {
         let feature_count = self.read_feature_count()?;
 
         let mut prev_position = 0;
@@ -445,8 +429,9 @@ where
 
         record.mapping_quality = self.read_mapping_quality()?;
 
-        if cram_flags.are_quality_scores_stored_as_array() {
-            record.quality_scores = self.read_quality_scores_stored_as_array(read_length)?;
+        if record.cram_flags().are_quality_scores_stored_as_array() {
+            record.quality_scores =
+                self.read_quality_scores_stored_as_array(record.read_length())?;
         }
 
         Ok(())
@@ -740,12 +725,9 @@ where
             .map(sam::alignment::record::MappingQuality::new)
     }
 
-    fn read_unmapped_read(
-        &mut self,
-        record: &mut Record,
-        cram_flags: Flags,
-        read_length: usize,
-    ) -> io::Result<()> {
+    fn read_unmapped_read(&mut self, record: &mut Record) -> io::Result<()> {
+        let read_length = record.read_length();
+
         record.bases.as_mut().reserve(read_length);
 
         for _ in 0..read_length {
@@ -753,7 +735,7 @@ where
             record.bases.as_mut().push(base);
         }
 
-        if cram_flags.are_quality_scores_stored_as_array() {
+        if record.cram_flags().are_quality_scores_stored_as_array() {
             record.quality_scores = self.read_quality_scores_stored_as_array(read_length)?;
         }
 
