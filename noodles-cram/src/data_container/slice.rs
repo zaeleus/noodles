@@ -10,7 +10,7 @@ use noodles_core::Position;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
-use super::{CompressionHeader, ReferenceSequenceContext};
+use super::{compression_header::PreservationMap, CompressionHeader, ReferenceSequenceContext};
 use crate::{
     container::Block,
     io::BitReader,
@@ -294,72 +294,16 @@ fn resolve_bases(
     slice: &Slice,
     records: &mut [Record],
 ) -> io::Result<()> {
-    enum SliceReferenceSequence {
-        External(usize, fasta::record::Sequence),
-        Embedded(usize, fasta::record::Sequence),
-    }
-
     let preservation_map = compression_header.preservation_map();
+
+    let slice_reference_sequence = get_slice_reference_sequence(
+        reference_sequence_repository,
+        header,
+        preservation_map,
+        slice,
+    )?;
+
     let is_reference_required = preservation_map.is_reference_required();
-    let substitution_matrix = preservation_map.substitution_matrix();
-
-    let slice_reference_sequence = if let ReferenceSequenceContext::Some(context) =
-        slice.header().reference_sequence_context()
-    {
-        if is_reference_required {
-            let reference_sequence_name = header
-                .reference_sequences()
-                .get_index(context.reference_sequence_id())
-                .map(|(name, _)| name)
-                .expect("invalid slice reference sequence ID");
-
-            let sequence = reference_sequence_repository
-                .get(reference_sequence_name)
-                .transpose()?
-                .expect("invalid slice reference sequence name");
-
-            // § 11 "Reference sequences" (2021-11-15): "All CRAM reader implementations are
-            // expected to check for reference MD5 checksums and report any missing or
-            // mismatching entries."
-            let start = context.alignment_start();
-            let end = context.alignment_end();
-
-            let actual_md5 = builder::calculate_normalized_sequence_digest(&sequence[start..=end]);
-            let expected_md5 = slice.header().reference_md5();
-
-            if actual_md5 != expected_md5 {
-                return Err(io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        format!(
-                            "reference sequence checksum mismatch: expected {expected_md5:?}, got {actual_md5:?}"
-                        ),
-                    ));
-            }
-
-            Some(SliceReferenceSequence::External(
-                context.reference_sequence_id(),
-                sequence,
-            ))
-        } else if let Some(block_content_id) =
-            slice.header().embedded_reference_bases_block_content_id()
-        {
-            let block = slice
-                .external_blocks()
-                .iter()
-                .find(|block| block.content_id() == block_content_id)
-                .expect("invalid block content ID");
-
-            let data = block.decompressed_data()?;
-            let sequence = fasta::record::Sequence::from(data);
-
-            let offset = usize::from(context.alignment_start());
-            Some(SliceReferenceSequence::Embedded(offset, sequence))
-        } else {
-            None
-        }
-    } else {
-        None
-    };
 
     for record in records {
         if record.bam_flags().is_unmapped() || record.cram_flags().decode_sequence_as_unknown() {
@@ -403,6 +347,8 @@ fn resolve_bases(
             None
         };
 
+        let substitution_matrix = preservation_map.substitution_matrix();
+
         resolve::resolve_bases(
             reference_sequence.as_ref(),
             substitution_matrix,
@@ -414,6 +360,78 @@ fn resolve_bases(
     }
 
     Ok(())
+}
+
+enum SliceReferenceSequence {
+    External(usize, fasta::record::Sequence),
+    Embedded(usize, fasta::record::Sequence),
+}
+
+fn get_slice_reference_sequence(
+    reference_sequence_repository: &fasta::Repository,
+    header: &sam::Header,
+    preservation_map: &PreservationMap,
+    slice: &Slice,
+) -> io::Result<Option<SliceReferenceSequence>> {
+    let reference_sequence_context = slice.header().reference_sequence_context();
+
+    let ReferenceSequenceContext::Some(context) = reference_sequence_context else {
+        return Ok(None);
+    };
+
+    let is_reference_required = preservation_map.is_reference_required();
+    let embedded_reference_bases_block_content_id =
+        slice.header().embedded_reference_bases_block_content_id();
+
+    if is_reference_required {
+        let reference_sequence_name = header
+            .reference_sequences()
+            .get_index(context.reference_sequence_id())
+            .map(|(name, _)| name)
+            .expect("invalid slice reference sequence ID");
+
+        let sequence = reference_sequence_repository
+            .get(reference_sequence_name)
+            .transpose()?
+            .expect("invalid slice reference sequence name");
+
+        // § 11 "Reference sequences" (2021-11-15): "All CRAM reader implementations are
+        // expected to check for reference MD5 checksums and report any missing or
+        // mismatching entries."
+        let start = context.alignment_start();
+        let end = context.alignment_end();
+
+        let actual_md5 = builder::calculate_normalized_sequence_digest(&sequence[start..=end]);
+        let expected_md5 = slice.header().reference_md5();
+
+        if actual_md5 != expected_md5 {
+            return Err(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        format!(
+                            "reference sequence checksum mismatch: expected {expected_md5:?}, got {actual_md5:?}"
+                        ),
+                    ));
+        }
+
+        Ok(Some(SliceReferenceSequence::External(
+            context.reference_sequence_id(),
+            sequence,
+        )))
+    } else if let Some(block_content_id) = embedded_reference_bases_block_content_id {
+        let block = slice
+            .external_blocks()
+            .iter()
+            .find(|block| block.content_id() == block_content_id)
+            .expect("invalid block content ID");
+
+        let data = block.decompressed_data()?;
+        let sequence = fasta::record::Sequence::from(data);
+
+        let offset = usize::from(context.alignment_start());
+        Ok(Some(SliceReferenceSequence::Embedded(offset, sequence)))
+    } else {
+        Ok(None)
+    }
 }
 
 fn resolve_quality_scores(records: &mut [Record]) {
