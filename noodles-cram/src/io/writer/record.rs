@@ -82,16 +82,11 @@ where
         self.write_bam_flags(record.bam_flags())?;
         self.write_cram_flags(record.cram_flags())?;
 
-        self.write_positional_data(record)?;
+        self.write_positions(record)?;
+        self.write_names(record)?;
+        self.write_mate(record)?;
 
-        let preservation_map = self.compression_header.preservation_map();
-
-        if preservation_map.read_names_included() {
-            self.write_name(record.name())?;
-        }
-
-        self.write_mate_data(record)?;
-        self.write_tag_data(record)?;
+        self.write_tags(record)?;
 
         if record.bam_flags().is_unmapped() {
             self.write_unmapped_read(record)?;
@@ -122,7 +117,7 @@ where
             .encode(self.core_data_writer, self.external_data_writers, n)
     }
 
-    fn write_positional_data(&mut self, record: &Record) -> io::Result<()> {
+    fn write_positions(&mut self, record: &Record) -> io::Result<()> {
         if self.reference_sequence_context.is_many() {
             self.write_reference_sequence_id(record.reference_sequence_id())?;
         }
@@ -235,6 +230,16 @@ where
         encoding.encode(self.core_data_writer, self.external_data_writers, n)
     }
 
+    fn write_names(&mut self, record: &Record) -> io::Result<()> {
+        let preservation_map = self.compression_header.preservation_map();
+
+        if preservation_map.read_names_included() {
+            self.write_name(record.name())?;
+        }
+
+        Ok(())
+    }
+
     fn write_name(&mut self, name: Option<&BStr>) -> io::Result<()> {
         const MISSING: &[u8] = &[b'*', 0x00];
 
@@ -252,7 +257,7 @@ where
             .encode(self.core_data_writer, self.external_data_writers, buf)
     }
 
-    fn write_mate_data(&mut self, record: &Record) -> io::Result<()> {
+    fn write_mate(&mut self, record: &Record) -> io::Result<()> {
         if record.cram_flags().is_detached() {
             self.write_next_mate_bit_flags(record.next_mate_flags())?;
 
@@ -387,7 +392,7 @@ where
         encoding.encode(self.core_data_writer, self.external_data_writers, n)
     }
 
-    fn write_tag_data(&mut self, record: &Record) -> io::Result<()> {
+    fn write_tags(&mut self, record: &Record) -> io::Result<()> {
         use bam::record::codec::encoder::data::field::put_value;
 
         let preservation_map = self.compression_header.preservation_map();
