@@ -56,14 +56,14 @@ impl<'a> Iterator for Cigar<'a> {
         }
 
         let (kind, len) = match feature {
-            Feature::Substitution(..) => (Kind::Match, 1),
-            Feature::Insertion(_, bases) => (Kind::Insertion, bases.len()),
-            Feature::Deletion(_, len) => (Kind::Deletion, *len),
-            Feature::InsertBase(..) => (Kind::Insertion, 1),
-            Feature::ReferenceSkip(_, len) => (Kind::Skip, *len),
-            Feature::SoftClip(_, bases) => (Kind::SoftClip, bases.len()),
-            Feature::Padding(_, len) => (Kind::Pad, *len),
-            Feature::HardClip(_, len) => (Kind::HardClip, *len),
+            Feature::Substitution { .. } => (Kind::Match, 1),
+            Feature::Insertion { bases, .. } => (Kind::Insertion, bases.len()),
+            Feature::Deletion { len, .. } => (Kind::Deletion, *len),
+            Feature::InsertBase { .. } => (Kind::Insertion, 1),
+            Feature::ReferenceSkip { len, .. } => (Kind::Skip, *len),
+            Feature::SoftClip { bases, .. } => (Kind::SoftClip, bases.len()),
+            Feature::Padding { len, .. } => (Kind::Pad, *len),
+            Feature::HardClip { len, .. } => (Kind::HardClip, *len),
             _ => todo!(),
         };
 
@@ -94,24 +94,30 @@ mod tests {
         let features = Features::default();
         t(&features, 4, &[Op::new(Kind::Match, 4)]);
 
-        let features = Features::from(vec![Feature::SoftClip(
-            Position::try_from(1)?,
-            vec![b'A', b'T'],
-        )]);
+        let features = Features::from(vec![Feature::SoftClip {
+            position: Position::try_from(1)?,
+            bases: vec![b'A', b'T'],
+        }]);
         t(
             &features,
             4,
             &[Op::new(Kind::SoftClip, 2), Op::new(Kind::Match, 2)],
         );
 
-        let features = Features::from(vec![Feature::SoftClip(Position::try_from(4)?, vec![b'G'])]);
+        let features = Features::from(vec![Feature::SoftClip {
+            position: Position::try_from(4)?,
+            bases: vec![b'G'],
+        }]);
         t(
             &features,
             4,
             &[Op::new(Kind::Match, 3), Op::new(Kind::SoftClip, 1)],
         );
 
-        let features = Features::from(vec![Feature::HardClip(Position::try_from(1)?, 2)]);
+        let features = Features::from(vec![Feature::HardClip {
+            position: Position::try_from(1)?,
+            len: 2,
+        }]);
         t(
             &features,
             4,
@@ -119,8 +125,14 @@ mod tests {
         );
 
         let features = Features::from(vec![
-            Feature::SoftClip(Position::try_from(1)?, vec![b'A']),
-            Feature::Substitution(Position::try_from(3)?, substitution::Value::Code(0)),
+            Feature::SoftClip {
+                position: Position::try_from(1)?,
+                bases: vec![b'A'],
+            },
+            Feature::Substitution {
+                position: Position::try_from(3)?,
+                value: substitution::Value::Code(0),
+            },
         ]);
         t(
             &features,
@@ -133,10 +145,10 @@ mod tests {
             ],
         );
 
-        let features = Features::from(vec![Feature::Substitution(
-            Position::try_from(2)?,
-            substitution::Value::Code(0),
-        )]);
+        let features = Features::from(vec![Feature::Substitution {
+            position: Position::try_from(2)?,
+            value: substitution::Value::Code(0),
+        }]);
         t(
             &features,
             4,

@@ -42,18 +42,18 @@ where
             let feature = self.iter.next()?;
 
             let (reference_position_delta, read_position_delta) = match feature {
-                Feature::Bases(_, bases) => (bases.len(), bases.len()),
-                Feature::Scores(..) => continue,
-                Feature::ReadBase(..) => (1, 1),
-                Feature::Substitution(..) => (1, 1),
-                Feature::Insertion(_, bases) => (0, bases.len()),
-                Feature::Deletion(_, len) => (*len, 0),
-                Feature::InsertBase(..) => (0, 1),
-                Feature::QualityScore(..) => continue,
-                Feature::ReferenceSkip(_, len) => (*len, 0),
-                Feature::SoftClip(_, bases) => (0, bases.len()),
-                Feature::Padding(..) => (0, 0),
-                Feature::HardClip(..) => (0, 0),
+                Feature::Bases { bases, .. } => (bases.len(), bases.len()),
+                Feature::Scores { .. } => continue,
+                Feature::ReadBase { .. } => (1, 1),
+                Feature::Substitution { .. } => (1, 1),
+                Feature::Insertion { bases, .. } => (0, bases.len()),
+                Feature::Deletion { len, .. } => (*len, 0),
+                Feature::InsertBase { .. } => (0, 1),
+                Feature::QualityScore { .. } => continue,
+                Feature::ReferenceSkip { len, .. } => (*len, 0),
+                Feature::SoftClip { bases, .. } => (0, bases.len()),
+                Feature::Padding { .. } => (0, 0),
+                Feature::HardClip { .. } => (0, 0),
             };
 
             let feature_position = usize::from(feature.position());
@@ -95,8 +95,14 @@ mod tests {
         use crate::record::Features;
 
         let features = Features::from(vec![
-            Feature::Bases(Position::MIN, vec![b'A', b'C']),
-            Feature::Scores(Position::MIN, vec![0, 0]),
+            Feature::Bases {
+                position: Position::MIN,
+                bases: vec![b'A', b'C'],
+            },
+            Feature::Scores {
+                position: Position::MIN,
+                quality_scores: vec![0, 0],
+            },
         ]);
 
         let mut iter = WithPositions::new(features.iter(), Position::MIN);

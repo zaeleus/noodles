@@ -501,41 +501,45 @@ where
         self.write_feature_position(position)?;
 
         match feature {
-            Feature::Bases(_, bases) => {
+            Feature::Bases { bases, .. } => {
                 self.write_stretches_of_bases(bases)?;
             }
-            Feature::Scores(_, quality_scores) => {
+            Feature::Scores { quality_scores, .. } => {
                 self.write_stretches_of_quality_scores(quality_scores)?;
             }
-            Feature::ReadBase(_, base, quality_score) => {
+            Feature::ReadBase {
+                base,
+                quality_score,
+                ..
+            } => {
                 self.write_base(*base)?;
                 self.write_quality_score(*quality_score)?;
             }
-            Feature::Substitution(_, value) => {
+            Feature::Substitution { value, .. } => {
                 self.write_base_substitution_code(*value)?;
             }
-            Feature::Insertion(_, bases) => {
+            Feature::Insertion { bases, .. } => {
                 self.write_insertion(bases)?;
             }
-            Feature::Deletion(_, len) => {
+            Feature::Deletion { len, .. } => {
                 self.write_deletion_length(*len)?;
             }
-            Feature::InsertBase(_, base) => {
+            Feature::InsertBase { base, .. } => {
                 self.write_base(*base)?;
             }
-            Feature::QualityScore(_, score) => {
-                self.write_quality_score(*score)?;
+            Feature::QualityScore { quality_score, .. } => {
+                self.write_quality_score(*quality_score)?;
             }
-            Feature::ReferenceSkip(_, len) => {
+            Feature::ReferenceSkip { len, .. } => {
                 self.write_reference_skip_length(*len)?;
             }
-            Feature::SoftClip(_, bases) => {
+            Feature::SoftClip { bases, .. } => {
                 self.write_soft_clip(bases)?;
             }
-            Feature::Padding(_, len) => {
+            Feature::Padding { len, .. } => {
                 self.write_padding(*len)?;
             }
-            Feature::HardClip(_, len) => {
+            Feature::HardClip { len, .. } => {
                 self.write_hard_clip(*len)?;
             }
         }

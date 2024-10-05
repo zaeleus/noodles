@@ -649,10 +649,10 @@ mod tests {
             .set_reference_sequence_id(0)
             .set_read_length(2)
             .set_alignment_start(Position::MIN)
-            .set_features(Features::from(vec![Feature::Bases(
-                Position::MIN,
-                vec![b'A', b'C'],
-            )]))
+            .set_features(Features::from(vec![Feature::Bases {
+                position: Position::MIN,
+                bases: vec![b'A', b'C'],
+            }]))
             .build()];
 
         resolve_bases(
@@ -681,10 +681,10 @@ mod tests {
                 .set_id(1)
                 .set_bam_flags(sam::alignment::record::Flags::empty())
                 .set_read_length(2)
-                .set_features(Features::from(vec![Feature::Scores(
-                    Position::try_from(1)?,
-                    vec![8, 13],
-                )]))
+                .set_features(Features::from(vec![Feature::Scores {
+                    position: Position::try_from(1)?,
+                    quality_scores: vec![8, 13],
+                }]))
                 .build(),
             Record::builder().set_id(2).build(),
             Record::builder()

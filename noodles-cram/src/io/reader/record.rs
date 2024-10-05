@@ -465,52 +465,65 @@ where
         match code {
             Code::Bases => {
                 let bases = self.read_stretches_of_bases()?;
-                Ok(Feature::Bases(position, bases))
+                Ok(Feature::Bases { position, bases })
             }
             Code::Scores => {
                 let quality_scores = self.read_stretches_of_quality_scores()?;
-                Ok(Feature::Scores(position, quality_scores))
+
+                Ok(Feature::Scores {
+                    position,
+                    quality_scores,
+                })
             }
             Code::ReadBase => {
                 let base = self.read_base()?;
                 let quality_score = self.read_quality_score()?;
-                Ok(Feature::ReadBase(position, base, quality_score))
+
+                Ok(Feature::ReadBase {
+                    position,
+                    base,
+                    quality_score,
+                })
             }
             Code::Substitution => {
-                let code = self.read_base_substitution_code()?;
-                Ok(Feature::Substitution(position, code))
+                let value = self.read_base_substitution_code()?;
+                Ok(Feature::Substitution { position, value })
             }
             Code::Insertion => {
                 let bases = self.read_insertion_bases()?;
-                Ok(Feature::Insertion(position, bases))
+                Ok(Feature::Insertion { position, bases })
             }
             Code::Deletion => {
                 let len = self.read_deletion_length()?;
-                Ok(Feature::Deletion(position, len))
+                Ok(Feature::Deletion { position, len })
             }
             Code::InsertBase => {
                 let base = self.read_base()?;
-                Ok(Feature::InsertBase(position, base))
+                Ok(Feature::InsertBase { position, base })
             }
             Code::QualityScore => {
-                let score = self.read_quality_score()?;
-                Ok(Feature::QualityScore(position, score))
+                let quality_score = self.read_quality_score()?;
+
+                Ok(Feature::QualityScore {
+                    position,
+                    quality_score,
+                })
             }
             Code::ReferenceSkip => {
                 let len = self.read_reference_skip_length()?;
-                Ok(Feature::ReferenceSkip(position, len))
+                Ok(Feature::ReferenceSkip { position, len })
             }
             Code::SoftClip => {
                 let bases = self.read_soft_clip_bases()?;
-                Ok(Feature::SoftClip(position, bases))
+                Ok(Feature::SoftClip { position, bases })
             }
             Code::Padding => {
                 let len = self.read_padding_length()?;
-                Ok(Feature::Padding(position, len))
+                Ok(Feature::Padding { position, len })
             }
             Code::HardClip => {
                 let len = self.read_hard_clip_length()?;
-                Ok(Feature::HardClip(position, len))
+                Ok(Feature::HardClip { position, len })
             }
         }
     }

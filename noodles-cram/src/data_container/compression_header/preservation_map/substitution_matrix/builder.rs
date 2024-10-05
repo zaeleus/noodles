@@ -12,14 +12,15 @@ pub struct Builder {
 impl Builder {
     pub fn update(&mut self, record: &Record) {
         for feature in record.features().iter() {
-            match feature {
-                Feature::Substitution(_, substitution::Value::Bases(reference_base, read_base)) => {
-                    self.histogram.hit(*reference_base, *read_base);
+            if let Feature::Substitution { value, .. } = feature {
+                match value {
+                    substitution::Value::Bases(reference_base, read_base) => {
+                        self.histogram.hit(*reference_base, *read_base);
+                    }
+                    substitution::Value::Code(_) => {
+                        panic!("substitution matrix cannot be built from substitution codes");
+                    }
                 }
-                Feature::Substitution(_, substitution::Value::Code(_)) => {
-                    panic!("substitution matrix cannot be built from substitution codes");
-                }
-                _ => {}
             }
         }
     }
@@ -51,30 +52,30 @@ mod tests {
             .set_read_length(bases.len())
             .set_bases(bases)
             .set_features(Features::from(vec![
-                Feature::Substitution(
-                    Position::try_from(1)?,
-                    substitution::Value::Bases(Base::A, Base::T),
-                ),
-                Feature::Substitution(
-                    Position::try_from(3)?,
-                    substitution::Value::Bases(Base::A, Base::T),
-                ),
-                Feature::Substitution(
-                    Position::try_from(6)?,
-                    substitution::Value::Bases(Base::A, Base::C),
-                ),
-                Feature::Substitution(
-                    Position::try_from(7)?,
-                    substitution::Value::Bases(Base::A, Base::G),
-                ),
-                Feature::Substitution(
-                    Position::try_from(9)?,
-                    substitution::Value::Bases(Base::A, Base::G),
-                ),
-                Feature::Substitution(
-                    Position::try_from(10)?,
-                    substitution::Value::Bases(Base::A, Base::T),
-                ),
+                Feature::Substitution {
+                    position: Position::try_from(1)?,
+                    value: substitution::Value::Bases(Base::A, Base::T),
+                },
+                Feature::Substitution {
+                    position: Position::try_from(3)?,
+                    value: substitution::Value::Bases(Base::A, Base::T),
+                },
+                Feature::Substitution {
+                    position: Position::try_from(6)?,
+                    value: substitution::Value::Bases(Base::A, Base::C),
+                },
+                Feature::Substitution {
+                    position: Position::try_from(7)?,
+                    value: substitution::Value::Bases(Base::A, Base::G),
+                },
+                Feature::Substitution {
+                    position: Position::try_from(9)?,
+                    value: substitution::Value::Bases(Base::A, Base::G),
+                },
+                Feature::Substitution {
+                    position: Position::try_from(10)?,
+                    value: substitution::Value::Bases(Base::A, Base::T),
+                },
             ]))
             .build();
 

@@ -338,11 +338,11 @@ pub(crate) fn calculate_alignment_span(read_length: usize, features: &Features) 
     features
         .iter()
         .fold(read_length, |alignment_span, feature| match feature {
-            Feature::Insertion(_, bases) => alignment_span - bases.len(),
-            Feature::InsertBase(_, _) => alignment_span - 1,
-            Feature::Deletion(_, len) => alignment_span + len,
-            Feature::ReferenceSkip(_, len) => alignment_span + len,
-            Feature::SoftClip(_, bases) => alignment_span - bases.len(),
+            Feature::Insertion { bases, .. } => alignment_span - bases.len(),
+            Feature::InsertBase { .. } => alignment_span - 1,
+            Feature::Deletion { len, .. } => alignment_span + len,
+            Feature::ReferenceSkip { len, .. } => alignment_span + len,
+            Feature::SoftClip { bases, .. } => alignment_span - bases.len(),
             _ => alignment_span,
         })
 }
@@ -370,15 +370,33 @@ mod tests {
         let features = Features::default();
         assert_eq!(calculate_alignment_span(4, &features), 4);
 
-        let features = Features::from(vec![Feature::HardClip(Position::try_from(1)?, 4)]);
+        let features = Features::from(vec![Feature::HardClip {
+            position: Position::try_from(1)?,
+            len: 4,
+        }]);
         assert_eq!(calculate_alignment_span(4, &features), 4);
 
         let features = Features::from(vec![
-            Feature::Insertion(Position::try_from(1)?, vec![b'A', b'C']),
-            Feature::InsertBase(Position::try_from(4)?, b'G'),
-            Feature::Deletion(Position::try_from(6)?, 3),
-            Feature::ReferenceSkip(Position::try_from(10)?, 5),
-            Feature::SoftClip(Position::try_from(16)?, vec![b'A', b'C', b'G', b'T']),
+            Feature::Insertion {
+                position: Position::try_from(1)?,
+                bases: vec![b'A', b'C'],
+            },
+            Feature::InsertBase {
+                position: Position::try_from(4)?,
+                base: b'G',
+            },
+            Feature::Deletion {
+                position: Position::try_from(6)?,
+                len: 3,
+            },
+            Feature::ReferenceSkip {
+                position: Position::try_from(10)?,
+                len: 5,
+            },
+            Feature::SoftClip {
+                position: Position::try_from(16)?,
+                bases: vec![b'A', b'C', b'G', b'T'],
+            },
         ]);
         assert_eq!(calculate_alignment_span(20, &features), 21);
 
