@@ -35,45 +35,47 @@ impl<'a> Iterator for Cigar<'a> {
     type Item = Op;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some((kind, len)) = self.next_op.take() {
-            return Some(Op::new(kind, len));
-        }
-
-        let Some(feature) = self.features.next() else {
-            if usize::from(self.read_position) <= self.read_length {
-                let len = self.read_length - usize::from(self.read_position) + 1;
-                self.consume_read(len);
-                return Some(Op::new(Kind::Match, len));
-            } else {
-                return None;
+        loop {
+            if let Some((kind, len)) = self.next_op.take() {
+                return Some(Op::new(kind, len));
             }
-        };
 
-        if feature.position() > self.read_position {
-            let len = usize::from(feature.position()) - usize::from(self.read_position);
-            self.read_position = feature.position();
-            self.next_op = Some((Kind::Match, len));
-        }
+            let Some(feature) = self.features.next() else {
+                if usize::from(self.read_position) <= self.read_length {
+                    let len = self.read_length - usize::from(self.read_position) + 1;
+                    self.consume_read(len);
+                    return Some(Op::new(Kind::Match, len));
+                } else {
+                    return None;
+                }
+            };
 
-        let (kind, len) = match feature {
-            Feature::Substitution { .. } => (Kind::Match, 1),
-            Feature::Insertion { bases, .. } => (Kind::Insertion, bases.len()),
-            Feature::Deletion { len, .. } => (Kind::Deletion, *len),
-            Feature::InsertBase { .. } => (Kind::Insertion, 1),
-            Feature::ReferenceSkip { len, .. } => (Kind::Skip, *len),
-            Feature::SoftClip { bases, .. } => (Kind::SoftClip, bases.len()),
-            Feature::Padding { len, .. } => (Kind::Pad, *len),
-            Feature::HardClip { len, .. } => (Kind::HardClip, *len),
-            _ => todo!(),
-        };
+            if feature.position() > self.read_position {
+                let len = usize::from(feature.position()) - usize::from(self.read_position);
+                self.read_position = feature.position();
+                self.next_op = Some((Kind::Match, len));
+            }
 
-        if kind.consumes_read() {
-            self.consume_read(len);
-        }
+            let (kind, len) = match feature {
+                Feature::Substitution { .. } => (Kind::Match, 1),
+                Feature::Insertion { bases, .. } => (Kind::Insertion, bases.len()),
+                Feature::Deletion { len, .. } => (Kind::Deletion, *len),
+                Feature::InsertBase { .. } => (Kind::Insertion, 1),
+                Feature::ReferenceSkip { len, .. } => (Kind::Skip, *len),
+                Feature::SoftClip { bases, .. } => (Kind::SoftClip, bases.len()),
+                Feature::Padding { len, .. } => (Kind::Pad, *len),
+                Feature::HardClip { len, .. } => (Kind::HardClip, *len),
+                _ => continue,
+            };
 
-        match self.next_op.replace((kind, len)) {
-            Some((kind, len)) => Some(Op::new(kind, len)),
-            None => self.next_op.take().map(|(kind, len)| Op::new(kind, len)),
+            if kind.consumes_read() {
+                self.consume_read(len);
+            }
+
+            return match self.next_op.replace((kind, len)) {
+                Some((kind, len)) => Some(Op::new(kind, len)),
+                None => self.next_op.take().map(|(kind, len)| Op::new(kind, len)),
+            };
         }
     }
 }
