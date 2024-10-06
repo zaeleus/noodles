@@ -18,6 +18,8 @@
     than how they are named in the CRAM specification (§ 8.4.2 "Compression
     header block: Data series encodings" (2024-09-04)).
 
+  * cram/record: Rename `NextMateFlags` to `MateFlags`.
+
 ## 0.69.0 - 2024-09-26
 
 ### Deprecated

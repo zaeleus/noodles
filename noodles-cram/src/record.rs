@@ -5,12 +5,11 @@ mod convert;
 pub mod feature;
 mod features;
 mod flags;
-mod next_mate_flags;
+mod mate_flags;
 pub mod resolve;
 
 pub use self::{
-    builder::Builder, feature::Feature, features::Features, flags::Flags,
-    next_mate_flags::NextMateFlags,
+    builder::Builder, feature::Feature, features::Features, flags::Flags, mate_flags::MateFlags,
 };
 
 use std::io;
@@ -37,7 +36,7 @@ pub struct Record {
     pub(crate) alignment_start: Option<Position>,
     pub(crate) read_group_id: Option<usize>,
     pub(crate) name: Option<BString>,
-    pub(crate) next_mate_bit_flags: NextMateFlags,
+    pub(crate) next_mate_bit_flags: MateFlags,
     pub(crate) next_fragment_reference_sequence_id: Option<usize>,
     pub(crate) next_mate_alignment_start: Option<Position>,
     pub(crate) template_size: i32,
@@ -137,7 +136,7 @@ impl Record {
     /// Returns the next mate flags.
     ///
     /// This is also call the next mate bit flags.
-    pub fn next_mate_flags(&self) -> NextMateFlags {
+    pub fn next_mate_flags(&self) -> MateFlags {
         self.next_mate_bit_flags
     }
 

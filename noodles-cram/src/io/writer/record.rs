@@ -20,7 +20,7 @@ use crate::{
     io::BitWriter,
     record::{
         feature::{self, substitution},
-        Feature, Flags, NextMateFlags,
+        Feature, Flags, MateFlags,
     },
     Record,
 };
@@ -280,7 +280,7 @@ where
         Ok(())
     }
 
-    fn write_next_mate_bit_flags(&mut self, next_mate_flags: NextMateFlags) -> io::Result<()> {
+    fn write_next_mate_bit_flags(&mut self, next_mate_flags: MateFlags) -> io::Result<()> {
         let next_mate_bit_flags = i32::from(u8::from(next_mate_flags));
 
         self.compression_header

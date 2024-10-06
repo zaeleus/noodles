@@ -21,7 +21,7 @@ use crate::{
     io::BitReader,
     record::{
         feature::{self, substitution},
-        Feature, Flags, NextMateFlags,
+        Feature, Flags, MateFlags,
     },
     Record,
 };
@@ -282,7 +282,7 @@ where
         Ok(())
     }
 
-    fn read_mate_flags(&mut self) -> io::Result<NextMateFlags> {
+    fn read_mate_flags(&mut self) -> io::Result<MateFlags> {
         self.compression_header
             .data_series_encoding_map()
             .mate_flags()
@@ -296,7 +296,7 @@ where
             .and_then(|n| {
                 u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             })
-            .map(NextMateFlags::from)
+            .map(MateFlags::from)
     }
 
     fn read_mate_reference_sequence_id(&mut self) -> io::Result<Option<usize>> {

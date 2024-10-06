@@ -8,7 +8,7 @@ use noodles_sam::{
     },
 };
 
-use super::{Features, Flags, NextMateFlags, Record};
+use super::{Features, Flags, MateFlags, Record};
 
 /// A CRAM record builder.
 pub struct Builder {
@@ -20,7 +20,7 @@ pub struct Builder {
     alignment_start: Option<Position>,
     read_group_id: Option<usize>,
     name: Option<BString>,
-    next_mate_flags: NextMateFlags,
+    next_mate_flags: MateFlags,
     next_fragment_reference_sequence_id: Option<usize>,
     next_mate_alignment_start: Option<Position>,
     template_size: i32,
@@ -85,7 +85,7 @@ impl Builder {
     }
 
     /// Sets the next mate flags.
-    pub fn set_next_mate_flags(mut self, next_mate_flags: NextMateFlags) -> Self {
+    pub fn set_next_mate_flags(mut self, next_mate_flags: MateFlags) -> Self {
         self.next_mate_flags = next_mate_flags;
         self
     }
@@ -183,7 +183,7 @@ impl Default for Builder {
             alignment_start: None,
             read_group_id: None,
             name: None,
-            next_mate_flags: NextMateFlags::default(),
+            next_mate_flags: MateFlags::default(),
             next_fragment_reference_sequence_id: None,
             next_mate_alignment_start: None,
             template_size: 0,
@@ -213,7 +213,7 @@ mod tests {
         assert!(builder.alignment_start.is_none());
         assert!(builder.read_group_id.is_none());
         assert!(builder.name.is_none());
-        assert_eq!(builder.next_mate_flags, NextMateFlags::default());
+        assert_eq!(builder.next_mate_flags, MateFlags::default());
         assert!(builder.next_fragment_reference_sequence_id.is_none());
         assert!(builder.next_mate_alignment_start.is_none());
         assert_eq!(builder.template_size, 0);
