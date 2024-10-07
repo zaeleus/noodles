@@ -211,7 +211,7 @@ mod tests {
         )?;
 
         assert!(matches!(
-            dbg!(parse_value("0", &header, "I32_INVALID")),
+            parse_value("0", &header, "I32_INVALID"),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 
