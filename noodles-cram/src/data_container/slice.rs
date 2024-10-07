@@ -336,11 +336,11 @@ fn resolve_bases(
 
                 Some(sequence)
             }
-        } else if let Some(SliceReferenceSequence::Embedded(offset, sequence)) =
+        } else if let Some(SliceReferenceSequence::Embedded(reference_start, sequence)) =
             &slice_reference_sequence
         {
-            let start = usize::from(alignment_start) - offset + 1;
-            alignment_start = Position::try_from(start)
+            let offset_start = usize::from(alignment_start) - usize::from(*reference_start) + 1;
+            alignment_start = Position::try_from(offset_start)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
             Some(sequence.clone())
         } else {
@@ -364,7 +364,7 @@ fn resolve_bases(
 
 enum SliceReferenceSequence {
     External(usize, fasta::record::Sequence),
-    Embedded(usize, fasta::record::Sequence),
+    Embedded(Position, fasta::record::Sequence),
 }
 
 fn get_slice_reference_sequence(
@@ -427,8 +427,11 @@ fn get_slice_reference_sequence(
         let data = block.decompressed_data()?;
         let sequence = fasta::record::Sequence::from(data);
 
-        let offset = usize::from(context.alignment_start());
-        Ok(Some(SliceReferenceSequence::Embedded(offset, sequence)))
+        let reference_start = context.alignment_start();
+        Ok(Some(SliceReferenceSequence::Embedded(
+            reference_start,
+            sequence,
+        )))
     } else {
         Ok(None)
     }
