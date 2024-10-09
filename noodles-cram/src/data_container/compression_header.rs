@@ -10,7 +10,7 @@ pub(crate) use self::{
     builder::Builder,
     data_series_encoding_map::DataSeriesEncodingMap,
     encoding::Encoding,
-    preservation_map::{PreservationMap, SubstitutionMatrix, TagIdsDictionary},
+    preservation_map::{PreservationMap, SubstitutionMatrix, TagSets},
     tag_encoding_map::TagEncodingMap,
 };
 

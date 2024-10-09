@@ -13,9 +13,7 @@ use noodles_sam::{self as sam, alignment::record_buf::QualityScores};
 use crate::{
     container::block,
     data_container::{
-        compression_header::{
-            data_series_encoding_map::DataSeries, preservation_map::tag_ids_dictionary,
-        },
+        compression_header::{data_series_encoding_map::DataSeries, preservation_map::tag_sets},
         CompressionHeader, ReferenceSequenceContext,
     },
     io::BitReader,
@@ -30,7 +28,7 @@ use crate::{
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ReadRecordError {
     MissingDataSeriesEncoding(DataSeries),
-    MissingTagEncoding(tag_ids_dictionary::Key),
+    MissingTagEncoding(tag_sets::Key),
 }
 
 impl error::Error for ReadRecordError {}
@@ -374,7 +372,7 @@ where
         let tag_keys = self
             .compression_header
             .preservation_map()
-            .tag_ids_dictionary()
+            .tag_sets()
             .get(tag_set_id)
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid tag line"))?;
 

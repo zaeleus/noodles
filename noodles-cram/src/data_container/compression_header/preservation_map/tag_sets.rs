@@ -9,9 +9,9 @@ pub use self::key::Key;
 use std::ops::Deref;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct TagIdsDictionary(Vec<Vec<Key>>);
+pub(crate) struct TagSets(Vec<Vec<Key>>);
 
-impl Deref for TagIdsDictionary {
+impl Deref for TagSets {
     type Target = [Vec<Key>];
 
     fn deref(&self) -> &Self::Target {
@@ -19,7 +19,7 @@ impl Deref for TagIdsDictionary {
     }
 }
 
-impl From<Vec<Vec<Key>>> for TagIdsDictionary {
+impl From<Vec<Vec<Key>>> for TagSets {
     fn from(dictionary: Vec<Vec<Key>>) -> Self {
         Self(dictionary)
     }

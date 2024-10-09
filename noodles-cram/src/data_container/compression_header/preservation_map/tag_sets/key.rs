@@ -15,7 +15,7 @@ impl Key {
     /// # Examples
     ///
     /// ```
-    /// use noodles_cram::data_container::compression_header::preservation_map::tag_ids_dictionary::Key;
+    /// use noodles_cram::data_container::compression_header::preservation_map::tag_sets::Key;
     /// use noodles_sam::alignment::record::data::field::{Tag, Type};
     /// let key = Key::new(Tag::ALIGNMENT_HIT_COUNT, Type::UInt8);
     /// ```
@@ -28,7 +28,7 @@ impl Key {
     /// # Examples
     ///
     /// ```
-    /// use noodles_cram::data_container::compression_header::preservation_map::tag_ids_dictionary::Key;
+    /// use noodles_cram::data_container::compression_header::preservation_map::tag_sets::Key;
     /// use noodles_sam::alignment::record::data::field::{Tag, Type};
     /// let key = Key::new(Tag::ALIGNMENT_HIT_COUNT, Type::UInt8);
     /// assert_eq!(key.tag(), Tag::ALIGNMENT_HIT_COUNT);
@@ -42,7 +42,7 @@ impl Key {
     /// # Examples
     ///
     /// ```
-    /// use noodles_cram::data_container::compression_header::preservation_map::tag_ids_dictionary::Key;
+    /// use noodles_cram::data_container::compression_header::preservation_map::tag_sets::Key;
     /// use noodles_sam::alignment::record::data::field::{Tag, Type};
     /// let key = Key::new(Tag::ALIGNMENT_HIT_COUNT, Type::UInt8);
     /// assert_eq!(key.ty(), Type::UInt8);

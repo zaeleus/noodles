@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::{Key, TagIdsDictionary};
+use super::{Key, TagSets};
 use crate::Record;
 
 #[derive(Debug, Default)]
@@ -21,11 +21,11 @@ impl Builder {
         self.keys_indices.entry(keys).or_insert(next_index);
     }
 
-    pub(crate) fn build(self) -> TagIdsDictionary {
+    pub(crate) fn build(self) -> TagSets {
         let mut lines: Vec<_> = self.keys_indices.into_iter().collect();
         lines.sort_by_key(|(_, index)| *index);
-        let dictionary: Vec<_> = lines.into_iter().map(|(keys, _)| keys).collect();
-        TagIdsDictionary::from(dictionary)
+        let sets: Vec<_> = lines.into_iter().map(|(keys, _)| keys).collect();
+        TagSets::from(sets)
     }
 }
 

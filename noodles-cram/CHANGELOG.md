@@ -18,6 +18,11 @@
     than how they are named in the CRAM specification (§ 8.4.2 "Compression
     header block: Data series encodings" (2024-09-04)).
 
+  * cram/data_container/compression_header/preservation_map: Rename tag IDs
+    dictionary (`tag_ids_dictionary`) to tag sets (`tag_sets`).
+
+    This is not a dictionary but a list of sets.
+
   * cram/record: Rename `NextMateFlags` to `MateFlags`.
 
 ## 0.69.0 - 2024-09-26

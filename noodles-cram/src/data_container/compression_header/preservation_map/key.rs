@@ -13,8 +13,8 @@ pub enum Key {
     ReferenceRequired,
     /// Substitution matrix (`SM`).
     SubstitutionMatrix,
-    /// A list of lists of tag IDs (`TD`).
-    TagIdsDictionary,
+    /// A list of tag sets (`TD`).
+    TagSets,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -37,7 +37,7 @@ impl TryFrom<[u8; 2]> for Key {
             [b'A', b'P'] => Ok(Self::ApDataSeriesDelta),
             [b'R', b'R'] => Ok(Self::ReferenceRequired),
             [b'S', b'M'] => Ok(Self::SubstitutionMatrix),
-            [b'T', b'D'] => Ok(Self::TagIdsDictionary),
+            [b'T', b'D'] => Ok(Self::TagSets),
             _ => Err(TryFromByteArrayError(b)),
         }
     }
@@ -50,7 +50,7 @@ impl From<Key> for [u8; 2] {
             Key::ApDataSeriesDelta => [b'A', b'P'],
             Key::ReferenceRequired => [b'R', b'R'],
             Key::SubstitutionMatrix => [b'S', b'M'],
-            Key::TagIdsDictionary => [b'T', b'D'],
+            Key::TagSets => [b'T', b'D'],
         }
     }
 }
@@ -65,7 +65,7 @@ mod tests {
         assert_eq!(Key::try_from([b'A', b'P']), Ok(Key::ApDataSeriesDelta));
         assert_eq!(Key::try_from([b'R', b'R']), Ok(Key::ReferenceRequired));
         assert_eq!(Key::try_from([b'S', b'M']), Ok(Key::SubstitutionMatrix));
-        assert_eq!(Key::try_from([b'T', b'D']), Ok(Key::TagIdsDictionary));
+        assert_eq!(Key::try_from([b'T', b'D']), Ok(Key::TagSets));
 
         assert_eq!(
             Key::try_from([b'Z', b'Z']),
@@ -79,6 +79,6 @@ mod tests {
         assert_eq!(<[u8; 2]>::from(Key::ApDataSeriesDelta), [b'A', b'P']);
         assert_eq!(<[u8; 2]>::from(Key::ReferenceRequired), [b'R', b'R']);
         assert_eq!(<[u8; 2]>::from(Key::SubstitutionMatrix), [b'S', b'M']);
-        assert_eq!(<[u8; 2]>::from(Key::TagIdsDictionary), [b'T', b'D']);
+        assert_eq!(<[u8; 2]>::from(Key::TagSets), [b'T', b'D']);
     }
 }

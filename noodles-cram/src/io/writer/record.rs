@@ -12,9 +12,7 @@ use noodles_sam as sam;
 use crate::{
     container::block,
     data_container::{
-        compression_header::{
-            data_series_encoding_map::DataSeries, preservation_map::tag_ids_dictionary,
-        },
+        compression_header::{data_series_encoding_map::DataSeries, preservation_map::tag_sets},
         CompressionHeader, ReferenceSequenceContext,
     },
     io::BitWriter,
@@ -29,7 +27,7 @@ use crate::{
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum WriteRecordError {
     MissingDataSeriesEncoding(DataSeries),
-    MissingTagEncoding(tag_ids_dictionary::Key),
+    MissingTagEncoding(tag_sets::Key),
 }
 
 impl error::Error for WriteRecordError {}
@@ -396,12 +394,12 @@ where
         use bam::record::codec::encoder::data::field::put_value;
 
         let preservation_map = self.compression_header.preservation_map();
-        let tag_ids_dictionary = preservation_map.tag_ids_dictionary();
+        let tag_ids_dictionary = preservation_map.tag_sets();
 
         let keys: Vec<_> = record
             .tags()
             .iter()
-            .map(|(tag, value)| tag_ids_dictionary::Key::new(tag, value.ty()))
+            .map(|(tag, value)| tag_sets::Key::new(tag, value.ty()))
             .collect();
 
         let tag_set_id = tag_ids_dictionary
@@ -424,7 +422,7 @@ where
         for result in sam::alignment::Record::data(record).iter() {
             let (tag, value) = result?;
 
-            let key = tag_ids_dictionary::Key::new(tag, value.ty());
+            let key = tag_sets::Key::new(tag, value.ty());
             let id = block::ContentId::from(key);
             let encoding = tag_encoding_map.get(&id).ok_or_else(|| {
                 io::Error::new(

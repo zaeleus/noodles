@@ -5,7 +5,7 @@ use crate::{
     codecs::Encoder,
     container::block,
     data_container::compression_header::{
-        data_series_encoding_map::DataSeries, preservation_map::tag_ids_dictionary,
+        data_series_encoding_map::DataSeries, preservation_map::tag_sets,
     },
 };
 
@@ -60,7 +60,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_cram::data_container::{
-    ///     compression_header::preservation_map::tag_ids_dictionary::Key,
+    ///     compression_header::preservation_map::tag_sets::Key,
     ///     BlockContentEncoderMap,
     /// };
     /// use noodles_sam::alignment::record::data::field::{Tag, Type};
@@ -69,11 +69,7 @@ impl Builder {
     /// let builder = BlockContentEncoderMap::builder()
     ///     .set_tag_values_encoder(key, None);
     /// ```
-    pub fn set_tag_values_encoder(
-        mut self,
-        key: tag_ids_dictionary::Key,
-        encoder: Option<Encoder>,
-    ) -> Self {
+    pub fn set_tag_values_encoder(mut self, key: tag_sets::Key, encoder: Option<Encoder>) -> Self {
         let id = block::ContentId::from(key);
         self.tag_values_encoders.insert(id, encoder);
         self

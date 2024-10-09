@@ -6,7 +6,7 @@ use crate::{
     container::block,
     data_container::compression_header::{
         encoding::codec::{Byte, ByteArray, Integer},
-        preservation_map::tag_ids_dictionary::Key,
+        preservation_map::tag_sets::Key,
         Encoding,
     },
     Record,

@@ -4,7 +4,7 @@ use byteorder::WriteBytesExt;
 
 use crate::{
     data_container::compression_header::{
-        preservation_map::{Key, SubstitutionMatrix, TagIdsDictionary},
+        preservation_map::{Key, SubstitutionMatrix, TagSets},
         PreservationMap,
     },
     io::writer::num::write_itf8,
@@ -40,8 +40,8 @@ where
     write_key(&mut buf, Key::SubstitutionMatrix)?;
     write_substitution_matrix(&mut buf, preservation_map.substitution_matrix())?;
 
-    write_key(&mut buf, Key::TagIdsDictionary)?;
-    write_tag_ids_dictionary(&mut buf, preservation_map.tag_ids_dictionary())?;
+    write_key(&mut buf, Key::TagSets)?;
+    write_tag_sets(&mut buf, preservation_map.tag_sets())?;
 
     let data_len =
         i32::try_from(buf.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -80,10 +80,7 @@ where
     writer.write_all(&buf)
 }
 
-fn write_tag_ids_dictionary<W>(
-    writer: &mut W,
-    tag_ids_dictionary: &TagIdsDictionary,
-) -> io::Result<()>
+fn write_tag_sets<W>(writer: &mut W, tag_sets: &TagSets) -> io::Result<()>
 where
     W: Write,
 {
@@ -91,7 +88,7 @@ where
 
     let mut buf = Vec::new();
 
-    for keys in tag_ids_dictionary.iter() {
+    for keys in tag_sets.iter() {
         for key in keys {
             let tag = key.tag();
             buf.extend_from_slice(tag.as_ref());
@@ -116,13 +113,13 @@ mod tests {
     use noodles_sam::alignment::record::data::field::{Tag, Type};
 
     use super::*;
-    use crate::data_container::compression_header::preservation_map::tag_ids_dictionary::Key;
+    use crate::data_container::compression_header::preservation_map::tag_sets::Key;
 
     #[test]
     fn test_write_tag_ids_dictionary() -> io::Result<()> {
         let mut buf = Vec::new();
 
-        let tag_ids_dictionary = TagIdsDictionary::from(vec![
+        let tag_ids_dictionary = TagSets::from(vec![
             vec![Key::new(Tag::ALIGNMENT_HIT_COUNT, Type::Int8)],
             vec![
                 Key::new(Tag::ALIGNMENT_HIT_COUNT, Type::Int8),
@@ -130,7 +127,7 @@ mod tests {
             ],
         ]);
 
-        write_tag_ids_dictionary(&mut buf, &tag_ids_dictionary)?;
+        write_tag_sets(&mut buf, &tag_ids_dictionary)?;
 
         let expected = [
             0x0b, // data_len

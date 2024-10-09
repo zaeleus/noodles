@@ -5,8 +5,8 @@ use noodles_sam::alignment::record::data::field::{Tag, Type};
 
 use crate::{
     data_container::compression_header::{
-        preservation_map::{tag_ids_dictionary, Key},
-        PreservationMap, SubstitutionMatrix, TagIdsDictionary,
+        preservation_map::{tag_sets, Key},
+        PreservationMap, SubstitutionMatrix, TagSets,
     },
     io::reader::num::get_itf8,
 };
@@ -46,7 +46,7 @@ pub(super) fn get_preservation_map(src: &mut Bytes) -> io::Result<PreservationMa
             Key::SubstitutionMatrix => {
                 substitution_matrix = get_substitution_matrix(&mut buf).map(Some)?;
             }
-            Key::TagIdsDictionary => {
+            Key::TagSets => {
                 tag_ids_dictionary = get_tag_ids_dictionary(&mut buf).map(Some)?;
             }
         }
@@ -113,7 +113,7 @@ where
     SubstitutionMatrix::try_from(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
-fn get_tag_ids_dictionary(src: &mut Bytes) -> io::Result<TagIdsDictionary> {
+fn get_tag_ids_dictionary(src: &mut Bytes) -> io::Result<TagSets> {
     const NUL: u8 = 0x00;
 
     let data_len = get_itf8(src).and_then(|n| {
@@ -139,7 +139,7 @@ fn get_tag_ids_dictionary(src: &mut Bytes) -> io::Result<TagIdsDictionary> {
 
             let tag = Tag::new(t0, t1);
             let ty = get_type(ty)?;
-            let key = tag_ids_dictionary::Key::new(tag, ty);
+            let key = tag_sets::Key::new(tag, ty);
 
             line.push(key);
         }
@@ -147,7 +147,7 @@ fn get_tag_ids_dictionary(src: &mut Bytes) -> io::Result<TagIdsDictionary> {
         dictionary.push(line);
     }
 
-    Ok(TagIdsDictionary::from(dictionary))
+    Ok(TagSets::from(dictionary))
 }
 
 fn get_type(n: u8) -> io::Result<Type> {
@@ -196,10 +196,7 @@ mod tests {
             false,
             false,
             SubstitutionMatrix::default(),
-            TagIdsDictionary::from(vec![vec![tag_ids_dictionary::Key::new(
-                Tag::COMMENT,
-                Type::String,
-            )]]),
+            TagSets::from(vec![vec![tag_sets::Key::new(Tag::COMMENT, Type::String)]]),
         );
 
         assert_eq!(actual, expected);

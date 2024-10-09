@@ -1,4 +1,4 @@
-use super::{substitution_matrix, tag_ids_dictionary, PreservationMap};
+use super::{substitution_matrix, tag_sets, PreservationMap};
 use crate::{io::writer::Options, Record};
 
 #[derive(Debug)]
@@ -7,7 +7,7 @@ pub struct Builder {
     ap_data_series_delta: bool,
     reference_required: bool,
     substitution_matrix_builder: substitution_matrix::Builder,
-    tag_ids_dictionary_builder: tag_ids_dictionary::Builder,
+    tag_ids_dictionary_builder: tag_sets::Builder,
 }
 
 impl Builder {
@@ -44,7 +44,7 @@ impl Default for Builder {
             ap_data_series_delta: true,
             reference_required: true,
             substitution_matrix_builder: substitution_matrix::Builder::default(),
-            tag_ids_dictionary_builder: tag_ids_dictionary::Builder::default(),
+            tag_ids_dictionary_builder: tag_sets::Builder::default(),
         }
     }
 }

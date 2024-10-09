@@ -3,11 +3,10 @@
 mod builder;
 pub(crate) mod key;
 pub(crate) mod substitution_matrix;
-pub mod tag_ids_dictionary;
+pub mod tag_sets;
 
 pub(crate) use {
-    builder::Builder, key::Key, substitution_matrix::SubstitutionMatrix,
-    tag_ids_dictionary::TagIdsDictionary,
+    builder::Builder, key::Key, substitution_matrix::SubstitutionMatrix, tag_sets::TagSets,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -16,7 +15,7 @@ pub(crate) struct PreservationMap {
     ap_data_series_delta: bool,
     is_reference_required: bool,
     substitution_matrix: SubstitutionMatrix,
-    tag_ids_dictionary: TagIdsDictionary,
+    tag_sets: TagSets,
 }
 
 impl PreservationMap {
@@ -25,14 +24,14 @@ impl PreservationMap {
         ap_data_series_delta: bool,
         is_reference_required: bool,
         substitution_matrix: SubstitutionMatrix,
-        tag_ids_dictionary: TagIdsDictionary,
+        tag_sets: TagSets,
     ) -> Self {
         Self {
             read_names_included,
             ap_data_series_delta,
             is_reference_required,
             substitution_matrix,
-            tag_ids_dictionary,
+            tag_sets,
         }
     }
 
@@ -52,7 +51,7 @@ impl PreservationMap {
         &self.substitution_matrix
     }
 
-    pub fn tag_ids_dictionary(&self) -> &TagIdsDictionary {
-        &self.tag_ids_dictionary
+    pub fn tag_sets(&self) -> &TagSets {
+        &self.tag_sets
     }
 }
