@@ -51,7 +51,7 @@ impl<'r> Series<'r> {
 
         if name == key::GENOTYPE {
             match self.ty {
-                Type::Int8(len) => return get_genotype_value(self.src, len, i),
+                Type::Int8(len) => return get_genotype_value(self.src, header, len, i),
                 _ => todo!("unhandled type"),
             }
         }
@@ -314,10 +314,20 @@ fn get_string_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Val
     Some(Some(Value::Array(Array::String(Box::new(s)))))
 }
 
-fn get_genotype_value(src: &[u8], len: usize, i: usize) -> Option<Option<io::Result<Value<'_>>>> {
+fn get_genotype_value<'r>(
+    src: &'r [u8],
+    header: &vcf::Header,
+    len: usize,
+    i: usize,
+) -> Option<Option<io::Result<Value<'r>>>> {
     use self::value::Genotype;
+
     let src = src.get(range::<i8>(i, len))?;
-    Some(Some(Ok(Value::Genotype(Box::new(Genotype::new(src))))))
+
+    Some(Some(Ok(Value::Genotype(Box::new(Genotype::new(
+        header.file_format(),
+        src,
+    ))))))
 }
 
 #[cfg(test)]

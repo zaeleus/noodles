@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bcf/record/samples/series/value/genotype: Only infer first allele phasing
+    for VCF < 4.4.
+
+    See § 6.3.3.9 "Type encoding: Genotype (GT) field" (2024-06-28): "When
+    processing VCF version 4.3 or earlier files, the phasing of the first
+    allele should be treated as missing and inferred from the remaining
+    values."
+
 ## 0.62.0 - 2024-09-26
 
 ### Changed
