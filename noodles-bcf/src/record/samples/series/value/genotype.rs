@@ -21,8 +21,6 @@ impl<'a> Genotype<'a> {
 
     /// Returns an iterator over allele position-phasing pairs.
     pub fn iter(&self) -> impl Iterator<Item = (Option<usize>, Phasing)> + '_ {
-        const MISSING: i8 = -1;
-
         let first_allele_phasing = first_allele_phasing(self.file_format, self.src);
 
         self.src
@@ -31,9 +29,7 @@ impl<'a> Genotype<'a> {
             .enumerate()
             .take_while(|(_, n)| matches!(Int8::from(*n), Int8::Value(_)))
             .map(move |(i, n)| {
-                let j = (n >> 1) - 1;
-
-                let position = if j == MISSING { None } else { Some(j as usize) };
+                let position = allele_position(n);
 
                 let phasing = if i == 0 {
                     first_allele_phasing
@@ -102,6 +98,15 @@ fn allele_phasing(n: i8) -> Phasing {
 
 fn is_phased(n: i8) -> bool {
     n & 0x01 == 1
+}
+
+fn allele_position(n: i8) -> Option<usize> {
+    const MISSING: i8 = -1;
+
+    match (n >> 1) - 1 {
+        MISSING => None,
+        m => Some(m as usize),
+    }
 }
 
 #[cfg(test)]
@@ -173,5 +178,13 @@ mod tests {
     fn test_is_phased() {
         assert!(!is_phased(0x00));
         assert!(is_phased(0x01));
+    }
+
+    #[test]
+    fn test_allele_position() {
+        assert!(allele_position(0x00).is_none());
+        assert!(allele_position(0x01).is_none());
+        assert_eq!(allele_position(0x02), Some(0));
+        assert_eq!(allele_position(0x03), Some(0));
     }
 }
