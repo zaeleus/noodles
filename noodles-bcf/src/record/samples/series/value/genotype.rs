@@ -25,10 +25,9 @@ impl<'a> Genotype<'a> {
 
         self.src
             .iter()
-            .map(|n| *n as i8)
+            .take_while(|n| matches!(Int8::from(**n as i8), Int8::Value(_)))
             .enumerate()
-            .take_while(|(_, n)| matches!(Int8::from(*n), Int8::Value(_)))
-            .map(move |(i, n)| {
+            .map(move |(i, &n)| {
                 let position = allele_position(n);
 
                 let phasing = if i == 0 {
@@ -69,9 +68,7 @@ fn implicit_first_allele_phasing(src: &[u8]) -> Phasing {
     let mut phasing = Phasing::Phased;
 
     for &n in src.iter().skip(1) {
-        let n = n as i8;
-
-        if !matches!(Int8::from(n), Int8::Value(_)) {
+        if !matches!(Int8::from(n as i8), Int8::Value(_)) {
             break;
         }
 
@@ -85,10 +82,10 @@ fn implicit_first_allele_phasing(src: &[u8]) -> Phasing {
 }
 
 fn explicit_first_allele_phasing(src: &[u8]) -> Phasing {
-    allele_phasing(src[0] as i8)
+    allele_phasing(src[0])
 }
 
-fn allele_phasing(n: i8) -> Phasing {
+fn allele_phasing(n: u8) -> Phasing {
     if is_phased(n) {
         Phasing::Phased
     } else {
@@ -96,16 +93,19 @@ fn allele_phasing(n: i8) -> Phasing {
     }
 }
 
-fn is_phased(n: i8) -> bool {
+fn is_phased(n: u8) -> bool {
     n & 0x01 == 1
 }
 
-fn allele_position(n: i8) -> Option<usize> {
-    const MISSING: i8 = -1;
+fn allele_position(n: u8) -> Option<usize> {
+    const MISSING: u8 = 0;
 
-    match (n >> 1) - 1 {
+    match n >> 1 {
         MISSING => None,
-        m => Some(m as usize),
+        m => {
+            // SAFETY: m > 0.
+            Some(usize::from(m - 1))
+        }
     }
 }
 
