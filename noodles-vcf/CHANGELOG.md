@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * vcf/variant/record_buf/samples: Add `Samples::clear` ([#304]).
+
+[#304]: https://github.com/zaeleus/noodles/issues/304
+
 ## 0.66.0 - 2024-09-26
 
 ### Changed

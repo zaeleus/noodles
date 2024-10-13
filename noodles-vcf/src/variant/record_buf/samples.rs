@@ -43,6 +43,31 @@ impl Samples {
         self.values.is_empty()
     }
 
+    /// Removes all keys and samples.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::variant::{
+    ///     record::samples::keys::key,
+    ///     record_buf::{samples::{sample::Value, Keys}, Samples},
+    /// };
+    ///
+    /// let keys: Keys = [String::from(key::GENOTYPE)].into_iter().collect();
+    /// let mut samples = Samples::new(keys.clone(), vec![
+    ///     vec![Some(Value::from("0|0"))],
+    /// ]);
+    ///
+    /// assert!(!samples.is_empty());
+    ///
+    /// samples.clear();
+    /// assert!(samples.is_empty());
+    /// ```
+    pub fn clear(&mut self) {
+        self.keys.as_mut().clear();
+        self.values.clear();
+    }
+
     /// Returns the keys.
     ///
     /// # Examples
