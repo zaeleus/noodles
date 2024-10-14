@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bam/record/codec/decoder/reference_sequence_id: Remove validation against
+    the reference sequence dictionary.
+
+    Validation of the reference sequence ID still occurs on look up.
+
 ## 0.68.0 - 2024-09-26
 
 ### Added

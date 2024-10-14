@@ -20,7 +20,7 @@ pub(crate) use self::{
 use std::{error, fmt};
 
 use bytes::Buf;
-use noodles_sam::{self as sam, alignment::RecordBuf};
+use noodles_sam::alignment::RecordBuf;
 
 use self::{
     bin::discard_bin, flags::get_flags, mapping_quality::get_mapping_quality, name::get_name,
@@ -100,18 +100,12 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub(crate) fn decode<B>(
-    src: &mut B,
-    header: &sam::Header,
-    record: &mut RecordBuf,
-) -> Result<(), DecodeError>
+pub(crate) fn decode<B>(src: &mut B, record: &mut RecordBuf) -> Result<(), DecodeError>
 where
     B: Buf,
 {
-    let n_ref = header.reference_sequences().len();
-
     *record.reference_sequence_id_mut() =
-        get_reference_sequence_id(src, n_ref).map_err(DecodeError::InvalidReferenceSequenceId)?;
+        get_reference_sequence_id(src).map_err(DecodeError::InvalidReferenceSequenceId)?;
 
     *record.alignment_start_mut() =
         get_position(src).map_err(DecodeError::InvalidAlignmentStart)?;
@@ -129,8 +123,8 @@ where
 
     let l_seq = sequence::get_length(src).map_err(DecodeError::InvalidSequence)?;
 
-    *record.mate_reference_sequence_id_mut() = get_reference_sequence_id(src, n_ref)
-        .map_err(DecodeError::InvalidMateReferenceSequenceId)?;
+    *record.mate_reference_sequence_id_mut() =
+        get_reference_sequence_id(src).map_err(DecodeError::InvalidMateReferenceSequenceId)?;
 
     *record.mate_alignment_start_mut() =
         get_position(src).map_err(DecodeError::InvalidMateAlignmentStart)?;
@@ -163,11 +157,10 @@ mod tests {
         ];
         let mut src = &data[..];
 
-        let header = sam::Header::default();
         let mut record = RecordBuf::default();
 
         assert!(matches!(
-            decode(&mut src, &header, &mut record),
+            decode(&mut src, &mut record),
             Err(DecodeError::InvalidName(_))
         ));
     }

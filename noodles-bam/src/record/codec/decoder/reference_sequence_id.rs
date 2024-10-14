@@ -9,8 +9,6 @@ pub enum DecodeError {
     UnexpectedEof,
     /// The input is invalid.
     Invalid,
-    /// The reference sequence is not in the reference sequence dictionary.
-    MissingReferenceSequenceDictionaryEntry { actual: usize, expected: usize },
 }
 
 impl error::Error for DecodeError {}
@@ -20,20 +18,11 @@ impl fmt::Display for DecodeError {
         match self {
             Self::UnexpectedEof => write!(f, "unexpected EOF"),
             Self::Invalid => write!(f, "invalid input"),
-            Self::MissingReferenceSequenceDictionaryEntry { actual, expected } => {
-                write!(
-                    f,
-                    "missing reference sequence dictionary entry: expected id < {expected}, got {actual}"
-                )
-            }
         }
     }
 }
 
-pub(crate) fn get_reference_sequence_id<B>(
-    src: &mut B,
-    n_ref: usize,
-) -> Result<Option<usize>, DecodeError>
+pub(crate) fn get_reference_sequence_id<B>(src: &mut B) -> Result<Option<usize>, DecodeError>
 where
     B: Buf,
 {
@@ -46,17 +35,8 @@ where
     match src.get_i32_le() {
         UNMAPPED => Ok(None),
         n => usize::try_from(n)
-            .map_err(|_| DecodeError::Invalid)
-            .and_then(|m| {
-                if m < n_ref {
-                    Ok(Some(m))
-                } else {
-                    Err(DecodeError::MissingReferenceSequenceDictionaryEntry {
-                        actual: m,
-                        expected: n_ref,
-                    })
-                }
-            }),
+            .map(Some)
+            .map_err(|_| DecodeError::Invalid),
     }
 }
 
@@ -68,34 +48,24 @@ mod tests {
     fn test_get_reference_sequence_id() {
         let data = (-1i32).to_le_bytes();
         let mut src = &data[..];
-        assert_eq!(get_reference_sequence_id(&mut src, 1), Ok(None));
+        assert_eq!(get_reference_sequence_id(&mut src), Ok(None));
 
         let data = 0i32.to_le_bytes();
         let mut src = &data[..];
-        assert_eq!(get_reference_sequence_id(&mut src, 1), Ok(Some(0)));
+        assert_eq!(get_reference_sequence_id(&mut src), Ok(Some(0)));
 
         let data = [];
         let mut src = &data[..];
         assert_eq!(
-            get_reference_sequence_id(&mut src, 1),
+            get_reference_sequence_id(&mut src),
             Err(DecodeError::UnexpectedEof)
         );
 
         let data = (-2i32).to_le_bytes();
         let mut src = &data[..];
         assert_eq!(
-            get_reference_sequence_id(&mut src, 1),
+            get_reference_sequence_id(&mut src),
             Err(DecodeError::Invalid)
-        );
-
-        let data = 0i32.to_le_bytes();
-        let mut src = &data[..];
-        assert_eq!(
-            get_reference_sequence_id(&mut src, 0),
-            Err(DecodeError::MissingReferenceSequenceDictionaryEntry {
-                actual: 0,
-                expected: 0
-            })
         );
     }
 }

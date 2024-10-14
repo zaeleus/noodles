@@ -152,10 +152,10 @@ where
     /// ```
     pub async fn read_record_buf(
         &mut self,
-        header: &sam::Header,
+        _header: &sam::Header,
         record: &mut RecordBuf,
     ) -> io::Result<usize> {
-        read_record_buf(&mut self.inner, header, &mut self.buf, record).await
+        read_record_buf(&mut self.inner, &mut self.buf, record).await
     }
 
     /// Reads a record.
@@ -229,12 +229,12 @@ where
     /// ```
     pub fn record_bufs<'a>(
         &'a mut self,
-        header: &'a sam::Header,
+        _header: &'a sam::Header,
     ) -> impl Stream<Item = io::Result<RecordBuf>> + '_ {
         Box::pin(stream::try_unfold(
             (&mut self.inner, &mut self.buf, RecordBuf::default()),
             move |(reader, buf, mut record)| async move {
-                read_record_buf(reader, header, buf, &mut record)
+                read_record_buf(reader, buf, &mut record)
                     .await
                     .map(|n| match n {
                         0 => None,

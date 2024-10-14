@@ -1,12 +1,11 @@
 use std::io::{self, Read};
 
-use noodles_sam::{self as sam, alignment::RecordBuf};
+use noodles_sam::alignment::RecordBuf;
 
 use super::read_record;
 
 pub(crate) fn read_record_buf<R>(
     reader: &mut R,
-    header: &sam::Header,
     buf: &mut Vec<u8>,
     record: &mut RecordBuf,
 ) -> io::Result<usize>
@@ -21,7 +20,7 @@ where
     };
 
     let mut src = &buf[..];
-    decode(&mut src, header, record).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    decode(&mut src, record).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     Ok(block_size)
 }
@@ -49,10 +48,9 @@ mod tests {
         ];
 
         let mut reader = &data[..];
-        let header = sam::Header::default();
         let mut buf = Vec::new();
         let mut record = RecordBuf::default();
-        let block_size = read_record_buf(&mut reader, &header, &mut buf, &mut record)?;
+        let block_size = read_record_buf(&mut reader, &mut buf, &mut record)?;
 
         assert_eq!(block_size, 34);
         assert_eq!(record, RecordBuf::default());

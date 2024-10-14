@@ -186,10 +186,10 @@ where
     /// ```
     pub fn read_record_buf(
         &mut self,
-        header: &sam::Header,
+        _header: &sam::Header,
         record: &mut RecordBuf,
     ) -> io::Result<usize> {
-        read_record_buf(&mut self.inner, header, &mut self.buf, record)
+        read_record_buf(&mut self.inner, &mut self.buf, record)
     }
 
     /// Reads a record.
