@@ -72,6 +72,10 @@ name = "util_alignment_rewrite"
 required-features = ["alignment"]
 
 [[example]]
+name = "util_alignment_rewrite_async"
+required-features = ["alignment", "async"]
+
+[[example]]
 name = "util_alignment_view"
 required-features = ["alignment"]
 
