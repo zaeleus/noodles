@@ -198,6 +198,7 @@ impl Record {
     }
 
     /// Returns the read bases.
+    #[deprecated(since = "0.70.0", note = "Use `Record::sequence` instead.")]
     pub fn bases(&self) -> &Sequence {
         &self.sequence
     }

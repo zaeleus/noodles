@@ -25,6 +25,12 @@
 
   * cram/record: Rename `NextMateFlags` to `MateFlags`.
 
+### Deprecated
+
+  * cram/record: Deprecate `Record::bases`.
+
+    Use `Record::sequence` instead.
+
 ## 0.69.0 - 2024-09-26
 
 ### Deprecated
