@@ -29,20 +29,20 @@ use noodles_sam::{
 #[derive(Clone, Debug, PartialEq)]
 pub struct Record {
     pub(crate) id: u64,
-    pub(crate) bam_bit_flags: sam::alignment::record::Flags,
-    pub(crate) cram_bit_flags: Flags,
+    pub(crate) bam_flags: sam::alignment::record::Flags,
+    pub(crate) cram_flags: Flags,
     pub(crate) reference_sequence_id: Option<usize>,
     pub(crate) read_length: usize,
     pub(crate) alignment_start: Option<Position>,
     pub(crate) read_group_id: Option<usize>,
     pub(crate) name: Option<BString>,
-    pub(crate) next_mate_bit_flags: MateFlags,
-    pub(crate) next_fragment_reference_sequence_id: Option<usize>,
-    pub(crate) next_mate_alignment_start: Option<Position>,
-    pub(crate) template_size: i32,
-    pub(crate) distance_to_next_fragment: Option<usize>,
+    pub(crate) mate_flags: MateFlags,
+    pub(crate) mate_reference_sequence_id: Option<usize>,
+    pub(crate) mate_alignment_start: Option<Position>,
+    pub(crate) template_length: i32,
+    pub(crate) distance_to_mate: Option<usize>,
     pub(crate) tags: Data,
-    pub(crate) bases: Sequence,
+    pub(crate) sequence: Sequence,
     pub(crate) features: Features,
     pub(crate) mapping_quality: Option<MappingQuality>,
     pub(crate) quality_scores: QualityScores,
@@ -62,19 +62,19 @@ impl Record {
     ///
     /// This is also called the BAM bit flags.
     pub fn bam_flags(&self) -> sam::alignment::record::Flags {
-        self.bam_bit_flags
+        self.bam_flags
     }
 
     /// Returns the SAM flags.
     pub fn flags(&self) -> sam::alignment::record::Flags {
-        self.bam_bit_flags
+        self.bam_flags
     }
 
     /// Returns the CRAM flags.
     ///
     /// This is also called the CRAM bit flags or compression bit flags.
     pub fn cram_flags(&self) -> Flags {
-        self.cram_bit_flags
+        self.cram_flags
     }
 
     /// Returns the reference sequence ID.
@@ -137,14 +137,14 @@ impl Record {
     ///
     /// This is also call the next mate bit flags.
     pub fn next_mate_flags(&self) -> MateFlags {
-        self.next_mate_bit_flags
+        self.mate_flags
     }
 
     /// Returns the reference sequence ID of the next fragment.
     ///
     /// It is the position of the reference sequence in the SAM header.
     pub fn next_fragment_reference_sequence_id(&self) -> Option<usize> {
-        self.next_fragment_reference_sequence_id
+        self.mate_reference_sequence_id
     }
 
     /// Returns the associated mate reference sequence.
@@ -162,29 +162,29 @@ impl Record {
     ///
     /// This value is 1-based.
     pub fn next_mate_alignment_start(&self) -> Option<Position> {
-        self.next_mate_alignment_start
+        self.mate_alignment_start
     }
 
     /// Returns the alignment start.
     pub fn mate_alignment_start(&self) -> Option<Position> {
-        self.next_mate_alignment_start
+        self.mate_alignment_start
     }
 
     /// Returns the template size.
     pub fn template_size(&self) -> i32 {
-        self.template_size
+        self.template_length
     }
 
     /// Returns the template size.
     pub fn template_length(&self) -> i32 {
-        self.template_size
+        self.template_length
     }
 
     /// Returns the distance to the next fragment.
     ///
     /// This is the number of records to the next fragment within a slice.
     pub fn distance_to_next_fragment(&self) -> Option<usize> {
-        self.distance_to_next_fragment
+        self.distance_to_mate
     }
 
     /// Returns the tag dictionary.
@@ -199,12 +199,12 @@ impl Record {
 
     /// Returns the read bases.
     pub fn bases(&self) -> &Sequence {
-        &self.bases
+        &self.sequence
     }
 
     /// Returns the sequence.
     pub fn sequence(&self) -> &Sequence {
-        &self.bases
+        &self.sequence
     }
 
     /// Returns the read features.

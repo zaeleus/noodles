@@ -82,8 +82,8 @@ where
     }
 
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<()> {
-        record.bam_bit_flags = self.read_bam_flags()?;
-        record.cram_bit_flags = self.read_cram_flags()?;
+        record.bam_flags = self.read_bam_flags()?;
+        record.cram_flags = self.read_cram_flags()?;
 
         self.read_positions(record)?;
         self.read_names(record)?;
@@ -253,14 +253,14 @@ where
 
     fn read_mate(&mut self, record: &mut Record) -> io::Result<()> {
         if record.cram_flags().is_detached() {
-            record.next_mate_bit_flags = self.read_mate_flags()?;
+            record.mate_flags = self.read_mate_flags()?;
 
             if record.next_mate_flags().is_on_negative_strand() {
-                record.bam_bit_flags |= sam::alignment::record::Flags::MATE_REVERSE_COMPLEMENTED;
+                record.bam_flags |= sam::alignment::record::Flags::MATE_REVERSE_COMPLEMENTED;
             }
 
             if record.next_mate_flags().is_unmapped() {
-                record.bam_bit_flags |= sam::alignment::record::Flags::MATE_UNMAPPED;
+                record.bam_flags |= sam::alignment::record::Flags::MATE_UNMAPPED;
             }
 
             let preservation_map = self.compression_header.preservation_map();
@@ -269,12 +269,12 @@ where
                 record.name = self.read_name()?;
             }
 
-            record.next_fragment_reference_sequence_id = self.read_mate_reference_sequence_id()?;
+            record.mate_reference_sequence_id = self.read_mate_reference_sequence_id()?;
 
-            record.next_mate_alignment_start = self.read_mate_alignment_start()?;
-            record.template_size = self.read_template_length()?;
+            record.mate_alignment_start = self.read_mate_alignment_start()?;
+            record.template_length = self.read_template_length()?;
         } else if record.cram_flags().has_mate_downstream() {
-            record.distance_to_next_fragment = self.read_mate_distance().map(Some)?;
+            record.distance_to_mate = self.read_mate_distance().map(Some)?;
         }
 
         Ok(())
@@ -739,11 +739,11 @@ where
     fn read_unmapped_read(&mut self, record: &mut Record) -> io::Result<()> {
         let read_length = record.read_length();
 
-        record.bases.as_mut().reserve(read_length);
+        record.sequence.as_mut().reserve(read_length);
 
         for _ in 0..read_length {
             let base = self.read_base()?;
-            record.bases.as_mut().push(base);
+            record.sequence.as_mut().push(base);
         }
 
         if record.cram_flags().are_quality_scores_stored_as_array() {

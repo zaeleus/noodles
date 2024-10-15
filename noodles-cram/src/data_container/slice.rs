@@ -184,13 +184,13 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
         // rightmost, and the sign for any middle segment is undefined. If segments cover the same
         // coordinates then the choice of which is leftmost and rightmost is arbitrary..."
         let template_size = calculate_template_size(record, mate);
-        records[i].template_size = template_size;
+        records[i].template_length = template_size;
 
         let mut j = i;
 
         while let Some(mate_index) = mate_indices[j] {
             let record = &mut records[mate_index];
-            record.template_size = -template_size;
+            record.template_length = -template_size;
             mate_indices[j] = None;
             j = mate_index;
         }
@@ -201,9 +201,9 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
 
 fn set_mate(record: &mut Record, mate: &mut Record) {
     set_mate_chunk(
-        &mut record.bam_bit_flags,
-        &mut record.next_fragment_reference_sequence_id,
-        &mut record.next_mate_alignment_start,
+        &mut record.bam_flags,
+        &mut record.mate_reference_sequence_id,
+        &mut record.mate_alignment_start,
         mate.bam_flags(),
         mate.reference_sequence_id(),
         mate.alignment_start(),
@@ -355,7 +355,7 @@ fn resolve_bases(
             &record.features,
             alignment_start,
             record.read_length(),
-            &mut record.bases,
+            &mut record.sequence,
         )?;
     }
 
@@ -666,7 +666,7 @@ mod tests {
             &mut records,
         )?;
 
-        let actual: Vec<_> = records.into_iter().map(|r| r.bases).collect();
+        let actual: Vec<_> = records.into_iter().map(|r| r.sequence).collect();
         let expected = [Sequence::from(vec![b'A', b'C'])];
         assert_eq!(actual, expected);
 

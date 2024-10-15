@@ -112,7 +112,7 @@ impl Record {
             builder = builder.set_name(read_name);
         }
 
-        builder = builder.set_flags(self.bam_bit_flags);
+        builder = builder.set_flags(self.bam_flags);
 
         if let Some(reference_sequence_id) = self.reference_sequence_id {
             builder = builder.set_reference_sequence_id(reference_sequence_id);
@@ -126,7 +126,7 @@ impl Record {
             builder = builder.set_mapping_quality(mapping_quality);
         }
 
-        if !self.bam_bit_flags.is_unmapped() {
+        if !self.bam_flags.is_unmapped() {
             let cigar = self
                 .features
                 .try_into_cigar(self.read_length)
@@ -135,17 +135,17 @@ impl Record {
             builder = builder.set_cigar(cigar);
         }
 
-        if let Some(mate_reference_sequence_id) = self.next_fragment_reference_sequence_id {
+        if let Some(mate_reference_sequence_id) = self.mate_reference_sequence_id {
             builder = builder.set_mate_reference_sequence_id(mate_reference_sequence_id);
         }
 
-        if let Some(mate_alignment_start) = self.next_mate_alignment_start {
+        if let Some(mate_alignment_start) = self.mate_alignment_start {
             builder = builder.set_mate_alignment_start(mate_alignment_start);
         }
 
         builder = builder
-            .set_template_length(self.template_size)
-            .set_sequence(self.bases)
+            .set_template_length(self.template_length)
+            .set_sequence(self.sequence)
             .set_quality_scores(self.quality_scores);
 
         let mut data = self.tags;
