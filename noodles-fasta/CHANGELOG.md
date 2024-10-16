@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## Deprecated
+### Deprecated
 
   * fasta: Deprecate async re-export (`AsyncReader`).
 
