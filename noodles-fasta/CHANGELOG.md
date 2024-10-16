@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * fasta/async/io: Add async writer (`fasta::r#async::io::Writer`).
+
 ### Deprecated
 
   * fasta: Deprecate async re-export (`AsyncReader`).
