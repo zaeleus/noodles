@@ -2,7 +2,7 @@ use std::io::Write;
 
 use super::Writer;
 
-const DEFAULT_LINE_BASE_COUNT: usize = 80;
+pub(crate) const DEFAULT_LINE_BASE_COUNT: usize = 80;
 
 /// A FASTA writer builder.
 pub struct Builder {

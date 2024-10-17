@@ -12,6 +12,7 @@ use crate::Record;
 /// An async FASTA writer.
 pub struct Writer<W> {
     inner: W,
+    line_base_count: usize,
 }
 
 impl<W> Writer<W> {
@@ -72,12 +73,13 @@ where
     /// let writer = fasta::r#async::io::Writer::new(io::sink());
     /// ```
     pub fn new(inner: W) -> Self {
-        Self { inner }
+        Builder::default().build_from_writer(inner)
     }
 
     /// Writes a FASTA record.
     ///
-    /// Sequence lines are hard wrapped at 80 bases.
+    /// By default, sequence lines are hard wrapped at 80 bases. This can be changed by using
+    /// [`Builder::set_line_base_count`] when creating the writer.
     ///
     /// # Examples
     ///
@@ -98,6 +100,6 @@ where
     /// # }
     /// ```
     pub async fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        write_record(&mut self.inner, record).await
+        write_record(&mut self.inner, record, self.line_base_count).await
     }
 }

@@ -1,6 +1,6 @@
 //! FASTA writer.
 
-mod builder;
+pub(crate) mod builder;
 mod record;
 
 use std::io::{self, Write};

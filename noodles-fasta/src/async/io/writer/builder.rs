@@ -6,12 +6,29 @@ use tokio::{
 };
 
 use super::Writer;
+use crate::writer::builder::DEFAULT_LINE_BASE_COUNT;
 
 /// An async FASTA writer builder.
-#[derive(Default)]
-pub struct Builder;
+pub struct Builder {
+    line_base_count: usize,
+}
 
 impl Builder {
+    /// Sets the number of bases per line.
+    ///
+    /// By default, this is set to 80.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fasta::r#async::io::writer::Builder;
+    /// let builder = Builder::default().set_line_base_count(100);
+    /// ```
+    pub fn set_line_base_count(mut self, line_base_count: usize) -> Self {
+        self.line_base_count = line_base_count;
+        self
+    }
+
     /// Builds an async FASTA writer from a path.
     ///
     /// # Examples
@@ -46,6 +63,17 @@ impl Builder {
     where
         W: AsyncWrite + Unpin,
     {
-        Writer::new(writer)
+        Writer {
+            inner: writer,
+            line_base_count: self.line_base_count,
+        }
+    }
+}
+
+impl Default for Builder {
+    fn default() -> Self {
+        Self {
+            line_base_count: DEFAULT_LINE_BASE_COUNT,
+        }
     }
 }

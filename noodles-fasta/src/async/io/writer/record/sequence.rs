@@ -6,12 +6,12 @@ use crate::record::Sequence;
 pub(super) async fn write_sequence<W>(
     writer: &mut W,
     sequence: &Sequence,
-    line_bases: usize,
+    line_base_count: usize,
 ) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
-    for bases in sequence.as_ref().chunks(line_bases) {
+    for bases in sequence.as_ref().chunks(line_base_count) {
         writer.write_all(bases).await?;
         write_newline(writer).await?;
     }
