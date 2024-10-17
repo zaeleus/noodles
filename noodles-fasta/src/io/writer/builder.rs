@@ -1,4 +1,8 @@
-use std::io::Write;
+use std::{
+    fs::File,
+    io::{self, Write},
+    path::Path,
+};
 
 use super::Writer;
 
@@ -23,6 +27,22 @@ impl Builder {
     pub fn set_line_base_count(mut self, line_base_count: usize) -> Self {
         self.line_base_count = line_base_count;
         self
+    }
+
+    /// Builds a FASTA writer from a path.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use noodles_fasta as fasta;
+    /// let writer = fasta::io::writer::Builder::default().build_from_path("out.fa")?;
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
+    pub fn build_from_path<P>(self, dst: P) -> io::Result<Writer<File>>
+    where
+        P: AsRef<Path>,
+    {
+        File::create(dst).map(|file| self.build_from_writer(file))
     }
 
     /// Builds a FASTA writer from a writer.

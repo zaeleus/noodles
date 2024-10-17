@@ -6,6 +6,8 @@
 
   * fasta/async/io: Add async writer (`fasta::r#async::io::Writer`).
 
+  * fasta/io/writer/builder: Add build from path (`Builder::build_from_path`).
+
 ### Deprecated
 
   * fasta: Deprecate async re-export (`AsyncReader`).
