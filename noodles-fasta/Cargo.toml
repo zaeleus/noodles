@@ -20,7 +20,7 @@ memchr.workspace = true
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.33.0" }
 noodles-core = { path = "../noodles-core", version = "0.15.0" }
 
-tokio = { workspace = true, optional = true, features = ["io-util"] }
+tokio = { workspace = true, optional = true, features = ["fs", "io-util"] }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

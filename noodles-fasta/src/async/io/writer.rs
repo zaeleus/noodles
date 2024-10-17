@@ -1,9 +1,11 @@
 //! Async FASTA writer.
 
+mod builder;
 mod record;
 
 use tokio::io::{self, AsyncWrite};
 
+pub use self::builder::Builder;
 use self::record::write_record;
 use crate::Record;
 
