@@ -21,8 +21,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_fasta as fasta;
-    /// let builder = fasta::io::writer::Builder::default().set_line_base_count(100);
+    /// use noodles_fasta::io::writer::Builder;
+    /// let builder = Builder::default().set_line_base_count(100);
     /// ```
     pub fn set_line_base_count(mut self, line_base_count: usize) -> Self {
         self.line_base_count = line_base_count;
@@ -34,8 +34,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```no_run
-    /// use noodles_fasta as fasta;
-    /// let writer = fasta::io::writer::Builder::default().build_from_path("out.fa")?;
+    /// use noodles_fasta::io::writer::Builder;
+    /// let writer = Builder::default().build_from_path("out.fa")?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn build_from_path<P>(self, dst: P) -> io::Result<Writer<File>>
@@ -51,8 +51,8 @@ impl Builder {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_fasta as fasta;
-    /// let writer = fasta::io::writer::Builder::default().build_from_writer(io::sink());
+    /// use noodles_fasta::io::writer::Builder;
+    /// let writer = Builder::default().build_from_writer(io::sink());
     /// ```
     pub fn build_from_writer<W>(self, writer: W) -> Writer<W>
     where
