@@ -4,10 +4,17 @@
 
 ### Fixed
 
+  * cram/data_container/slice: Return default template length (0)
+    when the record alignment start is missing ([#305]).
+
+    This is possible when an unplaced record has a downstream mate.
+
   * cram/record: Fix number of CIGAR operations calculation.
 
     This now returns the number of simplified operations rather than all
     feature to CIGAR operation transformations.
+
+[#305]: https://github.com/zaeleus/noodles/issues/305
 
 ### Changed
 

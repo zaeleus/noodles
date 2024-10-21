@@ -264,10 +264,12 @@ fn calculate_template_size_chunk(
         })
     }
 
-    let start = record_alignment_start
+    let Some(start) = record_alignment_start
         .min(mate_alignment_start)
         .map(usize::from)
-        .expect("invalid start positions");
+    else {
+        return 0;
+    };
 
     let record_alignment_end =
         alignment_end(record_alignment_start, record_read_length, record_features);
@@ -594,6 +596,10 @@ mod tests {
 
         assert_eq!(calculate_template_size(&record, &mate), 150);
         assert_eq!(calculate_template_size(&mate, &record), 150);
+
+        // No alignment start position.
+        let record = Record::default();
+        assert_eq!(calculate_template_size(&record, &record), 0);
 
         Ok(())
     }
