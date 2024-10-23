@@ -48,22 +48,19 @@ pub fn read_op_count(src: &mut &[u8]) -> Result<usize, DecodeError> {
     read_u16_le(src).map(usize::from)
 }
 
-pub fn read_cigar(
-    src: &mut &[u8],
-    cigar: &mut Cigar,
-    n_cigar_op: usize,
-) -> Result<(), DecodeError> {
-    let len = mem::size_of::<u32>() * n_cigar_op;
+pub fn read_cigar(src: &mut &[u8], cigar: &mut Cigar, op_count: usize) -> Result<(), DecodeError> {
+    let len = mem::size_of::<u32>() * op_count;
     let (mut buf, rest) = split_at_checked(src, len).ok_or(DecodeError::UnexpectedEof)?;
 
     *src = rest;
 
-    cigar.as_mut().clear();
+    let dst = cigar.as_mut();
+    dst.clear();
 
-    for _ in 0..n_cigar_op {
+    for _ in 0..op_count {
         let n = read_u32_le(&mut buf)?;
         let op = decode_op(n).map_err(DecodeError::InvalidOp)?;
-        cigar.as_mut().push(op);
+        dst.push(op);
     }
 
     Ok(())

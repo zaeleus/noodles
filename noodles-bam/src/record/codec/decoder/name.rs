@@ -52,13 +52,11 @@ pub(super) fn read_length(src: &mut &[u8]) -> Result<NonZeroUsize, DecodeError> 
 pub(super) fn read_name(
     src: &mut &[u8],
     name: &mut Option<BString>,
-    l_read_name: NonZeroUsize,
+    len: NonZeroUsize,
 ) -> Result<(), DecodeError> {
     const MISSING: [u8; 2] = [b'*', NUL];
 
-    let len = usize::from(l_read_name);
-
-    let (buf, rest) = split_at_checked(src, len).ok_or(DecodeError::UnexpectedEof)?;
+    let (buf, rest) = split_at_checked(src, len.get()).ok_or(DecodeError::UnexpectedEof)?;
 
     *src = rest;
 

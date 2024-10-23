@@ -38,11 +38,11 @@ pub(crate) fn read_length(src: &mut &[u8]) -> Result<usize, DecodeError> {
 pub fn read_sequence(
     src: &mut &[u8],
     sequence: &mut Sequence,
-    l_seq: usize,
+    base_count: usize,
 ) -> Result<(), DecodeError> {
-    let seq_len = (l_seq + 1) / 2;
+    let len = (base_count + 1) / 2;
 
-    let (buf, rest) = split_at_checked(src, seq_len).ok_or(DecodeError::UnexpectedEof)?;
+    let (buf, rest) = split_at_checked(src, len).ok_or(DecodeError::UnexpectedEof)?;
 
     *src = rest;
 
@@ -53,7 +53,7 @@ pub fn read_sequence(
     let dst = sequence.as_mut();
     dst.clear();
     dst.extend(bases);
-    dst.truncate(l_seq);
+    dst.truncate(base_count);
 
     Ok(())
 }

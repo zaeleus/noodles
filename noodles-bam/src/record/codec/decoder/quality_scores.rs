@@ -27,23 +27,23 @@ impl fmt::Display for DecodeError {
 pub fn read_quality_scores(
     src: &mut &[u8],
     quality_scores: &mut QualityScores,
-    l_seq: usize,
+    base_count: usize,
 ) -> Result<(), DecodeError> {
     let dst = quality_scores.as_mut();
 
-    if l_seq == 0 {
+    if base_count == 0 {
         dst.clear();
         return Ok(());
     }
 
-    let (buf, rest) = split_at_checked(src, l_seq).ok_or(DecodeError::UnexpectedEof)?;
+    let (buf, rest) = split_at_checked(src, base_count).ok_or(DecodeError::UnexpectedEof)?;
 
     *src = rest;
 
     if is_missing_quality_scores(buf) {
         dst.clear();
     } else {
-        dst.resize(l_seq, 0);
+        dst.resize(base_count, 0);
         dst.copy_from_slice(buf);
     }
 

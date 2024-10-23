@@ -106,18 +106,18 @@ pub(crate) fn decode(src: &mut &[u8], record: &mut RecordBuf) -> Result<(), Deco
     *record.alignment_start_mut() =
         read_position(src).map_err(DecodeError::InvalidAlignmentStart)?;
 
-    let l_read_name = name::read_length(src).map_err(DecodeError::InvalidName)?;
+    let name_len = name::read_length(src).map_err(DecodeError::InvalidName)?;
 
     *record.mapping_quality_mut() =
         read_mapping_quality(src).map_err(DecodeError::InvalidMappingQuality)?;
 
     consume_bin(src).map_err(DecodeError::InvalidBin)?;
 
-    let n_cigar_op = cigar::read_op_count(src).map_err(DecodeError::InvalidCigar)?;
+    let op_count = cigar::read_op_count(src).map_err(DecodeError::InvalidCigar)?;
 
     *record.flags_mut() = read_flags(src).map_err(DecodeError::InvalidFlags)?;
 
-    let l_seq = sequence::read_length(src).map_err(DecodeError::InvalidSequence)?;
+    let base_count = sequence::read_length(src).map_err(DecodeError::InvalidSequence)?;
 
     *record.mate_reference_sequence_id_mut() =
         read_reference_sequence_id(src).map_err(DecodeError::InvalidMateReferenceSequenceId)?;
@@ -128,10 +128,10 @@ pub(crate) fn decode(src: &mut &[u8], record: &mut RecordBuf) -> Result<(), Deco
     *record.template_length_mut() =
         read_template_length(src).map_err(DecodeError::InvalidTemplateLength)?;
 
-    read_name(src, record.name_mut(), l_read_name).map_err(DecodeError::InvalidName)?;
-    read_cigar(src, record.cigar_mut(), n_cigar_op).map_err(DecodeError::InvalidCigar)?;
-    read_sequence(src, record.sequence_mut(), l_seq).map_err(DecodeError::InvalidSequence)?;
-    read_quality_scores(src, record.quality_scores_mut(), l_seq)
+    read_name(src, record.name_mut(), name_len).map_err(DecodeError::InvalidName)?;
+    read_cigar(src, record.cigar_mut(), op_count).map_err(DecodeError::InvalidCigar)?;
+    read_sequence(src, record.sequence_mut(), base_count).map_err(DecodeError::InvalidSequence)?;
+    read_quality_scores(src, record.quality_scores_mut(), base_count)
         .map_err(DecodeError::InvalidQualityScores)?;
     read_data(src, record.data_mut()).map_err(DecodeError::InvalidData)?;
 
