@@ -2,14 +2,12 @@ mod tag;
 mod ty;
 mod value;
 
-pub use self::value::get_value;
-
 use std::{error, fmt};
 
-use bytes::Buf;
 use noodles_sam::alignment::{record::data::field::Tag, record_buf::data::field::Value};
 
-use self::{tag::get_tag, ty::get_type};
+pub use self::value::read_value;
+use self::{tag::read_tag, ty::read_type};
 
 /// An error when a raw BAM record data field fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -53,14 +51,11 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub(crate) fn get_field<B>(src: &mut B) -> Result<(Tag, Value), DecodeError>
-where
-    B: Buf,
-{
-    let tag = get_tag(src).map_err(DecodeError::InvalidTag)?;
+pub(crate) fn read_field(src: &mut &[u8]) -> Result<(Tag, Value), DecodeError> {
+    let tag = read_tag(src).map_err(DecodeError::InvalidTag)?;
 
-    let ty = get_type(src).map_err(|e| DecodeError::InvalidType(tag, e))?;
-    let value = get_value(src, ty).map_err(|e| DecodeError::InvalidValue(tag, e))?;
+    let ty = read_type(src).map_err(|e| DecodeError::InvalidType(tag, e))?;
+    let value = read_value(src, ty).map_err(|e| DecodeError::InvalidValue(tag, e))?;
 
     Ok((tag, value))
 }
@@ -70,32 +65,32 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_field() {
+    fn test_read_field() {
         let data = [b'N', b'H', b'C', 0x01];
         let mut reader = &data[..];
         assert_eq!(
-            get_field(&mut reader),
+            read_field(&mut reader),
             Ok((Tag::ALIGNMENT_HIT_COUNT, Value::from(1)))
         );
 
         let data = [];
         let mut reader = &data[..];
         assert!(matches!(
-            get_field(&mut reader),
+            read_field(&mut reader),
             Err(DecodeError::InvalidTag(_))
         ));
 
         let data = [b'N', b'H', b'z'];
         let mut reader = &data[..];
         assert!(matches!(
-            get_field(&mut reader),
+            read_field(&mut reader),
             Err(DecodeError::InvalidType(Tag::ALIGNMENT_HIT_COUNT, _))
         ));
 
         let data = [b'N', b'H', b'C'];
         let mut reader = &data[..];
         assert!(matches!(
-            get_field(&mut reader),
+            read_field(&mut reader),
             Err(DecodeError::InvalidValue(Tag::ALIGNMENT_HIT_COUNT, _))
         ));
     }

@@ -1,10 +1,11 @@
 use std::{
-    error, fmt, mem,
+    error, fmt,
     num::{self, NonZeroUsize},
 };
 
 use bstr::BString;
-use bytes::Buf;
+
+use crate::record::codec::decoder::split_at_checked;
 
 const NUL: u8 = 0x00;
 
@@ -41,47 +42,41 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub(super) fn get_length<B>(src: &mut B) -> Result<NonZeroUsize, DecodeError>
-where
-    B: Buf,
-{
-    if src.remaining() < mem::size_of::<u8>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    NonZeroUsize::try_from(usize::from(src.get_u8())).map_err(DecodeError::InvalidLength)
+pub(super) fn read_length(src: &mut &[u8]) -> Result<NonZeroUsize, DecodeError> {
+    let (n, rest) = src.split_first().ok_or(DecodeError::UnexpectedEof)?;
+    let len = usize::from(*n);
+    *src = rest;
+    NonZeroUsize::try_from(len).map_err(DecodeError::InvalidLength)
 }
 
-pub(super) fn get_name<B>(
-    src: &mut B,
+pub(super) fn read_name(
+    src: &mut &[u8],
     name: &mut Option<BString>,
     l_read_name: NonZeroUsize,
-) -> Result<(), DecodeError>
-where
-    B: Buf,
-{
+) -> Result<(), DecodeError> {
     const MISSING: [u8; 2] = [b'*', NUL];
 
     let len = usize::from(l_read_name);
 
-    if src.remaining() < len {
-        return Err(DecodeError::UnexpectedEof);
-    }
+    let (buf, rest) = split_at_checked(src, len).ok_or(DecodeError::UnexpectedEof)?;
 
-    *name = if src.take(len).chunk() == MISSING {
-        src.advance(MISSING.len());
+    *src = rest;
+
+    *name = if buf == MISSING {
         None
     } else {
         let mut dst = name.take().unwrap_or_default();
 
-        // SAFETY: len is guaranteed to be > 0.
-        dst.resize(len - 1, 0);
-        src.copy_to_slice(&mut dst);
+        // SAFETY: `buf` is non-empty.
+        let (terminator, buf) = buf.split_last().unwrap();
 
-        let terminator = src.get_u8();
+        dst.resize(buf.len(), 0);
+        dst.copy_from_slice(buf);
 
-        if terminator != NUL {
-            return Err(DecodeError::MissingNulTerminator { actual: terminator });
+        if *terminator != NUL {
+            return Err(DecodeError::MissingNulTerminator {
+                actual: *terminator,
+            });
         }
 
         Some(dst)
@@ -95,16 +90,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_length() -> Result<(), num::TryFromIntError> {
+    fn test_read_length() -> Result<(), num::TryFromIntError> {
         let mut src = &8i32.to_le_bytes()[..];
-        assert_eq!(get_length(&mut src), Ok(NonZeroUsize::try_from(8)?));
+        assert_eq!(read_length(&mut src), Ok(NonZeroUsize::try_from(8)?));
 
         let mut src = &[][..];
-        assert_eq!(get_length(&mut src), Err(DecodeError::UnexpectedEof));
+        assert_eq!(read_length(&mut src), Err(DecodeError::UnexpectedEof));
 
         let mut src = &0i32.to_le_bytes()[..];
         assert!(matches!(
-            get_length(&mut src),
+            read_length(&mut src),
             Err(DecodeError::InvalidLength(_))
         ));
 
@@ -112,11 +107,11 @@ mod tests {
     }
 
     #[test]
-    fn test_get_name() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_read_name() -> Result<(), Box<dyn std::error::Error>> {
         fn t(mut src: &[u8], expected: Option<BString>) -> Result<(), DecodeError> {
             let mut actual = None;
             let l_read_name = NonZeroUsize::try_from(src.len()).unwrap();
-            get_name(&mut src, &mut actual, l_read_name)?;
+            read_name(&mut src, &mut actual, l_read_name)?;
             assert_eq!(actual, expected);
             Ok(())
         }
@@ -131,7 +126,7 @@ mod tests {
         let mut src = &data[..];
         let l_read_name = NonZeroUsize::try_from(data.len()).unwrap();
         assert_eq!(
-            get_name(&mut src, &mut None, l_read_name),
+            read_name(&mut src, &mut None, l_read_name),
             Err(DecodeError::MissingNulTerminator { actual: b'*' })
         );
 

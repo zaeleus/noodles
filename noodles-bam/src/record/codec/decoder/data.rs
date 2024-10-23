@@ -1,10 +1,9 @@
 pub mod field;
 
-pub(crate) use self::field::get_field;
+pub(crate) use self::field::read_field;
 
 use std::{error, fmt};
 
-use bytes::Buf;
 use noodles_sam::alignment::{record::data::field::Tag, record_buf::Data};
 
 /// An error when raw BAM record data fail to parse.
@@ -42,14 +41,11 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub(crate) fn get_data<B>(src: &mut B, data: &mut Data) -> Result<(), DecodeError>
-where
-    B: Buf,
-{
+pub(crate) fn read_data(src: &mut &[u8], data: &mut Data) -> Result<(), DecodeError> {
     data.clear();
 
-    while src.has_remaining() {
-        let (tag, value) = get_field(src).map_err(DecodeError::InvalidField)?;
+    while !src.is_empty() {
+        let (tag, value) = read_field(src).map_err(DecodeError::InvalidField)?;
 
         if let Some((t, _)) = data.insert(tag, value) {
             return Err(DecodeError::DuplicateTag(t));
@@ -64,11 +60,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_data() -> Result<(), DecodeError> {
+    fn test_read_data() -> Result<(), DecodeError> {
         use noodles_sam::alignment::record_buf::data::field::Value;
 
         fn t(mut src: &[u8], actual: &mut Data, expected: &Data) -> Result<(), DecodeError> {
-            get_data(&mut src, actual)?;
+            read_data(&mut src, actual)?;
             assert_eq!(actual, expected);
             Ok(())
         }
@@ -110,7 +106,7 @@ mod tests {
         ];
         let mut src = &data[..];
         assert_eq!(
-            get_data(&mut src, &mut buf),
+            read_data(&mut src, &mut buf),
             Err(DecodeError::DuplicateTag(Tag::ALIGNMENT_HIT_COUNT))
         );
 

@@ -1,7 +1,8 @@
-use std::{error, fmt, mem};
+use std::{error, fmt};
 
-use bytes::Buf;
 use noodles_sam::alignment::record::data::field::Tag;
+
+use crate::record::codec::decoder::split_first_chunk;
 
 /// An error when a raw BAM record data field tag fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -26,18 +27,10 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub fn get_tag<B>(src: &mut B) -> Result<Tag, DecodeError>
-where
-    B: Buf,
-{
-    if src.remaining() < 2 * mem::size_of::<u8>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    let b0 = src.get_u8();
-    let b1 = src.get_u8();
-
-    Ok(Tag::new(b0, b1))
+pub fn read_tag(src: &mut &[u8]) -> Result<Tag, DecodeError> {
+    let ([b0, b1], rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    *src = rest;
+    Ok(Tag::new(*b0, *b1))
 }
 
 #[cfg(test)]
@@ -45,9 +38,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_tag() {
+    fn test_read_tag() {
         let data = [b'N', b'H'];
         let mut reader = &data[..];
-        assert_eq!(get_tag(&mut reader), Ok(Tag::ALIGNMENT_HIT_COUNT));
+        assert_eq!(read_tag(&mut reader), Ok(Tag::ALIGNMENT_HIT_COUNT));
     }
 }

@@ -1,6 +1,5 @@
-use std::{error, fmt, mem};
+use std::{error, fmt};
 
-use bytes::Buf;
 use noodles_sam::alignment::record::data::field::Type;
 
 /// An error when a raw BAM record data field type fails to parse.
@@ -27,15 +26,12 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub fn get_type<B>(src: &mut B) -> Result<Type, DecodeError>
-where
-    B: Buf,
-{
-    if src.remaining() < mem::size_of::<u8>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
+pub fn read_type(src: &mut &[u8]) -> Result<Type, DecodeError> {
+    let (n, rest) = src.split_first().ok_or(DecodeError::UnexpectedEof)?;
 
-    match src.get_u8() {
+    *src = rest;
+
+    match *n {
         b'A' => Ok(Type::Character),
         b'c' => Ok(Type::Int8),
         b'C' => Ok(Type::UInt8),
@@ -47,7 +43,7 @@ where
         b'Z' => Ok(Type::String),
         b'H' => Ok(Type::Hex),
         b'B' => Ok(Type::Array),
-        n => Err(DecodeError::Invalid { actual: n }),
+        _ => Err(DecodeError::Invalid { actual: *n }),
     }
 }
 
@@ -56,9 +52,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_type() -> Result<(), DecodeError> {
+    fn test_read_type() -> Result<(), DecodeError> {
         fn t(mut src: &[u8], expected: Type) -> Result<(), DecodeError> {
-            assert_eq!(get_type(&mut src)?, expected);
+            assert_eq!(read_type(&mut src)?, expected);
             Ok(())
         }
 
@@ -76,12 +72,12 @@ mod tests {
 
         let data = b"";
         let mut src = &data[..];
-        assert_eq!(get_type(&mut src), Err(DecodeError::UnexpectedEof));
+        assert_eq!(read_type(&mut src), Err(DecodeError::UnexpectedEof));
 
         let data = b"n";
         let mut src = &data[..];
         assert_eq!(
-            get_type(&mut src),
+            read_type(&mut src),
             Err(DecodeError::Invalid { actual: b'n' })
         );
 

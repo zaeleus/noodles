@@ -365,7 +365,7 @@ where
     }
 
     fn read_tags(&mut self) -> io::Result<sam::alignment::record_buf::Data> {
-        use bam::record::codec::decoder::data::field::get_value;
+        use bam::record::codec::decoder::data::field::read_value;
 
         let tag_set_id = self.read_tag_set_id()?;
 
@@ -394,7 +394,7 @@ where
                 encoding.decode(&mut self.core_data_reader, &mut self.external_data_readers)?;
 
             let mut data_reader = &data[..];
-            let value = get_value(&mut data_reader, key.ty())
+            let value = read_value(&mut data_reader, key.ty())
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
             let field = (key.tag(), value);

@@ -1,6 +1,6 @@
-use std::{error, fmt, mem};
+use std::{error, fmt};
 
-use bytes::Buf;
+use super::split_first_chunk;
 
 /// An error when a raw BAM record template length fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -19,15 +19,14 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub(super) fn get_template_length<B>(src: &mut B) -> Result<i32, DecodeError>
-where
-    B: Buf,
-{
-    if src.remaining() < mem::size_of::<i32>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
+pub(super) fn read_template_length(src: &mut &[u8]) -> Result<i32, DecodeError> {
+    read_i32_le(src)
+}
 
-    Ok(src.get_i32_le())
+fn read_i32_le(src: &mut &[u8]) -> Result<i32, DecodeError> {
+    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    *src = rest;
+    Ok(i32::from_le_bytes(*buf))
 }
 
 #[cfg(test)]
@@ -35,13 +34,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_template_length() {
+    fn test_read_template_length() {
         let mut src = &144i32.to_le_bytes()[..];
-        assert_eq!(get_template_length(&mut src), Ok(144));
+        assert_eq!(read_template_length(&mut src), Ok(144));
 
         let mut src = &[][..];
         assert_eq!(
-            get_template_length(&mut src),
+            read_template_length(&mut src),
             Err(DecodeError::UnexpectedEof),
         );
     }

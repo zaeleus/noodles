@@ -1,7 +1,8 @@
 use std::{error, fmt};
 
-use bytes::Buf;
 use noodles_sam::alignment::record_buf::QualityScores;
+
+use super::split_at_checked;
 
 /// An error when raw BAM record quality scores fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -23,31 +24,27 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub fn get_quality_scores<B>(
-    src: &mut B,
+pub fn read_quality_scores(
+    src: &mut &[u8],
     quality_scores: &mut QualityScores,
     l_seq: usize,
-) -> Result<(), DecodeError>
-where
-    B: Buf,
-{
-    let quality_scores = quality_scores.as_mut();
+) -> Result<(), DecodeError> {
+    let dst = quality_scores.as_mut();
 
     if l_seq == 0 {
-        quality_scores.clear();
+        dst.clear();
         return Ok(());
     }
 
-    if src.remaining() < l_seq {
-        return Err(DecodeError::UnexpectedEof);
-    }
+    let (buf, rest) = split_at_checked(src, l_seq).ok_or(DecodeError::UnexpectedEof)?;
 
-    if is_missing_quality_scores(src.take(l_seq).chunk()) {
-        quality_scores.clear();
-        src.advance(l_seq);
+    *src = rest;
+
+    if is_missing_quality_scores(buf) {
+        dst.clear();
     } else {
-        quality_scores.resize(l_seq, 0);
-        src.copy_to_slice(quality_scores);
+        dst.resize(l_seq, 0);
+        dst.copy_from_slice(buf);
     }
 
     Ok(())
@@ -64,10 +61,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_quality_scores() -> Result<(), DecodeError> {
+    fn test_read_quality_scores() -> Result<(), DecodeError> {
         fn t(mut src: &[u8], expected: &QualityScores) -> Result<(), DecodeError> {
             let mut actual = QualityScores::default();
-            get_quality_scores(&mut src, &mut actual, expected.as_ref().len())?;
+            read_quality_scores(&mut src, &mut actual, expected.as_ref().len())?;
             assert_eq!(&actual, expected);
             Ok(())
         }
@@ -87,7 +84,7 @@ mod tests {
         let mut buf = &data[..];
 
         let mut quality_scores = QualityScores::default();
-        get_quality_scores(&mut buf, &mut quality_scores, 4)?;
+        read_quality_scores(&mut buf, &mut quality_scores, 4)?;
 
         assert!(quality_scores.is_empty());
 

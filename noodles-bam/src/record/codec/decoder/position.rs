@@ -1,7 +1,8 @@
-use std::{error, fmt, mem, num};
+use std::{error, fmt, num};
 
-use bytes::Buf;
 use noodles_core::Position;
+
+use super::split_first_chunk;
 
 /// An error when raw BAM record flags fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -30,17 +31,10 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub(super) fn get_position<B>(src: &mut B) -> Result<Option<Position>, DecodeError>
-where
-    B: Buf,
-{
+pub(super) fn read_position(src: &mut &[u8]) -> Result<Option<Position>, DecodeError> {
     const MISSING: i32 = -1;
 
-    if src.remaining() < mem::size_of::<i32>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    match src.get_i32_le() {
+    match read_i32_le(src)? {
         MISSING => Ok(None),
         n => usize::try_from(n)
             .map(|m| m + 1)
@@ -49,38 +43,44 @@ where
     }
 }
 
+fn read_i32_le(src: &mut &[u8]) -> Result<i32, DecodeError> {
+    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    *src = rest;
+    Ok(i32::from_le_bytes(*buf))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_get_position() {
+    fn test_read_position() {
         let data = (-1i32).to_le_bytes();
         let mut src = &data[..];
-        assert_eq!(get_position(&mut src), Ok(None));
+        assert_eq!(read_position(&mut src), Ok(None));
 
         let data = 0i32.to_le_bytes();
         let mut src = &data[..];
-        assert_eq!(get_position(&mut src), Ok(Some(Position::MIN)));
+        assert_eq!(read_position(&mut src), Ok(Some(Position::MIN)));
 
         let mut src = &[][..];
-        assert_eq!(get_position(&mut src), Err(DecodeError::UnexpectedEof));
+        assert_eq!(read_position(&mut src), Err(DecodeError::UnexpectedEof));
 
         let data = (-2i32).to_le_bytes();
         let mut src = &data[..];
         assert!(matches!(
-            get_position(&mut src),
+            read_position(&mut src),
             Err(DecodeError::Invalid(_))
         ));
     }
 
     #[cfg(not(target_pointer_width = "16"))]
     #[test]
-    fn test_get_position_with_max_position() -> Result<(), num::TryFromIntError> {
+    fn test_read_position_with_max_position() -> Result<(), num::TryFromIntError> {
         let data = i32::MAX.to_le_bytes();
         let mut src = &data[..];
         let expected = Position::try_from(1 << 31)?;
-        assert_eq!(get_position(&mut src), Ok(Some(expected)));
+        assert_eq!(read_position(&mut src), Ok(Some(expected)));
         Ok(())
     }
 }

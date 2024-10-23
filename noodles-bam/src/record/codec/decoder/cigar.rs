@@ -2,7 +2,6 @@ pub mod op;
 
 use std::{error, fmt, mem};
 
-use bytes::Buf;
 use noodles_sam::{
     self as sam,
     alignment::{
@@ -13,6 +12,7 @@ use noodles_sam::{
 };
 
 use self::op::decode_op;
+use super::{split_at_checked, split_first_chunk};
 
 /// An error when a raw BAM record CIGAR fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -44,29 +44,25 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub fn get_op_count<B>(src: &mut B) -> Result<usize, DecodeError>
-where
-    B: Buf,
-{
-    if src.remaining() < mem::size_of::<u16>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    Ok(usize::from(src.get_u16_le()))
+pub fn read_op_count(src: &mut &[u8]) -> Result<usize, DecodeError> {
+    read_u16_le(src).map(usize::from)
 }
 
-pub fn get_cigar<B>(src: &mut B, cigar: &mut Cigar, n_cigar_op: usize) -> Result<(), DecodeError>
-where
-    B: Buf,
-{
-    if src.remaining() < mem::size_of::<u32>() * n_cigar_op {
-        return Err(DecodeError::UnexpectedEof);
-    }
+pub fn read_cigar(
+    src: &mut &[u8],
+    cigar: &mut Cigar,
+    n_cigar_op: usize,
+) -> Result<(), DecodeError> {
+    let len = mem::size_of::<u32>() * n_cigar_op;
+    let (mut buf, rest) = split_at_checked(src, len).ok_or(DecodeError::UnexpectedEof)?;
+
+    *src = rest;
 
     cigar.as_mut().clear();
 
     for _ in 0..n_cigar_op {
-        let op = decode_op(src.get_u32_le()).map_err(DecodeError::InvalidOp)?;
+        let n = read_u32_le(&mut buf)?;
+        let op = decode_op(n).map_err(DecodeError::InvalidOp)?;
         cigar.as_mut().push(op);
     }
 
@@ -103,31 +99,43 @@ pub(super) fn resolve(record: &mut RecordBuf) -> Result<(), DecodeError> {
     Ok(())
 }
 
+fn read_u16_le(src: &mut &[u8]) -> Result<u16, DecodeError> {
+    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    *src = rest;
+    Ok(u16::from_le_bytes(*buf))
+}
+
+fn read_u32_le(src: &mut &[u8]) -> Result<u32, DecodeError> {
+    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    *src = rest;
+    Ok(u32::from_le_bytes(*buf))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_get_op_count() {
+    fn test_read_op_count() {
         let mut src = &0u16.to_le_bytes()[..];
-        assert_eq!(get_op_count(&mut src), Ok(0));
+        assert_eq!(read_op_count(&mut src), Ok(0));
 
         let mut src = &8u16.to_le_bytes()[..];
-        assert_eq!(get_op_count(&mut src), Ok(8));
+        assert_eq!(read_op_count(&mut src), Ok(8));
 
         let mut src = &[][..];
-        assert_eq!(get_op_count(&mut src), Err(DecodeError::UnexpectedEof));
+        assert_eq!(read_op_count(&mut src), Err(DecodeError::UnexpectedEof));
     }
 
     #[test]
-    fn test_get_cigar() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_read_cigar() -> Result<(), Box<dyn std::error::Error>> {
         fn t(
             mut src: &[u8],
             actual: &mut Cigar,
             n_cigar_op: usize,
             expected: &Cigar,
         ) -> Result<(), DecodeError> {
-            get_cigar(&mut src, actual, n_cigar_op)?;
+            read_cigar(&mut src, actual, n_cigar_op)?;
             assert_eq!(actual, expected);
             Ok(())
         }

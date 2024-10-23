@@ -94,11 +94,11 @@ impl<'a> TryFrom<Data<'a>> for sam::alignment::record_buf::Data {
     type Error = io::Error;
 
     fn try_from(bam_data: Data<'a>) -> Result<Self, Self::Error> {
-        use crate::record::codec::decoder::get_data;
+        use crate::record::codec::decoder::read_data;
 
         let mut src = bam_data.0;
         let mut sam_data = Self::default();
-        get_data(&mut src, &mut sam_data)
+        read_data(&mut src, &mut sam_data)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         Ok(sam_data)

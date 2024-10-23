@@ -1,6 +1,5 @@
-use std::{error, fmt, mem};
+use std::{error, fmt};
 
-use bytes::Buf;
 use noodles_sam::alignment::record::MappingQuality;
 
 /// An error when a raw BAM record mapping quality fails to parse.
@@ -20,15 +19,10 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub(super) fn get_mapping_quality<B>(src: &mut B) -> Result<Option<MappingQuality>, DecodeError>
-where
-    B: Buf,
-{
-    if src.remaining() < mem::size_of::<u8>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    Ok(MappingQuality::new(src.get_u8()))
+pub(super) fn read_mapping_quality(src: &mut &[u8]) -> Result<Option<MappingQuality>, DecodeError> {
+    let (n, rest) = src.split_first().ok_or(DecodeError::UnexpectedEof)?;
+    *src = rest;
+    Ok(MappingQuality::new(*n))
 }
 
 #[cfg(test)]
@@ -36,9 +30,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_mapping_quality() {
+    fn test_read_mapping_quality() {
         fn t(mut buf: &[u8], expected: Option<MappingQuality>) {
-            assert_eq!(get_mapping_quality(&mut buf), Ok(expected));
+            assert_eq!(read_mapping_quality(&mut buf), Ok(expected));
         }
 
         t(&[0x00], MappingQuality::new(0));
@@ -47,7 +41,7 @@ mod tests {
 
         let mut src = &[][..];
         assert_eq!(
-            get_mapping_quality(&mut src),
+            read_mapping_quality(&mut src),
             Err(DecodeError::UnexpectedEof)
         );
     }

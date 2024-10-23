@@ -1,7 +1,8 @@
-use std::{error, fmt, mem};
+use std::{error, fmt};
 
-use bytes::Buf;
 use noodles_sam::alignment::record::Flags;
+
+use super::split_first_chunk;
 
 /// An error when raw BAM record flags fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -20,15 +21,14 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub(super) fn get_flags<B>(src: &mut B) -> Result<Flags, DecodeError>
-where
-    B: Buf,
-{
-    if src.remaining() < mem::size_of::<u16>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
+pub(super) fn read_flags(src: &mut &[u8]) -> Result<Flags, DecodeError> {
+    read_u16_le(src).map(Flags::from)
+}
 
-    Ok(Flags::from(src.get_u16_le()))
+fn read_u16_le(src: &mut &[u8]) -> Result<u16, DecodeError> {
+    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    *src = rest;
+    Ok(u16::from_le_bytes(*buf))
 }
 
 #[cfg(test)]
@@ -36,17 +36,17 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_flags() {
+    fn test_read_flags() {
         let mut src = &[0x00, 0x00][..];
-        assert_eq!(get_flags(&mut src), Ok(Flags::empty()));
+        assert_eq!(read_flags(&mut src), Ok(Flags::empty()));
 
         let mut src = &[0x04, 0x00][..];
-        assert_eq!(get_flags(&mut src), Ok(Flags::UNMAPPED));
+        assert_eq!(read_flags(&mut src), Ok(Flags::UNMAPPED));
 
         let mut src = &[][..];
-        assert_eq!(get_flags(&mut src), Err(DecodeError::UnexpectedEof));
+        assert_eq!(read_flags(&mut src), Err(DecodeError::UnexpectedEof));
 
         let mut src = &[0x00][..];
-        assert_eq!(get_flags(&mut src), Err(DecodeError::UnexpectedEof));
+        assert_eq!(read_flags(&mut src), Err(DecodeError::UnexpectedEof));
     }
 }

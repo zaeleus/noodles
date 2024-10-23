@@ -1,7 +1,8 @@
-use std::{error, fmt, mem, num};
+use std::{error, fmt, num};
 
-use bytes::Buf;
 use noodles_sam::alignment::record_buf::Sequence;
+
+use super::{split_at_checked, split_first_chunk};
 
 /// An error when a raw BAM record sequence fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -30,43 +31,29 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub(crate) fn get_length<B>(src: &mut B) -> Result<usize, DecodeError>
-where
-    B: Buf,
-{
-    if src.remaining() < mem::size_of::<u32>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    usize::try_from(src.get_u32_le()).map_err(DecodeError::InvalidLength)
+pub(crate) fn read_length(src: &mut &[u8]) -> Result<usize, DecodeError> {
+    read_u32_le(src).and_then(|n| usize::try_from(n).map_err(DecodeError::InvalidLength))
 }
 
-pub fn get_sequence<B>(
-    src: &mut B,
+pub fn read_sequence(
+    src: &mut &[u8],
     sequence: &mut Sequence,
     l_seq: usize,
-) -> Result<(), DecodeError>
-where
-    B: Buf,
-{
+) -> Result<(), DecodeError> {
     let seq_len = (l_seq + 1) / 2;
 
-    if src.remaining() < seq_len {
-        return Err(DecodeError::UnexpectedEof);
-    }
+    let (buf, rest) = split_at_checked(src, seq_len).ok_or(DecodeError::UnexpectedEof)?;
 
-    let seq = src.take(seq_len);
-    let bases = seq
-        .chunk()
+    *src = rest;
+
+    let bases = buf
         .iter()
         .flat_map(|&b| [decode_base(b >> 4), decode_base(b)]);
 
-    let sequence = sequence.as_mut();
-    sequence.clear();
-    sequence.extend(bases);
-    sequence.truncate(l_seq);
-
-    src.advance(seq_len);
+    let dst = sequence.as_mut();
+    dst.clear();
+    dst.extend(bases);
+    dst.truncate(l_seq);
 
     Ok(())
 }
@@ -93,24 +80,30 @@ fn decode_base(n: u8) -> u8 {
     }
 }
 
+fn read_u32_le(src: &mut &[u8]) -> Result<u32, DecodeError> {
+    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    *src = rest;
+    Ok(u32::from_le_bytes(*buf))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_get_length() {
+    fn test_read_length() {
         let mut src = &8u32.to_le_bytes()[..];
-        assert_eq!(get_length(&mut src), Ok(8));
+        assert_eq!(read_length(&mut src), Ok(8));
 
         let mut src = &[][..];
-        assert_eq!(get_length(&mut src), Err(DecodeError::UnexpectedEof));
+        assert_eq!(read_length(&mut src), Err(DecodeError::UnexpectedEof));
     }
 
     #[test]
-    fn test_get_sequence() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_read_sequence() -> Result<(), Box<dyn std::error::Error>> {
         fn t(mut src: &[u8], buf: &mut Sequence, expected: &Sequence) -> Result<(), DecodeError> {
             buf.as_mut().clear();
-            get_sequence(&mut src, buf, expected.len())?;
+            read_sequence(&mut src, buf, expected.len())?;
             assert_eq!(buf, expected);
             Ok(())
         }
@@ -124,7 +117,7 @@ mod tests {
         sequence.as_mut().clear();
         let mut src = &b""[..];
         assert_eq!(
-            get_sequence(&mut src, &mut sequence, 4),
+            read_sequence(&mut src, &mut sequence, 4),
             Err(DecodeError::UnexpectedEof)
         );
 

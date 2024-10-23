@@ -1,10 +1,12 @@
 mod array;
 
-use std::{error, fmt, mem, string};
+use std::{error, fmt, string};
 
-use bstr::{BString, ByteSlice};
-use bytes::Buf;
+use bstr::BString;
+use memchr::memchr;
 use noodles_sam::alignment::{record::data::field::Type, record_buf::data::field::Value};
+
+use crate::record::codec::decoder::split_first_chunk;
 
 use self::array::get_array;
 
@@ -42,137 +44,81 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub fn get_value<B>(src: &mut B, ty: Type) -> Result<Value, DecodeError>
-where
-    B: Buf,
-{
+pub fn read_value(src: &mut &[u8], ty: Type) -> Result<Value, DecodeError> {
     match ty {
-        Type::Character => get_char(src),
-        Type::Int8 => get_i8(src),
-        Type::UInt8 => get_u8(src),
-        Type::Int16 => get_i16(src),
-        Type::UInt16 => get_u16(src),
-        Type::Int32 => get_i32(src),
-        Type::UInt32 => get_u32(src),
-        Type::Float => get_f32(src),
-        Type::String => get_string(src).map(Value::String),
-        Type::Hex => get_hex(src),
+        Type::Character => read_char(src),
+        Type::Int8 => read_i8(src),
+        Type::UInt8 => read_u8(src),
+        Type::Int16 => read_i16(src),
+        Type::UInt16 => read_u16(src),
+        Type::Int32 => read_i32(src),
+        Type::UInt32 => read_u32(src),
+        Type::Float => read_f32(src),
+        Type::String => read_string(src).map(Value::String),
+        Type::Hex => read_hex(src),
         Type::Array => get_array(src).map_err(DecodeError::InvalidArray),
     }
 }
 
-fn get_char<B>(src: &mut B) -> Result<Value, DecodeError>
-where
-    B: Buf,
-{
-    if src.remaining() < mem::size_of::<u8>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    Ok(Value::Character(src.get_u8()))
+fn read_char(src: &mut &[u8]) -> Result<Value, DecodeError> {
+    let (c, rest) = src.split_first().ok_or(DecodeError::UnexpectedEof)?;
+    *src = rest;
+    Ok(Value::Character(*c))
 }
 
-fn get_i8<B>(src: &mut B) -> Result<Value, DecodeError>
-where
-    B: Buf,
-{
-    if src.remaining() < mem::size_of::<i8>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    Ok(Value::Int8(src.get_i8()))
+fn read_i8(src: &mut &[u8]) -> Result<Value, DecodeError> {
+    let (n, rest) = src.split_first().ok_or(DecodeError::UnexpectedEof)?;
+    *src = rest;
+    Ok(Value::Int8(*n as i8))
 }
 
-fn get_u8<B>(src: &mut B) -> Result<Value, DecodeError>
-where
-    B: Buf,
-{
-    if src.remaining() < mem::size_of::<u8>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    Ok(Value::UInt8(src.get_u8()))
+fn read_u8(src: &mut &[u8]) -> Result<Value, DecodeError> {
+    let (n, rest) = src.split_first().ok_or(DecodeError::UnexpectedEof)?;
+    *src = rest;
+    Ok(Value::UInt8(*n))
 }
 
-fn get_i16<B>(src: &mut B) -> Result<Value, DecodeError>
-where
-    B: Buf,
-{
-    if src.remaining() < mem::size_of::<i16>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    Ok(Value::Int16(src.get_i16_le()))
+fn read_i16(src: &mut &[u8]) -> Result<Value, DecodeError> {
+    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    *src = rest;
+    Ok(Value::Int16(i16::from_le_bytes(*buf)))
 }
 
-fn get_u16<B>(src: &mut B) -> Result<Value, DecodeError>
-where
-    B: Buf,
-{
-    if src.remaining() < mem::size_of::<u16>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    Ok(Value::UInt16(src.get_u16_le()))
+fn read_u16(src: &mut &[u8]) -> Result<Value, DecodeError> {
+    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    *src = rest;
+    Ok(Value::UInt16(u16::from_le_bytes(*buf)))
 }
 
-fn get_i32<B>(src: &mut B) -> Result<Value, DecodeError>
-where
-    B: Buf,
-{
-    if src.remaining() < mem::size_of::<i32>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    Ok(Value::Int32(src.get_i32_le()))
+fn read_i32(src: &mut &[u8]) -> Result<Value, DecodeError> {
+    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    *src = rest;
+    Ok(Value::Int32(i32::from_le_bytes(*buf)))
 }
 
-fn get_u32<B>(src: &mut B) -> Result<Value, DecodeError>
-where
-    B: Buf,
-{
-    if src.remaining() < mem::size_of::<u32>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    Ok(Value::UInt32(src.get_u32_le()))
+fn read_u32(src: &mut &[u8]) -> Result<Value, DecodeError> {
+    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    *src = rest;
+    Ok(Value::UInt32(u32::from_le_bytes(*buf)))
 }
 
-fn get_f32<B>(src: &mut B) -> Result<Value, DecodeError>
-where
-    B: Buf,
-{
-    if src.remaining() < mem::size_of::<f32>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    Ok(Value::Float(src.get_f32_le()))
+fn read_f32(src: &mut &[u8]) -> Result<Value, DecodeError> {
+    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    *src = rest;
+    Ok(Value::Float(f32::from_le_bytes(*buf)))
 }
 
-fn get_string<B>(src: &mut B) -> Result<BString, DecodeError>
-where
-    B: Buf,
-{
+fn read_string(src: &mut &[u8]) -> Result<BString, DecodeError> {
     const NUL: u8 = 0x00;
 
-    let len = src
-        .chunk()
-        .as_bstr()
-        .find_byte(NUL)
-        .ok_or(DecodeError::StringNotNulTerminated)?;
-
-    let mut buf = vec![0; len];
-    src.copy_to_slice(&mut buf);
-    src.advance(1); // Discard the NUL terminator.
-
+    let len = memchr(NUL, src).ok_or(DecodeError::StringNotNulTerminated)?;
+    let (buf, rest) = src.split_at(len);
+    *src = &rest[1..];
     Ok(buf.into())
 }
 
-fn get_hex<B>(src: &mut B) -> Result<Value, DecodeError>
-where
-    B: Buf,
-{
-    get_string(src).map(Value::Hex)
+fn read_hex(src: &mut &[u8]) -> Result<Value, DecodeError> {
+    read_string(src).map(Value::Hex)
 }
 
 #[cfg(test)]
@@ -182,9 +128,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_value() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(mut data: &[u8], ty: Type, expected: Value) -> Result<(), DecodeError> {
-            let actual = get_value(&mut data, ty)?;
+    fn test_read_value() -> Result<(), Box<dyn std::error::Error>> {
+        fn t(mut src: &[u8], ty: Type, expected: Value) -> Result<(), DecodeError> {
+            let actual = read_value(&mut src, ty)?;
             assert_eq!(actual, expected);
             Ok(())
         }

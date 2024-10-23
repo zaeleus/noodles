@@ -1,6 +1,5 @@
-use std::{error, fmt, mem};
+use std::{error, fmt};
 
-use bytes::Buf;
 use noodles_sam::alignment::record::data::field::value::array::Subtype;
 
 /// An error when a raw BAM record data field value subtype fails to parse.
@@ -27,15 +26,12 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub fn get_subtype<B>(src: &mut B) -> Result<Subtype, DecodeError>
-where
-    B: Buf,
-{
-    if src.remaining() < mem::size_of::<u8>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
+pub fn read_subtype(src: &mut &[u8]) -> Result<Subtype, DecodeError> {
+    let (n, rest) = src.split_first().ok_or(DecodeError::UnexpectedEof)?;
 
-    match src.get_u8() {
+    *src = rest;
+
+    match *n {
         b'c' => Ok(Subtype::Int8),
         b'C' => Ok(Subtype::UInt8),
         b's' => Ok(Subtype::Int16),
@@ -43,7 +39,7 @@ where
         b'i' => Ok(Subtype::Int32),
         b'I' => Ok(Subtype::UInt32),
         b'f' => Ok(Subtype::Float),
-        n => Err(DecodeError::Invalid { actual: n }),
+        _ => Err(DecodeError::Invalid { actual: *n }),
     }
 }
 
@@ -52,9 +48,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_subtype() -> Result<(), DecodeError> {
+    fn test_read_subtype() -> Result<(), DecodeError> {
         fn t(mut src: &[u8], expected: Subtype) -> Result<(), DecodeError> {
-            assert_eq!(get_subtype(&mut src)?, expected);
+            assert_eq!(read_subtype(&mut src)?, expected);
             Ok(())
         }
 
@@ -68,12 +64,12 @@ mod tests {
 
         let data = b"";
         let mut src = &data[..];
-        assert_eq!(get_subtype(&mut src), Err(DecodeError::UnexpectedEof));
+        assert_eq!(read_subtype(&mut src), Err(DecodeError::UnexpectedEof));
 
         let data = b"n";
         let mut src = &data[..];
         assert_eq!(
-            get_subtype(&mut src),
+            read_subtype(&mut src),
             Err(DecodeError::Invalid { actual: b'n' })
         );
 

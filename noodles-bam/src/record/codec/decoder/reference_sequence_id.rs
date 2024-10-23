@@ -1,6 +1,6 @@
-use std::{error, fmt, mem};
+use std::{error, fmt};
 
-use bytes::Buf;
+use super::split_first_chunk;
 
 /// An error when a raw BAM record reference sequence ID fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -22,17 +22,10 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub(crate) fn get_reference_sequence_id<B>(src: &mut B) -> Result<Option<usize>, DecodeError>
-where
-    B: Buf,
-{
+pub(crate) fn read_reference_sequence_id(src: &mut &[u8]) -> Result<Option<usize>, DecodeError> {
     const UNMAPPED: i32 = -1;
 
-    if src.remaining() < mem::size_of::<i32>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    match src.get_i32_le() {
+    match read_i32_le(src)? {
         UNMAPPED => Ok(None),
         n => usize::try_from(n)
             .map(Some)
@@ -40,31 +33,37 @@ where
     }
 }
 
+fn read_i32_le(src: &mut &[u8]) -> Result<i32, DecodeError> {
+    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    *src = rest;
+    Ok(i32::from_le_bytes(*buf))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_get_reference_sequence_id() {
+    fn test_read_reference_sequence_id() {
         let data = (-1i32).to_le_bytes();
         let mut src = &data[..];
-        assert_eq!(get_reference_sequence_id(&mut src), Ok(None));
+        assert_eq!(read_reference_sequence_id(&mut src), Ok(None));
 
         let data = 0i32.to_le_bytes();
         let mut src = &data[..];
-        assert_eq!(get_reference_sequence_id(&mut src), Ok(Some(0)));
+        assert_eq!(read_reference_sequence_id(&mut src), Ok(Some(0)));
 
         let data = [];
         let mut src = &data[..];
         assert_eq!(
-            get_reference_sequence_id(&mut src),
+            read_reference_sequence_id(&mut src),
             Err(DecodeError::UnexpectedEof)
         );
 
         let data = (-2i32).to_le_bytes();
         let mut src = &data[..];
         assert_eq!(
-            get_reference_sequence_id(&mut src),
+            read_reference_sequence_id(&mut src),
             Err(DecodeError::Invalid)
         );
     }
