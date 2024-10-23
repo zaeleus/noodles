@@ -154,7 +154,7 @@ fn split_first_chunk<const N: usize>(src: &[u8]) -> Option<(&[u8; N], &[u8])> {
     if src.len() < N {
         None
     } else {
-        // SAFETY: `buf.len` >= `N`.
+        // SAFETY: `src.len` >= `N`.
         let (head, tail) = src.split_at(N);
         <&[u8; N]>::try_from(head).ok().map(|chunk| (chunk, tail))
     }
