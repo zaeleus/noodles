@@ -1,13 +1,11 @@
-use bytes::BufMut;
 use noodles_sam::alignment::record::MappingQuality;
 
-pub fn put_mapping_quality<B>(dst: &mut B, mapping_quality: Option<MappingQuality>)
-where
-    B: BufMut,
-{
+use super::num::write_u8;
+
+pub fn write_mapping_quality(dst: &mut Vec<u8>, mapping_quality: Option<MappingQuality>) {
     const MISSING: u8 = 0xff;
     let mapq = mapping_quality.map(u8::from).unwrap_or(MISSING);
-    dst.put_u8(mapq);
+    write_u8(dst, mapq);
 }
 
 #[cfg(test)]
@@ -15,10 +13,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_put_mapping_quality() {
+    fn test_write_mapping_quality() {
         fn t(buf: &mut Vec<u8>, mapping_quality: Option<MappingQuality>, expected: &[u8]) {
             buf.clear();
-            put_mapping_quality(buf, mapping_quality);
+            write_mapping_quality(buf, mapping_quality);
             assert_eq!(buf, expected);
         }
 

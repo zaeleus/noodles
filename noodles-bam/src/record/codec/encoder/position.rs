@@ -1,7 +1,8 @@
 use std::{error, fmt, num};
 
-use bytes::BufMut;
 use noodles_core::Position;
+
+use super::num::write_i32_le;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum EncodeError {
@@ -24,10 +25,10 @@ impl fmt::Display for EncodeError {
     }
 }
 
-pub(super) fn put_position<B>(dst: &mut B, position: Option<Position>) -> Result<(), EncodeError>
-where
-    B: BufMut,
-{
+pub(super) fn write_position(
+    dst: &mut Vec<u8>,
+    position: Option<Position>,
+) -> Result<(), EncodeError> {
     const MISSING: i32 = -1;
 
     let pos = if let Some(position) = position {
@@ -37,7 +38,7 @@ where
         MISSING
     };
 
-    dst.put_i32_le(pos);
+    write_i32_le(dst, pos);
 
     Ok(())
 }
@@ -47,14 +48,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_put_position() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_write_position() -> Result<(), Box<dyn std::error::Error>> {
         fn t(
             buf: &mut Vec<u8>,
             position: Option<Position>,
             expected: &[u8],
         ) -> Result<(), EncodeError> {
             buf.clear();
-            put_position(buf, position)?;
+            write_position(buf, position)?;
             assert_eq!(buf, expected);
             Ok(())
         }

@@ -2,70 +2,70 @@ mod subtype;
 
 use std::io;
 
-use bytes::BufMut;
 use noodles_sam::alignment::record::data::field::value::{array::Subtype, Array};
 
-use self::subtype::put_subtype;
+use crate::record::codec::encoder::num::{
+    write_f32_le, write_i16_le, write_i32_le, write_i8, write_u16_le, write_u32_le, write_u8,
+};
 
-pub fn put_array<B>(dst: &mut B, array: &Array) -> io::Result<()>
-where
-    B: BufMut,
-{
+use self::subtype::write_subtype;
+
+pub fn write_array(dst: &mut Vec<u8>, array: &Array) -> io::Result<()> {
     match array {
         Array::Int8(values) => {
-            put_header(dst, Subtype::Int8, values.len())?;
+            write_header(dst, Subtype::Int8, values.len())?;
 
             for result in values.iter() {
                 let n = result?;
-                dst.put_i8(n);
+                write_i8(dst, n);
             }
         }
         Array::UInt8(values) => {
-            put_header(dst, Subtype::UInt8, values.len())?;
+            write_header(dst, Subtype::UInt8, values.len())?;
 
             for result in values.iter() {
                 let n = result?;
-                dst.put_u8(n);
+                write_u8(dst, n);
             }
         }
         Array::Int16(values) => {
-            put_header(dst, Subtype::Int16, values.len())?;
+            write_header(dst, Subtype::Int16, values.len())?;
 
             for result in values.iter() {
                 let n = result?;
-                dst.put_i16_le(n);
+                write_i16_le(dst, n);
             }
         }
         Array::UInt16(values) => {
-            put_header(dst, Subtype::UInt16, values.len())?;
+            write_header(dst, Subtype::UInt16, values.len())?;
 
             for result in values.iter() {
                 let n = result?;
-                dst.put_u16_le(n);
+                write_u16_le(dst, n);
             }
         }
         Array::Int32(values) => {
-            put_header(dst, Subtype::Int32, values.len())?;
+            write_header(dst, Subtype::Int32, values.len())?;
 
             for result in values.iter() {
                 let n = result?;
-                dst.put_i32_le(n);
+                write_i32_le(dst, n);
             }
         }
         Array::UInt32(values) => {
-            put_header(dst, Subtype::UInt32, values.len())?;
+            write_header(dst, Subtype::UInt32, values.len())?;
 
             for result in values.iter() {
                 let n = result?;
-                dst.put_u32_le(n);
+                write_u32_le(dst, n);
             }
         }
         Array::Float(values) => {
-            put_header(dst, Subtype::Float, values.len())?;
+            write_header(dst, Subtype::Float, values.len())?;
 
             for result in values.iter() {
                 let n = result?;
-                dst.put_f32_le(n);
+                write_f32_le(dst, n);
             }
         }
     }
@@ -73,14 +73,11 @@ where
     Ok(())
 }
 
-pub fn put_header<B>(dst: &mut B, subtype: Subtype, len: usize) -> io::Result<()>
-where
-    B: BufMut,
-{
-    put_subtype(dst, subtype);
+pub fn write_header(dst: &mut Vec<u8>, subtype: Subtype, len: usize) -> io::Result<()> {
+    write_subtype(dst, subtype);
 
     let n = u32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    dst.put_u32_le(n);
+    write_u32_le(dst, n);
 
     Ok(())
 }
@@ -116,10 +113,10 @@ pub(super) mod tests {
     }
 
     #[test]
-    fn test_put_array() -> io::Result<()> {
+    fn test_write_array() -> io::Result<()> {
         fn t(buf: &mut Vec<u8>, array: &Array, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            put_array(buf, array)?;
+            write_array(buf, array)?;
             assert_eq!(buf, expected);
             Ok(())
         }

@@ -1,15 +1,13 @@
-use bytes::BufMut;
 use noodles_sam::alignment::record::data::field::Type;
 
-pub(super) fn put_type<B>(dst: &mut B, ty: Type)
-where
-    B: BufMut,
-{
-    let n = type_to_u8(ty);
-    dst.put_u8(n);
+use crate::record::codec::encoder::num::write_u8;
+
+pub(super) fn write_type(dst: &mut Vec<u8>, ty: Type) {
+    let n = encode(ty);
+    write_u8(dst, n);
 }
 
-pub fn type_to_u8(ty: Type) -> u8 {
+pub fn encode(ty: Type) -> u8 {
     match ty {
         Type::Character => b'A',
         Type::Int8 => b'c',
@@ -30,24 +28,24 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_put_type() {
+    fn test_write_type() {
         let mut buf = Vec::new();
-        put_type(&mut buf, Type::Character);
+        write_type(&mut buf, Type::Character);
         assert_eq!(buf, [b'A']);
     }
 
     #[test]
     fn test_type_to_u8() {
-        assert_eq!(type_to_u8(Type::Character), b'A');
-        assert_eq!(type_to_u8(Type::Int8), b'c');
-        assert_eq!(type_to_u8(Type::UInt8), b'C');
-        assert_eq!(type_to_u8(Type::Int16), b's');
-        assert_eq!(type_to_u8(Type::UInt16), b'S');
-        assert_eq!(type_to_u8(Type::Int32), b'i');
-        assert_eq!(type_to_u8(Type::UInt32), b'I');
-        assert_eq!(type_to_u8(Type::Float), b'f');
-        assert_eq!(type_to_u8(Type::String), b'Z');
-        assert_eq!(type_to_u8(Type::Hex), b'H');
-        assert_eq!(type_to_u8(Type::Array), b'B');
+        assert_eq!(encode(Type::Character), b'A');
+        assert_eq!(encode(Type::Int8), b'c');
+        assert_eq!(encode(Type::UInt8), b'C');
+        assert_eq!(encode(Type::Int16), b's');
+        assert_eq!(encode(Type::UInt16), b'S');
+        assert_eq!(encode(Type::Int32), b'i');
+        assert_eq!(encode(Type::UInt32), b'I');
+        assert_eq!(encode(Type::Float), b'f');
+        assert_eq!(encode(Type::String), b'Z');
+        assert_eq!(encode(Type::Hex), b'H');
+        assert_eq!(encode(Type::Array), b'B');
     }
 }

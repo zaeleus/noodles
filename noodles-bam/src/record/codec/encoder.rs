@@ -6,28 +6,29 @@ pub mod data;
 mod flags;
 mod mapping_quality;
 mod name;
+mod num;
 mod position;
 mod quality_scores;
 mod reference_sequence_id;
 mod sequence;
 
 pub(crate) use self::{
-    cigar::put_cigar, data::put_data, mapping_quality::put_mapping_quality, name::put_name,
-    quality_scores::put_quality_scores, sequence::put_sequence,
+    cigar::write_cigar, data::write_data, mapping_quality::write_mapping_quality, name::write_name,
+    quality_scores::write_quality_scores, sequence::write_sequence,
 };
 
 use std::{error, fmt, io};
 
 use bstr::BStr;
-use bytes::BufMut;
 use noodles_sam::{
     self as sam,
     alignment::{record_buf::Cigar, Record},
 };
+use num::{write_i32_le, write_u16_le, write_u32_le, write_u8};
 
 use self::{
-    bin::put_bin, flags::put_flags, position::put_position,
-    reference_sequence_id::put_reference_sequence_id,
+    bin::write_bin, flags::write_flags, position::write_position,
+    reference_sequence_id::write_reference_sequence_id,
 };
 
 /// An error when a BAM record fails to encode.
@@ -67,67 +68,66 @@ impl fmt::Display for EncodeError {
     }
 }
 
-pub(crate) fn encode<B, R>(dst: &mut B, header: &sam::Header, record: &R) -> io::Result<()>
+pub(crate) fn encode<R>(dst: &mut Vec<u8>, header: &sam::Header, record: &R) -> io::Result<()>
 where
-    B: BufMut,
     R: Record + ?Sized,
 {
     // ref_id
     let reference_sequence_id = record.reference_sequence_id(header).transpose()?;
-    put_reference_sequence_id(dst, header, reference_sequence_id)
+    write_reference_sequence_id(dst, header, reference_sequence_id)
         .map_err(EncodeError::InvalidReferenceSequenceId)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     // pos
     let alignment_start = record.alignment_start().transpose()?;
-    put_position(dst, alignment_start)
+    write_position(dst, alignment_start)
         .map_err(EncodeError::InvalidAlignmentStart)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-    put_l_read_name(dst, record.name())?;
+    write_l_read_name(dst, record.name())?;
 
     // mapq
     let mapping_quality = record.mapping_quality().transpose()?;
-    put_mapping_quality(dst, mapping_quality);
+    write_mapping_quality(dst, mapping_quality);
 
     // bin
     let alignment_end = record.alignment_end().transpose()?;
-    put_bin(dst, alignment_start, alignment_end);
+    write_bin(dst, alignment_start, alignment_end);
 
     // n_cigar_op
-    let cigar = overflowing_put_cigar_op_count(dst, record)?;
+    let cigar = overflowing_write_cigar_op_count(dst, record)?;
 
     // flag
     let flags = record.flags()?;
-    put_flags(dst, flags);
+    write_flags(dst, flags);
 
     let l_seq = u32::try_from(record.sequence().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    dst.put_u32_le(l_seq);
+    write_u32_le(dst, l_seq);
 
     // next_ref_id
     let mate_reference_sequence_id = record.mate_reference_sequence_id(header).transpose()?;
-    put_reference_sequence_id(dst, header, mate_reference_sequence_id)
+    write_reference_sequence_id(dst, header, mate_reference_sequence_id)
         .map_err(EncodeError::InvalidMateReferenceSequenceId)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     // next_pos
     let mate_alignment_start = record.mate_alignment_start().transpose()?;
-    put_position(dst, mate_alignment_start)
+    write_position(dst, mate_alignment_start)
         .map_err(EncodeError::InvalidMateAlignmentStart)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     // tlen
     let template_length = record.template_length()?;
-    put_template_length(dst, template_length);
+    write_template_length(dst, template_length);
 
     // read_name
-    put_name(dst, record.name())?;
+    write_name(dst, record.name())?;
 
     if let Some(cigar) = &cigar {
-        put_cigar(dst, cigar)?;
+        write_cigar(dst, cigar)?;
     } else {
-        put_cigar(dst, &record.cigar())?;
+        write_cigar(dst, &record.cigar())?;
     }
 
     let sequence = record.sequence();
@@ -135,24 +135,21 @@ where
 
     // seq
     let read_length = record.cigar().read_length()?;
-    put_sequence(dst, read_length, sequence)?;
+    write_sequence(dst, read_length, sequence)?;
 
     // qual
-    put_quality_scores(dst, base_count, record.quality_scores())?;
+    write_quality_scores(dst, base_count, record.quality_scores())?;
 
-    put_data(dst, record.data())?;
+    write_data(dst, record.data())?;
 
     if cigar.is_some() {
-        data::field::put_cigar(dst, &record.cigar())?;
+        data::field::write_cigar(dst, &record.cigar())?;
     }
 
     Ok(())
 }
 
-fn put_l_read_name<B>(dst: &mut B, name: Option<&BStr>) -> io::Result<()>
-where
-    B: BufMut,
-{
+fn write_l_read_name(dst: &mut Vec<u8>, name: Option<&BStr>) -> io::Result<()> {
     use std::mem;
 
     use self::name::MISSING;
@@ -165,14 +162,13 @@ where
     let l_read_name =
         u8::try_from(name_len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-    dst.put_u8(l_read_name);
+    write_u8(dst, l_read_name);
 
     Ok(())
 }
 
-fn overflowing_put_cigar_op_count<B, R>(dst: &mut B, record: &R) -> io::Result<Option<Cigar>>
+fn overflowing_write_cigar_op_count<R>(dst: &mut Vec<u8>, record: &R) -> io::Result<Option<Cigar>>
 where
-    B: BufMut,
     R: Record + ?Sized,
 {
     use sam::alignment::record::cigar::{op::Kind, Op};
@@ -180,10 +176,10 @@ where
     let cigar = record.cigar();
 
     if let Ok(op_count) = u16::try_from(cigar.len()) {
-        dst.put_u16_le(op_count);
+        write_u16_le(dst, op_count);
         Ok(None)
     } else {
-        dst.put_u16_le(2);
+        write_u16_le(dst, 2);
 
         let k = record.sequence().len();
         let m = cigar.alignment_span()?;
@@ -196,11 +192,8 @@ where
     }
 }
 
-fn put_template_length<B>(dst: &mut B, template_length: i32)
-where
-    B: BufMut,
-{
-    dst.put_i32_le(template_length);
+fn write_template_length(dst: &mut Vec<u8>, template_length: i32) {
+    write_i32_le(dst, template_length);
 }
 
 #[cfg(test)]

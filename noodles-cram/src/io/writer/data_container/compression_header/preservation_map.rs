@@ -84,7 +84,7 @@ fn write_tag_sets<W>(writer: &mut W, tag_sets: &TagSets) -> io::Result<()>
 where
     W: Write,
 {
-    use noodles_bam::record::codec::encoder::data::field::ty::type_to_u8;
+    use noodles_bam::record::codec::encoder::data::field::ty::encode;
 
     let mut buf = Vec::new();
 
@@ -94,7 +94,7 @@ where
             buf.extend_from_slice(tag.as_ref());
 
             let ty = key.ty();
-            buf.push(type_to_u8(ty));
+            buf.push(encode(ty));
         }
 
         buf.push(NUL);

@@ -1,10 +1,8 @@
-use bytes::BufMut;
 use noodles_sam::alignment::record::data::field::value::array::Subtype;
 
-pub fn put_subtype<B>(dst: &mut B, subtype: Subtype)
-where
-    B: BufMut,
-{
+use crate::record::codec::encoder::num::write_u8;
+
+pub fn write_subtype(dst: &mut Vec<u8>, subtype: Subtype) {
     let n = match subtype {
         Subtype::Int8 => b'c',
         Subtype::UInt8 => b'C',
@@ -15,7 +13,7 @@ where
         Subtype::Float => b'f',
     };
 
-    dst.put_u8(n);
+    write_u8(dst, n);
 }
 
 #[cfg(test)]
@@ -23,10 +21,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_put_subtype() {
+    fn test_write_subtype() {
         fn t(buf: &mut Vec<u8>, subtype: Subtype, expected: &[u8]) {
             buf.clear();
-            put_subtype(buf, subtype);
+            write_subtype(buf, subtype);
             assert_eq!(buf, expected);
         }
 

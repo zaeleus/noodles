@@ -4,14 +4,12 @@ pub mod field;
 
 use std::io;
 
-use bytes::BufMut;
 use noodles_sam::alignment::record::{data::field::Tag, Data};
 
-use self::field::put_field;
+use self::field::write_field;
 
-pub(crate) fn put_data<B, D>(dst: &mut B, data: D) -> io::Result<()>
+pub(crate) fn write_data<D>(dst: &mut Vec<u8>, data: D) -> io::Result<()>
 where
-    B: BufMut,
     D: Data,
 {
     for result in data.iter() {
@@ -21,7 +19,7 @@ where
             continue;
         }
 
-        put_field(dst, tag, &value)?;
+        write_field(dst, tag, &value)?;
     }
 
     Ok(())
@@ -34,10 +32,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_put_data() -> io::Result<()> {
+    fn test_write_data() -> io::Result<()> {
         fn t(buf: &mut Vec<u8>, data: &DataBuf, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            put_data(buf, data)?;
+            write_data(buf, data)?;
             assert_eq!(buf, expected);
             Ok(())
         }

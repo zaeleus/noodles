@@ -2,40 +2,37 @@ pub mod array;
 
 use std::io;
 
-use bytes::BufMut;
 use noodles_sam::alignment::record::data::field::Value;
 
-use self::array::put_array;
+use crate::record::codec::encoder::num::{
+    write_f32_le, write_i16_le, write_i32_le, write_i8, write_u16_le, write_u32_le, write_u8,
+};
 
-pub fn put_value<B>(dst: &mut B, value: &Value) -> io::Result<()>
-where
-    B: BufMut,
-{
+use self::array::write_array;
+
+pub fn write_value(dst: &mut Vec<u8>, value: &Value) -> io::Result<()> {
     match value {
-        Value::Character(c) => dst.put_u8(*c),
-        Value::Int8(n) => dst.put_i8(*n),
-        Value::UInt8(n) => dst.put_u8(*n),
-        Value::Int16(n) => dst.put_i16_le(*n),
-        Value::UInt16(n) => dst.put_u16_le(*n),
-        Value::Int32(n) => dst.put_i32_le(*n),
-        Value::UInt32(n) => dst.put_u32_le(*n),
-        Value::Float(n) => dst.put_f32_le(*n),
-        Value::String(s) => put_string(dst, s),
-        Value::Hex(s) => put_string(dst, s),
-        Value::Array(array) => put_array(dst, array)?,
+        Value::Character(c) => write_u8(dst, *c),
+        Value::Int8(n) => write_i8(dst, *n),
+        Value::UInt8(n) => write_u8(dst, *n),
+        Value::Int16(n) => write_i16_le(dst, *n),
+        Value::UInt16(n) => write_u16_le(dst, *n),
+        Value::Int32(n) => write_i32_le(dst, *n),
+        Value::UInt32(n) => write_u32_le(dst, *n),
+        Value::Float(n) => write_f32_le(dst, *n),
+        Value::String(s) => write_string(dst, s),
+        Value::Hex(s) => write_string(dst, s),
+        Value::Array(array) => write_array(dst, array)?,
     }
 
     Ok(())
 }
 
-fn put_string<B>(dst: &mut B, buf: &[u8])
-where
-    B: BufMut,
-{
+fn write_string(dst: &mut Vec<u8>, buf: &[u8]) {
     const NUL: u8 = 0x00;
 
-    dst.put(buf);
-    dst.put_u8(NUL);
+    dst.extend(buf);
+    write_u8(dst, NUL);
 }
 
 #[cfg(test)]
@@ -45,12 +42,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_put_value() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_write_value() -> Result<(), Box<dyn std::error::Error>> {
         use noodles_sam::alignment::record::data::field::value::Array;
 
         fn t(buf: &mut Vec<u8>, value: &Value, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            put_value(buf, value)?;
+            write_value(buf, value)?;
             assert_eq!(buf, expected);
             Ok(())
         }

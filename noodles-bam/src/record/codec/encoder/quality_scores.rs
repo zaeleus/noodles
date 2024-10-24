@@ -1,11 +1,14 @@
-use std::io;
-
-use bytes::BufMut;
 use noodles_sam::alignment::record::QualityScores;
+use std::{io, iter};
 
-pub fn put_quality_scores<B, S>(dst: &mut B, base_count: usize, quality_scores: S) -> io::Result<()>
+use super::num::write_u8;
+
+pub fn write_quality_scores<S>(
+    dst: &mut Vec<u8>,
+    base_count: usize,
+    quality_scores: S,
+) -> io::Result<()>
 where
-    B: BufMut,
     S: QualityScores,
 {
     // § 4.2.3 SEQ and QUAL encoding (2022-08-22)
@@ -17,10 +20,10 @@ where
         }
 
         for score in quality_scores.iter() {
-            dst.put_u8(score);
+            write_u8(dst, score);
         }
     } else if quality_scores.is_empty() {
-        dst.put_bytes(MISSING, base_count);
+        dst.extend(iter::repeat_n(MISSING, base_count));
     } else {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,
@@ -53,7 +56,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_put_quality_scores() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_write_quality_scores() -> Result<(), Box<dyn std::error::Error>> {
         fn t(
             buf: &mut Vec<u8>,
             base_count: usize,
@@ -61,7 +64,7 @@ mod tests {
             expected: &[u8],
         ) -> io::Result<()> {
             buf.clear();
-            put_quality_scores(buf, base_count, quality_scores)?;
+            write_quality_scores(buf, base_count, quality_scores)?;
             assert_eq!(buf, expected);
             Ok(())
         }
@@ -82,7 +85,7 @@ mod tests {
         let quality_scores = QualityScoresBuf::from(vec![45, 35, 43, 50]);
         buf.clear();
         assert!(matches!(
-            put_quality_scores(&mut buf, 3, &quality_scores),
+            write_quality_scores(&mut buf, 3, &quality_scores),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 

@@ -1,11 +1,11 @@
 use std::io;
 
-use bytes::BufMut;
 use noodles_sam::alignment::record::Sequence;
 
-pub fn put_sequence<B, S>(dst: &mut B, read_length: usize, sequence: S) -> io::Result<()>
+use super::num::write_u8;
+
+pub fn write_sequence<S>(dst: &mut Vec<u8>, read_length: usize, sequence: S) -> io::Result<()>
 where
-    B: BufMut,
     S: Sequence,
 {
     const EQ: u8 = b'=';
@@ -30,7 +30,7 @@ where
         // the last byte are undefined, but we recommend writing these as zero."
         let r = bases.next().unwrap_or(EQ);
         let b = encode_base(l) << 4 | encode_base(r);
-        dst.put_u8(b);
+        write_u8(dst, b);
     }
 
     Ok(())
@@ -66,10 +66,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_put_sequence() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_write_sequence() -> Result<(), Box<dyn std::error::Error>> {
         fn t(buf: &mut Vec<u8>, sequence: &SequenceBuf, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            put_sequence(buf, sequence.len(), sequence)?;
+            write_sequence(buf, sequence.len(), sequence)?;
             assert_eq!(buf, expected);
             Ok(())
         }
@@ -81,13 +81,13 @@ mod tests {
         t(&mut buf, &SequenceBuf::from(b"ACGT"), &[0x12, 0x48])?;
 
         buf.clear();
-        put_sequence(&mut buf, 2, &SequenceBuf::default())?;
+        write_sequence(&mut buf, 2, &SequenceBuf::default())?;
         assert!(buf.is_empty());
 
         buf.clear();
         let sequence = SequenceBuf::from(b"A");
         assert!(matches!(
-            put_sequence(&mut buf, 2, &sequence),
+            write_sequence(&mut buf, 2, &sequence),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput,
         ));
 

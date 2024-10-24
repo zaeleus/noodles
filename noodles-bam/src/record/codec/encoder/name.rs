@@ -1,15 +1,13 @@
 use std::io;
 
 use bstr::BStr;
-use bytes::BufMut;
+
+use super::num::write_u8;
 
 const MAX_LENGTH: usize = 254;
 pub(super) const MISSING: &[u8] = b"*";
 
-pub fn put_name<B>(dst: &mut B, name: Option<&BStr>) -> io::Result<()>
-where
-    B: BufMut,
-{
+pub fn write_name(dst: &mut Vec<u8>, name: Option<&BStr>) -> io::Result<()> {
     const NUL: u8 = 0x00;
 
     if let Some(name) = name {
@@ -17,12 +15,12 @@ where
             return Err(io::Error::from(io::ErrorKind::InvalidInput));
         }
 
-        dst.put(name.as_ref());
+        dst.extend_from_slice(name.as_ref());
     } else {
-        dst.put(MISSING);
+        dst.extend(MISSING);
     }
 
-    dst.put_u8(NUL);
+    write_u8(dst, NUL);
 
     Ok(())
 }
@@ -40,10 +38,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_put_name() -> io::Result<()> {
+    fn test_write_name() -> io::Result<()> {
         fn t(buf: &mut Vec<u8>, name: Option<&[u8]>, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            put_name(buf, name.map(|buf| buf.as_bstr()))?;
+            write_name(buf, name.map(|buf| buf.as_bstr()))?;
             assert_eq!(buf, expected);
             Ok(())
         }
@@ -62,7 +60,7 @@ mod tests {
             let mut buf = Vec::new();
 
             assert!(matches!(
-                put_name(&mut buf, Some(raw_name.as_bstr())),
+                write_name(&mut buf, Some(raw_name.as_bstr())),
                 Err(e) if e.kind() == io::ErrorKind::InvalidInput
             ));
         }

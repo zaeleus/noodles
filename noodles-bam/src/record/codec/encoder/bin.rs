@@ -1,23 +1,22 @@
-use bytes::BufMut;
 use noodles_core::Position;
+
+use super::num::write_u16_le;
 
 // § 4.2.1 "BIN field calculation" (2021-06-03): "Note unmapped reads with `POS` 0 (which
 // becomes -1 in BAM) therefore use `reg2bin(-1, 0)` which is computed as 4680."
 const UNMAPPED_BIN: u16 = 4680;
 
-pub(super) fn put_bin<B>(
-    dst: &mut B,
+pub(super) fn write_bin(
+    dst: &mut Vec<u8>,
     alignment_start: Option<Position>,
     alignment_end: Option<Position>,
-) where
-    B: BufMut,
-{
+) {
     let bin = match (alignment_start, alignment_end) {
         (Some(start), Some(end)) => region_to_bin(start, end),
         _ => UNMAPPED_BIN,
     };
 
-    dst.put_u16_le(bin);
+    write_u16_le(dst, bin);
 }
 
 // § 5.3 "C source code for computing bin number and overlapping bins" (2021-06-03)

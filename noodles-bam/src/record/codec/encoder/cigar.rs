@@ -2,20 +2,19 @@ mod op;
 
 use std::io;
 
-use bytes::BufMut;
 use noodles_sam::alignment::record::Cigar;
 
 use self::op::encode_op;
+use super::num::write_u32_le;
 
-pub fn put_cigar<B, C>(dst: &mut B, cigar: &C) -> io::Result<()>
+pub fn write_cigar<C>(dst: &mut Vec<u8>, cigar: &C) -> io::Result<()>
 where
-    B: BufMut,
     C: Cigar,
 {
     for result in cigar.iter() {
         let op = result?;
         let n = encode_op(op).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-        dst.put_u32_le(n);
+        write_u32_le(dst, n);
     }
 
     Ok(())
@@ -34,7 +33,7 @@ mod tests {
     fn test_put_cigar() -> Result<(), Box<dyn std::error::Error>> {
         fn t(buf: &mut Vec<u8>, cigar: &CigarBuf, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            put_cigar(buf, cigar)?;
+            write_cigar(buf, cigar)?;
             assert_eq!(buf, expected);
             Ok(())
         }

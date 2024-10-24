@@ -1,7 +1,8 @@
 use std::{error, fmt};
 
-use bytes::BufMut;
 use noodles_sam as sam;
+
+use super::num::write_i32_le;
 
 const MAX_REFERENCE_SEQUENCE_ID: usize = i32::MAX as usize;
 
@@ -29,14 +30,11 @@ impl fmt::Display for EncodeError {
     }
 }
 
-pub(super) fn put_reference_sequence_id<B>(
-    dst: &mut B,
+pub(super) fn write_reference_sequence_id(
+    dst: &mut Vec<u8>,
     header: &sam::Header,
     reference_sequence_id: Option<usize>,
-) -> Result<(), EncodeError>
-where
-    B: BufMut,
-{
+) -> Result<(), EncodeError> {
     const UNMAPPED: i32 = -1;
 
     let ref_id = if let Some(id) = reference_sequence_id {
@@ -52,7 +50,7 @@ where
         UNMAPPED
     };
 
-    dst.put_i32_le(ref_id);
+    write_i32_le(dst, ref_id);
 
     Ok(())
 }
@@ -64,7 +62,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_put_reference_sequence_id() -> Result<(), EncodeError> {
+    fn test_write_reference_sequence_id() -> Result<(), EncodeError> {
         use sam::header::record::value::{map::ReferenceSequence, Map};
 
         const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
@@ -79,7 +77,7 @@ mod tests {
             expected: &[u8],
         ) -> Result<(), EncodeError> {
             buf.clear();
-            put_reference_sequence_id(buf, header, reference_sequence_id)?;
+            write_reference_sequence_id(buf, header, reference_sequence_id)?;
             assert_eq!(buf, expected);
             Ok(())
         }
@@ -110,7 +108,7 @@ mod tests {
         let header = sam::Header::default();
         let reference_sequence_id = Some(0);
         assert_eq!(
-            put_reference_sequence_id(&mut buf, &header, reference_sequence_id),
+            write_reference_sequence_id(&mut buf, &header, reference_sequence_id),
             Err(EncodeError::MissingEntry {
                 actual: 0,
                 expected: 0
