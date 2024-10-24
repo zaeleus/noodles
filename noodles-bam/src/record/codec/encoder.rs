@@ -84,7 +84,7 @@ where
         .map_err(EncodeError::InvalidAlignmentStart)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-    write_l_read_name(dst, record.name())?;
+    write_name_length(dst, record.name())?;
 
     // mapq
     let mapping_quality = record.mapping_quality().transpose()?;
@@ -101,9 +101,9 @@ where
     let flags = record.flags()?;
     write_flags(dst, flags);
 
-    let l_seq = u32::try_from(record.sequence().len())
+    let base_count = u32::try_from(record.sequence().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_u32_le(dst, l_seq);
+    write_u32_le(dst, base_count);
 
     // next_ref_id
     let mate_reference_sequence_id = record.mate_reference_sequence_id(header).transpose()?;
@@ -149,20 +149,18 @@ where
     Ok(())
 }
 
-fn write_l_read_name(dst: &mut Vec<u8>, name: Option<&BStr>) -> io::Result<()> {
+fn write_name_length(dst: &mut Vec<u8>, name: Option<&BStr>) -> io::Result<()> {
     use std::mem;
 
     use self::name::MISSING;
 
-    let mut name_len = name.map(|name| name.len()).unwrap_or(MISSING.len());
+    let mut len = name.map(|name| name.len()).unwrap_or(MISSING.len());
 
     // + NUL terminator
-    name_len += mem::size_of::<u8>();
+    len += mem::size_of::<u8>();
 
-    let l_read_name =
-        u8::try_from(name_len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-    write_u8(dst, l_read_name);
+    let n = u8::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    write_u8(dst, n);
 
     Ok(())
 }

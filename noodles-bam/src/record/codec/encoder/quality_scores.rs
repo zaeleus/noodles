@@ -19,8 +19,8 @@ where
             return Err(io::Error::from(io::ErrorKind::InvalidInput));
         }
 
-        for score in quality_scores.iter() {
-            write_u8(dst, score);
+        for n in quality_scores.iter() {
+            write_u8(dst, n);
         }
     } else if quality_scores.is_empty() {
         dst.extend(iter::repeat_n(MISSING, base_count));

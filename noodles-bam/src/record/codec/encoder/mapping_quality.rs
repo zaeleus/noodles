@@ -4,8 +4,8 @@ use super::num::write_u8;
 
 pub fn write_mapping_quality(dst: &mut Vec<u8>, mapping_quality: Option<MappingQuality>) {
     const MISSING: u8 = 0xff;
-    let mapq = mapping_quality.map(u8::from).unwrap_or(MISSING);
-    write_u8(dst, mapq);
+    let n = mapping_quality.map(u8::from).unwrap_or(MISSING);
+    write_u8(dst, n);
 }
 
 #[cfg(test)]

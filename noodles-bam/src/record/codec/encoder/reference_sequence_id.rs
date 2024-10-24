@@ -37,7 +37,7 @@ pub(super) fn write_reference_sequence_id(
 ) -> Result<(), EncodeError> {
     const UNMAPPED: i32 = -1;
 
-    let ref_id = if let Some(id) = reference_sequence_id {
+    let n = if let Some(id) = reference_sequence_id {
         if id < header.reference_sequences().len() {
             i32::try_from(id).map_err(|_| EncodeError::OutOfRange(id))?
         } else {
@@ -50,7 +50,7 @@ pub(super) fn write_reference_sequence_id(
         UNMAPPED
     };
 
-    write_i32_le(dst, ref_id);
+    write_i32_le(dst, n);
 
     Ok(())
 }

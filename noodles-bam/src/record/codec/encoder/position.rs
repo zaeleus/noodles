@@ -31,14 +31,14 @@ pub(super) fn write_position(
 ) -> Result<(), EncodeError> {
     const MISSING: i32 = -1;
 
-    let pos = if let Some(position) = position {
-        let n = usize::from(position) - 1;
-        i32::try_from(n).map_err(EncodeError::Invalid)?
+    let n = if let Some(position) = position {
+        let m = usize::from(position) - 1;
+        i32::try_from(m).map_err(EncodeError::Invalid)?
     } else {
         MISSING
     };
 
-    write_i32_le(dst, pos);
+    write_i32_le(dst, n);
 
     Ok(())
 }

@@ -11,12 +11,12 @@ pub(super) fn write_bin(
     alignment_start: Option<Position>,
     alignment_end: Option<Position>,
 ) {
-    let bin = match (alignment_start, alignment_end) {
+    let n = match (alignment_start, alignment_end) {
         (Some(start), Some(end)) => region_to_bin(start, end),
         _ => UNMAPPED_BIN,
     };
 
-    write_u16_le(dst, bin);
+    write_u16_le(dst, n);
 }
 
 // § 5.3 "C source code for computing bin number and overlapping bins" (2021-06-03)
