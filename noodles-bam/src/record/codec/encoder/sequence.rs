@@ -2,7 +2,16 @@ use std::io;
 
 use noodles_sam::alignment::record::Sequence;
 
-use super::num::write_u8;
+use super::num::{write_u32_le, write_u8};
+
+pub(super) fn write_length(dst: &mut Vec<u8>, base_count: usize) -> io::Result<()> {
+    let n =
+        u32::try_from(base_count).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+    write_u32_le(dst, n);
+
+    Ok(())
+}
 
 pub fn write_sequence<S>(dst: &mut Vec<u8>, read_length: usize, sequence: S) -> io::Result<()>
 where
@@ -64,6 +73,25 @@ mod tests {
     use noodles_sam::alignment::record_buf::Sequence as SequenceBuf;
 
     use super::*;
+
+    #[test]
+    fn test_write_length() -> io::Result<()> {
+        let mut buf = Vec::new();
+        write_length(&mut buf, 8)?;
+        assert_eq!(buf, [0x08, 0x00, 0x00, 0x00]);
+        Ok(())
+    }
+
+    #[cfg(not(target_pointer_width = "16"))]
+    #[test]
+    fn test_write_length_with_out_of_range_base_count() {
+        let mut buf = Vec::new();
+
+        assert!(matches!(
+            write_length(&mut buf, usize::MAX),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+    }
 
     #[test]
     fn test_write_sequence() -> Result<(), Box<dyn std::error::Error>> {

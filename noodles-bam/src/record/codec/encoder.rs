@@ -24,7 +24,7 @@ use noodles_sam::{
     self as sam,
     alignment::{record_buf::Cigar, Record},
 };
-use num::{write_i32_le, write_u16_le, write_u32_le, write_u8};
+use num::{write_i32_le, write_u16_le, write_u8};
 
 use self::{
     bin::write_bin, flags::write_flags, position::write_position,
@@ -101,9 +101,8 @@ where
     let flags = record.flags()?;
     write_flags(dst, flags);
 
-    let base_count = u32::try_from(record.sequence().len())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_u32_le(dst, base_count);
+    let base_count = record.sequence().len();
+    sequence::write_length(dst, base_count)?;
 
     // next_ref_id
     let mate_reference_sequence_id = record.mate_reference_sequence_id(header).transpose()?;
@@ -131,7 +130,6 @@ where
     }
 
     let sequence = record.sequence();
-    let base_count = sequence.len();
 
     // seq
     let read_length = record.cigar().read_length()?;
