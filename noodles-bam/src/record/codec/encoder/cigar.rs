@@ -2,10 +2,46 @@ mod op;
 
 use std::io;
 
-use noodles_sam::alignment::record::Cigar;
+use noodles_sam::{
+    self as sam,
+    alignment::record::{
+        cigar::{op::Kind, Op},
+        Cigar,
+    },
+};
 
 use self::op::encode_op;
-use super::num::write_u32_le;
+use super::num::{write_u16_le, write_u32_le};
+
+// § 4.2.2 "N_CIGAR_OP field" (2023-11-16): "For an alignment with more [than 65535] CIGAR
+// operations, BAM [...] sets `CIGAR` to `kSmN` as a placeholder, where `k` equals `l_seq`, `m` is
+// the reference sequence length in the alignment..."
+pub(super) fn overflowing_write_cigar_op_count<C>(
+    dst: &mut Vec<u8>,
+    base_count: usize,
+    cigar: &C,
+) -> io::Result<Option<sam::alignment::record_buf::Cigar>>
+where
+    C: Cigar,
+{
+    const OVERFLOWING_OP_COUNT: u16 = 2;
+
+    if let Ok(op_count) = u16::try_from(cigar.len()) {
+        write_u16_le(dst, op_count);
+        Ok(None)
+    } else {
+        write_u16_le(dst, OVERFLOWING_OP_COUNT);
+
+        let k = base_count;
+        let m = cigar.alignment_span()?;
+
+        Ok(Some(
+            [Op::new(Kind::SoftClip, k), Op::new(Kind::Skip, m)]
+                .into_iter()
+                .collect(),
+        ))
+    }
+}
 
 pub fn write_cigar<C>(dst: &mut Vec<u8>, cigar: &C) -> io::Result<()>
 where
@@ -22,12 +58,40 @@ where
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::alignment::{
-        record::cigar::{op::Kind, Op},
-        record_buf::Cigar as CigarBuf,
-    };
+    use std::iter;
+
+    use noodles_sam::alignment::record_buf::Cigar as CigarBuf;
 
     use super::*;
+
+    #[test]
+    fn test_overflowing_write_cigar_op_count() -> io::Result<()> {
+        let mut buf = Vec::new();
+
+        buf.clear();
+        let cigar: CigarBuf = [Op::new(Kind::Match, 4)].into_iter().collect();
+        let overflowing_cigar = overflowing_write_cigar_op_count(&mut buf, 4, &cigar)?;
+        assert_eq!(buf, [0x01, 0x00]);
+        assert!(overflowing_cigar.is_none());
+
+        const MAX_CIGAR_OP_COUNT: usize = (1 << 16) - 1;
+        buf.clear();
+        let cigar: CigarBuf = iter::repeat(Op::new(Kind::Match, 1))
+            .take(MAX_CIGAR_OP_COUNT + 1)
+            .collect();
+        let overflowing_cigar = overflowing_write_cigar_op_count(&mut buf, 4, &cigar)?;
+        assert_eq!(buf, [0x02, 0x00]);
+        assert_eq!(
+            overflowing_cigar,
+            Some(
+                [Op::new(Kind::SoftClip, 4), Op::new(Kind::Skip, 1 << 16)]
+                    .into_iter()
+                    .collect()
+            )
+        );
+
+        Ok(())
+    }
 
     #[test]
     fn test_put_cigar() -> Result<(), Box<dyn std::error::Error>> {

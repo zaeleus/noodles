@@ -13,7 +13,7 @@ mod reference_sequence_id;
 mod sequence;
 mod template_length;
 
-use self::template_length::write_template_length;
+use self::{cigar::overflowing_write_cigar_op_count, template_length::write_template_length};
 pub(crate) use self::{
     cigar::write_cigar, data::write_data, mapping_quality::write_mapping_quality, name::write_name,
     quality_scores::write_quality_scores, sequence::write_sequence,
@@ -22,11 +22,8 @@ pub(crate) use self::{
 use std::{error, fmt, io};
 
 use bstr::BStr;
-use noodles_sam::{
-    self as sam,
-    alignment::{record_buf::Cigar, Record},
-};
-use num::{write_u16_le, write_u8};
+use noodles_sam::{self as sam, alignment::Record};
+use num::write_u8;
 
 use self::{
     bin::write_bin, flags::write_flags, position::write_position,
@@ -97,13 +94,13 @@ where
     write_bin(dst, alignment_start, alignment_end);
 
     // n_cigar_op
-    let cigar = overflowing_write_cigar_op_count(dst, record)?;
+    let base_count = record.sequence().len();
+    let cigar = overflowing_write_cigar_op_count(dst, base_count, &record.cigar())?;
 
     // flag
     let flags = record.flags()?;
     write_flags(dst, flags);
 
-    let base_count = record.sequence().len();
     sequence::write_length(dst, base_count)?;
 
     // next_ref_id
@@ -163,31 +160,6 @@ fn write_name_length(dst: &mut Vec<u8>, name: Option<&BStr>) -> io::Result<()> {
     write_u8(dst, n);
 
     Ok(())
-}
-
-fn overflowing_write_cigar_op_count<R>(dst: &mut Vec<u8>, record: &R) -> io::Result<Option<Cigar>>
-where
-    R: Record + ?Sized,
-{
-    use sam::alignment::record::cigar::{op::Kind, Op};
-
-    let cigar = record.cigar();
-
-    if let Ok(op_count) = u16::try_from(cigar.len()) {
-        write_u16_le(dst, op_count);
-        Ok(None)
-    } else {
-        write_u16_le(dst, 2);
-
-        let k = record.sequence().len();
-        let m = cigar.alignment_span()?;
-
-        Ok(Some(
-            [Op::new(Kind::SoftClip, k), Op::new(Kind::Skip, m)]
-                .into_iter()
-                .collect(),
-        ))
-    }
 }
 
 #[cfg(test)]
@@ -315,7 +287,7 @@ mod tests {
                 data::field::Tag,
                 Flags,
             },
-            record_buf::{data::field::Value, Sequence},
+            record_buf::{data::field::Value, Cigar, Sequence},
         };
 
         const BASE_COUNT: usize = 65536;
