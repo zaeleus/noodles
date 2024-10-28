@@ -11,7 +11,9 @@ mod position;
 mod quality_scores;
 mod reference_sequence_id;
 mod sequence;
+mod template_length;
 
+use self::template_length::write_template_length;
 pub(crate) use self::{
     cigar::write_cigar, data::write_data, mapping_quality::write_mapping_quality, name::write_name,
     quality_scores::write_quality_scores, sequence::write_sequence,
@@ -24,7 +26,7 @@ use noodles_sam::{
     self as sam,
     alignment::{record_buf::Cigar, Record},
 };
-use num::{write_i32_le, write_u16_le, write_u8};
+use num::{write_u16_le, write_u8};
 
 use self::{
     bin::write_bin, flags::write_flags, position::write_position,
@@ -186,10 +188,6 @@ where
                 .collect(),
         ))
     }
-}
-
-fn write_template_length(dst: &mut Vec<u8>, template_length: i32) {
-    write_i32_le(dst, template_length);
 }
 
 #[cfg(test)]
