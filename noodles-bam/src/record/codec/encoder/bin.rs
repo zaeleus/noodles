@@ -48,6 +48,19 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_write_bin() {
+        let mut buf = Vec::new();
+
+        buf.clear();
+        write_bin(&mut buf, None, None);
+        assert_eq!(buf, [0x48, 0x12]);
+
+        buf.clear();
+        write_bin(&mut buf, Position::new(8), Position::new(13));
+        assert_eq!(buf, [0x49, 0x12]);
+    }
+
+    #[test]
     fn test_region_to_bin() -> Result<(), noodles_core::position::TryFromIntError> {
         let start = Position::try_from(8)?;
         let end = Position::try_from(13)?;
