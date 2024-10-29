@@ -21,9 +21,7 @@ pub(crate) use self::{
 
 use std::{error, fmt, io};
 
-use bstr::BStr;
 use noodles_sam::{self as sam, alignment::Record};
-use num::write_u8;
 
 use self::{
     bin::write_bin, flags::write_flags, position::write_position,
@@ -83,7 +81,7 @@ where
         .map_err(EncodeError::InvalidAlignmentStart)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-    write_name_length(dst, record.name())?;
+    name::write_length(dst, record.name())?;
 
     // mapq
     let mapping_quality = record.mapping_quality().transpose()?;
@@ -142,22 +140,6 @@ where
     if cigar.is_some() {
         data::field::write_cigar(dst, &record.cigar())?;
     }
-
-    Ok(())
-}
-
-fn write_name_length(dst: &mut Vec<u8>, name: Option<&BStr>) -> io::Result<()> {
-    use std::mem;
-
-    use self::name::MISSING;
-
-    let mut len = name.map(|name| name.len()).unwrap_or(MISSING.len());
-
-    // + NUL terminator
-    len += mem::size_of::<u8>();
-
-    let n = u8::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_u8(dst, n);
 
     Ok(())
 }

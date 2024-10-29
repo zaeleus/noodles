@@ -1,4 +1,4 @@
-use std::io;
+use std::{io, mem};
 
 use bstr::BStr;
 
@@ -6,6 +6,18 @@ use super::num::write_u8;
 
 const MAX_LENGTH: usize = 254;
 pub(super) const MISSING: &[u8] = b"*";
+
+pub(super) fn write_length(dst: &mut Vec<u8>, name: Option<&BStr>) -> io::Result<()> {
+    let mut len = name.map(|s| s.len()).unwrap_or(MISSING.len());
+
+    // + NUL terminator
+    len += mem::size_of::<u8>();
+
+    let n = u8::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    write_u8(dst, n);
+
+    Ok(())
+}
 
 pub fn write_name(dst: &mut Vec<u8>, name: Option<&BStr>) -> io::Result<()> {
     const NUL: u8 = 0x00;
@@ -36,6 +48,28 @@ mod tests {
     use bstr::ByteSlice;
 
     use super::*;
+
+    #[test]
+    fn test_write_length() -> io::Result<()> {
+        let mut buf = Vec::new();
+
+        buf.clear();
+        write_length(&mut buf, None)?;
+        assert_eq!(buf, [0x02]);
+
+        buf.clear();
+        write_length(&mut buf, Some(b"r0".as_bstr()))?;
+        assert_eq!(buf, [0x03]);
+
+        buf.clear();
+        let name = vec![b'n'; 255];
+        assert!(matches!(
+            write_length(&mut buf, Some(name.as_bstr())),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        Ok(())
+    }
 
     #[test]
     fn test_write_name() -> io::Result<()> {
