@@ -94,7 +94,7 @@ mod tests {
     }
 
     #[test]
-    fn test_put_cigar() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_write_cigar() -> Result<(), Box<dyn std::error::Error>> {
         fn t(buf: &mut Vec<u8>, cigar: &CigarBuf, expected: &[u8]) -> io::Result<()> {
             buf.clear();
             write_cigar(buf, cigar)?;
