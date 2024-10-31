@@ -45,8 +45,10 @@ where
     Ok(())
 }
 
+// § 4.2.3 "SEQ and QUAL encoding" (2023-11-16): "The case-insensitive base codes [...] are mapped
+// to [0, 15] respectively with all other characters mapping to 'N' (value 15)".
 fn encode_base(n: u8) -> u8 {
-    match n {
+    match n.to_ascii_uppercase() {
         b'=' => 0,
         b'A' => 1,
         b'C' => 2,
@@ -62,8 +64,6 @@ fn encode_base(n: u8) -> u8 {
         b'K' => 12,
         b'D' => 13,
         b'B' => 14,
-        // § 4.2.3 SEQ and QUAL encoding (2021-06-03): "The case-insensitive base codes ... are
-        // mapped to [0, 15] respectively with all other characters mapping to 'N' (value 15)".
         _ => 15,
     }
 }
@@ -124,23 +124,14 @@ mod tests {
 
     #[test]
     fn test_encode_base() {
-        assert_eq!(encode_base(b'='), 0);
-        assert_eq!(encode_base(b'A'), 1);
-        assert_eq!(encode_base(b'C'), 2);
-        assert_eq!(encode_base(b'M'), 3);
-        assert_eq!(encode_base(b'G'), 4);
-        assert_eq!(encode_base(b'R'), 5);
-        assert_eq!(encode_base(b'S'), 6);
-        assert_eq!(encode_base(b'V'), 7);
-        assert_eq!(encode_base(b'T'), 8);
-        assert_eq!(encode_base(b'W'), 9);
-        assert_eq!(encode_base(b'Y'), 10);
-        assert_eq!(encode_base(b'H'), 11);
-        assert_eq!(encode_base(b'K'), 12);
-        assert_eq!(encode_base(b'D'), 13);
-        assert_eq!(encode_base(b'B'), 14);
-        assert_eq!(encode_base(b'N'), 15);
+        const BASES: [u8; 16] = *b"=ACMGRSVTWYHKDBN";
+
+        for (i, b) in (0..).zip(BASES) {
+            assert_eq!(encode_base(b), i);
+            assert_eq!(encode_base(b.to_ascii_lowercase()), i);
+        }
 
         assert_eq!(encode_base(b'X'), 15);
+        assert_eq!(encode_base(b'x'), 15);
     }
 }
