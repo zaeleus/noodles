@@ -6,7 +6,7 @@
 //!
 //! The result matches the output of `samtools idxstats <src>`.
 
-use std::{env, io, path::PathBuf, str};
+use std::{env, io, path::PathBuf};
 
 use noodles_bam as bam;
 
@@ -18,14 +18,11 @@ fn main() -> io::Result<()> {
 
     let index = reader.index();
 
-    for ((reference_sequence_name_buf, reference_sequence), index_reference_sequence) in header
+    for ((reference_sequence_name, reference_sequence), index_reference_sequence) in header
         .reference_sequences()
         .iter()
         .zip(index.reference_sequences())
     {
-        let reference_sequence_name = str::from_utf8(reference_sequence_name_buf)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
         let (mapped_record_count, unmapped_record_count) = index_reference_sequence
             .metadata()
             .map(|m| (m.mapped_record_count(), m.unmapped_record_count()))
