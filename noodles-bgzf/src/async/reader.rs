@@ -43,8 +43,8 @@ where
     ///
     /// ```
     /// use noodles_bgzf as bgzf;
-    /// let data = [];
-    /// let reader = bgzf::AsyncReader::new(&data[..]);
+    /// use tokio::io;
+    /// let reader = bgzf::AsyncReader::new(io::empty());
     /// ```
     pub fn new(inner: R) -> Self {
         Builder::default().build_from_reader(inner)
@@ -56,9 +56,9 @@ where
     ///
     /// ```
     /// use noodles_bgzf as bgzf;
-    /// let data = [];
-    /// let reader = bgzf::AsyncReader::new(&data[..]);
-    /// assert!(reader.get_ref().is_empty());
+    /// use tokio::io;
+    /// let reader = bgzf::AsyncReader::new(io::empty());
+    /// let _inner = reader.get_ref();
     /// ```
     pub fn get_ref(&self) -> &R {
         let stream = self.stream.as_ref().expect("missing stream");
@@ -71,9 +71,9 @@ where
     ///
     /// ```
     /// use noodles_bgzf as bgzf;
-    /// let data = [];
-    /// let mut reader = bgzf::AsyncReader::new(&data[..]);
-    /// assert!(reader.get_mut().is_empty());
+    /// use tokio::io;
+    /// let mut reader = bgzf::AsyncReader::new(io::empty());
+    /// let _inner = reader.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
         let stream = self.stream.as_mut().expect("missing stream");
@@ -87,10 +87,9 @@ where
     /// ```
     /// # use std::pin::Pin;
     /// use noodles_bgzf as bgzf;
-    /// let data = [];
-    /// let mut reader = bgzf::AsyncReader::new(&data[..]);
-    /// let mut pinned_reader = Pin::new(&mut reader);
-    /// assert!(pinned_reader.get_pin_mut().get_mut().is_empty());
+    /// use tokio::io;
+    /// let mut reader = bgzf::AsyncReader::new(io::empty());
+    /// let _inner = Pin::new(&mut reader).get_pin_mut();
     /// ```
     pub fn get_pin_mut(self: Pin<&mut Self>) -> Pin<&mut R> {
         let stream = self.project().stream.as_pin_mut().expect("missing stream");
@@ -103,9 +102,9 @@ where
     ///
     /// ```
     /// use noodles_bgzf as bgzf;
-    /// let data = [];
-    /// let reader = bgzf::AsyncReader::new(&data[..]);
-    /// assert!(reader.into_inner().is_empty());
+    /// use tokio::io;
+    /// let reader = bgzf::AsyncReader::new(io::empty());
+    /// let _inner = reader.into_inner();
     /// ```
     pub fn into_inner(self) -> R {
         let stream = self.stream.expect("missing stream");
@@ -117,12 +116,10 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let data = [];
-    /// let reader = bgzf::AsyncReader::new(&data[..]);
+    /// use tokio::io;
+    /// let reader = bgzf::AsyncReader::new(io::empty());
     /// assert_eq!(reader.virtual_position(), bgzf::VirtualPosition::from(0));
-    /// # Ok::<(), io::Error>(())
     /// ```
     pub fn virtual_position(&self) -> VirtualPosition {
         self.block.virtual_position()
@@ -138,14 +135,12 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io::{self, Cursor};
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_bgzf as bgzf;
-    /// let mut reader = bgzf::AsyncReader::new(Cursor::new(Vec::new()));
-    /// let virtual_position = bgzf::VirtualPosition::from(102334155);
-    /// reader.seek(virtual_position).await?;
+    /// use tokio::io;
+    /// let mut reader = bgzf::AsyncReader::new(io::empty());
+    /// reader.seek(bgzf::VirtualPosition::MIN).await?;
     /// # Ok(())
     /// # }
     /// ```
@@ -181,14 +176,12 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io::Cursor;
-    ///
     /// # #[tokio::main]
     /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_bgzf as bgzf;
     /// use tokio::io;
     ///
-    /// let mut reader = bgzf::AsyncReader::new(Cursor::new(Vec::new()));
+    /// let mut reader = bgzf::AsyncReader::new(io::empty());
     ///
     /// let index = vec![(0, 0)];
     /// reader.seek_by_uncompressed_position(&index, 0).await?;
