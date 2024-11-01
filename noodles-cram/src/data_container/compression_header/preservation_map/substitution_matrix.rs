@@ -21,7 +21,17 @@ impl SubstitutionMatrix {
     }
 
     pub fn get(&self, reference_base: Base, substitution_code: u8) -> Base {
-        self.substitutions[reference_base as usize][substitution_code as usize]
+        let i = match reference_base {
+            Base::A => 0,
+            Base::C => 1,
+            Base::G => 2,
+            Base::T => 3,
+            Base::N => 4,
+        };
+
+        let j = usize::from(substitution_code & 0x03);
+
+        self.substitutions[i][j]
     }
 
     pub fn find_code(&self, reference_base: Base, read_base: Base) -> u8 {
