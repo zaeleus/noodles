@@ -10,6 +10,14 @@
     `QualityScores::iter` now returns an iterator over `io::Result<u8>`, as
     normalization of an underlying raw scores can fail.
 
+### Fixed
+
+  * sam/record/quality_scores: Fix wrap around on underflow when normalizing
+    invalid scores.
+
+    Quality scores with some invalid raw scores (< `!`) would wrap around on
+    underflow.
+
 ## 0.65.0 - 2024-09-26
 
 ### Added
