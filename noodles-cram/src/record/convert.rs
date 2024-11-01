@@ -70,7 +70,7 @@ impl Record {
                 flags.insert(Flags::QUALITY_SCORES_STORED_AS_ARRAY);
             }
 
-            let scores: Vec<_> = record.quality_scores().iter().collect();
+            let scores: Vec<_> = record.quality_scores().iter().collect::<io::Result<_>>()?;
             QualityScores::from(scores)
         };
 
@@ -89,7 +89,7 @@ impl Record {
                 flags.insert(Flags::QUALITY_SCORES_STORED_AS_ARRAY);
             }
 
-            let scores: Vec<_> = record.quality_scores().iter().collect();
+            let scores: Vec<_> = record.quality_scores().iter().collect::<io::Result<_>>()?;
             let quality_scores = QualityScores::from(scores);
             builder = builder.set_quality_scores(quality_scores);
         }

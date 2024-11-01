@@ -1,4 +1,7 @@
-use std::ops::{Index, IndexMut};
+use std::{
+    io,
+    ops::{Index, IndexMut},
+};
 
 use noodles_core::position::SequenceIndex;
 
@@ -66,7 +69,7 @@ impl crate::alignment::record::QualityScores for &QualityScores {
         self.0.len()
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = u8> + '_> {
-        Box::new(self.0.iter().copied())
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<u8>> + '_> {
+        Box::new(self.0.iter().copied().map(Ok))
     }
 }

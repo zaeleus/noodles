@@ -1,5 +1,7 @@
 //! Raw SAM record quality scores.
 
+use std::io;
+
 /// Raw SAM record quality scores.
 #[derive(Debug, Eq, PartialEq)]
 pub struct QualityScores<'a>(&'a [u8]);
@@ -57,9 +59,12 @@ impl<'a> crate::alignment::record::QualityScores for QualityScores<'a> {
         self.len()
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = u8> + '_> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<u8>> + '_> {
         const OFFSET: u8 = b'!';
-        Box::new(self.as_ref().iter().map(|&b| b - OFFSET))
+
+        Box::new(self.as_ref().iter().map(|&b| {
+            Ok(b - OFFSET) // TODO: Check underflow.
+        }))
     }
 }
 

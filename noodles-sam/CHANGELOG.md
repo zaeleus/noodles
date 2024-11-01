@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/alignment/record/quality_scores: Change `QualityScores::iter` item to
+    be falliable.
+
+    `QualityScores::iter` now returns an iterator over `io::Result<u8>`, as
+    normalization of an underlying raw scores can fail.
+
 ## 0.65.0 - 2024-09-26
 
 ### Added

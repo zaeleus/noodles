@@ -15,12 +15,14 @@ where
     const MISSING: u8 = 255;
 
     if quality_scores.len() == base_count {
-        if !is_valid(quality_scores.iter()) {
-            return Err(io::Error::from(io::ErrorKind::InvalidInput));
-        }
+        for result in quality_scores.iter() {
+            let n = result?;
 
-        for n in quality_scores.iter() {
-            write_u8(dst, n);
+            if is_valid_score(n) {
+                write_u8(dst, n);
+            } else {
+                return Err(io::Error::from(io::ErrorKind::InvalidInput));
+            }
         }
     } else if quality_scores.is_empty() {
         dst.extend(iter::repeat_n(MISSING, base_count));
@@ -38,15 +40,11 @@ where
     Ok(())
 }
 
-fn is_valid<I>(mut scores: I) -> bool
-where
-    I: Iterator<Item = u8>,
-{
+fn is_valid_score(score: u8) -> bool {
     // § 4.2.3 "SEQ and QUAL encoding" (2023-05-24): "Base qualities are stored as bytes in the
     // range [0, 93]..."
     const MAX_SCORE: u8 = 93;
-
-    scores.all(|score| score <= MAX_SCORE)
+    score <= MAX_SCORE
 }
 
 #[cfg(test)]

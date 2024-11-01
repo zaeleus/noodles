@@ -3,6 +3,8 @@ use std::io::{self, Write};
 use super::MISSING;
 use crate::alignment::record::QualityScores;
 
+const OFFSET: u8 = b'!';
+
 pub(super) fn write_quality_scores<W, S>(
     writer: &mut W,
     base_count: usize,
@@ -12,18 +14,19 @@ where
     W: Write,
     S: QualityScores,
 {
-    const OFFSET: u8 = b'!';
-
     if quality_scores.is_empty() {
         writer.write_all(&[MISSING])?;
     } else if quality_scores.len() == base_count {
-        if !is_valid(quality_scores.iter()) {
-            return Err(io::Error::from(io::ErrorKind::InvalidInput));
-        }
+        for result in quality_scores.iter() {
+            let n = result?;
 
-        for score in quality_scores.iter() {
-            let n = score + OFFSET;
-            writer.write_all(&[n])?;
+            if is_valid_score(n) {
+                // SAFETY: `n` <= 93.
+                let m = n + OFFSET;
+                writer.write_all(&[m])?;
+            } else {
+                return Err(io::Error::from(io::ErrorKind::InvalidInput));
+            }
         }
     } else {
         return Err(io::Error::new(
@@ -39,12 +42,9 @@ where
     Ok(())
 }
 
-fn is_valid<I>(mut scores: I) -> bool
-where
-    I: Iterator<Item = u8>,
-{
-    const MAX_SCORE: u8 = b'~';
-    scores.all(|score| score <= MAX_SCORE)
+fn is_valid_score(score: u8) -> bool {
+    const MAX_SCORE: u8 = b'~' - OFFSET;
+    score <= MAX_SCORE
 }
 
 #[cfg(test)]

@@ -37,8 +37,11 @@ impl RecordBuf {
         *record_buf.mate_alignment_start_mut() = record.mate_alignment_start().transpose()?;
         *record_buf.template_length_mut() = record.template_length()?;
         *record_buf.sequence_mut() = record.sequence().iter().collect::<Vec<_>>().into();
-        *record_buf.quality_scores_mut() =
-            record.quality_scores().iter().collect::<Vec<_>>().into();
+        *record_buf.quality_scores_mut() = record
+            .quality_scores()
+            .iter()
+            .collect::<io::Result<Vec<_>>>()?
+            .into();
 
         let mut data_buf = Data::default();
 

@@ -1,3 +1,5 @@
+use std::io;
+
 use noodles_sam as sam;
 
 /// BAM record quality scores.
@@ -29,8 +31,8 @@ impl<'a> sam::alignment::record::QualityScores for QualityScores<'a> {
         self.len()
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = u8> + '_> {
-        Box::new(self.as_ref().iter().copied())
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<u8>> + '_> {
+        Box::new(self.as_ref().iter().copied().map(Ok))
     }
 }
 
