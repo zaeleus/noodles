@@ -22,7 +22,7 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub(crate) fn read_reference_sequence_id(src: &mut &[u8]) -> Result<Option<usize>, DecodeError> {
+pub(super) fn read_reference_sequence_id(src: &mut &[u8]) -> Result<Option<usize>, DecodeError> {
     const UNMAPPED: i32 = -1;
 
     match read_i32_le(src)? {

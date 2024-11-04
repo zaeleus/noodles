@@ -27,7 +27,7 @@ impl<'a> Cigar<'a> {
 
     /// Returns an iterator over CIGAR operations.
     pub fn iter(&self) -> impl Iterator<Item = io::Result<Op>> + '_ {
-        use crate::record::codec::decoder::cigar::op::decode_op;
+        use crate::record::codec::decoder::cigar::decode_op;
 
         self.0.chunks(CHUNK_SIZE).map(|chunk| {
             let buf = chunk

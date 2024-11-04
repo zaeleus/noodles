@@ -9,21 +9,19 @@ mod name;
 mod position;
 mod quality_scores;
 mod reference_sequence_id;
-pub(crate) mod sequence;
+mod sequence;
 mod template_length;
-
-pub(crate) use self::{
-    cigar::read_cigar, data::read_data, quality_scores::read_quality_scores,
-    reference_sequence_id::read_reference_sequence_id, sequence::read_sequence,
-};
 
 use std::{error, fmt};
 
 use noodles_sam::alignment::RecordBuf;
 
+pub(crate) use self::data::read_data;
 use self::{
-    bin::consume_bin, flags::read_flags, mapping_quality::read_mapping_quality, name::read_name,
-    position::read_position, template_length::read_template_length,
+    bin::consume_bin, cigar::read_cigar, flags::read_flags, mapping_quality::read_mapping_quality,
+    name::read_name, position::read_position, quality_scores::read_quality_scores,
+    reference_sequence_id::read_reference_sequence_id, sequence::read_sequence,
+    template_length::read_template_length,
 };
 
 /// An error when a raw BAM record fails to parse.

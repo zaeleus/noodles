@@ -31,11 +31,11 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub(crate) fn read_length(src: &mut &[u8]) -> Result<usize, DecodeError> {
+pub(super) fn read_length(src: &mut &[u8]) -> Result<usize, DecodeError> {
     read_u32_le(src).and_then(|n| usize::try_from(n).map_err(DecodeError::InvalidLength))
 }
 
-pub fn read_sequence(
+pub(super) fn read_sequence(
     src: &mut &[u8],
     sequence: &mut Sequence,
     base_count: usize,

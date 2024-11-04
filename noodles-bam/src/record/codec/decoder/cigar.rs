@@ -1,4 +1,4 @@
-pub mod op;
+mod op;
 
 use std::{error, fmt, mem};
 
@@ -11,7 +11,7 @@ use noodles_sam::{
     },
 };
 
-use self::op::decode_op;
+pub(crate) use self::op::decode_op;
 use super::{split_at_checked, split_first_chunk};
 
 /// An error when a raw BAM record CIGAR fails to parse.
@@ -44,11 +44,15 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub fn read_op_count(src: &mut &[u8]) -> Result<usize, DecodeError> {
+pub(super) fn read_op_count(src: &mut &[u8]) -> Result<usize, DecodeError> {
     read_u16_le(src).map(usize::from)
 }
 
-pub fn read_cigar(src: &mut &[u8], cigar: &mut Cigar, op_count: usize) -> Result<(), DecodeError> {
+pub(super) fn read_cigar(
+    src: &mut &[u8],
+    cigar: &mut Cigar,
+    op_count: usize,
+) -> Result<(), DecodeError> {
     let len = mem::size_of::<u32>() * op_count;
     let (mut buf, rest) = split_at_checked(src, len).ok_or(DecodeError::UnexpectedEof)?;
 
