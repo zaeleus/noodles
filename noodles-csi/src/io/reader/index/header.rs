@@ -108,17 +108,17 @@ where
     use crate::binning_index::index::header::Format;
 
     let format =
-        read_i32(reader).and_then(|n| Format::try_from(n).map_err(ReadError::InvalidFormat))?;
+        read_i32_le(reader).and_then(|n| Format::try_from(n).map_err(ReadError::InvalidFormat))?;
 
     let col_seq = read_reference_sequence_name_index(reader)?;
     let col_beg = read_start_position_index(reader)?;
     let col_end = read_end_position_index(reader)?;
 
-    let meta = read_i32(reader)
+    let meta = read_i32_le(reader)
         .and_then(|b| u8::try_from(b).map_err(ReadError::InvalidLineCommentPrefix))?;
 
-    let skip =
-        read_i32(reader).and_then(|n| u32::try_from(n).map_err(ReadError::InvalidLineSkipCount))?;
+    let skip = read_i32_le(reader)
+        .and_then(|n| u32::try_from(n).map_err(ReadError::InvalidLineSkipCount))?;
 
     let names =
         read_reference_sequence_names(reader).map_err(ReadError::InvalidReferenceSequenceNames)?;
@@ -134,7 +134,7 @@ where
         .build())
 }
 
-fn read_i32<R>(reader: &mut R) -> Result<i32, ReadError>
+fn read_i32_le<R>(reader: &mut R) -> Result<i32, ReadError>
 where
     R: Read,
 {
@@ -145,7 +145,7 @@ fn read_reference_sequence_name_index<R>(reader: &mut R) -> Result<usize, ReadEr
 where
     R: Read,
 {
-    read_i32(reader).and_then(|i| {
+    read_i32_le(reader).and_then(|i| {
         usize::try_from(i)
             .map_err(ReadError::InvalidReferenceSequenceNameIndex)
             .and_then(|n| {
@@ -159,7 +159,7 @@ fn read_start_position_index<R>(reader: &mut R) -> Result<usize, ReadError>
 where
     R: Read,
 {
-    read_i32(reader).and_then(|i| {
+    read_i32_le(reader).and_then(|i| {
         usize::try_from(i)
             .map_err(ReadError::InvalidStartPositionIndex)
             .and_then(|n| {
@@ -173,7 +173,7 @@ fn read_end_position_index<R>(reader: &mut R) -> Result<Option<usize>, ReadError
 where
     R: Read,
 {
-    read_i32(reader).and_then(|i| match i {
+    read_i32_le(reader).and_then(|i| match i {
         0 => Ok(None),
         _ => usize::try_from(i)
             .map(|n| {
