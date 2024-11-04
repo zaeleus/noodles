@@ -1,9 +1,10 @@
 use std::{
     error, fmt,
     io::{self, BufRead, BufReader, Read},
-    num, str,
+    num,
 };
 
+use bstr::BString;
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use crate::binning_index::index::header::ReferenceSequenceNames;
@@ -15,10 +16,8 @@ pub enum ReadError {
     Io(io::Error),
     /// The length is invalid.
     InvalidLength(num::TryFromIntError),
-    /// A reference sequence name is invalid.
-    InvalidName(str::Utf8Error),
     /// A reference sequence name is duplicated.
-    DuplicateName(String),
+    DuplicateName(BString),
     /// Expected EOF.
     ExpectedEof,
 }
@@ -28,7 +27,6 @@ impl error::Error for ReadError {
         match self {
             Self::Io(e) => Some(e),
             Self::InvalidLength(e) => Some(e),
-            Self::InvalidName(e) => Some(e),
             _ => None,
         }
     }
@@ -39,7 +37,6 @@ impl fmt::Display for ReadError {
         match self {
             Self::Io(_) => write!(f, "I/O error"),
             Self::InvalidLength(_) => write!(f, "invalid length"),
-            Self::InvalidName(_) => write!(f, "invalid name"),
             Self::DuplicateName(name) => write!(f, "duplicate name: {name}"),
             Self::ExpectedEof => write!(f, "expected EOF"),
         }
@@ -84,8 +81,7 @@ where
 
         let len = match src.iter().position(|&b| b == NUL) {
             Some(i) => {
-                let raw_name = &src[..i];
-                let name = str::from_utf8(raw_name).map_err(ReadError::InvalidName)?;
+                let name = &src[..i];
 
                 if !names.insert(name.into()) {
                     return Err(ReadError::DuplicateName(name.into()));
@@ -116,7 +112,7 @@ mod tests {
         let mut reader = &src[..];
 
         let actual = read_reference_sequence_names(&mut reader)?;
-        let expected: ReferenceSequenceNames = [String::from("sq0"), String::from("sq1")]
+        let expected: ReferenceSequenceNames = [BString::from("sq0"), BString::from("sq1")]
             .into_iter()
             .collect();
 

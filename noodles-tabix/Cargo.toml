@@ -23,6 +23,7 @@ noodles-csi = { path = "../noodles-csi", version = "0.39.0" }
 tokio = { workspace = true, optional = true, features = ["fs", "io-util"] }
 
 [dev-dependencies]
+bstr.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 
 [package.metadata.docs.rs]

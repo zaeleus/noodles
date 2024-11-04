@@ -208,7 +208,7 @@ where
     writer.write_i32_le(l_nm).await?;
 
     for reference_sequence_name in reference_sequence_names {
-        writer.write_all(reference_sequence_name.as_bytes()).await?;
+        writer.write_all(reference_sequence_name).await?;
         writer.write_u8(NUL).await?;
     }
 
@@ -368,6 +368,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use bstr::BString;
+
     use super::*;
 
     #[tokio::test]
@@ -404,7 +406,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_write_reference_sequence_names() -> io::Result<()> {
-        let reference_sequence_names = [String::from("sq0"), String::from("sq1")]
+        let reference_sequence_names = [BString::from("sq0"), BString::from("sq1")]
             .into_iter()
             .collect();
 

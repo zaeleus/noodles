@@ -210,7 +210,7 @@ where
     writer.write_i32::<LittleEndian>(l_nm)?;
 
     for reference_sequence_name in reference_sequence_names {
-        writer.write_all(reference_sequence_name.as_bytes())?;
+        writer.write_all(reference_sequence_name)?;
         writer.write_u8(NUL)?;
     }
 
@@ -341,6 +341,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use bstr::BString;
+
     use super::*;
 
     #[test]
@@ -353,7 +355,7 @@ mod tests {
         let intervals = vec![bgzf::VirtualPosition::from(337)];
         let references = vec![ReferenceSequence::new(bins, intervals, None)];
 
-        let reference_sequence_names = [String::from("sq0"), String::from("sq1")]
+        let reference_sequence_names = [BString::from("sq0"), BString::from("sq1")]
             .into_iter()
             .collect();
 

@@ -22,7 +22,7 @@ where
     writer.write_i32::<LittleEndian>(l_nm)?;
 
     for reference_sequence_name in reference_sequence_names {
-        writer.write_all(reference_sequence_name.as_bytes())?;
+        writer.write_all(reference_sequence_name)?;
         writer.write_u8(NUL)?;
     }
 
@@ -31,6 +31,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use bstr::BString;
+
     use super::*;
 
     #[test]
@@ -42,7 +44,7 @@ mod tests {
         write_reference_sequence_names(&mut buf, &reference_sequence_names)?;
         assert_eq!(buf, [0x00, 0x00, 0x00, 0x00]); // l_nm = 0
 
-        let reference_sequence_names = [String::from("sq0")].into_iter().collect();
+        let reference_sequence_names = [BString::from("sq0")].into_iter().collect();
         buf.clear();
         write_reference_sequence_names(&mut buf, &reference_sequence_names)?;
         assert_eq!(
@@ -53,7 +55,7 @@ mod tests {
             ]
         );
 
-        let reference_sequence_names = [String::from("sq0"), String::from("sq1")]
+        let reference_sequence_names = [BString::from("sq0"), BString::from("sq1")]
             .into_iter()
             .collect();
         buf.clear();

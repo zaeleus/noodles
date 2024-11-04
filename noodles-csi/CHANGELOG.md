@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * csi/binning_index/index/header: Change `ReferenceSequenceNames` to an
+    ordered set of byte strings (`IndexSet<BString>`).
+
 ## 0.39.0 - 2024-09-26
 
 ### Changed

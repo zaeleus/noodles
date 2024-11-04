@@ -76,6 +76,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use bstr::BString;
+
     use super::*;
 
     #[test]
@@ -90,7 +92,7 @@ sq0\t21\t34
         let header = Header::builder()
             .set_start_position_index(1)
             .set_end_position_index(Some(2))
-            .set_reference_sequence_names([String::from("sq0")].into_iter().collect())
+            .set_reference_sequence_names([BString::from("sq0")].into_iter().collect())
             .build();
 
         let records: Vec<_> = IndexedRecords::new(reader, &header).collect::<Result<_, _>>()?;

@@ -14,6 +14,7 @@ documentation = "https://docs.rs/noodles-csi"
 async = ["dep:tokio", "noodles-bgzf/async"]
 
 [dependencies]
+bstr.workspace = true
 bit-vec = "0.8.0"
 byteorder.workspace = true
 indexmap.workspace = true

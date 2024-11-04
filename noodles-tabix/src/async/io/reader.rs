@@ -350,6 +350,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use bstr::BString;
+
     use super::*;
 
     #[tokio::test]
@@ -390,7 +392,7 @@ mod tests {
         let mut reader = &data[..];
         let actual = read_header(&mut reader).await?;
 
-        let names = [String::from("sq0"), String::from("sq1")]
+        let names = [BString::from("sq0"), BString::from("sq1")]
             .into_iter()
             .collect();
         let expected = csi::binning_index::index::header::Builder::gff()

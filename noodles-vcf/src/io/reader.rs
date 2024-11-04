@@ -13,7 +13,7 @@ pub use self::{builder::Builder, query::Query, record_bufs::RecordBufs};
 
 use std::{
     io::{self, BufRead},
-    iter, str,
+    iter,
 };
 
 use noodles_bgzf as bgzf;
@@ -395,12 +395,9 @@ where
         .header()
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing tabix header"))?;
 
-    let region_name = str::from_utf8(region.name())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
     let i = header
         .reference_sequence_names()
-        .get_index_of(region_name)
+        .get_index_of(region.name())
         .ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,

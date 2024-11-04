@@ -187,6 +187,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use bstr::BString;
+
     use super::*;
 
     #[test]
@@ -211,7 +213,7 @@ mod tests {
 
         let actual = read_aux(&mut reader)?;
 
-        let names = [String::from("sq0"), String::from("sq1")]
+        let names = [BString::from("sq0"), BString::from("sq1")]
             .into_iter()
             .collect();
         let expected = crate::binning_index::index::header::Builder::vcf()

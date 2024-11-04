@@ -5,10 +5,11 @@ pub mod format;
 
 pub use self::{builder::Builder, format::Format};
 
+use bstr::BString;
 use indexmap::IndexSet;
 
 /// An ordered set of reference sequence names.
-pub type ReferenceSequenceNames = IndexSet<String>;
+pub type ReferenceSequenceNames = IndexSet<BString>;
 
 /// A tabix index header.
 #[derive(Clone, Debug, Eq, PartialEq)]
