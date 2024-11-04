@@ -5,6 +5,8 @@ use std::{
     str::{self, FromStr},
 };
 
+use bstr::ByteSlice;
+
 const PREFIX: char = '>';
 
 /// A FASTA record definition.
@@ -69,12 +71,10 @@ impl Definition {
 
 impl fmt::Display for Definition {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let name = str::from_utf8(self.name()).map_err(|_| fmt::Error)?;
-        write!(f, "{PREFIX}{name}")?;
+        write!(f, "{PREFIX}{}", self.name.as_bstr())?;
 
-        if let Some(buf) = self.description() {
-            let description = str::from_utf8(buf).map_err(|_| fmt::Error)?;
-            write!(f, " {description}")?;
+        if let Some(description) = self.description() {
+            write!(f, " {}", description.as_bstr())?;
         }
 
         Ok(())
