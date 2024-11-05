@@ -4,7 +4,7 @@ use std::{
     num,
 };
 
-use bstr::BString;
+use bstr::{BString, ByteSlice};
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use crate::binning_index::index::header::ReferenceSequenceNames;
@@ -79,19 +79,17 @@ where
             break;
         }
 
-        let len = match src.iter().position(|&b| b == NUL) {
-            Some(i) => {
-                let name = &src[..i];
-
-                if !names.insert(name.into()) {
-                    return Err(ReadError::DuplicateName(name.into()));
-                }
-
-                i + 1
-            }
-            None => return Err(ReadError::ExpectedEof),
+        let Some(i) = src.as_bstr().find_byte(NUL) else {
+            return Err(ReadError::ExpectedEof);
         };
 
+        let name = &src[..i];
+
+        if !names.insert(name.into()) {
+            return Err(ReadError::DuplicateName(name.into()));
+        }
+
+        let len = i + 1;
         reader.consume(len);
     }
 
