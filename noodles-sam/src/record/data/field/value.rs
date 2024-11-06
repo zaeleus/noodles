@@ -10,14 +10,14 @@ use std::io;
 
 use bstr::{BStr, ByteSlice};
 
-use self::{array::parse_array, integer::parse_int32_value};
+use self::{array::parse_array, integer::parse_integer_value};
 use super::Type;
 use crate::alignment::record::data::field::Value;
 
 pub(super) fn parse_value<'a>(src: &mut &'a [u8], ty: Type) -> io::Result<Value<'a>> {
     match ty {
         Type::Character => parse_character_value(src),
-        Type::Int32 => parse_int32_value(src),
+        Type::Integer => parse_integer_value(src),
         Type::Float => parse_float_value(src),
         Type::String => Ok(parse_string_value(src)),
         Type::Hex => Ok(parse_hex_value(src)),
@@ -75,7 +75,7 @@ mod tests {
 
         let mut src = &b"0"[..];
         assert!(matches!(
-            parse_value(&mut src, Type::Int32)?,
+            parse_value(&mut src, Type::Integer)?,
             Value::Int32(0)
         ));
 

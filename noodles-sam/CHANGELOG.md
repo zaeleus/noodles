@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added
+
+  * sam/record/data/field/value/integer: Support integer (`i`) values up to
+    (2^32) - 1.
+
+    Values between 2^31 and (2^32) - 1 are now parsed as unsigned 32-bit
+    integers (`u32`), which are used as such in BAM and CRAM.
+
 ### Changed
 
   * sam/alignment/record/quality_scores: Change `QualityScores::iter` item to

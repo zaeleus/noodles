@@ -3,7 +3,7 @@ use std::io;
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(super) enum Type {
     Character,
-    Int32,
+    Integer,
     Float,
     String,
     Hex,
@@ -14,7 +14,7 @@ pub(super) fn parse_type(src: &mut &[u8]) -> io::Result<Type> {
     if let Some((b, rest)) = src.split_first() {
         let ty = match b {
             b'A' => Type::Character,
-            b'i' => Type::Int32,
+            b'i' => Type::Integer,
             b'f' => Type::Float,
             b'Z' => Type::String,
             b'H' => Type::Hex,
@@ -42,7 +42,7 @@ mod tests {
         }
 
         t(b"A", Type::Character)?;
-        t(b"i", Type::Int32)?;
+        t(b"i", Type::Integer)?;
         t(b"f", Type::Float)?;
         t(b"Z", Type::String)?;
         t(b"H", Type::Hex)?;
