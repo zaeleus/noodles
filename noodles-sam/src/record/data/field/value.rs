@@ -2,6 +2,7 @@
 
 mod array;
 pub mod base_modifications;
+mod integer;
 
 pub use self::base_modifications::BaseModifications;
 
@@ -9,7 +10,7 @@ use std::io;
 
 use bstr::{BStr, ByteSlice};
 
-use self::array::parse_array;
+use self::{array::parse_array, integer::parse_int32_value};
 use super::Type;
 use crate::alignment::record::data::field::Value;
 
@@ -31,15 +32,6 @@ fn parse_character_value<'a>(src: &mut &'a [u8]) -> io::Result<Value<'a>> {
     } else {
         Err(io::Error::from(io::ErrorKind::UnexpectedEof))
     }
-}
-
-fn parse_int32_value<'a>(src: &mut &'a [u8]) -> io::Result<Value<'a>> {
-    let (n, i) = lexical_core::parse_partial(src)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-    *src = &src[i..];
-
-    Ok(Value::Int32(n))
 }
 
 fn parse_float_value<'a>(src: &mut &'a [u8]) -> io::Result<Value<'a>> {
