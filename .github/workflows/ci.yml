@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   format:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: Update Rust
@@ -14,7 +14,7 @@ jobs:
       - run: cargo fmt -- --check
 
   lint:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: Update Rust
@@ -24,7 +24,7 @@ jobs:
       - run: cargo clippy --all-features -- --deny warnings
 
   test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: Update Rust
