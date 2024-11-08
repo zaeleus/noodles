@@ -22,7 +22,7 @@ impl Tag {
     pub const BASE_ALIGNMENT_QUALITY_OFFSETS: Self = Self::new(b'B', b'Q');
 
     /// Phred quality of the unique molecular barcode bases in the `OX` tag (`BZ`).
-    pub const ORIGINAL_UMI_QUALITY_SCORES: Self = Self::new(b'O', b'X');
+    pub const ORIGINAL_UMI_QUALITY_SCORES: Self = Self::new(b'B', b'Z');
 
     /// Cell identifier (`CB`).
     pub const CELL_BARCODE_ID: Self = Self::new(b'C', b'B');
