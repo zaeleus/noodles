@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * sam/alignment/record/data/field/tag: Fix original UMI quality scores (`BZ`)
+    tag ([#307]).
+
+[#307]: https://github.com/zaeleus/noodles/issues/307
+
 ## 0.66.0 - 2024-11-07
 
 ### Added
