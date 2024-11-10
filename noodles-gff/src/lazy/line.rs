@@ -55,6 +55,12 @@ impl Line {
     }
 }
 
+impl AsRef<str> for Line {
+    fn as_ref(&self) -> &str {
+        &self.0
+    }
+}
+
 impl Default for Line {
     fn default() -> Self {
         Self(String::from("#"))
