@@ -12,7 +12,7 @@ use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::{self as csi, BinningIndex};
 
-pub(crate) use self::lazy_line::read_lazy_line;
+use self::lazy_line::read_lazy_line;
 use crate::{lazy, Record};
 
 /// A GFF reader.
@@ -151,20 +151,15 @@ where
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_gff as gff;
+    /// use noodles_gff::{self as gff, lazy};
     ///
-    /// let data = b"##gff-version 3
-    /// sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id=ndls0;gene_name=gene0
-    /// ";
+    /// let data = b"##gff-version 3\n";
     /// let mut reader = gff::io::Reader::new(&data[..]);
     ///
     /// let mut line = gff::lazy::Line::default();
     ///
     /// reader.read_lazy_line(&mut line)?;
-    /// assert!(matches!(line, gff::lazy::Line::Directive(_)));
-    ///
-    /// reader.read_lazy_line(&mut line)?;
-    /// assert!(matches!(line, gff::lazy::Line::Record(_)));
+    /// assert_eq!(line.kind(), lazy::line::Kind::Directive);
     ///
     /// assert_eq!(reader.read_lazy_line(&mut line)?, 0);
     /// # Ok::<_, io::Error>(())

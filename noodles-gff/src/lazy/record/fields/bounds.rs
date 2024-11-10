@@ -1,18 +1,52 @@
-use std::ops::{Range, RangeFrom};
+use std::{
+    io,
+    ops::{Range, RangeFrom},
+};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct Bounds {
-    pub(crate) reference_sequence_name_end: usize,
-    pub(crate) source_end: usize,
-    pub(crate) type_end: usize,
-    pub(crate) start_end: usize,
-    pub(crate) end_end: usize,
-    pub(crate) score_end: usize,
-    pub(crate) strand_end: usize,
-    pub(crate) phase_end: usize,
+pub(super) struct Bounds {
+    reference_sequence_name_end: usize,
+    source_end: usize,
+    type_end: usize,
+    start_end: usize,
+    end_end: usize,
+    score_end: usize,
+    strand_end: usize,
+    phase_end: usize,
 }
 
 impl Bounds {
+    pub(super) fn index(mut src: &str) -> io::Result<Self> {
+        let mut bounds = Self::default();
+        let mut len = 0;
+
+        len += read_required_field(&mut src)?;
+        bounds.reference_sequence_name_end = len;
+
+        len += read_required_field(&mut src)?;
+        bounds.source_end = len;
+
+        len += read_required_field(&mut src)?;
+        bounds.type_end = len;
+
+        len += read_required_field(&mut src)?;
+        bounds.start_end = len;
+
+        len += read_required_field(&mut src)?;
+        bounds.end_end = len;
+
+        len += read_required_field(&mut src)?;
+        bounds.score_end = len;
+
+        len += read_required_field(&mut src)?;
+        bounds.strand_end = len;
+
+        len += read_required_field(&mut src)?;
+        bounds.phase_end = len;
+
+        Ok(bounds)
+    }
+
     pub fn reference_sequence_name_range(&self) -> Range<usize> {
         0..self.reference_sequence_name_end
     }
@@ -63,4 +97,28 @@ impl Default for Bounds {
             phase_end: 8,
         }
     }
+}
+
+fn read_required_field(src: &mut &str) -> io::Result<usize> {
+    let (len, is_eol) = read_field(src);
+
+    if is_eol {
+        Err(io::Error::from(io::ErrorKind::UnexpectedEof))
+    } else {
+        Ok(len)
+    }
+}
+
+fn read_field(src: &mut &str) -> (usize, bool) {
+    const DELIMITER: char = '\t';
+
+    let (len, is_eol) = if let Some(i) = src.find(DELIMITER) {
+        (i + 1, false)
+    } else {
+        (src.len(), true)
+    };
+
+    *src = &src[len..];
+
+    (len, is_eol)
 }

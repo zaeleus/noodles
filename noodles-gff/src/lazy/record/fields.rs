@@ -4,67 +4,62 @@ use std::io;
 
 use noodles_core::Position;
 
-pub(crate) use self::bounds::Bounds;
+use self::bounds::Bounds;
 use super::Attributes;
 use crate::record::Strand;
 
 #[derive(Clone, Eq, PartialEq)]
-pub(crate) struct Fields {
-    pub(crate) buf: String,
-    pub(crate) bounds: Bounds,
+pub(super) struct Fields<'l> {
+    src: &'l str,
+    bounds: Bounds,
 }
 
-impl Fields {
+impl<'l> Fields<'l> {
+    pub(super) fn try_new(src: &'l str) -> io::Result<Self> {
+        Bounds::index(src).map(|bounds| Self { src, bounds })
+    }
+
     pub fn reference_sequence_name(&self) -> &str {
-        &self.buf[self.bounds.reference_sequence_name_range()]
+        &self.src[self.bounds.reference_sequence_name_range()]
     }
 
     pub fn source(&self) -> &str {
-        &self.buf[self.bounds.source_range()]
+        &self.src[self.bounds.source_range()]
     }
 
     pub fn ty(&self) -> &str {
-        &self.buf[self.bounds.type_range()]
+        &self.src[self.bounds.type_range()]
     }
 
     pub fn start(&self) -> io::Result<Position> {
-        let src = &self.buf[self.bounds.start_range()];
+        let src = &self.src[self.bounds.start_range()];
         parse_position(src)
     }
 
     pub fn end(&self) -> io::Result<Position> {
-        let src = &self.buf[self.bounds.end_range()];
+        let src = &self.src[self.bounds.end_range()];
         parse_position(src)
     }
 
     pub fn score(&self) -> &str {
-        &self.buf[self.bounds.score_range()]
+        &self.src[self.bounds.score_range()]
     }
 
     pub fn strand(&self) -> io::Result<Strand> {
-        let src = &self.buf[self.bounds.strand_range()];
+        let src = &self.src[self.bounds.strand_range()];
         parse_strand(src)
     }
 
     pub fn phase(&self) -> &str {
-        &self.buf[self.bounds.phase_range()]
+        &self.src[self.bounds.phase_range()]
     }
 
     pub fn attributes(&self) -> Attributes<'_> {
         const MISSING: &str = ".";
 
-        match &self.buf[self.bounds.attributes_range()] {
+        match &self.src[self.bounds.attributes_range()] {
             MISSING => Attributes::new(""),
             buf => Attributes::new(buf),
-        }
-    }
-}
-
-impl Default for Fields {
-    fn default() -> Self {
-        Self {
-            buf: String::from("...11...."),
-            bounds: Bounds::default(),
         }
     }
 }

@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * gff/lazy/line: Hoist buffer to line.
+
+    This moves the owned line buffer to `Line`. The structure is now a struct
+    with a kind (`Kind`) field instead of an enum. The record wrapper
+    (`lazy::Record`) now borrows from `Line`.
+
+    In practice, instead of matching the line variant (e.g.,
+    `Line::Record(_)`), match on the `Kind` or attempt a conversion (e.g.,
+    `line.as_record()`).
+
 ## 0.39.0 - 2024-11-07
 
 ### Changed

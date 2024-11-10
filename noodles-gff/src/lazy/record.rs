@@ -9,14 +9,18 @@ use std::io;
 use noodles_core::Position;
 
 pub use self::attributes::Attributes;
-pub(crate) use self::fields::Fields;
+use self::fields::Fields;
 use crate::record::Strand;
 
 /// An immutable, lazily-evalulated GFF record.
-#[derive(Clone, Default, Eq, PartialEq)]
-pub struct Record(pub(crate) Fields);
+#[derive(Clone, Eq, PartialEq)]
+pub struct Record<'l>(Fields<'l>);
 
-impl Record {
+impl<'l> Record<'l> {
+    pub(super) fn try_new(src: &'l str) -> io::Result<Self> {
+        Fields::try_new(src).map(Self)
+    }
+
     /// Returns the reference sequence name.
     pub fn reference_sequence_name(&self) -> &str {
         self.0.reference_sequence_name()
@@ -63,7 +67,7 @@ impl Record {
     }
 }
 
-impl fmt::Debug for Record {
+impl<'l> fmt::Debug for Record<'l> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Record")
             .field("reference_sequence_name", &self.reference_sequence_name())
@@ -76,11 +80,5 @@ impl fmt::Debug for Record {
             .field("phase", &self.phase())
             .field("attributes", &self.attributes())
             .finish()
-    }
-}
-
-impl From<Record> for String {
-    fn from(record: Record) -> Self {
-        record.0.buf
     }
 }

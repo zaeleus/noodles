@@ -9,7 +9,6 @@ use crate::{lazy, Directive, Line, Record};
 /// An async GFF reader.
 pub struct Reader<R> {
     inner: R,
-    buf: String,
 }
 
 impl<R> Reader<R> {
@@ -70,10 +69,7 @@ where
     /// let reader = gff::r#async::io::Reader::new(io::empty());
     /// ```
     pub fn new(inner: R) -> Self {
-        Self {
-            inner,
-            buf: String::new(),
-        }
+        Self { inner }
     }
 
     /// Reads a raw GFF line.
@@ -111,13 +107,16 @@ where
     /// let mut reader = gff::r#async::io::Reader::new(&data[..]);
     ///
     /// let mut line = lazy::Line::default();
+    ///
     /// reader.read_lazy_line(&mut line).await?;
-    /// assert_eq!(line, lazy::Line::Directive(String::from("##gff-version 3")));
+    /// assert_eq!(line.kind(), lazy::line::Kind::Directive);
+    ///
+    /// assert_eq!(reader.read_lazy_line(&mut line).await?, 0);
     /// # Ok(())
     /// # }
     /// ```
     pub async fn read_lazy_line(&mut self, line: &mut lazy::Line) -> io::Result<usize> {
-        read_lazy_line(&mut self.inner, &mut self.buf, line).await
+        read_lazy_line(&mut self.inner, line).await
     }
 
     /// Returns a stream over lines.
