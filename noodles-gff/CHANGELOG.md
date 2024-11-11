@@ -14,6 +14,10 @@
     `Line::Record(_)`), match on the `Kind` or attempt a conversion (e.g.,
     `line.as_record()`).
 
+  * gff/lazy/line: Wrap a directive line as `Directive<'_>`.
+
+    This splits the line into its key-optional value components.
+
 ## 0.39.0 - 2024-11-07
 
 ### Changed

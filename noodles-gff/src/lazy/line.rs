@@ -5,7 +5,7 @@ mod kind;
 use std::io;
 
 pub use self::kind::Kind;
-use super::Record;
+use super::{Directive, Record};
 
 const COMMENT_PREFIX: char = '#';
 
@@ -31,9 +31,9 @@ impl Line {
     }
 
     /// Returns the line as a directive.
-    pub fn as_directive(&self) -> Option<&str> {
+    pub fn as_directive(&self) -> Option<Directive<'_>> {
         match self.kind() {
-            Kind::Directive => Some(&self.0[DIRECTIVE_START..]),
+            Kind::Directive => Some(Directive::new(&self.0[DIRECTIVE_START..])),
             _ => None,
         }
     }
