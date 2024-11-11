@@ -6,7 +6,6 @@ use noodles_core::Position;
 
 use self::bounds::Bounds;
 use super::Attributes;
-use crate::record::Strand;
 
 #[derive(Clone, Eq, PartialEq)]
 pub(super) struct Fields<'l> {
@@ -45,9 +44,8 @@ impl<'l> Fields<'l> {
         &self.src[self.bounds.score_range()]
     }
 
-    pub fn strand(&self) -> io::Result<Strand> {
-        let src = &self.src[self.bounds.strand_range()];
-        parse_strand(src)
+    pub fn strand(&self) -> &str {
+        &self.src[self.bounds.strand_range()]
     }
 
     pub fn phase(&self) -> &str {
@@ -65,11 +63,6 @@ impl<'l> Fields<'l> {
 }
 
 fn parse_position(s: &str) -> io::Result<Position> {
-    s.parse()
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-}
-
-fn parse_strand(s: &str) -> io::Result<Strand> {
     s.parse()
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }

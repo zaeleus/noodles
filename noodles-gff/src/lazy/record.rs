@@ -53,7 +53,7 @@ impl<'l> Record<'l> {
 
     /// Returns the strand.
     pub fn strand(&self) -> io::Result<Strand> {
-        self.0.strand()
+        parse_strand(self.0.strand())
     }
 
     /// Returns the phase.
@@ -81,4 +81,9 @@ impl<'l> fmt::Debug for Record<'l> {
             .field("attributes", &self.attributes())
             .finish()
     }
+}
+
+fn parse_strand(s: &str) -> io::Result<Strand> {
+    s.parse()
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
