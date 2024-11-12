@@ -29,3 +29,24 @@ pub(super) fn parse_field<'a>(buf: &mut &'a str) -> io::Result<(&'a str, Value<'
 
     Ok((key, value))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_field() -> io::Result<()> {
+        let mut src = "ID=nd;Name=ls";
+        assert_eq!(parse_field(&mut src)?, ("ID", Value::String("nd")));
+        assert_eq!(parse_field(&mut src)?, ("Name", Value::String("ls")));
+        assert!(src.is_empty());
+
+        let mut src = "ID";
+        assert!(matches!(
+            parse_field(&mut src),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        Ok(())
+    }
+}
