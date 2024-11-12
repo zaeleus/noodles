@@ -24,6 +24,7 @@ noodles-core = { path = "../noodles-core", version = "0.15.0" }
 noodles-csi = { path = "../noodles-csi", version = "0.40.0" }
 
 futures = { workspace = true, optional = true, features = ["std"] }
+pin-project-lite = { version = "0.2.6", optional = true }
 tokio = { workspace = true, optional = true, features = ["io-util"] }
 
 [dev-dependencies]

@@ -1,38 +1,80 @@
-use std::io::{self, BufRead};
+use std::io::{self, BufRead, Read};
+
+use bstr::ByteSlice;
 
 use super::read_line;
 use crate::{header, Header};
+
+struct Reader<R> {
+    inner: R,
+    is_eol: bool,
+}
+
+impl<R> Reader<R> {
+    fn new(inner: R) -> Self {
+        Self {
+            inner,
+            is_eol: true,
+        }
+    }
+}
+
+impl<R> Read for Reader<R>
+where
+    R: BufRead,
+{
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        let mut src = self.fill_buf()?;
+        let amt = src.read(buf)?;
+        self.consume(amt);
+        Ok(amt)
+    }
+}
+
+impl<R> BufRead for Reader<R>
+where
+    R: BufRead,
+{
+    fn fill_buf(&mut self) -> io::Result<&[u8]> {
+        const PREFIX: u8 = b'@';
+        const LINE_FEED: u8 = b'\n';
+
+        let src = self.inner.fill_buf()?;
+
+        if self.is_eol && src.first().map(|&b| b != PREFIX).unwrap_or(true) {
+            Ok(&[])
+        } else if let Some(i) = src.as_bstr().find_byte(LINE_FEED) {
+            self.is_eol = true;
+            Ok(&src[..=i])
+        } else {
+            self.is_eol = false;
+            Ok(src)
+        }
+    }
+
+    fn consume(&mut self, amt: usize) {
+        self.inner.consume(amt);
+    }
+}
 
 pub(super) fn read_header<R>(reader: &mut R) -> io::Result<Header>
 where
     R: BufRead,
 {
+    let mut reader = Reader::new(reader);
+
     let mut parser = header::Parser::default();
     let mut buf = Vec::new();
 
-    while read_header_line(reader, &mut buf)? != 0 {
+    while read_line(&mut reader, &mut buf)? != 0 {
         parser
             .parse_partial(&buf)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+        buf.clear();
     }
 
     Ok(parser.finish())
-}
-
-fn read_header_line<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<usize>
-where
-    R: BufRead,
-{
-    const PREFIX: u8 = b'@';
-
-    let src = reader.fill_buf()?;
-
-    if src.is_empty() || src[0] != PREFIX {
-        return Ok(0);
-    }
-
-    dst.clear();
-    read_line(reader, dst)
 }
 
 #[cfg(test)]

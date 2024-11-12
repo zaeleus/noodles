@@ -1,38 +1,98 @@
-use tokio::io::{self, AsyncBufRead, AsyncBufReadExt};
+use bstr::ByteSlice;
+use pin_project_lite::pin_project;
+use std::{
+    pin::Pin,
+    task::{ready, Context, Poll},
+};
+use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, ReadBuf};
 
 use super::read_line;
 use crate::{header, Header};
+
+pin_project! {
+    struct Reader<R> {
+        #[pin]
+        inner: R,
+        is_eol: bool,
+    }
+}
+
+impl<R> Reader<R> {
+    fn new(inner: R) -> Self {
+        Self {
+            inner,
+            is_eol: true,
+        }
+    }
+}
+
+impl<R> AsyncRead for Reader<R>
+where
+    R: AsyncBufRead + Unpin,
+{
+    fn poll_read(
+        mut self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+        buf: &mut ReadBuf<'_>,
+    ) -> Poll<io::Result<()>> {
+        let src = ready!(self.as_mut().poll_fill_buf(cx))?;
+
+        let amt = src.len().min(buf.remaining());
+        buf.put_slice(&src[..amt]);
+
+        self.consume(amt);
+
+        Poll::Ready(Ok(()))
+    }
+}
+
+impl<R> AsyncBufRead for Reader<R>
+where
+    R: AsyncBufRead + Unpin,
+{
+    fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<&[u8]>> {
+        const PREFIX: u8 = b'@';
+        const LINE_FEED: u8 = b'\n';
+
+        let this = self.project();
+        let src = ready!(this.inner.poll_fill_buf(cx))?;
+
+        let buf = if *this.is_eol && src.first().map(|&b| b != PREFIX).unwrap_or(true) {
+            &[]
+        } else if let Some(i) = src.as_bstr().find_byte(LINE_FEED) {
+            *this.is_eol = true;
+            &src[..=i]
+        } else {
+            *this.is_eol = false;
+            src
+        };
+
+        Poll::Ready(Ok(buf))
+    }
+
+    fn consume(mut self: Pin<&mut Self>, amt: usize) {
+        self.as_mut().inner.consume(amt);
+    }
+}
 
 pub(super) async fn read_header<R>(reader: &mut R) -> io::Result<Header>
 where
     R: AsyncBufRead + Unpin,
 {
+    let mut reader = Reader::new(reader);
+
     let mut parser = header::Parser::default();
     let mut buf = Vec::new();
 
-    while read_header_line(reader, &mut buf).await? != 0 {
+    while read_line(&mut reader, &mut buf).await? != 0 {
         parser
             .parse_partial(&buf)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+        buf.clear();
     }
 
     Ok(parser.finish())
-}
-
-async fn read_header_line<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<usize>
-where
-    R: AsyncBufRead + Unpin,
-{
-    const PREFIX: u8 = b'@';
-
-    let src = reader.fill_buf().await?;
-
-    if src.is_empty() || src[0] != PREFIX {
-        return Ok(0);
-    }
-
-    dst.clear();
-    read_line(reader, dst).await
 }
 
 #[cfg(test)]
