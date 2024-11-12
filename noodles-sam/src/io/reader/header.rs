@@ -1,5 +1,6 @@
 use std::io::{self, BufRead};
 
+use super::read_line;
 use crate::{header, Header};
 
 pub(super) fn read_header<R>(reader: &mut R) -> io::Result<Header>
@@ -23,8 +24,6 @@ where
     R: BufRead,
 {
     const PREFIX: u8 = b'@';
-    const LINE_FEED: u8 = b'\n';
-    const CARRIAGE_RETURN: u8 = b'\r';
 
     let src = reader.fill_buf()?;
 
@@ -33,21 +32,7 @@ where
     }
 
     dst.clear();
-
-    match reader.read_until(LINE_FEED, dst)? {
-        0 => Ok(0),
-        n => {
-            if dst.ends_with(&[LINE_FEED]) {
-                dst.pop();
-
-                if dst.ends_with(&[CARRIAGE_RETURN]) {
-                    dst.pop();
-                }
-            }
-
-            Ok(n)
-        }
-    }
+    read_line(reader, dst)
 }
 
 #[cfg(test)]
