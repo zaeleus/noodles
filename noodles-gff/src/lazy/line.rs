@@ -12,7 +12,7 @@ const COMMENT_PREFIX: char = '#';
 const DIRECTIVE_START: usize = 2;
 const COMMENT_START: usize = 1;
 
-/// An GFF line.
+/// A GFF line.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Line(pub(crate) String);
 
