@@ -2,7 +2,7 @@
 
 use std::{error, fmt, str::FromStr};
 
-use super::{directive_buf, record, DirectiveBuf, Record};
+use super::{directive_buf, record_buf, DirectiveBuf, RecordBuf};
 
 const COMMENT_PREFIX: char = '#';
 
@@ -14,7 +14,7 @@ pub enum LineBuf {
     /// A comment (`#`),
     Comment(String),
     /// A record.
-    Record(Record),
+    Record(RecordBuf),
 }
 
 impl fmt::Display for LineBuf {
@@ -33,7 +33,7 @@ pub enum ParseError {
     /// The directive is invalid.
     InvalidDirective(directive_buf::ParseError),
     /// The record is invalid.
-    InvalidRecord(record::ParseError),
+    InvalidRecord(record_buf::ParseError),
 }
 
 impl error::Error for ParseError {
@@ -84,7 +84,7 @@ mod tests {
         let line = LineBuf::Comment(String::from("format: gff3"));
         assert_eq!(line.to_string(), "#format: gff3");
 
-        let line = LineBuf::Record(Record::default());
+        let line = LineBuf::Record(RecordBuf::default());
         assert_eq!(line.to_string(), ".\t.\t.\t1\t1\t.\t.\t.\t.")
     }
 

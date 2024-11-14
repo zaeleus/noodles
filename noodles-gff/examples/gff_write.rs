@@ -16,7 +16,7 @@ fn main() -> io::Result<()> {
     let comment = LineBuf::Comment(String::from("format: gff3"));
     writer.write_line(&comment)?;
 
-    let record = gff::Record::default();
+    let record = gff::RecordBuf::default();
     writer.write_record(&record)?;
 
     Ok(())

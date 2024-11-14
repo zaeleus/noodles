@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use crate::{DirectiveBuf, LineBuf, Record};
+use crate::{DirectiveBuf, LineBuf, RecordBuf};
 
 /// A GFF writer.
 pub struct Writer<W> {
@@ -83,7 +83,7 @@ where
     /// let comment = LineBuf::Comment(String::from("noodles"));
     /// writer.write_line(&comment)?;
     ///
-    /// let record = LineBuf::Record(gff::Record::default());
+    /// let record = LineBuf::Record(gff::RecordBuf::default());
     /// writer.write_line(&record)?;
     ///
     /// let expected = b"##gff-version 3
@@ -130,7 +130,7 @@ where
     /// let version = gff::DirectiveBuf::GffVersion(Default::default());
     /// writer.write_directive(&version)?;
     ///
-    /// let record = gff::Record::default();
+    /// let record = gff::RecordBuf::default();
     /// writer.write_record(&record)?;
     ///
     /// let expected = b"##gff-version 3
@@ -140,7 +140,7 @@ where
     /// assert_eq!(&writer.get_ref()[..], &expected[..]);
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
+    pub fn write_record(&mut self, record: &RecordBuf) -> io::Result<()> {
         writeln!(self.inner, "{record}")
     }
 }

@@ -38,9 +38,9 @@ pub mod directive_buf;
 pub mod io;
 pub mod lazy;
 pub mod line_buf;
-pub mod record;
+pub mod record_buf;
 
-pub use self::{directive_buf::DirectiveBuf, line_buf::LineBuf, record::Record};
+pub use self::{directive_buf::DirectiveBuf, line_buf::LineBuf, record_buf::RecordBuf};
 
 #[deprecated(since = "0.33.0", note = "Use `noodles_gff::io::Reader` instead.")]
 pub use self::io::Reader;

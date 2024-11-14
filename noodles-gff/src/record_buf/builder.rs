@@ -1,6 +1,6 @@
 use noodles_core::Position;
 
-use super::{Attributes, Phase, Record, Strand, MISSING_FIELD};
+use super::{Attributes, Phase, RecordBuf, Strand, MISSING_FIELD};
 
 /// A GFF record builder.
 #[derive(Debug)]
@@ -25,7 +25,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_gff as gff;
-    /// let builder = gff::Record::builder();
+    /// let builder = gff::RecordBuf::builder();
     /// ```
     pub fn new() -> Self {
         Self::default()
@@ -38,7 +38,7 @@ impl Builder {
     /// ```
     /// use noodles_gff as gff;
     ///
-    /// let record = gff::Record::builder()
+    /// let record = gff::RecordBuf::builder()
     ///     .set_reference_sequence_name(String::from("sq0"))
     ///     .build();
     ///
@@ -56,7 +56,7 @@ impl Builder {
     /// ```
     /// use noodles_gff as gff;
     ///
-    /// let record = gff::Record::builder()
+    /// let record = gff::RecordBuf::builder()
     ///     .set_source(String::from("NOODLES"))
     ///     .build();
     ///
@@ -74,7 +74,7 @@ impl Builder {
     /// ```
     /// use noodles_gff as gff;
     ///
-    /// let record = gff::Record::builder()
+    /// let record = gff::RecordBuf::builder()
     ///     .set_type(String::from("gene"))
     ///     .build();
     ///
@@ -93,7 +93,7 @@ impl Builder {
     /// use noodles_core::Position;
     /// use noodles_gff as gff;
     /// let start = Position::MIN;
-    /// let record = gff::Record::builder().set_start(start).build();
+    /// let record = gff::RecordBuf::builder().set_start(start).build();
     /// assert_eq!(record.start(), start);
     /// ```
     pub fn set_start(mut self, start: Position) -> Self {
@@ -109,7 +109,7 @@ impl Builder {
     /// use noodles_core::Position;
     /// use noodles_gff as gff;
     /// let end = Position::MIN;
-    /// let record = gff::Record::builder().set_end(end).build();
+    /// let record = gff::RecordBuf::builder().set_end(end).build();
     /// assert_eq!(record.end(), end);
     /// ```
     pub fn set_end(mut self, end: Position) -> Self {
@@ -123,7 +123,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_gff as gff;
-    /// let record = gff::Record::builder().set_score(21.0).build();
+    /// let record = gff::RecordBuf::builder().set_score(21.0).build();
     /// assert_eq!(record.score(), Some(21.0));
     /// ```
     pub fn set_score(mut self, score: f32) -> Self {
@@ -136,9 +136,9 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gff::{self as gff, record::Strand};
+    /// use noodles_gff::{self as gff, record_buf::Strand};
     ///
-    /// let record = gff::Record::builder()
+    /// let record = gff::RecordBuf::builder()
     ///     .set_strand(Strand::Forward)
     ///     .build();
     ///
@@ -154,8 +154,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gff::{self as gff, record::Phase};
-    /// let record = gff::Record::builder().set_phase(Phase::Zero).build();
+    /// use noodles_gff::{self as gff, record_buf::Phase};
+    /// let record = gff::RecordBuf::builder().set_phase(Phase::Zero).build();
     /// assert_eq!(record.phase(), Some(Phase::Zero));
     /// ```
     pub fn set_phase(mut self, phase: Phase) -> Self {
@@ -170,7 +170,7 @@ impl Builder {
     /// ```
     /// use noodles_gff::{
     ///     self as gff,
-    ///     record::{
+    ///     record_buf::{
     ///         attributes::field::{Tag, Value},
     ///         Attributes,
     ///     },
@@ -180,7 +180,7 @@ impl Builder {
     ///     .into_iter()
     ///     .collect();
     ///
-    /// let record = gff::Record::builder()
+    /// let record = gff::RecordBuf::builder()
     ///     .set_attributes(attributes.clone())
     ///     .build();
     ///
@@ -197,10 +197,10 @@ impl Builder {
     ///
     /// ```
     /// use noodles_gff as gff;
-    /// let record = gff::Record::builder().build();
+    /// let record = gff::RecordBuf::builder().build();
     /// ```
-    pub fn build(self) -> Record {
-        Record {
+    pub fn build(self) -> RecordBuf {
+        RecordBuf {
             reference_sequence_name: self.reference_sequence_name,
             source: self.source,
             ty: self.ty,
@@ -251,7 +251,7 @@ mod tests {
 
     #[test]
     fn test_build() -> Result<(), noodles_core::position::TryFromIntError> {
-        use crate::record::attributes::field::{Tag, Value};
+        use crate::record_buf::attributes::field::{Tag, Value};
 
         let attributes: Attributes = [(Tag::from("gene_id"), Value::from("ndls0"))]
             .into_iter()

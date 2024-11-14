@@ -10,7 +10,7 @@ use noodles_core::Position;
 
 pub use self::attributes::Attributes;
 use self::fields::Fields;
-use crate::record::Strand;
+use crate::record_buf::Strand;
 
 /// An immutable, lazily-evalulated GFF record.
 #[derive(Clone, Eq, PartialEq)]

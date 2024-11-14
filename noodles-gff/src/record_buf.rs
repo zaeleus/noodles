@@ -20,7 +20,7 @@ const MAX_FIELDS: usize = 9;
 
 /// A GFF record.
 #[derive(Clone, Debug, PartialEq)]
-pub struct Record {
+pub struct RecordBuf {
     reference_sequence_name: String,
     source: String,
     ty: String,
@@ -32,7 +32,7 @@ pub struct Record {
     attributes: Attributes,
 }
 
-impl Record {
+impl RecordBuf {
     /// Returns a builder to create a record from each of its fields.
     ///
     /// # Examples
@@ -40,7 +40,7 @@ impl Record {
     /// ```
     /// use noodles_gff as gff;
     ///
-    /// let record = gff::Record::builder()
+    /// let record = gff::RecordBuf::builder()
     ///     .set_reference_sequence_name(String::from("sq0"))
     ///     .build();
     ///
@@ -56,7 +56,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_gff as gff;
-    /// let record = gff::Record::default();
+    /// let record = gff::RecordBuf::default();
     /// assert_eq!(record.reference_sequence_name(), ".");
     /// ```
     pub fn reference_sequence_name(&self) -> &str {
@@ -69,7 +69,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_gff as gff;
-    /// let record = gff::Record::default();
+    /// let record = gff::RecordBuf::default();
     /// assert_eq!(record.source(), ".");
     /// ```
     pub fn source(&self) -> &str {
@@ -82,7 +82,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_gff as gff;
-    /// let record = gff::Record::default();
+    /// let record = gff::RecordBuf::default();
     /// assert_eq!(record.ty(), ".");
     /// ```
     pub fn ty(&self) -> &str {
@@ -98,7 +98,7 @@ impl Record {
     /// ```
     /// use noodles_core::Position;
     /// use noodles_gff as gff;
-    /// let record = gff::Record::default();
+    /// let record = gff::RecordBuf::default();
     /// assert_eq!(record.start(), Position::MIN);
     /// ```
     pub fn start(&self) -> Position {
@@ -114,7 +114,7 @@ impl Record {
     /// ```
     /// use noodles_core::Position;
     /// use noodles_gff as gff;
-    /// let record = gff::Record::default();
+    /// let record = gff::RecordBuf::default();
     /// assert_eq!(record.end(), Position::MIN);
     /// ```
     pub fn end(&self) -> Position {
@@ -127,7 +127,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_gff as gff;
-    /// let record = gff::Record::default();
+    /// let record = gff::RecordBuf::default();
     /// assert!(record.score().is_none());
     /// ```
     pub fn score(&self) -> Option<f32> {
@@ -139,8 +139,8 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gff::{self as gff, record::Strand};
-    /// let record = gff::Record::default();
+    /// use noodles_gff::{self as gff, record_buf::Strand};
+    /// let record = gff::RecordBuf::default();
     /// assert_eq!(record.strand(), Strand::None);
     /// ```
     pub fn strand(&self) -> Strand {
@@ -153,7 +153,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_gff as gff;
-    /// let record = gff::Record::default();
+    /// let record = gff::RecordBuf::default();
     /// assert!(record.phase().is_none());
     /// ```
     pub fn phase(&self) -> Option<Phase> {
@@ -166,7 +166,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_gff as gff;
-    /// let record = gff::Record::default();
+    /// let record = gff::RecordBuf::default();
     /// assert!(record.attributes().is_empty());
     /// ```
     pub fn attributes(&self) -> &Attributes {
@@ -174,13 +174,13 @@ impl Record {
     }
 }
 
-impl Default for Record {
+impl Default for RecordBuf {
     fn default() -> Self {
         Builder::new().build()
     }
 }
 
-impl fmt::Display for Record {
+impl fmt::Display for RecordBuf {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -276,7 +276,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-impl FromStr for Record {
+impl FromStr for RecordBuf {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -357,7 +357,7 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let record = Record::default();
+        let record = RecordBuf::default();
         assert_eq!(record.to_string(), ".\t.\t.\t1\t1\t.\t.\t.\t.");
     }
 
@@ -366,7 +366,7 @@ mod tests {
         use self::attributes::field::{Tag, Value};
 
         let s = "sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id=ndls0;gene_name=gene0";
-        let record = s.parse::<Record>()?;
+        let record = s.parse::<RecordBuf>()?;
 
         assert_eq!(record.reference_sequence_name(), "sq0");
         assert_eq!(record.source(), "NOODLES");
@@ -393,7 +393,7 @@ mod tests {
     #[test]
     fn test_from_str_with_cds_feature_and_no_phase() {
         let s = "sq0\tNOODLES\tCDS\t8\t13\t.\t+\t.\tgene_id=ndls0;gene_name=gene0";
-        assert_eq!(s.parse::<Record>(), Err(ParseError::MissingPhase));
+        assert_eq!(s.parse::<RecordBuf>(), Err(ParseError::MissingPhase));
     }
 
     #[test]

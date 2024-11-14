@@ -1,6 +1,6 @@
 use std::io::{self, BufRead};
 
-use crate::{DirectiveBuf, LineBuf, Record};
+use crate::{DirectiveBuf, LineBuf, RecordBuf};
 
 use super::Lines;
 
@@ -27,7 +27,7 @@ impl<'a, R> Iterator for Records<'a, R>
 where
     R: BufRead,
 {
-    type Item = io::Result<Record>;
+    type Item = io::Result<RecordBuf>;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {

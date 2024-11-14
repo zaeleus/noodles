@@ -22,7 +22,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gff::record::attributes::field::Value;
+    /// use noodles_gff::record_buf::attributes::field::Value;
     ///
     /// let value = Value::from("ndls");
     /// assert_eq!(value.as_string(), Some("ndls"));
@@ -42,7 +42,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gff::record::attributes::field::Value;
+    /// use noodles_gff::record_buf::attributes::field::Value;
     ///
     /// let raw_values = vec![String::from("ndls0"), String::from("ndls1")];
     /// let value = Value::from(raw_values.clone());
@@ -63,7 +63,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gff::record::attributes::field::Value;
+    /// use noodles_gff::record_buf::attributes::field::Value;
     ///
     /// let value = Value::from("ndls");
     /// let mut iter = value.iter();

@@ -13,7 +13,7 @@ use noodles_core::Region;
 use noodles_csi::{self as csi, BinningIndex};
 
 use self::lazy_line::read_lazy_line;
-use crate::{lazy, Record};
+use crate::{lazy, RecordBuf};
 
 /// A GFF reader.
 pub struct Reader<R> {
@@ -227,7 +227,7 @@ where
         &'r mut self,
         index: &I,
         region: &'r Region,
-    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'r>
+    ) -> io::Result<impl Iterator<Item = io::Result<RecordBuf>> + 'r>
     where
         I: BinningIndex,
     {

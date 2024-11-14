@@ -8,8 +8,9 @@
 
     This changes the following names:
 
-      * `Line` => `LineBuf` and
-      * `Directive` => `DirectiveBuf`.
+      * `Line` => `LineBuf`,
+      * `Directive` => `DirectiveBuf`, and
+      * `Record` => `RecordBuf`.
 
   * gff/lazy/line: Hoist buffer to line.
 
