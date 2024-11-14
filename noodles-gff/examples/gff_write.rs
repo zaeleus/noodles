@@ -4,7 +4,7 @@
 
 use std::io;
 
-use noodles_gff::{self as gff, Line};
+use noodles_gff::{self as gff, LineBuf};
 
 fn main() -> io::Result<()> {
     let stdout = io::stdout().lock();
@@ -13,7 +13,7 @@ fn main() -> io::Result<()> {
     let version = gff::Directive::GffVersion(Default::default());
     writer.write_directive(&version)?;
 
-    let comment = Line::Comment(String::from("format: gff3"));
+    let comment = LineBuf::Comment(String::from("format: gff3"));
     writer.write_line(&comment)?;
 
     let record = gff::Record::default();

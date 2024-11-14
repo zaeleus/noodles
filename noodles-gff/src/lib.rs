@@ -37,10 +37,10 @@ pub mod r#async;
 pub mod directive;
 pub mod io;
 pub mod lazy;
-pub mod line;
+pub mod line_buf;
 pub mod record;
 
-pub use self::{directive::Directive, line::Line, record::Record};
+pub use self::{directive::Directive, line_buf::LineBuf, record::Record};
 
 #[deprecated(since = "0.33.0", note = "Use `noodles_gff::io::Reader` instead.")]
 pub use self::io::Reader;

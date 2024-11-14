@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use crate::{Directive, Line, Record};
+use crate::{Directive, LineBuf, Record};
 
 /// A GFF writer.
 pub struct Writer<W> {
@@ -73,18 +73,17 @@ where
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_gff as gff;
-    /// use gff::line::Line;
+    /// use noodles_gff::{self as gff, LineBuf};
     ///
     /// let mut writer = gff::io::Writer::new(Vec::new());
     ///
-    /// let version = Line::Directive(gff::Directive::GffVersion(Default::default()));
+    /// let version = LineBuf::Directive(gff::Directive::GffVersion(Default::default()));
     /// writer.write_line(&version)?;
     ///
-    /// let comment = Line::Comment(String::from("noodles"));
+    /// let comment = LineBuf::Comment(String::from("noodles"));
     /// writer.write_line(&comment)?;
     ///
-    /// let record = Line::Record(gff::Record::default());
+    /// let record = LineBuf::Record(gff::Record::default());
     /// writer.write_line(&record)?;
     ///
     /// let expected = b"##gff-version 3
@@ -94,7 +93,7 @@ where
     ///
     /// assert_eq!(&writer.get_ref()[..], &expected[..]);
     /// # Ok::<(), io::Error>(())
-    pub fn write_line(&mut self, line: &Line) -> io::Result<()> {
+    pub fn write_line(&mut self, line: &LineBuf) -> io::Result<()> {
         writeln!(self.inner, "{line}")
     }
 

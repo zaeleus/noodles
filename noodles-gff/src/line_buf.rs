@@ -8,7 +8,7 @@ const COMMENT_PREFIX: char = '#';
 
 /// A GFF line.
 #[derive(Clone, Debug, PartialEq)]
-pub enum Line {
+pub enum LineBuf {
     /// A directive (`##`).
     Directive(Directive),
     /// A comment (`#`),
@@ -17,12 +17,12 @@ pub enum Line {
     Record(Record),
 }
 
-impl fmt::Display for Line {
+impl fmt::Display for LineBuf {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Line::Directive(directive) => write!(f, "{directive}"),
-            Line::Comment(comment) => write!(f, "{COMMENT_PREFIX}{comment}"),
-            Line::Record(record) => write!(f, "{record}"),
+            Self::Directive(directive) => write!(f, "{directive}"),
+            Self::Comment(comment) => write!(f, "{COMMENT_PREFIX}{comment}"),
+            Self::Record(record) => write!(f, "{record}"),
         }
     }
 }
@@ -54,7 +54,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-impl FromStr for Line {
+impl FromStr for LineBuf {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -78,13 +78,13 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let line = Line::Directive(Directive::GffVersion(Default::default()));
+        let line = LineBuf::Directive(Directive::GffVersion(Default::default()));
         assert_eq!(line.to_string(), "##gff-version 3");
 
-        let line = Line::Comment(String::from("format: gff3"));
+        let line = LineBuf::Comment(String::from("format: gff3"));
         assert_eq!(line.to_string(), "#format: gff3");
 
-        let line = Line::Record(Record::default());
+        let line = LineBuf::Record(Record::default());
         assert_eq!(line.to_string(), ".\t.\t.\t1\t1\t.\t.\t.\t.")
     }
 
@@ -92,17 +92,19 @@ mod tests {
     fn test_from_str() {
         assert_eq!(
             "##gff-version 3".parse(),
-            Ok(Line::Directive(Directive::GffVersion(Default::default())))
+            Ok(LineBuf::Directive(
+                Directive::GffVersion(Default::default())
+            ))
         );
 
         assert_eq!(
             "#format: gff3".parse(),
-            Ok(Line::Comment(String::from("format: gff3")))
+            Ok(LineBuf::Comment(String::from("format: gff3")))
         );
 
         assert!(matches!(
             "sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id=ndls0;gene_name=gene0".parse(),
-            Ok(Line::Record(_))
+            Ok(LineBuf::Record(_))
         ));
     }
 }

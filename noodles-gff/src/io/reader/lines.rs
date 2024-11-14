@@ -1,6 +1,6 @@
 use std::io::{self, BufRead};
 
-use crate::Line;
+use crate::LineBuf;
 
 use super::Reader;
 
@@ -31,7 +31,7 @@ impl<'a, R> Iterator for Lines<'a, R>
 where
     R: BufRead,
 {
-    type Item = io::Result<Line>;
+    type Item = io::Result<LineBuf>;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.line_buf.clear();

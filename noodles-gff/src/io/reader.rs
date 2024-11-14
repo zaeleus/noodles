@@ -81,7 +81,7 @@ where
         Self { inner }
     }
 
-    /// Reads a raw GFF line.
+    /// Reads a GFF line buffer.
     ///
     /// This reads from the underlying stream until a newline is reached and appends it to the
     /// given buffer, sans the final newline character. The buffer can subsequently be parsed as a
@@ -113,7 +113,7 @@ where
         read_line(&mut self.inner, buf)
     }
 
-    /// Returns an iterator over lines starting from the current stream position.
+    /// Returns an iterator over line buffers starting from the current stream position.
     ///
     /// When using this, the caller is responsible to stop reading at either EOF or when the
     /// `FASTA` directive is read, whichever comes first.
@@ -124,7 +124,7 @@ where
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_gff as gff;
+    /// use noodles_gff::{self as gff, LineBuf};
     ///
     /// let data = b"##gff-version 3
     /// sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id=ndls0;gene_name=gene0
@@ -133,10 +133,10 @@ where
     /// let mut lines = reader.lines();
     ///
     /// let line = lines.next().transpose()?;
-    /// assert!(matches!(line, Some(gff::Line::Directive(_))));
+    /// assert!(matches!(line, Some(LineBuf::Directive(_))));
     ///
     /// let line = lines.next().transpose()?;
-    /// assert!(matches!(line, Some(gff::Line::Record(_))));
+    /// assert!(matches!(line, Some(LineBuf::Record(_))));
     ///
     /// assert!(lines.next().is_none());
     /// # Ok::<_, io::Error>(())

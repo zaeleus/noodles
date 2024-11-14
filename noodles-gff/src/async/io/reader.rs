@@ -4,7 +4,7 @@ use futures::{stream, Stream, TryStreamExt};
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt};
 
 use self::lazy_line::read_lazy_line;
-use crate::{lazy, Directive, Line, Record};
+use crate::{lazy, Directive, LineBuf, Record};
 
 /// An async GFF reader.
 pub struct Reader<R> {
@@ -72,7 +72,7 @@ where
         Self { inner }
     }
 
-    /// Reads a raw GFF line.
+    /// Reads a GFF line buffer.
     ///
     /// # Examples
     ///
@@ -119,28 +119,28 @@ where
         read_lazy_line(&mut self.inner, line).await
     }
 
-    /// Returns a stream over lines.
+    /// Returns a stream over line buffers.
     ///
     /// # Examples
     ///
     /// ```
     /// # #[tokio::main]
     /// # async fn main() -> tokio::io::Result<()> {
-    /// use noodles_gff as gff;
     /// use futures::TryStreamExt;
+    /// use noodles_gff::{self as gff, LineBuf};
     ///
     /// let data = b"##gff-version 3\n";
     /// let mut reader = gff::r#async::io::Reader::new(&data[..]);
     /// let mut lines = reader.lines();
     ///
     /// let line = lines.try_next().await?;
-    /// assert!(matches!(line, Some(gff::Line::Directive(_))));
+    /// assert!(matches!(line, Some(LineBuf::Directive(_))));
     ///
     /// assert!(lines.try_next().await?.is_none());
     /// # Ok(())
     /// # }
     /// ```
-    pub fn lines(&mut self) -> impl Stream<Item = io::Result<Line>> + '_ {
+    pub fn lines(&mut self) -> impl Stream<Item = io::Result<LineBuf>> + '_ {
         Box::pin(stream::try_unfold(
             (self, String::new()),
             |(reader, mut buf)| async {
@@ -179,8 +179,8 @@ where
         Box::pin(stream::try_unfold(self.lines(), |mut lines| async {
             loop {
                 match lines.try_next().await? {
-                    None | Some(Line::Directive(Directive::StartOfFasta)) => return Ok(None),
-                    Some(Line::Record(record)) => return Ok(Some((record, lines))),
+                    None | Some(LineBuf::Directive(Directive::StartOfFasta)) => return Ok(None),
+                    Some(LineBuf::Record(record)) => return Ok(Some((record, lines))),
                     _ => {}
                 }
             }

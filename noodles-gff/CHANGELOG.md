@@ -4,6 +4,8 @@
 
 ### Changed
 
+  * gff: Rename `Line` to `LineBuf`.
+
   * gff/lazy/line: Hoist buffer to line.
 
     This moves the owned line buffer to `Line`. The structure is now a struct
