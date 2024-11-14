@@ -10,7 +10,7 @@ fn main() -> io::Result<()> {
     let stdout = io::stdout().lock();
     let mut writer = gff::io::Writer::new(stdout);
 
-    let version = gff::Directive::GffVersion(Default::default());
+    let version = gff::DirectiveBuf::GffVersion(Default::default());
     writer.write_directive(&version)?;
 
     let comment = LineBuf::Comment(String::from("format: gff3"));

@@ -21,11 +21,10 @@ impl GffVersion {
     /// # Examples
     ///
     /// ```
-    /// # use noodles_gff::directive::gff_version;
-    /// use noodles_gff::directive::GffVersion;
+    /// use noodles_gff::directive_buf::GffVersion;
     /// let version: GffVersion = "3.1.26".parse()?;
     /// assert_eq!(version.major(), 3);
-    /// # Ok::<(), gff_version::ParseError>(())
+    /// # Ok::<(), noodles_gff::directive_buf::gff_version::ParseError>(())
     /// ```
     pub fn major(&self) -> u32 {
         self.major
@@ -36,11 +35,10 @@ impl GffVersion {
     /// # Examples
     ///
     /// ```
-    /// # use noodles_gff::directive::gff_version;
-    /// use noodles_gff::directive::GffVersion;
+    /// use noodles_gff::directive_buf::GffVersion;
     /// let version: GffVersion = "3.1.26".parse()?;
     /// assert_eq!(version.minor(), Some(1));
-    /// # Ok::<(), gff_version::ParseError>(())
+    /// # Ok::<(), noodles_gff::directive_buf::gff_version::ParseError>(())
     /// ```
     pub fn minor(&self) -> Option<u32> {
         self.minor
@@ -51,11 +49,10 @@ impl GffVersion {
     /// # Examples
     ///
     /// ```
-    /// # use noodles_gff::directive::gff_version;
-    /// use noodles_gff::directive::GffVersion;
+    /// use noodles_gff::directive_buf::GffVersion;
     /// let version: GffVersion = "3.1.26".parse()?;
     /// assert_eq!(version.patch(), Some(26));
-    /// # Ok::<(), gff_version::ParseError>(())
+    /// # Ok::<(), noodles_gff::directive_buf::gff_version::ParseError>(())
     /// ```
     pub fn patch(&self) -> Option<u32> {
         self.patch

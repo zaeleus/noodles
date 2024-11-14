@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use crate::{Directive, LineBuf, Record};
+use crate::{DirectiveBuf, LineBuf, Record};
 
 /// A GFF writer.
 pub struct Writer<W> {
@@ -77,7 +77,7 @@ where
     ///
     /// let mut writer = gff::io::Writer::new(Vec::new());
     ///
-    /// let version = LineBuf::Directive(gff::Directive::GffVersion(Default::default()));
+    /// let version = LineBuf::Directive(gff::DirectiveBuf::GffVersion(Default::default()));
     /// writer.write_line(&version)?;
     ///
     /// let comment = LineBuf::Comment(String::from("noodles"));
@@ -107,13 +107,13 @@ where
     ///
     /// let mut writer = gff::io::Writer::new(Vec::new());
     ///
-    /// let version = gff::Directive::GffVersion(Default::default());
+    /// let version = gff::DirectiveBuf::GffVersion(Default::default());
     /// writer.write_directive(&version)?;
     ///
     /// assert_eq!(writer.get_ref(), b"##gff-version 3\n");
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn write_directive(&mut self, directive: &Directive) -> io::Result<()> {
+    pub fn write_directive(&mut self, directive: &DirectiveBuf) -> io::Result<()> {
         writeln!(self.inner, "{directive}")
     }
 
@@ -127,7 +127,7 @@ where
     ///
     /// let mut writer = gff::io::Writer::new(Vec::new());
     ///
-    /// let version = gff::Directive::GffVersion(Default::default());
+    /// let version = gff::DirectiveBuf::GffVersion(Default::default());
     /// writer.write_directive(&version)?;
     ///
     /// let record = gff::Record::default();

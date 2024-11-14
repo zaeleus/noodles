@@ -1,6 +1,6 @@
 use std::io::{self, BufRead};
 
-use crate::{Directive, LineBuf, Record};
+use crate::{DirectiveBuf, LineBuf, Record};
 
 use super::Lines;
 
@@ -33,7 +33,7 @@ where
         loop {
             match self.lines.next()? {
                 Ok(line) => match line {
-                    LineBuf::Directive(Directive::StartOfFasta) => return None,
+                    LineBuf::Directive(DirectiveBuf::StartOfFasta) => return None,
                     LineBuf::Record(r) => return Some(Ok(r)),
                     _ => {}
                 },

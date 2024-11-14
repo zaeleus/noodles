@@ -2,7 +2,7 @@
 
 use std::{error, fmt, str::FromStr};
 
-use super::{directive, record, Directive, Record};
+use super::{directive_buf, record, DirectiveBuf, Record};
 
 const COMMENT_PREFIX: char = '#';
 
@@ -10,7 +10,7 @@ const COMMENT_PREFIX: char = '#';
 #[derive(Clone, Debug, PartialEq)]
 pub enum LineBuf {
     /// A directive (`##`).
-    Directive(Directive),
+    Directive(DirectiveBuf),
     /// A comment (`#`),
     Comment(String),
     /// A record.
@@ -31,7 +31,7 @@ impl fmt::Display for LineBuf {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The directive is invalid.
-    InvalidDirective(directive::ParseError),
+    InvalidDirective(directive_buf::ParseError),
     /// The record is invalid.
     InvalidRecord(record::ParseError),
 }
@@ -58,7 +58,7 @@ impl FromStr for LineBuf {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.starts_with(directive::PREFIX) {
+        if s.starts_with(directive_buf::PREFIX) {
             s.parse()
                 .map(Self::Directive)
                 .map_err(ParseError::InvalidDirective)
@@ -78,7 +78,7 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let line = LineBuf::Directive(Directive::GffVersion(Default::default()));
+        let line = LineBuf::Directive(DirectiveBuf::GffVersion(Default::default()));
         assert_eq!(line.to_string(), "##gff-version 3");
 
         let line = LineBuf::Comment(String::from("format: gff3"));
@@ -92,9 +92,9 @@ mod tests {
     fn test_from_str() {
         assert_eq!(
             "##gff-version 3".parse(),
-            Ok(LineBuf::Directive(
-                Directive::GffVersion(Default::default())
-            ))
+            Ok(LineBuf::Directive(DirectiveBuf::GffVersion(
+                Default::default()
+            )))
         );
 
         assert_eq!(

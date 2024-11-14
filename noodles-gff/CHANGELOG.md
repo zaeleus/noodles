@@ -4,7 +4,12 @@
 
 ### Changed
 
-  * gff: Rename `Line` to `LineBuf`.
+  * gff: Add buf suffix to line buffers.
+
+    This changes the following names:
+
+      * `Line` => `LineBuf` and
+      * `Directive` => `DirectiveBuf`.
 
   * gff/lazy/line: Hoist buffer to line.
 

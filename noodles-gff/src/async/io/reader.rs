@@ -4,7 +4,7 @@ use futures::{stream, Stream, TryStreamExt};
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt};
 
 use self::lazy_line::read_lazy_line;
-use crate::{lazy, Directive, LineBuf, Record};
+use crate::{lazy, DirectiveBuf, LineBuf, Record};
 
 /// An async GFF reader.
 pub struct Reader<R> {
@@ -179,7 +179,7 @@ where
         Box::pin(stream::try_unfold(self.lines(), |mut lines| async {
             loop {
                 match lines.try_next().await? {
-                    None | Some(LineBuf::Directive(Directive::StartOfFasta)) => return Ok(None),
+                    None | Some(LineBuf::Directive(DirectiveBuf::StartOfFasta)) => return Ok(None),
                     Some(LineBuf::Record(record)) => return Ok(Some((record, lines))),
                     _ => {}
                 }

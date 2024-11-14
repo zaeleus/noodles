@@ -19,7 +19,7 @@ pub(crate) const PREFIX: &str = "##";
 ///
 /// This is also called a pragma or metadata.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum Directive {
+pub enum DirectiveBuf {
     /// The GFF version (`gff-version`).
     GffVersion(GffVersion),
     /// A reference to a sequence segment (`sequence-region`).
@@ -43,7 +43,7 @@ pub enum Directive {
     Other(name::Other, Option<String>),
 }
 
-impl fmt::Display for Directive {
+impl fmt::Display for DirectiveBuf {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::GffVersion(version) => write!(f, "{PREFIX}gff-version {version}"),
@@ -109,7 +109,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-impl FromStr for Directive {
+impl FromStr for DirectiveBuf {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -174,12 +174,12 @@ mod tests {
     fn test_from_str() -> Result<(), name::other::ParseError> {
         assert_eq!(
             "##noodles".parse(),
-            Ok(Directive::Other("noodles".parse()?, None)),
+            Ok(DirectiveBuf::Other("noodles".parse()?, None)),
         );
 
         assert_eq!(
             "##noodles gff".parse(),
-            Ok(Directive::Other(
+            Ok(DirectiveBuf::Other(
                 "noodles".parse()?,
                 Some(String::from("gff"))
             )),
@@ -191,44 +191,48 @@ mod tests {
     #[test]
     fn test_fmt() -> Result<(), name::other::ParseError> {
         assert_eq!(
-            Directive::GffVersion(GffVersion::default()).to_string(),
+            DirectiveBuf::GffVersion(GffVersion::default()).to_string(),
             "##gff-version 3"
         );
 
-        let directive = Directive::SequenceRegion(SequenceRegion::new(String::from("sq0"), 8, 13));
+        let directive =
+            DirectiveBuf::SequenceRegion(SequenceRegion::new(String::from("sq0"), 8, 13));
         assert_eq!(directive.to_string(), "##sequence-region sq0 8 13");
 
         assert_eq!(
-            Directive::FeatureOntology(String::from("https://example.com/fo.obo")).to_string(),
+            DirectiveBuf::FeatureOntology(String::from("https://example.com/fo.obo")).to_string(),
             "##feature-ontology https://example.com/fo.obo"
         );
 
         assert_eq!(
-            Directive::AttributeOntology(String::from("https://example.com/ao.obo")).to_string(),
+            DirectiveBuf::AttributeOntology(String::from("https://example.com/ao.obo")).to_string(),
             "##attribute-ontology https://example.com/ao.obo"
         );
 
         assert_eq!(
-            Directive::SourceOntology(String::from("https://example.com/so.obo")).to_string(),
+            DirectiveBuf::SourceOntology(String::from("https://example.com/so.obo")).to_string(),
             "##source-ontology https://example.com/so.obo"
         );
 
         assert_eq!(
-            Directive::Species(String::from("https://example.com/species?id=1")).to_string(),
+            DirectiveBuf::Species(String::from("https://example.com/species?id=1")).to_string(),
             "##species https://example.com/species?id=1"
         );
 
         let directive =
-            Directive::GenomeBuild(GenomeBuild::new(String::from("NDLS"), String::from("r1")));
+            DirectiveBuf::GenomeBuild(GenomeBuild::new(String::from("NDLS"), String::from("r1")));
         assert_eq!(directive.to_string(), "##genome-build NDLS r1");
 
-        assert_eq!(Directive::ForwardReferencesAreResolved.to_string(), "###");
-        assert_eq!(Directive::StartOfFasta.to_string(), "##FASTA");
+        assert_eq!(
+            DirectiveBuf::ForwardReferencesAreResolved.to_string(),
+            "###"
+        );
+        assert_eq!(DirectiveBuf::StartOfFasta.to_string(), "##FASTA");
 
-        let directive = Directive::Other("noodles".parse()?, None);
+        let directive = DirectiveBuf::Other("noodles".parse()?, None);
         assert_eq!(directive.to_string(), "##noodles");
 
-        let directive = Directive::Other("noodles".parse()?, Some(String::from("gff")));
+        let directive = DirectiveBuf::Other("noodles".parse()?, Some(String::from("gff")));
         assert_eq!(directive.to_string(), "##noodles gff");
 
         Ok(())
