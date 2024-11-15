@@ -1,9 +1,9 @@
 use tokio::io::{self, AsyncBufRead};
 
 use super::read_line;
-use crate::lazy;
+use crate::Line;
 
-pub(super) async fn read_lazy_line<R>(reader: &mut R, line: &mut lazy::Line) -> io::Result<usize>
+pub(super) async fn read_lazy_line<R>(reader: &mut R, line: &mut Line) -> io::Result<usize>
 where
     R: AsyncBufRead + Unpin,
 {

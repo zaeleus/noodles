@@ -4,7 +4,7 @@ use futures::{stream, Stream, TryStreamExt};
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt};
 
 use self::lazy_line::read_lazy_line;
-use crate::{lazy, DirectiveBuf, LineBuf, RecordBuf};
+use crate::{DirectiveBuf, Line, LineBuf, RecordBuf};
 
 /// An async GFF reader.
 pub struct Reader<R> {
@@ -101,21 +101,21 @@ where
     /// ```
     /// # #[tokio::main]
     /// # async fn main() -> tokio::io::Result<()> {
-    /// use noodles_gff::{self as gff, lazy};
+    /// use noodles_gff as gff;
     ///
     /// let data = b"##gff-version 3\n";
     /// let mut reader = gff::r#async::io::Reader::new(&data[..]);
     ///
-    /// let mut line = lazy::Line::default();
+    /// let mut line = gff::Line::default();
     ///
     /// reader.read_lazy_line(&mut line).await?;
-    /// assert_eq!(line.kind(), lazy::line::Kind::Directive);
+    /// assert_eq!(line.kind(), gff::line::Kind::Directive);
     ///
     /// assert_eq!(reader.read_lazy_line(&mut line).await?, 0);
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_lazy_line(&mut self, line: &mut lazy::Line) -> io::Result<usize> {
+    pub async fn read_lazy_line(&mut self, line: &mut Line) -> io::Result<usize> {
         read_lazy_line(&mut self.inner, line).await
     }
 

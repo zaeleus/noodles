@@ -13,7 +13,7 @@ use noodles_core::Region;
 use noodles_csi::{self as csi, BinningIndex};
 
 use self::lazy_line::read_lazy_line;
-use crate::{lazy, RecordBuf};
+use crate::{Line, RecordBuf};
 
 /// A GFF reader.
 pub struct Reader<R> {
@@ -151,20 +151,20 @@ where
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_gff::{self as gff, lazy};
+    /// use noodles_gff as gff;
     ///
     /// let data = b"##gff-version 3\n";
     /// let mut reader = gff::io::Reader::new(&data[..]);
     ///
-    /// let mut line = gff::lazy::Line::default();
+    /// let mut line = gff::Line::default();
     ///
     /// reader.read_lazy_line(&mut line)?;
-    /// assert_eq!(line.kind(), lazy::line::Kind::Directive);
+    /// assert_eq!(line.kind(), gff::line::Kind::Directive);
     ///
     /// assert_eq!(reader.read_lazy_line(&mut line)?, 0);
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn read_lazy_line(&mut self, line: &mut lazy::Line) -> io::Result<usize> {
+    pub fn read_lazy_line(&mut self, line: &mut Line) -> io::Result<usize> {
         read_lazy_line(&mut self.inner, line)
     }
 

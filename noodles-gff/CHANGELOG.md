@@ -4,15 +4,16 @@
 
 ### Changed
 
-  * gff: Add buf suffix to line buffers.
+  * gff: Rename `Record` to `RecordBuf.`
 
-    This changes the following names:
+    This also changes `Line` to `LineBuf` and `Directive` to `DirectiveBuf`.
 
-      * `Line` => `LineBuf`,
-      * `Directive` => `DirectiveBuf`, and
-      * `Record` => `RecordBuf`.
+  * gff: Rename `lazy::Record` to `Record`.
 
-  * gff/lazy/line: Hoist buffer to line.
+    This also changes `lazy::Line` to `Line` and `lazy::Directive` to
+    `Directive`.
+
+  * gff/line: Hoist buffer to line.
 
     This moves the owned line buffer to `Line`. The structure is now a struct
     with a kind (`Kind`) field instead of an enum. The record wrapper
@@ -22,9 +23,16 @@
     `Line::Record(_)`), match on the `Kind` or attempt a conversion (e.g.,
     `line.as_record()`).
 
-  * gff/lazy/line: Wrap a directive line as `Directive<'_>`.
+  * gff/line: Wrap a directive line as `Directive<'_>`.
 
     This splits the line into its key-optional value components.
+
+### Removed
+
+  * gff: Remove `lazy` module.
+
+    Types are moved to the top level, e.g., `gff::lazy::Record` is now
+    `gff::Record`.
 
 ## 0.39.0 - 2024-11-07
 

@@ -34,13 +34,18 @@
 #[cfg(feature = "async")]
 pub mod r#async;
 
+mod directive;
 pub mod directive_buf;
 pub mod io;
-pub mod lazy;
+pub mod line;
 pub mod line_buf;
+pub mod record;
 pub mod record_buf;
 
-pub use self::{directive_buf::DirectiveBuf, line_buf::LineBuf, record_buf::RecordBuf};
+pub use self::{
+    directive::Directive, directive_buf::DirectiveBuf, line::Line, line_buf::LineBuf,
+    record::Record, record_buf::RecordBuf,
+};
 
 #[deprecated(since = "0.33.0", note = "Use `noodles_gff::io::Reader` instead.")]
 pub use self::io::Reader;
