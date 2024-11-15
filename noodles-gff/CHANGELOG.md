@@ -34,6 +34,12 @@
     Types are moved to the top level, e.g., `gff::lazy::Record` is now
     `gff::Record`.
 
+### Deprecated
+
+  * gff: Deprecate `AsyncReader`.
+
+    Use `gff::r#async::io::Reader` instead.
+
 ## 0.39.0 - 2024-11-07
 
 ### Changed

@@ -54,4 +54,8 @@ pub use self::io::Reader;
 pub use self::io::Writer;
 
 #[cfg(feature = "async")]
+#[deprecated(
+    since = "0.40.0",
+    note = "Use `noodles_gff::r#async::io::Reader` instead."
+)]
 pub use self::r#async::io::Reader as AsyncReader;
