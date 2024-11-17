@@ -269,9 +269,9 @@ where
     const LINE_FEED: char = '\n';
     const CARRIAGE_RETURN: char = '\r';
 
-    match reader.read_line(buf) {
-        Ok(0) => Ok(0),
-        Ok(n) => {
+    match reader.read_line(buf)? {
+        0 => Ok(0),
+        n => {
             if buf.ends_with(LINE_FEED) {
                 buf.pop();
 
@@ -282,7 +282,6 @@ where
 
             Ok(n)
         }
-        Err(e) => Err(e),
     }
 }
 
