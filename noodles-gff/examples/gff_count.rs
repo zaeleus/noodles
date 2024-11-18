@@ -18,11 +18,13 @@ fn main() -> io::Result<()> {
         .map(BufReader::new)
         .map(gff::io::Reader::new)?;
 
+    let mut line = gff::Line::default();
     let mut n = 0;
 
-    for result in reader.record_bufs() {
-        let _ = result?;
-        n += 1;
+    while reader.read_line(&mut line)? != 0 {
+        if line.as_record().is_some() {
+            n += 1;
+        }
     }
 
     println!("{n}");

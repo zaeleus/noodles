@@ -5,7 +5,6 @@
 
 use std::env;
 
-use futures::TryStreamExt;
 use noodles_gff as gff;
 use tokio::{
     fs::File,
@@ -21,11 +20,13 @@ async fn main() -> io::Result<()> {
         .map(BufReader::new)
         .map(gff::r#async::io::Reader::new)?;
 
-    let mut records = reader.record_bufs();
+    let mut line = gff::Line::default();
     let mut n = 0;
 
-    while records.try_next().await?.is_some() {
-        n += 1;
+    while reader.read_line(&mut line).await? != 0 {
+        if line.as_record().is_some() {
+            n += 1;
+        }
     }
 
     println!("{n}");
