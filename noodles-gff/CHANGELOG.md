@@ -18,6 +18,10 @@
     This changes `Lines` to `LineBufs` and `Reader::read_line` to
     `Reader::read_line_buf`, `Reader::read_lazy_line` to `Reader::read_line`.
 
+  * gff/io/reader: Rename record to record buf.
+
+    This changes `Reader::records` to `Reader::record_bufs`.
+
   * gff/line: Hoist buffer to line.
 
     This moves the owned line buffer to `Line`. The structure is now a struct

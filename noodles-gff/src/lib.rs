@@ -18,7 +18,7 @@
 //!     .map(BufReader::new)
 //!     .map(gff::io::Reader::new)?;
 //!
-//! for result in reader.records() {
+//! for result in reader.record_bufs() {
 //!     let record = result?;
 //!
 //!     println!(

@@ -21,7 +21,7 @@ async fn main() -> io::Result<()> {
         .map(BufReader::new)
         .map(gff::r#async::io::Reader::new)?;
 
-    let mut records = reader.records();
+    let mut records = reader.record_bufs();
     let mut n = 0;
 
     while records.try_next().await?.is_some() {

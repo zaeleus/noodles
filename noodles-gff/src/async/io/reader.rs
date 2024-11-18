@@ -168,13 +168,13 @@ where
     ///
     /// let data = b"##gff-version 3\n";
     /// let mut reader = gff::r#async::io::Reader::new(&data[..]);
-    /// let mut records = reader.records();
+    /// let mut records = reader.record_bufs();
     ///
     /// assert!(records.try_next().await?.is_none());
     /// # Ok(())
     /// # }
     /// ```
-    pub fn records(&mut self) -> impl Stream<Item = io::Result<RecordBuf>> + '_ {
+    pub fn record_bufs(&mut self) -> impl Stream<Item = io::Result<RecordBuf>> + '_ {
         Box::pin(stream::try_unfold(self.line_bufs(), |mut lines| async {
             loop {
                 match lines.try_next().await? {

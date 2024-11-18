@@ -2,9 +2,9 @@
 
 mod line;
 mod line_bufs;
-mod records;
+mod record_bufs;
 
-pub use self::{line_bufs::LineBufs, records::Records};
+pub use self::{line_bufs::LineBufs, record_bufs::RecordBufs};
 
 use std::io::{self, BufRead, Read, Seek};
 
@@ -180,14 +180,14 @@ where
     /// sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id=ndls0;gene_name=gene0
     /// ";
     /// let mut reader = gff::io::Reader::new(&data[..]);
-    /// let mut records = reader.records();
+    /// let mut records = reader.record_bufs();
     ///
     /// assert!(records.next().transpose()?.is_some());
     /// assert!(records.next().is_none());
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn records(&mut self) -> Records<'_, R> {
-        Records::new(self.line_bufs())
+    pub fn record_bufs(&mut self) -> RecordBufs<'_, R> {
+        RecordBufs::new(self.line_bufs())
     }
 }
 
@@ -296,7 +296,7 @@ sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id=ndls0;gene_name=gene0
         let mut reader = Reader::new(&data[..]);
         let mut n = 0;
 
-        for result in reader.records() {
+        for result in reader.record_bufs() {
             let _ = result?;
             n += 1;
         }
@@ -319,7 +319,7 @@ ACGT
         let mut reader = Reader::new(&data[..]);
         let mut n = 0;
 
-        for result in reader.records() {
+        for result in reader.record_bufs() {
             let _ = result?;
             n += 1;
         }

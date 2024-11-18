@@ -10,11 +10,11 @@ use super::LineBufs;
 /// read, whichever comes first.
 ///
 /// This is created by calling [`crate::Reader::records`].
-pub struct Records<'a, R> {
+pub struct RecordBufs<'a, R> {
     lines: LineBufs<'a, R>,
 }
 
-impl<'a, R> Records<'a, R>
+impl<'a, R> RecordBufs<'a, R>
 where
     R: BufRead,
 {
@@ -23,7 +23,7 @@ where
     }
 }
 
-impl<'a, R> Iterator for Records<'a, R>
+impl<'a, R> Iterator for RecordBufs<'a, R>
 where
     R: BufRead,
 {
