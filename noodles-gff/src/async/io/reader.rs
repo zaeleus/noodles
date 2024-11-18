@@ -163,8 +163,8 @@ where
     /// ```
     /// # #[tokio::main]
     /// # async fn main() -> tokio::io::Result<()> {
-    /// use noodles_gff as gff;
     /// use futures::TryStreamExt;
+    /// use noodles_gff as gff;
     ///
     /// let data = b"##gff-version 3\n";
     /// let mut reader = gff::r#async::io::Reader::new(&data[..]);
