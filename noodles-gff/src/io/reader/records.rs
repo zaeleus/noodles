@@ -2,7 +2,7 @@ use std::io::{self, BufRead};
 
 use crate::{DirectiveBuf, LineBuf, RecordBuf};
 
-use super::Lines;
+use super::LineBufs;
 
 /// Returns an iterator over records of a GFF reader.
 ///
@@ -11,14 +11,14 @@ use super::Lines;
 ///
 /// This is created by calling [`crate::Reader::records`].
 pub struct Records<'a, R> {
-    lines: Lines<'a, R>,
+    lines: LineBufs<'a, R>,
 }
 
 impl<'a, R> Records<'a, R>
 where
     R: BufRead,
 {
-    pub(crate) fn new(lines: Lines<'a, R>) -> Self {
+    pub(crate) fn new(lines: LineBufs<'a, R>) -> Self {
         Self { lines }
     }
 }

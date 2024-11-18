@@ -1,10 +1,10 @@
 //! GFF reader and iterators.
 
 mod lazy_line;
-mod lines;
+mod line_bufs;
 mod records;
 
-pub use self::{lines::Lines, records::Records};
+pub use self::{line_bufs::LineBufs, records::Records};
 
 use std::io::{self, BufRead, Read, Seek};
 
@@ -99,17 +99,15 @@ where
     /// # use std::io;
     /// use noodles_gff as gff;
     ///
-    /// let data = b"##gff-version 3
-    /// sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id=ndls0;gene_name=gene0
-    /// ";
+    /// let data = b"##gff-version 3";
     /// let mut reader = gff::io::Reader::new(&data[..]);
     ///
     /// let mut buf = String::new();
-    /// reader.read_line(&mut buf)?;
+    /// reader.read_line_buf(&mut buf)?;
     /// assert_eq!(buf, "##gff-version 3");
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn read_line(&mut self, buf: &mut String) -> io::Result<usize> {
+    pub fn read_line_buf(&mut self, buf: &mut String) -> io::Result<usize> {
         read_line(&mut self.inner, buf)
     }
 
@@ -130,7 +128,7 @@ where
     /// sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id=ndls0;gene_name=gene0
     /// ";
     /// let mut reader = gff::io::Reader::new(&data[..]);
-    /// let mut lines = reader.lines();
+    /// let mut lines = reader.line_bufs();
     ///
     /// let line = lines.next().transpose()?;
     /// assert!(matches!(line, Some(LineBuf::Directive(_))));
@@ -141,8 +139,8 @@ where
     /// assert!(lines.next().is_none());
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn lines(&mut self) -> Lines<'_, R> {
-        Lines::new(self)
+    pub fn line_bufs(&mut self) -> LineBufs<'_, R> {
+        LineBufs::new(self)
     }
 
     /// Reads a single line without eagerly decoding it.
@@ -190,7 +188,7 @@ where
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn records(&mut self) -> Records<'_, R> {
-        Records::new(self.lines())
+        Records::new(self.line_bufs())
     }
 }
 

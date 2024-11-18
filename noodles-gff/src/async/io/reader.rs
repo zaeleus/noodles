@@ -85,12 +85,12 @@ where
     /// let mut reader = gff::r#async::io::Reader::new(&data[..]);
     ///
     /// let mut buf = String::new();
-    /// reader.read_line(&mut buf).await?;
+    /// reader.read_line_buf(&mut buf).await?;
     /// assert_eq!(buf, "##gff-version 3");
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_line(&mut self, buf: &mut String) -> io::Result<usize> {
+    pub async fn read_line_buf(&mut self, buf: &mut String) -> io::Result<usize> {
         read_line(&mut self.inner, buf).await
     }
 
@@ -131,7 +131,7 @@ where
     ///
     /// let data = b"##gff-version 3\n";
     /// let mut reader = gff::r#async::io::Reader::new(&data[..]);
-    /// let mut lines = reader.lines();
+    /// let mut lines = reader.line_bufs();
     ///
     /// let line = lines.try_next().await?;
     /// assert!(matches!(line, Some(LineBuf::Directive(_))));
@@ -140,13 +140,13 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn lines(&mut self) -> impl Stream<Item = io::Result<LineBuf>> + '_ {
+    pub fn line_bufs(&mut self) -> impl Stream<Item = io::Result<LineBuf>> + '_ {
         Box::pin(stream::try_unfold(
             (self, String::new()),
             |(reader, mut buf)| async {
                 buf.clear();
 
-                reader.read_line(&mut buf).await.and_then(|n| match n {
+                reader.read_line_buf(&mut buf).await.and_then(|n| match n {
                     0 => Ok(None),
                     _ => match buf.parse() {
                         Ok(line) => Ok(Some((line, (reader, buf)))),
@@ -176,7 +176,7 @@ where
     /// # }
     /// ```
     pub fn records(&mut self) -> impl Stream<Item = io::Result<RecordBuf>> + '_ {
-        Box::pin(stream::try_unfold(self.lines(), |mut lines| async {
+        Box::pin(stream::try_unfold(self.line_bufs(), |mut lines| async {
             loop {
                 match lines.try_next().await? {
                     None | Some(LineBuf::Directive(DirectiveBuf::StartOfFasta)) => return Ok(None),

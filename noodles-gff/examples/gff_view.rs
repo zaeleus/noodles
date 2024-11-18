@@ -20,7 +20,7 @@ fn main() -> io::Result<()> {
     let stdout = io::stdout().lock();
     let mut writer = gff::io::Writer::new(stdout);
 
-    for result in reader.lines() {
+    for result in reader.line_bufs() {
         let line = result?;
 
         if line == LineBuf::Directive(DirectiveBuf::StartOfFasta) {

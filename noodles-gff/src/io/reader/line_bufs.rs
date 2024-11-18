@@ -10,12 +10,12 @@ use super::Reader;
 /// directive is read, whichever comes first.
 ///
 /// This is created by calling [`Reader::lines`].
-pub struct Lines<'a, R> {
+pub struct LineBufs<'a, R> {
     inner: &'a mut Reader<R>,
     line_buf: String,
 }
 
-impl<'a, R> Lines<'a, R>
+impl<'a, R> LineBufs<'a, R>
 where
     R: BufRead,
 {
@@ -27,7 +27,7 @@ where
     }
 }
 
-impl<'a, R> Iterator for Lines<'a, R>
+impl<'a, R> Iterator for LineBufs<'a, R>
 where
     R: BufRead,
 {
@@ -36,7 +36,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         self.line_buf.clear();
 
-        match self.inner.read_line(&mut self.line_buf) {
+        match self.inner.read_line_buf(&mut self.line_buf) {
             Ok(0) => None,
             Ok(_) => match self.line_buf.parse() {
                 Ok(line) => Some(Ok(line)),

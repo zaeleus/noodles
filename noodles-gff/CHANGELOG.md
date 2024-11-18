@@ -13,6 +13,11 @@
     This also changes `lazy::Line` to `Line` and `lazy::Directive` to
     `Directive`.
 
+  * gff/io/reader: Rename line to line buf.
+
+    This changes `Lines` to `LineBufs` and `Reader::read_line` to
+    `Reader::read_line_buf`.
+
   * gff/line: Hoist buffer to line.
 
     This moves the owned line buffer to `Line`. The structure is now a struct
