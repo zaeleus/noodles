@@ -1,6 +1,6 @@
 //! GFF reader and iterators.
 
-mod lazy_line;
+mod line;
 mod line_bufs;
 mod records;
 
@@ -12,7 +12,6 @@ use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::{self as csi, BinningIndex};
 
-use self::lazy_line::read_lazy_line;
 use crate::{Line, RecordBuf};
 
 /// A GFF reader.
@@ -156,14 +155,14 @@ where
     ///
     /// let mut line = gff::Line::default();
     ///
-    /// reader.read_lazy_line(&mut line)?;
+    /// reader.read_line(&mut line)?;
     /// assert_eq!(line.kind(), gff::line::Kind::Directive);
     ///
-    /// assert_eq!(reader.read_lazy_line(&mut line)?, 0);
+    /// assert_eq!(reader.read_line(&mut line)?, 0);
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn read_lazy_line(&mut self, line: &mut Line) -> io::Result<usize> {
-        read_lazy_line(&mut self.inner, line)
+    pub fn read_line(&mut self, line: &mut Line) -> io::Result<usize> {
+        line::read_line(&mut self.inner, line)
     }
 
     /// Returns an iterator over records starting from the current stream position.

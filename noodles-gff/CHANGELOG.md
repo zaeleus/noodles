@@ -13,10 +13,10 @@
     This also changes `lazy::Line` to `Line` and `lazy::Directive` to
     `Directive`.
 
-  * gff/io/reader: Rename line to line buf.
+  * gff/io/reader: Rename line to line buf and lazy line to line.
 
     This changes `Lines` to `LineBufs` and `Reader::read_line` to
-    `Reader::read_line_buf`.
+    `Reader::read_line_buf`, `Reader::read_lazy_line` to `Reader::read_line`.
 
   * gff/line: Hoist buffer to line.
 
