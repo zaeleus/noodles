@@ -2,6 +2,7 @@
 
 pub mod attributes;
 mod builder;
+mod convert;
 mod field;
 mod phase;
 pub mod strand;
