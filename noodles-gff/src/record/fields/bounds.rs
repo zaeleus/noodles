@@ -48,35 +48,35 @@ impl Bounds {
     }
 
     pub fn reference_sequence_name_range(&self) -> Range<usize> {
-        0..self.reference_sequence_name_end
+        0..sans_delimiter(self.reference_sequence_name_end)
     }
 
     pub fn source_range(&self) -> Range<usize> {
-        self.reference_sequence_name_end..self.source_end
+        self.reference_sequence_name_end..sans_delimiter(self.source_end)
     }
 
     pub fn type_range(&self) -> Range<usize> {
-        self.source_end..self.type_end
+        self.source_end..sans_delimiter(self.type_end)
     }
 
     pub fn start_range(&self) -> Range<usize> {
-        self.type_end..self.start_end
+        self.type_end..sans_delimiter(self.start_end)
     }
 
     pub fn end_range(&self) -> Range<usize> {
-        self.start_end..self.end_end
+        self.start_end..sans_delimiter(self.end_end)
     }
 
     pub fn score_range(&self) -> Range<usize> {
-        self.end_end..self.score_end
+        self.end_end..sans_delimiter(self.score_end)
     }
 
     pub fn strand_range(&self) -> Range<usize> {
-        self.score_end..self.strand_end
+        self.score_end..sans_delimiter(self.strand_end)
     }
 
     pub fn phase_range(&self) -> Range<usize> {
-        self.strand_end..self.phase_end
+        self.strand_end..sans_delimiter(self.phase_end)
     }
 
     pub fn attributes_range(&self) -> RangeFrom<usize> {
@@ -97,6 +97,11 @@ impl Default for Bounds {
             phase_end: 8,
         }
     }
+}
+
+fn sans_delimiter(i: usize) -> usize {
+    // SAFETY: Bound ends always include the delimiter.
+    i - 1
 }
 
 fn read_required_field(src: &mut &str) -> io::Result<usize> {
