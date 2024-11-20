@@ -1,6 +1,6 @@
 use std::io;
 
-use super::{attributes::field::Value, RecordBuf, MISSING_FIELD};
+use super::{attributes::field::Value, RecordBuf};
 use crate::{record::attributes::field::Value as ValueRef, Record};
 
 impl<'l> TryFrom<Record<'l>> for RecordBuf {
@@ -16,12 +16,7 @@ impl<'l> TryFrom<Record<'l>> for RecordBuf {
             .set_start(record.start()?)
             .set_end(record.end()?);
 
-        if record.score() != MISSING_FIELD {
-            let score = record
-                .score()
-                .parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
+        if let Some(score) = record.score().transpose()? {
             builder = builder.set_score(score);
         }
 

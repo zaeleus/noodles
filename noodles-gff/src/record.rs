@@ -12,6 +12,8 @@ pub use self::attributes::Attributes;
 use self::fields::Fields;
 use crate::record_buf::{Phase, Strand};
 
+const MISSING: &str = ".";
+
 /// An immutable, lazily-evalulated GFF record.
 #[derive(Clone, Eq, PartialEq)]
 pub struct Record<'l>(Fields<'l>);
@@ -47,8 +49,8 @@ impl<'l> Record<'l> {
     }
 
     /// Returns the score.
-    pub fn score(&self) -> &str {
-        self.0.score()
+    pub fn score(&self) -> Option<io::Result<f32>> {
+        parse_score(self.0.score())
     }
 
     /// Returns the strand.
@@ -83,14 +85,22 @@ impl<'l> fmt::Debug for Record<'l> {
     }
 }
 
+fn parse_score(s: &str) -> Option<io::Result<f32>> {
+    match s {
+        MISSING => None,
+        _ => Some(
+            s.parse()
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+        ),
+    }
+}
+
 fn parse_strand(s: &str) -> io::Result<Strand> {
     s.parse()
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 fn parse_phase(s: &str) -> Option<io::Result<Phase>> {
-    const MISSING: &str = ".";
-
     match s {
         MISSING => None,
         _ => Some(
@@ -103,6 +113,19 @@ fn parse_phase(s: &str) -> Option<io::Result<Phase>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_parse_score() -> io::Result<()> {
+        assert!(parse_score(".").is_none());
+        assert_eq!(parse_score("0.0").transpose()?, Some(0.0));
+
+        assert!(matches!(
+            parse_phase(""),
+            Some(Err(e)) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        Ok(())
+    }
 
     #[test]
     fn test_parse_phase() -> io::Result<()> {
