@@ -36,6 +36,8 @@
 
     This splits the line into its key-optional value components.
 
+  * gff/record: Parse phase (`Record::phase`).
+
 ### Removed
 
   * gff: Remove `lazy` module.

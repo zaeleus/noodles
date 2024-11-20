@@ -27,12 +27,7 @@ impl<'l> TryFrom<Record<'l>> for RecordBuf {
 
         builder = builder.set_strand(record.strand()?);
 
-        if record.phase() != MISSING_FIELD {
-            let phase = record
-                .phase()
-                .parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
+        if let Some(phase) = record.phase().transpose()? {
             builder = builder.set_phase(phase);
         }
 

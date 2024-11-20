@@ -10,7 +10,7 @@ use noodles_core::Position;
 
 pub use self::attributes::Attributes;
 use self::fields::Fields;
-use crate::record_buf::Strand;
+use crate::record_buf::{Phase, Strand};
 
 /// An immutable, lazily-evalulated GFF record.
 #[derive(Clone, Eq, PartialEq)]
@@ -57,8 +57,8 @@ impl<'l> Record<'l> {
     }
 
     /// Returns the phase.
-    pub fn phase(&self) -> &str {
-        self.0.phase()
+    pub fn phase(&self) -> Option<io::Result<Phase>> {
+        parse_phase(self.0.phase())
     }
 
     /// Returns the attributes.
@@ -86,4 +86,36 @@ impl<'l> fmt::Debug for Record<'l> {
 fn parse_strand(s: &str) -> io::Result<Strand> {
     s.parse()
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+}
+
+fn parse_phase(s: &str) -> Option<io::Result<Phase>> {
+    const MISSING: &str = ".";
+
+    match s {
+        MISSING => None,
+        _ => Some(
+            s.parse()
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+        ),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_phase() -> io::Result<()> {
+        assert!(parse_phase(".").is_none());
+        assert_eq!(parse_phase("0").transpose()?, Some(Phase::Zero));
+        assert_eq!(parse_phase("1").transpose()?, Some(Phase::One));
+        assert_eq!(parse_phase("2").transpose()?, Some(Phase::Two));
+
+        assert!(matches!(
+            parse_phase(""),
+            Some(Err(e)) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        Ok(())
+    }
 }
