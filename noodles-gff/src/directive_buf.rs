@@ -2,7 +2,7 @@
 
 pub mod genome_build;
 pub mod gff_version;
-pub mod name;
+pub mod key;
 pub mod sequence_region;
 
 pub use self::{
@@ -44,23 +44,23 @@ pub enum DirectiveBuf {
 impl fmt::Display for DirectiveBuf {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::GffVersion(version) => write!(f, "{PREFIX}{} {version}", name::GFF_VERSION),
+            Self::GffVersion(version) => write!(f, "{PREFIX}{} {version}", key::GFF_VERSION),
             Self::SequenceRegion(sequence_region) => {
-                write!(f, "{PREFIX}{} {sequence_region}", name::SEQUENCE_REGION)
+                write!(f, "{PREFIX}{} {sequence_region}", key::SEQUENCE_REGION)
             }
-            Self::FeatureOntology(uri) => write!(f, "{PREFIX}{} {uri}", name::FEATURE_ONTOLOGY),
-            Self::AttributeOntology(uri) => write!(f, "{PREFIX}{} {uri}", name::ATTRIBUTE_ONTOLOGY),
-            Self::SourceOntology(uri) => write!(f, "{PREFIX}{} {uri}", name::SOURCE_ONTOLOGY),
-            Self::Species(uri) => write!(f, "{PREFIX}{} {uri}", name::SPECIES),
+            Self::FeatureOntology(uri) => write!(f, "{PREFIX}{} {uri}", key::FEATURE_ONTOLOGY),
+            Self::AttributeOntology(uri) => write!(f, "{PREFIX}{} {uri}", key::ATTRIBUTE_ONTOLOGY),
+            Self::SourceOntology(uri) => write!(f, "{PREFIX}{} {uri}", key::SOURCE_ONTOLOGY),
+            Self::Species(uri) => write!(f, "{PREFIX}{} {uri}", key::SPECIES),
             Self::GenomeBuild(genome_build) => {
-                write!(f, "{PREFIX}{} {genome_build}", name::GENOME_BUILD)
+                write!(f, "{PREFIX}{} {genome_build}", key::GENOME_BUILD)
             }
             Self::ForwardReferencesAreResolved => {
-                write!(f, "{PREFIX}{}", name::FORWARD_REFERENCES_ARE_RESOLVED)
+                write!(f, "{PREFIX}{}", key::FORWARD_REFERENCES_ARE_RESOLVED)
             }
-            Self::StartOfFasta => write!(f, "{PREFIX}{}", name::START_OF_FASTA),
-            Self::Other(name, value) => {
-                write!(f, "{PREFIX}{name}")?;
+            Self::StartOfFasta => write!(f, "{PREFIX}{}", key::START_OF_FASTA),
+            Self::Other(key, value) => {
+                write!(f, "{PREFIX}{key}")?;
 
                 if let Some(v) = value {
                     write!(f, " {v}")?;
@@ -78,7 +78,7 @@ pub enum ParseError {
     /// The directive prefix (`##`) is missing.
     MissingPrefix,
     /// The directive name is missing.
-    MissingName,
+    MissingKey,
     /// The directive value is missing.
     MissingValue,
     /// The GFF version is invalid.
@@ -104,7 +104,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::MissingPrefix => f.write_str("directive prefix is missing"),
-            Self::MissingName => f.write_str("directive name is missing"),
+            Self::MissingKey => f.write_str("directive key is missing"),
             Self::MissingValue => f.write_str("directive value is missing"),
             Self::InvalidGffVersion(_) => f.write_str("invalid GFF version"),
             Self::InvalidSequenceRegion(_) => f.write_str("invalid sequence region"),
@@ -123,45 +123,45 @@ impl FromStr for DirectiveBuf {
 
         let mut components = s[PREFIX.len()..].splitn(2, |c: char| c.is_ascii_whitespace());
 
-        let name = components.next().ok_or(ParseError::MissingName)?;
+        let key = components.next().ok_or(ParseError::MissingKey)?;
 
-        match name {
-            name::GFF_VERSION => components
+        match key {
+            key::GFF_VERSION => components
                 .next()
                 .ok_or(ParseError::MissingValue)
                 .and_then(|s| s.parse().map_err(ParseError::InvalidGffVersion))
                 .map(Self::GffVersion),
-            name::SEQUENCE_REGION => components
+            key::SEQUENCE_REGION => components
                 .next()
                 .ok_or(ParseError::MissingValue)
                 .and_then(|s| s.parse().map_err(ParseError::InvalidSequenceRegion))
                 .map(Self::SequenceRegion),
-            name::FEATURE_ONTOLOGY => components
+            key::FEATURE_ONTOLOGY => components
                 .next()
                 .map(|s| Self::FeatureOntology(s.into()))
                 .ok_or(ParseError::MissingValue),
-            name::ATTRIBUTE_ONTOLOGY => components
+            key::ATTRIBUTE_ONTOLOGY => components
                 .next()
                 .map(|s| Self::AttributeOntology(s.into()))
                 .ok_or(ParseError::MissingValue),
-            name::SOURCE_ONTOLOGY => components
+            key::SOURCE_ONTOLOGY => components
                 .next()
                 .map(|s| Self::SourceOntology(s.into()))
                 .ok_or(ParseError::MissingValue),
-            name::SPECIES => components
+            key::SPECIES => components
                 .next()
                 .map(|s| Self::Species(s.into()))
                 .ok_or(ParseError::MissingValue),
-            name::GENOME_BUILD => components
+            key::GENOME_BUILD => components
                 .next()
                 .ok_or(ParseError::MissingValue)
                 .and_then(|s| s.parse().map_err(ParseError::InvalidGenomeBuild))
                 .map(Self::GenomeBuild),
-            name::FORWARD_REFERENCES_ARE_RESOLVED => Ok(Self::ForwardReferencesAreResolved),
-            name::START_OF_FASTA => Ok(Self::StartOfFasta),
+            key::FORWARD_REFERENCES_ARE_RESOLVED => Ok(Self::ForwardReferencesAreResolved),
+            key::START_OF_FASTA => Ok(Self::StartOfFasta),
             _ => {
                 let value = components.next().map(String::from);
-                Ok(Self::Other(name.into(), value))
+                Ok(Self::Other(key.into(), value))
             }
         }
     }

@@ -13,7 +13,9 @@
     This also changes `lazy::Line` to `Line` and `lazy::Directive` to
     `Directive`.
 
-  * gff/directive_buf/name: Change constants to strings.
+  * gff/directive_buf/key: Rename name to key.
+
+  * gff/directive_buf/key: Change constants to strings.
 
   * gff/io/reader: Rename line to line buf and lazy line to line.
 

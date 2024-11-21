@@ -1,4 +1,4 @@
-//! GFF directive name.
+//! GFF directive key.
 
 pub(crate) const GFF_VERSION: &str = "gff-version";
 pub(crate) const SEQUENCE_REGION: &str = "sequence-region";
