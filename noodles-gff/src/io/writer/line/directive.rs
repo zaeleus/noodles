@@ -14,7 +14,11 @@ where
             write_separator(writer)?;
             write!(writer, "{version}")?;
         }
-        DirectiveBuf::SequenceRegion(sequence_region) => write!(writer, "{sequence_region}")?,
+        DirectiveBuf::SequenceRegion(sequence_region) => {
+            write_key(writer, "sequence-region")?;
+            write_separator(writer)?;
+            write!(writer, "{sequence_region}")?
+        }
         DirectiveBuf::FeatureOntology(uri) => {
             write_key(writer, "feature-ontology")?;
             write_separator(writer)?;

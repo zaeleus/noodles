@@ -2,8 +2,6 @@
 
 use std::{error, fmt, num, str::FromStr};
 
-use super::PREFIX;
-
 /// A GFF directive sequence region.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SequenceRegion {
@@ -77,8 +75,8 @@ impl fmt::Display for SequenceRegion {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "{}sequence-region {} {} {}",
-            PREFIX, self.reference_sequence_name, self.start, self.end
+            "{} {} {}",
+            self.reference_sequence_name, self.start, self.end
         )
     }
 }
@@ -157,7 +155,7 @@ mod tests {
     #[test]
     fn test_fmt() {
         let sequence_region = SequenceRegion::new(String::from("sq0"), 8, 13);
-        assert_eq!(sequence_region.to_string(), "##sequence-region sq0 8 13");
+        assert_eq!(sequence_region.to_string(), "sq0 8 13");
     }
 
     #[test]

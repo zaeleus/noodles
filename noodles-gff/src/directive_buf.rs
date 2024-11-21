@@ -47,7 +47,9 @@ impl fmt::Display for DirectiveBuf {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::GffVersion(version) => write!(f, "{PREFIX}gff-version {version}"),
-            Self::SequenceRegion(sequence_region) => write!(f, "{sequence_region}"),
+            Self::SequenceRegion(sequence_region) => {
+                write!(f, "{PREFIX}sequence-region {sequence_region}")
+            }
             Self::FeatureOntology(uri) => write!(f, "{PREFIX}feature-ontology {uri}"),
             Self::AttributeOntology(uri) => write!(f, "{PREFIX}attribute-ontology {uri}"),
             Self::SourceOntology(uri) => write!(f, "{PREFIX}source-ontology {uri}"),
