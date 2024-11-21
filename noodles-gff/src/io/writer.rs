@@ -1,5 +1,8 @@
+mod line;
+
 use std::io::{self, Write};
 
+use self::line::write_line;
 use crate::{DirectiveBuf, LineBuf, RecordBuf};
 
 /// A GFF writer.
@@ -94,7 +97,7 @@ where
     /// assert_eq!(&writer.get_ref()[..], &expected[..]);
     /// # Ok::<(), io::Error>(())
     pub fn write_line(&mut self, line: &LineBuf) -> io::Result<()> {
-        writeln!(self.inner, "{line}")
+        write_line(&mut self.inner, line)
     }
 
     /// Writes a GFF directive.
