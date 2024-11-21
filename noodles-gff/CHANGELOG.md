@@ -15,7 +15,7 @@
 
   * gff/directive_buf/key: Rename name to key.
 
-  * gff/directive_buf/key: Change constants to strings.
+  * gff/directive_buf/key: Increase the visibilities of constants.
 
   * gff/io/reader: Rename line to line buf and lazy line to line.
 
