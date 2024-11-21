@@ -1,12 +1,30 @@
+mod directive;
+
 use std::io::{self, Write};
 
+use self::directive::write_directive;
 use crate::LineBuf;
 
 pub(super) fn write_line<W>(writer: &mut W, line: &LineBuf) -> io::Result<()>
 where
     W: Write,
 {
-    writeln!(writer, "{line}")
+    match line {
+        LineBuf::Directive(directive) => write_directive(writer, directive)?,
+        _ => write!(writer, "{line}")?,
+    }
+
+    write_newline(writer)?;
+
+    Ok(())
+}
+
+fn write_newline<W>(writer: &mut W) -> io::Result<()>
+where
+    W: Write,
+{
+    const LINE_FEED: u8 = b'\n';
+    writer.write_all(&[LINE_FEED])
 }
 
 #[cfg(test)]
