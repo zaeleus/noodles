@@ -35,7 +35,11 @@ where
             write_separator(writer)?;
             write_value(writer, uri)?;
         }
-        DirectiveBuf::GenomeBuild(genome_build) => write!(writer, "{genome_build}")?,
+        DirectiveBuf::GenomeBuild(genome_build) => {
+            write_key(writer, "genome-build")?;
+            write_separator(writer)?;
+            write!(writer, "{genome_build}")?
+        }
         DirectiveBuf::ForwardReferencesAreResolved => write_key(writer, "#")?,
         DirectiveBuf::StartOfFasta => write_key(writer, "FASTA")?,
         DirectiveBuf::Other(key, value) => {

@@ -2,8 +2,6 @@
 
 use std::{error, fmt, str::FromStr};
 
-use super::PREFIX;
-
 /// A GFF directive genome build.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct GenomeBuild {
@@ -53,7 +51,7 @@ impl GenomeBuild {
 
 impl fmt::Display for GenomeBuild {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}genome-build {} {}", PREFIX, self.source, self.name,)
+        write!(f, "{} {}", self.source, self.name)
     }
 }
 
@@ -113,7 +111,7 @@ mod tests {
     #[test]
     fn test_fmt() {
         let genome_build = GenomeBuild::new(String::from("NDLS"), String::from("r1"));
-        assert_eq!(genome_build.to_string(), "##genome-build NDLS r1");
+        assert_eq!(genome_build.to_string(), "NDLS r1");
     }
 
     #[test]

@@ -52,7 +52,7 @@ impl fmt::Display for DirectiveBuf {
             Self::AttributeOntology(uri) => write!(f, "{PREFIX}attribute-ontology {uri}"),
             Self::SourceOntology(uri) => write!(f, "{PREFIX}source-ontology {uri}"),
             Self::Species(uri) => write!(f, "{PREFIX}species {uri}"),
-            Self::GenomeBuild(genome_build) => write!(f, "{genome_build}"),
+            Self::GenomeBuild(genome_build) => write!(f, "{PREFIX}genome-build {genome_build}"),
             Self::ForwardReferencesAreResolved => write!(f, "{PREFIX}#"),
             Self::StartOfFasta => write!(f, "{PREFIX}FASTA"),
             Self::Other(name, value) => {
