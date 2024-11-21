@@ -50,6 +50,13 @@
     Types are moved to the top level, e.g., `gff::lazy::Record` is now
     `gff::Record`.
 
+  * gff/directive_buf: Remove simple directives.
+
+    This removes `DirectiveBuf::FeatureOntology`,
+    `DirectiveBuf::AttributeOntology`, `DirectiveBuf::SourceOntology`,
+    `DirectiveBuf::Species`, `DirectiveBuf::ForwardReferencesAreResolved`, and
+    `DirectiveBuf::StartOfFasta`. Use `DirectiveBuf::Other` instead.
+
 ### Deprecated
 
   * gff: Deprecate `AsyncReader`.

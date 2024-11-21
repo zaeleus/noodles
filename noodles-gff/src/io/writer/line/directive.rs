@@ -19,35 +19,11 @@ where
             write_separator(writer)?;
             write!(writer, "{sequence_region}")?
         }
-        DirectiveBuf::FeatureOntology(uri) => {
-            write_key(writer, key::FEATURE_ONTOLOGY)?;
-            write_separator(writer)?;
-            write_value(writer, uri)?;
-        }
-        DirectiveBuf::AttributeOntology(uri) => {
-            write_key(writer, key::ATTRIBUTE_ONTOLOGY)?;
-            write_separator(writer)?;
-            write_value(writer, uri)?;
-        }
-        DirectiveBuf::SourceOntology(uri) => {
-            write_key(writer, key::SOURCE_ONTOLOGY)?;
-            write_separator(writer)?;
-            write_value(writer, uri)?;
-        }
-        DirectiveBuf::Species(uri) => {
-            write_key(writer, key::SPECIES)?;
-            write_separator(writer)?;
-            write_value(writer, uri)?;
-        }
         DirectiveBuf::GenomeBuild(genome_build) => {
             write_key(writer, key::GENOME_BUILD)?;
             write_separator(writer)?;
             write!(writer, "{genome_build}")?
         }
-        DirectiveBuf::ForwardReferencesAreResolved => {
-            write_key(writer, key::FORWARD_REFERENCES_ARE_RESOLVED)?
-        }
-        DirectiveBuf::StartOfFasta => write_key(writer, key::START_OF_FASTA)?,
         DirectiveBuf::Other(key, value) => {
             write_key(writer, key.as_ref())?;
 

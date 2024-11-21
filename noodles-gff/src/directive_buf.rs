@@ -22,22 +22,9 @@ pub enum DirectiveBuf {
     GffVersion(GffVersion),
     /// A reference to a sequence segment (`sequence-region`).
     SequenceRegion(SequenceRegion),
-    /// The ontology used for the feature types (`feature-ontology`).
-    FeatureOntology(String),
-    /// The ontology used for the attributes (`attribute-ontology`).
-    AttributeOntology(String),
-    /// The ontology used for the sources (`source-ontology`).
-    SourceOntology(String),
-    /// The species the annotations apply to (`species`).
-    Species(String),
     /// The genome build used for the start and end positions (`genome-build`).
     GenomeBuild(GenomeBuild),
-    /// A marker indicating that all forward references to feature IDs have been resolved (`#`).
-    ForwardReferencesAreResolved,
-    /// A marker indicating the end of the records list and start of a bundled reference sequences
-    /// (`FASTA`).
-    StartOfFasta,
-    /// A nonstandard directive.
+    /// Any other directive.
     Other(String, Option<String>),
 }
 
@@ -48,17 +35,9 @@ impl fmt::Display for DirectiveBuf {
             Self::SequenceRegion(sequence_region) => {
                 write!(f, "{PREFIX}{} {sequence_region}", key::SEQUENCE_REGION)
             }
-            Self::FeatureOntology(uri) => write!(f, "{PREFIX}{} {uri}", key::FEATURE_ONTOLOGY),
-            Self::AttributeOntology(uri) => write!(f, "{PREFIX}{} {uri}", key::ATTRIBUTE_ONTOLOGY),
-            Self::SourceOntology(uri) => write!(f, "{PREFIX}{} {uri}", key::SOURCE_ONTOLOGY),
-            Self::Species(uri) => write!(f, "{PREFIX}{} {uri}", key::SPECIES),
             Self::GenomeBuild(genome_build) => {
                 write!(f, "{PREFIX}{} {genome_build}", key::GENOME_BUILD)
             }
-            Self::ForwardReferencesAreResolved => {
-                write!(f, "{PREFIX}{}", key::FORWARD_REFERENCES_ARE_RESOLVED)
-            }
-            Self::StartOfFasta => write!(f, "{PREFIX}{}", key::START_OF_FASTA),
             Self::Other(key, value) => {
                 write!(f, "{PREFIX}{key}")?;
 
@@ -136,29 +115,11 @@ impl FromStr for DirectiveBuf {
                 .ok_or(ParseError::MissingValue)
                 .and_then(|s| s.parse().map_err(ParseError::InvalidSequenceRegion))
                 .map(Self::SequenceRegion),
-            key::FEATURE_ONTOLOGY => components
-                .next()
-                .map(|s| Self::FeatureOntology(s.into()))
-                .ok_or(ParseError::MissingValue),
-            key::ATTRIBUTE_ONTOLOGY => components
-                .next()
-                .map(|s| Self::AttributeOntology(s.into()))
-                .ok_or(ParseError::MissingValue),
-            key::SOURCE_ONTOLOGY => components
-                .next()
-                .map(|s| Self::SourceOntology(s.into()))
-                .ok_or(ParseError::MissingValue),
-            key::SPECIES => components
-                .next()
-                .map(|s| Self::Species(s.into()))
-                .ok_or(ParseError::MissingValue),
             key::GENOME_BUILD => components
                 .next()
                 .ok_or(ParseError::MissingValue)
                 .and_then(|s| s.parse().map_err(ParseError::InvalidGenomeBuild))
                 .map(Self::GenomeBuild),
-            key::FORWARD_REFERENCES_ARE_RESOLVED => Ok(Self::ForwardReferencesAreResolved),
-            key::START_OF_FASTA => Ok(Self::StartOfFasta),
             _ => {
                 let value = components.next().map(String::from);
                 Ok(Self::Other(key.into(), value))
@@ -198,35 +159,9 @@ mod tests {
             DirectiveBuf::SequenceRegion(SequenceRegion::new(String::from("sq0"), 8, 13));
         assert_eq!(directive.to_string(), "##sequence-region sq0 8 13");
 
-        assert_eq!(
-            DirectiveBuf::FeatureOntology(String::from("https://example.com/fo.obo")).to_string(),
-            "##feature-ontology https://example.com/fo.obo"
-        );
-
-        assert_eq!(
-            DirectiveBuf::AttributeOntology(String::from("https://example.com/ao.obo")).to_string(),
-            "##attribute-ontology https://example.com/ao.obo"
-        );
-
-        assert_eq!(
-            DirectiveBuf::SourceOntology(String::from("https://example.com/so.obo")).to_string(),
-            "##source-ontology https://example.com/so.obo"
-        );
-
-        assert_eq!(
-            DirectiveBuf::Species(String::from("https://example.com/species?id=1")).to_string(),
-            "##species https://example.com/species?id=1"
-        );
-
         let directive =
             DirectiveBuf::GenomeBuild(GenomeBuild::new(String::from("NDLS"), String::from("r1")));
         assert_eq!(directive.to_string(), "##genome-build NDLS r1");
-
-        assert_eq!(
-            DirectiveBuf::ForwardReferencesAreResolved.to_string(),
-            "###"
-        );
-        assert_eq!(DirectiveBuf::StartOfFasta.to_string(), "##FASTA");
 
         let directive = DirectiveBuf::Other(String::from("noodles"), None);
         assert_eq!(directive.to_string(), "##noodles");
