@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use crate::DirectiveBuf;
+use crate::{directive_buf::name, DirectiveBuf};
 
 pub(super) fn write_directive<W>(writer: &mut W, directive: &DirectiveBuf) -> io::Result<()>
 where
@@ -10,42 +10,44 @@ where
 
     match directive {
         DirectiveBuf::GffVersion(version) => {
-            write_key(writer, "gff-version")?;
+            write_key(writer, name::GFF_VERSION)?;
             write_separator(writer)?;
             write!(writer, "{version}")?;
         }
         DirectiveBuf::SequenceRegion(sequence_region) => {
-            write_key(writer, "sequence-region")?;
+            write_key(writer, name::SEQUENCE_REGION)?;
             write_separator(writer)?;
             write!(writer, "{sequence_region}")?
         }
         DirectiveBuf::FeatureOntology(uri) => {
-            write_key(writer, "feature-ontology")?;
+            write_key(writer, name::FEATURE_ONTOLOGY)?;
             write_separator(writer)?;
             write_value(writer, uri)?;
         }
         DirectiveBuf::AttributeOntology(uri) => {
-            write_key(writer, "attribute-ontology")?;
+            write_key(writer, name::ATTRIBUTE_ONTOLOGY)?;
             write_separator(writer)?;
             write_value(writer, uri)?;
         }
         DirectiveBuf::SourceOntology(uri) => {
-            write_key(writer, "source-ontology")?;
+            write_key(writer, name::SOURCE_ONTOLOGY)?;
             write_separator(writer)?;
             write_value(writer, uri)?;
         }
         DirectiveBuf::Species(uri) => {
-            write_key(writer, "species")?;
+            write_key(writer, name::SPECIES)?;
             write_separator(writer)?;
             write_value(writer, uri)?;
         }
         DirectiveBuf::GenomeBuild(genome_build) => {
-            write_key(writer, "genome-build")?;
+            write_key(writer, name::GENOME_BUILD)?;
             write_separator(writer)?;
             write!(writer, "{genome_build}")?
         }
-        DirectiveBuf::ForwardReferencesAreResolved => write_key(writer, "#")?,
-        DirectiveBuf::StartOfFasta => write_key(writer, "FASTA")?,
+        DirectiveBuf::ForwardReferencesAreResolved => {
+            write_key(writer, name::FORWARD_REFERENCES_ARE_RESOLVED)?
+        }
+        DirectiveBuf::StartOfFasta => write_key(writer, name::START_OF_FASTA)?,
         DirectiveBuf::Other(key, value) => {
             write_key(writer, key.as_ref())?;
 

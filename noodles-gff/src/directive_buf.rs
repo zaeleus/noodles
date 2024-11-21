@@ -11,8 +11,6 @@ pub use self::{
 
 use std::{error, fmt, str::FromStr};
 
-use self::name::Name;
-
 pub(crate) const PREFIX: &str = "##";
 
 /// A GFF directive.
@@ -40,23 +38,27 @@ pub enum DirectiveBuf {
     /// (`FASTA`).
     StartOfFasta,
     /// A nonstandard directive.
-    Other(name::Other, Option<String>),
+    Other(String, Option<String>),
 }
 
 impl fmt::Display for DirectiveBuf {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::GffVersion(version) => write!(f, "{PREFIX}gff-version {version}"),
+            Self::GffVersion(version) => write!(f, "{PREFIX}{} {version}", name::GFF_VERSION),
             Self::SequenceRegion(sequence_region) => {
-                write!(f, "{PREFIX}sequence-region {sequence_region}")
+                write!(f, "{PREFIX}{} {sequence_region}", name::SEQUENCE_REGION)
             }
-            Self::FeatureOntology(uri) => write!(f, "{PREFIX}feature-ontology {uri}"),
-            Self::AttributeOntology(uri) => write!(f, "{PREFIX}attribute-ontology {uri}"),
-            Self::SourceOntology(uri) => write!(f, "{PREFIX}source-ontology {uri}"),
-            Self::Species(uri) => write!(f, "{PREFIX}species {uri}"),
-            Self::GenomeBuild(genome_build) => write!(f, "{PREFIX}genome-build {genome_build}"),
-            Self::ForwardReferencesAreResolved => write!(f, "{PREFIX}#"),
-            Self::StartOfFasta => write!(f, "{PREFIX}FASTA"),
+            Self::FeatureOntology(uri) => write!(f, "{PREFIX}{} {uri}", name::FEATURE_ONTOLOGY),
+            Self::AttributeOntology(uri) => write!(f, "{PREFIX}{} {uri}", name::ATTRIBUTE_ONTOLOGY),
+            Self::SourceOntology(uri) => write!(f, "{PREFIX}{} {uri}", name::SOURCE_ONTOLOGY),
+            Self::Species(uri) => write!(f, "{PREFIX}{} {uri}", name::SPECIES),
+            Self::GenomeBuild(genome_build) => {
+                write!(f, "{PREFIX}{} {genome_build}", name::GENOME_BUILD)
+            }
+            Self::ForwardReferencesAreResolved => {
+                write!(f, "{PREFIX}{}", name::FORWARD_REFERENCES_ARE_RESOLVED)
+            }
+            Self::StartOfFasta => write!(f, "{PREFIX}{}", name::START_OF_FASTA),
             Self::Other(name, value) => {
                 write!(f, "{PREFIX}{name}")?;
 
@@ -121,10 +123,7 @@ impl FromStr for DirectiveBuf {
 
         let mut components = s[PREFIX.len()..].splitn(2, |c: char| c.is_ascii_whitespace());
 
-        let name = components
-            .next()
-            .map(Name::from)
-            .ok_or(ParseError::MissingName)?;
+        let name = components.next().ok_or(ParseError::MissingName)?;
 
         match name {
             name::GFF_VERSION => components
@@ -160,9 +159,9 @@ impl FromStr for DirectiveBuf {
                 .map(Self::GenomeBuild),
             name::FORWARD_REFERENCES_ARE_RESOLVED => Ok(Self::ForwardReferencesAreResolved),
             name::START_OF_FASTA => Ok(Self::StartOfFasta),
-            Name::Other(name) => {
+            _ => {
                 let value = components.next().map(String::from);
-                Ok(Self::Other(name, value))
+                Ok(Self::Other(name.into(), value))
             }
         }
     }
@@ -173,25 +172,23 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_from_str() -> Result<(), name::other::ParseError> {
+    fn test_from_str() {
         assert_eq!(
             "##noodles".parse(),
-            Ok(DirectiveBuf::Other("noodles".parse()?, None)),
+            Ok(DirectiveBuf::Other(String::from("noodles"), None)),
         );
 
         assert_eq!(
             "##noodles gff".parse(),
             Ok(DirectiveBuf::Other(
-                "noodles".parse()?,
+                String::from("noodles"),
                 Some(String::from("gff"))
             )),
         );
-
-        Ok(())
     }
 
     #[test]
-    fn test_fmt() -> Result<(), name::other::ParseError> {
+    fn test_fmt() {
         assert_eq!(
             DirectiveBuf::GffVersion(GffVersion::default()).to_string(),
             "##gff-version 3"
@@ -231,12 +228,10 @@ mod tests {
         );
         assert_eq!(DirectiveBuf::StartOfFasta.to_string(), "##FASTA");
 
-        let directive = DirectiveBuf::Other("noodles".parse()?, None);
+        let directive = DirectiveBuf::Other(String::from("noodles"), None);
         assert_eq!(directive.to_string(), "##noodles");
 
-        let directive = DirectiveBuf::Other("noodles".parse()?, Some(String::from("gff")));
+        let directive = DirectiveBuf::Other(String::from("noodles"), Some(String::from("gff")));
         assert_eq!(directive.to_string(), "##noodles gff");
-
-        Ok(())
     }
 }
