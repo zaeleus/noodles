@@ -2,6 +2,7 @@ mod value;
 
 use std::io::{self, Write};
 
+use self::value::write_value;
 use crate::{directive_buf::key, DirectiveBuf};
 
 pub(super) fn write_directive<W>(writer: &mut W, directive: &DirectiveBuf) -> io::Result<()>
@@ -60,11 +61,4 @@ where
 {
     const SEPARATOR: u8 = b' ';
     writer.write_all(&[SEPARATOR])
-}
-
-fn write_value<W>(writer: &mut W, value: &str) -> io::Result<()>
-where
-    W: Write,
-{
-    writer.write_all(value.as_bytes())
 }
