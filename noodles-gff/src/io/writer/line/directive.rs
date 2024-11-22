@@ -27,7 +27,7 @@ where
             write!(writer, "{genome_build}")?
         }
         DirectiveBuf::Other(key, value) => {
-            write_key(writer, key.as_ref())?;
+            write_key(writer, key)?;
 
             if let Some(v) = value {
                 write_separator(writer)?;
