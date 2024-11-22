@@ -1,3 +1,5 @@
+mod value;
+
 use std::io::{self, Write};
 
 use crate::{directive_buf::key, DirectiveBuf};
@@ -12,7 +14,7 @@ where
         DirectiveBuf::GffVersion(version) => {
             write_key(writer, key::GFF_VERSION)?;
             write_separator(writer)?;
-            write!(writer, "{version}")?;
+            value::write_gff_version(writer, version)?;
         }
         DirectiveBuf::SequenceRegion(sequence_region) => {
             write_key(writer, key::SEQUENCE_REGION)?;
