@@ -19,7 +19,7 @@ where
         DirectiveBuf::SequenceRegion(sequence_region) => {
             write_key(writer, key::SEQUENCE_REGION)?;
             write_separator(writer)?;
-            write!(writer, "{sequence_region}")?
+            value::write_sequence_region(writer, sequence_region)?;
         }
         DirectiveBuf::GenomeBuild(genome_build) => {
             write_key(writer, key::GENOME_BUILD)?;
