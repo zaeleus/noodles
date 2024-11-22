@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bam/record/sequence: Increase the visibility of `Iter`.
+
+    `Sequence::iter` now returns `Iter` instead of an implementation of
+    `Iterator.`
+
 ## 0.70.0 - 2024-11-07
 
 ### Changed

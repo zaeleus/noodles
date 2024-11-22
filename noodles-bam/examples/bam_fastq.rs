@@ -64,10 +64,10 @@ where
 
     let is_reversed_complemented = record.flags().is_reverse_complemented();
 
-    let bases: Vec<_> = record.sequence().iter().collect();
+    let bases = record.sequence().iter();
 
     if is_reversed_complemented {
-        for base in bases.into_iter().rev().map(complement_base) {
+        for base in bases.rev().map(complement_base) {
             writer.write_all(&[base])?;
         }
     } else {

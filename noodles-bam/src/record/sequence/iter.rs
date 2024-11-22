@@ -3,7 +3,7 @@ use std::{array, iter::FusedIterator, slice};
 use super::decode_base;
 
 /// A BAM record sequence bases iterator.
-pub(super) struct Iter<'a> {
+pub struct Iter<'a> {
     iter: slice::Iter<'a, u8>,
     base_count: usize,
     front: Option<array::IntoIter<u8, 2>>,
