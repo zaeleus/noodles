@@ -31,7 +31,7 @@ xz2 = "0.1.6"
 
 async-compression = { version = "0.4.0", optional = true, features = ["gzip", "tokio"] }
 futures = { workspace = true, optional = true, features = ["std"] }
-pin-project-lite = { version = "0.2.6", optional = true }
+pin-project-lite = { workspace = true, optional = true }
 tokio = { workspace = true, optional = true, features = ["fs", "io-util"] }
 
 libdeflater = { workspace = true, optional = true }

@@ -21,7 +21,7 @@ crossbeam-channel = "0.5.6"
 flate2.workspace = true
 
 futures = { workspace = true, optional = true, features = ["std"] }
-pin-project-lite = { version = "0.2.6", optional = true }
+pin-project-lite = { workspace = true, optional = true }
 tokio = { workspace = true, optional = true, features = ["fs", "io-util", "rt"] }
 tokio-util = { version = "0.7.0", optional = true, features = ["codec"] }
 
