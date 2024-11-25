@@ -11,6 +11,10 @@ where
 {
     match line {
         LineBuf::Directive(directive) => write_directive(writer, directive)?,
+        LineBuf::Comment(s) => {
+            writer.write_all(b"#")?;
+            writer.write_all(s.as_bytes())?
+        }
         _ => write!(writer, "{line}")?,
     }
 
