@@ -4,8 +4,8 @@ mod record;
 
 use std::io::{self, Write};
 
-pub(super) use self::directive::write_directive;
-use self::{comment::write_comment, record::write_record};
+use self::comment::write_comment;
+pub(super) use self::{directive::write_directive, record::write_record};
 use crate::LineBuf;
 
 pub(super) fn write_line<W>(writer: &mut W, line: &LineBuf) -> io::Result<()>

@@ -145,6 +145,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_record(&mut self, record: &RecordBuf) -> io::Result<()> {
-        writeln!(self.inner, "{record}")
+        line::write_record(&mut self.inner, record)?;
+        line::write_newline(&mut self.inner)
     }
 }
