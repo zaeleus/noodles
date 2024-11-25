@@ -57,6 +57,10 @@
     `DirectiveBuf::Species`, `DirectiveBuf::ForwardReferencesAreResolved`, and
     `DirectiveBuf::StartOfFasta`. Use `DirectiveBuf::Other` instead.
 
+  * gff/line_buf: Remove formatter (`fmt::Display`).
+
+    Use a serializer instead, e.g., `gff::io::Writer`.
+
 ### Deprecated
 
   * gff: Deprecate `AsyncReader`.
