@@ -28,29 +28,6 @@ pub enum DirectiveBuf {
     Other(String, Option<String>),
 }
 
-impl fmt::Display for DirectiveBuf {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::GffVersion(version) => write!(f, "{PREFIX}{} {version}", key::GFF_VERSION),
-            Self::SequenceRegion(sequence_region) => {
-                write!(f, "{PREFIX}{} {sequence_region}", key::SEQUENCE_REGION)
-            }
-            Self::GenomeBuild(genome_build) => {
-                write!(f, "{PREFIX}{} {genome_build}", key::GENOME_BUILD)
-            }
-            Self::Other(key, value) => {
-                write!(f, "{PREFIX}{key}")?;
-
-                if let Some(v) = value {
-                    write!(f, " {v}")?;
-                }
-
-                Ok(())
-            }
-        }
-    }
-}
-
 /// An error returned when a raw GFF directive fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -146,27 +123,5 @@ mod tests {
                 Some(String::from("gff"))
             )),
         );
-    }
-
-    #[test]
-    fn test_fmt() {
-        assert_eq!(
-            DirectiveBuf::GffVersion(GffVersion::default()).to_string(),
-            "##gff-version 3"
-        );
-
-        let directive =
-            DirectiveBuf::SequenceRegion(SequenceRegion::new(String::from("sq0"), 8, 13));
-        assert_eq!(directive.to_string(), "##sequence-region sq0 8 13");
-
-        let directive =
-            DirectiveBuf::GenomeBuild(GenomeBuild::new(String::from("NDLS"), String::from("r1")));
-        assert_eq!(directive.to_string(), "##genome-build NDLS r1");
-
-        let directive = DirectiveBuf::Other(String::from("noodles"), None);
-        assert_eq!(directive.to_string(), "##noodles");
-
-        let directive = DirectiveBuf::Other(String::from("noodles"), Some(String::from("gff")));
-        assert_eq!(directive.to_string(), "##noodles gff");
     }
 }
