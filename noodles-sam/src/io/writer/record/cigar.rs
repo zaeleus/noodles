@@ -30,7 +30,7 @@ use crate::{
 /// let cigar: Cigar = [Op::new(Kind::Match, 4)].into_iter().collect();
 /// write_cigar(&mut buf, &cigar)?;
 /// assert_eq!(buf, b"4M");
-/// Ok::<_, std::io::Error>(())
+/// # Ok::<_, std::io::Error>(())
 /// ```
 pub fn write_cigar<W, C>(writer: &mut W, cigar: &C) -> io::Result<()>
 where
