@@ -1,9 +1,10 @@
+mod comment;
 mod directive;
 mod record;
 
 use std::io::{self, Write};
 
-use self::{directive::write_directive, record::write_record};
+use self::{comment::write_comment, directive::write_directive, record::write_record};
 use crate::LineBuf;
 
 pub(super) fn write_line<W>(writer: &mut W, line: &LineBuf) -> io::Result<()>
@@ -12,10 +13,7 @@ where
 {
     match line {
         LineBuf::Directive(directive) => write_directive(writer, directive)?,
-        LineBuf::Comment(s) => {
-            writer.write_all(b"#")?;
-            writer.write_all(s.as_bytes())?
-        }
+        LineBuf::Comment(s) => write_comment(writer, s)?,
         LineBuf::Record(record) => write_record(writer, record)?,
     }
 
