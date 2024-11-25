@@ -1,8 +1,9 @@
 mod directive;
+mod record;
 
 use std::io::{self, Write};
 
-use self::directive::write_directive;
+use self::{directive::write_directive, record::write_record};
 use crate::LineBuf;
 
 pub(super) fn write_line<W>(writer: &mut W, line: &LineBuf) -> io::Result<()>
@@ -15,7 +16,7 @@ where
             writer.write_all(b"#")?;
             writer.write_all(s.as_bytes())?
         }
-        _ => write!(writer, "{line}")?,
+        LineBuf::Record(record) => write_record(writer, record)?,
     }
 
     write_newline(writer)?;
