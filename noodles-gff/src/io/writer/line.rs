@@ -4,7 +4,8 @@ mod record;
 
 use std::io::{self, Write};
 
-use self::{comment::write_comment, directive::write_directive, record::write_record};
+pub(super) use self::directive::write_directive;
+use self::{comment::write_comment, record::write_record};
 use crate::LineBuf;
 
 pub(super) fn write_line<W>(writer: &mut W, line: &LineBuf) -> io::Result<()>
@@ -22,7 +23,7 @@ where
     Ok(())
 }
 
-fn write_newline<W>(writer: &mut W) -> io::Result<()>
+pub(super) fn write_newline<W>(writer: &mut W) -> io::Result<()>
 where
     W: Write,
 {

@@ -5,7 +5,7 @@ use std::io::{self, Write};
 use self::value::write_value;
 use crate::{directive_buf::key, DirectiveBuf};
 
-pub(super) fn write_directive<W>(writer: &mut W, directive: &DirectiveBuf) -> io::Result<()>
+pub(crate) fn write_directive<W>(writer: &mut W, directive: &DirectiveBuf) -> io::Result<()>
 where
     W: Write,
 {

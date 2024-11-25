@@ -117,7 +117,8 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_directive(&mut self, directive: &DirectiveBuf) -> io::Result<()> {
-        writeln!(self.inner, "{directive}")
+        line::write_directive(&mut self.inner, directive)?;
+        line::write_newline(&mut self.inner)
     }
 
     /// Writes a GFF record.
