@@ -25,7 +25,7 @@ where
         DirectiveBuf::GenomeBuild(genome_build) => {
             write_key(writer, key::GENOME_BUILD)?;
             write_separator(writer)?;
-            write!(writer, "{genome_build}")?
+            value::write_genome_build(writer, genome_build)?;
         }
         DirectiveBuf::Other(key, value) => {
             write_key(writer, key)?;
