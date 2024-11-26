@@ -1,3 +1,4 @@
+mod attributes;
 mod phase;
 mod position;
 mod score;
@@ -6,7 +7,8 @@ mod strand;
 use std::io::{self, Write};
 
 use self::{
-    phase::write_phase, position::write_position, score::write_score, strand::write_strand,
+    attributes::write_attributes, phase::write_phase, position::write_position, score::write_score,
+    strand::write_strand,
 };
 use crate::RecordBuf;
 
@@ -38,13 +40,7 @@ where
     write_phase(writer, record.phase())?;
     write_separator(writer)?;
 
-    let attributes = record.attributes();
-
-    if attributes.is_empty() {
-        write_missing(writer)?;
-    } else {
-        write!(writer, "{}", attributes)?;
-    }
+    write_attributes(writer, record.attributes())?;
 
     Ok(())
 }
