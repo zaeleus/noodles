@@ -1,9 +1,10 @@
 mod position;
 mod score;
+mod strand;
 
 use std::io::{self, Write};
 
-use self::{position::write_position, score::write_score};
+use self::{position::write_position, score::write_score, strand::write_strand};
 use crate::RecordBuf;
 
 pub(crate) fn write_record<W>(writer: &mut W, record: &RecordBuf) -> io::Result<()>
@@ -28,7 +29,7 @@ where
     write_score(writer, record.score())?;
     write_separator(writer)?;
 
-    write!(writer, "{}", record.strand())?;
+    write_strand(writer, record.strand())?;
     write_separator(writer)?;
 
     if let Some(phase) = record.phase() {
