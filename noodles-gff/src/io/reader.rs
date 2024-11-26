@@ -1,6 +1,6 @@
 //! GFF reader and iterators.
 
-mod line;
+pub(crate) mod line;
 mod line_bufs;
 mod record_bufs;
 

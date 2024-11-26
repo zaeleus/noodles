@@ -26,6 +26,11 @@
 
     This changes `Reader::records` to `Reader::record_bufs`.
 
+  * gff/io/reader/line: Skip blank lines.
+
+    See _Generic Feature Format Version 3 (GFF3)_ (2020-08-18): "Blank lines
+    should be ignored by parsers..."
+
   * gff/line: Hoist buffer to line.
 
     This moves the owned line buffer to `Line`. The structure is now a struct
