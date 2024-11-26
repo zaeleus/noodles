@@ -30,15 +30,18 @@ impl<'l> TryFrom<Record<'l>> for RecordBuf {
             .attributes()
             .iter()
             .map(|result| {
-                result.map(|(k, v)| {
+                result.and_then(|(k, v)| {
                     let value = match v {
-                        ValueRef::String(s) => Value::from(s),
-                        ValueRef::Array(values) => {
-                            Value::Array(values.iter().map(String::from).collect())
-                        }
+                        ValueRef::String(s) => Value::from(s.as_ref()),
+                        ValueRef::Array(values) => Value::Array(
+                            values
+                                .iter()
+                                .map(|result| result.map(String::from))
+                                .collect::<io::Result<_>>()?,
+                        ),
                     };
 
-                    (k.into(), value)
+                    Ok((k.into(), value))
                 })
             })
             .collect::<io::Result<_>>()?;

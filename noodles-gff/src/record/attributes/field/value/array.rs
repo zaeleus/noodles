@@ -1,4 +1,6 @@
-use std::fmt;
+use std::{borrow::Cow, fmt, io};
+
+use crate::record::attributes::field::percent_decode;
 
 /// A raw GFF record attributes field array value.
 #[derive(Eq, PartialEq)]
@@ -10,9 +12,12 @@ impl<'a> Array<'a> {
     }
 
     /// Returns an iterator over values.
-    pub fn iter(&self) -> impl Iterator<Item = &'a str> {
+    pub fn iter(&self) -> impl Iterator<Item = io::Result<Cow<'_, str>>> {
         const DELIMITER: char = ',';
-        self.0.split(DELIMITER)
+
+        self.0
+            .split(DELIMITER)
+            .map(|s| percent_decode(s).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
     }
 }
 
@@ -33,9 +38,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_iter() {
-        let array = Array::new("nd,ls");
-        let actual: Vec<_> = array.iter().collect();
-        assert_eq!(actual, ["nd", "ls"]);
+    fn test_iter() -> io::Result<()> {
+        let array = Array::new("8,13%2C21");
+        let actual: Vec<_> = array.iter().collect::<io::Result<_>>()?;
+        assert_eq!(actual, [Cow::from("8"), Cow::from("13,21")]);
+        Ok(())
     }
 }

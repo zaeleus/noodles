@@ -2,7 +2,7 @@
 
 pub mod field;
 
-use std::{fmt, io, iter};
+use std::{borrow::Cow, fmt, io, iter};
 
 use self::field::{parse_field, Value};
 
@@ -36,7 +36,7 @@ impl<'a> Attributes<'a> {
     }
 
     /// Returns an iterator over all tag-value pairs.
-    pub fn iter(&self) -> impl Iterator<Item = io::Result<(&str, Value<'_>)>> {
+    pub fn iter(&self) -> impl Iterator<Item = io::Result<(Cow<'_, str>, Value<'_>)>> {
         let mut src = self.0;
 
         iter::from_fn(move || {
@@ -77,14 +77,14 @@ mod tests {
         let attributes = Attributes::new("");
         assert!(attributes.is_empty());
 
-        let attributes = Attributes::new("gene_id=ndls0;gene_name=gene0");
+        let attributes = Attributes::new("ID=1;Name=ndls");
         assert!(!attributes.is_empty());
     }
 
     #[test]
     fn test_get() {
-        let attributes = Attributes::new("gene_id=ndls0;gene_name=gene0");
-        assert!(attributes.get("gene_name").is_some());
+        let attributes = Attributes::new("ID=1;Name=ndls");
+        assert!(attributes.get("ID").is_some());
         assert!(attributes.get("comment").is_none());
     }
 
@@ -93,11 +93,11 @@ mod tests {
         let attributes = Attributes::new("");
         assert!(attributes.iter().next().is_none());
 
-        let attributes = Attributes::new("gene_id=ndls0;gene_name=gene0");
+        let attributes = Attributes::new("ID=1;Name=ndls");
         let actual: Vec<_> = attributes.iter().collect::<Result<_, _>>()?;
         let expected = vec![
-            ("gene_id", Value::String("ndls0")),
-            ("gene_name", Value::String("gene0")),
+            (Cow::from("ID"), Value::String(Cow::from("1"))),
+            (Cow::from("Name"), Value::String(Cow::from("ndls"))),
         ];
         assert_eq!(actual, expected);
 

@@ -2,12 +2,14 @@
 
 mod value;
 
-use std::io;
+use std::{borrow::Cow, io, str};
+
+use percent_encoding::percent_decode_str;
 
 use self::value::parse_value;
 pub use self::value::Value;
 
-pub(super) fn parse_field<'a>(src: &mut &'a str) -> io::Result<(&'a str, Value<'a>)> {
+pub(super) fn parse_field<'a>(src: &mut &'a str) -> io::Result<(Cow<'a, str>, Value<'a>)> {
     const DELIMITER: char = ';';
     const SEPARATOR: char = '=';
 
@@ -17,12 +19,17 @@ pub(super) fn parse_field<'a>(src: &mut &'a str) -> io::Result<(&'a str, Value<'
 
     *src = rest;
 
-    let (key, value) = buf
-        .split_once(SEPARATOR)
-        .map(|(k, v)| (k, parse_value(v)))
-        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid field"))?;
+    if let Some((t, v)) = buf.split_once(SEPARATOR) {
+        let tag = percent_decode(t).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let value = parse_value(v)?;
+        Ok((tag, value))
+    } else {
+        Err(io::Error::new(io::ErrorKind::InvalidData, "invalid field"))
+    }
+}
 
-    Ok((key, value))
+fn percent_decode(s: &str) -> Result<Cow<'_, str>, str::Utf8Error> {
+    percent_decode_str(s).decode_utf8()
 }
 
 #[cfg(test)]
@@ -31,9 +38,15 @@ mod tests {
 
     #[test]
     fn test_parse_field() -> io::Result<()> {
-        let mut src = "ID=nd;Name=ls";
-        assert_eq!(parse_field(&mut src)?, ("ID", Value::String("nd")));
-        assert_eq!(parse_field(&mut src)?, ("Name", Value::String("ls")));
+        let mut src = "ID=1;Name=ndls";
+        assert_eq!(
+            parse_field(&mut src)?,
+            (Cow::from("ID"), Value::String(Cow::from("1")))
+        );
+        assert_eq!(
+            parse_field(&mut src)?,
+            (Cow::from("Name"), Value::String(Cow::from("ndls")))
+        );
         assert!(src.is_empty());
 
         let mut src = "ID";

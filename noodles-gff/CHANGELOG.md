@@ -43,6 +43,10 @@
   * gff/record: Parse score (`Record::score`) and phase
     (`Record::phase`).
 
+  * gff/record/attributes/field: Percent-decode components.
+
+    Tags and values now return as `Cow<'_, str>`.
+
 ### Removed
 
   * gff: Remove `lazy` module.

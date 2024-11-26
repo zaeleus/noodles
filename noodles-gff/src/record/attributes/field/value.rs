@@ -1,12 +1,15 @@
 mod array;
 
+use std::{borrow::Cow, io};
+
 use self::array::Array;
+use super::percent_decode;
 
 /// A raw GFF record attributes field value.
 #[derive(Debug, Eq, PartialEq)]
 pub enum Value<'a> {
     /// A string.
-    String(&'a str),
+    String(Cow<'a, str>),
     /// An array.
     Array(Array<'a>),
 }
@@ -20,11 +23,13 @@ impl<'a> AsRef<str> for Value<'a> {
     }
 }
 
-pub(super) fn parse_value(s: &str) -> Value<'_> {
+pub(super) fn parse_value(s: &str) -> io::Result<Value<'_>> {
     if is_array(s) {
-        Value::Array(Array::new(s))
+        Ok(Value::Array(Array::new(s)))
     } else {
-        Value::String(s)
+        percent_decode(s)
+            .map(Value::String)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 }
 
@@ -38,14 +43,15 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_value() {
-        assert_eq!(parse_value("ndls"), Value::String("ndls"));
-        assert_eq!(parse_value("nd,ls"), Value::Array(Array::new("nd,ls")));
+    fn test_parse_value() -> io::Result<()> {
+        assert_eq!(parse_value("ndls")?, Value::String(Cow::from("ndls")));
+        assert_eq!(parse_value("8,13")?, Value::Array(Array::new("8,13")));
+        Ok(())
     }
 
     #[test]
     fn test_is_array() {
-        assert!(is_array("nd,ls"));
+        assert!(is_array("8,13"));
         assert!(!is_array("ndls"));
     }
 }
