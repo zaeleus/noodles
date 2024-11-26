@@ -84,22 +84,6 @@ impl Value {
     }
 }
 
-impl fmt::Display for Value {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use super::percent_encode;
-
-        for (i, value) in self.iter().enumerate() {
-            if i > 0 {
-                DELIMITER.fmt(f)?;
-            }
-
-            percent_encode(value).fmt(f)?;
-        }
-
-        Ok(())
-    }
-}
-
 impl Extend<String> for Value {
     fn extend<T: IntoIterator<Item = String>>(&mut self, iter: T) {
         match self {
@@ -190,18 +174,6 @@ impl<'a> IntoIterator for &'a Value {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_fmt() {
-        let value = Value::from("gene0");
-        assert_eq!(value.to_string(), "gene0");
-
-        let value = Value::from("13,21");
-        assert_eq!(value.to_string(), "13%2C21");
-
-        let value = Value::from(vec![String::from("13"), String::from("21")]);
-        assert_eq!(value.to_string(), "13,21");
-    }
 
     #[test]
     fn test_from_str() {

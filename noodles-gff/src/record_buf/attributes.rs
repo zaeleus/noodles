@@ -35,22 +35,6 @@ impl DerefMut for Attributes {
     }
 }
 
-impl fmt::Display for Attributes {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use self::field::field_fmt;
-
-        for (i, field) in self.iter().enumerate() {
-            if i > 0 {
-                DELIMITER.fmt(f)?;
-            }
-
-            field_fmt(field, f)?;
-        }
-
-        Ok(())
-    }
-}
-
 /// An error returned when raw attributes fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -123,25 +107,6 @@ impl FromStr for Attributes {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_fmt() {
-        let attributes = Attributes::default();
-        assert!(attributes.to_string().is_empty());
-
-        let attributes: Attributes = [(Tag::from("gene_id"), Value::from("ndls0"))]
-            .into_iter()
-            .collect();
-        assert_eq!(attributes.to_string(), "gene_id=ndls0");
-
-        let attributes: Attributes = [
-            (Tag::from("gene_id"), Value::from("ndls0")),
-            (Tag::from("gene_name"), Value::from("gene0")),
-        ]
-        .into_iter()
-        .collect();
-        assert_eq!(attributes.to_string(), "gene_id=ndls0;gene_name=gene0")
-    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
