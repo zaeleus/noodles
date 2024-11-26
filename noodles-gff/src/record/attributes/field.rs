@@ -1,13 +1,14 @@
 //! Raw GFF record attributes field.
 
+mod tag;
 mod value;
 
 use std::{borrow::Cow, io, str};
 
 use percent_encoding::percent_decode_str;
 
-use self::value::parse_value;
 pub use self::value::Value;
+use self::{tag::parse_tag, value::parse_value};
 
 pub(super) fn parse_field<'a>(src: &mut &'a str) -> io::Result<(Cow<'a, str>, Value<'a>)> {
     const DELIMITER: char = ';';
@@ -20,7 +21,7 @@ pub(super) fn parse_field<'a>(src: &mut &'a str) -> io::Result<(Cow<'a, str>, Va
     *src = rest;
 
     if let Some((t, v)) = buf.split_once(SEPARATOR) {
-        let tag = percent_decode(t).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let tag = parse_tag(t)?;
         let value = parse_value(v)?;
         Ok((tag, value))
     } else {
