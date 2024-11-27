@@ -34,7 +34,10 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{DirectiveBuf, RecordBuf};
+    use crate::{
+        directive_buf::{key, Value},
+        DirectiveBuf, RecordBuf,
+    };
 
     #[test]
     fn test_write_line() -> io::Result<()> {
@@ -47,7 +50,10 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        let line = LineBuf::Directive(DirectiveBuf::GffVersion(Default::default()));
+        let line = LineBuf::Directive(DirectiveBuf::new(
+            key::GFF_VERSION,
+            Some(Value::GffVersion(Default::default())),
+        ));
         t(&mut buf, &line, b"##gff-version 3\n")?;
 
         let line = LineBuf::Comment(String::from("noodles"));

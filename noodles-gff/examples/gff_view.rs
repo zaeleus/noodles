@@ -8,7 +8,7 @@ use std::{
     io::{self, BufReader},
 };
 
-use noodles_gff::{self as gff, directive_buf::key, DirectiveBuf, LineBuf};
+use noodles_gff::{self as gff, directive_buf::key, LineBuf};
 
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
@@ -23,7 +23,7 @@ fn main() -> io::Result<()> {
     for result in reader.line_bufs() {
         let line = result?;
 
-        if matches!(line, LineBuf::Directive(DirectiveBuf::Other(ref key, _)) if key == key::START_OF_FASTA)
+        if matches!(line, LineBuf::Directive(ref directive) if directive.key() == key::START_OF_FASTA)
         {
             break;
         }

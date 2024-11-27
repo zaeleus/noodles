@@ -65,13 +65,15 @@ impl FromStr for LineBuf {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::directive_buf::{key, Value};
 
     #[test]
     fn test_from_str() {
         assert_eq!(
             "##gff-version 3".parse(),
-            Ok(LineBuf::Directive(DirectiveBuf::GffVersion(
-                Default::default()
+            Ok(LineBuf::Directive(DirectiveBuf::new(
+                key::GFF_VERSION,
+                Some(Value::GffVersion(Default::default()))
             )))
         );
 

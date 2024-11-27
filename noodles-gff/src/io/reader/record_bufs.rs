@@ -1,6 +1,6 @@
 use std::io::{self, BufRead};
 
-use crate::{directive_buf::key, DirectiveBuf, LineBuf, RecordBuf};
+use crate::{directive_buf::key, LineBuf, RecordBuf};
 
 use super::LineBufs;
 
@@ -33,10 +33,8 @@ where
         loop {
             match self.lines.next()? {
                 Ok(line) => match line {
-                    LineBuf::Directive(DirectiveBuf::Other(key, _))
-                        if key == key::START_OF_FASTA =>
-                    {
-                        return None
+                    LineBuf::Directive(directive) if directive.key() == key::START_OF_FASTA => {
+                        return None;
                     }
                     LineBuf::Record(r) => return Some(Ok(r)),
                     _ => {}

@@ -17,7 +17,37 @@ pub(crate) const PREFIX: &str = "##";
 ///
 /// This is also called a pragma or metadata.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum DirectiveBuf {
+pub struct DirectiveBuf {
+    key: String,
+    value: Option<Value>,
+}
+
+impl DirectiveBuf {
+    /// Creates a directive buffer.
+    pub fn new<K>(key: K, value: Option<Value>) -> Self
+    where
+        K: Into<String>,
+    {
+        Self {
+            key: key.into(),
+            value,
+        }
+    }
+
+    /// Returns the key.
+    pub fn key(&self) -> &str {
+        &self.key
+    }
+
+    /// Returns the value.
+    pub fn value(&self) -> Option<&Value> {
+        self.value.as_ref()
+    }
+}
+
+/// A GFF directive value.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum Value {
     /// The GFF version (`gff-version`).
     GffVersion(GffVersion),
     /// A reference to a sequence segment (`sequence-region`).
@@ -25,7 +55,7 @@ pub enum DirectiveBuf {
     /// The genome build used for the start and end positions (`genome-build`).
     GenomeBuild(GenomeBuild),
     /// Any other directive.
-    Other(String, Option<String>),
+    Other(String),
 }
 
 /// An error returned when a raw GFF directive fails to parse.
@@ -81,27 +111,32 @@ impl FromStr for DirectiveBuf {
 
         let key = components.next().ok_or(ParseError::MissingKey)?;
 
-        match key {
+        let value = match key {
             key::GFF_VERSION => components
                 .next()
                 .ok_or(ParseError::MissingValue)
                 .and_then(|s| s.parse().map_err(ParseError::InvalidGffVersion))
-                .map(Self::GffVersion),
+                .map(Value::GffVersion)
+                .map(Some)?,
             key::SEQUENCE_REGION => components
                 .next()
                 .ok_or(ParseError::MissingValue)
                 .and_then(|s| s.parse().map_err(ParseError::InvalidSequenceRegion))
-                .map(Self::SequenceRegion),
+                .map(Value::SequenceRegion)
+                .map(Some)?,
             key::GENOME_BUILD => components
                 .next()
                 .ok_or(ParseError::MissingValue)
                 .and_then(|s| s.parse().map_err(ParseError::InvalidGenomeBuild))
-                .map(Self::GenomeBuild),
-            _ => {
-                let value = components.next().map(String::from);
-                Ok(Self::Other(key.into(), value))
-            }
-        }
+                .map(Value::GenomeBuild)
+                .map(Some)?,
+            _ => components.next().map(|s| Value::Other(s.into())),
+        };
+
+        Ok(Self {
+            key: key.into(),
+            value,
+        })
     }
 }
 
@@ -111,16 +146,13 @@ mod tests {
 
     #[test]
     fn test_from_str() {
-        assert_eq!(
-            "##noodles".parse(),
-            Ok(DirectiveBuf::Other(String::from("noodles"), None)),
-        );
+        assert_eq!("##noodles".parse(), Ok(DirectiveBuf::new("noodles", None)));
 
         assert_eq!(
             "##noodles gff".parse(),
-            Ok(DirectiveBuf::Other(
-                String::from("noodles"),
-                Some(String::from("gff"))
+            Ok(DirectiveBuf::new(
+                "noodles",
+                Some(Value::Other(String::from("gff"))),
             )),
         );
     }

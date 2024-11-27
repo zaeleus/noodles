@@ -3,7 +3,7 @@ mod line;
 use futures::{stream, Stream, TryStreamExt};
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt};
 
-use crate::{directive_buf::key, DirectiveBuf, Line, LineBuf, RecordBuf};
+use crate::{directive_buf::key, Line, LineBuf, RecordBuf};
 
 /// An async GFF reader.
 pub struct Reader<R> {
@@ -179,8 +179,8 @@ where
             loop {
                 match lines.try_next().await? {
                     None => return Ok(None),
-                    Some(LineBuf::Directive(DirectiveBuf::Other(key, _)))
-                        if key == key::START_OF_FASTA =>
+                    Some(LineBuf::Directive(directive))
+                        if directive.key() == key::START_OF_FASTA =>
                     {
                         return Ok(None)
                     }

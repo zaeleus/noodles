@@ -13,6 +13,10 @@
     This also changes `lazy::Line` to `Line` and `lazy::Directive` to
     `Directive`.
 
+  * gff/directive_buf: Change structure to hold key-optional value pairs.
+
+    The key is now a `String`; and value, an `Option<Value>`.
+
   * gff/directive_buf/key: Rename name to key.
 
   * gff/directive_buf/key: Increase the visibilities of constants.

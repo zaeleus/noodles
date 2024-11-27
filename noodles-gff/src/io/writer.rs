@@ -76,11 +76,14 @@ where
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_gff::{self as gff, LineBuf};
+    /// use noodles_gff::{self as gff, directive_buf::{key, Value}, LineBuf};
     ///
     /// let mut writer = gff::io::Writer::new(Vec::new());
     ///
-    /// let version = LineBuf::Directive(gff::DirectiveBuf::GffVersion(Default::default()));
+    /// let version = LineBuf::Directive(gff::DirectiveBuf::new(
+    ///     key::GFF_VERSION,
+    ///     Some(Value::GffVersion(Default::default())),
+    /// ));
     /// writer.write_line(&version)?;
     ///
     /// let comment = LineBuf::Comment(String::from("noodles"));
@@ -106,11 +109,14 @@ where
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_gff as gff;
+    /// use noodles_gff::{self as gff, directive_buf::{key, Value}};
     ///
     /// let mut writer = gff::io::Writer::new(Vec::new());
     ///
-    /// let version = gff::DirectiveBuf::GffVersion(Default::default());
+    /// let version = gff::DirectiveBuf::new(
+    ///     key::GFF_VERSION,
+    ///     Some(Value::GffVersion(Default::default())),
+    /// );
     /// writer.write_directive(&version)?;
     ///
     /// assert_eq!(writer.get_ref(), b"##gff-version 3\n");
@@ -127,11 +133,14 @@ where
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_gff as gff;
+    /// use noodles_gff::{self as gff, directive_buf::{key, Value}};
     ///
     /// let mut writer = gff::io::Writer::new(Vec::new());
     ///
-    /// let version = gff::DirectiveBuf::GffVersion(Default::default());
+    /// let version = gff::DirectiveBuf::new(
+    ///     key::GFF_VERSION,
+    ///     Some(Value::GffVersion(Default::default())),
+    /// );
     /// writer.write_directive(&version)?;
     ///
     /// let record = gff::RecordBuf::default();

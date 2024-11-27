@@ -4,13 +4,21 @@
 
 use std::io;
 
-use noodles_gff::{self as gff, LineBuf};
+use noodles_gff::{
+    self as gff,
+    directive_buf::{key, Value},
+    LineBuf,
+};
 
 fn main() -> io::Result<()> {
     let stdout = io::stdout().lock();
     let mut writer = gff::io::Writer::new(stdout);
 
-    let version = gff::DirectiveBuf::GffVersion(Default::default());
+    let version = gff::DirectiveBuf::new(
+        key::GFF_VERSION,
+        Some(Value::GffVersion(Default::default())),
+    );
+
     writer.write_directive(&version)?;
 
     let comment = LineBuf::Comment(String::from("format: gff3"));
