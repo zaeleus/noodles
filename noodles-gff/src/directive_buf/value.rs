@@ -18,5 +18,5 @@ pub enum Value {
     /// The genome build used for the start and end positions (`genome-build`).
     GenomeBuild(GenomeBuild),
     /// Any other directive value.
-    Other(String),
+    String(String),
 }

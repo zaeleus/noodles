@@ -21,6 +21,8 @@
 
   * gff/directive_buf/key: Increase the visibilities of constants.
 
+  * gff/directive_buf/value: Rename `Value::Other` to `Value::String`.
+
   * gff/io/reader: Rename line to line buf and lazy line to line.
 
     This changes `Lines` to `LineBufs` and `Reader::read_line` to

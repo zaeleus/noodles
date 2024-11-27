@@ -30,7 +30,7 @@ where
             write_separator(writer)?;
             value::write_genome_build(writer, genome_build)?;
         }
-        (key, Some(Value::Other(value))) => {
+        (key, Some(Value::String(value))) => {
             write_key(writer, key)?;
             write_separator(writer)?;
             write_value(writer, value)?;
