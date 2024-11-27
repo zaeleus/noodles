@@ -1,15 +1,11 @@
 //! GFF directives.
 
-pub mod genome_build;
-pub mod gff_version;
 pub mod key;
-pub mod sequence_region;
-
-pub use self::{
-    genome_build::GenomeBuild, gff_version::GffVersion, sequence_region::SequenceRegion,
-};
+pub mod value;
 
 use std::{error, fmt, str::FromStr};
+
+pub use self::value::Value;
 
 pub(crate) const PREFIX: &str = "##";
 
@@ -45,19 +41,6 @@ impl DirectiveBuf {
     }
 }
 
-/// A GFF directive value.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum Value {
-    /// The GFF version (`gff-version`).
-    GffVersion(GffVersion),
-    /// A reference to a sequence segment (`sequence-region`).
-    SequenceRegion(SequenceRegion),
-    /// The genome build used for the start and end positions (`genome-build`).
-    GenomeBuild(GenomeBuild),
-    /// Any other directive.
-    Other(String),
-}
-
 /// An error returned when a raw GFF directive fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -68,11 +51,11 @@ pub enum ParseError {
     /// The directive value is missing.
     MissingValue,
     /// The GFF version is invalid.
-    InvalidGffVersion(gff_version::ParseError),
+    InvalidGffVersion(value::gff_version::ParseError),
     /// A sequence region is invalid.
-    InvalidSequenceRegion(sequence_region::ParseError),
+    InvalidSequenceRegion(value::sequence_region::ParseError),
     /// A genome build is invalid.
-    InvalidGenomeBuild(genome_build::ParseError),
+    InvalidGenomeBuild(value::genome_build::ParseError),
 }
 
 impl error::Error for ParseError {

@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use crate::directive_buf::SequenceRegion;
+use crate::directive_buf::value::SequenceRegion;
 
 pub(crate) fn write_sequence_region<W>(
     writer: &mut W,

@@ -16,7 +16,7 @@ impl SequenceRegion {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gff::directive_buf::SequenceRegion;
+    /// use noodles_gff::directive_buf::value::SequenceRegion;
     /// let sequence_region = SequenceRegion::new(String::from("sq0"), 8, 13);
     /// ```
     pub fn new(reference_sequence_name: String, start: i32, end: i32) -> Self {
@@ -32,7 +32,7 @@ impl SequenceRegion {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gff::directive_buf::SequenceRegion;
+    /// use noodles_gff::directive_buf::value::SequenceRegion;
     /// let sequence_region = SequenceRegion::new(String::from("sq0"), 8, 13);
     /// assert_eq!(sequence_region.reference_sequence_name(), "sq0");
     /// ```
@@ -47,7 +47,7 @@ impl SequenceRegion {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gff::directive_buf::SequenceRegion;
+    /// use noodles_gff::directive_buf::value::SequenceRegion;
     /// let sequence_region = SequenceRegion::new(String::from("sq0"), 8, 13);
     /// assert_eq!(sequence_region.start(), 8);
     /// ```
@@ -62,7 +62,7 @@ impl SequenceRegion {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gff::directive_buf::SequenceRegion;
+    /// use noodles_gff::directive_buf::value::SequenceRegion;
     /// let sequence_region = SequenceRegion::new(String::from("sq0"), 8, 13);
     /// assert_eq!(sequence_region.end(), 13);
     /// ```

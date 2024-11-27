@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use crate::directive_buf::GenomeBuild;
+use crate::directive_buf::value::GenomeBuild;
 
 pub(crate) fn write_genome_build<W>(writer: &mut W, genome_build: &GenomeBuild) -> io::Result<()>
 where

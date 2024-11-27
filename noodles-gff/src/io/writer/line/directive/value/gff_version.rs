@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use crate::directive_buf::GffVersion;
+use crate::directive_buf::value::GffVersion;
 
 pub(crate) fn write_gff_version<W>(writer: &mut W, version: &GffVersion) -> io::Result<()>
 where

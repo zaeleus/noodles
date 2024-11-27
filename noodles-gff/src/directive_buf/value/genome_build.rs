@@ -15,7 +15,7 @@ impl GenomeBuild {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gff::directive_buf::GenomeBuild;
+    /// use noodles_gff::directive_buf::value::GenomeBuild;
     /// let genome_build = GenomeBuild::new(String::from("NDLS"), String::from("r1"));
     /// ```
     pub fn new(source: String, name: String) -> Self {
@@ -27,7 +27,7 @@ impl GenomeBuild {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gff::directive_buf::GenomeBuild;
+    /// use noodles_gff::directive_buf::value::GenomeBuild;
     /// let genome_build = GenomeBuild::new(String::from("NDLS"), String::from("r1"));
     /// assert_eq!(genome_build.source(), "NDLS");
     /// ```
@@ -40,7 +40,7 @@ impl GenomeBuild {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gff::directive_buf::GenomeBuild;
+    /// use noodles_gff::directive_buf::value::GenomeBuild;
     /// let genome_build = GenomeBuild::new(String::from("NDLS"), String::from("r1"));
     /// assert_eq!(genome_build.name(), "r1");
     /// ```
