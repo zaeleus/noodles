@@ -17,7 +17,7 @@ impl Index {
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidInput,
-                    format!("invalid reference sequence name: {}", region.name(),),
+                    format!("invalid reference sequence name: {}", region.name()),
                 )
             })
             .and_then(|record| record.query(region.interval()))
