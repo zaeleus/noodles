@@ -54,7 +54,7 @@ impl<'r> Samples<'r> {
     }
 
     /// Returns an iterator over series.
-    pub fn series(&'r self) -> impl Iterator<Item = Series<'r>> + '_ {
+    pub fn series(&'r self) -> impl Iterator<Item = Series<'r>> + 'r {
         self.keys()
             .iter()
             .enumerate()
@@ -75,13 +75,13 @@ impl<'r> Samples<'r> {
     }
 }
 
-impl<'a> AsRef<str> for Samples<'a> {
+impl AsRef<str> for Samples<'_> {
     fn as_ref(&self) -> &str {
         self.0
     }
 }
 
-impl<'r> crate::variant::record::Samples for Samples<'r> {
+impl crate::variant::record::Samples for Samples<'_> {
     fn is_empty(&self) -> bool {
         self.0.is_empty()
     }

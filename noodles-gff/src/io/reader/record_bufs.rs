@@ -23,7 +23,7 @@ where
     }
 }
 
-impl<'a, R> Iterator for RecordBufs<'a, R>
+impl<R> Iterator for RecordBufs<'_, R>
 where
     R: BufRead,
 {

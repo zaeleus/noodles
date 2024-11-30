@@ -13,19 +13,19 @@ impl<'a> AlternateBases<'a> {
     }
 }
 
-impl<'a> fmt::Debug for AlternateBases<'a> {
+impl fmt::Debug for AlternateBases<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_list().entries(self.iter()).finish()
     }
 }
 
-impl<'a> AsRef<str> for AlternateBases<'a> {
+impl AsRef<str> for AlternateBases<'_> {
     fn as_ref(&self) -> &str {
         self.0
     }
 }
 
-impl<'a> crate::variant::record::AlternateBases for AlternateBases<'a> {
+impl crate::variant::record::AlternateBases for AlternateBases<'_> {
     fn is_empty(&self) -> bool {
         self.0.is_empty()
     }

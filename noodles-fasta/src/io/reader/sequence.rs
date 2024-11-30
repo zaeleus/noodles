@@ -26,7 +26,7 @@ where
     }
 }
 
-impl<'r, R> Read for Reader<'r, R>
+impl<R> Read for Reader<'_, R>
 where
     R: BufRead,
 {
@@ -38,7 +38,7 @@ where
     }
 }
 
-impl<'r, R> BufRead for Reader<'r, R>
+impl<R> BufRead for Reader<'_, R>
 where
     R: BufRead,
 {

@@ -5,7 +5,7 @@ pub trait Values<'a, N> {
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<N>> + '_>;
 }
 
-impl<'a, N> Values<'a, N> for Vec<N>
+impl<N> Values<'_, N> for Vec<N>
 where
     N: Copy,
 {

@@ -39,7 +39,7 @@ impl<'a> Cigar<'a> {
     }
 }
 
-impl<'a> sam::alignment::record::Cigar for Cigar<'a> {
+impl sam::alignment::record::Cigar for Cigar<'_> {
     fn is_empty(&self) -> bool {
         self.is_empty()
     }
@@ -53,13 +53,13 @@ impl<'a> sam::alignment::record::Cigar for Cigar<'a> {
     }
 }
 
-impl<'a> AsRef<[u8]> for Cigar<'a> {
+impl AsRef<[u8]> for Cigar<'_> {
     fn as_ref(&self) -> &[u8] {
         self.0
     }
 }
 
-impl<'a> fmt::Debug for Cigar<'a> {
+impl fmt::Debug for Cigar<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_list().entries(self.iter()).finish()
     }

@@ -246,7 +246,7 @@ impl<'a> Cigar<'a> {
     }
 }
 
-impl<'a> sam::alignment::record::Cigar for Cigar<'a> {
+impl sam::alignment::record::Cigar for Cigar<'_> {
     fn is_empty(&self) -> bool {
         self.is_unmapped
     }

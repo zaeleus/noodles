@@ -18,7 +18,7 @@ impl<'a, N> Values<'a, N> {
     }
 }
 
-impl<'a> Values<'a, i8> {
+impl Values<'_, i8> {
     /// Returns an iterator over values.
     pub fn iter(&self) -> impl Iterator<Item = io::Result<i8>> + '_ {
         self.src.iter().map(|&b| Ok(b as i8))
@@ -35,7 +35,7 @@ impl<'a> sam::alignment::record::data::field::value::array::Values<'a, i8> for V
     }
 }
 
-impl<'a> Values<'a, u8> {
+impl Values<'_, u8> {
     /// Returns an iterator over values.
     pub fn iter(&self) -> impl Iterator<Item = io::Result<u8>> + '_ {
         self.src.iter().copied().map(Ok)
@@ -52,7 +52,7 @@ impl<'a> sam::alignment::record::data::field::value::array::Values<'a, u8> for V
     }
 }
 
-impl<'a> Values<'a, i16> {
+impl Values<'_, i16> {
     /// Returns an iterator over values.
     pub fn iter(&self) -> impl Iterator<Item = io::Result<i16>> + '_ {
         self.src.chunks(mem::size_of::<i16>()).map(|chunk| {
@@ -74,7 +74,7 @@ impl<'a> sam::alignment::record::data::field::value::array::Values<'a, i16> for 
     }
 }
 
-impl<'a> Values<'a, u16> {
+impl Values<'_, u16> {
     /// Returns an iterator over values.
     pub fn iter(&self) -> impl Iterator<Item = io::Result<u16>> + '_ {
         self.src.chunks(mem::size_of::<u16>()).map(|chunk| {
@@ -96,7 +96,7 @@ impl<'a> sam::alignment::record::data::field::value::array::Values<'a, u16> for 
     }
 }
 
-impl<'a> Values<'a, i32> {
+impl Values<'_, i32> {
     /// Returns an iterator over values.
     pub fn iter(&self) -> impl Iterator<Item = io::Result<i32>> + '_ {
         self.src.chunks(mem::size_of::<i32>()).map(|chunk| {
@@ -118,7 +118,7 @@ impl<'a> sam::alignment::record::data::field::value::array::Values<'a, i32> for 
     }
 }
 
-impl<'a> Values<'a, u32> {
+impl Values<'_, u32> {
     /// Returns an iterator over values.
     pub fn iter(&self) -> impl Iterator<Item = io::Result<u32>> + '_ {
         self.src.chunks(mem::size_of::<u32>()).map(|chunk| {
@@ -140,7 +140,7 @@ impl<'a> sam::alignment::record::data::field::value::array::Values<'a, u32> for 
     }
 }
 
-impl<'a> Values<'a, f32> {
+impl Values<'_, f32> {
     /// Returns an iterator over values.
     pub fn iter(&self) -> impl Iterator<Item = io::Result<f32>> + '_ {
         self.src.chunks(mem::size_of::<f32>()).map(|chunk| {

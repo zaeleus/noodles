@@ -17,7 +17,7 @@ pub enum Value<'a> {
     Array(Array<'a>),
 }
 
-impl<'a> Value<'a> {
+impl Value<'_> {
     pub fn as_int(&self) -> Option<i32> {
         match self {
             Self::Int8(Some(Int8::Value(n))) => Some(i32::from(*n)),

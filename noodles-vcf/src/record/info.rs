@@ -51,13 +51,13 @@ impl<'r> Info<'r> {
     }
 }
 
-impl<'r> AsRef<str> for Info<'r> {
+impl AsRef<str> for Info<'_> {
     fn as_ref(&self) -> &str {
         self.0
     }
 }
 
-impl<'r> crate::variant::record::Info for Info<'r> {
+impl crate::variant::record::Info for Info<'_> {
     fn is_empty(&self) -> bool {
         self.0.is_empty()
     }

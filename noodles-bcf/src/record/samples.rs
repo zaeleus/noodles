@@ -98,13 +98,13 @@ impl<'r> Samples<'r> {
     }
 }
 
-impl<'r> AsRef<[u8]> for Samples<'r> {
+impl AsRef<[u8]> for Samples<'_> {
     fn as_ref(&self) -> &[u8] {
         self.src
     }
 }
 
-impl<'r> vcf::variant::record::Samples for Samples<'r> {
+impl vcf::variant::record::Samples for Samples<'_> {
     fn is_empty(&self) -> bool {
         self.len() == 0
     }

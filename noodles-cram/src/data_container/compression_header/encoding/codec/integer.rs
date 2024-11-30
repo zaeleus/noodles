@@ -99,7 +99,7 @@ impl Decode for Integer {
     }
 }
 
-impl<'en> Encode<'en> for Integer {
+impl Encode<'_> for Integer {
     type Value = i32;
 
     fn encode<W, X>(

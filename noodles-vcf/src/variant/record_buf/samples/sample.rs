@@ -43,7 +43,7 @@ impl<'g> Sample<'g> {
     }
 }
 
-impl<'g> crate::variant::record::samples::Sample for Sample<'g> {
+impl crate::variant::record::samples::Sample for Sample<'_> {
     fn get<'a, 'h: 'a>(
         &'a self,
         header: &'h Header,
@@ -71,7 +71,7 @@ impl<'g> crate::variant::record::samples::Sample for Sample<'g> {
     ) -> Box<
         dyn Iterator<
                 Item = io::Result<(
-                    &str,
+                    &'a str,
                     Option<crate::variant::record::samples::series::Value<'a>>,
                 )>,
             > + 'a,

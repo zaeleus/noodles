@@ -230,7 +230,7 @@ where
     pub fn record_bufs<'a>(
         &'a mut self,
         _header: &'a sam::Header,
-    ) -> impl Stream<Item = io::Result<RecordBuf>> + '_ {
+    ) -> impl Stream<Item = io::Result<RecordBuf>> + 'a {
         Box::pin(stream::try_unfold(
             (&mut self.inner, &mut self.buf, RecordBuf::default()),
             move |(reader, buf, mut record)| async move {

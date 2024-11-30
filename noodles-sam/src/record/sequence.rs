@@ -23,13 +23,13 @@ impl<'a> Sequence<'a> {
     }
 }
 
-impl<'a> AsRef<[u8]> for Sequence<'a> {
+impl AsRef<[u8]> for Sequence<'_> {
     fn as_ref(&self) -> &[u8] {
         self.0
     }
 }
 
-impl<'a> crate::alignment::record::Sequence for Sequence<'a> {
+impl crate::alignment::record::Sequence for Sequence<'_> {
     fn is_empty(&self) -> bool {
         self.is_empty()
     }

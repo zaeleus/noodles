@@ -69,7 +69,7 @@ impl<'l> Record<'l> {
     }
 }
 
-impl<'l> fmt::Debug for Record<'l> {
+impl fmt::Debug for Record<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Record")
             .field("reference_sequence_name", &self.reference_sequence_name())

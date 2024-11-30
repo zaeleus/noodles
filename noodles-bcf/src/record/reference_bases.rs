@@ -12,13 +12,13 @@ impl<'a> ReferenceBases<'a> {
     }
 }
 
-impl<'a> AsRef<[u8]> for ReferenceBases<'a> {
+impl AsRef<[u8]> for ReferenceBases<'_> {
     fn as_ref(&self) -> &[u8] {
         self.0
     }
 }
 
-impl<'a> vcf::variant::record::ReferenceBases for ReferenceBases<'a> {
+impl vcf::variant::record::ReferenceBases for ReferenceBases<'_> {
     fn is_empty(&self) -> bool {
         self.0.is_empty()
     }

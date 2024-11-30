@@ -24,7 +24,7 @@ impl<'l> Directive<'l> {
     }
 }
 
-impl<'l> AsRef<str> for Directive<'l> {
+impl AsRef<str> for Directive<'_> {
     fn as_ref(&self) -> &str {
         self.src
     }

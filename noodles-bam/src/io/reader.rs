@@ -251,7 +251,7 @@ where
     /// }
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn record_bufs<'a>(&'a mut self, header: &'a sam::Header) -> RecordBufs<'_, R> {
+    pub fn record_bufs<'a>(&'a mut self, header: &'a sam::Header) -> RecordBufs<'a, R> {
         RecordBufs::new(self, header)
     }
 

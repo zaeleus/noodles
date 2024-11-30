@@ -64,7 +64,7 @@ impl<'a> Subsequence<'a> {
     }
 }
 
-impl<'a> sam::alignment::record::Sequence for Subsequence<'a> {
+impl sam::alignment::record::Sequence for Subsequence<'_> {
     fn is_empty(&self) -> bool {
         self.is_empty()
     }

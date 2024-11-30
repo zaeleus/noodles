@@ -42,13 +42,13 @@ impl<'r> Info<'r> {
     }
 }
 
-impl<'r> AsRef<[u8]> for Info<'r> {
+impl AsRef<[u8]> for Info<'_> {
     fn as_ref(&self) -> &[u8] {
         self.src
     }
 }
 
-impl<'r> vcf::variant::record::Info for Info<'r> {
+impl vcf::variant::record::Info for Info<'_> {
     fn is_empty(&self) -> bool {
         self.len() == 0
     }

@@ -16,7 +16,7 @@ impl<'r> Sample<'r> {
     }
 }
 
-impl<'r> vcf::variant::record::samples::Sample for Sample<'r> {
+impl vcf::variant::record::samples::Sample for Sample<'_> {
     fn get<'a, 'h: 'a>(
         &'a self,
         header: &'h vcf::Header,

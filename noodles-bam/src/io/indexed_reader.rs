@@ -64,7 +64,7 @@ where
 
     /// Returns an iterator over alignment record buffers starting from the current stream
     /// position.
-    pub fn record_bufs<'a>(&'a mut self, header: &'a sam::Header) -> RecordBufs<'_, R> {
+    pub fn record_bufs<'a>(&'a mut self, header: &'a sam::Header) -> RecordBufs<'a, R> {
         self.inner.record_bufs(header)
     }
 
@@ -104,7 +104,7 @@ where
         &'a mut self,
         header: &'a sam::Header,
         region: &Region,
-    ) -> io::Result<Query<'_, R>> {
+    ) -> io::Result<Query<'a, R>> {
         self.inner.query(header, &self.index, region)
     }
 

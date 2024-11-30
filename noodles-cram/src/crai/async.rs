@@ -54,7 +54,6 @@ where
 /// # Ok(())
 /// # }
 /// ```
-
 pub async fn write<P>(dst: P, index: &[Record]) -> io::Result<()>
 where
     P: AsRef<Path>,

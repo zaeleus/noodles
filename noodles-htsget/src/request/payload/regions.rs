@@ -32,7 +32,7 @@ impl Serialize for Regions {
 
 struct HtsgetRegion<'a>(&'a Region);
 
-impl<'a> Serialize for HtsgetRegion<'a> {
+impl Serialize for HtsgetRegion<'_> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,

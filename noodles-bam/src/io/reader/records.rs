@@ -23,7 +23,7 @@ where
     }
 }
 
-impl<'a, R> Iterator for Records<'a, R>
+impl<R> Iterator for Records<'_, R>
 where
     R: Read,
 {

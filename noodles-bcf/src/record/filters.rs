@@ -42,13 +42,13 @@ impl<'r> Filters<'r> {
     }
 }
 
-impl<'r> AsRef<[u8]> for Filters<'r> {
+impl AsRef<[u8]> for Filters<'_> {
     fn as_ref(&self) -> &[u8] {
         self.0
     }
 }
 
-impl<'r> vcf::variant::record::Filters for Filters<'r> {
+impl vcf::variant::record::Filters for Filters<'_> {
     fn is_empty(&self) -> bool {
         self.len() == 0
     }

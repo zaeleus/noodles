@@ -97,7 +97,7 @@ impl Decode for Byte {
     }
 }
 
-impl<'en> Encode<'en> for Byte {
+impl Encode<'_> for Byte {
     type Value = u8;
 
     fn encode<W, X>(

@@ -14,7 +14,7 @@ pub enum Value<'a> {
     Array(Array<'a>),
 }
 
-impl<'a> AsRef<str> for Value<'a> {
+impl AsRef<str> for Value<'_> {
     fn as_ref(&self) -> &str {
         match self {
             Value::String(s) => s,

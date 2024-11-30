@@ -64,7 +64,7 @@ impl<T> Once<T> {
     }
 }
 
-impl<'a, T> vcf::variant::record::info::field::value::array::Values<'a, T> for Once<T>
+impl<T> vcf::variant::record::info::field::value::array::Values<'_, T> for Once<T>
 where
     T: Copy,
 {

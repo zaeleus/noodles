@@ -40,7 +40,7 @@ where
     }
 }
 
-impl<'r, 'h, R> Iterator for Query<'r, 'h, R>
+impl<R> Iterator for Query<'_, '_, R>
 where
     R: bgzf::io::BufRead + bgzf::io::Seek,
 {

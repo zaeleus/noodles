@@ -20,7 +20,7 @@ impl<'r> Series<'r> {
     }
 }
 
-impl<'r> crate::variant::record::samples::Series for Series<'r> {
+impl crate::variant::record::samples::Series for Series<'_> {
     fn name<'a, 'h: 'a>(&'a self, _: &'h Header) -> io::Result<&'a str> {
         Ok(self.name)
     }

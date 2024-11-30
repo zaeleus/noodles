@@ -22,7 +22,7 @@ impl<'a> QualityScores<'a> {
     }
 }
 
-impl<'a> sam::alignment::record::QualityScores for QualityScores<'a> {
+impl sam::alignment::record::QualityScores for QualityScores<'_> {
     fn is_empty(&self) -> bool {
         self.is_empty()
     }
@@ -36,7 +36,7 @@ impl<'a> sam::alignment::record::QualityScores for QualityScores<'a> {
     }
 }
 
-impl<'a> AsRef<[u8]> for QualityScores<'a> {
+impl AsRef<[u8]> for QualityScores<'_> {
     fn as_ref(&self) -> &[u8] {
         self.0
     }

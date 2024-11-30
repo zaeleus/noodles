@@ -10,13 +10,13 @@ impl<'a> Ids<'a> {
     }
 }
 
-impl<'a> AsRef<str> for Ids<'a> {
+impl AsRef<str> for Ids<'_> {
     fn as_ref(&self) -> &str {
         self.0
     }
 }
 
-impl<'a> crate::variant::record::Ids for Ids<'a> {
+impl crate::variant::record::Ids for Ids<'_> {
     fn is_empty(&self) -> bool {
         self.0.is_empty()
     }

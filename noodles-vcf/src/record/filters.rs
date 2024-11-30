@@ -12,13 +12,13 @@ impl<'r> Filters<'r> {
     }
 }
 
-impl<'r> AsRef<str> for Filters<'r> {
+impl AsRef<str> for Filters<'_> {
     fn as_ref(&self) -> &str {
         self.0
     }
 }
 
-impl<'r> crate::variant::record::Filters for Filters<'r> {
+impl crate::variant::record::Filters for Filters<'_> {
     fn is_empty(&self) -> bool {
         self.0.is_empty()
     }

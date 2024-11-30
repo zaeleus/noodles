@@ -18,7 +18,7 @@ pub enum Array<'a> {
     String(Box<dyn Values<'a, Cow<'a, str>> + 'a>),
 }
 
-impl<'a> fmt::Debug for Array<'a> {
+impl fmt::Debug for Array<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Integer(values) => f.debug_list().entries(values.iter()).finish(),

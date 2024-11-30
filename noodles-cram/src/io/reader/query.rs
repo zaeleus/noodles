@@ -104,7 +104,7 @@ where
     }
 }
 
-impl<'a, R> Iterator for Query<'a, R>
+impl<R> Iterator for Query<'_, R>
 where
     R: Read + Seek,
 {

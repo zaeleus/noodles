@@ -25,7 +25,7 @@ where
     }
 }
 
-impl<'r, 'h, R> Iterator for RecordBufs<'r, 'h, R>
+impl<R> Iterator for RecordBufs<'_, '_, R>
 where
     R: BufRead,
 {

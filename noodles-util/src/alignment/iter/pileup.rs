@@ -125,7 +125,7 @@ where
     }
 }
 
-impl<'a, I> Iterator for Pileup<'a, I>
+impl<I> Iterator for Pileup<'_, I>
 where
     I: Iterator<Item = io::Result<Box<dyn Record>>>,
 {

@@ -305,7 +305,7 @@ where
         header: &'a sam::Header,
         index: &'a crai::Index,
         region: &Region,
-    ) -> io::Result<Query<'_, R>> {
+    ) -> io::Result<Query<'a, R>> {
         let reference_sequence_id = header
             .reference_sequences()
             .get_index_of(region.name())

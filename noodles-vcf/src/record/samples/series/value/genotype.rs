@@ -12,7 +12,7 @@ impl<'a> Genotype<'a> {
     }
 }
 
-impl<'a> crate::variant::record::samples::series::value::Genotype for Genotype<'a> {
+impl crate::variant::record::samples::series::value::Genotype for Genotype<'_> {
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Option<usize>, Phasing)>> + '_> {
         let mut src = self.0;
 

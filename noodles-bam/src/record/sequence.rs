@@ -69,7 +69,7 @@ impl<'a> Sequence<'a> {
     }
 }
 
-impl<'a> sam::alignment::record::Sequence for Sequence<'a> {
+impl sam::alignment::record::Sequence for Sequence<'_> {
     fn is_empty(&self) -> bool {
         self.is_empty()
     }
@@ -102,17 +102,17 @@ impl<'a> sam::alignment::record::Sequence for Sequence<'a> {
     }
 }
 
-impl<'a> AsRef<[u8]> for Sequence<'a> {
+impl AsRef<[u8]> for Sequence<'_> {
     fn as_ref(&self) -> &[u8] {
         self.src
     }
 }
 
-impl<'a> fmt::Debug for Sequence<'a> {
+impl fmt::Debug for Sequence<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         struct BasesFormat<'a>(&'a Sequence<'a>);
 
-        impl<'a> fmt::Debug for BasesFormat<'a> {
+        impl fmt::Debug for BasesFormat<'_> {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 f.write_char('"')?;
 

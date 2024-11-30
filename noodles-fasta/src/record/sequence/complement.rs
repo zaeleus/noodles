@@ -28,7 +28,7 @@ impl fmt::Display for ComplementError {
     }
 }
 
-impl<'a> Iterator for Complement<'a> {
+impl Iterator for Complement<'_> {
     type Item = Result<u8, ComplementError>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -36,15 +36,15 @@ impl<'a> Iterator for Complement<'a> {
     }
 }
 
-impl<'a> DoubleEndedIterator for Complement<'a> {
+impl DoubleEndedIterator for Complement<'_> {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.iter.next_back().copied().map(complement)
     }
 }
 
-impl<'a> ExactSizeIterator for Complement<'a> {}
+impl ExactSizeIterator for Complement<'_> {}
 
-impl<'a> FusedIterator for Complement<'a> {}
+impl FusedIterator for Complement<'_> {}
 
 fn complement(b: u8) -> Result<u8, ComplementError> {
     match b {

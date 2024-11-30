@@ -15,13 +15,13 @@ impl<'a> AlternateBases<'a> {
     }
 }
 
-impl<'a> AsRef<[u8]> for AlternateBases<'a> {
+impl AsRef<[u8]> for AlternateBases<'_> {
     fn as_ref(&self) -> &[u8] {
         self.src
     }
 }
 
-impl<'a> vcf::variant::record::AlternateBases for AlternateBases<'a> {
+impl vcf::variant::record::AlternateBases for AlternateBases<'_> {
     fn is_empty(&self) -> bool {
         self.len == 0
     }

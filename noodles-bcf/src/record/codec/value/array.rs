@@ -11,7 +11,7 @@ pub enum Array<'a> {
     Float(Box<dyn Values<'a, f32> + 'a>),
 }
 
-impl<'a> fmt::Debug for Array<'a> {
+impl fmt::Debug for Array<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Int8(values) => f.debug_list().entries(values.iter()).finish(),

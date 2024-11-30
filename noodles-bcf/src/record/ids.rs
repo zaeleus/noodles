@@ -12,13 +12,13 @@ impl<'a> Ids<'a> {
     }
 }
 
-impl<'a> AsRef<[u8]> for Ids<'a> {
+impl AsRef<[u8]> for Ids<'_> {
     fn as_ref(&self) -> &[u8] {
         self.0
     }
 }
 
-impl<'a> vcf::variant::record::Ids for Ids<'a> {
+impl vcf::variant::record::Ids for Ids<'_> {
     fn is_empty(&self) -> bool {
         self.0.is_empty()
     }

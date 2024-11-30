@@ -27,7 +27,7 @@ where
     }
 }
 
-impl<'a, R> Iterator for LineBufs<'a, R>
+impl<R> Iterator for LineBufs<'_, R>
 where
     R: BufRead,
 {

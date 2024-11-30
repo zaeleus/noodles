@@ -41,13 +41,13 @@ impl<'a, const N: usize> OtherFields<'a, N> {
     }
 }
 
-impl<'a, const N: usize> fmt::Debug for OtherFields<'a, N> {
+impl<const N: usize> fmt::Debug for OtherFields<'_, N> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_list().entries(self.iter()).finish()
     }
 }
 
-impl<'a, const N: usize> crate::feature::record::OtherFields for OtherFields<'a, N> {
+impl<const N: usize> crate::feature::record::OtherFields for OtherFields<'_, N> {
     fn is_empty(&self) -> bool {
         self.is_empty()
     }

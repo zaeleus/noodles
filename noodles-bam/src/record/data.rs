@@ -57,7 +57,7 @@ impl<'a> Data<'a> {
     }
 }
 
-impl<'a> fmt::Debug for Data<'a> {
+impl fmt::Debug for Data<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut formatter = f.debug_map();
 
@@ -70,7 +70,7 @@ impl<'a> fmt::Debug for Data<'a> {
     }
 }
 
-impl<'a> sam::alignment::record::Data for Data<'a> {
+impl sam::alignment::record::Data for Data<'_> {
     fn is_empty(&self) -> bool {
         self.is_empty()
     }
@@ -84,7 +84,7 @@ impl<'a> sam::alignment::record::Data for Data<'a> {
     }
 }
 
-impl<'a> AsRef<[u8]> for Data<'a> {
+impl AsRef<[u8]> for Data<'_> {
     fn as_ref(&self) -> &[u8] {
         self.0
     }

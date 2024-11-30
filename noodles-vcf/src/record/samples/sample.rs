@@ -53,13 +53,13 @@ impl<'s> Sample<'s> {
     }
 }
 
-impl<'a> AsRef<str> for Sample<'a> {
+impl AsRef<str> for Sample<'_> {
     fn as_ref(&self) -> &str {
         self.src
     }
 }
 
-impl<'r> crate::variant::record::samples::Sample for Sample<'r> {
+impl crate::variant::record::samples::Sample for Sample<'_> {
     fn get<'a, 'h: 'a>(
         &'a self,
         header: &'h Header,
@@ -92,7 +92,7 @@ impl<'r> crate::variant::record::samples::Sample for Sample<'r> {
     fn iter<'a, 'h: 'a>(
         &'a self,
         header: &'h Header,
-    ) -> Box<dyn Iterator<Item = io::Result<(&str, Option<Value<'a>>)>> + 'a> {
+    ) -> Box<dyn Iterator<Item = io::Result<(&'a str, Option<Value<'a>>)>> + 'a> {
         Box::new(self.iter(header))
     }
 }

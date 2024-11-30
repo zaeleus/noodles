@@ -25,7 +25,7 @@ where
     }
 }
 
-impl<'r, I, R> Iterator for FilterByRegion<'r, I, R>
+impl<I, R> Iterator for FilterByRegion<'_, I, R>
 where
     I: Iterator<Item = io::Result<R>>,
     R: IndexedRecord,
@@ -59,22 +59,22 @@ mod tests {
     use super::*;
     use noodles_core::Position;
 
-    #[test]
-    fn test_next() -> Result<(), Box<dyn std::error::Error>> {
-        impl IndexedRecord for (&str, Position, Position) {
-            fn indexed_reference_sequence_name(&self) -> &str {
-                self.0
-            }
-
-            fn indexed_start_position(&self) -> Position {
-                self.1
-            }
-
-            fn indexed_end_position(&self) -> Position {
-                self.2
-            }
+    impl IndexedRecord for (&str, Position, Position) {
+        fn indexed_reference_sequence_name(&self) -> &str {
+            self.0
         }
 
+        fn indexed_start_position(&self) -> Position {
+            self.1
+        }
+
+        fn indexed_end_position(&self) -> Position {
+            self.2
+        }
+    }
+
+    #[test]
+    fn test_next() -> Result<(), Box<dyn std::error::Error>> {
         let records = [
             Ok(("sq0", Position::try_from(5)?, Position::try_from(13)?)),
             Ok(("sq1", Position::try_from(5)?, Position::try_from(13)?)),

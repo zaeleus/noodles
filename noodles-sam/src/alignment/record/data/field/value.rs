@@ -36,7 +36,7 @@ pub enum Value<'a> {
     Array(Array<'a>),
 }
 
-impl<'a> Value<'a> {
+impl Value<'_> {
     /// Return the type of the value.
     ///
     /// # Examples

@@ -49,13 +49,13 @@ impl<'a> Attributes<'a> {
     }
 }
 
-impl<'a> AsRef<str> for Attributes<'a> {
+impl AsRef<str> for Attributes<'_> {
     fn as_ref(&self) -> &str {
         self.0
     }
 }
 
-impl<'a> fmt::Debug for Attributes<'a> {
+impl fmt::Debug for Attributes<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut formatter = f.debug_map();
 

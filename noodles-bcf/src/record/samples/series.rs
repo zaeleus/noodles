@@ -113,7 +113,7 @@ impl<'r> Series<'r> {
     }
 }
 
-impl<'r> vcf::variant::record::samples::Series for Series<'r> {
+impl vcf::variant::record::samples::Series for Series<'_> {
     fn name<'a, 'h: 'a>(&'a self, header: &'h vcf::Header) -> io::Result<&'a str> {
         header
             .string_maps()

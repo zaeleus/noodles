@@ -260,7 +260,7 @@ where
             }
         }
 
-        return Poll::Ready(Ok(this.block.data().as_ref()));
+        Poll::Ready(Ok(this.block.data().as_ref()))
     }
 
     fn consume(self: Pin<&mut Self>, amt: usize) {

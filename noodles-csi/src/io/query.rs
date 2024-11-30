@@ -34,7 +34,7 @@ impl<'r, R> Query<'r, R> {
     }
 }
 
-impl<'r, R> Query<'r, R>
+impl<R> Query<'_, R>
 where
     R: bgzf::io::BufRead + bgzf::io::Seek,
 {
@@ -44,7 +44,7 @@ where
     }
 }
 
-impl<'r, R> Read for Query<'r, R>
+impl<R> Read for Query<'_, R>
 where
     R: bgzf::io::BufRead + bgzf::io::Seek,
 {
@@ -56,7 +56,7 @@ where
     }
 }
 
-impl<'r, R> BufRead for Query<'r, R>
+impl<R> BufRead for Query<'_, R>
 where
     R: bgzf::io::BufRead + bgzf::io::Seek,
 {

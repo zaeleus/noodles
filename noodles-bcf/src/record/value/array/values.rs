@@ -18,13 +18,13 @@ impl<'a, N> Values<'a, N> {
     }
 }
 
-impl<'a, N> AsRef<[u8]> for Values<'a, N> {
+impl<N> AsRef<[u8]> for Values<'_, N> {
     fn as_ref(&self) -> &[u8] {
         self.src
     }
 }
 
-impl<'a> Values<'a, i8> {
+impl Values<'_, i8> {
     pub(crate) fn iter(&self) -> impl Iterator<Item = Int8> + '_ {
         self.src.iter().map(|&n| Int8::from(n as i8))
     }
@@ -59,7 +59,7 @@ impl<'a> vcf::variant::record::samples::series::value::array::Values<'a, i32> fo
     }
 }
 
-impl<'a> Values<'a, i16> {
+impl Values<'_, i16> {
     pub(crate) fn iter(&self) -> impl Iterator<Item = Int16> + '_ {
         self.src.chunks_exact(mem::size_of::<i16>()).map(|chunk| {
             // SAFETY: `chunk` is 2 bytes.
@@ -98,7 +98,7 @@ impl<'a> vcf::variant::record::samples::series::value::array::Values<'a, i32> fo
     }
 }
 
-impl<'a> Values<'a, i32> {
+impl Values<'_, i32> {
     pub(crate) fn iter(&self) -> impl Iterator<Item = Int32> + '_ {
         self.src.chunks_exact(mem::size_of::<i32>()).map(|chunk| {
             // SAFETY: `chunk` is 4 bytes.
@@ -137,7 +137,7 @@ impl<'a> vcf::variant::record::samples::series::value::array::Values<'a, i32> fo
     }
 }
 
-impl<'a> Values<'a, f32> {
+impl Values<'_, f32> {
     pub(crate) fn iter(&self) -> impl Iterator<Item = Float> + '_ {
         self.src.chunks_exact(mem::size_of::<f32>()).map(|chunk| {
             // SAFETY: `chunk` is 4 bytes.

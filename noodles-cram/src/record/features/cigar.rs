@@ -31,7 +31,7 @@ impl<'a> Cigar<'a> {
     }
 }
 
-impl<'a> Iterator for Cigar<'a> {
+impl Iterator for Cigar<'_> {
     type Item = Op;
 
     fn next(&mut self) -> Option<Self::Item> {
