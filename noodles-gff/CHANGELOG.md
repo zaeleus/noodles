@@ -72,6 +72,10 @@
     `DirectiveBuf::Species`, `DirectiveBuf::ForwardReferencesAreResolved`, and
     `DirectiveBuf::StartOfFasta`. Use `DirectiveBuf::Other` instead.
 
+  * gff/io/reader: Remove `Reader::read_line_buf`.
+
+    Read into a `Line` using `Reader::read_line` instead.
+
   * gff/line_buf: Remove formatter (`fmt::Display`).
 
     Use a serializer instead, e.g., `gff::io::Writer`.

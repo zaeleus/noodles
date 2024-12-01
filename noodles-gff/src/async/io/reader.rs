@@ -71,28 +71,6 @@ where
         Self { inner }
     }
 
-    /// Reads a GFF line buffer.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # #[tokio::main]
-    /// # async fn main() -> tokio::io::Result<()> {
-    /// use noodles_gff as gff;
-    ///
-    /// let data = b"##gff-version 3\n";
-    /// let mut reader = gff::r#async::io::Reader::new(&data[..]);
-    ///
-    /// let mut buf = String::new();
-    /// reader.read_line_buf(&mut buf).await?;
-    /// assert_eq!(buf, "##gff-version 3");
-    /// # Ok(())
-    /// # }
-    /// ```
-    pub async fn read_line_buf(&mut self, buf: &mut String) -> io::Result<usize> {
-        read_line(&mut self.inner, buf).await
-    }
-
     /// Reads a lazy line.
     ///
     /// # Examples

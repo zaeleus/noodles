@@ -80,36 +80,6 @@ where
         Self { inner }
     }
 
-    /// Reads a GFF line buffer.
-    ///
-    /// This reads from the underlying stream until a newline is reached and appends it to the
-    /// given buffer, sans the final newline character. The buffer can subsequently be parsed as a
-    /// [`crate::Line`].
-    ///
-    /// It is more ergonomic to read records using an iterator (see [`Self::lines`]), but using
-    /// this method allows control of the line buffer and whether the raw line should be parsed.
-    ///
-    /// If successful, the number of bytes read is returned. If the number of bytes read is 0, the
-    /// stream reached EOF.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io;
-    /// use noodles_gff as gff;
-    ///
-    /// let data = b"##gff-version 3";
-    /// let mut reader = gff::io::Reader::new(&data[..]);
-    ///
-    /// let mut buf = String::new();
-    /// reader.read_line_buf(&mut buf)?;
-    /// assert_eq!(buf, "##gff-version 3");
-    /// # Ok::<_, io::Error>(())
-    /// ```
-    pub fn read_line_buf(&mut self, buf: &mut String) -> io::Result<usize> {
-        read_line(&mut self.inner, buf)
-    }
-
     /// Returns an iterator over line buffers starting from the current stream position.
     ///
     /// When using this, the caller is responsible to stop reading at either EOF or when the
