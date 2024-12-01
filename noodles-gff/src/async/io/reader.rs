@@ -141,14 +141,12 @@ where
     /// ```
     pub fn line_bufs(&mut self) -> impl Stream<Item = io::Result<LineBuf>> + '_ {
         Box::pin(stream::try_unfold(
-            (self, String::new()),
-            |(reader, mut buf)| async {
-                buf.clear();
-
-                reader.read_line_buf(&mut buf).await.and_then(|n| match n {
+            (self, Line::default()),
+            |(reader, mut line)| async {
+                reader.read_line(&mut line).await.and_then(|n| match n {
                     0 => Ok(None),
-                    _ => match buf.parse() {
-                        Ok(line) => Ok(Some((line, (reader, buf)))),
+                    _ => match line.as_ref().parse() {
+                        Ok(line_buf) => Ok(Some((line_buf, (reader, line)))),
                         Err(e) => Err(io::Error::new(io::ErrorKind::InvalidData, e)),
                     },
                 })

@@ -1,6 +1,6 @@
 use std::io::{self, BufRead};
 
-use crate::LineBuf;
+use crate::{Line, LineBuf};
 
 use super::Reader;
 
@@ -12,7 +12,7 @@ use super::Reader;
 /// This is created by calling [`Reader::lines`].
 pub struct LineBufs<'a, R> {
     inner: &'a mut Reader<R>,
-    line_buf: String,
+    line: Line,
 }
 
 impl<'a, R> LineBufs<'a, R>
@@ -22,7 +22,7 @@ where
     pub(crate) fn new(inner: &'a mut Reader<R>) -> Self {
         Self {
             inner,
-            line_buf: String::new(),
+            line: Line::default(),
         }
     }
 }
@@ -34,14 +34,14 @@ where
     type Item = io::Result<LineBuf>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.line_buf.clear();
-
-        match self.inner.read_line_buf(&mut self.line_buf) {
+        match self.inner.read_line(&mut self.line) {
             Ok(0) => None,
-            Ok(_) => match self.line_buf.parse() {
-                Ok(line) => Some(Ok(line)),
-                Err(e) => Some(Err(io::Error::new(io::ErrorKind::InvalidData, e))),
-            },
+            Ok(_) => Some(
+                self.line
+                    .as_ref()
+                    .parse()
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+            ),
             Err(e) => Some(Err(e)),
         }
     }
