@@ -114,7 +114,7 @@ where
     /// let mut lines = reader.lines();
     ///
     /// while let Some(line) = lines.try_next().await? {
-    ///     if let Some(key::START_OF_FASTA) = line.as_directive().map(|directive| directive.key()) {
+    ///     if let Some(key::FASTA) = line.as_directive().map(|directive| directive.key()) {
     ///         break;
     ///     }
     ///
@@ -194,9 +194,7 @@ where
             loop {
                 match lines.try_next().await? {
                     None => return Ok(None),
-                    Some(LineBuf::Directive(directive))
-                        if directive.key() == key::START_OF_FASTA =>
-                    {
+                    Some(LineBuf::Directive(directive)) if directive.key() == key::FASTA => {
                         return Ok(None)
                     }
                     Some(LineBuf::Record(record)) => return Ok(Some((record, lines))),

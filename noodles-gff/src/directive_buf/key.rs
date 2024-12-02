@@ -26,4 +26,4 @@ pub const FORWARD_REFERENCES_ARE_RESOLVED: &str = "#";
 
 /// A marker indicating the end of the records list and start of a bundled reference sequences
 /// (`FASTA`).
-pub const START_OF_FASTA: &str = "FASTA";
+pub const FASTA: &str = "FASTA";

@@ -33,7 +33,7 @@ where
         loop {
             match self.lines.next()? {
                 Ok(line) => match line {
-                    LineBuf::Directive(directive) if directive.key() == key::START_OF_FASTA => {
+                    LineBuf::Directive(directive) if directive.key() == key::FASTA => {
                         return None;
                     }
                     LineBuf::Record(r) => return Some(Ok(r)),

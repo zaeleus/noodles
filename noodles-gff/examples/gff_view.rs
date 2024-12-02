@@ -23,8 +23,7 @@ fn main() -> io::Result<()> {
     for result in reader.line_bufs() {
         let line = result?;
 
-        if matches!(line, LineBuf::Directive(ref directive) if directive.key() == key::START_OF_FASTA)
-        {
+        if matches!(line, LineBuf::Directive(ref directive) if directive.key() == key::FASTA) {
             break;
         }
 

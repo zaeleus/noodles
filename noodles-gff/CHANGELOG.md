@@ -25,6 +25,8 @@
 
   * gff/directive_buf/key: Increase the visibilities of constants.
 
+  * gff/directive_buf/key: Rename `START_OF_FASTA` to `FASTA`.
+
   * gff/directive_buf/value: Rename `Value::Other` to `Value::String`.
 
   * gff/io/reader: Rename line to line buf and lazy line to line.
