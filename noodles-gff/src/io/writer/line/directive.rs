@@ -71,3 +71,78 @@ where
     const SEPARATOR: u8 = b' ';
     writer.write_all(&[SEPARATOR])
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::directive_buf::value::{GenomeBuild, SequenceRegion};
+
+    use super::*;
+
+    #[test]
+    fn test_write_directive() -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, directive: &DirectiveBuf, expected: &[u8]) -> io::Result<()> {
+            buf.clear();
+            write_directive(buf, directive)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
+        let mut buf = Vec::new();
+
+        t(
+            &mut buf,
+            &DirectiveBuf::new(
+                key::GFF_VERSION,
+                Some(Value::GffVersion(Default::default())),
+            ),
+            b"##gff-version 3",
+        )?;
+
+        t(
+            &mut buf,
+            &DirectiveBuf::new(
+                key::SEQUENCE_REGION,
+                Some(Value::SequenceRegion(SequenceRegion::new(
+                    String::from("sq0"),
+                    8,
+                    13,
+                ))),
+            ),
+            b"##sequence-region sq0 8 13",
+        )?;
+
+        t(
+            &mut buf,
+            &DirectiveBuf::new(
+                key::GENOME_BUILD,
+                Some(Value::GenomeBuild(GenomeBuild::new(
+                    String::from("NDLS"),
+                    String::from("r1"),
+                ))),
+            ),
+            b"##genome-build NDLS r1",
+        )?;
+
+        t(
+            &mut buf,
+            &DirectiveBuf::new("noodles", Some(Value::String(String::from("gff")))),
+            b"##noodles gff",
+        )?;
+
+        t(&mut buf, &DirectiveBuf::new("noodles", None), b"##noodles")?;
+
+        buf.clear();
+        assert!(matches!(
+            write_directive(
+                &mut buf,
+                &DirectiveBuf::new(
+                    key::GENOME_BUILD,
+                    Some(Value::GffVersion(Default::default())),
+                ),
+            ),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        Ok(())
+    }
+}
