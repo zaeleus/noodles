@@ -96,6 +96,45 @@ where
         line::read_line(&mut self.inner, line).await
     }
 
+    /// Returns a stream over lines.
+    ///
+    /// When using this, the caller is responsible to stop reading at either EOF or when the
+    /// `FASTA` directive is read, whichever comes first.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[tokio::main]
+    /// # async fn main() -> tokio::io::Result<()> {
+    /// use futures::TryStreamExt;
+    /// use noodles_gff::{self as gff, directive_buf::key};
+    /// use tokio::io;
+    ///
+    /// let mut reader = gff::r#async::io::Reader::new(io::empty());
+    /// let mut lines = reader.lines();
+    ///
+    /// while let Some(line) = lines.try_next().await? {
+    ///     if let Some(key::START_OF_FASTA) = line.as_directive().map(|directive| directive.key()) {
+    ///         break;
+    ///     }
+    ///
+    ///     // ...
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn lines(&mut self) -> impl Stream<Item = io::Result<Line>> + '_ {
+        Box::pin(stream::try_unfold(
+            (self, Line::default()),
+            |(reader, mut line)| async {
+                reader.read_line(&mut line).await.map(|n| match n {
+                    0 => None,
+                    _ => Some((line.clone(), (reader, line))),
+                })
+            },
+        ))
+    }
+
     /// Returns a stream over line buffers.
     ///
     /// # Examples

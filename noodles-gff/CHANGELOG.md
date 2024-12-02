@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * gff/io/reader: Add lines iterator (`Lines`).
+
 ### Changed
 
   * gff: Rename `Record` to `RecordBuf.`

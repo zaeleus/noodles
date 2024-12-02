@@ -2,9 +2,10 @@
 
 pub(crate) mod line;
 mod line_bufs;
+mod lines;
 mod record_bufs;
 
-pub use self::{line_bufs::LineBufs, record_bufs::RecordBufs};
+pub use self::{line_bufs::LineBufs, lines::Lines, record_bufs::RecordBufs};
 
 use std::io::{self, BufRead, Read, Seek};
 
@@ -133,6 +134,34 @@ where
     /// ```
     pub fn read_line(&mut self, line: &mut Line) -> io::Result<usize> {
         line::read_line(&mut self.inner, line)
+    }
+
+    /// Returns an iterator over lines starting from the current stream position.
+    ///
+    /// When using this, the caller is responsible to stop reading at either EOF or when the
+    /// `FASTA` directive is read, whichever comes first.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_gff::{self as gff, directive_buf::key};
+    ///
+    /// let mut reader = gff::io::Reader::new(io::empty());
+    ///
+    /// for result in reader.lines() {
+    ///     let line = result?;
+    ///
+    ///     if let Some(key::START_OF_FASTA) = line.as_directive().map(|directive| directive.key()) {
+    ///         break;
+    ///     }
+    ///
+    ///     // ...
+    /// }
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn lines(&mut self) -> Lines<'_, R> {
+        Lines::new(self)
     }
 
     /// Returns an iterator over records starting from the current stream position.
