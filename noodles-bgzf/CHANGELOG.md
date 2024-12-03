@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bgzf/async/reader: Add position getter (`Reader::position`).
+
 ## 0.33.0 - 2024-09-04
 
 ### Changed

@@ -111,6 +111,20 @@ where
         stream.into_inner().into_inner()
     }
 
+    /// Returns the current position of the stream.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// use tokio::io;
+    /// let reader = bgzf::AsyncReader::new(io::empty());
+    /// assert_eq!(reader.position(), 0);
+    /// ```
+    pub fn position(&self) -> u64 {
+        self.position
+    }
+
     /// Returns the current virtual position of the stream.
     ///
     /// # Examples
