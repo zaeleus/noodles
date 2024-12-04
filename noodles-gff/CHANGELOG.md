@@ -82,9 +82,11 @@
 
     Read into a `Line` using `Reader::read_line` instead.
 
-  * gff/line_buf: Remove formatter (`fmt::Display`).
+  * gff/line_buf: Remove parser (`str::FromStr`) and formatter
+    (`fmt::Display`).
 
-    Use a serializer instead, e.g., `gff::io::Writer`.
+    Use a deserializer (e.g., `gff::io::Reader`) or serializer (e.g.,
+    `gff::io::Writer`), respectively, instead.
 
 ### Deprecated
 

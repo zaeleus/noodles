@@ -157,15 +157,37 @@ where
     /// # }
     /// ```
     pub fn line_bufs(&mut self) -> impl Stream<Item = io::Result<LineBuf>> + '_ {
+        use crate::line::Kind;
+
         Box::pin(stream::try_unfold(
             (self, Line::default()),
             |(reader, mut line)| async {
                 reader.read_line(&mut line).await.and_then(|n| match n {
                     0 => Ok(None),
-                    _ => match line.as_ref().parse() {
-                        Ok(line_buf) => Ok(Some((line_buf, (reader, line)))),
-                        Err(e) => Err(io::Error::new(io::ErrorKind::InvalidData, e)),
-                    },
+                    _ => {
+                        match line.kind() {
+                            Kind::Directive => {
+                                let directive =
+                                    line.as_ref().parse().map(LineBuf::Directive).map_err(|e| {
+                                        io::Error::new(io::ErrorKind::InvalidData, e)
+                                    })?;
+
+                                Ok(Some((directive, (reader, line))))
+                            }
+                            Kind::Comment => Ok(Some((
+                                LineBuf::Comment(line.as_ref().into()),
+                                (reader, line),
+                            ))),
+                            Kind::Record => {
+                                let record =
+                                    line.as_ref().parse().map(LineBuf::Record).map_err(|e| {
+                                        io::Error::new(io::ErrorKind::InvalidData, e)
+                                    })?;
+
+                                Ok(Some((record, (reader, line))))
+                            }
+                        }
+                    }
                 })
             },
         ))

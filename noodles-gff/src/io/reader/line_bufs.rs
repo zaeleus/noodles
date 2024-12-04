@@ -1,6 +1,6 @@
 use std::io::{self, BufRead};
 
-use crate::{Line, LineBuf};
+use crate::{line::Kind, Line, LineBuf};
 
 use super::Reader;
 
@@ -36,12 +36,23 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         match self.inner.read_line(&mut self.line) {
             Ok(0) => None,
-            Ok(_) => Some(
-                self.line
-                    .as_ref()
-                    .parse()
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-            ),
+            Ok(_) => match self.line.kind() {
+                Kind::Directive => Some(
+                    self.line
+                        .as_ref()
+                        .parse()
+                        .map(LineBuf::Directive)
+                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+                ),
+                Kind::Comment => Some(Ok(LineBuf::Comment(self.line.as_ref().into()))),
+                Kind::Record => Some(
+                    self.line
+                        .as_ref()
+                        .parse()
+                        .map(LineBuf::Record)
+                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+                ),
+            },
             Err(e) => Some(Err(e)),
         }
     }
