@@ -1,4 +1,9 @@
-use std::io::{self, Write};
+use std::{
+    borrow::Cow,
+    io::{self, Write},
+};
+
+use percent_encoding::{utf8_percent_encode, AsciiSet, NON_ALPHANUMERIC};
 
 pub(super) fn write_reference_sequence_name<W>(
     writer: &mut W,
@@ -7,7 +12,28 @@ pub(super) fn write_reference_sequence_name<W>(
 where
     W: Write,
 {
-    writer.write_all(reference_sequence_name.as_bytes())
+    let s = percent_encode(reference_sequence_name);
+    writer.write_all(s.as_bytes())
+}
+
+// § "Column 1: 'seqid'" (2020-08-18): "IDs may contain any characters, but must escape any
+// characters not in the set [a-zA-Z0-9.:^*$@!+_?-|]."
+fn percent_encode(s: &str) -> Cow<'_, str> {
+    const PERCENT_ENCODE_SET: &AsciiSet = &NON_ALPHANUMERIC
+        .remove(b'.')
+        .remove(b':')
+        .remove(b'^')
+        .remove(b'*')
+        .remove(b'$')
+        .remove(b'@')
+        .remove(b'!')
+        .remove(b'+')
+        .remove(b'_')
+        .remove(b'?')
+        .remove(b'-')
+        .remove(b'|');
+
+    utf8_percent_encode(s, PERCENT_ENCODE_SET).into()
 }
 
 #[cfg(test)]
@@ -26,6 +52,9 @@ mod tests {
         let mut buf = Vec::new();
 
         t(&mut buf, "sq0", b"sq0")?;
+        t(&mut buf, "sq0.:^*$@!+_?-|", b"sq0.:^*$@!+_?-|")?;
+        t(&mut buf, "sq 0", b"sq%200")?;
+        t(&mut buf, ">sq0", b"%3Esq0")?;
 
         Ok(())
     }
