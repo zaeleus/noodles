@@ -22,7 +22,8 @@ where
     writer.write_all(record.source().as_bytes())?;
     write_separator(writer)?;
 
-    writer.write_all(record.ty().as_bytes())?;
+    let ty = record.ty();
+    writer.write_all(ty.as_bytes())?;
     write_separator(writer)?;
 
     write_position(writer, record.start())?;
@@ -37,7 +38,7 @@ where
     write_strand(writer, record.strand())?;
     write_separator(writer)?;
 
-    write_phase(writer, record.phase())?;
+    write_phase(writer, ty, record.phase())?;
     write_separator(writer)?;
 
     write_attributes(writer, record.attributes())?;
