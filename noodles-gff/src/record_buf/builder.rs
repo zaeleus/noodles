@@ -1,6 +1,6 @@
 use noodles_core::Position;
 
-use super::{Attributes, Phase, RecordBuf, Strand, MISSING_FIELD};
+use super::{Attributes, Phase, RecordBuf, Strand};
 
 /// A GFF record builder.
 #[derive(Debug)]
@@ -216,10 +216,12 @@ impl Builder {
 
 impl Default for Builder {
     fn default() -> Self {
+        const MISSING: &str = ".";
+
         Self {
-            reference_sequence_name: MISSING_FIELD.into(),
-            source: MISSING_FIELD.into(),
-            ty: MISSING_FIELD.into(),
+            reference_sequence_name: MISSING.into(),
+            source: MISSING.into(),
+            ty: MISSING.into(),
             start: Position::MIN,
             end: Position::MIN,
             score: None,

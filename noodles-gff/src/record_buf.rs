@@ -13,8 +13,6 @@ pub use self::{
 
 use noodles_core::Position;
 
-pub(crate) const MISSING_FIELD: &str = ".";
-
 /// A GFF record.
 #[derive(Clone, Debug, PartialEq)]
 pub struct RecordBuf {
