@@ -248,9 +248,13 @@ where
             .filter_by_region(region)
             .map(|result| {
                 result.and_then(|r| {
-                    r.as_ref()
-                        .parse()
-                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                    let line = Line(r.as_ref().into());
+
+                    line.as_record()
+                        .ok_or_else(|| {
+                            io::Error::new(io::ErrorKind::InvalidData, "line is not a record")
+                        })?
+                        .and_then(|record| record.try_into())
                 })
             });
 

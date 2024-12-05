@@ -47,10 +47,9 @@ where
                 Kind::Comment => Some(Ok(LineBuf::Comment(self.line.as_ref().into()))),
                 Kind::Record => Some(
                     self.line
-                        .as_ref()
-                        .parse()
-                        .map(LineBuf::Record)
-                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+                        .as_record()
+                        .unwrap() // SAFETY: `self.line` is a record.
+                        .and_then(|record| record.try_into().map(LineBuf::Record)),
                 ),
             },
             Err(e) => Some(Err(e)),
