@@ -113,7 +113,7 @@ impl FromStr for DirectiveBuf {
                 .and_then(|s| s.parse().map_err(ParseError::InvalidGenomeBuild))
                 .map(Value::GenomeBuild)
                 .map(Some)?,
-            _ => components.next().map(|s| Value::String(s.into())),
+            _ => components.next().map(Value::from),
         };
 
         Ok(Self {
@@ -133,10 +133,7 @@ mod tests {
 
         assert_eq!(
             "##noodles gff".parse(),
-            Ok(DirectiveBuf::new(
-                "noodles",
-                Some(Value::String(String::from("gff"))),
-            )),
+            Ok(DirectiveBuf::new("noodles", Some(Value::from("gff")))),
         );
     }
 }

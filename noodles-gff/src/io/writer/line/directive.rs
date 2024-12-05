@@ -125,7 +125,7 @@ mod tests {
 
         t(
             &mut buf,
-            &DirectiveBuf::new("noodles", Some(Value::String(String::from("gff")))),
+            &DirectiveBuf::new("noodles", Some(Value::from("gff"))),
             b"##noodles gff",
         )?;
 

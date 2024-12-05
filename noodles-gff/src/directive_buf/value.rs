@@ -20,3 +20,15 @@ pub enum Value {
     /// Any other directive value.
     String(String),
 }
+
+impl From<&str> for Value {
+    fn from(s: &str) -> Self {
+        Value::String(s.into())
+    }
+}
+
+impl From<String> for Value {
+    fn from(s: String) -> Self {
+        Value::String(s)
+    }
+}
