@@ -57,8 +57,7 @@
 
     This splits the line into its key-optional value components.
 
-  * gff/record: Parse score (`Record::score`) and phase
-    (`Record::phase`).
+  * gff/record: Parse score (`Record::score`) and phase (`Record::phase`).
 
   * gff/record/attributes/field: Percent-decode components.
 
