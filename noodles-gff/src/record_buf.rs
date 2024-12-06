@@ -36,7 +36,7 @@ impl RecordBuf {
     /// use noodles_gff as gff;
     ///
     /// let record = gff::RecordBuf::builder()
-    ///     .set_reference_sequence_name(String::from("sq0"))
+    ///     .set_reference_sequence_name("sq0")
     ///     .build();
     ///
     /// assert_eq!(record.reference_sequence_name(), "sq0");

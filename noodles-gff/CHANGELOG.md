@@ -64,6 +64,10 @@
 
     Tags and values now return as `Cow<'_, str>`.
 
+  * gff/record_buf/builder: Accept `Into<String>` for string fields.
+
+    This includes the reference sequence name, source, and type fields.
+
 ### Removed
 
   * gff: Remove `lazy` module.

@@ -39,13 +39,16 @@ impl Builder {
     /// use noodles_gff as gff;
     ///
     /// let record = gff::RecordBuf::builder()
-    ///     .set_reference_sequence_name(String::from("sq0"))
+    ///     .set_reference_sequence_name("sq0")
     ///     .build();
     ///
     /// assert_eq!(record.reference_sequence_name(), "sq0");
     /// ```
-    pub fn set_reference_sequence_name(mut self, reference_sequence_name: String) -> Self {
-        self.reference_sequence_name = reference_sequence_name;
+    pub fn set_reference_sequence_name<N>(mut self, reference_sequence_name: N) -> Self
+    where
+        N: Into<String>,
+    {
+        self.reference_sequence_name = reference_sequence_name.into();
         self
     }
 
@@ -57,13 +60,16 @@ impl Builder {
     /// use noodles_gff as gff;
     ///
     /// let record = gff::RecordBuf::builder()
-    ///     .set_source(String::from("NOODLES"))
+    ///     .set_source("NOODLES")
     ///     .build();
     ///
     /// assert_eq!(record.source(), "NOODLES");
     /// ```
-    pub fn set_source(mut self, source: String) -> Self {
-        self.source = source;
+    pub fn set_source<S>(mut self, source: S) -> Self
+    where
+        S: Into<String>,
+    {
+        self.source = source.into();
         self
     }
 
@@ -75,13 +81,16 @@ impl Builder {
     /// use noodles_gff as gff;
     ///
     /// let record = gff::RecordBuf::builder()
-    ///     .set_type(String::from("gene"))
+    ///     .set_type("gene")
     ///     .build();
     ///
     /// assert_eq!(record.ty(), "gene");
     /// ```
-    pub fn set_type(mut self, ty: String) -> Self {
-        self.ty = ty;
+    pub fn set_type<T>(mut self, ty: T) -> Self
+    where
+        T: Into<String>,
+    {
+        self.ty = ty.into();
         self
     }
 
@@ -260,9 +269,9 @@ mod tests {
             .collect();
 
         let record = Builder::new()
-            .set_reference_sequence_name(String::from("sq0"))
-            .set_source(String::from("NOODLES"))
-            .set_type(String::from("CDS"))
+            .set_reference_sequence_name("sq0")
+            .set_source("NOODLES")
+            .set_type("CDS")
             .set_start(Position::try_from(8)?)
             .set_end(Position::try_from(13)?)
             .set_score(21.0)

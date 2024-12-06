@@ -10,9 +10,9 @@ impl<'l> TryFrom<Record<'l>> for RecordBuf {
         let mut builder = Self::builder();
 
         builder = builder
-            .set_reference_sequence_name(record.reference_sequence_name().into())
-            .set_source(record.source().into())
-            .set_type(record.ty().into())
+            .set_reference_sequence_name(record.reference_sequence_name())
+            .set_source(record.source())
+            .set_type(record.ty())
             .set_start(record.start()?)
             .set_end(record.end()?);
 
@@ -65,9 +65,9 @@ mod tests {
         let actual = RecordBuf::try_from(record)?;
 
         let expected = RecordBuf::builder()
-            .set_reference_sequence_name(String::from("sq0"))
-            .set_source(String::from("."))
-            .set_type(String::from("exon"))
+            .set_reference_sequence_name("sq0")
+            .set_source(".")
+            .set_type("exon")
             .set_start(Position::try_from(8)?)
             .set_end(Position::try_from(13)?)
             .set_strand(Strand::Forward)
