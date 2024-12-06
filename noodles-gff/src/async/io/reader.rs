@@ -167,10 +167,9 @@ where
                     _ => match line.kind() {
                         Kind::Directive => {
                             let directive = line
-                                .as_ref()
-                                .parse()
-                                .map(LineBuf::Directive)
-                                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+                                .as_directive()
+                                .map(|d| LineBuf::Directive(d.into()))
+                                .unwrap(); // SAFETY: `line` is a directive.
 
                             Ok(Some((directive, (reader, line))))
                         }

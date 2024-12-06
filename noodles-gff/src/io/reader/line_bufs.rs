@@ -37,13 +37,11 @@ where
         match self.inner.read_line(&mut self.line) {
             Ok(0) => None,
             Ok(_) => match self.line.kind() {
-                Kind::Directive => Some(
-                    self.line
-                        .as_ref()
-                        .parse()
-                        .map(LineBuf::Directive)
-                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-                ),
+                Kind::Directive => {
+                    // SAFETY: `self.line` is a directive.
+                    let directive = self.line.as_directive().unwrap();
+                    Some(Ok(LineBuf::Directive(directive.into())))
+                }
                 Kind::Comment => Some(Ok(LineBuf::Comment(self.line.as_ref().into()))),
                 Kind::Record => Some(
                     self.line
