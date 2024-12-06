@@ -5,6 +5,8 @@ pub mod value;
 
 use std::{error, fmt, str::FromStr};
 
+use crate::Directive;
+
 pub use self::value::Value;
 
 pub(crate) const PREFIX: &str = "##";
@@ -38,6 +40,12 @@ impl DirectiveBuf {
     /// Returns the value.
     pub fn value(&self) -> Option<&Value> {
         self.value.as_ref()
+    }
+}
+
+impl From<Directive<'_>> for DirectiveBuf {
+    fn from(directive: Directive<'_>) -> Self {
+        Self::new(directive.key(), directive.value().map(Value::from))
     }
 }
 
