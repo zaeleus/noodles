@@ -11,7 +11,7 @@ use noodles_bam as bam;
 use noodles_bgzf as bgzf;
 use noodles_sam as sam;
 
-use std::{collections::HashMap, env, fs::File, io, str};
+use std::{collections::HashMap, env, fs::File, io};
 
 type Writers<'h> = HashMap<&'h BStr, bam::io::Writer<bgzf::Writer<File>>>;
 
@@ -81,7 +81,7 @@ fn main() -> io::Result<()> {
             let writer = writers.get_mut(read_group).ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    format!("invalid read group: {:?}", str::from_utf8(read_group)),
+                    format!("invalid read group: {:?}", read_group),
                 )
             })?;
 
