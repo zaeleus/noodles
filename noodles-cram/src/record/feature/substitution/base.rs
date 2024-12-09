@@ -21,7 +21,7 @@ pub struct TryFromError;
 
 impl fmt::Display for TryFromError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid substitution matrix base",)
+        write!(f, "invalid substitution matrix base")
     }
 }
 
