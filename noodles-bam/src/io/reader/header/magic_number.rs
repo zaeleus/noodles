@@ -1,15 +1,20 @@
 use std::io::{self, Read};
 
-use super::Reader;
 use crate::MAGIC_NUMBER;
 
-pub(super) fn read_magic_number<R>(reader: &mut Reader<R>) -> io::Result<()>
+type Buf = [u8; MAGIC_NUMBER.len()];
+
+pub(super) fn read_magic_number<R>(reader: &mut R) -> io::Result<Buf>
 where
     R: Read,
 {
-    let magic_number = reader.read_magic_number()?;
+    let mut buf = [0; MAGIC_NUMBER.len()];
+    reader.read_exact(&mut buf)?;
+    Ok(buf)
+}
 
-    if magic_number == MAGIC_NUMBER {
+pub(super) fn validate(buf: Buf) -> io::Result<()> {
+    if is_valid(buf) {
         Ok(())
     } else {
         Err(io::Error::new(
@@ -19,30 +24,32 @@ where
     }
 }
 
+fn is_valid(buf: Buf) -> bool {
+    buf == MAGIC_NUMBER
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_read_magic_number() -> io::Result<()> {
-        let mut src = &b"BAM\x01"[..];
-        let mut reader = Reader::new(&mut src);
-        assert!(read_magic_number(&mut reader).is_ok());
+        let src = b"BAM\x01";
+        let mut reader = &src[..];
+        assert_eq!(read_magic_number(&mut reader)?, *b"BAM\x01");
 
         let mut src = &[][..];
-        let mut reader = Reader::new(&mut src);
         assert!(matches!(
-            read_magic_number(&mut reader),
-            Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof
-        ));
-
-        let mut src = &b"MThd"[..];
-        let mut reader = Reader::new(&mut src);
-        assert!(matches!(
-            read_magic_number(&mut reader),
-            Err(ref e) if e.kind() == io::ErrorKind::InvalidData
+            read_magic_number(&mut src),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
         ));
 
         Ok(())
+    }
+
+    #[test]
+    fn test_is_valid() {
+        assert!(is_valid(*b"BAM\x01"));
+        assert!(!is_valid([0x00, 0x00, 0x00, 0x00]));
     }
 }

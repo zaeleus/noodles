@@ -23,9 +23,7 @@ where
     }
 
     fn read_magic_number(&mut self) -> io::Result<[u8; MAGIC_NUMBER.len()]> {
-        let mut buf = [0; MAGIC_NUMBER.len()];
-        self.inner.read_exact(&mut buf)?;
-        Ok(buf)
+        read_magic_number(self.inner)
     }
 
     fn raw_sam_header_reader(&mut self) -> io::Result<sam_header::Reader<R>> {
@@ -50,7 +48,9 @@ fn read_header_inner<R>(reader: &mut Reader<R>) -> io::Result<sam::Header>
 where
     R: Read,
 {
-    read_magic_number(reader)?;
+    reader
+        .read_magic_number()
+        .and_then(magic_number::validate)?;
 
     let mut raw_sam_header_reader = reader.raw_sam_header_reader()?;
     let mut header = read_sam_header(&mut raw_sam_header_reader)?;
