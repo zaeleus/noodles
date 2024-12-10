@@ -1,6 +1,7 @@
 mod reference_sequences;
+mod sam_header;
 
-use std::io::{self, BufRead, BufReader, Read};
+use std::io::{self, BufRead, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_sam::{self as sam, header::ReferenceSequences};
@@ -50,20 +51,20 @@ fn read_header_inner<R>(reader: &mut R) -> io::Result<sam::Header>
 where
     R: Read,
 {
-    let l_text = reader.read_u32::<LittleEndian>().map(u64::from)?;
-
     let mut parser = sam::header::Parser::default();
 
-    let mut header_reader = BufReader::new(reader.take(l_text));
+    let l_text = reader.read_u32::<LittleEndian>().map(u64::from)?;
+    let mut sam_header_reader = sam_header::Reader::new(reader, l_text);
+
     let mut buf = Vec::new();
 
-    while read_line(&mut header_reader, &mut buf)? != 0 {
+    while read_line(&mut sam_header_reader, &mut buf)? != 0 {
         parser
             .parse_partial(&buf)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     }
 
-    discard_padding(&mut header_reader)?;
+    sam_header_reader.discard_to_end()?;
 
     Ok(parser.finish())
 }
@@ -72,17 +73,10 @@ fn read_line<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<usize>
 where
     R: BufRead,
 {
-    const NUL: u8 = 0x00;
     const LINE_FEED: u8 = b'\n';
     const CARRIAGE_RETURN: u8 = b'\r';
 
     dst.clear();
-
-    let src = reader.fill_buf()?;
-
-    if src.is_empty() || src[0] == NUL {
-        return Ok(0);
-    }
 
     match reader.read_until(LINE_FEED, dst)? {
         0 => Ok(0),
@@ -97,22 +91,6 @@ where
 
             Ok(n)
         }
-    }
-}
-
-fn discard_padding<R>(reader: &mut R) -> io::Result<()>
-where
-    R: BufRead,
-{
-    loop {
-        let src = reader.fill_buf()?;
-
-        if src.is_empty() {
-            return Ok(());
-        }
-
-        let len = src.len();
-        reader.consume(len);
     }
 }
 
@@ -178,33 +156,6 @@ mod tests {
         data.put_slice(MAGIC_NUMBER); // magic
         data.put_u32_le(27); // l_text
         data.put_slice(b"@HD\tVN:1.6\n@SQ\tSN:sq0\tLN:8\n"); // text
-        data.put_u32_le(1); // n_ref
-        data.put_u32_le(4); // ref[0].l_name
-        data.put_slice(b"sq0\x00"); // ref[0].name
-        data.put_u32_le(8); // ref[0].l_ref
-
-        let mut reader = &data[..];
-        let actual = read_header(&mut reader)?;
-
-        let expected = sam::Header::builder()
-            .set_header(Map::<map::Header>::new(Version::new(1, 6)))
-            .add_reference_sequence("sq0", Map::<map::ReferenceSequence>::new(SQ0_LN))
-            .build();
-
-        assert_eq!(actual, expected);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_read_header_with_trailing_nul_padding_in_text() -> io::Result<()> {
-        let mut raw_header = b"@HD\tVN:1.6\n".to_vec();
-        raw_header.resize(16384, 0);
-
-        let mut data = Vec::new();
-        data.put_slice(MAGIC_NUMBER); // magic
-        data.put_u32_le(16384); // l_text
-        data.put_slice(&raw_header); // text
         data.put_u32_le(1); // n_ref
         data.put_u32_le(4); // ref[0].l_name
         data.put_slice(b"sq0\x00"); // ref[0].name
