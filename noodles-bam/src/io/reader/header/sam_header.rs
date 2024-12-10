@@ -2,16 +2,16 @@ use std::io::{self, BufRead, BufReader, Read, Take};
 
 use bstr::ByteSlice;
 
-pub(super) struct Reader<R> {
-    inner: BufReader<Take<R>>,
+pub(super) struct Reader<'r, R> {
+    inner: BufReader<Take<&'r mut R>>,
     is_eol: bool,
 }
 
-impl<R> Reader<R>
+impl<'r, R> Reader<'r, R>
 where
     R: Read,
 {
-    pub(super) fn new(inner: R, len: u64) -> Self {
+    pub(super) fn new(inner: &'r mut R, len: u64) -> Self {
         Self {
             inner: BufReader::new(inner.take(len)),
             is_eol: true,
@@ -37,7 +37,7 @@ where
     }
 }
 
-impl<R> Read for Reader<R>
+impl<R> Read for Reader<'_, R>
 where
     R: Read,
 {
@@ -49,7 +49,7 @@ where
     }
 }
 
-impl<R> BufRead for Reader<R>
+impl<R> BufRead for Reader<'_, R>
 where
     R: Read,
 {
@@ -83,10 +83,11 @@ mod tests {
     fn test_read_with_trailing_nul_padding() -> io::Result<()> {
         const DATA: &[u8] = b"@HD\tVN:1.6\n";
 
-        let mut src = DATA.to_vec();
-        src.resize(1 << 10, 0);
+        let mut buf = DATA.to_vec();
+        buf.resize(1 << 10, 0);
 
-        let mut reader = Reader::new(&src[..], 1 << 10);
+        let mut src = &buf[..];
+        let mut reader = Reader::new(&mut src, 1 << 10);
 
         let mut buf = Vec::new();
         reader.read_to_end(&mut buf)?;

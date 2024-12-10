@@ -9,14 +9,68 @@ use noodles_sam::{self as sam, header::ReferenceSequences};
 use self::reference_sequences::read_reference_sequences;
 use crate::MAGIC_NUMBER;
 
+struct Reader<'r, R> {
+    inner: &'r mut R,
+}
+
+impl<'r, R> Reader<'r, R>
+where
+    R: Read,
+{
+    fn new(inner: &'r mut R) -> Self {
+        Self { inner }
+    }
+
+    fn read_magic_number(&mut self) -> io::Result<[u8; MAGIC_NUMBER.len()]> {
+        let mut buf = [0; MAGIC_NUMBER.len()];
+        self.inner.read_exact(&mut buf)?;
+        Ok(buf)
+    }
+
+    fn raw_sam_header_reader(&mut self) -> io::Result<sam_header::Reader<R>> {
+        let len = self.inner.read_u32::<LittleEndian>().map(u64::from)?;
+        Ok(sam_header::Reader::new(self.inner, len))
+    }
+
+    fn read_reference_sequences(&mut self) -> io::Result<ReferenceSequences> {
+        read_reference_sequences(self.inner)
+    }
+}
+
 pub(super) fn read_header<R>(reader: &mut R) -> io::Result<sam::Header>
 where
     R: Read,
 {
-    read_magic(reader)?;
+    let mut header_reader = Reader::new(reader);
+    read_header_inner(&mut header_reader)
+}
 
-    let mut header = read_header_inner(reader)?;
-    let reference_sequences = read_reference_sequences(reader)?;
+fn read_magic_number<R>(reader: &mut Reader<R>) -> io::Result<()>
+where
+    R: Read,
+{
+    let magic_number = reader.read_magic_number()?;
+
+    if magic_number == MAGIC_NUMBER {
+        Ok(())
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid BAM header",
+        ))
+    }
+}
+
+fn read_header_inner<R>(reader: &mut Reader<R>) -> io::Result<sam::Header>
+where
+    R: Read,
+{
+    read_magic_number(reader)?;
+
+    let mut raw_sam_header_reader = reader.raw_sam_header_reader()?;
+    let mut header = read_sam_header(&mut raw_sam_header_reader)?;
+
+    let reference_sequences = reader.read_reference_sequences()?;
 
     if header.reference_sequences().is_empty() {
         *header.reference_sequences_mut() = reference_sequences;
@@ -30,41 +84,21 @@ where
     Ok(header)
 }
 
-fn read_magic<R>(reader: &mut R) -> io::Result<()>
-where
-    R: Read,
-{
-    let mut magic = [0; 4];
-    reader.read_exact(&mut magic)?;
-
-    if magic == MAGIC_NUMBER {
-        Ok(())
-    } else {
-        Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "invalid BAM header",
-        ))
-    }
-}
-
-fn read_header_inner<R>(reader: &mut R) -> io::Result<sam::Header>
+fn read_sam_header<R>(reader: &mut sam_header::Reader<R>) -> io::Result<sam::Header>
 where
     R: Read,
 {
     let mut parser = sam::header::Parser::default();
 
-    let l_text = reader.read_u32::<LittleEndian>().map(u64::from)?;
-    let mut sam_header_reader = sam_header::Reader::new(reader, l_text);
-
     let mut buf = Vec::new();
 
-    while read_line(&mut sam_header_reader, &mut buf)? != 0 {
+    while read_line(reader, &mut buf)? != 0 {
         parser
             .parse_partial(&buf)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     }
 
-    sam_header_reader.discard_to_end()?;
+    reader.discard_to_end()?;
 
     Ok(parser.finish())
 }
@@ -128,22 +162,22 @@ mod tests {
     };
 
     #[test]
-    fn test_read_magic() -> io::Result<()> {
-        let data = b"BAM\x01";
-        let mut reader = &data[..];
-        assert!(read_magic(&mut reader).is_ok());
+    fn test_read_magic_number() -> io::Result<()> {
+        let mut src = &b"BAM\x01"[..];
+        let mut reader = Reader::new(&mut src);
+        assert!(read_magic_number(&mut reader).is_ok());
 
-        let data = [];
-        let mut reader = &data[..];
+        let mut src = &[][..];
+        let mut reader = Reader::new(&mut src);
         assert!(matches!(
-            read_magic(&mut reader),
+            read_magic_number(&mut reader),
             Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof
         ));
 
-        let data = b"MThd";
-        let mut reader = &data[..];
+        let mut src = &b"MThd"[..];
+        let mut reader = Reader::new(&mut src);
         assert!(matches!(
-            read_magic(&mut reader),
+            read_magic_number(&mut reader),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidData
         ));
 
