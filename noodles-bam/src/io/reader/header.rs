@@ -1,3 +1,4 @@
+mod magic_number;
 mod reference_sequences;
 mod sam_header;
 
@@ -6,7 +7,7 @@ use std::io::{self, BufRead, Read};
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_sam::{self as sam, header::ReferenceSequences};
 
-use self::reference_sequences::read_reference_sequences;
+use self::{magic_number::read_magic_number, reference_sequences::read_reference_sequences};
 use crate::MAGIC_NUMBER;
 
 struct Reader<'r, R> {
@@ -43,22 +44,6 @@ where
 {
     let mut header_reader = Reader::new(reader);
     read_header_inner(&mut header_reader)
-}
-
-fn read_magic_number<R>(reader: &mut Reader<R>) -> io::Result<()>
-where
-    R: Read,
-{
-    let magic_number = reader.read_magic_number()?;
-
-    if magic_number == MAGIC_NUMBER {
-        Ok(())
-    } else {
-        Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "invalid BAM header",
-        ))
-    }
 }
 
 fn read_header_inner<R>(reader: &mut Reader<R>) -> io::Result<sam::Header>
@@ -160,29 +145,6 @@ mod tests {
         Some(length) => length,
         None => unreachable!(),
     };
-
-    #[test]
-    fn test_read_magic_number() -> io::Result<()> {
-        let mut src = &b"BAM\x01"[..];
-        let mut reader = Reader::new(&mut src);
-        assert!(read_magic_number(&mut reader).is_ok());
-
-        let mut src = &[][..];
-        let mut reader = Reader::new(&mut src);
-        assert!(matches!(
-            read_magic_number(&mut reader),
-            Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof
-        ));
-
-        let mut src = &b"MThd"[..];
-        let mut reader = Reader::new(&mut src);
-        assert!(matches!(
-            read_magic_number(&mut reader),
-            Err(ref e) if e.kind() == io::ErrorKind::InvalidData
-        ));
-
-        Ok(())
-    }
 
     #[test]
     fn test_read_header() -> io::Result<()> {
