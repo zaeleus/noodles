@@ -145,8 +145,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use bytes::BufMut;
-
     use noodles_sam::header::record::value::{
         map::{self, header::Version},
         Map,
@@ -159,17 +157,21 @@ mod tests {
         None => unreachable!(),
     };
 
+    fn put_u32_le(buf: &mut Vec<u8>, n: u32) {
+        buf.extend(n.to_le_bytes());
+    }
+
     #[tokio::test]
     async fn test_read_header() -> io::Result<()> {
-        let mut data = Vec::new();
-        data.put_u32_le(27); // l_text
-        data.put_slice(b"@HD\tVN:1.6\n@SQ\tSN:sq0\tLN:8\n"); // text
-        data.put_u32_le(1); // n_ref
-        data.put_u32_le(4); // ref[0].l_name
-        data.put_slice(b"sq0\x00"); // ref[0].name
-        data.put_u32_le(8); // ref[0].l_ref
+        let mut src = Vec::new();
+        put_u32_le(&mut src, 27); // l_text
+        src.extend(b"@HD\tVN:1.6\n@SQ\tSN:sq0\tLN:8\n"); // text
+        put_u32_le(&mut src, 1); // n_ref
+        put_u32_le(&mut src, 4); // ref[0].l_name
+        src.extend(b"sq0\x00"); // ref[0].name
+        put_u32_le(&mut src, 8); // ref[0].l_ref
 
-        let mut reader = &data[..];
+        let mut reader = &src[..];
         let actual = read_header(&mut reader).await?;
 
         let expected = sam::Header::builder()
