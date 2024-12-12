@@ -418,9 +418,9 @@ where
 
     fn alignment_records<'a>(
         &'a mut self,
-        header: &'a Header,
+        _header: &'a Header,
     ) -> Box<dyn Iterator<Item = io::Result<Box<dyn crate::alignment::Record>>> + 'a> {
-        Box::new(self.record_bufs(header).map(|result| {
+        Box::new(self.records().map(|result| {
             result.map(|record| Box::new(record) as Box<dyn crate::alignment::Record>)
         }))
     }

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Changed
+
+  * sam/io/reader: Use records iterator instead of record buffers iterator for
+    alignment records.
+
 ### Fixed
 
   * sam/alignment/record/data/field/tag: Fix original UMI quality scores (`BZ`)
