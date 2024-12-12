@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.46.0 - 2024-12-12
+
+### Changed
+
+  * fasta: Sync dependencies.
+
 ## 0.45.0 - 2024-10-22
 
 ### Added
