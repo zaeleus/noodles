@@ -4,10 +4,15 @@
 
 ### Changed
 
+  * bam/io/reader: Use records iterator instead of record buffers iterator for
+    alignment records ([#313]).
+
   * bam/record/sequence: Increase the visibility of `Iter`.
 
     `Sequence::iter` now returns `Iter` instead of an implementation of
     `Iterator.`
+
+[#313]: https://github.com/zaeleus/noodles/discussions/313
 
 ## 0.70.0 - 2024-11-07
 
