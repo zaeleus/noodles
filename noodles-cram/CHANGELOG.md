@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * cram: Update to bzip2 0.5.0.
+
 ## 0.72.0 - 2024-12-12
 
 ### Changed
