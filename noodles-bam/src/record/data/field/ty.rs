@@ -1,14 +1,15 @@
-use std::io::{self, Read};
+use std::io;
 
 use noodles_sam::alignment::record::data::field::Type;
 
 pub(crate) fn decode_type(src: &mut &[u8]) -> io::Result<Type> {
-    let mut buf = [0; 1];
-    src.read_exact(&mut buf)?;
+    let Some((n, rest)) = src.split_first() else {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    };
 
-    let raw_type = buf[0];
+    *src = rest;
 
-    match raw_type {
+    match n {
         b'A' => Ok(Type::Character),
         b'c' => Ok(Type::Int8),
         b'C' => Ok(Type::UInt8),
