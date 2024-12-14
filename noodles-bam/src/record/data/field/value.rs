@@ -12,9 +12,9 @@ use self::array::decode_array;
 
 pub(crate) fn decode_value<'a>(src: &mut &'a [u8], ty: Type) -> io::Result<Value<'a>> {
     match ty {
-        Type::Character => decode_character(src),
-        Type::Int8 => decode_i8(src),
-        Type::UInt8 => decode_u8(src),
+        Type::Character => read_u8(src).map(Value::Character),
+        Type::Int8 => read_u8(src).map(|n| Value::Int8(n as i8)),
+        Type::UInt8 => read_u8(src).map(Value::UInt8),
         Type::Int16 => decode_i16(src),
         Type::UInt16 => decode_u16(src),
         Type::Int32 => decode_i32(src),
@@ -24,18 +24,6 @@ pub(crate) fn decode_value<'a>(src: &mut &'a [u8], ty: Type) -> io::Result<Value
         Type::Hex => decode_hex(src),
         Type::Array => decode_array(src).map(Value::Array),
     }
-}
-
-fn decode_character<'a>(src: &mut &'a [u8]) -> io::Result<Value<'a>> {
-    src.read_u8().map(Value::Character)
-}
-
-fn decode_i8<'a>(src: &mut &'a [u8]) -> io::Result<Value<'a>> {
-    src.read_i8().map(Value::Int8)
-}
-
-fn decode_u8<'a>(src: &mut &'a [u8]) -> io::Result<Value<'a>> {
-    src.read_u8().map(Value::UInt8)
 }
 
 fn decode_i16<'a>(src: &mut &'a [u8]) -> io::Result<Value<'a>> {
@@ -75,6 +63,16 @@ fn decode_string<'a>(src: &mut &'a [u8]) -> io::Result<&'a BStr> {
 
 fn decode_hex<'a>(src: &mut &'a [u8]) -> io::Result<Value<'a>> {
     decode_string(src).map(Value::Hex)
+}
+
+fn read_u8(src: &mut &[u8]) -> io::Result<u8> {
+    let Some((n, rest)) = src.split_first() else {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    };
+
+    *src = rest;
+
+    Ok(*n)
 }
 
 #[cfg(test)]
