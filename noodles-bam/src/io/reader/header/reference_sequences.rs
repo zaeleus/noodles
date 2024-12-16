@@ -1,16 +1,11 @@
-use std::{
-    io::{self, Read},
-    num::NonZeroUsize,
-};
+mod reference_sequence;
 
-use bstr::BString;
+use std::io::{self, Read};
+
 use byteorder::{LittleEndian, ReadBytesExt};
-use noodles_sam::header::{
-    record::value::{map::ReferenceSequence, Map},
-    ReferenceSequences,
-};
+use noodles_sam::header::ReferenceSequences;
 
-use crate::io::reader::bytes_with_nul_to_bstring;
+use self::reference_sequence::read_reference_sequence;
 
 pub(super) fn read_reference_sequences<R>(reader: &mut R) -> io::Result<ReferenceSequences>
 where
@@ -30,32 +25,13 @@ where
     Ok(reference_sequences)
 }
 
-fn read_reference_sequence<R>(reader: &mut R) -> io::Result<(BString, Map<ReferenceSequence>)>
-where
-    R: Read,
-{
-    let l_name = reader.read_u32::<LittleEndian>().and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let mut c_name = vec![0; l_name];
-    reader.read_exact(&mut c_name)?;
-
-    let name = bytes_with_nul_to_bstring(&c_name)?;
-
-    let l_ref = reader.read_u32::<LittleEndian>().and_then(|len| {
-        usize::try_from(len)
-            .and_then(NonZeroUsize::try_from)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let reference_sequence = Map::<ReferenceSequence>::new(l_ref);
-
-    Ok((name, reference_sequence))
-}
-
 #[cfg(test)]
 mod tests {
+    use std::num::NonZeroUsize;
+
+    use bstr::BString;
+    use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
+
     use super::*;
 
     #[test]
