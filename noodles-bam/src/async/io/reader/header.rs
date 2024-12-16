@@ -1,3 +1,4 @@
+pub(super) mod magic_number;
 mod reference_sequences;
 
 use noodles_sam as sam;

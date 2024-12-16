@@ -10,9 +10,14 @@ use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
 use noodles_sam::{self as sam, alignment::RecordBuf};
-use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};
+use tokio::io::{self, AsyncRead, AsyncSeek};
 
-use self::{header::read_header, query::query, record::read_record, record_buf::read_record_buf};
+use self::{
+    header::{magic_number::read_magic_number, read_header},
+    query::query,
+    record::read_record,
+    record_buf::read_record_buf,
+};
 use crate::{io::reader::resolve_region, Record, MAGIC_NUMBER};
 
 /// An async BAM reader.
@@ -427,8 +432,7 @@ async fn read_magic<R>(reader: &mut R) -> io::Result<()>
 where
     R: AsyncRead + Unpin,
 {
-    let mut magic = [0; 4];
-    reader.read_exact(&mut magic).await?;
+    let magic = read_magic_number(reader).await?;
 
     if magic == MAGIC_NUMBER {
         Ok(())
