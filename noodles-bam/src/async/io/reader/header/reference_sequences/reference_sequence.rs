@@ -12,6 +12,18 @@ pub(super) async fn read_reference_sequence<R>(
 where
     R: AsyncRead + Unpin,
 {
+    let name = read_name(reader).await?;
+
+    let len = read_length(reader).await?;
+    let reference_sequence = Map::<ReferenceSequence>::new(len);
+
+    Ok((name, reference_sequence))
+}
+
+async fn read_name<R>(reader: &mut R) -> io::Result<BString>
+where
+    R: AsyncRead + Unpin,
+{
     let l_name = reader.read_u32_le().await.and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
@@ -19,17 +31,18 @@ where
     let mut c_name = vec![0; l_name];
     reader.read_exact(&mut c_name).await?;
 
-    let name = bytes_with_nul_to_bstring(&c_name)?;
+    bytes_with_nul_to_bstring(&c_name)
+}
 
-    let l_ref = reader.read_u32_le().await.and_then(|len| {
+async fn read_length<R>(reader: &mut R) -> io::Result<NonZeroUsize>
+where
+    R: AsyncRead + Unpin,
+{
+    reader.read_u32_le().await.and_then(|len| {
         usize::try_from(len)
             .and_then(NonZeroUsize::try_from)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let reference_sequence = Map::<ReferenceSequence>::new(l_ref);
-
-    Ok((name, reference_sequence))
+    })
 }
 
 #[cfg(test)]

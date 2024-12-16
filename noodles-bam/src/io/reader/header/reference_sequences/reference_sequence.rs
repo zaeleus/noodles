@@ -15,6 +15,18 @@ pub(super) fn read_reference_sequence<R>(
 where
     R: Read,
 {
+    let name = read_name(reader)?;
+
+    let len = read_length(reader)?;
+    let reference_sequence = Map::<ReferenceSequence>::new(len);
+
+    Ok((name, reference_sequence))
+}
+
+fn read_name<R>(reader: &mut R) -> io::Result<BString>
+where
+    R: Read,
+{
     let l_name = reader.read_u32::<LittleEndian>().and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
@@ -22,17 +34,18 @@ where
     let mut c_name = vec![0; l_name];
     reader.read_exact(&mut c_name)?;
 
-    let name = bytes_with_nul_to_bstring(&c_name)?;
+    bytes_with_nul_to_bstring(&c_name)
+}
 
-    let l_ref = reader.read_u32::<LittleEndian>().and_then(|len| {
+fn read_length<R>(reader: &mut R) -> io::Result<NonZeroUsize>
+where
+    R: Read,
+{
+    reader.read_u32::<LittleEndian>().and_then(|len| {
         usize::try_from(len)
             .and_then(NonZeroUsize::try_from)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let reference_sequence = Map::<ReferenceSequence>::new(l_ref);
-
-    Ok((name, reference_sequence))
+    })
 }
 
 #[cfg(test)]
