@@ -1,16 +1,22 @@
-pub(super) mod magic_number;
+mod magic_number;
 mod reference_sequences;
 
 use noodles_sam as sam;
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt, BufReader};
 
-use self::reference_sequences::read_reference_sequences;
+use self::{magic_number::read_magic_number, reference_sequences::read_reference_sequences};
 use crate::io::reader::header::reference_sequences_eq;
 
 pub(super) async fn read_header<R>(reader: &mut R) -> io::Result<sam::Header>
 where
     R: AsyncRead + Unpin,
 {
+    use crate::io::reader::header::magic_number;
+
+    read_magic_number(reader)
+        .await
+        .and_then(magic_number::validate)?;
+
     let mut header = read_header_inner(reader).await?;
     let reference_sequences = read_reference_sequences(reader).await?;
 
@@ -106,6 +112,7 @@ mod tests {
     };
 
     use super::*;
+    use crate::MAGIC_NUMBER;
 
     const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
         Some(length) => length,
@@ -119,6 +126,7 @@ mod tests {
     #[tokio::test]
     async fn test_read_header() -> io::Result<()> {
         let mut src = Vec::new();
+        src.extend(MAGIC_NUMBER);
         put_u32_le(&mut src, 27); // l_text
         src.extend(b"@HD\tVN:1.6\n@SQ\tSN:sq0\tLN:8\n"); // text
         put_u32_le(&mut src, 1); // n_ref

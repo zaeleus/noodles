@@ -13,7 +13,7 @@ where
     Ok(buf)
 }
 
-pub(super) fn validate(buf: Buf) -> io::Result<()> {
+pub(crate) fn validate(buf: Buf) -> io::Result<()> {
     if is_valid(buf) {
         Ok(())
     } else {

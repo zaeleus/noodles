@@ -1,4 +1,4 @@
-mod magic_number;
+pub(crate) mod magic_number;
 mod reference_sequences;
 mod sam_header;
 

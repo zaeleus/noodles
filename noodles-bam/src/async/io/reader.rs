@@ -12,13 +12,8 @@ use noodles_csi::BinningIndex;
 use noodles_sam::{self as sam, alignment::RecordBuf};
 use tokio::io::{self, AsyncRead, AsyncSeek};
 
-use self::{
-    header::{magic_number::read_magic_number, read_header},
-    query::query,
-    record::read_record,
-    record_buf::read_record_buf,
-};
-use crate::{io::reader::resolve_region, Record, MAGIC_NUMBER};
+use self::{header::read_header, query::query, record::read_record, record_buf::read_record_buf};
+use crate::{io::reader::resolve_region, Record};
 
 /// An async BAM reader.
 ///
@@ -120,7 +115,6 @@ where
     /// # }
     /// ```
     pub async fn read_header(&mut self) -> io::Result<sam::Header> {
-        read_magic(&mut self.inner).await?;
         read_header(&mut self.inner).await
     }
 
@@ -425,47 +419,5 @@ impl<R> From<R> for Reader<R> {
             inner,
             buf: Vec::new(),
         }
-    }
-}
-
-async fn read_magic<R>(reader: &mut R) -> io::Result<()>
-where
-    R: AsyncRead + Unpin,
-{
-    let magic = read_magic_number(reader).await?;
-
-    if magic == MAGIC_NUMBER {
-        Ok(())
-    } else {
-        Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "invalid BAM header",
-        ))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn test_read_magic() {
-        let data = b"BAM\x01";
-        let mut reader = &data[..];
-        assert!(read_magic(&mut reader).await.is_ok());
-
-        let data = [];
-        let mut reader = &data[..];
-        assert!(matches!(
-            read_magic(&mut reader).await,
-            Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof
-        ));
-
-        let data = b"MThd";
-        let mut reader = &data[..];
-        assert!(matches!(
-            read_magic(&mut reader).await,
-            Err(ref e) if e.kind() == io::ErrorKind::InvalidData
-        ));
     }
 }

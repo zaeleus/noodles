@@ -2,7 +2,7 @@ use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::MAGIC_NUMBER;
 
-pub(crate) async fn read_magic_number<R>(reader: &mut R) -> io::Result<[u8; MAGIC_NUMBER.len()]>
+pub(super) async fn read_magic_number<R>(reader: &mut R) -> io::Result<[u8; MAGIC_NUMBER.len()]>
 where
     R: AsyncRead + Unpin,
 {
