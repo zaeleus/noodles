@@ -2,24 +2,61 @@ mod magic_number;
 mod reference_sequences;
 mod sam_header;
 
-use noodles_sam as sam;
+use noodles_sam::{self as sam, header::ReferenceSequences};
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt};
 
 use self::{magic_number::read_magic_number, reference_sequences::read_reference_sequences};
-use crate::io::reader::header::reference_sequences_eq;
+use crate::{io::reader::header::reference_sequences_eq, MAGIC_NUMBER};
+
+struct Reader<'r, R> {
+    inner: &'r mut R,
+}
+
+impl<'r, R> Reader<'r, R>
+where
+    R: AsyncRead + Unpin,
+{
+    fn new(inner: &'r mut R) -> Self {
+        Self { inner }
+    }
+
+    async fn read_magic_number(&mut self) -> io::Result<[u8; MAGIC_NUMBER.len()]> {
+        read_magic_number(self.inner).await
+    }
+
+    async fn raw_sam_header_reader(&mut self) -> io::Result<sam_header::Reader<R>> {
+        let len = self.inner.read_u32_le().await.map(u64::from)?;
+        Ok(sam_header::Reader::new(self.inner, len))
+    }
+
+    async fn read_reference_sequences(&mut self) -> io::Result<ReferenceSequences> {
+        read_reference_sequences(self.inner).await
+    }
+}
 
 pub(super) async fn read_header<R>(reader: &mut R) -> io::Result<sam::Header>
 where
     R: AsyncRead + Unpin,
 {
+    let mut header_reader = Reader::new(reader);
+    read_header_inner(&mut header_reader).await
+}
+
+async fn read_header_inner<R>(reader: &mut Reader<'_, R>) -> io::Result<sam::Header>
+where
+    R: AsyncRead + Unpin,
+{
     use crate::io::reader::header::magic_number;
 
-    read_magic_number(reader)
+    reader
+        .read_magic_number()
         .await
         .and_then(magic_number::validate)?;
 
-    let mut header = read_header_inner(reader).await?;
-    let reference_sequences = read_reference_sequences(reader).await?;
+    let mut raw_sam_header_reader = reader.raw_sam_header_reader().await?;
+    let mut header = read_sam_header(&mut raw_sam_header_reader).await?;
+
+    let reference_sequences = reader.read_reference_sequences().await?;
 
     if header.reference_sequences().is_empty() {
         *header.reference_sequences_mut() = reference_sequences;
@@ -33,24 +70,21 @@ where
     Ok(header)
 }
 
-async fn read_header_inner<R>(reader: &mut R) -> io::Result<sam::Header>
+async fn read_sam_header<R>(reader: &mut sam_header::Reader<'_, R>) -> io::Result<sam::Header>
 where
     R: AsyncRead + Unpin,
 {
-    let l_text = reader.read_u32_le().await.map(u64::from)?;
-
     let mut parser = sam::header::Parser::default();
 
-    let mut header_reader = sam_header::Reader::new(reader, l_text);
     let mut buf = Vec::new();
 
-    while read_line(&mut header_reader, &mut buf).await? != 0 {
+    while read_line(reader, &mut buf).await? != 0 {
         parser
             .parse_partial(&buf)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     }
 
-    header_reader.discard_to_end().await?;
+    reader.discard_to_end().await?;
 
     Ok(parser.finish())
 }

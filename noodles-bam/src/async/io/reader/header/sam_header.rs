@@ -9,18 +9,18 @@ use tokio::io::{
 };
 
 pin_project! {
-    pub(super) struct Reader<R> {
+    pub(super) struct Reader<'r, R> {
         #[pin]
-        inner: BufReader<Take<R>>,
+        inner: BufReader<Take<&'r mut R>>,
         is_eol: bool,
     }
 }
 
-impl<R> Reader<R>
+impl<'r, R> Reader<'r, R>
 where
     R: AsyncRead + Unpin,
 {
-    pub(super) fn new(inner: R, len: u64) -> Self {
+    pub(super) fn new(inner: &'r mut R, len: u64) -> Self {
         Self {
             inner: BufReader::new(inner.take(len)),
             is_eol: true,
@@ -46,7 +46,7 @@ where
     }
 }
 
-impl<R> AsyncRead for Reader<R>
+impl<R> AsyncRead for Reader<'_, R>
 where
     R: AsyncRead + Unpin,
 {
@@ -66,7 +66,7 @@ where
     }
 }
 
-impl<R> AsyncBufRead for Reader<R>
+impl<R> AsyncBufRead for Reader<'_, R>
 where
     R: AsyncRead + Unpin,
 {
