@@ -11,7 +11,7 @@ repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-bam"
 
 [features]
-async = ["dep:futures", "dep:tokio", "noodles-bgzf/async"]
+async = ["dep:futures", "dep:pin-project-lite", "dep:tokio", "noodles-bgzf/async"]
 
 [dependencies]
 bstr.workspace = true
@@ -19,6 +19,7 @@ byteorder.workspace = true
 futures = { workspace = true, optional = true, features = ["std"] }
 indexmap.workspace = true
 memchr.workspace = true
+pin-project-lite = { workspace = true, optional = true }
 tokio = { workspace = true, optional = true, features = ["fs", "io-util"] }
 
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.34.0" }

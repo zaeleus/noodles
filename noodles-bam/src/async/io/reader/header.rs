@@ -1,8 +1,9 @@
 mod magic_number;
 mod reference_sequences;
+mod sam_header;
 
 use noodles_sam as sam;
-use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt, BufReader};
+use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt};
 
 use self::{magic_number::read_magic_number, reference_sequences::read_reference_sequences};
 use crate::io::reader::header::reference_sequences_eq;
@@ -40,7 +41,7 @@ where
 
     let mut parser = sam::header::Parser::default();
 
-    let mut header_reader = BufReader::new(reader.take(l_text));
+    let mut header_reader = sam_header::Reader::new(reader, l_text);
     let mut buf = Vec::new();
 
     while read_line(&mut header_reader, &mut buf).await? != 0 {
@@ -49,7 +50,7 @@ where
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     }
 
-    discard_padding(&mut header_reader).await?;
+    header_reader.discard_to_end().await?;
 
     Ok(parser.finish())
 }
@@ -58,17 +59,10 @@ async fn read_line<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<usize>
 where
     R: AsyncBufRead + Unpin,
 {
-    const NUL: u8 = 0x00;
     const LINE_FEED: u8 = b'\n';
     const CARRIAGE_RETURN: u8 = b'\r';
 
     dst.clear();
-
-    let src = reader.fill_buf().await?;
-
-    if src.is_empty() || src[0] == NUL {
-        return Ok(0);
-    }
 
     match reader.read_until(LINE_FEED, dst).await? {
         0 => Ok(0),
@@ -83,22 +77,6 @@ where
 
             Ok(n)
         }
-    }
-}
-
-async fn discard_padding<R>(reader: &mut R) -> io::Result<()>
-where
-    R: AsyncBufRead + Unpin,
-{
-    loop {
-        let src = reader.fill_buf().await?;
-
-        if src.is_empty() {
-            return Ok(());
-        }
-
-        let len = src.len();
-        reader.consume(len);
     }
 }
 
