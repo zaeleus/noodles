@@ -1,7 +1,7 @@
 //! VCF reader and iterators.
 
 mod builder;
-mod header;
+pub mod header;
 pub(crate) mod query;
 pub(crate) mod record;
 pub mod record_buf;
@@ -119,6 +119,41 @@ where
             inner,
             buf: String::new(),
         }
+    }
+
+    /// Returns a VCF header reader.
+    ///
+    /// This creates an adapter that reads at most the length of the header, i.e., all lines
+    /// prefixed with a `#` (number sign).
+    ///
+    /// It is more ergonomic to read and parse the header using [`Self::read_header`], but using
+    /// this adapter allows for control of how the header is read, e.g., to read the raw VCF
+    /// header.
+    ///
+    /// The position of the stream is expected to be at the start.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io::Read;
+    /// use noodles_vcf as vcf;
+    ///
+    /// let data = b"##fileformat=VCFv4.3
+    /// #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
+    /// sq0\t1\t.\tA\t.\t.\tPASS\t.
+    /// ";
+    ///
+    /// let mut reader = vcf::io::Reader::new(&data[..]);
+    /// let mut header_reader = reader.header_reader();
+    ///
+    /// let mut raw_header = String::new();
+    /// header_reader.read_to_string(&mut raw_header)?;
+    ///
+    /// assert_eq!(raw_header, "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n");
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
+    pub fn header_reader(&mut self) -> header::Reader<'_, R> {
+        header::Reader::new(&mut self.inner)
     }
 
     /// Reads the VCF header.

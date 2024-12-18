@@ -1,14 +1,19 @@
+//! VCF header reader.
+
 use std::io::{self, BufRead, Read};
 
 use crate::{header, Header};
 
-struct Reader<'r, R> {
+/// A VCF header reader.
+///
+/// This is created by calling [`super::Reader::header_reader`].
+pub struct Reader<'r, R> {
     inner: &'r mut R,
     is_eol: bool,
 }
 
 impl<'r, R> Reader<'r, R> {
-    fn new(inner: &'r mut R) -> Self {
+    pub(super) fn new(inner: &'r mut R) -> Self {
         Self {
             inner,
             is_eol: true,

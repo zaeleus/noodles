@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * vcf/io/reader: Add a header reader adapter (`header::Reader`).
+
+    This can be used to read the raw VCF header.
+
 ## 0.69.0 - 2024-12-12
 
 ### Changed
