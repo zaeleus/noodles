@@ -6,10 +6,9 @@ mod convert;
 mod field;
 mod phase;
 
-pub use self::{attributes::Attributes, builder::Builder, field::Field, phase::Phase};
-
 use noodles_core::Position;
 
+pub use self::{attributes::Attributes, builder::Builder, field::Field, phase::Phase};
 use super::record::Strand;
 
 /// A GFF record.
