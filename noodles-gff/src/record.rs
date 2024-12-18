@@ -96,8 +96,13 @@ fn parse_score(s: &str) -> Option<io::Result<f32>> {
 }
 
 fn parse_strand(s: &str) -> io::Result<Strand> {
-    s.parse()
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    match s {
+        "." => Ok(Strand::None),
+        "+" => Ok(Strand::Forward),
+        "-" => Ok(Strand::Reverse),
+        "?" => Ok(Strand::Unknown),
+        _ => Err(io::Error::new(io::ErrorKind::InvalidData, "invalid strand")),
+    }
 }
 
 fn parse_phase(s: &str) -> Option<io::Result<Phase>> {
@@ -122,6 +127,21 @@ mod tests {
         assert!(matches!(
             parse_phase(""),
             Some(Err(e)) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_parse_strand() -> io::Result<()> {
+        assert_eq!(parse_strand(".")?, Strand::None);
+        assert_eq!(parse_strand("+")?, Strand::Forward);
+        assert_eq!(parse_strand("-")?, Strand::Reverse);
+        assert_eq!(parse_strand("?")?, Strand::Unknown);
+
+        assert!(matches!(
+            parse_strand(""),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 
         Ok(())

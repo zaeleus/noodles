@@ -4,9 +4,10 @@
 
 ### Removed
 
-  * gff/record_buf/strand: Remove formatter.
+  * gff/record_buf/strand: Remove parser and formatter.
 
-    Use a serializer (e.g., `gff::io::Writer`) instead.
+    Use a deserializer (e.g., `gff::io::Reader`) or serializer (e.g.,
+    `gff::io::Writer`), respectively, instead.
 
 ## 0.40.0 - 2024-12-12
 
