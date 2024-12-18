@@ -4,8 +4,7 @@ pub mod attributes;
 pub(crate) mod fields;
 mod strand;
 
-use core::fmt;
-use std::io;
+use std::{fmt, io};
 
 use noodles_core::Position;
 
