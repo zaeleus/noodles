@@ -15,26 +15,9 @@ pub enum Strand {
     Unknown,
 }
 
-impl AsRef<str> for Strand {
-    fn as_ref(&self) -> &str {
-        match self {
-            Self::None => ".",
-            Self::Forward => "+",
-            Self::Reverse => "-",
-            Self::Unknown => "?",
-        }
-    }
-}
-
 impl Default for Strand {
     fn default() -> Self {
         Self::None
-    }
-}
-
-impl fmt::Display for Strand {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(self.as_ref())
     }
 }
 
@@ -73,17 +56,6 @@ impl FromStr for Strand {
     }
 }
 
-impl From<Strand> for char {
-    fn from(strand: Strand) -> Self {
-        match strand {
-            Strand::None => '.',
-            Strand::Forward => '+',
-            Strand::Reverse => '-',
-            Strand::Unknown => '?',
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -91,14 +63,6 @@ mod tests {
     #[test]
     fn test_default() {
         assert_eq!(Strand::default(), Strand::None);
-    }
-
-    #[test]
-    fn test_fmt() {
-        assert_eq!(Strand::None.to_string(), ".");
-        assert_eq!(Strand::Forward.to_string(), "+");
-        assert_eq!(Strand::Reverse.to_string(), "-");
-        assert_eq!(Strand::Unknown.to_string(), "?");
     }
 
     #[test]
@@ -115,13 +79,5 @@ mod tests {
         );
 
         Ok(())
-    }
-
-    #[test]
-    fn test_from_strand_for_char() {
-        assert_eq!(char::from(Strand::None), '.');
-        assert_eq!(char::from(Strand::Forward), '+');
-        assert_eq!(char::from(Strand::Reverse), '-');
-        assert_eq!(char::from(Strand::Unknown), '?');
     }
 }

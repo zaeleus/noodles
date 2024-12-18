@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+  * gff/record_buf/strand: Remove formatter.
+
+    Use a serializer (e.g., `gff::io::Writer`) instead.
+
 ## 0.40.0 - 2024-12-12
 
 ### Added
