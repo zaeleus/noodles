@@ -2,13 +2,13 @@ use std::io::{self, BufRead, Read};
 
 use crate::{header, Header};
 
-struct Reader<R> {
-    inner: R,
+struct Reader<'r, R> {
+    inner: &'r mut R,
     is_eol: bool,
 }
 
-impl<R> Reader<R> {
-    fn new(inner: R) -> Self {
+impl<'r, R> Reader<'r, R> {
+    fn new(inner: &'r mut R) -> Self {
         Self {
             inner,
             is_eol: true,
@@ -16,7 +16,7 @@ impl<R> Reader<R> {
     }
 }
 
-impl<R> Read for Reader<R>
+impl<R> Read for Reader<'_, R>
 where
     R: BufRead,
 {
@@ -28,7 +28,7 @@ where
     }
 }
 
-impl<R> BufRead for Reader<R>
+impl<R> BufRead for Reader<'_, R>
 where
     R: BufRead,
 {
