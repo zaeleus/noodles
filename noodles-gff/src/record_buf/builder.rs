@@ -1,6 +1,7 @@
 use noodles_core::Position;
 
-use super::{Attributes, Phase, RecordBuf, Strand};
+use super::{Attributes, Phase, RecordBuf};
+use crate::record::Strand;
 
 /// A GFF record builder.
 #[derive(Debug)]
@@ -145,7 +146,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gff::{self as gff, record_buf::Strand};
+    /// use noodles_gff::{self as gff, record::Strand};
     ///
     /// let record = gff::RecordBuf::builder()
     ///     .set_strand(Strand::Forward)

@@ -5,13 +5,12 @@ mod builder;
 mod convert;
 mod field;
 mod phase;
-mod strand;
 
-pub use self::{
-    attributes::Attributes, builder::Builder, field::Field, phase::Phase, strand::Strand,
-};
+pub use self::{attributes::Attributes, builder::Builder, field::Field, phase::Phase};
 
 use noodles_core::Position;
+
+use super::record::Strand;
 
 /// A GFF record.
 #[derive(Clone, Debug, PartialEq)]
@@ -134,7 +133,7 @@ impl RecordBuf {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gff::{self as gff, record_buf::Strand};
+    /// use noodles_gff::{self as gff, record::Strand};
     /// let record = gff::RecordBuf::default();
     /// assert_eq!(record.strand(), Strand::None);
     /// ```
