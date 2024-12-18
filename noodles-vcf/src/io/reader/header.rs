@@ -111,32 +111,24 @@ where
 mod tests {
     use super::*;
 
-    fn collect_lines<R>(reader: &mut R) -> io::Result<Vec<Vec<u8>>>
-    where
-        R: BufRead,
-    {
-        Reader::new(reader)
-            .lines()
-            .map(|result| result.map(|s| s.into_bytes()))
-            .collect()
-    }
-
     #[test]
     fn test_read_raw_header() -> io::Result<()> {
-        let src = b"##fileformat=VCFv4.3
+        let data = b"##fileformat=VCFv4.3
 ##fileDate=20200501
 #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
 sq0\t1\t.\tA\t.\t.\tPASS\t.
 ";
 
-        let mut reader = &src[..];
+        let mut src = &data[..];
+        let mut reader = Reader::new(&mut src);
 
-        let actual = collect_lines(&mut reader)?;
-        let expected = [
-            b"##fileformat=VCFv4.3".to_vec(),
-            b"##fileDate=20200501".to_vec(),
-            b"#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO".to_vec(),
-        ];
+        let mut actual = Vec::new();
+        reader.read_to_end(&mut actual)?;
+
+        let expected = b"##fileformat=VCFv4.3
+##fileDate=20200501
+#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
+";
 
         assert_eq!(actual, expected);
 
@@ -145,17 +137,19 @@ sq0\t1\t.\tA\t.\t.\tPASS\t.
 
     #[test]
     fn test_read_raw_header_with_no_records() -> io::Result<()> {
-        let src = b"##fileformat=VCFv4.3
+        let data = b"##fileformat=VCFv4.3
 #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
 ";
 
-        let mut reader = &src[..];
+        let mut src = &data[..];
+        let mut reader = Reader::new(&mut src);
 
-        let actual = collect_lines(&mut reader)?;
-        let expected = [
-            b"##fileformat=VCFv4.3".to_vec(),
-            b"#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO".to_vec(),
-        ];
+        let mut actual = Vec::new();
+        reader.read_to_end(&mut actual)?;
+
+        let expected = b"##fileformat=VCFv4.3
+#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
+";
 
         assert_eq!(actual, expected);
 
@@ -166,16 +160,19 @@ sq0\t1\t.\tA\t.\t.\tPASS\t.
     fn test_read_raw_header_with_multiple_buffer_fills() -> io::Result<()> {
         use std::io::BufReader;
 
-        let src = b"##fileformat=VCFv4.3
+        let data = b"##fileformat=VCFv4.3
 #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
 ";
 
-        let mut reader = BufReader::with_capacity(16, &src[..]);
-        let actual = collect_lines(&mut reader)?;
-        let expected = [
-            b"##fileformat=VCFv4.3".to_vec(),
-            b"#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO".to_vec(),
-        ];
+        let mut inner = BufReader::with_capacity(16, &data[..]);
+        let mut reader = Reader::new(&mut inner);
+
+        let mut actual = Vec::new();
+        reader.read_to_end(&mut actual)?;
+
+        let expected = b"##fileformat=VCFv4.3
+#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
+";
 
         assert_eq!(actual, expected);
 
@@ -184,14 +181,16 @@ sq0\t1\t.\tA\t.\t.\tPASS\t.
 
     #[test]
     fn test_read_raw_header_with_no_header() -> io::Result<()> {
-        let src = [];
-        let mut reader = &src[..];
-        let actual = collect_lines(&mut reader)?;
+        let mut src = &[][..];
+        let mut reader = Reader::new(&mut src);
+        let mut actual = Vec::new();
+        reader.read_to_end(&mut actual)?;
         assert!(actual.is_empty());
 
-        let src = b"sq0\t1\t.\tA\t.\t.\tPASS\t.\n";
-        let mut reader = &src[..];
-        let actual = collect_lines(&mut reader)?;
+        let mut src = &b"sq0\t1\t.\tA\t.\t.\tPASS\t.\n"[..];
+        let mut reader = Reader::new(&mut src);
+        let mut actual = Vec::new();
+        reader.read_to_end(&mut actual)?;
         assert!(actual.is_empty());
 
         Ok(())
@@ -199,16 +198,17 @@ sq0\t1\t.\tA\t.\t.\tPASS\t.
 
     #[test]
     fn test_read_raw_header_with_missing_end_of_line() -> io::Result<()> {
-        let src = b"##fileformat=VCFv4.3
+        let data = b"##fileformat=VCFv4.3
 #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
 
-        let mut reader = &src[..];
+        let mut src = &data[..];
+        let mut reader = Reader::new(&mut src);
 
-        let actual = collect_lines(&mut reader)?;
-        let expected = [
-            b"##fileformat=VCFv4.3".to_vec(),
-            b"#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO".to_vec(),
-        ];
+        let mut actual = Vec::new();
+        reader.read_to_end(&mut actual)?;
+
+        let expected = b"##fileformat=VCFv4.3
+#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
 
         assert_eq!(actual, expected);
 
