@@ -1,7 +1,8 @@
 /// A GFF record strand.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash)]
 pub enum Strand {
     /// Unstranded (`.`).
+    #[default]
     None,
     /// Forward strand (`+`).
     Forward,
@@ -9,12 +10,6 @@ pub enum Strand {
     Reverse,
     /// Strandedness is relevant but unknown (`?`).
     Unknown,
-}
-
-impl Default for Strand {
-    fn default() -> Self {
-        Self::None
-    }
 }
 
 #[cfg(test)]
