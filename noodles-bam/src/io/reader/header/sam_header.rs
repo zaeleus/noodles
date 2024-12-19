@@ -59,15 +59,17 @@ where
 
         let src = self.inner.fill_buf()?;
 
-        if self.is_eol && src.first().map(|&b| b == NUL).unwrap_or(true) {
-            Ok(&[])
+        let buf = if self.is_eol && src.first().map(|&b| b == NUL).unwrap_or(true) {
+            &[]
         } else if let Some(i) = src.as_bstr().find_byte(LINE_FEED) {
             self.is_eol = true;
-            Ok(&src[..=i])
+            &src[..=i]
         } else {
             self.is_eol = false;
-            Ok(src)
-        }
+            src
+        };
+
+        Ok(buf)
     }
 
     fn consume(&mut self, amt: usize) {
