@@ -7,13 +7,13 @@ use crate::{header, Header};
 /// A VCF header reader.
 ///
 /// This is created by calling [`super::Reader::header_reader`].
-pub struct Reader<'r, R> {
-    inner: &'r mut R,
+pub struct Reader<R> {
+    inner: R,
     is_eol: bool,
 }
 
-impl<'r, R> Reader<'r, R> {
-    pub(super) fn new(inner: &'r mut R) -> Self {
+impl<R> Reader<R> {
+    pub(super) fn new(inner: R) -> Self {
         Self {
             inner,
             is_eol: true,
@@ -21,7 +21,7 @@ impl<'r, R> Reader<'r, R> {
     }
 }
 
-impl<R> Read for Reader<'_, R>
+impl<R> Read for Reader<R>
 where
     R: BufRead,
 {
@@ -39,7 +39,7 @@ where
     }
 }
 
-impl<R> BufRead for Reader<'_, R>
+impl<R> BufRead for Reader<R>
 where
     R: BufRead,
 {

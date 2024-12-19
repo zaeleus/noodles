@@ -152,7 +152,7 @@ where
     /// assert_eq!(raw_header, "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n");
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn header_reader(&mut self) -> header::Reader<'_, R> {
+    pub fn header_reader(&mut self) -> header::Reader<&mut R> {
         header::Reader::new(&mut self.inner)
     }
 
