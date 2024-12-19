@@ -49,17 +49,19 @@ where
         const PREFIX: u8 = b'#';
         const LINE_FEED: u8 = b'\n';
 
-        let buf = self.inner.fill_buf()?;
+        let src = self.inner.fill_buf()?;
 
-        if self.is_eol && buf.first().map(|&b| b != PREFIX).unwrap_or(true) {
-            Ok(&[])
-        } else if let Some(i) = memchr(LINE_FEED, buf) {
+        let buf = if self.is_eol && src.first().map(|&b| b != PREFIX).unwrap_or(true) {
+            &[]
+        } else if let Some(i) = memchr(LINE_FEED, src) {
             self.is_eol = true;
-            Ok(&buf[..=i])
+            &src[..=i]
         } else {
             self.is_eol = false;
-            Ok(buf)
-        }
+            src
+        };
+
+        Ok(buf)
     }
 
     fn consume(&mut self, amt: usize) {
