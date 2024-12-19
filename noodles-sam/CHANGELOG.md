@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * sam/io/reader: Add a header reader adapter (`header::Reader`).
+
+    This can be used to read the raw SAM header.
+
 ## 0.67.0 - 2024-12-12
 
 ### Changed

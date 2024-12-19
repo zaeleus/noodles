@@ -1,3 +1,5 @@
+//! SAM header reader.
+
 use std::io::{self, BufRead, Read};
 
 use bstr::ByteSlice;
@@ -5,13 +7,16 @@ use bstr::ByteSlice;
 use super::read_line;
 use crate::{header, Header};
 
-struct Reader<R> {
+/// A SAM header reader.
+///
+/// This is created by calling [`super::Reader::header_reader`].
+pub struct Reader<R> {
     inner: R,
     is_eol: bool,
 }
 
 impl<R> Reader<R> {
-    fn new(inner: R) -> Self {
+    pub(super) fn new(inner: R) -> Self {
         Self {
             inner,
             is_eol: true,

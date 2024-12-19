@@ -1,3 +1,5 @@
+//! Async SAM header reader.
+
 use bstr::ByteSlice;
 use pin_project_lite::pin_project;
 use std::{
@@ -10,7 +12,10 @@ use super::read_line;
 use crate::{header, Header};
 
 pin_project! {
-    struct Reader<R> {
+    /// An async SAM header reader.
+    ///
+    /// This is created by calling [`super::Reader::header_reader`].
+    pub struct Reader<R> {
         #[pin]
         inner: R,
         is_eol: bool,
@@ -18,7 +23,7 @@ pin_project! {
 }
 
 impl<R> Reader<R> {
-    fn new(inner: R) -> Self {
+    pub(super) fn new(inner: R) -> Self {
         Self {
             inner,
             is_eol: true,

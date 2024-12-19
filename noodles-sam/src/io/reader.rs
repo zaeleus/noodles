@@ -1,7 +1,7 @@
 //! SAM reader.
 
 mod builder;
-mod header;
+pub mod header;
 pub(crate) mod query;
 mod record;
 pub(crate) mod record_buf;
@@ -113,6 +113,40 @@ where
     /// ```
     pub fn new(inner: R) -> Self {
         Self::from(inner)
+    }
+
+    /// Returns a SAM header reader.
+    ///
+    /// This creates an adapter that reads at most the length of the header, i.e., all lines
+    /// prefixed with a `@` (at sign).
+    ///
+    /// It is more ergonomic to read and parse the header using [`Self::read_header`], but using
+    /// this adapter allows for control of how the header is read, e.g., to read the raw SAM
+    /// header.
+    ///
+    /// The position of the stream is expected to be at the start.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io::Read;
+    /// use noodles_sam as sam;
+    ///
+    /// let data = b"@HD\tVN:1.6
+    /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
+    /// ";
+    ///
+    /// let mut reader = sam::io::Reader::new(&data[..]);
+    /// let mut header_reader = reader.header_reader();
+    ///
+    /// let mut raw_header = String::new();
+    /// header_reader.read_to_string(&mut raw_header)?;
+    ///
+    /// assert_eq!(raw_header, "@HD\tVN:1.6\n");
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
+    pub fn header_reader(&mut self) -> header::Reader<&mut R> {
+        header::Reader::new(&mut self.inner)
     }
 
     /// Reads the SAM header.
