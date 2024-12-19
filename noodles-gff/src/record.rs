@@ -108,10 +108,13 @@ fn parse_strand(s: &str) -> io::Result<Strand> {
 fn parse_phase(s: &str) -> Option<io::Result<Phase>> {
     match s {
         MISSING => None,
-        _ => Some(
-            s.parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-        ),
+        "0" => Some(Ok(Phase::Zero)),
+        "1" => Some(Ok(Phase::One)),
+        "2" => Some(Ok(Phase::Two)),
+        _ => Some(Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid phase",
+        ))),
     }
 }
 
