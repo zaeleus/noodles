@@ -2,16 +2,16 @@ use std::io::{self, BufRead, BufReader, Read, Take};
 
 use bstr::ByteSlice;
 
-pub(super) struct Reader<'r, R> {
-    inner: BufReader<Take<&'r mut R>>,
+pub(super) struct Reader<R> {
+    inner: BufReader<Take<R>>,
     is_eol: bool,
 }
 
-impl<'r, R> Reader<'r, R>
+impl<R> Reader<R>
 where
     R: Read,
 {
-    pub(super) fn new(inner: &'r mut R, len: u64) -> Self {
+    pub(super) fn new(inner: R, len: u64) -> Self {
         Self {
             inner: BufReader::new(inner.take(len)),
             is_eol: true,
@@ -37,7 +37,7 @@ where
     }
 }
 
-impl<R> Read for Reader<'_, R>
+impl<R> Read for Reader<R>
 where
     R: Read,
 {
@@ -49,7 +49,7 @@ where
     }
 }
 
-impl<R> BufRead for Reader<'_, R>
+impl<R> BufRead for Reader<R>
 where
     R: Read,
 {

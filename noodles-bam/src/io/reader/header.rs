@@ -10,29 +10,29 @@ use noodles_sam::{self as sam, header::ReferenceSequences};
 use self::{magic_number::read_magic_number, reference_sequences::read_reference_sequences};
 use crate::MAGIC_NUMBER;
 
-struct Reader<'r, R> {
-    inner: &'r mut R,
+struct Reader<R> {
+    inner: R,
 }
 
-impl<'r, R> Reader<'r, R>
+impl<R> Reader<R>
 where
     R: Read,
 {
-    fn new(inner: &'r mut R) -> Self {
+    fn new(inner: R) -> Self {
         Self { inner }
     }
 
     fn read_magic_number(&mut self) -> io::Result<[u8; MAGIC_NUMBER.len()]> {
-        read_magic_number(self.inner)
+        read_magic_number(&mut self.inner)
     }
 
-    fn raw_sam_header_reader(&mut self) -> io::Result<sam_header::Reader<R>> {
+    fn raw_sam_header_reader(&mut self) -> io::Result<sam_header::Reader<&mut R>> {
         let len = self.inner.read_u32::<LittleEndian>().map(u64::from)?;
-        Ok(sam_header::Reader::new(self.inner, len))
+        Ok(sam_header::Reader::new(&mut self.inner, len))
     }
 
     fn read_reference_sequences(&mut self) -> io::Result<ReferenceSequences> {
-        read_reference_sequences(self.inner)
+        read_reference_sequences(&mut self.inner)
     }
 }
 

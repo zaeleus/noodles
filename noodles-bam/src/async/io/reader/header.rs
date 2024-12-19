@@ -8,29 +8,29 @@ use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt};
 use self::{magic_number::read_magic_number, reference_sequences::read_reference_sequences};
 use crate::{io::reader::header::reference_sequences_eq, MAGIC_NUMBER};
 
-struct Reader<'r, R> {
-    inner: &'r mut R,
+struct Reader<R> {
+    inner: R,
 }
 
-impl<'r, R> Reader<'r, R>
+impl<R> Reader<R>
 where
     R: AsyncRead + Unpin,
 {
-    fn new(inner: &'r mut R) -> Self {
+    fn new(inner: R) -> Self {
         Self { inner }
     }
 
     async fn read_magic_number(&mut self) -> io::Result<[u8; MAGIC_NUMBER.len()]> {
-        read_magic_number(self.inner).await
+        read_magic_number(&mut self.inner).await
     }
 
-    async fn raw_sam_header_reader(&mut self) -> io::Result<sam_header::Reader<R>> {
+    async fn raw_sam_header_reader(&mut self) -> io::Result<sam_header::Reader<&mut R>> {
         let len = self.inner.read_u32_le().await.map(u64::from)?;
-        Ok(sam_header::Reader::new(self.inner, len))
+        Ok(sam_header::Reader::new(&mut self.inner, len))
     }
 
     async fn read_reference_sequences(&mut self) -> io::Result<ReferenceSequences> {
-        read_reference_sequences(self.inner).await
+        read_reference_sequences(&mut self.inner).await
     }
 }
 
@@ -42,7 +42,7 @@ where
     read_header_inner(&mut header_reader).await
 }
 
-async fn read_header_inner<R>(reader: &mut Reader<'_, R>) -> io::Result<sam::Header>
+async fn read_header_inner<R>(reader: &mut Reader<R>) -> io::Result<sam::Header>
 where
     R: AsyncRead + Unpin,
 {
@@ -70,7 +70,7 @@ where
     Ok(header)
 }
 
-async fn read_sam_header<R>(reader: &mut sam_header::Reader<'_, R>) -> io::Result<sam::Header>
+async fn read_sam_header<R>(reader: &mut sam_header::Reader<R>) -> io::Result<sam::Header>
 where
     R: AsyncRead + Unpin,
 {
