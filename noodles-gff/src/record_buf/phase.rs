@@ -16,22 +16,6 @@ pub enum Phase {
     Two,
 }
 
-impl AsRef<str> for Phase {
-    fn as_ref(&self) -> &str {
-        match self {
-            Self::Zero => "0",
-            Self::One => "1",
-            Self::Two => "2",
-        }
-    }
-}
-
-impl fmt::Display for Phase {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(self.as_ref())
-    }
-}
-
 /// An error returned when a raw GFF record phase fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -69,13 +53,6 @@ impl FromStr for Phase {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_fmt() {
-        assert_eq!(Phase::Zero.to_string(), "0");
-        assert_eq!(Phase::One.to_string(), "1");
-        assert_eq!(Phase::Two.to_string(), "2");
-    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
