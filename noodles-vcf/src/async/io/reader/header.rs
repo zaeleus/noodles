@@ -15,6 +15,7 @@ pin_project! {
     ///
     /// This is created by calling [`super::Reader::header_reader`].
     pub struct Reader<R> {
+        #[pin]
         inner: R,
         is_eol: bool,
     }
@@ -64,7 +65,7 @@ where
         const LINE_FEED: u8 = b'\n';
 
         let this = self.project();
-        let buf = ready!(Pin::new(this.inner).poll_fill_buf(cx))?;
+        let buf = ready!(this.inner.poll_fill_buf(cx))?;
 
         let buf = if *this.is_eol && buf.first().map(|&b| b != PREFIX).unwrap_or(true) {
             &[]
