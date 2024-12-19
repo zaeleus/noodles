@@ -1,3 +1,5 @@
+//! Async VCF header reader.
+
 use std::{
     pin::Pin,
     task::{ready, Context, Poll},
@@ -9,14 +11,17 @@ use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, ReadBuf};
 use crate::{header, Header};
 
 pin_project! {
-    struct Reader<R> {
+    /// An async VCF header reader.
+    ///
+    /// This is created by calling [`super::Reader::header_reader`].
+    pub struct Reader<R> {
         inner: R,
         is_eol: bool,
     }
 }
 
 impl<R> Reader<R> {
-    fn new(inner: R) -> Self {
+    pub(super) fn new(inner: R) -> Self {
         Self {
             inner,
             is_eol: true,

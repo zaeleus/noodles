@@ -1,4 +1,4 @@
-mod header;
+pub mod header;
 mod query;
 mod record;
 
@@ -114,6 +114,44 @@ where
             inner,
             buf: String::new(),
         }
+    }
+
+    /// Returns an async VCF header reader.
+    ///
+    /// This creates an adapter that reads at most the length of the header, i.e., all lines
+    /// prefixed with a `#` (number sign).
+    ///
+    /// It is more ergonomic to read and parse the header using [`Self::read_header`], but using
+    /// this adapter allows for control of how the header is read, e.g., to read the raw VCF
+    /// header.
+    ///
+    /// The position of the stream is expected to be at the start.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[tokio::main]
+    /// # async fn main() -> tokio::io::Result<()> {
+    /// use noodles_vcf as vcf;
+    /// use tokio::io::AsyncReadExt;
+    ///
+    /// let data = b"##fileformat=VCFv4.3
+    /// #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
+    /// sq0\t1\t.\tA\t.\t.\tPASS\t.
+    /// ";
+    ///
+    /// let mut reader = vcf::r#async::io::Reader::new(&data[..]);
+    /// let mut header_reader = reader.header_reader();
+    ///
+    /// let mut raw_header = String::new();
+    /// header_reader.read_to_string(&mut raw_header).await?;
+    ///
+    /// assert_eq!(raw_header, "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n");
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn header_reader(&mut self) -> header::Reader<&mut R> {
+        header::Reader::new(&mut self.inner)
     }
 
     /// Reads the VCF header.
