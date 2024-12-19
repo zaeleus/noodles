@@ -4,11 +4,11 @@
 
 ### Changed
 
-  * gff/record_buf: Move `Strand` to `record` module.
+  * gff/record_buf: Move `Strand` and `Phase` to `record` module.
 
 ### Removed
 
-  * gff/record/strand: Remove parser and formatter.
+  * gff/record: Remove parser and formatter from `Strand` and `Phase`.
 
     Use a deserializer (e.g., `gff::io::Reader`) or serializer (e.g.,
     `gff::io::Writer`), respectively, instead.

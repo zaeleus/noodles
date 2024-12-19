@@ -1,7 +1,7 @@
 use noodles_core::Position;
 
-use super::{Attributes, Phase, RecordBuf};
-use crate::record::Strand;
+use super::{Attributes, RecordBuf};
+use crate::record::{Phase, Strand};
 
 /// A GFF record builder.
 #[derive(Debug)]
@@ -164,7 +164,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gff::{self as gff, record_buf::Phase};
+    /// use noodles_gff::{self as gff, record::Phase};
     /// let record = gff::RecordBuf::builder().set_phase(Phase::Zero).build();
     /// assert_eq!(record.phase(), Some(Phase::Zero));
     /// ```

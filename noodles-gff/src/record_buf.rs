@@ -4,12 +4,11 @@ pub mod attributes;
 mod builder;
 mod convert;
 mod field;
-mod phase;
 
 use noodles_core::Position;
 
-pub use self::{attributes::Attributes, builder::Builder, field::Field, phase::Phase};
-use super::record::Strand;
+pub use self::{attributes::Attributes, builder::Builder, field::Field};
+use super::record::{Phase, Strand};
 
 /// A GFF record.
 #[derive(Clone, Debug, PartialEq)]

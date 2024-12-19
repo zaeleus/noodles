@@ -2,6 +2,7 @@
 
 pub mod attributes;
 pub(crate) mod fields;
+mod phase;
 mod strand;
 
 use std::{fmt, io};
@@ -9,8 +10,7 @@ use std::{fmt, io};
 use noodles_core::Position;
 
 use self::fields::Fields;
-pub use self::{attributes::Attributes, strand::Strand};
-use crate::record_buf::Phase;
+pub use self::{attributes::Attributes, phase::Phase, strand::Strand};
 
 const MISSING: &str = ".";
 

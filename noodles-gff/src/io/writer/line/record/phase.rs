@@ -1,7 +1,7 @@
 use std::io::{self, Write};
 
 use super::write_missing;
-use crate::record_buf::Phase;
+use crate::record::Phase;
 
 const CODING_SEQUENCE: &str = "CDS";
 
