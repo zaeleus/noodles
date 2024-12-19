@@ -60,6 +60,10 @@ where
         let amt = src.len().min(buf.remaining());
         buf.put_slice(&src[..amt]);
 
+        if amt < src.len() {
+            self.is_eol = false;
+        }
+
         self.consume(amt);
 
         Poll::Ready(Ok(()))

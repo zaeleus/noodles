@@ -44,7 +44,13 @@ where
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         let mut src = self.fill_buf()?;
         let amt = src.read(buf)?;
+
+        if !src.is_empty() {
+            self.is_eol = false;
+        }
+
         self.consume(amt);
+
         Ok(amt)
     }
 }
