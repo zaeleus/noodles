@@ -61,10 +61,7 @@ fn try_insert(
             entry.insert(m);
             Ok(())
         }
-        Entry::Occupied(entry) => {
-            let (id, _) = entry.swap_remove_entry();
-            Err(AddError::DuplicateId(id))
-        }
+        Entry::Occupied(entry) => Err(AddError::DuplicateId(entry.key().into())),
     }
 }
 

@@ -236,10 +236,7 @@ fn try_insert_info(
                 .map(|(k, v)| self::Entry::Info(k, v))
                 .unwrap())
         }
-        Entry::Occupied(entry) => {
-            let (id, _) = entry.swap_remove_entry();
-            Err(ParseError::DuplicateInfoId(id))
-        }
+        Entry::Occupied(entry) => Err(ParseError::DuplicateInfoId(entry.key().into())),
     }
 }
 
@@ -262,10 +259,7 @@ fn try_insert_filter(
                 .map(|(k, v)| self::Entry::Filter(k, v))
                 .unwrap())
         }
-        Entry::Occupied(entry) => {
-            let (id, _) = entry.swap_remove_entry();
-            Err(ParseError::DuplicateFilterId(id))
-        }
+        Entry::Occupied(entry) => Err(ParseError::DuplicateFilterId(entry.key().into())),
     }
 }
 
@@ -288,10 +282,7 @@ fn try_insert_format(
                 .map(|(k, v)| self::Entry::Format(k, v))
                 .unwrap())
         }
-        Entry::Occupied(entry) => {
-            let (id, _) = entry.swap_remove_entry();
-            Err(ParseError::DuplicateFormatId(id))
-        }
+        Entry::Occupied(entry) => Err(ParseError::DuplicateFormatId(entry.key().into())),
     }
 }
 
@@ -314,10 +305,7 @@ fn try_insert_alternative_allele(
                 .map(|(k, v)| self::Entry::AlternativeAllele(k, v))
                 .unwrap())
         }
-        Entry::Occupied(entry) => {
-            let (id, _) = entry.swap_remove_entry();
-            Err(ParseError::DuplicateAlternativeAlleleId(id))
-        }
+        Entry::Occupied(entry) => Err(ParseError::DuplicateAlternativeAlleleId(entry.key().into())),
     }
 }
 
@@ -340,10 +328,7 @@ fn try_insert_contig(
                 .map(|(k, v)| self::Entry::Contig(k, v))
                 .unwrap())
         }
-        Entry::Occupied(entry) => {
-            let (id, _) = entry.swap_remove_entry();
-            Err(ParseError::DuplicateContigId(id))
-        }
+        Entry::Occupied(entry) => Err(ParseError::DuplicateContigId(entry.key().into())),
     }
 }
 

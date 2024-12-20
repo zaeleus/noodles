@@ -283,13 +283,10 @@ fn try_insert(
             entry.insert(value);
             Ok(())
         }
-        Entry::Occupied(entry) => {
-            let (t, _) = entry.swap_remove_entry();
-            Err(ParseError::new(
-                id.clone(),
-                ParseErrorKind::DuplicateTag(Tag::Other(t)),
-            ))
-        }
+        Entry::Occupied(entry) => Err(ParseError::new(
+            id.clone(),
+            ParseErrorKind::DuplicateTag(Tag::Other(entry.key().clone())),
+        )),
     }
 }
 
