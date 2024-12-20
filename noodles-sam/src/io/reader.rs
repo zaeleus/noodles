@@ -103,13 +103,9 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_sam as sam;
-    ///
-    /// let data = b"@HD\tVN:1.6
-    /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
-    /// ";
-    ///
-    /// let reader = sam::io::Reader::new(&data[..]);
+    /// let reader = sam::io::Reader::new(io::empty());
     /// ```
     pub fn new(inner: R) -> Self {
         Self::from(inner)
