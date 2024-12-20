@@ -170,7 +170,7 @@ fn extract_version(src: &[u8]) -> Option<Version> {
 
 fn try_insert<K, V, F, E>(map: &mut IndexMap<K, V>, key: K, value: V, f: F) -> Result<(), E>
 where
-    K: Hash + Eq,
+    K: Hash + Eq + Clone,
     F: FnOnce(K) -> E,
 {
     use indexmap::map::Entry;
@@ -180,10 +180,7 @@ where
             e.insert(value);
             Ok(())
         }
-        Entry::Occupied(e) => {
-            let (k, _) = e.swap_remove_entry();
-            Err(f(k))
-        }
+        Entry::Occupied(e) => Err(f(e.key().clone())),
     }
 }
 

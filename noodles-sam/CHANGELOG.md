@@ -8,6 +8,10 @@
 
     This can be used to read the raw SAM header.
 
+### Changed
+
+  * sam/header/parser: Keep existing record in header on a duplicate ID error.
+
 ## 0.67.0 - 2024-12-12
 
 ### Changed
