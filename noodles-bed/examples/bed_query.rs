@@ -1,6 +1,7 @@
-/// Queries a bgzipped BED file with a given region.
-///
-/// The input bgzipped BED file must have an associated tabix index (TBI) in the same directory.
+//! Queries a bgzipped BED file with a given region.
+//!
+//! The input bgzipped BED file must have an associated tabix index (TBI) in the same directory.
+
 use std::{env, io};
 
 use noodles_bed as bed;
