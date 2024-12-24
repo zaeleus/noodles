@@ -408,7 +408,7 @@
 
 ### Added
 
-  * fasta/repository/adapters/indexed_reader: Add convenience buidler for
+  * fasta/repository/adapters/indexed_reader: Add convenience builder for
     `BufReader<File>`.
 
 ## 0.9.0 - 2022-03-29
