@@ -1,6 +1,8 @@
+//! Async BAM header reader.
+
 mod magic_number;
 mod reference_sequences;
-mod sam_header;
+pub mod sam_header;
 
 use noodles_sam::{self as sam, header::ReferenceSequences};
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt};
@@ -8,7 +10,8 @@ use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt};
 use self::{magic_number::read_magic_number, reference_sequences::read_reference_sequences};
 use crate::{io::reader::header::reference_sequences_eq, MAGIC_NUMBER};
 
-struct Reader<R> {
+/// An async BAM header reader.
+pub struct Reader<R> {
     inner: R,
 }
 
@@ -16,20 +19,26 @@ impl<R> Reader<R>
 where
     R: AsyncRead + Unpin,
 {
-    fn new(inner: R) -> Self {
+    pub(super) fn new(inner: R) -> Self {
         Self { inner }
     }
 
-    async fn read_magic_number(&mut self) -> io::Result<[u8; MAGIC_NUMBER.len()]> {
+    /// Reads the magic number.
+    pub async fn read_magic_number(&mut self) -> io::Result<[u8; MAGIC_NUMBER.len()]> {
         read_magic_number(&mut self.inner).await
     }
 
-    async fn raw_sam_header_reader(&mut self) -> io::Result<sam_header::Reader<&mut R>> {
+    /// Returns a SAM header reader.
+    ///
+    /// The caller is responsible of discarding any extra padding in the header text, e.g., using
+    /// [`sam_header::Reader::discard_to_end`].
+    pub async fn raw_sam_header_reader(&mut self) -> io::Result<sam_header::Reader<&mut R>> {
         let len = self.inner.read_u32_le().await.map(u64::from)?;
         Ok(sam_header::Reader::new(&mut self.inner, len))
     }
 
-    async fn read_reference_sequences(&mut self) -> io::Result<ReferenceSequences> {
+    /// Reads the reference sequences.
+    pub async fn read_reference_sequences(&mut self) -> io::Result<ReferenceSequences> {
         read_reference_sequences(&mut self.inner).await
     }
 }

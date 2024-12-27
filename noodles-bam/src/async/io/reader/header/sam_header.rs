@@ -1,3 +1,5 @@
+//! Async BAM header SAM header reader.
+
 use bstr::ByteSlice;
 use pin_project_lite::pin_project;
 use std::{
@@ -9,7 +11,8 @@ use tokio::io::{
 };
 
 pin_project! {
-    pub(super) struct Reader<R> {
+    /// An BAM header SAM header reader.
+    pub struct Reader<R> {
         #[pin]
         inner: BufReader<Take<R>>,
         is_eol: bool,
@@ -27,7 +30,8 @@ where
         }
     }
 
-    pub(super) async fn discard_to_end(&mut self) -> io::Result<usize> {
+    /// Discards all input until EOF.
+    pub async fn discard_to_end(&mut self) -> io::Result<usize> {
         let mut n = 0;
 
         loop {
