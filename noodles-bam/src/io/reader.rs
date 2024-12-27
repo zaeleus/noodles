@@ -1,7 +1,7 @@
 //! BAM reader.
 
 mod builder;
-pub(crate) mod header;
+pub mod header;
 pub(crate) mod query;
 mod record;
 mod record_buf;
@@ -131,6 +131,40 @@ impl<R> Reader<R>
 where
     R: Read,
 {
+    /// Returns a BAM header reader.
+    ///
+    /// This creates an adapter that reads at most the length of the header, i.e., the BAM magic
+    /// number, the SAM header, and reference sequences.
+    ///
+    /// It is more ergonomic to read the BAM header as a SAM header using [`Self::read_header`],
+    /// but this adapter allows for control of how the header is read, e.g., to read the raw SAM
+    /// header.
+    ///
+    /// The position of the stream is expected to be at the start.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io::Read};
+    /// use noodles_bam as bam;
+    ///
+    /// let mut reader = File::open("sample.bam").map(bam::io::Reader::new)?;
+    ///
+    /// let mut header_reader = reader.header_reader();
+    /// header_reader.read_magic_number()?;
+    ///
+    /// let mut raw_sam_header_reader = header_reader.raw_sam_header_reader()?;
+    /// let mut raw_header = String::new();
+    /// raw_sam_header_reader.read_to_string(&mut raw_header)?;
+    /// raw_sam_header_reader.discard_to_end()?;
+    ///
+    /// header_reader.read_reference_sequences()?;
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
+    pub fn header_reader(&mut self) -> header::Reader<&mut R> {
+        header::Reader::new(&mut self.inner)
+    }
+
     /// Reads the SAM header.
     ///
     /// This verifies the BAM magic number, reads and parses the raw SAM header, and reads the

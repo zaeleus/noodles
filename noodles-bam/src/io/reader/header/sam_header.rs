@@ -1,8 +1,11 @@
+//! BAM header SAM header reader.
+
 use std::io::{self, BufRead, BufReader, Read, Take};
 
 use bstr::ByteSlice;
 
-pub(super) struct Reader<R> {
+/// A BAM header SAM header reader.
+pub struct Reader<R> {
     inner: BufReader<Take<R>>,
     is_eol: bool,
 }
@@ -18,7 +21,8 @@ where
         }
     }
 
-    pub(super) fn discard_to_end(&mut self) -> io::Result<usize> {
+    /// Discards all input until EOF.
+    pub fn discard_to_end(&mut self) -> io::Result<usize> {
         let mut n = 0;
 
         loop {

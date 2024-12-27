@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bam/io/reader: Add a header reader adapter (`header::Reader`).
+
+    This can be used to read the raw fields of a BAM header, e.g., the raw SAM
+    header.
+
 ## 0.72.0 - 2024-12-20
 
 ### Changed
