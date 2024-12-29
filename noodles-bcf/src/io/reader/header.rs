@@ -1,4 +1,4 @@
-mod magic_number;
+pub(crate) mod magic_number;
 
 use std::io::{self, BufRead, BufReader, Read, Take};
 

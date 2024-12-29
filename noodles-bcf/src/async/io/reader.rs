@@ -108,8 +108,12 @@ where
     /// # }
     /// ```
     pub async fn read_header(&mut self) -> io::Result<vcf::Header> {
-        header::read_magic_number(&mut self.inner).await?;
+        header::read_magic_number(&mut self.inner)
+            .await
+            .and_then(crate::io::reader::header::magic_number::validate)?;
+
         read_format_version(&mut self.inner).await?;
+
         read_header(&mut self.inner).await
     }
 

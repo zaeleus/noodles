@@ -1,7 +1,7 @@
 //! BCF reader.
 
 mod builder;
-mod header;
+pub(crate) mod header;
 pub(crate) mod query;
 pub(crate) mod record;
 pub(crate) mod record_buf;
@@ -94,7 +94,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_header(&mut self) -> io::Result<vcf::Header> {
-        header::read_magic_number(&mut self.inner)?;
+        header::read_magic_number(&mut self.inner).and_then(header::magic_number::validate)?;
         read_format_version(&mut self.inner)?;
         read_header(&mut self.inner)
     }
