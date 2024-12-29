@@ -1,7 +1,11 @@
+mod magic_number;
+
 use std::io::{self, BufRead, BufReader, Read, Take};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_vcf::{self as vcf, header::StringMaps};
+
+pub(super) use self::magic_number::read_magic_number;
 
 #[derive(Clone, Copy, Debug)]
 enum State {

@@ -94,7 +94,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_header(&mut self) -> io::Result<vcf::Header> {
-        read_magic(&mut self.inner)?;
+        header::read_magic_number(&mut self.inner)?;
         read_format_version(&mut self.inner)?;
         read_header(&mut self.inner)
     }
@@ -307,25 +307,6 @@ where
     }
 }
 
-fn read_magic<R>(reader: &mut R) -> io::Result<()>
-where
-    R: Read,
-{
-    use crate::MAGIC_NUMBER;
-
-    let mut buf = [0; 3];
-    reader.read_exact(&mut buf)?;
-
-    if buf == MAGIC_NUMBER {
-        Ok(())
-    } else {
-        Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "invalid BCF header",
-        ))
-    }
-}
-
 fn read_format_version<R>(reader: &mut R) -> io::Result<(u8, u8)>
 where
     R: Read,
@@ -354,27 +335,6 @@ pub(crate) fn resolve_region(
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_read_magic() {
-        let data = b"BCF";
-        let mut reader = &data[..];
-        assert!(read_magic(&mut reader).is_ok());
-
-        let data = [];
-        let mut reader = &data[..];
-        assert!(matches!(
-            read_magic(&mut reader),
-            Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof
-        ));
-
-        let data = b"BAM";
-        let mut reader = &data[..];
-        assert!(matches!(
-            read_magic(&mut reader),
-            Err(ref e) if e.kind() == io::ErrorKind::InvalidData
-        ));
-    }
 
     #[test]
     fn test_read_format_version() -> io::Result<()> {
