@@ -1,9 +1,10 @@
+mod format_version;
 mod magic_number;
 
 use noodles_vcf as vcf;
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
-pub(super) use self::magic_number::read_magic_number;
+pub(super) use self::{format_version::read_format_version, magic_number::read_magic_number};
 
 pub(super) async fn read_header<R>(reader: &mut R) -> io::Result<vcf::Header>
 where

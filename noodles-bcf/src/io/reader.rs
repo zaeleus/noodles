@@ -14,7 +14,6 @@ use std::{
     iter, str,
 };
 
-use byteorder::ReadBytesExt;
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
@@ -95,7 +94,7 @@ where
     /// ```
     pub fn read_header(&mut self) -> io::Result<vcf::Header> {
         header::read_magic_number(&mut self.inner).and_then(header::magic_number::validate)?;
-        read_format_version(&mut self.inner)?;
+        header::read_format_version(&mut self.inner)?;
         read_header(&mut self.inner)
     }
 
@@ -307,16 +306,6 @@ where
     }
 }
 
-fn read_format_version<R>(reader: &mut R) -> io::Result<(u8, u8)>
-where
-    R: Read,
-{
-    let major_version = reader.read_u8()?;
-    let minor_version = reader.read_u8()?;
-
-    Ok((major_version, minor_version))
-}
-
 pub(crate) fn resolve_region(
     contig_string_map: &ContigStringMap,
     region: &Region,
@@ -330,17 +319,4 @@ pub(crate) fn resolve_region(
             format!("region does not exist in contigs: {region:?}"),
         )
     })
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_read_format_version() -> io::Result<()> {
-        let data = [0x02, 0x01];
-        let mut reader = &data[..];
-        assert_eq!(read_format_version(&mut reader)?, (2, 1));
-        Ok(())
-    }
 }

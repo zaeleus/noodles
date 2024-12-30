@@ -1,3 +1,4 @@
+mod format_version;
 pub(crate) mod magic_number;
 
 use std::io::{self, BufRead, BufReader, Read, Take};
@@ -5,7 +6,7 @@ use std::io::{self, BufRead, BufReader, Read, Take};
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_vcf::{self as vcf, header::StringMaps};
 
-pub(super) use self::magic_number::read_magic_number;
+pub(super) use self::{format_version::read_format_version, magic_number::read_magic_number};
 
 #[derive(Clone, Copy, Debug)]
 enum State {
