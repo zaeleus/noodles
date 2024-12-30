@@ -4,10 +4,9 @@ pub(crate) async fn read_format_version<R>(reader: &mut R) -> io::Result<(u8, u8
 where
     R: AsyncRead + Unpin,
 {
-    let major_version = reader.read_u8().await?;
-    let minor_version = reader.read_u8().await?;
-
-    Ok((major_version, minor_version))
+    let mut buf = [0; 2];
+    reader.read_exact(&mut buf).await?;
+    Ok((buf[0], buf[1]))
 }
 
 #[cfg(test)]

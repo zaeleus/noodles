@@ -1,15 +1,12 @@
 use std::io::{self, Read};
 
-use byteorder::ReadBytesExt;
-
 pub(crate) fn read_format_version<R>(reader: &mut R) -> io::Result<(u8, u8)>
 where
     R: Read,
 {
-    let major_version = reader.read_u8()?;
-    let minor_version = reader.read_u8()?;
-
-    Ok((major_version, minor_version))
+    let mut buf = [0; 2];
+    reader.read_exact(&mut buf)?;
+    Ok((buf[0], buf[1]))
 }
 
 #[cfg(test)]
