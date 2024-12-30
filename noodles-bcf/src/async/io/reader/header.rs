@@ -1,5 +1,6 @@
 mod format_version;
 mod magic_number;
+mod vcf_header;
 
 use noodles_vcf as vcf;
 use tokio::io::{self, AsyncRead, AsyncReadExt};
@@ -27,12 +28,13 @@ async fn read_raw_header<R>(reader: &mut R) -> io::Result<String>
 where
     R: AsyncRead + Unpin,
 {
-    let l_text = reader.read_u32_le().await.and_then(|len| {
-        usize::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    let header_len = reader.read_u32_le().await.map(u64::from)?;
+    let mut header_reader = vcf_header::Reader::new(reader, header_len);
 
-    let mut buf = vec![0; l_text];
-    reader.read_exact(&mut buf).await?;
+    let mut buf = Vec::new();
+    header_reader.read_to_end(&mut buf).await?;
+
+    header_reader.discard_to_end().await?;
 
     c_str_to_string(&buf)
 }

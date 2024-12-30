@@ -11,7 +11,14 @@ repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-bcf"
 
 [features]
-async = ["dep:futures", "dep:tokio", "noodles-bgzf/async", "noodles-csi/async", "noodles-vcf/async"]
+async = [
+  "dep:futures",
+  "dep:pin-project-lite",
+  "dep:tokio",
+  "noodles-bgzf/async",
+  "noodles-csi/async",
+  "noodles-vcf/async",
+]
 
 [dependencies]
 byteorder.workspace = true
@@ -23,6 +30,7 @@ noodles-csi = { path = "../noodles-csi", version = "0.41.0" }
 noodles-vcf = { path = "../noodles-vcf", version = "0.70.0" }
 
 futures = { workspace = true, optional = true, features = ["std"] }
+pin-project-lite = { workspace = true, optional = true }
 tokio = { workspace = true, optional = true, features = ["io-util"] }
 
 [dev-dependencies]

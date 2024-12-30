@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bcf/async/io/reader/header: Discard VCF header padding.
+
 ## 0.66.0 - 2024-12-20
 
 ### Changed
