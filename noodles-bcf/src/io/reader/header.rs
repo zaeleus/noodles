@@ -1,94 +1,13 @@
 mod format_version;
 pub(crate) mod magic_number;
+mod vcf_header;
 
-use std::io::{self, BufRead, BufReader, Read, Take};
+use std::io::{self, BufRead, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_vcf::{self as vcf, header::StringMaps};
 
 pub(super) use self::{format_version::read_format_version, magic_number::read_magic_number};
-
-#[derive(Clone, Copy, Debug)]
-enum State {
-    Length,
-    Header,
-    Padding,
-    Done,
-}
-
-struct Reader<R> {
-    inner: BufReader<Take<R>>,
-    state: State,
-}
-
-impl<R> Reader<R>
-where
-    R: Read,
-{
-    fn new(inner: R) -> Self {
-        Self {
-            inner: BufReader::new(inner.take(4)),
-            state: State::Length,
-        }
-    }
-}
-
-impl<R> Read for Reader<R>
-where
-    R: Read,
-{
-    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        let mut src = self.fill_buf()?;
-        let amt = src.read(buf)?;
-        self.consume(amt);
-        Ok(amt)
-    }
-}
-
-impl<R> BufRead for Reader<R>
-where
-    R: Read,
-{
-    fn fill_buf(&mut self) -> io::Result<&[u8]> {
-        const NUL: u8 = 0x00;
-
-        loop {
-            match self.state {
-                State::Length => {
-                    let header_len = self.inner.read_u32::<LittleEndian>().map(u64::from)?;
-                    self.inner.get_mut().set_limit(header_len);
-                    self.state = State::Header;
-                }
-                State::Header => {
-                    let src = self.inner.fill_buf()?;
-
-                    if src.is_empty() {
-                        self.state = State::Done;
-                    } else if src[0] == NUL {
-                        self.state = State::Padding;
-                    } else if let Some(i) = src.iter().position(|&b| b == NUL) {
-                        // NOTE: This is a borrowck workaround. See NLL problem case #3.
-                        let src = self.inner.fill_buf()?;
-                        return Ok(&src[..i]);
-                    } else {
-                        // NOTE: This is a borrowck workaround. See NLL problem case #3.
-                        let src = self.inner.fill_buf()?;
-                        return Ok(src);
-                    }
-                }
-                State::Padding => {
-                    io::copy(&mut self.inner, &mut io::sink())?;
-                    self.state = State::Done;
-                }
-                State::Done => return Ok(&[]),
-            }
-        }
-    }
-
-    fn consume(&mut self, amt: usize) {
-        self.inner.consume(amt);
-    }
-}
 
 pub(super) fn read_header<R>(reader: &mut R) -> io::Result<vcf::Header>
 where
@@ -97,10 +16,12 @@ where
     let mut parser = vcf::header::Parser::default();
     let mut string_maps = StringMaps::default();
 
-    let mut reader = Reader::new(reader);
+    let header_len = reader.read_u32::<LittleEndian>().map(u64::from)?;
+    let mut header_reader = vcf_header::Reader::new(reader, header_len);
+
     let mut buf = Vec::new();
 
-    while read_line(&mut reader, &mut buf)? != 0 {
+    while read_line(&mut header_reader, &mut buf)? != 0 {
         let entry = parser
             .parse_partial(&buf)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
@@ -109,6 +30,8 @@ where
             .insert_entry(&entry)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     }
+
+    header_reader.discard_to_end()?;
 
     let mut header = parser
         .finish()

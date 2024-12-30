@@ -16,6 +16,7 @@ async = ["dep:futures", "dep:tokio", "noodles-bgzf/async", "noodles-csi/async", 
 [dependencies]
 byteorder.workspace = true
 indexmap.workspace = true
+memchr.workspace = true
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.34.0" }
 noodles-core = { path = "../noodles-core", version = "0.15.0" }
 noodles-csi = { path = "../noodles-csi", version = "0.41.0" }
