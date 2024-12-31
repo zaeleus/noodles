@@ -5,12 +5,18 @@ mod vcf_header;
 use noodles_vcf as vcf;
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
-pub(super) use self::{format_version::read_format_version, magic_number::read_magic_number};
+use self::{format_version::read_format_version, magic_number::read_magic_number};
 
 pub(super) async fn read_header<R>(reader: &mut R) -> io::Result<vcf::Header>
 where
     R: AsyncRead + Unpin,
 {
+    read_magic_number(reader)
+        .await
+        .and_then(crate::io::reader::header::magic_number::validate)?;
+
+    read_format_version(reader).await?;
+
     let raw_header = read_raw_header(reader).await?;
 
     let mut header: vcf::Header = raw_header

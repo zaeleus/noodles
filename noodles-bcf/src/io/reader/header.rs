@@ -7,12 +7,15 @@ use std::io::{self, BufRead, Read};
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_vcf::{self as vcf, header::StringMaps};
 
-pub(super) use self::{format_version::read_format_version, magic_number::read_magic_number};
+use self::{format_version::read_format_version, magic_number::read_magic_number};
 
 pub(super) fn read_header<R>(reader: &mut R) -> io::Result<vcf::Header>
 where
     R: Read,
 {
+    read_magic_number(reader).and_then(magic_number::validate)?;
+    read_format_version(reader)?;
+
     let mut parser = vcf::header::Parser::default();
     let mut string_maps = StringMaps::default();
 
@@ -81,8 +84,12 @@ mod tests {
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
 ";
 
-        let mut data = 61u32.to_le_bytes().to_vec(); // l_text
-        data.extend_from_slice(raw_header);
+        let mut data = vec![
+            b'B', b'C', b'F', // magic
+            0x02, 0x02, // major_version, minor_version
+        ];
+        data.extend(61u32.to_le_bytes()); // l_text
+        data.extend(raw_header); // text
         data.push(NUL);
 
         let mut reader = &data[..];

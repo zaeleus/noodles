@@ -1,6 +1,6 @@
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
-pub(crate) async fn read_format_version<R>(reader: &mut R) -> io::Result<(u8, u8)>
+pub(super) async fn read_format_version<R>(reader: &mut R) -> io::Result<(u8, u8)>
 where
     R: AsyncRead + Unpin,
 {

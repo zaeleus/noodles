@@ -4,7 +4,7 @@ use crate::MAGIC_NUMBER;
 
 type Buf = [u8; MAGIC_NUMBER.len()];
 
-pub(crate) fn read_magic_number<R>(reader: &mut R) -> io::Result<Buf>
+pub(super) fn read_magic_number<R>(reader: &mut R) -> io::Result<Buf>
 where
     R: Read,
 {

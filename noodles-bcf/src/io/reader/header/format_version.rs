@@ -1,6 +1,6 @@
 use std::io::{self, Read};
 
-pub(crate) fn read_format_version<R>(reader: &mut R) -> io::Result<(u8, u8)>
+pub(super) fn read_format_version<R>(reader: &mut R) -> io::Result<(u8, u8)>
 where
     R: Read,
 {
