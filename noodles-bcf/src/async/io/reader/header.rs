@@ -6,18 +6,64 @@ use noodles_vcf as vcf;
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use self::{format_version::read_format_version, magic_number::read_magic_number};
+use crate::MAGIC_NUMBER;
+
+struct Reader<R> {
+    inner: R,
+}
+
+impl<R> Reader<R>
+where
+    R: AsyncRead + Unpin,
+{
+    fn new(inner: R) -> Self {
+        Self { inner }
+    }
+
+    async fn read_magic_number(&mut self) -> io::Result<[u8; MAGIC_NUMBER.len()]> {
+        read_magic_number(&mut self.inner).await
+    }
+
+    async fn read_format_version(&mut self) -> io::Result<(u8, u8)> {
+        read_format_version(&mut self.inner).await
+    }
+
+    async fn raw_vcf_header_reader(&mut self) -> io::Result<vcf_header::Reader<&mut R>> {
+        let len = self.inner.read_u32_le().await.map(u64::from)?;
+        Ok(vcf_header::Reader::new(&mut self.inner, len))
+    }
+}
 
 pub(super) async fn read_header<R>(reader: &mut R) -> io::Result<vcf::Header>
 where
     R: AsyncRead + Unpin,
 {
-    read_magic_number(reader)
+    let mut header_reader = Reader::new(reader);
+    read_header_inner(&mut header_reader).await
+}
+
+async fn read_header_inner<R>(reader: &mut Reader<R>) -> io::Result<vcf::Header>
+where
+    R: AsyncRead + Unpin,
+{
+    reader
+        .read_magic_number()
         .await
         .and_then(crate::io::reader::header::magic_number::validate)?;
 
-    read_format_version(reader).await?;
+    reader.read_format_version().await?;
 
-    let raw_header = read_raw_header(reader).await?;
+    let mut raw_vcf_header_reader = reader.raw_vcf_header_reader().await?;
+    read_vcf_header(&mut raw_vcf_header_reader).await
+}
+
+async fn read_vcf_header<R>(reader: &mut vcf_header::Reader<R>) -> io::Result<vcf::Header>
+where
+    R: AsyncRead + Unpin,
+{
+    let mut raw_header = String::new();
+    reader.read_to_string(&mut raw_header).await?;
+    reader.discard_to_end().await?;
 
     let mut header: vcf::Header = raw_header
         .parse()
@@ -30,47 +76,36 @@ where
     Ok(header)
 }
 
-async fn read_raw_header<R>(reader: &mut R) -> io::Result<String>
-where
-    R: AsyncRead + Unpin,
-{
-    let header_len = reader.read_u32_le().await.map(u64::from)?;
-    let mut header_reader = vcf_header::Reader::new(reader, header_len);
-
-    let mut buf = Vec::new();
-    header_reader.read_to_end(&mut buf).await?;
-
-    header_reader.discard_to_end().await?;
-
-    c_str_to_string(&buf)
-}
-
-fn c_str_to_string(buf: &[u8]) -> io::Result<String> {
-    use std::ffi::CStr;
-
-    CStr::from_bytes_with_nul(buf)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        .and_then(|c_header| {
-            c_header
-                .to_str()
-                .map(|s| s.into())
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn test_read_raw_header() -> io::Result<()> {
-        let data = [
-            0x08, 0x00, 0x00, 0x00, // l_text = 8
-            0x6e, 0x6f, 0x6f, 0x64, 0x6c, 0x65, 0x73, 0x00, // text = b"noodles\x00"
+    async fn test_read_header() -> io::Result<()> {
+        use vcf::header::FileFormat;
+
+        const NUL: u8 = 0x00;
+
+        let raw_header = b"##fileformat=VCFv4.3
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+";
+
+        let mut data = vec![
+            b'B', b'C', b'F', // magic
+            0x02, 0x02, // major_version, minor_version
         ];
+        data.extend(61u32.to_le_bytes()); // l_text
+        data.extend(raw_header); // text
+        data.push(NUL);
 
         let mut reader = &data[..];
-        assert_eq!(read_raw_header(&mut reader).await?, "noodles");
+        let actual = read_header(&mut reader).await?;
+
+        let expected = vcf::Header::builder()
+            .set_file_format(FileFormat::new(4, 3))
+            .build();
+
+        assert_eq!(actual, expected);
 
         Ok(())
     }

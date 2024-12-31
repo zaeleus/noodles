@@ -8,23 +8,66 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_vcf::{self as vcf, header::StringMaps};
 
 use self::{format_version::read_format_version, magic_number::read_magic_number};
+use crate::MAGIC_NUMBER;
+
+struct Reader<R> {
+    inner: R,
+}
+
+impl<R> Reader<R>
+where
+    R: Read,
+{
+    fn new(inner: R) -> Self {
+        Self { inner }
+    }
+
+    fn read_magic_number(&mut self) -> io::Result<[u8; MAGIC_NUMBER.len()]> {
+        read_magic_number(&mut self.inner)
+    }
+
+    fn read_format_version(&mut self) -> io::Result<(u8, u8)> {
+        read_format_version(&mut self.inner)
+    }
+
+    fn raw_vcf_header_reader(&mut self) -> io::Result<vcf_header::Reader<&mut R>> {
+        let len = self.inner.read_u32::<LittleEndian>().map(u64::from)?;
+        Ok(vcf_header::Reader::new(&mut self.inner, len))
+    }
+}
 
 pub(super) fn read_header<R>(reader: &mut R) -> io::Result<vcf::Header>
 where
     R: Read,
 {
-    read_magic_number(reader).and_then(magic_number::validate)?;
-    read_format_version(reader)?;
+    let mut header_reader = Reader::new(reader);
+    read_header_inner(&mut header_reader)
+}
 
+fn read_header_inner<R>(reader: &mut Reader<R>) -> io::Result<vcf::Header>
+where
+    R: Read,
+{
+    reader
+        .read_magic_number()
+        .and_then(magic_number::validate)?;
+
+    reader.read_format_version()?;
+
+    let mut raw_vcf_header_reader = reader.raw_vcf_header_reader()?;
+    read_vcf_header(&mut raw_vcf_header_reader)
+}
+
+fn read_vcf_header<R>(reader: &mut vcf_header::Reader<R>) -> io::Result<vcf::Header>
+where
+    R: Read,
+{
     let mut parser = vcf::header::Parser::default();
     let mut string_maps = StringMaps::default();
 
-    let header_len = reader.read_u32::<LittleEndian>().map(u64::from)?;
-    let mut header_reader = vcf_header::Reader::new(reader, header_len);
-
     let mut buf = Vec::new();
 
-    while read_line(&mut header_reader, &mut buf)? != 0 {
+    while read_line(reader, &mut buf)? != 0 {
         let entry = parser
             .parse_partial(&buf)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
@@ -34,7 +77,7 @@ where
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     }
 
-    header_reader.discard_to_end()?;
+    reader.discard_to_end()?;
 
     let mut header = parser
         .finish()
