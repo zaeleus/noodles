@@ -2,8 +2,8 @@ mod format_version;
 mod magic_number;
 mod vcf_header;
 
-use noodles_vcf as vcf;
-use tokio::io::{self, AsyncRead, AsyncReadExt};
+use noodles_vcf::{self as vcf, header::StringMaps};
+use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt};
 
 use self::{format_version::read_format_version, magic_number::read_magic_number};
 use crate::MAGIC_NUMBER;
@@ -61,19 +61,55 @@ async fn read_vcf_header<R>(reader: &mut vcf_header::Reader<R>) -> io::Result<vc
 where
     R: AsyncRead + Unpin,
 {
-    let mut raw_header = String::new();
-    reader.read_to_string(&mut raw_header).await?;
+    let mut parser = vcf::header::Parser::default();
+    let mut string_maps = StringMaps::default();
+
+    let mut buf = Vec::new();
+
+    while read_line(reader, &mut buf).await? != 0 {
+        let entry = parser
+            .parse_partial(&buf)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+        string_maps
+            .insert_entry(&entry)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    }
+
     reader.discard_to_end().await?;
 
-    let mut header: vcf::Header = raw_header
-        .parse()
+    let mut header = parser
+        .finish()
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    *header.string_maps_mut() = raw_header
-        .parse()
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    *header.string_maps_mut() = string_maps;
 
     Ok(header)
+}
+
+async fn read_line<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<usize>
+where
+    R: AsyncBufRead + Unpin,
+{
+    const LINE_FEED: u8 = b'\n';
+    const CARRIAGE_RETURN: u8 = b'\r';
+
+    dst.clear();
+
+    match reader.read_until(LINE_FEED, dst).await? {
+        0 => Ok(0),
+        n => {
+            if dst.ends_with(&[LINE_FEED]) {
+                dst.pop();
+
+                if dst.ends_with(&[CARRIAGE_RETURN]) {
+                    dst.pop();
+                }
+            }
+
+            Ok(n)
+        }
+    }
 }
 
 #[cfg(test)]
