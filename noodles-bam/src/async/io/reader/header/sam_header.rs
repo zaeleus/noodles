@@ -11,7 +11,7 @@ use tokio::io::{
 };
 
 pin_project! {
-    /// An BAM header SAM header reader.
+    /// An async BAM header SAM header reader.
     pub struct Reader<R> {
         #[pin]
         inner: BufReader<Take<R>>,
