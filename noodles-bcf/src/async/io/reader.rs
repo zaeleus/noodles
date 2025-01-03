@@ -40,10 +40,7 @@ pub struct Reader<R> {
     inner: R,
 }
 
-impl<R> Reader<R>
-where
-    R: AsyncRead + Unpin,
-{
+impl<R> Reader<R> {
     /// Returns a reference to the underlying reader.
     ///
     /// # Examples
@@ -85,7 +82,12 @@ where
     pub fn into_inner(self) -> R {
         self.inner
     }
+}
 
+impl<R> Reader<R>
+where
+    R: AsyncRead + Unpin,
+{
     /// Returns a BCF header reader.
     ///
     /// # Examples
