@@ -30,10 +30,7 @@ pub struct Reader<R> {
     buf: Vec<u8>,
 }
 
-impl<R> Reader<R>
-where
-    R: Read,
-{
+impl<R> Reader<R> {
     /// Returns a reference to the underlying reader.
     ///
     /// # Examples
@@ -75,7 +72,12 @@ where
     pub fn into_inner(self) -> R {
         self.inner
     }
+}
 
+impl<R> Reader<R>
+where
+    R: Read,
+{
     /// Reads the VCF header.
     ///
     /// This verifies the BCF magic number, discards the file format version, and reads and parses
