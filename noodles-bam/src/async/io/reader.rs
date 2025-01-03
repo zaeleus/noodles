@@ -1,4 +1,4 @@
-mod header;
+pub mod header;
 mod query;
 mod record;
 mod record_buf;
