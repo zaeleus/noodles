@@ -1,6 +1,8 @@
+//! BCF header reader.
+
 mod format_version;
 pub(crate) mod magic_number;
-mod vcf_header;
+pub mod vcf_header;
 
 use std::io::{self, BufRead, Read};
 
@@ -10,7 +12,8 @@ use noodles_vcf::{self as vcf, header::StringMaps};
 use self::{format_version::read_format_version, magic_number::read_magic_number};
 use crate::MAGIC_NUMBER;
 
-struct Reader<R> {
+/// A BCF header reader.
+pub struct Reader<R> {
     inner: R,
 }
 
@@ -18,19 +21,25 @@ impl<R> Reader<R>
 where
     R: Read,
 {
-    fn new(inner: R) -> Self {
+    pub(super) fn new(inner: R) -> Self {
         Self { inner }
     }
 
-    fn read_magic_number(&mut self) -> io::Result<[u8; MAGIC_NUMBER.len()]> {
+    /// Reads the magic number.
+    pub fn read_magic_number(&mut self) -> io::Result<[u8; MAGIC_NUMBER.len()]> {
         read_magic_number(&mut self.inner)
     }
 
-    fn read_format_version(&mut self) -> io::Result<(u8, u8)> {
+    /// Reads the format version.
+    pub fn read_format_version(&mut self) -> io::Result<(u8, u8)> {
         read_format_version(&mut self.inner)
     }
 
-    fn raw_vcf_header_reader(&mut self) -> io::Result<vcf_header::Reader<&mut R>> {
+    /// Returns a VCF header reader.
+    ///
+    /// The caller is responsible of discarding any extra padding in the header text, e.g., using
+    /// [`vcf_header::Reader::discard_to_end`].
+    pub fn raw_vcf_header_reader(&mut self) -> io::Result<vcf_header::Reader<&mut R>> {
         let len = self.inner.read_u32::<LittleEndian>().map(u64::from)?;
         Ok(vcf_header::Reader::new(&mut self.inner, len))
     }

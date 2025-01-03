@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added
+
+  * bcf/io/reader: Add a header reader adapter (`header::Reader`).
+
+    This can be used to read the raw fields of a BCF header, e.g., the raw VCF
+    header.
+
 ### Changed
 
   * bcf/async/io/reader/header: Parse header line by line.

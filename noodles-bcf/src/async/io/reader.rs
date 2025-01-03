@@ -1,4 +1,4 @@
-mod header;
+pub mod header;
 mod query;
 mod record;
 
@@ -84,6 +84,33 @@ where
     /// ```
     pub fn into_inner(self) -> R {
         self.inner
+    }
+
+    /// Returns a BCF header reader.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> tokio::io::Result<()> {
+    /// use noodles_bcf as bcf;
+    /// use tokio::{fs::File, io::AsyncReadExt};
+    ///
+    /// let mut reader = File::open("sample.bcf").await.map(bcf::r#async::io::Reader::new)?;
+    ///
+    /// let mut header_reader = reader.header_reader();
+    /// header_reader.read_magic_number().await?;
+    /// header_reader.read_format_version().await?;
+    ///
+    /// let mut raw_vcf_header_reader = header_reader.raw_vcf_header_reader().await?;
+    /// let mut raw_header = String::new();
+    /// raw_vcf_header_reader.read_to_string(&mut raw_header).await?;
+    /// raw_vcf_header_reader.discard_to_end().await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn header_reader(&mut self) -> header::Reader<&mut R> {
+        header::Reader::new(&mut self.inner)
     }
 
     /// Reads the VCF header.

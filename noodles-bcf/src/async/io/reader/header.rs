@@ -1,6 +1,8 @@
+//! Async BCF header reader.
+
 mod format_version;
 mod magic_number;
-mod vcf_header;
+pub mod vcf_header;
 
 use noodles_vcf::{self as vcf, header::StringMaps};
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt};
@@ -8,7 +10,8 @@ use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt};
 use self::{format_version::read_format_version, magic_number::read_magic_number};
 use crate::MAGIC_NUMBER;
 
-struct Reader<R> {
+/// An async BCF header reader.
+pub struct Reader<R> {
     inner: R,
 }
 
@@ -16,19 +19,25 @@ impl<R> Reader<R>
 where
     R: AsyncRead + Unpin,
 {
-    fn new(inner: R) -> Self {
+    pub(super) fn new(inner: R) -> Self {
         Self { inner }
     }
 
-    async fn read_magic_number(&mut self) -> io::Result<[u8; MAGIC_NUMBER.len()]> {
+    /// Reads the magic number.
+    pub async fn read_magic_number(&mut self) -> io::Result<[u8; MAGIC_NUMBER.len()]> {
         read_magic_number(&mut self.inner).await
     }
 
-    async fn read_format_version(&mut self) -> io::Result<(u8, u8)> {
+    /// Reads the format version.
+    pub async fn read_format_version(&mut self) -> io::Result<(u8, u8)> {
         read_format_version(&mut self.inner).await
     }
 
-    async fn raw_vcf_header_reader(&mut self) -> io::Result<vcf_header::Reader<&mut R>> {
+    /// Returns an async VCF header reader.
+    ///
+    /// The caller is responsible of discarding any extra padding in the header text, e.g., using
+    /// [`vcf_header::Reader::discard_to_end`].
+    pub async fn raw_vcf_header_reader(&mut self) -> io::Result<vcf_header::Reader<&mut R>> {
         let len = self.inner.read_u32_le().await.map(u64::from)?;
         Ok(vcf_header::Reader::new(&mut self.inner, len))
     }

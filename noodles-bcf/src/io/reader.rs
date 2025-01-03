@@ -1,7 +1,7 @@
 //! BCF reader.
 
 mod builder;
-pub(crate) mod header;
+pub mod header;
 pub(crate) mod query;
 pub(crate) mod record;
 pub(crate) mod record_buf;
@@ -78,6 +78,39 @@ impl<R> Reader<R>
 where
     R: Read,
 {
+    /// Returns a BCF header reader.
+    ///
+    /// This creates an adapter that reads at most the length of the header, i.e., the BCF magic
+    /// number, the format version, and VCF header.
+    ///
+    /// It is more ergonomic to read the BCF header as a VCF header using [`Self::read_header`],
+    /// but this adapter allows for control of how the header is read, e.g., to read the raw VCF
+    /// header.
+    ///
+    /// The position of the stream is expected to be at the start.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io::Read};
+    /// use noodles_bcf as bcf;
+    ///
+    /// let mut reader = File::open("sample.bcf").map(bcf::io::Reader::new)?;
+    ///
+    /// let mut header_reader = reader.header_reader();
+    /// header_reader.read_magic_number()?;
+    /// header_reader.read_format_version()?;
+    ///
+    /// let mut raw_vcf_header_reader = header_reader.raw_vcf_header_reader()?;
+    /// let mut raw_header = String::new();
+    /// raw_vcf_header_reader.read_to_string(&mut raw_header)?;
+    /// raw_vcf_header_reader.discard_to_end()?;
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
+    pub fn header_reader(&mut self) -> header::Reader<&mut R> {
+        header::Reader::new(&mut self.inner)
+    }
+
     /// Reads the VCF header.
     ///
     /// This verifies the BCF magic number, discards the file format version, and reads and parses

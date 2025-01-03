@@ -1,3 +1,5 @@
+//! Async BCF header VCF header reader.
+
 use pin_project_lite::pin_project;
 use std::{
     pin::Pin,
@@ -8,7 +10,8 @@ use tokio::io::{
 };
 
 pin_project! {
-    pub(super) struct Reader<R> {
+    /// An async BCF header VCF header reader.
+    pub struct Reader<R> {
         #[pin]
         inner: BufReader<Take<R>>,
         is_eol: bool,

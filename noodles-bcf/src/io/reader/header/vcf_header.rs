@@ -1,6 +1,9 @@
+//! BCF header VCF header reader.
+
 use std::io::{self, BufRead, BufReader, Read, Take};
 
-pub(super) struct Reader<R> {
+/// A BCF header VCF header reader.
+pub struct Reader<R> {
     inner: BufReader<Take<R>>,
     is_eol: bool,
 }
