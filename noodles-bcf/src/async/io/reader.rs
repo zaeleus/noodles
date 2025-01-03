@@ -50,9 +50,9 @@ where
     ///
     /// ```
     /// use noodles_bcf as bcf;
-    /// let data = [];
-    /// let reader = bcf::r#async::io::Reader::from(&data[..]);
-    /// assert!(reader.get_ref().is_empty());
+    /// use tokio::io;
+    /// let reader = bcf::r#async::io::Reader::from(io::empty());
+    /// let _inner = reader.get_ref();
     /// ```
     pub fn get_ref(&self) -> &R {
         &self.inner
@@ -64,9 +64,9 @@ where
     ///
     /// ```
     /// use noodles_bcf as bcf;
-    /// let data = [];
-    /// let mut reader = bcf::r#async::io::Reader::from(&data[..]);
-    /// assert!(reader.get_mut().is_empty());
+    /// use tokio::io;
+    /// let mut reader = bcf::r#async::io::Reader::from(io::empty());
+    /// let _inner = reader.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
         &mut self.inner
@@ -78,9 +78,9 @@ where
     ///
     /// ```
     /// use noodles_bcf as bcf;
-    /// let data = [];
-    /// let reader = bcf::r#async::io::Reader::from(&data[..]);
-    /// assert!(reader.into_inner().is_empty());
+    /// use tokio::io;
+    /// let reader = bcf::r#async::io::Reader::from(io::empty());
+    /// let _inner = reader.into_inner();
     /// ```
     pub fn into_inner(self) -> R {
         self.inner
@@ -95,10 +95,8 @@ where
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_bcf as bcf;
     /// use tokio::fs::File;
     ///
@@ -122,10 +120,8 @@ where
     /// reached EOF.
     ///
     /// ```no_run
-    /// # use std::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_bcf as bcf;
     /// use tokio::fs::File;
     ///
@@ -150,10 +146,8 @@ where
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use futures::TryStreamExt;
     /// use noodles_bcf as bcf;
     /// use tokio::fs::File;
@@ -194,8 +188,8 @@ where
     ///
     /// ```
     /// use noodles_bcf as bcf;
-    /// let data = [];
-    /// let reader = bcf::r#async::io::Reader::new(&data[..]);
+    /// use tokio::io;
+    /// let reader = bcf::r#async::io::Reader::new(io::empty());
     /// ```
     pub fn new(inner: R) -> Self {
         Self::from(bgzf::AsyncReader::new(inner))

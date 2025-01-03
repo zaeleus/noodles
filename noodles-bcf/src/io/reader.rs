@@ -39,10 +39,10 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bcf as bcf;
-    /// let data = [];
-    /// let reader = bcf::io::Reader::from(&data[..]);
-    /// assert!(reader.get_ref().is_empty());
+    /// let reader = bcf::io::Reader::from(io::empty());
+    /// let _inner = reader.get_ref();
     /// ```
     pub fn get_ref(&self) -> &R {
         &self.inner
@@ -53,10 +53,10 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bcf as bcf;
-    /// let data = [];
-    /// let mut reader = bcf::io::Reader::from(&data[..]);
-    /// assert!(reader.get_mut().is_empty());
+    /// let mut reader = bcf::io::Reader::from(io::empty());
+    /// let _inner = reader.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
         &mut self.inner
@@ -67,10 +67,10 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bcf as bcf;
-    /// let data = [];
-    /// let reader = bcf::io::Reader::from(&data[..]);
-    /// assert!(reader.into_inner().is_empty());
+    /// let reader = bcf::io::Reader::from(io::empty());
+    /// let _inner = reader.into_inner();
     /// ```
     pub fn into_inner(self) -> R {
         self.inner
@@ -217,9 +217,9 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bcf as bcf;
-    /// let data = [];
-    /// let reader = bcf::io::Reader::new(&data[..]);
+    /// let reader = bcf::io::Reader::new(io::empty());
     /// ```
     pub fn new(reader: R) -> Self {
         Self::from(bgzf::Reader::new(reader))
