@@ -33,9 +33,10 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bcf as bcf;
-    /// let writer = bcf::io::Writer::from(Vec::new());
-    /// assert!(writer.get_ref().is_empty());
+    /// let writer = bcf::io::Writer::from(io::sink());
+    /// let _inner = writer.get_ref();
     /// ```
     pub fn get_ref(&self) -> &W {
         &self.inner
@@ -46,9 +47,10 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bcf as bcf;
-    /// let mut writer = bcf::io::Writer::from(Vec::new());
-    /// assert!(writer.get_mut().is_empty());
+    /// let mut writer = bcf::io::Writer::from(io::sink());
+    /// let _inner = writer.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut W {
         &mut self.inner
@@ -59,9 +61,10 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bcf as bcf;
-    /// let mut writer = bcf::io::Writer::from(Vec::new());
-    /// assert!(writer.into_inner().is_empty());
+    /// let mut writer = bcf::io::Writer::from(io::sink());
+    /// let _inner = writer.into_inner();
     /// ```
     pub fn into_inner(self) -> W {
         self.inner
