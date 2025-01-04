@@ -111,7 +111,6 @@ where
     /// raw_sam_header_reader.discard_to_end().await?;
     ///
     /// header_reader.read_reference_sequences().await?;
-    ///
     /// # Ok(())
     /// # }
     /// ```
