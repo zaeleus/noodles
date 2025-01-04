@@ -14,10 +14,7 @@ pub struct Writer<W> {
     buf: Vec<u8>,
 }
 
-impl<W> Writer<W>
-where
-    W: AsyncWrite + Unpin,
-{
+impl<W> Writer<W> {
     /// Returns a reference to the underlying writer.
     ///
     /// # Examples
@@ -59,7 +56,12 @@ where
     pub fn into_inner(self) -> W {
         self.inner
     }
+}
 
+impl<W> Writer<W>
+where
+    W: AsyncWrite + Unpin,
+{
     /// Writes a VCF header.
     ///
     /// # Examples

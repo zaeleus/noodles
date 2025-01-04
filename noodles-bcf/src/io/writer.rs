@@ -24,10 +24,7 @@ pub struct Writer<W> {
     string_maps: StringMaps,
 }
 
-impl<W> Writer<W>
-where
-    W: Write,
-{
+impl<W> Writer<W> {
     /// Returns a reference to the underlying writer.
     ///
     /// # Examples
@@ -69,7 +66,12 @@ where
     pub fn into_inner(self) -> W {
         self.inner
     }
+}
 
+impl<W> Writer<W>
+where
+    W: Write,
+{
     /// Writes a VCF header.
     ///
     /// # Examples
