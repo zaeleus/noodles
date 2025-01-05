@@ -3,6 +3,7 @@
 mod builder;
 pub(crate) mod container;
 pub(crate) mod data_container;
+mod header;
 pub(crate) mod header_container;
 pub(crate) mod num;
 mod query;
@@ -17,9 +18,7 @@ use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 pub use self::{builder::Builder, query::Query, records::Records};
-use crate::{
-    crai, data_container::DataContainer, file_definition::Version, FileDefinition, MAGIC_NUMBER,
-};
+use crate::{crai, data_container::DataContainer, file_definition::Version, FileDefinition};
 
 /// A CRAM reader.
 ///
@@ -129,7 +128,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_file_definition(&mut self) -> io::Result<FileDefinition> {
-        read_magic_number(&mut self.inner)?;
+        header::read_magic_number(&mut self.inner)?;
 
         let format = read_format(&mut self.inner)?;
         let file_id = read_file_id(&mut self.inner)?;
@@ -349,23 +348,6 @@ where
     }
 }
 
-fn read_magic_number<R>(reader: &mut R) -> io::Result<()>
-where
-    R: Read,
-{
-    let mut buf = [0; 4];
-    reader.read_exact(&mut buf)?;
-
-    if buf == MAGIC_NUMBER {
-        Ok(())
-    } else {
-        Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "invalid CRAM header",
-        ))
-    }
-}
-
 fn read_format<R>(reader: &mut R) -> io::Result<Version>
 where
     R: Read,
@@ -406,29 +388,5 @@ mod tests {
         assert_eq!(actual, expected);
 
         Ok(())
-    }
-
-    #[test]
-    fn test_read_magic_number() {
-        let data = b"CRAM";
-        let mut reader = &data[..];
-        assert!(read_magic_number(&mut reader).is_ok());
-    }
-
-    #[test]
-    fn test_read_magic_number_with_invalid_input() {
-        let data = [];
-        let mut reader = &data[..];
-        assert!(matches!(
-            read_magic_number(&mut reader),
-            Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof,
-        ));
-
-        let data = b"BAM\x01";
-        let mut reader = &data[..];
-        assert!(matches!(
-            read_magic_number(&mut reader),
-            Err(ref e) if e.kind() == io::ErrorKind::InvalidData,
-        ));
     }
 }
