@@ -1,3 +1,3 @@
-mod magic_number;
+pub(crate) mod magic_number;
 
 pub(super) use self::magic_number::read_magic_number;

@@ -3,7 +3,7 @@
 mod builder;
 pub(crate) mod container;
 pub(crate) mod data_container;
-mod header;
+pub(crate) mod header;
 pub(crate) mod header_container;
 pub(crate) mod num;
 mod query;
@@ -128,7 +128,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_file_definition(&mut self) -> io::Result<FileDefinition> {
-        header::read_magic_number(&mut self.inner)?;
+        header::read_magic_number(&mut self.inner).and_then(header::magic_number::validate)?;
 
         let format = read_format(&mut self.inner)?;
         let file_id = read_file_id(&mut self.inner)?;

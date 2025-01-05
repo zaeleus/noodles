@@ -111,7 +111,11 @@ where
     /// # }
     /// ```
     pub async fn read_file_definition(&mut self) -> io::Result<FileDefinition> {
-        header::read_magic_number(&mut self.inner).await?;
+        use crate::io::reader::header::magic_number;
+
+        header::read_magic_number(&mut self.inner)
+            .await
+            .and_then(magic_number::validate)?;
 
         let format = read_format(&mut self.inner).await?;
         let file_id = read_file_id(&mut self.inner).await?;
