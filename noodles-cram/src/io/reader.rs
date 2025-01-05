@@ -9,8 +9,6 @@ mod query;
 pub(crate) mod record;
 mod records;
 
-pub use self::{builder::Builder, query::Query, records::Records};
-
 use std::io::{self, Read, Seek, SeekFrom};
 
 use bytes::BytesMut;
@@ -18,6 +16,7 @@ use noodles_core::Region;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
+pub use self::{builder::Builder, query::Query, records::Records};
 use crate::{
     crai, data_container::DataContainer, file_definition::Version, FileDefinition, MAGIC_NUMBER,
 };
