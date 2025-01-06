@@ -18,7 +18,7 @@ use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 pub use self::{builder::Builder, query::Query, records::Records};
-use crate::{crai, data_container::DataContainer, file_definition::Version, FileDefinition};
+use crate::{crai, data_container::DataContainer, FileDefinition};
 
 /// A CRAM reader.
 ///
@@ -132,10 +132,10 @@ where
     pub fn read_file_definition(&mut self) -> io::Result<FileDefinition> {
         header::read_magic_number(&mut self.inner).and_then(header::magic_number::validate)?;
 
-        let format = read_format(&mut self.inner)?;
+        let version = header::read_format_version(&mut self.inner)?;
         let file_id = read_file_id(&mut self.inner)?;
 
-        Ok(FileDefinition::new(format, file_id))
+        Ok(FileDefinition::new(version, file_id))
     }
 
     /// Reads the SAM header.
@@ -350,15 +350,6 @@ where
     }
 }
 
-fn read_format<R>(reader: &mut R) -> io::Result<Version>
-where
-    R: Read,
-{
-    let mut buf = [0; 2];
-    reader.read_exact(&mut buf)?;
-    Ok(Version::new(buf[0], buf[1]))
-}
-
 fn read_file_id<R>(reader: &mut R) -> io::Result<[u8; 20]>
 where
     R: Read,
@@ -371,6 +362,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::file_definition::Version;
 
     #[test]
     fn test_read_file_definition() -> Result<(), Box<dyn std::error::Error>> {

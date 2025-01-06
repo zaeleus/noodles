@@ -18,7 +18,7 @@ use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt, SeekFrom
 
 pub use self::builder::Builder;
 use self::crc_reader::CrcReader;
-use crate::{crai, file_definition::Version, DataContainer, FileDefinition, Record};
+use crate::{crai, DataContainer, FileDefinition, Record};
 
 /// An async CRAM reader.
 pub struct Reader<R> {
@@ -119,10 +119,10 @@ where
             .await
             .and_then(magic_number::validate)?;
 
-        let format = read_format(&mut self.inner).await?;
+        let version = header::read_format_version(&mut self.inner).await?;
         let file_id = read_file_id(&mut self.inner).await?;
 
-        Ok(FileDefinition::new(format, file_id))
+        Ok(FileDefinition::new(version, file_id))
     }
 
     /// Reads the raw SAM header.
@@ -346,15 +346,6 @@ where
     }
 }
 
-async fn read_format<R>(reader: &mut R) -> io::Result<Version>
-where
-    R: AsyncRead + Unpin,
-{
-    let major = reader.read_u8().await?;
-    let minor = reader.read_u8().await?;
-    Ok(Version::new(major, minor))
-}
-
 async fn read_file_id<R>(reader: &mut R) -> io::Result<[u8; 20]>
 where
     R: AsyncRead + Unpin,
@@ -367,14 +358,6 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[tokio::test]
-    async fn test_read_format() -> io::Result<()> {
-        let data = [0x03, 0x00];
-        let mut reader = &data[..];
-        assert_eq!(read_format(&mut reader).await?, Version::new(3, 0));
-        Ok(())
-    }
 
     #[tokio::test]
     async fn test_read_file_id() -> io::Result<()> {
