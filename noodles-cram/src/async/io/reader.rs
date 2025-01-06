@@ -27,23 +27,7 @@ pub struct Reader<R> {
     buf: BytesMut,
 }
 
-impl<R> Reader<R>
-where
-    R: AsyncRead + Unpin,
-{
-    /// Creates an async CRAM reader.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_cram as cram;
-    /// let data = [];
-    /// let reader = cram::r#async::io::Reader::new(&data[..]);
-    /// ```
-    pub fn new(inner: R) -> Self {
-        Builder::default().build_from_reader(inner)
-    }
-
+impl<R> Reader<R> {
     /// Returns a reference to the underlying reader.
     ///
     /// # Examples
@@ -84,6 +68,24 @@ where
     /// ```
     pub fn into_inner(self) -> R {
         self.inner
+    }
+}
+
+impl<R> Reader<R>
+where
+    R: AsyncRead + Unpin,
+{
+    /// Creates an async CRAM reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram as cram;
+    /// let data = [];
+    /// let reader = cram::r#async::io::Reader::new(&data[..]);
+    /// ```
+    pub fn new(inner: R) -> Self {
+        Builder::default().build_from_reader(inner)
     }
 
     fn reference_sequence_repository(&self) -> &fasta::Repository {

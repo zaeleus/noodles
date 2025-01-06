@@ -48,24 +48,7 @@ pub struct Reader<R> {
     buf: BytesMut,
 }
 
-impl<R> Reader<R>
-where
-    R: Read,
-{
-    /// Creates a CRAM reader.
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// # use std::{fs::File, io};
-    /// use noodles_cram as cram;
-    /// let mut reader = File::open("sample.bam").map(cram::io::Reader::new)?;
-    /// # Ok::<(), io::Error>(())
-    /// ```
-    pub fn new(inner: R) -> Self {
-        Builder::default().build_from_reader(inner)
-    }
-
+impl<R> Reader<R> {
     /// Returns a reference to the underlying reader.
     ///
     /// # Examples
@@ -106,6 +89,25 @@ where
     /// ```
     pub fn into_inner(self) -> R {
         self.inner
+    }
+}
+
+impl<R> Reader<R>
+where
+    R: Read,
+{
+    /// Creates a CRAM reader.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_cram as cram;
+    /// let mut reader = File::open("sample.bam").map(cram::io::Reader::new)?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn new(inner: R) -> Self {
+        Builder::default().build_from_reader(inner)
     }
 
     pub(crate) fn reference_sequence_repository(&self) -> &fasta::Repository {
