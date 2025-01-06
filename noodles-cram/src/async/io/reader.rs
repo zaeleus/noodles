@@ -14,7 +14,7 @@ use futures::Stream;
 use noodles_core::Region;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
-use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt, SeekFrom};
+use tokio::io::{self, AsyncRead, AsyncSeek, AsyncSeekExt, SeekFrom};
 
 pub use self::builder::Builder;
 use self::crc_reader::CrcReader;
@@ -120,7 +120,7 @@ where
             .and_then(magic_number::validate)?;
 
         let version = header::read_format_version(&mut self.inner).await?;
-        let file_id = read_file_id(&mut self.inner).await?;
+        let file_id = header::read_file_id(&mut self.inner).await?;
 
         Ok(FileDefinition::new(version, file_id))
     }
@@ -343,32 +343,5 @@ where
             reference_sequence_id,
             region.interval(),
         ))
-    }
-}
-
-async fn read_file_id<R>(reader: &mut R) -> io::Result<[u8; 20]>
-where
-    R: AsyncRead + Unpin,
-{
-    let mut file_id = [0; 20];
-    reader.read_exact(&mut file_id).await?;
-    Ok(file_id)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn test_read_file_id() -> io::Result<()> {
-        let data = [
-            0x00, 0xac, 0x24, 0xf8, 0xc4, 0x2d, 0xc2, 0xa5, 0x56, 0xa0, 0x85, 0x1c, 0xa5, 0xef,
-            0xf0, 0xfc, 0x6d, 0x40, 0x33, 0x4d,
-        ];
-
-        let mut reader = &data[..];
-        assert_eq!(read_file_id(&mut reader).await?, data);
-
-        Ok(())
     }
 }

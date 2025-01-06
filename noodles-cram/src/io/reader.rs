@@ -133,7 +133,7 @@ where
         header::read_magic_number(&mut self.inner).and_then(header::magic_number::validate)?;
 
         let version = header::read_format_version(&mut self.inner)?;
-        let file_id = read_file_id(&mut self.inner)?;
+        let file_id = header::read_file_id(&mut self.inner)?;
 
         Ok(FileDefinition::new(version, file_id))
     }
@@ -348,15 +348,6 @@ where
             })
         }))
     }
-}
-
-fn read_file_id<R>(reader: &mut R) -> io::Result<[u8; 20]>
-where
-    R: Read,
-{
-    let mut buf = [0; 20];
-    reader.read_exact(&mut buf)?;
-    Ok(buf)
 }
 
 #[cfg(test)]
