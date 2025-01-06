@@ -28,4 +28,4 @@ pub use self::r#async::io::Reader as AsyncReader;
 #[deprecated(since = "0.69.0", note = "Use `cram::r#async::io::Writer` instead.")]
 pub use self::r#async::io::Writer as AsyncWriter;
 
-static MAGIC_NUMBER: &[u8] = b"CRAM";
+const MAGIC_NUMBER: [u8; 4] = *b"CRAM";

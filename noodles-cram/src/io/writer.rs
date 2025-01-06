@@ -287,7 +287,7 @@ fn write_file_definition<W>(writer: &mut W, file_definition: &FileDefinition) ->
 where
     W: Write,
 {
-    writer.write_all(MAGIC_NUMBER)?;
+    writer.write_all(&MAGIC_NUMBER)?;
     write_format(writer, file_definition.version())?;
     writer.write_all(file_definition.file_id())?;
     Ok(())

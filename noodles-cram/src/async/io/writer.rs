@@ -297,7 +297,7 @@ async fn write_file_definition<W>(
 where
     W: AsyncWrite + Unpin,
 {
-    writer.write_all(MAGIC_NUMBER).await?;
+    writer.write_all(&MAGIC_NUMBER).await?;
     write_format(writer, file_definition.version()).await?;
     writer.write_all(file_definition.file_id()).await?;
     Ok(())
