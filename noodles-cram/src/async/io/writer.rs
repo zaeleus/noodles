@@ -59,6 +59,20 @@ where
         &self.inner
     }
 
+    /// Returns a mutable reference to the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram as cram;
+    /// use tokio::io;
+    /// let mut writer = cram::r#async::io::Writer::new(io::sink());
+    /// let _inner = writer.get_mut();
+    /// ```
+    pub fn get_mut(&mut self) -> &mut W {
+        &mut self.inner
+    }
+
     /// Attempts to shutdown the output stream by writing any pending containers and a final EOF
     /// container.
     ///

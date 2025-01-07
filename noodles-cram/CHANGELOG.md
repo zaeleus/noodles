@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * cram/io/writer: Add `Writer::get_mut`.
+
 ## 0.73.0 - 2024-12-20
 
 ### Changed

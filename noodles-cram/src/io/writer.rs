@@ -84,6 +84,19 @@ where
         &self.inner
     }
 
+    /// Returns a mutable reference to the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram as cram;
+    /// let mut writer = cram::io::Writer::new(Vec::new());
+    /// assert!(writer.get_mut().is_empty());
+    /// ```
+    pub fn get_mut(&mut self) -> &mut W {
+        &mut self.inner
+    }
+
     /// Attempts to finish the output stream by writing any pending containers and a final EOF
     /// container.
     ///
