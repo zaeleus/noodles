@@ -44,10 +44,7 @@ use crate::{file_definition::Version, DataContainer, FileDefinition, Record, MAG
 /// # Ok::<(), io::Error>(())
 /// ```
 #[derive(Debug)]
-pub struct Writer<W>
-where
-    W: Write,
-{
+pub struct Writer<W> {
     inner: W,
     reference_sequence_repository: fasta::Repository,
     options: Options,
@@ -55,23 +52,7 @@ where
     record_counter: u64,
 }
 
-impl<W> Writer<W>
-where
-    W: Write,
-{
-    /// Creates a new CRAM writer with default options.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io;
-    /// use noodles_cram as cram;
-    /// let writer = cram::io::Writer::new(io::sink());
-    /// ```
-    pub fn new(inner: W) -> Self {
-        Builder::default().build_from_writer(inner)
-    }
-
+impl<W> Writer<W> {
     /// Returns a reference to the underlying writer.
     ///
     /// # Examples
@@ -112,6 +93,24 @@ where
     /// ```
     pub fn into_inner(self) -> W {
         self.inner
+    }
+}
+
+impl<W> Writer<W>
+where
+    W: Write,
+{
+    /// Creates a new CRAM writer with default options.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_cram as cram;
+    /// let writer = cram::io::Writer::new(io::sink());
+    /// ```
+    pub fn new(inner: W) -> Self {
+        Builder::default().build_from_writer(inner)
     }
 
     /// Attempts to finish the output stream by writing any pending containers and a final EOF

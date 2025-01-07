@@ -28,23 +28,7 @@ pub struct Writer<W> {
     record_counter: u64,
 }
 
-impl<W> Writer<W>
-where
-    W: AsyncWrite + Unpin,
-{
-    /// Creates an async CRAM writer.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_cram as cram;
-    /// use tokio::io;
-    /// let writer = cram::r#async::io::Writer::new(io::sink());
-    /// ```
-    pub fn new(inner: W) -> Self {
-        Builder::default().build_from_writer(inner)
-    }
-
+impl<W> Writer<W> {
     /// Returns a reference to the underlying writer.
     ///
     /// # Examples
@@ -85,6 +69,24 @@ where
     /// ```
     pub fn into_inner(self) -> W {
         self.inner
+    }
+}
+
+impl<W> Writer<W>
+where
+    W: AsyncWrite + Unpin,
+{
+    /// Creates an async CRAM writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram as cram;
+    /// use tokio::io;
+    /// let writer = cram::r#async::io::Writer::new(io::sink());
+    /// ```
+    pub fn new(inner: W) -> Self {
+        Builder::default().build_from_writer(inner)
     }
 
     /// Attempts to shutdown the output stream by writing any pending containers and a final EOF
