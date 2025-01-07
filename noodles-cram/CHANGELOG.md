@@ -4,7 +4,9 @@
 
 ### Added
 
-  * cram/io/writer: Add `Writer::get_mut`.
+  * cram/io/writer: Add missing common methods to get the
+    underlying reader (`Reader::get_mut` and
+    `Reader::into_inner`).
 
 ## 0.73.0 - 2024-12-20
 

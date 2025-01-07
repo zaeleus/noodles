@@ -73,6 +73,20 @@ where
         &mut self.inner
     }
 
+    /// Returns the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram as cram;
+    /// use tokio::io;
+    /// let mut writer = cram::r#async::io::Writer::new(io::sink());
+    /// let _inner = writer.into_inner();
+    /// ```
+    pub fn into_inner(self) -> W {
+        self.inner
+    }
+
     /// Attempts to shutdown the output stream by writing any pending containers and a final EOF
     /// container.
     ///

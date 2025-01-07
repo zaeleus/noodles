@@ -97,6 +97,19 @@ where
         &mut self.inner
     }
 
+    /// Returns the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram as cram;
+    /// let mut writer = cram::io::Writer::new(Vec::new());
+    /// assert!(writer.into_inner().is_empty());
+    /// ```
+    pub fn into_inner(self) -> W {
+        self.inner
+    }
+
     /// Attempts to finish the output stream by writing any pending containers and a final EOF
     /// container.
     ///
