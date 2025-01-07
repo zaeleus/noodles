@@ -1,6 +1,6 @@
 use std::io::{self, Read};
 
-pub(crate) fn read_file_id<R>(reader: &mut R) -> io::Result<[u8; 20]>
+pub(super) fn read_file_id<R>(reader: &mut R) -> io::Result<[u8; 20]>
 where
     R: Read,
 {

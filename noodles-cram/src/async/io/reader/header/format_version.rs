@@ -2,7 +2,7 @@ use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::file_definition::Version;
 
-pub(crate) async fn read_format_version<R>(reader: &mut R) -> io::Result<Version>
+pub(super) async fn read_format_version<R>(reader: &mut R) -> io::Result<Version>
 where
     R: AsyncRead + Unpin,
 {

@@ -130,12 +130,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_file_definition(&mut self) -> io::Result<FileDefinition> {
-        header::read_magic_number(&mut self.inner).and_then(header::magic_number::validate)?;
-
-        let version = header::read_format_version(&mut self.inner)?;
-        let file_id = header::read_file_id(&mut self.inner)?;
-
-        Ok(FileDefinition::new(version, file_id))
+        header::read_file_definition(&mut self.inner)
     }
 
     /// Reads the SAM header.
@@ -347,31 +342,5 @@ where
                     })
             })
         }))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::file_definition::Version;
-
-    #[test]
-    fn test_read_file_definition() -> Result<(), Box<dyn std::error::Error>> {
-        let data = [
-            0x43, 0x52, 0x41, 0x4d, // magic number = b"CRAM"
-            0x03, 0x00, // format version = (3, 0)
-            0x00, 0x68, 0xac, 0xf3, 0x06, 0x4d, 0xaa, 0x1e, 0x29, 0xa4, 0xa0, 0x8c, 0x56, 0xee,
-            0x91, 0x9b, 0x91, 0x04, 0x21, 0x1f, // file ID
-        ];
-
-        let mut reader = Reader::new(&data[..]);
-        let actual = reader.read_file_definition()?;
-
-        let file_id = <[u8; 20]>::try_from(&data[6..])?;
-        let expected = FileDefinition::new(Version::new(3, 0), file_id);
-
-        assert_eq!(actual, expected);
-
-        Ok(())
     }
 }

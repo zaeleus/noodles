@@ -113,16 +113,7 @@ where
     /// # }
     /// ```
     pub async fn read_file_definition(&mut self) -> io::Result<FileDefinition> {
-        use crate::io::reader::header::magic_number;
-
-        header::read_magic_number(&mut self.inner)
-            .await
-            .and_then(magic_number::validate)?;
-
-        let version = header::read_format_version(&mut self.inner).await?;
-        let file_id = header::read_file_id(&mut self.inner).await?;
-
-        Ok(FileDefinition::new(version, file_id))
+        header::read_file_definition(&mut self.inner).await
     }
 
     /// Reads the raw SAM header.

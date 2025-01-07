@@ -2,7 +2,7 @@ use std::io::{self, Read};
 
 use crate::file_definition::Version;
 
-pub(crate) fn read_format_version<R>(reader: &mut R) -> io::Result<Version>
+pub(super) fn read_format_version<R>(reader: &mut R) -> io::Result<Version>
 where
     R: Read,
 {

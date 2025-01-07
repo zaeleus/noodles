@@ -1,6 +1,6 @@
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
-pub(crate) async fn read_file_id<R>(reader: &mut R) -> io::Result<[u8; 20]>
+pub(super) async fn read_file_id<R>(reader: &mut R) -> io::Result<[u8; 20]>
 where
     R: AsyncRead + Unpin,
 {
