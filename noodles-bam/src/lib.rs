@@ -61,4 +61,4 @@ pub use self::r#async::io::Reader as AsyncReader;
 #[deprecated(since = "0.68.0", note = "Use `bam::r#async::io::Writer` instead.")]
 pub use self::r#async::io::Writer as AsyncWriter;
 
-static MAGIC_NUMBER: &[u8] = b"BAM\x01";
+const MAGIC_NUMBER: [u8; 4] = *b"BAM\x01";

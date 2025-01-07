@@ -18,7 +18,7 @@ where
 {
     use crate::MAGIC_NUMBER;
 
-    writer.write_all(MAGIC_NUMBER).await?;
+    writer.write_all(&MAGIC_NUMBER).await?;
 
     let text = serialize_header(header)?;
     let l_text =

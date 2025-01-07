@@ -22,7 +22,7 @@ where
 {
     use crate::MAGIC_NUMBER;
 
-    writer.write_all(MAGIC_NUMBER)?;
+    writer.write_all(&MAGIC_NUMBER)?;
 
     let text = serialize_header(header)?;
     let l_text =
