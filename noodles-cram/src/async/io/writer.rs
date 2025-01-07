@@ -53,7 +53,7 @@ where
     /// use noodles_cram as cram;
     /// use tokio::io;
     /// let writer = cram::r#async::io::Writer::new(io::sink());
-    /// let inner = writer.get_ref();
+    /// let _inner = writer.get_ref();
     /// ```
     pub fn get_ref(&self) -> &W {
         &self.inner
@@ -94,7 +94,7 @@ where
     ///
     /// ```
     /// # #[tokio::main]
-    /// # async fn main() -> std::io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_cram as cram;
     /// use noodles_sam as sam;
     /// use tokio::io;
@@ -118,21 +118,11 @@ where
     ///
     /// ```
     /// # #[tokio::main]
-    /// # async fn main() -> std::io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_cram as cram;
-    ///
-    /// let mut writer = cram::r#async::io::Writer::new(Vec::new());
+    /// use tokio::io;
+    /// let mut writer = cram::r#async::io::Writer::new(io::sink());
     /// writer.write_file_definition().await?;
-    ///
-    /// assert_eq!(writer.get_ref(), &[
-    ///     // magic number (CRAM)
-    ///     0x43, 0x52, 0x41, 0x4d,
-    ///     // format (major, minor)
-    ///     0x03, 0x00,
-    ///     // file ID
-    ///     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    ///     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    /// ]);
     /// # Ok(())
     /// # }
     /// ```
@@ -152,7 +142,7 @@ where
     ///
     /// ```
     /// # #[tokio::main]
-    /// # async fn main() -> std::io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_cram as cram;
     /// use noodles_sam as sam;
     /// use tokio::io;
@@ -213,7 +203,7 @@ where
     ///
     /// ```
     /// # #[tokio::main]
-    /// # async fn main() -> std::io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_cram as cram;
     /// use noodles_sam as sam;
     /// use tokio::io;

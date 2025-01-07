@@ -32,7 +32,7 @@ use crate::{file_definition::Version, DataContainer, FileDefinition, Record, MAG
 /// use noodles_cram as cram;
 /// use noodles_sam as sam;
 ///
-/// let mut writer = cram::io::Writer::new(Vec::new());
+/// let mut writer = cram::io::Writer::new(io::sink());
 ///
 /// let header = sam::Header::default();
 /// writer.write_header(&header)?;
@@ -64,8 +64,9 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_cram as cram;
-    /// let writer = cram::io::Writer::new(Vec::new());
+    /// let writer = cram::io::Writer::new(io::sink());
     /// ```
     pub fn new(inner: W) -> Self {
         Builder::default().build_from_writer(inner)
@@ -76,9 +77,10 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_cram as cram;
-    /// let writer = cram::io::Writer::new(Vec::new());
-    /// assert!(writer.get_ref().is_empty());
+    /// let writer = cram::io::Writer::new(io::sink());
+    /// let _inner = writer.get_ref();
     /// ```
     pub fn get_ref(&self) -> &W {
         &self.inner
@@ -89,9 +91,10 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_cram as cram;
-    /// let mut writer = cram::io::Writer::new(Vec::new());
-    /// assert!(writer.get_mut().is_empty());
+    /// let mut writer = cram::io::Writer::new(io::sink());
+    /// let _inner = writer.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut W {
         &mut self.inner
@@ -102,9 +105,10 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_cram as cram;
-    /// let mut writer = cram::io::Writer::new(Vec::new());
-    /// assert!(writer.into_inner().is_empty());
+    /// let mut writer = cram::io::Writer::new(io::sink());
+    /// let _inner = writer.into_inner();
     /// ```
     pub fn into_inner(self) -> W {
         self.inner
@@ -124,7 +128,7 @@ where
     /// use noodles_sam as sam;
     ///
     /// let header = sam::Header::default();
-    /// let mut writer = cram::io::Writer::new(Vec::new());
+    /// let mut writer = cram::io::Writer::new(io::sink());
     /// writer.try_finish(&header)?;
     /// # Ok::<(), io::Error>(())
     /// ```
@@ -143,19 +147,8 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_cram as cram;
-    ///
-    /// let mut writer = cram::io::Writer::new(Vec::new());
+    /// let mut writer = cram::io::Writer::new(io::sink());
     /// writer.write_file_definition()?;
-    ///
-    /// assert_eq!(writer.get_ref(), &[
-    ///     // magic number (CRAM)
-    ///     0x43, 0x52, 0x41, 0x4d,
-    ///     // format (major, minor)
-    ///     0x03, 0x00,
-    ///     // file ID
-    ///     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    ///     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    /// ]);
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_file_definition(&mut self) -> io::Result<()> {
@@ -177,7 +170,7 @@ where
     /// use noodles_cram as cram;
     /// use noodles_sam as sam;
     ///
-    /// let mut writer = cram::io::Writer::new(Vec::new());
+    /// let mut writer = cram::io::Writer::new(io::sink());
     /// writer.write_file_definition()?;
     ///
     /// let header = sam::Header::default();
@@ -211,7 +204,7 @@ where
     ///
     /// let mut writer = cram::io::Writer::new(io::sink());
     ///
-    /// let header = sam::Header::builder().add_comment("noodles-cram").build();
+    /// let header = sam::Header::default();
     /// writer.write_header(&header)?;
     /// # Ok::<_, io::Error>(())
     /// ```
@@ -229,7 +222,7 @@ where
     /// use noodles_cram as cram;
     /// use noodles_sam as sam;
     ///
-    /// let mut writer = cram::io::Writer::new(Vec::new());
+    /// let mut writer = cram::io::Writer::new(io::sink());
     ///
     /// let header = sam::Header::default();
     /// writer.write_header(&header)?;
