@@ -4,7 +4,6 @@ mod builder;
 pub(crate) mod container;
 pub(crate) mod data_container;
 pub(crate) mod header;
-pub(crate) mod header_container;
 pub(crate) mod num;
 mod query;
 pub(crate) mod record;
@@ -151,7 +150,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_file_header(&mut self) -> io::Result<sam::Header> {
-        use self::header_container::read_header_container;
+        use self::header::container::read_header_container;
         read_header_container(&mut self.inner, &mut self.buf)
     }
 

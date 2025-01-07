@@ -26,7 +26,7 @@ where
 }
 
 pub fn read_sam_header_from_block(src: &mut Bytes) -> io::Result<sam::Header> {
-    use super::container::read_block;
+    use crate::io::reader::container::read_block;
 
     let block = read_block(src)?;
     read_sam_header(&block)

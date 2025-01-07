@@ -1,3 +1,4 @@
+pub(super) mod container;
 mod file_id;
 mod format_version;
 mod magic_number;

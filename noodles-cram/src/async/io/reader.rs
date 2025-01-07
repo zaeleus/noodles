@@ -4,7 +4,6 @@ mod builder;
 mod crc_reader;
 mod data_container;
 mod header;
-mod header_container;
 mod num;
 mod query;
 mod records;
@@ -142,7 +141,7 @@ where
     /// # }
     /// ```
     pub async fn read_file_header(&mut self) -> io::Result<String> {
-        use self::header_container::read_header_container;
+        use self::header::container::read_header_container;
         read_header_container(&mut self.inner, &mut self.buf).await
     }
 
