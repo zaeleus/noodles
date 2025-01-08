@@ -5,7 +5,7 @@ use flate2::CrcReader;
 
 use crate::io::reader::num::{read_itf8, read_ltf8};
 
-pub(super) fn read_header<R>(reader: &mut R) -> io::Result<u64>
+pub(crate) fn read_header<R>(reader: &mut R) -> io::Result<u64>
 where
     R: Read,
 {

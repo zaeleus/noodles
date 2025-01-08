@@ -5,7 +5,7 @@ use crate::r#async::io::reader::{
     CrcReader,
 };
 
-pub async fn read_header<R>(reader: &mut R) -> io::Result<u64>
+pub(crate) async fn read_header<R>(reader: &mut R) -> io::Result<u64>
 where
     R: AsyncRead + Unpin,
 {

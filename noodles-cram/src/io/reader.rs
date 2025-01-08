@@ -151,8 +151,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_file_header(&mut self) -> io::Result<sam::Header> {
-        use self::header::container::read_header_container;
-        read_header_container(&mut self.inner)
+        header::read_file_header(&mut self.inner)
     }
 
     /// Reads the SAM header.

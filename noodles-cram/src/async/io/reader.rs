@@ -138,8 +138,7 @@ where
     /// # }
     /// ```
     pub async fn read_file_header(&mut self) -> io::Result<sam::Header> {
-        use self::header::container::read_header_container;
-        read_header_container(&mut self.inner).await
+        header::read_file_header(&mut self.inner).await
     }
 
     /// Reads the SAM header.
