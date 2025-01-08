@@ -4,23 +4,21 @@ mod header;
 use std::io::{self, BufRead, BufReader, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use bytes::BytesMut;
 use noodles_sam as sam;
 
 use self::{block::read_block, header::read_header};
 
-pub fn read_header_container<R>(reader: &mut R, buf: &mut BytesMut) -> io::Result<sam::Header>
+pub fn read_header_container<R>(reader: &mut R) -> io::Result<sam::Header>
 where
     R: Read,
 {
     let len = read_header(reader)?;
 
-    buf.resize(len, 0);
-    reader.read_exact(buf)?;
+    let mut reader = reader.take(len);
+    let header = read_sam_header(&mut reader)?;
+    io::copy(&mut reader, &mut io::sink())?;
 
-    let buf = buf.split().freeze();
-    let mut reader = &buf[..];
-    read_sam_header(&mut reader)
+    Ok(header)
 }
 
 fn read_sam_header<R>(reader: &mut R) -> io::Result<sam::Header>

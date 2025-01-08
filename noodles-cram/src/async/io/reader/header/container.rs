@@ -1,24 +1,22 @@
 mod block;
 mod header;
 
-use bytes::BytesMut;
 use noodles_sam as sam;
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt, BufReader};
 
 use self::{block::read_block, header::read_header};
 
-pub async fn read_raw_header_container<R>(reader: &mut R, buf: &mut BytesMut) -> io::Result<String>
+pub async fn read_raw_header_container<R>(reader: &mut R) -> io::Result<String>
 where
     R: AsyncRead + Unpin,
 {
     let len = read_header(reader).await?;
 
-    buf.resize(len, 0);
-    reader.read_exact(buf).await?;
+    let mut reader = reader.take(len);
+    let raw_header = read_raw_sam_header(&mut reader).await?;
+    io::copy(&mut reader, &mut io::sink()).await?;
 
-    let buf = buf.split().freeze();
-    let mut reader = &buf[..];
-    read_raw_sam_header(&mut reader).await
+    Ok(raw_header)
 }
 
 async fn read_raw_sam_header<R>(reader: &mut R) -> io::Result<String>
@@ -38,18 +36,17 @@ where
     Ok(buf)
 }
 
-pub async fn read_header_container<R>(reader: &mut R, buf: &mut BytesMut) -> io::Result<sam::Header>
+pub async fn read_header_container<R>(reader: &mut R) -> io::Result<sam::Header>
 where
     R: AsyncRead + Unpin,
 {
     let len = read_header(reader).await?;
 
-    buf.resize(len, 0);
-    reader.read_exact(buf).await?;
+    let mut reader = reader.take(len);
+    let header = read_sam_header(&mut reader).await?;
+    io::copy(&mut reader, &mut io::sink()).await?;
 
-    let buf = buf.split().freeze();
-    let mut reader = &buf[..];
-    read_sam_header(&mut reader).await
+    Ok(header)
 }
 
 async fn read_sam_header<R>(reader: &mut R) -> io::Result<sam::Header>

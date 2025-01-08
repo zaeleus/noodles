@@ -5,14 +5,14 @@ use crate::r#async::io::reader::{
     CrcReader,
 };
 
-pub async fn read_header<R>(reader: &mut R) -> io::Result<usize>
+pub async fn read_header<R>(reader: &mut R) -> io::Result<u64>
 where
     R: AsyncRead + Unpin,
 {
     let mut crc_reader = CrcReader::new(reader);
 
     let length = crc_reader.read_i32_le().await.and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        u64::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
     // reference sequence ID
