@@ -3,12 +3,21 @@ mod file_id;
 mod format_version;
 mod magic_number;
 
+use noodles_sam as sam;
 use tokio::io::{self, AsyncRead};
 
 use self::{
     file_id::read_file_id, format_version::read_format_version, magic_number::read_magic_number,
 };
 use crate::FileDefinition;
+
+pub(super) async fn read_header<R>(reader: &mut R) -> io::Result<sam::Header>
+where
+    R: AsyncRead + Unpin,
+{
+    read_file_definition(reader).await?;
+    container::read_header_container(reader).await
+}
 
 pub(super) async fn read_file_definition<R>(reader: &mut R) -> io::Result<FileDefinition>
 where

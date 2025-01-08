@@ -16,6 +16,7 @@ use noodles_core::Region;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
+use self::header::read_header;
 pub use self::{builder::Builder, query::Query, records::Records};
 use crate::{crai, data_container::DataContainer, FileDefinition};
 
@@ -171,8 +172,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_header(&mut self) -> io::Result<sam::Header> {
-        self.read_file_definition()?;
-        self.read_file_header()
+        read_header(&mut self.inner)
     }
 
     pub(crate) fn read_data_container_with_container_header(

@@ -5,10 +5,20 @@ pub(crate) mod magic_number;
 
 use std::io::{self, Read};
 
+use noodles_sam as sam;
+
 use self::{
     file_id::read_file_id, format_version::read_format_version, magic_number::read_magic_number,
 };
 use crate::FileDefinition;
+
+pub(super) fn read_header<R>(reader: &mut R) -> io::Result<sam::Header>
+where
+    R: Read,
+{
+    read_file_definition(reader)?;
+    container::read_header_container(reader)
+}
 
 pub(super) fn read_file_definition<R>(reader: &mut R) -> io::Result<FileDefinition>
 where

@@ -16,7 +16,7 @@ use noodles_sam as sam;
 use tokio::io::{self, AsyncRead, AsyncSeek, AsyncSeekExt, SeekFrom};
 
 pub use self::builder::Builder;
-use self::crc_reader::CrcReader;
+use self::{crc_reader::CrcReader, header::read_header};
 use crate::{crai, DataContainer, FileDefinition, Record};
 
 /// An async CRAM reader.
@@ -162,8 +162,7 @@ where
     /// # }
     /// ```
     pub async fn read_header(&mut self) -> io::Result<sam::Header> {
-        self.read_file_definition().await?;
-        self.read_file_header().await
+        read_header(&mut self.inner).await
     }
 
     /// Reads a data container.
