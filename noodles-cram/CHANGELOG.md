@@ -8,6 +8,14 @@
     underlying reader (`Reader::get_mut` and
     `Reader::into_inner`).
 
+### Changed
+
+  * cram/async/io/reader/header: Parse header line by line.
+
+    The async header reader now builds a `sam::Header` by parsing a raw header
+    line by line. This makes it so that it is no longer required to read the
+    entire raw header into memory before parsing.
+
 ## 0.73.0 - 2024-12-20
 
 ### Changed
