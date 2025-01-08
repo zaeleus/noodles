@@ -6,36 +6,6 @@ use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt, Bu
 
 use self::{block::read_block, header::read_header};
 
-pub async fn read_raw_header_container<R>(reader: &mut R) -> io::Result<String>
-where
-    R: AsyncRead + Unpin,
-{
-    let len = read_header(reader).await?;
-
-    let mut reader = reader.take(len);
-    let raw_header = read_raw_sam_header(&mut reader).await?;
-    io::copy(&mut reader, &mut io::sink()).await?;
-
-    Ok(raw_header)
-}
-
-async fn read_raw_sam_header<R>(reader: &mut R) -> io::Result<String>
-where
-    R: AsyncRead + Unpin,
-{
-    let mut block_reader = read_block(reader).await?;
-
-    let len = block_reader.read_i32_le().await.and_then(|n| {
-        u64::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let mut header_reader = block_reader.take(len);
-    let mut buf = String::new();
-    header_reader.read_to_string(&mut buf).await?;
-
-    Ok(buf)
-}
-
 pub async fn read_header_container<R>(reader: &mut R) -> io::Result<sam::Header>
 where
     R: AsyncRead + Unpin,

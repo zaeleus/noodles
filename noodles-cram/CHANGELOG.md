@@ -9,6 +9,12 @@
 
 ### Changed
 
+  * cram/async/io/reader: Change `Reader::read_file_header` to return a parsed
+    header (`sam::Header`).
+
+    This no longer returns a raw string and now matches the behavior of
+    `cram::io::Reader::read_file_header`.
+
   * cram/async/io/reader/header: Parse header line by line.
 
     The async header reader now builds a `sam::Header` by parsing a raw header

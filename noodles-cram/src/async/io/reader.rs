@@ -115,13 +115,10 @@ where
         header::read_file_definition(&mut self.inner).await
     }
 
-    /// Reads the raw SAM header.
+    /// Reads the SAM header.
     ///
     /// The position of the stream is expected to be at the CRAM header container, i.e., directly
     /// after the file definition.
-    ///
-    /// This returns the raw SAM header as a [`String`]. It can subsequently be parsed as a
-    /// [`noodles_sam::Header`].
     ///
     /// # Examples
     ///
@@ -140,9 +137,9 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_file_header(&mut self) -> io::Result<String> {
-        use self::header::container::read_raw_header_container;
-        read_raw_header_container(&mut self.inner).await
+    pub async fn read_file_header(&mut self) -> io::Result<sam::Header> {
+        use self::header::container::read_header_container;
+        read_header_container(&mut self.inner).await
     }
 
     /// Reads the SAM header.
@@ -165,10 +162,8 @@ where
     /// # }
     /// ```
     pub async fn read_header(&mut self) -> io::Result<sam::Header> {
-        use self::header::container::read_header_container;
-
         self.read_file_definition().await?;
-        read_header_container(&mut self.inner).await
+        self.read_file_header().await
     }
 
     /// Reads a data container.
