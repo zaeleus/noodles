@@ -33,9 +33,9 @@ impl<R> Reader<R> {
     ///
     /// ```
     /// use noodles_cram as cram;
-    /// let data = [];
-    /// let reader = cram::r#async::io::Reader::new(&data[..]);
-    /// assert!(reader.get_ref().is_empty());
+    /// use tokio::io;
+    /// let reader = cram::r#async::io::Reader::new(io::empty());
+    /// let _inner = reader.get_ref();
     /// ```
     pub fn get_ref(&self) -> &R {
         &self.inner
@@ -47,9 +47,9 @@ impl<R> Reader<R> {
     ///
     /// ```
     /// use noodles_cram as cram;
-    /// let data = [];
-    /// let mut reader = cram::r#async::io::Reader::new(&data[..]);
-    /// assert!(reader.get_mut().is_empty());
+    /// use tokio::io;
+    /// let mut reader = cram::r#async::io::Reader::new(io::empty());
+    /// let _inner = reader.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
         &mut self.inner
@@ -61,9 +61,9 @@ impl<R> Reader<R> {
     ///
     /// ```
     /// use noodles_cram as cram;
-    /// let data = [];
-    /// let reader = cram::r#async::io::Reader::new(&data[..]);
-    /// assert!(reader.into_inner().is_empty());
+    /// use tokio::io;
+    /// let reader = cram::r#async::io::Reader::new(io::empty());
+    /// let _inner = reader.into_inner();
     /// ```
     pub fn into_inner(self) -> R {
         self.inner
@@ -80,8 +80,8 @@ where
     ///
     /// ```
     /// use noodles_cram as cram;
-    /// let data = [];
-    /// let reader = cram::r#async::io::Reader::new(&data[..]);
+    /// use tokio::io;
+    /// let reader = cram::r#async::io::Reader::new(io::empty());
     /// ```
     pub fn new(inner: R) -> Self {
         Builder::default().build_from_reader(inner)
@@ -100,10 +100,8 @@ where
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_cram as cram;
     /// use tokio::fs::File;
     /// let mut reader = File::open("sample.cram").await.map(cram::r#async::io::Reader::new)?;
@@ -123,10 +121,8 @@ where
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_cram as cram;
     /// use tokio::fs::File;
     ///
@@ -172,10 +168,8 @@ where
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_cram as cram;
     /// use tokio::fs::File;
     ///
@@ -239,13 +233,11 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
-    /// use std::io::{Cursor, SeekFrom};
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_cram as cram;
-    /// let mut reader = cram::r#async::io::Reader::new(Cursor::new(Vec::new()));
+    /// use tokio::io::{self, SeekFrom};
+    /// let mut reader = cram::r#async::io::Reader::new(io::empty());
     /// reader.seek(SeekFrom::Start(0)).await?;
     /// # Ok(())
     /// # }
@@ -259,13 +251,11 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
-    /// use std::io::{Cursor, SeekFrom};
+    /// # async fn main() -> tokio::io::Result<()> {
+    /// use tokio::io;
     /// use noodles_cram as cram;
-    /// let mut reader = cram::r#async::io::Reader::new(Cursor::new(Vec::new()));
+    /// let mut reader = cram::r#async::io::Reader::new(io::empty());
     /// assert_eq!(reader.position().await?, 0);
     /// # Ok(())
     /// # }

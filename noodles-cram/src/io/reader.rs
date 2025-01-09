@@ -37,7 +37,7 @@ use crate::{crai, data_container::DataContainer, FileDefinition};
 ///
 /// for result in reader.records(&header) {
 ///     let record = result?;
-///     println!("{:?}", record);
+///     // ...
 /// }
 ///
 /// # Ok::<_, io::Error>(())
@@ -54,10 +54,10 @@ impl<R> Reader<R> {
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_cram as cram;
-    /// let data = [];
-    /// let reader = cram::io::Reader::new(&data[..]);
-    /// assert!(reader.get_ref().is_empty());
+    /// let reader = cram::io::Reader::new(io::empty());
+    /// let _inner = reader.get_ref();
     /// ```
     pub fn get_ref(&self) -> &R {
         &self.inner
@@ -68,10 +68,10 @@ impl<R> Reader<R> {
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_cram as cram;
-    /// let data = [];
-    /// let mut reader = cram::io::Reader::new(&data[..]);
-    /// assert!(reader.get_mut().is_empty());
+    /// let mut reader = cram::io::Reader::new(io::empty());
+    /// let _inner = reader.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
         &mut self.inner
@@ -82,10 +82,10 @@ impl<R> Reader<R> {
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_cram as cram;
-    /// let data = [];
-    /// let reader = cram::io::Reader::new(&data[..]);
-    /// assert!(reader.into_inner().is_empty());
+    /// let reader = cram::io::Reader::new(io::empty());
+    /// let _inner = reader.into_inner();
     /// ```
     pub fn into_inner(self) -> R {
         self.inner
@@ -242,12 +242,10 @@ where
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::{fs::File, io};
-    /// use std::io::SeekFrom;
+    /// # use std::io::{self, SeekFrom};
     /// use noodles_cram as cram;
-    ///
-    /// let mut reader = File::open("sample.cram").map(cram::io::Reader::new)?;
-    /// reader.seek(SeekFrom::Start(17711))?;
+    /// let mut reader = cram::io::Reader::new(io::empty());
+    /// reader.seek(SeekFrom::Start(0))?;
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
@@ -259,10 +257,9 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io::{self, Cursor};
+    /// # use std::io;
     /// use noodles_cram as cram;
-    /// let data = Cursor::new(Vec::new());
-    /// let mut reader = cram::io::Reader::new(data);
+    /// let mut reader = cram::io::Reader::new(io::empty());
     /// let position = reader.position()?;
     /// assert_eq!(position, 0);
     /// # Ok::<(), io::Error>(())
