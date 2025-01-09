@@ -1,5 +1,6 @@
 mod block;
 mod header;
+mod sam_header;
 
 use tokio::io::{self, AsyncRead, AsyncReadExt, Take};
 
@@ -22,13 +23,13 @@ where
 
     pub(super) async fn raw_sam_header_reader(
         &mut self,
-    ) -> io::Result<impl AsyncRead + Unpin + '_> {
+    ) -> io::Result<sam_header::Reader<impl AsyncRead + Unpin + '_>> {
         let mut reader = read_block(&mut self.inner).await?;
 
         let len = reader.read_i32_le().await.and_then(|n| {
             u64::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })?;
 
-        Ok(reader.take(len))
+        Ok(sam_header::Reader::new(reader, len))
     }
 }
