@@ -195,7 +195,7 @@ where
         MAGIC_NUMBER,
     };
 
-    writer.write_all(MAGIC_NUMBER).await?;
+    writer.write_all(&MAGIC_NUMBER).await?;
     writer.write_u8(MAJOR).await?;
     writer.write_u8(MINOR).await?;
 

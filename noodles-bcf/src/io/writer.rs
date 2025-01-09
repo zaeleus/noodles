@@ -200,7 +200,7 @@ where
 {
     use crate::MAGIC_NUMBER;
 
-    writer.write_all(MAGIC_NUMBER)?;
+    writer.write_all(&MAGIC_NUMBER)?;
     writer.write_u8(MAJOR)?;
     writer.write_u8(MINOR)?;
 
