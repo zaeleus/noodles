@@ -88,9 +88,14 @@ where
 {
     let mut container_reader = reader.container_reader().await?;
 
-    let mut raw_sam_header_reader = container_reader.raw_sam_header_reader().await?;
-    let header = read_sam_header(&mut raw_sam_header_reader).await?;
-    raw_sam_header_reader.discard_to_end().await?;
+    let header = {
+        let mut raw_sam_header_reader = container_reader.raw_sam_header_reader().await?;
+        let header = read_sam_header(&mut raw_sam_header_reader).await?;
+        raw_sam_header_reader.discard_to_end().await?;
+        header
+    };
+
+    container_reader.discard_to_end().await?;
 
     Ok(header)
 }

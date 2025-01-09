@@ -32,4 +32,8 @@ where
 
         Ok(sam_header::Reader::new(reader, len))
     }
+
+    pub(super) async fn discard_to_end(&mut self) -> io::Result<u64> {
+        io::copy(&mut self.inner, &mut io::sink()).await
+    }
 }

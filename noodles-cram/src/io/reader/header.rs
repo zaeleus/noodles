@@ -86,9 +86,14 @@ where
 {
     let mut container_reader = reader.container_reader()?;
 
-    let mut raw_sam_header_reader = container_reader.raw_sam_header_reader()?;
-    let header = read_sam_header(&mut raw_sam_header_reader)?;
-    raw_sam_header_reader.discard_to_end()?;
+    let header = {
+        let mut raw_sam_header_reader = container_reader.raw_sam_header_reader()?;
+        let header = read_sam_header(&mut raw_sam_header_reader)?;
+        raw_sam_header_reader.discard_to_end()?;
+        header
+    };
+
+    container_reader.discard_to_end()?;
 
     Ok(header)
 }
