@@ -90,6 +90,7 @@ where
 
     let mut raw_sam_header_reader = container_reader.raw_sam_header_reader().await?;
     let header = read_sam_header(&mut raw_sam_header_reader).await?;
+    raw_sam_header_reader.discard_to_end().await?;
 
     Ok(header)
 }

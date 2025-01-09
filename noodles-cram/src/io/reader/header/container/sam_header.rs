@@ -17,6 +17,24 @@ where
             is_eol: true,
         }
     }
+
+    pub fn discard_to_end(&mut self) -> io::Result<usize> {
+        let mut n = 0;
+
+        loop {
+            let src = self.inner.fill_buf()?;
+
+            if src.is_empty() {
+                return Ok(n);
+            }
+
+            let len = src.len();
+
+            self.inner.consume(len);
+
+            n += len;
+        }
+    }
 }
 
 impl<R> Read for Reader<R>

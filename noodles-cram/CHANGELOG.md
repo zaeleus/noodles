@@ -21,6 +21,8 @@
     line by line. This makes it so that it is no longer required to read the
     entire raw header into memory before parsing.
 
+  * cram/io/reader/header: Discard trailing padding in raw SAM header.
+
 ## 0.73.0 - 2024-12-20
 
 ### Changed
