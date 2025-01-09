@@ -10,40 +10,28 @@ where
     R: AsyncRead + Unpin,
 {
     let mut crc_reader = CrcReader::new(reader);
+    read_header_inner(&mut crc_reader).await
+}
 
-    let length = crc_reader.read_i32_le().await.and_then(|n| {
+async fn read_header_inner<R>(reader: &mut CrcReader<R>) -> io::Result<u64>
+where
+    R: AsyncRead + Unpin,
+{
+    let length = reader.read_i32_le().await.and_then(|n| {
         u64::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    // reference sequence ID
-    read_itf8(&mut crc_reader).await?;
+    let _reference_sequence_id = read_itf8(reader).await?;
+    let _alignment_start = read_itf8(reader).await?;
+    let _alignment_span = read_itf8(reader).await?;
+    let _record_count = read_itf8(reader).await?;
+    let _record_counter = read_ltf8(reader).await?;
+    let _base_count = read_ltf8(reader).await?;
+    let _block_count = read_itf8(reader).await?;
+    read_landmarks(reader).await?;
 
-    // alignment start
-    read_itf8(&mut crc_reader).await?;
-
-    // alignment span
-    read_itf8(&mut crc_reader).await?;
-
-    // record count
-    read_itf8(&mut crc_reader).await?;
-
-    // record counter
-    read_ltf8(&mut crc_reader).await?;
-
-    // base count
-    read_ltf8(&mut crc_reader).await?;
-
-    // block count
-    read_itf8(&mut crc_reader).await.and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    read_landmarks(&mut crc_reader).await?;
-
-    let actual_crc32 = crc_reader.crc().sum();
-
-    let reader = crc_reader.into_inner();
-    let expected_crc32 = reader.read_u32_le().await?;
+    let actual_crc32 = reader.crc().sum();
+    let expected_crc32 = reader.get_mut().read_u32_le().await?;
 
     if actual_crc32 != expected_crc32 {
         return Err(io::Error::new(
