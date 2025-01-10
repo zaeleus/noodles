@@ -11,6 +11,8 @@
 
 ### Changed
 
+  * bcf: Raise minimum supported Rust version (MSRV) to 1.73.0.
+
   * bcf/async/io/reader/header: Parse header line by line.
 
     The async header reader now builds a `vcf::Header` by parsing a raw header

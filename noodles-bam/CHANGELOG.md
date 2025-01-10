@@ -9,6 +9,10 @@
     This can be used to read the raw fields of a BAM header, e.g., the raw SAM
     header.
 
+### Changed
+
+  * bam: Raise minimum supported Rust version (MSRV) to 1.73.0.
+
 ### Fixed
 
   * bam/record/codec/encoder/quality_scores: Replace usage of unstable std

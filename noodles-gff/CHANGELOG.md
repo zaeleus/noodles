@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * gff: Raise minimum supported Rust version (MSRV) to 1.73.0.
+
 ## 0.41.0 - 2024-12-20
 
 ### Changed

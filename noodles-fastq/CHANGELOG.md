@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * fastq: Raise minimum supported Rust version (MSRV) to 1.73.0.
+
 ## 0.16.0 - 2024-10-22
 
 ### Fixed

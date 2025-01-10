@@ -9,6 +9,8 @@
 
 ### Changed
 
+  * cram: Raise minimum supported Rust version (MSRV) to 1.73.0.
+
   * cram/async/io/reader: Change `Reader::read_file_header` to return a parsed
     header (`sam::Header`).
 
