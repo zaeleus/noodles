@@ -9,6 +9,16 @@
     This can be used to read the raw fields of a BAM header, e.g., the raw SAM
     header.
 
+### Fixed
+
+  * bam/record/codec/encoder/quality_scores: Replace usage of unstable std
+    function ([#315]).
+
+    `std::iter::repeat_n` was stabilized in Rust 1.82.0, but the current MSRV
+    is set to 1.70.0.
+
+[#315]: https://github.com/zaeleus/noodles/issues/315
+
 ## 0.72.0 - 2024-12-20
 
 ### Changed
