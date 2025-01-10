@@ -5,7 +5,7 @@ use flate2::read::GzDecoder;
 
 use crate::{
     container::block::{CompressionMethod, ContentType},
-    io::reader::num::read_itf8,
+    io::reader::num::{read_itf8, read_itf8_as},
 };
 
 pub(super) fn read_block<R>(reader: &mut R) -> io::Result<Box<dyn Read + '_>>
@@ -18,8 +18,8 @@ where
     validate_content_type(content_type)?;
 
     let _content_type_id = read_itf8(reader)?;
-    let compressed_size = read_itf8_as_u64(reader)?;
-    let uncompressed_size = read_itf8_as_u64(reader)?;
+    let compressed_size = read_itf8_as(reader)?;
+    let uncompressed_size = read_itf8_as(reader)?;
 
     let reader: Box<dyn Read + '_> = match compression_method {
         CompressionMethod::None => Box::new(reader.take(uncompressed_size)),
@@ -92,12 +92,4 @@ fn validate_content_type(actual: ContentType) -> io::Result<()> {
             format!("invalid block content type: expected {EXPECTED:?}, got {actual:?}"),
         ))
     }
-}
-
-fn read_itf8_as_u64<R>(reader: &mut R) -> io::Result<u64>
-where
-    R: Read,
-{
-    read_itf8(reader)
-        .and_then(|n| u64::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
 }

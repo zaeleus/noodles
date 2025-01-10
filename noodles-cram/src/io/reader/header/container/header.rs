@@ -3,7 +3,7 @@ use std::io::{self, Read};
 use byteorder::{LittleEndian, ReadBytesExt};
 use flate2::CrcReader;
 
-use crate::io::reader::num::{read_itf8, read_ltf8};
+use crate::io::reader::num::{read_itf8, read_itf8_as, read_ltf8};
 
 pub(crate) fn read_header<R>(reader: &mut R) -> io::Result<u64>
 where
@@ -49,9 +49,7 @@ fn read_landmarks<R>(reader: &mut R) -> io::Result<()>
 where
     R: Read,
 {
-    let len = read_itf8(reader).and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    let len: usize = read_itf8_as(reader)?;
 
     for _ in 0..len {
         read_itf8(reader)?;

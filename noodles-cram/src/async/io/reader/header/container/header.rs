@@ -1,7 +1,7 @@
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::r#async::io::reader::{
-    num::{read_itf8, read_ltf8},
+    num::{read_itf8, read_itf8_as, read_ltf8},
     CrcReader,
 };
 
@@ -49,9 +49,7 @@ async fn read_landmarks<R>(reader: &mut R) -> io::Result<()>
 where
     R: AsyncRead + Unpin,
 {
-    let len = read_itf8(reader).await.and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    let len: usize = read_itf8_as(reader).await?;
 
     for _ in 0..len {
         read_itf8(reader).await?;
