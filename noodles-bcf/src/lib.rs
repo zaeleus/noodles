@@ -13,4 +13,4 @@ pub use self::record::Record;
 #[cfg(feature = "async")]
 pub use self::r#async::io::{Reader as AsyncReader, Writer as AsyncWriter};
 
-static MAGIC_NUMBER: [u8; 3] = *b"BCF";
+const MAGIC_NUMBER: [u8; 3] = *b"BCF";
