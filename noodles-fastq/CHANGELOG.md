@@ -10,14 +10,14 @@
 
 ### Fixed
 
-  * fasta: Re-enable `fastq::Writer` re-export.
+  * fastq: Re-enable `fastq::Writer` re-export.
 
     This was accidentally disabled in 0.11.0; however, usage of
     `fastq::io::Writer` should be preferred.
 
 ### Deprecated
 
-  * fasta: Deprecate async re-exports (`AsyncReader` and `AsyncWriter`).
+  * fastq: Deprecate async re-exports (`AsyncReader` and `AsyncWriter`).
 
     Use `fastq::r#async::io::Reader` and `fastq::r#async::io::Writer` instead.
 
