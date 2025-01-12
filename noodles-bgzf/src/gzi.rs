@@ -7,9 +7,10 @@
 #[cfg(feature = "async")]
 pub mod r#async;
 
+mod index;
 mod reader;
 
-pub use self::reader::Reader;
+pub use self::{index::Index, reader::Reader};
 
 #[cfg(feature = "async")]
 pub use self::r#async::Reader as AsyncReader;
@@ -19,9 +20,6 @@ use std::{
     io::{self, BufReader},
     path::Path,
 };
-
-/// A gzip index.
-pub type Index = Vec<(u64, u64)>;
 
 /// Reads the entire contents of a GZ index.
 ///
