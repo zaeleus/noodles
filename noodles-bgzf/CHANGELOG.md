@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * bgzf/gzi: Add wrapper for `Index`.
+
 ### Changed
 
   * bgzf: Raise minimum supported Rust version (MSRV) to 1.73.0.

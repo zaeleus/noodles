@@ -335,6 +335,8 @@ where
     }
 
     fn seek_with_index(&mut self, index: &gzi::Index, pos: SeekFrom) -> io::Result<u64> {
+        let index = index.as_ref();
+
         let SeekFrom::Start(pos) = pos else {
             unimplemented!();
         };

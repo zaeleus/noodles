@@ -192,12 +192,12 @@ where
     /// ```
     /// # #[tokio::main]
     /// # async fn main() -> tokio::io::Result<()> {
-    /// use noodles_bgzf as bgzf;
+    /// use noodles_bgzf::{self as bgzf, gzi};
     /// use tokio::io;
     ///
     /// let mut reader = bgzf::AsyncReader::new(io::empty());
     ///
-    /// let index = vec![(0, 0)];
+    /// let index = gzi::Index::from(vec![(0, 0)]);
     /// reader.seek_by_uncompressed_position(&index, 0).await?;
     /// # Ok(())
     /// # }
@@ -207,6 +207,8 @@ where
         index: &gzi::Index,
         pos: u64,
     ) -> io::Result<u64> {
+        let index = index.as_ref();
+
         assert!(!index.is_empty());
 
         let i = index.partition_point(|r| r.1 <= pos);

@@ -102,7 +102,7 @@ where
                 io::ErrorKind::InvalidData,
                 "unexpected trailing data",
             )),
-            Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => Ok(offsets),
+            Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => Ok(Index::from(offsets)),
             Err(e) => Err(e),
         }
     }
@@ -125,7 +125,7 @@ mod tests {
         let mut reader = Reader::new(&data[..]);
         assert_eq!(
             reader.read_index()?,
-            vec![(0, 0), (4668, 21294), (23810, 86529)]
+            Index::from(vec![(0, 0), (4668, 21294), (23810, 86529)])
         );
 
         Ok(())
@@ -137,7 +137,7 @@ mod tests {
 
         let mut reader = Reader::new(&data[..]);
         let index = reader.read_index()?;
-        assert_eq!(index, [(0, 0)]);
+        assert_eq!(index, Index::from(vec![(0, 0)]));
 
         Ok(())
     }
