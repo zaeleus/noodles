@@ -9,7 +9,7 @@ use tokio::io::{
 };
 
 pin_project! {
-    /// An async BAM header SAM header reader.
+    /// An async CRAM header container SAM header reader.
     pub struct Reader<R> {
         #[pin]
         inner: BufReader<Take<R>>,
@@ -28,6 +28,7 @@ where
         }
     }
 
+    /// Discards all input until EOF.
     pub async fn discard_to_end(&mut self) -> io::Result<usize> {
         let mut n = 0;
 

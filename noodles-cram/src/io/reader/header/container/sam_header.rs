@@ -1,8 +1,11 @@
+//! CRAM header container SAM header reader.
+
 use std::io::{self, BufRead, BufReader, Read, Take};
 
 use bstr::ByteSlice;
 
-pub(crate) struct Reader<R> {
+/// A CRAM header container SAM header reader.
+pub struct Reader<R> {
     inner: BufReader<Take<R>>,
     is_eol: bool,
 }
@@ -18,6 +21,7 @@ where
         }
     }
 
+    /// Discards all input until EOF.
     pub fn discard_to_end(&mut self) -> io::Result<usize> {
         let mut n = 0;
 

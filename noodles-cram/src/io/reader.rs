@@ -3,7 +3,7 @@
 mod builder;
 pub(crate) mod container;
 pub(crate) mod data_container;
-pub(crate) mod header;
+pub mod header;
 pub(crate) mod num;
 mod query;
 pub(crate) mod record;
@@ -112,6 +112,38 @@ where
 
     pub(crate) fn reference_sequence_repository(&self) -> &fasta::Repository {
         &self.reference_sequence_repository
+    }
+
+    /// Returns a CRAM header reader.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io::Read};
+    /// use noodles_cram as cram;
+    ///
+    /// let mut reader = File::open("sample.cram").map(cram::io::Reader::new)?;
+    ///
+    /// let mut header_reader = reader.header_reader();
+    /// header_reader.read_magic_number()?;
+    /// header_reader.read_format_version()?;
+    /// header_reader.read_file_id()?;
+    ///
+    /// let mut container_reader = header_reader.container_reader()?;
+    ///
+    /// let _raw_header = {
+    ///     let mut raw_sam_header_reader = container_reader.raw_sam_header_reader()?;
+    ///     let mut raw_header = String::new();
+    ///     raw_sam_header_reader.read_to_string(&mut raw_header)?;
+    ///     raw_sam_header_reader.discard_to_end()?;
+    ///     raw_header
+    /// };
+    ///
+    /// container_reader.discard_to_end()?;
+    /// Ok::<_, std::io::Error>(())
+    /// ```
+    pub fn header_reader(&mut self) -> header::Reader<&mut R> {
+        header::Reader::new(&mut self.inner)
     }
 
     /// Reads the CRAM file definition.

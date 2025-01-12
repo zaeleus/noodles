@@ -1,4 +1,6 @@
-mod container;
+//! Async CRAM header reader.
+
+pub mod container;
 mod file_id;
 mod format_version;
 mod magic_number;
@@ -11,7 +13,8 @@ use self::{
 };
 use crate::{file_definition::Version, FileDefinition, MAGIC_NUMBER};
 
-struct Reader<R> {
+/// A CRAM header reader.
+pub struct Reader<R> {
     inner: R,
 }
 
@@ -19,23 +22,27 @@ impl<R> Reader<R>
 where
     R: AsyncRead + Unpin,
 {
-    fn new(inner: R) -> Self {
+    pub(super) fn new(inner: R) -> Self {
         Self { inner }
     }
 
-    async fn read_magic_number(&mut self) -> io::Result<[u8; MAGIC_NUMBER.len()]> {
+    /// Reads the magic number.
+    pub async fn read_magic_number(&mut self) -> io::Result<[u8; MAGIC_NUMBER.len()]> {
         read_magic_number(&mut self.inner).await
     }
 
-    async fn read_format_version(&mut self) -> io::Result<Version> {
+    /// Reads the format version.
+    pub async fn read_format_version(&mut self) -> io::Result<Version> {
         read_format_version(&mut self.inner).await
     }
 
-    async fn read_file_id(&mut self) -> io::Result<[u8; 20]> {
+    /// Reads the file ID.
+    pub async fn read_file_id(&mut self) -> io::Result<[u8; 20]> {
         read_file_id(&mut self.inner).await
     }
 
-    async fn container_reader(&mut self) -> io::Result<container::Reader<&mut R>> {
+    /// Returns a header container reader.
+    pub async fn container_reader(&mut self) -> io::Result<container::Reader<&mut R>> {
         let len = container::read_header(&mut self.inner).await?;
         Ok(container::Reader::new(&mut self.inner, len))
     }

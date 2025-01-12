@@ -4,6 +4,11 @@
 
 ### Added
 
+  * cram/io/reader: Add a header reader adapter (`header::Reader`).
+
+    This can be used to read the raw fields of a CRAM header, e.g., the raw SAM
+    header.
+
   * cram/io/writer: Add missing common methods to get the underlying reader
     (`Reader::get_mut` and `Reader::into_inner`).
 

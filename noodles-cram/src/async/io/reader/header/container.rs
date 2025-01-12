@@ -1,3 +1,5 @@
+//! Async CRAM header container reader.
+
 mod block;
 mod header;
 mod sam_header;
@@ -7,7 +9,8 @@ use tokio::io::{self, AsyncRead, AsyncReadExt, Take};
 use self::block::read_block;
 pub(super) use self::header::read_header;
 
-pub(super) struct Reader<R> {
+/// An async CRAM header container reader.
+pub struct Reader<R> {
     inner: Take<R>,
 }
 
@@ -21,7 +24,8 @@ where
         }
     }
 
-    pub(super) async fn raw_sam_header_reader(
+    /// Returns a raw SAM header reader.
+    pub async fn raw_sam_header_reader(
         &mut self,
     ) -> io::Result<sam_header::Reader<impl AsyncRead + Unpin + '_>> {
         let mut reader = read_block(&mut self.inner).await?;
@@ -33,7 +37,8 @@ where
         Ok(sam_header::Reader::new(reader, len))
     }
 
-    pub(super) async fn discard_to_end(&mut self) -> io::Result<u64> {
+    /// Discards all input until EOF.
+    pub async fn discard_to_end(&mut self) -> io::Result<u64> {
         io::copy(&mut self.inner, &mut io::sink()).await
     }
 }

@@ -1,4 +1,6 @@
-mod container;
+//! CRAM header reader.
+
+pub mod container;
 mod file_id;
 mod format_version;
 pub(crate) mod magic_number;
@@ -12,7 +14,8 @@ use self::{
 };
 use crate::{file_definition::Version, FileDefinition, MAGIC_NUMBER};
 
-struct Reader<R> {
+/// A CRAM header reader.
+pub struct Reader<R> {
     inner: R,
 }
 
@@ -20,23 +23,30 @@ impl<R> Reader<R>
 where
     R: Read,
 {
-    fn new(inner: R) -> Self {
+    pub(super) fn new(inner: R) -> Self {
         Self { inner }
     }
 
-    fn read_magic_number(&mut self) -> io::Result<[u8; MAGIC_NUMBER.len()]> {
+    /// Reads the magic number.
+    pub fn read_magic_number(&mut self) -> io::Result<[u8; MAGIC_NUMBER.len()]> {
         read_magic_number(&mut self.inner)
     }
 
-    fn read_format_version(&mut self) -> io::Result<Version> {
+    /// Reads the format version.
+    pub fn read_format_version(&mut self) -> io::Result<Version> {
         read_format_version(&mut self.inner)
     }
 
-    fn read_file_id(&mut self) -> io::Result<[u8; 20]> {
+    /// Reads the file ID.
+    pub fn read_file_id(&mut self) -> io::Result<[u8; 20]> {
         read_file_id(&mut self.inner)
     }
 
-    fn container_reader(&mut self) -> io::Result<container::Reader<&mut R>> {
+    /// Returns a header container reader.
+    ///
+    /// The caller is responsible of discarding any extra padding in the header container, e.g.,
+    /// using [`container::Reader::discard_to_end`].
+    pub fn container_reader(&mut self) -> io::Result<container::Reader<&mut R>> {
         let len = container::read_header(&mut self.inner)?;
         Ok(container::Reader::new(&mut self.inner, len))
     }

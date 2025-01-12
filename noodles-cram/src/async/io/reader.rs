@@ -3,7 +3,7 @@
 mod builder;
 mod crc_reader;
 mod data_container;
-mod header;
+pub mod header;
 mod num;
 mod query;
 mod records;
@@ -89,6 +89,43 @@ where
 
     fn reference_sequence_repository(&self) -> &fasta::Repository {
         &self.reference_sequence_repository
+    }
+
+    /// Returns an async CRAM header reader.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> tokio::io::Result<()> {
+    /// use noodles_cram as cram;
+    /// use tokio::{fs::File, io::AsyncReadExt};
+    ///
+    /// let mut reader = File::open("sample.cram")
+    ///     .await
+    ///     .map(cram::r#async::io::Reader::new)?;
+    ///
+    /// let mut header_reader = reader.header_reader();
+    /// header_reader.read_magic_number().await?;
+    /// header_reader.read_format_version().await?;
+    /// header_reader.read_file_id().await?;
+    ///
+    /// let mut container_reader = header_reader.container_reader().await?;
+    ///
+    /// let _raw_header = {
+    ///     let mut raw_sam_header_reader = container_reader.raw_sam_header_reader().await?;
+    ///     let mut raw_header = String::new();
+    ///     raw_sam_header_reader.read_to_string(&mut raw_header).await?;
+    ///     raw_sam_header_reader.discard_to_end().await?;
+    ///     raw_header
+    /// };
+    ///
+    /// container_reader.discard_to_end().await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn header_reader(&mut self) -> header::Reader<&mut R> {
+        header::Reader::new(&mut self.inner)
     }
 
     /// Reads the CRAM file definition.
