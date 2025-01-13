@@ -2,7 +2,7 @@
 
 pub mod field;
 
-use std::ops::{Deref, DerefMut};
+use std::ops::Deref;
 
 use indexmap::IndexMap;
 
@@ -23,8 +23,8 @@ impl Deref for Attributes {
     }
 }
 
-impl DerefMut for Attributes {
-    fn deref_mut(&mut self) -> &mut Self::Target {
+impl AsMut<IndexMap<Tag, Value>> for Attributes {
+    fn as_mut(&mut self) -> &mut IndexMap<Tag, Value> {
         &mut self.0
     }
 }
