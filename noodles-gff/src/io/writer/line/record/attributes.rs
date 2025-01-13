@@ -13,7 +13,7 @@ where
     if attributes.is_empty() {
         write_missing(writer)?;
     } else {
-        for (i, (tag, value)) in attributes.iter().enumerate() {
+        for (i, (tag, value)) in attributes.as_ref().iter().enumerate() {
             if i > 0 {
                 write_separator(writer)?;
             }

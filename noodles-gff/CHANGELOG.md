@@ -8,9 +8,10 @@
 
 ### Removed
 
-  * gff/record_buf/attributes: Remove `DerefMut`.
+  * gff/record_buf/attributes: Remove `Deref` and `DerefMut`.
 
-    Use the `AsMut<IndexMap<Tag, Value>>` implementation instead.
+    Use the `AsRef<IndexMap<Tag, Value>>` and `AsMut<IndexMap<Tag, Value>>`
+    implementations, respectively, instead.
 
   * gff/record_buf/attributes: Remove parser.
 

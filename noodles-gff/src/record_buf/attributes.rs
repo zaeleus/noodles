@@ -2,8 +2,6 @@
 
 pub mod field;
 
-use std::ops::Deref;
-
 use indexmap::IndexMap;
 
 use self::field::{Tag, Value};
@@ -15,10 +13,25 @@ use self::field::{Tag, Value};
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Attributes(IndexMap<Tag, Value>);
 
-impl Deref for Attributes {
-    type Target = IndexMap<Tag, Value>;
+impl Attributes {
+    /// Returns whether there are any entries.
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
 
-    fn deref(&self) -> &Self::Target {
+    /// Returns the number of entries.
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    /// Returns the value at the given tag.
+    pub fn get(&self, tag: &str) -> Option<&Value> {
+        self.0.get(tag)
+    }
+}
+
+impl AsRef<IndexMap<Tag, Value>> for Attributes {
+    fn as_ref(&self) -> &IndexMap<Tag, Value> {
         &self.0
     }
 }
