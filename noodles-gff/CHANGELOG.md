@@ -6,6 +6,12 @@
 
   * gff: Raise minimum supported Rust version (MSRV) to 1.73.0.
 
+### Removed
+
+  * gff/record_buf/attributes: Remove parser.
+
+    Use a deserializer (e.g., `gff::io::Reader`) instead.
+
 ## 0.41.0 - 2024-12-20
 
 ### Changed

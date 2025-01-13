@@ -1,11 +1,6 @@
 //! GFF record attributes field value.
 
-use std::{
-    error, fmt, iter, mem,
-    str::{self, FromStr},
-};
-
-const DELIMITER: char = ',';
+use std::{iter, mem};
 
 /// A GFF record attribute field value.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -115,73 +110,11 @@ impl From<Vec<String>> for Value {
     }
 }
 
-/// An error returned when a raw GFF record attribute field value fails to parse.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
-    /// The input is invalid.
-    Invalid(str::Utf8Error),
-}
-
-impl error::Error for ParseError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match self {
-            Self::Invalid(e) => Some(e),
-        }
-    }
-}
-
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Invalid(_) => f.write_str("invalid input"),
-        }
-    }
-}
-
-impl FromStr for Value {
-    type Err = ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if let Some((a, b)) = s.split_once(DELIMITER) {
-            iter::once(a)
-                .chain(b.split(DELIMITER))
-                .map(decode_value)
-                .collect::<Result<_, _>>()
-                .map(Self::Array)
-        } else {
-            decode_value(s).map(Self::String)
-        }
-    }
-}
-
-fn decode_value(s: &str) -> Result<String, ParseError> {
-    use super::percent_decode;
-
-    percent_decode(s)
-        .map(|t| t.into_owned())
-        .map_err(ParseError::Invalid)
-}
-
 impl<'a> IntoIterator for &'a Value {
     type Item = &'a String;
     type IntoIter = Box<dyn Iterator<Item = Self::Item> + 'a>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_from_str() {
-        assert_eq!("gene0".parse(), Ok(Value::from("gene0")));
-        assert_eq!("13%2C21".parse(), Ok(Value::from("13,21")));
-        assert_eq!(
-            "13,21".parse(),
-            Ok(Value::from(vec![String::from("13"), String::from("21")]))
-        );
     }
 }
