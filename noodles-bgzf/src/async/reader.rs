@@ -207,13 +207,7 @@ where
         index: &gzi::Index,
         pos: u64,
     ) -> io::Result<u64> {
-        let index = index.as_ref();
-
-        assert!(!index.is_empty());
-
-        let i = index.partition_point(|r| r.1 <= pos);
-        // SAFETY: `i` is > 0.
-        let record = index[i - 1];
+        let record = index.query(pos).expect("invalid index");
 
         let cpos = record.0;
         let upos = u16::try_from(pos - record.1)

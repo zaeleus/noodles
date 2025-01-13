@@ -335,17 +335,11 @@ where
     }
 
     fn seek_with_index(&mut self, index: &gzi::Index, pos: SeekFrom) -> io::Result<u64> {
-        let index = index.as_ref();
-
         let SeekFrom::Start(pos) = pos else {
             unimplemented!();
         };
 
-        assert!(!index.is_empty());
-
-        let i = index.partition_point(|r| r.1 <= pos);
-        // SAFETY: `i` is > 0.
-        let record = index[i - 1];
+        let record = index.query(pos).expect("invalid index");
 
         let cpos = record.0;
         self.get_mut().seek(SeekFrom::Start(cpos))?;
