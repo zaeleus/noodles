@@ -103,7 +103,7 @@ where
     /// ```no_run
     /// # use std::{fs::File, io};
     /// use noodles_cram as cram;
-    /// let mut reader = File::open("sample.bam").map(cram::io::Reader::new)?;
+    /// let mut reader = File::open("sample.cram").map(cram::io::Reader::new)?;
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn new(inner: R) -> Self {
