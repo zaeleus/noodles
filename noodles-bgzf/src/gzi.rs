@@ -13,6 +13,7 @@ mod reader;
 pub use self::{index::Index, reader::Reader};
 
 #[cfg(feature = "async")]
+#[deprecated(since = "0.35.0", note = "Use `bgzf::gzi::r#async::Reader` instead.")]
 pub use self::r#async::Reader as AsyncReader;
 
 use std::{

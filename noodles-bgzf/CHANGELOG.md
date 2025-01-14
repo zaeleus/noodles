@@ -16,6 +16,10 @@
 
     Use `bgzf::r#async::Reader` and `bgzf::r#async::Writer` instead.
 
+  * bgzf/gzi: Deprecate `AsyncReader` re-export.
+
+    Use `bgzf::gzi::r#async::Reader` instead.
+
 ## 0.34.0 - 2024-12-12
 
 ### Added

@@ -18,7 +18,7 @@ where
     /// ```
     /// use noodles_bgzf::gzi;
     /// let data = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
-    /// let reader = gzi::AsyncReader::new(&data[..]);
+    /// let reader = gzi::r#async::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
@@ -40,7 +40,7 @@ where
     ///
     /// let mut reader = File::open("in.gzi")
     ///     .await
-    ///     .map(gzi::AsyncReader::new)?;
+    ///     .map(gzi::r#async::Reader::new)?;
     ///
     /// let index = reader.read_index().await?;
     /// # Ok(())
