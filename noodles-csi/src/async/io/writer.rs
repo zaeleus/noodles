@@ -10,6 +10,7 @@ use crate::{
         },
         ReferenceSequence as _,
     },
+    io::MAGIC_NUMBER,
     BinningIndex, Index,
 };
 
@@ -142,9 +143,7 @@ async fn write_magic<W>(writer: &mut W) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
-    use crate::io::MAGIC_NUMBER;
-
-    writer.write_all(MAGIC_NUMBER).await
+    writer.write_all(&MAGIC_NUMBER).await
 }
 
 async fn write_header<W>(
@@ -331,13 +330,14 @@ where
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
 
     #[tokio::test]
     async fn test_write_magic() -> io::Result<()> {
         let mut buf = Vec::new();
         write_magic(&mut buf).await?;
-        assert_eq!(buf, b"CSI\x01");
+        assert_eq!(buf, MAGIC_NUMBER);
         Ok(())
     }
 

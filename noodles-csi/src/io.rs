@@ -13,4 +13,4 @@ pub use self::{
     indexed_records::IndexedRecords, query::Query, reader::Reader, writer::Writer,
 };
 
-pub(crate) static MAGIC_NUMBER: &[u8] = b"CSI\x01";
+pub(crate) const MAGIC_NUMBER: [u8; 4] = *b"CSI\x01";

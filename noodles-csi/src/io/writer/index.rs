@@ -6,7 +6,7 @@ use std::io::{self, Write};
 use byteorder::{LittleEndian, WriteBytesExt};
 
 use self::{header::write_aux, reference_sequences::write_reference_sequences};
-use crate::{BinningIndex, Index};
+use crate::{io::MAGIC_NUMBER, BinningIndex, Index};
 
 pub(super) fn write_index<W>(writer: &mut W, index: &Index) -> io::Result<()>
 where
@@ -34,9 +34,7 @@ fn write_magic<W>(writer: &mut W) -> io::Result<()>
 where
     W: Write,
 {
-    use crate::io::MAGIC_NUMBER;
-
-    writer.write_all(MAGIC_NUMBER)
+    writer.write_all(&MAGIC_NUMBER)
 }
 
 #[cfg(test)]
@@ -47,8 +45,7 @@ mod tests {
     fn test_write_magic() -> io::Result<()> {
         let mut buf = Vec::new();
         write_magic(&mut buf)?;
-        let expected = b"CSI\x01";
-        assert_eq!(buf, expected);
+        assert_eq!(buf, MAGIC_NUMBER);
         Ok(())
     }
 }
