@@ -13,7 +13,7 @@ use noodles_csi::{
 };
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
-use crate::Index;
+use crate::{Index, MAGIC_NUMBER};
 
 const NUL: u8 = b'\x00';
 
@@ -151,7 +151,7 @@ async fn write_magic<W>(writer: &mut W) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
-    writer.write_all(crate::MAGIC_NUMBER).await
+    writer.write_all(&MAGIC_NUMBER).await
 }
 
 async fn write_header<W>(writer: &mut W, header: &Header) -> io::Result<()>

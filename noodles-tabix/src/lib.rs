@@ -55,7 +55,7 @@ use std::{fs::File, path::Path};
 
 use noodles_csi::binning_index::{self, index::reference_sequence::index::LinearIndex};
 
-static MAGIC_NUMBER: &[u8] = b"TBI\x01";
+const MAGIC_NUMBER: [u8; 4] = *b"TBI\x01";
 
 /// A tabix index.
 pub type Index = binning_index::Index<LinearIndex>;

@@ -128,7 +128,7 @@ fn read_magic<R>(reader: &mut R) -> io::Result<()>
 where
     R: Read,
 {
-    let mut magic = [0; 4];
+    let mut magic = [0; MAGIC_NUMBER.len()];
     reader.read_exact(&mut magic)?;
 
     if magic == MAGIC_NUMBER {

@@ -148,7 +148,7 @@ fn write_magic<W>(writer: &mut W) -> io::Result<()>
 where
     W: Write,
 {
-    writer.write_all(MAGIC_NUMBER)
+    writer.write_all(&MAGIC_NUMBER)
 }
 
 fn write_header<W>(writer: &mut W, header: &Header) -> io::Result<()>
@@ -373,7 +373,7 @@ mod tests {
 
         let mut expected = Vec::new();
         // magic
-        expected.write_all(MAGIC_NUMBER)?;
+        expected.write_all(&MAGIC_NUMBER)?;
         // n_ref
         expected.write_i32::<LittleEndian>(1)?;
         // format
