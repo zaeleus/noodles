@@ -8,6 +8,10 @@
 
 ### Removed
 
+  * gff/record_buf: Remove `Field`.
+
+    This is no longer used.
+
   * gff/record_buf/attributes: Remove `Deref` and `DerefMut`.
 
     Use the `AsRef<IndexMap<Tag, Value>>` and `AsMut<IndexMap<Tag, Value>>`

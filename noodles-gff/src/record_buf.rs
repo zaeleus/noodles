@@ -3,11 +3,10 @@
 pub mod attributes;
 mod builder;
 mod convert;
-mod field;
 
 use noodles_core::Position;
 
-pub use self::{attributes::Attributes, builder::Builder, field::Field};
+pub use self::{attributes::Attributes, builder::Builder};
 use super::record::{Phase, Strand};
 
 /// A GFF record.
