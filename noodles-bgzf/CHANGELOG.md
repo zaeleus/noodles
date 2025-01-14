@@ -12,9 +12,9 @@
 
 ### Deprecated
 
-  * bgzf: Deprecate `AsyncReader` re-export.
+  * bgzf: Deprecate async re-exports (`AsyncReader` and `AsyncWriter`).
 
-    Use `bgzf::r#async::Reader` instead.
+    Use `bgzf::r#async::Reader` and `bgzf::r#async::Writer` instead.
 
 ## 0.34.0 - 2024-12-12
 

@@ -60,6 +60,7 @@ pub use self::{
 pub use self::r#async::Reader as AsyncReader;
 
 #[cfg(feature = "async")]
+#[deprecated(since = "0.35.0", note = "Use `bgzf::r#async::Writer` instead.")]
 pub use self::r#async::Writer as AsyncWriter;
 
 use self::block::Block;
