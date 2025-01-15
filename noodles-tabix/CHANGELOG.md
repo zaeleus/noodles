@@ -6,6 +6,14 @@
 
   * tabix: Raise minimum supported Rust version (MSRV) to 1.73.0.
 
+  * tabix: Move convenience functions (`read` and `write`) to `fs` module.
+
+### Deprecated
+
+  * tabix: Deprecate `read` and `write`.
+
+    Use `tabix::fs::read` and `tabix::fs::write`, respectively, instead.
+
 ## 0.47.0 - 2024-12-12
 
 ### Changed

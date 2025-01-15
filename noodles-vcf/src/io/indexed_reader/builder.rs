@@ -95,7 +95,7 @@ where
 {
     let src = src.as_ref();
 
-    match tabix::read(build_index_src(src, "tbi")) {
+    match tabix::fs::read(build_index_src(src, "tbi")) {
         Ok(index) => Ok(Box::new(index)),
         Err(e) if e.kind() == io::ErrorKind::NotFound => {
             let index = csi::fs::read(build_index_src(src, "csi"))?;

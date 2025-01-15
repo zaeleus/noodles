@@ -17,7 +17,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let region: Region = args.next().expect("missing region").parse()?;
 
     let index_src = format!("{src}.tbi");
-    let index = tabix::read(index_src)?;
+    let index = tabix::fs::read(index_src)?;
 
     let header = index.header().expect("missing tabix header");
     let reference_sequence_id = header

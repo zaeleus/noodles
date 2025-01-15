@@ -343,7 +343,7 @@ where
     ///
     /// let header = reader.read_header()?;
     ///
-    /// let index = tabix::read("sample.vcf.gz.tbi")?;
+    /// let index = tabix::fs::read("sample.vcf.gz.tbi")?;
     /// let region = "sq0:8-13".parse()?;
     /// let query = reader.query(&header, &index, &region)?;
     ///

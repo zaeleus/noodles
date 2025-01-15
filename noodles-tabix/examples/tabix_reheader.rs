@@ -20,7 +20,7 @@ fn main() -> io::Result<()> {
     let src = args.next().expect("missing src");
 
     let tabix_src = format!("{src}.tbi");
-    let index = tabix::read(tabix_src)?;
+    let index = tabix::fs::read(tabix_src)?;
 
     let tabix_header = index
         .header()

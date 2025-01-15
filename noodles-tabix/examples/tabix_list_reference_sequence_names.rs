@@ -11,7 +11,7 @@ fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
     let tabix_src = format!("{src}.tbi");
-    let index = tabix::read(tabix_src)?;
+    let index = tabix::fs::read(tabix_src)?;
 
     let header = index
         .header()
