@@ -4,6 +4,9 @@
 
 ### Added
 
+  * fasta/fai/async/fs: Add convenience read function
+    (`fai::r#async::fs::read`).
+
   * fasta/fai/fs: Add convenience write function (`fai::fs::write`).
 
 ### Changed
