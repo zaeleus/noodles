@@ -312,7 +312,7 @@ where
     /// let mut reader = File::open("sample.cram").map(cram::io::Reader::new)?;
     ///
     /// let header = reader.read_header()?;
-    /// let index = crai::read("sample.cram.crai")?;
+    /// let index = crai::fs::read("sample.cram.crai")?;
     /// let region = "sq0:8-13".parse()?;
     /// let query = reader.query(&header, &index, &region)?;
     ///

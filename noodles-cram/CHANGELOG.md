@@ -18,6 +18,8 @@
   
   * cram/crai: Move reader (`Reader`) and writer (`Writer`) to `io` module.
 
+  * cram/crai: Move convenience functions (`read` and `write`) to `fs` module.
+
   * cram/async/io/reader: Change `Reader::read_file_header` to return a parsed
     header (`sam::Header`).
 
@@ -37,6 +39,10 @@
   * cram/crai: Deprecate `Reader` and `Writer`.
 
     Use `crai::io::Reader` and `cram::io::Writer`, respectively, instead.
+
+  * cram/crai: Deprecate `read` and `write`.
+
+    Use `crai::fs::read` and `crai::fs::write`, respectively, instead.
 
   * cram/crai: Deprecate async re-exports (`AsyncReader` and `AsyncWriter`).
 

@@ -71,7 +71,7 @@ impl Builder {
 
         if self.index.is_none() {
             let index_src = build_index_src(src);
-            self.index = crai::read(index_src).map(Some)?;
+            self.index = crai::fs::read(index_src).map(Some)?;
         }
 
         let file = File::open(src)?;
