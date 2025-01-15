@@ -52,7 +52,7 @@ impl Builder {
 
         if self.index.is_none() {
             let index_src = build_index_src(src);
-            let index = csi::read(index_src)?;
+            let index = csi::fs::read(index_src)?;
             self.index = Some(Box::new(index));
         }
 

@@ -95,7 +95,7 @@ where
     match bai::fs::read(build_index_src(src, "bai")) {
         Ok(index) => Ok(Box::new(index)),
         Err(e) if e.kind() == io::ErrorKind::NotFound => {
-            let index = csi::read(build_index_src(src, "csi"))?;
+            let index = csi::fs::read(build_index_src(src, "csi"))?;
             Ok(Box::new(index))
         }
         Err(e) => Err(e),

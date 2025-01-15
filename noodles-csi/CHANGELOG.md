@@ -6,6 +6,14 @@
 
   * csi: Raise minimum supported Rust version (MSRV) to 1.73.0.
 
+  * csi: Move convenience functions (`read` and `write`) to `fs` module.
+
+### Deprecated
+
+  * csi: Deprecate `read` and `write`.
+
+    Use `csi::fs::read` and `csi::fs::write`, respectively, instead.
+
 ## 0.41.0 - 2024-12-12
 
 ### Changed

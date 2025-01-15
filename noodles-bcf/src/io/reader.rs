@@ -278,7 +278,7 @@ where
     /// let mut reader = File::open("sample.bcf").map(bcf::io::Reader::new)?;
     /// let header = reader.read_header()?;
     ///
-    /// let index = csi::read("sample.bcf.csi")?;
+    /// let index = csi::fs::read("sample.bcf.csi")?;
     /// let region = "sq0:8-13".parse()?;
     /// let query = reader.query(&header, &index, &region)?;
     ///

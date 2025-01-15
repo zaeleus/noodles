@@ -10,7 +10,7 @@ fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
     let csi_src = format!("{src}.csi");
-    let index = csi::read(csi_src)?;
+    let index = csi::fs::read(csi_src)?;
 
     let mut n = 0;
 

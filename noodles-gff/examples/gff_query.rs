@@ -16,7 +16,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let region = args.next().expect("missing region").parse()?;
 
     let index_src = format!("{src}.csi");
-    let index = csi::read(index_src)?;
+    let index = csi::fs::read(index_src)?;
 
     let mut reader = File::open(src)
         .map(bgzf::Reader::new)

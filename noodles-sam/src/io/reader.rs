@@ -339,7 +339,7 @@ where
     ///
     /// let header = reader.read_header()?;
     ///
-    /// let index = csi::read("sample.sam.gz.csi")?;
+    /// let index = csi::fs::read("sample.sam.gz.csi")?;
     /// let region = "sq0:8-13".parse()?;
     /// let query = reader.query(&header, &index, &region)?;
     ///
@@ -384,7 +384,7 @@ where
     ///
     /// reader.read_header()?;
     ///
-    /// let index = csi::read("sample.sam.gz.csi")?;
+    /// let index = csi::fs::read("sample.sam.gz.csi")?;
     /// let query = reader.query_unmapped(&index)?;
     ///
     /// for result in query {

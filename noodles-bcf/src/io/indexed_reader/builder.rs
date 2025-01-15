@@ -88,7 +88,7 @@ fn read_associated_index<P>(src: P) -> io::Result<Box<dyn BinningIndex>>
 where
     P: AsRef<Path>,
 {
-    let index = csi::read(build_index_src(src))?;
+    let index = csi::fs::read(build_index_src(src))?;
     Ok(Box::new(index))
 }
 

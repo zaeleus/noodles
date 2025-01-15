@@ -208,7 +208,7 @@ where
     ///     .map(bgzf::Reader::new)
     ///     .map(gff::io::Reader::new)?;
     ///
-    /// let index = csi::read("annotations.gff3.gz.csi")?;
+    /// let index = csi::fs::read("annotations.gff3.gz.csi")?;
     /// let region = "sq0:8-13".parse()?;
     /// let query = reader.query(&index, &region)?;
     ///
