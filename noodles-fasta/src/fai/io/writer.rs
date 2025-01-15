@@ -91,7 +91,7 @@ where
     }
 }
 
-fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
+pub(crate) fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
 where
     W: Write,
 {

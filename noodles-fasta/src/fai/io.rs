@@ -1,6 +1,6 @@
 //! FAI I/O.
 
 mod reader;
-mod writer;
+pub(crate) mod writer;
 
 pub use self::{reader::Reader, writer::Writer};
