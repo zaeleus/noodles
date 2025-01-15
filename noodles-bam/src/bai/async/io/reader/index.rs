@@ -30,7 +30,7 @@ async fn read_magic<R>(reader: &mut R) -> io::Result<()>
 where
     R: AsyncRead + Unpin,
 {
-    let mut magic = [0; 4];
+    let mut magic = [0; MAGIC_NUMBER.len()];
     reader.read_exact(&mut magic).await?;
 
     if magic == MAGIC_NUMBER {

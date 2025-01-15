@@ -32,7 +32,7 @@ async fn write_magic<W>(writer: &mut W) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
-    writer.write_all(MAGIC_NUMBER).await
+    writer.write_all(&MAGIC_NUMBER).await
 }
 
 async fn write_reference_sequences<W>(

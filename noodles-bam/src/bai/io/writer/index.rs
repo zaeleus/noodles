@@ -18,7 +18,7 @@ pub(super) fn write_index<W>(writer: &mut W, index: &Index) -> io::Result<()>
 where
     W: Write,
 {
-    writer.write_all(MAGIC_NUMBER)?;
+    writer.write_all(&MAGIC_NUMBER)?;
 
     let n_ref = u32::try_from(index.reference_sequences().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -160,7 +160,7 @@ mod tests {
 
         let mut expected = Vec::new();
         // magic
-        expected.write_all(MAGIC_NUMBER)?;
+        expected.write_all(&MAGIC_NUMBER)?;
         // n_ref
         expected.write_u32::<LittleEndian>(1)?;
         // n_bin

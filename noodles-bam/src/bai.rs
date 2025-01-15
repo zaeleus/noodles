@@ -52,7 +52,7 @@ use noodles_csi::binning_index::{self, index::reference_sequence::index::LinearI
 
 const DEPTH: u8 = 5;
 
-static MAGIC_NUMBER: &[u8] = b"BAI\x01";
+const MAGIC_NUMBER: [u8; 4] = *b"BAI\x01";
 
 /// A BAM index.
 pub type Index = binning_index::Index<LinearIndex>;
