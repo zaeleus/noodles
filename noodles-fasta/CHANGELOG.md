@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * fasta/fai/fs: Add convenience write function (`fai::fs::write`).
+
 ### Changed
 
   * fasta: Raise minimum supported Rust version (MSRV) to 1.73.0.
