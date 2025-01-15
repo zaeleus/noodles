@@ -3,11 +3,15 @@
 #[cfg(feature = "async")]
 pub mod r#async;
 
+pub mod fs;
 mod index;
 pub mod io;
 mod record;
 
 pub use self::{index::Index, record::Record};
+
+#[deprecated(since = "0.47.0", note = "Use `fai::fs::read` instead.")]
+pub use self::fs::read;
 
 #[deprecated(since = "0.44.0", note = "Use `fai::io::Reader` instead.")]
 pub use self::io::Reader;
@@ -18,26 +22,3 @@ pub use self::io::Writer;
 #[cfg(feature = "async")]
 #[deprecated(since = "0.44.0", note = "Use `fai::r#async::io::Reader` instead.")]
 pub use self::r#async::io::Reader as AsyncReader;
-
-use std::{fs::File, io::BufReader, path::Path};
-
-/// Reads the entire contents of a FASTA index.
-///
-/// This is a convenience function and is equivalent to opening the file at the given path and
-/// parsing each record.
-///
-/// # Examples
-///
-/// ```no_run
-/// # use std::io;
-/// use noodles_fasta::fai;
-/// let index = fai::read("reference.fa.fai")?;
-/// # Ok::<(), io::Error>(())
-/// ```
-pub fn read<P>(src: P) -> std::io::Result<Index>
-where
-    P: AsRef<Path>,
-{
-    let mut reader = File::open(src).map(BufReader::new).map(Reader::new)?;
-    reader.read_index()
-}

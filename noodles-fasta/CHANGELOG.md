@@ -6,6 +6,14 @@
 
   * fasta: Raise minimum supported Rust version (MSRV) to 1.73.0.
 
+  * fasta/fai: Move convenience `read` function to `fs` module.
+
+### Deprecated
+
+  * fasta/fai: Deprecate `read`.
+
+    Use `fai::fs::read` instead.
+
 ## 0.46.0 - 2024-12-12
 
 ### Changed

@@ -50,7 +50,7 @@ impl Builder {
             Some(index) => index,
             None => {
                 let index_src = build_index_src(src);
-                fai::read(index_src)?
+                fai::fs::read(index_src)?
             }
         };
 
