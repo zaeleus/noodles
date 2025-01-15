@@ -38,6 +38,10 @@
 
     Use `crai::io::Reader` and `cram::io::Writer`, respectively, instead.
 
+  * cram/crai: Deprecate async re-exports (`AsyncReader` and `AsyncWriter`).
+
+    Use `crai::r#async::io::Reader` and `crai::r#async::io::Writer` instead.
+
 ## 0.73.0 - 2024-12-20
 
 ### Changed

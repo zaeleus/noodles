@@ -15,7 +15,12 @@ pub use self::io::Reader;
 pub use self::io::Writer;
 
 #[cfg(feature = "async")]
-pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};
+#[deprecated(since = "0.74.0", note = "Use `crai::r#async::io::Reader` instead.")]
+pub use self::r#async::io::Reader as AsyncReader;
+
+#[cfg(feature = "async")]
+#[deprecated(since = "0.74.0", note = "Use `crai::r#async::io::Writer` instead.")]
+pub use self::r#async::io::Writer as AsyncWriter;
 
 use std::{fs::File, path::Path};
 
