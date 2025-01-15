@@ -13,6 +13,14 @@
 
   * bam: Raise minimum supported Rust version (MSRV) to 1.73.0.
 
+  * bam/bai: Move convenience functions (`read` and `write`) to `fs` module.
+
+### Deprecated
+
+  * bam/bai: Deprecate `read` and `write`.
+
+    Use `bai::fs::read` and `bai::fs::write`, respectively, instead.
+
 ### Fixed
 
   * bam/record/codec/encoder/quality_scores: Replace usage of unstable std

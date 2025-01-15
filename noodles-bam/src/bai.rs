@@ -19,14 +19,21 @@
 //! ```no_run
 //! # use std::io;
 //! use noodles_bam::bai;
-//! let index = bai::read("sample.bam.bai")?;
+//! let index = bai::fs::read("sample.bam.bai")?;
 //! # Ok::<(), io::Error>(())
 //! ```
 
 #[cfg(feature = "async")]
 pub mod r#async;
 
+pub mod fs;
 pub mod io;
+
+#[deprecated(since = "0.73.0", note = "Use `bai::fs::read` instead.")]
+pub use self::fs::read;
+
+#[deprecated(since = "0.73.0", note = "Use `bai::fs::write` instead.")]
+pub use self::fs::write;
 
 #[deprecated(since = "0.68.0", note = "Use `bai::io::Reader` instead.")]
 pub use self::io::Reader;
@@ -42,12 +49,6 @@ pub use self::r#async::Reader as AsyncReader;
 #[deprecated(since = "0.68.0", note = "Use `bai::r#async::io::Writer` instead.")]
 pub use self::r#async::Writer as AsyncWriter;
 
-use std::{
-    fs::File,
-    io::{BufReader, BufWriter},
-    path::Path,
-};
-
 use noodles_csi::binning_index::{self, index::reference_sequence::index::LinearIndex};
 
 const DEPTH: u8 = 5;
@@ -56,44 +57,3 @@ const MAGIC_NUMBER: [u8; 4] = *b"BAI\x01";
 
 /// A BAM index.
 pub type Index = binning_index::Index<LinearIndex>;
-
-/// Reads the entire contents of a BAM index.
-///
-/// This is a convenience function and is equivalent to opening the file at the given path, reading
-/// the header, and reading the index.
-///
-/// # Examples
-///
-/// ```no_run
-/// use noodles_bam::bai;
-/// let index = bai::read("sample.bam.bai")?;
-/// # Ok::<(), std::io::Error>(())
-/// ```
-pub fn read<P>(src: P) -> std::io::Result<Index>
-where
-    P: AsRef<Path>,
-{
-    let mut reader = File::open(src).map(BufReader::new).map(Reader::new)?;
-    reader.read_index()
-}
-
-/// Writes a BAM index to a file.
-///
-/// This is a convenience function and is equivalent to creating a file at the given path, writing
-/// the header, and writing the index.
-///
-/// # Examples
-///
-/// ```no_run
-/// use noodles_bam::bai;
-/// let index = bai::Index::default();
-/// bai::write("sample.bam.bai", &index)?;
-/// # Ok::<(), std::io::Error>(())
-/// ```
-pub fn write<P>(dst: P, index: &Index) -> std::io::Result<()>
-where
-    P: AsRef<Path>,
-{
-    let mut writer = File::create(dst).map(BufWriter::new).map(Writer::new)?;
-    writer.write_index(index)
-}

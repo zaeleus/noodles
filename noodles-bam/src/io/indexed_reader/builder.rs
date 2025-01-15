@@ -92,7 +92,7 @@ where
 {
     let src = src.as_ref();
 
-    match bai::read(build_index_src(src, "bai")) {
+    match bai::fs::read(build_index_src(src, "bai")) {
         Ok(index) => Ok(Box::new(index)),
         Err(e) if e.kind() == io::ErrorKind::NotFound => {
             let index = csi::read(build_index_src(src, "csi"))?;

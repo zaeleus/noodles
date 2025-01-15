@@ -362,7 +362,7 @@ where
     /// let mut reader = File::open("sample.bam").map(bam::io::Reader::new)?;
     /// let header = reader.read_header()?;
     ///
-    /// let index = bai::read("sample.bam.bai")?;
+    /// let index = bai::fs::read("sample.bam.bai")?;
     /// let region = "sq0:8-13".parse()?;
     /// let query = reader.query(&header, &index, &region)?;
     ///
@@ -403,7 +403,7 @@ where
     /// let mut reader = File::open("sample.bam").map(bam::io::Reader::new)?;
     /// reader.read_header()?;
     ///
-    /// let index = bai::read("sample.bam.bai")?;
+    /// let index = bai::fs::read("sample.bam.bai")?;
     /// let query = reader.query_unmapped(&index)?;
     ///
     /// for result in query {
