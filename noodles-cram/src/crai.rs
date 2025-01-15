@@ -3,16 +3,19 @@
 #[cfg(feature = "async")]
 pub mod r#async;
 
-mod reader;
+pub mod io;
 pub mod record;
 mod writer;
 
-pub use self::{reader::Reader, record::Record, writer::Writer};
+#[deprecated(since = "0.74.0", note = "Use `crai::io::Reader` instead.")]
+pub use self::io::Reader;
+
+pub use self::{record::Record, writer::Writer};
 
 #[cfg(feature = "async")]
 pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};
 
-use std::{fs::File, io, path::Path};
+use std::{fs::File, path::Path};
 
 /// A CRAM index.
 pub type Index = Vec<Record>;
@@ -30,7 +33,7 @@ pub type Index = Vec<Record>;
 /// let index = crai::read("sample.cram.crai")?;
 /// # Ok::<(), io::Error>(())
 /// ```
-pub fn read<P>(src: P) -> io::Result<Index>
+pub fn read<P>(src: P) -> std::io::Result<Index>
 where
     P: AsRef<Path>,
 {
@@ -52,7 +55,7 @@ where
 /// crai::write("sample.cram.crai", &index)?;
 /// # Ok::<(), io::Error>(())
 /// ```
-pub fn write<P>(dst: P, index: &[Record]) -> io::Result<()>
+pub fn write<P>(dst: P, index: &[Record]) -> std::io::Result<()>
 where
     P: AsRef<Path>,
 {

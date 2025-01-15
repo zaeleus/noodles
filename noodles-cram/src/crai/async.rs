@@ -1,13 +1,16 @@
-//! Async CRAM index I/O.
+//! Async CRAM index.
 
-mod reader;
+pub mod io;
 mod writer;
 
-pub use self::{reader::Reader, writer::Writer};
+#[deprecated(since = "0.74.0", note = "Use `crai::r#async::io::Reader` instead.")]
+pub use self::io::Reader;
+
+pub use self::writer::Writer;
 
 use std::path::Path;
 
-use tokio::{fs::File, io};
+use tokio::fs::File;
 
 use super::{Index, Record};
 
@@ -28,7 +31,7 @@ use super::{Index, Record};
 /// # Ok(())
 /// # }
 /// ```
-pub async fn read<P>(src: P) -> io::Result<Index>
+pub async fn read<P>(src: P) -> tokio::io::Result<Index>
 where
     P: AsRef<Path>,
 {
@@ -54,7 +57,7 @@ where
 /// # Ok(())
 /// # }
 /// ```
-pub async fn write<P>(dst: P, index: &[Record]) -> io::Result<()>
+pub async fn write<P>(dst: P, index: &[Record]) -> tokio::io::Result<()>
 where
     P: AsRef<Path>,
 {

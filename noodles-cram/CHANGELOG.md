@@ -15,6 +15,8 @@
 ### Changed
 
   * cram: Raise minimum supported Rust version (MSRV) to 1.73.0.
+  
+  * cram/crai: Move reader (`Reader`) to `io` module.
 
   * cram/async/io/reader: Change `Reader::read_file_header` to return a parsed
     header (`sam::Header`).
@@ -29,6 +31,12 @@
     entire raw header into memory before parsing.
 
   * cram/io/reader/header: Discard trailing padding in raw SAM header.
+
+### Deprecated
+
+  * cram/crai: Deprecate `Reader`.
+
+    Use `crai::io::Reader` instead.
 
 ## 0.73.0 - 2024-12-20
 

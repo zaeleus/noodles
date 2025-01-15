@@ -19,7 +19,7 @@ where
     /// ```
     /// use noodles_cram::crai;
     /// let data = [];
-    /// let reader = crai::AsyncReader::new(&data[..]);
+    /// let reader = crai::r#async::io::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
         Self {
@@ -43,7 +43,7 @@ where
     ///
     /// let mut reader = File::open("sample.cram.crai")
     ///     .await
-    ///     .map(crai::AsyncReader::new)?;
+    ///     .map(crai::r#async::io::Reader::new)?;
     ///
     /// let index = reader.read_index().await?;
     /// # Ok(())

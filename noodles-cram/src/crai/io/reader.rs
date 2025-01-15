@@ -2,7 +2,7 @@ use std::io::{self, BufRead, BufReader, Read};
 
 use flate2::read::GzDecoder;
 
-use super::Index;
+use crate::crai::Index;
 
 /// A CRAM index reader.
 pub struct Reader<R> {
@@ -20,7 +20,7 @@ where
     /// ```
     /// use noodles_cram::crai;
     /// let data = [];
-    /// let reader = crai::Reader::new(&data[..]);
+    /// let reader = crai::io::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
         Self {
@@ -37,7 +37,7 @@ where
     /// ```no_run
     /// # use std::{fs::File, io};
     /// use noodles_cram::crai;
-    /// let mut reader = File::open("sample.cram.crai").map(crai::Reader::new)?;
+    /// let mut reader = File::open("sample.cram.crai").map(crai::io::Reader::new)?;
     /// let index = reader.read_index()?;
     /// # Ok::<(), io::Error>(())
     /// ```
