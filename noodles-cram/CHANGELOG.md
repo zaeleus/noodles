@@ -16,7 +16,7 @@
 
   * cram: Raise minimum supported Rust version (MSRV) to 1.73.0.
   
-  * cram/crai: Move reader (`Reader`) to `io` module.
+  * cram/crai: Move reader (`Reader`) and writer (`Writer`) to `io` module.
 
   * cram/async/io/reader: Change `Reader::read_file_header` to return a parsed
     header (`sam::Header`).
@@ -34,9 +34,9 @@
 
 ### Deprecated
 
-  * cram/crai: Deprecate `Reader`.
+  * cram/crai: Deprecate `Reader` and `Writer`.
 
-    Use `crai::io::Reader` instead.
+    Use `crai::io::Reader` and `cram::io::Writer`, respectively, instead.
 
 ## 0.73.0 - 2024-12-20
 

@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use flate2::write::GzEncoder;
 
-use super::Record;
+use crate::crai::Record;
 
 /// A CRAM index writer.
 pub struct Writer<W>
@@ -22,7 +22,7 @@ where
     ///
     /// ```
     /// use noodles_cram::crai;
-    /// let writer = crai::Writer::new(Vec::new());
+    /// let writer = crai::io::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
         Self {
@@ -36,7 +36,7 @@ where
     ///
     /// ```
     /// use noodles_cram::crai;
-    /// let writer = crai::Writer::new(Vec::new());
+    /// let writer = crai::io::Writer::new(Vec::new());
     /// assert!(writer.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &W {
@@ -53,7 +53,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_cram::crai;
-    /// let writer = crai::Writer::new(Vec::new());
+    /// let writer = crai::io::Writer::new(Vec::new());
     /// let empty_gz = [31, 139, 8, 0, 0, 0, 0, 0, 0, 255, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     /// assert_eq!(writer.finish()?, empty_gz);
     /// # Ok::<(), io::Error>(())
@@ -70,7 +70,7 @@ where
     /// use noodles_core::Position;
     /// use noodles_cram::crai;
     ///
-    /// let mut writer = crai::Writer::new(Vec::new());
+    /// let mut writer = crai::io::Writer::new(Vec::new());
     ///
     /// let index = vec![crai::Record::new(
     ///     Some(0),

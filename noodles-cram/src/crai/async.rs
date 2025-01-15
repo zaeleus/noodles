@@ -1,12 +1,12 @@
 //! Async CRAM index.
 
 pub mod io;
-mod writer;
 
 #[deprecated(since = "0.74.0", note = "Use `crai::r#async::io::Reader` instead.")]
 pub use self::io::Reader;
 
-pub use self::writer::Writer;
+#[deprecated(since = "0.74.0", note = "Use `crai::r#async::io::Writer` instead.")]
+pub use self::io::Writer;
 
 use std::path::Path;
 

@@ -18,7 +18,7 @@ where
     ///
     /// ```
     /// use noodles_cram::crai;
-    /// let writer = crai::AsyncWriter::new(Vec::new());
+    /// let writer = crai::r#async::io::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
         Self {
@@ -32,7 +32,7 @@ where
     ///
     /// ```
     /// use noodles_cram::crai;
-    /// let writer = crai::AsyncWriter::new(Vec::new());
+    /// let writer = crai::r#async::io::Writer::new(Vec::new());
     /// assert!(writer.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> W {
@@ -49,7 +49,7 @@ where
     /// # #[tokio::main]
     /// # async fn main() -> io::Result<()> {
     /// use noodles_cram::crai;
-    /// let mut writer = crai::AsyncWriter::new(Vec::new());
+    /// let mut writer = crai::r#async::io::Writer::new(Vec::new());
     /// writer.shutdown().await?;
     /// # Ok(())
     /// # }
@@ -70,7 +70,7 @@ where
     /// use noodles_core::Position;
     /// use noodles_cram::crai;
     ///
-    /// let mut writer = crai::AsyncWriter::new(Vec::new());
+    /// let mut writer = crai::r#async::io::Writer::new(Vec::new());
     ///
     /// let index = vec![crai::Record::new(
     ///     Some(0),
