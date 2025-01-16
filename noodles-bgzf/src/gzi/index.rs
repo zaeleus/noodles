@@ -1,3 +1,7 @@
+use std::io;
+
+use crate::VirtualPosition;
+
 /// A gzip index (GZI).
 ///
 /// A gzip index holds compressed-uncompressed position pairs.
@@ -8,30 +12,33 @@
 pub struct Index(Vec<(u64, u64)>);
 
 impl Index {
-    /// Returns the record of the block that contains the given position.
+    /// Returns the virtual position at the given uncompressed position.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf::gzi;
+    /// use noodles_bgzf::{self as bgzf, gzi};
     ///
     /// let index = gzi::Index::default();
-    /// assert_eq!(index.query(0), (0, 0));
+    /// assert_eq!(index.query(0)?, bgzf::VirtualPosition::default());
     ///
     /// let index = gzi::Index::from(vec![(8, 21), (13, 55)]);
-    /// assert_eq!(index.query(0), (0, 0));
-    /// assert_eq!(index.query(13), (0, 0));
-    /// assert_eq!(index.query(34), (8, 21));
-    /// assert_eq!(index.query(89), (13, 55));
+    /// assert_eq!(index.query(0)?, bgzf::VirtualPosition::default());
+    /// assert_eq!(index.query(13)?, bgzf::VirtualPosition::try_from((0, 13))?);
+    /// assert_eq!(index.query(34)?, bgzf::VirtualPosition::try_from((8, 13))?);
+    /// assert_eq!(index.query(89)?, bgzf::VirtualPosition::try_from((13, 34))?);
+    /// Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn query(&self, pos: u64) -> (u64, u64) {
+    pub fn query(&self, pos: u64) -> io::Result<VirtualPosition> {
         let i = self.0.partition_point(|r| r.1 <= pos);
 
-        if i == 0 {
-            (0, 0)
-        } else {
-            self.0[i - 1]
-        }
+        let (compressed_pos, uncompressed_pos) = if i == 0 { (0, 0) } else { self.0[i - 1] };
+
+        let block_data_pos = u16::try_from(pos - uncompressed_pos)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+        VirtualPosition::try_from((compressed_pos, block_data_pos))
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 }
 

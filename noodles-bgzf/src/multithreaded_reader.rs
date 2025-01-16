@@ -339,18 +339,8 @@ where
             unimplemented!();
         };
 
-        let record = index.query(pos);
-
-        let cpos = record.0;
-        self.get_mut().seek(SeekFrom::Start(cpos))?;
-        self.position = cpos;
-
-        self.read_block()?;
-
-        let upos = usize::try_from(pos - record.1)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-        self.buffer.block.data_mut().set_position(upos);
-
+        let virtual_position = index.query(pos)?;
+        self.seek_to_virtual_position(virtual_position)?;
         Ok(pos)
     }
 }

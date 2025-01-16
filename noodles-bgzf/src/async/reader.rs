@@ -207,17 +207,8 @@ where
         index: &gzi::Index,
         pos: u64,
     ) -> io::Result<u64> {
-        let record = index.query(pos);
-
-        let cpos = record.0;
-        let upos = u16::try_from(pos - record.1)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-        let virtual_position = VirtualPosition::try_from((cpos, upos))
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
+        let virtual_position = index.query(pos)?;
         self.seek(virtual_position).await?;
-
         Ok(pos)
     }
 }
