@@ -10,11 +10,17 @@
 
   * bgzf: Raise minimum supported Rust version (MSRV) to 1.73.0.
 
+  * bgzf/gzi: Move reader (`Reader`) to `io` module.
+
 ### Deprecated
 
   * bgzf: Deprecate async re-exports (`AsyncReader` and `AsyncWriter`).
 
     Use `bgzf::r#async::Reader` and `bgzf::r#async::Writer` instead.
+
+  * bgzf/gzi: Deprecate `Reader`.
+
+    Use `bgzf::gzi::io::Reader` instead.
 
   * bgzf/gzi: Deprecate `AsyncReader` re-export.
 

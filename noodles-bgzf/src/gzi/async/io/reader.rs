@@ -21,7 +21,7 @@ where
     /// ```
     /// use noodles_bgzf::gzi;
     /// let data = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
-    /// let reader = gzi::r#async::Reader::new(&data[..]);
+    /// let reader = gzi::r#async::io::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
@@ -34,16 +34,14 @@ where
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_bgzf::gzi;
     /// use tokio::fs::File;
     ///
     /// let mut reader = File::open("in.gzi")
     ///     .await
-    ///     .map(gzi::r#async::Reader::new)?;
+    ///     .map(gzi::r#async::io::Reader::new)?;
     ///
     /// let index = reader.read_index().await?;
     /// # Ok(())

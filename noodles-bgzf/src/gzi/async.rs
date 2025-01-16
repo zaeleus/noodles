@@ -1,17 +1,15 @@
 //! Async gzip index.
 
-mod reader;
-
-pub use self::reader::Reader;
+pub mod io;
 
 use std::path::Path;
 
-use tokio::{
-    fs::File,
-    io::{self, BufReader},
-};
+use tokio::{fs::File, io::BufReader};
 
 use super::Index;
+
+#[deprecated(since = "0.35.0", note = "Use `gzi::r#async::io::Reader` instead.")]
+pub use self::io::Reader;
 
 /// Reads the entire contents of a GZ index.
 ///
@@ -30,7 +28,7 @@ use super::Index;
 /// # Ok(())
 /// # }
 /// ```
-pub async fn read<P>(src: P) -> io::Result<Index>
+pub async fn read<P>(src: P) -> tokio::io::Result<Index>
 where
     P: AsRef<Path>,
 {

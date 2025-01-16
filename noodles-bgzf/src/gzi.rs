@@ -8,19 +8,18 @@
 pub mod r#async;
 
 mod index;
-mod reader;
+pub mod io;
 
-pub use self::{index::Index, reader::Reader};
+pub use self::index::Index;
+
+#[deprecated(since = "0.35.0", note = "Use `gzi::io::Reader` instead.")]
+pub use self::io::Reader;
 
 #[cfg(feature = "async")]
 #[deprecated(since = "0.35.0", note = "Use `bgzf::gzi::r#async::Reader` instead.")]
 pub use self::r#async::Reader as AsyncReader;
 
-use std::{
-    fs::File,
-    io::{self, BufReader},
-    path::Path,
-};
+use std::{fs::File, io::BufReader, path::Path};
 
 /// Reads the entire contents of a GZ index.
 ///
@@ -35,7 +34,7 @@ use std::{
 /// let index = gzi::read("in.gz.gzi")?;
 /// # Ok::<_, io::Error>(())
 /// ```
-pub fn read<P>(src: P) -> io::Result<Index>
+pub fn read<P>(src: P) -> std::io::Result<Index>
 where
     P: AsRef<Path>,
 {
