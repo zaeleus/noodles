@@ -19,6 +19,8 @@
 
   * bgzf/gzi: Move reader (`Reader`) to `io` module.
 
+  * bgzf/gzi: Move convenience `read` function to `fs` module.
+
 ### Deprecated
 
   * bgzf: Deprecate async re-exports (`AsyncReader` and `AsyncWriter`).
@@ -32,6 +34,10 @@
   * bgzf/gzi: Deprecate `AsyncReader` re-export.
 
     Use `bgzf::gzi::r#async::Reader` instead.
+
+  * bgzf/gzi: Deprecate `read`.
+
+    Use `gzi::fs::read` instead.
 
 ## 0.34.0 - 2024-12-12
 
