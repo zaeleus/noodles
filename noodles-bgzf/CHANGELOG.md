@@ -6,6 +6,8 @@
 
   * bgzf/gzi: Add wrapper for `Index`.
 
+  * bgzf/gzi/fs: Add convenience write function (`write`).
+
   * bgzf/gzi/io: Add writer (`Writer`).
 
   * bgzf/gzi/async/io/reader: Add common methods to access the underlying I/O
