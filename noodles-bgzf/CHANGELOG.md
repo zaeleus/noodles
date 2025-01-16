@@ -6,6 +6,9 @@
 
   * bgzf/gzi: Add wrapper for `Index`.
 
+  * bgzf/gzi/async/io/reader: Add common methods to access the underlying I/O
+    (`Reader::get_ref`, `Reader::get_mut`, and `Reader::into_inner`).
+
 ### Changed
 
   * bgzf: Raise minimum supported Rust version (MSRV) to 1.73.0.
