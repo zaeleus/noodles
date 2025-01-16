@@ -7,10 +7,14 @@
 #[cfg(feature = "async")]
 pub mod r#async;
 
+pub mod fs;
 mod index;
 pub mod io;
 
 pub use self::index::Index;
+
+#[deprecated(since = "0.35.0", note = "Use `gzi::fs::read` instead.")]
+pub use self::fs::read;
 
 #[deprecated(since = "0.35.0", note = "Use `gzi::io::Reader` instead.")]
 pub use self::io::Reader;
@@ -18,26 +22,3 @@ pub use self::io::Reader;
 #[cfg(feature = "async")]
 #[deprecated(since = "0.35.0", note = "Use `bgzf::gzi::r#async::Reader` instead.")]
 pub use self::r#async::Reader as AsyncReader;
-
-use std::{fs::File, io::BufReader, path::Path};
-
-/// Reads the entire contents of a GZ index.
-///
-/// This is a convenience function and is equivalent to opening the given path and reading the
-/// index.
-///
-/// # Examples
-///
-/// ```no_run
-/// # use std::io;
-/// use noodles_bgzf::gzi;
-/// let index = gzi::read("in.gz.gzi")?;
-/// # Ok::<_, io::Error>(())
-/// ```
-pub fn read<P>(src: P) -> std::io::Result<Index>
-where
-    P: AsRef<Path>,
-{
-    let mut reader = File::open(src).map(BufReader::new).map(Reader::new)?;
-    reader.read_index()
-}

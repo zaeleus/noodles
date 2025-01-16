@@ -31,7 +31,7 @@ impl Builder {
             Some(index) => index,
             None => {
                 let index_src = build_index_src(&src);
-                gzi::read(index_src)?
+                gzi::fs::read(index_src)?
             }
         };
 
