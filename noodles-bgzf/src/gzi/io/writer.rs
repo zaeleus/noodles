@@ -78,7 +78,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bgzf::gzi;
-    /// let index = gzi::Index::from(vec![(0, 0)]);
+    /// let index = gzi::Index::default();
     /// let mut writer = gzi::io::Writer::new(io::sink());
     /// writer.write_index(&index)?;
     /// # Ok::<_, std::io::Error>(())

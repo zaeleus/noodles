@@ -197,7 +197,7 @@ where
     ///
     /// let mut reader = bgzf::r#async::Reader::new(io::empty());
     ///
-    /// let index = gzi::Index::from(vec![(0, 0)]);
+    /// let index = gzi::Index::default();
     /// reader.seek_by_uncompressed_position(&index, 0).await?;
     /// # Ok(())
     /// # }
@@ -207,7 +207,7 @@ where
         index: &gzi::Index,
         pos: u64,
     ) -> io::Result<u64> {
-        let record = index.query(pos).expect("invalid index");
+        let record = index.query(pos);
 
         let cpos = record.0;
         let upos = u16::try_from(pos - record.1)

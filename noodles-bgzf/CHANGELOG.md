@@ -21,6 +21,12 @@
 
   * bgzf/gzi: Move convenience `read` function to `fs` module.
 
+  * bgzf/gzi/index: Remove first entry.
+
+    The first entry is now implicity `(0, 0)`. As a result, the number of
+    entries corresponds to n - 1 blocks. This now follows the same layout as
+    the physical index.
+
 ### Deprecated
 
   * bgzf: Deprecate async re-exports (`AsyncReader` and `AsyncWriter`).

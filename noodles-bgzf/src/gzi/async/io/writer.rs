@@ -80,7 +80,7 @@ where
     /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_bgzf::gzi;
     /// use tokio::io;
-    /// let index = gzi::Index::from(vec![(0, 0)]);
+    /// let index = gzi::Index::default();
     /// let mut writer = gzi::r#async::io::Writer::new(io::sink());
     /// writer.write_index(&index).await?;
     /// # Ok(())

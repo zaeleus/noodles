@@ -10,8 +10,7 @@ where
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let mut offsets = vec![(0, 0)];
-    offsets.reserve(len);
+    let mut offsets = Vec::with_capacity(len);
 
     for _ in 0..len {
         let compressed = reader.read_u64_le().await?;
@@ -47,7 +46,7 @@ mod tests {
 
         assert_eq!(
             read_index(&mut reader).await?,
-            Index::from(vec![(0, 0), (4668, 21294), (23810, 86529)])
+            Index::from(vec![(4668, 21294), (23810, 86529)])
         );
 
         Ok(())
@@ -57,7 +56,7 @@ mod tests {
     async fn test_read_index_with_no_entries() -> io::Result<()> {
         let src = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]; // len = 0
         let mut reader = &src[..];
-        assert_eq!(read_index(&mut reader).await?, Index::from(vec![(0, 0)]));
+        assert_eq!(read_index(&mut reader).await?, Index::default());
         Ok(())
     }
 

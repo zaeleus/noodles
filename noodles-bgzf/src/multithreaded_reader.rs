@@ -339,7 +339,7 @@ where
             unimplemented!();
         };
 
-        let record = index.query(pos).expect("invalid index");
+        let record = index.query(pos);
 
         let cpos = record.0;
         self.get_mut().seek(SeekFrom::Start(cpos))?;

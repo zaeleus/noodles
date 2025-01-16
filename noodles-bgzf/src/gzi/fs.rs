@@ -40,7 +40,7 @@ where
 ///
 /// ```no_run
 /// use noodles_bgzf::gzi;
-/// let index = gzi::Index::from(vec![(0, 0)]);
+/// let index = gzi::Index::default();
 /// gzi::fs::write("in.gz.gzi", &index)?;
 /// # Ok::<(), std::io::Error>(())
 /// ```

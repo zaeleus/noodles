@@ -8,20 +8,12 @@ where
 {
     let index = index.as_ref();
 
-    if index.is_empty() {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            "index is empty",
-        ));
-    }
-
-    // SAFETY: `index` is nonempty.
-    let len = u64::try_from(index.len() - 1)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    let len =
+        u64::try_from(index.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     writer.write_u64_le(len).await?;
 
-    for (compressed_pos, uncompressed_pos) in index.iter().skip(1).copied() {
+    for &(compressed_pos, uncompressed_pos) in index {
         writer.write_u64_le(compressed_pos).await?;
         writer.write_u64_le(uncompressed_pos).await?;
     }
@@ -37,7 +29,7 @@ mod tests {
     async fn test_write_index() -> io::Result<()> {
         let mut buf = Vec::new();
 
-        let index = Index::from(vec![(0, 0), (4668, 21294), (23810, 86529)]);
+        let index = Index::from(vec![(4668, 21294), (23810, 86529)]);
         write_index(&mut buf, &index).await?;
 
         let expected = [
@@ -56,7 +48,7 @@ mod tests {
     #[tokio::test]
     async fn test_write_index_with_no_entries() -> io::Result<()> {
         let mut buf = Vec::new();
-        let index = Index::from(vec![(0, 0)]);
+        let index = Index::default();
         write_index(&mut buf, &index).await?;
         assert_eq!(buf, [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
         Ok(())

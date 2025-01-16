@@ -44,7 +44,7 @@ where
 /// # #[tokio::main]
 /// # async fn main() -> tokio::io::Result<()> {
 /// use noodles_bgzf::gzi;
-/// let index = gzi::Index::from(vec![(0, 0)]);
+/// let index = gzi::Index::default();
 /// gzi::r#async::fs::write("in.gz.gzi", &index).await?;
 /// # Ok(())
 /// # }
