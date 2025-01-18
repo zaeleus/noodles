@@ -73,7 +73,7 @@ where
 
     /// Reads the BAM index.
     ///
-    /// The position of the stream is expected to be directly after the header.
+    /// The position of the stream is expected to be at the start.
     ///
     /// # Examples
     ///
