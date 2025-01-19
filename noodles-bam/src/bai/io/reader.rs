@@ -13,8 +13,8 @@ use crate::bai::Index;
 ///   2. a list of reference sequences,
 ///   3. and optionally, the number of unmapped reads in the associated BAM.
 ///
-/// While these fields can be read individually, consider using [`super::read`] to read the entire
-/// index at once.
+/// While these fields can be read individually, consider using [`crate::bai::fs::read`] to read
+/// the entire index at once.
 ///
 /// # Examples
 ///
