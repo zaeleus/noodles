@@ -2,9 +2,15 @@
 
 ## Unreleased
 
+### Added
+
+  * gtf/record/attributes: Implement `AsRef<[Entry]`.
+
 ### Removed
 
   * gtf/record/attributes: Remove `Deref<Target = [Entry]>`.
+
+    Use the `AsRef<[Entry]>` implementation instead.
 
 ## 0.36.0 - 2025-01-19
 
