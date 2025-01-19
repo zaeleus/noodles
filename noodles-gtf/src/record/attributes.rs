@@ -42,6 +42,25 @@ impl Attributes {
     pub fn len(&self) -> usize {
         self.0.len()
     }
+
+    /// Returns the value at the given key.
+    ///
+    /// This returns the first match of the key.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gtf::record::{attributes::Entry, Attributes};
+    /// let attributes = Attributes::from(vec![Entry::new("id", "g0")]);
+    /// assert_eq!(attributes.get("id"), Some("g0"));
+    /// assert!(attributes.get("source").is_none());
+    /// ```
+    pub fn get<'a>(&'a self, key: &str) -> Option<&'a str> {
+        self.0
+            .iter()
+            .find(|entry| entry.key() == key)
+            .map(|entry| entry.value())
+    }
 }
 
 impl From<Vec<Entry>> for Attributes {

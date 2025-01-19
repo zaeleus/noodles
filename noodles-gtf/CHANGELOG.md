@@ -4,7 +4,11 @@
 
 ### Added
 
+  * gtf/record/attributes: Add lookup by key (`Attributes::get`) ([#316]).
+
   * gtf/record/attributes: Implement `AsRef<[Entry]`.
+
+[#316]: https://github.com/zaeleus/noodles/issues/316
 
 ### Removed
 
