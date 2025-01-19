@@ -64,8 +64,8 @@ where
     ///
     /// ```
     /// use noodles_bam::bai;
-    /// let data = [];
-    /// let reader = bai::r#async::io::Reader::new(&data[..]);
+    /// use tokio::io;
+    /// let reader = bai::r#async::io::Reader::new(io::empty());
     /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
@@ -78,10 +78,8 @@ where
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_bam::bai;
     /// use tokio::fs::File;
     ///

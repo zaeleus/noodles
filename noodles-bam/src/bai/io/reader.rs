@@ -82,10 +82,9 @@ where
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::{fs::File, io};
+    /// # use std::io;
     /// use noodles_bam::bai;
-    /// let reader = File::open("sample.bam.bai").map(bai::io::Reader::new)?;
-    /// # Ok::<(), io::Error>(())
+    /// let reader = bai::io::Reader::new(io::empty());
     /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
@@ -98,11 +97,11 @@ where
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::{fs::File, io};
+    /// # use std::fs::File;
     /// use noodles_bam::bai;
     /// let mut reader = File::open("sample.bam.bai").map(bai::io::Reader::new)?;
     /// let index = reader.read_index()?;
-    /// # Ok::<(), io::Error>(())
+    /// # Ok::<(), std::io::Error>(())
     /// ```
     pub fn read_index(&mut self) -> io::Result<Index> {
         read_index(&mut self.inner)
