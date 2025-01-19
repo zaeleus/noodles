@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+  * gtf/record/attributes: Remove `Deref<Target = [Entry]>`.
+
 ## 0.36.0 - 2025-01-19
 
 ### Changed

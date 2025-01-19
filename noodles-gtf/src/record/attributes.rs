@@ -7,7 +7,6 @@ pub use self::entry::Entry;
 use std::{
     error,
     fmt::{self, Write},
-    ops::Deref,
     str::FromStr,
 };
 
@@ -17,11 +16,31 @@ const DELIMITER: char = ' ';
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Attributes(Vec<Entry>);
 
-impl Deref for Attributes {
-    type Target = [Entry];
+impl Attributes {
+    /// Returns whether there are any entries.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gtf::record::Attributes;
+    /// let attributes = Attributes::default();
+    /// assert!(attributes.is_empty());
+    /// ```
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
 
-    fn deref(&self) -> &Self::Target {
-        &self.0
+    /// Returns the number of entries.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gtf::record::Attributes;
+    /// let attributes = Attributes::default();
+    /// assert_eq!(attributes.len(), 0);
+    /// ```
+    pub fn len(&self) -> usize {
+        self.0.len()
     }
 }
 
