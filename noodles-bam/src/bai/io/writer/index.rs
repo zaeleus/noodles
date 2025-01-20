@@ -1,6 +1,8 @@
 use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
+use indexmap::IndexMap;
+use noodles_bgzf as bgzf;
 use noodles_csi::{
     binning_index::{
         index::{
@@ -18,18 +20,36 @@ pub(super) fn write_index<W>(writer: &mut W, index: &Index) -> io::Result<()>
 where
     W: Write,
 {
-    writer.write_all(&MAGIC_NUMBER)?;
+    write_magic_number(writer)?;
+    write_reference_sequences(writer, index.reference_sequences())?;
 
-    let n_ref = u32::try_from(index.reference_sequences().len())
+    if let Some(n) = index.unplaced_unmapped_record_count() {
+        write_unplaced_unmapped_record_count(writer, n)?;
+    }
+
+    Ok(())
+}
+
+fn write_magic_number<W>(writer: &mut W) -> io::Result<()>
+where
+    W: Write,
+{
+    writer.write_all(&MAGIC_NUMBER)
+}
+
+fn write_reference_sequences<W>(
+    writer: &mut W,
+    reference_sequences: &[ReferenceSequence<LinearIndex>],
+) -> io::Result<()>
+where
+    W: Write,
+{
+    let n_ref = u32::try_from(reference_sequences.len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32::<LittleEndian>(n_ref)?;
 
-    for reference_sequence in index.reference_sequences() {
+    for reference_sequence in reference_sequences {
         write_reference_sequence(writer, reference_sequence)?;
-    }
-
-    if let Some(n_no_coor) = index.unplaced_unmapped_record_count() {
-        writer.write_u64::<LittleEndian>(n_no_coor)?;
     }
 
     Ok(())
@@ -42,32 +62,44 @@ fn write_reference_sequence<W>(
 where
     W: Write,
 {
-    let mut n_bin = u32::try_from(reference_sequence.bins().len())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    write_bins(
+        writer,
+        reference_sequence.bins(),
+        reference_sequence.metadata(),
+    )?;
 
-    if reference_sequence.metadata().is_some() {
-        n_bin = n_bin
-            .checked_add(1)
-            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "n_bin overflow"))?;
-    }
+    write_intervals(writer, reference_sequence.index())?;
+
+    Ok(())
+}
+
+fn write_bins<W>(
+    writer: &mut W,
+    bins: &IndexMap<usize, Bin>,
+    metadata: Option<&Metadata>,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    let n_bin = u32::try_from(bins.len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+        .and_then(|n| {
+            if metadata.is_some() {
+                n.checked_add(1)
+                    .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "n_bin overflow"))
+            } else {
+                Ok(n)
+            }
+        })?;
 
     writer.write_u32::<LittleEndian>(n_bin)?;
 
-    for (&id, bin) in reference_sequence.bins() {
+    for (&id, bin) in bins {
         write_bin(writer, id, bin)?;
     }
 
-    if let Some(metadata) = reference_sequence.metadata() {
+    if let Some(metadata) = metadata {
         write_metadata(writer, metadata)?;
-    }
-
-    let n_intv = u32::try_from(reference_sequence.index().len())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_u32::<LittleEndian>(n_intv)?;
-
-    for interval in reference_sequence.index() {
-        let ioffset = u64::from(*interval);
-        writer.write_u64::<LittleEndian>(ioffset)?;
     }
 
     Ok(())
@@ -79,12 +111,19 @@ where
 {
     let id = u32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32::<LittleEndian>(id)?;
+    write_chunks(writer, bin.chunks())?;
+    Ok(())
+}
 
-    let n_chunk = u32::try_from(bin.chunks().len())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+fn write_chunks<W>(writer: &mut W, chunks: &[Chunk]) -> io::Result<()>
+where
+    W: Write,
+{
+    let n_chunk =
+        u32::try_from(chunks.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32::<LittleEndian>(n_chunk)?;
 
-    for chunk in bin.chunks() {
+    for chunk in chunks {
         write_chunk(writer, chunk)?;
     }
 
@@ -100,6 +139,22 @@ where
 
     let chunk_end = u64::from(chunk.end());
     writer.write_u64::<LittleEndian>(chunk_end)?;
+
+    Ok(())
+}
+
+fn write_intervals<W>(writer: &mut W, intervals: &[bgzf::VirtualPosition]) -> io::Result<()>
+where
+    W: Write,
+{
+    let n_intv = u32::try_from(intervals.len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_u32::<LittleEndian>(n_intv)?;
+
+    for interval in intervals {
+        let ioffset = u64::from(*interval);
+        writer.write_u64::<LittleEndian>(ioffset)?;
+    }
 
     Ok(())
 }
@@ -136,10 +191,18 @@ where
     Ok(())
 }
 
+fn write_unplaced_unmapped_record_count<W>(
+    writer: &mut W,
+    unplaced_unmapped_record_count: u64,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    writer.write_u64::<LittleEndian>(unplaced_unmapped_record_count)
+}
+
 #[cfg(test)]
 mod tests {
-    use noodles_bgzf as bgzf;
-
     use super::*;
 
     #[test]
