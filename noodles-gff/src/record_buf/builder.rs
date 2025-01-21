@@ -20,7 +20,7 @@ pub struct Builder {
 impl Builder {
     /// Creates a GFF record builder.
     ///
-    /// Typically, [`Record::builder`] is used instead of calling this.
+    /// Typically, [`RecordBuf::builder`] is used instead of calling this.
     ///
     /// # Examples
     ///

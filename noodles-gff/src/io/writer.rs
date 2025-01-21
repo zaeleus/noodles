@@ -70,7 +70,7 @@ where
         Self { inner }
     }
 
-    /// Writes a [`Line`].
+    /// Writes a [`LineBuf`].
     ///
     /// # Examples
     ///
