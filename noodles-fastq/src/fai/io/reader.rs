@@ -70,7 +70,7 @@ where
     /// Reads a raw FASTQ index record.
     ///
     /// The given buffer will not include the trailing newline. It can subsequently be parsed as a
-    /// [`super::Record`].
+    /// [`crate::Record`].
     ///
     /// The position of the stream is expected to be at the start or at the start of another
     /// record.
