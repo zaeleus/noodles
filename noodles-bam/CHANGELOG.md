@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bam/fs: Add indexer ([#320]).
+
+[#320]: https://github.com/zaeleus/noodles/issues/320
+
 ## 0.74.0 - 2025-01-23
 
 ### Changed

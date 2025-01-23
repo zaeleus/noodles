@@ -48,6 +48,7 @@
 pub mod r#async;
 
 pub mod bai;
+pub mod fs;
 pub mod io;
 pub mod record;
 
