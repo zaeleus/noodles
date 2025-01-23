@@ -100,28 +100,34 @@ where
     /// # }
     /// ```
     pub async fn read_index(&mut self) -> io::Result<Index> {
-        read_magic(&mut self.inner).await?;
-
-        let (min_shift, depth, header) = read_header(&mut self.inner).await?;
-        let reference_sequences = read_reference_sequences(&mut self.inner, depth).await?;
-        let unplaced_unmapped_record_count =
-            read_unplaced_unmapped_record_count(&mut self.inner).await?;
-
-        let mut builder = Index::builder()
-            .set_min_shift(min_shift)
-            .set_depth(depth)
-            .set_reference_sequences(reference_sequences);
-
-        if let Some(hdr) = header {
-            builder = builder.set_header(hdr);
-        }
-
-        if let Some(count) = unplaced_unmapped_record_count {
-            builder = builder.set_unplaced_unmapped_record_count(count);
-        }
-
-        Ok(builder.build())
+        read_index(&mut self.inner).await
     }
+}
+
+async fn read_index<R>(reader: &mut R) -> io::Result<Index>
+where
+    R: AsyncRead + Unpin,
+{
+    read_magic(reader).await?;
+
+    let (min_shift, depth, header) = read_header(reader).await?;
+    let reference_sequences = read_reference_sequences(reader, depth).await?;
+    let unplaced_unmapped_record_count = read_unplaced_unmapped_record_count(reader).await?;
+
+    let mut builder = Index::builder()
+        .set_min_shift(min_shift)
+        .set_depth(depth)
+        .set_reference_sequences(reference_sequences);
+
+    if let Some(header) = header {
+        builder = builder.set_header(header);
+    }
+
+    if let Some(n) = unplaced_unmapped_record_count {
+        builder = builder.set_unplaced_unmapped_record_count(n);
+    }
+
+    Ok(builder.build())
 }
 
 async fn read_magic<R>(reader: &mut R) -> io::Result<()>
