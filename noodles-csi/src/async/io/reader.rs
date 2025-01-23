@@ -220,22 +220,13 @@ where
 async fn read_bins<R>(
     reader: &mut R,
     depth: u8,
-) -> io::Result<(
-    IndexMap<usize, Bin>,
-    IndexMap<usize, bgzf::VirtualPosition>,
-    Option<Metadata>,
-)>
+) -> io::Result<(IndexMap<usize, Bin>, BinnedIndex, Option<Metadata>)>
 where
     R: AsyncRead + Unpin,
 {
-    #[allow(clippy::type_complexity)]
     fn duplicate_bin_error(
         id: usize,
-    ) -> io::Result<(
-        IndexMap<usize, Bin>,
-        IndexMap<usize, bgzf::VirtualPosition>,
-        Option<Metadata>,
-    )> {
+    ) -> io::Result<(IndexMap<usize, Bin>, BinnedIndex, Option<Metadata>)> {
         Err(io::Error::new(
             io::ErrorKind::InvalidData,
             format!("duplicate bin ID: {id}"),
@@ -247,7 +238,7 @@ where
     })?;
 
     let mut bins = IndexMap::with_capacity(n_bin);
-    let mut index = IndexMap::with_capacity(n_bin);
+    let mut index = BinnedIndex::with_capacity(n_bin);
 
     let metadata_id = Bin::metadata_id(depth);
     let mut metadata = None;
