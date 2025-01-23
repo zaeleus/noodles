@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * csi/io/reader/index/header/reference_sequence_names: Fix early stop when a
+    name requires multiple buffer fills ([#319]).
+
+    The reader no longer assumes the index header is contained in a single
+    block.
+
+[#319]: https://github.com/zaeleus/noodles/issues/319
+
 ## 0.42.0 - 2025-01-19
 
 ### Changed

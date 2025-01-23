@@ -4,7 +4,7 @@ use std::{
     num,
 };
 
-use bstr::{BString, ByteSlice};
+use bstr::BString;
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use crate::binning_index::index::header::ReferenceSequenceNames;
@@ -68,32 +68,36 @@ fn read_names<R>(reader: &mut R) -> Result<ReferenceSequenceNames, ReadError>
 where
     R: BufRead,
 {
-    const NUL: u8 = 0x00;
-
     let mut names = ReferenceSequenceNames::new();
 
-    loop {
-        let src = reader.fill_buf()?;
-
-        if src.is_empty() {
-            break;
+    while let Some(name) = read_name(reader)? {
+        if !names.insert(name.clone()) {
+            return Err(ReadError::DuplicateName(name));
         }
-
-        let Some(i) = src.as_bstr().find_byte(NUL) else {
-            return Err(ReadError::ExpectedEof);
-        };
-
-        let name = &src[..i];
-
-        if !names.insert(name.into()) {
-            return Err(ReadError::DuplicateName(name.into()));
-        }
-
-        let len = i + 1;
-        reader.consume(len);
     }
 
     Ok(names)
+}
+
+fn read_name<R>(reader: &mut R) -> Result<Option<BString>, ReadError>
+where
+    R: BufRead,
+{
+    const NUL: u8 = 0x00;
+
+    let mut buf = BString::default();
+
+    match reader.read_until(NUL, &mut buf)? {
+        0 => Ok(None),
+        _ => {
+            if buf.ends_with(&[NUL]) {
+                buf.pop();
+                Ok(Some(buf))
+            } else {
+                Err(ReadError::ExpectedEof)
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -119,6 +123,22 @@ mod tests {
         let src = [0x00, 0x00, 0x00, 0x00]; // l_nm = 0
         let mut reader = &src[..];
         assert!(read_reference_sequence_names(&mut reader)?.is_empty());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_names_with_multiple_buffer_fills() -> Result<(), ReadError> {
+        let src = b"sq0\x00sq1\x00";
+
+        let mut reader = BufReader::with_capacity(2, &src[..]);
+
+        let actual = read_names(&mut reader)?;
+        let expected: ReferenceSequenceNames = [BString::from("sq0"), BString::from("sq1")]
+            .into_iter()
+            .collect();
+
+        assert_eq!(actual, expected);
 
         Ok(())
     }
