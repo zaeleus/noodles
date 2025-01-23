@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.74.0 - 2025-01-23
+
+### Changed
+
+  * bam: Sync dependencies.
+
 ## 0.73.0 - 2025-01-19
 
 ### Added
