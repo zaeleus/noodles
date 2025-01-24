@@ -63,6 +63,12 @@ impl Attributes {
     }
 }
 
+impl AsRef<[Entry]> for Attributes {
+    fn as_ref(&self) -> &[Entry] {
+        &self.0
+    }
+}
+
 impl From<Vec<Entry>> for Attributes {
     fn from(entries: Vec<Entry>) -> Self {
         Self(entries)

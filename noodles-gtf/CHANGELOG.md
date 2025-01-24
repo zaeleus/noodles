@@ -1,12 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * gtf/record/attributes: Implement `AsRef<[Entry]>` ([#321]).
+
+    This was missed in noodles-gtf 0.37.0.
+
+[#321]: https://github.com/zaeleus/noodles/issues/321
+
 ## 0.37.0 - 2025-01-23
 
 ### Added
 
   * gtf/record/attributes: Add lookup by key (`Attributes::get`) ([#316]).
-
-  * gtf/record/attributes: Implement `AsRef<[Entry]>`.
 
 [#316]: https://github.com/zaeleus/noodles/issues/316
 
