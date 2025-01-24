@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * sam/fs: Add file indexer (`index`).
+
 ## 0.70.0 - 2025-01-23
 
 ### Changed

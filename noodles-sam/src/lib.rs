@@ -34,6 +34,7 @@
 pub mod r#async;
 
 pub mod alignment;
+pub mod fs;
 pub mod header;
 pub mod io;
 pub mod record;

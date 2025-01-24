@@ -6,71 +6,18 @@
 //!
 //! The output is similar to the output of `samtools index -c <src>`.
 
-use std::{env, fs::File, io};
+use std::{env, io};
 
-use noodles_bgzf as bgzf;
-use noodles_csi::{
-    self as csi,
-    binning_index::{index::reference_sequence::bin::Chunk, Indexer},
-};
-use noodles_sam::{self as sam, alignment::RecordBuf};
+use noodles_csi as csi;
+use noodles_sam as sam;
 
-fn is_coordinate_sorted(header: &sam::Header) -> bool {
-    use sam::header::record::value::map::header::{sort_order, tag};
-
-    header
-        .header()
-        .and_then(|hdr| hdr.other_fields().get(&tag::SORT_ORDER))
-        .map(|sort_order| sort_order == sort_order::COORDINATE)
-        .unwrap_or_default()
-}
-
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = File::open(src)
-        .map(bgzf::Reader::new)
-        .map(sam::io::Reader::new)?;
-
-    let header = reader.read_header()?;
-
-    if !is_coordinate_sorted(&header) {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "the input SAM must be coordinate-sorted to be indexed",
-        )
-        .into());
-    }
-
-    let mut record = RecordBuf::default();
-
-    let mut indexer = Indexer::default();
-    let mut start_position = reader.get_ref().virtual_position();
-
-    while reader.read_record_buf(&header, &mut record)? != 0 {
-        let end_position = reader.get_ref().virtual_position();
-        let chunk = Chunk::new(start_position, end_position);
-
-        let alignment_context = match (
-            record.reference_sequence_id(),
-            record.alignment_start(),
-            record.alignment_end(),
-        ) {
-            (Some(id), Some(start), Some(end)) => {
-                Some((id, start, end, !record.flags().is_unmapped()))
-            }
-            _ => None,
-        };
-
-        indexer.add_record(alignment_context, chunk)?;
-
-        start_position = end_position;
-    }
-
-    let index = indexer.build(header.reference_sequences().len());
+    let index = sam::fs::index(src)?;
 
     let stdout = io::stdout().lock();
-    let mut writer = csi::Writer::new(stdout);
+    let mut writer = csi::io::Writer::new(stdout);
 
     writer.write_index(&index)?;
 
