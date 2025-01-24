@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * fasta/io: Move file indexer (`index`) to top-level `fs` module.
+
+### Deprecated
+
+  * fasta/io: Deprecate `index`.
+
+    Use `fasta::fs::index` instead.
+
 ## 0.47.0 - 2025-01-19
 
 ### Added

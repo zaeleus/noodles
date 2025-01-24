@@ -51,6 +51,7 @@
 pub mod r#async;
 
 pub mod fai;
+pub mod fs;
 pub mod io;
 pub mod record;
 pub mod repository;
@@ -70,8 +71,8 @@ pub use self::io::writer;
 
 pub use self::{record::Record, repository::Repository};
 
-#[deprecated(since = "0.39.0", note = "Use `noodles_fasta::io::index` instead.")]
-pub use self::io::index;
+#[deprecated(since = "0.39.0", note = "Use `noodles_fasta::fs::index` instead.")]
+pub use self::fs::index;
 
 #[deprecated(
     since = "0.39.0",
