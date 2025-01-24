@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.73.0 - 2025-01-24
 
 ### Changed
 

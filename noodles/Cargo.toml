@@ -1,6 +1,6 @@
 [package]
 name = "noodles"
-version = "0.89.0"
+version = "0.90.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
@@ -12,22 +12,22 @@ documentation = "https://docs.rs/noodles"
 readme = "../README.md"
 
 [dependencies]
-noodles-bam = { path = "../noodles-bam", version = "0.74.0", optional = true }
-noodles-bcf = { path = "../noodles-bcf", version = "0.68.0", optional = true }
+noodles-bam = { path = "../noodles-bam", version = "0.75.0", optional = true }
+noodles-bcf = { path = "../noodles-bcf", version = "0.69.0", optional = true }
 noodles-bed = { path = "../noodles-bed", version = "0.20.0", optional = true }
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.35.0", optional = true }
 noodles-core = { path = "../noodles-core", version = "0.16.0", optional = true }
-noodles-cram = { path = "../noodles-cram", version = "0.75.0", optional = true }
+noodles-cram = { path = "../noodles-cram", version = "0.76.0", optional = true }
 noodles-csi = { path = "../noodles-csi", version = "0.43.0", optional = true }
-noodles-fasta = { path = "../noodles-fasta", version = "0.47.0", optional = true }
+noodles-fasta = { path = "../noodles-fasta", version = "0.48.0", optional = true }
 noodles-fastq = { path = "../noodles-fastq", version = "0.17.0", optional = true }
 noodles-gff = { path = "../noodles-gff", version = "0.43.0", optional = true }
-noodles-gtf = { path = "../noodles-gtf", version = "0.37.0", optional = true }
+noodles-gtf = { path = "../noodles-gtf", version = "0.38.0", optional = true }
 noodles-htsget = { path = "../noodles-htsget", version = "0.7.0", optional = true }
 noodles-refget = { path = "../noodles-refget", version = "0.6.0", optional = true }
-noodles-sam = { path = "../noodles-sam", version = "0.70.0", optional = true }
+noodles-sam = { path = "../noodles-sam", version = "0.71.0", optional = true }
 noodles-tabix = { path = "../noodles-tabix", version = "0.49.0", optional = true }
-noodles-vcf = { path = "../noodles-vcf", version = "0.72.0", optional = true }
+noodles-vcf = { path = "../noodles-vcf", version = "0.73.0", optional = true }
 
 [features]
 default = []
