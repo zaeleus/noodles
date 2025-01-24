@@ -10,15 +10,16 @@ pub(crate) mod container;
 pub mod crai;
 pub mod data_container;
 pub mod file_definition;
+pub mod fs;
 mod huffman;
-mod indexer;
 pub mod io;
 mod num;
 pub mod record;
 
-pub use self::{
-    data_container::DataContainer, file_definition::FileDefinition, indexer::index, record::Record,
-};
+pub use self::{data_container::DataContainer, file_definition::FileDefinition, record::Record};
+
+#[deprecated(since = "0.76.0", note = "Use `cram::fs::index` instead.")]
+pub use self::fs::index;
 
 #[cfg(feature = "async")]
 #[deprecated(since = "0.69.0", note = "Use `cram::r#async::io::Reader` instead.")]

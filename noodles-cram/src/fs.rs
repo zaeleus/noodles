@@ -1,3 +1,5 @@
+//! CRAM filesystem operations.
+
 use std::{cmp, collections::HashMap, fs::File, io, path::Path};
 
 use noodles_core::Position;
@@ -13,10 +15,9 @@ use super::{
 /// # Examples
 ///
 /// ```no_run
-/// # use std::io;
 /// use noodles_cram as cram;
 /// let index = cram::index("sample.cram")?;
-/// # Ok::<(), io::Error>(())
+/// # Ok::<(), std::io::Error>(())
 /// ```
 pub fn index<P>(src: P) -> io::Result<crai::Index>
 where

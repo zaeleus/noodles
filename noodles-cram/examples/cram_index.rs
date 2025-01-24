@@ -11,7 +11,7 @@ use noodles_cram::{self as cram, crai};
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let index = cram::index(src)?;
+    let index = cram::fs::index(src)?;
 
     let stdout = io::stdout().lock();
     let mut writer = crai::Writer::new(stdout);

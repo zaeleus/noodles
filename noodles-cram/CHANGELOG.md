@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * cram: Move file indexer (`index`) to `fs` module.
+
+### Deprecated
+
+  * cram: Deprecate `index`.
+
+    Use `cram::fs::index` instead.
+
 ## 0.75.0 - 2025-01-23
 
 ### Changed
