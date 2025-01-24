@@ -15,7 +15,7 @@ use noodles_vcf as vcf;
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let index = vcf::index(src)?;
+    let index = vcf::fs::index(src)?;
 
     let stdout = io::stdout().lock();
     let mut writer = tabix::io::Writer::new(BufWriter::new(stdout));

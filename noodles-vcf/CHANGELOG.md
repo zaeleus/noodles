@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * vcf: Move file indexer (`index`) to `fs` module.
+
+### Deprecated
+
+  * vcf: Deprecate `vcf::index`.
+
+    Use `vcf::fs::index` instead.
+
 ## 0.72.0 - 2025-01-23
 
 ### Changed

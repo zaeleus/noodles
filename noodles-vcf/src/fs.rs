@@ -1,3 +1,5 @@
+//! VCF filesystem operations.
+
 use std::{fs::File, io, path::Path};
 
 use noodles_bgzf as bgzf;
@@ -10,7 +12,7 @@ use super::{io::Reader, variant::Record as _, Record};
 ///
 /// ```no_run
 /// use noodles_vcf as vcf;
-/// let index = vcf::index("sample.vcf.gz")?;
+/// let _index = vcf::fs::index("sample.vcf.gz")?;
 /// # Ok::<_, std::io::Error>(())
 /// ```
 pub fn index<P>(src: P) -> io::Result<tabix::Index>
