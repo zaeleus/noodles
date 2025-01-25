@@ -27,22 +27,20 @@ where
         ));
     }
 
-    if !is_valid(sequence.iter()) {
-        return Err(io::Error::from(io::ErrorKind::InvalidInput));
-    }
-
     for base in sequence.iter() {
+        if !is_valid_base(base) {
+            return Err(io::Error::from(io::ErrorKind::InvalidInput));
+        }
+
         writer.write_all(&[base])?;
     }
 
     Ok(())
 }
 
-fn is_valid<I>(mut sequence: I) -> bool
-where
-    I: Iterator<Item = u8>,
-{
-    sequence.all(|b| matches!(b, b'A'..=b'Z' | b'a'..=b'z' | b'=' | b'.'))
+// § 1.4 "The alignment section: mandatory fields" (2024-11-06): `[A-Za-z=.]+`.
+fn is_valid_base(b: u8) -> bool {
+    matches!(b, b'A'..=b'Z' | b'a'..=b'z' | b'=' | b'.')
 }
 
 #[cfg(test)]
@@ -82,5 +80,14 @@ mod tests {
         ));
 
         Ok(())
+    }
+
+    #[test]
+    fn test_is_valid_base() {
+        for b in (b'A'..=b'Z').chain(b'a'..=b'z').chain([b'=', b'.']) {
+            assert!(is_valid_base(b));
+        }
+
+        assert!(!is_valid_base(b'!'));
     }
 }
