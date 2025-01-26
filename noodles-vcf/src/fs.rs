@@ -10,6 +10,8 @@ use super::{io::Reader, variant::Record as _, Record};
 
 /// Indexes a bgzipped-compressed VCF file.
 ///
+/// # Examples
+///
 /// ```no_run
 /// use noodles_vcf as vcf;
 /// let _index = vcf::fs::index("sample.vcf.gz")?;
