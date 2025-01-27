@@ -1,8 +1,10 @@
 mod header;
 
-use std::io::{self, Write};
+use std::{
+    io::{self, Write},
+    mem,
+};
 
-use bytes::BufMut;
 use flate2::Compression;
 use noodles_sam as sam;
 
@@ -21,13 +23,7 @@ where
 
     validate_reference_sequences(header.reference_sequences())?;
 
-    let header_data = serialize_header(header)?;
-    let header_data_len = i32::try_from(header_data.len())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-    let mut data = Vec::new();
-    data.put_i32_le(header_data_len);
-    data.extend_from_slice(&header_data);
+    let data = serialize_header(header)?;
 
     let block = Block::builder()
         .set_content_type(ContentType::FileHeader)
@@ -61,13 +57,26 @@ fn validate_reference_sequences(
 }
 
 fn serialize_header(header: &sam::Header) -> io::Result<Vec<u8>> {
-    let mut writer = sam::io::Writer::new(Vec::new());
+    const LENGTH_SIZE: usize = mem::size_of::<i32>();
+
+    let mut buf = vec![0; LENGTH_SIZE];
+
+    let mut writer = sam::io::Writer::new(&mut buf);
     writer.write_header(header)?;
-    Ok(writer.into_inner())
+
+    // SAFETY: `buf.len() >= LENGTH_SIZE`.
+    let len = i32::try_from(buf.len() - LENGTH_SIZE)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+    buf[..LENGTH_SIZE].copy_from_slice(&len.to_le_bytes());
+
+    Ok(buf)
 }
 
 #[cfg(test)]
 mod tests {
+    use bytes::BufMut;
+
     use super::*;
 
     #[test]
