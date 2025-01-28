@@ -2,10 +2,6 @@
 
 ## 0.38.0 - 2025-01-24
 
-### Changed
-
-  * gtf: Sync dependencies.
-
 ### Fixed
 
   * gtf/record/attributes: Implement `AsRef<[Entry]>` ([#321]).
