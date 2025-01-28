@@ -42,7 +42,7 @@ impl Record {
         if let Some(mate_reference_sequence_id) =
             record.mate_reference_sequence_id(header).transpose()?
         {
-            builder = builder.set_next_fragment_reference_sequence_id(mate_reference_sequence_id);
+            builder = builder.set_mate_reference_sequence_id(mate_reference_sequence_id);
         }
 
         if let Some(mate_alignment_start) = record.mate_alignment_start().transpose()? {

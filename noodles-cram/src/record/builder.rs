@@ -21,7 +21,7 @@ pub struct Builder {
     read_group_id: Option<usize>,
     name: Option<BString>,
     next_mate_flags: MateFlags,
-    next_fragment_reference_sequence_id: Option<usize>,
+    mate_reference_sequence_id: Option<usize>,
     next_mate_alignment_start: Option<Position>,
     template_size: i32,
     distance_to_next_fragment: Option<usize>,
@@ -91,11 +91,21 @@ impl Builder {
     }
 
     /// Sets the reference sequence ID of the next fragment.
+    #[deprecated(
+        since = "0.77.0",
+        note = "Use `Builder::set_mate_reference_sequence_id` instead."
+    )]
     pub fn set_next_fragment_reference_sequence_id(
         mut self,
         next_fragment_reference_sequence_id: usize,
     ) -> Self {
-        self.next_fragment_reference_sequence_id = Some(next_fragment_reference_sequence_id);
+        self.mate_reference_sequence_id = Some(next_fragment_reference_sequence_id);
+        self
+    }
+
+    /// Sets the mate reference sequence ID.
+    pub fn set_mate_reference_sequence_id(mut self, mate_reference_sequence_id: usize) -> Self {
+        self.mate_reference_sequence_id = Some(mate_reference_sequence_id);
         self
     }
 
@@ -159,7 +169,7 @@ impl Builder {
             read_group_id: self.read_group_id,
             name: self.name,
             mate_flags: self.next_mate_flags,
-            mate_reference_sequence_id: self.next_fragment_reference_sequence_id,
+            mate_reference_sequence_id: self.mate_reference_sequence_id,
             mate_alignment_start: self.next_mate_alignment_start,
             template_length: self.template_size,
             distance_to_mate: self.distance_to_next_fragment,
@@ -184,7 +194,7 @@ impl Default for Builder {
             read_group_id: None,
             name: None,
             next_mate_flags: MateFlags::default(),
-            next_fragment_reference_sequence_id: None,
+            mate_reference_sequence_id: None,
             next_mate_alignment_start: None,
             template_size: 0,
             distance_to_next_fragment: None,
@@ -214,7 +224,7 @@ mod tests {
         assert!(builder.read_group_id.is_none());
         assert!(builder.name.is_none());
         assert_eq!(builder.next_mate_flags, MateFlags::default());
-        assert!(builder.next_fragment_reference_sequence_id.is_none());
+        assert!(builder.mate_reference_sequence_id.is_none());
         assert!(builder.next_mate_alignment_start.is_none());
         assert_eq!(builder.template_size, 0);
         assert!(builder.distance_to_next_fragment.is_none());

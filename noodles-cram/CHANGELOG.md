@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * cram/record/builder: Rename
+    `Builder::set_next_fragment_reference_sequence_id` to
+    `Builder::set_mate_reference_sequence_id`.
+
+### Deprecated
+
+  * cram/record/builder: Deprecate
+    `Builder::set_next_fragment_reference_sequence_id`.
+
+    Use `Builder::set_mate_reference_sequence_id` instead.
+
 ## 0.76.0 - 2025-01-24
 
 ### Changed
