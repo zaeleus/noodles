@@ -37,7 +37,7 @@ where
     pub fn write_u32(&mut self, value: u32, len: usize) -> io::Result<()> {
         if len == 0 {
             return Ok(());
-        } else if len >= 32 {
+        } else if len > 32 {
             return Err(io::Error::from(io::ErrorKind::InvalidData));
         }
 
