@@ -404,9 +404,7 @@ where
 
         let tag_set_id = tag_ids_dictionary
             .iter()
-            .enumerate()
-            .find(|(_, k)| **k == keys)
-            .map(|(i, _)| i)
+            .position(|k| **k == keys)
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidInput,
