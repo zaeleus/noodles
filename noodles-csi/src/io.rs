@@ -3,7 +3,7 @@
 mod filter_by_region;
 mod indexed_reader;
 mod indexed_record;
-mod indexed_records;
+pub mod indexed_records;
 mod query;
 pub mod reader;
 pub(crate) mod writer;

@@ -1,3 +1,4 @@
+//! CSI indexed records.
 mod record;
 
 use noodles_core::Region;

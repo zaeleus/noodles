@@ -9,6 +9,7 @@ use crate::{
     binning_index::index::header::format::coordinate_system::CoordinateSystem, io::IndexedRecord,
 };
 
+/// A CSI or Tabix record.
 pub struct Record {
     buf: String,
     reference_sequence_name_bounds: Range<usize>,
