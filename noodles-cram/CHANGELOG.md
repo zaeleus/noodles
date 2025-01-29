@@ -4,16 +4,20 @@
 
 ### Changed
 
-  * cram/record/builder: Rename
-    `Builder::set_next_fragment_reference_sequence_id` to
-    `Builder::set_mate_reference_sequence_id`.
+  * cram/record/builder: Use record field names in method names.
+
+    This renames the following:
+
+     * `set_next_fragment_reference_sequence_id` => `set_mate_reference_sequence_id` and
+     * `set_next_mate_alignment_start` => `set_mate_alignment_start`.
 
 ### Deprecated
 
   * cram/record/builder: Deprecate
-    `Builder::set_next_fragment_reference_sequence_id`.
+    `Builder::set_next_fragment_reference_sequence_id` and
+    `Builder::set_next_mate_alignment_start`.
 
-    Use `Builder::set_mate_reference_sequence_id` instead.
+    Use the record field names instead.
 
 ## 0.76.0 - 2025-01-24
 

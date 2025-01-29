@@ -22,7 +22,7 @@ pub struct Builder {
     name: Option<BString>,
     next_mate_flags: MateFlags,
     mate_reference_sequence_id: Option<usize>,
-    next_mate_alignment_start: Option<Position>,
+    mate_alignment_start: Option<Position>,
     template_size: i32,
     distance_to_next_fragment: Option<usize>,
     tags: Data,
@@ -110,8 +110,18 @@ impl Builder {
     }
 
     /// Sets the alignment start position of the next mate.
+    #[deprecated(
+        since = "0.77.0",
+        note = "Use `Builder::set_mate_alignment_start` instead."
+    )]
     pub fn set_next_mate_alignment_start(mut self, next_mate_alignment_start: Position) -> Self {
-        self.next_mate_alignment_start = Some(next_mate_alignment_start);
+        self.mate_alignment_start = Some(next_mate_alignment_start);
+        self
+    }
+
+    /// Sets the mate alignment start.
+    pub fn set_mate_alignment_start(mut self, mate_alignment_start: Position) -> Self {
+        self.mate_alignment_start = Some(mate_alignment_start);
         self
     }
 
@@ -170,7 +180,7 @@ impl Builder {
             name: self.name,
             mate_flags: self.next_mate_flags,
             mate_reference_sequence_id: self.mate_reference_sequence_id,
-            mate_alignment_start: self.next_mate_alignment_start,
+            mate_alignment_start: self.mate_alignment_start,
             template_length: self.template_size,
             distance_to_mate: self.distance_to_next_fragment,
             tags: self.tags,
@@ -195,7 +205,7 @@ impl Default for Builder {
             name: None,
             next_mate_flags: MateFlags::default(),
             mate_reference_sequence_id: None,
-            next_mate_alignment_start: None,
+            mate_alignment_start: None,
             template_size: 0,
             distance_to_next_fragment: None,
             tags: Data::default(),
@@ -225,7 +235,7 @@ mod tests {
         assert!(builder.name.is_none());
         assert_eq!(builder.next_mate_flags, MateFlags::default());
         assert!(builder.mate_reference_sequence_id.is_none());
-        assert!(builder.next_mate_alignment_start.is_none());
+        assert!(builder.mate_alignment_start.is_none());
         assert_eq!(builder.template_size, 0);
         assert!(builder.distance_to_next_fragment.is_none());
         assert!(builder.tags.is_empty());

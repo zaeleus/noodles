@@ -46,7 +46,7 @@ impl Record {
         }
 
         if let Some(mate_alignment_start) = record.mate_alignment_start().transpose()? {
-            builder = builder.set_next_mate_alignment_start(mate_alignment_start);
+            builder = builder.set_mate_alignment_start(mate_alignment_start);
         }
 
         let template_length = record.template_length()?;
