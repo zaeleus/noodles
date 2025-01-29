@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * csi/io: Increase the visibility of the `indexed_records` module ([#323]).
+
+    This allows access to `Records`.
+
+[#323]: https://github.com/zaeleus/noodles/pull/323
+
 ## 0.43.0 - 2025-01-23
 
 ### Fixed
