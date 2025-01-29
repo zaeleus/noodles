@@ -469,7 +469,7 @@ mod tests {
                 .set_reference_sequence_id(2)
                 .set_read_length(4)
                 .set_alignment_start(Position::try_from(5)?)
-                .set_distance_to_next_fragment(0)
+                .set_distance_to_mate(0)
                 .build(),
             Record::builder()
                 .set_id(2)
@@ -477,7 +477,7 @@ mod tests {
                 .set_reference_sequence_id(2)
                 .set_read_length(4)
                 .set_alignment_start(Position::try_from(8)?)
-                .set_distance_to_next_fragment(1)
+                .set_distance_to_mate(1)
                 .build(),
             Record::builder().set_id(3).build(),
             Record::builder()

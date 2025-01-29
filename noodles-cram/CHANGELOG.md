@@ -8,14 +8,16 @@
 
     This renames the following:
 
-     * `set_next_fragment_reference_sequence_id` => `set_mate_reference_sequence_id` and
-     * `set_next_mate_alignment_start` => `set_mate_alignment_start`.
+     * `set_next_fragment_reference_sequence_id` => `set_mate_reference_sequence_id`,
+     * `set_next_mate_alignment_start` => `set_mate_alignment_start`, and
+     * `set_distance_to_next_fragment` => `set_distance_to_mate`.
 
 ### Deprecated
 
   * cram/record/builder: Deprecate
-    `Builder::set_next_fragment_reference_sequence_id` and
-    `Builder::set_next_mate_alignment_start`.
+    `Builder::set_next_fragment_reference_sequence_id`,
+    `Builder::set_next_mate_alignment_start`, and
+    `Builder::set_distance_to_next_fragment`.
 
     Use the record field names instead.
 

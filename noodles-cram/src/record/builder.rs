@@ -24,7 +24,7 @@ pub struct Builder {
     mate_reference_sequence_id: Option<usize>,
     mate_alignment_start: Option<Position>,
     template_size: i32,
-    distance_to_next_fragment: Option<usize>,
+    distance_to_mate: Option<usize>,
     tags: Data,
     bases: Sequence,
     features: Features,
@@ -132,8 +132,18 @@ impl Builder {
     }
 
     /// Sets the distance to the next fragment.
+    #[deprecated(
+        since = "0.77.0",
+        note = "Use `Builder::set_distance_to_mate` instead."
+    )]
     pub fn set_distance_to_next_fragment(mut self, distance_to_next_fragment: usize) -> Self {
-        self.distance_to_next_fragment = Some(distance_to_next_fragment);
+        self.distance_to_mate = Some(distance_to_next_fragment);
+        self
+    }
+
+    /// Sets the distance to this record's mate.
+    pub fn set_distance_to_mate(mut self, distance_to_mate: usize) -> Self {
+        self.distance_to_mate = Some(distance_to_mate);
         self
     }
 
@@ -182,7 +192,7 @@ impl Builder {
             mate_reference_sequence_id: self.mate_reference_sequence_id,
             mate_alignment_start: self.mate_alignment_start,
             template_length: self.template_size,
-            distance_to_mate: self.distance_to_next_fragment,
+            distance_to_mate: self.distance_to_mate,
             tags: self.tags,
             sequence: self.bases,
             features: self.features,
@@ -207,7 +217,7 @@ impl Default for Builder {
             mate_reference_sequence_id: None,
             mate_alignment_start: None,
             template_size: 0,
-            distance_to_next_fragment: None,
+            distance_to_mate: None,
             tags: Data::default(),
             bases: Sequence::default(),
             features: Features::default(),
@@ -237,7 +247,7 @@ mod tests {
         assert!(builder.mate_reference_sequence_id.is_none());
         assert!(builder.mate_alignment_start.is_none());
         assert_eq!(builder.template_size, 0);
-        assert!(builder.distance_to_next_fragment.is_none());
+        assert!(builder.distance_to_mate.is_none());
         assert!(builder.tags.is_empty());
         assert!(builder.bases.is_empty());
         assert!(builder.features.is_empty());
