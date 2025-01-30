@@ -299,7 +299,7 @@ impl Default for DataSeriesEncodingMap {
                 block_content_id: block::ContentId::from(DataSeries::MateDistances),
             })),
             tag_set_ids: Encoding::new(Integer::External {
-                block_content_id: block::ContentId::from(13),
+                block_content_id: block::ContentId::from(DataSeries::TagSetIds),
             }),
             feature_counts: Some(Encoding::new(Integer::External {
                 block_content_id: block::ContentId::from(DataSeries::FeatureCounts),
