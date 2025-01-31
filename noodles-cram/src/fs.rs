@@ -16,7 +16,7 @@ use super::{
 ///
 /// ```no_run
 /// use noodles_cram as cram;
-/// let index = cram::index("sample.cram")?;
+/// let index = cram::fs::index("sample.cram")?;
 /// # Ok::<(), std::io::Error>(())
 /// ```
 pub fn index<P>(src: P) -> io::Result<crai::Index>
