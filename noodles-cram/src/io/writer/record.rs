@@ -166,6 +166,13 @@ where
     }
 
     fn write_alignment_start(&mut self, alignment_start: Option<Position>) -> io::Result<()> {
+        const MISSING: i32 = 0;
+
+        fn position_to_i32(position: Position) -> io::Result<i32> {
+            i32::try_from(usize::from(position))
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+        }
+
         let ap_data_series_delta = self
             .compression_header
             .preservation_map()
@@ -177,30 +184,22 @@ where
             .alignment_starts();
 
         let alignment_start_or_delta = if ap_data_series_delta {
-            match (alignment_start, self.prev_alignment_start) {
-                (None, None) => 0,
-                (Some(alignment_start), Some(prev_alignment_start)) => {
-                    let alignment_start = i32::try_from(usize::from(alignment_start))
-                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+            let start = alignment_start
+                .map(position_to_i32)
+                .transpose()?
+                .unwrap_or(MISSING);
 
-                    let prev_alignment_start = i32::try_from(usize::from(prev_alignment_start))
-                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+            let prev_start = self
+                .prev_alignment_start
+                .map(position_to_i32)
+                .transpose()?
+                .unwrap_or(MISSING);
 
-                    alignment_start - prev_alignment_start
-                }
-                _ => {
-                    return Err(io::Error::new(
-                        io::ErrorKind::InvalidInput,
-                        format!(
-                            "invalid alignment start ({:?}) or previous alignment start ({:?})",
-                            alignment_start, self.prev_alignment_start
-                        ),
-                    ));
-                }
-            }
+            start - prev_start
+        } else if let Some(position) = alignment_start {
+            position_to_i32(position)?
         } else {
-            i32::try_from(alignment_start.map(usize::from).unwrap_or_default())
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
+            MISSING
         };
 
         encoding.encode(
