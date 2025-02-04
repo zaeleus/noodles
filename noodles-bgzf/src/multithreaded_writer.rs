@@ -195,7 +195,7 @@ where
             }
         }
 
-        writer.write_all(BGZF_EOF)?;
+        writer.write_all(&BGZF_EOF)?;
 
         Ok(writer)
     })

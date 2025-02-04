@@ -25,7 +25,7 @@ pub(crate) const MAX_BUF_SIZE: usize =
     BGZF_MAX_ISIZE - BGZF_HEADER_SIZE - gz::TRAILER_SIZE - COMPRESSION_LEVEL_0_OVERHEAD;
 
 // § 4.1.2 End-of-file marker (2020-12-03)
-pub(crate) static BGZF_EOF: &[u8] = &[
+pub(crate) const BGZF_EOF: [u8; 28] = [
     0x1f, 0x8b, // ID1, ID2
     0x08, // CM = DEFLATE
     0x04, // FLG = FEXTRA
@@ -190,7 +190,7 @@ where
         self.flush()?;
 
         let inner = self.inner.as_mut().unwrap();
-        let result = inner.write_all(BGZF_EOF);
+        let result = inner.write_all(&BGZF_EOF);
 
         self.position += BGZF_EOF.len() as u64;
 

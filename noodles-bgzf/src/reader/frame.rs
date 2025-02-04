@@ -221,7 +221,7 @@ mod tests {
 
     #[test]
     fn test_read_frame_into() -> Result<(), Box<dyn std::error::Error>> {
-        let mut src = BGZF_EOF;
+        let mut src = &BGZF_EOF[..];
         let mut buf = Vec::new();
         read_frame_into(&mut src, &mut buf)?.ok_or("invalid frame")?;
         assert_eq!(buf, BGZF_EOF);

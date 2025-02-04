@@ -76,7 +76,7 @@ impl Builder {
         Writer {
             sink: Deflater::new(FramedWrite::new(writer, BlockCodec)).buffer(worker_count.get()),
             buf: BytesMut::with_capacity(MAX_BUF_SIZE),
-            eof_buf: Bytes::from_static(BGZF_EOF),
+            eof_buf: Bytes::from_static(&BGZF_EOF),
             compression_level: compression_level.into(),
         }
     }
