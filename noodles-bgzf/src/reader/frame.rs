@@ -7,6 +7,8 @@ use crate::{gz, Block, BGZF_HEADER_SIZE};
 
 const MIN_FRAME_SIZE: usize = BGZF_HEADER_SIZE + gz::TRAILER_SIZE;
 
+type HeaderBuf = [u8; BGZF_HEADER_SIZE];
+
 pub(crate) fn read_frame_into<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<Option<()>>
 where
     R: Read,
@@ -37,9 +39,7 @@ where
     Ok(Some(()))
 }
 
-fn split_frame(
-    buf: &[u8],
-) -> io::Result<(&[u8; BGZF_HEADER_SIZE], &[u8], &[u8; gz::TRAILER_SIZE])> {
+fn split_frame(buf: &[u8]) -> io::Result<(&HeaderBuf, &[u8], &[u8; gz::TRAILER_SIZE])> {
     if buf.len() < MIN_FRAME_SIZE {
         return Err(io::Error::new(
             io::ErrorKind::UnexpectedEof,
@@ -81,7 +81,7 @@ fn split_last_chunk<const N: usize>(src: &[u8]) -> Option<(&[u8], &[u8; N])> {
     }
 }
 
-fn parse_header(src: &[u8]) -> io::Result<()> {
+fn parse_header(src: &HeaderBuf) -> io::Result<()> {
     if is_valid_header(src) {
         Ok(())
     } else {
@@ -92,40 +92,19 @@ fn parse_header(src: &[u8]) -> io::Result<()> {
     }
 }
 
-fn is_valid_header<B>(mut src: B) -> bool
-where
-    B: Buf,
-{
-    use std::mem;
-
+fn is_valid_header(src: &HeaderBuf) -> bool {
     const BGZF_CM: u8 = 0x08; // DEFLATE
     const BGZF_FLG: u8 = 0x04; // FEXTRA
-    const BGZF_XLEN: u16 = 6;
-    const BGZF_SI1: u8 = b'B';
-    const BGZF_SI2: u8 = b'C';
-    const BGZF_SLEN: u16 = 2;
+    const BGZF_XLEN: [u8; 2] = [0x06, 0x00];
+    const BGZF_SI: [u8; 2] = [b'B', b'C'];
+    const BGZF_SLEN: [u8; 2] = [0x02, 0x00];
 
-    let id_1 = src.get_u8();
-    let id_2 = src.get_u8();
-    let cm = src.get_u8();
-    let flg = src.get_u8();
-
-    // 4 (MTIME) + 1 (XFL) + 1 (OS)
-    src.advance(mem::size_of::<u32>() + mem::size_of::<u8>() + mem::size_of::<u8>());
-
-    let xlen = src.get_u16_le();
-    let subfield_id_1 = src.get_u8();
-    let subfield_id_2 = src.get_u8();
-    let subfield_len = src.get_u16_le();
-
-    id_1 == gz::MAGIC_NUMBER[0]
-        && id_2 == gz::MAGIC_NUMBER[1]
-        && cm == BGZF_CM
-        && flg == BGZF_FLG
-        && xlen == BGZF_XLEN
-        && subfield_id_1 == BGZF_SI1
-        && subfield_id_2 == BGZF_SI2
-        && subfield_len == BGZF_SLEN
+    src[0..2] == gz::MAGIC_NUMBER
+        && src[2] == BGZF_CM
+        && src[3] == BGZF_FLG
+        && src[10..12] == BGZF_XLEN
+        && src[12..14] == BGZF_SI
+        && src[14..16] == BGZF_SLEN
 }
 
 fn parse_trailer<B>(mut src: B) -> io::Result<(u32, usize)>
@@ -204,7 +183,7 @@ mod tests {
 
     #[test]
     fn test_parse_header() -> io::Result<()> {
-        parse_header(BGZF_EOF)?;
+        parse_header(BGZF_EOF[0..BGZF_HEADER_SIZE].try_into().unwrap())?;
         Ok(())
     }
 
@@ -223,12 +202,10 @@ mod tests {
             0x1b, 0x00, // BSIZE = 27
         ];
 
-        let mut reader = &src[..];
-        assert!(is_valid_header(&mut reader));
+        assert!(is_valid_header(&src));
 
         src[0] = 0x00;
-        let mut reader = &src[..];
-        assert!(!is_valid_header(&mut reader));
+        assert!(!is_valid_header(&src));
     }
 
     #[test]
