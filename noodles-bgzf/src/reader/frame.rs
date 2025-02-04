@@ -37,7 +37,9 @@ where
     Ok(Some(()))
 }
 
-fn split_frame(buf: &[u8]) -> io::Result<(&[u8], &[u8], &[u8])> {
+fn split_frame(
+    buf: &[u8],
+) -> io::Result<(&[u8; BGZF_HEADER_SIZE], &[u8], &[u8; gz::TRAILER_SIZE])> {
     if buf.len() < MIN_FRAME_SIZE {
         return Err(io::Error::new(
             io::ErrorKind::UnexpectedEof,
@@ -45,14 +47,38 @@ fn split_frame(buf: &[u8]) -> io::Result<(&[u8], &[u8], &[u8])> {
         ));
     }
 
-    let header = &buf[..BGZF_HEADER_SIZE];
+    // SAFETY: `buf.len() >= BGZF_HEADER_SIZE`.
+    let (header, _) = split_first_chunk(buf).unwrap();
 
-    let n = buf.len() - gz::TRAILER_SIZE;
-    let cdata = &buf[BGZF_HEADER_SIZE..n];
+    let end = buf.len() - gz::TRAILER_SIZE;
+    let cdata = &buf[BGZF_HEADER_SIZE..end];
 
-    let trailer = &buf[n..];
+    // SAFETY: `buf.len() >= gz::TRAILER_SIZE`.
+    let (_, trailer) = split_last_chunk(buf).unwrap();
 
     Ok((header, cdata, trailer))
+}
+
+// TODO: Use `slice::split_first_chunk` when the MSRV is raised to or above Rust 1.77.0.
+fn split_first_chunk<const N: usize>(src: &[u8]) -> Option<(&[u8; N], &[u8])> {
+    if src.len() < N {
+        None
+    } else {
+        // SAFETY: `src.len >= N`.
+        let (head, tail) = src.split_at(N);
+        <&[u8; N]>::try_from(head).ok().map(|chunk| (chunk, tail))
+    }
+}
+
+// TODO: Use `slice::split_last_chunk` when the MSRV is raised to or above Rust 1.77.0.
+fn split_last_chunk<const N: usize>(src: &[u8]) -> Option<(&[u8], &[u8; N])> {
+    if src.len() < N {
+        None
+    } else {
+        // SAFETY: `src.len() >= N`.
+        let (head, tail) = src.split_at(src.len() - N);
+        <&[u8; N]>::try_from(tail).ok().map(|chunk| (head, chunk))
+    }
 }
 
 fn parse_header(src: &[u8]) -> io::Result<()> {
@@ -140,7 +166,7 @@ fn parse_frame(src: &[u8]) -> io::Result<(u64, &[u8], u32, usize)> {
         u64::try_from(src.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     parse_header(header)?;
-    let (crc32, r#isize) = parse_trailer(trailer)?;
+    let (crc32, r#isize) = parse_trailer(&trailer[..])?;
 
     Ok((block_size, cdata, crc32, r#isize))
 }
