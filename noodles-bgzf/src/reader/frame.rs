@@ -8,6 +8,7 @@ use crate::{gz, Block, BGZF_HEADER_SIZE};
 const MIN_FRAME_SIZE: usize = BGZF_HEADER_SIZE + gz::TRAILER_SIZE;
 
 type HeaderBuf = [u8; BGZF_HEADER_SIZE];
+type TrailerBuf = [u8; gz::TRAILER_SIZE];
 
 pub(crate) fn read_frame_into<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<Option<()>>
 where
@@ -39,7 +40,7 @@ where
     Ok(Some(()))
 }
 
-fn split_frame(buf: &[u8]) -> io::Result<(&HeaderBuf, &[u8], &[u8; gz::TRAILER_SIZE])> {
+fn split_frame(buf: &[u8]) -> io::Result<(&HeaderBuf, &[u8], &TrailerBuf)> {
     if buf.len() < MIN_FRAME_SIZE {
         return Err(io::Error::new(
             io::ErrorKind::UnexpectedEof,
@@ -107,13 +108,12 @@ fn is_valid_header(src: &HeaderBuf) -> bool {
         && src[14..16] == BGZF_SLEN
 }
 
-fn parse_trailer<B>(mut src: B) -> io::Result<(u32, usize)>
-where
-    B: Buf,
-{
-    let crc32 = src.get_u32_le();
+fn parse_trailer(src: &TrailerBuf) -> io::Result<(u32, usize)> {
+    // SAFETY: `src.len() == 8`.
+    let crc32 = u32::from_le_bytes(src[..4].try_into().unwrap());
 
-    let r#isize = usize::try_from(src.get_u32_le())
+    // SAFETY: `src.len() == 8`.
+    let r#isize = usize::try_from(u32::from_le_bytes(src[4..].try_into().unwrap()))
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     Ok((crc32, r#isize))
@@ -145,7 +145,7 @@ fn parse_frame(src: &[u8]) -> io::Result<(u64, &[u8], u32, usize)> {
         u64::try_from(src.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     parse_header(header)?;
-    let (crc32, r#isize) = parse_trailer(&trailer[..])?;
+    let (crc32, r#isize) = parse_trailer(trailer)?;
 
     Ok((block_size, cdata, crc32, r#isize))
 }
@@ -210,9 +210,9 @@ mod tests {
 
     #[test]
     fn test_parse_trailer() -> io::Result<()> {
-        let (_, mut src) = BGZF_EOF.split_at(BGZF_EOF.len() - gz::TRAILER_SIZE);
+        let (_, src) = split_last_chunk(&BGZF_EOF).unwrap();
 
-        let (crc32, r#isize) = parse_trailer(&mut src)?;
+        let (crc32, r#isize) = parse_trailer(src)?;
         assert_eq!(crc32, 0);
         assert_eq!(r#isize, 0);
 
