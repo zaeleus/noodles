@@ -84,11 +84,11 @@ fn get_bool<B>(src: &mut B) -> io::Result<bool>
 where
     B: Buf,
 {
-    if !src.has_remaining() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
+    let n = src
+        .try_get_u8()
+        .map_err(|e| io::Error::new(io::ErrorKind::UnexpectedEof, e))?;
 
-    match src.get_u8() {
+    match n {
         0 => Ok(false),
         1 => Ok(true),
         _ => Err(io::Error::new(

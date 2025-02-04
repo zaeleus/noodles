@@ -79,11 +79,8 @@ impl Decode for Byte {
                         )
                     })?;
 
-                if !src.has_remaining() {
-                    return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-                }
-
-                Ok(src.get_u8())
+                src.try_get_u8()
+                    .map_err(|e| io::Error::new(io::ErrorKind::UnexpectedEof, e))
             }
             Self::Huffman { alphabet, bit_lens } => {
                 if alphabet.len() == 1 {

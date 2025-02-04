@@ -7,11 +7,9 @@ pub fn get_ltf8<B>(src: &mut B) -> io::Result<i64>
 where
     B: Buf,
 {
-    if !src.has_remaining() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
-
-    let b0 = src.get_u8();
+    let b0 = src
+        .try_get_u8()
+        .map_err(|e| io::Error::new(io::ErrorKind::UnexpectedEof, e))?;
 
     // SAFETY: `leading_ones` is at max 8.
     let len = b0.leading_ones() as usize;

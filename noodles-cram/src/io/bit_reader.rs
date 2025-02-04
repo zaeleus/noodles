@@ -32,11 +32,11 @@ where
 
     pub(crate) fn read_bit(&mut self) -> io::Result<u8> {
         if self.i >= 8 {
-            if !self.src.has_remaining() {
-                return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-            }
+            self.buf = self
+                .src
+                .try_get_u8()
+                .map_err(|e| io::Error::new(io::ErrorKind::UnexpectedEof, e))?;
 
-            self.buf = self.src.get_u8();
             self.i = 0;
         }
 

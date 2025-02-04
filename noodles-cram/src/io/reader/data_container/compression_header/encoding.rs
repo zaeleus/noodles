@@ -151,11 +151,10 @@ fn get_byte_array_len_codec(src: &mut Bytes) -> io::Result<(Encoding<Integer>, E
 fn get_byte_array_stop_codec(src: &mut Bytes) -> io::Result<(u8, block::ContentId)> {
     let mut args = get_args(src)?;
 
-    if !args.has_remaining() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
+    let stop_byte = args
+        .try_get_u8()
+        .map_err(|e| io::Error::new(io::ErrorKind::UnexpectedEof, e))?;
 
-    let stop_byte = args.get_u8();
     let block_content_id = get_itf8(&mut args).map(block::ContentId::from)?;
 
     Ok((stop_byte, block_content_id))

@@ -10,11 +10,9 @@ pub fn get_itf8<B>(src: &mut B) -> io::Result<i32>
 where
     B: Buf,
 {
-    if !src.has_remaining() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
-
-    let b0 = src.get_u8();
+    let b0 = src
+        .try_get_u8()
+        .map_err(|e| io::Error::new(io::ErrorKind::UnexpectedEof, e))?;
 
     // SAFETY: `leading_ones` is at max 4.
     let len = (b0 & 0xf0).leading_ones() as usize;

@@ -67,11 +67,11 @@ fn get_compression_method<B>(src: &mut B) -> io::Result<CompressionMethod>
 where
     B: Buf,
 {
-    if !src.has_remaining() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
+    let n = src
+        .try_get_u8()
+        .map_err(|e| io::Error::new(io::ErrorKind::UnexpectedEof, e))?;
 
-    match src.get_u8() {
+    match n {
         0 => Ok(CompressionMethod::None),
         1 => Ok(CompressionMethod::Gzip),
         2 => Ok(CompressionMethod::Bzip2),
@@ -92,11 +92,11 @@ fn get_content_type<B>(src: &mut B) -> io::Result<ContentType>
 where
     B: Buf,
 {
-    if !src.has_remaining() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
+    let n = src
+        .try_get_u8()
+        .map_err(|e| io::Error::new(io::ErrorKind::UnexpectedEof, e))?;
 
-    match src.get_u8() {
+    match n {
         0 => Ok(ContentType::FileHeader),
         1 => Ok(ContentType::CompressionHeader),
         2 => Ok(ContentType::SliceHeader),
