@@ -1,6 +1,5 @@
 use std::io::{self, Read};
 
-use bytes::Buf;
 use flate2::Crc;
 
 use crate::{gz, Block, BGZF_HEADER_SIZE};
@@ -24,7 +23,8 @@ where
         Err(e) => return Err(e),
     }
 
-    let bsize = (&buf[BSIZE_POSITION..]).get_u16_le();
+    // SAFETY: `buf[BSIZE_POSITION..].len() == 2`.
+    let bsize = u16::from_le_bytes(buf[BSIZE_POSITION..].try_into().unwrap());
     let block_size = usize::from(bsize) + 1;
 
     if block_size < MIN_FRAME_SIZE {
