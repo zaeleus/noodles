@@ -102,6 +102,6 @@ mod tests {
         .into_iter()
         .collect();
 
-        assert_eq!(*actual, expected);
+        assert_eq!(actual, expected);
     }
 }
