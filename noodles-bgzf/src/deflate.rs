@@ -39,7 +39,7 @@ pub(crate) fn encode(
 
     let len = encoder
         .deflate_compress(src, dst)
-        .map_err(|_| io::Error::from(io::ErrorKind::InvalidInput))?;
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     dst.truncate(len);
 

@@ -46,7 +46,7 @@ pub fn encode(compression_level: Compression, src: &[u8]) -> io::Result<Vec<u8>>
 
     let len = encoder
         .deflate_compress(src, &mut dst)
-        .map_err(|_| io::Error::from(io::ErrorKind::InvalidInput))?;
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     dst.resize(len, 0);
 
