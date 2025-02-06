@@ -1,11 +1,11 @@
-use std::{collections::HashMap, io};
+use std::io;
 
 use bytes::{Buf, Bytes};
 
 use super::get_encoding_for_byte_array_codec;
-use crate::{data_container::compression_header::TagEncodingMap, io::reader::num::get_itf8};
+use crate::{data_container::compression_header::TagEncodings, io::reader::num::get_itf8};
 
-pub fn get_tag_encoding_map(src: &mut Bytes) -> io::Result<TagEncodingMap> {
+pub fn get_tag_encodings(src: &mut Bytes) -> io::Result<TagEncodings> {
     let data_len = get_itf8(src).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
@@ -20,13 +20,13 @@ pub fn get_tag_encoding_map(src: &mut Bytes) -> io::Result<TagEncodingMap> {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let mut map = HashMap::with_capacity(map_len);
+    let mut encodings = TagEncodings::with_capacity(map_len);
 
     for _ in 0..map_len {
         let key = get_itf8(&mut buf)?;
         let encoding = get_encoding_for_byte_array_codec(&mut buf)?;
-        map.insert(key, encoding);
+        encodings.insert(key, encoding);
     }
 
-    Ok(TagEncodingMap::from(map))
+    Ok(encodings)
 }

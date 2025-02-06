@@ -163,7 +163,7 @@ fn write_records(
         external_data_writers.insert(block_content_id, Vec::new());
     }
 
-    for &block_content_id in compression_header.tag_encoding_map().keys() {
+    for &block_content_id in compression_header.tag_encodings().keys() {
         external_data_writers.insert(block_content_id, Vec::new());
     }
 

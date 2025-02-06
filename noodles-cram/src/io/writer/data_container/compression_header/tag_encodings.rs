@@ -1,22 +1,19 @@
 use std::io::{self, Write};
 
 use super::write_encoding_for_byte_array_codec;
-use crate::{data_container::compression_header::TagEncodingMap, io::writer::num::write_itf8};
+use crate::{data_container::compression_header::TagEncodings, io::writer::num::write_itf8};
 
-pub fn write_tag_encoding_map<W>(
-    writer: &mut W,
-    tag_encoding_map: &TagEncodingMap,
-) -> io::Result<()>
+pub fn write_tag_encodings<W>(writer: &mut W, tag_encodings: &TagEncodings) -> io::Result<()>
 where
     W: Write,
 {
     let mut buf = Vec::new();
 
-    let map_len = i32::try_from(tag_encoding_map.len())
+    let map_len = i32::try_from(tag_encodings.len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(&mut buf, map_len)?;
 
-    for (&block_content_id, encoding) in tag_encoding_map.iter() {
+    for (&block_content_id, encoding) in tag_encodings.iter() {
         write_itf8(&mut buf, block_content_id)?;
         write_encoding_for_byte_array_codec(&mut buf, encoding)?;
     }

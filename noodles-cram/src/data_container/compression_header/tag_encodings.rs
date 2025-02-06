@@ -7,4 +7,4 @@ use std::collections::HashMap;
 use super::{encoding::codec::ByteArray, Encoding};
 use crate::container::block;
 
-pub type TagEncodingMap = HashMap<block::ContentId, Encoding<ByteArray>>;
+pub type TagEncodings = HashMap<block::ContentId, Encoding<ByteArray>>;

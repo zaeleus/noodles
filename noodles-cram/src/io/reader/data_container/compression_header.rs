@@ -1,7 +1,7 @@
 mod data_series_encoding_map;
 mod encoding;
 mod preservation_map;
-mod tag_encoding_map;
+mod tag_encodings;
 
 use std::io;
 
@@ -14,7 +14,7 @@ use self::{
         get_encoding_for_integer_codec,
     },
     preservation_map::get_preservation_map,
-    tag_encoding_map::get_tag_encoding_map,
+    tag_encodings::get_tag_encodings,
 };
 
 use crate::data_container::CompressionHeader;
@@ -22,11 +22,11 @@ use crate::data_container::CompressionHeader;
 pub fn get_compression_header(src: &mut Bytes) -> io::Result<CompressionHeader> {
     let preservation_map = get_preservation_map(src)?;
     let data_series_encoding_map = get_data_series_encoding_map(src)?;
-    let tag_encoding_map = get_tag_encoding_map(src)?;
+    let tag_encodings = get_tag_encodings(src)?;
 
     Ok(CompressionHeader::new(
         preservation_map,
         data_series_encoding_map,
-        tag_encoding_map,
+        tag_encodings,
     ))
 }

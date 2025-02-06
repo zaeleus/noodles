@@ -413,7 +413,7 @@ where
 
         self.write_tag_set_id(tag_set_id)?;
 
-        let tag_encoding_map = self.compression_header.tag_encoding_map();
+        let tag_encodings = self.compression_header.tag_encodings();
         let mut buf = Vec::new();
 
         for result in sam::alignment::Record::data(record).iter() {
@@ -421,7 +421,7 @@ where
 
             let key = tag_sets::Key::new(tag, value.ty());
             let id = block::ContentId::from(key);
-            let encoding = tag_encoding_map.get(&id).ok_or_else(|| {
+            let encoding = tag_encodings.get(&id).ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidInput,
                     WriteRecordError::MissingTagEncoding(key),

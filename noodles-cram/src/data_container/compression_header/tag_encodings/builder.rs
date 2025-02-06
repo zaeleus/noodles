@@ -1,7 +1,6 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
-use super::TagEncodingMap;
-
+use super::TagEncodings;
 use crate::{
     container::block,
     data_container::compression_header::{
@@ -25,8 +24,8 @@ impl Builder {
         }
     }
 
-    pub fn build(self) -> TagEncodingMap {
-        let mut map = HashMap::new();
+    pub fn build(self) -> TagEncodings {
+        let mut encodings = TagEncodings::new();
 
         for key in self.keys {
             let block_content_id = block::ContentId::from(key);
@@ -38,10 +37,10 @@ impl Builder {
                 value_encoding,
             });
 
-            map.insert(block_content_id, encoding);
+            encodings.insert(block_content_id, encoding);
         }
 
-        TagEncodingMap::from(map)
+        encodings
     }
 }
 

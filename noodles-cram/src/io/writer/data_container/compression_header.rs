@@ -1,7 +1,7 @@
 pub(crate) mod data_series_encoding_map;
 mod encoding;
 mod preservation_map;
-mod tag_encoding_map;
+mod tag_encodings;
 
 use std::io::{self, Write};
 
@@ -12,7 +12,7 @@ use self::{
         write_encoding_for_integer_codec,
     },
     preservation_map::write_preservation_map,
-    tag_encoding_map::write_tag_encoding_map,
+    tag_encodings::write_tag_encodings,
 };
 
 use crate::data_container::CompressionHeader;
@@ -26,6 +26,6 @@ where
 {
     write_preservation_map(writer, compression_header.preservation_map())?;
     write_data_series_encoding_map(writer, compression_header.data_series_encoding_map())?;
-    write_tag_encoding_map(writer, compression_header.tag_encoding_map())?;
+    write_tag_encodings(writer, compression_header.tag_encodings())?;
     Ok(())
 }

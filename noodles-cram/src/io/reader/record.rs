@@ -376,14 +376,14 @@ where
             .get(tag_set_id)
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid tag line"))?;
 
-        let tag_encoding_map = self.compression_header.tag_encoding_map();
+        let tag_encodings = self.compression_header.tag_encodings();
 
         let mut fields = Vec::with_capacity(tag_keys.len());
 
         for &key in tag_keys {
             let id = block::ContentId::from(key);
 
-            let encoding = tag_encoding_map.get(&id).ok_or_else(|| {
+            let encoding = tag_encodings.get(&id).ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingTagEncoding(key),

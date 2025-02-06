@@ -4,14 +4,14 @@ mod builder;
 pub mod data_series_encoding_map;
 pub(crate) mod encoding;
 pub mod preservation_map;
-mod tag_encoding_map;
+mod tag_encodings;
 
 pub(crate) use self::{
     builder::Builder,
     data_series_encoding_map::DataSeriesEncodingMap,
     encoding::Encoding,
     preservation_map::{PreservationMap, SubstitutionMatrix, TagSets},
-    tag_encoding_map::TagEncodingMap,
+    tag_encodings::TagEncodings,
 };
 
 /// A CRAM data container compression header.
@@ -22,7 +22,7 @@ pub(crate) use self::{
 pub struct CompressionHeader {
     preservation_map: PreservationMap,
     data_series_encoding_map: DataSeriesEncodingMap,
-    tag_encoding_map: TagEncodingMap,
+    tag_encodings: TagEncodings,
 }
 
 impl CompressionHeader {
@@ -33,12 +33,12 @@ impl CompressionHeader {
     pub(crate) fn new(
         preservation_map: PreservationMap,
         data_series_encoding_map: DataSeriesEncodingMap,
-        tag_encoding_map: TagEncodingMap,
+        tag_encodings: TagEncodings,
     ) -> Self {
         Self {
             preservation_map,
             data_series_encoding_map,
-            tag_encoding_map,
+            tag_encodings,
         }
     }
 
@@ -50,7 +50,7 @@ impl CompressionHeader {
         &self.data_series_encoding_map
     }
 
-    pub(crate) fn tag_encoding_map(&self) -> &TagEncodingMap {
-        &self.tag_encoding_map
+    pub(crate) fn tag_encodings(&self) -> &TagEncodings {
+        &self.tag_encodings
     }
 }
