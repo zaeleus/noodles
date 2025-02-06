@@ -34,7 +34,7 @@ where
         let end_position = reader.get_ref().virtual_position();
         let chunk = Chunk::new(start_position, end_position);
 
-        let reference_sequence_name = record.reference_sequence_name().to_string();
+        let reference_sequence_name = record.reference_sequence_name();
 
         let start = record
             .variant_start()
@@ -43,7 +43,7 @@ where
 
         let end = record.variant_end(&header)?;
 
-        indexer.add_record(&reference_sequence_name, start, end, chunk)?;
+        indexer.add_record(reference_sequence_name, start, end, chunk)?;
 
         start_position = end_position;
     }
