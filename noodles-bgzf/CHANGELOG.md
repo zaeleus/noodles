@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.36.0 - 2025-02-06
+
+### Changed
+
+  * bgzf: Sync dependencies.
+
 ## 0.35.0 - 2025-01-19
 
 ### Added
