@@ -10,6 +10,13 @@
 
 [#323]: https://github.com/zaeleus/noodles/pull/323
 
+### Fixed
+
+  * csi/binning_index/indexer: Add header to index even when there are no
+    reference sequences ([#325]).
+
+[#325]: https://github.com/zaeleus/noodles/issues/325
+
 ## 0.43.0 - 2025-01-23
 
 ### Fixed

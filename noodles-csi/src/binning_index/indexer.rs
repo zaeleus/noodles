@@ -130,14 +130,10 @@ where
     /// let index = indexer.build(0);
     /// ```
     pub fn build(mut self, reference_sequence_count: usize) -> Index<I> {
-        if reference_sequence_count == 0 {
-            return Index::builder()
-                .set_unplaced_unmapped_record_count(self.unplaced_unmapped_record_count)
-                .build();
+        if reference_sequence_count > self.reference_sequences.len() {
+            // SAFETY: `reference_sequence_count` is nonzero.
+            self.add_reference_sequences_until(reference_sequence_count - 1);
         }
-
-        // SAFETY: `reference_sequence_count` is > 0.
-        self.add_reference_sequences_until(reference_sequence_count - 1);
 
         let mut builder = Index::builder()
             .set_reference_sequences(self.reference_sequences)
@@ -279,5 +275,21 @@ mod tests {
     fn test_build_with_reference_sequence_count() {
         let index = Indexer::<LinearIndex>::default().build(2);
         assert_eq!(index.reference_sequences().len(), 2);
+    }
+
+    #[test]
+    fn test_build_with_no_reference_sequences() {
+        let header = crate::binning_index::index::header::Builder::vcf().build();
+
+        let actual = Indexer::<LinearIndex>::default()
+            .set_header(header.clone())
+            .build(0);
+
+        let expected = Index::builder()
+            .set_header(header)
+            .set_unplaced_unmapped_record_count(0)
+            .build();
+
+        assert_eq!(actual, expected);
     }
 }
