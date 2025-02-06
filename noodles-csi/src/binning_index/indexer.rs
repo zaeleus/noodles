@@ -136,6 +136,8 @@ where
         }
 
         let mut builder = Index::builder()
+            .set_min_shift(self.min_shift)
+            .set_depth(self.depth)
             .set_reference_sequences(self.reference_sequences)
             .set_unplaced_unmapped_record_count(self.unplaced_unmapped_record_count);
 
@@ -287,6 +289,22 @@ mod tests {
 
         let expected = Index::builder()
             .set_header(header)
+            .set_unplaced_unmapped_record_count(0)
+            .build();
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn test_build_with_nonstandard_bin_factors() {
+        const MIN_SHIFT: u8 = 13;
+        const DEPTH: u8 = 8;
+
+        let actual = Indexer::<LinearIndex>::new(MIN_SHIFT, DEPTH).build(0);
+
+        let expected = Index::builder()
+            .set_min_shift(MIN_SHIFT)
+            .set_depth(DEPTH)
             .set_unplaced_unmapped_record_count(0)
             .build();
 
