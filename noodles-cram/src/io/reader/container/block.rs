@@ -4,7 +4,7 @@ use bytes::{Buf, Bytes};
 
 use crate::{
     container::{
-        block::{CompressionMethod, ContentId, ContentType},
+        block::{CompressionMethod, ContentType},
         Block,
     },
     io::reader::num::get_itf8,
@@ -15,7 +15,7 @@ pub fn read_block(src: &mut Bytes) -> io::Result<Block> {
 
     let method = get_compression_method(src)?;
     let block_content_type = get_content_type(src)?;
-    let block_content_id = get_itf8(src).map(ContentId::from)?;
+    let block_content_id = get_itf8(src)?;
 
     let size_in_bytes = get_itf8(src).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -140,7 +140,7 @@ mod tests {
         let expected = Block::builder()
             .set_compression_method(CompressionMethod::None)
             .set_content_type(ContentType::ExternalData)
-            .set_content_id(ContentId::from(1))
+            .set_content_id(1)
             .set_uncompressed_len(4)
             .set_data(Bytes::from_static(b"ndls"))
             .build();
@@ -165,7 +165,7 @@ mod tests {
 
         let expected = Block::builder()
             .set_content_type(ContentType::ExternalData)
-            .set_content_id(ContentId::from(1))
+            .set_content_id(1)
             .build();
 
         assert_eq!(actual, expected);

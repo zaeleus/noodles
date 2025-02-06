@@ -58,8 +58,7 @@ impl From<Key> for block::ContentId {
 
         let [l, r]: [u8; 2] = key.tag.into();
         let ty = encode(key.ty);
-        let id = i32::from(l) << 16 | i32::from(r) << 8 | i32::from(ty);
-        Self::from(id)
+        i32::from(l) << 16 | i32::from(r) << 8 | i32::from(ty)
     }
 }
 
@@ -70,9 +69,9 @@ mod tests {
     #[test]
     fn test_from_key_for_block_content_id() {
         let key = Key::new(Tag::COMMENT, Type::String);
-        assert_eq!(block::ContentId::from(key), block::ContentId::from(4411226));
+        assert_eq!(block::ContentId::from(key), 4411226);
 
         let key = Key::new(Tag::ALIGNMENT_HIT_COUNT, Type::Int32);
-        assert_eq!(block::ContentId::from(key), block::ContentId::from(5130345));
+        assert_eq!(block::ContentId::from(key), 5130345);
     }
 }

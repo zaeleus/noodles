@@ -126,7 +126,7 @@ fn get_args(src: &mut Bytes) -> io::Result<Bytes> {
 
 fn get_external_codec(src: &mut Bytes) -> io::Result<block::ContentId> {
     let mut args = get_args(src)?;
-    let block_content_id = get_itf8(&mut args).map(block::ContentId::from)?;
+    let block_content_id = get_itf8(&mut args)?;
     Ok(block_content_id)
 }
 
@@ -155,7 +155,7 @@ fn get_byte_array_stop_codec(src: &mut Bytes) -> io::Result<(u8, block::ContentI
         .try_get_u8()
         .map_err(|e| io::Error::new(io::ErrorKind::UnexpectedEof, e))?;
 
-    let block_content_id = get_itf8(&mut args).map(block::ContentId::from)?;
+    let block_content_id = get_itf8(&mut args)?;
 
     Ok((stop_byte, block_content_id))
 }
@@ -267,7 +267,7 @@ mod tests {
         ]);
 
         let block_content_id = get_external_codec(&mut data)?;
-        assert_eq!(block_content_id, block::ContentId::from(5));
+        assert_eq!(block_content_id, 5);
 
         Ok(())
     }
@@ -321,13 +321,13 @@ mod tests {
         assert_eq!(
             len_encoding,
             Encoding::new(Integer::External {
-                block_content_id: block::ContentId::from(13)
+                block_content_id: 13
             })
         );
         assert_eq!(
             value_encoding,
             Encoding::new(Byte::External {
-                block_content_id: block::ContentId::from(21)
+                block_content_id: 21
             })
         );
 
@@ -344,7 +344,7 @@ mod tests {
 
         let (stop_byte, block_content_id) = get_byte_array_stop_codec(&mut data)?;
         assert_eq!(stop_byte, 0);
-        assert_eq!(block_content_id, block::ContentId::from(8));
+        assert_eq!(block_content_id, 8);
 
         Ok(())
     }

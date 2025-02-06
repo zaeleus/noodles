@@ -41,7 +41,7 @@ impl BlockContentEncoderMap {
         &self,
         block_content_id: block::ContentId,
     ) -> Option<Option<&Encoder>> {
-        let i = (i32::from(block_content_id) as usize) - 1;
+        let i = (block_content_id as usize) - 1;
         self.data_series_encoders.get(i).map(|e| e.as_ref())
     }
 

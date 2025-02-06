@@ -147,7 +147,7 @@ mod tests {
 
             let external_data = [0x0d];
             let mut external_data_readers = ExternalDataReaders::new();
-            external_data_readers.insert(block::ContentId::from(1), &external_data[..]);
+            external_data_readers.insert(1, &external_data[..]);
 
             let actual = encoding.decode(&mut core_data_reader, &mut external_data_readers)?;
 
@@ -159,7 +159,7 @@ mod tests {
         t(
             None,
             &Encoding::new(Integer::External {
-                block_content_id: block::ContentId::from(1),
+                block_content_id: 1,
             }),
             13,
         )?;
@@ -191,7 +191,7 @@ mod tests {
         ) -> io::Result<()> {
             let mut core_data_writer = BitWriter::new(Vec::new());
 
-            let block_content_id = block::ContentId::from(1);
+            let block_content_id = 1;
             let mut external_data_writers = [(block_content_id, Vec::new())].into_iter().collect();
 
             encoding.encode(&mut core_data_writer, &mut external_data_writers, value)?;
@@ -207,7 +207,7 @@ mod tests {
 
         t(
             &Encoding::new(Integer::External {
-                block_content_id: block::ContentId::from(1),
+                block_content_id: 1,
             }),
             0x0d,
             &[],

@@ -21,7 +21,7 @@ where
     }
 
     pub fn insert(&mut self, id: block::ContentId, reader: B) {
-        match i32::from(id) {
+        match id {
             i @ 0..=63 => {
                 self.low_readers[i as usize] = Some(reader);
             }
@@ -32,7 +32,7 @@ where
     }
 
     pub fn get_mut(&mut self, id: &block::ContentId) -> Option<&mut B> {
-        match i32::from(*id) {
+        match *id {
             i @ 0..=63 => self.low_readers[i as usize].as_mut(),
             _ => self.high_readers.get_mut(id),
         }

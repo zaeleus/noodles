@@ -49,7 +49,7 @@ impl Builder {
         data_series: DataSeries,
         encoder: Option<Encoder>,
     ) -> Self {
-        let i = (i32::from(block::ContentId::from(data_series)) as usize) - 1;
+        let i = (block::ContentId::from(data_series) as usize) - 1;
         self.data_series_encoders[i] = encoder;
         self
     }

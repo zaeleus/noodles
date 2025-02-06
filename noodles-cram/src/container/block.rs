@@ -1,11 +1,9 @@
 mod builder;
 mod compression_method;
-mod content_id;
 mod content_type;
 
 pub use self::{
-    builder::Builder, compression_method::CompressionMethod, content_id::ContentId,
-    content_type::ContentType,
+    builder::Builder, compression_method::CompressionMethod, content_type::ContentType,
 };
 
 use std::{io, mem};
@@ -16,6 +14,8 @@ use crate::{
     codecs::{aac, fqzcomp, name_tokenizer, rans_4x8, rans_nx16},
     num::itf8,
 };
+
+pub type ContentId = i32;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Block {
@@ -100,7 +100,7 @@ impl Block {
         mem::size_of::<u8>()
             // block content type ID
             + mem::size_of::<u8>()
-            + itf8::size_of(i32::from(self.content_id()))
+            + itf8::size_of(self.content_id)
             + itf8::size_of(self.data.len() as i32)
             + itf8::size_of(self.uncompressed_len() as i32)
             + self.data.len()

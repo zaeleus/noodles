@@ -188,7 +188,7 @@ fn write_records(
     let core_data_block = core_data_writer.finish().and_then(|buf| {
         let mut builder = Block::builder()
             .set_content_type(block::ContentType::CoreData)
-            .set_content_id(block::ContentId::from(CORE_DATA_BLOCK_CONTENT_ID));
+            .set_content_id(CORE_DATA_BLOCK_CONTENT_ID);
 
         builder = set_block_data(builder, buf, block_content_encoder_map.core_data_encoder())?;
 

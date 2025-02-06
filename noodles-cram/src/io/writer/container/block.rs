@@ -19,9 +19,7 @@ where
 
     write_compression_method(&mut crc_writer, block.compression_method())?;
     write_content_type(&mut crc_writer, block.content_type())?;
-
-    let block_content_id = i32::from(block.content_id());
-    write_itf8(&mut crc_writer, block_content_id)?;
+    write_itf8(&mut crc_writer, block.content_id())?;
 
     let size_in_bytes = i32::try_from(block.data().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;

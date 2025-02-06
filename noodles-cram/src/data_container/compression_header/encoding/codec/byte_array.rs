@@ -154,7 +154,7 @@ mod tests {
             let mut core_data_reader = BitReader::new(&core_data[..]);
 
             let mut external_data_readers = ExternalDataReaders::new();
-            external_data_readers.insert(block::ContentId::from(1), external_data);
+            external_data_readers.insert(1, external_data);
 
             let actual = encoding.decode(&mut core_data_reader, &mut external_data_readers)?;
 
@@ -163,7 +163,7 @@ mod tests {
             Ok(())
         }
 
-        let block_content_id = block::ContentId::from(1);
+        let block_content_id = 1;
         let len_encoding = Encoding::new(Integer::External { block_content_id });
         let value_encoding = Encoding::new(Byte::External { block_content_id });
         t(
@@ -179,7 +179,7 @@ mod tests {
             &[0x6e, 0x64, 0x6c, 0x73, 0x00],
             &Encoding::new(ByteArray::ByteArrayStop {
                 stop_byte: 0x00,
-                block_content_id: block::ContentId::from(1),
+                block_content_id: 1,
             }),
             b"ndls",
         )?;
@@ -187,7 +187,7 @@ mod tests {
         assert!(matches!(
             t(
                 &[0x6e, 0x64, 0x6c, 0x73],
-                &Encoding::new(ByteArray::ByteArrayStop{ stop_byte: 0x00, block_content_id: block::ContentId::from(1) }),
+                &Encoding::new(ByteArray::ByteArrayStop{ stop_byte: 0x00, block_content_id: 1 }),
                 b""
             ),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
@@ -206,7 +206,7 @@ mod tests {
         ) -> io::Result<()> {
             let mut core_data_writer = BitWriter::new(Vec::new());
 
-            let block_content_id = block::ContentId::from(1);
+            let block_content_id = 1;
             let mut external_data_writers = [(block_content_id, Vec::new())].into_iter().collect();
 
             encoding.encode(&mut core_data_writer, &mut external_data_writers, value)?;
@@ -220,7 +220,7 @@ mod tests {
             Ok(())
         }
 
-        let block_content_id = block::ContentId::from(1);
+        let block_content_id = 1;
         let len_encoding = Encoding::new(Integer::External { block_content_id });
         let value_encoding = Encoding::new(Byte::External { block_content_id });
         t(
@@ -236,7 +236,7 @@ mod tests {
         t(
             &Encoding::new(ByteArray::ByteArrayStop {
                 stop_byte: 0x00,
-                block_content_id: block::ContentId::from(1),
+                block_content_id: 1,
             }),
             b"ndls",
             &[],

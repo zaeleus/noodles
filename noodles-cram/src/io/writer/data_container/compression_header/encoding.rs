@@ -97,8 +97,7 @@ where
 {
     let mut args = Vec::new();
 
-    let id = i32::from(block_content_id);
-    write_itf8(&mut args, id)?;
+    write_itf8(&mut args, block_content_id)?;
 
     write_kind(writer, Kind::External)?;
     write_args(writer, &args)?;
@@ -179,8 +178,7 @@ where
     let mut args = Vec::new();
     args.write_u8(stop_byte)?;
 
-    let id = i32::from(block_content_id);
-    write_itf8(&mut args, id)?;
+    write_itf8(&mut args, block_content_id)?;
 
     write_kind(writer, Kind::ByteArrayStop)?;
     write_args(writer, &args)?;
@@ -252,7 +250,7 @@ mod tests {
     #[test]
     fn test_write_external_codec() -> io::Result<()> {
         let mut buf = Vec::new();
-        write_external_codec(&mut buf, block::ContentId::from(5))?;
+        write_external_codec(&mut buf, 5)?;
 
         let expected = [
             1, // external encoding ID
@@ -306,10 +304,10 @@ mod tests {
         let mut buf = Vec::new();
 
         let len_encoding = Encoding::new(Integer::External {
-            block_content_id: block::ContentId::from(13),
+            block_content_id: 13,
         });
         let value_encoding = Encoding::new(Byte::External {
-            block_content_id: block::ContentId::from(21),
+            block_content_id: 21,
         });
 
         write_byte_array_len_codec(&mut buf, &len_encoding, &value_encoding)?;
@@ -333,7 +331,7 @@ mod tests {
     #[test]
     fn test_write_byte_array_stop_codec() -> io::Result<()> {
         let mut buf = Vec::new();
-        write_byte_array_stop_codec(&mut buf, 0x00, block::ContentId::from(8))?;
+        write_byte_array_stop_codec(&mut buf, 0x00, 8)?;
 
         let expected = [
             5, // byte array stop encoding ID

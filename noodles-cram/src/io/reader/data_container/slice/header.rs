@@ -111,7 +111,7 @@ where
     let mut buf = Vec::with_capacity(len);
 
     for _ in 0..len {
-        let value = get_itf8(src).map(block::ContentId::from)?;
+        let value = get_itf8(src)?;
         buf.push(value);
     }
 
@@ -126,7 +126,7 @@ where
 {
     get_itf8(src).map(|n| match n {
         -1 => None,
-        _ => Some(block::ContentId::from(n)),
+        _ => Some(n),
     })
 }
 
@@ -185,7 +185,7 @@ mod tests {
             .set_record_count(8)
             .set_record_counter(13)
             .set_block_count(1)
-            .set_block_content_ids(vec![block::ContentId::from(21)])
+            .set_block_content_ids(vec![21])
             .set_reference_md5([
                 0x57, 0xb2, 0x96, 0xa3, 0x16, 0x0a, 0x2c, 0xac, 0x9c, 0x83, 0x33, 0x12, 0x6f, 0xf2,
                 0x7e, 0xf7,

@@ -16,8 +16,8 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(&mut buf, map_len)?;
 
-    for (&key, encoding) in tag_encoding_map.iter() {
-        write_itf8(&mut buf, i32::from(key))?;
+    for (&block_content_id, encoding) in tag_encoding_map.iter() {
+        write_itf8(&mut buf, block_content_id)?;
         write_encoding_for_byte_array_codec(&mut buf, encoding)?;
     }
 

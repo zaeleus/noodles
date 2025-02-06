@@ -369,22 +369,22 @@ mod tests {
 
         let map = DataSeriesEncodingMap::builder()
             .set_bam_flags(Encoding::new(Integer::External {
-                block_content_id: block::ContentId::from(1),
+                block_content_id: 1,
             }))
             .set_cram_flags(Encoding::new(Integer::External {
-                block_content_id: block::ContentId::from(2),
+                block_content_id: 2,
             }))
             .set_read_lengths(Encoding::new(Integer::External {
-                block_content_id: block::ContentId::from(4),
+                block_content_id: 4,
             }))
             .set_alignment_starts(Encoding::new(Integer::External {
-                block_content_id: block::ContentId::from(5),
+                block_content_id: 5,
             }))
             .set_read_group_ids(Encoding::new(Integer::External {
-                block_content_id: block::ContentId::from(6),
+                block_content_id: 6,
             }))
             .set_tag_set_ids(Encoding::new(Integer::External {
-                block_content_id: block::ContentId::from(13),
+                block_content_id: 13,
             }))
             .build()?;
 

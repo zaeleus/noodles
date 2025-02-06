@@ -88,8 +88,7 @@ where
     write_itf8(writer, len)?;
 
     for &block_content_id in block_content_ids {
-        let id = i32::from(block_content_id);
-        write_itf8(writer, id)?;
+        write_itf8(writer, block_content_id)?;
     }
 
     Ok(())

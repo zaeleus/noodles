@@ -192,7 +192,7 @@ impl From<DataSeries> for [u8; 2] {
 
 impl From<DataSeries> for block::ContentId {
     fn from(data_series: DataSeries) -> Self {
-        let id = match data_series {
+        match data_series {
             DataSeries::BamFlags => 1,
             DataSeries::CramFlags => 2,
             DataSeries::ReferenceSequenceIds => 3,
@@ -223,9 +223,7 @@ impl From<DataSeries> for block::ContentId {
             DataSeries::QualityScores => 28,
             DataSeries::ReservedTc => 29,
             DataSeries::ReservedTn => 30,
-        };
-
-        block::ContentId::from(id)
+        }
     }
 }
 
