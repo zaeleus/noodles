@@ -192,10 +192,7 @@ mod tests {
 
     #[test]
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
-        const MIN_SHIFT: u8 = 14;
-        const DEPTH: u8 = 5;
-
-        let mut indexer = Indexer::<LinearIndex>::new(MIN_SHIFT, DEPTH);
+        let mut indexer = Indexer::<LinearIndex>::default();
 
         indexer.add_record(
             Some((0, Position::try_from(8)?, Position::try_from(13)?, true)),
