@@ -1,4 +1,4 @@
-//! CRAM data container compress header data series-encoding map.
+//! CRAM data container compress header data series encodings.
 
 mod builder;
 pub(crate) mod data_series;
@@ -12,9 +12,9 @@ use super::{
 };
 use crate::container::block;
 
-/// A container compression header data series encoding map.
+/// Container compression header data series encodings.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct DataSeriesEncodingMap {
+pub(crate) struct DataSeriesEncodings {
     bam_flags: Encoding<Integer>,
     cram_flags: Encoding<Integer>,
     reference_sequence_ids: Option<Encoding<Integer>>,
@@ -45,7 +45,7 @@ pub(crate) struct DataSeriesEncodingMap {
     quality_scores: Option<Encoding<Byte>>,
 }
 
-impl DataSeriesEncodingMap {
+impl DataSeriesEncodings {
     pub(crate) fn builder() -> Builder {
         Builder::default()
     }
@@ -258,7 +258,7 @@ impl DataSeriesEncodingMap {
     }
 }
 
-impl Default for DataSeriesEncodingMap {
+impl Default for DataSeriesEncodings {
     fn default() -> Self {
         Self {
             bam_flags: Encoding::new(Integer::External {
@@ -364,10 +364,10 @@ mod tests {
 
     #[test]
     fn test_len() -> Result<(), builder::BuildError> {
-        let map = DataSeriesEncodingMap::default();
+        let map = DataSeriesEncodings::default();
         assert_eq!(map.len(), 28);
 
-        let map = DataSeriesEncodingMap::builder()
+        let map = DataSeriesEncodings::builder()
             .set_bam_flags(Encoding::new(Integer::External {
                 block_content_id: 1,
             }))

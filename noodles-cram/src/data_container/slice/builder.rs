@@ -10,7 +10,7 @@ use crate::{
     codecs::Encoder,
     container::{block, Block},
     data_container::{
-        compression_header::data_series_encoding_map::data_series::STANDARD_DATA_SERIES,
+        compression_header::data_series_encodings::data_series::STANDARD_DATA_SERIES,
         BlockContentEncoderMap, CompressionHeader, ReferenceSequenceContext,
     },
     io::{writer, BitWriter},

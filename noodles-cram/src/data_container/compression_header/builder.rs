@@ -1,6 +1,5 @@
 use super::{
-    data_series_encoding_map::DataSeriesEncodingMap, preservation_map, tag_encodings,
-    CompressionHeader,
+    data_series_encodings::DataSeriesEncodings, preservation_map, tag_encodings, CompressionHeader,
 };
 use crate::{io::writer::Options, Record};
 
@@ -22,8 +21,8 @@ impl Builder {
 
     pub fn build(self) -> CompressionHeader {
         let preservation_map = self.preservation_map_builder.build();
-        let data_series_encoding_map = DataSeriesEncodingMap::default();
+        let data_series_encodings = DataSeriesEncodings::default();
         let tag_encodings = self.tag_encodings_builder.build();
-        CompressionHeader::new(preservation_map, data_series_encoding_map, tag_encodings)
+        CompressionHeader::new(preservation_map, data_series_encodings, tag_encodings)
     }
 }

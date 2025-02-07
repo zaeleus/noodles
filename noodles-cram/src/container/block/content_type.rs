@@ -13,7 +13,7 @@ pub enum ContentType {
     /// Compression header.
     ///
     /// There is a single compression header associated with each data container. It contains the
-    /// preservation map, data series encoding map, and tag encoding map.
+    /// preservation map, data series encodings, and tag encoding map.
     CompressionHeader,
     /// Slice header.
     ///

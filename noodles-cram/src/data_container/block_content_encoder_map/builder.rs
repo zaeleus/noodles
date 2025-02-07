@@ -5,7 +5,7 @@ use crate::{
     codecs::Encoder,
     container::block,
     data_container::compression_header::{
-        data_series_encoding_map::DataSeries, preservation_map::tag_sets,
+        data_series_encodings::DataSeries, preservation_map::tag_sets,
     },
 };
 
@@ -37,7 +37,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_cram::data_container::{
-    ///     compression_header::data_series_encoding_map::DataSeries,
+    ///     compression_header::data_series_encodings::DataSeries,
     ///     BlockContentEncoderMap,
     /// };
     ///
@@ -96,7 +96,7 @@ impl Default for Builder {
     fn default() -> Self {
         use flate2::Compression;
 
-        use crate::data_container::compression_header::data_series_encoding_map::data_series::STANDARD_DATA_SERIES;
+        use crate::data_container::compression_header::data_series_encodings::data_series::STANDARD_DATA_SERIES;
 
         let compression_level = Compression::default();
 

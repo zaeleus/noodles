@@ -5,7 +5,7 @@ use crate::data_container::compression_header::{
     Encoding,
 };
 
-use super::DataSeriesEncodingMap;
+use super::DataSeriesEncodings;
 
 #[derive(Default)]
 pub struct Builder {
@@ -180,8 +180,8 @@ impl Builder {
         self
     }
 
-    pub(crate) fn build(self) -> Result<DataSeriesEncodingMap, BuildError> {
-        Ok(DataSeriesEncodingMap {
+    pub(crate) fn build(self) -> Result<DataSeriesEncodings, BuildError> {
+        Ok(DataSeriesEncodings {
             bam_flags: self.bam_flags.ok_or(BuildError::MissingBamBitFlags)?,
             cram_flags: self.cram_flags.ok_or(BuildError::MissingCramBitFlags)?,
             reference_sequence_ids: self.reference_sequence_ids,

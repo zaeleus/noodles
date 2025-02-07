@@ -6,13 +6,11 @@ use super::{
     get_encoding_for_byte_array_codec, get_encoding_for_byte_codec, get_encoding_for_integer_codec,
 };
 use crate::{
-    data_container::compression_header::{
-        data_series_encoding_map::DataSeries, DataSeriesEncodingMap,
-    },
+    data_container::compression_header::{data_series_encodings::DataSeries, DataSeriesEncodings},
     io::reader::num::get_itf8,
 };
 
-pub(super) fn get_data_series_encoding_map(src: &mut Bytes) -> io::Result<DataSeriesEncodingMap> {
+pub(super) fn get_data_series_encodings(src: &mut Bytes) -> io::Result<DataSeriesEncodings> {
     let data_len = get_itf8(src).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
@@ -25,7 +23,7 @@ pub(super) fn get_data_series_encoding_map(src: &mut Bytes) -> io::Result<DataSe
 
     let map_len = get_itf8(&mut buf)?;
 
-    let mut builder = DataSeriesEncodingMap::builder();
+    let mut builder = DataSeriesEncodings::builder();
 
     for _ in 0..map_len {
         let key = get_key(&mut buf)?;
@@ -174,20 +172,20 @@ where
 mod tests {
     use super::*;
 
-    fn build_data(data_series_encoding_map: &DataSeriesEncodingMap) -> io::Result<Bytes> {
-        use crate::io::writer::data_container::compression_header::data_series_encoding_map::write_data_series_encoding_map;
+    fn build_data(data_series_encodings: &DataSeriesEncodings) -> io::Result<Bytes> {
+        use crate::io::writer::data_container::compression_header::data_series_encodings::write_data_series_encodings;
 
         let mut buf = Vec::new();
-        write_data_series_encoding_map(&mut buf, data_series_encoding_map)?;
+        write_data_series_encodings(&mut buf, data_series_encodings)?;
         Ok(Bytes::from(buf))
     }
 
     #[test]
-    fn test_get_data_series_encoding_map() -> io::Result<()> {
-        let expected = DataSeriesEncodingMap::default();
+    fn test_get_data_series_encodings() -> io::Result<()> {
+        let expected = DataSeriesEncodings::default();
 
         let mut data = build_data(&expected)?;
-        let actual = get_data_series_encoding_map(&mut data)?;
+        let actual = get_data_series_encodings(&mut data)?;
 
         assert_eq!(actual, expected);
 

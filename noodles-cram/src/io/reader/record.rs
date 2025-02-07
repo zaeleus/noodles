@@ -13,7 +13,7 @@ use noodles_sam::{self as sam, alignment::record_buf::QualityScores};
 use crate::{
     container::block,
     data_container::{
-        compression_header::{data_series_encoding_map::DataSeries, preservation_map::tag_sets},
+        compression_header::{data_series_encodings::DataSeries, preservation_map::tag_sets},
         CompressionHeader, ReferenceSequenceContext,
     },
     io::BitReader,
@@ -104,7 +104,7 @@ where
 
     fn read_bam_flags(&mut self) -> io::Result<sam::alignment::record::Flags> {
         self.compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .bam_flags()
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| {
@@ -115,7 +115,7 @@ where
 
     fn read_cram_flags(&mut self) -> io::Result<Flags> {
         self.compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .cram_flags()
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| {
@@ -144,7 +144,7 @@ where
         const UNMAPPED: i32 = -1;
 
         self.compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .reference_sequence_ids()
             .ok_or_else(|| {
                 io::Error::new(
@@ -163,7 +163,7 @@ where
 
     fn read_read_length(&mut self) -> io::Result<usize> {
         self.compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .read_lengths()
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| {
@@ -179,7 +179,7 @@ where
 
         let alignment_start_or_delta = self
             .compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .alignment_starts()
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)?;
 
@@ -206,7 +206,7 @@ where
         const MISSING: i32 = -1;
 
         self.compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .read_group_ids()
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| match n {
@@ -233,7 +233,7 @@ where
 
         let buf = self
             .compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .names()
             .ok_or_else(|| {
                 io::Error::new(
@@ -282,7 +282,7 @@ where
 
     fn read_mate_flags(&mut self) -> io::Result<MateFlags> {
         self.compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .mate_flags()
             .ok_or_else(|| {
                 io::Error::new(
@@ -301,7 +301,7 @@ where
         const UNMAPPED: i32 = -1;
 
         self.compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .mate_reference_sequence_ids()
             .ok_or_else(|| {
                 io::Error::new(
@@ -320,7 +320,7 @@ where
 
     fn read_mate_alignment_start(&mut self) -> io::Result<Option<Position>> {
         self.compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .mate_alignment_starts()
             .ok_or_else(|| {
                 io::Error::new(
@@ -337,7 +337,7 @@ where
 
     fn read_template_length(&mut self) -> io::Result<i32> {
         self.compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .template_lengths()
             .ok_or_else(|| {
                 io::Error::new(
@@ -350,7 +350,7 @@ where
 
     fn read_mate_distance(&mut self) -> io::Result<usize> {
         self.compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .mate_distances()
             .ok_or_else(|| {
                 io::Error::new(
@@ -406,7 +406,7 @@ where
 
     fn read_tag_set_id(&mut self) -> io::Result<usize> {
         self.compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .tag_set_ids()
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| {
@@ -437,7 +437,7 @@ where
 
     fn read_feature_count(&mut self) -> io::Result<usize> {
         self.compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .feature_counts()
             .ok_or_else(|| {
                 io::Error::new(
@@ -528,7 +528,7 @@ where
 
     fn read_feature_code(&mut self) -> io::Result<feature::Code> {
         self.compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .feature_codes()
             .ok_or_else(|| {
                 io::Error::new(
@@ -545,7 +545,7 @@ where
 
     fn read_feature_position_delta(&mut self) -> io::Result<usize> {
         self.compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .feature_position_deltas()
             .ok_or_else(|| {
                 io::Error::new(
@@ -561,7 +561,7 @@ where
 
     fn read_stretches_of_bases(&mut self) -> io::Result<Vec<u8>> {
         self.compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .stretches_of_bases()
             .ok_or_else(|| {
                 io::Error::new(
@@ -574,7 +574,7 @@ where
 
     fn read_stretches_of_quality_scores(&mut self) -> io::Result<Vec<u8>> {
         self.compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .stretches_of_quality_scores()
             .ok_or_else(|| {
                 io::Error::new(
@@ -589,7 +589,7 @@ where
 
     fn read_base(&mut self) -> io::Result<u8> {
         self.compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .bases()
             .ok_or_else(|| {
                 io::Error::new(
@@ -602,7 +602,7 @@ where
 
     fn read_quality_score(&mut self) -> io::Result<u8> {
         self.compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .quality_scores()
             .ok_or_else(|| {
                 io::Error::new(
@@ -615,7 +615,7 @@ where
 
     fn read_base_substitution_code(&mut self) -> io::Result<substitution::Value> {
         self.compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .base_substitution_codes()
             .ok_or_else(|| {
                 io::Error::new(
@@ -629,7 +629,7 @@ where
 
     fn read_insertion_bases(&mut self) -> io::Result<Vec<u8>> {
         self.compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .insertion_bases()
             .ok_or_else(|| {
                 io::Error::new(
@@ -642,7 +642,7 @@ where
 
     fn read_deletion_length(&mut self) -> io::Result<usize> {
         self.compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .deletion_lengths()
             .ok_or_else(|| {
                 io::Error::new(
@@ -658,7 +658,7 @@ where
 
     fn read_reference_skip_length(&mut self) -> io::Result<usize> {
         self.compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .reference_skip_lengths()
             .ok_or_else(|| {
                 io::Error::new(
@@ -674,7 +674,7 @@ where
 
     fn read_soft_clip_bases(&mut self) -> io::Result<Vec<u8>> {
         self.compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .soft_clip_bases()
             .ok_or_else(|| {
                 io::Error::new(
@@ -687,7 +687,7 @@ where
 
     fn read_padding_length(&mut self) -> io::Result<usize> {
         self.compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .padding_lengths()
             .ok_or_else(|| {
                 io::Error::new(
@@ -703,7 +703,7 @@ where
 
     fn read_hard_clip_length(&mut self) -> io::Result<usize> {
         self.compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .hard_clip_lengths()
             .ok_or_else(|| {
                 io::Error::new(
@@ -721,7 +721,7 @@ where
         &mut self,
     ) -> io::Result<Option<sam::alignment::record::MappingQuality>> {
         self.compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .mapping_qualities()
             .ok_or_else(|| {
                 io::Error::new(
@@ -761,7 +761,7 @@ where
 
         let encoding = self
             .compression_header
-            .data_series_encoding_map()
+            .data_series_encodings()
             .quality_scores()
             .ok_or_else(|| {
                 io::Error::new(
