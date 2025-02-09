@@ -14,19 +14,25 @@ where
     W: Write,
 {
     let mut crc_writer = CrcWriter::new(writer);
+    write_block_inner(&mut crc_writer, block)
+}
 
-    write_compression_method(&mut crc_writer, block.compression_method())?;
-    write_content_type(&mut crc_writer, block.content_type())?;
-    write_itf8(&mut crc_writer, block.content_id())?;
+fn write_block_inner<W>(writer: &mut CrcWriter<W>, block: &Block) -> io::Result<()>
+where
+    W: Write,
+{
+    write_compression_method(writer, block.compression_method())?;
 
-    write_size(&mut crc_writer, block.data().len())?; // compressed size
-    write_size(&mut crc_writer, block.uncompressed_len())?;
+    write_content_type(writer, block.content_type())?;
+    write_itf8(writer, block.content_id())?;
 
-    crc_writer.write_all(block.data())?;
+    write_size(writer, block.data().len())?; // compressed size
+    write_size(writer, block.uncompressed_len())?;
 
-    let crc32 = crc_writer.crc().sum();
-    let writer = crc_writer.into_inner();
-    writer.write_u32::<LittleEndian>(crc32)?;
+    writer.write_all(block.data())?;
+
+    let crc32 = writer.crc().sum();
+    writer.get_mut().write_u32::<LittleEndian>(crc32)?;
 
     Ok(())
 }
