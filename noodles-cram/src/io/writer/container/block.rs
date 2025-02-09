@@ -19,13 +19,8 @@ where
     write_content_type(&mut crc_writer, block.content_type())?;
     write_itf8(&mut crc_writer, block.content_id())?;
 
-    let size_in_bytes = i32::try_from(block.data().len())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_itf8(&mut crc_writer, size_in_bytes)?;
-
-    let uncompressed_data_len = i32::try_from(block.uncompressed_len())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_itf8(&mut crc_writer, uncompressed_data_len)?;
+    write_size(&mut crc_writer, block.data().len())?; // compressed size
+    write_size(&mut crc_writer, block.uncompressed_len())?;
 
     crc_writer.write_all(block.data())?;
 
@@ -34,4 +29,12 @@ where
     writer.write_u32::<LittleEndian>(crc32)?;
 
     Ok(())
+}
+
+fn write_size<W>(writer: &mut W, size: usize) -> io::Result<()>
+where
+    W: Write,
+{
+    let n = i32::try_from(size).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    write_itf8(writer, n)
 }
