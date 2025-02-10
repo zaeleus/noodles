@@ -1,5 +1,3 @@
-mod header;
-
 use std::{
     io::{self, Write},
     mem,
@@ -8,11 +6,11 @@ use std::{
 use flate2::Compression;
 use noodles_sam as sam;
 
-use self::header::write_header;
 use crate::{
     codecs::Encoder,
     container::{block::ContentType, Block},
-    io::writer::container::write_block,
+    data_container::Header,
+    io::writer::container::{write_block, write_header},
 };
 
 pub(super) fn write_container<W>(writer: &mut W, header: &sam::Header) -> io::Result<()>
@@ -30,7 +28,9 @@ where
         .compress_and_set_data(data, ENCODER)?
         .build();
 
-    write_header(writer, block.len())?;
+    let header = build_header();
+    write_header(writer, &header, block.len())?;
+
     write_block(writer, &block)?;
 
     Ok(())
@@ -71,6 +71,10 @@ fn serialize_header(header: &sam::Header) -> io::Result<Vec<u8>> {
     buf[..LENGTH_SIZE].copy_from_slice(&len.to_le_bytes());
 
     Ok(buf)
+}
+
+fn build_header() -> Header {
+    Header::builder().set_block_count(1).build()
 }
 
 #[cfg(test)]
