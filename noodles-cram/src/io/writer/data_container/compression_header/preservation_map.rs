@@ -7,7 +7,7 @@ use crate::{
         preservation_map::{Key, SubstitutionMatrix, TagSets},
         PreservationMap,
     },
-    io::writer::num::write_itf8,
+    io::writer::{collections::write_array, num::write_itf8},
 };
 
 const MAP_LENGTH: i32 = 5;
@@ -25,12 +25,7 @@ where
     W: Write,
 {
     let buf = encode(preservation_map)?;
-
-    let data_len =
-        i32::try_from(buf.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_itf8(writer, data_len)?;
-
-    writer.write_all(&buf)
+    write_array(writer, &buf)
 }
 
 fn encode(preservation_map: &PreservationMap) -> io::Result<Vec<u8>> {
