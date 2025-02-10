@@ -10,7 +10,7 @@ mod options;
 pub(crate) mod record;
 
 pub use self::builder::Builder;
-use self::header::write_file_definition;
+use self::header::{write_file_definition, write_file_header};
 pub(crate) use self::options::Options;
 
 use std::{
@@ -181,8 +181,6 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_file_header(&mut self, header: &sam::Header) -> io::Result<()> {
-        use self::header::write_header_container;
-
         let mut header = header.clone();
 
         add_missing_reference_sequence_checksums(
@@ -190,7 +188,7 @@ where
             header.reference_sequences_mut(),
         )?;
 
-        write_header_container(&mut self.inner, &header)
+        write_file_header(&mut self.inner, &header)
     }
 
     /// Writes a SAM header.

@@ -12,6 +12,7 @@ use noodles_sam as sam;
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 pub use self::builder::Builder;
+use self::header::write_file_header;
 use crate::{
     file_definition::Version, io::writer::Options, DataContainer, FileDefinition, Record,
     MAGIC_NUMBER,
@@ -160,7 +161,6 @@ where
     /// # }
     /// ```
     pub async fn write_file_header(&mut self, header: &sam::Header) -> io::Result<()> {
-        use self::header::write_header_container;
         use crate::io::writer::add_missing_reference_sequence_checksums;
 
         let mut header = header.clone();
@@ -170,7 +170,7 @@ where
             header.reference_sequences_mut(),
         )?;
 
-        write_header_container(&mut self.inner, &header).await
+        write_file_header(&mut self.inner, &header).await
     }
 
     /// Writes a SAM header.

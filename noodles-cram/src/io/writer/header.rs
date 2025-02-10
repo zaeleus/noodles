@@ -24,7 +24,7 @@ use crate::{
     FileDefinition,
 };
 
-pub fn write_header_container<W>(writer: &mut W, header: &sam::Header) -> io::Result<()>
+pub fn write_file_header<W>(writer: &mut W, header: &sam::Header) -> io::Result<()>
 where
     W: Write,
 {
@@ -102,7 +102,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_header_container() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_write_file_header() -> Result<(), Box<dyn std::error::Error>> {
         use byteorder::{LittleEndian, WriteBytesExt};
         use flate2::CrcWriter;
         use sam::header::record::value::{
@@ -115,8 +115,8 @@ mod tests {
         let header_header = Map::<map::Header>::new(Version::new(1, 6));
         let header = sam::Header::builder().set_header(header_header).build();
 
-        let mut actual = Vec::new();
-        write_header_container(&mut actual, &header)?;
+        let mut buf = Vec::new();
+        write_file_header(&mut buf, &header)?;
 
         let header_data = b"@HD\tVN:1.6\n";
         let header_data_len = i32::try_from(header_data.len())?;
@@ -161,7 +161,7 @@ mod tests {
         let mut expected = expected_header;
         expected.extend(expected_block);
 
-        assert_eq!(actual, expected);
+        assert_eq!(buf, expected);
 
         Ok(())
     }
