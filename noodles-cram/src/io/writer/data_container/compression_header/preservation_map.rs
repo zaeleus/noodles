@@ -24,30 +24,43 @@ pub(super) fn write_preservation_map<W>(
 where
     W: Write,
 {
-    let mut buf = Vec::new();
-
-    write_itf8(&mut buf, MAP_LENGTH)?;
-
-    write_key(&mut buf, Key::ReadNamesIncluded)?;
-    write_bool(&mut buf, preservation_map.read_names_included())?;
-
-    write_key(&mut buf, Key::ApDataSeriesDelta)?;
-    write_bool(&mut buf, preservation_map.ap_data_series_delta())?;
-
-    write_key(&mut buf, Key::ReferenceRequired)?;
-    write_bool(&mut buf, preservation_map.is_reference_required())?;
-
-    write_key(&mut buf, Key::SubstitutionMatrix)?;
-    write_substitution_matrix(&mut buf, preservation_map.substitution_matrix())?;
-
-    write_key(&mut buf, Key::TagSets)?;
-    write_tag_sets(&mut buf, preservation_map.tag_sets())?;
+    let buf = encode(preservation_map)?;
 
     let data_len =
         i32::try_from(buf.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(writer, data_len)?;
 
     writer.write_all(&buf)
+}
+
+fn encode(preservation_map: &PreservationMap) -> io::Result<Vec<u8>> {
+    let mut buf = Vec::new();
+    encode_inner(&mut buf, preservation_map)?;
+    Ok(buf)
+}
+
+fn encode_inner<W>(writer: &mut W, preservation_map: &PreservationMap) -> io::Result<()>
+where
+    W: Write,
+{
+    write_itf8(writer, MAP_LENGTH)?;
+
+    write_key(writer, Key::ReadNamesIncluded)?;
+    write_bool(writer, preservation_map.read_names_included())?;
+
+    write_key(writer, Key::ApDataSeriesDelta)?;
+    write_bool(writer, preservation_map.ap_data_series_delta())?;
+
+    write_key(writer, Key::ReferenceRequired)?;
+    write_bool(writer, preservation_map.is_reference_required())?;
+
+    write_key(writer, Key::SubstitutionMatrix)?;
+    write_substitution_matrix(writer, preservation_map.substitution_matrix())?;
+
+    write_key(writer, Key::TagSets)?;
+    write_tag_sets(writer, preservation_map.tag_sets())?;
+
+    Ok(())
 }
 
 fn write_key<W>(writer: &mut W, key: Key) -> io::Result<()>
