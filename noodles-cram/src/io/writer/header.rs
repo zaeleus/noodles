@@ -1,3 +1,5 @@
+mod magic_number;
+
 #[allow(clippy::module_inception)]
 mod header;
 
@@ -10,6 +12,7 @@ use flate2::Compression;
 use noodles_sam as sam;
 
 use self::header::write_header;
+pub(super) use self::magic_number::write_magic_number;
 use super::container::write_block;
 use crate::{
     codecs::Encoder,

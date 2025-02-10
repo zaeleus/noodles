@@ -20,7 +20,7 @@ use std::{
 use noodles_fasta as fasta;
 use noodles_sam::{self as sam, header::ReferenceSequences};
 
-use crate::{file_definition::Version, DataContainer, FileDefinition, Record, MAGIC_NUMBER};
+use crate::{file_definition::Version, DataContainer, FileDefinition, Record};
 
 /// A CRAM writer.
 ///
@@ -306,7 +306,7 @@ fn write_file_definition<W>(writer: &mut W, file_definition: &FileDefinition) ->
 where
     W: Write,
 {
-    writer.write_all(&MAGIC_NUMBER)?;
+    header::write_magic_number(writer)?;
     write_format(writer, file_definition.version())?;
     writer.write_all(file_definition.file_id())?;
     Ok(())
