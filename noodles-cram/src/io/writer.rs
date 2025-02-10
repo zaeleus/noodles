@@ -20,7 +20,7 @@ use std::{
 use noodles_fasta as fasta;
 use noodles_sam::{self as sam, header::ReferenceSequences};
 
-use crate::{file_definition::Version, DataContainer, FileDefinition, Record};
+use crate::{DataContainer, FileDefinition, Record};
 
 /// A CRAM writer.
 ///
@@ -307,17 +307,9 @@ where
     W: Write,
 {
     header::write_magic_number(writer)?;
-    write_format(writer, file_definition.version())?;
+    header::write_format_version(writer, file_definition.version())?;
     writer.write_all(file_definition.file_id())?;
     Ok(())
-}
-
-fn write_format<W>(writer: &mut W, version: Version) -> io::Result<()>
-where
-    W: Write,
-{
-    let format = [version.major(), version.minor()];
-    writer.write_all(&format)
 }
 
 pub(crate) fn add_missing_reference_sequence_checksums(
