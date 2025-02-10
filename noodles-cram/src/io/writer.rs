@@ -308,7 +308,7 @@ where
 {
     header::write_magic_number(writer)?;
     header::write_format_version(writer, file_definition.version())?;
-    writer.write_all(file_definition.file_id())?;
+    header::write_file_id(writer, file_definition.file_id())?;
     Ok(())
 }
 

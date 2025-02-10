@@ -1,3 +1,4 @@
+mod file_id;
 mod format_version;
 mod magic_number;
 
@@ -13,7 +14,9 @@ use flate2::Compression;
 use noodles_sam as sam;
 
 use self::header::write_header;
-pub(super) use self::{format_version::write_format_version, magic_number::write_magic_number};
+pub(super) use self::{
+    file_id::write_file_id, format_version::write_format_version, magic_number::write_magic_number,
+};
 use super::container::write_block;
 use crate::{
     codecs::Encoder,
