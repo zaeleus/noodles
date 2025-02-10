@@ -7,7 +7,7 @@ where
     W: AsyncWrite + Unpin,
 {
     let mut buf = Vec::new();
-    crate::io::writer::header_container::write_header_container(&mut buf, header)?;
+    crate::io::writer::header::write_header_container(&mut buf, header)?;
     writer.write_all(&buf).await?;
     Ok(())
 }

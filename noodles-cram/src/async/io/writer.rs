@@ -3,7 +3,7 @@
 mod builder;
 mod container;
 mod data_container;
-mod header_container;
+mod header;
 
 use std::mem;
 
@@ -160,7 +160,7 @@ where
     /// # }
     /// ```
     pub async fn write_file_header(&mut self, header: &sam::Header) -> io::Result<()> {
-        use self::header_container::write_header_container;
+        use self::header::write_header_container;
         use crate::io::writer::add_missing_reference_sequence_checksums;
 
         let mut header = header.clone();

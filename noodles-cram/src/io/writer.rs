@@ -4,7 +4,7 @@ pub(crate) mod builder;
 mod collections;
 pub(crate) mod container;
 pub(crate) mod data_container;
-pub(crate) mod header_container;
+pub(crate) mod header;
 pub(crate) mod num;
 mod options;
 pub(crate) mod record;
@@ -180,7 +180,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_file_header(&mut self, header: &sam::Header) -> io::Result<()> {
-        use self::header_container::write_header_container;
+        use self::header::write_header_container;
 
         let mut header = header.clone();
 
