@@ -13,14 +13,15 @@ use std::{
 use flate2::Compression;
 use noodles_sam as sam;
 
-use self::header::write_header;
-pub(super) use self::{
-    file_id::write_file_id, format_version::write_format_version, magic_number::write_magic_number,
+use self::{
+    file_id::write_file_id, format_version::write_format_version, header::write_header,
+    magic_number::write_magic_number,
 };
 use super::container::write_block;
 use crate::{
     codecs::Encoder,
     container::{block::ContentType, Block},
+    FileDefinition,
 };
 
 pub fn write_header_container<W>(writer: &mut W, header: &sam::Header) -> io::Result<()>
@@ -79,6 +80,19 @@ fn serialize_header(header: &sam::Header) -> io::Result<Vec<u8>> {
     buf[..LENGTH_SIZE].copy_from_slice(&len.to_le_bytes());
 
     Ok(buf)
+}
+
+pub(super) fn write_file_definition<W>(
+    writer: &mut W,
+    file_definition: &FileDefinition,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    write_magic_number(writer)?;
+    write_format_version(writer, file_definition.version())?;
+    write_file_id(writer, file_definition.file_id())?;
+    Ok(())
 }
 
 #[cfg(test)]

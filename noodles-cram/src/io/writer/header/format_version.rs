@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use crate::file_definition::Version;
 
-pub(crate) fn write_format_version<W>(writer: &mut W, version: Version) -> io::Result<()>
+pub(super) fn write_format_version<W>(writer: &mut W, version: Version) -> io::Result<()>
 where
     W: Write,
 {

@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use crate::MAGIC_NUMBER;
 
-pub(crate) fn write_magic_number<W>(writer: &mut W) -> io::Result<()>
+pub(super) fn write_magic_number<W>(writer: &mut W) -> io::Result<()>
 where
     W: Write,
 {

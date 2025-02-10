@@ -10,6 +10,7 @@ mod options;
 pub(crate) mod record;
 
 pub use self::builder::Builder;
+use self::header::write_file_definition;
 pub(crate) use self::options::Options;
 
 use std::{
@@ -300,16 +301,6 @@ where
     fn finish(&mut self, header: &sam::Header) -> io::Result<()> {
         self.try_finish(header)
     }
-}
-
-fn write_file_definition<W>(writer: &mut W, file_definition: &FileDefinition) -> io::Result<()>
-where
-    W: Write,
-{
-    header::write_magic_number(writer)?;
-    header::write_format_version(writer, file_definition.version())?;
-    header::write_file_id(writer, file_definition.file_id())?;
-    Ok(())
 }
 
 pub(crate) fn add_missing_reference_sequence_checksums(
