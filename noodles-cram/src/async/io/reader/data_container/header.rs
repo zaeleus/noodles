@@ -8,7 +8,7 @@ use crate::{
     },
 };
 
-pub async fn read_header<R>(reader: &mut R) -> io::Result<Option<Header>>
+pub async fn read_header<R>(reader: &mut R, header: &mut Header) -> io::Result<usize>
 where
     R: AsyncRead + Unpin,
 {
@@ -16,7 +16,7 @@ where
 
     let mut crc_reader = CrcReader::new(reader);
 
-    let length = crc_reader.read_i32_le().await.and_then(|n| {
+    let len = crc_reader.read_i32_le().await.and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
@@ -55,20 +55,19 @@ where
     }
 
     if is_eof(
-        length,
+        len,
         reference_sequence_id,
         alignment_start,
         number_of_blocks,
         actual_crc32,
     ) {
-        return Ok(None);
+        return Ok(0);
     }
 
     let reference_sequence_context =
         build_reference_sequence_context(reference_sequence_id, alignment_start, alignment_span)?;
 
-    let header = Header::builder()
-        .set_length(length)
+    *header = Header::builder()
         .set_reference_sequence_context(reference_sequence_context)
         .set_record_count(number_of_records)
         .set_record_counter(record_counter)
@@ -77,7 +76,7 @@ where
         .set_landmarks(landmarks)
         .build();
 
-    Ok(Some(header))
+    Ok(len)
 }
 
 async fn read_landmarks<R>(reader: &mut R) -> io::Result<Vec<usize>>
@@ -110,7 +109,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_read_header() -> Result<(), Box<dyn std::error::Error>> {
-        let data = [
+        let src = [
             0x90, 0x00, 0x00, 0x00, // length = 144 bytes
             0x02, // reference sequence ID = 2
             0x03, // starting position on the reference = 3
@@ -125,11 +124,10 @@ mod tests {
             0x21, 0xf7, 0x9c, 0xed, // CRC32
         ];
 
-        let mut reader = &data[..];
-        let actual = read_header(&mut reader).await?;
+        let mut actual = Header::default();
+        let len = read_header(&mut &src[..], &mut actual).await?;
 
         let expected = Header::builder()
-            .set_length(144)
             .set_reference_sequence_context(ReferenceSequenceContext::some(
                 2,
                 Position::try_from(3)?,
@@ -142,7 +140,8 @@ mod tests {
             .set_landmarks(vec![55, 89])
             .build();
 
-        assert_eq!(actual, Some(expected));
+        assert_eq!(len, 144);
+        assert_eq!(actual, expected);
 
         Ok(())
     }

@@ -19,13 +19,13 @@ const EOF_ALIGNMENT_START: i32 = 4_542_278;
 const EOF_BLOCK_COUNT: usize = 1;
 const EOF_CRC32: u32 = 0x4f_d9_bd_05;
 
-pub fn read_header<R>(reader: &mut R) -> io::Result<Option<Header>>
+pub fn read_header<R>(reader: &mut R, header: &mut Header) -> io::Result<usize>
 where
     R: Read,
 {
     let mut crc_reader = CrcReader::new(reader);
 
-    let length = crc_reader.read_i32::<LittleEndian>().and_then(|n| {
+    let len = crc_reader.read_i32::<LittleEndian>().and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
@@ -64,20 +64,19 @@ where
     }
 
     if is_eof(
-        length,
+        len,
         reference_sequence_id,
         alignment_start,
         number_of_blocks,
         expected_crc32,
     ) {
-        return Ok(None);
+        return Ok(0);
     }
 
     let reference_sequence_context =
         build_reference_sequence_context(reference_sequence_id, alignment_start, alignment_span)?;
 
-    let header = Header::builder()
-        .set_length(length)
+    *header = Header::builder()
         .set_reference_sequence_context(reference_sequence_context)
         .set_record_count(number_of_records)
         .set_record_counter(record_counter)
@@ -86,7 +85,7 @@ where
         .set_landmarks(landmarks)
         .build();
 
-    Ok(Some(header))
+    Ok(len)
 }
 
 fn read_landmarks<R>(reader: &mut R) -> io::Result<Vec<usize>>
@@ -166,7 +165,7 @@ mod tests {
 
     #[test]
     fn test_read_header() -> Result<(), Box<dyn std::error::Error>> {
-        let data = [
+        let src = [
             0x90, 0x00, 0x00, 0x00, // length = 144 bytes
             0x02, // reference sequence ID = 2
             0x03, // starting position on the reference = 3
@@ -180,11 +179,11 @@ mod tests {
             0x59, // landmarks[1] = 89
             0x21, 0xf7, 0x9c, 0xed, // CRC32
         ];
-        let mut reader = &data[..];
-        let actual = read_header(&mut reader)?;
+
+        let mut actual = Header::default();
+        let len = read_header(&mut &src[..], &mut actual)?;
 
         let expected = Header::builder()
-            .set_length(144)
             .set_reference_sequence_context(ReferenceSequenceContext::some(
                 2,
                 Position::try_from(3)?,
@@ -197,14 +196,15 @@ mod tests {
             .set_landmarks(vec![55, 89])
             .build();
 
-        assert_eq!(actual, Some(expected));
+        assert_eq!(len, 144);
+        assert_eq!(actual, expected);
 
         Ok(())
     }
 
     #[test]
     fn test_read_header_with_eof() -> io::Result<()> {
-        let data = [
+        let src = [
             0x0f, 0x00, 0x00, 0x00, // length = 15 bytes
             0xff, 0xff, 0xff, 0xff, 0x0f, // reference sequence ID = None (-1)
             0xe0, 0x45, 0x4f, 0x46, // starting position on the reference = 4542278
@@ -216,10 +216,11 @@ mod tests {
             0x00, // landmark count = 0
             0x05, 0xbd, 0xd9, 0x4f, // CRC32
         ];
-        let mut reader = &data[..];
-        let actual = read_header(&mut reader)?;
 
-        assert!(actual.is_none());
+        let mut header = Header::default();
+        let len = read_header(&mut &src[..], &mut header)?;
+
+        assert_eq!(len, 0);
 
         Ok(())
     }
@@ -227,7 +228,7 @@ mod tests {
     #[test]
     fn test_read_header_with_a_checksum_mismatch() {
         // EOF container header
-        let data = [
+        let src = [
             0x0f, 0x00, 0x00, 0x00, // length = 15 bytes
             0xff, 0xff, 0xff, 0xff, 0x0f, // reference sequence ID = None (-1)
             0xe0, 0x45, 0x4f, 0x46, // starting position on the reference = 4542278
@@ -239,10 +240,11 @@ mod tests {
             0x00, // landmark count = 0
             0x00, 0x00, 0x00, 0x00, // CRC32 (invalid)
         ];
-        let mut reader = &data[..];
+
+        let mut header = Header::default();
 
         assert!(matches!(
-            read_header(&mut reader),
+            read_header(&mut &src[..], &mut header),
             Err(e) if e.kind() == io::ErrorKind::InvalidData,
         ));
     }

@@ -6,7 +6,6 @@ use super::ReferenceSequenceContext;
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Header {
-    length: usize,
     reference_sequence_context: ReferenceSequenceContext,
     record_count: i32,
     record_counter: u64,
@@ -19,10 +18,6 @@ pub struct Header {
 impl Header {
     pub fn builder() -> Builder {
         Builder::default()
-    }
-
-    pub fn len(&self) -> usize {
-        self.length
     }
 
     pub fn reference_sequence_context(&self) -> ReferenceSequenceContext {

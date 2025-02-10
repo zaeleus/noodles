@@ -23,9 +23,9 @@ where
 {
     use super::container::{write_block, write_header};
 
-    let (header, blocks) = build_container(data_container, base_count)?;
+    let (header, container_size, blocks) = build_container(data_container, base_count)?;
 
-    write_header(writer, &header)?;
+    write_header(writer, &header, container_size)?;
 
     for block in blocks {
         write_block(writer, &block)?;
@@ -37,7 +37,7 @@ where
 fn build_container(
     data_container: &DataContainer,
     base_count: u64,
-) -> io::Result<(Header, Vec<Block>)> {
+) -> io::Result<(Header, usize, Vec<Block>)> {
     use crate::container::block::ContentType;
 
     let mut buf = Vec::new();
@@ -97,7 +97,6 @@ fn build_container(
     let len = blocks.iter().map(|b| b.len()).sum();
 
     let header = Header::builder()
-        .set_length(len)
         .set_reference_sequence_context(container_reference_sequence_context)
         .set_record_count(container_record_count)
         .set_record_counter(container_record_counter)
@@ -106,7 +105,7 @@ fn build_container(
         .set_landmarks(landmarks)
         .build();
 
-    Ok((header, blocks))
+    Ok((header, len, blocks))
 }
 
 fn build_container_reference_sequence_context(

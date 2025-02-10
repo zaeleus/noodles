@@ -4,7 +4,6 @@ use super::Header;
 
 #[derive(Debug, Default)]
 pub struct Builder {
-    length: usize,
     reference_sequence_context: ReferenceSequenceContext,
     record_count: i32,
     record_counter: u64,
@@ -14,11 +13,6 @@ pub struct Builder {
 }
 
 impl Builder {
-    pub fn set_length(mut self, length: usize) -> Self {
-        self.length = length;
-        self
-    }
-
     pub fn set_reference_sequence_context(
         mut self,
         reference_sequence_context: ReferenceSequenceContext,
@@ -54,7 +48,6 @@ impl Builder {
 
     pub fn build(self) -> Header {
         Header {
-            length: self.length,
             reference_sequence_context: self.reference_sequence_context,
             record_count: self.record_count,
             record_counter: self.record_counter,

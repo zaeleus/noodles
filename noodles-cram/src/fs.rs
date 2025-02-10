@@ -29,11 +29,9 @@ where
     let mut index = Vec::new();
     let mut container_position = reader.position()?;
 
-    while let Some((container_header, data_container)) =
+    while let Some((container_header, container_len, data_container)) =
         reader.read_data_container_with_container_header()?
     {
-        let container_len = container_header.len();
-
         let landmarks = container_header.landmarks();
         let slice_count = landmarks.len();
 

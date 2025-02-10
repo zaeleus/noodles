@@ -208,7 +208,7 @@ where
 
     pub(crate) fn read_data_container_with_container_header(
         &mut self,
-    ) -> io::Result<Option<(crate::data_container::Header, DataContainer)>> {
+    ) -> io::Result<Option<(crate::data_container::Header, usize, DataContainer)>> {
         use self::data_container::read_data_container_with_container_header;
         read_data_container_with_container_header(&mut self.inner, &mut self.buf)
     }

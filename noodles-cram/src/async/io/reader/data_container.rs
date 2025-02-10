@@ -5,7 +5,7 @@ use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use self::header::read_header;
 use crate::{
-    data_container::DataContainer,
+    data_container::{DataContainer, Header},
     io::reader::data_container::{read_compression_header_from_block, read_slice},
 };
 
@@ -16,12 +16,14 @@ pub async fn read_data_container<R>(
 where
     R: AsyncRead + Unpin,
 {
-    let header = match read_header(reader).await? {
-        Some(header) => header,
-        None => return Ok(None),
+    let mut header = Header::default();
+
+    let len = match read_header(reader, &mut header).await? {
+        0 => return Ok(None),
+        n => n,
     };
 
-    buf.resize(header.len(), 0);
+    buf.resize(len, 0);
     reader.read_exact(buf).await?;
     let mut buf = buf.split().freeze();
 

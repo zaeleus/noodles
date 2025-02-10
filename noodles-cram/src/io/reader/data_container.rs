@@ -9,7 +9,11 @@ use std::io::{self, Read};
 use bytes::{Bytes, BytesMut};
 
 use self::header::read_header;
-use crate::{container::block::ContentType, data_container::CompressionHeader, DataContainer};
+use crate::{
+    container::block::ContentType,
+    data_container::{CompressionHeader, Header},
+    DataContainer,
+};
 
 pub fn read_data_container<R>(
     reader: &mut R,
@@ -18,11 +22,14 @@ pub fn read_data_container<R>(
 where
     R: Read,
 {
-    let Some(header) = read_header(reader)? else {
-        return Ok(None);
+    let mut header = Header::default();
+
+    let len = match read_header(reader, &mut header)? {
+        0 => return Ok(None),
+        n => n,
     };
 
-    buf.resize(header.len(), 0);
+    buf.resize(len, 0);
     reader.read_exact(buf)?;
     let mut buf = buf.split().freeze();
 
@@ -42,15 +49,19 @@ where
 pub fn read_data_container_with_container_header<R>(
     reader: &mut R,
     buf: &mut BytesMut,
-) -> io::Result<Option<(crate::data_container::Header, DataContainer)>>
+) -> io::Result<Option<(crate::data_container::Header, usize, DataContainer)>>
 where
     R: Read,
 {
-    let Some(header) = read_header(reader)? else {
-        return Ok(None);
+    let mut header = Header::default();
+
+    let len = match read_header(reader, &mut header)? {
+        0 => return Ok(None),
+        n => n,
     };
 
-    buf.resize(header.len(), 0);
+    buf.resize(len, 0);
+
     reader.read_exact(buf)?;
     let mut buf = buf.split().freeze();
 
@@ -66,7 +77,7 @@ where
 
     let data_container = DataContainer::new(compression_header, slices);
 
-    Ok(Some((header, data_container)))
+    Ok(Some((header, len, data_container)))
 }
 
 pub(crate) fn read_compression_header_from_block(src: &mut Bytes) -> io::Result<CompressionHeader> {

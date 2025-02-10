@@ -8,14 +8,13 @@ use crate::{
     io::writer::num::{write_itf8, write_ltf8},
 };
 
-pub fn write_header<W>(writer: &mut W, header: &Header) -> io::Result<()>
+pub fn write_header<W>(writer: &mut W, header: &Header, len: usize) -> io::Result<()>
 where
     W: Write,
 {
     let mut crc_writer = CrcWriter::new(writer);
 
-    let length =
-        i32::try_from(header.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    let length = i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     crc_writer.write_i32::<LittleEndian>(length)?;
 
     write_reference_sequence_context(&mut crc_writer, header.reference_sequence_context())?;
