@@ -22,6 +22,11 @@
 
     Use the name container instead of data container instead.
 
+### Removed
+
+  * cram/record/convert: Remove `Record::try_from_alignment_record`.
+
+    It is now unnecessary to convert an alignment record to a CRAM record.
 
 ## 0.77.0 - 2025-02-06
 

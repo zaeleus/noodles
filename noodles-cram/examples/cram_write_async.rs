@@ -82,12 +82,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .set_quality_scores(QualityScores::from(vec![45, 35, 43, 50]))
         .build();
 
-    let cram_record = cram::Record::try_from_alignment_record(&header, &record)?;
-    writer.write_alignment_record(&header, &cram_record).await?;
+    writer.write_alignment_record(&header, &record).await?;
 
     let record = sam::alignment::RecordBuf::default();
-    let cram_record = cram::Record::try_from_alignment_record(&header, &record)?;
-    writer.write_alignment_record(&header, &cram_record).await?;
+    writer.write_alignment_record(&header, &record).await?;
 
     writer.shutdown(&header).await?;
 
