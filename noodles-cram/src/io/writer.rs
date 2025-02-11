@@ -6,6 +6,7 @@ pub(crate) mod container;
 pub(crate) mod header;
 pub(crate) mod num;
 mod options;
+mod record;
 
 pub use self::builder::Builder;
 use self::header::{write_file_definition, write_file_header};
@@ -19,7 +20,7 @@ use std::{
 use noodles_fasta as fasta;
 use noodles_sam::{self as sam, header::ReferenceSequences};
 
-use crate::{Container, FileDefinition, Record};
+use crate::{Container, FileDefinition};
 
 /// A CRAM writer.
 ///
@@ -230,7 +231,11 @@ where
     /// writer.try_finish(&header)?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn write_record(&mut self, header: &sam::Header, mut record: Record) -> io::Result<()> {
+    pub fn write_record(
+        &mut self,
+        header: &sam::Header,
+        mut record: crate::Record,
+    ) -> io::Result<()> {
         use crate::container::builder::AddRecordError;
 
         loop {
@@ -287,7 +292,7 @@ where
         header: &sam::Header,
         record: &dyn sam::alignment::Record,
     ) -> io::Result<()> {
-        let r = Record::try_from_alignment_record(header, record)?;
+        let r = crate::Record::try_from_alignment_record(header, record)?;
         self.write_record(header, r)
     }
 
