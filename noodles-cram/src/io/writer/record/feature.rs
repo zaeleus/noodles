@@ -1,6 +1,6 @@
 use noodles_core::Position;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Feature {
     Bases {
         position: Position,

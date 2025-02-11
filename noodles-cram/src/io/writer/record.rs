@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+mod convert;
 mod feature;
 
 use bstr::BString;
