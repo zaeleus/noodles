@@ -13,7 +13,7 @@
 
       * `cram::data_container` => `cram::container`,
       * `cram::DataContainer` => `cram::Container`, and
-      * `cram::io::Reader::read_data_container` => `cram::io::Reader::read_container`,
+      * `cram::io::Reader::read_data_container` => `cram::io::Reader::read_container`.
 
 ### Deprecated
 
