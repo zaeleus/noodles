@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * cram: Merge data container and container.
+
+    Data containers are now the only container type. Header and EOF containers
+    are handled as special cases.
+
+    This renames the following:
+
+      * `cram::data_container` => `cram::container`,
+      * `cram::DataContainer` => `cram::Container`, and
+      * `cram::io::Reader::read_data_container` => `cram::io::Reader::read_container`,
+
+### Deprecated
+
+  * cram: Deprecate `cram::data_container`, `cram::DataContainer`, and
+    `cram::io::Reader::read_data_container`.
+
+    Use the name container instead of data container instead.
+
+
 ## 0.77.0 - 2025-02-06
 
 ### Changed

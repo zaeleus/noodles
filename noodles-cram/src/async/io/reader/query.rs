@@ -84,7 +84,7 @@ where
         return Some(Err(e));
     }
 
-    let container = match ctx.reader.read_data_container().await {
+    let container = match ctx.reader.read_container().await {
         Ok(Some(c)) => c,
         Ok(None) => return None,
         Err(e) => return Some(Err(e)),

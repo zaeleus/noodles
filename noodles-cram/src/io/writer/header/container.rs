@@ -8,8 +8,7 @@ use noodles_sam as sam;
 
 use crate::{
     codecs::Encoder,
-    container::{block::ContentType, Block},
-    data_container::Header,
+    container::{block::ContentType, Block, Header},
     io::writer::container::{write_block, write_header},
 };
 

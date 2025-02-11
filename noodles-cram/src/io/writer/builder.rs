@@ -8,8 +8,7 @@ use noodles_fasta as fasta;
 
 use super::{Options, Writer};
 use crate::{
-    codecs::Encoder, data_container::BlockContentEncoderMap, file_definition::Version,
-    DataContainer,
+    codecs::Encoder, container::BlockContentEncoderMap, file_definition::Version, Container,
 };
 
 /// A CRAM writer builder.
@@ -80,7 +79,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_cram::{data_container::BlockContentEncoderMap, io::writer::Builder};
+    /// use noodles_cram::{container::BlockContentEncoderMap, io::writer::Builder};
     ///
     /// let block_content_encoder_map = BlockContentEncoderMap::default();
     /// let builder = Builder::default()
@@ -136,7 +135,7 @@ impl Builder {
             inner: writer,
             reference_sequence_repository: self.reference_sequence_repository,
             options: self.options,
-            data_container_builder: DataContainer::builder(0),
+            container_builder: Container::builder(0),
             record_counter: 0,
         }
     }

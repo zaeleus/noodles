@@ -6,9 +6,8 @@
 pub mod r#async;
 
 pub mod codecs;
-pub(crate) mod container;
+pub mod container;
 pub mod crai;
-pub mod data_container;
 pub mod file_definition;
 pub mod fs;
 mod huffman;
@@ -16,7 +15,13 @@ pub mod io;
 mod num;
 pub mod record;
 
-pub use self::{data_container::DataContainer, file_definition::FileDefinition, record::Record};
+pub use self::{container::Container, file_definition::FileDefinition, record::Record};
+
+#[deprecated(since = "0.78.0", note = "Use `cram::container` instead.")]
+pub use self::container as data_container;
+
+#[deprecated(since = "0.78.0", note = "Use `cram::Container` instead.")]
+pub use self::container::Container as DataContainer;
 
 #[deprecated(since = "0.76.0", note = "Use `cram::fs::index` instead.")]
 pub use self::fs::index;

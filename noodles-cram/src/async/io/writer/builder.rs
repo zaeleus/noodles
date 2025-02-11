@@ -8,8 +8,7 @@ use tokio::{
 
 use super::Writer;
 use crate::{
-    data_container::BlockContentEncoderMap, file_definition::Version, io::writer::Options,
-    DataContainer,
+    container::BlockContentEncoderMap, file_definition::Version, io::writer::Options, Container,
 };
 
 /// An async CRAM writer builder.
@@ -108,7 +107,7 @@ impl Builder {
             inner: writer,
             reference_sequence_repository: self.reference_sequence_repository,
             options: self.options,
-            data_container_builder: DataContainer::builder(0),
+            container_builder: Container::builder(0),
             record_counter: 0,
         }
     }

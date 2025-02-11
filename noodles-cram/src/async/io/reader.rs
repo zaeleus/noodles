@@ -1,8 +1,8 @@
 //! Async CRAM reader.
 
 mod builder;
+mod container;
 mod crc_reader;
-mod data_container;
 pub mod header;
 mod num;
 mod query;
@@ -16,8 +16,8 @@ use noodles_sam as sam;
 use tokio::io::{self, AsyncRead, AsyncSeek, AsyncSeekExt, SeekFrom};
 
 pub use self::builder::Builder;
-use self::{crc_reader::CrcReader, header::read_header};
-use crate::{crai, DataContainer, FileDefinition, Record};
+use self::{container::read_container, crc_reader::CrcReader, header::read_header};
+use crate::{crai, Container, FileDefinition, Record};
 
 /// An async CRAM reader.
 pub struct Reader<R> {
@@ -197,7 +197,7 @@ where
         read_header(&mut self.inner).await
     }
 
-    /// Reads a data container.
+    /// Reads a container.
     ///
     /// This returns `None` if the container header is the EOF container header, which signals the
     /// end of the stream.
@@ -213,21 +213,25 @@ where
     /// let mut reader = File::open("sample.cram").await.map(cram::r#async::io::Reader::new)?;
     /// reader.read_header().await?;
     ///
-    /// while let Some(container) = reader.read_data_container().await? {
+    /// while let Some(container) = reader.read_container().await? {
     ///     // ...
     /// }
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_data_container(&mut self) -> io::Result<Option<DataContainer>> {
-        use self::data_container::read_data_container;
+    pub async fn read_container(&mut self) -> io::Result<Option<Container>> {
+        read_container(&mut self.inner, &mut self.buf).await
+    }
 
-        read_data_container(&mut self.inner, &mut self.buf).await
+    /// Reads a container.
+    #[deprecated(since = "0.78.0", note = "Use `Reader::read_container` instead.")]
+    pub async fn read_data_container(&mut self) -> io::Result<Option<Container>> {
+        read_container(&mut self.inner, &mut self.buf).await
     }
 
     /// Returns an (async) stream over records starting from the current (input) stream position.
     ///
-    /// The (input) stream position is expected to be at the start of a data container.
+    /// The (input) stream position is expected to be at the start of a container.
     ///
     /// # Examples
     ///

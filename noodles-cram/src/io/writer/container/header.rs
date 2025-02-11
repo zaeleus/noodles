@@ -4,7 +4,7 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use flate2::CrcWriter;
 
 use crate::{
-    data_container::{Header, ReferenceSequenceContext},
+    container::{Header, ReferenceSequenceContext},
     io::writer::num::{write_itf8, write_ltf8},
 };
 

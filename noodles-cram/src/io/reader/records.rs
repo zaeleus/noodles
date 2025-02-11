@@ -33,7 +33,7 @@ where
     }
 
     fn read_container_records(&mut self) -> io::Result<bool> {
-        let Some(container) = self.reader.read_data_container()? else {
+        let Some(container) = self.reader.read_container()? else {
             return Ok(true);
         };
 

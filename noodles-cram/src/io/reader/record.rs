@@ -11,8 +11,8 @@ use noodles_core::Position;
 use noodles_sam::{self as sam, alignment::record_buf::QualityScores};
 
 use crate::{
-    container::block,
-    data_container::{
+    container::{
+        block,
         compression_header::{data_series_encodings::DataSeries, preservation_map::tag_sets},
         CompressionHeader, ReferenceSequenceContext,
     },

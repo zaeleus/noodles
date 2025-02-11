@@ -2,7 +2,6 @@
 
 mod builder;
 mod container;
-mod data_container;
 mod header;
 
 use std::mem;
@@ -12,10 +11,9 @@ use noodles_sam as sam;
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 pub use self::builder::Builder;
-use self::header::write_file_header;
+use self::{container::write_container, header::write_file_header};
 use crate::{
-    file_definition::Version, io::writer::Options, DataContainer, FileDefinition, Record,
-    MAGIC_NUMBER,
+    file_definition::Version, io::writer::Options, Container, FileDefinition, Record, MAGIC_NUMBER,
 };
 
 /// An async CRAM writer.
@@ -25,7 +23,7 @@ pub struct Writer<W> {
     inner: W,
     reference_sequence_repository: fasta::Repository,
     options: Options,
-    data_container_builder: crate::data_container::Builder,
+    container_builder: crate::container::Builder,
     record_counter: u64,
 }
 
@@ -228,10 +226,10 @@ where
         header: &sam::Header,
         mut record: Record,
     ) -> io::Result<()> {
-        use crate::data_container::builder::AddRecordError;
+        use crate::container::builder::AddRecordError;
 
         loop {
-            match self.data_container_builder.add_record(record) {
+            match self.container_builder.add_record(record) {
                 Ok(_) => {
                     self.record_counter += 1;
                     return Ok(());
@@ -287,26 +285,21 @@ where
     }
 
     async fn flush(&mut self, header: &sam::Header) -> io::Result<()> {
-        use self::data_container::write_data_container;
-
-        if self.data_container_builder.is_empty() {
+        if self.container_builder.is_empty() {
             return Ok(());
         }
 
-        let data_container_builder = mem::replace(
-            &mut self.data_container_builder,
-            DataContainer::builder(self.record_counter),
+        let container_builder = mem::replace(
+            &mut self.container_builder,
+            Container::builder(self.record_counter),
         );
 
-        let base_count = data_container_builder.base_count();
+        let base_count = container_builder.base_count();
 
-        let data_container = data_container_builder.build(
-            &self.options,
-            &self.reference_sequence_repository,
-            header,
-        )?;
+        let container =
+            container_builder.build(&self.options, &self.reference_sequence_repository, header)?;
 
-        write_data_container(&mut self.inner, &data_container, base_count).await
+        write_container(&mut self.inner, &container, base_count).await
     }
 }
 

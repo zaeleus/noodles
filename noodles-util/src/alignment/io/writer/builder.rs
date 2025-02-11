@@ -8,7 +8,7 @@ use std::{
 
 use noodles_bam as bam;
 use noodles_bgzf as bgzf;
-use noodles_cram::{self as cram, data_container::BlockContentEncoderMap};
+use noodles_cram::{self as cram, container::BlockContentEncoderMap};
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
@@ -88,7 +88,7 @@ impl Builder {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_cram::data_container::BlockContentEncoderMap;
+    /// use noodles_cram::container::BlockContentEncoderMap;
     /// use noodles_util::alignment::{self, io::Format};
     ///
     /// let builder = alignment::io::writer::Builder::default()

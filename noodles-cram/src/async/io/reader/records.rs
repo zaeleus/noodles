@@ -47,7 +47,7 @@ async fn read_next_container<R>(ctx: &mut Context<'_, '_, R>) -> Option<io::Resu
 where
     R: AsyncRead + Unpin,
 {
-    let container = match ctx.reader.read_data_container().await {
+    let container = match ctx.reader.read_container().await {
         Ok(Some(container)) => container,
         Ok(None) => return None,
         Err(e) => return Some(Err(e)),

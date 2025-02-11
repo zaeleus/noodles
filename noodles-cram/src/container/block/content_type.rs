@@ -12,7 +12,7 @@ pub enum ContentType {
     FileHeader,
     /// Compression header.
     ///
-    /// There is a single compression header associated with each data container. It contains the
+    /// There is a single compression header associated with each container. It contains the
     /// preservation map, data series encodings, and tag encoding map.
     CompressionHeader,
     /// Slice header.

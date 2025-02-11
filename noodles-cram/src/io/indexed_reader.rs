@@ -14,7 +14,7 @@ use super::{
     reader::{Query, Records},
     Reader,
 };
-use crate::{crai, DataContainer, FileDefinition};
+use crate::{crai, Container, FileDefinition};
 
 /// An indexed CRAM reader.
 pub struct IndexedReader<R> {
@@ -69,9 +69,18 @@ where
         self.inner.read_header()
     }
 
-    /// Reads a data container.
-    pub fn read_data_container(&mut self) -> io::Result<Option<DataContainer>> {
-        self.inner.read_data_container()
+    /// Reads a container.
+    pub fn read_container(&mut self) -> io::Result<Option<Container>> {
+        self.inner.read_container()
+    }
+
+    /// Reads a container.
+    #[deprecated(
+        since = "0.78.0",
+        note = "Use `IndexedReader::read_container` instead."
+    )]
+    pub fn read_data_container(&mut self) -> io::Result<Option<Container>> {
+        self.inner.read_container()
     }
 
     /// Returns a iterator over records starting from the current stream position.

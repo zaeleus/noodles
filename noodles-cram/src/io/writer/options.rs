@@ -1,4 +1,4 @@
-use crate::{data_container::BlockContentEncoderMap, file_definition::Version};
+use crate::{container::BlockContentEncoderMap, file_definition::Version};
 
 #[derive(Clone, Debug)]
 pub struct Options {

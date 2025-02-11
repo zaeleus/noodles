@@ -64,7 +64,7 @@ where
             return Some(Err(e));
         }
 
-        let container = match self.reader.read_data_container() {
+        let container = match self.reader.read_container() {
             Ok(Some(c)) => c,
             Ok(None) => return None,
             Err(e) => return Some(Err(e)),

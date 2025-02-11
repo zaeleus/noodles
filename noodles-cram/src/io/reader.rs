@@ -2,7 +2,6 @@
 
 mod builder;
 pub(crate) mod container;
-pub(crate) mod data_container;
 pub mod header;
 pub(crate) mod num;
 mod query;
@@ -16,14 +15,14 @@ use noodles_core::Region;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
-use self::header::read_header;
 pub use self::{builder::Builder, query::Query, records::Records};
-use crate::{crai, data_container::DataContainer, FileDefinition};
+use self::{container::read_container, header::read_header};
+use crate::{container::Container, crai, FileDefinition};
 
 /// A CRAM reader.
 ///
 /// The CRAM format is comprised of four main parts: 1) a file definition, 2) a file header, 3) a
-/// list of data containers, and 4) an end-of-file (EOF) container.
+/// list of containers, and 4) an end-of-file (EOF) container.
 ///
 /// # Examples
 ///
@@ -206,14 +205,14 @@ where
         read_header(&mut self.inner)
     }
 
-    pub(crate) fn read_data_container_with_container_header(
+    pub(crate) fn read_container_with_header(
         &mut self,
-    ) -> io::Result<Option<(crate::data_container::Header, usize, DataContainer)>> {
-        use self::data_container::read_data_container_with_container_header;
-        read_data_container_with_container_header(&mut self.inner, &mut self.buf)
+    ) -> io::Result<Option<(crate::container::Header, usize, Container)>> {
+        use self::container::read_container_with_header;
+        read_container_with_header(&mut self.inner, &mut self.buf)
     }
 
-    /// Reads a data container.
+    /// Reads a container.
     ///
     /// This returns `None` if the container header is the EOF container header, which signals the
     /// end of the stream.
@@ -227,20 +226,24 @@ where
     /// let mut reader = File::open("sample.cram").map(cram::io::Reader::new)?;
     /// reader.read_header()?;
     ///
-    /// while let Some(container) = reader.read_data_container()? {
+    /// while let Some(container) = reader.read_container()? {
     ///     // ...
     /// }
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn read_data_container(&mut self) -> io::Result<Option<DataContainer>> {
-        use self::data_container::read_data_container;
+    pub fn read_container(&mut self) -> io::Result<Option<Container>> {
+        read_container(&mut self.inner, &mut self.buf)
+    }
 
-        read_data_container(&mut self.inner, &mut self.buf)
+    /// Reads a container.
+    #[deprecated(since = "0.78.0", note = "Use `Reader::read_container` instead.")]
+    pub fn read_data_container(&mut self) -> io::Result<Option<Container>> {
+        read_container(&mut self.inner, &mut self.buf)
     }
 
     /// Returns a iterator over records starting from the current stream position.
     ///
-    /// The stream is expected to be at the start of a data container.
+    /// The stream is expected to be at the start of a container.
     ///
     /// # Examples
     ///

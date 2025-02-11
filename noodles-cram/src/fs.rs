@@ -5,8 +5,8 @@ use std::{cmp, collections::HashMap, fs::File, io, path::Path};
 use noodles_core::Position;
 
 use super::{
+    container::{slice, CompressionHeader, Slice},
     crai,
-    data_container::{slice, CompressionHeader, Slice},
     io::Reader,
 };
 
@@ -29,13 +29,13 @@ where
     let mut index = Vec::new();
     let mut container_position = reader.position()?;
 
-    while let Some((container_header, container_len, data_container)) =
-        reader.read_data_container_with_container_header()?
+    while let Some((container_header, container_len, container)) =
+        reader.read_container_with_header()?
     {
         let landmarks = container_header.landmarks();
         let slice_count = landmarks.len();
 
-        for (i, slice) in data_container.slices().iter().enumerate() {
+        for (i, slice) in container.slices().iter().enumerate() {
             let landmark = landmarks[i];
 
             let slice_length = if i < slice_count - 1 {
@@ -46,7 +46,7 @@ where
 
             push_index_records(
                 &mut index,
-                data_container.compression_header(),
+                container.compression_header(),
                 slice,
                 container_position,
                 landmark as u64,
@@ -170,7 +170,7 @@ fn push_index_record_for_single_reference_slice(
     landmark: u64,
     slice_length: u64,
 ) -> io::Result<()> {
-    use crate::data_container::ReferenceSequenceContext;
+    use crate::container::ReferenceSequenceContext;
 
     let (reference_sequence_id, alignment_start, alignment_span) =
         match slice_header.reference_sequence_context() {

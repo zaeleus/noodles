@@ -3,7 +3,6 @@
 pub(crate) mod builder;
 mod collections;
 pub(crate) mod container;
-pub(crate) mod data_container;
 pub(crate) mod header;
 pub(crate) mod num;
 mod options;
@@ -21,7 +20,7 @@ use std::{
 use noodles_fasta as fasta;
 use noodles_sam::{self as sam, header::ReferenceSequences};
 
-use crate::{DataContainer, FileDefinition, Record};
+use crate::{Container, FileDefinition, Record};
 
 /// A CRAM writer.
 ///
@@ -50,7 +49,7 @@ pub struct Writer<W> {
     inner: W,
     reference_sequence_repository: fasta::Repository,
     options: Options,
-    data_container_builder: crate::data_container::Builder,
+    container_builder: crate::container::Builder,
     record_counter: u64,
 }
 
@@ -233,10 +232,10 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_record(&mut self, header: &sam::Header, mut record: Record) -> io::Result<()> {
-        use crate::data_container::builder::AddRecordError;
+        use crate::container::builder::AddRecordError;
 
         loop {
-            match self.data_container_builder.add_record(record) {
+            match self.container_builder.add_record(record) {
                 Ok(_) => {
                     self.record_counter += 1;
                     return Ok(());
@@ -256,26 +255,23 @@ where
     }
 
     fn flush(&mut self, header: &sam::Header) -> io::Result<()> {
-        use self::data_container::write_data_container;
+        use self::container::write_container;
 
-        if self.data_container_builder.is_empty() {
+        if self.container_builder.is_empty() {
             return Ok(());
         }
 
-        let data_container_builder = mem::replace(
-            &mut self.data_container_builder,
-            DataContainer::builder(self.record_counter),
+        let container_builder = mem::replace(
+            &mut self.container_builder,
+            Container::builder(self.record_counter),
         );
 
-        let base_count = data_container_builder.base_count();
+        let base_count = container_builder.base_count();
 
-        let data_container = data_container_builder.build(
-            &self.options,
-            &self.reference_sequence_repository,
-            header,
-        )?;
+        let container =
+            container_builder.build(&self.options, &self.reference_sequence_repository, header)?;
 
-        write_data_container(&mut self.inner, &data_container, base_count)
+        write_container(&mut self.inner, &container, base_count)
     }
 }
 
@@ -308,7 +304,7 @@ pub(crate) fn add_missing_reference_sequence_checksums(
     use indexmap::map::Entry;
     use sam::header::record::value::map::reference_sequence::{tag, Md5Checksum};
 
-    use crate::data_container::slice::builder::calculate_normalized_sequence_digest;
+    use crate::container::slice::builder::calculate_normalized_sequence_digest;
 
     for (name, reference_sequence) in reference_sequences {
         if let Entry::Vacant(entry) = reference_sequence

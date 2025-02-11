@@ -19,7 +19,7 @@ async fn main() -> io::Result<()> {
 
     let mut n = 0;
 
-    while let Some(container) = reader.read_data_container().await? {
+    while let Some(container) = reader.read_container().await? {
         for slice in container.slices() {
             let records = slice.records(container.compression_header())?;
             n += records.len();
