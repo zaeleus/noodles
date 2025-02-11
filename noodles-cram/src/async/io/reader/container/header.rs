@@ -23,7 +23,7 @@ pub async fn read_header_inner<R>(
 where
     R: AsyncRead + Unpin,
 {
-    use crate::io::reader::container::header::{build_reference_sequence_context, is_eof};
+    use crate::io::reader::container::header::{get_reference_sequence_context, is_eof};
 
     let len = reader.read_i32_le().await.and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -33,15 +33,15 @@ where
     let alignment_start = read_itf8(reader).await?;
     let alignment_span = read_itf8(reader).await?;
 
-    let number_of_records = read_itf8_as(reader).await?;
-    let record_counter = read_ltf8_as(reader).await?;
-    let bases = read_ltf8_as(reader).await?;
+    header.reference_sequence_context =
+        get_reference_sequence_context(reference_sequence_id, alignment_start, alignment_span)?;
 
-    let number_of_blocks = read_itf8(reader).await.and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    header.record_count = read_itf8_as(reader).await?;
+    header.record_counter = read_ltf8_as(reader).await?;
+    header.base_count = read_ltf8_as(reader).await?;
+    header.block_count = read_itf8_as(reader).await?;
 
-    let landmarks = read_landmarks(reader).await?;
+    read_landmarks(reader, &mut header.landmarks).await?;
 
     let actual_crc32 = reader.crc().sum();
     let expected_crc32 = reader.get_mut().read_u32_le().await?;
@@ -59,46 +59,29 @@ where
         len,
         reference_sequence_id,
         alignment_start,
-        number_of_blocks,
+        header.block_count,
         actual_crc32,
     ) {
-        return Ok(0);
+        Ok(0)
+    } else {
+        Ok(len)
     }
-
-    let reference_sequence_context =
-        build_reference_sequence_context(reference_sequence_id, alignment_start, alignment_span)?;
-
-    *header = Header::builder()
-        .set_reference_sequence_context(reference_sequence_context)
-        .set_record_count(number_of_records)
-        .set_record_counter(record_counter)
-        .set_base_count(bases)
-        .set_block_count(number_of_blocks)
-        .set_landmarks(landmarks)
-        .build();
-
-    Ok(len)
 }
 
-async fn read_landmarks<R>(reader: &mut R) -> io::Result<Vec<usize>>
+async fn read_landmarks<R>(reader: &mut R, landmarks: &mut Vec<usize>) -> io::Result<()>
 where
     R: AsyncRead + Unpin,
 {
-    let len = read_itf8(reader).await.and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    landmarks.clear();
 
-    let mut landmarks = Vec::with_capacity(len);
+    let len: usize = read_itf8_as(reader).await?;
 
     for _ in 0..len {
-        let pos = read_itf8(reader).await.and_then(|n| {
-            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })?;
-
+        let pos = read_itf8_as(reader).await?;
         landmarks.push(pos);
     }
 
-    Ok(landmarks)
+    Ok(())
 }
 
 #[cfg(test)]

@@ -6,12 +6,12 @@ use super::ReferenceSequenceContext;
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Header {
-    reference_sequence_context: ReferenceSequenceContext,
-    record_count: usize,
-    record_counter: u64,
-    base_count: u64,
-    block_count: usize,
-    landmarks: Vec<usize>,
+    pub reference_sequence_context: ReferenceSequenceContext,
+    pub record_count: usize,
+    pub record_counter: u64,
+    pub base_count: u64,
+    pub block_count: usize,
+    pub landmarks: Vec<usize>,
 }
 
 #[allow(clippy::len_without_is_empty)]

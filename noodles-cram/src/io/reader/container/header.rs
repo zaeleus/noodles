@@ -39,15 +39,15 @@ where
     let alignment_start = read_itf8(reader)?;
     let alignment_span = read_itf8(reader)?;
 
-    let number_of_records = read_itf8_as(reader)?;
-    let record_counter = read_ltf8_as(reader)?;
-    let bases = read_ltf8_as(reader)?;
+    header.reference_sequence_context =
+        get_reference_sequence_context(reference_sequence_id, alignment_start, alignment_span)?;
 
-    let number_of_blocks = read_itf8(reader).and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    header.record_count = read_itf8_as(reader)?;
+    header.record_counter = read_ltf8_as(reader)?;
+    header.base_count = read_ltf8_as(reader)?;
+    header.block_count = read_itf8_as(reader)?;
 
-    let landmarks = read_landmarks(reader)?;
+    read_landmarks(reader, &mut header.landmarks)?;
 
     let actual_crc32 = reader.crc().sum();
     let expected_crc32 = reader.get_mut().read_u32::<LittleEndian>()?;
@@ -65,46 +65,29 @@ where
         len,
         reference_sequence_id,
         alignment_start,
-        number_of_blocks,
+        header.block_count,
         expected_crc32,
     ) {
-        return Ok(0);
+        Ok(0)
+    } else {
+        Ok(len)
     }
-
-    let reference_sequence_context =
-        build_reference_sequence_context(reference_sequence_id, alignment_start, alignment_span)?;
-
-    *header = Header::builder()
-        .set_reference_sequence_context(reference_sequence_context)
-        .set_record_count(number_of_records)
-        .set_record_counter(record_counter)
-        .set_base_count(bases)
-        .set_block_count(number_of_blocks)
-        .set_landmarks(landmarks)
-        .build();
-
-    Ok(len)
 }
 
-fn read_landmarks<R>(reader: &mut R) -> io::Result<Vec<usize>>
+fn read_landmarks<R>(reader: &mut R, landmarks: &mut Vec<usize>) -> io::Result<()>
 where
     R: Read,
 {
-    let len = read_itf8(reader).and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    landmarks.clear();
 
-    let mut buf = Vec::with_capacity(len);
+    let n: usize = read_itf8_as(reader)?;
 
-    for _ in 0..len {
-        let pos = read_itf8(reader).and_then(|n| {
-            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })?;
-
-        buf.push(pos);
+    for _ in 0..n {
+        let pos = read_itf8_as(reader)?;
+        landmarks.push(pos);
     }
 
-    Ok(buf)
+    Ok(())
 }
 
 pub(crate) fn is_eof(
@@ -121,7 +104,7 @@ pub(crate) fn is_eof(
         && crc32 == EOF_CRC32
 }
 
-pub(crate) fn build_reference_sequence_context(
+pub(crate) fn get_reference_sequence_context(
     raw_reference_sequence_id: i32,
     raw_alignment_start: i32,
     raw_alignment_span: i32,

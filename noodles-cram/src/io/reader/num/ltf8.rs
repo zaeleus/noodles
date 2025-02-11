@@ -120,7 +120,7 @@ where
     Ok(value)
 }
 
-fn read_ltf8_as<R, N>(reader: &mut R) -> io::Result<N>
+pub fn read_ltf8_as<R, N>(reader: &mut R) -> io::Result<N>
 where
     R: Read,
     N: TryFrom<i64, Error = num::TryFromIntError>,
