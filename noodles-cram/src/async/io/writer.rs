@@ -13,7 +13,9 @@ use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 pub use self::builder::Builder;
 use self::{container::write_container, header::write_file_header};
 use crate::{
-    file_definition::Version, io::writer::Options, Container, FileDefinition, Record, MAGIC_NUMBER,
+    file_definition::Version,
+    io::writer::{Options, Record},
+    Container, FileDefinition, MAGIC_NUMBER,
 };
 
 /// An async CRAM writer.
@@ -214,8 +216,8 @@ where
     /// let header = sam::Header::default();
     /// writer.write_file_header(&header).await?;
     ///
-    /// let record = cram::Record::default();
-    /// writer.write_record(&header, record).await?;
+    /// let record = sam::Record::default();
+    /// writer.write_alignment_record(&header, &record).await?;
     ///
     /// writer.shutdown(&header).await?;
     /// # Ok(())
@@ -272,14 +274,11 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn write_alignment_record<R>(
+    pub async fn write_alignment_record(
         &mut self,
         header: &sam::Header,
-        record: &R,
-    ) -> io::Result<()>
-    where
-        R: sam::alignment::Record + ?Sized,
-    {
+        record: &dyn sam::alignment::Record,
+    ) -> io::Result<()> {
         let record = Record::try_from_alignment_record(header, record)?;
         self.write_record(header, record).await
     }

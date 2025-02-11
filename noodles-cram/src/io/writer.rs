@@ -6,11 +6,11 @@ pub(crate) mod container;
 pub(crate) mod header;
 pub(crate) mod num;
 mod options;
-mod record;
+pub(crate) mod record;
 
 pub use self::builder::Builder;
 use self::header::{write_file_definition, write_file_header};
-pub(crate) use self::options::Options;
+pub(crate) use self::{options::Options, record::Record};
 
 use std::{
     io::{self, Write},
@@ -31,15 +31,15 @@ use crate::{Container, FileDefinition};
 /// ```
 /// # use std::io;
 /// use noodles_cram as cram;
-/// use noodles_sam as sam;
+/// use noodles_sam::{self as sam, alignment::io::Write};
 ///
 /// let mut writer = cram::io::Writer::new(io::sink());
 ///
 /// let header = sam::Header::default();
 /// writer.write_header(&header)?;
 ///
-/// let record = cram::Record::default();
-/// writer.write_record(&header, record)?;
+/// let record = sam::Record::default();
+/// writer.write_alignment_record(&header, &record)?;
 ///
 /// writer.try_finish(&header)?;
 /// # Ok::<(), io::Error>(())
@@ -218,24 +218,20 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_cram as cram;
-    /// use noodles_sam as sam;
+    /// use noodles_sam::{self as sam, alignment::io::Write};
     ///
     /// let mut writer = cram::io::Writer::new(io::sink());
     ///
     /// let header = sam::Header::default();
     /// writer.write_header(&header)?;
     ///
-    /// let record = cram::Record::default();
-    /// writer.write_record(&header, record)?;
+    /// let record = sam::Record::default();
+    /// writer.write_alignment_record(&header, &record)?;
     ///
     /// writer.try_finish(&header)?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn write_record(
-        &mut self,
-        header: &sam::Header,
-        mut record: crate::Record,
-    ) -> io::Result<()> {
+    pub fn write_record(&mut self, header: &sam::Header, mut record: Record) -> io::Result<()> {
         use crate::container::builder::AddRecordError;
 
         loop {
@@ -292,7 +288,7 @@ where
         header: &sam::Header,
         record: &dyn sam::alignment::Record,
     ) -> io::Result<()> {
-        let r = crate::Record::try_from_alignment_record(header, record)?;
+        let r = Record::try_from_alignment_record(header, record)?;
         self.write_record(header, r)
     }
 

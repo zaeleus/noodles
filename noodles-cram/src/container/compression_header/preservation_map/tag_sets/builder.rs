@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use super::{Key, TagSets};
-use crate::Record;
+use crate::io::writer::Record;
 
 #[derive(Debug, Default)]
 pub struct Builder {
@@ -11,9 +11,9 @@ pub struct Builder {
 impl Builder {
     pub fn update(&mut self, record: &Record) {
         let keys: Vec<_> = record
-            .tags()
+            .data
             .iter()
-            .map(|(tag, value)| Key::new(tag, value.ty()))
+            .map(|(tag, value)| Key::new(*tag, value.ty()))
             .collect();
 
         let next_index = self.keys_indices.len();
@@ -43,16 +43,16 @@ mod tests {
         let mut builder = Builder::default();
 
         let mut record = Record::default();
-        record.tags.insert(Tag::ALIGNMENT_HIT_COUNT, Value::Int8(1));
+        record.data.push((Tag::ALIGNMENT_HIT_COUNT, Value::Int8(1)));
         builder.update(&record);
 
         let mut record = Record::default();
-        record.tags.insert(Tag::ALIGNMENT_HIT_COUNT, Value::Int8(2));
+        record.data.push((Tag::ALIGNMENT_HIT_COUNT, Value::Int8(2)));
         builder.update(&record);
 
         let mut record = Record::default();
-        record.tags.insert(Tag::ALIGNMENT_HIT_COUNT, Value::Int8(1));
-        record.tags.insert(Tag::COMMENT, Value::from("noodles"));
+        record.data.push((Tag::ALIGNMENT_HIT_COUNT, Value::Int8(1)));
+        record.data.push((Tag::COMMENT, Value::from("noodles")));
         builder.update(&record);
 
         let dictionary = builder.build();

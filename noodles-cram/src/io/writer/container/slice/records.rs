@@ -5,7 +5,6 @@ use std::{
 };
 
 use bstr::BStr;
-use noodles_bam as bam;
 use noodles_core::Position;
 use noodles_sam as sam;
 
@@ -15,12 +14,11 @@ use crate::{
         compression_header::{data_series_encodings::DataSeries, preservation_map::tag_sets},
         CompressionHeader, ReferenceSequenceContext,
     },
-    io::BitWriter,
-    record::{
-        feature::{self, substitution},
-        Feature, Flags, MateFlags,
+    io::{
+        writer::{record::Feature, Record},
+        BitWriter,
     },
-    Record,
+    record::{Flags, MateFlags},
 };
 
 #[allow(clippy::enum_variant_names)]
@@ -77,8 +75,8 @@ where
     }
 
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        self.write_bam_flags(record.bam_flags())?;
-        self.write_cram_flags(record.cram_flags())?;
+        self.write_bam_flags(record.bam_flags)?;
+        self.write_cram_flags(record.cram_flags)?;
 
         self.write_positions(record)?;
         self.write_names(record)?;
@@ -86,13 +84,13 @@ where
 
         self.write_tags(record)?;
 
-        if record.bam_flags().is_unmapped() {
+        if record.bam_flags.is_unmapped() {
             self.write_unmapped_read(record)?;
         } else {
             self.write_mapped_read(record)?;
         }
 
-        self.prev_alignment_start = record.alignment_start();
+        self.prev_alignment_start = record.alignment_start;
 
         Ok(())
     }
@@ -117,12 +115,12 @@ where
 
     fn write_positions(&mut self, record: &Record) -> io::Result<()> {
         if self.reference_sequence_context.is_many() {
-            self.write_reference_sequence_id(record.reference_sequence_id())?;
+            self.write_reference_sequence_id(record.reference_sequence_id)?;
         }
 
-        self.write_read_length(record.read_length())?;
+        self.write_read_length(record.read_length)?;
         self.write_alignment_start(record.alignment_start)?;
-        self.write_read_group_id(record.read_group_id())?;
+        self.write_read_group_id(record.read_group_id)?;
 
         Ok(())
     }
@@ -231,7 +229,8 @@ where
         let preservation_map = self.compression_header.preservation_map();
 
         if preservation_map.read_names_included() {
-            self.write_name(record.name())?;
+            let name = record.name.as_ref().map(|s| s.as_ref());
+            self.write_name(name)?;
         }
 
         Ok(())
@@ -255,23 +254,22 @@ where
     }
 
     fn write_mate(&mut self, record: &Record) -> io::Result<()> {
-        if record.cram_flags().is_detached() {
-            self.write_next_mate_bit_flags(record.next_mate_flags())?;
+        if record.cram_flags.is_detached() {
+            self.write_next_mate_bit_flags(record.mate_flags)?;
 
             let preservation_map = self.compression_header.preservation_map();
 
             if !preservation_map.read_names_included() {
-                self.write_name(record.name())?;
+                let name = record.name.as_ref().map(|s| s.as_ref());
+                self.write_name(name)?;
             }
 
-            self.write_next_fragment_reference_sequence_id(
-                record.next_fragment_reference_sequence_id(),
-            )?;
+            self.write_next_fragment_reference_sequence_id(record.mate_reference_sequence_id)?;
 
-            self.write_next_mate_alignment_start(record.next_mate_alignment_start())?;
-            self.write_template_size(record.template_size())?;
-        } else if let Some(distance_to_next_fragment) = record.distance_to_next_fragment() {
-            self.write_mate_distance(distance_to_next_fragment)?;
+            self.write_next_mate_alignment_start(record.mate_alignment_start)?;
+            self.write_template_size(record.template_length)?;
+        } else if let Some(distance_to_mate) = record.distance_to_mate {
+            self.write_mate_distance(distance_to_mate)?;
         }
 
         Ok(())
@@ -390,48 +388,43 @@ where
     }
 
     fn write_tags(&mut self, record: &Record) -> io::Result<()> {
-        use bam::record::codec::encoder::data::field::write_value;
+        use noodles_bam::record::codec::encoder::data::field::write_value;
 
-        let preservation_map = self.compression_header.preservation_map();
-        let tag_ids_dictionary = preservation_map.tag_sets();
-
-        let keys: Vec<_> = record
-            .tags()
+        let tag_set: Vec<_> = record
+            .data
             .iter()
-            .map(|(tag, value)| tag_sets::Key::new(tag, value.ty()))
+            .map(|(tag, value)| tag_sets::Key::new(*tag, value.ty()))
             .collect();
 
-        let tag_set_id = tag_ids_dictionary
+        let tag_set_id = self
+            .compression_header
+            .preservation_map()
+            .tag_sets()
             .iter()
-            .position(|k| **k == keys)
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    "tag line not in tag IDs dictionary",
-                )
-            })?;
+            .position(|set| **set == tag_set)
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing tag set"))?;
 
         self.write_tag_set_id(tag_set_id)?;
 
         let tag_encodings = self.compression_header.tag_encodings();
         let mut buf = Vec::new();
 
-        for result in sam::alignment::Record::data(record).iter() {
-            let (tag, value) = result?;
+        for (key, (_, value)) in tag_set.into_iter().zip(&record.data) {
+            let block_content_id = block::ContentId::from(key);
 
-            let key = tag_sets::Key::new(tag, value.ty());
-            let id = block::ContentId::from(key);
-            let encoding = tag_encodings.get(&id).ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    WriteRecordError::MissingTagEncoding(key),
-                )
-            })?;
+            write_value(&mut buf, &value.into())?;
+
+            tag_encodings
+                .get(&block_content_id)
+                .ok_or_else(|| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        WriteRecordError::MissingTagEncoding(key),
+                    )
+                })?
+                .encode(self.core_data_writer, self.external_data_writers, &buf)?;
 
             buf.clear();
-            write_value(&mut buf, &value)?;
-
-            encoding.encode(self.core_data_writer, self.external_data_writers, &buf)?;
         }
 
         Ok(())
@@ -448,20 +441,20 @@ where
     }
 
     fn write_mapped_read(&mut self, record: &Record) -> io::Result<()> {
-        self.write_number_of_read_features(record.features().len())?;
+        self.write_number_of_read_features(record.features.len())?;
 
         let mut prev_position = 0;
 
-        for feature in record.features().iter() {
+        for feature in &record.features {
             let position = usize::from(feature.position()) - prev_position;
             self.write_feature(feature, position)?;
             prev_position = usize::from(feature.position());
         }
 
-        self.write_mapping_quality(record.mapping_quality())?;
+        self.write_mapping_quality(record.mapping_quality)?;
 
-        if record.cram_flags().are_quality_scores_stored_as_array() {
-            for &score in record.quality_scores().as_ref() {
+        if record.cram_flags.are_quality_scores_stored_as_array() {
+            for &score in &record.quality_scores {
                 self.write_quality_score(score)?;
             }
         }
@@ -510,9 +503,11 @@ where
                 self.write_base(*base)?;
                 self.write_quality_score(*quality_score)?;
             }
-            Feature::Substitution { value, .. } => {
-                self.write_base_substitution_code(*value)?;
-            }
+            Feature::Substitution {
+                reference_base,
+                read_base,
+                ..
+            } => self.write_base_substitution_code(*reference_base, *read_base)?,
             Feature::Insertion { bases, .. } => {
                 self.write_insertion(bases)?;
             }
@@ -542,7 +537,7 @@ where
         Ok(())
     }
 
-    fn write_feature_code(&mut self, code: feature::Code) -> io::Result<()> {
+    fn write_feature_code(&mut self, code: u8) -> io::Result<()> {
         self.compression_header
             .data_series_encodings()
             .feature_codes()
@@ -552,11 +547,7 @@ where
                     WriteRecordError::MissingDataSeriesEncoding(DataSeries::FeatureCodes),
                 )
             })?
-            .encode(
-                self.core_data_writer,
-                self.external_data_writers,
-                u8::from(code),
-            )
+            .encode(self.core_data_writer, self.external_data_writers, code)
     }
 
     fn write_feature_position(&mut self, position: usize) -> io::Result<()> {
@@ -639,7 +630,13 @@ where
             )
     }
 
-    fn write_base_substitution_code(&mut self, value: substitution::Value) -> io::Result<()> {
+    fn write_base_substitution_code(
+        &mut self,
+        reference_base: u8,
+        read_base: u8,
+    ) -> io::Result<()> {
+        use crate::record::feature::substitution::Base;
+
         let encoding = self
             .compression_header
             .data_series_encodings()
@@ -656,17 +653,13 @@ where
             .preservation_map()
             .substitution_matrix();
 
-        let code = match value {
-            substitution::Value::Bases(reference_base, read_base) => {
-                substitution_matrix.find_code(reference_base, read_base)
-            }
-            substitution::Value::Code(_) => {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    "base substitution cannot be a code on write",
-                ));
-            }
-        };
+        let reference_base = Base::try_from(reference_base)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+        let read_base = Base::try_from(read_base)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+        let code = substitution_matrix.find_code(reference_base, read_base);
 
         encoding.encode(self.core_data_writer, self.external_data_writers, code)
     }
@@ -787,12 +780,12 @@ where
     }
 
     fn write_unmapped_read(&mut self, record: &Record) -> io::Result<()> {
-        for &base in record.sequence().as_ref() {
+        for &base in &record.sequence {
             self.write_base(base)?;
         }
 
-        if record.cram_flags().are_quality_scores_stored_as_array() {
-            for &score in record.quality_scores().as_ref() {
+        if record.cram_flags.are_quality_scores_stored_as_array() {
+            for &score in &record.quality_scores {
                 self.write_quality_score(score)?;
             }
         }

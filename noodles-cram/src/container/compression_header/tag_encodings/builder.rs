@@ -10,7 +10,7 @@ use crate::{
             Encoding,
         },
     },
-    Record,
+    io::writer::Record,
 };
 
 #[derive(Debug, Default)]
@@ -20,8 +20,8 @@ pub struct Builder {
 
 impl Builder {
     pub fn update(&mut self, record: &Record) {
-        for (tag, value) in record.tags().iter() {
-            let key = Key::new(tag, value.ty());
+        for (tag, value) in &record.data {
+            let key = Key::new(*tag, value.ty());
             self.keys.insert(key);
         }
     }
@@ -60,15 +60,15 @@ mod tests {
         let mut builder = Builder::default();
 
         let mut record = Record::default();
-        record.tags.insert(Tag::ALIGNMENT_HIT_COUNT, Value::Int8(1));
+        record.data.push((Tag::ALIGNMENT_HIT_COUNT, Value::Int8(1)));
         builder.update(&record);
 
         let mut record = Record::default();
-        record.tags.insert(Tag::ALIGNMENT_HIT_COUNT, Value::Int8(1));
+        record.data.push((Tag::ALIGNMENT_HIT_COUNT, Value::Int8(1)));
         builder.update(&record);
 
         let mut record = Record::default();
-        record.tags.insert(Tag::COMMENT, Value::from("noodles"));
+        record.data.push((Tag::COMMENT, Value::from("noodles")));
         builder.update(&record);
 
         let actual = builder.build();

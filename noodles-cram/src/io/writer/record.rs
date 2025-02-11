@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 mod convert;
 mod feature;
 
@@ -16,7 +14,7 @@ use noodles_sam::{
 pub use self::feature::Feature;
 use crate::record::{Flags, MateFlags};
 
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct Record {
     pub(crate) bam_flags: sam::alignment::record::Flags,
     pub(crate) cram_flags: Flags,

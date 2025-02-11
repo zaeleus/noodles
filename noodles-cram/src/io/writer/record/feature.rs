@@ -15,6 +15,7 @@ pub enum Feature {
         base: u8,
         quality_score: u8,
     },
+    #[allow(dead_code)]
     Substitution {
         position: Position,
         reference_base: u8,

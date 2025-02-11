@@ -1,7 +1,7 @@
 use super::{
     data_series_encodings::DataSeriesEncodings, preservation_map, tag_encodings, CompressionHeader,
 };
-use crate::{io::writer::Options, Record};
+use crate::io::writer::{Options, Record};
 
 #[derive(Debug, Default)]
 pub struct Builder {

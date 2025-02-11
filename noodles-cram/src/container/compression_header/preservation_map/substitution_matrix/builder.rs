@@ -1,7 +1,7 @@
 use super::{Histogram, SubstitutionMatrix};
 use crate::{
-    record::{feature::substitution, Feature},
-    Record,
+    io::writer::{record::Feature, Record},
+    record::feature::substitution::Base,
 };
 
 #[derive(Debug, Default)]
@@ -11,16 +11,16 @@ pub struct Builder {
 
 impl Builder {
     pub fn update(&mut self, record: &Record) {
-        for feature in record.features().iter() {
-            if let Feature::Substitution { value, .. } = feature {
-                match value {
-                    substitution::Value::Bases(reference_base, read_base) => {
-                        self.histogram.hit(*reference_base, *read_base);
-                    }
-                    substitution::Value::Code(_) => {
-                        panic!("substitution matrix cannot be built from substitution codes");
-                    }
-                }
+        for feature in &record.features {
+            if let Feature::Substitution {
+                reference_base,
+                read_base,
+                ..
+            } = feature
+            {
+                let reference_base = Base::try_from(*reference_base).unwrap();
+                let read_base = Base::try_from(*read_base).unwrap();
+                self.histogram.hit(reference_base, read_base);
             }
         }
     }
@@ -33,51 +33,52 @@ impl Builder {
 #[cfg(test)]
 mod tests {
     use noodles_core::Position;
-    use noodles_sam::alignment::record_buf::Sequence;
 
     use super::*;
 
     #[test]
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::record::{
-            feature::substitution::{self, Base},
-            Features,
-        };
-
         // reference sequence = "ACAGGAATAANNNNNN"
-        let bases: Sequence = Sequence::from(b"TCTGGCGTGT");
+        let sequence = b"TCTGGCGTGT".to_vec();
 
-        let record = Record::builder()
-            .set_alignment_start(Position::try_from(1)?)
-            .set_read_length(bases.len())
-            .set_bases(bases)
-            .set_features(Features::from(vec![
+        let record = Record {
+            read_length: sequence.len(),
+            alignment_start: Position::new(1),
+            sequence,
+            features: vec![
                 Feature::Substitution {
                     position: Position::try_from(1)?,
-                    value: substitution::Value::Bases(Base::A, Base::T),
+                    reference_base: b'A',
+                    read_base: b'T',
                 },
                 Feature::Substitution {
                     position: Position::try_from(3)?,
-                    value: substitution::Value::Bases(Base::A, Base::T),
+                    reference_base: b'A',
+                    read_base: b'T',
                 },
                 Feature::Substitution {
                     position: Position::try_from(6)?,
-                    value: substitution::Value::Bases(Base::A, Base::C),
+                    reference_base: b'A',
+                    read_base: b'C',
                 },
                 Feature::Substitution {
                     position: Position::try_from(7)?,
-                    value: substitution::Value::Bases(Base::A, Base::G),
+                    reference_base: b'A',
+                    read_base: b'G',
                 },
                 Feature::Substitution {
                     position: Position::try_from(9)?,
-                    value: substitution::Value::Bases(Base::A, Base::G),
+                    reference_base: b'A',
+                    read_base: b'G',
                 },
                 Feature::Substitution {
                     position: Position::try_from(10)?,
-                    value: substitution::Value::Bases(Base::A, Base::T),
+                    reference_base: b'A',
+                    read_base: b'T',
                 },
-            ]))
-            .build();
+            ],
+            ..Default::default()
+        };
 
         let mut builder = Builder::default();
         builder.update(&record);

@@ -4,7 +4,7 @@ use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 use super::{slice, CompressionHeader, Container, Slice};
-use crate::{io::writer::Options, Record};
+use crate::io::writer::{Options, Record};
 
 const MAX_SLICE_COUNT: usize = 1;
 
@@ -49,7 +49,7 @@ impl Builder {
 
         match self.slice_builder.add_record(record) {
             Ok(r) => {
-                self.base_count += u64::try_from(r.read_length())
+                self.base_count += u64::try_from(r.read_length)
                     .map_err(AddRecordError::InvalidRecordReadLength)?;
                 Ok(())
             }

@@ -12,9 +12,11 @@ use crate::{
         block, compression_header::data_series_encodings::data_series::STANDARD_DATA_SERIES, Block,
         BlockContentEncoderMap, CompressionHeader, ReferenceSequenceContext,
     },
-    io::{writer, BitWriter},
+    io::{
+        writer::{self, Record},
+        BitWriter,
+    },
     record::Flags,
-    Record,
 };
 
 use super::{Header, Slice};
@@ -54,8 +56,8 @@ impl Builder {
 
         if self.is_empty() {
             self.reference_sequence_context = match (
-                record.reference_sequence_id(),
-                record.alignment_start(),
+                record.reference_sequence_id,
+                record.alignment_start,
                 record.alignment_end(),
             ) {
                 (Some(id), Some(start), Some(end)) => {
@@ -65,8 +67,8 @@ impl Builder {
             };
         } else {
             self.reference_sequence_context.update(
-                record.reference_sequence_id(),
-                record.alignment_start(),
+                record.reference_sequence_id,
+                record.alignment_start,
                 record.alignment_end(),
             );
         };
@@ -179,7 +181,7 @@ fn write_records(
 
     for record in records.iter() {
         all_quality_scores_stored_as_arrays = all_quality_scores_stored_as_arrays
-            && record.cram_flags().are_quality_scores_stored_as_array();
+            && record.cram_flags.are_quality_scores_stored_as_array();
 
         record_writer.write_record(record)?;
     }
@@ -208,7 +210,7 @@ fn write_records(
                 match encoder {
                     Some(Encoder::Fqzcomp) => {
                         if all_quality_scores_stored_as_arrays {
-                            let lens: Vec<_> = records.iter().map(|r| r.read_length()).collect();
+                            let lens: Vec<_> = records.iter().map(|r| r.read_length).collect();
                             let data = fqzcomp::encode(&lens, &buf)?;
 
                             builder
@@ -244,10 +246,10 @@ fn set_mates(records: &mut [Record]) {
 
     loop {
         let record = &mut records[i];
-        let flags = record.flags();
+        let flags = record.bam_flags;
 
         if flags.is_segmented() && !flags.is_secondary() {
-            let name: Option<BString> = record.name().map(|name| name.into());
+            let name: Option<BString> = record.name.as_ref().map(|name| name.to_owned());
 
             if let Some(j) = indices.insert(name, i) {
                 let mid = i + 1;
