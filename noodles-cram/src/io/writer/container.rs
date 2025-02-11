@@ -1,7 +1,7 @@
 mod block;
 pub(crate) mod compression_header;
 mod header;
-mod slice;
+pub(crate) mod slice;
 
 use std::{
     cmp,

@@ -166,7 +166,7 @@ fn write_records(
         external_data_writers.insert(block_content_id, Vec::new());
     }
 
-    let mut record_writer = writer::record::Writer::new(
+    let mut record_writer = writer::container::slice::records::Writer::new(
         compression_header,
         &mut core_data_writer,
         &mut external_data_writers,

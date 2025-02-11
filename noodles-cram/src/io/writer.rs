@@ -6,7 +6,6 @@ pub(crate) mod container;
 pub(crate) mod header;
 pub(crate) mod num;
 mod options;
-pub(crate) mod record;
 
 pub use self::builder::Builder;
 use self::header::{write_file_definition, write_file_header};
