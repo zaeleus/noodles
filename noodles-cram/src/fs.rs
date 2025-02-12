@@ -5,9 +5,9 @@ use std::{cmp, collections::HashMap, fs::File, io, path::Path};
 use noodles_core::Position;
 
 use super::{
-    container::{slice, CompressionHeader, Slice},
+    container::{slice, CompressionHeader},
     crai,
-    io::Reader,
+    io::{reader::container::Slice, Reader},
 };
 use crate::io::reader::Container;
 

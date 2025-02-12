@@ -12,7 +12,6 @@ pub(crate) use self::{
 };
 pub use self::{
     block_content_encoder_map::BlockContentEncoderMap, compression_header::CompressionHeader,
-    slice::Slice,
 };
 
 /// A CRAM container.
