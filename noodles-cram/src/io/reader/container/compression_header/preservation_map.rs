@@ -21,34 +21,29 @@ pub(super) fn get_preservation_map(src: &mut Bytes) -> io::Result<PreservationMa
     }
 
     let mut buf = src.split_to(data_len);
+    let len = get_itf8(&mut buf)?;
 
-    let map_len = get_itf8(&mut buf)?;
+    get_preservation_map_inner(&mut buf, len)
+}
 
+fn get_preservation_map_inner(src: &mut Bytes, len: i32) -> io::Result<PreservationMap> {
     let mut read_names_included = true;
     let mut ap_data_series_delta = true;
     let mut reference_required = true;
     let mut substitution_matrix = None;
-    let mut tag_ids_dictionary = None;
+    let mut tag_sets = None;
 
-    for _ in 0..map_len {
-        let key = get_key(&mut buf)?;
+    for _ in 0..len {
+        let key = get_key(src)?;
 
         match key {
-            Key::ReadNamesIncluded => {
-                read_names_included = get_bool(&mut buf)?;
-            }
-            Key::ApDataSeriesDelta => {
-                ap_data_series_delta = get_bool(&mut buf)?;
-            }
-            Key::ReferenceRequired => {
-                reference_required = get_bool(&mut buf)?;
-            }
+            Key::ReadNamesIncluded => read_names_included = get_bool(src)?,
+            Key::ApDataSeriesDelta => ap_data_series_delta = get_bool(src)?,
+            Key::ReferenceRequired => reference_required = get_bool(src)?,
             Key::SubstitutionMatrix => {
-                substitution_matrix = get_substitution_matrix(&mut buf).map(Some)?;
+                substitution_matrix = get_substitution_matrix(src).map(Some)?
             }
-            Key::TagSets => {
-                tag_ids_dictionary = get_tag_sets(&mut buf).map(Some)?;
-            }
+            Key::TagSets => tag_sets = get_tag_sets(src).map(Some)?,
         }
     }
 
@@ -59,7 +54,7 @@ pub(super) fn get_preservation_map(src: &mut Bytes) -> io::Result<PreservationMa
         substitution_matrix.ok_or_else(|| {
             io::Error::new(io::ErrorKind::InvalidData, "missing substitution matrix")
         })?,
-        tag_ids_dictionary.ok_or_else(|| {
+        tag_sets.ok_or_else(|| {
             io::Error::new(io::ErrorKind::InvalidData, "missing tag IDs dictionary")
         })?,
     ))
