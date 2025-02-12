@@ -1,14 +1,39 @@
 use std::{io, num::NonZeroUsize};
 
-use bytes::Buf;
+use bytes::{Buf, Bytes};
 use noodles_core::Position;
 
 use crate::{
-    container::{block, slice, ReferenceSequenceContext},
-    io::reader::num::{get_itf8, get_ltf8},
+    container::{
+        block::{self, ContentType},
+        slice::Header,
+        ReferenceSequenceContext,
+    },
+    io::reader::{
+        container::read_block,
+        num::{get_itf8, get_ltf8},
+    },
 };
 
-pub fn get_header<B>(src: &mut B) -> io::Result<slice::Header>
+pub(super) fn get_header(src: &mut Bytes) -> io::Result<Header> {
+    let block = read_block(src)?;
+
+    if block.content_type != ContentType::SliceHeader {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!(
+                "invalid block content type: expected {:?}, got {:?}",
+                ContentType::SliceHeader,
+                block.content_type
+            ),
+        ));
+    }
+
+    let mut buf = block.decode()?;
+    get_header_inner(&mut buf)
+}
+
+fn get_header_inner<B>(src: &mut B) -> io::Result<Header>
 where
     B: Buf,
 {
@@ -34,7 +59,7 @@ where
     let reference_md5 = get_reference_md5(src)?;
     let optional_tags = get_optional_tags(src);
 
-    let mut builder = slice::Header::builder()
+    let mut builder = Header::builder()
         .set_reference_sequence_context(reference_sequence_context)
         .set_record_count(record_count)
         .set_record_counter(record_counter)
@@ -158,8 +183,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_header() -> Result<(), Box<dyn std::error::Error>> {
-        let data = [
+    fn test_get_header_inner() -> Result<(), Box<dyn std::error::Error>> {
+        let src = [
             0x02, // reference sequence ID = 2
             0x03, // alignment start = 3
             0x05, // alignment span = 5
@@ -172,10 +197,10 @@ mod tests {
             0x57, 0xb2, 0x96, 0xa3, 0x16, 0x0a, 0x2c, 0xac, 0x9c, 0x83, 0x33, 0x12, 0x6f, 0xf2,
             0x7e, 0xf7, // reference MD5 (b"ACGTA")
         ];
-        let mut reader = &data[..];
-        let actual = get_header(&mut reader)?;
 
-        let expected = slice::Header::builder()
+        let actual = get_header_inner(&mut &src[..])?;
+
+        let expected = Header::builder()
             .set_reference_sequence_context(ReferenceSequenceContext::some(
                 2,
                 Position::try_from(3)?,

@@ -1,18 +1,15 @@
 mod header;
 
-pub use self::header::get_header;
-
 use std::io;
 
 use bytes::Bytes;
 
-use crate::{
-    container::{block::ContentType, slice, Slice},
-    io::reader::container::{read_block, Block},
-};
+use self::header::get_header;
+use super::{read_block, Block};
+use crate::container::{block::ContentType, Slice};
 
 pub fn read_slice(src: &mut Bytes) -> io::Result<Slice> {
-    let header = read_header_from_block(src)?;
+    let header = get_header(src)?;
 
     let core_data_block = read_core_data_block(src)?;
 
@@ -20,24 +17,6 @@ pub fn read_slice(src: &mut Bytes) -> io::Result<Slice> {
     let external_blocks = read_external_blocks(src, external_block_count)?;
 
     Ok(Slice::new(header, core_data_block, external_blocks))
-}
-
-fn read_header_from_block(src: &mut Bytes) -> io::Result<slice::Header> {
-    let block = read_block(src)?;
-
-    if block.content_type != ContentType::SliceHeader {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!(
-                "invalid block content type: expected {:?}, got {:?}",
-                ContentType::SliceHeader,
-                block.content_type
-            ),
-        ));
-    }
-
-    let mut buf = block.decode()?;
-    get_header(&mut buf)
 }
 
 fn read_core_data_block(src: &mut Bytes) -> io::Result<Block> {
