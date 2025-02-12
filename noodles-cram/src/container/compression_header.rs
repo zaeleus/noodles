@@ -8,7 +8,7 @@ mod tag_encodings;
 pub(crate) use self::{
     data_series_encodings::DataSeriesEncodings,
     encoding::Encoding,
-    preservation_map::{PreservationMap, SubstitutionMatrix, TagSets},
+    preservation_map::{PreservationMap, SubstitutionMatrix},
     tag_encodings::TagEncodings,
 };
 
