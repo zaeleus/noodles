@@ -1,12 +1,13 @@
+mod substitution_matrix;
 mod tag_sets;
 
 use std::io;
 
 use bytes::{Buf, Bytes};
 
-use self::tag_sets::get_tag_sets;
+use self::{substitution_matrix::get_substitution_matrix, tag_sets::get_tag_sets};
 use crate::{
-    container::compression_header::{preservation_map::Key, PreservationMap, SubstitutionMatrix},
+    container::compression_header::{preservation_map::Key, PreservationMap},
     io::reader::num::get_itf8,
 };
 
@@ -97,21 +98,6 @@ where
     }
 }
 
-fn get_substitution_matrix<B>(src: &mut B) -> io::Result<SubstitutionMatrix>
-where
-    B: Buf,
-{
-    let mut buf = [0; 5];
-
-    if src.remaining() < buf.len() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
-
-    src.copy_to_slice(&mut buf);
-
-    SubstitutionMatrix::try_from(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -120,7 +106,9 @@ mod tests {
     fn test_get_preservation_map() -> io::Result<()> {
         use noodles_sam::alignment::record::data::field::{Tag, Type};
 
-        use crate::container::compression_header::preservation_map::tag_sets;
+        use crate::container::compression_header::preservation_map::{
+            tag_sets, SubstitutionMatrix,
+        };
 
         let mut data = Bytes::from_static(&[
             0x18, // data.len = 24
