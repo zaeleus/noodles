@@ -4,7 +4,6 @@ use std::{
     path::Path,
 };
 
-use bytes::BytesMut;
 use noodles_fasta as fasta;
 
 use super::Reader;
@@ -70,7 +69,6 @@ impl Builder {
         Reader {
             inner: reader,
             reference_sequence_repository: self.reference_sequence_repository,
-            buf: BytesMut::new(),
         }
     }
 }

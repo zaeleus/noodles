@@ -7,7 +7,7 @@
 
 use std::{env, io};
 
-use noodles_cram as cram;
+use noodles_cram::{self as cram, io::reader::Container};
 
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
@@ -15,11 +15,15 @@ fn main() -> io::Result<()> {
     let mut reader = cram::io::reader::Builder::default().build_from_path(src)?;
     reader.read_header()?;
 
+    let mut container = Container::default();
     let mut n = 0;
 
-    while let Some(container) = reader.read_container()? {
-        for slice in container.slices() {
-            let records = slice.records(container.compression_header())?;
+    while reader.read_container(&mut container)? != 0 {
+        let compression_header = container.compression_header()?;
+
+        for result in container.slices() {
+            let slice = result?;
+            let records = slice.records(&compression_header)?;
             n += records.len();
         }
     }

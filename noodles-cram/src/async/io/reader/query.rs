@@ -6,7 +6,7 @@ use noodles_sam as sam;
 use tokio::io::{self, AsyncRead, AsyncSeek};
 
 use super::Reader;
-use crate::{crai, Record};
+use crate::{crai, io::reader::Container, Record};
 
 struct Context<'r, 'h: 'r, 'i: 'r, R> {
     reader: &'r mut Reader<R>,
@@ -84,23 +84,29 @@ where
         return Some(Err(e));
     }
 
-    let container = match ctx.reader.read_container().await {
-        Ok(Some(c)) => c,
-        Ok(None) => return None,
+    let mut container = Container::default();
+
+    match ctx.reader.read_container(&mut container).await {
+        Ok(0) => return None,
+        Ok(_) => {}
+        Err(e) => return Some(Err(e)),
+    };
+
+    let compression_header = match container.compression_header() {
+        Ok(compression_header) => compression_header,
         Err(e) => return Some(Err(e)),
     };
 
     let records = container
         .slices()
-        .iter()
-        .map(|slice| {
-            let compression_header = container.compression_header();
+        .map(|result| {
+            let slice = result?;
 
-            slice.records(compression_header).and_then(|mut records| {
+            slice.records(&compression_header).and_then(|mut records| {
                 slice.resolve_records(
                     ctx.reader.reference_sequence_repository(),
                     ctx.header,
-                    compression_header,
+                    &compression_header,
                     &mut records,
                 )?;
 

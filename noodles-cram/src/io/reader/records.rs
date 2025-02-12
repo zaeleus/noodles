@@ -5,7 +5,7 @@ use std::{
 
 use noodles_sam as sam;
 
-use super::Reader;
+use super::{Container, Reader};
 use crate::Record;
 
 /// An iterator over records of a CRAM reader.
@@ -17,6 +17,7 @@ where
 {
     reader: &'a mut Reader<R>,
     header: &'a sam::Header,
+    container: Container,
     records: vec::IntoIter<Record>,
 }
 
@@ -28,26 +29,29 @@ where
         Self {
             reader,
             header,
+            container: Container::default(),
             records: Vec::new().into_iter(),
         }
     }
 
     fn read_container_records(&mut self) -> io::Result<bool> {
-        let Some(container) = self.reader.read_container()? else {
+        if self.reader.read_container(&mut self.container)? == 0 {
             return Ok(true);
-        };
+        }
 
-        self.records = container
+        let compression_header = self.container.compression_header()?;
+
+        self.records = self
+            .container
             .slices()
-            .iter()
-            .map(|slice| {
-                let compression_header = container.compression_header();
+            .map(|result| {
+                let slice = result?;
 
-                slice.records(compression_header).and_then(|mut records| {
+                slice.records(&compression_header).and_then(|mut records| {
                     slice.resolve_records(
                         self.reader.reference_sequence_repository(),
                         self.header,
-                        compression_header,
+                        &compression_header,
                         &mut records,
                     )?;
 

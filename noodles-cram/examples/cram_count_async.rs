@@ -7,7 +7,7 @@
 
 use std::env;
 
-use noodles_cram as cram;
+use noodles_cram::{self as cram, io::reader::Container};
 use tokio::{fs::File, io};
 
 #[tokio::main]
@@ -17,11 +17,15 @@ async fn main() -> io::Result<()> {
     let mut reader = File::open(src).await.map(cram::r#async::io::Reader::new)?;
     reader.read_header().await?;
 
+    let mut container = Container::default();
     let mut n = 0;
 
-    while let Some(container) = reader.read_container().await? {
-        for slice in container.slices() {
-            let records = slice.records(container.compression_header())?;
+    while reader.read_container(&mut container).await? != 0 {
+        let compression_header = container.compression_header()?;
+
+        for result in container.slices() {
+            let slice = result?;
+            let records = slice.records(&compression_header)?;
             n += records.len();
         }
     }

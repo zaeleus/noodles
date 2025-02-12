@@ -12,8 +12,11 @@
     This renames the following:
 
       * `cram::data_container` => `cram::container`,
-      * `cram::DataContainer` => `cram::Container`, and
+      * `cram::DataContainer` => `cram::io::reader::Container`, and
       * `cram::io::Reader::read_data_container` => `cram::io::Reader::read_container`.
+
+  * cram/io/reader: Read container (`Reader::read_container`) into a given
+    buffer (`cram::io::reader::Container`).
 
 ### Deprecated
 

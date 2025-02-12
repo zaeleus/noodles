@@ -9,6 +9,7 @@ use super::{
     crai,
     io::Reader,
 };
+use crate::io::reader::Container;
 
 /// Indexes a CRAM file.
 ///
@@ -27,15 +28,23 @@ where
     reader.read_header()?;
 
     let mut index = Vec::new();
+
+    let mut container = Container::default();
     let mut container_position = reader.position()?;
 
-    while let Some((container_header, container_len, container)) =
-        reader.read_container_with_header()?
-    {
-        let landmarks = container_header.landmarks();
+    loop {
+        let container_len = match reader.read_container(&mut container)? {
+            0 => break,
+            n => n,
+        };
+
+        let compression_header = container.compression_header()?;
+
+        let landmarks = container.header().landmarks().to_vec();
         let slice_count = landmarks.len();
 
-        for (i, slice) in container.slices().iter().enumerate() {
+        for (i, result) in container.slices().enumerate() {
+            let slice = result?;
             let landmark = landmarks[i];
 
             let slice_length = if i < slice_count - 1 {
@@ -46,8 +55,8 @@ where
 
             push_index_records(
                 &mut index,
-                container.compression_header(),
-                slice,
+                &compression_header,
+                &slice,
                 container_position,
                 landmark as u64,
                 slice_length as u64,

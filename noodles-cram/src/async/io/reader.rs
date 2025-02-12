@@ -8,7 +8,6 @@ mod num;
 mod query;
 mod records;
 
-use bytes::BytesMut;
 use futures::Stream;
 use noodles_core::Region;
 use noodles_fasta as fasta;
@@ -17,13 +16,12 @@ use tokio::io::{self, AsyncRead, AsyncSeek, AsyncSeekExt, SeekFrom};
 
 pub use self::builder::Builder;
 use self::{container::read_container, crc_reader::CrcReader, header::read_header};
-use crate::{crai, Container, FileDefinition, Record};
+use crate::{crai, io::reader::Container, FileDefinition, Record};
 
 /// An async CRAM reader.
 pub struct Reader<R> {
     inner: R,
     reference_sequence_repository: fasta::Repository,
-    buf: BytesMut,
 }
 
 impl<R> Reader<R> {
@@ -207,26 +205,35 @@ where
     /// ```no_run
     /// # #[tokio::main]
     /// # async fn main() -> tokio::io::Result<()> {
-    /// use noodles_cram as cram;
+    /// use noodles_cram::{self as cram, io::reader::Container};
     /// use tokio::fs::File;
     ///
     /// let mut reader = File::open("sample.cram").await.map(cram::r#async::io::Reader::new)?;
     /// reader.read_header().await?;
     ///
-    /// while let Some(container) = reader.read_container().await? {
+    /// let mut container = Container::default();
+    ///
+    /// while reader.read_container(&mut container).await? != 0 {
     ///     // ...
     /// }
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_container(&mut self) -> io::Result<Option<Container>> {
-        read_container(&mut self.inner, &mut self.buf).await
+    pub async fn read_container(&mut self, container: &mut Container) -> io::Result<usize> {
+        read_container(&mut self.inner, container).await
     }
 
     /// Reads a container.
     #[deprecated(since = "0.78.0", note = "Use `Reader::read_container` instead.")]
     pub async fn read_data_container(&mut self) -> io::Result<Option<Container>> {
-        read_container(&mut self.inner, &mut self.buf).await
+        let mut container = Container::default();
+
+        read_container(&mut self.inner, &mut container)
+            .await
+            .map(|n| match n {
+                0 => None,
+                _ => Some(container),
+            })
     }
 
     /// Returns an (async) stream over records starting from the current (input) stream position.

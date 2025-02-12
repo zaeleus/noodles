@@ -5,7 +5,7 @@ use noodles_sam as sam;
 use tokio::io::{self, AsyncRead};
 
 use super::Reader;
-use crate::Record;
+use crate::{io::reader::Container, Record};
 
 struct Context<'r, 'h: 'r, R>
 where
@@ -13,6 +13,7 @@ where
 {
     reader: &'r mut Reader<R>,
     header: &'h sam::Header,
+    container: Container,
     records: vec::IntoIter<Record>,
 }
 
@@ -26,6 +27,7 @@ where
     let ctx = Context {
         reader,
         header,
+        container: Container::default(),
         records: Vec::new().into_iter(),
     };
 
@@ -47,23 +49,28 @@ async fn read_next_container<R>(ctx: &mut Context<'_, '_, R>) -> Option<io::Resu
 where
     R: AsyncRead + Unpin,
 {
-    let container = match ctx.reader.read_container().await {
-        Ok(Some(container)) => container,
-        Ok(None) => return None,
+    match ctx.reader.read_container(&mut ctx.container).await {
+        Ok(0) => return None,
+        Ok(_) => {}
         Err(e) => return Some(Err(e)),
     };
 
-    let records = container
-        .slices()
-        .iter()
-        .map(|slice| {
-            let compression_header = container.compression_header();
+    let compression_header = match ctx.container.compression_header() {
+        Ok(compression_header) => compression_header,
+        Err(e) => return Some(Err(e)),
+    };
 
-            slice.records(compression_header).and_then(|mut records| {
+    let records = ctx
+        .container
+        .slices()
+        .map(|result| {
+            let slice = result?;
+
+            slice.records(&compression_header).and_then(|mut records| {
                 slice.resolve_records(
                     ctx.reader.reference_sequence_repository(),
                     ctx.header,
-                    compression_header,
+                    &compression_header,
                     &mut records,
                 )?;
 

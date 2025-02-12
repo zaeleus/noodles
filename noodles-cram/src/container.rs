@@ -16,30 +16,9 @@ pub use self::{
 };
 
 /// A CRAM container.
-#[deprecated(since = "0.78.0", note = "Use `cram::Container` instead.")]
-pub type DataContainer = Container;
+#[deprecated(since = "0.78.0", note = "Use `cram::io::reader::Container` instead.")]
+pub type Container = crate::io::reader::Container;
 
 /// A CRAM container.
-pub struct Container {
-    compression_header: CompressionHeader,
-    slices: Vec<Slice>,
-}
-
-impl Container {
-    pub(crate) fn new(compression_header: CompressionHeader, slices: Vec<Slice>) -> Self {
-        Self {
-            compression_header,
-            slices,
-        }
-    }
-
-    /// Returns the compression header.
-    pub fn compression_header(&self) -> &CompressionHeader {
-        &self.compression_header
-    }
-
-    /// Returns a list of slices.
-    pub fn slices(&self) -> &[Slice] {
-        &self.slices
-    }
-}
+#[deprecated(since = "0.78.0", note = "Use `cram::io::reader::Container` instead.")]
+pub type DataContainer = crate::io::reader::Container;

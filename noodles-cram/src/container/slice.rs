@@ -52,15 +52,20 @@ impl Slice {
     ///
     /// ```no_run
     /// # use std::io;
-    /// use noodles_cram as cram;
+    /// use noodles_cram::{self as cram, io::reader::Container};
     ///
     /// let data = [];
     /// let mut reader = cram::io::Reader::new(&data[..]);
     /// reader.read_header()?;
     ///
-    /// while let Some(container) = reader.read_container()? {
-    ///     for slice in container.slices() {
-    ///         let records = slice.records(container.compression_header())?;
+    /// let mut container = Container::default();
+    ///
+    /// while reader.read_container(&mut container)? != 0 {
+    ///     let compression_header = container.compression_header()?;
+    ///
+    ///     for result in container.slices() {
+    ///         let slice = result?;
+    ///         let records = slice.records(&compression_header)?;
     ///         // ...
     ///     }
     /// }

@@ -6,7 +6,7 @@ use std::{
 use noodles_core::region::Interval;
 use noodles_sam as sam;
 
-use super::Reader;
+use super::{Container, Reader};
 use crate::{crai, Record};
 
 /// An iterator over records that intersect a given region.
@@ -64,23 +64,29 @@ where
             return Some(Err(e));
         }
 
-        let container = match self.reader.read_container() {
-            Ok(Some(c)) => c,
-            Ok(None) => return None,
+        let mut container = Container::default();
+
+        match self.reader.read_container(&mut container) {
+            Ok(0) => return None,
+            Ok(_) => {}
+            Err(e) => return Some(Err(e)),
+        };
+
+        let compression_header = match container.compression_header() {
+            Ok(compression_header) => compression_header,
             Err(e) => return Some(Err(e)),
         };
 
         let records = container
             .slices()
-            .iter()
-            .map(|slice| {
-                let compression_header = container.compression_header();
+            .map(|result| {
+                let slice = result?;
 
-                slice.records(compression_header).and_then(|mut records| {
+                slice.records(&compression_header).and_then(|mut records| {
                     slice.resolve_records(
                         self.reader.reference_sequence_repository(),
                         self.header,
-                        compression_header,
+                        &compression_header,
                         &mut records,
                     )?;
 

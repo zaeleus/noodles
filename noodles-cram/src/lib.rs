@@ -15,13 +15,16 @@ pub mod io;
 mod num;
 pub mod record;
 
-pub use self::{container::Container, file_definition::FileDefinition, record::Record};
+pub use self::{file_definition::FileDefinition, record::Record};
 
 #[deprecated(since = "0.78.0", note = "Use `cram::container` instead.")]
 pub use self::container as data_container;
 
-#[deprecated(since = "0.78.0", note = "Use `cram::Container` instead.")]
-pub use self::container::Container as DataContainer;
+#[deprecated(since = "0.78.0", note = "Use `cram::io::reader::Container` instead.")]
+pub use self::io::reader::Container;
+
+#[deprecated(since = "0.78.0", note = "Use `cram::io::reader::Container` instead.")]
+pub use self::io::reader::Container as DataContainer;
 
 #[deprecated(since = "0.76.0", note = "Use `cram::fs::index` instead.")]
 pub use self::fs::index;

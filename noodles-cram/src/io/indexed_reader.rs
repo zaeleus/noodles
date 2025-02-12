@@ -11,10 +11,10 @@ use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 use super::{
-    reader::{Query, Records},
+    reader::{Container, Query, Records},
     Reader,
 };
-use crate::{crai, Container, FileDefinition};
+use crate::{crai, FileDefinition};
 
 /// An indexed CRAM reader.
 pub struct IndexedReader<R> {
@@ -70,8 +70,8 @@ where
     }
 
     /// Reads a container.
-    pub fn read_container(&mut self) -> io::Result<Option<Container>> {
-        self.inner.read_container()
+    pub fn read_container(&mut self, container: &mut Container) -> io::Result<usize> {
+        self.inner.read_container(container)
     }
 
     /// Reads a container.
@@ -80,7 +80,8 @@ where
         note = "Use `IndexedReader::read_container` instead."
     )]
     pub fn read_data_container(&mut self) -> io::Result<Option<Container>> {
-        self.inner.read_container()
+        #[allow(deprecated)]
+        self.inner.read_data_container()
     }
 
     /// Returns a iterator over records starting from the current stream position.

@@ -10,14 +10,13 @@ mod records;
 
 use std::io::{self, Read, Seek, SeekFrom};
 
-use bytes::BytesMut;
 use noodles_core::Region;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
-pub use self::{builder::Builder, query::Query, records::Records};
+pub use self::{builder::Builder, container::Container, query::Query, records::Records};
 use self::{container::read_container, header::read_header};
-use crate::{container::Container, crai, FileDefinition};
+use crate::{crai, FileDefinition};
 
 /// A CRAM reader.
 ///
@@ -44,7 +43,6 @@ use crate::{container::Container, crai, FileDefinition};
 pub struct Reader<R> {
     inner: R,
     reference_sequence_repository: fasta::Repository,
-    buf: BytesMut,
 }
 
 impl<R> Reader<R> {
@@ -205,13 +203,6 @@ where
         read_header(&mut self.inner)
     }
 
-    pub(crate) fn read_container_with_header(
-        &mut self,
-    ) -> io::Result<Option<(crate::container::Header, usize, Container)>> {
-        use self::container::read_container_with_header;
-        read_container_with_header(&mut self.inner, &mut self.buf)
-    }
-
     /// Reads a container.
     ///
     /// This returns `None` if the container header is the EOF container header, which signals the
@@ -221,24 +212,31 @@ where
     ///
     /// ```no_run
     /// # use std::{fs::File, io};
-    /// use noodles_cram as cram;
+    /// use noodles_cram::{self as cram, io::reader::Container};
     ///
     /// let mut reader = File::open("sample.cram").map(cram::io::Reader::new)?;
     /// reader.read_header()?;
     ///
-    /// while let Some(container) = reader.read_container()? {
+    /// let mut container = Container::default();
+    ///
+    /// while reader.read_container(&mut container)? != 0 {
     ///     // ...
     /// }
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn read_container(&mut self) -> io::Result<Option<Container>> {
-        read_container(&mut self.inner, &mut self.buf)
+    pub fn read_container(&mut self, container: &mut Container) -> io::Result<usize> {
+        read_container(&mut self.inner, container)
     }
 
     /// Reads a container.
     #[deprecated(since = "0.78.0", note = "Use `Reader::read_container` instead.")]
     pub fn read_data_container(&mut self) -> io::Result<Option<Container>> {
-        read_container(&mut self.inner, &mut self.buf)
+        let mut container = Container::default();
+
+        read_container(&mut self.inner, &mut container).map(|n| match n {
+            0 => None,
+            _ => Some(container),
+        })
     }
 
     /// Returns a iterator over records starting from the current stream position.
