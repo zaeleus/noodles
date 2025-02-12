@@ -1,6 +1,6 @@
 use std::cmp;
 
-use crate::container::compression_header::SubstitutionMatrix;
+use crate::container::compression_header::preservation_map::SubstitutionMatrix;
 
 /// A frequency table of reference-read base substitutions.
 ///

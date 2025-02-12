@@ -9,7 +9,7 @@ use super::{
     feature::substitution::{self, Base as SubstitutionBase},
     Feature, Features, QualityScores, Sequence,
 };
-use crate::container::compression_header::SubstitutionMatrix;
+use crate::container::compression_header::preservation_map::SubstitutionMatrix;
 
 pub(crate) fn resolve_bases(
     reference_sequence: Option<&fasta::record::Sequence>,

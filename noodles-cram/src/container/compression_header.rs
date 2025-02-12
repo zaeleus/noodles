@@ -6,10 +6,8 @@ pub mod preservation_map;
 mod tag_encodings;
 
 pub(crate) use self::{
-    data_series_encodings::DataSeriesEncodings,
-    encoding::Encoding,
-    preservation_map::{PreservationMap, SubstitutionMatrix},
-    tag_encodings::TagEncodings,
+    data_series_encodings::DataSeriesEncodings, encoding::Encoding,
+    preservation_map::PreservationMap, tag_encodings::TagEncodings,
 };
 
 /// A CRAM container compression header.

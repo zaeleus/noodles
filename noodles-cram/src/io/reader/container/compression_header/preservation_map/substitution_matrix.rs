@@ -2,7 +2,7 @@ use std::io;
 
 use bytes::Buf;
 
-use crate::container::compression_header::SubstitutionMatrix;
+use crate::container::compression_header::preservation_map::SubstitutionMatrix;
 
 pub(super) fn get_substitution_matrix<B>(src: &mut B) -> io::Result<SubstitutionMatrix>
 where
