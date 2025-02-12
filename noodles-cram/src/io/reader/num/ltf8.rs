@@ -1,4 +1,7 @@
-use std::io::{self, Read};
+use std::{
+    io::{self, Read},
+    num,
+};
 
 use byteorder::{BigEndian, ReadBytesExt};
 use bytes::Buf;
@@ -115,6 +118,17 @@ where
     };
 
     Ok(value)
+}
+
+fn read_ltf8_as<R, N>(reader: &mut R) -> io::Result<N>
+where
+    R: Read,
+    N: TryFrom<i64, Error = num::TryFromIntError>,
+{
+    read_ltf8(reader).and_then(|n| {
+        n.try_into()
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })
 }
 
 fn read_u8_as_i64<R>(reader: &mut R) -> io::Result<i64>

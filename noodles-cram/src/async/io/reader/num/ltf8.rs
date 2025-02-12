@@ -1,3 +1,5 @@
+use std::num;
+
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 pub async fn read_ltf8<R>(reader: &mut R) -> io::Result<i64>
@@ -53,6 +55,17 @@ where
     } else {
         reader.read_i64().await
     }
+}
+
+pub async fn read_ltf8_as<R, N>(reader: &mut R) -> io::Result<N>
+where
+    R: AsyncRead + Unpin,
+    N: TryFrom<i64, Error = num::TryFromIntError>,
+{
+    read_ltf8(reader).await.and_then(|n| {
+        n.try_into()
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })
 }
 
 async fn read_u8_as_i64<R>(reader: &mut R) -> io::Result<i64>

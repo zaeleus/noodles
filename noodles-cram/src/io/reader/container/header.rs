@@ -9,7 +9,7 @@ use noodles_core::Position;
 
 use crate::{
     container::{Header, ReferenceSequenceContext},
-    io::reader::num::{read_itf8, read_itf8_as, read_ltf8},
+    io::reader::num::{read_itf8, read_itf8_as, read_ltf8_as},
 };
 
 // § 9 "End of file container" (2022-04-12)
@@ -40,14 +40,8 @@ where
     let alignment_span = read_itf8(reader)?;
 
     let number_of_records = read_itf8_as(reader)?;
-
-    let record_counter = read_ltf8(reader).and_then(|n| {
-        u64::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let bases = read_ltf8(reader).and_then(|n| {
-        u64::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    let record_counter = read_ltf8_as(reader)?;
+    let bases = read_ltf8_as(reader)?;
 
     let number_of_blocks = read_itf8(reader).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
