@@ -7,7 +7,7 @@ mod flags;
 mod mate_flags;
 pub mod resolve;
 
-pub use self::{feature::Feature, features::Features, flags::Flags, mate_flags::MateFlags};
+pub use self::{feature::Feature, flags::Flags, mate_flags::MateFlags};
 
 use std::io;
 
@@ -40,7 +40,7 @@ pub struct Record {
     pub(crate) distance_to_mate: Option<usize>,
     pub(crate) tags: Data,
     pub(crate) sequence: Sequence,
-    pub(crate) features: Features,
+    pub(crate) features: Vec<Feature>,
     pub(crate) mapping_quality: Option<MappingQuality>,
     pub(crate) quality_scores: QualityScores,
 }
@@ -201,7 +201,7 @@ impl Record {
     }
 
     /// Returns the read features.
-    pub fn features(&self) -> &Features {
+    pub fn features(&self) -> &[Feature] {
         &self.features
     }
 
@@ -234,7 +234,7 @@ impl Default for Record {
             distance_to_mate: None,
             tags: Data::default(),
             sequence: Sequence::default(),
-            features: Features::default(),
+            features: Vec::new(),
             mapping_quality: None,
             quality_scores: QualityScores::default(),
         }
@@ -242,13 +242,13 @@ impl Default for Record {
 }
 
 struct Cigar<'a> {
-    features: &'a Features,
+    features: &'a [Feature],
     is_unmapped: bool,
     read_length: usize,
 }
 
 impl<'a> Cigar<'a> {
-    fn new(features: &'a Features, is_unmapped: bool, read_length: usize) -> Self {
+    fn new(features: &'a [Feature], is_unmapped: bool, read_length: usize) -> Self {
         Self {
             features,
             is_unmapped,
@@ -279,7 +279,7 @@ impl sam::alignment::record::Cigar for Cigar<'_> {
             Box::new(iter::empty())
         } else {
             Box::new(TrySimplify::new(
-                self.features.cigar(self.read_length).map(Ok),
+                features::Cigar::new(self.features, self.read_length).map(Ok),
             ))
         }
     }
@@ -345,7 +345,7 @@ impl sam::alignment::Record for Record {
     }
 }
 
-pub(crate) fn calculate_alignment_span(read_length: usize, features: &Features) -> usize {
+pub(crate) fn calculate_alignment_span(read_length: usize, features: &[Feature]) -> usize {
     features
         .iter()
         .fold(read_length, |alignment_span, feature| match feature {
@@ -378,16 +378,16 @@ mod tests {
 
     #[test]
     fn test_calculate_alignment_span() -> Result<(), noodles_core::position::TryFromIntError> {
-        let features = Features::default();
+        let features = [];
         assert_eq!(calculate_alignment_span(4, &features), 4);
 
-        let features = Features::from(vec![Feature::HardClip {
+        let features = [Feature::HardClip {
             position: Position::try_from(1)?,
             len: 4,
-        }]);
+        }];
         assert_eq!(calculate_alignment_span(4, &features), 4);
 
-        let features = Features::from(vec![
+        let features = [
             Feature::Insertion {
                 position: Position::try_from(1)?,
                 bases: vec![b'A', b'C'],
@@ -408,7 +408,7 @@ mod tests {
                 position: Position::try_from(16)?,
                 bases: vec![b'A', b'C', b'G', b'T'],
             },
-        ]);
+        ];
         assert_eq!(calculate_alignment_span(20, &features), 21);
 
         Ok(())

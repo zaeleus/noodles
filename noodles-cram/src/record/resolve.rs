@@ -6,14 +6,15 @@ use noodles_core::Position;
 use noodles_fasta as fasta;
 
 use super::{
-    feature::substitution::Base as SubstitutionBase, Feature, Features, QualityScores, Sequence,
+    feature::substitution::Base as SubstitutionBase, features::WithPositions, Feature,
+    QualityScores, Sequence,
 };
 use crate::container::compression_header::preservation_map::SubstitutionMatrix;
 
 pub(crate) fn resolve_bases(
     reference_sequence: Option<&fasta::record::Sequence>,
     substitution_matrix: &SubstitutionMatrix,
-    features: &Features,
+    features: &[Feature],
     alignment_start: Position,
     read_length: usize,
     buf: &mut Sequence,
@@ -21,7 +22,7 @@ pub(crate) fn resolve_bases(
     buf.as_mut().clear();
     buf.as_mut().resize(read_length, b'N');
 
-    let mut it = features.with_positions(alignment_start);
+    let mut it = WithPositions::new(features.iter(), alignment_start);
 
     let (mut last_reference_position, mut last_read_position) = it.positions();
 
@@ -142,7 +143,7 @@ mod tests {
         let substitution_matrix = Default::default();
         let alignment_start = Position::try_from(1)?;
 
-        let t = |features: &Features, expected: &Sequence| {
+        let t = |features: &[Feature], expected: &Sequence| {
             let mut actual = Sequence::default();
 
             resolve_bases(
@@ -159,76 +160,76 @@ mod tests {
             Ok::<_, io::Error>(())
         };
 
-        t(&Features::default(), &Sequence::from(b"ACGT"))?;
+        t(&[], &Sequence::from(b"ACGT"))?;
         t(
-            &Features::from(vec![Feature::Bases {
+            &[Feature::Bases {
                 position: Position::try_from(1)?,
                 bases: vec![b'T', b'G'],
-            }]),
+            }],
             &Sequence::from(b"TGGT"),
         )?;
         t(
-            &Features::from(vec![Feature::ReadBase {
+            &[Feature::ReadBase {
                 position: Position::try_from(2)?,
                 base: b'Y',
                 quality_score: 0,
-            }]),
+            }],
             &Sequence::from(b"AYGT"),
         )?;
         t(
-            &Features::from(vec![Feature::Substitution {
+            &[Feature::Substitution {
                 position: Position::try_from(2)?,
                 code: 1,
-            }]),
+            }],
             &Sequence::from(b"AGGT"),
         )?;
         t(
-            &Features::from(vec![Feature::Insertion {
+            &[Feature::Insertion {
                 position: Position::try_from(2)?,
                 bases: vec![b'G', b'G'],
-            }]),
+            }],
             &Sequence::from(b"AGGC"),
         )?;
         t(
-            &Features::from(vec![Feature::Deletion {
+            &[Feature::Deletion {
                 position: Position::try_from(2)?,
                 len: 2,
-            }]),
+            }],
             &Sequence::from(b"ATAC"),
         )?;
         t(
-            &Features::from(vec![Feature::InsertBase {
+            &[Feature::InsertBase {
                 position: Position::try_from(2)?,
                 base: b'G',
-            }]),
+            }],
             &Sequence::from(b"AGCG"),
         )?;
         t(
-            &Features::from(vec![Feature::ReferenceSkip {
+            &[Feature::ReferenceSkip {
                 position: Position::try_from(2)?,
                 len: 2,
-            }]),
+            }],
             &Sequence::from(b"ATAC"),
         )?;
         t(
-            &Features::from(vec![Feature::SoftClip {
+            &[Feature::SoftClip {
                 position: Position::try_from(3)?,
                 bases: vec![b'G', b'G'],
-            }]),
+            }],
             &Sequence::from(b"ACGG"),
         )?;
         t(
-            &Features::from(vec![Feature::Padding {
+            &[Feature::Padding {
                 position: Position::try_from(1)?,
                 len: 2,
-            }]),
+            }],
             &Sequence::from(b"ACGT"),
         )?;
         t(
-            &Features::from(vec![Feature::HardClip {
+            &[Feature::HardClip {
                 position: Position::try_from(1)?,
                 len: 2,
-            }]),
+            }],
             &Sequence::from(b"ACGT"),
         )?;
 
@@ -238,10 +239,10 @@ mod tests {
     #[test]
     fn test_resolve_bases_without_a_reference_sequence() -> Result<(), Box<dyn std::error::Error>> {
         let substitution_matrix = SubstitutionMatrix::default();
-        let features = Features::from(vec![Feature::Bases {
+        let features = [Feature::Bases {
             position: Position::try_from(1)?,
             bases: vec![b'N', b'N', b'N', b'N'],
-        }]);
+        }];
         let alignment_start = Position::try_from(1)?;
 
         let mut actual = Sequence::default();

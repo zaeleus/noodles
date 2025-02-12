@@ -17,7 +17,7 @@ use crate::{
         ReferenceSequenceContext,
     },
     io::BitReader,
-    record::{resolve, Features},
+    record::{resolve, Feature},
     Record,
 };
 
@@ -292,17 +292,17 @@ fn set_mate_chunk(
 fn calculate_template_size_chunk(
     record_alignment_start: Option<Position>,
     record_read_length: usize,
-    record_features: &Features,
+    record_features: &[Feature],
     mate_alignment_start: Option<Position>,
     mate_read_length: usize,
-    mate_features: &Features,
+    mate_features: &[Feature],
 ) -> i32 {
     use crate::record::calculate_alignment_span;
 
     fn alignment_end(
         alignment_start: Option<Position>,
         read_length: usize,
-        features: &Features,
+        features: &[Feature],
     ) -> Option<Position> {
         alignment_start.and_then(|start| {
             let span = calculate_alignment_span(read_length, features);
@@ -677,10 +677,7 @@ mod tests {
             header::record::value::map::{self, Map},
         };
 
-        use crate::{
-            container::block::ContentType,
-            record::{Feature, Features},
-        };
+        use crate::container::block::ContentType;
 
         const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
             Some(length) => length,
@@ -722,10 +719,10 @@ mod tests {
             reference_sequence_id: Some(0),
             read_length: 2,
             alignment_start: Some(Position::MIN),
-            features: Features::from(vec![Feature::Bases {
+            features: vec![Feature::Bases {
                 position: Position::MIN,
                 bases: vec![b'A', b'C'],
-            }]),
+            }],
             ..Default::default()
         }];
 
@@ -749,17 +746,15 @@ mod tests {
     fn test_resolve_quality_scores() -> Result<(), Box<dyn std::error::Error>> {
         use sam::alignment::record_buf::QualityScores;
 
-        use crate::record::{Feature, Features};
-
         let mut records = [
             Record {
                 id: 1,
                 bam_flags: sam::alignment::record::Flags::empty(),
                 read_length: 2,
-                features: Features::from(vec![Feature::Scores {
+                features: vec![Feature::Scores {
                     position: Position::try_from(1)?,
                     quality_scores: vec![8, 13],
-                }]),
+                }],
                 ..Default::default()
             },
             Record {

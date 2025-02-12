@@ -2,7 +2,7 @@ use std::io;
 
 use noodles_sam as sam;
 
-use super::Record;
+use super::{features::Cigar, Record};
 
 impl Record {
     /// Converts this CRAM record to an alignment record.
@@ -31,11 +31,7 @@ impl Record {
         }
 
         if !self.bam_flags.is_unmapped() {
-            let cigar = self
-                .features
-                .try_into_cigar(self.read_length)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
+            let cigar = Cigar::new(&self.features, self.read_length).collect();
             builder = builder.set_cigar(cigar);
         }
 

@@ -92,9 +92,7 @@ mod tests {
 
     #[test]
     fn test_next() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::record::Features;
-
-        let features = Features::from(vec![
+        let features = [
             Feature::Bases {
                 position: Position::MIN,
                 bases: vec![b'A', b'C'],
@@ -103,7 +101,7 @@ mod tests {
                 position: Position::MIN,
                 quality_scores: vec![0, 0],
             },
-        ]);
+        ];
 
         let mut iter = WithPositions::new(features.iter(), Position::MIN);
 

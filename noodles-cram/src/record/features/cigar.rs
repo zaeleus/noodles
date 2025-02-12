@@ -14,7 +14,7 @@ pub struct Cigar<'a> {
 }
 
 impl<'a> Cigar<'a> {
-    pub(super) fn new(features: &'a [Feature], read_length: usize) -> Self {
+    pub(crate) fn new(features: &'a [Feature], read_length: usize) -> Self {
         Self {
             features: features.iter(),
             read_length,
@@ -83,50 +83,49 @@ impl Iterator for Cigar<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::record::Features;
 
     #[test]
     fn test_next() -> Result<(), noodles_core::position::TryFromIntError> {
-        fn t(features: &Features, read_length: usize, expected: &[Op]) {
+        fn t(features: &[Feature], read_length: usize, expected: &[Op]) {
             let cigar = Cigar::new(features, read_length);
             let actual: Vec<_> = cigar.collect();
             assert_eq!(actual, expected);
         }
 
-        let features = Features::default();
+        let features = [];
         t(&features, 4, &[Op::new(Kind::Match, 4)]);
 
-        let features = Features::from(vec![Feature::SoftClip {
+        let features = [Feature::SoftClip {
             position: Position::try_from(1)?,
             bases: vec![b'A', b'T'],
-        }]);
+        }];
         t(
             &features,
             4,
             &[Op::new(Kind::SoftClip, 2), Op::new(Kind::Match, 2)],
         );
 
-        let features = Features::from(vec![Feature::SoftClip {
+        let features = [Feature::SoftClip {
             position: Position::try_from(4)?,
             bases: vec![b'G'],
-        }]);
+        }];
         t(
             &features,
             4,
             &[Op::new(Kind::Match, 3), Op::new(Kind::SoftClip, 1)],
         );
 
-        let features = Features::from(vec![Feature::HardClip {
+        let features = [Feature::HardClip {
             position: Position::try_from(1)?,
             len: 2,
-        }]);
+        }];
         t(
             &features,
             4,
             &[Op::new(Kind::HardClip, 2), Op::new(Kind::Match, 4)],
         );
 
-        let features = Features::from(vec![
+        let features = [
             Feature::SoftClip {
                 position: Position::try_from(1)?,
                 bases: vec![b'A'],
@@ -135,7 +134,7 @@ mod tests {
                 position: Position::try_from(3)?,
                 code: 0,
             },
-        ]);
+        ];
         t(
             &features,
             4,
@@ -147,10 +146,10 @@ mod tests {
             ],
         );
 
-        let features = Features::from(vec![Feature::Substitution {
+        let features = [Feature::Substitution {
             position: Position::try_from(2)?,
             code: 0,
-        }]);
+        }];
         t(
             &features,
             4,
