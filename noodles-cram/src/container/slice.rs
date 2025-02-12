@@ -453,31 +453,37 @@ mod tests {
     use crate::record::Flags;
 
     #[test]
-    fn test_resolve_mates() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_resolve_mates() -> io::Result<()> {
         let mut records = vec![
-            Record::builder()
-                .set_id(1)
-                .set_flags(Flags::HAS_MATE_DOWNSTREAM)
-                .set_reference_sequence_id(2)
-                .set_read_length(4)
-                .set_alignment_start(Position::try_from(5)?)
-                .set_distance_to_mate(0)
-                .build(),
-            Record::builder()
-                .set_id(2)
-                .set_flags(Flags::HAS_MATE_DOWNSTREAM)
-                .set_reference_sequence_id(2)
-                .set_read_length(4)
-                .set_alignment_start(Position::try_from(8)?)
-                .set_distance_to_mate(1)
-                .build(),
-            Record::builder().set_id(3).build(),
-            Record::builder()
-                .set_id(4)
-                .set_reference_sequence_id(2)
-                .set_read_length(4)
-                .set_alignment_start(Position::try_from(13)?)
-                .build(),
+            Record {
+                id: 1,
+                cram_flags: Flags::HAS_MATE_DOWNSTREAM,
+                reference_sequence_id: Some(2),
+                read_length: 4,
+                alignment_start: Position::new(5),
+                distance_to_mate: Some(0),
+                ..Default::default()
+            },
+            Record {
+                id: 2,
+                cram_flags: Flags::HAS_MATE_DOWNSTREAM,
+                reference_sequence_id: Some(2),
+                read_length: 4,
+                alignment_start: Position::new(8),
+                distance_to_mate: Some(1),
+                ..Default::default()
+            },
+            Record {
+                id: 3,
+                ..Default::default()
+            },
+            Record {
+                id: 4,
+                reference_sequence_id: Some(2),
+                read_length: 4,
+                alignment_start: Position::new(13),
+                ..Default::default()
+            },
         ];
 
         resolve_mates(&mut records)?;
@@ -524,19 +530,21 @@ mod tests {
     }
 
     #[test]
-    fn test_calculate_template_size() -> Result<(), noodles_core::position::TryFromIntError> {
+    fn test_calculate_template_size() {
         use sam::alignment::record::Flags;
 
         // --> -->
-        let record = Record::builder()
-            .set_alignment_start(Position::try_from(100)?)
-            .set_read_length(50)
-            .build();
+        let record = Record {
+            alignment_start: Position::new(100),
+            read_length: 50,
+            ..Default::default()
+        };
 
-        let mate = Record::builder()
-            .set_alignment_start(Position::try_from(200)?)
-            .set_read_length(50)
-            .build();
+        let mate = Record {
+            alignment_start: Position::new(200),
+            read_length: 50,
+            ..Default::default()
+        };
 
         assert_eq!(calculate_template_size(&record, &mate), 150);
         assert_eq!(calculate_template_size(&mate, &record), 150);
@@ -544,47 +552,53 @@ mod tests {
         // --> <--
         // This is the example given in _Sequence Alignment/Map Format Specification_ (2021-06-03)
         // § 1.4.9 "TLEN" (footnote 14).
-        let record = Record::builder()
-            .set_alignment_start(Position::try_from(100)?)
-            .set_read_length(50)
-            .build();
+        let record = Record {
+            alignment_start: Position::new(100),
+            read_length: 50,
+            ..Default::default()
+        };
 
-        let mate = Record::builder()
-            .set_bam_flags(Flags::REVERSE_COMPLEMENTED)
-            .set_alignment_start(Position::try_from(200)?)
-            .set_read_length(50)
-            .build();
+        let mate = Record {
+            bam_flags: Flags::REVERSE_COMPLEMENTED,
+            alignment_start: Position::new(200),
+            read_length: 50,
+            ..Default::default()
+        };
 
         assert_eq!(calculate_template_size(&record, &mate), 150);
         assert_eq!(calculate_template_size(&mate, &record), 150);
 
         // <-- -->
-        let record = Record::builder()
-            .set_bam_flags(Flags::REVERSE_COMPLEMENTED)
-            .set_alignment_start(Position::try_from(100)?)
-            .set_read_length(50)
-            .build();
+        let record = Record {
+            bam_flags: Flags::REVERSE_COMPLEMENTED,
+            alignment_start: Position::new(100),
+            read_length: 50,
+            ..Default::default()
+        };
 
-        let mate = Record::builder()
-            .set_alignment_start(Position::try_from(200)?)
-            .set_read_length(50)
-            .build();
+        let mate = Record {
+            alignment_start: Position::new(200),
+            read_length: 50,
+            ..Default::default()
+        };
 
         assert_eq!(calculate_template_size(&record, &mate), 150);
         assert_eq!(calculate_template_size(&mate, &record), 150);
 
         // <-- <--
-        let record = Record::builder()
-            .set_bam_flags(Flags::REVERSE_COMPLEMENTED)
-            .set_alignment_start(Position::try_from(100)?)
-            .set_read_length(50)
-            .build();
+        let record = Record {
+            bam_flags: Flags::REVERSE_COMPLEMENTED,
+            alignment_start: Position::new(100),
+            read_length: 50,
+            ..Default::default()
+        };
 
-        let mate = Record::builder()
-            .set_bam_flags(Flags::REVERSE_COMPLEMENTED)
-            .set_alignment_start(Position::try_from(200)?)
-            .set_read_length(50)
-            .build();
+        let mate = Record {
+            bam_flags: Flags::REVERSE_COMPLEMENTED,
+            alignment_start: Position::new(200),
+            read_length: 50,
+            ..Default::default()
+        };
 
         assert_eq!(calculate_template_size(&record, &mate), 150);
         assert_eq!(calculate_template_size(&mate, &record), 150);
@@ -592,8 +606,6 @@ mod tests {
         // No alignment start position.
         let record = Record::default();
         assert_eq!(calculate_template_size(&record, &record), 0);
-
-        Ok(())
     }
 
     #[test]
@@ -644,17 +656,18 @@ mod tests {
                 .build()],
         };
 
-        let mut records = [Record::builder()
-            .set_id(1)
-            .set_bam_flags(sam::alignment::record::Flags::default())
-            .set_reference_sequence_id(0)
-            .set_read_length(2)
-            .set_alignment_start(Position::MIN)
-            .set_features(Features::from(vec![Feature::Bases {
+        let mut records = [Record {
+            id: 1,
+            bam_flags: sam::alignment::record::Flags::default(),
+            reference_sequence_id: Some(0),
+            read_length: 2,
+            alignment_start: Some(Position::MIN),
+            features: Features::from(vec![Feature::Bases {
                 position: Position::MIN,
                 bases: vec![b'A', b'C'],
-            }]))
-            .build()];
+            }]),
+            ..Default::default()
+        }];
 
         resolve_bases(
             &reference_sequence_repository,
@@ -678,22 +691,27 @@ mod tests {
         use crate::record::{Feature, Features};
 
         let mut records = [
-            Record::builder()
-                .set_id(1)
-                .set_bam_flags(sam::alignment::record::Flags::empty())
-                .set_read_length(2)
-                .set_features(Features::from(vec![Feature::Scores {
+            Record {
+                id: 1,
+                bam_flags: sam::alignment::record::Flags::empty(),
+                read_length: 2,
+                features: Features::from(vec![Feature::Scores {
                     position: Position::try_from(1)?,
                     quality_scores: vec![8, 13],
-                }]))
-                .build(),
-            Record::builder().set_id(2).build(),
-            Record::builder()
-                .set_id(3)
-                .set_flags(Flags::QUALITY_SCORES_STORED_AS_ARRAY)
-                .set_read_length(2)
-                .set_quality_scores(QualityScores::from(vec![21, 34]))
-                .build(),
+                }]),
+                ..Default::default()
+            },
+            Record {
+                id: 2,
+                ..Default::default()
+            },
+            Record {
+                id: 3,
+                cram_flags: Flags::QUALITY_SCORES_STORED_AS_ARRAY,
+                read_length: 2,
+                quality_scores: QualityScores::from(vec![21, 34]),
+                ..Default::default()
+            },
         ];
 
         resolve_quality_scores(&mut records);

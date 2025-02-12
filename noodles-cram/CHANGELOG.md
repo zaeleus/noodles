@@ -24,6 +24,10 @@
 
 ### Removed
 
+  * cram/record: Remove `Builder`.
+
+    Build, e.g., a `sam::alignment::RecordBuf` instead.
+
   * cram/record/convert: Remove `Record::try_from_alignment_record`.
 
     It is now unnecessary to convert an alignment record to a CRAM record.

@@ -1,6 +1,5 @@
 //! CRAM record and fields.
 
-mod builder;
 mod convert;
 pub mod feature;
 mod features;
@@ -8,9 +7,7 @@ mod flags;
 mod mate_flags;
 pub mod resolve;
 
-pub use self::{
-    builder::Builder, feature::Feature, features::Features, flags::Flags, mate_flags::MateFlags,
-};
+pub use self::{feature::Feature, features::Features, flags::Flags, mate_flags::MateFlags};
 
 use std::io;
 
@@ -49,11 +46,6 @@ pub struct Record {
 }
 
 impl Record {
-    /// Returns a builder to create a record from each of its fields.
-    pub fn builder() -> Builder {
-        Builder::default()
-    }
-
     pub(crate) fn id(&self) -> u64 {
         self.id
     }
@@ -226,7 +218,26 @@ impl Record {
 
 impl Default for Record {
     fn default() -> Self {
-        Builder::default().build()
+        Self {
+            id: 0,
+            bam_flags: sam::alignment::record::Flags::UNMAPPED,
+            cram_flags: Flags::default(),
+            reference_sequence_id: None,
+            read_length: 0,
+            alignment_start: None,
+            read_group_id: None,
+            name: None,
+            mate_flags: MateFlags::default(),
+            mate_reference_sequence_id: None,
+            mate_alignment_start: None,
+            template_length: 0,
+            distance_to_mate: None,
+            tags: Data::default(),
+            sequence: Sequence::default(),
+            features: Features::default(),
+            mapping_quality: None,
+            quality_scores: QualityScores::default(),
+        }
     }
 }
 
