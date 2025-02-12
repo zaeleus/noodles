@@ -7,7 +7,7 @@ use super::ReferenceSequenceContext;
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Header {
     reference_sequence_context: ReferenceSequenceContext,
-    record_count: i32,
+    record_count: usize,
     record_counter: u64,
     base_count: u64,
     block_count: usize,
@@ -24,7 +24,7 @@ impl Header {
         self.reference_sequence_context
     }
 
-    pub fn record_count(&self) -> i32 {
+    pub fn record_count(&self) -> usize {
         self.record_count
     }
 

@@ -19,7 +19,8 @@ where
 
     write_reference_sequence_context(&mut crc_writer, header.reference_sequence_context())?;
 
-    let number_of_records = header.record_count();
+    let number_of_records = i32::try_from(header.record_count())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(&mut crc_writer, number_of_records)?;
 
     let record_counter = i64::try_from(header.record_counter())

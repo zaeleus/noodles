@@ -118,9 +118,6 @@ fn build_container(
         container_size += slice_size;
     }
 
-    let record_count =
-        i32::try_from(record_count).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
     let header = Header::builder()
         .set_reference_sequence_context(reference_sequence_context)
         .set_record_count(record_count)

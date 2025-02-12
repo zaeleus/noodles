@@ -3,7 +3,7 @@ use tokio::io::{self, AsyncRead, AsyncReadExt};
 use crate::{
     container::Header,
     r#async::io::reader::{
-        num::{read_itf8, read_ltf8},
+        num::{read_itf8, read_itf8_as, read_ltf8},
         CrcReader,
     },
 };
@@ -24,7 +24,7 @@ where
     let alignment_start = read_itf8(&mut crc_reader).await?;
     let alignment_span = read_itf8(&mut crc_reader).await?;
 
-    let number_of_records = read_itf8(&mut crc_reader).await?;
+    let number_of_records = read_itf8_as(&mut crc_reader).await?;
 
     let record_counter = read_ltf8(&mut crc_reader).await.and_then(|n| {
         u64::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))

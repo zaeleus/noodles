@@ -4,7 +4,7 @@ use crate::container::ReferenceSequenceContext;
 #[derive(Debug, Default)]
 pub struct Builder {
     reference_sequence_context: ReferenceSequenceContext,
-    record_count: i32,
+    record_count: usize,
     record_counter: u64,
     base_count: u64,
     block_count: usize,
@@ -20,7 +20,7 @@ impl Builder {
         self
     }
 
-    pub fn set_record_count(mut self, record_count: i32) -> Self {
+    pub fn set_record_count(mut self, record_count: usize) -> Self {
         self.record_count = record_count;
         self
     }
