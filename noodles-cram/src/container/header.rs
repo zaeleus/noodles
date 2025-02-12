@@ -1,7 +1,3 @@
-mod builder;
-
-pub use self::builder::Builder;
-
 use super::ReferenceSequenceContext;
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -16,10 +12,6 @@ pub struct Header {
 
 #[allow(clippy::len_without_is_empty)]
 impl Header {
-    pub fn builder() -> Builder {
-        Builder::default()
-    }
-
     pub fn reference_sequence_context(&self) -> ReferenceSequenceContext {
         self.reference_sequence_context
     }

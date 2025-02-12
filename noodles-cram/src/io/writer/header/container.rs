@@ -73,7 +73,10 @@ fn serialize_header(header: &sam::Header) -> io::Result<Vec<u8>> {
 }
 
 fn build_header() -> Header {
-    Header::builder().set_block_count(1).build()
+    Header {
+        block_count: 1,
+        ..Default::default()
+    }
 }
 
 #[cfg(test)]

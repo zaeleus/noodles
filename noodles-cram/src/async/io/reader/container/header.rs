@@ -111,18 +111,18 @@ mod tests {
         let mut actual = Header::default();
         let len = read_header(&mut &src[..], &mut actual).await?;
 
-        let expected = Header::builder()
-            .set_reference_sequence_context(ReferenceSequenceContext::some(
+        let expected = Header {
+            reference_sequence_context: ReferenceSequenceContext::some(
                 2,
                 Position::try_from(3)?,
                 Position::try_from(7)?,
-            ))
-            .set_record_count(8)
-            .set_record_counter(13)
-            .set_base_count(21)
-            .set_block_count(34)
-            .set_landmarks(vec![55, 89])
-            .build();
+            ),
+            record_count: 8,
+            record_counter: 13,
+            base_count: 21,
+            block_count: 34,
+            landmarks: vec![55, 89],
+        };
 
         assert_eq!(len, 144);
         assert_eq!(actual, expected);

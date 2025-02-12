@@ -118,14 +118,14 @@ fn build_container(
         container_size += slice_size;
     }
 
-    let header = Header::builder()
-        .set_reference_sequence_context(reference_sequence_context)
-        .set_record_count(record_count)
-        .set_record_counter(record_counter)
-        .set_base_count(base_count)
-        .set_block_count(blocks.len())
-        .set_landmarks(landmarks)
-        .build();
+    let header = Header {
+        reference_sequence_context,
+        record_count,
+        record_counter,
+        base_count,
+        block_count: blocks.len(),
+        landmarks,
+    };
 
     Ok((header, container_size, blocks))
 }
