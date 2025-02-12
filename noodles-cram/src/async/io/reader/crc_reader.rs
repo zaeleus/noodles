@@ -34,10 +34,6 @@ where
     pub fn get_mut(&mut self) -> &mut R {
         &mut self.inner
     }
-
-    pub fn into_inner(self) -> R {
-        self.inner
-    }
 }
 
 impl<R> AsyncRead for CrcReader<R>

@@ -12,38 +12,45 @@ pub async fn read_header<R>(reader: &mut R, header: &mut Header) -> io::Result<u
 where
     R: AsyncRead + Unpin,
 {
+    let mut crc_reader = CrcReader::new(reader);
+    read_header_inner(&mut crc_reader, header).await
+}
+
+pub async fn read_header_inner<R>(
+    reader: &mut CrcReader<R>,
+    header: &mut Header,
+) -> io::Result<usize>
+where
+    R: AsyncRead + Unpin,
+{
     use crate::io::reader::container::header::{build_reference_sequence_context, is_eof};
 
-    let mut crc_reader = CrcReader::new(reader);
-
-    let len = crc_reader.read_i32_le().await.and_then(|n| {
+    let len = reader.read_i32_le().await.and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let reference_sequence_id = read_itf8(&mut crc_reader).await?;
-    let alignment_start = read_itf8(&mut crc_reader).await?;
-    let alignment_span = read_itf8(&mut crc_reader).await?;
+    let reference_sequence_id = read_itf8(reader).await?;
+    let alignment_start = read_itf8(reader).await?;
+    let alignment_span = read_itf8(reader).await?;
 
-    let number_of_records = read_itf8_as(&mut crc_reader).await?;
+    let number_of_records = read_itf8_as(reader).await?;
 
-    let record_counter = read_ltf8(&mut crc_reader).await.and_then(|n| {
+    let record_counter = read_ltf8(reader).await.and_then(|n| {
         u64::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let bases = read_ltf8(&mut crc_reader).await.and_then(|n| {
+    let bases = read_ltf8(reader).await.and_then(|n| {
         u64::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let number_of_blocks = read_itf8(&mut crc_reader).await.and_then(|n| {
+    let number_of_blocks = read_itf8(reader).await.and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let landmarks = read_landmarks(&mut crc_reader).await?;
+    let landmarks = read_landmarks(reader).await?;
 
-    let actual_crc32 = crc_reader.crc().sum();
-
-    let reader = crc_reader.into_inner();
-    let expected_crc32 = reader.read_u32_le().await?;
+    let actual_crc32 = reader.crc().sum();
+    let expected_crc32 = reader.get_mut().read_u32_le().await?;
 
     if actual_crc32 != expected_crc32 {
         return Err(io::Error::new(
