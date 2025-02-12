@@ -1,21 +1,18 @@
 //! CRAM container compression header preservation map.
 
-mod builder;
 pub(crate) mod key;
 pub(crate) mod substitution_matrix;
 pub mod tag_sets;
 
-pub(crate) use {
-    builder::Builder, key::Key, substitution_matrix::SubstitutionMatrix, tag_sets::TagSets,
-};
+pub(crate) use {key::Key, substitution_matrix::SubstitutionMatrix, tag_sets::TagSets};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct PreservationMap {
-    read_names_included: bool,
-    ap_data_series_delta: bool,
-    is_reference_required: bool,
-    substitution_matrix: SubstitutionMatrix,
-    tag_sets: TagSets,
+    pub(crate) read_names_included: bool,
+    pub(crate) ap_data_series_delta: bool,
+    pub(crate) is_reference_required: bool,
+    pub(crate) substitution_matrix: SubstitutionMatrix,
+    pub(crate) tag_sets: TagSets,
 }
 
 impl PreservationMap {
@@ -53,5 +50,17 @@ impl PreservationMap {
 
     pub fn tag_sets(&self) -> &TagSets {
         &self.tag_sets
+    }
+}
+
+impl Default for PreservationMap {
+    fn default() -> Self {
+        Self {
+            read_names_included: true,
+            ap_data_series_delta: true,
+            is_reference_required: true,
+            substitution_matrix: SubstitutionMatrix::default(),
+            tag_sets: TagSets::default(),
+        }
     }
 }

@@ -4,8 +4,6 @@ mod builder;
 mod container;
 mod header;
 
-use std::mem;
-
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
@@ -15,7 +13,7 @@ use self::{container::write_container, header::write_file_header};
 use crate::{
     file_definition::Version,
     io::writer::{Options, Record},
-    Container, FileDefinition, MAGIC_NUMBER,
+    FileDefinition, MAGIC_NUMBER,
 };
 
 /// An async CRAM writer.
@@ -25,7 +23,7 @@ pub struct Writer<W> {
     inner: W,
     reference_sequence_repository: fasta::Repository,
     options: Options,
-    container_builder: crate::container::Builder,
+    records: Vec<Record>,
     record_counter: u64,
 }
 
@@ -223,31 +221,14 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn write_record(
-        &mut self,
-        header: &sam::Header,
-        mut record: Record,
-    ) -> io::Result<()> {
-        use crate::container::builder::AddRecordError;
+    pub async fn write_record(&mut self, header: &sam::Header, record: Record) -> io::Result<()> {
+        self.records.push(record);
 
-        loop {
-            match self.container_builder.add_record(record) {
-                Ok(_) => {
-                    self.record_counter += 1;
-                    return Ok(());
-                }
-                Err(e) => match e {
-                    AddRecordError::ContainerFull(r) => {
-                        record = r;
-                        self.flush(header).await?;
-                    }
-                    AddRecordError::SliceFull(r) => {
-                        record = r;
-                    }
-                    _ => return Err(io::Error::from(io::ErrorKind::InvalidInput)),
-                },
-            }
+        if self.records.len() >= self.records.capacity() {
+            self.flush(header).await?;
         }
+
+        Ok(())
     }
 
     /// Writes an alignment record.
@@ -284,21 +265,23 @@ where
     }
 
     async fn flush(&mut self, header: &sam::Header) -> io::Result<()> {
-        if self.container_builder.is_empty() {
-            return Ok(());
-        }
+        write_container(
+            &mut self.inner,
+            &self.reference_sequence_repository,
+            &self.options,
+            header,
+            self.record_counter,
+            &mut self.records,
+        )
+        .await?;
 
-        let container_builder = mem::replace(
-            &mut self.container_builder,
-            Container::builder(self.record_counter),
-        );
+        let record_count = u64::try_from(self.records.len())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        self.record_counter += record_count;
 
-        let base_count = container_builder.base_count();
+        self.records.clear();
 
-        let container =
-            container_builder.build(&self.options, &self.reference_sequence_repository, header)?;
-
-        write_container(&mut self.inner, &container, base_count).await
+        Ok(())
     }
 }
 

@@ -8,19 +8,23 @@ pub(crate) mod num;
 mod options;
 pub(crate) mod record;
 
-pub use self::builder::Builder;
-use self::header::{write_file_definition, write_file_header};
-pub(crate) use self::{options::Options, record::Record};
-
-use std::{
-    io::{self, Write},
-    mem,
-};
+use std::io::{self, Write};
 
 use noodles_fasta as fasta;
 use noodles_sam::{self as sam, header::ReferenceSequences};
 
-use crate::{Container, FileDefinition};
+pub use self::builder::Builder;
+use self::{
+    container::write_container,
+    header::{write_file_definition, write_file_header},
+};
+pub(crate) use self::{options::Options, record::Record};
+use crate::{calculate_normalized_sequence_digest, FileDefinition};
+
+const DEFAULT_SLICES_PER_CONTAINER: usize = 1;
+const DEFAULT_RECORDS_PER_SLICE: usize = 10240;
+pub(crate) const RECORDS_PER_CONTAINER: usize =
+    DEFAULT_SLICES_PER_CONTAINER * DEFAULT_RECORDS_PER_SLICE;
 
 /// A CRAM writer.
 ///
@@ -49,7 +53,7 @@ pub struct Writer<W> {
     inner: W,
     reference_sequence_repository: fasta::Repository,
     options: Options,
-    container_builder: crate::container::Builder,
+    records: Vec<Record>,
     record_counter: u64,
 }
 
@@ -231,47 +235,33 @@ where
     /// writer.try_finish(&header)?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn write_record(&mut self, header: &sam::Header, mut record: Record) -> io::Result<()> {
-        use crate::container::builder::AddRecordError;
+    pub fn write_record(&mut self, header: &sam::Header, record: Record) -> io::Result<()> {
+        self.records.push(record);
 
-        loop {
-            match self.container_builder.add_record(record) {
-                Ok(_) => {
-                    self.record_counter += 1;
-                    return Ok(());
-                }
-                Err(e) => match e {
-                    AddRecordError::ContainerFull(r) => {
-                        record = r;
-                        self.flush(header)?;
-                    }
-                    AddRecordError::SliceFull(r) => {
-                        record = r;
-                    }
-                    _ => return Err(io::Error::from(io::ErrorKind::InvalidInput)),
-                },
-            }
+        if self.records.len() >= self.records.capacity() {
+            self.flush(header)?;
         }
+
+        Ok(())
     }
 
     fn flush(&mut self, header: &sam::Header) -> io::Result<()> {
-        use self::container::write_container;
+        write_container(
+            &mut self.inner,
+            &self.reference_sequence_repository,
+            &self.options,
+            header,
+            self.record_counter,
+            &mut self.records,
+        )?;
 
-        if self.container_builder.is_empty() {
-            return Ok(());
-        }
+        let record_count = u64::try_from(self.records.len())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        self.record_counter += record_count;
 
-        let container_builder = mem::replace(
-            &mut self.container_builder,
-            Container::builder(self.record_counter),
-        );
+        self.records.clear();
 
-        let base_count = container_builder.base_count();
-
-        let container =
-            container_builder.build(&self.options, &self.reference_sequence_repository, header)?;
-
-        write_container(&mut self.inner, &container, base_count)
+        Ok(())
     }
 }
 
@@ -303,8 +293,6 @@ pub(crate) fn add_missing_reference_sequence_checksums(
 ) -> io::Result<()> {
     use indexmap::map::Entry;
     use sam::header::record::value::map::reference_sequence::{tag, Md5Checksum};
-
-    use crate::container::slice::builder::calculate_normalized_sequence_digest;
 
     for (name, reference_sequence) in reference_sequences {
         if let Entry::Vacant(entry) = reference_sequence

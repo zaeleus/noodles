@@ -1,25 +1,15 @@
-mod builder;
-mod histogram;
+use std::{error, fmt};
 
-pub use self::builder::Builder;
-
-use std::{cmp, error, fmt};
-
-use self::histogram::Histogram;
 use crate::record::feature::substitution::Base;
 
 type Substitutions = [[Base; 4]; 5];
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SubstitutionMatrix {
-    substitutions: Substitutions,
+    pub(crate) substitutions: Substitutions,
 }
 
 impl SubstitutionMatrix {
-    pub fn builder() -> Builder {
-        Builder::default()
-    }
-
     pub fn get(&self, reference_base: Base, substitution_code: u8) -> Base {
         let i = match reference_base {
             Base::A => 0,
@@ -56,34 +46,6 @@ impl Default for SubstitutionMatrix {
                 [Base::A, Base::C, Base::G, Base::T],
             ],
         }
-    }
-}
-
-impl From<Histogram> for SubstitutionMatrix {
-    fn from(histogram: Histogram) -> Self {
-        const BASES: [Base; 5] = [Base::A, Base::C, Base::G, Base::T, Base::N];
-
-        let mut matrix = Self::default();
-
-        for reference_base in BASES {
-            let mut base_frequency_pairs: Vec<_> = BASES
-                .iter()
-                .zip(histogram.get_bins(reference_base).iter())
-                .filter(|(&read_base, _)| read_base != reference_base)
-                .collect();
-
-            // § 10.6 "Mapped reads" (2021-10-15): "the substitutions for each reference base may
-            // optionally be sorted by their frequencies, in descending order, with same-frequency
-            // ties broken using the fixed order ACGTN."
-            base_frequency_pairs.sort_by_key(|(&base, &frequency)| (cmp::Reverse(frequency), base));
-
-            for (code, (&read_base, _)) in base_frequency_pairs.iter().enumerate() {
-                let i = reference_base as usize;
-                matrix.substitutions[i][code] = read_base;
-            }
-        }
-
-        matrix
     }
 }
 
@@ -239,28 +201,5 @@ mod tests {
 
         assert_eq!(<[u8; 5]>::from(&matrix), [0x93, 0x1b, 0x6c, 0xb1, 0xc6]);
         assert_eq!(<[u8; 5]>::from(matrix), [0x93, 0x1b, 0x6c, 0xb1, 0xc6]);
-    }
-
-    #[test]
-    fn test_from_histogram() {
-        let histogram = Histogram::new([
-            [0, 3, 8, 5, 0],
-            [2, 0, 5, 5, 2],
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-        ]);
-
-        let substitution_matrix = SubstitutionMatrix::from(histogram);
-
-        let expected = [
-            [Base::G, Base::T, Base::C, Base::N],
-            [Base::G, Base::T, Base::A, Base::N],
-            [Base::A, Base::C, Base::T, Base::N],
-            [Base::A, Base::C, Base::G, Base::N],
-            [Base::A, Base::C, Base::G, Base::T],
-        ];
-
-        assert_eq!(substitution_matrix.substitutions, expected);
     }
 }

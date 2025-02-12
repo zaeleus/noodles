@@ -2,15 +2,13 @@
 
 pub(crate) mod block;
 pub mod block_content_encoder_map;
-pub(crate) mod builder;
 pub mod compression_header;
 mod header;
 mod reference_sequence_context;
 pub(crate) mod slice;
 
 pub(crate) use self::{
-    block::Block, builder::Builder, header::Header,
-    reference_sequence_context::ReferenceSequenceContext,
+    block::Block, header::Header, reference_sequence_context::ReferenceSequenceContext,
 };
 pub use self::{
     block_content_encoder_map::BlockContentEncoderMap, compression_header::CompressionHeader,
@@ -28,10 +26,6 @@ pub struct Container {
 }
 
 impl Container {
-    pub(crate) fn builder(record_counter: u64) -> Builder {
-        Builder::new(record_counter)
-    }
-
     pub(crate) fn new(compression_header: CompressionHeader, slices: Vec<Slice>) -> Self {
         Self {
             compression_header,

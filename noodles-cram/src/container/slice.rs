@@ -1,7 +1,6 @@
-pub(crate) mod builder;
 pub(crate) mod header;
 
-pub use self::{builder::Builder, header::Header};
+pub use self::header::Header;
 
 use std::io;
 
@@ -12,6 +11,7 @@ use noodles_sam as sam;
 
 use super::{compression_header::PreservationMap, CompressionHeader, ReferenceSequenceContext};
 use crate::{
+    calculate_normalized_sequence_digest,
     container::Block,
     io::BitReader,
     record::{resolve, Features},
@@ -30,10 +30,6 @@ pub struct Slice {
 }
 
 impl Slice {
-    pub(crate) fn builder() -> Builder {
-        Builder::default()
-    }
-
     pub(crate) fn new(header: Header, core_data_block: Block, external_blocks: Vec<Block>) -> Self {
         Self {
             header,
@@ -44,10 +40,6 @@ impl Slice {
 
     pub(crate) fn header(&self) -> &Header {
         &self.header
-    }
-
-    pub(crate) fn core_data_block(&self) -> &Block {
-        &self.core_data_block
     }
 
     pub(crate) fn external_blocks(&self) -> &[Block] {
@@ -403,7 +395,7 @@ fn get_slice_reference_sequence(
         let start = context.alignment_start();
         let end = context.alignment_end();
 
-        let actual_md5 = builder::calculate_normalized_sequence_digest(&sequence[start..=end]);
+        let actual_md5 = calculate_normalized_sequence_digest(&sequence[start..=end]);
         let expected_md5 = slice.header().reference_md5();
 
         if actual_md5 != expected_md5 {
@@ -626,7 +618,7 @@ mod tests {
         let start = Position::try_from(1)?;
         let end = Position::try_from(2)?;
         let sequence = fasta::record::Sequence::from(b"ACGT".to_vec());
-        let reference_md5 = builder::calculate_normalized_sequence_digest(&sequence[start..=end]);
+        let reference_md5 = calculate_normalized_sequence_digest(&sequence[start..=end]);
 
         let reference_sequence_repository = fasta::Repository::new(vec![fasta::Record::new(
             fasta::record::Definition::new("sq0", None),
@@ -637,7 +629,7 @@ mod tests {
             .add_reference_sequence("sq0", Map::<map::ReferenceSequence>::new(SQ0_LN))
             .build();
 
-        let compression_header = CompressionHeader::builder().build();
+        let compression_header = CompressionHeader::default();
 
         let slice = Slice {
             header: Header::builder()

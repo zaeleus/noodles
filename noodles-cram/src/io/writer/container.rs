@@ -8,18 +8,39 @@ use std::{
     io::{self, Write},
 };
 
-use self::compression_header::write_compression_header;
-pub use self::{block::write_block, header::write_header};
-use crate::{
-    container::{Block, Header, ReferenceSequenceContext, Slice},
-    Container,
-};
+use noodles_fasta as fasta;
+use noodles_sam as sam;
 
-pub fn write_container<W>(writer: &mut W, container: &Container, base_count: u64) -> io::Result<()>
+pub use self::{block::write_block, header::write_header};
+use self::{
+    compression_header::{build_compression_header, write_compression_header},
+    slice::{build_slice, Slice},
+};
+use super::{Options, Record, DEFAULT_RECORDS_PER_SLICE};
+use crate::container::{block::ContentType, Block, Header, ReferenceSequenceContext};
+
+pub fn write_container<W>(
+    writer: &mut W,
+    reference_sequence_repository: &fasta::Repository,
+    options: &Options,
+    header: &sam::Header,
+    record_counter: u64,
+    records: &mut [Record],
+) -> io::Result<()>
 where
     W: Write,
 {
-    let (header, container_size, blocks) = build_container(container, base_count)?;
+    if records.is_empty() {
+        return Ok(());
+    }
+
+    let (header, container_size, blocks) = build_container(
+        reference_sequence_repository,
+        options,
+        header,
+        record_counter,
+        records,
+    )?;
 
     write_header(writer, &header, container_size)?;
 
@@ -31,90 +52,97 @@ where
 }
 
 fn build_container(
-    container: &Container,
-    base_count: u64,
+    reference_sequence_repository: &fasta::Repository,
+    options: &Options,
+    header: &sam::Header,
+    record_counter: u64,
+    records: &mut [Record],
 ) -> io::Result<(Header, usize, Vec<Block>)> {
-    use crate::container::block::ContentType;
+    let mut slices = Vec::new();
+    let mut slice_record_counter = record_counter;
 
-    let mut buf = Vec::new();
-    write_compression_header(&mut buf, container.compression_header())?;
+    let compression_header = build_compression_header(options, records);
 
-    let block = Block::builder()
-        .set_content_type(ContentType::CompressionHeader)
-        .set_uncompressed_len(buf.len())
-        .set_data(buf.into())
-        .build();
+    for chunk in records.chunks_mut(DEFAULT_RECORDS_PER_SLICE) {
+        let slice = build_slice(
+            reference_sequence_repository,
+            options,
+            header,
+            slice_record_counter,
+            &compression_header,
+            chunk,
+        )?;
 
-    let mut blocks = vec![block];
-    let mut landmarks = Vec::new();
+        slices.push(slice);
 
-    let container_reference_sequence_context =
-        build_container_reference_sequence_context(container.slices())?;
-
-    let mut container_record_count = 0;
-    let container_record_counter = container
-        .slices()
-        .first()
-        .map(|s| s.header().record_counter())
-        .expect("no slices in builder");
-
-    for slice in container.slices() {
-        let slice_header = slice.header();
-
-        container_record_count += slice_header.record_count() as i32;
-
-        let mut slice_len = 0;
-
-        let mut slice_header_buf = Vec::new();
-        self::slice::write_header(&mut slice_header_buf, slice.header())?;
-
-        let slice_header_block = Block::builder()
-            .set_content_type(ContentType::SliceHeader)
-            .set_uncompressed_len(slice_header_buf.len())
-            .set_data(slice_header_buf.into())
-            .build();
-
-        slice_len += slice_header_block.len();
-        blocks.push(slice_header_block);
-
-        blocks.push(slice.core_data_block().clone());
-        slice_len += slice.core_data_block().len();
-
-        for external_block in slice.external_blocks() {
-            blocks.push(external_block.clone());
-            slice_len += external_block.len();
-        }
-
-        let last_landmark = landmarks.last().copied().unwrap_or(0);
-        let landmark = last_landmark + slice_len;
-        landmarks.push(landmark);
+        let record_count = u64::try_from(chunk.len())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        slice_record_counter += record_count;
     }
 
-    let len = blocks.iter().map(|b| b.len()).sum();
+    let reference_sequence_context = get_container_reference_sequence_context(&slices)?;
+    let record_count = records.len();
+    let base_count = calculate_base_count(records)?;
+
+    let mut buf = Vec::new();
+
+    write_compression_header(&mut buf, &compression_header)?;
+    let compression_header_block = build_compression_header_block(&buf);
+
+    let mut container_size = compression_header_block.len();
+    let mut blocks = vec![compression_header_block];
+    let mut landmarks = Vec::with_capacity(slices.len());
+
+    for slice in slices {
+        buf.clear();
+
+        slice::write_header(&mut buf, &slice.header)?;
+        let slice_header_block = build_slice_header_block(&buf);
+
+        let mut slice_size = slice_header_block.len();
+        blocks.push(slice_header_block);
+
+        slice_size += slice.core_data_block.len();
+        blocks.push(slice.core_data_block);
+
+        for block in &slice.external_data_blocks {
+            slice_size += block.len();
+        }
+
+        blocks.extend(slice.external_data_blocks);
+
+        let last_landmark = landmarks.last().copied().unwrap_or(0);
+        let landmark = last_landmark + slice_size;
+        landmarks.push(landmark);
+
+        container_size += slice_size;
+    }
+
+    let record_count =
+        i32::try_from(record_count).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     let header = Header::builder()
-        .set_reference_sequence_context(container_reference_sequence_context)
-        .set_record_count(container_record_count)
-        .set_record_counter(container_record_counter)
+        .set_reference_sequence_context(reference_sequence_context)
+        .set_record_count(record_count)
+        .set_record_counter(record_counter)
         .set_base_count(base_count)
         .set_block_count(blocks.len())
         .set_landmarks(landmarks)
         .build();
 
-    Ok((header, len, blocks))
+    Ok((header, container_size, blocks))
 }
 
-fn build_container_reference_sequence_context(
+fn get_container_reference_sequence_context(
     slices: &[Slice],
 ) -> io::Result<ReferenceSequenceContext> {
     assert!(!slices.is_empty());
 
     let first_slice = slices.first().expect("slices cannot be empty");
-    let mut container_reference_sequence_context =
-        first_slice.header().reference_sequence_context();
+    let mut container_reference_sequence_context = first_slice.header.reference_sequence_context();
 
     for slice in slices.iter().skip(1) {
-        let slice_reference_sequence_context = slice.header().reference_sequence_context();
+        let slice_reference_sequence_context = slice.header.reference_sequence_context();
 
         match (
             container_reference_sequence_context,
@@ -156,6 +184,27 @@ fn build_container_reference_sequence_context(
     }
 
     Ok(container_reference_sequence_context)
+}
+
+fn build_compression_header_block(buf: &[u8]) -> Block {
+    Block::builder()
+        .set_content_type(ContentType::CompressionHeader)
+        .set_uncompressed_len(buf.len())
+        .set_data(buf.to_vec().into())
+        .build()
+}
+
+fn calculate_base_count(records: &[Record]) -> io::Result<u64> {
+    let n: usize = records.iter().map(|record| record.read_length).sum();
+    u64::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+}
+
+fn build_slice_header_block(buf: &[u8]) -> Block {
+    Block::builder()
+        .set_content_type(ContentType::SliceHeader)
+        .set_uncompressed_len(buf.len())
+        .set_data(buf.to_vec().into())
+        .build()
 }
 
 // § 9 "End of file container" (2022-04-12)

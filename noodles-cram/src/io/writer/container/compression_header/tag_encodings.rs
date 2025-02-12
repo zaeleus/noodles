@@ -1,7 +1,20 @@
-use std::io::{self, Write};
+use std::{
+    collections::HashSet,
+    io::{self, Write},
+};
 
 use super::write_encoding_for_byte_array_codec;
-use crate::{container::compression_header::TagEncodings, io::writer::num::write_itf8};
+use crate::{
+    container::{
+        block,
+        compression_header::{
+            encoding::codec::{Byte, ByteArray, Integer},
+            preservation_map::tag_sets::Key,
+            Encoding, TagEncodings,
+        },
+    },
+    io::writer::{num::write_itf8, Record},
+};
 
 pub fn write_tag_encodings<W>(writer: &mut W, tag_encodings: &TagEncodings) -> io::Result<()>
 where
@@ -25,4 +38,29 @@ where
     writer.write_all(&buf)?;
 
     Ok(())
+}
+
+pub(super) fn build_tag_encodings(records: &[Record]) -> TagEncodings {
+    let mut block_content_ids = HashSet::new();
+
+    for record in records {
+        for (tag, value) in &record.data {
+            let key = Key::new(*tag, value.ty());
+            let block_content_id = block::ContentId::from(key);
+            block_content_ids.insert(block_content_id);
+        }
+    }
+
+    block_content_ids
+        .into_iter()
+        .map(|block_content_id| {
+            (
+                block_content_id,
+                Encoding::new(ByteArray::ByteArrayLen {
+                    len_encoding: Encoding::new(Integer::External { block_content_id }),
+                    value_encoding: Encoding::new(Byte::External { block_content_id }),
+                }),
+            )
+        })
+        .collect()
 }

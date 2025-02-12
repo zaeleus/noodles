@@ -6,10 +6,8 @@ use std::{
 
 use noodles_fasta as fasta;
 
-use super::{Options, Writer};
-use crate::{
-    codecs::Encoder, container::BlockContentEncoderMap, file_definition::Version, Container,
-};
+use super::{Options, Writer, RECORDS_PER_CONTAINER};
+use crate::{codecs::Encoder, container::BlockContentEncoderMap, file_definition::Version};
 
 /// A CRAM writer builder.
 #[derive(Default)]
@@ -135,7 +133,7 @@ impl Builder {
             inner: writer,
             reference_sequence_repository: self.reference_sequence_repository,
             options: self.options,
-            container_builder: Container::builder(0),
+            records: Vec::with_capacity(RECORDS_PER_CONTAINER),
             record_counter: 0,
         }
     }

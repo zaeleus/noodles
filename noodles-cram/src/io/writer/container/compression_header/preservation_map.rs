@@ -1,13 +1,16 @@
+mod substitution_matrix;
+
 use std::io::{self, Write};
 
 use byteorder::WriteBytesExt;
 
+use self::substitution_matrix::build_substitution_matrix;
 use crate::{
     container::compression_header::{
         preservation_map::{Key, SubstitutionMatrix, TagSets},
         PreservationMap,
     },
-    io::writer::{collections::write_array, num::write_itf8},
+    io::writer::{collections::write_array, num::write_itf8, Options, Record},
 };
 
 const MAP_LENGTH: i32 = 5;
@@ -114,6 +117,40 @@ where
     writer.write_all(&buf)?;
 
     Ok(())
+}
+
+pub(super) fn build_preservation_map(options: &Options, records: &[Record]) -> PreservationMap {
+    // § 8.4 Compression header block (2020-06-22): "The boolean values are optional, defaulting to
+    // true when absent, although it is recommended to explicitly set them."
+    PreservationMap {
+        read_names_included: options.preserve_read_names,
+        ap_data_series_delta: options.encode_alignment_start_positions_as_deltas,
+        is_reference_required: true,
+        substitution_matrix: build_substitution_matrix(records),
+        tag_sets: build_tag_sets(records),
+    }
+}
+
+fn build_tag_sets(records: &[Record]) -> TagSets {
+    use crate::container::compression_header::preservation_map::tag_sets::Key;
+
+    let mut tag_sets = Vec::new();
+
+    for record in records {
+        let set = record
+            .data
+            .iter()
+            .map(|(tag, value)| Key::new(*tag, value.ty()))
+            .collect();
+
+        if tag_sets.iter().any(|s| s == &set) {
+            continue;
+        } else {
+            tag_sets.push(set);
+        }
+    }
+
+    TagSets::from(tag_sets)
 }
 
 #[cfg(test)]
