@@ -10,7 +10,6 @@ pub struct Header {
     pub landmarks: Vec<usize>,
 }
 
-#[allow(clippy::len_without_is_empty)]
 impl Header {
     pub fn reference_sequence_context(&self) -> ReferenceSequenceContext {
         self.reference_sequence_context
