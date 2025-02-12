@@ -25,10 +25,7 @@ pub enum Feature {
         quality_score: u8,
     },
     /// A base substitution.
-    Substitution {
-        position: Position,
-        value: substitution::Value,
-    },
+    Substitution { position: Position, code: u8 },
     /// Inserted bases.
     Insertion { position: Position, bases: Vec<u8> },
     /// A number of deleted bases.
@@ -148,11 +145,7 @@ mod tests {
             Code::ReadBase
         );
         assert_eq!(
-            Feature::Substitution {
-                position,
-                value: substitution::Value::Code(0)
-            }
-            .code(),
+            Feature::Substitution { position, code: 0 }.code(),
             Code::Substitution
         );
         assert_eq!(
@@ -232,11 +225,7 @@ mod tests {
             position
         );
         assert_eq!(
-            Feature::Substitution {
-                position,
-                value: substitution::Value::Code(0)
-            }
-            .position(),
+            Feature::Substitution { position, code: 0 }.position(),
             position
         );
         assert_eq!(

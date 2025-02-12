@@ -83,7 +83,7 @@ impl Iterator for Cigar<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::record::{feature::substitution, Features};
+    use crate::record::Features;
 
     #[test]
     fn test_next() -> Result<(), noodles_core::position::TryFromIntError> {
@@ -133,7 +133,7 @@ mod tests {
             },
             Feature::Substitution {
                 position: Position::try_from(3)?,
-                value: substitution::Value::Code(0),
+                code: 0,
             },
         ]);
         t(
@@ -149,7 +149,7 @@ mod tests {
 
         let features = Features::from(vec![Feature::Substitution {
             position: Position::try_from(2)?,
-            value: substitution::Value::Code(0),
+            code: 0,
         }]);
         t(
             &features,

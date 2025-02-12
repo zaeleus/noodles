@@ -17,10 +17,7 @@ use crate::{
         CompressionHeader, ReferenceSequenceContext,
     },
     io::BitReader,
-    record::{
-        feature::{self, substitution},
-        Feature, Flags, MateFlags,
-    },
+    record::{feature, Feature, Flags, MateFlags},
     Record,
 };
 
@@ -484,8 +481,8 @@ where
                 })
             }
             Code::Substitution => {
-                let value = self.read_base_substitution_code()?;
-                Ok(Feature::Substitution { position, value })
+                let code = self.read_base_substitution_code()?;
+                Ok(Feature::Substitution { position, code })
             }
             Code::Insertion => {
                 let bases = self.read_insertion_bases()?;
@@ -613,7 +610,7 @@ where
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
     }
 
-    fn read_base_substitution_code(&mut self) -> io::Result<substitution::Value> {
+    fn read_base_substitution_code(&mut self) -> io::Result<u8> {
         self.compression_header
             .data_series_encodings()
             .base_substitution_codes()
@@ -624,7 +621,6 @@ where
                 )
             })?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
-            .map(substitution::Value::Code)
     }
 
     fn read_insertion_bases(&mut self) -> io::Result<Vec<u8>> {

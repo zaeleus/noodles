@@ -263,8 +263,6 @@ mod tests {
 
     #[test]
     fn test_try_into_cigar() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::record::feature::substitution;
-
         let features = Features::default();
         assert_eq!(
             features.try_into_cigar(4)?,
@@ -311,7 +309,7 @@ mod tests {
             },
             Feature::Substitution {
                 position: Position::try_from(3)?,
-                value: substitution::Value::Code(0),
+                code: 0,
             },
         ]);
         assert_eq!(
@@ -323,7 +321,7 @@ mod tests {
 
         let features = Features::from(vec![Feature::Substitution {
             position: Position::try_from(2)?,
-            value: substitution::Value::Code(0),
+            code: 0,
         }]);
         assert_eq!(
             features.try_into_cigar(4)?,

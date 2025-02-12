@@ -6,8 +6,7 @@ use noodles_core::Position;
 use noodles_fasta as fasta;
 
 use super::{
-    feature::substitution::{self, Base as SubstitutionBase},
-    Feature, Features, QualityScores, Sequence,
+    feature::substitution::Base as SubstitutionBase, Feature, Features, QualityScores, Sequence,
 };
 use crate::container::compression_header::preservation_map::SubstitutionMatrix;
 
@@ -42,27 +41,19 @@ pub(crate) fn resolve_bases(
             Feature::Bases { bases, .. } => copy_from_bases(&mut buf[read_position..], bases),
             Feature::Scores { .. } => {}
             Feature::ReadBase { base, .. } => buf[read_position] = *base,
-            Feature::Substitution { value, .. } => match value {
-                substitution::Value::Code(code) => {
-                    if let Some(reference_sequence) = reference_sequence {
-                        let base = reference_sequence[reference_position];
-                        let reference_base = SubstitutionBase::try_from(base).unwrap_or_default();
-                        let read_base = substitution_matrix.get(reference_base, *code);
-                        buf[read_position] = u8::from(read_base);
-                    } else {
-                        return Err(io::Error::new(
-                            io::ErrorKind::InvalidData,
-                            "cannot resolve base substitution without reference sequence",
-                        ));
-                    }
-                }
-                substitution::Value::Bases(..) => {
+            Feature::Substitution { code, .. } => {
+                if let Some(reference_sequence) = reference_sequence {
+                    let base = reference_sequence[reference_position];
+                    let reference_base = SubstitutionBase::try_from(base).unwrap_or_default();
+                    let read_base = substitution_matrix.get(reference_base, *code);
+                    buf[read_position] = u8::from(read_base);
+                } else {
                     return Err(io::Error::new(
                         io::ErrorKind::InvalidData,
-                        "cannot resolve base substitution with bases",
+                        "cannot resolve base substitution without reference sequence",
                     ));
                 }
-            },
+            }
             Feature::Insertion { bases, .. } => copy_from_bases(&mut buf[read_position..], bases),
             Feature::Deletion { .. } => {}
             Feature::InsertBase { base, .. } => buf[read_position] = *base,
@@ -187,7 +178,7 @@ mod tests {
         t(
             &Features::from(vec![Feature::Substitution {
                 position: Position::try_from(2)?,
-                value: substitution::Value::Code(1),
+                code: 1,
             }]),
             &Sequence::from(b"AGGT"),
         )?;
@@ -240,23 +231,6 @@ mod tests {
             }]),
             &Sequence::from(b"ACGT"),
         )?;
-
-        let features = Features::from(vec![Feature::Substitution {
-            position: Position::try_from(2)?,
-            value: substitution::Value::Bases(SubstitutionBase::A, SubstitutionBase::C),
-        }]);
-        let mut actual = Sequence::default();
-        assert!(matches!(
-            resolve_bases(
-                Some(&reference_sequence),
-                &substitution_matrix,
-                &features,
-                alignment_start,
-                4,
-                &mut actual,
-            ),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData
-        ));
 
         Ok(())
     }
