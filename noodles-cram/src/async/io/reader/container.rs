@@ -6,7 +6,7 @@ use tokio::io::{self, AsyncRead, AsyncReadExt};
 use self::header::read_header;
 use crate::{
     container::{Container, Header},
-    io::reader::container::{read_compression_header_from_block, read_slice},
+    io::reader::container::{get_compression_header, read_slice},
 };
 
 pub async fn read_container<R>(reader: &mut R, buf: &mut BytesMut) -> io::Result<Option<Container>>
@@ -24,7 +24,7 @@ where
     reader.read_exact(buf).await?;
     let mut buf = buf.split().freeze();
 
-    let compression_header = read_compression_header_from_block(&mut buf)?;
+    let compression_header = get_compression_header(&mut buf)?;
 
     let slice_count = header.landmarks().len();
     let mut slices = Vec::with_capacity(slice_count);

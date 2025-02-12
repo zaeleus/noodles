@@ -16,9 +16,28 @@ use self::{
     preservation_map::get_preservation_map,
     tag_encodings::get_tag_encodings,
 };
-use crate::container::CompressionHeader;
+use super::read_block;
+use crate::container::{block::ContentType, CompressionHeader};
 
 pub fn get_compression_header(src: &mut Bytes) -> io::Result<CompressionHeader> {
+    let block = read_block(src)?;
+
+    if block.content_type() != ContentType::CompressionHeader {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!(
+                "invalid block content type: expected {:?}, got {:?}",
+                ContentType::CompressionHeader,
+                block.content_type()
+            ),
+        ));
+    }
+
+    let mut data = block.decompressed_data()?;
+    get_compression_header_inner(&mut data)
+}
+
+fn get_compression_header_inner(src: &mut Bytes) -> io::Result<CompressionHeader> {
     let preservation_map = get_preservation_map(src)?;
     let data_series_encodings = get_data_series_encodings(src)?;
     let tag_encodings = get_tag_encodings(src)?;
