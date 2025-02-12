@@ -38,7 +38,7 @@ pub struct Record {
     pub(crate) mate_alignment_start: Option<Position>,
     pub(crate) template_length: i32,
     pub(crate) distance_to_mate: Option<usize>,
-    pub(crate) tags: Data,
+    pub(crate) data: Data,
     pub(crate) sequence: Sequence,
     pub(crate) features: Vec<Feature>,
     pub(crate) mapping_quality: Option<MappingQuality>,
@@ -181,12 +181,12 @@ impl Record {
 
     /// Returns the tag dictionary.
     pub fn tags(&self) -> &Data {
-        &self.tags
+        &self.data
     }
 
     /// Returns the data.
     pub fn data(&self) -> &Data {
-        &self.tags
+        &self.data
     }
 
     /// Returns the read bases.
@@ -232,7 +232,7 @@ impl Default for Record {
             mate_alignment_start: None,
             template_length: 0,
             distance_to_mate: None,
-            tags: Data::default(),
+            data: Data::default(),
             sequence: Sequence::default(),
             features: Vec::new(),
             mapping_quality: None,

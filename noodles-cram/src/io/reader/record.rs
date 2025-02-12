@@ -86,7 +86,7 @@ where
         self.read_names(record)?;
         self.read_mate(record)?;
 
-        record.tags = self.read_tags()?;
+        record.data = self.read_data()?;
 
         if record.bam_flags().is_unmapped() {
             self.read_unmapped_read(record)?;
@@ -361,7 +361,7 @@ where
             })
     }
 
-    fn read_tags(&mut self) -> io::Result<sam::alignment::record_buf::Data> {
+    fn read_data(&mut self) -> io::Result<sam::alignment::record_buf::Data> {
         use bam::record::codec::decoder::data::field::read_value;
 
         let tag_set_id = self.read_tag_set_id()?;

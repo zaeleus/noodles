@@ -48,7 +48,7 @@ impl Record {
             .set_sequence(self.sequence)
             .set_quality_scores(self.quality_scores);
 
-        let mut data = self.tags;
+        let mut data = self.data;
         maybe_insert_read_group(&mut data, header.read_groups(), self.read_group_id)?;
         builder = builder.set_data(data);
 
