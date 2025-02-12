@@ -9,8 +9,6 @@ use crate::{
 };
 
 pub(super) fn get_tag_sets(src: &mut Bytes) -> io::Result<TagSets> {
-    const NUL: u8 = 0x00;
-
     let data_len = get_itf8(src).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
@@ -20,12 +18,17 @@ pub(super) fn get_tag_sets(src: &mut Bytes) -> io::Result<TagSets> {
     }
 
     let mut buf = src.split_to(data_len);
+    get_tag_sets_inner(&mut buf)
+}
+
+fn get_tag_sets_inner(src: &mut Bytes) -> io::Result<TagSets> {
+    const NUL: u8 = 0x00;
 
     let mut sets = Vec::new();
 
-    while let Some(i) = buf.iter().position(|&b| b == NUL) {
-        let keys_buf = buf.split_to(i);
-        buf.advance(1); // Discard the NUL terminator.
+    while let Some(i) = src.iter().position(|&b| b == NUL) {
+        let keys_buf = src.split_to(i);
+        src.advance(1); // Discard the NUL terminator.
 
         let mut line = Vec::new();
 
