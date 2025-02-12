@@ -7,8 +7,8 @@ use std::io;
 use bytes::Bytes;
 
 use crate::{
-    container::{block::ContentType, slice, Block, Slice},
-    io::reader::container::read_block,
+    container::{block::ContentType, slice, Slice},
+    io::reader::container::{read_block, Block},
 };
 
 pub fn read_slice(src: &mut Bytes) -> io::Result<Slice> {
@@ -25,31 +25,31 @@ pub fn read_slice(src: &mut Bytes) -> io::Result<Slice> {
 fn read_header_from_block(src: &mut Bytes) -> io::Result<slice::Header> {
     let block = read_block(src)?;
 
-    if block.content_type() != ContentType::SliceHeader {
+    if block.content_type != ContentType::SliceHeader {
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
             format!(
                 "invalid block content type: expected {:?}, got {:?}",
                 ContentType::SliceHeader,
-                block.content_type()
+                block.content_type
             ),
         ));
     }
 
-    let mut data = block.decompressed_data()?;
-    get_header(&mut data)
+    let mut buf = block.decode()?;
+    get_header(&mut buf)
 }
 
 fn read_core_data_block(src: &mut Bytes) -> io::Result<Block> {
     let block = read_block(src)?;
 
-    if block.content_type() != ContentType::CoreData {
+    if block.content_type != ContentType::CoreData {
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
             format!(
                 "invalid block content type: expected {:?}, got {:?}",
                 ContentType::CoreData,
-                block.content_type()
+                block.content_type
             ),
         ));
     }
@@ -63,13 +63,13 @@ fn read_external_blocks(src: &mut Bytes, len: usize) -> io::Result<Vec<Block>> {
     for _ in 0..len {
         let block = read_block(src)?;
 
-        if block.content_type() != ContentType::ExternalData {
+        if block.content_type != ContentType::ExternalData {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 format!(
                     "invalid block content type: expected {:?}, got {:?}",
                     ContentType::ExternalData,
-                    block.content_type()
+                    block.content_type
                 ),
             ));
         }

@@ -12,8 +12,7 @@ use noodles_sam as sam;
 use super::{compression_header::PreservationMap, CompressionHeader, ReferenceSequenceContext};
 use crate::{
     calculate_normalized_sequence_digest,
-    container::Block,
-    io::BitReader,
+    io::{reader::container::Block, BitReader},
     record::{resolve, Features},
     Record,
 };
@@ -74,16 +73,13 @@ impl Slice {
     pub fn records(&self, compression_header: &CompressionHeader) -> io::Result<Vec<Record>> {
         use crate::io::reader::record::ExternalDataReaders;
 
-        let core_data_reader = self
-            .core_data_block
-            .decompressed_data()
-            .map(BitReader::new)?;
+        let core_data_reader = self.core_data_block.decode().map(BitReader::new)?;
 
         let mut external_data_readers = ExternalDataReaders::new();
 
         for block in self.external_blocks() {
-            let reader = block.decompressed_data()?;
-            external_data_readers.insert(block.content_id(), reader);
+            let reader = block.decode()?;
+            external_data_readers.insert(block.content_id, reader);
         }
 
         let mut record_reader = crate::io::reader::record::Reader::new(
@@ -420,10 +416,10 @@ fn get_slice_reference_sequence(
         let block = slice
             .external_blocks()
             .iter()
-            .find(|block| block.content_id() == block_content_id)
+            .find(|block| block.content_id == block_content_id)
             .expect("invalid block content ID");
 
-        let data = block.decompressed_data()?;
+        let data = block.decode()?;
         let sequence = fasta::record::Sequence::from(data);
 
         let reference_start = context.alignment_start();
@@ -453,9 +449,10 @@ fn resolve_quality_scores(records: &mut [Record]) {
 #[cfg(test)]
 mod tests {
     use bstr::ByteSlice;
+    use bytes::Bytes;
 
     use super::*;
-    use crate::record::Flags;
+    use crate::{container::block::CompressionMethod, record::Flags};
 
     #[test]
     fn test_resolve_mates() -> io::Result<()> {
@@ -653,12 +650,20 @@ mod tests {
                 .set_reference_sequence_context(ReferenceSequenceContext::some(0, start, end))
                 .set_reference_md5(reference_md5)
                 .build(),
-            core_data_block: Block::builder()
-                .set_content_type(ContentType::CoreData)
-                .build(),
-            external_blocks: vec![Block::builder()
-                .set_content_type(ContentType::ExternalData)
-                .build()],
+            core_data_block: Block {
+                compression_method: CompressionMethod::None,
+                content_type: ContentType::CoreData,
+                content_id: 0,
+                uncompressed_size: 0,
+                src: Bytes::new(),
+            },
+            external_blocks: vec![Block {
+                compression_method: CompressionMethod::None,
+                content_type: ContentType::ExternalData,
+                content_id: 1,
+                uncompressed_size: 0,
+                src: Bytes::new(),
+            }],
         };
 
         let mut records = [Record {

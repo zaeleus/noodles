@@ -10,6 +10,7 @@ use std::{
 
 use bytes::BytesMut;
 
+pub(crate) use self::block::Block;
 use self::header::read_header;
 pub use self::{block::read_block, compression_header::get_compression_header, slice::read_slice};
 use crate::container::{CompressionHeader, Header, Slice};

@@ -6,14 +6,11 @@ pub use self::{
     builder::Builder, compression_method::CompressionMethod, content_type::ContentType,
 };
 
-use std::{io, mem};
+use std::mem;
 
 use bytes::Bytes;
 
-use crate::{
-    codecs::{aac, fqzcomp, name_tokenizer, rans_4x8, rans_nx16},
-    num::itf8,
-};
+use crate::num::itf8;
 
 pub type ContentId = i32;
 
@@ -50,49 +47,6 @@ impl Block {
 
     pub fn data(&self) -> &[u8] {
         &self.data
-    }
-
-    pub fn decompressed_data(&self) -> io::Result<Bytes> {
-        use crate::codecs::{bzip2, gzip, lzma};
-
-        match self.compression_method {
-            CompressionMethod::None => Ok(self.data.clone()),
-            CompressionMethod::Gzip => {
-                let mut dst = vec![0; self.uncompressed_len];
-                gzip::decode(self.data(), &mut dst)?;
-                Ok(Bytes::from(dst))
-            }
-            CompressionMethod::Bzip2 => {
-                let mut dst = vec![0; self.uncompressed_len];
-                bzip2::decode(self.data(), &mut dst)?;
-                Ok(Bytes::from(dst))
-            }
-            CompressionMethod::Lzma => {
-                let mut dst = vec![0; self.uncompressed_len];
-                lzma::decode(self.data(), &mut dst)?;
-                Ok(Bytes::from(dst))
-            }
-            CompressionMethod::Rans4x8 => {
-                let mut buf = self.data();
-                rans_4x8::decode(&mut buf).map(Bytes::from)
-            }
-            CompressionMethod::RansNx16 => {
-                let mut reader = self.data();
-                rans_nx16::decode(&mut reader, self.uncompressed_len()).map(Bytes::from)
-            }
-            CompressionMethod::AdaptiveArithmeticCoding => {
-                let mut reader = self.data();
-                aac::decode(&mut reader, self.uncompressed_len()).map(Bytes::from)
-            }
-            CompressionMethod::Fqzcomp => {
-                let mut reader = self.data();
-                fqzcomp::decode(&mut reader).map(Bytes::from)
-            }
-            CompressionMethod::NameTokenizer => {
-                let mut reader = self.data();
-                name_tokenizer::decode(&mut reader).map(Bytes::from)
-            }
-        }
     }
 
     pub fn len(&self) -> usize {

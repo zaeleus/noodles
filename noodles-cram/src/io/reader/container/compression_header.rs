@@ -22,19 +22,19 @@ use crate::container::{block::ContentType, CompressionHeader};
 pub fn get_compression_header(src: &mut Bytes) -> io::Result<CompressionHeader> {
     let block = read_block(src)?;
 
-    if block.content_type() != ContentType::CompressionHeader {
+    if block.content_type != ContentType::CompressionHeader {
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
             format!(
                 "invalid block content type: expected {:?}, got {:?}",
                 ContentType::CompressionHeader,
-                block.content_type()
+                block.content_type
             ),
         ));
     }
 
-    let mut data = block.decompressed_data()?;
-    get_compression_header_inner(&mut data)
+    let mut buf = block.decode()?;
+    get_compression_header_inner(&mut buf)
 }
 
 fn get_compression_header_inner(src: &mut Bytes) -> io::Result<CompressionHeader> {

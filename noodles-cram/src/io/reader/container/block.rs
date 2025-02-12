@@ -6,28 +6,76 @@ use std::{io, mem};
 use bytes::{Buf, Bytes};
 
 use self::{compression_method::get_compression_method, content_type::get_content_type};
-use crate::{container::Block, io::reader::num::get_itf8};
+use crate::{
+    container::block::{CompressionMethod, ContentId, ContentType},
+    io::reader::num::get_itf8,
+};
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Block {
+    pub compression_method: CompressionMethod,
+    pub content_type: ContentType,
+    pub content_id: ContentId,
+    pub uncompressed_size: usize,
+    pub src: Bytes,
+}
+
+impl Block {
+    pub fn decode(&self) -> io::Result<Bytes> {
+        use crate::codecs::{aac, bzip2, fqzcomp, gzip, lzma, name_tokenizer, rans_4x8, rans_nx16};
+
+        match self.compression_method {
+            CompressionMethod::None => Ok(self.src.clone()),
+            CompressionMethod::Gzip => {
+                let mut dst = vec![0; self.uncompressed_size];
+                gzip::decode(&self.src, &mut dst)?;
+                Ok(Bytes::from(dst))
+            }
+            CompressionMethod::Bzip2 => {
+                let mut dst = vec![0; self.uncompressed_size];
+                bzip2::decode(&self.src, &mut dst)?;
+                Ok(Bytes::from(dst))
+            }
+            CompressionMethod::Lzma => {
+                let mut dst = vec![0; self.uncompressed_size];
+                lzma::decode(&self.src, &mut dst)?;
+                Ok(Bytes::from(dst))
+            }
+            CompressionMethod::Rans4x8 => rans_4x8::decode(&mut &self.src[..]).map(Bytes::from),
+            CompressionMethod::RansNx16 => {
+                rans_nx16::decode(&mut &self.src[..], self.uncompressed_size).map(Bytes::from)
+            }
+            CompressionMethod::AdaptiveArithmeticCoding => {
+                aac::decode(&mut &self.src[..], self.uncompressed_size).map(Bytes::from)
+            }
+            CompressionMethod::Fqzcomp => fqzcomp::decode(&mut &self.src[..]).map(Bytes::from),
+            CompressionMethod::NameTokenizer => {
+                name_tokenizer::decode(&mut &self.src[..]).map(Bytes::from)
+            }
+        }
+    }
+}
 
 pub fn read_block(src: &mut Bytes) -> io::Result<Block> {
     let original_src = src.clone();
 
-    let method = get_compression_method(src)?;
-    let block_content_type = get_content_type(src)?;
-    let block_content_id = get_itf8(src)?;
+    let mut compression_method = get_compression_method(src)?;
+    let content_type = get_content_type(src)?;
+    let content_id = get_itf8(src)?;
 
-    let size_in_bytes = get_itf8(src).and_then(|n| {
+    let compressed_sized = get_itf8(src).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let raw_size_in_bytes = get_itf8(src).and_then(|n| {
+    let uncompressed_size = get_itf8(src).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    if src.remaining() < size_in_bytes {
+    if src.remaining() < compressed_sized {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
-    let data = src.split_to(size_in_bytes);
+    let data = src.split_to(compressed_sized);
 
     if src.remaining() < mem::size_of::<u32>() {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
@@ -47,18 +95,19 @@ pub fn read_block(src: &mut Bytes) -> io::Result<Block> {
         ));
     }
 
-    let mut builder = Block::builder()
-        .set_content_type(block_content_type)
-        .set_content_id(block_content_id);
-
-    if raw_size_in_bytes > 0 {
-        builder = builder
-            .set_compression_method(method)
-            .set_uncompressed_len(raw_size_in_bytes)
-            .set_data(data);
+    // § 8 "Block structure" (2024-09-04): "Blocks with a raw (uncompressed) size of zero are
+    // treated as empty, irrespective of their `method` byte."
+    if uncompressed_size == 0 {
+        compression_method = CompressionMethod::None;
     }
 
-    Ok(builder.build())
+    Ok(Block {
+        compression_method,
+        content_type,
+        content_id,
+        uncompressed_size,
+        src: data,
+    })
 }
 
 fn crc32(buf: &[u8]) -> u32 {
@@ -74,7 +123,6 @@ mod tests {
     use bytes::Bytes;
 
     use super::*;
-    use crate::container::block::{CompressionMethod, ContentType};
 
     #[test]
     fn test_read_block() -> io::Result<()> {
@@ -87,15 +135,16 @@ mod tests {
             0x6e, 0x64, 0x6c, 0x73, // data = b"ndls",
             0xd7, 0x12, 0x46, 0x3e, // CRC32 = 3e4612d7
         ]);
+
         let actual = read_block(&mut data)?;
 
-        let expected = Block::builder()
-            .set_compression_method(CompressionMethod::None)
-            .set_content_type(ContentType::ExternalData)
-            .set_content_id(1)
-            .set_uncompressed_len(4)
-            .set_data(Bytes::from_static(b"ndls"))
-            .build();
+        let expected = Block {
+            compression_method: CompressionMethod::None,
+            content_type: ContentType::ExternalData,
+            content_id: ContentId::from(1),
+            uncompressed_size: 4,
+            src: Bytes::from_static(b"ndls"),
+        };
 
         assert_eq!(actual, expected);
 
@@ -113,12 +162,16 @@ mod tests {
             // data = b"",
             0xbd, 0xac, 0x02, 0xbd, // CRC32 = bd02acbd
         ]);
+
         let actual = read_block(&mut data)?;
 
-        let expected = Block::builder()
-            .set_content_type(ContentType::ExternalData)
-            .set_content_id(1)
-            .build();
+        let expected = Block {
+            compression_method: CompressionMethod::None,
+            content_type: ContentType::ExternalData,
+            content_id: ContentId::from(1),
+            uncompressed_size: 0,
+            src: Bytes::new(),
+        };
 
         assert_eq!(actual, expected);
 
