@@ -150,7 +150,7 @@ fn build_tag_sets(records: &[Record]) -> TagSets {
         }
     }
 
-    TagSets::from(tag_sets)
+    tag_sets
 }
 
 #[cfg(test)]
@@ -161,18 +161,18 @@ mod tests {
     use crate::container::compression_header::preservation_map::tag_sets::Key;
 
     #[test]
-    fn test_write_tag_ids_dictionary() -> io::Result<()> {
+    fn test_write_tag_sets() -> io::Result<()> {
         let mut buf = Vec::new();
 
-        let tag_ids_dictionary = TagSets::from(vec![
+        let tag_sets = vec![
             vec![Key::new(Tag::ALIGNMENT_HIT_COUNT, Type::Int8)],
             vec![
                 Key::new(Tag::ALIGNMENT_HIT_COUNT, Type::Int8),
                 Key::new(Tag::COMMENT, Type::String),
             ],
-        ]);
+        ];
 
-        write_tag_sets(&mut buf, &tag_ids_dictionary)?;
+        write_tag_sets(&mut buf, &tag_sets)?;
 
         let expected = [
             0x0b, // data_len

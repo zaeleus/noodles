@@ -126,7 +126,7 @@ fn get_tag_ids_dictionary(src: &mut Bytes) -> io::Result<TagSets> {
 
     let mut buf = src.split_to(data_len);
 
-    let mut dictionary = Vec::new();
+    let mut sets = Vec::new();
 
     while let Some(i) = buf.iter().position(|&b| b == NUL) {
         let keys_buf = buf.split_to(i);
@@ -144,10 +144,10 @@ fn get_tag_ids_dictionary(src: &mut Bytes) -> io::Result<TagSets> {
             line.push(key);
         }
 
-        dictionary.push(line);
+        sets.push(line);
     }
 
-    Ok(TagSets::from(dictionary))
+    Ok(sets)
 }
 
 fn get_type(n: u8) -> io::Result<Type> {
@@ -196,7 +196,7 @@ mod tests {
             false,
             false,
             SubstitutionMatrix::default(),
-            TagSets::from(vec![vec![tag_sets::Key::new(Tag::COMMENT, Type::String)]]),
+            vec![vec![tag_sets::Key::new(Tag::COMMENT, Type::String)]],
         );
 
         assert_eq!(actual, expected);
