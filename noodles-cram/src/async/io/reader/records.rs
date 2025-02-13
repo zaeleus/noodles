@@ -68,21 +68,27 @@ where
         .map(|result| {
             let slice = result?;
 
-            slice.records(&compression_header).and_then(|mut records| {
-                slice.resolve_records(
-                    ctx.reader.reference_sequence_repository(),
-                    ctx.header,
-                    &compression_header,
-                    &mut records,
-                )?;
+            let (core_data_src, external_data_srcs) = slice.decode_blocks()?;
 
-                records
-                    .into_iter()
-                    .map(|record| {
-                        sam::alignment::RecordBuf::try_from_alignment_record(ctx.header, &record)
-                    })
-                    .collect::<io::Result<Vec<_>>>()
-            })
+            slice
+                .records(&compression_header, &core_data_src, &external_data_srcs)
+                .and_then(|mut records| {
+                    slice.resolve_records(
+                        ctx.reader.reference_sequence_repository(),
+                        ctx.header,
+                        &compression_header,
+                        &mut records,
+                    )?;
+
+                    records
+                        .into_iter()
+                        .map(|record| {
+                            sam::alignment::RecordBuf::try_from_alignment_record(
+                                ctx.header, &record,
+                            )
+                        })
+                        .collect::<io::Result<Vec<_>>>()
+                })
         })
         .collect::<Result<Vec<_>, _>>();
 

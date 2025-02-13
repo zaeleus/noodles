@@ -23,7 +23,12 @@ fn main() -> io::Result<()> {
 
         for result in container.slices() {
             let slice = result?;
-            let records = slice.records(&compression_header)?;
+
+            let (core_data_src, external_data_srcs) = slice.decode_blocks()?;
+
+            let records =
+                slice.records(&compression_header, &core_data_src, &external_data_srcs)?;
+
             n += records.len();
         }
     }

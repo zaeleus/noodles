@@ -125,7 +125,9 @@ fn push_index_records_for_multi_reference_slice(
         SliceReferenceSequenceAlignmentRangeInclusive,
     > = HashMap::new();
 
-    for record in slice.records(compression_header)? {
+    let (core_data_src, external_data_srcs) = slice.decode_blocks()?;
+
+    for record in slice.records(compression_header, &core_data_src, &external_data_srcs)? {
         let reference_sequence_id = record.reference_sequence_id();
 
         let range = reference_sequence_ids

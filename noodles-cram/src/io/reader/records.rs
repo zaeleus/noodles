@@ -46,24 +46,28 @@ where
             .map(|result| {
                 let slice = result?;
 
-                slice.records(&compression_header).and_then(|mut records| {
-                    slice.resolve_records(
-                        self.reader.reference_sequence_repository(),
-                        self.header,
-                        &compression_header,
-                        &mut records,
-                    )?;
+                let (core_data_src, external_data_srcs) = slice.decode_blocks()?;
 
-                    records
-                        .into_iter()
-                        .map(|record| {
-                            sam::alignment::RecordBuf::try_from_alignment_record(
-                                self.header,
-                                &record,
-                            )
-                        })
-                        .collect::<io::Result<Vec<_>>>()
-                })
+                slice
+                    .records(&compression_header, &core_data_src, &external_data_srcs)
+                    .and_then(|mut records| {
+                        slice.resolve_records(
+                            self.reader.reference_sequence_repository(),
+                            self.header,
+                            &compression_header,
+                            &mut records,
+                        )?;
+
+                        records
+                            .into_iter()
+                            .map(|record| {
+                                sam::alignment::RecordBuf::try_from_alignment_record(
+                                    self.header,
+                                    &record,
+                                )
+                            })
+                            .collect::<io::Result<Vec<_>>>()
+                    })
             })
             .collect::<Result<Vec<_>, _>>()?
             .into_iter()

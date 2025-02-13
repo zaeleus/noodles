@@ -12,8 +12,10 @@ use super::{read_block, Block};
 use crate::{
     calculate_normalized_sequence_digest,
     container::{
-        block::ContentType, compression_header::PreservationMap, slice::Header, CompressionHeader,
-        ReferenceSequenceContext,
+        block::{self, ContentType},
+        compression_header::PreservationMap,
+        slice::Header,
+        CompressionHeader, ReferenceSequenceContext,
     },
     io::BitReader,
     record::{resolve, Feature},
@@ -29,9 +31,26 @@ pub struct Slice<'c> {
     src: &'c [u8],
 }
 
-impl Slice<'_> {
+impl<'c> Slice<'c> {
     pub(crate) fn header(&self) -> &Header {
         &self.header
+    }
+
+    #[allow(clippy::type_complexity)]
+    pub fn decode_blocks(&self) -> io::Result<(Vec<u8>, Vec<(block::ContentId, Vec<u8>)>)> {
+        let mut src = self.src;
+
+        let block = read_core_data_block(&mut src)?;
+        let core_data_src = block.decode()?;
+
+        let external_data_block_count = self.header.block_count() - 1;
+        let external_data_blocks = read_external_data_blocks(&mut src, external_data_block_count)?;
+        let external_data_srcs = external_data_blocks
+            .into_iter()
+            .map(|block| block.decode().map(|src| (block.content_id, src)))
+            .collect::<io::Result<_>>()?;
+
+        Ok((core_data_src, external_data_srcs))
     }
 
     /// Reads and returns a list of raw records in this slice.
@@ -53,33 +72,30 @@ impl Slice<'_> {
     ///
     ///     for result in container.slices() {
     ///         let slice = result?;
-    ///         let records = slice.records(&compression_header)?;
+    ///
+    ///         let (core_data_src, external_data_srcs) = slice.decode_blocks()?;
+    ///
+    ///         let records =
+    ///             slice.records(&compression_header, &core_data_src, &external_data_srcs)?;
+    ///
     ///         // ...
     ///     }
     /// }
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn records(&self, compression_header: &CompressionHeader) -> io::Result<Vec<Record>> {
+    pub fn records(
+        &self,
+        compression_header: &CompressionHeader,
+        core_data_src: &'c [u8],
+        external_data_srcs: &'c [(block::ContentId, Vec<u8>)],
+    ) -> io::Result<Vec<Record>> {
         use crate::io::reader::record::ExternalDataReaders;
 
-        let mut src = self.src;
-
-        let core_data_block = read_core_data_block(&mut src)?;
-
-        let external_block_count = self.header.block_count() - 1;
-        let external_blocks = read_external_blocks(&mut src, external_block_count)?;
-
-        let core_data_src = core_data_block.decode()?;
-        let core_data_reader = BitReader::new(&core_data_src);
-
-        let external_data_srcs: Vec<_> = external_blocks
-            .into_iter()
-            .map(|block| block.decode().map(|src| (block.content_id, src)))
-            .collect::<io::Result<_>>()?;
+        let core_data_reader = BitReader::new(core_data_src);
 
         let mut external_data_readers = ExternalDataReaders::new();
 
-        for (block_content_id, src) in &external_data_srcs {
+        for (block_content_id, src) in external_data_srcs {
             external_data_readers.insert(*block_content_id, src);
         }
 
@@ -120,8 +136,8 @@ impl Slice<'_> {
 
         read_core_data_block(&mut src)?;
 
-        let external_block_count = self.header.block_count() - 1;
-        let external_blocks = read_external_blocks(&mut src, external_block_count)?;
+        let external_data_block_count = self.header.block_count() - 1;
+        let external_data_blocks = read_external_data_blocks(&mut src, external_data_block_count)?;
 
         resolve_mates(records)?;
 
@@ -130,7 +146,7 @@ impl Slice<'_> {
             header,
             compression_header,
             &self.header,
-            &external_blocks,
+            &external_data_blocks,
             records,
         )?;
 
@@ -162,27 +178,25 @@ fn read_core_data_block<'c>(src: &mut &'c [u8]) -> io::Result<Block<'c>> {
     Ok(block)
 }
 
-fn read_external_blocks<'c>(src: &mut &'c [u8], len: usize) -> io::Result<Vec<Block<'c>>> {
-    let mut external_blocks = Vec::with_capacity(len);
+fn read_external_data_blocks<'c>(src: &mut &'c [u8], len: usize) -> io::Result<Vec<Block<'c>>> {
+    (0..len).map(|_| read_external_data_block(src)).collect()
+}
 
-    for _ in 0..len {
-        let block = read_block(src)?;
+fn read_external_data_block<'c>(src: &mut &'c [u8]) -> io::Result<Block<'c>> {
+    let block = read_block(src)?;
 
-        if block.content_type != ContentType::ExternalData {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                format!(
-                    "invalid block content type: expected {:?}, got {:?}",
-                    ContentType::ExternalData,
-                    block.content_type
-                ),
-            ));
-        }
-
-        external_blocks.push(block);
+    if block.content_type != ContentType::ExternalData {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!(
+                "invalid block content type: expected {:?}, got {:?}",
+                ContentType::ExternalData,
+                block.content_type
+            ),
+        ));
     }
 
-    Ok(external_blocks)
+    Ok(block)
 }
 
 fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
