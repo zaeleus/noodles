@@ -3,30 +3,18 @@ mod tag_sets;
 
 use std::io;
 
-use bytes::{Buf, Bytes};
-
-use self::{substitution_matrix::get_substitution_matrix, tag_sets::get_tag_sets};
+use self::{substitution_matrix::read_substitution_matrix, tag_sets::read_tag_sets};
 use crate::{
     container::compression_header::{preservation_map::Key, PreservationMap},
-    io::reader::num::get_itf8,
+    io::reader::{collections::read_map, split_at_checked},
 };
 
-pub(super) fn get_preservation_map(src: &mut Bytes) -> io::Result<PreservationMap> {
-    let data_len = get_itf8(src).and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    if src.remaining() < data_len {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
-
-    let mut buf = src.split_to(data_len);
-    let len = get_itf8(&mut buf)?;
-
-    get_preservation_map_inner(&mut buf, len)
+pub(super) fn read_preservation_map(src: &mut &[u8]) -> io::Result<PreservationMap> {
+    let (mut buf, len) = read_map(src)?;
+    read_preservation_map_inner(&mut buf, len)
 }
 
-fn get_preservation_map_inner(src: &mut Bytes, len: i32) -> io::Result<PreservationMap> {
+fn read_preservation_map_inner(src: &mut &[u8], len: usize) -> io::Result<PreservationMap> {
     let mut read_names_included = true;
     let mut ap_data_series_delta = true;
     let mut reference_required = true;
@@ -34,16 +22,16 @@ fn get_preservation_map_inner(src: &mut Bytes, len: i32) -> io::Result<Preservat
     let mut tag_sets = None;
 
     for _ in 0..len {
-        let key = get_key(src)?;
+        let key = read_key(src)?;
 
         match key {
-            Key::ReadNamesIncluded => read_names_included = get_bool(src)?,
-            Key::ApDataSeriesDelta => ap_data_series_delta = get_bool(src)?,
-            Key::ReferenceRequired => reference_required = get_bool(src)?,
+            Key::ReadNamesIncluded => read_names_included = read_bool(src)?,
+            Key::ApDataSeriesDelta => ap_data_series_delta = read_bool(src)?,
+            Key::ReferenceRequired => reference_required = read_bool(src)?,
             Key::SubstitutionMatrix => {
-                substitution_matrix = get_substitution_matrix(src).map(Some)?
+                substitution_matrix = read_substitution_matrix(src).map(Some)?
             }
-            Key::TagSets => tag_sets = get_tag_sets(src).map(Some)?,
+            Key::TagSets => tag_sets = read_tag_sets(src).map(Some)?,
         }
     }
 
@@ -60,36 +48,33 @@ fn get_preservation_map_inner(src: &mut Bytes, len: i32) -> io::Result<Preservat
     ))
 }
 
-fn get_key<B>(src: &mut B) -> io::Result<Key>
-where
-    B: Buf,
-{
-    let mut buf = [0; 2];
+fn read_key(src: &mut &[u8]) -> io::Result<Key> {
+    const SIZE: usize = 2;
 
-    if src.remaining() < buf.len() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
+    let (buf, rest) =
+        split_at_checked(src, SIZE).ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
 
-    src.copy_to_slice(&mut buf);
+    *src = rest;
 
-    Key::try_from(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    // SAFETY: `buf.len() == 2`.
+    let key: [u8; SIZE] = buf.try_into().unwrap();
+
+    Key::try_from(key).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
-fn get_bool<B>(src: &mut B) -> io::Result<bool>
-where
-    B: Buf,
-{
-    let n = src
-        .try_get_u8()
-        .map_err(|e| io::Error::new(io::ErrorKind::UnexpectedEof, e))?;
+// § 2.3 "Writing bytes to a byte stream" (2024-09-04): "Boolean is written as 1-byte with 0x0
+// being 'false' and 0x1 being 'true'."
+fn read_bool(src: &mut &[u8]) -> io::Result<bool> {
+    let (n, rest) = src
+        .split_first()
+        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
+
+    *src = rest;
 
     match n {
         0 => Ok(false),
         1 => Ok(true),
-        _ => Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "invalid bool value",
-        )),
+        _ => Err(io::Error::new(io::ErrorKind::InvalidData, "invalid bool")),
     }
 }
 
@@ -98,14 +83,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_preservation_map() -> io::Result<()> {
+    fn test_read_preservation_map() -> io::Result<()> {
         use noodles_sam::alignment::record::data::field::{Tag, Type};
 
         use crate::container::compression_header::preservation_map::{
             tag_sets, SubstitutionMatrix,
         };
 
-        let mut data = Bytes::from_static(&[
+        let src = [
             0x18, // data.len = 24
             0x05, // map.len = 5
             0x52, 0x4e, // key = "RN"
@@ -119,9 +104,9 @@ mod tests {
             0x1b, 0x1b, 0x1b, 0x1b, 0x1b, // substitution matrix
             0x54, 0x44, // key = "TD"
             0x04, 0x43, 0x4f, 0x5a, 0x00, // tag IDs dictionary = [[CO:Z]]
-        ]);
+        ];
 
-        let actual = get_preservation_map(&mut data)?;
+        let actual = read_preservation_map(&mut &src[..])?;
 
         let expected = PreservationMap::new(
             false,
@@ -137,50 +122,43 @@ mod tests {
     }
 
     #[test]
-    fn test_get_preservation_map_with_no_substitution_matrix() {
-        let mut data = Bytes::from_static(&[
+    fn test_read_preservation_map_with_no_substitution_matrix() {
+        let src = [
             0x08, // data.len = 8
             0x01, // map.len = 1
             0x54, 0x44, // key = "TD"
             0x04, 0x43, 0x4f, 0x5a, 0x00, // tag IDs dictionary = [[CO:Z]]
-        ]);
+        ];
 
         assert!(matches!(
-            get_preservation_map(&mut data),
+            read_preservation_map(&mut &src[..]),
             Err(e) if e.kind() == io::ErrorKind::InvalidData,
         ));
     }
 
     #[test]
-    fn test_get_preservation_map_with_no_tag_ids_dictionary() {
-        let mut data = Bytes::from_static(&[
+    fn test_read_preservation_map_with_no_tag_ids_dictionary() {
+        let src = [
             0x08, // data.len = 8
             0x01, // map.len = 1
             0x53, 0x4d, // key = "SM"
             // [[C, G, T, N], [A, G, T, N], [A, C, T, N], [A, C, G, N], [A, C, G, T]]
             0x1b, 0x1b, 0x1b, 0x1b, 0x1b, // substitution matrix
-        ]);
+        ];
 
         assert!(matches!(
-            get_preservation_map(&mut data),
+            read_preservation_map(&mut &src[..]),
             Err(e) if e.kind() == io::ErrorKind::InvalidData,
         ));
     }
 
     #[test]
-    fn test_get_bool() -> io::Result<()> {
-        let data = [0x00];
-        let mut reader = &data[..];
-        assert!(!get_bool(&mut reader)?);
+    fn test_read_bool() -> io::Result<()> {
+        assert!(!read_bool(&mut &[0x00][..])?);
+        assert!(read_bool(&mut &[0x01][..])?);
 
-        let data = [0x01];
-        let mut reader = &data[..];
-        assert!(get_bool(&mut reader)?);
-
-        let data = [0x02];
-        let mut reader = &data[..];
         assert!(matches!(
-            get_bool(&mut reader),
+            read_bool(&mut &[0x02][..]),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidData
         ));
 

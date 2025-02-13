@@ -1,6 +1,7 @@
 //! CRAM reader and record iterator.
 
 mod builder;
+pub(crate) mod collections;
 pub(crate) mod container;
 pub mod header;
 pub(crate) mod num;
@@ -366,5 +367,14 @@ where
                 result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
             }),
         )
+    }
+}
+
+// TODO: Use `slice::split_at_checked` when the MSRV is raised to or above Rust 1.80.0.
+pub(crate) fn split_at_checked(src: &[u8], mid: usize) -> Option<(&[u8], &[u8])> {
+    if mid <= src.len() {
+        Some(src.split_at(mid))
+    } else {
+        None
     }
 }

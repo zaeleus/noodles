@@ -1,42 +1,34 @@
 use std::io;
 
-use bytes::{Buf, Bytes};
 use noodles_sam::alignment::record::data::field::{Tag, Type};
 
 use crate::{
     container::compression_header::preservation_map::{tag_sets::Key, TagSets},
-    io::reader::num::get_itf8,
+    io::reader::collections::read_array,
 };
 
-pub(super) fn get_tag_sets(src: &mut Bytes) -> io::Result<TagSets> {
-    let data_len = get_itf8(src).and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    if src.remaining() < data_len {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
-
-    let mut buf = src.split_to(data_len);
-    get_tag_sets_inner(&mut buf)
+pub(super) fn read_tag_sets(src: &mut &[u8]) -> io::Result<TagSets> {
+    let mut buf = read_array(src)?;
+    read_tag_sets_inner(&mut buf)
 }
 
-fn get_tag_sets_inner(src: &mut Bytes) -> io::Result<TagSets> {
+fn read_tag_sets_inner(src: &mut &[u8]) -> io::Result<TagSets> {
     const NUL: u8 = 0x00;
 
     let mut sets = Vec::new();
 
     while let Some(i) = src.iter().position(|&b| b == NUL) {
-        let keys_buf = src.split_to(i);
-        src.advance(1); // Discard the NUL terminator.
+        let (buf, rest) = src.split_at(i);
+
+        *src = &rest[1..];
 
         let mut line = Vec::new();
 
-        for chunk in keys_buf.chunks_exact(3) {
+        for chunk in buf.chunks_exact(3) {
             let (t0, t1, ty) = (chunk[0], chunk[1], chunk[2]);
 
             let tag = Tag::new(t0, t1);
-            let ty = get_type(ty)?;
+            let ty = decode_type(ty)?;
             let key = Key::new(tag, ty);
 
             line.push(key);
@@ -48,7 +40,7 @@ fn get_tag_sets_inner(src: &mut Bytes) -> io::Result<TagSets> {
     Ok(sets)
 }
 
-fn get_type(n: u8) -> io::Result<Type> {
+fn decode_type(n: u8) -> io::Result<Type> {
     match n {
         b'A' => Ok(Type::Character),
         b'c' => Ok(Type::Int8),
@@ -70,21 +62,21 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_type() -> io::Result<()> {
-        assert_eq!(get_type(b'A')?, Type::Character);
-        assert_eq!(get_type(b'c')?, Type::Int8);
-        assert_eq!(get_type(b'C')?, Type::UInt8);
-        assert_eq!(get_type(b's')?, Type::Int16);
-        assert_eq!(get_type(b'S')?, Type::UInt16);
-        assert_eq!(get_type(b'i')?, Type::Int32);
-        assert_eq!(get_type(b'I')?, Type::UInt32);
-        assert_eq!(get_type(b'f')?, Type::Float);
-        assert_eq!(get_type(b'Z')?, Type::String);
-        assert_eq!(get_type(b'H')?, Type::Hex);
-        assert_eq!(get_type(b'B')?, Type::Array);
+    fn test_decode_type() -> io::Result<()> {
+        assert_eq!(decode_type(b'A')?, Type::Character);
+        assert_eq!(decode_type(b'c')?, Type::Int8);
+        assert_eq!(decode_type(b'C')?, Type::UInt8);
+        assert_eq!(decode_type(b's')?, Type::Int16);
+        assert_eq!(decode_type(b'S')?, Type::UInt16);
+        assert_eq!(decode_type(b'i')?, Type::Int32);
+        assert_eq!(decode_type(b'I')?, Type::UInt32);
+        assert_eq!(decode_type(b'f')?, Type::Float);
+        assert_eq!(decode_type(b'Z')?, Type::String);
+        assert_eq!(decode_type(b'H')?, Type::Hex);
+        assert_eq!(decode_type(b'B')?, Type::Array);
 
         assert!(matches!(
-            get_type(b'n'),
+            decode_type(b'n'),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 

@@ -8,13 +8,10 @@ use std::io;
 use bytes::Bytes;
 
 use self::{
-    data_series_encodings::get_data_series_encodings,
-    encoding::{
-        get_encoding_for_byte_array_codec, get_encoding_for_byte_codec,
-        get_encoding_for_integer_codec,
-    },
-    preservation_map::get_preservation_map,
-    tag_encodings::get_tag_encodings,
+    data_series_encodings::read_data_series_encodings,
+    encoding::{read_byte_array_encoding, read_byte_encoding, read_integer_encoding},
+    preservation_map::read_preservation_map,
+    tag_encodings::read_tag_encodings,
 };
 use super::read_block;
 use crate::container::{block::ContentType, CompressionHeader};
@@ -33,14 +30,14 @@ pub fn get_compression_header(src: &mut Bytes) -> io::Result<CompressionHeader> 
         ));
     }
 
-    let mut buf = block.decode().map(Bytes::from)?;
-    get_compression_header_inner(&mut buf)
+    let buf = block.decode()?;
+    read_compression_header_inner(&mut &buf[..])
 }
 
-fn get_compression_header_inner(src: &mut Bytes) -> io::Result<CompressionHeader> {
-    let preservation_map = get_preservation_map(src)?;
-    let data_series_encodings = get_data_series_encodings(src)?;
-    let tag_encodings = get_tag_encodings(src)?;
+fn read_compression_header_inner(src: &mut &[u8]) -> io::Result<CompressionHeader> {
+    let preservation_map = read_preservation_map(src)?;
+    let data_series_encodings = read_data_series_encodings(src)?;
+    let tag_encodings = read_tag_encodings(src)?;
 
     Ok(CompressionHeader::new(
         preservation_map,

@@ -1,20 +1,21 @@
 use std::io;
 
-use bytes::Buf;
+use crate::{
+    container::compression_header::preservation_map::SubstitutionMatrix,
+    io::reader::split_at_checked,
+};
 
-use crate::container::compression_header::preservation_map::SubstitutionMatrix;
+const SIZE: usize = 5;
 
-pub(super) fn get_substitution_matrix<B>(src: &mut B) -> io::Result<SubstitutionMatrix>
-where
-    B: Buf,
-{
-    let mut buf = [0; 5];
+pub(super) fn read_substitution_matrix(src: &mut &[u8]) -> io::Result<SubstitutionMatrix> {
+    let (buf, rest) =
+        split_at_checked(src, SIZE).ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
 
-    if src.remaining() < buf.len() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
+    *src = rest;
 
-    src.copy_to_slice(&mut buf);
+    // SAFETY: `buf.len() == 5`.
+    let encoded_matrix: [u8; SIZE] = buf.try_into().unwrap();
 
-    SubstitutionMatrix::try_from(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    SubstitutionMatrix::try_from(encoded_matrix)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }

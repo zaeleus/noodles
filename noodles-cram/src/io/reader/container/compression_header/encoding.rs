@@ -1,7 +1,5 @@
 use std::io;
 
-use bytes::{Buf, Bytes};
-
 use crate::{
     container::{
         block,
@@ -13,17 +11,20 @@ use crate::{
             Encoding,
         },
     },
-    io::reader::num::get_itf8,
+    io::reader::{
+        collections::read_array,
+        num::{read_itf8, read_itf8_as},
+    },
 };
 
-pub fn get_encoding_for_byte_codec(src: &mut Bytes) -> io::Result<Encoding<Byte>> {
-    match get_kind(src)? {
+pub fn read_byte_encoding(src: &mut &[u8]) -> io::Result<Encoding<Byte>> {
+    match read_kind(src)? {
         Kind::External => {
-            let block_content_id = get_external_codec(src)?;
+            let block_content_id = read_external_codec(src)?;
             Ok(Encoding::new(Byte::External { block_content_id }))
         }
         Kind::Huffman => {
-            let (alphabet, bit_lens) = get_huffman_codec(src)?;
+            let (alphabet, bit_lens) = read_huffman_codec(src)?;
             Ok(Encoding::new(Byte::Huffman { alphabet, bit_lens }))
         }
         kind => Err(io::Error::new(
@@ -33,34 +34,34 @@ pub fn get_encoding_for_byte_codec(src: &mut Bytes) -> io::Result<Encoding<Byte>
     }
 }
 
-pub fn get_encoding_for_integer_codec(src: &mut Bytes) -> io::Result<Encoding<Integer>> {
-    match get_kind(src)? {
+pub fn read_integer_encoding(src: &mut &[u8]) -> io::Result<Encoding<Integer>> {
+    match read_kind(src)? {
         Kind::External => {
-            let block_content_id = get_external_codec(src)?;
+            let block_content_id = read_external_codec(src)?;
             Ok(Encoding::new(Integer::External { block_content_id }))
         }
         Kind::Golomb => {
-            let (offset, m) = get_golomb_codec(src)?;
+            let (offset, m) = read_golomb_codec(src)?;
             Ok(Encoding::new(Integer::Golomb { offset, m }))
         }
         Kind::Huffman => {
-            let (alphabet, bit_lens) = get_huffman_codec(src)?;
+            let (alphabet, bit_lens) = read_huffman_codec(src)?;
             Ok(Encoding::new(Integer::Huffman { alphabet, bit_lens }))
         }
         Kind::Beta => {
-            let (offset, len) = get_beta_codec(src)?;
+            let (offset, len) = read_beta_codec(src)?;
             Ok(Encoding::new(Integer::Beta { offset, len }))
         }
         Kind::Subexp => {
-            let (offset, k) = get_subexp_codec(src)?;
+            let (offset, k) = read_subexp_codec(src)?;
             Ok(Encoding::new(Integer::Subexp { offset, k }))
         }
         Kind::GolombRice => {
-            let (offset, log2_m) = get_golomb_rice_codec(src)?;
+            let (offset, log2_m) = read_golomb_rice_codec(src)?;
             Ok(Encoding::new(Integer::GolombRice { offset, log2_m }))
         }
         Kind::Gamma => {
-            let offset = get_gamma_codec(src)?;
+            let offset = read_gamma_codec(src)?;
             Ok(Encoding::new(Integer::Gamma { offset }))
         }
         kind => Err(io::Error::new(
@@ -70,10 +71,10 @@ pub fn get_encoding_for_integer_codec(src: &mut Bytes) -> io::Result<Encoding<In
     }
 }
 
-pub fn get_encoding_for_byte_array_codec(src: &mut Bytes) -> io::Result<Encoding<ByteArray>> {
-    match get_kind(src)? {
+pub fn read_byte_array_encoding(src: &mut &[u8]) -> io::Result<Encoding<ByteArray>> {
+    match read_kind(src)? {
         Kind::ByteArrayLen => {
-            let (len_encoding, value_encoding) = get_byte_array_len_codec(src)?;
+            let (len_encoding, value_encoding) = read_byte_array_len_codec(src)?;
 
             Ok(Encoding::new(ByteArray::ByteArrayLen {
                 len_encoding,
@@ -81,7 +82,7 @@ pub fn get_encoding_for_byte_array_codec(src: &mut Bytes) -> io::Result<Encoding
             }))
         }
         Kind::ByteArrayStop => {
-            let (stop_byte, block_content_id) = get_byte_array_stop_codec(src)?;
+            let (stop_byte, block_content_id) = read_byte_array_stop_codec(src)?;
 
             Ok(Encoding::new(ByteArray::ByteArrayStop {
                 stop_byte,
@@ -95,8 +96,8 @@ pub fn get_encoding_for_byte_array_codec(src: &mut Bytes) -> io::Result<Encoding
     }
 }
 
-fn get_kind(src: &mut Bytes) -> io::Result<Kind> {
-    match get_itf8(src)? {
+fn read_kind(src: &mut &[u8]) -> io::Result<Kind> {
+    match read_itf8(src)? {
         0 => Ok(Kind::Null),
         1 => Ok(Kind::External),
         2 => Ok(Kind::Golomb),
@@ -114,117 +115,94 @@ fn get_kind(src: &mut Bytes) -> io::Result<Kind> {
     }
 }
 
-fn get_args(src: &mut Bytes) -> io::Result<Bytes> {
-    let len = get_itf8(src).and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    if src.remaining() < len {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
-
-    Ok(src.split_to(len))
-}
-
-fn get_external_codec(src: &mut Bytes) -> io::Result<block::ContentId> {
-    let mut args = get_args(src)?;
-    let block_content_id = get_itf8(&mut args)?;
+fn read_external_codec(src: &mut &[u8]) -> io::Result<block::ContentId> {
+    let mut args = read_array(src)?;
+    let block_content_id = read_itf8(&mut args)?;
     Ok(block_content_id)
 }
 
-fn get_golomb_codec(src: &mut Bytes) -> io::Result<(i32, i32)> {
-    let mut args = get_args(src)?;
+fn read_golomb_codec(src: &mut &[u8]) -> io::Result<(i32, i32)> {
+    let mut args = read_array(src)?;
 
-    let offset = get_itf8(&mut args)?;
-    let m = get_itf8(&mut args)?;
+    let offset = read_itf8(&mut args)?;
+    let m = read_itf8(&mut args)?;
 
     Ok((offset, m))
 }
 
-fn get_byte_array_len_codec(src: &mut Bytes) -> io::Result<(Encoding<Integer>, Encoding<Byte>)> {
-    let mut args = get_args(src)?;
+fn read_byte_array_len_codec(src: &mut &[u8]) -> io::Result<(Encoding<Integer>, Encoding<Byte>)> {
+    let mut args = read_array(src)?;
 
-    let len_encoding = get_encoding_for_integer_codec(&mut args)?;
-    let value_encoding = get_encoding_for_byte_codec(&mut args)?;
+    let len_encoding = read_integer_encoding(&mut args)?;
+    let value_encoding = read_byte_encoding(&mut args)?;
 
     Ok((len_encoding, value_encoding))
 }
 
-fn get_byte_array_stop_codec(src: &mut Bytes) -> io::Result<(u8, block::ContentId)> {
-    let mut args = get_args(src)?;
+fn read_byte_array_stop_codec(src: &mut &[u8]) -> io::Result<(u8, block::ContentId)> {
+    let args = read_array(src)?;
 
-    let stop_byte = args
-        .try_get_u8()
-        .map_err(|e| io::Error::new(io::ErrorKind::UnexpectedEof, e))?;
+    let (stop_byte, mut args) = args
+        .split_first()
+        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
 
-    let block_content_id = get_itf8(&mut args)?;
+    let block_content_id = read_itf8(&mut args)?;
 
-    Ok((stop_byte, block_content_id))
+    Ok((*stop_byte, block_content_id))
 }
 
-fn get_huffman_codec(src: &mut Bytes) -> io::Result<(Vec<i32>, Vec<u32>)> {
-    let mut args = get_args(src)?;
+fn read_huffman_codec(src: &mut &[u8]) -> io::Result<(Vec<i32>, Vec<u32>)> {
+    let mut args = read_array(src)?;
 
-    let alphabet_len = get_itf8(&mut args).and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    let alphabet_size: usize = read_itf8_as(&mut args)?;
 
-    let mut alphabet = Vec::with_capacity(alphabet_len);
+    let alphabet = (0..alphabet_size)
+        .map(|_| read_itf8(&mut args))
+        .collect::<io::Result<_>>()?;
 
-    for _ in 0..alphabet_len {
-        let symbol = get_itf8(&mut args)?;
-        alphabet.push(symbol);
-    }
+    let bit_lens_size: usize = read_itf8_as(&mut args)?;
 
-    let bit_lens_len = get_itf8(&mut args).and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let mut bit_lens = Vec::with_capacity(bit_lens_len);
-
-    for _ in 0..bit_lens_len {
-        let len = get_itf8(&mut args).and_then(|n| {
-            u32::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })?;
-
-        bit_lens.push(len);
-    }
+    let bit_lens = (0..bit_lens_size)
+        .map(|_| {
+            read_itf8(&mut args).and_then(|n| {
+                u32::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })
+        })
+        .collect::<io::Result<_>>()?;
 
     Ok((alphabet, bit_lens))
 }
 
-fn get_beta_codec(src: &mut Bytes) -> io::Result<(i32, u32)> {
-    let mut args = get_args(src)?;
+fn read_beta_codec(src: &mut &[u8]) -> io::Result<(i32, u32)> {
+    let mut args = read_array(src)?;
 
-    let offset = get_itf8(&mut args)?;
-    let len = get_itf8(&mut args).and_then(|n| {
-        u32::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    let offset = read_itf8(&mut args)?;
+    let len = read_itf8_as(&mut args)?;
 
     Ok((offset, len))
 }
 
-fn get_subexp_codec(src: &mut Bytes) -> io::Result<(i32, i32)> {
-    let mut args = get_args(src)?;
+fn read_subexp_codec(src: &mut &[u8]) -> io::Result<(i32, i32)> {
+    let mut args = read_array(src)?;
 
-    let offset = get_itf8(&mut args)?;
-    let k = get_itf8(&mut args)?;
+    let offset = read_itf8(&mut args)?;
+    let k = read_itf8(&mut args)?;
 
     Ok((offset, k))
 }
 
-fn get_golomb_rice_codec(src: &mut Bytes) -> io::Result<(i32, i32)> {
-    let mut args = get_args(src)?;
+fn read_golomb_rice_codec(src: &mut &[u8]) -> io::Result<(i32, i32)> {
+    let mut args = read_array(src)?;
 
-    let offset = get_itf8(&mut args)?;
-    let log2_m = get_itf8(&mut args)?;
+    let offset = read_itf8(&mut args)?;
+    let log2_m = read_itf8(&mut args)?;
 
     Ok((offset, log2_m))
 }
 
-fn get_gamma_codec(src: &mut Bytes) -> io::Result<i32> {
-    let mut args = get_args(src)?;
-    let offset = get_itf8(&mut args)?;
+fn read_gamma_codec(src: &mut &[u8]) -> io::Result<i32> {
+    let mut args = read_array(src)?;
+    let offset = read_itf8(&mut args)?;
     Ok(offset)
 }
 
@@ -233,10 +211,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_kind() -> io::Result<()> {
-        fn t(buf: &'static [u8], expected: Kind) -> io::Result<()> {
-            let mut src = Bytes::from_static(buf);
-            let actual = get_kind(&mut src)?;
+    fn test_read_kind() -> io::Result<()> {
+        fn t(mut src: &[u8], expected: Kind) -> io::Result<()> {
+            let actual = read_kind(&mut src)?;
             assert_eq!(actual, expected);
             Ok(())
         }
@@ -252,9 +229,8 @@ mod tests {
         t(&[0x08], Kind::GolombRice)?;
         t(&[0x09], Kind::Gamma)?;
 
-        let mut src = Bytes::from_static(&[0x0a]);
         assert!(matches!(
-            get_kind(&mut src),
+            read_kind(&mut &[0x0a][..]),
             Err(e) if e.kind() == io::ErrorKind::InvalidData,
         ));
 
@@ -262,27 +238,27 @@ mod tests {
     }
 
     #[test]
-    fn test_get_external_codec() -> io::Result<()> {
-        let mut data = Bytes::from_static(&[
+    fn test_read_external_codec() -> io::Result<()> {
+        let src = [
             1, // args.len
             5, // block content ID
-        ]);
+        ];
 
-        let block_content_id = get_external_codec(&mut data)?;
+        let block_content_id = read_external_codec(&mut &src[..])?;
         assert_eq!(block_content_id, 5);
 
         Ok(())
     }
 
     #[test]
-    fn test_get_golomb_codec() -> io::Result<()> {
-        let mut data = Bytes::from_static(&[
+    fn test_read_golomb_codec() -> io::Result<()> {
+        let src = [
             2,  // args.len
             1,  // offset
             10, // M
-        ]);
+        ];
 
-        let (offset, m) = get_golomb_codec(&mut data)?;
+        let (offset, m) = read_golomb_codec(&mut &src[..])?;
         assert_eq!(offset, 1);
         assert_eq!(m, 10);
 
@@ -290,16 +266,16 @@ mod tests {
     }
 
     #[test]
-    fn test_get_huffman_codec() -> io::Result<()> {
-        let mut data = Bytes::from_static(&[
+    fn test_read_huffman_codec() -> io::Result<()> {
+        let src = [
             4,  // args.len
             1,  // alphabet.len
             65, // 'A'
             1,  // bit_lens.len
             0,  // 0
-        ]);
+        ];
 
-        let (alphabet, bit_lens) = get_huffman_codec(&mut data)?;
+        let (alphabet, bit_lens) = read_huffman_codec(&mut &src[..])?;
         assert_eq!(alphabet, [65]);
         assert_eq!(bit_lens, [0]);
 
@@ -307,8 +283,8 @@ mod tests {
     }
 
     #[test]
-    fn test_get_byte_array_len_codec() -> io::Result<()> {
-        let mut data = Bytes::from_static(&[
+    fn test_read_byte_array_len_codec() -> io::Result<()> {
+        let src = [
             6,  // args.len
             1,  // external encoding ID
             1,  // args.len
@@ -316,9 +292,9 @@ mod tests {
             1,  // external encoding ID
             1,  // args.len
             21, // block content ID
-        ]);
+        ];
 
-        let (len_encoding, value_encoding) = get_byte_array_len_codec(&mut data)?;
+        let (len_encoding, value_encoding) = read_byte_array_len_codec(&mut &src[..])?;
 
         assert_eq!(
             len_encoding,
@@ -337,14 +313,14 @@ mod tests {
     }
 
     #[test]
-    fn test_get_byte_array_stop_codec() -> io::Result<()> {
-        let mut data = Bytes::from_static(&[
+    fn test_read_byte_array_stop_codec() -> io::Result<()> {
+        let src = [
             2, // args.len
             0, // NUL
             8, // block content ID
-        ]);
+        ];
 
-        let (stop_byte, block_content_id) = get_byte_array_stop_codec(&mut data)?;
+        let (stop_byte, block_content_id) = read_byte_array_stop_codec(&mut &src[..])?;
         assert_eq!(stop_byte, 0);
         assert_eq!(block_content_id, 8);
 
@@ -352,14 +328,14 @@ mod tests {
     }
 
     #[test]
-    fn test_get_beta_codec() -> io::Result<()> {
-        let mut data = Bytes::from_static(&[
+    fn test_read_beta_codec() -> io::Result<()> {
+        let src = [
             2, // args.len
             0, // offset
             8, // len
-        ]);
+        ];
 
-        let (offset, len) = get_beta_codec(&mut data)?;
+        let (offset, len) = read_beta_codec(&mut &src[..])?;
         assert_eq!(offset, 0);
         assert_eq!(len, 8);
 
@@ -367,14 +343,14 @@ mod tests {
     }
 
     #[test]
-    fn test_get_subexp_codec() -> io::Result<()> {
-        let mut data = Bytes::from_static(&[
+    fn test_read_subexp_codec() -> io::Result<()> {
+        let src = [
             2, // args.len
             0, // offset
             1, // k
-        ]);
+        ];
 
-        let (offset, k) = get_subexp_codec(&mut data)?;
+        let (offset, k) = read_subexp_codec(&mut &src[..])?;
         assert_eq!(offset, 0);
         assert_eq!(k, 1);
 
@@ -382,14 +358,14 @@ mod tests {
     }
 
     #[test]
-    fn test_get_golomb_rice_codec() -> io::Result<()> {
-        let mut data = Bytes::from_static(&[
+    fn test_read_golomb_rice_codec() -> io::Result<()> {
+        let src = [
             2, // args.len
             1, // offset
             3, // log2(M)
-        ]);
+        ];
 
-        let (offset, log2_m) = get_golomb_rice_codec(&mut data)?;
+        let (offset, log2_m) = read_golomb_rice_codec(&mut &src[..])?;
         assert_eq!(offset, 1);
         assert_eq!(log2_m, 3);
 
@@ -397,13 +373,13 @@ mod tests {
     }
 
     #[test]
-    fn test_get_gamma_codec() -> io::Result<()> {
-        let mut data = Bytes::from_static(&[
+    fn test_read_gamma_codec() -> io::Result<()> {
+        let src = [
             1, // args.len
             1, // offset
-        ]);
+        ];
 
-        let offset = get_gamma_codec(&mut data)?;
+        let offset = read_gamma_codec(&mut &src[..])?;
         assert_eq!(offset, 1);
 
         Ok(())
