@@ -150,8 +150,6 @@ impl<'c> Slice<'c> {
             records,
         )?;
 
-        resolve_quality_scores(records);
-
         Ok(())
     }
 }
@@ -502,20 +500,6 @@ fn get_slice_reference_sequence(
     }
 }
 
-fn resolve_quality_scores(records: &mut [Record]) {
-    for record in records {
-        if !record.flags().is_unmapped()
-            && !record.cram_flags().are_quality_scores_stored_as_array()
-        {
-            resolve::resolve_quality_scores(
-                &record.features,
-                record.read_length(),
-                &mut record.quality_scores,
-            );
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use bstr::ByteSlice;
@@ -750,41 +734,6 @@ mod tests {
 
         let actual: Vec<_> = records.into_iter().map(|r| r.sequence).collect();
         let expected = [Sequence::from(vec![b'A', b'C'])];
-        assert_eq!(actual, expected);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_resolve_quality_scores() -> Result<(), Box<dyn std::error::Error>> {
-        let mut records = [
-            Record {
-                id: 1,
-                bam_flags: sam::alignment::record::Flags::empty(),
-                read_length: 2,
-                features: vec![Feature::Scores {
-                    position: Position::try_from(1)?,
-                    quality_scores: vec![8, 13],
-                }],
-                ..Default::default()
-            },
-            Record {
-                id: 2,
-                ..Default::default()
-            },
-            Record {
-                id: 3,
-                cram_flags: Flags::QUALITY_SCORES_STORED_AS_ARRAY,
-                read_length: 2,
-                quality_scores: vec![21, 34],
-                ..Default::default()
-            },
-        ];
-
-        resolve_quality_scores(&mut records);
-
-        let actual: Vec<_> = records.into_iter().map(|r| r.quality_scores).collect();
-        let expected = [vec![8, 13], vec![], vec![21, 34]];
         assert_eq!(actual, expected);
 
         Ok(())

@@ -94,38 +94,6 @@ fn copy_from_bases(dst: &mut [u8], src: &[u8]) {
     }
 }
 
-/// Resolves the quality scores.
-pub fn resolve_quality_scores(features: &[Feature], read_len: usize, quality_scores: &mut Vec<u8>) {
-    quality_scores.clear();
-    quality_scores.resize(read_len, 0);
-
-    for feature in features {
-        let read_position = usize::from(feature.position()) - 1;
-
-        match feature {
-            Feature::Scores {
-                quality_scores: scores,
-                ..
-            } => {
-                let end = read_position
-                    .checked_add(scores.len())
-                    .expect("attempt to add with overflow");
-
-                quality_scores[read_position..end].copy_from_slice(scores);
-            }
-            Feature::ReadBase {
-                quality_score: score,
-                ..
-            } => quality_scores[read_position] = *score,
-            Feature::QualityScore {
-                quality_score: score,
-                ..
-            } => quality_scores[read_position] = *score,
-            _ => continue,
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use noodles_core::Position;
@@ -252,32 +220,6 @@ mod tests {
         let expected = Sequence::from(b"NNNN");
 
         assert_eq!(actual, expected);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_resolve_quality_scores() -> Result<(), noodles_core::position::TryFromIntError> {
-        let features = [
-            Feature::ReadBase {
-                position: Position::try_from(1)?,
-                base: b'A',
-                quality_score: 5,
-            },
-            Feature::QualityScore {
-                position: Position::try_from(3)?,
-                quality_score: 8,
-            },
-            Feature::Scores {
-                position: Position::try_from(5)?,
-                quality_scores: vec![13, 21],
-            },
-        ];
-
-        let mut buf = Vec::new();
-        resolve_quality_scores(&features, 6, &mut buf);
-        let expected = [5, 0, 8, 0, 13, 21];
-        assert_eq!(buf, expected);
 
         Ok(())
     }

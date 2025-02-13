@@ -5,6 +5,7 @@ pub mod feature;
 mod features;
 mod flags;
 mod mate_flags;
+mod quality_scores;
 pub mod resolve;
 
 pub use self::{feature::Feature, flags::Flags, mate_flags::MateFlags};
@@ -22,7 +23,7 @@ use noodles_sam::{
     header::record::value::{map::ReferenceSequence, Map},
 };
 
-use self::data::Data;
+use self::{data::Data, quality_scores::QualityScores};
 
 /// A CRAM record.
 #[derive(Clone, Debug, PartialEq)]
@@ -341,7 +342,11 @@ impl sam::alignment::Record for Record<'_> {
     }
 
     fn quality_scores(&self) -> Box<dyn sam::alignment::record::QualityScores + '_> {
-        Box::new(Scores(&self.quality_scores))
+        if self.bam_flags.is_unmapped() || self.cram_flags.are_quality_scores_stored_as_array() {
+            Box::new(Scores(&self.quality_scores))
+        } else {
+            Box::new(QualityScores::new(&self.features, self.read_length))
+        }
     }
 
     fn data(&self) -> Box<dyn sam::alignment::record::Data + '_> {
