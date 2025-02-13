@@ -5,16 +5,15 @@ use noodles_sam::alignment::record::cigar::{op::Kind, Op};
 
 use crate::record::Feature;
 
-/// An iterator over features as CIGAR operations.
-pub struct Cigar<'r, 'c: 'r> {
+pub(super) struct Iter<'r, 'c: 'r> {
     features: slice::Iter<'r, Feature<'c>>,
     read_length: usize,
     read_position: Position,
     next_op: Option<(Kind, usize)>,
 }
 
-impl<'r, 'c: 'r> Cigar<'r, 'c> {
-    pub(crate) fn new(features: &'r [Feature<'c>], read_length: usize) -> Self {
+impl<'r, 'c: 'r> Iter<'r, 'c> {
+    pub(super) fn new(features: &'r [Feature<'c>], read_length: usize) -> Self {
         Self {
             features: features.iter(),
             read_length,
@@ -31,7 +30,7 @@ impl<'r, 'c: 'r> Cigar<'r, 'c> {
     }
 }
 
-impl Iterator for Cigar<'_, '_> {
+impl Iterator for Iter<'_, '_> {
     type Item = Op;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -87,7 +86,7 @@ mod tests {
     #[test]
     fn test_next() -> Result<(), noodles_core::position::TryFromIntError> {
         fn t(features: &[Feature], read_length: usize, expected: &[Op]) {
-            let cigar = Cigar::new(features, read_length);
+            let cigar = Iter::new(features, read_length);
             let actual: Vec<_> = cigar.collect();
             assert_eq!(actual, expected);
         }

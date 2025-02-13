@@ -1,4 +1,3 @@
-mod cigar;
 mod with_positions;
 
-pub use self::{cigar::Cigar, with_positions::WithPositions};
+pub use self::with_positions::WithPositions;
