@@ -757,18 +757,16 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
                 )
             })?;
 
-        let mut buf = vec![0; read_length];
-
-        encoding.get().decode_exact(
+        let buf = encoding.get().decode_take(
             &mut self.core_data_reader,
             &mut self.external_data_readers,
-            &mut buf,
+            read_length,
         )?;
 
         if buf.iter().all(|&n| n == MISSING) {
-            buf.clear();
+            Ok(Vec::new())
+        } else {
+            Ok(buf.to_vec())
         }
-
-        Ok(buf)
     }
 }

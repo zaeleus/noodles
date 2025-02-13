@@ -26,12 +26,12 @@ pub enum Byte {
 }
 
 impl Byte {
-    pub fn decode_exact(
+    pub fn decode_take<'de>(
         &self,
-        _core_data_reader: &mut BitReader<'_>,
-        external_data_readers: &mut ExternalDataReaders<'_>,
-        dst: &mut [u8],
-    ) -> io::Result<()> {
+        _core_data_reader: &mut BitReader<'de>,
+        external_data_readers: &mut ExternalDataReaders<'de>,
+        len: usize,
+    ) -> io::Result<&'de [u8]> {
         match self {
             Self::External { block_content_id } => {
                 let src = external_data_readers
@@ -43,17 +43,15 @@ impl Byte {
                         )
                     })?;
 
-                let (buf, rest) = split_at_checked(src, dst.len())
+                let (buf, rest) = split_at_checked(src, len)
                     .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
 
                 *src = rest;
 
-                dst.copy_from_slice(buf);
+                Ok(buf)
             }
             Self::Huffman { .. } => todo!(),
         }
-
-        Ok(())
     }
 }
 
@@ -133,7 +131,7 @@ mod tests {
     use crate::container::compression_header::Encoding;
 
     #[test]
-    fn test_decode_exact() -> io::Result<()> {
+    fn test_decode_take() -> io::Result<()> {
         let core_data = [0b10000000];
         let mut core_data_reader = BitReader::new(&core_data[..]);
 
@@ -144,8 +142,7 @@ mod tests {
         let codec = Byte::External {
             block_content_id: 1,
         };
-        let mut dst = vec![0; 4];
-        codec.decode_exact(&mut core_data_reader, &mut external_data_readers, &mut dst)?;
+        let dst = codec.decode_take(&mut core_data_reader, &mut external_data_readers, 4)?;
 
         assert_eq!(dst, external_data);
 
