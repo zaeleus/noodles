@@ -5,7 +5,6 @@ pub use external_data_readers::ExternalDataReaders;
 use std::{error, fmt, io};
 
 use bstr::BString;
-use bytes::Buf;
 use noodles_bam as bam;
 use noodles_core::Position;
 use noodles_sam::{
@@ -47,25 +46,19 @@ impl fmt::Display for ReadRecordError {
     }
 }
 
-pub struct Reader<'c, 'ch: 'c, EDR>
-where
-    EDR: Buf,
-{
+pub struct Reader<'c, 'ch: 'c> {
     compression_header: &'ch CompressionHeader,
     core_data_reader: BitReader<'c>,
-    external_data_readers: ExternalDataReaders<EDR>,
+    external_data_readers: ExternalDataReaders<'c>,
     reference_sequence_context: ReferenceSequenceContext,
     prev_alignment_start: Option<Position>,
 }
 
-impl<'c, 'ch: 'c, EDR> Reader<'c, 'ch, EDR>
-where
-    EDR: Buf,
-{
+impl<'c, 'ch: 'c> Reader<'c, 'ch> {
     pub fn new(
         compression_header: &'ch CompressionHeader,
         core_data_reader: BitReader<'c>,
-        external_data_readers: ExternalDataReaders<EDR>,
+        external_data_readers: ExternalDataReaders<'c>,
         reference_sequence_context: ReferenceSequenceContext,
     ) -> Self {
         let initial_alignment_start = match reference_sequence_context {

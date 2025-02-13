@@ -1,18 +1,13 @@
 use std::collections::HashMap;
 
-use bytes::Buf;
-
 use crate::container::block;
 
-pub struct ExternalDataReaders<B> {
-    low_readers: [Option<B>; 64],
-    high_readers: HashMap<block::ContentId, B>,
+pub struct ExternalDataReaders<'c> {
+    low_readers: [Option<&'c [u8]>; 64],
+    high_readers: HashMap<block::ContentId, &'c [u8]>,
 }
 
-impl<B> ExternalDataReaders<B>
-where
-    B: Buf,
-{
+impl<'c> ExternalDataReaders<'c> {
     pub fn new() -> Self {
         Self {
             low_readers: init_low_readers(),
@@ -20,7 +15,7 @@ where
         }
     }
 
-    pub fn insert(&mut self, id: block::ContentId, reader: B) {
+    pub fn insert(&mut self, id: block::ContentId, reader: &'c [u8]) {
         match id {
             i @ 0..=63 => {
                 self.low_readers[i as usize] = Some(reader);
@@ -31,7 +26,7 @@ where
         }
     }
 
-    pub fn get_mut(&mut self, id: &block::ContentId) -> Option<&mut B> {
+    pub fn get_mut(&mut self, id: &block::ContentId) -> Option<&mut &'c [u8]> {
         match *id {
             i @ 0..=63 => self.low_readers[i as usize].as_mut(),
             _ => self.high_readers.get_mut(id),
@@ -39,10 +34,7 @@ where
     }
 }
 
-fn init_low_readers<B>() -> [Option<B>; 64]
-where
-    B: Buf,
-{
+fn init_low_readers<'c>() -> [Option<&'c [u8]>; 64] {
     [
         None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
         None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,

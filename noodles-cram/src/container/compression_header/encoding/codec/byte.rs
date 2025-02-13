@@ -1,7 +1,6 @@
 use std::{collections::HashMap, io};
 
 use byteorder::WriteBytesExt;
-use bytes::Buf;
 
 use crate::{
     container::{
@@ -9,7 +8,10 @@ use crate::{
         compression_header::encoding::{Decode, Encode},
     },
     huffman::CanonicalHuffmanDecoder,
-    io::{reader::record::ExternalDataReaders, BitReader, BitWriter},
+    io::{
+        reader::{record::ExternalDataReaders, split_at_checked},
+        BitReader, BitWriter,
+    },
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -24,15 +26,12 @@ pub enum Byte {
 }
 
 impl Byte {
-    pub fn decode_exact<S>(
+    pub fn decode_exact(
         &self,
         _core_data_reader: &mut BitReader<'_>,
-        external_data_readers: &mut ExternalDataReaders<S>,
+        external_data_readers: &mut ExternalDataReaders<'_>,
         dst: &mut [u8],
-    ) -> io::Result<()>
-    where
-        S: Buf,
-    {
+    ) -> io::Result<()> {
         match self {
             Self::External { block_content_id } => {
                 let src = external_data_readers
@@ -44,11 +43,12 @@ impl Byte {
                         )
                     })?;
 
-                if src.remaining() < dst.len() {
-                    return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-                }
+                let (buf, rest) = split_at_checked(src, dst.len())
+                    .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
 
-                src.copy_to_slice(dst);
+                *src = rest;
+
+                dst.copy_from_slice(buf);
             }
             Self::Huffman { .. } => todo!(),
         }
@@ -60,14 +60,11 @@ impl Byte {
 impl<'de> Decode<'de> for Byte {
     type Value = u8;
 
-    fn decode<S>(
+    fn decode(
         &self,
         core_data_reader: &mut BitReader<'de>,
-        external_data_readers: &mut ExternalDataReaders<S>,
-    ) -> io::Result<Self::Value>
-    where
-        S: Buf,
-    {
+        external_data_readers: &mut ExternalDataReaders<'de>,
+    ) -> io::Result<Self::Value> {
         match self {
             Self::External { block_content_id } => {
                 let src = external_data_readers
@@ -79,8 +76,13 @@ impl<'de> Decode<'de> for Byte {
                         )
                     })?;
 
-                src.try_get_u8()
-                    .map_err(|e| io::Error::new(io::ErrorKind::UnexpectedEof, e))
+                let (n, rest) = src
+                    .split_first()
+                    .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
+
+                *src = rest;
+
+                Ok(*n)
             }
             Self::Huffman { alphabet, bit_lens } => {
                 if alphabet.len() == 1 {

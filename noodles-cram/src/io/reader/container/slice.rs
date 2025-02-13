@@ -3,7 +3,6 @@ mod header;
 use std::io;
 
 use bstr::BString;
-use bytes::Bytes;
 use noodles_core::Position;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
@@ -73,11 +72,15 @@ impl Slice<'_> {
         let core_data_src = core_data_block.decode()?;
         let core_data_reader = BitReader::new(&core_data_src);
 
+        let external_data_srcs: Vec<_> = external_blocks
+            .into_iter()
+            .map(|block| block.decode().map(|src| (block.content_id, src)))
+            .collect::<io::Result<_>>()?;
+
         let mut external_data_readers = ExternalDataReaders::new();
 
-        for block in &external_blocks {
-            let reader = block.decode()?;
-            external_data_readers.insert(block.content_id, Bytes::from(reader));
+        for (block_content_id, src) in &external_data_srcs {
+            external_data_readers.insert(*block_content_id, src);
         }
 
         let mut record_reader = crate::io::reader::record::Reader::new(

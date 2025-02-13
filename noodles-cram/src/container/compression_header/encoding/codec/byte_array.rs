@@ -4,7 +4,6 @@ use std::{
 };
 
 use byteorder::WriteBytesExt;
-use bytes::Buf;
 
 use crate::{
     container::{
@@ -35,14 +34,11 @@ pub enum ByteArray {
 impl<'de> Decode<'de> for ByteArray {
     type Value = Vec<u8>;
 
-    fn decode<S>(
+    fn decode(
         &self,
         core_data_reader: &mut BitReader<'de>,
-        external_data_readers: &mut ExternalDataReaders<S>,
-    ) -> std::io::Result<Self::Value>
-    where
-        S: Buf,
-    {
+        external_data_readers: &mut ExternalDataReaders<'de>,
+    ) -> std::io::Result<Self::Value> {
         match self {
             Self::ByteArrayLen {
                 len_encoding,
@@ -71,20 +67,17 @@ impl<'de> Decode<'de> for ByteArray {
                         )
                     })?;
 
-                let Some(len) = src.chunk().iter().position(|&b| b == *stop_byte) else {
+                let Some(i) = src.iter().position(|&b| b == *stop_byte) else {
                     return Err(io::Error::new(
                         io::ErrorKind::InvalidData,
                         "missing byte array stop byte",
                     ));
                 };
 
-                let mut buf = vec![0; len];
-                src.copy_to_slice(&mut buf);
+                let (buf, rest) = src.split_at(i);
+                *src = &rest[1..];
 
-                // Discard the stop byte.
-                src.advance(1);
-
-                Ok(buf)
+                Ok(buf.to_vec())
             }
         }
     }

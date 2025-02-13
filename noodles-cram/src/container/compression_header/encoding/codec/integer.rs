@@ -3,8 +3,6 @@ use std::{
     io::{self, Write},
 };
 
-use bytes::Buf;
-
 use crate::{
     container::{
         block,
@@ -12,7 +10,7 @@ use crate::{
     },
     huffman::CanonicalHuffmanDecoder,
     io::{
-        reader::{num::get_itf8, record::ExternalDataReaders},
+        reader::{num::read_itf8, record::ExternalDataReaders},
         writer::num::write_itf8,
         BitReader, BitWriter,
     },
@@ -51,14 +49,11 @@ pub enum Integer {
 impl<'de> Decode<'de> for Integer {
     type Value = i32;
 
-    fn decode<S>(
+    fn decode(
         &self,
         core_data_reader: &mut BitReader<'de>,
-        external_data_readers: &mut ExternalDataReaders<S>,
-    ) -> io::Result<Self::Value>
-    where
-        S: Buf,
-    {
+        external_data_readers: &mut ExternalDataReaders<'de>,
+    ) -> io::Result<Self::Value> {
         match self {
             Self::External { block_content_id } => {
                 let src = external_data_readers
@@ -70,7 +65,7 @@ impl<'de> Decode<'de> for Integer {
                         )
                     })?;
 
-                get_itf8(src)
+                read_itf8(src)
             }
             Self::Huffman { alphabet, bit_lens } => {
                 if alphabet.len() == 1 {

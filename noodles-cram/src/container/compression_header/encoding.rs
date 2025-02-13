@@ -1,8 +1,6 @@
 pub mod codec;
 mod kind;
 
-use bytes::Buf;
-
 pub use self::kind::Kind;
 
 use std::{
@@ -18,13 +16,11 @@ use crate::{
 pub trait Decode<'de> {
     type Value;
 
-    fn decode<S>(
+    fn decode(
         &self,
         core_data_reader: &mut BitReader<'de>,
-        external_data_readers: &mut ExternalDataReaders<S>,
-    ) -> io::Result<Self::Value>
-    where
-        S: Buf;
+        external_data_readers: &mut ExternalDataReaders<'de>,
+    ) -> io::Result<Self::Value>;
 }
 
 pub trait Encode<'en> {
@@ -58,14 +54,11 @@ impl<'de, C> Encoding<C>
 where
     C: Decode<'de>,
 {
-    pub fn decode<S>(
+    pub fn decode(
         &self,
         core_data_reader: &mut BitReader<'de>,
-        external_data_readers: &mut ExternalDataReaders<S>,
-    ) -> io::Result<C::Value>
-    where
-        S: Buf,
-    {
+        external_data_readers: &mut ExternalDataReaders<'de>,
+    ) -> io::Result<C::Value> {
         self.get().decode(core_data_reader, external_data_readers)
     }
 }
