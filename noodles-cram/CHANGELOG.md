@@ -18,6 +18,12 @@
   * cram/io/reader: Read container (`Reader::read_container`) into a given
     buffer (`cram::io::reader::Container`).
 
+  * cram/io/reader: Record iterators (e.g., `Reader::records` and
+    `Reader::query`) return instances of `sam::alignment::RecordBuf`.
+
+  * cram/record: Include the read group field in the data iterator
+    (`Record::data`).
+
 ### Deprecated
 
   * cram: Deprecate `cram::data_container`, `cram::DataContainer`, and

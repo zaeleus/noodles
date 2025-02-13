@@ -6,7 +6,6 @@ use std::{
 use noodles_sam as sam;
 
 use super::{Container, Reader};
-use crate::Record;
 
 /// An iterator over records of a CRAM reader.
 ///
@@ -18,7 +17,7 @@ where
     reader: &'a mut Reader<R>,
     header: &'a sam::Header,
     container: Container,
-    records: vec::IntoIter<Record>,
+    records: vec::IntoIter<sam::alignment::RecordBuf>,
 }
 
 impl<'a, R> Records<'a, R>
@@ -55,7 +54,15 @@ where
                         &mut records,
                     )?;
 
-                    Ok(records)
+                    records
+                        .into_iter()
+                        .map(|record| {
+                            sam::alignment::RecordBuf::try_from_alignment_record(
+                                self.header,
+                                &record,
+                            )
+                        })
+                        .collect::<io::Result<Vec<_>>>()
                 })
             })
             .collect::<Result<Vec<_>, _>>()?
@@ -72,7 +79,7 @@ impl<R> Iterator for Records<'_, R>
 where
     R: Read,
 {
-    type Item = io::Result<Record>;
+    type Item = io::Result<sam::alignment::RecordBuf>;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {

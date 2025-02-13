@@ -6,7 +6,7 @@ use noodles_sam as sam;
 use tokio::io::{self, AsyncRead, AsyncSeek};
 
 use super::Reader;
-use crate::{crai, io::reader::Container, Record};
+use crate::{crai, io::reader::Container};
 
 struct Context<'r, 'h: 'r, 'i: 'r, R> {
     reader: &'r mut Reader<R>,
@@ -18,7 +18,7 @@ struct Context<'r, 'h: 'r, 'i: 'r, R> {
     reference_sequence_id: usize,
     interval: Interval,
 
-    records: vec::IntoIter<Record>,
+    records: vec::IntoIter<sam::alignment::RecordBuf>,
 }
 
 pub(super) fn query<'r, 'h: 'r, 'i: 'r, R>(
@@ -27,7 +27,7 @@ pub(super) fn query<'r, 'h: 'r, 'i: 'r, R>(
     index: &'i crai::Index,
     reference_sequence_id: usize,
     interval: Interval,
-) -> impl Stream<Item = io::Result<Record>> + 'r
+) -> impl Stream<Item = io::Result<sam::alignment::RecordBuf>> + 'r
 where
     R: AsyncRead + AsyncSeek + Unpin,
 {
@@ -110,7 +110,12 @@ where
                     &mut records,
                 )?;
 
-                Ok(records)
+                records
+                    .into_iter()
+                    .map(|record| {
+                        sam::alignment::RecordBuf::try_from_alignment_record(ctx.header, &record)
+                    })
+                    .collect::<io::Result<Vec<_>>>()
             })
         })
         .collect::<Result<Vec<_>, _>>();

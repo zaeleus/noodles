@@ -1,6 +1,7 @@
 //! CRAM record and fields.
 
 mod convert;
+mod data;
 pub mod feature;
 mod features;
 mod flags;
@@ -16,16 +17,19 @@ use noodles_core::Position;
 use noodles_sam::{
     self as sam,
     alignment::{
-        record::MappingQuality,
-        record_buf::{Data, QualityScores, Sequence},
+        record::{data::field::Tag, MappingQuality},
+        record_buf::{data::field::Value, QualityScores, Sequence},
     },
     header::record::value::{map::ReferenceSequence, Map},
 };
 
+use self::data::Data;
+
 /// A CRAM record.
 #[derive(Clone, Debug, PartialEq)]
-pub struct Record {
+pub struct Record<'c> {
     pub(crate) id: u64,
+    pub(crate) header: Option<&'c sam::Header>,
     pub(crate) bam_flags: sam::alignment::record::Flags,
     pub(crate) cram_flags: Flags,
     pub(crate) reference_sequence_id: Option<usize>,
@@ -38,14 +42,14 @@ pub struct Record {
     pub(crate) mate_alignment_start: Option<Position>,
     pub(crate) template_length: i32,
     pub(crate) distance_to_mate: Option<usize>,
-    pub(crate) data: Data,
+    pub(crate) data: Vec<(Tag, Value)>,
     pub(crate) sequence: Sequence,
     pub(crate) features: Vec<Feature>,
     pub(crate) mapping_quality: Option<MappingQuality>,
     pub(crate) quality_scores: QualityScores,
 }
 
-impl Record {
+impl Record<'_> {
     pub(crate) fn id(&self) -> u64 {
         self.id
     }
@@ -180,12 +184,12 @@ impl Record {
     }
 
     /// Returns the tag dictionary.
-    pub fn tags(&self) -> &Data {
+    pub fn tags(&self) -> &[(Tag, Value)] {
         &self.data
     }
 
     /// Returns the data.
-    pub fn data(&self) -> &Data {
+    pub fn data(&self) -> &[(Tag, Value)] {
         &self.data
     }
 
@@ -216,10 +220,11 @@ impl Record {
     }
 }
 
-impl Default for Record {
+impl Default for Record<'_> {
     fn default() -> Self {
         Self {
             id: 0,
+            header: None,
             bam_flags: sam::alignment::record::Flags::UNMAPPED,
             cram_flags: Flags::default(),
             reference_sequence_id: None,
@@ -232,7 +237,7 @@ impl Default for Record {
             mate_alignment_start: None,
             template_length: 0,
             distance_to_mate: None,
-            data: Data::default(),
+            data: Vec::new(),
             sequence: Sequence::default(),
             features: Vec::new(),
             mapping_quality: None,
@@ -285,7 +290,7 @@ impl sam::alignment::record::Cigar for Cigar<'_> {
     }
 }
 
-impl sam::alignment::Record for Record {
+impl sam::alignment::Record for Record<'_> {
     fn name(&self) -> Option<&BStr> {
         self.name()
     }
@@ -341,7 +346,11 @@ impl sam::alignment::Record for Record {
     }
 
     fn data(&self) -> Box<dyn sam::alignment::record::Data + '_> {
-        Box::new(self.data())
+        Box::new(Data::new(
+            self.header.unwrap(),
+            &self.data,
+            self.read_group_id,
+        ))
     }
 }
 

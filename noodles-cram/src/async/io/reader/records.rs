@@ -5,7 +5,7 @@ use noodles_sam as sam;
 use tokio::io::{self, AsyncRead};
 
 use super::Reader;
-use crate::{io::reader::Container, Record};
+use crate::io::reader::Container;
 
 struct Context<'r, 'h: 'r, R>
 where
@@ -14,13 +14,13 @@ where
     reader: &'r mut Reader<R>,
     header: &'h sam::Header,
     container: Container,
-    records: vec::IntoIter<Record>,
+    records: vec::IntoIter<sam::alignment::RecordBuf>,
 }
 
 pub fn records<'r, 'h: 'r, R>(
     reader: &'r mut Reader<R>,
     header: &'h sam::Header,
-) -> impl Stream<Item = io::Result<Record>> + 'r
+) -> impl Stream<Item = io::Result<sam::alignment::RecordBuf>> + 'r
 where
     R: AsyncRead + Unpin,
 {
@@ -45,7 +45,9 @@ where
     }))
 }
 
-async fn read_next_container<R>(ctx: &mut Context<'_, '_, R>) -> Option<io::Result<Vec<Record>>>
+async fn read_next_container<R>(
+    ctx: &mut Context<'_, '_, R>,
+) -> Option<io::Result<Vec<sam::alignment::RecordBuf>>>
 where
     R: AsyncRead + Unpin,
 {
@@ -74,7 +76,12 @@ where
                     &mut records,
                 )?;
 
-                Ok(records)
+                records
+                    .into_iter()
+                    .map(|record| {
+                        sam::alignment::RecordBuf::try_from_alignment_record(ctx.header, &record)
+                    })
+                    .collect::<io::Result<Vec<_>>>()
             })
         })
         .collect::<Result<Vec<_>, _>>();

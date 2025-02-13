@@ -80,15 +80,11 @@ where
                     .records()
                     .map(|result| result.map(|record| Box::new(record) as Box<dyn Record>)),
             ),
-            Self::Cram(reader) => Box::new(reader.records(header).map(|result| {
-                result.and_then(|record| {
-                    record
-                        .try_into_alignment_record(header)
-                        .map(|alignment_record| {
-                            Box::new(alignment_record) as Box<dyn sam::alignment::Record>
-                        })
-                })
-            })),
+            Self::Cram(reader) => Box::new(
+                reader
+                    .records(header)
+                    .map(|result| result.map(|record| Box::new(record) as Box<dyn Record>)),
+            ),
         };
 
         records
@@ -143,15 +139,9 @@ where
             Self::Cram(reader) => {
                 let query = reader.query(header, region)?;
 
-                Box::new(query.map(|result| {
-                    result.and_then(|record| {
-                        record
-                            .try_into_alignment_record(header)
-                            .map(|alignment_record| {
-                                Box::new(alignment_record) as Box<dyn sam::alignment::Record>
-                            })
-                    })
-                }))
+                Box::new(
+                    query.map(|result| result.map(|record| Box::new(record) as Box<dyn Record>)),
+                )
             }
         };
 

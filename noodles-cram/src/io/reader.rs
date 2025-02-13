@@ -361,14 +361,10 @@ where
         &'a mut self,
         header: &'a sam::Header,
     ) -> Box<dyn Iterator<Item = io::Result<Box<dyn sam::alignment::Record>>> + 'a> {
-        Box::new(self.records(header).map(|result| {
-            result.and_then(|record| {
-                record
-                    .try_into_alignment_record(header)
-                    .map(|alignment_record| {
-                        Box::new(alignment_record) as Box<dyn sam::alignment::Record>
-                    })
-            })
-        }))
+        Box::new(
+            self.records(header).map(|result| {
+                result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
+            }),
+        )
     }
 }

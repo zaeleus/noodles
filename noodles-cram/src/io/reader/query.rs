@@ -7,7 +7,7 @@ use noodles_core::region::Interval;
 use noodles_sam as sam;
 
 use super::{Container, Reader};
-use crate::{crai, Record};
+use crate::crai;
 
 /// An iterator over records that intersect a given region.
 ///
@@ -25,7 +25,7 @@ where
     reference_sequence_id: usize,
     interval: Interval,
 
-    records: vec::IntoIter<Record>,
+    records: vec::IntoIter<sam::alignment::RecordBuf>,
 }
 
 impl<'a, R> Query<'a, R>
@@ -90,7 +90,15 @@ where
                         &mut records,
                     )?;
 
-                    Ok(records)
+                    records
+                        .into_iter()
+                        .map(|record| {
+                            sam::alignment::RecordBuf::try_from_alignment_record(
+                                self.header,
+                                &record,
+                            )
+                        })
+                        .collect::<io::Result<Vec<_>>>()
                 })
             })
             .collect::<Result<Vec<_>, _>>();
@@ -114,7 +122,7 @@ impl<R> Iterator for Query<'_, R>
 where
     R: Read + Seek,
 {
-    type Item = io::Result<Record>;
+    type Item = io::Result<sam::alignment::RecordBuf>;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {

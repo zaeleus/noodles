@@ -40,8 +40,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut writer = sam::r#async::io::Writer::new(io::stdout());
 
     while let Some(record) = query.try_next().await? {
-        let r = record.try_into_alignment_record(&header)?;
-        writer.write_alignment_record(&header, &r).await?;
+        writer.write_alignment_record(&header, &record).await?;
     }
 
     Ok(())

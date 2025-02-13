@@ -16,7 +16,7 @@ use tokio::io::{self, AsyncRead, AsyncSeek, AsyncSeekExt, SeekFrom};
 
 pub use self::builder::Builder;
 use self::{container::read_container, crc_reader::CrcReader, header::read_header};
-use crate::{crai, io::reader::Container, FileDefinition, Record};
+use crate::{crai, io::reader::Container, FileDefinition};
 
 /// An async CRAM reader.
 pub struct Reader<R> {
@@ -263,7 +263,7 @@ where
     pub fn records<'r, 'h: 'r>(
         &'r mut self,
         header: &'h sam::Header,
-    ) -> impl Stream<Item = io::Result<Record>> + 'r {
+    ) -> impl Stream<Item = io::Result<sam::alignment::RecordBuf>> + 'r {
         use self::records::records;
 
         records(self, header)
@@ -342,7 +342,7 @@ where
         header: &'h sam::Header,
         index: &'i crai::Index,
         region: &Region,
-    ) -> io::Result<impl Stream<Item = io::Result<Record>> + 'r> {
+    ) -> io::Result<impl Stream<Item = io::Result<sam::alignment::RecordBuf>> + 'r> {
         use self::query::query;
 
         let reference_sequence_id = header

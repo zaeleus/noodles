@@ -8,7 +8,13 @@ use bstr::BString;
 use bytes::Buf;
 use noodles_bam as bam;
 use noodles_core::Position;
-use noodles_sam::{self as sam, alignment::record_buf::QualityScores};
+use noodles_sam::{
+    self as sam,
+    alignment::{
+        record::data::field::Tag,
+        record_buf::{data::field::Value, QualityScores},
+    },
+};
 
 use crate::{
     container::{
@@ -361,7 +367,7 @@ where
             })
     }
 
-    fn read_data(&mut self) -> io::Result<sam::alignment::record_buf::Data> {
+    fn read_data(&mut self) -> io::Result<Vec<(Tag, Value)>> {
         use bam::record::codec::decoder::data::field::read_value;
 
         let tag_set_id = self.read_tag_set_id()?;
@@ -398,7 +404,7 @@ where
             fields.push(field);
         }
 
-        Ok(fields.into_iter().collect())
+        Ok(fields)
     }
 
     fn read_tag_set_id(&mut self) -> io::Result<usize> {
