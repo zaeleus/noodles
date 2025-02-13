@@ -37,9 +37,13 @@
 
     Build, e.g., a `sam::alignment::RecordBuf` instead.
 
-  * cram/record/convert: Remove `Record::try_from_alignment_record`.
+  * cram/record/convert: Remove conversions
+    (`Record::try_from_alignment_record` and
+    `Record::try_into_alignment_record`).
 
-    It is now unnecessary to convert an alignment record to a CRAM record.
+    These are now unnecessary. Conversion to a CRAM record is only done for on
+    write, and `sam::alignment::RecordBuf::try_from_alignment_record` can be
+    used for the conversion into an alignment record buffer.
 
 ## 0.77.0 - 2025-02-06
 

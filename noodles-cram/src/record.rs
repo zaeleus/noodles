@@ -1,6 +1,5 @@
 //! CRAM record and fields.
 
-mod convert;
 mod data;
 pub mod feature;
 mod features;
