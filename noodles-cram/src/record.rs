@@ -17,7 +17,7 @@ use noodles_sam::{
     self as sam,
     alignment::{
         record::{data::field::Tag, MappingQuality},
-        record_buf::{data::field::Value, QualityScores, Sequence},
+        record_buf::{data::field::Value, Sequence},
     },
     header::record::value::{map::ReferenceSequence, Map},
 };
@@ -45,7 +45,7 @@ pub struct Record<'c> {
     pub(crate) sequence: Sequence,
     pub(crate) features: Vec<Feature>,
     pub(crate) mapping_quality: Option<MappingQuality>,
-    pub(crate) quality_scores: QualityScores,
+    pub(crate) quality_scores: Vec<u8>,
 }
 
 impl Record<'_> {
@@ -214,7 +214,7 @@ impl Record<'_> {
     }
 
     /// Returns the quality scores.
-    pub fn quality_scores(&self) -> &QualityScores {
+    pub fn quality_scores(&self) -> &[u8] {
         &self.quality_scores
     }
 }
@@ -240,7 +240,7 @@ impl Default for Record<'_> {
             sequence: Sequence::default(),
             features: Vec::new(),
             mapping_quality: None,
-            quality_scores: QualityScores::default(),
+            quality_scores: Vec::new(),
         }
     }
 }
@@ -341,7 +341,7 @@ impl sam::alignment::Record for Record<'_> {
     }
 
     fn quality_scores(&self) -> Box<dyn sam::alignment::record::QualityScores + '_> {
-        Box::new(self.quality_scores())
+        Box::new(Scores(&self.quality_scores))
     }
 
     fn data(&self) -> Box<dyn sam::alignment::record::Data + '_> {
@@ -350,6 +350,22 @@ impl sam::alignment::Record for Record<'_> {
             &self.data,
             self.read_group_id,
         ))
+    }
+}
+
+struct Scores<'c>(&'c [u8]);
+
+impl sam::alignment::record::QualityScores for Scores<'_> {
+    fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<u8>> + '_> {
+        Box::new(self.0.iter().copied().map(Ok))
     }
 }
 

@@ -757,8 +757,6 @@ mod tests {
 
     #[test]
     fn test_resolve_quality_scores() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::alignment::record_buf::QualityScores;
-
         let mut records = [
             Record {
                 id: 1,
@@ -778,7 +776,7 @@ mod tests {
                 id: 3,
                 cram_flags: Flags::QUALITY_SCORES_STORED_AS_ARRAY,
                 read_length: 2,
-                quality_scores: QualityScores::from(vec![21, 34]),
+                quality_scores: vec![21, 34],
                 ..Default::default()
             },
         ];
@@ -786,13 +784,7 @@ mod tests {
         resolve_quality_scores(&mut records);
 
         let actual: Vec<_> = records.into_iter().map(|r| r.quality_scores).collect();
-
-        let expected = [
-            QualityScores::from(vec![8, 13]),
-            QualityScores::default(),
-            QualityScores::from(vec![21, 34]),
-        ];
-
+        let expected = [vec![8, 13], vec![], vec![21, 34]];
         assert_eq!(actual, expected);
 
         Ok(())

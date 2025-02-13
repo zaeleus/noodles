@@ -9,10 +9,7 @@ use noodles_bam as bam;
 use noodles_core::Position;
 use noodles_sam::{
     self as sam,
-    alignment::{
-        record::data::field::Tag,
-        record_buf::{data::field::Value, QualityScores},
-    },
+    alignment::{record::data::field::Tag, record_buf::data::field::Value},
 };
 
 use crate::{
@@ -746,10 +743,7 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
         Ok(())
     }
 
-    fn read_quality_scores_stored_as_array(
-        &mut self,
-        read_length: usize,
-    ) -> io::Result<QualityScores> {
+    fn read_quality_scores_stored_as_array(&mut self, read_length: usize) -> io::Result<Vec<u8>> {
         const MISSING: u8 = 0xff;
 
         let encoding = self
@@ -775,6 +769,6 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
             buf.clear();
         }
 
-        Ok(QualityScores::from(buf))
+        Ok(buf)
     }
 }

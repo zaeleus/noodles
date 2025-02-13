@@ -6,8 +6,7 @@ use noodles_core::Position;
 use noodles_fasta as fasta;
 
 use super::{
-    feature::substitution::Base as SubstitutionBase, features::WithPositions, Feature,
-    QualityScores, Sequence,
+    feature::substitution::Base as SubstitutionBase, features::WithPositions, Feature, Sequence,
 };
 use crate::container::compression_header::preservation_map::SubstitutionMatrix;
 
@@ -96,16 +95,12 @@ fn copy_from_bases(dst: &mut [u8], src: &[u8]) {
 }
 
 /// Resolves the quality scores.
-pub fn resolve_quality_scores(
-    features: &[Feature],
-    read_len: usize,
-    quality_scores: &mut QualityScores,
-) {
-    quality_scores.as_mut().clear();
-    quality_scores.as_mut().resize(read_len, 0);
+pub fn resolve_quality_scores(features: &[Feature], read_len: usize, quality_scores: &mut Vec<u8>) {
+    quality_scores.clear();
+    quality_scores.resize(read_len, 0);
 
     for feature in features {
-        let read_position = feature.position();
+        let read_position = usize::from(feature.position()) - 1;
 
         match feature {
             Feature::Scores {
@@ -262,7 +257,7 @@ mod tests {
     }
 
     #[test]
-    fn test_resolve_quality_scores() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_resolve_quality_scores() -> Result<(), noodles_core::position::TryFromIntError> {
         let features = [
             Feature::ReadBase {
                 position: Position::try_from(1)?,
@@ -279,10 +274,10 @@ mod tests {
             },
         ];
 
-        let mut quality_scores = QualityScores::default();
-        resolve_quality_scores(&features, 6, &mut quality_scores);
-        let expected = QualityScores::from(vec![5, 0, 8, 0, 13, 21]);
-        assert_eq!(quality_scores, expected);
+        let mut buf = Vec::new();
+        resolve_quality_scores(&features, 6, &mut buf);
+        let expected = [5, 0, 8, 0, 13, 21];
+        assert_eq!(buf, expected);
 
         Ok(())
     }
