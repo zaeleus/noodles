@@ -1,23 +1,19 @@
+use std::slice;
+
 use noodles_core::Position;
 
 use crate::record::Feature;
 
-pub struct WithPositions<'r, 'c: 'r, I>
-where
-    I: Iterator<Item = &'r Feature<'c>>,
-{
-    iter: I,
+pub struct WithPositions<'r, 'c: 'r> {
+    features: slice::Iter<'r, Feature<'c>>,
     reference_position: Position,
     read_position: Position,
 }
 
-impl<'r, 'c: 'r, I> WithPositions<'r, 'c, I>
-where
-    I: Iterator<Item = &'r Feature<'c>>,
-{
-    pub fn new(iter: I, alignment_start: Position) -> Self {
+impl<'r, 'c: 'r> WithPositions<'r, 'c> {
+    pub fn new(features: &'r [Feature<'c>], alignment_start: Position) -> Self {
         Self {
-            iter,
+            features: features.iter(),
             reference_position: alignment_start,
             read_position: Position::MIN,
         }
@@ -31,15 +27,12 @@ where
     }
 }
 
-impl<'r, 'c: 'r, I> Iterator for WithPositions<'r, 'c, I>
-where
-    I: Iterator<Item = &'r Feature<'c>>,
-{
-    type Item = ((Position, Position), I::Item);
+impl<'r, 'c: 'r> Iterator for WithPositions<'r, 'c> {
+    type Item = ((Position, Position), &'r Feature<'c>);
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
-            let feature = self.iter.next()?;
+            let feature = self.features.next()?;
 
             let (reference_position_delta, read_position_delta) = match feature {
                 Feature::Bases { bases, .. } => (bases.len(), bases.len()),
@@ -103,7 +96,7 @@ mod tests {
             },
         ];
 
-        let mut iter = WithPositions::new(features.iter(), Position::MIN);
+        let mut iter = WithPositions::new(&features, Position::MIN);
 
         assert_eq!(
             iter.next(),

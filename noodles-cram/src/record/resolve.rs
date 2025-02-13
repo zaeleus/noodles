@@ -21,7 +21,7 @@ pub(crate) fn resolve_bases(
     buf.as_mut().clear();
     buf.as_mut().resize(read_length, b'N');
 
-    let mut it = WithPositions::new(features.iter(), alignment_start);
+    let mut it = WithPositions::new(features, alignment_start);
 
     let (mut last_reference_position, mut last_read_position) = it.positions();
 
