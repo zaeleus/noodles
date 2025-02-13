@@ -143,7 +143,7 @@ pub fn read_slice<'c>(src: &mut &'c [u8]) -> io::Result<Slice<'c>> {
     Ok(Slice { header, src })
 }
 
-fn read_core_data_block(src: &mut &[u8]) -> io::Result<Block> {
+fn read_core_data_block<'c>(src: &mut &'c [u8]) -> io::Result<Block<'c>> {
     let block = read_block(src)?;
 
     if block.content_type != ContentType::CoreData {
@@ -160,7 +160,7 @@ fn read_core_data_block(src: &mut &[u8]) -> io::Result<Block> {
     Ok(block)
 }
 
-fn read_external_blocks(src: &mut &[u8], len: usize) -> io::Result<Vec<Block>> {
+fn read_external_blocks<'c>(src: &mut &'c [u8], len: usize) -> io::Result<Vec<Block<'c>>> {
     let mut external_blocks = Vec::with_capacity(len);
 
     for _ in 0..len {
@@ -707,7 +707,7 @@ mod tests {
             content_type: ContentType::ExternalData,
             content_id: 1,
             uncompressed_size: 0,
-            src: Vec::new(),
+            src: &[],
         }];
 
         let mut records = [Record {

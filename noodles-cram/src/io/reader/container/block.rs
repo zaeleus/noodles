@@ -16,33 +16,33 @@ use crate::{
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Block {
+pub struct Block<'c> {
     pub compression_method: CompressionMethod,
     pub content_type: ContentType,
     pub content_id: ContentId,
     pub uncompressed_size: usize,
-    pub src: Vec<u8>,
+    pub src: &'c [u8],
 }
 
-impl Block {
+impl Block<'_> {
     pub fn decode(&self) -> io::Result<Vec<u8>> {
         use crate::codecs::{aac, bzip2, fqzcomp, gzip, lzma, name_tokenizer, rans_4x8, rans_nx16};
 
         match self.compression_method {
-            CompressionMethod::None => Ok(self.src.clone()),
+            CompressionMethod::None => Ok(self.src.to_vec()),
             CompressionMethod::Gzip => {
                 let mut dst = vec![0; self.uncompressed_size];
-                gzip::decode(&self.src, &mut dst)?;
+                gzip::decode(self.src, &mut dst)?;
                 Ok(dst)
             }
             CompressionMethod::Bzip2 => {
                 let mut dst = vec![0; self.uncompressed_size];
-                bzip2::decode(&self.src, &mut dst)?;
+                bzip2::decode(self.src, &mut dst)?;
                 Ok(dst)
             }
             CompressionMethod::Lzma => {
                 let mut dst = vec![0; self.uncompressed_size];
-                lzma::decode(&self.src, &mut dst)?;
+                lzma::decode(self.src, &mut dst)?;
                 Ok(dst)
             }
             CompressionMethod::Rans4x8 => rans_4x8::decode(&mut &self.src[..]),
@@ -58,7 +58,7 @@ impl Block {
     }
 }
 
-pub fn read_block(src: &mut &[u8]) -> io::Result<Block> {
+pub fn read_block<'c>(src: &mut &'c [u8]) -> io::Result<Block<'c>> {
     let original_src = *src;
 
     let mut compression_method = read_compression_method(src)?;
@@ -99,7 +99,7 @@ pub fn read_block(src: &mut &[u8]) -> io::Result<Block> {
         content_type,
         content_id,
         uncompressed_size,
-        src: data.to_vec(),
+        src: data,
     })
 }
 
@@ -132,7 +132,7 @@ mod tests {
             content_type: ContentType::ExternalData,
             content_id: ContentId::from(1),
             uncompressed_size: 4,
-            src: b"ndls".to_vec(),
+            src: b"ndls",
         };
 
         assert_eq!(actual, expected);
@@ -159,7 +159,7 @@ mod tests {
             content_type: ContentType::ExternalData,
             content_id: ContentId::from(1),
             uncompressed_size: 0,
-            src: Vec::new(),
+            src: &[],
         };
 
         assert_eq!(actual, expected);
