@@ -17,11 +17,11 @@ pub struct Block {
     pub content_type: ContentType,
     pub content_id: ContentId,
     pub uncompressed_size: usize,
-    pub src: Bytes,
+    pub src: Vec<u8>,
 }
 
 impl Block {
-    pub fn decode(&self) -> io::Result<Bytes> {
+    pub fn decode(&self) -> io::Result<Vec<u8>> {
         use crate::codecs::{aac, bzip2, fqzcomp, gzip, lzma, name_tokenizer, rans_4x8, rans_nx16};
 
         match self.compression_method {
@@ -29,29 +29,27 @@ impl Block {
             CompressionMethod::Gzip => {
                 let mut dst = vec![0; self.uncompressed_size];
                 gzip::decode(&self.src, &mut dst)?;
-                Ok(Bytes::from(dst))
+                Ok(dst)
             }
             CompressionMethod::Bzip2 => {
                 let mut dst = vec![0; self.uncompressed_size];
                 bzip2::decode(&self.src, &mut dst)?;
-                Ok(Bytes::from(dst))
+                Ok(dst)
             }
             CompressionMethod::Lzma => {
                 let mut dst = vec![0; self.uncompressed_size];
                 lzma::decode(&self.src, &mut dst)?;
-                Ok(Bytes::from(dst))
+                Ok(dst)
             }
-            CompressionMethod::Rans4x8 => rans_4x8::decode(&mut &self.src[..]).map(Bytes::from),
+            CompressionMethod::Rans4x8 => rans_4x8::decode(&mut &self.src[..]),
             CompressionMethod::RansNx16 => {
-                rans_nx16::decode(&mut &self.src[..], self.uncompressed_size).map(Bytes::from)
+                rans_nx16::decode(&mut &self.src[..], self.uncompressed_size)
             }
             CompressionMethod::AdaptiveArithmeticCoding => {
-                aac::decode(&mut &self.src[..], self.uncompressed_size).map(Bytes::from)
+                aac::decode(&mut &self.src[..], self.uncompressed_size)
             }
-            CompressionMethod::Fqzcomp => fqzcomp::decode(&mut &self.src[..]).map(Bytes::from),
-            CompressionMethod::NameTokenizer => {
-                name_tokenizer::decode(&mut &self.src[..]).map(Bytes::from)
-            }
+            CompressionMethod::Fqzcomp => fqzcomp::decode(&mut &self.src[..]),
+            CompressionMethod::NameTokenizer => name_tokenizer::decode(&mut &self.src[..]),
         }
     }
 }
@@ -106,7 +104,7 @@ pub fn read_block(src: &mut Bytes) -> io::Result<Block> {
         content_type,
         content_id,
         uncompressed_size,
-        src: data,
+        src: data.to_vec(),
     })
 }
 
@@ -143,7 +141,7 @@ mod tests {
             content_type: ContentType::ExternalData,
             content_id: ContentId::from(1),
             uncompressed_size: 4,
-            src: Bytes::from_static(b"ndls"),
+            src: b"ndls".to_vec(),
         };
 
         assert_eq!(actual, expected);
@@ -170,7 +168,7 @@ mod tests {
             content_type: ContentType::ExternalData,
             content_id: ContentId::from(1),
             uncompressed_size: 0,
-            src: Bytes::new(),
+            src: Vec::new(),
         };
 
         assert_eq!(actual, expected);

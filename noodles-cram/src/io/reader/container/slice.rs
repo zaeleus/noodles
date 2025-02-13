@@ -70,13 +70,15 @@ impl Slice {
         let external_block_count = self.header.block_count() - 1;
         let external_blocks = read_external_blocks(&mut src, external_block_count)?;
 
-        let core_data_reader = core_data_block.decode().map(BitReader::new)?;
+        let core_data_reader = core_data_block
+            .decode()
+            .map(|buf| BitReader::new(Bytes::from(buf)))?;
 
         let mut external_data_readers = ExternalDataReaders::new();
 
         for block in &external_blocks {
             let reader = block.decode()?;
-            external_data_readers.insert(block.content_id, reader);
+            external_data_readers.insert(block.content_id, Bytes::from(reader));
         }
 
         let mut record_reader = crate::io::reader::record::Reader::new(
@@ -505,7 +507,6 @@ fn resolve_quality_scores(records: &mut [Record]) {
 #[cfg(test)]
 mod tests {
     use bstr::ByteSlice;
-    use bytes::Bytes;
 
     use super::*;
     use crate::{
@@ -710,7 +711,7 @@ mod tests {
             content_type: ContentType::ExternalData,
             content_id: 1,
             uncompressed_size: 0,
-            src: Bytes::new(),
+            src: Vec::new(),
         }];
 
         let mut records = [Record {

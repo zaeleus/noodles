@@ -33,7 +33,7 @@ pub fn get_compression_header(src: &mut Bytes) -> io::Result<CompressionHeader> 
         ));
     }
 
-    let mut buf = block.decode()?;
+    let mut buf = block.decode().map(Bytes::from)?;
     get_compression_header_inner(&mut buf)
 }
 

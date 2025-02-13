@@ -29,7 +29,7 @@ pub(super) fn get_header(src: &mut Bytes) -> io::Result<Header> {
         ));
     }
 
-    let mut buf = block.decode()?;
+    let mut buf = block.decode().map(Bytes::from)?;
     get_header_inner(&mut buf)
 }
 
