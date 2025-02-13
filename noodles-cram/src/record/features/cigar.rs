@@ -6,15 +6,15 @@ use noodles_sam::alignment::record::cigar::{op::Kind, Op};
 use crate::record::Feature;
 
 /// An iterator over features as CIGAR operations.
-pub struct Cigar<'a> {
-    features: slice::Iter<'a, Feature>,
+pub struct Cigar<'r, 'c: 'r> {
+    features: slice::Iter<'r, Feature<'c>>,
     read_length: usize,
     read_position: Position,
     next_op: Option<(Kind, usize)>,
 }
 
-impl<'a> Cigar<'a> {
-    pub(crate) fn new(features: &'a [Feature], read_length: usize) -> Self {
+impl<'r, 'c: 'r> Cigar<'r, 'c> {
+    pub(crate) fn new(features: &'r [Feature<'c>], read_length: usize) -> Self {
         Self {
             features: features.iter(),
             read_length,
@@ -31,7 +31,7 @@ impl<'a> Cigar<'a> {
     }
 }
 
-impl Iterator for Cigar<'_> {
+impl Iterator for Cigar<'_, '_> {
     type Item = Op;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -97,7 +97,7 @@ mod tests {
 
         let features = [Feature::SoftClip {
             position: Position::try_from(1)?,
-            bases: vec![b'A', b'T'],
+            bases: b"AT",
         }];
         t(
             &features,
@@ -107,7 +107,7 @@ mod tests {
 
         let features = [Feature::SoftClip {
             position: Position::try_from(4)?,
-            bases: vec![b'G'],
+            bases: b"G",
         }];
         t(
             &features,
@@ -128,7 +128,7 @@ mod tests {
         let features = [
             Feature::SoftClip {
                 position: Position::try_from(1)?,
-                bases: vec![b'A'],
+                bases: b"A",
             },
             Feature::Substitution {
                 position: Position::try_from(3)?,

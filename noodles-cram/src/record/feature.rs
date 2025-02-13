@@ -10,13 +10,13 @@ use noodles_core::Position;
 /// A CRAM record feature.
 #[allow(missing_docs)]
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum Feature {
+pub enum Feature<'c> {
     /// A stretch of bases.
-    Bases { position: Position, bases: Vec<u8> },
+    Bases { position: Position, bases: &'c [u8] },
     /// A stretch of quality scores.
     Scores {
         position: Position,
-        quality_scores: Vec<u8>,
+        quality_scores: &'c [u8],
     },
     /// A base-quality score pair.
     ReadBase {
@@ -27,7 +27,7 @@ pub enum Feature {
     /// A base substitution.
     Substitution { position: Position, code: u8 },
     /// Inserted bases.
-    Insertion { position: Position, bases: Vec<u8> },
+    Insertion { position: Position, bases: &'c [u8] },
     /// A number of deleted bases.
     Deletion { position: Position, len: usize },
     /// A single inserted base.
@@ -40,14 +40,14 @@ pub enum Feature {
     /// A number of skipped bases.
     ReferenceSkip { position: Position, len: usize },
     /// Soft clipped bases.
-    SoftClip { position: Position, bases: Vec<u8> },
+    SoftClip { position: Position, bases: &'c [u8] },
     /// A number of padded bases.
     Padding { position: Position, len: usize },
     /// A number of hard clipped bases.
     HardClip { position: Position, len: usize },
 }
 
-impl Feature {
+impl Feature<'_> {
     /// Returns the feature code.
     ///
     /// # Examples
@@ -122,7 +122,7 @@ mod tests {
         assert_eq!(
             Feature::Bases {
                 position,
-                bases: Vec::new()
+                bases: &[]
             }
             .code(),
             Code::Bases
@@ -130,7 +130,7 @@ mod tests {
         assert_eq!(
             Feature::Scores {
                 position,
-                quality_scores: Vec::new()
+                quality_scores: &[]
             }
             .code(),
             Code::Scores
@@ -151,7 +151,7 @@ mod tests {
         assert_eq!(
             Feature::Insertion {
                 position,
-                bases: Vec::new()
+                bases: &[]
             }
             .code(),
             Code::Insertion
@@ -183,7 +183,7 @@ mod tests {
         assert_eq!(
             Feature::SoftClip {
                 position,
-                bases: Vec::new()
+                bases: &[]
             }
             .code(),
             Code::SoftClip
@@ -202,7 +202,7 @@ mod tests {
         assert_eq!(
             Feature::Bases {
                 position,
-                bases: Vec::new()
+                bases: &[]
             }
             .position(),
             position
@@ -210,7 +210,7 @@ mod tests {
         assert_eq!(
             Feature::Scores {
                 position,
-                quality_scores: Vec::new()
+                quality_scores: &[]
             }
             .position(),
             position
@@ -231,7 +231,7 @@ mod tests {
         assert_eq!(
             Feature::Insertion {
                 position,
-                bases: Vec::new()
+                bases: &[]
             }
             .position(),
             position
@@ -260,7 +260,7 @@ mod tests {
         assert_eq!(
             Feature::SoftClip {
                 position,
-                bases: Vec::new()
+                bases: &[]
             }
             .position(),
             position

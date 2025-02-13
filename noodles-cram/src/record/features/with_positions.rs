@@ -2,18 +2,18 @@ use noodles_core::Position;
 
 use crate::record::Feature;
 
-pub struct WithPositions<'a, I>
+pub struct WithPositions<'r, 'c: 'r, I>
 where
-    I: Iterator<Item = &'a Feature>,
+    I: Iterator<Item = &'r Feature<'c>>,
 {
     iter: I,
     reference_position: Position,
     read_position: Position,
 }
 
-impl<'a, I> WithPositions<'a, I>
+impl<'r, 'c: 'r, I> WithPositions<'r, 'c, I>
 where
-    I: Iterator<Item = &'a Feature>,
+    I: Iterator<Item = &'r Feature<'c>>,
 {
     pub fn new(iter: I, alignment_start: Position) -> Self {
         Self {
@@ -31,9 +31,9 @@ where
     }
 }
 
-impl<'a, I> Iterator for WithPositions<'a, I>
+impl<'r, 'c: 'r, I> Iterator for WithPositions<'r, 'c, I>
 where
-    I: Iterator<Item = &'a Feature>,
+    I: Iterator<Item = &'r Feature<'c>>,
 {
     type Item = ((Position, Position), I::Item);
 
@@ -95,11 +95,11 @@ mod tests {
         let features = [
             Feature::Bases {
                 position: Position::MIN,
-                bases: vec![b'A', b'C'],
+                bases: b"AC",
             },
             Feature::Scores {
                 position: Position::MIN,
-                quality_scores: vec![0, 0],
+                quality_scores: &[0, 0],
             },
         ];
 

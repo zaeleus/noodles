@@ -435,7 +435,7 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
             })
     }
 
-    fn read_feature(&mut self, prev_position: usize) -> io::Result<Feature> {
+    fn read_feature(&mut self, prev_position: usize) -> io::Result<Feature<'c>> {
         use feature::Code;
 
         let code = self.read_feature_code()?;
@@ -447,17 +447,14 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
         match code {
             Code::Bases => {
                 let bases = self.read_stretches_of_bases()?;
-                Ok(Feature::Bases {
-                    position,
-                    bases: bases.to_vec(),
-                })
+                Ok(Feature::Bases { position, bases })
             }
             Code::Scores => {
                 let quality_scores = self.read_stretches_of_quality_scores()?;
 
                 Ok(Feature::Scores {
                     position,
-                    quality_scores: quality_scores.to_vec(),
+                    quality_scores,
                 })
             }
             Code::ReadBase => {
@@ -476,10 +473,7 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
             }
             Code::Insertion => {
                 let bases = self.read_insertion_bases()?;
-                Ok(Feature::Insertion {
-                    position,
-                    bases: bases.to_vec(),
-                })
+                Ok(Feature::Insertion { position, bases })
             }
             Code::Deletion => {
                 let len = self.read_deletion_length()?;
@@ -503,10 +497,7 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
             }
             Code::SoftClip => {
                 let bases = self.read_soft_clip_bases()?;
-                Ok(Feature::SoftClip {
-                    position,
-                    bases: bases.to_vec(),
-                })
+                Ok(Feature::SoftClip { position, bases })
             }
             Code::Padding => {
                 let len = self.read_padding_length()?;

@@ -127,7 +127,7 @@ mod tests {
         t(
             &[Feature::Bases {
                 position: Position::try_from(1)?,
-                bases: vec![b'T', b'G'],
+                bases: b"TG",
             }],
             &Sequence::from(b"TGGT"),
         )?;
@@ -149,7 +149,7 @@ mod tests {
         t(
             &[Feature::Insertion {
                 position: Position::try_from(2)?,
-                bases: vec![b'G', b'G'],
+                bases: b"GG",
             }],
             &Sequence::from(b"AGGC"),
         )?;
@@ -177,7 +177,7 @@ mod tests {
         t(
             &[Feature::SoftClip {
                 position: Position::try_from(3)?,
-                bases: vec![b'G', b'G'],
+                bases: b"GG",
             }],
             &Sequence::from(b"ACGG"),
         )?;
@@ -204,7 +204,7 @@ mod tests {
         let substitution_matrix = SubstitutionMatrix::default();
         let features = [Feature::Bases {
             position: Position::try_from(1)?,
-            bases: vec![b'N', b'N', b'N', b'N'],
+            bases: b"NNNN",
         }];
         let alignment_start = Position::try_from(1)?;
 

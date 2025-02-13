@@ -44,7 +44,7 @@ pub struct Record<'c> {
     pub(crate) distance_to_mate: Option<usize>,
     pub(crate) data: Vec<(Tag, Value)>,
     pub(crate) sequence: Sequence,
-    pub(crate) features: Vec<Feature>,
+    pub(crate) features: Vec<Feature<'c>>,
     pub(crate) mapping_quality: Option<MappingQuality>,
     pub(crate) quality_scores: &'c [u8],
 }
@@ -246,14 +246,14 @@ impl Default for Record<'_> {
     }
 }
 
-struct Cigar<'a> {
-    features: &'a [Feature],
+struct Cigar<'r, 'c: 'r> {
+    features: &'r [Feature<'c>],
     is_unmapped: bool,
     read_length: usize,
 }
 
-impl<'a> Cigar<'a> {
-    fn new(features: &'a [Feature], is_unmapped: bool, read_length: usize) -> Self {
+impl<'r, 'c: 'r> Cigar<'r, 'c> {
+    fn new(features: &'r [Feature<'c>], is_unmapped: bool, read_length: usize) -> Self {
         Self {
             features,
             is_unmapped,
@@ -262,7 +262,7 @@ impl<'a> Cigar<'a> {
     }
 }
 
-impl sam::alignment::record::Cigar for Cigar<'_> {
+impl sam::alignment::record::Cigar for Cigar<'_, '_> {
     fn is_empty(&self) -> bool {
         self.is_unmapped
     }
@@ -419,7 +419,7 @@ mod tests {
         let features = [
             Feature::Insertion {
                 position: Position::try_from(1)?,
-                bases: vec![b'A', b'C'],
+                bases: b"AC",
             },
             Feature::InsertBase {
                 position: Position::try_from(4)?,
@@ -435,7 +435,7 @@ mod tests {
             },
             Feature::SoftClip {
                 position: Position::try_from(16)?,
-                bases: vec![b'A', b'C', b'G', b'T'],
+                bases: b"ACGT",
             },
         ];
         assert_eq!(calculate_alignment_span(20, &features), 21);

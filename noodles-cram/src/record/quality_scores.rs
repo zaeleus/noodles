@@ -7,13 +7,13 @@ use noodles_sam as sam;
 use self::iter::Iter;
 use super::Feature;
 
-pub struct QualityScores<'r> {
-    features: &'r [Feature],
+pub struct QualityScores<'r, 'c: 'r> {
+    features: &'r [Feature<'c>],
     read_length: usize,
 }
 
-impl<'r> QualityScores<'r> {
-    pub fn new(features: &'r [Feature], read_length: usize) -> Self {
+impl<'r, 'c: 'r> QualityScores<'r, 'c> {
+    pub fn new(features: &'r [Feature<'c>], read_length: usize) -> Self {
         Self {
             features,
             read_length,
@@ -21,7 +21,7 @@ impl<'r> QualityScores<'r> {
     }
 }
 
-impl sam::alignment::record::QualityScores for QualityScores<'_> {
+impl sam::alignment::record::QualityScores for QualityScores<'_, '_> {
     fn is_empty(&self) -> bool {
         self.len() == 0
     }

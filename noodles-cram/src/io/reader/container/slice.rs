@@ -716,7 +716,7 @@ mod tests {
             alignment_start: Some(Position::MIN),
             features: vec![Feature::Bases {
                 position: Position::MIN,
-                bases: vec![b'A', b'C'],
+                bases: b"AC",
             }],
             ..Default::default()
         }];

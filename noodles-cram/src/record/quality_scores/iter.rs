@@ -6,15 +6,15 @@ use crate::record::Feature;
 
 const MISSING: u8 = 0;
 
-pub(super) struct Iter<'r> {
-    features: slice::Iter<'r, Feature>,
+pub(super) struct Iter<'r, 'c: 'r> {
+    features: slice::Iter<'r, Feature<'c>>,
     read_length: usize,
     read_position: Position,
-    state: State<'r>,
+    state: State<'r, 'c>,
 }
 
-impl<'r> Iter<'r> {
-    pub(super) fn new(features: &'r [Feature], read_length: usize) -> Self {
+impl<'r, 'c: 'r> Iter<'r, 'c> {
+    pub(super) fn new(features: &'r [Feature<'c>], read_length: usize) -> Self {
         Self {
             features: features.iter(),
             read_length,
@@ -24,20 +24,20 @@ impl<'r> Iter<'r> {
     }
 }
 
-enum State<'r> {
+enum State<'r, 'c: 'r> {
     Next,
     Missing {
         end: Position,
-        next_feature: &'r Feature,
+        next_feature: &'r Feature<'c>,
     },
-    Prepare(&'r Feature),
+    Prepare(&'r Feature<'c>),
     Score(u8),
-    Scores(slice::Iter<'r, u8>),
+    Scores(slice::Iter<'c, u8>),
     Finish,
     Done,
 }
 
-impl Iterator for Iter<'_> {
+impl<'r: 'c, 'c: 'r> Iterator for Iter<'r, 'c> {
     type Item = io::Result<u8>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -131,7 +131,7 @@ mod tests {
             },
             Feature::Scores {
                 position: Position::try_from(5)?,
-                quality_scores: vec![13, 21],
+                quality_scores: &[13, 21],
             },
         ];
 
