@@ -47,26 +47,24 @@ impl fmt::Display for ReadRecordError {
     }
 }
 
-pub struct Reader<'a, CDR, EDR>
+pub struct Reader<'c, 'ch: 'c, EDR>
 where
-    CDR: Buf,
     EDR: Buf,
 {
-    compression_header: &'a CompressionHeader,
-    core_data_reader: BitReader<CDR>,
+    compression_header: &'ch CompressionHeader,
+    core_data_reader: BitReader<'c>,
     external_data_readers: ExternalDataReaders<EDR>,
     reference_sequence_context: ReferenceSequenceContext,
     prev_alignment_start: Option<Position>,
 }
 
-impl<'a, CDR, EDR> Reader<'a, CDR, EDR>
+impl<'c, 'ch: 'c, EDR> Reader<'c, 'ch, EDR>
 where
-    CDR: Buf,
     EDR: Buf,
 {
     pub fn new(
-        compression_header: &'a CompressionHeader,
-        core_data_reader: BitReader<CDR>,
+        compression_header: &'ch CompressionHeader,
+        core_data_reader: BitReader<'c>,
         external_data_readers: ExternalDataReaders<EDR>,
         reference_sequence_context: ReferenceSequenceContext,
     ) -> Self {

@@ -32,16 +32,15 @@ pub enum ByteArray {
     },
 }
 
-impl Decode for ByteArray {
+impl<'de> Decode<'de> for ByteArray {
     type Value = Vec<u8>;
 
-    fn decode<R, S>(
+    fn decode<S>(
         &self,
-        core_data_reader: &mut BitReader<R>,
+        core_data_reader: &mut BitReader<'de>,
         external_data_readers: &mut ExternalDataReaders<S>,
     ) -> std::io::Result<Self::Value>
     where
-        R: Buf,
         S: Buf,
     {
         match self {

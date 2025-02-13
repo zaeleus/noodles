@@ -48,16 +48,15 @@ pub enum Integer {
     },
 }
 
-impl Decode for Integer {
+impl<'de> Decode<'de> for Integer {
     type Value = i32;
 
-    fn decode<R, S>(
+    fn decode<S>(
         &self,
-        core_data_reader: &mut BitReader<R>,
+        core_data_reader: &mut BitReader<'de>,
         external_data_readers: &mut ExternalDataReaders<S>,
     ) -> io::Result<Self::Value>
     where
-        R: Buf,
         S: Buf,
     {
         match self {

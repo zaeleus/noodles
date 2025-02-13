@@ -24,14 +24,13 @@ pub enum Byte {
 }
 
 impl Byte {
-    pub fn decode_exact<R, S>(
+    pub fn decode_exact<S>(
         &self,
-        _core_data_reader: &mut BitReader<R>,
+        _core_data_reader: &mut BitReader<'_>,
         external_data_readers: &mut ExternalDataReaders<S>,
         dst: &mut [u8],
     ) -> io::Result<()>
     where
-        R: Buf,
         S: Buf,
     {
         match self {
@@ -58,16 +57,15 @@ impl Byte {
     }
 }
 
-impl Decode for Byte {
+impl<'de> Decode<'de> for Byte {
     type Value = u8;
 
-    fn decode<R, S>(
+    fn decode<S>(
         &self,
-        core_data_reader: &mut BitReader<R>,
+        core_data_reader: &mut BitReader<'de>,
         external_data_readers: &mut ExternalDataReaders<S>,
     ) -> io::Result<Self::Value>
     where
-        R: Buf,
         S: Buf,
     {
         match self {

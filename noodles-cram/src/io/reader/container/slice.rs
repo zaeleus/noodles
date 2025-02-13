@@ -70,9 +70,8 @@ impl Slice<'_> {
         let external_block_count = self.header.block_count() - 1;
         let external_blocks = read_external_blocks(&mut src, external_block_count)?;
 
-        let core_data_reader = core_data_block
-            .decode()
-            .map(|buf| BitReader::new(Bytes::from(buf)))?;
+        let core_data_src = core_data_block.decode()?;
+        let core_data_reader = BitReader::new(&core_data_src);
 
         let mut external_data_readers = ExternalDataReaders::new();
 

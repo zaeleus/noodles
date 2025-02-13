@@ -15,16 +15,15 @@ use crate::{
     io::{reader::record::ExternalDataReaders, BitReader, BitWriter},
 };
 
-pub trait Decode {
+pub trait Decode<'de> {
     type Value;
 
-    fn decode<R, S>(
+    fn decode<S>(
         &self,
-        core_data_reader: &mut BitReader<R>,
+        core_data_reader: &mut BitReader<'de>,
         external_data_readers: &mut ExternalDataReaders<S>,
     ) -> io::Result<Self::Value>
     where
-        R: Buf,
         S: Buf;
 }
 
@@ -55,17 +54,16 @@ impl<C> Encoding<C> {
     }
 }
 
-impl<C> Encoding<C>
+impl<'de, C> Encoding<C>
 where
-    C: Decode,
+    C: Decode<'de>,
 {
-    pub fn decode<R, S>(
+    pub fn decode<S>(
         &self,
-        core_data_reader: &mut BitReader<R>,
+        core_data_reader: &mut BitReader<'de>,
         external_data_readers: &mut ExternalDataReaders<S>,
     ) -> io::Result<C::Value>
     where
-        R: Buf,
         S: Buf,
     {
         self.get().decode(core_data_reader, external_data_readers)
