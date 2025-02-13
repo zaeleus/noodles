@@ -46,7 +46,7 @@ pub struct Record<'c> {
     pub(crate) sequence: Sequence,
     pub(crate) features: Vec<Feature>,
     pub(crate) mapping_quality: Option<MappingQuality>,
-    pub(crate) quality_scores: Vec<u8>,
+    pub(crate) quality_scores: &'c [u8],
 }
 
 impl Record<'_> {
@@ -216,7 +216,7 @@ impl Record<'_> {
 
     /// Returns the quality scores.
     pub fn quality_scores(&self) -> &[u8] {
-        &self.quality_scores
+        self.quality_scores
     }
 }
 
@@ -241,7 +241,7 @@ impl Default for Record<'_> {
             sequence: Sequence::default(),
             features: Vec::new(),
             mapping_quality: None,
-            quality_scores: Vec::new(),
+            quality_scores: &[],
         }
     }
 }
@@ -343,7 +343,7 @@ impl sam::alignment::Record for Record<'_> {
 
     fn quality_scores(&self) -> Box<dyn sam::alignment::record::QualityScores + '_> {
         if self.bam_flags.is_unmapped() || self.cram_flags.are_quality_scores_stored_as_array() {
-            Box::new(Scores(&self.quality_scores))
+            Box::new(Scores(self.quality_scores))
         } else {
             Box::new(QualityScores::new(&self.features, self.read_length))
         }

@@ -72,7 +72,7 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
         }
     }
 
-    pub fn read_record(&mut self, record: &mut Record) -> io::Result<()> {
+    pub fn read_record(&mut self, record: &mut Record<'c>) -> io::Result<()> {
         record.bam_flags = self.read_bam_flags()?;
         record.cram_flags = self.read_cram_flags()?;
 
@@ -405,7 +405,7 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
             })
     }
 
-    fn read_mapped_read(&mut self, record: &mut Record) -> io::Result<()> {
+    fn read_mapped_read(&mut self, record: &mut Record<'c>) -> io::Result<()> {
         let feature_count = self.read_feature_count()?;
 
         let mut prev_position = 0;
@@ -419,8 +419,7 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
         record.mapping_quality = self.read_mapping_quality()?;
 
         if record.cram_flags().are_quality_scores_stored_as_array() {
-            record.quality_scores =
-                self.read_quality_scores_stored_as_array(record.read_length())?;
+            record.quality_scores = self.read_quality_scores(record.read_length())?;
         }
 
         Ok(())
@@ -726,7 +725,7 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
             .map(sam::alignment::record::MappingQuality::new)
     }
 
-    fn read_unmapped_read(&mut self, record: &mut Record) -> io::Result<()> {
+    fn read_unmapped_read(&mut self, record: &mut Record<'c>) -> io::Result<()> {
         let read_length = record.read_length();
 
         record.sequence.as_mut().reserve(read_length);
@@ -737,13 +736,13 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
         }
 
         if record.cram_flags().are_quality_scores_stored_as_array() {
-            record.quality_scores = self.read_quality_scores_stored_as_array(read_length)?;
+            record.quality_scores = self.read_quality_scores(read_length)?;
         }
 
         Ok(())
     }
 
-    fn read_quality_scores_stored_as_array(&mut self, read_length: usize) -> io::Result<Vec<u8>> {
+    fn read_quality_scores(&mut self, read_length: usize) -> io::Result<&'c [u8]> {
         const MISSING: u8 = 0xff;
 
         let encoding = self
@@ -757,16 +756,16 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
                 )
             })?;
 
-        let buf = encoding.get().decode_take(
+        let src = encoding.get().decode_take(
             &mut self.core_data_reader,
             &mut self.external_data_readers,
             read_length,
         )?;
 
-        if buf.iter().all(|&n| n == MISSING) {
-            Ok(Vec::new())
+        if src.iter().all(|&n| n == MISSING) {
+            Ok(&[])
         } else {
-            Ok(buf.to_vec())
+            Ok(src)
         }
     }
 }

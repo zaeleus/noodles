@@ -83,9 +83,9 @@ impl<'c> Slice<'c> {
     /// }
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn records(
+    pub fn records<'ch: 'c>(
         &self,
-        compression_header: &CompressionHeader,
+        compression_header: &'ch CompressionHeader,
         core_data_src: &'c [u8],
         external_data_srcs: &'c [(block::ContentId, Vec<u8>)],
     ) -> io::Result<Vec<Record>> {
