@@ -8,12 +8,10 @@ use std::{
     iter,
 };
 
-use bytes::BytesMut;
-
 pub(crate) use self::block::Block;
 use self::header::read_header;
 pub use self::{
-    block::read_block, compression_header::get_compression_header, slice::read_slice, slice::Slice,
+    block::read_block, compression_header::read_compression_header, slice::read_slice, slice::Slice,
 };
 use crate::container::{CompressionHeader, Header};
 
@@ -21,7 +19,7 @@ use crate::container::{CompressionHeader, Header};
 #[derive(Default)]
 pub struct Container {
     pub(crate) header: Header,
-    pub(crate) src: BytesMut,
+    pub(crate) src: Vec<u8>,
 }
 
 impl Container {
@@ -31,7 +29,7 @@ impl Container {
     }
 
     /// Returns the compression header.
-    pub fn compression_header(&mut self) -> io::Result<CompressionHeader> {
+    pub fn compression_header(&self) -> io::Result<CompressionHeader> {
         let end = self
             .header
             .landmarks
@@ -39,28 +37,26 @@ impl Container {
             .copied()
             .unwrap_or(self.src.len());
 
-        let src = self.src.split_to(end);
-        let mut buf = src.freeze();
+        let mut src = &self.src[..end];
 
-        get_compression_header(&mut buf)
+        read_compression_header(&mut src)
     }
 
     /// Returns the iterator over slices.
-    pub fn slices(&mut self) -> impl Iterator<Item = io::Result<Slice>> + '_ {
-        let landmarks = self.header.landmarks.clone();
+    pub fn slices(&self) -> impl Iterator<Item = io::Result<Slice<'_>>> + '_ {
+        let landmarks = &self.header.landmarks;
         let mut i = 0;
 
         iter::from_fn(move || {
             if i < landmarks.len() - 1 {
-                let end = landmarks[i + 1];
+                let (start, end) = (landmarks[i], landmarks[i + 1]);
                 i += 1;
-                let src = self.src.split_to(end);
-                let mut buf = src.freeze();
-                Some(read_slice(&mut buf))
+                let mut src = &self.src[start..end];
+                Some(read_slice(&mut src))
             } else if i < landmarks.len() {
-                let src = self.src.split();
-                let mut buf = src.freeze();
-                Some(read_slice(&mut buf))
+                let start = landmarks[i];
+                let mut src = &self.src[start..];
+                Some(read_slice(&mut src))
             } else {
                 None
             }

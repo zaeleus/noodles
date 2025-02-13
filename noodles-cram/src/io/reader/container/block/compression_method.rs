@@ -1,16 +1,15 @@
 use std::io;
 
-use bytes::Buf;
-
 use crate::container::block::CompressionMethod;
 
-pub(super) fn get_compression_method<B>(src: &mut B) -> io::Result<CompressionMethod>
-where
-    B: Buf,
-{
-    src.try_get_u8()
-        .map_err(|e| io::Error::new(io::ErrorKind::UnexpectedEof, e))
-        .and_then(decode)
+pub(super) fn read_compression_method(src: &mut &[u8]) -> io::Result<CompressionMethod> {
+    let (n, rest) = src
+        .split_first()
+        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
+
+    *src = rest;
+
+    decode(*n)
 }
 
 fn decode(n: u8) -> io::Result<CompressionMethod> {
@@ -38,12 +37,12 @@ mod tests {
     #[test]
     fn test_get_compression_method() -> io::Result<()> {
         assert_eq!(
-            get_compression_method(&mut &[0x00][..])?,
+            read_compression_method(&mut &[0x00][..])?,
             CompressionMethod::None
         );
 
         assert!(matches!(
-            get_compression_method(&mut &[][..]),
+            read_compression_method(&mut &[][..]),
             Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
         ));
 

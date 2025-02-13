@@ -1,16 +1,13 @@
 use std::io;
 
-use bytes::Buf;
-
 use crate::container::block::ContentType;
 
-pub(super) fn get_content_type<B>(src: &mut B) -> io::Result<ContentType>
-where
-    B: Buf,
-{
-    let n = src
-        .try_get_u8()
-        .map_err(|e| io::Error::new(io::ErrorKind::UnexpectedEof, e))?;
+pub(super) fn read_content_type(src: &mut &[u8]) -> io::Result<ContentType> {
+    let (n, rest) = src
+        .split_first()
+        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
+
+    *src = rest;
 
     match n {
         0 => Ok(ContentType::FileHeader),
@@ -33,7 +30,7 @@ mod tests {
     #[test]
     fn test_get_content_type() -> io::Result<()> {
         fn t(mut src: &[u8], expected: ContentType) -> io::Result<()> {
-            let actual = get_content_type(&mut src)?;
+            let actual = read_content_type(&mut src)?;
             assert_eq!(actual, expected);
             Ok(())
         }
@@ -47,13 +44,13 @@ mod tests {
 
         let mut src = &[][..];
         assert!(matches!(
-            get_content_type(&mut src),
+            read_content_type(&mut src),
             Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
         ));
 
         let mut src = &[0x06][..];
         assert!(matches!(
-            get_content_type(&mut src),
+            read_content_type(&mut src),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 

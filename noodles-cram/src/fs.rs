@@ -40,7 +40,7 @@ where
 
         let compression_header = container.compression_header()?;
 
-        let landmarks = container.header().landmarks().to_vec();
+        let landmarks = container.header().landmarks();
         let slice_count = landmarks.len();
 
         for (i, result) in container.slices().enumerate() {

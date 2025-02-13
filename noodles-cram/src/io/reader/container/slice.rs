@@ -8,7 +8,7 @@ use noodles_core::Position;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
-use self::header::get_header;
+use self::header::read_header;
 use super::{read_block, Block};
 use crate::{
     calculate_normalized_sequence_digest,
@@ -25,12 +25,12 @@ use crate::{
 ///
 /// A slice contains a header, a core data block, and one or more external blocks. This is where
 /// the CRAM records are stored.
-pub struct Slice {
+pub struct Slice<'c> {
     header: Header,
-    src: Bytes,
+    src: &'c [u8],
 }
 
-impl Slice {
+impl Slice<'_> {
     pub(crate) fn header(&self) -> &Header {
         &self.header
     }
@@ -63,7 +63,7 @@ impl Slice {
     pub fn records(&self, compression_header: &CompressionHeader) -> io::Result<Vec<Record>> {
         use crate::io::reader::record::ExternalDataReaders;
 
-        let mut src = self.src.clone();
+        let mut src = self.src;
 
         let core_data_block = read_core_data_block(&mut src)?;
 
@@ -114,7 +114,7 @@ impl Slice {
         compression_header: &CompressionHeader,
         records: &mut [Record],
     ) -> io::Result<()> {
-        let mut src = self.src.clone();
+        let mut src = self.src;
 
         read_core_data_block(&mut src)?;
 
@@ -138,16 +138,12 @@ impl Slice {
     }
 }
 
-pub fn read_slice(src: &mut Bytes) -> io::Result<Slice> {
-    let header = get_header(src)?;
-
-    Ok(Slice {
-        header,
-        src: src.clone(),
-    })
+pub fn read_slice<'c>(src: &mut &'c [u8]) -> io::Result<Slice<'c>> {
+    let header = read_header(src)?;
+    Ok(Slice { header, src })
 }
 
-fn read_core_data_block(src: &mut Bytes) -> io::Result<Block> {
+fn read_core_data_block(src: &mut &[u8]) -> io::Result<Block> {
     let block = read_block(src)?;
 
     if block.content_type != ContentType::CoreData {
@@ -164,7 +160,7 @@ fn read_core_data_block(src: &mut Bytes) -> io::Result<Block> {
     Ok(block)
 }
 
-fn read_external_blocks(src: &mut Bytes, len: usize) -> io::Result<Vec<Block>> {
+fn read_external_blocks(src: &mut &[u8], len: usize) -> io::Result<Vec<Block>> {
     let mut external_blocks = Vec::with_capacity(len);
 
     for _ in 0..len {

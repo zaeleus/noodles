@@ -1,6 +1,5 @@
 use std::{io, num::NonZeroUsize};
 
-use bytes::{Buf, Bytes};
 use noodles_core::Position;
 
 use crate::{
@@ -11,11 +10,12 @@ use crate::{
     },
     io::reader::{
         container::read_block,
-        num::{get_itf8, get_ltf8},
+        num::{read_itf8, read_itf8_as, read_ltf8_as},
+        split_at_checked,
     },
 };
 
-pub(super) fn get_header(src: &mut Bytes) -> io::Result<Header> {
+pub(super) fn read_header(src: &mut &[u8]) -> io::Result<Header> {
     let block = read_block(src)?;
 
     if block.content_type != ContentType::SliceHeader {
@@ -29,35 +29,22 @@ pub(super) fn get_header(src: &mut Bytes) -> io::Result<Header> {
         ));
     }
 
-    let mut buf = block.decode().map(Bytes::from)?;
-    get_header_inner(&mut buf)
+    let buf = block.decode()?;
+    read_header_inner(&mut &buf[..])
 }
 
-fn get_header_inner<B>(src: &mut B) -> io::Result<Header>
-where
-    B: Buf,
-{
-    let reference_sequence_context = get_reference_sequence_context(src)?;
+fn read_header_inner(src: &mut &[u8]) -> io::Result<Header> {
+    let reference_sequence_context = read_reference_sequence_context(src)?;
 
-    let record_count = get_itf8(src).and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    let record_count = read_itf8_as(src)?;
+    let record_counter = read_ltf8_as(src)?;
+    let block_count = read_itf8_as(src)?;
 
-    let record_counter = get_ltf8(src).and_then(|n| {
-        u64::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let block_count = get_itf8(src).and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let block_content_ids = get_block_content_ids(src)?;
-
+    let block_content_ids = read_block_content_ids(src)?;
     let embedded_reference_bases_block_content_id =
-        get_embedded_reference_bases_block_content_id(src)?;
-
-    let reference_md5 = get_reference_md5(src)?;
-    let optional_tags = get_optional_tags(src);
+        read_embedded_reference_bases_block_content_id(src)?;
+    let reference_md5 = read_reference_md5(src)?;
+    let optional_tags = read_optional_tags(src);
 
     let mut builder = Header::builder()
         .set_reference_sequence_context(reference_sequence_context)
@@ -75,37 +62,34 @@ where
     Ok(builder.build())
 }
 
-fn get_reference_sequence_context<B>(src: &mut B) -> io::Result<ReferenceSequenceContext>
-where
-    B: Buf,
-{
+fn read_reference_sequence_context(src: &mut &[u8]) -> io::Result<ReferenceSequenceContext> {
     const UNMAPPED: i32 = -1;
     const MULTIREF: i32 = -2;
 
-    match get_itf8(src)? {
+    match read_itf8(src)? {
         UNMAPPED => {
             // Discard alignment start and span.
-            get_itf8(src)?;
-            get_itf8(src)?;
+            read_itf8(src)?;
+            read_itf8(src)?;
             Ok(ReferenceSequenceContext::None)
         }
         MULTIREF => {
             // Discard alignment start and span.
-            get_itf8(src)?;
-            get_itf8(src)?;
+            read_itf8(src)?;
+            read_itf8(src)?;
             Ok(ReferenceSequenceContext::Many)
         }
         n => {
             let reference_sequence_id =
                 usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-            let alignment_start = get_itf8(src).and_then(|m| {
+            let alignment_start = read_itf8(src).and_then(|m| {
                 usize::try_from(m)
                     .and_then(Position::try_from)
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             })?;
 
-            let alignment_span = get_itf8(src).and_then(|m| {
+            let alignment_span = read_itf8(src).and_then(|m| {
                 usize::try_from(m)
                     .and_then(NonZeroUsize::try_from)
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -124,58 +108,40 @@ where
     }
 }
 
-fn get_block_content_ids<B>(src: &mut B) -> io::Result<Vec<block::ContentId>>
-where
-    B: Buf,
-{
-    let len = get_itf8(src).and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let mut buf = Vec::with_capacity(len);
-
-    for _ in 0..len {
-        let value = get_itf8(src)?;
-        buf.push(value);
-    }
-
-    Ok(buf)
+fn read_block_content_ids(src: &mut &[u8]) -> io::Result<Vec<block::ContentId>> {
+    let len: usize = read_itf8_as(src)?;
+    (0..len).map(|_| read_itf8(src)).collect()
 }
 
-fn get_embedded_reference_bases_block_content_id<B>(
-    src: &mut B,
-) -> io::Result<Option<block::ContentId>>
-where
-    B: Buf,
-{
-    get_itf8(src).map(|n| match n {
-        -1 => None,
+fn read_embedded_reference_bases_block_content_id(
+    src: &mut &[u8],
+) -> io::Result<Option<block::ContentId>> {
+    // § 8.5 "Slice header block" (2024-09-04): "-1 for none".
+    const MISSING: i32 = -1;
+
+    read_itf8(src).map(|n| match n {
+        MISSING => None,
         _ => Some(n),
     })
 }
 
-fn get_reference_md5<B>(src: &mut B) -> io::Result<[u8; 16]>
-where
-    B: Buf,
-{
-    let mut buf = [0; 16];
+fn read_reference_md5(src: &mut &[u8]) -> io::Result<[u8; 16]> {
+    const SIZE: usize = 16;
 
-    if src.remaining() < buf.len() {
+    let Some((buf, rest)) = split_at_checked(src, SIZE) else {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
+    };
 
-    src.copy_to_slice(&mut buf);
+    *src = rest;
 
-    Ok(buf)
+    // SAFETY: `buf.len() == 16`.
+    Ok(buf.try_into().unwrap())
 }
 
-fn get_optional_tags<B>(src: &mut B) -> Vec<u8>
-where
-    B: Buf,
-{
-    let mut buf = vec![0; src.remaining()];
-    src.copy_to_slice(&mut buf);
-    buf
+fn read_optional_tags(src: &mut &[u8]) -> Vec<u8> {
+    let (buf, rest) = src.split_at(src.len());
+    *src = rest;
+    buf.into()
 }
 
 #[cfg(test)]
@@ -183,7 +149,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_header_inner() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_read_header_inner() -> Result<(), Box<dyn std::error::Error>> {
         let src = [
             0x02, // reference sequence ID = 2
             0x03, // alignment start = 3
@@ -198,7 +164,7 @@ mod tests {
             0x7e, 0xf7, // reference MD5 (b"ACGTA")
         ];
 
-        let actual = get_header_inner(&mut &src[..])?;
+        let actual = read_header_inner(&mut &src[..])?;
 
         let expected = Header::builder()
             .set_reference_sequence_context(ReferenceSequenceContext::some(

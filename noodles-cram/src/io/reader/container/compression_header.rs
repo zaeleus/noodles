@@ -5,8 +5,6 @@ mod tag_encodings;
 
 use std::io;
 
-use bytes::Bytes;
-
 use self::{
     data_series_encodings::read_data_series_encodings,
     encoding::{read_byte_array_encoding, read_byte_encoding, read_integer_encoding},
@@ -16,7 +14,7 @@ use self::{
 use super::read_block;
 use crate::container::{block::ContentType, CompressionHeader};
 
-pub fn get_compression_header(src: &mut Bytes) -> io::Result<CompressionHeader> {
+pub fn read_compression_header(src: &mut &[u8]) -> io::Result<CompressionHeader> {
     let block = read_block(src)?;
 
     if block.content_type != ContentType::CompressionHeader {
