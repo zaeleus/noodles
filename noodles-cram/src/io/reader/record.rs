@@ -2,9 +2,8 @@ mod external_data_readers;
 
 pub use external_data_readers::ExternalDataReaders;
 
-use std::{error, fmt, io};
+use std::{borrow::Cow, error, fmt, io};
 
-use bstr::BString;
 use noodles_bam as bam;
 use noodles_core::Position;
 use noodles_sam::{
@@ -208,7 +207,7 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
             })
     }
 
-    fn read_names(&mut self, record: &mut Record) -> io::Result<()> {
+    fn read_names(&mut self, record: &mut Record<'c>) -> io::Result<()> {
         let preservation_map = self.compression_header.preservation_map();
 
         // Missing read names are generated when resolving mates.
@@ -219,7 +218,7 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
         Ok(())
     }
 
-    fn read_name(&mut self) -> io::Result<Option<BString>> {
+    fn read_name(&mut self) -> io::Result<Option<Cow<'c, [u8]>>> {
         const MISSING: &[u8] = b"*\x00";
 
         self.compression_header
@@ -234,11 +233,11 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .map(|buf| match buf {
                 MISSING => None,
-                _ => Some(BString::from(buf)),
+                _ => Some(Cow::from(buf)),
             })
     }
 
-    fn read_mate(&mut self, record: &mut Record) -> io::Result<()> {
+    fn read_mate(&mut self, record: &mut Record<'c>) -> io::Result<()> {
         if record.cram_flags().is_detached() {
             record.mate_flags = self.read_mate_flags()?;
 

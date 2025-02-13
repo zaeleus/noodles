@@ -1,8 +1,7 @@
 mod header;
 
-use std::io;
+use std::{borrow::Cow, io};
 
-use bstr::BString;
 use noodles_core::Position;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
@@ -208,9 +207,8 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
         let record = &mut records[i];
 
         if record.name().is_none() {
-            // SAFETY: `u64::to_string` is always a valid read name.
-            let name = BString::from(record.id().to_string());
-            record.name = Some(name);
+            let name = record.id().to_string().into_bytes();
+            record.name = Some(Cow::from(name));
         }
 
         if mate_indices[i].is_none() {
@@ -228,7 +226,7 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
             set_mate(record, mate);
 
             if mate.name().is_none() {
-                mate.name = record.name().map(|name| name.into());
+                mate.name = record.name().map(|name| name.to_vec().into());
             }
 
             j = mate_index;

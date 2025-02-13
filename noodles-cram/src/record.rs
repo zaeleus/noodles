@@ -10,9 +10,9 @@ pub mod resolve;
 
 pub use self::{feature::Feature, flags::Flags, mate_flags::MateFlags};
 
-use std::io;
+use std::{borrow::Cow, io};
 
-use bstr::{BStr, BString};
+use bstr::{BStr, ByteSlice};
 use noodles_core::Position;
 use noodles_sam::{
     self as sam,
@@ -36,7 +36,7 @@ pub struct Record<'c> {
     pub(crate) read_length: usize,
     pub(crate) alignment_start: Option<Position>,
     pub(crate) read_group_id: Option<usize>,
-    pub(crate) name: Option<BString>,
+    pub(crate) name: Option<Cow<'c, [u8]>>,
     pub(crate) mate_flags: MateFlags,
     pub(crate) mate_reference_sequence_id: Option<usize>,
     pub(crate) mate_alignment_start: Option<Position>,
@@ -126,7 +126,7 @@ impl Record<'_> {
 
     /// Returns the name.
     pub fn name(&self) -> Option<&BStr> {
-        self.name.as_ref().map(|name| name.as_ref())
+        self.name.as_deref().map(|name| name.as_bstr())
     }
 
     /// Returns the next mate flags.
