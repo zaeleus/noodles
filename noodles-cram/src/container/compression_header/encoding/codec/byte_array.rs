@@ -32,7 +32,7 @@ pub enum ByteArray {
 }
 
 impl<'de> Decode<'de> for ByteArray {
-    type Value = Vec<u8>;
+    type Value = &'de [u8];
 
     fn decode(
         &self,
@@ -44,15 +44,16 @@ impl<'de> Decode<'de> for ByteArray {
                 len_encoding,
                 value_encoding,
             } => {
-                let len = len_encoding.decode(core_data_reader, external_data_readers)?;
+                let len = len_encoding
+                    .decode(core_data_reader, external_data_readers)
+                    .and_then(|n| {
+                        usize::try_from(n)
+                            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                    })?;
 
-                let mut buf = vec![0; len as usize];
-
-                for value in &mut buf {
-                    *value = value_encoding.decode(core_data_reader, external_data_readers)?;
-                }
-
-                Ok(buf)
+                value_encoding
+                    .get()
+                    .decode_take(core_data_reader, external_data_readers, len)
             }
             Self::ByteArrayStop {
                 stop_byte,
@@ -77,7 +78,7 @@ impl<'de> Decode<'de> for ByteArray {
                 let (buf, rest) = src.split_at(i);
                 *src = &rest[1..];
 
-                Ok(buf.to_vec())
+                Ok(buf)
             }
         }
     }

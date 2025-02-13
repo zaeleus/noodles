@@ -220,10 +220,9 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
     }
 
     fn read_name(&mut self) -> io::Result<Option<BString>> {
-        const MISSING: &[u8] = &[b'*', 0x00];
+        const MISSING: &[u8] = b"*\x00";
 
-        let buf = self
-            .compression_header
+        self.compression_header
             .data_series_encodings()
             .names()
             .ok_or_else(|| {
@@ -232,14 +231,11 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::Names),
                 )
             })?
-            .decode(&mut self.core_data_reader, &mut self.external_data_readers)?;
-
-        let name = match &buf[..] {
-            MISSING => None,
-            _ => Some(BString::from(buf)),
-        };
-
-        Ok(name)
+            .decode(&mut self.core_data_reader, &mut self.external_data_readers)
+            .map(|buf| match buf {
+                MISSING => None,
+                _ => Some(BString::from(buf)),
+            })
     }
 
     fn read_mate(&mut self, record: &mut Record) -> io::Result<()> {
@@ -381,11 +377,10 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
                 )
             })?;
 
-            let data =
+            let mut src =
                 encoding.decode(&mut self.core_data_reader, &mut self.external_data_readers)?;
 
-            let mut data_reader = &data[..];
-            let value = read_value(&mut data_reader, key.ty())
+            let value = read_value(&mut src, key.ty())
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
             let field = (key.tag(), value);
@@ -453,14 +448,17 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
         match code {
             Code::Bases => {
                 let bases = self.read_stretches_of_bases()?;
-                Ok(Feature::Bases { position, bases })
+                Ok(Feature::Bases {
+                    position,
+                    bases: bases.to_vec(),
+                })
             }
             Code::Scores => {
                 let quality_scores = self.read_stretches_of_quality_scores()?;
 
                 Ok(Feature::Scores {
                     position,
-                    quality_scores,
+                    quality_scores: quality_scores.to_vec(),
                 })
             }
             Code::ReadBase => {
@@ -479,7 +477,10 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
             }
             Code::Insertion => {
                 let bases = self.read_insertion_bases()?;
-                Ok(Feature::Insertion { position, bases })
+                Ok(Feature::Insertion {
+                    position,
+                    bases: bases.to_vec(),
+                })
             }
             Code::Deletion => {
                 let len = self.read_deletion_length()?;
@@ -503,7 +504,10 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
             }
             Code::SoftClip => {
                 let bases = self.read_soft_clip_bases()?;
-                Ok(Feature::SoftClip { position, bases })
+                Ok(Feature::SoftClip {
+                    position,
+                    bases: bases.to_vec(),
+                })
             }
             Code::Padding => {
                 let len = self.read_padding_length()?;
@@ -549,7 +553,7 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
             })
     }
 
-    fn read_stretches_of_bases(&mut self) -> io::Result<Vec<u8>> {
+    fn read_stretches_of_bases(&mut self) -> io::Result<&'c [u8]> {
         self.compression_header
             .data_series_encodings()
             .stretches_of_bases()
@@ -562,7 +566,7 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
     }
 
-    fn read_stretches_of_quality_scores(&mut self) -> io::Result<Vec<u8>> {
+    fn read_stretches_of_quality_scores(&mut self) -> io::Result<&'c [u8]> {
         self.compression_header
             .data_series_encodings()
             .stretches_of_quality_scores()
@@ -616,7 +620,7 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
     }
 
-    fn read_insertion_bases(&mut self) -> io::Result<Vec<u8>> {
+    fn read_insertion_bases(&mut self) -> io::Result<&'c [u8]> {
         self.compression_header
             .data_series_encodings()
             .insertion_bases()
@@ -661,7 +665,7 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
             })
     }
 
-    fn read_soft_clip_bases(&mut self) -> io::Result<Vec<u8>> {
+    fn read_soft_clip_bases(&mut self) -> io::Result<&'c [u8]> {
         self.compression_header
             .data_series_encodings()
             .soft_clip_bases()
