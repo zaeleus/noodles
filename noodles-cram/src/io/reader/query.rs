@@ -92,9 +92,7 @@ where
                         &core_data_src,
                         &external_data_srcs,
                     )
-                    .and_then(|mut records| {
-                        slice.resolve_records(&mut records)?;
-
+                    .and_then(|records| {
                         records
                             .into_iter()
                             .map(|record| {

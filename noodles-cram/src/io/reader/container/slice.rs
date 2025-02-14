@@ -147,14 +147,9 @@ impl<'c> Slice<'c> {
             record.substitution_matrix = substitution_matrix.clone();
         }
 
-        Ok(records)
-    }
+        resolve_mates(&mut records)?;
 
-    /// Resolves records.
-    ///
-    /// This resolves mates, read names, bases, and quality scores.
-    pub fn resolve_records(&self, records: &mut [Record]) -> io::Result<()> {
-        resolve_mates(records)
+        Ok(records)
     }
 }
 

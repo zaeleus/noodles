@@ -33,6 +33,11 @@
 
 ### Removed
 
+  * cram/container/slice: Remove mate resolver (`Slice::resolve_mates`).
+
+    Record mates are now resolved decoding the slice. It no longer has to be
+    manually called.
+
   * cram/record: Remove `Builder`.
 
     Build, e.g., a `sam::alignment::RecordBuf` instead.
