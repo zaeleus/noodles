@@ -9,6 +9,10 @@ pub(super) fn read_content_type(src: &mut &[u8]) -> io::Result<ContentType> {
 
     *src = rest;
 
+    decode(*n)
+}
+
+fn decode(n: u8) -> io::Result<ContentType> {
     match n {
         0 => Ok(ContentType::FileHeader),
         1 => Ok(ContentType::CompressionHeader),
@@ -28,29 +32,31 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_content_type() -> io::Result<()> {
-        fn t(mut src: &[u8], expected: ContentType) -> io::Result<()> {
-            let actual = read_content_type(&mut src)?;
-            assert_eq!(actual, expected);
-            Ok(())
-        }
+    fn test_read_content_type() -> io::Result<()> {
+        assert_eq!(
+            read_content_type(&mut &[0x00][..])?,
+            ContentType::FileHeader
+        );
 
-        t(&[0x00], ContentType::FileHeader)?;
-        t(&[0x01], ContentType::CompressionHeader)?;
-        t(&[0x02], ContentType::SliceHeader)?;
-        t(&[0x03], ContentType::Reserved)?;
-        t(&[0x04], ContentType::ExternalData)?;
-        t(&[0x05], ContentType::CoreData)?;
-
-        let mut src = &[][..];
         assert!(matches!(
-            read_content_type(&mut src),
+            read_content_type(&mut &[][..]),
             Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
         ));
 
-        let mut src = &[0x06][..];
+        Ok(())
+    }
+
+    #[test]
+    fn test_decode() -> io::Result<()> {
+        assert_eq!(decode(0)?, ContentType::FileHeader);
+        assert_eq!(decode(1)?, ContentType::CompressionHeader);
+        assert_eq!(decode(2)?, ContentType::SliceHeader);
+        assert_eq!(decode(3)?, ContentType::Reserved);
+        assert_eq!(decode(4)?, ContentType::ExternalData);
+        assert_eq!(decode(5)?, ContentType::CoreData);
+
         assert!(matches!(
-            read_content_type(&mut src),
+            decode(6),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 
