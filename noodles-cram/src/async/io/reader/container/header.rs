@@ -1,7 +1,7 @@
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::{
-    container::Header,
+    container::{Header, ReferenceSequenceContext},
     r#async::io::reader::{
         num::{read_itf8, read_itf8_as, read_ltf8_as},
         CrcReader,
@@ -23,7 +23,7 @@ pub async fn read_header_inner<R>(
 where
     R: AsyncRead + Unpin,
 {
-    use crate::io::reader::container::header::{get_reference_sequence_context, is_eof};
+    use crate::io::reader::container::header::is_eof;
 
     let len = reader.read_i32_le().await.and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -33,8 +33,11 @@ where
     let alignment_start = read_itf8(reader).await?;
     let alignment_span = read_itf8(reader).await?;
 
-    header.reference_sequence_context =
-        get_reference_sequence_context(reference_sequence_id, alignment_start, alignment_span)?;
+    header.reference_sequence_context = ReferenceSequenceContext::try_from((
+        reference_sequence_id,
+        alignment_start,
+        alignment_span,
+    ))?;
 
     header.record_count = read_itf8_as(reader).await?;
     header.record_counter = read_ltf8_as(reader).await?;

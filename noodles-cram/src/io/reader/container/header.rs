@@ -1,11 +1,7 @@
-use std::{
-    io::{self, Read},
-    num::NonZeroUsize,
-};
+use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use flate2::CrcReader;
-use noodles_core::Position;
 
 use crate::{
     container::{Header, ReferenceSequenceContext},
@@ -39,8 +35,11 @@ where
     let alignment_start = read_itf8(reader)?;
     let alignment_span = read_itf8(reader)?;
 
-    header.reference_sequence_context =
-        get_reference_sequence_context(reference_sequence_id, alignment_start, alignment_span)?;
+    header.reference_sequence_context = ReferenceSequenceContext::try_from((
+        reference_sequence_id,
+        alignment_start,
+        alignment_span,
+    ))?;
 
     header.record_count = read_itf8_as(reader)?;
     header.record_counter = read_ltf8_as(reader)?;
@@ -104,44 +103,10 @@ pub(crate) fn is_eof(
         && crc32 == EOF_CRC32
 }
 
-pub(crate) fn get_reference_sequence_context(
-    raw_reference_sequence_id: i32,
-    raw_alignment_start: i32,
-    raw_alignment_span: i32,
-) -> io::Result<ReferenceSequenceContext> {
-    const UNMAPPED: i32 = -1;
-    const MULTIREF: i32 = -2;
-
-    match raw_reference_sequence_id {
-        UNMAPPED => Ok(ReferenceSequenceContext::None),
-        MULTIREF => Ok(ReferenceSequenceContext::Many),
-        n => {
-            let reference_sequence_id =
-                usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-            let alignment_start = usize::try_from(raw_alignment_start)
-                .and_then(Position::try_from)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-            let alignment_span = usize::try_from(raw_alignment_span)
-                .and_then(NonZeroUsize::try_from)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-            let alignment_end = alignment_start
-                .checked_add(usize::from(alignment_span) - 1)
-                .ok_or_else(|| io::Error::from(io::ErrorKind::InvalidData))?;
-
-            Ok(ReferenceSequenceContext::some(
-                reference_sequence_id,
-                alignment_start,
-                alignment_end,
-            ))
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
+    use noodles_core::Position;
+
     use super::*;
 
     #[test]

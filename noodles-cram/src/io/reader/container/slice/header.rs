@@ -1,6 +1,4 @@
-use std::{io, num::NonZeroUsize};
-
-use noodles_core::Position;
+use std::io;
 
 use crate::{
     container::{
@@ -34,7 +32,15 @@ pub(super) fn read_header(src: &mut &[u8]) -> io::Result<Header> {
 }
 
 fn read_header_inner(src: &mut &[u8]) -> io::Result<Header> {
-    let reference_sequence_context = read_reference_sequence_context(src)?;
+    let reference_sequence_id = read_itf8(src)?;
+    let alignment_start = read_itf8(src)?;
+    let alignment_span = read_itf8(src)?;
+
+    let reference_sequence_context = ReferenceSequenceContext::try_from((
+        reference_sequence_id,
+        alignment_start,
+        alignment_span,
+    ))?;
 
     let record_count = read_itf8_as(src)?;
     let record_counter = read_ltf8_as(src)?;
@@ -60,52 +66,6 @@ fn read_header_inner(src: &mut &[u8]) -> io::Result<Header> {
     }
 
     Ok(builder.build())
-}
-
-fn read_reference_sequence_context(src: &mut &[u8]) -> io::Result<ReferenceSequenceContext> {
-    const UNMAPPED: i32 = -1;
-    const MULTIREF: i32 = -2;
-
-    match read_itf8(src)? {
-        UNMAPPED => {
-            // Discard alignment start and span.
-            read_itf8(src)?;
-            read_itf8(src)?;
-            Ok(ReferenceSequenceContext::None)
-        }
-        MULTIREF => {
-            // Discard alignment start and span.
-            read_itf8(src)?;
-            read_itf8(src)?;
-            Ok(ReferenceSequenceContext::Many)
-        }
-        n => {
-            let reference_sequence_id =
-                usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-            let alignment_start = read_itf8(src).and_then(|m| {
-                usize::try_from(m)
-                    .and_then(Position::try_from)
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            })?;
-
-            let alignment_span = read_itf8(src).and_then(|m| {
-                usize::try_from(m)
-                    .and_then(NonZeroUsize::try_from)
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            })?;
-
-            let alignment_end = alignment_start
-                .checked_add(usize::from(alignment_span) - 1)
-                .ok_or_else(|| io::Error::from(io::ErrorKind::InvalidData))?;
-
-            Ok(ReferenceSequenceContext::some(
-                reference_sequence_id,
-                alignment_start,
-                alignment_end,
-            ))
-        }
-    }
 }
 
 fn read_block_content_ids(src: &mut &[u8]) -> io::Result<Vec<block::ContentId>> {
@@ -146,6 +106,8 @@ fn read_optional_tags(src: &mut &[u8]) -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
+    use noodles_core::Position;
+
     use super::*;
 
     #[test]
