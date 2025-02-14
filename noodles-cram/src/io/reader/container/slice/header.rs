@@ -9,7 +9,7 @@ use crate::{
     io::reader::{
         container::read_block_as,
         num::{read_itf8, read_itf8_as, read_ltf8_as},
-        split_at_checked,
+        split_first_chunk,
     },
 };
 
@@ -70,16 +70,13 @@ fn read_embedded_reference_bases_block_content_id(
 }
 
 fn read_reference_md5(src: &mut &[u8]) -> io::Result<[u8; 16]> {
-    const SIZE: usize = 16;
-
-    let Some((buf, rest)) = split_at_checked(src, SIZE) else {
+    let Some((buf, rest)) = split_first_chunk(src) else {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     };
 
     *src = rest;
 
-    // SAFETY: `buf.len() == 16`.
-    Ok(buf.try_into().unwrap())
+    Ok(*buf)
 }
 
 fn read_optional_tags(src: &mut &[u8]) -> Vec<u8> {

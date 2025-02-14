@@ -6,7 +6,7 @@ use std::io;
 use self::{substitution_matrix::read_substitution_matrix, tag_sets::read_tag_sets};
 use crate::{
     container::compression_header::{preservation_map::Key, PreservationMap},
-    io::reader::{collections::read_map, split_at_checked},
+    io::reader::{collections::read_map, split_first_chunk},
 };
 
 pub(super) fn read_preservation_map(src: &mut &[u8]) -> io::Result<PreservationMap> {
@@ -49,17 +49,12 @@ fn read_preservation_map_inner(src: &mut &[u8], len: usize) -> io::Result<Preser
 }
 
 fn read_key(src: &mut &[u8]) -> io::Result<Key> {
-    const SIZE: usize = 2;
-
     let (buf, rest) =
-        split_at_checked(src, SIZE).ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
+        split_first_chunk(src).ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
 
     *src = rest;
 
-    // SAFETY: `buf.len() == 2`.
-    let key: [u8; SIZE] = buf.try_into().unwrap();
-
-    Key::try_from(key).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    Key::try_from(*buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 // § 2.3 "Writing bytes to a byte stream" (2024-09-04): "Boolean is written as 1-byte with 0x0

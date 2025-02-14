@@ -378,3 +378,14 @@ pub(crate) fn split_at_checked(src: &[u8], mid: usize) -> Option<(&[u8], &[u8])>
         None
     }
 }
+
+// TODO: Use `slice::split_first_chunk` when the MSRV is raised to or above Rust 1.77.0.
+pub(crate) fn split_first_chunk<const N: usize>(src: &[u8]) -> Option<(&[u8; N], &[u8])> {
+    if src.len() < N {
+        None
+    } else {
+        // SAFETY: `src.len` >= `N`.
+        let (head, tail) = src.split_at(N);
+        <&[u8; N]>::try_from(head).ok().map(|chunk| (chunk, tail))
+    }
+}

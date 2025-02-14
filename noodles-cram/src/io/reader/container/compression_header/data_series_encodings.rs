@@ -3,7 +3,7 @@ use std::io;
 use super::{read_byte_array_encoding, read_byte_encoding, read_integer_encoding};
 use crate::{
     container::compression_header::{data_series_encodings::DataSeries, DataSeriesEncodings},
-    io::reader::{collections::read_map, split_at_checked},
+    io::reader::{collections::read_map, split_first_chunk},
 };
 
 pub(super) fn read_data_series_encodings(src: &mut &[u8]) -> io::Result<DataSeriesEncodings> {
@@ -146,17 +146,12 @@ fn read_data_series_encodings_inner(
 }
 
 fn read_key(src: &mut &[u8]) -> io::Result<DataSeries> {
-    const SIZE: usize = 2;
-
     let (buf, rest) =
-        split_at_checked(src, SIZE).ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
+        split_first_chunk(src).ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
 
     *src = rest;
 
-    // SAFETY: `buf.len() == 2`.
-    let key: [u8; SIZE] = buf.try_into().unwrap();
-
-    DataSeries::try_from(key).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    DataSeries::try_from(*buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 #[cfg(test)]
