@@ -7,7 +7,7 @@ use crate::{
         encoding::codec::{Byte, ByteArray, Integer},
         DataSeriesEncodings, Encoding,
     },
-    io::writer::num::write_itf8,
+    io::writer::{collections::write_array, num::write_itf8},
 };
 
 pub(crate) fn write_data_series_encodings<W>(
@@ -17,19 +17,27 @@ pub(crate) fn write_data_series_encodings<W>(
 where
     W: Write,
 {
+    let buf = encode(data_series_encodings)?;
+    write_array(writer, &buf)
+}
+
+fn encode(data_series_encodings: &DataSeriesEncodings) -> io::Result<Vec<u8>> {
     let mut buf = Vec::new();
+    encode_inner(&mut buf, data_series_encodings)?;
+    Ok(buf)
+}
 
-    let map_len = i32::try_from(data_series_encodings_len(data_series_encodings))
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_itf8(&mut buf, map_len)?;
+fn encode_inner<W>(writer: &mut W, data_series_encodings: &DataSeriesEncodings) -> io::Result<()>
+where
+    W: Write,
+{
+    let len = data_series_encodings_len(data_series_encodings);
+    let n = i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    write_itf8(writer, n)?;
 
-    write_encodings(&mut buf, data_series_encodings)?;
+    write_encodings(writer, data_series_encodings)?;
 
-    let data_len =
-        i32::try_from(buf.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_itf8(writer, data_len)?;
-
-    writer.write_all(&buf)
+    Ok(())
 }
 
 fn data_series_encodings_len(encodings: &DataSeriesEncodings) -> usize {
