@@ -3,6 +3,8 @@
 use std::{cmp, collections::HashMap, fs::File, io, path::Path};
 
 use noodles_core::Position;
+use noodles_fasta as fasta;
+use noodles_sam as sam;
 
 use super::{
     container::{slice, CompressionHeader},
@@ -25,7 +27,7 @@ where
     P: AsRef<Path>,
 {
     let mut reader = File::open(src).map(Reader::new)?;
-    reader.read_header()?;
+    let header = reader.read_header()?;
 
     let mut index = Vec::new();
 
@@ -55,6 +57,7 @@ where
 
             push_index_records(
                 &mut index,
+                &header,
                 &compression_header,
                 &slice,
                 container_position,
@@ -71,6 +74,7 @@ where
 
 fn push_index_records(
     index: &mut crai::Index,
+    header: &sam::Header,
     compression_header: &CompressionHeader,
     slice: &Slice,
     container_position: u64,
@@ -80,6 +84,7 @@ fn push_index_records(
     if slice.header().reference_sequence_context().is_many() {
         push_index_records_for_multi_reference_slice(
             index,
+            header,
             compression_header,
             slice,
             container_position,
@@ -114,6 +119,7 @@ impl Default for SliceReferenceSequenceAlignmentRangeInclusive {
 
 fn push_index_records_for_multi_reference_slice(
     index: &mut crai::Index,
+    header: &sam::Header,
     compression_header: &CompressionHeader,
     slice: &Slice,
     container_position: u64,
@@ -127,7 +133,13 @@ fn push_index_records_for_multi_reference_slice(
 
     let (core_data_src, external_data_srcs) = slice.decode_blocks()?;
 
-    for record in slice.records(compression_header, &core_data_src, &external_data_srcs)? {
+    for record in slice.records(
+        fasta::Repository::default(), // TODO
+        header,
+        compression_header,
+        &core_data_src,
+        &external_data_srcs,
+    )? {
         let reference_sequence_id = record.reference_sequence_id();
 
         let range = reference_sequence_ids

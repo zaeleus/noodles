@@ -720,20 +720,32 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
     }
 
     fn read_unmapped_read(&mut self, record: &mut Record<'c>) -> io::Result<()> {
-        let read_length = record.read_length();
-
-        record.sequence.as_mut().reserve(read_length);
-
-        for _ in 0..read_length {
-            let base = self.read_base()?;
-            record.sequence.as_mut().push(base);
-        }
+        record.sequence = self.read_sequence(record.read_length())?;
 
         if record.cram_flags().are_quality_scores_stored_as_array() {
-            record.quality_scores = self.read_quality_scores(read_length)?;
+            record.quality_scores = self.read_quality_scores(record.read_length())?;
         }
 
         Ok(())
+    }
+
+    fn read_sequence(&mut self, read_length: usize) -> io::Result<&'c [u8]> {
+        let encoding = self
+            .compression_header
+            .data_series_encodings()
+            .bases()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::Bases),
+                )
+            })?;
+
+        encoding.get().decode_take(
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+            read_length,
+        )
     }
 
     fn read_quality_scores(&mut self, read_length: usize) -> io::Result<&'c [u8]> {

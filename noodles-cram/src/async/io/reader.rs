@@ -85,10 +85,6 @@ where
         Builder::default().build_from_reader(inner)
     }
 
-    fn reference_sequence_repository(&self) -> &fasta::Repository {
-        &self.reference_sequence_repository
-    }
-
     /// Returns an async CRAM header reader.
     ///
     /// # Examples

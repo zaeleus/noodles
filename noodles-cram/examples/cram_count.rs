@@ -8,12 +8,15 @@
 use std::{env, io};
 
 use noodles_cram::{self as cram, io::reader::Container};
+use noodles_fasta as fasta;
 
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
     let mut reader = cram::io::reader::Builder::default().build_from_path(src)?;
-    reader.read_header()?;
+    let header = reader.read_header()?;
+
+    let reference_sequence_repository = fasta::Repository::default();
 
     let mut container = Container::default();
     let mut n = 0;
@@ -26,8 +29,13 @@ fn main() -> io::Result<()> {
 
             let (core_data_src, external_data_srcs) = slice.decode_blocks()?;
 
-            let records =
-                slice.records(&compression_header, &core_data_src, &external_data_srcs)?;
+            let records = slice.records(
+                reference_sequence_repository.clone(),
+                &header,
+                &compression_header,
+                &core_data_src,
+                &external_data_srcs,
+            )?;
 
             n += records.len();
         }

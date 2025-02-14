@@ -12,12 +12,11 @@ use crate::{
     calculate_normalized_sequence_digest,
     container::{
         block::{self, ContentType},
-        compression_header::PreservationMap,
         slice::Header,
         CompressionHeader, ReferenceSequenceContext,
     },
     io::BitReader,
-    record::{resolve, Feature},
+    record::Feature,
     Record,
 };
 
@@ -59,10 +58,11 @@ impl<'c> Slice<'c> {
     /// ```no_run
     /// # use std::io;
     /// use noodles_cram::{self as cram, io::reader::Container};
+    /// use noodles_fasta as fasta;
     ///
     /// let data = [];
     /// let mut reader = cram::io::Reader::new(&data[..]);
-    /// reader.read_header()?;
+    /// let header = reader.read_header()?;
     ///
     /// let mut container = Container::default();
     ///
@@ -74,16 +74,23 @@ impl<'c> Slice<'c> {
     ///
     ///         let (core_data_src, external_data_srcs) = slice.decode_blocks()?;
     ///
-    ///         let records =
-    ///             slice.records(&compression_header, &core_data_src, &external_data_srcs)?;
+    ///         let records = slice.records(
+    ///             fasta::Repository::default(),
+    ///             &header,
+    ///             &compression_header,
+    ///             &core_data_src,
+    ///             &external_data_srcs,
+    ///         )?;
     ///
     ///         // ...
     ///     }
     /// }
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn records<'ch: 'c>(
+    pub fn records<'h: 'c, 'ch: 'c>(
         &self,
+        reference_sequence_repository: fasta::Repository,
+        header: &'h sam::Header,
         compression_header: &'ch CompressionHeader,
         core_data_src: &'c [u8],
         external_data_srcs: &'c [(block::ContentId, Vec<u8>)],
@@ -98,12 +105,22 @@ impl<'c> Slice<'c> {
             external_data_readers.insert(*block_content_id, src);
         }
 
+        let reference_sequence_context = self.header.reference_sequence_context();
+
         let mut record_reader = crate::io::reader::record::Reader::new(
             compression_header,
             core_data_reader,
             external_data_readers,
-            self.header.reference_sequence_context(),
+            reference_sequence_context,
         );
+
+        let slice_reference_sequence = get_slice_reference_sequence(
+            &reference_sequence_repository.clone(),
+            header,
+            compression_header,
+            &self.header,
+            external_data_srcs,
+        )?;
 
         let record_count = self.header.record_count();
 
@@ -113,9 +130,21 @@ impl<'c> Slice<'c> {
         let end_id = start_id + (record_count as u64);
         let ids = start_id..end_id;
 
+        let substitution_matrix = compression_header.preservation_map().substitution_matrix();
+
         for (id, record) in ids.zip(&mut records) {
             record.id = id;
             record_reader.read_record(record)?;
+
+            record.header = Some(header);
+
+            record.reference_sequence = if reference_sequence_context.is_many() {
+                get_record_reference_sequence(&reference_sequence_repository, header, record)?
+            } else {
+                slice_reference_sequence.clone()
+            };
+
+            record.substitution_matrix = substitution_matrix.clone();
         }
 
         Ok(records)
@@ -124,32 +153,8 @@ impl<'c> Slice<'c> {
     /// Resolves records.
     ///
     /// This resolves mates, read names, bases, and quality scores.
-    pub fn resolve_records(
-        &self,
-        reference_sequence_repository: &fasta::Repository,
-        header: &sam::Header,
-        compression_header: &CompressionHeader,
-        records: &mut [Record],
-    ) -> io::Result<()> {
-        let mut src = self.src;
-
-        read_core_data_block(&mut src)?;
-
-        let external_data_block_count = self.header.block_count() - 1;
-        let external_data_blocks = read_external_data_blocks(&mut src, external_data_block_count)?;
-
-        resolve_mates(records)?;
-
-        resolve_bases(
-            reference_sequence_repository,
-            header,
-            compression_header,
-            &self.header,
-            &external_data_blocks,
-            records,
-        )?;
-
-        Ok(())
+    pub fn resolve_records(&self, records: &mut [Record]) -> io::Result<()> {
+        resolve_mates(records)
     }
 }
 
@@ -346,102 +351,34 @@ fn calculate_template_size_chunk(
     }
 }
 
-fn resolve_bases(
-    reference_sequence_repository: &fasta::Repository,
-    header: &sam::Header,
-    compression_header: &CompressionHeader,
-    slice_header: &Header,
-    slice_external_data_blocks: &[Block],
-    records: &mut [Record],
-) -> io::Result<()> {
-    let preservation_map = compression_header.preservation_map();
-
-    let slice_reference_sequence = get_slice_reference_sequence(
-        reference_sequence_repository,
-        header,
-        preservation_map,
-        slice_header,
-        slice_external_data_blocks,
-    )?;
-
-    let is_reference_required = preservation_map.is_reference_required();
-
-    for record in records {
-        if record.bam_flags().is_unmapped() || record.cram_flags().decode_sequence_as_unknown() {
-            continue;
-        }
-
-        let mut alignment_start = record.alignment_start.expect("invalid alignment start");
-
-        let reference_sequence = if is_reference_required {
-            if let Some(SliceReferenceSequence::External(reference_sequence_id, sequence)) =
-                &slice_reference_sequence
-            {
-                if record.reference_sequence_id() == Some(*reference_sequence_id) {
-                    Some(sequence.clone())
-                } else {
-                    // An invalid state?
-                    todo!();
-                }
-            } else {
-                let reference_sequence_name = record
-                    .reference_sequence(header.reference_sequences())
-                    .transpose()?
-                    .map(|(name, _)| name)
-                    .expect("invalid reference sequence ID");
-
-                let sequence = reference_sequence_repository
-                    .get(reference_sequence_name)
-                    .transpose()?
-                    .expect("invalid reference sequence name");
-
-                Some(sequence)
-            }
-        } else if let Some(SliceReferenceSequence::Embedded(reference_start, sequence)) =
-            &slice_reference_sequence
-        {
-            let offset_start = usize::from(alignment_start) - usize::from(*reference_start) + 1;
-            alignment_start = Position::try_from(offset_start)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-            Some(sequence.clone())
-        } else {
-            None
-        };
-
-        let substitution_matrix = preservation_map.substitution_matrix();
-
-        resolve::resolve_bases(
-            reference_sequence.as_ref(),
-            substitution_matrix,
-            &record.features,
-            alignment_start,
-            record.read_length(),
-            &mut record.sequence,
-        )?;
-    }
-
-    Ok(())
-}
-
-enum SliceReferenceSequence {
-    External(usize, fasta::record::Sequence),
-    Embedded(Position, fasta::record::Sequence),
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) enum ReferenceSequence {
+    Embedded {
+        reference_start: Position,
+        sequence: fasta::record::Sequence,
+    },
+    External {
+        sequence: fasta::record::Sequence,
+    },
 }
 
 fn get_slice_reference_sequence(
     reference_sequence_repository: &fasta::Repository,
     header: &sam::Header,
-    preservation_map: &PreservationMap,
+    compression_header: &CompressionHeader,
     slice_header: &Header,
-    slice_external_data_blocks: &[Block],
-) -> io::Result<Option<SliceReferenceSequence>> {
+    external_data_srcs: &[(block::ContentId, Vec<u8>)],
+) -> io::Result<Option<ReferenceSequence>> {
     let reference_sequence_context = slice_header.reference_sequence_context();
 
     let ReferenceSequenceContext::Some(context) = reference_sequence_context else {
         return Ok(None);
     };
 
-    let is_reference_required = preservation_map.is_reference_required();
+    let is_reference_required = compression_header
+        .preservation_map()
+        .is_reference_required();
+
     let embedded_reference_bases_block_content_id =
         slice_header.embedded_reference_bases_block_content_id();
 
@@ -475,27 +412,44 @@ fn get_slice_reference_sequence(
                     ));
         }
 
-        Ok(Some(SliceReferenceSequence::External(
-            context.reference_sequence_id(),
-            sequence,
-        )))
+        Ok(Some(ReferenceSequence::External { sequence }))
     } else if let Some(block_content_id) = embedded_reference_bases_block_content_id {
-        let block = slice_external_data_blocks
+        let src = external_data_srcs
             .iter()
-            .find(|block| block.content_id == block_content_id)
+            .find(|(id, _)| *id == block_content_id)
+            .map(|(_, src)| src)
             .expect("invalid block content ID");
 
-        let data = block.decode()?;
-        let sequence = fasta::record::Sequence::from(data);
-
-        let reference_start = context.alignment_start();
-        Ok(Some(SliceReferenceSequence::Embedded(
-            reference_start,
-            sequence,
-        )))
+        Ok(Some(ReferenceSequence::Embedded {
+            reference_start: context.alignment_start(),
+            sequence: fasta::record::Sequence::from(src.clone()),
+        }))
     } else {
         Ok(None)
     }
+}
+
+fn get_record_reference_sequence(
+    reference_sequence_repository: &fasta::Repository,
+    header: &sam::Header,
+    record: &Record<'_>,
+) -> io::Result<Option<ReferenceSequence>> {
+    if record.bam_flags.is_unmapped() {
+        return Ok(None);
+    }
+
+    let reference_sequence_name = record
+        .reference_sequence(header.reference_sequences())
+        .transpose()?
+        .map(|(name, _)| name)
+        .expect("invalid reference sequence ID");
+
+    let sequence = reference_sequence_repository
+        .get(reference_sequence_name)
+        .transpose()?
+        .expect("invalid reference sequence name");
+
+    Ok(Some(ReferenceSequence::External { sequence }))
 }
 
 #[cfg(test)]
@@ -503,9 +457,7 @@ mod tests {
     use bstr::ByteSlice;
 
     use super::*;
-    use crate::{
-        calculate_normalized_sequence_digest, container::block::CompressionMethod, record::Flags,
-    };
+    use crate::record::Flags;
 
     #[test]
     fn test_resolve_mates() -> io::Result<()> {
@@ -661,79 +613,5 @@ mod tests {
         // No alignment start position.
         let record = Record::default();
         assert_eq!(calculate_template_size(&record, &record), 0);
-    }
-
-    #[test]
-    fn test_resolve_bases() -> Result<(), Box<dyn std::error::Error>> {
-        use std::num::NonZeroUsize;
-
-        use sam::{
-            alignment::record_buf::Sequence,
-            header::record::value::map::{self, Map},
-        };
-
-        use crate::container::block::ContentType;
-
-        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
-            Some(length) => length,
-            None => unreachable!(),
-        };
-
-        let start = Position::try_from(1)?;
-        let end = Position::try_from(2)?;
-        let sequence = fasta::record::Sequence::from(b"ACGT".to_vec());
-        let reference_md5 = calculate_normalized_sequence_digest(&sequence[start..=end]);
-
-        let reference_sequence_repository = fasta::Repository::new(vec![fasta::Record::new(
-            fasta::record::Definition::new("sq0", None),
-            sequence,
-        )]);
-
-        let header = sam::Header::builder()
-            .add_reference_sequence("sq0", Map::<map::ReferenceSequence>::new(SQ0_LN))
-            .build();
-
-        let compression_header = CompressionHeader::default();
-
-        let slice_header = Header::builder()
-            .set_reference_sequence_context(ReferenceSequenceContext::some(0, start, end))
-            .set_reference_md5(reference_md5)
-            .build();
-
-        let slice_external_data_blocks = vec![Block {
-            compression_method: CompressionMethod::None,
-            content_type: ContentType::ExternalData,
-            content_id: 1,
-            uncompressed_size: 0,
-            src: &[],
-        }];
-
-        let mut records = [Record {
-            id: 1,
-            bam_flags: sam::alignment::record::Flags::default(),
-            reference_sequence_id: Some(0),
-            read_length: 2,
-            alignment_start: Some(Position::MIN),
-            features: vec![Feature::Bases {
-                position: Position::MIN,
-                bases: b"AC",
-            }],
-            ..Default::default()
-        }];
-
-        resolve_bases(
-            &reference_sequence_repository,
-            &header,
-            &compression_header,
-            &slice_header,
-            &slice_external_data_blocks,
-            &mut records,
-        )?;
-
-        let actual: Vec<_> = records.into_iter().map(|r| r.sequence).collect();
-        let expected = [Sequence::from(vec![b'A', b'C'])];
-        assert_eq!(actual, expected);
-
-        Ok(())
     }
 }

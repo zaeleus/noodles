@@ -3,34 +3,39 @@
 mod cigar;
 mod data;
 pub mod feature;
-mod features;
 mod flags;
 mod mate_flags;
 mod quality_scores;
-pub mod resolve;
-
-pub use self::{feature::Feature, flags::Flags, mate_flags::MateFlags};
+mod sequence;
 
 use std::{borrow::Cow, io};
 
 use bstr::{BStr, ByteSlice};
 use noodles_core::Position;
+use noodles_fasta as fasta;
 use noodles_sam::{
     self as sam,
     alignment::{
         record::{data::field::Tag, MappingQuality},
-        record_buf::{data::field::Value, Sequence},
+        record_buf::data::field::Value,
     },
-    header::record::value::{map::ReferenceSequence, Map},
+    header::record::value::Map,
 };
 
-use self::{cigar::Cigar, data::Data, quality_scores::QualityScores};
+use self::{cigar::Cigar, data::Data, quality_scores::QualityScores, sequence::Sequence};
+pub use self::{feature::Feature, flags::Flags, mate_flags::MateFlags};
+use crate::{
+    container::compression_header::preservation_map::SubstitutionMatrix,
+    io::reader::container::slice::ReferenceSequence,
+};
 
 /// A CRAM record.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Record<'c> {
     pub(crate) id: u64,
     pub(crate) header: Option<&'c sam::Header>,
+    pub(crate) reference_sequence: Option<ReferenceSequence>,
+    pub(crate) substitution_matrix: SubstitutionMatrix,
     pub(crate) bam_flags: sam::alignment::record::Flags,
     pub(crate) cram_flags: Flags,
     pub(crate) reference_sequence_id: Option<usize>,
@@ -44,7 +49,7 @@ pub struct Record<'c> {
     pub(crate) template_length: i32,
     pub(crate) distance_to_mate: Option<usize>,
     pub(crate) data: Vec<(Tag, Value)>,
-    pub(crate) sequence: Sequence,
+    pub(crate) sequence: &'c [u8],
     pub(crate) features: Vec<Feature<'c>>,
     pub(crate) mapping_quality: Option<MappingQuality>,
     pub(crate) quality_scores: &'c [u8],
@@ -86,7 +91,12 @@ impl Record<'_> {
     pub fn reference_sequence<'h>(
         &self,
         reference_sequences: &'h sam::header::ReferenceSequences,
-    ) -> Option<io::Result<(&'h [u8], &'h Map<ReferenceSequence>)>> {
+    ) -> Option<
+        io::Result<(
+            &'h [u8],
+            &'h Map<sam::header::record::value::map::ReferenceSequence>,
+        )>,
+    > {
         get_reference_sequence(reference_sequences, self.reference_sequence_id())
     }
 
@@ -148,7 +158,12 @@ impl Record<'_> {
     pub fn mate_reference_sequence<'h>(
         &self,
         reference_sequences: &'h sam::header::ReferenceSequences,
-    ) -> Option<io::Result<(&'h [u8], &'h Map<ReferenceSequence>)>> {
+    ) -> Option<
+        io::Result<(
+            &'h [u8],
+            &'h Map<sam::header::record::value::map::ReferenceSequence>,
+        )>,
+    > {
         get_reference_sequence(
             reference_sequences,
             self.next_fragment_reference_sequence_id(),
@@ -196,13 +211,13 @@ impl Record<'_> {
 
     /// Returns the read bases.
     #[deprecated(since = "0.70.0", note = "Use `Record::sequence` instead.")]
-    pub fn bases(&self) -> &Sequence {
-        &self.sequence
+    pub fn bases(&self) -> &[u8] {
+        self.sequence
     }
 
     /// Returns the sequence.
-    pub fn sequence(&self) -> &Sequence {
-        &self.sequence
+    pub fn sequence(&self) -> &[u8] {
+        self.sequence
     }
 
     /// Returns the read features.
@@ -226,6 +241,8 @@ impl Default for Record<'_> {
         Self {
             id: 0,
             header: None,
+            reference_sequence: None,
+            substitution_matrix: SubstitutionMatrix::default(),
             bam_flags: sam::alignment::record::Flags::UNMAPPED,
             cram_flags: Flags::default(),
             reference_sequence_id: None,
@@ -239,7 +256,7 @@ impl Default for Record<'_> {
             template_length: 0,
             distance_to_mate: None,
             data: Vec::new(),
-            sequence: Sequence::default(),
+            sequence: &[],
             features: Vec::new(),
             mapping_quality: None,
             quality_scores: &[],
@@ -295,7 +312,34 @@ impl sam::alignment::Record for Record<'_> {
     }
 
     fn sequence(&self) -> Box<dyn sam::alignment::record::Sequence + '_> {
-        Box::new(self.sequence())
+        if self.sequence.is_empty() {
+            let (reference_sequence, alignment_start) = match self.reference_sequence.as_ref() {
+                Some(ReferenceSequence::Embedded {
+                    reference_start,
+                    sequence,
+                }) => {
+                    let alignment_start = usize::from(self.alignment_start.unwrap());
+                    let offset = usize::from(*reference_start);
+                    let offset_alignment_start =
+                        Position::new(alignment_start - offset + 1).unwrap();
+                    (sequence.clone(), offset_alignment_start)
+                }
+                Some(ReferenceSequence::External { sequence, .. }) => {
+                    (sequence.clone(), self.alignment_start.unwrap())
+                }
+                None => (fasta::record::Sequence::default(), Position::MIN),
+            };
+
+            Box::new(Sequence::new(
+                Some(reference_sequence),
+                self.substitution_matrix.clone(),
+                &self.features,
+                alignment_start,
+                self.read_length,
+            ))
+        } else {
+            Box::new(Bases(self.sequence))
+        }
     }
 
     fn quality_scores(&self) -> Box<dyn sam::alignment::record::QualityScores + '_> {
@@ -312,6 +356,36 @@ impl sam::alignment::Record for Record<'_> {
             &self.data,
             self.read_group_id,
         ))
+    }
+}
+
+struct Bases<'c>(&'c [u8]);
+
+impl sam::alignment::record::Sequence for Bases<'_> {
+    fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    fn get(&self, i: usize) -> Option<u8> {
+        self.0.get(i).copied()
+    }
+
+    fn split_at_checked(
+        &self,
+        _mid: usize,
+    ) -> Option<(
+        Box<dyn sam::alignment::record::Sequence + '_>,
+        Box<dyn sam::alignment::record::Sequence + '_>,
+    )> {
+        todo!()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = u8> + '_> {
+        Box::new(self.0.iter().copied())
     }
 }
 
@@ -347,7 +421,12 @@ pub(crate) fn calculate_alignment_span(read_length: usize, features: &[Feature])
 fn get_reference_sequence(
     reference_sequences: &sam::header::ReferenceSequences,
     reference_sequence_id: Option<usize>,
-) -> Option<io::Result<(&[u8], &Map<ReferenceSequence>)>> {
+) -> Option<
+    io::Result<(
+        &[u8],
+        &Map<sam::header::record::value::map::ReferenceSequence>,
+    )>,
+> {
     reference_sequence_id.map(|id| {
         reference_sequences
             .get_index(id)

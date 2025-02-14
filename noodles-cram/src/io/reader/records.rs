@@ -49,14 +49,15 @@ where
                 let (core_data_src, external_data_srcs) = slice.decode_blocks()?;
 
                 slice
-                    .records(&compression_header, &core_data_src, &external_data_srcs)
+                    .records(
+                        self.reader.reference_sequence_repository.clone(),
+                        self.header,
+                        &compression_header,
+                        &core_data_src,
+                        &external_data_srcs,
+                    )
                     .and_then(|mut records| {
-                        slice.resolve_records(
-                            self.reader.reference_sequence_repository(),
-                            self.header,
-                            &compression_header,
-                            &mut records,
-                        )?;
+                        slice.resolve_records(&mut records)?;
 
                         records
                             .into_iter()

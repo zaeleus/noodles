@@ -8,6 +8,7 @@
 use std::env;
 
 use noodles_cram::{self as cram, io::reader::Container};
+use noodles_fasta as fasta;
 use tokio::{fs::File, io};
 
 #[tokio::main]
@@ -15,7 +16,9 @@ async fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
     let mut reader = File::open(src).await.map(cram::r#async::io::Reader::new)?;
-    reader.read_header().await?;
+    let header = reader.read_header().await?;
+
+    let reference_sequence_repository = fasta::Repository::default();
 
     let mut container = Container::default();
     let mut n = 0;
@@ -28,8 +31,13 @@ async fn main() -> io::Result<()> {
 
             let (core_data_src, external_data_srcs) = slice.decode_blocks()?;
 
-            let records =
-                slice.records(&compression_header, &core_data_src, &external_data_srcs)?;
+            let records = slice.records(
+                reference_sequence_repository.clone(),
+                &header,
+                &compression_header,
+                &core_data_src,
+                &external_data_srcs,
+            )?;
 
             n += records.len();
         }
