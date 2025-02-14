@@ -1,26 +1,18 @@
-mod builder;
-
-pub use builder::Builder;
-
 use crate::container::{block, ReferenceSequenceContext};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Header {
-    reference_sequence_context: ReferenceSequenceContext,
-    record_count: usize,
-    record_counter: u64,
-    block_count: usize,
-    block_content_ids: Vec<block::ContentId>,
-    embedded_reference_bases_block_content_id: Option<block::ContentId>,
-    reference_md5: [u8; 16],
-    optional_tags: Vec<u8>,
+    pub(crate) reference_sequence_context: ReferenceSequenceContext,
+    pub(crate) record_count: usize,
+    pub(crate) record_counter: u64,
+    pub(crate) block_count: usize,
+    pub(crate) block_content_ids: Vec<block::ContentId>,
+    pub(crate) embedded_reference_bases_block_content_id: Option<block::ContentId>,
+    pub(crate) reference_md5: [u8; 16],
+    pub(crate) optional_tags: Vec<u8>,
 }
 
 impl Header {
-    pub fn builder() -> Builder {
-        Builder::default()
-    }
-
     pub fn reference_sequence_context(&self) -> ReferenceSequenceContext {
         self.reference_sequence_context
     }

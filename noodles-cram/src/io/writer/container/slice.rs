@@ -53,21 +53,23 @@ pub(super) fn build_slice(
     let mut block_content_ids = vec![core_data_block.content_id()];
     block_content_ids.extend(external_data_blocks.iter().map(|block| block.content_id()));
 
-    let reference_sequence_md5 = calculate_reference_sequence_md5(
+    let reference_md5 = calculate_reference_sequence_md5(
         reference_sequence_repository,
         header,
         reference_sequence_context,
     )?
     .unwrap_or_default();
 
-    let header = Header::builder()
-        .set_reference_sequence_context(reference_sequence_context)
-        .set_record_count(records.len())
-        .set_record_counter(record_counter)
-        .set_block_count(block_content_ids.len())
-        .set_block_content_ids(block_content_ids)
-        .set_reference_md5(reference_sequence_md5)
-        .build();
+    let header = Header {
+        reference_sequence_context,
+        record_count: records.len(),
+        record_counter,
+        block_count: block_content_ids.len(),
+        block_content_ids,
+        embedded_reference_bases_block_content_id: None,
+        reference_md5,
+        optional_tags: Vec::new(),
+    };
 
     Ok(Slice {
         header,
