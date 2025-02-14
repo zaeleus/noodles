@@ -18,7 +18,7 @@ where
 {
     let mut buf = Vec::new();
 
-    let map_len = i32::try_from(data_series_encodings.len())
+    let map_len = i32::try_from(data_series_encodings_len(data_series_encodings))
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(&mut buf, map_len)?;
 
@@ -29,6 +29,47 @@ where
     write_itf8(writer, data_len)?;
 
     writer.write_all(&buf)
+}
+
+fn data_series_encodings_len(encodings: &DataSeriesEncodings) -> usize {
+    fn count(n: &mut usize, is_some: bool) {
+        if is_some {
+            *n += 1;
+        }
+    }
+
+    let mut n = 0;
+
+    count(&mut n, encodings.bam_flags().is_some());
+    count(&mut n, encodings.cram_flags().is_some());
+    count(&mut n, encodings.reference_sequence_ids().is_some());
+    count(&mut n, encodings.read_lengths().is_some());
+    count(&mut n, encodings.alignment_starts().is_some());
+    count(&mut n, encodings.read_group_ids().is_some());
+    count(&mut n, encodings.names().is_some());
+    count(&mut n, encodings.mate_flags().is_some());
+    count(&mut n, encodings.mate_reference_sequence_ids().is_some());
+    count(&mut n, encodings.mate_alignment_starts().is_some());
+    count(&mut n, encodings.template_lengths().is_some());
+    count(&mut n, encodings.mate_distances().is_some());
+    count(&mut n, encodings.tag_set_ids().is_some());
+    count(&mut n, encodings.feature_counts().is_some());
+    count(&mut n, encodings.feature_codes().is_some());
+    count(&mut n, encodings.feature_position_deltas().is_some());
+    count(&mut n, encodings.deletion_lengths().is_some());
+    count(&mut n, encodings.stretches_of_bases().is_some());
+    count(&mut n, encodings.stretches_of_quality_scores().is_some());
+    count(&mut n, encodings.base_substitution_codes().is_some());
+    count(&mut n, encodings.insertion_bases().is_some());
+    count(&mut n, encodings.reference_skip_lengths().is_some());
+    count(&mut n, encodings.padding_lengths().is_some());
+    count(&mut n, encodings.hard_clip_lengths().is_some());
+    count(&mut n, encodings.soft_clip_bases().is_some());
+    count(&mut n, encodings.mapping_qualities().is_some());
+    count(&mut n, encodings.bases().is_some());
+    count(&mut n, encodings.quality_scores().is_some());
+
+    n
 }
 
 fn write_key<W>(writer: &mut W, key: DataSeries) -> io::Result<()>
@@ -184,4 +225,44 @@ where
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::container::compression_header::{encoding::codec::Integer, Encoding};
+
+    use super::*;
+
+    #[test]
+    fn test_data_series_encodings_len() {
+        let encodings = DataSeriesEncodings::default();
+        assert_eq!(data_series_encodings_len(&encodings), 0);
+
+        let encodings = DataSeriesEncodings::init();
+        assert_eq!(data_series_encodings_len(&encodings), 28);
+
+        let encodings = DataSeriesEncodings {
+            bam_flags: Some(Encoding::new(Integer::External {
+                block_content_id: 1,
+            })),
+            cram_flags: Some(Encoding::new(Integer::External {
+                block_content_id: 2,
+            })),
+            read_lengths: Some(Encoding::new(Integer::External {
+                block_content_id: 4,
+            })),
+            alignment_starts: Some(Encoding::new(Integer::External {
+                block_content_id: 5,
+            })),
+            read_group_ids: Some(Encoding::new(Integer::External {
+                block_content_id: 6,
+            })),
+            tag_set_ids: Some(Encoding::new(Integer::External {
+                block_content_id: 13,
+            })),
+            ..Default::default()
+        };
+
+        assert_eq!(data_series_encodings_len(&encodings), 6);
+    }
 }
