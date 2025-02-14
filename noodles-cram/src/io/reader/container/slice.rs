@@ -7,7 +7,7 @@ use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 use self::header::read_header;
-use super::{read_block, Block};
+use super::read_block_as;
 use crate::{
     calculate_normalized_sequence_digest,
     container::{
@@ -38,14 +38,15 @@ impl<'c> Slice<'c> {
     pub fn decode_blocks(&self) -> io::Result<(Vec<u8>, Vec<(block::ContentId, Vec<u8>)>)> {
         let mut src = self.src;
 
-        let block = read_core_data_block(&mut src)?;
+        let block = read_block_as(&mut src, ContentType::CoreData)?;
         let core_data_src = block.decode()?;
 
         let external_data_block_count = self.header.block_count() - 1;
-        let external_data_blocks = read_external_data_blocks(&mut src, external_data_block_count)?;
-        let external_data_srcs = external_data_blocks
-            .into_iter()
-            .map(|block| block.decode().map(|src| (block.content_id, src)))
+        let external_data_srcs = (0..external_data_block_count)
+            .map(|_| {
+                let block = read_block_as(&mut src, ContentType::ExternalData)?;
+                block.decode().map(|src| (block.content_id, src))
+            })
             .collect::<io::Result<_>>()?;
 
         Ok((core_data_src, external_data_srcs))
@@ -156,44 +157,6 @@ impl<'c> Slice<'c> {
 pub fn read_slice<'c>(src: &mut &'c [u8]) -> io::Result<Slice<'c>> {
     let header = read_header(src)?;
     Ok(Slice { header, src })
-}
-
-fn read_core_data_block<'c>(src: &mut &'c [u8]) -> io::Result<Block<'c>> {
-    let block = read_block(src)?;
-
-    if block.content_type != ContentType::CoreData {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!(
-                "invalid block content type: expected {:?}, got {:?}",
-                ContentType::CoreData,
-                block.content_type
-            ),
-        ));
-    }
-
-    Ok(block)
-}
-
-fn read_external_data_blocks<'c>(src: &mut &'c [u8], len: usize) -> io::Result<Vec<Block<'c>>> {
-    (0..len).map(|_| read_external_data_block(src)).collect()
-}
-
-fn read_external_data_block<'c>(src: &mut &'c [u8]) -> io::Result<Block<'c>> {
-    let block = read_block(src)?;
-
-    if block.content_type != ContentType::ExternalData {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!(
-                "invalid block content type: expected {:?}, got {:?}",
-                ContentType::ExternalData,
-                block.content_type
-            ),
-        ));
-    }
-
-    Ok(block)
 }
 
 fn resolve_mates(records: &mut [Record]) -> io::Result<()> {

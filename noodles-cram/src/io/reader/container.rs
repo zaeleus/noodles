@@ -8,11 +8,8 @@ use std::{
     iter,
 };
 
-pub(crate) use self::block::Block;
-use self::header::read_header;
-pub use self::{
-    block::read_block, compression_header::read_compression_header, slice::read_slice, slice::Slice,
-};
+use self::{block::read_block_as, header::read_header};
+pub use self::{compression_header::read_compression_header, slice::read_slice, slice::Slice};
 use crate::container::{CompressionHeader, Header};
 
 /// A CRAM container.

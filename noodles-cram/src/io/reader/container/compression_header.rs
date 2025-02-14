@@ -11,23 +11,11 @@ use self::{
     preservation_map::read_preservation_map,
     tag_encodings::read_tag_encodings,
 };
-use super::read_block;
+use super::read_block_as;
 use crate::container::{block::ContentType, CompressionHeader};
 
 pub fn read_compression_header(src: &mut &[u8]) -> io::Result<CompressionHeader> {
-    let block = read_block(src)?;
-
-    if block.content_type != ContentType::CompressionHeader {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!(
-                "invalid block content type: expected {:?}, got {:?}",
-                ContentType::CompressionHeader,
-                block.content_type
-            ),
-        ));
-    }
-
+    let block = read_block_as(src, ContentType::CompressionHeader)?;
     let buf = block.decode()?;
     read_compression_header_inner(&mut &buf[..])
 }

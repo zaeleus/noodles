@@ -58,7 +58,7 @@ impl Block<'_> {
     }
 }
 
-pub fn read_block<'c>(src: &mut &'c [u8]) -> io::Result<Block<'c>> {
+fn read_block<'c>(src: &mut &'c [u8]) -> io::Result<Block<'c>> {
     let original_src = *src;
 
     let mut compression_method = read_compression_method(src)?;
@@ -103,10 +103,30 @@ pub fn read_block<'c>(src: &mut &'c [u8]) -> io::Result<Block<'c>> {
     })
 }
 
+pub fn read_block_as<'c>(src: &mut &'c [u8], content_type: ContentType) -> io::Result<Block<'c>> {
+    let block = read_block(src)?;
+    validate_content_type(block.content_type, content_type)?;
+    Ok(block)
+}
+
 fn crc32(buf: &[u8]) -> u32 {
     let mut crc = Crc::new();
     crc.update(buf);
     crc.sum()
+}
+
+fn validate_content_type(actual: ContentType, expected: ContentType) -> io::Result<()> {
+    if actual == expected {
+        Ok(())
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!(
+                "invalid block content type: expected {:?}, got {:?}",
+                expected, actual
+            ),
+        ))
+    }
 }
 
 #[cfg(test)]

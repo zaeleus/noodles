@@ -7,26 +7,14 @@ use crate::{
         ReferenceSequenceContext,
     },
     io::reader::{
-        container::read_block,
+        container::read_block_as,
         num::{read_itf8, read_itf8_as, read_ltf8_as},
         split_at_checked,
     },
 };
 
 pub(super) fn read_header(src: &mut &[u8]) -> io::Result<Header> {
-    let block = read_block(src)?;
-
-    if block.content_type != ContentType::SliceHeader {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!(
-                "invalid block content type: expected {:?}, got {:?}",
-                ContentType::SliceHeader,
-                block.content_type
-            ),
-        ));
-    }
-
+    let block = read_block_as(src, ContentType::SliceHeader)?;
     let buf = block.decode()?;
     read_header_inner(&mut &buf[..])
 }
