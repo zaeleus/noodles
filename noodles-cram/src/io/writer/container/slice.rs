@@ -3,6 +3,7 @@ pub mod records;
 
 use std::{collections::HashMap, io};
 
+use flate2::Compression;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
@@ -11,12 +12,12 @@ use crate::{
     calculate_normalized_sequence_digest,
     codecs::Encoder,
     container::{
-        block::{self, ContentType},
+        block::{self, CompressionMethod, ContentType},
         slice::Header,
-        Block, BlockContentEncoderMap, CompressionHeader, ReferenceSequenceContext,
+        BlockContentEncoderMap, CompressionHeader, ReferenceSequenceContext,
     },
     io::{
-        writer::{Options, Record},
+        writer::{container::block::Block, Options, Record},
         BitWriter,
     },
     record::Flags,
@@ -50,8 +51,8 @@ pub(super) fn build_slice(
         external_data_bufs,
     )?;
 
-    let mut block_content_ids = vec![core_data_block.content_id()];
-    block_content_ids.extend(external_data_blocks.iter().map(|block| block.content_id()));
+    let mut block_content_ids = vec![core_data_block.content_id];
+    block_content_ids.extend(external_data_blocks.iter().map(|block| block.content_id));
 
     let reference_md5 = calculate_reference_sequence_md5(
         reference_sequence_repository,
@@ -194,29 +195,14 @@ fn build_blocks(
     use crate::codecs::fqzcomp;
 
     const CORE_DATA_BLOCK_CONTENT_ID: block::ContentId = 0;
+    const DEFAULT_ENCODER: Encoder = Encoder::Gzip(Compression::new(6));
 
-    fn set_block_data(
-        builder: block::Builder,
-        buf: Vec<u8>,
-        encoder: Option<&Encoder>,
-    ) -> io::Result<block::Builder> {
-        match encoder {
-            Some(encoder) => builder.compress_and_set_data(buf, encoder.clone()),
-            None => Ok(builder.set_uncompressed_len(buf.len()).set_data(buf.into())),
-        }
-    }
-
-    let mut core_data_block_builder = Block::builder()
-        .set_content_type(ContentType::CoreData)
-        .set_content_id(CORE_DATA_BLOCK_CONTENT_ID);
-
-    core_data_block_builder = set_block_data(
-        core_data_block_builder,
-        core_data_buf,
+    let core_data_block = Block::encode(
+        ContentType::CoreData,
+        CORE_DATA_BLOCK_CONTENT_ID,
         block_content_encoder_map.core_data_encoder(),
+        &core_data_buf,
     )?;
-
-    let core_data_block = core_data_block_builder.build();
 
     let mut all_quality_scores_stored_as_arrays = true;
 
@@ -229,11 +215,9 @@ fn build_blocks(
         .into_iter()
         .filter(|(_, buf)| !buf.is_empty())
         .map(|(block_content_id, buf)| {
-            let mut builder = Block::builder()
-                .set_content_type(block::ContentType::ExternalData)
-                .set_content_id(block_content_id);
+            let content_type = ContentType::ExternalData;
 
-            builder = if let Some(encoder) =
+            if let Some(encoder) =
                 block_content_encoder_map.get_data_series_encoder(block_content_id)
             {
                 match encoder {
@@ -242,25 +226,36 @@ fn build_blocks(
                             let lens: Vec<_> = records.iter().map(|r| r.read_length).collect();
                             let data = fqzcomp::encode(&lens, &buf)?;
 
-                            builder
-                                .set_uncompressed_len(buf.len())
-                                .set_compression_method(block::CompressionMethod::Fqzcomp)
-                                .set_data(data.into())
+                            Ok(Block {
+                                compression_method: CompressionMethod::Fqzcomp,
+                                content_type,
+                                content_id: block_content_id,
+                                uncompressed_size: data.len(),
+                                src: data,
+                            })
                         } else {
-                            set_block_data(builder, buf, Some(&Encoder::Gzip(Default::default())))?
+                            Block::encode(
+                                ContentType::ExternalData,
+                                block_content_id,
+                                Some(&DEFAULT_ENCODER),
+                                &buf,
+                            )
                         }
                     }
-                    _ => set_block_data(builder, buf, encoder)?,
+                    _ => Block::encode(ContentType::ExternalData, block_content_id, encoder, &buf),
                 }
             } else if let Some(encoder) =
                 block_content_encoder_map.get_tag_values_encoders(block_content_id)
             {
-                set_block_data(builder, buf, encoder)?
+                Block::encode(ContentType::ExternalData, block_content_id, encoder, &buf)
             } else {
-                set_block_data(builder, buf, Some(&Encoder::Gzip(Default::default())))?
-            };
-
-            Ok(builder.build())
+                Block::encode(
+                    ContentType::ExternalData,
+                    block_content_id,
+                    Some(&DEFAULT_ENCODER),
+                    &buf,
+                )
+            }
         })
         .collect::<io::Result<_>>()?;
 

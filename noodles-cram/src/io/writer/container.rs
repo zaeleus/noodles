@@ -11,13 +11,16 @@ use std::{
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
-pub use self::{block::write_block, header::write_header};
+pub use self::{
+    block::{write_block, Block},
+    header::write_header,
+};
 use self::{
     compression_header::{build_compression_header, write_compression_header},
     slice::{build_slice, Slice},
 };
 use super::{Options, Record, DEFAULT_RECORDS_PER_SLICE};
-use crate::container::{block::ContentType, Block, Header, ReferenceSequenceContext};
+use crate::container::{block::ContentType, Header, ReferenceSequenceContext};
 
 pub fn write_container<W>(
     writer: &mut W,
@@ -87,9 +90,9 @@ fn build_container(
     let mut buf = Vec::new();
 
     write_compression_header(&mut buf, &compression_header)?;
-    let compression_header_block = build_compression_header_block(&buf);
+    let compression_header_block = build_compression_header_block(&buf)?;
 
-    let mut container_size = compression_header_block.len();
+    let mut container_size = compression_header_block.size()?;
     let mut blocks = vec![compression_header_block];
     let mut landmarks = Vec::with_capacity(slices.len());
 
@@ -97,16 +100,16 @@ fn build_container(
         buf.clear();
 
         slice::write_header(&mut buf, &slice.header)?;
-        let slice_header_block = build_slice_header_block(&buf);
+        let slice_header_block = build_slice_header_block(&buf)?;
 
-        let mut slice_size = slice_header_block.len();
+        let mut slice_size = slice_header_block.size()?;
         blocks.push(slice_header_block);
 
-        slice_size += slice.core_data_block.len();
+        slice_size += slice.core_data_block.size()?;
         blocks.push(slice.core_data_block);
 
         for block in &slice.external_data_blocks {
-            slice_size += block.len();
+            slice_size += block.size()?;
         }
 
         blocks.extend(slice.external_data_blocks);
@@ -183,12 +186,8 @@ fn get_container_reference_sequence_context(
     Ok(container_reference_sequence_context)
 }
 
-fn build_compression_header_block(buf: &[u8]) -> Block {
-    Block::builder()
-        .set_content_type(ContentType::CompressionHeader)
-        .set_uncompressed_len(buf.len())
-        .set_data(buf.to_vec().into())
-        .build()
+fn build_compression_header_block(src: &[u8]) -> io::Result<Block> {
+    Block::encode(ContentType::CompressionHeader, 0, None, src)
 }
 
 fn calculate_base_count(records: &[Record]) -> io::Result<u64> {
@@ -196,12 +195,8 @@ fn calculate_base_count(records: &[Record]) -> io::Result<u64> {
     u64::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
 }
 
-fn build_slice_header_block(buf: &[u8]) -> Block {
-    Block::builder()
-        .set_content_type(ContentType::SliceHeader)
-        .set_uncompressed_len(buf.len())
-        .set_data(buf.to_vec().into())
-        .build()
+fn build_slice_header_block(src: &[u8]) -> io::Result<Block> {
+    Block::encode(ContentType::SliceHeader, 0, None, src)
 }
 
 // § 9 "End of file container" (2022-04-12)

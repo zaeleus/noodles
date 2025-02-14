@@ -8,8 +8,8 @@ use noodles_sam as sam;
 
 use crate::{
     codecs::Encoder,
-    container::{block::ContentType, Block, Header},
-    io::writer::container::{write_block, write_header},
+    container::{block::ContentType, Header},
+    io::writer::container::{write_block, write_header, Block},
 };
 
 pub(super) fn write_container<W>(writer: &mut W, header: &sam::Header) -> io::Result<()>
@@ -20,15 +20,12 @@ where
 
     validate_reference_sequences(header.reference_sequences())?;
 
-    let data = serialize_header(header)?;
-
-    let block = Block::builder()
-        .set_content_type(ContentType::FileHeader)
-        .compress_and_set_data(data, ENCODER)?
-        .build();
+    let buf = serialize_header(header)?;
+    let block = Block::encode(ContentType::FileHeader, 0, Some(&ENCODER), &buf)?;
 
     let header = build_header();
-    write_header(writer, &header, block.len())?;
+    let len = block.size()?;
+    write_header(writer, &header, len)?;
 
     write_block(writer, &block)?;
 

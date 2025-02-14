@@ -12,7 +12,6 @@ pub mod file_definition;
 pub mod fs;
 mod huffman;
 pub mod io;
-mod num;
 pub mod record;
 
 pub use self::{file_definition::FileDefinition, record::Record};
