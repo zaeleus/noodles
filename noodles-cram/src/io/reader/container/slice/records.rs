@@ -96,12 +96,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .bam_flags()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::BamFlags),
-                )
-            })?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::BamFlags))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| {
                 u16::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -113,12 +108,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .cram_flags()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::CramFlags),
-                )
-            })?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::CramFlags))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| {
                 u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -148,12 +138,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .reference_sequence_ids()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::ReferenceSequenceIds),
-                )
-            })?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::ReferenceSequenceIds))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| match n {
                 UNMAPPED => Ok(None),
@@ -167,12 +152,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .read_lengths()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::ReadLengths),
-                )
-            })?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::ReadLengths))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| {
                 usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -189,12 +169,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
             .compression_header
             .data_series_encodings()
             .alignment_starts()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::AlignmentStarts),
-                )
-            })?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::AlignmentStarts))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)?;
 
         let alignment_start = if ap_data_series_delta {
@@ -222,12 +197,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .read_group_ids()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::ReadGroupIds),
-                )
-            })?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::ReadGroupIds))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| match n {
                 MISSING => Ok(None),
@@ -254,12 +224,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .names()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::Names),
-                )
-            })?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::Names))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .map(|buf| match buf {
                 MISSING => None,
@@ -300,12 +265,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .mate_flags()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::MateFlags),
-                )
-            })?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::MateFlags))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| {
                 u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -319,12 +279,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .mate_reference_sequence_ids()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::MateReferenceSequenceId),
-                )
-            })?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::MateReferenceSequenceId))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|id| match id {
                 UNMAPPED => Ok(None),
@@ -338,12 +293,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .mate_alignment_starts()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::MateAlignmentStart),
-                )
-            })?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::MateAlignmentStart))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| {
                 usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -355,12 +305,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .template_lengths()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::TemplateLengths),
-                )
-            })?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::TemplateLengths))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
     }
 
@@ -368,12 +313,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .mate_distances()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::MateDistances),
-                )
-            })?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::MateDistances))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| {
                 usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -423,12 +363,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .tag_set_ids()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::TagSetIds),
-                )
-            })?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::TagSetIds))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| {
                 usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -459,12 +394,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .feature_counts()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::FeatureCounts),
-                )
-            })?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::FeatureCounts))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| {
                 usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -550,12 +480,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .feature_codes()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::FeatureCodes),
-                )
-            })?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::FeatureCodes))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|id| {
                 feature::Code::try_from(id)
@@ -567,12 +492,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .feature_position_deltas()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::FeaturePositionDeltas),
-                )
-            })?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::FeaturePositionDeltas))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| {
                 usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -583,12 +503,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .stretches_of_bases()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::StretchesOfBases),
-                )
-            })?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::StretchesOfBases))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
     }
 
@@ -597,12 +512,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
             .data_series_encodings()
             .stretches_of_quality_scores()
             .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(
-                        DataSeries::StretchesOfQualityScores,
-                    ),
-                )
+                missing_data_series_encoding_error(DataSeries::StretchesOfQualityScores)
             })?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
     }
@@ -611,12 +521,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .bases()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::Bases),
-                )
-            })?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::Bases))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
     }
 
@@ -624,12 +529,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .quality_scores()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::QualityScores),
-                )
-            })?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::QualityScores))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
     }
 
@@ -637,12 +537,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .base_substitution_codes()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::BaseSubstitutionCodes),
-                )
-            })?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::BaseSubstitutionCodes))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
     }
 
@@ -650,12 +545,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .insertion_bases()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::InsertionBases),
-                )
-            })?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::InsertionBases))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
     }
 
@@ -663,12 +553,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .deletion_lengths()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::DeletionLengths),
-                )
-            })?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::DeletionLengths))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| {
                 usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -679,12 +564,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .reference_skip_lengths()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::ReferenceSkipLengths),
-                )
-            })?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::ReferenceSkipLengths))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| {
                 usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -695,12 +575,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .soft_clip_bases()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::SoftClipBases),
-                )
-            })?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::SoftClipBases))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
     }
 
@@ -708,12 +583,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .padding_lengths()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::PaddingLengths),
-                )
-            })?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::PaddingLengths))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| {
                 usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -724,12 +594,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .hard_clip_lengths()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::HardClipLengths),
-                )
-            })?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::HardClipLengths))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| {
                 usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -742,12 +607,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .mapping_qualities()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::MappingQualities),
-                )
-            })?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::MappingQualities))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| {
                 u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -770,12 +630,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
             .compression_header
             .data_series_encodings()
             .bases()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::Bases),
-                )
-            })?;
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::Bases))?;
 
         encoding.get().decode_take(
             &mut self.core_data_reader,
@@ -791,12 +646,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
             .compression_header
             .data_series_encodings()
             .quality_scores()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::QualityScores),
-                )
-            })?;
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::QualityScores))?;
 
         let src = encoding.get().decode_take(
             &mut self.core_data_reader,
@@ -810,4 +660,11 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
             Ok(src)
         }
     }
+}
+
+fn missing_data_series_encoding_error(data_series: DataSeries) -> io::Error {
+    io::Error::new(
+        io::ErrorKind::InvalidData,
+        ReadRecordError::MissingDataSeriesEncoding(data_series),
+    )
 }
