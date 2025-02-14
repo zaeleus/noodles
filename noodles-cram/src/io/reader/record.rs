@@ -96,6 +96,12 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .bam_flags()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::BamFlags),
+                )
+            })?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| {
                 u16::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -107,6 +113,12 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .cram_flags()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::CramFlags),
+                )
+            })?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| {
                 u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -155,6 +167,12 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .read_lengths()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::ReadLengths),
+                )
+            })?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| {
                 usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -171,6 +189,12 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
             .compression_header
             .data_series_encodings()
             .alignment_starts()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::AlignmentStarts),
+                )
+            })?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)?;
 
         let alignment_start = if ap_data_series_delta {
@@ -198,6 +222,12 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .read_group_ids()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::ReadGroupIds),
+                )
+            })?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| match n {
                 MISSING => Ok(None),
@@ -393,6 +423,12 @@ impl<'c, 'ch: 'c> Reader<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .tag_set_ids()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::TagSetIds),
+                )
+            })?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| {
                 usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))

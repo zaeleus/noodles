@@ -101,6 +101,12 @@ where
         self.compression_header
             .data_series_encodings()
             .bam_flags()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::BamFlags),
+                )
+            })?
             .encode(self.core_data_writer, self.external_data_writers, n)
     }
 
@@ -110,6 +116,12 @@ where
         self.compression_header
             .data_series_encodings()
             .cram_flags()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::CramFlags),
+                )
+            })?
             .encode(self.core_data_writer, self.external_data_writers, n)
     }
 
@@ -155,7 +167,13 @@ where
         let encoding = self
             .compression_header
             .data_series_encodings()
-            .read_lengths();
+            .read_lengths()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::ReadLengths),
+                )
+            })?;
 
         let len = i32::try_from(read_length)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
@@ -179,7 +197,13 @@ where
         let encoding = self
             .compression_header
             .data_series_encodings()
-            .alignment_starts();
+            .alignment_starts()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::AlignmentStarts),
+                )
+            })?;
 
         let alignment_start_or_delta = if ap_data_series_delta {
             let start = alignment_start
@@ -214,7 +238,13 @@ where
         let encoding = self
             .compression_header
             .data_series_encodings()
-            .read_group_ids();
+            .read_group_ids()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::ReadGroupIds),
+                )
+            })?;
 
         let n = if let Some(id) = read_group_id {
             i32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
@@ -437,6 +467,12 @@ where
         self.compression_header
             .data_series_encodings()
             .tag_set_ids()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::TagSetIds),
+                )
+            })?
             .encode(self.core_data_writer, self.external_data_writers, n)
     }
 

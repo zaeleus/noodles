@@ -35,7 +35,7 @@ where
 pub(super) fn build_compression_header(options: &Options, records: &[Record]) -> CompressionHeader {
     CompressionHeader {
         preservation_map: build_preservation_map(options, records),
-        data_series_encodings: DataSeriesEncodings::default(),
+        data_series_encodings: DataSeriesEncodings::init(),
         tag_encodings: build_tag_encodings(records),
     }
 }

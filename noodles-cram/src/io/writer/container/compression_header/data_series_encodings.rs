@@ -43,25 +43,35 @@ fn write_encodings<W>(writer: &mut W, data_series_encodings: &DataSeriesEncoding
 where
     W: Write,
 {
-    write_key(writer, DataSeries::BamFlags)?;
-    write_encoding_for_integer_codec(writer, data_series_encodings.bam_flags())?;
+    if let Some(encoding) = data_series_encodings.bam_flags() {
+        write_key(writer, DataSeries::BamFlags)?;
+        write_encoding_for_integer_codec(writer, encoding)?;
+    }
 
-    write_key(writer, DataSeries::CramFlags)?;
-    write_encoding_for_integer_codec(writer, data_series_encodings.cram_flags())?;
+    if let Some(encoding) = data_series_encodings.cram_flags() {
+        write_key(writer, DataSeries::CramFlags)?;
+        write_encoding_for_integer_codec(writer, encoding)?;
+    }
 
     if let Some(encoding) = data_series_encodings.reference_sequence_ids() {
         write_key(writer, DataSeries::ReferenceSequenceIds)?;
         write_encoding_for_integer_codec(writer, encoding)?;
     }
 
-    write_key(writer, DataSeries::ReadLengths)?;
-    write_encoding_for_integer_codec(writer, data_series_encodings.read_lengths())?;
+    if let Some(encoding) = data_series_encodings.read_lengths() {
+        write_key(writer, DataSeries::ReadLengths)?;
+        write_encoding_for_integer_codec(writer, encoding)?;
+    }
 
-    write_key(writer, DataSeries::AlignmentStarts)?;
-    write_encoding_for_integer_codec(writer, data_series_encodings.alignment_starts())?;
+    if let Some(encoding) = data_series_encodings.alignment_starts() {
+        write_key(writer, DataSeries::AlignmentStarts)?;
+        write_encoding_for_integer_codec(writer, encoding)?;
+    }
 
-    write_key(writer, DataSeries::ReadGroupIds)?;
-    write_encoding_for_integer_codec(writer, data_series_encodings.read_group_ids())?;
+    if let Some(encoding) = data_series_encodings.read_group_ids() {
+        write_key(writer, DataSeries::ReadGroupIds)?;
+        write_encoding_for_integer_codec(writer, encoding)?;
+    }
 
     if let Some(encoding) = data_series_encodings.names() {
         write_key(writer, DataSeries::Names)?;
@@ -93,8 +103,10 @@ where
         write_encoding_for_integer_codec(writer, encoding)?;
     }
 
-    write_key(writer, DataSeries::TagSetIds)?;
-    write_encoding_for_integer_codec(writer, data_series_encodings.tag_set_ids())?;
+    if let Some(encoding) = data_series_encodings.tag_set_ids() {
+        write_key(writer, DataSeries::TagSetIds)?;
+        write_encoding_for_integer_codec(writer, encoding)?;
+    }
 
     if let Some(encoding) = data_series_encodings.feature_counts() {
         write_key(writer, DataSeries::FeatureCounts)?;

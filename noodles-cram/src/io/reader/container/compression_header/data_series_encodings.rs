@@ -15,134 +15,83 @@ fn read_data_series_encodings_inner(
     src: &mut &[u8],
     len: usize,
 ) -> io::Result<DataSeriesEncodings> {
-    let mut builder = DataSeriesEncodings::builder();
+    let mut map = DataSeriesEncodings::default();
 
     for _ in 0..len {
-        let key = read_key(src)?;
-
-        builder = match key {
-            DataSeries::BamFlags => {
-                let encoding = read_integer_encoding(src)?;
-                builder.set_bam_flags(encoding)
-            }
-            DataSeries::CramFlags => {
-                let encoding = read_integer_encoding(src)?;
-                builder.set_cram_flags(encoding)
-            }
+        match read_key(src)? {
+            DataSeries::BamFlags => map.bam_flags = read_integer_encoding(src).map(Some)?,
+            DataSeries::CramFlags => map.cram_flags = read_integer_encoding(src).map(Some)?,
             DataSeries::ReferenceSequenceIds => {
-                let encoding = read_integer_encoding(src)?;
-                builder.set_reference_sequence_ids(encoding)
+                map.reference_sequence_ids = read_integer_encoding(src).map(Some)?
             }
-            DataSeries::ReadLengths => {
-                let encoding = read_integer_encoding(src)?;
-                builder.set_read_lengths(encoding)
-            }
+            DataSeries::ReadLengths => map.read_lengths = read_integer_encoding(src).map(Some)?,
             DataSeries::AlignmentStarts => {
-                let encoding = read_integer_encoding(src)?;
-                builder.set_alignment_starts(encoding)
+                map.alignment_starts = read_integer_encoding(src).map(Some)?
             }
             DataSeries::ReadGroupIds => {
-                let encoding = read_integer_encoding(src)?;
-                builder.set_read_group_ids(encoding)
+                map.read_group_ids = read_integer_encoding(src).map(Some)?
             }
-            DataSeries::Names => {
-                let encoding = read_byte_array_encoding(src)?;
-                builder.set_names(encoding)
-            }
-            DataSeries::MateFlags => {
-                let encoding = read_integer_encoding(src)?;
-                builder.set_mate_flags(encoding)
-            }
+            DataSeries::Names => map.names = read_byte_array_encoding(src).map(Some)?,
+            DataSeries::MateFlags => map.mate_flags = read_integer_encoding(src).map(Some)?,
             DataSeries::MateReferenceSequenceId => {
-                let encoding = read_integer_encoding(src)?;
-                builder.set_mate_reference_sequence_ids(encoding)
+                map.mate_reference_sequence_ids = read_integer_encoding(src).map(Some)?
             }
             DataSeries::MateAlignmentStart => {
-                let encoding = read_integer_encoding(src)?;
-                builder.set_mate_alignment_starts(encoding)
+                map.mate_alignment_starts = read_integer_encoding(src).map(Some)?
             }
             DataSeries::TemplateLengths => {
-                let encoding = read_integer_encoding(src)?;
-                builder.set_template_lengths(encoding)
+                map.template_lengths = read_integer_encoding(src).map(Some)?
             }
             DataSeries::MateDistances => {
-                let encoding = read_integer_encoding(src)?;
-                builder.set_mate_distances(encoding)
+                map.mate_distances = read_integer_encoding(src).map(Some)?
             }
-            DataSeries::TagSetIds => {
-                let encoding = read_integer_encoding(src)?;
-                builder.set_tag_set_ids(encoding)
-            }
+            DataSeries::TagSetIds => map.tag_set_ids = read_integer_encoding(src).map(Some)?,
             DataSeries::FeatureCounts => {
-                let encoding = read_integer_encoding(src)?;
-                builder.set_feature_counts(encoding)
+                map.feature_counts = read_integer_encoding(src).map(Some)?
             }
-            DataSeries::FeatureCodes => {
-                let encoding = read_byte_encoding(src)?;
-                builder.set_feature_codes(encoding)
-            }
+            DataSeries::FeatureCodes => map.feature_codes = read_byte_encoding(src).map(Some)?,
             DataSeries::FeaturePositionDeltas => {
-                let encoding = read_integer_encoding(src)?;
-                builder.set_feature_position_deltas(encoding)
+                map.feature_position_deltas = read_integer_encoding(src).map(Some)?
             }
             DataSeries::DeletionLengths => {
-                let encoding = read_integer_encoding(src)?;
-                builder.set_deletion_lengths(encoding)
+                map.deletion_lengths = read_integer_encoding(src).map(Some)?
             }
             DataSeries::StretchesOfBases => {
-                let encoding = read_byte_array_encoding(src)?;
-                builder.set_stretches_of_bases(encoding)
+                map.stretches_of_bases = read_byte_array_encoding(src).map(Some)?
             }
             DataSeries::StretchesOfQualityScores => {
-                let encoding = read_byte_array_encoding(src)?;
-                builder.set_stretches_of_quality_scores(encoding)
+                map.stretches_of_quality_scores = read_byte_array_encoding(src).map(Some)?
             }
             DataSeries::BaseSubstitutionCodes => {
-                let encoding = read_byte_encoding(src)?;
-                builder.set_base_substitution_codes(encoding)
+                map.base_substitution_codes = read_byte_encoding(src).map(Some)?
             }
             DataSeries::InsertionBases => {
-                let encoding = read_byte_array_encoding(src)?;
-                builder.set_insertion_bases(encoding)
+                map.insertion_bases = read_byte_array_encoding(src).map(Some)?
             }
             DataSeries::ReferenceSkipLengths => {
-                let encoding = read_integer_encoding(src)?;
-                builder.set_reference_skip_lengths(encoding)
+                map.reference_skip_lengths = read_integer_encoding(src).map(Some)?
             }
             DataSeries::PaddingLengths => {
-                let encoding = read_integer_encoding(src)?;
-                builder.set_padding_lengths(encoding)
+                map.padding_lengths = read_integer_encoding(src).map(Some)?
             }
             DataSeries::HardClipLengths => {
-                let encoding = read_integer_encoding(src)?;
-                builder.set_hard_clip_lengths(encoding)
+                map.hard_clip_lengths = read_integer_encoding(src).map(Some)?
             }
             DataSeries::SoftClipBases => {
-                let encoding = read_byte_array_encoding(src)?;
-                builder.set_soft_clip_bases(encoding)
+                map.soft_clip_bases = read_byte_array_encoding(src).map(Some)?
             }
             DataSeries::MappingQualities => {
-                let encoding = read_integer_encoding(src)?;
-                builder.set_mapping_qualities(encoding)
+                map.mapping_qualities = read_integer_encoding(src).map(Some)?
             }
-            DataSeries::Bases => {
-                let encoding = read_byte_encoding(src)?;
-                builder.set_bases(encoding)
-            }
-            DataSeries::QualityScores => {
-                let encoding = read_byte_encoding(src)?;
-                builder.set_quality_scores(encoding)
-            }
+            DataSeries::Bases => map.bases = read_byte_encoding(src).map(Some)?,
+            DataSeries::QualityScores => map.quality_scores = read_byte_encoding(src).map(Some)?,
             DataSeries::ReservedTc | DataSeries::ReservedTn => {
                 read_integer_encoding(src)?;
-                builder
             }
         }
     }
 
-    builder
-        .build()
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    Ok(map)
 }
 
 fn read_key(src: &mut &[u8]) -> io::Result<DataSeries> {
@@ -168,7 +117,7 @@ mod tests {
 
     #[test]
     fn test_read_data_series_encodings() -> io::Result<()> {
-        let expected = DataSeriesEncodings::default();
+        let expected = DataSeriesEncodings::init();
 
         let src = build_data(&expected)?;
         let actual = read_data_series_encodings(&mut &src[..])?;
