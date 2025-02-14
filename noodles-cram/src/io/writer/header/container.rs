@@ -78,8 +78,6 @@ fn build_header() -> Header {
 
 #[cfg(test)]
 mod tests {
-    use bytes::BufMut;
-
     use super::*;
 
     #[test]
@@ -102,8 +100,7 @@ mod tests {
         let header_data = b"@HD\tVN:1.6\n";
         let header_data_len = i32::try_from(header_data.len())?;
 
-        let mut data = Vec::new();
-        data.put_i32_le(header_data_len);
+        let mut data = header_data_len.to_le_bytes().to_vec();
         data.extend(header_data);
 
         let compressed_data = gzip::encode(Compression::new(6), &data)?;
@@ -120,7 +117,7 @@ mod tests {
 
         let crc32 = block_writer.crc().sum();
         let mut expected_block = block_writer.into_inner();
-        expected_block.put_u32_le(crc32); // crc32
+        expected_block.extend(crc32.to_le_bytes());
 
         let mut header_writer = CrcWriter::new(Vec::new());
         header_writer.write_i32::<LittleEndian>(i32::try_from(expected_block.len())?)?; // length
@@ -137,7 +134,7 @@ mod tests {
 
         let crc32 = header_writer.crc().sum();
         let mut expected_header = header_writer.into_inner();
-        expected_header.put_u32_le(crc32); // crc32
+        expected_header.extend(crc32.to_le_bytes()); // crc32
 
         let mut expected = expected_header;
         expected.extend(expected_block);

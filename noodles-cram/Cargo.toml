@@ -18,7 +18,6 @@ libdeflate = ["dep:libdeflater"]
 bitflags.workspace = true
 bstr.workspace = true
 byteorder.workspace = true
-bytes.workspace = true
 bzip2 = "0.5.0"
 flate2.workspace = true
 indexmap.workspace = true
