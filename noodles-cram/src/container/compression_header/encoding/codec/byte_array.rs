@@ -16,7 +16,7 @@ use crate::{
             Encoding,
         },
     },
-    io::{reader::record::ExternalDataReaders, BitReader, BitWriter},
+    io::{reader::container::slice::records::ExternalDataReaders, BitReader, BitWriter},
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]

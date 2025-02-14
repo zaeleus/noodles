@@ -1,4 +1,5 @@
 mod header;
+pub mod records;
 
 use std::{borrow::Cow, io};
 
@@ -6,7 +7,10 @@ use noodles_core::Position;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
-use self::header::read_header;
+use self::{
+    header::read_header,
+    records::{ExternalDataReaders, Records},
+};
 use super::read_block_as;
 use crate::{
     calculate_normalized_sequence_digest,
@@ -96,8 +100,6 @@ impl<'c> Slice<'c> {
         core_data_src: &'c [u8],
         external_data_srcs: &'c [(block::ContentId, Vec<u8>)],
     ) -> io::Result<Vec<Record>> {
-        use crate::io::reader::record::ExternalDataReaders;
-
         let core_data_reader = BitReader::new(core_data_src);
 
         let mut external_data_readers = ExternalDataReaders::new();
@@ -108,7 +110,7 @@ impl<'c> Slice<'c> {
 
         let reference_sequence_context = self.header.reference_sequence_context();
 
-        let mut record_reader = crate::io::reader::record::Reader::new(
+        let mut reader = Records::new(
             compression_header,
             core_data_reader,
             external_data_readers,
@@ -135,7 +137,7 @@ impl<'c> Slice<'c> {
 
         for (id, record) in ids.zip(&mut records) {
             record.id = id;
-            record_reader.read_record(record)?;
+            reader.read_record(record)?;
 
             record.header = Some(header);
 

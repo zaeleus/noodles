@@ -10,7 +10,7 @@ use std::{
 
 use crate::{
     container::block,
-    io::{reader::record::ExternalDataReaders, BitReader, BitWriter},
+    io::{reader::container::slice::records::ExternalDataReaders, BitReader, BitWriter},
 };
 
 pub trait Decode<'de> {

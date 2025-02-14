@@ -10,7 +10,7 @@ use crate::{
     },
     huffman::CanonicalHuffmanDecoder,
     io::{
-        reader::{num::read_itf8, record::ExternalDataReaders},
+        reader::{container::slice::records::ExternalDataReaders, num::read_itf8},
         writer::num::write_itf8,
         BitReader, BitWriter,
     },

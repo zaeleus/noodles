@@ -42,7 +42,7 @@ impl fmt::Display for ReadRecordError {
     }
 }
 
-pub struct Reader<'c, 'ch: 'c> {
+pub struct Records<'c, 'ch: 'c> {
     compression_header: &'ch CompressionHeader,
     core_data_reader: BitReader<'c>,
     external_data_readers: ExternalDataReaders<'c>,
@@ -50,7 +50,7 @@ pub struct Reader<'c, 'ch: 'c> {
     prev_alignment_start: Option<Position>,
 }
 
-impl<'c, 'ch: 'c> Reader<'c, 'ch> {
+impl<'c, 'ch: 'c> Records<'c, 'ch> {
     pub fn new(
         compression_header: &'ch CompressionHeader,
         core_data_reader: BitReader<'c>,
