@@ -3,7 +3,7 @@ use std::{
     io::{self, Write},
 };
 
-use super::write_encoding_for_byte_array_codec;
+use super::write_byte_array_encoding;
 use crate::{
     container::{
         block,
@@ -28,7 +28,7 @@ where
 
     for (&block_content_id, encoding) in tag_encodings.iter() {
         write_itf8(&mut buf, block_content_id)?;
-        write_encoding_for_byte_array_codec(&mut buf, encoding)?;
+        write_byte_array_encoding(&mut buf, encoding)?;
     }
 
     let data_len =

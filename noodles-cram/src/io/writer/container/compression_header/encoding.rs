@@ -16,7 +16,7 @@ use crate::{
     io::writer::num::write_itf8,
 };
 
-pub fn write_encoding_for_byte_codec<W>(writer: &mut W, encoding: &Encoding<Byte>) -> io::Result<()>
+pub fn write_byte_encoding<W>(writer: &mut W, encoding: &Encoding<Byte>) -> io::Result<()>
 where
     W: Write,
 {
@@ -26,10 +26,7 @@ where
     }
 }
 
-pub fn write_encoding_for_integer_codec<W>(
-    writer: &mut W,
-    encoding: &Encoding<Integer>,
-) -> io::Result<()>
+pub fn write_integer_encoding<W>(writer: &mut W, encoding: &Encoding<Integer>) -> io::Result<()>
 where
     W: Write,
 {
@@ -44,7 +41,7 @@ where
     }
 }
 
-pub fn write_encoding_for_byte_array_codec<W>(
+pub fn write_byte_array_encoding<W>(
     writer: &mut W,
     encoding: &Encoding<ByteArray>,
 ) -> io::Result<()>
@@ -160,8 +157,8 @@ where
 {
     let mut args = Vec::new();
 
-    write_encoding_for_integer_codec(&mut args, len_encoding)?;
-    write_encoding_for_byte_codec(&mut args, value_encoding)?;
+    write_integer_encoding(&mut args, len_encoding)?;
+    write_byte_encoding(&mut args, value_encoding)?;
 
     write_kind(writer, Kind::ByteArrayLen)?;
     write_args(writer, &args)?;

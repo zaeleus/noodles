@@ -1,11 +1,12 @@
 use std::io::{self, Write};
 
-use super::{
-    write_encoding_for_byte_array_codec, write_encoding_for_byte_codec,
-    write_encoding_for_integer_codec,
-};
+use super::{write_byte_array_encoding, write_byte_encoding, write_integer_encoding};
 use crate::{
-    container::compression_header::{data_series_encodings::DataSeries, DataSeriesEncodings},
+    container::compression_header::{
+        data_series_encodings::DataSeries,
+        encoding::codec::{Byte, ByteArray, Integer},
+        DataSeriesEncodings, Encoding,
+    },
     io::writer::num::write_itf8,
 };
 
@@ -80,148 +81,86 @@ where
     writer.write_all(&data)
 }
 
-fn write_encodings<W>(writer: &mut W, data_series_encodings: &DataSeriesEncodings) -> io::Result<()>
+#[rustfmt::skip]
+fn write_encodings<W>(writer: &mut W, encodings: &DataSeriesEncodings) -> io::Result<()>
 where
     W: Write,
 {
-    if let Some(encoding) = data_series_encodings.bam_flags() {
-        write_key(writer, DataSeries::BamFlags)?;
-        write_encoding_for_integer_codec(writer, encoding)?;
+    maybe_write_integer_encoding(writer, DataSeries::BamFlags, encodings.bam_flags())?;
+    maybe_write_integer_encoding(writer, DataSeries::CramFlags, encodings.cram_flags())?;
+    maybe_write_integer_encoding(writer, DataSeries::ReferenceSequenceIds, encodings.reference_sequence_ids())?;
+    maybe_write_integer_encoding(writer, DataSeries::ReadLengths, encodings.read_lengths())?;
+    maybe_write_integer_encoding(writer, DataSeries::AlignmentStarts, encodings.alignment_starts())?;
+    maybe_write_integer_encoding(writer, DataSeries::ReadGroupIds, encodings.read_group_ids())?;
+    maybe_write_byte_array_encoding(writer, DataSeries::Names, encodings.names())?;
+    maybe_write_integer_encoding(writer, DataSeries::MateFlags, encodings.mate_flags())?;
+    maybe_write_integer_encoding(writer, DataSeries::MateReferenceSequenceId, encodings.mate_reference_sequence_ids())?;
+    maybe_write_integer_encoding(writer, DataSeries::MateAlignmentStart, encodings.mate_alignment_starts())?;
+    maybe_write_integer_encoding(writer, DataSeries::TemplateLengths, encodings.template_lengths())?;
+    maybe_write_integer_encoding(writer, DataSeries::MateDistances, encodings.mate_distances())?;
+    maybe_write_integer_encoding(writer, DataSeries::TagSetIds, encodings.tag_set_ids())?;
+    maybe_write_integer_encoding(writer, DataSeries::FeatureCounts, encodings.feature_counts())?;
+    maybe_write_byte_encoding(writer, DataSeries::FeatureCodes, encodings.feature_codes())?;
+    maybe_write_integer_encoding(writer, DataSeries::FeaturePositionDeltas, encodings.feature_position_deltas())?;
+    maybe_write_integer_encoding(writer, DataSeries::DeletionLengths, encodings.deletion_lengths())?;
+    maybe_write_byte_array_encoding(writer, DataSeries::StretchesOfBases, encodings.stretches_of_bases())?;
+    maybe_write_byte_array_encoding(writer, DataSeries::StretchesOfQualityScores, encodings.stretches_of_quality_scores())?;
+    maybe_write_byte_encoding(writer, DataSeries::BaseSubstitutionCodes, encodings.base_substitution_codes())?;
+    maybe_write_byte_array_encoding(writer, DataSeries::InsertionBases, encodings.insertion_bases())?;
+    maybe_write_integer_encoding(writer, DataSeries::ReferenceSkipLengths, encodings.reference_skip_lengths())?;
+    maybe_write_integer_encoding(writer, DataSeries::PaddingLengths, encodings.padding_lengths())?;
+    maybe_write_integer_encoding(writer, DataSeries::HardClipLengths, encodings.hard_clip_lengths())?;
+    maybe_write_byte_array_encoding(writer, DataSeries::SoftClipBases, encodings.soft_clip_bases())?;
+    maybe_write_integer_encoding(writer, DataSeries::MappingQualities, encodings.mapping_qualities())?;
+    maybe_write_byte_encoding(writer, DataSeries::Bases, encodings.bases())?;
+    maybe_write_byte_encoding(writer, DataSeries::QualityScores, encodings.quality_scores())?;
+
+    Ok(())
+}
+
+fn maybe_write_byte_encoding<W>(
+    writer: &mut W,
+    key: DataSeries,
+    encoding: Option<&Encoding<Byte>>,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    if let Some(encoding) = encoding {
+        write_key(writer, key)?;
+        write_byte_encoding(writer, encoding)?;
     }
 
-    if let Some(encoding) = data_series_encodings.cram_flags() {
-        write_key(writer, DataSeries::CramFlags)?;
-        write_encoding_for_integer_codec(writer, encoding)?;
+    Ok(())
+}
+
+fn maybe_write_integer_encoding<W>(
+    writer: &mut W,
+    key: DataSeries,
+    encoding: Option<&Encoding<Integer>>,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    if let Some(encoding) = encoding {
+        write_key(writer, key)?;
+        write_integer_encoding(writer, encoding)?;
     }
 
-    if let Some(encoding) = data_series_encodings.reference_sequence_ids() {
-        write_key(writer, DataSeries::ReferenceSequenceIds)?;
-        write_encoding_for_integer_codec(writer, encoding)?;
-    }
+    Ok(())
+}
 
-    if let Some(encoding) = data_series_encodings.read_lengths() {
-        write_key(writer, DataSeries::ReadLengths)?;
-        write_encoding_for_integer_codec(writer, encoding)?;
-    }
-
-    if let Some(encoding) = data_series_encodings.alignment_starts() {
-        write_key(writer, DataSeries::AlignmentStarts)?;
-        write_encoding_for_integer_codec(writer, encoding)?;
-    }
-
-    if let Some(encoding) = data_series_encodings.read_group_ids() {
-        write_key(writer, DataSeries::ReadGroupIds)?;
-        write_encoding_for_integer_codec(writer, encoding)?;
-    }
-
-    if let Some(encoding) = data_series_encodings.names() {
-        write_key(writer, DataSeries::Names)?;
-        write_encoding_for_byte_array_codec(writer, encoding)?;
-    }
-
-    if let Some(encoding) = data_series_encodings.mate_flags() {
-        write_key(writer, DataSeries::MateFlags)?;
-        write_encoding_for_integer_codec(writer, encoding)?;
-    }
-
-    if let Some(encoding) = data_series_encodings.mate_reference_sequence_ids() {
-        write_key(writer, DataSeries::MateReferenceSequenceId)?;
-        write_encoding_for_integer_codec(writer, encoding)?;
-    }
-
-    if let Some(encoding) = data_series_encodings.mate_alignment_starts() {
-        write_key(writer, DataSeries::MateAlignmentStart)?;
-        write_encoding_for_integer_codec(writer, encoding)?;
-    }
-
-    if let Some(encoding) = data_series_encodings.template_lengths() {
-        write_key(writer, DataSeries::TemplateLengths)?;
-        write_encoding_for_integer_codec(writer, encoding)?;
-    }
-
-    if let Some(encoding) = data_series_encodings.mate_distances() {
-        write_key(writer, DataSeries::MateDistances)?;
-        write_encoding_for_integer_codec(writer, encoding)?;
-    }
-
-    if let Some(encoding) = data_series_encodings.tag_set_ids() {
-        write_key(writer, DataSeries::TagSetIds)?;
-        write_encoding_for_integer_codec(writer, encoding)?;
-    }
-
-    if let Some(encoding) = data_series_encodings.feature_counts() {
-        write_key(writer, DataSeries::FeatureCounts)?;
-        write_encoding_for_integer_codec(writer, encoding)?;
-    }
-
-    if let Some(encoding) = data_series_encodings.feature_codes() {
-        write_key(writer, DataSeries::FeatureCodes)?;
-        write_encoding_for_byte_codec(writer, encoding)?;
-    }
-
-    if let Some(encoding) = data_series_encodings.feature_position_deltas() {
-        write_key(writer, DataSeries::FeaturePositionDeltas)?;
-        write_encoding_for_integer_codec(writer, encoding)?;
-    }
-
-    if let Some(encoding) = data_series_encodings.deletion_lengths() {
-        write_key(writer, DataSeries::DeletionLengths)?;
-        write_encoding_for_integer_codec(writer, encoding)?;
-    }
-
-    if let Some(encoding) = data_series_encodings.stretches_of_bases() {
-        write_key(writer, DataSeries::StretchesOfBases)?;
-        write_encoding_for_byte_array_codec(writer, encoding)?;
-    }
-
-    if let Some(encoding) = data_series_encodings.stretches_of_quality_scores() {
-        write_key(writer, DataSeries::StretchesOfQualityScores)?;
-        write_encoding_for_byte_array_codec(writer, encoding)?;
-    }
-
-    if let Some(encoding) = data_series_encodings.base_substitution_codes() {
-        write_key(writer, DataSeries::BaseSubstitutionCodes)?;
-        write_encoding_for_byte_codec(writer, encoding)?;
-    }
-
-    if let Some(encoding) = data_series_encodings.insertion_bases() {
-        write_key(writer, DataSeries::InsertionBases)?;
-        write_encoding_for_byte_array_codec(writer, encoding)?;
-    }
-
-    if let Some(encoding) = data_series_encodings.reference_skip_lengths() {
-        write_key(writer, DataSeries::ReferenceSkipLengths)?;
-        write_encoding_for_integer_codec(writer, encoding)?;
-    }
-
-    if let Some(encoding) = data_series_encodings.padding_lengths() {
-        write_key(writer, DataSeries::PaddingLengths)?;
-        write_encoding_for_integer_codec(writer, encoding)?;
-    }
-
-    if let Some(encoding) = data_series_encodings.hard_clip_lengths() {
-        write_key(writer, DataSeries::HardClipLengths)?;
-        write_encoding_for_integer_codec(writer, encoding)?;
-    }
-
-    if let Some(encoding) = data_series_encodings.soft_clip_bases() {
-        write_key(writer, DataSeries::SoftClipBases)?;
-        write_encoding_for_byte_array_codec(writer, encoding)?;
-    }
-
-    if let Some(encoding) = data_series_encodings.mapping_qualities() {
-        write_key(writer, DataSeries::MappingQualities)?;
-        write_encoding_for_integer_codec(writer, encoding)?;
-    }
-
-    if let Some(encoding) = data_series_encodings.bases() {
-        write_key(writer, DataSeries::Bases)?;
-        write_encoding_for_byte_codec(writer, encoding)?;
-    }
-
-    if let Some(encoding) = data_series_encodings.quality_scores() {
-        write_key(writer, DataSeries::QualityScores)?;
-        write_encoding_for_byte_codec(writer, encoding)?;
+fn maybe_write_byte_array_encoding<W>(
+    writer: &mut W,
+    key: DataSeries,
+    encoding: Option<&Encoding<ByteArray>>,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    if let Some(encoding) = encoding {
+        write_key(writer, key)?;
+        write_byte_array_encoding(writer, encoding)?;
     }
 
     Ok(())
@@ -229,8 +168,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::container::compression_header::{encoding::codec::Integer, Encoding};
-
     use super::*;
 
     #[test]

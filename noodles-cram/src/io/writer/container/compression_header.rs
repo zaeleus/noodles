@@ -7,10 +7,7 @@ use std::io::{self, Write};
 
 use self::{
     data_series_encodings::write_data_series_encodings,
-    encoding::{
-        write_encoding_for_byte_array_codec, write_encoding_for_byte_codec,
-        write_encoding_for_integer_codec,
-    },
+    encoding::{write_byte_array_encoding, write_byte_encoding, write_integer_encoding},
     preservation_map::{build_preservation_map, write_preservation_map},
     tag_encodings::{build_tag_encodings, write_tag_encodings},
 };
