@@ -52,6 +52,7 @@ impl Container {
                 Some(read_slice(&mut src))
             } else if i < landmarks.len() {
                 let start = landmarks[i];
+                i += 1;
                 let mut src = &self.src[start..];
                 Some(read_slice(&mut src))
             } else {
