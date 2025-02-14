@@ -112,8 +112,11 @@ impl<'r: 'c, 'c: 'r> Iterator for Iter<'r, 'c> {
                         Feature::Substitution { code, .. } => {
                             if let Some(reference_sequence) = self.reference_sequence {
                                 let reference_base =
-                                    Base::try_from(reference_sequence[reference_position]).unwrap();
+                                    Base::try_from(reference_sequence[reference_position])
+                                        .unwrap_or_default();
+
                                 let read_base = self.substitution_matrix.get(reference_base, *code);
+
                                 State::Base(u8::from(read_base))
                             } else {
                                 panic!("missing reference sequence (substitution)");
