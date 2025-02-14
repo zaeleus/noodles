@@ -13,29 +13,35 @@ use crate::{
             Encoding, TagEncodings,
         },
     },
-    io::writer::{num::write_itf8, Record},
+    io::writer::{collections::write_array, num::write_itf8, Record},
 };
 
 pub fn write_tag_encodings<W>(writer: &mut W, tag_encodings: &TagEncodings) -> io::Result<()>
 where
     W: Write,
 {
-    let mut buf = Vec::new();
+    let buf = encode(tag_encodings)?;
+    write_array(writer, &buf)
+}
 
-    let map_len = i32::try_from(tag_encodings.len())
+fn encode(tag_encodings: &TagEncodings) -> io::Result<Vec<u8>> {
+    let mut buf = Vec::new();
+    encode_inner(&mut buf, tag_encodings)?;
+    Ok(buf)
+}
+
+fn encode_inner<W>(writer: &mut W, tag_encodings: &TagEncodings) -> io::Result<()>
+where
+    W: Write,
+{
+    let len = i32::try_from(tag_encodings.len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_itf8(&mut buf, map_len)?;
+    write_itf8(writer, len)?;
 
     for (&block_content_id, encoding) in tag_encodings.iter() {
-        write_itf8(&mut buf, block_content_id)?;
-        write_byte_array_encoding(&mut buf, encoding)?;
+        write_itf8(writer, block_content_id)?;
+        write_byte_array_encoding(writer, encoding)?;
     }
-
-    let data_len =
-        i32::try_from(buf.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_itf8(writer, data_len)?;
-
-    writer.write_all(&buf)?;
 
     Ok(())
 }
